@@ -95,26 +95,14 @@ NumericSet( ppath_lraytrace, 500 )
 #
 # Here we consider dispersion (overkill if not ionopshere included)
 #
-AgendaSet( iy_main_agenda ){
-  Ignore(t_nlte_field)
-  Ignore(diy_dx)
-  iyLoopFrequencies
-}
-AgendaSet( iy_sub_agenda ){
-  Ignore( rte_los )
-  Ignore( iy_unit )
-  Ignore( diy_dx )
-  iyRadioLink
-}
+Copy( iy_main_agenda, iy_main_agenda__Freqloop )
+Copy( iy_sub_agenda, iy_sub_agenda__Radiolink )
+
 
 #
 # Transmitted signal
 #
-AgendaSet( iy_transmitter_agenda ){
-  Ignore( rtp_pos )
-  Ignore( rtp_los )
-  iy_transmitterSinglePol
-}
+Copy( iy_transmitter_agenda, iy_transmitter_agenda__UnitPolIntensity )
 
 
 #

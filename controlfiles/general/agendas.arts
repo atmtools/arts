@@ -39,6 +39,26 @@ AgendaSet( iy_main_agenda__Transmission ){
 }
 
 ###
+AgendaCreate( iy_main_agenda__Radiolink )
+AgendaSet( iy_main_agenda__Radiolink ){
+  Ignore( iy_unit )
+  Ignore( rte_los )
+  Ignore( t_nlte_field )
+  Ignore( diy_dx )
+  Ignore( iy_id )
+  iyRadioLink
+}
+
+###
+AgendaCreate( iy_main_agenda__Freqloop )
+AgendaSet( iy_main_agenda__Freqloop ){
+  Ignore( t_nlte_field )
+  Ignore( diy_dx )
+  Ignore( iy_id )
+  iyLoopFrequencies
+}
+
+###
 AgendaCreate( iy_main_agenda__ScattMC )
 AgendaSet( iy_main_agenda__ScattMC ){
   Ignore( rte_pos2 )
@@ -50,8 +70,51 @@ AgendaSet( iy_main_agenda__ScattMC ){
 }
 
 ###
-AgendaCreate( iy_main_agenda__Radiolink )
-AgendaSet( iy_main_agenda__Radiolink ){
+AgendaCreate( iy_main_agenda__FOSN0 )
+AgendaSet( iy_main_agenda__FOSN0 ){
+    Ignore(t_nlte_field)
+    Ignore(iy_id)
+    iyFOS(fos_n=0)
+}
+
+
+
+##################################
+#    iy_sub_agenda
+##################################
+
+###
+AgendaCreate( iy_sub_agenda__Emission )
+AgendaSet( iy_sub_agenda__Emission ){
+  Ignore( lat_grid )
+  Ignore( lon_grid )
+  Ignore( lat_true )
+  Ignore( lon_true )
+  Ignore( z_surface )
+  Ignore( cloudbox_limits )
+  Ignore( pnd_field )
+  iyEmissionStandard
+}
+
+###
+AgendaCreate( iy_sub_agenda__Transmission )
+AgendaSet( iy_sub_agenda__Transmission ){
+  Ignore( lat_grid )
+  Ignore( lon_grid )
+  Ignore( lat_true )
+  Ignore( lon_true )
+  Ignore( z_surface )
+  Ignore( iy_unit )
+  Ignore( t_nlte_field )
+  Ignore( iy_id )
+  iyTransmissionStandard
+}
+
+###
+AgendaCreate( iy_sub_agenda__Radiolink )
+AgendaSet( iy_sub_agenda__Radiolink ){
+  Ignore( lat_true )
+  Ignore( lon_true )
   Ignore( iy_unit )
   Ignore( rte_los )
   Ignore( t_nlte_field )
@@ -59,6 +122,7 @@ AgendaSet( iy_main_agenda__Radiolink ){
   Ignore( iy_id )
   iyRadioLink
 }
+
 
 
 ##################################
@@ -88,6 +152,16 @@ AgendaSet( iy_transmitter_agenda__UnitUnpolIntensity ){
   Ignore( rtp_pos )
   Ignore( rtp_los )
   MatrixUnitIntensity( iy, stokes_dim, f_grid )
+}
+
+###
+# Unit polarised intensity
+#
+AgendaCreate( iy_transmitter_agenda__UnitPolIntensity )
+AgendaSet( iy_transmitter_agenda__UnitPolIntensity ){
+  Ignore( rtp_pos )
+  Ignore( rtp_los )
+  iy_transmitterSinglePol
 }
 
 

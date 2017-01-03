@@ -107,11 +107,7 @@ NumericSet( ppath_lraytrace, 100 )
 #
 VectorSet( rte_los, [] )   # Dummy value
 #
-AgendaSet( iy_transmitter_agenda ){
-  Ignore( rtp_pos )
-  Ignore( rtp_los )
-  MatrixUnitIntensity( iy, stokes_dim, f_grid )
-}
+Copy( iy_transmitter_agenda, iy_transmitter_agenda__UnitUnpolIntensity )
 Copy( iy_main_agenda, iy_main_agenda__Radiolink )
 
 

@@ -124,12 +124,7 @@ Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 
 # use MC scattering module
 #####
-AgendaSet(iy_main_agenda){
-   Ignore( rte_pos2 )
-   Ignore(t_nlte_field)
-   iyMC
-   Touch ( ppath )
-}
+Copy( iy_main_agenda, iy_main_agenda__ScattMC )
 
 # MC specific settings
 #####

@@ -103,12 +103,7 @@ NumericSet( ppath_lraytrace, 100 )
 
 # Radiative transfer agendas and variables
 #
-AgendaSet( iy_transmitter_agenda ){
-  Ignore( rtp_pos )
-  Ignore( rtp_los )
-  MatrixUnitIntensity( iy, stokes_dim, f_grid )
-}
-# Here we use the numerical defocusing method
+Copy( iy_transmitter_agenda, iy_transmitter_agenda__UnitUnpolIntensity )
 AgendaSet( iy_main_agenda ){
   Ignore( iy_unit )
   Ignore( rte_los )

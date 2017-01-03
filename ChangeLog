@@ -1,5 +1,28 @@
 2017-01-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-580
+
+	* make check-all works again. Not just fixed the problems, also
+	tried to make the contraolfiles a bit more resistant against
+	changes in the rt agendas.
+
+	* controlfiles/artscomponents/arts-xml-data/TestClouds_Mars.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestClouds_Venus.arts:
+	* controlfiles/planetary_toolbox/demos/passive/DemoScat_MC_1D.arts:
+	* controlfiles/planetary_toolbox/demos/active/DemoLinkBudget.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioLink2.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts:
+	* controlfiles/artscomponents/transmission/TestTransmission.arts:
+	Replaced some local definitions of iy_main_agenda, iy_sub_agenda and
+	iy_transmission_agenda with prefefined ones from agenda.arts.
+
+	* controlfiles/general/agendas.arts: Introduced
+	iy_main_agenda__Freqloop, iy_sub_agenda__Emission,
+	iy_sub_agenda__Transmission, iy_sub_agenda__Radiolink,
+	iy_main_agenda__FOSN0 and iy_transmitter_agenda__UnitPolIntensity.
+
+2017-01-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-579
 
 	* Started on a feature to support storing data inside

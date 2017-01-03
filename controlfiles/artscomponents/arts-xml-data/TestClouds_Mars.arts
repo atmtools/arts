@@ -276,11 +276,7 @@ AgendaSet( forloop_agenda_dust ){
   Extract( z_surface, z_field, 0 )
 
   # and now the dusty calcs
-  AgendaSet(iy_main_agenda){
-    Ignore(t_nlte_field)
-    Ignore(iy_id)
-    iyFOS(fos_n=0)
-  }
+  Copy( iy_main_agenda, iy_main_agenda__FOSN0 )
   Copy( forloop_agenda, forloop_agenda_particles )
   nelemGet( ncases, pndcasearray )
   IndexStepDown( ncases, ncases )
