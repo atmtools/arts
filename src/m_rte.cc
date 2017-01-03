@@ -2193,30 +2193,76 @@ void iyIndependentColumnApproximation(
   if( !ppath_is_down  &&  !is_increasing( ppath.r ) )
     throw runtime_error( "A propagation path of limb character found. Such "
                          "viewing geometries are not supported by ICA. Propagation "
-                         "paths must be strictly increasing or decreasing" );
+                         "paths must result in strictly increasing or decreasing "
+                         "altitudes." );
 
+  // If scattering and sensor inside atmosphere, we need a pseudo-ppath that
+  // samples altitudes not covered by main ppath. We make this second path
+  // strictly vertical.
+  //
+  Ppath   ppath2;
+  //
+  if( cloudbox_on  &&  ppath.end_lstep == 0 )
+    {
+      Vector los_tmp = rte_los;
+      if( abs(rte_los[0]) < 90 )
+        { los_tmp[0] = 180; }
+      else
+        { los_tmp[0] = 0; }
+      //
+      ppath_agendaExecute( ws, ppath2, ppath_lmax, ppath_lraytrace,
+                           rte_pos, los_tmp, rte_pos2, 0, 0, t_field,
+                           z_field, vmr_field, f_grid, ppath_agenda );
+    }
+  else
+    { ppath2.np = 1; }
 
   // Grid positions, sorted correctly
-  ArrayOfGridPos  gp_p(0), gp_lat(0), gp_lon(0);
+  const Index     np = ppath.np + ppath2.np - 1;
+  ArrayOfGridPos  gp_p(np), gp_lat(np), gp_lon(np);
   if( ppath_is_down )
     {
-      gp_p.resize( ppath.np ); gp_lat.resize( ppath.np );
-      if( atmosphere_dim == 3 ) { gp_lon.resize( ppath.np ); }
+      // Copy ppath in reversed order
       for( Index i=0; i<ppath.np; i++ )
         {
-          const Index inew = ppath.np-i-1;
-          gp_p[inew]   = ppath.gp_p[i];
-          gp_lat[inew] = ppath.gp_lat[i];
-          if( atmosphere_dim == 3 ) { gp_lon[inew] = ppath.gp_lon[i]; }
+          const Index ip = ppath.np - i - 1;
+          gp_p[i]   = ppath.gp_p[ip];
+          gp_lat[i] = ppath.gp_lat[ip];
+          if( atmosphere_dim == 3 ) { gp_lon[i] = ppath.gp_lon[ip]; }
+        }
+      // Append ppath2, but skipping element [0]
+      for( Index i=ppath.np; i<np; i++ )
+        {
+          const Index ip = i - ppath.np + 1;
+          gp_p[i]   = ppath2.gp_p[ip];
+          gp_lat[i] = ppath2.gp_lat[ip];
+          if( atmosphere_dim == 3 ) { gp_lon[i] = ppath2.gp_lon[ip]; }
         }
     }
-  else  // Here we can just copy:
-    { gp_p = ppath.gp_p; gp_lat = ppath.gp_lat; gp_lon = ppath.gp_lon; }
+  else
+    {
+      // Copy ppath2 in reversed order, but skipping element [0]
+      for( Index i=0; i<ppath2.np-1; i++ )
+        {
+          const Index ip = ppath2.np - i - 1;
+          gp_p[i]   = ppath2.gp_p[ip];
+          gp_lat[i] = ppath2.gp_lat[ip];
+          if( atmosphere_dim == 3 ) { gp_lon[i] = ppath2.gp_lon[ip]; }
+        }
+      // Append ppath
+      for( Index i=ppath2.np-1; i<np; i++ )
+        {
+          const Index ip = i - ppath2.np + 1;
+          gp_p[i]   = ppath.gp_p[ip];
+          gp_lat[i] = ppath.gp_lat[ip];
+          if( atmosphere_dim == 3 ) { gp_lon[i] = ppath.gp_lon[ip]; }
+        }
+    }
   
 
   // 1D version of p_grid 
   Matrix         itw;
-  Vector         p1( ppath.np );
+  Vector         p1( np );
   ArrayOfGridPos gp0(0), gp1(1);
   interp_atmfield_gp2itw( itw, 1, gp_p, gp0, gp0 );
   itw2p( p1, p_grid, gp_p, itw );
@@ -2245,17 +2291,17 @@ void iyIndependentColumnApproximation(
   interp_atmfield_gp2itw( itw, atmosphere_dim, gp_p, gp_lat, gp_lon );  
   
   // 1D temperature field
-  Tensor3 t1( ppath.np, 1, 1 );  
+  Tensor3 t1( np, 1, 1 );  
   interp_atmfield_by_itw( t1(joker,0,0), atmosphere_dim, t_field,
                           gp_p, gp_lat, gp_lon, itw )  ;
 
   // 1D altitude field
-  Tensor3 z1( ppath.np, 1, 1 );  
+  Tensor3 z1( np, 1, 1 );  
   interp_atmfield_by_itw( z1(joker,0,0), atmosphere_dim, z_field,
                           gp_p, gp_lat, gp_lon, itw )  ;
   
   // 1D VMR field
-  Tensor4 vmr1( vmr_field.nbooks(), ppath.np, 1, 1 );  
+  Tensor4 vmr1( vmr_field.nbooks(), np, 1, 1 );  
   for( Index is=0; is<vmr_field.nbooks(); is++ )
     { interp_atmfield_by_itw( vmr1(is,joker,0,0), atmosphere_dim,
                               vmr_field( is, joker, joker, joker ), 
@@ -2270,69 +2316,82 @@ void iyIndependentColumnApproximation(
   Vector los1(1); los1[0] = abs( rte_los[0] );
   Vector pos2(0); if( rte_pos2.nelem() ) { pos2 = rte_pos2[Range(0,rte_pos2.nelem())]; } 
 
+
+  
   // Cloudbox variables
-  ArrayOfIndex clims1(0);
-  Tensor4 pnd1(0,0,0,0);  
+  //
+  Index cbox_on1 = cloudbox_on;
+  ArrayOfIndex cbox_lims1(0);
+  Tensor4 pnd1(0,0,0,0);
+  //
   if( cloudbox_on )
     {
-      // A simple algorithm to find new values for cloudbox_limits
-      Index ia=0, ib=0;            // Best guess for index in p1
-      Numeric pa=p1[0], pb=p1[0];  // Corresponding pressures
-      Numeric ta=p_grid[cloudbox_limits[0]];  // Target pressure for ia
-      Numeric tb=p_grid[cloudbox_limits[1]];  // Target pressure for ib
-      for( Index i=1; i<p1.nelem(); i++ )
+      // Determine what p1-levels that are inside cloudbox
+      Index ifirst = np;
+      Index ilast  = -1;
+      for( Index i=0; i<np; i++ )
         {
-          if( abs(p1[i]-ta) < abs(pa-ta) )
-            { ia=i; pa=p1[i]; }
-          if( abs(p1[i]-tb) < abs(pb-tb) )
-            { ib=i; pb=p1[i]; }
+          if( is_gp_inside_cloudbox( gp_p[i], gp_lat[i], gp_lon[i], 
+                                     cloudbox_limits, true, atmosphere_dim ) )
+            {
+              if( i < ifirst ) { ifirst = i; }
+              ilast = i;
+            }
         }
-      clims1.resize(2);
-      clims1[0] = ia;
-      clims1[1] = ib;
 
-      // Create 1D version of pnd_field
-      //
-      pnd1.resize( pnd_field.nbooks(), ib-ia+1, 1, 1 );
-      //
-      itw.resize( 1, Index(pow(2.0,Numeric(atmosphere_dim))) );;
-      for( Index i=0; i<pnd1.npages(); i++ )
+      // If no hit, deactive cloudbox
+      if( ifirst == np )
+        { cbox_on1 = 0; }
+
+      // Otherwise set 1D cloud variables      
+      else
         {
-          const Index i0 = ia + i;
-          ArrayOfGridPos gpc_p(1), gpc_lat(1), gpc_lon(1);
-          if( atmosphere_dim == 2 )
+          // We can enter the cloudbox from the side, and we need to add 1
+          // level on each side to be safe
+          //
+          const Index extra_bot = ifirst == 0 ? 0 : 1;
+          const Index extra_top = ilast == np-1 ? 0 : 1;
+          //
+          cbox_lims1.resize(2);
+          cbox_lims1[0] = ifirst - extra_bot;
+          cbox_lims1[1] = ilast + extra_top;
+          
+          // pnd_field
+          //
+          pnd1.resize( pnd_field.nbooks(), cbox_lims1[1]-cbox_lims1[0]+1, 1, 1 );
+          //
+          itw.resize( 1, Index(pow(2.0,Numeric(atmosphere_dim))) );
+          //
+          for( Index i=extra_bot; i<pnd1.npages()-extra_top; i++ )
             {
-              GridPos gpdummy;              
+              const Index i0 = cbox_lims1[0] + i;
+              ArrayOfGridPos gpc_p(1), gpc_lat(1), gpc_lon(1);
               interp_cloudfield_gp2itw( itw(0,joker), 
-                                        gpc_p[0], gpc_lat[0], gpc_lon[0], 
-                                        gp_p[i0], gp_lat[i0], gpdummy,
-                                        atmosphere_dim, cloudbox_limits );
-            }
-          else
-            {
-              interp_cloudfield_gp2itw( itw(0,joker), 
-                                        gpc_p[0], gpc_lat[0], gpc_lon[0], 
-                                        gp_p[i0], gp_lat[i0], gp_lon[i0],
-                                        atmosphere_dim, cloudbox_limits );
-            }
-          for( Index p=0; p<pnd_field.nbooks(); p++ )
-            {
-              interp_atmfield_by_itw( pnd1(p,i,0,0), atmosphere_dim,
-                                      pnd_field(p,joker,joker,joker), 
-                                      gpc_p, gpc_lat, gpc_lon, itw );
+                                            gpc_p[0], gpc_lat[0], gpc_lon[0], 
+                                            gp_p[i0], gp_lat[i0], gp_lon[i0],
+                                            atmosphere_dim, cloudbox_limits );
+              for( Index p=0; p<pnd_field.nbooks(); p++ )
+                {
+                  interp_atmfield_by_itw( pnd1(p,i,0,0), atmosphere_dim,
+                                          pnd_field(p,joker,joker,joker), 
+                                          gpc_p, gpc_lat, gpc_lon, itw );
+                }
             }
         }      
     }
   
   // Call sub agenda
   //
-  const Index adim1 = 1;
-  const Numeric lmax1 = -1;
-  //
-  iy_sub_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, iy_agenda_call1,
-                        iy_unit, iy_transmission, iy_aux_vars,
-                        f_grid, adim1, p1, lat1, lon1, lat_true1, lon_true1,
-                        t1, z1, vmr1, zsurf1, lmax1, ppath_lraytrace,
-                        cloudbox_on, clims1, pnd1,
-                        jacobian_do, pos1, los1, pos2, iy_sub_agenda );
+  {
+    const Index adim1 = 1;
+    const Numeric lmax1 = -1;
+    Ppath ppath1d;   
+    //
+    iy_sub_agendaExecute( ws, iy, iy_aux, ppath1d, diy_dx, iy_agenda_call1,
+                          iy_unit, iy_transmission, iy_aux_vars,
+                          f_grid, adim1, p1, lat1, lon1, lat_true1, lon_true1,
+                          t1, z1, vmr1, zsurf1, lmax1, ppath_lraytrace,
+                          cbox_on1, cbox_lims1, pnd1,
+                          jacobian_do, pos1, los1, pos2, iy_sub_agenda );
+  }
 }

@@ -88,10 +88,6 @@ void pha_mat_sptFromData( // Output:
                          const Verbosity& verbosity
                          )
 {
-  CREATE_OUT3;
-  
-  out3 << "Calculate *pha_mat_spt* from database\n";
-
   const Index stokes_dim = pha_mat_spt.ncols();
   if (stokes_dim > 4 || stokes_dim < 1){
     throw runtime_error("The dimension of the stokes vector \n"
@@ -1028,7 +1024,7 @@ void scat_dataCheck( //Input:
     CREATE_OUT0;
     CREATE_OUT1;
     CREATE_OUT2;
-    CREATE_OUT3;
+    //CREATE_OUT3;
 
     const Index N_ss = scat_data.nelem();
 
@@ -1168,10 +1164,11 @@ void scat_dataCheck( //Input:
                                   PHA_MAT_DATA_RAW(f, t, joker, 0, 0, 0, 0),
                                   ZA_DATAGRID);
                   Numeric Cext_data = EXT_MAT_DATA_RAW(f,t,0,0,0);
-                  Numeric Cabs = Cext_data - Csca;
+                  //Numeric Cabs = Cext_data - Csca;
                   Numeric Cabs_data = ABS_VEC_DATA_RAW(f,t,0,0,0);
                   Numeric Csca_data = Cext_data - Cabs_data;
 
+                  /*
                   out3 << "  Coefficients in database: "
                        << "Cext: " << Cext_data << " Cabs: " << Cabs_data
                        << " Csca: " << Csca_data << "\n"
@@ -1182,7 +1179,8 @@ void scat_dataCheck( //Input:
                        << "Cabs: " << 1e2*Cabs/Cabs_data-1e2
                        << "% Csca: " << 1e2*Csca/Csca_data-1e2
                        << "% Alb: " << (Csca-Csca_data)/Cext_data << "\n";
-
+                  */
+                  
                   //if (abs(Csca/Csca_data-1.)*Csca_data/Cext_data > threshold)
                   // below equivalent to the above
                   // (it's actually the (absolute) albedo deviation!)
@@ -1214,10 +1212,10 @@ void scat_dataCheck( //Input:
                                     PHA_MAT_DATA_RAW(f, t, joker, joker, iza, 0, 0),
                                     ZA_DATAGRID, AA_DATAGRID );
                     Numeric Cext_data = EXT_MAT_DATA_RAW(f,t,iza,0,0);
-                    Numeric Cabs = Cext_data - Csca;
+                    //Numeric Cabs = Cext_data - Csca;
                     Numeric Cabs_data = ABS_VEC_DATA_RAW(f,t,iza,0,0);
                     Numeric Csca_data = Cext_data - Cabs_data;
-
+                    /*
                     out3 << "  Coefficients in database: "
                          << "Cext: " << Cext_data << " Cabs: " << Cabs_data
                          << " Csca: " << Csca_data << "\n"
@@ -1228,7 +1226,7 @@ void scat_dataCheck( //Input:
                          << "Cabs: " << 1e2*Cabs/Cabs_data-1e2
                          << "% Csca: " << 1e2*Csca/Csca_data-1e2
                          << "% Alb: " << (Csca-Csca_data)/Cext_data << "\n";
-
+                    */
                     //if (abs(Csca/Csca_data-1.)*Csca_data/Cext_data > threshold)
                     // below equivalent to the above
                     // (it's actually the (absolute) albedo deviation!)
@@ -1713,10 +1711,6 @@ void pha_mat_sptFromMonoData(// Output:
                              const Index& scat_lon_index,
                              const Verbosity& verbosity)
 {
-  CREATE_OUT3;
-  
-  out3 << "Calculate *pha_mat_spt* from scat_data_mono. \n";
-  
   Vector za_grid;
   nlinspace(za_grid, 0, 180, doit_za_grid_size); 
 

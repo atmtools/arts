@@ -1,3 +1,17 @@
+2017-01-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-578
+
+	* src/m_rte.cc (iyIndependentColumnApproximation): Still in
+	progress ...
+
+	* src/m_optproperties.cc (pha_mat_sptFromData)
+	(pha_mat_sptFromMonoData): Removed out3 printing just reflecting
+	name of WSM.
+
+	(scat_dataCheck): Commented out printing to out3 that drowned
+	everything else.
+
 2017-01-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-577
