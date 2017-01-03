@@ -1,5 +1,37 @@
 2017-01-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-579
+
+	* Started on a feature to support storing data inside
+	iy_main_agenda to files with names that can be coupled to
+	corresponding iy calculation. Not finished, got stuck with other
+	things.
+
+	* controlfiles/artscomponents/arts-xml-data/TestClouds_Venus.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestClouds_Mars.arts:
+	* controlfiles/artscomponents/transmission/TestTransmission.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioOccultation.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioLink2.arts:
+	* controlfiles/general/agendas.arts: Adopted definitions of
+	modified agendas. Revision not ready!
+
+	* src/m_surface.cc (iySurfaceRtpropCalc, iySurfaceFastem)
+	(iySurfaceRtpropAgenda):
+	* src/rte.cc (iyb_calc_body, get_iy):
+	* src/m_rte.cc (iyCalc, iyLoopFrequencies):
+	* src/m_cloudradar.cc (yCloudRadar): Adopted calls of modified agendas.
+
+	* src/agendas.cc: Added iy_id as input to iy_main_agenda and
+	iy_sub_agenda.
+
+	* src/workspace.cc: Introduced iy_id.
+
+	* src/m_rte.cc (iyIndependentBeamApproximation): Method slightly
+	renamed. Now at least works for some cases.
+
+2017-01-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-578
 
 	* src/m_rte.cc (iyIndependentColumnApproximation): Still in

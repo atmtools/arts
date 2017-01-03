@@ -25,6 +25,7 @@ Arts2 {
 ###
 AgendaCreate( iy_main_agenda__Emission )
 AgendaSet( iy_main_agenda__Emission ){
+  Ignore( iy_id )
   iyEmissionStandard
 }
 
@@ -33,6 +34,7 @@ AgendaCreate( iy_main_agenda__Transmission )
 AgendaSet( iy_main_agenda__Transmission ){
   Ignore( iy_unit )
   Ignore( t_nlte_field )
+  Ignore( iy_id )
   iyTransmissionStandard
 }
 
@@ -42,6 +44,7 @@ AgendaSet( iy_main_agenda__ScattMC ){
   Ignore( rte_pos2 )
   Ignore( t_nlte_field )
   Ignore( diy_dx )
+  Ignore( iy_id )
   iyMC
   Touch( ppath )
 }
@@ -53,6 +56,7 @@ AgendaSet( iy_main_agenda__Radiolink ){
   Ignore( rte_los )
   Ignore( t_nlte_field )
   Ignore( diy_dx )
+  Ignore( iy_id )
   iyRadioLink
 }
 

@@ -277,7 +277,8 @@ AgendaSet( forloop_agenda_dust ){
 
   # and now the dusty calcs
   AgendaSet(iy_main_agenda){
-  Ignore(t_nlte_field)
+    Ignore(t_nlte_field)
+    Ignore(iy_id)
     iyFOS(fos_n=0)
   }
   Copy( forloop_agenda, forloop_agenda_particles )

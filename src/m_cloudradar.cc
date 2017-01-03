@@ -494,10 +494,11 @@ void yCloudRadar(
       Matrix         iy;
       Ppath          ppath;
       ArrayOfTensor4 iy_aux;
+      const Index    iy_id = 1e6*p;
       //
       iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
-                             1, iy_unit, iy_transmission, 
-                             iy_aux_vars, cloudbox_on, 0, t_field, z_field, 
+                             1, iy_unit, iy_transmission, iy_aux_vars,
+                             iy_id, cloudbox_on, 0, t_field, z_field, 
                              vmr_field, f_grid, 
                              sensor_pos(p,joker), sensor_los(p,joker), 
                              rte_pos2, iy_main_agenda );

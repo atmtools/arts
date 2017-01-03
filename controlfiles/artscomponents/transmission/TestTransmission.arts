@@ -161,6 +161,7 @@ Copy( iy0, iy )
 AgendaSet( iy_main_agenda ){
   Ignore( t_nlte_field )
   Ignore( diy_dx )
+  Ignore( iy_id )
   iyLoopFrequencies
 }
 
@@ -173,6 +174,7 @@ AgendaSet( iy_sub_agenda ){
   Ignore( z_surface )
   Ignore( iy_unit )
   Ignore( t_nlte_field )
+  Ignore( iy_id )
   iyTransmissionStandard
 }
 

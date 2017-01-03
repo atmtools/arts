@@ -6738,13 +6738,15 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "iyIndependentColumnApproximation" ),
+      ( NAME( "iyIndependentBeamApproximation" ),
         DESCRIPTION
         (
          "In development ....\n"
+         "\n"
+         "Describe how *atm_fields_compact* is filled.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
+        OUT( "iy", "iy_aux", "ppath", "diy_dx", "atm_fields_compact" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -6757,10 +6759,10 @@ void define_md_data_raw()
             "iy_agenda_call1", "iy_unit", "iy_transmission", "rte_pos", "rte_los",
             "rte_pos2", "jacobian_do", "iy_aux_vars", "iy_sub_agenda"
             ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "return_atm1d" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "0" ),
+        GIN_DESC( "Flag to fill *atm_fields_compact*." )
         ));
 
   md_data_raw.push_back

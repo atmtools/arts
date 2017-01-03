@@ -354,7 +354,7 @@ void define_agenda_data()
         ),
        OUTPUT( "iy", "iy_aux", "ppath", "diy_dx" ),
        INPUT( "diy_dx", "iy_agenda_call1", "iy_unit", "iy_transmission", "iy_aux_vars",
-              "cloudbox_on", "jacobian_do", "t_field", "z_field", "vmr_field", 
+              "iy_id", "cloudbox_on", "jacobian_do", "t_field", "z_field", "vmr_field", 
               "f_grid", "rte_pos", "rte_los", "rte_pos2" )));  
 
   agenda_data.push_back
@@ -394,7 +394,7 @@ void define_agenda_data()
         ),
        OUTPUT( "iy", "iy_aux", "ppath", "diy_dx" ),
        INPUT( "diy_dx", "iy_agenda_call1", "iy_unit", "iy_transmission", "iy_aux_vars",
-              "f_grid", "atmosphere_dim", "p_grid",
+              "iy_id", "f_grid", "atmosphere_dim", "p_grid",
               "lat_grid", "lon_grid", "lat_true", "lon_true",
               "t_field", "z_field", "vmr_field", "z_surface", 
               "ppath_lmax", "ppath_lraytrace",

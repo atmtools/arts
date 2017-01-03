@@ -62,6 +62,10 @@ extern const Numeric SPEED_OF_LIGHT;
 extern const String ABSSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 extern const String WIND_MAINTAG;
+extern const Index GFIELD4_FIELD_NAMES;
+extern const Index GFIELD4_P_GRID;
+extern const Index GFIELD4_LAT_GRID;
+extern const Index GFIELD4_LON_GRID;
 
 
 
@@ -154,12 +158,12 @@ void iyCalc(
 
   // iy_transmission is just input and can be left empty for first call
   Tensor3   iy_transmission(0,0,0);
-
   ArrayOfTensor3 diy_dx;
-
+  const Index    iy_id = 0;
+      
   iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
                          1, iy_unit, iy_transmission, iy_aux_vars, 
-                         cloudbox_on, 0, t_field, 
+                         iy_id, cloudbox_on, 0, t_field, 
                          z_field, vmr_field,
                          f_grid, rte_pos, rte_los, rte_pos2,
                          iy_main_agenda );
@@ -905,7 +909,7 @@ void iyLoopFrequencies(
       ArrayOfTensor3 diy_dx1;
       
       iy_sub_agendaExecute( ws, iy1, iy_aux1, ppath, diy_dx1, iy_agenda_call1,
-                            iy_unit, iy_transmission, iy_aux_vars,
+                            iy_unit, iy_transmission, iy_aux_vars, 0,
                             Vector(1,f_grid[i]), atmosphere_dim, p_grid,
                             lat_grid, lon_grid, lat_true, lon_true,
                             t_field, z_field, vmr_field, z_surface,
@@ -2105,12 +2109,13 @@ void yApplyUnit(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyIndependentColumnApproximation(
+void iyIndependentBeamApproximation(
          Workspace&        ws,
          Matrix&           iy,
          ArrayOfTensor4&   iy_aux,
          Ppath&            ppath,
          ArrayOfTensor3&   diy_dx,
+         GriddedField4&    atm_fields_compact,
    const Vector&           f_grid,
    const Index&            atmosphere_dim,
    const Vector&           p_grid,
@@ -2144,6 +2149,7 @@ void iyIndependentColumnApproximation(
    const Index&            jacobian_do,
    const ArrayOfString&    iy_aux_vars,
    const Agenda&           iy_sub_agenda,
+   const Index&            return_atm1d,
    const Verbosity& )
 {
   // Throw error if unsupported features are requested
@@ -2170,7 +2176,7 @@ void iyIndependentColumnApproximation(
   if( atmosphere_dim == 1 )
     {
       iy_sub_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, iy_agenda_call1,
-                            iy_unit, iy_transmission, iy_aux_vars,
+                            iy_unit, iy_transmission, iy_aux_vars, 0,
                             f_grid, atmosphere_dim, p_grid,
                             lat_grid, lon_grid, lat_true, lon_true,
                             t_field, z_field, vmr_field, z_surface,
@@ -2388,10 +2394,63 @@ void iyIndependentColumnApproximation(
     Ppath ppath1d;   
     //
     iy_sub_agendaExecute( ws, iy, iy_aux, ppath1d, diy_dx, iy_agenda_call1,
-                          iy_unit, iy_transmission, iy_aux_vars,
+                          iy_unit, iy_transmission, iy_aux_vars, 0,
                           f_grid, adim1, p1, lat1, lon1, lat_true1, lon_true1,
                           t1, z1, vmr1, zsurf1, lmax1, ppath_lraytrace,
                           cbox_on1, cbox_lims1, pnd1,
                           jacobian_do, pos1, los1, pos2, iy_sub_agenda );
   }
+
+
+  // Fill *atm_fields_compact*?
+  if( return_atm1d )
+    {
+      // Sizes and allocate memory
+      const Index nvmr = vmr1.nbooks();
+      const Index npnd = pnd1.nbooks();
+      const Index ntot = 2 + nvmr + npnd;
+      ArrayOfString field_names( ntot );
+      atm_fields_compact.resize( ntot, np, 1, 1 );
+
+      // Altitudes
+      field_names[0] = "Geometric altitudes";
+      atm_fields_compact.data(0,joker,0,0) = z1(joker,0,0);
+
+      // Temperature
+      field_names[1] = "Temperature";
+      atm_fields_compact.data(1,joker,0,0) = t1(joker,0,0);
+
+      // VMRs
+      for( Index i=0; i<nvmr; i++ )
+        {
+          ostringstream sstr;
+          sstr << "VMR species " << i;
+          field_names[2+i] = sstr.str();
+          atm_fields_compact.data(2+i,joker,0,0) = vmr1(i,joker,0,0);
+        }
+
+      // PNDs
+      for( Index i=0; i<npnd; i++ )
+        {
+          ostringstream sstr;
+          sstr << "Scattering element " << i;
+          field_names[2+nvmr+i] = sstr.str();
+          atm_fields_compact.data(2+nvmr+i,joker,0,0) = 0;
+          atm_fields_compact.data(2+nvmr+i,Range(cbox_lims1[0],pnd1.npages()),0,0) =
+            pnd1(i,joker,0,0);
+        }
+      
+      // Finally, set grids and names
+      //
+      atm_fields_compact.set_name( "Data created by *iyIndependentBeamApproximation*" );
+      //
+      atm_fields_compact.set_grid_name( GFIELD4_FIELD_NAMES, "Atmospheric quantity" );
+      atm_fields_compact.set_grid( GFIELD4_FIELD_NAMES, field_names );  
+      atm_fields_compact.set_grid_name( GFIELD4_P_GRID, "Pressure" );
+      atm_fields_compact.set_grid( GFIELD4_P_GRID, p1 );
+      atm_fields_compact.set_grid_name( GFIELD4_LAT_GRID, "Latitude" );
+      atm_fields_compact.set_grid( GFIELD4_LAT_GRID, Vector() );
+      atm_fields_compact.set_grid_name( GFIELD4_LON_GRID, "Longitude" );
+      atm_fields_compact.set_grid( GFIELD4_LON_GRID, Vector() );
+    }
 }

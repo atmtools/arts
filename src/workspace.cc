@@ -2098,6 +2098,21 @@ void Workspace::define_wsv_data()
         ),
        GROUP( "Agenda" )));
 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "iy_id" ),
+      DESCRIPTION
+      (
+       "Identification number of *iy*.\n"
+       "\n"
+       "This variable is intended to be an identification number for each\n"
+       "calculation of *iy*. This id-number can e.g. be used as input to \n"
+       "*WriteXMLIndexed*, to link filenames to the different calculations.\n"
+       "\n"
+       "Describe coding scheme ...\n"
+       ),
+      GROUP( "Index" )));
+
  wsv_data.push_back
     (WsvRecord
      ( NAME( "iy_main_agenda" ),

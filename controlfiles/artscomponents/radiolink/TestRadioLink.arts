@@ -108,11 +108,13 @@ AgendaSet( iy_transmitter_agenda ){
   Ignore( rtp_los )
   MatrixUnitIntensity( iy, stokes_dim, f_grid )
 }
+# Here we use the numerical defocusing method
 AgendaSet( iy_main_agenda ){
   Ignore( iy_unit )
   Ignore( rte_los )
   Ignore( t_nlte_field )
   Ignore( diy_dx )
+  Ignore( iy_id )
   iyRadioLink( defocus_method = 2, defocus_shift = 1e-3 ) 
 }
 

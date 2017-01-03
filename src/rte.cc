@@ -1329,10 +1329,14 @@ void get_iy(
   ArrayOfTensor4    iy_aux;
   Ppath             ppath;
   Tensor3           iy_transmission(0,0,0);
+  const Index       iy_agenda_call1 = 1;
+  const ArrayOfString iy_aux_vars(0);
+  const Index       iy_id = 0;
+  const Index       jacobian_do = 0;
 
   iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
-                         1, iy_unit, iy_transmission, 
-                         ArrayOfString(0), cloudbox_on, 0, t_field, z_field,
+                         iy_agenda_call1, iy_unit, iy_transmission, iy_aux_vars,
+                         iy_id, cloudbox_on, jacobian_do, t_field, z_field,
                          vmr_field, f_grid, rte_pos, rte_los, rte_pos2,
                          iy_main_agenda );
 }
@@ -3317,11 +3321,12 @@ void iyb_calc_body(
       Matrix         iy;
       ArrayOfTensor3 diy_dx;
       Tensor3        iy_transmission(0,0,0);
+      const Index    iy_agenda_call1 = 1;
+      const Index    iy_id = (Index)1e6*mblock_index + (Index)1e3*ilos;
       //
-      iy_main_agendaExecute(ws, iy, iy_aux_array[ilos], ppath,
-                            diy_dx, 
-                            1, iy_unit, iy_transmission, iy_aux_vars,
-                            cloudbox_on, j_analytical_do, t_field, z_field,
+      iy_main_agendaExecute(ws, iy, iy_aux_array[ilos], ppath, diy_dx, 
+                            iy_agenda_call1, iy_unit, iy_transmission, iy_aux_vars,
+                            iy_id, cloudbox_on, j_analytical_do, t_field, z_field,
                             vmr_field, f_grid, rtp_pos, los,
                             rtp_pos2, iy_main_agenda );
 
