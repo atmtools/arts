@@ -130,6 +130,7 @@ void iyCalc(
    const Index&            atmfields_checked,
    const Index&            atmgeom_checked,
    const ArrayOfString&    iy_aux_vars,
+   const Index&            iy_id,
    const Vector&           f_grid,
    const Tensor3&          t_field,
    const Tensor3&          z_field,
@@ -159,7 +160,6 @@ void iyCalc(
   // iy_transmission is just input and can be left empty for first call
   Tensor3   iy_transmission(0,0,0);
   ArrayOfTensor3 diy_dx;
-  const Index    iy_id = 0;
       
   iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
                          1, iy_unit, iy_transmission, iy_aux_vars, 
@@ -187,6 +187,7 @@ void iyEmissionStandard(
          ArrayOfTensor4&             iy_aux,
          Ppath&                      ppath,
          ArrayOfTensor3&             diy_dx,
+   const Index&                      iy_id,
    const Index&                      stokes_dim,
    const Vector&                     f_grid,
    const Index&                      atmosphere_dim,
@@ -512,7 +513,7 @@ void iyEmissionStandard(
   // Radiative background
   //
   get_iy_of_background( ws, iy, diy_dx, 
-                        iy_trans_new, jacobian_do, ppath, rte_pos2, 
+                        iy_trans_new, iy_id, jacobian_do, ppath, rte_pos2, 
                         atmosphere_dim, t_field, z_field, vmr_field, 
                         cloudbox_on, stokes_dim, f_grid, iy_unit,
                         iy_main_agenda, iy_space_agenda, iy_surface_agenda, 

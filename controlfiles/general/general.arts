@@ -163,6 +163,12 @@ AgendaSet( geo_pos_agenda ){
 
 
 #
+# iy_id = 0 means non-identified calculation
+#
+IndexSet( iy_id, 0 )
+
+
+#
 # MC
 #
 IndexSet( mc_min_iter, 100 )

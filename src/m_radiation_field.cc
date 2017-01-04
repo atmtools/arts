@@ -119,7 +119,7 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
 
             // Calculate iy for a particular rte_los.
             iyCalc(ws, iy, iy_aux_dummy, ppath_dummy,
-                   atmfields_checked, atmgeom_checked, iy_aux_vars,
+                   atmfields_checked, atmgeom_checked, iy_aux_vars, 0,
                    f_grid, t_field, z_field, vmr_field, cloudbox_on,
                    cloudbox_checked, rte_pos, rte_los, rte_pos,
                    iy_unit, iy_main_agenda, verbosity);

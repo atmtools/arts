@@ -1,3 +1,24 @@
+2017-01-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-581
+
+	* A basic implementation of iy_id now in place.
+
+	* controlfiles/general/general.arts: iy_id set to 0.
+
+	* src/m_radiation_field.cc (radiation_fieldCalcFromiyCalc):
+	* src/m_fos.cc (iyFOS, fos):
+	* src/m_surface.cc (iySurfaceCallSubAgendaX, iySurfaceFastem)
+	(iySurfaceRtpropAgenda, iySurfaceRtpropCalc):
+	* src/rte.cc (get_iy_of_background):
+	* src/m_rte.cc (iyEmissionStandard,iyCalc):
+	* src/m_cloudradar.cc (yCloudRadar): Changes related to iy_id.
+
+	* src/agendas.cc (define_agenda_data): Added iy_id as input to
+	iy_surface_agenda and all iy_surface_sub_agenda-s.
+
+	* src/workspace.cc: Removed mblock_aa_grid. Should have been done earlier.
+
 2017-01-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-580

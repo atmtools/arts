@@ -1383,6 +1383,7 @@ void get_iy_of_background(
         Matrix&           iy,
         ArrayOfTensor3&   diy_dx,
   ConstTensor3View        iy_transmission,
+  const Index&            iy_id, 
   const Index&            jacobian_do,
   const Ppath&            ppath,
   ConstVectorView         rte_pos2,
@@ -1441,8 +1442,13 @@ void get_iy_of_background(
       {
         agenda_name = "iy_surface_agenda";
         chk_not_empty( agenda_name, iy_surface_agenda );
+        //
+        const Index los_id = iy_id % (Index)1000;
+        cout << los_id << endl;
+        Index iy_id_new = iy_id + (Index)9*los_id; 
+        //
         iy_surface_agendaExecute( ws, iy, diy_dx, 
-                                  iy_unit, iy_transmission, cloudbox_on,
+                                  iy_unit, iy_transmission, iy_id_new, cloudbox_on,
                                   jacobian_do, t_field, z_field, vmr_field,
                                   f_grid, iy_main_agenda, rtp_pos, rtp_los, 
                                   rte_pos2, iy_surface_agenda );
@@ -3322,7 +3328,7 @@ void iyb_calc_body(
       ArrayOfTensor3 diy_dx;
       Tensor3        iy_transmission(0,0,0);
       const Index    iy_agenda_call1 = 1;
-      const Index    iy_id = (Index)1e6*mblock_index + (Index)1e3*ilos;
+      const Index    iy_id = (Index)1e6*(mblock_index+1) + (Index)1e3*(ilos+1);
       //
       iy_main_agendaExecute(ws, iy, iy_aux_array[ilos], ppath, diy_dx, 
                             iy_agenda_call1, iy_unit, iy_transmission, iy_aux_vars,

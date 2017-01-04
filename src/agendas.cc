@@ -422,7 +422,7 @@ void define_agenda_data()
         "suitable to be used in most applications.\n"
         ),
        OUTPUT( "iy", "diy_dx" ),
-       INPUT( "diy_dx", "iy_unit", "iy_transmission", "cloudbox_on",
+       INPUT( "diy_dx", "iy_unit", "iy_transmission", "iy_id", "cloudbox_on",
               "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
               "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2" )));
 
@@ -444,9 +444,10 @@ void define_agenda_data()
         "scheme.  Note the parallel agenda series: surface_rtprop_sub_agendaX.\n"
         ),
        OUTPUT( "iy", "diy_dx" ),
-       INPUT( "diy_dx", "iy_unit", "iy_transmission", "cloudbox_on", "jacobian_do",
-              "t_field", "z_field", "vmr_field", "f_grid","iy_main_agenda", 
-              "rtp_pos", "rtp_los", "rte_pos2", "surface_type_aux" )));
+       INPUT( "diy_dx", "iy_unit", "iy_transmission", "iy_id", "cloudbox_on",
+              "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
+              "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2",
+              "surface_type_aux" )));
 
   agenda_data.push_back
     (AgRecord
@@ -458,9 +459,10 @@ void define_agenda_data()
         "See further *iy_surface_sub_agenda0*.\n"
         ),
        OUTPUT( "iy", "diy_dx" ),
-       INPUT( "diy_dx", "iy_unit", "iy_transmission", "cloudbox_on", "jacobian_do",
-              "t_field", "z_field", "vmr_field", "f_grid","iy_main_agenda", 
-              "rtp_pos", "rtp_los", "rte_pos2", "surface_type_aux" )));
+       INPUT( "diy_dx", "iy_unit", "iy_transmission", "iy_id", "cloudbox_on",
+              "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
+              "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2",
+              "surface_type_aux" )));
 
   agenda_data.push_back
     (AgRecord
@@ -472,9 +474,10 @@ void define_agenda_data()
         "See further *iy_surface_sub_agenda0*.\n"
         ),
        OUTPUT( "iy", "diy_dx" ),
-       INPUT( "diy_dx", "iy_unit", "iy_transmission", "cloudbox_on", "jacobian_do",
-              "t_field", "z_field", "vmr_field", "f_grid","iy_main_agenda", 
-              "rtp_pos", "rtp_los", "rte_pos2", "surface_type_aux" )));
+       INPUT( "diy_dx", "iy_unit", "iy_transmission", "iy_id", "cloudbox_on",
+              "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
+              "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2",
+              "surface_type_aux" )));
 
   agenda_data.push_back
     (AgRecord
@@ -486,9 +489,10 @@ void define_agenda_data()
         "See further *iy_surface_sub_agenda0*.\n"
         ),
        OUTPUT( "iy", "diy_dx" ),
-       INPUT( "diy_dx", "iy_unit", "iy_transmission", "cloudbox_on", "jacobian_do",
-              "t_field", "z_field", "vmr_field", "f_grid","iy_main_agenda", 
-              "rtp_pos", "rtp_los", "rte_pos2", "surface_type_aux" )));
+       INPUT( "diy_dx", "iy_unit", "iy_transmission", "iy_id", "cloudbox_on",
+              "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
+              "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2",
+              "surface_type_aux" )));
 
   agenda_data.push_back
     (AgRecord
@@ -500,9 +504,10 @@ void define_agenda_data()
         "See further *iy_surface_sub_agenda0*.\n"
         ),
        OUTPUT( "iy", "diy_dx" ),
-       INPUT( "diy_dx", "iy_unit", "iy_transmission", "cloudbox_on", "jacobian_do",
-              "t_field", "z_field", "vmr_field", "f_grid","iy_main_agenda", 
-              "rtp_pos", "rtp_los", "rte_pos2", "surface_type_aux" )));
+       INPUT( "diy_dx", "iy_unit", "iy_transmission", "iy_id", "cloudbox_on",
+              "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
+              "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2",
+              "surface_type_aux" )));
 
   agenda_data.push_back
     (AgRecord
@@ -514,9 +519,10 @@ void define_agenda_data()
         "See further *iy_surface_sub_agenda0*.\n"
         ),
        OUTPUT( "iy", "diy_dx" ),
-       INPUT( "diy_dx", "iy_unit", "iy_transmission", "cloudbox_on", "jacobian_do",
-              "t_field", "z_field", "vmr_field", "f_grid","iy_main_agenda", 
-              "rtp_pos", "rtp_los", "rte_pos2", "surface_type_aux" )));
+       INPUT( "diy_dx", "iy_unit", "iy_transmission", "iy_id", "cloudbox_on",
+              "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
+              "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2",
+              "surface_type_aux" )));
 
   agenda_data.push_back
     (AgRecord

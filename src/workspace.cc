@@ -2105,11 +2105,31 @@ void Workspace::define_wsv_data()
       (
        "Identification number of *iy*.\n"
        "\n"
-       "This variable is intended to be an identification number for each\n"
-       "calculation of *iy*. This id-number can e.g. be used as input to \n"
+       "This variable is intended to be an identification number for individual\n"
+       "calculations of *iy*. This id-number can e.g. be used as input to \n"
        "*WriteXMLIndexed*, to link filenames to the different calculations.\n"
        "\n"
-       "Describe coding scheme ...\n"
+       "Some methods sets and updates *iy_id*. The general numbering scheme is:\n"
+       "   xxxyyycba\n"
+       "where xxx identifies the row in sensorPos/los (i.e. the mblock_index),\n"
+       "yyy identifies pencil beam direction inside measurement block (should\n"
+       "in general match a row in mblock_dlos_grid), and cba identies later legs\n"
+       "of total propagation paths, where a, b and c identifies secondary, tertiary\n"
+       "and quaternary part, respectively. 1-based numbering is used. That is,\n"
+       "the primary path of the first pencil beam of the first measurement block\n"
+       "has iy_id = 001001000.\n"
+       "\n"
+       "Accordingly, the primary propagation path has cba = 000. If the primary path\n"
+       "intersects with the surface, and the downwelling radiation is calculated\n"
+       "for three directions, these secondary paths get cba = 001, 002 and 003.\n"
+       "If tertiary paths appear, they have numbers such as 011. \n"
+       "\n"
+       "As the numbering scheme has nine positions, it is suitable to store\n"
+       "files as: WriteXMLIndexed(output_file_format,file_index,in,filename,9)\n"
+       "\n"
+       "Setting of *iy_id* is not yet supported together with scattering\n"
+       "calculations. The value of iy_id then differs, it is either set to 0\n"
+       "or keeps its value set by *yCalc*.\n"
        ),
       GROUP( "Index" )));
 
@@ -2670,27 +2690,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Agenda" )));
    
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "mblock_aa_grid" ),
-      DESCRIPTION
-      (
-       "The azimuthal angle grid for each measurement block.\n"
-       "\n"
-       "This variable should normally contain the azimuth grid of the\n"
-       "antenna pattern. The grid is given as an angular off-set with\n"
-       "respect to the angles in *sensor_los*.\n"
-       "\n"
-       "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
-       "\"workspace variables\".\n"
-       "\n"
-       "Usage: Set by the user.\n"
-       "\n"
-       "Unit:  degrees\n"
-       ),
-      GROUP( "Vector" )));
-
   wsv_data.push_back
    (WsvRecord
     ( NAME( "mblock_dlos_grid" ),

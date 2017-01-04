@@ -494,7 +494,7 @@ void yCloudRadar(
       Matrix         iy;
       Ppath          ppath;
       ArrayOfTensor4 iy_aux;
-      const Index    iy_id = 1e6*p;
+      const Index    iy_id = (Index)1e6*p;
       //
       iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
                              1, iy_unit, iy_transmission, iy_aux_vars,

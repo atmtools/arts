@@ -172,6 +172,7 @@ void get_iy_of_background(
         Matrix&           iy,
         ArrayOfTensor3&   diy_dx,
   ConstTensor3View        iy_transmission,
+  const Index&            iy_id,
   const Index&            jacobian_do,
   const Ppath&            ppath,
   ConstVectorView         rte_pos2,

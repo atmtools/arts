@@ -256,6 +256,7 @@ void iySurfaceCallSubAgendaX(
           ArrayOfTensor3&   diy_dx,  
     const String&           iy_unit,  
     const Tensor3&          iy_transmission,
+    const Index&            iy_id,
     const Index&            cloudbox_on,
     const Index&            jacobian_do,
     const Tensor3&          t_field,
@@ -279,7 +280,7 @@ void iySurfaceCallSubAgendaX(
   if( surface_type == 0 )
     {
       iy_surface_sub_agenda0Execute( ws, iy, diy_dx, 
-                                   iy_unit, iy_transmission, cloudbox_on,
+                                   iy_unit, iy_transmission, iy_id, cloudbox_on,
                                    jacobian_do, t_field, z_field, vmr_field,
                                    f_grid, iy_main_agenda, rtp_pos, rtp_los, 
                                    rte_pos2, surface_type_aux,
@@ -288,7 +289,7 @@ void iySurfaceCallSubAgendaX(
   else if( surface_type == 1 )
     {
       iy_surface_sub_agenda1Execute( ws, iy, diy_dx, 
-                                   iy_unit, iy_transmission, cloudbox_on,
+                                   iy_unit, iy_transmission, iy_id, cloudbox_on,
                                    jacobian_do, t_field, z_field, vmr_field,
                                    f_grid, iy_main_agenda, rtp_pos, rtp_los, 
                                    rte_pos2, surface_type_aux,
@@ -297,7 +298,7 @@ void iySurfaceCallSubAgendaX(
   else if( surface_type == 2 )
     {
       iy_surface_sub_agenda2Execute( ws, iy, diy_dx, 
-                                   iy_unit, iy_transmission, cloudbox_on,
+                                   iy_unit, iy_transmission, iy_id, cloudbox_on,
                                    jacobian_do, t_field, z_field, vmr_field,
                                    f_grid, iy_main_agenda, rtp_pos, rtp_los, 
                                    rte_pos2, surface_type_aux,
@@ -306,7 +307,7 @@ void iySurfaceCallSubAgendaX(
   else if( surface_type == 3 )
     {
       iy_surface_sub_agenda3Execute( ws, iy, diy_dx, 
-                                   iy_unit, iy_transmission, cloudbox_on,
+                                   iy_unit, iy_transmission, iy_id, cloudbox_on,
                                    jacobian_do, t_field, z_field, vmr_field,
                                    f_grid, iy_main_agenda, rtp_pos, rtp_los, 
                                    rte_pos2, surface_type_aux,
@@ -315,7 +316,7 @@ void iySurfaceCallSubAgendaX(
   else if( surface_type == 4 )
     {
       iy_surface_sub_agenda4Execute( ws, iy, diy_dx, 
-                                   iy_unit, iy_transmission, cloudbox_on,
+                                   iy_unit, iy_transmission, iy_id, cloudbox_on,
                                    jacobian_do, t_field, z_field, vmr_field,
                                    f_grid, iy_main_agenda, rtp_pos, rtp_los, 
                                    rte_pos2, surface_type_aux,
@@ -324,7 +325,7 @@ void iySurfaceCallSubAgendaX(
   else if( surface_type == 5 )
     {
       iy_surface_sub_agenda5Execute( ws, iy, diy_dx, 
-                                   iy_unit, iy_transmission, cloudbox_on,
+                                     iy_unit, iy_transmission, iy_id, cloudbox_on,
                                    jacobian_do, t_field, z_field, vmr_field,
                                    f_grid, iy_main_agenda, rtp_pos, rtp_los, 
                                    rte_pos2, surface_type_aux,
@@ -345,6 +346,7 @@ void iySurfaceFastem(
           Matrix&           iy,
           ArrayOfTensor3&   diy_dx,  
     const Tensor3&          iy_transmission,
+    const Index&            iy_id,
     const Index&            jacobian_do,
     const Index&            atmosphere_dim,
     const Vector&           lat_grid,
@@ -391,7 +393,7 @@ void iySurfaceFastem(
         Ppath            ppath;
   //
   iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, iy_unit, 
-                         iy_transmission, iy_aux_vars, 0,
+                         iy_transmission, iy_aux_vars, iy_id,
                          cloudbox_on, jacobian_do, t_field, 
                          z_field, vmr_field, f_grid, rtp_pos, 
                          specular_los, rte_pos2, iy_main_agenda );
@@ -448,6 +450,7 @@ void iySurfaceRtpropAgenda(
           Matrix&           iy,
           ArrayOfTensor3&   diy_dx,  
     const Tensor3&          iy_transmission,
+    const Index&            iy_id,
     const Index&            jacobian_do,
     const Index&            atmosphere_dim,
     const Tensor3&          t_field,
@@ -532,8 +535,9 @@ void iySurfaceRtpropAgenda(
           {
             ArrayOfTensor4   iy_aux;
             Ppath            ppath;
+            Index iy_id_new = iy_id + ilos + 1;
             iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, iy_unit, 
-                                   iy_trans_new, ArrayOfString(0), 0,
+                                   iy_trans_new, ArrayOfString(0), iy_id_new,
                                    cloudbox_on, jacobian_do, t_field, 
                                    z_field, vmr_field, f_grid, rtp_pos, 
                                    los, rte_pos2, iy_main_agenda );
@@ -570,6 +574,7 @@ void iySurfaceRtpropCalc(
     const Tensor4&          surface_rmatrix,
     const Matrix&           surface_emission,
     const Tensor3&          iy_transmission,
+    const Index&            iy_id,
     const Index&            jacobian_do,
     const Index&            atmosphere_dim,
     const Tensor3&          t_field,
@@ -645,7 +650,7 @@ void iySurfaceRtpropCalc(
             ArrayOfTensor4   iy_aux;
             Ppath            ppath;
             iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, iy_unit, 
-                                   iy_trans_new, ArrayOfString(0), 0,
+                                   iy_trans_new, ArrayOfString(0), iy_id,
                                    cloudbox_on, jacobian_do, t_field, 
                                    z_field, vmr_field, f_grid, rtp_pos, 
                                    los, rte_pos2, iy_main_agenda );
@@ -1971,10 +1976,3 @@ void surface_rtpropCallSubAgendaX(
                            "be an intmeger between 0 and 1." );
     }
 }
-
-
-
-
-
-
-

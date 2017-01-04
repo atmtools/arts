@@ -328,8 +328,9 @@ void fos(
   //
   {
     Agenda iy_cbox_agenda;
+    const Index iy_id = 0;
     get_iy_of_background( ws, iy, diy_dx, 
-                          iy_trans_new, jacobian_do, ppath, rte_pos2, 
+                          iy_trans_new, iy_id,  jacobian_do, ppath, rte_pos2, 
                           atmosphere_dim, t_field, z_field, vmr_field, 
                           cloudbox_on, stokes_dim, f_grid, iy_unit,
                           iy_main_agenda, iy_space_agenda, iy_surface_agenda, 
