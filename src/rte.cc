@@ -1444,7 +1444,6 @@ void get_iy_of_background(
         chk_not_empty( agenda_name, iy_surface_agenda );
         //
         const Index los_id = iy_id % (Index)1000;
-        cout << los_id << endl;
         Index iy_id_new = iy_id + (Index)9*los_id; 
         //
         iy_surface_agendaExecute( ws, iy, diy_dx, 

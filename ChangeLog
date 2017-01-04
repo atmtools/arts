@@ -1,5 +1,11 @@
 2017-01-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-582
+
+	* src/rte.cc (get_iy_of_background): Had commited with a cout.
+
+2017-01-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-581
 
 	* A basic implementation of iy_id now in place.
