@@ -6760,13 +6760,14 @@ void define_md_data_raw()
             "iy_agenda_call1", "iy_unit", "iy_transmission", "rte_pos", "rte_los",
             "rte_pos2", "jacobian_do", "iy_aux_vars", "iy_sub_agenda"
             ),
-        GIN( "return_atm1d", "return_masses" ),
-        GIN_TYPE( "Index", "Index" ),
-        GIN_DEFAULT( "0", "0" ),
+        GIN( "return_atm1d", "skip_vmr", "skip_pnd", "return_masses" ),
+        GIN_TYPE( "Index", "Index", "Index", "Index" ),
+        GIN_DEFAULT( "0", "0", "0", "0" ),
         GIN_DESC( "Flag to trigger that *atm_fields_compact* is filled. ",
-                  "Flag to put masses in *atm_fields_compact*, instead of "
-                  "particle number densities. Conversion is done by "
-                  "*particle_masses*." )
+                  "Flag to not include vmr data in *atm_fields_compact*.",
+                  "Flag to not include pnd data in *atm_fields_compact*.",
+                  "Flag to include particle category masses in *atm_fields_compact*."
+                  " Conversion is done by *particle_masses*." )
         ));
 
   md_data_raw.push_back

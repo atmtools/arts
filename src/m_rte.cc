@@ -2151,6 +2151,8 @@ void iyIndependentBeamApproximation(
    const ArrayOfString&    iy_aux_vars,
    const Agenda&           iy_sub_agenda,
    const Index&            return_atm1d,
+   const Index&            skip_vmr,
+   const Index&            skip_pnd,
    const Index&            return_masses,
    const Verbosity& )
 {
@@ -2425,11 +2427,10 @@ void iyIndependentBeamApproximation(
   if( return_atm1d )
     {
       // Sizes and allocate memory
-      Index npvars = pnd1.nbooks();
-      if( return_masses )
-        { npvars = particle_masses.ncols(); }
-      const Index nvmr = vmr1.nbooks();
-      const Index ntot = 2 + nvmr + npvars;
+      const Index nvmr  = skip_vmr ? 0 : vmr1.nbooks();
+      const Index npnd  = skip_pnd ? 0 : pnd1.nbooks();
+      const Index nmass = return_masses ? particle_masses.ncols() : 0;
+      const Index ntot  = 2 + nvmr + npnd + nmass;
       ArrayOfString field_names( ntot );
       atm_fields_compact.resize( ntot, np, 1, 1 );
 
@@ -2442,38 +2443,42 @@ void iyIndependentBeamApproximation(
       atm_fields_compact.data(1,joker,0,0) = t1(joker,0,0);
 
       // VMRs
-      for( Index i=0; i<nvmr; i++ )
+      if( nvmr )
         {
-          ostringstream sstr;
-          sstr << "VMR species " << i;
-          field_names[2+i] = sstr.str();
-          atm_fields_compact.data(2+i,joker,0,0) = vmr1(i,joker,0,0);
+          for( Index i=0; i<nvmr; i++ )
+            {
+              const Index iout = 2 + i;
+              ostringstream sstr;
+              sstr << "VMR species " << i;
+              field_names[iout] = sstr.str();
+              atm_fields_compact.data(iout,joker,0,0) = vmr1(i,joker,0,0);
+            }
         }
 
       // PNDs
-      if( !return_masses )
+      if( npnd )
         {
-          // Fill with pnd values
-          for( Index i=0; i<npvars; i++ )
+          for( Index i=0; i<npnd; i++ )
             {
+              const Index iout = 2 + nvmr + i;
               ostringstream sstr;
               sstr << "Scattering element " << i;
-              field_names[2+nvmr+i] = sstr.str();
-              const Index iout = 2 + nvmr + i;
+              field_names[iout] = sstr.str();
               atm_fields_compact.data(iout,joker,0,0) = 0;
               atm_fields_compact.data(iout,Range(cbox_lims1[0],pnd1.npages()),0,0) =
                 pnd1(i,joker,0,0);
             }
         }
-      else
+
+      // Masses
+      if( nmass )
         {
-          // Fill with mass values
-          for( Index i=0; i<npvars; i++ )
+          for( Index i=0; i<nmass; i++ )
             {
+              const Index iout = 2 + nvmr + npnd + i;
               ostringstream sstr;
               sstr << "Mass category " << i;
-              field_names[2+nvmr+i] = sstr.str();
-              const Index iout = 2 + nvmr + i;
+              field_names[iout] = sstr.str();
               atm_fields_compact.data(iout,joker,0,0) = 0;
               for( Index ip=cbox_lims1[0]; ip<pnd1.npages(); ip++ )
                 {
@@ -2485,7 +2490,7 @@ void iyIndependentBeamApproximation(
                 }
             }
         }
-      
+
       // Finally, set grids and names
       //
       atm_fields_compact.set_name( "Data created by *iyIndependentBeamApproximation*" );
@@ -2495,8 +2500,8 @@ void iyIndependentBeamApproximation(
       atm_fields_compact.set_grid_name( GFIELD4_P_GRID, "Pressure" );
       atm_fields_compact.set_grid( GFIELD4_P_GRID, p1 );
       atm_fields_compact.set_grid_name( GFIELD4_LAT_GRID, "Latitude" );
-      atm_fields_compact.set_grid( GFIELD4_LAT_GRID, Vector() );
+      atm_fields_compact.set_grid( GFIELD4_LAT_GRID, lat_true1 );
       atm_fields_compact.set_grid_name( GFIELD4_LON_GRID, "Longitude" );
-      atm_fields_compact.set_grid( GFIELD4_LON_GRID, Vector() );
+      atm_fields_compact.set_grid( GFIELD4_LON_GRID, lon_true1 );
     }
 }

@@ -1,5 +1,14 @@
 2017-01-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-584
+
+	* src/m_rte.cc (iyIndependentBeamApproximation): Added some more
+	control variables for filling of *atm_fields_compact*.
+
+2017-01-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-583
+
 	* src/m_montecarlo.cc (MCGeneral): Added chack that sensor_pos/los
 	in fact just have one row (before additional rows were silently
 	ignored).
