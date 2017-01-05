@@ -6755,15 +6755,18 @@ void define_md_data_raw()
             "lon_grid", "lat_true", "lon_true", "t_field", "z_field",
             "vmr_field", "t_nlte_field", "wind_u_field", "wind_v_field",
             "wind_w_field", "mag_u_field", "mag_v_field", "mag_w_field",
-            "z_surface", "cloudbox_on", "cloudbox_limits", "pnd_field",
-            "ppath_agenda", "ppath_lmax", "ppath_lraytrace",
+            "cloudbox_on", "cloudbox_limits", "pnd_field",
+            "particle_masses", "ppath_agenda", "ppath_lmax", "ppath_lraytrace",
             "iy_agenda_call1", "iy_unit", "iy_transmission", "rte_pos", "rte_los",
             "rte_pos2", "jacobian_do", "iy_aux_vars", "iy_sub_agenda"
             ),
-        GIN( "return_atm1d" ),
-        GIN_TYPE( "Index" ),
-        GIN_DEFAULT( "0" ),
-        GIN_DESC( "Flag to fill *atm_fields_compact*." )
+        GIN( "return_atm1d", "return_masses" ),
+        GIN_TYPE( "Index", "Index" ),
+        GIN_DEFAULT( "0", "0" ),
+        GIN_DESC( "Flag to trigger that *atm_fields_compact* is filled. ",
+                  "Flag to put masses in *atm_fields_compact*, instead of "
+                  "particle number densities. Conversion is done by "
+                  "*particle_masses*." )
         ));
 
   md_data_raw.push_back

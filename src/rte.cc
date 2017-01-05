@@ -116,7 +116,7 @@ void adjust_los(
     \param   iy       In/Out: Tensor3 with data to be converted, where 
                       column dimension corresponds to Stokes dimensionality
                       and row dimension corresponds to frequency.
-    \param   y_unit   As the WSV.
+    \param   iy_unit  As the WSV.
     \param   f_grid   As the WSV.
     \param   n        Refractive index at the observation position.
     \param   i_pol    Polarisation indexes. See documentation of y_pol.
@@ -126,7 +126,7 @@ void adjust_los(
 */
 void apply_iy_unit( 
             MatrixView   iy, 
-         const String&   y_unit, 
+         const String&   iy_unit, 
        ConstVectorView   f_grid,
    const Numeric&        n,
    const ArrayOfIndex&   i_pol )
@@ -140,13 +140,13 @@ void apply_iy_unit(
   assert( f_grid.nelem() == nf );
   assert( i_pol.nelem() == ns );
 
-  if( y_unit == "1" )
+  if( iy_unit == "1" )
     {
       if( n != 1 )
         { iy *= (n*n); }
     }
 
-  else if( y_unit == "RJBT" )
+  else if( iy_unit == "RJBT" )
     {
       for( Index iv=0; iv<nf; iv++ )
         {
@@ -161,7 +161,7 @@ void apply_iy_unit(
         }
     }
 
-  else if( y_unit == "PlanckBT" )
+  else if( iy_unit == "PlanckBT" )
     {
       for( Index iv=0; iv<nf; iv++ )
         {
@@ -182,7 +182,7 @@ void apply_iy_unit(
         }
     }
   
-  else if ( y_unit == "W/(m^2 m sr)" )
+  else if ( iy_unit == "W/(m^2 m sr)" )
     {
       for( Index iv=0; iv<nf; iv++ )
         {
@@ -192,7 +192,7 @@ void apply_iy_unit(
         }
     }
   
-  else if ( y_unit == "W/(m^2 m-1 sr)" )
+  else if ( iy_unit == "W/(m^2 m-1 sr)" )
     {
       iy *= ( n * n * SPEED_OF_LIGHT );
     }
@@ -200,7 +200,7 @@ void apply_iy_unit(
   else
     {
       ostringstream os;
-      os << "Unknown option: y_unit = \"" << y_unit << "\"\n" 
+      os << "Unknown option: iy_unit = \"" << iy_unit << "\"\n" 
          << "Recognised choices are: \"1\", \"RJBT\", \"PlanckBT\""
          << "\"W/(m^2 m sr)\" and \"W/(m^2 m-1 sr)\""; 
       
@@ -221,7 +221,7 @@ void apply_iy_unit(
                       column dimension corresponds to Stokes dimensionality
                       and row dimension corresponds to frequency.
     \param   iy       Associated radiance data.
-    \param   y_unit   As the WSV.
+    \param   iy_unit  As the WSV.
     \param   f_grid   As the WSV.
     \param   n        Refractive index at the observation position.
     \param   i_pol    Polarisation indexes. See documentation of y_pol.
@@ -232,7 +232,7 @@ void apply_iy_unit(
 void apply_iy_unit2( 
    Tensor3View           J,
    ConstMatrixView       iy, 
-   const String&         y_unit, 
+   const String&         iy_unit, 
    ConstVectorView       f_grid,
    const Numeric&        n,
    const ArrayOfIndex&   i_pol )
@@ -249,13 +249,13 @@ void apply_iy_unit2(
   assert( f_grid.nelem() == nf );
   assert( i_pol.nelem() == ns );
 
-  if( y_unit == "1" )
+  if( iy_unit == "1" )
     {
       if( n != 1 )
         { J *= (n*n); }
     }
 
-  else if( y_unit == "RJBT" )
+  else if( iy_unit == "RJBT" )
     {
       for( Index iv=0; iv<nf; iv++ )
         {
@@ -276,7 +276,7 @@ void apply_iy_unit2(
         }
     }
 
-  else if( y_unit == "PlanckBT" )
+  else if( iy_unit == "PlanckBT" )
     {
       for( Index iv=0; iv<f_grid.nelem(); iv++ )
         {
@@ -301,7 +301,7 @@ void apply_iy_unit2(
         }
     }
 
-  else if ( y_unit == "W/(m^2 m sr)" )
+  else if ( iy_unit == "W/(m^2 m sr)" )
     {
       for( Index iv=0; iv<nf; iv++ )
         {
@@ -314,7 +314,7 @@ void apply_iy_unit2(
         }
     }
   
-  else if ( y_unit == "W/(m^2 m-1 sr)" )
+  else if ( iy_unit == "W/(m^2 m-1 sr)" )
     {
       J *= ( n *n * SPEED_OF_LIGHT );
     }
@@ -322,7 +322,7 @@ void apply_iy_unit2(
   else
     {
       ostringstream os;
-      os << "Unknown option: y_unit = \"" << y_unit << "\"\n" 
+      os << "Unknown option: iy_unit = \"" << iy_unit << "\"\n" 
          << "Recognised choices are: \"1\", \"RJBT\", \"PlanckBT\""
          << "\"W/(m^2 m sr)\" and \"W/(m^2 m-1 sr)\""; 
       

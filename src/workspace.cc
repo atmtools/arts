@@ -2125,7 +2125,7 @@ void Workspace::define_wsv_data()
        "If tertiary paths appear, they have numbers such as 011. \n"
        "\n"
        "As the numbering scheme has nine positions, it is suitable to store\n"
-       "files as: WriteXMLIndexed(output_file_format,file_index,in,filename,9)\n"
+       "files as: WriteXMLIndexed(output_file_format,iy_id,in,filename,9)\n"
        "\n"
        "Setting of *iy_id* is not yet supported together with scattering\n"
        "calculations. The value of iy_id then differs, it is either set to 0\n"

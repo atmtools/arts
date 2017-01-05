@@ -2134,10 +2134,10 @@ void iyIndependentBeamApproximation(
    const Tensor3&          mag_u_field,
    const Tensor3&          mag_v_field,
    const Tensor3&          mag_w_field,
-   const Matrix&           z_surface,
    const Index&            cloudbox_on,
    const ArrayOfIndex&     cloudbox_limits, 
    const Tensor4&          pnd_field,
+   const Matrix&           particle_masses,
    const Agenda&           ppath_agenda,
    const Numeric&          ppath_lmax,
    const Numeric&          ppath_lraytrace,
@@ -2151,6 +2151,7 @@ void iyIndependentBeamApproximation(
    const ArrayOfString&    iy_aux_vars,
    const Agenda&           iy_sub_agenda,
    const Index&            return_atm1d,
+   const Index&            return_masses,
    const Verbosity& )
 {
   // Throw error if unsupported features are requested
@@ -2171,25 +2172,20 @@ void iyIndependentBeamApproximation(
     throw runtime_error( "This method does not yet support non-empty *mag_v_field*." );
   if( !mag_w_field.empty() )
     throw runtime_error( "This method does not yet support non-empty *mag_w_field*." );
+  //
+  if( return_masses )
+    {
+      if( pnd_field.nbooks() != particle_masses.nrows() )
+        throw runtime_error( "Sizes of *pnd_field* and *particle_masses* "
+                               "are inconsistent." );
+    }
+  
+
+  // Note that input 1D atmospheres are handled exactly as 2D and 3D, to make
+  // the function totally general. And 1D must be handled for iterative calls.
 
   
-  // 1D must be supported, to handle iterative calls of iy_main_agenda
-  if( atmosphere_dim == 1 )
-    {
-      iy_sub_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, iy_agenda_call1,
-                            iy_unit, iy_transmission, iy_aux_vars, 0,
-                            f_grid, atmosphere_dim, p_grid,
-                            lat_grid, lon_grid, lat_true, lon_true,
-                            t_field, z_field, vmr_field, z_surface,
-                            ppath_lmax, ppath_lraytrace,
-                            cloudbox_on, cloudbox_limits, pnd_field,
-                            jacobian_do, rte_pos, rte_los, rte_pos2, iy_sub_agenda );
-      return;
-    }
-  //-------------------------------------------------------------------------------
-
-    
-  // Determine 2D or 3D propagation path (with cloudbox deactivated) and check
+  // Determine propagation path (with cloudbox deactivated) and check
   // that is OK for ICA
   //
   ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace,
@@ -2234,16 +2230,24 @@ void iyIndependentBeamApproximation(
         {
           const Index ip = ppath.np - i - 1;
           gp_p[i]   = ppath.gp_p[ip];
-          gp_lat[i] = ppath.gp_lat[ip];
-          if( atmosphere_dim == 3 ) { gp_lon[i] = ppath.gp_lon[ip]; }
+          if( atmosphere_dim > 1 )
+            {
+              gp_lat[i] = ppath.gp_lat[ip];
+              if( atmosphere_dim == 3 )
+                { gp_lon[i] = ppath.gp_lon[ip]; }
+            }
         }
       // Append ppath2, but skipping element [0]
       for( Index i=ppath.np; i<np; i++ )
         {
           const Index ip = i - ppath.np + 1;
           gp_p[i]   = ppath2.gp_p[ip];
-          gp_lat[i] = ppath2.gp_lat[ip];
-          if( atmosphere_dim == 3 ) { gp_lon[i] = ppath2.gp_lon[ip]; }
+          if( atmosphere_dim > 1 )
+            {
+              gp_lat[i] = ppath2.gp_lat[ip];
+              if( atmosphere_dim == 3 )
+                { gp_lon[i] = ppath2.gp_lon[ip]; }
+            }
         }
     }
   else
@@ -2253,16 +2257,24 @@ void iyIndependentBeamApproximation(
         {
           const Index ip = ppath2.np - i - 1;
           gp_p[i]   = ppath2.gp_p[ip];
-          gp_lat[i] = ppath2.gp_lat[ip];
-          if( atmosphere_dim == 3 ) { gp_lon[i] = ppath2.gp_lon[ip]; }
+          if( atmosphere_dim > 1 )
+            {
+              gp_lat[i] = ppath2.gp_lat[ip];
+              if( atmosphere_dim == 3 )
+                { gp_lon[i] = ppath2.gp_lon[ip]; }
+            }
         }
       // Append ppath
       for( Index i=ppath2.np-1; i<np; i++ )
         {
           const Index ip = i - ppath2.np + 1;
           gp_p[i]   = ppath.gp_p[ip];
-          gp_lat[i] = ppath.gp_lat[ip];
-          if( atmosphere_dim == 3 ) { gp_lon[i] = ppath.gp_lon[ip]; }
+          if( atmosphere_dim > 1 )
+            {
+              gp_lat[i] = ppath.gp_lat[ip];
+              if( atmosphere_dim == 3 )
+                { gp_lon[i] = ppath.gp_lon[ip]; }
+            }
         }
     }
   
@@ -2277,14 +2289,7 @@ void iyIndependentBeamApproximation(
   // 1D version of lat and lon variables
   Vector lat1(0), lon1(0);
   Vector lat_true1(1), lon_true1(1);
-  if( atmosphere_dim == 2 )
-    {
-      gp1[0] = gp_lat[0];
-      interp_atmfield_gp2itw( itw, 1, gp1, gp0, gp0 );
-      interp( lat_true1, itw, lat_true, gp1 ); 
-      interp( lon_true1, itw, lon_true, gp1 );
-    }
-  else
+  if( atmosphere_dim == 3 )
     {
       gp1[0] = gp_lat[0];
       interp_atmfield_gp2itw( itw, 1, gp1, gp0, gp0 );
@@ -2293,6 +2298,19 @@ void iyIndependentBeamApproximation(
       interp_atmfield_gp2itw( itw, 1, gp1, gp0, gp0 );
       interp( lon_true1, itw, lon_grid, gp1 );
     }
+  else if( atmosphere_dim == 2 )
+    {
+      gp1[0] = gp_lat[0];
+      interp_atmfield_gp2itw( itw, 1, gp1, gp0, gp0 );
+      interp( lat_true1, itw, lat_true, gp1 ); 
+      interp( lon_true1, itw, lon_true, gp1 );
+    }
+  else
+    {
+      lat_true1[0] = lat_true[0];
+      lon_true1[0] = lon_true[0];
+    }
+  
   
   // 2D/3D interpolation weights
   interp_atmfield_gp2itw( itw, atmosphere_dim, gp_p, gp_lat, gp_lon );  
@@ -2407,9 +2425,11 @@ void iyIndependentBeamApproximation(
   if( return_atm1d )
     {
       // Sizes and allocate memory
+      Index npvars = pnd1.nbooks();
+      if( return_masses )
+        { npvars = particle_masses.ncols(); }
       const Index nvmr = vmr1.nbooks();
-      const Index npnd = pnd1.nbooks();
-      const Index ntot = 2 + nvmr + npnd;
+      const Index ntot = 2 + nvmr + npvars;
       ArrayOfString field_names( ntot );
       atm_fields_compact.resize( ntot, np, 1, 1 );
 
@@ -2431,14 +2451,39 @@ void iyIndependentBeamApproximation(
         }
 
       // PNDs
-      for( Index i=0; i<npnd; i++ )
+      if( !return_masses )
         {
-          ostringstream sstr;
-          sstr << "Scattering element " << i;
-          field_names[2+nvmr+i] = sstr.str();
-          atm_fields_compact.data(2+nvmr+i,joker,0,0) = 0;
-          atm_fields_compact.data(2+nvmr+i,Range(cbox_lims1[0],pnd1.npages()),0,0) =
-            pnd1(i,joker,0,0);
+          // Fill with pnd values
+          for( Index i=0; i<npvars; i++ )
+            {
+              ostringstream sstr;
+              sstr << "Scattering element " << i;
+              field_names[2+nvmr+i] = sstr.str();
+              const Index iout = 2 + nvmr + i;
+              atm_fields_compact.data(iout,joker,0,0) = 0;
+              atm_fields_compact.data(iout,Range(cbox_lims1[0],pnd1.npages()),0,0) =
+                pnd1(i,joker,0,0);
+            }
+        }
+      else
+        {
+          // Fill with mass values
+          for( Index i=0; i<npvars; i++ )
+            {
+              ostringstream sstr;
+              sstr << "Mass category " << i;
+              field_names[2+nvmr+i] = sstr.str();
+              const Index iout = 2 + nvmr + i;
+              atm_fields_compact.data(iout,joker,0,0) = 0;
+              for( Index ip=cbox_lims1[0]; ip<pnd1.npages(); ip++ )
+                {
+                  for( Index is=0; is<pnd1.nbooks(); is++ )
+                    {
+                      atm_fields_compact.data(iout,ip,0,0) +=
+                        particle_masses(is,i) * pnd1(is,ip,0,0);
+                    }
+                }
+            }
         }
       
       // Finally, set grids and names

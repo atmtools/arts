@@ -1,3 +1,17 @@
+2017-01-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* src/m_montecarlo.cc (MCGeneral): Added chack that sensor_pos/los
+	in fact just have one row (before additional rows were silently
+	ignored).
+
+	* src/m_rte.cc (iyIndependentBeamApproximation): 1D now handled
+	exactly as 2D and 3D. Added another GIN option.
+
+	* src/workspace.cc: Polishing of description of iy_id.
+
+	* src/rte.cc (apply_iy_unit, apply_iy_unit2): Inside these
+	functions the name y_unit was still used.
+
 2017-01-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-582

@@ -63,7 +63,7 @@ void adjust_los(
 
 void apply_iy_unit( 
             MatrixView   iy, 
-         const String&   y_unit, 
+         const String&   iy_unit, 
        ConstVectorView   f_grid,
    const Numeric&        n,
    const ArrayOfIndex&   i_pol );
@@ -71,7 +71,7 @@ void apply_iy_unit(
 void apply_iy_unit2( 
    Tensor3View           J,
    ConstMatrixView       iy, 
-   const String&         y_unit, 
+   const String&         iy_unit, 
    ConstVectorView       f_grid,
    const Numeric&        n,
    const ArrayOfIndex&   i_pol );

@@ -186,12 +186,26 @@ void MCGeneral(Workspace&            ws,
       os << "Found: " << sensor_pos.ncols();
       throw runtime_error(os.str());
     }
+  if( sensor_pos.nrows() != 1 )
+    {
+      ostringstream os;
+      os << "Expected number of rows in sensor_pos: 1.\n";
+      os << "Found: " << sensor_pos.nrows();
+      throw runtime_error(os.str());
+    }
 
   if (! (sensor_los.ncols() == 2))
     {
       ostringstream os;
       os << "Expected number of columns in sensor_los: 2.\n";
       os << "Found: " << sensor_los.ncols();
+      throw runtime_error(os.str());
+    }
+  if (! (sensor_los.nrows() == 1))
+    {
+      ostringstream os;
+      os << "Expected number of rows in sensor_los: 1.\n";
+      os << "Found: " << sensor_los.nrows();
       throw runtime_error(os.str());
     }
 
