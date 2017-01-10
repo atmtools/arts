@@ -494,6 +494,7 @@ void RT4Calc( Workspace&,
                 const String&,
                 const Index&,
                 const Numeric&,
+                const Numeric&,
                 const Verbosity& )
 {
     throw runtime_error ("This version of ARTS was compiled without RT4 support.");
