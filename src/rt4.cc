@@ -279,6 +279,7 @@ void sca_optpropCalc( //Output
                       ConstVectorView quad_weights,
                       const String& pfct_method,
                       const Index& pfct_aa_grid_size,
+                      const Numeric& pfct_threshold,
                       const Verbosity& verbosity )
 {
   // FIXME: do we have numerical issues, too, here in case of tiny pnd? check
@@ -496,8 +497,10 @@ void sca_optpropCalc( //Output
             {
               Numeric sca_mat_integ = 0.;
 
-              Numeric sca_nom = extinct_matrix(scat_p_index_local,ih,iza,0,0)-
-                                emis_vector(scat_p_index_local,ih,iza,0);
+              Numeric ext_nom = extinct_matrix(scat_p_index_local,ih,iza,0,0);
+              Numeric sca_nom = ext_nom-emis_vector(scat_p_index_local,ih,iza,0);
+              Numeric w0_nom = sca_nom/ext_nom;
+              assert(w0_nom>=0.);
 
               for (Index sza=0; sza<nummu; sza++)
               {
@@ -510,23 +513,33 @@ void sca_optpropCalc( //Output
               }
 
               // compare integrated scatt matrix with ext-abs for respective
-              // incident polar angle
+              // incident polar angle - consistently with scat_dataCheck, we do
+              // this in trms of albedo deviation (since PFCT deviations at
+              // small albedos matter less than those at high albedos)
 //            SUM1 = EMIS_VECTOR(1,J1,L,TSL)-EXTINCT_MATRIX(1,1,J1,L,TSL)
-              Numeric norm = 2.*PI*sca_mat_integ / sca_nom;
-              if (abs(1.-norm) > 0.1)
+              Numeric pfct_norm = 2.*PI*sca_mat_integ / sca_nom;
+              Numeric w0_act = 2.*PI*sca_mat_integ / ext_nom;
+              if (abs(w0_act-w0_nom) > pfct_threshold)
               {
                 ostringstream os;
-                os << "Scattering matrix normalization deviates from expected value\n"
-                   << "by more than 10%. Something is wrong with your scattering data.\n"
-                   << "Check!\n";
+                os << "Bulk scattering matrix normalization deviates significantly\n"
+                   << "from expected value (" << 1e2*abs(1.-pfct_norm) << "%, "
+                   << "resulting in albedo deviation of " << abs(w0_act-w0_nom)
+                   << ").\n"
+                   << "Something seems wrong with your scattering data "
+                   << "(did you run *scat_dataCheck*?)\n"
+                   << "or your RT4 setup (try increasing *nstreams* and in case "
+                   << "of randomly oriented particles possibly also "
+                   << "pfct_aa_grid_size).";
                 throw runtime_error( os.str() );
               }
-              if (abs(1.-norm) > 1e-2)
+              if (abs(w0_act-w0_nom) > pfct_threshold*0.1 || abs(1.-pfct_norm) > 1e-2)
               {
                 CREATE_OUT2;
-                out2 << "Warning: The scattering matrix is not well normalized\n"
-                     << "Deviating from expected value by " << 1e2*abs(1.-norm)
-                     << "%.\n";
+                out2 << "Warning: The bulk scattering matrix is not well normalized\n"
+                     << "Deviating from expected value by " << 1e2*abs(1.-pfct_norm)
+                     << "% (and " << abs(w0_act-w0_nom)
+                     << " in terms of scattering albedo).\n";
 //                cout << "polar angle #" << iza << "." << ih << "\n";
 //                cout << "Scattering matrix deviating from expected value by "
 //                     << 1e2*abs(1.-norm) << "%.\n";
@@ -537,8 +550,10 @@ void sca_optpropCalc( //Output
               // FIXME: not fully clear whether applying the same rescaling
               // factor is the correct way to do. check out, e.g., Vasilieva
               // (JQSRT 2006) for better approaches.
-              scatter_matrix(scat_p_index_local,ih,iza,joker,joker,joker) /= norm;
-              scatter_matrix(scat_p_index_local,ih+2,iza,joker,joker,joker) /= norm;
+              scatter_matrix(scat_p_index_local,ih,iza,joker,joker,joker) /=
+                pfct_norm;
+              scatter_matrix(scat_p_index_local,ih+2,iza,joker,joker,joker) /=
+                pfct_norm;
             }
     }
 }

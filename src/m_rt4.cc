@@ -80,6 +80,7 @@ void RT4Calc( Workspace& ws,
                 const String& pfct_method,
                 const String& quad_type,
                 const Index& pfct_aa_grid_size,
+                const Numeric& pfct_threshold,
                 const Numeric& max_delta_tau,
                 const Verbosity& verbosity )
 {
@@ -377,7 +378,7 @@ void RT4Calc( Workspace& ws,
                        emis_vector, extinct_matrix,
                        scat_data_mono, pnd_field, stokes_dim,
                        scat_za_grid, quad_weights,
-                       pfct_method, pfct_aa_grid_size,
+                       pfct_method, pfct_aa_grid_size, pfct_threshold,
                        verbosity );
 
 //#pragma omp critical(fortran_rt4)

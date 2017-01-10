@@ -68,6 +68,7 @@ void sca_optpropCalc( //Output
                       ConstVectorView quad_weights,
                       const String& pfct_method,
                       const Index& pfct_aa_grid_size,
+                      const Numeric& pfct_threshold,
                       const Verbosity& verbosity );
 
 void rt4_test( Tensor4& out_rad,

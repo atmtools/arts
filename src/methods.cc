@@ -11765,11 +11765,11 @@ void define_md_data_raw()
             "scat_data", "f_grid", "stokes_dim",
             "surface_scalar_reflectivity" ),
         GIN(         "nstreams", "non_iso_inc", "pfct_method", "quad_type",
-                     "pfct_aa_grid_size", "max_delta_tau" ),
+                     "pfct_aa_grid_size", "pfct_threshold", "max_delta_tau" ),
         GIN_TYPE(    "Index",    "Index",       "String",      "String",
-                     "Index",             "Numeric" ),
+                     "Index",             "Numeric",        "Numeric" ),
         GIN_DEFAULT( "16",        "0",           "median",      "D",
-                     "19",                "1e-6" ),
+                     "19",                "5e-2",           "1e-6" ),
         GIN_DESC( "Number of polar angle directions (streams) in DISORT "
                   "solution (must be an even number).",
                   "Flag whether to run DISORT initialized with non-isotropic "
@@ -11781,6 +11781,9 @@ void define_md_data_raw()
                   "Number of azimuthal angle grid points to consider in "
                   "Fourier series decomposition of scattering matrix (only "
                   "applied for randomly oriented scattering elements)",
+                  "Phase function accuracy threshold (actually, a scattering "
+                  "albedo threshold; equivalent to scat_dataCheck's "
+                  "sca_mat_threshold).",
                   "Maximum optical depth of infinitesimal layer (where single"
                   "scattering approximation is assumed to apply)." )
         ));
