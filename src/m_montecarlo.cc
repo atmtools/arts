@@ -56,6 +56,8 @@ by Monte Carlo methods.  All of these functions refer to 3D calculations
 #include <fstream>
 #include "mc_interp.h"
 #include "math_funcs.h"
+#include "refraction.h"
+#include "make_vector.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
@@ -256,12 +258,14 @@ void MCGeneral(Workspace&            ws,
   Matrix  evol_op(stokes_dim,stokes_dim), ext_mat_mono(stokes_dim,stokes_dim);
   Matrix  q(stokes_dim,stokes_dim), newQ(stokes_dim,stokes_dim);
   Matrix  Z(stokes_dim,stokes_dim);
+  Matrix  R_ant2enu(3,3), R_stokes(stokes_dim, stokes_dim); // Needed for antenna rotations
   q     = 0.0; 
   newQ  = 0.0;
   Vector vector1(stokes_dim), abs_vec_mono(stokes_dim), I_i(stokes_dim);
   Vector Isum(stokes_dim), Isquaredsum(stokes_dim);
   Index termination_flag = 0;
   const Numeric f_mono = f_grid[f_index];
+  const Numeric prop_dir = -1.0; // propagation direction opposite of los angles
 
   CREATE_OUT0;
 
@@ -282,7 +286,7 @@ void MCGeneral(Workspace&            ws,
   Matrix  local_iy(1,stokes_dim), local_surface_emission(1,stokes_dim);
   Matrix  local_surface_los;
   Tensor4 local_surface_rmatrix;
-  Vector  local_rte_pos(2);
+  Vector  local_rte_pos(3); // Fixed this (changed from 2 to 3)
   Vector  local_rte_los(2);
   Vector  new_rte_los(2);
   Index   np;
@@ -305,6 +309,8 @@ void MCGeneral(Workspace&            ws,
       throw runtime_error( os.str() );
     }
       
+  // Calculate rotation matrix for boresight
+  rotmat_enu(R_ant2enu, sensor_los(0,joker));
 
   //Begin Main Loop
   //
@@ -326,7 +332,13 @@ void MCGeneral(Workspace&            ws,
         oksampling = true;   // gets false if g becomes zero
 
         //Sample a FOV direction
-        mc_antenna.draw_los(local_rte_los,rng,sensor_los(0,joker));
+        Matrix R_prop(3,3);
+        mc_antenna.draw_los(local_rte_los, R_prop, rng, 
+                            R_ant2enu, sensor_los(0,joker));
+
+        // Get stokes rotation matrix for rotating polarization
+        rotmat_stokes( R_stokes, stokes_dim, prop_dir, 
+                       prop_dir, R_prop, R_ant2enu );
         id_mat(Q);
         local_rte_pos=sensor_pos(0,joker);
         I_i=0.0;
@@ -497,6 +509,9 @@ void MCGeneral(Workspace&            ws,
             if( scattering_order < l_mc_scat_order )
               { mc_scat_order[scattering_order] += 1; }
 
+            // Rotate into antenna polarization frame
+            Vector I_hold(stokes_dim);
+            mult( I_hold, R_stokes, I_i);
             Isum += I_i;
 
             for( Index j=0; j<stokes_dim; j++ )
@@ -548,7 +563,469 @@ void MCGeneral(Workspace&            ws,
     }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void MCRadar(// Workspace reference:
+             Workspace& ws,
+             // WS Output:
+             Vector& y,
+             Vector& mc_error,
+             // WS Input:
+             const MCAntenna& mc_antenna,
+             const Vector& f_grid,
+             const Index& f_index,
+             const Matrix& sensor_pos,
+             const Matrix& sensor_los,
+             const Index& stokes_dim,
+             const Index& atmosphere_dim,
+             const Numeric& ppath_lmax,
+             const Agenda& ppath_step_agenda,
+             const Numeric& ppath_lraytrace,
+             const Agenda& propmat_clearsky_agenda,
+             const Vector& p_grid,
+             const Vector& lat_grid,
+             const Vector& lon_grid,
+             const Tensor3& z_field,
+             const Vector& refellipsoid,
+             const Matrix& z_surface,
+             const Tensor3& t_field,
+             const Tensor4& vmr_field,
+             const Index& cloudbox_on,
+             const ArrayOfIndex& cloudbox_limits,
+             const Tensor4& pnd_field,
+             const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+             const Vector& mc_y_tx,
+             const Vector& range_bins,
+             const Index& atmfields_checked,
+             const Index& atmgeom_checked,
+             const Index& cloudbox_checked,
+             const String& iy_unit,
+             const Index& mc_max_scatorder,
+             const Index& mc_seed,
+             const Index& mc_max_iter,
+             // Verbosity object:
+             const Verbosity& verbosity)
 
+{
+
+  CREATE_OUT0;
+
+  // Important constants
+  const Index nbins = range_bins.nelem() - 1;
+  const Numeric r_min = min(range_bins);
+  const Numeric r_max = max(range_bins);
+
+  // Basics
+  //
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  if( atmfields_checked != 1 )
+    throw runtime_error( "The atmospheric fields must be flagged to have "
+                         "passed a consistency check (atmfields_checked=1)." );
+  if( atmgeom_checked != 1 )
+    throw runtime_error( "The atmospheric geometry must be flagged to have "
+                         "passed a consistency check (atmgeom_checked=1)." );
+  if( cloudbox_checked != 1 )
+    throw runtime_error( "The cloudbox must be flagged to have "
+                         "passed a consistency check (cloudbox_checked=1)." );
+  if( !cloudbox_on )
+    throw runtime_error( "The cloudbox  must be activated (cloudbox_on=1)." );
+
+  if( f_index < 0 )
+    throw runtime_error( "The option of f_index < 0 is not handled by this "
+                         "method." );
+  if( f_index >= f_grid.nelem() )
+    throw runtime_error( "*f_index* is outside the range of *f_grid*." );
+
+  if( atmosphere_dim != 3 )
+    throw runtime_error( "Only 3D atmospheres are handled." );
+
+  if( stokes_dim != mc_y_tx.nelem() )
+    throw runtime_error( "*mc_y_tx* must have size of *stokes_dim*." );
+
+  if( sensor_pos.ncols() != 3 )
+    {
+      ostringstream os;
+      os << "Expected number of columns in sensor_pos: 3.\n";
+      os << "Found: " << sensor_pos.ncols();
+      throw runtime_error(os.str());
+    }
+
+  if( sensor_los.ncols() != 2)
+    {
+      ostringstream os;
+      os << "Expected number of columns in sensor_los: 2.\n";
+      os << "Found: " << sensor_los.ncols();
+      throw runtime_error(os.str());
+    }
+
+  if( mc_max_iter < 0 )
+    throw runtime_error( "mc_max_iter must be positive, "
+                         "as it is the only limiter.");
+
+  if( !is_increasing( range_bins ) )
+    throw runtime_error( "The vector *range_bins* must contain strictly "
+                         "increasing values." );
+
+  if( r_min < 0 )
+    throw runtime_error( "The vector *range_bins* is not allowed to contain "
+                         "negative distance or round-trip time." );
+
+  if( mc_antenna.get_type() != ANTENNA_TYPE_GAUSSIAN )
+    {
+      throw runtime_error( "MCRadar only works with "
+                           "Gaussian antenna patterns." );
+    }
+
+  Ppath  ppath_step;
+  Rng    rng;                      //Random Number generator
+  Index  N_se = pnd_field.nbooks();//Number of scattering elements
+  Vector pnd_vec(N_se); //Vector of particle number densities used at each point
+  bool  anyptype30 = is_anyptype30(scat_data_mono);
+  bool  is_dist = max(range_bins) > 1; // Is it round trip time or distance
+  rng.seed(mc_seed, verbosity);
+  Numeric ppath_lraytrace_var;
+  Numeric temperature, albedo;
+  Numeric Csca, Cext;
+  Numeric antenna_wgt;
+  Matrix evol_op(stokes_dim,stokes_dim), ext_mat_mono(stokes_dim,stokes_dim);
+  Matrix trans_mat(stokes_dim,stokes_dim);
+  Matrix Z(stokes_dim,stokes_dim);
+  Matrix R_ant2enu(3,3), R_enu2ant(3,3), R_stokes(stokes_dim, stokes_dim);
+  Vector abs_vec_mono(stokes_dim), I_i(stokes_dim), I_i_rot(stokes_dim);
+  Vector Isum(nbins*stokes_dim), Isquaredsum(nbins*stokes_dim);
+  Index termination_flag = 0;
+  Vector bin_height(nbins);
+  Vector range_bin_count(nbins);
+  Index mc_iter;
+  Index scat_order;
+
+  const Numeric f_mono = f_grid[f_index];
+  const Numeric tx_dir = 1.0;
+  const Numeric rx_dir = -1.0;
+
+  for (Index ibin = 0; ibin<nbins; ibin++)
+    {
+      bin_height[ibin] = range_bins[ibin+1] - range_bins[ibin];
+    }
+  if( !is_dist )
+    {
+      bin_height *= 0.5 * SPEED_OF_LIGHT;
+    }
+
+  y.resize(nbins*stokes_dim);
+  y = 0;
+
+  range_bin_count = 0;
+
+  mc_iter = 0;
+  // this will need to be reshaped differently for range gates
+  mc_error.resize(stokes_dim*nbins);
+
+  //local versions of workspace
+  Matrix  local_iy(1,stokes_dim), local_surface_emission(1,stokes_dim);
+  Matrix  local_surface_los;
+  Tensor4 local_surface_rmatrix;
+  Vector  local_rte_pos(3);
+  Vector  local_rte_los(2);
+  Vector  new_rte_los(2);
+  Vector Ipath(stokes_dim), Ihold(stokes_dim), Ipath_norm(stokes_dim);
+  Isum=0.0;
+  Isquaredsum=0.0;
+  Numeric s_tot, s_return; // photon distance traveled
+  Numeric t_tot, t_return; // photon time traveled
+  Numeric r_trav, r_bin; // range traveled (1-way distance) or round-trip time
+
+  Numeric fac;
+  if( iy_unit == "1" )
+    {
+      fac = 1.0;
+    }
+  
+  // Conversion from intensity to reflectivity
+  else if( iy_unit == "Ze" )
+    {
+
+      const Numeric ze_tref = 283;
+      const Numeric pito5 = PI * PI * PI * PI * PI;
+      const Numeric lam = SPEED_OF_LIGHT / f_mono;
+      const Numeric lamsqrsqr = lam * lam * lam * lam;
+
+      Matrix complex_n;
+      Complex n, nsqr, K;
+      Numeric absK, absKsqr;
+
+      // Compute dielectric factor (should change this to input variable)
+      Vector ff = MakeVector(f_mono);
+      complex_n_water_liebe93( complex_n, ff, ze_tref );
+      n = Complex( complex_n(0,0), complex_n(0,1) );
+      nsqr = n * n;
+      K = ( nsqr - Numeric(1.0) ) / ( nsqr + Numeric(2.0) );
+      absK = abs( K );
+      absKsqr = absK * absK;
+
+      // Conversion factor
+      fac = 2e18 * lamsqrsqr / absKsqr / pito5;
+    }
+  else
+    {
+      ostringstream os;
+      os << "Invalid value for *iy_unit*:" << iy_unit <<".\n" 
+         << "This method allows only the options \"Ze\" and \"1\".";
+      throw runtime_error( os.str() );
+    }
+
+  // Calculate rotation matrix and polarization bases for boresight
+  rotmat_enu(R_ant2enu, sensor_los(0,joker));
+  R_enu2ant = transpose(R_ant2enu);
+
+  //Begin Main Loop
+  bool keepgoing, firstpass, integrity;
+  while( mc_iter < mc_max_iter )
+    {
+      bool inside_cloud;
+
+      mc_iter += 1;
+
+      integrity = true;    // intensity is not nan or below threshold
+      keepgoing = true;    // indicating whether to continue tracing a photon
+      firstpass = true;    // ensure backscatter is properly calculated
+
+      //Sample a FOV direction
+      Matrix R_tx(3,3);
+      mc_antenna.draw_los( local_rte_los, R_tx, rng, 
+                           R_ant2enu, sensor_los(0,joker) );
+      rotmat_stokes( R_stokes, stokes_dim, tx_dir, tx_dir, R_ant2enu, R_tx );
+      mult( Ihold, R_stokes, mc_y_tx);
+
+      // Initialize other variables
+      local_rte_pos=sensor_pos(0,joker);
+      s_tot = 0.0;
+      t_tot = 0.0;
+      scat_order = 0;
+      while( keepgoing )
+        {
+          Numeric s_path, t_path;
+
+          mcPathTraceRadar( ws, evol_op, abs_vec_mono, temperature, 
+                            ext_mat_mono, rng, local_rte_pos, local_rte_los, 
+                            pnd_vec, s_path, t_path, ppath_step, 
+                            termination_flag, inside_cloud, ppath_step_agenda, 
+                            ppath_lmax, ppath_lraytrace, 
+                            propmat_clearsky_agenda, anyptype30, stokes_dim, 
+                            f_mono, Ihold, p_grid, lat_grid, lon_grid, z_field, 
+                            refellipsoid,z_surface, t_field, vmr_field, 
+                            cloudbox_limits, pnd_field, scat_data_mono, 
+                            verbosity ); 
+          s_tot += s_path; 
+          t_tot += t_path; 
+
+          // 
+          Csca = ext_mat_mono(0,0) - abs_vec_mono[0];
+          Cext = ext_mat_mono(0,0);
+          if( anyptype30 )
+            {
+              const Numeric Irat = Ihold[1] / Ihold[0];
+              Csca += Irat * (ext_mat_mono(1,0) - abs_vec_mono[1]);
+              Cext += Irat * ext_mat_mono(0,1);
+            }
+          albedo = Csca / Cext;
+
+          // Terminate if absorption event, outside cloud, or surface
+          Numeric rn = rng.draw();
+          if( rn > albedo || !inside_cloud || termination_flag != 0 )
+            {
+              keepgoing = false;
+            }
+          else
+            {
+
+              Vector rte_los_geom(2);
+
+              // Compute reflectivity contribution based on local-to-sensor 
+              // geometry, path attenuation
+              // Get los angles at atmospheric locale to determine 
+              // scattering angle
+              if( firstpass )
+                {
+                  // Use this to ensure that the difference in azimuth angle 
+                  // between incident and scattered lines-of-sight is 180 
+                  // degrees
+                  mirror_los( rte_los_geom, local_rte_los, atmosphere_dim );
+                  firstpass = false;
+                }
+              else
+                {
+                  // Replace with ppath_agendaExecute??
+                  rte_losGeometricFromRtePosToRtePos2( rte_los_geom, 
+                                                       atmosphere_dim, 
+                                                       lat_grid, lon_grid, 
+                                                       refellipsoid, 
+                                                       local_rte_pos, 
+                                                       sensor_pos(0,joker), 
+                                                       verbosity );
+                }
+
+              // Get los angles at sensor to determine antenna pattern 
+              // weighting of return signal and ppath to determine 
+              // propagation path back to sensor
+              // Replace with ppath_agendaExecute??
+              Ppath  ppath;
+              Vector rte_los_antenna(2);
+              ppath_lraytrace_var = ppath_lraytrace;
+              Numeric za_accuracy = 2e-5;
+              Numeric pplrt_factor = 5;
+              Numeric pplrt_lowest = 0.5;
+
+              rte_losGeometricFromRtePosToRtePos2( rte_los_antenna, 
+                                                   atmosphere_dim, lat_grid, 
+                                                   lon_grid, refellipsoid, 
+                                                   sensor_pos(0,joker), 
+                                                   local_rte_pos, verbosity );
+
+              ppathFromRtePos2( ws, ppath, rte_los_antenna, 
+                                ppath_lraytrace_var, ppath_step_agenda, 
+                                atmosphere_dim, p_grid, lat_grid, lon_grid, 
+                                t_field, z_field, vmr_field, f_grid, 
+                                refellipsoid, z_surface, sensor_pos(0,joker), 
+                                local_rte_pos, ppath_lmax, za_accuracy, 
+                                pplrt_factor, pplrt_lowest, verbosity );
+
+              // Return distance
+              const Index np2 = ppath.np;
+              s_return = ppath.end_lstep;
+              t_return = s_return / SPEED_OF_LIGHT;
+              for( Index ip=1; ip<np2; ip++ )
+                {
+                  s_return += ppath.lstep[ip-1];
+                  t_return += ppath.lstep[ip-1] 
+                            * 0.5 * (ppath.ngroup[ip-1] + ppath.ngroup[ip]) 
+                            / SPEED_OF_LIGHT;
+                }
+
+              // One-way distance
+              if( is_dist )
+                {
+                  r_trav = 0.5 * (s_tot + s_return);
+                }
+
+              // Round trip travel time
+              else
+                {
+                  r_trav = t_tot + t_return;
+                }
+
+              // Still within max range of radar?
+              if( r_trav <= r_max )
+                {
+                  // Compute path extinction as with radio link
+                  get_ppath_transmat( ws, trans_mat, ppath, 
+                                      propmat_clearsky_agenda, stokes_dim, 
+                                      f_mono, p_grid, t_field, vmr_field, 
+                                      cloudbox_limits, pnd_field, 
+                                      scat_data_mono, verbosity );
+
+                  // Obtain scattering matrix given incident and scattered angles
+                  Matrix P(stokes_dim,stokes_dim);
+                  pha_mat_singleCalc( P, rte_los_geom[0], rte_los_geom[1], 
+                                      local_rte_los[0], local_rte_los[1], 
+                                      scat_data_mono, stokes_dim, 
+                                      pnd_vec, temperature, verbosity );
+                  P *= 4 * PI;
+                  P /= Csca;
+
+                  // Compute reflectivity contribution here
+                  mult( Ipath, evol_op, Ihold);
+                  Ipath /= Ipath[0];
+                  mult( Ihold, P, Ipath );
+                  mult( I_i, trans_mat, Ihold );
+                  Ihold = Ipath;
+                  if( isnan(Ihold[0]) || isnan(Ihold[1]) || 
+                      isnan(Ihold[2]) || Ihold[0] < 1e-40 )
+                     {
+                        integrity = false;
+                     }
+
+                  if( r_trav >= r_min && integrity )
+                    {
+                      // Add reflectivity to proper range bin
+                      Index ibin = -1;
+                      r_bin = 0.0;
+                      while( r_bin<r_trav && ibin<nbins-1 )
+                        {
+                          ibin++;
+                          r_bin = range_bins[ibin];
+                        }
+
+                      // Calculate rx antenna weight and polarization rotation
+                      Matrix R_rx(3,3);
+                      rotmat_enu( R_rx, rte_los_antenna );
+                      mc_antenna.return_los( antenna_wgt, R_rx, R_enu2ant );
+                      rotmat_stokes( R_stokes, stokes_dim, rx_dir, 
+                                     tx_dir, R_rx, R_ant2enu );
+                      mult( I_i_rot, R_stokes, I_i);
+
+                      for( Index istokes=0; istokes<stokes_dim; istokes++ )
+                        {
+                          Index ibiny = ibin * stokes_dim + istokes;
+                          assert( !isnan(I_i_rot[istokes]) );
+                          Isum[ibiny] += antenna_wgt * I_i_rot[istokes];
+                          Isquaredsum[ibiny] += antenna_wgt * antenna_wgt * 
+                                                I_i_rot[istokes] * 
+                                                I_i_rot[istokes];
+                        }
+                      range_bin_count[ibin] += 1;
+                    }
+
+                  scat_order++;
+
+                  Sample_los_uniform( new_rte_los, rng );
+                  pha_mat_singleCalc( Z, new_rte_los[0], new_rte_los[1], 
+                                      local_rte_los[0], local_rte_los[1], 
+                                      scat_data_mono, stokes_dim, 
+                                      pnd_vec, temperature, verbosity );
+
+                  Z *= 4 * PI;
+                  Z /= Csca;
+                  mult( Ipath, Z, Ihold );
+                  Ihold = Ipath;
+                  local_rte_los = new_rte_los;
+                }
+              else
+                {
+
+                  // Past farthest range
+                  keepgoing = false;
+                }
+            }
+
+          // Some checks
+          if( scat_order >= mc_max_scatorder )
+            keepgoing = false;
+          if( !integrity )
+            keepgoing = false;
+        }  // while (inner: keepgoing)
+
+    } // while (outer)
+
+  // Normalize range bins and apply sensor response (polarization)
+  for( Index ibin = 0; ibin<nbins; ibin++ )
+    {
+      for( Index istokes=0; istokes<stokes_dim; istokes++ )
+        {
+          Index ibiny = ibin * stokes_dim + istokes;
+          if( range_bin_count[ibin] > 0 )
+            {
+              y[ibiny] = Isum[ibiny] / ((Numeric) mc_iter) / bin_height[ibin];
+              mc_error[ibiny] = sqrt( (Isquaredsum[ibiny] / (Numeric)mc_iter /
+                                       bin_height[ibin] / bin_height[ibin] -
+                                       y[ibiny] * y[ibiny] ) / 
+                                       (Numeric)mc_iter );
+            }
+        }
+    }
+
+  y *= fac;
+  mc_error *= fac;
+} // end MCRadar
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void MCSetSeedFromTime(Index& mc_seed,

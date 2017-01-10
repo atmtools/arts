@@ -35,11 +35,237 @@
   ===========================================================================*/
 
 #include <sstream>
+#include <cfloat>
 
 #include "auto_md.h"
 #include "geodetic.h"
 #include "montecarlo.h"
 #include "mc_interp.h"
+
+extern const Numeric SPEED_OF_LIGHT;
+
+// Some root-finding helper functions (for MCRadar) that don't need
+// visibility outside this source file
+//
+//
+
+//! ext_I
+/*!
+  Calculate the extinction of I for a propagating "photon"
+
+\author Ian Adams
+\date 2016-06-15
+*/
+Numeric ext_I( const Numeric& I, 
+               const Numeric& Q, 
+               const Numeric& kI, 
+               const Numeric& kQ, 
+               const Numeric& s)
+{
+
+  Numeric fs;
+
+  fs = exp( -kI * s ) * ( I * cosh( kQ * s ) + Q * sinh( kQ * s ) );
+
+  return fs;
+
+}
+
+//! brent_zero
+/*! 
+  
+    Purpose:
+  
+      brent_zero seeks the root of a function F(X) in an interval [A,B].
+  
+    Discussion:
+  
+      The interval [A,B] must be a change of sign interval for F.
+      That is, F(A) and F(B) must be of opposite signs.  Then
+      assuming that F is continuous implies the existence of at least
+      one value C between A and B for which F(C) = 0.
+  
+      The location of the zero is determined to within an accuracy
+      of 6 * MACHEPS * abs ( C ) + 2 * T.
+  
+      Thanks to Thomas Secretin for pointing out a transcription error in the
+      setting of the value of P, 11 February 2013.
+  
+      Modifications by Ian S. Adams, U.S. Naval Research Laboratory to conform 
+      to ARTS and to hardcode function for root finding while passing in
+      mulitple args for function
+      
+  
+    Licensing:
+  
+      This code is distributed under the GNU LGPL license.
+  
+    Modified:
+  
+      11 February 2013, J. Burkardt
+  
+      15 July 2016, I. Adams
+  
+    Author:
+  
+      Original FORTRAN77 version by Richard Brent.
+      C++ version by John Burkardt.
+  
+    Reference:
+  
+      Richard Brent,
+      Algorithms for Minimization Without Derivatives,
+      Dover, 2002,
+      ISBN: 0-486-41998-3,
+      LC: QA402.5.B74.
+  
+    Parameters:
+  
+      Input, double A, B, the endpoints of the change of sign interval.
+  
+      Input, double T, a positive error tolerance.
+  
+      Output, double ZERO, the estimated value of a zero of
+      the function F.
+\author J. Burkhardt
+\date 20??-??-??
+*/  
+void brent_zero (       Numeric& sb,
+                  const Numeric& a, 
+                  const Numeric& b, 
+                  const Numeric& t, 
+                  const Numeric& rn, 
+                  const Numeric& I, 
+                  const Numeric& Q, 
+                  const Numeric& KI, 
+                  const Numeric& KQ)
+{
+
+  Numeric c;
+  Numeric d;
+  Numeric e;
+  Numeric fa;
+  Numeric fb;
+  Numeric fc;
+  Numeric m;
+  Numeric macheps;
+  Numeric p;
+  Numeric q;
+  Numeric r;
+  Numeric s;
+  Numeric sa;
+  Numeric tol;
+//
+//  Make local copies of A and B.
+//
+  sa = a;
+  sb = b;
+  fa = ext_I( I, Q, KI, KQ, sa );// - rn;
+  fa -= rn;
+  fb = ext_I( I, Q, KI, KQ, sb );// - rn;
+  fb -= rn;
+
+  c = sa;
+  fc = fa;
+  e = sb - sa;
+  d = e;
+
+  macheps = DBL_EPSILON;
+
+  for ( ; ; )
+  {
+    if ( abs( fc ) < abs( fb ) )
+    {
+      sa = sb;
+      sb = c;
+      c = sa;
+      fa = fb;
+      fb = fc;
+      fc = fa;
+    }
+
+    tol = 2.0 * macheps * abs( sb ) + t;
+    m = 0.5 * ( c - sb );
+
+    if ( abs( m ) <= tol || fb == 0.0 )
+    {
+      break;
+    }
+
+    if ( abs( e ) < tol || abs( fa ) <= abs( fb ) )
+    {
+      e = m;
+      d = e;
+    }
+    else
+    {
+      s = fb / fa;
+
+      if ( sa == c )
+      {
+        p = 2.0 * m * s;
+        q = 1.0 - s;
+      }
+      else
+      {
+        q = fa / fc;
+        r = fb / fc;
+        p = s * ( 2.0 * m * q * ( q - r ) - ( sb - sa ) * ( r - 1.0 ) );
+        q = ( q - 1.0 ) * ( r - 1.0 ) * ( s - 1.0 );
+      }
+
+      if ( 0.0 < p )
+      {
+        q = - q;
+      }
+      else
+      {
+        p = - p;
+      }
+
+      s = e;
+      e = d;
+
+      if ( 2.0 * p < 3.0 * m * q - abs( tol * q ) &&
+        p < abs( 0.5 * s * q ) )
+      {
+        d = p / q;
+      }
+      else
+      {
+        e = m;
+        d = e;
+      }
+    }
+    sa = sb;
+    fa = fb;
+
+    if ( tol < abs( d ) )
+    {
+      sb = sb + d;
+    }
+    else if ( 0.0 < m )
+    {
+      sb = sb + tol;
+    }
+    else
+    {
+      sb = sb - tol;
+    }
+
+    fb = ext_I( I, Q, KI, KQ, sb );
+    fb -= rn;
+
+    if ( ( 0.0 < fb && 0.0 < fc ) || ( fb <= 0.0 && fc <= 0.0 ) )
+    {
+      c = sa;
+      fc = fa;
+      e = sb - sa;
+      d = e;
+    }
+  }
+}
+
 
 //! clear_rt_vars_at_gp
 /*! 
@@ -368,8 +594,150 @@ void findZ11max(Vector& Z11maxvector,
   }
 }
 
+//! get_ppath_transmat
+/*!
+  
+   Routine to get the transmission matrix along a pre-defined propagation path.
+   This is based on mcPathTraceGeneral using the routines from this source file.
+   Routines from rte.cc require wind and magnetic field data that has not been
+   typically passed to the Monte Carlo routines.
 
+   \param[in,out] ws              workspace
+   \param[out]    trans_mat       matrix defining transmission over the ppath
+                                  direction multiplied by sin(za)
+   \param[in]     ppath           propagation path over which transmission matrix is desired
+   \param[in]     propmat_clearsky_agenda 
+   \param[in]     stokes_dim
+   \param[in]     f_mono          monochromatic rt frequency
+   \param[in]     p_grid
+   \param[in]     t_field
+   \param[in]     vmr_field
+   \param[in]     cloudbox_limits
+   \param[in]     pnd_field
+   \param[in]     scat_data_mono
+   \param[in]     verbosity
 
+   \author Ian S. Adams
+   \date   2015-09-15
+
+*/
+void get_ppath_transmat(
+         Workspace&      ws,
+         MatrixView&     trans_mat,
+   const Ppath&          ppath,
+   const Agenda&         propmat_clearsky_agenda,
+   const Index           stokes_dim,
+   const Numeric&        f_mono,
+   const Vector&         p_grid,
+   const Tensor3&        t_field,
+   const Tensor4&        vmr_field,
+   const ArrayOfIndex&   cloudbox_limits,
+   const Tensor4&        pnd_field,
+   const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+   const Verbosity&      verbosity )
+{ 
+
+  bool inside_cloud;
+  const Index np = ppath.np;
+  ArrayOfMatrix ext_matArray(2);
+  ArrayOfMatrix trans_matArray(2);
+  Index  N_se = pnd_field.nbooks();//Number of scattering elements
+  Vector pnd_vec(N_se);
+  Vector abs_vec_mono(stokes_dim);
+  Matrix ext_mat(stokes_dim,stokes_dim);
+  Matrix ext_mat_mono(stokes_dim,stokes_dim);
+  Matrix incT(stokes_dim,stokes_dim,0.0);
+  Vector f_grid(1,f_mono);     // Vector version of f_mono
+  Numeric temperature;
+  Numeric dl=-999;
+
+  CREATE_OUT0;
+
+  id_mat( trans_mat );
+
+  if( np>1 )
+    {
+    // range defining cloudbox
+    Range p_range( cloudbox_limits[0], cloudbox_limits[1]-cloudbox_limits[0]+1 );
+    Range lat_range( cloudbox_limits[2], cloudbox_limits[3]-cloudbox_limits[2]+1 );
+    Range lon_range( cloudbox_limits[4], cloudbox_limits[5]-cloudbox_limits[4]+1 );
+
+    inside_cloud = is_gp_inside_cloudbox( ppath.gp_p[np-1], ppath.gp_lat[np-1], 
+                                          ppath.gp_lon[np-1], cloudbox_limits, 0, 3 );
+    if( inside_cloud )
+      {
+        cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec,
+                              temperature, propmat_clearsky_agenda, 
+                              stokes_dim, f_mono, ppath.gp_p[np-1],
+                              ppath.gp_lat[np-1], ppath.gp_lon[np-1],
+                              p_grid[p_range], 
+                              t_field(p_range,lat_range,lon_range), 
+                              vmr_field(joker,p_range,lat_range,lon_range),
+                              pnd_field, scat_data_mono, cloudbox_limits,
+                              ppath.los(np-1,joker), verbosity );
+      }
+    else
+      {
+        clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
+                             propmat_clearsky_agenda, f_mono,
+                             ppath.gp_p[np-1], ppath.gp_lat[np-1],
+                             ppath.gp_lon[np-1], p_grid, t_field, 
+                             vmr_field );
+        pnd_vec = 0.0;
+      }
+
+    trans_matArray[1] = trans_mat;
+    ext_matArray[1] = ext_mat_mono;
+
+    // Index in ppath of end point considered presently
+    for( Index ip=np-2; ip>=0; ip-- )
+      {
+
+        dl = ppath.lstep[ip];
+
+        ext_matArray[0] = ext_matArray[1];
+        trans_matArray[0] = trans_matArray[1];
+
+        inside_cloud = is_gp_inside_cloudbox( ppath.gp_p[ip], ppath.gp_lat[ip], 
+                                              ppath.gp_lon[ip], cloudbox_limits, 0, 3 );
+        if( inside_cloud )
+          {
+            cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec,
+                                  temperature, propmat_clearsky_agenda, 
+                                  stokes_dim, f_mono, ppath.gp_p[ip],
+                                  ppath.gp_lat[ip], ppath.gp_lon[ip],
+                                  p_grid[p_range], 
+                                  t_field(p_range,lat_range,lon_range), 
+                                  vmr_field(joker,p_range,lat_range,lon_range),
+                                  pnd_field, scat_data_mono, cloudbox_limits,
+                                  ppath.los(ip,joker), verbosity );
+          }
+        else
+          {
+            clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
+                                 propmat_clearsky_agenda, f_mono,
+                                 ppath.gp_p[ip], ppath.gp_lat[ip],
+                                 ppath.gp_lon[ip], p_grid, t_field, 
+                                 vmr_field );
+            pnd_vec = 0.0;
+          }
+
+        ext_matArray[1] = ext_mat_mono;
+        ext_mat = ext_matArray[0];
+        ext_mat += ext_matArray[1];  // Factor 2 fixed by using dl/2
+        //
+        {
+          Index extmat_case = 0;
+          ext2trans( incT, extmat_case, ext_mat, dl/2 );
+        }
+        //
+        mult( trans_mat, incT, trans_matArray[1] );
+        trans_matArray[1] = trans_mat;
+      
+      } // for( ip... )
+    } // if( np > 1 )
+
+}
 
 //! is_anyptype30
 /*!
@@ -731,7 +1099,317 @@ void mcPathTraceGeneral(
 
 }
 
+//! mcPathTraceRadar
+/*!
+    Performs the tasks of pathlength sampling.
 
+    Ray tracing done (but now only as far as determined by pathlength 
+    sampling) and calculation of the evolution operator and several 
+    atmospheric variables at the new point.
+
+    The end point of the ray tracing is returned by ppath_step, where the 
+    point of concern has index ppath_step.np-1. However, a somehwat dirty trick
+    is used here to avoid copying of data. Only ppath.np is adjusted, and
+    ppath_step can contain additional points (that should not be used).
+
+    Copied and modified from mcPathTraceGeneral
+
+    \author Cory Davis (mcPathTraceGeneral), Ian S. Adams
+    \date 2015-09-08
+*/
+void mcPathTraceRadar(
+         Workspace&      ws,
+         MatrixView      evol_op,
+         Vector&         abs_vec_mono,
+         Numeric&        temperature,
+         MatrixView      ext_mat_mono,
+         Rng&            rng,
+         Vector&         rte_pos,
+         Vector&         rte_los,
+         Vector&         pnd_vec,
+         Numeric&        stot,
+         Numeric&        ttot,
+         Ppath&          ppath_step,
+         Index&          termination_flag,
+         bool&           inside_cloud,
+   const Agenda&         ppath_step_agenda,
+   const Numeric&        ppath_lmax,
+   const Numeric&        ppath_lraytrace,
+   const Agenda&         propmat_clearsky_agenda,
+   const bool&           anyptype30,
+   const Index           stokes_dim,
+   const Numeric&        f_mono,
+   const Vector&         Iprop,
+   const Vector&         p_grid,
+   const Vector&         lat_grid,
+   const Vector&         lon_grid,
+   const Tensor3&        z_field,
+   const Vector&         refellipsoid,
+   const Matrix&         z_surface,
+   const Tensor3&        t_field,
+   const Tensor4&        vmr_field,
+   const ArrayOfIndex&   cloudbox_limits,
+   const Tensor4&        pnd_field,
+   const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+   const Verbosity&      verbosity )
+{ 
+  ArrayOfMatrix evol_opArray(2);
+  ArrayOfMatrix ext_matArray(2);
+  ArrayOfVector abs_vecArray(2);
+  ArrayOfVector pnd_vecArray(2);
+  Matrix        ext_mat(stokes_dim,stokes_dim);
+  Matrix        incT(stokes_dim,stokes_dim,0.0);
+  Vector        tArray(2);
+  Matrix        T(stokes_dim,stokes_dim);
+  Numeric       kI, kQ;
+  Numeric       ds, dt=-999, dl=-999;
+  Index         istep = 0;  // Counter for number of steps
+  Matrix        old_evol_op(stokes_dim,stokes_dim);
+  Vector f_grid(1,f_mono);     // Vector version of f_mono
+  Vector local_rte_los(2);
+  Numeric evop0, I1, Q1;
+
+  CREATE_OUT0;
+
+  // Total path length starts at zero
+  stot = 0.0;
+  ttot = 0.0;
+
+  //at the start of the path the evolution operator is the identity matrix
+  id_mat(evol_op);
+  evol_opArray[1]=evol_op;
+
+  // range defining cloudbox
+  Range p_range(   cloudbox_limits[0], 
+                   cloudbox_limits[1]-cloudbox_limits[0]+1);
+  Range lat_range( cloudbox_limits[2], 
+                   cloudbox_limits[3]-cloudbox_limits[2]+1 );
+  Range lon_range( cloudbox_limits[4], 
+                   cloudbox_limits[5]-cloudbox_limits[4]+1 );
+
+  //initialise Ppath with ppath_start_stepping
+  ppath_start_stepping( ppath_step, 3, p_grid, lat_grid, 
+                        lon_grid, z_field, refellipsoid, z_surface,
+                        0, cloudbox_limits, false, 
+                        rte_pos, rte_los, verbosity );
+
+  // Index in ppath_step of end point considered presently
+  Index ip = 0;
+
+  // Is point ip inside the cloudbox?
+  inside_cloud = is_gp_inside_cloudbox( ppath_step.gp_p[ip], 
+                                        ppath_step.gp_lat[ip], 
+                                        ppath_step.gp_lon[ip], 
+                                        cloudbox_limits, 0, 3 );
+
+  // Determine radiative properties at point
+  if( inside_cloud )
+    {
+      local_rte_los[0] = 180 - ppath_step.los(0,0);
+      local_rte_los[1] = ppath_step.los(0,1) - 180;
+      cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec, 
+                            temperature, propmat_clearsky_agenda, 
+                            stokes_dim, f_mono, ppath_step.gp_p[0], 
+                            ppath_step.gp_lat[0], ppath_step.gp_lon[0],
+                            p_grid[p_range], 
+                            t_field(p_range,lat_range,lon_range), 
+                            vmr_field(joker,p_range,lat_range,lon_range),
+                            pnd_field, scat_data_mono, cloudbox_limits,
+                            local_rte_los, verbosity );
+    }
+  else
+    {
+      clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
+                           propmat_clearsky_agenda, f_mono,
+                           ppath_step.gp_p[0], ppath_step.gp_lat[0], 
+                           ppath_step.gp_lon[0], p_grid, t_field, vmr_field );
+      pnd_vec = 0.0;
+    }
+
+  // Move the data to end point containers 
+  ext_matArray[1] = ext_mat_mono;
+  abs_vecArray[1] = abs_vec_mono;
+  tArray[1]       = temperature;
+  pnd_vecArray[1] = pnd_vec;
+
+  //draw random number to determine end point
+  Numeric r = rng.draw();
+
+  termination_flag=0;
+
+  stot = ppath_step.end_lstep; 
+  ttot = ppath_step.end_lstep / SPEED_OF_LIGHT;
+
+  evop0 = 1;
+  I1 = Iprop[0];
+  Q1 = Iprop[1];
+  while( (evop0>r) && (!termination_flag) )
+    {
+      istep++;
+
+      if( istep > 25000 )
+        {
+          throw runtime_error( "25000 path points have been reached. "
+                               "Is this an infinite loop?" );
+        }
+
+      evol_opArray[0] = evol_opArray[1];
+      ext_matArray[0] = ext_matArray[1];
+      abs_vecArray[0] = abs_vecArray[1];
+      tArray[0]       = tArray[1];
+      pnd_vecArray[0] = pnd_vecArray[1];
+
+      // Shall new ppath_step be calculated?
+      if( ip == ppath_step.np-1 ) 
+        {
+          ip = 1;
+          ppath_step_agendaExecute( ws, ppath_step, ppath_lmax, ppath_lraytrace, 
+                                    t_field, z_field, vmr_field, f_grid, 
+                                    ppath_step_agenda );
+                                    
+          inside_cloud = is_gp_inside_cloudbox( ppath_step.gp_p[ip], 
+                                                ppath_step.gp_lat[ip], 
+                                                ppath_step.gp_lon[ip], 
+                                                cloudbox_limits, 0, 3 );
+        }
+      else
+        { 
+          ip++;
+        }
+
+      dl = ppath_step.lstep[ip-1];
+      dt = dl * 0.5 * ( ppath_step.ngroup[ip-1] 
+                       + ppath_step.ngroup[ip] ) / SPEED_OF_LIGHT;
+      stot += dl;
+      ttot += dt;
+      if( inside_cloud )
+        {
+          local_rte_los[0] = 180 - ppath_step.los(ip,0);
+          local_rte_los[1] = ppath_step.los(ip,1) - 180;
+          cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec,
+                                temperature, propmat_clearsky_agenda, 
+                                stokes_dim, f_mono, ppath_step.gp_p[ip],
+                                ppath_step.gp_lat[ip], ppath_step.gp_lon[ip],
+                                p_grid[p_range], 
+                                t_field(p_range,lat_range,lon_range), 
+                                vmr_field(joker,p_range,lat_range,lon_range),
+                                pnd_field, scat_data_mono, cloudbox_limits,
+                                local_rte_los, verbosity );
+        }
+      else
+        {
+          clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
+                               propmat_clearsky_agenda, f_mono,
+                               ppath_step.gp_p[ip], ppath_step.gp_lat[ip],
+                               ppath_step.gp_lon[ip], p_grid, t_field, 
+                               vmr_field );
+          pnd_vec = 0.0;
+        }
+
+      ext_matArray[1] = ext_mat_mono;
+      abs_vecArray[1] = abs_vec_mono;
+      tArray[1]       = temperature;
+      pnd_vecArray[1] = pnd_vec;
+      ext_mat         = ext_matArray[1];
+      ext_mat        += ext_matArray[0];  // Factor 2 fixed by using dl/2
+      //
+      {
+        Index extmat_case = 0;
+        ext2trans( incT, extmat_case, ext_mat, dl/2 );
+      }
+      //
+      
+      mult( evol_op, incT, evol_opArray[0] );
+      evol_opArray[1] = evol_op;
+      evop0 = evol_op(0,0);
+
+      // Handle cross-talk for ptype==30
+      if( stokes_dim > 1 && anyptype30 ) 
+        {
+          Q1 = evol_op(0,1) * Iprop[1] / Iprop[0];
+          evop0 += Q1;
+        }
+      if( evop0>r )
+        {
+          // Check whether hit ground or space.
+          // path_step_agenda just detects surface intersections, and
+          // if TOA is reached requires a special check.
+          // But we are already ready if evol_op<=r
+          if( ip == ppath_step.np - 1 )
+            {
+              if( ppath_what_background(ppath_step) )
+                { termination_flag = 2; }   //we have hit the surface
+              else if( fractional_gp(ppath_step.gp_p[ip]) >= 
+                                          (Numeric)(p_grid.nelem() - 1)-1e-3 )
+                { termination_flag = 1; }  //we are at TOA
+            }
+        }
+    } // while
+
+  if( termination_flag ) 
+    { //we must have reached the cloudbox boundary
+      rte_pos = ppath_step.pos(ip,joker);
+      rte_los = ppath_step.los(ip,joker);
+    }
+  else
+    {
+      //find position...and evol_op..and everything else required at the new
+      //scattering/emission point
+      const Numeric tol = 0.1; // Tolerance of 10 cm
+      stot -= dl; // Take out last step because we are between stepping points
+      ttot -= dt; // Take out last step because we are between stepping points
+      kI = ext_mat(0,0) / 2;   // Factor 2 as sum of end point values
+      kQ = ext_mat(0,1) / 2;   // Factor 2 as sum of end point values
+      if( anyptype30 )
+        {
+          I1 = evol_opArray[0](0,0);
+          Q1 = evol_opArray[0](0,1) * Iprop[1] / Iprop[0];
+
+          // Need to use root finding to solve for ds
+          brent_zero( ds, ( Numeric )0.0, ppath_step.lstep[ip-1], tol, r, I1, Q1, kI, kQ );
+        }
+      else
+        {
+          // Simple inversion when no cross-talk between I and Q
+          ds = log( evol_opArray[0](0,0) / r ) / kI;
+        }
+      stot += ds;
+      ttot += ds * dt / dl;
+      Vector x(2,0.0);
+
+      //interpolate atmospheric variables required later
+      ArrayOfGridPos gp(1);
+      x[1] = dl;
+      Vector itw(2);
+      gridpos( gp, x, ds );
+      assert( gp[0].idx == 0 );
+      interpweights( itw, gp[0] );
+      interp( ext_mat_mono, itw, ext_matArray, gp[0] );
+      ext_mat  = ext_mat_mono;
+      ext_mat += ext_matArray[gp[0].idx];
+      //
+      {
+        Index extmat_case = 0;
+        ext2trans( incT, extmat_case, ext_mat, ds/2 );
+      }
+      //
+      mult( evol_op, incT, evol_opArray[gp[0].idx] );
+      interp( abs_vec_mono, itw, abs_vecArray,gp[0] );
+      temperature = interp( itw, tArray, gp[0] );
+      interp( pnd_vec, itw, pnd_vecArray, gp[0] );
+      for( Index i=0; i<2; i++ )
+        {
+          rte_pos[i] = interp( itw, ppath_step.pos(Range(ip-1,2),i), gp[0] );
+          rte_los[i] = interp( itw, ppath_step.los(Range(ip-1,2),i), gp[0] );
+        }
+      rte_pos[2] = interp( itw, ppath_step.pos(Range(ip-1,2),2), gp[0] );
+    }
+
+  // A dirty trick to avoid copying ppath_step
+  const Index np = ip+1;
+  ppath_step.np  = np;
+
+}
 
 //! opt_propCalc
 /*!
@@ -1482,5 +2160,14 @@ void Sample_los (
         }
     }
   g_los_csc_theta =Z(0,0)/Csca;
+}
+
+void Sample_los_uniform (
+                         VectorView       new_rte_los,
+                         Rng&             rng
+                        )
+{
+  new_rte_los[1] = rng.draw() * 360 - 180;
+  new_rte_los[0] = acos( 1 - 2 * rng.draw() ) * RAD2DEG;
 }
 

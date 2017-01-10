@@ -1,5 +1,84 @@
 2017-01-10  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-588
+
+	* Added patch provided by Ian Adams <ian.adams@nrl.navy.mil>
+
+	* MCRadar:
+
+	An active radiative transfer model for radar that accounts for multiple
+	scattering has been added. While in many ways based on MCGeneral,
+	MCRadar uses forward Monte Carlo ray tracing to avoid difficulties
+	with defining the transmitted polarization state inherent to reverse
+	Monte Carlo methods. Numerical root finding is implemented to solve for
+	path lengths involving horizontally-aligned hydrometeors. To accompany
+	MCRadar, two workspace variables were created: mc_y_tx, which defines
+	the transmit polarization, and mc_max_scatorder, which limits the
+	scattering order to a prescribed degree (1 == single scattering).
+
+	There are some differences with how MCRadar functions with respect to
+	MCGeneral and yCloudRadar. MCRadar requires a finite (Gaussian) beam
+	in order to receive energy from multple scattering events. Currently,
+	MCRadar only limits integration by the number of photons, not by
+	runtime or Monte Carlo error. Unlike yCloudRadar, MCRadar expects that
+	range_bins will either contain round-trip times or distances from
+	sensor, as altitude is meaningless for horizontal radar lines of sight.
+
+	* Antenna Frame and Polarization Basis:
+
+	The original implementation of the antenna pattern sampling used by
+	MCGeneral did not rotate from the antenna frame into the frame used by
+	ARTS. Instead, antenna zenith and azimuth angles were simply added to
+	the boresight line of sight. Additionally, the antenna polarization
+	basis was not defined, and sampling the antenna pattern resulted
+	in polarization rotations that increased with increasing azimuthal
+	distance from the boresight. The errors in both issues were greatest
+	at nadir and zenith, with no impact for zenith angles of 90 degrees.
+	To address these issues, a reference frame and polarization basis for
+	the antenna boresight was created such that vertical polarization
+	aligns with the plane created by the boresight los vector and the
+	local zenith, i.e., defined by the azimuth angle, and the horizontal
+	polarization is perpendicular to this plane. A rotation matrix is
+	created using the boresight zenith and azimuth angles to rotate from
+	the antenna frame to the local east-north-up (enu) frame, and the
+	columns of the rotation matrix define the axes of the antenna reference
+	frame in enu coordinates. Two randomly sampled angles are then taken in
+	the v-k plane and the h-k plane, and converted to cartesian coordinates
+	to define the sampled los direction in the antenna frame. The sampled
+	los direction is rotated to the enu frame, and the corresponding v and
+	h unit vectors are calculated. Antenna basis rotations are calculated
+	using dot products of the boresight and sampled polarization unit
+	vectors. The polarization bases follow Mishchenko's conventions,
+	referenced to incoming radiation for MCGeneral and outgoing for
+	MCRadar. Due to the polarization rotation, running MCGeneral or MCRadar
+	with stokes_dim < 3 will result in loss of accuracy.
+
+	* Bug Fixes:
+
+	* src/m_montecarlo.cc, line 273 (before my changes): local_rte_pos was
+	declared with a size of 2, but should have a size of 3.
+
+	* src/m_ppath.cc, line 439: The azimuth angle is perturbed, but there
+	was no check on whether the azimuth angle remains in bounds. Upper and
+	lower limits are now checked.
+
+	* Misc:
+
+	When run in debug mode, MCRadar occasionally (~0.001%) trips the
+	assertion check on line 540 of m_ppath.cc (in ppathFromRtePos2). The
+	interpolation distance for the index of refraction terms is sometimes
+	calculated to be < 6 microns larger than the ppath segment over which
+	the interpolation is performed. This occurs in both nadir and off-nadir
+	cases.
+
+	* Changes applied after Ian's patch by committer:
+
+	* src/mc_antenna.{h,cc}:
+
+	Moved import of constants from header to cc-file.
+
+2017-01-10  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-587
 
 	* src/config_global.h: Removed, not needed anymore.

@@ -9303,6 +9303,66 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME( "MCRadar" ),
+        DESCRIPTION
+        ( "A radar 3D foward Monte Carlo radiative algorithm, that allows \n"
+          "for 2D antenna patterns and arbitrary sensor positions.\n"
+          "Surface reflections are currently ignored.\n"
+          "\n"
+          "The main output variable *y* and *mc_error* represent the\n"
+          "radar reflectivity integrated over the antenna function, and the\n"
+          "estimated error in this vector, respectively.\n"
+          "\n"
+          "Unlike with yCloudRadar, the range bins gives the boundaries of \n"
+          "the range bins as either round-trip time or distance from radar.\n"
+          "\n"
+          "The WSV *mc_y_tx* gives the polarization state of the \n"
+          "transmitter.\n"
+          "\n"
+          "The WSV *mc_max_scatorder* prescribes the maximum scattering \n"
+          "order to consider, after which `photon\'-tracing will be\n"
+          "terminated. A value of one calculates only single scattering.\n"
+          "\n"
+          "The WSV *mc_max_iter* describes the maximum number of `photons\'\n"
+          "used in the simulation (more photons means smaller *mc_error*).\n"
+          "The method will terminate once the max_iter criterium is met.\n"
+          "If negative values are given for these parameters then it is\n"
+          "ignored.\n"
+          
+          "\n"
+          "Negative values of *mc_seed* seed the random number generator\n"
+          "according to system time, positive *mc_seed* values are taken\n"
+          "literally.\n"
+          "\n"
+          "Only \"1\" and \"Ze\" are allowed for *iy_unit*. The value of\n"
+          "*mc_error* follows the selection for *iy_unit* (both for in- and\n"
+          "output.\n"
+          ),
+        AUTHORS( "Ian S. Adams" ),
+        OUT( "y", "mc_error" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
+            "stokes_dim", "atmosphere_dim", "ppath_lmax", "ppath_step_agenda", 
+            "ppath_lraytrace", 
+            "propmat_clearsky_agenda", "p_grid",
+            "lat_grid", "lon_grid", "z_field", "refellipsoid", "z_surface", 
+            "t_field", "vmr_field", "cloudbox_on", "cloudbox_limits", 
+            "pnd_field", "scat_data_mono", "mc_y_tx", "range_bins",
+            "atmfields_checked", "atmgeom_checked",
+            "cloudbox_checked", "iy_unit", "mc_max_scatorder", "mc_seed", 
+            "mc_max_iter" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+
+
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME( "MCSetSeedFromTime" ),
         DESCRIPTION
         ( "Sets the value of mc_seed from system time\n" ),

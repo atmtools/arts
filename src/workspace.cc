@@ -2785,6 +2785,18 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "mc_max_scatorder" ),
+       DESCRIPTION
+       (
+        "The maximum scattering order allowed for Monte Carlo\n"
+        "radar calculations.\n"
+        "\n"
+        "Usage: Set by the user.\n"
+        ),
+       GROUP( "Index" )));
+
+  wsv_data.push_back
+    (WsvRecord
      ( NAME( "mc_max_time" ),
        DESCRIPTION
        (
@@ -2880,6 +2892,23 @@ void Workspace::define_wsv_data()
         "Usage: Set by the user.\n"
         ),
        GROUP( "Numeric" )));
+
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "mc_y_tx" ),
+      DESCRIPTION
+      (
+       "Normalized Stokes vector for transmission (e.g., radar).\n"
+       "\n"
+       "The first element (intensity) should have a value of 1."
+       "\n"
+       "Usage: Set by user. \n"
+       "\n"
+       "Units: Unitless.\n"
+       "\n"
+       "Size:  [ stokes_dim ]\n"
+       ), 
+      GROUP( "Vector" )));
 
   wsv_data.push_back
     (WsvRecord

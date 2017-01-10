@@ -92,6 +92,20 @@ void cloud_atm_vars_by_gp (VectorView pressure,
 void findZ11max (Vector& Z11maxvector,
                  const ArrayOfArrayOfSingleScatteringData& scat_data_mono);
 
+void get_ppath_transmat (Workspace&      ws,
+                         MatrixView&     trans_mat,
+                   const Ppath&          ppath,
+                   const Agenda&         propmat_clearsky_agenda,
+                   const Index           stokes_dim,
+                   const Numeric&        f_mono,
+                   const Vector&         p_grid,
+                   const Tensor3&        t_field,
+                   const Tensor4&        vmr_field,
+                   const ArrayOfIndex&   cloudbox_limits,
+                   const Tensor4&        pnd_field,
+                   const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                   const Verbosity&      verbosity );
+
 bool is_anyptype30 (const ArrayOfArrayOfSingleScatteringData& scat_data_mono);
 
 
@@ -127,6 +141,41 @@ void mcPathTraceGeneral (Workspace&            ws,
                          const Tensor4&        pnd_field,
                          const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                          const Verbosity&      verbosity);
+
+void mcPathTraceRadar (Workspace&            ws,
+                       MatrixView            evol_op,
+                       Vector&               abs_vec_mono,
+                       Numeric&              temperature,
+                       MatrixView            ext_mat_mono,
+                       Rng&                  rng,
+                       Vector&               rte_pos,
+                       Vector&               rte_los,
+                       Vector&               pnd_vec,
+                       Numeric&              stot,
+                       Numeric&              ttot,
+                       Ppath&                ppath_step,
+                       Index&                termination_flag,
+                       bool&                 inside_cloud,
+                       const Agenda&         ppath_step_agenda,
+                       const Numeric&        ppath_lmax,
+                       const Numeric&        ppath_lraytrace,
+                       const Agenda&         propmat_clearsky_agenda,
+                       const bool&           anyptype30,
+                       const Index           stokes_dim,
+                       const Numeric&        f_mono,
+                       const Vector&         I_inc,
+                       const Vector&         p_grid,
+                       const Vector&         lat_grid,
+                       const Vector&         lon_grid,
+                       const Tensor3&        z_field,
+                       const Vector&         refellipsoid,
+                       const Matrix&         z_surface,
+                       const Tensor3&        t_field,
+                       const Tensor4&        vmr_field,
+                       const ArrayOfIndex&   cloudbox_limits,
+                       const Tensor4&        pnd_field,
+                       const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                       const Verbosity&      verbosity);
 
 void opt_propCalc (MatrixView      K,
                    VectorView      K_abs,
@@ -168,7 +217,6 @@ void pha_mat_singleExtract (MatrixView Z_spt,
                             const Index   stokes_dim,
                             const Verbosity& verbosity);
 
-
 void Sample_los (VectorView       new_rte_los,
                  Numeric&         g_los_csc_theta,
                  MatrixView       Z,
@@ -183,5 +231,7 @@ void Sample_los (VectorView       new_rte_los,
                  const Numeric    rtp_temperature,
                  const Verbosity& verbosity);
 
+void Sample_los_uniform (VectorView    new_rte_los,
+                         Rng&          rng);
 
 #endif  // montecarlo_h

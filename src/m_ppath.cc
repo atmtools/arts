@@ -438,7 +438,13 @@ void ppathFromRtePos2(
         { 
           rte_los[0] = za_new;
           if( atmosphere_dim == 3 )
-            { rte_los[1] -= daa; }
+            { 
+              rte_los[1] -= daa; 
+              if( rte_los[1] < -180 )
+                { rte_los[1] += 360; }
+              else if( rte_los[1] > 180 )
+                { rte_los[1] -= 360; }
+            }
         }
     } // while
   //--------------------------------------------------------------------------
@@ -537,6 +543,7 @@ void ppathFromRtePos2(
           ppath.start_los    = ppath.los(i,joker);
           
           // n by linear interpolation
+          // Gets tripped when ll is very close to (slightly greater than) lstep (ISA)
           assert( ll < ppt.lstep[i-1] );
           const Numeric w = ll/ppt.lstep[i-1];
           ppath.nreal[i]  = (1-w)*ppt.nreal[i-1]  + w*ppt.nreal[i];

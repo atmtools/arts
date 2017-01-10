@@ -29,6 +29,10 @@
   \brief  Workspace functions for the solution of cloud-box radiative transfer 
 by Monte Carlo methods.  All of these functions refer to 3D calculations
 
+  Modified 2015-09-09 Ian S. Adams
+  Added class members to handle radar returns.
+  Fixed gaussian line-of-sight calculation.
+
   These functions are listed in the doxygen documentation as entries of the
   file auto_md.h.
 */
@@ -41,6 +45,7 @@ by Monte Carlo methods.  All of these functions refer to 3D calculations
 #include "arts.h"
 #include "rng.h"
 #include "matpackI.h"
+#include "ppath.h"
 #include <cmath>
 #include <stdexcept>
 
@@ -55,8 +60,8 @@ enum AntennaType {
 functions.. */ 
 class MCAntenna {
   AntennaType atype;
-  Numeric sigma_aa,sigma_za;
-  Vector aa_grid,za_grid;
+  Numeric sigma_aa, sigma_za;
+  Vector aa_grid, za_grid;
   Matrix G_lookup;
       
 public:
@@ -73,12 +78,17 @@ public:
                      const Numeric& aa_sigma);
   void set_gaussian_fwhm (const Numeric& za_fwhm,
                           const Numeric& aa_fwhm);
-  void set_lookup (ConstVectorView& za_grid,
-                   ConstVectorView& aa_grid,
-                   ConstMatrixView& G_lookup);
+  void set_lookup (ConstVectorView za_grid,
+                   ConstVectorView aa_grid,
+                   ConstMatrixView G_lookup);
   AntennaType get_type(void) const;      
-  void draw_los(VectorView& sampled_rte_los,
+  void return_los(Numeric& wgt,
+                  ConstMatrixView R_return,
+                  ConstMatrixView R_enu2ant) const;
+  void draw_los(VectorView sampled_rte_los,
+                MatrixView R_los,
                 Rng& rng,
+                ConstMatrixView R_ant2enu,
                 ConstVectorView bore_sight_los) const;
 };
 
@@ -87,6 +97,18 @@ ostream& operator<< (ostream& os, const MCAntenna& mca);
 Numeric ran_gaussian (
                       Rng& rng, 
                       const Numeric sigma);
+
+Numeric ran_uniform ( Rng& rng );
+
+void rotmat_enu(MatrixView  R_ant2enu,
+                ConstVectorView  prop_los);
+
+void rotmat_stokes(MatrixView       R_pra,
+                   const Index&     stokes_dim,
+                   const Numeric&   bs_dir,
+                   const Numeric&   prop_dir,
+                   ConstMatrixView  R_bs,
+                   ConstMatrixView  R_prop);
 
 #endif  // mc_antenna_h
 
