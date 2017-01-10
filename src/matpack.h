@@ -18,7 +18,7 @@
 #ifndef matpack_h
 #define matpack_h
 
-#include "config_global.h"
+#include "config.h"
 #include "debug.h"
 
 

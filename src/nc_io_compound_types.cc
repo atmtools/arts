@@ -28,7 +28,7 @@
 
 */
 
-#include "config_global.h"
+#include "config.h"
 
 #ifdef ENABLE_NETCDF
 

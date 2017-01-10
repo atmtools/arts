@@ -103,7 +103,7 @@
 #include "debug.h"
 
 //----------< First of all, include the configuration header >----------
-#include "config_global.h"
+#include "config.h"
 
 // C Assert macro:
 #include <cassert>

@@ -1,5 +1,16 @@
 2017-01-10  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-587
+
+	* src/config_global.h: Removed, not needed anymore.
+
+	* src/arts.h, src/libmicrohttpd/platform.h, src/matpack.h,
+	src/nc_io_compound_types.cc, src/rt4.cc:
+
+	Include config.h directly instead of global_config.h.
+
+2017-01-10  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-586
 
 	* src/m_rt4.cc:
