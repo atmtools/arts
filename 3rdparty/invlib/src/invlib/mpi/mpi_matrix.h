@@ -17,6 +17,19 @@
 namespace invlib
 {
 
+template
+<
+typename Base
+>
+class Vector;
+
+template
+<
+typename LocalType,
+template <typename> typename StorageTrait
+>
+class MPIVector;
+
 // -------------- //
 //  Matrix Class  //
 // -------------- //
@@ -33,15 +46,19 @@ namespace invlib
  * - transposed MV multiplication by a block:
  *     transpose_multiply_block(const VectorType &v, int start, int extent)
  *
- * In addition the associated VectorType must provide a raw_pointer() function
+ * In addition the associated VectorType must provide a data_pointer() function
  * so that the results can be broad casted using MPI.
  *
- * The MPI matrix class holds matrix block local to the process as lvalue or
- * as reference. We refer to the type of the matrix used for each local block
- * as the local type. The way in wich the local type is stored is refered to
- * as the storage type (type in the general sense, not C++ Type). Currently
- * storing the local matrix as lvalue and as rvalu reference to and existing
- * matrix is supported.
+ * The MPI matrix class holds the local matrix block of the process as
+ * lvalue or as reference. We refer to the type of the matrix used for
+ * each local block as the local type. The way in wich the local type
+ * is stored is refered to as the storage type . Currently two storage
+ * types are supported: Storing the local matrix as a reference
+ * (default) and storing the lo local matrix as an lvalue,
+ * i.e. copying / moving it into the MPIMatrix object on construction.
+ *
+ * \attention When storing the local matrix by reference implicit conversion
+ * may lead to dangling references.
  *
  * \tparam LocalType The type of the local matrix block.
  * \tparam StorageTrait Storage template that defines whether the local block
@@ -64,8 +81,16 @@ public:
 
     /*! The basic scalar type. */
     using RealType   = typename LocalType::RealType;
+    /*! The MPI type corresponding to the local vector type. */
+    using NonMPIVectorType = typename LocalType::VectorType;
+    /*! The local Matrix type.  */
+    template<template <typename> typename VectorStorageType>
+    using MPIVectorType = Vector<MPIVector<typename LocalType::VectorType,
+                                           VectorStorageType>>;
     /*! The basic vector type  */
     using VectorType = typename LocalType::VectorType;
+    /*! The basic vector type  */
+    using ResultType = typename LocalType::VectorType;
     /*! The local Matrix type.  */
     using MatrixType = LocalType;
     /*! The type used to store the local matrix. */
@@ -77,8 +102,7 @@ public:
 
     /*! Default Constructor.
      *
-     * Works only if the local matrix is an lvalu matrix.
-     *
+     * Works only if the local matrix is stored as lvalue.
      */
     MPIMatrix();
 
@@ -128,22 +152,41 @@ public:
     void resize(unsigned int i, unsigned int j);
 
 
+    /** Broadcast the local matrix of process 0 to all other
+     *  processes. After the call  to broadcast all processes will have
+     *  the same local matrix as process 0. */
     static void broadcast(LocalType &local);
+
+    /** Split the matrix \p local_matrix evenly over processes. Splits up the rows
+     * of the matrix \p local_matrix evenly over the running MPI processes and
+     * creates an MPI matrix with lvalue storage type by copying the block from
+     * \p local_matrix that corresponds to the row-range of each process. The
+     * returned MPI matrix is a distributed representation of \p local_matrix. */
     static MPIMatrix<LocalType, LValue> split_matrix(const MatrixType &local_matrix);
 
     unsigned int rows() const;
     unsigned int cols() const;
+
+    MPIVectorType<LValue> col(size_t i) const;
+    NonMPIVectorType      row(size_t i) const;
+
+    MPIVectorType<LValue> diagonal() const;
 
     LocalType& get_local();
 
     RealType operator()(unsigned int i, unsigned int j) const;
     RealType& operator()(unsigned int i, unsigned int j);
 
-    VectorType multiply(const VectorType &) const;
-    VectorType transpose_multiply(const VectorType &) const;
+    NonMPIVectorType multiply(const NonMPIVectorType &) const;
+    NonMPIVectorType transpose_multiply(const NonMPIVectorType &) const;
 
-    /* operator MPIMatrix<LocalType, ConstRef>() const; */
-    /* operator LocalType(); */
+    template <template <typename> typename VectorStorageType>
+    auto multiply(const MPIVectorType<VectorStorageType> &v) const
+        -> MPIVectorType<LValue>;
+
+    template <template <typename> typename VectorStorageType>
+    auto transpose_multiply(const MPIVectorType<VectorStorageType> &v) const
+        -> MPIVectorType<LValue>;
 
 private:
 
@@ -161,7 +204,7 @@ private:
     int nprocs;
 
     CopyWrapper<StorageType> local;
-    RealType    local_element;
+    RealType     local_element;
     unsigned int local_rows;
     unsigned int m, n;
 

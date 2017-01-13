@@ -78,10 +78,10 @@ extern const String SINEFIT_MAINTAG;
   \param[in]  lat_grid             As the WSV with same name.
   \param[in]  lon_grid             As the WSV with same name.
 
-  \author Patrick Eriksson 
+  \author Patrick Eriksson
   \date   2015-09-09
 */
-void get_gp_atmgrids_to_rq( 
+void get_gp_atmgrids_to_rq(
          ArrayOfGridPos&      gp_p,
          ArrayOfGridPos&      gp_lat,
          ArrayOfGridPos&      gp_lon,
@@ -352,7 +352,7 @@ void x2artsStandard(
   const Index nq = jq.nelem();
 
   // Check input
-  if( x.nelem() != ji[nq-1][1]+1 ) 
+  if( x.nelem() != ji[nq-1][1]+1 )
     throw runtime_error( "Length of *x* does not match information in "
                          "*jacobian_quantities*.");
 
@@ -419,7 +419,7 @@ void x2artsStandard(
                 { for( Index i2=0; i2<vmr_field.nrows(); i2++ )
                     { for( Index i1=0; i1<vmr_field.npages(); i1++ )
                         { 
-                          vmr_field(isp,i1,i2,i3) *= factor(i1,i2,i3); 
+                            vmr_field(isp,i1,i2,i3) *= factor(i1,i2,i3); 
                 }   }   }
             }
           else if( jq[q].Mode() == "vmr" )
@@ -515,15 +515,15 @@ void x2artsStandard(
                                      "inconsistent with *jacobian_indices*.");
               if( yb_set )
                 {
-                  Vector bl( y_baseline.nelem() );
-                  mult( bl, jacobian(joker,ind), x[ind] );
-                  y_baseline += bl;
+                    Vector bl( y_baseline.nelem() );
+                    mult( bl, jacobian(joker,ind), x[ind] );
+                    y_baseline += bl;
                 }
-              else
+                else
                 {
-                  y_baseline.resize( jacobian.nrows() );
-                  yb_set = true;
-                  mult( y_baseline, jacobian(joker,ind), x[ind] );              
+                    yb_set = true;
+                    y_baseline.resize( jacobian.nrows() );
+                    mult(y_baseline, jacobian(joker,ind), x[ind]);
                 }
             }
         }
@@ -541,10 +541,10 @@ void x2artsStandard(
 
   // *y_baseline* not yet set?
   if( !yb_set )
-    { 
+    {
       y_baseline.resize(1);
       y_baseline[0] = 0;
-    }   
+    }
 }
 
 
@@ -572,87 +572,109 @@ void inversion_iterate_agendaCall(
 
 // Include only if compiling with C++11.
 #include "oem.h"
+#include "agenda_wrapper.h"
 
-//! Wrapper class for forward model.
-/*!
-  Wrapper class for the inversion_iterate_agendaExecute function to implement
-  the forward model interface used by the non-linear oem function in oem.cc.
-  The object is constructed with the pointers to the variables used as arguments
-  for the function and then simply forwards the calls made to
-  ForwardModel::evaluate() and ForwardModel::evaluate_jacobian() to
-  inversion_iterate_agendaExecute.
-
- */
-class AgendaWrapper
+//
+// Check input OEM input arguments.
+//
+void OEM_checks(
+    const Vector&                     x,
+    const Vector&                     xa,
+    const Vector&                     yf,
+    const Sparse&                     covmat_sx_inv,
+    const Sparse&                     covmat_so_inv,
+    const Matrix&                     jacobian,
+    const Index&                      jacobian_do,
+    const ArrayOfRetrievalQuantity&   jacobian_quantities,
+    const ArrayOfArrayOfIndex&        jacobian_indices,
+    const String&                     method,
+    const Vector&                     x_norm,
+    const Index&                      max_iter,
+    const Numeric&                    stop_dx,
+    const Vector&                     ml_ga_settings,
+    const Index&                      clear_matrices,
+    const Index&                      display_progress)
 {
-    Workspace *ws;
-    OEMMatrix jacobian;
-    const Agenda *inversion_iterate_agenda;
-public:
+  const Index nq = jacobian_quantities.nelem();
+  const Index n  = xa.nelem();
+  const Index m  = covmat_so_inv.nrows();
 
-    const unsigned int m,n;
+  if( x.nelem() != n )
+    throw runtime_error( "Lengths of *xa* and *x* differ." );
+  if( covmat_sx_inv.ncols() != covmat_sx_inv.nrows() )
+    throw runtime_error( "*covmat_sx_inv* must be a square matrix." );
+  if( covmat_sx_inv.ncols() != n )
+    throw runtime_error( "Inconsistency in size between *x* and *covmat_sx_inv*." );
+  if( yf.nelem() != m )
+    throw runtime_error( "Lengths of *yf* and *y* differ." );
+  if( covmat_so_inv.ncols() != covmat_so_inv.nrows() )
+    throw runtime_error( "*covmat_so_inv* must be a square matrix." );
+  if( covmat_so_inv.ncols() != m )
+    throw runtime_error( "Inconsistency in size between *y* and *covmat_so_inv*." );
+  if( !jacobian_do )
+    throw runtime_error( "Jacobian calculations must be turned on (but jacobian_do=0)." );
+  if( jacobian.nrows() != m )
+    throw runtime_error( "Inconsistency in size between *y* and *jacobian*." );
+  if( jacobian.ncols() != n )
+    throw runtime_error( "Inconsistency in size between *xa* and *jacobian*." );
+  if( jacobian_indices.nelem() != nq )
+    throw runtime_error( "Different number of elements in *jacobian_quantities* "
+                          "and *jacobian_indices*." );
+  if( nq  &&  jacobian_indices[nq-1][1]+1 != n )
+    throw runtime_error( "Size of *covmat_sx_inv* do not agree with Jacobian " 
+                          "information (*jacobian_indices*)." );
 
-//! Create inversion_iterate_agendaExecute wrapper.
-/*!
-  Initializes the wrapper object for the inversion_iterate_agendaExecute
-  method. The object forwards the evaluate() and evaluate_jacobian() calls
-  made by the iterative OEM methods to inversion_iterate_agendaExecute using
-  the arguments provided to the constructor.
 
-  \param ws_ Pointer to the workspace argument of the agenda execution function.
-  function.
-  \param inversion_iterate_agenda_ Pointer to the x argument of the agenda
-  execution function.
+  // Check GINs
+  if( !( method == "li"    || method == "gn"    ||
+         method == "ml"    || method == "lm"    ||
+         method == "li_cg" || method == "gn_cg" ||
+         method == "lm_cg" || method == "ml_cg" ) )
+  {
+    throw runtime_error( "Valid options for *method* are \"nl\", \"gn\" and " 
+                         "\"ml\" or \"lm\"." );
+  }
 
-*/
-    AgendaWrapper( Workspace *ws_,
-                   Matrix &jacobian_,
-                   const Agenda *inversion_iterate_agenda_ ) :
-        ws(ws_),
-        jacobian(jacobian_),
-        inversion_iterate_agenda( inversion_iterate_agenda_ ),
-        m( (unsigned int) jacobian.nrows()),
-        n( (unsigned int) jacobian.ncols())
-        {}
+  if( !( x_norm.nelem() == 0  ||  x_norm.nelem() == n ) )
+  {
+    throw runtime_error( "The vector *x_norm* must have length 0 or match "
+                         "*covmat_sx_inv*." );
+  }
 
-//! Evaluate forward model and compute Jacobian.
-/*!
+  if( x_norm.nelem() > 0  &&  min( x_norm ) <= 0 )
+  {
+    throw runtime_error( "All values in *x_norm* must be > 0." );
+  }
 
-  Forwards the call to evaluate_jacobian() and evaluate() that is made by
-  Gauss-Newton and Levenberg-Marquardt OEM methods using the variables pointed
-  to by the pointers provided to the constructor as arguments.
+  if( max_iter <= 0 )
+  {
+    throw runtime_error( "The argument *max_iter* must be > 0." );
+  }
 
-  \param[out] y The measurement vector y = K(x) for the current state vector x
-  as computed by the forward model.
-  \param[out] J The Jacobian Ki=d/dx(K(x)) of the forward model.
-  \param[in] x The current state vector x.
-*/
-    OEMMatrix & Jacobian(const OEMVector &xi, OEMVector &yi)
-    {
-        inversion_iterate_agendaExecute( *ws, yi, jacobian, xi, 1,
-                                         *inversion_iterate_agenda );
-        return jacobian;
-    }
+  if( stop_dx <= 0 )
+  {
+    throw runtime_error( "The argument *stop_dx* must be > 0." );
+  }
 
-//! Evaluate forward model.
-/*!
+  if( method == "ml" )
+  {
+      if( ml_ga_settings.nelem() != 6 )
+      {
+          throw runtime_error( "When using \"ml\", *ml_ga_setings* must be a "
+                             "vector of length 6." );
+      }
+      if( min(ml_ga_settings) < 0 )
+      {
+          throw runtime_error( "The vector *ml_ga_setings* can not contain any "
+                               "negative value." );
+      }
+  }
 
-  Forwards the call to evaluate that is made by Gauss-Newton and
-  Levenberg-Marquardt OEM methods to the function pointers provided.
-
-  \param[out] y The measurement vector y = K(x) for the current state vector x.
-  \param[in] x The current state vector x.
-*/
-    OEMVector evaluate(const OEMVector &xi)
-    {
-        OEMVector yi; yi.resize(m);
-        Matrix dummy;
-        inversion_iterate_agendaExecute( *ws, yi, jacobian, xi, 1,
-                                         *inversion_iterate_agenda );
-        return yi;
-    }
-
-};
+  if( clear_matrices < 0  ||  clear_matrices > 1 )
+    throw runtime_error( "Valid options for *clear_matrices* are 0 and 1." );
+  if( display_progress < 0  ||  display_progress > 1 )
+    throw runtime_error( "Valid options for *display_progress* are 0 and 1." );
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template <typename Se_t, typename Sx_t>
@@ -682,207 +704,129 @@ void oem_template(
    const Index&                      display_progress,
    const Verbosity& )
 {
-  // Main sizes
-  const Index n = xa.nelem();
-  const Index m = y.nelem();
-  const Index nq = jacobian_quantities.nelem();
+    // Main sizes
+    const Index n = covmat_sx_inv.nrows();
+    const Index m = y.nelem();
 
-  // Check WSVs
-  if( x.nelem() != n )
-    throw runtime_error( "Lengths of *xa* and *x* differ." );
-  if( covmat_sx_inv.ncols() != covmat_sx_inv.nrows() )
-    throw runtime_error( "*covmat_sx_inv* must be a square matrix." );
-  if( covmat_sx_inv.ncols() != n )
-    throw runtime_error( "Inconsistency in size between *x* and *covmat_sx_inv*." );
-  if( yf.nelem() != m )
-    throw runtime_error( "Lengths of *yf* and *y* differ." );
-  if( covmat_so_inv.ncols() != covmat_so_inv.nrows() )
-    throw runtime_error( "*covmat_so_inv* must be a square matrix." );
-  if( covmat_so_inv.ncols() != m )
-    throw runtime_error( "Inconsistency in size between *y* and *covmat_so_inv*." );
-  if( !jacobian_do )
-    throw runtime_error( "Jacobian calculations must be turned on (but jacobian_do=0)." );
-  if( jacobian.nrows() != m )
-    throw runtime_error( "Inconsistency in size between *y* and *jacobian*." );
-  if( jacobian.ncols() != n )
-    throw runtime_error( "Inconsistency in size between *xa* and *jacobian*." );
-  if( jacobian_indices.nelem() != nq )
-    throw runtime_error( "Different number of elements in *jacobian_quantities* "
-                         "and *jacobian_indices*." );
-  if( nq  &&  jacobian_indices[nq-1][1]+1 != n )
-    throw runtime_error( "Size of *covmat_sx_inv* do not agree with Jacobian " 
-                         "information (*jacobian_indices*)." );
-  // Check GINs
-  if( !( method == "li"  ||  method == "gn"  ||  method == "ml" || method == "lm" || method == "li_cg" || method == "gn_cg" || method == "lm_cg" || method == "ml_cg" ) )  
-    throw runtime_error( "Valid options for *method* are \"nl\", \"gn\" and " 
-                         "\"ml\" or \"lm\"." );
-  if( !( x_norm.nelem() == 0  ||  x_norm.nelem() == n ) )
-    throw runtime_error( "The vector *x_norm* must have length 0 or match "
-                         "*covmat_sx_inv*." );
-  if( x_norm.nelem() > 0  &&  min( x_norm ) <= 0 )
-    throw runtime_error( "All values in *x_norm* must be > 0." );
-  if( max_iter <= 0 )
-    throw runtime_error( "The argument *max_iter* must be > 0." );
-  if( stop_dx <= 0 )
-    throw runtime_error( "The argument *stop_dx* must be > 0." );
-  if( method == "ml" )
+    // Checks
+    OEM_checks(x, xa, yf, covmat_sx_inv, covmat_so_inv, jacobian,
+               jacobian_do, jacobian_quantities, jacobian_indices,
+               method, x_norm, max_iter, stop_dx, ml_ga_settings,
+               clear_matrices, display_progress);
+
+    // Size diagnostic output and init with NaNs
+    oem_diagnostics.resize( 5 );
+    oem_diagnostics = NAN;
+    if( method == "ml" )
     {
-      if( ml_ga_settings.nelem() != 6 )
-        throw runtime_error( "When using \"ml\", *ml_ga_setings* must be a "
-                             "vector of length 6." );
-      if( min(ml_ga_settings) < 0 )
-        throw runtime_error( "The vector *ml_ga_setings* can not contain any "
-                             "negative value." );
+        ml_ga_history.resize( max_iter );
+        ml_ga_history = NAN;
     }
-  if( clear_matrices < 0  ||  clear_matrices > 1 )
-    throw runtime_error( "Valid options for *clear_matrices* are 0 and 1." );  
-  if( display_progress < 0  ||  display_progress > 1 )
-    throw runtime_error( "Valid options for *display_progress* are 0 and 1." );  
-  //--- End of checks ---------------------------------------------------------------
-
-
-  // Size diagnostic output and init with NaNs
-  //
-  oem_diagnostics.resize( 5 );
-  oem_diagnostics = NAN;
-  //
-  if( method == "ml" )
-    { 
-      ml_ga_history.resize( max_iter ); 
-      ml_ga_history = NAN;
-    }
-  else
-    { ml_ga_history.resize( 0 ); }
-
-  // Start value of cost function
-  //
-  Numeric cost_start = NAN;
-  //
-  if( method == "ml" || method == "lm" || display_progress ||  
-      max_start_cost > 0 )
+    else
     {
-        Vector dy  = y; dy-= yf;
+        ml_ga_history.resize( 0 );
+    }
+
+    // Start value of cost function
+    Numeric cost_start = NAN;
+    if( method == "ml" || method == "lm" || display_progress || max_start_cost > 0 )
+    {
+        Vector dy  = y; dy -= yf;
         Vector sdy = y; mult(sdy, covmat_so_inv, dy);
         cost_start = dy * sdy;
     }
-  oem_diagnostics[1] = cost_start;
+    oem_diagnostics[1] = cost_start;
 
-
-  // Handle cases with too large start cost
-  if( max_start_cost > 0  &&  cost_start > max_start_cost )  
+    // Handle cases with too large start cost
+    if( max_start_cost > 0  &&  cost_start > max_start_cost )  
     {
-      // Flag no inversion in oem_diagnostics, and let x to be undefined 
-      oem_diagnostics[0] = 99;
-      //
-      if( display_progress )
+        // Flag no inversion in oem_diagnostics, and let x to be undefined 
+        oem_diagnostics[0] = 99;
+        //
+        if( display_progress )
         {
-          cout << "\n   No OEM inversion, too high start cost:\n" 
-               << "        Set limit : " << max_start_cost << endl
-               << "      Found value : " << cost_start << endl << endl;
+            cout << "\n   No OEM inversion, too high start cost:\n" 
+                 << "        Set limit : " << max_start_cost << endl
+                 << "      Found value : " << cost_start << endl << endl;
         }
     }
 
-
-  // Otherwise do inversion
-  else
+    // Otherwise do inversion
+    else
     {
-      // Size remaining output arguments
-      x.resize( n );
-      dxdy.resize( n, m );
+        // Size remaining output arguments
+        x.resize( n );
+        dxdy.resize( n, m );
 
-      OEMSparse SeInv(covmat_so_inv), SaInv(covmat_sx_inv);
-      PrecisionSparse Pe(SeInv), Pa(SaInv);
-      OEMVector xa_oem(xa), y_oem(y), x_oem;
-      AgendaWrapper aw(&ws, jacobian, &inversion_iterate_agenda);
-      OEM_PS_PS<AgendaWrapper> oem(aw, xa_oem, Pa, Pe);
-      // Call selected method
-      //
-      //
-      if (method == "li")
-      {
-          GN gn(stop_dx, 1); // Linear case, only one step.
-          oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, gn,
-                                                   2 * (int) display_progress);
-          oem_diagnostics[2] = oem.cost;
-          oem_diagnostics[3] = oem.cost_y;
-          oem_diagnostics[4] = 1.0;
-      }
-      else if (method == "li_cg")
-      {
-          CG cg(stop_dx, (int) display_progress);
-          GN_CG gn(stop_dx, 1, cg); // Linear case, only one step.
-          oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, gn,
-                                                   2 * (int) display_progress);
-          oem_diagnostics[2] = oem.cost;
-          oem_diagnostics[3] = oem.cost_y;
-          oem_diagnostics[4] = 1.0;
-      }
-      else if (method == "gn")
-      {
-          GN gn(stop_dx, (unsigned int) max_iter); // Linear case, only one step.
-          oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, gn,
-                                                   2 * (int) display_progress);
-          oem_diagnostics[2] = oem.cost;
-          oem_diagnostics[3] = oem.cost_y;
-          oem_diagnostics[4] = oem.iterations;
-      }
-      else if (method == "gn_cg")
-      {
-          CG cg(stop_dx, (int) display_progress);
-          GN_CG gn(stop_dx, (unsigned int) max_iter, cg);
-          oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, gn,
-                                                   2 * (int) display_progress);
-          oem_diagnostics[2] = oem.cost;
-          oem_diagnostics[3] = oem.cost_y;
-          oem_diagnostics[4] = 1.0;
-      }
-      else if ( (method == "lm") || (method == "ml") )
-      {
-          Std std{};
-          Pre norm(SaInv);
-          Std_Pre preconditioned_solver(std, norm);
-          LM_S lm(SaInv);
+        OEMSparse SeInv(covmat_so_inv), SaInv(covmat_sx_inv);
+        PrecisionSparse Pe(SeInv), Pa(SaInv);
+        OEMVector xa_oem(xa), y_oem(y), x_oem;
+        AgendaWrapper aw(&ws, jacobian, &inversion_iterate_agenda);
+        OEM_PS_PS<AgendaWrapper> oem(aw, xa_oem, Pa, Pe);
 
-          lm.set_tolerance(stop_dx);
-          lm.set_maximum_iterations((unsigned int) max_iter);
-          lm.set_lambda(ml_ga_settings[0]);
-          lm.set_lambda_decrease(ml_ga_settings[1]);
-          lm.set_lambda_increase(ml_ga_settings[2]);
-          lm.set_lambda_threshold(ml_ga_settings[3]);
-          lm.set_lambda_maximum(ml_ga_settings[4]);
+        int return_code = 0;
 
-          oem_diagnostics[0] = (Index) oem.compute(x_oem, y_oem, lm,
-                                                   2 * (int) display_progress);
-          oem_diagnostics[2] = oem.cost;
-          oem_diagnostics[3] = oem.cost_y;
-          oem_diagnostics[4] = oem.iterations;
-      }
-      else if ( (method == "lm_cg") || (method == "ml_cg") )
-      {
-          CG cg(1e-5, (int) display_progress);
-          LM_CG_S lm(SaInv, cg);
-
-          lm.set_maximum_iterations((unsigned int) max_iter);
-          lm.set_lambda(ml_ga_settings[0]);
-          lm.set_lambda_decrease(ml_ga_settings[1]);
-          lm.set_lambda_increase(ml_ga_settings[2]);
-          lm.set_lambda_threshold(ml_ga_settings[3]);
-          lm.set_lambda_maximum(ml_ga_settings[4]);
-
-          oem_diagnostics[0] = oem.compute(x_oem, y_oem, lm,
-                                           2 * (int) display_progress);
-          oem_diagnostics[2] = oem.cost;
-          oem_diagnostics[3] = oem.cost_y;
-          oem_diagnostics[4] = oem.iterations;
-      }
-
-      x = x_oem;
-      
-      // Shall empty jacobian and dxdy be returned?
-      if( clear_matrices )
+        if (method == "li")
         {
-          jacobian.resize(0,0);
-          dxdy.resize(0,0);
+            GN gn(stop_dx, 1); // Linear case, only one step.
+            return_code = oem.compute(x_oem, y_oem, gn, 2 * (int) display_progress);
+        }
+        else if (method == "li_cg")
+        {
+            CG cg(stop_dx, (int) display_progress);
+            GN_CG gn(stop_dx, 1, cg); // Linear case, only one step.
+            return_code = oem.compute(x_oem, y_oem, gn, 2 * (int) display_progress);
+        }
+        else if (method == "gn")
+        {
+            GN gn(stop_dx, (unsigned int) max_iter);
+            return_code = oem.compute(x_oem, y_oem, gn, 2 * (int) display_progress);
+        }
+        else if (method == "gn_cg")
+        {
+            CG    cg(stop_dx, (int) display_progress);
+            GN_CG gn(stop_dx, (unsigned int) max_iter, cg);
+            return_code = oem.compute(x_oem, y_oem, gn, 2 * (int) display_progress);
+        }
+        else if ( (method == "lm") || (method == "ml") )
+        {
+            LM_S lm(SaInv);
+            lm.set_tolerance(stop_dx);
+            lm.set_maximum_iterations((unsigned int) max_iter);
+            lm.set_lambda(ml_ga_settings[0]);
+            lm.set_lambda_decrease(ml_ga_settings[1]);
+            lm.set_lambda_increase(ml_ga_settings[2]);
+            lm.set_lambda_threshold(ml_ga_settings[3]);
+            lm.set_lambda_maximum(ml_ga_settings[4]);
+            return_code = oem.compute(x_oem, y_oem, lm, 2 * (int) display_progress);
+        }
+        else if ( (method == "lm_cg") || (method == "ml_cg") )
+        {
+            CG cg(1e-4, (int) display_progress);
+            LM_CG_S lm(SaInv, cg);
+
+            lm.set_maximum_iterations((unsigned int) max_iter);
+            lm.set_lambda(ml_ga_settings[0]);
+            lm.set_lambda_decrease(ml_ga_settings[1]);
+            lm.set_lambda_increase(ml_ga_settings[2]);
+            lm.set_lambda_threshold(ml_ga_settings[3]);
+            lm.set_lambda_maximum(ml_ga_settings[4]);
+
+            return_code = oem.compute(x_oem, y_oem, lm, 2 * (int) display_progress);
+        }
+
+        oem_diagnostics[0] = return_code;
+        oem_diagnostics[2] = oem.cost;
+        oem_diagnostics[3] = oem.cost_y;
+        oem_diagnostics[4] = oem.iterations;
+
+        x = x_oem;
+
+        // Shall empty jacobian and dxdy be returned?
+        if( clear_matrices )
+        {
+            jacobian.resize(0,0);
+            dxdy.resize(0,0);
         }
     }
 }
@@ -949,7 +893,309 @@ void OEM(Workspace&,
          const Index&,
          const Verbosity&)
 {
-    std::runtime_error("You have to compile ARTS with C++11 support to enable OEM.");
+    throw runtime_error("You have to compile ARTS with C++11 support to enable OEM.");
 }
 
 #endif // CXX11_SUPPORT
+
+#if defined(CXX11_SUPPORT) && defined (ENABLE_MPI)
+
+#include "oem_mpi.h"
+#include "agenda_wrapper_mpi.h"
+
+//
+// Performs manipulations of workspace variables necessary for distributed
+// retrievals with MPI:
+//
+//   - Splits up sensor positions evenly over processes
+//   - Splits up inverse covariance matrices.
+//
+void MPI_Initialize(Matrix&    sensor_los,
+                    Matrix&    sensor_pos,
+                    Vector&    sensor_time,
+                    Sparse&    covmat_se_inv,
+                    Sparse&    covmat_sx_inv)
+{
+    int initialized;
+
+    MPI_Initialized(&initialized);
+    if (!initialized)
+    {
+        MPI_Init(nullptr, nullptr);
+    }
+
+    int rank, nprocs;
+
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+
+    int nmblock = (int) sensor_pos.nrows();
+    int mblock_range = nmblock / nprocs;
+    int mblock_start = mblock_range * rank;
+    int remainder = nmblock % std::max(mblock_range, nprocs);
+
+    //
+    // Split up sensor positions.
+    //
+
+    if (rank < remainder)
+    {
+        mblock_range += 1;
+        mblock_start += rank;
+    }
+    else
+    {
+        mblock_start += remainder;
+    }
+
+    if (nmblock > 0)
+    {
+        Range range = Range(mblock_start, mblock_range);
+
+        Matrix tmp_m = sensor_los(range, joker);
+        sensor_los = tmp_m;
+
+        tmp_m = sensor_pos(range, joker);
+        sensor_pos = tmp_m;
+
+        Vector tmp_v = sensor_time[range];
+        sensor_time = tmp_v;
+    }
+    else
+    {
+        sensor_los.resize(0,0);
+        sensor_pos.resize(0,0);
+        sensor_time.resize(0);
+    }
+
+    //
+    // Split up covariance matrices.
+    //
+
+    Index n = covmat_sx_inv.nrows();
+    Index rows_per_block = n / nprocs;
+    remainder      = (int)n % nprocs;
+
+    Index start = rows_per_block * rank;
+
+    rows_per_block += (rank < remainder) ? 1 : 0;
+    start          += (rank < remainder) ? rank : remainder;
+
+    covmat_sx_inv.split(start, rows_per_block);
+
+    Index m = covmat_se_inv.nrows();
+    rows_per_block = m / nprocs;
+    remainder      = (int)m % nprocs;
+
+    start = rows_per_block * rank;
+    rows_per_block += (rank < remainder) ? 1 : 0;
+    start          += (rank < remainder) ? rank : remainder;
+
+    covmat_se_inv.split(start, rows_per_block);
+}
+
+void OEM_MPI(
+    Workspace&                  ws,
+    Vector&                     x,
+    Vector&                     yf,
+    Matrix&                     jacobian,
+    Matrix&                     dxdy,
+    Vector&                     oem_diagnostics,
+    Vector&                     ml_ga_history,
+    Matrix&                     sensor_los,
+    Matrix&                     sensor_pos,
+    Vector&                     sensor_time,
+    Sparse&                     covmat_sx_inv,
+    Sparse&                     covmat_so_inv,
+    const Vector&                     xa,
+    const Vector&                     y,
+    const Index&                      jacobian_do,
+    const ArrayOfRetrievalQuantity&   jacobian_quantities,
+    const ArrayOfArrayOfIndex&        jacobian_indices,
+    const Agenda&                     inversion_iterate_agenda,
+    const String&                     method,
+    const Numeric&                    max_start_cost,
+    const Vector&                     x_norm,
+    const Index&                      max_iter,
+    const Numeric&                    stop_dx,
+    const Vector&                     ml_ga_settings,
+    const Index&                      clear_matrices,
+    const Index&                      display_progress,
+    const Verbosity&                  v )
+{
+    // Main sizes
+    const Index n = covmat_sx_inv.nrows();
+    const Index m = y.nelem();
+
+    // Check WSVs
+    OEM_checks(x, xa, yf, covmat_sx_inv, covmat_so_inv, jacobian,
+               jacobian_do, jacobian_quantities, jacobian_indices,
+               method, x_norm, max_iter, stop_dx, ml_ga_settings,
+               clear_matrices, display_progress);
+
+    // Calculate spectrum and Jacobian for a priori state
+    // Jacobian is also input to the agenda, and to flag this is this first
+    // call, this WSV must be set to be empty.
+    jacobian.resize(0,0);
+
+    // Initialize MPI environment.
+    MPI_Initialize(sensor_los, sensor_pos, sensor_time,
+                   covmat_so_inv, covmat_sx_inv);
+
+    // Setup distributed matrices.
+    ArtsSparse       SeInv(covmat_so_inv);
+    ArtsSparse       SaInv(covmat_sx_inv);
+    MPISparse        SeInvMPI(SeInv);
+    MPISparse        SaInvMPI(SaInv);
+
+
+    // Create temporary MPI vector from local results and use conversion to
+    // standard vector to broadcast results to all processes.
+    OEMVector tmp;
+    inversion_iterate_agendaExecute( ws, tmp, jacobian, xa, 1,
+                                     inversion_iterate_agenda );
+    yf = MPIVector(tmp);
+
+    // Size diagnostic output and init with NaNs
+    oem_diagnostics.resize( 5 );
+    oem_diagnostics = NAN;
+    //
+    if( method == "ml" )
+    {
+        ml_ga_history.resize( max_iter );
+        ml_ga_history = NAN;
+    }
+    else
+    {
+        ml_ga_history.resize( 0 );
+    }
+
+    // Start value of cost function. Covariance matrices are already distributed
+    // over processes, so we need to use invlib matrix algebra.
+    Numeric cost_start = NAN;
+    if( method == "ml" || method == "lm" || display_progress ||  
+        max_start_cost > 0 )
+    {
+        OEMVector dy = y;
+        dy -= yf;
+        cost_start = dot(dy, SeInvMPI * dy);
+    }
+    oem_diagnostics[1] = cost_start;
+
+
+    // Handle cases with too large start cost
+    if( max_start_cost > 0  &&  cost_start > max_start_cost )  
+    {
+        // Flag no inversion in oem_diagnostics, and let x to be undefined 
+        oem_diagnostics[0] = 99;
+        //
+        if( display_progress )
+        {
+            cout << "\n   No OEM inversion, too high start cost:\n" 
+                 << "        Set limit : " << max_start_cost << endl
+                 << "      Found value : " << cost_start << endl << endl;
+        }
+    }
+
+    // Otherwise do inversion
+    else
+    {
+        // Size remaining output arguments
+        x.resize( n );
+        dxdy.resize( n, m );
+
+        PrecisionMPI     Pe(SeInvMPI), Pa(SaInvMPI);
+        OEMVector        xa_oem(xa), y_oem(y), x_oem;
+        AgendaWrapperMPI aw(&ws, &inversion_iterate_agenda, m, n);
+
+        OEM_PS_PS_MPI<AgendaWrapperMPI> oem(aw, xa_oem, Pa, Pe);
+
+        // Call selected method
+        int return_value;
+
+        if (method == "li")
+        {
+            CG cg(1e-4, 0);
+            GN_CG gn(stop_dx, (unsigned int) max_iter, cg);
+            return_value =  oem.compute<GN_CG, invlib::MPILog>(
+                x_oem, y_oem, gn,
+                2 * (int) display_progress);
+        }
+        else if (method == "gn")
+        {
+            CG cg(1e-4, 0);
+            GN_CG gn(stop_dx, (unsigned int) max_iter, cg);
+            return_value =  oem.compute<GN_CG, invlib::MPILog>(
+                x_oem, y_oem, gn,
+                2 * (int) display_progress);
+        }
+        else if ( (method == "lm") || (method == "ml") )
+        {
+            CG cg(1e-4, 0);
+            LM_CG_S_MPI lm(SaInvMPI, cg);
+
+            lm.set_tolerance(stop_dx);
+            lm.set_maximum_iterations((unsigned int) max_iter);
+            lm.set_lambda(ml_ga_settings[0]);
+            lm.set_lambda_decrease(ml_ga_settings[1]);
+            lm.set_lambda_increase(ml_ga_settings[2]);
+            lm.set_lambda_threshold(ml_ga_settings[3]);
+            lm.set_lambda_maximum(ml_ga_settings[4]);
+
+            return_value = oem.compute<LM_CG_S_MPI, invlib::MPILog>(
+                x_oem, y_oem, lm,
+                2 * (int) display_progress);
+        }
+
+        oem_diagnostics[1] = return_value;
+        oem_diagnostics[2] = oem.cost;
+        oem_diagnostics[3] = oem.cost_y;
+        oem_diagnostics[4] = oem.iterations;
+
+        x = x_oem;
+        // Shall empty jacobian and dxdy be returned?
+        if( clear_matrices )
+        {
+            jacobian.resize(0,0);
+            dxdy.resize(0,0);
+        }
+    }
+    MPI_Finalize();
+}
+
+#else
+
+void OEM_MPI(
+    Workspace&,
+    Vector&,
+    Vector&,
+    Matrix&,
+    Matrix&,
+    Vector&,
+    Vector&,
+    Matrix&,
+    Matrix&,
+    Vector&,
+    Sparse&,
+    Sparse&,
+    const Vector&,
+    const Vector&,
+    const Index&,
+    const ArrayOfRetrievalQuantity&,
+    const ArrayOfArrayOfIndex&,
+    const Agenda&,
+    const String&,
+    const Numeric&,
+    const Vector&,
+    const Index&,
+    const Numeric&,
+    const Vector&,
+    const Index&,
+    const Index&,
+    const Verbosity&)
+{
+    throw runtime_error("You have to compile ARTS with C++11 support "
+                        " and enable MPI to use OEM_MPI.");
+}
+
+#endif // CXX11_SUPPORT && ENABLE_MPI

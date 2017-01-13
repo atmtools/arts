@@ -9,6 +9,5 @@
 #include "invlib/algebra/matrix_identity.h"
 #include "invlib/algebra/matrix_transpose.h"
 #include "invlib/algebra/matrix_zero.h"
-#include "invlib/algebra/transformation.h"
 
 #endif // ALGEBRA_H

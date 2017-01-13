@@ -1,7 +1,8 @@
 include_directories ( ${CMAKE_CURRENT_BINARY_DIR}
                       ${CMAKE_CURRENT_SOURCE_DIR}
                       ${ZLIB_INCLUDE_DIR}
-                      ${CMAKE_SOURCE_DIR}/3rdparty/invlib/src )
+                      ${CMAKE_SOURCE_DIR}/3rdparty/invlib/src
+                    )
 
 if (NETCDF_FOUND)
   include_directories (${NETCDF_INCLUDE_DIR})
@@ -13,6 +14,10 @@ if (NETCDF_FOUND)
     )
 
 endif (NETCDF_FOUND)
+
+if (ENABLE_MPI)
+  include_directories (${MPI_CXX_INCLUDE_PATH})
+endif (ENABLE_MPI)
 
 set (ALL_ARTS_LIBRARIES
   artscore
@@ -279,6 +284,10 @@ target_link_libraries (artscore ${ZLIB_LIBRARIES})
 if (NETCDF_FOUND)
   target_link_libraries (artscore ${NETCDF_LIBRARIES})
 endif (NETCDF_FOUND)
+
+if (ENABLE_MPI)
+  target_link_libraries (artscore ${MPI_CXX_LIBRARIES})
+endif (ENABLE_MPI)
 
 if (ENABLE_DOCSERVER)
   target_link_libraries (artscore microhttpd)

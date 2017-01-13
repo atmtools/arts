@@ -168,7 +168,7 @@ struct OptimizerLog<GaussNewton<RealType, Solver>>
 
 };
 // ---------------------- //
-//     MAP Class          //
+//        MAP Log         //
 // ---------------------- //
 
 template<>
@@ -301,9 +301,10 @@ void StandardLog<LogType::MAP>::time(Params... params)
         }
     }
 }
-// -------------------- //
-//     MAP Class        //
-// -------------------- //
+
+// ------------------------ //
+//  Conjugate Gradient Log  //
+// ------------------------ //
 
 template<>
 template<typename... Params>
@@ -324,7 +325,6 @@ template<>
 template<typename... Params>
 void StandardLog<LogType::SOL_CG>::step(Params... params)
 {
-
     if (verbosity >= 1)
     {
         auto tuple = std::make_tuple(params...);

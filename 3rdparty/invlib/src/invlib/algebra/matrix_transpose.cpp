@@ -6,6 +6,14 @@ MatrixTranspose<T1>::MatrixTranspose(T1 A_)
 }
 
 template<typename T1>
+template<typename T2>
+auto MatrixTranspose<T1>::multiply(const T2 &v) const
+    -> typename T2::ResultType
+{
+    return remove_reference_wrapper(A).transpose_multiply(v);
+}
+
+template<typename T1>
 auto MatrixTranspose<T1>::multiply(const VectorType &v) const
     -> VectorType
 {
@@ -33,6 +41,27 @@ auto MatrixTranspose<T1>::solve(const VectorType &v) const
 {
     MatrixType C = ((MatrixType) A).transpose();
     return C.solve(v);
+}
+
+template<typename T1>
+auto MatrixTranspose<T1>::diagonal() const
+    -> VectorType
+{
+    return A.diagonal();
+}
+
+template<typename T1>
+auto MatrixTranspose<T1>::row(size_t i) const
+    -> VectorType
+{
+    return A.col(i);
+}
+
+template<typename T1>
+auto MatrixTranspose<T1>::col(size_t i) const
+    -> VectorType
+{
+    return A.row(i);
 }
 
 template<typename T1>

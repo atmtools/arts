@@ -60,6 +60,9 @@
 /* define if the compiler supports C++11 */
 #cmakedefine CXX11_SUPPORT
 
+/* define if MPI was found */
+#cmakedefine ENABLE_MPI
+
 /* check existence of c header files */
 #cmakedefine HAVE_STDLIB_H 1
 #cmakedefine HAVE_STRINGS_H 1

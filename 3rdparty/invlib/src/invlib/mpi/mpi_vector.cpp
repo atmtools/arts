@@ -1,3 +1,7 @@
+// ---------------- //
+//    MPI Vector    //
+// ---------------- //
+
 template
 <
 typename LocalType,
@@ -15,7 +19,7 @@ MPIVector<LocalType, StorageType>::MPIVector()
     row_indices.reserve(nprocs);
     row_ranges.reserve(nprocs);
 
-    for (unsigned int i = 0; i < nprocs; i++)
+    for (int i = 0; i < nprocs; i++)
     {
         row_indices.push_back(0);
         row_ranges.push_back(0);
@@ -43,7 +47,7 @@ MPIVector<LocalType, StorageType>::MPIVector(T && local_vector)
     row_indices.reserve(nprocs);
     row_ranges.reserve(nprocs);
 
-    for (unsigned int i = 0; i < nprocs; i++)
+    for (int i = 0; i < nprocs; i++)
     {
         row_indices.push_back(index);
         row_ranges.push_back(proc_rows[i]);
@@ -51,6 +55,26 @@ MPIVector<LocalType, StorageType>::MPIVector(T && local_vector)
     }
 
     m = index;
+}
+
+template
+<
+typename LocalType,
+template <typename> typename StorageType
+>
+auto MPIVector<LocalType, StorageType>::split(const LocalType& v)
+    -> MPIVector<LocalType, LValue>
+{
+    int rank, nprocs;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+
+    MPIVector<LocalType, LValue> w;
+    w.resize(v.rows());
+
+    w.get_local() = v.get_block(w.row_indices[rank], w.row_ranges[rank]);
+
+    return w;
 }
 
 template
@@ -86,7 +110,7 @@ auto MPIVector<LocalType, StorageType>::resize(unsigned int i)
     row_indices.reserve(nprocs);
     row_ranges.reserve(nprocs);
 
-    for (unsigned int i = 0; i < nprocs; i++)
+    for (int i = 0; i < nprocs; i++)
     {
         row_indices[i] = index;
         row_ranges[i]  = proc_rows[i];
@@ -191,7 +215,7 @@ auto MPIVector<LocalType, StorageTemplate>::broadcast() const
     -> LocalType
 {
     LocalType v; v.resize(m);
-    broadcast_local_block(v.raw_pointer(), local.raw_pointer());
+    broadcast_local_block(v.data_pointer(), local.data_pointer());
     return v;
 }
 
@@ -204,7 +228,7 @@ template <typename> typename StorageType
 MPIVector<LocalType, StorageType>::operator LocalType() const
 {
     LocalType v; v.resize(m);
-    broadcast_local_block(v.raw_pointer(), local.raw_pointer());
+    broadcast_local_block(v.data_pointer(), local.data_pointer());
     return v;
 }
 
@@ -217,7 +241,7 @@ auto MPIVector<LocalType, StorageType>::broadcast_local_rows(int rows[]) const
     -> void
 {
     rows[rank] = local_rows;
-    for (unsigned int i = 0; i < nprocs; i++)
+    for (int i = 0; i < nprocs; i++)
     {
         MPI_Bcast(rows + i, 1, MPI_INTEGER, i, MPI_COMM_WORLD);
     }
@@ -229,13 +253,102 @@ typename LocalType,
 template <typename> typename StorageType
 >
 auto MPIVector<LocalType, StorageType>::broadcast_local_block(double *vector,
-                                                 const double *block) const
+                                                              const double *block) const
     -> void
 {
     memcpy(vector + row_indices[rank], block, row_ranges[rank] * sizeof(double));
-    for (unsigned int i = 0; i < nprocs; i++)
+    for (int i = 0; i < nprocs; i++)
     {
         MPI_Bcast(vector + row_indices[i], row_ranges[i], mpi_data_type,
                   i, MPI_COMM_WORLD);
     }
+}
+
+template
+<
+typename LocalType,
+template <typename> typename StorageType
+>
+auto MPIVector<LocalType, StorageType>::accumulate(const MPIVector &v)
+    -> void
+{
+    local.accumulate(v.local);
+}
+
+template
+<
+typename LocalType,
+template <typename> typename StorageType
+>
+auto MPIVector<LocalType, StorageType>::subtract(const MPIVector &v)
+    -> void
+{
+    local.subtract(v.local);
+}
+
+template
+<
+typename LocalType,
+template <typename> typename StorageType
+>
+auto MPIVector<LocalType, StorageType>::scale(RealType c)
+    -> void
+{
+    local.scale(c);
+}
+
+template
+<
+typename LocalType,
+template <typename> typename StorageType
+>
+auto MPIVector<LocalType, StorageType>::norm() const
+    -> RealType
+{
+    return sqrt(dot(*this, *this));
+}
+
+// ---------------- //
+//    Dot Product   //
+// ---------------- //
+
+template
+<
+    typename T1,
+    template <typename> typename StorageType
+>
+auto dot(const MPIVector<T1, StorageType> &v, const MPIVector<T1, StorageType> &w)
+    -> typename MPIVector<T1, StorageType>::RealType
+{
+    using RealType = typename MPIVector<T1, StorageType>::RealType;
+    RealType local = dot(v.local, w.local);
+    return mpi_sum(local);
+}
+
+template
+<
+    typename T1,
+    template <typename> typename StorageType
+>
+auto dot(const T1 &v, const MPIVector<T1, StorageType> &w)
+    -> typename MPIVector<T1, StorageType>::RealType
+{
+    using RealType = typename MPIVector<T1, StorageType>::RealType;
+    RealType local = dot(v.get_block(w.row_indices[w.rank], w.row_ranges[w.rank]),
+                         w.local);
+    return mpi_sum(local);
+}
+
+template
+<
+    typename T1,
+    template <typename> typename StorageType
+>
+auto dot(const MPIVector<T1, StorageType> &v, const T1 &w)
+    -> typename MPIVector<T1, StorageType>::RealType
+{
+    using RealType = typename MPIVector<T1, StorageType>::RealType;
+    RealType local = dot(w.get_block(v.row_indices[v.rank], v.row_ranges[v.rank]),
+                         v.local);
+    return mpi_sum(local);
 }

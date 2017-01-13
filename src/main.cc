@@ -805,6 +805,12 @@ int main (int argc, char **argv)
         << "   OEM support:          "
 #ifdef CXX11_SUPPORT
         << "enabled" << endl
+        << "   MPI support for OEM:  "
+    #ifdef ENABLE_MPI
+        << "enabled" << endl
+    #else
+        << "disabled" << endl
+    #endif
 #else
         << "disabled (no C++11 support)" << endl
 #endif

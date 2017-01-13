@@ -37,13 +37,13 @@ auto ArtsVector::operator()(Index i)
     return this->get(i);
 }
 
-auto ArtsVector::raw_pointer()
+auto ArtsVector::data_pointer()
     -> Numeric *
 {
     return this->mdata;
 }
 
-auto ArtsVector::raw_pointer() const
+auto ArtsVector::data_pointer() const
     -> const Numeric *
 {
     return this->mdata;
@@ -132,7 +132,7 @@ auto ArtsMatrix::operator()(Index i, Index j) const
     return this->get(i,j);
 }
 
-auto ArtsMatrix::raw_pointer()
+auto ArtsMatrix::data_pointer()
     -> Numeric *
 {
     return this->mdata;

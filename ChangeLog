@@ -1,3 +1,65 @@
+2017-01-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-589
+
+	* Added patch provided by Simon Pfreundschuh <simonpf@chalmers.se>.
+
+	* 3rdparty/invlib/src/invlib/algebra.h,
+	3rdparty/invlib/src/invlib/algebra/matrix.h,
+	3rdparty/invlib/src/invlib/algebra/matrix_difference.{h,cpp},
+	3rdparty/invlib/src/invlib/algebra/matrix_identity.{h,cpp},
+	3rdparty/invlib/src/invlib/algebra/matrix_product.{h,cpp},
+	3rdparty/invlib/src/invlib/algebra/matrix_sum.{h,cpp},
+	3rdparty/invlib/src/invlib/algebra/matrix_transpose.{h,cpp},
+	3rdparty/invlib/src/invlib/algebra/precision_matrix.h,
+	3rdparty/invlib/src/invlib/algebra/preconditioners.{h,cpp},
+	3rdparty/invlib/src/invlib/algebra/solvers.{h,cpp},
+	3rdparty/invlib/src/invlib/algebra/vector.cpp,
+	3rdparty/invlib/src/invlib/archetypes/matrix_archetype.{h,cpp},
+	3rdparty/invlib/src/invlib/archetypes/vector_archetype.{h,cpp},
+	3rdparty/invlib/src/invlib/interfaces/arts_wrapper.{h,cpp},
+	3rdparty/invlib/src/invlib/interfaces/eigen.h,
+	3rdparty/invlib/src/invlib/log.h, 3rdparty/invlib/src/invlib/map.cpp,
+	3rdparty/invlib/src/invlib/map.h, 3rdparty/invlib/src/invlib/mpi/log.h,
+	3rdparty/invlib/src/invlib/mpi/mpi_matrix.{h,cpp},
+	3rdparty/invlib/src/invlib/mpi/mpi_vector.{h,cpp},
+	3rdparty/invlib/src/invlib/mpi/traits.h,
+	3rdparty/invlib/src/invlib/mpi/utility.h,
+	3rdparty/invlib/src/invlib/optimization/levenberg_marquardt.h,
+	3rdparty/invlib/src/invlib/traits.h,
+	CMakeLists.txt, config.h.cmake, src/CMakeLists.txt,
+	src/agenda_wrapper.h, src/agenda_wrapper_mpi.h, src/m_oem.cc,
+	src/m_xml.cc, src/main.cc, src/matpackII.cc, src/matpackII.h,
+	src/methods.cc, src/oem.h, src/oem_mpi.h:
+
+	Patch with updated version of invlib and OEM with MPI support.
+	
+	* Changes applied after the patch by the committer:
+
+	* CMakeLists.txt:
+
+	Fix detection of MPI.
+
+	* src/CMakeLists.txt:
+
+	Only add MPI include path and libraries if enabled.
+
+	* 3rdparty/invlib/src/invlib/mpi/mpi_matrix.cpp,
+	3rdparty/invlib/src/invlib/mpi/mpi_matrix.h:
+
+	Change loop variable type from unsigned int to int. Fix type conversion
+	warning from signed to unsigned int.
+
+	* src/main.cc (main): Display info on OEM MPI support.
+
+	* src/m_oem.cc (OEM_MPI):
+
+	Adapt for changes that have been made to OEM since the patch was
+	created:
+
+	Change xa from output to input because it is now calculated beforehand
+	by x2artsStandard.
+
 2017-01-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-588

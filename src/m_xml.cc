@@ -25,6 +25,9 @@
 */
 
 #include "m_xml.h"
+#ifdef ENABLE_MPI
+#include "mpi.h"
+#endif
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
@@ -79,10 +82,29 @@ WriteXML (Workspace& ws _U_,
           const String& no_clobber_name,
           const Verbosity& verbosity)
 {
-  WriteXML (file_format, v, f, no_clobber,
-            v_name, f_name, no_clobber_name, verbosity);
-}
+#ifndef ENABLE_MPI
 
+    WriteXML (file_format, v, f, no_clobber,
+              v_name, f_name, no_clobber_name, verbosity);
+
+#else  // If MPI is enabled make sure only master process performs
+       // the write.
+
+    int initialized;
+    MPI_Initialized(&initialized);
+    if (!initialized)
+    {
+        MPI_Init(nullptr, nullptr);
+    }
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    if (rank == 0) {
+        WriteXML (file_format, v, f, no_clobber,
+                  v_name, f_name, no_clobber_name, verbosity);
+    }
+
+#endif // ENABLE_MPI
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
@@ -100,7 +122,26 @@ WriteXMLIndexed (Workspace& ws _U_,
                  const String& digits_name,
                  const Verbosity& verbosity)
 {
-  WriteXMLIndexed (file_format, file_index, v, f, digits, v_name, f_name, digits_name, verbosity);
+#ifndef ENABLE_MPI
+
+    WriteXMLIndexed (file_format, file_index, v, f, digits, v_name, f_name, digits_name, verbosity);
+
+#else  // If MPI is enabled make sure only master process performs
+       // the write.
+
+    int initialized;
+    MPI_Initialized(&initialized);
+    if (!initialized)
+    {
+        MPI_Init(nullptr, nullptr);
+    }
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    if (rank == 0) {
+        WriteXMLIndexed (file_format, file_index, v, f, digits, v_name, f_name, digits_name, verbosity);
+    }
+
+#endif // ENABLE_MPI
 }
 
 

@@ -7,25 +7,15 @@ template
 typename T1,
 typename T2
 >
-auto MatrixProduct<T1, T2>::multiply(const VectorType &u) const
-    -> VectorType
+template <typename T3>
+auto MatrixProduct<T1, T2>::multiply(const T3 &t) const
+    -> typename T3::ResultType
 {
-    VectorType v = static_cast<const decay<T2>&>(B).multiply(u);
-    VectorType w = static_cast<const decay<T1>&>(A).multiply(v);
-    return w;
-}
+    using T3ResultType = typename T3::ResultType;
 
-template
-<
-typename T1,
-typename T2
->
-auto MatrixProduct<T1, T2>::multiply(const MatrixType &C) const
-    -> MatrixType
-{
-    VectorType D = B.multiply(C);
-    VectorType E = A.multiply(D);
-    return E;
+    T3ResultType u = remove_reference_wrapper(B).multiply(t);
+    T3ResultType v = remove_reference_wrapper(A).multiply(u);
+    return v;
 }
 
 template
@@ -65,6 +55,45 @@ auto MatrixProduct<T1, T2>::transpose() const
     MatrixType C = A.multiply((MatrixType) B);
     MatrixType D = C.transpose();
     return D;
+}
+
+template
+<
+typename T1,
+typename T2
+>
+auto MatrixProduct<T1, T2>::diagonal() const
+    -> VectorType
+{
+    size_t m = A.rows();
+    VectorType diag; diag.resize(m);
+    for (size_t i = 0; i < m; i++)
+    {
+        diag(i) = dot(A.row(i), B.col(i));
+    }
+    return diag;
+}
+
+template
+<
+typename T1,
+typename T2
+>
+auto MatrixProduct<T1, T2>::row(size_t i) const
+    -> VectorType
+{
+    return B.transpose_multiply(A.row(i));
+}
+
+template
+<
+typename T1,
+typename T2
+>
+auto MatrixProduct<T1, T2>::col(size_t i) const
+    -> VectorType
+{
+    return A.multiply(remove_reference_wrapper(B).col(i));
 }
 
 template

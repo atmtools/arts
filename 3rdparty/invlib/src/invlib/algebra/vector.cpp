@@ -52,6 +52,31 @@ auto Vector<Base>::operator-(T1 &&v) const -> Difference<T1>
     return Difference<T1>(*this, std::forward<T1>(v));
 }
 
+template<typename T>
+struct HasBaseType
+{
+    using ArrayOfOne = char[1];
+    using ArrayOfTwo = char[2];
+
+    template<typename U, typename = typename U::VectorType::BaseType>
+    static ArrayOfOne & func(int);
+
+    template<typename U>
+    static ArrayOfTwo & func(...);
+
+    template<typename U, typename Base = typename U::VectorType::BaseType>
+    static const Base & typeFunc(int);
+
+    template<typename U>
+    static const U & typeFunc(...);
+
+    static constexpr bool result = sizeof(func<T>(0)) == 0;
+    using BaseType = decltype(typeFunc<T>(0));
+};
+
+// template<typename T>
+// using DotType = std::conditional<HasBaseType<T>::result, typename T::BaseType, T>;
+
 template
 <
 typename T1,
@@ -61,8 +86,8 @@ typename VectorType
 auto dot(const T1 &v, const T2 &w)
     -> typename VectorType::RealType
 {
-    return dot(static_cast<typename VectorType::BaseType>(v),
-               static_cast<typename VectorType::BaseType>(w));
+    return dot(static_cast<typename HasBaseType<T1>::BaseType>(v),
+               static_cast<typename HasBaseType<T2>::BaseType>(w));
 }
 
 // ------------------------------- //

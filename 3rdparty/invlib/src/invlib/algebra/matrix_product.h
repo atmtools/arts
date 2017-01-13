@@ -138,46 +138,26 @@ public:
      */
     ///@{
 
-    /*! Multiply product by a vector.
+    /*! Multiply product from the right.
      *
-     * If a MatrixProduct \f$C = A B\f$ object is multiplied by a vector \f$u\f$, 
-     * the result is computed successively by first computig the matrix-vector
-     * product \f$ v = B u\f$ and then the result \f$w = Av\f$.
+     * If a MatrixProduct \f$C = A B\f$ object is multiplied by a matrix or
+     * vector expression, the matrix or vector expression is evaluated first
+     * to its result type and then this intermediate result is successively
+     * multiplied with B and A.
      *
-     * The multiplication operation is handed down the algebraic expression tree
-     * using the method multiply(const VectorType &v), which must be provided by both
-     * operands of the multiplication A and B.
+     * The result type of the the product of a matrix product and a matrix or
+     * vector expression is the result type of the matrix or vector expression.
      *
-     * Except for the allocation of the result vector, the computation requires
-     * the allocation of a temporary vector to hold the intermediate result 
-     * \f$v\f$.
+     * Each of the matrices A and B must thus provide multiply methods for
+     * multiplying them from the right with the result type.
      *
-     * \return The product of the matrix product \f$A B\f$ and the vector \f$u\f$
-     *
-     * \todo Consider making this function a template.
+     * \tparam T3 The type of the matrix or vector expression being multiplied
+     * from the right.
+     * \return The product of the matrix product \f$A B\f$ and the matrix or
+     * vector expression \f$t\f$
      */
-    VectorType multiply(const VectorType &u) const;
-
-    /*! Multiply product by a matrix.
-     *
-     * The product of a MatrixProduct \f$E = A B\f$ object and a
-     * matrix \f$C\f$ is computed in a in the same way as the product of a
-     * MatrixProduct and a vector, namely by first computing the temporary result
-     * \f$D = B C\f$ and then finally \f$E = A * D\f$.
-     *
-     * The multiplication is delegated to the operands by calling the
-     * member function multiply(const MatrixType &), which must be provided
-     * by both types.
-     *
-     * Except for the matrix to hold the result, an additional matrix is allocated
-     * during computation to hold the temporary vector \f$D\f$.
-     *
-     * \return The product of the matrix product \f$AB\f$ and the
-     * vector \f$u\f$.
-     *
-     * \todo Consider making this function a template.
-     */
-    MatrixType multiply(const MatrixType &u) const;
+    template <typename T3>
+    auto multiply(const T3 &u) const -> typename T3::ResultType;
 
     /*! Inverse of a matrix product.
      *
@@ -223,6 +203,35 @@ public:
      */
     MatrixType transpose() const;
 
+    /*! Return the vector representing the diagonal of the matrix.
+     *
+     * Creates the diagonal vector computing the dot products of the rows in the
+     * left operand with the corresponding columns of the right operand.
+     *
+     * \return The vector representing the diagonal of the product.
+     */
+    VectorType diagonal() const;
+
+    /*! Return row \p i of the matrix product.
+     *
+     * Computes the ith row of the matrix product by multiplying the transpose of the
+     * right-hand operand with the ith row of the left-hand operand.
+     *
+     * \arg i  The index of the row to compute.
+     * \return The ith row of the matrix product.
+     */
+    VectorType row(size_t i) const;
+
+    /*! Return column \p i of the matrix product.
+     *
+     * Computes the ith column of the matrix product by the
+     * left-hand operand with the ith column of the right-hand operand.
+     *
+     * \arg i  The index of the column to compute.
+     * \return The ith row of the matrix product.
+     */
+    VectorType col(size_t i) const;
+
     ///@}
     /*! \name Algebraic Operators
      *
@@ -236,7 +245,7 @@ public:
      *  of type T3.
      */
     template <typename T3>
-        using NestedProduct = typename decay<T2>::template Product<T3>;
+    using NestedProduct = typename decay<T2>::template Product<T3>;
 
     /*!
      * Type of the product of the the matrix product with another given object

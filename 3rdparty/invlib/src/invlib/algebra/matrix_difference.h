@@ -156,6 +156,36 @@ public:
      */
     MatrixType invert() const;
 
+    /*! Diagonal of this matrix difference.
+     *
+     * Compute the diagonal of this matrix difference as the difference of the
+     * diagonals of the two operands of the difference. Delegates the computation
+     * of the operand diagonals to the diagonal() member functions of the operands.
+     *
+     * \result A VectorType object representing the diagonal of this matrix difference.
+     */
+    VectorType diagonal() const;
+
+    /*! Extract row.
+     *
+     * Returns the ith row of this matrix difference as an object of VectorType. The row
+     * is computed as the difference of the corresponding rows of the operands of the
+     * difference. Calls the row member functions of the operands.
+     *
+     * \return A VectorType object representing the ith row of this matrix expression.
+     */
+    VectorType row(size_t i) const;
+
+    /*! Extract columns.
+     *
+     * Returns the ith columns of this matrix difference as an object of VectorType. The columns
+     * is computed as the difference of the corresponding columns of the operands of the
+     * difference. Calls the columns member functions of the operands.
+     *
+     * \return A VectorType object representing the ith columns of this matrix expression.
+     */
+    VectorType col(size_t i) const;
+
     // --------------------- //
     // Arithmetic Operators  //
     // --------------------- //
@@ -215,7 +245,7 @@ public:
      * \todo Add static asserts.
      */
     template <typename T3>
-    Difference<T3> operator-(const T3 &&C) const;
+    Difference<T3> operator-(T3 &&C) const;
 
     operator ResultType() const;
 

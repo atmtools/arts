@@ -96,14 +96,14 @@ public:
      * \return Lvalue reference to the matrix element in row i
      * and column j.
      */
-    Real & operator()(unsigned int, unsigned int);
+    inline Real & operator()(unsigned int, unsigned int);
 
     /*! Constant element access.
      * \param i The row of the element to access.
      * \param j The column of the element to access.
      * \return The value of the matrix element in row i and column j.
      */
-    Real   operator()(unsigned int, unsigned int) const;
+    inline Real operator()(unsigned int, unsigned int) const;
 
     /*! Number of columns of the matrix.
      * \return The number of columns of the matrix.
@@ -116,8 +116,8 @@ public:
     unsigned int rows() const;
 
     /*! Raw pointer to the matrix data. Needed for MPI testing. */
-    RealType * raw_pointer();
-    const RealType * raw_pointer() const;
+    RealType * data_pointer();
+    const RealType * data_pointer() const;
 
     // ------------ //
     //  Arithmetic  //
@@ -230,6 +230,28 @@ public:
      * required by the matrix algebra interface.
      */
     VectorType backsubstitution(const VectorType &) const;
+
+    // --------------------------------- //
+    //  Diagonal, Row adn Column Access  //
+    // --------------------------------- //
+
+    /*! Return the diagonal of the matrix as a vector.
+     *
+     *  Required for using the CG solver with Jacobian preconditioner.
+     */
+    VectorType diagonal() const;
+
+    /*! Return the ith row of the matrix as a vector.
+     *
+     *  Required for using the CG solver with Jacobian preconditioner.
+     */
+    VectorType row(size_t i) const;
+
+    /*! Return the ith column of the matrix as a vector.
+     *
+     *  Required for using the CG solver with Jacobian preconditioner.
+     */
+    VectorType col(size_t i) const;
 
 private:
 

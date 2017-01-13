@@ -96,6 +96,8 @@ public:
     //   Nested Evaluation   //
     // --------------------- //
 
+    template <typename T3>
+    auto multiply(const T3 &v) const -> typename T3::ResultType;
     /*! Multiply sum expression by a vector.
      *
      * Avoids explicit evaluation of the sum by passing the vector down
@@ -147,6 +149,34 @@ public:
      * expression.
      */
     MatrixType invert() const;
+
+    /*! Diagonal of this matrix sum.
+     *
+     * Computes the diagonal of this matrix sum by adding the diagonals of the two operands.
+     * Computations are delegated by calling the diagonal() member function of the operand
+     * types.
+     *
+     * \return A VectorType object representing the diagonal of the matrix sum.
+     */
+    VectorType diagonal() const;
+
+    /*! Row of this matrix sum.
+     *
+     * Compute the ith row of this matrix sum by adding the rows of the operands of the sum.
+     * Recursively calls the \p row member functions of the operand types.
+     *
+     * \return A VectorType object representing ith row of the matrix sum.
+     */
+    VectorType row(size_t i) const;
+
+    /*! Column of this matrix sum.
+     *
+     * Compute the ith column of this matrix sum by adding the columns of the operands of the sum.
+     * Recursively calls the \p col member functions of the operand types.
+     *
+     * \return A VectorType object representing ith column of the matrix sum.
+     */
+    VectorType col(size_t i) const;
 
     // --------------------- //
     // Arithmetic Operators  //

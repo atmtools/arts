@@ -63,6 +63,8 @@ public:
     Sparse();
     Sparse(Index r, Index c);
 
+    void split(Index offset, Index nrows);
+
     // Insert functions
     void insert_row(Index r, Vector v);
     void insert_elements(Index nnz,

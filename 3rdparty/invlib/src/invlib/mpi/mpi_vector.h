@@ -10,9 +10,14 @@
 
 #include "mpi.h"
 #include "invlib/mpi/traits.h"
+#include "invlib/mpi/utility.h"
 
 namespace invlib
 {
+
+// ---------------- //
+//    MPI Vector    //
+// ---------------- //
 
 template
 <
@@ -27,14 +32,14 @@ public:
     /*! The basic scalar type. */
     using RealType   = typename LocalType::RealType;
     /*! The basic vector type  */
-    using VectorType = typename LocalType::VectorType;
+    using VectorType = MPIVector;
     /*! The local Matrix type.  */
-    using MatrixType = LocalType;
+    using MatrixType = typename LocalType::MatrixType;
     /*!
      * Result type of an algebraic expression with MPIMatrix as right hand
      * operator.
      */
-    using ResultType = LocalType;
+    using ResultType = MPIVector;
     /*! The type used to store the local vector. */
     using StorageType = typename StorageTrait<LocalType>::type;
 
@@ -47,13 +52,21 @@ public:
     >
     MPIVector(T &&local_vector);
 
+    static MPIVector<LocalType, LValue> split(const LocalType &);
+
+    // ------------------- //
+    //     Manipulation    //
+    // ------------------- //
+
     void resize(unsigned int i);
 
     unsigned int rows() const;
 
     LocalType & get_local();
-
     const LocalType & get_local() const;
+
+    size_t get_index() const {return row_indices[rank];}
+    size_t get_range() const {return row_ranges[rank];}
 
     RealType operator()(unsigned int i) const;
     RealType& operator()(unsigned int i);
@@ -61,6 +74,34 @@ public:
     LocalType broadcast() const;
 
     operator LocalType() const;
+
+    // ------------------------- //
+    //    Arithmetic Opertations //
+    // ------------------------- //
+
+    void accumulate(const MPIVector& v);
+    void subtract(const MPIVector& v);
+    void scale(RealType c);
+    RealType norm() const;
+
+
+    template <typename T1, template <typename> typename StorageType>
+    friend auto dot(
+        const MPIVector<T1, StorageType> &,
+        const MPIVector<T1, StorageType> &)
+    -> typename MPIVector<T1, StorageType>::RealType;
+
+    template <typename T1, template <typename> typename StorageType>
+    friend auto dot(
+        const T1 &,
+        const MPIVector<T1, StorageType> &)
+    -> typename MPIVector<T1, StorageType>::RealType;
+
+    template <typename T1, template <typename> typename StorageType>
+    friend auto dot(
+        const MPIVector<T1, StorageType> &,
+        const T1 &)
+    -> typename MPIVector<T1, StorageType>::RealType;
 
 private:
 
@@ -82,6 +123,7 @@ private:
     RealType local_element;
 
 };
+
 
 #include "mpi_vector.cpp"
 

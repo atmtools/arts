@@ -63,9 +63,15 @@ public:
     MatrixTranspose & operator=(const MatrixTranspose &) = default;
     MatrixTranspose & operator=(MatrixTranspose &&) = default;
 
+    size_t cols() const {return A.rows();}
+    size_t rows() const {return A.cols();}
+
     // --------------------- //
     //   Nested Evaluation   //
     // --------------------- //
+
+    template <typename T2>
+    auto multiply(const T2 &t) const -> typename T2::ResultType;
 
     /*! Multiply this transposed expression by a vector.
      *
@@ -111,6 +117,37 @@ public:
      */
     VectorType solve(const VectorType& v) const;
 
+    /*! Diagonal of this transposed expression.
+     *
+     * This is an identity operation, so the call is simply forwarded to the underlying
+     * expression.
+     *
+     * \return A VectorType object representing the diagonal of this arithmetic expression.
+     */
+    VectorType diagonal() const;
+
+    /*! Row i of this transposed expression.
+     *
+     * The ith row of the transposed expression is the ith column of the non-transposed
+     * expression, thus the call is simply fowarded to the column() member function of
+     * the underlying expression.
+     *
+     * \return A VectorType object representing the ith row of this transposed arithmetic
+     *  expression.
+     */
+    VectorType row(size_t i) const;
+
+    /*! Column i of this transposed expression.
+     *
+     * The ith column of the transposed expression is the ith column of the non-transposed
+     * expression, thus the call is simply fowarded to the row() member function of
+     * the underlying expression.
+     *
+     * \return A VectorType object representing the ith column of this transposed
+     * arithmetic expression.
+     */
+    VectorType col(size_t i) const;
+
     // --------------------- //
     // Arithmetic Operators  //
     // --------------------- //
@@ -146,9 +183,9 @@ private:
  *
  */
 template <typename T1>
-MatrixTranspose<T1> transp(T1 &&A)
+MatrixTranspose<RemoveReferenceWrapper<T1>> transp(T1 &&A)
 {
-    return MatrixTranspose<T1>(A);
+    return MatrixTranspose<RemoveReferenceWrapper<T1>>(A);
 }
 
 #include "matrix_transpose.cpp"

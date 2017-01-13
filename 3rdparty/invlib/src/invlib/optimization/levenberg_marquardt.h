@@ -9,7 +9,6 @@
 #define OPTIMIZATION_LEVENBERG_MARQUARDT_H
 
 #include "invlib/algebra/solvers.h"
-#include "invlib/optimization/levenberg_marquardt_logger.h"
 #include <iostream>
 
 namespace invlib

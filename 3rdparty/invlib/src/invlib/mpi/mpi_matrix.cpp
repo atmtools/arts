@@ -1,3 +1,5 @@
+#include <type_traits>
+
 template
 <
 typename LocalType,
@@ -6,6 +8,10 @@ template <typename> typename StorageTemplate
 MPIMatrix<LocalType, StorageTemplate>::MPIMatrix()
     : local(), local_rows(0)
 {
+    static_assert(!is_same_template<StorageTemplate, ConstRef>::value,
+                  "Default constructor not supported for reference "
+                  "storage type.");
+
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
@@ -13,7 +19,7 @@ MPIMatrix<LocalType, StorageTemplate>::MPIMatrix()
     row_indices.reserve(nprocs);
     row_ranges.reserve(nprocs);
 
-    for (unsigned int i = 0; i < nprocs; i++)
+    for (int i = 0; i < nprocs; i++)
     {
         row_indices.push_back(0);
         row_ranges.push_back(0);
@@ -75,7 +81,7 @@ MPIMatrix<LocalType, StorageTemplate>::MPIMatrix(T &&local_matrix)
     row_indices.reserve(nprocs);
     row_ranges.reserve(nprocs);
 
-    for (unsigned int i = 0; i < nprocs; i++)
+    for (int i = 0; i < nprocs; i++)
     {
         row_indices.push_back(index);
         row_ranges.push_back(proc_rows[i]);
@@ -104,7 +110,7 @@ MPIMatrix<LocalType, StorageTemplate>::MPIMatrix(const LocalType &local_matrix)
     row_indices.reserve(nprocs);
     row_ranges.reserve(nprocs);
 
-    for (unsigned int i = 0; i < nprocs; i++)
+    for (int i = 0; i < nprocs; i++)
     {
         row_indices.push_back(index);
         row_ranges.push_back(proc_rows[i]);
@@ -185,7 +191,7 @@ auto MPIMatrix<LocalType, StorageTemplate>::resize(unsigned int i,
     row_indices.reserve(nprocs);
     row_ranges.reserve(nprocs);
 
-    for (unsigned int i = 0; i < nprocs; i++)
+    for (int i = 0; i < nprocs; i++)
     {
         row_indices[i] = index;
         row_ranges[i]  = proc_rows[i];
@@ -209,7 +215,7 @@ auto MPIMatrix<LocalType, StorageTemplate>::broadcast(LocalType &local)
     MPI_Bcast(&m, 1, MPI_INTEGER, 0, MPI_COMM_WORLD);
     MPI_Bcast(&n, 1, MPI_INTEGER, 0, MPI_COMM_WORLD);
 
-    MPI_Bcast(local.raw_pointer(), m * n, mpi_data_type, 0, MPI_COMM_WORLD);
+    MPI_Bcast(local.data_pointer(), m * n, mpi_data_type, 0, MPI_COMM_WORLD);
 }
 
 template
@@ -239,10 +245,46 @@ template
 typename LocalType,
 template <typename> typename StorageTemplate
 >
+auto MPIMatrix<LocalType, StorageTemplate>::row(size_t i) const
+    -> NonMPIVectorType
+{
+    NonMPIVectorType r(static_cast<MPIVectorType<LValue>>(local.row(i)));
+    return r;
+}
+
+template
+<
+typename LocalType,
+template <typename> typename StorageTemplate
+>
+auto MPIMatrix<LocalType, StorageTemplate>::col(size_t i) const
+    -> MPIVectorType<LValue>
+{
+    MPIVectorType<LValue> c(local.col(i));
+    return c;
+}
+
+template
+<
+typename LocalType,
+template <typename> typename StorageTemplate
+>
+auto MPIMatrix<LocalType, StorageTemplate>::diagonal() const
+    -> MPIVectorType<LValue>
+{
+    MPIVectorType<LValue> c(local.diagonal());
+    return c;
+}
+
+template
+<
+typename LocalType,
+template <typename> typename StorageTemplate
+>
 auto MPIMatrix<LocalType, StorageTemplate>::get_local()
     -> LocalType &
 {
-    return local;
+    return remove_reference_wrapper(local);
 }
 
 
@@ -305,13 +347,13 @@ template
 typename LocalType,
 template <typename> typename StorageTemplate
 >
-auto MPIMatrix<LocalType, StorageTemplate>::multiply(const VectorType &v) const
-    -> VectorType
+auto MPIMatrix<LocalType, StorageTemplate>::multiply(const NonMPIVectorType &v) const
+    -> NonMPIVectorType
 {
-    VectorType w{}; w.resize(m);
-    VectorType w_local{}; w_local.resize(local_rows);
+    NonMPIVectorType w{}; w.resize(m);
+    NonMPIVectorType w_local{}; w_local.resize(local_rows);
     w_local = remove_reference_wrapper(local).multiply(v);
-    broadcast_local_block(w.raw_pointer(), w_local.raw_pointer());
+    broadcast_local_block(w.data_pointer(), w_local.data_pointer());
     return w;
 }
 
@@ -320,18 +362,48 @@ template
 typename LocalType,
 template <typename> typename StorageTemplate
 >
-auto MPIMatrix<LocalType, StorageTemplate>::transpose_multiply(const VectorType &v) const
-    -> VectorType
+auto MPIMatrix<LocalType, StorageTemplate>::transpose_multiply(const NonMPIVectorType &v) const
+    -> NonMPIVectorType
 {
-    VectorType w_local{};   w_local.resize(n);
-    VectorType w{};   w.resize(n);
+    NonMPIVectorType w_local{};   w_local.resize(n);
+    NonMPIVectorType w{};   w.resize(n);
 
     w_local =
         remove_reference_wrapper(local).transpose_multiply_block(v, row_indices[rank], row_ranges[rank]);
-    reduce_vector_sum(w.raw_pointer(), w_local.raw_pointer());
+    reduce_vector_sum(w.data_pointer(), w_local.data_pointer());
     return w;
 }
 
+template
+<
+typename LocalType,
+template <typename> typename StorageTemplate
+>
+template <template <typename> typename VectorStorageTemplate>
+auto MPIMatrix<LocalType, StorageTemplate>
+    ::multiply(const MPIVectorType<VectorStorageTemplate> &v) const
+    -> MPIVectorType<LValue>
+{
+    MPIVectorType<LValue> w = remove_reference_wrapper(local).multiply(v);
+    return w;
+}
+
+template
+<
+typename LocalType,
+template <typename> typename StorageTemplate
+>
+template <template <typename> typename VectorStorageTemplate>
+auto MPIMatrix<LocalType, StorageTemplate>
+    ::transpose_multiply(const MPIVectorType<VectorStorageTemplate> &v) const
+    -> MPIVectorType<LValue>
+{
+    NonMPIVectorType w; w.resize(n);
+    NonMPIVectorType w_local;
+    w_local = remove_reference_wrapper(local).transpose_multiply(v.get_local());
+    reduce_vector_sum(w.data_pointer(), w_local.data_pointer());
+    return MPIVectorType<LValue>::split(w);
+}
 // template
 // <
 // typename LocalType,
@@ -350,11 +422,11 @@ auto MPIMatrix<LocalType, StorageTemplate>::transpose_multiply(const VectorType 
 // MPIMatrix<LocalType, StorageTemplate>::operator LocalType()
 // {
 //     LocalType A; A.resize(m, n);
-//     auto matrix_buffer = A.raw_pointer();
+//     auto matrix_buffer = A.data_pointer();
 //     auto start  = matrix_buffer + row_indices[rank] * n;
 //     auto length = row_ranges[rank] * n;
 
-//     std::copy(local.raw_pointer(), local.raw_pointer() + length, start);
+//     std::copy(local.data_pointer(), local.data_pointer() + length, start);
 
 //     for (int i = 0; i < nprocs; i++)
 //     {
@@ -387,7 +459,7 @@ auto MPIMatrix<LocalType, StorageTemplate>::broadcast_local_block(double *vector
     -> void
 {
     memcpy(vector + row_indices[rank], block, row_ranges[rank] * sizeof(double));
-    for (unsigned int i = 0; i < nprocs; i++)
+    for (int i = 0; i < nprocs; i++)
     {
         MPI_Bcast(vector + row_indices[i], row_ranges[i], mpi_data_type,
                   i, MPI_COMM_WORLD);

@@ -94,7 +94,7 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inline
 ########### Check C++11 Support ##########
 
 # Disable C++11 support if compiling with clang on OSX
-# Xcode's clang as well as vanillay clang currently fails
+# Xcode's clang as well as vanilla clang currently fails
 # compiling invlib
 if (APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set (NO_CXX11 1)
@@ -112,6 +112,14 @@ if (NOT NO_CXX11)
   endif()
 else()
   set (CXX11_SUPPORT false)
+endif()
+
+########### Check MPI Support ############
+if (ENABLE_MPI) # User must enable MPI using -DENABLE_MPI=ON
+  find_package(MPI)
+  if (NOT MPI_CXX_FOUND)
+    message (FATAL_ERROR "No MPI with C++ support found.")
+  endif()
 endif()
 
 ########### Check C header files ##########

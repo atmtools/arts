@@ -84,6 +84,9 @@ public:
     /*! Return scaling factor of matrix */
     RealType scale() const;
 
+    /*! Return diagonal element of the identity matrix. */
+    RealType diagonal() const;
+
     // --------------------- //
     //   Nested Evaluation   //
     // --------------------- //
@@ -101,6 +104,7 @@ public:
     T1 solve(const T1 &A) const;
 
     void scale(RealType c);
+
     // --------------------- //
     // Arrithmetic Operators //
     // --------------------- //
@@ -188,6 +192,94 @@ auto inv(const MatrixIdentity<T1> &A)
 {
     return MatrixIdentity<T1>(1.0 / A.scale());
 }
+
+// ---------------------------------------------- //
+// Partial Specialization of Matrix Product Class //
+// ---------------------------------------------- //
+
+template
+<
+typename T1,
+typename T2
+>
+class MatrixProduct<MatrixIdentity<T1>, T2>
+{
+
+public:
+
+    /*! The basic scalar type. */
+    using RealType   = typename decay<T2>::RealType;
+    /*! The basic vector type  */
+    using VectorType = typename decay<T2>::VectorType;
+    /*! The basic matrix type. */
+    using MatrixType = typename decay<T2>::MatrixType;
+    /*! The type of the result of the expression */
+    using ResultType = typename decay<T2>::ResultType;
+
+    // ------------------------------- //
+    //  Constructors and Destructors   //
+    // ------------------------------- //
+
+    MatrixProduct(const MatrixIdentity<T1> & A_, T2 B_ )
+        : A(A_), B(B_) {}
+    MatrixProduct(const MatrixProduct &) = default;
+    MatrixProduct(MatrixProduct &&)      = default;
+    MatrixProduct & operator=(const MatrixProduct &) = default;
+    MatrixProduct & operator=(MatrixProduct &&)      = delete;
+    ~MatrixProduct() = default;
+
+    // --------------------- //
+    //   Nested Evaluation   //
+    // --------------------- //
+
+    template <typename T3>
+    auto multiply(const T3 &u) const -> typename T3::ResultType;
+
+    MatrixType invert() const;
+    VectorType solve(const VectorType &v) const;
+    MatrixType transpose()   const;
+    VectorType diagonal()    const;
+    VectorType row(size_t i) const;
+    VectorType col(size_t i) const;
+
+    // --------------------- //
+    //  Algebraic Operators  //
+    // --------------------- //
+
+    template <typename T3>
+    using NestedProduct = typename decay<T2>::template Product<T3>;
+    template <typename T3>
+    using Product = MatrixProduct<MatrixIdentity<T1>, NestedProduct<T3>>;
+
+    template <typename T3>
+    Product<T3> operator*(T3 &&C) const
+    {
+	return Product<T3>(A, B * std::forward<T3>(C));
+    }
+
+    template <typename T3>
+    using Sum = MatrixSum<MatrixProduct , T3>;
+    template <typename T3>
+    Sum<T3> operator+(T3 &&C) const
+    {
+	return Sum<T3>(*this, C);
+    }
+
+    template <typename T3>
+    using Difference = MatrixDifference<MatrixProduct , T3>;
+    template <typename T3>
+    Difference<T3> operator-(T3 &&C)
+    {
+	return Difference<T3>(*this, C);
+    }
+
+    operator ResultType() const;
+
+private:
+
+    MatrixIdentity<T1> A;
+    T2 B;
+};
 
 #include "matrix_identity.cpp"
 

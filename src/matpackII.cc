@@ -299,6 +299,15 @@ void Sparse::list_elements( Vector &values,
     }
 }
 
+//! Reduce matrix to the row range [offset, offset + nrows]
+void Sparse::split(Index offset, Index nrows_block)
+{
+    Eigen::SparseMatrix<Numeric, Eigen::RowMajor> block_copy(
+        matrix.block((int) offset, 0, (int) nrows_block, (int) ncols())
+        );
+    matrix.swap(block_copy);
+}
+
 //! Insert row function
 /*!
   Inserts a Vector as row of elements at the given position.
@@ -334,20 +343,20 @@ void Sparse::insert_row(Index r, Vector v)
   in the number of elements and should therfore be the preferred way
   of inserting elements into the sparse matrix.
 
-  \param nnz The number of elements to insert.
+  \param nelems The number of elements to insert.
   \param rowind A vector containing the row indices.
   \param colind A vector containing the column indices.
   \param data The vector containing the elements.
 */
-void Sparse::insert_elements(Index nnz,
+void Sparse::insert_elements(Index nelems,
                              const ArrayOfIndex &rowind,
                              const ArrayOfIndex &colind,
                              const Vector       &data)
 {
     typedef Eigen::Triplet<Numeric> T;
-    std::vector<T> tripletList(nnz);
+    std::vector<T> tripletList(nelems);
 
-    for (Index i = 0; i < nnz; i++)
+    for (Index i = 0; i < nelems; i++)
     {
         tripletList.push_back(T((int) rowind[i], (int) colind[i], data[i]));
 

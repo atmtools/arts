@@ -94,7 +94,8 @@ template
 typename ForwardModel,
 typename MatrixType,
 typename SaType,
-typename SeType
+typename SeType,
+typename VectorType = typename MatrixType::VectorType
 >
 class MAPBase
 {
@@ -103,16 +104,14 @@ public:
 
     /*! The basic scalar type. */
     using RealType   = typename MatrixType::RealType;
-    /*! The basic vector type  */
-    using VectorType = typename MatrixType::VectorType;
 
 private:
 
     // Helper functions to determine type of gradient and Jacobian
     // as returned by the forward model.
-    auto evaluate_helper(ForwardModel &f, const VectorType& x)
+    auto evaluate_helper(ForwardModel & f, const VectorType & x)
         -> decltype(f.evaluate(x));
-    auto Jacobian_helper(ForwardModel &f, const VectorType& x, VectorType &y)
+    auto Jacobian_helper(ForwardModel & f, const VectorType & x, VectorType & y)
         -> decltype(f.Jacobian(x,y));
 
 public:
@@ -129,6 +128,7 @@ public:
                                                         ForwardModel &,
                                                         const VectorType &,
                                                         VectorType &)>;
+
     /*! Jacobian type that can be assigned to. */
     using JacobianType = CopyWrapper<FMJacobianType>;
 
@@ -252,9 +252,10 @@ template
 <
 typename ForwardModel,
 typename MatrixType,
-typename SaType,
-typename SeType,
-Formulation Form = Formulation::STANDARD
+typename SaType     = MatrixType,
+typename SeType     = MatrixType,
+typename VectorType = typename MatrixType::VectorType,
+Formulation Form    = Formulation::STANDARD
 >
 class MAP;
 
@@ -277,20 +278,19 @@ template
 typename ForwardModel,
 typename MatrixType,
 typename SaType,
-typename SeType
+typename SeType,
+typename VectorType
 >
-class MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::STANDARD>
-    : public MAPBase<ForwardModel, MatrixType, SaType, SeType>
+class MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STANDARD>
+    : public MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>
 {
 
 public:
 
     /*! The basic scalar type. */
     using RealType   = typename MatrixType::RealType;
-    /*! The basic vector type  */
-    using VectorType = typename MatrixType::VectorType;
     /*! The base class. */
-    using Base = MAPBase<ForwardModel, MatrixType, SaType, SeType>;
+    using Base = MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>;
     /*! The Jacobian Type */
     using typename Base::JacobianType;
     /*! The vector type as returned by the forward model. */
@@ -305,7 +305,7 @@ public:
     using Base::evaluate_time; using Base::Jacobian_time;
 
     MAP( ForwardModel &F_,
-         const VectorType   &xa_,
+         const VectorType &xa_,
          const SaType &Sa_,
          const SeType &Se_ );
 
@@ -363,20 +363,19 @@ template
 typename ForwardModel,
 typename MatrixType,
 typename SaType,
-typename SeType
+typename SeType,
+typename VectorType
 >
-class MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::NFORM>
-    : public MAPBase<ForwardModel, MatrixType, SaType, SeType>
+class MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFORM>
+    : public MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>
 {
 
 public:
 
     /*! The basic scalar type. */
     using RealType   = typename MatrixType::RealType;
-    /*! The basic vector type  */
-    using VectorType = typename MatrixType::VectorType;
     /*! The base class. */
-    using Base = MAPBase<ForwardModel, MatrixType, SaType, SeType>;
+    using Base = MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>;
     /*! The Jacobian Type */
     using typename Base::JacobianType;
     /*! The vector type as returned by the forward model. */
@@ -448,20 +447,18 @@ template
 typename ForwardModel,
 typename MatrixType,
 typename SaType,
-typename SeType
+typename SeType,
+typename VectorType
 >
-class MAP<ForwardModel, MatrixType, SaType, SeType, Formulation::MFORM>
-    : public MAPBase<ForwardModel, MatrixType, SaType, SeType>
+class MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFORM>
+    : public MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>
 {
 
 public:
 
-
     using RealType   = typename MatrixType::RealType;
-    /*! The basic vector type  */
-    using VectorType = typename MatrixType::VectorType;
     /*! The base class. */
-    using Base = MAPBase<ForwardModel, MatrixType, SaType, SeType>;
+    using Base = MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>;
     /*! The assignable Jacobian type. */
     using typename Base::JacobianType;
     /*! The vector type as returned by the forward model. */

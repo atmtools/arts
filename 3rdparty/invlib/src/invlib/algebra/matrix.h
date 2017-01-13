@@ -23,7 +23,6 @@ namespace invlib
 template <typename Base>
 class Vector;
 
-
 // -------------- //
 //  Matrix Class  //
 // -------------- //
