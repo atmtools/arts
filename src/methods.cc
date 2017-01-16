@@ -13468,7 +13468,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "StringCompose" ),
+      ( NAME( "StringJoin" ),
         DESCRIPTION
         (
          "Concatenate two or more strings.\n"

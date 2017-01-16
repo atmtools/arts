@@ -1,3 +1,11 @@
+2017-01-16  Lukas Kluft  <lukas.kluft@gmail.com>
+
+	* arts-2-3-590
+
+	* src/m_general.cc, src/methods.cc:
+
+	Renamed workspace method StringCompose to StringJoin.
+
 2017-01-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-589

@@ -335,7 +335,7 @@ void PrintWorkspace(// Workspace reference
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
-StringCompose(String& out,
+StringJoin(String& out,
               const String& in1,
               const String& in2,
               const String& in3,
