@@ -41,5 +41,22 @@ AgendaExecuteExclusive( g0_agenda )
 NumericSet(ref, 0)
 Compare(lat, ref, 0., "Error in Agenda Scoping")
 
+MatrixCreate(mref)
+MatrixSet( mref, [4,5,6] )
+VectorSet( x, [] )
+IndexSet( jacobian_do, 0 )
+MatrixSet( jacobian, [1,2,3] )
+AgendaSet( inversion_iterate_agenda ){
+    Ignore( x )
+    Ignore( jacobian_do )
+    Ignore( jacobian )
+    VectorSet( yf, [4, 5, 6] )
+    MatrixSet( jacobian, [4,5,6] )
+}
+AgendaExecute( inversion_iterate_agenda )
+Compare(jacobian, mref, 0., "Error in Agenda InOut Scoping")
+Print(jacobian, 0)
+
+
 }
 

@@ -54,9 +54,17 @@ void AgendaExecute(Workspace& ws,
     // changed inside the agenda.
     const ArrayOfIndex& ain = agr.In();
     const ArrayOfIndex& aout = agr.Out();
+
+    // Put the input and outputs into new sets to sort them. Otherwise
+    // set_difference screws up.
+    set<Index> sain;
+    set<Index> saout;
+    sain.insert(ain.begin(), ain.end());
+    saout.insert(aout.begin(), aout.end());
+
     set<Index> in_only;
-    set_difference(ain.begin(), ain.end(),
-                   aout.begin(), aout.end(),
+    set_difference(sain.begin(), sain.end(),
+                   saout.begin(), saout.end(),
                    insert_iterator< set<Index> >(in_only,
                                                  in_only.begin()));
     for (set<Index>::const_iterator it = in_only.begin ();

@@ -1,3 +1,19 @@
+2017-01-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-591
+
+	* src/m_agenda.cc (AgendaExecute):
+
+	Copy inputs and outputs into new sets to sort them because
+	set_difference does not work with unsorted arrays. Fixes bug in
+	AgendaExecute reported by Patrick. Variables that are defined as input
+	and output of an agenda were wrongly reset to their original value
+	after AgendaExecute.
+
+	* controlfiles/artscomponents/agendas/TestAgendaExecute.arts:
+
+	Add check for proper InOut scoping in AgendaExecute.
+
 2017-01-16  Lukas Kluft  <lukas.kluft@gmail.com>
 
 	* arts-2-3-590
