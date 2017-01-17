@@ -5386,7 +5386,7 @@ void define_md_data_raw()
              "transmittance", "fastem_version" ),
         GIN_TYPE( "Numeric", "Numeric", "Numeric",
                   "Numeric", "Vector", "Index"),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, NODEF, "6" ),
+        GIN_DEFAULT( NODEF, "0.035", NODEF, NODEF, NODEF, "6" ),
         GIN_DESC( "Zenith angle of line-of-sigh, 90 to 180 deg.",
                   "Salinity, 0-1. That is, 3% is given as 0.03.",
                   "Wind speed.",
@@ -6371,25 +6371,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "inversion_iterate_agendaCall" ),
-        DESCRIPTION
-        (
-         "???.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "yf", "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian", "jacobian_do", "x", "inversion_iterate_agenda" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-  
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "isotopologue_ratiosInitFromBuiltin" ),
         DESCRIPTION
         (
@@ -7136,7 +7117,7 @@ void define_md_data_raw()
             "surface_skin_t" ),
         GIN( "salinity", "wind_speed", "wind_direction", "fastem_version" ),
         GIN_TYPE( "Numeric", "Numeric", "Numeric", "Index" ),
-        GIN_DEFAULT( NODEF, NODEF, "0", "6" ),
+        GIN_DEFAULT( "0.035", NODEF, "0", "6" ),
         GIN_DESC( "Salinity, 0-1. That is, 3% is given as 0.03.",
                   "Wind speed.",
                   "Wind direction. See further above.",
@@ -13571,7 +13552,7 @@ void define_md_data_raw()
         GIN( "salinity", "wind_speed", "wind_direction", "transmittance",
              "fastem_version" ),
         GIN_TYPE( "Numeric", "Numeric", "Numeric", "Vector", "Index" ),
-        GIN_DEFAULT( NODEF, NODEF, "0", NODEF, "6" ),
+        GIN_DEFAULT( "0.035", NODEF, "0", NODEF, "6" ),
         GIN_DESC( "Salinity, 0-1. That is, 3% is given as 0.03.",
                   "Wind speed.",
                   "Wind direction. See futher above.",

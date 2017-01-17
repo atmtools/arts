@@ -103,7 +103,12 @@ void FastemStandAlone(
       chk_if_in_range("transmittance", transmittance[i], 0, 1);
 
       Vector e, r;
-      fastem( e, r, f_grid[i], za, t, salinity, 
+
+      const Numeric flim = 350e9;
+      Numeric f = f_grid[i];
+      if( f > flim ) { f = flim; }
+
+      fastem( e, r, f, za, t, salinity, 
               wind_speed, transmittance[i], rel_aa, fastem_version );
 
       emissivity(i,joker) = e;

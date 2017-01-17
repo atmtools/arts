@@ -1,3 +1,18 @@
+2017-01-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-592
+
+	* src/m_oem.cc (inversion_iterate_agendaCall): Removed. This was a
+	fix to the bug just removed.
+
+	* src/m_surface.cc (FastemStandAlone): Frequency fix implemented here.
+
+	* src/methods.cc: In all FASTEM methods, set 0.035 as default for
+	salinity. Also for all versions, when calling the core fastem
+	method, any frequency above 350 GHz is replaced with 350 GHz. This
+	as Fastem gives unrealistic values from about 400 GHz. But as
+	before, there is an error from Fastem if going above one 1 THz.
+
 2017-01-17  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-591

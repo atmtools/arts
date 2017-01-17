@@ -549,21 +549,6 @@ void x2artsStandard(
 
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void inversion_iterate_agendaCall(
-         Workspace&                  ws,
-         Vector&                     yf,
-         Matrix&                     jacobian,
-   const Index&                      jacobian_do,
-   const Vector&                     x,
-   const Agenda&                     inversion_iterate_agenda,
-   const Verbosity& )
-{
-  inversion_iterate_agendaExecute( ws, yf, jacobian, x, jacobian_do,
-                                   inversion_iterate_agenda );
-}
-
-
 /*===========================================================================
   === OEM itself (with wrappers and tempate definitions)
   ===========================================================================*/
