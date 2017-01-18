@@ -45,20 +45,6 @@ batch_atm_fields_compactAddConstant( name="abs_species-N2", value=0.7808 )
 # Arguments omitted for better maintainability of this test file.
 #abs_lookupSetupWide
 abs_lookupSetupBatch
-# abs_lookupSetupBatch( abs_p, 
-#                       abs_t, 
-#                       abs_t_pert, 
-#                       abs_vmrs, 
-#                       abs_nls, 
-#                       abs_nls_pert, 
-#                       abs_species, 
-#                       batch_atm_fields_compact, 
-#                       abs_t_interp_order, 
-#                       abs_nls_interp_order, 
-#                       , 
-#                       , 
-#                       , 
-#                       )
 
 
 # Optional manual override of T and VMR perturbations

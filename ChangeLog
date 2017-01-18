@@ -1,3 +1,31 @@
+2017-01-18  Lukas Kluft  <lukas.kluft@gmail.com>
+
+	* arts-2-3-593
+
+	* Note: atmosphere_dim must be set before calling abs_lookupSetupBatch!
+
+	* src/m_abs_lookup.cc (abs_lookupSetupBatch):
+
+	Perform a full atmfields_checkedCalc() on the given
+	batch_atm_fields_compact. This closes a loophole when only
+	calculating a lookup table.
+
+	* src/methods.cc (abs_lookupSetupBatch):
+
+	Updated the documentation to include the performed atmfield check.
+
+	The more sophisticated checks require atmosphere_dim as an additional input
+	parameter for the method.
+
+	* controlfiles/instruments/amsu/TestAMSU_MetMM_generic.arts,
+	controlfiles/instruments/amsu/TestAMSU_generic.arts,
+	controlfiles/instruments/hirs/TestHIRS.arts,
+	controlfiles/instruments/mhs/TestMHS_generic.arts,
+	controlfiles/instruments/mviri/TestMVIRI.arts,
+	controlfiles/instruments/seviri/TestSEVIRI.arts:
+
+	Removed comments showing outdated abs_lookupSetupBatch syntax.
+
 2017-01-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-592

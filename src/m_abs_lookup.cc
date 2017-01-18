@@ -1178,13 +1178,16 @@ void abs_lookupSetupBatch(// WS Output:
                           const Index& abs_p_interp_order,
                           const Index& abs_t_interp_order,
                           const Index& abs_nls_interp_order,
+                          const Index& atmosphere_dim,
                           // Control Parameters:
                           const Numeric& p_step10,
                           const Numeric& t_step,
                           const Numeric& h2o_step,
                           const Vector&  extremes,
+                          const Index& robust,
                           const Verbosity& verbosity)
 {
+  CREATE_OUT1;
   CREATE_OUT2;
   CREATE_OUT3;
   
@@ -1350,15 +1353,63 @@ void abs_lookupSetupBatch(// WS Output:
   // Find out maximum and minimum pressure and check that pressure grid is decreasing.
   Numeric maxp=batch_fields[0].get_numeric_grid(GFIELD4_P_GRID)[0];
   Numeric minp=batch_fields[0].get_numeric_grid(GFIELD4_P_GRID)[batch_fields[0].get_numeric_grid(GFIELD4_P_GRID).nelem()-1];
+
+  ArrayOfIndex valid_field_indices;
   for (Index i=0; i<batch_fields.nelem(); ++i)
     {
-      if (!is_decreasing(batch_fields[i].get_numeric_grid(GFIELD4_P_GRID)))
-      {
-        std::ostringstream os;
-        os << "Pressure grids must be strictly monotonically decreasing.\n";
-        os << "*batch_atm_fields_compact* at index " << i << " is not.";
-        throw runtime_error(os.str());
-      }
+      // Local variables for atmfields_check.
+      Index atmfields_checked;
+      Tensor4 t4_dummy;
+      Tensor3 t3_dummy;
+
+      Vector p_grid;
+      Vector lat_grid;
+      Vector lon_grid;
+      Tensor3 t_field;
+      Tensor3 z_field;
+      Tensor4 vmr_field;
+      Tensor4 scat_species_mass_density_field;
+      Tensor4 scat_species_mass_flux_field;
+      Tensor4 scat_species_number_density_field;
+      Tensor4 scat_species_mean_mass_field;
+      ArrayOfString scat_species;
+      GriddedField4 atm_fields_compact;
+      SpeciesAuxData partition_functions;
+      Index abs_f_interp_order;
+
+      // Extract fields from atmfield and check their validity.
+      // This closes the loophole when only calculating lookup tables.
+      atm_fields_compact = batch_fields[i];
+
+      AtmFieldsFromCompact( p_grid, lat_grid, lon_grid, t_field, z_field,
+              vmr_field, scat_species_mass_density_field,
+              scat_species_mass_flux_field, scat_species_number_density_field,
+              scat_species_mean_mass_field, abs_species, scat_species,
+              atm_fields_compact, atmosphere_dim, "-", 0, verbosity );
+
+      try {
+          atmfields_checkedCalc( atmfields_checked, atmosphere_dim, p_grid,
+                  lat_grid, lon_grid, abs_species, t_field, vmr_field,
+                  t3_dummy, t3_dummy, t3_dummy, t3_dummy,
+                  t3_dummy, t3_dummy, partition_functions,
+                  abs_f_interp_order, 0, 0, verbosity );
+      } catch (const std::runtime_error& e) {
+          // If `robust`, skip field and continue, ...
+          if (robust)
+          {
+              out1 << "  WARNING! Skipped invalid atmfield "
+                   << "at batch_atmfield index " << i << ".\n";
+              continue;
+          }
+          // ... else throw an error.
+          else
+          {
+              stringstream err;
+              err << "Invalid atmfield at batch_atmfield index " << i << ".\n";
+              throw std::runtime_error( err.str() );
+          }
+      };
+      valid_field_indices.push_back(i); // Append index to list of valid fields.
 
       if (maxp < batch_fields[i].get_numeric_grid(GFIELD4_P_GRID)[0])
         maxp = batch_fields[i].get_numeric_grid(GFIELD4_P_GRID)[0];
@@ -1366,6 +1417,22 @@ void abs_lookupSetupBatch(// WS Output:
         minp = batch_fields[i].get_numeric_grid(GFIELD4_P_GRID)[batch_fields[i].get_numeric_grid(GFIELD4_P_GRID).nelem()-1];
     }
   //  cout << "  minp/maxp: " << minp << " / " << maxp << "\n";
+
+  // Information on
+  if (batch_fields.nelem() > valid_field_indices.nelem())
+  {
+      out1 << "  " << batch_fields.nelem() - valid_field_indices.nelem()
+           << " out of " << batch_fields.nelem() << " atmospheres ignored.\n";
+  }
+
+  // Throw error if no atmfield passed the check.
+  if (valid_field_indices.nelem() < 1)
+  {
+      stringstream err;
+      err << "You need at least one valid profile.\n"
+          << "It seems that no atmfield passed the checks!\n";
+      throw std::runtime_error( err.str() );
+  }
 
   if (maxp==minp)
     {
@@ -1424,8 +1491,12 @@ void abs_lookupSetupBatch(// WS Output:
   Numeric minh2o=+1e99;
   Numeric maxh2o=-1e99;
 
-  for (Index i=0; i<batch_fields.nelem(); ++i)
+  // Loop over valid atmfields.
+  for (Index vi=0; vi<valid_field_indices.nelem(); ++vi)
     {
+      // Get internal field index.
+      Index i = valid_field_indices[vi];
+
       // Check that really each case has the same variables (see
       // comment above.)
       if (batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES)

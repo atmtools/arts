@@ -1339,6 +1339,12 @@ void define_md_data_raw()
          "are used to make sure that there are enough points in *abs_nls_pert*\n"
          "and *abs_t_pert* for the chosen interpolation order.\n"
          "\n"
+         "The method checks each given field using *atmfields_checkedCalc*.\n"
+         "If a field does not pass the check, a run-time error is thrown.\n"
+         "To prevent this, the parameter *robust* can be set to one: Invalid \n"
+         "atmospheres are skipped, but the run continues. This matches the \n"
+         "robust behaviour of *ybatchCalc*.\n"
+         "\n"
          "See also:\n"
          "   *abs_lookupSetup*\n"
          ),
@@ -1356,10 +1362,11 @@ void define_md_data_raw()
             "batch_atm_fields_compact",
             "abs_p_interp_order",
             "abs_t_interp_order",
-            "abs_nls_interp_order" ),
-        GIN( "p_step",  "t_step",  "h2o_step", "extremes" ),
-        GIN_TYPE(    "Numeric", "Numeric", "Numeric",  "Vector" ),
-        GIN_DEFAULT( "0.05",    "20",       "100",      "[]" ),
+            "abs_nls_interp_order",
+            "atmosphere_dim" ),
+        GIN( "p_step",  "t_step",  "h2o_step", "extremes", "robust" ),
+        GIN_TYPE(    "Numeric", "Numeric", "Numeric",  "Vector", "Index" ),
+        GIN_DEFAULT( "0.05",    "20",       "100",      "[]",    "0" ),
         GIN_DESC( /* p_step */ 
                   "Grid step in log10(p[Pa]) (base 10 logarithm).",
                   /* t_step */
@@ -1374,7 +1381,11 @@ void define_md_data_raw()
                   /* extremes */
                   "You can give here explicit extreme values to add to "
                   "abs_t_pert and abs_nls_pert. The order is [t_pert_min, "
-                  "t_pert_max, nls_pert_min, nls_pert_max]."
+                  "t_pert_max, nls_pert_min, nls_pert_max].",
+                  /* robust */
+                  "A flag with value 1 or 0. If set to one, the batch\n"
+                  "setup will continue, even if individual fields are invalid.\n"
+                  "This is consistent with the behaviour of *ybatchCalc*."
                   )
         ));
 
