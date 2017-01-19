@@ -1,5 +1,12 @@
 2017-01-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-595
+
+	* src/m_disort.cc (DisortCalc): Missed to adopt the dummy
+	declaration of the function.
+
+2017-01-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-594
 
 	* controlfiles/artscomponents/disort/TestDISORT.arts:
