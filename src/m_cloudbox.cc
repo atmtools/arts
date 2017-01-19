@@ -1677,22 +1677,32 @@ void pnd_fieldZero(//WS Output:
                    Tensor4& pnd_field,
                    ArrayOfArrayOfSingleScatteringData& scat_data,
                    //WS Input:
+                   const Index& atmosphere_dim,
                    const ArrayOfIndex& cloudbox_limits,
                    const Verbosity&)
 {
+  chk_if_in_range ( "atmosphere_dim", atmosphere_dim, 1, 3 );
+
+  if ( cloudbox_limits.nelem()!= 2*atmosphere_dim )
+    throw runtime_error(
+                        "*cloudbox_limits* is a vector which contains the"
+                        "upper and lower limit of the cloud for all "
+                        "atmospheric dimensions. So its dimension must"
+                        "be 2 x *atmosphere_dim*");
+
+  
   //Resize pnd_field and set it to 0:
   Index np = cloudbox_limits[1]-cloudbox_limits[0]+1;
-  Index nlat, nlon;
-  if( cloudbox_limits.nelem() > 2 )
+  Index nlat=1, nlon=1;
+  if( atmosphere_dim > 1 )
     {
       nlat = cloudbox_limits[3]-cloudbox_limits[2]+1;
-      nlon = cloudbox_limits[5]-cloudbox_limits[4]+1;
+      if( atmosphere_dim > 2 )
+        {
+          nlon = cloudbox_limits[5]-cloudbox_limits[4]+1;
+        }
     }
-  else
-    {
-      nlat = 1;
-      nlon = 1;
-    }
+
     
   // Do only reset scat_data if it has not been set yet.
   // There's no need otherwise, and it's rather unpractical for testing when

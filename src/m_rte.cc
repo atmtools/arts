@@ -2117,6 +2117,7 @@ void iyIndependentBeamApproximation(
          Ppath&            ppath,
          ArrayOfTensor3&   diy_dx,
          GriddedField4&    atm_fields_compact,
+   const Index&            iy_id,
    const Vector&           f_grid,
    const Index&            atmosphere_dim,
    const Vector&           p_grid,
@@ -2415,7 +2416,7 @@ void iyIndependentBeamApproximation(
     Ppath ppath1d;   
     //
     iy_sub_agendaExecute( ws, iy, iy_aux, ppath1d, diy_dx, iy_agenda_call1,
-                          iy_unit, iy_transmission, iy_aux_vars, 0,
+                          iy_unit, iy_transmission, iy_aux_vars, iy_id,
                           f_grid, adim1, p1, lat1, lon1, lat_true1, lon_true1,
                           t1, z1, vmr1, zsurf1, lmax1, ppath_lraytrace,
                           cbox_on1, cbox_lims1, pnd1,
