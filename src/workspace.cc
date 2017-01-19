@@ -3889,7 +3889,7 @@ void Workspace::define_wsv_data()
       (
        "Line-of-sight at a radiative transfer point.\n"
        "\n"
-       "This variable holds the local line-of-sight. The angles of this\n"
+       "This variable holds a local line-of-sight. The angles of this\n"
        "vector are defined as for *rte_los*.\n"
        "\n"
        "The WSV is used as input to methods and agendas calculating radiative\n"
@@ -3910,7 +3910,7 @@ void Workspace::define_wsv_data()
       (
        "Position of a radiative transfer point.\n"
        "\n"
-       "This angles vector is defined as *rte_pos*, but holds position along\n"
+       "This vector is defined as *rte_pos*, but holds a position along\n"
        "the propgation path, or the start point for new paths, in contrast\n"
        "to *rte_pos* that is position of the (imaginary) detector.\n"
        "\n"

@@ -3948,8 +3948,6 @@ void define_md_data_raw()
          "Known issues of ARTS implementation:\n"
          "- Surface altitude is not an interface parameter. Surface is\n"
          "  implicitly assumed to be at the lowest atmospheric level.\n"
-         "- Surface temperature not an interface parameter, but implicitly\n"
-         "  assumed to to be of lowest atmospheric level temperature.\n"
          "- Only Lambertian surface reflection is implemented so far.\n"
          "- Except for *non_iso_inc*=1, where *iy_space_agenda* is applied,\n"
          "  TOA incoming radiation is so far assumed as blackbody cosmic\n"
@@ -3983,7 +3981,7 @@ void define_md_data_raw()
             "opt_prop_part_agenda", "spt_calc_agenda", "iy_main_agenda",
             "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
             "scat_data", "f_grid", "scat_za_grid",
-            "surface_scalar_reflectivity" ),
+            "surface_skin_t", "surface_scalar_reflectivity" ),
         GIN(         "nstreams", "non_iso_inc", "pfct_method" ),
         GIN_TYPE(    "Index",    "Index",       "String" ),
         GIN_DEFAULT( "8",        "0",           "median" ),
@@ -13663,8 +13661,6 @@ void define_md_data_raw()
         (
         "Creates variables to mimic a Lambertian surface.\n"
         "\n"
-        "The method can only be used for 1D calculations.\n"        
-        "\n"
         "A Lambertian surface can be characterised solely by its\n"
         "reflectivity, here taken from *surface_scalar_reflectivity*.\n"
         "\n"
@@ -13687,6 +13683,9 @@ void define_md_data_raw()
         "\n"
         "Local thermodynamic equilibrium is assumed, which corresponds to\n"
         "that the reflection and emission coefficients \"add up to 1\".\n"
+        "\n"
+        "For 2D and 3D, the down-welling directions are placed along the\n"
+        "the viewing direction, e.g. for 3D the azimuth angle is kept constant.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
@@ -13951,6 +13950,28 @@ void define_md_data_raw()
         GIN_TYPE( "GriddedField4" ),
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "A field of scalar surface reflectivities" )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "surface_scalar_reflectivityFromSurface_rmatrix" ),
+        DESCRIPTION
+        (
+         "Sets *surface_scalar_reflectivity* based on *surface_rmatrix*.\n"
+         "\n"
+         "For each frequency f, **surface_scalar_reflectivity** is set to\n"
+         "the sum of surface_rmatrix(joker,f,0,0).\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "surface_scalar_reflectivity" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "surface_rmatrix" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back     

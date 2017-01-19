@@ -57,6 +57,14 @@ INCLUDE "indivfieldsatmo_setup.arts"
 VectorSet( surface_scalar_reflectivity, [0.] )
 
 
+# Set surface skin temperature based on t_field
+MatrixCreate( tskin_matrix )
+VectorCreate( tskin_vector )
+Extract( tskin_matrix, t_field, 0 )
+VectorExtractFromMatrix( tskin_vector, tskin_matrix, 0, "column" )
+Extract( surface_skin_t, tskin_vector, 0 )
+
+
 # Set cloudbox limits 
 # ---------------------------------------------------------------------
 #cloudboxSetFullATm

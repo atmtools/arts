@@ -83,6 +83,7 @@ void DisortCalc(Workspace& ws,
                 const ArrayOfArrayOfSingleScatteringData& scat_data,
                 const Vector& f_grid,
                 const Vector& scat_za_grid,
+                const Numeric& surface_skin_t,
                 const Vector& surface_scalar_reflectivity,
                 const Index& nstreams,
                 const Index& non_iso_inc,
@@ -266,7 +267,7 @@ void DisortCalc(Workspace& ws,
   // albedo only set in freq-loop (as it might be freq-dependent
   
   // temperature of surface
-  Numeric btemp = t_field(0,0,0);
+  Numeric btemp = surface_skin_t;
 
   //upper boundary conditions:
   // DISORT offers isotropic incoming radiance or emissivity-scaled planck

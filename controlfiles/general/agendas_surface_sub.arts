@@ -19,32 +19,26 @@
 Arts2 {
 
 AgendaSet( iy_surface_sub_agenda0 ){
-  Ignore( surface_type_aux )
   AgendaExecute( surface_rtprop_sub_agenda0 )
   iySurfaceRtpropCalc
 } 
 AgendaSet( iy_surface_sub_agenda1 ){
-  Ignore( surface_type_aux )
   AgendaExecute( surface_rtprop_sub_agenda1 )
   iySurfaceRtpropCalc
 } 
 AgendaSet( iy_surface_sub_agenda2 ){
-  Ignore( surface_type_aux )
   AgendaExecute( surface_rtprop_sub_agenda2 )
   iySurfaceRtpropCalc
 } 
 AgendaSet( iy_surface_sub_agenda3 ){
-  Ignore( surface_type_aux )
   AgendaExecute( surface_rtprop_sub_agenda3 )
   iySurfaceRtpropCalc
 } 
 AgendaSet( iy_surface_sub_agenda4 ){
-  Ignore( surface_type_aux )
   AgendaExecute( surface_rtprop_sub_agenda4 )
   iySurfaceRtpropCalc
 } 
 AgendaSet( iy_surface_sub_agenda5 ){
-  Ignore( surface_type_aux )
   AgendaExecute( surface_rtprop_sub_agenda5 )
   iySurfaceRtpropCalc
 } 

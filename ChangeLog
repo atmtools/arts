@@ -1,3 +1,24 @@
+2017-01-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-594
+
+	* controlfiles/artscomponents/disort/TestDISORT.arts:
+	surface_skin_t now set, by extract from t_field.
+
+	* src/m_disort.cc (DisortCalc): Now takes surface_skin_t as input.
+	Replaces using t_field(0,0,0).
+
+	* src/m_surface.cc (surfaceLambertianSimple): Removed the
+	limitation to 1D. But 2D and 3D are only handled in a simplistic
+	manner.
+
+	(surface_scalar_reflectivityFromSurface_rmatrix): New WSM.
+
+	* controlfiles/general/agendas_surface_sub.arts: Removed
+	unnecessary Ignore calls
+
+	* src/workspace.cc: Small changes in doc of rtp_pos/los.
+
 2017-01-18  Lukas Kluft  <lukas.kluft@gmail.com>
 
 	* arts-2-3-593

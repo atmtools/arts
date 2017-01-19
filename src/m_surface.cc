@@ -1155,7 +1155,7 @@ void surfaceLambertianSimple(
 {
   const Index   nf = f_grid.nelem();
 
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 1 );
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   chk_not_negative( "surface_skin_t", surface_skin_t );
   chk_if_in_range( "za_pos", za_pos, 0, 1 );
@@ -1197,7 +1197,17 @@ void surfaceLambertianSimple(
 
   // surface_los
   for( Index ip=0; ip<lambertian_nza; ip++ )
-    { surface_los(ip,0) = za_lims[ip] + za_pos * dza; }
+    {
+      surface_los(ip,0) = za_lims[ip] + za_pos * dza;
+      if( atmosphere_dim == 2 )
+        {
+          if( rtp_los[0] < 0 )
+            { surface_los(ip,0) *= -1.0; }
+            
+        }
+      else if( atmosphere_dim == 3 )
+        { surface_los(ip,1) = rtp_los[1]; }
+    }
 
   Vector b(nf);
   planck( b, f_grid, surface_skin_t ); 
@@ -1841,6 +1851,29 @@ void surface_scalar_reflectivityFromGriddedField4(
       interpweights( itw, gp );
       interp( surface_scalar_reflectivity, itw, r_f, gp );
     }     
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surface_scalar_reflectivityFromSurface_rmatrix(
+          Vector&          surface_scalar_reflectivity,
+    const Tensor4&         surface_rmatrix,
+    const Verbosity&)
+{
+  const Index nf   = surface_rmatrix.npages();
+  const Index nlos = surface_rmatrix.nbooks();
+
+  surface_scalar_reflectivity.resize( nf );
+  surface_scalar_reflectivity = 0;
+
+  for( Index i=0; i<nf; i++)
+    {
+      for( Index l=0; l<nlos; l++)
+        {
+          surface_scalar_reflectivity[i] += surface_rmatrix(l,i,0,0);
+        }
+    }
 }
 
 
