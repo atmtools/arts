@@ -1854,6 +1854,13 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
     parse_psd_param( psd_param, scat_species[i_ss], delim);
     parse_partfield_name( partfield_name, scat_species[i_ss], delim);
 
+    if (scat_meta[i_ss].nelem() == 0)
+    {
+        ostringstream os;
+        os << "*scat_meta* for scattering species '" << scat_species[i_ss] << "' is empty.";
+        throw std::runtime_error(os.str());
+    }
+
   /*
    * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    * NOTE: when adding further distributions here, document them (particularly

@@ -1,5 +1,16 @@
 2017-01-20  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-598
+
+	* src/m_cloudbox.cc (pnd_fieldCalcFromscat_speciesFields):
+
+	Throw runtime error if a species in scat_meta is empty. Otherwise an
+	assertion failure is generated later on in the pnd_field* functions
+	(e.g. pnd_fieldS2M). Besides that it doesn't make sense to have an
+	empty species. Reported by Freddy.
+
+2017-01-20  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-597
 
 	* src/m_checked.cc (cloudbox_checkedCalc):
