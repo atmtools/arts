@@ -699,8 +699,7 @@ void cloudbox_checkedCalc(
               chk_scat_data_fgrid ( scat_data[i_ss][i_se], f_grid, os.str() );
             }
         }
-      if( scat_data_check_type != "none" || scat_data_check_type != "None" ||
-          scat_data_check_type != "NONE" )
+      if( scat_data_check_type.toupper() != "NONE" )
         {
           // handing over to scat_dataCheck which checks whether
           // 1) scat_data containing any NaN?
