@@ -13666,9 +13666,9 @@ void define_md_data_raw()
         "\n"
         "The down-welling radiation field is estimated by making calculations\n"
         "for *lambertian_nza* directions. The range of zenith angles ([0,90])\n"
-        "is divided in an equidistant manner. The values for *surface_rmatrix*\n"
-        "are assuming a constant radiance over each zenith angle range.\n"
-        "See AUG.\n"
+        "is divided in an equidistant manner for 1D. For 2D and 3D see below.\n"
+        "The values for *surface_rmatrix* are assuming a constant radiance\n"
+        "over each zenith angle range. See AUG.\n"
         "\n"
         "Default is to select the zenith angles for *sensor_los* to be placed\n"
         "centrally in the grid ranges. For example, if *lambertian_nza* is set\n"
@@ -13686,13 +13686,16 @@ void define_md_data_raw()
         "\n"
         "For 2D and 3D, the down-welling directions are placed along the\n"
         "the viewing direction, e.g. for 3D the azimuth angle is kept constant.\n"
+        "In 2D and 3D surface topography can exist, and to avoid getting views\n"
+        "going directly into the surface, angels are not distributed over 90 deg,\n"
+        "but 90-abs(surface_normal[0]).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rtp_los", 
+        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rtp_los", "surface_normal",
             "surface_skin_t", "surface_scalar_reflectivity" ),
         GIN(         "lambertian_nza", "za_pos"  ),
         GIN_TYPE(    "Index", "Numeric" ),

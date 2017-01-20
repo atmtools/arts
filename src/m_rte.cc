@@ -232,7 +232,7 @@ void iyEmissionStandard(
                        cloudbox_on, 0, t_field, z_field, vmr_field, f_grid, 
                        ppath_agenda );
   //
-  if( !iy_agenda_call1 && ppath_what_background( ppath ) == 2  )
+  if( !iy_agenda_call1  &&  ppath.np == 1  &&  ppath_what_background( ppath ) == 2  )
     throw runtime_error( "A secondary propagation path starting at the "
                          "surface and is going directly into the surface "
                          "is found. This is not allowed." );

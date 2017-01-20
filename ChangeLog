@@ -1,3 +1,26 @@
+2017-01-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-599
+
+	* controlfiles/general/agendas_surface.arts: Added
+	specular_losCalc to all agndes using the Lambertian method, as
+	this is now required.
+
+	* It is now allowed to have several reflections for one pencil
+	beam calculation. That was unintentionally restricted. For
+	example, you can now have a ppath that is reflected from one side
+	of a valley to the other side. However, there is no limit on the
+	number of reflections and you can possibly end up in an infinite
+	loop. That biggest risk here is the Lambertian function. If this
+	happens, try to use a smaller number of beams.
+
+	* src/m_surface.cc (surfaceLambertianSimple): Now takes
+	surface_normal as input for safer handling of 2D and 3D. Added
+	some notes about in the built-in doc.
+
+	* src/m_rte.cc (iyEmissionStandard): Added ppath.np==1 in first if
+	statement.
+
 2017-01-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-598

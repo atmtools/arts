@@ -144,6 +144,7 @@ AgendaSet( surface_rtprop_agenda__Specular_Pol_RefracFix_SurfTFix ){
 AgendaCreate( surface_rtprop_agenda__lambertian_ReflFix_SurfTFix )
 AgendaSet( surface_rtprop_agenda__lambertian_ReflFix_SurfTFix ){
   Ignore( rtp_pos )
+  specular_losCalc
   surfaceLambertianSimple
 } 
 
@@ -154,6 +155,7 @@ AgendaSet( surface_rtprop_agenda__lambertian_ReflFix_SurfTFix ){
 AgendaCreate( surface_rtprop_agenda__lambertian_ReflFix_SurfTFromt_surface )
 AgendaSet( surface_rtprop_agenda__lambertian_ReflFix_SurfTFromt_surface ){
   InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )
+  specular_losCalc
   surfaceLambertianSimple
 } 
 
@@ -164,6 +166,7 @@ AgendaSet( surface_rtprop_agenda__lambertian_ReflFix_SurfTFromt_surface ){
 AgendaCreate( surface_rtprop_agenda__lambertian_ReflFix_SurfTFromt_field )
 AgendaSet( surface_rtprop_agenda__lambertian_ReflFix_SurfTFromt_field ){
   InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
+  specular_losCalc
   surfaceLambertianSimple
 } 
 

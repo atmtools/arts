@@ -1147,6 +1147,7 @@ void surfaceLambertianSimple(
     const Index&     stokes_dim,
     const Index&     atmosphere_dim,
     const Vector&    rtp_los,
+    const Vector&    surface_normal,
     const Numeric&   surface_skin_t,
     const Vector&    surface_scalar_reflectivity,
     const Index&     lambertian_nza,
@@ -1192,7 +1193,7 @@ void surfaceLambertianSimple(
 
   // Help variables
   //
-  const Numeric dza = 90.0 / (Numeric)lambertian_nza;
+  const Numeric dza = ( 90.0-abs(surface_normal[0])) / (Numeric)lambertian_nza;
   const Vector za_lims( 0.0, lambertian_nza+1, dza );
 
   // surface_los
