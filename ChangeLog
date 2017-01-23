@@ -1,3 +1,12 @@
+2017-01-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-601
+
+	* src/montecarlo.cc (pha_mat_singleCalc):
+
+	Found similar bug to previous commit. pnd_vec wasn't using the
+	flattened index.
+
 2017-01-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-600

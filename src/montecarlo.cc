@@ -1744,7 +1744,7 @@ void pha_mat_singleCalc(
           {
               pha_mat_singleExtract(Z_spt,scat_data_mono[i_ss][i_se],za_sca,aa_sca,za_inc,
                                     aa_inc,rtp_temperature,stokes_dim,verbosity);
-              Z_spt*=pnd_vec[i_se];
+              Z_spt*=pnd_vec[i_se_pnd];
               Z+=Z_spt;
           }
       }
