@@ -1455,6 +1455,9 @@ void opt_propCalc(
   abs_vec_mono=0.0;  
 
   // Loop over the included scattering species
+  //
+  Index i_se_flat = -1;
+  //
   for (Index i_ss = 0; i_ss < N_hm; i_ss++)
   {
       const Index N_se = scat_data_mono[i_ss].nelem();
@@ -1462,7 +1465,9 @@ void opt_propCalc(
       // Loop over the included scattering elements
       for (Index i_se = 0; i_se < N_se; i_se++)
       {
-          if (pnd_vec[i_se]>0)
+          i_se_flat += 1;
+        
+          if (pnd_vec[i_se_flat]>0)
           {
               Index nT=scat_data_mono[i_ss][i_se].T_grid.nelem();
               if( nT > 1 )
@@ -1489,11 +1494,11 @@ void opt_propCalc(
                   }
               }
               opt_propExtract( ext_mat_mono_spt, abs_vec_mono_spt,
-                              scat_data_mono[i_ss][i_se], za, aa,
-                              rtp_temperature, stokes_dim, verbosity);
+                               scat_data_mono[i_ss][i_se], za, aa,
+                               rtp_temperature, stokes_dim, verbosity);
 
-              ext_mat_mono_spt *= pnd_vec[i_se];
-              abs_vec_mono_spt *= pnd_vec[i_se];
+              ext_mat_mono_spt *= pnd_vec[i_se_flat];
+              abs_vec_mono_spt *= pnd_vec[i_se_flat];
               ext_mat_mono     += ext_mat_mono_spt;
               abs_vec_mono     += abs_vec_mono_spt;
           }

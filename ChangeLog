@@ -1,3 +1,14 @@
+2017-01-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-600
+
+	* Fixed serious bug, present if using several scattering elements
+	together with (at least) MC or iyTransmission.
+
+	* src/montecarlo.cc (opt_propCalc): pnd_vec was indexed with
+	scattering element index only (i_se). That is, the indexing
+	returned to zero when moving to next scattering element.
+
 2017-01-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-599
