@@ -1,3 +1,19 @@
+2017-01-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-602
+
+	* src/parser.cc (ArtsParser::skip_to_next_argument):
+
+	Comment sign inside WSM call with named arguments was ignored if the
+	comma was written on the next line. In the example below 'value' was
+	parsed even though it's commented out:
+
+	MatrixSet(out=m
+	   #, value=[1,2,3]
+	)
+
+	Bug reported by Richard.
+
 2017-01-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-601

@@ -126,7 +126,10 @@ void ArtsParser::skip_to_next_argument()
             }
 
             prev_char = msource.Current();
-            msource.AdvanceChar();
+            if (msource.Current() == '#')
+                msource.AdvanceLine();
+            else
+                msource.AdvanceChar();
         }
         catch (const Eot& x)
         {
