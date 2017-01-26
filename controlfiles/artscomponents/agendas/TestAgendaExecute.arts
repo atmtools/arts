@@ -7,10 +7,10 @@ AgendaSet( test_agenda ){
 }
 
 AgendaSet( g0_agenda ){
-    Ignore(lat)
-    Ignore(lon)
     NumericSet(lat, -1)
     NumericSet(g0, 20.)
+    Ignore(lat)
+    Ignore(lon)
 }
 
 NumericSet(lat, 0)

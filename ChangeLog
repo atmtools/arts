@@ -1,3 +1,86 @@
+2017-01-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-603
+
+	* src/agenda_class.cc:
+
+	(Agenda::set_outputs_to_push_and_dup):
+
+	Don't take specific inputs and outputs from md_data into account any
+	longer to determine which WSVs are used inside an agenda. Since named
+	parameters have been introduced to the controlfiles, all parameters are
+	treated internally as generic inputs/outputs. A distinction between
+	specific and generic is therefore not needed anymore and leads to
+	unintended behaviour such as:
+
+	NumericSet(lon, 0)
+	NumericSet(lat, 0)
+	NumericCreate(myg0)
+	AgendaSet( g0_agenda ){
+	  Ignore(lon)
+	  Ignore(lat)
+	  g0Earth(g0=myg0)
+	}
+
+	Before this fix, the above code would have run. Because g0Earth lists
+	g0 as a specific output, the agenda engine wrongly assumed
+	that not only myg0, but also g0 is actually produced. However, g0 is of
+	course still uninitialized.  Now, the proper error that the agenda must
+	generate g0 as an output is displayed. Bug reported by Patrick.
+
+	Removed obsolete runtime error that an agenda input-only variable was
+	used as output by a WSM. First, this is supported since some time now.
+	Second, the error was only triggered if the WSV was used as an
+	output before being used as an input variable. Bug reported by Patrick.
+
+	WSVs that are input and output to a WSM were not correctly added to the
+	agenda's internal inputs list.
+
+	For AgendaExecute*, the inputs of the executed agenda were not
+	correctly added to the internal inputs list of the calling agenda.
+
+	(Agenda::is_input):
+
+	Don't check specific inputs listed in md_data any longer for same
+	reason as explained above.
+
+	Also check for matches in WSVs that are input+output.
+
+	Limit additional search for matches in generic inputs of type Agenda to
+	methods AgendaExecute and AgendaExecuteExclusive.
+
+	(Agenda::is_output):
+
+	Don't check specific outputs listed in md_data any longer for same
+	reason as explained above.
+
+	If current method is AgendaExecute* check the output arguments of its
+	agenda for matches.
+
+	(Agenda::set_outputs_to_push_and_dup):
+
+	Remove obsolete check that was triggered in some cases if a WSV that is
+	defined as agenda input was used as an output variable by one of the
+	WSMs in the agenda. This is works fine now.
+
+	* src/m_agenda.cc (AgendaExecute), src/make_auto_md_cc.cc (main):
+
+	Changed 'agenda checked' assertion to a runtime error. Otherwise
+	the assertion can be triggered by user input using the WSM Touch and
+	then executing the agenda.
+
+	* src/workspace_ng.h (Workspace::depth):
+
+	Add method that returns the scoping depth for a WSV.
+
+	* src/m_general.cc (PrintWorkspace):
+
+	Add scoping level to output for WSVs.
+
+	* controlfiles/artscomponents/agendas/TestAgendaExecute.arts:
+
+	Modified g0_agenda to expose the bug that was fixed in this commit.
+
 2017-01-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-602

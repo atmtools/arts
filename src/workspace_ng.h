@@ -85,6 +85,11 @@ public:
     return ((ws[i].size () != 0)
             && (ws[i].top()->initialized == true)); }
 
+  //! Return scoping level of the given WSV.
+  Index depth (Index i) {
+      return (Index)ws[i].size();
+  }
+
   void *pop (Index i);
 
   void pop_free (Index i);

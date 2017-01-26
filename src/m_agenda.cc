@@ -45,7 +45,16 @@ void AgendaExecute(Workspace& ws,
     using global_data::AgendaMap;
     using global_data::agenda_data;
 
-    assert(this_agenda.checked());
+    if (!this_agenda.checked())
+    {
+        std::ostringstream os;
+        if (this_agenda.name().nelem() == 0)
+            os << "This agenda is uninitialized. We don't even know its name.";
+        else
+            os << "*" << this_agenda.name() << "* is uninitialized.";
+        os << " Use *AgendaSet* to add methods to it.";
+        throw std::runtime_error(os.str());
+    }
 
     const AgRecord& agr =
     agenda_data[AgendaMap.find (this_agenda.name ())->second];

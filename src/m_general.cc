@@ -318,14 +318,14 @@ void PrintWorkspace(// Workspace reference
         {
           os << "    ";
           PrintWsvName (os, i);
-          if (ws.is_initialized(i)) os << "+";
+          if (ws.is_initialized(i)) os << ws.depth(i);
           os << "\n";
         }
       else if (ws.is_initialized(i))
         {
           os << "    ";
           PrintWsvName (os, i);
-          os << "\n";
+          os << ws.depth(i) << "\n";
         }
     }
   CREATE_OUTS;
