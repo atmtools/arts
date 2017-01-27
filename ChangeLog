@@ -1,3 +1,12 @@
+2017-01-27  Stefan Buehler  <stefan.buehler(at)uni-hamburg.de>
+
+	* arts-2-3-608
+
+	* controlfiles/instruments/hirs/TestHIRS.arts: Added path to
+	INCLUDED hirs_fast.arts (from top level include directory), so
+	that the file can be copied to another working directory and run
+	from there.
+
 2017-01-27  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-607

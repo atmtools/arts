@@ -92,7 +92,7 @@ AtmosphereSet1D
 IndexSet( stokes_dim, 1 )
 
 
-INCLUDE "hirs_fast.arts"
+INCLUDE "instruments/hirs/hirs_fast.arts"
 
 
 # Set up absorption
