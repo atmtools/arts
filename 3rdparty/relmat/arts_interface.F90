@@ -13,10 +13,49 @@ module arts_interface
                           T, Ptot, QT, QT0, mass, &
                           npert, pert, i_pert, p_mass, p_vmr,&
                           W_rn, dipo, rho) 
-            ! MODULES IN USE:
+        !
+        !   INPUT VARIABLES
+        !   ----------------------
+        !   nLines   : These are the number of lines identified as belonging to the band.
+        !   sgmin    : The minimum frequency in cm-1 [defaults to the first value of artsWNO]
+        !   sgmax    : The maximum frequency in cm-1 [defaults to the last value of artsWNO]
+        !   artsM    : The HITRAN molecule number (e.g., 7 is O2)
+        !   artsI    : The HITRAN isotope number
+        !   artsWNO  : frequency in cm-1 in vacuum of the lines.  Sorted by lowest first
+        !   artsS    : Intensity of the line at the same temperature as QT0 but abundance has already been considered
+        !   artsGA   : Air pressure broadening in cm-1
+        !   arts E00 : Lower state energy in cm-1
+        !   artsNA   : Pressure broadening constant in cm-1
+        !   artsUpp  : Upper state quantum numbers. First is L2, then is J, then is N, then is S.  
+        !              If the quantum number is not applicable, the position contains the number -1.
+        !   artsLow  : Same as artsUpp but for lower state numbers.
+        !   artsg0   : Upper state g-constant
+        !   artsg00  : Lower state g-constant
+        !   T        : Temperature of the system in Kelvin.
+        !   Ptot     : Total pressure in Pascal.
+        !   QT       : Partition function at Temperature T.
+        !   QT0      : Partition function at same temperature as line intensity.
+        !   mass     : Mass of the molecule.
+        !   npert    :  Number of perturbers/colliders.  Initially assume this is 2 for N2 and O2.
+        !   pert     : Array containing HitranID of the system perturber (colliders). Index of perturbing molecule in HITRAN. Same as artsM. 
+        !              Assumed position 0 is O2-66 and position 1 is N2-44.
+        !   i_pert   : Array of the colliders's isotopes. Index of isotope in HITRAN.  Same as artsI.  
+        !              Assumed position 0 is O2-66 and position 1 is N2-44.
+        !   p_mass   : mass array of length npert of perturbing gases.  
+        !              Assumed position 0 is for O2-66 and position 1 is for N2-44.
+        !   p_vmr    : volume mixing ratio (VMR) of perturbing gases.  
+        !              Assumed position 0 is for O2-66 and position 1 is for N2-44.
+        !
+        !   OUTPUT VARIABLES
+        !   -----------------
+        !   W_rn     : The relaxation matrix.  For output. 
+        !   dipo     : The dipole moments.  For output.
+        !   rho      : Populations.  For output.
+        ! 
+        !!!!! MODULES IN USE:
             use module_common_var
             use module_error
-            use module_OC_files
+            !use module_OC_files
                 use module_maths
                 use module_molecSp
                 use module_read
@@ -26,19 +65,19 @@ module arts_interface
             Implicit none
             !   INPUT variables
             integer*8         :: nLines, npert
-            integer*8         :: artsM(nLines), artsI(nLines)
+            integer*8         :: artsM, artsI
             integer*8         :: artsg0(nLines), artsg00(nLines)
             integer*8         :: artsLow(4,nLines), artsUpp(4,nLines)
             integer*8         :: pert(npert), i_pert(npert)
             Double Precision  :: sgmin, sgmax, T, Ptot
             Double Precision  :: QT, QT0, mass
-            Double Precision  :: p_mass(npert), p_vmr(npert)
+            Double Precision  :: p_vmr(npert), p_mass(npert)
             Double Precision  :: artsWNO(nLines),artsS(nLines), &
                                  artsGA(nLines), artsE00(nLines), &
                                  artsNA(nLines)
             !   OUTPUT variables
-            Double Precision:: rho(nLines), dipo(nLines) 
-            Double Precision:: W_rn(nLines,nLines)
+            Double Precision  :: rho(nLines), dipo(nLines) 
+            Double Precision  :: W_rn(nLines,nLines)
         end subroutine RM_LM_tmc_arts
 
         subroutine InitW(n,W)
@@ -82,29 +121,48 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 ! This SUBROUTINE is used for computing the following variables:
 !	Dipole and e-level population	(Spectroscopy Data)
 !   Relaxation Matrix for a given T	(Relaxation Matrix)
-! for molecule: CH4.
+! LINEAR MOLECULES.
 !
-!	INPUT VARIABLES
-!	----------------------
-!	nLines	 : number of Lines of the band
-!   hit      : Array with hitran spectroscopy data.
-!   T        : Temperature of the system.
-!   molecN   : Hitran ID of the absorption molecule.
-!   i_molec  : Molecule's isotope to be considered in this calculation.
-!   npert    : Anumber of perturbers/colliders.
-!   pert     : Array containing HitranID of the system perturber (colliders)
-!   i_pert   : Array of the colliders's isotopes.
-!   p_vmr    : pertubers volume mixing ratio.
-!   sigmin   : Minimum wavenumber of the interval where the absorption is calculated.
-!   sigmax   : Maximum wavenumber of the interval where the absorption is calculated.
 !
-!	OUTPUT VARIABLES
-!	-----------------
-!	Dipo	 : Dipole transition Moments of the Lines
-!	rho 	 : Populations of the Lower Levels of the Lines
-!	           at 296 K.
+!   INPUT VARIABLES
+!   ----------------------
+!   nLines   : These are the number of lines identified as belonging to the band.
+!   sgmin    : The minimum frequency in cm-1 [defaults to the first value of artsWNO]
+!   sgmax    : The maximum frequency in cm-1 [defaults to the last value of artsWNO]
+!   artsM    : The HITRAN molecule number (e.g., 7 is O2)
+!   artsI    : The HITRAN isotope number
+!   artsWNO  : frequency in cm-1 in vacuum of the lines.  Sorted by lowest first
+!   artsS    : Intensity of the line at the same temperature as QT0 but abundance has already been considered
+!   artsGA   : Air pressure broadening in cm-1
+!   arts E00 : Lower state energy in cm-1
+!   artsNA   : Pressure broadening constant in cm-1
+!   artsUpp  : Upper state quantum numbers. First is L2, then is J, then is N, then is S.  
+!              If the quantum number is not applicable, the position contains the number -1.
+!   artsLow  : Same as artsUpp but for lower state numbers.
+!   artsg0   : Upper state g-constant
+!   artsg00  : Lower state g-constant
+!   T        : Temperature of the system in Kelvin.
+!   Ptot     : Total pressure in Pascal.
+!   QT       : Partition function at Temperature T.
+!   QT0      : Partition function at same temperature as line intensity.
+!   mass     : Mass of the molecule.
+!   npert    : Number of perturbers/colliders.  Initially assume this is 2 for N2 and O2.
+!   pert     : Array containing HitranID of the system perturber (colliders). Index of perturbing molecule in HITRAN. Same as artsM. 
+!              Assumed position 0 is O2-66 and position 1 is N2-44.
+!   i_pert   : Array of the colliders's isotopes. Index of isotope in HITRAN.  Same as artsI.  
+!              Assumed position 0 is O2-66 and position 1 is N2-44.
+!   p_vmr    : volume mixing ratio (VMR) of perturbing gases.  
+!              Assumed position 0 is for O2-66 and position 1 is for N2-44.
+!   p_mass   : mass array of length npert of perturbing gases.  
+!              Assumed position 0 is for O2-66 and position 1 is for N2-44.
+!
+!   OUTPUT VARIABLES
+!   -----------------
 !   W_rn     : Renormalized Relaxation Matrix acording to the renormalization procedure described in
-!              Niro et al. (2004).
+!              Niro et al. (2004). 
+!   dipo     : Dipole transition Moments of the Lines.
+!   rho      : Populations of the Lower Levels of the Lines at 296 K.  
+! 
 !
 !	Accessed Files:	 'none'
 !	---------------
@@ -124,7 +182,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 ! MODULES IN USE:
     use module_common_var
     use module_error
-    use module_OC_files
+    !use module_OC_files
         use module_maths
         use module_molecSp
         use module_read
@@ -134,31 +192,30 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
     Implicit none
 !   INPUT variables
     integer*8 :: nLines, npert
-    integer*8 :: artsM(nLines), artsI(nLines)
+    integer*8 :: artsM, artsI
     integer*8 :: artsg0(nLines), artsg00(nLines)
     integer*8 :: artsLow(4,nLines), artsUpp(4,nLines)
     integer*8 :: pert(npert), i_pert(npert)
     Double Precision  :: sgmin, sgmax, T, Ptot
     Double Precision  :: QT, QT0, mass
-    Double Precision  :: p_mass(npert), p_vmr(npert)
+    Double Precision  :: p_vmr(npert), p_mass(npert)
     Double Precision  :: artsWNO(nLines),artsS(nLines), &
-                       artsGA(nLines), artsE00(nLines), &
-                       artsNA(nLines)
-    integer*8 :: dta_size1, dta_size2
-    integer*8 :: iLine, i, j, k
+                         artsGA(nLines), artsE00(nLines), &
+                         artsNA(nLines)
+    integer*8              :: dta_size1, dta_size2
+    integer*8              :: iLine, i, j, k
 !   OUTPUT variables
     Double Precision       :: rho(nLines), dipo(nLines) 
     Double Precision       :: W_rn(nLines,nLines)
-!    integer*8 :: i_pert(npert) 
     Double Precision       :: Wmat(nWmax,nWmax),&
-                       Wper(nWmax,nWmax)
+                              Wper(nWmax,nWmax)
 !   Double Precision       :: Y_RosT(nLmx)
     Double Precision       :: xMOLp(npert)
     type (dta_SDF)         :: dta1
     type (dta_RMF)         :: dta2
     type (dta_MOL)         :: molP
     type (dta_MOL)         :: PerM
-    integer*8 :: sys(2)  
+    integer*8              :: sys(2)  
     character*6            :: perturber(2)
     logical                :: enough_Lines
 !
@@ -174,14 +231,15 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 !----------
 ! Obtainig the molecule ID from the Formula specified in "module_common_var"
     print*, 'Identifying molecule and loading its parameters...'
-    CALL moleculeID(artsM(1), artsI(1), molP)
+    !CALL moleculeID(artsM(1), artsI(1),molP) 
+    CALL moleculeID(artsM, artsI, mass, QT, QT0, .true., molP)
     dta1%M = molP%M
 !---------
 ! Call for reading HITRAN spectroscopy data.
 !
     print*, 'Reading HITRAN12 File...'
     !CALL readline(dta1, dta_size1)
-    CALL Hit2DTA(dta1, dta_size1, nLines, enough_Lines, artsM, artsI, &
+    CALL Hit2DTA(dta1, dta_size1, nLines, enough_Lines, &
                                             artsWNO, &
                                             artsS, &
                                             artsGA, &
@@ -238,7 +296,8 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
         ! Perturber Molecule: This molecule has to be 
         ! significatively faster than the molecule in study.
         print*, '>Identifying perturber molecule...'
-        CALL moleculeID(pert(i),i_pert(i), PerM)
+        !CALL moleculeID(pert(i),i_pert(i), PerM)
+        CALL moleculeID(pert(i), i_pert(i), p_mass(i), 0.0_dp, 0.0_dp, .false. ,PerM)
         !----------
         ! let's take th proper a1, a2, a3, dc adjust parameters for the
         ! system:
@@ -254,7 +313,6 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
         ! Obtain Relaxation matrix elements for each line.
         !
         print*, '>Building Relaxation Matrix...'
-        !print*,perturber, PerM%iso_m,PerM%mms(PerM%iso_m)
         CALL WelCAL(dta1, nLines, molP, PerM, Wper)
         !---------
         ! Adding the corresponding perturber-molecule 
@@ -272,11 +330,6 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
     CALL InitW(nLines,W_rn)
     print*, 'Renormalization procedure of the RM...'
     CALL RN_Wmat(nLines, dta1, Wmat, W_rn) 
-!
-! Write Y parameter file
-!
-!    print*, 'Saving Rosenkranz parameter Y...'
-!    CALL outFile_Yrp(u9, dta1, dta_size1, Y_RosT(1:nLines))
 !
 !
     PRINT *, "Successful run!"

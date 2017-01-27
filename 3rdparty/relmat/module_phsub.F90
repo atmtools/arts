@@ -11,7 +11,7 @@ module module_phsub
             use module_maths
             use module_error
             implicit none
-            integer*8, intent(in)       :: nLines
+            integer*8, intent(in)             :: nLines
             type  (dta_SDF), intent(inout)    :: dta1
             type  (dta_MOL), intent(in)       :: molP
         end subroutine DipCAL
@@ -19,14 +19,14 @@ module module_phsub
         double precision function pureHund(caseHund, J_i, N_i, J_f, N_f)
             implicit none
             integer (kind=8),intent(in)       :: N_i, N_f
-            real*8          , intent(in)       :: J_i, J_f
-            character     , intent(in)       :: caseHund
+            real*8          , intent(in)      :: J_i, J_f
+            character     , intent(in)        :: caseHund
         end function pureHund
         
         subroutine PopuCAL(dta1, nLines, molP)
             use module_common_var
             implicit none
-            integer*8,intent(in)      :: nLines
+            integer*8,intent(in)            :: nLines
             type (dta_MOL), intent(in)      :: molP
             type (dta_SDF), intent(inout)   :: dta1
         end subroutine PopuCAL
@@ -36,7 +36,7 @@ module module_phsub
             use module_molecSp
             use module_maths
             implicit none
-            integer*8, intent(in)       :: j,k,nLines
+            integer*8, intent(in)             :: j,k,nLines
             type (dta_SDF) , intent(in)       :: h
             type (dta_MOL) , intent(in)       :: molP, PerM
         end function K_jkCalc
@@ -46,7 +46,7 @@ module module_phsub
             use module_molecSp
             use module_maths
             implicit none
-            integer*8, intent(in)       :: j,k,nLines
+            integer*8, intent(in)             :: j,k,nLines
             type (dta_SDF), intent(in)        :: h
             type (dta_MOL), intent(in)        :: molP, PerM
 
@@ -57,36 +57,29 @@ module module_phsub
             use module_molecSp
             use module_maths
             implicit none
-            integer*8, intent(in)       :: L
+            integer*8, intent(in)             :: L
             type(dta_MOL)  , intent(in)       :: molP
         end function Ql_mol_X
         
         double precision function AFmol_X(molP, PerM, L, step)
             use module_common_var
             implicit none
-            integer*8, intent(in)       :: step
+            integer*8, intent(in)             :: step
             real*8, intent(in)                :: L
             type (dta_MOL), intent(in)        :: molP, PerM
         end function AFmol_X
-        
-        double precision function PFmol(molP,T)
-            use module_common_var
-            implicit none
-            type (dta_MOL)  , intent(in)      :: molP  
-            double precision, intent(in)      :: T
-        end function PFmol
 
         subroutine sumRule(nLines,indexS,dipole,Wmat,dfact)
+            use module_error
             implicit none
-            integer (kind=8), intent(in)             :: nLines
-            integer (kind=8), intent(in)             :: indexS(nLines)
-            real*8, intent(in)                :: dfact
+            integer (kind=8), intent(in)    :: nLines
+            integer (kind=8), intent(in)    :: indexS(nLines)
+            real*8, intent(in)              :: dfact
             Double Precision, intent(in)    :: dipole(nLines)
             Double Precision, intent(in)    :: Wmat(nLines,nLines)
         end subroutine sumRule
 
         subroutine VarInit(dta1,dta2,molP)
-        !subroutine VarInit(dta1,dta2,dta3,dta4,molP)
             use module_common_var
             implicit none
             type (dta_SDF), intent(inout)    :: dta1
@@ -166,7 +159,7 @@ END module module_phsub
        endif
 !
 ! Compute the Dipole moment at every line 
-! (Diatomic approximation... aparently... THEN?¿?¿?¿?)
+! (Diatomic approximation... 
 !
 ! INIT. VAR:
 !-----------
@@ -370,7 +363,7 @@ END module module_phsub
 ! Accessed Files:  None
 ! --------------
 !
-! Called Routines: 'PFmol'		(Partition Function of CH4)
+! Called Routines: 'none'
 ! ---------------  
 !
 ! Called By: 'DipCAL' (Dipole of the lower state CALculation)
@@ -378,7 +371,7 @@ END module module_phsub
 !
 !	Double Precision Version
 !
-!	T.Mendaza, last change 06 November 2015
+!	T.Mendaza, last change 25 Jan 2017
 !--------------------------------------------------------------------------------------------------------------------
 !
     use module_common_var
@@ -403,11 +396,12 @@ END module module_phsub
 !
 ! Partition function ratio:
 !
-!    if (molP%HaveQT) then
-!      Pfr = molP%QT0 / molP%QT
-!    else
-      PFr=PFmol(molP,T0)/PFmol(molP,T)
-!    endif
+    !old 
+    !PFr=PFmol(molP,T0)/PFmol(molP,T)
+    ! QT0 = PFmol(molP,T0)
+    ! QT  = PFmol(molP,T )
+    ! Now the partition function came as an input from "arts_interface"
+    PFr=molP%QT0 / molP%QT
 !
     DO k=1,nLines
         !Erot_red = dta1%J(k,1)*( dta1%J(k,1) + 1. )
@@ -415,7 +409,7 @@ END module module_phsub
         cte1 = -c2*dta1%E(k)/T0
         cte2 = -c2*dta1%E(k)*(1.d0/T-1.d0/T0)
         !
-        dta1%PopuT0(k) = dta1%swei00(k)*exp(cte1)/PFmol(molP,T0)
+        dta1%PopuT0(k) = dta1%swei00(k)*exp(cte1)/molP%QT0
         dta1%PopuT(k)  = dta1%PopuT0(k)*PFr*dexp(cte2)
     ENDDO
 !
@@ -437,7 +431,7 @@ END module module_phsub
         !
         DO k=1,nLines
             dta1%PopuT0(k) = molN*dta1%PopuT0(k)
-            dta1%PopuT(k) = molN*dta1%PopuT(k)
+            dta1%PopuT(k)  = molN*dta1%PopuT(k)
         ENDDO
     ELSE
         print*, "PopuCAL:Non-Valid Population calculation type:", ptype
@@ -472,7 +466,7 @@ END module module_phsub
 !
 ! Double Precision Version
 !
-! T.Mendaza, last change 14 March 2016
+! T.Mendaza, last change 26 January 2017
 !--------------------------------------------------------------------------------------------------------------------
 !
       use module_common_var
@@ -494,7 +488,7 @@ END module module_phsub
       double precision      :: AF1,AF2, Qaux
       double precision      :: Afmol_X, Ql_mol_X 
 !
-!...ch4  -- 
+!...co2  -- 
 ! This expresion is used for "downward" transitions (k"->k') only.
 ! That means that, given two transitions: 
 ! k := j_f , l_f , j_i , l_i
@@ -536,7 +530,7 @@ END module module_phsub
         !(li+lf) is even
         cte2 = 1
       else !if (modulo( (li+lf),2) .eq. 1) then! 
-        !(li+lf) is odd !! else if (modulo( (li+lf),2.d0 ) .eq. 1.d0) then! 
+        !(li+lf) is odd  
         cte2 = -1
       endif  
       suma = 0.d0
@@ -561,69 +555,51 @@ END module module_phsub
         !endif
         if ( Qaux .ne. 0.0_dp ) then
           !
-          !print*, "wigner 3j-Symbol 1:"
+          ! wigner 3j-Symbol 1:
           ! ( Ji  L  Ji' )
           ! ( li  0  -li )
           !http://www-stone.ch.cam.ac.uk/wigner.shtml
           w3j1 = wigner3j( Ji_p, real(L, dp), Ji , real(li, dp), 0.0_dp, real(-li, dp) )
-          !w3j1 = wig3j0(-li,int(Ji),int(Ji_p),L)
           ! CASE wig3j0(M,J1,J2,J)
           !                       m (j1 j2 j)  
           !                    (-)  (m  -m 0)  
           !
-          !print*, "wigner 3j-Symbol 2:"
+          ! wigner 3j-Symbol 2:
           ! ( Jf  L  Jf' )
           ! ( lf  0  -lf )
           w3j2  = wigner3j( Jf_p, real(L, dp), Jf, real(-lf, dp), 0.0_dp, real(lf, dp) )
-          !w3jaux  = wig3j0(lf,int(Jf),int(Jf_p),L)
           !
-          ! wig3j0(-li,int(Ji),int(Ji_p),L)
-          !print*, "wigner 6j-Symbol:"
+          ! wigner 6j-Symbol:
           ! { Ji   Jf   1 }
           ! { Jf'  Ji'  L }
           w6j   = wigner6j(Ji,Jf, real(K_t,dp), Jf_p, Ji_p, real(L, dp))
-          !print*, "w6j =",w6j
           !
-          !print*, "Adiabatic factor 2:"
-          !it depends on the temperature too but it is included through common module.
-          !AF2   = AFmol_X(molP, PerM, L, step)
-          !print*, "AF2 =",AF2
+          ! Adiabatic factor 2:
+          ! it depends on the temperature too but it is included through common module.
+          AF2   = AFmol_X(molP, PerM, real(L,dp), step)
           !
           if ( .not.( isnan(w3j1  ) .or. isinf(w3j1  )) .and. &
                .not.( isnan(w3j2  ) .or. isinf(w3j2  )) .and. &
                .not.( isnan(w6j   ) .or. isinf(w6j   )) .and. &
-               .not.( isnan(AF1) .or. isinf(AF1)) .and. &
                .not.( isnan(AF2) .or. isinf(AF2)) ) then
               suma = suma + w3j1 * w3j2* w6j * (2.*L + 1.) * &
-                     Qaux !/ AF2
+                     Qaux / AF2
           else
-            print*, "overfloat error of one of the following parmeters:"
-            print*, "w3j1=",w3j1 
-            print*, "w3j2=",w3j2
-            print*, "w6j =",w6j
-            print*, "AF2 =",AF2
-            print*, "Qaux =",Qaux
-            stop
+            call offdiagEL_IN_ERROR(AF2, Qaux, w3j1, w3j2, w6j, 0.0_dp, 0.0_dp)
           endif
         else 
         endif
       enddo
       ! 
-      !print*, "Adiabatic factor 1:"
-      !AF1= AFmol_X(molP, PerM, Ji, step)
-      !K_jkCalc = cte1*cte2*AF1*suma
-      K_jkCalc = cte1*cte2*suma
+      ! Adiabatic factor 1:
+      AF1= AFmol_X(molP, PerM, Ji, step)
+      K_jkCalc = cte1*cte2*AF1*suma
+      !K_jkCalc = cte1*cte2*suma
       if ( isnan( K_jkCalc ) .or. isinf( K_jkCalc  ) ) then
-            print*, "overfloat error of one of the following parmeters:"
-            print*, "cte1=",cte1 
-            print*, "cte2=",cte2
-            print*, "AF1 =",AF1
-            print*, "suma =",suma
-            stop
+        call offdiagEL_ERROR(cte1, cte2, AF1, suma)
       endif
     RETURN
   END function K_jkCalc
-!--------------------------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------------------------------
   double precision function K_jkO2(j,k,h,nLines,molP,PerM)
 !--------------------------------------------------------------------------------------------------------------------
@@ -647,7 +623,7 @@ END module module_phsub
 !
 ! Double Precision Version
 !
-! T.Mendaza, last change 16 May 2016
+! T.Mendaza, last change 26 January 2017
 !--------------------------------------------------------------------------------------------------------------------
 !
       use module_common_var
@@ -658,21 +634,20 @@ END module module_phsub
       type (dta_SDF), intent(in):: h
       type (dta_MOL), intent(in):: molP, PerM
       !internal variables:
-      integer*8           :: L, incr, step
-      integer*8           :: i, iniL,endL
+      integer*8             :: L, incr, step
+      integer*8             :: i, iniL,endL
       double precision      :: Ji, Ji_p, Jf, Jf_p !, jmax
-      integer*8           :: Ni, Ni_p, Nf, Nf_p !, jmax
-      real*8                 :: Si, Sf,n
-      !double precision      :: Ja(nLmx)
-      integer*8           :: pos_L_2, aux_j_L, pos_Ji_2
-      integer*8           :: li,lf
-      real*8                  :: suma, cte1, cte2
+      integer*8             :: Ni, Ni_p, Nf, Nf_p !, jmax
+      real*8                :: Si, Sf,n
+      integer*8             :: pos_L_2, aux_j_L, pos_Ji_2
+      integer*8             :: li,lf
+      real*8                :: suma, cte1, cte2
       double precision      :: w3j1,w3j2
       double precision      :: w6j1, w6j2, w6j3
       double precision      :: AF1,AF2, Qaux
       double precision      :: Afmol_X, Ql_mol_X 
 !
-!...ch4  -- 
+!...O2  -- 
 ! This expresion is used for "downward" transitions (k"->k') only.
 ! That means that, given two transitions: 
 ! k := jf , Nf , ji , Ni, Si
@@ -699,16 +674,13 @@ END module module_phsub
       If( mod(iniL,step) .ne. 0 )iniL=iniL+1
       endL=min((Ni+Ni_p),(Nf+Nf_p))
       !
-!
-      cte1 = (2.*Ni + 1.)*(2.*Ni_p + 1.)*(2.*Nf + 1.)*(2.*Jf_p + 1.)
+      !
+      cte1 = (2.*Ni + 1.)*(2.*Ni_p + 1.)*(2.*Nf + 1.)*(2.*Nf_p + 1.)
       cte1 = cte1*(2.*Jf + 1.)*(2.*Jf_p + 1.)*(2.*Ji_p + 1.)**2
-      !cte2 = (-1)**(li+lf)
-      ! A faster computation would be... (case (li+lf) has integer value)
+      !
       if ( mod( int(Ji_p+Ji+K_t),2 ) .eq. 0) then
-        !(li+lf) is even
         cte2 = 1
-      else !if (modulo( (li+lf),2) .eq. 1) then! 
-        !(li+lf) is odd !! else if (modulo( (li+lf),2.d0 ) .eq. 1.d0) then! 
+      else 
         cte2 = -1
       endif  
       suma = 0.d0
@@ -725,50 +697,39 @@ END module module_phsub
         !
         if ( Qaux .ne. 0.0_dp ) then
           !
+          ! wigner 3j-Symbol
           w3j1 = wigner3j( real(Ni_p, dp), real(Ni, dp), real(L, dp), 0.0_dp, 0.0_dp, 0.0_dp )
           w3j2 = wigner3j( real(Nf_p, dp), real(Nf, dp), real(L, dp), 0.0_dp, 0.0_dp, 0.0_dp )
-
+          !
+          ! wigner 6j-Symbol
           w6j1 = wigner6j(real(L, dp),Ji, real(Ni_p, dp), real(Si,dp), Ji_p, real(Ni, dp))
           w6j2 = wigner6j(real(L, dp),Jf, Jf_p, real(Sf,dp), real(Nf_p, dp), real(Nf, dp))
-          w6j3 = wigner6j(real(L, dp),Ji, Ji_p, real(n,dp), Jf_p, Jf)
-          !print*, "Adiabatic factor 2:"
-          !it depends on the temperature too but it is included through common module.
-          !AF2  = AFmol_X(molP, PerM, L, step)
-          !print*, "AF2 =",AF2
+          w6j3 = wigner6j(real(L, dp),Ji, Ji_p, real(K_t,dp), Jf_p, Jf)
+          !
+          ! Adiabatic factor 2:
+          ! it depends on the temperature too but it is included through common module.
+          AF2  = AFmol_X(molP, PerM, real(L,dp), step)
           !
           if ( .not.( isnan(w3j1  ) .or. isinf(w3j1  )) .and. &
                .not.( isnan(w3j2  ) .or. isinf(w3j2  )) .and. &
                .not.( isnan(w6j1  ) .or. isinf(w6j1  )) .and. &
                .not.( isnan(w6j2  ) .or. isinf(w6j2  )) .and. &
                .not.( isnan(w6j3  ) .or. isinf(w6j3  )) .and. &
-               .not.( isnan(AF1) .or. isinf(AF1)) .and. &
                .not.( isnan(AF2) .or. isinf(AF2)) ) then
               suma = suma + w3j1 * w3j2* w6j1 * w6j2 * w6j3 * &
-                     (2.*L + 1.) * Qaux !/ AF2
+                     (2.*L + 1.) * Qaux / AF2
           else
-            print*, "overfloat error of one of the following parmeters:"
-            print*, "w3j1=",w3j1 
-            print*, "w3j2=",w3j2
-            print*, "w6j =",w6j1, w6j2, w6j3
-            !print*, "AF2 =",AF2
-            print*, "Qaux =",Qaux
-            stop
+            call offdiagEL_IN_ERROR(AF2, Qaux, w3j1, w3j2, w6j1, w6j2, w6j3)
           endif
         else 
         endif
       enddo
       ! 
-      !print*, "Adiabatic factor 1:"
-      !AF1= AFmol_X(molP, PerM, real(Ni,dp), step)
-      AF1 = 1
+      ! Adiabatic factor 1:
+      AF1= AFmol_X(molP, PerM, real(Ni,dp), step)
       K_jkO2 = cte1*cte2*AF1*suma
       if ( isnan( K_jkO2 ) .or. isinf( K_jkO2  ) ) then
-            print*, "overfloat error of one of the following parmeters:"
-            print*, "cte1=",cte1 
-            print*, "cte2=",cte2
-            !print*, "AF1 =",AF1
-            print*, "suma =",suma
-            stop
+        call offdiagEL_ERROR(cte1, cte2, AF1, suma)
       endif
     RETURN
   END function K_jkO2
@@ -781,17 +742,17 @@ END module module_phsub
 ! ---------------------
 ! this function gives the theoretic formulation of relaxation matrix elements:
 ! 			<< k' | W | k >> 
-! As it is described in [Strow and Reuter, 1988]
 ! They have the same functional form as the rotational state-to-state 
 ! cross sections within a single vibrational state.
+! Formulation developed by T.Mendaza developed from the work of [Niro et al. 2004].
 !
       use module_common_var
       use module_molecSp
       use module_maths
       IMPLICIT none
       ! a1, a2, a3, dc were declared in module_common_var:
-      integer*8      :: L
-      real*8           :: E_l
+      integer*8        :: L
+      real*8           :: E_l, T
       type(dta_MOL)    :: molP
 !
 ! This expresion is used for "downward" transitions (k->k') only.
@@ -803,21 +764,33 @@ END module module_phsub
 ! NOTE: for further info about this notation [Niro et al. 2004]
 !
   !
+    T = molP % Temp
     !reduce rotational energy from the level L * 1/B0
     E_l = real((L*L + L), dp) 
-    if (L .eq. 0) then
+    !
+    if (molP%M .eq. 7) then
+      ! mol == O2
+      if (L .eq. 0) then
         Ql_mol_X=0.0_dp
-    else
-      ! 
-      ! Ql_mol_X = a1*( ( E_l )**(-a2) )*( exp(-a3*c*hplank*molP%B0*E_l/(T*kb))  )
-      !
-      ! Ln(x) ~ x-1 => x ~ Ln(x) + 1
-      ! if we take: x = Ql_mol_X
-      ! then, Ln(x)  = molP%a1 - (molP%a2)*(E_l) - molP%a3*c2*molP%B0*E_l/T
-      !
-      Ql_mol_X = molP%a1 - (molP%a2)*(E_l) - molP%a3*c2*molP%B0*E_l/molP % Temp + 1.0_dp
+      else
+      !Ql_mol_X = a1*( ( E_l )**(-a2) )*( exp(-a3*c*hplank*molP%B0*E_l/(T*kb))  )
+        Ql_mol_X = molP%a1* &
+               ( (  E_l )**(-molP%a2) )* &
+               ( ( T/T0 )**(-molP%a3) )
+               ![Tran et al., 2006]
+      endif
+    else 
+      if (L .eq. 0) then
+        Ql_mol_X=0.0_dp
+      else
+      !Ql_mol_X = a1*( ( E_l )**(-a2) )*( exp(-a3*c*hplank*molP%B0*E_l/(T*kb))  )
+        Ql_mol_X = molP%a1* &
+               ( ( E_l )**(-molP%a2) )* &
+               ( exp(-molP%a3*c2*molP%B0*E_l/T)  )
+               ![Niro et al., 2004]
+      endif
     endif
-
+    !write(*,*) 'Ql_mol_X=',Ql_mol_X
     RETURN
   END function Ql_mol_X
 !--------------------------------------------------------------------------------------------------------------------
@@ -846,7 +819,7 @@ END module module_phsub
 !
       use module_common_var
       IMPLICIT none
-      integer*8, intent(in)        :: step
+      integer*8, intent(in)      :: step
       double precision,intent(in):: L
       type(dta_MOL),intent(in)   :: molP, PerM
       double precision,Parameter :: cAF = 0.0006983_dp ! Adiabaticy Factor cte
@@ -875,7 +848,7 @@ END module module_phsub
             if (L .eq. 0) then
               AFmol_X = 1.0_dp
             else
-              mu = ( 1./molP%mms(molP%iso_m) + 1./PerM%mms(PerM%iso_m) ) ! 1/(g/mol)
+              mu = ( 1./molP%mms + 1./PerM%mms ) ! 1/(g/mol)
             ! Velocity Term:
             ! Since it is a velocity its units are m/s. 
             ! Example: N2 at T=300K 
@@ -909,47 +882,9 @@ END module module_phsub
       RETURN
   END function AFmol_X
 !--------------------------------------------------------------------------------------------------------------------
-  double precision function PFmol(molP,T)
-!--------------------------------------------------------------------------------------------------------------------
-!"PFCO2": Partition Function 
-!.........................................................
-!         .    Function to Compute the Total Partition   .
-!         .    Function of the CO2 Isotope number "Iso"  .
-!         .    (the Numbering System is that of HITRAN)  .
-!         .    at Temperature 70 < "Temp"(in K) < 400    .
-!         ................................................
-!           Iso : Isotope Number (HITRAN96 convention)
-!             T : Temperature (in Kelvin) within the 
-!                 the interval 70 K to 400 K 
-!          PFCO2 : Rovibrational Partition Function
-!
-!A Polynomial Representation is used. This Function has been
-!Extracted from the "bd_qt.for" Fortran Program which is
-!Supplied with the HITRAN-96 Data Base.
-!
-! Partition function
-      use module_common_var
-      implicit none 
-      double precision, intent(in) :: T
-      type(dta_MOL)   , intent(in) :: molP
-      !-----------------------
-      if( (t.lt.70.d0) .or. (t.gt.415.d0) )then
-        write(6,*)'temp out of range for Molecule partition function'
-        stop
-      else
-
-
-
-       PFmol = molP%Qcoef(1)     + &
-               molP%Qcoef(2)*T   + &
-               molP%Qcoef(3)*T*T + &
-               molP%Qcoef(4)*T*T*T
-      end if
-      RETURN
-  END function PFmol
-!--------------------------------------------------------------------------------------------------------------------
   subroutine sumRule(nLines,indexS,dipole,Wmat,dfact)
 !--------------------------------------------------------------------------------------------------------------------
+        use module_error
         implicit none
         integer (kind=8), intent(in)    :: nLines
         integer (kind=8), intent(in)    :: indexS(nLines)
@@ -989,9 +924,7 @@ END module module_phsub
       
         print*, "SUM-RULE TEST FINISHED"
         if ( .not.(testOK) ) then
-          print*, "sumRule: The calculation DOES NOT verifies the sum-rule"
-          print*, "Uncoment dialogs in Subroutine:sumRule to check affected lines."
-          stop
+          call SumRuleError()
         else
           print*, "sumRule: The calculation correctly verifies the sum rule!"
         endif
@@ -1106,10 +1039,9 @@ print*, "Init. Molecular data type..."
       molP%M = 0
       do  i=1,mMax
           !Integer kind
-           molP%Aco(i) = 0 
+           molP%Aco = 0 
           !Double precision
-           molP%IAb(i)    = 0.0_dp
-           molP%mms(i)    = 0.0_dp
+           molP%mms    = 0.0_dp
       enddo
 ! 
       Return

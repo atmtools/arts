@@ -4,7 +4,6 @@ if (ENABLE_FORTRAN AND NOT NO_RELMAT)
   add_library (relmat STATIC
     module_common_var.F90
     module_error.F90
-    module_OC_files.F90
     module_maths.F90
     module_molecSp.F90
     module_read.F90

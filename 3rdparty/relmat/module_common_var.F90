@@ -31,11 +31,11 @@ MODULE module_common_var
     !integer, parameter :: K_t = 2 !Raman-spectroscopy
     ! Diatomic-molecule (or linear):
     ! HUND's CASE
-    character              :: caseHund = 'b'
+    character, parameter   :: caseHund = 'b'
     ! Type of Dipole Calculation
-    character              :: tdcal = 'S' 
+    character, parameter   :: tdcal = 'S' 
     ! Transition Moment Type
-    character*3            :: tmt = 'edt' 
+    character*3, parameter :: tmt = 'edt' 
     !     1) Electric dipole transition (edt)
     !     2) magnetic dipole transition (mdt)
     !     3) electric-quadrupole transitions (eqt)
@@ -408,7 +408,7 @@ MODULE module_common_var
     !          Sym: takes values (d,q) for magnetic-dipole or
     !               electric-quadrupole transitions (ONLY FOR: O2, N2).
     !
-    integer*8       :: N(nLmx,2)
+    integer*8                    :: N(nLmx,2)
     double precision             :: J(nLmx,2)
     double precision             :: F(nLmx,2)
     real                         :: nspin(nLmx,2), espin(nLmx,2)
@@ -473,27 +473,27 @@ MODULE module_common_var
     ! Aco       = AFGL code                     I3      The old Air Force Geophysics Laboratory 
     !                                                   (AFGL) shorthand notation for isotopologues.
     ! IAb       = Iso Abundance                 
-    ! Qmo       = Partition function                    Q(296K)
-    ! g_j       = gj
-    ! mms       = Molar mass                    dp      Molar Mass/g·mol-1
+    ! QT        = Partition function at T or T0         T selected by the user, T0 = 296K
+    ! mms       = Molar mass                    dp      Molar Mass [g·mol-1]
     ! Nmcon     = molar concentration at 296K   dp      mol·cm3
     ! B0        = Rotational constant B0        dp      cm-1 
-    ! frac      = molecular fraction weight     dp      absolute molecular fraction weight
-    ! frac_iso  = fraction weight of each isot  dp      fraction weight times the abundance.
+    ! Temp      =  temperature of the Gas       dp      K
+    ! Ptot      =  Pressure of the Gas          dp      Pascal
+    ! ai        =  fitting coeff of the         dp      cm-1/No-unit/No-unit
+    !              base function      
     ! 
     !
     ! Further information (Q in different Temperatures) in: 
     ! http://hitran.org/docs/iso-meta/
     !
-    integer*8 :: M, m_size
-    integer*8 :: iso_m ! == row number.
-    integer*8 :: Aco(mMax)
+    integer*8 :: M
+    integer*8 :: iso_m ! == column number.
+    integer*8 :: Aco
     character*6            :: chmol
     double Precision       :: Temp, Ptot
-    Double Precision       :: IAb(mMax), mms(mMax)
-    Double Precision       :: frac, frac_iso(mMax) !fraction weight
+    Double Precision       :: mms
     Double Precision       :: Nmcon, B0
-    Double Precision       :: Qcoef(4)
+    Double Precision       :: QT, QT0
     Double Precision       :: a1, a2, a3, dc, ex1, ex2
 
     end type dta_MOL

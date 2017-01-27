@@ -1,4 +1,13 @@
-2016-12-17  Richard Larsson  <ric.larsson@gmail.com>
+2017-01-27  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-607
+	
+	* 3rdparty/relmat/*:  Update of files by Teresa.  Removes 
+	reading routines and fix input.
+	
+	* ChangeLog:  It is 2017 now... fixed that miss.
+
+2017-01-27  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-606
 	

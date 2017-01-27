@@ -4,29 +4,6 @@ MODULE module_molecSp
 !
     interface
 
-        subroutine moleculeID(my_mol,isotope,molP)
-            use module_common_var
-            use module_OC_files
-            implicit none
-            integer*8, intent (in)       :: my_mol , isotope
-            type (dta_MOL), intent(inout)      :: molP
-        end subroutine moleculeID
-
-        subroutine addMolParam(molP)
-            use module_common_var
-            use module_OC_files
-            implicit none
-            type (dta_MOL), intent(inout)      :: molP
-        end subroutine addMolParam
-
-        subroutine molid_PF(molP,iso)
-            use module_common_var
-            use module_OC_files
-            implicit none
-            integer*8, intent(in)        :: iso
-            type (dta_MOL), intent(inout)      :: molP
-        end subroutine molid_PF
-
         subroutine r_arts_LocalQ(dta1,pos,Q0,Q00)
             use module_common_var
             use module_maths
@@ -57,288 +34,6 @@ MODULE module_molecSp
     end interface
 
 END module module_molecSp
-!--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE moleculeID(my_mol,isotope,molP)
-!--------------------------------------------------------------------------------------------------------------------
-! "moleculeID": Molecule HITRAN's ID
-! 
-! Detailed Description:
-! ---------------------
-! This subroutine check if the molecule specified in "module_common_var" by it's sc.formulation
-! belongs to HITRAN records (user has to check whether the list of molecules is updated or not).
-!
-! Variables:
-!
-! Input/Output Parameters of Routine (Arguments or Common)
-! ----------------------------------
-! molecule: string containing the molecule's formulation.
-! my_mol  : HITRAN's ID number for that molecule.
-!
-! Accessed Files:  'HITRAN_molList.txt'
-! --------------
-!
-! Called Routines: None
-! ---------------  
-!
-! Called By: Main Program
-! ---------
-!
-!
-! T.Mendaza, last change 15 February 2016
-!--------------------------------------------------------------------------------------------------------------------
-!
-    use module_common_var
-    use module_OC_files
-    implicit none
-    integer*8, intent (in)  :: my_mol, isotope
-    type (dta_MOL), intent(inout) :: molP
-    integer*8               :: i,j,k, mP_size
-    integer*8               :: g_j
-    double precision              :: Qmo
-    character(  6)                :: auxmol
-    character(100)                :: fname
-    logical                       :: molfound
-    integer*8               :: error_read
-    logical                       :: error_open
-
-!----------
-! 
-    i = 1
-    auxmol = ""
-    molfound = .false.
-    fname = trim(in_file_path)//trim(in_file_molp)
-    call openFile(u5, fname, error_open)
-    do
-      read (u5, 1001, iostat = error_read, err = 100, end = 101), auxmol, i 
-      !stop
-        if( i .eq. my_mol ) then
-            !print*, auxmol,i
-            molP % chmol = auxmol
-            molP % iso_m = isotope
-            molP % M = my_mol 
-            molfound = .true. 
-            do
-                read (u5, *, iostat = error_read, err = 101, end = 101), &
-                molP % Aco(mP_size), molP % IAb(mP_size), Qmo, &
-                g_j, molP % mms(mP_size) 
-                !print*, my_mol, "iso#",molP%Aco(mp_size), molP % IAb(mP_size)!, molP % mms(mP_size)
-                mP_size = mP_size + 1
-            enddo 
-            !---------
-            ! Completing molecular parameters.
-            !
-            ! print*, 'Adding miscelaneous molecule information...'
-            CALL addMolParam(molP)
-            exit      
-        endif    
-        
-      100 if (error_read .ne. 0) cycle ! Reading Error => skip to next available data
-      101 if (error_read .ne. 0) exit  ! End of file   => stops "do-loop"
-    
-    end do
-    molP%m_size = mP_size - 1
-    call closeFile(u5, error_open)
-    if (molfound) then
-      print*, "Molecule:",molP % chmol,"has HITRAN's ID:",my_mol
-    else
-      print*, "Molecule:",molP % chmol,"does not belong to HITRAN DB."
-      stop
-    endif 
-!
-1001  Format(A6,2x,i2)
-! 
-!   Data from HITRAN molparam.txt file
-!   ----------------------------------
-!   Dry air mixing ratio from
-!   GLOBALVIEW-CH4: Cooperative Atmospheric Data Integration
-!   Project - Methane. CD-ROM, NOAA ESRL, Boulder, Colorado
-!   [Also available on Internet via anonymous FTP to ftp.cmdl.noaa.gov,
-!   Path: ccg/ch4/GLOBALVIEW], 2009.
-    Return
-  END SUBROUTINE moleculeID
-!--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE addMolParam(molP)
-!--------------------------------------------------------------------------------------------------------------------
-! "addMolParam": Add molecular paramters
-! 
-! Detailed Description:
-! ---------------------
-! This subroutine add miscelaneous molecules' information required by this software. 
-! If there is no default information about the user's molecule in study, the later will have to 
-! added manualy. 
-!
-! Variables:
-!
-! Input/Output Parameters of Routine (Arguments or Common)
-! ----------------------------------
-! molP    : dta type containing molecule's information.
-!
-! Accessed Files:  None
-! --------------
-!
-! Called Routines: None
-! ---------------  
-!
-! Called By: Main Program
-! ---------
-!
-!
-! T.Mendaza, last change 15 February 2016
-!--------------------------------------------------------------------------------------------------------------------
-!
-    use module_common_var
-    implicit none
-    type (dta_MOL), intent(inout) :: molP
-    
-!----------
-! 
-    call molid_PF(molP, molP % Aco(molP%iso_m))
-    IF (molP % M .eq. 1) then
-    ! water, H2O
-        print*, "no water available"
-        stop
-    ELSEIF (molP % M .eq. 2) then
-    ! Carbon dioxide, CO2
-        molP % Nmcon = 0.42896E-3! CO2 molar concentration at 296K (mol·cm3), 1MPa
-        molP % B0    = 0.39021   ! CO2 Rotational constant B0 (cm-1) 
-    ELSEIF (molP % M .eq. 6) then
-    ! Methane, CH4
-        molP % Nmcon = 0.41245E-4! CH4 molar concentration at 296K (mol·cm3), 1MPa
-        molP % B0    = 5.2       ! CH4 Rotational constant B0 (cm-1) 
-                                 ! [Brown et al. 2003] 
-    ELSEIF (molP % M .eq. 7) then
-    ! Oxygen, O2
-        molP % Nmcon = 0.41245E-4! O2 molar concentration at 296K (mol·cm3), 1MPa
-        !Rotational constant dependent on the vibrational state and isotope.
-        if (molP % Aco(molP%iso_m) .eq. 66) then
-            ! AFGL code = 66 => 16O2 (isotope 1 in HITRAN)
-            ! If nu1 = 0 : B0 = 43100.430 MHz 
-            !                 = 1.437 cm-1 (MHz*10^6/c)  
-            ! If nu1 = 1 : B0 = 42626.398 MHz 
-            !                 = 1.421 cm-1 
-            molP % B0    = 1.43  ! O2 Rotational constant B0 (cm-1) 
-                                 ! NIST 
-        elseif (molP % Aco(molP%iso_m) .eq. 67) then
-            ! AFGL code = 67 => 16O17O (isotope 3 in HITRAN)
-            ! If nu1 = 0 : B0 = 40561.35 MHz 
-            !                 = 1.353 cm-1 
-            molP % B0    = 1.35  ! O2 Rotational constant B0 (cm-1) 
-                                 ! NIST 
-        elseif (molP % Aco(molP%iso_m) .eq. 68) then
-            ! AFGL code = 67 => 16O18O (isotope 2 in HITRAN)
-            ! If nu1 = 0 : B0 = 38313.761 MHz 
-            !                 = 1.278 cm-1 
-            ! If nu1 = 1 : B0 = 37916.618 MHz 
-            !                 = 1.265 cm-1 
-            molP % B0    = 1.27  ! O2 Rotational constant B0 (cm-1) 
-                                 ! NIST 
-        else 
-            print*,"O2 isotope #", molP%iso_m, " not available in Arts data base."
-        endif
-        
-    ELSE 
-        print*, "addMolParam: sorry, no specific information about your selected molecule"
-        stop
-    ENDIF
-! 
-      Return
-  END SUBROUTINE addMolParam
-!--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE molid_PF(molP,iso)
-!--------------------------------------------------------------------------------------------------------------------
-! "molid_PF": Partition function coefficient per molecule ID
-! 
-! Detailed Description:
-! ---------------------
-! This subroutine check if the molecule-isotope specified has associatted 
-! Partition function.
-!
-! Variables:
-!
-! Input/Output Parameters of Routine (Arguments or Common)
-! ----------------------------------
-! molP  : Molecule's basic information.
-!
-! Accessed Files:  'PF_coeff.txt'
-! --------------
-!
-! Called Routines: None
-! ---------------  
-!
-! Called By: addMolParam
-! ---------
-!
-!
-! T.Mendaza, last change 07 March 2016
-!--------------------------------------------------------------------------------------------------------------------
-!
-    use module_common_var
-    use module_OC_files
-    implicit none
-    integer*8, intent (in )  :: iso !== Molecules isotope(AFGL code)
-    type (dta_MOL), intent(inout) :: molP
-    integer*8        :: i,j,k
-    integer*8        :: aux_iso
-    double precision              :: Qc(4)
-    double precision              :: T
-    character(  6)                :: auxmol
-    character(100)                :: fname
-    logical                       :: molfound
-    integer*8        :: error_read
-    logical                       :: error_open
-
-!-----------------------------------------
-    T = molP % Temp
-!-----------------------------------------
-! 
-    i = 1
-    auxmol = ""
-    molfound = .false.
-    fname = trim(in_file_path)//trim(in_file_PFco)
-    call openFile(u7, fname, error_open)
-    do
-      read (u7, 1001, iostat = error_read, err = 100, end = 101), auxmol, i 
-      !stop
-        if( i .eq. molP%M ) then
-            !print*, auxmol,i
-            do
-                if ( (T .gt. 69.0d0) .and. (T .lt. 401.0d0) ) then
-                    read (u7, *, iostat = error_read, err = 101, end = 101), &
-                    aux_iso, Qc(1), Qc(2), Qc(3), Qc(4) 
-                    read (u7, *)
-                elseif ( (T .gt. 400.0d0) .and. (T .lt. 2005.0d0) ) then
-                        read (u7, *)
-                        read (u7, *, iostat = error_read, err = 101, end = 101), &
-                        aux_iso, Qc(1), Qc(2), Qc(3), Qc(4)
-                else
-                    print*, "molid_PF: Temperature out of range."
-                    stop
-                endif
-                if( aux_iso .eq. iso ) then
-                    molfound = .true. 
-                    do j=1,4
-                       molP % Qcoef(j) = Qc(j)
-                    enddo
-                endif 
-            enddo 
-            exit      
-        endif  
-      100 if (error_read .ne. 0) cycle ! Reading Error => skip to next available data
-      101 if (error_read .ne. 0) exit  ! End of file   => stops "do-loop"
-    
-    end do
-    call closeFile(u7, error_open)
-    if (.not.(molfound)) then
-      print*, "Molecule (HITRANid):",molP%M,"is not included in this PF_coeff file."
-      stop
-    endif 
-!
-1001  Format(A6,2x,i2)
-! 
-!   HITRAN Data PF_coeff.txt file
-!   ----------------------------------
-    Return
-  END SUBROUTINE molid_PF
 !--------------------------------------------------------------------------------------------------------------------
   SUBROUTINE r_arts_LocalQ(dta1,pos,Q0,Q00) 
 !--------------------------------------------------------------------------------------------------------------------
@@ -516,53 +211,35 @@ END module module_molecSp
             !-----------------------------------------
             if ((sys(1) .eq. 2) .and. (sys(2) .eq. 22)) then
             ! CO2(2)-N2(4)
-            ! Strow & Reuter 1970
-            !molP%a1 = 0.02597D0,& !cm-1/atm
-            !molP%a2 = 0.3307D0 ,& !cm-1
-            !molP%a3 = 1.0350D0 ,& !cm-1
-            !molP%dc = 2.2 ! Å (amstrong)
             ! -------------------------------
             ! Rodriguez et al. 1999; CO2 - N2
-            !    molP%a1 = 0.0181D0 !cm-1/atm
-            !    molP%a2 = 0.81D0   !cm-1
-            !    molP%a3 = 0.008D0  !cm-1
-            !    molP%dc = 2.2      !Å (amstrong)
-            !    molP%ex1 = 0.85   
-            !    molP%ex2 = 0.0152
-            !
-            !    if (T .ne. T0) then
-            !        molP%a1 = molP%a1*(T0/T)**molP%ex1 
-            !        molP%a2 = molP%a2*(T0/T)**molP%ex2
-            !    endif
-            ! -------------------------------
-            ! Teresa Mendaza:
-                molP%a1 = 3.678794E-01 !cm-1/atm
-                molP%a2 =-2.629672E-12 !cm-1
-                molP%a3 = 3.907117E-14 !cm-1
+                molP%a1 = 0.0181D0 !cm-1/atm
+                molP%a2 = 0.81D0   !cm-1
+                molP%a3 = 0.008D0  !cm-1
                 molP%dc = 2.2      !Å (amstrong)
+                molP%ex1 = 0.85   
+                molP%ex2 = 0.0152
             
+                if (T .ne. T0) then
+                    molP%a1 = molP%a1*(T0/T)**molP%ex1 
+                    molP%a2 = molP%a2*(T0/T)**molP%ex2
+                endif
+            ! -------------------------------
             else if ((sys(1) .eq. 2) .and. (sys(2) .eq. 7)) then
             ! CO2(2)-O2(7)
             ! -------------------------------
             ! Rodriguez et al. 1999; CO2 - O2
-            !    molP%a1 = 0.0168D0 !cm-1/atm
-            !    molP%a2 = 0.82D0   !cm-1
-            !    molP%a3 = 0.007D0  !cm-1
-            !    molP%dc = 2.4      !Å (amstrong)
-            !    molP%ex1 = 0.50   
-            !    molP%ex2 = -0.091
-            !    if (T .ne. T0) then
-            !        molP%a1 = molP%a1*(T0/T)**molP%ex1 
-            !        molP%a2 = molP%a2*(T0/T)**molP%ex2
-            !    endif
-            ! -------------------------------
-            ! Teresa Mendaza:
-                molP%a1 = 3.678794E-01 !cm-1/atm
-                molP%a2 =-2.629672E-12 !cm-1
-                molP%a3 = 3.907117E-14 !cm-1
+                molP%a1 = 0.0168D0 !cm-1/atm
+                molP%a2 = 0.82D0   !cm-1
+                molP%a3 = 0.007D0  !cm-1
                 molP%dc = 2.4      !Å (amstrong)
-
-
+                molP%ex1 = 0.50   
+                molP%ex2 = -0.091
+                if (T .ne. T0) then
+                    molP%a1 = molP%a1*(T0/T)**molP%ex1 
+                    molP%a2 = molP%a2*(T0/T)**molP%ex2
+                endif
+            ! -------------------------------
             else if ((sys(1) .eq. 7) .and. (sys(2) .eq. 7)) then
             ! Tran et al. 2006; O2 - O2
                 molP%a1 = 0.0275D0 !cm-1/atm

@@ -143,7 +143,7 @@ END module module_linemixing
 ! --------------
 !     
 ! Called Routines: "PFmol"    (Partition Function of CH4)
-! ---------------  "Readline" (READ LINE data and relaxation matrix)
+! --------------- 
 !     
 ! Called By: "main program"  
 ! ---------
@@ -380,7 +380,7 @@ END module module_linemixing
             if (i.eq.j) then
               W_rn(i,i)=Wmat(indexS(i), indexS(i))
             else
-              W_rn(i,j)=-dabs(Wmat(indexS(i), indexS(j)))
+              W_rn(i,j)=-abs(Wmat(indexS(i), indexS(j)))
             endif
           enddo
        enddo
@@ -399,13 +399,11 @@ END module module_linemixing
             mod(abs(int(dta1%J(n,1))-int(dta1%J(k,1))),2).ne.0)cycle
           if (k .le. n) then 
             Sup  = Sup  + dabs( dta1%D0( indexS(k) ) )* W_rn( n , k )
-            print*, "sup",dabs( dta1%D0( indexS(k) ) ),W_rn( n , k )
             if(isnan(Sup).or.isinf(Sup))stop
             !write(*,'(a2,i3,a1,i3,a2,E10.2)'),"W_rn(",n,",",k,")=", W_rn(n,k) 
             !write(*,'(a4,E10.2)'), "Sup=",Sup
           else !if (k .gt. n) then
             Slow = Slow + dabs(dta1%D0( indexS(k) )) * W_rn( n , k ) 
-            print*, "slo",dabs( dta1%D0( indexS(k) ) ),W_rn( n , k )
             if(isnan(Slow).or.isinf(Slow))stop
             !write(*,'(a2,i3,a1,i3,a2,E10.2)'), "W_rn(",n,",",k,")=" , W_rn( n , k ) 
             !write(*,'(a4,E10.2)'), "Slow=",Slow          
@@ -427,7 +425,7 @@ END module module_linemixing
               ! A) The lower-elements of the matrix, in other words, if ( n < k ) then 
               ! "n" has a lower index-value == most intense line than "k", that mark a
               ! downwards transition and this is expressed as: W_jk= - W · Sup/Slow
-              ! K(n,k) = << k | W | n >> 
+              ! W(n,k) = << k | W | n >> 
               !   -->       k<------n
               !
               W_rn(n,k) = -S_UL_rate*W_rn(n,k)

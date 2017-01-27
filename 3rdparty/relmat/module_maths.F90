@@ -11,11 +11,6 @@ module module_maths
             integer (kind=8), intent(in)             :: i1,i2
             type(dta_SDF),intent(in)        :: dta1  
         end function isJb
-        
-        integer*8 function compareC(C1, C12)
-            implicit none
-            character*2   , intent(in)      :: C1, C12
-        end function compareC
 
         double precision function wigner3j( j1,j2,j3, m1,m2,m3 )
             use module_common_var
@@ -138,7 +133,7 @@ END module module_maths
 ! Accessed Files:  None
 ! --------------
 !
-! Called Routines: 'compareC'   (Partition Function of CH4)
+! Called Routines: 'none' 
 ! ---------------  
 !
 ! Called By: 'WelCAL' (W Elements CALculation)
@@ -152,11 +147,8 @@ END module module_maths
     use module_common_var
     implicit none
     integer*8, intent(in)     :: i1,i2
-    type(dta_SDF),intent(in):: dta1
-    !integer*8                  :: compareC
+    type(dta_SDF),intent(in)  :: dta1
     integer*8                 :: J1, J2
-    !integer*8                  :: alph1, alph2
-    !character*2              :: C1, C12
 !-----------------------------------------
 ! Q001:
     J1 = dta1%J(i1,1)!; C1 = dta1%Sr(i1,1); alph1= dta1%alph(i1,1)
@@ -168,99 +160,8 @@ END module module_maths
       isJb = .false.
     endif
 
-!    if (J1 .gt. J2) then
-!      isJb = 1
-!    else if (J1 .eq. J2) then
-!      if (compareC(C1, C12) .eq. 1) then
-!        isJb = 1
-!      else if (compareC(C1, C12) .eq. -1) then
-!        if (alph1 .gt. alph2) then
-!          isJb = 1
-!        else if (alph1 .lt. alph2) then
-!          isJb = 0
-!        else
-!          !same initial level
-!          isJb = -1
-!        endif
-!      else
-!        isJb = 0
-!      endif
-!    else
-!      isJb = 0
-!    endif
     Return
   END function isJb
-!--------------------------------------------------------------------------------------------------------------------
-  integer*8 function compareC(C1, C12)
-!--------------------------------------------------------------------------------------------------------------------
-!"compareC":  
-!
-! Detailed description:
-! ---------------------
-! it compares the C part of the U/L State Local Quanta.
-! the rotational quanta is given by J, C and ?a".
-!
-! 1) C can have the following values:
-!               A1 > A2 > E > F1 > F2         (for CH4)
-! 2) "a" (or "n" above 3400cm-1) are counting integer (kind=8)levels of the same J and C; 
-! NOTE: the values are incremented in order of increasing energy.
-!
-! Input/Output Parameters of Routine (Arguments or Common)
-! ----------------------------------
-! Ci      : C part of the U/L State Local Quanta for CH4 (Input).
-!     compareC: it tells the result of the comparision:
-!     1 -> greater
-!     0 -> smaller
-!    -1 -> same level
-!
-! Accessed Files:  None
-! --------------
-!
-! Called Routines: 'compareC'   (Partition Function of CH4)
-! ---------------  
-!
-! Called By: 'WelCAL' (W Elements CALculation)
-! ---------
-!
-! Double Precision Version
-!
-! T.Mendaza, last change 27 August 2015
-!--------------------------------------------------------------------------------------------------------------------
-!
-    implicit none
-    character*2, intent(in)     :: C1, C12
-    integer (kind=8)            :: i, N, auxC1, auxC2
-    character*2                 :: a(11)
-!----------
-    DATA a/'A ','A1','A2','A+','A-','E ','E1', 'E2','F ','F1','F2'/
-!----------
-!
-! Check that Arrays for Results are Large Enough, Initialize
-!  
-    N = len(a) ! "a" length
-    do i=1,N
-      if ( adjustL(trim(C1)) .eq. adjustL(trim(a(i))) ) then
-        auxC1 = i
-      endif
-      if ( adjustL(trim(C12)) .eq. adjustL(trim(a(i))) ) then
-        auxC2 = i
-      endif
-    enddo
-    
-    if (auxC1 .gt. auxC2) then
-      compareC = 1
-      !print*, 'C1', '>', 'C2'
-    else if (auxC1 .lt. auxC2) then
-      compareC = 0
-      !print*, 'C1', '<', 'C2'
-    else !(auxC1 == auxC2)
-      compareC = -1
-      !print*, 'C1', '=', 'C2'
-    endif
-!
-!
-    Return
-  END function compareC
 !--------------------------------------------------------------------------------------------------------------------
   double precision function wigner3j(dJ1,dJ2,dJ3,dM1,dM2,dM3)
 !--------------------------------------------------------------------------------------------------------------------
