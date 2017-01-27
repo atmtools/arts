@@ -1,3 +1,42 @@
+2016-12-17  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-606
+	
+	* 3rdparty/relmat/arts_interface.F90:  Added mass parameter to let 
+	the code compile.
+	
+	* src/m_linemixing.cc:  Updated (abs_xsec_per_speciesAddLineMixedBands)
+	to send more information to the Fortran interface.
+	
+	* src/constants.cc:  Added flag for electrons and particulates for
+	the special species jacobian calculations.
+	
+	* src/jacobian.{cc,h}: Added flag for special species in 
+	(get_pointers_for_analytical_jacobians).  Also changed some
+	wording/enums to make the code easier to follow.
+	
+	* src/m_{rte,transmitter}.cc: Changed so that the new wording is in 
+	effect.
+	
+	* src/m_jacobian.cc: Added (jacobianAddConstantVMRAbsSpecies) and 
+	(jacobianAddSpecialSpecies) for different additions to jacobian. I
+	was hoping to add independently scaling integrated VMR values but
+	not enough time to solve what this means for the integration.
+	Constant numbers are just a copy of catalog parameter behavior 
+	and so they are easy.  I might return to this later for the 
+	scaling effects I wanted to look at.
+	
+	* src/m_abs.cc: Have (propmat_clearskyAddParticles) return the 
+	partial derivaitves needed for the calculations.  Updated the rest
+	of the code for new namings.  Note that you are not allowed to choose
+	what unit the special absorbers return their derivatives in because
+	neither (propmat_clearskyAddFaraday) nor (propmat_clearskyAddParticles)
+	uses rtp_vmr to contain VMR values.  In *Faraday
+	these values are the number densities by default and in *Particles
+	the default is whatever unit was used in the input.
+	
+	* src/rte.{cc,h}:  Updated naming.
+
 2017-01-27  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-605

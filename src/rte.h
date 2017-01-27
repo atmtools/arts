@@ -298,7 +298,7 @@ void get_ppath_trans_and_dppath_trans_dx(
   ConstTensor5View&            dppath_ext_dx,
   const ArrayOfRetrievalQuantity& jacobian_quantities,
   ConstVectorView              f_grid, 
-  const ArrayOfIndex&          for_flux,
+  const ArrayOfIndex&          for_distance_integration,
   const Index&                 stokes_dim );
 
 void get_ppath_trans2( 

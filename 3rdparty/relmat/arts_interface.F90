@@ -11,7 +11,7 @@ module arts_interface
                           artsNA, artsUpp, artsLow, &
                           artsg0 , artsg00, &
                           T, Ptot, QT, QT0, mass, &
-                          npert, pert, i_pert, p_vmr,&
+                          npert, pert, i_pert, p_mass, p_vmr,&
                           W_rn, dipo, rho) 
             ! MODULES IN USE:
             use module_common_var
@@ -32,7 +32,7 @@ module arts_interface
             integer*8         :: pert(npert), i_pert(npert)
             Double Precision  :: sgmin, sgmax, T, Ptot
             Double Precision  :: QT, QT0, mass
-            Double Precision  :: p_vmr(npert)
+            Double Precision  :: p_mass(npert), p_vmr(npert)
             Double Precision  :: artsWNO(nLines),artsS(nLines), &
                                  artsGA(nLines), artsE00(nLines), &
                                  artsNA(nLines)
@@ -75,7 +75,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
                           artsNA, artsUpp, artsLow, &
                           artsg0 , artsg00, &
                           T, Ptot, QT, QT0, mass, &
-                          npert, pert, i_pert, p_vmr,&
+                          npert, pert, i_pert, p_mass, p_vmr,&
                           W_rn, dipo, rho) bind(C, name='arts_relmat_interface')
 !--------------------------------------------------------------------------------------------------------------------
 !
@@ -140,7 +140,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
     integer*8 :: pert(npert), i_pert(npert)
     Double Precision  :: sgmin, sgmax, T, Ptot
     Double Precision  :: QT, QT0, mass
-    Double Precision  :: p_vmr(npert)
+    Double Precision  :: p_mass(npert), p_vmr(npert)
     Double Precision  :: artsWNO(nLines),artsS(nLines), &
                        artsGA(nLines), artsE00(nLines), &
                        artsNA(nLines)

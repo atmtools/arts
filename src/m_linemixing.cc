@@ -370,6 +370,7 @@ extern "C"
         long   *number_of_perturbers,
         long   *molecule_code_perturber,
         long   *iso_code_perturber,
+        double *perturber_mass,
         double *vmr,
         //outputs
         double *W,
@@ -440,8 +441,8 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
     
     // Make constant input not constant and convert to wavenumber
     Vector v(nf); 
-    v=f_grid; 
-    v/=w2Hz;
+    v = f_grid; 
+    v /= w2Hz;
     
     // Setting up thermal bath:  only in simplistic air for now
     // This means: 21% O2 and 79% N2
@@ -449,6 +450,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
     long    number_of_perturbers = 2;
     long   *molecule_code_perturber = new long[number_of_perturbers];
     long   *iso_code_perturber = new long[number_of_perturbers];
+    double *perturber_mass = new double[number_of_perturbers];
     Vector  vmr(number_of_perturbers);
     bool    done_o2=false, done_n2=false;
     for(Index ispecies=0;ispecies<species_data.nelem();ispecies++)
@@ -459,18 +461,20 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
         
         if(name=="O2"&&!done_o2)
         {
-            vmr[0] = 0.21;
+            vmr[0] = 0.2095;
             const Index hitran_tag = ir.HitranTag();
-            iso_code_perturber[0] = (long) (hitran_tag%10);
-            molecule_code_perturber[0] = (((long)hitran_tag)-iso_code_perturber[0])/10;
+            iso_code_perturber[0] = hitran_tag%10;
+            molecule_code_perturber[0] = (hitran_tag)/10;
+            perturber_mass[0] = ir.Mass();
             done_o2=true;
         }
         else if(name=="N2"&&!done_n2)
         {
-            vmr[1] = 0.79;
+            vmr[1] = 1.0-0.2095;
             const Index hitran_tag = ir.HitranTag();
-            iso_code_perturber[1] = (long) (hitran_tag%10);
-            molecule_code_perturber[1] = (((long)hitran_tag)-iso_code_perturber[1])/10;
+            iso_code_perturber[1] =  hitran_tag%10;
+            molecule_code_perturber[1] = (hitran_tag)/10;
+            perturber_mass[1] = ir.Mass();
             done_n2=true;
         }
         
@@ -496,8 +500,8 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
         Index this_species=-1;
         
         // Allocation of band specific inputs (types: to be used as fortran input)
-        long   *M              = new long[nlines];
-        long   *I              = new long[nlines];
+        long   M = (this_band[0].IsotopologueData().HitranTag())/10;
+        long   I = (this_band[0].IsotopologueData().HitranTag())%10;
         long   *upper          = new long[4*nlines];
         long   *lower          = new long[4*nlines];
         long   *g_prime        = new long[nlines];
@@ -507,7 +511,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
         Vector gamma_air(nlines);
         Vector E_double_prime(nlines);
         Vector n_air(nlines);
-        Numeric mass, abundance;
+        Numeric mass;
         
         for( long iline=0; iline<nlines; iline++ )
         {
@@ -520,7 +524,6 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             {
                 // Isotopologue values
                 mass  = this_iso.Mass();
-                abundance = this_iso.Abundance();
                 String iso_name = this_iso.Name();
                 int isona;
                 //isona << iso_name;
@@ -569,13 +572,8 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                 }
             }
             
-            // Hitran tags
-            long hitran_tag       = (long) this_iso.HitranTag();
-            
             // Line information converted to relmat format --- i.e. to HITRAN format
-            I[iline]              = hitran_tag%10;
-            M[iline]              = (hitran_tag-I[iline])/10;
-            v0[iline]             = this_line.F()/w2Hz*abundance; // WARNING:  Necessity of abundance means vmr should also be scaled?
+            v0[iline]             = this_line.F()/w2Hz; // WARNING:  Necessity of abundance means vmr should also be scaled?
             S[iline]              = this_line.I0()/I0_hi2arts;
             gamma_air[iline]      = this_line.Agam()/gamma_hi2arts;
             n_air[iline]          = this_line.Nair();
@@ -587,76 +585,84 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             Rational a;
             
             // l2 is for molecules like CO2
-            a = this_line.QuantumNumbers().Lower()[QN_l2];
-            a.Simplify();
-            if(a.isUndefined())
-                lower[0+4*iline] = -1;
-            else  if(a.Denom()==1)
-                lower[0+4*iline] = (long) a.toIndex();
-            else 
-                throw std::runtime_error("Half quantum numbers not supported in l2.");
-            a = this_line.QuantumNumbers().Upper()[QN_l2];
-            a.Simplify();
-            if(a.isUndefined())
-                upper[0+4*iline] = -1;
-            else  if(a.Denom()==1)
-                upper[0+4*iline] = (long) a.toIndex();
-            else 
-                throw std::runtime_error("Half quantum numbers not supported in l2.");
+            {
+              a = this_line.QuantumNumbers().Lower()[QN_l2];
+              a.Simplify();
+              if(a.isUndefined())
+                  lower[0+4*iline] = -1;
+              else  if(a.Denom()==1)
+                  lower[0+4*iline] = (long) a.toIndex();
+              else 
+                  throw std::runtime_error("Half quantum numbers not supported in l2.");
+              a = this_line.QuantumNumbers().Upper()[QN_l2];
+              a.Simplify();
+              if(a.isUndefined())
+                  upper[0+4*iline] = -1;
+              else  if(a.Denom()==1)
+                  upper[0+4*iline] = (long) a.toIndex();
+              else 
+                  throw std::runtime_error("Half quantum numbers not supported in l2.");
+            }
             
             // J is universally important for linear molecules
-            a = this_line.QuantumNumbers().Lower()[QN_J];
-            a.Simplify();
-            if(a.isUndefined())
-                lower[1+4*iline] = -1;
-            else  if(a.Denom()==1)
-                lower[1+4*iline] = (long) a.toIndex();
-            else 
-                throw std::runtime_error("Half quantum numbers not supported in J.");
-            a = this_line.QuantumNumbers().Upper()[QN_J];
-            a.Simplify();
-            if(a.isUndefined())
-                upper[1+4*iline] = -1;
-            else  if(a.Denom()==1)
-                upper[1+4*iline] = (long) a.toIndex();
-            else 
-                throw std::runtime_error("Half quantum numbers not supported in J.");
+            {
+              a = this_line.QuantumNumbers().Lower()[QN_J];
+              a.Simplify();
+              if(a.isUndefined())
+                  lower[1+4*iline] = -1;
+              else  if(a.Denom()==1)
+                  lower[1+4*iline] = (long) a.toIndex();
+              else 
+                  throw std::runtime_error("Half quantum numbers not supported in J.");
+              a = this_line.QuantumNumbers().Upper()[QN_J];
+              a.Simplify();
+              if(a.isUndefined())
+                  upper[1+4*iline] = -1;
+              else  if(a.Denom()==1)
+                  upper[1+4*iline] = (long) a.toIndex();
+              else 
+                  throw std::runtime_error("Half quantum numbers not supported in J.");
+            }
             
             // N is important for molecules with magnetic dipoles
-            a = this_line.QuantumNumbers().Lower()[QN_N];
-            a.Simplify();
-            if(a.isUndefined())
-                lower[2+4*iline] = -1;
-            else  if(a.Denom()==1)
-                lower[2+4*iline] = (long) a.toIndex();
-            else 
-                throw std::runtime_error("Half quantum numbers not supported in N.");
-            a = this_line.QuantumNumbers().Upper()[QN_N];
-            a.Simplify();
-            if(a.isUndefined())
-                upper[2+4*iline] = -1;
-            else  if(a.Denom()==1)
-                upper[2+4*iline] = (long) a.toIndex();
-            else 
-                throw std::runtime_error("Half quantum numbers not supported in N.");
+            {
+              a = this_line.QuantumNumbers().Lower()[QN_N];
+              a.Simplify();
+              if(a.isUndefined())
+                  lower[2+4*iline] = -1;
+              else  if(a.Denom()==1)
+                  lower[2+4*iline] = (long) a.toIndex();
+              else 
+                  throw std::runtime_error("Half quantum numbers not supported in N.");
+              a = this_line.QuantumNumbers().Upper()[QN_N];
+              a.Simplify();
+              if(a.isUndefined())
+                  upper[2+4*iline] = -1;
+              else  if(a.Denom()==1)
+                  upper[2+4*iline] = (long) a.toIndex();
+              else 
+                  throw std::runtime_error("Half quantum numbers not supported in N.");
+            }
             
             // S is important for molecules with magnetic dipoles
-            a = this_line.QuantumNumbers().Lower()[QN_S];
-            a.Simplify();
-            if(a.isUndefined())
-                lower[3+4*iline] = -1;
-            else  if(a.Denom()==1)
-                lower[3+4*iline] = (long) a.toIndex();
-            else 
-                throw std::runtime_error("Half quantum numbers not supported in S.");
-            a = this_line.QuantumNumbers().Upper()[QN_S];
-            a.Simplify();
-            if(a.isUndefined())
-                upper[3+4*iline] = -1;
-            else  if(a.Denom()==1)
-                upper[3+4*iline] = (long) a.toIndex();
-            else 
-                throw std::runtime_error("Half quantum numbers not supported in S.");
+            {
+              a = this_line.QuantumNumbers().Lower()[QN_S];
+              a.Simplify();
+              if(a.isUndefined())
+                  lower[3+4*iline] = -1;
+              else  if(a.Denom()==1)
+                  lower[3+4*iline] = (long) a.toIndex();
+              else 
+                  throw std::runtime_error("Half quantum numbers not supported in S.");
+              a = this_line.QuantumNumbers().Upper()[QN_S];
+              a.Simplify();
+              if(a.isUndefined())
+                  upper[3+4*iline] = -1;
+              else  if(a.Denom()==1)
+                  upper[3+4*iline] = (long) a.toIndex();
+              else 
+                  throw std::runtime_error("Half quantum numbers not supported in S.");
+            }
             
             // Set fmax and fmin.  Why do I need this again?
             if(iline==0)
@@ -706,13 +712,13 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             // Calling Teresa's code
             arts_relmat_interface(
                 &nlines, &fmin, &fmax,
-                M, I, v0.get_c_array(), S.get_c_array(),
+                &M, &I, v0.get_c_array(), S.get_c_array(),
                 gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
                 upper, lower,
                 g_prime, g_double_prime,
                 &t, &p, &QT, &QT0, &mass,
                 &number_of_perturbers, molecule_code_perturber, 
-                iso_code_perturber, vmr.get_c_array(),
+                iso_code_perturber, perturber_mass, vmr.get_c_array(),
                 W.get_c_array(), d0.get_c_array(), rhoT.get_c_array() );
             
             std::cout<<"Succesful run of arts_relmat_interface!\n";
@@ -731,8 +737,6 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             
         }
         
-        delete[] M;
-        delete[] I;
         delete[] g_prime;
         delete[] g_double_prime;
         delete[] upper;
@@ -746,20 +750,20 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
 
 #else
 void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
-                                            ArrayOfMatrix&                   /* abs_xsec_per_species, */,
-                                            ArrayOfArrayOfMatrix&            /*dabs_xsec_per_species_dx*/,
-                                            // WS Input:                     
-                                            const ArrayOfArrayOfLineRecord&  /* abs_lines_per_band */,
-                                            const ArrayOfArrayOfSpeciesTag&  /* abs_species_per_band */,
-                                            const ArrayOfArrayOfSpeciesTag&  /* abs_species */,
-                                            const SpeciesAuxData&            /* partition_functions */,
-                                            const ArrayOfRetrievalQuantity&  /* jacobian_quantities */,
-                                            const Vector&                    /* f_grid */,
-                                            const Vector&                    /* abs_p */,
-                                            const Vector&                    /* abs_t */,
-                                            const Verbosity&)
+                                           ArrayOfMatrix&                   /* abs_xsec_per_species, */,
+                                           ArrayOfArrayOfMatrix&            /*dabs_xsec_per_species_dx*/,
+                                           // WS Input:                     
+                                           const ArrayOfArrayOfLineRecord&  /* abs_lines_per_band */,
+                                           const ArrayOfArrayOfSpeciesTag&  /* abs_species_per_band */,
+                                           const ArrayOfArrayOfSpeciesTag&  /* abs_species */,
+                                           const SpeciesAuxData&            /* partition_functions */,
+                                           const ArrayOfRetrievalQuantity&  /* jacobian_quantities */,
+                                           const Vector&                    /* f_grid */,
+                                           const Vector&                    /* abs_p */,
+                                           const Vector&                    /* abs_t */,
+                                           const Verbosity&)
 {
-    throw std::runtime_error("This version of ARTS was compiled without external line mixing support.");
+   throw std::runtime_error("This version of ARTS was compiled without external line mixing support.");
 }
 
 #endif //ENABLE_RELMAT

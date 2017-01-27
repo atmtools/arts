@@ -1218,8 +1218,7 @@ void ext2trans_and_ext2dtrans_dx(
         for( Index i=1; i<stokes_dim; i++ )
         { trans_mat(i,i) = trans_mat(0,0); }
         
-        /* This part is actually not used anywhere since the code operates from these parts being known
-         * Coded text is retained for ease of changing system.
+        // Set derivatives here to allow later code an easier time
         for( Index iq =0; iq<nq; iq++ )
         {
             dtrans_mat_dx_upp(iq,0,0) = - trans_mat(0,0) * lstep * dext_mat_dx_upp(iq,0,0);
@@ -1229,7 +1228,7 @@ void ext2trans_and_ext2dtrans_dx(
                 dtrans_mat_dx_upp(iq,i,i) = dtrans_mat_dx_upp(iq,0,0);
                 dtrans_mat_dx_low(iq,i,i) = dtrans_mat_dx_low(iq,0,0);
             }
-        }*/
+        }
     }
     /*  Removed temporarily FIXME:  What is this, how do I use it???
     else if( icase == 2 )
@@ -1924,7 +1923,7 @@ void get_ppath_pmat_and_tmat(
                             const ArrayOfIndex&   jac_is_t,
                             const ArrayOfIndex&   jac_wind_i,
                             const ArrayOfIndex&   jac_mag_i,
-                            const ArrayOfIndex&   for_flux,
+                            const ArrayOfIndex&   jac_to_integrate,
                             const ArrayOfIndex&   jac_other,
                             const ArrayOfIndex&   ispecies,
                             const ArrayOfArrayOfSingleScatteringData scat_data,
@@ -2257,8 +2256,12 @@ void get_ppath_pmat_and_tmat(
                                     (dnlte_dx_source[this_ppd_iq](i1,i2) + 
                                     nlte_dx_dsource_dx[this_ppd_iq](i1,i2))*unitscf;
                                 }
-                                for( Index i3=0; i3<stokes_dim; i3++ )
-                                    dppath_ext_dx(iq,i1,i2,i3,ip) = dpropmat_clearsky_dx[this_ppd_iq](i1,i2,i3)*unitscf;
+                                
+                                if(unitscf==1.0)
+                                    dppath_ext_dx(iq,joker,joker,joker,ip) =  dpropmat_clearsky_dx[this_ppd_iq];
+                                else
+                                    for( Index i3=0; i3<stokes_dim; i3++ )
+                                        dppath_ext_dx(iq,i1,i2,i3,ip) = dpropmat_clearsky_dx[this_ppd_iq](i1,i2,i3)*unitscf;
                             }
                         }
                     }
@@ -2291,7 +2294,12 @@ void get_ppath_pmat_and_tmat(
                             
                         }
                     }
-                    else if(for_flux[iq])
+                    else if(jac_species_i[iq]==-9999)
+                    {
+                      /* Pass and do nothing, if this is to be integrated, 
+                       * then it has to ignore the next else-statement */
+                    }
+                    else if(jac_to_integrate[iq] == JAC_IS_FLUX)
                     {
                         for( Index i1=0; i1<nf; i1++ ) for( Index i2=0; i2<stokes_dim; i2++ )
                         {
@@ -2343,7 +2351,7 @@ void get_ppath_pmat_and_tmat(
             get_ppath_trans_and_dppath_trans_dx(
                 trans_partial, dtrans_partial_dx_above, dtrans_partial_dx_below, 
                 extmat_case, trans_cumulat, scalar_tau, ppath, ppath_ext, 
-                dppath_ext_dx, jacobian_quantities, f_grid, for_flux, stokes_dim );
+                dppath_ext_dx, jacobian_quantities, f_grid, jac_to_integrate, stokes_dim );
     }
     else
     {
@@ -2878,7 +2886,7 @@ void get_ppath_trans(
  *   \param   dppath_ext_dx                     In:  See get_ppath_ext_and_dppath_ext_dx.
  *   \param   jacobian_quantities               In:  As the WSV.    
  *   \param   f_grid                            In:  As the WSV.    
- *   \param   for_flux                          In:  Indicates flux calculations and different derivative.
+ *   \param   for_distance_integration          In:  Indicates integration along r.
  *   \param   stokes_dim                        In:  As the WSV.
  * 
  *   \author Patrick Eriksson 
@@ -2900,7 +2908,7 @@ void get_ppath_trans_and_dppath_trans_dx(
   ConstTensor5View&            dppath_ext_dx,
   const ArrayOfRetrievalQuantity& jacobian_quantities,
   ConstVectorView              f_grid, 
-  const ArrayOfIndex&          for_flux,
+  const ArrayOfIndex&          for_distance_integration,
   const Index&                 stokes_dim )
 {
     
@@ -2952,21 +2960,21 @@ void get_ppath_trans_and_dppath_trans_dx(
                                                    ppath_ext(iv,is1,is2,ip  ) );
                         for( Index iq=0; iq<nq; iq++ )
                         {
-                            if(for_flux[iq])
-                            {
-                                dext_mat_dx_from_above(iq,is1,is2) = - 
-                                0.5 / ppath.lstep[ip-1] *  ppath_ext(iv,is1,is2,ip  );
-                                dext_mat_dx_from_below(iq,is1,is2) = - 
-                                0.5 / ppath.lstep[ip-1] *  ppath_ext(iv,is1,is2,ip-1);
-                            }
-                            else 
-                            {
-                                // Upper and lower level influence on the dependency at layer
-                                dext_mat_dx_from_above(iq,is1,is2) = 
-                                0.5 * dppath_ext_dx(iq,iv,is1,is2,ip);
-                                dext_mat_dx_from_below(iq,is1,is2) = 
-                                0.5 * dppath_ext_dx(iq,iv,is1,is2,ip-1);
-                            }
+                          if(for_distance_integration[iq] == JAC_IS_FLUX)
+                          {
+                            dext_mat_dx_from_above(iq,is1,is2) =  
+                            0.5 / ppath.lstep[ip-1] * dppath_ext_dx(iq,iv,is1,is2,ip);
+                            dext_mat_dx_from_below(iq,is1,is2) =  
+                            0.5 / ppath.lstep[ip-1] * dppath_ext_dx(iq,iv,is1,is2,ip-1);
+                          }
+                          else 
+                          {
+                            // Upper and lower level influence on the dependency at layer
+                            dext_mat_dx_from_above(iq,is1,is2) = 
+                            0.5 * dppath_ext_dx(iq,iv,is1,is2,ip);
+                            dext_mat_dx_from_below(iq,is1,is2) = 
+                            0.5 * dppath_ext_dx(iq,iv,is1,is2,ip-1);
+                          }
                         } 
                     } 
                     

@@ -29,6 +29,8 @@ extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
 extern const String FREQUENCY_MAINTAG;
 extern const String ABSSPECIES_MAINTAG;
+extern const String ELECTRONS_MAINTAG;
+extern const String PARTICULATES_MAINTAG;
 
 // Main tag for this type of Jacobian calculation
 extern const String PROPMAT_SUBSUBTAG;
@@ -70,6 +72,8 @@ extern const String LINEMIXINGDFEXPONENT_MODE;
 typedef enum 
 {
     JQT_VMR,
+    JQT_electrons,
+    JQT_particulates,
     JQT_temperature,
     JQT_magnetic_magntitude,
     JQT_magnetic_eta,
@@ -170,102 +174,112 @@ public:
                     ippdq++;
                     mmag_perturbation = jacobian_quantities[iq].Perturbation();
                 }
-                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG && 
-                    jacobian_quantities[iq].Subtag() == "strength")
+                else if(jacobian_quantities[iq].MainTag() == ELECTRONS_MAINTAG )
                 {
-                    mqtype[ippdq] = JQT_magnetic_magntitude;
-                    mmagnetic_abs = true;
-                    mjacobian_pos[ippdq] = iq;
-                    mspecies[ippdq] = -9999;//Flag for not a species...
-                    ippdq++;
+                  mqtype[ippdq] = JQT_electrons;
+                  mjacobian_pos[ippdq] = iq;
+                  mspecies[ippdq]  = -9999;//Flag for not a species...
+                  ippdq++;
                 }
-                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG && 
-                    jacobian_quantities[iq].Subtag() == "eta")
+                else if(jacobian_quantities[iq].MainTag() == PARTICULATES_MAINTAG )
                 {
-                    mqtype[ippdq] = JQT_magnetic_eta;
-                    mmagnetic_eta = true;
-                    mjacobian_pos[ippdq] = iq;
-                    mspecies[ippdq] = -9999;//Flag for not a species...
-                    ippdq++;
+                  mqtype[ippdq] = JQT_particulates;
+                  mjacobian_pos[ippdq] = iq;
+                  mspecies[ippdq]  = -9999;//Flag for not a species...
+                  ippdq++;
                 }
-                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG && 
-                    jacobian_quantities[iq].Subtag() == "theta")
+                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG)
                 {
-                    mqtype[ippdq] = JQT_magnetic_theta;
-                    mmagnetic_theta = true;
-                    mjacobian_pos[ippdq] = iq;
-                    mspecies[ippdq] = -9999;//Flag for not a species...
-                    ippdq++;
+                  if(jacobian_quantities[iq].Subtag() == "strength")
+                  {
+                      mqtype[ippdq] = JQT_magnetic_magntitude;
+                      mmagnetic_abs = true;
+                      mjacobian_pos[ippdq] = iq;
+                      mspecies[ippdq] = -9999;//Flag for not a species...
+                      ippdq++;
+                  }
+                  else if(jacobian_quantities[iq].Subtag() == "eta")
+                  {
+                      mqtype[ippdq] = JQT_magnetic_eta;
+                      mmagnetic_eta = true;
+                      mjacobian_pos[ippdq] = iq;
+                      mspecies[ippdq] = -9999;//Flag for not a species...
+                      ippdq++;
+                  }
+                  else if(jacobian_quantities[iq].Subtag() == "theta")
+                  {
+                      mqtype[ippdq] = JQT_magnetic_theta;
+                      mmagnetic_theta = true;
+                      mjacobian_pos[ippdq] = iq;
+                      mspecies[ippdq] = -9999;//Flag for not a species...
+                      ippdq++;
+                  }
+                  else if(jacobian_quantities[iq].Subtag() == "u")
+                  {
+                      mqtype[ippdq] = JQT_magnetic_u;  
+                      mmagnetic_u = true;
+                      mjacobian_pos[ippdq] = iq; 
+                      mspecies[ippdq] = -9999;//Flag for not a species...
+                      ippdq++;
+                      mmag_perturbation = jacobian_quantities[iq].Perturbation();
+                  }
+                  else if(jacobian_quantities[iq].Subtag() == "v")
+                  {
+                      mqtype[ippdq] = JQT_magnetic_v;
+                      mmagnetic_v = true;
+                      mjacobian_pos[ippdq] = iq;
+                      mspecies[ippdq] = -9999;//Flag for not a species...
+                      ippdq++;
+                      mmag_perturbation = jacobian_quantities[iq].Perturbation();
+                  }
+                  else if(jacobian_quantities[iq].Subtag() == "w")
+                  {
+                      mqtype[ippdq] = JQT_magnetic_w;
+                      mmagnetic_w = true;
+                      mjacobian_pos[ippdq] = iq;
+                      mspecies[ippdq] = -9999;//Flag for not a species...
+                      ippdq++;
+                      mmag_perturbation = jacobian_quantities[iq].Perturbation();
+                  }
                 }
-                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG && 
-                    jacobian_quantities[iq].Subtag() == "u")
+                else if(jacobian_quantities[iq].MainTag() == WIND_MAINTAG)
                 {
-                    mqtype[ippdq] = JQT_magnetic_u;  
-                    mmagnetic_u = true;
-                    mjacobian_pos[ippdq] = iq; 
-                    mspecies[ippdq] = -9999;//Flag for not a species...
-                    ippdq++;
-                    mmag_perturbation = jacobian_quantities[iq].Perturbation();
-                }
-                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG && 
-                    jacobian_quantities[iq].Subtag() == "v")
-                {
-                    mqtype[ippdq] = JQT_magnetic_v;
-                    mmagnetic_v = true;
-                    mjacobian_pos[ippdq] = iq;
-                    mspecies[ippdq] = -9999;//Flag for not a species...
-                    ippdq++;
-                    mmag_perturbation = jacobian_quantities[iq].Perturbation();
-                }
-                else if(jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG && 
-                    jacobian_quantities[iq].Subtag() == "w")
-                {
-                    mqtype[ippdq] = JQT_magnetic_w;
-                    mmagnetic_w = true;
-                    mjacobian_pos[ippdq] = iq;
-                    mspecies[ippdq] = -9999;//Flag for not a species...
-                    ippdq++;
-                    mmag_perturbation = jacobian_quantities[iq].Perturbation();
-                }
-                else if(jacobian_quantities[iq].MainTag() == WIND_MAINTAG &&  
-                    jacobian_quantities[iq].Subtag() == "strength")
-                {
-                    mqtype[ippdq] = JQT_wind_magnitude;
-                    mcontains_frequency_term = true;
-                    mjacobian_pos[ippdq] = iq;
-                    mspecies[ippdq] = -9999;//Flag for not a species...
-                    ippdq++;
-                    mfreq_perturbation = jacobian_quantities[iq].Perturbation();
-                }
-                else if(jacobian_quantities[iq].MainTag() == WIND_MAINTAG &&  
-                    jacobian_quantities[iq].Subtag() == "u")
-                {
-                    mqtype[ippdq] = JQT_wind_u;
-                    mcontains_frequency_term = true;
-                    mjacobian_pos[ippdq] = iq;
-                    mspecies[ippdq] = -9999;//Flag for not a species...
-                    ippdq++;
-                    mfreq_perturbation = jacobian_quantities[iq].Perturbation();
-                }
-                else if(jacobian_quantities[iq].MainTag() == WIND_MAINTAG &&  
-                    jacobian_quantities[iq].Subtag() == "v")
-                {
-                    mqtype[ippdq] = JQT_wind_v;
-                    mcontains_frequency_term = true;
-                    mjacobian_pos[ippdq] = iq;
-                    mspecies[ippdq] = -9999;//Flag for not a species...
-                    ippdq++;
-                    mfreq_perturbation = jacobian_quantities[iq].Perturbation();
-                }
-                else if(jacobian_quantities[iq].MainTag() == WIND_MAINTAG &&  
-                    jacobian_quantities[iq].Subtag() == "w")
-                {
-                    mqtype[ippdq] = JQT_wind_w;
-                    mcontains_frequency_term = true;
-                    mjacobian_pos[ippdq] = iq;
-                    mspecies[ippdq] = -9999;//Flag for not a species...
-                    ippdq++;
-                    mfreq_perturbation = jacobian_quantities[iq].Perturbation();
+                  if(jacobian_quantities[iq].Subtag() == "strength")
+                  {
+                      mqtype[ippdq] = JQT_wind_magnitude;
+                      mcontains_frequency_term = true;
+                      mjacobian_pos[ippdq] = iq;
+                      mspecies[ippdq] = -9999;//Flag for not a species...
+                      ippdq++;
+                      mfreq_perturbation = jacobian_quantities[iq].Perturbation();
+                  }
+                  else if(jacobian_quantities[iq].Subtag() == "u")
+                  {
+                      mqtype[ippdq] = JQT_wind_u;
+                      mcontains_frequency_term = true;
+                      mjacobian_pos[ippdq] = iq;
+                      mspecies[ippdq] = -9999;//Flag for not a species...
+                      ippdq++;
+                      mfreq_perturbation = jacobian_quantities[iq].Perturbation();
+                  }
+                  else if(jacobian_quantities[iq].Subtag() == "v")
+                  {
+                      mqtype[ippdq] = JQT_wind_v;
+                      mcontains_frequency_term = true;
+                      mjacobian_pos[ippdq] = iq;
+                      mspecies[ippdq] = -9999;//Flag for not a species...
+                      ippdq++;
+                      mfreq_perturbation = jacobian_quantities[iq].Perturbation();
+                  }
+                  else if(jacobian_quantities[iq].Subtag() == "w")
+                  {
+                      mqtype[ippdq] = JQT_wind_w;
+                      mcontains_frequency_term = true;
+                      mjacobian_pos[ippdq] = iq;
+                      mspecies[ippdq] = -9999;//Flag for not a species...
+                      ippdq++;
+                      mfreq_perturbation = jacobian_quantities[iq].Perturbation();
+                  }
                 }
                 else if(jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG)
                 {
@@ -492,6 +506,7 @@ public:
     
     const JacobianQuantityType&  operator()(const Index& iq) const {return mqtype[iq];}
     const ArrayOfRetrievalQuantity& jac() const {return mjacobian_quantities;}
+    const RetrievalQuantity& jac(const Index& iq) const {return mjacobian_quantities[mjacobian_pos[iq]];}
     
     Index species(Index iq) const { return mspecies[iq]; }
     
@@ -639,7 +654,8 @@ public:
                     mqtype[iq]==JQT_wind_magnitude         ||
                     mqtype[iq]==JQT_wind_u                 || 
                     mqtype[iq]==JQT_wind_v                 || 
-                    mqtype[iq]==JQT_wind_w)
+                    mqtype[iq]==JQT_wind_w                 ||
+                    mqtype[iq]==JQT_electrons)
             {
                 testvar=true;
             }
@@ -649,9 +665,9 @@ public:
     
     bool supportsParticles() const
     {
-        for(Index iq=0; iq<nelem(); iq++) 
-            if(mqtype[iq]!=JQT_NOT_JQT)  // None is supported
-                throw std::runtime_error("You cannot combine propmat_clearsky Jacobians with this method.\n"); 
+        for(Index iq=0; iq<nelem(); iq++)
+          if(mqtype[iq]!=JQT_NOT_JQT)
+            return true;
         return false;
     }
     

@@ -303,7 +303,7 @@ void iyEmissionStandard(
   Index           j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
   ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0);
-  ArrayOfIndex    jac_mag_i(0), jac_other(0), for_flux(0), jac_to_integrate(0); 
+  ArrayOfIndex    jac_mag_i(0), jac_other(0), jac_to_integrate(0); 
   // Flags for partial derivatives of propmat
   const PropmatPartialsData ppd(jacobian_quantities);
   //
@@ -319,7 +319,6 @@ void iyEmissionStandard(
       jac_is_t.resize( nq ); 
       jac_wind_i.resize( nq );  
       jac_mag_i.resize( nq ); 
-      for_flux.resize( nq );
       jac_other.resize(nq);
       jac_to_integrate.resize(nq);
       //
@@ -328,17 +327,15 @@ void iyEmissionStandard(
         {
             diy_dpath[iq].resize( 1, nf, ns ); 
             diy_dpath[iq] = 0.0;
-            jac_to_integrate[iq] = 1;
         }
         else
         {
             diy_dpath[iq].resize( np, nf, ns ); 
             diy_dpath[iq] = 0.0;
-            jac_to_integrate[iq] = 0;
         }
       )
       get_pointers_for_analytical_jacobians( jac_species_i, jac_is_t, 
-                                             jac_wind_i, jac_mag_i, for_flux, 
+                                             jac_wind_i, jac_mag_i, jac_to_integrate, 
                                              jacobian_quantities, abs_species );
 
       // Should this be part of get_pointers_for_analytical_jacobians?
@@ -481,7 +478,7 @@ void iyEmissionStandard(
                                propmat_clearsky_agenda, jacobian_quantities,
                                ppd, ppath, ppath_p,  ppath_t, ppath_t_nlte, ppath_vmr, 
                                ppath_mag, ppath_wind, ppath_f, f_grid, 
-                               jac_species_i, jac_is_t, jac_wind_i, jac_mag_i, for_flux,
+                               jac_species_i, jac_is_t, jac_wind_i, jac_mag_i, jac_to_integrate,
                                jac_other, iaps, scat_data_dummy, pnd_field_dummy,
                                cloudbox_limits_dummy, use_mean_scat_data_dummy,
                                rte_alonglos_v, atmosphere_dim, stokes_dim,
@@ -655,8 +652,7 @@ void iyEmissionStandard(
                     if( jacobian_quantities[iq].Analytical() )
                     {
                         if( jac_species_i[iq] >= 0 || jac_wind_i[iq] ||
-                            jac_mag_i[iq] || jac_other[iq] || jac_is_t[iq] || for_flux[iq] ||
-                            jac_to_integrate[iq])
+                            jac_mag_i[iq] || jac_other[iq] || jac_is_t[iq] || jac_to_integrate[iq])
                         {
                             /* 
                               We need to do blackbody derivation for temperature.
@@ -665,7 +661,7 @@ void iyEmissionStandard(
                               dppath_blackrad_dt into a Tensor3 of size [nq,nf,np].
                              */
                             
-                            const bool this_is_t = jac_is_t[iq], this_is_flux = for_flux[iq],
+                            const bool this_is_t = jac_is_t[iq], this_is_flux = jac_to_integrate[iq]==JAC_IS_FLUX,
                             this_is_hse = this_is_t ? jacobian_quantities[iq].Subtag() == "HSE on" : false;
                             const Numeric distance = (this_is_flux?1.0:ppath.lstep[ip]);
                             
@@ -673,7 +669,6 @@ void iyEmissionStandard(
                             {
                                 if(jac_to_integrate[iq])
                                 {
-                                    Vector tmp1(stokes_dim, 0.), tmp2(stokes_dim, 0.);
                                     get_diydx( diy_dpath[iq](0, iv, joker),
                                                diy_dpath[iq](0, iv, joker),
                                                extmat_case[ip][iv],

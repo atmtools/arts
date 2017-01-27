@@ -276,7 +276,7 @@ void get_pointers_for_analytical_jacobians(
          ArrayOfIndex&               is_t,
          ArrayOfIndex&               wind_i,
          ArrayOfIndex&               magfield_i,
-         ArrayOfIndex&               flux_i,
+         ArrayOfIndex&               integrate_i,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfSpeciesTag&   abs_species )
 {
@@ -319,6 +319,10 @@ void get_pointers_for_analytical_jacobians(
             abs_species_i[iq] = chk_contains( "abs_species", abs_species, atag );
         }
       }
+    else if(jacobian_quantities[iq].MainTag() == PARTICULATES_MAINTAG || jacobian_quantities[iq].MainTag() == ELECTRONS_MAINTAG)
+    {
+      abs_species_i[iq] = -9999;
+    }
     else
       { abs_species_i[iq] = -1; }
     //
@@ -378,8 +382,18 @@ void get_pointers_for_analytical_jacobians(
     else
       { magfield_i[iq] = JAC_IS_NONE; }
     //
-    if( jacobian_quantities[iq].MainTag() == FLUX_MAINTAG ) { flux_i[iq] = 1; }
-    else  { flux_i[iq] = 0; }
+    if( jacobian_quantities[iq].MainTag() == FLUX_MAINTAG ) 
+    { 
+      integrate_i[iq] = JAC_IS_FLUX; 
+    }
+    else if(jacobian_quantities[iq].Integration()) 
+    { 
+      integrate_i[iq] = JAC_IS_INTEGRATION;   
+    }
+    else  
+    { 
+      integrate_i[iq] = JAC_IS_NONE;   
+    }
   )
 }
 
@@ -1031,6 +1045,10 @@ void dxdvmrscf(
  *   "ip+1" level in iyEmissionStandard.  Note that all vectors and matrices are
  *   for one frequency and one pressure level.  Parallelization over frequency
  *   should be possible. 
+ * 
+ *   Note also that setting diydx_this and diydx_next as the same view is supported
+ *   and that this results in summing the terms.  Additionally, keeping the previous
+ *   settings and also setting r as unity emulates integration along r over the level.
  * 
  *   \param   diydx_this                Out: diydx for this level
  *   \param   diydx_next                Out: diydx for next level

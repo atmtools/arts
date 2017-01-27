@@ -2716,10 +2716,11 @@ void propmat_clearskyAddFaraday(
                 // The Jacobian loop
                 for(Index iq=0;iq<ppd.nelem();iq++)
                 {
-                    if(ppd(iq)==JQT_frequency || ppd(iq)==JQT_wind_magnitude || ppd(iq)==JQT_wind_u || ppd(iq)==JQT_wind_v || ppd(iq)==JQT_wind_w)
+                    if(ppd(iq)==JQT_frequency || ppd(iq)==JQT_wind_magnitude || 
+                      ppd(iq)==JQT_wind_u || ppd(iq)==JQT_wind_v || ppd(iq)==JQT_wind_w)
                     {
-                        dpropmat_clearsky_dx[iq](iv,1,2) += - 2.0 * r / f_grid[iv];
-                        dpropmat_clearsky_dx[iq](iv,2,1) +=   2.0 * r / f_grid[iv];
+                        dpropmat_clearsky_dx[iq](iv,1,2) -= 2.0 * r / f_grid[iv];
+                        dpropmat_clearsky_dx[iq](iv,2,1) += 2.0 * r / f_grid[iv];
                     }
                     else if(ppd(iq)==JQT_magnetic_u)
                     { 
@@ -2736,12 +2737,12 @@ void propmat_clearskyAddFaraday(
                         dpropmat_clearsky_dx[iq](iv,1,2) += dc1_w / f2;
                         dpropmat_clearsky_dx[iq](iv,2,1) -= dc1_w / f2;
                     }
-                    else if(ppd(iq)==JQT_VMR)
-                    { 
-                        if(abs_species[ife][0].Species()!=ppd.species(iq)) continue;
-                        
-                        dpropmat_clearsky_dx[iq](iv,1,2) += r / ne;
-                        dpropmat_clearsky_dx[iq](iv,2,1) -= r / ne;
+                    else if(ppd(iq)==JQT_electrons)
+                    {
+                      Matrix tmp;
+                      tmp = propmat_clearsky(ife, iv, joker, joker);
+                      tmp /= ne;
+                      dpropmat_clearsky_dx[iq](iv, joker, joker) += tmp;
                     }
                 }
             }
@@ -2755,6 +2756,7 @@ void propmat_clearskyAddFaraday(
 void propmat_clearskyAddParticles(
                                     // WS Output:
                                     Tensor4& propmat_clearsky,
+                                    ArrayOfTensor3& dpropmat_clearsky_dx,
                                     // WS Input:
                                     const Index& stokes_dim,
                                     const Index& atmosphere_dim,
@@ -2813,24 +2815,40 @@ void propmat_clearskyAddParticles(
           << "but it is not.\n";
        throw runtime_error( os.str() );
     }
-
-  const PropmatPartialsData ppd(jacobian_quantities);
-  ppd.supportsParticles();
     
+    
+  // Use for rescaling vmr of particulates
+  Numeric rtp_vmr_sum = 0.0;
+  
+  // Tests and setup partial derivatives
+  const PropmatPartialsData ppd(jacobian_quantities);
+  const bool do_jac = ppd.supportsParticles();
+  bool first_loop = true;
+      
   const Index nf = f_grid.nelem();
   const Index na = abs_species.nelem();
   Vector rtp_los_back;
   mirror_los( rtp_los_back, rtp_los, atmosphere_dim );
-  ArrayOfArrayOfSingleScatteringData scat_data_mono;
-  Matrix pnd_ext_mat(stokes_dim,stokes_dim);
-  Vector pnd_abs_vec(stokes_dim);
-
+  ArrayOfArrayOfSingleScatteringData scat_data_mono, scat_data_mono_df;
+  Matrix pnd_ext_mat(stokes_dim,stokes_dim), pnd_ext_mat_df(stokes_dim,stokes_dim), pnd_ext_mat_dt(stokes_dim,stokes_dim);
+  Vector pnd_abs_vec(stokes_dim), pnd_abs_vec_df(stokes_dim), pnd_abs_vec_dt(stokes_dim);
+  Vector f_grid_df;
+  
+  if(ppd.do_frequency())
+  {
+    f_grid_df = f_grid;
+    f_grid_df += ppd.Frequency_Perturbation();
+  }
+  
   for( Index iv=0; iv<nf; iv++ )
     { 
       // first, get the scat_data_single at the required frequency. we can do that for
       // all scattering elements at once.
       scat_data_monoCalc( scat_data_mono, scat_data, f_grid, iv, 
                           verbosity );
+      if(ppd.do_frequency())
+        scat_data_monoCalc( scat_data_mono_df, scat_data, f_grid_df, iv, 
+                            verbosity );
 
       // then we loop over the scat_data and link them with correct vmr_field
       // entry according to the position of the particle type entries in
@@ -2850,6 +2868,7 @@ void propmat_clearskyAddParticles(
               // running beyond number of abs_species entries when looking for
               // next particle entry. shouldn't happen, though.
               assert ( sp < na );
+              
               if ( rtp_vmr[sp] > 0. )
                 {
                   // get extinction matrix and absorption vector at
@@ -2862,6 +2881,33 @@ void propmat_clearskyAddParticles(
                   //cout << "absvec[0] = " << pnd_abs_vec[0] << "\n";
                   pnd_ext_mat *= rtp_vmr[sp];
                   pnd_abs_vec *= rtp_vmr[sp];
+                  
+                  // For wind derivatives
+                  if(ppd.do_frequency())
+                  {
+                    opt_propExtract(pnd_ext_mat_df, pnd_abs_vec_df,
+                                    scat_data_mono_df[i_ss][i_se],
+                                    rtp_los_back[0], rtp_los_back[1],
+                                    rtp_temperature, stokes_dim, verbosity);
+                    pnd_ext_mat_df *= rtp_vmr[sp];
+                    pnd_abs_vec_df *= rtp_vmr[sp];
+                  }
+                  
+                  // For temperature derivatives
+                  if(ppd.do_temperature())
+                  {
+                    opt_propExtract(pnd_ext_mat_dt, pnd_abs_vec_dt,
+                                    scat_data_mono[i_ss][i_se],
+                                    rtp_los_back[0], rtp_los_back[1],
+                                    rtp_temperature+ppd.Temperature_Perturbation(), 
+                                    stokes_dim, verbosity);
+                    pnd_ext_mat_dt *= rtp_vmr[sp];
+                    pnd_abs_vec_dt *= rtp_vmr[sp];
+                  }
+                  
+                  // For number density derivatives
+                  if(do_jac && first_loop)
+                    rtp_vmr_sum += rtp_vmr[sp];
 
                   if (use_abs_as_ext)
                     {
@@ -2875,6 +2921,37 @@ void propmat_clearskyAddParticles(
                       propmat_clearsky(sp,iv,joker,joker) = pnd_ext_mat;
 
                     }
+                    for(Index iq=0; iq<ppd.nelem(); iq++)
+                    {
+                      Matrix tmp(stokes_dim, stokes_dim);     
+                      if(ppd(iq)==JQT_frequency || ppd(iq)==JQT_wind_magnitude || 
+                        ppd(iq)==JQT_wind_u || ppd(iq)==JQT_wind_v || ppd(iq)==JQT_wind_w)
+                      {
+                        if(use_abs_as_ext)
+                          ext_matFromabs_vec(tmp, pnd_abs_vec_df, stokes_dim);
+                        else
+                          tmp = pnd_ext_mat_df;
+                        tmp -= propmat_clearsky(sp,iv,joker,joker);
+                        tmp /= ppd.Frequency_Perturbation();
+                        dpropmat_clearsky_dx[iq](iv, joker, joker) += tmp;
+                      }
+                      else if(ppd(iq) == JQT_temperature)
+                      {
+                        if(use_abs_as_ext)
+                          ext_matFromabs_vec(tmp, pnd_abs_vec_dt, stokes_dim);
+                        else
+                          tmp = pnd_ext_mat_dt;
+                        tmp -= propmat_clearsky(sp,iv,joker,joker);
+                        tmp /= ppd.Temperature_Perturbation();
+                        dpropmat_clearsky_dx[iq](iv, joker, joker) += tmp;
+                      }
+                      else if(ppd(iq) == JQT_particulates)
+                      {
+                        dpropmat_clearsky_dx[iq](iv, joker, joker) += propmat_clearsky(sp,iv,joker,joker);
+                      }
+                    }
+                  
+                  
                 }
               sp++;
             }
@@ -2887,6 +2964,20 @@ void propmat_clearskyAddParticles(
           assert ( abs_species[sp][0].Type() != SpeciesTag::TYPE_PARTICLES );
           sp++;
         }
+        
+      // Not first loop anymore
+      first_loop = false;
+    }
+    
+    if(rtp_vmr_sum != 0.0)
+    {
+      for(Index iq=0; iq<ppd.nelem(); iq++)
+      {
+        if(ppd(iq) == JQT_particulates)
+        {
+          dpropmat_clearsky_dx[iq] /= rtp_vmr_sum;
+        }
+      }
     }
 }
 

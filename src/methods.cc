@@ -7372,65 +7372,103 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-
-  md_data_raw.push_back
+    
+    md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianAddAbsSpecies" ),
-        DESCRIPTION
-        (
-         "Includes an absorption species in the Jacobian.\n"
-         "\n"
-         "Details are given in the user guide.\n"
-         "\n"         
-         "For 1D or 2D calculations the latitude and/or longitude grid of\n"
-         "the retrieval field should set to have zero length.\n"
-         "\n"
-         "There are two possible calculation methods:\n"
-         "   \"analytical\"   : (semi-)analytical expressions are used\n"
-         "   \"perturbation\" : pure numerical perturbations are used\n"
-         "\n"
-         "The retrieval unit can be:\n"
-         "   \"vmr\"    : Volume mixing ratio.\n"
-         "   \"nd\"     : Number density.\n"
-         "   \"rel\"    : Relative unit (e.g. 1.1 means 10% more of the gas).\n"
-         "   \"logrel\" : This unit is allowed only to support Qpack. This\n"
-         "                gives exactly the same result as \"rel\".\n"
-         "\n"
-         "For perturbation calculations the size of the perturbation is set\n"
-         "by the user. The unit for the perturbation is the same as for the\n"
-         "retrieval unit.\n"
-         "\n"
-         "Note that *for_species_tag* is used to indicate if species tag VMR,\n"
-         "rather than atmospheric gas VMR is calculated. Set it to 0 and we\n"
-         "calculate the atmospheric gas VMR, but this only works for \"analytical\".\n"
-         "\n"
-         "Note that the Jacobian is set to zero where path VMR is equal to zero.\n"
-         ),
-        AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-        OUT( "jacobian_quantities", "jacobian_agenda" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian_quantities", "jacobian_agenda",
-            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GIN( "g1", "g2", "g3", "species", "method", "unit","for_species_tag","dx" ),
-        GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "String", "Index",
-                  "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "analytical", "rel", "1", "0.001" ),
-        GIN_DESC( "Pressure retrieval grid.",
-                  "Latitude retrieval grid.",
-                  "Longitude retreival grid.",
-                  "The species tag of the retrieval quantity.",
-                  "Calculation method. See above.",
-                  "Retrieval unit. See above.",
-                  "Index-bool for acting on species tags or species.",
-                  "Size of perturbation." 
-                  ),
-        SETMETHOD(      false ),
-        AGENDAMETHOD(   false ),
-        USES_TEMPLATES( false ),
-        PASSWORKSPACE(  true  )
-      ));
+    ( NAME( "jacobianAddAbsSpecies" ),
+      DESCRIPTION
+      (
+        "Includes an absorption species in the Jacobian.\n"
+        "\n"
+        "Details are given in the user guide.\n"
+        "\n"         
+        "For 1D or 2D calculations the latitude and/or longitude grid of\n"
+        "the retrieval field should set to have zero length.\n"
+        "\n"
+        "There are two possible calculation methods:\n"
+        "   \"analytical\"   : (semi-)analytical expressions are used\n"
+        "   \"perturbation\" : pure numerical perturbations are used\n"
+        "\n"
+        "The retrieval unit can be:\n"
+        "   \"vmr\"    : Volume mixing ratio.\n"
+        "   \"nd\"     : Number density.\n"
+        "   \"rel\"    : Relative unit (e.g. 1.1 means 10% more of the gas).\n"
+        "   \"logrel\" : This unit is allowed only to support Qpack. This\n"
+        "                gives exactly the same result as \"rel\".\n"
+        "\n"
+        "For perturbation calculations the size of the perturbation is set\n"
+        "by the user. The unit for the perturbation is the same as for the\n"
+        "retrieval unit.\n"
+        "\n"
+        "Note that *for_species_tag* is used to indicate if species tag VMR,\n"
+        "rather than atmospheric gas VMR is calculated. Set it to 0 and we\n"
+        "calculate the atmospheric gas VMR, but this only works for \"analytical\".\n"
+        "\n"
+        "Note that the Jacobian is set to zero where path VMR is equal to zero.\n"
+      ),
+      AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
+      OUT( "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "jacobian_quantities", "jacobian_agenda",
+          "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+      GIN( "g1", "g2", "g3", "species", "method", "unit","for_species_tag","dx" ),
+      GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "String", "Index",
+                "Numeric" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "analytical", "rel", "1", "0.001" ),
+      GIN_DESC( "Pressure retrieval grid.",
+                "Latitude retrieval grid.",
+                "Longitude retreival grid.",
+                "The species tag of the retrieval quantity.",
+                "Calculation method. See above.",
+                "Retrieval unit. See above.",
+                "Index-bool for acting on species tags or species.",
+                "Size of perturbation." 
+      ),
+      SETMETHOD(      false ),
+      AGENDAMETHOD(   false ),
+      USES_TEMPLATES( false ),
+      PASSWORKSPACE(  true  )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "jacobianAddConstantVMRAbsSpecies" ),
+      DESCRIPTION
+      (
+        "Includes an absorption species in the Jacobian.\n"
+        "\n"
+        "This method is similar to *jacobianAddAbsSpecies* but only works\n"
+        "for constant VMR.\n"
+        "\n"
+        "Will add one line to the *jacobian* matrix.  This line will be the\n"
+        "integrated contribution of the VMR of the species to the signal.\n" 
+        "The integration is done assuming constant VMR and the output will be\n"
+        "nonsensical if the input is not constant.  Users be warned!\n"
+        "\n"
+        "Since this only operates on constant integration, the only modes allowed\n"
+        "are: \"vmr\" and \"rel\".\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "jacobian_quantities", "jacobian_agenda" ),
+      GIN( "species", "mode", "for_species_tag", "dx" ),
+      GIN_TYPE( "String", "String", "Index", "Numeric" ),
+      GIN_DEFAULT( NODEF, "rel", "1", "0.001" ),
+      GIN_DESC( "The species tag of the retrieval quantity.",
+                "Retrieval unit. See above.",
+                "Index-bool for acting on species tags or species.",
+                "Size of perturbation." 
+      ),
+      SETMETHOD(      false ),
+      AGENDAMETHOD(   false ),
+      USES_TEMPLATES( false ),
+      PASSWORKSPACE(  true  )
+    ));
     
     md_data_raw.push_back
     ( MdRecord
@@ -7820,7 +7858,46 @@ void define_md_data_raw()
                   "Set to 1 if the baseline off-set is the same for all "
                   "measurement blocks." 
                   )
-        ));
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "jacobianAddSpecialSpecies" ),
+      DESCRIPTION
+      (
+        "Includes a special absorption species in the Jacobian.\n"
+        "\n"
+        "Similar to *jacobianAddAbsSpecies* but only for number densities.\n"
+        "\n"
+        "Species allowed are:\n"
+        "    \"electrons\"\n"
+        "    \"particulates\"\n"
+        "\n"
+        "Note that the average of all particulates are used to scale its\n"
+        "*jacobian*, so this method works best when only one type of\n"
+        "particulate is being used, i.e., when *scat_data* has only one\n"
+        "scattering species.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "jacobian_quantities", "jacobian_agenda",
+          "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+      GIN( "g1", "g2", "g3", "species" ),
+      GIN_TYPE( "Vector", "Vector", "Vector", "String" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF ),
+      GIN_DESC( "Pressure retrieval grid.",
+                "Latitude retrieval grid.",
+                "Longitude retreival grid.",
+                "The species of the retrieval quantity."
+      ),
+      SETMETHOD(      false ),
+      AGENDAMETHOD(   false ),
+      USES_TEMPLATES( false ),
+      PASSWORKSPACE(  true  )
+    ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -10830,11 +10907,11 @@ void define_md_data_raw()
          "but adds further contributions.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
-        OUT( "propmat_clearsky" ),
+        OUT( "propmat_clearsky", "dpropmat_clearsky_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "propmat_clearsky", "stokes_dim", "atmosphere_dim",
+        IN( "propmat_clearsky", "dpropmat_clearsky_dx", "stokes_dim", "atmosphere_dim",
             "f_grid", "abs_species", "jacobian_quantities",
             "rtp_vmr", "rtp_los", "rtp_temperature", "scat_data" ),
         GIN(         "use_abs_as_ext" ),

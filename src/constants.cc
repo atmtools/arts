@@ -370,6 +370,8 @@ extern const Numeric LAT_LON_MIN = 20;
 
 extern const String ABSSPECIES_MAINTAG  = "Absorption species";
 extern const String SCATSPECIES_MAINTAG = "Scattering species";
+extern const String PARTICULATES_MAINTAG  = "Particulate species";
+extern const String ELECTRONS_MAINTAG  = "Electron species";
 
 extern const String FREQUENCY_MAINTAG   = "Frequency";
 extern const String FREQUENCY_SUBTAG_0  = "Shift";

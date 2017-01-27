@@ -741,7 +741,7 @@ void iyTransmissionStandard(
   Index           j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
   ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0);
-  ArrayOfIndex    jac_mag_i(0), jac_other(0), fake_for_flux(0), jac_to_integrate(0); 
+  ArrayOfIndex    jac_mag_i(0), jac_other(0), jac_to_integrate(0); 
   // Flags for partial derivatives of propmat
   const PropmatPartialsData ppd(jacobian_quantities);
   //
@@ -757,7 +757,6 @@ void iyTransmissionStandard(
       jac_is_t.resize( nq ); 
       jac_wind_i.resize( nq ); 
       jac_mag_i.resize( nq ); 
-      fake_for_flux.resize( nq );
       jac_other.resize(nq);
       jac_to_integrate.resize(nq);
       //
@@ -766,24 +765,22 @@ void iyTransmissionStandard(
         {
             diy_dpath[iq].resize( 1, nf, ns ); 
             diy_dpath[iq] = 0.0;
-            jac_to_integrate[iq] = 1;
         }
         else
         {
             diy_dpath[iq].resize( np, nf, ns ); 
             diy_dpath[iq] = 0.0;
-            jac_to_integrate[iq] = 0;
         }
       )
       get_pointers_for_analytical_jacobians( jac_species_i, jac_is_t, 
-                                             jac_wind_i, jac_mag_i, fake_for_flux, 
+                                             jac_wind_i, jac_mag_i, jac_to_integrate, 
                                              jacobian_quantities, abs_species );
 
       // Should this be part of get_pointers_for_analytical_jacobians?
       FOR_ANALYTICAL_JACOBIANS_DO
       ( 
         jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
-        if( fake_for_flux[iq] )
+        if( jac_to_integrate[iq] == JAC_IS_FLUX )
             throw std::runtime_error("Cannot perform flux calculations in transmission only schemes.\n");
       )
 
@@ -992,7 +989,7 @@ void iyTransmissionStandard(
                                ppd,
                                ppath, ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_mag, 
                                ppath_wind, ppath_f, f_grid, 
-                               jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,  fake_for_flux,
+                               jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,  jac_to_integrate,
                                jac_other, iaps, scat_data,
                                pnd_field, cloudbox_limits, use_mean_scat_data, rte_alonglos_v,
                                atmosphere_dim, stokes_dim, jacobian_do, cloudbox_on,verbosity);

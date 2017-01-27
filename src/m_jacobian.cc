@@ -365,6 +365,78 @@ void jacobianAddAbsSpecies(
 }                    
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianAddConstantVMRAbsSpecies(
+  Workspace&,
+  ArrayOfRetrievalQuantity&   jq,
+  Agenda&                     jacobian_agenda,
+  const String&               species,
+  const String&               mode,
+  const Index&                for_species_tag,
+  const Numeric&              dx,
+  const Verbosity&            verbosity )
+{
+  CREATE_OUT2;
+  CREATE_OUT3;
+  
+  if(!for_species_tag)
+  {
+    ArrayOfSpeciesTag test;
+    array_species_tag_from_string(test,species);
+    if( test.nelem()!=1 )
+      throw std::runtime_error("Trying to add a species as a species tag of multiple species.\n"
+      "This is not supported.  Please give just a single species instead.\n"
+      "Otherwise consider if you intended for_species_tag to be evaluated true.\n");
+  }
+  
+  // Check that this species is not already included in the jacobian.
+  for( Index it=0; it<jq.nelem(); it++ )
+  {
+    if( jq[it].MainTag() == ABSSPECIES_MAINTAG  && jq[it].SubSubtag() != PROPMAT_SUBSUBTAG &&
+      jq[it].Subtag()  == species )
+    {
+      ostringstream os;
+      os << "The gas species:\n" << species << "\nis already included in "
+      << "*jacobian_quantities*.";
+      throw runtime_error(os.str());
+    }
+    else if( jq[it].MainTag() == ABSSPECIES_MAINTAG  && jq[it].SubSubtag() == PROPMAT_SUBSUBTAG )
+    {
+      if(SpeciesTag(jq[it].Subtag()).Species()  == SpeciesTag(species).Species())
+      {
+        ostringstream os;
+        os << "The atmospheric species of:\n" << species << "\nis already included in "
+        << "*jacobian_quantities*.";
+        throw runtime_error(os.str());
+      }
+    }
+  }
+  
+  // Check that mode is either "vmr", "nd" or "rel" 
+  if( mode != "vmr" && mode != "rel" && mode != "logrel" )
+  {
+    throw runtime_error( "The retrieval mode can only be \"vmr\", "
+    "\"rel\" or \"logrel\"." );
+  }
+  
+  // Create the new retrieval quantity
+  RetrievalQuantity rq;
+  rq.MainTag( ABSSPECIES_MAINTAG );
+  rq.Subtag( species );
+  rq.Mode( mode);
+  rq.Analytical( 1 );
+  rq.Perturbation( dx );
+  rq.SubSubtag(PROPMAT_SUBSUBTAG);
+  rq.IntegrationOn();
+  
+  // Add it to the *jacobian_quantities*
+  jq.push_back( rq );
+  
+  // Add dummy
+  jacobian_agenda.append( "jacobianCalcAbsSpeciesAnalytical", TokVal() );
+  
+}      
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcAbsSpeciesAnalytical(
@@ -3953,3 +4025,87 @@ void jacobianCalcBeamFlux(
     /* Nothing to do here for the analytical case, this function just exists
      *  to satisfy the required inputs and outputs of the jacobian_agenda */
 }
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianAddSpecialSpecies(
+  Workspace&,
+  ArrayOfRetrievalQuantity&   jq,
+  Agenda&                     jacobian_agenda,
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Vector&                     rq_p_grid,
+  const Vector&                     rq_lat_grid,
+  const Vector&                     rq_lon_grid,
+  const String&                     species,
+  const Verbosity&                  verbosity )
+{
+  CREATE_OUT2;
+  CREATE_OUT3;
+  
+  // Check retrieval grids, here we just check the length of the grids
+  // vs. the atmosphere dimension
+  ArrayOfVector grids(atmosphere_dim);
+  {
+    ostringstream os;
+    if( !check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
+      rq_p_grid, rq_lat_grid, rq_lon_grid,
+      "retrieval pressure grid", 
+      "retrieval latitude grid", 
+      "retrievallongitude_grid", 
+      atmosphere_dim ) )
+      throw runtime_error(os.str());
+  }
+  
+  // Create the new retrieval quantity
+  RetrievalQuantity rq;
+  rq.Grids( grids );
+  rq.Analytical( 1 );
+  rq.SubSubtag(PROPMAT_SUBSUBTAG);
+  
+  // Make sure modes are valid and complain if they are repeated
+  if( species == "electrons" )
+  {
+    for( Index it=0; it<jq.nelem(); it++ )
+    {
+      if( jq[it].MainTag() == ELECTRONS_MAINTAG )
+      {
+        ostringstream os;
+        os << "Electrons are already included in *jacobian_quantities*.";
+        throw std::runtime_error(os.str());
+      }
+    }
+    rq.MainTag( ELECTRONS_MAINTAG );
+  }
+  else if( species == "particulates" )
+  {
+    for( Index it=0; it<jq.nelem(); it++ )
+    {
+      if( jq[it].MainTag() == PARTICULATES_MAINTAG )
+      {
+        ostringstream os;
+        os << "Particulates are already included in *jacobian_quantities*.";
+        throw std::runtime_error(os.str());
+      }
+    }
+    rq.MainTag( PARTICULATES_MAINTAG );
+  }
+  else
+  {
+    ostringstream os;
+    os << "Unknown special species jacobian: \""  << species <<
+          "\"\nPlease see *jacobianAddSpecialSpecies* for viable options.";
+    throw std::runtime_error(os.str());
+  }
+  
+  // Add it to the *jacobian_quantities*
+  jq.push_back( rq );
+  
+  jacobian_agenda.append( "jacobianCalcAbsSpeciesAnalytical", TokVal() );
+  
+}                    
+
+
+
