@@ -22,7 +22,7 @@ namespace invlib
 template
 <
 typename LocalType,
-template <typename> typename StorageTrait = ConstRef
+template <typename> class StorageTrait = ConstRef
 >
 class MPIVector
 {
@@ -85,19 +85,19 @@ public:
     RealType norm() const;
 
 
-    template <typename T1, template <typename> typename StorageType>
+    template <typename T1, template <typename> class StorageType>
     friend auto dot(
         const MPIVector<T1, StorageType> &,
         const MPIVector<T1, StorageType> &)
     -> typename MPIVector<T1, StorageType>::RealType;
 
-    template <typename T1, template <typename> typename StorageType>
+    template <typename T1, template <typename> class StorageType>
     friend auto dot(
         const T1 &,
         const MPIVector<T1, StorageType> &)
     -> typename MPIVector<T1, StorageType>::RealType;
 
-    template <typename T1, template <typename> typename StorageType>
+    template <typename T1, template <typename> class StorageType>
     friend auto dot(
         const MPIVector<T1, StorageType> &,
         const T1 &)

@@ -93,7 +93,6 @@ public:
     template <typename T>
     using Product = MatrixProduct<PrecisionMatrix, T>;
 
-    
     template <typename T>
     Product<T> operator*(T &&B) const
     {

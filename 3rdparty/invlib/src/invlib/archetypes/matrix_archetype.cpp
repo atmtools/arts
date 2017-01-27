@@ -1,5 +1,3 @@
-#include <iostream>
-
 template <typename Real>
 MatrixArchetype<Real>::MatrixArchetype(const MatrixArchetype<Real> &A)
     : m(A.rows()), n(A.cols())
@@ -350,7 +348,7 @@ auto MatrixArchetype<Real>::col(size_t i) const
 }
 
 template<typename Real>
-auto MatrixArchetype<Real>::transpose()
+auto MatrixArchetype<Real>::transpose() const
     -> MatrixType
 {
     MatrixType B{}; B.resize(n, m);

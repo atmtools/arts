@@ -39,7 +39,10 @@
   ===========================================================================*/
 
 #include <cmath>
+#include <iterator>
 #include <stdexcept>
+#include <string>
+#include <sstream>
 #include "arts.h"
 #include "arts_omp.h"
 #include "auto_md.h"
@@ -671,6 +674,7 @@ void oem_template(
          Matrix&                     dxdy,
          Vector&                     oem_diagnostics,
          Vector&                     ml_ga_history,
+         ArrayOfString&              errors,
    const Vector&                     xa,
    const Sx_t&                       covmat_sx_inv,
    const Vector&                     y,
@@ -702,7 +706,9 @@ void oem_template(
     // Size diagnostic output and init with NaNs
     oem_diagnostics.resize( 5 );
     oem_diagnostics = NAN;
-    if( method == "ml" )
+    //
+    if( method == "ml" || method == "lm"
+        || method == "ml_cg" || method == "lm_cg" )
     {
         ml_ga_history.resize( max_iter );
         ml_ga_history = NAN;
@@ -746,72 +752,126 @@ void oem_template(
         OEMSparse SeInv(covmat_so_inv), SaInv(covmat_sx_inv);
         PrecisionSparse Pe(SeInv), Pa(SaInv);
         OEMVector xa_oem(xa), y_oem(y), x_oem;
-        AgendaWrapper aw(&ws, jacobian, &inversion_iterate_agenda);
+        AgendaWrapper aw(
+            &ws, (unsigned int) m, (unsigned int) n,
+            jacobian, yf, &inversion_iterate_agenda);
         OEM_PS_PS<AgendaWrapper> oem(aw, xa_oem, Pa, Pe);
+        int oem_verbosity = static_cast<int>(display_progress);
 
         int return_code = 0;
 
-        if (method == "li")
+        try
         {
-            GN gn(stop_dx, 1); // Linear case, only one step.
-            return_code = oem.compute(x_oem, y_oem, gn, 2 * (int) display_progress);
-        }
-        else if (method == "li_cg")
-        {
-            CG cg(stop_dx, (int) display_progress);
-            GN_CG gn(stop_dx, 1, cg); // Linear case, only one step.
-            return_code = oem.compute(x_oem, y_oem, gn, 2 * (int) display_progress);
-        }
-        else if (method == "gn")
-        {
-            GN gn(stop_dx, (unsigned int) max_iter);
-            return_code = oem.compute(x_oem, y_oem, gn, 2 * (int) display_progress);
-        }
-        else if (method == "gn_cg")
-        {
-            CG    cg(stop_dx, (int) display_progress);
-            GN_CG gn(stop_dx, (unsigned int) max_iter, cg);
-            return_code = oem.compute(x_oem, y_oem, gn, 2 * (int) display_progress);
-        }
-        else if ( (method == "lm") || (method == "ml") )
-        {
-            LM_S lm(SaInv);
-            lm.set_tolerance(stop_dx);
-            lm.set_maximum_iterations((unsigned int) max_iter);
-            lm.set_lambda(ml_ga_settings[0]);
-            lm.set_lambda_decrease(ml_ga_settings[1]);
-            lm.set_lambda_increase(ml_ga_settings[2]);
-            lm.set_lambda_threshold(ml_ga_settings[3]);
-            lm.set_lambda_maximum(ml_ga_settings[4]);
-            return_code = oem.compute(x_oem, y_oem, lm, 2 * (int) display_progress);
-        }
-        else if ( (method == "lm_cg") || (method == "ml_cg") )
-        {
-            CG cg(1e-4, (int) display_progress);
-            LM_CG_S lm(SaInv, cg);
+            if (method == "li")
+            {
+                GN gn(stop_dx, 1); // Linear case, only one step.
+                return_code = oem.compute<GN, ArtsLog>(
+                    x_oem, y_oem, gn, oem_verbosity,
+                    ml_ga_history, true);
+            }
+            else if (method == "li_cg")
+            {
+                CG cg(1e-12, oem_verbosity);
+                GN_CG gn(stop_dx, 1, cg); // Linear case, only one step.
+                return_code = oem.compute<GN_CG, ArtsLog>(
+                    x_oem, y_oem, gn, oem_verbosity,
+                    ml_ga_history);
+            }
+            else if (method == "gn")
+            {
+                GN gn(stop_dx, (unsigned int) max_iter); // Linear case, only one step.
+                return_code = oem.compute<GN, ArtsLog>(
+                    x_oem, y_oem, gn, oem_verbosity,
+                    ml_ga_history);
+            }
+            else if (method == "gn_cg")
+            {
+                CG cg(1e-12, 0);
+                GN_CG gn(stop_dx, (unsigned int) max_iter, cg);
+                return_code = oem.compute<GN_CG, ArtsLog>(
+                    x_oem, y_oem, gn, oem_verbosity,
+                    ml_ga_history);
+            }
+            else if ( (method == "lm") || (method == "ml") )
+            {
+                LM_S lm(SaInv);
 
-            lm.set_maximum_iterations((unsigned int) max_iter);
-            lm.set_lambda(ml_ga_settings[0]);
-            lm.set_lambda_decrease(ml_ga_settings[1]);
-            lm.set_lambda_increase(ml_ga_settings[2]);
-            lm.set_lambda_threshold(ml_ga_settings[3]);
-            lm.set_lambda_maximum(ml_ga_settings[4]);
+                lm.set_tolerance(stop_dx);
+                lm.set_maximum_iterations((unsigned int) max_iter);
+                lm.set_lambda(ml_ga_settings[0]);
+                lm.set_lambda_decrease(ml_ga_settings[1]);
+                lm.set_lambda_increase(ml_ga_settings[2]);
+                lm.set_lambda_threshold(ml_ga_settings[3]);
+                lm.set_lambda_maximum(ml_ga_settings[4]);
 
-            return_code = oem.compute(x_oem, y_oem, lm, 2 * (int) display_progress);
+                return_code = oem.compute<LM_S, ArtsLog>(
+                    x_oem, y_oem, lm, oem_verbosity,
+                    ml_ga_history);
+            }
+            else if ( (method == "lm_cg") || (method == "ml_cg") )
+            {
+                CG cg(1e-12, 0);
+                LM_CG_S lm(SaInv, cg);
+
+                lm.set_maximum_iterations((unsigned int) max_iter);
+                lm.set_lambda(ml_ga_settings[0]);
+                lm.set_lambda_decrease(ml_ga_settings[1]);
+                lm.set_lambda_increase(ml_ga_settings[2]);
+                lm.set_lambda_threshold(ml_ga_settings[3]);
+                lm.set_lambda_maximum(ml_ga_settings[4]);
+
+                return_code = oem.compute<LM_CG_S, ArtsLog>(
+                    x_oem, y_oem, lm, oem_verbosity,
+                    ml_ga_history);
+            }
+
+            oem_diagnostics[0] = static_cast<Index>(return_code);
+            oem_diagnostics[2] = oem.cost / static_cast<Numeric>(m);
+            oem_diagnostics[3] = oem.cost_y / static_cast<Numeric>(m);
+            oem_diagnostics[4] = static_cast<Numeric>(oem.iterations);
+        }
+        catch (const std::exception & e)
+        {
+
+            oem_diagnostics[0]  = 99;
+            oem_diagnostics[2] = oem.cost;
+            oem_diagnostics[3] = oem.cost_y;
+            oem_diagnostics[4] = static_cast<Numeric>(oem.iterations);
+            std::vector<std::string> sv = handle_nested_exception(e);
+            for (auto & s : sv)
+            {
+
+                std::stringstream ss{s};
+                std::string t{};
+                while (std::getline(ss, t))
+                {
+                    errors.push_back(t.c_str());
+                }
+            }
+        }
+        catch(...)
+        {
+            throw;
         }
 
-        oem_diagnostics[0] = return_code;
-        oem_diagnostics[2] = oem.cost;
-        oem_diagnostics[3] = oem.cost_y;
-        oem_diagnostics[4] = oem.iterations;
-
-        x = x_oem;
+        x  = x_oem;
+        yf = aw.yi;
 
         // Shall empty jacobian and dxdy be returned?
-        if( clear_matrices )
+        if(clear_matrices)
         {
             jacobian.resize(0,0);
             dxdy.resize(0,0);
+        }
+        else if (oem_diagnostics[0] == 0)
+        {
+            dxdy.resize(n, m);
+            Matrix tmp1(n,m), tmp2(n,n), tmp3(n,n);
+            mult(tmp1, transpose(jacobian), covmat_so_inv);
+            mult(tmp2, tmp1, jacobian);
+            tmp2 += covmat_sx_inv;
+            inv(tmp3, tmp2);
+            mult(dxdy, tmp3, tmp1);
         }
     }
 }
@@ -824,6 +884,7 @@ void OEM(
     Matrix&                     dxdy,
     Vector&                     oem_diagnostics,
     Vector&                     ml_ga_history,
+    ArrayOfString &             errors,
     const Vector&                     xa,
     const Sparse&                     covmat_sx_inv,
     const Vector&                     y,
@@ -842,7 +903,7 @@ void OEM(
     const Index&                      display_progress,
     const Verbosity&                  v )
 {
-    oem_template( ws, x, yf, jacobian, dxdy, oem_diagnostics, ml_ga_history,
+    oem_template( ws, x, yf, jacobian, dxdy, oem_diagnostics, ml_ga_history, errors,
                   xa, covmat_sx_inv, y, covmat_so_inv,
                   jacobian_do, jacobian_quantities, jacobian_indices,
                   inversion_iterate_agenda, 
@@ -1006,7 +1067,7 @@ void OEM_MPI(
     const Vector&                     ml_ga_settings,
     const Index&                      clear_matrices,
     const Index&                      display_progress,
-    const Verbosity&                  v )
+    const Verbosity&                  /*v*/ )
 {
     // Main sizes
     const Index n = covmat_sx_inv.nrows();
@@ -1028,11 +1089,8 @@ void OEM_MPI(
                    covmat_so_inv, covmat_sx_inv);
 
     // Setup distributed matrices.
-    ArtsSparse       SeInv(covmat_so_inv);
-    ArtsSparse       SaInv(covmat_sx_inv);
-    MPISparse        SeInvMPI(SeInv);
-    MPISparse        SaInvMPI(SaInv);
-
+    MPISparse        SeInvMPI(covmat_so_inv);
+    MPISparse        SaInvMPI(covmat_sx_inv);
 
     // Create temporary MPI vector from local results and use conversion to
     // standard vector to broadcast results to all processes.
@@ -1045,7 +1103,7 @@ void OEM_MPI(
     oem_diagnostics.resize( 5 );
     oem_diagnostics = NAN;
     //
-    if( method == "ml" )
+    if( method == "ml"  || method == "lm" )
     {
         ml_ga_history.resize( max_iter );
         ml_ga_history = NAN;
@@ -1096,11 +1154,11 @@ void OEM_MPI(
         OEM_PS_PS_MPI<AgendaWrapperMPI> oem(aw, xa_oem, Pa, Pe);
 
         // Call selected method
-        int return_value;
+        int return_value = 99;
 
         if (method == "li")
         {
-            CG cg(1e-4, 0);
+            CG cg(1e-12, 0);
             GN_CG gn(stop_dx, (unsigned int) max_iter, cg);
             return_value =  oem.compute<GN_CG, invlib::MPILog>(
                 x_oem, y_oem, gn,
@@ -1108,7 +1166,7 @@ void OEM_MPI(
         }
         else if (method == "gn")
         {
-            CG cg(1e-4, 0);
+            CG cg(1e-12, 0);
             GN_CG gn(stop_dx, (unsigned int) max_iter, cg);
             return_value =  oem.compute<GN_CG, invlib::MPILog>(
                 x_oem, y_oem, gn,
@@ -1116,7 +1174,7 @@ void OEM_MPI(
         }
         else if ( (method == "lm") || (method == "ml") )
         {
-            CG cg(1e-4, 0);
+            CG cg(1e-12, 0);
             LM_CG_S_MPI lm(SaInvMPI, cg);
 
             lm.set_tolerance(stop_dx);
@@ -1132,14 +1190,14 @@ void OEM_MPI(
                 2 * (int) display_progress);
         }
 
-        oem_diagnostics[1] = return_value;
+        oem_diagnostics[0] = return_value;
         oem_diagnostics[2] = oem.cost;
         oem_diagnostics[3] = oem.cost_y;
-        oem_diagnostics[4] = oem.iterations;
+        oem_diagnostics[4] = static_cast<Numeric>(oem.iterations);
 
         x = x_oem;
         // Shall empty jacobian and dxdy be returned?
-        if( clear_matrices )
+        if( clear_matrices && (oem_diagnostics[0]))
         {
             jacobian.resize(0,0);
             dxdy.resize(0,0);

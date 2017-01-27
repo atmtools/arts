@@ -107,6 +107,14 @@ auto ArtsMatrix::operator=(ArtsMatrix &&A)
     return *this;
 }
 
+template<typename ArtsType>
+ArtsMatrix::ArtsMatrix(
+    const ArtsMatrixReference<ArtsType> & A)
+    : Matrix(static_cast<const ArtsType &>(A))
+{
+    // Nothing to do here.
+}
+
 auto ArtsMatrix::rows() const
     -> Index
 {
@@ -138,15 +146,9 @@ auto ArtsMatrix::data_pointer()
     return this->mdata;
 }
 
-void ArtsMatrix::accumulate(const ArtsMatrix& B)
+void ArtsMatrix::accumulate(const ArtsMatrix & B)
 {
     this->operator+=(B);
-}
-
-void ArtsMatrix::accumulate(const ArtsSparse& B)
-{
-    ArtsMatrix C = B.operator ArtsMatrix();
-    this->operator+=(C);
 }
 
 void ArtsMatrix::subtract(const ArtsMatrix& B)
@@ -225,55 +227,79 @@ auto ArtsMatrix::transpose() const
     return B;
 }
 
-//-----------------//
-//   Arts Sparse   //
-//-----------------//
+//---------------------------//
+//   Arts Matrix Reference   //
+//---------------------------//
 
-auto ArtsSparse::rows() const
+template<typename ArtsType>
+auto ArtsMatrixReference<ArtsType>::rows() const
     -> Index
 {
-    return A.nrows();
+    return A.get().nrows();
 }
 
-auto ArtsSparse::cols() const
+template<typename ArtsType>
+auto ArtsMatrixReference<ArtsType>::cols() const
     -> Index
 {
-    return A.ncols();
+    return A.get().ncols();
 }
 
-auto ArtsSparse::operator()(unsigned int i, unsigned int j) const
+template<typename ArtsType>
+auto ArtsMatrixReference<ArtsType>::operator()(
+    unsigned int i,
+    unsigned int j) const
     -> RealType
 {
     return A.ro(i, j);
 }
 
-auto ArtsSparse::multiply(const ArtsMatrix &B) const
+template<typename ArtsType>
+auto ArtsMatrixReference<ArtsType>::multiply(
+    const ArtsMatrix &B) const
     -> ArtsMatrix
 {
-    ArtsMatrix C; C.resize(A.nrows(), B.ncols());
+    ArtsMatrix C; C.resize(A.get().nrows(), B.ncols());
     ::mult(C, A, B);
     return C;
 }
 
-auto ArtsSparse::multiply(const ArtsVector &v) const
+template<typename ArtsType>
+auto ArtsMatrixReference<ArtsType>::multiply(
+    const ArtsVector &v) const
     -> ArtsVector
 {
-    ArtsVector w; w.resize(A.nrows());
+    ArtsVector w; w.resize(A.get().nrows());
     ::mult(w, A, v);
     return w;
 }
 
-auto ArtsSparse::transpose_multiply(const ArtsVector &v) const
+template<typename ArtsType>
+auto ArtsMatrixReference<ArtsType>::transpose_multiply(
+    const ArtsVector &v) const
     -> ArtsVector
 {
-    ArtsVector w; w.resize(A.ncols());
-    ::transpose_mult(w, A, v);
+    ArtsVector w; w.resize(A.get().ncols());
+    ::mult(w, transpose(A.get()), v);
     return w;
 }
 
-ArtsSparse::operator ArtsMatrix() const
+template<>
+auto ArtsMatrixReference<const Sparse>::transpose_multiply(
+    const ArtsVector &v) const
+    -> ArtsVector
 {
-    ArtsMatrix B;
-    B.Matrix::operator=(A.operator Matrix());
-    return B;
+    ArtsVector w; w.resize(A.get().ncols());
+    ::transpose_mult(w, A.get(), v);
+    return w;
+}
+
+template<typename ArtsType>
+auto ArtsMatrixReference<ArtsType>::transpose_multiply(
+    const ArtsMatrix & B) const
+    -> ArtsMatrix
+{
+    ArtsMatrix C; C.resize(A.get().ncols(), B.ncols());
+    ::mult(C, transpose(A.get()), B);
+    return C;
 }

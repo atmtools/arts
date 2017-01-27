@@ -26,7 +26,7 @@ class Vector;
 template
 <
 typename LocalType,
-template <typename> typename StorageTrait
+template <typename> class StorageTrait
 >
 class MPIVector;
 
@@ -68,7 +68,7 @@ class MPIVector;
 template
 <
 typename LocalType,
-template <typename> typename StorageTrait = ConstRef
+template <typename> class StorageTrait = ConstRef
 >
 class MPIMatrix
 {
@@ -84,7 +84,7 @@ public:
     /*! The MPI type corresponding to the local vector type. */
     using NonMPIVectorType = typename LocalType::VectorType;
     /*! The local Matrix type.  */
-    template<template <typename> typename VectorStorageType>
+    template<template <typename> class VectorStorageType>
     using MPIVectorType = Vector<MPIVector<typename LocalType::VectorType,
                                            VectorStorageType>>;
     /*! The basic vector type  */
@@ -180,11 +180,11 @@ public:
     NonMPIVectorType multiply(const NonMPIVectorType &) const;
     NonMPIVectorType transpose_multiply(const NonMPIVectorType &) const;
 
-    template <template <typename> typename VectorStorageType>
+    template <template <typename> class VectorStorageType>
     auto multiply(const MPIVectorType<VectorStorageType> &v) const
         -> MPIVectorType<LValue>;
 
-    template <template <typename> typename VectorStorageType>
+    template <template <typename> class VectorStorageType>
     auto transpose_multiply(const MPIVectorType<VectorStorageType> &v) const
         -> MPIVectorType<LValue>;
 

@@ -3201,6 +3201,14 @@ void Workspace::define_wsv_data()
         "are set to NaN.\n"
        ),
       GROUP( "Vector" )));
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "oem_errors" ),
+      DESCRIPTION
+      (
+          "Errors encountered during OEM execution \n"
+       ),
+      GROUP( "ArrayOfString" )));
 
    wsv_data.push_back
    (WsvRecord

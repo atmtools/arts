@@ -1,7 +1,12 @@
+#ifndef INTERFACES_EIGEN_H
+#define INTERFACES_EIGEN_H
+
 #include <Eigen/Sparse>
 #include <utility>
 
 #include "invlib/traits.h"
+
+namespace invlib {
 
 using EigenSparseBase   = Eigen::SparseMatrix<double, Eigen::RowMajor>;
 using EigenVectorBase   = Eigen::VectorXd;
@@ -12,7 +17,7 @@ class EigenSparse;
 //   Eigen Vector    //
 // ----------------- //
 
-class EigenVector : protected EigenVectorBase
+class EigenVector : public EigenVectorBase
 {
 
 public:
@@ -43,6 +48,31 @@ public:
         : EigenVectorBase(std::forward<T>(t))
     {
         // Nothing to do here.
+    }
+
+    // ----------------- //
+    //     Conversion    //
+    // ----------------- //
+
+    EigenVector(const VectorData<double> & data)
+    {
+        BaseType::resize(data.rows());
+        for (size_t i = 0; i < data.rows(); i++)
+        {
+            BaseType::operator()(i) = data.get_element_pointer()[i];
+        }
+    }
+
+    operator VectorData<double>() const
+    {
+        auto elements  = std::shared_ptr<double *>(new (double *),
+                                                   ArrayDeleter<double *>());
+        *elements = new double[rows()];
+        for (size_t i = 0; i < rows(); i++)
+        {
+            (*elements)[i] = this->operator()(i);
+        }
+        return VectorData<double>(rows(), elements);
     }
 
     // ------------------- //
@@ -123,7 +153,7 @@ double dot(const EigenVector &v, const EigenVector &w)
 //   Eigen Sparse    //
 // ----------------- //
 
-class EigenSparse : protected EigenSparseBase
+class EigenSparse : public EigenSparseBase
 {
 
 public:
@@ -142,15 +172,34 @@ public:
     //  Constructors  //
     // -------------- //
 
+    EigenSparse() = default;
+
     template
     <
     typename T,
-    typename = invlib::enable_if<invlib::is_constructible<EigenVectorBase, T>>
+    typename = invlib::enable_if<invlib::is_constructible<BaseType, T>>
     >
     EigenSparse(T &&t)
         : EigenSparseBase(std::forward<T>(t))
     {
         // Nothing to do here.
+    }
+
+    template <typename Index>
+    EigenSparse(const SparseData<double, Index, Representation::Coordinates> & data)
+    {
+        std::vector<Eigen::Triplet<double>> triplets{};
+
+        size_t nnz = data.non_zeros();
+        triplets.reserve(nnz);
+        for (size_t i = 0; i < nnz; i++)
+        {
+            triplets.emplace_back(data.get_row_index_pointer()[i],
+                                  data.get_column_index_pointer()[i],
+                                  data.get_element_pointer()[i]);
+        }
+        BaseType::resize(data.rows(), data.cols());
+        BaseType::setFromTriplets(triplets.begin(), triplets.end());
     }
 
     // ------------------- //
@@ -194,4 +243,16 @@ public:
         return w;
     }
 
+    VectorType transpose_multiply_block(
+        const VectorType &v,
+        size_t block_start,
+        size_t block_length) const
+    {
+        VectorType w = this->transpose() * v.block(block_start, 0, block_length, 1);
+        return w;
+    }
+
 };
+
+}      // namespace invlib
+#endif // INTERFACES_EIGEN_H

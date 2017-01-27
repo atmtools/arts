@@ -13,6 +13,9 @@
 #include <iterator>
 #include <memory>
 
+namespace invlib
+{
+
 // -------------------- //
 // Forward Declarations //
 // -------------------- //
@@ -219,4 +222,5 @@ std::ostream & operator<<(std::ostream &, const VectorArchetype<RealType>&);
 
 #include "vector_archetype.cpp"
 
+}      // namespace invlib
 #endif // ARCHETYPES_VECTOR_ARCHETYPE_H

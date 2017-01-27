@@ -54,14 +54,14 @@ template<typename T1>
 auto MatrixTranspose<T1>::row(size_t i) const
     -> VectorType
 {
-    return A.col(i);
+    return remove_reference_wrapper(A).col(i);
 }
 
 template<typename T1>
 auto MatrixTranspose<T1>::col(size_t i) const
     -> VectorType
 {
-    return A.row(i);
+    return remove_reference_wrapper(A).row(i);
 }
 
 template<typename T1>
@@ -83,6 +83,6 @@ auto MatrixTranspose<T1>::operator*(T2 &&B) const
 template<typename T1>
 MatrixTranspose<T1>::operator ResultType() const
 {
-    ResultType B = A.transpose();
+    ResultType B = remove_reference_wrapper(A).transpose();
     return B;
 }

@@ -20,7 +20,7 @@ using invlib::decay;
 
 class ArtsMatrix;
 class ArtsVector;
-class ArtsSparse;
+template <typename MatrixType> class ArtsMatrixReference;
 
 // --------------//
 //  Arts Vector  //
@@ -101,6 +101,9 @@ public:
     ArtsMatrix(ArtsMatrix &&A);
     ArtsMatrix & operator=(ArtsMatrix &&A);
 
+    template <typename ArtsType>
+    ArtsMatrix(const ArtsMatrixReference<ArtsType> & A);
+
     // ----------------- //
     //   Manipulations   //
     // ----------------- //
@@ -118,8 +121,6 @@ public:
     // ------------ //
 
     void accumulate(const ArtsMatrix& B);
-    void accumulate(const ArtsSparse& B);
-
     void subtract(const ArtsMatrix& B);
 
     ArtsMatrix multiply(const ArtsMatrix &B) const;
@@ -140,12 +141,21 @@ public:
 
 };
 
-/** \brief Arts dense matrix interace wrapper.
+// ------------------------//
+//  Arts Matrix Reference  //
+// ----------------------- //
+
+/** \brief Wrapper for reference to Arts matrices.
  *
- * Simple wrapper class providing an interface to the ARTS matrix class.
+ * Lightweight wrapper object that wraps around an
+ * existing (!) Arts matrix. Avoids copying of input
+ * and output matrices.
  *
+ * \tparam The Arts matrix type to wrap around, i.e.
+ * Matrix or Sparse.
  */
-class ArtsSparse
+template <typename ArtsType>
+class ArtsMatrixReference
 {
 public:
 
@@ -158,14 +168,20 @@ public:
     //  Constructors and Destructors   //
     // ------------------------------- //
 
-    ArtsSparse() = delete;
-    ArtsSparse(const Sparse& A_) : A(A_) {}
+    ArtsMatrixReference() = delete;
 
-    ArtsSparse(const ArtsSparse&) = default;
-    ArtsSparse(ArtsSparse&&)      = delete;
+    template <typename T>
+    ArtsMatrixReference(T & A_) : A(A_) {}
 
-    ArtsSparse & operator=(const ArtsSparse&) = delete;
-    ArtsSparse & operator=(ArtsSparse &&)     = delete;
+    ArtsMatrixReference(const ArtsMatrixReference &) = default;
+    ArtsMatrixReference(ArtsMatrixReference&&) = delete;
+
+    ArtsMatrixReference & operator=(ArtsMatrixReference&)
+        = default;
+    ArtsMatrixReference & operator=(ArtsMatrixReference &&)
+        = delete;
+
+    operator ArtsType   & () const {return A.get();}
 
     // ----------------- //
     //   Manipulations   //
@@ -183,12 +199,11 @@ public:
     ArtsVector multiply(const ArtsVector &v) const;
     ArtsVector transpose_multiply(const ArtsVector &v) const;
     ArtsMatrix multiply(const ArtsMatrix &B) const;
-
-    operator ArtsMatrix() const;
+    ArtsMatrix transpose_multiply(const ArtsMatrix &v) const;
 
 private:
 
-    const Sparse& A;
+    std::reference_wrapper<ArtsType> A;
 
 };
 

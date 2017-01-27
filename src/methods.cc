@@ -9804,7 +9804,7 @@ void define_md_data_raw()
          "   the cost function is calculated (independent of other choices).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "x", "yf", "jacobian", "dxdy", "oem_diagnostics", "ml_ga_history" ),
+        OUT( "x", "yf", "jacobian", "dxdy", "oem_diagnostics", "ml_ga_history", "oem_errors"),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),

@@ -93,6 +93,16 @@ auto GaussNewton<RealType, Solver> ::step(const VectorType &,
                                           const CostFunction &)
     -> VectorType
 {
-    VectorType dx = -1.0 * solver.solve(B, g);
-    return dx;
+    try
+    {
+        VectorType dx = -1.0 * solver.solve(B, g);
+        return dx;
+    }
+    catch (...)
+    {
+        std::runtime_error(
+            "Linear System Solution Error in Gauss-Newton Method."
+            );
+        return VectorType();
+    }
 }

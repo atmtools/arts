@@ -92,7 +92,7 @@ public:
     // --------------------- //
 
     template <typename T1>
-    T1 multiply(T1 &A) const;
+    T1 multiply(T1 &&A) const;
 
     template <typename T1>
     T1 multiply(const T1 &A) const;

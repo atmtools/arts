@@ -22,8 +22,7 @@
 
 // OEM types.
 using MPIMatrix       = invlib::Matrix<invlib::MPIMatrix<invlib::Timer<ArtsMatrix>>>;
-using MPISparse       = invlib::Matrix<invlib::MPIMatrix<invlib::Timer<ArtsSparse>,
-                                                         invlib::LValue>>;
+using MPISparse       = invlib::Matrix<invlib::MPIMatrix<invlib::Timer<ArtsMatrixReference<const Sparse>>>>;
 using MPIVector       = invlib::Vector<invlib::MPIVector<invlib::Timer<ArtsVector>>>;
 
 using PrecisionMPI    = invlib::PrecisionMatrix<MPISparse>;

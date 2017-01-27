@@ -77,7 +77,7 @@ class Vector;
 template
 <
 typename LocalType,
-template <typename> typename StorageTrait
+template <typename> class StorageTrait
 >
 class MPIVector;
 
@@ -90,7 +90,7 @@ class Matrix;
 template
 <
 typename LocalType,
-template <typename> typename StorageTrait
+template <typename> class StorageTrait
 >
 class MPIMatrix;
 
@@ -99,14 +99,14 @@ class MPIMatrix;
 template
 <
 typename T1,
-template <typename> typename StorageType
+template <typename> class StorageType
 >
 struct MPITypeStruct;
 
 template
 <
 typename T1,
-template <typename> typename StorageType
+template <typename> class StorageType
 >
 struct MPITypeStruct<Vector<T1>, StorageType>
 {
@@ -117,7 +117,7 @@ public:
 template
 <
 typename T1,
-template <typename> typename StorageType
+template <typename> class StorageType
 >
 struct MPITypeStruct<Matrix<T1>, StorageType>
 {
@@ -130,7 +130,7 @@ public:
 template
 <
 typename T1,
-template <typename> typename StorageType
+template <typename> class StorageType
 >
 using MPIType = typename MPITypeStruct<T1, StorageType>::type;
 

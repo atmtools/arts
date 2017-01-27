@@ -21,9 +21,21 @@ namespace invlib
 {
 
 duration<double> multiply_mv_time;
+duration<double> multiply_mtv_time;
 duration<double> multiply_mm_time;
+duration<double> multiply_mtm_time;
 duration<double> solve_time;
 duration<double> invert_time;
+
+void reset_times()
+{
+    multiply_mv_time  = duration<double>::zero();
+    multiply_mtv_time = duration<double>::zero();
+    multiply_mm_time  = duration<double>::zero();
+    multiply_mtm_time = duration<double>::zero();
+    solve_time        = duration<double>::zero();
+    invert_time       = duration<double>::zero();
+}
 
 /*! Generic timer class that wraps around a generic vector or matrix type and
  *  records the time spent in the function for Matrix-Vector multiplication,
@@ -62,28 +74,22 @@ public:
     //  Construction & Assignment //
     // -------------------------- //
 
-    Timer() = default;
+    /*! Default constructor. */
+    template <typename = is_default_constructible<Base>>
+        Timer();
 
+    /*! Perfect forwarding constructor. */
     template
     <
     typename T,
-    typename = is_constructible<Base, T>
+    typename = enable_if<is_constructible<Base, T>>
     >
-    Timer(T &&);
+        Timer(T &&);
 
-    template
-    <
-    typename T,
-    typename = is_assignable<Base, T>
-    >
-    Timer & operator=(T &&);
-
-    template
-    <
-    typename T,
-    typename = is_copy_assignable<T>
-    >
-    Timer & operator=(const T &);
+    template <typename T, typename = enable_if<is_assignable<Base &, T &&>>>
+        Timer & operator=(      T &&);
+    template <typename T, typename = is_copy_assignable<T>>
+        Timer & operator=(const T &);
 
     // ------------------------ //
     //   Arithmetic Operations  //

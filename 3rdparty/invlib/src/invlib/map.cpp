@@ -114,7 +114,9 @@ auto MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>
     }
     catch(...)
     {
-        throw ForwardModelEvaluationException{};
+        std::throw_with_nested(
+            std::runtime_error("Forward Model Evaluation Error")
+        );
     }
 }
 
@@ -141,7 +143,9 @@ auto MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>
     }
     catch(...)
     {
-        throw ForwardModelEvaluationException{};
+        std::throw_with_nested(
+            std::runtime_error("Forward Model Evaluation Error")
+        );
     }
 }
 
@@ -195,29 +199,34 @@ MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STANDARD>
 
 template
 <
-typename ForwardModel,
-typename MatrixType,
-typename SaType,
-typename SeType,
-typename VectorType
+    typename ForwardModel,
+    typename MatrixType,
+    typename SaType,
+    typename SeType,
+    typename VectorType
 >
-template<typename Minimizer, template <LogType> class Log>
+template
+<
+    typename Minimizer,
+    template <LogType> class Log,
+    typename ... LogArgs
+>
 auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STANDARD>
 ::compute(VectorType       &x,
           const VectorType &y,
           Minimizer M,
-          int verbosity)
+          LogArgs && ... log_args)
     -> int
 {
 
-    Log<LogType::MAP> log(verbosity);
-    log.init(Formulation::STANDARD, M);
+    Log<LogType::MAP> log(log_args ...);
+    log.init(F, xa, Sa, Se, y, M, Formulation::STANDARD);
 
     auto t1 = std::chrono::steady_clock::now();
 
     y_ptr = &y;
     x = xa;
-    FMVectorType yi; yi.resize(m);
+    MeasurementVectorType yi; yi.resize(m);
     JacobianType K = Jacobian(x, yi);
     VectorType dx;
 
@@ -227,6 +236,8 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STAN
 
     bool converged = false;
     iterations     = 0;
+
+    log.step(iterations, cost, cost_x, cost_y, NAN, M);
 
     while ((iterations < M.get_maximum_iterations()) && !converged)
     {
@@ -239,7 +250,7 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STAN
         x += dx;
 
         // Check for convergence.
-        RealType conv = dot(dx, H * dx) / n;
+        RealType conv = dot(dx, H * dx) / (RealType) n;
         if (conv < M.get_tolerance())
         {
             converged = true;
@@ -292,28 +303,34 @@ MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFORM>
 
 template
 <
-typename ForwardModel,
-typename MatrixType,
-typename SaType,
-typename SeType,
-typename VectorType
+    typename ForwardModel,
+    typename MatrixType,
+    typename SaType,
+    typename SeType,
+    typename VectorType
 >
-template<typename Minimizer, template <LogType> class Log>
+template
+<
+    typename Minimizer,
+    template <LogType> class Log,
+    typename ... LogArgs
+>
 auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFORM>
 ::compute(VectorType       &x,
           const VectorType &y,
           Minimizer M,
-          int verbosity)
+          LogArgs && ... log_args)
     -> int
 {
 
-    Log<LogType::MAP> log(verbosity);
-    log.init(Formulation::STANDARD, M);
+    Log<LogType::MAP> log(log_args ...);
+    log.init(F, xa, Sa, Se, y, M, Formulation::NFORM);
+
     auto t1 = std::chrono::steady_clock::now();
 
     y_ptr = &y;
     x = xa;
-    FMVectorType yi; yi.resize(m);
+    MeasurementVectorType yi; yi.resize(m);
     JacobianType K = Jacobian(x, yi);
 
     VectorType dx;
@@ -324,6 +341,8 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFOR
 
     bool converged = false;
     iterations = 0;
+
+    log.step(iterations, cost, cost_x, cost_y, NAN, M);
 
     while (iterations < M.get_maximum_iterations() && !converged)
     {
@@ -409,26 +428,31 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFOR
 
 template
 <
-typename ForwardModel,
-typename MatrixType,
-typename SaType,
-typename SeType,
-typename VectorType
+    typename ForwardModel,
+    typename MatrixType,
+    typename SaType,
+    typename SeType,
+    typename VectorType
 >
-template<typename Minimizer, template <LogType> class Log>
+template
+<
+    typename Minimizer,
+    template <LogType> class Log,
+    typename ... LogArgs
+>
 auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFORM>
 ::compute(VectorType       &x,
           const VectorType &y,
           Minimizer M,
-          int verbosity)
+          LogArgs && ... log_args)
     -> int
 {
-    Log<LogType::MAP> log(verbosity);
+    Log<LogType::MAP> log(log_args ...);
     auto t1 = std::chrono::steady_clock::now();
 
     y_ptr = &y;
     x = xa;
-    FMVectorType yi; yi.resize(m);
+    MeasurementVectorType yi;
     JacobianType K = Jacobian(x, yi);
     VectorType dx, yold;
 

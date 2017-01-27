@@ -1,3 +1,47 @@
+2017-01-27  Simon Pfreundschuh  <simonpf@chalmers.se>
+
+	* arts-2-3-604
+
+	* 3rdparty/invlib/*:
+	Updated invlib version to current
+	  development status.
+
+	* src/agenda_wrapper.h:
+
+	(AgendaWrapper):
+	Avoid recomputation of Jacobian on forward model
+	  evaluation.
+	Implemented caching of Jacobian and yf vector provided
+	  on creation.
+
+	* src/methods.cc
+
+	(OEM):
+	Added oem errors output argument, that is used to store
+	  errors encountered during OEM execution.
+
+	* src/m_oem.cc
+
+	(oem_template)
+	Added error handling oem computation.
+	Fixed returning of diagnostic values.
+	Fixed storing of gamma factor for the
+	  Levenberg-Marquardt method.
+
+	* src/oem.h
+
+	(ArtsLog)
+	Added invlib logging class to adapt logging
+	  output to Arts requirements.
+	(handle_nested_exception)
+	Generic error handling function, that converts nested
+	  exception to a vector of strings.
+
+	* src/workspace.cc
+
+	(oem_errors)
+	Added oem_errors WSV.
+
 2017-01-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-603

@@ -23,12 +23,11 @@
  */
 class AgendaWrapper
 {
-    Workspace *ws;
-    OEMMatrix jacobian;
-    const Agenda *inversion_iterate_agenda;
 public:
 
     const unsigned int m,n;
+    OEMMatrixReference jacobian;
+    OEMVector          yi;
 
 //! Create inversion_iterate_agendaExecute wrapper.
 /*!
@@ -43,14 +42,19 @@ public:
   execution function.
 
 */
-    AgendaWrapper( Workspace *ws_,
-                   Matrix &jacobian_,
+    AgendaWrapper( Workspace * ws_,
+                   unsigned int m_,
+                   unsigned int n_,
+                   Matrix & jacobian_,
+                   Vector & yi_,
                    const Agenda *inversion_iterate_agenda_ ) :
-        ws(ws_),
-        jacobian(jacobian_),
+        m(m_),
+        n(n_),
+        jacobian(jacobian_), yi(yi_), ws(ws_),
         inversion_iterate_agenda( inversion_iterate_agenda_ ),
-        m( (unsigned int) jacobian.nrows()),
-        n( (unsigned int) jacobian.ncols())
+        reuse_jacobian((jacobian_.nrows() != 0) &&
+                        (jacobian_.ncols() != 0) &&
+                        (yi_.nelem() != 0))
         {}
 
 //! Evaluate forward model and compute Jacobian.
@@ -65,10 +69,19 @@ public:
   \param[out] J The Jacobian Ki=d/dx(K(x)) of the forward model.
   \param[in] x The current state vector x.
 */
-    OEMMatrix & Jacobian(const OEMVector &xi, OEMVector &yi)
+    OEMMatrixReference Jacobian(const OEMVector & xi,
+                                OEMVector & yi_)
     {
-        inversion_iterate_agendaExecute( *ws, yi, jacobian, xi, 1,
-                                         *inversion_iterate_agenda );
+        if (true)
+        {
+            inversion_iterate_agendaExecute(
+                *ws, yi, jacobian, xi, 1,
+                *inversion_iterate_agenda);
+            yi_ = yi;
+        } else {
+            reuse_jacobian = false;
+            yi_ = yi;
+        }
         return jacobian;
     }
 
@@ -83,12 +96,23 @@ public:
 */
     OEMVector evaluate(const OEMVector &xi)
     {
-        OEMVector yi; yi.resize(m);
-        Matrix dummy;
-        inversion_iterate_agendaExecute( *ws, yi, dummy, xi, 1,
-                                         *inversion_iterate_agenda );
+        if (!reuse_jacobian)
+        {
+            Matrix dummy;
+            inversion_iterate_agendaExecute(
+                *ws, yi, dummy, xi, 0,
+                *inversion_iterate_agenda );
+        } else {
+            reuse_jacobian = false;
+        }
         return yi;
     }
+
+private:
+
+    Workspace          * ws;
+    const Agenda       * inversion_iterate_agenda;
+    bool                 reuse_jacobian;
 
 };
 

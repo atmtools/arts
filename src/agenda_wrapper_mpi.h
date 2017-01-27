@@ -29,11 +29,15 @@ class AgendaWrapperMPI
 public:
 
     const unsigned int m,n;
-    AgendaWrapperMPI(Workspace *ws_,
-                     const Agenda *inversion_iterate_agenda_,
-                     Index m_, Index n_) :
-        ws(ws_), inversion_iterate_agenda(inversion_iterate_agenda_), m(m_),
-        n(n_), local_jacobian()
+
+    AgendaWrapperMPI(
+        Workspace *ws_,
+        const Agenda *inversion_iterate_agenda_,
+        Index m_, Index n_) :
+    ws(ws_), local_jacobian(),
+    inversion_iterate_agenda(inversion_iterate_agenda_),
+    m(static_cast<unsigned int>(m_)),
+    n(static_cast<unsigned int>(n_))
     {}
 
     MPIMatrix Jacobian(const OEMVector &xi, OEMVector &yi)

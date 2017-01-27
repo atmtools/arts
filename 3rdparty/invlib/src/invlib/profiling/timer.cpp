@@ -3,6 +3,13 @@
 // -------------------------- //
 
 template <typename Base>
+    template <typename>
+Timer<Base>::Timer() : Base()
+{
+    // Nothing to do here.
+}
+
+template <typename Base>
     template <typename T, typename>
 Timer<Base>::Timer(T &&t) : Base(std::forward<T>(t))
 {
@@ -49,7 +56,7 @@ auto Timer<Base>::transpose_multiply(const VectorType &v) const
     auto t1 = steady_clock::now();
     auto w  = Base::transpose_multiply(v);
     auto t2 = steady_clock::now();
-    multiply_mv_time += duration_cast<duration<double>>(t2 - t1);
+    multiply_mtv_time += duration_cast<duration<double>>(t2 - t1);
     return w;
 }
 
@@ -71,7 +78,7 @@ auto Timer<Base>::transpose_multiply(const MatrixType &B) const
     auto t1 = steady_clock::now();
     auto C  = Base::transpose_multiply(B);
     auto t2 = steady_clock::now();
-    multiply_mm_time += duration_cast<duration<double>>(t2 - t1);
+    multiply_mtm_time += duration_cast<duration<double>>(t2 - t1);
     return C;
 }
 

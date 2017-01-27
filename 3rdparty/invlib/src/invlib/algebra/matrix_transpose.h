@@ -63,8 +63,8 @@ public:
     MatrixTranspose & operator=(const MatrixTranspose &) = default;
     MatrixTranspose & operator=(MatrixTranspose &&) = default;
 
-    size_t cols() const {return A.rows();}
-    size_t rows() const {return A.cols();}
+    size_t cols() const {return remove_reference_wrapper(A).rows();}
+    size_t rows() const {return remove_reference_wrapper(A).cols();}
 
     // --------------------- //
     //   Nested Evaluation   //
@@ -168,7 +168,7 @@ public:
 
 private:
 
-    T1 A;
+    CopyWrapper<T1> A;
 
 };
 
@@ -182,10 +182,11 @@ private:
  * of the given algebraic expression.
  *
  */
+template <typename T> void foo();
 template <typename T1>
-MatrixTranspose<RemoveReferenceWrapper<T1>> transp(T1 &&A)
+MatrixTranspose<T1> transp(T1 &&A)
 {
-    return MatrixTranspose<RemoveReferenceWrapper<T1>>(A);
+    return MatrixTranspose<T1>(std::forward<T1>(A));
 }
 
 #include "matrix_transpose.cpp"

@@ -26,7 +26,7 @@ auto MatrixIdentity<Matrix>::diagonal() const
 
 template <typename Matrix>
     template <typename T1>
-auto MatrixIdentity<Matrix>::multiply(T1 &A) const
+auto MatrixIdentity<Matrix>::multiply(T1 &&A) const
     -> T1
 {
     A.scale(c);

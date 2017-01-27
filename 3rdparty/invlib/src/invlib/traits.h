@@ -134,9 +134,12 @@ template<typename T1, typename T2>
 using is_constructible = typename std::is_constructible<T1, T2>;
 
 template<typename T1>
+using is_move_constructible = typename std::is_move_constructible<T1>;
+
+template<typename T1>
 using is_default_constructible = typename std::is_default_constructible<T1>;
 
-template<typename T1, typename T2>
+template<typename T1>
 using is_copy_constructible = typename std::is_copy_constructible<T1>;
 
 template<typename T1, typename T2>
@@ -179,6 +182,28 @@ struct is_same_template<TT1, TT1>
     static constexpr bool value = true;
 };
 
-}     // namespace::invlib
+// ----------------------------- //
+//        Is Callable            //
+// ----------------------------- //
 
+template
+<
+    typename F,
+    typename = void
+>
+struct is_callable
+{
+    static constexpr bool value = false;
+};
+
+template
+<
+    typename F
+>
+struct is_callable<F, typename std::result_of<F>::type>
+{
+    static constexpr bool value = true;
+};
+
+}      // invlib
 #endif // TRAITS_H
