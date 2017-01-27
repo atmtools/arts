@@ -1,3 +1,9 @@
+2017-01-27  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-605
+
+	* src/m_oem.cc (OEM): Fix dummy function arguments for non-OEM builds.
+
 2017-01-27  Simon Pfreundschuh  <simonpf@chalmers.se>
 
 	* arts-2-3-604
