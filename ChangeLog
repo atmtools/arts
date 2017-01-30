@@ -1,3 +1,14 @@
+2017-01-30  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-609
+
+	* cmake/scripts/update_doxyfile.cmake,
+	doc/doxygen/Doxyfile.in:
+
+	Check if dot tool is installed. Set HAVE_DOT accordingly.
+	Fixes flood of messages 'sh: 1: dot: not found' on Linux if dot tool is
+	not installed. Bug reported by Richard.
+
 2017-01-27  Stefan Buehler  <stefan.buehler(at)uni-hamburg.de>
 
 	* arts-2-3-608
