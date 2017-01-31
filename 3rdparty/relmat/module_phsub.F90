@@ -141,12 +141,12 @@ END module module_phsub
     use module_maths
     use module_error
     Implicit None
-    integer*8, intent(in)         :: nLines
+    integer*8, intent(in)       :: nLines
     type (dta_SDF),intent(inout):: dta1
     type (dta_MOL),intent(in)   :: molP
-    integer*8                 :: N_i, N_f, J_i, J_f
-    integer*8                 :: i, j, k
-    real*8                        :: s_i, s_f
+    integer*8                   :: N_i, N_f, J_i, J_f
+    integer*8                   :: i, j, k
+    real*8                      :: s_i, s_f
     double precision            :: cte,fA,fB, w3j
     double precision            :: pure_b_case, purehund, d0
     double precision            :: signDIP, Ia_hit
@@ -163,83 +163,159 @@ END module module_phsub
 !
 ! INIT. VAR:
 !-----------
-    DO k=1,nLines
-      !print*, k, nLines
+    DO k = 1, nLines
+    !print*, k, nLines
+      J_i  = int(dta1%J(k,1)) !J_i  = J LOWER L.
+      J_f  = int(dta1%J(k,2)) !J_f  = J UPPER L.
       !
-      ! Dipole
+      ! REDUCE MATRIX ELEMENT, D0
       !
-      ! K_t = marks the dimension of the tensor.
-      ! isotropic Raman = 0 
-      ! IR -> K_t = 1
-      ! Raman -> K_t = 2
-      ! wigner simbols are implemented for -> IR case.
-      w3j = wigner3j( dta1%J(k,1), real(K_t,dp), dta1%J(k,2), &
-                        real(dta1%lv2(1), dp), real( dta1%lv2(2)-dta1%lv2(1),dp), &
-                        real(-dta1%lv2(2), dp))
-      d0 = j*dsqrt(2.*dta1%J(k,2) + 1.)*w3j
-      dta1%D0(k)    = d0
-      !
-      ! Dipole sign
-      ! 
-      !print*, "molecule class:", dta1%class
-      if ( (dta1%class .eq. 1) .or. (dta1%class .eq. 2) ) then
-        ! if the program is dealing with a diatomic molecule
-        ! then HUND's pure cases help to the calcualtion of 
-        ! the sign.
-        ! DATA:
-        ! N_i  = dta1%N(k,1)
-        ! N_f  = dta1%N(k,2)
-        ! J_i  = dta1%J(k,1) !LOWER L.
-        ! J_f  = dta1%J(k,2) !UPPER L.
-        ! Call the function:
-        !pure_b_case= pureHund(caseHund,      J_i,         N_i,         J_f,         N_f)
-        pure_b_case = pureHund(caseHund, dta1%J(k,1), dta1%N(k,1), dta1%J(k,2), dta1%N(k,2))
-        signDIP =pure_b_case/ABS(pure_b_case)    
-        if (isnan(signDIP) .or. isInf(signDIP)) then
-          if (k.gt.1) then
-            signDIP = dta1%D0(k-1)/abs(dta1%D0(k-1))
-          else 
-            signDIP = 1.0_dp
-          endif
-        endif
-      elseif ((dta1%class .eq. 4) .or. (dta1%class .eq. 5)) then
-        ! J_if -> dp
-        J_i  = int(dta1%J(k,1)) !J_i  = J LOWER L.
-        J_f  = int(dta1%J(k,2)) !J_f  = J UPPER L.
-        !
-        ! Calculating the Reduce matrix element
-        !
         if ( mod((J_f+dta1%lv2(2)),2) .eq. 0) then
         ! j = (-1)**(J_f+lf)
           j = 1
         else
           j = -1
         endif
-        !
-        ! Calculating the Rigid rotor Dipole
-        !
-        if ( mod(J_f,2) .eq. 0) then
-        ! j = (-1)**(J_f)
-          j = 1
-        else
-          j = -1
-        endif
+        ! K_t = marks the dimension of the tensor.
+        ! isotropic Raman = 0 
+        !   IR ----> K_t = 1
+        !   Raman -> K_t = 2
+        ! wigner simbols are implemented for -> IR case.
         w3j = wigner3j( dta1%J(k,1), real(K_t,dp), dta1%J(k,2), &
-                        0.0_dp, 0.0_dp, 0.0_dp)
-        dta1%Drigrotor(k) = j*dsqrt(2.*dta1%J(k,2) + 1.)*w3j
-
-        signDIP =d0/ABS(d0) 
-        if (isnan(signDIP) .or. isinf(signDIP)) then
-          if (k .gt. 1) then
-            signDIP = dta1%Drigrotor(k-1)/abs(dta1%Drigrotor(k-1))
-          else
-            signDIP = 1
-          endif
-        endif
-      else
-        signDIP = 1
-      endif
-      dta1%D0(k)= dta1%D0(k)*signDIP
+                        real(dta1%lv2(1), dp), real( dta1%lv2(2)-dta1%lv2(1),dp), &
+                        real(-dta1%lv2(2), dp))
+        d0 = j*dsqrt(2.*dta1%J(k,2) + 1.)*w3j
+        dta1%D0(k)    = d0
+      ! print*,dta1%D0(k)
+!      !
+!      ! RIGID ROTOR DIPOLE
+!      !
+!        if ( mod(J_f,2) .eq. 0) then
+!        ! j = (-1)**(J_f)
+!          j = 1
+!        else
+!          j = -1
+!        endif
+!        w3j = wigner3j( dta1%J(k,1), real(K_t,dp), dta1%J(k,2), &
+!                        0.0_dp, 0.0_dp, 0.0_dp)
+!        dta1%Drigrotor(k) = j*dsqrt(2.*dta1%J(k,2) + 1.)*w3j
+!      !
+!      ! DIPOLE MOMENT 
+!      !
+!      ! Weighted transition moment Squared (|R)
+!      ! FORMULA:
+!      ! |R = (1/g00)*|R12|^2 ; 
+!      !
+!      ! where:
+!      ! * R12 is the transition moment 
+!      !     1) Electric dipole transition (edt)
+!      !         g2·A_21 = (16·pi^3/3·h·ε0)·wno^3·|R12|^2.
+!      !     units: C2·m2
+!      !
+!      !     2) magnetic dipole transition (mdt)
+!      !         g2·A_21 = (16·µ0·pi^3/3·h)·wno^3·|R12|^2.
+!      !     units: A2·m4
+!      !
+!      !     3) electric-quadrupole transitions (eqt)
+!      !         g2·A_21 = (8·pi^5/5·h·ε0)·wno^5·|R12|^2.
+!      !     units: C2·m4
+!      ! * ε0 is the vacuum permittivity fundamental physical constant
+!      ! * µ0 is the vacuum permeability fundamental physical constant
+!      !
+!      ! NOTE: for conversion to centimetre–gram–second system of units (cgs) 
+!      !       electrostatic units, ε0 should be replaced by 1/4pi.
+!      ! See:
+!      !* Tatum JB. The interpretation of intensities in diatomic molecular spectra. 
+!      !  Astrophys J Suppl Ser 1967;14:21–56;
+!      !* Tatum JB. Erratum: interpretation of intensities in diatomic molecular spectra. 
+!      !  Astrophys J Suppl Ser 1971;22:388.
+!      !
+!      ! NOTE: the majority of the transitions in HITRAN are 
+!      ! electric-dipole.
+!      !
+!      ! NOTE 2: 
+!      ! To calculate the dipole moment you can use the Einstein 
+!      ! coefficients or the line intensity.
+!      ! We have followed [Simenckova et al. 2006] for this fomulation.
+!      !
+!      ! UNITS:
+!      ! [Debye^2 = 10E-36 ergs·cm3] where [1erg = 1E-07 J]
+!      !
+!      if (tdcal .eq. 'S') then
+!      ! Using LINE-INTENSITY:
+!      !intensity factor in HITRAN:
+!        Ia_hit = molP % IAb(dta1%iso)
+!        !print*, Ia_hit, molP % IAb(dta1%iso)
+!        !stop
+!      ! Parts of the formula:
+!        fA  = -c2*dta1%Sig(k)/T0
+!        fB  = 1. - exp(fA)
+!        cte = 1.0E036*3.d0*hp_cgs*c/(8.d0*Pi**3)
+!        dta1%DipoT0(k)= cte*v_permit*dta1%Str(k)/ &
+!                  (Ia_hit*dta1%Sig(k)*&
+!                  dta1%PopuT0(k)*fB   & !-> ergs·cm3
+!                  )!*1E-07! => J·cm3
+!        !
+!        ! DIPOLE MOMENT (R12)
+!        !
+!        dta1%DipoT0(k)= DSQRT(dta1%DipoT0(k)*dta1%swei00(k))
+!        
+!       else if (tdcal .eq. 'A') then
+!       ! THIS PART SHOULD BE CHECKED (UNITS)
+!            if (tmt .eq. 'edt') then
+!                ! because hp [J·s] and J = Kg m2/s2 = 1E7 g·cm2/s2
+!                ! and our v_permit is in c·g·s?
+!                ! then we have to transform J into that system?
+!                ! conversion C2m2 to J·cm3 ??
+!                cte = 3.*1E07*hplank*v_permit/(16.*pi**3)
+!                dta1%DipoT0(k) = cte*dta1%A21(k)*&
+!                                (dta1%swei0(k)/&
+!                                 dta1%Sig(k)**3)
+!            else if (tmt .eq. 'mdt') then
+!                cte = 3.*hplank/(16.*v_permea*pi**3)
+!                dta1%DipoT0(k) = dta1%A21(k)*&
+!                                (dta1%swei0(k)/&
+!                                 dta1%Sig(k)**3)
+!            else if (tmt .eq. 'eqt') then
+!                cte = 5.*1E07*hplank*v_permit/(8.*pi**5)
+!                dta1%DipoT0(k) = dta1%A21(k)*&
+!                                (dta1%swei0(k)/&
+!                                 dta1%Sig(k)**5)
+!            else
+!                print*, 'No transition moment type selected.'
+!            endif
+!       else
+!        print*, 'No dipole moment calc. selected.'
+!       endif
+!      !
+!      ! Dipole sign
+!      ! 
+!      if ( molP%M .eq. 7 ) then
+!        ! if the program is dealing with a diatomic molecule
+!        ! then HUND's pure cases help to the calcualtion of 
+!        ! the sign.
+!        ! DATA:
+!        ! N_i  = dta1%N(k,1)
+!        ! N_f  = dta1%N(k,2)
+!        ! J_i  = dta1%J(k,1) !LOWER L.
+!        ! J_f  = dta1%J(k,2) !UPPER L.
+!        ! Call the function:
+!        !pure_b_case= pureHund(caseHund,      J_i,         N_i,         J_f,         N_f)
+!        pure_b_case = pureHund(caseHund, dta1%J(k,1), dta1%N(k,1), dta1%J(k,2), dta1%N(k,2))
+!        signDIP =pure_b_case/ABS(pure_b_case)    
+!        if (isnan(signDIP) .or. isInf(signDIP)) then
+!          signDIP = dta1%DipoT0(k-1)/abs(dta1%DipoT0(k-1))
+!        endif
+!      else
+!        signDIP =d0/ABS(d0) 
+!        if (isnan(signDIP) .or. isinf(signDIP)) then
+!          signDIP = dta1%DipoT0(k-1)/abs(dta1%DipoT0(k-1))
+!        endif
+!      endif
+!      dta1%DipoT0(k)= dta1%DipoT0(k)*signDIP
+!      !print*, dta1%Qlow(k), dta1%D0(k), dta1%popuT0(k)
+!      !print*, "----------------------------------"
+!      !if (k .eq. 4) stop    
     ENDDO
 ! 
       Return

@@ -28,6 +28,7 @@
 #include "exceptions.h"
 #include <cstring>
 #include <cmath>
+#include <Eigen/Dense>
 
 using std::setw;
 using std::runtime_error;
@@ -2056,99 +2057,13 @@ void mult( ComplexVectorView y,
            const ConstComplexMatrixView& M,
            const ConstComplexVectorView& x )
 {
-    assert( y.mrange.get_extent() == M.mrr.get_extent() );
-    assert( M.mcr.get_extent() == x.mrange.get_extent() );
-    assert( (M.mcr.get_extent() != 0) && (M.mrr.get_extent() != 0));
+  using namespace Eigen;
+  
+  MatrixXcd eigen_M = Map<MatrixXcd>(M.mdata, M.nrows(), M.ncols());
+  MatrixXcd eigen_x = Map<MatrixXcd>(x.mdata, 1, x.nelem());
+  Map<MatrixXcd>( y.mdata, 1, x.nelem() ) = eigen_M * eigen_x;
+  
     
-    if ((M.mcr.get_stride() == 1) || (M.mrr.get_stride() == 1))
-    {
-        char trans;
-        int m,n;
-        std::complex<double> zero = 0.0;
-        std::complex<double> one = 1.0;
-        int LDA, incx, incy;
-        
-        if (M.mcr.get_stride() != 1)
-        {
-            trans = 'n';
-            m = (int) M.mrr.get_extent();
-            n = (int) M.mcr.get_extent();
-            LDA = (int) M.mcr.get_stride();
-        }
-        else
-        {
-            trans = 't';
-            m = (int) M.mcr.get_extent();
-            n = (int) M.mrr.get_extent();
-            LDA = (int) M.mrr.get_stride();
-            if (M.mrr.get_stride() == 1)
-                LDA = m;
-        }
-        
-        incx = (int) x.mrange.get_stride();
-        incy = (int) y.mrange.get_stride();
-        
-        std::complex<double> *mstart = M.mdata + M.mcr.get_start() + M.mrr.get_start();
-        std::complex<double> *ystart = y.mdata + y.mrange.get_start();
-        std::complex<double> *xstart = x.mdata + x.mrange.get_start();
-        
-        zgemv_( &trans, &m, &n, &one, mstart, &LDA,
-                xstart, &incx, &zero, ystart, &incy );
-        
-    }
-    else
-    {
-        mult_general( y, M, x );
-    }
-    
-}
-
-/** ComplexMatrix ComplexVector multiplication. y = M*x. Note that the order is different
- *   from MTL, output comes first! Dimensions of y, M, and x must
- *   match. No memory reallocation takes place, only the data is
- *   copied. Using this function on overlapping ComplexMatrix and ComplexVectorViews belonging
- *   to the same Matrix will lead to unpredictable results.
- * 
- *   The implementation here is different from the other multiplication
- *   routines. It does not use iterators but a more drastic approach to gain
- *   maximum performance.  */
-void mult_general( ComplexVectorView y,
-                   const ConstComplexMatrixView& M,
-                   const ConstComplexVectorView& x )
-{
-    
-    // Check dimensions:
-    assert( y.mrange.mextent == M.mrr.mextent );
-    assert( M.mcr.mextent == x.mrange.mextent );
-    assert( M.mcr.mextent != 0 && M.mrr.mextent != 0);
-    
-    // Let's first find the pointers to the starting positions
-    Complex *mdata   = M.mdata + M.mcr.mstart + M.mrr.mstart;
-    Complex *xdata   = x.mdata + x.mrange.mstart;
-    Complex *yelem   = y.mdata + y.mrange.mstart;
-    
-    Index i = M.mrr.mextent;
-    while (i--)
-    {
-        Complex *melem = mdata;
-        Complex *xelem = xdata; // Reset xelem to first element of source vector
-        
-        // Multiply first element of matrix row with first element of source
-        // vector. This is done outside the loop to avoid initialization of the
-        // target vector's element with zero (saves one assignment)
-        *yelem = *melem * *xelem;
-        
-        Index j = M.mcr.mextent;   // --j (instead of j-- like in the outer loop)
-        while (--j)                // is important here because we only want
-        {                        // mextent-1 cycles
-            melem += M.mcr.mstride;
-            xelem += x.mrange.mstride;
-            *yelem += *melem * *xelem;
-        }
-        
-        mdata += M.mrr.mstride;     // Jump to next matrix row
-        yelem += y.mrange.mstride;  // Jump to next element in target vector
-    }
 }
 
 //! Matrix-Matrix Multiplication
@@ -2183,151 +2098,11 @@ void mult( ComplexMatrixView A,
            const ConstComplexMatrixView& B,
            const ConstComplexMatrixView& C )
 {
-    
-    // Check dimensions:
-    assert( A.nrows() == B.nrows() );
-    assert( A.ncols() == C.ncols() );
-    assert( B.ncols() == C.nrows() );
-    
-    // Catch trivial case if one of the matrices is empty.
-    if ( (B.nrows() == 0) || (B.ncols() == 0) || (C.ncols() == 0) )
-        return;
-    
-    // Matrices B and C must be continuous in at least on dimension,  C
-    // must be continuous along the second dimension.
-    if ( ((B.mrr.get_stride() == 1) || (B.mcr.get_stride() == 1)) &&
-        ((C.mrr.get_stride() == 1) || (C.mcr.get_stride() == 1)) &&
-        (A.mcr.get_stride() == 1) )
-    {
-        // BLAS uses column-major order while arts uses row-major order.
-        // Hence instead of C = A * B we compute C^T = A^T * B^T!
-        
-        int k, m, n;
-        
-        k = (int) B.ncols();
-        m = (int) C.ncols();
-        n = (int) B.nrows();
-        
-        // Note also the clash in nomenclature: BLAS uses C = A * B while
-        // arts uses A = B * C. Taking into accout this and the difference in
-        // memory layouts, we need to map the MatrixViews A, B and C to the BLAS
-        // arguments as follows:
-        // A (arts) -> C (BLAS)
-        // B (arts) -> B (BLAS)
-        // C (arts) -> A (BLAS)
-        
-        // Char indicating whether A (BLAS) or B (BLAS) should be transposed.
-        char transa, transb;
-        // Sizes of the matrices along the direction in which they are
-        // traversed.
-        int lda, ldb, ldc;
-        
-        // Check if C (arts) is transposed.
-        if (C.mrr.get_stride() == 1)
-        {
-            transa = 'T';
-            lda = (int) C.mcr.get_stride();
-        } else {
-            transa = 'N';
-            lda = (int) C.mrr.get_stride();
-        }
-        
-        // Check if B (arts) is transposed.
-        if (B.mrr.get_stride() == 1)
-        {
-            transb = 'T';
-            ldb = (int) B.mcr.get_stride();
-        } else {
-            transb = 'N';
-            ldb = (int) B.mrr.get_stride();
-        }
-        
-        // In case B (arts) has only one column, column and row stride are 1.
-        // We therefore need to set ldb to k, since dgemm_ requires lda to be at
-        // least k / m if A is non-transposed / transposed.
-        if ( (B.mcr.get_stride() == 1) && (B.mrr.get_stride() == 1) )
-        {
-            transb = 'N';
-            ldb = k;
-        }
-        
-        // The same holds for C (arts).
-        if ( (C.mcr.get_stride() == 1) && (C.mrr.get_stride() == 1) )
-        {
-            transa = 'N';
-            lda = m;
-        }
-        
-        ldc = (int) A.mrr.get_stride();
-        // The same holds for A (arts).
-        if ( (A.mcr.get_stride() == 1) && (A.mrr.get_stride() == 1) )
-        {
-            ldc = m;
-        }
-        std::complex<double> alpha = 1.0, beta = 0.0;
-        
-        zgemm_( & transa,
-                & transb,
-                & m,
-                & n,
-                & k,
-                & alpha,
-                C.mdata + C.mrr.get_start() + C.mcr.get_start(),
-                & lda,
-                B.mdata + B.mrr.get_start() + B.mcr.get_start(),
-                & ldb,
-                & beta,
-                A.mdata + A.mrr.get_start() + A.mcr.get_start(),
-                & ldc );
-        
-    } else {
-        mult_general( A, B, C );
-    }
-}
-
-//! General matrix multiplication.
-/*!
- * This is the fallback matrix multiplication which works for all
- * ConstMatrixView objects.
- * 
- * \param[in,out] A The matrix A, that will hold the result of the multiplication.
- * \param[in] B The matrix B
- * \param[in] C The matrix C
- */
-void mult_general( ComplexMatrixView A,
-                   const ConstComplexMatrixView& B,
-                   const ConstComplexMatrixView& C )
-{
-    // Check dimensions:
-    assert( A.nrows() == B.nrows() );
-    assert( A.ncols() == C.ncols() );
-    assert( B.ncols() == C.nrows() );
-    
-    // Let's get the transpose of C, so that we can use 2D iterators to
-    // access the columns (= rows of the transpose).
-    ConstComplexMatrixView CT = transpose(C);
-    
-    const ComplexIterator2D ae = A.end();
-    ComplexIterator2D       ai = A.begin();
-    ConstComplexIterator2D  bi = B.begin();
-    
-    // This walks through the rows of A and B:
-    for ( ; ai!=ae ; ++ai, ++bi )
-    {
-        const ComplexIterator1D ace = ai->end();
-        ComplexIterator1D       aci = ai->begin();
-        ConstComplexIterator2D  cti = CT.begin();
-        
-        // This walks through the columns of A with a 1D iterator, and
-        // at the same time through the rows of CT, which are the columns of
-        // C, with a 2D iterator:
-        for ( ; aci!=ace ; ++aci, ++cti )
-        {
-            // The operator * is used to compute the scalar product
-            // between rows of B and rows of C.transpose().
-            *aci = (*bi) * (*cti);
-        }
-    }
+  using namespace Eigen;
+  
+  MatrixXcd eigen_B = Map<MatrixXcd>( B.mdata, B.nrows(), B.ncols() );
+  MatrixXcd eigen_C = Map<MatrixXcd>( C.mdata, C.nrows(), C.ncols() );
+  Map<MatrixXcd>( A.mdata, C.nrows(), B.ncols() ) = eigen_B * eigen_C;
 }
 
 ////////////////////////////////

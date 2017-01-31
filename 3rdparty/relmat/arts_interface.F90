@@ -334,7 +334,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 !
     PRINT *, "Successful run!"
 !   
-    STOP
+    !STOP
 !
   END SUBROUTINE RM_LM_tmc_arts
 !--------------------------------------------------------------------------------------------------------------------

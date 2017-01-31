@@ -42,6 +42,8 @@
 #include "array.h"
 #include "logic.h"
 #include <new>
+#include <Eigen/Eigenvalues>
+#include <Eigen/Dense>
 
 
 //! LU decomposition.
@@ -231,45 +233,14 @@ void inv( MatrixView Ainv,
 void inv( ComplexMatrixView Ainv,
           ConstComplexMatrixView A)
 {
+    using namespace Eigen;
+  
     // A must be a square matrix.
-    assert(A.ncols() == A.nrows());
-    
     Index n = A.ncols();
-    ComplexMatrix LU( A );
+    assert(n == A.nrows());
     
-    int n_int, info;
-    int *ipiv = new int[n];
-    
-    n_int = (int) n;
-    
-    // Compute LU decomposition using LAPACK dgetrf_.
-    lapack::zgetrf_( &n_int, &n_int, LU.mdata, &n_int, ipiv, &info );
-    
-    // Invert matrix.
-    int lwork = n_int;
-    std::complex<double> *work;
-    
-    try
-    {
-        work = new std::complex<double>[lwork*sizeof(std::complex<double>)];
-    } catch ( std::bad_alloc &ba )
-    {
-        throw std::runtime_error( "Error inverting matrix: Could not allocate workspace memory." );
-    }
-    
-    lapack::zgetri_( &n_int, LU.mdata, &n_int, ipiv, work, &lwork, &info );
-    delete[] work;
-    delete[] ipiv;
-    
-    // Check for success.
-    if (info == 0)
-    {
-        Ainv = LU;
-    }
-    else
-    {
-        throw std::runtime_error( "Error inverting matrix: Matrix not of full rank." );
-    }
+    MatrixXcd eigen_A = Map<MatrixXcd>( A.mdata, n, n );
+    Map<MatrixXcd>( Ainv.mdata, n, n ) = eigen_A.inverse();
 }
 
 //! Matrix Diagonalization
@@ -356,58 +327,22 @@ void diagonalize( ComplexMatrixView P,
                   ComplexVectorView W,
                   ConstComplexMatrixView A)
 {
-    Index n = A.ncols();
-    
-    // A_const must be a square matrix.
-    assert(n == A.nrows());
-    assert(n == W.nelem());
-    assert(n == P.nrows());
-    assert(n == P.ncols());
-    
-    ComplexMatrix A_tmp=A;
-    ComplexMatrix P2=P;
-    ComplexVector W2=W;
-    
-    // Integers
-    int LDA, LDA_L, LDA_R, n_int, info;
-    n_int = (int) n;
-    LDA = LDA_L = LDA_R = (int) A.mcr.get_extent();
-    
-    // We want to calculate RP not LP
-    char l_eig = 'N', r_eig = 'V';
-    
-    // Work matrix
-    int lwork = 2*n_int+n_int*n_int;
-    std::complex<double> *work;
-    double *rwork;
-    try
-    {
-        rwork = new double[2*n_int*sizeof(std::complex<double>)];
-        work  = new std::complex<double>[lwork*sizeof(std::complex<double>)];
-    } catch ( std::bad_alloc &ba )
-    {
-        throw std::runtime_error( "Error diagonalizing: Could not allocate workspace memory." );
-    }
-    
-    std::complex<double> *adata = A_tmp.mdata;
-    std::complex<double> *rpdata = P2.mdata;
-    std::complex<double> *lpdata = new std::complex<double>[0];
-    std::complex<double> *wdata = W2.mdata;
-    
-    lapack::zgeev_(&l_eig, &r_eig , &n_int, adata, &LDA,
-                   wdata,lpdata,&LDA_L,rpdata, &LDA_R,
-                   work, &lwork, rwork, &info);
-    
-    // Free memory.  Can these be sent in to speed things up?
-    delete[] work;
-    delete[] rwork;
-    delete[] lpdata;
-    
-    // Re-order.  This can be done better?
-    for(Index i=0;i<n;i++) for(Index j=0;j<n;j++) P(j,i)=P2(i,j);
-        
-    W=W2;
-   
+  using namespace Eigen;
+  
+  // A must be a square matrix
+  Index n = A.ncols();
+  assert(n == A.nrows());
+  
+  // Map to Eigen
+  MatrixXcd eigen_A = Map<MatrixXcd>( A.mdata, n, n );
+  
+  // Make the computations
+  ComplexEigenSolver<MatrixXcd> ges;
+  ges.compute(eigen_A);
+  
+  // Remap to original arrays
+  Map<MatrixXcd>( W.mdata, n, 1 ) = ges.eigenvalues();
+  Map<MatrixXcd>( P.mdata, n, n ) = ges.eigenvectors();
 }
 
 //! General exponential of a Matrix

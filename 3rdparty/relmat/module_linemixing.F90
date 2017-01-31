@@ -39,6 +39,17 @@ MODULE module_linemixing
             type (dta_SDF), intent(in)      :: dta1
         end subroutine RN_Wmat
 
+        subroutine W2dta2(nLines, dta1, dta2, W_rnO)
+            use module_common_var
+            use module_maths
+            use module_phsub
+            implicit none
+            Integer, intent(in)             :: nLines
+            Double Precision, intent(in)    :: W_rnO(nLines,nLines)
+            type (dta_SDF), intent(in)      :: dta1
+            type (dta_RMF), intent(inout)   :: dta2
+        end subroutine W2dta2
+
     end interface
 
 END module module_linemixing
@@ -457,4 +468,91 @@ END module module_linemixing
          enddo
        enddo
   END SUBROUTINE RN_Wmat
+
+!--------------------------------------------------------------------------------------------------------------------
+  SUBROUTINE W2dta2(nLines, dta1, dta2, W_rn)
+!--------------------------------------------------------------------------------------------------------------------
+! W2dta2: Copy the Relaxation Matrix to the struct dta2.
+!
+! Detailed description:
+! ---------------------
+! 
+! Variables:
+!
+! Input/Output Parameters of Routine (Arguments or Common)
+! --------------------------------------------------------
+! --      : .
+!
+! Other important Output Quantities 
+! ---------------------------------
+!
+! Accessed Files:  None
+! --------------
+!     
+! Called Routines: "" 
+! ---------------  "" 
+!     
+! Called By: ""
+! ---------
+!     
+!     Double Precision Version
+!     
+! T. Mendaza last change 04 Abr 2016
+!--------------------------------------------------------------------------------------------------------------------
+!
+    use module_common_var
+    use module_maths
+    Implicit None
+    Integer,        intent(in)    :: nLines
+    Double Precision, intent(in)  :: W_rn(nWmax,nWmax)
+    type (dta_SDF), intent(in)    :: dta1
+    type (dta_RMF), intent(inout) :: dta2
+    !Local variables
+    integer                       :: i, j, k, n
+    double Precision              :: str(nLines)
+    !Strings
+    character*15                  :: auxkQupp, auxkQlow
+    character*15                  :: auxnQupp, auxnQlow
+    character*60                  :: tra2tra
+!---------
+! Reordering by line strength
+!
+       DO n = 1,nLines
+        !auxnQupp = dta1%Qupp(n)
+        !auxnQlow = dta1%Qlow(n)
+        DO k = 1,nLines
+          !auxkQupp = dta1%Qupp(k)
+          !auxkQlow = dta1%Qlow(k)
+          IF ( k .eq. n ) THEN
+            !dta2%WT0( (nLines*( n - 1 ) + k) ) = W_rn( indexI(n) , indexI(k) )
+            dta2%WT0( (nLines*( n - 1 ) + k) ) = W_rn( n , k )
+            !dta2%BTW( (nLines*( n - 1 ) + k) ) = -1.88775 
+            ! Average from HA TRAN RMF-BTW file!!! std = 7.0715
+            ! Transitions?
+            !tra2tra = auxnQupp//auxnQlow//auxkQupp//auxkQlow
+            !dta2%tr2tr( (nLines*( n -1 ) + k) ) = tra2tra
+          ELSE
+            ! 
+            ! Matrix Element
+            !
+            if (isnan( W_rn( n , k ) ) .or. isinf( W_rn( n , k ) ) .or. &
+                W_rn( n , k) .eq. 0.0_dp  ) then
+              dta2%WT0( (nLines*( n - 1 ) + k) ) = 0.0_dp
+              dta2%BTW( (nLines*( n - 1 ) + k) ) = 0.0_dp
+            else
+              !dta2%WT0( (nLines*( n - 1 ) + k) ) = W_rn( indexI(n) , indexI(k) )
+              dta2%WT0( (nLines*( n - 1 ) + k) ) = W_rn( n , k )
+              !dta2%BTW( (nLines*( n - 1 ) + k) ) = -1.88775 
+              ! Average from HA TRAN RMF-BTW file!!! std = 7.0715
+            endif  
+            !
+            !Transitions
+            !
+            !tra2tra = auxnQupp//auxnQlow//auxkQupp//auxkQlow
+            !dta2%tr2tr( (nLines*( n - 1 ) + k) ) = tra2tra
+          ENDIF
+         ENDDO
+       ENDDO
+       !stop
+  END SUBROUTINE W2dta2
 !--------------------------------------------------------------------------------------------------------------------

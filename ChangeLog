@@ -1,3 +1,22 @@
+2017-01-31  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-611
+	
+	* src/complex.cc:  Changed the multiplications to be done by Eigen.
+	Used to be broken code since unknown updates ago.
+	
+	* src/lin_alg.cc: Added dependency on Eigen/Eigenvalues and Eigen/Dense.
+	Updated the complex versions of inv(Ainv, A) and diagonalize(P, W, A).
+	The non-complex has to be friendly with a lot of classes to work as wanted.
+	
+	* src/m_linemixing.cc:  Looking at (calculate_xsec_from_W) to make it work
+	with the relaxation matrix now that the linear algebra works.  
+	Work in progress...
+	
+	* 3rdpart/relmat/*: Added LAPACK/BLAS to Teresa's compiling options.
+	Should help with future updates.  The rest contains some of Teresa's
+	other updates.  Work in progress...
+	
 2017-01-31  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-610

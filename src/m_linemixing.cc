@@ -25,6 +25,8 @@
 #include "Faddeeva.hh"
 #include "linescaling.h"
 #include "jacobian.h"
+#include <Eigen/Eigenvalues>
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void line_mixing_dataInit(// WS Output:
@@ -274,11 +276,10 @@ void abs_lines_per_bandFromband_identifiers( ArrayOfArrayOfLineRecord&       abs
     }
 }
 
-
 void calculate_xsec_from_W( VectorView  xsec,
                             ConstMatrixView Wmat,
-                            ConstVectorView f_grid,
                             ConstVectorView f0,
+                            ConstVectorView f_grid,
                             ConstVectorView d0,
                             ConstVectorView rhoT,
                             const Numeric&  T,
@@ -287,6 +288,9 @@ void calculate_xsec_from_W( VectorView  xsec,
                             const Index&    n//lines
 )
 {
+  using namespace Eigen;
+  
+  
     // Physical constants
     extern const Numeric BOLTZMAN_CONST;
     extern const Numeric AVOGADROS_NUMB;
@@ -294,51 +298,51 @@ void calculate_xsec_from_W( VectorView  xsec,
     
     // internal constant
     const Index nf  = f_grid.nelem();
-    const Index nf0 = f0.nelem();
     //const Numeric f_mean = mean(f0);
     const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST * AVOGADROS_NUMB * T / isotopologue_mass ) / SPEED_OF_LIGHT;
     
     // Setuo for the matrix
-    ComplexMatrix W(n,n);
+    ComplexMatrix W(n, n);
     for(Index i=0;i<n;i++)
     {
         for(Index j=0;j<n;j++)
         {
             if(j==i)
-                W(i,j)=Complex(0,-P*Wmat(i,j)-f0[i]);
+              W(i, i) = Complex(f0[i], -P*Wmat(i, i));
             else
-                W(i,j)=Complex(0,-P*Wmat(i,j));
+              W(i, j) = Complex(0.0, -P*Wmat(i, j));
         }
-    }
+    } 
     
     // Setup so that W above is equivalent to D*diag(z_eigs)*invD, where diag
     // is a diagonal matrix with values of eigs in the diagonal
-    ComplexVector z_eigs(nf0);
-    ComplexMatrix D(nf0,nf0),invD(nf0,nf0);
-    diagonalize(D,z_eigs,W);
-    inv(invD,D);
+    ComplexVector z_eigs(n);
+    ComplexMatrix D(n, n), invD(n, n);
+    
+    diagonalize(D, z_eigs, W);
+    inv(invD, D);
     // Question:  If this fails and produce baloney, is this caught later on?  Switch to zgeevx_?
     
     // Equivalent line strength
-    ComplexVector equivS0(nf0,0);
+    ComplexVector equivS0(n, 0);
     
     // Doppler broadening
-    Vector sigma(nf0);
+    Vector sigma(n);
     
     // Set starts and equivs
-    for(Index if1=0;if1<nf0;if1++)
+    for(Index if1=0;if1<n;if1++)
     {
         sigma[if1]= f0[if1] * doppler_const ;
-        z_eigs[if1]/=sigma[if1];
+        z_eigs[if1] /= sigma[if1];
         
-        for(Index if2=0;if2<nf0;if2++)
+        for(Index if2=0;if2<n;if2++)
         {
             equivS0[if2] += rhoT[if1]*d0[if1]*d0[if2]*D(if2,if1)*invD(if1,if2);
         }
     }
     
     // Set xsec (need to normalize?)
-    for(Index if0=0;if0<nf0;if0++)
+    for(Index if0=0;if0<n;if0++)
         for(Index iv=0;iv<nf;iv++)
             xsec+=((equivS0[if0]/sigma[if0])*Faddeeva::w(z_eigs[if0]+f_grid[iv]/sigma[if0])).real();
 }
@@ -573,7 +577,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             }
             
             // Line information converted to relmat format --- i.e. to HITRAN format
-            v0[iline]             = this_line.F()/w2Hz; // WARNING:  Necessity of abundance means vmr should also be scaled?
+            v0[iline]             = this_line.F()/w2Hz; 
             S[iline]              = this_line.I0()/I0_hi2arts;
             gamma_air[iline]      = this_line.Agam()/gamma_hi2arts;
             n_air[iline]          = this_line.Nair();

@@ -215,9 +215,9 @@ end subroutine Hit2DTA
     molP % iso_m = isotope
     call molid_char(molP)
     molP % mms = Mass
-    molP % QT0 = PFmol_T0
-    molP % QT  = PFmol_T
     if (flagON) then
+     molP % QT0 = PFmol_T0
+     molP % QT  = PFmol_T
      CALL addMolParam(molP) 
     endif
 !
@@ -313,8 +313,10 @@ end subroutine Hit2DTA
     m = molP%M
     !n = molP % iso_m - 10*m
     n = molP % iso_m
-    molP % Aco = isotopollist(m,n) !Molecule's AFGL code
-
+    !
+    !Molecule's AFGL code
+    molP % Aco = isotopollist(m,n) 
+    !
     if ( m .eq. 1 ) then
           auxmol = "H2O" 
           ! Molecule #   Iso Abundance  Q(296K)       gj    Molar Mass(g)

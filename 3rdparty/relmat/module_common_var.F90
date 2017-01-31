@@ -491,7 +491,7 @@ MODULE module_common_var
     integer*8 :: Aco
     character*6            :: chmol
     double Precision       :: Temp, Ptot
-    Double Precision       :: mms
+    Double Precision       :: mms!, IAb
     Double Precision       :: Nmcon, B0
     Double Precision       :: QT, QT0
     Double Precision       :: a1, a2, a3, dc, ex1, ex2

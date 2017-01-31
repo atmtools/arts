@@ -11,6 +11,7 @@ if (ENABLE_FORTRAN AND NOT NO_RELMAT)
     module_linemixing.F90
     arts_interface.F90
     )
+  target_link_libraries( relmat ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} )
   set_target_properties (relmat PROPERTIES
     COMPILE_FLAGS "${FORTRAN_EXTRA_FLAGS}")
 else()

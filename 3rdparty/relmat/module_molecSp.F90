@@ -56,7 +56,7 @@ END module module_molecSp
         !--------------------------------------------------
         IF ((my_mol .eq. 2).or.(my_mol .eq. 7)) then
         ! Group 2: Diatomic and Linear molecules.
-        ! CO2( 2)
+        ! CO2( 2), O2(7)
         ! ------------------------------
         ! Variables in use:
         !            J: Resultant total angular momentum quantum number, 
