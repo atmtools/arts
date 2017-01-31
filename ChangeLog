@@ -1,3 +1,17 @@
+2017-01-31  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-610
+
+	* 3rdparty/Eigen/:
+
+	Added the remaining files of the Eigen template library (version 3.2.7).
+	Requested by Richard to calculate Eigenvalues. Since we already use
+	parts of the Eigen library (in matpackII.h), it makes most sense to
+	include the whole library for convenience. It is also much easier to
+	use than the low-level LaPack functions.
+
+	Also added the COPYING.* files from the original source.
+
 2017-01-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-609
