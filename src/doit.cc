@@ -1243,11 +1243,10 @@ void cloud_RT_surface(Workspace& ws,
                 doit_i_field_mono( cloudbox_limits[0], 0, 0,
                       (scat_za_grid.nelem() -1 - scat_za_index), 0, joker) );
           iy(0,joker) += rtmp;
-          
-          doit_i_field_mono( cloudbox_limits[0], 0, 0, scat_za_index, 0, joker ) = 
-                                                                iy( 0, joker );
         }
     }  
+  doit_i_field_mono( cloudbox_limits[0], 0, 0, scat_za_index, 0, joker ) = 
+                                                                iy( 0, joker );
 }
 
 void doit_i_field_ngAcceleration(Tensor6& doit_i_field_mono,

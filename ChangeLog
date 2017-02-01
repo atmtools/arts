@@ -1,3 +1,22 @@
+2017-02-01 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-614
+
+	* doc/uguide/surface.tex, rte_theory.tex:
+	Some fixes in surface reflection documentation.
+
+	* src/doit.cc (cloud_RT_surface):
+	Bugfix in doit_i_field_mono update.
+
+	* src/m_rt4.cc (RT4Calc):
+	Put FORTRAN routine call (radtrano_) in critical environment (Patrick
+	reports SEGFAULT crash otherwise when arts is run in multi-thread
+	mode. Not sure anymore, though, why the critical environment was
+	there already, but commented out...).
+
+	* 3rdparty/polradtran/rt4/radtran4.f:
+	Allow larger atm system: increased max number of atm layers to 300.
+
 2017-02-02  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-613

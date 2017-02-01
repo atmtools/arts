@@ -295,12 +295,13 @@ not with frequency.
 
 In the case of specular reflections, \builtindoc{surface\_los} has the length 1.
 The specular direction is calculated by the internal function
-\funcindex{surface\_specular\_los}\footnote{Any tilt of the surface is
-  neglected when determining the specular direction. If there would be any need
-  to consider surface tilt, almost complete code for this task existed in
-  surface\_specular\_los but was removed in version 1-1-876. The
-  code can be obtained by e.g.\ checking out version 1-1-875.}. Equations
-\ref{T-eq:surface:specular_matrix}-\ref{T-eq:surface:specular_emission}
+\funcindex{surface\_specular\_los}
+ %\footnote{Any tilt of the surface is
+ % neglected when determining the specular direction. If there would be any need
+ % to consider surface tilt, almost complete code for this task existed in
+ % surface\_specular\_los but was removed in version 1-1-876. The
+ % code can be obtained by e.g.\ checking out version 1-1-875.}.
+Equations \ref{T-eq:surface:specular_matrix}-\ref{T-eq:surface:specular_emission}
 in \theory\ give the values of \builtindoc{surface\_rmatrix} and
 \builtindoc{surface\_emission}.
 
@@ -339,15 +340,16 @@ Equation~\ref{T-eq:surface:brdf1} of \theory)
 \end{equation}
 that gives
 \begin{equation}
-  w = \frac{r_d}{2}\left[\cos(2\theta_a)-\cos(2\theta_b)\right].
+  w = \frac{r_d}{2}\left[\cos(2\theta_a)-\cos(2\theta_b)\right],
 \end{equation}
+where $r_d$ denotes the diffuse reflectivity.
 Thus, this value is a combination of the surface reflectivity and an solid
 angle weight.
 
 The emission (\builtindoc{surface\_emission}) becomes:
 \begin{equation}
   \label{eq:surface:blambertian} 
-  \EmsVec =  \left[\begin{array}{c} r_d\Planck \\ 0 \\0\\0 \end{array}\right].
+	\EmsVec =  \left[\begin{array}{c} \left(1-r_d\right)\Planck \\ 0 \\0\\0 \end{array}\right].
 \end{equation}
 
 

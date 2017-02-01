@@ -1057,7 +1057,7 @@ these quantities can be complex and are related as
   \label{eq:e=1-r}
    e = 1 - r,
  \end{equation}
- where $r$ is the reflective (power reflection coefficient) of the
+ where $r$ is the reflectivity (power reflection coefficient) of the
  surface.  Equation \ref{eq:e=1-r} is valid for each polarisation state
  individually \citep[Eq.\ 4.190a]{ulaby:81}.
 
@@ -1129,7 +1129,7 @@ these quantities can be complex and are related as
  is theoretically correct only if both $n_1$ and $n_2$ have no imaginary part. 
  For cases where medium 1 is air, $n_1$ can (in this context) be set to 1, and 
 an expression allowing $n_2$ to be complex is found in Section 5.4.1.3 of
-\citet{liou:02}. We are not awere of any expression for the case when both
+\citet{liou:02}. We are not aware of any expression for the case when both
 $n_1$ and $n_2$ are complex.
 
 The power reflection coefficients are converted to an intensity
@@ -1163,9 +1163,11 @@ reflection is (compare to \citet[Sec.\ 5.4.3]{liou:02})
      \end{array}
      \right].
 \end{equation}
+
 For the case of $R_v=R_h$ the matrix in
 Equation~\ref{eq:surface:specular_matrix} is strictly diagonal and all the
-diagonal elements have the same value, $(r_v+r_h)/2$.
+diagonal elements have the same value, $(r_v+r_h)/2=r$.
+
 If the downwelling radiation is unpolarised, the reflected part of the
 upwelling radiation is
 \begin{equation}
@@ -1215,7 +1217,7 @@ The reflectivity is the half-sphere integral of the BRDF
   \sin(\theta) \, \DiffD\phi \, \DiffD\theta.
 \end{equation}
 An ideally rough surface is denoted as Lambertian. The BRDF is for this case
-constant, and normally expressed using the the diffuse reflectivity, $r_d$ 
+constant, and normally expressed using the diffuse reflectivity, $r_d$ 
  \citep[e.g.][]{petty:06}:
 \begin{equation}
   \label{eq:surface:lambertian1}

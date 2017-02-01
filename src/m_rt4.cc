@@ -381,8 +381,8 @@ void RT4Calc( Workspace& ws,
                        pfct_method, pfct_aa_grid_size, pfct_threshold,
                        verbosity );
 
-//#pragma omp critical(fortran_rt4)
-//      {
+#pragma omp critical(fortran_rt4)
+      {
           // Call RT4
           radtrano_(nstokes,
                nummu,
@@ -410,7 +410,7 @@ void RT4Calc( Workspace& ws,
                up_rad.get_c_array(),
                down_rad.get_c_array()
                  );
-//      }
+      }
 
       // RT4 rad output is in wavelength units, nominally in W/(m2 sr um), where
       // wavelength input is required in um.
