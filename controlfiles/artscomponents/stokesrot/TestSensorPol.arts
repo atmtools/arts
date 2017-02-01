@@ -73,9 +73,11 @@ VectorLinSpace( data_f_grid, 10e9, 100e9, 5e9 )
 complex_refr_indexWaterLiebe93( surface_complex_refr_index, 
                                 data_f_grid, data_t_grid )
 #
-NumericSet( surface_skin_t, 300 )
-Copy( surface_rtprop_agenda, surface_rtprop_agenda__Specular_Pol_RefracFix_SurfTFix )
-
+AgendaSet( surface_rtprop_agenda ){
+  NumericSet( surface_skin_t, 300 )
+  specular_losCalc
+  surfaceFlatRefractiveIndex
+} 
 
 
 # Number of Stokes components to be computed

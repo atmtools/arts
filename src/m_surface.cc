@@ -478,11 +478,12 @@ void iySurfaceRtpropAgenda(
   chk_rte_los( atmosphere_dim, rtp_los );
 
   // Call *surface_rtprop_agenda*
+  Numeric   surface_skin_t;
   Matrix    surface_los;
   Tensor4   surface_rmatrix;
   Matrix    surface_emission;
   //
-  surface_rtprop_agendaExecute( ws, surface_emission, surface_los, 
+  surface_rtprop_agendaExecute( ws, surface_skin_t, surface_emission, surface_los, 
                                 surface_rmatrix, f_grid, rtp_pos, rtp_los,
                                 surface_rtprop_agenda );
 
@@ -1248,6 +1249,7 @@ void surfaceLambertianSimple(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceSemiSpecularBy3beams(
           Workspace& ws,
+          Numeric&   surface_skin_t,
           Matrix&    surface_los,
           Tensor4&   surface_rmatrix,
           Matrix&    surface_emission,
@@ -1271,7 +1273,7 @@ void surfaceSemiSpecularBy3beams(
   Matrix  los1, emission1;
   Tensor4 rmatrix1;
   //
-  surface_rtprop_sub_agendaExecute( ws, emission1, los1, rmatrix1,
+  surface_rtprop_sub_agendaExecute( ws, surface_skin_t, emission1, los1, rmatrix1,
                                     f_grid, rtp_pos, rtp_los,
                                     surface_rtprop_sub_agenda );
   if( los1.nrows() != 1 )
@@ -1287,6 +1289,7 @@ void surfaceSemiSpecularBy3beams(
   Matrix  los2, emission2;
   Tensor4 rmatrix2;
   //
+  Numeric skin_t_dummy;
   Numeric dza_try = dza;
   bool failed = true;
   while( failed && dza_try > 0 )
@@ -1296,7 +1299,7 @@ void surfaceSemiSpecularBy3beams(
           Vector los_new = rtp_los;
           los_new[0] -= sign(rtp_los[0]) * dza_try;  // Sign to also handle 2D negative za
           adjust_los( los_new, atmosphere_dim );
-          surface_rtprop_sub_agendaExecute( ws, emission2, los2, rmatrix2,
+          surface_rtprop_sub_agendaExecute( ws, skin_t_dummy, emission2, los2, rmatrix2,
                                             f_grid, rtp_pos, los_new,
                                             surface_rtprop_sub_agenda );
           failed = false;
@@ -1359,7 +1362,7 @@ void surfaceSemiSpecularBy3beams(
   Vector los_new = rtp_los;
   los_new[0] += sign(rtp_los[0]) * dza;  // Sign to also handle 2D negative za
   adjust_los( los_new, atmosphere_dim );
-  surface_rtprop_sub_agendaExecute( ws, emission2, los2, rmatrix2,
+  surface_rtprop_sub_agendaExecute( ws, skin_t_dummy, emission2, los2, rmatrix2,
                                     f_grid, rtp_pos, los_new,
                                     surface_rtprop_sub_agenda );
   //
@@ -1957,6 +1960,7 @@ void surface_typeInterpTypeMask(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_rtpropCallSubAgendaX(
           Workspace&        ws,
+          Numeric&          surface_skin_t,
           Matrix&           surface_los,
           Tensor4&          surface_rmatrix,
           Matrix&           surface_emission,
@@ -1975,37 +1979,43 @@ void surface_rtpropCallSubAgendaX(
 {
   if( surface_type == 0 )
     {
-      surface_rtprop_sub_agenda0Execute( ws, surface_emission, surface_los, surface_rmatrix,
+      surface_rtprop_sub_agenda0Execute( ws, surface_skin_t, surface_emission,
+                                         surface_los, surface_rmatrix,
                                          f_grid, rtp_pos, rtp_los,
                                          surface_type_aux, surface_rtprop_sub_agenda0 );
     }
   else if( surface_type == 1 )
     {
-      surface_rtprop_sub_agenda1Execute( ws, surface_emission, surface_los, surface_rmatrix,
+      surface_rtprop_sub_agenda1Execute( ws, surface_skin_t, surface_emission,
+                                         surface_los, surface_rmatrix,
                                          f_grid, rtp_pos, rtp_los,
                                          surface_type_aux, surface_rtprop_sub_agenda1 );
     }
   else if( surface_type == 2 )
     {
-      surface_rtprop_sub_agenda2Execute( ws, surface_emission, surface_los, surface_rmatrix,
+      surface_rtprop_sub_agenda2Execute( ws, surface_skin_t, surface_emission,
+                                         surface_los, surface_rmatrix,
                                          f_grid, rtp_pos, rtp_los,
                                          surface_type_aux, surface_rtprop_sub_agenda2 );
     }
   else if( surface_type == 3 )
     {
-      surface_rtprop_sub_agenda3Execute( ws, surface_emission, surface_los, surface_rmatrix,
+      surface_rtprop_sub_agenda3Execute( ws, surface_skin_t, surface_emission,
+                                         surface_los, surface_rmatrix,
                                          f_grid, rtp_pos, rtp_los,
                                          surface_type_aux, surface_rtprop_sub_agenda3 );
     }
   else if( surface_type == 4 )
     {
-      surface_rtprop_sub_agenda4Execute( ws, surface_emission, surface_los, surface_rmatrix,
+      surface_rtprop_sub_agenda4Execute( ws, surface_skin_t, surface_emission,
+                                         surface_los, surface_rmatrix,
                                          f_grid, rtp_pos, rtp_los,
                                          surface_type_aux, surface_rtprop_sub_agenda4 );
     }
   else if( surface_type == 5 )
     {
-      surface_rtprop_sub_agenda5Execute( ws, surface_emission, surface_los, surface_rmatrix,
+      surface_rtprop_sub_agenda5Execute( ws, surface_skin_t, surface_emission,
+                                         surface_los, surface_rmatrix,
                                          f_grid, rtp_pos, rtp_los,
                                          surface_type_aux, surface_rtprop_sub_agenda5 );
     }

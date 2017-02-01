@@ -74,6 +74,7 @@ void RT4Calc( Workspace& ws,
                 const Vector& f_grid,
                 const Index& stokes_dim,
                 //const Vector& scat_za_grid,
+                const Numeric& surface_skin_t,
                 const Vector& surface_scalar_reflectivity,
                 const Index& nstreams,
                 const Index& non_iso_inc,
@@ -238,7 +239,7 @@ void RT4Calc( Workspace& ws,
   const Index nstokes=stokes_dim;
 
   // temperature of surface
-  const Numeric ground_temp = t_field(0,0,0);
+  const Numeric ground_temp = surface_skin_t;
 
   // surface reflection type.
   //  proprietary RT4 allows (L)ambertian and (F)resnel.
@@ -487,6 +488,7 @@ void RT4Calc( Workspace&,
                 const Vector&,
                 const Index&,
                 //const Vector&,
+                const Numeric&,
                 const Vector&,
                 const Index&,
                 const Index&,

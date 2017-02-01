@@ -1201,6 +1201,7 @@ void cloud_RT_surface(Workspace& ws,
   Matrix iy; 
   
   // Local output of surface_rtprop_agenda.
+  Numeric surface_skin_t;
   Matrix surface_emission;
   Matrix surface_los; 
   Tensor4 surface_rmatrix;
@@ -1220,8 +1221,7 @@ void cloud_RT_surface(Workspace& ws,
   
   //Execute the surface_rtprop_agenda which gives the surface 
   //parameters.
-  
-  surface_rtprop_agendaExecute( ws, surface_emission, surface_los, 
+  surface_rtprop_agendaExecute( ws, surface_skin_t, surface_emission, surface_los, 
                                 surface_rmatrix, Vector(1,f_grid[f_index]),
                                 rte_pos, rte_los, surface_rtprop_agenda );
   

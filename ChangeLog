@@ -1,3 +1,38 @@
+2017-02-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-615
+
+	* Summary: surface_skin_t is now an output of surface_rtprop_agenda.
+
+	* controlfiles/general/agendas_surface.arts: Removed all agendas
+	demanding that surface_skin_t is pre-set. That does not work now.
+	Either set value inside the agenda, or copy from another variable.
+
+	* controlfiles/artscomponents/polradtran/TestRT4.arts: Copied code
+	from TestDISORT.arts to set surface_skin_t.
+
+	* controlfiles/artscomponents/disort/TestDISORT.arts: Now making
+	use of t_surface in setting of surface_skin_t.
+
+	* controlfiles/artscomponents/stokesrot/TestSensorPol.arts:
+	Adopted definition of surface_rtprop_agenda.
+
+	* src/m_surface.cc
+	(surface_rtpropCallSubAgendaX,surfaceSemiSpecularBy3beams):
+	Adopted call of surface_rtprop_agenda by adding surface_skin_t as
+	WSM output.
+
+	* src/m_surface.cc (iySurfaceRtpropAgenda):
+	* src/m_montecarlo.cc (MCGeneral):
+	* src/doit.cc (cloud_RT_surface): Adopted call of
+	surface_rtprop_agenda by introducing a local variable.
+
+	* src/m_rt4.cc (RT4Calc): Added surface_skin_t as input. This
+	replaces to take surface temperature from t_field.
+
+	* src/agendas.cc: Added surface_skin_t as output of
+	surface_rtprop_agenda and its sub-agendas.
+
 2017-02-01 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-614
@@ -20,7 +55,7 @@
 2017-02-02  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-613
-	
+
 	* src/m_linemixing.cc:  Updated pressure from Pascal to atm to fit with
 	relmat input.  Bug fix.
 

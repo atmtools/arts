@@ -791,7 +791,7 @@ void define_agenda_data()
         "*surfaceFlatScalarReflectivity*, *surfaceFlatReflectivity*,\n"
         "*surfaceFlatRefractiveIndex*, and *surfaceLambertianSimple*.\n"
         ),
-       OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
+       OUTPUT( "surface_skin_t", "surface_emission", "surface_los", "surface_rmatrix" ),
        INPUT( "f_grid", "rtp_pos", "rtp_los" )));
 
   agenda_data.push_back
@@ -810,7 +810,7 @@ void define_agenda_data()
         "Note that this agenda is not part of the series of agendas named as\n"
         "surface_rtprop_sub_agendaX.\n"
         ),
-       OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
+       OUTPUT( "surface_skin_t", "surface_emission", "surface_los", "surface_rmatrix" ),
        INPUT( "f_grid", "rtp_pos", "rtp_los" )));
 
   agenda_data.push_back
@@ -833,7 +833,7 @@ void define_agenda_data()
         "Note that *surface_rtprop_sub_agenda* is not part of this series of\n"
         "agendas, it has a different functionality.\n"
         ),
-       OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
+       OUTPUT( "surface_skin_t", "surface_emission", "surface_los", "surface_rmatrix" ),
        INPUT( "f_grid", "rtp_pos", "rtp_los", "surface_type_aux" )));
 
   agenda_data.push_back
@@ -845,7 +845,7 @@ void define_agenda_data()
         "\n"
         "See further *surface_rtprop_sub_agenda0*.\n"
         ),
-       OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
+       OUTPUT( "surface_skin_t", "surface_emission", "surface_los", "surface_rmatrix" ),
        INPUT( "f_grid", "rtp_pos", "rtp_los", "surface_type_aux" )));
 
   agenda_data.push_back
@@ -857,7 +857,7 @@ void define_agenda_data()
         "\n"
         "See further *surface_rtprop_sub_agenda0*.\n"
         ),
-       OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
+       OUTPUT( "surface_skin_t", "surface_emission", "surface_los", "surface_rmatrix" ),
        INPUT( "f_grid", "rtp_pos", "rtp_los", "surface_type_aux" )));
 
   agenda_data.push_back
@@ -869,7 +869,7 @@ void define_agenda_data()
         "\n"
         "See further *surface_rtprop_sub_agenda0*.\n"
         ),
-       OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
+       OUTPUT( "surface_skin_t", "surface_emission", "surface_los", "surface_rmatrix" ),
        INPUT( "f_grid", "rtp_pos", "rtp_los", "surface_type_aux" )));
 
   agenda_data.push_back
@@ -881,7 +881,7 @@ void define_agenda_data()
         "\n"
         "See further *surface_rtprop_sub_agenda0*.\n"
         ),
-       OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
+       OUTPUT( "surface_skin_t", "surface_emission", "surface_los", "surface_rmatrix" ),
        INPUT( "f_grid", "rtp_pos", "rtp_los", "surface_type_aux" )));
 
   agenda_data.push_back
@@ -893,7 +893,7 @@ void define_agenda_data()
         "\n"
         "See further *surface_rtprop_sub_agenda0*.\n"
         ),
-       OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
+       OUTPUT( "surface_skin_t", "surface_emission", "surface_los", "surface_rmatrix" ),
        INPUT( "f_grid", "rtp_pos", "rtp_los", "surface_type_aux" )));
 
   agenda_data.push_back

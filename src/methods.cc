@@ -11977,7 +11977,7 @@ void define_md_data_raw()
             "opt_prop_part_agenda", "spt_calc_agenda", //"iy_main_agenda",
             "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
             "scat_data", "f_grid", "stokes_dim",
-            "surface_scalar_reflectivity" ),
+            "surface_skin_t", "surface_scalar_reflectivity" ),
         GIN(         "nstreams", "non_iso_inc", "pfct_method", "quad_type",
                      "pfct_aa_grid_size", "pfct_threshold", "max_delta_tau" ),
         GIN_TYPE(    "Index",    "Index",       "String",      "String",
@@ -13866,7 +13866,7 @@ void define_md_data_raw()
          "with this method.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
+        OUT( "surface_skin_t", "surface_los", "surface_rmatrix", "surface_emission" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -14021,7 +14021,7 @@ void define_md_data_raw()
          "name surface_rtprop_sub_agendaX is called.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
+        OUT( "surface_skin_t", "surface_los", "surface_rmatrix", "surface_emission" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
