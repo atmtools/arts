@@ -1,3 +1,16 @@
+2017-02-01  Lukas Kluft  <lukas.kluft@gmail.com>
+
+	* arts-2-3-612
+
+	* src/m_gridded_fields.h: Workspace methods related to GriddedFields.
+
+	Added the WSMs `GriddedFieldGetName` and `ArrayOfGriddedFieldGetNames` to
+	get the names of GriddedFields during an ARTS run.
+
+	* src/make_auto_md_cc.cc: Added `m_gridded_fields.h` to include list.
+
+	* src/methods.cc: Added documentation for new workspace methods.
+
 2017-01-31  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-611

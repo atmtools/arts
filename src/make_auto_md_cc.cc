@@ -86,6 +86,7 @@ int main()
           << "#include \"m_conversion.h\"\n"
           << "#include \"m_extract.h\"\n"
           << "#include \"m_general.h\"\n"
+          << "#include \"m_gridded_fields.h\"\n"
           << "#include \"m_ignore.h\"\n"
           << "#include \"m_nc.h\"\n"
           << "#include \"m_reduce.h\"\n"

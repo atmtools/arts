@@ -2287,6 +2287,31 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ArrayOfGriddedFieldGetNames" ),
+        DESCRIPTION
+        (
+         "Get the names of all GriddedFields stored in an Array.\n"
+         "\n"
+         "See *GriddedFieldGetName*.\n"
+         ),
+        AUTHORS( "Lukas Kluft" ),
+        OUT(),
+        GOUT( "names" ),
+        GOUT_TYPE( "ArrayOfString" ),
+        GOUT_DESC( "Names of the GriddedFields in the ArrayOfGriddedField." ),
+        IN(),
+        GIN( "griddedfields" ),
+        GIN_TYPE( "ArrayOfGriddedField1, ArrayOfGriddedField2,"
+                  "ArrayOfGriddedField3, ArrayOfGriddedField4" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Array of GriddedFields." ),
+        SETMETHOD( false ),
+        AGENDAMETHOD( false ),
+        USES_TEMPLATES( true  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ArrayOfIndexLinSpace" ),
         DESCRIPTION
         (
@@ -6010,6 +6035,31 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "GriddedFieldGetName" ),
+        DESCRIPTION
+        (
+         "Get the name of a GriddedField.\n"
+         "\n"
+         "See *ArrayOfGriddedFieldGetNames*.\n"
+         ),
+        AUTHORS( "Lukas Kluft" ),
+        OUT(),
+        GOUT( "name" ),
+        GOUT_TYPE( "String" ),
+        GOUT_DESC( "Name of the GriddedField." ),
+        IN(),
+        GIN( "griddedfield" ),
+        GIN_TYPE( "GriddedField1, GriddedField2, GriddedField3, "
+                  "GriddedField4, GriddedField5, GriddedField6 " ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "GriddedField." ),
+        SETMETHOD( false ),
+        AGENDAMETHOD( false ),
+        USES_TEMPLATES( true  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "GriddedFieldLatLonExpand" ),
         DESCRIPTION
         (
@@ -6092,7 +6142,7 @@ void define_md_data_raw()
                   "Interpolation order.",
                   "Apply zero-padding." )
         ));
-    
+
     md_data_raw.push_back
     ( MdRecord
     ( NAME( "GriddedFieldZToPRegrid" ),
