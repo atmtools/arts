@@ -1,3 +1,10 @@
+2017-02-02  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-613
+	
+	* src/m_linemixing.cc:  Updated pressure from Pascal to atm to fit with
+	relmat input.  Bug fix.
+
 2017-02-01  Lukas Kluft  <lukas.kluft@gmail.com>
 
 	* arts-2-3-612

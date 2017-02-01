@@ -709,7 +709,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             Numeric t;
             t = abs_t[ip];
             Numeric p;
-            p = abs_p[ip];
+            p = abs_p[ip]/ATM2PA; // HITRAN pressure unit is in atmospheres
             
             std::cout<<"Starting the arts_relmat_interface!\n";
             
