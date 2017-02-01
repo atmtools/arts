@@ -1,3 +1,10 @@
+2017-02-01  Alex Bobryshev  <oleksandr.bobryshev@uni-hamburg.de>
+
+	* arts-2-3-616
+	
+	* controlfiles/instruments/metmm/TestMetMM.arts: in the comments
+	added the link to the documentation of met_mm_accuracy.
+
 2017-02-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-615

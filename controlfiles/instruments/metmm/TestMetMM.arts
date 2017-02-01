@@ -15,7 +15,7 @@ INCLUDE "general/planet_earth.arts"
     ArrayOfIndexCreate(viewing_angles)
 
     ArrayOfIndexSet(channels, [-1])
-    #ArrayOfIndexSet(viewing_angles, [-1]) # Pick all viewing angles
+   #ArrayOfIndexSet(viewing_angles, [-1]) # Pick all viewing angles
 
     # For testing, only calculate one viewing angle
     ArrayOfIndexSet(viewing_angles, [0])
@@ -25,14 +25,19 @@ INCLUDE "general/planet_earth.arts"
 # Definition of sensor LOS (180 is Nadir looking direction of the sensor)
     MatrixSetConstant( sensor_los, 1, 1, 180 )
 
-# This index selects the number of frequencies to be used
+# This index (met_mm_accuracy) selects the number of frequencies to be used
 # from the available accuracies. This is set by the user in the main controlfile
 # Must be documented here:
-# N  Accuracy   Speed
-# 0: fast       very-very fast
-# 1: normal     fast
-# 2: high       slow
-# 3: reference  extremely slow
+# N  Accuracy   Speed           Number of frequencies/channel
+# 0: fast       very-very fast  1
+# 1: normal     fast            varying
+# 2: high       slow            varying
+# 3: reference  extremely slow  varying
+#
+# More information on met_mm_accuracy can be found in the ARTS-Documentation
+# web-page in the section Technical Reports.
+# http://arts.mi.uni-hamburg.de/docs/met_mm_setup_documentation.pdf
+#
     IndexCreate(met_mm_accuracy)
     IndexSet(met_mm_accuracy, 1)
 # ====================================================================
