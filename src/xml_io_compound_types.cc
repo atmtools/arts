@@ -1302,11 +1302,17 @@ void xml_read_from_stream(istream& is_xml,
   tag.check_name("SingleScatteringData");
   tag.get_attribute_value("version", version);
 
-  if (version == "2")
+  if (version == "3")
     {
       String ptype_string;
       xml_read_from_stream(is_xml, ptype_string, pbifs, verbosity);
       ssdata.ptype = PTypeFromString(ptype_string);
+    }
+  if (version == "2")
+    {
+      String ptype_string;
+      xml_read_from_stream(is_xml, ptype_string, pbifs, verbosity);
+      ssdata.ptype = PType2FromString(ptype_string);
     }
   else
     {
@@ -1356,6 +1362,11 @@ void xml_read_from_stream(istream& is_xml,
   tag.read_from_stream(is_xml);
   tag.check_name("/SingleScatteringData");
 
+  if (version != "3" && ssdata.ptype == PTYPE_HORIZ_AL)
+  {
+      ConvertAzimuthallyRandomSingleScatteringData(ssdata);
+  }
+
   chk_scat_data(ssdata, verbosity);
 }
 
@@ -1375,10 +1386,16 @@ void xml_write_to_stream(ostream& os_xml,
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
+  if (ssdata.ptype == PTYPE_HORIZ_AL)
+  {
+      throw std::runtime_error("Under construction: Writing of azimuthally random scattering data is\n"
+                               "currently turned off due to restructuring of the scattering data format\n"
+                               "by Jana and Oliver.");
+  }
   open_tag.set_name("SingleScatteringData");
   if (name.length())
     open_tag.add_attribute("name", name);
-  open_tag.add_attribute("version", "2");
+  open_tag.add_attribute("version", "3");
   open_tag.write_to_stream(os_xml);
 
   xml_write_to_stream(os_xml, PTypeToString(ssdata.ptype),

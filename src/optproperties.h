@@ -215,8 +215,11 @@ void opt_prop_sum_propmat_clearsky(//Output:
                                       const Tensor4    propmat_clearsky);
 
 PType PTypeFromString(const String& ptype_string);
+PType PType2FromString(const String& ptype_string);
 
 String PTypeToString(const PType& ptype);
+
+void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd);
 
 ParticleSSDMethod ParticleSSDMethodFromString(const String& particle_ssdmethod_string);
 

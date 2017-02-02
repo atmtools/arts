@@ -1,3 +1,40 @@
+2017-02-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-617
+
+	* WORK IN PROGRESS!!!
+
+	* Jana and me are currently working on introducing SingleScatteringData
+	version 3. Therefore, temporarily horizontally_aligned data can't be
+	written from ARTS.
+
+	That means that TestMonteCarloDataPrepare, TestRteCalcMC and
+	TestTMatrix are currently failing.
+
+	* optproperties.{cc,h}:
+
+	Copied PTypeFromString to PType2FromString.
+
+	Adapted PTypeFromString and PTypeToString to SingleScatteringData
+	format 3: "horizontally_aligned" -> "azimuthally_random",
+	"macroscopically_isotropic" -> "totally_random".
+
+	(ConvertAzimuthallyRandomSingleScatteringData):
+
+	Added skeleton for conversion of older SingleScatteringData to
+	version 3.
+
+	* src/xml_io_compound_types.cc:
+
+	Added reading/writing support for SingleScatteringData version 3.
+
+	Temporarily throw a runtime error if azimuthally_random data is tried
+	to be written.
+
+	* controlfiles/artscomponents/tmatrix/TestTMatrix.arts:
+
+	Replaced "horizontally_aligned" by "azimuthally_random".
+
 2017-02-01  Alex Bobryshev  <oleksandr.bobryshev@uni-hamburg.de>
 
 	* arts-2-3-616

@@ -1070,12 +1070,47 @@ void opt_prop_sum_propmat_clearsky(//Output:
 /*!
  Returns the PType enum value for the given String.
 
+ This is the conversion for SingleScatteringData version 2.
+
  \param[in]  ptype_string  Particle type name
  \return     PType enum value
 
  \author Oliver Lemke
  */
 PType PTypeFromString(const String& ptype_string)
+{
+    PType ptype;
+    if (ptype_string == "general")
+        ptype = PTYPE_GENERAL;
+    else if (ptype_string == "totally_random")
+        ptype = PTYPE_MACROS_ISO;
+    else if (ptype_string == "azimuthally_random")
+        ptype = PTYPE_HORIZ_AL;
+    else
+    {
+        ostringstream os;
+        os << "Unknown ptype: " << ptype_string << endl
+           << "Valid types are: general, totally_random and "
+           << "azimuthally_random.";
+        throw std::runtime_error(os.str());
+    }
+
+    return ptype;
+}
+
+
+//! Convert ptype name to enum value
+/*!
+ Returns the PType enum value for the given String.
+ 
+ This is the conversion for SingleScatteringData version 2.
+
+ \param[in]  ptype_string  Particle type name
+ \return     PType enum value
+
+ \author Oliver Lemke
+ */
+PType PType2FromString(const String& ptype_string)
 {
     PType ptype;
     if (ptype_string == "general")
@@ -1088,7 +1123,7 @@ PType PTypeFromString(const String& ptype_string)
     {
         ostringstream os;
         os << "Unknown ptype: " << ptype_string << endl
-           << "Valid types are: general, macroscopically_isotropic and"
+           << "Valid types are: general, macroscopically_isotropic and "
            << "horizontally_aligned.";
         throw std::runtime_error(os.str());
     }
@@ -1115,12 +1150,11 @@ String PTypeToString(const PType& ptype)
             ptype_string = "general";
             break;
         case PTYPE_MACROS_ISO:
-            ptype_string = "macroscopically_isotropic";
+            ptype_string = "totally_random";
             break;
         case PTYPE_HORIZ_AL:
-            ptype_string = "horizontally_aligned";
+            ptype_string = "azimuthally_random";
             break;
-
         default:
             ostringstream os;
             os << "Internal error: Cannot map PType enum value "
@@ -1130,6 +1164,20 @@ String PTypeToString(const PType& ptype)
     }
 
     return ptype_string;
+}
+
+
+//! Convert azimuthally-random oriented SingleScatteringData to latest version.
+/*!
+ Converts SingleScatteringData to version 3.
+
+ \param[in,out]  ssd  SingleScatteringData
+
+ \author Jana Mendrok
+*/
+void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd)
+{
+    // TODO: Implementation by Jana
 }
 
 
