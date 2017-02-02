@@ -1,3 +1,15 @@
+2017-02-02 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-619
+
+	* src/m_rt4.cc, methods.cc (RT4Calc):
+	Removed angular grid indentity check. This was just a copy-paste
+	leftover from DisortCalc. Build-in doc updated accordingly, add info
+	that temp. interpolate of pfct is actually not implemented here	(yet?).
+
+	* src/optproperties.cc, src/workspace.cc:
+	Language fixes in documentation.
+
 2017-02-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-618

@@ -4848,7 +4848,8 @@ void Workspace::define_wsv_data()
        (
         "The specular direction (for reflection by a flat surface).\n"
         "\n"
-        "The specualr dirtection as a standard line-of-sight vector.\n"
+        "The specular direction as a standard line-of-sight vector, consisting\n"
+        "of a zenith and azimuth angle (the later only for 3D).\n"
         "\n"
         "Units: degrees\n"
         "\n"
@@ -4990,10 +4991,10 @@ void Workspace::define_wsv_data()
      ( NAME( "surface_los" ),
        DESCRIPTION
        (
-        "Directions for which to calculate downwelling radiation when\n"
-        "considering a surface reflection.\n"
+        "Downwelling radiation directions to consider in surface reflection.\n"
         "\n"
-        "See further the user guide.\n"
+        "The directions are given as a zenith and azimuth angle (the later\n"
+        "only for 3D), following the definition of line-of-sights.\n"
         "\n"
         "Units: degrees\n"
         "\n"

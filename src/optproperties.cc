@@ -399,9 +399,9 @@ void pha_matTransform(//Output
          TO ANY DEVELOPER:
          current usage of coordinate systems in scattering solvers (RT and SSD
          extraction) and general radiative transfer is not consistent. Not an
-         as long as only PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND, but will be a
-         problem for PTYPE_GENERAL, ie needs to be fixed BEFORE adding
-         PTYPE_GENERAL support (see AUG appendix for more info).
+         issue as long as only PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND are used,
+         but will be a problem for PTYPE_GENERAL, ie needs to be fixed BEFORE
+         adding PTYPE_GENERAL support (see AUG appendix for more info).
       */
 
       CREATE_OUT0;

@@ -94,7 +94,7 @@ void RT4Calc( Workspace& ws,
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
 
-  // Check whether DisortInit was executed
+  // Check whether RT4Init was executed
   if (!rt4_is_initialized)
     {
       ostringstream os;
@@ -156,32 +156,6 @@ void RT4Calc( Workspace& ws,
   // nummu is the total number of angles in one hemisphere, including the
   // quadrature angles as well as the "extra" angles.
   Index nummu=nhstreams+nhza;
-
-  if( pfct_method!="interpolate" )
-  {
-    // The old interface can only handle particles with single scattering data
-    // given on identical angular grids.
-    const Vector data_za_grid = scat_data[0][0].za_grid;
-    const Index ndza = data_za_grid.nelem();
-    bool ident_anggrid=true;
-    for( Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++ )
-      for( Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++ )
-        // not an exhaustive test, but should catch most cases: checking
-        // identical size as well as identical second and second to last
-        // elements. no use in checking first and last elements as they should
-        // be 0 and 180 and this should have been checked elsewhere.
-        if( scat_data[i_ss][i_se].za_grid.nelem() != ndza ||
-            scat_data[i_ss][i_se].za_grid[1] != data_za_grid[1] ||
-            scat_data[i_ss][i_se].za_grid[ndza-2]!=data_za_grid[ndza-2] )
-          ident_anggrid=false;
-     if( !ident_anggrid )
-      {
-        ostringstream os;
-        os << "ARTS-RT4 currently requires identical angular grids of\n"
-           << "scattering data for all scattering elements, but yours differ.\n";
-        throw runtime_error( os.str() );
-      }
-  }
 
   // FIXME: remove/replace the following two tests when other than
   // ground_type=="L" is implemented.
@@ -245,7 +219,7 @@ void RT4Calc( Workspace& ws,
   //  proprietary RT4 allows (L)ambertian and (F)resnel.
   //  FIXME: For first, I hardcode that to Lambertian. Implementation of Fresnel
   //  as well as specular reflection with given reflectivity to be done later.
-  //  For that review handling of theseoptions in ARTS (yCalc) and do that
+  //  For that, review handling of these options in ARTS (yCalc) and do that
   //  consistently here (e.g. applying agendas...).
   const String ground_type="L";
 
