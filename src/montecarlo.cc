@@ -579,11 +579,11 @@ void findZ11max(Vector& Z11maxvector,
       {
           i_total++;
           switch(scat_data_mono[i_ss][i_se].ptype){
-              case PTYPE_MACROS_ISO:
+              case PTYPE_TOTAL_RND:
               {
                   Z11maxvector[i_total]=max(scat_data_mono[i_ss][i_se].pha_mat_data(0,joker,joker,0,0,0,0));
               }
-              case PTYPE_HORIZ_AL:
+              case PTYPE_AZIMUTH_RND:
               {
                   Z11maxvector[i_total]=max(scat_data_mono[i_ss][i_se].pha_mat_data(0,joker,joker,0,joker,0,0));
               }
@@ -756,7 +756,7 @@ bool is_anyptype30(const ArrayOfArrayOfSingleScatteringData& scat_data_mono)
     {
         for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
         {
-            if(scat_data_mono[i_ss][i_se].ptype==PTYPE_HORIZ_AL)
+            if(scat_data_mono[i_ss][i_se].ptype==PTYPE_AZIMUTH_RND)
             {
                 anyptype30=true;
             }
@@ -1532,7 +1532,7 @@ void opt_propExtract(
          TO ANY DEVELOPER:
          current usage of coordinate systems in scattering solvers (RT and SSD
          extraction) and general radiative transfer is not consistent. Not an
-         as long as only PTYPE_MACROS_ISO and PTYPE_HORIZ_AL, but will be a
+         as long as only PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND, but will be a
          problem for PTYPE_GENERAL, ie needs to be fixed BEFORE adding
          PTYPE_GENERAL support (see AUG appendix for more info).
       */
@@ -1543,7 +1543,7 @@ void opt_propExtract(
       out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
       break;
     }
-  case PTYPE_MACROS_ISO:
+  case PTYPE_TOTAL_RND:
     {
       assert (scat_data_single.ext_mat_data.ncols() == 1);
       
@@ -1592,11 +1592,11 @@ void opt_propExtract(
       break;
     }
 
-  case PTYPE_HORIZ_AL:
+  case PTYPE_AZIMUTH_RND:
     {
       assert (scat_data_single.ext_mat_data.ncols() == 3);
       
-      // In the case of horizontally oriented particles the extinction matrix
+      // In the case of azimuthally randomly oriented particles the extinction matrix
       // has only 3 independent non-zero elements ext_mat_monojj, K12=K21, and
       // K34=-K43. These values are dependent on the zenith angle of
       // propagation. The data storage format also makes use of the fact that
@@ -1791,7 +1791,7 @@ void pha_mat_singleExtract(
          TO ANY DEVELOPER:
          current usage of coordinate systems in scattering solvers (RT and SSD
          extraction) and general radiative transfer is not consistent. Not an
-         as long as only PTYPE_MACROS_ISO and PTYPE_HORIZ_AL, but will be a
+         as long as only PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND, but will be a
          problem for PTYPE_GENERAL, ie needs to be fixed BEFORE adding
          PTYPE_GENERAL support (see AUG appendix for more info).
       */
@@ -1801,7 +1801,7 @@ void pha_mat_singleExtract(
       out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
       break;
     }
-  case PTYPE_MACROS_ISO:
+  case PTYPE_TOTAL_RND:
     {
       // Calculate the scattering and interpolate the data on the scattering
       // angle:
@@ -1820,7 +1820,7 @@ void pha_mat_singleExtract(
       break;
     }
 
-  case PTYPE_HORIZ_AL:
+  case PTYPE_AZIMUTH_RND:
     //Data is already stored in the laboratory frame, but it is compressed
     //a little.  Details elsewhere
     {

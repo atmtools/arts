@@ -1154,7 +1154,7 @@ void scat_dataCheck( //Input:
         {
           switch (PART_TYPE)
           {
-            case PTYPE_MACROS_ISO:
+            case PTYPE_TOTAL_RND:
             {
               for (Index f = 0; f < F_DATAGRID.nelem(); f++)
               {
@@ -1200,7 +1200,7 @@ void scat_dataCheck( //Input:
               break;
             }
                     
-            case PTYPE_HORIZ_AL:
+            case PTYPE_AZIMUTH_RND:
             {
               for (Index f = 0; f < F_DATAGRID.nelem(); f++)
               {
@@ -2540,7 +2540,7 @@ void TestScatDataInterp(
         SingleScatteringData ssd=scat_data_mono[i_ss][i_se];
         Index i_pfct = ssd.T_grid.nelem()/2;
 
-        if (ssd.ptype == PTYPE_MACROS_ISO)
+        if (ssd.ptype == PTYPE_TOTAL_RND)
           for (Index iza=0; iza<n_za; iza++)
             for (Index iaa=0; iaa<n_aa; iaa++)
               pha_matTransform( pha_mat_rt4(iza,iaa,joker,joker),
@@ -2551,7 +2551,7 @@ void TestScatDataInterp(
                                 siza_grid, siaa_grid,
                                 verbosity );
 
-        else if (ssd.ptype == PTYPE_HORIZ_AL)
+        else if (ssd.ptype == PTYPE_AZIMUTH_RND)
           {
             Index nza_se = ssd.za_grid.nelem();
             ConstVectorView za_datagrid = ssd.za_grid;

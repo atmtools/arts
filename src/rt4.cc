@@ -344,7 +344,7 @@ void sca_optpropCalc( //Output
           else //if( pfct_method=="median" )
             i_pfct = ssd.T_grid.nelem()/2;
 
-          if (ssd.ptype == PTYPE_MACROS_ISO)
+          if (ssd.ptype == PTYPE_TOTAL_RND)
             {
               Matrix pha_mat(stokes_dim,stokes_dim, 0.);
               for (Index iza=0; iza<nza_rt; iza++)
@@ -374,7 +374,7 @@ void sca_optpropCalc( //Output
                     sca_mat(i_se_flat,iza,sza,joker,joker) = pha_mat_int;
                   }
             }
-          else if (ssd.ptype == PTYPE_HORIZ_AL)
+          else if (ssd.ptype == PTYPE_AZIMUTH_RND)
             {
               Index nza_se = ssd.za_grid.nelem();
               Index naa_se = ssd.aa_grid.nelem();

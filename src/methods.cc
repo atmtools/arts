@@ -3925,7 +3925,7 @@ void define_md_data_raw()
          "\n"
          "DISORT provides the radiation field (*doit_i_field*) from a scalar\n"
          "1D scattering solution assuming a plane-parallel atmosphere (flat\n"
-         "Earth). Only macroscopically isotropic particles are allowed.\n"
+         "Earth). Only totally-random oriented particles are allowed.\n"
          "Refraction is not taken into account.\n"
          "\n"
          "*nstreams* is the number of polar angles taken into account\n"
@@ -12483,8 +12483,8 @@ void define_md_data_raw()
         "i.e. turning perfect spheres into very light oblates.\n"
         "\n"
         "Particle type (*ptype*) has two options:\n"
-        "   \"macroscopically_isotropic\" and \"horizontally_aligned\"\n"
-        "For macroscopically isotropic particles, *data_aa_grid* is not taken\n"
+        "   \"totally_random\" and \"azimuthally_random\"\n"
+        "For totally randomly oriented particles, *data_aa_grid* is not taken\n"
         "into account (but a Vector type container needs to be passed).\n"
         "\n"
         "For further information on how aspect ratio and the different shapes\n"
@@ -12575,7 +12575,7 @@ void define_md_data_raw()
       GIN_DEFAULT( "", "undefined", NODEF, NODEF, "-999", NODEF, NODEF,
                    NODEF, NODEF ),
       GIN_DESC( "Particle description", "Water or Ice", "spheroidal or cylinder", 
-                "Particle Type: MACROS_ISO (20) or PTYPE_HORIZ_AL (30)", 
+                "Particle Type: "totally_random" (20) or "azimuthally_random" (30)",
                 "Particle mass density",
                 "Particle aspect ratio vector",
                 "Maximum diameter vector (diameter of a sphere that fully"

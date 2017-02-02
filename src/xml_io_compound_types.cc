@@ -1319,15 +1319,15 @@ void xml_read_from_stream(istream& is_xml,
       Index ptype;
       xml_read_from_stream(is_xml, ptype, pbifs, verbosity);
       if (ptype != PTYPE_GENERAL &&
-          ptype != PTYPE_MACROS_ISO &&
-          ptype != PTYPE_HORIZ_AL)
+          ptype != PTYPE_TOTAL_RND &&
+          ptype != PTYPE_AZIMUTH_RND)
       {
             ostringstream os;
             os << "Ptype value (" << ptype << ") is wrong."
             << "It must be \n"
             << "10 - arbitrary oriented particles \n"
-            << "20 - randomly oriented particles or \n"
-            << "30 - horizontally aligned particles.\n";
+            << "20 - totally randomly oriented particles or \n"
+            << "30 - azimuthally randomly oriented particles.\n";
             throw runtime_error( os.str() );
       }
       ssdata.ptype = PType(ptype);
@@ -1362,7 +1362,7 @@ void xml_read_from_stream(istream& is_xml,
   tag.read_from_stream(is_xml);
   tag.check_name("/SingleScatteringData");
 
-  if (version != "3" && ssdata.ptype == PTYPE_HORIZ_AL)
+  if (version != "3" && ssdata.ptype == PTYPE_AZIMUTH_RND)
   {
       ConvertAzimuthallyRandomSingleScatteringData(ssdata);
   }
@@ -1386,7 +1386,7 @@ void xml_write_to_stream(ostream& os_xml,
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  if (ssdata.ptype == PTYPE_HORIZ_AL)
+  if (ssdata.ptype == PTYPE_AZIMUTH_RND)
   {
       throw std::runtime_error("Under construction: Writing of azimuthally random scattering data is\n"
                                "currently turned off due to restructuring of the scattering data format\n"

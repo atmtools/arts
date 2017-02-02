@@ -631,15 +631,15 @@ void DisortInit(//WS Output
   bool all_p20=true;
   for( Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++ )
     for( Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++ )
-      if( scat_data[i_ss][i_se].ptype != PTYPE_MACROS_ISO )
+      if( scat_data[i_ss][i_se].ptype != PTYPE_TOTAL_RND )
         all_p20=false;
   if( !all_p20 )
     {
       ostringstream os;
       os << "DISORT can only handle scattering elements of type "
-         << PTYPE_MACROS_ISO << " (" << PTypeToString(PTYPE_MACROS_ISO) << "),\n"
-         << "but at least one element of other type (" << PTYPE_HORIZ_AL
-         << "=" << PTypeToString(PTYPE_HORIZ_AL) << " or " << PTYPE_GENERAL
+         << PTYPE_TOTAL_RND << " (" << PTypeToString(PTYPE_TOTAL_RND) << "),\n"
+         << "but at least one element of other type (" << PTYPE_AZIMUTH_RND
+         << "=" << PTypeToString(PTYPE_AZIMUTH_RND) << " or " << PTYPE_GENERAL
          << "=" << PTypeToString(PTYPE_GENERAL) << ") is present.\n";
       throw runtime_error( os.str() );
     }

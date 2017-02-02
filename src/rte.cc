@@ -963,7 +963,7 @@ void emission_rtstep(
     The function performs the calculations differently depending on the
     conditions, to improve the speed. There are three cases: <br>
        1. Scalar RT and/or the matrix ext_mat_av is diagonal. <br>
-       2. Special expression for "horizontally_aligned" case. <br>
+       2. Special expression for "azimuthally_random" case. <br>
        3. The total general case.
 
     If the structure of *ext_mat* is known, *icase* can be set to "case index"
@@ -1109,7 +1109,7 @@ void ext2trans(
  *   The function performs the calculations differently depending on the
  *   conditions, to improve the speed. There are three cases: <br>
  *      1. Scalar RT and/or the matrix ext_mat_av is diagonal. <br>
- *      2. Special expression for "horizontally_aligned" case. <br>
+ *      2. Special expression for "azimuthally_random" case. <br>
  *      3. The total general case.
  * 
  *   If the structure of *ext_mat* is known, *icase* can be set to "case index"

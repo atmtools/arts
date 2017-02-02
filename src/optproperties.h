@@ -45,17 +45,17 @@
 //! An attribute to classify the particle type (ptype) of a SingleScatteringData
 //structure (a scattering element).
 /*! 
-  GENERAL      General case
-  MACROS_ISO   Macroscopically isotropic scattering media
-  HORIZ_AL     Horizonatally aligned particles
+  PTYPE_GENERAL      General case
+  PTYPE_TOTAL_RND    Totally randomly oriented particles
+  PTYPE_AZIMUTH_RND  Azimuthally randomly oriented particles
 
   A detailed description of the different cases can be found in AUG.
 
 */
 enum PType {
   PTYPE_GENERAL = 10,
-  PTYPE_MACROS_ISO = 20,
-  PTYPE_HORIZ_AL = 30
+  PTYPE_TOTAL_RND = 20,
+  PTYPE_AZIMUTH_RND = 30
 };
 
 

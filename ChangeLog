@@ -1,5 +1,22 @@
 2017-02-02  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-618
+
+	* WORK IN PROGRESS!!!  TestMonteCarloDataPrepare, TestRteCalcMC and
+	TestTMatrix are currently failing.
+
+	* src/cloudbox.cc, src/m_cloudbox.cc, src/m_disort.cc,
+	src/m_optproperties.cc, src/m_rt4.cc, src/m_tmatrix.cc, src/methods.cc,
+	src/montecarlo.cc, src/optproperties.{cc,h}, src/rt4.cc, src/rte.cc,
+	src/tmatrix.{cc,h}, src/xml_io_compound_types.cc:
+
+	Replacements for new ptype naming:
+
+	PTYPE_MACROS_ISO -> PTYPE_TOTAL_RND
+	PTYPE_HORIZ_AL   -> PTYPE_AZIMUTH_RND
+
+2017-02-02  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-617
 
 	* WORK IN PROGRESS!!!

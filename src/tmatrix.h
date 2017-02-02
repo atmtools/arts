@@ -93,7 +93,7 @@ void tmatrix_tmd_test(const Verbosity& verbosity);
  <pre>
 from PyARTS import arts_types
 
-params = {'ptype': constants.PTYPE_HORIZ_AL,
+params = {'ptype': constants.PTYPE_AZIMUTH_RND,
           'f_grid': [230e9, 240e9],
           'T_grid': [220, 250],
           'za_grid': numpy.arange(0, 181, 10),
@@ -113,7 +113,7 @@ s.calc()
  <pre>
 from PyARTS import arts_types
 
-params = {'ptype': constants.PTYPE_HORIZ_AL,
+params = {'ptype': constants.PTYPE_AZIMUTH_RND,
           'f_grid': [230e9, 240e9],
           'T_grid': [220, 250],
           'za_grid': numpy.arange(0, 181, 10),
@@ -140,7 +140,7 @@ void calc_ssp_random_test(const Verbosity& verbosity);
 from PyARTS import arts_types
 from PyARTS import constants
 
-params = {'ptype': constants.PTYPE_HORIZ_AL,
+params = {'ptype': constants.PTYPE_AZIMUTH_RND,
           'f_grid': [230e9, 240e9],
           'T_grid': [220, 250],
           'za_grid': numpy.arange(0, 181, 10),
@@ -161,7 +161,7 @@ s.calc()
 from PyARTS import arts_types
 from PyARTS import constants
 
-params = {'ptype': constants.PTYPE_HORIZ_AL,
+params = {'ptype': constants.PTYPE_AZIMUTH_RND,
           'f_grid': [230e9, 240e9],
           'T_grid': [220, 250],
           'za_grid': numpy.arange(0, 181, 10),

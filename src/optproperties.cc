@@ -108,7 +108,7 @@ void abs_vecTransform(//Output and Input
          TO ANY DEVELOPER:
          current usage of coordinate systems in scattering solvers (RT and SSD
          extraction) and general radiative transfer is not consistent. Not an
-         as long as only PTYPE_MACROS_ISO and PTYPE_HORIZ_AL, but will be a
+         as long as only PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND, but will be a
          problem for PTYPE_GENERAL, ie needs to be fixed BEFORE adding
          PTYPE_GENERAL support (see AUG appendix for more info).
       */
@@ -117,7 +117,7 @@ void abs_vecTransform(//Output and Input
       out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
       break;
     }
-    case PTYPE_MACROS_ISO:
+    case PTYPE_TOTAL_RND:
     {
       // The first element of the vector corresponds to the absorption 
       // coefficient which is stored in the database, the others are 0.
@@ -128,11 +128,11 @@ void abs_vecTransform(//Output and Input
       break;
     }
       
-    case PTYPE_HORIZ_AL://Added by Cory Davis 9/12/03
+    case PTYPE_AZIMUTH_RND://Added by Cory Davis 9/12/03
     {
       assert (abs_vec_data.ncols() == 2);
       
-      // In the case of horizontally oriented particles the absorption
+      // In the case of azimuthally randomly oriented particles the absorption
       // coefficient vector only the first two elements are non-zero.
       // These values are dependent on the zenith angle of propagation. The 
       // data storage format also makes use of the fact that in this case
@@ -222,7 +222,7 @@ void ext_matTransform(//Output and Input
          TO ANY DEVELOPER:
          current usage of coordinate systems in scattering solvers (RT and SSD
          extraction) and general radiative transfer is not consistent. Not an
-         as long as only PTYPE_MACROS_ISO and PTYPE_HORIZ_AL, but will be a
+         as long as only PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND, but will be a
          problem for PTYPE_GENERAL, ie needs to be fixed BEFORE adding
          PTYPE_GENERAL support (see AUG appendix for more info).
       */
@@ -231,7 +231,7 @@ void ext_matTransform(//Output and Input
       out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
       break;
     }
-    case PTYPE_MACROS_ISO:
+    case PTYPE_TOTAL_RND:
     {
       assert (ext_mat_data.ncols() == 1);
       
@@ -264,11 +264,11 @@ void ext_matTransform(//Output and Input
       break;
     }
       
-    case PTYPE_HORIZ_AL://Added by Cory Davis 9/12/03
+    case PTYPE_AZIMUTH_RND://Added by Cory Davis 9/12/03
     {
       assert (ext_mat_data.ncols() == 3);
       
-      // In the case of horizontally oriented particles the extinction matrix
+      // In the case of azimuthally randomly oriented particles the extinction matrix
       // has only 3 independent non-zero elements Kjj, K12=K21, and K34=-K43.
       // These values are dependent on the zenith angle of propagation. The 
       // data storage format also makes use of the fact that in this case
@@ -399,7 +399,7 @@ void pha_matTransform(//Output
          TO ANY DEVELOPER:
          current usage of coordinate systems in scattering solvers (RT and SSD
          extraction) and general radiative transfer is not consistent. Not an
-         as long as only PTYPE_MACROS_ISO and PTYPE_HORIZ_AL, but will be a
+         as long as only PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND, but will be a
          problem for PTYPE_GENERAL, ie needs to be fixed BEFORE adding
          PTYPE_GENERAL support (see AUG appendix for more info).
       */
@@ -408,7 +408,7 @@ void pha_matTransform(//Output
       out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
       break;
     }
-    case PTYPE_MACROS_ISO:
+    case PTYPE_TOTAL_RND:
     {
       // Calculate the scattering and interpolate the data on the scattering
       // angle:
@@ -428,7 +428,7 @@ void pha_matTransform(//Output
       break;
     }
       
-    case PTYPE_HORIZ_AL://Added by Cory Davis
+    case PTYPE_AZIMUTH_RND://Added by Cory Davis
                                 //Data is already stored in the laboratory frame, but it is compressed
                                 //a little.  Details elsewhere
     {
@@ -1083,9 +1083,9 @@ PType PTypeFromString(const String& ptype_string)
     if (ptype_string == "general")
         ptype = PTYPE_GENERAL;
     else if (ptype_string == "totally_random")
-        ptype = PTYPE_MACROS_ISO;
+        ptype = PTYPE_TOTAL_RND;
     else if (ptype_string == "azimuthally_random")
-        ptype = PTYPE_HORIZ_AL;
+        ptype = PTYPE_AZIMUTH_RND;
     else
     {
         ostringstream os;
@@ -1116,9 +1116,9 @@ PType PType2FromString(const String& ptype_string)
     if (ptype_string == "general")
         ptype = PTYPE_GENERAL;
     else if (ptype_string == "macroscopically_isotropic")
-        ptype = PTYPE_MACROS_ISO;
+        ptype = PTYPE_TOTAL_RND;
     else if (ptype_string == "horizontally_aligned")
-        ptype = PTYPE_HORIZ_AL;
+        ptype = PTYPE_AZIMUTH_RND;
     else
     {
         ostringstream os;
@@ -1149,10 +1149,10 @@ String PTypeToString(const PType& ptype)
         case PTYPE_GENERAL:
             ptype_string = "general";
             break;
-        case PTYPE_MACROS_ISO:
+        case PTYPE_TOTAL_RND:
             ptype_string = "totally_random";
             break;
-        case PTYPE_HORIZ_AL:
+        case PTYPE_AZIMUTH_RND:
             ptype_string = "azimuthally_random";
             break;
         default:

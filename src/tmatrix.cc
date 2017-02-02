@@ -970,7 +970,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
     lam /= ssd.f_grid;
 
     switch (ssd.ptype) {
-        case PTYPE_MACROS_ISO:
+        case PTYPE_TOTAL_RND:
         {
             const Index nza = ssd.za_grid.nelem();
 
@@ -1050,7 +1050,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
             
             break;
         }
-        case PTYPE_HORIZ_AL:
+        case PTYPE_AZIMUTH_RND:
         {
             const Index nza = ssd.za_grid.nelem();
             const Index naa = ssd.aa_grid.nelem();
@@ -1395,7 +1395,7 @@ void calc_ssp_random_test(const Verbosity& verbosity)
 
     SingleScatteringData ssd;
 
-    ssd.ptype = PTYPE_MACROS_ISO;
+    ssd.ptype = PTYPE_TOTAL_RND;
     ssd.f_grid = MakeVector(230e9, 240e9);
     ssd.T_grid = MakeVector(220, 250);
     nlinspace(ssd.za_grid, 0, 180, 19);
@@ -1453,7 +1453,7 @@ void calc_ssp_fixed_test(const Verbosity& verbosity)
 
     SingleScatteringData ssd;
 
-    ssd.ptype = PTYPE_HORIZ_AL;
+    ssd.ptype = PTYPE_AZIMUTH_RND;
     ssd.f_grid = MakeVector(230e9, 240e9);
     ssd.T_grid = MakeVector(220, 250);
     nlinspace(ssd.za_grid, 0, 180, 19);

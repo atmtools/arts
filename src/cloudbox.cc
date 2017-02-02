@@ -535,8 +535,8 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
   CREATE_OUT2;
 
   assert(scat_data_single.ptype == PTYPE_GENERAL ||
-         scat_data_single.ptype == PTYPE_MACROS_ISO ||
-         scat_data_single.ptype == PTYPE_HORIZ_AL);
+         scat_data_single.ptype == PTYPE_TOTAL_RND ||
+         scat_data_single.ptype == PTYPE_AZIMUTH_RND);
 
   if (scat_data_single.za_grid[0] != 0.)
     {
@@ -563,20 +563,20 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
          throw runtime_error( os.str() );
      } 
   
-  if (scat_data_single.ptype == PTYPE_HORIZ_AL && scat_data_single.aa_grid[0] != 0.)
+  if (scat_data_single.ptype == PTYPE_AZIMUTH_RND && scat_data_single.aa_grid[0] != 0.)
     {
       ostringstream os;
-      os << "For ptype = \"horizontally_aligned\""
+      os << "For ptype = \"azimuthally_random\""
          << " the first value"
          << " of the aa grid in the single scattering"
          << " properties data must be 0.";
         throw runtime_error( os.str() );
     }   
   
-  if (scat_data_single.ptype == PTYPE_HORIZ_AL && last(scat_data_single.aa_grid) != 180.)
+  if (scat_data_single.ptype == PTYPE_AZIMUTH_RND && last(scat_data_single.aa_grid) != 180.)
     {
       ostringstream os;
-      os << "For ptype = \"horizontally_aligned\""
+      os << "For ptype = \"azimuthally_random\""
          << " the last value of the aa grid in the single"
          << " scattering properties data must be 180.";
         throw runtime_error( os.str() );
@@ -612,7 +612,7 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
              4);
     break;
     
-  case PTYPE_MACROS_ISO: 
+  case PTYPE_TOTAL_RND:
     
     out2 << "  Data is for randomly oriented particles, i.e., "
          << "macroscopically isotropic and mirror-symmetric scattering "
@@ -631,9 +631,9 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
              1, 1, 1);
     break; 
     
-  case PTYPE_HORIZ_AL:
+  case PTYPE_AZIMUTH_RND:
     
-    out2 << "  Data is for horizontally aligned particles. \n"; 
+    out2 << "  Data is for azimuthally randomly oriented particles. \n";
     
     chk_size(os_pha_mat.str(), scat_data_single.pha_mat_data,
              scat_data_single.f_grid.nelem(), scat_data_single.T_grid.nelem(),

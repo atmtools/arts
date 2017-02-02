@@ -169,7 +169,7 @@ void scat_data_singleTmatrix(
   scat_data_single.f_grid  = data_f_grid;
   scat_data_single.T_grid  = data_t_grid;
 
-  if( scat_data_single.ptype == PTYPE_MACROS_ISO )
+  if( scat_data_single.ptype == PTYPE_TOTAL_RND )
     {
       // tmatrix random orient requires equidistant angular grid. checking here
       // that given data_za_grid fulfills this requirement
@@ -197,7 +197,7 @@ void scat_data_singleTmatrix(
     }
   scat_data_single.za_grid = data_za_grid;
 
-  if( scat_data_single.ptype == PTYPE_MACROS_ISO )
+  if( scat_data_single.ptype == PTYPE_TOTAL_RND )
     {
       // in case of random orientation, azimuth grid should be empty. We just
       // set that here, ignoring whatever is in data_aa_grid.
@@ -206,27 +206,27 @@ void scat_data_singleTmatrix(
     }
   else
     {
-      // For horizontally-aligned particles, the azimuth angle grid must cover
+      // For azimuthally-random oriented particles, the azimuth angle grid must cover
       // 0-180 degrees.
-      if (scat_data_single.ptype == PTYPE_HORIZ_AL && data_aa_grid.nelem() == 0)
+      if (scat_data_single.ptype == PTYPE_AZIMUTH_RND && data_aa_grid.nelem() == 0)
         {
           ostringstream os;
-          os << "For ptype = \"horizontally_aligned\""
+          os << "For ptype = \"azimuthally_random\""
           << " the azimuth angle grid can not be empty.";
           throw runtime_error( os.str() );
         }
-      if (scat_data_single.ptype == PTYPE_HORIZ_AL && data_aa_grid[0] != 0.)
+      if (scat_data_single.ptype == PTYPE_AZIMUTH_RND && data_aa_grid[0] != 0.)
         {
           ostringstream os;
-          os << "For ptype = \"horizontally_aligned\""
+          os << "For ptype = \"azimuthally_random\""
           << " the first value of the aa grid must be 0.";
           throw runtime_error( os.str() );
         }
 
-      if (scat_data_single.ptype == PTYPE_HORIZ_AL && last(data_aa_grid) != 180.)
+      if (scat_data_single.ptype == PTYPE_AZIMUTH_RND && last(data_aa_grid) != 180.)
         {
           ostringstream os;
-          os << "For ptype = \"horizontally_aligned\""
+          os << "For ptype = \"azimuthally_random\""
           << " the last value of the aa grid must be 180.";
           throw runtime_error( os.str() );
         }
