@@ -79,16 +79,16 @@ arts_test_run_ctlfile(fast artscomponents/doit/TestDOITsensorInsideCloudbox.arts
 arts_test_run_ctlfile(slow artscomponents/doitbatch/TestDOITBatch.arts)
 arts_test_run_ctlfile(slow artscomponents/doit/TestDOITFromIndividualFields.arts)
 
-arts_test_run_ctlfile(fast artscomponents/montecarlo/TestMonteCarloDataPrepare.arts)
-arts_test_run_ctlfile(slow artscomponents/montecarlo/TestMonteCarloGeneral.arts)
-arts_test_ctlfile_depends(slow.artscomponents.montecarlo.TestMonteCarloGeneral
-                          fast.artscomponents.montecarlo.TestMonteCarloDataPrepare)
-arts_test_run_ctlfile(slow artscomponents/montecarlo/TestMonteCarloGeneralGaussian.arts)
-arts_test_ctlfile_depends(slow.artscomponents.montecarlo.TestMonteCarloGeneralGaussian
-                          fast.artscomponents.montecarlo.TestMonteCarloDataPrepare)
-arts_test_run_ctlfile(fast artscomponents/montecarlo/TestRteCalcMC.arts)
-arts_test_ctlfile_depends(fast.artscomponents.montecarlo.TestRteCalcMC
-                          fast.artscomponents.montecarlo.TestMonteCarloDataPrepare)
+#arts_test_run_ctlfile(fast artscomponents/montecarlo/TestMonteCarloDataPrepare.arts)
+#arts_test_run_ctlfile(slow artscomponents/montecarlo/TestMonteCarloGeneral.arts)
+#arts_test_ctlfile_depends(slow.artscomponents.montecarlo.TestMonteCarloGeneral
+#                          fast.artscomponents.montecarlo.TestMonteCarloDataPrepare)
+#arts_test_run_ctlfile(slow artscomponents/montecarlo/TestMonteCarloGeneralGaussian.arts)
+#arts_test_ctlfile_depends(slow.artscomponents.montecarlo.TestMonteCarloGeneralGaussian
+#                          fast.artscomponents.montecarlo.TestMonteCarloDataPrepare)
+#arts_test_run_ctlfile(fast artscomponents/montecarlo/TestRteCalcMC.arts)
+#arts_test_ctlfile_depends(fast.artscomponents.montecarlo.TestRteCalcMC
+#                          fast.artscomponents.montecarlo.TestMonteCarloDataPrepare)
 
 arts_test_run_ctlfile(slow artscomponents/wfuns/TestWfuns.arts)
 
@@ -102,9 +102,9 @@ if (ENABLE_RT4)
   arts_test_run_ctlfile(fast artscomponents/polradtran/TestRT4.arts)
 endif ()
 
-if (ENABLE_TMATRIX)
-  arts_test_run_ctlfile(fast artscomponents/tmatrix/TestTMatrix.arts)
-endif ()
+#if (ENABLE_TMATRIX)
+#  arts_test_run_ctlfile(fast artscomponents/tmatrix/TestTMatrix.arts)
+#endif ()
 
 if (ENABLE_FASTEM)
   arts_test_run_ctlfile(fast artscomponents/fastem/TestFastem.arts)

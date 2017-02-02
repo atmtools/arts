@@ -1,5 +1,13 @@
 2017-02-02 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-620
+
+	* controlfiles/CMakeLists.txt:
+	Temporarily outcomment temporarily broken test cases (see
+	arts-2-3-618).
+
+2017-02-02 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-619
 
 	* src/m_rt4.cc, methods.cc (RT4Calc):
