@@ -28,6 +28,14 @@ abs_cont_descriptionAppend( tagname="H2O-PWR98",
 abs_cont_descriptionAppend( tagname="H2O-MPM93",
                             model="MPM93" )
 
+# Liebe 1989 H2O full absorption model
+abs_cont_descriptionAppend( tagname="H2O-MPM89",
+                            model="MPM89" )
+
+# Liebe 1987 H2O full absorption model
+abs_cont_descriptionAppend( tagname="H2O-MPM87",
+                            model="MPM87" )
+
 # Ma Tipping Continuum model
 abs_cont_descriptionAppend( tagname="H2O-ForeignContMaTippingType",
                             model="MaTipping" )
@@ -36,6 +44,14 @@ abs_cont_descriptionAppend( tagname="H2O-ForeignContMaTippingType",
 abs_cont_descriptionAppend( tagname="H2O-ContMPM93",
                             model="MPM93" )
 
+# CKD2.42 original parameters
+abs_cont_descriptionAppend( tagname="H2O-SelfContCKD242",
+                            model="CKD242" )
+
+# CKD2.42 original parameters
+abs_cont_descriptionAppend( tagname="H2O-ForeignContCKD242",
+                            model="CKD242" )
+
 # CKD2.4 original parameters
 abs_cont_descriptionAppend( tagname="H2O-SelfContCKD24",
                             model="CKD24" )
@@ -43,6 +59,14 @@ abs_cont_descriptionAppend( tagname="H2O-SelfContCKD24",
 # CKD2.4 original parameters
 abs_cont_descriptionAppend( tagname="H2O-ForeignContCKD24",
                             model="CKD24" )
+
+# CKD2.22 original parameters
+abs_cont_descriptionAppend( tagname="H2O-SelfContCKD222",
+                            model="CKD222" )
+
+# CKD2.22 original parameters
+abs_cont_descriptionAppend( tagname="H2O-ForeignContCKD222",
+                            model="CKD222" )
 
 #
 # CKD MT 1.00 self continuum original parameters:
@@ -54,17 +78,22 @@ abs_cont_descriptionAppend( tagname="H2O-ForeignContCKDMT100",
                             model="CKDMT100" )
 
 #
-# CKD MT 2.50 self continuum original parameters:
+# CKD MT 2.52 self continuum original parameters:
 abs_cont_descriptionAppend( tagname="H2O-SelfContCKDMT252",
                             model="CKDMT252" )
 #
-# CKD MT 2.50 H2O foreign continuum original parameters:
+# CKD MT 2.52 H2O foreign continuum original parameters:
 abs_cont_descriptionAppend( tagname="H2O-ForeignContCKDMT252",
                             model="CKDMT252" )
 #
 #  Cruz-Pol et al. 98 Continuum:
 abs_cont_descriptionAppend( tagname="H2O-CP98",
                             model="CruzPol" )
+
+#
+#  Pardo et al. model 2001 Continuum:
+abs_cont_descriptionAppend( tagname="H2O-ForeignContATM01",
+                            model="ATM" )
 
 
 #
@@ -74,6 +103,11 @@ abs_cont_descriptionAppend( tagname="H2O-CP98",
 abs_cont_descriptionAppend( tagname="O2-SelfContStandardType",
                             model="Rosenkranz" )
 
+#
+# Liebe 1993 O2-air continuum
+abs_cont_descriptionAppend( tagname="O2-SelfContMPM93",
+                            model="MPM93" )
+
 # Rosenkranz 1998 full oxygen continuum
 abs_cont_descriptionAppend( tagname="O2-PWR98",
                             model="Rosenkranz" )
@@ -82,13 +116,29 @@ abs_cont_descriptionAppend( tagname="O2-PWR98",
 abs_cont_descriptionAppend( tagname="O2-PWR93",
                             model="Rosenkranz" )
 
+# Rosenkranz 1988 full oxygen continuum
+abs_cont_descriptionAppend( tagname="O2-PWR88",
+                            model="Rosenkranz" )
+
 # Liebe 1993 O2 full absorption model
 abs_cont_descriptionAppend( tagname="O2-MPM93",
                             model="MPM93" )
 
+# Liebe 1992 O2 full absorption model
+abs_cont_descriptionAppend( tagname="O2-MPM92",
+                            model="MPM92" )
+
 # Liebe 1989 O2 full absorption model
 abs_cont_descriptionAppend( tagname="O2-MPM89",
                             model="MPM89" )
+
+# Liebe 1987 O2 full absorption model
+abs_cont_descriptionAppend( tagname="O2-MPM87",
+                            model="MPM87" )
+
+# Liebe 1985 O2 full absorption model
+abs_cont_descriptionAppend( tagname="O2-MPM85",
+                            model="MPM85" )
 
 # Tretyakov etal. 2005 modernization of Liebe 1993 O2 full absorption model
 abs_cont_descriptionAppend( tagname="O2-TRE05",
@@ -129,6 +179,10 @@ abs_cont_descriptionAppend( tagname="N2-SelfContStandardType",
 abs_cont_descriptionAppend( tagname="N2-SelfContMPM93",
                             model="MPM93" )
 
+# Rosenkranz N2-N2 continuum (only N2-N2 broadening)
+abs_cont_descriptionAppend( tagname="N2-SelfContPWR93",
+                            model="Rosenkranz" )
+
 # Borysow-Frommhold original parameters
 abs_cont_descriptionAppend( tagname="N2-SelfContBorysow",
                             model="BF86" )
@@ -150,6 +204,11 @@ abs_cont_descriptionAppend( tagname="N2-CIArotCKDMT252",
 # Lafferty et  al. from CKD F77 program:
 abs_cont_descriptionAppend( tagname="N2-CIAfunCKDMT252",
                             model="CKDMT252" )
+
+#
+#  Pardo et al. model 2001 Continuum:
+abs_cont_descriptionAppend( tagname="N2-DryContATM01",
+                            model="ATM" )
 
 #
 
@@ -179,6 +238,10 @@ abs_cont_descriptionAppend( tagname="CO2-CKDMT100",
 # far line wing continuum from CKD F77 program:
 abs_cont_descriptionAppend( tagname="CO2-CKDMT252",
                             model="CKDMT252" )
+
+# far line wing continuum from CKD F77 program:
+abs_cont_descriptionAppend( tagname="CO2-CKD241",
+                            model="CKD241" )
 
 
 #

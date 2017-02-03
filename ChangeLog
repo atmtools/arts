@@ -1,3 +1,19 @@
+2017-02-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-621
+
+	* controlfiles/general/continua.arts:
+
+	Add continua that are implemented in ARTS but were not listed in the
+	standard include file:
+
+	H2O-MPM89, H2O-MPM87, H2O-SelfContCKD242, H2O-ForeignContCKD242,
+	H2O-SelfContCKD222, H2O-ForeignContCKD222, H2O-ForeignContATM01,
+	O2-SelfContMPM93, O2-PWR88, O2-MPM92, O2-MPM87, O2-MPM85,
+	N2-SelfContPWR93, N2-DryContATM01, CO2-CKD241.
+
+	Missing MPM89 reported by Stuart Fox.
+
 2017-02-02 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-620
