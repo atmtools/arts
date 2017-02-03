@@ -1364,9 +1364,9 @@ void define_md_data_raw()
             "abs_t_interp_order",
             "abs_nls_interp_order",
             "atmosphere_dim" ),
-        GIN( "p_step",  "t_step",  "h2o_step", "extremes", "robust" ),
-        GIN_TYPE(    "Numeric", "Numeric", "Numeric",  "Vector", "Index" ),
-        GIN_DEFAULT( "0.05",    "20",       "100",      "[]",    "0" ),
+        GIN( "p_step",  "t_step",  "h2o_step", "extremes", "robust", "check_gridnames" ),
+        GIN_TYPE(    "Numeric", "Numeric", "Numeric",  "Vector", "Index", "Index" ),
+        GIN_DEFAULT( "0.05",    "20",      "100",      "[]",     "0",     "0" ),
         GIN_DESC( /* p_step */ 
                   "Grid step in log10(p[Pa]) (base 10 logarithm).",
                   /* t_step */
@@ -1385,7 +1385,10 @@ void define_md_data_raw()
                   /* robust */
                   "A flag with value 1 or 0. If set to one, the batch\n"
                   "setup will continue, even if individual fields are invalid.\n"
-                  "This is consistent with the behaviour of *ybatchCalc*."
+                  "This is consistent with the behaviour of *ybatchCalc*.",
+                  /* check_gridnames */
+                  "A flag with value 1 or 0. If set to one, the gridnames of \n"
+                  " every *atm_fields_compact* are checked."
                   )
         ));
 
@@ -2739,11 +2742,16 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "abs_species", "scat_species", "atm_fields_compact",
             "atmosphere_dim" ),
-        GIN(         "delim",  "p_min" ),
-        GIN_TYPE(    "String", "Numeric" ),
-        GIN_DEFAULT( "-",      "0" ),
-        GIN_DESC( "Delimiter string of *scat_species* elements.",
-                  "Minimum-pressure level to consider (for TOA)." )
+        GIN(         "delim",  "p_min",   "check_gridnames" ),
+        GIN_TYPE(    "String", "Numeric", "Index" ),
+        GIN_DEFAULT( "-",      "0",       "0" ),
+        GIN_DESC( /* delim */
+                  "Delimiter string of *scat_species* elements.",
+                  /* p_min */
+                  "Minimum-pressure level to consider (for TOA).",
+                  /* check_gridnames */
+                  "A flag with value 1 or 0. If set to one, the gridnames of \n"
+                  " the *atm_fields_compact* are checked.")
         ));
     
   md_data_raw.push_back

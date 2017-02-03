@@ -1860,6 +1860,8 @@ void AtmFieldsFromCompact(// WS Output:
                           const Index&  atmosphere_dim,
                           const String& delim,
                           const Numeric& p_min,
+                          // Control parameters:
+                          const Index& check_gridnames,
                           const Verbosity&)
 {
   // Make a handle on atm_fields_compact to save typing:
@@ -1871,6 +1873,14 @@ void AtmFieldsFromCompact(// WS Output:
                 c.get_numeric_grid(GFIELD4_P_GRID),
                 c.get_numeric_grid(GFIELD4_LAT_GRID),
                 c.get_numeric_grid(GFIELD4_LON_GRID));
+
+  // Optional check for gridnames.
+  if (check_gridnames == 1)
+  {
+    chk_griddedfield_gridname(c, 1, "Pressure");
+    chk_griddedfield_gridname(c, 2, "Latitude");
+    chk_griddedfield_gridname(c, 3, "Longitude");
+  }
 
   const Index nf   = c.get_grid_size(GFIELD4_FIELD_NAMES);
   const Index np   = c.get_grid_size(GFIELD4_P_GRID);

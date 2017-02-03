@@ -1185,6 +1185,7 @@ void abs_lookupSetupBatch(// WS Output:
                           const Numeric& h2o_step,
                           const Vector&  extremes,
                           const Index& robust,
+                          const Index& check_gridnames,
                           const Verbosity& verbosity)
 {
   CREATE_OUT1;
@@ -1385,7 +1386,8 @@ void abs_lookupSetupBatch(// WS Output:
               vmr_field, scat_species_mass_density_field,
               scat_species_mass_flux_field, scat_species_number_density_field,
               scat_species_mean_mass_field, abs_species, scat_species,
-              atm_fields_compact, atmosphere_dim, "-", 0, verbosity );
+              atm_fields_compact, atmosphere_dim, "-", 0, check_gridnames,
+              verbosity );
 
       try {
           atmfields_checkedCalc( atmfields_checked, atmosphere_dim, p_grid,
@@ -1418,7 +1420,7 @@ void abs_lookupSetupBatch(// WS Output:
     }
   //  cout << "  minp/maxp: " << minp << " / " << maxp << "\n";
 
-  // Information on
+  // Information on the number of skipped atmospheres.
   if (batch_fields.nelem() > valid_field_indices.nelem())
   {
       out1 << "  " << batch_fields.nelem() - valid_field_indices.nelem()

@@ -1,3 +1,24 @@
+2017-02-03  Lukas Kluft  <lukas.kluft@gmail.com>
+
+	* arts-2-3-622
+
+	* src/m_atmosphere.cc (AtmFieldsFromCompact):
+
+	Added gridname check. If `check_gridnames` is set to `1` the names
+	of the last three grids are checked (expected values are 'Pressure',
+	'Latitude' and 'Longitude').
+
+	The default is `0`. No check is performed.
+
+	* src/m_abs_lookup.cc (abs_lookupSetupBatch):
+
+	Toggle `check_gridnames` to check the gridnames for every
+	`atm_fields_compact` stored in the given `batch_atm_fields_compact`.
+
+	The default is `0`. No checks are performed.
+
+	* src/methods.cc: Added description for `check_gridnames`.
+
 2017-02-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-621
