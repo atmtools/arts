@@ -1,3 +1,32 @@
+2017-02-05 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-623
+
+	* src/optproperties.cc (ConvertAzimuthallyRandomSingleScatteringData):
+	Implemented version1&2 to version3 p30 scat_data conversion.
+	
+	* src/tmatrix.cc (calcSingleScatteringDataProperties):
+	Adapted to p30 scat_data format changes: Run scat_data-from-tmatrix
+	setting over full za_inc range.
+
+	* src/cloudbox.cc (chk_scat_data):
+	Adapt chk_size call to new p30 (az.random) scat_data format
+	definition. Couple of language fixes in docs and error messages
+	throughout the file.
+
+	* src/xml_io_compound_types.cc (xml_write_to_stream for ssd):
+	Remove p30 write error.
+
+	* src/montecarlo.cc (opt_propExtract,pha_mat_singleExtract),
+	src/optproperties.cc (abs_vecTransfor,ext_matTransform):
+	Doc info fixes.
+
+	* controlfiles/CMakeLists.txt:
+	Switch on again previously outcommented checks.
+
+	* doc/uguide/clouds.tex:
+	Adapted to recent changes in scat_data and ptype.
+
 2017-02-03  Lukas Kluft  <lukas.kluft@gmail.com>
 
 	* arts-2-3-622

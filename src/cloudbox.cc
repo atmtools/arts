@@ -541,7 +541,7 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
   if (scat_data_single.za_grid[0] != 0.)
     {
       ostringstream os;
-      os << "The first value of the za grid in the single" 
+      os << "The first value of the zenith angle grid in the single" 
          << " scattering properties data must be 0.";
         throw runtime_error( os.str() );
     } 
@@ -549,7 +549,7 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
   if (last(scat_data_single.za_grid) != 180.)
     {
       ostringstream os;
-      os << "The last value of the za grid in the single"
+      os << "The last value of the zenith angle grid in the single"
          << " scattering properties data must be 180.";
       throw runtime_error( os.str() );
     } 
@@ -558,7 +558,7 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
      {
        ostringstream os;
        os << "For ptype = \"general\" the first value"
-          << " of the aa grid in the single scattering"
+          << " of the azimuth angle grid in the single scattering"
           << " properties data must be -180.";
          throw runtime_error( os.str() );
      } 
@@ -568,7 +568,7 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
       ostringstream os;
       os << "For ptype = \"azimuthally_random\""
          << " the first value"
-         << " of the aa grid in the single scattering"
+         << " of the azimuth angle grid in the single scattering"
          << " properties data must be 0.";
         throw runtime_error( os.str() );
     }   
@@ -577,7 +577,7 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
     {
       ostringstream os;
       os << "For ptype = \"azimuthally_random\""
-         << " the last value of the aa grid in the single"
+         << " the last value of the azimuth angle grid in the single"
          << " scattering properties data must be 180.";
         throw runtime_error( os.str() );
     }   
@@ -614,9 +614,9 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
     
   case PTYPE_TOTAL_RND:
     
-    out2 << "  Data is for randomly oriented particles, i.e., "
-         << "macroscopically isotropic and mirror-symmetric scattering "
-         << "media. \n";
+    out2 << "  Data is for macroscopically isotropic and mirror-symmetric "
+         << "scattering media, i.e. for totally randomly oriented particles "
+         << "with at least one plane of symmetry. \n";
     
     chk_size(os_pha_mat.str(), scat_data_single.pha_mat_data,
              scat_data_single.f_grid.nelem(), scat_data_single.T_grid.nelem(),
@@ -638,33 +638,33 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
     chk_size(os_pha_mat.str(), scat_data_single.pha_mat_data,
              scat_data_single.f_grid.nelem(), scat_data_single.T_grid.nelem(),
              scat_data_single.za_grid.nelem(), scat_data_single.aa_grid.nelem(),
-             scat_data_single.za_grid.nelem()/2+1, 1, 
+             scat_data_single.za_grid.nelem(), 1, 
              16); 
 
     chk_size(os_ext_mat.str(), scat_data_single.ext_mat_data,
              scat_data_single.f_grid.nelem(), scat_data_single.T_grid.nelem(),
-             scat_data_single.za_grid.nelem()/2+1, 1, 
+             scat_data_single.za_grid.nelem(), 1, 
              3);
     
     chk_size(os_abs_vec.str(), scat_data_single.abs_vec_data,
              scat_data_single.f_grid.nelem(), scat_data_single.T_grid.nelem(),
-             scat_data_single.za_grid.nelem()/2+1, 1, 
+             scat_data_single.za_grid.nelem(), 1, 
              2);
     break;
 
   }
 
   // Here we only check whether the temperature grid is of the unit K, not 
-  // whether it corresponds to the required values it T_field. The second 
+  // whether it corresponds to the required values in t_field. The second 
   // option is not trivial since here one has to look whether the pnd_field 
-  // is none zero for the corresponding temperature. This check done in the 
+  // is non-zero for the corresponding temperature. This check is done in the 
   // functions where the multiplication with the particle number density is 
   // done. 
-  if (!(0. < scat_data_single.T_grid[0] && last(scat_data_single.T_grid) < 1001.))
+  if (scat_data_single.T_grid[0]<0. || last(scat_data_single.T_grid)>1001.)
     {
       ostringstream os;
       os << "The temperature values in the single scattering data" 
-         << " are negative or very large. Check whether you have used the "
+         << " are negative or very large. Check whether you use the "
          << "right unit [Kelvin].";
       throw runtime_error( os.str() );
     }

@@ -37,15 +37,17 @@
   === External declarations
   ===========================================================================*/
 
+#include <cfloat>
 #include <cmath>
 #include <stdexcept>
-#include "arts.h"
-#include "matpackVII.h"
 #include "array.h"
-#include "math_funcs.h"
-#include "messages.h"
-#include "logic.h"
+#include "arts.h"
+#include "check_input.h"
 #include "interpolation.h"
+#include "logic.h"
+#include "math_funcs.h"
+#include "matpackVII.h"
+#include "messages.h"
 #include "optproperties.h"
 #include "xml_io.h"
 extern const Numeric DEG2RAD;
@@ -108,9 +110,9 @@ void abs_vecTransform(//Output and Input
          TO ANY DEVELOPER:
          current usage of coordinate systems in scattering solvers (RT and SSD
          extraction) and general radiative transfer is not consistent. Not an
-         as long as only PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND, but will be a
-         problem for PTYPE_GENERAL, ie needs to be fixed BEFORE adding
-         PTYPE_GENERAL support (see AUG appendix for more info).
+         issue as long as only PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND are used,
+         but will be a problem for PTYPE_GENERAL, ie needs to be fixed BEFORE
+         adding PTYPE_GENERAL support (see AUG appendix for more info).
       */
 
       CREATE_OUT0;
@@ -222,9 +224,9 @@ void ext_matTransform(//Output and Input
          TO ANY DEVELOPER:
          current usage of coordinate systems in scattering solvers (RT and SSD
          extraction) and general radiative transfer is not consistent. Not an
-         as long as only PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND, but will be a
-         problem for PTYPE_GENERAL, ie needs to be fixed BEFORE adding
-         PTYPE_GENERAL support (see AUG appendix for more info).
+         issue as long as only PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND are used,
+         but will be a problem for PTYPE_GENERAL, ie needs to be fixed BEFORE
+         adding PTYPE_GENERAL support (see AUG appendix for more info).
       */
 
       CREATE_OUT0;
@@ -1177,7 +1179,86 @@ String PTypeToString(const PType& ptype)
 */
 void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd)
 {
-    // TODO: Implementation by Jana
+  // First check that input fulfills requirements on older data formats:
+  // 1) Is za_grid symmetric and includes 90deg?
+  Index nza = ssd.za_grid.nelem();
+  for (Index i=0; i<nza/2; i++)
+    {
+
+      if (!is_same_within_epsilon(180.-ssd.za_grid[nza-1-i],
+                                  ssd.za_grid[i],
+                                  2*DBL_EPSILON))
+        {
+            ostringstream os;
+            os << "Zenith grid of azimuthally_random single scattering data\n"
+               << "is not symmetric with respect to 90degree.";
+            throw std::runtime_error(os.str());
+        }
+    }
+    if (!is_same_within_epsilon(ssd.za_grid[nza/2], 90., 2*DBL_EPSILON))
+        {
+            ostringstream os;
+            os << "Zenith grid of azimuthally_random single scattering data\n"
+               << "does not contain 90 degree grid point.";
+            throw std::runtime_error(os.str());
+        }
+
+  // 2) Are data sizes correct?
+  ostringstream os_pha_mat;
+  os_pha_mat << "pha_mat ";
+  ostringstream os_ext_mat;
+  os_ext_mat << "ext_mat ";
+  ostringstream os_abs_vec;
+  os_abs_vec << "abs_vec ";
+  chk_size(os_pha_mat.str(), ssd.pha_mat_data,
+           ssd.f_grid.nelem(), ssd.T_grid.nelem(),
+           ssd.za_grid.nelem(), ssd.aa_grid.nelem(),
+           ssd.za_grid.nelem()/2+1, 1, 16); 
+
+  chk_size(os_ext_mat.str(), ssd.ext_mat_data,
+           ssd.f_grid.nelem(), ssd.T_grid.nelem(),
+           ssd.za_grid.nelem()/2+1, 1, 3);
+    
+  chk_size(os_abs_vec.str(), ssd.abs_vec_data,
+           ssd.f_grid.nelem(), ssd.T_grid.nelem(),
+           ssd.za_grid.nelem()/2+1, 1, 2);
+
+  // Now that we are sure that za_grid is properly symmetric, we just need to
+  // copy over the data
+  Tensor5 tmpT5 = ssd.abs_vec_data;
+  ssd.abs_vec_data.resize(tmpT5.nshelves(),tmpT5.nbooks(),
+                          ssd.za_grid.nelem(),
+                          tmpT5.nrows(),tmpT5.ncols());
+  ssd.abs_vec_data(joker,joker,Range(0,nza/2+1),joker,joker) = tmpT5;
+  for (Index i=0; i<nza/2; i++)
+    {
+      ssd.abs_vec_data(joker,joker,nza-1-i,joker,joker) =
+        tmpT5(joker,joker,i,joker,joker);
+    }
+
+  tmpT5 = ssd.ext_mat_data;
+  ssd.ext_mat_data.resize(tmpT5.nshelves(),tmpT5.nbooks(),
+                          ssd.za_grid.nelem(),
+                          tmpT5.nrows(),tmpT5.ncols());
+  ssd.ext_mat_data(joker,joker,Range(0,nza/2+1),joker,joker) = tmpT5;
+  for (Index i=0; i<nza/2; i++)
+    {
+      ssd.ext_mat_data(joker,joker,nza-1-i,joker,joker) =
+        tmpT5(joker,joker,i,joker,joker);
+    }
+
+  Tensor7 tmpT7 = ssd.pha_mat_data;
+  ssd.pha_mat_data.resize(tmpT7.nlibraries(),tmpT7.nvitrines(),
+                          tmpT7.nshelves(),tmpT7.nbooks(),
+                          ssd.za_grid.nelem(),
+                          tmpT7.nrows(),tmpT7.ncols());
+  ssd.pha_mat_data(joker,joker,joker,joker,Range(0,nza/2+1),joker,joker) = tmpT7;
+  for (Index i=0; i<nza/2; i++)
+    {
+      ssd.pha_mat_data(joker,joker,joker,joker,nza-1-i,joker,joker) =
+        tmpT7(joker,joker,joker,joker,i,joker,joker);
+    }
+
 }
 
 

@@ -1055,11 +1055,9 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
             const Index nza = ssd.za_grid.nelem();
             const Index naa = ssd.aa_grid.nelem();
 
-            Index nza_inc = (nza-1)/2 + 1;
-
-            ssd.pha_mat_data.resize(nf, nT, nza, naa, nza_inc, 1, 16);
-            ssd.ext_mat_data.resize(nf, nT, nza_inc, 1, 3);
-            ssd.abs_vec_data.resize(nf, nT, nza_inc, 1, 2);
+            ssd.pha_mat_data.resize(nf, nT, nza, naa, nza, 1, 16);
+            ssd.ext_mat_data.resize(nf, nT, nza, 1, 3);
+            ssd.abs_vec_data.resize(nf, nT, nza, 1, 2);
 
             ssd.ext_mat_data = NAN;
             ssd.pha_mat_data = NAN;
@@ -1070,7 +1068,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
             Numeric csca = NAN;
             Index nmax = -1;
 
-            Tensor5 csca_data(nf, nT, nza_inc, 1, 2);
+            Tensor5 csca_data(nf, nT, nza, 1, 2);
 
 #pragma omp critical(tmatrix_ssp)
             for (Index f_index = 0; f_index < nf; ++f_index)
@@ -1099,7 +1097,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                     Matrix phamat;
                     for (Index za_scat_index = 0; za_scat_index < nza; ++za_scat_index)
                         for (Index aa_index = 0; aa_index < naa; ++aa_index)
-                            for (Index za_inc_index = 0; za_inc_index < nza_inc; ++za_inc_index)
+                            for (Index za_inc_index = 0; za_inc_index < nza; ++za_inc_index)
                             {
                                 if (aspect_ratio < 1.0)
                                 {
@@ -1140,7 +1138,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                             }
 
                     // Csca integral
-                    for (Index za_scat_index = 0; za_scat_index < nza_inc; ++za_scat_index)
+                    for (Index za_scat_index = 0; za_scat_index < nza; ++za_scat_index)
                     {
                         Matrix csca_integral;
                         if (aspect_ratio < 1.0)
@@ -1175,7 +1173,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                         avgtmatrix_(nmax);
                     }
 
-                    for (Index za_inc_index = 0; za_inc_index < nza_inc; ++za_inc_index)
+                    for (Index za_inc_index = 0; za_inc_index < nza; ++za_inc_index)
                     {
                         Complex s11;
                         Complex s12;
@@ -1212,7 +1210,8 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
         default:
         {
             std::ostringstream os;
-            os << "Only particle types 20 and 30 are currently supported: "
+            os << "Only particle types totally_random and azimuthally_random\n"
+               << "are currently supported: "
             << ssd.ptype;
             throw std::runtime_error(os.str());
             break;

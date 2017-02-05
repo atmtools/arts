@@ -77,8 +77,8 @@ orientation. The class consists of the following fields (compare also Table
   
   Possible values of ptype are:
   
-  \shortcode{"macroscopically\_isotropic"} \\
-  \shortcode{"horizontally\_aligned"} \\
+  \shortcode{"totally\_random"} \\
+  \shortcode{"azimuthally\_random"} \\
   \shortcode{"general"}
   
   A detailed description of the different types including their different data
@@ -98,9 +98,9 @@ orientation. The class consists of the following fields (compare also Table
   
 \item {\sl Vector} \shortcode{za\_grid}:
   \begin{enumerate}
-  \item \shortcode{"macroscopically\_isotropic"}:
+  \item \shortcode{"totally\_random"}:
     Scattering angle grid. Range: 0.0\degree{} $\le$ za $\le$ 180.0\degree{}.
-  \item \shortcode{"horizontally\_aligned"}:
+  \item \shortcode{"azimuthally\_random"}:
     Zenith angle grid. Range: 0.0\degree{} $\le$ za $\le$ 180.0\degree{}.
     Symmetric with respect to 90.0\degree{} and explicitly including the
     90.0\degree{} point.
@@ -110,10 +110,10 @@ orientation. The class consists of the following fields (compare also Table
   
 \item {\sl Vector} \shortcode{aa\_grid}: Azimuth angle grid.
   \begin{enumerate}
-  \item \shortcode{"macroscopically\_isotropic"}:
+  \item \shortcode{"totally\_random"}:
     Empty (not needed, since optical properties depend solely on scattering
     angle).
-  \item \shortcode{"horizontally\_aligned"}:
+  \item \shortcode{"azimuthally\_random"}:
     Range: 0.0\degree{} $\le$ aa $\le$ 180.0\degree{} (due to symmetry only half of
     the general grid is required).
   \item \shortcode{"general"}: Range: -180.0\degree{} $\le$ aa $\le$ 180.0\degree{}
@@ -191,10 +191,13 @@ above, this affects the optimal choice of the coordinate system to represent the
 scattering element in. Possible ptypes in the model are:
 
 
-\subsubsection{``macroscopically\_isotropic''}
-The ptype value ``macroscopically\_isotropic'' refers to macroscopically
+\subsubsection{``totally\_random''}
+The ptype value ``totally\_random'' refers to macroscopically
 isotropic and mirror-symmetric scattering media. It covers totally randomly
-oriented particles as well as spherical particles.
+oriented particles (with at least one plane of symmetry\footnote{Note: Even if
+totally randomly oriented, particles lacking a symmetry plane are not part of
+this category unless mirrored their counterparts are considered with equal
+weight.}) as well as spherical particles.
 
 For this type of scattering media, the optical properties are
 stored in the scattering frame (see \theory~%
@@ -228,10 +231,10 @@ the size of \shortcode{abs\_vec\_data} is
 \shortcode{[N\_f N\_T 1 1 1]}
 
 
-\subsubsection{``horizontally\_aligned''}
-The ptype value ``horizontally\_aligned'' refers to particles that are
-aligned with respect to polar angle, but oriented randomly regarding the
-azimuthal angle. Horizontally oriented particles are one prominent example, but
+\subsubsection{``azimuthally\_random''}
+The ptype value ``azimuthally\_random'' refers to particles that exhibit a
+preferred orientation with respect to polar angle, but are oriented randomly regarding the
+azimuthal angle. Horizontally aligned particles are one prominent example, but
 this class is not limited to them. For these particles, one angular dimension is
 redundant and can be omitted in the data, if the coordinate system is oriented
 appropriately.
@@ -239,26 +242,22 @@ appropriately.
 SSP here are stored in the laboratory frame. In this frame, the phase matrix,
 extinction matrix, and absorption vector become independent of the incident
 azimuth angle. Furthermore only half of the ``general'' angle ranges are
-required for the azimuth and the incident polar angle due to symmetry reasons.
-That is, \shortcode{aa\_grid} from 0\degree{} to 180\degree{}, and
-\shortcode{za\_inc} from 0\degree{} to 90\degree{}. The latter requires that the
-data's zenith angle grid includes a grid point at 90\degree{} and that
-\shortcode{za\_grid} is symmetric with respect to 90\degree{} (i.e.,
-N\_za\_inc=N\_za/2+1).
+required for the azimuth angle due to symmetry reasons.
+That is, \shortcode{aa\_grid} from 0\degree{} to 180\degree{}.
 
 All 16 elements of the phase matrix are required. Their order is the same as in
 the general case. The size of \shortcode{pha\_mat\_data} is
 
-\shortcode{[N\_f N\_T N\_za\_sca N\_aa\_sca N\_za\_sca/2+1 1 16]}\\
+\shortcode{[N\_f N\_T N\_za\_sca N\_aa\_sca N\_za\_sca 1 16]}\\
 For this ptype, the extinction matrix has only three independent elements, {\sl
 Kjj}, {\sl K12(=K21)}, and {\sl K34(=-K43)}. The size of
 \shortcode{ext\_mat\_data} is
 
-\shortcode{[N\_f N\_T N\_za/2+1 1 3]}\\
+\shortcode{[N\_f N\_T N\_za 1 3]}\\
 The absorption coefficient vector has only two independent elements, {\sl a1} and
 {\sl a2}. This means that the size of \shortcode{abs\_vec\_data} is 
 
-\shortcode{[N\_f N\_T N\_za/2+1 1 2]}
+\shortcode{[N\_f N\_T N\_za 1 2]}
 
 \subsubsection{``general''}
 
@@ -304,7 +303,7 @@ completely general particles.
 
 The user is free to use any tools to derive the single scattering
 properties, but has to ensure to store the data in the appropriate format. That
-is, macroscopically\_isotropic particle data has to be provided in the
+is, totally\_random particle data has to be provided in the
 scattering frame, while the other two types are given in the laboratory frame.
 Depending on the method used, averaging the single scattering properties of
 particles in fixed orientation over a range of orientations might required.
