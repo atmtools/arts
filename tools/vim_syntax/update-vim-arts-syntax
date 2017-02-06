@@ -1,6 +1,6 @@
 #!/bin/bash
 # author: Lukas Kluft
-# version: 05.11.2015
+# version: 06.02.2017
 #
 # purpose: update vim's ARTS syntax highlighting
 
@@ -52,11 +52,17 @@ hi def link ArtsString Statement
 let b:current_syntax = "arts"
 
 " definition of comments
-syn match ArtsComment "#.*$" 
+syn match ArtsComment "#.*$"
 setlocal commentstring=#\ %s
 
-" definition of numbers
-syn match ArtsNumber '\W[-+]\=\d\+\(\.\d*\)\=\([eE][-+]\=\d\+\)\='
+" definition of numbers. Taken from the Python synatx highlighting:
+" https://github.com/hdima/python-syntax/blob/master/syntax/python.vim#L392
+syn match ArtsNumber "\<\d[lL]\=\>" display
+syn match ArtsNumber "\<[0-9]\d\+[lL]\=\>" display
+syn match ArtsNumber "\<\d\+[lLjJ]\>" display
+syn match ArtsNumber "\.\d\+\%([eE][+-]\=\d\+\)\=[jJ]\=\>" display
+syn match ArtsNumber "\<\d\+[eE][+-]\=\d\+[jJ]\=\>" display
+syn match ArtsNumber "\<\d\+\.\d*\%([eE][+-]\=\d\+\)\=[jJ]\=" display
 
 " definition of strings
 syn region ArtsString start='"' end='"'
