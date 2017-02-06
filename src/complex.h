@@ -29,6 +29,7 @@
 #include <complex>
 #include "matpackI.h"
 #include "array.h"
+#include <Eigen/Dense>
 
 typedef std::complex<Numeric> Complex;
 
@@ -59,6 +60,12 @@ class ConstComplexVectorView;
 
 // Declare the existence of class ConstMatrixView:
 class ConstComplexMatrixView;
+
+// Eigen library interactions:
+typedef Eigen::Matrix<Complex, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> ComplexMatrixType;
+typedef Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> StrideType;
+typedef Eigen::Map<ComplexMatrixType, 0, StrideType> ComplexMatrixViewMap;
+typedef Eigen::Map<const ComplexMatrixType, 0, StrideType> ComplexConstMatrixViewMap;
 
 /** The complex range class.
  * 
@@ -93,15 +100,6 @@ public:
     friend class ComplexMatrix;
     friend class ComplexIterator2D;
     friend class ConstComplexIterator2D;
-    friend void mult_general( ComplexVectorView,
-                              const ConstComplexMatrixView&,
-                              const ConstComplexVectorView& );
-//     friend void mult_general( ComplexVectorView,
-//                               const ConstMatrixView&,
-//                               const ConstComplexVectorView& );
-//     friend void mult_general( ComplexVectorView,
-//                               const ConstComplexMatrixView&,
-//                               const ConstVectorView& );
     
     /** Returns the start index of the range. */
     Index get_start () const { return mstart; }
@@ -247,24 +245,15 @@ public:
     friend void mult (ComplexVectorView,
                       const ConstComplexMatrixView &,
                       const ConstComplexVectorView &);
-    friend void mult_general (ComplexVectorView,
-                              const ConstComplexMatrixView &,
-                              const ConstComplexVectorView &);
-//     friend void mult (ComplexVectorView,
-//                       const ConstMatrixView &,
-//                       const ConstComplexVectorView &);
-//     friend void mult_general (ComplexVectorView,
-//                               const ConstMatrixView &,
-//                               const ConstComplexVectorView &);
-//     friend void mult (ComplexVectorView,
-//                       const ConstComplexMatrixView &,
-//                       const ConstVectorView &);
-//     friend void mult_general (ComplexVectorView,
-//                               const ConstComplexMatrixView &,
-    //                               const ConstVectorView &);
+    
     friend void diagonalize( ComplexMatrixView,
                              ComplexVectorView,
-                             ConstComplexMatrixView);
+                             const ConstComplexMatrixView&);
+    
+    friend ComplexConstMatrixViewMap MapToEigen(const ConstComplexVectorView&);
+    friend ComplexConstMatrixViewMap MapToEigenCol(const ConstComplexVectorView&);
+    friend ComplexMatrixViewMap MapToEigen(ComplexVectorView&);
+    friend ComplexMatrixViewMap MapToEigenCol(ComplexVectorView&);
     
     // A special constructor, that allows to make a ConstVectorView of a scalar.
     ConstComplexVectorView(const Complex& a);
@@ -601,33 +590,18 @@ public:
     friend void mult (ComplexVectorView,
                       const ConstComplexMatrixView &,
                       const ConstComplexVectorView &);
-    friend void mult_general (ComplexVectorView,
-                              const ConstComplexMatrixView &,
-                              const ConstComplexVectorView &);
-//     friend void mult (ComplexVectorView,
-//                       const ConstMatrixView &,
-//                       const ConstComplexVectorView &);
-//     friend void mult_general (ComplexVectorView,
-//                               const ConstMatrixView &,
-//                               const ConstComplexVectorView &);
-//     friend void mult (ComplexVectorView,
-//                       const ConstComplexMatrixView &,
-//                       const ConstComplexVectorView &);
-//     friend void mult_general (ComplexVectorView,
-//                               const ConstComplexMatrixView &,
-    //                               const ConstVectorView &);
     friend void mult (ComplexMatrixView,
                       const ConstComplexMatrixView &,
                       const ConstComplexMatrixView &);
-    friend void mult_general (ComplexMatrixView,
-                              const ConstComplexMatrixView &,
-                              const ConstComplexMatrixView &);
     
     friend void inv( ComplexMatrixView,
-                     ConstComplexMatrixView );
+                     const ConstComplexMatrixView&);
     friend void diagonalize( ComplexMatrixView,
                              ComplexVectorView,
-                             ConstComplexMatrixView);
+                             const ConstComplexMatrixView&);
+    
+    friend ComplexConstMatrixViewMap MapToEigen(const ConstComplexMatrixView&);
+    friend ComplexMatrixViewMap MapToEigen(ComplexMatrixView&);
     
 protected:
     // Constructors:
@@ -840,18 +814,10 @@ void mult( ComplexVectorView y,
            const ConstComplexMatrixView& M,
            const ConstComplexVectorView& x );
 
-void mult_general( ComplexVectorView y,
-            const ConstComplexMatrixView& M,
-            const ConstComplexVectorView& x );
-
 
 void mult( ComplexMatrixView A,
-                   const ConstComplexMatrixView& B,
-                   const ConstComplexMatrixView& C );
-
-void mult_general( ComplexMatrixView A,
-                   const ConstComplexMatrixView& B,
-                   const ConstComplexMatrixView& C );
+           const ConstComplexMatrixView& B,
+           const ConstComplexMatrixView& C );
 
 Complex operator*(const ConstComplexVectorView& a, const ConstComplexVectorView& b);
 
@@ -859,7 +825,22 @@ std::ostream& operator<<(std::ostream& os, const ConstComplexVectorView& v);
 
 std::ostream& operator<<(std::ostream& os, const ConstComplexMatrixView& v);
 
-
+// Converts constant matrix to constant eigen map
+ComplexConstMatrixViewMap MapToEigen(const ConstComplexMatrixView& A);
+// Converts constant vector to constant eigen row-view
+ComplexConstMatrixViewMap MapToEigen(const ConstComplexVectorView& A);
+// Converts constant vector to constant eigen row-view
+ComplexConstMatrixViewMap MapToEigenRow(const ConstComplexVectorView& A);
+// Converts constant vector to constant eigen column-view
+ComplexConstMatrixViewMap MapToEigenCol(const ConstComplexVectorView& A);
+// Converts matrix to eigen map
+ComplexMatrixViewMap MapToEigen(ComplexMatrixView& A);
+// Converts vector to eigen map row-view
+ComplexMatrixViewMap MapToEigen(ComplexVectorView& A);
+// Converts vector to eigen map row-view
+ComplexMatrixViewMap MapToEigenRow(ComplexVectorView& A);
+// Converts vector to eigen map column-view
+ComplexMatrixViewMap MapToEigenCol(ComplexVectorView& A);
 
 #endif
 

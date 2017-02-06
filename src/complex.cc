@@ -28,7 +28,6 @@
 #include "exceptions.h"
 #include <cstring>
 #include <cmath>
-#include <Eigen/Dense>
 
 using std::setw;
 using std::runtime_error;
@@ -2057,13 +2056,10 @@ void mult( ComplexVectorView y,
            const ConstComplexMatrixView& M,
            const ConstComplexVectorView& x )
 {
-  using namespace Eigen;
-  
-  MatrixXcd eigen_M = Map<MatrixXcd>(M.mdata, M.nrows(), M.ncols());
-  MatrixXcd eigen_x = Map<MatrixXcd>(x.mdata, 1, x.nelem());
-  Map<MatrixXcd>( y.mdata, 1, x.nelem() ) = eigen_M * eigen_x;
-  
-    
+  ComplexConstMatrixViewMap eigen_M = MapToEigen(M);
+  ComplexConstMatrixViewMap eigen_x = MapToEigenRow(x);
+  ComplexMatrixViewMap eigen_y =  MapToEigenRow(y);
+  eigen_y = eigen_M * eigen_x; 
 }
 
 //! Matrix-Matrix Multiplication
@@ -2098,12 +2094,54 @@ void mult( ComplexMatrixView A,
            const ConstComplexMatrixView& B,
            const ConstComplexMatrixView& C )
 {
-  using namespace Eigen;
-  
-  MatrixXcd eigen_B = Map<MatrixXcd>( B.mdata, B.nrows(), B.ncols() );
-  MatrixXcd eigen_C = Map<MatrixXcd>( C.mdata, C.nrows(), C.ncols() );
-  Map<MatrixXcd>( A.mdata, C.nrows(), B.ncols() ) = eigen_B * eigen_C;
+  if( C.ncols() == 1 && C.nrows() == 1 && B.ncols() == 1 && B.nrows() == 1 && A.ncols() == 1 && A.nrows() == 1 )
+    A(0, 0) = B(0, 0) * C(0, 0);
+  else if(C.ncols() && A.ncols() == 1)
+    mult(A(joker, 0), B, C(joker, 0));
+  else
+  {
+    ComplexConstMatrixViewMap eigen_B = MapToEigen(B);
+    ComplexConstMatrixViewMap eigen_C = MapToEigen(C);
+    ComplexMatrixViewMap eigen_A =  MapToEigen(A);
+    eigen_A = eigen_B * eigen_C;
+  }
 }
+
+// Converts constant matrix to constant eigen map
+ComplexConstMatrixViewMap MapToEigen(const ConstComplexMatrixView& A){
+  return ComplexConstMatrixViewMap(A.mdata+A.mrr.get_start()+A.mcr.get_start(),
+   A.nrows(), A.nrows(), StrideType(A.mrr.get_stride(), A.mcr.get_stride())); }
+   
+// Converts constant vector to constant eigen row-view
+ComplexConstMatrixViewMap MapToEigen(const ConstComplexVectorView& A){
+  return ComplexConstMatrixViewMap(A.mdata+A.mrange.get_start(),
+   A.nelem(), 1, StrideType(A.mrange.get_stride(), 1)); }
+
+// Converts constant vector to constant eigen row-view
+ComplexConstMatrixViewMap MapToEigenRow(const ConstComplexVectorView& A){return MapToEigen(A);}
+
+// Converts constant vector to constant eigen column-view
+ComplexConstMatrixViewMap MapToEigenCol(const ConstComplexVectorView& A){
+  return ComplexConstMatrixViewMap(A.mdata+A.mrange.get_start(),
+   1, A.nelem(), StrideType(1, A.mrange.get_stride())); }
+
+// Converts matrix to eigen map
+ComplexMatrixViewMap MapToEigen(ComplexMatrixView& A){
+  return ComplexMatrixViewMap(A.mdata+A.mrr.get_start()+A.mcr.get_start(),
+   A.nrows(), A.nrows(), StrideType(A.mrr.get_stride(), A.mcr.get_stride())); }
+
+// Converts vector to eigen map row-view
+ComplexMatrixViewMap MapToEigen(ComplexVectorView& A){
+  return ComplexMatrixViewMap(A.mdata+A.mrange.get_start(),
+   A.nelem(), 1, StrideType(A.mrange.get_stride(), 1)); }
+
+// Converts vector to eigen map row-view
+ComplexMatrixViewMap MapToEigenRow(ComplexVectorView& A){return MapToEigen(A);}
+
+// Converts vector to eigen map column-view
+ComplexMatrixViewMap MapToEigenCol(ComplexVectorView& A){
+  return ComplexMatrixViewMap(A.mdata+A.mrange.get_start(),
+   1, A.nelem(), StrideType(1, A.mrange.get_stride())); }
 
 ////////////////////////////////
 // Helper function for debugging

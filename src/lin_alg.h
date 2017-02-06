@@ -58,7 +58,7 @@ inv( MatrixView Ainv,
 // Matrix inverse
 void 
 inv( ComplexMatrixView Ainv,
-     ConstComplexMatrixView A);
+     const ConstComplexMatrixView& A);
 
 // Matrix diagonalization
 void diagonalize( MatrixView P,
@@ -69,7 +69,7 @@ void diagonalize( MatrixView P,
 // Matrix diagonalization
 void diagonalize( ComplexMatrixView P,
                   ComplexVectorView W,
-                  ConstComplexMatrixView A);
+                  const ConstComplexMatrixView& A);
 
 // Exponential of a Matrix
 void

@@ -1,3 +1,25 @@
+2017-02-06  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-624
+
+	* src/complex{cc,h}:  Added standard Eigen matrix maps with Oliver's
+	guidance.  To use, call the MapToEigen functions.  Be sure of your 
+	dimensions when using the vectors.  Old version of this did not 
+	respect views and therefore produced crazy output.
+	
+	* src/lin_alg.{cc,h}: Updated complex versions of inv and diagonalize
+	to fit with the new inputs.
+	
+	* src/m_linemixing.cc:  Trying to fix normalization in the 
+	calculations of line mixing via relaxation matrices.  Still in progress.
+	Also changed so output from the fortran code can be had to gout variables.
+	Work in progress.
+	
+	* src/methods.cc: Added wmats, d0s and rhos as outputs from the line 
+	mixing code.
+	
+	* src/test_complex.cc:  Added test for matrix multiplications.
+
 2017-02-05 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-623

@@ -277,74 +277,95 @@ void abs_lines_per_bandFromband_identifiers( ArrayOfArrayOfLineRecord&       abs
 }
 
 void calculate_xsec_from_W( VectorView  xsec,
-                            ConstMatrixView Wmat,
-                            ConstVectorView f0,
-                            ConstVectorView f_grid,
-                            ConstVectorView d0,
-                            ConstVectorView rhoT,
+                            const ConstMatrixView Wmat,
+                            const ConstVectorView f0,
+                            const ConstVectorView f_grid,
+                            const ConstVectorView d0,
+                            const ConstVectorView rhoT,
                             const Numeric&  T,
                             const Numeric&  P,
                             const Numeric&  isotopologue_mass,
                             const Index&    n//lines
 )
-{
-  using namespace Eigen;
-  
+{ 
   
     // Physical constants
     extern const Numeric BOLTZMAN_CONST;
     extern const Numeric AVOGADROS_NUMB;
-    extern const Numeric SPEED_OF_LIGHT;;
+    extern const Numeric SPEED_OF_LIGHT;
+    extern const Numeric PI;
+    extern const Numeric PLANCK_CONST;
     
     // internal constant
     const Index nf  = f_grid.nelem();
-    //const Numeric f_mean = mean(f0);
-    const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST * AVOGADROS_NUMB * T / isotopologue_mass ) / SPEED_OF_LIGHT;
+    static const Numeric hc = PLANCK_CONST * SPEED_OF_LIGHT;
+    const Numeric kT = BOLTZMAN_CONST * T;
+    const Numeric doppler_const = sqrt( 2.0 * kT * AVOGADROS_NUMB / isotopologue_mass ) / SPEED_OF_LIGHT;
+    static const Numeric log2 = log(2);
     
-    // Setuo for the matrix
-    ComplexMatrix W(n, n);
-    for(Index i=0;i<n;i++)
+    // Setup for the matrix to be diagonalized
+    ComplexMatrix F0plusiPW(n, n);
+    for(Index i = 0; i < n; i++)
     {
-        for(Index j=0;j<n;j++)
+        for(Index j = 0; j < n; j++)
         {
-            if(j==i)
-              W(i, i) = Complex(f0[i], -P*Wmat(i, i));
+            if(j == i)
+              F0plusiPW(i, i) = Complex(f0[0] - f0[i], - P * Wmat(i, i)); // Note that using f0[0] is there to stabilize the diagonilization
             else
-              W(i, j) = Complex(0.0, -P*Wmat(i, j));
+              F0plusiPW(i, j) = Complex(0.0, - P * Wmat(i, j));
         }
-    } 
-    
-    // Setup so that W above is equivalent to D*diag(z_eigs)*invD, where diag
-    // is a diagonal matrix with values of eigs in the diagonal
+    }
+
+    // z_eigs is set to contain the eigenvalues, 
+    // E is the matrix of eigenvectors and invE is its inverse
+    // the idea is that E*diag(z_eig)*invE is F0plusiPW
     ComplexVector z_eigs(n);
-    ComplexMatrix D(n, n), invD(n, n);
-    
-    diagonalize(D, z_eigs, W);
-    inv(invD, D);
-    // Question:  If this fails and produce baloney, is this caught later on?  Switch to zgeevx_?
+    ComplexMatrix E(n, n), invE(n, n);
+    diagonalize(invE, z_eigs, F0plusiPW);
+    inv(E, invE);
     
     // Equivalent line strength
-    ComplexVector equivS0(n, 0);
+    ComplexVector equivS0(n, 0.0);
     
     // Doppler broadening
     Vector sigma(n);
     
-    // Set starts and equivs
-    for(Index if1=0;if1<n;if1++)
+    // Computing the equivalent linestrength and the Doppler broadening
+    for(Index if1 = 0; if1 < n; if1++)
     {
-        sigma[if1]= f0[if1] * doppler_const ;
-        z_eigs[if1] /= sigma[if1];
+      sigma[if1]= f0[if1] * doppler_const ;
+      z_eigs[if1] = (conj(z_eigs[if1]) - f0[0]) / (sigma[if1] / log2); // Time to remove the stabilizer
         
         for(Index if2=0;if2<n;if2++)
         {
-            equivS0[if2] += rhoT[if1]*d0[if1]*d0[if2]*D(if2,if1)*invD(if1,if2);
+          equivS0[if2] += conj(rhoT[if1]*d0[if1] * d0[if2] * E(if2,if1) * invE(if1,if2) / sigma[if1]) * sqrt(log2 / PI) * 8.0 * PI * PI / (3.0 * hc); 
         }
-    }
+    }   
     
-    // Set xsec (need to normalize?)
-    for(Index if0=0;if0<n;if0++)
-        for(Index iv=0;iv<nf;iv++)
-            xsec+=((equivS0[if0]/sigma[if0])*Faddeeva::w(z_eigs[if0]+f_grid[iv]/sigma[if0])).real();
+//     for(Index m = 0; m<n; m++)
+//     {
+//       for(Index lp=0; lp<n; lp++)
+//         for(Index l=0;l<n;l++)
+//           equivS0[m] += rhoT[l] * d0[l] * d0[lp] * E(lp, m) * invE(m, l); 
+//         equivS0[m] /= sigma[m] / log2;
+//       equivS0[m] = conj(equivS0[m]);
+//     }
+    
+    std::cout<<equivS0<<"\n";
+    
+    // Add to xsec --- How will this be normalized?
+    #pragma omp parallel for                    \
+    if (!arts_omp_in_parallel())
+    for(Index iv = 0; iv < nf; iv++)
+    {
+      const Complex f = Complex((f_grid[iv]) * log2, 0.0);
+      const Numeric c = f_grid[iv] * (1.0 - exp(- (hc*1e2) * f_grid[iv] / kT));
+      for(Index if0 = 0; if0 < n; if0++)
+      {
+          const Complex z = f / sigma[if0] + z_eigs[if0];
+          xsec[iv]+= c * real(equivS0[if0] * Faddeeva::w(z));
+      }
+    }
 }
 
 #ifdef ENABLE_RELMAT
@@ -387,6 +408,9 @@ extern "C"
 void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                             ArrayOfMatrix&                   abs_xsec_per_species,
                                             ArrayOfArrayOfMatrix&            /*dabs_xsec_per_species_dx*/,
+                                            ArrayOfMatrix&                   wmats,
+                                            ArrayOfVector&                   d0s,
+                                            ArrayOfVector&                   rhos,
                                             // WS Input:                     
                                             const ArrayOfArrayOfLineRecord&  abs_lines_per_band,
                                             const ArrayOfArrayOfSpeciesTag&  abs_species_per_band,
@@ -396,6 +420,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                             const Vector&                    f_grid,
                                             const Vector&                    abs_p,
                                             const Vector&                    abs_t,
+                                            const Index&                     write_wmat,
                                             const Verbosity&)
 {
     /*throw std::runtime_error("\nabs_xsec_per_speciesAddLineMixedBands of src/m_linemixing.cc\n"
@@ -410,10 +435,10 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
     extern const Numeric ATM2PA;
     
     // HITRAN to ARTS constants
-    const Numeric w2Hz               = SPEED_OF_LIGHT *1E2;
-    const Numeric lower_energy_const = PLANCK_CONST * w2Hz;
-    const Numeric I0_hi2arts         = 1E-2 * SPEED_OF_LIGHT;
-    const Numeric gamma_hi2arts      = w2Hz / ATM2PA;
+    static const Numeric w2Hz               = SPEED_OF_LIGHT *1E2;
+    static const Numeric lower_energy_const = PLANCK_CONST * w2Hz;
+    static const Numeric I0_hi2arts         = 1E-2 * SPEED_OF_LIGHT;
+    static const Numeric gamma_hi2arts      = w2Hz / ATM2PA;
     
     // size of atmosphere and input/output
     const Index nps         = abs_p.nelem();
@@ -440,13 +465,20 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
     
     const Index nbands = abs_lines_per_band.nelem();
     
+    if(write_wmat)
+    {
+      wmats.resize(nbands);
+      d0s.resize(nbands);
+      rhos.resize(nbands);
+    }
+    
     if(nbands!=abs_species_per_band.nelem())
         throw std::runtime_error("Error in definition of the bands.  Mismatching length of *_per_band arrays.");
     
     // Make constant input not constant and convert to wavenumber
-    Vector v(nf); 
-    v = f_grid; 
-    v /= w2Hz;
+    Vector v(nf);
+    for(Index ifs=0; ifs<nf; ifs++)
+      v[ifs] = f_grid[ifs] / w2Hz; 
     
     // Setting up thermal bath:  only in simplistic air for now
     // This means: 21% O2 and 79% N2
@@ -671,15 +703,15 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             // Set fmax and fmin.  Why do I need this again?
             if(iline==0)
             {
-                fmin=v0[0];
-                fmax=v0[0];
+                fmin = v0[0]-1.0;
+                fmax = v0[0]+1.0;
             }
             else 
             {
-                if(fmin>v0[iline])
-                    fmin=v0[iline];
-                if(fmax<v0[iline])
-                    fmax=v0[iline];
+                if(fmin > v0[iline])
+                    fmin = v0[iline]-1.0;
+                if(fmax < v0[iline])
+                    fmax = v0[iline]+1.0;
             }
             
         }
@@ -701,8 +733,10 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                 QT,
                                 abs_lines_per_band[iband][0].Ti0(),
                                 abs_t[ip],
-                                partition_functions.getParamType(abs_lines_per_band[iband][0].Species(), abs_lines_per_band[iband][0].Isotopologue()),
-                                partition_functions.getParam(abs_lines_per_band[iband][0].Species(), abs_lines_per_band[iband][0].Isotopologue()),
+                                partition_functions.getParamType(abs_lines_per_band[iband][0].Species(), 
+                                                                 abs_lines_per_band[iband][0].Isotopologue()),
+                                partition_functions.getParam(abs_lines_per_band[iband][0].Species(), 
+                                                             abs_lines_per_band[iband][0].Isotopologue()),
                                 false);
             
             // Cannot be constants for Fortran's sake
@@ -727,17 +761,31 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             
             std::cout<<"Succesful run of arts_relmat_interface!\n";
             
-            // Using Rodrigues method
-            calculate_xsec_from_W( abs_xsec_per_species[this_species](joker, ip),
-                                   W,
-                                   v0,
-                                   v,
-                                   d0,
-                                   rhoT,
-                                   t,
-                                   p,
-                                   mass,
-                                   nlines);
+            if(write_wmat == 0)
+            {
+              W *= w2Hz / ATM2PA;
+              v0 *= w2Hz;
+              
+              // Using Rodrigues method
+              calculate_xsec_from_W( abs_xsec_per_species[this_species](joker, ip),
+                                    W,
+                                    v0,
+                                    f_grid,
+                                    d0,
+                                    rhoT,
+                                    t,
+                                    abs_p[ip],
+                                    mass,
+                                    nlines);
+            }
+            else
+            {
+              wmats[iband] = W;
+              d0s[iband] = d0;
+              rhos[iband] = rhoT;
+            }
+            
+            
             
         }
         
@@ -756,6 +804,9 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
 void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                            ArrayOfMatrix&                   /* abs_xsec_per_species, */,
                                            ArrayOfArrayOfMatrix&            /*dabs_xsec_per_species_dx*/,
+                                           ArrayOfMatrix&                   /*wmats*/,
+                                           ArrayOfVector&                   /*d0s*/,
+                                            ArrayOfVector&                  /*rhos*/,
                                            // WS Input:                     
                                            const ArrayOfArrayOfLineRecord&  /* abs_lines_per_band */,
                                            const ArrayOfArrayOfSpeciesTag&  /* abs_species_per_band */,
@@ -765,6 +816,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                            const Vector&                    /* f_grid */,
                                            const Vector&                    /* abs_p */,
                                            const Vector&                    /* abs_t */,
+                                           const Index&,
                                            const Verbosity&)
 {
    throw std::runtime_error("This version of ARTS was compiled without external line mixing support.");

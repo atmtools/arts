@@ -231,16 +231,24 @@ void inv( MatrixView Ainv,
 }
 
 void inv( ComplexMatrixView Ainv,
-          ConstComplexMatrixView A)
-{
-    using namespace Eigen;
-  
+          const ConstComplexMatrixView& A)
+{ 
     // A must be a square matrix.
     Index n = A.ncols();
     assert(n == A.nrows());
+    assert(n == Ainv.nrows());
+    assert(n == Ainv.ncols());
     
-    MatrixXcd eigen_A = Map<MatrixXcd>( A.mdata, n, n );
-    Map<MatrixXcd>( Ainv.mdata, n, n ) = eigen_A.inverse();
+    if(n == 1)
+    {
+      Ainv(0, 0) = 1.0 / A(0, 0);
+      return;
+    }
+    
+    ComplexConstMatrixViewMap eigen_A = MapToEigen(A);
+    ComplexMatrixViewMap eigen_Ainv = MapToEigen(Ainv);
+    eigen_Ainv = eigen_A.inverse();
+    
 }
 
 //! Matrix Diagonalization
@@ -325,24 +333,35 @@ void diagonalize( MatrixView P,
 
 void diagonalize( ComplexMatrixView P,
                   ComplexVectorView W,
-                  ConstComplexMatrixView A)
-{
-  using namespace Eigen;
-  
+                  const ConstComplexMatrixView& A)
+{ 
   // A must be a square matrix
-  Index n = A.ncols();
+  const Index n = A.ncols();
   assert(n == A.nrows());
+  assert(n == W.nelem());
+  assert(n == P.nrows());
+  assert(n == P.ncols());
+  
+  if(n == 1)
+  {
+    W[0] = A(0, 0);
+    P(0, 0) = 1;
+    return;
+  }
   
   // Map to Eigen
-  MatrixXcd eigen_A = Map<MatrixXcd>( A.mdata, n, n );
+  ComplexConstMatrixViewMap eigen_A = MapToEigen(A);
   
   // Make the computations
-  ComplexEigenSolver<MatrixXcd> ges;
+  Eigen::ComplexEigenSolver<Eigen::MatrixXcd> ges;
   ges.compute(eigen_A);
   
   // Remap to original arrays
-  Map<MatrixXcd>( W.mdata, n, 1 ) = ges.eigenvalues();
-  Map<MatrixXcd>( P.mdata, n, n ) = ges.eigenvectors();
+  ComplexMatrixViewMap eigen_W = MapToEigenRow(W);
+  eigen_W = ges.eigenvalues();
+  
+  ComplexMatrixViewMap eigen_P = MapToEigen(P);
+  eigen_P = ges.eigenvectors();
 }
 
 //! General exponential of a Matrix

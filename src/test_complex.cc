@@ -74,6 +74,32 @@ void test01()
    Complex h;
    h=pow(a,2)+pow(b,2)+pow(a,3)+pow(b,3);
    cout << "h = " << h << "\n";
+   
+   ComplexMatrix A(4, 4);
+   ComplexMatrix B(4, 4);
+   ComplexMatrix X1(4, 1);
+   ComplexVector X2(4);
+   ComplexMatrix C(4, 4);
+   for(Index i = 0; i < 4; i++)
+   {
+     X1(i, 0) = Complex((Numeric)i * 5.0 + 2.0, (Numeric)i + 1.0);
+     X2[i] = Complex((Numeric)i * 5.0 + 2.0, (Numeric)i + 1.0);
+     for(Index j = 0; j < 4; j++)
+     {
+       A(i, j) = Complex((Numeric)i + (Numeric)j, 0.0) + Complex(1.0, 1.0);
+       B(i, j) = Complex(2.0 * (Numeric)i + 4.0 * (Numeric)j, 0.0) + Complex(3.0, 3.0);
+     }
+   }
+     
+   mult(C, A, B);
+   std::cout<<C<<"\n";
+   C = 0;
+   mult(C(ComplexRange(2,2), ComplexRange(2,2)), A(ComplexRange(0,2), ComplexRange(0,2)), B(ComplexRange(1,2), ComplexRange(1,2)));
+   std::cout<<C<<"\n";
+   C = 0;
+   mult(C(ComplexRange(0,4), ComplexRange(2,1)), A, X1);
+   mult(C(joker, 1), A, X2);
+   std::cout<<C<<"\n";
 }
 
 int main()

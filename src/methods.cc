@@ -1827,17 +1827,17 @@ void define_md_data_raw()
       ),
       AUTHORS( "Teresa Mendaza", "Richard Larsson" ),
       OUT( "abs_xsec_per_species", "dabs_xsec_per_species_dx" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
+      GOUT("wmats", "d0s", "rhos"),
+      GOUT_TYPE("ArrayOfMatrix", "ArrayOfVector", "ArrayOfVector"),
+      GOUT_DESC("Array of Relaxation Matrices", "Array of dipole moments", "Array of population distributions"),
       IN( "abs_xsec_per_species", "dabs_xsec_per_species_dx",
           "abs_lines_per_band", "abs_species_per_band", "abs_species",
           "partition_functions", "jacobian_quantities", 
           "f_grid", "abs_p", "abs_t" ),
-      GIN( ),
-      GIN_TYPE( ),
-      GIN_DEFAULT( ),
-      GIN_DESC( )
+      GIN("write_wmat"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("0"),
+      GIN_DESC("only for testing purposes")
     ));
 
   md_data_raw.push_back
