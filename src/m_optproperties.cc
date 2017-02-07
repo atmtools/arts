@@ -2554,9 +2554,8 @@ void TestScatDataInterp(
         else if (ssd.ptype == PTYPE_AZIMUTH_RND)
           {
             Index nza_se = ssd.za_grid.nelem();
+            assert(nza_se==ssd.pha_mat_data.npages());
             ConstVectorView za_datagrid = ssd.za_grid;
-            ConstVectorView this_za_datagrid =
-              za_datagrid[Range(0,ssd.pha_mat_data.npages())];
 
             // in the actual SSP prep for RT4, the phase matrix is first
             // extracted and the azimuthal average (0th Fourier mode) is derived
@@ -2566,10 +2565,10 @@ void TestScatDataInterp(
             // the scatt elements' own polar angles.
             // That is, we keep the original scat angle grids (inc and sca!)
             // meaning we loop over them and derive a pha_mat for each of them
-            // (and each requested incident azimuth for fixed scattered aimuth)
+            // (and each requested incident azimuth for fixed scattered azimuth)
             for (Index iaa=0; iaa<n_aa; iaa++)
               {
-                Tensor4 pha_mat_interp(nza_se,nza_se/2+1,stokes_dim,stokes_dim,0.);
+                Tensor4 pha_mat_interp(nza_se,nza_se,stokes_dim,stokes_dim,0.);
 
                 GridPos daa_gp;
                 Vector itw_aa(2);
@@ -2580,12 +2579,13 @@ void TestScatDataInterp(
                 gridpos(daa_gp,ssd.aa_grid,daa);
                 interpweights(itw_aa,daa_gp);
 
-                for (Index iza=0; iza<nza_se/2+1; iza++)
+                for (Index iza=0; iza<nza_se; iza++)
                   for (Index sza=0; sza<nza_se; sza++)
                     for (Index ist1=0; ist1<stokes_dim; ist1++)
                       for (Index ist2=0; ist2<stokes_dim; ist2++)
                         pha_mat_interp(sza,iza,ist1,ist2) = interp(itw_aa,
-                          ssd.pha_mat_data(0,i_pfct,sza,Range(joker),iza,0,ist1*4+ist2),
+                          ssd.pha_mat_data(0,i_pfct,sza,Range(joker),
+                                           iza,0,ist1*4+ist2),
                           daa_gp);
 
             // in the actual SSP prep for RT4, the extracted azimuthal mode is
@@ -2601,16 +2601,8 @@ void TestScatDataInterp(
                   Numeric za_sca = sza_grid[0]; 
                   Numeric za_inc = pha_mat_za[iza]; 
 
-                  if (za_inc>90)
-                    {
-                      gridpos(za_inc_gp,this_za_datagrid,180-za_inc);
-                      gridpos(za_sca_gp,za_datagrid,180-za_sca);
-                    }
-                  else
-                    {
-                      gridpos(za_inc_gp,this_za_datagrid,za_inc);
-                      gridpos(za_sca_gp,za_datagrid,za_sca);
-                    }
+                  gridpos(za_inc_gp,za_datagrid,za_inc);
+                  gridpos(za_sca_gp,za_datagrid,za_sca);
 
                   interpweights(itw_za,za_sca_gp,za_inc_gp);
       

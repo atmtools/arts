@@ -134,29 +134,15 @@ void abs_vecTransform(//Output and Input
     {
       assert (abs_vec_data.ncols() == 2);
       
-      // In the case of azimuthally randomly oriented particles the absorption
-      // coefficient vector only the first two elements are non-zero.
-      // These values are dependent on the zenith angle of propagation. The 
-      // data storage format also makes use of the fact that in this case
-      //K_abs(za_sca)=K_abs(180-za_sca). 
+      // In the case of azimuthally randomly oriented particles, only the first
+      // two elements of the absorption coefficient vector are non-zero.
+      // These values are dependent on the zenith angle of propagation.
       
       // 1st interpolate data by za_sca
       GridPos gp;
       Vector itw(2);
       
-      // JM 2010-11-05: reduce za_datagrid to abs_vec_data range,
-      // then gridpos correctly recognizes last grid point and
-      // returns correct index (follows SAB 2010-04-28)
-      ConstVectorView this_za_datagrid = za_datagrid[Range(0,abs_vec_data.npages())];
-      
-      if (za_sca>90)
-      {
-        gridpos(gp,this_za_datagrid,180-za_sca);
-      }
-      else
-      {
-        gridpos(gp,this_za_datagrid,za_sca);
-      }
+      gridpos(gp,za_datagrid,za_sca);
       interpweights(itw,gp);
       abs_vec_lab = 0;
       abs_vec_lab[0] = interp(itw,abs_vec_data(Range(joker),0,0),gp);
@@ -270,11 +256,9 @@ void ext_matTransform(//Output and Input
     {
       assert (ext_mat_data.ncols() == 3);
       
-      // In the case of azimuthally randomly oriented particles the extinction matrix
-      // has only 3 independent non-zero elements Kjj, K12=K21, and K34=-K43.
-      // These values are dependent on the zenith angle of propagation. The 
-      // data storage format also makes use of the fact that in this case
-      //K(za_sca)=K(180-za_sca). 
+      // In the case of azimuthally randomly oriented particles, the extinction
+      // matrix has only 3 independent non-zero elements Kjj, K12=K21, and K34=-K43.
+      // These values are dependent on the zenith angle of propagation.
       
       // 1st interpolate data by za_sca
       GridPos gp;
@@ -283,20 +267,7 @@ void ext_matTransform(//Output and Input
       Numeric K12;
       Numeric K34;
       
-      // JM 2010-11-05: reduce za_datagrid to ext_mat_data range,
-      // then gridpos correctly recognizes last grid point and
-      // returns correct index (follows SAB 2010-04-28)
-      ConstVectorView this_za_datagrid = za_datagrid[Range(0,ext_mat_data.npages())];
-      
-      if (za_sca>90)
-      {
-        gridpos(gp,this_za_datagrid,180-za_sca);
-      }
-      else
-      {
-        gridpos(gp,this_za_datagrid,za_sca);
-      }
-      
+      gridpos(gp,za_datagrid,za_sca);
       interpweights(itw,gp);
       
       ext_mat_lab=0.0;
@@ -431,16 +402,11 @@ void pha_matTransform(//Output
     }
       
     case PTYPE_AZIMUTH_RND://Added by Cory Davis
-                                //Data is already stored in the laboratory frame, but it is compressed
-                                //a little.  Details elsewhere
+                           //Data is already stored in the laboratory frame,
+                           //but it is compressed a little.  Details elsewhere.
     {
-      // SAB 2010-04-28: For the incoming angle, not the whole of za_datagrid 
-      // is used in this case, only the range [0,90] degrees. 
-      // (Inclusive interval at both ends.)
-      // How much is needed can be seen from pha_mat_data.npages().
-      ConstVectorView this_za_datagrid = za_datagrid[Range(0,pha_mat_data.npages())];
-      
       assert (pha_mat_data.ncols()==16);
+      assert (pha_mat_data.npages()==za_datagrid.nelem());
       Numeric delta_aa=aa_sca-aa_inc+(aa_sca-aa_inc<-180)*360-
       (aa_sca-aa_inc>180)*360;//delta_aa corresponds to the "books" 
                               //dimension of pha_mat_data
@@ -450,16 +416,8 @@ void pha_matTransform(//Output
       Vector itw(8);
       
       gridpos(delta_aa_gp,aa_datagrid,abs(delta_aa));
-      if (za_inc>90)
-      {
-        gridpos(za_inc_gp,this_za_datagrid,180-za_inc);
-        gridpos(za_sca_gp,za_datagrid,180-za_sca);
-      }
-      else
-      {
-        gridpos(za_inc_gp,this_za_datagrid,za_inc);
-        gridpos(za_sca_gp,za_datagrid,za_sca);
-      }
+      gridpos(za_inc_gp,za_datagrid,za_inc);
+      gridpos(za_sca_gp,za_datagrid,za_sca);
       
       interpweights(itw,za_sca_gp,delta_aa_gp,za_inc_gp);
       
@@ -481,7 +439,7 @@ void pha_matTransform(//Output
       if( stokes_dim == 2 ){
         break;
       }
-      if ((za_inc<=90 && delta_aa>=0)||(za_inc>90 && delta_aa<0))
+      if (delta_aa>=0)
       {
         pha_mat_lab(0,2)=interp(itw,pha_mat_data(Range(joker),Range(joker),
                                                  Range(joker),0,2),
@@ -517,7 +475,7 @@ void pha_matTransform(//Output
       if( stokes_dim == 3 ){
         break;
       }
-      if ((za_inc<=90 && delta_aa>=0)||(za_inc>90 && delta_aa<0))
+      if (delta_aa>=0)
       {
         pha_mat_lab(0,3)=interp(itw,pha_mat_data(Range(joker),Range(joker),
                                                  Range(joker),0,3),
@@ -556,15 +514,16 @@ void pha_matTransform(//Output
       pha_mat_lab(3,3)=interp(itw,pha_mat_data(Range(joker),Range(joker),
                                                Range(joker),0,15),
                               za_sca_gp,delta_aa_gp,za_inc_gp);
-      break;
-      
-    }  
+      break;  
+    }
+
     default:
     {
       CREATE_OUT0;
       out0 << "Not all ptype cases are implemented\n";
     }
   }
+    
 }
 
 
@@ -1224,7 +1183,7 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd)
            ssd.za_grid.nelem()/2+1, 1, 2);
 
   // Now that we are sure that za_grid is properly symmetric, we just need to
-  // copy over the data
+  // copy over the data (ie no interpolation).
   Tensor5 tmpT5 = ssd.abs_vec_data;
   ssd.abs_vec_data.resize(tmpT5.nshelves(),tmpT5.nbooks(),
                           ssd.za_grid.nelem(),
@@ -1253,11 +1212,19 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd)
                           ssd.za_grid.nelem(),
                           tmpT7.nrows(),tmpT7.ncols());
   ssd.pha_mat_data(joker,joker,joker,joker,Range(0,nza/2+1),joker,joker) = tmpT7;
+
+  // scatt. matrix elements 13,23,31,32 and 14,24,41,42 (=elements 2,6,8,9 and
+  // 3,7,12,13 in ARTS' flattened format, respectively) change sign.
+  tmpT7(joker,joker,joker,joker,joker,joker,Range(2,2)) *= -1.;
+  tmpT7(joker,joker,joker,joker,joker,joker,Range(6,4)) *= -1.;
+  tmpT7(joker,joker,joker,joker,joker,joker,Range(12,2)) *= -1.;
+
+  // For second half of incident polar angles (>90deg), we need to mirror the
+  // original data in both incident and scattered polar angle around 90deg "planes".
   for (Index i=0; i<nza/2; i++)
-    {
-      ssd.pha_mat_data(joker,joker,joker,joker,nza-1-i,joker,joker) =
-        tmpT7(joker,joker,joker,joker,i,joker,joker);
-    }
+    for (Index j=0; j<nza; j++)
+      ssd.pha_mat_data(joker,joker,nza-1-j,joker,nza-1-i,joker,joker) =
+        tmpT7(joker,joker,j,joker,i,joker,joker);
 
 }
 

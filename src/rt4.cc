@@ -244,7 +244,7 @@ void par_optpropCalc( Workspace& ws,
                     abs_vector(scat_p_index_local+1,nummu+imu,ist1) );
               }
 //        }
-    }  
+    }
 }
 
 
@@ -378,10 +378,8 @@ void sca_optpropCalc( //Output
             {
               Index nza_se = ssd.za_grid.nelem();
               Index naa_se = ssd.aa_grid.nelem();
-              Tensor4 pha_mat_int(nza_se,nza_se/2+1,stokes_dim,stokes_dim, 0.);
+              Tensor4 pha_mat_int(nza_se,nza_se,stokes_dim,stokes_dim, 0.);
               ConstVectorView za_datagrid = ssd.za_grid;
-              ConstVectorView this_za_datagrid =
-                za_datagrid[Range(0,ssd.pha_mat_data.npages())];
               ConstVectorView aa_datagrid = ssd.aa_grid;
               assert(aa_datagrid[0]==0.);
               assert(aa_datagrid[naa_se-1]==180.);
@@ -389,7 +387,7 @@ void sca_optpropCalc( //Output
               // first, extracting the phase matrix at the scatt elements own
               // polar angle grid, deriving their respective azimuthal (Fourier
               // series) 0-mode
-              for (Index iza=0; iza<nza_se/2+1; iza++)
+              for (Index iza=0; iza<nza_se; iza++)
                 for (Index sza=0; sza<nza_se; sza++)
                   {
                     for (Index saa=0; saa<naa_se; saa++)
@@ -420,17 +418,8 @@ void sca_optpropCalc( //Output
                     Numeric za_sca = scat_za_grid[sza]; 
                     Numeric za_inc = scat_za_grid[iza]; 
        
-                    if (za_inc>90)
-                    {
-                      gridpos(za_inc_gp,this_za_datagrid,180-za_inc);
-                      gridpos(za_sca_gp,za_datagrid,180-za_sca);
-                    }
-                    else
-                    {
-                      gridpos(za_inc_gp,this_za_datagrid,za_inc);
-                      gridpos(za_sca_gp,za_datagrid,za_sca);
-                    }
-      
+                    gridpos(za_inc_gp,za_datagrid,za_inc);
+                    gridpos(za_sca_gp,za_datagrid,za_sca);
                     interpweights(itw,za_sca_gp,za_inc_gp);
       
                     for (Index ist1=0; ist1<stokes_dim; ist1++)

@@ -573,10 +573,10 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
         throw runtime_error( os.str() );
     }   
   
-  if (scat_data_single.ptype == PTYPE_AZIMUTH_RND && last(scat_data_single.aa_grid) != 180.)
+  if (scat_data_single.ptype != PTYPE_TOTAL_RND && last(scat_data_single.aa_grid) != 180.)
     {
       ostringstream os;
-      os << "For ptype = \"azimuthally_random\""
+      os << "For ptypes = \"azimuthally_random\" and \"general\""
          << " the last value of the azimuth angle grid in the single"
          << " scattering properties data must be 180.";
         throw runtime_error( os.str() );

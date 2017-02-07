@@ -581,14 +581,24 @@ void findZ11max(Vector& Z11maxvector,
           switch(scat_data_mono[i_ss][i_se].ptype){
               case PTYPE_TOTAL_RND:
               {
-                  Z11maxvector[i_total]=max(scat_data_mono[i_ss][i_se].pha_mat_data(0,joker,joker,0,0,0,0));
+                  Z11maxvector[i_total]=
+                    max(scat_data_mono[i_ss][i_se].pha_mat_data(0,joker,joker,0,0,0,0));
               }
               case PTYPE_AZIMUTH_RND:
               {
-                  Z11maxvector[i_total]=max(scat_data_mono[i_ss][i_se].pha_mat_data(0,joker,joker,0,joker,0,0));
+                //JM170207: I think, we need to check all azimuths here, too.
+                //Az=0 gives the smallest scatt angle, but smallest scatt angle
+                //does not always correspond to largest Z11 value (think, eg
+                //backscattering: Z11 is generally larger at scatt ang 180deg
+                //than at 90deg). IF we want/need to be smart (eg for
+                //performance reasons), than we need to pick out the forward
+                //direction and check that one.
+                Z11maxvector[i_total]=
+                    max(scat_data_mono[i_ss][i_se].pha_mat_data(0,joker,joker,joker,joker,0,0));
               }
               default:
-                  Z11maxvector[i_total]=max(scat_data_mono[i_ss][i_se].pha_mat_data(0,joker,joker,joker,joker,joker,0));
+                  Z11maxvector[i_total]=
+                    max(scat_data_mono[i_ss][i_se].pha_mat_data(0,joker,joker,joker,joker,joker,0));
           }
       }
   }
@@ -1595,12 +1605,12 @@ void opt_propExtract(
   case PTYPE_AZIMUTH_RND:
     {
       assert (scat_data_single.ext_mat_data.ncols() == 3);
+      assert (scat_data_single.za_grid.nelem() == scat_data_single.ext_mat_data.npages() );
       
       // In the case of azimuthally randomly oriented particles the extinction matrix
       // has only 3 independent non-zero elements ext_mat_monojj, K12=K21, and
       // K34=-K43. These values are dependent on the zenith angle of
-      // propagation. The data storage format also makes use of the fact that
-      // in this case K(za_sca)=K(180-za_sca).
+      // propagation.
 
       // 1st interpolate data by za_sca
       GridPos za_gp;
@@ -1608,16 +1618,7 @@ void opt_propExtract(
       Numeric K12;
       Numeric K34;
       
-
-      // This fix for za=90 copied from  ext_matTransform in optproperties.cc
-      // (121113, PE).
-      ConstVectorView this_za_datagrid = 
-              scat_data_single.za_grid[ Range( 0, scat_data_single.ext_mat_data.npages() ) ];
-      if( za > 90 )
-        { gridpos( za_gp, this_za_datagrid, 180-za ); }
-      else
-        { gridpos( za_gp, this_za_datagrid, za ); }
-
+      gridpos( za_gp, scat_data_single.za_grid, za );
 
       ext_mat_mono_spt = 0.0;
       abs_vec_mono_spt = 0.0;
@@ -1822,7 +1823,7 @@ void pha_mat_singleExtract(
 
   case PTYPE_AZIMUTH_RND:
     //Data is already stored in the laboratory frame, but it is compressed
-    //a little.  Details elsewhere
+    //a little.  Details elsewhere.
     {
       assert (scat_data_single.pha_mat_data.ncols()==16);
       Numeric delta_aa=aa_sca-aa_inc+(aa_sca-aa_inc<-180)*360-
@@ -1835,16 +1836,8 @@ void pha_mat_singleExtract(
       Vector itw;
       
       gridpos(delta_aa_gp,scat_data_single.aa_grid,abs(delta_aa));
-      if (za_inc>90)
-        {
-          gridpos(za_inc_gp,scat_data_single.za_grid,180-za_inc);
-          gridpos(za_sca_gp,scat_data_single.za_grid,180-za_sca);
-        }
-      else
-        {
-          gridpos(za_inc_gp,scat_data_single.za_grid,za_inc);
-          gridpos(za_sca_gp,scat_data_single.za_grid,za_sca);
-        }
+      gridpos(za_inc_gp,scat_data_single.za_grid,za_inc);
+      gridpos(za_sca_gp,scat_data_single.za_grid,za_sca);
 
       if( scat_data_single.T_grid.nelem() == 1 )
         {
@@ -1897,7 +1890,7 @@ void pha_mat_singleExtract(
         break;
       }
 
-      if ((za_inc<=90 && delta_aa>=0)||(za_inc>90 && delta_aa<0))
+      if (delta_aa>=0)
         {
           if( scat_data_single.T_grid.nelem() == 1 )
             {
@@ -1976,7 +1969,7 @@ void pha_mat_singleExtract(
         break;
       }
 
-      if ((za_inc<=90 && delta_aa>=0)||(za_inc>90 && delta_aa<0))
+      if (delta_aa>=0)
         {
           if( scat_data_single.T_grid.nelem() == 1 )
             {

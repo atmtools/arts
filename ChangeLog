@@ -1,4 +1,33 @@
+2017-02-07 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-626
+
+	* src/optproperties.cc (ConvertAzimuthallyRandomSingleScatteringData):
+	Bug fixes in p30 version1&2 to version3 conversion routine, namely for
+	za_inc>90deg, data needs to be mirrored not only in za_inc but also
+	za_sca along the 90deg "plane" (tested versus old data) and certain
+	stokes 3 and 4 elements	need to be negatized (not yet tested).
+	
+	(abs_vecTransform, ext_matTransform, pha_matTransform):
+	Adapted to use new p30 scat_data format.
+	
+	* src/montecarlo.cc (opt_propExtract, pha_mat_singleExtract):
+	Adapted to use new p30 scat_data format.
+
+	(findZ11max): For p30 consider all azimuth angles.
+
+	* src/rt4.cc (sca_optpropCalc):
+	Adapted to use new p30 scat_data format.
+
+	* src/m_optproperties.cc (TestScatDataInterp):
+	Adapted to use new p30 scat_data format.
+
+	* src/cloudbox.cc (chk_scat_data):
+	Consider ptype general in azimuth grid check.
+
 2017-02-06  Lukas Kluft  <lukas.kluft@gmail.com>
+
+	* arts-2-3-625
 
 	* tools/vim_syntax/update-vim-arts-syntax:
 
