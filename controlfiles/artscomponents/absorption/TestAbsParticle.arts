@@ -61,11 +61,9 @@ abs_speciesSet( species=[ "H2O-PWR98",
 # Atmospheric profiles
 AtmRawRead( basename="testdata/tropical" )
 
-# Set the cloudbox limits (pressure units)
-# Alternative: cloudboxSetManuallyAltitude (specification in [km])
-# ----------------------------------------------------------------
-cloudboxSetManually( p1=71617.7922264, p2=17111.6808705,
-                     lat1=0, lat2=0, lon1=0, lon2=0 )
+# setting cloudbox_on (to off) here already. avoids writing & re-reading
+# scat_data later on (since cloudboxOff wipes out all cloud-related data).
+cloudboxOff
 
 # Specification of cloud
 # -----------------------
@@ -80,9 +78,6 @@ ScatElementsToabs_speciesAdd(
   pnd_field_files=["testdata/testdoit_pnd_field_1D.xml",
                    "testdata/testdoit_pnd_field_1D.xml"] )
 scat_dataCheck
-# DON'T remove this Write. we need the written out data later on to circumvent
-# the scat_data clean out by cloudboxOff.
-WriteXML( in=scat_data )
 
 # Gas absorption from lookup table 
 # ---------------------------------
@@ -158,11 +153,6 @@ jacobianOff
 
 #==================start==========================
 
-
-cloudboxOff
-# now read in previously dumped to file particle optical property again
-# (circumventing the scat_data clean-out by cloudboxOff)
-ReadXML( out=scat_data )
 
 atmfields_checkedCalc
 atmgeom_checkedCalc
