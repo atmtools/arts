@@ -283,12 +283,11 @@ void calculate_xsec_from_W( VectorView  xsec,
                             const ConstVectorView d0,
                             const ConstVectorView rhoT,
                             const Numeric&  T,
-                            const Numeric&  P,
                             const Numeric&  isotopologue_mass,
                             const Index&    n//lines
 )
 { 
-  
+  std::cout<<f0<<"\n";
     // Physical constants
     extern const Numeric BOLTZMAN_CONST;
     extern const Numeric AVOGADROS_NUMB;
@@ -298,10 +297,10 @@ void calculate_xsec_from_W( VectorView  xsec,
     
     // internal constant
     const Index nf  = f_grid.nelem();
-    static const Numeric hc = PLANCK_CONST * SPEED_OF_LIGHT;
     const Numeric kT = BOLTZMAN_CONST * T;
     const Numeric doppler_const = sqrt( 2.0 * kT * AVOGADROS_NUMB / isotopologue_mass ) / SPEED_OF_LIGHT;
-    static const Numeric log2 = log(2);
+    static const Numeric invSqrtPI = 1.0/sqrt(PI);
+    static const Numeric w2Hz               = SPEED_OF_LIGHT *1E2;
     
     // Setup for the matrix to be diagonalized
     ComplexMatrix F0plusiPW(n, n);
@@ -310,19 +309,21 @@ void calculate_xsec_from_W( VectorView  xsec,
         for(Index j = 0; j < n; j++)
         {
             if(j == i)
-              F0plusiPW(i, i) = Complex(f0[0] - f0[i], - P * Wmat(i, i)); // Note that using f0[0] is there to stabilize the diagonilization
+              F0plusiPW(i, i) = Complex(f0[0]-f0[i], -Wmat(i, i));
             else
-              F0plusiPW(i, j) = Complex(0.0, - P * Wmat(i, j));
+              F0plusiPW(i, j) = Complex(0.0, -Wmat(i, j));
         }
+        std::cout<<Wmat(i,i)<<" ";
     }
-
+    std::cout<<std::endl;
+    
     // z_eigs is set to contain the eigenvalues, 
     // E is the matrix of eigenvectors and invE is its inverse
     // the idea is that E*diag(z_eig)*invE is F0plusiPW
     ComplexVector z_eigs(n);
     ComplexMatrix E(n, n), invE(n, n);
-    diagonalize(invE, z_eigs, F0plusiPW);
-    inv(E, invE);
+    diagonalize(E, z_eigs, F0plusiPW);
+    inv(invE, E);
     
     // Equivalent line strength
     ComplexVector equivS0(n, 0.0);
@@ -330,40 +331,40 @@ void calculate_xsec_from_W( VectorView  xsec,
     // Doppler broadening
     Vector sigma(n);
     
-    // Computing the equivalent linestrength and the Doppler broadening
+    // Conjunction of eigenvalues and the Doppler broadening
     for(Index if1 = 0; if1 < n; if1++)
     {
       sigma[if1]= f0[if1] * doppler_const ;
-      z_eigs[if1] = (conj(z_eigs[if1]) - f0[0]) / (sigma[if1] / log2); // Time to remove the stabilizer
-        
-        for(Index if2=0;if2<n;if2++)
-        {
-          equivS0[if2] += conj(rhoT[if1]*d0[if1] * d0[if2] * E(if2,if1) * invE(if1,if2) / sigma[if1]) * sqrt(log2 / PI) * 8.0 * PI * PI / (3.0 * hc); 
-        }
+      z_eigs[if1] = conj(z_eigs[if1]) - f0[0]; 
     }   
     
-//     for(Index m = 0; m<n; m++)
-//     {
-//       for(Index lp=0; lp<n; lp++)
-//         for(Index l=0;l<n;l++)
-//           equivS0[m] += rhoT[l] * d0[l] * d0[lp] * E(lp, m) * invE(m, l); 
-//         equivS0[m] /= sigma[m] / log2;
-//       equivS0[m] = conj(equivS0[m]);
-//     }
+    for(Index k = 0; k < n; k++)
+    {
+      Complex z1 = 0.0;
+      Complex z2 = 0.0;
+      for(Index j = 0; j < n; j++)
+      {
+         z1 += d0[j] * E(j, k);
+         z2 += rhoT[j] * d0[j] * invE(k, j);
+        
+      }
+      equivS0[k] = z1 * z2;
+    }
     
-    std::cout<<equivS0<<"\n";
+    std::cout<<z_eigs<<"\n\n"<<equivS0<<"\n\n"<<sigma<<"\n";
     
     // Add to xsec --- How will this be normalized?
     #pragma omp parallel for                    \
     if (!arts_omp_in_parallel())
     for(Index iv = 0; iv < nf; iv++)
     {
-      const Complex f = Complex((f_grid[iv]) * log2, 0.0);
-      const Numeric c = f_grid[iv] * (1.0 - exp(- (hc*1e2) * f_grid[iv] / kT));
+      const Numeric s0_freqfac = f_grid[iv] * (1.0 - exp(- PLANCK_CONST * f_grid[iv] / kT)); // Adapted from Niro's code
       for(Index if0 = 0; if0 < n; if0++)
       {
-          const Complex z = f / sigma[if0] + z_eigs[if0];
-          xsec[iv]+= c * real(equivS0[if0] * Faddeeva::w(z));
+        const Numeric ls_normfac = invSqrtPI / sigma[if0];
+        const Complex z = (f_grid[iv] + z_eigs[if0]) / sigma[if0];
+        //xsec[iv] += real(equivS0[if0] * Faddeeva::w(z)) / sigma[if0];
+        xsec[iv] += real(equivS0[if0] * Faddeeva::w(z)) * ls_normfac * s0_freqfac;
       }
     }
 }
@@ -423,20 +424,15 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                             const Index&                     write_wmat,
                                             const Verbosity&)
 {
-    /*throw std::runtime_error("\nabs_xsec_per_speciesAddLineMixedBands of src/m_linemixing.cc\n"
-    "is still a work in progress and does not work as of yet.\n"
-    "Please remove this runtime_error to proceed with debugging the reasons.\n");*/
-    
     using global_data::species_data;
     
     // Physical constants
-    extern const Numeric PLANCK_CONST;
     extern const Numeric SPEED_OF_LIGHT;
     extern const Numeric ATM2PA;
     
     // HITRAN to ARTS constants
     static const Numeric w2Hz               = SPEED_OF_LIGHT *1E2;
-    static const Numeric lower_energy_const = PLANCK_CONST * w2Hz;
+    static const Numeric lower_energy_const = wavenumber_to_joule(1.0);
     static const Numeric I0_hi2arts         = 1E-2 * SPEED_OF_LIGHT;
     static const Numeric gamma_hi2arts      = w2Hz / ATM2PA;
     
@@ -745,8 +741,15 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             Numeric p;
             p = abs_p[ip]/ATM2PA; // HITRAN pressure unit is in atmospheres
             
-            std::cout<<"Starting the arts_relmat_interface!\n";
-            
+            std::cout<<nlines<<" "<<fmin<<" "<<fmax<<" "<<M<<" "<<I<<"\n";
+            std::cout<<v0<<"\n"<<S<<"\n"<<gamma_air<<"n"<<E_double_prime<<"\n"<<n_air<<"\n";
+            for(Index i=0; i<4*nlines; i+=4)
+              std::cout<<upper[i]<<" "<<upper[i+1]<<" "<<upper[i+2]<<" "<<upper[i+3]<<" "
+                       <<lower[i]<<" "<<lower[i+1]<<" "<<lower[i+2]<<" "<<lower[i+3]<<" "
+                       <<g_prime[i/4]<<" "<<g_double_prime[i/4]<<"\n";
+            std::cout<<t<<" "<<p<<" "<<QT<<" "<<QT0<<" "<<mass<<"\n";
+                       
+                       
             // Calling Teresa's code
             arts_relmat_interface(
                 &nlines, &fmin, &fmax,
@@ -761,10 +764,12 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             
             std::cout<<"Succesful run of arts_relmat_interface!\n";
             
+            W *= w2Hz * p;
+            v0 *= w2Hz;
+            d0 *= sqrt(I0_hi2arts);
+            
             if(write_wmat == 0)
             {
-              W *= w2Hz / ATM2PA;
-              v0 *= w2Hz;
               
               // Using Rodrigues method
               calculate_xsec_from_W( abs_xsec_per_species[this_species](joker, ip),
@@ -774,7 +779,6 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                     d0,
                                     rhoT,
                                     t,
-                                    abs_p[ip],
                                     mass,
                                     nlines);
             }

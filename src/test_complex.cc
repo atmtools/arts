@@ -90,16 +90,19 @@ void test01()
        B(i, j) = Complex(2.0 * (Numeric)i + 4.0 * (Numeric)j, 0.0) + Complex(3.0, 3.0);
      }
    }
-     
+   
+   std::cout<<"\n";
    mult(C, A, B);
-   std::cout<<C<<"\n";
-   C = 0;
-   mult(C(ComplexRange(2,2), ComplexRange(2,2)), A(ComplexRange(0,2), ComplexRange(0,2)), B(ComplexRange(1,2), ComplexRange(1,2)));
-   std::cout<<C<<"\n";
-   C = 0;
-   mult(C(ComplexRange(0,4), ComplexRange(2,1)), A, X1);
+   std::cout<<MapToEigen(A)<<"\nx\n"<<MapToEigen(B)<<"\n=\n"<<MapToEigen(C)<<"\n\n";
+   mult(C, C, C);
+   mult(C, C, C);
+   std::cout<<"Same matrix can be both input and output, here is the above to the power of 4:\n"<<MapToEigen(C)<<"\n\n";
    mult(C(joker, 1), A, X2);
-   std::cout<<C<<"\n";
+   std::cout<<MapToEigen(A) <<"\nx\n"
+   <<MapToEigen(X2)<<"\n=\n"<<MapToEigen(C(joker, 1))<<"\n\n";
+   mult(C(ComplexRange(1,3), ComplexRange(0,3)), A(ComplexRange(1,3), ComplexRange(1,2)), B(ComplexRange(1,2), ComplexRange(1,3)));
+   std::cout<<MapToEigen(A(ComplexRange(1,3), ComplexRange(1,2))) <<"\nx\n"
+            <<MapToEigen(B(ComplexRange(1,2), ComplexRange(1,3)))<<"\n=\n"<<MapToEigen(C(ComplexRange(1,3), ComplexRange(0,3)))<<"\n\n";
 }
 
 int main()

@@ -239,15 +239,8 @@ void inv( ComplexMatrixView Ainv,
     assert(n == Ainv.nrows());
     assert(n == Ainv.ncols());
     
-    if(n == 1)
-    {
-      Ainv(0, 0) = 1.0 / A(0, 0);
-      return;
-    }
-    
-    ComplexConstMatrixViewMap eigen_A = MapToEigen(A);
     ComplexMatrixViewMap eigen_Ainv = MapToEigen(Ainv);
-    eigen_Ainv = eigen_A.inverse();
+    eigen_Ainv = MapToEigen(A).inverse();
     
 }
 
@@ -342,19 +335,9 @@ void diagonalize( ComplexMatrixView P,
   assert(n == P.nrows());
   assert(n == P.ncols());
   
-  if(n == 1)
-  {
-    W[0] = A(0, 0);
-    P(0, 0) = 1;
-    return;
-  }
-  
-  // Map to Eigen
-  ComplexConstMatrixViewMap eigen_A = MapToEigen(A);
-  
   // Make the computations
   Eigen::ComplexEigenSolver<Eigen::MatrixXcd> ges;
-  ges.compute(eigen_A);
+  ges.compute(MapToEigen(A));
   
   // Remap to original arrays
   ComplexMatrixViewMap eigen_W = MapToEigenRow(W);

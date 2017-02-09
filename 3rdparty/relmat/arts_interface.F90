@@ -23,7 +23,7 @@ module arts_interface
         !   artsI    : The HITRAN isotope number
         !   artsWNO  : frequency in cm-1 in vacuum of the lines.  Sorted by lowest first
         !   artsS    : Intensity of the line at the same temperature as QT0 but abundance has already been considered
-        !   artsGA   : Air pressure broadening in cm-1
+        !   artsGA   : Air pressure broadening in cm-1/atm halfwidth
         !   arts E00 : Lower state energy in cm-1
         !   artsNA   : Pressure broadening constant in cm-1
         !   artsUpp  : Upper state quantum numbers. First is L2, then is J, then is N, then is S.  
@@ -76,7 +76,7 @@ module arts_interface
                                  artsGA(nLines), artsE00(nLines), &
                                  artsNA(nLines)
             !   OUTPUT variables
-            Double Precision  :: rho(nLines), dipo(nLines) 
+            Double Precision  :: rho(nLines), dipo(nLines)
             Double Precision  :: W_rn(nLines,nLines)
         end subroutine RM_LM_tmc_arts
 
@@ -100,6 +100,36 @@ module arts_interface
             integer*8, intent (in)   :: n 
             Double Precision, intent (in)   :: Wfinal(n,n)
         end subroutine show_W
+
+        subroutine show_PD(n,wno,p,d)
+            use module_common_var
+            implicit none
+            integer*8, intent (in)   :: n 
+            Double Precision, intent (in)   :: wno(n), p(n), d(n)
+        end subroutine show_PD
+
+        subroutine save_W2plot(n, dta1, dta2 ,molP, npert, pert)
+            use module_common_var
+            use module_molecSP
+            use module_error
+
+            implicit none
+            integer*8, intent (in)                  :: n, npert !n=dta_size1
+            type (dta_MOL), intent (in)             :: molP
+            type (dta_SDF), intent (in)             :: dta1
+            type (dta_RMF), intent (in)             :: dta2
+            character (6)                           :: pert(npert)
+        end subroutine save_W2plot
+
+        subroutine save_Yrp(dta1, n, molP, Y_RosenP)
+            use module_common_var
+
+            implicit none
+            integer*8  , intent (in)                :: n
+            double precision, intent (in)           :: Y_RosenP(n)
+            type (dta_SDF) , intent (in)            :: dta1
+            type (dta_MOL), intent (in)             :: molP
+        end subroutine save_Yrp
 
 
     end interface
@@ -133,7 +163,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 !   artsI    : The HITRAN isotope number
 !   artsWNO  : frequency in cm-1 in vacuum of the lines.  Sorted by lowest first
 !   artsS    : Intensity of the line at the same temperature as QT0 but abundance has already been considered
-!   artsGA   : Air pressure broadening in cm-1
+!   artsGA   : Air pressure broadening in cm-1/atm halfwidth
 !   arts E00 : Lower state energy in cm-1
 !   artsNA   : Pressure broadening constant in cm-1
 !   artsUpp  : Upper state quantum numbers. First is L2, then is J, then is N, then is S.  
@@ -142,7 +172,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 !   artsg0   : Upper state g-constant
 !   artsg00  : Lower state g-constant
 !   T        : Temperature of the system in Kelvin.
-!   Ptot     : Total pressure in Pascal.
+!   Ptot     : Total pressure in atm.
 !   QT       : Partition function at Temperature T.
 !   QT0      : Partition function at same temperature as line intensity.
 !   mass     : Mass of the molecule.
@@ -207,38 +237,40 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 !   OUTPUT variables
     Double Precision       :: rho(nLines), dipo(nLines) 
     Double Precision       :: W_rn(nLines,nLines)
-    Double Precision       :: Wmat(nWmax,nWmax),&
-                              Wper(nWmax,nWmax)
-!   Double Precision       :: Y_RosT(nLmx)
+    Double Precision       :: Wmat(nLines,nLines),&
+                              Wper(nLines,nLines)
+    Double Precision       :: Y_RosT(nLines)
     Double Precision       :: xMOLp(npert)
     type (dta_SDF)         :: dta1
     type (dta_RMF)         :: dta2
     type (dta_MOL)         :: molP
     type (dta_MOL)         :: PerM
-    integer*8              :: sys(2)  
+    integer*8              :: sys(2), lM, lP
     character*6            :: perturber(2)
+    character*2            :: fmt1, fmt2
     logical                :: enough_Lines
 !
-    write(*,2016), T
-2016 Format("Starting Linemixing Relaxation Matrix software. T=",f5.0,"K")
+    !Ptot = Ptot*9.869200E-06
+    write(*,2016), T, Ptot
+2016 Format("Starting Linemixing Relaxation Matrix software. T=",f5.0,"K; P=",f7.2," atm")
 !----------
 ! Band quantities specification
     print*, 'Init. Variables...'
     CALL VarInit(dta1,dta2,molP)
-    molP % Temp = T
-    molP % Ptot = Ptot
+    molP % Temp = T !Kelvin
+    molP % Ptot = Ptot!atm
 !
 !----------
 ! Obtainig the molecule ID from the Formula specified in "module_common_var"
     print*, 'Identifying molecule and loading its parameters...'
-    !CALL moleculeID(artsM(1), artsI(1),molP) 
+    !
     CALL moleculeID(artsM, artsI, mass, QT, QT0, .true., molP)
     dta1%M = molP%M
 !---------
 ! Call for reading HITRAN spectroscopy data.
 !
-    print*, 'Reading HITRAN12 File...'
-    !CALL readline(dta1, dta_size1)
+    print*, 'Locating Band information...'
+    !
     CALL Hit2DTA(dta1, dta_size1, nLines, enough_Lines, &
                                             artsWNO, &
                                             artsS, &
@@ -248,8 +280,8 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
                                             artsUpp, artsLow, &
                                             artsg0 , artsg00, &
                                             sgmin  , sgmax)
-    nLines = dta_size1 !nLines = 856 #raw in CH4_2nu3_HIT12.dat
-    dta_size2=nLines**2 !== dta_size1*dta_size1
+    nLines = dta_size1 
+    dta_size2=nLines**2 
     !print*, "nLines:", nLines, dta_size1
     !stop 
 !---------
@@ -270,9 +302,17 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 !
     print*, 'Calculating Dipole moment'
     CALL DipCAL(dta1,nLines,molP)
+!
     do j = 1, nLines
-        dipo(j) = dta1 % D0(j)
+!
+!   DATA
+        dipo(j) = dta1%DipoT(j)
     enddo
+!
+! Uncomment the following command to print POPULATION & DIPOLE to the screen:
+!
+    !call show_PD(nLines, dta1%Sig(1:nLines), dta1 % PopuT0(1:nLines), dipo)
+    !call show_PD(nLines, dta1%Sig(1:nLines), dta1 % PopuT0(1:nLines), dta1 % D0(1:nLines))
 !---------
 ! Write SDF file
 !
@@ -281,26 +321,26 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 
 !
 !   Init W rel-mat.
-    CALL InitW(nWmax,Wmat)
+    CALL InitW(nLines,Wmat)
 !   Looping:
     DO i = 1,npert
         !
         ! Identifying Perturbers Molecule and
-        ! its ATM concentration (renorm to 100%):
-        xMOLp(i) = p_vmr(i)*100/sum(p_vmr)
+        ! its ATM concentration (value must be from 0-1):
+        xMOLp(i) = (p_vmr(i)/sum(p_vmr))
         !
-        CALL InitW(nWmax,Wper)
+        CALL InitW(nLines,Wper)
         !---------
         ! Identifying perturber molecule.
         !
         ! Perturber Molecule: This molecule has to be 
         ! significatively faster than the molecule in study.
         print*, '>Identifying perturber molecule...'
-        !CALL moleculeID(pert(i),i_pert(i), PerM)
         CALL moleculeID(pert(i), i_pert(i), p_mass(i), 0.0_dp, 0.0_dp, .false. ,PerM)
         !----------
         ! let's take th proper a1, a2, a3, dc adjust parameters for the
         ! system:
+        write(*,*), ">>System: {",trim(molP%chmol)," - ",trim(PerM%chmol),"}"
         ! sys = "CO2-N2"
         ! or
         ! sys = "CO2-O2"
@@ -322,7 +362,10 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
     ENDDO
 !---------
     print*,"<--------------------------Finished loop"
-    !CALL show_W(nLines,Wmat)
+!
+! Uncomment the following command to print RELAXAION MATRIX ELEMENTS to the screen:
+!
+    !CALL show_W(nLines,Wmat,int(dta1%J(:,1),8))
     !stop
 !---------
 ! Renormalization of the Relaxation matrix.
@@ -332,9 +375,29 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
     CALL RN_Wmat(nLines, dta1, Wmat, W_rn) 
 !
 !
-    PRINT *, "Successful run!"
+!    print*, 'Copying data to final struct...'
+!    CALL W2dta2(nLines, dta1, dta2, W_rn) 
+!    CALL W2dta2(nLines, dta1, dta2, Wmat) 
+!--------
+! Write RMF file
+! 
+!    print*, 'Saving Relaxation Matrix File'
+!    call save_W2plot(nLines, dta1, dta2, molP, npert, perturber)
+!
+!---------
+! Linemixing first order coeff. calculation.
+!
+!    print*, 'Linemixing first order coeff...'
+!    call LM_Rosen(molP,nLines,dta1,W_rn,Y_RosT)
+!--------
+! Write Y parameter file
+!
+!    print*, 'Saving Rosenkranz parameter Y...'
+!    CALL save_Yrp(dta1, nLines, molP, Y_RosT)
+!
+    PRINT *, "Successful run! :)"
 !   
-    !STOP
+!    STOP
 !
   END SUBROUTINE RM_LM_tmc_arts
 !--------------------------------------------------------------------------------------------------------------------
@@ -343,9 +406,9 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 ! 
 !
     implicit none
-    integer*8, intent(in ) :: n !== Molecules isotope(AFGL code)
+    integer*8, intent(in )              :: n !== Molecules isotope(AFGL code)
     Double Precision, intent(out)       :: W(n,n)
-    integer*8              :: i,j,k
+    integer*8                           :: i,j,k
 
 !----------
 ! 
@@ -362,11 +425,11 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 ! 
 !
     implicit none
-    integer*8, intent (in)   :: n 
+    integer*8, intent (in)                :: n 
     Double Precision, intent (in)         :: xMOL
     Double Precision, intent (in)         :: Wadd(n,n)
     Double Precision, intent(inout)       :: Wfinal(n,n)
-    integer*8                :: i,j,k
+    integer*8                             :: i,j,k
 
 !----------
 ! 
@@ -378,24 +441,196 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 
   END SUBROUTINE add2Wfinal
 !--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE show_W(n,Wfinal)
+  SUBROUTINE show_W(n,Wfinal,Ji)
 !--------------------------------------------------------------------------------------------------------------------
 ! 
 !
     use module_common_var
     implicit none
-    integer*8, intent (in)   :: n 
-    Double Precision, intent (in)         :: Wfinal(n,n)
-    integer*8                :: i,j,k
+    integer*8, intent (in)         :: n, Ji(n)
+    Double Precision, intent (in)  :: Wfinal(n,n)
+    integer*8                      :: i,j,k
 
 !----------
 ! 
     DO i = 1, n
         DO j = 1,n 
-            write(*,1000), "W(",i,",",j,")=",Wfinal(i,j) 
-1000 Format(a2,i3,a1,i3,a3,E12.3)
+            write(*,1000), "W(",i,",",j,")=",Wfinal(i,j),";Ji =",Ji(i),";Jip=",Ji(j) 
+1000 Format(a2,i3,a1,i3,a3,E12.3,a5,i3,a5,i3)
         ENDDO
     ENDDO
 
+    STOP
+
   END SUBROUTINE show_W
+!--------------------------------------------------------------------------------------------------------------------
+  SUBROUTINE show_PD(n,wno,p,d)
+!--------------------------------------------------------------------------------------------------------------------
+! 
+!
+    use module_common_var
+    implicit none
+    integer*8, intent (in)          :: n 
+    Double Precision, intent (in)   :: wno(n), p(n), d(n)
+    integer*8                       :: i,j,k
+
+!----------
+    write (*, *) "Sig,         PopuT0,    DipoT "
+    DO j = 1, n
+        write (*, 1004) wno(j), p(j), d(j)
+1004 format(f12.6,2x,e9.3,2x,e9.3,2x,a7,2x,a7)
+    ENDDO
+    stop
+  END SUBROUTINE show_PD
+!--------------------------------------------------------------------------------------------------------------------
+  SUBROUTINE save_W2plot(n, dta1, dta2 ,molP, npert, pert)
+!--------------------------------------------------------------------------------------------------------------------
+! 
+!
+    use module_common_var
+    use module_molecSP
+    use module_error
+
+    implicit none
+    integer*8, intent (in)                  :: n, npert !n=dta_size1
+    type (dta_MOL), intent (in)             :: molP
+    type (dta_SDF), intent (in)             :: dta1
+    type (dta_RMF) , intent (in)            :: dta2
+    character (6)                           :: pert(npert)
+    !subroutine Variables
+    integer*8, parameter                    :: u=10 !file unit
+    character*100                           :: path
+    character*60                            :: coup_levels
+    character*6                             :: cTemp
+    character                               :: ai, af
+    integer*8                               :: imatrix
+    integer*8                               :: i, j, bri, brf
+    integer*8                               :: Ji, Jip
+    integer*8                               :: today(3)
+!
+!------> T. Mendaza; last change 30 January 2017
+!
+! INIT. VAR.
+    write(cTemp,'(f5.1)'),molP%Temp
+!   NO-Renormalized Matrix
+    !path = "RMF2plot_"//trim(cTemp(1:3))//"K.dat"
+!   ReNormalized Matrix
+    path = "RMF2plot_RN_"//trim(cTemp(1:3))//"K.dat"
+    call idate(today)   ! today(1)=day, (2)=month, (3)=year
+    open (UNIT = u, FILE = trim(path), STATUS = 'REPLACE', ACTION = 'WRITE')
+! HEADER
+    write (u, 1004) molP%chmol,adjustL(trim(pert(1))),adjustL(trim(pert(2)))!,"N2+O2"
+    write (u, *) "Temperature: "//cTemp//"K"
+!    write (u, *) "HITRAN Band:", band
+    write (u, *) "Based on HITRAN 2012 database"
+    write (u, *) "Author: Teresa Mendaza  "
+    write (u, 1005) today(3), today(2), today(1)
+    write (u, *) "J00i| deltai | J00f | deltaf |W element"
+    ! DATA
+    ! the length of RMF file (stored in dta2), is equal to
+    ! the length of the SDF file to de power of 2.
+    ! Of course, RMF is an squared matrix.
+    imatrix=1
+    do i = 1, n   ! do1
+      do j = 1, n ! do2
+        !  NOTES: 
+        !  (1) Prime and double primes refer, respectively, 
+        !  to upper and lower states, respectively, i.e.
+        !       * upper := 2; 0 ; or ' 
+        !       * lower := 1;00 ; or " 
+        !--------------------------------------------------
+        !W(i,j) = WT0(imatrix)
+        !tr2tr = auxiQupp//auxiQlow//auxjQupp//auxjQlow
+        !      Q0:                   Q00:                
+        !                     F´          br J" sym" F"    
+        !                 10x a5       5x a1 i3 a1   a5
+!        read(dta2%tr2tr(imatrix),1006),ai,Ji,af,Jip
+        Ji = dta1%J(i,1); Jip = dta1%J(j,1)
+        ai = dta1%br(i) ; af  = dta1%br(j)
+        write(u, 1007) Ji, branch2delta(ai,i),&
+                       Jip, branch2delta(af,j), &
+                       dta2%WT0(imatrix)
+                      
+       if (imatrix .gt. nMmx) then
+           call sizeError('1001',imatrix,nMmx)
+       endif
+       imatrix=imatrix+1
+      end do  ! do2
+    end do    ! do1
+    
+    close (u)
+
+1004 format ( ' RMF file transition parameters system: ', a4, '--', a3,'+'a3 )    
+1005 format ( ' Last update: ', i4.4, '/', i2.2, '/', i2.2 )
+1006 format (20x,a1,i3,26x,a1,i3)
+1007 format (i3,1x,i3,1x,i3,1x,i3,1x,E15.7)
+
+
+  END SUBROUTINE save_W2plot
+!--------------------------------------------------------------------------------------------------------------------
+  subroutine save_Yrp(dta1, n, molP, Y_RosenP)
+!--------------------------------------------------------------------------------------------------------------------
+!  Write the results in 'Y_air_TTTK.dat'
+!  Output_3: (Variables included)
+!  ---------
+!  wno
+!  Str
+!  Y
+!  Ji
+!  Jf
+!  NOTE: Eventhough this is a Relaxation matrix it is stored in list-formated
+!    ordered as follows:
+!  Matrix:
+!   a11 a12 a13 ...
+!   a21 a22 a23 ...
+!   a31 a32 a33 ...
+!   ... ... ... ...
+!  Raw:
+!   a11 a12 a13 ... a21 a22 a23 ... a31 a32 a33 ...
+!
+!  where each element represents the rotational state-to-state cross sections 
+!  within a single vibrational state.
+!------> T. Mendaza; last change 30 January 2017
+!
+    use module_common_var
+
+    implicit none
+    integer*8  , intent (in)                :: n
+    double precision, intent (in)           :: Y_RosenP(n)
+    type (dta_SDF) , intent (in)            :: dta1
+    type (dta_MOL), intent (in)             :: molP
+    !subroutine Variables
+    integer*8, parameter                    :: u=11 !file unit
+    character*100                           :: path
+    character*6                             :: cTemp
+    integer*8                               :: i, j, k
+    integer*8                               :: today(3)
+
+! INIT. VAR.
+    write(cTemp,'(f5.1)'),molP%Temp
+    !path = trim(out_file_path)//trim(out_fil2_RMF)
+    path ="Y_air_"//trim(cTemp(1:3))//"K.dat"
+    call idate(today)   ! today(1)=day, (2)=month, (3)=year
+    open (UNIT = u, FILE = trim(path), STATUS = 'REPLACE', ACTION = 'WRITE')
+! HEADER
+    write (u, *) "Line mixin Rosenkranz Parameter file; Molecule:", molP%chmol
+!    write (u, *) "HITRAN Band:", trim(dta1 % hitBand)
+    write (u, *) "Based on HITRAN 2012 database"
+    write (u, *) "Author: Teresa Mendaza  "
+    write (u, 1005) today(3), today(2), today(1)
+    write (u, *) "|WaveNumber(cm-1) |Intensity cm-1/(molecules·cm-2) | Y Patameter  | Jlow | Jup"
+   !
+    ! DATA
+    do i = 1, n   ! do1
+       write (u, 1006) dta1%sig(i),dta1%Str(i),&
+                       Y_RosenP(i),&
+                       int(dta1%J(i,1)),int(dta1%J(i,2))
+    end do    ! do1
+    
+    close (u)
+    
+1005 format ( ' Last update: ', i4.4, '/', i2.2, '/', i2.2 )
+1006 format (F12.6,1x,E10.3,1x,F7.4,1x,i3,1x,i3)
+
+end subroutine save_Yrp
 !--------------------------------------------------------------------------------------------------------------------

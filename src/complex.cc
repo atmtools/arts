@@ -2038,15 +2038,9 @@ Complex operator*(const ConstComplexVectorView& a, const ConstComplexVectorView&
 
 //! Matrix-Vector Multiplication
 /*!
+ * Uses the Eigen library.  Be carful to test the size of your input beforehand.
  * 
- * Computes the Matrix-Vector product y = M * x, for a m times n matrix M, a
- * length-m vector y and a length-n vector x.
- * 
- * If you need this to be faster, you have to make an implementation that interacts
- * with cgemv_ in blas.
- * 
- * No memory is allocated for the computation and the matrix and vector views
- * may not overlap.
+ * For left-hand multiplication, please use pure matrix-mult.
  * 
  * \param[out] y The length-m ComplexVectorView where the result is stored.
  * \param[in] M Reference to the m-times-n Const{Complex,}MatrixView holding the matrix M.
@@ -2056,35 +2050,23 @@ void mult( ComplexVectorView y,
            const ConstComplexMatrixView& M,
            const ConstComplexVectorView& x )
 {
-  ComplexConstMatrixViewMap eigen_M = MapToEigen(M);
-  ComplexConstMatrixViewMap eigen_x = MapToEigenRow(x);
+  assert(x.nelem() == M.nrows());
+  assert(y.nelem() == M.ncols());
+  
   ComplexMatrixViewMap eigen_y =  MapToEigenRow(y);
-  eigen_y = eigen_M * eigen_x; 
+  if(y.mdata == x.mdata)
+    eigen_y = MapToEigen(M) * MapToEigenRow(x); 
+  else
+    eigen_y.noalias() = MapToEigen(M) * MapToEigenRow(x); 
 }
 
 //! Matrix-Matrix Multiplication
 /*!
- * Performs the matrix multiplication A = B * C. The dimensions must match, i.e.
- * A must be a m times n matrix, B a m times k matrix and C a k times c matrix.
- * No memory reallocation takes place, only the data is copied. Using this function
- * on overlapping ComplexMatrixViews belonging to the same ComplexMatrix will lead to unpredictable
- * results. In particular, this means that A and B must not be the same matrix!
- * 
- * If the memory layout allows it, the multiplication is performed using BLAS'
- * _zgemm, which leads to a significant speed up of the operation. To be compatible
- * with BLAS the matrix views A, B and C must satisfy:
- * 
- * - A must have column or row stride 1
- * - B must have column or row stride 1
- * - C must have column stride 1
- * 
- * That means that A and B can be ConstComplexMatrixView objects corresponding to
- * transposed/non-transposed submatrices of a matrix, that are continuous along their
- * first/second dimension. C must correspond to a non-transposed submatrix of a
- * matrix, that is continuous along its second dimension.
- * 
- * Note that additional functions for non-complex complex multiplications must
- * be added as separate routines.
+ * Uses the Eigen library.  Be carful to test the size of your input beforehand.
+ * Note that to keep speed, the inputs should be different variables.  There is
+ * memory duplication if this is not the case.  Note that it is mdata that is 
+ * checked, so even if the matrices are at different parts of a tensor, there
+ * is still a slowdown
  * 
  * \param[in,out] A The matrix A, that will hold the result of the multiplication.
  * \param[in] B The matrix B
@@ -2094,23 +2076,21 @@ void mult( ComplexMatrixView A,
            const ConstComplexMatrixView& B,
            const ConstComplexMatrixView& C )
 {
-  if( C.ncols() == 1 && C.nrows() == 1 && B.ncols() == 1 && B.nrows() == 1 && A.ncols() == 1 && A.nrows() == 1 )
-    A(0, 0) = B(0, 0) * C(0, 0);
-  else if(C.ncols() && A.ncols() == 1)
-    mult(A(joker, 0), B, C(joker, 0));
+  assert(B.nrows() == A.nrows());
+  assert(C.ncols() == A.ncols());
+  assert(B.ncols() == C.nrows());
+  
+  ComplexMatrixViewMap eigen_A =  MapToEigen(A);
+  if(A.mdata == B.mdata || A.mdata == C.mdata )
+    eigen_A = MapToEigen(B) * MapToEigen(C);
   else
-  {
-    ComplexConstMatrixViewMap eigen_B = MapToEigen(B);
-    ComplexConstMatrixViewMap eigen_C = MapToEigen(C);
-    ComplexMatrixViewMap eigen_A =  MapToEigen(A);
-    eigen_A = eigen_B * eigen_C;
-  }
+    eigen_A.noalias() = MapToEigen(B) * MapToEigen(C);
 }
 
 // Converts constant matrix to constant eigen map
 ComplexConstMatrixViewMap MapToEigen(const ConstComplexMatrixView& A){
   return ComplexConstMatrixViewMap(A.mdata+A.mrr.get_start()+A.mcr.get_start(),
-   A.nrows(), A.nrows(), StrideType(A.mrr.get_stride(), A.mcr.get_stride())); }
+   A.nrows(), A.ncols(), StrideType(A.mrr.get_stride(), A.mcr.get_stride())); }
    
 // Converts constant vector to constant eigen row-view
 ComplexConstMatrixViewMap MapToEigen(const ConstComplexVectorView& A){
@@ -2128,7 +2108,7 @@ ComplexConstMatrixViewMap MapToEigenCol(const ConstComplexVectorView& A){
 // Converts matrix to eigen map
 ComplexMatrixViewMap MapToEigen(ComplexMatrixView& A){
   return ComplexMatrixViewMap(A.mdata+A.mrr.get_start()+A.mcr.get_start(),
-   A.nrows(), A.nrows(), StrideType(A.mrr.get_stride(), A.mcr.get_stride())); }
+   A.nrows(), A.ncols(), StrideType(A.mrr.get_stride(), A.mcr.get_stride())); }
 
 // Converts vector to eigen map row-view
 ComplexMatrixViewMap MapToEigen(ComplexVectorView& A){

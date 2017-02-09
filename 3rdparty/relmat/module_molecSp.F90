@@ -72,16 +72,55 @@ END module module_molecSp
         !               l2 J N S          l2 J N S     
         !
         ! LOWER LEVEL:
-            dta1%J(pos,1)     = real(Q00(2),dp)
-            dta1%N(pos,1)     = Q00(3)
+        !
+        ! J:
+            if (Q00(2) .eq. -1) then
+                dta1%J(pos,1)     = 0.0d0
+            else
+                dta1%J(pos,1)     = real(Q00(2),dp)
+            endif
+        !
+        ! N:
+            if (Q00(3) .eq. -1) then
+                dta1%N(pos,1)     = dta1%J(pos,1)
+            else
+                dta1%N(pos,1)     = Q00(3)
+            endif
+        !
+        ! S:
             ! CAREFUL WITH THE SPIN!!! if it is integer that means something ASK RICHARD!
-            dta1%espin(pos,1) = real(Q00(4),dp)
+            if (Q00(4) .eq. -1) then
+                dta1%espin(pos,1) = 0.0d0
+            else
+                dta1%espin(pos,1) = real(Q00(4),dp)
+            endif
         !
         ! UPPER LEVEL:
-            dta1%J(pos,2)     = real(Q0(2),dp)
-            dta1%N(pos,2)     = Q0(3)
-            dta1%espin(pos,2) = real(Q0(4),dp)
+        !
+        ! J:
+            if (Q0(2) .eq. -1) then
+                dta1%J(pos,2)     = 0.0d0
+            else
+                dta1%J(pos,2)     = real(Q0(2),dp)
+            endif
+        !
+        ! N:
+            if (Q0(3) .eq. -1) then
+                dta1%N(pos,2)     = dta1%J(pos,2)
+            else
+                dta1%N(pos,2)     = Q0(3)
+            endif
+        !
+        ! S:
+            ! CAREFUL WITH THE SPIN!!! if it is integer that means something ASK RICHARD!
+            if (Q0(4) .eq. -1) then
+                dta1%espin(pos,2) = 0.0d0
+            else
+                dta1%espin(pos,2) = real(Q0(4),dp)
+            endif
+        !
         ! BRANCH:
+        !
             delta = int(dta1%J(pos,2)-dta1%J(pos,1))
             dta1%br(pos) = delta2branch(delta,pos)
         !

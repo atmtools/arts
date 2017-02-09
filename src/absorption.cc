@@ -2280,7 +2280,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                         psf_dWater,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
                 
                 Numeric dY0=0., dY1=0., dYexp=0., dG0=0., dG1=0., dGexp=0., dDV0=0., dDV1=0., dDVexp=0.;
-                if(do_lm and p>=lm_p_lim)
+                if(do_lm)
                 {
                     if(flag_partials.ZerothTermLM())
                         abs_lines[ii].LineMixing().GetLineMixingParams_dZerothOrder(dY0, dG0, dDV0, t, p, lm_p_lim);

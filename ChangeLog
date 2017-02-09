@@ -1,3 +1,31 @@
+2017-02-09  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-628
+	
+	* 3rdparty/relmat/: Updated by Teresa and it is now working mostly as 
+	expected, comparing well with other implementations if similar code.
+	
+	* src/{absorption,linemixingdata,methods}.cc}:  Changed so negative 
+	lm_p_lim now gives  extrapol factor for line mixing that is interpolated.  
+	THIS MIGHT BREAK CONTROLFILES THAT WERE NOT SUPPOSED TO WORK ANYWAYS. 
+	Please set lm_p_lim as a negative value to extrapolate results.
+	Feature requested by Freddy.  I strongly recommend against using this.
+	
+	* src/{complex.{cc,h,lin_alg.cc}}:  With Oliver's help, there is now 
+	proper mapping to Eigen matrices.  This means that mult, inv, and 
+	diagonalize behave as expected for Complex Matrices and vectors.
+	Note:  mult(A, A, A) now works but should be used with care since
+	it creates memory inside Eigen.  Use only if you know what you 
+	are doing.  The old behavior should not increase memory usage by 
+	using A.noalias() flag.
+	
+	* src/lineshapes.cc: Made a const static.
+	
+	* src/m_linemixing.cc:  Almost got the cross-sections working here.
+	We are only 10-orders of magnitude away from the target!  Code is 
+	still riddle with output and other debuggin information. Do not use.
+	Work still in progress.
+	
 2017-02-08 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-627

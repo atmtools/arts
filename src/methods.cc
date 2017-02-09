@@ -2784,6 +2784,11 @@ void define_md_data_raw()
          "\n"
          "The cloudbox is covered by *cloudbox_checked*, *z_field* is\n"
          "part of the checks done around *atmgeom_checked*.\n"
+         "\n"
+         "If you choose to use *bad_partition_functions_ok* please note that\n"
+         "this is done on your own risk and that it could introduce hard-to-\n"
+         "track errors into your calculations.  Do not use this for anything\n"
+         "important.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "atmfields_checked" ),

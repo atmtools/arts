@@ -117,23 +117,26 @@ END module module_phsub
 !	c2        : second radiation constant = hc/k = 1.4388 cm·K
 !pure_b_case: --
 !
-! Output Quantities (through Common Statements)
+! Output Quantities (through DTA structure)
 ! -----------------
-!	DipoT0	  : Dipole transition Moments of the Line at T0.
+!	DipoT 	  : Dipole transition Moments of the (cm/Molecule**0.5).
+! DipoT0    : Dipole transition Moments of the Line at T0 [(J·cm3)**0.5].
+! D0        : Reduce Matrix Element.
+! Drigrotor : Rigid Rotor Dipole.
 !
 !
 ! Accessed Files:  None
 ! --------------
 !
-! Called Routines: 'PopuCAL' (POPUlation of the lower state CALculation)
+! Called Routines: None
 ! ---------------  
 !
-! Called By: Main Program
+! Called By: Main interface
 ! ---------
 !
 !	Double Precision Version
 !
-!	T.Mendaza, last change 11 March 2016
+!	T.Mendaza, last change 09 February 2017
 !--------------------------------------------------------------------------------------------------------------------
 !
     use module_common_var
@@ -184,7 +187,7 @@ END module module_phsub
         w3j = wigner3j( dta1%J(k,1), real(K_t,dp), dta1%J(k,2), &
                         real(dta1%lv2(1), dp), real( dta1%lv2(2)-dta1%lv2(1),dp), &
                         real(-dta1%lv2(2), dp))
-        d0 = j*dsqrt(2.*dta1%J(k,2) + 1.)*w3j
+        d0 = j*dsqrt(2.d0*dta1%J(k,2) + 1.d0)*w3j
         dta1%D0(k)    = d0
       ! print*,dta1%D0(k)
 !      !
@@ -198,11 +201,17 @@ END module module_phsub
 !        endif
 !        w3j = wigner3j( dta1%J(k,1), real(K_t,dp), dta1%J(k,2), &
 !                        0.0_dp, 0.0_dp, 0.0_dp)
-!        dta1%Drigrotor(k) = j*dsqrt(2.*dta1%J(k,2) + 1.)*w3j
+!        dta1%Drigrotor(k) = j*dsqrt(2.d0*dta1%J(k,2) + 1.)*w3j
 !      !
 !      ! DIPOLE MOMENT 
 !      !
-!      ! Weighted transition moment Squared (|R)
+       ! 1) Hartmann's style (Using LINE-INTENSITY):
+        fA  = -c2*dta1%Sig(k)/T0
+        fB  = 1.D0 - dexp(fA)
+        dta1%DipoT(k)= dsqrt( dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT0(k)*fB) )
+                      !cm/molecules**0.5
+       !
+!      ! 2) Weighted transition moment Squared (|R)
 !      ! FORMULA:
 !      ! |R = (1/g00)*|R12|^2 ; 
 !      !
@@ -249,7 +258,7 @@ END module module_phsub
 !        !stop
 !      ! Parts of the formula:
 !        fA  = -c2*dta1%Sig(k)/T0
-!        fB  = 1. - exp(fA)
+!        fB  = 1. - dexp(fA)
 !        cte = 1.0E036*3.d0*hp_cgs*c/(8.d0*Pi**3)
 !        dta1%DipoT0(k)= cte*v_permit*dta1%Str(k)/ &
 !                  (Ia_hit*dta1%Sig(k)*&
@@ -357,7 +366,7 @@ END module module_phsub
 !				    strong		    intermediate
 !
       IMPLICIT NONE
-      integer  , parameter         :: dp = kind(1.0D0) !double precission
+      integer*8, parameter         :: dp = kind(1.0D0) !double precission
       integer (kind=8) , intent(in):: N_i, N_f
       double precision, intent(in) :: J_i, J_f
       character, intent(in)        :: caseHund
@@ -380,7 +389,7 @@ END module module_phsub
          cte1 = 1.0_dp
       endif
       pureHund = dsqrt(1.0_dp/(2.0_dp*J_i +1.0_dp)) * cte1
-        !print*, cte1, sqrt(1./(2.*J_i +1.)), pureHund
+        !print*, cte1, sqrt(1./(2.d0*J_i +1.)), pureHund
     else if (caseHund .eq. 'c') then
         !write(*,'(a10)'), 'Case (c)'
       pureHund = 1.0_dp
@@ -433,7 +442,7 @@ END module module_phsub
 !           NOTE: 
 !             1) with Ha Tran Code, the Population is UNITLESS.
 !             2) HITRAN definition:
-!                PopuT0(k) = molN*g00(k)*exp(-c2*E(k)/T0)/(PFmol(iso,T0))
+!                PopuT0(k) = molN*g00(k)*dexp(-c2*E(k)/T0)/(PFmol(iso,T0))
 !                give the units of the molecular number density (molN)
 !
 ! Accessed Files:  None
@@ -456,8 +465,8 @@ END module module_phsub
     integer*8   , intent(in)    :: nLines
     type (dta_MOL), intent(in)    :: molP
     type (dta_SDF), intent(inout) :: dta1
-    integer*8                   :: iso
-    integer*8                   :: i, j, k
+    integer*8                     :: iso
+    integer*8                     :: i, j, k
     Double Precision              :: cte1,cte2, Erot_red, T
     Double Precision              :: molN, PFmol, PFr
 !-----------------------------------------
@@ -485,7 +494,7 @@ END module module_phsub
         cte1 = -c2*dta1%E(k)/T0
         cte2 = -c2*dta1%E(k)*(1.d0/T-1.d0/T0)
         !
-        dta1%PopuT0(k) = dta1%swei00(k)*exp(cte1)/molP%QT0
+        dta1%PopuT0(k) = dta1%swei00(k)*dexp(cte1)/molP%QT0
         dta1%PopuT(k)  = dta1%PopuT0(k)*PFr*dexp(cte2)
     ENDDO
 !
@@ -587,19 +596,21 @@ END module module_phsub
       Jf_p = h%J(k,2)
       !
       ! 
-      iniL=max(abs(Ji-Ji_p),abs(Jf-Jf_p))
+      iniL=max(iabs(int(Ji)-int(Ji_p)),abs(int(Jf)-int(Jf_p)))
+      endL=min(iabs(int(Ji)+int(Ji_p)),abs(int(Jf)+int(Jf_p)))
+      !iniL=int(max(abs(Ji-Ji_p),abs(Jf-Jf_p)))
       If( mod(iniL,step) .ne. 0 )iniL=iniL+1
-      endL=min((Ji+Ji_p),(Jf+Jf_p))
+      !endL=int(min((Ji+Ji_p),(Jf+Jf_p)))
       !
 !
         ! li and lf are the vibrational angular momentum of the vibrational
         ! available for Linear molecules in HITRAN; 
         ! (due to its symmetry though).
 !
-       li = h%lv2(1)
-       lf = h%lv2(2) 
+      li = h%lv2(1)
+      lf = h%lv2(2) 
 !
-      cte1 = (2.*Ji_p + 1.)*dsqrt((2.*Jf + 1.)*(2.*Jf_p + 1.))
+      cte1 = (2.d0*Ji_p + 1.d0)*dsqrt((2.d0*Jf + 1.d0)*(2.d0*Jf_p + 1.d0))
       !cte2 = (-1)**(li+lf)
       ! A faster computation would be... (case (li+lf) has integer value)
       if ( mod( (li+lf+K_t+1),2 ) .eq. 0) then
@@ -621,21 +632,21 @@ END module module_phsub
         ! Calculation of the basis rates "Q_mol-X":
         !if (mod(L,2) .eq. 0) then 
         ! L is even
-          !print*, "Q ch4-X:"
           Qaux = Ql_mol_X(molP,L)
-          !print*,"Qch4-x=", Qaux
+          !print*,"Qmol-x=", Qaux
         !else 
         ! L is odd
         ! because of that, the basis rates are expected to be small -> 0.
         !  Qaux = 0.0_dp
         !endif
-        if ( Qaux .ne. 0.0_dp ) then
+        if ( abs(Qaux) .gt. TOL ) then
           !
           ! wigner 3j-Symbol 1:
           ! ( Ji  L  Ji' )
           ! ( li  0  -li )
           !http://www-stone.ch.cam.ac.uk/wigner.shtml
           w3j1 = wigner3j( Ji_p, real(L, dp), Ji , real(li, dp), 0.0_dp, real(-li, dp) )
+          !print*, Ji, Ji_p, w3j1
           ! CASE wig3j0(M,J1,J2,J)
           !                       m (j1 j2 j)  
           !                    (-)  (m  -m 0)  
@@ -644,21 +655,25 @@ END module module_phsub
           ! ( Jf  L  Jf' )
           ! ( lf  0  -lf )
           w3j2  = wigner3j( Jf_p, real(L, dp), Jf, real(-lf, dp), 0.0_dp, real(lf, dp) )
+          !print*, Jf, Jf_p, w3j2
           !
           ! wigner 6j-Symbol:
           ! { Ji   Jf   1 }
           ! { Jf'  Ji'  L }
           w6j   = wigner6j(Ji,Jf, real(K_t,dp), Jf_p, Ji_p, real(L, dp))
+          !print*, Ji, Jf, w6j
           !
           ! Adiabatic factor 2:
           ! it depends on the temperature too but it is included through common module.
           AF2   = AFmol_X(molP, PerM, real(L,dp), step)
+          !print*, Ji, Ji_p, AF2
           !
-          if ( .not.( isnan(w3j1  ) .or. isinf(w3j1  )) .and. &
-               .not.( isnan(w3j2  ) .or. isinf(w3j2  )) .and. &
-               .not.( isnan(w6j   ) .or. isinf(w6j   )) .and. &
+          if ( .not.( isnan(w3j1) .or. isinf(w3j1)) .and. &
+               .not.( isnan(w3j2) .or. isinf(w3j2)) .and. &
+               .not.( isnan(w6j ) .or. isinf(w6j )) .and. &
+               .not.( isnan(suma) .or. isinf(suma)) .and. &
                .not.( isnan(AF2) .or. isinf(AF2)) ) then
-              suma = suma + w3j1 * w3j2* w6j * (2.*L + 1.) * &
+              suma = suma + w3j1 * w3j2* w6j * (2.0_dp*L + 1.0_dp) * &
                      Qaux / AF2
           else
             call offdiagEL_IN_ERROR(AF2, Qaux, w3j1, w3j2, w6j, 0.0_dp, 0.0_dp)
@@ -669,7 +684,7 @@ END module module_phsub
       ! 
       ! Adiabatic factor 1:
       AF1= AFmol_X(molP, PerM, Ji, step)
-      K_jkCalc = cte1*cte2*AF1*suma
+      K_jkCalc = cte1*cte2*AF1*suma 
       !K_jkCalc = cte1*cte2*suma
       if ( isnan( K_jkCalc ) .or. isinf( K_jkCalc  ) ) then
         call offdiagEL_ERROR(cte1, cte2, AF1, suma)
@@ -746,13 +761,13 @@ END module module_phsub
       Jf_p = h%J(k,2); Nf_p = h%N(k,2)
       !
       ! 
-      iniL=max(abs(Ni-Ni_p),abs(Nf-Nf_p))
+      iniL=int(max(abs(Ni-Ni_p),abs(Nf-Nf_p)))
       If( mod(iniL,step) .ne. 0 )iniL=iniL+1
-      endL=min((Ni+Ni_p),(Nf+Nf_p))
+      endL=int(min((Ni+Ni_p),(Nf+Nf_p)))
       !
       !
-      cte1 = (2.*Ni + 1.)*(2.*Ni_p + 1.)*(2.*Nf + 1.)*(2.*Nf_p + 1.)
-      cte1 = cte1*(2.*Jf + 1.)*(2.*Jf_p + 1.)*(2.*Ji_p + 1.)**2
+      cte1 = (2.d0*Ni + 1.d0)*(2.d0*Ni_p + 1.d0)*(2.d0*Nf + 1.d0)*(2.d0*Nf_p + 1.d0)
+      cte1 = cte1*(2.d0*Jf + 1.d0)*(2.d0*Jf_p + 1.d0)*(2.d0*Ji_p + 1.d0)**2
       !
       if ( mod( int(Ji_p+Ji+K_t),2 ) .eq. 0) then
         cte2 = 1
@@ -771,7 +786,7 @@ END module module_phsub
         ! Calculation of the basis rates "Q_mol-X":
           Qaux = Ql_mol_X(molP,L)
         !
-        if ( Qaux .ne. 0.0_dp ) then
+        if ( abs(Qaux) .gt. TOL ) then
           !
           ! wigner 3j-Symbol
           w3j1 = wigner3j( real(Ni_p, dp), real(Ni, dp), real(L, dp), 0.0_dp, 0.0_dp, 0.0_dp )
@@ -786,14 +801,15 @@ END module module_phsub
           ! it depends on the temperature too but it is included through common module.
           AF2  = AFmol_X(molP, PerM, real(L,dp), step)
           !
-          if ( .not.( isnan(w3j1  ) .or. isinf(w3j1  )) .and. &
-               .not.( isnan(w3j2  ) .or. isinf(w3j2  )) .and. &
-               .not.( isnan(w6j1  ) .or. isinf(w6j1  )) .and. &
-               .not.( isnan(w6j2  ) .or. isinf(w6j2  )) .and. &
-               .not.( isnan(w6j3  ) .or. isinf(w6j3  )) .and. &
+          if ( .not.( isnan(w3j1) .or. isinf(w3j1)) .and. &
+               .not.( isnan(w3j2) .or. isinf(w3j2)) .and. &
+               .not.( isnan(w6j1) .or. isinf(w6j1)) .and. &
+               .not.( isnan(w6j2) .or. isinf(w6j2)) .and. &
+               .not.( isnan(w6j3) .or. isinf(w6j3)) .and. &
+               .not.( isnan(suma) .or. isinf(suma)) .and. &
                .not.( isnan(AF2) .or. isinf(AF2)) ) then
               suma = suma + w3j1 * w3j2* w6j1 * w6j2 * w6j3 * &
-                     (2.*L + 1.) * Qaux / AF2
+                     (2.d0*L + 1.d0) * Qaux / AF2
           else
             call offdiagEL_IN_ERROR(AF2, Qaux, w3j1, w3j2, w6j1, w6j2, w6j3)
           endif
@@ -846,23 +862,23 @@ END module module_phsub
     !
     if (molP%M .eq. 7) then
       ! mol == O2
-      if (L .eq. 0) then
+      if (L .lt. TOL) then
         Ql_mol_X=0.0_dp
       else
-      !Ql_mol_X = a1*( ( E_l )**(-a2) )*( exp(-a3*c*hplank*molP%B0*E_l/(T*kb))  )
+      !Ql_mol_X = a1*( ( E_l )**(-a2) )*( dexp(-a3*c*hplank*molP%B0*E_l/(T*kb))  )
         Ql_mol_X = molP%a1* &
                ( (  E_l )**(-molP%a2) )* &
                ( ( T/T0 )**(-molP%a3) )
                ![Tran et al., 2006]
       endif
     else 
-      if (L .eq. 0) then
+      if (L .lt. TOL) then
         Ql_mol_X=0.0_dp
       else
-      !Ql_mol_X = a1*( ( E_l )**(-a2) )*( exp(-a3*c*hplank*molP%B0*E_l/(T*kb))  )
+      !Ql_mol_X = a1*( ( E_l )**(-a2) )*( dexp(-a3*c*hplank*molP%B0*E_l/(T*kb))  )
         Ql_mol_X = molP%a1* &
                ( ( E_l )**(-molP%a2) )* &
-               ( exp(-molP%a3*c2*molP%B0*E_l/T)  )
+               ( dexp(-molP%a3*c2*molP%B0*E_l/T)  )
                ![Niro et al., 2004]
       endif
     endif
@@ -896,7 +912,7 @@ END module module_phsub
       use module_common_var
       IMPLICIT none
       integer*8, intent(in)      :: step
-      double precision,intent(in):: L
+      real*8   , intent(in)      :: L
       type(dta_MOL),intent(in)   :: molP, PerM
       double precision,Parameter :: cAF = 0.0006983_dp ! Adiabaticy Factor cte
                                  ! General constant non-molecule dependent included in the 
@@ -921,22 +937,22 @@ END module module_phsub
       !-----------------------------------------
       !
       !
-            if (L .eq. 0) then
+            if (L .lt. TOL) then
               AFmol_X = 1.0_dp
             else
-              mu = ( 1./molP%mms + 1./PerM%mms ) ! 1/(g/mol)
+              mu = ( 1.0_dp/molP%mms + 1.0_dp/PerM%mms ) ! 1/(g/mol)
             ! Velocity Term:
             ! Since it is a velocity its units are m/s. 
             ! Example: N2 at T=300K 
             ! N2_M = 28.006148 g/mol -> 1E-03 · 28.006148 / Na Kg
             ! mu = 1/(1E-03·N2_M/Na) Kg^-1
             ! kb is in J/K where J = Kg·m2/s2
-            ! vp =sqrt(2·kb·T·mu) ~ 420 m/s = 420·1E02 cm/s
+            ! vp = sqrt(2·kb·T·mu) ~ 420 m/s = 420·1E02 cm/s
             ! vm = sqrt(8·kb·T·mu/pi) ~ 473 m/s = 473 · 1E02 cm/s
             ! cte1 = dsqrt(Na*8*kb / (1E-03*pi)) (J/(K·mol))^1/2 = (Kg·m2/(K·s2·mol))^1/2
             ! vm = cte1·sqrt(T/N2_M) ~ 473 m/s
             ! 
-              v_mol_X  = 1./T*mu ! ----> squared and inverted velocity term 
+              v_mol_X  = 1.0_dp/T*mu ! ----> squared and inverted velocity term 
             !print*, "v=", v_mol_X
             !
             ! Frequency spacing:
@@ -952,7 +968,7 @@ END module module_phsub
             ! w_j_jstep  = cte2*(molP%B0*( L + L + 1 - step )*step)**2 
             ! UNITS: s-1
             !
-              AFmol_X = 1./( 1. + cAF*( v_mol_X )*( w_j_jstep ) * (molP%dc * molP%dc) )**2
+              AFmol_X = 1.0_dp/( 1.0_dp + cAF*( v_mol_X )*( w_j_jstep ) * (molP%dc * molP%dc) )**2
             !
             endif
       RETURN
@@ -970,7 +986,7 @@ END module module_phsub
         !local variables
         integer (kind=8)                :: i,j
         Double Precision                :: Saux, DipAux, Wij, Wii
-        Double Precision, Parameter     :: TOL = 1.0E-02!
+        Double Precision, Parameter     :: TOLe2 = 1.0E-02!
         logical                         :: isinf, isnan, testOK
 !--------------------------------------------------------------------
         testOK = .true.
@@ -987,7 +1003,7 @@ END module module_phsub
               Wii = Wmat(i,i)*dfact ! dfact = diagonal factor
             endif
           ENDDO
-          if ( (abs(Wii+Saux) .gt. TOL) .and. (i .ne. nLines) ) then
+          if ( (abs(Wii+Saux) .gt. TOLe2) .and. (i .ne. nLines) ) then
             write(*,'(a4,i3,a14)'), "row#",i,"NO SUM-RULE"
             print*, "half-Width", Wii , "?= SUMij{Wmat}", -Saux
             testOK = .false.

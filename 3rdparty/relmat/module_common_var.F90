@@ -40,6 +40,7 @@ MODULE module_common_var
     !     2) magnetic dipole transition (mdt)
     !     3) electric-quadrupole transitions (eqt)
     !
+    double precision, parameter :: TOL= 1.0000000E-90! tolerance level
     !***********
     ! Constants
     !***********
@@ -122,8 +123,7 @@ MODULE module_common_var
     ! STR      = Intensity cm-1/(molecules·cm-2) at 296K
     ! PopuT0   = Populations of the Lower Levels of the Lines
     !	       at 296 K. UNITLESS.
-    ! DipoT0   = Dipole transition Moments of the Lines
-    !	       at 296 K. 
+    ! DipoT    = Dipole transition Moments of the Lines. 
     !          UNITS:
     !          Debye^(1/2) = (1E-36 ergs·cm3)^(1/2)
     !                      = (1E-36 (1E-07 J)·cm3)^(1/2)
@@ -168,8 +168,8 @@ MODULE module_common_var
     integer*8       :: class
     double Precision             :: Sig(nLmx), Str(nLmx)
     double Precision             :: PopuT0(nLmx), PopuT(nLmx),&
-                                 &  DipoT0(nLmx), D0(nLmx), &
-                                 &  Drigrotor(nLmx)
+                                 &  DipoT0(nLmx), DipoT(nLmx),&
+                                 &  D0(nLmx), Drigrotor(nLmx)
     !double Precision             :: Y_RosT(nLmx)
     double Precision             :: E(nLmx), A21(nLmx)
     double Precision             :: HWT0(nLmx),BHW(nLmx), &
@@ -411,7 +411,7 @@ MODULE module_common_var
     integer*8                    :: N(nLmx,2)
     double precision             :: J(nLmx,2)
     double precision             :: F(nLmx,2)
-    real                         :: nspin(nLmx,2), espin(nLmx,2)
+    real*8                       :: nspin(nLmx,2), espin(nLmx,2)
     character                    :: br(nLmx), br_N(nLmx)
 
 
@@ -478,7 +478,7 @@ MODULE module_common_var
     ! Nmcon     = molar concentration at 296K   dp      mol·cm3
     ! B0        = Rotational constant B0        dp      cm-1 
     ! Temp      =  temperature of the Gas       dp      K
-    ! Ptot      =  Pressure of the Gas          dp      Pascal
+    ! Ptot      =  Pressure of the Gas          dp      atm
     ! ai        =  fitting coeff of the         dp      cm-1/No-unit/No-unit
     !              base function      
     ! 

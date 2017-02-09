@@ -163,14 +163,20 @@ void LineMixingData::GetLBLRTM(Numeric& Y, Numeric& G, const Numeric& Temperatur
         
         Matrix itw;
         itw.resize(gp.nelem(),order+1);
-
+        
+        // Allow extrapolation using the pressure limit variable --- this is ugly but using this feature at all is ugly so the sytnax does not matter
+        Numeric extrapol = 0.0;
+        if(Pressure_Limit < 0.0)
+          extrapol = abs(Pressure_Limit);
+        
         chk_interpolation_grids("Line mixing data temperature interpolation",
                                 t,
                                 T0,
-                                order);
+                                order,
+                                extrapol);
 
         // Interpolation variale determination
-        gridpos_poly(gp, t, T0, order);
+        gridpos_poly(gp, t, T0, order, extrapol);
         interpweights(itw, gp);
         
         // Interpolated values
@@ -208,18 +214,24 @@ void LineMixingData::GetLBLRTM_dT(Numeric& dY_dT, Numeric& dG_dT, const Numeric&
         itw1.resize(gp1.nelem(),order+1);
         itw2.resize(gp2.nelem(),order+1);
         
+        // Allow extrapolation using the pressure limit variable --- this is ugly but using this feature at all is ugly so the sytnax does not matter
+        Numeric extrapol = 0.0;
+        if(Pressure_Limit < 0.0)
+          extrapol = abs(Pressure_Limit);
+        
         chk_interpolation_grids("Line mixing data temperature interpolation",
                                 t,
                                 T0,
-                                order);
+                                order,
+                                extrapol);
         
         // Interpolation variale determination... FIXME: use interp to get local derivative directly...
-        gridpos_poly(gp1, t, T0, order);
+        gridpos_poly(gp1, t, T0, order, extrapol);
         interpweights(itw1, gp1);
         
         Vector t2=t;
         t2+=dt;
-        gridpos_poly(gp2, t2, T0, order);
+        gridpos_poly(gp2, t2, T0, order, extrapol);
         interpweights(itw2, gp2);
         
         // Interpolated values

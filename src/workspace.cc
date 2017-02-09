@@ -2458,12 +2458,21 @@ void Workspace::define_wsv_data()
       ( NAME( "lm_p_lim" ),
         DESCRIPTION
         (
-            "The lower pressure limit at which line mixing takes place.\n"
+            "If possitive, this is the lower pressure limit at which line\n"
+            "mixing takes place.\n"
             "\n"
-            "The necessity to set this number depends on line mixing model\n"
-            "and atmospheric profiles.\n"
+            "If negative, the abs of this is the extrapolation factor of any\n"
+            "routine interacting with line mixing in ARTS.\n"
             "\n"
-            "Unit:  Pa\n"
+            "If exactly zero, then this is ignored in all calculations.\n"
+            "\n"
+            "Unit when positive:  Pa\n"
+            "Unit when negative:  none\n"
+            "\n"
+            "This variable is used on your own risk.  The calculations will not\n"
+            "be correct if this is misused.  You might end up with nonsensical\n"
+            "absorption (even negative absorption). Do not use this for anything\n"
+            "important.\n"
             "\n"
             "Usage: Set by the user.\n"
         ),

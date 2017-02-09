@@ -9,8 +9,8 @@ MODULE module_linemixing
             use module_maths
             use module_phsub
             implicit none
-            integer*8      ,intent (in)  :: nLines 
-            Double Precision, intent(out) :: Wmat(nWmax,nWmax)
+            integer*8      ,intent (in)   :: nLines 
+            Double Precision, intent(out) :: Wmat(nLines,nLines)
             double precision,intent(out)  :: Y_RosT(nLines)
             type (dta_SDF), intent(inout) :: dta1
             type (dta_MOL), intent(in)    :: molP
@@ -21,8 +21,8 @@ MODULE module_linemixing
             use module_maths
             use module_phsub
             implicit none
-            integer*8, intent(in)          :: nLines
-            Double Precision, intent(out)   :: W_jk(nWmax,nWmax)
+            integer*8, intent(in)           :: nLines
+            Double Precision, intent(out)   :: W_jk(nLines,nLines)
             type (dta_SDF), intent(in)      :: dta1
             type (dta_MOL), intent(in)      :: molP
             type (dta_MOL), intent(in)      :: PerM
@@ -33,8 +33,8 @@ MODULE module_linemixing
             use module_maths
             use module_phsub
             implicit none
-            integer*8, intent(in)             :: nLines
-            Double Precision, intent(in)    :: Wmat(nWmax,nWmax)
+            integer*8, intent(in)           :: nLines
+            Double Precision, intent(in)    :: Wmat(nLines,nLines)
             Double Precision, intent(out)   :: W_rnO(nLines,nLines)
             type (dta_SDF), intent(in)      :: dta1
         end subroutine RN_Wmat
@@ -84,13 +84,13 @@ END module module_linemixing
     use module_maths
     use module_phsub
     implicit none
-    integer*8      ,intent (in)  :: nLines 
-    Double Precision, intent(out) :: Wmat(nWmax,nWmax)
+    integer*8      ,intent (in)   :: nLines 
+    Double Precision, intent(out) :: Wmat(nLines,nLines)
     double precision,intent(out)  :: Y_RosT(nLines)
     type (dta_SDF), intent(inout) :: dta1
     type (dta_MOL), intent(in)    :: molP
     !Local Var
-    integer*8                    :: i,j,k
+    integer*8                     :: i,j,k
     double precision              :: delta, sumY, T, Ptot
     double precision              :: DipoI, DipoK
 !-----------------------------------------
@@ -117,8 +117,8 @@ END module module_linemixing
             if( dabs(delta) .lt. 1.d-4 ) delta=1.d-4
             !
             !
-            !sumY=sumY + (dabs(dta1%DipoT0(k)) &
-            !    /dabs(dta1%DipoT0(i)))* &
+            !sumY=sumY + (dabs(dta1%DipoT(k)) &
+            !    /dabs(dta1%DipoT(i)))* &
             !    ( Wmat(i,k)/delta ) ! Wmat(k,i)
             sumY=sumY + (DipoK/DipoI)* &
                 ( Wmat(i,k)/delta ) ! Wmat(k,i)
@@ -168,20 +168,19 @@ END module module_linemixing
     use module_phsub
     use module_maths
     Implicit None
-    integer*8,        intent(in)      :: nLines
+    integer*8,        intent(in)    :: nLines
     type (dta_SDF), intent(in)      :: dta1
     type (dta_MOL), intent(in)      :: molP
     type (dta_MOL), intent(in)      :: PerM
-    double precision, intent(out)   :: W_jk(nWmax,nWmax)
-    !double precision, intent(out)   :: W_jk(nWmax,nWmax)
-    integer*8                      :: i, j, k, n
-    integer*8                      :: jBIG, jSMALL
-    integer*8                      :: indexI(nLines)
+    double precision, intent(out)   :: W_jk(nLines,nLines)
+    integer*8                       :: i, j, k, n
+    integer*8                       :: jBIG, jSMALL
+    integer*8                       :: indexI(nLines)
     Double Precision                :: r_kj, pn, pk
     Double Precision                :: auxW, auxHW
     !Double Precision                :: Wtest(nLines,nLines)
     !Auxiliar Constants
-    integer*8                      :: count1, count2
+    integer*8                       :: count1, count2
     double Precision                :: Kaux, HWT, faH
     double Precision                :: T, Ptot, RT
 !
@@ -224,7 +223,7 @@ END module module_linemixing
         ! xH2O  = H2O atmospheric percentage 
         ! BHW_H2O = water vapour temperature exponent
         !
-          W_jk(j,k) = 2.0*Ptot*HWT !+ i*(-0.008)  
+          W_jk(j,k) = 2*Ptot*HWT !+ i*(-0.008)  
           !stop
         else 
         ! OFF-diagonal matrix elements (Wjk ∞ W_jk)
@@ -262,6 +261,7 @@ END module module_linemixing
               if ( isnan( W_jk(jBIG,jSMALL) ) .or. isinf( W_jk(jBIG,jSMALL) ) ) then 
                 W_jk(jBIG,jSMALL) = 0.0_dp  
                 print*, "Wij NaN!", jBIG,jSMALL
+                !
                 stop    
               endif                          
               ! so downwards transition is (k->j)
@@ -273,12 +273,19 @@ END module module_linemixing
               r_kj = dta1%PopuT(jBIG)/dta1%PopuT(jSMALL) !pjBIG/pjSMALL
               W_jk(jSMALL,jBIG) = r_kj*W_jk(jBIG,jSMALL)  
               !
-              !print*, "downwards transition"
-              !write(*,'(a7,i3,a3,i3,a2,2x,E12.4)'),'W_jk(j=',jBIG,';k=',jSMALL,')', W_jk(jBIG,jSMALL) 
-              !print*, "upwards transition" 
-              !write(*,'(a7,i3,a3,i3,a2,2x,E12.4)'),'W_jk(j=',jSMALL,';k=',jBIG,')', W_jk(jSMALL,jBIG)
+              if (abs(W_jk(jSMALL,jBIG)) .lt. TOL) then
+                print*, "downwards transition"
+                write(*,'(a7,i3,a3,i3,a2,2x,E12.4)'),'W_jk(j=',jBIG,';k=',jSMALL,')', W_jk(jBIG,jSMALL) 
+                print*, "upwards transition" 
+                write(*,'(a7,i3,a3,i3,a2,2x,E12.4)'),'W_jk(j=',jSMALL,';k=',jBIG,')', W_jk(jSMALL,jBIG)
+                stop
+              endif
           else
             !next transition
+          endif
+          if ((W_jk(j,k) .eq. 0d0) .or. (W_jk(k,j) .eq. 0d0)) then
+            print*, "Wij 0!", jBIG,jSMALL
+            stop
           endif
         endif    
       enddo
@@ -306,7 +313,7 @@ END module module_linemixing
     !  enddo
     !enddo
     !CALL sumRule(nLines,indexI,dta1%D0(1:nLines),Wtest,0.5)
-    !
+    
     Return
   END SUBROUTINE WelCAL
 !--------------------------------------------------------------------------------------------------------------------
@@ -349,19 +356,19 @@ END module module_linemixing
     use module_maths
     Implicit None
     integer*8,        intent(in)    :: nLines
-    Double Precision, intent(in)  :: Wmat(nWmax,nWmax)
-    Double Precision, intent(out) :: W_rnO(nWmax,nWmax)
+    Double Precision, intent(in)  :: Wmat(nLines,nLines)
+    Double Precision, intent(out) :: W_rnO(nLines,nLines)
     type (dta_SDF), intent(in)    :: dta1
     !Local variables
-    integer*8                    :: i, j, k, n
-    integer*8                    :: indexS(nLines),indexI(nLines)
+    integer*8                     :: i, j, k, n
+    integer*8                     :: indexS(nLines),indexI(nLines)
     double Precision              :: str(nLines)
     Double Precision              :: Sup, Slow, S_UL_rate
     Double Precision              :: pn, pk
     Double Precision              :: auxW, auxHW
     Double Precision              :: W_rn(nLines,nLines)
     !Other Auxiliar Constants
-    integer*8                    :: count1, count2
+    integer*8                     :: count1, count2
     double Precision              :: Kaux, Saux, Waux
     double Precision              :: Supaux, Slowaux
 !---------
@@ -370,7 +377,7 @@ END module module_linemixing
        do k=1,nLines
          !str(k) = dta1%STR(k)
          !str(k) = dta1%sig(k)*dta1%popuT(k)*dta1%D0(k)**2 
-         !str(k) = dta1%sig(k)*dta1%popuT(k)*dta1%DipoT0(k)**2
+         !str(k) = dta1%sig(k)*dta1%popuT(k)*dta1%DipoT(k)**2
          str(k) = dta1%popuT(k) 
        enddo
        ! The rotational components are sorted according to their intensities in decreasing order
@@ -504,7 +511,7 @@ END module module_linemixing
     use module_maths
     Implicit None
     Integer,        intent(in)    :: nLines
-    Double Precision, intent(in)  :: W_rn(nWmax,nWmax)
+    Double Precision, intent(in)  :: W_rn(nLines,nLines)
     type (dta_SDF), intent(in)    :: dta1
     type (dta_RMF), intent(inout) :: dta2
     !Local variables

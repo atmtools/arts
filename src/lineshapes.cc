@@ -1214,7 +1214,7 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
     extern const Numeric PI;
     
     // constant sqrt(1/pi)
-    const Numeric sqrt_invPI =  sqrt(1/PI);
+    static const Numeric sqrt_invPI =  sqrt(1/PI);
     
     // constant normalization factor for voigt
     const Numeric fac = sqrt_invPI / sigma;

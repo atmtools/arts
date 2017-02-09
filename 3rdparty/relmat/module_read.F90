@@ -24,7 +24,7 @@ module module_read
                                                     artsGA(nLines), artsE00(nLines), &
                                                     artsNA(nLines)
             logical               , intent (out) :: enough_Lines
-            integer*8, intent (out) :: dta_size
+            integer*8             , intent (out) :: dta_size
             type (dta_SDF), intent (inout)       :: dta1
         end subroutine Hit2DTA
 
