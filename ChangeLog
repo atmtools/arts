@@ -1,3 +1,25 @@
+2017-02-10  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-629
+	
+	Decent cross-sections with 3rdparty/relmat is now a thing.  We need some
+	more tests after a second implementation is done.
+	
+	* 3rdpart/relmat/arts_interface.F90:  Changed name of interface function
+	to indicate the type of line mixing it is performing.
+	
+	* src/{pressurebroadeningdata,linerecord}.{cc,h}:  Finally got around
+	to renaming a few functions.  The pressurebroadening structure now 
+	has got easy tests of the type for use outside the pressure broadening 
+	routines.  For now, only air broadening works with relmat so we have
+	to ensure that this is what we've got there.  I also commented things a
+	bit more in the pressurebroadening class so people can perhaps follow
+	what the functions do easier.
+	
+	* src/m_linemixing.cc: Now seems to be working.  We recommend no one tries 
+	this out before we have had more time to test that idea.  Remaining work 
+	to be sure, especially in how to parallelize this efficiently.
+
 2017-02-09  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-628

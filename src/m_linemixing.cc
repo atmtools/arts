@@ -282,12 +282,11 @@ void calculate_xsec_from_W( VectorView  xsec,
                             const ConstVectorView f_grid,
                             const ConstVectorView d0,
                             const ConstVectorView rhoT,
+                            const ConstVectorView psf,
                             const Numeric&  T,
                             const Numeric&  isotopologue_mass,
-                            const Index&    n//lines
-)
+                            const Index&    n )
 { 
-  std::cout<<f0<<"\n";
     // Physical constants
     extern const Numeric BOLTZMAN_CONST;
     extern const Numeric AVOGADROS_NUMB;
@@ -300,7 +299,6 @@ void calculate_xsec_from_W( VectorView  xsec,
     const Numeric kT = BOLTZMAN_CONST * T;
     const Numeric doppler_const = sqrt( 2.0 * kT * AVOGADROS_NUMB / isotopologue_mass ) / SPEED_OF_LIGHT;
     static const Numeric invSqrtPI = 1.0/sqrt(PI);
-    static const Numeric w2Hz               = SPEED_OF_LIGHT *1E2;
     
     // Setup for the matrix to be diagonalized
     ComplexMatrix F0plusiPW(n, n);
@@ -309,13 +307,11 @@ void calculate_xsec_from_W( VectorView  xsec,
         for(Index j = 0; j < n; j++)
         {
             if(j == i)
-              F0plusiPW(i, i) = Complex(f0[0]-f0[i], -Wmat(i, i));
+              F0plusiPW(i, i) = Complex(f0[i], Wmat(i, i));
             else
-              F0plusiPW(i, j) = Complex(0.0, -Wmat(i, j));
+              F0plusiPW(i, j) = Complex(0.0, Wmat(i, j));
         }
-        std::cout<<Wmat(i,i)<<" ";
     }
-    std::cout<<std::endl;
     
     // z_eigs is set to contain the eigenvalues, 
     // E is the matrix of eigenvectors and invE is its inverse
@@ -335,7 +331,7 @@ void calculate_xsec_from_W( VectorView  xsec,
     for(Index if1 = 0; if1 < n; if1++)
     {
       sigma[if1]= f0[if1] * doppler_const ;
-      z_eigs[if1] = conj(z_eigs[if1]) - f0[0]; 
+      z_eigs[if1] = conj(z_eigs[if1]); 
     }   
     
     for(Index k = 0; k < n; k++)
@@ -348,23 +344,21 @@ void calculate_xsec_from_W( VectorView  xsec,
          z2 += rhoT[j] * d0[j] * invE(k, j);
         
       }
-      equivS0[k] = z1 * z2;
+      equivS0[k] = conj(z1 * z2);
     }
     
-    std::cout<<z_eigs<<"\n\n"<<equivS0<<"\n\n"<<sigma<<"\n";
-    
-    // Add to xsec --- How will this be normalized?
+    // Perform the computations to get at the cross-sections
     #pragma omp parallel for                    \
     if (!arts_omp_in_parallel())
     for(Index iv = 0; iv < nf; iv++)
     {
-      const Numeric s0_freqfac = f_grid[iv] * (1.0 - exp(- PLANCK_CONST * f_grid[iv] / kT)); // Adapted from Niro's code
+      const Numeric s0_freqfac =  f_grid[iv] * (1.0 - exp(- PLANCK_CONST * f_grid[iv] / kT)); // Adapted from Niro's code
       for(Index if0 = 0; if0 < n; if0++)
       {
         const Numeric ls_normfac = invSqrtPI / sigma[if0];
-        const Complex z = (f_grid[iv] + z_eigs[if0]) / sigma[if0];
-        //xsec[iv] += real(equivS0[if0] * Faddeeva::w(z)) / sigma[if0];
-        xsec[iv] += real(equivS0[if0] * Faddeeva::w(z)) * ls_normfac * s0_freqfac;
+        const Complex z = (f_grid[iv] -(z_eigs[if0] + psf[if0])) / sigma[if0];
+        const Complex w = Faddeeva::w(z);
+        xsec[iv] += (equivS0[if0] * w).real() * ls_normfac * s0_freqfac;
       }
     }
 }
@@ -373,7 +367,7 @@ void calculate_xsec_from_W( VectorView  xsec,
 extern "C"
 {
     // This is the interface between the Fortran code that calculates W and ARTS
-    extern void arts_relmat_interface(
+    extern void arts_relmat_interface__hartmann_and_niro_type(
         long   *nlines,
         double *fmin,
         double *fmax,
@@ -400,7 +394,7 @@ extern "C"
         double *vmr,
         //outputs
         double *W,
-        double *d0,
+        double *dipole,
         double *rhoT
     );
 }
@@ -410,7 +404,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                             ArrayOfMatrix&                   abs_xsec_per_species,
                                             ArrayOfArrayOfMatrix&            /*dabs_xsec_per_species_dx*/,
                                             ArrayOfMatrix&                   wmats,
-                                            ArrayOfVector&                   d0s,
+                                            ArrayOfVector&                   dipoles,
                                             ArrayOfVector&                   rhos,
                                             // WS Input:                     
                                             const ArrayOfArrayOfLineRecord&  abs_lines_per_band,
@@ -442,6 +436,9 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
     const Index nf          = f_grid.nelem();
     const Index nspecies    = abs_species.nelem();
     
+    // Relmat constants
+    const Numeric relmat_T0 = 296.0;
+    
     // These should be identical
     if(nps!=nts)
         throw std::runtime_error("Different lengths of atmospheric input than expected.");
@@ -464,7 +461,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
     if(write_wmat)
     {
       wmats.resize(nbands);
-      d0s.resize(nbands);
+      dipoles.resize(nbands);
       rhos.resize(nbands);
     }
     
@@ -541,6 +538,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
         Vector v0(nlines);
         Vector S(nlines);
         Vector gamma_air(nlines);
+        Vector delta_air(nlines);
         Vector E_double_prime(nlines);
         Vector n_air(nlines);
         Numeric mass;
@@ -551,14 +549,13 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             const LineRecord& this_line = this_band[iline];
             const IsotopologueRecord& this_iso = this_line.IsotopologueData();
             
-            // For first line do something special
+            // For first line do something special with mass and name and such
             if( iline==0 )
             {
                 // Isotopologue values
                 mass  = this_iso.Mass();
                 String iso_name = this_iso.Name();
                 int isona;
-                //isona << iso_name;
                 extract(isona,iso_name,iso_name.nelem());
                 
                 const ArrayOfSpeciesTag& band_tags=abs_species_per_band[iband];
@@ -604,11 +601,31 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                 }
             }
             
+            // Pressure broadening at relmat temperatures
+            if(not this_line.PressureBroadening().isAirBroadening())
+            {
+              std::ostringstream os;
+              os << "Line is not air broadening type but only air broadening types are suported.\n";
+              os << "Its type is " << this_line.PressureBroadening().Type2StorageTag();
+              throw std::runtime_error(os.str());
+            }
+            
+            // Ensure that temperatures are sufficiently close
+            if( 1e-4 < abs(this_line.Ti0()-relmat_T0))
+            {
+              std::ostringstream os;
+              os << "Line is not of same standard temperature as relmat is expecting.\n";
+              os << "Expecting: " << relmat_T0 <<" K.  Getting: " << this_line.Ti0() << " K.";
+              throw std::runtime_error(os.str());
+            }
+            
+            gamma_air[iline] = this_line.PressureBroadening().AirBroadeningAgam() / gamma_hi2arts;
+            delta_air[iline] = this_line.PressureBroadening().AirBroadeningPsf();
+            n_air[iline] = this_line.Nair();
+            
             // Line information converted to relmat format --- i.e. to HITRAN format
             v0[iline]             = this_line.F()/w2Hz; 
             S[iline]              = this_line.I0()/I0_hi2arts;
-            gamma_air[iline]      = this_line.Agam()/gamma_hi2arts;
-            n_air[iline]          = this_line.Nair();
             E_double_prime[iline] = this_line.Elow()/lower_energy_const;
             g_prime[iline]        = (long) this_line.G_upper(); // NB:  Numeric to long... why?
             g_double_prime[iline] = (long) this_line.G_lower(); // NB:  Numeric to long... why?
@@ -712,12 +729,15 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             
         }
         
+        Vector f0 = v0;
+        f0 *= w2Hz;
+        
         // FIXME:  Or can this loop be parallelized?
         for(Index ip=0;ip<nps;ip++)
         {
             // Information on the lines will be here after relmat is done
             Matrix W(nlines,nlines);
-            Vector d0(nlines);
+            Vector dipole(nlines);
             Vector rhoT(nlines);
             
             // Find the partition function
@@ -741,6 +761,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             Numeric p;
             p = abs_p[ip]/ATM2PA; // HITRAN pressure unit is in atmospheres
             
+            /* output for debugging purposes
             std::cout<<nlines<<" "<<fmin<<" "<<fmax<<" "<<M<<" "<<I<<"\n";
             std::cout<<v0<<"\n"<<S<<"\n"<<gamma_air<<"n"<<E_double_prime<<"\n"<<n_air<<"\n";
             for(Index i=0; i<4*nlines; i+=4)
@@ -748,10 +769,10 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                        <<lower[i]<<" "<<lower[i+1]<<" "<<lower[i+2]<<" "<<lower[i+3]<<" "
                        <<g_prime[i/4]<<" "<<g_double_prime[i/4]<<"\n";
             std::cout<<t<<" "<<p<<" "<<QT<<" "<<QT0<<" "<<mass<<"\n";
-                       
+            */
                        
             // Calling Teresa's code
-            arts_relmat_interface(
+            arts_relmat_interface__hartmann_and_niro_type(
                 &nlines, &fmin, &fmax,
                 &M, &I, v0.get_c_array(), S.get_c_array(),
                 gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
@@ -760,32 +781,35 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                 &t, &p, &QT, &QT0, &mass,
                 &number_of_perturbers, molecule_code_perturber, 
                 iso_code_perturber, perturber_mass, vmr.get_c_array(),
-                W.get_c_array(), d0.get_c_array(), rhoT.get_c_array() );
+                                  W.get_c_array(), dipole.get_c_array(), rhoT.get_c_array() );
             
-            std::cout<<"Succesful run of arts_relmat_interface!\n";
+            // Convert to SI-units
+            W *= w2Hz / 2;
+            dipole *= 1.0/100.0; // sqrt(I0_hi2arts / w2Hz) = 1/100;
             
-            W *= w2Hz * p;
-            v0 *= w2Hz;
-            d0 *= sqrt(I0_hi2arts);
+            Vector psf(nlines);
+            for(Index ii = 0; ii < nlines; ii++)
+              psf[ii] = delta_air[ii] * abs_p[ip] * pow ((relmat_T0/t),(Numeric)0.25+(Numeric)1.5*n_air[ii]);
             
             if(write_wmat == 0)
             {
               
-              // Using Rodrigues method
+              // Using Rodrigues etal method
               calculate_xsec_from_W( abs_xsec_per_species[this_species](joker, ip),
                                     W,
-                                    v0,
+                                    f0,
                                     f_grid,
-                                    d0,
+                                    dipole,
                                     rhoT,
-                                    t,
+                                    psf,
+                                    abs_t[ip],
                                     mass,
                                     nlines);
             }
             else
             {
               wmats[iband] = W;
-              d0s[iband] = d0;
+              dipoles[iband] = dipole;
               rhos[iband] = rhoT;
             }
             

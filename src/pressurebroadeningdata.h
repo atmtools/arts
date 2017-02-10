@@ -49,7 +49,7 @@ public:
         PB_NONE,                          // No pressure broadening
         PB_AIR_BROADENING,                // Air broadening and self broadening only
         PB_AIR_AND_WATER_BROADENING,      // Air, water, and self broadening
-        PB_PERRIN_BROADENING,             // Gas broadening as done by A. Perrin
+        PB_PLANETARY_BROADENING,          // Gas broadening as done for solar system planets
         PB_SD_AIR_VOLUME                  // HTP in air for SD limit
     };
     
@@ -93,11 +93,14 @@ public:
      
      The quantities are:
      \param sgam  self broadening gamma
-     \param nself  self broadening n
+     \param sn  self broadening n
+     \param sdelta  self shift
      \param agam  air broadening gamma
-     \param nair  air broadening n
-     \param air_pressure_DF  air broadening pressure-based frequency shift
-     \param d*  variable associated errors.  A tag of -1 is used when the errors are unknown.
+     \param an  air broadening n
+     \param adelta  air shift
+     \param wgam  water broadening gamma
+     \param wn  water broadening n
+     \param wdelta  water shift
      */
     void SetAirAndWaterBroadeningFromCatalog(const Numeric& sgam, 
                                              const Numeric& sn, 
@@ -121,7 +124,7 @@ public:
      \param n_foreign  foreign broadening n
      \param foreign_pressure_DF  foreign broadening pressure-based frequency shift
      */ 
-    void SetPerrinBroadeningFromCatalog(const Numeric& sgam, 
+    void SetPlanetaryBroadeningFromCatalog(const Numeric& sgam, 
                                         const Numeric& nself,
                                         const Vector&  foreign_gamma,
                                         const Vector&  n_foreign,
@@ -142,59 +145,207 @@ public:
                              const Numeric& delta2,
                              const Numeric& delta2_exp);
     
-    // The return functions below are self-explanatory and are all around for backwards compatibility
-    ConstVectorView PerrinGammaForeign() const { assert(PB_PERRIN_BROADENING==mtype); return mdata[2]; }
-    ConstVectorView PerrinNForeign() const { assert(PB_PERRIN_BROADENING==mtype); return mdata[3]; }
-    ConstVectorView PerrinDeltaForeign() const { assert(PB_PERRIN_BROADENING==mtype); return mdata[4]; }
-    Numeric PerrinGammaForeign(Index ii) const { assert(PB_PERRIN_BROADENING==mtype); return mdata[2][ii]; }
-    Numeric PerrinNForeign(Index ii) const { assert(PB_PERRIN_BROADENING==mtype); return mdata[3][ii]; }
-    Numeric PerrinDeltaForeign(Index ii) const {  assert(PB_PERRIN_BROADENING==mtype); return mdata[4][ii]; }
-    Numeric AirBroadeningAgam() const { assert(PB_AIR_BROADENING==mtype);  return mdata[2][0]; }
-    Numeric AirBroadeningNair() const { assert(PB_AIR_BROADENING==mtype);  return mdata[3][0]; }
-    Numeric AirBroadeningPsf()  const { assert(PB_AIR_BROADENING==mtype);  return mdata[4][0]; }
-    Numeric Sgam() const { assert(mdata.nelem() != 0); assert(mdata[0].nelem() != 0); return mdata[0][0]; }
-    Numeric Nself() const { assert(mdata.nelem() > 0); assert(mdata[1].nelem() != 0); return mdata[1][0]; }
-    Numeric AirBroadeningDAgam() const { assert(PB_AIR_BROADENING==mtype);  return mdataerror[2][0]; }
-    Numeric AirBroadeningDNair() const { assert(PB_AIR_BROADENING==mtype);  return mdataerror[3][0]; }
-    Numeric AirBroadeningDPsf()  const { assert(PB_AIR_BROADENING==mtype);  return mdataerror[4][0]; }
-    Numeric dSgam()  const { assert(PB_AIR_BROADENING==mtype);  return mdataerror[0][0]; }
-    Numeric dNself() const { assert(PB_AIR_BROADENING==mtype);  return mdataerror[1][0]; }
+    // Get the Planetary foreign broadening data vector
+    ConstVectorView PlanetaryGammaForeign() const { assert(isPlanetaryBroadening()); return mdata[2]; }
     
-    //Use these to change internal variables.
+    // Get the Planetary foreign broadening exponent data vector
+    ConstVectorView PlanetaryNForeign() const { assert(isPlanetaryBroadening()); return mdata[3]; }
+    
+    // Get the Planetary foreign shift data vector
+    ConstVectorView PlanetaryDeltaForeign() const { assert(isPlanetaryBroadening()); return mdata[4]; }
+    
+    // Get the Planetary foreign broadening data from one position
+    Numeric PlanetaryGammaForeign(Index ii) const { assert(isPlanetaryBroadening()); return mdata[2][ii]; }
+    
+    // Get the Planetary foreign broadening exponent data from one position
+    Numeric PlanetaryNForeign(Index ii) const { assert(isPlanetaryBroadening()); return mdata[3][ii]; }
+    
+    // Get the Planetary foreign shift data from one position
+    Numeric PlanetaryDeltaForeign(Index ii) const {  assert(isPlanetaryBroadening()); return mdata[4][ii]; }
+    
+    // Get the Air broadening air pressure broadening
+    Numeric AirBroadeningAgam() const { assert(isAirBroadening());  return mdata[2][0]; }
+    
+    // Get the Air broadening air pressure broadening exponent
+    Numeric AirBroadeningNair() const { assert(isAirBroadening());  return mdata[3][0]; }
+    
+    // Get the Air broadening air pressure shift
+    Numeric AirBroadeningPsf()  const { assert(isAirBroadening());  return mdata[4][0]; }
+    
+    // Get the self pressure broadening
+    Numeric Sgam() const { assert(mdata.nelem() != 0); assert(mdata[0].nelem() != 0); return mdata[0][0]; }
+    
+    // Get the self pressure broadening exponent
+    Numeric Nself() const { assert(mdata.nelem() > 0); assert(mdata[1].nelem() != 0); return mdata[1][0]; }
+    
+    // Get the Air broadening air pressure broadening error
+    Numeric AirBroadeningDAgam() const { assert(isAirBroadening());  return mdataerror[2][0]; }
+    
+    // Get the Air broadening air pressure broadening exponent error
+    Numeric AirBroadeningDNair() const { assert(isAirBroadening());  return mdataerror[3][0]; }
+    
+    // Get the Air broadening air pressure shift error
+    Numeric AirBroadeningDPsf()  const { assert(isAirBroadening());  return mdataerror[4][0]; }
+    
+    // Get the Air broadening self pressure broadening error
+    Numeric dSgam()  const { assert(isAirBroadening());  return mdataerror[0][0]; }
+    
+    // Get the Air broadening self pressure broadening exponent error
+    Numeric dNself() const { assert(isAirBroadening());  return mdataerror[1][0]; }
+    
+     /**
+     Method for changing self-broadening if available
+     Error if not
+     
+     The quantities are:
+     \param change self broadening gamma
+     \param this_species Index for position this species
+     \param h2o_species Index for position of h2o species
+     \param broad_spec_locations Array of index of broadening species locations
+     */ 
     void ChangeSelf(const Numeric& change, 
                     const Index this_species, 
                     const Index h2o_species, 
                     const ArrayOfIndex& broad_spec_locations);
+    
+    /**
+     Method for changing self-broadening exponent if available
+     Error if not
+     
+     The quantities are:
+     \param change self broadening gamma
+     \param this_species Index for position this species
+     \param h2o_species Index for position of h2o species
+     \param broad_spec_locations Array of index of broadening species locations
+     */ 
     void ChangeSelfExponent(const Numeric& change, 
                             const Index this_species, 
                             const Index h2o_species, 
                             const ArrayOfIndex& broad_spec_locations);
+    
+     /**
+     Method for setting self-broadening if available
+     Error if not
+     
+     The quantities are:
+     \param change self broadening gamma
+     \param this_species Index for position this species
+     \param h2o_species Index for position of h2o species
+     \param broad_spec_locations Array of index of broadening species locations
+     */ 
     void SetSelf(const Numeric& new_value, 
                  const Index this_species, 
                  const Index h2o_species, 
                  const ArrayOfIndex& broad_spec_locations);
+    
+    /**
+     Method for setting self-broadening exponent if available
+     Error if not
+     
+     The quantities are:
+     \param change self broadening gamma
+     \param this_species Index for position this species
+     \param h2o_species Index for position of h2o species
+     \param broad_spec_locations Array of index of broadening species locations
+     */ 
     void SetSelfExponent(const Numeric& new_value, 
                          const Index this_species, 
                          const Index h2o_species, 
                          const ArrayOfIndex& broad_spec_locations);
+    
+     /**
+     Method for changing self-broadening by relative amount if available
+     Error if not
+     
+     The quantities are:
+     \param change self broadening gamma
+     \param this_species Index for position this species
+     \param h2o_species Index for position of h2o species
+     \param broad_spec_locations Array of index of broadening species locations
+     */ 
     void ChangeSelfRelative(const Numeric& change, 
                             const Index this_species, 
                             const Index h2o_species, 
                             const ArrayOfIndex& broad_spec_locations);
+    
+     /**
+     Method for changing self-broadening exponent by relative amount if available
+     Error if not
+     
+     The quantities are:
+     \param change self broadening gamma
+     \param this_species Index for position this species
+     \param h2o_species Index for position of h2o species
+     \param broad_spec_locations Array of index of broadening species locations
+     */ 
     void ChangeSelfExponentRelative(const Numeric& change, 
                                     const Index this_species, 
                                     const Index h2o_species, 
                                     const ArrayOfIndex& broad_spec_locations);
+    
+     /**
+     Method for changing foreing-broadening(s) if available
+     Error if not available and no change to water broadening
+     
+     The quantities are:
+     \param change self broadening gamma
+     \param broad_spec_locations Array of index of broadening species locations
+     */ 
     void ChangeForeign(const Numeric& change, 
                        const ArrayOfIndex& broad_spec_locations);
+    
+    /**
+     Method for changing foreing-broadening exponent(s) if available
+     Error if not available and no change to water broadening
+     
+     The quantities are:
+     \param change self broadening gamma
+     \param broad_spec_locations Array of index of broadening species locations
+     */ 
     void ChangeForeignExponent(const Numeric& change, 
                                const ArrayOfIndex& broad_spec_locations);
+    
+    /**
+     Method for setting foreing-broadening(s) if available
+     Error if not available and no change to water broadening
+     
+     The quantities are:
+     \param change self broadening gamma
+     \param broad_spec_locations Array of index of broadening species locations
+     */ 
     void SetForeign(const Numeric& new_value, 
                     const ArrayOfIndex& broad_spec_locations);
+    
+    /**
+     Method for setting foreing-broadening exponent(s) if available
+     Error if not available and no change to water broadening
+     
+     The quantities are:
+     \param change self broadening gamma
+     \param broad_spec_locations Array of index of broadening species locations
+     */ 
     void SetForeignExponent(const Numeric& new_value, 
                             const ArrayOfIndex& broad_spec_locations);
+    
+    /**
+     Method for changing foreing-broadening(s) by relative amount if available
+     Error if not available and no change to water broadening
+     
+     The quantities are:
+     \param change self broadening gamma
+     \param broad_spec_locations Array of index of broadening species locations
+     */ 
     void ChangeForeignRelative(const Numeric& change, 
                                const ArrayOfIndex& broad_spec_locations);
+    
+    /**
+     Method for changing foreing-broadening exponent(s) by relative amount if available
+     Error if not available and no change to water broadening
+     
+     The quantities are:
+     \param change self broadening gamma
+     \param broad_spec_locations Array of index of broadening species locations
+     */ 
     void ChangeForeignExponentRelative(const Numeric& change, 
                                        const ArrayOfIndex& broad_spec_locations);
     
@@ -327,7 +478,7 @@ public:
                                                  const Verbosity& verbosity) const;
     
     /**
-     Perrin broadening calculations
+     Planetary broadening calculations
      
      The quantities are:
      \param gamma  the pressure broadening in Hz
@@ -340,7 +491,7 @@ public:
      \param vmrs  volume mixing ratio of all species
      \param verbosity  output command used for warnings.
      */
-    void GetPerrinBroadening(Numeric& gamma,
+    void GetPlanetaryBroadening(Numeric& gamma,
                              Numeric& deltaf,
                              const Numeric& theta,
                              const Numeric& pressure,
@@ -349,7 +500,7 @@ public:
                              const ArrayOfIndex& broad_spec_locations,
                              ConstVectorView vmrs,
                              const Verbosity& verbosity) const;
-    void GetPerrinBroadening_dT(Numeric& dgamma_dT,
+    void GetPlanetaryBroadening_dT(Numeric& dgamma_dT,
                                 Numeric& ddeltaf_dT,
                                 const Numeric& T,
                                 const Numeric& T0,
@@ -361,7 +512,8 @@ public:
                                 const Verbosity& verbosity) const;
     
      /**
-       All broadening calculations
+       All broadening calculations are easiset to perform via these calls.
+       If specific derivative is not available, then there will be an error
        
        The quantities are:
       \param gamma  the pressure broadening in Hz
@@ -455,11 +607,19 @@ public:
                                                     const Verbosity& verbosity) const;
 
     /**
-     TESTING
+     Speed-dependent broadening calculations
+     
+     THIS IS EXPERIMENTAL AND MUST BE FIXED TO HAVE, e.g., SELF-PRESSURE
+     BEFORE IT IS READY FOR NORMAL USE.
      
      The quantities are:
-     TESTING
-    */
+     \param gamma0 the pressure broadening
+     \param gamma2 the speed dependent term of the pressure broadening
+     \param delta0 the pressure shift
+     \param delta2 the speed dependent term of the pressure shift
+     \param theta  the scaled temperature (T0/T)
+     \param pressure  All gasses, in Pa
+     */
     void GetSDAIRBroadening(Numeric& gamma0,
                             Numeric& gamma2,
                             Numeric& delta0,
@@ -467,12 +627,35 @@ public:
                             const Numeric& theta,
                             const Numeric& pressure) const;
     
-   // Use these to read data from XML-formats and to return vectors for writing
+   // Sets the pressure broadening PB_type from String input
    void StorageTag2SetType(const String& input);
+   
+   // Returns length of the vector that is supposed to be input
    Index ExpectedVectorLengthFromType() const;
+   
+   // Sets the data of the class from vector input
    void SetDataFromVectorWithKnownType(const Vector& input);
+   
+   // Gets the vector from the data of the class
    void GetVectorFromData(Vector& output) const;
+   
+   // Returns the String tag for this PB_type
    String Type2StorageTag() const;
+   
+   // Checks if this is air broadening
+   bool isAirBroadening() const {return mtype == PB_AIR_BROADENING;};
+   
+   // Checks if this is air and water broadening
+   bool isAirAndWaterBroadening() const {return mtype == PB_AIR_AND_WATER_BROADENING;};
+
+   //  Checks if this is Planetaryg broadening
+   bool isPlanetaryBroadening() const {return mtype == PB_PLANETARY_BROADENING;};
+   
+   //  Checks if this is Speed-Dependent broadening
+   bool isSD_AirBroadening() const {return mtype == PB_SD_AIR_VOLUME;};
+   
+   // Checks if this is not a type
+   bool isNone() const {return mtype == PB_NONE;};
    
 private:
     // mtype identifies the type of of pressure broadening and the other variables

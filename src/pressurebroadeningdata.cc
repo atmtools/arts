@@ -66,8 +66,8 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma_0,
             df_2    = 0.;
             f_VC    = 0.;
             break;
-        case PB_PERRIN_BROADENING:
-            GetPerrinBroadening(gamma_0, df_0, theta, pressure, self_pressure,
+        case PB_PLANETARY_BROADENING:
+            GetPlanetaryBroadening(gamma_0, df_0, theta, pressure, self_pressure,
                                 this_species, broad_spec_locations, vmrs, verbosity);
             gamma_2 = 0.;
             eta     = 0.;
@@ -109,8 +109,8 @@ void PressureBroadeningData::GetPressureBroadeningParams_dT(Numeric& dgamma_0_dT
             GetAirAndWaterBroadening_dT(dgamma_0_dT, ddf_0_dT, T, T0, pressure, self_pressure, 
                                     this_species, h2o_species, vmrs, verbosity);
             break;
-        case PB_PERRIN_BROADENING:
-            GetPerrinBroadening_dT(dgamma_0_dT, ddf_0_dT, T, T0, pressure, self_pressure,
+        case PB_PLANETARY_BROADENING:
+            GetPlanetaryBroadening_dT(dgamma_0_dT, ddf_0_dT, T, T0, pressure, self_pressure,
                                 this_species, broad_spec_locations, vmrs, verbosity);
             break;
         default:
@@ -134,7 +134,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dSelfGamma(Numeric& gam
         case PB_AIR_AND_WATER_BROADENING:
             GetAirAndWaterBroadening_dSelfGamma(gamma_dSelf,theta, self_pressure);
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             throw std::runtime_error("Planetary broadening calculation type do not support "
                                      "pressure broadening partial derivatives.\n");
             break;
@@ -164,7 +164,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dForeignGamma(Numeric& 
             GetAirAndWaterBroadening_dForeignGamma(gamma_dForeign, theta, pressure, self_pressure, 
                                                    this_species, h2o_species, vmrs);
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             throw std::runtime_error("Planetary broadening calculation type do not support "
                                      "pressure broadening partial derivatives.\n");
             break;
@@ -195,7 +195,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dWaterGamma(Numeric& ga
             GetAirAndWaterBroadening_dWaterGamma(gamma_dWater, theta, pressure, 
                                                  this_species, h2o_species, vmrs, verbosity);
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             throw std::runtime_error("Planetary broadening calculation type do not support "
                                      "pressure broadening partial derivatives.\n");
             break;
@@ -221,7 +221,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dSelfPsf(Numeric& psf_d
         case PB_AIR_AND_WATER_BROADENING:
             GetAirAndWaterBroadening_dSelfPsf(psf_dSelf,theta, self_pressure);
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             throw std::runtime_error("Planetary broadening calculation type do not support "
                                      "pressure broadening partial derivatives.\n");
             break;
@@ -251,7 +251,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dForeignPsf(Numeric& ps
             GetAirAndWaterBroadening_dForeignPsf(psf_dForeign, theta, pressure, self_pressure, 
                                                  this_species, h2o_species, vmrs);
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             throw std::runtime_error("Planetary broadening calculation type do not support "
                                      "pressure broadening partial derivatives.\n");
             break;
@@ -282,7 +282,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dWaterPsf(Numeric& psf_
             GetAirAndWaterBroadening_dWaterPsf(psf_dWater, theta, pressure, 
                                                this_species, h2o_species, vmrs, verbosity);
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             throw std::runtime_error("Planetary broadening calculation type do not support "
                                      "pressure broadening partial derivatives.\n");
             break;
@@ -309,7 +309,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dSelfExponent(Numeric& 
             GetAirAndWaterBroadening_dSelfExponent(gamma_dSelfExponent, psf_dSelfExponent, 
                                                    theta, self_pressure);
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             throw std::runtime_error("Planetary broadening calculation type do not support "
                                      "pressure broadening partial derivatives.\n");
             break;
@@ -343,7 +343,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dForeignExponent(Numeri
                                                       theta, pressure, self_pressure, 
                                                       this_species, h2o_species, vmrs);
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             throw std::runtime_error("Planetary broadening calculation type do not support "
                                      "pressure broadening partial derivatives.\n");
             break;
@@ -375,7 +375,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dWaterExponent(Numeric&
                                                     theta, pressure, 
                                                     this_species, h2o_species, vmrs, verbosity);
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             throw std::runtime_error("Planetary broadening calculation type do not support "
                                      "pressure broadening partial derivatives.\n");
             break;
@@ -738,7 +738,7 @@ void PressureBroadeningData::GetAirAndWaterBroadening_dWaterExponent(Numeric& ga
 ///////////////////////////////////////////////////////////////////////////////////////
 
 // This is the broadening used by ARTSCAT-4; the "AP"-tag in ARTSCAT-5
-void PressureBroadeningData::GetPerrinBroadening(Numeric& gamma,
+void PressureBroadeningData::GetPlanetaryBroadening(Numeric& gamma,
                                                  Numeric& deltaf,
                                                  const Numeric& theta,
                                                  const Numeric& pressure,
@@ -848,7 +848,7 @@ void PressureBroadeningData::GetPerrinBroadening(Numeric& gamma,
 }
 
 // This is the temperature derivative of the broadening used by ARTSCAT-4; the "AP"-tag in ARTSCAT-5
-void PressureBroadeningData::GetPerrinBroadening_dT(Numeric& dgamma_dT,
+void PressureBroadeningData::GetPlanetaryBroadening_dT(Numeric& dgamma_dT,
                                                     Numeric& ddeltaf_dT,
                                                     const Numeric& T,
                                                     const Numeric& T0,
@@ -1053,7 +1053,7 @@ void PressureBroadeningData::SetAirAndWaterBroadeningFromCatalog(const Numeric& 
 
 
 // Use these to insert the data in the required format from catalog readings
-void PressureBroadeningData::SetPerrinBroadeningFromCatalog(const Numeric& sgam, 
+void PressureBroadeningData::SetPlanetaryBroadeningFromCatalog(const Numeric& sgam, 
                                                             const Numeric& nself,
                                                             const Vector&  foreign_gamma,
                                                             const Vector&  n_foreign,
@@ -1063,7 +1063,7 @@ void PressureBroadeningData::SetPerrinBroadeningFromCatalog(const Numeric& sgam,
     assert(n_foreign.nelem()==foreign_gamma.nelem());
     assert(foreign_pressure_DF.nelem()==foreign_gamma.nelem());
     
-    mtype = PB_PERRIN_BROADENING;
+    mtype = PB_PLANETARY_BROADENING;
     mdata.resize(5);
     mdataerror.resize(0);
     for(Index ii=0;ii<2;ii++) 
@@ -1130,14 +1130,14 @@ void PressureBroadeningData::ChangeSelf(const Numeric& change,
             if(this_species==h2o_species)
                 mdata[2][0]+=change;
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             mdata[0][0]+=change;
             for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
                 if(broad_spec_locations[ii]==-2)
                     mdata[2][ii]+=change;
             break;
         default:
-            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+            throw std::runtime_error("You have defined an unknown broadening mechanism or change.\n");
     }
 }
 void PressureBroadeningData::ChangeSelfExponent(const Numeric& change, 
@@ -1158,7 +1158,7 @@ void PressureBroadeningData::ChangeSelfExponent(const Numeric& change,
             if(this_species==h2o_species)
                 mdata[2][1]+=change;
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             mdata[1][0]+=change;
             for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
                 if(broad_spec_locations[ii]==-2)
@@ -1186,7 +1186,7 @@ void PressureBroadeningData::SetSelf(const Numeric& new_value,
             if(this_species==h2o_species)
                 mdata[2][0]=new_value;
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             mdata[0][0]=new_value;
             for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
                 if(broad_spec_locations[ii]==-2)
@@ -1214,7 +1214,7 @@ void PressureBroadeningData::SetSelfExponent(const Numeric& new_value,
             if(this_species==h2o_species)
                 mdata[2][1]=new_value;
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             mdata[1][0]=new_value;
             for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
                 if(broad_spec_locations[ii]==-2)
@@ -1242,7 +1242,7 @@ void PressureBroadeningData::ChangeSelfRelative(const Numeric& change,
             if(this_species==h2o_species)
                 mdata[2][0]*=1.0e0+change;
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             mdata[0][0]*=1.0e0+change;
             for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
                 if(broad_spec_locations[ii]==-2)
@@ -1270,7 +1270,7 @@ void PressureBroadeningData::ChangeSelfExponentRelative(const Numeric& change,
             if(this_species==h2o_species)
                 mdata[2][1]*=1.0e0+change;
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             mdata[1][0]*=1.0e0+change;
             for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
                 if(broad_spec_locations[ii]==-2)
@@ -1294,7 +1294,7 @@ void PressureBroadeningData::ChangeForeign(const Numeric& change,
         case PB_AIR_AND_WATER_BROADENING:
             mdata[1][0]+=change;
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
                 if(broad_spec_locations[ii]!=-2)
                     mdata[2][ii]+=change;
@@ -1317,7 +1317,7 @@ void PressureBroadeningData::ChangeForeignExponent(const Numeric& change,
         case PB_AIR_AND_WATER_BROADENING:
             mdata[1][1]+=change;
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
                 if(broad_spec_locations[ii]!=-2)
                     mdata[3][ii]+=change;
@@ -1340,7 +1340,7 @@ void PressureBroadeningData::SetForeign(const Numeric& new_value,
         case PB_AIR_AND_WATER_BROADENING:
             mdata[1][0]=new_value;
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
                 if(broad_spec_locations[ii]!=-2)
                     mdata[2][ii]=new_value;
@@ -1363,7 +1363,7 @@ void PressureBroadeningData::SetForeignExponent(const Numeric& new_value,
         case PB_AIR_AND_WATER_BROADENING:
             mdata[1][1]=new_value;
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
                 if(broad_spec_locations[ii]!=-2)
                     mdata[3][ii]=new_value;
@@ -1386,7 +1386,7 @@ void PressureBroadeningData::ChangeForeignRelative(const Numeric& change,
         case PB_AIR_AND_WATER_BROADENING:
             mdata[1][0]*=1.0e0+change;
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
                 if(broad_spec_locations[ii]!=-2)
                     mdata[2][ii]*=1.0e0+change;
@@ -1409,7 +1409,7 @@ void PressureBroadeningData::ChangeForeignExponentRelative(const Numeric& change
         case PB_AIR_AND_WATER_BROADENING:
             mdata[1][1]*=1.0e0+change;
             break;
-        case PB_PERRIN_BROADENING:
+        case PB_PLANETARY_BROADENING:
             for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
                 if(broad_spec_locations[ii]!=-2)
 
@@ -1428,13 +1428,13 @@ Index PressureBroadeningData::ExpectedVectorLengthFromType() const
 {
     if(mtype == PB_NONE) // The none case
         return 0;
-    else if(mtype == PB_AIR_BROADENING) // 10 Numerics
+    else if(isAirBroadening()) // 10 Numerics
         return 10;
-    else if(mtype == PB_AIR_AND_WATER_BROADENING) // 10 Numerics
+    else if(isAirAndWaterBroadening()) // 10 Numerics
         return 9;
-    else if(mtype == PB_PERRIN_BROADENING) // 2 Numerics and 3 Vectors of 6-length
+    else if(isPlanetaryBroadening()) // 2 Numerics and 3 Vectors of 6-length
         return 20;
-    else if(mtype==PB_SD_AIR_VOLUME)
+    else if(isSD_AirBroadening())
         return 8;
     else
         throw std::runtime_error("You are trying to store to a pressure broadening type that is unknown to ARTS.\n");
@@ -1477,8 +1477,8 @@ void PressureBroadeningData::SetDataFromVectorWithKnownType(const Vector & input
                                             input[7],
                                             input[8]);
     }
-    else if(mtype == PB_PERRIN_BROADENING) // 2 Numerics and 3 Vectors of 6-length
-        SetPerrinBroadeningFromCatalog(input[0],
+    else if(mtype == PB_PLANETARY_BROADENING) // 2 Numerics and 3 Vectors of 6-length
+        SetPlanetaryBroadeningFromCatalog(input[0],
                                        input[7],
                                        input[Range(1,6)],
                                        input[Range(8,6)],
@@ -1502,9 +1502,9 @@ void PressureBroadeningData::StorageTag2SetType(const String & input)
         mtype=PB_AIR_BROADENING;
     else if(input == "WA") // Water and Air Broadening
         mtype=PB_AIR_AND_WATER_BROADENING;
-    else if(input == "AP") // Perrin broadening
-        mtype=PB_PERRIN_BROADENING;
-    else if(input == "SD-AIR") // Perrin broadening
+    else if(input == "AP") // Planetary broadening
+        mtype=PB_PLANETARY_BROADENING;
+    else if(input == "SD-AIR") // Planetary broadening
         mtype=PB_SD_AIR_VOLUME;
     else
         throw std::runtime_error("You are trying to set pressure broadening type that is unknown to ARTS.\n");
@@ -1543,7 +1543,7 @@ void PressureBroadeningData::GetVectorFromData(Vector& output) const
         output[7]=mdata[2][1];
         output[8]=mdata[2][2];
     }
-    else if(mtype == PB_PERRIN_BROADENING) // 2 Numerics and 3 Vectors of 6-length
+    else if(mtype == PB_PLANETARY_BROADENING) // 2 Numerics and 3 Vectors of 6-length
     {
         output[0]=mdata[0][0];
         output[7]=mdata[1][0];
@@ -1564,7 +1564,7 @@ String PressureBroadeningData::Type2StorageTag() const
         output = "N2";
     else if(mtype==PB_AIR_AND_WATER_BROADENING) // Water and Air Broadening
         output = "WA";
-    else if(mtype==PB_PERRIN_BROADENING) // Perring broadening
+    else if(mtype==PB_PLANETARY_BROADENING) // Planetary broadening
         output="AP";
     else
         throw std::runtime_error("You are trying to set pressure broadening type that is unknown to ARTS.\n");

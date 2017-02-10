@@ -113,7 +113,7 @@ void LineRecord::ARTSCAT4FromARTSCAT3() {
         }
     }
     
-    mpressurebroadeningdata.SetPerrinBroadeningFromCatalog(mpressurebroadeningdata.Sgam(),
+    mpressurebroadeningdata.SetPlanetaryBroadeningFromCatalog(mpressurebroadeningdata.Sgam(),
                                                            mpressurebroadeningdata.Nself(),
                                                            gamma_foreign,n_foreign,delta_foreign);
     
@@ -2731,7 +2731,7 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
 //      icecream >> mdelta_he;
       
       // Set pressure broadening
-      mpressurebroadeningdata.SetPerrinBroadeningFromCatalog(sgam,nself,gamma_foreign,n_foreign,delta_foreign);
+      mpressurebroadeningdata.SetPlanetaryBroadeningFromCatalog(sgam,nself,gamma_foreign,n_foreign,delta_foreign);
       
       // Remaining entries are the quantum numbers
       getline(icecream, mquantum_numbers_str);

@@ -145,7 +145,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
                           artsg0 , artsg00, &
                           T, Ptot, QT, QT0, mass, &
                           npert, pert, i_pert, p_mass, p_vmr,&
-                          W_rn, dipo, rho) bind(C, name='arts_relmat_interface')
+                          W_rn, dipo, rho) bind(C, name='arts_relmat_interface__hartmann_and_niro_type')
 !--------------------------------------------------------------------------------------------------------------------
 !
 ! This SUBROUTINE is used for computing the following variables:

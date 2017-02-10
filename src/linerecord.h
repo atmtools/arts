@@ -470,22 +470,22 @@ public:
   Numeric G_lower() const { return mglower; }
   
   /** ARTSCAT-4 foreign broadening parameters in <b> Hz/Pa </b>: */
-  Numeric Gamma_foreign(const Index i) const { return mpressurebroadeningdata.PerrinGammaForeign(i); }
+  Numeric Gamma_foreign(const Index i) const { return mpressurebroadeningdata.PlanetaryGammaForeign(i); }
 
     /** ARTSCAT-4 foreign broadening parameters in <b> Hz/Pa </b>: */
-    const Vector Gamma_foreign() const { return mpressurebroadeningdata.PerrinGammaForeign(); }
+    const Vector Gamma_foreign() const { return mpressurebroadeningdata.PlanetaryGammaForeign(); }
     
    /** ARTSCAT-4 foreign temperature exponents (dimensionless): */
-   Numeric N_foreign(const Index i) const { return mpressurebroadeningdata.PerrinNForeign(i); }
+   Numeric N_foreign(const Index i) const { return mpressurebroadeningdata.PlanetaryNForeign(i); }
     
     /** ARTSCAT-4 foreign temperature exponents (dimensionless): */
-    const Vector N_foreign() const { return mpressurebroadeningdata.PerrinNForeign(); }
+    const Vector N_foreign() const { return mpressurebroadeningdata.PlanetaryNForeign(); }
     
    /** ARTSCAT-4 pressure shift parameters in <b> Hz/Pa </b>: */
-   Numeric Delta_foreign(const Index i) const { return mpressurebroadeningdata.PerrinDeltaForeign(i); }
+   Numeric Delta_foreign(const Index i) const { return mpressurebroadeningdata.PlanetaryDeltaForeign(i); }
     
     /** ARTSCAT-4 pressure shift parameters in <b> Hz/Pa </b>: */
-    const Vector Delta_foreign() const { return mpressurebroadeningdata.PerrinDeltaForeign(); }
+    const Vector Delta_foreign() const { return mpressurebroadeningdata.PlanetaryDeltaForeign(); }
 
 //  /** Broadening parameter self in <b> Hz/Pa </b>: */
 //  Numeric Gamma_self() const { return mgamma_self; }
