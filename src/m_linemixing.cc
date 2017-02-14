@@ -359,6 +359,9 @@ void calculate_xsec_from_W( VectorView  xsec,
         const Complex z = (f_grid[iv] -(z_eigs[if0] + psf[if0])) / sigma[if0];
         const Complex w = Faddeeva::w(z);
         xsec[iv] += (equivS0[if0] * w).real() * ls_normfac * s0_freqfac;
+        
+        //const Complex dw_dz = 2 * (z * w - invSqrtPI);
+        
       }
     }
 }
@@ -453,16 +456,28 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                 throw std::runtime_error("Unexpected size of xsec matrix not matching f_grid length.");
     
     // FIXME: the partial derivations are necessary...
-    if( 0!=jacobian_quantities.nelem() )
+    PropmatPartialsData ppd(jacobian_quantities);
+    if( 0 != ppd.nelem() )
       throw std::runtime_error("Presently no support for partial derivation.");
+    // It should support temperature and wind, and maybe even the line mixing parameters as an error vector
     
     const Index nbands = abs_lines_per_band.nelem();
     
     if(write_wmat)
     {
+      if(nps != 1)
+        throw std::runtime_error("Output of secondary data only works for 1 atmospheric level.\n");
+      
       wmats.resize(nbands);
       dipoles.resize(nbands);
       rhos.resize(nbands);
+      for(Index i = 0; i < nbands; i++)
+      {
+        const Index nlines = abs_lines_per_band.nelem();
+        wmats[i].resize(nlines, nlines);
+        dipoles[i].resize(nlines);
+        rhos[i].resize(nlines);
+      }
     }
     
     if(nbands!=abs_species_per_band.nelem())
@@ -732,7 +747,8 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
         Vector f0 = v0;
         f0 *= w2Hz;
         
-        // FIXME:  Or can this loop be parallelized?
+        #pragma omp parallel for                    \
+        if (!arts_omp_in_parallel())
         for(Index ip=0;ip<nps;ip++)
         {
             // Information on the lines will be here after relmat is done
@@ -784,9 +800,10 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                   W.get_c_array(), dipole.get_c_array(), rhoT.get_c_array() );
             
             // Convert to SI-units
-            W *= w2Hz / 2;
-            dipole *= 1.0/100.0; // sqrt(I0_hi2arts / w2Hz) = 1/100;
+            W *= w2Hz / 2.0;
+            dipole /= 100.0; // sqrt(I0_hi2arts / w2Hz) = 1/100;
             
+            // Use the provided pressure shift  NOTE: this might be a bad idea
             Vector psf(nlines);
             for(Index ii = 0; ii < nlines; ii++)
               psf[ii] = delta_air[ii] * abs_p[ip] * pow ((relmat_T0/t),(Numeric)0.25+(Numeric)1.5*n_air[ii]);
@@ -796,24 +813,22 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
               
               // Using Rodrigues etal method
               calculate_xsec_from_W( abs_xsec_per_species[this_species](joker, ip),
-                                    W,
-                                    f0,
-                                    f_grid,
-                                    dipole,
-                                    rhoT,
-                                    psf,
-                                    abs_t[ip],
-                                    mass,
-                                    nlines);
+                                     W,
+                                     f0,
+                                     f_grid,
+                                     dipole,
+                                     rhoT,
+                                     psf,
+                                     abs_t[ip],
+                                     mass,
+                                     nlines);
             }
             else
             {
-              wmats[iband] = W;
-              dipoles[iband] = dipole;
-              rhos[iband] = rhoT;
+              wmats[iband](joker, joker) = W;
+              dipoles[iband][joker] = dipole;
+              rhos[iband][joker] = rhoT;
             }
-            
-            
             
         }
         

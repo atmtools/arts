@@ -1,3 +1,17 @@
+2017-02-14  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-630
+	
+	* 3rdparty/relmat/CMakeLists.txt:  With Oliver's help, parallelizatoin
+	of the line mixing calculations over pressure levels is now possible.
+	
+	* src/m_cloudbox.cc: Changed so that arrays of length 1 also works as the 
+	gridded fields when adding particulates to abs species.
+	
+	* src/m_linemixing.cc: Minor changes.  There will be more here once
+	I have got a clearer idea of how to deal with the jacobian.
+	As before, this is not ready yet.
+
 2017-02-10  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-629

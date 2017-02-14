@@ -938,8 +938,38 @@ void ScatElementsToabs_speciesAdd( //WS Output:
       }
       else
       {
-        xml_read_from_file(pnd_field_files[i],
-                           vmr_field_raw[vmr_field_raw.nelem()-1], verbosity);
+        try
+        {
+          xml_read_from_file(pnd_field_files[i], vmr_field_raw[vmr_field_raw.nelem()-1], verbosity);
+        }
+        catch(...)
+        {
+          ArrayOfGriddedField3 tmp;
+          try
+          {
+            xml_read_from_file(pnd_field_files[i], tmp, verbosity);
+            if(tmp.nelem() == 1)
+            {
+              vmr_field_raw[vmr_field_raw.nelem()-1] = tmp[0];
+            }
+            else 
+            {
+              std::ostringstream os;
+              os << "The file " << pnd_field_files[i] << "\n" <<
+              "is neither GriddedField3 nor a 1-long ArrayOfGriddedField3.\n";
+              throw std::runtime_error(os.str()); 
+            }
+          }
+          catch(...)
+          {
+            std::ostringstream os;
+            os << "The file " << pnd_field_files[i] << " does not exist or\n" <<
+            "its type is neither GriddedField3 nor a 1-long ArrayOfGriddedField3.\n";
+            throw std::runtime_error(os.str());
+            
+          }
+          
+        }
       
         chk_pnd_data(vmr_field_raw[vmr_field_raw.nelem()-1],
                      pnd_field_files[i], atmosphere_dim, verbosity);
