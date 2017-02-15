@@ -71,6 +71,19 @@ void sca_optpropCalc( //Output
                       const Numeric& pfct_threshold,
                       const Verbosity& verbosity );
 
+void surf_optpropCalc( Workspace& ws,
+                       //Output
+                       Tensor5View surf_refl_mat,
+                       Tensor3View surf_emis_vec,
+                       //Input
+                       const Agenda& surface_rtprop_agenda,
+                       ConstVectorView f_grid,
+                       ConstVectorView scat_za_grid, 
+                       ConstVectorView mu_values,
+                       ConstVectorView quad_weights,
+                       const Index& stokes_dim,
+                       const Numeric& surf_alt );
+
 void rt4_test( Tensor4& out_rad,
                const String& datapath,
                const Verbosity& verbosity );
@@ -87,6 +100,9 @@ extern "C" {
                     const char*    ground_type,
                     const Numeric& ground_albedo,
                     const Complex& ground_index,
+                    const Numeric* ground_reflec,
+                    const Numeric* sre_data,
+                    const Numeric* sem_data,
                     const Numeric& sky_temp,
                     const Numeric& wavelength,
                     const Index&   num_layers,
@@ -120,6 +136,11 @@ extern "C" {
                                      Numeric* quad_weights
                                      );
 
+    void planck_function_( const Numeric& temp,
+                           const char* units,
+                           const Numeric& wavelength,
+                           Numeric& planck
+                           );
 }
 
 #endif /* ENABLE_RT4 */

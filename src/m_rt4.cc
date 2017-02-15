@@ -64,7 +64,7 @@ void RT4Calc( Workspace& ws,
                 const Agenda& propmat_clearsky_agenda, 
                 const Agenda& opt_prop_part_agenda,
                 const Agenda& spt_calc_agenda,
-                //const Agenda& iy_main_agenda,
+                const Agenda& surface_rtprop_agenda,
                 const Tensor4& pnd_field,
                 const Tensor3& t_field, 
                 const Tensor3& z_field, 
@@ -76,10 +76,13 @@ void RT4Calc( Workspace& ws,
                 //const Vector& scat_za_grid,
                 const Numeric& surface_skin_t,
                 const Vector& surface_scalar_reflectivity,
+                const Tensor3& surface_reflectivity,
+                const GriddedField3& surface_complex_refr_index,
                 const Index& nstreams,
                 const Index& non_iso_inc,
                 const String& pfct_method,
-                const String& quad_type,
+                const String& groundtype,
+                const String& quadtype,
                 const Index& pfct_aa_grid_size,
                 const Numeric& pfct_threshold,
                 const Numeric& max_delta_tau,
@@ -87,9 +90,6 @@ void RT4Calc( Workspace& ws,
 {
   CREATE_OUT1;
   CREATE_OUT0;
-
-  // NOTE: At the moment, combining scattering elements stored on different
-  //  scattering angle grids is only possible for pfct_method 'interpolate'.
 
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
@@ -113,11 +113,14 @@ void RT4Calc( Workspace& ws,
     throw runtime_error( "The cloudbox must be flagged to have "
                          "passed a consistency check (cloudbox_checked=1)." );
 
+  //chk_not_empty( "surface_rtprop_agenda", surface_rtprop_agenda );
+
   if( pnd_field.ncols() != 1 ) 
     throw runtime_error("*pnd_field* is not 1D! \n" 
                         "RT4 can only be used for 1D!\n" );
 
   Index nhza;
+  const String quad_type = quadtype.toupper();
   if( quad_type=="D" || quad_type=="G" )
     {
       nhza=1;
@@ -153,31 +156,9 @@ void RT4Calc( Workspace& ws,
       throw runtime_error( os.str() );
     }
   Index nhstreams=nstreams/2;
-  // nummu is the total number of angles in one hemisphere, including the
-  // quadrature angles as well as the "extra" angles.
+  // nummu is the total number of angles in one hemisphere, including both
+  // the quadrature angles and the "extra" angles.
   Index nummu=nhstreams+nhza;
-
-  // FIXME: remove/replace the following two tests when other than
-  // ground_type=="L" is implemented.
-  if( surface_scalar_reflectivity.nelem() != f_grid.nelem()  &&  
-      surface_scalar_reflectivity.nelem() != 1 )
-    {
-      ostringstream os;
-      os << "The number of elements in *surface_scalar_reflectivity* should\n"
-         << "match length of *f_grid* or be 1."
-         << "\n length of *f_grid* : " << f_grid.nelem() 
-         << "\n length of *surface_scalar_reflectivity* : " 
-         << surface_scalar_reflectivity.nelem()
-         << "\n";
-      throw runtime_error( os.str() );
-    }
-
-  if( min(surface_scalar_reflectivity) < 0  ||  
-      max(surface_scalar_reflectivity) > 1 )
-    {
-      throw runtime_error( 
-         "All values in *surface_scalar_reflectivity* must be inside [0,1]." );
-    }
 
   // Input variables for RT4
   Index num_layers=p_grid.nelem()-1;
@@ -211,17 +192,6 @@ void RT4Calc( Workspace& ws,
   */
       
   const Index nstokes=stokes_dim;
-
-  // temperature of surface
-  const Numeric ground_temp = surface_skin_t;
-
-  // surface reflection type.
-  //  proprietary RT4 allows (L)ambertian and (F)resnel.
-  //  FIXME: For first, I hardcode that to Lambertian. Implementation of Fresnel
-  //  as well as specular reflection with given reflectivity to be done later.
-  //  For that, review handling of these options in ARTS (yCalc) and do that
-  //  consistently here (e.g. applying agendas...).
-  const String ground_type="L";
 
   // Top of the atmosphere temperature
   //  FIXME: so far hard-coded to cosmic background. However, change that to set
@@ -300,34 +270,158 @@ void RT4Calc( Workspace& ws,
       scat_za_grid[nummu+imu] = 180.-scat_za_grid[imu];
       //cout << "Setting za[" << imu << "]=" << scat_za_grid[imu]
       //     << " and  za[" << nummu+imu << "]=" << scat_za_grid[nummu+imu]
-      //     << " from mu[" << imu << "]=" << mu_values[imu] << "\n";
+      //     << " from mu[" << imu << "]=" << mu_values[imu]
+      //     << " with quadweight w=" << quad_weights[imu] << ".\n";
     }
   scat_aa_grid.resize(1);
   scat_aa_grid[0] = 0.;
 
+  // Preparing surface setup.
+  //
+  const Index nf = f_grid.nelem();
+  Tensor5 surf_refl_mat(nf,nummu,nstokes,nummu,nstokes, 0.);
+  Tensor3 surf_emis_vec(nf,nummu,nstokes, 0.);
+
+  // for now, surface at lowest atm level. later use z_surface or the like
+  // for that.
+  const Numeric surf_altitude = z_field(0,0,0);
+  //const Numeric surf_altitude = z_surface(0,0);
+
+  const String ground_type = groundtype.toupper();
+  Vector ground_albedo(nf, 0.);
+  Tensor3 ground_reflec(nf,stokes_dim,stokes_dim, 0.);
+  Complex gidef(1,0.);
+  ComplexVector ground_index(nf, gidef);
+
+  if (ground_type!="A")
+    {
+      if (surface_skin_t<0. || surface_skin_t>1000.)
+      {
+        ostringstream os;
+        os << "Surface temperature is set to " << surface_skin_t << " K,\n"
+           << "which is not considered a meaningful value.\n"
+           << "For surface methods other than 'A', *surface_skin_t* needs to\n"
+           << "be set and passed explicitly. Maybe you didn't do this?";
+        throw runtime_error( os.str() );
+      }
+    }
+
+  if (ground_type=="L") // Lambertian
+    {
+      // surface albedo
+      if( surface_scalar_reflectivity.nelem() == f_grid.nelem() )
+        ground_albedo = surface_scalar_reflectivity;
+      else if ( surface_scalar_reflectivity.nelem() == 1 )
+        ground_albedo += surface_scalar_reflectivity[0];
+      else
+      {
+        ostringstream os;
+        os << "For Lambertian surface reflection, the number of elements in\n"
+           << "*surface_scalar_reflectivity* needs to match the length of\n"
+           << "*f_grid* or be 1."
+           << "\n length of *f_grid* : " << f_grid.nelem() 
+           << "\n length of *surface_scalar_reflectivity* : " 
+           << surface_scalar_reflectivity.nelem()
+           << "\n";
+        throw runtime_error( os.str() );
+      }
+
+      if( min(surface_scalar_reflectivity) < 0  ||  
+        max(surface_scalar_reflectivity) > 1 )
+      {
+        throw runtime_error( 
+           "All values in *surface_scalar_reflectivity* must be inside [0,1]." );
+      }
+    }
+  else if (ground_type=="S") // Specular
+    {
+       const Index ref_sto = surface_reflectivity.nrows();
+
+       chk_if_in_range( "surface_reflectivity's stokes_dim", ref_sto, 1, 4 );
+       if( ref_sto != surface_reflectivity.ncols() )
+         {
+           ostringstream os;
+           os << "The number of rows and columnss in *surface_reflectivity*\n"
+              << "must match each other.";
+           throw runtime_error( os.str() );
+         }
+      
+      // surface reflectivity
+      if( surface_reflectivity.npages() == f_grid.nelem() )
+        if ( ref_sto < stokes_dim )
+          ground_reflec(joker,Range(0,ref_sto),Range(0,ref_sto)) =
+            surface_reflectivity;
+        else
+          ground_reflec = surface_reflectivity(joker,
+                          Range(0,stokes_dim),Range(0,stokes_dim));
+      else if ( surface_reflectivity.npages() == 1 )
+        if ( ref_sto < stokes_dim )
+          ground_reflec(joker,Range(0,ref_sto),Range(0,ref_sto)) +=
+            surface_reflectivity;
+        else
+          ground_reflec += surface_reflectivity(joker,
+                          Range(0,stokes_dim),Range(0,stokes_dim));
+      else
+      {
+        ostringstream os;
+        os << "For specular surface reflection, the number of elements in\n"
+           << "*surface_reflectivity* needs to match the length of\n"
+           << "*f_grid* or be 1."
+           << "\n length of *f_grid* : " << f_grid.nelem() 
+           << "\n length of *surface_reflectivity* : " 
+           << surface_reflectivity.npages()
+           << "\n";
+        throw runtime_error( os.str() );
+      }
+
+      if( min(surface_reflectivity(joker,0,0)) < 0  ||  
+        max(surface_reflectivity(joker,0,0)) > 1 )
+      {
+        throw runtime_error( 
+           "All r11 values in *surface_reflectivity* must be inside [0,1]." );
+      }
+    }
+  else if (ground_type=="F") // Fresnel
+    {
+      //though complex ref index is typically not smaller than (1.,0.), there
+      //are physically possible exceptions. hence we don't test the values here.
+
+      //extract/interpolate from GriddedField
+      Matrix n_real(nf,1), n_imag(nf,1);
+      complex_n_interp( n_real, n_imag, surface_complex_refr_index,
+                        "surface_complex_refr_index", f_grid, 
+                        Vector(1,surface_skin_t) );
+      //ground_index = Complex(n_real(joker,0),n_imag(joker,0));
+      for (f_index=0; f_index<nf; f_index++)
+      {
+        ground_index[f_index] = Complex(n_real(f_index,0),n_imag(f_index,0));
+        //cout << "set ground_index[f#" << f_index << "] = "
+        //     << ground_index[f_index] << "\n";
+      }
+    }
+  else if (ground_type=="A") // using ARTS' surface_rtprop_agenda
+    surf_optpropCalc( ws, surf_refl_mat, surf_emis_vec,
+                      surface_rtprop_agenda,
+                      f_grid, scat_za_grid, mu_values, 
+                      quad_weights, stokes_dim,
+                      surf_altitude );
+  else
+    {
+      ostringstream os;
+      os << "Unknown surface type.\n";
+      throw runtime_error(os.str());
+    }
+
+
+  
   // Output variables
   Tensor3 up_rad(num_layers+1,nummu,nstokes, 0.);
   Tensor3 down_rad(num_layers+1,nummu,nstokes, 0.);
 
 
   // Loop over frequencies
-  for (f_index = 0; f_index < f_grid.nelem(); f_index ++) 
+  for (f_index = 0; f_index < nf; f_index ++) 
     {
-      // surface albedo
-      //  (used only if surface assumed to be Lambertian)
-      Numeric ground_albedo;
-      if( surface_scalar_reflectivity.nelem()>1 )
-        ground_albedo = surface_scalar_reflectivity[f_index];
-      else
-        ground_albedo = surface_scalar_reflectivity[0];
-
-      // surface refractive index
-      //  (only used in case of Fresnel surface. As Fresnel not yet implemented,
-      //  this is hardcoded as a dummy so far).
-      Complex ground_index;
-      ground_index.real(-1.);
-      ground_index.imag(-1.);
-
       // Wavelength [um]
       Numeric wavelength;
       wavelength = 1e6*SPEED_OF_LIGHT/f_grid[f_index];
@@ -364,10 +458,13 @@ void RT4Calc( Workspace& ws,
                nhza,
                max_delta_tau,
                quad_type.c_str(),
-               ground_temp,
+               surface_skin_t,
                ground_type.c_str(),
-               ground_albedo,
-               ground_index,
+               ground_albedo[f_index],
+               ground_index[f_index],
+               ground_reflec(f_index,joker,joker).get_c_array(),
+               surf_refl_mat(f_index,joker,joker,joker,joker).get_c_array(),
+               surf_emis_vec(f_index,joker,joker).get_c_array(),
                sky_temp,
                wavelength,
                num_layers,
@@ -453,6 +550,7 @@ void RT4Calc( Workspace&,
                 const Agenda&,
                 const Agenda&,
                 const Agenda&,
+                const Agenda&,
                 const Tensor4&,
                 const Tensor3&, 
                 const Tensor3&, 
@@ -461,11 +559,13 @@ void RT4Calc( Workspace&,
                 const ArrayOfArrayOfSingleScatteringData&,
                 const Vector&,
                 const Index&,
-                //const Vector&,
                 const Numeric&,
                 const Vector&,
+                const Tensor3& ,
+                const GriddedField3&,
                 const Index&,
                 const Index&,
+                const String&,
                 const String&,
                 const String&,
                 const Index&,
@@ -602,7 +702,8 @@ void RT4Test( Tensor4& out_rad,
               const String& datapath,
               const Verbosity& verbosity )
 {
-    rt4_test( out_rad, datapath, verbosity );
+    throw runtime_error ("RT¤ interface is under construction, RT4Test hence diabled for now.");
+    //rt4_test( out_rad, datapath, verbosity );
 }
 #else
 void RT4Test( Tensor4&,

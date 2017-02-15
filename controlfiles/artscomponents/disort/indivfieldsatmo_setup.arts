@@ -146,7 +146,7 @@ propmat_clearsky_agenda_checkedCalc
 #---------------------------------------------------------------
 # Set surface reflectivity (=1-emissivity)
 # corresponds to emissivity=0.75
-VectorSetConstant( surface_scalar_reflectivity, 1, 0.25 )
+VectorSetConstant( surface_scalar_reflectivity, 1, 0. )
 
 Copy( surface_rtprop_agenda,
       surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )

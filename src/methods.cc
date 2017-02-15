@@ -2263,22 +2263,24 @@ void define_md_data_raw()
          "addition, for matrices, the 'append dimension' can be selected.\n" 
          "The third argument, *dimension*, indicates how to append, where\n"
          "\"leading\" means to append row-wise, and \"trailing\" means\n"
-         "column-wise. Other types are currently only implemented for\n"
+         "column-wise.\n"
+         "\n"
+         "Other types (TensorX) are currently only implemented for\n"
          "appending to the leading dimension.\n"
          "\n"
          "This method is not implemented for all types, just for those that\n"
-         "were thought to be useful. (See variable list below.).\n"
+         "were thought or found to be useful. (See variable list below.).\n"
          ),
         AUTHORS( "Stefan Buehler, Oliver Lemke" ),
         OUT(),
         GOUT( "out" ),
-        GOUT_TYPE( "Vector, Vector, Matrix, Matrix, Tensor4, String, " +
+        GOUT_TYPE( "Vector, Vector, Matrix, Matrix, Tensor3, Tensor3, Tensor4, String, " +
                    ARRAY_GROUPS + ", " + ARRAY_GROUPS_WITH_BASETYPE ),
         GOUT_DESC( "The variable to append to." ),
         IN(),
         GIN( "in",
              "dimension" ),
-        GIN_TYPE( "Numeric, Vector, Matrix, Vector, Tensor4, String, " +
+        GIN_TYPE( "Numeric, Vector, Matrix, Vector, Matrix, Tensor3, Tensor4, String, " +
                   ARRAY_GROUPS + "," + GROUPS_WITH_ARRAY_TYPE,
                   "String" ),
         GIN_DEFAULT( NODEF,
@@ -8984,7 +8986,7 @@ void define_md_data_raw()
          "\n"
          "The size if the matrix created is n x n. Default is to return a\n"
          "true identity matrix (I), but you can also select another value\n"
-         "along the diagonal be setting *value*. That is, the output is\n"
+         "along the diagonal by setting *value*. That is, the output is\n"
          "value*I.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
@@ -11947,7 +11949,7 @@ void define_md_data_raw()
          "*scat_za_grid* here is NOT an input parameter, but output, and its\n"
          "size equals *nstreams* (Lobatto quadrature) or *nstreams*+2 (Gauss-\n"
          "Legendre and Double Gauss quadratures) (the reason is that the\n"
-         "computational burden her is high for additional angles, regardless\n"
+         "computational burden here is high for additional angles, regardless\n"
          "whether quadrature angles or not; hence the quadrature angles\n"
          "supplemented with 0 and 180deg are considered to provide the best\n"
          "radiation field for a given effort).\n"
@@ -11955,10 +11957,26 @@ void define_md_data_raw()
          "microwave scattering calculations. It is likely insufficient for\n"
          "IR calculations involving ice clouds, though.\n"
          "\n"
+         "Quadrature methods available are: 'L'obatto, 'G'auss-Legendre and\n"
+         "'D'ouble Gauss quadrature.\n"
+         "\n"
+         "The following surface type/property methods are available and\n"
+         "require the the following input:\n"
+         "- 'L'ambertian: *surface_scalar_reflectivity*, *surface_skin_t*\n"
+         "- 'F'resnel: *surface_complex_refr_index*, *surface_skin_t*\n"
+         "- 'S'pecular: *surface_reflectivity*, *surface_skin_t*\n"
+         "- 'A'RTS-defined: *surface_rt_prop_agenda*\n"
+         "'L' and 'F' use proprietary RT4 methods, 'S' uses RT4's Fresnel\n"
+         "methods modified to behave similar to ARTS'\n"
+         "*surfaceFlatReflectivity*, and 'A' applies *surface_rt_prop_agenda*\n"
+         "to derive reflection matrix and surface emission vector to be\n"
+         "directly used by RT4's core solver (instead of their RT4-internal\n"
+         "calculation by the other three methods). 'A' shall be the standard\n"
+         "method; the others exist only for testing purposes.\n"
+         "\n"
          "Known issues of ARTS implementation:\n"
          "- Surface altitude is not an interface parameter. Surface is\n"
          "  implicitly assumed to be at the lowest atmospheric level.\n"
-         "- Only Lambertian surface reflection is implemented so far.\n"
          "- TOA incoming radiation is so far assumed as blackbody cosmic\n"
          "  background (temperature taken from the ARTS-internal constant).\n"
          "- *pfct_method* 'interpolate' currently not implemented here.\n"
@@ -11985,32 +12003,38 @@ void define_md_data_raw()
             "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
             "cloudbox_on", "cloudbox_limits",
             "propmat_clearsky_agenda",
-            "opt_prop_part_agenda", "spt_calc_agenda", //"iy_main_agenda",
+            "opt_prop_part_agenda", "spt_calc_agenda", "surface_rtprop_agenda",
             "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
             "scat_data", "f_grid", "stokes_dim",
-            "surface_skin_t", "surface_scalar_reflectivity" ),
-        GIN(         "nstreams", "non_iso_inc", "pfct_method", "quad_type",
+            "surface_skin_t", "surface_scalar_reflectivity",
+            "surface_reflectivity", "surface_complex_refr_index" ),
+        GIN(         "nstreams", "non_iso_inc", "pfct_method",
+                     "ground_type", "quad_type",
                      "pfct_aa_grid_size", "pfct_threshold", "max_delta_tau" ),
-        GIN_TYPE(    "Index",    "Index",       "String",      "String",
+        GIN_TYPE(    "Index",    "Index",       "String",
+                     "String",      "String",
                      "Index",             "Numeric",        "Numeric" ),
-        GIN_DEFAULT( "16",        "0",           "median",      "D",
+        GIN_DEFAULT( "16",       "0",           "median",
+                     "A",           "D",
                      "19",                "5e-2",           "1e-6" ),
-        GIN_DESC( "Number of polar angle directions (streams) in DISORT "
-                  "solution (must be an even number).",
-                  "Flag whether to run DISORT initialized with non-isotropic "
-                  "TOA field. See above for more info.",
+        GIN_DESC( "Number of polar angle directions (streams) in RT4"
+                  " solution (must be an even number).",
+                  "Flag whether to run RT4 initialized with non-isotropic"
+                  " TOA field. See above for more info.",
                   "Flag which method to apply to derive phase function (for"
-                  "available options see above).",
+                  " available options see above).",
+                  "Flag which surface type/surface property method to use"
+                  " (for available options see above).",
                   "Flag which quadrature to apply in RT4 solution (for"
-                  "available options see above).",
-                  "Number of azimuthal angle grid points to consider in "
-                  "Fourier series decomposition of scattering matrix (only "
-                  "applied for randomly oriented scattering elements)",
-                  "Phase function accuracy threshold (actually, a scattering "
-                  "albedo threshold; equivalent to scat_dataCheck's "
-                  "sca_mat_threshold).",
+                  " available options see above).",
+                  "Number of azimuthal angle grid points to consider in"
+                  " Fourier series decomposition of scattering matrix (only"
+                  " applied for randomly oriented scattering elements)",
+                  "Phase function accuracy threshold (actually, a scattering"
+                  " albedo threshold; equivalent to *scat_dataCheck*'s"
+                  " sca_mat_threshold).",
                   "Maximum optical depth of infinitesimal layer (where single"
-                  "scattering approximation is assumed to apply)." )
+                  " scattering approximation is assumed to apply)." )
         ));
 
   md_data_raw.push_back
@@ -13816,7 +13840,7 @@ void define_md_data_raw()
         "ranges. For example, a *za_pos* of 0.7 (np still 9) gives the angles\n"
         "7, 17, ..., 87.\n"
         "\n"
-        "Only upper-left diagonal element of the *surface_rmatrix*-es is\n"
+        "Only upper-left diagonal element of the *surface_rmatrix* is\n"
         "non-zero. That is, the upwelling radiation is always unpolarised.\n"
         "\n"
         "Local thermodynamic equilibrium is assumed, which corresponds to\n"
@@ -13855,17 +13879,17 @@ void define_md_data_raw()
          "testing or as starting point for more advanced methods.\n"
          "\n"
          "This method assumes that the surface can be treated to have three facets,\n"
-         "all lacking surface roughness. One facete is assumed to give standard\n"
+         "all lacking surface roughness. One facet is assumed to give standard\n"
          "specular reflection, while the two other facets are tilted with +dza\n"
          "and -dza, respectively. The tilt is assumed to only affect the zenith\n"
          "angle of the reflected direction (azimuth same as for specular direction).\n"
-         "The area ratio of the non-tilted facete is set by *specular_factor*.\n"
+         "The area ratio of the non-tilted facet is set by *specular_factor*.\n"
          "That is, the specular beam is given weight w, while the other two beams\n"
          "each get weight (1-w)/2.\n"
          "\n"         
-         "If the facete tilting away from the viewing direction in such way that\n"
-         "the surface is observed from below, the tilt of the facete is decreased\n" 
-         "in steps of 1 degree until a succesful calculation is obtained. If this\n"
+         "If a facet tilts away from the viewing direction in such way that\n"
+         "the surface is observed from below, the tilt of the facet is decreased\n" 
+         "in steps of 1 degree until a successful calculation is obtained. If this\n"
          "turns out to require a tilt of zero, this facete is merged with\n"
          "the specular direction.\n"
          "\n"
@@ -14493,7 +14517,13 @@ void define_md_data_raw()
     ( NAME( "TestScatDataInterp" ),
         DESCRIPTION
         (
-         "Tests single scattering data extractionSo far just for some testing.\n"
+         "Tests single scattering data extraction.\n"
+         "\n"
+         "ARTS' different scattering solvers apply different methods for\n"
+         "extraction/final preparation of single scattering data. These are\n"
+         "tested here against each other.\n"
+         "\n"
+         "Method so far is solely for internal testing.\n"
          ),
         AUTHORS( "Patrick Eriksson, Jana Mendrok" ),
         OUT(),
@@ -14508,7 +14538,7 @@ void define_md_data_raw()
         GIN_DESC( "(Flat) Index of scattering element to test.",
                   "Flag whether to perform *Compare* on the extracted single"
                   " scattering data. Compare is run on DOIT data if =1, on RT4"
-                  " if =2 and on both if =3.",
+                  " if =2 and on both if =3. No *Compare* is done if <1.",
                   "Index of (incidence) zenith angle for which to print out"
                   " specific info (none if index<0). Grid is internally"
                   " hardcoded (0 to 180deg in 5deg steps).",

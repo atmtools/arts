@@ -31,7 +31,7 @@ AgendaSet( surface_rtprop_agenda__Blackbody_SurfTFromt_surface ){
   Ignore( rtp_los )
   InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )
   surfaceBlackbody
-} 
+}
 
 # - surface skin temperature interpolated from atmospheric t_field
 #
@@ -40,7 +40,7 @@ AgendaSet( surface_rtprop_agenda__Blackbody_SurfTFromt_field ){
   Ignore( rtp_los )
   InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
   surfaceBlackbody
-} 
+}
 
 
 #####
@@ -55,7 +55,7 @@ AgendaSet( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface ){
   specular_losCalc
   InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )
   surfaceFlatScalarReflectivity
-} 
+}
 
 # - preset surface reflectivity
 # - surface skin temperature interpolated from atmospheric t_field
@@ -73,6 +73,16 @@ AgendaSet( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_field ){
 # specular reflecting surfaces (considering polarization)
 #####
 
+# - preset surface reflectivity
+# - surface skin temperature interpolated from t_surface
+#
+AgendaCreate( surface_rtprop_agenda__Specular_WithPol_ReflFix_SurfTFromt_surface )
+AgendaSet( surface_rtprop_agenda__Specular_WithPol_ReflFix_SurfTFromt_surface ){
+  specular_losCalc
+  InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )
+  surfaceFlatReflectivity
+}
+
 
 
 #####
@@ -81,25 +91,27 @@ AgendaSet( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_field ){
 
 # - preset surface reflectivity
 # - surface skin temperature interpolated from t_surface
-# - user set number of angles, the scattering function will be evaluated on
+# - surface normal derived via specular_losCalc (when set manually, specular_losCalc can be removed here)
+# - default number of angles, the scattering function will be evaluated on
 #
 AgendaCreate( surface_rtprop_agenda__lambertian_ReflFix_SurfTFromt_surface )
 AgendaSet( surface_rtprop_agenda__lambertian_ReflFix_SurfTFromt_surface ){
   InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )
   specular_losCalc
   surfaceLambertianSimple
-} 
+}
 
 # - preset surface reflectivity
 # - surface skin temperature interpolated from atmospheric t_field
-# - user set number of angles, the scattering function will be evaluated on
+# - surface normal derived via specular_losCalc (when set manually, specular_losCalc can be removed here)
+# - default number of angles, the scattering function will be evaluated on
 #
 AgendaCreate( surface_rtprop_agenda__lambertian_ReflFix_SurfTFromt_field )
 AgendaSet( surface_rtprop_agenda__lambertian_ReflFix_SurfTFromt_field ){
   InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
   specular_losCalc
   surfaceLambertianSimple
-} 
+}
 
 
 }

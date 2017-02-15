@@ -53,10 +53,6 @@ INCLUDE "indivfieldsatmo_setup.arts"
 
 
 
-# Emission and reflection properties: Blackbody surface
-VectorSet( surface_scalar_reflectivity, [0.] )
-
-
 # Set surface skin temperature based on t_field
 Extract( t_surface, t_field, 0 )
 VectorCreate( tskin_vector )

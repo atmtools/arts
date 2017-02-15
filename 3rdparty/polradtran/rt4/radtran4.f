@@ -1,3 +1,11 @@
+C        This is a RT4 version modified for use with ARTS.
+C    Specifically, it is strongly modified reagrding surface property
+C    input. Here, the surface reflection matrix and radiance terms are
+C    not calculated internally anymore, but set from interface variables
+C    corresponding to GND_RADIANCE and the (non-zero) surface part of
+C    REFLECT, which have to be prepared externally (eg by ARTS' own
+C    surface property methods.
+C
 C        RADTRANO solves the plane-parallel polarized radiative transfer
 C    equation for an inhomogenous atmosphere with particles oriented 
 C    in zenith angle but randomly oriented in azimuth (azimuthal symmetry).
@@ -36,8 +44,12 @@ C                                    angles and rest is zero.
 C  GROUND_TEMP       REAL          Ground surface temperature in Kelvin
 C  GROUND_TYPE       CHAR*1        Type of ground surface:
 C                                    L for Lambertian, F for Fresnel.
+C                                    S for Specular, A for ARTS-determined.
 C  GROUND_ALBEDO     REAL          Albedo of Lambertian surface
 C  GROUND_INDEX      COMPLEX       Index of refraction of Fresnel surface
+C  GROUND_REFLEC     REAL array    Surface reflectivity of Specular surface
+C  SURF_REFLECT      REAL array    Surface reflection matrix.
+C  GND_RADIANCE      REAL array    Surface emission vector.
 C  SKY_TEMP          REAL          Temperature of blackbody radiation
 C                                    incident on atmosphere from above
 C  WAVELENGTH        REAL          Wavelength of radiation in microns.
@@ -48,11 +60,13 @@ C                                    Units are inverse of units of extinction
 C                                    and scattering, e.g. km.
 C  TEMPERATURES      REAL array    Temperature (Kelvins) of layer interfaces
 C  GAS_EXTINCT       REAL array    Gaseous (nonscattering) extinction of layers
-C                                    For processes not in scattering file
-C  SCAT_FILES        CHAR*64 array Names of oriented scattering files for layers
-C                                    String format 'PLATE.DDA', for no
-C                                    scattering use ' '.  See below for
-C                                    format of scattering file.
+C                                    For processes not in scattering data
+C
+C  NSL               INTEGER       TBD. Scatt related data.
+C  SCATLAYERS        REAL array
+C  EXTINCT_MATRIX    REAL array
+C  EMIS_VECTOR       REAL array
+C  SCATTER_MATRIX    REAL array
 C
 C  NOUTLEVELS        INTEGER       Number of output levels
 C  OUTLEVELS         INTEGER       The levels numbers to output at,
@@ -122,6 +136,8 @@ C  integration over azimuth and zenith angles.
       SUBROUTINE RADTRANO (NSTOKES, NUMMU, NUUMMU, MAX_DELTA_TAU,
      .               QUAD_TYPE, GROUND_TEMP, GROUND_TYPE,
      .               GROUND_ALBEDO, GROUND_INDEX,
+     .               GROUND_REFLEC,
+     .               SURF_REFLECT, GND_RADIANCE,
      .               SKY_TEMP, WAVELENGTH,
      .               NUM_LAYERS, HEIGHT, TEMPERATURES,
 c     .               GAS_EXTINCT, SCAT_FILES,
@@ -135,6 +151,7 @@ c     .               MU_VALUES, UP_FLUX, DOWN_FLUX,
       INTEGER   NSTOKES, NUMMU, NUM_LAYERS, NSL
 c      INTEGER   NOUTLEVELS, OUTLEVELS(NOUTLEVELS)
       REAL*8    GROUND_TEMP, GROUND_ALBEDO
+      REAL*8    GROUND_REFLEC(NSTOKES,NSTOKES)
       COMPLEX*16  GROUND_INDEX
       REAL*8    SKY_TEMP
       REAL*8    WAVELENGTH, MAX_DELTA_TAU
@@ -147,6 +164,8 @@ c      REAL*8    DOWN_FLUX(NSTOKES*NUM_LAYERS+1)
       REAL*8    DOWN_RAD(NSTOKES*NUMMU*NUM_LAYERS+1)
       CHARACTER*1  QUAD_TYPE, GROUND_TYPE
 c      CHARACTER*64 SCAT_FILES(*)
+      REAL*8    SURF_REFLECT(NSTOKES,NUMMU,NSTOKES,NUMMU)
+      REAL*8    GND_RADIANCE(NSTOKES,NUMMU)
       REAL*8    SCATLAYERS(NUM_LAYERS)
       REAL*8    EXTINCT_MATRIX(NSTOKES,NSTOKES,NUMMU,2,NSL)
       REAL*8    EMIS_VECTOR(NSTOKES,NUMMU,2,NSL)
@@ -175,11 +194,11 @@ c      REAL*8    EXTINCT_MATRIX(16*2*MAXV), EMIS_VECTOR(4*2*MAXV)
       REAL*8    REFLECT(2*MAXLM)
       REAL*8    TRANS(2*MAXLM)
       REAL*8    SOURCE(2*MAXV*(MAXLAY+1))
-      REAL*8    GND_RADIANCE(MAXV), SKY_RADIANCE(2*MAXV)
+c      REAL*8    GND_RADIANCE(MAXV), SKY_RADIANCE(2*MAXV)
+      REAL*8    SKY_RADIANCE(2*MAXV)
 c      CHARACTER*64 SCAT_FILE
 
 
-c      WRITE(*,'(2(A,I3))') 'NUMMU=',NUMMU,' NUUMMU=',NUUMMU
 c     this is dangerous to do, as we use nstokes also as array-size
 c     determining parameter. resetting it will cause problems later on
 c     shaping the arrays and correct value extraction. so, don't do
@@ -339,17 +358,36 @@ C               For a Fresnel surface
      .                        REFLECT(KRT), TRANS(KRT), SOURCE(KS))
 C                The radiance from the ground is thermal
         CALL FRESNEL_RADIANCE (NSTOKES, NUMMU,
-     .                  MU_VALUES, GROUND_INDEX, GROUND_TEMP,
-     .                  WAVELENGTH, GND_RADIANCE)
-      ELSE
+     .                         MU_VALUES, GROUND_INDEX, GROUND_TEMP,
+     .                         WAVELENGTH,
+     .                         GND_RADIANCE)
+      ELSE IF (GROUND_TYPE .EQ. 'L') THEN
 C               For a Lambertian surface
         CALL LAMBERT_SURFACE (NSTOKES, NUMMU, 0,
-     .                       MU_VALUES, QUAD_WEIGHTS, GROUND_ALBEDO,
-     .                       REFLECT(KRT), TRANS(KRT), SOURCE(KS))
+     .                        MU_VALUES, QUAD_WEIGHTS, GROUND_ALBEDO,
+     .                        REFLECT(KRT), TRANS(KRT), SOURCE(KS))
 C                The radiance from the ground is thermal and reflected direct
         CALL LAMBERT_RADIANCE (NSTOKES, NUMMU, 
-     .         GROUND_ALBEDO, GROUND_TEMP, WAVELENGTH, GND_RADIANCE)
+     .                         GROUND_ALBEDO, GROUND_TEMP, WAVELENGTH,
+     .                         GND_RADIANCE)
+      ELSE IF (GROUND_TYPE .EQ. 'S') THEN
+C               For a Specular surface
+        CALL SPECULAR_SURFACE (NSTOKES, NUMMU,
+     .                         GROUND_REFLEC,
+     .                         REFLECT(KRT), TRANS(KRT), SOURCE(KS))
+C                The radiance from the ground is thermal and reflected direct
+        CALL SPECULAR_RADIANCE (NSTOKES, NUMMU, 
+     .                          GROUND_REFLEC, GROUND_TEMP, WAVELENGTH,
+     .                          GND_RADIANCE)
+      ELSE
+C                Setting reflection from external data (emitted radiance
+C                is already in correct place)
+         CALL EXTERNAL_SURFACE (NSTOKES, NUMMU, SURF_REFLECT,
+     .                          GND_RADIANCE,
+     .                          REFLECT(KRT), TRANS(KRT), SOURCE(KS))
       ENDIF
+c      CALL PRINTOUT ( GROUND_TYPE, NSTOKES, NUMMU,
+c     .                REFLECT(KRT), GND_RADIANCE )
 
 C           Assume the radiation coming from above is blackbody radiation
       CALL THERMAL_RADIANCE (NSTOKES, NUMMU, SKY_TEMP, ZERO,  

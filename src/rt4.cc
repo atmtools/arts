@@ -34,9 +34,12 @@
 
 #ifdef ENABLE_RT4
 
+#include <cfloat>
 #include <stdexcept>
 #include <complex.h>
+#include "interpolation.h"
 #include "m_xml.h"
+#include "physics_funcs.h"
 #include "optproperties.h"
 #include "rt4.h"
 #include "rte.h"
@@ -45,6 +48,8 @@ using std::ostringstream;
 using std::runtime_error;
 
 extern const Numeric PI;
+extern const Numeric DEG2RAD;
+extern const Numeric SPEED_OF_LIGHT;
 
 //! gas_optpropCalc
 /*!
@@ -76,7 +81,7 @@ void gas_optpropCalc( Workspace& ws,
 
   const Index Np = p_grid.nelem();
 
-  assert( gas_extinct.nelem() == Np-1);
+  assert( gas_extinct.nelem() == Np-1 );
 
 
   // Local variables to be used in agendas
@@ -167,8 +172,8 @@ void par_optpropCalc( Workspace& ws,
   const Index N_se = pnd_field.nbooks();
   const Index Np_cloud = pnd_field.npages();
 
-  assert( emis_vector.nbooks() == Np_cloud-1);
-  assert( extinct_matrix.nshelves() == Np_cloud-1);
+  assert( emis_vector.nbooks() == Np_cloud-1 );
+  assert( extinct_matrix.nshelves() == Np_cloud-1 );
 
   // Local variables to be used in agendas
   Matrix abs_vec_spt_local(N_se, stokes_dim, 0.);
@@ -381,8 +386,8 @@ void sca_optpropCalc( //Output
               Tensor4 pha_mat_int(nza_se,nza_se,stokes_dim,stokes_dim, 0.);
               ConstVectorView za_datagrid = ssd.za_grid;
               ConstVectorView aa_datagrid = ssd.aa_grid;
-              assert(aa_datagrid[0]==0.);
-              assert(aa_datagrid[naa_se-1]==180.);
+              assert( aa_datagrid[0]==0. );
+              assert( aa_datagrid[naa_se-1]==180. );
 
               // first, extracting the phase matrix at the scatt elements own
               // polar angle grid, deriving their respective azimuthal (Fourier
@@ -489,7 +494,7 @@ void sca_optpropCalc( //Output
               Numeric ext_nom = extinct_matrix(scat_p_index_local,ih,iza,0,0);
               Numeric sca_nom = ext_nom-emis_vector(scat_p_index_local,ih,iza,0);
               Numeric w0_nom = sca_nom/ext_nom;
-              assert(w0_nom>=0.);
+              assert( w0_nom>=0. );
 
               for (Index sza=0; sza<nummu; sza++)
               {
@@ -544,6 +549,274 @@ void sca_optpropCalc( //Output
               scatter_matrix(scat_p_index_local,ih+2,iza,joker,joker,joker) /=
                 pfct_norm;
             }
+    }
+}
+
+
+//! surf_optpropCalc
+/*!
+  Calculates bidirectional surface reflection matrices and emission direction
+  dependent surface emission terms as required as input for the RT4 subroutine.
+
+  \param surf_refl_mat         Bidirectional surface reflection matrices on RT4 stream directions.
+  \param surf_emis_vec         Directional surface emission vector on RT4 stream directions.
+  \param extinct_matrix        Layer averaged particle extinction for all particle layers
+  \param scat_data_mono        as the WSV
+  \param pnd_field             as the WSV
+  \param stokes_dim            as the WSV
+  \param scat_za_grid          as the WSV
+  \param quad_weights          Quadrature weights associated with scat_za_grid 
+  \param pfct_method           Method for scattering matrix temperature dependance handling
+  \param pfct_aa_grid_size     Number of azimuthal grid points in Fourier series decomposition of randomly oriented particles
+  
+  \author Jana Mendrok
+  \date   2017-02-09
+*/
+void surf_optpropCalc( Workspace& ws,
+                       //Output
+                       Tensor5View surf_refl_mat,
+                       Tensor3View surf_emis_vec,
+                       //Input
+                       const Agenda& surface_rtprop_agenda,
+                       ConstVectorView f_grid,
+                       ConstVectorView scat_za_grid,
+                       ConstVectorView mu_values,
+                       ConstVectorView quad_weights,
+                       const Index& stokes_dim,
+                       const Numeric& surf_alt )
+{
+  // While proprietary RT4 - from the input/user control side - handles only
+  // Lambertian and Fresnel, the Doubling&Adding solver core applies a surface
+  // reflection matrix and a surface radiance term. The reflection matrix is
+  // dependent on incident and reflection direction, ie forms a discrete
+  // representation of the bidirectional reflection function; the radiance term
+  // is dependent on outgoing polar angle. That is, the solver core can
+  // basically handle ANY kind of surface reflection type.
+  // 
+  // Here, we replace RT4's proprietary surface reflection and radiance term
+  // calculation and use ARTS' surface_rtprop_agenda instead to set these
+  // variables up.
+  // That is, ARTS-RT4 is set up such that it can handle all surface reflection
+  // types that ARTS itself can handle.
+  // What is required here, is to derive the reflection matrix over all incident
+  // and reflected polar angle directions. The surface_rtprop_agenda handles one
+  // reflected direction at a time (rtp_los); it is sufficient here to simply
+  // loop over all reflected angles as given by the stream directions. However,
+  // the incident directions (surface_los) provided by surface_rtprop_agenda
+  // depends on the specific, user-defined setup of the agenda. Out of what the
+  // agenda call provides, we have to derive the reflection matrix entries for
+  // the incident directions as defined by the RT4 stream directions. To be
+  // completely general (handling everything from specular via semi-specular to
+  // Lambertian) is a bit tricky. Here we decided to allow the ARTS-standard
+  // 0.5-grid-spacing extrapolation and set everything outside that range to
+  // zero.
+  //
+  // We do all frequencies here at once (assuming this is the faster variant as
+  // the agenda anyway (can) provide output for full f_grid at once and as we
+  // have to apply the same inter/extrapolation to all the frequencies).
+  //
+  // FIXME: Make sure that normalization (energy conservation in the form of
+  // power reflection coefficient conservation) is given.
+  // FIXME: Allow surface to be elsewhere than at lowest atm level (this
+  // requires changes in the surface setting part and more extensive ones in the
+  // atmospheric optical property prep part within the frequency loop further
+  // below).
+
+  chk_not_empty( "surface_rtprop_agenda", surface_rtprop_agenda );
+  
+  const Index nf = f_grid.nelem();
+  const Index nummu = scat_za_grid.nelem()/2;
+  const String B_unit = "R";
+
+  // Local input of surface_rtprop_agenda.
+  Vector rtp_pos(1, surf_alt); //atmosphere_dim is 1
+
+  for (Index rmu=0; rmu<nummu; rmu++)
+    {
+      // Local output of surface_rtprop_agenda.
+      Numeric   surface_skin_t;
+      Matrix    surface_los;
+      Tensor4   surface_rmatrix;
+      Matrix    surface_emission;
+
+      // rtp_los is reflected direction, ie upwelling direction, which is >90deg
+      // in ARTS. scat_za_grid is sorted here as downwelling (90->0) in 1st
+      // half, upwelling (90->180) in second half. that is, here we have to take
+      // the second half grid or, alternatively, use 180deg-za[imu].
+      Vector rtp_los(1, scat_za_grid[nummu+rmu]);
+      //cout << "Doing reflected dir #" << rmu << " at " << rtp_los[0] << " degs\n";
+
+      surface_rtprop_agendaExecute( ws,
+                                    surface_skin_t, surface_emission,
+                                    surface_los, surface_rmatrix,
+                                    f_grid, rtp_pos, rtp_los,
+                                    surface_rtprop_agenda );
+      Index nsl = surface_los.nrows();
+      //cout << "surf_los has " << surface_los.ncols() << " columns and "
+      //     << nsl << " rows.\n";
+      assert( surface_los.ncols()==1 || nsl==0 );
+
+      // ARTS' surface_emission is equivalent to RT4's gnd_radiance (here:
+      // surf_emis_vec) except for ARTS using Planck in terms of frequency,
+      // while RT4 uses it in terms of wavelengths.
+      // To derive gnd_radiance, we can either use ARTS surface_emission and
+      // rescale it by B_lambda(surface_skin_t)/B_freq(surface_skin_t). Or we
+      // can create it from surface_rmatrix and B_lambda(surface_skin_t). The
+      // latter is more direct regarding use of B(T), but is requires
+      // (re-)deriving diffuse reflectivity stokes components (which should be
+      // the sum of the incident polar angle dependent reflectivities. so, that
+      // might ensure better consistency. but then we should calculate
+      // gnd_radiance only after surface_los to scat_za_grid conversion of the
+      // reflection matrix). For now, we use the rescaling approach.
+      for (Index f_index=0; f_index<nf; f_index++)
+        {
+          Numeric freq = f_grid[f_index];
+          Numeric B_freq = planck(freq,surface_skin_t);
+          Numeric B_lambda;
+          Numeric wave = 1e6*SPEED_OF_LIGHT/freq;
+          planck_function_( surface_skin_t, B_unit.c_str(), wave, B_lambda );
+          Numeric B_ratio = B_lambda / B_freq;
+          surf_emis_vec(f_index,rmu,joker) = surface_emission(f_index,joker);
+          surf_emis_vec(f_index,rmu,joker) *= B_ratio;
+        }
+                                           
+
+      // now we have to properly fill the RT4 stream directions in incident
+      // angle dimension of the reflection matrix for RT4 with the agenda
+      // output, which is given on/limited to surface_los. Only values inside
+      // the (default) extrapolation range are filled; the rest is left as 0.
+      // we do this for each incident stream separately as we need to check them
+      // separately whether they are within allowed inter/extrapolation range
+      // (ARTS can't do this for all elements of a vector at once. it will fail
+      // for the whole vector if there's a single value outside.).
+
+      // as we are rescaling surface_rmatrix within here, we need to keep its
+      // original normalization for later renormalization. Create the container
+      // here, fill in below.
+      Vector R_arts(f_grid.nelem(),0.);
+
+      if (nsl>1) // non-blackbody, non-specular reflection
+        {
+          for (Index f_index=0; f_index<nf; f_index++)
+            R_arts[f_index] = surface_rmatrix(joker,f_index,0,0).sum();
+
+          // Determine angle range weights in surface_rmatrix and de-scale
+          // surface_rmatrix with those.
+          Vector surf_int_grid(nsl+1);
+          surf_int_grid[0] =
+            surface_los(0,0)-0.5*(surface_los(1,0)-surface_los(0,0));
+          surf_int_grid[nsl] =
+            surface_los(nsl-1,0)+0.5*(surface_los(nsl-1,0)-surface_los(nsl-2,0));
+          for (Index imu=1; imu<nsl; imu++)
+            surf_int_grid[imu] = 0.5*(surface_los(imu-1,0)+surface_los(imu,0));
+          surf_int_grid *= DEG2RAD;
+          for (Index imu=0; imu<nsl; imu++)
+            {
+              //Numeric coslow = cos(2.*surf_int_grid[imu]);
+              //Numeric coshigh = cos(2.*surf_int_grid[imu+1]);
+              //Numeric w = 0.5*(coslow-coshigh);
+              Numeric w = 0.5*(cos(2.*surf_int_grid[imu])-cos(2.*surf_int_grid[imu+1]));
+              //cout << "at surf_los[" << imu << "]=" << surface_los(imu,0) << ":\n";
+              //cout << "  angle weight derives as w = 0.5*(" << coslow << "-"
+              //     << coshigh << ") = " << w << "\n";
+              //cout << "  de-scaling with w from rmat="
+              //     << surface_rmatrix(imu,0,0,0);
+              surface_rmatrix(imu,joker,joker,joker) /= w;
+              //cout << " to " << surface_rmatrix(imu,0,0,0) << "\n";
+            }
+
+
+          // Testing: interpolation in cos(za)
+          //Vector mu_surf_los(nsl);
+          //for (Index imu=0; imu<nsl; imu++)
+          //  mu_surf_los[imu] = cos(surface_los(imu,0)*DEG2RAD);
+
+          for (Index imu=0; imu<nummu; imu++)
+          {
+            //cout << "Doing incident dir #" <<imu << " at " << scat_za_grid[imu] << " degs\n";
+            try
+              {
+                GridPos gp_za;
+                gridpos( gp_za, surface_los(joker,0), scat_za_grid[imu] );
+                // Testing: interpolation in cos(za)
+                //gridpos( gp_za, mu_surf_los, mu_values[imu] );
+                Vector itw(2);
+                interpweights( itw, gp_za );
+
+
+                // now apply the interpolation weights. since we're not in
+                // python, we can't do the whole tensor at once, but need to
+                // loop over the dimensions.
+                for (Index f_index=0; f_index<nf; f_index++)
+                  for (Index sto1=0; sto1<stokes_dim; sto1++)
+                    for (Index sto2=0; sto2<stokes_dim; sto2++)
+                      surf_refl_mat(f_index,imu,sto2,rmu,sto1) =
+                        interp( itw, surface_rmatrix(joker,f_index,sto1,sto2), gp_za );
+                // Apply new angle range weights - as this is for RT4, we apply
+                // the actual RT4 angle (aka quadrature) weights:
+                //cout << "  rescaling with quad weight w=" << quad_weights[imu]
+                //     << " from " << surf_refl_mat(0,imu,0,rmu,0);
+                surf_refl_mat(joker,imu,joker,rmu,joker) *=
+                  (quad_weights[imu]*mu_values[imu]);
+                //cout << " to " << surf_refl_mat(0,imu,0,rmu,0) << "\n";
+              }
+            catch( runtime_error e ) 
+              { 
+                // nothing to do here. we just leave the reflection matrix
+                // entry at the 0.0 it was initialized with.
+              }
+          }
+        }
+      else if (nsl>0) // specular reflection
+                      // no interpolation, no angle weight rescaling,
+                      // just setting diagonal elements of surf_refl_mat.
+        {
+          for (Index f_index=0; f_index<nf; f_index++)
+            R_arts[f_index] = surface_rmatrix(joker,f_index,0,0).sum();
+
+          // surface_los angle should be identical to
+          // 180. - (rtp_los=scat_za_grid[nummu+rmu]=180.-scat_za_grid[rmu])
+          // = scat_za_grid[rmu].
+          // check that, and if so, sort values into refmat(rmu,rmu).
+          assert(is_same_within_epsilon(surface_los(0,0),scat_za_grid[rmu],1e-12));
+          for (Index f_index=0; f_index<nf; f_index++)
+            for (Index sto1=0; sto1<stokes_dim; sto1++)
+              for (Index sto2=0; sto2<stokes_dim; sto2++)
+                surf_refl_mat(f_index,rmu,sto2,rmu,sto1) =
+                  surface_rmatrix(0,f_index,sto1,sto2);
+
+        }
+      //else {} // explicit blackbody
+                // all surf_refl_mat elements to remain at 0., ie nothing to do.
+
+      //eventually make sure the scaling of surf_refl_mat is correct
+      for (Index f_index=0; f_index<nf; f_index++)
+      {
+        Numeric R_scale = 1.;
+        Numeric R_rt4 = surf_refl_mat(f_index,joker,0,rmu,0).sum();
+        if ( R_rt4==0. )
+          {
+            if ( R_arts[f_index]!=0. )
+              {
+                ostringstream os;
+                os << "Something went wrong.\n"
+                   << "At reflected stream #" << rmu
+                   << ", power reflection coefficient for RT4\n"
+                   << "became 0, although the one from surface_rtprop_agenda is "
+                   << R_arts << ".\n";
+                throw runtime_error(os.str());
+              }
+          }
+        else
+          {
+            R_scale = R_arts[f_index]/R_rt4;
+            surf_refl_mat(f_index,joker,joker,rmu,joker) *= R_scale;
+          }
+        Numeric R_rert4 = surf_refl_mat(f_index,joker,0,rmu,0).sum();
+        //cout << "at f#" << f_index << " R_arts=" << R_arts[f_index]
+        //     << ", R_rt4=" << R_rt4 << ", R_scale=" << R_scale
+        //     << ", rescaled R_rt4=" << R_rert4 << "\n";
+      }
     }
 }
 
@@ -634,6 +907,8 @@ void rt4_test( Tensor4& out_rad,
     Tensor3 up_rad(num_layers+1,nummu,nstokes, 0.);
     Tensor3 down_rad(num_layers+1,nummu,nstokes, 0.);
 
+    // FIXME: this call needs adaptation (or throw it away...)
+    /*
     radtrano_( nstokes,
                nummu,
                nuummu,
@@ -660,6 +935,7 @@ void rt4_test( Tensor4& out_rad,
                up_rad.get_c_array(),
                down_rad.get_c_array()
              );
+     */
 
     //so far, output is in
     //    units W/m^2 um sr

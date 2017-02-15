@@ -50,6 +50,7 @@
 #include "messages.h"
 #include "optproperties.h"
 #include "xml_io.h"
+
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric PI;

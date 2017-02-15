@@ -5067,7 +5067,7 @@ void Workspace::define_wsv_data()
      ( NAME( "surface_rtprop_sub_agenda" ),
       DESCRIPTION
       (
-       "Sub-agenda to *surface_rtprop_agenda.\n"
+       "Sub-agenda to *surface_rtprop_agenda*.\n"
        ),
       GROUP( "Agenda" )));
     

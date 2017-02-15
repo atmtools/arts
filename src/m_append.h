@@ -245,6 +245,83 @@ void Append(// WS Generic Output:
 }
 
 
+/* Implementation for Tensor3/Matrix */
+void Append(// WS Generic Output:
+            Tensor3& out,
+            // WS Generic Input:
+            const Matrix& in,
+//            const String& direction,
+            const String& direction _U_,
+            const Verbosity&)
+{
+    // Get backup of out:
+    Tensor3 dummy = out;
+
+    if (!out.npages() || !out.nrows() || !out.ncols())
+      {
+        out.resize(1, in.nrows(), in.ncols());
+        out(0,joker,joker) = in;
+      }
+    else
+      {
+        if (out.nrows() != in.nrows() || out.ncols() != in.ncols())
+            throw runtime_error(
+              "Number of rows and columns in the input Matrix have to match\n"
+              "the number of rows and columns in the output Tensor3.");
+
+        out.resize(dummy.npages() + 1, dummy.nrows(), dummy.ncols());
+        out(Range(0, dummy.npages()), Range(0, dummy.nrows()),
+            Range(0, dummy.ncols())) = dummy;
+        out(dummy.npages(), Range(0, dummy.nrows()),
+            Range(0, dummy.ncols())) = in;
+      }
+}
+
+
+/* Implementation for Tensor3 */
+void Append(// WS Generic Output:
+            Tensor3& out,
+            // WS Generic Input:
+            const Tensor3& in,
+//            const String& direction,
+            const String& direction _U_,
+            const Verbosity&)
+{
+    const Tensor3* in_pnt;
+    Tensor3 in_copy;
+
+    if (&in == &out)
+    {
+        in_copy = in;
+        in_pnt = &in_copy;
+    }
+    else
+        in_pnt = &in;
+
+    const Tensor3 &in_ref = *in_pnt;
+
+    // Get backup of out:
+    Tensor3 dummy = out;
+
+    if (out.nrows() != in_ref.nrows() || out.ncols() != in_ref.ncols())
+        throw runtime_error(
+          "Tensor3 append is performed in pages dimension.\n"
+          "All other dimensions (rows, columns) must have identical\n"
+          "sizes in In and Out Tensor.");
+
+    out.resize(dummy.npages() + in_ref.npages(),
+               dummy.nrows(), dummy.ncols());
+
+    if (dummy.npages() && dummy.nrows() && dummy.ncols())
+        out(Range(0, dummy.npages()),
+            Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
+    if (dummy.npages() && in_ref.npages() &&
+        in_ref.nrows() && in_ref.ncols())
+        out(Range(dummy.npages(), in_ref.npages()),
+            Range(0, in_ref.nrows()), Range(0, in_ref.ncols())) = in_ref;
+}
+
+
 /* Implementation for Tensor4 */
 void Append(// WS Generic Output:
             Tensor4& out,
@@ -272,8 +349,10 @@ void Append(// WS Generic Output:
 
     if (out.npages() != in_ref.npages() || out.nrows() != in_ref.nrows() ||
         out.ncols() != in_ref.ncols())
-        throw runtime_error("Input and output Tensor4 must have the same number"
-                            "of books.");
+        throw runtime_error(
+          "Tensor4 append is performed in books dimension.\n"
+          "All other dimensions (pages, rows, columns) must have identical\n"
+          "sizes in In and Out Tensor.");
 
     out.resize(dummy.nbooks() + in_ref.nbooks(), dummy.npages(),
                dummy.nrows(), dummy.ncols());

@@ -1,3 +1,70 @@
+2017-02-15 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-631
+
+	Revised RT4 interface such that it can use surface_rtprop_agenda,
+	hence allows (with certain limitations) consistent calculations
+	with ARTS' proprietary scattering solvers DOIT and MC. Currently it is
+	"only" an option to do so, alternatively RT4's own surface handling can
+	be used, where also Fresnel is now possible to be used and a (plain)
+	specular version has been added in analogy to Fresnel and ARTS' plain
+	specular implementation. Keeping the interface to RT4's own surface
+	handling is primarily thought for testing purposes. Keeping this comes
+	with the downside that each method uses different input parameters,
+	which all have to be set within ARTS despite not applying them (WSM
+	Touch is suggested to achieve this).
+
+	* src/m_rt4.cc (RT4Calc):
+	Complete revision of surface handling as described above.
+
+	* src/rt4.cc (surf_optpropCalc):
+	Added. Surface reflection matrix and emission vector preparation
+	following surface_rtprop_agenda for use in RT4.
+
+	(rt4_test):
+	Temporarily commented out call of RT4. Interface need to be adapted to
+	new situation.
+
+	* src/rt4.h:
+	Added surf_optpropCalc. Adapted radtrano_. Added interface to RT4's
+	planck function.
+	
+	* src/m_append.h:
+	Added implementation for Matrix-to-Tensor3 and Tensor3-toTensor3
+	appending. Corrected error message for Tensor4-to-Tensor4 appending.
+
+	* src/methods.cc:
+	Updated RT4Calc and Append according to above. Added more info on
+	TestScatDataInterp. Spell fixes here and there.
+
+	* src/workspace.cc, m_surface.cc, surface.cc, doit.cc, optproperties.cc:
+	Minor polishing.
+
+	* 3rdparty/polradtran/rt4/radtran4.f:
+	Modified interface and surface prep calls to handle other than RT4's
+	own Lambertian and Fresnel reflection surfaces.
+
+	* 3rdparty/polradtran/rt4/radutil4.f[.orig]:
+	Added routines to prepare surface reflection and ground radiance
+	tensors for plain specular reflection and for externally prepared
+	reflection data.
+	Keeping a copy of the original code.
+
+	* controlfiles/artscomponents/polradtran/TestRT4.arts:
+	Adapt to work with revised RT4 surface handling & to apply
+	surface_rtprop_agenda as default.
+
+	* controlfiles/artscomponents/disort/indivfieldsatmo_setup.arts:
+	Do correct setting of surface_scalar_reflectivity here, not set here
+	one way and overwrite later, that's just confusing.
+
+	* controlfiles/artscomponents/disort/TestDISORT.arts:
+	Remove re-setting of surface_scalar_reflectivity.
+
+	* controlfiles/general/agendas_surface.arts:
+	Add a predefinition for specular surface vector case. Update info on
+	Lambertian surface predefinitions.
+
 2017-02-14  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-630
