@@ -79,7 +79,7 @@ void RT4Calc( Workspace& ws,
                 const Tensor3& surface_reflectivity,
                 const GriddedField3& surface_complex_refr_index,
                 const Index& nstreams,
-                const Index& non_iso_inc,
+                const Index& non_iso_inc _U_,
                 const String& pfct_method,
                 const String& groundtype,
                 const String& quadtype,
@@ -356,11 +356,13 @@ void RT4Calc( Workspace& ws,
                           Range(0,stokes_dim),Range(0,stokes_dim));
       else if ( surface_reflectivity.npages() == 1 )
         if ( ref_sto < stokes_dim )
-          ground_reflec(joker,Range(0,ref_sto),Range(0,ref_sto)) +=
-            surface_reflectivity;
+          for (f_index=0; f_index<nf; f_index++)
+            ground_reflec(f_index,Range(0,ref_sto),Range(0,ref_sto)) +=
+              surface_reflectivity(0,joker,joker);
         else
-          ground_reflec += surface_reflectivity(joker,
-                          Range(0,stokes_dim),Range(0,stokes_dim));
+          for (f_index=0; f_index<nf; f_index++)
+            ground_reflec(f_index,joker,joker) +=
+              surface_reflectivity(0,Range(0,stokes_dim),Range(0,stokes_dim));
       else
       {
         ostringstream os;
@@ -702,8 +704,7 @@ void RT4Test( Tensor4& out_rad,
               const String& datapath,
               const Verbosity& verbosity )
 {
-    throw runtime_error ("RT¤ interface is under construction, RT4Test hence diabled for now.");
-    //rt4_test( out_rad, datapath, verbosity );
+    rt4_test( out_rad, datapath, verbosity );
 }
 #else
 void RT4Test( Tensor4&,

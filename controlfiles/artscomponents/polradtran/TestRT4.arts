@@ -15,10 +15,7 @@ Arts2 {
 # for test case, first, run the proprietary RT4 test.
 # REMOVE (or outcomment) when you use this as template for your RT4-based
 # calculations.
-# !!! During RT4 interface change for ARTS consistent surface handling, this
-# !!! basic test is disabled (throws a runtime error), hence switch off here
-# !!! for now.
-#INCLUDE "TestRT4Test.arts"
+INCLUDE "TestRT4Test.arts"
 
 
 # here starts the the actual ARTS RT4 interface test/example

@@ -812,7 +812,7 @@ void surf_optpropCalc( Workspace& ws,
             R_scale = R_arts[f_index]/R_rt4;
             surf_refl_mat(f_index,joker,joker,rmu,joker) *= R_scale;
           }
-        Numeric R_rert4 = surf_refl_mat(f_index,joker,0,rmu,0).sum();
+        //Numeric R_rert4 = surf_refl_mat(f_index,joker,0,rmu,0).sum();
         //cout << "at f#" << f_index << " R_arts=" << R_arts[f_index]
         //     << ", R_rt4=" << R_rt4 << ", R_scale=" << R_scale
         //     << ", rescaled R_rt4=" << R_rert4 << "\n";
@@ -902,13 +902,16 @@ void rt4_test( Tensor4& out_rad,
           for( Index il=0; il<num_scatlayers; il++ )
             emis_vector(il,ii,ij,ik) = abs_data(ik,ij,ii);
 
+    // dummy parameters necessary due to modified, flexible surface handling
+    Tensor4 surf_refl_mat(nummu,nstokes,nummu,nstokes, 0.);
+    Matrix surf_emis_vec(nummu,nstokes, 0.);
+    Matrix ground_reflec(nstokes,nstokes, 0.);
+
     // Output variables
     Vector mu_values(nummu);
     Tensor3 up_rad(num_layers+1,nummu,nstokes, 0.);
     Tensor3 down_rad(num_layers+1,nummu,nstokes, 0.);
 
-    // FIXME: this call needs adaptation (or throw it away...)
-    /*
     radtrano_( nstokes,
                nummu,
                nuummu,
@@ -918,6 +921,9 @@ void rt4_test( Tensor4& out_rad,
                ground_type.c_str(),
                ground_albedo,
                ground_index,
+               ground_reflec.get_c_array(),
+               surf_refl_mat.get_c_array(),
+               surf_emis_vec.get_c_array(),
                sky_temp,
                wavelength,
                num_layers,
@@ -935,7 +941,6 @@ void rt4_test( Tensor4& out_rad,
                up_rad.get_c_array(),
                down_rad.get_c_array()
              );
-     */
 
     //so far, output is in
     //    units W/m^2 um sr

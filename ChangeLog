@@ -1,5 +1,21 @@
 2017-02-15 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-632
+
+	* src/m_rt4.cc (RT4Calc):
+	Bugfix in specular surface part. Make this work with f_grid.nelem()>1.
+
+	(RT4Test): Switch rt4_test back on.
+
+	* src/rt4.cc (rt4_test):
+	Revised to make consistent again with the modified RT4 fortran
+	interface.
+
+	* controlfiles/artscomponents/polradtran/TestRT4.arts:
+	Switch performing RT4Test back on.
+
+2017-02-15 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-631
 
 	Revised RT4 interface such that it can use surface_rtprop_agenda,
