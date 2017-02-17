@@ -35,8 +35,8 @@
 #ifdef ENABLE_RT4
 
 #include <cfloat>
-#include <stdexcept>
 #include <complex.h>
+#include <stdexcept>
 #include "interpolation.h"
 #include "m_xml.h"
 #include "physics_funcs.h"
@@ -560,14 +560,13 @@ void sca_optpropCalc( //Output
 
   \param surf_refl_mat         Bidirectional surface reflection matrices on RT4 stream directions.
   \param surf_emis_vec         Directional surface emission vector on RT4 stream directions.
-  \param extinct_matrix        Layer averaged particle extinction for all particle layers
-  \param scat_data_mono        as the WSV
-  \param pnd_field             as the WSV
-  \param stokes_dim            as the WSV
+  \param surface_rtprop_agenda as the WSA
+  \param f_grid                as the WSV
   \param scat_za_grid          as the WSV
-  \param quad_weights          Quadrature weights associated with scat_za_grid 
-  \param pfct_method           Method for scattering matrix temperature dependance handling
-  \param pfct_aa_grid_size     Number of azimuthal grid points in Fourier series decomposition of randomly oriented particles
+  \param mu_values             Cosines of scat_za_grid angles.
+  \param quad_weights          Quadrature weights associated with mu_values.
+  \param stokes_dim            as the WSV
+  \param surf_alt              Surface altitude.
   
   \author Jana Mendrok
   \date   2017-02-09
@@ -615,8 +614,6 @@ void surf_optpropCalc( Workspace& ws,
   // the agenda anyway (can) provide output for full f_grid at once and as we
   // have to apply the same inter/extrapolation to all the frequencies).
   //
-  // FIXME: Make sure that normalization (energy conservation in the form of
-  // power reflection coefficient conservation) is given.
   // FIXME: Allow surface to be elsewhere than at lowest atm level (this
   // requires changes in the surface setting part and more extensive ones in the
   // atmospheric optical property prep part within the frequency loop further

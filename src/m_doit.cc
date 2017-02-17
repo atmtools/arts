@@ -1586,10 +1586,12 @@ void DoitInit(//WS Output
 {
   if (!cloudbox_on)
   {
-    CREATE_OUT0;
-    doit_is_initialized = 0;
-    out0 << "  Cloudbox is off, DOIT calculation will be skipped.\n";
-    return;
+    //CREATE_OUT0;
+    //doit_is_initialized = 0;
+    //out0 << "  Cloudbox is off, DOIT calculation will be skipped.\n";
+    //return;
+    throw runtime_error( "Cloudbox is off, no scattering calculations to be"
+                         "performed." );
   }
   
   // -------------- Check the input ------------------------------
@@ -2847,6 +2849,12 @@ void DoitCalc(
 {
   CREATE_OUT2;
   
+  if (!cloudbox_on)
+  {
+    throw runtime_error( "Cloudbox is off, no scattering calculations to be"
+                         "performed." );
+  }
+
   //-------- Check input -------------------------------------------
  
   if( atmfields_checked != 1 )

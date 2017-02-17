@@ -75,6 +75,7 @@ void DisortCalc(Workspace& ws,
                 const Agenda& opt_prop_part_agenda,
                 const Agenda& spt_calc_agenda,
                 const Agenda& iy_main_agenda,
+                const Agenda& surface_rtprop_agenda,
                 const Tensor4& pnd_field,
                 const Tensor3& t_field, 
                 const Tensor3& z_field, 
@@ -88,16 +89,30 @@ void DisortCalc(Workspace& ws,
                 const Index& nstreams,
                 const Index& non_iso_inc,
                 const String& pfct_method,
-                const Verbosity& verbosity)
+                const String& groundtype,
+                const Verbosity& verbosity _U_ )
 {
   CREATE_OUT1;
   CREATE_OUT0;
 
-  // NOTE: At the moment, combining scattering elements stored on different
+  // FIXME: so far surface is implictly assumed at lowest atmospheric level.
+  // That should be fixed (using z_surface and allowing other altitudes) at some
+  // point.
+
+  // FIXME: At the moment, combining scattering elements stored on different
   //  scattering angle grids is only possible for pfct_method 'interpolate'.
 
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
+  // Seems to loopholy to just skip the scattering, so rather throw an error
+  // (assuming if RT4 is called than it's expected that a scattering calc is
+  // performed. semi-quietly skipping can easily be missed and lead to wrong
+  // conclusions.).
+  if (!cloudbox_on)
+  {
+    throw runtime_error( "Cloudbox is off, no scattering calculations to be"
+                         "performed." );
+  }
 
   // Check whether DisortInit was executed
   if (!disort_is_initialized)
@@ -166,25 +181,76 @@ void DisortCalc(Workspace& ws,
       }
   }
 
-  if( surface_scalar_reflectivity.nelem() != f_grid.nelem()  &&  
-      surface_scalar_reflectivity.nelem() != 1 )
+  const String ground_type = groundtype.toupper();
+  const Index nf=f_grid.nelem();
+  Vector albedo(nf, 0.);
+
+  // for now, surface at lowest atm level. later use z_surface or the like
+  // for that.
+  // at the moment this is only required for groundtype "A", but 
+  const Numeric surf_altitude = z_field(0,0,0);
+  //const Numeric surf_altitude = z_surface(0,0);
+
+  Numeric btemp=-999.;
+
+  if (ground_type=="L") // DISORT's proprietary Lambertian
+    {
+      if( surface_scalar_reflectivity.nelem() != nf  &&  
+          surface_scalar_reflectivity.nelem() != 1 )
+        {
+          ostringstream os;
+          os << "The number of elements in *surface_scalar_reflectivity*\n"
+             << "should match length of *f_grid* or be 1."
+             << "\n length of *f_grid* : " << nf 
+             << "\n length of *surface_scalar_reflectivity* : " 
+             << surface_scalar_reflectivity.nelem()
+             << "\n";
+          throw runtime_error( os.str() );
+        }
+
+      if ( min(surface_scalar_reflectivity) < 0  ||  
+           max(surface_scalar_reflectivity) > 1 )
+        {
+          throw runtime_error( "All values in *surface_scalar_reflectivity*"
+                               " must be inside [0,1]." );
+        }
+
+      if( surface_scalar_reflectivity.nelem()>1 )
+        for (f_index = 0; f_index < f_grid.nelem(); f_index ++) 
+          albedo[f_index] = surface_scalar_reflectivity[f_index];
+      else
+        for (f_index = 0; f_index < f_grid.nelem(); f_index ++) 
+          albedo[f_index] = surface_scalar_reflectivity[0];
+      
+      // temperature of surface
+      btemp = surface_skin_t;
+
+    }
+  else if (ground_type=="A") // using ARTS' surface_rtprop_agenda
+    {
+      chk_not_empty( "surface_rtprop_agenda", surface_rtprop_agenda );
+      surf_albedoCalc( ws, albedo, btemp,
+                       surface_rtprop_agenda,
+                       f_grid, scat_za_grid, surf_altitude,
+                       verbosity );
+    }
+  else
     {
       ostringstream os;
-      os << "The number of elements in *surface_scalar_reflectivity* should\n"
-         << "match length of *f_grid* or be 1."
-         << "\n length of *f_grid* : " << f_grid.nelem() 
-         << "\n length of *surface_scalar_reflectivity* : " 
-         << surface_scalar_reflectivity.nelem()
-         << "\n";
+      os << "Unknown surface type.\n";
+      throw runtime_error(os.str());
+    }
+
+  if (btemp<0. || btemp>1000.)
+    {
+      ostringstream os;
+      os << "Surface temperature has been set or derived as " << btemp << " K,\n"
+         << "which is not considered a meaningful value.\n"
+         << "For surface method 'L', *surface_skin_t* needs to\n"
+         << "be set and passed explicitly. Maybe you didn't do this?";
       throw runtime_error( os.str() );
     }
 
-  if( min(surface_scalar_reflectivity) < 0  ||  
-      max(surface_scalar_reflectivity) > 1 )
-    {
-      throw runtime_error( 
-         "All values in *surface_scalar_reflectivity* must be inside [0,1]." );
-    }
 
   // Input variables for DISORT
   Index nlyr;
@@ -264,11 +330,7 @@ void DisortCalc(Workspace& ws,
   Index lamber = TRUE_;
   // only needed for bidirectional reflecting surface
   Vector hl(1,0.); 
-  // albedo only set in freq-loop (as it might be freq-dependent
   
-  // temperature of surface
-  Numeric btemp = surface_skin_t;
-
   //upper boundary conditions:
   // DISORT offers isotropic incoming radiance or emissivity-scaled planck
   // emission. Both are applied additively.
@@ -356,14 +418,8 @@ void DisortCalc(Workspace& ws,
   Vector utau(maxulv,0.);
   
   // Loop over frequencies
-  for (f_index = 0; f_index < f_grid.nelem(); f_index ++) 
+  for (f_index = 0; f_index < f_grid.nelem(); f_index ++)
     {
-      Numeric albedo;
-      if( surface_scalar_reflectivity.nelem()>1 )
-        albedo = surface_scalar_reflectivity[f_index];
-      else
-        albedo = surface_scalar_reflectivity[0];
-      
       // Top of the atmosphere non-isotropic incoming radiation
       if( do_non_iso )
         {
@@ -440,11 +496,16 @@ void DisortCalc(Workspace& ws,
       
       //DEBUG_VAR(dtauc)
       
+      cout << "entering Disort calc at freq[" << f_index << "]="
+           << f_grid[f_index]*1e-9 << " GHz\n"
+           << "  with btemp=" << btemp << " K and albedo=" << albedo[f_index]
+           << "\n";
+      
 // JM: once (2-3-454), I extended the critical region due to
-// modified-variable-issues inside disort. However, later on I couldn't
+// modified-variable-issues inside Disort. However, later on I couldn't
 // reproduce the problems anymore. Since the extension created problems in catching
 // errors thrown inside methods called within the critical region, the region is
-// reduced to its original extend (2-3-486), covering only the disort call
+// reduced to its original extend (2-3-486), covering only the Disort call
 // itself. If any kind of fishy behaviour is observed, we have to reconsider
 // extending (and proper error handling) again.
 #pragma omp critical(fortran_disort)
@@ -461,7 +522,7 @@ void DisortCalc(Workspace& ws,
                   &umu0, &phi0, &fisot,
                   intang.get_c_array(),
                   &lamber,
-                  &albedo, hl.get_c_array(),
+                  &albedo[f_index], hl.get_c_array(),
                   &btemp, &ttemp, &temis,
                   &deltam,
                   &plank, &onlyfl, &accur,
@@ -504,6 +565,7 @@ void DisortCalc(Workspace&,
                 const Agenda&,
                 const Agenda&,
                 const Agenda&,
+                const Agenda&,
                 const Tensor4&,
                 const Tensor3&,
                 const Tensor3&,
@@ -516,6 +578,7 @@ void DisortCalc(Workspace&,
                 const Vector&,
                 const Index&,
                 const Index&,
+                const String&,
                 const String&,
                 const Verbosity&)
 {
@@ -537,16 +600,18 @@ void DisortInit(//WS Output
               const Index& cloudbox_on,
               const ArrayOfIndex& cloudbox_limits,
               const ArrayOfArrayOfSingleScatteringData& scat_data,
-              const Verbosity& verbosity)
+              const Verbosity& verbosity _U_ )
 {
   if (!cloudbox_on)
   {
-    CREATE_OUT0;
-    disort_is_initialized = 0;
-    out0 << "  Cloudbox is off, scattering calculation will be skipped.\n";
-    return;
+    //CREATE_OUT0;
+    //disort_is_initialized = 0;
+    //out0 << "  Cloudbox is off, scattering calculation will be skipped.\n";
+    //return;
+    throw runtime_error( "Cloudbox is off, no scattering calculations to be"
+                         "performed." );
   }
-  
+
   // -------------- Check the input ------------------------------
   
   if( atmosphere_dim != 1   )

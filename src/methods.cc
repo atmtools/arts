@@ -3987,10 +3987,29 @@ void define_md_data_raw()
          "  is internally calculated by ARTS clearsky methods that take\n"
          "  atmospheric sphericity and refractivity fully into account.\n"
          "\n"
+         "The following surface type/property methods are available and\n"
+         "require the the following input:\n"
+         "- 'L'ambertian: *surface_scalar_reflectivity*, *surface_skin_t*\n"
+         "- 'A'RTS-defined: *surface_rt_prop_agenda*\n"
+         "'L' uses Disort's proprietary Lambertian method. In case of 'A',\n"
+         "the *surface_rt_prop_agenda* is executed calculating reflection\n"
+         "matrices, from which then the diffuse power reflection coefficient\n"
+         "(an estimate of the total surface albedo) is derived and used in\n"
+         "the Disort solution (which internally always assumes a Lambertian\n"
+         "surface).\n"
+         "NOTE: Use the 'A' mode with extreme care (or rather use another\n"
+         "solver for non-Lambertian surfaces). The mode is an attempt to run\n"
+         "Disort more consistently with other ARTS scattering solvers, but\n"
+         "the user should be aware that it remains a (rough) approximation\n"
+         "of the original ARTS setup, specifically for specular/Fresnel\n"
+         "surfaces. Tests showed that for weakly reflecting surfaces (r=0.1)\n"
+         "below an optically thin atmosphere, differences to the true\n"
+         "solution can be a few Kelvin at nadir, increasing easily to above\n"
+         "10K for stronger reflecting surfaces (r~0.4).\n"
+         "\n"
          "Known issues of ARTS implementation:\n"
          "- Surface altitude is not an interface parameter. Surface is\n"
          "  implicitly assumed to be at the lowest atmospheric level.\n"
-         "- Only Lambertian surface reflection is implemented so far.\n"
          "- Except for *non_iso_inc*=1, where *iy_space_agenda* is applied,\n"
          "  TOA incoming radiation is so far assumed as blackbody cosmic\n"
          "  background (temperature taken from the ARTS-internal constant).\n"
@@ -4021,17 +4040,20 @@ void define_md_data_raw()
             "cloudbox_on", "cloudbox_limits",
             "propmat_clearsky_agenda",
             "opt_prop_part_agenda", "spt_calc_agenda", "iy_main_agenda",
+            "surface_rtprop_agenda",
             "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
             "scat_data", "f_grid", "scat_za_grid",
             "surface_skin_t", "surface_scalar_reflectivity" ),
-        GIN(         "nstreams", "non_iso_inc", "pfct_method" ),
-        GIN_TYPE(    "Index",    "Index",       "String" ),
-        GIN_DEFAULT( "8",        "0",           "median" ),
+        GIN(         "nstreams", "non_iso_inc", "pfct_method", "ground_type" ),
+        GIN_TYPE(    "Index",    "Index",       "String",      "String" ),
+        GIN_DEFAULT( "8",        "0",           "median",      NODEF ),
         GIN_DESC( "Number of polar angle directions (streams) in DISORT "
                   "solution (must be an even number).",
                   "Flag whether to run DISORT initialized with non-isotropic "
                   "TOA field. See above for more info.",
-                  "Flag which method to apply to derive phase function." )
+                  "Flag which method to apply to derive phase function.",
+                  "Flag which surface type/surface property method to use"
+                  " (for available options see above)." )
         ));
 
   md_data_raw.push_back

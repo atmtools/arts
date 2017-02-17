@@ -85,6 +85,17 @@ void pmomCalc( //Output
                const Index n_legendre,
                const Verbosity& verbosity );
 
+void surf_albedoCalc( Workspace& ws, 
+                      //Output
+                      VectorView albedo,
+                      Numeric& btemp,
+                      //Input
+                      const Agenda& surface_rtprop_agenda,
+                      ConstVectorView f_grid,
+                      ConstVectorView scat_za_grid,
+                      const Numeric& surf_alt,
+                      const Verbosity& verbosity );
+
 #ifdef ENABLE_DISORT
 void get_cb_inc_field( Workspace&      ws,
                        Matrix&         cb_inc_field,

@@ -112,7 +112,7 @@ sensor_checkedCalc
 
 # Perform scattering calculation 
 DisortInit
-DisortCalc #( nstreams=64 ) #( non_iso_inc=1 )
+DisortCalc( ground_type="L" ) #( nstreams=64 ) #( non_iso_inc=1 )
 #WriteXML( output_file_format, doit_i_field )
    
 # Calculate RT from cloudbox boundary to the sensor

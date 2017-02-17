@@ -86,13 +86,26 @@ void RT4Calc( Workspace& ws,
                 const Index& pfct_aa_grid_size,
                 const Numeric& pfct_threshold,
                 const Numeric& max_delta_tau,
-                const Verbosity& verbosity )
+                const Verbosity& verbosity _U_ )
 {
   CREATE_OUT1;
   CREATE_OUT0;
 
+  // FIXME: so far surface is implictly assumed at lowest atmospheric level.
+  // That should be fixed (using z_surface and allowing other altitudes) at some
+  // point.
+
   // Don't do anything if there's no cloudbox defined.
-  if (!cloudbox_on) return;
+  //if (!cloudbox_on) return;
+  // Seems to loopholy to just skip the scattering, so rather throw an error
+  // (assuming if RT4 is called than it's expected that a scattering calc is
+  // performed. semi-quietly skipping can easily be missed and lead to wrong
+  // conclusions.).
+  if (!cloudbox_on)
+  {
+    throw runtime_error( "Cloudbox is off, no scattering calculations to be"
+                         "performed." );
+  }
 
   // Check whether RT4Init was executed
   if (!rt4_is_initialized)
@@ -306,7 +319,7 @@ void RT4Calc( Workspace& ws,
       }
     }
 
-  if (ground_type=="L") // Lambertian
+  if (ground_type=="L") // RT4's proprietary Lambertian
     {
       // surface albedo
       if( surface_scalar_reflectivity.nelem() == f_grid.nelem() )
@@ -333,7 +346,7 @@ void RT4Calc( Workspace& ws,
            "All values in *surface_scalar_reflectivity* must be inside [0,1]." );
       }
     }
-  else if (ground_type=="S") // Specular
+  else if (ground_type=="S") // RT4's 'proprietary' Specular
     {
        const Index ref_sto = surface_reflectivity.nrows();
 
@@ -383,7 +396,7 @@ void RT4Calc( Workspace& ws,
            "All r11 values in *surface_reflectivity* must be inside [0,1]." );
       }
     }
-  else if (ground_type=="F") // Fresnel
+  else if (ground_type=="F") // RT4's proprietary Fresnel
     {
       //though complex ref index is typically not smaller than (1.,0.), there
       //are physically possible exceptions. hence we don't test the values here.
@@ -598,10 +611,12 @@ void RT4Init(//WS Output
 {
   if (!cloudbox_on)
   {
-    CREATE_OUT0;
-    rt4_is_initialized = 0;
-    out0 << "  Cloudbox is off, scattering calculation will be skipped.\n";
-    return;
+    //CREATE_OUT0;
+    //rt4_is_initialized = 0;
+    //out0 << "  Cloudbox is off, scattering calculation will be skipped.\n";
+    //return;
+    throw runtime_error( "Cloudbox is off, no scattering calculations to be"
+                         "performed." );
   }
   
   // -------------- Check the input ------------------------------

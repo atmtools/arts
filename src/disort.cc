@@ -25,10 +25,10 @@
  
 **/
 
-#include <stdexcept>
-#include <iostream>
-#include <cstdlib>
 #include <cmath>
+#include <cstdlib>
+#include <iostream>
+#include <stdexcept>
 #include "agenda_class.h"
 #include "array.h"
 #include "auto_md.h"
@@ -45,6 +45,7 @@ extern const Numeric PI;
 extern const Numeric PLANCK_CONST;
 extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric BOLTZMAN_CONST;
+extern const Numeric DEG2RAD;
 
 //! dtauc_ssalbCalc
 /*!
@@ -873,6 +874,199 @@ void pmomCalc(//Output
         // cout << "pmom : " << pmom(i_l, joker) << endl;
         
       }
+    }
+}
+
+
+//! surf_albedoCalc
+/*!
+  Calculates the diffuse power reflection coefficient (an estimate of the total
+  surface albedo, equivalent to ARTS' surface_scalar_reflectivity) from
+  reflection matrices according to *surface_rt_prop_agenda* settings for use as
+  input parameter albedo to a Disort calculation (internally applying a
+  Lambertian surface).
+
+  \param albedo                Diffuse power reflection coefficient.
+  \param surface_rtprop_agenda as the WSA
+  \param f_grid                as the WSV
+  \param scat_za_grid          as the WSV
+  \param surf_alt              Surface altitude.
+  
+  \author Jana Mendrok
+  \date   2017-02-16
+*/
+void surf_albedoCalc( Workspace& ws, 
+                      //Output
+                      VectorView albedo,
+                      Numeric& btemp,
+                      //Input
+                      const Agenda& surface_rtprop_agenda,
+                      ConstVectorView f_grid,
+                      ConstVectorView scat_za_grid,
+                      const Numeric& surf_alt,
+                      const Verbosity& verbosity )
+{
+  // Here, we derive an average surface albedo of the setup as given by ARTS'
+  // surface_rtprop_agenda to use with Disorts's proprietary Lambertian surface.
+  // In this way, ARTS-Disort can approximately mimick all surface reflection
+  // types that ARTS itself can handle.
+  // Surface temperature as derived from surface_rtprop_agenda is also returned.
+  //
+  // We derive the reflection matrices over all incident and reflected polar
+  // angle directions and derive their integrated value (or weighted average).
+  // The surface_rtprop_agenda handles one reflected direction at a time
+  // (rtp_los) and for the reflected directions we loop over all (upwelling)
+  // angles as given by scat_za_grid. The derived reflection matrices already
+  // represent the reflectivity (or power reflection coefficient) for the given
+  // reflected direction including proper angle weighting. For integrating/
+  // averaging over the reflected directions, we use the same approach, i.e.
+  // weight each angle by its associated range as given by the half distances to
+  // the neighboring grid angles (using ARTS' scat_za_grid means 0/180deg are
+  // grid points, 90deg shouldn't be among them (resulting from even number
+  // requirement for Disort and the (implicitly assumed?) requirement of a
+  // horizon-symmetric za_grid)).
+  // 
+  // We do all frequencies here at once (assuming this is the faster variant as
+  // the agenda anyway (can) provide output for full f_grid at once and as we
+  // have to apply the same inter/extrapolation to all the frequencies).
+  //
+  // FIXME: Allow surface to be elsewhere than at lowest atm level (this
+  // requires changes in the surface setting part and more extensive ones in the
+  // atmospheric optical property prep part within the frequency loop further
+  // below).
+
+  CREATE_OUT0;
+
+  const Index nf = f_grid.nelem();
+  Index frza=0;
+  while( frza<scat_za_grid.nelem() && scat_za_grid[frza]<90.)
+      frza++;
+  if( frza==scat_za_grid.nelem() )
+    {
+      ostringstream os;
+      os << "No upwelling direction found in scat_za_grid.\n";
+      throw runtime_error(os.str());
+    }
+  const Index nrza=scat_za_grid.nelem()-frza;
+  //cout << nrza << " upwelling directions found, starting from element #"
+  //     << frza << " of scat_za_grid.\n";
+  Matrix dir_refl_coeff(nrza,nf, 0.);
+
+  // Local input of surface_rtprop_agenda.
+  Vector rtp_pos(1, surf_alt); //atmosphere_dim is 1
+
+  // first derive the (reflected-)direction dependent power reflection
+  // coefficient
+  for (Index rza=0; rza<nrza; rza++)
+    {
+      // Local output of surface_rtprop_agenda.
+      Numeric   surface_skin_t;
+      Matrix    surface_los;
+      Tensor4   surface_rmatrix;
+      Matrix    surface_emission;
+
+      Vector rtp_los(1, scat_za_grid[rza+frza]);
+      out0 << "Doing reflected dir #" << rza << " at " << rtp_los[0] << " degs\n";
+
+      surface_rtprop_agendaExecute( ws,
+                                    surface_skin_t, surface_emission,
+                                    surface_los, surface_rmatrix,
+                                    f_grid, rtp_pos, rtp_los,
+                                    surface_rtprop_agenda );
+      //cout << "surf_los has " << surface_los.ncols() << " columns and "
+      //     << surface_los.nrows() << " rows.\n";
+      assert( surface_los.ncols()==1 || surface_los.nrows()==0 );
+      if( rza==0 )
+        btemp = surface_skin_t;
+      else if( surface_skin_t != btemp )
+        {
+          ostringstream os;
+          os << "Something went wrong.\n"
+             << "  *surface_rtprop_agenda* returned different surface_skin_t\n"
+             << "  for different LOS.\n";
+          throw runtime_error(os.str());
+        }
+      if(  surface_los.nrows()>0 )
+        {
+          for (Index f_index=0; f_index<nf; f_index++)
+            dir_refl_coeff(rza,f_index) =
+              surface_rmatrix(joker,f_index,0,0).sum();
+        }
+      out0 << "  directional albedos[f_grid] = " <<  dir_refl_coeff(rza,joker)
+           << "\n";
+    }
+
+  // now integrate/average the (reflected-)direction dependent power reflection
+  // coefficients
+  //
+  // starting with deriving the angles defining the angle ranges
+  Vector surf_int_grid(nrza+1);
+  // the first angle grid point should be around (but above) 90deg and should
+  // cover the angle range between the 90deg and half-way point towards the next
+  // angle grid point. we probably also want to check, that we don't
+  // 'extrapolate' too much.
+  if( is_same_within_epsilon(scat_za_grid[frza],90.,1e-6) )
+    {
+      ostringstream os;
+      os << "Looks like scat_za_grid contains the 90deg direction,\n"
+         << "which it shouldn't for running Disort.\n";
+      throw runtime_error(os.str());
+    }
+  Numeric za_extrapol = (scat_za_grid[frza]-90.) /
+                        (scat_za_grid[frza+1]-scat_za_grid[frza]);
+  const Numeric ok_extrapol=0.5;
+  if( (za_extrapol-ok_extrapol)>1e-6 )
+    {
+      ostringstream os;
+      os << "Extrapolation range from shallowest scat_za_grid point\n"
+         << "to horizon is too big.\n"
+         << "  Allowed extrapolation factor is 0.5.\n  Yours is "
+         << za_extrapol << ", which is " << za_extrapol-0.5 << " too big.\n";
+      throw runtime_error(os.str());
+    }
+  if( !is_same_within_epsilon(scat_za_grid[scat_za_grid.nelem()-1],180.,1e-6) )
+    {
+      ostringstream os;
+      os << "Looks like last point in scat_za_grid is not 180deg.\n";
+      throw runtime_error(os.str());
+    }
+
+  surf_int_grid[0] = 90.;
+  surf_int_grid[nrza] = 180.;
+  for (Index rza=1; rza<nrza; rza++)
+    surf_int_grid[rza] = 0.5*(scat_za_grid[frza+rza-1]+scat_za_grid[frza+rza]);
+  surf_int_grid *= DEG2RAD;
+
+  // now calculating the actual weights and apply them
+  for (Index rza=0; rza<nrza; rza++)
+    {
+      //Numeric coslow = cos(2.*surf_int_grid[rza]);
+      //Numeric coshigh = cos(2.*surf_int_grid[rza+1]);
+      //Numeric w = 0.5*(coshigh-coslow);
+      Numeric w = 0.5*(cos(2.*surf_int_grid[rza+1])-cos(2.*surf_int_grid[rza]));
+      //cout << "at reflLOS[" << rza << "]=" << scat_za_grid[frza+rza] << ":\n";
+      //cout << "  angle weight derives as w = 0.5*(" << coshigh << "-"
+      //     << coslow << ") = " << w << "\n";
+      //cout << "  weighting directional reflection coefficient from "
+      //     <<  dir_refl_coeff(rza,joker);
+      dir_refl_coeff(rza,joker) *= w;
+      //cout << " to " <<  dir_refl_coeff(rza,joker) << "\n";
+    }
+
+  // eventually sum up the weighted directional power reflection coefficients
+  for (Index f_index=0; f_index<nf; f_index++)
+    {
+      albedo[f_index] = dir_refl_coeff(joker,f_index).sum();
+      out0 << "at f=" << f_grid[f_index]*1e-9 << " GHz, ending up with albedo="
+           << albedo[f_index] << "\n";
+      if( albedo[f_index]<0 || albedo[f_index]>1. )
+        {
+          ostringstream os;
+          os << "Something went wrong: Albedo must be inside [0,1],\n"
+             << "  but is not at freq #" << f_index << " , where it is "
+             << albedo[f_index] << ".\n";
+          throw runtime_error( os.str() );
+        }
     }
 }
 

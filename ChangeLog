@@ -1,3 +1,29 @@
+2017-02-17 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-633
+
+	* src/methods.cc, m_disort.cc (DisortCalc),
+	disort.[cc,h] (surf_albedoCalc):
+	Revised interfacing to Disort surface handling, adding an option to
+	derive albedo as total power reflection coefficient according to the
+	given setting of surface_rtprop_agenda. Done to allow consistent
+	surface setup between different solvers. However, results are rather
+	unsatisfactory for any specular surface (the worse the higher the
+	reflectivity).
+
+	* src/m_disort.cc (DisortCalc,DisortInit),
+	src/m_doit.cc (DoitCalc,DoitInit), src/m_rt4.cc (RT4Calc,RT4Init):
+	Throw an error when called with cloudbox off, instead of semi-silently
+	going on with a clearsky calculation. When one of them is called, it
+	is safe to assume that an scattering calculation is expected to actually
+	be performed (and not skipped). 
+
+	* src/rt4.cc (surf_optpropCalc):
+	Fixed internal doc.
+
+	* controlfiles/artscomponents/disort/TestDISORT.arts:
+	Adapted to Disort surface handling changes above.
+
 2017-02-15 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-632
