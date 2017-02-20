@@ -2214,6 +2214,14 @@ void Compare(const SingleScatteringData&    var1,
              const String&,
              const Verbosity& verbosity)
 {
+    if (var1.ptype != var2.ptype)
+    {
+        std::ostringstream os;
+        os << "The particle types don't match: " << std::endl
+        << var1name << " = " << PTypeToString(var1.ptype) << ", "
+        << var2name << " = " << PTypeToString(var2.ptype) << std::endl;
+        throw std::runtime_error(os.str());
+    }
     Compare(var1.f_grid, var2.f_grid, maxabsdiff, error_message,
             var1name+".f_grid", var2name+".f_grid", "", "", verbosity);
     Compare(var1.T_grid, var2.T_grid, maxabsdiff, error_message,

@@ -1,3 +1,11 @@
+2017-02-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-634
+
+	* src/m_basic_types.cc (Compare):
+
+	Also compare ptype for SSD.
+
 2017-02-17 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-633
