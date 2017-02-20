@@ -138,8 +138,8 @@ ScatSpeciesInit
 # Here actually both added elements are indentical. however, for testing and for
 # demonstration purposed, having 2 elements is better.
 ScatElementsPndAndScatAdd(
-  scat_data_files=["testdata/testdoit_p30f229-231T214-225r100NP-1ar1_5ice.xml",
-                   "testdata/testdoit_p30f229-231T214-225r100NP-1ar1_5ice.xml"],
+  scat_data_files=["testdata/scatData/azi-random_f229-231T214-225r100NP-1ar1_5ice.xml",
+                   "testdata/scatData/azi-random_f229-231T214-225r100NP-1ar1_5ice.xml"],
   pnd_field_files=["testdata/testdoit_pnd_field_1D.xml",
                    "testdata/testdoit_pnd_field_1D.xml"] )
 scat_dataCheck

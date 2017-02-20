@@ -72,8 +72,10 @@ Print( cloudbox_limits, 1 )
 
 ScatSpeciesInit
 
-ScatElementsPndAndScatAdd( scat_data_files=["p30f229-231T214-225r100NP-1ar1_5ice.xml"],
-                           pnd_field_files=[""] )
+ScatElementsPndAndScatAdd( 
+  scat_data_files=["testdata/scatData/azi-random_f229-231T214-225r100NP-1ar1_5ice.xml"],
+  pnd_field_files=[""]
+)
 
 ReadXML( pnd_field_raw, "pnd_field_raw.xml" )
 

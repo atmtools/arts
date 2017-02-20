@@ -14146,7 +14146,7 @@ void define_md_data_raw()
         (
          "Sets *surface_scalar_reflectivity* based on *surface_rmatrix*.\n"
          "\n"
-         "For each frequency f, **surface_scalar_reflectivity** is set to\n"
+         "For each frequency f, *surface_scalar_reflectivity* is set to\n"
          "the sum of surface_rmatrix(joker,f,0,0).\n"
         ),
         AUTHORS( "Patrick Eriksson" ),

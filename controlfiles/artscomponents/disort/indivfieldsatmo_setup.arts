@@ -130,7 +130,7 @@ atmfields_checkedCalc
 
 # Reading of abs_lookup table
 #----------------------------
-ReadXML( abs_lookup, "../doitbatch/abs_lookupBatch.xml" )
+ReadXML( abs_lookup, "artscomponents/doitbatch/abs_lookupBatch.xml" )
 
 # Check if lookup table is fitting input
 abs_lookupAdapt

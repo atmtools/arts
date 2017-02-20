@@ -1,3 +1,39 @@
+2017-02-20 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-636
+
+	* controlfiles/testdata/scatData/azi-random_f229-231T214-225r100NP-1ar1_5ice.xml:
+	Converted to version3 SSD, moved into scatData, properly renamed.
+
+	* controlfiles/artscomponents/montecarlo/p30f229-231T214-225r100NP-1ar1_5ice.xml:
+	Removed, since duplicate of above one.
+
+	* controlfiles/artscomponents/absorption/TestAbsParticle.arts,
+	controlfiles/artscomponents/doit/doit_setup_accelerated.arts,
+	controlfiles/artscomponents/doit/doit_setup_pressureoptimization.arts,
+	controlfiles/artscomponents/montecarlo/TestMonteCarloDataPrepare.arts:
+	Consistently use azimuthal random particle example data.
+
+	* controlfiles/artscomponents/tmatrix/TestTMatrix.arts,
+	controlfiles/artscomponents/tmatrix/TestTMatrix.azi-random.ssdREFERENCE.xml,
+	controlfiles/artscomponents/tmatrix/TestTMatrix.tot-random.ssdREFERENCE.xml:
+	Converted reference SSP data to version3, properly renamed reference
+	and output data.
+
+	* controlfiles/artscomponents/disort/indivfieldsatmo_setup.arts,
+	controlfiles/artscomponents/doit/indivfieldsatmo_setup.arts:
+	Replace relative paths which break when the file is copied somewhere
+	else, eg as a template.
+
+	* controlfiles/artscomponents/doit/doit_setup.arts:
+	Return to 2-scatt.element setup that was accidentially wiped out
+	lately.
+
+	* controlfiles/testdata/scatData/MieAtmlab_Liquid*,P20FromHong*:
+	Converted to version3 SSD.
+
+	* src/methods.cc: WSV link fix.
+
 2017-02-20  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-635
