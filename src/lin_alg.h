@@ -60,16 +60,24 @@ void
 inv( ComplexMatrixView Ainv,
      const ConstComplexMatrixView& A);
 
-// Matrix diagonalization
+// Matrix diagonalization with lapack
 void diagonalize( MatrixView P,
                   VectorView WR,
                   VectorView WI,
                   ConstMatrixView A);
 
-// Matrix diagonalization
+// Matrix diagonalization with eigen
 void diagonalize( ComplexMatrixView P,
                   ComplexVectorView W,
                   const ConstComplexMatrixView& A);
+
+// Matrix diagonalization and derivatives with eigen
+void diagonalize( ComplexMatrixView P,
+                  /*ComplexMatrixView dP,*/
+                  ComplexVectorView W,
+                  ComplexVectorView dW,
+                  const ConstComplexMatrixView& A,
+                  const ConstComplexMatrixView& dA);
 
 // Exponential of a Matrix
 void
@@ -78,7 +86,14 @@ matrix_exp( MatrixView F,
             const Index& q=10);
 void
 matrix_exp2( MatrixView F,
-            ConstMatrixView A);
+             ConstMatrixView A);
+void
+matrix_exp_4x4( MatrixView F,
+                ConstMatrixView A,
+                const Index& q=10);
+void
+matrix_exp2_4x4( MatrixView F,
+                 ConstMatrixView A);
 
 // Exponential of a Matrix and its partial derivatives.
 // Includes a specialized function for speedier calculations
@@ -89,6 +104,15 @@ void special_matrix_exp_and_dmatrix_exp_dx_for_rt(MatrixView           F,
                                                   ConstTensor3View    dA_upp,
                                                   ConstTensor3View    dA_low,
                                                   const Index&         q=10 );
+
+void propmat4x4_to_transmat4x4( MatrixView          F,
+                                Tensor3View         dF_upp,
+                                Tensor3View         dF_low,
+                                ConstMatrixView     A,
+                                ConstTensor3View    dA_upp,
+                                ConstTensor3View    dA_low,
+                                const Index&        q=10 );
+
 void
 matrix_exp_dmatrix_exp(MatrixView F,
                        Tensor3View dF,

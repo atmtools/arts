@@ -1097,7 +1097,14 @@ void ext2trans(
       //         
       Index q = 10;  // index for the precision of the matrix exp function
       //
-      matrix_exp( trans_mat, ext_mat_ds, q );
+      switch( stokes_dim )
+      {
+        case 4:
+          matrix_exp_4x4( trans_mat, ext_mat_ds, q );
+          break;
+        default :
+          matrix_exp( trans_mat, ext_mat_ds, q );
+      }
     }
 }
 
@@ -1280,8 +1287,16 @@ void ext2trans_and_ext2dtrans_dx(
         //         
         Index q = 10;  // index for the precision of the matrix exp function
         //
-        special_matrix_exp_and_dmatrix_exp_dx_for_rt( trans_mat, dtrans_mat_dx_upp, dtrans_mat_dx_low,
-                                ext_mat_ds, dext_mat_ds_dx_upp, dext_mat_ds_dx_low, q );
+        switch(stokes_dim)
+        {
+          case 4:
+            propmat4x4_to_transmat4x4( trans_mat, dtrans_mat_dx_upp, dtrans_mat_dx_low,
+                                       ext_mat_ds, dext_mat_ds_dx_upp, dext_mat_ds_dx_low, q );
+            break;
+          default :
+            special_matrix_exp_and_dmatrix_exp_dx_for_rt(trans_mat, dtrans_mat_dx_upp, dtrans_mat_dx_low,
+                                                         ext_mat_ds, dext_mat_ds_dx_upp, dext_mat_ds_dx_low, q);
+        }
     }
 }
 

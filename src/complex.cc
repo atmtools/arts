@@ -2086,16 +2086,55 @@ void mult( ComplexMatrixView A,
   else
     eigen_A.noalias() = MapToEigen(B) * MapToEigen(C);
 }
+void mult( ComplexMatrixView A,
+           const ConstComplexMatrixView& B,
+           const ConstMatrixView& C )
+{
+  assert(B.nrows() == A.nrows());
+  assert(C.ncols() == A.ncols());
+  assert(B.ncols() == C.nrows());
+  
+  ComplexMatrixViewMap eigen_A =  MapToEigen(A);
+  if(A.mdata == B.mdata)
+    eigen_A = MapToEigen(B) * MapToEigen(C);
+  else
+    eigen_A.noalias() = MapToEigen(B) * MapToEigen(C);
+}
+void mult( ComplexMatrixView A,
+           const ConstMatrixView& B,
+           const ConstComplexMatrixView& C )
+{
+  assert(B.nrows() == A.nrows());
+  assert(C.ncols() == A.ncols());
+  assert(B.ncols() == C.nrows());
+  
+  ComplexMatrixViewMap eigen_A =  MapToEigen(A);
+  if(A.mdata == C.mdata )
+    eigen_A = MapToEigen(B) * MapToEigen(C);
+  else
+    eigen_A.noalias() = MapToEigen(B) * MapToEigen(C);
+}
+void mult( ComplexMatrixView A,
+           const ConstMatrixView& B,
+           const ConstMatrixView& C )
+{
+  assert(B.nrows() == A.nrows());
+  assert(C.ncols() == A.ncols());
+  assert(B.ncols() == C.nrows());
+  
+  ComplexMatrixViewMap eigen_A =  MapToEigen(A);
+  eigen_A.noalias() = MapToEigen(B) * MapToEigen(C);
+}
 
 // Converts constant matrix to constant eigen map
 ComplexConstMatrixViewMap MapToEigen(const ConstComplexMatrixView& A){
   return ComplexConstMatrixViewMap(A.mdata+A.mrr.get_start()+A.mcr.get_start(),
-   A.nrows(), A.ncols(), StrideType(A.mrr.get_stride(), A.mcr.get_stride())); }
+   A.nrows(), A.ncols(), ComplexStrideType(A.mrr.get_stride(), A.mcr.get_stride())); }
    
 // Converts constant vector to constant eigen row-view
 ComplexConstMatrixViewMap MapToEigen(const ConstComplexVectorView& A){
   return ComplexConstMatrixViewMap(A.mdata+A.mrange.get_start(),
-   A.nelem(), 1, StrideType(A.mrange.get_stride(), 1)); }
+                                   A.nelem(), 1, ComplexStrideType(A.mrange.get_stride(), 1)); }
 
 // Converts constant vector to constant eigen row-view
 ComplexConstMatrixViewMap MapToEigenRow(const ConstComplexVectorView& A){return MapToEigen(A);}
@@ -2103,17 +2142,17 @@ ComplexConstMatrixViewMap MapToEigenRow(const ConstComplexVectorView& A){return 
 // Converts constant vector to constant eigen column-view
 ComplexConstMatrixViewMap MapToEigenCol(const ConstComplexVectorView& A){
   return ComplexConstMatrixViewMap(A.mdata+A.mrange.get_start(),
-   1, A.nelem(), StrideType(1, A.mrange.get_stride())); }
+                                   1, A.nelem(), ComplexStrideType(1, A.mrange.get_stride())); }
 
 // Converts matrix to eigen map
 ComplexMatrixViewMap MapToEigen(ComplexMatrixView& A){
   return ComplexMatrixViewMap(A.mdata+A.mrr.get_start()+A.mcr.get_start(),
-   A.nrows(), A.ncols(), StrideType(A.mrr.get_stride(), A.mcr.get_stride())); }
+                              A.nrows(), A.ncols(), ComplexStrideType(A.mrr.get_stride(), A.mcr.get_stride())); }
 
 // Converts vector to eigen map row-view
 ComplexMatrixViewMap MapToEigen(ComplexVectorView& A){
   return ComplexMatrixViewMap(A.mdata+A.mrange.get_start(),
-   A.nelem(), 1, StrideType(A.mrange.get_stride(), 1)); }
+                              A.nelem(), 1, ComplexStrideType(A.mrange.get_stride(), 1)); }
 
 // Converts vector to eigen map row-view
 ComplexMatrixViewMap MapToEigenRow(ComplexVectorView& A){return MapToEigen(A);}
@@ -2121,7 +2160,7 @@ ComplexMatrixViewMap MapToEigenRow(ComplexVectorView& A){return MapToEigen(A);}
 // Converts vector to eigen map column-view
 ComplexMatrixViewMap MapToEigenCol(ComplexVectorView& A){
   return ComplexMatrixViewMap(A.mdata+A.mrange.get_start(),
-   1, A.nelem(), StrideType(1, A.mrange.get_stride())); }
+                              1, A.nelem(), ComplexStrideType(1, A.mrange.get_stride())); }
 
 ////////////////////////////////
 // Helper function for debugging

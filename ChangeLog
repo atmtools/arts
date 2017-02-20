@@ -1,3 +1,57 @@
+2017-02-20  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-635
+	
+	* src/complex.{cc,h}: Added mult for different matrix-matrix-matrix
+	combinations of complex and normal matrices.  Also renamed StrideType
+	to ComplexStrideType
+	
+	* src/continua.cc: renamed real and complex to real_t and complex_t
+	because Eigen complains that real and complex overwrites things.
+	I could not see any problems in testing but I have no idea what
+	these copies of C-types are doing since continua.cc is a tad difficult
+	to follow.  (I cannot even "meld" it to point at the differences
+	without producing warnings in Chinese...)
+	
+	* src/lin_alg.{cc,h}: Added matrix diagonalize that returns
+	the eigenvalue derivatives is fed the derivatives of the original
+	matrix.  I am still trying to get eigenvector derivatives working
+	but I do not understand the normalization of the paper and get
+	errors on the order of 1e15...
+	
+	Also added (matrix_exp_4x4) and (propmat4x4_to_transmat4x4) for 
+	explicitly 4x4 matrices after reading Eigen documentation.  These
+	are about 3 times as fast as their general equivalence using ARTS
+	types.  There might still be data copying issues in these 
+	implementations... the improvements are because 4x4 matrices have
+	analytical solutions and because Eigen use processor vectorizations
+	to repeat operations (if I understand this correctly).
+	
+	Also, removed #pragma in my old 
+	special_matrix_exp_and_dmatrix_exp_dx_for_rt because it actually 
+	made it even slower (with it on, the new code was 10x faster, now 
+	it is only 3x for extreme cases).
+	
+	* src/m_linemixing.cc:  Added support for temperature and wind 
+	partial derivatives in the xsec calculations.  This is still 
+	considered to be in testing mode as there is just perturbations
+	for temperature before I solve the eigenvector derivatives thing.
+	
+	* src/matpackI.{cc,h}:  Is now including Eigen, in an order that did 
+	not crash on my system.  I hope this works for others.  To 
+	use Eigen for normal matrices and complex matrices, use 
+	MapToEigen* functions.  Use MapToEigen4x4 for mapping 4x4 matrices
+	if you know this is the size to improve speed.
+	(Would this help as an option in mult?)
+	
+	* src/partial_derivatives.h: added supportsRelaxationMatrix() to
+	check jacobian requests.  Relaxation matrix do not yet support line
+	parameter partials.
+	
+	* src/rte.cc:  Added check to see if stokes_dim is 4 to use the 
+	speedier calculations.  I do not think this has improved the 
+	speed of the tests.
+
 2017-02-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-634

@@ -324,6 +324,21 @@ void diagonalize( MatrixView P,
     WR=WR2;
 }
 
+
+//! Matrix Diagonalization
+/*!
+ * Return P and W from A in the statement diag(P^-1*A*P)-W == 0.
+ * The real function will require some manipulation if 
+ * the eigenvalues are imaginary.
+ * 
+ * The function makes many copies and is thereby not fast.
+ * There are no tests on the condition of the returned matrix,
+ * so nan and inf can occur.
+ * 
+ * \param[out] P The right eigenvectors.
+ * \param[out] W The eigenvalues.
+ * \param[in]  A The matrix to diagonalize.
+ */
 void diagonalize( ComplexMatrixView P,
                   ComplexVectorView W,
                   const ConstComplexMatrixView& A)
@@ -345,6 +360,79 @@ void diagonalize( ComplexMatrixView P,
   
   ComplexMatrixViewMap eigen_P = MapToEigen(P);
   eigen_P = ges.eigenvectors();
+}
+
+
+//! Matrix Diagonalization and Its Derivatives
+/*!
+ * Return P and W from A in the statement diag(P^-1*A*P)-W == 0.
+ * The real function will require some manipulation if 
+ * the eigenvalues are imaginary.
+ * 
+ * Also returns dP and dW using dA as the derivatives of the system.
+ * 
+ * I am not sure when and how these calculations fail.  They should
+ * work for unique eigenvalues.
+ * 
+ * The algorithm is based on:
+ * ON DIFFERENTIATING EIGENVALUES AND EIGENVECTOR by Jan R. Magnus,
+ * Econometric Theory, 1, 1985, 179-191
+ * 
+ * WARNING:  This only works for eigenvalue derivatives at the moment...
+ * It will be modified to also produce Eigenvector derivatives once
+ * I understand the normalization on the paper...
+ * 
+ * The function makes many copies and is thereby not fast.
+ * There are no tests on the condition of the returned matrix,
+ * so nan and inf can occur.
+ * 
+ * \param[out] P The right eigenvectors.
+ * \param[out] dP The derivatives of the right eigenvectors.
+ * \param[out] W The eigenvalues.
+ * \param[out] dW The derivatives of the eigenvalues.
+ * \param[in]  A The matrix to diagonalize.
+ * \param[in]  dA The derivative of the matrix to diagonalize.
+ */
+void diagonalize( ComplexMatrixView arts_P,
+                  /* ComplexMatrixView arts_dP,*/
+                  ComplexVectorView arts_W,
+                  ComplexVectorView arts_dW,
+                  const ConstComplexMatrixView& arts_A,
+                  const ConstComplexMatrixView& arts_dA)
+{ 
+  // A must be a square matrix
+  const Index n = arts_A.ncols();
+  assert(n == arts_A.nrows());
+  assert(n == arts_W.nelem());
+  assert(n == arts_P.nrows());
+  assert(n == arts_P.ncols());
+  assert(n == arts_dA.nrows());
+  assert(n == arts_dA.ncols());
+  assert(n == arts_dW.nelem());
+  //assert(n == arts_dP.nrows());
+  //assert(n == arts_dP.ncols());
+  
+  ComplexConstMatrixViewMap A = MapToEigen(arts_A);
+  ComplexConstMatrixViewMap dA = MapToEigen(arts_dA);
+  ComplexMatrixViewMap W = MapToEigen(arts_W);
+  ComplexMatrixViewMap dW = MapToEigen(arts_dW);
+  ComplexMatrixViewMap P = MapToEigen(arts_P);
+  Eigen::MatrixXcd lP;
+  
+  // Make the computations 
+  Eigen::ComplexEigenSolver<Eigen::MatrixXcd> ges;
+  ges.compute(A);
+  W = ges.eigenvalues();
+  P = ges.eigenvectors();
+  lP = P.adjoint();  // Left eigenvectors should be adjoint of right eigenectors
+  
+  // Loop over the eigen vectors
+  for(Index k = 0; k < n; k++)
+  {
+    // This is from one paper... it works and will therefore help with knowing if the other renormalizations are correct
+    const Complex normalizer = lP.col(k).adjoint() * P.col(k);
+    dW.row(k).noalias()= lP.col(k).adjoint() * dA * P.col(k) / normalizer;
+  }
 }
 
 //! General exponential of a Matrix
@@ -463,6 +551,73 @@ void matrix_exp2(
     
 }
 
+
+void matrix_exp_4x4(
+  MatrixView      arts_f,
+  ConstMatrixView A,
+  const Index&    q )
+{
+  
+  /* Check if A and F are a quadratic and of the same dimension. */
+  assert( is_size(A, 4, 4) );
+  assert( is_size(arts_f, 4, 4) );
+  
+  // Set constants and Numerics
+  const Numeric A_norm_inf = norm_inf(A);
+  const Numeric e = 1.0 + floor(1.0/log(2.0) * log(A_norm_inf));
+  const Index r = (e+1.)>0.?(Index)(e+1.):0;
+  const Numeric inv_pow2=1./pow(2, r);
+  Numeric c = 0.5;
+  
+  const Eigen::Matrix4d M = MapToEigen4x4(A) * inv_pow2;
+  Eigen::Matrix4d X = M;
+  Eigen::Matrix4d cX = c * X;
+  Matrix4x4ViewMap F = MapToEigen4x4(arts_f);
+  Eigen::Matrix4d D = Eigen::Matrix4d::Identity();
+  F.setIdentity();
+  F.noalias() += cX;
+  D.noalias() -= cX;
+  
+  bool p = true;
+  for(Index k=2; k<=q; k++)
+  {
+    c *= (Numeric)(q-k+1)/(Numeric)((k)*(2*q-k+1));
+    X = M * X;
+    cX.noalias() = c * X;
+    F.noalias() += cX;
+    if(p)
+      D.noalias() += cX;
+    else 
+      D.noalias() -= cX;
+    p = not p;
+  }
+  
+  F = D.inverse() * F;
+  
+  for(Index k=1; k<=r; k++)
+    F *= F;
+}
+
+//Matrix exponent with decomposition
+void matrix_exp2_4x4(
+  MatrixView      arts_f,
+  ConstMatrixView A)
+{ 
+  assert(is_size(arts_f, 4, 4));
+  assert(is_size(A, 4, 4));
+  
+  Matrix4x4ViewMap F = MapToEigen4x4(arts_f);
+  Eigen::EigenSolver<Eigen::Matrix4d> es;
+  es.compute(MapToEigen4x4(A));
+  
+  const Eigen::Matrix4cd U = es.eigenvectors();
+  const Eigen::Vector4cd q = es.eigenvalues();
+  const Eigen::Vector4cd eq = q.array().exp();
+  Eigen::Matrix4cd res = U*eq.asDiagonal();
+  res *= U.inverse();
+  F = res.real() ;
+}
+
 //! Special exponential of a Matrix with their derivatives
 /*!
  *
@@ -536,8 +691,6 @@ void special_matrix_exp_and_dmatrix_exp_dx_for_rt(
     dD_upp(n_partials,n,n),dD_low(n_partials,n,n),
     Y_upp(n_partials,n,n),Y_low(n_partials,n,n),
     cY_upp(n_partials,n,n),cY_low(n_partials,n,n);
-    #pragma omp parallel for      \
-    if ( !arts_omp_in_parallel() )
     for(Index ii=0;ii<n_partials;ii++)
     {
         for(Index jj=0;jj<n;jj++)
@@ -570,8 +723,6 @@ void special_matrix_exp_and_dmatrix_exp_dx_for_rt(
         c *= (Numeric)(q-k+1)/(Numeric)((k)*(2*q-k+1));
 
         // For partials in parallel
-        #pragma omp parallel for      \
-        if ( !arts_omp_in_parallel() )
         for(Index ii=0;ii<n_partials;ii++)
         {
             Matrix 
@@ -642,13 +793,11 @@ void special_matrix_exp_and_dmatrix_exp_dx_for_rt(
     F = tmp2;
 
     // For partials in parallel
-    #pragma omp parallel for      \
-    if ( !arts_omp_in_parallel() )
     for(Index ii=0;ii<n_partials;ii++)
     {
         Matrix 
         tmp_low(n,n), tmp_upp(n,n);
-        //dF = D \ (dF - dF*F), or D^-1 * (dF - dF*F)
+        //dF = D \ (dF - dD*F), or D^-1 * (dF - dD*F)
         mult(tmp_upp, dD_upp(ii,joker,joker), F);
         mult(tmp_low, dD_low(ii,joker,joker), F);
 
@@ -656,8 +805,8 @@ void special_matrix_exp_and_dmatrix_exp_dx_for_rt(
         {
             for(Index kk=0;kk<n;kk++)
             {
-                dF_upp(ii,jj,kk)-=tmp_upp(jj,kk);// dF - dF * F
-                dF_low(ii,jj,kk)-=tmp_low(jj,kk);// dF - dF * F
+                dF_upp(ii,jj,kk)-=tmp_upp(jj,kk);// dF - dD * F
+                dF_low(ii,jj,kk)-=tmp_low(jj,kk);// dF - dD * F
             }
         }
 
@@ -678,8 +827,6 @@ void special_matrix_exp_and_dmatrix_exp_dx_for_rt(
     for(Index k=1; k<=r; k++)
     {
         // For partials in parallel
-        #pragma omp parallel for      \
-        if ( !arts_omp_in_parallel() )
         for(Index ii=0;ii<n_partials;ii++)
         {
             Matrix 
@@ -705,6 +852,152 @@ void special_matrix_exp_and_dmatrix_exp_dx_for_rt(
         // F=F*F
         mult(tmp1,F,F);
         F=tmp1;
+    }
+}
+
+Matrix4x4ViewMap MapToEigen4x4(Tensor3View& A, const Index& i)
+{
+  MatrixView B = A(i, joker, joker);
+  return MapToEigen4x4(B); 
+}
+
+MatrixViewMap MapToEigen(Tensor3View& A, const Index& i)
+{
+  MatrixView B = A(i, joker, joker);
+  return MapToEigen(B); 
+}
+
+
+void propmat4x4_to_transmat4x4(
+    MatrixView          F,
+    Tensor3View         dF_upp,
+    Tensor3View         dF_low,
+    ConstMatrixView     A,
+    ConstTensor3View    dA_upp,
+    ConstTensor3View    dA_low,
+    const Index&        q )
+{
+    const Index n_partials = dA_upp.npages();
+
+    /* Check if A and F are a quadratic and of the same dimension. */
+    assert( is_size(A, 4, 4) );
+    assert( is_size(F, 4, 4) );
+    assert(n_partials==dF_upp.npages());
+    assert(n_partials==dF_low.npages());
+    assert(n_partials==dA_low.npages());
+    for(Index ii=0;ii<n_partials;ii++)
+    {
+        assert( is_size(dA_upp(ii, joker, joker), 4, 4) );
+        assert( is_size(dA_low(ii, joker, joker), 4, 4) );
+        assert( is_size(dF_upp(ii, joker, joker), 4, 4) );
+        assert( is_size(dF_low(ii, joker, joker), 4, 4) );
+    }
+
+    // Set constants and Numerics
+    const Numeric A_norm_inf = norm_inf(A);
+    const Numeric e = 1.0 + floor(1.0/log(2.0) * log(A_norm_inf));
+    const Index r = (e+1.)>0.?(Index)(e+1.):0;
+    const Numeric inv_pow2=1./pow(2, r);
+    Numeric c = 0.5;
+    
+    // Create M, dM, X and Y
+    Eigen::Matrix4d M = MapToEigen4x4(A);
+    M *= inv_pow2;
+    Eigen::Matrix4d X = M;
+    Eigen::Matrix4d cX = c * X;
+    Eigen::Matrix4d D = Eigen::Matrix4d::Identity();
+    Matrix4x4ViewMap eigF = MapToEigen4x4(F);
+    eigF.setIdentity();
+    eigF.noalias() += cX;
+    D.noalias() -= cX;
+    
+    Eigen::Matrix4d dMu[n_partials], dMl[n_partials],  Yu[n_partials], Yl[n_partials];
+    Eigen::Matrix4d cYu[n_partials], cYl[n_partials], dDu[n_partials], dDl[n_partials];
+    
+    std::vector<Matrix4x4ViewMap> dFu, dFl;
+    dFu.reserve(n_partials);
+    dFl.reserve(n_partials);
+    
+    for(Index i = 0; i < n_partials; i++)
+    {
+      dMu[i].noalias() = MapToEigen4x4(dA_upp(i, joker, joker)) * inv_pow2;
+      dMl[i].noalias() = MapToEigen4x4(dA_low(i, joker, joker)) * inv_pow2;
+      
+      Yu[i] = dMu[i]; 
+      Yl[i] = dMl[i];
+      
+      cYu[i].noalias() = c * dMu[i];
+      cYl[i].noalias() = c * dMl[i];
+      
+      dFu.push_back(MapToEigen4x4(dF_upp, i));
+      dFl.push_back(MapToEigen4x4(dF_low, i));
+      dFu[i] = cYu[i];
+      dFl[i] = cYl[i];
+      
+      dDu[i] = - cYu[i];
+      dDl[i] = - cYl[i];
+    }
+    
+    bool p = true;
+    for(Index k = 2; k <= q; k++)
+    {
+      c *= (Numeric)(q-k+1) / (Numeric)(k*(2 * q - k + 1));
+      for(Index i = 0; i < n_partials; i++)
+      {
+        Yu[i] = dMu[i] * X + M * Yu[i];
+        Yl[i] = dMl[i] * X + M * Yl[i];
+        
+        cYu[i].noalias() = c * Yu[i];
+        cYl[i].noalias() = c * Yl[i];
+        
+        dFu[i].noalias() += cYu[i];
+        dFl[i].noalias() += cYl[i];
+      }
+      
+      X = M * X;
+      cX.noalias() = c * X;
+      eigF.noalias() += cX;
+      
+      if(p)
+      {
+        D.noalias() += cX; 
+        
+        for(Index i = 0; i < n_partials; i++)
+        {
+          dDu[i].noalias() += cYu[i];
+          dDl[i].noalias() += cYl[i];
+        }
+      }
+      else
+      {
+        D.noalias() -= cX; 
+        
+        for(Index i = 0; i < n_partials; i++)
+        {
+          dDu[i].noalias() -= cYu[i];
+          dDl[i].noalias() -= cYl[i];
+        }
+      }
+      p = not p;
+    }
+    
+    const Eigen::Matrix4d invD = D.inverse();
+    
+    eigF = invD * eigF;
+    for(Index i = 0; i < n_partials; i++)
+    {
+      dFu[i] = invD * (dFu[i] - dDu[i] * eigF);
+      dFl[i] = invD * (dFl[i] - dDl[i] * eigF);
+    }
+    
+    for(Index k = 1; k <= r; k++)
+    {
+      for(Index i = 0; i < n_partials; i++)
+      {
+        dFu[i] = dFu[i] * eigF + eigF * dFu[i];
+        dFl[i] = dFl[i] * eigF + eigF * dFl[i];
+      }
+      eigF = eigF * eigF;
     }
 }
 

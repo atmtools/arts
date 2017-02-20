@@ -94,12 +94,22 @@
 #ifndef matpackI_h
 #define matpackI_h
 
+#include <Eigen/Dense>
 #include "matpack.h"
 #include <cassert>
 #include "array.h"
 
 // Declare existance of some classes
 class bofstream;
+
+// Declaration of Eigen types
+typedef Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> StrideType;
+typedef Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> MatrixType;
+typedef Eigen::Map<MatrixType, 0, StrideType> MatrixViewMap;
+typedef Eigen::Map<const MatrixType, 0, StrideType> ConstMatrixViewMap;
+typedef Eigen::Matrix<Numeric, 4, 4, Eigen::RowMajor> Matrix4x4Type;
+typedef Eigen::Map<Matrix4x4Type, 0, StrideType> Matrix4x4ViewMap;
+typedef Eigen::Map<const Matrix4x4Type, 0, StrideType> ConstMatrix4x4ViewMap;
 
 /** The Joker class.
 
@@ -359,6 +369,11 @@ public:
                            VectorView,
                            VectorView,
                            ConstMatrixView);
+  
+  friend ConstMatrixViewMap MapToEigen(const ConstVectorView&);
+  friend ConstMatrixViewMap MapToEigenCol(const ConstVectorView&);
+  friend MatrixViewMap MapToEigen(VectorView&);
+  friend MatrixViewMap MapToEigenCol(VectorView&);
 
   // A special constructor, that allows to make a ConstVectorView of a scalar.
   ConstVectorView(const Numeric& a);
@@ -700,6 +715,12 @@ public:
                            VectorView,
                            VectorView,
                            ConstMatrixView);
+  
+  friend ConstMatrixViewMap MapToEigen(const ConstMatrixView&);
+  friend MatrixViewMap MapToEigen(MatrixView&);
+  
+  friend ConstMatrix4x4ViewMap MapToEigen4x4(const ConstMatrixView&);
+  friend Matrix4x4ViewMap MapToEigen4x4(MatrixView&);
 
 protected:
   // Constructors:
@@ -938,6 +959,27 @@ Numeric operator*(const ConstVectorView& a, const ConstVectorView& b);
 std::ostream& operator<<(std::ostream& os, const ConstVectorView& v);
 
 std::ostream& operator<<(std::ostream& os, const ConstMatrixView& v);
+
+// Converts constant matrix to constant eigen map
+ConstMatrixViewMap MapToEigen(const ConstMatrixView& A);
+// Converts constant vector to constant eigen row-view
+ConstMatrix4x4ViewMap MapToEigen4x4(const ConstMatrixView& A);
+// Converts constant vector to constant eigen row-view
+ConstMatrixViewMap MapToEigen(const ConstVectorView& A);
+// Converts constant vector to constant eigen row-view
+ConstMatrixViewMap MapToEigenRow(const ConstVectorView& A);
+// Converts constant vector to constant eigen column-view
+ConstMatrixViewMap MapToEigenCol(const ConstVectorView& A);
+// Converts matrix to eigen map
+MatrixViewMap MapToEigen(MatrixView& A);
+// Converts vector to eigen map row-view
+Matrix4x4ViewMap MapToEigen4x4(MatrixView& A);
+// Converts vector to eigen map row-view
+MatrixViewMap MapToEigen(VectorView& A);
+// Converts vector to eigen map row-view
+MatrixViewMap MapToEigenRow(VectorView& A);
+// Converts vector to eigen map column-view
+MatrixViewMap MapToEigenCol(VectorView& A);
 
 ////////////////////////////////
 // Helper function for debugging

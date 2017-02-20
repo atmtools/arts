@@ -575,6 +575,38 @@ public:
         return true;
     }
     
+    bool supportsRelaxationMatrix() const 
+    {
+        bool testvar = false;
+        
+        for(Index iq=0; iq<nelem(); iq++)
+        {
+            if( mqtype[iq]==JQT_temperature             || //Supported types by relmat
+                mqtype[iq]==JQT_frequency               || 
+                mqtype[iq]==JQT_wind_magnitude          || 
+                mqtype[iq]==JQT_wind_u                  || 
+                mqtype[iq]==JQT_wind_v                  || 
+                mqtype[iq]==JQT_wind_w)
+                testvar=true;
+            else if(mqtype[iq]==JQT_line_center    || // Not yet supported
+                mqtype[iq]==JQT_line_gamma     ||
+                mqtype[iq]==JQT_line_gamma_self     ||
+                mqtype[iq]==JQT_line_gamma_foreign     || 
+                mqtype[iq]==JQT_line_gamma_water     || 
+                mqtype[iq]==JQT_line_gamma_selfexponent     || 
+                mqtype[iq]==JQT_line_gamma_foreignexponent     ||
+                mqtype[iq]==JQT_line_gamma_waterexponent     ||
+                mqtype[iq]==JQT_line_mixing_DF || 
+                mqtype[iq]==JQT_line_mixing_G  ||
+                mqtype[iq]==JQT_line_mixing_Y  || 
+                mqtype[iq]==JQT_line_strength)
+                throw std::runtime_error("Line specific parameters are not supported while\n"
+                "using the relaxation matrix line mixing routine.\n"
+                "We do not yet track individual lines in the relaxation matrix calculations.\n");
+        }
+        return testvar;
+    };
+    
     bool supportsLookup() const 
     {
         bool testvar = false;
@@ -590,13 +622,13 @@ public:
                 mqtype[iq]==JQT_VMR)
                 testvar=true;
             else if(mqtype[iq]==JQT_line_center    || // We cannot know if any particular
-                mqtype[iq]==JQT_line_gamma     || // line is in the Continuum?
-                mqtype[iq]==JQT_line_gamma_self     || // line is in the Continuum?
-                mqtype[iq]==JQT_line_gamma_foreign     || // line is in the Continuum?
-                mqtype[iq]==JQT_line_gamma_water     || // line is in the Continuum?
-                mqtype[iq]==JQT_line_gamma_selfexponent     || // line is in the Continuum?
-                mqtype[iq]==JQT_line_gamma_foreignexponent     || // line is in the Continuum?
-                mqtype[iq]==JQT_line_gamma_waterexponent     || // line is in the Continuum?
+                mqtype[iq]==JQT_line_gamma     || // line is in the Lookup?
+                mqtype[iq]==JQT_line_gamma_self     || // line is in the Lookup?
+                mqtype[iq]==JQT_line_gamma_foreign     || // line is in the Lookup?
+                mqtype[iq]==JQT_line_gamma_water     || // line is in the Lookup?
+                mqtype[iq]==JQT_line_gamma_selfexponent     || // line is in the Lookup?
+                mqtype[iq]==JQT_line_gamma_foreignexponent     || // line is in the Lookup?
+                mqtype[iq]==JQT_line_gamma_waterexponent     || // line is in the Lookup?
                 mqtype[iq]==JQT_line_mixing_DF || // Did not add JQT_level_vibrational_temperature,
                 mqtype[iq]==JQT_line_mixing_G  || // since no continuum model takes NLTE into account.
                 mqtype[iq]==JQT_line_mixing_Y  || // (if they do, add this to list of unsupported Jacobians.)

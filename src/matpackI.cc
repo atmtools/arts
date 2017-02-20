@@ -2269,6 +2269,58 @@ VectorView& VectorView::operator=(const Array<Numeric>& v)
   return *this;
 }
 
+// Const
+
+// Converts constant matrix to constant eigen map
+ConstMatrixViewMap MapToEigen(const ConstMatrixView& A){
+  return ConstMatrixViewMap(A.mdata+A.mrr.get_start()+A.mcr.get_start(),
+   A.nrows(), A.ncols(), StrideType(A.mrr.get_stride(), A.mcr.get_stride())); }
+   
+// Converts constant vector to constant eigen row-view
+ConstMatrixViewMap MapToEigen(const ConstVectorView& A){
+  return ConstMatrixViewMap(A.mdata+A.mrange.get_start(),
+   A.nelem(), 1, StrideType(A.mrange.get_stride(), 1)); }
+
+// Converts constant vector to constant eigen row-view
+ConstMatrixViewMap MapToEigenRow(const ConstVectorView& A){return MapToEigen(A);}
+
+// Converts constant vector to constant eigen column-view
+ConstMatrixViewMap MapToEigenCol(const ConstVectorView& A){
+  return ConstMatrixViewMap(A.mdata+A.mrange.get_start(),
+   1, A.nelem(), StrideType(1, A.mrange.get_stride())); }
+
+// Non- const
+   
+// Converts matrix to eigen map
+MatrixViewMap MapToEigen(MatrixView& A){
+  return MatrixViewMap(A.mdata+A.mrr.get_start()+A.mcr.get_start(),
+   A.nrows(), A.ncols(), StrideType(A.mrr.get_stride(), A.mcr.get_stride())); }
+
+// Converts vector to eigen map row-view
+MatrixViewMap MapToEigen(VectorView& A){
+  return MatrixViewMap(A.mdata+A.mrange.get_start(),
+   A.nelem(), 1, StrideType(A.mrange.get_stride(), 1)); }
+
+// Converts vector to eigen map row-view
+MatrixViewMap MapToEigenRow(VectorView& A){return MapToEigen(A);}
+
+// Converts vector to eigen map column-view
+MatrixViewMap MapToEigenCol(VectorView& A){
+  return MatrixViewMap(A.mdata+A.mrange.get_start(),
+   1, A.nelem(), StrideType(1, A.mrange.get_stride())); }
+   
+// Special 4x4
+
+// Converts matrix to eigen map
+Matrix4x4ViewMap MapToEigen4x4(MatrixView& A){
+  return Matrix4x4ViewMap(A.mdata+A.mrr.get_start()+A.mcr.get_start(),
+                          4, 4, StrideType(A.mrr.get_stride(), A.mcr.get_stride())); }
+   
+// Converts constant matrix to constant eigen map
+ConstMatrix4x4ViewMap MapToEigen4x4(const ConstMatrixView& A){
+  return ConstMatrix4x4ViewMap(A.mdata+A.mrr.get_start()+A.mcr.get_start(),
+                               4, 4, StrideType(A.mrr.get_stride(), A.mcr.get_stride())); }
+
 ////////////////////////////////
 // Helper function for debugging
 #ifndef NDEBUG

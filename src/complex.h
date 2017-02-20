@@ -28,8 +28,6 @@
 
 #include <complex>
 #include "matpackI.h"
-#include "array.h"
-#include <Eigen/Dense>
 
 typedef std::complex<Numeric> Complex;
 
@@ -63,9 +61,9 @@ class ConstComplexMatrixView;
 
 // Eigen library interactions:
 typedef Eigen::Matrix<Complex, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> ComplexMatrixType;
-typedef Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> StrideType;
-typedef Eigen::Map<ComplexMatrixType, 0, StrideType> ComplexMatrixViewMap;
-typedef Eigen::Map<const ComplexMatrixType, 0, StrideType> ComplexConstMatrixViewMap;
+typedef Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> ComplexStrideType;
+typedef Eigen::Map<ComplexMatrixType, 0, ComplexStrideType> ComplexMatrixViewMap;
+typedef Eigen::Map<const ComplexMatrixType, 0, ComplexStrideType> ComplexConstMatrixViewMap;
 
 /** The complex range class.
  * 
@@ -593,6 +591,12 @@ public:
     friend void mult (ComplexMatrixView,
                       const ConstComplexMatrixView &,
                       const ConstComplexMatrixView &);
+    friend void mult (ComplexMatrixView,
+                      const ConstMatrixView &,
+                      const ConstComplexMatrixView &);
+    friend void mult (ComplexMatrixView,
+                      const ConstComplexMatrixView &,
+                      const ConstMatrixView &);
     
     friend void inv( ComplexMatrixView,
                      const ConstComplexMatrixView&);
@@ -818,6 +822,15 @@ void mult( ComplexVectorView y,
 void mult( ComplexMatrixView A,
            const ConstComplexMatrixView& B,
            const ConstComplexMatrixView& C );
+void mult( ComplexMatrixView A,
+           const ConstMatrixView& B,
+           const ConstComplexMatrixView& C );
+void mult( ComplexMatrixView A,
+           const ConstComplexMatrixView& B,
+           const ConstMatrixView& C );
+void mult( ComplexMatrixView A,
+           const ConstMatrixView& B,
+           const ConstMatrixView& C );
 
 Complex operator*(const ConstComplexVectorView& a, const ConstComplexVectorView& b);
 

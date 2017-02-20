@@ -579,6 +579,32 @@ void test_complex_diagonalize(Index ntests, Index dim)
     }
 }
 
+void test_matrix_exp_propmat(Index runs, Index size)
+{
+  Matrix A(4, 4), F1(4, 4), F2(4, 4);
+  Tensor3 dA1(size, 4, 4), dA2(size, 4, 4), dFl1(size, 4, 4), dFl2(size, 4, 4), dFu1(size, 4, 4), dFu2(size, 4, 4);
+  Index q = 8;
+  
+  for(Index i=0; i<runs; i++)
+  {
+    random_fill_matrix_symmetric( A, 10, false );
+    for(Index j=0; j<size; j++)
+    { 
+      random_fill_matrix_symmetric( dA1(j, joker, joker), 10, false );
+      random_fill_matrix_symmetric( dA2(j, joker, joker), 10, false );
+    }
+    
+    propmat4x4_to_transmat4x4(F1, dFl1, dFu1, A, dA1, dA2, q);
+    special_matrix_exp_and_dmatrix_exp_dx_for_rt(F2, dFl2, dFu2, A, dA1, dA2, q);
+    
+    matrix_exp_4x4(F1, A, 10);
+    matrix_exp_4x4(F2, A, 300);/*
+    F1 -= F2;
+    F1 /= F2;
+    std::cout<<MapToEigen4x4(F1)<<std::endl<<"----------------------------------------------"<<std::endl;*/
+  }
+}
+
 int main(void)
 {
   //test_lusolve4D();
@@ -587,5 +613,6 @@ int main(void)
   // test_matrix_exp1D();
     test_real_diagonalize(20,100);
     test_complex_diagonalize(20,100);
+  //test_matrix_exp_propmat(5, 5);
   return(0);
 }

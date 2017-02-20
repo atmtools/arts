@@ -276,16 +276,24 @@ void abs_lines_per_bandFromband_identifiers( ArrayOfArrayOfLineRecord&       abs
     }
 }
 
-void calculate_xsec_from_W( VectorView  xsec,
-                            const ConstMatrixView Wmat,
-                            const ConstVectorView f0,
-                            const ConstVectorView f_grid,
-                            const ConstVectorView d0,
-                            const ConstVectorView rhoT,
-                            const ConstVectorView psf,
-                            const Numeric&  T,
-                            const Numeric&  isotopologue_mass,
-                            const Index&    n )
+void calculate_xsec_from_relmat(ArrayOfMatrix& xsec,
+                                ArrayOfArrayOfMatrix& dxsec_dx,
+                                const PropmatPartialsData& ppd,
+                                const ConstMatrixView Wmat,
+                                const ConstMatrixView Wmat_dt,
+                                const ConstVectorView f0,
+                                const ConstVectorView f_grid,
+                                const ConstVectorView d0,
+                                const ConstVectorView d0_dt,
+                                const ConstVectorView rhoT,
+                                const ConstVectorView rhoT_dt,
+                                const ConstVectorView psf,
+                                const ConstVectorView psf_dt,
+                                const Numeric&  T,
+                                const Numeric&  isotopologue_mass,
+                                const Index& this_species,
+                                const Index& this_level,
+                                const Index&    n )
 { 
     // Physical constants
     extern const Numeric BOLTZMAN_CONST;
@@ -297,71 +305,175 @@ void calculate_xsec_from_W( VectorView  xsec,
     // internal constant
     const Index nf  = f_grid.nelem();
     const Numeric kT = BOLTZMAN_CONST * T;
-    const Numeric doppler_const = sqrt( 2.0 * kT * AVOGADROS_NUMB / isotopologue_mass ) / SPEED_OF_LIGHT;
+    const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST * AVOGADROS_NUMB / isotopologue_mass ) / SPEED_OF_LIGHT;
     static const Numeric invSqrtPI = 1.0/sqrt(PI);
     
     // Setup for the matrix to be diagonalized
-    ComplexMatrix F0plusiPW(n, n);
-    for(Index i = 0; i < n; i++)
+    ComplexMatrix F0plusiPW(n, n), F0plusiPW_dt;
     {
-        for(Index j = 0; j < n; j++)
+      if(ppd.do_temperature())
+      {
+        F0plusiPW_dt.resize(n, n);
+        
+        for(Index i = 0; i < n; i++)
         {
+          for(Index j = 0; j < n; j++)
+          {
             if(j == i)
+            {
               F0plusiPW(i, i) = Complex(f0[i], Wmat(i, i));
+              F0plusiPW_dt(i, i) = Complex(f0[i], Wmat_dt(i, i));
+            }
             else
+            {
               F0plusiPW(i, j) = Complex(0.0, Wmat(i, j));
+              F0plusiPW_dt(i, j) = Complex(0.0, Wmat_dt(i, j));
+            }
+          }
         }
+      }
+      else 
+      {
+        for(Index i = 0; i < n; i++)
+        {
+          for(Index j = 0; j < n; j++)
+          {
+            if(j == i)
+            {
+              F0plusiPW(i, i) = Complex(f0[i], Wmat(i, i));
+            }
+            else
+            {
+              F0plusiPW(i, j) = Complex(0.0, Wmat(i, j));
+            }
+          }
+        }
+      }
     }
+    
     
     // z_eigs is set to contain the eigenvalues, 
     // E is the matrix of eigenvectors and invE is its inverse
     // the idea is that E*diag(z_eig)*invE is F0plusiPW
-    ComplexVector z_eigs(n);
-    ComplexMatrix E(n, n), invE(n, n);
-    diagonalize(E, z_eigs, F0plusiPW);
-    inv(invE, E);
-    
-    // Equivalent line strength
-    ComplexVector equivS0(n, 0.0);
-    
-    // Doppler broadening
-    Vector sigma(n);
+    ComplexVector z_eigs(n),z_eigs_dt;
+    ComplexMatrix E(n, n), invE(n, n), E_dt, invE_dt;
+    {
+      diagonalize(E, z_eigs, F0plusiPW);
+      inv(invE, E);
+      if(ppd.do_temperature())
+      {
+        z_eigs_dt.resize(n);
+        E_dt.resize(n, n);
+        invE_dt.resize(n, n);
+        diagonalize(E_dt, z_eigs_dt, F0plusiPW_dt);
+        inv(invE_dt, E_dt);
+      }
+    }
     
     // Conjunction of eigenvalues and the Doppler broadening
-    for(Index if1 = 0; if1 < n; if1++)
+    Vector sigma(n), sigma_dt;
     {
-      sigma[if1]= f0[if1] * doppler_const ;
-      z_eigs[if1] = conj(z_eigs[if1]); 
-    }   
-    
-    for(Index k = 0; k < n; k++)
-    {
-      Complex z1 = 0.0;
-      Complex z2 = 0.0;
-      for(Index j = 0; j < n; j++)
+      if(ppd.do_temperature())
       {
-         z1 += d0[j] * E(j, k);
-         z2 += rhoT[j] * d0[j] * invE(k, j);
-        
+        //dsigma_dt.resize(n);
+        sigma_dt.resize(n);
+        for(Index if1 = 0; if1 < n; if1++)
+        {
+          sigma[if1] = f0[if1] * doppler_const * sqrt(T);
+          sigma_dt[if1] = f0[if1] * doppler_const * sqrt(T + ppd.Temperature_Perturbation()) ;
+          
+          z_eigs[if1] = conj(z_eigs[if1]); 
+          z_eigs_dt[if1] = conj(z_eigs_dt[if1]);
+        }
       }
-      equivS0[k] = conj(z1 * z2);
+      else
+      {
+        for(Index if1 = 0; if1 < n; if1++)
+        {
+          sigma[if1]= f0[if1] * doppler_const * sqrt(T);
+          z_eigs[if1] = conj(z_eigs[if1]); 
+        }
+      }
+    }
+    
+    // Equivalent line strength
+    ComplexVector equivS0(n, 0.0), equivS0_dt;
+    {
+      if(ppd.do_temperature())
+      {
+        equivS0_dt.resize(n);
+        for(Index k = 0; k < n; k++)
+        {
+          Complex z1 = 0.0;
+          Complex z2 = 0.0;
+          Complex z1_dt = 0.0;
+          Complex z2_dt = 0.0;
+          for(Index j = 0; j < n; j++)
+          {
+            z1 += d0[j] * E(j, k);
+            z2 += rhoT[j] * d0[j] * invE(k, j);
+            z1_dt += d0_dt[j] * E_dt(j, k);
+            z2_dt += rhoT_dt[j] * d0_dt[j] * invE_dt(k, j);
+            
+          }
+          equivS0[k] = conj(z1 * z2);
+          equivS0_dt[k] = conj(z1_dt * z2_dt);
+        }
+      }
+      else
+      {
+        for(Index k = 0; k < n; k++)
+        {
+          Complex z1 = 0.0;
+          Complex z2 = 0.0;
+          for(Index j = 0; j < n; j++)
+          {
+            z1 += d0[j] * E(j, k);
+            z2 += rhoT[j] * d0[j] * invE(k, j);
+            
+          }
+          equivS0[k] = conj(z1 * z2);
+        }
+      }
     }
     
     // Perform the computations to get at the cross-sections
-    #pragma omp parallel for                    \
-    if (!arts_omp_in_parallel())
     for(Index iv = 0; iv < nf; iv++)
     {
-      const Numeric s0_freqfac =  f_grid[iv] * (1.0 - exp(- PLANCK_CONST * f_grid[iv] / kT)); // Adapted from Niro's code
+      const Numeric s0_freqfac =  f_grid[iv] * (1 - exp(- PLANCK_CONST * f_grid[iv] / kT)); // Adapted from Niro's code
+      Numeric s0_freqfac_dt = 0.0;
+      if(ppd.do_temperature())
+      {
+        s0_freqfac_dt = f_grid[iv] * (1 - exp(- PLANCK_CONST * f_grid[iv] / (BOLTZMAN_CONST * (T+ppd.Temperature_Perturbation()))));
+      }
       for(Index if0 = 0; if0 < n; if0++)
       {
         const Numeric ls_normfac = invSqrtPI / sigma[if0];
         const Complex z = (f_grid[iv] -(z_eigs[if0] + psf[if0])) / sigma[if0];
         const Complex w = Faddeeva::w(z);
-        xsec[iv] += (equivS0[if0] * w).real() * ls_normfac * s0_freqfac;
+        const Numeric xsec_this = (equivS0[if0] * w).real() * ls_normfac * s0_freqfac;
+        xsec[this_species](iv, this_level) += xsec_this;
         
-        //const Complex dw_dz = 2 * (z * w - invSqrtPI);
+        Complex dw_df = Complex(0.0, 0.0);
+        if(ppd.do_frequency())
+          dw_df = 2 * (z * w - invSqrtPI) / sigma[if0];
         
+        for(Index iq = 0; iq < ppd.nelem(); iq++)
+        {
+          if(ppd(iq) == JQT_frequency || ppd(iq) == JQT_wind_magnitude || 
+             ppd(iq) == JQT_wind_u || ppd(iq) == JQT_wind_v || ppd(iq) == JQT_wind_w)
+          {
+            dxsec_dx[this_species][iq](iv, this_level) += real((dw_df + 1.0/f_grid[iv] * w) * ls_normfac * s0_freqfac * equivS0[if0]);
+          }
+          if(ppd(iq) == JQT_temperature)
+          {
+            const Numeric ls_normfac_dt = invSqrtPI / sigma_dt[if0];
+            const Complex z_dt = (f_grid[iv] -(z_eigs_dt[if0] + psf_dt[if0])) / sigma_dt[if0];
+            const Complex w_dt = Faddeeva::w(z_dt);
+            const Numeric xsec_this_dt = (equivS0_dt[if0] * w_dt).real() * ls_normfac_dt * s0_freqfac_dt;
+            dxsec_dx[this_species][iq](iv, this_level) += (xsec_this_dt - xsec_this) / ppd.Temperature_Perturbation();
+          }
+        }
       }
     }
 }
@@ -405,7 +517,7 @@ extern "C"
 
 void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                             ArrayOfMatrix&                   abs_xsec_per_species,
-                                            ArrayOfArrayOfMatrix&            /*dabs_xsec_per_species_dx*/,
+                                            ArrayOfArrayOfMatrix&            dabs_xsec_per_species_dx,
                                             ArrayOfMatrix&                   wmats,
                                             ArrayOfVector&                   dipoles,
                                             ArrayOfVector&                   rhos,
@@ -457,8 +569,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
     
     // FIXME: the partial derivations are necessary...
     PropmatPartialsData ppd(jacobian_quantities);
-    if( 0 != ppd.nelem() )
-      throw std::runtime_error("Presently no support for partial derivation.");
+    ppd.supportsRelaxationMatrix();
     // It should support temperature and wind, and maybe even the line mixing parameters as an error vector
     
     const Index nbands = abs_lines_per_band.nelem();
@@ -756,6 +867,16 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             Vector dipole(nlines);
             Vector rhoT(nlines);
             
+            Matrix W_dt;
+            Vector dipole_dt;
+            Vector rhoT_dt;
+            if(ppd.do_temperature())
+            {
+              W_dt.resize(nlines,nlines);
+              dipole_dt.resize(nlines);
+              rhoT_dt.resize(nlines);
+            }
+            
             // Find the partition function
             Numeric QT0;
             Numeric QT;
@@ -803,25 +924,71 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             W *= w2Hz / 2.0;
             dipole /= 100.0; // sqrt(I0_hi2arts / w2Hz) = 1/100;
             
+            // The temperature derivatives are for now only possible to do with perturbations
+            if(ppd.do_temperature())
+            {
+              t += ppd.Temperature_Perturbation();
+              arts_relmat_interface__hartmann_and_niro_type(
+                  &nlines, &fmin, &fmax,
+                  &M, &I, v0.get_c_array(), S.get_c_array(),
+                  gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
+                  upper, lower,
+                  g_prime, g_double_prime,
+                  &t, &p, &QT, &QT0, &mass,
+                  &number_of_perturbers, molecule_code_perturber, 
+                  iso_code_perturber, perturber_mass, vmr.get_c_array(),
+                                    W_dt.get_c_array(), dipole_dt.get_c_array(), rhoT_dt.get_c_array() );
+              
+              W_dt *=  w2Hz / 2.0;
+              dipole_dt /= 100.0;
+              t -= ppd.Temperature_Perturbation();
+            }
+            
             // Use the provided pressure shift  NOTE: this might be a bad idea
-            Vector psf(nlines);
-            for(Index ii = 0; ii < nlines; ii++)
-              psf[ii] = delta_air[ii] * abs_p[ip] * pow ((relmat_T0/t),(Numeric)0.25+(Numeric)1.5*n_air[ii]);
+            Vector psf(nlines), psf_dt;
+            if(ppd.do_temperature())
+            {
+              const Numeric t_dt = abs_t[ip] + ppd.Temperature_Perturbation();
+              psf_dt.resize(nlines);
+              for(Index ii = 0; ii < nlines; ii++)
+              {
+                psf[ii] = delta_air[ii] * abs_p[ip] * pow ((relmat_T0/t),(Numeric)0.25+(Numeric)1.5*n_air[ii]);
+                psf_dt[ii] = delta_air[ii] * abs_p[ip] * pow ((relmat_T0/t_dt),(Numeric)0.25+(Numeric)1.5*n_air[ii]);
+              }
+              
+            }
+            else
+            {
+              for(Index ii = 0; ii < nlines; ii++)
+              {
+                psf[ii] = delta_air[ii] * abs_p[ip] * pow ((relmat_T0/t),(Numeric)0.25+(Numeric)1.5*n_air[ii]);
+              }
+            }
             
             if(write_wmat == 0)
             {
+              // NOTE: For now, _dt means that the values at a different temperature are sent into the function for numeric
+              //       partial derivation at a later stage.
               
               // Using Rodrigues etal method
-              calculate_xsec_from_W( abs_xsec_per_species[this_species](joker, ip),
-                                     W,
-                                     f0,
-                                     f_grid,
-                                     dipole,
-                                     rhoT,
-                                     psf,
-                                     abs_t[ip],
-                                     mass,
-                                     nlines);
+              calculate_xsec_from_relmat( abs_xsec_per_species,
+                                          dabs_xsec_per_species_dx,
+                                          ppd,
+                                          W,
+                                          W_dt,
+                                          f0,
+                                          f_grid,
+                                          dipole,
+                                          dipole_dt,
+                                          rhoT,
+                                          rhoT_dt,
+                                          psf,
+                                          psf_dt,
+                                          abs_t[ip],
+                                          mass,
+                                          this_species,
+                                          ip,
+                                          nlines);
             }
             else
             {
