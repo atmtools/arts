@@ -1,3 +1,17 @@
+2017-02-21  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-637
+
+	* src/xml_io_compound_types.cc (xml_write_to_stream):
+
+	Write newline before ptype attribute when saving SingleScatteringData.
+
+	* src/lin_alg.cc (propmat4x4_to_transmat4x4):
+
+	C-arrays of non-POD types are not allowed in C++ (even if GCC thinks
+	otherwise). Changed variables to Array<> type to fix compilation errors
+	on compilers other than GCC.
+
 2017-02-20 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-636

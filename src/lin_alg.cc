@@ -911,10 +911,10 @@ void propmat4x4_to_transmat4x4(
     eigF.noalias() += cX;
     D.noalias() -= cX;
     
-    Eigen::Matrix4d dMu[n_partials], dMl[n_partials],  Yu[n_partials], Yl[n_partials];
-    Eigen::Matrix4d cYu[n_partials], cYl[n_partials], dDu[n_partials], dDl[n_partials];
+    Array<Eigen::Matrix4d> dMu(n_partials), dMl(n_partials),  Yu(n_partials), Yl(n_partials);
+    Array<Eigen::Matrix4d> cYu(n_partials), cYl(n_partials), dDu(n_partials), dDl(n_partials);
     
-    std::vector<Matrix4x4ViewMap> dFu, dFl;
+    Array<Matrix4x4ViewMap> dFu, dFl;
     dFu.reserve(n_partials);
     dFl.reserve(n_partials);
     

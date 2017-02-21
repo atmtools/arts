@@ -1392,6 +1392,7 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.add_attribute("version", "3");
   open_tag.write_to_stream(os_xml);
 
+  os_xml << '\n';
   xml_write_to_stream(os_xml, PTypeToString(ssdata.ptype),
                       pbofs, "", verbosity);
   xml_write_to_stream(os_xml, ssdata.description, pbofs, "", verbosity);
