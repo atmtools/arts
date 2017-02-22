@@ -42,6 +42,7 @@
 /*! The lookup information for all the different species. */
 namespace global_data {
 Array<SpeciesRecord> species_data;
+std::map<String, Index> SpeciesMap;
 }
 
 using global_data::species_data;
@@ -1240,4 +1241,19 @@ void define_basic_species_data()
         () ) );
 
   //cout << species_data;
+}
+
+
+/*! Define the species data map.
+
+ \author Stefan Buehler */
+void define_species_map()
+{
+    using global_data::species_data;
+    using global_data::SpeciesMap;
+
+    for ( Index i=0 ; i<species_data.nelem() ; ++i)
+    {
+        SpeciesMap[species_data[i].Name()] = i;
+    }
 }

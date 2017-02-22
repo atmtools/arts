@@ -61,10 +61,6 @@ static const char *SpeciesAuxTypeNames[] = {
 };
 
 
-/** The map associated with species_data. */
-std::map<String, Index> SpeciesMap;
-
-
 // member fct of isotopologuerecord, calculates the partition fct at the
 // given temperature  from the partition fct coefficients (3rd order
 // polynomial in temperature)
@@ -505,20 +501,6 @@ void fillSpeciesAuxDataWithPartitionFunctionsFromSpeciesData(SpeciesAuxData& sad
             sad.setParam(isp, iiso,
                          SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF, pfuncs);
         }
-    }
-}
-
-
-/*! Define the species data map.
-
-    \author Stefan Buehler */
-void define_species_map()
-{
-  using global_data::species_data;
-
-  for ( Index i=0 ; i<species_data.nelem() ; ++i)
-    {
-      SpeciesMap[species_data[i].Name()] = i;
     }
 }
 
@@ -1593,6 +1575,8 @@ Numeric wavenumber_to_joule(Numeric e)
 */
 Index species_index_from_species_name( String name )
 {
+  using global_data::SpeciesMap;
+
   // For the return value:
   Index mspecies;
 

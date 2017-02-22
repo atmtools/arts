@@ -1,3 +1,17 @@
+2017-02-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-638
+
+	* src/global_data.h: Make SpeciesMap available in global_data namespace.
+
+	* src/absorption.cc, src/src/species_data.cc:
+
+	Move definition and initialization of SpeciesMap to species_data.cc.
+
+	* src/absorption.cc, src/arts.h:
+
+	Move declaration of define_species_map to arts.h.
+
 2017-02-21  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-637

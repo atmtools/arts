@@ -665,12 +665,6 @@ ostream& operator<< (ostream& os, const SpeciesAuxData& sad);
 
 
 
-/** Define the species data map.
-
-    \author Stefan Buehler  */
-void define_species_map();
-
-
 void xsec_species(    MatrixView               xsec_attenuation,
 		      MatrixView               xsec_source,
 		      MatrixView               xsec_phase,

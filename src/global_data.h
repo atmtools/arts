@@ -108,6 +108,12 @@ extern const map<String, Index> WsvGroupMap;
  */
 extern const Array<SpeciesRecord> species_data;
 
+/** The map associated with species_data. */
+/**
+ Defined in absorption.cc.
+ */
+extern const map<String, Index> SpeciesMap;
+
 //! The lookup data for the different lineshapes.
 /**
  Defined in lineshapes.cc.
