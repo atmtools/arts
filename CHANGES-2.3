@@ -55,7 +55,7 @@ General
 
 - Polarisation index coding of left- and right hand circular polarisation
   changed. See on-line doc of sensor_pol for present coding. Before the wrong
-  polarisation nwas obtained when using the sensor part to extract the V Stokes
+  polarisation was obtained when using the sensor part to extract the V Stokes
   element.
   
 - Artscat5 is new.  Allows easier-to-read and modify line data.  Presently
@@ -77,6 +77,12 @@ General
   DOIT
 
 - Added a convergence acceleration for DOIT calculations 
+
+- New format of scattering data for azumuthally randomly oriented scatterers
+  (formerly known as horizontally aligned or p30). See AUG. Old format data is
+  automatically converted when read.
+
+- Interfaces to scattering solvers Disort and RT4.
 
 NAME CHANGES-2.3
 ================

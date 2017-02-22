@@ -32,6 +32,89 @@
 
 #include "messages.h"
 
+void check_rt4_input( // Output
+                      Index& nhstreams,
+                      Index& nhza,
+                      Index& nummu,
+                      // Input
+                      const Index& cloudbox_on,
+                      const Index& rt4_is_initialized,
+                      const String& calling_method,
+                      const Index& atmfields_checked,
+                      const Index& atmgeom_checked,
+                      const Index& cloudbox_checked,
+                      const Index& nstreams,
+                      const String& quad_type,
+                      const Index& pnd_ncols,
+                      const Index& ifield_npages );
+
+void get_quad_angles( // Output
+                      VectorView mu_values,
+                      VectorView quad_weights,
+                      Vector& scat_za_grid,
+                      Vector& scat_aa_grid,
+                      // Input
+                      const String& quad_type,
+                      const Index& nhstreams,
+                      const Index& nhza,
+                      const Index& nummu );
+
+void get_rt4surf_props( // Output
+                        Vector& ground_albedo,
+                        Tensor3& ground_reflec,
+                        ComplexVector& ground_index,
+                        // Input
+                        ConstVectorView f_grid,
+                        const String& ground_type,
+                        const Numeric& surface_skin_t,
+                        ConstVectorView surface_scalar_reflectivity,
+                        ConstTensor3View surface_reflectivity,
+                        const GriddedField3& surface_complex_refr_index,
+                        const Index& stokes_dim );
+
+void run_rt4( Workspace& ws,
+              // Output
+              Tensor7& doit_i_field,
+              // Input
+              Index& f_index,
+              ConstVectorView f_grid,
+              ConstVectorView p_grid,
+              ConstTensor3View z_field,
+              ConstTensor3View t_field,
+              ConstTensor4View vmr_field,
+              ConstTensor4View pnd_field,
+              const ArrayOfArrayOfSingleScatteringData& scat_data,
+              ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+              const Agenda& propmat_clearsky_agenda, 
+              const Agenda& opt_prop_part_agenda,
+              const Agenda& spt_calc_agenda,
+              const ArrayOfIndex& cloudbox_limits,
+              const Index& stokes_dim,
+              const Index& nummu,
+              const Index& nhza,
+              const String& ground_type,
+              const Numeric& surface_skin_t,
+              ConstVectorView ground_albedo,
+              ConstTensor3View ground_reflec,
+              ConstComplexVectorView ground_index,
+              ConstTensor5View surf_refl_mat,
+              ConstTensor3View surf_emis_vec,
+              const String& quad_type,
+              ConstVectorView scat_za_grid,
+              Vector& mu_values,
+              ConstVectorView quad_weights,
+              const String& pfct_method,
+              const Index& pfct_aa_grid_size,
+              const Numeric& pfct_threshold,
+              const Numeric& max_delta_tau,
+              const Verbosity& verbosity );
+
+void scat_za_grid_adjust( // Output
+                          Vector& scat_za_grid,
+                          // Input
+                          ConstVectorView mu_values,
+                          const Index& nummu );
+
 void gas_optpropCalc( Workspace& ws,
                       //Output
                       VectorView gas_extinct,

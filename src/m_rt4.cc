@@ -42,8 +42,6 @@
 extern const Numeric PI;
 extern const Numeric RAD2DEG;
 extern const Numeric DEG2RAD;
-extern const Numeric SPEED_OF_LIGHT;
-extern const Numeric COSMIC_BG_TEMP;
 
 #ifdef ENABLE_RT4
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -73,6 +71,112 @@ void RT4Calc( Workspace& ws,
                 const ArrayOfArrayOfSingleScatteringData& scat_data,
                 const Vector& f_grid,
                 const Index& stokes_dim,
+                const Index& nstreams,
+                const Index& non_iso_inc _U_,
+                const String& pfct_method,
+                const String& quadtype,
+                const Index& pfct_aa_grid_size,
+                const Numeric& pfct_threshold,
+                const Numeric& max_delta_tau,
+                const Verbosity& verbosity )
+{
+  // FIXME: so far surface is implictly assumed at lowest atmospheric level.
+  // That should be fixed (using z_surface and allowing other altitudes) at some
+  // point.
+
+  const String quad_type = quadtype.toupper();
+  Index nhza, nhstreams, nummu;
+  check_rt4_input( nhstreams, nhza, nummu,
+                   cloudbox_on, rt4_is_initialized, "RT4CalcWithRT4surface",
+                   atmfields_checked, atmgeom_checked, cloudbox_checked,
+                   nstreams, quad_type,
+                   pnd_field.ncols(), doit_i_field.npages() );
+
+  // in RT4 mu_values is generally only output. however, we need the values for
+  // preparing the single scattering data at these angles. therefore, we
+  // calculate them here using RT4's proprietary quadrature methods. They
+  // simultaneously provide the quadrature weights, too. We keep them so far,
+  // might use them for ensuring proper normalization in the preparation of the
+  // single scattering data.
+  Vector mu_values(nummu, 0.);
+  Vector quad_weights(nummu, 0.);
+
+  get_quad_angles( mu_values, quad_weights, scat_za_grid, scat_aa_grid,
+                   quad_type, nhstreams, nhza, nummu );
+ 
+  // Preparing surface setup.
+  //
+
+  // Initializing surface related interface-related RT4 interface parameters.
+  const Index nf = f_grid.nelem();
+
+  // dummy values for parameters not relevant for this ground_type
+  Numeric surface_skin_t;
+  Vector ground_albedo(nf, 0.);
+  Tensor3 ground_reflec(nf,stokes_dim,stokes_dim, 0.);
+  Complex gidef(1,0.);
+  ComplexVector ground_index(nf, gidef);
+
+  // parameters that will be updated below
+  Tensor5 surf_refl_mat(nf,nummu,stokes_dim,nummu,stokes_dim, 0.);
+  Tensor3 surf_emis_vec(nf,nummu,stokes_dim, 0.);
+
+  // for now, surface at lowest atm level. later use z_surface or the like
+  // for that.
+  const Numeric surf_altitude = z_field(0,0,0);
+  //const Numeric surf_altitude = z_surface(0,0);
+
+  surf_optpropCalc( ws, surf_refl_mat, surf_emis_vec,
+                    surface_rtprop_agenda,
+                    f_grid, scat_za_grid, mu_values, 
+                    quad_weights, stokes_dim,
+                    surf_altitude );
+
+  run_rt4( ws, doit_i_field,
+           f_index, f_grid, p_grid, z_field, t_field, vmr_field, pnd_field,
+           scat_data, scat_data_mono,
+           propmat_clearsky_agenda, opt_prop_part_agenda, spt_calc_agenda,
+           cloudbox_limits, stokes_dim, nummu, nhza,
+           "A", surface_skin_t,
+           ground_albedo, ground_reflec, ground_index,
+           surf_refl_mat, surf_emis_vec,
+           quad_type, scat_za_grid, mu_values, quad_weights,
+           pfct_method, pfct_aa_grid_size, pfct_threshold,
+           max_delta_tau,
+           verbosity );
+
+  scat_za_grid_adjust( scat_za_grid, mu_values, nummu );
+
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void RT4CalcWithRT4Surface(
+                Workspace& ws,
+                // WS Output:
+                Tensor7& doit_i_field,
+                Vector& scat_za_grid,
+                Vector& scat_aa_grid,
+                Index& f_index,
+                ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                // WS Input
+                const Index& rt4_is_initialized,
+                const Index& atmfields_checked,
+                const Index& atmgeom_checked,
+                const Index& cloudbox_checked,
+                const Index& cloudbox_on,
+                const ArrayOfIndex& cloudbox_limits, 
+                const Agenda& propmat_clearsky_agenda, 
+                const Agenda& opt_prop_part_agenda,
+                const Agenda& spt_calc_agenda,
+                const Tensor4& pnd_field,
+                const Tensor3& t_field, 
+                const Tensor3& z_field, 
+                const Tensor4& vmr_field,
+                const Vector& p_grid, 
+                const ArrayOfArrayOfSingleScatteringData& scat_data,
+                const Vector& f_grid,
+                const Index& stokes_dim,
                 //const Vector& scat_za_grid,
                 const Numeric& surface_skin_t,
                 const Vector& surface_scalar_reflectivity,
@@ -86,156 +190,19 @@ void RT4Calc( Workspace& ws,
                 const Index& pfct_aa_grid_size,
                 const Numeric& pfct_threshold,
                 const Numeric& max_delta_tau,
-                const Verbosity& verbosity _U_ )
+                const Verbosity& verbosity )
 {
-  CREATE_OUT1;
-  CREATE_OUT0;
-
   // FIXME: so far surface is implictly assumed at lowest atmospheric level.
   // That should be fixed (using z_surface and allowing other altitudes) at some
   // point.
 
-  // Don't do anything if there's no cloudbox defined.
-  //if (!cloudbox_on) return;
-  // Seems to loopholy to just skip the scattering, so rather throw an error
-  // (assuming if RT4 is called than it's expected that a scattering calc is
-  // performed. semi-quietly skipping can easily be missed and lead to wrong
-  // conclusions.).
-  if (!cloudbox_on)
-  {
-    throw runtime_error( "Cloudbox is off, no scattering calculations to be"
-                         "performed." );
-  }
-
-  // Check whether RT4Init was executed
-  if (!rt4_is_initialized)
-    {
-      ostringstream os;
-      os << "Initialization method *RT4Init* must be called before "
-         << "*RT4Calc*";
-      throw runtime_error( os.str() );
-    }
-
-  if( atmfields_checked != 1 )
-    throw runtime_error( "The atmospheric fields must be flagged to have "
-                         "passed a consistency check (atmfields_checked=1)." );
-  if( atmgeom_checked != 1 )
-    throw runtime_error( "The atmospheric geometry must be flagged to have "
-                         "passed a consistency check (atmgeom_checked=1)." );
-  if( cloudbox_checked != 1 )
-    throw runtime_error( "The cloudbox must be flagged to have "
-                         "passed a consistency check (cloudbox_checked=1)." );
-
-  //chk_not_empty( "surface_rtprop_agenda", surface_rtprop_agenda );
-
-  if( pnd_field.ncols() != 1 ) 
-    throw runtime_error("*pnd_field* is not 1D! \n" 
-                        "RT4 can only be used for 1D!\n" );
-
-  Index nhza;
   const String quad_type = quadtype.toupper();
-  if( quad_type=="D" || quad_type=="G" )
-    {
-      nhza=1;
-    }
-  else if( quad_type=="L" )
-    {
-      nhza=0;
-    }
-  else
-    {
-      ostringstream os;
-      os << "Unknown quadrature type.\n";
-      throw runtime_error(os.str());
-    }
-
-  //cout << "doit_i_field has " << doit_i_field.npages() << "angles.\n";
-  //cout << "considering " << nstreams << " streams and " << 2*nhza
-  //     << " extra angles.\n";
-  if( doit_i_field.npages() != nstreams+2*nhza ) 
-    throw runtime_error("Sizes of *doit_i_field* is inconsistent with *nstreams*.\n"
-                        "Make sure to use the same *nstreams* (and *quad_type*)"
-                        " with *RT4Init* and *RT4Calc!\n" );
-  
-  // RT4 actually uses number of angles in single hemisphere. However, we don't
-  // want a bunch of different approaches used in the interface, so we apply the
-  // DISORT (and ARTS) way of total number of angles here. Hence, we have to
-  // ensure here that total number is even.
-  if( nstreams/2*2 != nstreams )
-    {
-      ostringstream os;
-      os << "RT4 requires an even number of streams, but yours is "
-         << nstreams << ".\n";
-      throw runtime_error( os.str() );
-    }
-  Index nhstreams=nstreams/2;
-  // nummu is the total number of angles in one hemisphere, including both
-  // the quadrature angles and the "extra" angles.
-  Index nummu=nhstreams+nhza;
-
-  // Input variables for RT4
-  Index num_layers=p_grid.nelem()-1;
-  /*
-  bool do_non_iso;
-  if( p_grid.nelem() == pnd_field.npages() )
-    // cloudbox covers whole atmo anyways. no need for a calculation of
-    // non-iso incoming field at top-of-cloudbox. disort will be run over
-    // whole atmo.
-    {
-      do_non_iso = false;
-      num_layers = p_grid.nelem()-1;
-    }
-  else
-    {
-      if( non_iso_inc )
-        // cloudbox only covers part of atmo. disort will be initialized with
-        // non-isotropic incoming field and run over cloudbox only.
-        {
-          do_non_iso = true;
-          num_layers = pnd_field.npages()-1;
-        }
-      else
-        // cloudbox only covers part of atmo. disort will be run over whole
-        // atmo, though (but only in-cloudbox rad field passed to doit_i_field).
-        {
-          do_non_iso = false;
-          num_layers = p_grid.nelem()-1;
-        }
-    }
-  */
-      
-  const Index nstokes=stokes_dim;
-
-  // Top of the atmosphere temperature
-  //  FIXME: so far hard-coded to cosmic background. However, change that to set
-  //  according to/from space_agenda.
-  const Numeric sky_temp = COSMIC_BG_TEMP;
-
-  // Data fields
-  Vector height(num_layers+1);
-  Vector temperatures(num_layers+1);
-  for (Index i = 0; i < height.nelem(); i++)
-    {
-      height[i] = z_field(num_layers-i,0,0);
-      temperatures[i] = t_field(num_layers-i,0,0);
-    }
-
-  // this indexes all cloudbox layers as cloudy layers.
-  // optional FIXME: to use the power of RT4 (faster solving scheme for
-  // individual non-cloudy layers), one should consider non-cloudy layers within
-  // cloudbox. That requires some kind of recognition and index setting based on
-  // pnd_field or (derived) cloud layer extinction or scattering.
-  const Index num_scatlayers=pnd_field.npages()-1;
-  Vector scatlayers(num_layers, 0.);
-  Vector gas_extinct(num_layers, 0.);
-  Tensor6 scatter_matrix(num_scatlayers,4,nummu,nstokes,nummu,nstokes, 0.);
-  Tensor5 extinct_matrix(num_scatlayers,2,nummu,nstokes,nstokes, 0.);
-  Tensor4 emis_vector(num_scatlayers,2,nummu,nstokes, 0.);
-
-  for (Index i = 0; i < cloudbox_limits[1]-cloudbox_limits[0]; i++)
-    {
-      scatlayers[num_layers-1-cloudbox_limits[0]-i] = float(i+1);
-    }
+  Index nhza, nhstreams, nummu;
+  check_rt4_input( nhstreams, nhza, nummu,
+                   cloudbox_on, rt4_is_initialized, "RT4CalcWithRT4surface",
+                   atmfields_checked, atmgeom_checked, cloudbox_checked,
+                   nstreams, quad_type,
+                   pnd_field.ncols(), doit_i_field.npages() );
 
   // in RT4 mu_values is generally only output. however, we need the values for
   // preparing the single scattering data at these angles. therefore, we
@@ -246,305 +213,48 @@ void RT4Calc( Workspace& ws,
   Vector mu_values(nummu, 0.);
   Vector quad_weights(nummu, 0.);
 
-  if( quad_type=="D" )
-    {
-      double_gauss_quadrature_(nhstreams,
-                               mu_values.get_c_array(),
-                               quad_weights.get_c_array()
-                              );
-    }
-  else if( quad_type=="G" )
-    {
-      gauss_legendre_quadrature_(nhstreams,
-                                 mu_values.get_c_array(),
-                                 quad_weights.get_c_array()
-                                );
-    }
-  else //if( quad_type=="L" )
-    {
-      lobatto_quadrature_(nhstreams,
-                          mu_values.get_c_array(),
-                          quad_weights.get_c_array()
-                         );
-    }
-
-  // Set "extra" angle (at 0deg) if quad_type!="L"
-  if( nhza>0 )
-      mu_values[nhstreams] = 1.;
-
-  // FIXME: we should be able to avoid setting scat_za_grid here in one way,
-  // and resetting in another before leaving the WSM. This, however, requires
-  // rearranging the angle order and angle assignment in the RT4-SSP prep
-  // routines.
-  scat_za_grid.resize(2*nummu);
-  for (Index imu=0; imu<nummu; imu++)
-    {
-      scat_za_grid[imu] = acos(mu_values[imu]) * RAD2DEG;
-      scat_za_grid[nummu+imu] = 180.-scat_za_grid[imu];
-      //cout << "Setting za[" << imu << "]=" << scat_za_grid[imu]
-      //     << " and  za[" << nummu+imu << "]=" << scat_za_grid[nummu+imu]
-      //     << " from mu[" << imu << "]=" << mu_values[imu]
-      //     << " with quadweight w=" << quad_weights[imu] << ".\n";
-    }
-  scat_aa_grid.resize(1);
-  scat_aa_grid[0] = 0.;
-
+  get_quad_angles( mu_values, quad_weights, scat_za_grid, scat_aa_grid,
+                   quad_type, nhstreams, nhza, nummu );
+ 
   // Preparing surface setup.
   //
+
+  // Initializing surface related interface-related RT4 interface parameters.
   const Index nf = f_grid.nelem();
-  Tensor5 surf_refl_mat(nf,nummu,nstokes,nummu,nstokes, 0.);
-  Tensor3 surf_emis_vec(nf,nummu,nstokes, 0.);
-
-  // for now, surface at lowest atm level. later use z_surface or the like
-  // for that.
-  const Numeric surf_altitude = z_field(0,0,0);
-  //const Numeric surf_altitude = z_surface(0,0);
-
   const String ground_type = groundtype.toupper();
+
+  // dummy values for parameters not relevant for this ground_type
+  Tensor5 surf_refl_mat(nf,nummu,stokes_dim,nummu,stokes_dim, 0.);
+  Tensor3 surf_emis_vec(nf,nummu,stokes_dim, 0.);
+
+  // parameters that will be updated below
   Vector ground_albedo(nf, 0.);
   Tensor3 ground_reflec(nf,stokes_dim,stokes_dim, 0.);
   Complex gidef(1,0.);
   ComplexVector ground_index(nf, gidef);
 
-  if (ground_type!="A")
-    {
-      if (surface_skin_t<0. || surface_skin_t>1000.)
-      {
-        ostringstream os;
-        os << "Surface temperature is set to " << surface_skin_t << " K,\n"
-           << "which is not considered a meaningful value.\n"
-           << "For surface methods other than 'A', *surface_skin_t* needs to\n"
-           << "be set and passed explicitly. Maybe you didn't do this?";
-        throw runtime_error( os.str() );
-      }
-    }
+  get_rt4surf_props( ground_albedo, ground_reflec, ground_index,
+                  f_grid, ground_type, surface_skin_t,
+                  surface_scalar_reflectivity, surface_reflectivity,
+                  surface_complex_refr_index, stokes_dim );
 
-  if (ground_type=="L") // RT4's proprietary Lambertian
-    {
-      // surface albedo
-      if( surface_scalar_reflectivity.nelem() == f_grid.nelem() )
-        ground_albedo = surface_scalar_reflectivity;
-      else if ( surface_scalar_reflectivity.nelem() == 1 )
-        ground_albedo += surface_scalar_reflectivity[0];
-      else
-      {
-        ostringstream os;
-        os << "For Lambertian surface reflection, the number of elements in\n"
-           << "*surface_scalar_reflectivity* needs to match the length of\n"
-           << "*f_grid* or be 1."
-           << "\n length of *f_grid* : " << f_grid.nelem() 
-           << "\n length of *surface_scalar_reflectivity* : " 
-           << surface_scalar_reflectivity.nelem()
-           << "\n";
-        throw runtime_error( os.str() );
-      }
+  run_rt4( ws, doit_i_field,
+           f_index, f_grid, p_grid, z_field, t_field, vmr_field, pnd_field,
+           scat_data, scat_data_mono,
+           propmat_clearsky_agenda, opt_prop_part_agenda, spt_calc_agenda,
+           cloudbox_limits, stokes_dim, nummu, nhza,
+           ground_type, surface_skin_t,
+           ground_albedo, ground_reflec, ground_index,
+           surf_refl_mat, surf_emis_vec,
+           quad_type, scat_za_grid, mu_values, quad_weights,
+           pfct_method, pfct_aa_grid_size, pfct_threshold,
+           max_delta_tau,
+           verbosity );
 
-      if( min(surface_scalar_reflectivity) < 0  ||  
-        max(surface_scalar_reflectivity) > 1 )
-      {
-        throw runtime_error( 
-           "All values in *surface_scalar_reflectivity* must be inside [0,1]." );
-      }
-    }
-  else if (ground_type=="S") // RT4's 'proprietary' Specular
-    {
-       const Index ref_sto = surface_reflectivity.nrows();
+  scat_za_grid_adjust( scat_za_grid, mu_values, nummu );
 
-       chk_if_in_range( "surface_reflectivity's stokes_dim", ref_sto, 1, 4 );
-       if( ref_sto != surface_reflectivity.ncols() )
-         {
-           ostringstream os;
-           os << "The number of rows and columnss in *surface_reflectivity*\n"
-              << "must match each other.";
-           throw runtime_error( os.str() );
-         }
-      
-      // surface reflectivity
-      if( surface_reflectivity.npages() == f_grid.nelem() )
-        if ( ref_sto < stokes_dim )
-          ground_reflec(joker,Range(0,ref_sto),Range(0,ref_sto)) =
-            surface_reflectivity;
-        else
-          ground_reflec = surface_reflectivity(joker,
-                          Range(0,stokes_dim),Range(0,stokes_dim));
-      else if ( surface_reflectivity.npages() == 1 )
-        if ( ref_sto < stokes_dim )
-          for (f_index=0; f_index<nf; f_index++)
-            ground_reflec(f_index,Range(0,ref_sto),Range(0,ref_sto)) +=
-              surface_reflectivity(0,joker,joker);
-        else
-          for (f_index=0; f_index<nf; f_index++)
-            ground_reflec(f_index,joker,joker) +=
-              surface_reflectivity(0,Range(0,stokes_dim),Range(0,stokes_dim));
-      else
-      {
-        ostringstream os;
-        os << "For specular surface reflection, the number of elements in\n"
-           << "*surface_reflectivity* needs to match the length of\n"
-           << "*f_grid* or be 1."
-           << "\n length of *f_grid* : " << f_grid.nelem() 
-           << "\n length of *surface_reflectivity* : " 
-           << surface_reflectivity.npages()
-           << "\n";
-        throw runtime_error( os.str() );
-      }
-
-      if( min(surface_reflectivity(joker,0,0)) < 0  ||  
-        max(surface_reflectivity(joker,0,0)) > 1 )
-      {
-        throw runtime_error( 
-           "All r11 values in *surface_reflectivity* must be inside [0,1]." );
-      }
-    }
-  else if (ground_type=="F") // RT4's proprietary Fresnel
-    {
-      //though complex ref index is typically not smaller than (1.,0.), there
-      //are physically possible exceptions. hence we don't test the values here.
-
-      //extract/interpolate from GriddedField
-      Matrix n_real(nf,1), n_imag(nf,1);
-      complex_n_interp( n_real, n_imag, surface_complex_refr_index,
-                        "surface_complex_refr_index", f_grid, 
-                        Vector(1,surface_skin_t) );
-      //ground_index = Complex(n_real(joker,0),n_imag(joker,0));
-      for (f_index=0; f_index<nf; f_index++)
-      {
-        ground_index[f_index] = Complex(n_real(f_index,0),n_imag(f_index,0));
-        //cout << "set ground_index[f#" << f_index << "] = "
-        //     << ground_index[f_index] << "\n";
-      }
-    }
-  else if (ground_type=="A") // using ARTS' surface_rtprop_agenda
-    surf_optpropCalc( ws, surf_refl_mat, surf_emis_vec,
-                      surface_rtprop_agenda,
-                      f_grid, scat_za_grid, mu_values, 
-                      quad_weights, stokes_dim,
-                      surf_altitude );
-  else
-    {
-      ostringstream os;
-      os << "Unknown surface type.\n";
-      throw runtime_error(os.str());
-    }
-
-
-  
-  // Output variables
-  Tensor3 up_rad(num_layers+1,nummu,nstokes, 0.);
-  Tensor3 down_rad(num_layers+1,nummu,nstokes, 0.);
-
-
-  // Loop over frequencies
-  for (f_index = 0; f_index < nf; f_index ++) 
-    {
-      // Wavelength [um]
-      Numeric wavelength;
-      wavelength = 1e6*SPEED_OF_LIGHT/f_grid[f_index];
-      //cout << "# processing freq #" << f_index << " at " << f_grid[f_index]*1e-9
-      //     << "GHz\n";
-
-      scat_data_monoCalc(scat_data_mono, scat_data, f_grid, f_index, verbosity);
-      
-      gas_optpropCalc( ws, gas_extinct,
-                       propmat_clearsky_agenda,
-                       t_field(Range(0,num_layers+1),joker,joker),
-                       vmr_field(joker,Range(0,num_layers+1),joker,joker),
-                       p_grid[Range(0,num_layers+1)],
-                       f_grid[Range(f_index,1)]);
-
-      par_optpropCalc( ws, emis_vector, extinct_matrix,
-                       //scatlayers,
-                       spt_calc_agenda, opt_prop_part_agenda,
-                       pnd_field,
-                       t_field(Range(0,num_layers+1),joker,joker),
-                       cloudbox_limits, stokes_dim, nummu );
-      sca_optpropCalc( scatter_matrix,
-                       emis_vector, extinct_matrix,
-                       scat_data_mono, pnd_field, stokes_dim,
-                       scat_za_grid, quad_weights,
-                       pfct_method, pfct_aa_grid_size, pfct_threshold,
-                       verbosity );
-
-#pragma omp critical(fortran_rt4)
-      {
-          // Call RT4
-          radtrano_(nstokes,
-               nummu,
-               nhza,
-               max_delta_tau,
-               quad_type.c_str(),
-               surface_skin_t,
-               ground_type.c_str(),
-               ground_albedo[f_index],
-               ground_index[f_index],
-               ground_reflec(f_index,joker,joker).get_c_array(),
-               surf_refl_mat(f_index,joker,joker,joker,joker).get_c_array(),
-               surf_emis_vec(f_index,joker,joker).get_c_array(),
-               sky_temp,
-               wavelength,
-               num_layers,
-               height.get_c_array(),
-               temperatures.get_c_array(),
-               gas_extinct.get_c_array(),
-               num_scatlayers,
-               scatlayers.get_c_array(),
-               extinct_matrix.get_c_array(),
-               emis_vector.get_c_array(),
-               scatter_matrix.get_c_array(),
-               //noutlevels,
-               //outlevels.get_c_array(),
-               mu_values.get_c_array(),
-               up_rad.get_c_array(),
-               down_rad.get_c_array()
-                 );
-      }
-
-      // RT4 rad output is in wavelength units, nominally in W/(m2 sr um), where
-      // wavelength input is required in um.
-      // FIXME: When using wavelength input in m, output should be in W/(m2 sr
-      // m). However, check this. So, at first we use wavelength in um. Then
-      // change and compare.
-      //    
-      // FIXME: if ever we allow the cloudbox to be not directly at the surface
-      // (at atm level #0, respectively), the assigning from up/down_rad to
-      // doit_i_field needs to checked. there seems some offsetting going on
-      // (test example: TestDOIT.arts. if kept like below, doit_i_field at
-      // top-of-cloudbox seems to actually be from somewhere within the
-      // cloud(box) indicated by downwelling being to high and downwelling
-      // exhibiting a non-zero polarisation signature (which it wouldn't with
-      // only scalar gas abs above).
-      //
-      Numeric rad_l2f = wavelength/f_grid[f_index];
-      // down/up_rad contain the radiances in order from slant (90deg) to steep
-      // (0 and 180deg, respectively) streams,then the possible extra angle(s).
-      // We need to resort them properly into doit_i_field, such that order is
-      // from 0 to 180deg.
-      for(Index j = 0; j<nummu; j++)
-        for(Index k = 0; k<(cloudbox_limits[1]-cloudbox_limits[0]+1); k++)
-          for (Index ist = 0; ist<stokes_dim; ist++ )
-              {
-                //doit_i_field(f_index, k, 0, 0, nummu+j, 0, ist) =
-                //  up_rad(num_layers-k,j,ist)*rad_l2f;
-                //doit_i_field(f_index, k, 0, 0, nummu-1-j, 0, ist) =
-                //  down_rad(num_layers-k,j,ist)*rad_l2f;
-                doit_i_field(f_index, k, 0, 0, nummu+j, 0, ist) =
-                  up_rad(num_layers-k,j,ist)*rad_l2f;
-                doit_i_field(f_index, k, 0, 0, nummu-1-j, 0, ist) =
-                  down_rad(num_layers-k,j,ist)*rad_l2f;
-              }
-    }
-
-  //scat_za_grid.resize(nstreams);
-  //cout << "Setting scat_za_grid for ARTS consistent with doit_i_field.\n";
-  for (Index j=0; j<nummu; j++)
-    {
-      scat_za_grid[nummu-1-j] = acos(mu_values[j])*RAD2DEG;
-      scat_za_grid[nummu+j] = 180.-acos(mu_values[j])*RAD2DEG;
-      //cout << "setting scat_za[" << nummu-1-j << "]=" << scat_za_grid[nummu-1-j]
-      //     << " and [" << nummu+j << "]=" << scat_za_grid[nummu+j]
-      //     << " from mu[" << j << "]=" << mu_values[j] << "\n";
-    }
 }
+
 
 #else /* ENABLE_RT4 */
 
@@ -563,6 +273,43 @@ void RT4Calc( Workspace&,
                 const Index&,
                 const ArrayOfIndex&,
                 const Agenda&,
+                const Agenda&,
+                const Agenda&,
+                const Agenda&,
+                const Tensor4&,
+                const Tensor3&, 
+                const Tensor3&, 
+                const Tensor4&,
+                const Vector&, 
+                const ArrayOfArrayOfSingleScatteringData&,
+                const Vector&,
+                const Index&,
+                const Index&,
+                const Index&,
+                const String&,
+                const String&,
+                const Index&,
+                const Numeric&,
+                const Numeric&,
+                const Verbosity& )
+{
+    throw runtime_error ("This version of ARTS was compiled without RT4 support.");
+}
+
+void RT4CalcWithRT4Surface( Workspace&,
+                // WS Output:
+                Tensor7&,
+                Vector&,
+                Vector&,
+                Index&,
+                ArrayOfArrayOfSingleScatteringData&,
+                // WS Input
+                const Index&,
+                const Index&,
+                const Index&,
+                const Index&,
+                const Index&,
+                const ArrayOfIndex&,
                 const Agenda&,
                 const Agenda&,
                 const Agenda&,
@@ -607,7 +354,7 @@ void RT4Init(//WS Output
               const ArrayOfArrayOfSingleScatteringData& scat_data,
               const Index& nstreams,
               const String& quad_type,
-              const Verbosity& verbosity)
+              const Verbosity& verbosity _U_ )
 {
   if (!cloudbox_on)
   {

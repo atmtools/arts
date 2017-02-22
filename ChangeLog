@@ -1,3 +1,25 @@
+2017-02-22 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-639
+
+	* src/m_rt4.cc, methods.cc (RT4Calc, RT4CalcWithRT4Surface):
+	For cleaner interfaces, separated RT4 interface into two separate WSM,
+	one using surface_rtprop_agenda (RT4Calc), the other using RT4's own
+	surface property handling (RT4CalcWithRT4Surface).
+
+	* src/rt4.[cc,h] (check_rt4_input, get_quad_angles, run_rt4):
+	Moved common RT4 pre-, post- and processing functionality of both RT4
+	WSM into subroutines.
+	(get_rt4surf_props):
+	Subroutine to prepare surface properties for RT4-side surface
+	handling.
+
+	* controlfiles/artscomponents/polradtran/TestRT4.arts:
+	Adapted to changes above.
+
+	* CHANGES-2.3:
+	Added info on RT4 and Disort. Added info on p30 format change.
+
 2017-02-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-638

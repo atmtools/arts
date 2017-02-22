@@ -11982,19 +11982,10 @@ void define_md_data_raw()
          "Quadrature methods available are: 'L'obatto, 'G'auss-Legendre and\n"
          "'D'ouble Gauss quadrature.\n"
          "\n"
-         "The following surface type/property methods are available and\n"
-         "require the the following input:\n"
-         "- 'L'ambertian: *surface_scalar_reflectivity*, *surface_skin_t*\n"
-         "- 'F'resnel: *surface_complex_refr_index*, *surface_skin_t*\n"
-         "- 'S'pecular: *surface_reflectivity*, *surface_skin_t*\n"
-         "- 'A'RTS-defined: *surface_rt_prop_agenda*\n"
-         "'L' and 'F' use proprietary RT4 methods, 'S' uses RT4's Fresnel\n"
-         "methods modified to behave similar to ARTS'\n"
-         "*surfaceFlatReflectivity*, and 'A' applies *surface_rt_prop_agenda*\n"
-         "to derive reflection matrix and surface emission vector to be\n"
-         "directly used by RT4's core solver (instead of their RT4-internal\n"
-         "calculation by the other three methods). 'A' shall be the standard\n"
-         "method; the others exist only for testing purposes.\n"
+         "This WSM applies *surface_rt_prop_agenda* to derive reflection\n"
+         "matrix and surface emission vector that are directly feed into\n"
+         "RT4's core solver (instead of their RT4-internal calculation as\n"
+         "used by *RT4CalcWithRT4Surface*).\n"
          "\n"
          "Known issues of ARTS implementation:\n"
          "- Surface altitude is not an interface parameter. Surface is\n"
@@ -12026,6 +12017,61 @@ void define_md_data_raw()
             "cloudbox_on", "cloudbox_limits",
             "propmat_clearsky_agenda",
             "opt_prop_part_agenda", "spt_calc_agenda", "surface_rtprop_agenda",
+            "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
+            "scat_data", "f_grid", "stokes_dim" ),
+        GIN(         "nstreams", "non_iso_inc", "pfct_method", "quad_type",
+                     "pfct_aa_grid_size", "pfct_threshold", "max_delta_tau" ),
+        GIN_TYPE(    "Index",    "Index",       "String",      "String",
+                     "Index",             "Numeric",        "Numeric" ),
+        GIN_DEFAULT( "16",       "0",           "median",      "D",
+                     "19",                "5e-2",           "1e-6" ),
+        GIN_DESC( "Number of polar angle directions (streams) in RT4"
+                  " solution (must be an even number).",
+                  "Flag whether to run RT4 initialized with non-isotropic"
+                  " TOA field. See above for more info.",
+                  "Flag which method to apply to derive phase function (for"
+                  " available options see above).",
+                  "Flag which quadrature to apply in RT4 solution (for"
+                  " available options see above).",
+                  "Number of azimuthal angle grid points to consider in"
+                  " Fourier series decomposition of scattering matrix (only"
+                  " applied for randomly oriented scattering elements)",
+                  "Phase function accuracy threshold (actually, a scattering"
+                  " albedo threshold; equivalent to *scat_dataCheck*'s"
+                  " sca_mat_threshold).",
+                  "Maximum optical depth of infinitesimal layer (where single"
+                  " scattering approximation is assumed to apply)." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "RT4CalcWithRT4Surface" ),
+        DESCRIPTION
+        (
+         "As RT4Calc except for using RT4's proprietary surface type handling.\n"
+         "\n"
+         "This WSM is only indented for testing purposes.\n"
+         "\n"
+         "The following surface type/property methods are available and\n"
+         "require the the following input:\n"
+         "- 'L'ambertian: *surface_scalar_reflectivity*, *surface_skin_t*\n"
+         "- 'F'resnel: *surface_complex_refr_index*, *surface_skin_t*\n"
+         "- 'S'pecular: *surface_reflectivity*, *surface_skin_t*\n"
+         "'L' and 'F' use proprietary RT4 methods, 'S' uses RT4's Fresnel\n"
+         "methods modified to behave similar to ARTS'\n"
+         "*surfaceFlatReflectivity*.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "doit_i_field", "scat_za_grid", "scat_aa_grid",
+             "f_index", "scat_data_mono" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "doit_i_field", "rt4_is_initialized",
+            "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
+            "cloudbox_on", "cloudbox_limits",
+            "propmat_clearsky_agenda",
+            "opt_prop_part_agenda", "spt_calc_agenda",
             "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
             "scat_data", "f_grid", "stokes_dim",
             "surface_skin_t", "surface_scalar_reflectivity",
