@@ -11,7 +11,8 @@ module module_read
                                             artsNA , &
                                             artsUpp, artsLow, &
                                             artsg0 , artsg00, &
-                                            sgmin  , sgmax)
+                                            sgmin  , sgmax, &
+                                            econ)
             use module_common_var
             use module_error
             use module_molecSp
@@ -26,9 +27,10 @@ module module_read
             logical               , intent (out) :: enough_Lines
             integer*8             , intent (out) :: dta_size
             type (dta_SDF), intent (inout)       :: dta1
+            type (dta_ERR), intent (inout)       :: econ
         end subroutine Hit2DTA
 
-        subroutine moleculeID(my_mol,isotope, Mass, PFmol_T, PFmol_T0, flagON, molP)
+        subroutine moleculeID(my_mol,isotope, Mass, PFmol_T, PFmol_T0, flagON, molP, econ)
             use module_common_var
             use module_error
             implicit none
@@ -36,20 +38,23 @@ module module_read
             Double Precision, intent (in)      :: Mass, PFmol_T0, PFmol_T
             logical         , intent (in)      :: flagON
             type (dta_MOL), intent(inout)      :: molP
+            type (dta_ERR), intent(inout)      :: econ
         end subroutine moleculeID
 
-        subroutine molid_char(molP)
+        subroutine molid_char(molP,econ)
             use module_common_var
             use module_error
             implicit none
             type (dta_MOL), intent(inout)      :: molP
+            type (dta_ERR), intent(inout)      :: econ
         end subroutine molid_char
 
-        subroutine addMolParam(molP)
+        subroutine addMolParam(molP,econ)
             use module_common_var
             use module_error
             implicit none
             type (dta_MOL), intent(inout)      :: molP
+            type (dta_ERR), intent(inout)      :: econ
         end subroutine addMolParam
 
     end interface
@@ -64,7 +69,8 @@ subroutine Hit2DTA(dta1, dta_size, nLines, enough_Lines, &
                                             artsNA , &
                                             artsUpp, artsLow, &
                                             artsg0 , artsg00, &
-                                            sgmin  , sgmax)
+                                            sgmin  , sgmax, &
+                                            econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! "Hit2DTA": READ LINEs data
 ! .....................................................
@@ -92,7 +98,7 @@ subroutine Hit2DTA(dta1, dta_size, nLines, enough_Lines, &
 !
 ! Double Precision Version
 !     
-! T. Mendaza last change 11 May 2015
+! T. Mendaza last change 17 February 2017
 !--------------------------------------------------------------------------------------------------------------------
 !
       use module_common_var
@@ -108,9 +114,9 @@ subroutine Hit2DTA(dta1, dta_size, nLines, enough_Lines, &
                                         artsNA(nLines)
       integer*8, intent (out)        :: dta_size
       logical  , intent (out)        :: enough_Lines
-      integer*8                      :: i, j, k
       type (dta_SDF), intent (inout) :: dta1
-      integer                        :: error_read
+      type (dta_ERR), intent (inout) :: econ
+      integer*8                      :: i, j, k
 !
 !--------------------------
 ! Example of line: HITRAN12
@@ -150,7 +156,7 @@ subroutine Hit2DTA(dta1, dta_size, nLines, enough_Lines, &
           i=i+1
           ! Check how many lines has read the subrutine...
           if ( i.gt.nLmx ) then
-           call sizeError("1001",i,nLmx)
+           call sizeError("1001",i,nLmx,econ)
           endif 
         endif       
         
@@ -164,7 +170,7 @@ subroutine Hit2DTA(dta1, dta_size, nLines, enough_Lines, &
     Return
 end subroutine Hit2DTA
 !--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE moleculeID(my_mol,isotope, Mass, PFmol_T, PFmol_T0, flagON, molP)
+  SUBROUTINE moleculeID(my_mol,isotope, Mass, PFmol_T, PFmol_T0, flagON, molP, econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! "moleculeID": Molecule HITRAN's ID
 ! 
@@ -190,7 +196,7 @@ end subroutine Hit2DTA
 ! ---------
 !
 !
-! T.Mendaza, last change 15 February 2016
+! T.Mendaza, last change 17 February 2017
 !--------------------------------------------------------------------------------------------------------------------
 !
     use module_common_var
@@ -200,32 +206,24 @@ end subroutine Hit2DTA
     double precision, intent (in) :: PFmol_T, PFmol_T0, Mass
     logical         , intent (in) :: flagON
     type (dta_MOL), intent(inout) :: molP
-    integer*8                     :: i,j,k, mP_size
-    integer*8                     :: g_j
-    double precision              :: Qmo
-    character(  6)                :: auxmol
-    character(100)                :: fname
-    logical                       :: molfound
-    integer*8                     :: error_read
-    logical                       :: error_open
-
+    type (dta_ERR), intent(inout) :: econ
 !----------
 ! 
     molP % M = my_mol
     molP % iso_m = isotope
-    call molid_char(molP)
+    call molid_char(molP, econ)
     molP % mms = Mass
     if (flagON) then
      molP % QT0 = PFmol_T0
      molP % QT  = PFmol_T
-     CALL addMolParam(molP) 
+     CALL addMolParam(molP,econ) 
     endif
 !
 ! 
     Return
   END SUBROUTINE moleculeID
 !--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE molid_char(molP)
+  SUBROUTINE molid_char(molP,econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! "molid_char": string-name per molecule ID
 ! 
@@ -250,13 +248,14 @@ end subroutine Hit2DTA
 ! ---------
 !
 !
-! T.Mendaza, last change 24 January 2017
+! T.Mendaza, last change 17 February 2017
 !--------------------------------------------------------------------------------------------------------------------
 !
     use module_common_var
     use module_error
     implicit none
     type (dta_MOL), intent(inout) :: molP
+    type (dta_ERR), intent(inout) :: econ
     character(  6)                :: auxmol
     integer*8                     :: m, n
     integer*8, DIMENSION(47,11), PARAMETER :: isotopollist = reshape( (/ 161, 181, 171, 162, 182, 172,   0,   0,   0,   0,   0, & !H20
@@ -581,11 +580,11 @@ end subroutine Hit2DTA
           ! Molecule #   Iso Abundance  Q(296K)       gj    Molar Mass(g)
           !          26  .943400E+00    7.9638E+03    1     79.956820
     else
-          call molnameERROR(molP%M)
+          call molnameERROR(molP%M,econ)
     endif
     molP % chmol = auxmol
 
-    if (molP % Aco .eq. 0) call isoAconameERROR(molP%M,molP%iso_m)
+    if (molP % Aco .eq. 0) call isoAconameERROR(molP%M,molP%iso_m,econ)
 !
 ! 
 !   Data from HITRAN molparam.txt file
@@ -599,7 +598,7 @@ end subroutine Hit2DTA
     Return
   END SUBROUTINE molid_char
   !--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE addMolParam(molP)
+  SUBROUTINE addMolParam(molP,econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! "addMolParam": Add molecular paramters
 ! 
@@ -625,21 +624,18 @@ end subroutine Hit2DTA
 ! ---------
 !
 !
-! T.Mendaza, last change 15 February 2016
+! T.Mendaza, last change 17 February 2017
 !--------------------------------------------------------------------------------------------------------------------
 !
     use module_common_var
     use module_error
     implicit none
     type (dta_MOL), intent(inout) :: molP
+    type (dta_ERR), intent(inout) :: econ
     
 !----------
 ! 
-    IF (molP % M .eq. 1) then
-    ! water, H2O
-        print*, "no water available"
-        stop
-    ELSEIF (molP % M .eq. 2) then
+    IF (molP % M .eq. 2) then
     ! Carbon dioxide, CO2
         molP % Nmcon = 0.42896E-3! CO2 molar concentration at 296K (mol·cm3), 1MPa
         molP % B0    = 0.39021   ! CO2 Rotational constant B0 (cm-1) 
@@ -675,11 +671,11 @@ end subroutine Hit2DTA
             molP % B0    = 1.27  ! O2 Rotational constant B0 (cm-1) 
                                  ! NIST 
         else 
-            call addMolError("1003",  molP%iso_m)
+            call addMolError("1003",  molP%iso_m, econ)
         endif
         
     ELSE 
-        call addMolError("1003",  molP%M)
+        call addMolError("1003",  molP%M, econ)
     ENDIF
 ! 
 !   Data from NIST website

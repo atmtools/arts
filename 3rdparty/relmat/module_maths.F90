@@ -773,7 +773,6 @@ logical function isnan(a)
 !---------------------------------------
   if (a.ne.a) then 
     isnan = .true. 
-    print*, "NaN!"
   else 
     isnan = .false. 
   end if 
@@ -787,7 +786,6 @@ logical function isinf(a)
 !---------------------------------------
   if ((a*0).ne.0) then 
     isinf = .true. 
-    print*, "INF!"
   else 
     isinf = .false. 
   end if 

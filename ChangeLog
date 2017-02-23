@@ -1,3 +1,30 @@
+2017-02-23  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-640
+	
+	* 3rdparty/relmat/CMakeList.txt:  Added OpenMP.
+	
+	* 3rdparty/relmat/*:  Now with the linearization method 
+	that Teresa has been working on.  Also, now 
+	with the promise to be silent if not given a debug flag.
+	The same debug flag then reports - by binary - if the 
+	program ran into errors or not.  For unknown reasons,
+	the new error checking makes RELMAT run one order of
+	magnitude slower.
+	
+	* src/m_linemixing.cc: adapted for the new error handling.
+	Also added two helper functions
+	(SetBandIdentifiersAuto) and (SetRelaxationMatrixCalcType)
+	to help user set the bands to every band and select to 
+	use the linearization method or Hartmann-Tran method.
+	
+	* src/quantum{cc,h}:  Helper function 
+	(SetFromStringForCO2Band) now available to easily set CO2 
+	bands from standard notations for CO2.
+	
+	* src/workspace.cc: made relmat_type_per_band and 
+	band_identifiers part of the workspace
+
 2017-02-22 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-639

@@ -257,12 +257,12 @@ String QuantumIdentifier::TypeStr() const {
 }
 
 
-void QuantumIdentifier::SetTransition(const QuantumNumbers q1, const QuantumNumbers q2)
+void QuantumIdentifier::SetTransition(const QuantumNumbers upper, const QuantumNumbers lower)
 {
     mqtype = QuantumIdentifier::TRANSITION;
     mqm.resize(2);
-    mqm[TRANSITION_UPPER_INDEX] = q1;
-    mqm[TRANSITION_LOWER_INDEX] = q2;
+    mqm[TRANSITION_UPPER_INDEX] = upper;
+    mqm[TRANSITION_LOWER_INDEX] = lower;
 }
 
 
@@ -384,6 +384,24 @@ void QuantumIdentifier::SetFromString(String str)
     }
 }
 
+
+void QuantumIdentifier::SetFromStringForCO2Band(String upper, String lower, String iso)
+{
+  
+  assert(upper.nelem() == 5);
+  assert(lower.nelem() == 5);
+  assert(iso.nelem() == 3);
+  
+  std::ostringstream os;
+  
+  os << "CO2-" << iso << " TR " <<
+  "UP " <<
+  "v1 " << upper[0] << "/1 v2 " << upper[1] << "/1 l2 " << upper[2] << "/1 v3 " << upper[3] << "/1 r " << upper[4] << "/1 " <<
+  "LO " <<
+  "v1 " << lower[0] << "/1 v2 " << lower[1] << "/1 l2 " << lower[2] << "/1 v3 " << lower[3] << "/1 r " << lower[4] << "/1";
+  
+  SetFromString(os.str());
+}
 
 std::ostream& operator<<(std::ostream& os, const QuantumNumberRecord& qr)
 {

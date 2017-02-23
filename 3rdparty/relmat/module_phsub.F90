@@ -5,7 +5,7 @@ module module_phsub
 !
     interface
 
-        subroutine DipCAL(dta1,nLines,molP)
+        subroutine DipCAL(dta1,nLines,molP,econ)
             use module_common_var
             use module_molecSp
             use module_maths
@@ -13,6 +13,7 @@ module module_phsub
             implicit none
             integer*8, intent(in)             :: nLines
             type  (dta_SDF), intent(inout)    :: dta1
+            type  (dta_ERR), intent(inout)    :: econ
             type  (dta_MOL), intent(in)       :: molP
         end subroutine DipCAL
         
@@ -30,25 +31,65 @@ module module_phsub
             type (dta_MOL), intent(in)      :: molP
             type (dta_SDF), intent(inout)   :: dta1
         end subroutine PopuCAL
-        
-        double precision function K_jkCalc(j,k,h,nLines,molP,PerM) 
+
+        double precision function Kpart1( Ji_p, Jf, Jf_p, li, lf, AF1)
             use module_common_var
+            implicit none
+            integer*8, intent(in)        :: li, lf
+            double precision, intent(in) :: Ji_p, Jf, Jf_p, AF1
+        end function Kpart1
+
+        double precision function Kpart1_O2(Ji, Ji_p, Jf, Jf_p, Ni, Ni_p, Nf, Nf_p, AF1)
+            use module_common_var
+            implicit none
+            integer*8, intent(in)        :: Ni, Ni_p, Nf, Nf_p
+            double precision, intent(in) :: Ji, Ji_p, Jf, Jf_p, AF1 
+        end function Kpart1_O2
+
+        double precision function Kpart2(L, Ji, Ji_p, Jf, Jf_p, li, lf, AF2, econ)
+            use module_common_var
+            use module_error
+            use module_maths
+            implicit none
+            integer*8, intent(in)        :: L, li, lf
+            double precision, intent(in) :: Ji, Ji_p, Jf, Jf_p, AF2
+            type (dta_ERR), intent(inout):: econ
+        end function Kpart2
+
+        double precision function Kpart2_O2(L, Ji, Ji_p, Jf, Jf_p, &
+                                            Ni, Ni_p, Nf, Nf_p, Si, Sf, &
+                                            AF2,econ)
+            use module_common_var
+            use module_error
+            use module_maths
+            implicit none
+            integer*8, intent(in)        :: L, Ni, Ni_p, Nf, Nf_p
+            double precision, intent(in) :: Ji, Ji_p, Jf, Jf_p, Si, Sf, AF2
+            type (dta_ERR), intent(inout):: econ
+        end function Kpart2_O2
+        
+        double precision function K_jkCalc(j,k,h,nLines,molP,PerM,econ) 
+            use module_common_var
+            use module_error
             use module_molecSp
             use module_maths
             implicit none
             integer*8, intent(in)             :: j,k,nLines
             type (dta_SDF) , intent(in)       :: h
             type (dta_MOL) , intent(in)       :: molP, PerM
+            type (dta_ERR) , intent(inout)    :: econ
         end function K_jkCalc
 
-        double precision function K_jkO2(j,k,h,nLines,molP,PerM)
+        double precision function K_jkO2(j,k,h,nLines,molP,PerM,econ)
             use module_common_var
+            use module_error
             use module_molecSp
             use module_maths
             implicit none
             integer*8, intent(in)             :: j,k,nLines
             type (dta_SDF), intent(in)        :: h
             type (dta_MOL), intent(in)        :: molP, PerM
+            type (dta_ERR), intent(inout)     :: econ
 
         end function K_jkO2
         
@@ -60,6 +101,16 @@ module module_phsub
             integer*8, intent(in)             :: L
             type(dta_MOL)  , intent(in)       :: molP
         end function Ql_mol_X
+
+        double precision function Ql_mol_LLS(J1,J2,v1,v2,molP,L)
+            use module_common_var
+            use module_molecSp
+            use module_maths
+            implicit none
+            integer*8, intent(in)             :: L
+            type(dta_MOL)  , intent(in)       :: molP
+            real*8, intent(in)                :: J1,J2,v1,v2
+        end function Ql_mol_LLS
         
         double precision function AFmol_X(molP, PerM, L, step)
             use module_common_var
@@ -69,7 +120,8 @@ module module_phsub
             type (dta_MOL), intent(in)        :: molP, PerM
         end function AFmol_X
 
-        subroutine sumRule(nLines,indexS,dipole,Wmat,dfact)
+        subroutine sumRule(nLines,indexS,dipole,Wmat,dfact,econ)
+            use module_common_var
             use module_error
             implicit none
             integer (kind=8), intent(in)    :: nLines
@@ -77,14 +129,17 @@ module module_phsub
             real*8, intent(in)              :: dfact
             Double Precision, intent(in)    :: dipole(nLines)
             Double Precision, intent(in)    :: Wmat(nLines,nLines)
+            type (dta_ERR)  , intent(inout) :: econ
         end subroutine sumRule
 
-        subroutine VarInit(dta1,dta2,molP)
+        subroutine VarInit(dta1,dta2,molP,econ,runE)
             use module_common_var
             implicit none
+            integer*8     , intent(in)       :: runE
             type (dta_SDF), intent(inout)    :: dta1
             type (dta_RMF), intent(inout)    :: dta2
             type (dta_MOL), intent(inout)    :: molP
+            type (dta_ERR), intent(inout)    :: econ
         end subroutine VarInit
 
     end interface
@@ -93,7 +148,7 @@ END module module_phsub
 !--------------------------------------------------------------------------------------------------------------------
 ! RELAXATION MATRIX SUBROUTINES -------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE DipCAL(dta1,nLines,molP)
+  SUBROUTINE DipCAL(dta1,nLines,molP,econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! "DipCAL": DIPole CALculation
 ! 
@@ -136,7 +191,7 @@ END module module_phsub
 !
 !	Double Precision Version
 !
-!	T.Mendaza, last change 09 February 2017
+!	T.Mendaza, last change 17 February 2017
 !--------------------------------------------------------------------------------------------------------------------
 !
     use module_common_var
@@ -146,6 +201,7 @@ END module module_phsub
     Implicit None
     integer*8, intent(in)       :: nLines
     type (dta_SDF),intent(inout):: dta1
+    type (dta_ERR),intent(inout):: econ
     type (dta_MOL),intent(in)   :: molP
     integer*8                   :: N_i, N_f, J_i, J_f
     integer*8                   :: i, j, k
@@ -158,7 +214,7 @@ END module module_phsub
 !
 ! Check that Arrays for Results are Large Enough.
        if ( nLines .gt. nLmx) then
-        call sizeError("1000", nLines, nLmx)
+        call sizeError("1000", nLines, nLmx, econ)
        endif
 !
 ! Compute the Dipole moment at every line 
@@ -171,7 +227,7 @@ END module module_phsub
       J_i  = int(dta1%J(k,1)) !J_i  = J LOWER L.
       J_f  = int(dta1%J(k,2)) !J_f  = J UPPER L.
       !
-      ! REDUCE MATRIX ELEMENT, D0
+      ! REDUCE DIPOLE MOMENT, D0
       !
         if ( mod((J_f+dta1%lv2(2)),2) .eq. 0) then
         ! j = (-1)**(J_f+lf)
@@ -473,12 +529,6 @@ END module module_phsub
     T = molP % Temp
 !-----------------------------------------
 !
-! Check that Arrays for Results are Large Enough, Initialize
-    If ( nLines .GT. nLmx) Then
-        call sizeError("1000",nLines,nLmx)
-        Stop
-    End If
-!
 ! Partition function ratio:
 !
     !old 
@@ -525,7 +575,168 @@ END module module_phsub
     Return
   END SUBROUTINE PopuCAL
 !--------------------------------------------------------------------------------------------------------------------
-  double precision function K_jkCalc(j,k,h,nLines,molP,PerM)
+  double precision function Kpart1(Ji_p, Jf, Jf_p, li, lf, AF1)
+!--------------------------------------------------------------------------------------------------------------------
+! "Kpart1": First part of the OFF-diagonal elements <<k'|W|k>>
+        ! where:
+        ! <<k'|W|k>> := transition k->k'
+! NOTE:
+! -----
+! c1 = (2*Ji_p+1)*sqrt((2*Jf+1)*(2*Jf_p+1))*(-1)^(li+lf+K_t+1)
+!
+      use module_common_var
+      IMPLICIT NONE
+      integer*8, intent(in)         :: li, lf
+      double precision, intent(in)  :: Ji_p, Jf, Jf_p, AF1
+      double precision              :: cte1, cte2
+      ! 
+      !
+      cte1 = (2.D0*Ji_p+1.d0) * dsqrt((2.D0*Jf+1.d0)*(2.D0*Jf_p+1.d0))
+      !
+      if ( mod( (li+lf+K_t+1),2 ) .eq. 0) then
+        cte2 = 1.d0
+      else 
+        cte2 = -1.d0
+      endif 
+      Kpart1 =  cte1*cte2*AF1
+               
+      RETURN
+  END function Kpart1
+!--------------------------------------------------------------------------------------------------------------------
+  double precision function Kpart1_O2(Ji, Ji_p, Jf, Jf_p, Ni, Ni_p, Nf, Nf_p, AF1)
+!--------------------------------------------------------------------------------------------------------------------
+! "Kpart1_O2": First part of the OFF-diagonal elements <<k'|W|k>>
+        ! where:
+        ! <<k'|W|k>> := transition k->k'
+! NOTE:
+! -----
+! c1 = (2*Ji_p+1)*sqrt((2*Jf+1)*(2*Jf_p+1))*(-1)^(li+lf)
+!
+      use module_common_var
+      IMPLICIT NONE
+      integer*8, intent(in)         :: Ni, Ni_p, Nf, Nf_p
+      double precision, intent(in)  :: Ji, Ji_p, Jf, Jf_p, AF1
+      double precision              :: cte1, cte2
+      !
+        cte1 = (2.d0*Ni + 1.d0)*(2.d0*Ni_p + 1.d0)*(2.d0*Nf + 1.d0)*(2.d0*Nf_p + 1.d0)
+        cte1 = cte1 * (2.d0*Jf + 1.d0)*(2.d0*Jf_p + 1.d0)*(2.d0*Ji_p + 1.d0)**2
+        if ( mod( int(Ji_p+Ji+K_t),2 ) .eq. 0) then
+          cte2 = 1.d0
+        else 
+          cte2 = -1.d0
+        endif 
+        Kpart1_O2 = cte1*cte2*AF1
+                    
+      RETURN
+  END function Kpart1_O2
+!--------------------------------------------------------------------------------------------------------------------
+  double precision function Kpart2(L, Ji, Ji_p, Jf, Jf_p, li, lf, AF2,econ)
+!--------------------------------------------------------------------------------------------------------------------
+! "Kpart2": Calculates triangle coefficients for angular momenta.
+! NOTE:
+! -----
+! This version returns 0 if the triangle inequalities are violated.  (RAH)
+!
+      use module_common_var
+      use module_error
+      use module_maths
+      IMPLICIT NONE
+      integer*8, intent(in)        :: L, li, lf
+      double precision, intent(in) :: Ji, Ji_p, Jf, Jf_p, AF2
+      type (dta_ERR), intent(inout):: econ
+      double precision             :: w3j1,w3j2,w6j
+      !
+      !
+      !wigner 3j-Symbol 1:
+      ! ( Ji  L  Ji' )
+      ! ( li  0  -li )
+      w3j1 = wigner3j( Ji_p, real(L, dp), Ji , real(li, dp), 0.0_dp, real(-li, dp) )
+      ! CASE wig3j0(M,J1,J2,J)
+      !                       m (j1 j2 j)  
+      !                    (-)  (m  -m 0)  
+      !
+      !wigner 3j-Symbol 2:
+      ! ( Jf  L  Jf' )
+      ! ( lf  0  -lf )
+      w3j2  = wigner3j( Jf_p, real(L, dp), Jf, real(-lf, dp), 0.0_dp, real(lf, dp) )
+      !
+      !wigner 6j-Symbol:
+      ! { Ji   Jf   1 }
+      ! { Jf'  Ji'  L }
+      w6j   = wigner6j( Ji, Jf, real(K_t,dp), Jf_p, Ji_p, real(L, dp))
+      !
+      if ( .not.( isnan(w3j1  ) .or. isinf(w3j1  )) .and. &
+           .not.( isnan(w3j2  ) .or. isinf(w3j2  )) .and. &
+           .not.( isnan(w6j   ) .or. isinf(w6j   )) ) then
+            Kpart2 = w3j1 * w3j2* w6j * (2.d0*L + 1.d0)/AF2  
+      else
+            call wignerS_ERROR(w3j1, w3j2, w6j, 0.0_dp, 0.0_dp,econ)     
+      endif
+
+      RETURN
+  END function Kpart2
+!--------------------------------------------------------------------------------------------------------------------
+  double precision function Kpart2_O2(L, Ji, Ji_p, Jf, Jf_p, &
+                                      Ni, Ni_p, Nf, Nf_p, Si, Sf, &
+                                      AF2, econ)
+!--------------------------------------------------------------------------------------------------------------------
+! "Kpart2_O2": Calculates triangle coefficients for angular momenta.
+! NOTE:
+! -----
+! This version returns 0 if the triangle inequalities are violated.  (RAH)
+!
+      use module_common_var
+      use module_error
+      use module_maths
+      IMPLICIT NONE
+      integer*8, intent(in)        :: L, Ni, Ni_p, Nf, Nf_p
+      double precision, intent(in) :: Ji, Ji_p, Jf, Jf_p, Si, Sf, AF2
+      type (dta_ERR), intent(inout):: econ
+      double precision             :: w3j1,w3j2,w6j1,w6j2,w6j3 
+      !
+      Kpart2_O2 = 0.0_dp
+      !
+      !
+      !wigner 3j-Symbol 1:
+      ! ( Ni'  Ni  L )
+      ! ( 0    0   0 )
+      w3j1 = wigner3j( real(Ni_p, dp), real(Ni, dp), real(L, dp), 0.0_dp, 0.0_dp, 0.0_dp )  
+      !
+      !wigner 3j-Symbol 2:
+      ! ( Nf'  Nf  L )
+      ! ( 0    0   0 )
+      w3j2 = wigner3j( real(Nf_p, dp), real(Nf, dp), real(L, dp), 0.0_dp, 0.0_dp, 0.0_dp )
+      !  
+      !wigner 6j-Symbol 1:
+      ! { L   Ji    Ni'}
+      ! { Si  Ji'   Ni }
+      w6j1 = wigner6j(real(L, dp),Ji, real(Ni_p, dp), Si, Ji_p, real(Ni, dp))
+      !
+      !wigner 6j-Symbol 2:
+      ! { L   Jf   Jf'}
+      ! { Sf  Nf'  Nf }
+      w6j2 = wigner6j(real(L, dp),Jf, Jf_p, Sf, real(Nf_p, dp), real(Nf, dp))
+      !
+      !wigner 6j-Symbol 3:
+      ! { L   Ji   Ji' }
+      ! { 1   Jf'  Jf  }
+      w6j3 = wigner6j(real(L, dp),Ji, Ji_p, real(K_t,dp), Jf_p, Jf)
+      !
+      if ( .not.( isnan(w3j1) .or. isinf(w3j1)) .and. &
+           .not.( isnan(w3j2) .or. isinf(w3j2)) .and. &
+           .not.( isnan(w6j1) .or. isinf(w6j1)) .and. &
+           .not.( isnan(w6j2) .or. isinf(w6j2)) .and. &
+           .not.( isnan(w6j3) .or. isinf(w6j3)) ) then
+            Kpart2_O2 = w3j1 * w3j2* w6j1 * w6j2 * w6j3 * &
+                        (2.d0*L + 1.d0)/AF2 
+      else
+            call wignerS_ERROR(w3j1, w3j2, w6j1, w6j2, w6j3,econ)
+      endif
+
+      RETURN
+  END function Kpart2_O2
+!--------------------------------------------------------------------------------------------------------------------
+  double precision function K_jkCalc(j,k,h,nLines,molP,PerM,econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! "K_jkCalc": OFF-diagonal matrix elements (Wk'k ∞ Q_k'k)
 !
@@ -551,27 +762,29 @@ END module module_phsub
 !
 ! Double Precision Version
 !
-! T.Mendaza, last change 26 January 2017
+! T.Mendaza, last change 17 February 2017
 !--------------------------------------------------------------------------------------------------------------------
 !
       use module_common_var
       use module_molecSp
+      use module_error
       use module_maths
       IMPLICIT none
-      integer*8   , intent(in):: j,k,nLines
+      integer*8     , intent(in):: j,k,nLines
       type (dta_SDF), intent(in):: h
       type (dta_MOL), intent(in):: molP, PerM
+      type (dta_ERR), intent(inout):: econ
       !internal variables:
       integer*8       :: L, incr, step
       integer*8       :: i, iniL,endL
       double precision:: Ji, Ji_p, Jf, Jf_p !, jmax
-      !double precision :: Ja(nLmx)
       integer*8       :: pos_L_2, aux_j_L, pos_Ji_2
       integer*8       :: li,lf
-      double precision      :: suma, cte1, cte2
-      double precision      :: w3j1,w3j2,w6j,w3jaux
-      double precision      :: AF1,AF2, Qaux
-      double precision      :: Afmol_X, Ql_mol_X 
+      double precision:: suma, cte1, cte2
+      double precision:: w3j1,w3j2,w6j,w3jaux
+      double precision:: AF1 , AF2, Qaux
+      double precision:: Afmol_X, Ql_mol_X, Ql_mol_LLS
+      double precision:: K1, Kpart1, K2, Kpart2
 !
 !...co2  -- 
 ! This expresion is used for "downward" transitions (k"->k') only.
@@ -595,104 +808,75 @@ END module module_phsub
       Ji_p = h%J(k,1)
       Jf_p = h%J(k,2)
       !
+      ! li and lf are the vibrational angular momentum of the vibrational
+      ! available for Linear molecules in HITRAN; 
+      ! (due to its symmetry though)->
+      li = h%lv2(1)
+      lf = h%lv2(2) 
       ! 
       iniL=max(iabs(int(Ji)-int(Ji_p)),abs(int(Jf)-int(Jf_p)))
       endL=min(iabs(int(Ji)+int(Ji_p)),abs(int(Jf)+int(Jf_p)))
       !iniL=int(max(abs(Ji-Ji_p),abs(Jf-Jf_p)))
       If( mod(iniL,step) .ne. 0 )iniL=iniL+1
       !endL=int(min((Ji+Ji_p),(Jf+Jf_p)))
+      ! 
+      ! Adiabatic factor 1:
+      if (molP%AF_ON) then
+        AF1 = AFmol_X(molP, PerM, Ji, step)
+      else
+        AF1 = 1.0_dp
+      endif
+      K1 = Kpart1(Ji_p, Jf, Jf_p, li, lf, AF1)
       !
-!
-        ! li and lf are the vibrational angular momentum of the vibrational
-        ! available for Linear molecules in HITRAN; 
-        ! (due to its symmetry though).
-!
-      li = h%lv2(1)
-      lf = h%lv2(2) 
-!
-      cte1 = (2.d0*Ji_p + 1.d0)*dsqrt((2.d0*Jf + 1.d0)*(2.d0*Jf_p + 1.d0))
-      !cte2 = (-1)**(li+lf)
-      ! A faster computation would be... (case (li+lf) has integer value)
-      if ( mod( (li+lf+K_t+1),2 ) .eq. 0) then
-        !(li+lf) is even
-        cte2 = 1
-      else !if (modulo( (li+lf),2) .eq. 1) then! 
-        !(li+lf) is odd  
-        cte2 = -1
-      endif  
       suma = 0.d0
       !
       !do L = 1,130
       do L = iniL,endL,step
-        ! Since the molecules to be considered are linear -> simmetryc 
+        ! Since the molecules to be considered are linear -> symmetrical 
         ! and the quadrupole - quadrupole interaction for the sistems mol-X
         ! are meant to be dominant the interaction potential is likely 
-        ! dominated by EVEN rank contributions. 
+        ! dominated by EVEN rank contributions, then STEP = 2.
+        ! NOTE: 
+        ! (In this case) if STEP = odd; 
+        ! the basis rates are expected to be small -> Q_mol_X=0.
         !
         ! Calculation of the basis rates "Q_mol-X":
-        !if (mod(L,2) .eq. 0) then 
-        ! L is even
-          Qaux = Ql_mol_X(molP,L)
+          if (molP % QTy .eq. "TMC") then
+            Qaux = Ql_mol_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,L)
+          else
+            Qaux = Ql_mol_X(molP,L)
+          endif
           !print*,"Qmol-x=", Qaux
-        !else 
-        ! L is odd
-        ! because of that, the basis rates are expected to be small -> 0.
-        !  Qaux = 0.0_dp
-        !endif
         if ( abs(Qaux) .gt. TOL ) then
           !
-          ! wigner 3j-Symbol 1:
-          ! ( Ji  L  Ji' )
-          ! ( li  0  -li )
-          !http://www-stone.ch.cam.ac.uk/wigner.shtml
-          w3j1 = wigner3j( Ji_p, real(L, dp), Ji , real(li, dp), 0.0_dp, real(-li, dp) )
-          !print*, Ji, Ji_p, w3j1
-          ! CASE wig3j0(M,J1,J2,J)
-          !                       m (j1 j2 j)  
-          !                    (-)  (m  -m 0)  
-          !
-          ! wigner 3j-Symbol 2:
-          ! ( Jf  L  Jf' )
-          ! ( lf  0  -lf )
-          w3j2  = wigner3j( Jf_p, real(L, dp), Jf, real(-lf, dp), 0.0_dp, real(lf, dp) )
-          !print*, Jf, Jf_p, w3j2
-          !
-          ! wigner 6j-Symbol:
-          ! { Ji   Jf   1 }
-          ! { Jf'  Ji'  L }
-          w6j   = wigner6j(Ji,Jf, real(K_t,dp), Jf_p, Ji_p, real(L, dp))
-          !print*, Ji, Jf, w6j
-          !
           ! Adiabatic factor 2:
-          ! it depends on the temperature too but it is included through common module.
-          AF2   = AFmol_X(molP, PerM, real(L,dp), step)
+          if (molP%AF_ON) then
+            AF2 = AFmol_X(molP, PerM, real(L,dp), step)
+          else
+            AF2 = 1.0_dp
+          endif
+          K2 = Kpart2(L, Ji, Ji_p, Jf, Jf_p, li, lf, AF2,econ)
           !print*, Ji, Ji_p, AF2
           !
-          if ( .not.( isnan(w3j1) .or. isinf(w3j1)) .and. &
-               .not.( isnan(w3j2) .or. isinf(w3j2)) .and. &
-               .not.( isnan(w6j ) .or. isinf(w6j )) .and. &
+          if ( .not.( isnan(K2) .or. isinf(K2)) .and. &
                .not.( isnan(suma) .or. isinf(suma)) .and. &
                .not.( isnan(AF2) .or. isinf(AF2)) ) then
-              suma = suma + w3j1 * w3j2* w6j * (2.0_dp*L + 1.0_dp) * &
-                     Qaux / AF2
+              suma = suma + K2 * Qaux
           else
-            call offdiagEL_IN_ERROR(AF2, Qaux, w3j1, w3j2, w6j, 0.0_dp, 0.0_dp)
+            call offdiagEL_IN_ERROR(AF2, Qaux, K2,econ)
           endif
         else 
         endif
       enddo
-      ! 
-      ! Adiabatic factor 1:
-      AF1= AFmol_X(molP, PerM, Ji, step)
-      K_jkCalc = cte1*cte2*AF1*suma 
-      !K_jkCalc = cte1*cte2*suma
+      !
+      K_jkCalc = K1*suma 
       if ( isnan( K_jkCalc ) .or. isinf( K_jkCalc  ) ) then
-        call offdiagEL_ERROR(cte1, cte2, AF1, suma)
+        call offdiagEL_ERROR(K1, AF1, suma,econ)
       endif
     RETURN
   END function K_jkCalc
 !--------------------------------------------------------------------------------------------------------------------
-  double precision function K_jkO2(j,k,h,nLines,molP,PerM)
+  double precision function K_jkO2(j,k,h,nLines,molP,PerM,econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! "K_jkO2": OFF-diagonal matrix elements for O2 systems(Wk'k ∞ Q_k'k)
 !
@@ -718,12 +902,14 @@ END module module_phsub
 !--------------------------------------------------------------------------------------------------------------------
 !
       use module_common_var
+      use module_error
       use module_molecSp
       use module_maths
       IMPLICIT none
-      integer*8   , intent(in):: j,k,nLines
+      integer*8     , intent(in):: j,k,nLines
       type (dta_SDF), intent(in):: h
       type (dta_MOL), intent(in):: molP, PerM
+      type (dta_ERR), intent(inout):: econ
       !internal variables:
       integer*8             :: L, incr, step
       integer*8             :: i, iniL,endL
@@ -736,7 +922,8 @@ END module module_phsub
       double precision      :: w3j1,w3j2
       double precision      :: w6j1, w6j2, w6j3
       double precision      :: AF1,AF2, Qaux
-      double precision      :: Afmol_X, Ql_mol_X 
+      double precision      :: Afmol_X, Ql_mol_X, Ql_mol_LLS
+      double precision      :: K1, Kpart1_O2, K2, Kpart2_O2
 !
 !...O2  -- 
 ! This expresion is used for "downward" transitions (k"->k') only.
@@ -749,7 +936,7 @@ END module module_phsub
 ! NOTE: for further info about this formulation [Niro et al. 2004]
 !
 ! STEP = 2 -> Because the quadrupole-quadrupole energy potential is dominant
-!      in linear molecules.
+!             in linear molecules.
   !
     !
       step = 2 
@@ -764,79 +951,67 @@ END module module_phsub
       iniL=int(max(abs(Ni-Ni_p),abs(Nf-Nf_p)))
       If( mod(iniL,step) .ne. 0 )iniL=iniL+1
       endL=int(min((Ni+Ni_p),(Nf+Nf_p)))
+      ! 
+      ! Adiabatic factor 1:
+      if (molP%AF_ON) then
+        AF1 = AFmol_X(molP, PerM, real(Ni,dp), step)
+      else
+        AF1 = 1.0_dp
+      endif
+      K1 = Kpart1_O2(Ji, Ji_p, Jf, Jf_p, Ni, Ni_p, Nf, Nf_p, AF1)
       !
-      !
-      cte1 = (2.d0*Ni + 1.d0)*(2.d0*Ni_p + 1.d0)*(2.d0*Nf + 1.d0)*(2.d0*Nf_p + 1.d0)
-      cte1 = cte1*(2.d0*Jf + 1.d0)*(2.d0*Jf_p + 1.d0)*(2.d0*Ji_p + 1.d0)**2
-      !
-      if ( mod( int(Ji_p+Ji+K_t),2 ) .eq. 0) then
-        cte2 = 1
-      else 
-        cte2 = -1
-      endif  
       suma = 0.d0
       !
       !do L = 1,130
       do L = iniL,endL,step
-        ! Since the molecules to be considered are linear -> simmetryc 
+        ! Since the molecules to be considered are linear -> symmetrical 
         ! and the quadrupole - quadrupole interaction for the sistems mol-X
         ! are meant to be dominant the interaction potential is likely 
-        ! dominated by EVEN rank contributions. 
+        ! dominated by EVEN rank contributions, then STEP = 2
         !
         ! Calculation of the basis rates "Q_mol-X":
-          Qaux = Ql_mol_X(molP,L)
+          if (molP % QTy .eq. "TMC") then
+            Qaux = Ql_mol_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,L)
+          else
+            Qaux = Ql_mol_X(molP,L)
+          endif
         !
         if ( abs(Qaux) .gt. TOL ) then
           !
-          ! wigner 3j-Symbol
-          w3j1 = wigner3j( real(Ni_p, dp), real(Ni, dp), real(L, dp), 0.0_dp, 0.0_dp, 0.0_dp )
-          w3j2 = wigner3j( real(Nf_p, dp), real(Nf, dp), real(L, dp), 0.0_dp, 0.0_dp, 0.0_dp )
-          !
-          ! wigner 6j-Symbol
-          w6j1 = wigner6j(real(L, dp),Ji, real(Ni_p, dp), real(Si,dp), Ji_p, real(Ni, dp))
-          w6j2 = wigner6j(real(L, dp),Jf, Jf_p, real(Sf,dp), real(Nf_p, dp), real(Nf, dp))
-          w6j3 = wigner6j(real(L, dp),Ji, Ji_p, real(K_t,dp), Jf_p, Jf)
-          !
           ! Adiabatic factor 2:
-          ! it depends on the temperature too but it is included through common module.
-          AF2  = AFmol_X(molP, PerM, real(L,dp), step)
-          !
-          if ( .not.( isnan(w3j1) .or. isinf(w3j1)) .and. &
-               .not.( isnan(w3j2) .or. isinf(w3j2)) .and. &
-               .not.( isnan(w6j1) .or. isinf(w6j1)) .and. &
-               .not.( isnan(w6j2) .or. isinf(w6j2)) .and. &
-               .not.( isnan(w6j3) .or. isinf(w6j3)) .and. &
-               .not.( isnan(suma) .or. isinf(suma)) .and. &
-               .not.( isnan(AF2) .or. isinf(AF2)) ) then
-              suma = suma + w3j1 * w3j2* w6j1 * w6j2 * w6j3 * &
-                     (2.d0*L + 1.d0) * Qaux / AF2
+          if (molP%AF_ON) then
+            AF2 = AFmol_X(molP, PerM, real(L,dp), step)
           else
-            call offdiagEL_IN_ERROR(AF2, Qaux, w3j1, w3j2, w6j1, w6j2, w6j3)
+            AF2 = 1.0_dp
           endif
-        else 
+          K2 = Kpart2_O2(L, Ji, Ji_p, Jf, Jf_p, &
+                         Ni, Ni_p, Nf, Nf_p, Si, Sf, AF2,econ)
+          !
+          if ( .not.( isnan(K2  ) .or. isinf(K2  )) .and. &
+               .not.( isnan(suma) .or. isinf(suma)) .and. &
+               .not.( isnan(AF2 ) .or. isinf(AF2 )) ) then
+              suma = suma + K2 * Qaux
+          else
+            call offdiagEL_IN_ERROR(AF2, Qaux, K2,econ)
+          endif
+        !else 
         endif
       enddo
-      ! 
-      ! Adiabatic factor 1:
-      AF1= AFmol_X(molP, PerM, real(Ni,dp), step)
-      K_jkO2 = cte1*cte2*AF1*suma
+      !
+      K_jkO2 = K1*suma
       if ( isnan( K_jkO2 ) .or. isinf( K_jkO2  ) ) then
-        call offdiagEL_ERROR(cte1, cte2, AF1, suma)
+        call offdiagEL_ERROR(K1, AF1, suma,econ)
       endif
     RETURN
   END function K_jkO2
 !--------------------------------------------------------------------------------------------------------------------
   double precision function Ql_mol_X(molP,L)
 !--------------------------------------------------------------------------------------------------------------------
-! " Ql_mol_X": OFF-diagonal matrix elements (Wk'k ∞ Q_k'k)
+! " Ql_mol_X": Basis rate.
 ! 
 ! Detailed description:
 ! ---------------------
-! this function gives the theoretic formulation of relaxation matrix elements:
-! 			<< k' | W | k >> 
-! They have the same functional form as the rotational state-to-state 
-! cross sections within a single vibrational state.
-! Formulation developed by T.Mendaza developed from the work of [Niro et al. 2004].
+! Basis rates: semi-empirical function.
 !
       use module_common_var
       use module_molecSp
@@ -848,34 +1023,25 @@ END module module_phsub
       type(dta_MOL)    :: molP
 !
 ! This expresion is used for "downward" transitions (k->k') only.
-! That means that, given two transitions: 
-! k := j_f l_f j_i l_i
-! k':= j'_f l'_f j'_i l'_i
-! so "downward" refears to that ones which (j'_i < j_i)
-! the upwards ones can be obtained from detailed balance: rho_j·<<k|W|k'>> = rho_k·<<k'|W|k>>
-! NOTE: for further info about this notation [Niro et al. 2004]
 !
   !
     T = molP % Temp
-    !reduce rotational energy from the level L * 1/B0
-    E_l = real((L*L + L), dp) 
     !
-    if (molP%M .eq. 7) then
-      ! mol == O2
-      if (L .lt. TOL) then
-        Ql_mol_X=0.0_dp
-      else
-      !Ql_mol_X = a1*( ( E_l )**(-a2) )*( dexp(-a3*c*hplank*molP%B0*E_l/(T*kb))  )
+    if (L .lt. TOL) then
+      Ql_mol_X=0.0_dp
+    else
+    !reduce rotational energy from the level L * 1/B0
+      E_l = real((L*L + L), dp) 
+    !
+      if (molP%M .eq. 7) then! mol == O2
+        !
+        !Ql_mol_X = a1*( ( E_l )**(-a2) )*( (T/T0)**(-a3)  )
         Ql_mol_X = molP%a1* &
                ( (  E_l )**(-molP%a2) )* &
                ( ( T/T0 )**(-molP%a3) )
                ![Tran et al., 2006]
-      endif
-    else 
-      if (L .lt. TOL) then
-        Ql_mol_X=0.0_dp
-      else
-      !Ql_mol_X = a1*( ( E_l )**(-a2) )*( dexp(-a3*c*hplank*molP%B0*E_l/(T*kb))  )
+      else 
+        !Ql_mol_X = a1*( ( E_l )**(-a2) )*( dexp(-a3*c*hplank*molP%B0*E_l/(T*kb))  )
         Ql_mol_X = molP%a1* &
                ( ( E_l )**(-molP%a2) )* &
                ( dexp(-molP%a3*c2*molP%B0*E_l/T)  )
@@ -885,6 +1051,73 @@ END module module_phsub
     !write(*,*) 'Ql_mol_X=',Ql_mol_X
     RETURN
   END function Ql_mol_X
+!--------------------------------------------------------------------------------------------------------------------
+  double precision function Ql_mol_LLS(J1,J2,v1,v2,molP,L)
+!--------------------------------------------------------------------------------------------------------------------
+! " Ql_mol_LLS": Basis rate
+! 
+! Detailed description:
+! ---------------------
+! Basis rates: semi-empirical function.
+!
+      use module_common_var
+      use module_molecSp
+      use module_maths
+      IMPLICIT none
+      ! a1, a2, a3, dc were declared in module_common_var:
+      integer*8        :: L
+      real*8           :: E_l, T,Jaux
+      type(dta_MOL)    :: molP
+      real*8           :: J1,J2,v1,v2
+!
+! This expresion is used for "downward" transitions (k->k') only.
+!
+  !
+    T = molP % Temp
+    Jaux = J1
+    if (Jaux .lt. TOL) Jaux = 0.5_dp
+    !
+    if (L .lt. TOL) then
+      Ql_mol_LLS=0.0_dp
+    else
+    !reduce rotational energy from the level L * 1/B0
+      E_l = real((L*L + L), dp) 
+    !
+      if (molP%M .eq. 7) then! mol == O2
+        !
+        !Ql_mol_LLS = A1 - A2*Ln( E_l ) - A3*( Ln(T) - Ln(T0) )
+        Ql_mol_LLS = molP%a1 - &
+                ( (molP%a2)*log(E_l) ) - &
+                ( molP%a3* ( log(T) - log(T0) ) )
+               !
+      else 
+      !Ql_mol_LLS = A1 - A2*Ln( E_l ) - A3*( c*hplank*B0*E_l/(T*kb) )
+        !Linear
+        Ql_mol_LLS = (molP%a1) - &
+                ( (molP%a2)*log(E_l) ) - &
+                ( molP%a3*c2*molP%B0*E_l/T )
+        ! Correction 1:
+        !Ql_mol_LLS = (molP%a1)/((dabs(v1-v2)/molP%B0)**(J2/Jaux)) - &
+        !        ( (molP%a2)*log(E_l) ) - &
+        !        ( molP%a3*c2*molP%B0*E_l/T )
+        ! Correction 2: UNIT PROBLEMS!
+        !Ql_mol_LLS = (molP%a1)/(dabs(v1-v2)**(J2/Jaux)) - &
+        !        ( (molP%a2)*log(E_l) ) - &
+        !        ( molP%a3*c2*molP%B0*E_l/T )
+        ! Correction 3: UNIT PROBLEMS!
+        !Ql_mol_LLS = (molP%a1)/(T*(dabs(v1-v2)**(J2/Jaux))) - &
+        !        ( (molP%a2)*log(E_l) ) - &
+        !        ( molP%a3*c2*molP%B0*E_l/T )
+        ! Correction 4: 
+        !Ql_mol_LLS = (molP%a1)*molP%B0*molP%B0*c2/(T*(dabs(v1-v2)**(J2/Jaux))) - &
+        !        ( (molP%a2)*log(E_l) ) - &
+        !        ( molP%a3*c2*molP%B0*E_l/T )
+               ![Mendaza et al., 2017]
+      endif
+    endif
+    !write(*,*) 'Ql_mol_LLS=',Ql_mol_LLS
+    RETURN
+  END function Ql_mol_LLS
 !--------------------------------------------------------------------------------------------------------------------
   double precision function AFmol_X(molP, PerM, L, step)
 !--------------------------------------------------------------------------------------------------------------------
@@ -974,8 +1207,9 @@ END module module_phsub
       RETURN
   END function AFmol_X
 !--------------------------------------------------------------------------------------------------------------------
-  subroutine sumRule(nLines,indexS,dipole,Wmat,dfact)
+  subroutine sumRule(nLines,indexS,dipole,Wmat,dfact,econ)
 !--------------------------------------------------------------------------------------------------------------------
+        use module_common_var
         use module_error
         implicit none
         integer (kind=8), intent(in)    :: nLines
@@ -983,6 +1217,7 @@ END module module_phsub
         real*8, intent(in)              :: dfact
         Double Precision, intent(in)    :: dipole(nLines)
         Double Precision, intent(in)    :: Wmat(nLines,nLines)
+        type (dta_ERR), intent(inout)   :: econ
         !local variables
         integer (kind=8)                :: i,j
         Double Precision                :: Saux, DipAux, Wij, Wii
@@ -1004,26 +1239,34 @@ END module module_phsub
             endif
           ENDDO
           if ( (abs(Wii+Saux) .gt. TOLe2) .and. (i .ne. nLines) ) then
-            write(*,'(a4,i3,a14)'), "row#",i,"NO SUM-RULE"
-            print*, "half-Width", Wii , "?= SUMij{Wmat}", -Saux
             testOK = .false.
-            !stop
+            if (econ % e(1) .eq. 1) then
+                write(*,'(a4,i3,a30)'), "row#",i,"NOT meet SUM-RULE"
+                write(*,*), "half-Width", Wii , "?= SUMij{Wmat}", -Saux
+            endif
           else
-            !write(*,'(a4,i3,a14)'), "row#",i,"NO SUM-RULE"
-            !print*, "half-Width", Wii , "?= SUMij{Wmat}", -Saux
+            ! Uncomment if you would also like to see 
+            ! the lines that meet the requirement
+            !
+            !if (econ % e(1) .eq. 1) then
+            !    write(*,'(a4,i3,a30)'), "row#",i,"meet SUM-RULE"
+            !    write(*,*), "half-Width", Wii , "?= SUMij{Wmat}", -Saux
+            !endif
           endif
         ENDDO
       
-        print*, "SUM-RULE TEST FINISHED"
+        !print*, "SUM-RULE TEST FINISHED"
         if ( .not.(testOK) ) then
-          call SumRuleError()
+            call SumRuleError(econ)
         else
-          print*, "sumRule: The calculation correctly verifies the sum rule!"
+            if (econ % e(1) .eq. 1) then
+                print*, "sumRule: The calculation correctly verifies the sum rule!"
+            endif
         endif
 
   end subroutine sumRule
 !--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE VarInit(dta1,dta2,molP)
+  SUBROUTINE VarInit(dta1,dta2,molP,econ,runE)
 ! SUBROUTINE VarInit(dta1,dta2,dta3,dta4,molP)
 !--------------------------------------------------------------------------------------------------------------------
 ! "VarInit": Variables initialization
@@ -1050,18 +1293,19 @@ END module module_phsub
 ! ---------
 !
 !
-! T.Mendaza, last change 11 February 2016
+! T.Mendaza, last change 17 February 2017
 !--------------------------------------------------------------------------------------------------------------------
 !
     use module_common_var
     implicit none
+    integer*8     , intent(in)       :: runE
     type (dta_SDF), intent(inout)    :: dta1
     type (dta_RMF), intent(inout)    :: dta2
     type (dta_MOL), intent(inout)    :: molP
+    type (dta_ERR), intent(inout)    :: econ
     integer*8                  :: i,j,k
 
 !----------
-print*, "Init. dta_SDF..."
 !
 ! Init. SDF data
       dta1%M   = 0
@@ -1110,32 +1354,79 @@ print*, "Init. dta_SDF..."
           dta1%nspin(i,1)= 0.0; dta1%nspin(i,2) = 0.0
           dta1%espin(i,1)= 0.0; dta1%espin(i,2) = 0.0
           !dp
-          dta1%F(i,1) = 0.0_dp ; dta1%F(i,2) = 0.0_dp
+          dta1%F(i,1)= 0.0_dp ; dta1%F(i,2) = 0.0_dp
 !         dta1%J_g6(i)= 0.0_dp, dta1%Ju_g6(i)= 0.0_dp
           !character
            dta1%br(i)   = "" ; dta1%br_N(i) = ""
       enddo
 !
-print*, "Init. dta_RMF..."
-!
 ! Init. RMF data
       do  i=1,nMmx
           !Double precision
-           dta2%WT0(i)    = 0.0_dp
-           dta2%BTW(i)    = 0.0_dp
+           dta2%WT0(i) = 0.0_dp
       enddo
-
-print*, "Init. Molecular data type..."
 !
 ! Init. MOLECULE data
-      molP%M = 0
-      do  i=1,mMax
-          !Integer kind
-           molP%Aco = 0 
-          !Double precision
-           molP%mms    = 0.0_dp
-      enddo
+      call mol_Init(molP)
 ! 
+!
+! ERROR CONTROL:
+            econ % e(1) = runE
+            econ % e(2) = 0
       Return
   END SUBROUTINE VarInit
+!--------------------------------------------------------------------------------------------------------------------
+  SUBROUTINE mol_Init(molP)
+!--------------------------------------------------------------------------------------------------------------------
+! "mol_Init": Molecular-structure type initialization
+!
+! Variables:
+!
+! Input/Output Parameters of Routine (Arguments or Common)
+! ----------------------------------
+! molP    : dta type "dta_MOL". Molecular structure parameters.
+!
+! Accessed Files:  None
+! --------------
+!
+! Called Routines: None
+! ---------------  
+!
+! Called By: VarInit
+! ---------
+!
+! T.Mendaza, last change 16 February 2017
+!--------------------------------------------------------------------------------------------------------------------
+!
+    use module_common_var
+    implicit none
+    type (dta_MOL), intent(inout)    :: molP
+!----------
+! Init. MOLECULE data
+      !Integer kind
+      molP%M     = 0
+      molP%iso_m = 0
+      molP%Aco   = 0 
+      !Double precision
+      molP%mms    = 0.0_dp
+      molP % Temp = 0.0_dp
+      molP % Ptot = 0.0_dp
+      molP % Nmcon= 0.0_dp
+      molP % B0   = 0.0_dp
+      molP % QT   = 0.0_dp
+      molP % QT0  = 0.0_dp
+      molP % a1   = 0.0_dp
+      molP % a2   = 0.0_dp
+      molP % a3   = 0.0_dp
+      molP % dc   = 0.0_dp
+      molP % ex1  = 0.0_dp
+      molP % ex2  = 0.0_dp
+      !character
+      molP%chmol = ""
+      !logical
+      molP%availableParam = .true.
+      molP%AF_ON = .true.
+! 
+      Return
+  END SUBROUTINE mol_Init
 !--------------------------------------------------------------------------------------------------------------------

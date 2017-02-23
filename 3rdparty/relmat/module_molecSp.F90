@@ -10,7 +10,7 @@ MODULE module_molecSp
             implicit none
             integer*8, intent(in)        :: pos
             integer*8, intent(in)        :: Q0(4), Q00(4)
-            type (dta_SDF), intent(inout)      :: dta1
+            type (dta_SDF), intent(inout):: dta1
         end subroutine r_arts_LocalQ
 
         character function delta2branch(delta,pos)
@@ -20,16 +20,31 @@ MODULE module_molecSp
 
         integer*8 function branch2delta(branch,pos)
             implicit none
-            character, intent(in)              :: branch
+            character(1), intent(in)           :: branch
             integer (kind=8), intent(in)       :: pos
         end function branch2delta
 
-        subroutine systemQParam(sys,molP)
+        subroutine systemQParam(sys,molP,econ)
+            use module_common_var
+            use module_error
+            implicit none
+            integer*8, intent(in)         :: sys(2)
+            type (dta_MOL), intent(inout) :: molP
+            type (dta_ERR), intent(inout) :: econ
+        end subroutine systemQParam
+
+        subroutine systemQParam_LLS(sys,molP)
             use module_common_var
             implicit none
             integer*8, intent(in)         :: sys(2)
-            type (dta_MOL), intent(inout)       :: molP
-        end subroutine systemQParam
+            type (dta_MOL), intent(inout) :: molP
+        end subroutine systemQParam_LLS
+
+        subroutine Ai_zeros(molP)
+            use module_common_var
+            implicit none
+            type (dta_MOL), intent(inout) :: molP
+        end subroutine Ai_zeros
 
     end interface
 
@@ -193,7 +208,7 @@ END module module_molecSp
 ! Author: Teresa Mendaza 02/03/2016
 !--------------------------------------------------------------------------------------------------------------------
         implicit none
-        character, intent(in)                 :: branch
+        character(1), intent(in)              :: branch
         integer (kind=8), intent(in)          :: pos
         !---------------------------------------------------
         ! NOTATION:
@@ -226,7 +241,7 @@ END module module_molecSp
         endif
   end function branch2delta
 !--------------------------------------------------------------------------------------------------------------------
-  subroutine systemQParam(sys,molP)
+  subroutine systemQParam(sys,molP,econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! systemQParam : Add the system (molecule-perturber) adjusted parameters 
 !
@@ -238,13 +253,15 @@ END module module_molecSp
 ! Parameters written here come either from previous literature in the field or
 ! have been calculated.
 !
-! Author: Teresa Mendaza 08/07/2016
+! Author: Teresa Mendaza 17/02/2017
 !--------------------------------------------------------------------------------------------------------------------
             use module_common_var
+            use module_error
             implicit none
             integer*8, intent(in)         :: sys(2)
-            type (dta_MOL), intent(inout)      :: molP
-            double precision                   :: T
+            type (dta_MOL), intent(inout) :: molP
+            type (dta_ERR), intent(inout) :: econ
+            double precision              :: T
             !-----------------------------------------
             T = molP % Temp
             !-----------------------------------------
@@ -328,8 +345,98 @@ END module module_molecSp
                     molP%a2 = molP%a2*(T0/T)**molP%ex2
                 endif
             else
-                print*, "systemQParam: No adjusted parameter for the Q basis rate avaible."
-                print*, "Please, update the data base."
+                call Qparam_error(econ)
             endif
     end subroutine systemQParam
+!--------------------------------------------------------------------------------------------------------------------
+  subroutine systemQParam_LLS(sys,molP)
+!--------------------------------------------------------------------------------------------------------------------
+! systemQParam : Add the system (molecule-perturber) adjusted parameters 
+!
+! Detailed info:
+! --------------
+! This subroutine acts as a "dataBase" of the adjusted a1, a2, a3, dc
+! parameters that are requeried for the Basis Rates (function 'Q_Mol_X').
+! 
+! Parameters written here come either from previous literature in the field or
+! have been calculated.
+!
+! Author: Teresa Mendaza 16/02/2017
+!--------------------------------------------------------------------------------------------------------------------
+            use module_common_var
+            implicit none
+            integer*8, intent(in)              :: sys(2)
+            type (dta_MOL), intent(inout)      :: molP
+            double precision                   :: T
+            !-----------------------------------------
+            T = molP % Temp
+            !-----------------------------------------
+            if ((sys(1) .eq. 2) .and. (sys(2) .eq. 22)) then
+            ! CO2(2)-N2(4)
+            ! -------------------------------
+            ! Rodriguez et al. 1999; CO2 - N2
+                molP%dc = 2.2      !Å (amstrong)
+            ! Teresa Mendaza:
+            ! with adiabatic factor:
+            ! if ((T .eq. 300.dp) .and. (molP%AF_ON)) then
+            !    molP%a1 = 1.0051114072633629      !cm-1/atm
+            !    molP%a2 = 6.7658218605552072E-004 !cm-1
+            !    molP%a3 =-6.4430735822959561E-005 !cm-1
+            ! endif
+            ! -------------------------------
+            else if ((sys(1) .eq. 2) .and. (sys(2) .eq. 7)) then
+            ! CO2(2)-O2(7)
+            ! -------------------------------
+            ! Rodriguez et al. 1999; CO2 - O2
+                molP%dc = 2.4      !Å (amstrong)
+            ! Teresa Mendaza:
+            ! with adiabatic factor:
+            ! if ((T .eq. 300.dp) .and. (molP%AF_ON)) then
+            !    molP%a1 = 1.0038726990151170      !cm-1/atm
+            !    molP%a2 = 5.1627718836145826E-004 !cm-1
+            !    molP%a3 =-4.2994041637169111E-005 !cm-1
+            ! endif
+            ! -------------------------------
+            else if ((sys(1) .eq. 7) .and. (sys(2) .eq. 7)) then
+            ! Tran et al. 2006; O2 - O2
+                molP%dc = 1.01     !Å (amstrong)
+            else if ((sys(1) .eq. 7) .and. (sys(2) .eq. 22)) then
+            ! Tran et al. 2006; O2 - N2
+                molP%dc = 1.0      !Å (amstrong)
+            else if ((sys(1) .eq. 4) .and. (sys(2) .eq. 7)) then
+            ! Hartmann et al. 1999; N2O - O2
+                molP%dc = 2.9      !Å (amstrong)
+            else if ((sys(1) .eq. 4) .and. (sys(2) .eq. 22)) then
+            ! Hartmann et al. 1999; N2O - N2
+                molP%dc = 2.9      !Å (amstrong)
+            else
+                molP%availableParam = .false.
+                molP%AF_ON = .false.
+            endif
+            call Ai_zeros(molP)
+
+    end subroutine systemQParam_LLS
+!--------------------------------------------------------------------------------------------------------------------
+  subroutine Ai_zeros(molP)
+!--------------------------------------------------------------------------------------------------------------------
+! Ai_zeros : Are Ai parameters Zero? 
+!
+! Detailed info:
+! --------------
+! This subroutine checks whether the adjusted a1, a2, a3
+! parameters are stored in the internal database.
+!
+! Author: Teresa Mendaza 16/02/2017
+!--------------------------------------------------------------------------------------------------------------------
+            use module_common_var
+            implicit none
+            type (dta_MOL), intent(inout)      :: molP
+            !-----------------------------------------
+            if ((molP%a1 .eq. 0.0_dp) .and. &
+                (molP%a2 .eq. 0.0_dp) .and. &
+                (molP%a1 .eq. 0.0_dp) ) then
+                molP%availableParam = .false.
+            endif
+
+    end subroutine Ai_zeros
 !--------------------------------------------------------------------------------------------------------------------

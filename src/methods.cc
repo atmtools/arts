@@ -911,18 +911,25 @@ void define_md_data_raw()
     ( NAME( "abs_lines_per_bandFromband_identifiers" ),
       DESCRIPTION
       (
-          "Initializes abs_lines_per_band and related variables.\n"
+          "Sets abs_lines_per_band and related variables from\n"
+          "*band_identifiers*.\n"
+          "\n"
+          "If *band_identifiers* identifies bands that are not in\n"
+          "the line data, this method remains silent.  This allows\n"
+          "the user to use autmated identification methods such as:\n"
+          "*SetBandIdentifiersAuto* to identify more bands than will\n"
+          "be used in subsequent calculations.\n"
       ),
       AUTHORS( "Richard Larsson" ),
       OUT( "abs_lines_per_band", "abs_species_per_band", "abs_lines_per_species" ),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines_per_species", "abs_species"),
-      GIN("band_identifiers"),
-      GIN_TYPE("ArrayOfQuantumIdentifier"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Band identifiers for line mixing")
+      IN("abs_lines_per_species", "abs_species", "band_identifiers"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
     ));
   
   md_data_raw.push_back
@@ -1813,34 +1820,6 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
       ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "abs_xsec_per_speciesAddLineMixedBands" ),
-      DESCRIPTION
-      (
-          "Calculate absorption cross sections per band for RELMAT line mixing.\n"
-          "\n"
-          "This requires setting *abs_lines_per_band* and *abs_species_per_band*.\n"
-          "\n"
-          "Will call the RELMAT fortran library for the bulk of the calculations.\n"
-          "\n"
-          "More information later.\n"
-      ),
-      AUTHORS( "Teresa Mendaza", "Richard Larsson" ),
-      OUT( "abs_xsec_per_species", "dabs_xsec_per_species_dx" ),
-      GOUT("wmats", "dipoles", "rhos"),
-      GOUT_TYPE("ArrayOfMatrix", "ArrayOfVector", "ArrayOfVector"),
-      GOUT_DESC("Array of Relaxation Matrices [Hz]", "Array of dipole moments", "Array of population distributions"),
-      IN( "abs_xsec_per_species", "dabs_xsec_per_species_dx",
-          "abs_lines_per_band", "abs_species_per_band", "abs_species",
-          "partition_functions", "jacobian_quantities", 
-          "f_grid", "abs_p", "abs_t" ),
-      GIN("write_wmat"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("0"),
-      GIN_DESC("Writes the relaxation operators instead of the cross-section if true")
-    ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1917,7 +1896,53 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-        ));
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_xsec_per_speciesAddLineMixedBands" ),
+      DESCRIPTION
+      (
+        "Calculate absorption cross sections per band for RELMAT line mixing.\n"
+        "\n"
+        "This requires setting *abs_lines_per_band* and *abs_species_per_band*.\n"
+        "\n"
+        "Will call the RELMAT fortran library for the bulk of the calculations.\n"
+        "There are to date two libraries available to compute the relaxation\n"
+        "matrix.  Please set your method using *relmat_type_per_band*.\n"
+        "Helpful method: *SetRelaxationMatrixCalcType*.\n"
+        "\n"
+        "Calculations of *dabs_xsec_per_species_dx* is done through perturbations\n"
+        "for temperature and will therefore be twice as slow.\n"
+        "\n"
+        "Note that for pressures below *lm_p_lim* there are no calls to RELMAT\n"
+        "but the same formalism to compute cross sections is applied using a\n"
+        "diagonal matrix.  (Basically, you are not allowed to select lineshape.)\n"
+        "\n"
+        "If there is an error using RELMAT, please turn on the debug GIN for output\n"
+        "to screen and rerun the code to identify the problem.  RELMAT makes many\n"
+        "assumptions on the user input.  It will sometimes return a diagonal matrix\n"
+        "when the theoretical limits are breached by the user input. Please see\n"
+        "published literature for examples of such theoretical breaches.\n"
+        "\n"
+        "More information later.\n"
+      ),
+      AUTHORS( "Teresa Mendaza", "Richard Larsson" ),
+      OUT( "abs_xsec_per_species", "dabs_xsec_per_species_dx", "relmat_per_band" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_xsec_per_species", "dabs_xsec_per_species_dx",
+          "abs_lines_per_band", "abs_species_per_band", "abs_species",
+          "isotopologue_ratios", "partition_functions", "jacobian_quantities", 
+          "f_grid", "abs_p", "abs_t", "lm_p_lim", "relmat_type_per_band"),
+      GIN("write_relmat_per_band", "debug"),
+      GIN_TYPE("Index", "Index"),
+      GIN_DEFAULT("0", "0"),
+      GIN_DESC("Writes the relaxation operators instead of the cross-section if true",
+               "Lets relmat know it is to print debug information if true."
+      )
+    ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -13605,6 +13630,51 @@ void define_md_data_raw()
             "sensor_response_f_grid", "sensor_response_pol_grid", 
             "sensor_response_dlos_grid",
             "wmrf_weights", "f_backend" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+  
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "SetRelaxationMatrixCalcType" ),
+        DESCRIPTION
+        (
+         "Sets *relmat_type_per_band* (see for types).\n"
+         "Set input to a 1-long array for the same type\n"
+         "for all relaxation matrices.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "relmat_type_per_band"),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_lines_per_band" ),
+        GIN("type"),
+        GIN_TYPE("ArrayOfIndex"),
+        GIN_DEFAULT(NODEF),
+        GIN_DESC("Type of relaxation matrix calculations")
+        ));
+  
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "SetBandIdentifiersAuto" ),
+        DESCRIPTION
+        (
+         "Sets *band_identifiers* to multiple O2-66 and\n"
+         "CO2-* bands.  This is not an exhaustive list so\n"
+         "if you need more bands to identify, please add them\n"
+         "to the list or set *band_identifiers* manually.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "band_identifiers"),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

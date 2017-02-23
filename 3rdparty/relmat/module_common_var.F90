@@ -27,7 +27,7 @@ MODULE module_common_var
     ! Dipole moment Transition
     !*************************
     !integer, parameter :: K_t = 0 !Isotropic-spectroscopy
-    integer, parameter  :: K_t = 1  !IR-spectroscopy
+    integer, parameter  :: K_t = 1 !IR-spectroscopy
     !integer, parameter :: K_t = 2 !Raman-spectroscopy
     ! Diatomic-molecule (or linear):
     ! HUND's CASE
@@ -45,8 +45,6 @@ MODULE module_common_var
     ! Constants
     !***********
     !
-    ! Base Pressure:
-    !double precision, parameter     :: Ptot= 1!atm
     ! Base Temperature:
     double precision, parameter :: T0= 296d0!K
     !
@@ -84,13 +82,7 @@ MODULE module_common_var
     !
     ! Paths
     ! -----
-    character (64) , parameter :: in_file_path   = "Input_files/"
-    !
-    ! In Files
-    ! --------
-    character (64) , parameter :: in_file_molp   = "molparam.txt" ! HITRAN
-    character (64) , parameter :: in_file_PFco   = "PF_coeff.txt" ! 
-    !
+    character (64) , parameter :: out_file_path   = "Output_files/"
     !
     ! Units of IN/OUT files
     ! ---------------------
@@ -419,9 +411,8 @@ MODULE module_common_var
     ! --------------
     type dta_RMF
     ! WT0      = Relaxation Matrix elements (at 296 K) 
-    ! BW       = Temperature Dependence Coefficients of WT0 elements
 
-        double Precision             :: WT0(nMmx),BTW(nMmx) 
+        double Precision         :: WT0(nMmx)
 
     end type dta_RMF
     ! --------------
@@ -456,7 +447,7 @@ MODULE module_common_var
     ! g00   	= Statistical weight of the     F7.1	UNITLESS
     !		      lower state
 
-       integer*8 :: M, ISO, Ierr, Iref
+       integer*8              :: M, ISO, Ierr, Iref
        Double Precision       :: wno,S, A, gair, gself
        Double Precision       :: E00, nair, shift_air
        Double Precision       :: g0, g00
@@ -472,30 +463,60 @@ MODULE module_common_var
     ! ISO       = Isotopologue number           I1      Ordering within a molecule by terrestrial abundance
     ! Aco       = AFGL code                     I3      The old Air Force Geophysics Laboratory 
     !                                                   (AFGL) shorthand notation for isotopologues.
-    ! IAb       = Iso Abundance                 
-    ! QT        = Partition function at T or T0         T selected by the user, T0 = 296K
+    ! IAb       = Iso Abundance                 --      HITRAN Isotopologue abundance.
+    ! QT        = Partition function at T or T0 dp      T selected by the user, T0 = 296K
     ! mms       = Molar mass                    dp      Molar Mass [g·mol-1]
     ! Nmcon     = molar concentration at 296K   dp      mol·cm3
     ! B0        = Rotational constant B0        dp      cm-1 
     ! Temp      =  temperature of the Gas       dp      K
     ! Ptot      =  Pressure of the Gas          dp      atm
+    !
+    ! Further information (QT in different Temperatures) in: 
+    ! http://hitran.org/docs/iso-meta/
+    ! 
+    ! PROGRAM EXTRA INFORMATION:-------------
     ! ai        =  fitting coeff of the         dp      cm-1/No-unit/No-unit
     !              base function      
-    ! 
+    ! dc        =  Adiabatic Factor parameter   dp      Å
+    ! exi       =  Temperature dependent        dp      No-unit
+    !              exponents of ai param.
+    ! availableParam = logical variable         lo      0/1 (Just used at "RM_LM_LLS_tmc_arts" )
+    !              that checks whether the code 
+    !              can access pre-registered 
+    !              values of ai
+    ! AF_ON      = allows to use the            lo      0/1 (Depends on availability and the freedom that the user needs)
+    !              adiabatic factor 
+    ! QTy        = "REG" or "TMC"               a3      depends on the called method:
+    !                                                   "REG" = RM_LM_tmc_arts
+    !                                                   "TMC" = RM_LM_LLS_tmc_arts
     !
-    ! Further information (Q in different Temperatures) in: 
-    ! http://hitran.org/docs/iso-meta/
     !
     integer*8 :: M
     integer*8 :: iso_m ! == column number.
     integer*8 :: Aco
+    character*3            :: QTy
     character*6            :: chmol
     double Precision       :: Temp, Ptot
     Double Precision       :: mms!, IAb
     Double Precision       :: Nmcon, B0
     Double Precision       :: QT, QT0
     Double Precision       :: a1, a2, a3, dc, ex1, ex2
+    logical                :: availableParam, AF_ON
+    logical                :: error_flag
 
     end type dta_MOL
+    ! --------------
+    ! --------------
+    type dta_ERR
+    ! MOLECULAR STRUCTURE:-------------
+    ! PARAMETER   MEANING               FORTRAN Type    Comments or units 
+    ! e(1)      = debugging flag                I1      it allows this code to be verbose on screen 
+    !                                                   for debugging purposes.
+    ! e(2)      = error counter                 I1      It counts the number of errors, if e(2)>=1, 
+    !                                                   then the error flag will be send back as 1. 
+    !
+    integer*8, dimension(2) :: e
+
+    end type dta_ERR
     ! --------------
 END MODULE module_common_var

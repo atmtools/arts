@@ -1008,6 +1008,18 @@ void Workspace::define_wsv_data()
        "calculations. For further information see *atm_fields_compact*.\n"
        ),
       GROUP( "ArrayOfGriddedField4" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "band_identifiers" ),
+      DESCRIPTION
+      (
+       "An array of identifiers for bands.\n"
+       "\n"
+       "Used by line mixing calculations to identify which bands to match to the\n"
+       "line database.\n"
+       ),
+      GROUP( "ArrayOfQuantumIdentifier" )));
    
   wsv_data.push_back
    (WsvRecord
@@ -3765,9 +3777,30 @@ void Workspace::define_wsv_data()
    ( NAME( "relmat_per_band" ),
      DESCRIPTION
      (
-         "Relaxation matrix.\n"
+         "Relaxation matrix per band per pressure level.\n"
+         "Dimensions: [pressures][band][n_linex, nlines]\n"
+         "Units: Hz/Pa in HWHM\n"
      ),
      GROUP( "ArrayOfArrayOfMatrix" )));
+   
+   wsv_data.push_back
+   (WsvRecord
+   ( NAME( "relmat_type_per_band" ),
+     DESCRIPTION
+     (
+         "Used to set the type of line mixing relaxation matrix\n"
+         "that will be calculated.\n"
+         "\n"
+         "Supported types by index:\n"
+         "   0: Hartmann-Tran type relaxation matrix.\n"
+         "   1: Linear type relaxation matrix.\n"
+         "\n"
+         "Please use *SetRelaxationMatrixCalcType* for setting this\n"
+         "variable\n"
+         "\n"
+         "Dimensions: [number of bands]\n"
+     ),
+     GROUP( "ArrayOfIndex" )));
 
   wsv_data.push_back
    (WsvRecord

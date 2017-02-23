@@ -298,9 +298,10 @@ public:
 
     void SetSpecies(const Index &sp) { mspecies = sp; }
     void SetIsotopologue(const Index &iso) { miso = iso; }
-    void SetTransition(const QuantumNumbers q1, const QuantumNumbers q2);
+    void SetTransition(const QuantumNumbers upper, const QuantumNumbers lower);
     void SetEnergyLevel(const QuantumNumbers q);
     void SetFromString(String str);
+    void SetFromStringForCO2Band(String upper, String lower, String iso);
 
     QType Type() const { return mqtype; }
     String TypeStr() const;

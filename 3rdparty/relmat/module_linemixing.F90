@@ -16,8 +16,9 @@ MODULE module_linemixing
             type (dta_MOL), intent(in)    :: molP
         end subroutine LM_Rosen
 
-        subroutine WelCAL(dta1, nLines, molP, PerM, W_jk)
+        subroutine WelCAL(dta1, nLines, molP, PerM, W_jk, econ)
             use module_common_var
+            use module_error
             use module_maths
             use module_phsub
             implicit none
@@ -26,17 +27,19 @@ MODULE module_linemixing
             type (dta_SDF), intent(in)      :: dta1
             type (dta_MOL), intent(in)      :: molP
             type (dta_MOL), intent(in)      :: PerM
+            type (dta_ERR), intent(inout)   :: econ
         end subroutine WelCAL
 
-        subroutine RN_Wmat(nLines, dta1, Wmat, W_rnO)
+        subroutine RN_Wmat(nLines, dta1, Wmat, W_rnO, econ)
             use module_common_var
+            use module_error
             use module_maths
-            use module_phsub
             implicit none
             integer*8, intent(in)           :: nLines
             Double Precision, intent(in)    :: Wmat(nLines,nLines)
             Double Precision, intent(out)   :: W_rnO(nLines,nLines)
             type (dta_SDF), intent(in)      :: dta1
+            type (dta_ERR), intent(inout)   :: econ
         end subroutine RN_Wmat
 
         subroutine W2dta2(nLines, dta1, dta2, W_rnO)
@@ -49,6 +52,21 @@ MODULE module_linemixing
             type (dta_SDF), intent(in)      :: dta1
             type (dta_RMF), intent(inout)   :: dta2
         end subroutine W2dta2
+
+        logical function rule1(nLines)
+            use module_common_var
+            implicit none
+            integer*8, intent(in)        :: nLines
+        end function rule1
+
+        logical function rule2(P,nLines,W,v)
+            use module_common_var
+            implicit none
+            integer*8, intent(in)        :: nLines
+            double precision, intent(in) :: P
+            double precision, intent(in) :: W(nLines,nLines)
+            double precision, intent(in) :: v(nLines) 
+        end function rule2
 
     end interface
 
@@ -129,7 +147,7 @@ END module module_linemixing
     Return
   END SUBROUTINE LM_Rosen
 !--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE WelCAL(dta1, nLines, molP, PerM, W_jk)
+  SUBROUTINE WelCAL(dta1, nLines, molP, PerM, W_jk, econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! WelCAL: W ELements CALculation (Relaxation matrix element)
 !
@@ -165,6 +183,7 @@ END module module_linemixing
 !--------------------------------------------------------------------------------------------------------------------
 !
     use module_common_var
+    use module_error
     use module_phsub
     use module_maths
     Implicit None
@@ -172,6 +191,7 @@ END module module_linemixing
     type (dta_SDF), intent(in)      :: dta1
     type (dta_MOL), intent(in)      :: molP
     type (dta_MOL), intent(in)      :: PerM
+    type (dta_ERR), intent(inout)   :: econ
     double precision, intent(out)   :: W_jk(nLines,nLines)
     integer*8                       :: i, j, k, n
     integer*8                       :: jBIG, jSMALL
@@ -217,14 +237,19 @@ END module module_linemixing
         ! NOTE: 
         ! in case one would like to include water vapour broadening
         ! add the "!!!" terms (and provide data): 
+        !!! + (xH2O*(HWT0_H2O(i)) 
+        ! NOTE: HWT0_H2O depends on Temperature
+        ! in case one has the temperature dependency exponent add the 
+        ! following line instead:
         !!! + (xH2O*(HWT0_H2O(i)*(RT**BHW_H2O(i))))
+        !
         ! where:
         ! HWT0_H2O = halfwidth broadeing by water vapour (at 296K)
         ! xH2O  = H2O atmospheric percentage 
         ! BHW_H2O = water vapour temperature exponent
         !
           W_jk(j,k) = 2*Ptot*HWT !+ i*(-0.008)  
-          !stop
+        !
         else 
         ! OFF-diagonal matrix elements (Wjk ∞ W_jk)
         ! Wjk:= initial state <<k|W|j>>
@@ -253,19 +278,16 @@ END module module_linemixing
           if ((W_jk(j,k) .eq. 0.0_dp) .or. (W_jk(k,j) .eq. 0.0_dp)) then 
               if (molP%M .eq. 7) then
                 ! O2
-                W_jk(jBIG,jSMALL) = K_jkO2(jBIG,jSMALL,dta1,nLines,molP,PerM) 
+                W_jk(jBIG,jSMALL) = K_jkO2(jBIG,jSMALL,dta1,nLines,molP,PerM,econ) 
               else 
-                W_jk(jBIG,jSMALL) = K_jkCalc(jBIG,jSMALL,dta1,nLines,molP,PerM)  
+                W_jk(jBIG,jSMALL) = K_jkCalc(jBIG,jSMALL,dta1,nLines,molP,PerM,econ)  
               endif
-              !stop      
+              !      
               if ( isnan( W_jk(jBIG,jSMALL) ) .or. isinf( W_jk(jBIG,jSMALL) ) ) then 
-                W_jk(jBIG,jSMALL) = 0.0_dp  
-                print*, "Wij NaN!", jBIG,jSMALL
-                !
-                stop    
+                W_jk(jBIG,jSMALL) = 0.0_dp     
               endif                          
-              ! so downwards transition is (k->j)
-              ! so downwards transition is (jBIG -> jSMALL)
+              ! Downwards transition is (k->j)
+              ! == downwards transition:(jBIG -> jSMALL)
               ! pjSMALL·<<jBIG|W|jSMALL>> = pjBIG·<<jSMALL|W|jBIG>>; 
               ! where:
               ! pjBIG = dta1%PopuT(jBIG); pjSMALL = dta1%PopuT(jSMALL)
@@ -274,18 +296,11 @@ END module module_linemixing
               W_jk(jSMALL,jBIG) = r_kj*W_jk(jBIG,jSMALL)  
               !
               if (abs(W_jk(jSMALL,jBIG)) .lt. TOL) then
-                print*, "downwards transition"
-                write(*,'(a7,i3,a3,i3,a2,2x,E12.4)'),'W_jk(j=',jBIG,';k=',jSMALL,')', W_jk(jBIG,jSMALL) 
-                print*, "upwards transition" 
-                write(*,'(a7,i3,a3,i3,a2,2x,E12.4)'),'W_jk(j=',jSMALL,';k=',jBIG,')', W_jk(jSMALL,jBIG)
-                stop
+                call W_error("1010", jBIG, jSMALL, W_jk(jBIG,jSMALL), econ)
+                call W_error("1011", jSMALL, jBIG, W_jk(jSMALL,jBIG), econ)
               endif
           else
             !next transition
-          endif
-          if ((W_jk(j,k) .eq. 0d0) .or. (W_jk(k,j) .eq. 0d0)) then
-            print*, "Wij 0!", jBIG,jSMALL
-            stop
           endif
         endif    
       enddo
@@ -312,12 +327,12 @@ END module module_linemixing
     !    Wtest(i,j) = W_jk(i,j)
     !  enddo
     !enddo
-    !CALL sumRule(nLines,indexI,dta1%D0(1:nLines),Wtest,0.5)
+    !CALL sumRule(nLines,indexI,dta1%D0(1:nLines),Wtest,0.5,econ)
     
     Return
   END SUBROUTINE WelCAL
 !--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE RN_Wmat(nLines, dta1, Wmat, W_rnO)
+  SUBROUTINE RN_Wmat(nLines, dta1, Wmat, W_rnO,econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! RN_Wmat: Renormalization of the Relaxation matrix element.
 !
@@ -353,12 +368,14 @@ END module module_linemixing
 !--------------------------------------------------------------------------------------------------------------------
 !
     use module_common_var
+    use module_error
     use module_maths
     Implicit None
-    integer*8,        intent(in)    :: nLines
+    integer*8,        intent(in)  :: nLines
     Double Precision, intent(in)  :: Wmat(nLines,nLines)
     Double Precision, intent(out) :: W_rnO(nLines,nLines)
     type (dta_SDF), intent(in)    :: dta1
+    type (dta_ERR), intent(inout) :: econ
     !Local variables
     integer*8                     :: i, j, k, n
     integer*8                     :: indexS(nLines),indexI(nLines)
@@ -402,7 +419,6 @@ END module module_linemixing
             endif
           enddo
        enddo
-       !stop
        !
        ! Then, each column "k" of the matrix, starting from the first one is treated as follows:
        DO n = 1, nLines
@@ -417,18 +433,17 @@ END module module_linemixing
             mod(abs(int(dta1%J(n,1))-int(dta1%J(k,1))),2).ne.0)cycle
           if (k .le. n) then 
             Sup  = Sup  + dabs( dta1%D0( indexS(k) ) )* W_rn( n , k )
-            if(isnan(Sup).or.isinf(Sup))stop
-            !write(*,'(a2,i3,a1,i3,a2,E10.2)'),"W_rn(",n,",",k,")=", W_rn(n,k) 
-            !write(*,'(a4,E10.2)'), "Sup=",Sup
+            if(isnan(Sup).or.isinf(Sup)) then
+              call renorm_error("1008", n, k, W_rn( n , k ), Sup, econ)
+            endif
           else !if (k .gt. n) then
             Slow = Slow + dabs(dta1%D0( indexS(k) )) * W_rn( n , k ) 
-            if(isnan(Slow).or.isinf(Slow))stop
-            !write(*,'(a2,i3,a1,i3,a2,E10.2)'), "W_rn(",n,",",k,")=" , W_rn( n , k ) 
-            !write(*,'(a4,E10.2)'), "Slow=",Slow          
+            if(isnan(Slow).or.isinf(Slow))then
+              call renorm_error("1009", n, k, W_rn( n , k ), Slow, econ)
+            endif          
           endif
          ENDDO
          S_UL_rate=Sup/Slow
-         !print*, S_UL_rate
          !print*, "counting: Sup NaN#", count1, "; Slow NaN#", count2, " out of", nLines
          !
          ! Scale the elements of the "lower part" of the column (k>n)
@@ -455,9 +470,7 @@ END module module_linemixing
               !
               pk = dta1%popuT(indexS(k))
               W_rn(k,n) = W_rn(n,k)*pn/pk
-              !print*, W_rn(n,k), W_rn(k,n) 
             endif
-            !stop
           endif
          ENDDO  
          !
@@ -465,7 +478,7 @@ END module module_linemixing
        !
        ! use '1.0' if Wii = line-width 
        ! use '2.0' if Wii = half-width 
-       CALL sumRule(nLines,indexS,dta1%D0(1:nLines),W_rn,1.0)
+       CALL sumRule(nLines,indexS,dta1%D0(1:nLines),W_rn,1.0,econ)
        ! 
        ! Reordered by wno
        !
@@ -533,11 +546,6 @@ END module module_linemixing
           IF ( k .eq. n ) THEN
             !dta2%WT0( (nLines*( n - 1 ) + k) ) = W_rn( indexI(n) , indexI(k) )
             dta2%WT0( (nLines*( n - 1 ) + k) ) = W_rn( n , k )
-            !dta2%BTW( (nLines*( n - 1 ) + k) ) = -1.88775 
-            ! Average from HA TRAN RMF-BTW file!!! std = 7.0715
-            ! Transitions?
-            !tra2tra = auxnQupp//auxnQlow//auxkQupp//auxkQlow
-            !dta2%tr2tr( (nLines*( n -1 ) + k) ) = tra2tra
           ELSE
             ! 
             ! Matrix Element
@@ -545,21 +553,83 @@ END module module_linemixing
             if (isnan( W_rn( n , k ) ) .or. isinf( W_rn( n , k ) ) .or. &
                 W_rn( n , k) .eq. 0.0_dp  ) then
               dta2%WT0( (nLines*( n - 1 ) + k) ) = 0.0_dp
-              dta2%BTW( (nLines*( n - 1 ) + k) ) = 0.0_dp
             else
               !dta2%WT0( (nLines*( n - 1 ) + k) ) = W_rn( indexI(n) , indexI(k) )
               dta2%WT0( (nLines*( n - 1 ) + k) ) = W_rn( n , k )
-              !dta2%BTW( (nLines*( n - 1 ) + k) ) = -1.88775 
-              ! Average from HA TRAN RMF-BTW file!!! std = 7.0715
             endif  
-            !
-            !Transitions
-            !
-            !tra2tra = auxnQupp//auxnQlow//auxkQupp//auxkQlow
-            !dta2%tr2tr( (nLines*( n - 1 ) + k) ) = tra2tra
           ENDIF
          ENDDO
        ENDDO
-       !stop
+       !
   END SUBROUTINE W2dta2
+!--------------------------------------------------------------------------------------------------------------------
+  logical function rule1(nLines)
+!--------------------------------------------------------------------------------------------------------------------
+! rule1: if the number of lines of a band is not enough, 
+!        then calcualting its Relaxation Matrix makes no sense.
+!
+!     
+! T. Mendaza last change 20 Feb 2017
+! --------------------------------------------------------
+    implicit none
+    integer*8, intent(in)        :: nLines
+    !
+    if (nLines .lt. 15) then
+      rule1 = .false.
+    else
+      rule1 = .true.
+    endif
+    RETURN
+  end function rule1
+!--------------------------------------------------------------------------------------------------------------------
+  logical function rule2(P,nLines,W,v)
+!--------------------------------------------------------------------------------------------------------------------
+! rule2: Perturbation Theory limitation.
+!
+! Detailed description:
+! ---------------------
+! To invert the MAtrix expresion, th eperturbation theory is appropriate under the condition
+!
+! |  P * W_lk |
+! | --------- | << 1
+! |  vl - vk  |
+! 
+! Variables:
+! P    = Pressure (atm) 
+! W_lk = << k | W | l >> (cm-1/atm)
+! vl   = central frequency(cm-1) of line l
+! vk   = central frequency(cm-1) of line k
+!
+! NOTE: The Tolerance used in this function (TOL_rule2)
+!       is an arbitrary selection
+!     
+! T. Mendaza last change 20 Feb 2017
+! --------------------------------------------------------
+    use module_common_var
+    implicit none
+    integer*8, intent(in)        :: nLines
+    double precision, intent(in) :: P
+    double precision, intent(in) :: W(nLines,nLines)
+    double precision, intent(in) :: v(nLines) 
+    integer                      :: l,k,pos(2)
+    double precision,parameter   :: TOL_rule2 = 0.1_dp
+    double precision             :: aux,minWlk
+    !
+    rule2=.true.
+    !
+    DO l =1,nLines
+      DO k =1,nLines
+      !
+        if ( l .ne. k ) then
+          aux = P*abs(W(l,k))/abs(v(l)-v(k))
+          if (aux .gt. TOL_rule2) then
+            rule2 = .false.
+            print*, v(l),v(k),W(l,k)
+          endif
+        endif
+      ENDDO
+    ENDDO
+
+    RETURN
+  end function rule2
 !--------------------------------------------------------------------------------------------------------------------
