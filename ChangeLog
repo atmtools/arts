@@ -1,5 +1,12 @@
 2017-02-23  Richard Larsson  <ric.larsson@gmail.com>
 
+	* arts-2-3-641
+	
+	* src/m_linemixing.cc: Move methods out of if-def for relmat,
+	Hope this fixes the error.
+
+2017-02-23  Richard Larsson  <ric.larsson@gmail.com>
+
 	* arts-2-3-640
 	
 	* 3rdparty/relmat/CMakeList.txt:  Added OpenMP.

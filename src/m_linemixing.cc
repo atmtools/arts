@@ -1253,6 +1253,63 @@ void calculate_xsec_from_relmat(ArrayOfMatrix& xsec,
     }
 }
 
+
+static const Index hartman_tran_type = 0;
+static const Index linear_type = 1;
+
+
+void SetRelaxationMatrixCalcType( ArrayOfIndex& relmat_type_per_band,
+                                  const ArrayOfArrayOfLineRecord&  abs_lines_per_band,
+                                  const Index& type,
+                                  const Verbosity& verbosity)
+{
+  CREATE_OUT2;
+  if(type not_eq hartman_tran_type and type not_eq linear_type)
+    throw std::runtime_error("Not a supported type.  Check documentation for supported types");
+  
+  const Index& n = abs_lines_per_band.nelem();
+  Index i;
+  relmat_type_per_band.resize(n);
+  for(i=0; i<n; i++)
+    relmat_type_per_band[i] = type;
+  
+  if(type == hartman_tran_type)
+    out2 << "Hartmann-Tran type line mixing selected for all lines\n";
+  else if(type == linear_type)
+    out2 << "Mendaza linear type line mixing selected for all lines\n";
+  else
+    out2 << "Unknown type line mixing selected  for all lines (please fix by adding type)\n";
+}
+
+
+void SetRelaxationMatrixCalcType( ArrayOfIndex& relmat_type_per_band,
+                                  const ArrayOfArrayOfLineRecord&  abs_lines_per_band,
+                                  const ArrayOfIndex& type,
+                                  const Verbosity& verbosity)
+{
+  CREATE_OUT2;
+  const Index& n = type.nelem();
+  
+  if(n == 1)
+    SetRelaxationMatrixCalcType(relmat_type_per_band, abs_lines_per_band, type[0], verbosity);
+  else if(n not_eq type.nelem())
+    throw std::runtime_error("Mismatching length of type and abs_lines_per_band");
+  else
+  {
+    Index i;
+    relmat_type_per_band.resize(n);
+    for(i=0; i<n; i++)
+    {
+      if(type[i] not_eq hartman_tran_type or type[i] not_eq linear_type)
+        throw std::runtime_error("Not a supported type.  Check documentation for supported types");
+      relmat_type_per_band[i] = type[i];
+    }
+    
+    out2 << "Mix of line mixing types set for each band\n";
+    
+  }
+}
+
 #ifdef ENABLE_RELMAT
 extern "C"
 {
@@ -1322,63 +1379,6 @@ extern "C"
       double *dipole,
       double *rhoT
     );
-}
-
-
-static const Index hartman_tran_type = 0;
-static const Index linear_type = 1;
-
-
-void SetRelaxationMatrixCalcType( ArrayOfIndex& relmat_type_per_band,
-                                  const ArrayOfArrayOfLineRecord&  abs_lines_per_band,
-                                  const Index& type,
-                                  const Verbosity& verbosity)
-{
-  CREATE_OUT2;
-  if(type not_eq hartman_tran_type and type not_eq linear_type)
-    throw std::runtime_error("Not a supported type.  Check documentation for supported types");
-  
-  const Index& n = abs_lines_per_band.nelem();
-  Index i;
-  relmat_type_per_band.resize(n);
-  for(i=0; i<n; i++)
-    relmat_type_per_band[i] = type;
-  
-  if(type == hartman_tran_type)
-    out2 << "Hartmann-Tran type line mixing selected for all lines\n";
-  else if(type == linear_type)
-    out2 << "Mendaza linear type line mixing selected for all lines\n";
-  else
-    out2 << "Unknown type line mixing selected  for all lines (please fix by adding type)\n";
-}
-
-
-void SetRelaxationMatrixCalcType( ArrayOfIndex& relmat_type_per_band,
-                                  const ArrayOfArrayOfLineRecord&  abs_lines_per_band,
-                                  const ArrayOfIndex& type,
-                                  const Verbosity& verbosity)
-{
-  CREATE_OUT2;
-  const Index& n = type.nelem();
-  
-  if(n == 1)
-    SetRelaxationMatrixCalcType(relmat_type_per_band, abs_lines_per_band, type[0], verbosity);
-  else if(n not_eq type.nelem())
-    throw std::runtime_error("Mismatching length of type and abs_lines_per_band");
-  else
-  {
-    Index i;
-    relmat_type_per_band.resize(n);
-    for(i=0; i<n; i++)
-    {
-      if(type[i] not_eq hartman_tran_type or type[i] not_eq linear_type)
-        throw std::runtime_error("Not a supported type.  Check documentation for supported types");
-      relmat_type_per_band[i] = type[i];
-    }
-    
-    out2 << "Mix of line mixing types set for each band\n";
-    
-  }
 }
 
 
