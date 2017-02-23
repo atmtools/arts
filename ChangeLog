@@ -1,3 +1,19 @@
+2017-02-23 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-643
+
+	* src/m_disort.cc, methods.cc (DisortCalc, DisortCalcWithARTSSurface),
+	src/disort.[cc,h] (check_disort_input, run_disort, get_disortsurff_props):
+	As for RT4 in arts-2-3-639, make separate Disort interace WSM for
+	different surface handling approaches. Common functionality moved into
+	subroutines. All surface data prep moved into a subroutines.
+
+	* controlfiles/artscomponents/disort/TestDISORT.arts:
+	Adapted to changes above.
+
+	* src/m_rt4.cc, rt4.cc:
+	Minor fixes.
+
 2017-02-23  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-642

@@ -39,9 +39,6 @@
 #include "m_xml.h"
 #include "rt4.h"
 
-extern const Numeric PI;
-extern const Numeric RAD2DEG;
-extern const Numeric DEG2RAD;
 
 #ifdef ENABLE_RT4
 /* Workspace method: Doxygen documentation will be auto-generated */

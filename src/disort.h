@@ -34,6 +34,53 @@
 #include "optproperties.h"
 
 
+void check_disort_input( // Input
+                         const Index& cloudbox_on,
+                         const Index& disort_is_initialized,
+                         const Index& atmfields_checked,
+                         const Index& atmgeom_checked,
+                         const Index& cloudbox_checked,
+                         const ArrayOfArrayOfSingleScatteringData& scat_data,
+                         ConstVectorView scat_za_grid,
+                         const Index& nstreams,
+                         const String& pfct_method,
+                         const Index& pnd_ncols,
+                         const Index& ifield_npages );
+
+void get_disortsurf_props( // Output
+                        Vector& albedo,
+                        Numeric& btemp,
+                        // Input
+                        ConstVectorView f_grid,
+                        const Numeric& surface_skin_t,
+                        ConstVectorView surface_scalar_reflectivity );
+
+void run_disort( Workspace& ws,
+              // Output
+              Tensor7& doit_i_field,
+              // Input
+              Index& f_index,
+              ConstVectorView f_grid,
+              ConstVectorView p_grid,
+              ConstTensor3View z_field,
+              ConstTensor3View t_field,
+              ConstTensor4View vmr_field,
+              ConstTensor4View pnd_field,
+              const ArrayOfArrayOfSingleScatteringData& scat_data,
+              ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+              const Agenda& propmat_clearsky_agenda, 
+              const Agenda& opt_prop_part_agenda,
+              const Agenda& spt_calc_agenda,
+              const Agenda& iy_main_agenda,
+              const ArrayOfIndex& cloudbox_limits,
+              Numeric& surface_skin_t,
+              Vector& surface_scalar_reflectivity,
+              ConstVectorView scat_za_grid,
+              const Index& nstreams,
+              const Index& non_iso_inc,
+              const String& pfct_method,
+              const Verbosity& verbosity );
+
 void dtauc_ssalbCalc( Workspace &ws,
                       VectorView dtauc,
                       VectorView ssalb,

@@ -56,7 +56,7 @@ extern const Numeric COSMIC_BG_TEMP;
 
 //! check_rt4_input
 /*!
-  Check that input of RT4Calc* is sane.
+  Checks that input of RT4Calc* is sane.
 
   \param nhstreams             Number of single hemisphere streams (quadrature angles).
   \param nhza                  Number of single hemisphere additional angles with RT output.
@@ -69,7 +69,7 @@ extern const Numeric COSMIC_BG_TEMP;
   \param nstreams              Total number of quadrature angles (both hemispheres).
   \param quad_type             Quadrature method.
   \param pnd_ncols             Number of columns (latitude points) in *pnd_field*.
-  \param ifield_npages         Number of pages (poalr angle points) in *doit_i_field*.
+  \param ifield_npages         Number of pages (polar angle points) in *doit_i_field*.
   
   \author Jana Mendrok
   \date   2017-02-22
@@ -178,7 +178,7 @@ void check_rt4_input( // Output
 
   \param mu_values             Quadrature angle cosines.
   \param quad_weights          Quadrature weights associated with mu_values.
-  \param scat_za_grid          as the WSV 
+  \param scat_za_grid          as the WSV
   \param scat_aa_grid          as the WSV
   \param quad_type             Quadrature method.
   \param nhstreams             Number of single hemisphere streams (quadrature angles). 
@@ -242,7 +242,7 @@ void get_quad_angles( // Output
   scat_aa_grid[0] = 0.;
 }
 
-//! get_surf_props
+//! get_rt4surf_props
 /*!
   Derive surface property input for RT4's proprietary surface handling depending
   on surface reflection type.
@@ -391,7 +391,8 @@ void get_rt4surf_props( // Output
 
 //! run_rt4
 /*!
-  Prepare actual input variables for RT4, run it, and sort the output into doit_i_field.
+  Prepares actual input variables for RT4, runs it, and sorts the output into
+  doit_i_field.
 
   \param ws                    Current workspace
   \param doit_i_field          as the WSV

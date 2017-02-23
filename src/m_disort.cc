@@ -42,24 +42,78 @@
 #include "array.h"
 #include "auto_md.h"
 #include "disort.h"
-#include "disort_DISORT.h"
 #include "math_funcs.h"
 #include "messages.h"
 #include "m_general.h"
-#include "rte.h"
 #include "wsv_aux.h"
 #include "xml_io.h"
-
-extern const Numeric PI;
-extern const Numeric RAD2DEG;
-extern const Numeric SPEED_OF_LIGHT;
-extern const Numeric COSMIC_BG_TEMP;
-
 
 
 #ifdef ENABLE_DISORT
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DisortCalc(Workspace& ws,
+                // WS Output:
+                Tensor7& doit_i_field,
+                Index& f_index,
+                ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                // WS Input
+                const Index& disort_is_initialized,
+                const Index& atmfields_checked,
+                const Index& atmgeom_checked,
+                const Index& cloudbox_checked,
+                const Index& cloudbox_on,
+                const ArrayOfIndex& cloudbox_limits, 
+                const Agenda& propmat_clearsky_agenda, 
+                const Agenda& opt_prop_part_agenda,
+                const Agenda& spt_calc_agenda,
+                const Agenda& iy_main_agenda,
+                const Tensor4& pnd_field,
+                const Tensor3& t_field, 
+                const Tensor3& z_field, 
+                const Tensor4& vmr_field,
+                const Vector& p_grid, 
+                const ArrayOfArrayOfSingleScatteringData& scat_data,
+                const Vector& f_grid,
+                const Vector& scat_za_grid,
+                const Numeric& surface_skin_t,
+                const Vector& surface_scalar_reflectivity,
+                const Index& nstreams,
+                const Index& non_iso_inc,
+                const String& pfct_method,
+                const Verbosity& verbosity )
+{
+  // FIXME: so far surface is implictly assumed at lowest atmospheric level.
+  // That should be fixed (using z_surface and allowing other altitudes) at some
+  // point.
+
+  // FIXME: At the moment, combining scattering elements stored on different
+  //  scattering angle grids is only possible for pfct_method 'interpolate'.
+
+  check_disort_input( cloudbox_on, disort_is_initialized,
+                      atmfields_checked, atmgeom_checked, cloudbox_checked,
+                      scat_data, scat_za_grid, nstreams, pfct_method,
+                      pnd_field.ncols(), doit_i_field.npages() );
+
+  Vector albedo(f_grid.nelem(), 0.);
+  Numeric btemp;
+
+  get_disortsurf_props( albedo, btemp,
+                        f_grid, surface_skin_t, surface_scalar_reflectivity );
+
+  run_disort( ws, doit_i_field,
+              f_index, f_grid,p_grid,z_field, t_field,vmr_field, pnd_field,
+              scat_data, scat_data_mono,
+              propmat_clearsky_agenda, opt_prop_part_agenda, spt_calc_agenda,
+              iy_main_agenda,
+              cloudbox_limits,
+              btemp, albedo,
+              scat_za_grid, nstreams,
+              non_iso_inc, pfct_method,
+              verbosity );
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void DisortCalcWithARTSSurface(Workspace& ws,
                 // WS Output:
                 Tensor7& doit_i_field,
                 Index& f_index,
@@ -84,17 +138,11 @@ void DisortCalc(Workspace& ws,
                 const ArrayOfArrayOfSingleScatteringData& scat_data,
                 const Vector& f_grid,
                 const Vector& scat_za_grid,
-                const Numeric& surface_skin_t,
-                const Vector& surface_scalar_reflectivity,
                 const Index& nstreams,
                 const Index& non_iso_inc,
                 const String& pfct_method,
-                const String& groundtype,
-                const Verbosity& verbosity _U_ )
+                const Verbosity& verbosity )
 {
-  CREATE_OUT1;
-  CREATE_OUT0;
-
   // FIXME: so far surface is implictly assumed at lowest atmospheric level.
   // That should be fixed (using z_surface and allowing other altitudes) at some
   // point.
@@ -102,88 +150,13 @@ void DisortCalc(Workspace& ws,
   // FIXME: At the moment, combining scattering elements stored on different
   //  scattering angle grids is only possible for pfct_method 'interpolate'.
 
-  // Don't do anything if there's no cloudbox defined.
-  if (!cloudbox_on) return;
-  // Seems to loopholy to just skip the scattering, so rather throw an error
-  // (assuming if RT4 is called than it's expected that a scattering calc is
-  // performed. semi-quietly skipping can easily be missed and lead to wrong
-  // conclusions.).
-  if (!cloudbox_on)
-  {
-    throw runtime_error( "Cloudbox is off, no scattering calculations to be"
-                         "performed." );
-  }
+  check_disort_input( cloudbox_on, disort_is_initialized,
+                      atmfields_checked, atmgeom_checked, cloudbox_checked,
+                      scat_data, scat_za_grid, nstreams, pfct_method,
+                      pnd_field.ncols(), doit_i_field.npages() );
 
-  // Check whether DisortInit was executed
-  if (!disort_is_initialized)
-    {
-      ostringstream os;
-      os << "Initialization method *DisortInit* must be called before "
-         << "*DisortCalc*";
-      throw runtime_error( os.str() );
-    }
-
-  if( atmfields_checked != 1 )
-    throw runtime_error( "The atmospheric fields must be flagged to have "
-                         "passed a consistency check (atmfields_checked=1)." );
-  if( atmgeom_checked != 1 )
-    throw runtime_error( "The atmospheric geometry must be flagged to have "
-                         "passed a consistency check (atmgeom_checked=1)." );
-  if( cloudbox_checked != 1 )
-    throw runtime_error( "The cloudbox must be flagged to have "
-                         "passed a consistency check (cloudbox_checked=1)." );
-
-  if( pnd_field.ncols() != 1 ) 
-    throw runtime_error("*pnd_field* is not 1D! \n" 
-                        "DISORT can only be used for 1D!\n" );
-
-  if( doit_i_field.npages() != scat_za_grid.nelem() ) 
-    throw runtime_error("Sizes of *scat_za_grid* and *doit_i_field* are "
-                        " inconsistent.\n"
-                        "Do not modify them after the call of *DisortInit*\n" );
-  
-  // DISORT requires even number of streams:
-  // nstreams is total number of directions, up- and downwelling, and the up-
-  // and downwelling directions need to be symmetrically distributed, i.e. same
-  // number of directions in both hemispheres is required. horizontal direction
-  // (90deg) can not be covered in a plane-parallel atmosphere.
-  if( nstreams/2*2 != nstreams )
-    {
-      ostringstream os;
-      os << "DISORT requires an even number of streams, but yours is "
-         << nstreams << ".\n";
-      throw runtime_error( os.str() );
-    }
-
-  if( pfct_method!="interpolate" )
-  {
-    // The old interface can only handle particles with single scattering data
-    // given on identical angular grids.
-    const Vector data_za_grid = scat_data[0][0].za_grid;
-    const Index ndza = data_za_grid.nelem();
-    bool ident_anggrid=true;
-    for( Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++ )
-      for( Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++ )
-        // not an exhaustive test, but should catch most cases: checking
-        // identical size as well as identical second and second to last
-        // elements. no use in checking first and last elements as they should
-        // be 0 and 180 and this should have been checked elsewhere.
-        if( scat_data[i_ss][i_se].za_grid.nelem() != ndza ||
-            scat_data[i_ss][i_se].za_grid[1] != data_za_grid[1] ||
-            scat_data[i_ss][i_se].za_grid[ndza-2]!=data_za_grid[ndza-2] )
-          ident_anggrid=false;
-     if( !ident_anggrid )
-      {
-        ostringstream os;
-        os << "ARTS-DISORT currently requires identical angular grids of\n"
-           << "scattering data for all scattering elements, but yours differ.\n";
-        throw runtime_error( os.str() );
-      }
-  }
-
-  const String ground_type = groundtype.toupper();
-  const Index nf=f_grid.nelem();
-  Vector albedo(nf, 0.);
+  Vector albedo(f_grid.nelem(), 0.);
+  Numeric btemp;
 
   // for now, surface at lowest atm level. later use z_surface or the like
   // for that.
@@ -191,365 +164,60 @@ void DisortCalc(Workspace& ws,
   const Numeric surf_altitude = z_field(0,0,0);
   //const Numeric surf_altitude = z_surface(0,0);
 
-  Numeric btemp=-999.;
+  surf_albedoCalc( ws, albedo, btemp,
+                   surface_rtprop_agenda,
+                   f_grid, scat_za_grid, surf_altitude,
+                   verbosity );
 
-  if (ground_type=="L") // DISORT's proprietary Lambertian
-    {
-      if( surface_scalar_reflectivity.nelem() != nf  &&  
-          surface_scalar_reflectivity.nelem() != 1 )
-        {
-          ostringstream os;
-          os << "The number of elements in *surface_scalar_reflectivity*\n"
-             << "should match length of *f_grid* or be 1."
-             << "\n length of *f_grid* : " << nf 
-             << "\n length of *surface_scalar_reflectivity* : " 
-             << surface_scalar_reflectivity.nelem()
-             << "\n";
-          throw runtime_error( os.str() );
-        }
-
-      if ( min(surface_scalar_reflectivity) < 0  ||  
-           max(surface_scalar_reflectivity) > 1 )
-        {
-          throw runtime_error( "All values in *surface_scalar_reflectivity*"
-                               " must be inside [0,1]." );
-        }
-
-      if( surface_scalar_reflectivity.nelem()>1 )
-        for (f_index = 0; f_index < f_grid.nelem(); f_index ++) 
-          albedo[f_index] = surface_scalar_reflectivity[f_index];
-      else
-        for (f_index = 0; f_index < f_grid.nelem(); f_index ++) 
-          albedo[f_index] = surface_scalar_reflectivity[0];
-      
-      // temperature of surface
-      btemp = surface_skin_t;
-
-    }
-  else if (ground_type=="A") // using ARTS' surface_rtprop_agenda
-    {
-      chk_not_empty( "surface_rtprop_agenda", surface_rtprop_agenda );
-      surf_albedoCalc( ws, albedo, btemp,
-                       surface_rtprop_agenda,
-                       f_grid, scat_za_grid, surf_altitude,
-                       verbosity );
-    }
-  else
-    {
-      ostringstream os;
-      os << "Unknown surface type.\n";
-      throw runtime_error(os.str());
-    }
-
-  if (btemp<0. || btemp>1000.)
-    {
-      ostringstream os;
-      os << "Surface temperature has been set or derived as " << btemp << " K,\n"
-         << "which is not considered a meaningful value.\n"
-         << "For surface method 'L', *surface_skin_t* needs to\n"
-         << "be set and passed explicitly. Maybe you didn't do this?";
-      throw runtime_error( os.str() );
-    }
-
-
-  // Input variables for DISORT
-  Index nlyr;
-  bool do_non_iso;
-  if( p_grid.nelem() == pnd_field.npages() )
-    // cloudbox covers whole atmo anyways. no need for a calculation of
-    // non-iso incoming field at top-of-cloudbox. disort will be run over
-    // whole atmo.
-    {
-      do_non_iso = false;
-      nlyr = p_grid.nelem()-1;
-    }
-  else
-    {
-      if( non_iso_inc )
-        // cloudbox only covers part of atmo. disort will be initialized with
-        // non-isotropic incoming field and run over cloudbox only.
-        {
-          do_non_iso = true;
-          nlyr = pnd_field.npages()-1;
-        }
-      else
-        // cloudbox only covers part of atmo. disort will be run over whole
-        // atmo, though (but only in-cloudbox rad field passed to doit_i_field).
-        {
-          do_non_iso = false;
-          nlyr = p_grid.nelem()-1;
-        }
-    }
-      
-  // Optical depth of layers
-  Vector dtauc(nlyr, 0.); 
-  // Single scattering albedo of layers
-  Vector ssalb(nlyr, 0.);
-  
-  // Phase function
-  Vector scat_angle_grid;
-  Index pfct_za_grid_size;
-  if( pfct_method=="interpolate" )
-  {
-    pfct_za_grid_size=181;
-    nlinspace(scat_angle_grid, 0, 180, pfct_za_grid_size);
-  }
-  else
-    // Scattering angle grid, assumed here that it is the same for
-    // all scattering elements
-    scat_angle_grid = scat_data[0][0].za_grid;
-  Matrix phase_function(nlyr,scat_angle_grid.nelem(), 0.);
-  
-  Index nstr=nstreams;
-  Index n_legendre=nstreams+1;
-  
-  // Legendre polynomials of phase function
-  Matrix pmom(nlyr, n_legendre, 0.); 
-
-  // Intensities to be computed for user defined polar (zenith angles)
-  Index usrang = TRUE_;
-  Index numu = scat_za_grid.nelem();
-  Vector umu(numu); 
-  // Transform to mu, starting with negative values
-  for (Index i = 0; i<numu; i++)
-    umu[i] = -cos(scat_za_grid[i]*PI/180);
-
-  
-  // Since we have no solar source there is no angular dependance
-  Index nphi = 1; 
-  Vector phi(nphi, 0.);
-  
-  Index ibcnd=0;
-  
-  // Properties of solar beam, set to zero as they are not needed
-  Numeric fbeam =0.;
-  Numeric umu0=0.;
-  Numeric phi0=0.; 
-
-  // surface, Lambertian if set to TRUE_ 
-  Index lamber = TRUE_;
-  // only needed for bidirectional reflecting surface
-  Vector hl(1,0.); 
-  
-  //upper boundary conditions:
-  // DISORT offers isotropic incoming radiance or emissivity-scaled planck
-  // emission. Both are applied additively.
-  // We want to have cosmic background radiation, for which ttemp=COSMIC_BG_TEMP
-  // and temis=1 should give identical results to fisot(COSMIC_BG_TEMP). As they
-  // are additive we should use either the one or the other.
-  // Note: previous setup (using fisot) setting temis=0 should be avoided.
-  // Generally, temis!=1 should be avoided since that technically implies a
-  // reflective upper boundary (though it seems that this is not exploited in
-  // DISORT1.2, which we so far use).
-
-  // Cosmic background
-  // we use temis*ttemp as upper boundary specification, hence CBR set to 0.
-  Numeric fisot = 0;
-
-  // Top of the atmosphere temperature and emissivity
-  //Numeric ttemp = t_field(cloudbox_limits[1], 0, 0); 
-  //Numeric temis = 0.;
-  Numeric ttemp = COSMIC_BG_TEMP;
-  Numeric temis = 1.;
-
-  // Top of the atmosphere non-isotropic incoming radiation
-  Matrix cb_inc_field;
-  Vector intang(scat_za_grid.nelem()+nstr/2, 0.);
-  if( do_non_iso )
-    get_cb_inc_field( ws, cb_inc_field,
-                      iy_main_agenda,
-                      z_field, t_field, vmr_field, cloudbox_limits,
-                      f_grid, scat_za_grid, nstreams );
-
-  // we don't need delta-scaling in microwave region
-  Index deltam = FALSE_; 
-      
-  // include thermal emission (very important)
-  Index plank = TRUE_; 
-      
-  // calculate also intensities, not only fluxes
-  Index onlyfl = FALSE_; 
-      
-  // Convergence criterium
-  Numeric accur = 0.005;
-      
-  // Specify what to be printed --> normally nothing
-  Index *prnt = new Index[7]; 
-  prnt[0]=FALSE_; // Input variables
-  prnt[1]=FALSE_; // fluxes
-  prnt[2]=FALSE_; // azimuthally averaged intensities at user 
-  //and comp. angles
-  prnt[3]=FALSE_; // azimuthally averaged intensities at user levels
-  //and angles
-  prnt[4]=FALSE_; // intensities at user levels and angles
-  prnt[5]=FALSE_; // planar transmissivity and albedo 
-  prnt[6]=FALSE_; // phase function moments
-  
-  char header[127];
-  memset (header, 0, 127);
-  
-  Index maxcly = nlyr; // Maximum number of layers
-  Index maxulv = nlyr+1; // Maximum number of user defined tau
-  Index maxumu = scat_za_grid.nelem(); // maximum number of zenith angles
-  Index maxcmu = n_legendre-1; // maximum number of Legendre polynomials 
-  if( nstr<4 )
-    maxcmu = 4; // reset for low nstr since DISORT selftest uses 4 streams,
-                // hence requires at least 4 Legendre polynomials
-  Index maxphi = 1;  //no azimuthal dependance
-  
-  // Declaration of Output variables
-  Vector rfldir(maxulv); 
-  Vector rfldn(maxulv);
-  Vector flup(maxulv);
-  Vector dfdt(maxulv);
-  Vector uavg(maxulv);
-  Tensor3 uu(maxphi, maxulv, scat_za_grid.nelem(), 0.); // Intensity 
-  Matrix u0u(maxulv, scat_za_grid.nelem()); // Azimuthally averaged intensity 
-  Vector albmed(scat_za_grid.nelem()); // Albedo of cloudbox
-  Vector trnmed(scat_za_grid.nelem()); // Transmissivity 
-      
-  Vector t(nlyr+1);
- 
-  for (Index i = 0; i < t.nelem(); i++)
-      t[i] = t_field(nlyr-i,0,0);
-  
-  //dummies
-  Index ntau = 0; 
-  Vector utau(maxulv,0.);
-  
-  // Loop over frequencies
-  for (f_index = 0; f_index < f_grid.nelem(); f_index ++)
-    {
-      // Top of the atmosphere non-isotropic incoming radiation
-      if( do_non_iso )
-        {
-          // extract monchromatic field from cloudbox_incoming_field
-          intang = cb_inc_field(f_index,joker);
-
-          // Moved this assert into DISORT.f. There we can test the actually
-          // applied intang values for validity (and skip upwelling angle values
-          // at the end of intang, which are deliberately set to NaN.).
-          //for( Index i_za=0; i_za<intang.nelem(); i_za++ )
-          //  assert( !(isnan(intang[i_za]) || intang[i_za]<0.) );
-
-          // convert ARTS units to DISORT units
-          // W/(m2 sr Hz) -> W/(m2 sr cm-1)
-          intang *= (100*SPEED_OF_LIGHT);
-          // we replace the isotropic TOA source by the non-isotropic incoming
-          // one, hence set TOA source (via source temperature) to 0
-          ttemp = 0.;
-        }
-      else
-        {
-          intang = 0.;
-          ttemp = COSMIC_BG_TEMP;
-        }
-
-//#pragma omp critical(fortran_disort)
-//      {
-      scat_data_monoCalc(scat_data_mono, scat_data, f_grid, f_index, verbosity);
-      
-      dtauc_ssalbCalc(ws, dtauc, ssalb,
-                      propmat_clearsky_agenda,
-                      spt_calc_agenda, opt_prop_part_agenda,
-                      pnd_field,
-                      t_field(Range(0,nlyr+1),joker,joker),
-                      z_field(Range(0,nlyr+1),joker,joker),
-                      vmr_field(joker,Range(0,nlyr+1),joker,joker),
-                      p_grid[Range(0,nlyr+1)],
-                      cloudbox_limits, f_grid[Range(f_index,1)]);
-
-      if( pfct_method=="interpolate" )
-      {
-        phase_functionCalc2(ws, phase_function,
-                            scat_data_mono,
-                            spt_calc_agenda, opt_prop_part_agenda,
-                            pnd_field, t_field, cloudbox_limits,
-                            pfct_za_grid_size, verbosity);
-        for( Index l=0; l<nlyr; l++ )
-          if( phase_function(l,0)==0. )
-            assert( ssalb[l]==0. );
-
-        //cout << "entering pmomCalc for f_index=" << f_index << " (f="
-        //     << f_grid[f_index]*1e-9 << "GHz).\n";
-        pmomCalc2(pmom, phase_function, scat_angle_grid, n_legendre, verbosity);
-      }
-      else
-      {
-        phase_functionCalc(phase_function, scat_data_mono, pnd_field,
-                           cloudbox_limits, pfct_method );
-        for( Index l=0; l<nlyr; l++ )
-          if( phase_function(l,0)==0. )
-            assert( ssalb[l]==0. );
-
-        //cout << "entering pmomCalc for f_index=" << f_index << " (f="
-        //     << f_grid[f_index]*1e-9 << "GHz).\n";
-        pmomCalc(pmom, phase_function, scat_angle_grid, n_legendre, verbosity);
-      }
-
-      // Wavenumber in [1/cm]
-      Numeric wvnmlo = f_grid[f_index]/(100*SPEED_OF_LIGHT);
-      Numeric wvnmhi = wvnmlo;
-      
-      // calculate radiant quantities at boundary of computational layers. 
-      Index usrtau = FALSE_; 
-      
-      //DEBUG_VAR(dtauc)
-      
-      cout << "entering Disort calc at freq[" << f_index << "]="
-           << f_grid[f_index]*1e-9 << " GHz\n"
-           << "  with btemp=" << btemp << " K and albedo=" << albedo[f_index]
-           << "\n";
-      
-// JM: once (2-3-454), I extended the critical region due to
-// modified-variable-issues inside Disort. However, later on I couldn't
-// reproduce the problems anymore. Since the extension created problems in catching
-// errors thrown inside methods called within the critical region, the region is
-// reduced to its original extend (2-3-486), covering only the Disort call
-// itself. If any kind of fishy behaviour is observed, we have to reconsider
-// extending (and proper error handling) again.
-#pragma omp critical(fortran_disort)
-      {
-          // Call disort
-          disort_(&nlyr, dtauc.get_c_array(),
-                  ssalb.get_c_array(), pmom.get_c_array(),
-                  t.get_c_array(), &wvnmlo, &wvnmhi,
-                  &usrtau, &ntau, utau.get_c_array(),
-                  &nstr, &usrang, &numu,
-                  umu.get_c_array(), &nphi,
-                  phi.get_c_array(),
-                  &ibcnd, &fbeam,
-                  &umu0, &phi0, &fisot,
-                  intang.get_c_array(),
-                  &lamber,
-                  &albedo[f_index], hl.get_c_array(),
-                  &btemp, &ttemp, &temis,
-                  &deltam,
-                  &plank, &onlyfl, &accur,
-                  prnt, header,
-                  &maxcly, &maxulv,
-                  &maxumu, &maxcmu,
-                  &maxphi, rfldir.get_c_array(),
-                  rfldn.get_c_array(),
-                  flup.get_c_array(), dfdt.get_c_array(),
-                  uavg.get_c_array(),
-                  uu.get_c_array(), u0u.get_c_array(),
-                  albmed.get_c_array(),
-                  trnmed.get_c_array());
-      }
-
-      for(Index j = 0; j<numu; j++)
-          for(Index k = 0; k<(cloudbox_limits[1]-cloudbox_limits[0]+1); k++)
-            doit_i_field(f_index, k, 0, 0, j, 0, 0) =
-              uu(0,nlyr-k-cloudbox_limits[0],j) / (100*SPEED_OF_LIGHT);
-    }
-  delete [] prnt;
-
+  run_disort( ws, doit_i_field,
+              f_index, f_grid,p_grid,z_field, t_field,vmr_field, pnd_field,
+              scat_data, scat_data_mono,
+              propmat_clearsky_agenda, opt_prop_part_agenda, spt_calc_agenda,
+              iy_main_agenda,
+              cloudbox_limits,
+              btemp, albedo,
+              scat_za_grid, nstreams,
+              non_iso_inc, pfct_method,
+              verbosity );
 }
 
 #else /* ENABLE_DISORT */
 
 void DisortCalc(Workspace&,
+                // WS Output:
+                Tensor7&,
+                Index&,
+                ArrayOfArrayOfSingleScatteringData&,
+                // WS Input
+                const Index&,
+                const Index&,
+                const Index&,
+                const Index&,
+                const Index&,
+                const ArrayOfIndex&,
+                const Agenda&,
+                const Agenda&,
+                const Agenda&,
+                const Agenda&,
+                const Tensor4&,
+                const Tensor3&,
+                const Tensor3&,
+                const Tensor4&,
+                const Vector&,
+                const ArrayOfArrayOfSingleScatteringData&,
+                const Vector&,
+                const Vector&,
+                const Numeric&,
+                const Vector&,
+                const Index&,
+                const Index&,
+                const String&,
+                const Verbosity&)
+{
+  throw runtime_error ("This version of ARTS was compiled without DISORT support.");
+}
+
+void DisortCalcWithARTSSurface(Workspace&,
                 // WS Output:
                 Tensor7&,
                 Index&,
@@ -574,11 +242,8 @@ void DisortCalc(Workspace&,
                 const ArrayOfArrayOfSingleScatteringData&,
                 const Vector&,
                 const Vector&,
-                const Numeric&,
-                const Vector&,
                 const Index&,
                 const Index&,
-                const String&,
                 const String&,
                 const Verbosity&)
 {
