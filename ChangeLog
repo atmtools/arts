@@ -1,5 +1,12 @@
 2017-02-23  Richard Larsson  <ric.larsson@gmail.com>
 
+	* arts-2-3-642
+	
+	* src/m_linemixing.cc: Fix input to unused function when
+	the relmat variable is active.  Again, hope this will fix it.
+
+2017-02-23  Richard Larsson  <ric.larsson@gmail.com>
+
 	* arts-2-3-641
 	
 	* src/m_linemixing.cc: Move methods out of if-def for relmat,

@@ -2039,23 +2039,25 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
 }
 
 #else
-void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
-                                           ArrayOfMatrix&                   /* abs_xsec_per_species, */,
-                                           ArrayOfArrayOfMatrix&            /*dabs_xsec_per_species_dx*/,
-                                           ArrayOfMatrix&                   /*wmats*/,
-                                           ArrayOfVector&                   /*d0s*/,
-                                            ArrayOfVector&                  /*rhos*/,
-                                           // WS Input:                     
-                                           const ArrayOfArrayOfLineRecord&  /* abs_lines_per_band */,
-                                           const ArrayOfArrayOfSpeciesTag&  /* abs_species_per_band */,
-                                           const ArrayOfArrayOfSpeciesTag&  /* abs_species */,
-                                           const SpeciesAuxData&            /* partition_functions */,
-                                           const ArrayOfRetrievalQuantity&  /* jacobian_quantities */,
-                                           const Vector&                    /* f_grid */,
-                                           const Vector&                    /* abs_p */,
-                                           const Vector&                    /* abs_t */,
-                                           const Index&,
-                                           const Verbosity&)
+void abs_xsec_per_speciesAddLineMixedBands(  // WS Output:
+                                             ArrayOfMatrix&                   abs_xsec_per_species,
+                                             ArrayOfArrayOfMatrix&            dabs_xsec_per_species_dx,
+                                             ArrayOfArrayOfMatrix&            relmat_per_band,
+                                             // WS Input:                     
+                                             const ArrayOfArrayOfLineRecord&  abs_lines_per_band,
+                                             const ArrayOfArrayOfSpeciesTag&  abs_species_per_band,
+                                             const ArrayOfArrayOfSpeciesTag&  abs_species,
+                                             const SpeciesAuxData&            isotopologue_ratios,
+                                             const SpeciesAuxData&            partition_functions,
+                                             const ArrayOfRetrievalQuantity&  jacobian_quantities,
+                                             const Vector&                    f_grid,
+                                             const Vector&                    abs_p,
+                                             const Vector&                    abs_t,
+                                             const Numeric&                   lm_p_lim,
+                                             const ArrayOfIndex&              relmat_type_per_band,
+                                             const Index&                     write_relmat_per_band,
+                                             const Index&                     debug,
+                                             const Verbosity&)
 {
    throw std::runtime_error("This version of ARTS was compiled without external line mixing support.");
 }
