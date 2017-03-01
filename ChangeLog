@@ -1,5 +1,14 @@
 2017-03-01  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-645
+
+	* doc/uguide/absorption_theory.tex:
+
+	Clarify unit for errors. %/100 instead of %. Thanks to Domenico
+	Cimini for pointing this out.
+
+2017-03-01  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-644
 
 	* CMakeLists.txt:

@@ -641,12 +641,12 @@ Col  Variable                     Label    Unit
 13   auxiliary parameter          AUX1        -
 14   ... 
 15   error for F                    DF       Hz
-16   error for I0                  DI0        %
-17   error for AGAM              DAGAM        %
-18   error for SGAM              DSGAM        %
-19   error for NAIR              DNAIR        %
-20   error for NSELF            DNSELF        %
-21   error for PSF                DPSF        %
+16   error for I0                  DI0    %/100
+17   error for AGAM              DAGAM    %/100
+18   error for SGAM              DSGAM    %/100
+19   error for NAIR              DNAIR    %/100
+20   error for NSELF            DNSELF    %/100
+21   error for PSF                DPSF    %/100
 
 \end{code}
 The parameters 0-12 must be present, the others can be missing, since
@@ -779,11 +779,11 @@ Subtag/col  Variable                        Label    Unit
         3  air broadened width              AGAM    Hz/Pa
         4  AGAM temp. exponent              NAIR        -
         5  pressure shift of F               PSF    Hz/Pa
-        6  error for SGAM                  DSGAM        %
-        7  error for NSELF                DNSELF        %
-        8  error for AGAM                  DAGAM        %
-        9  error for NAIR                  DNAIR        %
-       10  error for PSF                    DPSF        %
+        6  error for SGAM                  DSGAM    %/100
+        7  error for NSELF                DNSELF    %/100
+        8  error for AGAM                  DAGAM    %/100
+        9  error for NAIR                  DNAIR    %/100
+       10  error for PSF                    DPSF    %/100
 ---------------------------------------------------------
        AP  pressure broadening ARTSCAT-4 like
         1   broadening parameter self        SGAM   Hz/Pa
