@@ -3075,7 +3075,7 @@ Numeric interp_poly(ConstVectorView x,
           ya[2] = y[gp.idx + 1]; 
         }
       
-      // Polinominal interpolation, n = 3
+      // Polynominal interpolation, n = 3
       polint(y_int, dy_int, xa, ya, 3, x_i); 
     }
   

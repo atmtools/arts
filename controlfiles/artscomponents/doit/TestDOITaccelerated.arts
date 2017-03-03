@@ -9,16 +9,16 @@
 
 Arts2 {
 
-INCLUDE "doit_setup_accelerated.arts"
+INCLUDE "artscomponents/doit/doit_setup_accelerated.arts"
 
-INCLUDE "doit_calc.arts"
+INCLUDE "artscomponents/doit/doit_calc.arts"
 
 WriteXML( in=y )
 
 #==================check==========================
 
 VectorCreate(yREFERENCE)
-ReadXML( yREFERENCE, "yREFERENCE_DOITaccelerated.xml" )
+ReadXML( yREFERENCE, "artscomponents/doit/yREFERENCE_DOITaccelerated.xml" )
 Compare( y, yREFERENCE, 1e-6 )
 
 } # End of Main

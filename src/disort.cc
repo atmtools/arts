@@ -1564,11 +1564,11 @@ void run_disort( Workspace& ws,
       
       //DEBUG_VAR(dtauc)
       
-      cout << "entering Disort calc at freq[" << f_index << "]="
-           << f_grid[f_index]*1e-9 << " GHz\n"
-           << "  with surftemp=" << surface_skin_t
-           << " K and albedo=" << surface_scalar_reflectivity[f_index]
-           << "\n";
+      //cout << "entering Disort calc at freq[" << f_index << "]="
+      //     << f_grid[f_index]*1e-9 << " GHz\n"
+      //     << "  with surftemp=" << surface_skin_t
+      //     << " K and albedo=" << surface_scalar_reflectivity[f_index]
+      //     << "\n";
       
 // JM: once (2-3-454), I extended the critical region due to
 // modified-variable-issues inside Disort. However, later on I couldn't

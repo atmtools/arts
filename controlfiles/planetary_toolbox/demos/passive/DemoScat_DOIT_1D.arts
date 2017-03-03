@@ -199,7 +199,7 @@ AgendaSet( doit_conv_test_agenda ){
 }
 #
 AgendaSet( iy_cloudbox_agenda ){
-  iyInterpCloudboxField( maxratio=DOITinterpol_ratio )
+  iyInterpLinCloudboxField( maxratio=DOITinterpol_ratio )
 }
 #
 doit_za_interpSet( doit_za_interp, atmosphere_dim, "linear" )

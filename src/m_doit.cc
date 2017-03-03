@@ -62,6 +62,7 @@
 
 
 extern const Numeric PI;
+extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
   
 /*===========================================================================
@@ -2602,7 +2603,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
             }//end za_prop loop
           
           // Interpolation on scat_za_grid, which is used in 
-          //radiative transferpart.
+          // radiative transfer part.
           for (Index i = 0; i < stokes_dim; i++)
             {
             if(doit_za_interp == 0) // linear interpolation
@@ -3397,6 +3398,393 @@ void DoitGetIncoming1DAtm(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyInterpCloudboxField(Matrix&         iy,
+                           const Tensor7&  doit_i_field,
+                           const Vector&   rte_pos,
+                           const Vector&   rte_los,
+                           const Index&    jacobian_do,
+                           const Index&    cloudbox_on,
+                           const ArrayOfIndex&   cloudbox_limits,
+                           const Index&    atmosphere_dim,
+                           const Vector&   p_grid,
+                           const Vector&   lat_grid,
+                           const Vector&   lon_grid,
+                           const Tensor3&  z_field,
+                           const Index&    stokes_dim,
+                           const Vector&   scat_za_grid,
+                           const Vector&   scat_aa_grid,
+                           const Vector&   f_grid,
+                           //const Index&    p_interp_order,
+                           const Index&    za_interp_order,
+                           const Index&    za_restrict,
+                           const Index&    cos_za_interp,
+                           const Index&    aa_interp_order,
+                           const Verbosity& verbosity)
+{
+  CREATE_OUT3;
+
+  //--- Check input -----------------------------------------------------------
+  if( !(atmosphere_dim == 1  ||  atmosphere_dim == 3) )
+    throw runtime_error( "The atmospheric dimensionality must be 1 or 3.");
+  if( jacobian_do )
+    throw runtime_error( 
+        "This method does not provide any jacobians (jacobian_do must be 0)" );
+  if( !cloudbox_on )
+    throw runtime_error( "The cloud box is not activated and no outgoing "
+                         "field can be returned." );
+  if ( cloudbox_limits.nelem() != 2*atmosphere_dim )
+    throw runtime_error(
+       "*cloudbox_limits* is a vector which contains the upper and lower\n"
+       "limit of the cloud for all atmospheric dimensions.\n"
+       "So its length must be 2 x *atmosphere_dim*" ); 
+  if( scat_za_grid.nelem() == 0 )
+    throw runtime_error( "The variable *scat_za_grid* is empty. Are dummy "
+                         "values from *cloudboxOff used?" );
+  if( doit_i_field.nlibraries() != f_grid.nelem() )
+    throw runtime_error( "Inconsistency in size between f_grid and doit_i_field! "
+         "(This method does not yet handle dispersion type calculations.)" );
+  //---------------------------------------------------------------------------
+
+  // Convert rte_pos to grid positions
+  GridPos gp_p, gp_lat, gp_lon;
+  rte_pos2gridpos( gp_p, gp_lat, gp_lon, atmosphere_dim, 
+                   p_grid, lat_grid, lon_grid, z_field, rte_pos );
+
+  
+  //--- Determine if at border or inside of cloudbox (or outside!)
+  //
+  // Let us introduce a number coding for cloud box borders.
+  // Borders have the same number as position in *cloudbox_limits*.
+  // Inside cloud box is coded as 99, and outside as > 100.
+  Index  border  = 999;
+  //
+  //- Check if at any border
+  if( is_gridpos_at_index_i( gp_p, cloudbox_limits[0], false ) )
+    { border = 0; }
+  else if( is_gridpos_at_index_i( gp_p, cloudbox_limits[1], false ) )
+    { border = 1; }
+  else if( atmosphere_dim > 1 )
+    {
+      if( is_gridpos_at_index_i( gp_lat, cloudbox_limits[2], false ) )
+        { border = 2; }
+      else if( is_gridpos_at_index_i( gp_lat, cloudbox_limits[3], false ) )
+        { border = 3; }
+      else if( atmosphere_dim > 2 )
+        {
+          if( is_gridpos_at_index_i( gp_lon, cloudbox_limits[4], false ) )
+            { border = 4; }
+          else if( is_gridpos_at_index_i( gp_lon, cloudbox_limits[5], false ) )
+            { border = 5; }
+        }
+    }
+
+  //
+  //- Check if inside (when border<100 here, it means we are on a cloudbox border)
+  if( border > 100 )
+    {
+      // Assume inside as it is easiest to detect if outside (can be detected
+      // check in one dimension at the time)
+      bool inside = true;
+      Numeric fgp;
+
+      // Check in pressure dimension
+      fgp = fractional_gp( gp_p );
+      if( fgp < Numeric(cloudbox_limits[0])  || 
+          fgp > Numeric(cloudbox_limits[1]) )
+        { inside = false; }
+
+      // Check in lat and lon dimensions
+     if( atmosphere_dim == 3  &&  inside )
+       {
+         fgp = fractional_gp( gp_lat );
+         if( fgp < Numeric(cloudbox_limits[2])  || 
+             fgp > Numeric(cloudbox_limits[3]) )
+           { inside = false; }
+         fgp = fractional_gp( gp_lon );
+         if( fgp < Numeric(cloudbox_limits[4])  || 
+             fgp > Numeric(cloudbox_limits[5]) )
+           { inside = false; }
+       }
+
+     if( inside )
+       { border = 99; }
+    }
+
+  // If outside, something is wrong
+  if( border > 100 )
+    {
+      throw runtime_error( 
+                 "Given position has been found to be outside the cloudbox." );
+    }
+
+  //- Sizes
+  const Index   nf  = f_grid.nelem();
+  DEBUG_ONLY (const Index   np  = cloudbox_limits[1] - cloudbox_limits[0] + 1);
+  const Index   nza  = scat_za_grid.nelem();
+  const Index   naa  = doit_i_field.nrows();
+
+  //- Resize *iy*
+  iy.resize( nf, stokes_dim );
+  //- Make space for spatially interpolated field (we perfrom angle
+  //interpolation separately on this then) - for now a vector. when considering
+  //3D, we will need a second dimension foer the azimuth
+  Tensor4 i_field_local(nf,nza,naa,stokes_dim);
+
+  // Index of the p/lat/lon slice (first or last element slice in this
+  // dimension), where rte_pos is located. if located on a border.
+  Index border_index;
+  if( border<99 )
+    {
+      if( border%2 ) // odd number
+        border_index = cloudbox_limits[border] - cloudbox_limits[border-1];
+      else
+        border_index = 0;
+    }
+
+  // Sensor points inside the cloudbox
+  if( border == 99 )
+    {
+      if (atmosphere_dim == 3)
+        {
+          throw runtime_error(
+            "Radiation extraction for a position inside cloudbox\n"
+            "is not yet implemented for 3D cases.\n" );
+        }
+      else
+        {
+          assert(atmosphere_dim == 1);
+          
+          // *doit_i_field* is normally calculated internally:
+          assert( is_size(doit_i_field, nf, np, 1, 1, nza, 1, stokes_dim) );
+          
+          out3 << "    Interpolating outgoing field:\n";
+          out3 << "       zenith_angle: " << rte_los[0] << "\n";
+          out3 << " Sensor inside cloudbox at position:  " << gp_p << "\n";
+          
+          // Grid position in *p_grid* (only cloudbox part because 
+          // doit_i_field1D_spectra is only defined inside the cloudbox)
+          gp_p.idx = gp_p.idx - cloudbox_limits[0]; 
+          gridpos_upperend_check( gp_p, cloudbox_limits[1] - 
+                                        cloudbox_limits[0] );
+          Vector itw_p(2);
+          interpweights( itw_p, gp_p );
+
+          for(Index is = 0; is < stokes_dim; is++ )
+            for(Index iv = 0; iv < nf; iv++ )
+              for (Index i_za = 0; i_za < nza; i_za++)
+                i_field_local(iv,i_za,0,is) = 
+                  interp(itw_p, doit_i_field(iv,joker,0,0,i_za,0,is), gp_p);
+        }
+    }
+  
+  // Sensor outside the cloudbox
+
+  // --- 1D ------------------------------------------------------------------
+  else if( atmosphere_dim == 1 )
+    {
+      out3 << "    Interpolating outgoing field:\n";
+      out3 << "       zenith_angle: " << rte_los[0] << "\n";
+      if( border )
+        out3 << "       top side\n";
+      else
+        out3 << "       bottom side\n";
+
+      i_field_local = doit_i_field( joker,border_index,0,0,joker,joker,joker );
+    }
+  
+  // --- 3D ------------------------------------------------------------------
+  else
+    {
+      assert ( is_size( doit_i_field, nf, doit_i_field.nvitrines(), doit_i_field.nshelves(),
+                        doit_i_field.nbooks(), scat_za_grid.nelem(),
+                        scat_aa_grid.nelem(), stokes_dim ));
+
+      out3 << "    Interpolating outgoing field:\n";
+      out3 << "       zenith angle : " << rte_los[0] << "\n";
+      out3 << "       azimuth angle: " << rte_los[1]+180. << "\n";
+
+      // Interpolation weights (for 2D "red" interpolation)
+      Vector   itw(4);
+
+      // Outgoing from cloudbox top or bottom, i.e. from a pressure level
+      if( border <= 1 )
+        {
+          // Lat and lon grid positions with respect to cloud box 
+          GridPos cb_gp_lat, cb_gp_lon;
+          cb_gp_lat      = gp_lat;
+          cb_gp_lon      = gp_lon;
+          cb_gp_lat.idx -= cloudbox_limits[2];
+          cb_gp_lon.idx -= cloudbox_limits[4]; 
+          //          
+          gridpos_upperend_check( cb_gp_lat, cloudbox_limits[3] - 
+                                             cloudbox_limits[2] );
+          gridpos_upperend_check( cb_gp_lon, cloudbox_limits[5] - 
+                                             cloudbox_limits[4] );
+
+          interpweights( itw, cb_gp_lat, cb_gp_lon );
+
+          for(Index is = 0; is < stokes_dim; is++ )
+            for(Index iv = 0; iv < nf; iv++ )
+              for (Index i_za = 0; i_za < nza; i_za++)
+                for (Index i_aa = 0; i_aa < naa; i_aa++)
+                  i_field_local(iv,i_za,i_aa,is) = 
+                    interp( itw,
+                            doit_i_field( iv,border_index,joker,joker,i_za,i_aa,is ),
+                            cb_gp_lat, cb_gp_lon );
+        }
+
+      // Outgoing from cloudbox north or south border, i.e. from a latitude level
+      else if( border <= 3 )
+        {
+          // Pressure and lon grid positions with respect to cloud box 
+          GridPos cb_gp_p, cb_gp_lon;
+          cb_gp_p        = gp_p;
+          cb_gp_lon      = gp_lon;
+          cb_gp_p.idx   -= cloudbox_limits[0];
+          cb_gp_lon.idx -= cloudbox_limits[4]; 
+          //          
+          gridpos_upperend_check( cb_gp_p,   cloudbox_limits[1] - 
+                                             cloudbox_limits[0] );
+          gridpos_upperend_check( cb_gp_lon, cloudbox_limits[5] - 
+                                             cloudbox_limits[4] );
+          
+          interpweights( itw, cb_gp_p, cb_gp_lon );
+
+          for(Index is = 0; is < stokes_dim; is++ )
+            for(Index iv = 0; iv < nf; iv++ )
+              for (Index i_za = 0; i_za < nza; i_za++)
+                for (Index i_aa = 0; i_aa < naa; i_aa++)
+                  i_field_local(iv,i_za,i_aa,is) = 
+                    interp( itw, 
+                            doit_i_field( iv,joker,border_index,joker,i_za,i_aa,is ),
+                            cb_gp_p, cb_gp_lon );
+        }
+
+      // Outgoing from cloudbox east or west border, i.e. from a longitude level
+      else
+        {
+          // Pressure and lat grid positions with respect to cloud box 
+          GridPos cb_gp_p, cb_gp_lat;
+          cb_gp_p        = gp_p;
+          cb_gp_lat      = gp_lat;
+          cb_gp_p.idx   -= cloudbox_limits[0]; 
+          cb_gp_lat.idx -= cloudbox_limits[2];
+          //          
+          gridpos_upperend_check( cb_gp_p,   cloudbox_limits[1] - 
+                                             cloudbox_limits[0] );
+          gridpos_upperend_check( cb_gp_lat, cloudbox_limits[3] - 
+                                             cloudbox_limits[2] );
+          
+          interpweights( itw, cb_gp_p, cb_gp_lat );
+
+          for(Index is = 0; is < stokes_dim; is++ )
+            for(Index iv = 0; iv < nf; iv++ )
+              for (Index i_za = 0; i_za < nza; i_za++)
+                for (Index i_aa = 0; i_aa < naa; i_aa++)
+                  i_field_local(iv,i_za,i_aa,is) = 
+                    interp( itw,
+                            doit_i_field( iv,joker,joker,border_index,i_za,i_aa,is ),
+                            cb_gp_p, cb_gp_lat );
+        }
+    }
+
+  // now, do Nth-oder polynomial interpoaltion of angle(s)
+  // 
+  // a bunch of options for testing:
+  //   a) interpolation over full zenith angle grid vs over hemispheres
+  //      separately.
+  //   b) interpolation in plain zenith angles vs. in cosines of zenith angle.
+
+  // find range of scat_za_grid that we will do interpolation over.
+  Index za_start = 0;
+  Index za_extend = scat_za_grid.nelem();
+  if( za_restrict )
+    {
+      // which hemisphere do we need?
+      if( is_same_within_epsilon(rte_los[0],90.,1e-6) )
+        //FIXME: we should allow this though, if scat_za_grid has a grid point
+        //at 90deg.
+        throw runtime_error( 
+          "Hemisphere-restricted zenith angle interpolation not allowed\n"
+          "for 90degree views." );
+      else if( rte_los[0]>90 )
+        // upwelling, i.e. second part of scat_za_grid. that is, we need to find
+        // the first point in scat_za_grid where za>90. and update za_start
+        // accordingly.
+        {
+          while( za_start<scat_za_grid.nelem() && scat_za_grid[za_start]<90. )
+            za_start++;
+          if( za_start==scat_za_grid.nelem() )
+            throw runtime_error( 
+              "No scat_za_grid grid point found in 90-180deg hemisphere.\n"
+              "No hemispheric interpolation possible." );
+          za_extend -= za_start;
+        }
+      else
+        // downwelling, i.e. first part of scat_za_grid. that is, we need to
+        // find the last point in scat_za_grid where za<90. and update za_extend
+        // accordingly.
+        {
+          while( za_extend>0 && scat_za_grid[za_extend-1]>90. )
+            za_start--;
+          if( za_extend==0 )
+            throw runtime_error( 
+              "No scat_za_grid grid point found in 0-90deg hemisphere.\n"
+              "No hemispheric interpolation possible." );
+        }
+    }
+
+  // Grid position in *scat_za_grid*
+  GridPosPoly gp_za, gp_aa;
+  /*
+          // Grid position in *scat_za_grid*
+          GridPos gp_za;
+          gridpos( gp_za, scat_za_grid, rte_los[0] );
+          
+          // Corresponding interpolation weights
+          Vector itw_za(2);
+          interpweights( itw_za, gp_za );
+*/
+  if( cos_za_interp )
+    {
+      Vector cosza_grid(scat_za_grid.nelem());
+      for( Index i_za=0; i_za<scat_za_grid.nelem(); i_za++ )
+        cosza_grid[i_za] = cos(scat_za_grid[i_za]*DEG2RAD);
+      gridpos_poly( gp_za, cosza_grid[Range(za_start,za_extend)],
+                    cos(rte_los[0]*DEG2RAD), za_interp_order ); //, extrapolfac );
+    }
+  else
+    {
+      gridpos_poly( gp_za, scat_za_grid[Range(za_start,za_extend)],
+                    rte_los[0], za_interp_order ); //, extrapolfac );
+    }
+  
+  if( atmosphere_dim>1 )
+    {
+      gridpos_poly_cyclic_longitudinal( gp_aa, scat_aa_grid,
+                                        rte_los[1], aa_interp_order );
+    }
+  else
+    {
+      gp_aa.idx.resize(1);
+      gp_aa.idx[0] = 0;
+      gp_aa.w.resize(1);
+      gp_aa.w[0]   = 1;
+    }
+
+  // Corresponding interpolation weights
+  Vector itw_angs(gp_za.idx.nelem()*gp_aa.idx.nelem());
+  interpweights( itw_angs, gp_za, gp_aa );
+
+  for(Index is = 0; is < stokes_dim; is++ )
+    for(Index iv = 0; iv < nf; iv++ )
+      iy(iv,is) = interp( itw_angs, 
+                          i_field_local( iv, Range(za_start,za_extend), joker, is ),
+                          gp_za, gp_aa );
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iyInterpLinCloudboxField(Matrix&         iy,
                            const Tensor7&  doit_i_field,
                            const Vector&   rte_pos,
                            const Vector&   rte_los,

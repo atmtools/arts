@@ -11,7 +11,7 @@
 
 Arts2 {
 
-INCLUDE "indivfieldsatmo_setup.arts"
+INCLUDE "artscomponents/disort/indivfieldsatmo_setup.arts"
 
 #####
 # Reference output calculation
@@ -93,11 +93,7 @@ AgendaSet( opt_prop_part_agenda ){
 }
 	
 AgendaSet( iy_cloudbox_agenda ){
-  # use rigorous here when sensor viewing angles close to horizon shall be
-  # calculated. as cloudbox boundary for DISORT will always be at TOA, there is
-  # always an orders-of-magnitude gradient when involving downwelling or
-  # horizontal direction in the radiance interpolation.
-  iyInterpCloudboxField(rigorous=0)
+  iyInterpCloudboxField
 }
 
 

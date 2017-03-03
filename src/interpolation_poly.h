@@ -104,6 +104,17 @@ void gridpos_poly_cyclic_longitudinal(ArrayOfGridPosPoly& gp,
                                       const Index     order,
                                       const Numeric&  extpolfac = 0.5);
 
+void gridpos_poly_longitudinal( GridPosPoly&    gp,
+                   ConstVectorView old_grid,
+                   const Numeric&  new_grid,
+                   const Index     order,
+                   const Numeric&  extpolfac = 0.5 );
+
+void gridpos_poly_cyclic_longitudinal( GridPosPoly&    gp,
+                   ConstVectorView old_grid,
+                   const Numeric&  new_grid,
+                   const Index     order,
+                   const Numeric&  extpolfac = 0.5 );
 
 
 

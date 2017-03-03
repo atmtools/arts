@@ -75,11 +75,8 @@ AgendaSet( opt_prop_part_agenda ){
 }
 	
 AgendaSet( iy_cloudbox_agenda ){
-  # use rigorous here when sensor viewing angles close to horizon shall be
-  # calculated. as cloudbox boundary for RT4 will always be at TOA, there is
-  # always an orders-of-magnitude gradient when involving downwelling or
-  # horizontal direction in the radiance interpolation.
-  iyInterpCloudboxField(rigorous=0)
+  iyInterpCloudboxField
+  #iyInterpCloudboxField( za_inter_order=3, za_restrict=1 )
 }
 
 

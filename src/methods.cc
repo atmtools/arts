@@ -6907,11 +6907,49 @@ void define_md_data_raw()
         (
          "Interpolates the intensity field of the cloud box.\n"
          "\n"
+         "Revised method using polynomials of user-defined order for polar\n"
+         "angle interpolation. It can be (and should be) restricted to one\n"
+         "hemisphere (for now, default is not restricted in order to reflect\n"
+         "previous behaviour of the WSM (which is now\n"
+         "*iyInterpLinCloudboxField*).\n"
+         "\n"
+         "Spatial interpolation so far hardcoded as linear.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "iy" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "doit_i_field",
+            "rtp_pos", "rtp_los", "jacobian_do","cloudbox_on", 
+            "cloudbox_limits", "atmosphere_dim", "p_grid", "lat_grid",
+            "lon_grid", "z_field", "stokes_dim", 
+            "scat_za_grid", "scat_aa_grid", "f_grid" ),
+        GIN(         "za_interp_order", "za_restrict", "cos_za_interp",
+                     "aa_interp_order" ),
+        GIN_TYPE(    "Index",           "Index",       "Index",
+                     "Index" ),
+        GIN_DEFAULT( "1",               "0",           "0",
+                     "1" ),
+        GIN_DESC( "Zenith angle interpolation order.",
+                  "Flag whether to restric zenith angle interpolation to one"
+                  " hemisphere.",
+                  "Flag whether to do zenith angle interpolation in cosine space.",
+                  "Azimuth angle interpolation order." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "iyInterpLinCloudboxField" ),
+        DESCRIPTION
+        (
+         "Interpolates the intensity field of the cloud box.\n"
+         "\n"
          "This is the standard method to put in *iy_cloudbox_agenda* if the\n"
          "the scattering inside the cloud box is handled by the DOIT method.\n"
          "\n"
          "The intensity field is interpolated to the position (specified by\n"
-         "*rtp_pos*) and direction (specified by *rtp_los*) given. A linear\n"
+         "*rtp_pos*) and direction (specified by *rtp_los*) given. Linear\n"
          "interpolation is used for all dimensions.\n"
          "\n"
          "The intensity field on the cloux box boundaries is provided by\n"
@@ -6939,9 +6977,9 @@ void define_md_data_raw()
       ( NAME( "iyInterpPolyCloudboxField" ),
         DESCRIPTION
         (
-         "As *iyInterpCloudboxField* but performs cubic interpolation.\n"
+         "As *iyInterpCloudboxField* but performs quadratic interpolation.\n"
          "\n"
-         "Works so far only for 1D cases, and accordingly a cubic\n"
+         "Works so far only for 1D cases, and accordingly a quadratic\n"
          "interpolation along *scat_za_grid* is performed.\n"
          ),
         AUTHORS( "Claudia Emde" ),

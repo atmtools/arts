@@ -387,6 +387,80 @@ void gridpos_poly_cyclic_longitudinal(ArrayOfGridPosPoly& gp,
 }
 
 
+//! gridpos_poly_longitudinal
+/*!
+   Creates a grid position structure for higher order interpolation for
+   longitudinal grids.
+  
+   This is a gateway to the function for arrays of GridPosPoly, to be
+   used for e.g. "red interpolation".
+
+   \param[in]  error_msg  Message for potential runtime error
+   \retval  gp         The GridPos structure. 
+   \param   old_grid   The original grid.
+   \param   new_grid   The position where we want to have the interpolated 
+                       value.
+   \param order Interpolation order.
+                1 = linear, 2 = quadratic, etc..
+                The number of points used in the
+                interpolation will be order+1.
+   \param   extpolfac  Extrapolation factor. Default value is 0.5,
+                       which means that extrapolation of half of the
+                       last grid distance is allowed.
+                       You don't have to specify this.
+
+   \author Jana Mendrok (copied from gridpos_poly equivalent by Stefan Buehler)
+   \date   2017-03-03
+*/
+void gridpos_poly_longitudinal(const String&   error_msg,
+                   GridPosPoly&    gp,
+                   ConstVectorView old_grid,
+                   const Numeric&  new_grid,
+                   const Index     order,
+                   const Numeric&  extpolfac )
+{
+  ArrayOfGridPosPoly  agp(1);
+  gridpos_poly_longitudinal( error_msg, agp, old_grid, new_grid, order, extpolfac );
+  gp = agp[0];  
+}
+
+
+//! gridpos_poly_cyclic_longitudinal
+/*!
+   Creates a grid position structure for higher order interpolation for cyclic
+   longitudinal grids.
+  
+   This is a gateway to the function for arrays of GridPosPoly, to be
+   used for e.g. "red interpolation".
+
+   \retval  gp         The GridPos structure. 
+   \param   old_grid   The original grid.
+   \param   new_grid   The position where we want to have the interpolated 
+                       value.
+   \param order Interpolation order.
+                1 = linear, 2 = quadratic, etc..
+                The number of points used in the
+                interpolation will be order+1.
+   \param   extpolfac  Extrapolation factor. Default value is 0.5,
+                       which means that extrapolation of half of the
+                       last grid distance is allowed.
+                       You don't have to specify this.
+
+   \author Jana Mendrok (copied from gridpos_poly equivalent by Stefan Buehler)
+   \date   2017-03-03
+*/
+void gridpos_poly_cyclic_longitudinal( GridPosPoly&    gp,
+                   ConstVectorView old_grid,
+                   const Numeric&  new_grid,
+                   const Index     order,
+                   const Numeric&  extpolfac )
+{
+  ArrayOfGridPosPoly  agp(1);
+  gridpos_poly_cyclic_longitudinal( agp, old_grid, new_grid, order, extpolfac );
+  gp = agp[0];  
+}
+
+
 
 //! Macro for interpolation weight loops.
 /*!

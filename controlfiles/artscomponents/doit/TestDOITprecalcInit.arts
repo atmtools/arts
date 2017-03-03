@@ -13,7 +13,7 @@ Arts2 {
 
 Tensor7Create( doit_i_field_ref )
 
-INCLUDE "doit_setup.arts"
+INCLUDE "artscomponents/doit/doit_setup.arts"
 
 # Perturbing the pnd_field by 1%
 Tensor4Scale( out=pnd_field, in=pnd_field, value=1.01 )
@@ -69,7 +69,7 @@ WriteXML( in=y )
 #==================check==========================
 
 VectorCreate(yREFERENCE)
-ReadXML( yREFERENCE, "yREFERENCE_DOITprecalcInit.xml" )
+ReadXML( yREFERENCE, "artscomponents/doit/yREFERENCE_DOITprecalcInit.xml" )
 Compare( y, yREFERENCE, 2e-1 )
 
 } # End of Main

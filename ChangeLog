@@ -1,3 +1,38 @@
+2017-03-03 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-646
+
+	* src/m_doit.cc, methods.cc (iyInterpLinCloudboxField,
+	iyInterpCloudboxField):
+	Renamed iyInterpLinCloudboxField from iyInterpCloudboxField. New
+	iyInterpCloudboxField using free-order polynomials (gridpos_poly) for
+	angle interpolation and offering options for restricting zenith angle
+	interpolation to respective hemisphere. Default reproduces
+	iyInterpLinCloudboxField results. Higher order and options still need
+	to be tested.
+
+	* src/interpolation_poly.[cc,h] (gridpos_poly_longitudinal,
+	gridpos_poly_cyclic_longitudinal):
+	Added single point interpolation version for longitudinal
+	interpolation.
+
+	* src/disort.cc (run_disort):
+	Removed leftover cout.
+
+	* src/interpolation.cc, src/workspace.cc:
+	Spell fixes, clean up.
+
+	* controlfiles/artscomponents/disort/TestDISORT.arts,
+	controlfiles/artscomponents/doit/TestDOIT.arts,
+	controlfiles/artscomponents/doit/TestDOITaccelerated.arts
+	controlfiles/artscomponents/doit/TestDOITprecalcInit.arts
+	controlfiles/artscomponents/doit/TestDOITpressureoptimization.arts
+	controlfiles/artscomponents/doit/TestDOITsensorInsideCloudbox.arts
+	controlfiles/artscomponents/polradtran/TestRT4.arts
+	controlfiles/general/agendas.arts
+	controlfiles/planetary_toolbox/demos/passive/DemoScat_DOIT_1D.arts:
+	Adapted for iyInterpCloudboxField changes.
+
 2017-03-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-645
