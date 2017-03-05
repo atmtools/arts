@@ -384,7 +384,7 @@ void iySurfaceFastem(
   Vector specular_los, surface_normal;  
   specular_losCalc( specular_los, surface_normal, rtp_pos, rtp_los, 
                     atmosphere_dim, lat_grid, lon_grid, refellipsoid, 
-                    z_surface, verbosity );
+                    z_surface, 0, verbosity );
     
   // Use iy_aux to get optical depth for downwelling radiation.
   ArrayOfString    iy_aux_vars(1); iy_aux_vars[0] = "Optical depth";
@@ -695,12 +695,14 @@ void specular_losCalc(
    const Vector&   lat_grid,
    const Vector&   lon_grid,
    const Vector&   refellipsoid,
-   const Matrix&   z_surface, 
+   const Matrix&   z_surface,
+   const Index&    ignore_surface_slope,
    const Verbosity&)
 {
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_rte_pos( atmosphere_dim, rtp_pos );
   chk_rte_los( atmosphere_dim, rtp_los );
+  chk_if_in_range( "ignore_surface_slope", ignore_surface_slope, 0, 1 );
 
   surface_normal.resize( max( Index(1), atmosphere_dim-1 ) );
   specular_los.resize( max( Index(1), atmosphere_dim-1 ) );
@@ -715,68 +717,85 @@ void specular_losCalc(
     }
 
   else if( atmosphere_dim == 2 )
-    { 
-      chk_interpolation_grids( "Latitude interpolation", lat_grid, rtp_pos[1] );
-      GridPos gp_lat;
-      gridpos( gp_lat, lat_grid, rtp_pos[1] );
-      Numeric c1;         // Radial slope of the surface
-      plevel_slope_2d( c1, lat_grid, refellipsoid, z_surface(joker,0), 
-                                                          gp_lat, rtp_los[0] );
-      Vector itw(2); interpweights( itw, gp_lat );
-      const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
-                                + interp( itw, z_surface(joker,0), gp_lat );
-      surface_normal[0] = -plevel_angletilt( rv_surface, c1 );
-      if( abs(rtp_los[0]-surface_normal[0]) < 90 )
-        { throw runtime_error( "Invalid zenith angle. The zenith angle corresponds "
-                               "to observe the surface from below." ); }
-      specular_los[0] = sign( rtp_los[0] ) * 180 - rtp_los[0] + 
-                                                           2*surface_normal[0];
+    {
+      if( ignore_surface_slope )
+        {
+          specular_los[0]   = sign( rtp_los[0] ) * 180 - rtp_los[0];
+          surface_normal[0] = 0;
+        }
+      else
+        {
+          chk_interpolation_grids( "Latitude interpolation", lat_grid, rtp_pos[1] );
+          GridPos gp_lat;
+          gridpos( gp_lat, lat_grid, rtp_pos[1] );
+          Numeric c1;         // Radial slope of the surface
+          plevel_slope_2d( c1, lat_grid, refellipsoid, z_surface(joker,0), 
+                                                              gp_lat, rtp_los[0] );
+          Vector itw(2); interpweights( itw, gp_lat );
+          const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
+                                    + interp( itw, z_surface(joker,0), gp_lat );
+          surface_normal[0] = -plevel_angletilt( rv_surface, c1 );
+          if( abs(rtp_los[0]-surface_normal[0]) < 90 )
+            { throw runtime_error( "Invalid zenith angle. The zenith angle corresponds "
+                                   "to observe the surface from below." ); }
+          specular_los[0] = sign( rtp_los[0] ) * 180 - rtp_los[0] + 
+                                                               2*surface_normal[0];
+        }
     }
 
   else if( atmosphere_dim == 3 )
     { 
-      // Calculate surface normal in South-North direction
-      chk_interpolation_grids( "Latitude interpolation", lat_grid, rtp_pos[1] );
-      chk_interpolation_grids( "Longitude interpolation", lon_grid, rtp_pos[2]);
-      GridPos gp_lat, gp_lon;
-      gridpos( gp_lat, lat_grid, rtp_pos[1] );
-      gridpos( gp_lon, lon_grid, rtp_pos[2] );
-      Numeric c1, c2;
-      plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
-                       gp_lat, gp_lon, 0 );
-      Vector itw(4); interpweights( itw, gp_lat, gp_lon );
-      const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
-                                 + interp( itw, z_surface, gp_lat, gp_lon );
-      const Numeric zaSN = 90 - plevel_angletilt( rv_surface, c1 );
-      // The same for East-West
-      plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
-                       gp_lat, gp_lon, 90 );
-      const Numeric zaEW = 90 - plevel_angletilt( rv_surface, c1 );
-      // Convert to Cartesian, and determine normal by cross-product
-      Vector tangentSN(3), tangentEW(3), normal(3);
-      zaaa2cart( tangentSN[0], tangentSN[1], tangentSN[2], zaSN, 0 );
-      zaaa2cart( tangentEW[0], tangentEW[1], tangentEW[2], zaEW, 90 );
-      cross3( normal, tangentSN, tangentEW );
-      // Convert rtp_los to cartesian and flip direction
-      Vector di(3);
-      zaaa2cart( di[0], di[1], di[2], rtp_los[0], rtp_los[1] );
-      di *= -1;
-      // Set LOS normal vector 
-      cart2zaaa( surface_normal[0], surface_normal[1], normal[0], normal[1], 
-                                                                  normal[2] );
-      if( abs(rtp_los[0]-surface_normal[0]) < 90 )
-        { throw runtime_error( "Invalid zenith angle. The zenith angle corresponds "
-                               "to observe the surface from below." ); }
-      // Specular direction is 2(dn*di)dn-di, where dn is the normal vector
-      Vector speccart(3);      
-      const Numeric fac = 2 * (normal * di);
-      for( Index i=0; i<3; i++ )
-        { speccart[i] = fac*normal[i] - di[i]; }
-      cart2zaaa( specular_los[0], specular_los[1], speccart[0], speccart[1], 
-                                                                speccart[2] );
-   }
+      if( ignore_surface_slope )
+        {
+          specular_los[0]   = 180 - rtp_los[0];
+          specular_los[1]   = rtp_los[1];
+          surface_normal[0] = 0;
+          surface_normal[1] = 0;
+        }
+      else
+        {
+          // Calculate surface normal in South-North direction
+          chk_interpolation_grids( "Latitude interpolation", lat_grid, rtp_pos[1] );
+          chk_interpolation_grids( "Longitude interpolation", lon_grid, rtp_pos[2]);
+          GridPos gp_lat, gp_lon;
+          gridpos( gp_lat, lat_grid, rtp_pos[1] );
+          gridpos( gp_lon, lon_grid, rtp_pos[2] );
+          Numeric c1, c2;
+          plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
+                           gp_lat, gp_lon, 0 );
+          Vector itw(4); interpweights( itw, gp_lat, gp_lon );
+          const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
+                                     + interp( itw, z_surface, gp_lat, gp_lon );
+          const Numeric zaSN = 90 - plevel_angletilt( rv_surface, c1 );
+          // The same for East-West
+          plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
+                           gp_lat, gp_lon, 90 );
+          const Numeric zaEW = 90 - plevel_angletilt( rv_surface, c1 );
+          // Convert to Cartesian, and determine normal by cross-product
+          Vector tangentSN(3), tangentEW(3), normal(3);
+          zaaa2cart( tangentSN[0], tangentSN[1], tangentSN[2], zaSN, 0 );
+          zaaa2cart( tangentEW[0], tangentEW[1], tangentEW[2], zaEW, 90 );
+          cross3( normal, tangentSN, tangentEW );
+          // Convert rtp_los to cartesian and flip direction
+          Vector di(3);
+          zaaa2cart( di[0], di[1], di[2], rtp_los[0], rtp_los[1] );
+          di *= -1;
+          // Set LOS normal vector 
+          cart2zaaa( surface_normal[0], surface_normal[1], normal[0], normal[1], 
+                                                                      normal[2] );
+          if( abs(rtp_los[0]-surface_normal[0]) < 90 )
+            { throw runtime_error( "Invalid zenith angle. The zenith angle corresponds "
+                                   "to observe the surface from below." ); }
+          // Specular direction is 2(dn*di)dn-di, where dn is the normal vector
+          Vector speccart(3);      
+          const Numeric fac = 2 * (normal * di);
+          for( Index i=0; i<3; i++ )
+            { speccart[i] = fac*normal[i] - di[i]; }
+          cart2zaaa( specular_los[0], specular_los[1], speccart[0], speccart[1], 
+                                                                    speccart[2] );
+        }
+    }
 }
-
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */

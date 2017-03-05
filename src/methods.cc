@@ -13798,14 +13798,22 @@ void define_md_data_raw()
       ( NAME( "specular_losCalc" ),
         DESCRIPTION
         (
-         "Calculates the specular direction for intersections with the\n"
-         "surface.\n"
+         "Calculates the specular direction of surface reflections.\n"
          "\n"
          "A help method to set up the surface properties. This method\n"
          "calculates *specular_los*, that is required in several methods\n"
          "to convert zenith angles to incidence angles.\n"
          "\n"
-         "The method also returns the line-of-sight for the surface normal.\n"
+         "The method also returns the line-of-sight matching the surface normal.\n"
+         "\n"
+         "The default is to consider the surface slope when calculating the\n"
+         "specular direction. That is, the variation of *z_surface* (as well as\n"
+         "the geoid radius) is considered and the specular direction is calculated\n"
+         "including the specified topography. This part can be deactivated by\n"
+         "setting *ignore_surface_slope* to 1. Ijn this case, the zenith angle of\n"
+         "the specular direction is simply 180-rtp_los[0]. *ignore_surface_slope*\n"
+         "has only an effect for 2D and 3D, as 1D implies a constant radius of\n"
+         "the surface (i.e. no topography).\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "specular_los", "surface_normal" ),
@@ -13814,10 +13822,10 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "rtp_pos", "rtp_los", "atmosphere_dim", "lat_grid", "lon_grid", 
             "refellipsoid", "z_surface" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "ignore_surface_slope" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "0" ),
+        GIN_DESC( "Flag to control if surface slope is consdered or not." )
         ));
 
   md_data_raw.push_back
