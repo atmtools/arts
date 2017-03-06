@@ -12102,11 +12102,11 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_i_field", "rt4_is_initialized",
-            "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
+        IN( "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
             "cloudbox_on", "cloudbox_limits",
             "propmat_clearsky_agenda",
             "opt_prop_part_agenda", "spt_calc_agenda", "surface_rtprop_agenda",
+            "atmosphere_dim",
             "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
             "scat_data", "f_grid", "stokes_dim" ),
         GIN(         "nstreams", "non_iso_inc", "pfct_method", "quad_type",
@@ -12162,11 +12162,11 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_i_field", "rt4_is_initialized",
-            "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
+        IN( "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
             "cloudbox_on", "cloudbox_limits",
             "propmat_clearsky_agenda",
             "opt_prop_part_agenda", "spt_calc_agenda",
+            "atmosphere_dim",
             "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
             "scat_data", "f_grid", "stokes_dim",
             "surface_skin_t", "surface_scalar_reflectivity",
@@ -12200,33 +12200,6 @@ void define_md_data_raw()
                   " sca_mat_threshold).",
                   "Maximum optical depth of infinitesimal layer (where single"
                   " scattering approximation is assumed to apply)." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "RT4Init" ),
-        DESCRIPTION
-        (
-         "Initialises variables for RT4 scattering calculations.\n"
-         "\n"
-         "*nstreams*, *quad_type*, and *add_straight_angles* need to be\n"
-         "identical to the ones used by *RT4Calc*.\n"
-         ),
-        AUTHORS( "Jana Mendrok" ),
-        OUT( "doit_i_field", "rt4_is_initialized" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "stokes_dim", "atmosphere_dim", "f_grid",
-            "cloudbox_on", "cloudbox_limits", "scat_data" ),
-        GIN(         "nstreams", "quad_type", "add_straight_angles" ),
-        GIN_TYPE(    "Index",    "String",    "Index" ),
-        GIN_DEFAULT( "16",        "D",        "1" ),
-        GIN_DESC( "Number of polar angle directions (streams) in RT4 solution.",
-                  "Flag which quadrature to apply in RT4 solution (for"
-                  "available options see *RT4Calc*).",
-                  "Flag whether to include nadir and zenith as explicit"
-                  " directions (only effective for quad_type G and D)." )
         ));
 
   md_data_raw.push_back

@@ -1,5 +1,18 @@
 2017-03-06 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-649
+
+	ATTENTION: Breaks backward compatability of RT4-using controlfiles.
+
+	* src/m_rt4.cc, methods.cc, rt4.[cc,h] (RT4Init, RT4Calc,
+	RT4CalcWithRT4Surface; check_rt4_input, init_ifield):
+	Remove RT4Init (got too error-prone with many generic input variables
+	that needed to be consistent between Init and Calc, and no real use
+	here of having a separate Init WSM). Moved functionality into
+	check_rt4_input and init_ifield instead.
+
+2017-03-06 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-648
 
 	* src/m_doit.cc, methods.cc (iyInterpCloudboxField):

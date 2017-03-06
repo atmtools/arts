@@ -38,16 +38,25 @@ void check_rt4_input( // Output
                       Index& nummu,
                       // Input
                       const Index& cloudbox_on,
-                      const Index& rt4_is_initialized,
-                      const String& calling_method,
                       const Index& atmfields_checked,
                       const Index& atmgeom_checked,
                       const Index& cloudbox_checked,
+                      const ArrayOfIndex& cloudbox_limits, 
+                      const ArrayOfArrayOfSingleScatteringData& scat_data,
+                      const Index& atmosphere_dim,
+                      const Index& stokes_dim,
                       const Index& nstreams,
                       const String& quad_type,
                       const Index& add_straight_angles,
-                      const Index& pnd_ncols,
-                      const Index& ifield_npages );
+                      const Index& pnd_ncols );
+
+void init_ifield( // Output
+                  Tensor7& doit_i_field,
+                  // Input
+                  const Vector& f_grid,
+                  const ArrayOfIndex& cloudbox_limits, 
+                  const Index& nang,
+                  const Index& stokes_dim );
 
 void get_quad_angles( // Output
                       VectorView mu_values,

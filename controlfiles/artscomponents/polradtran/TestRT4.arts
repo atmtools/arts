@@ -91,7 +91,6 @@ sensor_checkedCalc
 
 
 # Perform scattering calculation
-RT4Init #( nstreams=32 )
 RT4Calc #( nstreams=32 )
 # alternatively, the old way using one of RT4's own surface methods:
 #RT4CalcWithRT4Surface( ground_type=ground_type ) #( nstreams=32 )
