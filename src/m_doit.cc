@@ -3417,6 +3417,7 @@ void iyInterpCloudboxField(Matrix&         iy,
                            const Index&    za_interp_order,
                            const Index&    za_restrict,
                            const Index&    cos_za_interp,
+                           const Numeric&  za_extpolfac,
                            const Index&    aa_interp_order,
                            const Verbosity& verbosity)
 {
@@ -3439,6 +3440,14 @@ void iyInterpCloudboxField(Matrix&         iy,
   if( scat_za_grid.nelem() == 0 )
     throw runtime_error( "The variable *scat_za_grid* is empty. Are dummy "
                          "values from *cloudboxOff used?" );
+  if( !( za_interp_order<scat_za_grid.nelem() ) )
+    throw runtime_error( "Zenith angle interpolation order *za_interp_order*"
+                         " must be smaller\n"
+                         "than number of angles in *scat_za_grid*." );
+  if( atmosphere_dim>1 && !( aa_interp_order<scat_aa_grid.nelem() ) )
+    throw runtime_error( "Azimuth angle interpolation order *aa_interp_order*"
+                         " must be smaller\n"
+                         "than number of angles in *scat_aa_grid*." );
   if( doit_i_field.nlibraries() != f_grid.nelem() )
     throw runtime_error( "Inconsistency in size between f_grid and doit_i_field! "
          "(This method does not yet handle dispersion type calculations.)" );
@@ -3534,9 +3543,9 @@ void iyInterpCloudboxField(Matrix&         iy,
   Index border_index;
   if( border<99 )
     {
-      if( border%2 ) // odd number
+      if( border%2 ) // odd border id, ie top or north or east(?)
         border_index = cloudbox_limits[border] - cloudbox_limits[border-1];
-      else
+      else // even border id, ie bottom or south or west
         border_index = 0;
     }
 
@@ -3731,6 +3740,15 @@ void iyInterpCloudboxField(Matrix&         iy,
               "No scat_za_grid grid point found in 0-90deg hemisphere.\n"
               "No hemispheric interpolation possible." );
         }
+      if( !( za_interp_order<za_extend ) )
+        {
+          ostringstream os;
+          os << "Zenith angle interpolation order *za_interp_order* ("
+             << za_interp_order << ") must be smaller\n"
+             << "than number of angles in respective hemisphere ("
+             << za_extend << ").";
+          throw runtime_error( os.str() );
+        }
     }
 
   // Grid position in *scat_za_grid*
@@ -3746,16 +3764,73 @@ void iyInterpCloudboxField(Matrix&         iy,
 */
   if( cos_za_interp )
     {
-      Vector cosza_grid(scat_za_grid.nelem());
-      for( Index i_za=0; i_za<scat_za_grid.nelem(); i_za++ )
-        cosza_grid[i_za] = cos(scat_za_grid[i_za]*DEG2RAD);
-      gridpos_poly( gp_za, cosza_grid[Range(za_start,za_extend)],
-                    cos(rte_los[0]*DEG2RAD), za_interp_order ); //, extrapolfac );
+      Vector cosza_grid(za_extend);
+      const Numeric cosza=cos(rte_los[0]*DEG2RAD);
+
+      for( Index i_za=0; i_za<za_extend; i_za++ )
+        cosza_grid[i_za] = cos(scat_za_grid[i_za+za_start]*DEG2RAD);
+
+      const Numeric cosza_min = cosza_grid[0] -
+                                za_extpolfac*(cosza_grid[1]-cosza_grid[0] );
+      if( cosza < cosza_min )
+        {
+          ostringstream os;
+          os << "Zenith angle " << rte_los[0] << "deg is outside the range"
+             << " covered by scat_za_grid.\n" 
+             << "Lower limit of allowed range is " << cosza_min << ".\n"
+             << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
+             << " use wider scat_za_grid.\n";
+          throw runtime_error( os.str() );
+        }
+      const Numeric cosza_max = cosza_grid[za_extend-1] +
+                                za_extpolfac*(cosza_grid[za_extend-1]-
+                                           cosza_grid[za_extend-2]);
+      if( cosza > cosza_max )
+        {
+          ostringstream os;
+          os << "Zenith angle " << rte_los[0] << "deg is outside the range"
+             << " covered by scat_za_grid.\n" 
+             << "Upper limit of allowed range is " << acos(cosza_max)*RAD2DEG << ".\n"
+             << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
+             << " use wider scat_za_grid.\n";
+          throw runtime_error( os.str() );
+        }
+
+      gridpos_poly( gp_za, cosza_grid,
+                    cosza, za_interp_order, za_extpolfac );
     }
   else
     {
-      gridpos_poly( gp_za, scat_za_grid[Range(za_start,za_extend)],
-                    rte_los[0], za_interp_order ); //, extrapolfac );
+      Vector za_grid = scat_za_grid[Range(za_start,za_extend)];
+      const Numeric za=rte_los[0];
+
+      const Numeric za_min = za_grid[0] -
+                             za_extpolfac*(za_grid[1]-za_grid[0] );
+      if( za < za_min )
+        {
+          ostringstream os;
+          os << "Zenith angle " << rte_los[0] << "deg is outside the range"
+             << " covered by scat_za_grid.\n" 
+             << "Lower limit of allowed range is " << za_min << ".\n"
+             << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
+             << " use wider scat_za_grid.\n";
+          throw runtime_error( os.str() );
+        }
+      const Numeric za_max = za_grid[za_grid.nelem()-1] +
+                             za_extpolfac*(za_grid[za_extend-1]-
+                                        za_grid[za_extend-2]);
+      if( za > za_max )
+        {
+          ostringstream os;
+          os << "Zenith angle " << za << "deg is outside the range"
+             << " covered by scat_za_grid.\n" 
+             << "Upper limit of allowed range is " << za_max << ".\n"
+             << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
+             << " use wider scat_za_grid.\n";
+          throw runtime_error( os.str() );
+        }
+      gridpos_poly( gp_za, za_grid,
+                    za, za_interp_order, za_extpolfac );
     }
   
   if( atmosphere_dim>1 )

@@ -45,6 +45,7 @@ void check_rt4_input( // Output
                       const Index& cloudbox_checked,
                       const Index& nstreams,
                       const String& quad_type,
+                      const Index& add_straight_angles,
                       const Index& pnd_ncols,
                       const Index& ifield_npages );
 

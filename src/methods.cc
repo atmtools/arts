@@ -6926,15 +6926,16 @@ void define_md_data_raw()
             "lon_grid", "z_field", "stokes_dim", 
             "scat_za_grid", "scat_aa_grid", "f_grid" ),
         GIN(         "za_interp_order", "za_restrict", "cos_za_interp",
-                     "aa_interp_order" ),
+                     "za_extpolfac", "aa_interp_order" ),
         GIN_TYPE(    "Index",           "Index",       "Index",
-                     "Index" ),
+                     "Numeric",        "Index" ),
         GIN_DEFAULT( "1",               "0",           "0",
-                     "1" ),
+                     "1.0",            "1" ),
         GIN_DESC( "Zenith angle interpolation order.",
                   "Flag whether to restric zenith angle interpolation to one"
                   " hemisphere.",
                   "Flag whether to do zenith angle interpolation in cosine space.",
+                  "Maximum allowed extrapolation range in zenith angle.",
                   "Azimuth angle interpolation order." )
         ));
 
@@ -10979,8 +10980,8 @@ void define_md_data_raw()
          "\n"
          "Some extrapolation is allowed. For pressure and frequency interpolation\n"
          "the standard extrapolation factor of 0.5 is applied. The factor is the\n"
-         "default for temperature and VMR interpolationb, but the extrapolation\n"
-         "limit can here be adjusted by the *extrapolfac* argument.\n"
+         "default for temperature and VMR interpolation, but the extrapolation\n"
+         "limit can here be adjusted by the *extpolfac* argument.\n"
          "\n"
          "See also: *propmat_clearskyAddOnTheFly*.\n"
          ),
@@ -12109,10 +12110,13 @@ void define_md_data_raw()
             "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
             "scat_data", "f_grid", "stokes_dim" ),
         GIN(         "nstreams", "non_iso_inc", "pfct_method", "quad_type",
+                     "add_straight_angles",
                      "pfct_aa_grid_size", "pfct_threshold", "max_delta_tau" ),
         GIN_TYPE(    "Index",    "Index",       "String",      "String",
+                     "Index",
                      "Index",             "Numeric",        "Numeric" ),
         GIN_DEFAULT( "16",       "0",           "median",      "D",
+                     "1",
                      "19",                "5e-2",           "1e-6" ),
         GIN_DESC( "Number of polar angle directions (streams) in RT4"
                   " solution (must be an even number).",
@@ -12122,6 +12126,8 @@ void define_md_data_raw()
                   " available options see above).",
                   "Flag which quadrature to apply in RT4 solution (for"
                   " available options see above).",
+                  "Flag whether to include nadir and zenith as explicit"
+                  " directions (only effective for quad_type G and D).",
                   "Number of azimuthal angle grid points to consider in"
                   " Fourier series decomposition of scattering matrix (only"
                   " applied for randomly oriented scattering elements)",
@@ -12166,13 +12172,13 @@ void define_md_data_raw()
             "surface_skin_t", "surface_scalar_reflectivity",
             "surface_reflectivity", "surface_complex_refr_index" ),
         GIN(         "nstreams", "non_iso_inc", "pfct_method",
-                     "ground_type", "quad_type",
+                     "ground_type", "quad_type", "add_straight_angles",
                      "pfct_aa_grid_size", "pfct_threshold", "max_delta_tau" ),
         GIN_TYPE(    "Index",    "Index",       "String",
-                     "String",      "String",
+                     "String",      "String",    "Index",
                      "Index",             "Numeric",        "Numeric" ),
         GIN_DEFAULT( "16",       "0",           "median",
-                     "A",           "D",
+                     "A",           "D",         "1",
                      "19",                "5e-2",           "1e-6" ),
         GIN_DESC( "Number of polar angle directions (streams) in RT4"
                   " solution (must be an even number).",
@@ -12184,6 +12190,8 @@ void define_md_data_raw()
                   " (for available options see above).",
                   "Flag which quadrature to apply in RT4 solution (for"
                   " available options see above).",
+                  "Flag whether to include nadir and zenith as explicit"
+                  " directions (only effective for quad_type G and D).",
                   "Number of azimuthal angle grid points to consider in"
                   " Fourier series decomposition of scattering matrix (only"
                   " applied for randomly oriented scattering elements)",
@@ -12201,8 +12209,8 @@ void define_md_data_raw()
         (
          "Initialises variables for RT4 scattering calculations.\n"
          "\n"
-         "*nstreams* and *quad_type* need to be identical to the ones used by\n"
-         "*RT4Calc*.\n"
+         "*nstreams*, *quad_type*, and *add_straight_angles* need to be\n"
+         "identical to the ones used by *RT4Calc*.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "doit_i_field", "rt4_is_initialized" ),
@@ -12211,12 +12219,14 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "stokes_dim", "atmosphere_dim", "f_grid",
             "cloudbox_on", "cloudbox_limits", "scat_data" ),
-        GIN(         "nstreams", "quad_type" ),
-        GIN_TYPE(    "Index",    "String" ),
-        GIN_DEFAULT( "16",        "D" ),
+        GIN(         "nstreams", "quad_type", "add_straight_angles" ),
+        GIN_TYPE(    "Index",    "String",    "Index" ),
+        GIN_DEFAULT( "16",        "D",        "1" ),
         GIN_DESC( "Number of polar angle directions (streams) in RT4 solution.",
                   "Flag which quadrature to apply in RT4 solution (for"
-                  "available options see *RT4Calc*)." )
+                  "available options see *RT4Calc*).",
+                  "Flag whether to include nadir and zenith as explicit"
+                  " directions (only effective for quad_type G and D)." )
         ));
 
   md_data_raw.push_back

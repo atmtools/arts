@@ -87,6 +87,7 @@ void check_rt4_input( // Output
                       const Index& cloudbox_checked,
                       const Index& nstreams,
                       const String& quad_type,
+                      const Index& add_straight_angles,
                       const Index& pnd_ncols,
                       const Index& ifield_npages )
 {
@@ -127,7 +128,10 @@ void check_rt4_input( // Output
 
   if( quad_type=="D" || quad_type=="G" )
     {
-      nhza=1;
+      if( add_straight_angles )
+        nhza=1;
+      else
+        nhza=0;
     }
   else if( quad_type=="L" )
     {
@@ -220,7 +224,7 @@ void get_quad_angles( // Output
                          );
     }
 
-  // Set "extra" angle (at 0deg) if quad_type!="L"
+  // Set "extra" angle (at 0deg) if quad_type!="L" && !add_straight_angles
   if( nhza>0 )
       mu_values[nhstreams] = 1.;
 

@@ -72,6 +72,7 @@ void RT4Calc( Workspace& ws,
                 const Index& non_iso_inc _U_,
                 const String& pfct_method,
                 const String& quadtype,
+                const Index& add_straight_angles,
                 const Index& pfct_aa_grid_size,
                 const Numeric& pfct_threshold,
                 const Numeric& max_delta_tau,
@@ -86,7 +87,7 @@ void RT4Calc( Workspace& ws,
   check_rt4_input( nhstreams, nhza, nummu,
                    cloudbox_on, rt4_is_initialized, "RT4CalcWithRT4surface",
                    atmfields_checked, atmgeom_checked, cloudbox_checked,
-                   nstreams, quad_type,
+                   nstreams, quad_type, add_straight_angles,
                    pnd_field.ncols(), doit_i_field.npages() );
 
   // in RT4 mu_values is generally only output. however, we need the values for
@@ -184,6 +185,7 @@ void RT4CalcWithRT4Surface(
                 const String& pfct_method,
                 const String& groundtype,
                 const String& quadtype,
+                const Index& add_straight_angles,
                 const Index& pfct_aa_grid_size,
                 const Numeric& pfct_threshold,
                 const Numeric& max_delta_tau,
@@ -198,7 +200,7 @@ void RT4CalcWithRT4Surface(
   check_rt4_input( nhstreams, nhza, nummu,
                    cloudbox_on, rt4_is_initialized, "RT4CalcWithRT4surface",
                    atmfields_checked, atmgeom_checked, cloudbox_checked,
-                   nstreams, quad_type,
+                   nstreams, quad_type, add_straight_angles,
                    pnd_field.ncols(), doit_i_field.npages() );
 
   // in RT4 mu_values is generally only output. however, we need the values for
@@ -286,6 +288,7 @@ void RT4Calc( Workspace&,
                 const String&,
                 const String&,
                 const Index&,
+                const Index&,
                 const Numeric&,
                 const Numeric&,
                 const Verbosity& )
@@ -328,6 +331,7 @@ void RT4CalcWithRT4Surface( Workspace&,
                 const String&,
                 const String&,
                 const Index&,
+                const Index&,
                 const Numeric&,
                 const Numeric&,
                 const Verbosity& )
@@ -351,6 +355,7 @@ void RT4Init(//WS Output
               const ArrayOfArrayOfSingleScatteringData& scat_data,
               const Index& nstreams,
               const String& quad_type,
+              const Index& add_straight_angles,
               const Verbosity& verbosity _U_ )
 {
   if (!cloudbox_on)
@@ -410,7 +415,10 @@ void RT4Init(//WS Output
   Index neza;
   if( quad_type=="D" || quad_type=="G" )
     {
-      neza=2;
+      if( add_straight_angles )
+        neza=2;
+      else
+        neza=0;
     }
   else if( quad_type=="L" )
     {
