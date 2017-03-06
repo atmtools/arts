@@ -602,6 +602,14 @@ void run_rt4( Workspace& ws,
   Tensor5 extinct_matrix(num_scatlayers,2,nummu,stokes_dim,stokes_dim, 0.);
   Tensor4 emis_vector(num_scatlayers,2,nummu,stokes_dim, 0.);
 
+  // if there is no scatt particle at all, we don't need to calculate the
+  // scat properties (FIXME: that should rather be done by a proper setting
+  // of scat_layers).
+  Vector pnd_per_level(pnd_field.npages());
+  for(Index clev=0; clev<pnd_field.npages(); clev++)
+    pnd_per_level[clev]=pnd_field(joker,clev,0,0).sum();
+  Numeric pndtot=pnd_per_level.sum();
+
   for (Index i = 0; i < cloudbox_limits[1]-cloudbox_limits[0]; i++)
     {
       scatlayers[num_layers-1-cloudbox_limits[0]-i] = float(i+1);
@@ -627,26 +635,36 @@ void run_rt4( Workspace& ws,
       //Vector muvalues=mu_values;
 
       scat_data_monoCalc(scat_data_mono, scat_data, f_grid, f_index, verbosity);
-      
-      gas_optpropCalc( ws, gas_extinct,
-                       propmat_clearsky_agenda,
-                       t_field(Range(0,num_layers+1),joker,joker),
-                       vmr_field(joker,Range(0,num_layers+1),joker,joker),
-                       p_grid[Range(0,num_layers+1)],
-                       f_grid[Range(f_index,1)]);
 
-      par_optpropCalc( ws, emis_vector, extinct_matrix,
-                       //scatlayers,
-                       spt_calc_agenda, opt_prop_part_agenda,
-                       pnd_field,
-                       t_field(Range(0,num_layers+1),joker,joker),
-                       cloudbox_limits, stokes_dim, nummu );
-      sca_optpropCalc( scatter_matrix,
-                       emis_vector, extinct_matrix,
-                       scat_data_mono, pnd_field, stokes_dim,
-                       scat_za_grid, quad_weights,
-                       pfct_method, pfct_aa_grid_size, pfct_threshold,
-                       verbosity );
+      // only update gas_extinct if there is any gas absorption at all (since
+      // vmr_field is not freq-dependent, gas_extinct will remain as above
+      // initialized (with 0) for all freqs, ie we can rely on that it wasn't
+      // changed.
+      if( vmr_field.nbooks()>0 )
+        {
+          gas_optpropCalc( ws, gas_extinct,
+                           propmat_clearsky_agenda,
+                           t_field(Range(0,num_layers+1),joker,joker),
+                           vmr_field(joker,Range(0,num_layers+1),joker,joker),
+                           p_grid[Range(0,num_layers+1)],
+                           f_grid[Range(f_index,1)]);
+        }
+
+      if( pndtot )
+        {
+          par_optpropCalc( ws, emis_vector, extinct_matrix,
+                           //scatlayers,
+                           spt_calc_agenda, opt_prop_part_agenda,
+                           pnd_field,
+                           t_field(Range(0,num_layers+1),joker,joker),
+                           cloudbox_limits, stokes_dim, nummu );
+          sca_optpropCalc( scatter_matrix,
+                           emis_vector, extinct_matrix,
+                           scat_data_mono, pnd_field, stokes_dim,
+                           scat_za_grid, quad_weights,
+                           pfct_method, pfct_aa_grid_size, pfct_threshold,
+                           verbosity );
+        }
 
 #pragma omp critical(fortran_rt4)
       {

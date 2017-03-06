@@ -1,5 +1,15 @@
 2017-03-06 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-650
+
+	* src/rt4.cc (run_rt4):
+	Update gas absorption from initialized zeros only if there is at least
+	one abs_species (determined via vmr_field extend). Also, only
+	determine scattering properties if there's at least one non-zero
+	pnd_field entry.
+
+2017-03-06 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-649
 
 	ATTENTION: Breaks backward compatability of RT4-using controlfiles.
