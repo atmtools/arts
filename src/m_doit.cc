@@ -3770,27 +3770,30 @@ void iyInterpCloudboxField(Matrix&         iy,
       for( Index i_za=0; i_za<za_extend; i_za++ )
         cosza_grid[i_za] = cos(scat_za_grid[i_za+za_start]*DEG2RAD);
 
-      const Numeric cosza_min = cosza_grid[0] -
-                                za_extpolfac*(cosza_grid[1]-cosza_grid[0] );
-      if( cosza < cosza_min )
+      // OBS: cosza is a decreasing grid!
+      const Numeric cosza_min = cosza_grid[0] +
+                                za_extpolfac*(cosza_grid[0]-cosza_grid[1] );
+      if( cosza > cosza_min )
         {
           ostringstream os;
           os << "Zenith angle " << rte_los[0] << "deg is outside the range"
              << " covered by scat_za_grid.\n" 
-             << "Lower limit of allowed range is " << cosza_min << ".\n"
+             << "Lower limit of allowed range is "
+             << acos(cosza_min)*RAD2DEG << ".\n"
              << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
              << " use wider scat_za_grid.\n";
           throw runtime_error( os.str() );
         }
-      const Numeric cosza_max = cosza_grid[za_extend-1] +
-                                za_extpolfac*(cosza_grid[za_extend-1]-
-                                           cosza_grid[za_extend-2]);
-      if( cosza > cosza_max )
+      const Numeric cosza_max = cosza_grid[za_extend-1] -
+                                za_extpolfac*(cosza_grid[za_extend-2]-
+                                           cosza_grid[za_extend-1]);
+      if( cosza < cosza_max )
         {
           ostringstream os;
           os << "Zenith angle " << rte_los[0] << "deg is outside the range"
              << " covered by scat_za_grid.\n" 
-             << "Upper limit of allowed range is " << acos(cosza_max)*RAD2DEG << ".\n"
+             << "Upper limit of allowed range is "
+             << acos(cosza_max)*RAD2DEG << ".\n"
              << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
              << " use wider scat_za_grid.\n";
           throw runtime_error( os.str() );
