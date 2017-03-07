@@ -1,5 +1,19 @@
 2017-03-07 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-652
+
+	* src/methods.cc, m_disort.cc (DisortInit, DisortCalc*),
+	disort.[cc,h] (check_disort_input, init_ifield),
+	rt4.[cc,h] (check_disort_input, init_ifield), m_rt4.cc:
+	Removed DisortInit, moved (most) functionality into check_disort_input.
+	Moved init_ifield from rt4.cc to disort.cc (less of a hassle to
+	include disort.h than rt4.h).
+
+	* controlfiles/artscomponents/disort/TestDISORT.arts:
+	Adapted to above.
+
+2017-03-07 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-651
 
 	* src/m_doit.cc (iyInterpCloudboxField):

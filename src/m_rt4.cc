@@ -33,8 +33,9 @@
   ===========================================================================*/
 
 #include <stdexcept>
-#include "auto_md.h"
 #include <complex.h>
+#include "auto_md.h"
+#include "disort.h"
 #include "messages.h"
 #include "m_xml.h"
 #include "rt4.h"

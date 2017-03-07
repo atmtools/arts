@@ -36,16 +36,25 @@
 
 void check_disort_input( // Input
                          const Index& cloudbox_on,
-                         const Index& disort_is_initialized,
                          const Index& atmfields_checked,
                          const Index& atmgeom_checked,
                          const Index& cloudbox_checked,
+                         const Index& atmosphere_dim,
+                         const Index& stokes_dim,
+                         const ArrayOfIndex& cloudbox_limits, 
                          const ArrayOfArrayOfSingleScatteringData& scat_data,
                          ConstVectorView scat_za_grid,
                          const Index& nstreams,
                          const String& pfct_method,
-                         const Index& pnd_ncols,
-                         const Index& ifield_npages );
+                         const Index& pnd_ncols );
+
+void init_ifield( // Output
+                  Tensor7& doit_i_field,
+                  // Input
+                  const Vector& f_grid,
+                  const ArrayOfIndex& cloudbox_limits, 
+                  const Index& nang,
+                  const Index& stokes_dim );
 
 void get_disortsurf_props( // Output
                         Vector& albedo,

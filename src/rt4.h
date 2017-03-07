@@ -50,14 +50,6 @@ void check_rt4_input( // Output
                       const Index& add_straight_angles,
                       const Index& pnd_ncols );
 
-void init_ifield( // Output
-                  Tensor7& doit_i_field,
-                  // Input
-                  const Vector& f_grid,
-                  const ArrayOfIndex& cloudbox_limits, 
-                  const Index& nang,
-                  const Index& stokes_dim );
-
 void get_quad_angles( // Output
                       VectorView mu_values,
                       VectorView quad_weights,

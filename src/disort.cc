@@ -69,16 +69,17 @@ extern const Numeric COSMIC_BG_TEMP;
 */
 void check_disort_input( // Input
                          const Index& cloudbox_on,
-                         const Index& disort_is_initialized,
                          const Index& atmfields_checked,
                          const Index& atmgeom_checked,
                          const Index& cloudbox_checked,
+                         const Index& atmosphere_dim,
+                         const Index& stokes_dim,
+                         const ArrayOfIndex& cloudbox_limits, 
                          const ArrayOfArrayOfSingleScatteringData& scat_data,
                          ConstVectorView scat_za_grid,
                          const Index& nstreams,
                          const String& pfct_method,
-                         const Index& pnd_ncols,
-                         const Index& ifield_npages )
+                         const Index& pnd_ncols )
 {
   // Don't do anything if there's no cloudbox defined.
   //if (!cloudbox_on) return;
@@ -92,15 +93,6 @@ void check_disort_input( // Input
                          "performed." );
   }
 
-  // Check whether DisortInit was executed
-  if (!disort_is_initialized)
-    {
-      ostringstream os;
-      os << "Initialization method *DisortInit* must be called before "
-         << "*DisortCalc*";
-      throw runtime_error( os.str() );
-    }
-
   if( atmfields_checked != 1 )
     throw runtime_error( "The atmospheric fields must be flagged to have "
                          "passed a consistency check (atmfields_checked=1)." );
@@ -111,15 +103,42 @@ void check_disort_input( // Input
     throw runtime_error( "The cloudbox must be flagged to have "
                          "passed a consistency check (cloudbox_checked=1)." );
 
+  if( atmosphere_dim != 1   )
+    throw runtime_error( "For running DISORT, atmospheric dimensionality "
+                         "must be 1.\n");
+
+  if (stokes_dim < 0 || stokes_dim > 1)
+    throw runtime_error( "For running DISORT, the dimension of stokes vector "
+                         "must be 1.\n");
+
   if( pnd_ncols != 1 ) 
     throw runtime_error("*pnd_field* is not 1D! \n" 
                         "DISORT can only be used for 1D!\n" );
 
-  if( ifield_npages != scat_za_grid.nelem() ) 
-    throw runtime_error("Sizes of *scat_za_grid* and *doit_i_field* are "
-                        " inconsistent.\n"
-                        "Do not modify them after the call of *DisortInit*\n" );
-  
+  if ( cloudbox_limits.nelem()!= 2*atmosphere_dim )
+    throw runtime_error(
+                        "*cloudbox_limits* is a vector which contains the"
+                        "upper and lower limit of the cloud for all "
+                        "atmospheric dimensions. So its dimension must"
+                        "be 2 x *atmosphere_dim*");
+
+  if( cloudbox_limits[0] != 0   )
+    {
+      ostringstream os;
+      os << "DISORT calculations currently only possible with "
+         << "lower cloudbox limit\n"
+         << "at 0th atmospheric level "
+         << "(assumes surface there, ignoring z_surface).\n";
+      throw runtime_error(os.str());
+    }
+
+  if ( scat_data.empty() )
+    throw runtime_error(
+                         "No single scattering data present.\n"
+                         "See documentation of WSV *scat_data* for options to "
+                         "make single scattering data available.\n"
+                         );
+
   // DISORT requires even number of streams:
   // nstreams is total number of directions, up- and downwelling, and the up-
   // and downwelling directions need to be symmetrically distributed, i.e. same
@@ -133,6 +152,70 @@ void check_disort_input( // Input
       throw runtime_error( os.str() );
     }
 
+  // Zenith angle grid.
+  Index nza = scat_za_grid.nelem();
+
+  // scat_za_grid here is only relevant to provide an i_field from which the
+  // sensor los angles can be interpolated by yCalc; it does not the determine
+  // the accuracy of the DISORT output itself at these angles. So we can only
+  // apply a very rough test here, whether the grid is appropriate. However, we
+  // set the threshold fairly high since calculation costs for a higher number
+  // of angles are negligible.
+  if ( nza < 37 )
+    {
+      ostringstream os;
+      os << "We require size of scat_za_grid to be > 36\n"
+         << "to ensure accurate radiance field interpolation in yCalc.\n"
+         << "Note that for DISORT additional computation costs for\n"
+         << "larger numbers of angles are negligible.";
+      throw runtime_error( os.str() );
+    }
+
+  if (scat_za_grid[0] != 0. || scat_za_grid[nza-1] != 180.)
+    throw runtime_error( "The range of *scat_za_grid* must [0 180]." );
+  
+  if (!is_increasing(scat_za_grid))
+    throw runtime_error("*scat_za_grid* must be increasing.");
+
+  if( nza/2*2 != nza )
+    {
+      // uneven nza detected. uneven nza (when set as equidistant grid as
+      // commonly done by ARTS) lead to polar angle grid point at 90deg, ie at
+      // the horizontal. this is not safely calculable in a plane-parallel atmo.
+      // for now we just force the user to use an even nza.
+      //
+      // an even nza does not place the center angles close to horizon, though,
+      // unless the number of streams is very high. therefore, one could instead
+      // replace this gridpoint with two points centered closely around 90deg
+      // and derive the 90deg value from averaging these two.
+      // however, this is left to the future (and needs testing).
+      //
+      // FIXME: more correct (and stable in case of non-equidistant grids) is to
+      // check whether scat_za_grid actually contains the 90deg angle and to
+      // reject (or circumvent) this specifically.
+      ostringstream os;
+      os << "Uneven number of angles in scat_za_grid (nza=" << nza << ".\n"
+         << "Use even number with no grid point at 90deg poin.t\n";
+      throw runtime_error( os.str() );
+    }
+
+  // DISORT can only handle randomly oriented particles.
+  bool all_p20=true;
+  for( Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++ )
+    for( Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++ )
+      if( scat_data[i_ss][i_se].ptype != PTYPE_TOTAL_RND )
+        all_p20=false;
+  if( !all_p20 )
+    {
+      ostringstream os;
+      os << "DISORT can only handle scattering elements of type "
+         << PTYPE_TOTAL_RND << " (" << PTypeToString(PTYPE_TOTAL_RND) << "),\n"
+         << "but at least one element of other type (" << PTYPE_AZIMUTH_RND
+         << "=" << PTypeToString(PTYPE_AZIMUTH_RND) << " or " << PTYPE_GENERAL
+         << "=" << PTypeToString(PTYPE_GENERAL) << ") is present.\n";
+      throw runtime_error( os.str() );
+    }
+    
   if( pfct_method!="interpolate" )
   {
     // The old interface can only handle particles with single scattering data
@@ -159,6 +242,39 @@ void check_disort_input( // Input
       }
   }
 }
+
+
+//! init_ifield
+/*!
+  Initialize doit_i_field with the right size and NaN values.
+
+  \param doit_i_field          as the WSV
+  \param f_grid                as the WSV
+  \param cloudbox_limits       as the WSV
+  \param nang                  Total number of angles with RT output.
+  \param stokes_dim            as the WSV
+
+  \author Jana Mendrok
+  \date   2017-03-06
+*/
+void init_ifield( // Output
+                  Tensor7& doit_i_field,
+                  // Input
+                  const Vector& f_grid,
+                  const ArrayOfIndex& cloudbox_limits, 
+                  const Index& nang,
+                  const Index& stokes_dim )
+{
+  const Index Nf = f_grid.nelem();
+  const Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
+  //const Index Nza = scat_za_grid.nelem();
+
+  // Resize and initialize radiation field in the cloudbox
+  //doit_i_field.resize( Nf, Np_cloud, 1, 1, Nza, 1, 1 );
+  doit_i_field.resize( Nf, Np_cloud, 1, 1, nang, 1, stokes_dim );
+  doit_i_field = NAN;
+}
+
 
 //! get_disortsurf_props
 /*!

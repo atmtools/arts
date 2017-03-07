@@ -216,38 +216,6 @@ void check_rt4_input( // Output
 }
 
 
-//! init_ifield
-/*!
-  Initialize doit_i_field with the right size and NaN values.
-
-  \param doit_i_field          as the WSV
-  \param f_grid                as the WSV
-  \param cloudbox_limits       as the WSV
-  \param nang                  Total number of angles with RT output.
-  \param stokes_dim            as the WSV
-
-  \author Jana Mendrok
-  \date   2017-03-06
-*/
-void init_ifield( // Output
-                  Tensor7& doit_i_field,
-                  // Input
-                  const Vector& f_grid,
-                  const ArrayOfIndex& cloudbox_limits, 
-                  const Index& nang,
-                  const Index& stokes_dim )
-{
-  const Index Nf = f_grid.nelem();
-  const Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
-  //const Index Nza = scat_za_grid.nelem();
-
-  // Resize and initialize radiation field in the cloudbox
-  //doit_i_field.resize( Nf, Np_cloud, 1, 1, Nza, 1, 1 );
-  doit_i_field.resize( Nf, Np_cloud, 1, 1, nang, 1, stokes_dim );
-  doit_i_field = NAN;
-}
-
-
 //! get_quad_angles
 /*!
   Derive the quadrature angles related to selected RT4 quadrature type and set

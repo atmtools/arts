@@ -4041,13 +4041,12 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_i_field", "disort_is_initialized",
-            "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
+        IN( "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
             "cloudbox_on", "cloudbox_limits",
             "propmat_clearsky_agenda",
             "opt_prop_part_agenda", "spt_calc_agenda", "iy_main_agenda",
-            "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
-            "scat_data", "f_grid", "scat_za_grid",
+            "atmosphere_dim", "pnd_field", "t_field", "z_field", "vmr_field",
+            "p_grid", "scat_data", "f_grid", "scat_za_grid", "stokes_dim",
             "surface_skin_t", "surface_scalar_reflectivity" ),
         GIN(         "nstreams", "non_iso_inc", "pfct_method" ),
         GIN_TYPE(    "Index",    "Index",       "String" ),
@@ -4089,14 +4088,13 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_i_field", "disort_is_initialized",
-            "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
+        IN( "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
             "cloudbox_on", "cloudbox_limits",
             "propmat_clearsky_agenda",
             "opt_prop_part_agenda", "spt_calc_agenda", "iy_main_agenda",
-            "surface_rtprop_agenda",
+            "surface_rtprop_agenda", "atmosphere_dim", 
             "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
-            "scat_data", "f_grid", "scat_za_grid" ),
+            "scat_data", "f_grid", "scat_za_grid", "stokes_dim" ),
         GIN(         "nstreams", "non_iso_inc", "pfct_method" ),
         GIN_TYPE(    "Index",    "Index",       "String" ),
         GIN_DEFAULT( "8",        "0",           "median" ),
@@ -4105,26 +4103,6 @@ void define_md_data_raw()
                   "Flag whether to run DISORT initialized with non-isotropic "
                   "TOA field. See above for more info.",
                   "Flag which method to apply to derive phase function." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "DisortInit" ),
-        DESCRIPTION
-        (
-         "Initialises variables for DISORT scattering calculations.\n"
-         ),
-        AUTHORS( "Jana Mendrok" ),
-        OUT( "doit_i_field", "disort_is_initialized" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "stokes_dim", "atmosphere_dim", "f_grid", "scat_za_grid",
-            "cloudbox_on", "cloudbox_limits", "scat_data" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
         ));
 
   md_data_raw.push_back
