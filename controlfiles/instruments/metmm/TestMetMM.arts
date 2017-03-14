@@ -16,6 +16,8 @@ INCLUDE "general/planet_earth.arts"
 
     ArrayOfIndexSet(channels, [-1])
    #ArrayOfIndexSet(viewing_angles, [-1]) # Pick all viewing angles
+# We use the usual zero-based ARTS indexing here, so index
+# 11 is actually channel 12, etc. 
 
     # For testing, only calculate one viewing angle
     ArrayOfIndexSet(viewing_angles, [0])
