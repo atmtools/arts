@@ -1,3 +1,9 @@
+2017-03-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-654
+
+	* README: Add information on using callgrind.
+
 2017-03-14  Alex Bobryshev  <oleksandr.bobryshev@uni-hamburg.de>
 
 	* arts-2-3-653

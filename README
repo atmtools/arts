@@ -233,6 +233,37 @@ Use C++11 and the new libc++ (currently only supported in Xcode builds):
 cmake -G Xcode -DWITH_XCODE_LIBCPP=1 ..
 
 
+VALGRIND PROFILING
+==================
+
+The callgrind plugin included in valgrind is the recommended profiling method
+for ARTS.
+
+Certain things should be taken into account when calling ARTS with valgrind.
+Since recursion (cycles) will lead to wrong profiling results it is
+important to use the following settings to obtain profile data for ARTS:
+
+valgrind --tool=callgrind --separate-callers=10 --separate-recs=3 arts -n1 ...
+
+For detail on these options consult the valgrind manual:
+
+http://valgrind.org/docs/manual/cl-manual.html#cl-manual.cycles
+
+-n1 should be passed to ARTS because parallelisation can further scew the
+results. Since executing a program in valgrind can lead to 50x slower
+execution, it is recommended to create a dedicated, minimal controlfile for
+profiling.
+
+After execution with valgrind, the resulting callgrind.out.* file can be
+opened in kcachegrind[1] for visualization. It is available as a package for
+most Linux distributions.
+
+Note that you don't have to do a full ARTS run. You can cancel the program
+after some time when you think you have gathered enough statistics.
+
+[1] https://kcachegrind.github.io/
+
+
 GPROF PROFILING
 ===============
 
@@ -245,12 +276,12 @@ mkdir build_profile
 cd build_profile
 
 2. Compile ARTS with profiling information:
-CFLAGS="-pg" CXXFLAGS="-pg" cmake ..
+CFLAGS="-pg" CXXFLAGS="-pg" FFLAGS="-pg" cmake ..
 make arts
 
 If your gprof version does not support GCC's latest dwarf format, you have
 to force a compatible format:
-CFLAGS="-pg -gdwarf-3" CXXFLAGS="-pg -gdwarf-3" cmake ..
+CFLAGS="-pg -gdwarf-3" CXXFLAGS="-pg -gdwarf-3" FFLAGS="-pg -gdwarf-3" cmake ..
 
 3. Run ARTS in the configuration you want to analyze:
 src/arts MYCONTROLFILE.arts
@@ -260,6 +291,6 @@ analyze it:
 gprof src/arts
 
 As gprof adds code overhead into the produced binary, using a sampling profiler
-such as 'Instruments' on Mac OS X is recommended to obtain more realistic timing
-results.
+such as 'Instruments' on Mac OS X or callgrind on Linux is recommended to obtain
+more realistic timing results.
 
