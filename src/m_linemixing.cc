@@ -1211,7 +1211,7 @@ void calculate_xsec_from_relmat(ArrayOfMatrix& xsec,
     // Perform the computations to get at the cross-sections
     for(Index iv = 0; iv < nf; iv++)
     {
-      const Numeric s0_freqfac =  f_grid[iv] * (1 - exp(- PLANCK_CONST * f_grid[iv] / kT)); // Adapted from Niro's code
+      const Numeric s0_freqfac =  f_grid[iv] * (1 - exp(- PLANCK_CONST * f_grid[iv] / kT)); // Adapted from Niro's code --- why are they changing from f0 to f?
       Numeric s0_freqfac_dt = 0.0;
       if(ppd.do_temperature())
       {
@@ -1460,6 +1460,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       {
         const Index nlines = abs_lines_per_band.nelem();
         relmat_per_band[ip][i].resize(nlines, nlines);
+        relmat_per_band[ip][i] = 0;
       }
     }
   }
@@ -1521,6 +1522,8 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
     // Allocation of band specific inputs (types: to be used as fortran input)
     long   M = (this_band[0].IsotopologueData().HitranTag())/10;
     long   I = (this_band[0].IsotopologueData().HitranTag())%10;
+#pragma omp critical
+    std::cout<<M<<" "<<I<<"\n";
     long   *upper          = new long[4*nlines];
     long   *lower          = new long[4*nlines];
     long   *g_prime        = new long[nlines];
@@ -1782,26 +1785,26 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           arts_relmat_interface__hartmann_and_niro_type(
             &nlines, &fmin, &fmax,
             &M, &I, v0.get_c_array(), S.get_c_array(),
-                                                        gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
-                                                        upper, lower,
-                                                        g_prime, g_double_prime,
-                                                        &t, &p, &QT, &QT0, &mass,
-                                                        &number_of_perturbers, molecule_code_perturber, 
-                                                        iso_code_perturber, perturber_mass, vmr.get_c_array(), &error_handling,
-                                                        W.get_c_array(), dipole.get_c_array(), rhoT.get_c_array() );
+            gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
+            upper, lower,
+            g_prime, g_double_prime,
+            &t, &p, &QT, &QT0, &mass,
+            &number_of_perturbers, molecule_code_perturber, 
+            iso_code_perturber, perturber_mass, vmr.get_c_array(), &error_handling,
+            W.get_c_array(), dipole.get_c_array(), rhoT.get_c_array() );
         }
         else if(relmat_type_per_band[iband] == linear_type)
         {
           arts_relmat_interface__linear_type(
             &nlines, &fmin, &fmax,
             &M, &I, v0.get_c_array(), S.get_c_array(),
-                                              gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
-                                              upper, lower,
-                                              g_prime, g_double_prime,
-                                              &t, &p, &QT, &QT0, &mass,
-                                              &number_of_perturbers, molecule_code_perturber, 
-                                              iso_code_perturber, perturber_mass, vmr.get_c_array(), &error_handling,
-                                              W.get_c_array(), dipole.get_c_array(), rhoT.get_c_array() );
+            gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
+            upper, lower,
+            g_prime, g_double_prime,
+            &t, &p, &QT, &QT0, &mass,
+            &number_of_perturbers, molecule_code_perturber, 
+            iso_code_perturber, perturber_mass, vmr.get_c_array(), &error_handling,
+            W.get_c_array(), dipole.get_c_array(), rhoT.get_c_array() );
         }
         else 
         {
@@ -1810,8 +1813,10 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
         
         if(error_handling == 1) // If it is still one here, then the program has found some error
         {
-          throw std:: runtime_error("Fatal error encountered in relmat calculations.  Check your input for sanity.\n"
-          "To check what relmat is doing, activate the debug flag of this code.");
+//           throw std:: runtime_error("Fatal error encountered in relmat calculations.  Check your input for sanity.\n"
+//           "To check what relmat is doing, activate the debug flag of this code.");
+          std::cout<<"Error for band (ignore local quanta): " << abs_lines_per_band[iband][0].QuantumNumbersString()<<"\n";
+          continue;
         }
         
         // Convert to SI-units
@@ -1846,26 +1851,26 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             arts_relmat_interface__hartmann_and_niro_type(
               &nlines, &fmin, &fmax,
               &M, &I, v0.get_c_array(), S.get_c_array(),
-                                                          gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
-                                                          upper, lower,
-                                                          g_prime, g_double_prime,
-                                                          &t_dt, &p, &QT_dt, &QT0, &mass,
-                                                          &number_of_perturbers, molecule_code_perturber, 
-                                                          iso_code_perturber, perturber_mass, vmr.get_c_array(), &e_tmp,
-                                                          W_dt.get_c_array(), dipole_dt.get_c_array(), rhoT_dt.get_c_array() );
+              gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
+              upper, lower,
+              g_prime, g_double_prime,
+              &t_dt, &p, &QT_dt, &QT0, &mass,
+              &number_of_perturbers, molecule_code_perturber, 
+              iso_code_perturber, perturber_mass, vmr.get_c_array(), &e_tmp,
+              W_dt.get_c_array(), dipole_dt.get_c_array(), rhoT_dt.get_c_array() );
           }
           else if(relmat_type_per_band[iband] == linear_type)
           {
             arts_relmat_interface__linear_type(
               &nlines, &fmin, &fmax,
               &M, &I, v0.get_c_array(), S.get_c_array(),
-                                                gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
-                                                upper, lower,
-                                                g_prime, g_double_prime,
-                                                &t_dt, &p, &QT_dt, &QT0, &mass,
-                                                &number_of_perturbers, molecule_code_perturber, 
-                                                iso_code_perturber, perturber_mass, vmr.get_c_array(), &e_tmp,
-                                                W_dt.get_c_array(), dipole_dt.get_c_array(), rhoT_dt.get_c_array() );
+              gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
+              upper, lower,
+              g_prime, g_double_prime,
+              &t_dt, &p, &QT_dt, &QT0, &mass,
+              &number_of_perturbers, molecule_code_perturber, 
+              iso_code_perturber, perturber_mass, vmr.get_c_array(), &e_tmp,
+              W_dt.get_c_array(), dipole_dt.get_c_array(), rhoT_dt.get_c_array() );
           }
           
           if(e_tmp == 1) // If it is still one here, then the program has found some error
@@ -1901,25 +1906,26 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
         //       partial derivation at a later stage.
         
         // Using Rodrigues etal method
-        calculate_xsec_from_relmat( abs_xsec_per_species,
-                                    dabs_xsec_per_species_dx,
-                                    ppd,
-                                    W,
-                                    W_dt,
-                                    f0,
-                                    f_grid,
-                                    dipole,
-                                    dipole_dt,
-                                    rhoT,
-                                    rhoT_dt,
-                                    psf,
-                                    psf_dt,
-                                    abs_t[ip],
-                                    mass,
-                                    iso_ratio,
-                                    this_species,
-                                    ip,
-                                    nlines);
+        if(not error_handling)
+          calculate_xsec_from_relmat( abs_xsec_per_species,
+                                      dabs_xsec_per_species_dx,
+                                      ppd,
+                                      W,
+                                      W_dt,
+                                      f0,
+                                      f_grid,
+                                      dipole,
+                                      dipole_dt,
+                                      rhoT,
+                                      rhoT_dt,
+                                      psf,
+                                      psf_dt,
+                                      abs_t[ip],
+                                      mass,
+                                      iso_ratio,
+                                      this_species,
+                                      ip,
+                                      nlines);
         
         if(write_relmat_per_band not_eq 0)
         {

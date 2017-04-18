@@ -8,8 +8,8 @@ module module_maths
         logical function isJb(dta1,i1,i2)
             use module_common_var
             implicit none
-            integer (kind=8), intent(in)    :: i1,i2
-            type(dta_SDF),intent(in)        :: dta1  
+            integer (kind=8)      , intent(in) :: i1,i2
+            type(dta_SDF), pointer, intent(in) :: dta1  
         end function isJb
 
         double precision function wigner3j( dJ1,dJ2,dJ3, dM1,dM2,dM3 )
@@ -31,45 +31,33 @@ module module_maths
             integer*8, intent(in) :: J, M
         END function CombiJM
         
-        double precision function wigner6j( uJ1,uJ2,uJ3, lJ1,lJ2,lJ3 )
+        double precision function wigner6j( A,B,uJ3, D,C6,F )
             use module_common_var
             implicit none
-            double precision, intent(in)    :: uJ1,uJ2,uJ3
-            double precision, intent(in)    :: lJ1,lJ2,lJ3
+            double precision, intent(in)    :: A,B ,uJ3
+            double precision, intent(in)    :: D,C6,F
         end function wigner6j
-
-        recursive function factr(n) RESULT(res)
-            implicit none
-            integer (kind=8), intent(in)             :: n
-            integer (kind=8)                         :: res
-        end function factr
         
-        double precision function fung(s, j1,j2,j3,Jd1,Jd2,Jd3)
-            implicit none
-            integer (kind=8), intent(in)             :: s
-            integer (kind=8), intent(in)             :: j1 ,j2 ,j3
-            integer (kind=8), intent(in)             :: Jd1,Jd2,Jd3
-        end function fung
-        
-        double precision function triangle_coeff(a,b,c)
-            implicit none
-            integer (kind=8), intent(in)             :: a,b,c
-        end function triangle_coeff
-        
-        subroutine bubble_index(N, array, indxo, ad)
+        subroutine bubble_index(N, array, indxo, ad, econ)
+            use module_common_var
+            use module_error
             implicit none
             integer (kind=8)  , intent(in)           :: N
             integer (kind=8)  , intent(inout)        :: indxo(N)
-            real*8   , intent(in)                    :: array(N)
-            character, intent(in)                    :: ad
+            real*8            , intent(in)           :: array(N)
+            character(1)      , intent(in)           :: ad
+            type (dta_ERR)    , intent(inout)        :: econ
         end subroutine bubble_index
         
-        subroutine ibubble_index(N, array, indxo, ad)
+        subroutine ibubble_index(N, array, indxo, ad, econ)
+            use module_common_var
+            use module_error
             implicit none
             integer (kind=8)  , intent(in)           :: N
             integer (kind=8)  , intent(inout)        :: indxo(N)
             integer (kind=8)  , intent(in)           :: array(N)
-            character,intent(in)                     :: ad
+            character(1)      , intent(in)           :: ad
+            type (dta_ERR)    , intent(inout)        :: econ
         end subroutine ibubble_index
         
         integer*8 function imax(N, iarray)
@@ -127,9 +115,6 @@ END module module_maths
 ! ----------------------------------
 ! Q00i    : HITRAN's L State Local Quanta for CH4 (Input).
 ! Ji      : (Input).
-! Ci      : C part of the U/L State Local Quanta for CH4 (Input).
-! ai      : "a" (or "n" above 3400cm-1) are counting integers.
-!              for levels of the same J and C (Input).
 ! isJb    : it tells the result of the comparision:
 !           1 -> greater
 !           0 -> smaller
@@ -151,14 +136,15 @@ END module module_maths
 !
     use module_common_var
     implicit none
-    integer*8, intent(in)     :: i1,i2
-    type(dta_SDF),intent(in)  :: dta1
-    integer*8                 :: J1, J2
+    integer*8             , intent(in) :: i1,i2
+    type(dta_SDF), pointer, intent(in) :: dta1
+    integer*8 :: J1, J2
 !-----------------------------------------
 ! Q001:
-    J1 = dta1%J(i1,1)!; C1 = dta1%Sr(i1,1); alph1= dta1%alph(i1,1)
+    J1 = dta1%J(i1,1)
 ! Q002:
-    J2 = dta1%J(i2,1)!; C12= dta1%Sr(i2,1); alph2= dta1%alph(i2,1)
+    J2 = dta1%J(i2,1)
+!
     if (J1 .ge. J2) then
       isJb = .true.
     else
@@ -371,9 +357,9 @@ END module module_maths
       RETURN
   END function CombiJM
 !--------------------------------------------------------------------------------------------------------------------                               
-  double precision function wigner6j(uJ1,uJ2,uJ3,lJ1,lJ2,lJ3)    
+  double precision function wigner6j(A,B,uJ3,D,C6,F) 
 !--------------------------------------------------------------------------------------------------------------------                                                                         
-!                                                                      
+!wigner6j(uJ1,uJ2,uJ3,lJ1,lJ2,lJ3)                                                                 
 !CALCUL OF 6J COEFFICIENTS FROM THE BOOKS OF MESSIAH, AND ROSE                    
 !FOR THE CASES WHERE                                              
 !           |  A  B  1  |       A+B+C+D                                
@@ -384,22 +370,24 @@ END module module_maths
 !  
       use module_common_var
       implicit none
-      double precision :: uJ1,uJ2,uJ3,lJ1,lJ2,lJ3
-      integer (kind=8) :: A,B,C6,D,E,F                                                 
+      double precision :: A,B,uJ3,D,C6,F
+      integer (kind=8) :: E                                                 
       double precision :: term
 !
 !
-      A = int(uJ1,8) ; B  = int(uJ2,8) ; E = int(uJ3,8)
-      D = int(lJ1,8) ; C6 = int(lJ2,8) ; F = int(lJ3,8)  
-      IF((abs(A-C6).GT.F).OR. &
-        (abs(B-D).GT.F) .OR. &
-        (A+C6.LT.F)       .OR. &      
-        (B+D.LT.F)) GOTO 1000  
+      E = int(uJ3,8)
+        
+      
+      IF( (abs(A-C6).GT.F) .OR. &
+          (abs(B-D ).GT.F) .OR. &
+          (A+C6     .LT.F) .OR. &      
+          (B+D      .LT.F) .OR. &
+          (E        .NE.1)) GOTO 1000  
 
-      GOTO(1,2,3,1000) C6-D+2                                             
+      GOTO(1,2,3,1000) int(C6-D+2)                                             
 !--------- CASE C=D-1 --------------                                     
    1  CONTINUE                                                          
-      GOTO(10,11,12)A-B+2                                               
+      GOTO(10,11,12) int(A-B+2)                                               
 !CASE A=B-1                                                             
 10    CONTINUE                                                          
       TERM=((F+B+D+1.0_dp)*(F+B+D)*(B+D-F)*(B+D-(1+F)))                    
@@ -420,7 +408,7 @@ END module module_maths
       RETURN                                                            
 !--------- CASE C=D   --------------                                     
    2  CONTINUE                                                          
-      GOTO(20,21,22)A-B+2                                               
+      GOTO(20,21,22) int(A-B+2)                                               
 !CASE A=B-1                                                             
 20    CONTINUE                                                          
       TERM=((F+B+D+1)*(D+B-F)*(F+B-D)*(F+D-B+1))                      
@@ -441,7 +429,7 @@ END module module_maths
       RETURN                                                            
 !--------- CASE C=D+1 --------------                                     
    3  CONTINUE                                                          
-      GOTO(30,31,32)A-B+2                                               
+      GOTO(30,31,32) int(A-B+2)                                               
 !CASE A=B-1                                                             
 30    CONTINUE                                                          
       TERM=((F+B-D)*(F+B-D-1.0_dp)*(F+D-B+2)*(F+D-B+1))                   
@@ -467,78 +455,7 @@ END module module_maths
       RETURN                                                            
   END function wigner6j
 !--------------------------------------------------------------------------------------------------------------------
-  recursive function factr(n) RESULT(res)
-!--------------------------------------------------------------------------------------------------------------------
-! "factr": This is the Factorial function
-! program in a recursive way. Double precission version.
-!
-      IMPLICIT NONE
-      integer (kind=8)              :: res
-      integer (kind=8), intent(in ) :: n
-      !real*8  :: res
-      IF (n .EQ. 0) THEN
-        res = 1.0d0
-      ELSE
-        res = n * factr(n - 1)
-      END IF
-  END function factr
-!--------------------------------------------------------------------------------------------------------------------
-  double precision function fung(s, j1,j2,j3,Jd1,Jd2,Jd3)
-!--------------------------------------------------------------------------------------------------------------------
-! "fung": it calculates the denominator in Racah Formula.
-!
-      IMPLICIT NONE
-      integer (kind=8),intent(in) :: s
-      integer (kind=8),intent(in) :: j1 ,j2 ,j3
-      integer (kind=8),intent(in) :: Jd1,Jd2,Jd3
-      integer (kind=8)            :: factr
-! --------------------------------------
-      fung = factr(s-j1-j2-j3)                              &
-           * factr(s-j1-Jd2-J3)    * factr(s-Jd1-j2-Jd3)    &
-           * factr(s-Jd1-Jd2-j3)   * factr(j1+j2+Jd1+Jd2-s) &
-           * factr(j2+j3+Jd2+Jd3-s)* factr(j3+j1+Jd3+Jd1-s)*1.0d0
-      RETURN
-  END function fung
-!--------------------------------------------------------------------------------------------------------------------
-  double precision function triangle_coeff(a,b,h)
-!--------------------------------------------------------------------------------------------------------------------
-! "triangle_coeff": Calculates triangle coefficients for angular momenta.
-! NOTE:
-! -----
-! This version returns 0 if the triangle inequalities are violated.  (RAH)
-!
-      use module_common_var
-      IMPLICIT NONE
-      integer (kind=8), intent(IN)  :: a,b,h
-      integer (kind=8)              :: xa
-      double precision              :: if1, if2, if3, if4
-      integer (kind=8)              :: factr
-! -----------------------------------------------
-      if ( (a .le. 0) .or. (b .le. 0) .or. (h .le. 0) ) then
-       !print*, "a, b or h = 0"
-	     triangle_coeff=0.0
-      else
-        do xa = abs(a-b),(a+b),1
-          !print*, xa
-	       if (h .eq. xa) then
-            !print*, "h/xa:", h, xa
-            if1 = real(factr(a+b-h),dp)
-            !print*, a+b-h, "=a+b-h; Factorial=", if1
-            if2 = real(factr(a-b+h),dp)
-            !print*, a-b+h,"=a-b+h; Factorial=", if2
-            if3 = real(factr(b+h-a),dp)
-            !print*, b+h-a,"=-a+b+h; Factorial=", if3
-            if4 = real(factr(a+b+h+1),dp)
-            !print*, a+b+h+1,"=a+b+h+1; Factorial=", if4
-	          triangle_coeff = dsqrt(if1*if2*if3/if4)
-            !print*, "triangleCoeff=", triangle_coeff
-	        endif
-        enddo
-      endif
-      RETURN
-  END function triangle_coeff
-!--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE bubble_index(N, array, indxo, ad)
+  SUBROUTINE bubble_index(N, array, indxo, ad, econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! Bubble sorting algorithm                    * 
 !*        (about n*n comparisons used).       *
@@ -550,18 +467,20 @@ END module module_maths
 !*                F90 version by J-P Moreau.  *
 !*                    (www.jpmoreau.fr)       *
 !* ------------------------------------------ *
+  use module_common_var
+  use module_error
 	IMPLICIT NONE
-	integer (kind=8),  intent(IN)             :: N
-	integer (kind=8),  intent(INOUT)          :: indxo(N)
+	integer (kind=8), intent(IN)     :: N
+	integer (kind=8), intent(INOUT)  :: indxo(N)
 	double precision, intent(IN)     :: array(N)
-  character,intent(IN)             :: ad ! ad = 'a' ; ad = 'd'
+  character(1)    , intent(IN)     :: ad ! ad = 'a' ; ad = 'd'
+  type (dta_ERR)  , intent (inout) :: econ
 	!Local var
 	integer (kind=8)        	                 :: i, j, k
 	double precision                 :: sorta(N), saux
   !-------------------------------------------------
 	!Source code
 	indxo=(/ (i,i=1,N)/)
-	!print*, array(1), array(N)
 	sorta=array
   if (ad .eq. 'a') then
   ! -> from lowest to highes| in ascending order|de menor a mayor
@@ -594,28 +513,12 @@ END module module_maths
         enddo
       enddo
   else
-    print*, 'Subroutine bubble_index: not supported option, use a/d instead'
+    call errorBubble(econ)
   endif
 
-!  DO i=1,N
-!    print*, i, indxo(i), array(indxo(i)), sorta(i) 
-!  ENDDO
-
-
-!  print*, "First"
-!  print*, "non-ordered:",1, array(1) 
-!  print*, "ordered    :",indxo(1),sorta(1) 
-!  print*,'----------------------'
-!  print*, "Last"
-!  print*, "non-ordered:",N, array(N) 
-!  print*, "ordered    :",indxo(N),sorta(N) 
-!  print*,'----------------------'
-!  stop 
-
-	
   END SUBROUTINE bubble_index
 !--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE ibubble_index(N, array, indxo, ad)
+  SUBROUTINE ibubble_index(N, array, indxo, ad, econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! Bubble sorting algorithm                    * 
 !*        (about n*n comparisons used).       *
@@ -627,18 +530,20 @@ END module module_maths
 !*                F90 version by J-P Moreau.  *
 !*                    (www.jpmoreau.fr)       *
 !* ------------------------------------------ *
+  use module_common_var
+  use module_error
 	IMPLICIT NONE
 	integer (kind=8), intent(IN)    :: N
 	integer (kind=8), intent(INOUT) :: indxo(N)
 	integer (kind=8), intent(IN)    :: array(N)
-  character,intent(IN)   :: ad ! ad = 'a' ; ad = 'd'
+  character(1)    , intent(IN)    :: ad ! ad = 'a' ; ad = 'd'
+  type (dta_ERR)  , intent(inout) :: econ
 	!Local var
 	integer (kind=8)        	       :: i, j, k
-	integer (kind=8)                :: sorta(N), saux
+	integer (kind=8)                 :: sorta(N), saux
   !---------------------------------------
 	!Source code
 	indxo=(/ (i,i=1,N)/)
-	!print*, array(1), array(N)
 	sorta=array
   if (ad .eq. 'a') then
   ! in ascending order
@@ -671,23 +576,9 @@ END module module_maths
         enddo
       enddo
   else
-    print*, 'Subroutine bubble_index: not supported option, use a/d instead'
+    call errorBubble(econ)
   endif
-  
-!  DO i=1,N
-!    print*, i, array(i), indxo(i), array(indxo(i)), sorta(i) 
-!  ENDDO
 
-!  print*, "First"
-!  print*, "non-ordered:",1, array(1) 
-!  print*, "ordered    :",indxo(1),sorta(1) 
-!  print*,'----------------------'
-!  print*, "Last"
-!  print*, "non-ordered:",N, array(N) 
-!  print*, "ordered    :",indxo(N),sorta(N)
-!  print*,'----------------------' 
-!  stop
-	
   END SUBROUTINE ibubble_index
 !--------------------------------------------------------------------------------------------------------------------
   integer*8 function imax(N, iarray)

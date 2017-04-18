@@ -1,3 +1,35 @@
+2017-02-23  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-655
+	
+	Code-dump of various functions I have been using and 
+	latest version of Relmat
+	
+	* src/linerecord.cc: ReadFromHitran2004Stream now keeps
+	the einstein coefficient
+	
+	* src/m_atmospheres.cc: added (z_surfaceFromFileAndGrid) and 
+	(vmr_fieldSetAllConstant) to easier set some essential variables
+	
+	* src/m_jacobian.cc:  fix of error throwing for valid case
+	of VMR jacobians
+	
+	* src/m_linemixing.cc: comment change for future checking
+	
+	* src/m_rte.cc: Fix bug happening for special integrated cases
+	by moving definition of sizes up a level
+	
+	* src/methods.cc: Added metohds above
+	
+	* src/pressurebroadeningdata.cc: fix comment typo
+	
+	* src/rational.cc:  "3/1" is now written as "3" --- this is just 
+	an aesthetic change as the reading routine already looks for "/"
+	
+	* 3rdparty/relmat/*:  Teresa's updated in preparation for O2. It 
+	is now using "allocatable" to allocate dynamically instead of 
+	statically
+
 2017-03-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-654

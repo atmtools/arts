@@ -67,8 +67,11 @@ std::ostream& operator<<(std::ostream& os, const Rational& a)
 {
     Rational r = a;
     r.Simplify();
-
-    os << r.Nom() << "/" << r.Denom();
+    
+    if(r.Denom() == 1)
+      os << r.Nom();
+    else
+      os << r.Nom() << "/" << r.Denom();
     return os;
 }
 

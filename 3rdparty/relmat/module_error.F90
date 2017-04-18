@@ -5,12 +5,25 @@ module module_error
 !
     interface
 
+        subroutine memoError(chvar,econ)
+            use module_common_var
+            implicit none
+            character(6), intent (in)      :: chvar
+            type (dta_ERR), intent (inout)   :: econ
+        end subroutine memoError
+
         subroutine openError(path, econ)
             use module_common_var
             implicit none
             character(100), intent (in)      :: path
             type (dta_ERR), intent (inout)   :: econ
         end subroutine openError
+
+        subroutine errorSPIN(econ)
+            use module_common_var
+            implicit none
+            type (dta_ERR), intent (inout)   :: econ
+        end subroutine errorSPIN
 
         subroutine sizeError(flagE, svar, smax, econ)
             use module_common_var
@@ -93,17 +106,46 @@ module module_error
             type (dta_ERR)  , intent (inout) :: econ
         end subroutine W_error
 
-        subroutine LLS_error(b1, b2, b3, econ)
+        subroutine LLS_error(b1, b2, b3, info, econ)
             use module_common_var
             implicit none
+            integer*8       , intent (in   ) :: info
             double precision, intent (in   ) :: b1, b2, b3
             type (dta_ERR)  , intent (inout) :: econ
         end subroutine LLS_error
+
+        subroutine errorBubble(econ)
+            use module_common_var
+            implicit none
+            type (dta_ERR), intent (inout)   :: econ
+        end subroutine errorBubble
+
+        subroutine errorPType(pty,econ)
+            use module_common_var
+            implicit none
+            character(3)  , intent (in   )   :: pty
+            type (dta_ERR), intent (inout)   :: econ
+        end subroutine errorPType
 
     end interface
 
 
 end module module_error
+!--------------------------------------------------------------------------------------------------------------------
+subroutine memoError(chvar, econ)
+!--------------------------------------------------------------------------------------------------------------------
+! It displays an error message whenever an error occurs while the program is opening a file.
+!
+    use module_common_var
+    implicit none
+    character*6, intent (in) :: chvar
+    type (dta_ERR), intent (inout)   :: econ
+
+    if (econ % e(1) .eq. 1) then
+      print*, "Not enough memory to allocate var:" // trim(chvar) // "."
+    endif
+    econ % e(2) = econ % e(2) + 1
+end subroutine memoError
 !--------------------------------------------------------------------------------------------------------------------
 subroutine openError(path, econ)
 !--------------------------------------------------------------------------------------------------------------------
@@ -119,6 +161,20 @@ subroutine openError(path, econ)
     endif
     econ % e(2) = econ % e(2) + 1
 end subroutine openError
+!--------------------------------------------------------------------------------------------------------------------
+subroutine errorSPIN(econ)
+!--------------------------------------------------------------------------------------------------------------------
+! It displays an error message whenever an error occurs while the program is opening a file.
+!
+    use module_common_var
+    implicit none
+    type (dta_ERR), intent (inout)   :: econ
+
+    if (econ % e(1) .eq. 1) then
+      print*, "Not SPIN-data available for O2"
+    endif
+    econ % e(2) = econ % e(2) + 1
+end subroutine errorSPIN
 !--------------------------------------------------------------------------------------------------------------------
 subroutine sizeError(flagE, svar, smax, econ)
 !--------------------------------------------------------------------------------------------------------------------
@@ -407,25 +463,88 @@ subroutine W_error(flag, n, k, W, econ)
 
 end subroutine W_error
 !--------------------------------------------------------------------------------------------------------------------
-subroutine LLS_error(b1, b2, b3, econ)
+subroutine LLS_error(b1, b2, b3, info, econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! It displays an error message if an error occured at
 ! the Linear-Least Square method (Lapack) and its Solution is not valid.
 !
     use module_common_var
     implicit none
+    integer*8       , intent (in   ) :: info
     double precision, intent (in   ) :: b1, b2, b3
     type (dta_ERR)  , intent (inout) :: econ
 
     if (econ % e(1) .eq. 1) then
-        write (*,1012) b1,b2,b3
+        write (*,1012) 
+        write (*,1013) info
+        write (*,*), "< 0:  if INFO = -i, the i-th argument had an illegal value."
+        write (*,*), "> 0:  if INFO =  i, the i-th diagonal element of the"
+        write (*,*), "      triangular factor of A is zero, so that A does not have"
+        write (*,*), "      full rank; the least squares solution could not be computed."
+        write (*,1014) b1,b2,b3
     endif
     econ % e(2) = econ % e(2) + 1
     
 1012    Format(1x,"****************** calc_QParam: Lapack internal error",&
         1x,"The Least squares solution could not be computed." &
-        1x,"Please check the input matrix element in the code, calculations are not valid.", &
-        1x,">> Solution: A1=",e12.2,", A2=",e12.2,", A3=",e12.2)
+        1x,"Please check the input matrix element in the code, calculations are not valid.")
+
+1013    Format(1x,"Lapack internal info:",i8)
+
+1014    Format(1x,">> Solution: A1=",e12.2,", A2=",e12.2,", A3=",e12.2)
 
 end subroutine LLS_error
+!--------------------------------------------------------------------------------------------------------------------
+subroutine errorBranch(pos, econ)
+!--------------------------------------------------------------------------------------------------------------------
+! It displays an error message whenever any transition does not follow 
+! ∆J=0, +-1, +-2
+!------------------------------
+! NOTATION: ∆J = Jupper-Jlower
+!------------------------------
+! 
+    use module_common_var
+    implicit none
+    double precision, intent(in)      :: pos
+    type (dta_ERR), intent (inout)    :: econ
+
+    if (econ % e(1) .eq. 1) then
+        write(*,*), "****************** delta2branch/branch2delta:"
+        write(*,*), "Transition in position", pos,"does not follows selection rules."
+        write(*,*), "NOTE: HITRAN is an empirical DB it should not contain any line"
+        write(*,*), "that does not follow the selection rules:"
+        write(*,*), "∆J=0, +-1, +-2"
+    endif
+    econ % e(2) = econ % e(2) + 1          
+
+end subroutine errorBranch
+!--------------------------------------------------------------------------------------------------------------------
+subroutine errorBubble(econ)
+!--------------------------------------------------------------------------------------------------------------------
+! It displays an error message whenever an error occurs while the program is opening a file.
+!
+    use module_common_var
+    implicit none
+    type (dta_ERR), intent (inout)   :: econ
+
+    if (econ % e(1) .eq. 1) then
+        write(*,*), "****************** bubble_index:"
+        write(*,*), 'Not supported kind of the order option, use (a) or (d) instead.'
+    endif
+    econ % e(2) = econ % e(2) + 1
+end subroutine errorBubble
+!--------------------------------------------------------------------------------------------------------------------
+subroutine errorPType(pty,econ)
+!--------------------------------------------------------------------------------------------------------------------
+    use module_common_var
+    implicit none
+    character(3)  , intent (in   )   :: pty
+    type (dta_ERR), intent (inout)   :: econ
+
+    if (econ % e(1) .eq. 1) then
+        write(*,*), "****************** PopuCAL:"
+        write(*,*), "Non-Valid Population calculation type:", pty
+    endif
+    econ % e(2) = econ % e(2) + 1
+end subroutine errorPType
 !--------------------------------------------------------------------------------------------------------------------

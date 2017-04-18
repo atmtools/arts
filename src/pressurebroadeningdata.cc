@@ -1430,7 +1430,7 @@ Index PressureBroadeningData::ExpectedVectorLengthFromType() const
         return 0;
     else if(isAirBroadening()) // 10 Numerics
         return 10;
-    else if(isAirAndWaterBroadening()) // 10 Numerics
+    else if(isAirAndWaterBroadening()) // 9 Numerics
         return 9;
     else if(isPlanetaryBroadening()) // 2 Numerics and 3 Vectors of 6-length
         return 20;

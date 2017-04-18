@@ -101,9 +101,6 @@ MODULE module_common_var
     !********************************************
     integer*8, parameter  :: nLmx  = 500 
     integer*8, parameter  :: nMmx  = nLmx*nLmx
-    integer*8, parameter  :: mMax  = 11 !maximum number of Isotopologes
-    integer*8, parameter  :: Jmax  = 130
-    integer*8, parameter  :: nWmax = Jmax*3
     !
     !**************************
     ! Program Type: STRUCTURES 
@@ -158,15 +155,15 @@ MODULE module_common_var
     !
     integer*8       :: M,iso
     integer*8       :: class
-    double Precision             :: Sig(nLmx), Str(nLmx)
-    double Precision             :: PopuT0(nLmx), PopuT(nLmx),&
-                                 &  DipoT0(nLmx), DipoT(nLmx),&
-                                 &  D0(nLmx), Drigrotor(nLmx)
-    !double Precision             :: Y_RosT(nLmx)
-    double Precision             :: E(nLmx), A21(nLmx)
-    double Precision             :: HWT0(nLmx),BHW(nLmx), &
-                                 &  SHIFT(nLmx)
-    double Precision             :: swei0(nLmx),swei00(nLmx)
+    double Precision,allocatable :: Sig(:), Str(:)
+    double Precision,allocatable :: PopuT0(:), PopuT(:)
+    double Precision,allocatable :: DipoT(:)!,DipoT0(:)
+    double Precision,allocatable :: D0(:)!, Drigrotor(:)
+    !double Precision,allocatable:: Y_RosT(:)
+    double Precision,allocatable :: E(:), A21(:)
+    double Precision,allocatable :: HWT0(:),BHW(:), &
+                                    SHIFT(:)
+    double Precision,allocatable :: swei0(:),swei00(:)
     character*38                 :: hitBAND
     ! GLOBAL quanta // Vibrational
     ! -------------
@@ -400,11 +397,11 @@ MODULE module_common_var
     !          Sym: takes values (d,q) for magnetic-dipole or
     !               electric-quadrupole transitions (ONLY FOR: O2, N2).
     !
-    integer*8                    :: N(nLmx,2)
-    double precision             :: J(nLmx,2)
-    double precision             :: F(nLmx,2)
-    real*8                       :: nspin(nLmx,2), espin(nLmx,2)
-    character                    :: br(nLmx), br_N(nLmx)
+    integer*8,allocatable        :: N(:,:)
+    double precision,allocatable :: J(:,:)
+    double precision,allocatable :: F(:,:)
+    double precision,allocatable :: nspin(:,:), espin(:,:)
+    character,allocatable        :: br(:), br_N(:)
 
 
     end type dta_SDF
@@ -412,7 +409,7 @@ MODULE module_common_var
     type dta_RMF
     ! WT0      = Relaxation Matrix elements (at 296 K) 
 
-        double Precision         :: WT0(nMmx)
+        double Precision,allocatable :: WT0(:)
 
     end type dta_RMF
     ! --------------

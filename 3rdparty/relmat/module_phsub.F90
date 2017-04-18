@@ -5,32 +5,33 @@ module module_phsub
 !
     interface
 
+        subroutine PopuCAL(dta1, nLines, molP,econ)
+            use module_common_var
+            implicit none
+            integer*8              , intent(in   ) :: nLines
+            type (dta_MOL)         , intent(in   ) :: molP
+            type (dta_SDF), pointer, intent(inout) :: dta1
+            type (dta_ERR)         , intent(inout) :: econ
+        end subroutine PopuCAL
+
         subroutine DipCAL(dta1,nLines,molP,econ)
             use module_common_var
             use module_molecSp
             use module_maths
             use module_error
             implicit none
-            integer*8, intent(in)             :: nLines
-            type  (dta_SDF), intent(inout)    :: dta1
-            type  (dta_ERR), intent(inout)    :: econ
-            type  (dta_MOL), intent(in)       :: molP
+            integer*8               , intent(in)    :: nLines
+            type  (dta_SDF), pointer, intent(inout) :: dta1
+            type  (dta_ERR)         , intent(inout) :: econ
+            type  (dta_MOL)         , intent(in)    :: molP
         end subroutine DipCAL
         
         double precision function pureHund(caseHund, J_i, N_i, J_f, N_f)
             implicit none
-            integer (kind=8),intent(in)       :: N_i, N_f
-            real*8          , intent(in)      :: J_i, J_f
-            character     , intent(in)        :: caseHund
+            integer (kind=8), intent(in) :: N_i, N_f
+            real*8          , intent(in) :: J_i, J_f
+            character       , intent(in) :: caseHund
         end function pureHund
-        
-        subroutine PopuCAL(dta1, nLines, molP)
-            use module_common_var
-            implicit none
-            integer*8,intent(in)            :: nLines
-            type (dta_MOL), intent(in)      :: molP
-            type (dta_SDF), intent(inout)   :: dta1
-        end subroutine PopuCAL
 
         double precision function Kpart1( Ji_p, Jf, Jf_p, li, lf, AF1)
             use module_common_var
@@ -74,10 +75,10 @@ module module_phsub
             use module_molecSp
             use module_maths
             implicit none
-            integer*8, intent(in)             :: j,k,nLines
-            type (dta_SDF) , intent(in)       :: h
-            type (dta_MOL) , intent(in)       :: molP, PerM
-            type (dta_ERR) , intent(inout)    :: econ
+            integer*8               , intent(in   ) :: j,k,nLines
+            type (dta_SDF), pointer , intent(in   ) :: h
+            type (dta_MOL)          , intent(in   ) :: molP, PerM
+            type (dta_ERR)          , intent(inout) :: econ
         end function K_jkCalc
 
         double precision function K_jkO2(j,k,h,nLines,molP,PerM,econ)
@@ -86,10 +87,10 @@ module module_phsub
             use module_molecSp
             use module_maths
             implicit none
-            integer*8, intent(in)             :: j,k,nLines
-            type (dta_SDF), intent(in)        :: h
-            type (dta_MOL), intent(in)        :: molP, PerM
-            type (dta_ERR), intent(inout)     :: econ
+            integer*8              , intent(in   ) :: j,k,nLines
+            type (dta_SDF), pointer, intent(in   ) :: h
+            type (dta_MOL)         , intent(in   ) :: molP, PerM
+            type (dta_ERR)         , intent(inout) :: econ
 
         end function K_jkO2
         
@@ -98,8 +99,8 @@ module module_phsub
             use module_molecSp
             use module_maths
             implicit none
-            integer*8, intent(in)             :: L
-            type(dta_MOL)  , intent(in)       :: molP
+            integer*8    , intent(in) :: L
+            type(dta_MOL), intent(in) :: molP
         end function Ql_mol_X
 
         double precision function Ql_mol_LLS(J1,J2,v1,v2,molP,L)
@@ -107,17 +108,17 @@ module module_phsub
             use module_molecSp
             use module_maths
             implicit none
-            integer*8, intent(in)             :: L
-            type(dta_MOL)  , intent(in)       :: molP
-            real*8, intent(in)                :: J1,J2,v1,v2
+            integer*8    , intent(in) :: L
+            type(dta_MOL), intent(in) :: molP
+            real*8       , intent(in) :: J1,J2,v1,v2
         end function Ql_mol_LLS
         
         double precision function AFmol_X(molP, PerM, L, step)
             use module_common_var
             implicit none
-            integer*8, intent(in)             :: step
-            real*8, intent(in)                :: L
-            type (dta_MOL), intent(in)        :: molP, PerM
+            integer*8     , intent(in) :: step
+            real*8        , intent(in) :: L
+            type (dta_MOL), intent(in) :: molP, PerM
         end function AFmol_X
 
         subroutine sumRule(nLines,indexS,dipole,Wmat,dfact,econ)
@@ -126,27 +127,131 @@ module module_phsub
             implicit none
             integer (kind=8), intent(in)    :: nLines
             integer (kind=8), intent(in)    :: indexS(nLines)
-            real*8, intent(in)              :: dfact
+            real*8          , intent(in)    :: dfact
             Double Precision, intent(in)    :: dipole(nLines)
             Double Precision, intent(in)    :: Wmat(nLines,nLines)
             type (dta_ERR)  , intent(inout) :: econ
         end subroutine sumRule
-
-        subroutine VarInit(dta1,dta2,molP,econ,runE)
-            use module_common_var
-            implicit none
-            integer*8     , intent(in)       :: runE
-            type (dta_SDF), intent(inout)    :: dta1
-            type (dta_RMF), intent(inout)    :: dta2
-            type (dta_MOL), intent(inout)    :: molP
-            type (dta_ERR), intent(inout)    :: econ
-        end subroutine VarInit
 
     end interface
 
 END module module_phsub
 !--------------------------------------------------------------------------------------------------------------------
 ! RELAXATION MATRIX SUBROUTINES -------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------------------------------
+  SUBROUTINE PopuCAL(dta1, nLines, molP,econ)
+!--------------------------------------------------------------------------------------------------------------------
+!"PopuCAL": POPUlation CALculation
+!
+! Detailed Description:
+! ---------------------
+! It calcules the Populations of the Lower state of the 
+! Line/transition k at Temperature T0. Elements comes 
+! from Subroutine "Readline".          
+!
+! Variables:
+!
+! Input/Output Parameters of Routine (Arguments or Common)
+! ----------------------------------
+!   k       : marks the transition in study (Input).
+!   E       : lower state energy (cm-1).
+!   SWeig00 : State Statistical Weight (also called g00 in HITRAN). UNITLESS.
+! molN    : = Na·Nmcon; molecular number density (molecules·cm-3)
+! PFmol   : internal partition function. UNITLESS.
+! ptype   : this parameter marks the result Population calculation 
+!           in other words:
+!           ('hit') Acording to HITRAN96 
+!           ('tra') Acording to Hartmann et. al 2006 
+!
+! Other important Input Quantities (through "module_common_var")
+! --------------------------------
+!   c2      : second radiation constant = h·c/kb = 1.4388 cm·K
+!   T0      : Reference Temperature in Kelvin, 296 (K, Input).
+!
+! Output Quantities (through Common Statements)
+! -----------------
+!   PopuL0  : Populations of the Lower state of the Lines
+!             at Temperature T0                 (Output)
+!           NOTE: 
+!             1) with Ha Tran Code, the Population is UNITLESS.
+!             2) HITRAN definition:
+!                PopuT0(k) = molN*g00(k)*dexp(-c2*E(k)/T0)/(PFmol(iso,T0))
+!                give the units of the molecular number density (molN)
+!
+! Accessed Files:  None
+! --------------
+!
+! Called Routines: 'none'
+! ---------------  
+!
+! Called By: 'DipCAL' (Dipole of the lower state CALculation)
+! ---------
+!
+!   Double Precision Version
+!
+!   T.Mendaza, last change 25 Jan 2017
+!--------------------------------------------------------------------------------------------------------------------
+!
+    use module_common_var
+    use module_molecSp
+    Implicit None
+    integer*8              , intent(in)    :: nLines
+    type (dta_MOL)         , intent(in)    :: molP
+    type (dta_SDF), pointer, intent(inout) :: dta1
+    type (dta_ERR)         , intent(inout) :: econ
+    integer*8                     :: iso
+    integer*8                     :: i, j, k
+    Double Precision              :: cte1,cte2, Erot_red, T
+    Double Precision              :: molN, PFmol, PFr
+!-----------------------------------------
+    T = molP % Temp
+!-----------------------------------------
+!
+! Partition function ratio:
+!
+    !old 
+    !PFr=PFmol(molP,T0)/PFmol(molP,T)
+    ! QT0 = PFmol(molP,T0)
+    ! QT  = PFmol(molP,T )
+    ! Now the partition function came as an input from "arts_interface"
+    PFr=molP%QT0 / molP%QT
+!
+    DO k=1,nLines
+        !Erot_red = dta1%J(k,1)*( dta1%J(k,1) + 1. )
+        !cte1 = -c2*molP%B0*Erot_red/T0
+        cte1 = -c2*dta1%E(k)/T0
+        cte2 = -c2*dta1%E(k)*(1.d0/T-1.d0/T0)
+        !
+        dta1%PopuT0(k) = dta1%swei00(k)*dexp(cte1)/molP%QT0
+        dta1%PopuT(k)  = dta1%PopuT0(k)*PFr*dexp(cte2)
+    ENDDO
+!
+    IF (ptype .eq. 'tra') then
+        ! the Population remains as it has been calculated.
+    ELSEIF (ptype .eq. 'hit') then
+        ! Here we follow the HITRAN 1996 definition of 
+        ! Population of the lower level using the molecular number density:
+        ! molN = Na·Nmcon
+        ! CH4 example (Nmcon = Nch4):
+        ! Na   = 6.022·10^23 molecules·mol-1; Avogadro constant
+        ! Nch4 = 41.245 mol/m3 = 41.245 mol/(1E006 *cm3) 
+        !      = 41.245*1E-06  mol/cm3 (value used in common_var_module)
+        ! NIST website:
+        ! http://webbook.nist.gov/
+        !
+        molN= Na*molP%Nmcon ! molecule/cm3
+        !molN= Nmcon    ! mol/cm3
+        !
+        DO k=1,nLines
+            dta1%PopuT0(k) = molN*dta1%PopuT0(k)
+            dta1%PopuT(k)  = molN*dta1%PopuT(k)
+        ENDDO
+    ELSE
+        call errorPType(ptype, econ)
+    ENDIF
+!
+    Return
+  END SUBROUTINE PopuCAL
 !--------------------------------------------------------------------------------------------------------------------
   SUBROUTINE DipCAL(dta1,nLines,molP,econ)
 !--------------------------------------------------------------------------------------------------------------------
@@ -199,52 +304,65 @@ END module module_phsub
     use module_maths
     use module_error
     Implicit None
-    integer*8, intent(in)       :: nLines
-    type (dta_SDF),intent(inout):: dta1
-    type (dta_ERR),intent(inout):: econ
-    type (dta_MOL),intent(in)   :: molP
+    integer*8              , intent(in   ) :: nLines
+    type (dta_SDF), pointer, intent(inout) :: dta1
+    type (dta_ERR)         , intent(inout) :: econ
+    type (dta_MOL)         , intent(in   ) :: molP
     integer*8                   :: N_i, N_f, J_i, J_f
     integer*8                   :: i, j, k
     real*8                      :: s_i, s_f
-    double precision            :: cte,fA,fB, w3j
-    double precision            :: pure_b_case, purehund, d0
+    double precision            :: cte,fA,fB, w3j, w6j
+    double precision            :: purehund, d0
     double precision            :: signDIP, Ia_hit
 !
 !----------
-!
-! Check that Arrays for Results are Large Enough.
-       if ( nLines .gt. nLmx) then
-        call sizeError("1000", nLines, nLmx, econ)
-       endif
-!
 ! Compute the Dipole moment at every line 
 ! (Diatomic approximation... 
 !
 ! INIT. VAR:
 !-----------
     DO k = 1, nLines
-    !print*, k, nLines
-      J_i  = int(dta1%J(k,1)) !J_i  = J LOWER L.
-      J_f  = int(dta1%J(k,2)) !J_f  = J UPPER L.
+      !print*, k, nLines
       !
       ! REDUCE DIPOLE MOMENT, D0
       !
-        if ( mod((J_f+dta1%lv2(2)),2) .eq. 0) then
-        ! j = (-1)**(J_f+lf)
-          j = 1
+        if ( molP%M .eq. 7 ) then
+        ! O2 possible Dipole'scalculation:
+        !
+        ! a) Makarov et al. (2013):
+        ! DATA:
+            J_i  = dta1%J(k,1) !J_i  = J LOWER L.
+            J_f  = dta1%J(k,2) !J_f  = J UPPER L.
+            N_i  = dta1%N(k,1) !LOWER L.
+            N_f  = dta1%N(k,2) !UPPER L.
+        !
+        !    signDIP = (-1)**(Jf+N_i)
+        !    w6j = wigner6j( 1_dp, 1_dp, 1_dp, &
+        !                dta1%J(k,1), dta1%J(k,2), real(N_i,dp))
+        !    d0 = signDIP*dsqrt(6.d0*J_f + 1.d0)*w6j
+        !
+        ! b) Tran et al. (2006)
+            d0 = pureHund(caseHund, dta1%J(k,1), N_i, dta1%J(k,2), N_f)            
+            dta1%D0(k) = d0  
         else
-          j = -1
-        endif
+            !Other molecules:
+            if ( mod((J_f+dta1%lv2(2)),2) .eq. 0) then
+            ! j = (-1)**(J_f+lf)
+                j = 1
+            else
+                j = -1
+            endif
         ! K_t = marks the dimension of the tensor.
         ! isotropic Raman = 0 
         !   IR ----> K_t = 1
         !   Raman -> K_t = 2
         ! wigner simbols are implemented for -> IR case.
-        w3j = wigner3j( dta1%J(k,1), real(K_t,dp), dta1%J(k,2), &
+            w3j = wigner3j( dta1%J(k,1), real(K_t,dp), dta1%J(k,2), &
                         real(dta1%lv2(1), dp), real( dta1%lv2(2)-dta1%lv2(1),dp), &
                         real(-dta1%lv2(2), dp))
-        d0 = j*dsqrt(2.d0*dta1%J(k,2) + 1.d0)*w3j
-        dta1%D0(k)    = d0
+            d0 = j*dsqrt(2.d0*dta1%J(k,2) + 1.d0)*w3j
+            dta1%D0(k) = abs(d0)
+        endif
       ! print*,dta1%D0(k)
 !      !
 !      ! RIGID ROTOR DIPOLE
@@ -261,129 +379,14 @@ END module module_phsub
 !      !
 !      ! DIPOLE MOMENT 
 !      !
-       ! 1) Hartmann's style (Using LINE-INTENSITY):
+       ! Hartmann's style (Using LINE-INTENSITY):
         fA  = -c2*dta1%Sig(k)/T0
         fB  = 1.D0 - dexp(fA)
         dta1%DipoT(k)= dsqrt( dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT0(k)*fB) )
                       !cm/molecules**0.5
        !
-!      ! 2) Weighted transition moment Squared (|R)
-!      ! FORMULA:
-!      ! |R = (1/g00)*|R12|^2 ; 
-!      !
-!      ! where:
-!      ! * R12 is the transition moment 
-!      !     1) Electric dipole transition (edt)
-!      !         g2·A_21 = (16·pi^3/3·h·ε0)·wno^3·|R12|^2.
-!      !     units: C2·m2
-!      !
-!      !     2) magnetic dipole transition (mdt)
-!      !         g2·A_21 = (16·µ0·pi^3/3·h)·wno^3·|R12|^2.
-!      !     units: A2·m4
-!      !
-!      !     3) electric-quadrupole transitions (eqt)
-!      !         g2·A_21 = (8·pi^5/5·h·ε0)·wno^5·|R12|^2.
-!      !     units: C2·m4
-!      ! * ε0 is the vacuum permittivity fundamental physical constant
-!      ! * µ0 is the vacuum permeability fundamental physical constant
-!      !
-!      ! NOTE: for conversion to centimetre–gram–second system of units (cgs) 
-!      !       electrostatic units, ε0 should be replaced by 1/4pi.
-!      ! See:
-!      !* Tatum JB. The interpretation of intensities in diatomic molecular spectra. 
-!      !  Astrophys J Suppl Ser 1967;14:21–56;
-!      !* Tatum JB. Erratum: interpretation of intensities in diatomic molecular spectra. 
-!      !  Astrophys J Suppl Ser 1971;22:388.
-!      !
-!      ! NOTE: the majority of the transitions in HITRAN are 
-!      ! electric-dipole.
-!      !
-!      ! NOTE 2: 
-!      ! To calculate the dipole moment you can use the Einstein 
-!      ! coefficients or the line intensity.
-!      ! We have followed [Simenckova et al. 2006] for this fomulation.
-!      !
-!      ! UNITS:
-!      ! [Debye^2 = 10E-36 ergs·cm3] where [1erg = 1E-07 J]
-!      !
-!      if (tdcal .eq. 'S') then
-!      ! Using LINE-INTENSITY:
-!      !intensity factor in HITRAN:
-!        Ia_hit = molP % IAb(dta1%iso)
-!        !print*, Ia_hit, molP % IAb(dta1%iso)
-!        !stop
-!      ! Parts of the formula:
-!        fA  = -c2*dta1%Sig(k)/T0
-!        fB  = 1. - dexp(fA)
-!        cte = 1.0E036*3.d0*hp_cgs*c/(8.d0*Pi**3)
-!        dta1%DipoT0(k)= cte*v_permit*dta1%Str(k)/ &
-!                  (Ia_hit*dta1%Sig(k)*&
-!                  dta1%PopuT0(k)*fB   & !-> ergs·cm3
-!                  )!*1E-07! => J·cm3
-!        !
-!        ! DIPOLE MOMENT (R12)
-!        !
-!        dta1%DipoT0(k)= DSQRT(dta1%DipoT0(k)*dta1%swei00(k))
-!        
-!       else if (tdcal .eq. 'A') then
-!       ! THIS PART SHOULD BE CHECKED (UNITS)
-!            if (tmt .eq. 'edt') then
-!                ! because hp [J·s] and J = Kg m2/s2 = 1E7 g·cm2/s2
-!                ! and our v_permit is in c·g·s?
-!                ! then we have to transform J into that system?
-!                ! conversion C2m2 to J·cm3 ??
-!                cte = 3.*1E07*hplank*v_permit/(16.*pi**3)
-!                dta1%DipoT0(k) = cte*dta1%A21(k)*&
-!                                (dta1%swei0(k)/&
-!                                 dta1%Sig(k)**3)
-!            else if (tmt .eq. 'mdt') then
-!                cte = 3.*hplank/(16.*v_permea*pi**3)
-!                dta1%DipoT0(k) = dta1%A21(k)*&
-!                                (dta1%swei0(k)/&
-!                                 dta1%Sig(k)**3)
-!            else if (tmt .eq. 'eqt') then
-!                cte = 5.*1E07*hplank*v_permit/(8.*pi**5)
-!                dta1%DipoT0(k) = dta1%A21(k)*&
-!                                (dta1%swei0(k)/&
-!                                 dta1%Sig(k)**5)
-!            else
-!                print*, 'No transition moment type selected.'
-!            endif
-!       else
-!        print*, 'No dipole moment calc. selected.'
-!       endif
-!      !
-!      ! Dipole sign
-!      ! 
-!      if ( molP%M .eq. 7 ) then
-!        ! if the program is dealing with a diatomic molecule
-!        ! then HUND's pure cases help to the calcualtion of 
-!        ! the sign.
-!        ! DATA:
-!        ! N_i  = dta1%N(k,1)
-!        ! N_f  = dta1%N(k,2)
-!        ! J_i  = dta1%J(k,1) !LOWER L.
-!        ! J_f  = dta1%J(k,2) !UPPER L.
-!        ! Call the function:
-!        !pure_b_case= pureHund(caseHund,      J_i,         N_i,         J_f,         N_f)
-!        pure_b_case = pureHund(caseHund, dta1%J(k,1), dta1%N(k,1), dta1%J(k,2), dta1%N(k,2))
-!        signDIP =pure_b_case/ABS(pure_b_case)    
-!        if (isnan(signDIP) .or. isInf(signDIP)) then
-!          signDIP = dta1%DipoT0(k-1)/abs(dta1%DipoT0(k-1))
-!        endif
-!      else
-!        signDIP =d0/ABS(d0) 
-!        if (isnan(signDIP) .or. isinf(signDIP)) then
-!          signDIP = dta1%DipoT0(k-1)/abs(dta1%DipoT0(k-1))
-!        endif
-!      endif
-!      dta1%DipoT0(k)= dta1%DipoT0(k)*signDIP
-!      !print*, dta1%Qlow(k), dta1%D0(k), dta1%popuT0(k)
-!      !print*, "----------------------------------"
-!      !if (k .eq. 4) stop    
     ENDDO
 ! 
-      Return
   END SUBROUTINE DipCAL
 !--------------------------------------------------------------------------------------------------------------------
   double precision function pureHund(caseHund, J_i, N_i, J_f, N_f)
@@ -423,9 +426,9 @@ END module module_phsub
 !
       IMPLICIT NONE
       integer*8, parameter         :: dp = kind(1.0D0) !double precission
-      integer (kind=8) , intent(in):: N_i, N_f
+      integer (kind=8), intent(in) :: N_i, N_f
       double precision, intent(in) :: J_i, J_f
-      character, intent(in)        :: caseHund
+      character       , intent(in) :: caseHund
       double precision             :: cte1
 ! -----------------
     if (caseHund .eq. 'a') then
@@ -445,7 +448,6 @@ END module module_phsub
          cte1 = 1.0_dp
       endif
       pureHund = dsqrt(1.0_dp/(2.0_dp*J_i +1.0_dp)) * cte1
-        !print*, cte1, sqrt(1./(2.d0*J_i +1.)), pureHund
     else if (caseHund .eq. 'c') then
         !write(*,'(a10)'), 'Case (c)'
       pureHund = 1.0_dp
@@ -456,124 +458,10 @@ END module module_phsub
         !write(*,'(a10)'), 'Case (e)'
       pureHund = 1.0_dp
     else
-        !write(*,'(a100)'), 'Case selected does not match with any (a,b,c,d,e)'
         pureHund = 1.0_dp
     endif      
     RETURN
   END function pureHund
-!--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE PopuCAL(dta1, nLines, molP)
-!--------------------------------------------------------------------------------------------------------------------
-!"PopuCAL": POPUlation CALculation
-!
-! Detailed Description:
-! ---------------------
-! It calcules the Populations of the Lower state of the 
-! Line/transition k at Temperature T0. Elements comes 
-! from Subroutine "Readline".	       
-!
-! Variables:
-!
-! Input/Output Parameters of Routine (Arguments or Common)
-! ----------------------------------
-!	k       : marks the transition in study (Input).
-!	E       : lower state energy (cm-1).
-!	SWeig00 : State Statistical Weight (also called g00 in HITRAN). UNITLESS.
-! molN    : = Na·Nmcon; molecular number density (molecules·cm-3)
-! PFmol   : internal partition function. UNITLESS.
-! ptype   : this parameter marks the result Population calculation 
-!           in other words:
-!           ('hit') Acording to HITRAN96 
-!           ('tra') Acording to Hartmann et. al 2006 
-!
-! Other important Input Quantities (through "module_common_var")
-! --------------------------------
-!	c2      : second radiation constant = h·c/kb = 1.4388 cm·K
-!	T0	    : Reference Temperature in Kelvin, 296 (K, Input).
-!
-! Output Quantities (through Common Statements)
-! -----------------
-!	PopuL0  : Populations of the Lower state of the Lines
-!	          at Temperature T0                 (Output)
-!           NOTE: 
-!             1) with Ha Tran Code, the Population is UNITLESS.
-!             2) HITRAN definition:
-!                PopuT0(k) = molN*g00(k)*dexp(-c2*E(k)/T0)/(PFmol(iso,T0))
-!                give the units of the molecular number density (molN)
-!
-! Accessed Files:  None
-! --------------
-!
-! Called Routines: 'none'
-! ---------------  
-!
-! Called By: 'DipCAL' (Dipole of the lower state CALculation)
-! ---------
-!
-!	Double Precision Version
-!
-!	T.Mendaza, last change 25 Jan 2017
-!--------------------------------------------------------------------------------------------------------------------
-!
-    use module_common_var
-    use module_molecSp
-    Implicit None
-    integer*8   , intent(in)    :: nLines
-    type (dta_MOL), intent(in)    :: molP
-    type (dta_SDF), intent(inout) :: dta1
-    integer*8                     :: iso
-    integer*8                     :: i, j, k
-    Double Precision              :: cte1,cte2, Erot_red, T
-    Double Precision              :: molN, PFmol, PFr
-!-----------------------------------------
-    T = molP % Temp
-!-----------------------------------------
-!
-! Partition function ratio:
-!
-    !old 
-    !PFr=PFmol(molP,T0)/PFmol(molP,T)
-    ! QT0 = PFmol(molP,T0)
-    ! QT  = PFmol(molP,T )
-    ! Now the partition function came as an input from "arts_interface"
-    PFr=molP%QT0 / molP%QT
-!
-    DO k=1,nLines
-        !Erot_red = dta1%J(k,1)*( dta1%J(k,1) + 1. )
-        !cte1 = -c2*molP%B0*Erot_red/T0
-        cte1 = -c2*dta1%E(k)/T0
-        cte2 = -c2*dta1%E(k)*(1.d0/T-1.d0/T0)
-        !
-        dta1%PopuT0(k) = dta1%swei00(k)*dexp(cte1)/molP%QT0
-        dta1%PopuT(k)  = dta1%PopuT0(k)*PFr*dexp(cte2)
-    ENDDO
-!
-    IF (ptype .eq. 'tra') then
-        ! the Population remains as it has been calculated.
-    ELSEIF (ptype .eq. 'hit') then
-        ! Here we follow the HITRAN 1996 definition of 
-        ! Population of the lower level using the molecular number density:
-        ! molN = Na·Nmcon
-        ! CH4 example (Nmcon = Nch4):
-        ! Na   = 6.022·10^23 molecules·mol-1; Avogadro constant
-        ! Nch4 = 41.245 mol/m3 = 41.245 mol/(1E006 *cm3) 
-        !      = 41.245*1E-06  mol/cm3 (value used in common_var_module)
-        ! NIST website:
-        ! http://webbook.nist.gov/
-        !
-        molN= Na*molP%Nmcon ! molecule/cm3
-        !molN= Nmcon    ! mol/cm3
-        !
-        DO k=1,nLines
-            dta1%PopuT0(k) = molN*dta1%PopuT0(k)
-            dta1%PopuT(k)  = molN*dta1%PopuT(k)
-        ENDDO
-    ELSE
-        print*, "PopuCAL:Non-Valid Population calculation type:", ptype
-    ENDIF
-!
-    Return
-  END SUBROUTINE PopuCAL
 !--------------------------------------------------------------------------------------------------------------------
   double precision function Kpart1(Ji_p, Jf, Jf_p, li, lf, AF1)
 !--------------------------------------------------------------------------------------------------------------------
@@ -707,21 +595,34 @@ END module module_phsub
       ! ( 0    0   0 )
       w3j2 = wigner3j( real(Nf_p, dp), real(Nf, dp), real(L, dp), 0.0_dp, 0.0_dp, 0.0_dp )
       !  
-      !wigner 6j-Symbol 1:
-      ! { L   Ji    Ni'}
-      ! { Si  Ji'   Ni }
-      w6j1 = wigner6j(real(L, dp),Ji, real(Ni_p, dp), Si, Ji_p, real(Ni, dp))
+      !wigner 6j-Symbol 1: (and symmetries)
+      ! Paper (Tran 2006)    -------------->     Addapted to subroutine
+      ! { L   Ji    Ji'}  =  { Ji' Ji   L  }  =  { Ji' Ni'  Si}  
+      ! { Si  Ni'   Ni }     { Ni  Ni'  Si }     { Ni  Ji   L }
+      !w6j1 = wigner6j(real(L, dp),Ji, Ji_p, Si, real(Ni_p, dp), real(Ni, dp)) =
+      w6j1 = wigner6j(Ji_p, real(Ni_p, dp), Si, real(Ni, dp), Ji,real(L, dp))
       !
       !wigner 6j-Symbol 2:
-      ! { L   Jf   Jf'}
-      ! { Sf  Nf'  Nf }
-      w6j2 = wigner6j(real(L, dp),Jf, Jf_p, Sf, real(Nf_p, dp), real(Nf, dp))
+      ! { L   Jf    Jf'}  =  { Jf' Jf   L  }  =  { Jf' Nf'  Sf}  
+      ! { Sf  Nf'   Nf }     { Nf  Nf'  Sf }     { Nf  Jf   L }
+      !w6j2 = wigner6j(real(L, dp),Jf, Jf_p, Sf, real(Nf_p, dp), real(Nf, dp))
+      w6j2 = wigner6j(Jf_p, real(Nf_p, dp), Sf, real(Nf, dp), Jf, real(L, dp))
       !
       !wigner 6j-Symbol 3:
-      ! { L   Ji   Ji' }
-      ! { 1   Jf'  Jf  }
-      w6j3 = wigner6j(real(L, dp),Ji, Ji_p, real(K_t,dp), Jf_p, Jf)
+      ! { L   Ji   Ji' }  =  { Ji' Ji   L }  =  { Ji' Jf'  1 }  
+      ! { 1   Jf'  Jf  }     { Jf  Jf'  1 }     { Jf  Ji   L }
+      !w6j3 = wigner6j(real(L, dp),Ji, Ji_p, real(K_t,dp), Jf_p, Jf)
+      w6j3 = wigner6j(Ji_p, Jf_p, real(K_t,dp), Jf, Ji, real(L, dp))
+      !C4=sixj(jip,jfp,ji,jf,ll)
       !
+!            FUNCTION SIXJ(A,B,C,D,F)                                          
+!C                                                                       
+!C CALCUL DES COEFFICIENTS 6J D'APRES MESSIAH ET ROSE                    
+!C CAS DES    _           _                                              
+!C            |  A  B  1  |       A+B+C+D                                
+!C            |  D  C  F  | = (-1)         W(ABCD;1F)                    
+!C            |_         _|                                              
+!C                                                     
       if ( .not.( isnan(w3j1) .or. isinf(w3j1)) .and. &
            .not.( isnan(w3j2) .or. isinf(w3j2)) .and. &
            .not.( isnan(w6j1) .or. isinf(w6j1)) .and. &
@@ -731,6 +632,10 @@ END module module_phsub
                         (2.d0*L + 1.d0)/AF2 
       else
             call wignerS_ERROR(w3j1, w3j2, w6j1, w6j2, w6j3,econ)
+            !print*,L,Ji, Ni_p, Si, Ji_p, Ni
+            !print*,L,Jf, Jf_p, Sf, Nf_p, Nf
+            !print*,L,Ji, Ji_p, K_t,Jf_p, Jf
+            !stop
       endif
 
       RETURN
@@ -770,14 +675,14 @@ END module module_phsub
       use module_error
       use module_maths
       IMPLICIT none
-      integer*8     , intent(in):: j,k,nLines
-      type (dta_SDF), intent(in):: h
-      type (dta_MOL), intent(in):: molP, PerM
-      type (dta_ERR), intent(inout):: econ
+      integer*8              , intent(in   ) :: j,k,nLines
+      type (dta_SDF), pointer, intent(in   ) :: h
+      type (dta_MOL)         , intent(in   ) :: molP, PerM
+      type (dta_ERR)         , intent(inout) :: econ
       !internal variables:
       integer*8       :: L, incr, step
       integer*8       :: i, iniL,endL
-      double precision:: Ji, Ji_p, Jf, Jf_p !, jmax
+      double precision:: Ji, Ji_p, Jf, Jf_p 
       integer*8       :: pos_L_2, aux_j_L, pos_Ji_2
       integer*8       :: li,lf
       double precision:: suma, cte1, cte2
@@ -846,7 +751,6 @@ END module module_phsub
           else
             Qaux = Ql_mol_X(molP,L)
           endif
-          !print*,"Qmol-x=", Qaux
         if ( abs(Qaux) .gt. TOL ) then
           !
           ! Adiabatic factor 2:
@@ -856,7 +760,6 @@ END module module_phsub
             AF2 = 1.0_dp
           endif
           K2 = Kpart2(L, Ji, Ji_p, Jf, Jf_p, li, lf, AF2,econ)
-          !print*, Ji, Ji_p, AF2
           !
           if ( .not.( isnan(K2) .or. isinf(K2)) .and. &
                .not.( isnan(suma) .or. isinf(suma)) .and. &
@@ -906,15 +809,15 @@ END module module_phsub
       use module_molecSp
       use module_maths
       IMPLICIT none
-      integer*8     , intent(in):: j,k,nLines
-      type (dta_SDF), intent(in):: h
-      type (dta_MOL), intent(in):: molP, PerM
-      type (dta_ERR), intent(inout):: econ
+      integer*8              , intent(in   ) :: j,k,nLines
+      type (dta_SDF), pointer, intent(in   ) :: h
+      type (dta_MOL)         , intent(in   ) :: molP, PerM
+      type (dta_ERR)         , intent(inout) :: econ
       !internal variables:
       integer*8             :: L, incr, step
       integer*8             :: i, iniL,endL
-      double precision      :: Ji, Ji_p, Jf, Jf_p !, jmax
-      integer*8             :: Ni, Ni_p, Nf, Nf_p !, jmax
+      double precision      :: Ji, Ji_p, Jf, Jf_p 
+      integer*8             :: Ni, Ni_p, Nf, Nf_p 
       real*8                :: Si, Sf,n
       integer*8             :: pos_L_2, aux_j_L, pos_Ji_2
       integer*8             :: li,lf
@@ -946,6 +849,9 @@ END module module_phsub
       ! k-> 
       Ji_p = h%J(k,1); Ni_p = h%N(k,1)
       Jf_p = h%J(k,2); Nf_p = h%N(k,2)
+      !
+      Si   = h%espin(j,1);
+      Sf   = h%espin(j,2);
       !
       ! 
       iniL=int(max(abs(Ni-Ni_p),abs(Nf-Nf_p)))
@@ -1048,7 +954,6 @@ END module module_phsub
                ![Niro et al., 2004]
       endif
     endif
-    !write(*,*) 'Ql_mol_X=',Ql_mol_X
     RETURN
   END function Ql_mol_X
 !--------------------------------------------------------------------------------------------------------------------
@@ -1064,11 +969,12 @@ END module module_phsub
       use module_molecSp
       use module_maths
       IMPLICIT none
-      ! a1, a2, a3, dc were declared in module_common_var:
+      !Inputs
       integer*8        :: L
-      real*8           :: E_l, T,Jaux
       type(dta_MOL)    :: molP
       real*8           :: J1,J2,v1,v2
+      !internal
+      real*8           :: E_l, T,Jaux
 !
 ! This expresion is used for "downward" transitions (k->k') only.
 !
@@ -1115,7 +1021,6 @@ END module module_phsub
                ![Mendaza et al., 2017]
       endif
     endif
-    !write(*,*) 'Ql_mol_LLS=',Ql_mol_LLS
     RETURN
   END function Ql_mol_LLS
 !--------------------------------------------------------------------------------------------------------------------
@@ -1144,9 +1049,9 @@ END module module_phsub
 !
       use module_common_var
       IMPLICIT none
-      integer*8, intent(in)      :: step
-      real*8   , intent(in)      :: L
-      type(dta_MOL),intent(in)   :: molP, PerM
+      integer*8    , intent(in)  :: step
+      real*8       , intent(in)  :: L
+      type(dta_MOL), intent(in)  :: molP, PerM
       double precision,Parameter :: cAF = 0.0006983_dp ! Adiabaticy Factor cte
                                  ! General constant non-molecule dependent included in the 
                                  ! Adiabaticy Factor. It is built as follows:
@@ -1214,10 +1119,10 @@ END module module_phsub
         implicit none
         integer (kind=8), intent(in)    :: nLines
         integer (kind=8), intent(in)    :: indexS(nLines)
-        real*8, intent(in)              :: dfact
+        Double Precision, intent(in)    :: dfact
         Double Precision, intent(in)    :: dipole(nLines)
         Double Precision, intent(in)    :: Wmat(nLines,nLines)
-        type (dta_ERR), intent(inout)   :: econ
+        type (dta_ERR),   intent(inout) :: econ
         !local variables
         integer (kind=8)                :: i,j
         Double Precision                :: Saux, DipAux, Wij, Wii
@@ -1265,168 +1170,4 @@ END module module_phsub
         endif
 
   end subroutine sumRule
-!--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE VarInit(dta1,dta2,molP,econ,runE)
-! SUBROUTINE VarInit(dta1,dta2,dta3,dta4,molP)
-!--------------------------------------------------------------------------------------------------------------------
-! "VarInit": Variables initialization
-! 
-! Detailed Description:
-! ---------------------
-! This subroutine starts every variable type in this program and set it to zero. 
-!
-! Variables:
-!
-! Input/Output Parameters of Routine (Arguments or Common)
-! ----------------------------------
-! dta1    : dta type "dta_SDF". Spectrocopic parameters.
-! dta2    : dta type "dta_RMF". Relaxation Matrix parameters.
-! molP    : dta type "dta_MOL". Molecular structure parameters.
-!
-! Accessed Files:  None
-! --------------
-!
-! Called Routines: None
-! ---------------  
-!
-! Called By: Main Program
-! ---------
-!
-!
-! T.Mendaza, last change 17 February 2017
-!--------------------------------------------------------------------------------------------------------------------
-!
-    use module_common_var
-    implicit none
-    integer*8     , intent(in)       :: runE
-    type (dta_SDF), intent(inout)    :: dta1
-    type (dta_RMF), intent(inout)    :: dta2
-    type (dta_MOL), intent(inout)    :: molP
-    type (dta_ERR), intent(inout)    :: econ
-    integer*8                  :: i,j,k
-
-!----------
-!
-! Init. SDF data
-      dta1%M   = 0
-      dta1%iso = 0 
-      ! Local Q.
-      !dta1%nu(6,1 or 2) ! lower = 1 or 'low'
-      !dta1%nu = reshape( (/ 0.0, 0.0,&
-      !                      0.0, 0.0,&
-      !                      0.0, 0.0,&
-      !                      0.0, 0.0,&
-      !                      0.0, 0.0,&
-      !                      0.0, 0.0/),(/6,2/),order=(/2,1/))
-      
-      !
-      ! which is the same as 
-      !
-      !dta1%nu(1,1) = 0.0_dp ; dta1%nu(1,2) = 0.0_dp     
-      !dta1%nu(2,1) = 0.0_dp ; dta1%nu(2,2) = 0.0_dp     
-      !dta1%nu(3,1) = 0.0_dp ; dta1%nu(3,2) = 0.0_dp        
-      !dta1%nu(4,1) = 0.0_dp ; dta1%nu(4,2) = 0.0_dp        
-      !dta1%nu(5,1) = 0.0_dp ; dta1%nu(5,2) = 0.0_dp 
-      !dta1%nu(6,1) = 0.0_dp ; dta1%nu(6,2) = 0.0_dp  
-      !
-      dta1%lv2 = (/0,0/)
-
-      do  i=1,nLmx
-          !Integer kind
-           dta1%J(i,1)    = 0 ; dta1%J(i,2)   = 0 
-          !Double precision
-           dta1%Sig(i)    = 0.0_dp
-           dta1%Str(i)    = 0.0_dp
-           dta1%E(i)      = 0.0_dp
-           dta1%HWT0(i)   = 0.0_dp
-           dta1%BHW(i)    = 0.0_dp
-           dta1%SHIFT(i)  = 0.0_dp
-           dta1%swei0(i)  = 0.0_dp
-           dta1%swei00(i) = 0.0_dp
-           dta1%PopuT0(i) = 0.0_dp
-           dta1%PopuT(i)  = 0.0_dp
-           dta1%D0(i)     = 0.0_dp 
-           dta1%Drigrotor(i) = 0.0_dp 
-          ! Global Q.
-          !integer
-          dta1%N(i,1)    = 0 ; dta1%N(i,2)    = 0  
-          !real
-          dta1%nspin(i,1)= 0.0; dta1%nspin(i,2) = 0.0
-          dta1%espin(i,1)= 0.0; dta1%espin(i,2) = 0.0
-          !dp
-          dta1%F(i,1)= 0.0_dp ; dta1%F(i,2) = 0.0_dp
-!         dta1%J_g6(i)= 0.0_dp, dta1%Ju_g6(i)= 0.0_dp
-          !character
-           dta1%br(i)   = "" ; dta1%br_N(i) = ""
-      enddo
-!
-! Init. RMF data
-      do  i=1,nMmx
-          !Double precision
-           dta2%WT0(i) = 0.0_dp
-      enddo
-!
-! Init. MOLECULE data
-      call mol_Init(molP)
-! 
-!
-! ERROR CONTROL:
-            econ % e(1) = runE
-            econ % e(2) = 0
-      Return
-  END SUBROUTINE VarInit
-!--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE mol_Init(molP)
-!--------------------------------------------------------------------------------------------------------------------
-! "mol_Init": Molecular-structure type initialization
-!
-! Variables:
-!
-! Input/Output Parameters of Routine (Arguments or Common)
-! ----------------------------------
-! molP    : dta type "dta_MOL". Molecular structure parameters.
-!
-! Accessed Files:  None
-! --------------
-!
-! Called Routines: None
-! ---------------  
-!
-! Called By: VarInit
-! ---------
-!
-! T.Mendaza, last change 16 February 2017
-!--------------------------------------------------------------------------------------------------------------------
-!
-    use module_common_var
-    implicit none
-    type (dta_MOL), intent(inout)    :: molP
-!----------
-! Init. MOLECULE data
-      !Integer kind
-      molP%M     = 0
-      molP%iso_m = 0
-      molP%Aco   = 0 
-      !Double precision
-      molP%mms    = 0.0_dp
-      molP % Temp = 0.0_dp
-      molP % Ptot = 0.0_dp
-      molP % Nmcon= 0.0_dp
-      molP % B0   = 0.0_dp
-      molP % QT   = 0.0_dp
-      molP % QT0  = 0.0_dp
-      molP % a1   = 0.0_dp
-      molP % a2   = 0.0_dp
-      molP % a3   = 0.0_dp
-      molP % dc   = 0.0_dp
-      molP % ex1  = 0.0_dp
-      molP % ex2  = 0.0_dp
-      !character
-      molP%chmol = ""
-      !logical
-      molP%availableParam = .true.
-      molP%AF_ON = .true.
-! 
-      Return
-  END SUBROUTINE mol_Init
 !--------------------------------------------------------------------------------------------------------------------

@@ -781,15 +781,16 @@ void iyEmissionStandard(
           // Weight with iy_transmission
           if( !iy_agenda_call1 )
             {
-              Matrix X, Y(ns,diy_dpath[0].npages()), Y_int(ns, 1); 
+              Matrix X, Y; 
               //
               FOR_ANALYTICAL_JACOBIANS_DO( 
+                Y.resize(ns,diy_dpath[iq].npages());
                 for( Index iv=0; iv<nf; iv++ )
                   { 
                       if( jac_to_integrate[iq] )
                       {
                         X = transpose( diy_dpath[iq](joker,iv,joker) );
-                        mult( Y_int, iy_transmission(iv,joker,joker), X );
+                        mult( Y, iy_transmission(iv,joker,joker), X );
                         diy_dpath[iq](joker,iv,joker) = transpose( Y );
                       }
                       else

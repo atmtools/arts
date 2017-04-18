@@ -13839,6 +13839,28 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+    ( NAME( "z_surfaceFromFileAndGrid" ),
+        DESCRIPTION
+        (
+         "Sets the surface altitude for a given latitude and longitude grid.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "z_surface" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "lat_grid", "lon_grid" ),
+        GIN( "filename", "interp_order", "set_lowest_altitude_to_zero" ),
+        GIN_TYPE( "String", "Index", "Index" ),
+        GIN_DEFAULT( NODEF, "1", "0" ),
+        GIN_DESC("File of GriddedField2 with surface altitudes gridded",
+                 "Interpolation order",
+                 "Index that sets the lowest altitude to 0 to ignore sub-surface pressures/altitudes"
+                )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "surfaceBlackbody" ),
         DESCRIPTION
         (
@@ -15409,6 +15431,28 @@ void define_md_data_raw()
         GIN_TYPE(    "Index" ),
         GIN_DEFAULT( NODEF),
         GIN_DESC(    "Screen verbosity level")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "vmr_fieldSetAllConstant" ),
+        DESCRIPTION
+        (
+         "Sets the VMR of all species to a select constant value.\n"
+         "\n"
+         "The *vmr_field* WSM must have a correct size before calling this method.\n"
+         "The length of vmr_values and of abs_species must match.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "vmr_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "vmr_field", "abs_species" ),
+        GIN( "vmr_values" ),
+        GIN_TYPE( "Vector" ),
+        GIN_DEFAULT( NODEF),
+        GIN_DESC( "VMR values to apply for the abs_species.")
         ));
 
   md_data_raw.push_back

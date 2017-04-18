@@ -4,24 +4,32 @@ MODULE module_molecSp
 !
     interface
 
-        subroutine r_arts_LocalQ(dta1,pos,Q0,Q00)
+        subroutine r_arts_LocalQ(dta1,pos,Q0,Q00,econ)
             use module_common_var
+            use module_error
             use module_maths
             implicit none
-            integer*8, intent(in)        :: pos
-            integer*8, intent(in)        :: Q0(4), Q00(4)
-            type (dta_SDF), intent(inout):: dta1
+            integer*8              , intent(inout) :: pos
+            integer*8              , intent(in   ) :: Q0(4), Q00(4)
+            type (dta_SDF), pointer, intent(inout) :: dta1
+            type (dta_ERR)         , intent(inout) :: econ
         end subroutine r_arts_LocalQ
 
-        character function delta2branch(delta,pos)
+        character*1 function delta2branch(delta,pos,econ)
+            use module_common_var
+            use module_error
             implicit none
-            integer (kind=8), intent(in)       :: delta, pos
+            integer (kind=8), intent(in)    :: delta, pos
+            type (dta_ERR)  , intent(inout) :: econ
         end function delta2branch
 
-        integer*8 function branch2delta(branch,pos)
+        integer*8 function branch2delta(branch,pos,econ)
+            use module_common_var
+            use module_error
             implicit none
-            character(1), intent(in)           :: branch
-            integer (kind=8), intent(in)       :: pos
+            character(1)    , intent(in)    :: branch
+            integer (kind=8), intent(in)    :: pos
+            type (dta_ERR)  , intent(inout) :: econ
         end function branch2delta
 
         subroutine systemQParam(sys,molP,econ)
@@ -50,28 +58,37 @@ MODULE module_molecSp
 
 END module module_molecSp
 !--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE r_arts_LocalQ(dta1,pos,Q0,Q00) 
+  SUBROUTINE r_arts_LocalQ(dta1,pos,Q0,Q00,econ) 
 !--------------------------------------------------------------------------------------------------------------------
         use module_common_var
+        use module_error
         use module_maths
         implicit none
-        integer*8   , intent(in)      :: pos 
-        integer*8   , intent(in)      :: Q0(4), Q00(4) ! == artsUpp, artsLow
-        type (dta_SDF), intent(inout)    :: dta1
-        character( 1)                    :: delta2branch
-        integer*8              :: branch2delta
-        integer*8              :: my_mol, delta
+        integer*8              , intent(inout) :: pos 
+        integer*8              , intent(in)    :: Q0(4), Q00(4) ! == artsUpp, artsLow
+        type (dta_SDF), pointer, intent(inout) :: dta1
+        type (dta_ERR)         , intent(inout) :: econ
+        character( 1) :: delta2branch
+        integer*8     :: branch2delta, iaux
+        integer*8     :: my_mol, delta
         !--------------------------------------------------
         my_mol = dta1%M
+        iaux = 0
         !  NOTES: 
         !  (1) Prime and double primes refer, respectively, 
         !  to upper and lower states, respectively, i.e.
         !       * upper := 2; 0 ; or ' 
         !       * lower := 1;00 ; or " 
         !--------------------------------------------------
-        IF ((my_mol .eq. 2).or.(my_mol .eq. 7)) then
-        ! Group 2: Diatomic and Linear molecules.
-        ! CO2( 2), O2(7)
+        IF ((my_mol .eq. 2).or.(my_mol .eq. 4).or.(my_mol .eq. 5).or.(my_mol .eq. 7).or. &
+            (my_mol .eq. 8).or.(my_mol .eq.13).or.(my_mol .eq.14).or.(my_mol .eq.15).or. &
+            (my_mol .eq.16).or.(my_mol .eq.17).or.(my_mol .eq.18).or.(my_mol .eq.19).or. &
+            (my_mol .eq.22).or.(my_mol .eq.23)) then
+        ! Diatomic: 
+        ! CO(5), HF(14), HCl(15), HBr(16), HI(17), N2(22), NO(8), OH(13)
+        ! ClO(18), O2(7)
+        ! Linear Triatomic: 
+        ! N2O(4), OCS(19), HCN(23), CO2(2)
         ! ------------------------------
         ! Variables in use:
         !            J: Resultant total angular momentum quantum number, 
@@ -91,6 +108,7 @@ END module module_molecSp
         ! J:
             if (Q00(2) .eq. -1) then
                 dta1%J(pos,1)     = 0.0d0
+                iaux = -1
             else
                 dta1%J(pos,1)     = real(Q00(2),dp)
             endif
@@ -103,9 +121,12 @@ END module module_molecSp
             endif
         !
         ! S:
-            ! CAREFUL WITH THE SPIN!!! if it is integer that means something ASK RICHARD!
             if (Q00(4) .eq. -1) then
-                dta1%espin(pos,1) = 0.0d0
+                dta1%espin(pos,1) = 1.0d0 !CHANGE!!!!
+                if (my_mol .eq. 7) then
+                !!! IF O2 and no SPIN then ERROR!!!!
+                    call errorSPIN(econ)
+                endif
             else
                 dta1%espin(pos,1) = real(Q00(4),dp)
             endif
@@ -115,6 +136,7 @@ END module module_molecSp
         ! J:
             if (Q0(2) .eq. -1) then
                 dta1%J(pos,2)     = 0.0d0
+                iaux = -1
             else
                 dta1%J(pos,2)     = real(Q0(2),dp)
             endif
@@ -129,7 +151,11 @@ END module module_molecSp
         ! S:
             ! CAREFUL WITH THE SPIN!!! if it is integer that means something ASK RICHARD!
             if (Q0(4) .eq. -1) then
-                dta1%espin(pos,2) = 0.0d0
+                dta1%espin(pos,2) = 1.0d0
+                if (my_mol .eq. 7) then
+                !!! IF O2 and no SPIN then ERROR!!!!
+                    call errorSPIN(econ)
+                endif
             else
                 dta1%espin(pos,2) = real(Q0(4),dp)
             endif
@@ -137,15 +163,19 @@ END module module_molecSp
         ! BRANCH:
         !
             delta = int(dta1%J(pos,2)-dta1%J(pos,1))
-            dta1%br(pos) = delta2branch(delta,pos)
+            dta1%br(pos) = delta2branch(delta,pos,econ)
         !
+        pos = pos + iaux
         ELSE
-            print*, " No vibrational band information or not speficied Format your selected molecule (HITRANid):", my_mol
+            if (econ % e(1) .eq. 1) then
+                print*, " No vibrational band information or not speficied Format "
+                print*, " your selected molecule (HITRANid):", my_mol  
+            endif
         ENDIF
 
   END SUBROUTINE r_arts_LocalQ
 !--------------------------------------------------------------------------------------------------------------------
-  character function delta2branch(delta, pos)
+  character*1 function delta2branch(delta, pos,econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! Delta2branch : Delta to branch
 !
@@ -157,8 +187,11 @@ END module module_molecSp
 !
 ! Author: Teresa Mendaza 02/03/2016
 !--------------------------------------------------------------------------------------------------------------------
+        use module_common_var
+        use module_error
         implicit none
-        integer*8, intent(in)  :: delta, pos
+        integer*8     , intent(in)    :: delta, pos
+        type (dta_ERR), intent(inout) :: econ
         !------------------------------------------------
         if ( delta .eq. 1 ) then
             ! Ju-J == +1
@@ -184,12 +217,13 @@ END module module_molecSp
             ! that does not follow the selection rules:
             ! \delta(J)=0, +-1, +-2
             ! \delta(l)= +-1
-                print*, "transition in position", pos,"do not follows the selection rules?"
-                STOP
+            if (econ % e(1) .eq. 1) then
+                call errorBranch(pos, econ)
+            endif
         endif
   end function delta2branch
 !--------------------------------------------------------------------------------------------------------------------
-  integer*8 function branch2delta(branch,pos)
+  integer*8 function branch2delta(branch,pos,econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! branch2delta : branch to delta
 !
@@ -207,9 +241,12 @@ END module module_molecSp
 !
 ! Author: Teresa Mendaza 02/03/2016
 !--------------------------------------------------------------------------------------------------------------------
+        use module_common_var
+        use module_error
         implicit none
         character(1), intent(in)              :: branch
         integer (kind=8), intent(in)          :: pos
+        type (dta_ERR)  , intent(inout)       :: econ
         !---------------------------------------------------
         ! NOTATION:
         ! ∆J = Jupper-Jlower
@@ -232,12 +269,9 @@ END module module_molecSp
             ! *q = Q-branch (when ∆J =  0)
             branch2delta = 0
         else
-            ! since HITRAN is an empirical DB it should not contain any line
-            ! that does not follow the selection rules:
-            ! \delta(J)=0, +-1, +-2
-            ! \delta(l)= +-1
-            print*, "transition in position", pos,"do not follows the selection rules?"
-            STOP
+            if (econ % e(1) .eq. 1) then
+                call errorBranch(pos, econ)
+            endif
         endif
   end function branch2delta
 !--------------------------------------------------------------------------------------------------------------------

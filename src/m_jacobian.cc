@@ -286,7 +286,7 @@ void jacobianAddAbsSpecies(
         }
         else if( jq[it].MainTag() == ABSSPECIES_MAINTAG  && jq[it].SubSubtag() == PROPMAT_SUBSUBTAG )
         {
-            if(SpeciesTag(jq[it].Subtag()).Species()  == SpeciesTag(species).Species())
+            if(SpeciesTag(jq[it].Subtag()) == SpeciesTag(species))
             {
                 ostringstream os;
                 os << "The atmospheric species of:\n" << species << "\nis already included in "
@@ -379,7 +379,7 @@ void jacobianAddConstantVMRAbsSpecies(
   CREATE_OUT2;
   CREATE_OUT3;
   
-  if(!for_species_tag)
+  if(not for_species_tag)
   {
     ArrayOfSpeciesTag test;
     array_species_tag_from_string(test,species);
@@ -392,22 +392,26 @@ void jacobianAddConstantVMRAbsSpecies(
   // Check that this species is not already included in the jacobian.
   for( Index it=0; it<jq.nelem(); it++ )
   {
-    if( jq[it].MainTag() == ABSSPECIES_MAINTAG  && jq[it].SubSubtag() != PROPMAT_SUBSUBTAG &&
-      jq[it].Subtag()  == species )
+    RetrievalQuantity& rt = jq[it];
+    if( rt.MainTag() == ABSSPECIES_MAINTAG)
     {
-      ostringstream os;
-      os << "The gas species:\n" << species << "\nis already included in "
-      << "*jacobian_quantities*.";
-      throw runtime_error(os.str());
-    }
-    else if( jq[it].MainTag() == ABSSPECIES_MAINTAG  && jq[it].SubSubtag() == PROPMAT_SUBSUBTAG )
-    {
-      if(SpeciesTag(jq[it].Subtag()).Species()  == SpeciesTag(species).Species())
+      if(rt.Subtag() == species)
       {
         ostringstream os;
-        os << "The atmospheric species of:\n" << species << "\nis already included in "
-        << "*jacobian_quantities*.";
-        throw runtime_error(os.str());
+        os << "jacobian already set for " << species << "\nThis is not allowed.";
+        throw std::runtime_error(os.str());
+      }
+      
+      if(not for_species_tag)
+      {
+        if(SpeciesTag(rt.Subtag()).Species() == SpeciesTag(species).Species())
+        {
+          ostringstream os;
+          os << "for_species_tag is set to indicate full in one jacobian for species=\"" << species << "\""
+             << "\nThis is the same species as exist in another jacobian species=\"" <<  rt.Subtag() << "\""
+             << "\nSince this duplicates calculations, it is not allowed.";
+          throw std::runtime_error(os.str());
+        }
       }
     }
   }

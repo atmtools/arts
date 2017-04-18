@@ -3,65 +3,60 @@ module module_read
 !--------------------------------------------------------------------------------------------------------------------
     interface
 
-        subroutine Hit2DTA(dta1, dta_size, nLines, enough_Lines, &
-                                            artsWNO, &
-                                            artsS, &
-                                            artsGA, &
-                                            artsE00, &
-                                            artsNA , &
-                                            artsUpp, artsLow, &
-                                            artsg0 , artsg00, &
-                                            sgmin  , sgmax, &
-                                            econ)
+        subroutine Hit2DTA(dta1, dta_size, nLines, vLines_Indx, &
+                           artsWNO, artsS, artsGA, artsE00, &
+                           artsNA , artsUpp, artsLow, &
+                           artsg0 , artsg00, sgmin  , sgmax, &
+                           econ)
             use module_common_var
             use module_error
             use module_molecSp
             implicit none
-            integer*8, intent (in)  :: nLines
-            integer*8, intent (in)  :: artsg0(nLines), artsg00(nLines)
-            integer*8, intent (in)  :: artsLow(4,nLines), artsUpp(4,nLines)
-            Double Precision      , intent (in)  :: sgmin, sgmax
-            Double Precision      , intent (in)  :: artsWNO(nLines),artsS(nLines), &
-                                                    artsGA(nLines), artsE00(nLines), &
-                                                    artsNA(nLines)
-            logical               , intent (out) :: enough_Lines
-            integer*8             , intent (out) :: dta_size
-            type (dta_SDF), intent (inout)       :: dta1
-            type (dta_ERR), intent (inout)       :: econ
+            integer*8              , intent (in   ) :: nLines
+            integer*8              , intent (in   ) :: artsg0(nLines), artsg00(nLines)
+            integer*8              , intent (in   ) :: artsLow(4,nLines), artsUpp(4,nLines)
+            Double Precision       , intent (in   ) :: sgmin, sgmax
+            Double Precision       , intent (in   ) :: artsWNO(nLines),artsS(nLines), &
+                                                       artsGA(nLines), artsE00(nLines), &
+                                                       artsNA(nLines)
+            integer*8              , intent (  out) :: vLines_Indx(nLines)
+            integer*8              , intent (  out) :: dta_size
+            type (dta_SDF), pointer, intent (inout) :: dta1
+            type (dta_ERR)         , intent (inout) :: econ
         end subroutine Hit2DTA
 
         subroutine moleculeID(my_mol,isotope, Mass, PFmol_T, PFmol_T0, flagON, molP, econ)
             use module_common_var
             use module_error
             implicit none
-            integer*8, intent (in)             :: my_mol , isotope
-            Double Precision, intent (in)      :: Mass, PFmol_T0, PFmol_T
-            logical         , intent (in)      :: flagON
-            type (dta_MOL), intent(inout)      :: molP
-            type (dta_ERR), intent(inout)      :: econ
+            integer*8       , intent(in)    :: my_mol , isotope
+            Double Precision, intent(in)    :: Mass, PFmol_T0, PFmol_T
+            logical         , intent(in)    :: flagON
+            type (dta_MOL)  , intent(inout) :: molP
+            type (dta_ERR)  , intent(inout) :: econ
         end subroutine moleculeID
 
         subroutine molid_char(molP,econ)
             use module_common_var
             use module_error
             implicit none
-            type (dta_MOL), intent(inout)      :: molP
-            type (dta_ERR), intent(inout)      :: econ
+            type (dta_MOL), intent(inout)   :: molP
+            type (dta_ERR), intent(inout)   :: econ
         end subroutine molid_char
 
         subroutine addMolParam(molP,econ)
             use module_common_var
             use module_error
             implicit none
-            type (dta_MOL), intent(inout)      :: molP
-            type (dta_ERR), intent(inout)      :: econ
+            type (dta_MOL), intent(inout)   :: molP
+            type (dta_ERR), intent(inout)   :: econ
         end subroutine addMolParam
 
     end interface
 
 end module module_read
 !--------------------------------------------------------------------------------------------------------------------
-subroutine Hit2DTA(dta1, dta_size, nLines, enough_Lines, &
+subroutine Hit2DTA(dta1, dta_size, nLines, vLines_Indx, &
                                             artsWNO, &
                                             artsS, &
                                             artsGA, &
@@ -105,22 +100,22 @@ subroutine Hit2DTA(dta1, dta_size, nLines, enough_Lines, &
       use module_error
       use module_molecSp
       Implicit None
-      integer*8, intent (in)         :: nLines
-      integer*8, intent (in)         :: artsg0(nLines), artsg00(nLines)
-      integer*8, intent (in)         :: artsLow(4,nLines), artsUpp(4,nLines)
-      Double Precision, intent (in)  :: sgmin, sgmax
-      Double Precision, intent (in)  :: artsWNO(nLines),artsS(nLines), &
-                                        artsGA(nLines), artsE00(nLines), &
-                                        artsNA(nLines)
-      integer*8, intent (out)        :: dta_size
-      logical  , intent (out)        :: enough_Lines
-      type (dta_SDF), intent (inout) :: dta1
-      type (dta_ERR), intent (inout) :: econ
-      integer*8                      :: i, j, k
+      integer*8              , intent (in   ) :: nLines
+      integer*8              , intent (in   ) :: artsg0(nLines), artsg00(nLines)
+      integer*8              , intent (in   ) :: artsLow(4,nLines), artsUpp(4,nLines)
+      Double Precision       , intent (in   ) :: sgmin, sgmax
+      Double Precision       , intent (in   ) :: artsWNO(nLines),artsS(nLines), &
+                                                 artsGA(nLines), artsE00(nLines), &
+                                                 artsNA(nLines)
+      integer*8              , intent (  out) :: vLines_Indx(nLines)
+      integer*8              , intent (  out) :: dta_size
+      type (dta_SDF), pointer, intent (inout) :: dta1
+      type (dta_ERR)         , intent (inout) :: econ
+      integer*8 :: i, j, k
 !
-!--------------------------
-! Example of line: HITRAN12
-!--------------------------
+!---------------------------
+! Example of line (HITRAN12)
+!---------------------------
 ! PART 1:
 !C/MI/wno......../S......../A......../GamA/GamS/E''....../nAi/shift..
 !C 61 4414.089492 2.960E-23 2.520E-02.05500.078  219.91340.70-.008800
@@ -136,23 +131,27 @@ subroutine Hit2DTA(dta1, dta_size, nLines, enough_Lines, &
 ! which is the way to recognise the band 2·nu3
 !
     i = 1
+    !
+    dta1%lv2(1) = artsLow(1,1) ! Lower level vibrationa angular momentum
+    dta1%lv2(2) = artsUpp(1,1) ! Upper level vibrationa angular momentum
+    !
     do j = 1,nLines
-        if( (artsWNO(i) .ge. sgmin  ) .and. (artsWNO(i) .le. sgmax  ) ) then    
+        if( (artsWNO(j) .ge. sgmin  ) .and. (artsWNO(j) .le. sgmax  ) ) then  
+        k = i  
         ! & the frequency lies in the band-interval
-
-          if (i .eq. 1) then
-              dta1%lv2(1) = artsLow(1,1) ! Lower level vibrationa angular momentum
-              dta1%lv2(2) = artsUpp(1,1) ! Upper level vibrationa angular momentum
-          endif 
-          dta1 % sig(i)    = artsWNO(i)
-          dta1 % Str(i)    = artsS(i)
-          dta1 % HWT0(i)   = artsGA(i)
-          dta1 % BHW(i)    = artsNA(i)
-          dta1 % E(i)      = artsE00(i)
-          dta1 % swei0(i)  = artsg0(i)
-          dta1 % swei00(i) = artsg00(i)
-          call r_arts_LocalQ(dta1, i, artsUpp(:,i), artsLow(:,i))
-
+          dta1 % sig(i)    = artsWNO(j)
+          dta1 % Str(i)    = artsS(j)
+          dta1 % HWT0(i)   = artsGA(j)
+          dta1 % BHW(i)    = artsNA(j)
+          dta1 % E(i)      = artsE00(j)
+          dta1 % swei0(i)  = artsg0(j)
+          dta1 % swei00(i) = artsg00(j)
+          call r_arts_LocalQ(dta1, i, artsUpp(:,j), artsLow(:,j),econ)
+          if (k .ne. i) then
+            vLines_Indx(j) = 0
+          else
+            vLines_Indx(j) = i
+          endif
           i=i+1
           ! Check how many lines has read the subrutine...
           if ( i.gt.nLmx ) then
@@ -162,11 +161,7 @@ subroutine Hit2DTA(dta1, dta_size, nLines, enough_Lines, &
         
     end do
     dta_size = i - 1
-    if (dta_size .lt. 10) then
-      enough_Lines = .false.
-    else
-      enough_Lines = .true.
-    endif  
+ 
     Return
 end subroutine Hit2DTA
 !--------------------------------------------------------------------------------------------------------------------

@@ -1449,10 +1449,11 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
     mi0 /= species_data[mspecies].Isotopologue()[misotopologue].Abundance();
   }
 
-  // Skip Einstein coefficient
+  // Einstein coefficient
   {
     Numeric r;
     extract(r,line,10);
+    ma = r;
   }
 
 

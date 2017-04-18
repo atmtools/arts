@@ -3566,7 +3566,32 @@ void AtmWithNLTERawRead(//WS Output:
        throw std::runtime_error( os.str() );
   }
 }
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void z_surfaceFromFileAndGrid(
+  Matrix& z_surface,
+  const Vector& lat_grid,
+  const Vector& lon_grid,
+  const String& filename,
+  const Index& interp_order,
+  const Index& set_lowest_altitude_to_zero,
+  const Verbosity& verbosity)
+{
+  CREATE_OUT3;
   
+  out3 << "Reading GriddedField2 surface altitude from " << filename << "\n";
+  GriddedField2 z_surface_field;
+  xml_read_from_file( filename, z_surface_field, verbosity);
+  
+  out3 << "Surface altitude field interpolated back to lat_grid and lon_grid\n";
+  GriddedFieldLatLonRegrid(z_surface_field, lat_grid, lon_grid, z_surface_field, interp_order, verbosity);
+  z_surface = z_surface_field.data;
+  if(set_lowest_altitude_to_zero)
+  {
+    z_surface -= min(z_surface);
+  }
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void InterpAtmFieldToPosition(
@@ -4100,6 +4125,31 @@ void vmr_fieldSetConstant(
 
   // Apply value
   vmr_field(si,joker,joker,joker) = vmr_value;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void vmr_fieldSetAllConstant(
+  Tensor4&         vmr_field,
+  const ArrayOfArrayOfSpeciesTag&   abs_species,
+  const Vector&   vmr_values, 
+  const Verbosity&  verbosity)
+{
+  CREATE_OUT3;
+  
+  const Index nspecies = abs_species.nelem();
+  
+  if(vmr_values.nelem() not_eq nspecies)
+    throw std::runtime_error("Not same number of vmr_values as abs_species.");
+  
+  out3 << "Setting all " << nspecies << " species to constant VMR\n";
+  
+  for(Index i=0; i<nspecies; i++)
+  {
+    const ArrayOfSpeciesTag& a_abs_species = abs_species[i];
+    const String species_tag_name = get_tag_group_name(a_abs_species);
+    vmr_fieldSetConstant(vmr_field, abs_species, species_tag_name, vmr_values[i], verbosity);
+  }
 }
 
 
