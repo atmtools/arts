@@ -309,47 +309,41 @@ END module module_linemixing
     double Precision              :: str(nLines)
     Double Precision              :: Sup, Slow, S_UL_rate
     Double Precision              :: pn, pk
-    Double Precision              :: auxW, auxHW
     Double Precision              :: W_rn(nLines,nLines)
-    !Other Auxiliar Constants
-    integer*8                     :: count1, count2
-    double Precision              :: Kaux, Saux, Waux
-    double Precision              :: Supaux, Slowaux
 !---------
 ! Reordering by line strength
 !
-       do k=1,nLines
+      do k=1,nLines
          !str(k) = dta1%STR(k)
          !str(k) = dta1%sig(k)*dta1%popuT(k)*dta1%D0(k)**2 
          !str(k) = dta1%sig(k)*dta1%popuT(k)*dta1%DipoT(k)**2
          str(k) = dta1%popuT(k) 
-       enddo
-       ! The rotational components are sorted according to their intensities in decreasing order
-       ! (the first one is the most intense). Hence, << 1 | W | 1 >> is the broadening of the most 
-       ! intense line, and << 2 | W | 1 >> (or << 1 | W | 2 >>) are the terms coupling this transition
-       ! to the second most intense one.
-       ! SORTENING by intensity.
-       call bubble_index(nLines,str,indexS,'d',econ)
-       ! Here we perform the 'pullback' of indexS. 
-       call ibubble_index(nLines,indexS,indexI,'a',econ)
-       !
-       do i=1,nLines
+      enddo
+      ! The rotational components are sorted according to their intensities in decreasing order
+      ! (the first one is the most intense). Hence, << 1 | W | 1 >> is the broadening of the most 
+      ! intense line, and << 2 | W | 1 >> (or << 1 | W | 2 >>) are the terms coupling this transition
+      ! to the second most intense one.
+      ! SORTENING by intensity.
+      call bubble_index(nLines,str,indexS,'d',econ)
+      ! Here we perform the 'pullback' of indexS. 
+      call ibubble_index(nLines,indexS,indexI,'a',econ)
+      !
+      do i=1,nLines
           do j=1,nLines
             if (i.eq.j) then
               W_rn(i,i)=Wmat(indexS(i), indexS(i))
             else
-              W_rn(i,j)=-abs(Wmat(indexS(i), indexS(j)))
+              !W_rn(i,j)=-abs(Wmat(indexS(i), indexS(j)))
+              W_rn(i,j)=Wmat(indexS(i), indexS(j))
             endif
           enddo
-       enddo
-       !
-       ! Then, each column "k" of the matrix, starting from the first one is treated as follows:
-       DO n = 1, nLines
-         Sup = 0.0; Slow = 0.0
-         count1 = 0; count2 = 0
-         pn = dta1%popuT( indexS(n) )
-         DO k = 1, nLines
-          Saux = 0.0
+      enddo
+      !
+      ! Then, each column "k" of the matrix, starting from the first one is treated as follows:
+      DO n = 1, nLines
+        Sup = 0.0; Slow = 0.0
+        pn = dta1%popuT( indexS(n) )
+        DO k = 1, nLines
           ! remove assymetry
           if(dta1%iso.gt.2 .AND. dta1%iso.ne.7 &
             .AND.&           
@@ -365,13 +359,12 @@ END module module_linemixing
               call renorm_error("1009", n, k, W_rn( n , k ), Slow, econ)
             endif          
           endif
-         ENDDO
-         S_UL_rate=Sup/Slow
-         !print*, "counting: Sup NaN#", count1, "; Slow NaN#", count2, " out of", nLines
-         !
-         ! Scale the elements of the "lower part" of the column (k>n)
-         ! So we have the W_RN (renormalize Relaxation Matrix)
-         DO k = n,nLines
+        ENDDO
+        S_UL_rate=Sup/Slow
+        !
+        ! Scale the elements of the "lower part" of the column (k>n)
+        ! So we have the W_RN (renormalize Relaxation Matrix)
+        DO k = n,nLines
           if ( k .ne. n) then 
           !
             if (Slow .eq. 0.0_dp) then
@@ -395,21 +388,21 @@ END module module_linemixing
               W_rn(k,n) = W_rn(n,k)*pn/pk
             endif
           endif
-         ENDDO  
-         !
-       ENDDO
-       !
-       ! use '1.0' if Wii = line-width 
-       ! use '2.0' if Wii = half-width 
-       CALL sumRule(nLines,indexS,dta1%D0(1:nLines),W_rn,1.0,econ)
-       ! 
-       ! Reordered by wno
-       !
-       do i=1,nLines
-         do j=1,nLines
-           W_rnO(i,j)  =  W_rn( indexI(i) , indexI(j) )
-         enddo
-       enddo
+        ENDDO  
+        !
+      ENDDO
+      !
+      ! use '1.0' if Wii = line-width 
+      ! use '2.0' if Wii = half-width 
+      CALL sumRule(nLines,indexS,dta1%D0(1:nLines),W_rn,1.0,econ)
+      ! 
+      ! Reordered by wno
+      !
+      do i=1,nLines
+        do j=1,nLines
+          W_rnO(i,j)  =  W_rn( indexI(i) , indexI(j) )
+        enddo
+      enddo
   END SUBROUTINE RN_Wmat
 !--------------------------------------------------------------------------------------------------------------------
   SUBROUTINE LM_Rosen(molP, nLines,dta1,Wmat,Y_RosT)
@@ -484,7 +477,6 @@ END module module_linemixing
         Y_RosT(i)=2.0*Ptot*sumY
     ENDDO
 
-    Return
   END SUBROUTINE LM_Rosen
 !--------------------------------------------------------------------------------------------------------------------
   SUBROUTINE calc_QParam(nLines, dta1, molP, PerM, econ)
@@ -829,7 +821,7 @@ END module module_linemixing
               dta2%WT0( (nLines*( n - 1 ) + k) ) = 0.0_dp
             else
               !dta2%WT0( (nLines*( n - 1 ) + k) ) = W_rn( indexI(n) , indexI(k) )
-              dta2%WT0( (nLines*( n - 1 ) + k) ) = W_rn( n , k )
+              dta2%WT0( (nLines*( n - 1 ) + k) ) = -abs(W_rn( n , k ))
             endif  
           ENDIF
          ENDDO

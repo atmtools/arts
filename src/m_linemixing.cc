@@ -981,6 +981,9 @@ void abs_lines_per_bandFromband_identifiers( ArrayOfArrayOfLineRecord&       abs
   out3<<"Sets line mixing tag for provided bands. " <<
   "Requires \"*-LM-*\" tag in abs_species.\n";
   
+  if(abs_lines_per_species.nelem() not_eq abs_species.nelem())
+      throw std::runtime_error("Mismatching abs_species and abs_lines_per_species");
+  
   abs_lines_per_band.resize(band_identifiers.nelem());
   abs_species_per_band.resize(band_identifiers.nelem());
   
@@ -1000,9 +1003,9 @@ void abs_lines_per_bandFromband_identifiers( ArrayOfArrayOfLineRecord&       abs
     
     for (Index s = 0; s < abs_lines_per_species.nelem(); s++)
     {
-      
       // Skip this species if qi is not part of the species represented by this abs_lines
-      if(abs_species[s][0].Species() != band_id.Species() || abs_species[s][0].LineMixing() == SpeciesTag::LINE_MIXING_OFF)
+      if(abs_species[s][0].Species() not_eq band_id.Species() or 
+         abs_species[s][0].LineMixing() == SpeciesTag::LINE_MIXING_OFF)
         continue;
       
       ArrayOfLineRecord& species_lines = abs_lines_per_species[s];
@@ -1021,7 +1024,7 @@ void abs_lines_per_bandFromband_identifiers( ArrayOfArrayOfLineRecord&       abs
         LineRecord& lr = species_lines[matches[i]];
         
         // If any of the levels match partially or fully set the right quantum number
-        if(qm.Upper()==QMI_NONE||qm.Lower()==QMI_NONE)
+        if(qm.Upper()==QMI_NONE or qm.Lower()==QMI_NONE)
         {
           continue;
         }
@@ -1437,12 +1440,20 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
     throw std::runtime_error("Absorption species and abs_xsec_per_species are not from same source.");
   else
     for(Index i=0; i < nspecies; i++)
+    {
       if(abs_xsec_per_species[i].ncols() not_eq nts)
+      {
         throw std::runtime_error("Unexpected size of xsec matrix not matching abs_t and abs_p length.");
+      }
       else if(abs_xsec_per_species[i].nrows() not_eq nf)
+      {
         throw std::runtime_error("Unexpected size of xsec matrix not matching f_grid length.");
+      }
       if(relmat_type_per_band.nelem() not_eq abs_lines_per_band.nelem())
+      {
         throw std::runtime_error("Mismatching relmat_type_per_band and abs_lines_per_band.\n");
+      }
+    }
       
       PropmatPartialsData ppd(jacobian_quantities);
     ppd.supportsRelaxationMatrix();
@@ -1456,12 +1467,6 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
     for(Index ip=0; ip<nps; ip++)
     {
       relmat_per_band[ip].resize(nbands);
-      for(Index i = 0; i < nbands; i++)
-      {
-        const Index nlines = abs_lines_per_band.nelem();
-        relmat_per_band[ip][i].resize(nlines, nlines);
-        relmat_per_band[ip][i] = 0;
-      }
     }
   }
   
@@ -1522,8 +1527,6 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
     // Allocation of band specific inputs (types: to be used as fortran input)
     long   M = (this_band[0].IsotopologueData().HitranTag())/10;
     long   I = (this_band[0].IsotopologueData().HitranTag())%10;
-#pragma omp critical
-    std::cout<<M<<" "<<I<<"\n";
     long   *upper          = new long[4*nlines];
     long   *lower          = new long[4*nlines];
     long   *g_prime        = new long[nlines];
@@ -1813,10 +1816,8 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
         
         if(error_handling == 1) // If it is still one here, then the program has found some error
         {
-//           throw std:: runtime_error("Fatal error encountered in relmat calculations.  Check your input for sanity.\n"
-//           "To check what relmat is doing, activate the debug flag of this code.");
-          std::cout<<"Error for band (ignore local quanta): " << abs_lines_per_band[iband][0].QuantumNumbersString()<<"\n";
-          continue;
+           throw std:: runtime_error("Fatal error encountered in relmat calculations.  Check your input for sanity.\n"
+           "To check what relmat is doing, activate the debug flag of this code.");
         }
         
         // Convert to SI-units
@@ -1929,7 +1930,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
         
         if(write_relmat_per_band not_eq 0)
         {
-          relmat_per_band[ip][iband](joker, joker) = W;
+          relmat_per_band[ip][iband] = W;
         }
         
       }

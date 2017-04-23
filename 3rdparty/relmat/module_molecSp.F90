@@ -123,10 +123,10 @@ END module module_molecSp
         ! S:
             if (Q00(4) .eq. -1) then
                 dta1%espin(pos,1) = 1.0d0 !CHANGE!!!!
-                if (my_mol .eq. 7) then
+                !if (my_mol .eq. 7) then
                 !!! IF O2 and no SPIN then ERROR!!!!
-                    call errorSPIN(econ)
-                endif
+                !    call errorSPIN(econ)
+                !endif
             else
                 dta1%espin(pos,1) = real(Q00(4),dp)
             endif
@@ -152,10 +152,10 @@ END module module_molecSp
             ! CAREFUL WITH THE SPIN!!! if it is integer that means something ASK RICHARD!
             if (Q0(4) .eq. -1) then
                 dta1%espin(pos,2) = 1.0d0
-                if (my_mol .eq. 7) then
+                !if (my_mol .eq. 7) then
                 !!! IF O2 and no SPIN then ERROR!!!!
-                    call errorSPIN(econ)
-                endif
+                !    call errorSPIN(econ)
+                !endif
             else
                 dta1%espin(pos,2) = real(Q0(4),dp)
             endif
@@ -335,7 +335,7 @@ END module module_molecSp
                 molP%a1 = 0.0275D0 !cm-1/atm
                 molP%a2 = 0.935D0  !cm-1
                 molP%a3 = 1.01D0   !cm-1
-                molP%dc = 1.01     !Å (amstrong)
+                molP%dc = 1.05     !Å (amstrong)
                 molP%ex1 = 1.0  
                 molP%ex2 = 1.0
                 if (T .ne. T0) then

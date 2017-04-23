@@ -52,7 +52,7 @@ END module module_LLS
     double precision      :: Ji, Ji_p, Jf, Jf_p 
     double precision      :: Si, Sf
     double precision      :: dE,Jaux
-    double precision      :: K1, K2, AF1, AF2
+    double precision      :: K1, K2, AF1, AF2, m_4
     double precision      :: T, Ptot, RT
     !-----------------------------------------
       T    = molP % Temp
@@ -88,7 +88,7 @@ END module module_LLS
             AF1 = AFmol_X(molP, PerM, real(Ni,dp), step)
           endif
           K1 = Kpart1_O2(Ji, Ji_p, Jf, Jf_p, &
-                         Ni, Ni_p, Nf, Nf_p, AF1)
+                         Ni, Ni_p, Nf, Nf_p, AF1,econ)
       else
           if (molP%AF_ON) then ! Adiabatic factor 1:
             AF1 = AFmol_X(molP, PerM, Ji, step)
@@ -116,6 +116,7 @@ END module module_LLS
         M(1) = K2 + M(1)
         M(2) = K2*log(dE) + M(2)
         M(3) = K2*molP%B0*dE + M(3)
+        !M(4) = K2 + M(4)
       enddo
       Jaux = Ji
       if (Jaux .eq. 0) Jaux = 0.5_dp
@@ -132,8 +133,8 @@ END module module_LLS
       !M(1) = K1 * M(1) *molP%B0*molP%B0*c2/ (T*( dabs(h%Sig(j)-h%Sig(k)) )**(Ji_p/Jaux)) ! correction 4 K·cm-1
       M(2) = K1 * M(2)
       M(3) = K1 * (c2/T) * M(3)
+      !M(4) = K1 * M(4)
       M(4) = M(1)
-
 
   END SUBROUTINE LLS_Matrix
 !--------------------------------------------------------------------------------------------------------------------

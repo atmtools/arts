@@ -40,11 +40,13 @@ module module_phsub
             double precision, intent(in) :: Ji_p, Jf, Jf_p, AF1
         end function Kpart1
 
-        double precision function Kpart1_O2(Ji, Ji_p, Jf, Jf_p, Ni, Ni_p, Nf, Nf_p, AF1)
+        double precision function Kpart1_O2(Ji, Ji_p, Jf, Jf_p, Ni, Ni_p, Nf, Nf_p, &
+                                            AF1, econ)
             use module_common_var
             implicit none
             integer*8, intent(in)        :: Ni, Ni_p, Nf, Nf_p
             double precision, intent(in) :: Ji, Ji_p, Jf, Jf_p, AF1 
+            type (dta_ERR), intent(inout):: econ
         end function Kpart1_O2
 
         double precision function Kpart2(L, Ji, Ji_p, Jf, Jf_p, li, lf, AF2, econ)
@@ -308,7 +310,8 @@ END module module_phsub
     type (dta_SDF), pointer, intent(inout) :: dta1
     type (dta_ERR)         , intent(inout) :: econ
     type (dta_MOL)         , intent(in   ) :: molP
-    integer*8                   :: N_i, N_f, J_i, J_f
+    integer*8                   :: N_i, N_f
+    real*8                      :: J_i, J_f
     integer*8                   :: i, j, k
     real*8                      :: s_i, s_f
     double precision            :: cte,fA,fB, w3j, w6j
@@ -323,9 +326,17 @@ END module module_phsub
 !-----------
     DO k = 1, nLines
       !print*, k, nLines
-      !
-      ! REDUCE DIPOLE MOMENT, D0
-      !
+!      !
+!      ! DIPOLE MOMENT 
+!      !
+       ! Hartmann's style (Using LINE-INTENSITY):
+        fA  = -c2*dta1%Sig(k)/T0
+        fB  = 1.D0 - dexp(fA)
+        dta1%DipoT(k)= dsqrt( dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT0(k)*fB) )
+            !cm/molecules**0.5
+    !
+    ! REDUCE DIPOLE MOMENT, D0
+    !
         if ( molP%M .eq. 7 ) then
         ! O2 possible Dipole'scalculation:
         !
@@ -335,18 +346,31 @@ END module module_phsub
             J_f  = dta1%J(k,2) !J_f  = J UPPER L.
             N_i  = dta1%N(k,1) !LOWER L.
             N_f  = dta1%N(k,2) !UPPER L.
-        !
-        !    signDIP = (-1)**(Jf+N_i)
-        !    w6j = wigner6j( 1_dp, 1_dp, 1_dp, &
-        !                dta1%J(k,1), dta1%J(k,2), real(N_i,dp))
-        !    d0 = signDIP*dsqrt(6.d0*J_f + 1.d0)*w6j
-        !
-        ! b) Tran et al. (2006)
-            d0 = pureHund(caseHund, dta1%J(k,1), N_i, dta1%J(k,2), N_f)            
-            dta1%D0(k) = d0  
+            !
+            !
+            !if ( mode .eq. 'mak1') then
+            ! a) [Makarov et al. 2013]
+            !    signDIP = (-1)**(int(J_f)+N_i)
+            !    w6j = wigner6j( 1.d0, 1.d0, 1.d0, J_i, J_f, real(N_i,dp))
+            !    d0 = dsqrt(6.d0*(2*J_f+1.d0)*(2*J_i+1.d0))
+            !    dta1%D0(k) = signDIP*w6j*d0
+            !    !
+            !elseif (mode .eq. 'mak2') then
+            !
+            !    signDIP = (-1)**(int(J_f)+N_f)
+            !    w6j = wigner6j( 1.d0, 1.d0, 1.d0, J_i, J_f, real(N_f,dp))
+            !    d0 = dsqrt(6.d0*(2*J_f+1.d0)*(2*J_i+1.d0))
+            !    dta1%D0(k) = signDIP*w6j*d0 
+            !    !
+            !elseif (mode .eq. 'tran') then
+            ! b) [Tran et al. 2006]    
+                d0 = pureHund(caseHund, J_i, N_i, J_f, N_f)  
+                signDIP = (d0/abs(d0))
+                dta1%D0(k) = signDIP*dta1%DipoT(k)
+            !endif
         else
             !Other molecules:
-            if ( mod((J_f+dta1%lv2(2)),2) .eq. 0) then
+            if ( mod((int(J_f)+dta1%lv2(2)),2) .eq. 0) then
             ! j = (-1)**(J_f+lf)
                 j = 1
             else
@@ -363,7 +387,6 @@ END module module_phsub
             d0 = j*dsqrt(2.d0*dta1%J(k,2) + 1.d0)*w3j
             dta1%D0(k) = abs(d0)
         endif
-      ! print*,dta1%D0(k)
 !      !
 !      ! RIGID ROTOR DIPOLE
 !      !
@@ -376,14 +399,6 @@ END module module_phsub
 !        w3j = wigner3j( dta1%J(k,1), real(K_t,dp), dta1%J(k,2), &
 !                        0.0_dp, 0.0_dp, 0.0_dp)
 !        dta1%Drigrotor(k) = j*dsqrt(2.d0*dta1%J(k,2) + 1.)*w3j
-!      !
-!      ! DIPOLE MOMENT 
-!      !
-       ! Hartmann's style (Using LINE-INTENSITY):
-        fA  = -c2*dta1%Sig(k)/T0
-        fB  = 1.D0 - dexp(fA)
-        dta1%DipoT(k)= dsqrt( dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT0(k)*fB) )
-                      !cm/molecules**0.5
        !
     ENDDO
 ! 
@@ -491,28 +506,48 @@ END module module_phsub
       RETURN
   END function Kpart1
 !--------------------------------------------------------------------------------------------------------------------
-  double precision function Kpart1_O2(Ji, Ji_p, Jf, Jf_p, Ni, Ni_p, Nf, Nf_p, AF1)
+  double precision function Kpart1_O2(Ji, Ji_p, Jf, Jf_p, Ni, Ni_p, Nf, Nf_p, AF1, econ)
 !--------------------------------------------------------------------------------------------------------------------
-! "Kpart1_O2": First part of the OFF-diagonal elements <<k'|W|k>>
-        ! where:
-        ! <<k'|W|k>> := transition k->k'
-! NOTE:
+! "Kpart1_O2": First part of the OFF-diagonal elements <<k'|W|k>> 
+! where:
+! <<k'|W|k>> := transition k->k'
+! NOTE: mode mark the version of the calculation: tran/mak1/mak2
 ! -----
-! c1 = (2*Ji_p+1)*sqrt((2*Jf+1)*(2*Jf_p+1))*(-1)^(li+lf)
 !
-      use module_common_var
-      IMPLICIT NONE
-      integer*8, intent(in)         :: Ni, Ni_p, Nf, Nf_p
-      double precision, intent(in)  :: Ji, Ji_p, Jf, Jf_p, AF1
-      double precision              :: cte1, cte2
+    use module_common_var
+    IMPLICIT NONE
+    integer*8, intent(in)         :: Ni, Ni_p, Nf, Nf_p
+    double precision, intent(in)  :: Ji, Ji_p, Jf, Jf_p, AF1
+    type (dta_ERR), intent(inout) :: econ
+    double precision              :: cte1, cte2
+    !
+    Kpart1_O2 = 0.0_dp
+    !
+    if (mode .eq. 'tran') then
+      !! [Tran et al. 2013]
+      cte1 = (2.d0*Ni + 1.d0)*(2.d0*Ni_p + 1.d0)*(2.d0*Nf + 1.d0)*(2.d0*Nf_p + 1.d0)
+      cte1 = cte1*(2.d0*Jf + 1.d0)*(2.d0*Jf_p + 1.d0)*(2.d0*Ji_p + 1.d0)**2
+      if ( mod( int(Ji_p+Ji+K_t),2 ) .eq. 0) then !
+        cte2 = 1.d0
+      else 
+        cte2 = -1.d0
+      endif 
       !
-        cte1 = (2.d0*Ni + 1.d0)*(2.d0*Ni_p + 1.d0)*(2.d0*Nf + 1.d0)*(2.d0*Nf_p + 1.d0)
-        cte1 = cte1 * (2.d0*Jf + 1.d0)*(2.d0*Jf_p + 1.d0)*(2.d0*Ji_p + 1.d0)**2
-        if ( mod( int(Ji_p+Ji+K_t),2 ) .eq. 0) then
-          cte2 = 1.d0
-        else 
-          cte2 = -1.d0
-        endif 
+    else if (mode .eq. 'mak1') then
+      !! [Makarov et al. 2013] 
+        cte1 = (2.d0*Ni + 1.d0)*(2.d0*Nf + 1.d0)
+        cte2 = dsqrt((2.d0*Ji+1.d0)*(2.d0*Jf+1.d0)*(2.d0*Ji_p+1.d0)*(2.d0*Jf_p+1.d0))
+      !
+    else if (mode .eq. 'mak2') then
+      !! [Makarov et al. 2013] CODE -> not equal to what is written in the paper.
+        cte1 = (2.d0*Nf + 1.d0)*(2.d0*Nf_p + 1.d0)
+        cte2 = dsqrt((2.d0*Ji+1.d0)*(2.d0*Jf+1.d0)*(2.d0*Ji_p+1.d0)*(2.d0*Jf_p+1.d0))
+      !
+      
+    else
+        if(econ%e(1) .eq. 1) print*, "Kpart1_O2:not valid mode:", mode
+    endif
+      
         Kpart1_O2 = cte1*cte2*AF1
                     
       RETURN
@@ -573,17 +608,23 @@ END module module_phsub
 ! -----
 ! This version returns 0 if the triangle inequalities are violated.  (RAH)
 !
-      use module_common_var
-      use module_error
-      use module_maths
-      IMPLICIT NONE
-      integer*8, intent(in)        :: L, Ni, Ni_p, Nf, Nf_p
-      double precision, intent(in) :: Ji, Ji_p, Jf, Jf_p, Si, Sf, AF2
-      type (dta_ERR), intent(inout):: econ
-      double precision             :: w3j1,w3j2,w6j1,w6j2,w6j3 
+    use module_common_var
+    use module_error
+    use module_maths
+    IMPLICIT NONE
+    integer*8, intent(in)        :: L, Ni, Ni_p, Nf, Nf_p
+    double precision, intent(in) :: Ji, Ji_p, Jf, Jf_p, Si, Sf, AF2
+    type (dta_ERR), intent(inout):: econ
+    double precision             :: sK
+    double precision             :: w3j1,w3j2,w6j1,w6j2,w6j3 
       !
-      Kpart2_O2 = 0.0_dp
+    Kpart2_O2 = 0.0_dp
       !
+      !
+    if (mode .eq. 'tran') then
+      !! [Tran et al. 2006]
+      !
+      sK = 1.d0
       !
       !wigner 3j-Symbol 1:
       ! ( Ni'  Ni  L )
@@ -599,37 +640,95 @@ END module module_phsub
       ! Paper (Tran 2006)    -------------->     Addapted to subroutine
       ! { L   Ji    Ji'}  =  { Ji' Ji   L  }  =  { Ji' Ni'  Si}  
       ! { Si  Ni'   Ni }     { Ni  Ni'  Si }     { Ni  Ji   L }
-      !w6j1 = wigner6j(real(L, dp),Ji, Ji_p, Si, real(Ni_p, dp), real(Ni, dp)) =
       w6j1 = wigner6j(Ji_p, real(Ni_p, dp), Si, real(Ni, dp), Ji,real(L, dp))
       !
       !wigner 6j-Symbol 2:
       ! { L   Jf    Jf'}  =  { Jf' Jf   L  }  =  { Jf' Nf'  Sf}  
       ! { Sf  Nf'   Nf }     { Nf  Nf'  Sf }     { Nf  Jf   L }
-      !w6j2 = wigner6j(real(L, dp),Jf, Jf_p, Sf, real(Nf_p, dp), real(Nf, dp))
       w6j2 = wigner6j(Jf_p, real(Nf_p, dp), Sf, real(Nf, dp), Jf, real(L, dp))
       !
       !wigner 6j-Symbol 3:
       ! { L   Ji   Ji' }  =  { Ji' Ji   L }  =  { Ji' Jf'  1 }  
       ! { 1   Jf'  Jf  }     { Jf  Jf'  1 }     { Jf  Ji   L }
-      !w6j3 = wigner6j(real(L, dp),Ji, Ji_p, real(K_t,dp), Jf_p, Jf)
       w6j3 = wigner6j(Ji_p, Jf_p, real(K_t,dp), Jf, Ji, real(L, dp))
-      !C4=sixj(jip,jfp,ji,jf,ll)
       !
-!            FUNCTION SIXJ(A,B,C,D,F)                                          
-!C                                                                       
-!C CALCUL DES COEFFICIENTS 6J D'APRES MESSIAH ET ROSE                    
-!C CAS DES    _           _                                              
-!C            |  A  B  1  |       A+B+C+D                                
-!C            |  D  C  F  | = (-1)         W(ABCD;1F)                    
-!C            |_         _|                                              
-!C                                                     
+      !
+    else if (mode .eq. 'mak1') then
+      !! [Makarov et al. 2013] 
+      !
+      if ( mod( int(Ji+Jf+L+1),2 ) .eq. 0) then !corsign=(-1.)**(1+LL+ji+jip)
+          sK = 1.d0
+      else 
+          sK = -1.d0
+      endif 
+      !
+      !
+      !wigner 3j-Symbol 1:
+      ! ( Ni' Ni  L )
+      ! ( 0   0   0 )
+      w3j1 = wigner3j( real(Ni_p, dp), real(Ni, dp), real(L, dp), 0.0_dp, 0.0_dp, 0.0_dp ) 
+      !w3j2 = 1.0_dp
+      w3j2 = w3j1
+      !
+      !wigner 6j-Symbol 1: (and symmetries)
+      ! Paper             -------------->     Addapted to subroutine
+      ! { L   Ji  Ji'}  =  { Ji' Ji  L  }  =  { Ji' Ni' Si}  
+      ! { Si  Ni' Ni }     { Ni  Ni' Si }     { Ni  Ji  L }
+      w6j1 = wigner6j(Ji_p, real(Ni_p, dp), Si, real(Ni, dp), Ji,real(L, dp))
+      !
+      !wigner 6j-Symbol 2:
+      ! { L   Jf   Jf'}  =  { Jf' Jf  L }  =  { Jf' Ni' Sf}  
+      ! { Sf  Ni'  Ni }     { Ni  Ni' Sf}     { Ni  Jf  L }
+      w6j2 = wigner6j(Jf_p, real(Ni_p, dp), Sf, real(Ni, dp), Jf, real(L, dp))
+      !
+      !wigner 6j-Symbol 3:
+      ! { L   Ji   Ji'}  =  { Ji' Ji  L }  =  { Ji' Jf' 1 }  
+      ! { 1   Jf'  Jf }     { Jf  Jf' 1 }     { Jf  Ji  L }
+      w6j3 = wigner6j(Ji_p, Jf_p, real(K_t,dp), Jf, Ji, real(L, dp))
+      !
+    else if (mode .eq. 'mak2') then
+      !! [Makarov et al. 2013] CODE -> not equal to what is written in the paper.
+      !
+      if ( mod( int(Ji+Ji_p+L+1),2 ) .eq. 0) then !corsign=(-1.)**(1+LL+ji+jip)
+          sK = 1.d0
+      else 
+          sK = -1.d0
+      endif 
+      !
+      !
+      !wigner 3j-Symbol 1:
+      ! ( Nf   Nf' L )
+      ! ( 0    0   0 ) = GCM(0,Nf,Nfp,LL)
+      w3j1 = wigner3j( real(Nf, dp), real(Nf_p, dp), real(L, dp), 0.0_dp, 0.0_dp, 0.0_dp ) 
+      w3j2 = w3j1
+      !
+      !wigner 6j-Symbol 1: 
+      ! { Ji' Nf' Si}  
+      ! { Nf  Ji  L }  = sixj(jip,nfp,ji,nf,ll)
+      w6j1 = wigner6j(Ji_p, real(Nf_p, dp), Si, real(Nf, dp), Ji,real(L, dp))
+      !
+      !wigner 6j-Symbol 2:
+      ! { Jf' Nf' Sf}  
+      ! { Nf  Jf  L }  = sixj(jfp,nfp,jf,nf,ll)
+      w6j2 = wigner6j(Jf_p, real(Nf_p, dp), Sf, real(Nf, dp), Jf, real(L, dp))
+      !
+      !wigner 6j-Symbol 3:
+      ! { Ji' Jf' 1 }  
+      ! { Jf  Ji  L }  = sixj(jip,jfp,ji,jf,ll)
+      w6j3 = wigner6j(Ji_p, Jf_p, real(K_t,dp), Jf, Ji, real(L, dp))
+    else
+        if(econ%e(1) .eq. 1) print*, "Kpart2_O2:not valid mode"
+    endif
+
+    sK = sK*(2.d0*L + 1.d0)
+                                                   
       if ( .not.( isnan(w3j1) .or. isinf(w3j1)) .and. &
            .not.( isnan(w3j2) .or. isinf(w3j2)) .and. &
            .not.( isnan(w6j1) .or. isinf(w6j1)) .and. &
            .not.( isnan(w6j2) .or. isinf(w6j2)) .and. &
            .not.( isnan(w6j3) .or. isinf(w6j3)) ) then
             Kpart2_O2 = w3j1 * w3j2* w6j1 * w6j2 * w6j3 * &
-                        (2.d0*L + 1.d0)/AF2 
+                        sK/AF2 
       else
             call wignerS_ERROR(w3j1, w3j2, w6j1, w6j2, w6j3,econ)
             !print*,L,Ji, Ni_p, Si, Ji_p, Ni
@@ -637,7 +736,7 @@ END module module_phsub
             !print*,L,Ji, Ji_p, K_t,Jf_p, Jf
             !stop
       endif
-
+      
       RETURN
   END function Kpart2_O2
 !--------------------------------------------------------------------------------------------------------------------
@@ -864,7 +963,7 @@ END module module_phsub
       else
         AF1 = 1.0_dp
       endif
-      K1 = Kpart1_O2(Ji, Ji_p, Jf, Jf_p, Ni, Ni_p, Nf, Nf_p, AF1)
+      K1 = Kpart1_O2(Ji, Ji_p, Jf, Jf_p, Ni, Ni_p, Nf, Nf_p, AF1, econ)
       !
       suma = 0.d0
       !
@@ -891,7 +990,8 @@ END module module_phsub
             AF2 = 1.0_dp
           endif
           K2 = Kpart2_O2(L, Ji, Ji_p, Jf, Jf_p, &
-                         Ni, Ni_p, Nf, Nf_p, Si, Sf, AF2,econ)
+                         Ni, Ni_p, Nf, Nf_p, Si, Sf, &
+                         AF2,econ)
           !
           if ( .not.( isnan(K2  ) .or. isinf(K2  )) .and. &
                .not.( isnan(suma) .or. isinf(suma)) .and. &
@@ -937,22 +1037,22 @@ END module module_phsub
       Ql_mol_X=0.0_dp
     else
     !reduce rotational energy from the level L * 1/B0
-      E_l = real((L*L + L), dp) 
+        E_l = real((L*L + L), dp) 
     !
-      if (molP%M .eq. 7) then! mol == O2
+        ! O2: [Tran et al., 2006]
+        !      DOES NOT WORK!
+        !Ql_mol_X = molP%a1* &
+        !       ( (  E_l )**(-molP%a2) )* &
+        !       ( ( T/T0 )**(-molP%a3) )
+        ! 
         !
-        !Ql_mol_X = a1*( ( E_l )**(-a2) )*( (T/T0)**(-a3)  )
-        Ql_mol_X = molP%a1* &
-               ( (  E_l )**(-molP%a2) )* &
-               ( ( T/T0 )**(-molP%a3) )
-               ![Tran et al., 2006]
-      else 
+        !CO2: [Niro et al., 2004]
+        ! O2: [Makarov et al., 2013]      
         !Ql_mol_X = a1*( ( E_l )**(-a2) )*( dexp(-a3*c*hplank*molP%B0*E_l/(T*kb))  )
         Ql_mol_X = molP%a1* &
                ( ( E_l )**(-molP%a2) )* &
                ( dexp(-molP%a3*c2*molP%B0*E_l/T)  )
-               ![Niro et al., 2004]
-      endif
+        !
     endif
     RETURN
   END function Ql_mol_X
@@ -989,38 +1089,53 @@ END module module_phsub
     !reduce rotational energy from the level L * 1/B0
       E_l = real((L*L + L), dp) 
     !
+    ! 
+    ![Mendaza et al., 2017]
+    !
       if (molP%M .eq. 7) then! mol == O2
         !
+        !Based in [Tran et al., 2006]
         !Ql_mol_LLS = A1 - A2*Ln( E_l ) - A3*( Ln(T) - Ln(T0) )
-        Ql_mol_LLS = molP%a1 - &
+        !Ql_mol_LLS = molP%a1 - &
+        !        ( (molP%a2)*log(E_l) ) - &
+        !        ( molP%a3* ( log(T) - log(T0) ) )
+        !
+        !Based in [Makarov et al., 2013]:
+        !Ql_mol_LLS = A1*Ln(2*L+1) - A2*Ln( E_l ) - A3*( c2*molP%B0*E_l/T )
+        !
+        Ql_mol_LLS = (molP%a1) - &
                 ( (molP%a2)*log(E_l) ) - &
-                ( molP%a3* ( log(T) - log(T0) ) )
-               !
-      else 
-      !Ql_mol_LLS = A1 - A2*Ln( E_l ) - A3*( c*hplank*B0*E_l/(T*kb) )
+                ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
+      else
+        ! Bsed in [Niro et al. 2004]
+        !Ql_mol_LLS = A1 - A2*Ln( E_l ) - A3*( c*hplank*B0*E_l/(T*kb) ) 
         !Linear
         Ql_mol_LLS = (molP%a1) - &
                 ( (molP%a2)*log(E_l) ) - &
-                ( molP%a3*c2*molP%B0*E_l/T )
+                ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
+        ! 
+        ![Mendaza et al., 2017]
         ! Correction 1:
         !Ql_mol_LLS = (molP%a1)/((dabs(v1-v2)/molP%B0)**(J2/Jaux)) - &
         !        ( (molP%a2)*log(E_l) ) - &
-        !        ( molP%a3*c2*molP%B0*E_l/T )
+        !        ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
         ! Correction 2: UNIT PROBLEMS!
         !Ql_mol_LLS = (molP%a1)/(dabs(v1-v2)**(J2/Jaux)) - &
         !        ( (molP%a2)*log(E_l) ) - &
-        !        ( molP%a3*c2*molP%B0*E_l/T )
+        !        ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
         ! Correction 3: UNIT PROBLEMS!
         !Ql_mol_LLS = (molP%a1)/(T*(dabs(v1-v2)**(J2/Jaux))) - &
         !        ( (molP%a2)*log(E_l) ) - &
-        !        ( molP%a3*c2*molP%B0*E_l/T )
+        !        ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
         ! Correction 4: 
         !Ql_mol_LLS = (molP%a1)*molP%B0*molP%B0*c2/(T*(dabs(v1-v2)**(J2/Jaux))) - &
         !        ( (molP%a2)*log(E_l) ) - &
-        !        ( molP%a3*c2*molP%B0*E_l/T )
-               ![Mendaza et al., 2017]
+        !        ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
+        !
       endif
+      !
     endif
+
     RETURN
   END function Ql_mol_LLS
 !--------------------------------------------------------------------------------------------------------------------
@@ -1131,33 +1246,38 @@ END module module_phsub
 !--------------------------------------------------------------------
         testOK = .true.
         DO i = 1, nLines
-          Saux = 0.0D0
-          DO j = 1, nLines
-            if (j .ne. i) then
-              DipAux = dipole( indexS(j) )/dipole( indexS(i) )
-              Wij = Wmat(i,j)
-              if ( isnan(   Wij) .or. isinf(   Wij) ) stop!Wij = 0.0D0
-              if ( isnan(DipAux) .or. isinf(DipAux) ) stop!DipAux = 0.0D0
-              Saux = Saux + DipAux*Wij
+            !if (i .eq. 48) print*, "row", i
+            Saux = 0.0D0
+            DO j = 1, nLines
+                if (j .ne. i) then
+                    DipAux = dipole( indexS(j) )/dipole( indexS(i) )
+                    Wij = Wmat(i,j)
+                    if ( isnan(   Wij) .or. isinf(   Wij) ) stop!Wij = 0.0D0
+                    if ( isnan(DipAux) .or. isinf(DipAux) ) stop!DipAux = 0.0D0
+                    Saux = Saux + DipAux*Wij
+                    !if (i .eq. 48)print*, dipole( indexS(j) ), dipole( indexS(i) )
+                    !if (i .eq. 48)print*, DipAux, Wij
+                    !if (i .eq. 48)print*, Saux
+                else
+                    Wii = Wmat(i,i)*dfact ! dfact = diagonal factor
+                endif
+            ENDDO
+            if ( (abs(Wii+Saux) .gt. TOLe2) .and. (i .ne. nLines) ) then
+                testOK = .false.
+                if (econ % e(1) .eq. 1) then
+                    write(*,'(a4,i3,a30)'), "row#",i,"NOT meet SUM-RULE"
+                    write(*,*), "half-Width", Wii , "?= SUMij{Wmat}", -Saux
+                    !if (i .eq. 48)stop
+                endif
             else
-              Wii = Wmat(i,i)*dfact ! dfact = diagonal factor
-            endif
-          ENDDO
-          if ( (abs(Wii+Saux) .gt. TOLe2) .and. (i .ne. nLines) ) then
-            testOK = .false.
-            if (econ % e(1) .eq. 1) then
-                write(*,'(a4,i3,a30)'), "row#",i,"NOT meet SUM-RULE"
-                write(*,*), "half-Width", Wii , "?= SUMij{Wmat}", -Saux
-            endif
-          else
             ! Uncomment if you would also like to see 
             ! the lines that meet the requirement
             !
-            !if (econ % e(1) .eq. 1) then
-            !    write(*,'(a4,i3,a30)'), "row#",i,"meet SUM-RULE"
-            !    write(*,*), "half-Width", Wii , "?= SUMij{Wmat}", -Saux
-            !endif
-          endif
+            !   if (econ % e(1) .eq. 1) then
+            !       write(*,'(a4,i3,a30)'), "row#",i,"meet SUM-RULE"
+            !       write(*,*), "half-Width", Wii , "?= SUMij{Wmat}", -Saux
+            !   endif
+            endif
         ENDDO
       
         !print*, "SUM-RULE TEST FINISHED"

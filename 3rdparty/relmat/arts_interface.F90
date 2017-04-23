@@ -186,7 +186,7 @@ module arts_interface
             Double Precision, intent (in)   :: wno(n), p(n), d(n)
         end subroutine show_PD
 
-        subroutine save_W2plot(n, dta1, dta2 ,molP, npert, pert)
+        subroutine save_W2plot(n, dta1, dta2 ,molP, npert, pert, econ, model)
             use module_common_var
             use module_molecSP
             use module_error
@@ -195,10 +195,12 @@ module arts_interface
             type (dta_MOL), intent (in)             :: molP
             type (dta_SDF), intent (in)             :: dta1
             type (dta_RMF), intent (in)             :: dta2
-            character (6)                           :: pert(npert)
+            type (dta_ERR), intent (in)             :: econ
+            character (6) , intent (in)             :: pert(npert)
+            character (3) , intent (in)             :: model
         end subroutine save_W2plot
 
-        subroutine save_Yrp(dta1, n, molP, Y_RosenP)
+        subroutine save_Yrp(dta1, n, molP, Y_RosenP, model)
             use module_common_var
 
             implicit none
@@ -206,6 +208,7 @@ module arts_interface
             double precision, intent (in)           :: Y_RosenP(n)
             type (dta_SDF) , intent (in)            :: dta1
             type (dta_MOL), intent (in)             :: molP
+            character(3) , intent (in)              :: model
         end subroutine save_Yrp
 
 
@@ -425,7 +428,8 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 !
 ! Uncomment the following command to print POPULATION & DIPOLE to the screen:
 !
-    !call show_PD(nLines, dta1%Sig, rho, dipo)
+    !call show_PD(nLines, artsWNO, rho, dipo)
+    !call show_PD(dta_size1, dta1%sig, dta1%PopuT, dta1%D0)
 !---------
 ! Write SDF file
 !  
@@ -495,46 +499,46 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
         !
         !
         if (econtrol % e(1) .eq. 1) print*, 'Renormalization procedure of the RM...'
-        if (rule2(Ptot,dta_size1,Wmat,dta1%Sig(1:nLines))) then
+        if (rule2(Ptot,dta_size1,Wmat,dta1%Sig(1:nLines)) .or. (molP%M .eq. 7) ) then
             allocate(Wrno(dta_size1,dta_size1),STAT = IERR3)
             if (IERR3 .ne. 0) call memoError(" Wrno ",econtrol)
             CALL RN_Wmat(dta_size1, pd1, Wmat, Wrno, econtrol)
             CALL includeW(nLines,vLines_Indx,W_rn, &
-                          artsNA, artsGA, rT, Ptot,&
+                          artsNA, artsGA, rT,Ptot, &
                           dta_size1, Wrno)
         else
             if (econtrol % e(1) .eq. 1) print*, "Rule 2 failed, RM(diagonal matrix) no OFF-diagonal elements are returned."
             CALL just_fill_DiagWRn(nLines,artsNA, artsGA, rT, Ptot,W_rn)
         endif
         !
-        !    if (econtrol % e(1) .eq. 1) print*, 'Copying data to final struct...'
+        !if (econtrol % e(1) .eq. 1) print*, 'Copying data to final struct...'
         !
-        !    CALL alloRMF(nLines, dta2)
-        !    pd2 => dta2
+        !CALL alloRMF(nLines, dta2)
+        !pd2 => dta2
         !
-        !    CALL W2dta2(nLines, pd1, pd2, W_rn) 
-        !    CALL W2dta2(dta_size1, pd1, pd2, Wmat) 
+        !CALL W2dta2(nLines, pd1, pd2, W_rn) 
+        !CALL W2dta2(dta_size1, pd1, pd2, Wrno) 
         !--------
         ! Write RMF file
         ! 
-        !    if (econtrol % e(1) .eq. 1) print*, 'Saving Relaxation Matrix File'
-        !    call save_W2plot(nLines, pd1, pd2, molP, npert, perturber)
+        !if (econtrol % e(1) .eq. 1) print*, 'Saving Relaxation Matrix File'
+        !call save_W2plot(nLines, pd1, pd2, molP, npert, perturber, econtrol, 'htm')
         !
-        !    NULLIFY( pd2 )
+        !NULLIFY( pd2 )
         !
         !---------
         ! Linemixing first order coeff. calculation.
         !
-        !    allocate(Y_RosT(dta_size1),STAT = IERR4)
-        !    if (IERR4 .ne. 0) call memoError("Y_RosT",econtrol)
+        !allocate(Y_RosT(dta_size1),STAT = IERR4)
+        !if (IERR4 .ne. 0) call memoError("Y_RosT",econtrol)
         !
-        !    if (econtrol % e(1) .eq. 1) print*, 'Linemixing first order coeff...'
-        !    call LM_Rosen(molP,dta_size1,pd1,Wrno,Y_RosT)
+        !if (econtrol % e(1) .eq. 1) print*, 'Linemixing first order coeff...'
+        !call LM_Rosen(molP,dta_size1,pd1,Wrno,Y_RosT)
         !--------
         ! Write Y parameter file
         !
-        !    if (econtrol % e(1) .eq. 1) print*, 'Saving Rosenkranz parameter Y...'
-        !    CALL save_Yrp(pd1, dta_size1, molP, Y_RosT)
+        !if (econtrol % e(1) .eq. 1) print*, 'Saving Rosenkranz parameter Y...'
+        !CALL save_Yrp(pd1, dta_size1, molP, Y_RosT,'htm')
         !
     else
         if (econtrol % e(1) .eq. 1) then
@@ -866,12 +870,12 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     !
     !    if (econtrol % e(1) .eq. 1) print*, 'Copying data to final struct...'
     !    CALL W2dta2(nLines, pd1, pd2, W_rn) 
-    !    CALL W2dta2(nLines, pd1, pd2, Wmat) 
+    !    CALL W2dta2(dta_size1, pd1, pd2, Wmat) 
     !--------
     ! Write RMF file
     ! 
     !    if (econtrol % e(1) .eq. 1) print*, 'Saving Relaxation Matrix File'
-    !    call save_W2plot(nLines, pd1, pd2, molP, npert, perturber, econtrol)
+    !    call save_W2plot(nLines, pd1, pd2, molP, npert, perturber, econtrol, 'tmc')
     !
     !    NULLIFY( pd2 )
     !
@@ -886,7 +890,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     ! Write Y parameter file
     !
     !    if (econtrol % e(1) .eq. 1) print*, 'Saving Rosenkranz parameter Y...'
-    !    CALL save_Yrp(pd1, dta_size1, molP, Y_RosT)
+    !    CALL save_Yrp(pd1, dta_size1, molP, Y_RosT,'tmc')
         !
     else
         if (econtrol % e(1) .eq. 1) then
@@ -1199,7 +1203,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     stop
   END SUBROUTINE show_PD
 !--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE save_W2plot(n, dta1, dta2 ,molP, npert, pert,econ)
+  SUBROUTINE save_W2plot(n, dta1, dta2 ,molP, npert, pert,econ, model)
 !--------------------------------------------------------------------------------------------------------------------
 ! 
 !
@@ -1214,7 +1218,8 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     type (dta_SDF), intent (in)             :: dta1
     type (dta_RMF), intent (in)             :: dta2
     type (dta_ERR), intent (inout)          :: econ
-    character (6)                           :: pert(npert)
+    character (6) , intent (in)             :: pert(npert)
+    character (3) , intent (in)             :: model
     !subroutine Variables
     integer*8, parameter                    :: u=10 !file unit
     character*100                           :: path
@@ -1233,7 +1238,8 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 !   NO-Renormalized Matrix
     !path = "RMF2plot_"//trim(cTemp(1:3))//"K.dat"
 !   ReNormalized Matrix
-    path = "RMF2plot_RN_"//trim(cTemp(1:3))//"K.dat"
+    !path = "RMF2plot_RN_"//trim(cTemp(1:3))//"K.dat"
+    path ="RMF2plot"//trim(molP%chmol)//"_"//model//"_RN_"//trim(cTemp(1:3))//"K.dat"
     call idate(today)   ! today(1)=day, (2)=month, (3)=year
     open (UNIT = u, FILE = trim(path), STATUS = 'REPLACE', ACTION = 'WRITE')
 ! HEADER
@@ -1286,7 +1292,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 
   END SUBROUTINE save_W2plot
 !--------------------------------------------------------------------------------------------------------------------
-  subroutine save_Yrp(dta1, n, molP, Y_RosenP)
+  subroutine save_Yrp(dta1, n, molP, Y_RosenP, model)
 !--------------------------------------------------------------------------------------------------------------------
 !  Write the results in 'Y_air_TTTK.dat'
 !  Output_3: (Variables included)
@@ -1317,6 +1323,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     double precision, intent (in)           :: Y_RosenP(n)
     type (dta_SDF) , intent (in)            :: dta1
     type (dta_MOL), intent (in)             :: molP
+    character(3), intent (in)               :: model
     !subroutine Variables
     integer*8, parameter                    :: u=11 !file unit
     character*100                           :: path
@@ -1327,16 +1334,16 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 ! INIT. VAR.
     write(cTemp,'(f5.1)'),molP%Temp
     !path = trim(out_file_path)//trim(out_fil2_RMF)
-    path ="Y_air_"//trim(cTemp(1:3))//"K.dat"
+    path ="Y"//trim(molP%chmol)//"_"//model//"_"//trim(cTemp(1:3))//"K.dat"
     call idate(today)   ! today(1)=day, (2)=month, (3)=year
     open (UNIT = u, FILE = trim(path), STATUS = 'REPLACE', ACTION = 'WRITE')
 ! HEADER
-    write (u, *) "Line mixin Rosenkranz Parameter file; Molecule:", molP%chmol
+    write (u, *) "Line-mixing Rosenkranz Parameter file; Molecule:", molP%chmol
 !    write (u, *) "HITRAN Band:", trim(dta1 % hitBand)
     write (u, *) "Based on HITRAN 2012 database"
     write (u, *) "Author: Teresa Mendaza  "
     write (u, 1005) today(3), today(2), today(1)
-    write (u, *) "|WaveNumber(cm-1) |Intensity cm-1/(molecules·cm-2) | Y Patameter  | Jlow | Jup"
+    write (u, *) "|WaveNumber(cm-1) |Intensity cm-1/(molecules·cm-2) | Y Parameter  | Jlow | Jup"
    !
     ! DATA
     do i = 1, n   ! do1
@@ -1348,7 +1355,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     close (u)
     
 1005 format ( ' Last update: ', i4.4, '/', i2.2, '/', i2.2 )
-1006 format (F12.6,1x,E10.3,1x,F7.4,1x,i3,1x,i3)
+1006 format (F12.6,8x,E10.3,14x,F20.4,4x,i3,4x,i3)
 
 end subroutine save_Yrp
 !--------------------------------------------------------------------------------------------------------------------

@@ -39,6 +39,10 @@ MODULE module_common_var
     !     1) Electric dipole transition (edt)
     !     2) magnetic dipole transition (mdt)
     !     3) electric-quadrupole transitions (eqt)
+    character*4, parameter :: mode =  'mak1'
+    !     1) [Tran et al. 2006] ECS matrix element           = 'tran'
+    !     2) [Makarov et al. 2013] ECS matrix element        = 'mak1'
+    !     3) [Makarov et al. 2013]'s CODE ECS matrix element = 'mak2'
     !
     double precision, parameter :: TOL= 1.0000000E-90! tolerance level
     !***********
