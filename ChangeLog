@@ -1,3 +1,23 @@
+2017-05-16  Jakob Doerr  <jakobdoerr@googlemail.com>
+
+	* arts-2-3-658
+
+	* src/m_doit.cc (OptimizeDoitPressureGrid, doit_scat_fieldCalc,
+	doit_scat_fieldCalcLimb), m_optproperties.cc (DoitScatteringDataPrepare,
+	TestScatDataInterp):
+	Pulled the temperature interpolation of the phase matrix out of the 
+	interation loop	in DOIT. The interpolation of the phase matrix is now
+	done in DoitScatteringDataPrepare, so before the loop. Before it was
+	interpolated in doit_scat_fieldCalc and doit_scat_fieldCalcLimb. 
+	This saves a lot of time for DOIT. The phase matrix is now stored in a 
+	new WS variable, pha_mat_doit. 
+
+	* src/methods.cc: 
+	Changed the methods according to the change above
+
+	* src/workspace.cc:
+	Added new WS variable pha_mat_doit
+
 2017-04-27  Gerrit Holl  <g.holl@reading.ac.uk>
 
 	* arts-2-3-657

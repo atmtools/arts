@@ -3297,7 +3297,29 @@ void Workspace::define_wsv_data()
        "Dimensions: [scat_za_grid, scat_aa_grid, stokes_dim, stokes_dim]\n"
        ),
       GROUP( "Tensor4" )));
-   
+    
+    wsv_data.push_back
+    (WsvRecord
+     ( NAME( "pha_mat_doit" ),
+      DESCRIPTION
+      (
+       "Ensemble averaged phase matrix for DOIT calculation.\n"
+       "\n"
+       "This workspace variable represents the actual physical phase\n"
+       "matrix (averaged over all scattering elements) for given incident and \n"
+       "propagation directions. It is calculated in the method *DoitScatteringDataPrepare*.\n"
+       "\n"
+       "See ARTS user guide (AUG) for further information."
+       "\n"
+       "Usage:      Output of the method *pha_matCalc*\n"
+       "\n"
+       "Unit:        m^2\n" //FIXME: really m2? not 1/m?
+       "\n"
+       "Dimensions: [T,scat_za_grid, scat_aa_grid, scat_za_grid, scat_aa_grid, \n"
+       " stokes_dim, stokes_dim]\n"
+       ),
+      GROUP( "Tensor7" )));
+    
    wsv_data.push_back
    (WsvRecord
     ( NAME( "pha_mat_spt" ),

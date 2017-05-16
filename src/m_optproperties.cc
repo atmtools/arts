@@ -1276,9 +1276,10 @@ void scat_dataCheck( //Input:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DoitScatteringDataPrepare(//Output:
+void DoitScatteringDataPrepare(Workspace& ws,//Output:
                                ArrayOfTensor7& pha_mat_sptDOITOpt,
                                ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                               Tensor7& pha_mat_doit,
                                //Input:
                                const Index& doit_za_grid_size,
                                const Vector& scat_aa_grid,
@@ -1287,15 +1288,35 @@ void DoitScatteringDataPrepare(//Output:
                                const Index& f_index,
                                const Index& atmosphere_dim,
                                const Index& stokes_dim,
+                               const Tensor3& t_field,
+                               const ArrayOfIndex& cloudbox_limits,
+                               const Tensor4& pnd_field,
+                               const Agenda& pha_mat_spt_agenda,
+                            
                                const Verbosity& verbosity)
 {
-  
+
+
+
+    // Number of azimuth angles.
+    const Index Naa = scat_aa_grid.nelem();
+    Vector grid_stepsize(2);
+    grid_stepsize[0] = 180./(Numeric)(doit_za_grid_size - 1);
+    grid_stepsize[1] = 360./(Numeric)(Naa - 1);
+
+    // Initialize variable *pha_mat_spt*
+    Tensor5 pha_mat_spt_local(pnd_field.nbooks(), doit_za_grid_size,
+                              scat_aa_grid.nelem(), stokes_dim, stokes_dim, 0.);
+    Tensor4 pha_mat_local(doit_za_grid_size, Naa,
+                          stokes_dim, stokes_dim, 0.);
+    Tensor6 pha_mat_local_out(cloudbox_limits[1]-cloudbox_limits[0]+1,doit_za_grid_size,
+                              doit_za_grid_size, Naa, stokes_dim, stokes_dim, 0.);
   // Interpolate all the data in frequency
   scat_data_monoCalc(scat_data_mono, scat_data, f_grid, f_index, verbosity);
   
   // For 1D calculation the scat_aa dimension is not required:
   Index N_aa_sca;
-  if(atmosphere_dim == 1)
+  if  ( atmosphere_dim == 1 )
     N_aa_sca = 1;
   else
     N_aa_sca = scat_aa_grid.nelem();
@@ -1306,7 +1327,8 @@ void DoitScatteringDataPrepare(//Output:
   assert( scat_data.nelem() == scat_data_mono.nelem() );
   
   const Index N_ss = scat_data.nelem();
-  
+  // FIXME: We need this still as a workspace variable because pha_mat_spt_agenda
+  // contains a WS method that requires it as input
   pha_mat_sptDOITOpt.resize(TotalNumberOfElements(scat_data));
 
   Index i_se_flat = 0;
@@ -1368,6 +1390,49 @@ void DoitScatteringDataPrepare(//Output:
           i_se_flat++;
       }
   }
+    // Interpolate phase matrix to current grid
+    pha_mat_doit.resize(cloudbox_limits[1] - cloudbox_limits[0] + 1,
+                        doit_za_grid_size, N_aa_sca, doit_za_grid_size,
+                        Naa, stokes_dim, stokes_dim);
+    pha_mat_doit = 0;
+    if ( atmosphere_dim == 1)
+    {
+        Index scat_aa_index_local = 0;
+        
+        // Get pha_mat at the grid positions
+        // Since atmosphere_dim = 1, there is no loop over lat and lon grids
+        for (Index p_index = 0; p_index<=cloudbox_limits[1]-cloudbox_limits[0] ;
+             p_index++)
+        {
+            Numeric rtp_temperature_local =
+            t_field(p_index + cloudbox_limits[0], 0, 0);
+            //There is only loop over zenith angle grid ; no azimuth angle grid.
+            for (Index scat_za_index_local = 0;
+                 scat_za_index_local < doit_za_grid_size; scat_za_index_local ++)
+            {
+                // Dummy index
+                Index index_zero = 0;
+                
+                // Calculate the phase matrix of individual scattering elements
+                pha_mat_spt_agendaExecute(ws, pha_mat_spt_local,
+                                          scat_za_index_local,
+                                          index_zero,
+                                          index_zero,
+                                          p_index,
+                                          scat_aa_index_local,
+                                          rtp_temperature_local,
+                                          pha_mat_spt_agenda);
+                
+                // Sum over all scattering elements
+                pha_matCalc(pha_mat_local, pha_mat_spt_local, pnd_field,
+                            atmosphere_dim, p_index, 0,
+                            0, verbosity);
+                pha_mat_doit(p_index ,scat_za_index_local, 0,
+                                  joker ,joker ,joker ,joker)
+                = pha_mat_local;
+            }
+        }
+    }   
 }
 
 
@@ -2272,18 +2337,22 @@ void ExtractFromMetaSingleScatSpecies(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void TestScatDataInterp(
-   const ArrayOfArrayOfSingleScatteringData&   scat_data,
-   const Index&       stokes_dim,
-   const Vector&      f_grid,
-   const Vector&      rtp_los,
-   const Numeric&     rtp_temperature,
-   const Index&       scat_elem_index,
-   const Index&       compare,
-   const Index&       za_printinfo_index,
-   const Index&       aa_printinfo_index,
-   const Index&       mirror,
-   const Verbosity&   verbosity )
+void TestScatDataInterp(Workspace& ws,
+                        const ArrayOfArrayOfSingleScatteringData&   scat_data,
+                        const Index&       stokes_dim,
+                        const Vector&      f_grid,
+                        const Vector&      rtp_los,
+                        const Numeric&     rtp_temperature,
+                        const Tensor3&     t_field,
+                        const ArrayOfIndex& cloudbox_limits,
+                        const Tensor4&     pnd_field,
+                        const Agenda&      pha_mat_spt_agenda,
+                        const Index&       scat_elem_index,
+                        const Index&       compare,
+                        const Index&       za_printinfo_index,
+                        const Index&       aa_printinfo_index,
+                        const Index&       mirror,
+                        const Verbosity&   verbosity )
 {
 
   cout << endl;
@@ -2422,9 +2491,14 @@ void TestScatDataInterp(
   //doit_mono_agenda
   ArrayOfArrayOfSingleScatteringData scat_data_mono_optdoit;
   ArrayOfTensor7 pha_mat_sptDOITOpt;
-  DoitScatteringDataPrepare( pha_mat_sptDOITOpt, scat_data_mono_optdoit,
-                             n_za, pha_mat_aa,
+  Tensor7 dummy;  // This is to catch output from DoitScatterinDataPrepare
+                  // that is not needed here
+    
+  DoitScatteringDataPrepare( ws, pha_mat_sptDOITOpt, scat_data_mono_optdoit,
+                             dummy, n_za, pha_mat_aa,
                              scat_data, f_grid, f_index, 3, stokes_dim,
+                             t_field, cloudbox_limits, pnd_field,
+                             pha_mat_spt_agenda,
                              verbosity);
 
   //pha_mat_spt_agenda

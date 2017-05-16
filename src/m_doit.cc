@@ -1744,7 +1744,7 @@ void OptimizeDoitPressureGrid(Workspace& ws,
                          Tensor3& z_field,
                          ArrayOfIndex& cloudbox_limits,
                          Tensor6& doit_i_field_mono,
-                         ArrayOfTensor7& pha_mat_sptDOITOpt,
+                         Tensor7& pha_mat_doit,
                          Tensor4& vmr_field,
                          Vector& p_grid_orig,
                          const Vector& f_grid,
@@ -1874,42 +1874,33 @@ void OptimizeDoitPressureGrid(Workspace& ws,
             Numeric step = (z_field(k+1,0,0) - z_field(k,0,0))/ (Numeric) factor;
             const SingleScatteringData nextLayer = scat_data_local[cloudbox_index+ scat_data_insert_offset + 1];
             const SingleScatteringData currentLayer = scat_data_local[cloudbox_index+ scat_data_insert_offset];
-            const Tensor7 currentLayerPhamatDOITOpt = pha_mat_sptDOITOpt[cloudbox_index+ scat_data_insert_offset];
-            const Tensor7 nextLayerPhamatDOITOpt = pha_mat_sptDOITOpt[cloudbox_index+ scat_data_insert_offset + 1];
             
             for (Index j=1; j < factor; j++)
             {
                 z_grid_new.push_back(z_field(k,0,0)+ (Numeric) j*step);
-                // Perform manual interpolation of scat_data and pha_mat_opt
+                // Perform manual interpolation of scat_data
                 const Numeric weight = (Numeric) j/ (Numeric) factor;
                 SingleScatteringData newLayer = currentLayer;
-                Tensor7 newLayerPhamatDOITOpt = currentLayerPhamatDOITOpt;
                 Tensor7 weightednextLayerPhamat = nextLayer.pha_mat_data;
                 Tensor5 weightednextLayerExtmat = nextLayer.ext_mat_data;
                 Tensor5 weightednextLayerAbsvec = nextLayer.abs_vec_data;
-                Tensor7 weightednextLayerPhamatDOITOpt = nextLayerPhamatDOITOpt;
                 
                 
                 weightednextLayerPhamat *= weight;
                 weightednextLayerExtmat *= weight;
                 weightednextLayerAbsvec *= weight;
-                weightednextLayerPhamatDOITOpt *= weight;
                 
                 newLayer.pha_mat_data *= 1. - weight;
                 newLayer.ext_mat_data *= 1. - weight;
                 newLayer.abs_vec_data *= 1. - weight;
-                newLayerPhamatDOITOpt *= 1. - weight;
                 
                 newLayer.pha_mat_data += weightednextLayerPhamat;
                 newLayer.ext_mat_data += weightednextLayerExtmat;
                 newLayer.abs_vec_data += weightednextLayerAbsvec;
-                newLayerPhamatDOITOpt += weightednextLayerPhamatDOITOpt;
                 
-                // Optimize scat_data and pha_mat_Opt
+                // Optimize scat_data
                 scat_data_local.insert(scat_data_local.begin()+cloudbox_index+scat_data_insert_offset+ 1,
                                        newLayer);
-                pha_mat_sptDOITOpt.insert(pha_mat_sptDOITOpt.begin()+cloudbox_index+scat_data_insert_offset+ 1,
-                                          newLayerPhamatDOITOpt);
                 
                 scat_data_insert_offset++;
             }
@@ -1938,6 +1929,8 @@ void OptimizeDoitPressureGrid(Workspace& ws,
     Vector p_grid_opt(z_grid.nelem());
     Tensor6 doit_i_field_mono_opt(cloudbox_opt_size,
                                   1,1,doit_i_field_mono.npages(),1,1);
+    Tensor7 pha_mat_doit_opt(cloudbox_opt_size,pha_mat_doit.nvitrines(),1,pha_mat_doit.nbooks()
+                             ,pha_mat_doit.npages(),1,1);
     ArrayOfGridPos Z_gp(z_grid.nelem());
     Matrix itw_z(Z_gp.nelem(),2);
     ostringstream os;
@@ -1968,7 +1961,7 @@ void OptimizeDoitPressureGrid(Workspace& ws,
     for (Index i = 0; i < vmr_field.nbooks(); i++)
         interp(vmr_field_opt(i,joker,0,0),itw_z,vmr_field(i,joker,0,0),Z_gp);
     
-    // Interpolate doit_i_field_mono
+    // Interpolate doit_i_field_mono and pha_mat_doit
     ArrayOfGridPos Z_gp_2(cloudbox_opt_size);
     Matrix itw_z_2(Z_gp_2.nelem(),2);
     Range r1 = Range(cloudbox_limits[0], cloudbox_limits[1]-cloudbox_limits[0]+1);
@@ -1987,6 +1980,17 @@ void OptimizeDoitPressureGrid(Workspace& ws,
     {
         interp(doit_i_field_mono_opt(joker,0,0,i,0,0),itw_z_2,doit_i_field_mono(joker,0,0,i,0,0),Z_gp_2);
     }
+    for (Index i = 0; i < pha_mat_doit.nvitrines(); i++)
+    {
+        for (Index j = 0; j < pha_mat_doit.nbooks(); j++)
+        {
+            for (Index k = 0; k < pha_mat_doit.npages(); k++)
+            {
+                interp(pha_mat_doit_opt(joker,i,0,j,k,0,0),itw_z_2,pha_mat_doit(joker,i,0,j,k,0,0),Z_gp_2);
+            }
+        }
+    }
+
     
 
     // Interpolate pnd-field
@@ -2000,6 +2004,7 @@ void OptimizeDoitPressureGrid(Workspace& ws,
     t_field = t_field_new;
     cloudbox_limits = cloudbox_limits_opt;
     doit_i_field_mono = doit_i_field_mono_opt;
+    pha_mat_doit = pha_mat_doit_opt;
     z_field.resize(z_grid.nelem(), 1, 1);
     z_field(joker,0,0) = z_grid;
     vmr_field = vmr_field_opt;
@@ -2072,6 +2077,7 @@ doit_scat_fieldCalc(Workspace& ws,
                     const Vector& scat_za_grid,
                     const Vector& scat_aa_grid,
                     const Index& doit_za_grid_size,
+                    const Tensor7& pha_mat_doit,
                     const Verbosity& verbosity)
   
 {
@@ -2177,39 +2183,17 @@ doit_scat_fieldCalc(Workspace& ws,
   
   if  ( atmosphere_dim == 1 )
     {
-      Index scat_aa_index_local = 0;
-      
       // Get pha_mat at the grid positions
       // Since atmosphere_dim = 1, there is no loop over lat and lon grids
       for (Index p_index = 0; p_index<=cloudbox_limits[1]-cloudbox_limits[0] ;
            p_index++)
         {
-          Numeric rtp_temperature_local =
-            t_field(p_index + cloudbox_limits[0], 0, 0);
           //There is only loop over zenith angle grid ; no azimuth angle grid.
           for (Index scat_za_index_local = 0;
                scat_za_index_local < Nza; scat_za_index_local ++)
             {
-              // Dummy index
-              Index index_zero = 0;
-              
               // Calculate the phase matrix of individual scattering elements
-              out3 << "Calculate the phase matrix \n"; 
-              pha_mat_spt_agendaExecute(ws, pha_mat_spt_local,
-                                        scat_za_index_local,
-                                        index_zero,
-                                        index_zero,
-                                        p_index,
-                                        scat_aa_index_local,
-                                        rtp_temperature_local,
-                                        pha_mat_spt_agenda);
-              
-              // Sum over all scattering elements
-              pha_matCalc(pha_mat_local, pha_mat_spt_local, pnd_field, 
-                          atmosphere_dim, p_index, 0, 
-                          0, verbosity);
-
-              out3 << "Multiplication of phase matrix with incoming" << 
+              out3 << "Multiplication of phase matrix with incoming" <<
                 " intensities \n";
               
               product_field = 0;
@@ -2228,7 +2212,7 @@ doit_scat_fieldCalc(Workspace& ws,
                           for (Index j = 0; j< stokes_dim; j++)
                             {
                               product_field(za_in, aa_in, i) +=
-                                pha_mat_local(za_in, aa_in, i, j) * 
+                                pha_mat_doit(p_index,scat_za_index_local,0,za_in,aa_in,i,j) *
                                 doit_i_field_mono(p_index, 0, 0, za_in, 0, j);
                           }
                       }
@@ -2373,6 +2357,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
                         const Vector& scat_aa_grid,
                         const Index& doit_za_grid_size,
                         const Index& doit_za_interp,
+                        const Tensor7& pha_mat_doit,
                         const Verbosity& verbosity)
 {
   CREATE_OUT2;
@@ -2506,65 +2491,42 @@ doit_scat_fieldCalcLimb(Workspace& ws,
 
   if  ( atmosphere_dim == 1 )
     {
-      Index scat_aa_index_local = 0;
-      
-      // Get pha_mat at the grid positions
-      // Since atmosphere_dim = 1, there is no loop over lat and lon grids
-      for (Index p_index = 0;
-           p_index <= cloudbox_limits[1]-cloudbox_limits[0];
-           p_index++)
+        // Get pha_mat at the grid positions
+        // Since atmosphere_dim = 1, there is no loop over lat and lon grids
+        for (Index p_index = 0;
+             p_index <= cloudbox_limits[1]-cloudbox_limits[0];
+             p_index++)
         {
-          Numeric rtp_temperature_local = 
-            t_field(p_index + cloudbox_limits[0], 0, 0);
-          // Interpolate intensity field:
-          for (Index i = 0; i < stokes_dim; i++)
+            // Interpolate intensity field:
+            for (Index i = 0; i < stokes_dim; i++)
             {
-              if (doit_za_interp == 0)
+                if (doit_za_interp == 0)
                 {
-                  interp(doit_i_field_int(joker, i), itw_za_i, 
-                         doit_i_field_mono(p_index, 0, 0, joker, 0, i), gp_za_i);
-                } 
-              else if (doit_za_interp == 1)
+                    interp(doit_i_field_int(joker, i), itw_za_i,
+                           doit_i_field_mono(p_index, 0, 0, joker, 0, i), gp_za_i);
+                }
+                else if (doit_za_interp == 1)
                 {
-                  // Polynomial
-                  for(Index za = 0; za < za_grid.nelem(); za++)
+                    // Polynomial
+                    for(Index za = 0; za < za_grid.nelem(); za++)
                     {
-                      doit_i_field_int(za, i) = 
-                        interp_poly(scat_za_grid, 
-                                     doit_i_field_mono(p_index, 0, 0, joker, 0, i),
-                                     za_grid[za],
-                                     gp_za_i[za]);
+                        doit_i_field_int(za, i) =
+                        interp_poly(scat_za_grid,
+                                    doit_i_field_mono(p_index, 0, 0, joker, 0, i),
+                                    za_grid[za],
+                                    gp_za_i[za]);
                     }
                 }
-              // doit_za_interp must be 0 or 1 (linear or polynomial)!!!
-              else assert(false);
-            }       
-          
-          //There is only loop over zenith angle grid; no azimuth angle grid.
-          for( Index scat_za_index_local = 0;
-               scat_za_index_local < doit_za_grid_size;
-               scat_za_index_local++)
+                // doit_za_interp must be 0 or 1 (linear or polynomial)!!!
+                else assert(false);
+            }
+            
+            //There is only loop over zenith angle grid; no azimuth angle grid.
+            for( Index scat_za_index_local = 0;
+                scat_za_index_local < doit_za_grid_size;
+                scat_za_index_local++)
             {
-              // Dummy index
-              Index index_zero = 0;
-              
-              // Calculate the phase matrix of individual scattering elements
-              out3 << "Calculate the phase matrix \n"; 
-              pha_mat_spt_agendaExecute(ws, pha_mat_spt_local,
-                                        scat_za_index_local,
-                                        index_zero,
-                                        index_zero,
-                                        p_index,
-                                        scat_aa_index_local,
-                                        rtp_temperature_local,
-                                        pha_mat_spt_agenda);
-              
-              // Sum over all scattering elements
-              pha_matCalc(pha_mat_local, pha_mat_spt_local, pnd_field, 
-                          atmosphere_dim, p_index, 0, 
-                          0, verbosity);
-
-              out3 << "Multiplication of phase matrix with incoming" << 
+                out3 << "Multiplication of phase matrix with incoming" <<
                 " intensities \n";
             
               product_field = 0;
@@ -2583,7 +2545,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
                           for (Index j = 0; j< stokes_dim; j++)
                             {
                               product_field(za_in, aa_in, i) +=
-                                pha_mat_local(za_in, aa_in, i, j) * 
+                                pha_mat_doit(p_index,scat_za_index_local,0,za_in,aa_in,i,j) *
                                 doit_i_field_int(za_in, j);
                             }
                         }
