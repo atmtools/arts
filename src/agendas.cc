@@ -131,6 +131,16 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
+     ( NAME( "doit_i_field_agenda" ),
+       DESCRIPTION
+       (
+       "So far just a test."
+        ),
+       OUTPUT( "doit_i_field", "scat_za_grid", "scat_aa_grid" ),
+       INPUT(  )));
+            
+  agenda_data.push_back
+    (AgRecord
      ( NAME( "doit_mono_agenda" ),
        DESCRIPTION
        (

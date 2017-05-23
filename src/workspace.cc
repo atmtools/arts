@@ -1510,6 +1510,15 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
    (WsvRecord
+    ( NAME( "doit_i_field_agenda" ),
+      DESCRIPTION
+      (
+        "Agenda providing *doit_i_field* and associated variables.\n"
+       ),
+      GROUP( "Agenda" )));
+
+ wsv_data.push_back
+   (WsvRecord
     ( NAME( "doit_i_field_mono" ),
       DESCRIPTION
       (

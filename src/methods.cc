@@ -6847,6 +6847,35 @@ void define_md_data_raw()
                   "Max scattering order to consider." )
         ));
 
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "iyHybrid" ),
+      DESCRIPTION
+      (
+          "So far just for testing.\n"
+      ),
+      AUTHORS( "Patrick Eriksson" ),
+      OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "diy_dx", "stokes_dim", "f_grid", "atmosphere_dim", "p_grid",
+          "z_field", "t_field", "t_nlte_field", "vmr_field", "abs_species", 
+          "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
+          "mag_v_field", "mag_w_field", 
+          "cloudbox_on", "cloudbox_limits", "pnd_field", 
+          "use_mean_scat_data", "scat_data", "particle_masses",
+          "iy_unit", "iy_aux_vars", "jacobian_do", "jacobian_quantities", 
+          "jacobian_indices", "ppath_agenda", "propmat_clearsky_agenda",
+          "doit_i_field_agenda", "iy_agenda_call1", "iy_transmission", 
+          "rte_pos", "rte_los", "rte_pos2", "rte_alonglos_v", "ppath_lmax",
+          "ppath_lraytrace" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+    ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "iyIndependentBeamApproximation" ),

@@ -848,7 +848,7 @@ void iyEmissionStandard(
                                  ppath.nreal[ip], i_pol ); }
             }
         }
-    }  // if( np > 1 )
+    }
 }
 
 

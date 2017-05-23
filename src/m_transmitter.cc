@@ -981,18 +981,19 @@ void iyTransmissionStandard(
                          mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f( ppath_f, ppath, f_grid,  atmosphere_dim, 
                    rte_alonglos_v, ppath_wind );
-      get_ppath_pmat_and_tmat( ws, ppath_ext, ppath_nlte_source, lte,
-                               abs_per_species, dppath_ext_dx, dppath_nlte_source_dx,
-                               trans_partial, dtrans_partial_dx_above, dtrans_partial_dx_below,
-                               extmat_case, clear2cloudbox, trans_cumulat, scalar_tau,
-                               pnd_ext_mat, ppath_pnd, propmat_clearsky_agenda, jacobian_quantities,
-                               ppd,
-                               ppath, ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_mag, 
-                               ppath_wind, ppath_f, f_grid, 
-                               jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,  jac_to_integrate,
-                               jac_other, iaps, scat_data,
-                               pnd_field, cloudbox_limits, use_mean_scat_data, rte_alonglos_v,
-                               atmosphere_dim, stokes_dim, jacobian_do, cloudbox_on,verbosity);
+      get_ppath_pmat_and_tmat( ws, ppath_ext, ppath_nlte_source, lte, abs_per_species,
+                               dppath_ext_dx, dppath_nlte_source_dx,
+                               trans_partial, dtrans_partial_dx_above,
+                               dtrans_partial_dx_below, extmat_case, clear2cloudbox,
+                               trans_cumulat, scalar_tau, pnd_ext_mat, ppath_pnd,
+                               propmat_clearsky_agenda, jacobian_quantities,
+                               ppd, ppath, ppath_p, ppath_t, ppath_t_nlte,
+                               ppath_vmr, ppath_mag, ppath_wind, ppath_f, f_grid, 
+                               jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,
+                               jac_to_integrate, jac_other, iaps, scat_data,
+                               pnd_field, cloudbox_limits, use_mean_scat_data,
+                               rte_alonglos_v, atmosphere_dim, stokes_dim,
+                               jacobian_do, cloudbox_on, verbosity );
     }
 
   //=== iy_aux part ===========================================================
