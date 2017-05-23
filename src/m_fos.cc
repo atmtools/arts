@@ -860,6 +860,7 @@ void iyHybrid(
          ArrayOfTensor4&              iy_aux,
          Ppath&                       ppath,
          ArrayOfTensor3&              diy_dx,
+   const Index&                       iy_id,
    const Index&                       stokes_dim,
    const Vector&                      f_grid,
    const Index&                       atmosphere_dim,
@@ -888,6 +889,10 @@ void iyHybrid(
    const ArrayOfArrayOfIndex&         jacobian_indices,
    const Agenda&                      ppath_agenda,
    const Agenda&                      propmat_clearsky_agenda,
+   const Agenda&                      iy_main_agenda,
+   const Agenda&                      iy_space_agenda,
+   const Agenda&                      iy_surface_agenda,
+   const Agenda&                      iy_cloudbox_agenda,
    const Agenda&                      doit_i_field_agenda,
    const Index&                       iy_agenda_call1,
    const Tensor3&                     iy_transmission,
@@ -899,17 +904,39 @@ void iyHybrid(
    const Numeric&                     ppath_lraytrace,      
    const Verbosity&                   verbosity )
 {
+  // If cloudbox off, switch to use clearsky method
+  if( !cloudbox_on )
+    {
+      iyEmissionStandard( ws, iy, iy_aux, ppath, diy_dx, iy_id, stokes_dim,
+                          f_grid, atmosphere_dim, p_grid, z_field, t_field,
+                          t_nlte_field, vmr_field, abs_species,
+                          wind_u_field, wind_v_field, wind_w_field,
+                          mag_u_field, mag_v_field, mag_w_field,
+                          cloudbox_on, iy_unit, iy_aux_vars,
+                          jacobian_do, jacobian_quantities, jacobian_indices,
+                          ppath_agenda, propmat_clearsky_agenda, iy_main_agenda,
+                          iy_space_agenda, iy_surface_agenda,
+                          iy_cloudbox_agenda, iy_agenda_call1, iy_transmission,
+                          rte_pos, rte_los, rte_pos2, rte_alonglos_v,
+                          ppath_lmax, ppath_lraytrace, verbosity );
+      return;
+    }
+  
+
   // Throw error if unsupported features are requested
   if( atmosphere_dim != 1 )
-    throw runtime_error( "This method handles only 1D calculations." );
-    
+    throw runtime_error( "With cloudbox on, this method handles only "
+                         "1D calculations." );
   if( !iy_agenda_call1 )
-    throw runtime_error( 
-                  "Recursive usage not possible (iy_agenda_call1 must be 1)" );
+    throw runtime_error( "With cloudbox on,  recursive usage not possible "
+                         "(iy_agenda_call1 must be 1)." );
   if( iy_transmission.ncols() )
-    throw runtime_error( "*iy_transmission* must be empty" );
-
-
+    throw runtime_error( "*iy_transmission* must be empty." );
+  if( cloudbox_limits[0] != 0  ||  cloudbox_limits[1] != p_grid.nelem()-1 )
+        throw runtime_error( "The cloudbox must be set to cover the complete "
+                             "atmosphere." );
+  
+  
   // Determine propagation path
   //
   ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace,
@@ -927,18 +954,35 @@ void iyHybrid(
   // Obtain i_field
   //
   Tensor7 doit_i_field;
-  Vector  scat_za_grid, scat_aa_grid;
+  Vector  scat_za_grid;
   //
-  doit_i_field_agendaExecute( ws, doit_i_field, scat_za_grid, scat_aa_grid,
-                              doit_i_field_agenda );
-  if( iy.ncols() != stokes_dim  )
-    throw runtime_error(
-      "Obtained *doit_i_field* has wrong number of Stokes elements."  );
-  if( iy.nrows() != 1  )
-    throw runtime_error(
-      "Obtained *doit_i_field* has wrong number of azimuth angles."  );
-  // ...
-
+  {
+    Vector scat_aa_grid;
+    //
+    doit_i_field_agendaExecute( ws, doit_i_field, scat_za_grid, scat_aa_grid,
+                            doit_i_field_agenda );
+    if( doit_i_field.ncols() != stokes_dim  )
+      throw runtime_error(
+        "Obtained *doit_i_field* has wrong number of Stokes elements."  );
+    if( doit_i_field.nrows() != 1  )
+      throw runtime_error(
+        "Obtained *doit_i_field* has wrong number of azimuth angles."  );
+    if( doit_i_field.nbooks() != 1  )
+      throw runtime_error(
+        "Obtained *doit_i_field* has wrong number of longitude points."  );
+    if( doit_i_field.nbooks() != 1  )
+      throw runtime_error(
+        "Obtained *doit_i_field* has wrong number of longitude points."  );
+    if( doit_i_field.nshelves() != 1  )
+      throw runtime_error(
+        "Obtained *doit_i_field* has wrong number of latitude points."  );
+    if( doit_i_field.nvitrines() != cloudbox_limits[1]-cloudbox_limits[0]+1  )
+      throw runtime_error(
+        "Obtained *doit_i_field* has wrong number of pressure points."  );
+    if( doit_i_field.nlibraries() != nf  )
+      throw runtime_error(
+        "Obtained *doit_i_field* has wrong number of frequency points."  );
+  }
 
   // For a brief description of internal variables used, see
   // iyEmissionStandard. 
@@ -1204,6 +1248,20 @@ void iyHybrid(
                                rte_alonglos_v, atmosphere_dim, stokes_dim,
                                jacobian_do, cloudbox_on, verbosity );
     }
+
+
+  // Get *iy* at end ppath by interpoling doit_i_field
+  {
+    Tensor4 i_field = doit_i_field(joker,joker,0,0,joker,0,joker);
+
+    ArrayOfGridPos gp_za(1);
+    gridpos( gp_za, scat_za_grid, Vector(1,ppath.los(ppath.np-1,0)) );
+    
+  }
+  
+
+  
+  
 
   //=== iy_aux part ===========================================================
   // Fill parts of iy_aux that are defined even for np=1.
