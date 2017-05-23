@@ -1,3 +1,21 @@
+2017-05-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-660
+
+	* CMakeLists.txt, config.h.cmake, src/CMakeLists.txt, src/m_oem.cc,
+	src/main.cc:
+
+	Separate C++11 support from OEM support. Before, C++11 support had to
+	be forcibly disabled for clang because invlib doesn't compile with it.
+	Now, only OEM, not C++11, is disabled by default if clang is used.
+	It can be reenabled for testing with clang with -DENABLE_OEM=1 .
+
+	* CMakeLists.txt, README:
+
+	Add support for ccache (-DENABLE_CCACHE=1). https://ccache.samba.org/
+
+	* src/array.h: Add std:: before fill calls.
+
 2017-05-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-659

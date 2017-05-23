@@ -60,6 +60,9 @@
 /* define if the compiler supports C++11 */
 #cmakedefine CXX11_SUPPORT
 
+/* define if OEM is enabled */
+#cmakedefine OEM_SUPPORT
+
 /* define if MPI was found */
 #cmakedefine ENABLE_MPI
 

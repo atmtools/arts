@@ -556,7 +556,7 @@ void x2artsStandard(
   === OEM itself (with wrappers and tempate definitions)
   ===========================================================================*/
 
-#ifdef CXX11_SUPPORT
+#ifdef OEM_SUPPORT
 
 // Include only if compiling with C++11.
 #include "oem.h"
@@ -943,9 +943,9 @@ void OEM(Workspace&,
     throw runtime_error("You have to compile ARTS with C++11 support to enable OEM.");
 }
 
-#endif // CXX11_SUPPORT
+#endif // OEM_SUPPORT
 
-#if defined(CXX11_SUPPORT) && defined (ENABLE_MPI)
+#if defined(OEM_SUPPORT) && defined (ENABLE_MPI)
 
 #include "oem_mpi.h"
 #include "agenda_wrapper_mpi.h"
@@ -1242,4 +1242,4 @@ void OEM_MPI(
                         " and enable MPI to use OEM_MPI.");
 }
 
-#endif // CXX11_SUPPORT && ENABLE_MPI
+#endif // OEM_SUPPORT && ENABLE_MPI

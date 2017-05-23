@@ -802,8 +802,14 @@ int main (int argc, char **argv)
 #else
         << "disabled" << endl
 #endif
-        << "   OEM support:          "
+        << "   C++11 support:        "
 #ifdef CXX11_SUPPORT
+        << "enabled" << endl
+#else
+        << "disabled" << endl
+#endif
+        << "   OEM support:          "
+#ifdef OEM_SUPPORT
         << "enabled" << endl
         << "   MPI support for OEM:  "
     #ifdef ENABLE_MPI
@@ -812,7 +818,7 @@ int main (int argc, char **argv)
         << "disabled" << endl
     #endif
 #else
-        << "disabled (no C++11 support)" << endl
+        << "disabled" << endl
 #endif
         << "   Refice support:       "
 #ifdef ENABLE_REFICE

@@ -137,7 +137,7 @@ inline Array<base>::Array(Index n, const base& fillvalue) :
   std::vector<base>(n)
 {
   // Use fill to fill.
-  fill(this->begin(),this->end(),fillvalue);
+  std::fill(this->begin(),this->end(),fillvalue);
 }
 
 
@@ -145,7 +145,7 @@ inline Array<base>::Array(Index n, const base& fillvalue) :
 template<class base>
 inline Array<base>& Array<base>::operator=(base x) 
 {
-  fill(this->begin(),this->end(),x);
+  std::fill(this->begin(),this->end(),x);
   return *this;
 }
 
@@ -170,7 +170,7 @@ inline Array<base>& Array<base>::operator=(const Array<base>& A)
 {
   //  cout << "size this / A = " << size() << " / " << A.size() << "\n";
   this->resize(A.size());
-  copy( A.begin(), A.end(), this->begin() );
+  std::copy( A.begin(), A.end(), this->begin() );
   return *this;
 }
 

@@ -388,7 +388,7 @@ set ( ATMLABDIR OFF CACHE PATH
 
 find_program( CSHFOUND csh )
 
-if (MATLABDIR AND ATMLABDIR AND CSHFOUND AND CXX11_SUPPORT)
+if (MATLABDIR AND ATMLABDIR AND CSHFOUND AND OEM_SUPPORT)
 
   if (OPENMP_FOUND)
     add_definitions(-DOMP)
@@ -416,7 +416,7 @@ if (MATLABDIR AND ATMLABDIR AND CSHFOUND AND CXX11_SUPPORT)
   test_oem/test_oem_levenberg_marquardt.m test_oem/test_inv.m
   DESTINATION test_oem_files)
 
-endif ( MATLABDIR AND ATMLABDIR AND CSHFOUND AND CXX11_SUPPORT)
+endif()
 ########### next testcase ###############
 
 add_executable (test_omp

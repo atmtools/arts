@@ -101,13 +101,23 @@ endif (NO_ASSERT)
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
 
+########### ccache Support ##########
+
+if (ENABLE_CCACHE)
+  find_program(CCACHE_FOUND ccache)
+  if (CCACHE_FOUND)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+  endif (CCACHE_FOUND)
+endif ()
+
 ########### Check C++11 Support ##########
 
-# Disable C++11 support if compiling with clang on OSX
+# Disable OEM support if compiling with clang on OSX
 # Xcode's clang as well as vanilla clang currently fails
 # compiling invlib
-if (APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set (NO_CXX11 1)
+if (NOT ENABLE_OEM AND APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set (NO_OEM 1)
 endif()
 
 if (NOT NO_CXX11)
@@ -120,8 +130,16 @@ if (NOT NO_CXX11)
   else()
     MESSAGE("-- No C++11 support detected.")
   endif()
+  if (NOT NO_OEM)
+      set (OEM_SUPPORT true)
+  else()
+    set (OEM_SUPPORT false)
+    message(WARNING "OEM support disabled because of invlib "
+            "incompatibility with clang. Use -DENABLE_OEM=1 to force OEM.")
+  endif()
 else()
   set (CXX11_SUPPORT false)
+  set (OEM_SUPPORT false)
 endif()
 
 ########### Check MPI Support ############

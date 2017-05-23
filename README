@@ -185,6 +185,16 @@ Note that quad-precision is software emulated. T-matrix calculations will
 around 10x slower.
 
 
+CCACHE SUPPORT
+==============
+
+To utilize ccache when available use:
+
+cmake -DENABLE_CCACHE=1 ..
+
+For details see https://ccache.samba.org/
+
+
 INTEL COMPILER
 ==============
 
