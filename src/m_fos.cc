@@ -949,6 +949,7 @@ void iyHybrid(
   const Index nf = f_grid.nelem();
   const Index ns = stokes_dim;
   const Index np = ppath.np;
+  const Index ne = pnd_field.nbooks();
   const Index nq = jacobian_quantities.nelem();
 
   // Obtain i_field
@@ -1215,6 +1216,7 @@ void iyHybrid(
   Vector              ppath_p, ppath_t;
   Matrix              ppath_vmr, ppath_pnd, ppath_wind, ppath_mag;
   Matrix              ppath_f, ppath_t_nlte;
+  Matrix              ppath_blackrad, dppath_blackrad_dt;
   Tensor5             abs_per_species;
   Tensor5             dtrans_partial_dx_above, dtrans_partial_dx_below;
   Tensor4             ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat;
@@ -1222,7 +1224,7 @@ void iyHybrid(
   ArrayOfIndex        clear2cloudbox;
   ArrayOfArrayOfIndex extmat_case;   
   Tensor5             dppath_ext_dx;
-  Tensor4             dppath_nlte_dx, dppath_nlte_source_dx;
+  Tensor4             dppath_nlte_dx, dppath_nlte_source_dx, ppath_scat_source;
   Tensor3             ppath_nlte_source;
   ArrayOfIndex        lte;  
   if( np > 1 )
@@ -1232,8 +1234,10 @@ void iyHybrid(
                          ppath, atmosphere_dim, p_grid, t_field, t_nlte_field, 
                          vmr_field, wind_u_field, wind_v_field, wind_w_field,
                          mag_u_field, mag_v_field, mag_w_field );      
+
       get_ppath_f( ppath_f, ppath, f_grid,  atmosphere_dim, 
                    rte_alonglos_v, ppath_wind );
+
       get_ppath_pmat_and_tmat( ws, ppath_ext, ppath_nlte_source, lte, abs_per_species,
                                dppath_ext_dx, dppath_nlte_source_dx,
                                trans_partial, dtrans_partial_dx_above,
@@ -1247,21 +1251,79 @@ void iyHybrid(
                                pnd_field, cloudbox_limits, use_mean_scat_data,
                                rte_alonglos_v, atmosphere_dim, stokes_dim,
                                jacobian_do, cloudbox_on, verbosity );
+      
+      get_ppath_blackrad( ppath_blackrad, ppath, ppath_t, ppath_f );
+
+      get_dppath_blackrad_dt( dppath_blackrad_dt, ppath_t, ppath_f, jac_is_t, 
+                              j_analytical_do );
+
+      // Calculate scattering source term here
+      //
+      ppath_scat_source.resize( nf, stokes_dim, ne, np );
+      ppath_scat_source = 0;
+      //
+      for( Index ip=0; ip<np; ip++ )
+        {
+          if( max(ppath_pnd(joker,ip)) > 0 )
+            {
+              // Jana: add your code here !!!
+              //
+              // You need only to fill the variable ppath_scat_source, that
+              // should contain the scattering source term at the np ppath
+              // points. The idea is to keep the contribution for each
+              // scattering element seperated. This is the row dimension.
+              //
+              // The variable ppath_pnd holds pnd_field interpolated to each
+              // ppath point. If here, at least one pnd > 0 at this ppath
+              // point. About 25 lines below you see an example on how the
+              // doit_i_field can be interpolated. Note that only 1D is allowed
+              // and that cloudbox is forced to span complete atmosphere
+            }
+        }
     }
+  else
+    {  
+      trans_cumulat.resize( nf, ns, ns, np );
+      for( Index iv=0; iv<nf; iv++ )
+        { id_mat( trans_cumulat(iv,joker,joker,np-1) ); }
+    }
+
+
+  // iy_transmission
+  //
+  Tensor3 iy_trans_new;
+  //
+  if( iy_agenda_call1 )
+    { iy_trans_new = trans_cumulat(joker,joker,joker,np-1); }
+  else
+    { iy_transmission_mult( iy_trans_new, iy_transmission, 
+                            trans_cumulat(joker,joker,joker,np-1) ); }
 
 
   // Get *iy* at end ppath by interpoling doit_i_field
   {
     Tensor4 i_field = doit_i_field(joker,joker,0,0,joker,0,joker);
 
-    ArrayOfGridPos gp_za(1);
-    gridpos( gp_za, scat_za_grid, Vector(1,ppath.los(ppath.np-1,0)) );
-    
-  }
-  
+    ArrayOfGridPos gp_p(1), gp_za(1);
+    gridpos_copy( gp_p[0], ppath.gp_p[np-1] );
+    gridpos( gp_za, scat_za_grid, Vector(1,ppath.los(np-1,0)) );
 
-  
-  
+    Tensor3 itw( 1, 1, 4 );
+    interpweights( itw, gp_p, gp_za );
+
+    iy.resize( nf, stokes_dim );
+
+    Matrix m(1,1);
+    for( Index f=0; f<nf; f++ )
+      {
+        for( Index s=0; s<stokes_dim; s++ )
+          {
+            interp( m, itw, doit_i_field(f,joker,0,0,joker,0,s), gp_p, gp_za );
+            iy(f,s) = m(0,0);
+          }
+      }
+  }
+
 
   //=== iy_aux part ===========================================================
   // Fill parts of iy_aux that are defined even for np=1.
@@ -1360,7 +1422,40 @@ void iyHybrid(
       // Loop ppath steps
       for( Index ip=np-2; ip>=0; ip-- )
         {
+          // Path step average of B: Bbar
+          //
+          Vector bbar(nf);
+          //
+          for( Index iv=0; iv<nf; iv++ )  
+            { bbar[iv] = 0.5 * ( ppath_blackrad(iv,ip) +
+                                 ppath_blackrad(iv,ip+1) ); }
 
+          // Extra variables for non-LTE
+          //
+          const bool nonlte = lte[ip]==0 || lte[ip+1]==0; 
+          //
+          Matrix sourcebar(0,0);
+          Tensor3 extbar(0,0,0);
+          //
+          if( nonlte )
+            { 
+              sourcebar.resize( nf, stokes_dim );
+              extbar.resize( nf, stokes_dim, stokes_dim );
+              for( Index iv=0; iv<nf; iv++ )  
+                { 
+                  for( Index is1=0; is1<stokes_dim; is1++ )  
+                    {
+                      sourcebar(iv,is1) = 0.5 * ( ppath_nlte_source(iv,is1,ip) + 
+                                                  ppath_nlte_source(iv,is1,ip+1) );
+                      for( Index is2=0; is2<stokes_dim; is2++ )  
+                        { extbar(iv,is1,is2) = 0.5 * ( 
+                                               ppath_ext(iv,is1,is2,ip) + 
+                                               ppath_ext(iv,is1,is2,ip+1) ); }
+                    }
+                }
+            }
+              
+          
           //### jacobian part #################################################
           if( j_analytical_do )
             { 
@@ -1457,31 +1552,10 @@ void iyHybrid(
           //###################################################################
 
 
-          // Spectrum at end of ppath step 
-          if( stokes_dim == 1 )
-            {
-              for( Index iv=0; iv<nf; iv++ )  
-                { iy(iv,0) = iy(iv,0) * trans_partial(iv,0,0,ip); }
-            }
-          else
-            {
-              for( Index iv=0; iv<nf; iv++ )  
-                {
-                  // Unpolarised:
-                  if( is_diagonal( trans_partial(iv,joker,joker,ip) ) )
-                    {
-                      for( Index is=0; is<ns; is++ )
-                        { iy(iv,is) = iy(iv,is) * trans_partial(iv,is,is,ip); }
-                    }
-                  // The general case:
-                  else
-                    {
-                      Vector t1(ns);
-                      mult( t1, trans_partial(iv,joker,joker,ip), iy(iv,joker));
-                      iy(iv,joker) = t1;
-                    }
-                }
-            }
+          // Spectrum at end of ppath step
+          emission_rtstep( iy, stokes_dim, bbar, extmat_case[ip],
+                           trans_partial(joker,joker,joker,ip),
+                           nonlte, extbar, sourcebar );
 
 
           //=== iy_aux part ===================================================
@@ -1560,7 +1634,7 @@ void iyHybrid(
       //#######################################################################
     } // if np>1
 
-
+  
   // Unit conversions
   if( iy_agenda_call1 )
     {

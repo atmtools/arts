@@ -1,5 +1,15 @@
 2017-05-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-662
+
+	* src/m_fos.cc (iyHybrid): A bit more ...
+
+	* src/m_rte.cc (iyEmissionStandard):
+	* src/m_transmitter.cc (iyRadioLink, iyTransmissionStandard): Just
+	formatting changes.
+
+2017-05-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-661
 
 	* src/m_fos.cc (iyHybrid): Some small steps forward ...

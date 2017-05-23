@@ -468,8 +468,10 @@ void iyEmissionStandard(
                          ppath, atmosphere_dim, p_grid, t_field, t_nlte_field, 
                          vmr_field, wind_u_field, wind_v_field, wind_w_field,
                          mag_u_field, mag_v_field, mag_w_field );      
+
       get_ppath_f( ppath_f, ppath, f_grid,  atmosphere_dim, 
                    rte_alonglos_v, ppath_wind );
+
       get_ppath_pmat_and_tmat( ws, ppath_ext, ppath_nlte_source, lte, abs_per_species,
                                dppath_ext_dx, dppath_nlte_source_dx, trans_partial,
                                dtrans_partial_dx_above, dtrans_partial_dx_below,
@@ -485,6 +487,7 @@ void iyEmissionStandard(
                                jacobian_do, false, verbosity);
       
       get_ppath_blackrad( ppath_blackrad, ppath, ppath_t, ppath_f );
+
       get_dppath_blackrad_dt( dppath_blackrad_dt, ppath_t, ppath_f, jac_is_t, 
                               j_analytical_do );
     }
@@ -614,9 +617,9 @@ void iyEmissionStandard(
                                                ppath_ext(iv,is1,is2,ip+1) ); }
                     }
                 }
-              
             }
 
+          
           //### jacobian part #################################################
           if( j_analytical_do )
             { 

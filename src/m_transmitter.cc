@@ -368,21 +368,24 @@ void iyRadioLink(
     {
       get_ppath_atmvars( ppath_p, ppath_t, ppath_t_nlte, ppath_vmr,
                          ppath_wind, ppath_mag, 
-                         ppath, atmosphere_dim, p_grid, t_field, t_nlte_field_dummy, vmr_field,
-                         wind_u_field, wind_v_field, wind_w_field,
-                         mag_u_field, mag_v_field, mag_w_field );      
-      get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
-                         rte_alonglos_v, ppath_wind );
-      get_ppath_pmat(    ws, ppath_ext, dummy_ppath_nlte_source, dummy_lte, abs_per_species, 
-                         dummy_dppath_ext_dx, dummy_dppath_nlte_dx,
-                         propmat_clearsky_agenda, ArrayOfRetrievalQuantity(0), ppath, 
-                         ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
-                         ppath_mag, f_grid, stokes_dim, iaps );
+                         ppath, atmosphere_dim, p_grid, t_field, t_nlte_field_dummy,
+                         vmr_field, wind_u_field, wind_v_field, wind_w_field,
+                         mag_u_field, mag_v_field, mag_w_field );
+      
+      get_ppath_f( ppath_f, ppath, f_grid,  atmosphere_dim, 
+                   rte_alonglos_v, ppath_wind );
+      
+      get_ppath_pmat( ws, ppath_ext, dummy_ppath_nlte_source, dummy_lte, abs_per_species, 
+                      dummy_dppath_ext_dx, dummy_dppath_nlte_dx,
+                      propmat_clearsky_agenda, ArrayOfRetrievalQuantity(0), ppath, 
+                      ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
+                      ppath_mag, f_grid, stokes_dim, iaps );
+      
       if( !cloudbox_on )
         { 
           ArrayOfArrayOfIndex  extmat_case;          
-          get_ppath_trans(  trans_partial, extmat_case, trans_cumulat,
-                            scalar_tau, ppath, ppath_ext, f_grid, stokes_dim );
+          get_ppath_trans( trans_partial, extmat_case, trans_cumulat,
+                           scalar_tau, ppath, ppath_ext, f_grid, stokes_dim );
         }
       else
         {
@@ -390,10 +393,11 @@ void iyRadioLink(
           ArrayOfArrayOfIndex                       extmat_case;          
           Tensor3                                   pnd_abs_vec;
           //
-          get_ppath_ext(    clear2cloudbox, pnd_abs_vec, pnd_ext_mat, 
-                            scat_data_single, ppath_pnd, ppath, ppath_t, stokes_dim, 
-                            ppath_f, atmosphere_dim, cloudbox_limits, pnd_field,
-                            use_mean_scat_data, scat_data, verbosity );
+          get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, 
+                         scat_data_single, ppath_pnd, ppath, ppath_t, stokes_dim, 
+                         ppath_f, atmosphere_dim, cloudbox_limits, pnd_field,
+                         use_mean_scat_data, scat_data, verbosity );
+          
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
                             scalar_tau, ppath, ppath_ext, f_grid, stokes_dim, 
                             clear2cloudbox, pnd_ext_mat );
@@ -978,9 +982,11 @@ void iyTransmissionStandard(
                          ppath_wind, ppath_mag, 
                          ppath, atmosphere_dim, p_grid, t_field, t_nlte_field, 
                          vmr_field, wind_u_field, wind_v_field, wind_w_field,
-                         mag_u_field, mag_v_field, mag_w_field );      
+                         mag_u_field, mag_v_field, mag_w_field );
+      
       get_ppath_f( ppath_f, ppath, f_grid,  atmosphere_dim, 
                    rte_alonglos_v, ppath_wind );
+      
       get_ppath_pmat_and_tmat( ws, ppath_ext, ppath_nlte_source, lte, abs_per_species,
                                dppath_ext_dx, dppath_nlte_source_dx,
                                trans_partial, dtrans_partial_dx_above,
