@@ -107,9 +107,7 @@ void iyCloudRadar(
   if( !cloudbox_on )
     throw runtime_error( 
                     "The cloudbox must be activated (cloudbox_on must be 1)" );
-  if( jacobian_do )
-    throw runtime_error( 
-        "This method does not provide any jacobians (jacobian_do must be 0)" );
+
 
   // Determine propagation path
   //
@@ -121,9 +119,21 @@ void iyCloudRadar(
   //
   const Index nf = f_grid.nelem();
   const Index ns = stokes_dim;
+  const Index ne = pnd_field.nbooks();
   const Index np = ppath.np;
 
 
+  //###### jacobian part #######################################################
+  //
+  ArrayOfTensor3  diy_dpath; 
+  //
+  if( jacobian_do )
+    {
+      diy_dpath.resize( 1 ); 
+      diy_dpath[0].resize( np, nf, ns ); 
+    }
+
+  
   //=== iy_aux part ===========================================================
   Index auxPressure     = -1,
         auxTemperature  = -1,
@@ -223,37 +233,32 @@ void iyCloudRadar(
     {
       get_ppath_atmvars( ppath_p, ppath_t, ppath_t_nlte, ppath_vmr,
                          ppath_wind, ppath_mag, 
-                         ppath, atmosphere_dim, p_grid, t_field, t_nlte_field_dummy, vmr_field,
-                         wind_u_field, wind_v_field, wind_w_field,
+                         ppath, atmosphere_dim, p_grid, t_field, t_nlte_field_dummy,
+                         vmr_field, wind_u_field, wind_v_field, wind_w_field,
                          mag_u_field, mag_v_field, mag_w_field );
-      get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
-                         rte_alonglos_v, ppath_wind );
-      get_ppath_pmat(    ws, ppath_ext, dummy_ppath_nlte_source, dummy_lte, 
-                         dummy_abs_per_species, 
-                         dummy_dppath_ext_dx, dummy_dppath_nlte_dx,
-                         propmat_clearsky_agenda, ArrayOfRetrievalQuantity(0), ppath, 
-                         ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, ppath_mag,
-                         f_grid, stokes_dim, ArrayOfIndex(0) );
-      if( !cloudbox_on )
-        { 
-          ArrayOfArrayOfIndex  extmat_case;
-          get_ppath_trans( trans_partial, extmat_case, trans_cumulat, 
-                           scalar_tau, ppath, ppath_ext, f_grid, stokes_dim );
-        }
-      else
-        {
-          // Extract basic scattering data
-          ArrayOfArrayOfIndex  extmat_case;
-          Tensor3              pnd_abs_vec;
-          //
-          get_ppath_ext(    clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
-                            ppath_pnd, ppath, ppath_t, stokes_dim, ppath_f, 
-                            atmosphere_dim, cloudbox_limits, pnd_field, 
-                            use_mean_scat_data, scat_data, verbosity );
-          get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, scalar_tau, 
-                            ppath, ppath_ext, f_grid, stokes_dim, 
-                            clear2cloudbox, pnd_ext_mat );
-        }
+      
+      get_ppath_f( ppath_f, ppath, f_grid,  atmosphere_dim, 
+                   rte_alonglos_v, ppath_wind );
+      
+      get_ppath_pmat( ws, ppath_ext, dummy_ppath_nlte_source, dummy_lte, 
+                      dummy_abs_per_species, 
+                      dummy_dppath_ext_dx, dummy_dppath_nlte_dx,
+                      propmat_clearsky_agenda, ArrayOfRetrievalQuantity(0), ppath, 
+                      ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, ppath_mag,
+                      f_grid, stokes_dim, ArrayOfIndex(0) );
+      
+      // Extract basic scattering data
+      ArrayOfArrayOfIndex  extmat_case;
+      Tensor3              pnd_abs_vec;
+      //
+      get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
+                     ppath_pnd, ppath, ppath_t, stokes_dim, ppath_f, 
+                     atmosphere_dim, cloudbox_limits, pnd_field, 
+                     use_mean_scat_data, scat_data, verbosity );
+      
+      get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, scalar_tau, 
+                        ppath, ppath_ext, f_grid, stokes_dim, 
+                        clear2cloudbox, pnd_ext_mat );
     }
 
 
@@ -285,11 +290,17 @@ void iyCloudRadar(
         {
           for( Index iv=0; iv<nf; iv++ )
             {
-              // Obtain scattering matrix
-              Matrix P(ns,ns);
-              pha_mat_singleCalc( P, los_sca[0], los_sca[1], los_inc[0], 
-                                  los_inc[1], scat_data_single[iv], stokes_dim, 
-                                  ppath_pnd(joker,ip), ppath_t[ip], verbosity );
+              // Obtain element-wise scattering matrix
+              Tensor3 Pe(ne,ns,ns);
+              pha_mat_singleCalcScatElement( Pe, los_sca[0], los_sca[1], los_inc[0], 
+                                             los_inc[1], scat_data_single[iv],
+                                             stokes_dim, ppath_pnd(joker,ip),
+                                             ppath_t[ip], verbosity );
+
+              // Total scattering matrix
+              Matrix P(ns,ns); P = 0;
+              for( Index i=0; i<ne; i++ )
+                { P += Pe(i,joker,joker); }
 
               // Combine iy0, double transmission and scattering matrix
               Vector iy1(stokes_dim), iy2(stokes_dim);

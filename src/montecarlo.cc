@@ -1696,10 +1696,11 @@ void opt_propExtract(
 }
 
 
+
 //! pha_mat_singleCalc
 /*!
- Returns the total phase matrix for given incident and scattered directions
-. It requires a vector of particle number densities to be precalculated
+ Returns the total phase matrix for given incident and scattered directions. 
+ It requires a vector of particle number densities to be precalculated.
 
  \param[out] Z               Output: phase matrix
  \param[in]  za_sca          scattered 
@@ -1727,29 +1728,80 @@ void pha_mat_singleCalc(
                         const Verbosity& verbosity
                         )
 {
+  const Index nse = pnd_vec.nelem();
+  
+  Tensor3 Zelem( nse, stokes_dim, stokes_dim );
+
+  pha_mat_singleCalcScatElement( Zelem, za_sca, aa_sca, za_inc, aa_inc,
+                                 scat_data_mono, stokes_dim, pnd_vec,
+                                 rtp_temperature, verbosity );
+  Z = 0;
+
+  for( Index i=0; i<nse; i++ )
+    { Z += Zelem(i,joker,joker); }
+}
+
+
+
+//! pha_mat_singleCalcScatElement
+/*!
+ Returns the phase matrix for each scattering element, given incident and 
+ scattered directions. 
+ It requires a vector of particle number densities to be precalculated.
+
+ \param[out] Z               Output: phase matrix
+ \param[in]  za_sca          scattered 
+ \param[in]  aa_sca          and
+ \param[in]  za_inc          incident
+ \param[in]  aa_inc          directions
+ \param[in]  scat_data_mono  as the WSV
+ \param[in]  stokes_dim      as the WSV
+ \param[in]  pnd_vec         vector of particle number densities at the point 
+                             in question
+ \param[in]  rtp_temperature as the WSV
+ \author Cory Davis
+ \date   2003-11-27
+*/
+void pha_mat_singleCalcScatElement(
+                        Tensor3View Z,                  
+                        const Numeric    za_sca, 
+                        const Numeric    aa_sca, 
+                        const Numeric    za_inc, 
+                        const Numeric    aa_inc,
+                        const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                        const Index      stokes_dim,
+                        ConstVectorView  pnd_vec,
+                        const Numeric    rtp_temperature,
+                        const Verbosity& verbosity
+                        )
+{
   assert(aa_inc>=-180 && aa_inc<=180);
   assert(aa_sca>=-180 && aa_sca<=180);
 
-  Matrix Z_spt(stokes_dim, stokes_dim, 0.);
   Z=0.0;
+  
+  Matrix Z_spt(stokes_dim, stokes_dim, 0.);
   Index i_se_pnd = -1;
   // this is a loop over the different scattering elements
   for (Index i_ss = 0; i_ss<scat_data_mono.nelem(); i_ss++)
-  {
+    {
       const Index N_se = scat_data_mono[i_ss].nelem();
 
       for (Index i_se = 0; i_se < N_se; i_se++)
-      {
+        {
           i_se_pnd++;
           if (pnd_vec[i_se_pnd]>0)
-          {
-              pha_mat_singleExtract(Z_spt,scat_data_mono[i_ss][i_se],za_sca,aa_sca,za_inc,
-                                    aa_inc,rtp_temperature,stokes_dim,verbosity);
-              Z_spt*=pnd_vec[i_se_pnd];
-              Z+=Z_spt;
-          }
-      }
-  }
+            {
+              pha_mat_singleExtract( Z_spt, scat_data_mono[i_ss][i_se],
+                                     za_sca, aa_sca, za_inc, aa_inc,
+                                     rtp_temperature, stokes_dim, verbosity );
+              
+              Z_spt *= pnd_vec[i_se_pnd];
+              
+              Z(i_se_pnd,joker,joker) = Z_spt;
+            }
+        }
+    }
 }
 
 

@@ -207,6 +207,18 @@ void pha_mat_singleCalc (MatrixView Z,
                          const Numeric    rtp_temperature,
                          const Verbosity& verbosity);
 
+void pha_mat_singleCalcScatElement(
+                        Tensor3View Z,                  
+                        const Numeric    za_sca, 
+                        const Numeric    aa_sca, 
+                        const Numeric    za_inc, 
+                        const Numeric    aa_inc,
+                        const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                        const Index      stokes_dim,
+                        ConstVectorView  pnd_vec,
+                        const Numeric    rtp_temperature,
+                        const Verbosity& verbosity);
+
 void pha_mat_singleExtract (MatrixView Z_spt,
                             const SingleScatteringData& scat_data_single,
                             const Numeric za_sca,

@@ -1,3 +1,15 @@
+2017-05-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-663
+
+	* src/m_cloudradar.cc (iyCloudRadar): A small first step towards
+	supporting Jacobians.
+
+	* src/montecarlo.cc (pha_mat_singleCalcScatElement)
+	(pha_mat_singleCalc): The old pha_mat_singleCalc was seperated into
+	two functions, to make it possible to also obtain the phase
+	function for each scattering element without duplication of code.
+
 2017-05-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-662

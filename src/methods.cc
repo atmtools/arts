@@ -6625,7 +6625,7 @@ void define_md_data_raw()
          " \"1\"  : Backscatter coefficient. Unit is 1/(m*sr). Without\n"
          "          attenuation, this equals the scattering matrix value for\n"
          "          the backward direction. See further AUG.\n"
-         " \"Ze\" : Equivalent reflectivity. I the conversion, \"K\" is\n"
+         " \"Ze\" : Equivalent reflectivity. In the conversion, \"K\" is\n"
          "          calculated using the refractive index for liquid water,\n"
          "          at the temperature defined by *ze_tref*.\n"
          "\n"
