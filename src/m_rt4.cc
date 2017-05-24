@@ -77,6 +77,8 @@ void RT4Calc( Workspace& ws,
                 const Index& pfct_aa_grid_size,
                 //const Numeric& pfct_threshold,
                 const Index& auto_inc_nstreams,
+                const Index& za_interp_order,
+                const Index& cos_za_interp,
                 const Numeric& max_delta_tau,
                 const Verbosity& verbosity )
 {
@@ -143,8 +145,9 @@ void RT4Calc( Workspace& ws,
            cloudbox_limits, stokes_dim, nummu, nhza,
            "A", surface_skin_t,
            ground_albedo, ground_reflec, ground_index,
-           surf_refl_mat, surf_emis_vec,
-           quad_type, scat_za_grid, mu_values, quad_weights, auto_inc_nstreams,
+           surf_refl_mat, surf_emis_vec, surface_rtprop_agenda, surf_altitude,
+           quad_type, scat_za_grid, mu_values, quad_weights,
+           auto_inc_nstreams, za_interp_order, cos_za_interp,
            pfct_method, pfct_aa_grid_size, pfct_threshold,
            max_delta_tau,
            verbosity );
@@ -195,6 +198,8 @@ void RT4CalcWithRT4Surface(
                 const Index& pfct_aa_grid_size,
                 //const Numeric& pfct_threshold,
                 const Index& auto_inc_nstreams,
+                const Index& za_interp_order,
+                const Index& cos_za_interp,
                 const Numeric& max_delta_tau,
                 const Verbosity& verbosity )
 {
@@ -248,6 +253,7 @@ void RT4CalcWithRT4Surface(
                   surface_complex_refr_index, stokes_dim );
 
   Numeric pfct_threshold=0.05;
+  Agenda dummy_agenda;
   run_rt4( ws, doit_i_field,
            f_index, f_grid, p_grid, z_field, t_field, vmr_field, pnd_field,
            scat_data, scat_data_mono,
@@ -255,8 +261,9 @@ void RT4CalcWithRT4Surface(
            cloudbox_limits, stokes_dim, nummu, nhza,
            ground_type, surface_skin_t,
            ground_albedo, ground_reflec, ground_index,
-           surf_refl_mat, surf_emis_vec,
-           quad_type, scat_za_grid, mu_values, quad_weights, auto_inc_nstreams,
+           surf_refl_mat, surf_emis_vec, dummy_agenda, 0.,
+           quad_type, scat_za_grid, mu_values, quad_weights,
+           auto_inc_nstreams, za_interp_order, cos_za_interp,
            pfct_method, pfct_aa_grid_size, pfct_threshold,
            max_delta_tau,
            verbosity );
@@ -302,6 +309,8 @@ void RT4Calc( Workspace&,
                 const Index&,
                 //const Numeric&,
                 const Index&,
+                const Index&,
+                const Index&,
                 const Numeric&,
                 const Verbosity& )
 {
@@ -345,6 +354,8 @@ void RT4CalcWithRT4Surface( Workspace&,
                 const Index&,
                 const Index&,
                 //const Numeric&,
+                const Index&,
+                const Index&,
                 const Index&,
                 const Numeric&,
                 const Verbosity& )

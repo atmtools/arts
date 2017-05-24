@@ -1,10 +1,20 @@
 2017-05-24 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-665
+
+	* src/m_rt4.cc, methods.cc (RT4Calc*),
+	src/rt4.cc,h (run_rt4):
+	First complete version with internal automatic increase of nstreams if
+	requested and needed. Not tested yet. Nothing broken in non-increase
+	version, it seems (phew).
+
+2017-05-24 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-664
 
 	WORK IN PROGRESS. Towards a more robust RT4. Can break controlfiles.
 	
-	* src/m_rt4.cc, methods.cc (RT4Clc*),
+	* src/m_rt4.cc, methods.cc (RT4Calc*),
 	src/rt4.cc,h (run_rt4, sca_optpropCalc):
 	After misuse by experts, removed pfct_threshold as user parameter,
 	but hardcoded to a value that proofed to make sense. Instead, allow

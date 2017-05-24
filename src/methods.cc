@@ -6920,8 +6920,8 @@ void define_md_data_raw()
          "\n"
          "Revised method using polynomials of user-defined order for polar\n"
          "angle interpolation. It can be (and should be) restricted to one\n"
-         "hemisphere (for now, default is not restricted in order to reflect\n"
-         "previous behaviour of the WSM (which is now\n"
+         "hemisphere (default is currently 'not restricted' in order to\n"
+         "reflect previous behaviour of the WSM, which is now\n"
          "*iyInterpLinCloudboxField*).\n"
          "\n"
          "Spatial interpolation so far hardcoded as linear.\n"
@@ -12121,14 +12121,17 @@ void define_md_data_raw()
             "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
             "scat_data", "f_grid", "stokes_dim" ),
         GIN(         "nstreams", "non_iso_inc", "pfct_method", "quad_type",
-                     "add_straight_angles",
-                     "pfct_aa_grid_size", "auto_inc_nstreams", "max_delta_tau" ),
+                     "add_straight_angles", "pfct_aa_grid_size",
+                     "auto_inc_nstreams", "za_interp_order", "cos_za_interp",
+                     "max_delta_tau" ),
         GIN_TYPE(    "Index",    "Index",       "String",      "String",
-                     "Index",
-                     "Index",             "Index",             "Numeric" ),
+                     "Index",               "Index",
+                     "Index",             "Index",           "Index",
+                     "Numeric" ),
         GIN_DEFAULT( "16",       "0",           "median",      "D",
-                     "1",
-                     "19",                "0",                 "1e-6" ),
+                     "1",                   "19",
+                     "0",                 "1",               "0",
+                     "1e-6" ),
         GIN_DESC( "Number of polar angle directions (streams) in RT4"
                   " solution (must be an even number).",
                   "Flag whether to run RT4 initialized with non-isotropic"
@@ -12147,6 +12150,11 @@ void define_md_data_raw()
                   " preserved properly. If 0, no adaptation is done. Else"
                   " *auto_inc_nstreams* gives the maximum number of streams to"
                   " increase to.",
+                  "For *auto_inc_nstreams*>0, polar angle interpolation order"
+                  " for interpolation from internal increased stream to"
+                  " originally requested nstreams-ifield.",
+                  "For *auto_inc_nstreams*>0, flag whether to do polar angle"
+                  " interpolation in cosine (='mu') space.",
                   "Maximum optical depth of infinitesimal layer (where single"
                   " scattering approximation is assumed to apply)." )
         ));
@@ -12186,13 +12194,19 @@ void define_md_data_raw()
             "surface_reflectivity", "surface_complex_refr_index" ),
         GIN(         "nstreams", "non_iso_inc", "pfct_method",
                      "ground_type", "quad_type", "add_straight_angles",
-                     "pfct_aa_grid_size", "auto_inc_nstreams", "max_delta_tau" ),
+                     "pfct_aa_grid_size",
+                     "auto_inc_nstreams", "za_interp_order", "cos_za_interp",
+                     "max_delta_tau" ),
         GIN_TYPE(    "Index",    "Index",       "String",
                      "String",      "String",    "Index",
-                     "Index",             "Index",             "Numeric" ),
+                     "Index",
+                     "Index",             "Index",           "Index",
+                     "Numeric" ),
         GIN_DEFAULT( "16",       "0",           "median",
                      "A",           "D",         "1",
-                     "19",                "0",                 "1e-6" ),
+                     "19",
+                     "0",                 "1",               "0",
+                     "1e-6" ),
         GIN_DESC( "Number of polar angle directions (streams) in RT4"
                   " solution (must be an even number).",
                   "Flag whether to run RT4 initialized with non-isotropic"
@@ -12213,6 +12227,11 @@ void define_md_data_raw()
                   " preserved properly. If 0, no adaptation is done. Else"
                   " *auto_inc_nstreams* gives the maximum number of streams to"
                   " increase to.",
+                  "For *auto_inc_nstreams*>0, polar angle interpolation order"
+                  " for interpolation from internal increased stream to"
+                  " originally requested nstreams-ifield.",
+                  "For *auto_inc_nstreams*>0, flag whether to do polar angle"
+                  " interpolation in cosine (='mu') space.",
                   "Maximum optical depth of infinitesimal layer (where single"
                   " scattering approximation is assumed to apply)." )
         ));

@@ -504,11 +504,15 @@ void run_rt4( Workspace& ws,
               ConstComplexVectorView ground_index,
               ConstTensor5View surf_refl_mat,
               ConstTensor3View surf_emis_vec,
+              const Agenda& surface_rtprop_agenda,
+              const Numeric& surf_altitude,
               const String& quad_type,
               ConstVectorView scat_za_grid,
               Vector& mu_values,
               ConstVectorView quad_weights,
               const Index& auto_inc_nstreams,
+              const Index& za_interp_order,
+              const Index& cos_za_interp,
               const String& pfct_method,
               const Index& pfct_aa_grid_size,
               const Numeric& pfct_threshold,
@@ -643,7 +647,8 @@ void run_rt4( Workspace& ws,
 #pragma omp critical(fortran_rt4)
         {
           // Call RT4
-          radtrano_(stokes_dim,
+          radtrano_(
+               stokes_dim,
                nummu,
                nhza,
                max_delta_tau,
@@ -671,7 +676,7 @@ void run_rt4( Workspace& ws,
                mu_values.get_c_array(),
                up_rad.get_c_array(),
                down_rad.get_c_array()
-                 );
+                    );
         }
       }
       else // if (auto_inc_nstreams)
@@ -682,6 +687,8 @@ void run_rt4( Workspace& ws,
         Tensor6 scatter_matrix_new;
         Tensor5 extinct_matrix_new;
         Tensor4 emis_vector_new;
+        Tensor4 surfreflmat_new;
+        Matrix surfemisvec_new;
 
         while (pfct_failed && (2*nummu_new)<=auto_inc_nstreams)
         {
@@ -722,18 +729,93 @@ void run_rt4( Workspace& ws,
         }
 
         // resize and calc remaining nstream-affected variables:
-        //   - depending on ground_type: surfreflmat, surfemisvec
-        /*surf_optpropCalc( ws, surf_refl_mat, surf_emis_vec,
-                    surface_rtprop_agenda,
-                    f_grid, scat_za_grid, mu_values, 
-                    quad_weights, stokes_dim,
-                    surf_altitude );*/
+        //   - in case of surface_rtprop_agenda driven surface: surfreflmat, surfemisvec
+        if (ground_type=="A") // surface_rtprop_agenda driven surface
+        {
+          Tensor5 srm_new(1,nummu_new,stokes_dim,nummu,stokes_dim, 0.);
+          Tensor3 sev_new(1,nummu_new,stokes_dim, 0.);
+          surf_optpropCalc( ws, srm_new, sev_new,
+                            surface_rtprop_agenda,
+                            f_grid[Range(f_index,1)],
+                            scat_za_grid_new, mu_values_new, 
+                            quad_weights_new, stokes_dim,
+                            surf_altitude );
+          surfreflmat_new=srm_new(0,joker,joker,joker,joker);
+          surfemisvec_new=sev_new(0,joker,joker);
+        }
         //   - up/down_rad (resize only)
+        Tensor3 up_rad_new(num_layers+1,nummu_new,stokes_dim, 0.);
+        Tensor3 down_rad_new(num_layers+1,nummu_new,stokes_dim, 0.);
         //
         // run radtrano_
+#pragma omp critical(fortran_rt4)
+        {
+          // Call RT4
+          radtrano_(
+               stokes_dim,
+               nummu_new,
+               nhza,
+               max_delta_tau,
+               quad_type.c_str(),
+               surface_skin_t,
+               ground_type.c_str(),
+               ground_albedo[f_index],
+               ground_index[f_index],
+               groundreflec.get_c_array(),
+               surfreflmat_new.get_c_array(),
+               surfemisvec_new.get_c_array(),
+               sky_temp,
+               wavelength,
+               num_layers,
+               height.get_c_array(),
+               temperatures.get_c_array(),
+               gas_extinct.get_c_array(),
+               num_scatlayers,
+               scatlayers.get_c_array(),
+               extinct_matrix_new.get_c_array(),
+               emis_vector_new.get_c_array(),
+               scatter_matrix_new.get_c_array(),
+               //noutlevels,
+               //outlevels.get_c_array(),
+               mu_values_new.get_c_array(),
+               up_rad_new.get_c_array(),
+               down_rad_new.get_c_array()
+                   );
+        }
         // back-interpolate nstream_new fields to nstreams
-        //   (possible to use iyCloudboxInterp agenda?)
-        //
+        //   (possible to use iyCloudboxInterp agenda? nja, not really a good
+        //   idea. too much overhead there (checking, 3D+2ang interpol). rather
+        //   use interp_order as additional user parameter.
+        //   extrapol issues shouldn't occur as we go from finer to coarser
+        //   angular grid)
+        //   - loop over nummu:
+        //     - determine weights per ummu ang (should be valid for both up and
+        //       down)
+        //     - loop over num_layers and stokes_dim:
+        //       - apply weights
+        for (Index j = 0; j<nummu; j++)
+        {
+          GridPosPoly gp_za;
+          if( cos_za_interp )
+          {
+            gridpos_poly( gp_za, mu_values_new,
+                          mu_values[j], za_interp_order, 0.5 );
+          }
+          else
+          {
+            gridpos_poly( gp_za, scat_za_grid_new,
+                          scat_za_grid[j], za_interp_order, 0.5 );
+          }
+          Vector itw(gp_za.idx.nelem());
+          interpweights( itw, gp_za );
+
+          for (Index k = 0; k<num_layers+1; k++)
+            for (Index ist = 0; ist<stokes_dim; ist++ )
+            {
+              up_rad(k,j,ist) = interp(itw, up_rad_new(k,joker,ist), gp_za);
+              down_rad(k,j,ist) = interp(itw, down_rad_new(k,joker,ist), gp_za);
+            }
+        }
       }
 
 
