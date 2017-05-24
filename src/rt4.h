@@ -105,6 +105,7 @@ void run_rt4( Workspace& ws,
               ConstVectorView scat_za_grid,
               Vector& mu_values,
               ConstVectorView quad_weights,
+              const Index& auto_inc_nstreams,
               const String& pfct_method,
               const Index& pfct_aa_grid_size,
               const Numeric& pfct_threshold,
@@ -143,6 +144,7 @@ void par_optpropCalc( Workspace& ws,
 
 void sca_optpropCalc( //Output
                       Tensor6View scatter_matrix,
+                      Index pfct_failed,
                       //Input
                       ConstTensor4View emis_vector,
                       ConstTensor5View extinct_matrix,
@@ -154,6 +156,7 @@ void sca_optpropCalc( //Output
                       const String& pfct_method,
                       const Index& pfct_aa_grid_size,
                       const Numeric& pfct_threshold,
+                      const Index& auto_inc_nstreams,
                       const Verbosity& verbosity );
 
 void surf_optpropCalc( Workspace& ws,

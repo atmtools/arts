@@ -12122,13 +12122,13 @@ void define_md_data_raw()
             "scat_data", "f_grid", "stokes_dim" ),
         GIN(         "nstreams", "non_iso_inc", "pfct_method", "quad_type",
                      "add_straight_angles",
-                     "pfct_aa_grid_size", "pfct_threshold", "max_delta_tau" ),
+                     "pfct_aa_grid_size", "auto_inc_nstreams", "max_delta_tau" ),
         GIN_TYPE(    "Index",    "Index",       "String",      "String",
                      "Index",
-                     "Index",             "Numeric",        "Numeric" ),
+                     "Index",             "Index",             "Numeric" ),
         GIN_DEFAULT( "16",       "0",           "median",      "D",
                      "1",
-                     "19",                "5e-2",           "1e-6" ),
+                     "19",                "0",                 "1e-6" ),
         GIN_DESC( "Number of polar angle directions (streams) in RT4"
                   " solution (must be an even number).",
                   "Flag whether to run RT4 initialized with non-isotropic"
@@ -12142,9 +12142,11 @@ void define_md_data_raw()
                   "Number of azimuthal angle grid points to consider in"
                   " Fourier series decomposition of scattering matrix (only"
                   " applied for randomly oriented scattering elements)",
-                  "Phase function accuracy threshold (actually, a scattering"
-                  " albedo threshold; equivalent to *scat_dataCheck*'s"
-                  " sca_mat_threshold).",
+                  "Flag whether to internally increase nstreams (individually"
+                  " per frequency) if norm of (bulk) scattering matrix is not"
+                  " preserved properly. If 0, no adaptation is done. Else"
+                  " *auto_inc_nstreams* gives the maximum number of streams to"
+                  " increase to.",
                   "Maximum optical depth of infinitesimal layer (where single"
                   " scattering approximation is assumed to apply)." )
         ));
@@ -12184,13 +12186,13 @@ void define_md_data_raw()
             "surface_reflectivity", "surface_complex_refr_index" ),
         GIN(         "nstreams", "non_iso_inc", "pfct_method",
                      "ground_type", "quad_type", "add_straight_angles",
-                     "pfct_aa_grid_size", "pfct_threshold", "max_delta_tau" ),
+                     "pfct_aa_grid_size", "auto_inc_nstreams", "max_delta_tau" ),
         GIN_TYPE(    "Index",    "Index",       "String",
                      "String",      "String",    "Index",
-                     "Index",             "Numeric",        "Numeric" ),
+                     "Index",             "Index",             "Numeric" ),
         GIN_DEFAULT( "16",       "0",           "median",
                      "A",           "D",         "1",
-                     "19",                "5e-2",           "1e-6" ),
+                     "19",                "0",                 "1e-6" ),
         GIN_DESC( "Number of polar angle directions (streams) in RT4"
                   " solution (must be an even number).",
                   "Flag whether to run RT4 initialized with non-isotropic"
@@ -12206,9 +12208,11 @@ void define_md_data_raw()
                   "Number of azimuthal angle grid points to consider in"
                   " Fourier series decomposition of scattering matrix (only"
                   " applied for randomly oriented scattering elements)",
-                  "Phase function accuracy threshold (actually, a scattering"
-                  " albedo threshold; equivalent to *scat_dataCheck*'s"
-                  " sca_mat_threshold).",
+                  "Flag whether to internally increase nstreams (individually"
+                  " per frequency) if norm of (bulk) scattering matrix is not"
+                  " preserved properly. If 0, no adaptation is done. Else"
+                  " *auto_inc_nstreams* gives the maximum number of streams to"
+                  " increase to.",
                   "Maximum optical depth of infinitesimal layer (where single"
                   " scattering approximation is assumed to apply)." )
         ));

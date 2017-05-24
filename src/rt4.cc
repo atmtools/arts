@@ -468,9 +468,10 @@ void get_rt4surf_props( // Output
   \param scat_za_grid          as the WSV
   \param mu_values             Quadrature angle cosines.
   \param quad_weights          Quadrature weights associated with mu_values.
+  \param auto_inc_nstreams     as the WSV
   \param pfct_method           see RT4Calc doc.
   \param pfct_aa_grid_size     see RT4Calc doc. 
-  \param pfct_threshold        see RT4Calc doc.
+  \param pfct_threshold        Requested scatter_matrix norm accuracy (in terms of single scat albedo).
   \param max_delta_tau         see RT4Calc doc.
 
   \author Jana Mendrok
@@ -507,6 +508,7 @@ void run_rt4( Workspace& ws,
               ConstVectorView scat_za_grid,
               Vector& mu_values,
               ConstVectorView quad_weights,
+              const Index& auto_inc_nstreams,
               const String& pfct_method,
               const Index& pfct_aa_grid_size,
               const Numeric& pfct_threshold,
@@ -618,6 +620,7 @@ void run_rt4( Workspace& ws,
                            f_grid[Range(f_index,1)]);
         }
 
+      Index pfct_failed = 0;
       if( pndtot )
         {
           par_optpropCalc( ws, emis_vector, extinct_matrix,
@@ -626,16 +629,19 @@ void run_rt4( Workspace& ws,
                            pnd_field,
                            t_field(Range(0,num_layers+1),joker,joker),
                            cloudbox_limits, stokes_dim, nummu );
-          sca_optpropCalc( scatter_matrix,
+          sca_optpropCalc( scatter_matrix, pfct_failed,
                            emis_vector, extinct_matrix,
                            scat_data_mono, pnd_field, stokes_dim,
                            scat_za_grid, quad_weights,
                            pfct_method, pfct_aa_grid_size, pfct_threshold,
+                           auto_inc_nstreams,
                            verbosity );
         }
 
-#pragma omp critical(fortran_rt4)
+      if (!pfct_failed)
       {
+#pragma omp critical(fortran_rt4)
+        {
           // Call RT4
           radtrano_(stokes_dim,
                nummu,
@@ -666,7 +672,70 @@ void run_rt4( Workspace& ws,
                up_rad.get_c_array(),
                down_rad.get_c_array()
                  );
+        }
       }
+      else // if (auto_inc_nstreams)
+      {
+        Index nummu_new = nummu+2;
+        Index nhstreams_new;
+        Vector mu_values_new, quad_weights_new, scat_za_grid_new, scat_aa_grid_new;
+        Tensor6 scatter_matrix_new;
+        Tensor5 extinct_matrix_new;
+        Tensor4 emis_vector_new;
+
+        while (pfct_failed && (2*nummu_new)<=auto_inc_nstreams)
+        {
+        // resize and recalc nstream-affected/determined variables:
+        //   - mu_values, quad_weights (resize & recalc)
+          nhstreams_new = nummu_new-nhza;
+          mu_values_new.resize(nummu_new);
+          mu_values_new=0.;
+          quad_weights_new.resize(nummu_new);
+          quad_weights_new=0.;
+          get_quad_angles( mu_values_new, quad_weights_new,
+                           scat_za_grid_new, scat_aa_grid_new,
+                           quad_type, nhstreams_new, nhza, nummu_new );
+        //   - resize & recalculate emis_vector, extinct_matrix (as input to scatter_matrix calc)
+          extinct_matrix_new.resize(num_scatlayers,2,nummu_new,stokes_dim,stokes_dim);
+          extinct_matrix_new = 0.;
+          emis_vector_new.resize(num_scatlayers,2,nummu_new,stokes_dim);
+          emis_vector_new = 0.;
+          par_optpropCalc( ws, emis_vector_new, extinct_matrix_new,
+                           //scatlayers,
+                           spt_calc_agenda, opt_prop_part_agenda,
+                           pnd_field,
+                           t_field(Range(0,num_layers+1),joker,joker),
+                           cloudbox_limits, stokes_dim, nummu_new );
+        //   - resize & recalc scatter_matrix
+          scatter_matrix_new.resize(num_scatlayers,4,nummu_new,stokes_dim,nummu_new,stokes_dim);
+          scatter_matrix_new = 0.;
+          sca_optpropCalc( scatter_matrix_new, pfct_failed,
+                           emis_vector_new, extinct_matrix_new,
+                           scat_data_mono, pnd_field, stokes_dim,
+                           scat_za_grid_new, quad_weights_new,
+                           pfct_method, pfct_aa_grid_size, pfct_threshold,
+                           auto_inc_nstreams,
+                           verbosity );
+          
+          if (pfct_failed)
+            nummu_new = nummu_new+2;
+        }
+
+        // resize and calc remaining nstream-affected variables:
+        //   - depending on ground_type: surfreflmat, surfemisvec
+        /*surf_optpropCalc( ws, surf_refl_mat, surf_emis_vec,
+                    surface_rtprop_agenda,
+                    f_grid, scat_za_grid, mu_values, 
+                    quad_weights, stokes_dim,
+                    surf_altitude );*/
+        //   - up/down_rad (resize only)
+        //
+        // run radtrano_
+        // back-interpolate nstream_new fields to nstreams
+        //   (possible to use iyCloudboxInterp agenda?)
+        //
+      }
+
 
       // RT4 rad output is in wavelength units, nominally in W/(m2 sr um), where
       // wavelength input is required in um.
@@ -943,6 +1012,7 @@ void par_optpropCalc( Workspace& ws,
   variable is required as input for the RT4 subroutine.
 
   \param scatter_matrix        Layer averaged scattering matrix (azimuth mode 0) for all particle layers
+  \param pfct_failed           Flag whether norm of scatter_matrix is sufficiently accurate
   \param emis_vector           Layer averaged particle absorption for all particle layers
   \param extinct_matrix        Layer averaged particle extinction for all particle layers
   \param scat_data_mono        as the WSV
@@ -952,12 +1022,15 @@ void par_optpropCalc( Workspace& ws,
   \param quad_weights          Quadrature weights associated with scat_za_grid 
   \param pfct_method           Method for scattering matrix temperature dependance handling
   \param pfct_aa_grid_size     Number of azimuthal grid points in Fourier series decomposition of randomly oriented particles
+  \param pfct_threshold        Requested scatter_matrix norm accuracy (in terms of single scat albedo)
+  \param auto_inc_nstreams     as the WSV
   
   \author Jana Mendrok
   \date   2016-08-08
 */
 void sca_optpropCalc( //Output
                       Tensor6View scatter_matrix,
+                      Index pfct_failed,
                       //Input
                       ConstTensor4View emis_vector,
                       ConstTensor5View extinct_matrix,
@@ -969,6 +1042,7 @@ void sca_optpropCalc( //Output
                       const String& pfct_method,
                       const Index& pfct_aa_grid_size,
                       const Numeric& pfct_threshold,
+                      const Index& auto_inc_nstreams,
                       const Verbosity& verbosity )
 {
   // FIXME: do we have numerical issues, too, here in case of tiny pnd? check
@@ -1134,6 +1208,7 @@ void sca_optpropCalc( //Output
         }
     }
 
+  pfct_failed = 0;
   assert( i_se_flat == N_se );
   // now we sum up the Z(mu,mu') over the scattering elements weighted by the
   // pnd_field data, deriving Z(z,mu,mu') and sorting this into
@@ -1171,7 +1246,7 @@ void sca_optpropCalc( //Output
 //      cout << "cloudbox layer #" << scat_p_index_local << "\n";
       for (Index iza=0; iza<nummu; iza++)
         for (Index ih=0; ih<2; ih++)
-          if ( extinct_matrix(scat_p_index_local,ih,iza,0,0) > 0. )
+          if ( !pfct_failed && extinct_matrix(scat_p_index_local,ih,iza,0,0) > 0. )
             {
               Numeric sca_mat_integ = 0.;
 
@@ -1199,19 +1274,26 @@ void sca_optpropCalc( //Output
               Numeric w0_act = 2.*PI*sca_mat_integ / ext_nom;
               if (abs(w0_act-w0_nom) > pfct_threshold)
               {
-                ostringstream os;
-                os << "Bulk scattering matrix normalization deviates significantly\n"
-                   << "from expected value (" << 1e2*abs(1.-pfct_norm) << "%, "
-                   << "resulting in albedo deviation of " << abs(w0_act-w0_nom)
-                   << ").\n"
-                   << "Something seems wrong with your scattering data "
-                   << "(did you run *scat_dataCheck*?)\n"
-                   << "or your RT4 setup (try increasing *nstreams* and in case "
-                   << "of randomly oriented particles possibly also "
-                   << "pfct_aa_grid_size).";
-                throw runtime_error( os.str() );
+                if (auto_inc_nstreams)
+                {
+                  pfct_failed = 1;
+                }
+                else
+                {
+                  ostringstream os;
+                  os << "Bulk scattering matrix normalization deviates significantly\n"
+                     << "from expected value (" << 1e2*abs(1.-pfct_norm) << "%, "
+                     << "resulting in albedo deviation of " << abs(w0_act-w0_nom)
+                     << ").\n"
+                     << "Something seems wrong with your scattering data "
+                     << "(did you run *scat_dataCheck*?)\n"
+                     << "or your RT4 setup (try increasing *nstreams* and in case "
+                     << "of randomly oriented particles possibly also "
+                     << "pfct_aa_grid_size).";
+                  throw runtime_error( os.str() );
+                }
               }
-              if (abs(w0_act-w0_nom) > pfct_threshold*0.1 || abs(1.-pfct_norm) > 1e-2)
+              else if (abs(w0_act-w0_nom) > pfct_threshold*0.1 || abs(1.-pfct_norm) > 1e-2)
               {
                 CREATE_OUT2;
                 out2 << "Warning: The bulk scattering matrix is not well normalized\n"
@@ -1222,16 +1304,18 @@ void sca_optpropCalc( //Output
 //                cout << "Scattering matrix deviating from expected value by "
 //                     << 1e2*abs(1.-norm) << "%.\n";
               }
-
-              // rescale scattering matrix to expected (0,0) value (and scale all
-              // other elements accordingly)
-              // FIXME: not fully clear whether applying the same rescaling
-              // factor is the correct way to do. check out, e.g., Vasilieva
-              // (JQSRT 2006) for better approaches.
-              scatter_matrix(scat_p_index_local,ih,iza,joker,joker,joker) /=
-                pfct_norm;
-              scatter_matrix(scat_p_index_local,ih+2,iza,joker,joker,joker) /=
-                pfct_norm;
+              else
+              {
+                // rescale scattering matrix to expected (0,0) value (and scale all
+                // other elements accordingly)
+                // FIXME: not fully clear whether applying the same rescaling
+                // factor is the correct way to do. check out, e.g., Vasilieva
+                // (JQSRT 2006) for better approaches.
+                scatter_matrix(scat_p_index_local,ih,iza,joker,joker,joker) /=
+                  pfct_norm;
+                scatter_matrix(scat_p_index_local,ih+2,iza,joker,joker,joker) /=
+                  pfct_norm;
+              }
             }
     }
 }
