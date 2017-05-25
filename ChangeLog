@@ -1,3 +1,21 @@
+2017-05-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-666
+
+	* BUG fix!!! The transmission in iyCloudRadar was incorrect. No
+	error if cloudbox covered complete atmosphere, otherwise simulated
+	backscattering was somewhat too high.
+
+	* src/m_cloudradar.cc (iyCloudRadar): tr_rev was only updated
+	inside the cloudbox. This effectively resulted in an
+	under-estimation of gas attenuation in one of the directions.
+
+	Also, removed use_mean_scatdata as input and more coding to
+	prepare for jacobians.
+
+	(pnd_field_from_ppdata): Start on function to fill pnd_field using
+	agendas to be added.
+
 2017-05-24 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-665
@@ -13,7 +31,7 @@
 	* arts-2-3-664
 
 	WORK IN PROGRESS. Towards a more robust RT4. Can break controlfiles.
-	
+
 	* src/m_rt4.cc, methods.cc (RT4Calc*),
 	src/rt4.cc,h (run_rt4, sca_optpropCalc):
 	After misuse by experts, removed pfct_threshold as user parameter,
@@ -21,7 +39,7 @@
 	internal automatic increase of number of streams in order to have the
 	scattering matrix being able to properly reproduce the expected norm.
 	Done individually per frequency.
-	
+
 2017-05-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-663

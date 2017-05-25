@@ -6660,7 +6660,7 @@ void define_md_data_raw()
             "t_field", "vmr_field", 
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", "cloudbox_on", 
-            "cloudbox_limits", "pnd_field", "use_mean_scat_data",
+            "cloudbox_limits", "pnd_field",
             "scat_data", "particle_masses",
             "iy_unit", "iy_aux_vars", "jacobian_do", "ppath_agenda", 
             "propmat_clearsky_agenda", "iy_transmitter_agenda",

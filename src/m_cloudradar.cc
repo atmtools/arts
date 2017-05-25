@@ -57,6 +57,86 @@ extern const Numeric SPEED_OF_LIGHT;
 
 
 
+
+void pnd_field_from_ppdata(
+         Tensor4&                     pnd_field,
+         ArrayOfArrayOfTensor4&       dpndfield_dq,
+   const ArrayOfIndex&                cloudbox_limits,
+   const ArrayOfArrayOfSingleScatteringData& scat_data,
+   const Index&                       atmosphere_dim,
+   const Index&                       jacobian_do )
+{
+  assert( cloudbox_limits.nelem() == 2*atmosphere_dim );
+  
+  // Number of scattering species
+  const Index nss = scat_data.nelem();
+  
+  // Cumulative number of scattering elements
+  ArrayOfIndex ncumse(nss+1);
+  ncumse[0] = 0;
+  for( Index i=0; i<scat_data.nelem(); i++ )
+    { ncumse[i+1] = ncumse[i+1] + scat_data[i].nelem(); }
+
+  // Sizes
+  const Index np = cloudbox_limits[1] - cloudbox_limits[0] + 1;
+  Index nlat = 1;
+  if( atmosphere_dim > 1 )
+    { nlat = cloudbox_limits[3] - cloudbox_limits[2] + 1; }
+  Index nlon = 1;
+  if( atmosphere_dim > 2 )
+    { nlat = cloudbox_limits[5] - cloudbox_limits[4] + 1; }
+  //
+  ArrayOfIndex nq(0);
+  
+  // Allocate output variables
+  // And if jacobian_do, determine number of pnd quantities
+  //
+  pnd_field.resize( ncumse[nss], np, nlat, nlon );
+  //
+  if( jacobian_do )
+    {
+      dpndfield_dq.resize(nss);
+      nq.resize(nss);
+      for( Index is=0; is<nss; is++ )
+        {
+          nq[is] = 1;  // Number of pnd quantities shall be set here
+          dpndfield_dq[is].resize(nq[is]);
+          const Index nse = ncumse[is+1]-ncumse[is];
+          for( Index iq=0; iq<nq[is]; iq++ )
+            { dpndfield_dq[is][iq].resize( nse, np, nlat, nlon ); }
+        }
+    }
+  else
+    { dpndfield_dq.resize(0); }
+  
+  // Extract data from pnd-agenda array
+  for( Index is=0; is<nss; is++ )
+    {
+      Range se_range( ncumse[is], ncumse[is+1]-ncumse[is] );
+      
+      for( Index ip=0; ip<np; ip++ )
+        {
+          for( Index ilat=0; ilat<nlat; ilat++ )
+            {
+              for( Index ilon=0; ilon<nlon; ilon++ )
+                {
+                  // Call pnd-agenda to obtain pnd_vec
+                  Vector pnd;
+                  ArrayOfVector dpnd_dq;
+
+                  // Copy to output variables
+                  pnd_field(se_range,ip,ilat,ilon) = pnd;
+                  for( Index iq=0; iq<nq[is]; iq++ )
+                    { dpndfield_dq[is][iq](joker,ip,ilat,ilon) = dpnd_dq[iq]; }
+                }
+            }
+        }
+    }
+}
+   
+                           
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyCloudRadar(
          Workspace&                   ws,
@@ -79,7 +159,6 @@ void iyCloudRadar(
    const Index&                       cloudbox_on,
    const ArrayOfIndex&                cloudbox_limits,
    const Tensor4&                     pnd_field,
-   const Index&                       use_mean_scat_data,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
    const Matrix&                      particle_masses,
    const String&                      iy_unit,
@@ -101,12 +180,12 @@ void iyCloudRadar(
   // Throw error if unsupported features are requested
   if( !iy_agenda_call1 )
     throw runtime_error( 
-                  "Recursive usage not possible (iy_agenda_call1 must be 1)" );
+                  "Recursive usage not possible (iy_agenda_call1 must be 1)." );
   if( iy_transmission.ncols() )
-    throw runtime_error( "*iy_transmission* must be empty" );
+    throw runtime_error( "*iy_transmission* must be empty." );
   if( !cloudbox_on )
     throw runtime_error( 
-                    "The cloudbox must be activated (cloudbox_on must be 1)" );
+                    "The cloudbox must be activated (cloudbox_on must be 1)." );
 
 
   // Determine propagation path
@@ -119,20 +198,34 @@ void iyCloudRadar(
   //
   const Index nf = f_grid.nelem();
   const Index ns = stokes_dim;
-  const Index ne = pnd_field.nbooks();
   const Index np = ppath.np;
 
-
+  
   //###### jacobian part #######################################################
   //
-  ArrayOfTensor3  diy_dpath; 
+         ArrayOfTensor3  diy_dpath; 
+  ArrayOfArrayOfTensor4  dpndfield_dq; 
   //
   if( jacobian_do )
     {
+      if( !pnd_field.empty() )
+        throw runtime_error( "With jacobian_do=1, *pnd_field* must be empty "
+                             "it is generated from ???." );
+
+      // Make pnd_field in/out. For the moment use a dummy variable
+      Tensor4 pnd_dummy;
+      
+      // Create pnd_field
+      pnd_field_from_ppdata( pnd_dummy, dpndfield_dq, cloudbox_limits,
+                             scat_data, atmosphere_dim, jacobian_do );
+
       diy_dpath.resize( 1 ); 
       diy_dpath[0].resize( np, nf, ns ); 
     }
 
+  
+  const Index   nsetot = pnd_field.nbooks();
+    
   
   //=== iy_aux part ===========================================================
   Index auxPressure     = -1,
@@ -254,7 +347,7 @@ void iyCloudRadar(
       get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
                      ppath_pnd, ppath, ppath_t, stokes_dim, ppath_f, 
                      atmosphere_dim, cloudbox_limits, pnd_field, 
-                     use_mean_scat_data, scat_data, verbosity );
+                     0, scat_data, verbosity );
       
       get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, scalar_tau, 
                         ppath, ppath_ext, f_grid, stokes_dim, 
@@ -271,7 +364,7 @@ void iyCloudRadar(
   for( Index iv=0; iv<nf; iv++ ) 
     { id_mat( tr_rev(iv,joker,joker) ); }
 
-
+  
   // Loop ppath steps
   for( Index ip=0; ip<np; ip++ )
     {
@@ -285,23 +378,56 @@ void iyCloudRadar(
         { los_inc = ppath.los(ip,joker); }
       else // Mirror back to get a correct 3D LOS
         { mirror_los( los_inc, los_sca, 3 ); }
+
       
+      // Radar return only possible if inside cloudbox
       if( clear2cloudbox[ip] >= 0 )
         {
           for( Index iv=0; iv<nf; iv++ )
             {
-              // Obtain element-wise scattering matrix
-              Tensor3 Pe(ne,ns,ns);
-              pha_mat_singleCalcScatElement( Pe, los_sca[0], los_sca[1], los_inc[0], 
-                                             los_inc[1], scat_data_single[iv],
-                                             stokes_dim, ppath_pnd(joker,ip),
-                                             ppath_t[ip], verbosity );
+              // Obtain scattering matrix data
+              //
+              Matrix P(ns,ns);
+              //
+              if( 0 ) //if( !jacobian_do )
+                {
+                  // Here we just need the total matrix
+                  pha_mat_singleCalc( P, los_sca[0], los_sca[1],
+                                      los_inc[0], los_inc[1],
+                                      scat_data_single[iv],
+                                      stokes_dim, ppath_pnd(joker,ip),
+                                      ppath_t[ip], verbosity );
+                }
+              else
+                {
+                  // Here we need the matrix per scattering element, but only
+                  // for those that have pnd!=0 or, if part of retrieval
+                  // quantity, any derivative is != 0.
+                  // We extract data for pnd=1.
+                  //
+                  Vector pnd_probe(nsetot); pnd_probe = 0;
+                  //
+                  for( Index i=0; i<nsetot; i++ )
+                    { if( ppath_pnd(i,ip) != 0 )
+                        { pnd_probe[i] = 1; } }
+                  
+                  Tensor3 Pe(nsetot,ns,ns);
+                  pha_mat_singleCalcScatElement( Pe, los_sca[0], los_sca[1],
+                                                 los_inc[0], los_inc[1],
+                                                 scat_data_single[iv],
+                                                 stokes_dim, pnd_probe,
+                                                 ppath_t[ip], verbosity );
 
-              // Total scattering matrix
-              Matrix P(ns,ns); P = 0;
-              for( Index i=0; i<ne; i++ )
-                { P += Pe(i,joker,joker); }
-
+                  // Total scattering matrix
+                  P = 0.0;
+                  for( Index i=0; i<nsetot; i++ )
+                    { if( ppath_pnd(i,ip) != 0 )
+                        { for( Index is1=0; is1<ns; is1++ )
+                            { for( Index is2=0; is2<ns; is2++ )
+                                { P(is1,is2) += ppath_pnd(i,ip) * Pe(i,is1,is2);
+                    }   }   }   }
+                }
+              
               // Combine iy0, double transmission and scattering matrix
               Vector iy1(stokes_dim), iy2(stokes_dim);
               mult( iy1, tr_rev(iv,joker,joker), iy0(iv,joker) );
@@ -312,23 +438,12 @@ void iyCloudRadar(
               // Backscattering
               if( auxBackScat >= 0 ) {
                 mult( iy_aux[auxBackScat](iv,joker,0,ip), P, iy0(iv,joker) ); }
-              // Transmission
-              if( auxTrans >= 0 ) 
-                { for( Index is1=0; is1<ns; is1++ ){
-                    for( Index is2=0; is2<ns; is2++ ){
-                      iy_aux[auxTrans](iv,is1,is2,ip) = 
-                                                      tr_rev(iv,is1,is2); } } }
-
-              // Update tr_rev
-              if( ip<np-1 )
-                {
-                  Matrix tmp = tr_rev(iv,joker,joker);
-                  mult( tr_rev(iv,joker,joker), 
-                        trans_partial(iv,joker,joker,ip), tmp );
-                }
             }
         }
 
+      
+      // Stuff to do even outside cloudbox:      
+      
       //=== iy_aux part ===================================================
       // Pressure
       if( auxPressure >= 0 ) 
@@ -353,9 +468,28 @@ void iyCloudRadar(
                 ppath.lstep[ip-1] * ( ppath.ngroup[ip-1]+ppath.ngroup[ip] ) /
                                                               SPEED_OF_LIGHT; }
         }
+      // Transmission
+      if( auxTrans >= 0 ) 
+        { for( Index iv=0; iv<nf; iv++ ) {
+            for( Index is1=0; is1<ns; is1++ ){
+              for( Index is2=0; is2<ns; is2++ ){
+                iy_aux[auxTrans](iv,is1,is2,ip) = 
+                  tr_rev(iv,is1,is2); } } } }
       //===================================================================
-    } 
 
+      // Update tr_rev
+      if( ip<np-1 )
+        {
+          for( Index iv=0; iv<nf; iv++ )
+            {
+              Matrix tmp = tr_rev(iv,joker,joker);
+              mult( tr_rev(iv,joker,joker), 
+                    trans_partial(iv,joker,joker,ip), tmp );
+            }
+        }
+    } // for ip
+  
+  
   if( iy_unit == "1" )
     {}
   else if( iy_unit == "Ze" )
