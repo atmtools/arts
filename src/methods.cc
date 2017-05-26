@@ -1933,14 +1933,15 @@ void define_md_data_raw()
       GOUT_TYPE(),
       GOUT_DESC(),
       IN( "abs_xsec_per_species", "dabs_xsec_per_species_dx",
-          "abs_lines_per_band", "abs_species_per_band", "abs_species",
+          "abs_lines_per_band", "abs_species_per_band", "band_identifiers", "abs_species",
           "isotopologue_ratios", "partition_functions", "jacobian_quantities", 
           "f_grid", "abs_p", "abs_t", "lm_p_lim", "relmat_type_per_band"),
-      GIN("write_relmat_per_band", "debug"),
-      GIN_TYPE("Index", "Index"),
-      GIN_DEFAULT("0", "0"),
+      GIN("write_relmat_per_band", "debug", "order_of_linemixing"),
+      GIN_TYPE("Index", "Index", "Index"),
+      GIN_DEFAULT("0", "0", "-1"),
       GIN_DESC("Writes the relaxation operators instead of the cross-section if true",
-               "Lets relmat know it is to print debug information if true."
+               "Lets relmat know it is to print debug information if true.",
+               "Choice of order of linemixing"
       )
     ));
 

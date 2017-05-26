@@ -167,7 +167,7 @@ END module module_molecSp
         !
         pos = pos + iaux
         ELSE
-            if (econ % e(1) .eq. 1) then
+            if (econ % e(1) .ge. 1) then
                 print*, " No vibrational band information or not speficied Format "
                 print*, " your selected molecule (HITRANid):", my_mol  
             endif
@@ -217,7 +217,7 @@ END module module_molecSp
             ! that does not follow the selection rules:
             ! \delta(J)=0, +-1, +-2
             ! \delta(l)= +-1
-            if (econ % e(1) .eq. 1) then
+            if (econ % e(1) .ge. 1) then
                 call errorBranch(pos, econ)
             endif
         endif
@@ -269,7 +269,7 @@ END module module_molecSp
             ! *q = Q-branch (when ∆J =  0)
             branch2delta = 0
         else
-            if (econ % e(1) .eq. 1) then
+            if (econ % e(1) .ge. 1) then
                 call errorBranch(pos, econ)
             endif
         endif

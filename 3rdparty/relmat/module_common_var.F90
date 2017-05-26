@@ -490,18 +490,24 @@ MODULE module_common_var
     ! QTy        = "REG" or "TMC"               a3      depends on the called method:
     !                                                   "REG" = RM_LM_tmc_arts
     !                                                   "TMC" = RM_LM_LLS_tmc_arts
+    ! LLSty      = "Linear" or "Li--AF"         a6      depends on the LLS method:
+    !                                                   "Linear" = LLS_Matrix
+    !                                                   "Li--AF" = LLS_AF_Matrix
     !
     !
     integer*8 :: M
     integer*8 :: iso_m ! == column number.
     integer*8 :: Aco
     character*3            :: QTy
-    character*6            :: chmol
+    character*6            :: chmol,LLSty
     double Precision       :: Temp, Ptot
+    double Precision       :: v0
     Double Precision       :: mms!, IAb
     Double Precision       :: Nmcon, B0
     Double Precision       :: QT, QT0
     Double Precision       :: a1, a2, a3, dc, ex1, ex2
+    Double Precision       :: a4, a5, a6 , a7
+    Double Precision       :: a8, a9, a10, a11
     logical                :: availableParam, AF_ON
     logical                :: error_flag
 
@@ -512,7 +518,15 @@ MODULE module_common_var
     ! MOLECULAR STRUCTURE:-------------
     ! PARAMETER   MEANING               FORTRAN Type    Comments or units 
     ! e(1)      = debugging flag                I1      it allows this code to be verbose on screen 
-    !                                                   for debugging purposes.
+    !                                                   for debugging purposes. Possible values:
+    !                                                   -1 -> Not printing allowed + passepartout*.
+    !                                                    0 -> Not printing allowed + returning errors. 
+    !                                                    1 ->     Printing allowed + returning errors.
+    !                                                    2 ->     Printing allowed + passepartout*. 
+    ! *NOTE:'Passepartout'= no errors on the configuration of W will be signaled, 
+    !                       W will be return as diagonal if anything happends during 
+    !                       W-calculation and checkings.
+    !
     ! e(2)      = error counter                 I1      It counts the number of errors, if e(2)>=1, 
     !                                                   then the error flag will be send back as 1. 
     !

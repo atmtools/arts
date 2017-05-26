@@ -84,6 +84,12 @@ module module_maths
             real*8 , intent(IN)                    :: array(N)
         end function minf
 
+        double precision function meanV0(N, array)
+            implicit none
+            integer (kind=8), intent(IN)           :: N
+            real*8 , intent(IN)                    :: array(N)
+        end function meanV0
+
         logical function isnan(a)
             implicit none
             double precision, intent(IN) :: a 
@@ -656,6 +662,20 @@ END module module_maths
 	enddo
 	
   END function minf
+!--------------------------------------------------------------------------------------------------------------------
+  double precision function meanV0(N, array)
+!--------------------------------------------------------------------------------------------------------------------
+! "meanV0": Average the Nx1 array. 
+!
+  IMPLICIT NONE
+  integer (kind=8)         , intent(IN) :: N
+  double precision, intent(IN) :: array(N)
+  !Local var
+  integer (kind=8)                 :: i, j, k
+  !---------------------------------------
+    meanV0 = SUM(array)/N
+  
+  END function meanV0
 !--------------------------------------------------------------------------------------------------------------------
 logical function isnan(a) 
 !--------------------------------------------------------------------------------------------------------------------

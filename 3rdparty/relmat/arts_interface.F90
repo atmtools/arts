@@ -12,8 +12,9 @@ module arts_interface
                           artsg0 , artsg00, &
                           T, Ptot, QT, QT0, mass, &
                           npert, pert, i_pert, p_mass, p_vmr,&
-                          runE_deb,&
-                          W_rn, dipo, rho) 
+                          runE_deb,ordered,&
+                          W_rn, dipo, rho, &
+                          Y1,Y2,Y3) 
         !
         !   INPUT VARIABLES
         !   ----------------------
@@ -46,10 +47,23 @@ module arts_interface
         !              Assumed position 0 is for O2-66 and position 1 is for N2-44.
         !   p_vmr    : volume mixing ratio (VMR) of perturbing gases.  
         !              Assumed position 0 is for O2-66 and position 1 is for N2-44.
+        !   runE_deb : integer that allows to print on screen (1) or not (0). It is used on debugging.
+        !   ordered  : integer which includes the selection in output:
+        !              -1 -> Returns W, but no Y_Ro is returned.
+        !               0 -> W Diagonal, and no Y_Ro is returned.
+        !               1 -> Returns W, and just the first column of the Y1 = 1st order linemixing.
+        !               2 -> Returns W, and all Y1,Y2,Y3 arrays = 2nd order linemixing.
+        !                    1st column = Rosenkranz parameter/line
+        !                    2nd column = g (2nd ord-parameter)/line
+        !                    3rd column = dv(2nd ord-shift)/line
+        !
         !
         !   OUTPUT VARIABLES
         !   -----------------
         !   W_rn     : The relaxation matrix.  For output. 
+        !   Y1       : 1st order linemixing parameter. For output.
+        !   Y2       : 2nd order linemixing parameter. For output.
+        !   Y3       : 3rd order linemixing parameter. For output.
         !   dipo     : The dipole moments.  For output.
         !   rho      : Populations.  For output.
         ! 
@@ -69,6 +83,7 @@ module arts_interface
             integer*8         :: artsg0(nLines), artsg00(nLines)
             integer*8         :: artsLow(4,nLines), artsUpp(4,nLines)
             integer*8         :: pert(npert), i_pert(npert)
+            integer*8         :: ordered
             integer*8         :: runE_deb
             Double Precision  :: sgmin, sgmax, T, Ptot
             Double Precision  :: QT, QT0, mass
@@ -78,6 +93,7 @@ module arts_interface
                                  artsNA(nLines)
             !   OUTPUT variables
             Double Precision  :: rho(nLines), dipo(nLines)
+            Double Precision  :: Y1(nLines),Y2(nLines),Y3(nLines) 
             Double Precision  :: W_rn(nLines,nLines)
         end subroutine RM_LM_tmc_arts
 
@@ -88,8 +104,9 @@ module arts_interface
                           artsg0 , artsg00, &
                           T, Ptot, QT, QT0, mass, &
                           npert, pert, i_pert, p_mass, p_vmr,&
-                          runE_deb,&
-                          W_rn, dipo, rho) 
+                          runE_deb,ordered,&
+                          W_rn, dipo, rho, &
+                          Y1,Y2,Y3) 
         !
         !   INPUT VARIABLES
         !   ----------------------
@@ -118,6 +135,7 @@ module arts_interface
             integer*8, intent (in) :: artsg0(nLines), artsg00(nLines)
             integer*8, intent (in) :: artsLow(4,nLines), artsUpp(4,nLines)
             integer*8, intent (in) :: pert(npert), i_pert(npert)
+            integer*8, intent (in) :: ordered
             integer*8, intent (inout) :: runE_deb
             Double Precision, intent (in) :: sgmin, sgmax, T, Ptot
             Double Precision, intent (in) :: QT, QT0, mass
@@ -127,6 +145,7 @@ module arts_interface
                                              artsNA(nLines)
             !   OUTPUT variables
             Double Precision, intent (out):: rho(nLines), dipo(nLines)
+            Double Precision, intent (out):: Y1(nLines),Y2(nLines),Y3(nLines)
             Double Precision, intent (out):: W_rn(nLines,nLines)
         end subroutine RM_LM_LLS_tmc_arts
 
@@ -158,11 +177,36 @@ module arts_interface
             type (dta_MOL), intent(inout)    :: molP
         end subroutine mol_Init
 
-        subroutine InitW(n,W)
+        subroutine InitM(n,m,W)
             implicit none
-            integer*8 , intent(in ) :: n !== Molecules isotope(AFGL code)
-            Double Precision, intent(out) :: W(n,n)
-        end subroutine InitW
+            integer*8 , intent(in ) :: n,m !== Molecules isotope(AFGL code)
+            Double Precision, intent(out) :: W(n,m)
+        end subroutine InitM
+
+        subroutine includeW(n,indx,W_rn, NA, GA, rTT0, P, n0, Wrno) 
+            implicit none
+            integer*8, intent(in)        :: n, n0 
+            integer*8, intent(in)        :: indx(n) 
+            Double Precision, intent(in ):: NA(n), GA(n), rTT0, P
+            Double Precision, intent(in ):: Wrno(n0,n0)
+            Double Precision, intent(out):: W_rn(n,n)
+        end subroutine includeW
+
+        subroutine includeY(n,indx,Yf, n0, Yc)
+            implicit none
+            integer*8, intent(in )        :: n !number of lines input from ARTS 
+            integer*8, intent(in )        :: n0!number of lines with proper quantum numbers
+            integer*8, intent(in )        :: indx(n) 
+            Double Precision, intent(in ) :: Yc(n0)
+            Double Precision, intent(out) :: Yf(n)
+        end subroutine includeY
+
+        subroutine just_fill_DiagWRn(n, NA, GA, rTT0, P, Wrn) 
+            implicit none
+            integer*8, intent(in )          :: n 
+            Double Precision, intent(in)    :: NA(n), GA(n), rTT0, P
+            Double Precision, intent(out)   :: Wrn(n,n)
+        end subroutine just_fill_DiagWRn
 
         subroutine add2Wfinal(n,Wfinal,Wadd,xMol)
             implicit none
@@ -225,8 +269,9 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
                           artsg0 , artsg00, &
                           T, Ptot, QT, QT0, mass, &
                           npert, pert, i_pert, p_mass, p_vmr,&
-                          runE_deb,&
-                          W_rn, dipo, rho) bind(C, name='arts_relmat_interface__hartmann_and_niro_type')
+                          runE_deb,ordered,&
+                          W_rn, dipo, rho, &
+                          Y1,Y2,Y3) bind(C, name='arts_relmat_interface__hartmann_and_niro_type')
 !--------------------------------------------------------------------------------------------------------------------
 !
 ! This SUBROUTINE is used for computing the following variables:
@@ -307,6 +352,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
     integer*8, intent(in) :: artsg0(nLines), artsg00(nLines)
     integer*8, intent(in) :: artsLow(4,nLines), artsUpp(4,nLines)
     integer*8, intent(in) :: pert(npert), i_pert(npert)
+    integer*8, intent(in) :: ordered
     integer*8, intent(inout) :: runE_deb
     Double Precision, intent(in)  :: sgmin, sgmax, T, Ptot
     Double Precision, intent(in)  :: QT, QT0, mass
@@ -316,7 +362,8 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
                                      artsNA(nLines)
 !
 !   OUTPUT variables
-    Double Precision, intent(out) :: rho(nLines), dipo(nLines) 
+    Double Precision, intent(out) :: rho(nLines), dipo(nLines)
+    Double Precision, intent(out) :: Y1(nLines),Y2(nLines),Y3(nLines)
     Double Precision, intent(out) :: W_rn(nLines,nLines)
 !OTHER VARIABLES
     integer*8              :: dta_size1, IERR1, IERR2, IERR3, IERR4
@@ -324,7 +371,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
     Double Precision, ALLOCATABLE :: Wmat(:,:),&
                                      Wper(:,:),&
                                      Wrno(:,:)
-    Double Precision, ALLOCATABLE :: Y_RosT(:)
+    Double Precision, ALLOCATABLE :: Y_RosT(:),Y_G(:),Y_DV(:)
     Double Precision       :: xMOLp(npert)
     integer*8              :: vLines_Indx(nLines)
     Double Precision       :: faH, rT
@@ -364,7 +411,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 !
 !----------
 ! Obtainig the molecule ID from the Formula specified in "module_common_var"
-    if (econtrol % e(1) .eq. 1) then
+    if (econtrol % e(1) .ge. 1) then
         print*, 'Identifying molecule and loading its parameters...'
     endif
     !
@@ -373,7 +420,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 !---------
 ! Call for reading HITRAN spectroscopy data.
 !
-    if (econtrol % e(1) .eq. 1) print*, 'Locating Band information...'
+    if (econtrol % e(1) .ge. 1) print*, 'Locating Band information...'
 !
     CALL Hit2DTA(pd1, dta_size1, nLines, vLines_Indx, &
                                             artsWNO, &
@@ -412,7 +459,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 !---------
 ! Calculate Dipole element for each line.
 !
-    if (econtrol % e(1) .eq. 1) print*, 'Calculating Dipole moment'
+    if (econtrol % e(1) .ge. 1) print*, 'Calculating Dipole moment'
     CALL DipCAL(pd1,dta_size1,molP,econtrol)
     !call show_PD(nLines, dta1%Sig(1:dta_size1), dta1 % PopuT0(1:dta_size1), pd1 % D0(1:dta_size1))
 !
@@ -434,7 +481,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 ! Write SDF file
 !  
     if (rule1(dta_size1)) then
-        if (econtrol % e(1) .eq. 1) then
+        if (econtrol % e(1) .ge. 1) then
             print*,"Looping over system of perturbers..."
             print*,"----------------------------------->"
         endif
@@ -446,7 +493,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
     IF (IERR2 .ne. 0) call memoError(" Wper ",econtrol)
     !
     !   Init W rel-mat.
-        CALL InitW(dta_size1,Wmat)
+        CALL InitM(dta_size1,dta_size1,Wmat)
     !   Looping:
         DO i = 1,npert
         !
@@ -460,13 +507,13 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
         !
         ! Perturber Molecule: This molecule has to be 
         ! significatively faster than the molecule in study.
-            if (econtrol % e(1) .eq. 1) print*, '>Identifying perturber molecule...'
+            if (econtrol % e(1) .ge. 1) print*, '>Identifying perturber molecule...'
             CALL moleculeID(pert(i), i_pert(i), p_mass(i), 0.0_dp, 0.0_dp, .false., &
                             PerM, econtrol)
         !----------
         ! let's take th proper a1, a2, a3, dc adjust parameters for the
         ! system:
-            if (econtrol % e(1) .eq. 1) then
+            if (econtrol % e(1) .ge. 1) then
                 write(*,*), ">>System: {",trim(molP%chmol)," - ",trim(PerM%chmol),"}"
             endif
         ! sys = "CO2-N2"
@@ -480,7 +527,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
         !---------
         ! Obtain Relaxation matrix elements for each line.
         !
-            if (econtrol % e(1) .eq. 1) print*, '>Building Relaxation Matrix...'
+            if (econtrol % e(1) .ge. 1) print*, '>Building Relaxation Matrix...'
             CALL WelCAL(pd1, dta_size1, molP, PerM, Wper, econtrol)
         !---------
         ! Adding the corresponding perturber-molecule 
@@ -489,7 +536,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
             call add2Wfinal(dta_size1,Wmat,Wper,xMolp(i))
         ENDDO
     !---------
-        if (econtrol % e(1) .eq. 1) print*,"<----------------------Finished loop"
+        if (econtrol % e(1) .ge. 1) print*,"<----------------------Finished loop"
         !
         ! Uncomment the following command to print RELAXAION MATRIX ELEMENTS to the screen:
         !
@@ -498,20 +545,20 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
         ! Renormalization of the Relaxation matrix.
         !
         !
-        if (econtrol % e(1) .eq. 1) print*, 'Renormalization procedure of the RM...'
+        if (econtrol % e(1) .ge. 1) print*, 'Renormalization procedure of the RM...'
         if (rule2(Ptot,dta_size1,Wmat,dta1%Sig(1:nLines)) .or. (molP%M .eq. 7) ) then
             allocate(Wrno(dta_size1,dta_size1),STAT = IERR3)
             if (IERR3 .ne. 0) call memoError(" Wrno ",econtrol)
-            CALL RN_Wmat(dta_size1, pd1, Wmat, Wrno, econtrol)
+            CALL RN_Wmat(dta_size1, pd1, Wmat, Wrno, T, Ptot, econtrol)
             CALL includeW(nLines,vLines_Indx,W_rn, &
                           artsNA, artsGA, rT,Ptot, &
                           dta_size1, Wrno)
         else
-            if (econtrol % e(1) .eq. 1) print*, "Rule 2 failed, RM(diagonal matrix) no OFF-diagonal elements are returned."
+            if (econtrol % e(1) .ge. 1) print*, "Rule 2 failed, RM(diagonal matrix) no OFF-diagonal elements are returned."
             CALL just_fill_DiagWRn(nLines,artsNA, artsGA, rT, Ptot,W_rn)
         endif
         !
-        !if (econtrol % e(1) .eq. 1) print*, 'Copying data to final struct...'
+        !if (econtrol % e(1) .ge. 1) print*, 'Copying data to final struct...'
         !
         !CALL alloRMF(nLines, dta2)
         !pd2 => dta2
@@ -521,32 +568,57 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
         !--------
         ! Write RMF file
         ! 
-        !if (econtrol % e(1) .eq. 1) print*, 'Saving Relaxation Matrix File'
+        !if (econtrol % e(1) .ge. 1) print*, 'Saving Relaxation Matrix File'
         !call save_W2plot(nLines, pd1, pd2, molP, npert, perturber, econtrol, 'htm')
         !
         !NULLIFY( pd2 )
         !
+        !
+        CALL InitM(nLines,1, Y1)
+        CALL InitM(nLines,1, Y2)
+        CALL InitM(nLines,1, Y3)
+        if (ordered .ge. 1) then
         !---------
         ! Linemixing first order coeff. calculation.
         !
-        !allocate(Y_RosT(dta_size1),STAT = IERR4)
-        !if (IERR4 .ne. 0) call memoError("Y_RosT",econtrol)
-        !
-        !if (econtrol % e(1) .eq. 1) print*, 'Linemixing first order coeff...'
-        !call LM_Rosen(molP,dta_size1,pd1,Wrno,Y_RosT)
+            allocate(Y_RosT(dta_size1),STAT = IERR4)
+            if (IERR4 .ne. 0) call memoError("Y_RosT",econtrol)
+            !
+            if (econtrol % e(1) .ge. 1) print*, 'Linemixing first order coeff...'
+            call LM_Rosen(molP,dta_size1,pd1,Wrno,Y_RosT)
+            CALL includeY(nLines,vLines_Indx,Y1,dta_size1,Y_RosT)
+
+            if (ordered .eq. 2) then
+            !---------
+            ! Linemixing second order coeff. calculation.
+            !
+                allocate(Y_G(dta_size1),STAT = IERR4)
+                if (IERR4 .ne. 0) call memoError("Y2   :",econtrol)
+                allocate(Y_DV(dta_size1),STAT = IERR4)
+                if (IERR4 .ne. 0) call memoError("Y3   :",econtrol)
+            !
+                if (econtrol % e(1) .ge. 1) print*, 'Linemixing second order coeffs...'
+                call LM_2ord(molP,dta_size1,pd1,Wrno,Y2,Y3)
+                CALL includeY(nLines,vLines_Indx,Y2,dta_size1,Y_G)
+                CALL includeY(nLines,vLines_Indx,Y3,dta_size1,Y_DV)
+            endif
+        endif
         !--------
         ! Write Y parameter file
         !
-        !if (econtrol % e(1) .eq. 1) print*, 'Saving Rosenkranz parameter Y...'
+        !if (econtrol % e(1) .ge. 1) print*, 'Saving Rosenkranz parameter Y...'
         !CALL save_Yrp(pd1, dta_size1, molP, Y_RosT,'htm')
         !
     else
-        if (econtrol % e(1) .eq. 1) then
+        if (econtrol % e(1) .ge. 1) then
             print*, "Rule 1: Not enough Lines to calculate Relaxation Matrix"
             print*, "        Diagonal matrix sent back in return."
         endif
         !
         CALL just_fill_DiagWRn(nLines,artsNA, artsGA, rT, Ptot,W_rn)
+        CALL InitM(nLines,1, Y1)
+        CALL InitM(nLines,1, Y2)
+        CALL InitM(nLines,1, Y3)
         !
         ! Uncomment the following command to print RELAXAION MATRIX ELEMENTS to the screen:
         !
@@ -555,7 +627,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
     endif
     NULLIFY( pd1 )
 !
-    if (econtrol % e(1) .eq. 1) PRINT *, "END OF RELMAT SUBROUTINE"
+    if (econtrol % e(1) .ge. 1) PRINT *, "END OF RELMAT SUBROUTINE"
 !
     if (econtrol % e(2) .ge. 1) then
         runE_deb = 1
@@ -574,8 +646,9 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
                           artsg0 , artsg00, &
                           T, Ptot, QT, QT0, mass, &
                           npert, pert, i_pert, p_mass, p_vmr,&
-                          runE_deb,&  
-                          W_rn, dipo, rho) bind(C, name='arts_relmat_interface__linear_type')
+                          runE_deb,ordered,&
+                          W_rn, dipo, rho, &
+                          Y1,Y2,Y3) bind(C, name='arts_relmat_interface__linear_type')
 !--------------------------------------------------------------------------------------------------------------------
 !
 ! This SUBROUTINE is used for computing the following variables:
@@ -657,6 +730,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     integer*8, intent(in) :: artsg0(nLines), artsg00(nLines)
     integer*8, intent(in) :: artsLow(4,nLines), artsUpp(4,nLines)
     integer*8, intent(in) :: pert(npert), i_pert(npert)
+    integer*8, intent(in) :: ordered
     integer*8, intent(inout) :: runE_deb
     Double Precision, intent(in)  :: sgmin, sgmax, T, Ptot
     Double Precision, intent(in)  :: QT, QT0, mass
@@ -664,17 +738,19 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     Double Precision, intent(in)  :: artsWNO(nLines),artsS(nLines), &
                                      artsGA(nLines), artsE00(nLines), &
                                      artsNA(nLines)
+!
 !   OUTPUT variables
-    Double Precision, intent(out) :: rho(nLines), dipo(nLines) 
+    Double Precision, intent(out) :: rho(nLines), dipo(nLines)
+    Double Precision, intent(out) :: Y1(nLines),Y2(nLines),Y3(nLines)  
     Double Precision, intent(out) :: W_rn(nLines,nLines)
-!   OTHER variables
+!OTHER VARIABLES
     integer*8              :: dta_size1, IERR1, IERR2, IERR3, IERR4
     integer*8              :: iLine, i, j, k
     integer*8              :: vLines_Indx(nLines) 
     Double Precision, ALLOCATABLE :: Wmat(:,:),&
                                      Wper(:,:),&
                                      Wrno(:,:)
-    Double Precision, ALLOCATABLE :: Y_RosT(:)
+    Double Precision, ALLOCATABLE :: Y_RosT(:),Y_G(:),Y_DV(:)
     Double Precision       :: xMOLp(npert)
     Double Precision       :: faH, rT
     type (dta_SDF), target :: dta1
@@ -710,13 +786,15 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     molP % Temp = T !Kelvin
     molP % Ptot = Ptot!atm
     molP % QTy  = "TMC"
+    !molP % LLSty= "Li--AF"
+    molP % v0   = meanV0(nLines,artsWNO)
     !
     !Disable the Adiabatic factor option because it requires from external inputs
-    !molP % AF_ON= .false. 
+    molP % AF_ON= .false. 
 !
 !----------
 ! Obtainig the molecule ID from the Formula specified in "module_common_var"
-    if (econtrol % e(1) .eq. 1) print*, 'Identifying molecule and loading its parameters...'
+    if (econtrol % e(1) .ge. 1) print*, 'Identifying molecule and loading its parameters...'
     !
     CALL moleculeID(artsM, artsI, mass, QT, QT0, .true., molP,&
                     econtrol)
@@ -724,7 +802,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 !---------
 ! Call for reading HITRAN spectroscopy data.
 !
-    if (econtrol % e(1) .eq. 1) print*, 'Locating Band information...'
+    if (econtrol % e(1) .ge. 1) print*, 'Locating Band information...'
     !
     CALL Hit2DTA(pd1, dta_size1, nLines, vLines_Indx, &
                  artsWNO, artsS  , artsGA , artsE00, &
@@ -757,7 +835,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 !---------
 ! Calculate Dipole element for each line.
 !
-    if (econtrol % e(1) .eq. 1) print*, 'Calculating Dipole moment'
+    if (econtrol % e(1) .ge. 1) print*, 'Calculating Dipole moment'
     CALL DipCAL(pd1,dta_size1,molP,econtrol)
 !
     do j = 1, nLines
@@ -777,8 +855,8 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 !---------
 ! Write SDF file
 !
-    if (rule1(dta_size1)) then
-        if (econtrol % e(1) .eq. 1) then
+    if (rule1(dta_size1) .and. .not.(ordered .eq. 0)) then
+        if (econtrol % e(1) .ge. 1) then
             print*,"Looping over system of perturbers..."
             print*,"----------------------------------->"
         endif
@@ -790,7 +868,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
         IF (IERR2 .ne. 0) call memoError(" Wper ",econtrol)
     !
     !   Init final NO-RN W (relaxation matrix):
-        CALL InitW(dta_size1,Wmat)
+        CALL InitM(dta_size1,dta_size1,Wmat)
     !   Looping:
         DO i = 1,npert
             if ( (i .eq. 1) .or. (molP%AF_ON) ) then
@@ -810,14 +888,14 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
             !
             ! Perturber Molecule: This molecule has to be 
             ! significatively faster than the molecule in study.
-                if (econtrol % e(1) .eq. 1) print*, '>Identifying perturber molecule...'
+                if (econtrol % e(1) .ge. 1) print*, '>Identifying perturber molecule...'
                 CALL moleculeID(pert(i), i_pert(i), p_mass(i), &
                                 0.0_dp, 0.0_dp, .false., &
                                 PerM, econtrol)
             !----------
             ! let's take th proper a1, a2, a3, dc adjust parameters for the
             ! system:
-                if ( molP%AF_ON .and. (econtrol % e(1) .eq. 1)) then
+                if ( molP%AF_ON .and. (econtrol % e(1) .ge. 1)) then
                     write(*,*), ">>System: {",trim(molP%chmol)," - ",trim(PerM%chmol),"}"
                     ! sys = "CO2-N2" or "CO2-O2"
                 endif
@@ -827,17 +905,19 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
                 CALL systemQParam_LLS(sys,molP)
             !
                 if (.not.(molP%availableParam)) then
-                    CALL calc_QParam(dta_size1, pd1, molP, PerM, econtrol)
-                    if (econtrol % e(1) .eq. 1) write(*,*),"A1 = ", molP%a1,";A2= ", molP%a2,";A3= ", molP%a3
+                    if (molP % LLSty .eq. "Linear") then
+                        CALL calc_QParam(dta_size1, pd1, molP, PerM, econtrol)
+                    else if (molP % LLSty .eq. "Li--AF") then
+                        CALL calc_QParam_AF(dta_size1, pd1, molP, PerM, econtrol)
+                    endif
+                    if (econtrol % e(1) .ge. 1) write(*,*),"A1 = ", molP%a1,";A2= ", molP%a2,";A3= ", molP%a3
                 endif
-                !print*,'Hello world'
-                !stop
             !
                 perturber(i)=PerM%chmol
             !---------
             ! Obtain Relaxation matrix elements for each line.
             !
-                if (econtrol % e(1) .eq. 1) print*, '>Building Relaxation Matrix...'
+                if (econtrol % e(1) .ge. 1) print*, '>Building Relaxation Matrix...'
                 CALL WelCAL(pd1, dta_size1, molP, PerM, Wper, econtrol)
             !---------
             ! Adding the corresponding perturber-molecule 
@@ -847,7 +927,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
             endif
         ENDDO
     !---------
-        if (econtrol % e(1) .eq. 1) print*,"<----------------------------Finished loop"
+        if (econtrol % e(1) .ge. 1) print*,"<----------------------------Finished loop"
     !
     ! Uncomment the following command to print RELAXAION MATRIX ELEMENTS to the screen:
     !
@@ -855,51 +935,81 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     !---------
     ! Renormalization of the Relaxation matrix.
     !
-        if (econtrol % e(1) .eq. 1) print*, 'Renormalization procedure of the RM...'
+        if (econtrol % e(1) .ge. 1) print*, 'Renormalization procedure of the RM...'
         allocate(Wrno(dta_size1,dta_size1),STAT = IERR3)
         if (IERR3 .ne. 0) call memoError(" Wrno ",econtrol)
-        CALL RN_Wmat(dta_size1, pd1, Wmat, Wrno, econtrol)
+        CALL RN_Wmat(dta_size1, pd1, Wmat, Wrno, T, Ptot, econtrol)
+
         CALL includeW(nLines,vLines_Indx,W_rn, &
                           artsNA, artsGA, rT, Ptot,&
-                          dta_size1, Wrno)
+                          dta_size1, Wrno)       
+        
     ! ---------
     ! Allocate and Copy RM-data to final struct and file
     !
     !    CALL alloRMF(nLines, dta2)
     !    pd2 => dta2
     !
-    !    if (econtrol % e(1) .eq. 1) print*, 'Copying data to final struct...'
-    !    CALL W2dta2(nLines, pd1, pd2, W_rn) 
+    !    if (econtrol % e(1) .ge. 1) print*, 'Copying data to final struct...'
+    !!    CALL W2dta2(nLines, pd1, pd2, W_rn) 
     !    CALL W2dta2(dta_size1, pd1, pd2, Wmat) 
     !--------
     ! Write RMF file
     ! 
-    !    if (econtrol % e(1) .eq. 1) print*, 'Saving Relaxation Matrix File'
+    !    if (econtrol % e(1) .ge. 1) print*, 'Saving Relaxation Matrix File'
     !    call save_W2plot(nLines, pd1, pd2, molP, npert, perturber, econtrol, 'tmc')
     !
     !    NULLIFY( pd2 )
     !
-    !---------
-    ! Linemixing first order coeff. calculation.
-    !    allocate(Y_RosT(dta_size1),STAT = IERR4)
-    !    if (IERR4 .ne. 0) call memoError("Y_RosT",econtrol)
-    !
-    !    if (econtrol % e(1) .eq. 1) print*, 'Linemixing first order coeff...'
-    !    call LM_Rosen(molP,dta_size1,pd1,Wrno,Y_RosT)
+        CALL InitM(nLines,1, Y1)
+        CALL InitM(nLines,1, Y2)
+        CALL InitM(nLines,1, Y3)
+        if (ordered .ge. 1) then
+            !CALL InitM(nLines,1, Y1)
+            !CALL InitM(nLines,1, Y2)
+            !CALL InitM(nLines,1, Y3)
+        !---------
+        ! Linemixing first order coeff. calculation.
+        !
+            allocate(Y_RosT(dta_size1),STAT = IERR4)
+            if (IERR4 .ne. 0) call memoError("Y_RosT",econtrol)
+            !
+            if (econtrol % e(1) .ge. 1) print*, 'Linemixing first order coeff...'
+            call LM_Rosen(molP,dta_size1,pd1,Wrno,Y_RosT)
+            CALL includeY(nLines,vLines_Indx,Y1,dta_size1,Y_RosT)
+
+            if (ordered .eq. 2) then
+            !---------
+            ! Linemixing second order coeff. calculation.
+            !
+                allocate(Y_G(dta_size1),STAT = IERR4)
+                if (IERR4 .ne. 0) call memoError("Y2   :",econtrol)
+                allocate(Y_DV(dta_size1),STAT = IERR4)
+                if (IERR4 .ne. 0) call memoError("Y3   :",econtrol)
+            !
+                if (econtrol % e(1) .ge. 1) print*, 'Linemixing second order coeffs...'
+                call LM_2ord(molP,dta_size1,pd1,Wrno,Y2,Y3)
+                CALL includeY(nLines,vLines_Indx,Y2,dta_size1,Y_G)
+                CALL includeY(nLines,vLines_Indx,Y3,dta_size1,Y_DV)
+            endif
+        endif
     ! --------
     ! Write Y parameter file
     !
-    !    if (econtrol % e(1) .eq. 1) print*, 'Saving Rosenkranz parameter Y...'
+    !    if (econtrol % e(1) .ge. 1) print*, 'Saving Rosenkranz parameter Y...'
     !    CALL save_Yrp(pd1, dta_size1, molP, Y_RosT,'tmc')
         !
     else
-        if (econtrol % e(1) .eq. 1) then
+        if (econtrol % e(1) .ge. 1) then
             print*, "Rule 1: Not enough Lines to calculate Relaxation Matrix"
             print*, "        Diagonal matrix sent back in return."
         endif
         !
         !
         CALL just_fill_DiagWRn(nLines,artsNA, artsGA, rT, Ptot,W_rn)
+        CALL InitM(nLines,1, Y1)
+        CALL InitM(nLines,1, Y2)
+        CALL InitM(nLines,1, Y3)
         !
         ! Uncomment the following command to print RELAXAION MATRIX ELEMENTS to the screen:
         !
@@ -909,7 +1019,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     NULLIFY( pd1 )
 !
 !
-    if (econtrol % e(1) .eq. 1) PRINT *, "END OF RELMAT SUBROUTINE"
+    if (econtrol % e(1) .ge. 1) PRINT *, "END OF RELMAT SUBROUTINE"
 !
     if (econtrol % e(2) .ge. 1) then
         runE_deb = 1
@@ -1050,14 +1160,17 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
       molP % B0   = 0.0_dp
       molP % QT   = 0.0_dp
       molP % QT0  = 0.0_dp
-      molP % a1   = 0.0_dp
-      molP % a2   = 0.0_dp
-      molP % a3   = 0.0_dp
+      molP % a1   = 0.0_dp; molP % a2 = 0.0_dp; molP % a3 = 0.0_dp
+      molP % a4   = 0.0_dp; molP % a5 = 0.0_dp; molP % a6 = 0.0_dp
+      molP % a7   = 0.0_dp; molP % a8 = 0.0_dp; molP % a9 = 0.0_dp
+      molP % a10  = 0.0_dp; molP % a11= 0.0_dp
       molP % dc   = 0.0_dp
       molP % ex1  = 0.0_dp
       molP % ex2  = 0.0_dp
       !character
       molP%chmol = ""
+      molP%QTy   = "REG"
+      molP%LLSty = "Linear"
       !logical
       molP%availableParam = .true.
       molP%AF_ON = .true.
@@ -1065,24 +1178,24 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
       Return
   END SUBROUTINE mol_Init
 !--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE InitW(n,W)
+  SUBROUTINE InitM(n,m,W)
 !--------------------------------------------------------------------------------------------------------------------
 ! 
 !
     implicit none
-    integer*8, intent(in )              :: n !== Molecules isotope(AFGL code)
-    Double Precision, intent(out)       :: W(n,n)
+    integer*8, intent(in)               :: n,m 
+    Double Precision, intent(out)       :: W(n,m)
     integer*8                           :: i,j,k
 
 !----------
 ! 
     DO i = 1, n
-        DO j = 1,n 
+        DO j = 1,m 
             W(i,j) = 0.0
         ENDDO
     ENDDO
 
-  END SUBROUTINE InitW
+  END SUBROUTINE InitM
 !--------------------------------------------------------------------------------------------------------------------
   SUBROUTINE includeW(n,indx,W_rn, NA, GA, rTT0, P, n0, Wrno)
 !--------------------------------------------------------------------------------------------------------------------
@@ -1116,6 +1229,29 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 
   END SUBROUTINE includeW
 !--------------------------------------------------------------------------------------------------------------------
+  SUBROUTINE includeY(n,indx,Yf, n0, Yc)
+!--------------------------------------------------------------------------------------------------------------------
+! 
+    implicit none
+    integer*8, intent(in )              :: n !number of lines input from ARTS 
+    integer*8, intent(in )              :: n0!number of lines with proper quantum numbers
+    integer*8, intent(in )              :: indx(n) 
+    Double Precision, intent(in )       :: Yc(n0)
+    Double Precision, intent(out)       :: Yf(n)
+    integer*8                           :: i,j,k
+
+!----------
+! 
+    DO i = 1, n
+        if (indx(i).eq.0) then
+            Yf(i) = 0.0d0
+        else
+            Yf(i) = Yc(indx(i))
+        endif
+    ENDDO
+
+  END SUBROUTINE includeY
+!--------------------------------------------------------------------------------------------------------------------
   SUBROUTINE just_fill_DiagWRn(n, NA, GA, rTT0, P, Wrn)
 !--------------------------------------------------------------------------------------------------------------------
 ! 
@@ -1128,7 +1264,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 
 !----------
 ! 
-    CALL InitW(n,Wrn)
+    CALL InitM(n,n,Wrn)
     !
     do j =1, n
         faH = (rTT0**NA(j)) 
@@ -1239,7 +1375,9 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     !path = "RMF2plot_"//trim(cTemp(1:3))//"K.dat"
 !   ReNormalized Matrix
     !path = "RMF2plot_RN_"//trim(cTemp(1:3))//"K.dat"
-    path ="RMF2plot"//trim(molP%chmol)//"_"//model//"_RN_"//trim(cTemp(1:3))//"K.dat"
+    !path ="RMF2plot"//trim(molP%chmol)//"_"//model//"_RN_"//trim(cTemp(1:3))//"K.dat"
+    path ="RM_paper_"//trim(molP%chmol)//"_"//model//"_"//trim(cTemp(1:3))//"K.dat"
+
     call idate(today)   ! today(1)=day, (2)=month, (3)=year
     open (UNIT = u, FILE = trim(path), STATUS = 'REPLACE', ACTION = 'WRITE')
 ! HEADER
@@ -1334,7 +1472,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 ! INIT. VAR.
     write(cTemp,'(f5.1)'),molP%Temp
     !path = trim(out_file_path)//trim(out_fil2_RMF)
-    path ="Y"//trim(molP%chmol)//"_"//model//"_"//trim(cTemp(1:3))//"K.dat"
+    path ="Y_paper_"//trim(molP%chmol)//"_"//model//"_"//trim(cTemp(1:3))//"K.dat"
     call idate(today)   ! today(1)=day, (2)=month, (3)=year
     open (UNIT = u, FILE = trim(path), STATUS = 'REPLACE', ACTION = 'WRITE')
 ! HEADER

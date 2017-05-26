@@ -114,6 +114,16 @@ module module_phsub
             type(dta_MOL), intent(in) :: molP
             real*8       , intent(in) :: J1,J2,v1,v2
         end function Ql_mol_LLS
+
+        double precision function Ql_mol_AF_LLS(J1,J2,v1,v2,molP,PerM,L)
+            use module_common_var
+            use module_molecSp
+            use module_maths
+            implicit none
+            integer*8    , intent(in) :: L
+            type(dta_MOL), intent(in) :: molP,PerM
+            real*8       , intent(in) :: J1,J2,v1,v2
+        end function Ql_mol_AF_LLS
         
         double precision function AFmol_X(molP, PerM, L, step)
             use module_common_var
@@ -122,6 +132,14 @@ module module_phsub
             real*8        , intent(in) :: L
             type (dta_MOL), intent(in) :: molP, PerM
         end function AFmol_X
+
+        double precision function c_AF(molP, PerM, J, L, step)
+            use module_common_var
+            implicit none
+            integer*8     , intent(in) :: step
+            real*8        , intent(in) :: J,L
+            type (dta_MOL), intent(in) :: molP, PerM
+        end function c_AF
 
         subroutine sumRule(nLines,indexS,dipole,Wmat,dfact,econ)
             use module_common_var
@@ -787,7 +805,7 @@ END module module_phsub
       double precision:: suma, cte1, cte2
       double precision:: w3j1,w3j2,w6j,w3jaux
       double precision:: AF1 , AF2, Qaux
-      double precision:: Afmol_X, Ql_mol_X, Ql_mol_LLS
+      double precision:: Afmol_X, Ql_mol_X, Ql_mol_LLS, Ql_mol_AF_LLS
       double precision:: K1, Kpart1, K2, Kpart2
 !
 !...co2  -- 
@@ -846,7 +864,11 @@ END module module_phsub
         !
         ! Calculation of the basis rates "Q_mol-X":
           if (molP % QTy .eq. "TMC") then
-            Qaux = Ql_mol_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,L)
+            if (molP % LLSty .eq. "Linear") then
+                Qaux = Ql_mol_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,L)
+            else if (molP % LLSty .eq. "Li--AF") then
+                Qaux = Ql_mol_AF_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,PerM,L)
+            endif
           else
             Qaux = Ql_mol_X(molP,L)
           endif
@@ -924,7 +946,7 @@ END module module_phsub
       double precision      :: w3j1,w3j2
       double precision      :: w6j1, w6j2, w6j3
       double precision      :: AF1,AF2, Qaux
-      double precision      :: Afmol_X, Ql_mol_X, Ql_mol_LLS
+      double precision      :: Afmol_X, Ql_mol_X, Ql_mol_LLS, Ql_mol_AF_LLS
       double precision      :: K1, Kpart1_O2, K2, Kpart2_O2
 !
 !...O2  -- 
@@ -976,7 +998,13 @@ END module module_phsub
         !
         ! Calculation of the basis rates "Q_mol-X":
           if (molP % QTy .eq. "TMC") then
-            Qaux = Ql_mol_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,L)
+            if (molP % LLSty .eq. "Linear") then
+                !Qaux = Ql_mol_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,L)
+                Qaux = Ql_mol_LLS(real(Ni,dp),real(Ni_p,dp),h%Sig(j),h%Sig(k),molP,L)
+            else if (molP % LLSty .eq. "Li--AF") then
+                !Qaux = Ql_mol_AF_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,PerM,L)
+                Qaux = Ql_mol_AF_LLS(real(Ni,dp),real(Ni_p,dp),h%Sig(j),h%Sig(k),molP,PerM,L)
+            endif
           else
             Qaux = Ql_mol_X(molP,L)
           endif
@@ -1074,7 +1102,7 @@ END module module_phsub
       type(dta_MOL)    :: molP
       real*8           :: J1,J2,v1,v2
       !internal
-      real*8           :: E_l, T,Jaux
+      real*8           :: E_l, T,Jaux, delta, coeffC
 !
 ! This expresion is used for "downward" transitions (k->k') only.
 !
@@ -1110,27 +1138,32 @@ END module module_phsub
         ! Bsed in [Niro et al. 2004]
         !Ql_mol_LLS = A1 - A2*Ln( E_l ) - A3*( c*hplank*B0*E_l/(T*kb) ) 
         !Linear
-        Ql_mol_LLS = (molP%a1) - &
-                ( (molP%a2)*log(E_l) ) - &
-                ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
+        !Ql_mol_LLS = (molP%a1) - &
+        !        ( (molP%a2)*log(E_l) ) - &
+        !        ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
         ! 
         ![Mendaza et al., 2017]
         ! Correction 1:
         !Ql_mol_LLS = (molP%a1)/((dabs(v1-v2)/molP%B0)**(J2/Jaux)) - &
         !        ( (molP%a2)*log(E_l) ) - &
         !        ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
-        ! Correction 2: UNIT PROBLEMS!
-        !Ql_mol_LLS = (molP%a1)/(dabs(v1-v2)**(J2/Jaux)) - &
+        !
+        ! Correction 4: ---> 2
+        !Ql_mol_LLS = (molP%a1)*T/(c2*(dabs(v1-v2)**(J2/Jaux))) - &
         !        ( (molP%a2)*log(E_l) ) - &
         !        ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
-        ! Correction 3: UNIT PROBLEMS!
-        !Ql_mol_LLS = (molP%a1)/(T*(dabs(v1-v2)**(J2/Jaux))) - &
+        !
+        ! Correction 5: ---> 3
+        Ql_mol_LLS = (exp(-(c2/Jaux)*dabs(molP%v0-v1)/T))*(molP%a1) - &
+                ( (molP%a2)*log(E_l) ) - &
+                ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp 
+        !
+        ! Correction 6: ---> 4
+        !delta = molP%v0-v1
+        !if (delta .lt. TOL) delta = 0.5
+        !Ql_mol_LLS = (molP%a1)/(exp(-molP%B0/(dabs(delta)**(1/Jaux)))) - &
         !        ( (molP%a2)*log(E_l) ) - &
-        !        ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
-        ! Correction 4: 
-        !Ql_mol_LLS = (molP%a1)*molP%B0*molP%B0*c2/(T*(dabs(v1-v2)**(J2/Jaux))) - &
-        !        ( (molP%a2)*log(E_l) ) - &
-        !        ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
+        !        ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp 
         !
       endif
       !
@@ -1138,6 +1171,57 @@ END module module_phsub
 
     RETURN
   END function Ql_mol_LLS
+!--------------------------------------------------------------------------------------------------------------------
+  double precision function Ql_mol_AF_LLS(J1,J2,v1,v2,molP,PerM,L)
+!--------------------------------------------------------------------------------------------------------------------
+! " Ql_mol_AF_LLS": Basis rate
+! 
+! Detailed description:
+! ---------------------
+! Basis rates: semi-empirical function.
+!
+      use module_common_var
+      use module_molecSp
+      use module_maths
+      IMPLICIT none
+      !Inputs
+      integer*8        :: L
+      type(dta_MOL)    :: molP, PerM
+      real*8           :: J1,J2,v1,v2
+      !internal
+      real*8           :: E_l, T,c_AF, coeffC
+!
+! This expresion is used for "downward" transitions (k->k') only.
+!
+  !
+    T = molP % Temp
+    !
+    if (L .lt. TOL) then
+      Ql_mol_AF_LLS=0.0_dp
+    else
+    !reduce rotational energy from the level L * 1/B0
+      E_l = real((L*L + L), dp) 
+    !
+    ! 
+    ![Mendaza et al., 2017]
+    ! Correction 5: ---> 5
+        coeffC = c_AF(molP, PerM, J1, real(L,dp), 2)
+        Ql_mol_AF_LLS = (molP%a1) + &
+                ( (molP%a2)*log(E_l) ) + &
+                ( molP%a3*c2*molP%B0*E_l/T ) + &
+                ( (molP%a4)*2*coeffC ) + &
+                ( molP%a5*2*coeffC*log(E_l) ) + &
+                ( molP%a6*2*coeffC*c2*molP%B0*E_l/T ) + &
+                ( molP%a8*coeffC**2 ) + &
+                ( (molP%a7)*2*coeffC ) + &
+                ( molP%a10*(c2*molP%B0*E_l/T)*coeffC**2 ) + &
+                ( (molP%a9)*log(E_l)*coeffC**2 ) + &
+                ( molP%a11*coeffC**2 ) + &
+                1.0_dp
+    endif
+
+    RETURN
+  END function Ql_mol_AF_LLS
 !--------------------------------------------------------------------------------------------------------------------
   double precision function AFmol_X(molP, PerM, L, step)
 !--------------------------------------------------------------------------------------------------------------------
@@ -1227,6 +1311,56 @@ END module module_phsub
       RETURN
   END function AFmol_X
 !--------------------------------------------------------------------------------------------------------------------
+  double precision function c_AF(molP, PerM, J, L, step)
+!--------------------------------------------------------------------------------------------------------------------
+! "c_AF": LLS factor
+!
+!
+      use module_common_var
+      IMPLICIT none
+      integer*8    , intent(in)  :: step
+      real*8       , intent(in)  :: J,L
+      type(dta_MOL), intent(in)  :: molP, PerM
+      double precision,Parameter :: cAF = 0.0006983_dp ! Adiabaticy Factor cte
+                                 ! General constant non-molecule dependent included in the 
+                                 ! Adiabaticy Factor. It is built as follows:
+                                 ! * Velocity term 
+                                 !   cte1 = 1./(Na·8·kb / (1E-03·pi))
+                                 ! * Freq. spacing term 
+                                 !   cte2 = (2·pi·c)^2 
+                                 ! * AF correction form self-cte: 
+                                 !   1/24
+                                 ! * Unit conversion for dc (Å) to m 
+                                 !                       dc = 2.2 Å = 2.2E-10 m
+                                 !   (to cancel velocity units m/s):
+                                 !   1 Å = 1E-10 m 
+                                 !   NOTE: dc is squared in the formula
+                                 !   cAF = (1./24.)*cte1*cte2*1E-20
+                                 ! 
+      double precision           :: v_mol_X, w_j_jstep, w_l_lstep
+      double precision           :: mu, T
+      !-----------------------------------------
+            T = molP % Temp
+      !-----------------------------------------
+      !
+      !
+            if (L .lt. TOL) then
+              c_AF = 1.0_dp
+            else
+              mu = ( 1.0_dp/molP%mms + 1.0_dp/PerM%mms ) ! 1/(g/mol)
+            ! Velocity Term:
+              v_mol_X  = 1.0_dp/T*mu ! ----> squared and inverted velocity term 
+            !
+            ! Frequency spacing:
+              w_j_jstep  = (molP%B0*( J + J + 1 - step )*step)**2 ! ---> squared freq. spacing
+              w_l_lstep  = (molP%B0*( L + L + 1 - step )*step)**2 ! ---> squared freq. spacing
+            !
+              c_AF = cAF*(( ( v_mol_X )*( w_l_lstep ) ) - ( ( v_mol_X )*( w_j_jstep ) ))
+            !
+            endif
+      RETURN
+  END function c_AF
+!--------------------------------------------------------------------------------------------------------------------
   subroutine sumRule(nLines,indexS,dipole,Wmat,dfact,econ)
 !--------------------------------------------------------------------------------------------------------------------
         use module_common_var
@@ -1242,7 +1376,9 @@ END module module_phsub
         integer (kind=8)                :: i,j
         Double Precision                :: Saux, DipAux, Wij, Wii
         Double Precision, Parameter     :: TOLe2 = 1.0E-02!
-        logical                         :: isinf, isnan, testOK
+        logical                         :: isinf, isnan
+        logical                         :: testOK
+
 !--------------------------------------------------------------------
         testOK = .true.
         DO i = 1, nLines
@@ -1264,16 +1400,16 @@ END module module_phsub
             ENDDO
             if ( (abs(Wii+Saux) .gt. TOLe2) .and. (i .ne. nLines) ) then
                 testOK = .false.
-                if (econ % e(1) .eq. 1) then
-                    write(*,'(a4,i3,a30)'), "row#",i,"NOT meet SUM-RULE"
-                    write(*,*), "half-Width", Wii , "?= SUMij{Wmat}", -Saux
-                    !if (i .eq. 48)stop
-                endif
+                !if (econ % e(1) .ge. 1) then
+                !    write(*,'(a4,i3,a30)'), "row#",i,"NOT meet SUM-RULE"
+                !    write(*,*), "half-Width", Wii , "?= SUMij{Wmat}", -Saux
+                !    !if (i .eq. 48)stop
+                !endif
             else
             ! Uncomment if you would also like to see 
             ! the lines that meet the requirement
             !
-            !   if (econ % e(1) .eq. 1) then
+            !   if (econ % e(1) .ge. 1) then
             !       write(*,'(a4,i3,a30)'), "row#",i,"meet SUM-RULE"
             !       write(*,*), "half-Width", Wii , "?= SUMij{Wmat}", -Saux
             !   endif
@@ -1282,9 +1418,9 @@ END module module_phsub
       
         !print*, "SUM-RULE TEST FINISHED"
         if ( .not.(testOK) ) then
-            call SumRuleError(econ)
+                call SumRuleError(econ)
         else
-            if (econ % e(1) .eq. 1) then
+            if (econ % e(1) .ge. 1) then
                 print*, "sumRule: The calculation correctly verifies the sum rule!"
             endif
         endif

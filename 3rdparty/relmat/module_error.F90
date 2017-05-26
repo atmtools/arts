@@ -141,7 +141,7 @@ subroutine memoError(chvar, econ)
     character*6, intent (in) :: chvar
     type (dta_ERR), intent (inout)   :: econ
 
-    if (econ % e(1) .eq. 1) then
+    if (econ % e(1) .ge. 1) then
       print*, "Not enough memory to allocate var:" // trim(chvar) // "."
     endif
     econ % e(2) = econ % e(2) + 1
@@ -156,7 +156,7 @@ subroutine openError(path, econ)
     character*100, intent (in) :: path
     type (dta_ERR), intent (inout)   :: econ
 
-    if (econ % e(1) .eq. 1) then
+    if (econ % e(1) .ge. 1) then
       print*, "Open file Error: " // trim(path) // " does not exit."
     endif
     econ % e(2) = econ % e(2) + 1
@@ -170,7 +170,7 @@ subroutine errorSPIN(econ)
     implicit none
     type (dta_ERR), intent (inout)   :: econ
 
-    if (econ % e(1) .eq. 1) then
+    if (econ % e(1) .ge. 1) then
       print*, "Not SPIN-data available for O2"
     endif
     econ % e(2) = econ % e(2) + 1
@@ -187,7 +187,7 @@ subroutine sizeError(flagE, svar, smax, econ)
     character(4)    , intent(in)     :: flagE
     type (dta_ERR), intent (inout)   :: econ
 
-    if (econ % e(1) .eq. 1) then
+    if (econ % e(1) .ge. 1) then
       if (flagE .eq. "1000") then
         write (*,1000) svar, smax
       else if (flagE .eq. "1001") then
@@ -217,7 +217,7 @@ subroutine molnameError(molN, econ)
     integer (kind=8), intent(in)    :: molN
     type (dta_ERR), intent (inout)   :: econ
 
-    if (econ % e(1) .eq. 1) then
+    if (econ % e(1) .ge. 1) then
       write (*,1002) molN
     endif
     econ % e(2) = econ % e(2) + 1
@@ -240,7 +240,7 @@ subroutine addMolError(flagE, var, econ)
     character(4)    , intent(in)     :: flagE
     type (dta_ERR), intent (inout)   :: econ
 
-    if (econ % e(1) .eq. 1) then
+    if (econ % e(1) .ge. 1) then
       if (flagE .eq. "1003") then
         write (*,1003) var
       else if (flagE .eq. "1004") then
@@ -269,7 +269,7 @@ subroutine isoAconameERROR(mol, iso, econ)
     integer (kind=8), intent(in)     :: mol, iso
     type (dta_ERR), intent (inout)   :: econ
 
-    if (econ % e(1) .eq. 1) then
+    if (econ % e(1) .ge. 1) then
       write (*,1005) iso, mol
     endif
     econ % e(2) = econ % e(2) + 1
@@ -308,7 +308,7 @@ subroutine sumRuleERROR(econ)
     implicit none
     type (dta_ERR), intent (inout)   :: econ
 
-    if (econ % e(1) .eq. 1) then
+    if (econ % e(1) .ge. 1) then
       write (*,1007) 
     endif
     econ % e(2) = econ % e(2) + 1 
@@ -329,7 +329,7 @@ subroutine wignerS_ERROR(v3, v4, v5, v6, v7, econ)
     double precision, intent(in)      :: v3, v4, v5, v6, v7
     type (dta_ERR), intent (inout)    :: econ
 
-    if (econ % e(1) .eq. 1) then
+    if (econ % e(1) .ge. 1) then
       write (*, *) "****************** Kpart2/Kpart2_O2: variable overflow "
       write (*, *) "Either wigner symbol:"
       write (*, *) "w3j1=",v3
@@ -358,7 +358,7 @@ subroutine offdiagEL_IN_ERROR(v0, v1, v2, econ)
     double precision, intent(in)     :: v0, v1, v2
     type (dta_ERR), intent (inout)   :: econ
 
-    if (econ % e(1) .eq. 1) then
+    if (econ % e(1) .ge. 1) then
       write (*, *) "****************** Kpart2/Kpart2_O2: variable overflow "
       write (*, *) "2nd Adiabatic Factor: v1=",v0
       write (*, *) "Or the basis-rate function: Q(L)=",v1
@@ -382,7 +382,7 @@ subroutine offdiagEL_ERROR(var1, var2, var3, econ)
     double precision, intent(in)     :: var1, var2, var3
     type (dta_ERR), intent (inout)   :: econ
 
-    if (econ % e(1) .eq. 1) then
+    if (econ % e(1) .ge. 1) then
       write (*,*) "****************** K_jkCalc/K_jkO2: variable overflow "
       write (*, *) "Any of the following variable:"
       write (*, *) "C1=(-1)^(Ji'+Ji+n)[Ni][Ni'][Nf+][Nf']*"
@@ -411,7 +411,7 @@ subroutine renorm_error(flag, n, k, W, Su, econ)
     character(4)    , intent (in   ) :: flag
     type (dta_ERR)  , intent (inout) :: econ
 
-    if (econ % e(1) .eq. 1) then
+    if (econ % e(1) .ge. 1) then
       if (flag .eq. "1008") then
         write (*,1008) Su,n,k,W
       else if (flag .eq. "1009") then
@@ -442,7 +442,7 @@ subroutine W_error(flag, n, k, W, econ)
     character(4)    , intent (in   ) :: flag
     type (dta_ERR)  , intent (inout) :: econ
 
-    if (econ % e(1) .eq. 1) then
+    if (econ % e(1) .ge. 1) then
       if (flag .eq. "1010") then
         write (*,1010) n,k,W
       else if (flag .eq. "1011") then
@@ -474,7 +474,7 @@ subroutine LLS_error(b1, b2, b3, info, econ)
     double precision, intent (in   ) :: b1, b2, b3
     type (dta_ERR)  , intent (inout) :: econ
 
-    if (econ % e(1) .eq. 1) then
+    if (econ % e(1) .ge. 1) then
         write (*,1012) 
         write (*,1013) info
         write (*,*), "< 0:  if INFO = -i, the i-th argument had an illegal value."
@@ -508,7 +508,7 @@ subroutine errorBranch(pos, econ)
     double precision, intent(in)      :: pos
     type (dta_ERR), intent (inout)    :: econ
 
-    if (econ % e(1) .eq. 1) then
+    if (econ % e(1) .ge. 1) then
         write(*,*), "****************** delta2branch/branch2delta:"
         write(*,*), "Transition in position", pos,"does not follows selection rules."
         write(*,*), "NOTE: HITRAN is an empirical DB it should not contain any line"
@@ -527,7 +527,7 @@ subroutine errorBubble(econ)
     implicit none
     type (dta_ERR), intent (inout)   :: econ
 
-    if (econ % e(1) .eq. 1) then
+    if (econ % e(1) .ge. 1) then
         write(*,*), "****************** bubble_index:"
         write(*,*), 'Not supported kind of the order option, use (a) or (d) instead.'
     endif
@@ -541,7 +541,7 @@ subroutine errorPType(pty,econ)
     character(3)  , intent (in   )   :: pty
     type (dta_ERR), intent (inout)   :: econ
 
-    if (econ % e(1) .eq. 1) then
+    if (econ % e(1) .ge. 1) then
         write(*,*), "****************** PopuCAL:"
         write(*,*), "Non-Valid Population calculation type:", pty
     endif

@@ -18,12 +18,13 @@ MODULE module_linemixing
             double precision       , intent(  out)  :: W_jk(nLines,nLines)
         end subroutine WelCAL
 
-        subroutine RN_Wmat(nLines, dta1, Wmat, W_rnO, econ)
+        subroutine RN_Wmat(nLines, dta1, Wmat, W_rnO, T, P, econ)
             use module_common_var
             use module_error
             use module_maths
             implicit none
             integer*8              , intent(in   ) :: nLines
+            Double precision       , intent(in   ) :: T, P
             type (dta_SDF), pointer, intent(in   ) :: dta1
             Double Precision       , intent(in   ) :: Wmat(nLines,nLines)
             Double Precision       , intent(  out) :: W_rnO(nLines,nLines)
@@ -42,6 +43,18 @@ MODULE module_linemixing
             double precision       , intent(  out) :: Y_RosT(nLines)
         end subroutine LM_Rosen
 
+        subroutine LM_2ord(molP, nLines,dta1,Wmat,Y2,Y3)
+            use module_common_var
+            use module_maths
+            use module_phsub
+            implicit none
+            integer*8              , intent(in   ) :: nLines 
+            double precision       , intent(in   ) :: Wmat(nLines,nLines)
+            type (dta_MOL)         , intent(in   ) :: molP
+            type (dta_SDF), pointer, intent(inout) :: dta1
+            double precision       , intent(  out) :: Y2(nLines),Y3(nLines)
+        end subroutine LM_2ord
+
         subroutine calc_QParam(nLines, dta1, molP, PerM, econ)
             use module_common_var
             use module_error
@@ -54,6 +67,19 @@ MODULE module_linemixing
             type (dta_MOL)         , intent(in   ) :: PerM
             type (dta_ERR)         , intent(inout) :: econ
         end subroutine calc_QParam
+
+        subroutine calc_QParam_AF(nLines, dta1, molP, PerM, econ)
+            use module_common_var
+            use module_error
+            use module_maths
+            use module_LLS
+            Implicit None
+            integer*8              , intent(in   ) :: nLines
+            type (dta_SDF), pointer, intent(in   ) :: dta1
+            type (dta_MOL)         , intent(inout) :: molP
+            type (dta_MOL)         , intent(in   ) :: PerM
+            type (dta_ERR)         , intent(inout) :: econ
+        end subroutine calc_QParam_AF
 
         subroutine W2dta2(nLines, dta1, dta2, W_rnO)
             use module_common_var
@@ -141,6 +167,7 @@ END module module_linemixing
     integer*8                       :: count1, count2
     double Precision                :: Kaux, HWT, faH
     double Precision                :: T, Ptot, RT
+    logical                         :: tOK
 !
 !-----------------------------------------
     T    = molP % Temp
@@ -252,12 +279,12 @@ END module module_linemixing
     !    Wtest(i,j) = W_jk(i,j)
     !  enddo
     !enddo
-    !CALL sumRule(nLines,indexI,dta1%D0(1:nLines),Wtest,0.5,econ)
+    !CALL sumRule(nLines,indexI,dta1%D0(1:nLines),Wtest,0.5,econ,tOK)
     
     Return
   END SUBROUTINE WelCAL
 !--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE RN_Wmat(nLines, dta1, Wmat, W_rnO,econ)
+  SUBROUTINE RN_Wmat(nLines, dta1, Wmat, W_rnO, T, P,econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! RN_Wmat: Renormalization of the Relaxation matrix element.
 !
@@ -299,12 +326,13 @@ END module module_linemixing
     use module_maths
     Implicit None
     integer*8             , intent(in   )  :: nLines
+    Double precision      , intent(in   )  :: T, P
     Double precision      , intent(in   )  :: Wmat(nLines,nLines)
     Double Precision      , intent(  out)  :: W_rnO(nLines,nLines)
     type (dta_SDF),pointer, intent(in   )  :: dta1
     type (dta_ERR)        , intent(inout)  :: econ
     !Local variables
-    integer*8                     :: i, j, k, n
+    integer*8                     :: i, j, k, n, e20
     integer*8                     :: indexS(nLines),indexI(nLines)
     double Precision              :: str(nLines)
     Double Precision              :: Sup, Slow, S_UL_rate
@@ -394,7 +422,12 @@ END module module_linemixing
       !
       ! use '1.0' if Wii = line-width 
       ! use '2.0' if Wii = half-width 
+      e20 = econ % e(2)
       CALL sumRule(nLines,indexS,dta1%D0(1:nLines),W_rn,1.0,econ)
+      if (( econ % e(2) .gt. e20 ) .and. (econ % e(1) .eq. -1)) then
+            econ % e(2) = econ % e(2) - 1
+            CALL just_fill_DiagWRn(nLines,dta1 % BHW, dta1 % HWT0, T/T0, P,W_rn)
+      endif
       ! 
       ! Reordered by wno
       !
@@ -467,17 +500,104 @@ END module module_linemixing
             !
             if( dabs(delta) .lt. 1.d-4 ) delta=1.d-4
             !
-            !
-            !sumY=sumY + (dabs(dta1%DipoT(k)) &
-            !    /dabs(dta1%DipoT(i)))* &
-            !    ( Wmat(i,k)/delta ) ! Wmat(k,i)
             sumY=sumY + (DipoK/DipoI)* &
                 ( Wmat(i,k)/delta ) ! Wmat(k,i)
         enddo
-        Y_RosT(i)=2.0*Ptot*sumY
+        Y_RosT(i)=sumY
     ENDDO
-
+    Y_RosT=2.0*Ptot*Y_RosT
   END SUBROUTINE LM_Rosen
+!--------------------------------------------------------------------------------------------------------------------
+  SUBROUTINE LM_2ord(molP, nLines,dta1,Wmat,Y2,Y3)
+!--------------------------------------------------------------------------------------------------------------------
+! "LM_2ord": Second and third coeff of the second order linemixing formulation
+! 
+! Detailed Description:
+! ---------------------
+! This subroutine gives the Second and Third coeff of the second order linemixing formulation.
+!
+! Variables:
+!
+! Input/Output Parameters of Routine 
+! ----------------------------------
+! Y2 : g_k, second coeffcient from the second order linemixing approx [Smith, 1981]. 
+! Y3 :dv_k, is the second order shift [Smith, 1981].
+! NOTE: on the calculation of these coeff (as well the 1st order one), 
+! the first order pressure shift has been neglected, as it was done by Smith (1981).
+!
+! Accessed Files: 
+! --------------
+!
+! Called Routines: 
+! ---------------  
+!
+! Called By: "RM_LM_LLS_tmc_arts" or "RM_LM_tmc_arts"
+! ---------
+!
+!
+! T.Mendaza, last change 29 March 2017
+!--------------------------------------------------------------------------------------------------------------------
+!
+    use module_common_var
+    use module_maths
+    use module_phsub
+    implicit none
+    integer*8             , intent(in   ) :: nLines 
+    Double Precision      , intent(in   ) :: Wmat(nLines,nLines)
+    double precision      , intent(  out) :: Y2(nLines),Y3(nLines)
+    type (dta_SDF),pointer, intent(inout) :: dta1
+    type (dta_MOL)        , intent(in   ) :: molP
+    !Local Var
+    integer*8                     :: i,l,k
+    double precision              :: delta, deltaL, T, Ptot
+    double precision              :: sumG1, sumG2, sumG3, sumG4, sumG42
+    double precision              :: sumDV
+    double precision              :: DipoI, DipoK, rD_ki
+!-----------------------------------------
+    T    = molP % Temp
+    Ptot = molP % Ptot
+!-----------------------------------------
+!
+!     Build the Y2 and Y3 from the W
+!     
+    DO i=1,nLines
+         sumG1  = 0.d0
+         sumG2  = 0.d0
+         sumG3  = 0.d0
+         sumG4  = 0.d0
+         sumG42 = 0.d0
+         sumDV  = 0.d0
+         DipoI  = abs(dsqrt(dta1%Str(i)/(dta1%Sig(i)*dta1%PopuT0(i))))
+         do k=1,nLines
+            DipoK = abs(dsqrt(dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT0(k))))
+            rD_ki = DipoK/DipoI
+            if(k.eq.i)cycle
+            !
+            !  Correction for asym hysothopes
+            if( (dta1%iso.gt.2) .AND. (dta1%iso .ne. 7) .AND. &
+                mod( abs( int(dta1%J(i,1)-dta1%J(k,1)) ),2).ne.0)cycle
+            !
+            !     Using detailed balance
+            delta = dta1%sig(k) - dta1%sig(i)
+            if( dabs(delta) .lt. 1.d-4 ) delta=1.d-4
+            !
+            sumG1 = sumG1 + Wmat(i,k)*Wmat(k,i)/(delta**2)
+            sumG2 = sumG2 + rD_ki*( Wmat(i,k)/delta ) 
+            sumG3 = sumG3 + rD_ki*( Wmat(i,k)*Wmat(i,i)/(delta**2) )
+            do l = 1,nLines
+              if (l.eq.i) cycle
+              deltaL= dta1%sig(l) - dta1%sig(i)
+              if( dabs(deltaL) .lt. 1.d-4 ) deltaL=1.d-4
+
+              sumG42 = sumG42 + ( Wmat(l,k)*Wmat(i,l)/(delta*deltaL) )
+            enddo
+            sumG4 = sumG4 + rD_ki*sumG42
+            sumDV = sumDV + Wmat(i,k)*Wmat(k,i)/delta
+        enddo
+        Y2(i)=sumG1 - (sumG2)**2 + 2*sumG3 - 2*sumG4
+        Y3(i)=sumDV
+    ENDDO
+  END SUBROUTINE LM_2ord  
 !--------------------------------------------------------------------------------------------------------------------
   SUBROUTINE calc_QParam(nLines, dta1, molP, PerM, econ)
 !--------------------------------------------------------------------------------------------------------------------
@@ -755,6 +875,293 @@ END module module_linemixing
           endif
 
   END SUBROUTINE calc_QParam
+!--------------------------------------------------------------------------------------------------------------------
+  SUBROUTINE calc_QParam_AF(nLines, dta1, molP, PerM, econ)
+!--------------------------------------------------------------------------------------------------------------------
+! "calc_QParam_AF": gives the values of a1, a2, a3 
+! after solving a Linear-Least-Square system. For that Lapack is used.
+!
+!------------------------------------------ 
+    use module_common_var
+    use module_error
+    use module_maths
+    use module_LLS
+    Implicit None
+    integer*8              , intent(in   ) :: nLines
+    type (dta_SDF), pointer, intent(in   ) :: dta1
+    type (dta_MOL)         , intent(inout) :: molP
+    type (dta_MOL)         , intent(in   ) :: PerM
+    type (dta_ERR)         , intent(inout) :: econ
+    double Precision :: Mlls(nLines,12)
+    double Precision :: Aux_M(12)
+    integer*8        :: i, j, k
+    integer*8        :: jBIG, jSMALL
+    integer*8        :: indexI(nLines)
+    Double Precision :: r_kj, rD0_kj
+    !Auxiliar Constants
+    double Precision :: Kaux, HWT, faH
+    double precision :: T, Ptot, RT
+    !Auxiliar for LAPACK
+    !
+    ! Parameters:
+      integer*8, Parameter   :: N = 11
+      integer*8, Parameter   :: NRHS = 1
+      integer*8              :: M
+      integer*8              :: LDA, LDB
+      !PARAMETER        ( LDA = M, LDB = M )
+      integer*8, Parameter   :: LWMAX = 100
+    ! Local Scalars:
+      integer*8              :: LWORK
+      integer*8              :: info1, info2
+    ! Local Arrays:
+      Double Precision       :: WORK( LWMAX )
+      Double Precision,ALLOCATABLE,DIMENSION(:,:) :: A( :, : ), B( :, : )
+!-----------------------------------------
+      T    = molP % Temp
+      Ptot = molP % Ptot
+      RT   = T0/T
+!-----------------------------------------
+      M = nLines
+      LDA = M
+      LDB = M
+      allocate ( A( LDA, N ), B( LDB, NRHS ) )
+!
+! LAPACK is used (installation command for mac):
+! sudo port install lapack
+! 
+! * Compilation for "Free PGI compiler" for MAC:
+! pgf90 myprog.f90 -llapack -lblas
+!
+! * Compilation "gfortran"
+! gfortran myprog.f90 -llapack
+!
+!---------
+! FIRST: create a zero matrix for 
+    do j=1, nLines
+      do k=1,(N+1)
+        Mlls(j,k) = 0.0_dp
+      enddo  
+    enddo  
+!
+!
+! Generate the Matrix for LLS:
+print*, "Generate the Matrix for LLS"
+    do j=1, nLines
+      do k=1, nLines
+        ! 
+        if (j .eq. k) then
+          faH = 1.0_dp
+          if(T.ne.T0)faH = (RT**dta1%BHW(j)) 
+          B(j,NRHS) = 2*molP%Ptot*dta1%HWT0(j)*faH
+        else              
+          if (isJb(dta1,j,k)) then
+          ! CASE:  J(j) > J(k) (downwards transition j->k)
+          ! or
+          ! CASE: J(j) = J(k)
+            jBIG   = j
+            jSMALL = k
+            r_kj = 1.0_dp 
+          else
+          ! CASE: J(j) < J(k)
+          ! so downwards transition is (k->j)
+          ! pj·<<k|W|j>> = pk·<<j|W|k>>; pk = dta1%PopuT(k); pj = dta1%PopuT(j)
+            jBIG   = k
+            jSMALL = j
+            r_kj = dta1%PopuT(jBIG)/dta1%PopuT(jSMALL) !pjBIG/pjSMALL
+          endif
+          call LLS_AF_Matrix(jBIG,jSMALL,dta1,molP,PerM,Aux_M, econ)
+          !
+          rD0_kj = dta1%D0(k)/dta1%D0(j) 
+          do i =1,(N+1)
+            Mlls(j,i) = Mlls(j,i) + rD0_kj*r_kj*Aux_M(i)
+          enddo  
+        endif    
+      enddo
+      !
+    enddo
+    print*, "LLS_AF_Matrix done"
+!
+! **********************************************************************************
+! LAPACK routine:
+! ---------------
+! DGELS solves overdetermined or undetermined real linear systems
+! involving an M-by-N matrix A, or its transpose, using RQ or LQ factorization of A.
+! Note_ it is asumed that A has full rank.
+! if TRANS = 'N' and m>=n: find the least squares solution of an overdetermined system, 
+! i.e., solve the least squares problem minimize || B - A*X ||
+!  A * X = B,
+!
+!
+! Definition of A, B:
+    !
+    A = Mlls(1:nLines,1:N)
+    !
+    do i = 1,nLines
+      B(i,NRHS) = B(i,NRHS) - Mlls(i,N+1)
+    enddo    
+!
+!
+!  -- LAPACK driver routine (version 3.1) --
+!     Univ. of Tennessee, Univ. of California Berkeley and NAG Ltd..
+!     November 2006
+!
+!     .. Scalar Arguments ..
+!      CHARACTER          TRANS
+!      INTEGER            INFO, LDA, LDB, LWORK, M, N, NRHS
+!     ..
+!     .. Array Arguments ..
+!      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), WORK( * )
+!     ..
+!
+!  Purpose
+!  =======
+!
+!  DGELS solves overdetermined or underdetermined real linear systems
+!  involving an M-by-N matrix A, or its transpose, using a QR or LQ
+!  factorization of A.  It is  that A has full rank.
+!
+!  The following options are provided:
+!
+!  1. If TRANS = 'N' and m >= n:  find the least squares solution of
+!     an overdetermined system, i.e., solve the least squares problem
+!                  minimize || B - A*X ||.
+!
+!  2. If TRANS = 'N' and m < n:  find the minimum norm solution of
+!  an underdetermined system A * X = B.
+!
+!  3. If TRANS = 'T' and m >= n:  find the minimum norm solution of
+!  an undetermined system A**T * X = B.
+!
+!  4. If TRANS = 'T' and m < n:  find the least squares solution of
+!  an overdetermined system, i.e., solve the least squares problem
+!               minimize || B - A**T * X ||.
+!
+!  Several right hand side vectors b and solution vectors x can be
+!  handled in a single call; they are stored as the columns of the
+!  M-by-NRHS right hand side matrix B and the N-by-NRHS solution
+!  matrix X.
+!
+!  Arguments
+!  =========
+!
+!  TRANS   (input) CHARACTER*1
+!       = 'N': the linear system involves A;
+!       = 'T': the linear system involves A**T.
+!
+!  M       (input) INTEGER
+!       The number of rows of the matrix A.  M >= 0.
+!
+!  N       (input) INTEGER
+!       The number of columns of the matrix A.  N >= 0.
+!
+!  NRHS    (input) INTEGER
+!       The number of right hand sides, i.e., the number of
+!       columns of the matrices B and X. NRHS >=0.
+!
+!  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+!       On entry, the M-by-N matrix A.
+!       On exit,
+!         if M >= N, A is overwritten by details of its QR
+!                    factorization as returned by DGEQRF;
+!         if M <  N, A is overwritten by details of its LQ
+!                    factorization as returned by DGELQF.
+!
+!  LDA     (input) INTEGER
+!       The leading dimension of the array A.  LDA >= max(1,M).
+!
+!  B       (input/output) DOUBLE PRECISION array, dimension (LDB,NRHS)
+!       On entry, the matrix B of right hand side vectors, stored
+!       columnwise; B is M-by-NRHS if TRANS = 'N', or N-by-NRHS
+!       if TRANS = 'T'.
+!       On exit, if INFO = 0, B is overwritten by the solution
+!       vectors, stored columnwise:
+!       if TRANS = 'N' and m >= n, rows 1 to n of B contain the least
+!       squares solution vectors; the residual sum of squares for the
+!       solution in each column is given by the sum of squares of
+!       elements N+1 to M in that column;
+!       if TRANS = 'N' and m < n, rows 1 to N of B contain the
+!       minimum norm solution vectors;
+!       if TRANS = 'T' and m >= n, rows 1 to M of B contain the
+!       minimum norm solution vectors;
+!       if TRANS = 'T' and m < n, rows 1 to M of B contain the
+!       least squares solution vectors; the residual sum of squares
+!       for the solution in each column is given by the sum of
+!       squares of elements M+1 to N in that column.
+!
+!  LDB     (input) INTEGER
+!       The leading dimension of the array B. LDB >= MAX(1,M,N).
+!
+!  WORK    (workspace/output) DOUBLE PRECISION array, dimension (MAX(1,LWORK))
+!       On exit, if INFO = 0, WORK(1) returns the optimal LWORK.
+!
+!  LWORK   (input) INTEGER
+!       The dimension of the array WORK.
+!       LWORK >= max( 1, MN + max( MN, NRHS ) ).
+!       For optimal performance,
+!       LWORK >= max( 1, MN + max( MN, NRHS )*NB ).
+!       where MN = min(M,N) and NB is the optimum block size.
+!
+!       If LWORK = -1, then a workspace query is assumed; the routine
+!       only calculates the optimal size of the WORK array, returns
+!       this value as the first entry of the WORK array, and no error
+!       message related to LWORK is issued by XERBLA.
+!
+!  INFO    (output) INTEGER
+!       = 0:  successful exit
+!       < 0:  if INFO = -i, the i-th argument had an illegal value
+!       > 0:  if INFO =  i, the i-th diagonal element of the
+!             triangular factor of A is zero, so that A does not have
+!             full rank; the least squares solution could not be
+!             computed.
+!
+!  =====================================================================
+!
+!  Command sentence:
+!  CALL dgels( TRANS, M , N, NRHS, A, LDA, B, LDB, WORK, LWORK, INFO )
+!  CALL dgelsd(TRANS, M , N, NRHS, A, LDA, B, LDB, S, RCOND, RANK, WORK, LWORK, IWORK, INFO ) 
+!
+!
+!   Query the optimal workspace.
+!
+      LWORK = -1
+      info1 = 0
+      CALL DGELS( 'No transpose', M, N, NRHS, A, LDA, B, LDB, WORK,&
+                 LWORK, info1 )
+      LWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
+!
+!   Solve the equations A*X = B.
+!
+      info2 = 0
+      CALL DGELS( 'No transpose', M, N, NRHS, A, LDA, B, LDB, WORK,&
+                 LWORK, info2 )
+! <---------------------------------------------
+! NOTE: for further information about this subroutine 
+! http://www.netlib.no/netlib/lapack/double/dgels.f
+! http://www.netlib.no/netlib/lapack/double/dgelsd.f
+! http://www.netlib.no/netlib/lapack/double/dgglse.f
+!
+! For examples:
+! https://software.intel.com/sites/products/documentation/doclib/mkl_sa/11/mkl_lapack_examples/dgels_ex.f.htm
+!
+! For information about LAPACK solving linear methods in general visit:
+! http://www.netlib.org/lapack/lug/node26.html
+!**********************************************************************************
+          molP%a1 = B(1,NRHS)
+          molP%a2 = B(2,NRHS)
+          molP%a3 = B(3,NRHS)
+          molP%a4 = B(4,NRHS)
+          molP%a5 = B(5,NRHS)
+          molP%a6 = B(6,NRHS)
+          molP%a7 = B(7,NRHS)
+          molP%a8 = B(8,NRHS)
+          molP%a9 = B(9,NRHS)
+          if (info2 .ne. 0) then
+            call LLS_error(B(1,NRHS),B(2,NRHS),B(3,NRHS), info2, econ)
+            call LLS_error(B(4,NRHS),B(5,NRHS),B(6,NRHS), info2, econ)
+            call LLS_error(B(7,NRHS),B(8,NRHS),B(9,NRHS), info2, econ)
+          endif
+
+  END SUBROUTINE calc_QParam_AF
 !--------------------------------------------------------------------------------------------------------------------
   SUBROUTINE W2dta2(nLines, dta1, dta2, W_rn)
 !--------------------------------------------------------------------------------------------------------------------

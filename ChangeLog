@@ -1,3 +1,16 @@
+2017-05-26  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-667
+	
+	* src/m_linemixing.cc:  Updated to perform calculations with ordered
+	line mixing output from RELMAT.  This avoids some complications that
+	are probably numerical in nature that we encounter with the full
+	approach...
+	
+	* src/methods.cc:  Updated interface to the line mixing code
+	
+	* 3rdparty/relmat/*:  Using Teresa's latest version
+	
 2017-05-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-666
