@@ -1,16 +1,38 @@
+2017-05-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-668
+
+	* More work on scattering jacobians. 
+
+	* src/m_rte.cc (iyEmissionStandard): Introduced new variables and
+	adopted call of get_pointers_for_analytical_jacobians.
+
+	* src/jacobian.cc (get_pointers_for_analytical_jacobians): Added
+	scat_species_i and nscats as functiuon arguments.
+
+	* src/m_transmitter.cc (iyRadioLink):
+	* src/m_fos.cc (fos): t_nlte_field_dumme renamed to
+	t_nlte_field_empty, and clearly init to be empty. Introduced new
+	variables and adopted call of
+	get_pointers_for_analytical_jacobians.
+
+	* src/m_jacobian.cc (jacobianAddScatSpecies)
+	(jacobianCalcScatSpeciesAnalytical): New methods. So far just
+	coding, no testing at all.
+
 2017-05-26  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-667
-	
+
 	* src/m_linemixing.cc:  Updated to perform calculations with ordered
 	line mixing output from RELMAT.  This avoids some complications that
 	are probably numerical in nature that we encounter with the full
 	approach...
-	
+
 	* src/methods.cc:  Updated interface to the line mixing code
-	
+
 	* 3rdparty/relmat/*:  Using Teresa's latest version
-	
+
 2017-05-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-666

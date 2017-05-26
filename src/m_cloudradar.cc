@@ -143,6 +143,7 @@ void iyCloudRadar(
          Matrix&                      iy,
          ArrayOfTensor4&              iy_aux,
          Ppath&                       ppath,
+         ArrayOfTensor3&              diy_dx,
    const Index&                       stokes_dim,
    const Vector&                      f_grid,
    const Index&                       atmosphere_dim,
@@ -150,6 +151,7 @@ void iyCloudRadar(
    const Tensor3&                     z_field,
    const Tensor3&                     t_field,
    const Tensor4&                     vmr_field,
+   const ArrayOfArrayOfSpeciesTag&    abs_species,
    const Tensor3&                     wind_u_field,
    const Tensor3&                     wind_v_field,
    const Tensor3&                     wind_w_field,
@@ -164,6 +166,8 @@ void iyCloudRadar(
    const String&                      iy_unit,
    const ArrayOfString&               iy_aux_vars,
    const Index&                       jacobian_do,
+   const ArrayOfRetrievalQuantity&    jacobian_quantities,
+   const ArrayOfArrayOfIndex&         jacobian_indices,
    const Agenda&                      ppath_agenda,
    const Agenda&                      propmat_clearsky_agenda,
    const Agenda&                      iy_transmitter_agenda,
@@ -188,23 +192,9 @@ void iyCloudRadar(
                     "The cloudbox must be activated (cloudbox_on must be 1)." );
 
 
-  // Determine propagation path
+  // Shall pnd_field be created?
   //
-  ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace, rte_pos, rte_los,
-                       Vector(0), 0, 0, t_field, z_field, vmr_field, 
-                       f_grid, ppath_agenda );
-
-  // Some basic sizes
-  //
-  const Index nf = f_grid.nelem();
-  const Index ns = stokes_dim;
-  const Index np = ppath.np;
-
-  
-  //###### jacobian part #######################################################
-  //
-         ArrayOfTensor3  diy_dpath; 
-  ArrayOfArrayOfTensor4  dpndfield_dq; 
+  ArrayOfArrayOfTensor4  dpndfield_dq;
   //
   if( jacobian_do )
     {
@@ -219,12 +209,86 @@ void iyCloudRadar(
       pnd_field_from_ppdata( pnd_dummy, dpndfield_dq, cloudbox_limits,
                              scat_data, atmosphere_dim, jacobian_do );
 
-      diy_dpath.resize( 1 ); 
-      diy_dpath[0].resize( np, nf, ns ); 
     }
-
   
-  const Index   nsetot = pnd_field.nbooks();
+
+  // Determine propagation path
+  //
+  ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace, rte_pos, rte_los,
+                       Vector(0), 0, 0, t_field, z_field, vmr_field, 
+                       f_grid, ppath_agenda );
+
+  // Some basic sizes
+  //
+  const Index nf = f_grid.nelem();
+  const Index ns = stokes_dim;
+  const Index np = ppath.np;
+  const Index nq = jacobian_quantities.nelem();
+  const Index nscats = scat_data.nelem();
+  const Index nsetot = pnd_field.nbooks();
+
+      
+  //###### jacobian part #######################################################
+  // Initialise analytical jacobians (diy_dx and help variables)
+  //
+  Index           j_analytical_do = 0;
+  ArrayOfTensor3  diy_dpath; 
+  ArrayOfIndex    jac_species_i(0), jac_scat_i(0), jac_is_t(0), jac_wind_i(0);
+  ArrayOfIndex    jac_mag_i(0), jac_other(0), jac_to_integrate(0); 
+  // Flags for partial derivatives of propmat
+  const PropmatPartialsData ppd(jacobian_quantities);
+  //
+  if( jacobian_do ) 
+    { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
+  //
+  if( !j_analytical_do )
+    { diy_dx.resize( 0 ); }
+  else 
+    {
+      diy_dpath.resize( nq ); 
+      jac_species_i.resize( nq ); 
+      jac_scat_i.resize( nq ); 
+      jac_is_t.resize( nq ); 
+      jac_wind_i.resize( nq );  
+      jac_mag_i.resize( nq ); 
+      jac_other.resize(nq);
+      jac_to_integrate.resize(nq);
+      //
+      FOR_ANALYTICAL_JACOBIANS_DO( 
+        if( jacobian_quantities[iq].Integration() )
+        {
+            diy_dpath[iq].resize( 1, nf, ns ); 
+            diy_dpath[iq] = 0.0;
+        }
+        else
+        {
+            diy_dpath[iq].resize( np, nf, ns ); 
+            diy_dpath[iq] = 0.0;
+        }
+      )
+        
+      get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
+                                             jac_wind_i, jac_mag_i, jac_to_integrate, 
+                                             jacobian_quantities, abs_species,
+                                             nscats );
+
+      FOR_ANALYTICAL_JACOBIANS_DO(
+        jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
+        if( jac_to_integrate[iq] == JAC_IS_FLUX )
+          throw std::runtime_error("This method can not perform flux calculations.\n");
+      )
+
+      if( iy_agenda_call1 )
+        {
+          diy_dx.resize( nq ); 
+          //
+          FOR_ANALYTICAL_JACOBIANS_DO( diy_dx[iq].resize( 
+            jacobian_indices[iq][1]-jacobian_indices[iq][0]+1, nf, ns ); 
+            diy_dx[iq] = 0.0;
+          )
+        }
+    } 
+  //###########################################################################
     
   
   //=== iy_aux part ===========================================================
@@ -320,14 +384,15 @@ void iyCloudRadar(
   Vector    scalar_tau;
   ArrayOfIndex clear2cloudbox, dummy_lte;
   Array<ArrayOfArrayOfSingleScatteringData> scat_data_single;
-  const Tensor4 t_nlte_field_dummy;
+  const Tensor4 t_nlte_field_empty(0,0,0,0);
   //
   if( np > 1 )
     {
       get_ppath_atmvars( ppath_p, ppath_t, ppath_t_nlte, ppath_vmr,
                          ppath_wind, ppath_mag, 
-                         ppath, atmosphere_dim, p_grid, t_field, t_nlte_field_dummy,
-                         vmr_field, wind_u_field, wind_v_field, wind_w_field,
+                         ppath, atmosphere_dim, p_grid, t_field,
+                         t_nlte_field_empty, vmr_field,
+                         wind_u_field, wind_v_field, wind_w_field,
                          mag_u_field, mag_v_field, mag_w_field );
       
       get_ppath_f( ppath_f, ppath, f_grid,  atmosphere_dim, 
@@ -389,7 +454,7 @@ void iyCloudRadar(
               //
               Matrix P(ns,ns);
               //
-              if( 0 ) //if( !jacobian_do )
+              if( !jacobian_do )
                 {
                   // Here we just need the total matrix
                   pha_mat_singleCalc( P, los_sca[0], los_sca[1],

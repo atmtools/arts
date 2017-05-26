@@ -190,12 +190,14 @@ void get_perturbation_range(       Range& range,
 
 void get_pointers_for_analytical_jacobians( 
          ArrayOfIndex&               abs_species_i, 
+         ArrayOfIndex&               scat_species_i, 
          ArrayOfIndex&               is_t,
          ArrayOfIndex&               wind_i,
          ArrayOfIndex&               magfield_i,
          ArrayOfIndex&               integrate_i,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
-   const ArrayOfArrayOfSpeciesTag&   abs_species );
+   const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Index&                      nscats );
 
 void jacobian_type_extrapol( ArrayOfGridPos&   gp );
 

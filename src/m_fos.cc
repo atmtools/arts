@@ -263,7 +263,7 @@ void fos(
   Tensor3      pnd_abs_vec, ppath_nlte_source;
   Vector       scalar_tau;
   ArrayOfIndex clear2cloudbox, lte;
-  const Tensor4 t_nlte_field_dummy;
+  const Tensor4 t_nlte_field_empty(0,0,0,0);
   //
   Array<ArrayOfArrayOfSingleScatteringData> scat_data_single;
   ArrayOfArrayOfIndex                extmat_case;  
@@ -272,22 +272,28 @@ void fos(
     {
       get_ppath_atmvars(  ppath_p, ppath_t, ppath_t_nlte, ppath_vmr,
                           ppath_wind, ppath_mag, 
-                          ppath, atmosphere_dim, p_grid, t_field,  t_nlte_field_dummy, vmr_field,
+                          ppath, atmosphere_dim, p_grid, t_field,
+                          t_nlte_field_empty, vmr_field,
                           wind_u_field, wind_v_field, wind_w_field,
                           mag_u_field, mag_v_field, mag_w_field );
-      get_ppath_f(        ppath_f, ppath, f_grid,  atmosphere_dim, 
-                          rte_alonglos_v, ppath_wind );
-      get_ppath_pmat(     ws, ppath_ext, ppath_nlte_source, lte, abs_per_species, 
-                          dummy_dppath_ext_dx, dummy_dppath_nlte_dx,
-                          propmat_clearsky_agenda, ArrayOfRetrievalQuantity(0), ppath, 
-                          ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
-                          ppath_mag, f_grid, stokes_dim, iaps );
+      
+      get_ppath_f( ppath_f, ppath, f_grid,  atmosphere_dim, 
+                   rte_alonglos_v, ppath_wind );
+      
+      get_ppath_pmat( ws, ppath_ext, ppath_nlte_source, lte, abs_per_species, 
+                      dummy_dppath_ext_dx, dummy_dppath_nlte_dx,
+                      propmat_clearsky_agenda, ArrayOfRetrievalQuantity(0), ppath, 
+                      ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, 
+                      ppath_mag, f_grid, stokes_dim, iaps );
+      
       for( Index i=0; i<lte.nelem(); i++ )
         {
           if( lte[i] == 0 )
             throw runtime_error( "FOS can so far only handle LTE conditions." );
         }
+      
       get_ppath_blackrad( ppath_blackrad, ppath, ppath_t, ppath_f );
+      
       if( !cloudbox_on )
         { 
           get_ppath_trans( trans_partial, extmat_case, trans_cumulat, 
@@ -994,7 +1000,7 @@ void iyHybrid(
   //
   Index           j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
-  ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0);
+  ArrayOfIndex    jac_species_i(0), jac_scat_i(0), jac_is_t(0), jac_wind_i(0);
   ArrayOfIndex    jac_mag_i(0), jac_other(0), jac_to_integrate(0); 
   // Flags for partial derivatives of propmat
   const PropmatPartialsData ppd(jacobian_quantities);
@@ -1008,6 +1014,7 @@ void iyHybrid(
     {
       diy_dpath.resize( nq ); 
       jac_species_i.resize( nq ); 
+      jac_scat_i.resize( nq ); 
       jac_is_t.resize( nq ); 
       jac_wind_i.resize( nq ); 
       jac_mag_i.resize( nq ); 
@@ -1026,16 +1033,15 @@ void iyHybrid(
             diy_dpath[iq] = 0.0;
         }
       )
-      get_pointers_for_analytical_jacobians( jac_species_i, jac_is_t, 
+        
+      get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
                                              jac_wind_i, jac_mag_i, jac_to_integrate, 
-                                             jacobian_quantities, abs_species );
+                                             jacobian_quantities, abs_species, 0 );
 
-      // Should this be part of get_pointers_for_analytical_jacobians?
-      FOR_ANALYTICAL_JACOBIANS_DO
-      ( 
+      FOR_ANALYTICAL_JACOBIANS_DO( 
         jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
         if( jac_to_integrate[iq] == JAC_IS_FLUX )
-            throw std::runtime_error("Cannot perform flux calculations in transmission only schemes.\n");
+          throw std::runtime_error("This method can not perform flux calculations.\n");
       )
 
       if( iy_agenda_call1 )
@@ -1043,9 +1049,9 @@ void iyHybrid(
           diy_dx.resize( nq ); 
           //
           FOR_ANALYTICAL_JACOBIANS_DO( diy_dx[iq].resize( 
-                  jacobian_indices[iq][1]-jacobian_indices[iq][0]+1, nf, ns ); 
+            jacobian_indices[iq][1]-jacobian_indices[iq][0]+1, nf, ns ); 
             diy_dx[iq] = 0.0;
-           )
+          )
         }
     } 
   //###########################################################################

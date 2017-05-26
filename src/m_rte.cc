@@ -302,7 +302,7 @@ void iyEmissionStandard(
   //
   Index           j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
-  ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0);
+  ArrayOfIndex    jac_species_i(0), jac_scat_i(0), jac_is_t(0), jac_wind_i(0);
   ArrayOfIndex    jac_mag_i(0), jac_other(0), jac_to_integrate(0); 
   // Flags for partial derivatives of propmat
   const PropmatPartialsData ppd(jacobian_quantities);
@@ -316,6 +316,7 @@ void iyEmissionStandard(
     {
       diy_dpath.resize( nq ); 
       jac_species_i.resize( nq ); 
+      jac_scat_i.resize( nq ); 
       jac_is_t.resize( nq ); 
       jac_wind_i.resize( nq );  
       jac_mag_i.resize( nq ); 
@@ -334,21 +335,23 @@ void iyEmissionStandard(
             diy_dpath[iq] = 0.0;
         }
       )
-      get_pointers_for_analytical_jacobians( jac_species_i, jac_is_t, 
+        
+      get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
                                              jac_wind_i, jac_mag_i, jac_to_integrate, 
-                                             jacobian_quantities, abs_species );
+                                             jacobian_quantities, abs_species, 0 );
 
-      // Should this be part of get_pointers_for_analytical_jacobians?
-      FOR_ANALYTICAL_JACOBIANS_DO( jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; )
+      FOR_ANALYTICAL_JACOBIANS_DO(
+        jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE;
+      )
       
       if( iy_agenda_call1 )
         {
           diy_dx.resize( nq ); 
           //
           FOR_ANALYTICAL_JACOBIANS_DO( diy_dx[iq].resize( 
-                  jacobian_indices[iq][1]-jacobian_indices[iq][0]+1, nf, ns ); 
+            jacobian_indices[iq][1]-jacobian_indices[iq][0]+1, nf, ns ); 
             diy_dx[iq] = 0.0;
-           )
+          )
         }
     } 
   //###########################################################################
@@ -1381,12 +1384,12 @@ void yCalc_mblock_loop_body(
         //
         if( j_analytical_do )
         {
-            FOR_ANALYTICAL_JACOBIANS_DO(
-                         mult(jacobian(rowind,
-                                            Range(jacobian_indices[iq][0],
-                          jacobian_indices[iq][1]-jacobian_indices[iq][0]+1)),
-                                             sensor_response, diyb_dx[iq] );
-                                        )
+          FOR_ANALYTICAL_JACOBIANS_DO(
+            mult(jacobian(rowind,
+                          Range(jacobian_indices[iq][0],
+                                jacobian_indices[iq][1]-jacobian_indices[iq][0]+1)),
+                                sensor_response, diyb_dx[iq] );
+          )
         }
 
         // Rest of *jacobian*

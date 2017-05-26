@@ -33,6 +33,7 @@
 #include "rte.h"
 
 extern const String  ABSSPECIES_MAINTAG;
+extern const String  SCATSPECIES_MAINTAG;
 extern const String  TEMPERATURE_MAINTAG;
 extern const String  WIND_MAINTAG;
 extern const String  MAGFIELD_MAINTAG;
@@ -263,6 +264,7 @@ void diy_from_path_to_rgrids(
     jacobians, *is_t* is set to 1. Otherwise to 0.
 
     \param   abs_species_i         Out: Matching index in abs_species 
+    \param   scat_species_i        Out: Matching index among scattering species 
     \param   is_t                  Out: Flag for: Is a temperature jacobian?
     \param   jacobian_quantities   As the WSV.
     \param   abs_species           As the WSV.
@@ -273,17 +275,20 @@ void diy_from_path_to_rgrids(
 */
 void get_pointers_for_analytical_jacobians( 
          ArrayOfIndex&               abs_species_i, 
+         ArrayOfIndex&               scat_species_i, 
          ArrayOfIndex&               is_t,
          ArrayOfIndex&               wind_i,
          ArrayOfIndex&               magfield_i,
          ArrayOfIndex&               integrate_i,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
-   const ArrayOfArrayOfSpeciesTag&   abs_species )
+   const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Index&                      nscats )
 {
 
   FOR_ANALYTICAL_JACOBIANS_DO( 
     //
-    if( jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG  && jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG  )
+    if( jacobian_quantities[iq].MainTag()   == TEMPERATURE_MAINTAG  &&
+        jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG  )
       { is_t[iq] = JAC_IS_T_FROM_PROPMAT; }
     else if( jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG )
       { is_t[iq] = JAC_IS_T_SEMI_ANALYTIC; }
@@ -293,41 +298,61 @@ void get_pointers_for_analytical_jacobians(
     if( jacobian_quantities[iq].MainTag() == ABSSPECIES_MAINTAG )
       {
         if( jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG )
-        {
+          {
             bool test_available=false;
             for(Index ii=0; ii<abs_species.nelem(); ii++)
-            {
-                if( abs_species[ii][0].Species()==SpeciesTag(jacobian_quantities[iq].Subtag()).Species() )
-                {
+              {
+                if( abs_species[ii][0].Species() ==
+                    SpeciesTag(jacobian_quantities[iq].Subtag()).Species() )
+                  {
                     test_available=true;
                     abs_species_i[iq]=ii;
                     break;
-                }
-            }
+                  }
+              }
             if(!test_available)
-            {
+              {
                 ostringstream os;
                 os << "Could not find " << jacobian_quantities[iq].Subtag() <<
-                "in species of abs_species.\n";
+                " in species of abs_species.\n";
                 throw std::runtime_error(os.str());
-            }
-        }
+              }
+          }
         else
-        {
+          {
             ArrayOfSpeciesTag  atag;
             array_species_tag_from_string( atag, jacobian_quantities[iq].Subtag() );
             abs_species_i[iq] = chk_contains( "abs_species", abs_species, atag );
-        }
+          }
       }
-    else if(jacobian_quantities[iq].MainTag() == PARTICULATES_MAINTAG || jacobian_quantities[iq].MainTag() == ELECTRONS_MAINTAG)
-    {
-      abs_species_i[iq] = -9999;
-    }
+    else if( jacobian_quantities[iq].MainTag() == PARTICULATES_MAINTAG ||
+             jacobian_quantities[iq].MainTag() == ELECTRONS_MAINTAG)
+      {
+        abs_species_i[iq] = -9999;
+      }
     else
       { abs_species_i[iq] = -1; }
     //
-    if( jacobian_quantities[iq].MainTag() == WIND_MAINTAG && jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG  )
-    {
+    if( jacobian_quantities[iq].MainTag() == SCATSPECIES_MAINTAG )
+      {
+        scat_species_i[iq] = atoi( jacobian_quantities[iq].Subtag().substr(19).c_str() );
+        if( scat_species_i[iq] < 0 )
+          throw runtime_error( "Negative scattering species index obtained." );
+        if( scat_species_i[iq] >= nscats  )
+          {
+            ostringstream os;
+            os << "Scattering species index " << scat_species_i[iq]
+               << " was found.\nThis is not allowed as the number of"
+               << " scattering species is only " << nscats << ".";
+            throw std::runtime_error(os.str());
+          }
+      }
+    else
+      { scat_species_i[iq] = -1; }
+    //
+    if( jacobian_quantities[iq].MainTag() == WIND_MAINTAG  &&
+        jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG  )
+      {
         // Map u, v and w to 1, 2 and 3, respectively
         char c = jacobian_quantities[iq].Subtag()[0];
         const Index test = Index( c ) - 116;
@@ -339,7 +364,7 @@ void get_pointers_for_analytical_jacobians(
             wind_i[iq] = JAC_IS_WIND_W_FROM_PROPMAT;
         else if(test == (Index('s')-116) )
             wind_i[iq] = JAC_IS_WIND_ABS_FROM_PROPMAT;
-    }
+      }
     else if( jacobian_quantities[iq].MainTag() == WIND_MAINTAG )
       {
         // Map u, v and w to 1, 2 and 3, respectively
@@ -355,8 +380,9 @@ void get_pointers_for_analytical_jacobians(
     else
       { wind_i[iq] = JAC_IS_NONE; }
     //
-    if( jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG && jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG )
-    {
+    if( jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG  &&
+        jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG )
+      {
         // Map u, v and w to 1, 2 and 3, respectively
         char c = jacobian_quantities[iq].Subtag()[0];
         const Index test = Index( c ) - 116;
@@ -366,7 +392,7 @@ void get_pointers_for_analytical_jacobians(
             magfield_i[iq] = JAC_IS_MAG_V_FROM_PROPMAT;
         else if(test == 3 )
             magfield_i[iq] = JAC_IS_MAG_W_FROM_PROPMAT;
-    }
+      }
     else if( jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG )
       {
         // Map u, v and w to 1, 2 and 3, respectively
@@ -383,18 +409,18 @@ void get_pointers_for_analytical_jacobians(
       { magfield_i[iq] = JAC_IS_NONE; }
     //
     if( jacobian_quantities[iq].MainTag() == FLUX_MAINTAG ) 
-    { 
-      integrate_i[iq] = JAC_IS_FLUX; 
-    }
+      { 
+        integrate_i[iq] = JAC_IS_FLUX; 
+      }
     else if(jacobian_quantities[iq].Integration()) 
-    { 
-      integrate_i[iq] = JAC_IS_INTEGRATION;   
-    }
+      { 
+        integrate_i[iq] = JAC_IS_INTEGRATION;   
+      }
     else  
-    { 
-      integrate_i[iq] = JAC_IS_NONE;   
-    }
-  )
+      { 
+        integrate_i[iq] = JAC_IS_NONE;   
+      }
+   )
 }
 
 

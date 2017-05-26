@@ -6653,18 +6653,18 @@ void define_md_data_raw()
          "       based indexing). Size: [1,1,1,np].\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "ppath" ),
+        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid", "z_field",
-            "t_field", "vmr_field", 
-            "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
-            "mag_v_field", "mag_w_field", "cloudbox_on", 
-            "cloudbox_limits", "pnd_field",
-            "scat_data", "particle_masses",
-            "iy_unit", "iy_aux_vars", "jacobian_do", "ppath_agenda", 
-            "propmat_clearsky_agenda", "iy_transmitter_agenda",
+        IN( "diy_dx", "stokes_dim", "f_grid", "atmosphere_dim",
+            "p_grid", "z_field", "t_field", "vmr_field", "abs_species", 
+            "wind_u_field", "wind_v_field", "wind_w_field",
+            "mag_u_field", "mag_v_field", "mag_w_field",
+            "cloudbox_on", "cloudbox_limits", "pnd_field",
+            "scat_data", "particle_masses", "iy_unit", "iy_aux_vars",
+            "jacobian_do", "jacobian_quantities", "jacobian_indices",
+            "ppath_agenda", "propmat_clearsky_agenda", "iy_transmitter_agenda",
             "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los",
             "rte_alonglos_v", "ppath_lmax", "ppath_lraytrace" ),
         GIN(      "ze_tref" ),
@@ -7886,47 +7886,6 @@ void define_md_data_raw()
                   "Magnetic field perturbation"
                   )
       ));
-    
-
-
-  /*
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "jacobianAddParticle" ),
-    DESCRIPTION
-    (
-    "Add particle number density as retrieval quantity to the Jacobian.\n"
-    "\n"
-    "The Jacobian is done by perturbation calculation by adding elements\n"
-    "of *pnd_field_perturb* to *pnd_field*. Only 1D and 3D atmospheres\n"
-    "can be handled by this method.\n"
-    "\n"
-    "The perturbation field and the unit of it are defined outside ARTS.\n"
-    "This method only returns the difference between the reference and\n"
-    "perturbed spectra. The division by the size of the perturbation\n"
-    "also has to be done outside ARTS.\n"
-    "The unit of the particle jacobian is the same as for *y*.\n"
-    "\n"
-    "Generic input:\n"
-    "  Vector : The pressure grid of the retrieval field.\n"
-    "  Vector : The latitude grid of the retrieval field.\n"
-    "  Vector : The longitude grid of the retrieval field.\n"
-    ),
-    AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-    OUT( "jacobian_quantities", "jacobian_agenda" ),
-    GOUT(),
-    GOUT_TYPE(),
-    GOUT_DESC(),
-    IN( "jacobian", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
-    "pnd_field", "pnd_field_perturb", "cloudbox_limits" ),
-    GIN(      "gin1"      , "gin2"      , "gin3"       ),
-    GIN_TYPE(    "Vector", "Vector", "Vector" ),
-    GIN_DEFAULT( NODEF   , NODEF   , NODEF    ),
-    GIN_DESC( "FIXME DOC",
-    "FIXME DOC",
-    "FIXME DOC" )
-    ));
-  */
   
   md_data_raw.push_back
     ( MdRecord
@@ -8014,6 +7973,38 @@ void define_md_data_raw()
                   )
         ));
 
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "jacobianAddScatSpecies" ),
+      DESCRIPTION
+      (
+        "Includes a scattering species in the Jacobian.\n"
+        "\n"         
+        "For 1D or 2D calculations the latitude and/or longitude grid of\n"
+        "the retrieval field should set to have zero length.\n"
+      ),
+      AUTHORS( "Patrick Eriksson" ),
+      OUT( "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "jacobian_quantities", "jacobian_agenda",
+          "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+      GIN( "g1", "g2", "g3", "scat_species_index", "scat_species_quantity" ),
+      GIN_TYPE( "Vector", "Vector", "Vector", "Index", "String" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, NODEF ),
+      GIN_DESC( "Pressure retrieval grid.",
+                "Latitude retrieval grid.",
+                "Longitude retreival grid.",
+                "Scattering species index (zero-based).",
+                "Retrieval quantities."
+      ),
+      SETMETHOD(      false ),
+      AGENDAMETHOD(   false ),
+      USES_TEMPLATES( false ),
+      PASSWORKSPACE(  true  )
+    ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "jacobianAddSinefit" ),
@@ -8215,8 +8206,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian",
-            "mblock_index", "iyb", "yb" ),
+        IN( "jacobian", "mblock_index", "iyb", "yb" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8239,13 +8229,11 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian",
-            "mblock_index", "iyb", "yb", "atmosphere_dim", "p_grid", "lat_grid",
-            "lon_grid", "t_field", "z_field", "vmr_field", "abs_species", 
-            "cloudbox_on", "stokes_dim", "f_grid", 
+        IN( "jacobian", "mblock_index", "iyb", "yb", "atmosphere_dim",
+            "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field",
+            "abs_species", "cloudbox_on", "stokes_dim", "f_grid", 
             "sensor_pos", "sensor_los", "transmitter_pos", "mblock_dlos_grid", 
-            "sensor_response", "iy_unit",
-            "iy_main_agenda", "geo_pos_agenda", 
+            "sensor_response", "iy_unit", "iy_main_agenda", "geo_pos_agenda", 
             "jacobian_quantities", "jacobian_indices" ),
         GIN( "species" ),
         GIN_TYPE(    "String" ),
@@ -8270,9 +8258,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian",
-            "mblock_index", "iyb", "yb", "stokes_dim", "f_grid", "sensor_los", 
-            "mblock_dlos_grid", "sensor_response", "sensor_time", 
+        IN( "jacobian", "mblock_index", "iyb", "yb", "stokes_dim", "f_grid",
+            "sensor_los", "mblock_dlos_grid", "sensor_response", "sensor_time", 
             "jacobian_quantities", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
@@ -8296,9 +8283,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian",
-            "mblock_index", "iyb", "yb", "stokes_dim", "f_grid", "sensor_los", 
-            "mblock_dlos_grid", 
+        IN( "jacobian", "mblock_index", "iyb", "yb", "stokes_dim", "f_grid",
+            "sensor_los", "mblock_dlos_grid", 
             "sensor_response", "sensor_response_pol_grid",
             "sensor_response_f_grid", "sensor_response_dlos_grid",
             "sensor_time", "jacobian_quantities", 
@@ -8326,74 +8312,36 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian",
-            "mblock_index", "iyb", "yb" ),
+        IN( "jacobian", "mblock_index", "iyb", "yb" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-
-
- /*
-           md_data_raw.push_back
-            ( MdRecord
-            ( NAME( "jacobianCalcParticle" ),
-            DESCRIPTION
-            (
-            "Calculates particle number densities jacobians by perturbations\n"
-            "\n"
-            "This function is added to *jacobian_agenda* by jacobianAddParticle\n"
-            "and should normally not be called by the user.\n"
-            ),
-            AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-            OUT( "jacobian" ),
-            GOUT(),
-            GOUT_TYPE(),
-            GOUT_DESC(),
-            IN( "y", "jacobian_quantities", "jacobian_indices", "pnd_field_perturb",
-            "jacobian_particle_update_agenda",
-            "ppath_step_agenda", "rte_agenda", "iy_space_agenda", 
-            "surface_rtprop_agenda", "iy_cloudbox_agenda", "atmosphere_dim", 
-            "p_grid", "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
-            "refellipsoid", "z_surface", 
-            "cloudbox_on", "cloudbox_limits", "pnd_field",
-            "sensor_response", "sensor_pos", "sensor_los", "f_grid", 
-            "stokes_dim", "antenna_dim", "mblock_dlos_grid" ),
-            GIN(),
-            GIN_TYPE(),
-            GIN_DEFAULT(),
-            GIN_DESC()
-            ));
-        
- */
-
  
- 
- md_data_raw.push_back
- ( MdRecord
- ( NAME( "jacobianCalcBeamFlux" ),
-   DESCRIPTION
-   (
-       "This function doesn't do anything. It just exists to satisfy\n"
-       "the input and output requirement of the *jacobian_agenda*.\n"
-       "\n"
-       "This function is added to *jacobian_agenda* by\n"
-       "jacobianAddAbsSpecies and should normally not be called\n"
-       "by the user.\n"
-   ),
-   AUTHORS( "Oliver Lemke" ),
-   OUT( "jacobian" ),
-   GOUT(),
-   GOUT_TYPE(),
-   GOUT_DESC(),
-   IN( "jacobian",
-       "mblock_index", "iyb", "yb" ),
-   GIN(),
-   GIN_TYPE(),
-   GIN_DEFAULT(),
-   GIN_DESC()
- ));
+  md_data_raw.push_back
+  ( MdRecord
+  ( NAME( "jacobianCalcBeamFlux" ),
+    DESCRIPTION
+    (
+        "This function doesn't do anything. It just exists to satisfy\n"
+        "the input and output requirement of the *jacobian_agenda*.\n"
+        "\n"
+        "This function is added to *jacobian_agenda* by\n"
+        "jacobianAddAbsSpecies and should normally not be called\n"
+        "by the user.\n"
+    ),
+    AUTHORS( "Oliver Lemke" ),
+    OUT( "jacobian" ),
+    GOUT(),
+    GOUT_TYPE(),
+    GOUT_DESC(),
+    IN( "jacobian", "mblock_index", "iyb", "yb" ),
+    GIN(),
+    GIN_TYPE(),
+    GIN_DEFAULT(),
+    GIN_DESC()
+  ));
  
   md_data_raw.push_back
     ( MdRecord
@@ -8480,6 +8428,30 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "jacobianCalcScatSpeciesAnalytical" ),
+        DESCRIPTION
+        (
+         "This function doesn't do anything. It just exists to satisfy\n"
+         "the input and output requirement of the *jacobian_agenda*.\n"
+         "\n"
+         "This function is added to *jacobian_agenda* by\n"
+         "jacobianAddAbsSpecies and should normally not be called\n"
+         "by the user.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian", "mblock_index", "iyb", "yb" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "jacobianCalcSinefit" ),
         DESCRIPTION
         (
@@ -8521,8 +8493,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian",
-            "mblock_index", "iyb", "yb" ),
+        IN( "jacobian", "mblock_index", "iyb", "yb" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8577,8 +8548,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian",
-            "mblock_index", "iyb", "yb" ),
+        IN( "jacobian", "mblock_index", "iyb", "yb" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

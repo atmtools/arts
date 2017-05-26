@@ -362,13 +362,13 @@ void iyRadioLink(
   Tensor3      dummy_ppath_nlte_source;
   Vector       scalar_tau;
   ArrayOfIndex clear2cloudbox, dummy_lte;
-  const Tensor4 t_nlte_field_dummy;
+  const Tensor4 t_nlte_field_empty(0,0,0,0);
   //
   if( np > 1 )
     {
       get_ppath_atmvars( ppath_p, ppath_t, ppath_t_nlte, ppath_vmr,
                          ppath_wind, ppath_mag, 
-                         ppath, atmosphere_dim, p_grid, t_field, t_nlte_field_dummy,
+                         ppath, atmosphere_dim, p_grid, t_field, t_nlte_field_empty,
                          vmr_field, wind_u_field, wind_v_field, wind_w_field,
                          mag_u_field, mag_v_field, mag_w_field );
       
@@ -744,7 +744,7 @@ void iyTransmissionStandard(
   //
   Index           j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
-  ArrayOfIndex    jac_species_i(0), jac_is_t(0), jac_wind_i(0);
+  ArrayOfIndex    jac_species_i(0), jac_scat_i(0), jac_is_t(0), jac_wind_i(0);
   ArrayOfIndex    jac_mag_i(0), jac_other(0), jac_to_integrate(0); 
   // Flags for partial derivatives of propmat
   const PropmatPartialsData ppd(jacobian_quantities);
@@ -758,6 +758,7 @@ void iyTransmissionStandard(
     {
       diy_dpath.resize( nq ); 
       jac_species_i.resize( nq ); 
+      jac_scat_i.resize( nq ); 
       jac_is_t.resize( nq ); 
       jac_wind_i.resize( nq ); 
       jac_mag_i.resize( nq ); 
@@ -776,16 +777,15 @@ void iyTransmissionStandard(
             diy_dpath[iq] = 0.0;
         }
       )
-      get_pointers_for_analytical_jacobians( jac_species_i, jac_is_t, 
+        
+      get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
                                              jac_wind_i, jac_mag_i, jac_to_integrate, 
-                                             jacobian_quantities, abs_species );
+                                             jacobian_quantities, abs_species, 0 );
 
-      // Should this be part of get_pointers_for_analytical_jacobians?
-      FOR_ANALYTICAL_JACOBIANS_DO
-      ( 
+      FOR_ANALYTICAL_JACOBIANS_DO( 
         jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
         if( jac_to_integrate[iq] == JAC_IS_FLUX )
-            throw std::runtime_error("Cannot perform flux calculations in transmission only schemes.\n");
+          throw std::runtime_error("This method can not perform flux calculations.\n");
       )
 
       if( iy_agenda_call1 )
@@ -793,9 +793,9 @@ void iyTransmissionStandard(
           diy_dx.resize( nq ); 
           //
           FOR_ANALYTICAL_JACOBIANS_DO( diy_dx[iq].resize( 
-                  jacobian_indices[iq][1]-jacobian_indices[iq][0]+1, nf, ns ); 
+            jacobian_indices[iq][1]-jacobian_indices[iq][0]+1, nf, ns ); 
             diy_dx[iq] = 0.0;
-           )
+          )
         }
     } 
   //###########################################################################

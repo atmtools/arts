@@ -1654,6 +1654,101 @@ void jacobianCalcPolyfit(
 
 
 
+//----------------------------------------------------------------------------
+// Absorption species:
+//----------------------------------------------------------------------------
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianAddScatSpecies(
+        Workspace&,
+        ArrayOfRetrievalQuantity&   jq,
+        Agenda&                     jacobian_agenda,
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Vector&                     rq_p_grid,
+  const Vector&                     rq_lat_grid,
+  const Vector&                     rq_lon_grid,
+  const Index&                      scat_species_index,
+  const String&                     scat_species_quantity,
+  const Verbosity&                  verbosity )
+{
+  CREATE_OUT2;
+  CREATE_OUT3;
+
+  if( scat_species_index < 0 )
+    throw runtime_error( "*scat_species_index* must be >= 0." );
+  
+  // Convert *scat_species_index* to the format used in the jq-structure
+  // Note that if you change the format, changes in other functions are needed
+  String species_string;
+  {
+    ostringstream sstr;
+    sstr << "Scattering species " << scat_species_index;
+    species_string = sstr.str();
+  }
+  
+  // Check that this species is not already included in the jacobian.
+  for( Index it=0; it<jq.nelem(); it++ )
+    {
+      if( jq[it].MainTag()   == SCATSPECIES_MAINTAG  &&
+          jq[it].Subtag()    == species_string )
+        {
+          ostringstream os;
+          os << species_string << " is already included in "
+             << "*jacobian_quantities*.";
+          throw runtime_error(os.str());
+        }
+    }
+
+  
+  // Check retrieval grids, here we just check the length of the grids
+  // vs. the atmosphere dimension
+  ArrayOfVector grids(atmosphere_dim);
+  {
+    ostringstream os;
+    if( !check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
+                                rq_p_grid, rq_lat_grid, rq_lon_grid,
+                                "retrieval pressure grid", 
+                                "retrieval latitude grid", 
+                                "retrievallongitude_grid", 
+                                atmosphere_dim ) )
+    throw runtime_error(os.str());
+  }
+  
+
+  // Create the new retrieval quantity
+  RetrievalQuantity rq;
+  rq.MainTag( SCATSPECIES_MAINTAG );
+  rq.Subtag( species_string );
+  rq.SubSubtag( scat_species_quantity );
+  rq.Grids( grids );
+  
+  // Add it to the *jacobian_quantities*
+  jq.push_back( rq );
+  
+  // Add gas species method to the jacobian agenda
+  jacobian_agenda.append( "jacobianCalcScatSpeciesAnalytical", TokVal() );
+}                    
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianCalcScatSpeciesAnalytical(
+        Matrix&     jacobian _U_,
+  const Index&      mblock_index _U_,
+  const Vector&     iyb _U_,
+  const Vector&     yb _U_,
+  const Verbosity& )
+{
+  /* Nothing to do here for the analytical case, this function just exists
+   to satisfy the required inputs and outputs of the jacobian_agenda */
+}
+
+
+
+
 
 //----------------------------------------------------------------------------
 // Sinusoidal baseline fits:
