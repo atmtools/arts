@@ -1401,6 +1401,15 @@ void Workspace::define_wsv_data()
       GROUP( "ArrayOfTensor3" )));
    
   wsv_data.push_back
+    (WsvRecord
+     ( NAME( "dpnd_dx" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
    (WsvRecord
    ( NAME( "dpropmat_clearsky_dx" ),
      DESCRIPTION
@@ -1418,6 +1427,15 @@ void Workspace::define_wsv_data()
          "Unit: 1/m/jacobian_quantity\n"
      ),
      GROUP( "ArrayOfTensor3" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "dpsd_dx" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       ),
+      GROUP( "Matrix" )));
    
    wsv_data.push_back
    (WsvRecord
@@ -3402,6 +3420,24 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Numeric" )));
 
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "pnd" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       ),
+      GROUP( "Vector" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "pnd_agenda" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       ),
+      GROUP( "Agenda" )));
+
    wsv_data.push_back
    (WsvRecord
     ( NAME( "pnd_field" ),
@@ -3459,6 +3495,24 @@ void Workspace::define_wsv_data()
        "       [number of pressure levels, number of latitudes, number of longitudes]\n"
        ),
       GROUP( "ArrayOfGriddedField3" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "pnd_input" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       ),
+      GROUP( "Vector" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "pnd_input_names" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       ),
+      GROUP( "ArrayOfString" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3622,6 +3676,24 @@ void Workspace::define_wsv_data()
        "Dimensions: [species, f_grid, *stokes_dim*, stokes_dim, p_grid, lat_grid, lon_grid]\n"
         ),
       GROUP( "Tensor7" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "psd" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       ),
+      GROUP( "Vector" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "psd_size_grid" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       ),
+      GROUP( "Vector" )));
 
    wsv_data.push_back
    (WsvRecord

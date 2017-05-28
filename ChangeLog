@@ -1,8 +1,26 @@
+2017-05-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-669
+
+	* src/m_cloudradar.cc (pndFromPSD, psdMH97): Started.
+
+	* Added some variables for moving towards tests of scattering
+	jacobians. So far just handling one scattering species, and
+	temporary naming and no documentation text written. pnd_agenda is
+	now defined to cover one point, but it should be consider to
+	instead let it cover multiple points to decrease the overhead due
+	to repeated checks.
+
+	* src/agendas.cc: Added pnd_agenda.
+
+	* src/workspace.cc: Added dpnd_dx, dpsd_dx, pnd_agenda, pnd,
+	pnd_input, pnd_input_names, psd and psd_grid.
+
 2017-05-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-668
 
-	* More work on scattering jacobians. 
+	* More work on scattering jacobians.
 
 	* src/m_rte.cc (iyEmissionStandard): Introduced new variables and
 	adopted call of get_pointers_for_analytical_jacobians.

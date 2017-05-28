@@ -663,6 +663,16 @@ void define_agenda_data()
        INPUT( "pha_mat_spt", "scat_za_index", "scat_lat_index", "scat_lon_index",
               "scat_p_index", "scat_aa_index", "rtp_temperature")));
        
+ agenda_data.push_back
+    (AgRecord
+     ( NAME( "pnd_agenda" ),
+       DESCRIPTION
+       (
+        "Work in progress ....\n"
+        ),
+       OUTPUT( "pnd", "dpnd_dx" ),
+       INPUT( "scat_data", "scat_meta", "pnd_input", "jacobian_do" )));
+       
   agenda_data.push_back
     (AgRecord
      ( NAME( "ppath_agenda" ),

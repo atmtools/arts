@@ -57,6 +57,149 @@ extern const Numeric SPEED_OF_LIGHT;
 
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void pndFromPSD(
+         Vector&    pnd,
+         Matrix&    dpnd_dx,
+   const Vector&    psd,
+   const Vector&    psd_size_grid,
+   const Matrix&    dpsd_dx,
+   const Verbosity& )
+{
+  const Index nse  = psd.nelem();
+        Index ndx  = 0;
+  const bool do_dx = !dpsd_dx.empty();
+
+  // Shall we check that *psd_size_grid* is strictly increasing?  
+  
+  if( nse < 2 )
+    throw runtime_error( "The method requires that length of *psd* is >= 2." );    
+  if( psd_size_grid.nelem() != nse )
+    throw runtime_error( "*psd* and *psd_size_grid* must have the same length." );
+  if( do_dx )
+    {
+      if( dpsd_dx.ncols() != nse )
+        throw runtime_error( "Length of *psd* and number of columns in *dpsd_dx* "
+                             "must be equal." );
+      ndx = dpsd_dx.nrows();
+      dpnd_dx.resize( ndx, nse );
+    }
+  else
+    { dpnd_dx.resize( 0, 0 ); }
+  
+  pnd.resize( nse );
+
+  Numeric binsize;
+  for ( Index i=0; i<nse; i++ )
+    {
+      // This bin is twice the half-distance to point 1, but could be limited
+      // by 0 in lower end.
+      if( i == 0 )
+        {
+          const Numeric dd = ( psd_size_grid[1] - psd_size_grid[0] ) / 2.0;
+          binsize = dd + min( dd, psd_size_grid[0]/ 2.0 );
+        }
+      // This bin is twice the half-distance to closest point      
+      else if( i == nse-1 )
+        { binsize = 2.0 * ( psd_size_grid[i] - psd_size_grid[i-1] ) / 2.0; }
+      // This bin is the sum of the two half-distances      
+      else
+        { binsize = ( psd_size_grid[i+1] - psd_size_grid[i-1] ) / 2.0; }
+
+      pnd[i] = binsize * psd[i];
+
+      if( do_dx )
+        {
+          for ( Index x=0; x<ndx; x++ )
+            { dpnd_dx(x,i) = binsize * dpsd_dx(x,i); }
+        }
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void psdMH97 (
+          Vector&                             psd,
+          Vector&                             psd_size_grid,
+          Matrix&                             dpsd_dx,
+    const ArrayOfArrayOfScatteringMetaData&   scat_meta,
+    const Vector&                             pnd_input,
+    const ArrayOfString&                      pnd_input_names,
+    const Index&                              jacobian_do,
+    const Numeric&                            t_min, 
+    const Numeric&                            t_max, 
+    const Index&                              picky, 
+    const Index&                              noisy,
+    const Verbosity&)
+{
+  // So far scattering species == 0 is hard-coded
+  const Index iss = 0;
+
+  // Checks
+  if( scat_meta.nelem() == 0 )
+    throw runtime_error( "*scat_meta* is empty!" );
+  if( scat_meta.nelem() < iss+1 )
+    {
+      ostringstream os;
+      os << "Selected scattering species index is " << iss << " but this "
+         << "is not allowed since *scat_meta* has only" << scat_meta.nelem()
+         << " elements.";
+      throw runtime_error(os.str());
+    }
+  if( pnd_input.nelem() != 2 )
+    throw runtime_error( "Provided *pnd_input* must have length 2." );
+  if( pnd_input_names[0] != "IWC" )
+    throw runtime_error( "Element 0 of *pnd_input_names* must be \"IWC\"." );
+  if( pnd_input_names[1] != "Temperature" )
+    throw runtime_error( "Element 1 of *pnd_input_names* must be \"Temperature\"." );
+   
+  // Create size grid
+  const Index nse = scat_meta[iss].nelem();
+  psd_size_grid.resize( nse );
+  for ( Index i=0; i<nse; i++ )
+    { psd_size_grid[i] = scat_meta[iss][i].diameter_volume_equ; }
+
+  // Init psd and dpsd_dx
+  psd.resize( nse );
+  if( jacobian_do )
+    { dpsd_dx.resize( 1, nse ); }   // IWC only possible retrieval quantity
+  else
+    { dpsd_dx.resize( 0, 0  ); }  
+
+  // Extract the input variables
+  Numeric iwc = pnd_input[0];
+  Numeric t = pnd_input[1];
+  
+  // Outside of [t_min,tmax]?
+  if( t < t_min  ||  t > t_max )
+    {
+      if( picky )
+        {
+          ostringstream os;
+          os << "Method called with a temperature of " << t << " K.\n"
+             << "This is outisde the specified allowed range: ["
+             << t_min << "," << t_max << "]";
+          throw runtime_error(os.str());
+        }
+      else  
+        { return; }   // If here, we are ready!
+    }
+
+  // PSD assumed to be constant outside [200,273]
+  // Shall these temperature limits be GIN?
+  if( t < 200 )
+    { t = 200; }
+  else if( t > 273 )
+    { t = 273; }
+  
+  // Calculate PSD
+  for ( Index i=0; i<nse; i++ )
+    { psd[i] = IWCtopnd_MH97( iwc, psd_size_grid[i], t, noisy, 1 ); }
+}
+
+
+
 
 void pnd_field_from_ppdata(
          Tensor4&                     pnd_field,
@@ -163,6 +306,7 @@ void iyCloudRadar(
    const Tensor4&                     pnd_field,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
    const Matrix&                      particle_masses,
+   const Agenda&                      pnd_agenda,
    const String&                      iy_unit,
    const ArrayOfString&               iy_aux_vars,
    const Index&                       jacobian_do,
