@@ -1,3 +1,17 @@
+2017-05-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-673
+
+	* Some change of plans, revision started.
+
+	* src/m_cloudradar.cc (psdMH97): Rewritten to handle new set of
+	WSVs, treating multiple points.
+
+	* src/workspace.cc: Modified or having new names are
+	dpnd_data_dx, dpnd_data_dx_names, particle_bulkprop_field,
+	pnd_agenda_input, pnd_agenda_input_names, pnd_data
+	dpsd_data_dx, psd_data and dpnd_field_dx.
+
 2017-05-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-672

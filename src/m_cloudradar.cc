@@ -59,13 +59,14 @@ extern const Numeric SPEED_OF_LIGHT;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pndFromPsd(
-         Vector&    pnd,
-         Matrix&    dpnd_dx,
-   const Vector&    psd,
+         Matrix&    pnd,
+         Tensor3&   dpnd_dx,
+   const Matrix&    psd_data,
    const Vector&    psd_size_grid,
-   const Matrix&    dpsd_dx,
+   const Tensor3&   dpsd_data_dx,
    const Verbosity& )
 {
+  /*
   // Sizes
   const Index nse  = psd.nelem();
         Index ndx  = 0;
@@ -119,19 +120,20 @@ void pndFromPsd(
             { dpnd_dx(x,i) = binsize * dpsd_dx(x,i); }
         }
     }
+  */
 }
 
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void psdMH97 (
-          Vector&                             psd,
+          Matrix&                             psd_data,
           Vector&                             psd_size_grid,
-          Matrix&                             dpsd_dx,
+          Tensor3&                            dpsd_data_dx,
     const ArrayOfArrayOfScatteringMetaData&   scat_meta,
-    const Vector&                             pnd_input,
-    const ArrayOfString&                      pnd_input_names,
-    const Index&                              jacobian_do,
+    const Matrix&                             pnd_agenda_input,
+    const ArrayOfString&                      pnd_agenda_input_names,
+    const ArrayOfString&                      dpnd_data_dx_vars,
     const Numeric&                            t_min, 
     const Numeric&                            t_max, 
     const Index&                              picky, 
@@ -141,10 +143,16 @@ void psdMH97 (
   // So far scattering species == 0 is hard-coded
   const Index iss = 0;
 
+  // Some sizes 
+  const Index nss = scat_meta.nelem();
+  const Index nin = pnd_agenda_input_names.nelem();
+  const Index ndx = dpnd_data_dx_vars.nelem();
+  const Index np  = pnd_agenda_input.nrows();
+  
   // Checks
-  if( scat_meta.nelem() == 0 )
+  if( nss == 0 )
     throw runtime_error( "*scat_meta* is empty!" );
-  if( scat_meta.nelem() < iss+1 )
+  if( nss < iss+1 )
     {
       ostringstream os;
       os << "Selected scattering species index is " << iss << " but this "
@@ -152,75 +160,98 @@ void psdMH97 (
          << " elements.";
       throw runtime_error(os.str());
     }
-  if( pnd_input.nelem() != 2 )
-    throw runtime_error( "Provided *pnd_input* must have length 2." );
-  if( pnd_input_names[0] != "IWC" )
-    throw runtime_error( "Element 0 of *pnd_input_names* must be \"IWC\"." );
-  if( pnd_input_names[1] != "Temperature" )
-    throw runtime_error( "Element 1 of *pnd_input_names* must be \"Temperature\"." );
-  if( noisy  && jacobian_do )
+  if( pnd_agenda_input.nrows() != nin )
+    throw runtime_error( "Length of *pnd_agenda_input_names* and number of "
+                         "columns in *pnd_agenda_input* must be equal." );
+  if( pnd_agenda_input.ncols() != 2 )
+    throw runtime_error( "*pnd_input* must have two columns (IWC and Temperature)" );
+  if( pnd_agenda_input_names[0] != "IWC" )
+    throw runtime_error( "Element 0 of *pnd_agenda_input_names* must be \"IWC\"." );
+  if( pnd_agenda_input_names[1] != "Temperature" )
+    throw runtime_error( "Element 1 of *pnd_agenda_input_names* must be \"Temperature\"." );
+  if( ndx )
+    {
+      if( ndx != 1 )
+        throw runtime_error( "*dpnd_data_dx_vars* must have length 0 or 1." );
+      if( dpnd_data_dx_vars[0] != "IWC" )
+        throw runtime_error( "Valid options for *dpnd_data_dx_vars* are: \"IWC\"." );
+    }        
+  if( noisy  &&   ndx )
     throw runtime_error( "Jacobian calculatiopns and \"noisy\" can not be "
                          "combined." );
+
   
   // Create size grid
+  //
   const Index nse = scat_meta[iss].nelem();
   psd_size_grid.resize( nse );
   for ( Index i=0; i<nse; i++ )
     { psd_size_grid[i] = scat_meta[iss][i].diameter_volume_equ; }
 
-  // Init psd and dpsd_dx
-  psd.resize( nse );
-  if( jacobian_do )
-    { dpsd_dx.resize( 1, nse ); }   // IWC only possible retrieval quantity
+  // Init psd_data and dpsd_data_dx with zeros
+  psd_data.resize( np, nse );
+  psd_data = 0.0;
+  if( ndx )
+    {
+      dpsd_data_dx.resize( 1, np, nse );   // IWC only possible retrieval quantity
+      dpsd_data_dx = 0.0;
+    }
   else
-    { dpsd_dx.resize( 0, 0  ); }  
+    { dpsd_data_dx.resize( 0, 0, 0  ); }  
 
-  // Extract the input variables
-  Numeric iwc = pnd_input[0];
-  Numeric t = pnd_input[1];
-  
-  // Outside of [t_min,tmax]?
-  if( t < t_min  ||  t > t_max )
+  // Jana!!! Should core code of MH97 be included in this method. Or change
+  // core function to take multiple input, to avoid calculation overhead.
+  // Anyhow, ore function should be renamed (pnd in name is incorrect)
+
+  for( Index ip=0; ip<np; ip++ )
     {
-      if( picky )
+      
+      // Extract the input variables
+      Numeric iwc = pnd_agenda_input(ip,0);
+      Numeric   t = pnd_agenda_input(ip,1);
+  
+      // Outside of [t_min,tmax]?
+      if( t < t_min  ||  t > t_max )
         {
-          ostringstream os;
-          os << "Method called with a temperature of " << t << " K.\n"
-             << "This is outisde the specified allowed range: ["
-             << t_min << "," << t_max << "]";
-          throw runtime_error(os.str());
+          if( picky )
+            {
+              ostringstream os;
+              os << "Method called with a temperature of " << t << " K.\n"
+                 << "This is outside the specified allowed range: ["
+                 << t_min << "," << t_max << "]";
+              throw runtime_error(os.str());
+            }
+          else  
+            { continue; }   // If here, we are ready with this point!
         }
-      else  
-        { return; }   // If here, we are ready!
-    }
 
-  // PSD assumed to be constant outside [200,273]
-  // Shall these temperature limits be GIN?
-  if( t < 200 )
-    { t = 200; }
-  else if( t > 273 )
-    { t = 273; }
+      // PSD assumed to be constant outside [200,273]
+      // Shall these temperature limits be GIN?
+      if( t < 200 )
+        { t = 200; }
+      else if( t > 273 )
+        { t = 273; }
   
-  // Calculate PSD
-  for ( Index i=0; i<nse; i++ )
-    {
-      if( iwc == 0 )
-        { psd[i] = 0; }
-      else
-        { psd[i] = IWCtopnd_MH97( iwc, psd_size_grid[i], t, noisy, 1 ); }
+      // Calculate PSD
+      if( iwc != 0 )
+        {
+          for ( Index i=0; i<nse; i++ )
+            { psd_data(ip,i) = IWCtopnd_MH97( iwc, psd_size_grid[i], t, noisy, 1 ); }
+        }
+  
+      // Calculate derivative with respect to IWC
+      if( ndx )
+        {
+          // Obtain derivative by perturbation of 1%, but not less than 0.1 mg/m3.
+          // Note that the last value becomes the perturbation for IWC=0.
+          const Numeric diwc = max( 0.01*iwc, 1e-7 );
+          const Numeric iwcp = iwc + diwc;
+          for ( Index i=0; i<nse; i++ )
+            { dpsd_data_dx(0,ip,i) = (
+                         IWCtopnd_MH97( iwcp, psd_size_grid[i], t, noisy, 1 ) -
+                         psd_data(ip,i) ) / diwc; }
+        }   
     }
-  
-  // Calculate derivative with respect to IWC
-  if( jacobian_do )
-    {
-      // Obtain derivative by perturbation of 1%, but not less than 0.1 mg/m3.
-      // Note that the last value becomes the perturbation for IWC=0.
-      const Numeric diwc = max( 0.01*iwc, 1e-7 );
-      for ( Index i=0; i<nse; i++ )
-        { dpsd_dx(0,i) = ( IWCtopnd_MH97(iwc+diwc,psd_size_grid[i],t,noisy,1) -
-                           psd[i] ) / diwc; }
-    }   
-  
 }
 
 
@@ -306,7 +337,8 @@ void pnd_field_from_ppdata(
           else
             {
               i_pbulkprop[i] = find_first( particle_bulkprop_names,
-                                           pnd_input_names[i] ); 
+                                           pnd_input_names[i] );
+              // if ...
             }
         }
 
@@ -332,9 +364,10 @@ void pnd_field_from_ppdata(
                   Vector pnd;
                   Matrix dpnd_dx;
                   //
+                  /*
                   pnd_agendaExecute( ws, pnd, dpnd_dx, scat_meta, pnd_input,
                                      jacobian_do, pnd_agenda );
-
+                  */
                   // Copy to output variables
                   pnd_field(se_range,ip,ilat,ilon) = pnd;
                   for( Index iq=0; iq<nq[is]; iq++ )
@@ -355,7 +388,6 @@ void iyCloudRadar(
          ArrayOfTensor4&              iy_aux,
          Ppath&                       ppath,
          ArrayOfTensor3&              diy_dx,
-         Tensor4&                     pnd_field,
    const Index&                       stokes_dim,
    const Vector&                      f_grid,
    const Index&                       atmosphere_dim,
@@ -372,13 +404,10 @@ void iyCloudRadar(
    const Tensor3&                     mag_w_field,
    const Index&                       cloudbox_on,
    const ArrayOfIndex&                cloudbox_limits,
+   const Tensor4&                     pnd_field,
+   const ArrayOfTensor4&              dpnd_field_dx,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
-   const ArrayOfArrayOfScatteringMetaData&   scat_meta,
-   const Tensor4&                     particle_bulkprop,
-   const ArrayOfString&               particle_bulkprop_names,
    const Matrix&                      particle_masses,
-   const Agenda&                      pnd_agenda,
-   const ArrayOfString&               pnd_input_names,
    const String&                      iy_unit,
    const ArrayOfString&               iy_aux_vars,
    const Index&                       jacobian_do,
@@ -407,7 +436,7 @@ void iyCloudRadar(
     throw runtime_error( 
                     "The cloudbox must be activated (cloudbox_on must be 1)." );
 
-
+  /*
   // Shall pnd_field be created?
   //
   ArrayOfArrayOfTensor4  dpndfield_dq;
@@ -425,7 +454,8 @@ void iyCloudRadar(
                              pnd_agenda, pnd_input_names,
                              jacobian_do );
     }
-
+  */
+  
   // Determine propagation path
   //
   ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace, rte_pos, rte_los,

@@ -1402,12 +1402,37 @@ void Workspace::define_wsv_data()
    
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "dpnd_dx" ),
+     ( NAME( "dpnd_data_dx" ),
       DESCRIPTION
       (
        "Work in progress ....\n"
+       "\n"
+       "Dimensions: [ n_quantities, n_points, n_scattering_elements ]\n"
        ),
-      GROUP( "Matrix" )));
+      GROUP( "Tensor3" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "dpnd_data_dx_vars" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       "\n"
+       "\n"
+       "Dimensions: [ n_quantities ]\n"
+       ),
+      GROUP( "ArrayOfString" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "dpnd_field_dx" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       "\n"
+       "Dimensions: [n_quantities][ n_scattering_elements, n_p, n_lat, n_lon ]\n"
+       ),
+      GROUP( "ArrayOfTensor4" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1430,13 +1455,15 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "dpsd_dx" ),
+     ( NAME( "dpsd_data_dx" ),
       DESCRIPTION
       (
        "Work in progress ....\n"
+       "\n"
+       "Dimensions: [ n_retrieval_quantities, n_points, n_sizes ]\n"
        ),
-      GROUP( "Matrix" )));
-   
+      GROUP( "Tensor3" )));
+
    wsv_data.push_back
    (WsvRecord
    ( NAME( "dnlte_dx_source" ),
@@ -3265,10 +3292,12 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "particle_bulkprop" ),
+     ( NAME( "particle_bulkprop_field" ),
       DESCRIPTION
       (
        "Work in progress ....\n"
+       "\n"
+       "Dimensions: [ particle_bulkprop_names, p_grid, lat_grid, lon_grid ]\n"       
        ),
       GROUP( "Tensor4" )));
   
@@ -3278,6 +3307,8 @@ void Workspace::define_wsv_data()
       DESCRIPTION
       (
        "Work in progress ....\n"
+       "\n"
+       "Dimensions: length should match book-dimesion of *particle_bulkprop_field*\n" 
        ),
       GROUP( "ArrayOfString" )));
   
@@ -3440,21 +3471,45 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "pnd" ),
-      DESCRIPTION
-      (
-       "Work in progress ....\n"
-       ),
-      GROUP( "Vector" )));
-
-  wsv_data.push_back
-    (WsvRecord
      ( NAME( "pnd_agenda" ),
       DESCRIPTION
       (
        "Work in progress ....\n"
        ),
       GROUP( "Agenda" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "pnd_agenda_input" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       "\n"
+       "Dimensions: [ n_points, n_input_variables ]\n"
+       ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "pnd_agenda_input_names" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       "\n"
+       "Dimension: [ n_input_variables ]\n"
+       ),
+      GROUP( "ArrayOfString" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "pnd_data" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       "\n"
+       "Dimensions: [ n_points, n_scattering_elements ]\n"
+       ),
+      GROUP( "Matrix" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -3513,24 +3568,6 @@ void Workspace::define_wsv_data()
        "       [number of pressure levels, number of latitudes, number of longitudes]\n"
        ),
       GROUP( "ArrayOfGriddedField3" )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "pnd_input" ),
-      DESCRIPTION
-      (
-       "Work in progress ....\n"
-       ),
-      GROUP( "Vector" )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "pnd_input_names" ),
-      DESCRIPTION
-      (
-       "Work in progress ....\n"
-       ),
-      GROUP( "ArrayOfString" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3697,12 +3734,14 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "psd" ),
+     ( NAME( "psd_data" ),
       DESCRIPTION
       (
        "Work in progress ....\n"
+       "\n"
+       "Dimensions: [ n_points, n_sizes ]\n"
        ),
-      GROUP( "Vector" )));
+      GROUP( "Matrix" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -3710,6 +3749,8 @@ void Workspace::define_wsv_data()
       DESCRIPTION
       (
        "Work in progress ....\n"
+       "\n"
+       "Dimension: [ n_sizes ]\n"
        ),
       GROUP( "Vector" )));
 

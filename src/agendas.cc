@@ -670,8 +670,8 @@ void define_agenda_data()
        (
         "Work in progress ....\n"
         ),
-       OUTPUT( "pnd", "dpnd_dx" ),
-       INPUT( "scat_meta", "pnd_input", "jacobian_do" )));
+       OUTPUT( "pnd_data", "dpnd_data_dx" ),
+       INPUT( "pnd_agenda_input", "dpnd_data_dx_vars" )));
        
   agenda_data.push_back
     (AgRecord
