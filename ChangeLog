@@ -1,3 +1,16 @@
+2017-05-29 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-671
+
+	* src/rt4.cc,h, m_rt4.cc (run_rt4):
+	Debugging.
+
+	* src/methods.cc (DisortCalcwithARTSSurface, RT4Calc):
+	Spelling fixes in doc.
+
+	* controlfiles/planetary_toolbox/demos/common/DemoMarsClouds1D.arts:
+	Long-done doc corrections.
+
 2017-05-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-670

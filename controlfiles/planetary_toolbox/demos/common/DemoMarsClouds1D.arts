@@ -29,7 +29,7 @@
 #   f_grid            as the WSV                                               #
 #                                                                              #
 # This template makes use of the following include files                       #
-#   includes/mars/cloudsatmo_mars.arts                                         #
+#   includes/mars/clouds_mars.arts                                             #
 #   includes/mars/getclouds_mars.arts                                          #
 #   includes/common/makeclouds1D.arts                                          #
 #                                                                              #
@@ -103,7 +103,7 @@ IndexSet( dustRI, 1 )
 # select (up to) one
 ArrayOfIndexSet( co2case, [3] )
 
-# dust refractive index
+# CO2 ice refractive index
 ###
 # minimum-absorption  best-estimate  maximum-absorption
 #         0         ,      1       ,        2

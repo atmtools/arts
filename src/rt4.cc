@@ -480,6 +480,7 @@ void get_rt4surf_props( // Output
 void run_rt4( Workspace& ws,
               // Output
               Tensor7& doit_i_field,
+              Vector& scat_za_grid,
               // Input
               Index& f_index,
               ConstVectorView f_grid,
@@ -507,7 +508,6 @@ void run_rt4( Workspace& ws,
               const Agenda& surface_rtprop_agenda,
               const Numeric& surf_altitude,
               const String& quad_type,
-              ConstVectorView scat_za_grid,
               Vector& mu_values,
               ConstVectorView quad_weights,
               const Index& auto_inc_nstreams,
@@ -625,6 +625,9 @@ void run_rt4( Workspace& ws,
         }
 
       Index pfct_failed = 0;
+      cout << "\nProcessing freq #" << f_index << "\n";
+      //cout << "Requested nstreams: " << 2*nummu
+      //     << ". Starting with pfct_failed=" << pfct_failed << ".\n";
       if( pndtot )
         {
           par_optpropCalc( ws, emis_vector, extinct_matrix,
@@ -640,10 +643,12 @@ void run_rt4( Workspace& ws,
                            pfct_method, pfct_aa_grid_size, pfct_threshold,
                            auto_inc_nstreams,
                            verbosity );
+          //cout << "Returning from sca_optpropCalc with pfct_failed=" << pfct_failed << ".\n";
         }
 
       if (!pfct_failed)
       {
+        //cout << "Performing RT4 in no-failed branch with nstreams: " << 2*nummu << "\n";
 #pragma omp critical(fortran_rt4)
         {
           // Call RT4
@@ -681,17 +686,31 @@ void run_rt4( Workspace& ws,
       }
       else // if (auto_inc_nstreams)
       {
-        Index nummu_new = nummu+2;
+        //cout << "Entering failed-branch.\n";
+
+        Index nummu_new = nummu+1;
         Index nhstreams_new;
-        Vector mu_values_new, quad_weights_new, scat_za_grid_new, scat_aa_grid_new;
+        Vector mu_values_new, quad_weights_new, scat_aa_grid_new;
         Tensor6 scatter_matrix_new;
         Tensor5 extinct_matrix_new;
         Tensor4 emis_vector_new;
         Tensor4 surfreflmat_new;
         Matrix surfemisvec_new;
 
+        // for the WSV scat_za_grid we need to reset these grids instead of
+        // creating a new container. this because further down some agendas are
+        // used that access scat_za/aa_grid through the workspace.
+        // later on, we need to reconstruct the original setting, hence backup
+        // that here.
+        Vector scat_za_grid_orig = scat_za_grid;
+
+        //cout << "pfct_failed=" << pfct_failed << ", new nstream=" << 2*nummu_new
+        //     << ", max nstreams=" << auto_inc_nstreams << "\n";
+        //cout << "new streams <= max streams? "
+        //     << ((2*nummu_new)<=auto_inc_nstreams) << "\n";
         while (pfct_failed && (2*nummu_new)<=auto_inc_nstreams)
         {
+          //cout << "  increased nstreams to: " << 2*nummu_new << "\n";
         // resize and recalc nstream-affected/determined variables:
         //   - mu_values, quad_weights (resize & recalc)
           nhstreams_new = nummu_new-nhza;
@@ -700,7 +719,7 @@ void run_rt4( Workspace& ws,
           quad_weights_new.resize(nummu_new);
           quad_weights_new=0.;
           get_quad_angles( mu_values_new, quad_weights_new,
-                           scat_za_grid_new, scat_aa_grid_new,
+                           scat_za_grid, scat_aa_grid_new,
                            quad_type, nhstreams_new, nhza, nummu_new );
         //   - resize & recalculate emis_vector, extinct_matrix (as input to scatter_matrix calc)
           extinct_matrix_new.resize(num_scatlayers,2,nummu_new,stokes_dim,stokes_dim);
@@ -719,25 +738,42 @@ void run_rt4( Workspace& ws,
           sca_optpropCalc( scatter_matrix_new, pfct_failed,
                            emis_vector_new, extinct_matrix_new,
                            scat_data_mono, pnd_field, stokes_dim,
-                           scat_za_grid_new, quad_weights_new,
+                           scat_za_grid, quad_weights_new,
                            pfct_method, pfct_aa_grid_size, pfct_threshold,
                            auto_inc_nstreams,
                            verbosity );
+          //cout << "Returning from sca_optpropCalc with pfct_failed=" << pfct_failed << ".\n";
           
           if (pfct_failed)
-            nummu_new = nummu_new+2;
+            nummu_new = nummu_new+1;
         }
+
+        if (pfct_failed)
+          {
+            // couldn't find a nstreams within the limits of auto_inc_nstremas
+            // (aka max. nstreams) that satisfies the scattering matrix norm.
+            // Hence fail completely.
+            ostringstream os;
+            os << "Could not increase nstreams sufficiently to satisfy"
+               << " scattering matrix norm (current: " << 2*nummu_new << ").\n"
+               << "Try higher maximum number of allowed streams (ie. higher"
+               << " auto_inc_nstreams than " << auto_inc_nstreams << ").";
+            throw runtime_error( os.str() );
+
+          }
+
+        cout << "  Performing RT4 with nstreams: " << 2*nummu_new << "\n";
 
         // resize and calc remaining nstream-affected variables:
         //   - in case of surface_rtprop_agenda driven surface: surfreflmat, surfemisvec
         if (ground_type=="A") // surface_rtprop_agenda driven surface
         {
-          Tensor5 srm_new(1,nummu_new,stokes_dim,nummu,stokes_dim, 0.);
+          Tensor5 srm_new(1,nummu_new,stokes_dim,nummu_new,stokes_dim, 0.);
           Tensor3 sev_new(1,nummu_new,stokes_dim, 0.);
           surf_optpropCalc( ws, srm_new, sev_new,
                             surface_rtprop_agenda,
                             f_grid[Range(f_index,1)],
-                            scat_za_grid_new, mu_values_new, 
+                            scat_za_grid, mu_values_new, 
                             quad_weights_new, stokes_dim,
                             surf_altitude );
           surfreflmat_new=srm_new(0,joker,joker,joker,joker);
@@ -793,8 +829,22 @@ void run_rt4( Workspace& ws,
         //       down)
         //     - loop over num_layers and stokes_dim:
         //       - apply weights
+        //cout << "scat_za_grid has " << scat_za_grid.nelem() << " (=2*nummu_new="
+        //     << 2*nummu_new << ") elements.\n";
+        for (Index j = 0; j<nummu_new; j++)
+        {
+          //cout << "scat_za_grid[" << j << "]=" << scat_za_grid[j]
+          //     << ", mu=" << mu_values_new[j];
+          //if (j>0)
+            //cout << " (dza=" << scat_za_grid[j]-scat_za_grid[j-1] << ", dmu="
+            //     <<  mu_values_new[j]-mu_values_new[j-1] << ")\n";
+          //else
+            //cout << "\n";
+        }
+        
         for (Index j = 0; j<nummu; j++)
         {
+          //cout << "interpolating to za=" << scat_za_grid_orig[j] << "\n";
           GridPosPoly gp_za;
           if( cos_za_interp )
           {
@@ -803,8 +853,8 @@ void run_rt4( Workspace& ws,
           }
           else
           {
-            gridpos_poly( gp_za, scat_za_grid_new,
-                          scat_za_grid[j], za_interp_order, 0.5 );
+            gridpos_poly( gp_za, scat_za_grid[Range(0,nummu_new)],
+                          scat_za_grid_orig[j], za_interp_order, 0.5 );
           }
           Vector itw(gp_za.idx.nelem());
           interpweights( itw, gp_za );
@@ -816,6 +866,9 @@ void run_rt4( Workspace& ws,
               down_rad(k,j,ist) = interp(itw, down_rad_new(k,joker,ist), gp_za);
             }
         }
+
+        // reconstruct scat_za_grid
+        scat_za_grid = scat_za_grid_orig;
       }
 
 
@@ -1112,7 +1165,7 @@ void par_optpropCalc( Workspace& ws,
 */
 void sca_optpropCalc( //Output
                       Tensor6View scatter_matrix,
-                      Index pfct_failed,
+                      Index& pfct_failed,
                       //Input
                       ConstTensor4View emis_vector,
                       ConstTensor5View extinct_matrix,
@@ -1129,6 +1182,8 @@ void sca_optpropCalc( //Output
 {
   // FIXME: do we have numerical issues, too, here in case of tiny pnd? check
   // with Patrick's Disort-issue case.
+
+  //cout << "in sca_optpropCalc starting with pfct_failed=" << pfct_failed << "\n";
 
   // Check that we do indeed have scat_data_mono here.
   if( scat_data_mono[0][0].f_grid.nelem() > 1 )
@@ -1291,6 +1346,7 @@ void sca_optpropCalc( //Output
     }
 
   pfct_failed = 0;
+  //cout << "in sca_optpropCalc reset pfct_failed to " << pfct_failed << "\n";
   assert( i_se_flat == N_se );
   // now we sum up the Z(mu,mu') over the scattering elements weighted by the
   // pnd_field data, deriving Z(z,mu,mu') and sorting this into
@@ -1303,6 +1359,7 @@ void sca_optpropCalc( //Output
              scat_p_index_local < Np_cloud-1; 
              scat_p_index_local ++)
     {
+      //cout << "  cloudbox level #" << scat_p_index_local << "\n";
       for (Index i_se = 0; i_se < N_se; i_se++)
         {
           Numeric pnd_mean = 0.5 * ( pnd_field(i_se,scat_p_index_local+1,0,0)+
@@ -1327,8 +1384,10 @@ void sca_optpropCalc( //Output
         }
 //      cout << "cloudbox layer #" << scat_p_index_local << "\n";
       for (Index iza=0; iza<nummu; iza++)
+      {
+        //cout << "    stream direction #" << iza << "\n";
         for (Index ih=0; ih<2; ih++)
-          if ( !pfct_failed && extinct_matrix(scat_p_index_local,ih,iza,0,0) > 0. )
+          if ( extinct_matrix(scat_p_index_local,ih,iza,0,0) > 0. )
             {
               Numeric sca_mat_integ = 0.;
 
@@ -1354,11 +1413,17 @@ void sca_optpropCalc( //Output
 //            SUM1 = EMIS_VECTOR(1,J1,L,TSL)-EXTINCT_MATRIX(1,1,J1,L,TSL)
               Numeric pfct_norm = 2.*PI*sca_mat_integ / sca_nom;
               Numeric w0_act = 2.*PI*sca_mat_integ / ext_nom;
+              //cout << "sca_mat norm deviates " << 1e2*abs(1.-pfct_norm) << "%"
+              //     << " (" << abs(w0_act-w0_nom) << " in albedo).\n";
+
               if (abs(w0_act-w0_nom) > pfct_threshold)
               {
                 if (auto_inc_nstreams)
                 {
                   pfct_failed = 1;
+                  //cout << "Scattering matrix norm deviates too much.\n"
+                  //     << "Trying to increase nstreams to improve norm.\n";
+                  return;
                 }
                 else
                 {
@@ -1399,6 +1464,7 @@ void sca_optpropCalc( //Output
                   pfct_norm;
               }
             }
+      }
     }
 }
 

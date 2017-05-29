@@ -137,8 +137,8 @@ void RT4Calc( Workspace& ws,
                     quad_weights, stokes_dim,
                     surf_altitude );
 
-  const Numeric pfct_threshold=0.05;
-  run_rt4( ws, doit_i_field,
+  const Numeric pfct_threshold=0.05; //0.1;
+  run_rt4( ws, doit_i_field, scat_za_grid,
            f_index, f_grid, p_grid, z_field, t_field, vmr_field, pnd_field,
            scat_data, scat_data_mono,
            propmat_clearsky_agenda, opt_prop_part_agenda, spt_calc_agenda,
@@ -146,7 +146,7 @@ void RT4Calc( Workspace& ws,
            "A", surface_skin_t,
            ground_albedo, ground_reflec, ground_index,
            surf_refl_mat, surf_emis_vec, surface_rtprop_agenda, surf_altitude,
-           quad_type, scat_za_grid, mu_values, quad_weights,
+           quad_type, mu_values, quad_weights,
            auto_inc_nstreams, za_interp_order, cos_za_interp,
            pfct_method, pfct_aa_grid_size, pfct_threshold,
            max_delta_tau,
@@ -252,9 +252,9 @@ void RT4CalcWithRT4Surface(
                   surface_scalar_reflectivity, surface_reflectivity,
                   surface_complex_refr_index, stokes_dim );
 
-  Numeric pfct_threshold=0.05;
+  Numeric pfct_threshold=0.05; //0.1;
   Agenda dummy_agenda;
-  run_rt4( ws, doit_i_field,
+  run_rt4( ws, doit_i_field, scat_za_grid,
            f_index, f_grid, p_grid, z_field, t_field, vmr_field, pnd_field,
            scat_data, scat_data_mono,
            propmat_clearsky_agenda, opt_prop_part_agenda, spt_calc_agenda,
@@ -262,7 +262,7 @@ void RT4CalcWithRT4Surface(
            ground_type, surface_skin_t,
            ground_albedo, ground_reflec, ground_index,
            surf_refl_mat, surf_emis_vec, dummy_agenda, 0.,
-           quad_type, scat_za_grid, mu_values, quad_weights,
+           quad_type, mu_values, quad_weights,
            auto_inc_nstreams, za_interp_order, cos_za_interp,
            pfct_method, pfct_aa_grid_size, pfct_threshold,
            max_delta_tau,

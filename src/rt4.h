@@ -77,6 +77,7 @@ void get_rt4surf_props( // Output
 void run_rt4( Workspace& ws,
               // Output
               Tensor7& doit_i_field,
+              Vector& scat_za_grid,
               // Input
               Index& f_index,
               ConstVectorView f_grid,
@@ -104,7 +105,6 @@ void run_rt4( Workspace& ws,
               const Agenda& surface_rtprop_agenda,
               const Numeric& surf_altitude,
               const String& quad_type,
-              ConstVectorView scat_za_grid,
               Vector& mu_values,
               ConstVectorView quad_weights,
               const Index& auto_inc_nstreams,
@@ -148,7 +148,7 @@ void par_optpropCalc( Workspace& ws,
 
 void sca_optpropCalc( //Output
                       Tensor6View scatter_matrix,
-                      Index pfct_failed,
+                      Index& pfct_failed,
                       //Input
                       ConstTensor4View emis_vector,
                       ConstTensor5View extinct_matrix,
