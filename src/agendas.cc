@@ -671,7 +671,7 @@ void define_agenda_data()
         "Work in progress ....\n"
         ),
        OUTPUT( "pnd", "dpnd_dx" ),
-       INPUT( "scat_data", "scat_meta", "pnd_input", "jacobian_do" )));
+       INPUT( "scat_meta", "pnd_input", "jacobian_do" )));
        
   agenda_data.push_back
     (AgRecord

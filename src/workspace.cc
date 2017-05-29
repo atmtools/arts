@@ -3071,6 +3071,20 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Vector" )));
 
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "molarmass_dry_air" ),
+      DESCRIPTION
+      (
+       "The average molar mass of dry air.\n"
+       "\n"
+       "This could also be referred to as the average molecular weight for\n"
+       "dry air. The definition of \"dry air\" can differ between planets and\n"
+       "methods using the WSV. For Earth, this should be a value around\n"
+       "28.97.\n"
+       ),
+      GROUP( "Numeric" )));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "nlte_quantum_identifiers" ),
@@ -3153,20 +3167,6 @@ void Workspace::define_wsv_data()
         "Number of elements in 7th lowest dimension of a Tensor.\n"
        ),
       GROUP( "Index" )));
-
-  wsv_data.push_back
-    (WsvRecord
-     (NAME( "molarmass_dry_air" ),
-      DESCRIPTION
-      (
-       "The average molar mass of dry air.\n"
-       "\n"
-       "This could also be referred to as the average molecular weight for\n"
-       "dry air. The definition of \"dry air\" can differ between planets and\n"
-       "methods using the WSV. For Earth, this should be a value around\n"
-       "28.97.\n"
-       ),
-      GROUP( "Numeric" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -3265,6 +3265,24 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "particle_bulkprop" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       ),
+      GROUP( "Tensor4" )));
+  
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "particle_bulkprop_names" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       ),
+      GROUP( "ArrayOfString" )));
+  
+  wsv_data.push_back
+    (WsvRecord
      (NAME( "particle_masses" ),
       DESCRIPTION
       (
@@ -3291,7 +3309,7 @@ void Workspace::define_wsv_data()
        "Dimensions: [number of scattering elements, number of mass categories]\n"
        ),
       GROUP( "Matrix" )));
-    
+
     wsv_data.push_back
     (WsvRecord
      ( NAME( "partition_functions" ),

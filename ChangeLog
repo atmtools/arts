@@ -1,3 +1,11 @@
+2017-05-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-670
+
+	* Continued work on the stuff started in my last commits.
+
+	* src/workspace.cc: Added also particle_bulkprop and particle_bulkprop_names.
+
 2017-05-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-669

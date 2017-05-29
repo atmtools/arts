@@ -58,7 +58,7 @@ extern const Numeric SPEED_OF_LIGHT;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void pndFromPSD(
+void pndFromPsd(
          Vector&    pnd,
          Matrix&    dpnd_dx,
    const Vector&    psd,
@@ -66,12 +66,12 @@ void pndFromPSD(
    const Matrix&    dpsd_dx,
    const Verbosity& )
 {
+  // Sizes
   const Index nse  = psd.nelem();
         Index ndx  = 0;
   const bool do_dx = !dpsd_dx.empty();
 
-  // Shall we check that *psd_size_grid* is strictly increasing?  
-  
+  // Checks
   if( nse < 2 )
     throw runtime_error( "The method requires that length of *psd* is >= 2." );    
   if( psd_size_grid.nelem() != nse )
@@ -86,9 +86,14 @@ void pndFromPSD(
     }
   else
     { dpnd_dx.resize( 0, 0 ); }
-  
+  if( !is_increasing( psd_size_grid ) )
+    throw runtime_error( "*psd_size_grid* must be strictly increasing." );    
+
+
+  // dpnd_dx is sized above    
   pnd.resize( nse );
 
+  // Calculate
   Numeric binsize;
   for ( Index i=0; i<nse; i++ )
     {
@@ -153,7 +158,10 @@ void psdMH97 (
     throw runtime_error( "Element 0 of *pnd_input_names* must be \"IWC\"." );
   if( pnd_input_names[1] != "Temperature" )
     throw runtime_error( "Element 1 of *pnd_input_names* must be \"Temperature\"." );
-   
+  if( noisy  && jacobian_do )
+    throw runtime_error( "Jacobian calculatiopns and \"noisy\" can not be "
+                         "combined." );
+  
   // Create size grid
   const Index nse = scat_meta[iss].nelem();
   psd_size_grid.resize( nse );
@@ -195,30 +203,56 @@ void psdMH97 (
   
   // Calculate PSD
   for ( Index i=0; i<nse; i++ )
-    { psd[i] = IWCtopnd_MH97( iwc, psd_size_grid[i], t, noisy, 1 ); }
+    {
+      if( iwc == 0 )
+        { psd[i] = 0; }
+      else
+        { psd[i] = IWCtopnd_MH97( iwc, psd_size_grid[i], t, noisy, 1 ); }
+    }
+  
+  // Calculate derivative with respect to IWC
+  if( jacobian_do )
+    {
+      // Obtain derivative by perturbation of 1%, but not less than 0.1 mg/m3.
+      // Note that the last value becomes the perturbation for IWC=0.
+      const Numeric diwc = max( 0.01*iwc, 1e-7 );
+      for ( Index i=0; i<nse; i++ )
+        { dpsd_dx(0,i) = ( IWCtopnd_MH97(iwc+diwc,psd_size_grid[i],t,noisy,1) -
+                           psd[i] ) / diwc; }
+    }   
+  
 }
 
 
 
 
 void pnd_field_from_ppdata(
+         Workspace&                   ws,
          Tensor4&                     pnd_field,
          ArrayOfArrayOfTensor4&       dpndfield_dq,
-   const ArrayOfIndex&                cloudbox_limits,
-   const ArrayOfArrayOfSingleScatteringData& scat_data,
    const Index&                       atmosphere_dim,
+   const Tensor3&                     t_field,
+   const ArrayOfIndex&                cloudbox_limits,
+   const ArrayOfArrayOfScatteringMetaData&   scat_meta,
+   const Tensor4&                     particle_bulkprop,
+   const ArrayOfString&               particle_bulkprop_names,
+   const Agenda&                      pnd_agenda,
+   const ArrayOfString&               pnd_input_names,
    const Index&                       jacobian_do )
 {
+  // Asserts
   assert( cloudbox_limits.nelem() == 2*atmosphere_dim );
+  assert( particle_bulkprop.nbooks() == particle_bulkprop_names.nelem() );
+
   
   // Number of scattering species
-  const Index nss = scat_data.nelem();
+  const Index nss = scat_meta.nelem();
   
   // Cumulative number of scattering elements
   ArrayOfIndex ncumse(nss+1);
   ncumse[0] = 0;
-  for( Index i=0; i<scat_data.nelem(); i++ )
-    { ncumse[i+1] = ncumse[i+1] + scat_data[i].nelem(); }
+  for( Index i=0; i<nss; i++ )
+    { ncumse[i+1] = ncumse[i+1] + scat_meta[i].nelem(); }
 
   // Sizes
   const Index np = cloudbox_limits[1] - cloudbox_limits[0] + 1;
@@ -255,22 +289,56 @@ void pnd_field_from_ppdata(
   // Extract data from pnd-agenda array
   for( Index is=0; is<nss; is++ )
     {
+      // Index range with respect to pnd_field
       Range se_range( ncumse[is], ncumse[is+1]-ncumse[is] );
-      
+
+      // Determine how pnd_input_names are related to input fields
+      //
+      const Index nin = pnd_input_names.nelem();
+      Vector pnd_input(nin);
+      ArrayOfIndex i_pbulkprop(nin);
+      //
+      for( Index i=0; i<nin; i++ )
+        {
+          // We flag temperature with -100
+          if( pnd_input_names[i] == "Temperature" )
+            { i_pbulkprop[i] = -100; }
+          else
+            {
+              i_pbulkprop[i] = find_first( particle_bulkprop_names,
+                                           pnd_input_names[i] ); 
+            }
+        }
+
       for( Index ip=0; ip<np; ip++ )
         {
           for( Index ilat=0; ilat<nlat; ilat++ )
             {
               for( Index ilon=0; ilon<nlon; ilon++ )
                 {
+                  // Set pnd_input
+                  for( Index i=0; i<nin; i++ )
+                    {
+                      if( i_pbulkprop[i] == -100 )
+                        { pnd_input[i] = t_field(ip,ilat,ilon); }
+                      else
+                        { pnd_input[i] = particle_bulkprop( i_pbulkprop[i],
+                                                            ip, ilat, ilon ); }
+                    }
+
+                  cout << pnd_input << endl;
+                  
                   // Call pnd-agenda to obtain pnd_vec
                   Vector pnd;
-                  ArrayOfVector dpnd_dq;
+                  Matrix dpnd_dx;
+                  //
+                  pnd_agendaExecute( ws, pnd, dpnd_dx, scat_meta, pnd_input,
+                                     jacobian_do, pnd_agenda );
 
                   // Copy to output variables
                   pnd_field(se_range,ip,ilat,ilon) = pnd;
                   for( Index iq=0; iq<nq[is]; iq++ )
-                    { dpndfield_dq[is][iq](joker,ip,ilat,ilon) = dpnd_dq[iq]; }
+                    { dpndfield_dq[is][iq](joker,ip,ilat,ilon) = dpnd_dx(iq,joker); }
                 }
             }
         }
@@ -287,6 +355,7 @@ void iyCloudRadar(
          ArrayOfTensor4&              iy_aux,
          Ppath&                       ppath,
          ArrayOfTensor3&              diy_dx,
+         Tensor4&                     pnd_field,
    const Index&                       stokes_dim,
    const Vector&                      f_grid,
    const Index&                       atmosphere_dim,
@@ -303,10 +372,13 @@ void iyCloudRadar(
    const Tensor3&                     mag_w_field,
    const Index&                       cloudbox_on,
    const ArrayOfIndex&                cloudbox_limits,
-   const Tensor4&                     pnd_field,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
+   const ArrayOfArrayOfScatteringMetaData&   scat_meta,
+   const Tensor4&                     particle_bulkprop,
+   const ArrayOfString&               particle_bulkprop_names,
    const Matrix&                      particle_masses,
    const Agenda&                      pnd_agenda,
+   const ArrayOfString&               pnd_input_names,
    const String&                      iy_unit,
    const ArrayOfString&               iy_aux_vars,
    const Index&                       jacobian_do,
@@ -346,15 +418,13 @@ void iyCloudRadar(
         throw runtime_error( "With jacobian_do=1, *pnd_field* must be empty "
                              "it is generated from ???." );
 
-      // Make pnd_field in/out. For the moment use a dummy variable
-      Tensor4 pnd_dummy;
-      
       // Create pnd_field
-      pnd_field_from_ppdata( pnd_dummy, dpndfield_dq, cloudbox_limits,
-                             scat_data, atmosphere_dim, jacobian_do );
-
+      pnd_field_from_ppdata( ws, pnd_field, dpndfield_dq,
+                             atmosphere_dim, t_field, cloudbox_limits, scat_meta,
+                             particle_bulkprop, particle_bulkprop_names,
+                             pnd_agenda, pnd_input_names,
+                             jacobian_do );
     }
-  
 
   // Determine propagation path
   //

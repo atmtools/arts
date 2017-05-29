@@ -6653,7 +6653,7 @@ void define_md_data_raw()
          "       based indexing). Size: [1,1,1,np].\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
+        OUT( "iy", "iy_aux", "ppath", "diy_dx", "pnd_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -6662,8 +6662,9 @@ void define_md_data_raw()
             "wind_u_field", "wind_v_field", "wind_w_field",
             "mag_u_field", "mag_v_field", "mag_w_field",
             "cloudbox_on", "cloudbox_limits", "pnd_field",
-            "scat_data", "particle_masses", "pnd_agenda",
-            "iy_unit", "iy_aux_vars",
+            "scat_data", "scat_meta",
+            "particle_bulkprop", "particle_bulkprop_names", "particle_masses",
+            "pnd_agenda", "pnd_input_names", "iy_unit", "iy_aux_vars",
             "jacobian_do", "jacobian_quantities", "jacobian_indices",
             "ppath_agenda", "propmat_clearsky_agenda", "iy_transmitter_agenda",
             "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los",
@@ -10442,6 +10443,27 @@ void define_md_data_raw()
  
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "pndFromPsd" ),
+        DESCRIPTION
+        (
+        "Calculates *pnd* from given *psd*.\n"
+        "\n"
+        "Work in progress ....\n"
+        ),
+        AUTHORS( "Jana Mendrok and Patrick Eriksson" ),
+        OUT( "pnd", "dpnd_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "psd", "psd_size_grid", "dpsd_dx" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+ 
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "pnd_fieldCalcFrompnd_field_raw" ),
         DESCRIPTION
         ( "Interpolation of particle number density fields to calculation grid\n"
@@ -11327,6 +11349,28 @@ void define_md_data_raw()
                  )
         ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "psdMH97" ),
+        DESCRIPTION
+        (
+        "Work in progress ....\n"
+        ),
+        AUTHORS( "Jana Mendrok and Patrick Eriksson" ),
+        OUT( "psd", "psd_size_grid", "dpsd_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "scat_meta", "pnd_input", "pnd_input_names", "jacobian_do" ),
+        GIN( "t_min", "t_max", "picky", "noisy" ),
+        GIN_TYPE( "Numeric", "Numeric", "Index", "Index" ),
+        GIN_DEFAULT( "0", "273", "0", "0" ),
+        GIN_DESC( "Set *psd* to zero if below this temperature.",
+                  "Set *psd* to zero if above this temperature.",
+                  "Flag to control if outside [t_min,t_max] resulst in an error.",
+                  "Distribution parameter perturbance flag" )
+        ));
+ 
   md_data_raw.push_back     
     ( MdRecord
       ( NAME( "p_gridDensify" ),
