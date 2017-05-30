@@ -337,7 +337,7 @@ String Docserver::insert_wsv_link(const String& vname)
   map<String, Index>::const_iterator it = Workspace::WsvMap.find(vname);
   if (it != Workspace::WsvMap.end())
     {
-      if (Workspace::wsv_data[it->second].Group() == get_wsv_group_id("Agenda"))
+      if (is_agenda_group_id(Workspace::wsv_data[it->second].Group()))
         ret << "<a href=\"" << mbaseurl << "/agendas/" << vname << "\">" << vname << "</a>";
       else
         ret << "<a href=\"" << mbaseurl << "/variables/" << vname << "\">" << vname << "</a>";
@@ -363,13 +363,13 @@ void Docserver::list_agendas()
 
   Index hitcount = 0;
   for (i = 0; i < Workspace::wsv_data.nelem(); ++i)
-    if (Workspace::wsv_data[i].Group() == get_wsv_group_id("Agenda"))
+    if (is_agenda_group_id(Workspace::wsv_data[i].Group()))
       hitcount++;
   
   Index hitcount2 = 0;
   for (i = 0; i < Workspace::wsv_data.nelem(); ++i)
     {
-      if (Workspace::wsv_data[i].Group() == get_wsv_group_id("Agenda"))
+      if (is_agenda_group_id(Workspace::wsv_data[i].Group()))
         {
           get_os() << "<li>" << insert_agenda_link(Workspace::wsv_data[i].Name()) << "</li>" << endl;
           hitcount2++;
@@ -454,14 +454,14 @@ void Docserver::list_variables()
   Index hitcount = 0;
   for (i = 0; i < Workspace::wsv_data.nelem(); ++i)
     {
-      if (Workspace::wsv_data[i].Group() != get_wsv_group_id("Agenda"))
+      if (is_agenda_group_id(Workspace::wsv_data[i].Group()))
         hitcount++;
     }
 
   Index hitcount2 = 0;
   for (i = 0; i < Workspace::wsv_data.nelem(); ++i)
     {
-      if (Workspace::wsv_data[i].Group() != get_wsv_group_id("Agenda"))
+      if (is_agenda_group_id(Workspace::wsv_data[i].Group()))
         {
           get_os() << "<li>" << insert_wsv_link(Workspace::wsv_data[i].Name()) << "</li>" << endl;
           hitcount2++;

@@ -123,7 +123,7 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
   // the current workspace to this method
   for (Index j = 0; !pass_workspace && j < mdd.In().nelem(); j++)
     {
-      if (wsv_data[mdd.In()[j]].Group() == get_wsv_group_id ("Agenda"))
+      if (is_agenda_group_id(wsv_data[mdd.In()[j]].Group()))
         {
           pass_workspace = true;
         }
@@ -133,7 +133,7 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
   // the current workspace to this method
   for (Index j = 0; !pass_workspace && j < mdd.GInType().nelem(); j++)
     {
-      if (mdd.GInType()[j] == get_wsv_group_id ("Agenda"))
+      if (is_agenda_group_id(mdd.GInType()[j]))
         {
           pass_workspace = true;
         }
@@ -311,7 +311,7 @@ void write_method_header( ofstream& ofs,
   // the current workspace to this method
   for (Index j = 0; !pass_workspace && j < mdd.In().nelem(); j++)
     {
-      if (wsv_data[mdd.In()[j]].Group() == get_wsv_group_id ("Agenda"))
+      if (is_agenda_group_id(wsv_data[mdd.In()[j]].Group()))
         {
           pass_workspace = true;
         }
@@ -321,7 +321,7 @@ void write_method_header( ofstream& ofs,
   // the current workspace to this method
   for (Index j = 0; !pass_workspace && j < mdd.GInType().nelem(); j++)
     {
-      if (mdd.GInType()[j] == get_wsv_group_id ("Agenda"))
+      if (is_agenda_group_id(mdd.GInType()[j]))
         {
           pass_workspace = true;
         }

@@ -1,3 +1,65 @@
+2017-05-30  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-677
+
+	* WORK IN PROGRESS: Implementation of ArrayOfAgenda.
+
+	* src/agenda_class.h: Add ArrayOfAgenda typedef.
+
+	* src/agenda_record.cc (AgRecord::AgRecord):
+
+	Turn assertion into runtime error for better error output in
+	make_auto_md*.
+
+	* src/workspace.cc, src/agendas.cc: Add test_agenda_array.
+
+	* src/groups.cc: Add ArrayOfAgenda.
+
+	* src/wsv_aux.h, src/groups.cc (is_agenda_group_id):
+
+	Add convenience method.
+
+	* src/m_agenda.cc, src/methods.cc:
+
+	Add WSMs ArrayOfAgendaExecute and ArrayOfAgendaAppend.
+
+	* src/m_general.cc, src/methods.cc:
+
+	Add WSMs TestArrayOfAgenda.
+
+	* src/m_append.h, src/methods.cc:
+
+	Pass WSV names to append. Needed to treat append properly for
+	ArrayOfAgenda.
+
+	* src/m_basic_types.h: Add nelemGet for ArrayOfAgenda.
+
+	* src/m_copy.h: Add copy for ArrayOfAgenda.
+
+	* src/m_general.{h,cc}: Add print for ArrayOfAgenda.
+
+	* src/m_ignore.h: Add Ignore for ArrayOfAgenda.
+
+	* src/m_select.h: Add Select for ArrayOfAgenda.
+
+	* src/m_xml.{h,cc}:
+
+	Cleanup implementation of ReadXML* and WriteXML* by turning them into
+	template functions and moving the into the header file.
+
+	Remove MPI handling from WriteXMLIndexed function as it is handled
+	anyway in WriteXML.
+
+	* src/docserver.cc, src/make_auto_md_h.cc, src/make_auto_md_cc.cc:
+
+	Use new is_agenda_group_id.
+	
+	* src/xml_io_array_types.cc, src/xml_io_instantiation.h,
+	src/xml_io_types.h:
+
+	Add ArrayOfAgenda. Throws a runtime error because Agenda can't be
+	saved/loaded.
+
 2017-05-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-676

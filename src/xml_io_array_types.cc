@@ -38,6 +38,41 @@
 //   Overloaded functions for reading/writing data from/to XML stream
 ////////////////////////////////////////////////////////////////////////////
 
+//=== ArrayOfAgenda ===========================================
+
+//! Reads ArrayOfAgenda from XML input stream
+/*!
+  \param is_xml   XML Input stream
+  \param aa       ArrayOfAgenda return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml   _U_,
+                          ArrayOfAgenda& aa _U_,
+                          bifstream* pbifs  _U_,
+                          const             Verbosity&)
+{
+  throw runtime_error("Not supported.");
+}
+
+
+//! Writes ArrayOfAgenda to XML output stream
+/*!
+  \param os_xml   XML Output stream
+  \param aa       ArrayOfAgenda
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
+*/
+void xml_write_to_stream(ostream& os_xml         _U_,
+                         const ArrayOfAgenda& aa _U_,
+                         bofstream* pbofs        _U_,
+                         const String&  name     _U_,
+                         const                   Verbosity&)
+
+{
+  throw runtime_error("ArrayOfAgendas can't be saved.");
+}
+
+
 //=== Array<SpeciesRecord> ================================================
 
 //! Reads SpeciesData from XML input stream

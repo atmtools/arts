@@ -108,6 +108,7 @@ TMPL_XML_READ_WRITE_STREAM(Verbosity)
 
 //=== Array Types ==========================================================
 
+TMPL_XML_READ_WRITE_STREAM(ArrayOfAgenda)
 TMPL_XML_READ_WRITE_STREAM(Array<IsotopologueRecord> )
 TMPL_XML_READ_WRITE_STREAM(Array<SpeciesRecord> )
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfArrayOfArrayOfGridPos)

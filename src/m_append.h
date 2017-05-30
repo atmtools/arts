@@ -32,6 +32,9 @@
 #include "array.h"
 #include "exceptions.h"
 #include "matpackI.h"
+#include "matpackIII.h"
+#include "matpackVI.h"
+#include "agenda_class.h"
 
 
 /* Implementations for supported types follow. */
@@ -40,9 +43,12 @@
 template< class T >
 void Append(// WS Generic Output:
             Array<T>& out,
+            const String& /* out_name */,
             // WS Generic Input:
             const Array<T>& in,
             const String& direction _U_,
+            const String& /* in_name */,
+            const String& /* direction_name */,
             const Verbosity&)
 {
     const Array<T>* in_pnt;
@@ -70,9 +76,12 @@ void Append(// WS Generic Output:
 template< class T >
 void Append(// WS Generic Output:
             Array<T>& out,
+            const String& /* out_name */,
             // WS Generic Input:
             const T& in,
             const String& direction _U_,
+            const String& /* in_name */,
+            const String& /* direction_name */,
             const Verbosity&)
 {
   // Append in to end of out:
@@ -80,12 +89,56 @@ void Append(// WS Generic Output:
 }
 
 
+/* Implementation for array types to append single element */
+void Append(Workspace& ws,
+            // WS Generic Output:
+            ArrayOfAgenda& out,
+            const String& out_name,
+            // WS Generic Input:
+            const Agenda& in,
+            const String& direction _U_,
+            const String& /* in_name */,
+            const String& /* direction_name */,
+            const Verbosity& verbosity)
+{
+  // Append in to end of out:
+  out.push_back(in);
+  out[out.nelem() - 1].set_name(out_name);
+  out[out.nelem() - 1].check(ws, verbosity);
+}
+
+
+/* Implementation for array types to append single element */
+void Append(Workspace& ws,
+            // WS Generic Output:
+            ArrayOfAgenda& out,
+            const String& out_name,
+            // WS Generic Input:
+            const ArrayOfAgenda& in,
+            const String& direction _U_,
+            const String& /* in_name */,
+            const String& /* direction_name */,
+            const Verbosity& verbosity)
+{
+  // Append in to end of out:
+  for (ArrayOfAgenda::const_iterator it = in.begin(); it != in.end(); it++)
+  {
+    out.push_back(*it);
+    out[out.nelem() - 1].set_name(out_name);
+    out[out.nelem() - 1].check(ws, verbosity);
+  }
+}
+
+
 /* Implementation for Vector */
 void Append(// WS Generic Output:
             Vector& out,
+            const String& /* out_name */,
             // WS Generic Input:
             const Vector& in,
             const String& direction _U_,
+            const String& /* in_name */,
+            const String& /* direction_name */,
             const Verbosity&)
 {
     const Vector* in_pnt;
@@ -120,9 +173,12 @@ void Append(// WS Generic Output:
 /* Implementation for Matrix */
 void Append(// WS Generic Output:
             Matrix& out,
+            const String& /* out_name */,
             // WS Generic Input:
             const Matrix& in,
             const String& direction,
+            const String& /* in_name */,
+            const String& /* direction_name */,
             const Verbosity&)
 {
     const Matrix* in_pnt;
@@ -176,9 +232,12 @@ void Append(// WS Generic Output:
 /* Implementation for Matrix/Vector */
 void Append(// WS Generic Output:
             Matrix& out,
+            const String& /* out_name */,
             // WS Generic Input:
             const Vector& in,
             const String& direction,
+            const String& /* in_name */,
+            const String& /* direction_name */,
             const Verbosity&)
 {
     // Get backup of out:
@@ -225,9 +284,12 @@ void Append(// WS Generic Output:
 /* Implementation for Vector/Numeric */
 void Append(// WS Generic Output:
             Vector& out,
+            const String& /* out_name */,
             // WS Generic Input:
             const Numeric& in,
             const String& direction _U_,
+            const String& /* in_name */,
+            const String& /* direction_name */,
             const Verbosity&)
 {
     // Get backup of out:
@@ -248,10 +310,13 @@ void Append(// WS Generic Output:
 /* Implementation for Tensor3/Matrix */
 void Append(// WS Generic Output:
             Tensor3& out,
+            const String& /* out_name */,
             // WS Generic Input:
             const Matrix& in,
 //            const String& direction,
             const String& direction _U_,
+            const String& /* in_name */,
+            const String& /* direction_name */,
             const Verbosity&)
 {
     // Get backup of out:
@@ -281,10 +346,13 @@ void Append(// WS Generic Output:
 /* Implementation for Tensor3 */
 void Append(// WS Generic Output:
             Tensor3& out,
+            const String& /* out_name */,
             // WS Generic Input:
             const Tensor3& in,
 //            const String& direction,
             const String& direction _U_,
+            const String& /* in_name */,
+            const String& /* direction_name */,
             const Verbosity&)
 {
     const Tensor3* in_pnt;
@@ -325,10 +393,13 @@ void Append(// WS Generic Output:
 /* Implementation for Tensor4 */
 void Append(// WS Generic Output:
             Tensor4& out,
+            const String& /* out_name */,
             // WS Generic Input:
             const Tensor4& in,
 //            const String& direction,
             const String& direction _U_,
+            const String& /* in_name */,
+            const String& /* direction_name */,
             const Verbosity&)
 {
     const Tensor4* in_pnt;
@@ -370,9 +441,12 @@ void Append(// WS Generic Output:
 /* Implementation for String */
 void Append(// WS Generic Output:
             String& out,
+            const String& /* out_name */,
             // WS Generic Input:
             const String& in,
             const String& direction _U_,
+            const String& /* in_name */,
+            const String& /* direction_name */,
             const Verbosity&)
 {
   // String stream for easy string operations:

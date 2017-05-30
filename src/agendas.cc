@@ -438,6 +438,16 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
+     ( NAME( "test_agenda_array" ),
+       DESCRIPTION
+       (
+        "Agenda array for testing purposes.\n"
+        ),
+       OUTPUT(),
+       INPUT( "iy_unit" )));
+
+  agenda_data.push_back
+    (AgRecord
      ( NAME( "iy_surface_sub_agenda0" ),
        DESCRIPTION
        (

@@ -45,9 +45,6 @@ void Copy(// WS Generic Output:
           const String& /* in_name */,
           const Verbosity&)
 {
-  // The use of CloneSize should not be necessary anymore, thanks to
-  // the new copy semantics.  
-  // CloneSize( out, outname, in, inname );
   out = in;
 }
 
@@ -61,12 +58,28 @@ void Copy(Workspace& ws,
           const String& /* in_name */,
           const Verbosity& verbosity)
 {
-  // The use of CloneSize should not be necessary anymore, thanks to
-  // the new copy semantics.  
-  // CloneSize( out, outname, in, inname );
   out = in;
   out.set_name(out_name);
   out.check(ws, verbosity);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Copy(Workspace& ws,
+          // WS Generic Output:
+          ArrayOfAgenda& out,
+          const String& out_name,
+          // WS Generic Input:
+          const ArrayOfAgenda& in,
+          const String& /* in_name */,
+          const Verbosity& verbosity)
+{
+  out = in;
+  for (ArrayOfAgenda::iterator it = out.begin(); it != out.end(); it++)
+  {
+    (*it).set_name(out_name);
+    (*it).check(ws, verbosity);
+  }
 }
 
 #endif // m_copy_h

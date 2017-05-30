@@ -83,6 +83,19 @@ void Select(// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void Select(Workspace& /* ws */,
+            // WS Generic Output:
+            ArrayOfAgenda& needles,
+            // WS Generic Input:
+            const ArrayOfAgenda& haystack,
+            const ArrayOfIndex& needleind,
+            const Verbosity& verbosity)
+{
+  Select(needles, haystack, needleind, verbosity);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Select(// WS Generic Output:
             Vector& needles,
             // WS Generic Input:

@@ -82,14 +82,36 @@ void INCLUDE(const Verbosity&)
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Print(Workspace& ws _U_,
            // WS Generic Input:
-           const Agenda&   x,
+           const Agenda& x,
            // Keywords:
-           const Index&    level,
+           const Index& level,
            const Verbosity& verbosity)
 {
   ostringstream os;
   os << "    " << x.name() << " {\n";
   x.print(os, "        ");
+  os << "    " << "}";
+  CREATE_OUTS;
+  SWITCH_OUTPUT (level, os.str ());
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Print(Workspace& ws _U_,
+           // WS Generic Input:
+           const ArrayOfAgenda&   x,
+           // Keywords:
+           const Index&    level,
+           const Verbosity& verbosity)
+{
+  ostringstream os;
+  os << "    " << x.nelem() << " agendas: {\n";
+  for (Index i = 0; i < x.nelem(); i++)
+  {
+      os << "      " << x[i].name() << ": {\n";
+      x[i].print(os, "          ");
+      os << "      " << "}\n";
+  }
   os << "    " << "}";
   CREATE_OUTS;
   SWITCH_OUTPUT (level, os.str ());
@@ -420,6 +442,17 @@ void Exit(const Verbosity& verbosity)
   arts_exit (EXIT_SUCCESS);
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void TestArrayOfAgenda(Workspace& ws,
+                       const ArrayOfAgenda& test_agenda_array,
+                       const Index& index,
+                       const Verbosity&)
+{
+    ostringstream os;
+    os << "Executed agenda #" << index;
+    test_agenda_arrayExecute(ws, os.str(), test_agenda_array[index]);
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Test(const ArrayOfArrayOfLineRecord& ast, const ArrayOfQuantumIdentifier& aqi, const Verbosity& verbosity)

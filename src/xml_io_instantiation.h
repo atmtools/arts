@@ -90,6 +90,7 @@ TMPL_XML_READ_WRITE(Verbosity)
 
 //=== Array Types ==========================================================
 
+TMPL_XML_READ_WRITE(ArrayOfAgenda)
 TMPL_XML_READ_WRITE(Array<IsotopologueRecord> )
 TMPL_XML_READ_WRITE(Array<SpeciesRecord> )
 TMPL_XML_READ_WRITE(ArrayOfArrayOfArrayOfArrayOfGridPos)

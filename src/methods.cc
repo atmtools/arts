@@ -2089,6 +2089,53 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ArrayOfAgendaAppend" ),
+        DESCRIPTION
+        ( 
+         "Set up an agenda and append it to the array of agendas.\n"
+         "\n"
+         "See *AgendaSet* for details.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(      "out"       ),
+        GOUT_TYPE( "ArrayOfAgenda" ),
+        GOUT_DESC( "The new agenda." ),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC(),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   true  ),
+        USES_TEMPLATES( false ),
+        PASSWORKSPACE(  false ),
+        PASSWSVNAMES(   true  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ArrayOfAgendaExecute" ),
+        DESCRIPTION
+        (
+         "Execute an agenda from an ArrayOfAgenda.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(         "agendas", "index" ),
+        GIN_TYPE(    "ArrayOfAgenda", "Index" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC(    "Array of agendas.", "Index of Agenda to be executed." ),
+        SETMETHOD(    false ),
+        AGENDAMETHOD( false )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "AntennaConstantGaussian1D" ),
         DESCRIPTION
         (
@@ -2315,7 +2362,9 @@ void define_md_data_raw()
                   "Where to append. Could be either the \"leading\" or \"trailing\" dimension." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        USES_TEMPLATES( true  )
+        USES_TEMPLATES( true  ),
+        PASSWORKSPACE(  false ),
+        PASSWSVNAMES(   true  )
         ));
 
   md_data_raw.push_back
@@ -14773,6 +14822,30 @@ void define_md_data_raw()
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF     ),
         GIN_DESC( "Tensor value." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "TestArrayOfAgenda" ),
+        DESCRIPTION
+        (
+         "A dummy method that can be used for test purposes.\n"
+         "\n"
+         "This method can be used by ARTS developers to quickly test stuff.\n"
+         "The implementation is in file m_general.cc. This just saves you the\n"
+         "trouble of adding a dummy method everytime you want to try\n"
+         "something out quickly.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN("test_agenda_array"),
+        GIN("index"),
+        GIN_TYPE("Index"),
+        GIN_DEFAULT("0"),
+        GIN_DESC("Index of agenda in array to execute.")
         ));
 
   md_data_raw.push_back

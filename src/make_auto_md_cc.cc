@@ -147,7 +147,7 @@ int main()
               // the current workspace to this method
               for (Index j = 0; !pass_workspace && j < mdd.In().nelem(); j++)
                 {
-                  if (wsv_data[mdd.In()[j]].Group() == get_wsv_group_id ("Agenda"))
+                  if (is_agenda_group_id(wsv_data[mdd.In()[j]].Group()))
                     {
                       pass_workspace = true;
                     }
@@ -157,7 +157,7 @@ int main()
               // the current workspace to this method
               for (Index j = 0; !pass_workspace && j < mdd.GInType().nelem(); j++)
                 {
-                  if (mdd.GInType()[j] == get_wsv_group_id ("Agenda"))
+                  if (is_agenda_group_id(mdd.GInType()[j]))
                     {
                       pass_workspace = true;
                     }
@@ -293,7 +293,7 @@ int main()
               // Add comma and line break, if not first element:
               align(ofs,is_first_parameter,indent);
 
-              if (wsv_data[vi[j]].Group() == get_wsv_group_id("Agenda"))
+              if (is_agenda_group_id(wsv_data[vi[j]].Group()))
                 {
                   ofs << "*(("
                     << wsv_group_names[wsv_data[vi[j]].Group()]

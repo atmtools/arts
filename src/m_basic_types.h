@@ -186,6 +186,13 @@ NGET_GENERIC (nlibraries, Tensor7)
 #undef NGET_GENERIC
 
 
+void nelemGet(Workspace& /* ws */,
+              Index& nelem,
+              const ArrayOfAgenda& x,
+              const Verbosity&)
+{
+    nelem = x.nelem();
+}
 
 #endif /* M_BASIC_TYPES_H */
 

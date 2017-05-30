@@ -2215,6 +2215,15 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "test_agenda_array" ),
+      DESCRIPTION
+      (
+       "ArrayOfAgenda for testing purposes.\n"
+       ),
+      GROUP( "ArrayOfAgenda" )));
+
+   wsv_data.push_back
+    (WsvRecord
      ( NAME( "iy_surface_sub_agenda0" ),
       DESCRIPTION
       (

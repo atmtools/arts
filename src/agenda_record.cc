@@ -66,8 +66,12 @@ AgRecord::AgRecord(const char               name[],
   // in workspace.cc for your agenda. If you have done so and
   // still get an assertion failure, then check that you spelled
   // the name in exactly the same way in both places.
-  assert(Workspace::WsvMap.end() !=
-         Workspace::WsvMap.find(mname));
+  if (Workspace::WsvMap.end() == Workspace::WsvMap.find(mname))
+  {
+    std::ostringstream os;
+    os << "Agenda *" << mname << "* not found in WSV data.";
+    throw std::runtime_error(os.str());
+  }
 
   moutput.resize(output.nelem());
   for (Index j = 0; j < output.nelem(); ++j)
@@ -150,7 +154,8 @@ bool check_agenda_data()
   for (j = 0; j < Workspace::wsv_data.nelem(); ++j)
     {
       // Is this an agenda WSV?
-      if (get_wsv_group_id("Agenda") == Workspace::wsv_data[j].Group())
+      if (get_wsv_group_id("Agenda") == Workspace::wsv_data[j].Group()
+          || get_wsv_group_id("ArrayOfAgenda") == Workspace::wsv_data[j].Group())
         {
           //      cout << "Checking agenda_data for " << Workspace::wsv_data[j].Name() << ".\n";
 

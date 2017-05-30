@@ -27,10 +27,15 @@
 #ifndef m_xml_h
 #define m_xml_h
 
+#ifdef ENABLE_MPI
+#include "mpi.h"
+#endif
+
 #include "exceptions.h"
 #include "xml_io.h"
 #include "workspace_ng.h"
 #include "agenda_class.h"
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
@@ -54,17 +59,20 @@ ReadXML (// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void
+template<typename T> void
 ReadXML (Workspace&    ws _U_,
          // WS Generic Output:
-         Agenda&       v,
+         T&            v,
          // WS Generic Output Names:
          const String& v_name,
          // WS Generic Input:
          const String& f,
          // WS Generic Input Names:
          const String& f_name,
-         const Verbosity& verbosity);
+         const Verbosity& verbosity)
+{
+  ReadXML (v, v_name, f, f_name, verbosity);
+}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -93,19 +101,24 @@ ReadXMLIndexed (// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void
+template<typename T> void
 ReadXMLIndexed (Workspace&    ws _U_,
                 // WS Generic Output:
-                Agenda&       v,
+                T&            v,
                 // WS Generic Output Names:
                 const String& v_name,
+                // WS Input:
+                const Index& file_index,
                 // WS Generic Input:
                 const String& f,
                 const Index& digits,
                 // WS Generic Input Names:
                 const String& f_name,
                 const String& digits_name,
-                const Verbosity& verbosity);
+                const Verbosity& verbosity)
+{
+  ReadXMLIndexed (v, v_name, file_index, f, digits, f_name, digits_name, verbosity);
+}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -123,6 +136,22 @@ WriteXML (//WS Input:
           const Verbosity& verbosity)
 
 {
+  // If MPI is enabled make sure only master process performs the write.
+#ifdef ENABLE_MPI
+  int initialized;
+  MPI_Initialized(&initialized);
+  if (!initialized)
+  {
+    MPI_Init(nullptr, nullptr);
+  }
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  if (rank != 0)
+  {
+    return
+  }
+#endif // ENABLE_MPI
+
   String filename = f;
   FileType ftype;
 
@@ -164,19 +193,24 @@ WriteXML (//WS Input:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void
+template<typename T> void
 WriteXML (Workspace& ws _U_,
           //WS Input:
           const String& file_format,
           // WS Generic Input:
-          const Agenda& v,
+          const T&      v,
           const String& f,
           const Index&  no_clobber,
           // WS Generic Input Names:
           const String& v_name,
           const String& f_name,
           const String& no_clobber_name,
-          const Verbosity& verbosity);
+          const Verbosity& verbosity)
+{
+  WriteXML (file_format, v, f, no_clobber,
+            v_name, f_name, no_clobber_name, verbosity);
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
@@ -198,26 +232,29 @@ WriteXMLIndexed (//WS Input:
   // Create default filename if empty
   filename_xml_with_index( filename, file_index, v_name, digits );
 
-  WriteXML( file_format, v, filename, 0,
-           v_name, f_name, "", verbosity );
+  WriteXML( file_format, v, filename, 0, v_name, f_name, "", verbosity );
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void
+template<typename T> void
 WriteXMLIndexed (Workspace& ws _U_,
                  //WS Input:
                  const String& file_format,
                  const Index&  file_index,
                  // WS Generic Input:
-                 const Agenda& v,
+                 const T&      v,
                  const String& f,
                  const Index&  digits,
                  // WS Generic Input Names:
                  const String& v_name,
                  const String& f_name,
                  const String& digits_name,
-                 const Verbosity& verbosity);
+                 const Verbosity& verbosity)
+{
+  WriteXMLIndexed(file_format, file_index, v, f, digits, v_name, f_name,
+                  digits_name, verbosity);
+}
 
 #endif // m_xml_h
 

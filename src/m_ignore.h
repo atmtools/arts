@@ -45,6 +45,15 @@ void Ignore(Workspace&,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void Ignore(Workspace&,
+            // WS Generic Input:
+            const ArrayOfAgenda&,
+            const Verbosity&)
+{
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 template< class T >
 void Ignore(// WS Generic Input:
             const T&,

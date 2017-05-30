@@ -91,6 +91,7 @@ void define_wsv_group_names()
 
   wsv_group_names.push_back("Agenda");
   wsv_group_names.push_back("Any");
+  wsv_group_names.push_back("ArrayOfAgenda");
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField1");
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField2");
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField3");
@@ -206,6 +207,12 @@ void get_wsv_group_ids(ArrayOfIndex& ids, String name)
       pos++;
       prev = pos;
     }
+}
+
+bool is_agenda_group_id(const Index group)
+{
+  return (group == get_wsv_group_id("Agenda")
+          || group == get_wsv_group_id("ArrayOfAgenda"));
 }
 
 Index get_wsv_group_id(const String& name)

@@ -36,6 +36,9 @@
 //! Returns list of ids of the given group names
 void get_wsv_group_ids(ArrayOfIndex& ids, String name);
 
+//! Check if group is an agenda group
+bool is_agenda_group_id(const Index group_id);
+
 //! Returns the id of the given group
 Index get_wsv_group_id(const String& name);
 

@@ -292,5 +292,8 @@ inline Agenda& Agenda::operator=(const Agenda& x)
 // Documentation is with implementation.
 ostream& operator<<(ostream& os, const MRecord& a);
 
+/** An array of Agenda. */
+typedef Array<Agenda> ArrayOfAgenda;
+
 #endif
 
