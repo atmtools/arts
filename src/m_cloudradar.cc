@@ -58,45 +58,64 @@ extern const Numeric SPEED_OF_LIGHT;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void pndFromPsd(
-         Matrix&    pnd,
-         Tensor3&   dpnd_dx,
+void pndFromPsdBasic(
+         Matrix&    pnd_data,
+         Tensor3&   dpnd_data_dx,
+   const Vector&    pnd_size_grid,
    const Matrix&    psd_data,
    const Vector&    psd_size_grid,
    const Tensor3&   dpsd_data_dx,
    const Verbosity& )
 {
-  /*
-  // Sizes
-  const Index nse  = psd.nelem();
-        Index ndx  = 0;
-  const bool do_dx = !dpsd_dx.empty();
+  // Some sizes 
+  const Index np  = psd_data.nrows();
+  const Index ng  = psd_size_grid.nelem();
+        Index ndx = 0;
+  const bool  do_dx = !dpsd_data_dx.empty();
+  
 
   // Checks
-  if( nse < 2 )
-    throw runtime_error( "The method requires that length of *psd* is >= 2." );    
-  if( psd_size_grid.nelem() != nse )
-    throw runtime_error( "*psd* and *psd_size_grid* must have the same length." );
+  if( ng < 2 )
+    throw runtime_error( "The method requires that length of *psd_size_grid* is >= 2." );
+  if( ng != pnd_size_grid.nelem() )
+    throw runtime_error( "The method requires that *psd_size_grid* and "
+                         "*pnd_size_grid* have same length." );
+  for( Index i=0; i<ng; i++ )
+    {
+      if( psd_size_grid[i] != pnd_size_grid[i] )
+        throw runtime_error( "The method requires that *psd_size_grid* and "
+                             "*pnd_size_grid* are identical." );
+    }
+  if( psd_data.ncols() != ng )
+    throw runtime_error( "Number of columns in *psd_data* and length of "
+                         "*psd_size_grid* must match." );
   if( do_dx )
     {
-      if( dpsd_dx.ncols() != nse )
-        throw runtime_error( "Length of *psd* and number of columns in *dpsd_dx* "
-                             "must be equal." );
-      ndx = dpsd_dx.nrows();
-      dpnd_dx.resize( ndx, nse );
+      if( dpsd_data_dx.ncols() != ng )
+        throw runtime_error( "Number of columns in *dpsd_data_dx* and length of "
+                             "*psd_size_grid* must match." );
+      ndx = dpsd_data_dx.npages();
+      dpnd_data_dx.resize( ndx, np, ng );
     }
   else
-    { dpnd_dx.resize( 0, 0 ); }
+    { dpnd_data_dx.resize( 0, 0, 0 ); }
+
+  // Jana!!! I leave to you to add handling of unsored grids
   if( !is_increasing( psd_size_grid ) )
     throw runtime_error( "*psd_size_grid* must be strictly increasing." );    
 
 
-  // dpnd_dx is sized above    
-  pnd.resize( nse );
+  // Also, is my scheme to define bin sizes the same as you used?
+  // Asking as I get deviating results, and I suspect it could come from this
+  // part 
 
+  // dpnd_dx is sized above    
+  pnd_data.resize( np, ng );
+
+  
   // Calculate
   Numeric binsize;
-  for ( Index i=0; i<nse; i++ )
+  for ( Index i=0; i<ng; i++ )
     {
       // This bin is twice the half-distance to point 1, but could be limited
       // by 0 in lower end.
@@ -106,21 +125,24 @@ void pndFromPsd(
           binsize = dd + min( dd, psd_size_grid[0]/ 2.0 );
         }
       // This bin is twice the half-distance to closest point      
-      else if( i == nse-1 )
+      else if( i == ng-1 )
         { binsize = 2.0 * ( psd_size_grid[i] - psd_size_grid[i-1] ) / 2.0; }
       // This bin is the sum of the two half-distances      
       else
         { binsize = ( psd_size_grid[i+1] - psd_size_grid[i-1] ) / 2.0; }
 
-      pnd[i] = binsize * psd[i];
+      for( Index ip=0; ip<np; ip++ )
+        { pnd_data(ip,i) = binsize * psd_data(ip,i); }
 
       if( do_dx )
         {
-          for ( Index x=0; x<ndx; x++ )
-            { dpnd_dx(x,i) = binsize * dpsd_dx(x,i); }
+          for( Index ip=0; ip>np; ip++ )
+            {
+              for ( Index x=0; x<ndx; x++ )
+                { dpnd_data_dx(x,ip,i) = binsize * dpsd_data_dx(x,ip,i); }
+            }
         }
     }
-  */
 }
 
 
@@ -130,6 +152,7 @@ void psdMH97 (
           Matrix&                             psd_data,
           Vector&                             psd_size_grid,
           Tensor3&                            dpsd_data_dx,
+          Vector&                             pnd_size_grid,
     const ArrayOfArrayOfScatteringMetaData&   scat_meta,
     const Matrix&                             pnd_agenda_input,
     const ArrayOfString&                      pnd_agenda_input_names,
@@ -160,7 +183,7 @@ void psdMH97 (
          << " elements.";
       throw runtime_error(os.str());
     }
-  if( pnd_agenda_input.nrows() != nin )
+  if( pnd_agenda_input.ncols() != nin )
     throw runtime_error( "Length of *pnd_agenda_input_names* and number of "
                          "columns in *pnd_agenda_input* must be equal." );
   if( pnd_agenda_input.ncols() != 2 )
@@ -181,13 +204,14 @@ void psdMH97 (
                          "combined." );
 
   
-  // Create size grid
+  // Create size grids, so far set to be equal
   //
   const Index nse = scat_meta[iss].nelem();
   psd_size_grid.resize( nse );
   for ( Index i=0; i<nse; i++ )
     { psd_size_grid[i] = scat_meta[iss][i].diameter_volume_equ; }
-
+  pnd_size_grid = psd_size_grid;
+  
   // Init psd_data and dpsd_data_dx with zeros
   psd_data.resize( np, nse );
   psd_data = 0.0;
@@ -256,53 +280,149 @@ void psdMH97 (
 
 
 
-
-void pnd_field_from_ppdata(
+/* Workspace method: Doxygen documentation will be auto-generated */
+void pnd_fieldCalcFromParticleBulkProps(
          Workspace&                   ws,
          Tensor4&                     pnd_field,
-         ArrayOfArrayOfTensor4&       dpndfield_dq,
+         ArrayOfTensor4&              dpnd_field_dx,
    const Index&                       atmosphere_dim,
+   const Vector&                      p_grid,
+   const Vector&                      lat_grid,
+   const Vector&                      lon_grid,
    const Tensor3&                     t_field,
+   const Index&                       cloudbox_on,
    const ArrayOfIndex&                cloudbox_limits,
+   const ArrayOfArrayOfSingleScatteringData& scat_data,
    const ArrayOfArrayOfScatteringMetaData&   scat_meta,
-   const Tensor4&                     particle_bulkprop,
+   const ArrayOfString&               scat_species,
+   const Tensor4&                     particle_bulkprop_field,
    const ArrayOfString&               particle_bulkprop_names,
    const Agenda&                      pnd_agenda,
-   const ArrayOfString&               pnd_input_names,
-   const Index&                       jacobian_do )
+   const ArrayOfArrayOfString&        pnd_agendas_input_names,
+   const Index&                       jacobian_do,
+   const Verbosity&)
 {
-  // Asserts
-  assert( cloudbox_limits.nelem() == 2*atmosphere_dim );
-  assert( particle_bulkprop.nbooks() == particle_bulkprop_names.nelem() );
+  // Number of scattering species
+  const Index nss = scat_data.nelem();
+
+  if( nss > 1 )
+    throw runtime_error( "So far this method handles only one scattering species." );
+  
+  // Checks (not totally complete, but should cover most mistakes)
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  chk_atm_field( "t_field", t_field, atmosphere_dim, 
+                 p_grid, lat_grid, lon_grid );
+  chk_atm_field( "particle_bulkprop_field", particle_bulkprop_field,
+                 atmosphere_dim, particle_bulkprop_names.nelem(),
+                 p_grid, lat_grid, lon_grid );
+  // Further checks of *particle_bulkprop_field* below
+  if( !cloudbox_on )
+    throw runtime_error( "*cloudbox_on* must be true to use this method." );
+  if( cloudbox_limits.nelem() != 2*atmosphere_dim )
+    throw runtime_error( "Length of *cloudbox_limits* incorrect with respect "
+                         "to *atmosphere_dim*." );
+  if( cloudbox_limits[1]<=cloudbox_limits[0] || cloudbox_limits[0]<0 ||
+                                           cloudbox_limits[1]>=p_grid.nelem() )
+    throw runtime_error( "Invalid data in pressure part of *cloudbox_limits*." );
+  if( atmosphere_dim > 1 )
+    {
+      if( cloudbox_limits[3]<=cloudbox_limits[2] || cloudbox_limits[2]<0 ||
+                                           cloudbox_limits[3]>=lat_grid.nelem() )
+        throw runtime_error( "Invalid data in latitude part of *cloudbox_limits*." );
+      if( atmosphere_dim > 2 )
+        {
+          if( cloudbox_limits[5]<=cloudbox_limits[4] || cloudbox_limits[4]<0 ||
+                                           cloudbox_limits[5]>=lon_grid.nelem() )
+            throw runtime_error( "Invalid data in longitude part of *cloudbox_limits*." );
+        }
+    }
+  if( nss < 1 )
+    throw runtime_error( "*scat_data* is empty!." );
+  if( scat_species.nelem() != nss )
+    throw runtime_error( "*scat_data* and *scat_species* have inconsistent sizes." );
+  if( scat_meta.nelem() != nss )
+    throw runtime_error( "*scat_data* and *scat_meta* have inconsistent sizes." );
+  if( pnd_agendas_input_names.nelem() != nss )
+    throw runtime_error( "*scat_data* and *pnd_agendas_input_names* have "
+                         "inconsistent sizes." );
+  // Further checks of scat_data vs. scat_meta below  
 
   
-  // Number of scattering species
-  const Index nss = scat_meta.nelem();
+  // Effective lengths of cloudbox
+  const Index np = cloudbox_limits[1] - cloudbox_limits[0] + 1;
+  const Index ip_offset = cloudbox_limits[0];
+  Index nlat = 1;
+  Index ilat_offset = 0;
+  if( atmosphere_dim > 1 )
+    {
+      nlat = cloudbox_limits[3] - cloudbox_limits[2] + 1;
+      ilat_offset = cloudbox_limits[2];
+    }
+  Index nlon = 1;
+  Index ilon_offset = 0;
+  if( atmosphere_dim > 2 )
+    {
+      nlat = cloudbox_limits[5] - cloudbox_limits[4] + 1;
+      ilon_offset = cloudbox_limits[4];
+    }
+
+  // Check that *particle_bulkprop_field* contains zeros outside and at
+  // cloudbox boundaries
+  const String estring = "*particle_bulkprop_field* can only contaon non-zero "
+    "values inside the cloudbox.";
+  // Pressure end ranges
+  for( Index ilon=0; ilon<nlon; ilon++ ) {
+    for( Index ilat=0; ilat<nlat; ilat++ ) {
+      for( Index ip=0; ip<=cloudbox_limits[0]; ip++ ) {
+        if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
+          throw runtime_error( estring ); }
+      for( Index ip=cloudbox_limits[1]; ip<p_grid.nelem(); ip++ ) {
+        if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
+          throw runtime_error( estring ); } } }
+  if( atmosphere_dim > 1 )
+    {
+      // Latitude end ranges
+      for( Index ilon=0; ilon<nlon; ilon++ ) {
+        for( Index ip=cloudbox_limits[0]+1; ip<cloudbox_limits[1]-1; ip++ ) {
+          for( Index ilat=0; ilat<=cloudbox_limits[2]; ilat++ ) {
+            if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
+              throw runtime_error( estring ); }
+          for( Index ilat=cloudbox_limits[3]; ilat<lat_grid.nelem(); ilat++ ) {
+            if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
+              throw runtime_error( estring ); } } }
+      if( atmosphere_dim > 2 )
+        {
+          // Longitude end ranges
+          for( Index ip=cloudbox_limits[0]+1; ip<cloudbox_limits[1]-1; ip++ ) {
+            for( Index ilat=cloudbox_limits[2]+1; ilat<cloudbox_limits[3]-1; ilat++ ) {
+              for( Index ilon=0; ilon<=cloudbox_limits[4]; ilon++ ) {
+                if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
+                  throw runtime_error( estring ); }
+              for( Index ilon=cloudbox_limits[5]; ilon<lon_grid.nelem(); ilon++ ) {
+                if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
+                  throw runtime_error( estring ); } } }
+        }
+    }
   
   // Cumulative number of scattering elements
   ArrayOfIndex ncumse(nss+1);
   ncumse[0] = 0;
   for( Index i=0; i<nss; i++ )
-    { ncumse[i+1] = ncumse[i+1] + scat_meta[i].nelem(); }
+    {
+      if( scat_data[i].nelem() != scat_meta[i].nelem() )
+        throw runtime_error( "*scat_data* and *scat_meta* have inconsistent sizes." );
+      ncumse[i+1] = ncumse[i+1] + scat_data[i].nelem();
+    }
 
-  // Sizes
-  const Index np = cloudbox_limits[1] - cloudbox_limits[0] + 1;
-  Index nlat = 1;
-  if( atmosphere_dim > 1 )
-    { nlat = cloudbox_limits[3] - cloudbox_limits[2] + 1; }
-  Index nlon = 1;
-  if( atmosphere_dim > 2 )
-    { nlat = cloudbox_limits[5] - cloudbox_limits[4] + 1; }
-  //
-  ArrayOfIndex nq(0);
-  
   // Allocate output variables
-  // And if jacobian_do, determine number of pnd quantities
   //
   pnd_field.resize( ncumse[nss], np, nlat, nlon );
+  pnd_field = 0.0;  // To set all end values to zero
   //
   if( jacobian_do )
     {
+      /*
       dpndfield_dq.resize(nss);
       nq.resize(nss);
       for( Index is=0; is<nss; is++ )
@@ -313,9 +433,10 @@ void pnd_field_from_ppdata(
           for( Index iq=0; iq<nq[is]; iq++ )
             { dpndfield_dq[is][iq].resize( nse, np, nlat, nlon ); }
         }
+      */
     }
   else
-    { dpndfield_dq.resize(0); }
+    { dpnd_field_dx.resize(0); }
   
   // Extract data from pnd-agenda array
   for( Index is=0; is<nss; is++ )
@@ -323,55 +444,81 @@ void pnd_field_from_ppdata(
       // Index range with respect to pnd_field
       Range se_range( ncumse[is], ncumse[is+1]-ncumse[is] );
 
-      // Determine how pnd_input_names are related to input fields
+      // Determine how pnd_agendas_input_names are related to input fields
       //
-      const Index nin = pnd_input_names.nelem();
-      Vector pnd_input(nin);
+      const Index nin = pnd_agendas_input_names[is].nelem();
       ArrayOfIndex i_pbulkprop(nin);
       //
       for( Index i=0; i<nin; i++ )
         {
           // We flag temperature with -100
-          if( pnd_input_names[i] == "Temperature" )
+          if( pnd_agendas_input_names[is][i] == "Temperature" )
             { i_pbulkprop[i] = -100; }
           else
             {
               i_pbulkprop[i] = find_first( particle_bulkprop_names,
-                                           pnd_input_names[i] );
-              // if ...
+                                           pnd_agendas_input_names[is][i] );
+              if( i_pbulkprop[i] < 0 )
+                {
+                  ostringstream os;
+                  os << "Pnd-agenda with index " << is << " is set to require \""
+                     << pnd_agendas_input_names[is][i] << "\",\nbut this quantity "
+                     << "could not found in *particle_bulkprop_names*.\n"
+                     << "(Note that temperature must be written as \"Temperature\")";
+                  throw runtime_error(os.str());
+                }
             }
         }
 
-      for( Index ip=0; ip<np; ip++ )
-        {
+      for( Index ilon=0; ilon<nlon; ilon++ )
+        { 
           for( Index ilat=0; ilat<nlat; ilat++ )
             {
-              for( Index ilon=0; ilon<nlon; ilon++ )
-                {
-                  // Set pnd_input
-                  for( Index i=0; i<nin; i++ )
-                    {
-                      if( i_pbulkprop[i] == -100 )
-                        { pnd_input[i] = t_field(ip,ilat,ilon); }
-                      else
-                        { pnd_input[i] = particle_bulkprop( i_pbulkprop[i],
-                                                            ip, ilat, ilon ); }
-                    }
+              // Note that we don't need any calculations for end points
 
-                  cout << pnd_input << endl;
+              // Here we consider this for lat and lon
+              if( ( nlat > 1  &&  ( ilat == 0  ||  ilat == nlat-1 ) )  || 
+                  ( nlon > 1  &&  ( ilon == 0  ||  ilon == nlon-1 ) ) )
+                { continue; }
                   
-                  // Call pnd-agenda to obtain pnd_vec
-                  Vector pnd;
-                  Matrix dpnd_dx;
-                  //
-                  /*
-                  pnd_agendaExecute( ws, pnd, dpnd_dx, scat_meta, pnd_input,
-                                     jacobian_do, pnd_agenda );
-                  */
-                  // Copy to output variables
-                  pnd_field(se_range,ip,ilat,ilon) = pnd;
-                  for( Index iq=0; iq<nq[is]; iq++ )
-                    { dpndfield_dq[is][iq](joker,ip,ilat,ilon) = dpnd_dx(iq,joker); }
+              // Pressure handled here, by not including end points in loops
+              Matrix pnd_agenda_input( np-2, nin );
+              ArrayOfString dpnd_data_dx_names(0);
+              
+              for( Index i=0; i<nin; i++ )
+                {
+                  if( i_pbulkprop[i] == -100 )
+                    {
+                      for( Index ip=1; ip<np-1; ip++ )
+                        { pnd_agenda_input(ip-1 ,i) = t_field(
+                                                         ip_offset   + ip,
+                                                         ilat_offset + ilat,
+                                                         ilon_offset + ilon ); }
+                    }
+                  else
+                    {
+                      for( Index ip=1; ip<np-1; ip++ )
+                        { pnd_agenda_input(ip-1,i) = particle_bulkprop_field(
+                                                         i_pbulkprop[i],
+                                                         ip_offset   + ip,
+                                                         ilat_offset + ilat,
+                                                         ilon_offset + ilon ); }
+                    }
+                }
+              
+              // Call pnd-agenda 
+              Matrix pnd_data;
+              Tensor3 dpnd_data_dx;
+              //
+              pnd_agendaExecute( ws, pnd_data, dpnd_data_dx,
+                                 pnd_agenda_input, pnd_agendas_input_names[is],
+                                 dpnd_data_dx_names, pnd_agenda );
+
+              // Copy to output variables
+              for( Index ip=1; ip<np-1; ip++ )
+                {
+                  pnd_field(se_range,ip,ilat,ilon) = pnd_data(ip-1,joker);
+                  // Add transfer of dpnd_data_dx
                 }
             }
         }

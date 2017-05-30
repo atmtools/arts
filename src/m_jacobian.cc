@@ -1670,34 +1670,25 @@ void jacobianAddScatSpecies(
   const Vector&                     rq_p_grid,
   const Vector&                     rq_lat_grid,
   const Vector&                     rq_lon_grid,
-  const Index&                      scat_species_index,
-  const String&                     scat_species_quantity,
+  const String&                     species,
+  const String&                     quantity,
   const Verbosity&                  verbosity )
 {
   CREATE_OUT2;
   CREATE_OUT3;
 
-  if( scat_species_index < 0 )
-    throw runtime_error( "*scat_species_index* must be >= 0." );
-  
-  // Convert *scat_species_index* to the format used in the jq-structure
-  // Note that if you change the format, changes in other functions are needed
-  String species_string;
-  {
-    ostringstream sstr;
-    sstr << "Scattering species " << scat_species_index;
-    species_string = sstr.str();
-  }
-  
-  // Check that this species is not already included in the jacobian.
+  // Check that this species+quantity combination is not already included in
+  // the jacobian.
   for( Index it=0; it<jq.nelem(); it++ )
     {
       if( jq[it].MainTag()   == SCATSPECIES_MAINTAG  &&
-          jq[it].Subtag()    == species_string )
+          jq[it].Subtag()    == species              &&
+          jq[it].SubSubtag() == quantity  )
         {
           ostringstream os;
-          os << species_string << " is already included in "
-             << "*jacobian_quantities*.";
+          os << "The combintaion of\n   scattering species: " << species
+             << "\n   retrieval quantity: " <<quantity 
+             << "\nis already included in *jacobian_quantities*.";
           throw runtime_error(os.str());
         }
     }
@@ -1721,8 +1712,8 @@ void jacobianAddScatSpecies(
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.MainTag( SCATSPECIES_MAINTAG );
-  rq.Subtag( species_string );
-  rq.SubSubtag( scat_species_quantity );
+  rq.Subtag( species );
+  rq.SubSubtag( quantity );
   rq.Grids( grids );
   
   // Add it to the *jacobian_quantities*

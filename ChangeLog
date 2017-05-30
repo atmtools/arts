@@ -1,3 +1,16 @@
+2017-05-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-676
+
+	* src/m_cloudradar.cc (pndFromPsdBasic): Extended.
+	(psdMH97): Fixed some non-resolved issues.
+	(pnd_fieldCalcFromParticleBulkProps): New WSM.
+
+	* src/workspace.cc: Introduced pnd_agendas_input_names.
+
+	* src/m_jacobian.cc (jacobianAddScatSpecies): Scattering species
+	now selected by name, and not index.
+
 2017-05-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-675

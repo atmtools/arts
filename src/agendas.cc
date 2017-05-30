@@ -671,7 +671,7 @@ void define_agenda_data()
         "Work in progress ....\n"
         ),
        OUTPUT( "pnd_data", "dpnd_data_dx" ),
-       INPUT( "pnd_agenda_input", "dpnd_data_dx_vars" )));
+       INPUT( "pnd_agenda_input", "pnd_agenda_input_names", "dpnd_data_dx_names" )));
        
   agenda_data.push_back
     (AgRecord

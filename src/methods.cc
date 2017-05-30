@@ -7990,14 +7990,14 @@ void define_md_data_raw()
       GOUT_DESC(),
       IN( "jacobian_quantities", "jacobian_agenda",
           "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-      GIN( "g1", "g2", "g3", "scat_species_index", "scat_species_quantity" ),
-      GIN_TYPE( "Vector", "Vector", "Vector", "Index", "String" ),
+      GIN( "g1", "g2", "g3", "species", "quantity" ),
+      GIN_TYPE( "Vector", "Vector", "Vector", "String", "String" ),
       GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, NODEF ),
       GIN_DESC( "Pressure retrieval grid.",
                 "Latitude retrieval grid.",
                 "Longitude retreival grid.",
-                "Scattering species index (zero-based).",
-                "Retrieval quantities."
+                "Name of scattering species, must match one element in *scat_species*.",
+                "Retrieval quantity, e.g. \"IWC\"."
       ),
       SETMETHOD(      false ),
       AGENDAMETHOD(   false ),
@@ -10441,7 +10441,7 @@ void define_md_data_raw()
  
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "pndFromPsd" ),
+      ( NAME( "pndFromPsdBasic" ),
         DESCRIPTION
         (
         "Calculates *pnd* from given *psd*.\n"
@@ -10453,13 +10453,36 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "psd_data", "psd_size_grid", "dpsd_data_dx" ),
+        IN( "pnd_size_grid", "psd_data", "psd_size_grid", "dpsd_data_dx" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
         ));
  
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "pnd_fieldCalcFromParticleBulkProps" ),
+        DESCRIPTION
+        (
+         "Work in progress ...\n"
+         ),
+        AUTHORS( "Jana Mendrok and Patrick Eriksson" ),
+        OUT( "pnd_field", "dpnd_field_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "t_field",
+            "cloudbox_on", "cloudbox_limits", "scat_data", "scat_meta",
+            "scat_species",
+            "particle_bulkprop_field", "particle_bulkprop_names",
+            "pnd_agenda", "pnd_agendas_input_names", "jacobian_do" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));  
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "pnd_fieldCalcFrompnd_field_raw" ),
@@ -11355,12 +11378,12 @@ void define_md_data_raw()
         "Work in progress ....\n"
         ),
         AUTHORS( "Jana Mendrok and Patrick Eriksson" ),
-        OUT( "psd_data", "psd_size_grid", "dpsd_data_dx" ),
+        OUT( "psd_data", "psd_size_grid", "dpsd_data_dx", "pnd_size_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_meta", "pnd_agenda_input", "pnd_agenda_input_names",
-            "dpnd_data_dx_vars" ),
+            "dpnd_data_dx_names" ),
         GIN( "t_min", "t_max", "picky", "noisy" ),
         GIN_TYPE( "Numeric", "Numeric", "Index", "Index" ),
         GIN_DEFAULT( "0", "273", "0", "0" ),

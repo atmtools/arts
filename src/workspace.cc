@@ -1413,7 +1413,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "dpnd_data_dx_vars" ),
+     ( NAME( "dpnd_data_dx_names" ),
       DESCRIPTION
       (
        "Work in progress ....\n"
@@ -3502,6 +3502,17 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "pnd_agendas_input_names" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       "\n"
+       "Dimension: [ n_scattering_species ][ n_input_variables ]\n"
+       ),
+      GROUP( "ArrayOfArrayOfString" )));
+  
+  wsv_data.push_back
+    (WsvRecord
      ( NAME( "pnd_data" ),
       DESCRIPTION
       (
@@ -3542,6 +3553,17 @@ void Workspace::define_wsv_data()
        "       (cloudbox_limits[5] - cloudbox_limits[4]) +1 ] \n"
         ),
       GROUP( "Tensor4" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "pnd_size_grid" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       "\n"
+       "Dimension: [ n_sizes ]\n"
+       ),
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
