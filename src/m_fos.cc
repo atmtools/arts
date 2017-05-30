@@ -907,7 +907,8 @@ void iyHybrid(
    const Vector&                      rte_pos2,
    const Numeric&                     rte_alonglos_v,      
    const Numeric&                     ppath_lmax,      
-   const Numeric&                     ppath_lraytrace,      
+   const Numeric&                     ppath_lraytrace,
+   const Index&                       Naa,   
    const Verbosity&                   verbosity )
 {
   // If cloudbox off, switch to use clearsky method
@@ -1268,24 +1269,111 @@ void iyHybrid(
       ppath_scat_source.resize( nf, stokes_dim, ne, np );
       ppath_scat_source = 0;
       //
+      Vector aa_grid(Naa);
+      if( Naa > 2 )
+        nlinspace(aa_grid, 0, 360, Naa);
+      else
+      {
+        ostringstream os;
+        os << "Naa_grid must be > 2.";
+        throw runtime_error( os.str() );
+      }
+      Index Nza = scat_za_grid.nelem();
+      Tensor5 pha_mat_spt_local(pnd_field.nbooks(), Nza, Naa,
+                                stokes_dim, stokes_dim, 0.);
+      //Tensor6 product_fields(2, 2, 2, Nza, Naa, stokes_dim, 0);
+      Tensor3 scat_sources(2, 2, 2, 0);
+
       for( Index ip=0; ip<np; ip++ )
+      {
+        if( max(ppath_pnd(joker,ip)) > 0 )
         {
-          if( max(ppath_pnd(joker,ip)) > 0 )
+          // Jana: add your code here !!!
+          //
+          // You need only to fill the variable ppath_scat_source, that
+          // should contain the scattering source term at the np ppath
+          // points. The idea is to keep the contribution for each
+          // scattering element seperated. This is the row dimension.
+          //
+          // The variable ppath_pnd holds pnd_field interpolated to each
+          // ppath point. If here, at least one pnd > 0 at this ppath
+          // point. About 25 lines below you see an example on how the
+          // doit_i_field can be interpolated. Note that only 1D is allowed
+          // and that cloudbox is forced to span complete atmosphere
+
+          // determine p/z-interp weights for this ppath point
+          ArrayOfGridPos gp_p(1);
+          gridpos_copy( gp_p[0], ppath.gp_p[np-1] );
+          Vector itw_p(2);
+          interpweights( itw_p, gp_p );
+
+
+
+          GridPos gp_za;
+          gridpos(gp_za, scat_za_grid,ppath.los(ip,0),0.5);
+          Tensor4 pndT4(ne,1,1,1);
+          pndT4(joker,0,0,0) = ppath_pnd(joker,ip);
+          Tensor5 pha_mat_spt(ne, Nza, Naa, stokes_dim, stokes_dim, 0.);
+          Tensor5 product_fields(2, ne, Nza, Naa, stokes_dim, 0.);
+          Matrix doit_i_field_p(Nza, stokes_dim, 0.);
+
+          for( Index f_index=0; f_index<f_grid.nelem(); f_index++ )
+          {
+//            for( Index iza=0; iza<Nza; iza++ )
+//              for( Index s=0; s<stokes_dim; s++ )
+//                interp( m, itw_p, doit_i_field(f_index,joker,0,0,joker,0,s), gp_p, gp_za );
+//            iy(f,s) = m(0,0);
+//          }
+//      }
+
+            product_fields = 0;
+            for( Index iza=0; iza<2; iza++ )
             {
-              // Jana: add your code here !!!
-              //
-              // You need only to fill the variable ppath_scat_source, that
-              // should contain the scattering source term at the np ppath
-              // points. The idea is to keep the contribution for each
-              // scattering element seperated. This is the row dimension.
-              //
-              // The variable ppath_pnd holds pnd_field interpolated to each
-              // ppath point. If here, at least one pnd > 0 at this ppath
-              // point. About 25 lines below you see an example on how the
-              // doit_i_field can be interpolated. Note that only 1D is allowed
-              // and that cloudbox is forced to span complete atmosphere
-            }
-        }
+              pha_mat_sptFromData(pha_mat_spt,
+                                  scat_data,
+                                  scat_za_grid, aa_grid, iza+gp_za.idx, 0,
+                                  f_index, f_grid, ppath_t[ip],
+                                  pndT4, 0, 0, 0, verbosity );
+              Index ise_flat=0;
+              for( Index iss=0; iss<scat_data.nelem(); iss++ )
+              {
+                for( Index ise=0; ise<scat_data[iss].nelem(); ise++ )
+                {
+                  for( Index za_in = 0; za_in < Nza; ++ za_in )
+                  {
+                    for( Index aa_in = 0; aa_in < Naa; ++ aa_in )
+                    {
+                      // Multiplication of phase matrix with incoming 
+                      // intensity field.
+                      for ( Index i = 0; i < stokes_dim; i++)
+                        for (Index j = 0; j< stokes_dim; j++)
+                        {
+                          product_fields(iza, ise_flat, za_in, aa_in, i) +=
+                            pha_mat_spt(ise_flat,za_in,aa_in,i,j) *
+                            doit_i_field_p(za_in, j);
+                        }
+                    }//end aa_in loop
+                  }//end za_in loop
+              //integration of the product of ifield_in and pha
+              //  over zenith angle and azimuth angle grid. It calls
+/*              for (Index i = 0; i < stokes_dim; i++)
+                {
+                  doit_scat_field( p_index, 0, 0, scat_za_index_local, 0, i)
+                    = AngIntegrate_trapezoid_opti
+                    (product_field(joker, joker, i),
+                     scat_za_grid,
+                     scat_aa_grid,
+                     grid_stepsize);
+                  
+                }//end i loop
+*/                  
+                  ise_flat++;
+                } // end ise
+              } // end iss
+            } // end iza
+          } // end f_index
+        } // end if ppath_pnd
+      } // end ip
     }
   else
     {  

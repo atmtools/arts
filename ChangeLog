@@ -1,3 +1,20 @@
+2017-05-30 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-681
+
+	* src/rt4.cc,h (run_rt4):
+	When auto-adapting internal stream number, for higher freqs start from
+	where previous freq ended (higher freqs have stronger PFCT peaks need
+	more directions for proper norm conservation).
+	Add robust keyword for auto-adapt case.
+
+	* src/m_rt4.cc, methods.cc (RT4Calc*):
+	Add robust keyword (for auto_inc_nstreams case).
+
+	* src/m_fos.cc (iyHybrid):
+	Some unsorted code snippets for scattering source calc. work in
+	progress (not functional, but compilable).
+
 2017-05-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-680

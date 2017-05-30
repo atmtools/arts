@@ -6922,10 +6922,11 @@ void define_md_data_raw()
           "iy_agenda_call1", "iy_transmission", 
           "rte_pos", "rte_los", "rte_pos2", "rte_alonglos_v", "ppath_lmax",
           "ppath_lraytrace" ),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()
+      GIN(         "Naa_grid" ),
+      GIN_TYPE(    "Index" ),
+      GIN_DEFAULT( "19" ),
+      GIN_DESC( "Number of azimuth angles to consider in scattering source term"
+                " integral." )
     ));
     
   md_data_raw.push_back
@@ -12209,16 +12210,16 @@ void define_md_data_raw()
             "scat_data", "f_grid", "stokes_dim" ),
         GIN(         "nstreams", "non_iso_inc", "pfct_method", "quad_type",
                      "add_straight_angles", "pfct_aa_grid_size",
-                     "auto_inc_nstreams", "za_interp_order", "cos_za_interp",
-                     "max_delta_tau" ),
+                     "auto_inc_nstreams", "robust",
+                     "za_interp_order", "cos_za_interp", "max_delta_tau" ),
         GIN_TYPE(    "Index",    "Index",       "String",      "String",
                      "Index",               "Index",
-                     "Index",             "Index",           "Index",
-                     "Numeric" ),
+                     "Index",             "Index",
+                     "Index",           "Index",         "Numeric" ),
         GIN_DEFAULT( "16",       "0",           "median",      "D",
                      "1",                   "19",
-                     "0",                 "1",               "0",
-                     "1e-6" ),
+                     "0",                 "0",
+                     "1",               "0",             "1e-6" ),
         GIN_DESC( "Number of polar angle directions (streams) in RT4"
                   " solution (must be an even number).",
                   "Flag whether to run RT4 initialized with non-isotropic"
@@ -12237,6 +12238,10 @@ void define_md_data_raw()
                   " preserved properly. If 0, no adaptation is done. Else"
                   " *auto_inc_nstreams* gives the maximum number of streams to"
                   " increase to.",
+                  "For *auto_inc_nstreams*>0, flag whether to not fail even if"
+                  " scattering matrix norm is not preserved when maximum stream"
+                  " number is reached. Internal RT4 calculations is then"
+                  " performed with nstreams=*auto_inc_nstreams*.",
                   "For *auto_inc_nstreams*>0, polar angle interpolation order"
                   " for interpolation from internal increased stream to"
                   " originally requested nstreams-ifield.",
@@ -12282,18 +12287,18 @@ void define_md_data_raw()
         GIN(         "nstreams", "non_iso_inc", "pfct_method",
                      "ground_type", "quad_type", "add_straight_angles",
                      "pfct_aa_grid_size",
-                     "auto_inc_nstreams", "za_interp_order", "cos_za_interp",
-                     "max_delta_tau" ),
+                     "auto_inc_nstreams", "robust",
+                     "za_interp_order", "cos_za_interp", "max_delta_tau" ),
         GIN_TYPE(    "Index",    "Index",       "String",
                      "String",      "String",    "Index",
                      "Index",
-                     "Index",             "Index",           "Index",
-                     "Numeric" ),
+                     "Index",             "Index",
+                     "Index",           "Index",         "Numeric" ),
         GIN_DEFAULT( "16",       "0",           "median",
                      "A",           "D",         "1",
                      "19",
-                     "0",                 "1",               "0",
-                     "1e-6" ),
+                     "0",                 "0",
+                     "1",               "0",             "1e-6" ),
         GIN_DESC( "Number of polar angle directions (streams) in RT4"
                   " solution (must be an even number).",
                   "Flag whether to run RT4 initialized with non-isotropic"
@@ -12314,6 +12319,10 @@ void define_md_data_raw()
                   " preserved properly. If 0, no adaptation is done. Else"
                   " *auto_inc_nstreams* gives the maximum number of streams to"
                   " increase to.",
+                  "For *auto_inc_nstreams*>0, flag whether to not fail even if"
+                  " scattering matrix norm is not preserved when maximum stream"
+                  " number is reached. Internal RT4 calculations is then"
+                  " performed with nstreams=*auto_inc_nstreams*.",
                   "For *auto_inc_nstreams*>0, polar angle interpolation order"
                   " for interpolation from internal increased stream to"
                   " originally requested nstreams-ifield.",

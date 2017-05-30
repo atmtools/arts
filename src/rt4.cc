@@ -511,6 +511,7 @@ void run_rt4( Workspace& ws,
               Vector& mu_values,
               ConstVectorView quad_weights,
               const Index& auto_inc_nstreams,
+              const Index& robust,
               const Index& za_interp_order,
               const Index& cos_za_interp,
               const String& pfct_method,
@@ -594,6 +595,7 @@ void run_rt4( Workspace& ws,
   Tensor3 down_rad(num_layers+1,nummu,stokes_dim, 0.);
 
 
+  Index nummu_new = 0;
   // Loop over frequencies
   for (f_index = 0; f_index < f_grid.nelem(); f_index ++) 
     {
@@ -626,9 +628,10 @@ void run_rt4( Workspace& ws,
 
       Index pfct_failed = 0;
       cout << "\nProcessing freq #" << f_index << "\n";
-      //cout << "Requested nstreams: " << 2*nummu
-      //     << ". Starting with pfct_failed=" << pfct_failed << ".\n";
-      if( pndtot )
+      cout << "Requested nstreams: " << 2*nummu
+           << ". Starting with pfct_failed=" << pfct_failed
+           << ", new stream=" << 2*nummu_new << ".\n";
+      if( pndtot && (nummu_new<nummu) )
         {
           par_optpropCalc( ws, emis_vector, extinct_matrix,
                            //scatlayers,
@@ -645,10 +648,12 @@ void run_rt4( Workspace& ws,
                            verbosity );
           //cout << "Returning from sca_optpropCalc with pfct_failed=" << pfct_failed << ".\n";
         }
+      else
+        pfct_failed = 1;
 
       if (!pfct_failed)
       {
-        //cout << "Performing RT4 in no-failed branch with nstreams: " << 2*nummu << "\n";
+        cout << "Performing RT4 in no-failed branch with nstreams: " << 2*nummu << "\n";
 #pragma omp critical(fortran_rt4)
         {
           // Call RT4
@@ -686,9 +691,12 @@ void run_rt4( Workspace& ws,
       }
       else // if (auto_inc_nstreams)
       {
-        //cout << "Entering failed-branch.\n";
+        if (nummu_new<nummu)
+          nummu_new = nummu+1;
 
-        Index nummu_new = nummu+1;
+        cout << "Entering failed-branch. Starting with pfct_failed="
+             << pfct_failed << ", new stream=" << 2*nummu_new << ".\n";
+
         Index nhstreams_new;
         Vector mu_values_new, quad_weights_new, scat_aa_grid_new;
         Tensor6 scatter_matrix_new;
@@ -710,7 +718,7 @@ void run_rt4( Workspace& ws,
         //     << ((2*nummu_new)<=auto_inc_nstreams) << "\n";
         while (pfct_failed && (2*nummu_new)<=auto_inc_nstreams)
         {
-          //cout << "  increased nstreams to: " << 2*nummu_new << "\n";
+          cout << "  increased nstreams to: " << 2*nummu_new << "\n";
         // resize and recalc nstream-affected/determined variables:
         //   - mu_values, quad_weights (resize & recalc)
           nhstreams_new = nummu_new-nhza;
@@ -742,25 +750,37 @@ void run_rt4( Workspace& ws,
                            pfct_method, pfct_aa_grid_size, pfct_threshold,
                            auto_inc_nstreams,
                            verbosity );
-          //cout << "Returning from sca_optpropCalc with pfct_failed=" << pfct_failed << ".\n";
+          cout << "Returning from sca_optpropCalc with pfct_failed=" << pfct_failed << ".\n";
           
           if (pfct_failed)
             nummu_new = nummu_new+1;
         }
 
         if (pfct_failed)
+        {
+          nummu_new = nummu_new-1;
+          ostringstream os;
+          os << "Could not increase nstreams sufficiently (current: "
+             << 2*nummu_new << ")\n"
+             << "to satisfy scattering matrix norm at f[" << f_index
+             << "]=" << f_grid[f_index]*1e-9 << " GHz.\n";
+          if (!robust)
           {
             // couldn't find a nstreams within the limits of auto_inc_nstremas
             // (aka max. nstreams) that satisfies the scattering matrix norm.
             // Hence fail completely.
-            ostringstream os;
-            os << "Could not increase nstreams sufficiently to satisfy"
-               << " scattering matrix norm (current: " << 2*nummu_new << ").\n"
-               << "Try higher maximum number of allowed streams (ie. higher"
+            os << "Try higher maximum number of allowed streams (ie. higher"
                << " auto_inc_nstreams than " << auto_inc_nstreams << ").";
             throw runtime_error( os.str() );
-
           }
+          else
+          {
+            CREATE_OUT1;
+            os << "Continuing with nstreams=" << 2*nummu_new
+               << ". Output for this frequency might be erroneous.";
+            out1 << os.str();
+          }
+        }
 
         cout << "  Performing RT4 with nstreams: " << 2*nummu_new << "\n";
 
