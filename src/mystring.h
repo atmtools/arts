@@ -317,6 +317,9 @@ typedef my_basic_string<char> String;
 /** An array of Strings. */
 typedef Array<String> ArrayOfString;
 
+/** An array of Strings. */
+typedef Array<Array<String> > ArrayOfArrayOfString;
+
 
 /** Extract something from the beginning of a string. This is just a small helper
  function to safe some typing.

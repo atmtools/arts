@@ -101,6 +101,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfArrayOfScatteringMetaData");
   wsv_group_names.push_back("ArrayOfArrayOfSingleScatteringData");
   wsv_group_names.push_back("ArrayOfArrayOfSpeciesTag");
+  wsv_group_names.push_back("ArrayOfArrayOfString");
   wsv_group_names.push_back("ArrayOfArrayOfTensor3");
   wsv_group_names.push_back("ArrayOfArrayOfTensor6");
   wsv_group_names.push_back("ArrayOfArrayOfVector");
