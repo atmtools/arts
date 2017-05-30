@@ -1,5 +1,13 @@
 2017-05-30  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-675
+
+	* src/xml_io_array_types.cc:
+
+	Use correct type name in tag attribute for ArrayOfString.
+
+2017-05-30  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-674
 
 	* src/groups.cc, src/mystring.h, src/xml_io_array_types.cc,

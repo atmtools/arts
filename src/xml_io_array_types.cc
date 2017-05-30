@@ -224,7 +224,7 @@ void xml_read_from_stream(istream&              is_xml,
   tag.read_from_stream(is_xml);
   tag.check_name("Array");
 
-  tag.check_attribute("type", "Array");
+  tag.check_attribute("type", "ArrayOfString");
 
   tag.get_attribute_value("nelem", nelem);
   aastring.resize(nelem);
@@ -269,7 +269,7 @@ void xml_write_to_stream(ostream&                    os_xml,
   if (name.length())
     open_tag.add_attribute("name", name);
 
-  open_tag.add_attribute("type", "Array");
+  open_tag.add_attribute("type", "ArrayOfString");
   open_tag.add_attribute("nelem", aastring.nelem());
 
   open_tag.write_to_stream(os_xml);
