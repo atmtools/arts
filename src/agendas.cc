@@ -441,7 +441,7 @@ void define_agenda_data()
      ( NAME( "test_agenda_array" ),
        DESCRIPTION
        (
-        "Agenda array for testing purposes.\n"
+        "Agenda array for TestArrayOfAgenda test case.\n"
         ),
        OUTPUT(),
        INPUT( "iy_unit" )));

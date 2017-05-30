@@ -1,0 +1,57 @@
+Arts2 {
+
+StringSet(iy_unit, "test")
+
+# Create a custom ArrayOfAgenda
+ArrayOfAgendaCreate(myagendaarray)
+
+# Test appending to the array
+ArrayOfAgendaAppend(myagendaarray)
+{
+    Print(iy_unit, 0)
+}
+
+ArrayOfAgendaAppend(myagendaarray)
+{
+    Print(iy_unit, 0)
+}
+
+
+# Create custom agenda
+AgendaCreate(myagenda)
+AgendaSet(myagenda)
+{
+    Print(iy_unit, 0)
+}
+
+# Append agenda to custom array
+Append(myagendaarray, myagenda)
+AgendaSet(myagenda)
+{
+    Print(iy_unit, 0)
+    Print(iy_unit, 0)
+}
+
+
+# Copy custom agenda array to WSV
+Copy(test_agenda_array, myagendaarray)
+
+
+# Append agenda to WSV
+Append(test_agenda_array, myagenda)
+
+
+# Execute agenda array manually
+ArrayOfAgendaExecute(test_agenda_array, 0)
+ArrayOfAgendaExecute(test_agenda_array, 1)
+ArrayOfAgendaExecute(test_agenda_array, 2)
+ArrayOfAgendaExecute(test_agenda_array, 3)
+
+# Execute test_agenda_array through WSM
+TestArrayOfAgenda(index=0)
+TestArrayOfAgenda(index=1)
+TestArrayOfAgenda(index=2)
+TestArrayOfAgenda(index=3)
+
+}
+

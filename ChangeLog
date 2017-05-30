@@ -1,3 +1,41 @@
+2017-05-30  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-679
+
+	* src/agenda_record.{h,cc} (write_agenda_wrapper_header):
+
+	Add is_agenda_array parameter. For ArrayOfAgenda, ...Execute takes the
+	array and the index of the agenda from the array to execute as an
+	additional parameter.
+
+	* src/agendas.cc, src/methods.cc, src/workspace.cc:
+
+	Update docs for test_agenda_array and TestArrayOfAgenda.
+
+	* src/make_auto_md_h.cc:
+
+	Pass is_agenda_array boolean to write_agenda_wrapper_header.
+
+	* src/make_auto_md_cc.cc:
+
+	Pass is_agenda_array boolean to write_agenda_wrapper_header.
+
+	Do a proper runtime range check in the ...Execute method
+	implementation for ArrayOfAgenda.
+
+	* src/make_auto_md_h.cc, src/make_auto_md_cc.cc:
+
+	Remove several trailing white spaces.
+
+	* src/m_general.cc (TestArrayOfAgenda):
+
+	Adapt call for test_agenda_arrayExecute.
+
+	* controlfiles/artscomponents/agendas/TestArrayOfAgenda.arts,
+	controlfiles/CMakeLists.txt:
+
+	Add simple test case for ArrayOfAgenda.
+
 2017-05-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-678

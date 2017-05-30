@@ -451,7 +451,7 @@ void TestArrayOfAgenda(Workspace& ws,
 {
     ostringstream os;
     os << "Executed agenda #" << index;
-    test_agenda_arrayExecute(ws, os.str(), test_agenda_array[index]);
+    test_agenda_arrayExecute(ws, os.str(), test_agenda_array, index);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

@@ -51,7 +51,7 @@ int main()
 
       // Initialize wsv data.
       Workspace::define_wsv_data();
-  
+
       // Initialize WsvMap.
       Workspace::define_wsv_map();
 
@@ -68,7 +68,7 @@ int main()
       // -----------
       ofstream ofs;
       open_output_file(ofs,"auto_md.cc");
-  
+
       ofs << "// This file was generated automatically by make_auto_md_cc.cc.\n";
       ofs << "// DO NOT EDIT !\n";
       ofs << "// Generated: "
@@ -106,7 +106,7 @@ int main()
         {
           const MdRecord& mdd = md_data[i];
 
-          // This is needed to flag the first function parameter, which 
+          // This is needed to flag the first function parameter, which
           // needs no line break before being written:
           bool is_first_parameter = true;
           // The String indent is needed to achieve the correct
@@ -115,14 +115,14 @@ int main()
           // Flag to pass the workspace to the WSM. Only true if the WSM has
           // an Agenda as input.
           bool pass_workspace = false;
-          
+
           // There are four lists of parameters that we have to
-          // write. 
-          ArrayOfIndex  vo=mdd.Out();   // Output 
+          // write.
+          ArrayOfIndex  vo=mdd.Out();   // Output
           const ArrayOfIndex& vi = mdd.InOnly(); // Input
-          ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output 
+          ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output
           ArrayOfIndex  vgi=mdd.GInType();  // Generic Input
-          // vo and vi contain handles of workspace variables, 
+          // vo and vi contain handles of workspace variables,
           // vgo and vgi handles of workspace variable groups.
 
           // There used to be a similar block here for the generic
@@ -187,7 +187,7 @@ int main()
                     << "{\n";
                 }
             }
-          
+
           // Erase all Output only variables to uncover if they are
           // misused as Input variables
 #ifndef NDEBUG
@@ -363,7 +363,7 @@ int main()
           // Flag that is set to false if the WSM has verbosity as an input or
           // output already. Otherwise it's passed as the last parameter.
           bool pass_verbosity = true;
-          
+
           // Find out if the WSM has the verbosity as input.
           for (Index j = 0; pass_verbosity && j < mdd.In().nelem(); j++)
           {
@@ -372,7 +372,7 @@ int main()
               pass_verbosity = false;
             }
           }
-          
+
           // Find out if the WSM has the verbosity as output.
           for (Index j = 0; pass_verbosity && j < mdd.Out().nelem(); j++)
           {
@@ -381,7 +381,7 @@ int main()
               pass_verbosity = false;
             }
           }
-          
+
           if (pass_verbosity)
           {
             static Index verbosity_wsv_id = get_wsv_id("verbosity");
@@ -391,7 +391,7 @@ int main()
             << " *)ws[" << verbosity_wsv_id
             << "])";
           }
-          
+
           ofs << ");\n";
           ofs << "}\n\n";
         }
@@ -407,7 +407,7 @@ int main()
         for (Index i=0; i<n_md; ++i)
           {
             const MdRecord& mdd = md_data[i];
-          
+
             // Add comma and line break, if not first element:
             align(ofs,is_first_parameter,indent);
 
@@ -425,7 +425,7 @@ int main()
         ofs << "};\n\n";
       }
 
-      
+
       // Create implementation of the agenda wrappers
 
       // Initialize agenda data.
@@ -441,19 +441,35 @@ int main()
           ostringstream ain_push_os, ain_pop_os;
           ostringstream aout_push_os, aout_pop_os;
 
-          write_agenda_wrapper_header (ofs, agr);
+
+          bool is_agenda_array =
+                  wsv_data[get_wsv_id(agr.Name())].Group() == get_wsv_group_id("ArrayOfAgenda");
+          write_agenda_wrapper_header (ofs, agr, is_agenda_array);
 
           ofs << "\n";
           ofs << "{\n";
 
           if (ago.nelem () || agi.nelem ())
             {
+              if (is_agenda_array)
+              {
+                  ofs << "  if (index < 0 || index >= input_agenda_array.nelem())\n"
+                      << "  {\n"
+                      << "      std::ostringstream os;\n"
+                      << "      os << \"Agenda index \" << index\n"
+                      << "         << \" out of bounds. 0 <= index < \" << input_agenda_array.nelem();\n"
+                      << "      throw std::runtime_error(os.str());\n"
+                      << "  }\n\n"
+                      << "  const Agenda& input_agenda = input_agenda_array[index];\n\n";
+              }
               ofs << "  using global_data::AgendaMap;\n"
                 << "  using global_data::agenda_data;\n"
                 << "\n"
                 << "  if (!input_agenda.checked())\n"
                 << "    throw std::runtime_error(\""
-                << agr.Name() << " is uninitialized. Use *AgendaSet* to add methods to it.\");\n"
+                << agr.Name() << " is uninitialized. Use *AgendaSet* to add methods to it.\\n"
+                << "Agenda variables defined in the controlfile cannot be executed.\\nThe agenda must "
+                << "be copied to a workspace variable for execution.\");\n"
                 << "\n"
                 << "  const AgRecord& agr =\n"
                 << "    agenda_data[AgendaMap.find (input_agenda.name ())->second];\n"
@@ -560,8 +576,8 @@ int main()
 
           ofs << "}\n\n";
         }
-      
-      
+
+
       // Create implementation of the GroupCreate WSMs
       //
       for (ArrayOfString::const_iterator it = wsv_group_names.begin();
@@ -573,7 +589,7 @@ int main()
           << "/* Workspace method: Doxygen documentation will be auto-generated */\n"
           << "void " << *it << "Create(" << *it << "& var, const Verbosity&)\n"
           << "{ ";
-          
+
           // Treat atomic types separately.
           // For objects the default constructor is used.
           if (*it == "Index")
@@ -582,7 +598,7 @@ int main()
             ofs << "var = 0.;";
           else
             ofs << "var = " << *it << "();";
-          
+
           ofs << " }\n\n";
         }
       }

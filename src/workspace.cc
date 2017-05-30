@@ -2218,7 +2218,7 @@ void Workspace::define_wsv_data()
      ( NAME( "test_agenda_array" ),
       DESCRIPTION
       (
-       "ArrayOfAgenda for testing purposes.\n"
+       "Array of agenda for TestArrayOfAgenda case.\n"
        ),
       GROUP( "ArrayOfAgenda" )));
 

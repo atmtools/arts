@@ -98,7 +98,7 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
 
   String fullname = mdd.Name();
 
-  // This is needed to flag the first function parameter, which 
+  // This is needed to flag the first function parameter, which
   // needs no line break before being written:
   bool is_first_parameter = true;
 
@@ -111,12 +111,12 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
   bool pass_workspace = false;
 
   // There are four lists of parameters that we have to
-  // write. 
-  ArrayOfIndex  vo=mdd.Out();   // Output 
+  // write.
+  ArrayOfIndex  vo=mdd.Out();   // Output
   const ArrayOfIndex &vi = mdd.InOnly(); // Input
-  ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output 
+  ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output
   ArrayOfIndex  vgi=mdd.GInType();  // Generic Input
-  // vo and vi contain handles of workspace variables, 
+  // vo and vi contain handles of workspace variables,
   // vgo and vgi handles of workspace variable groups.
 
   // Find out if the WSM gets an agenda as input. If so, pass
@@ -286,7 +286,7 @@ void write_method_header( ofstream& ofs,
 
   String fullname = mdd.Name();
 
-  // This is needed to flag the first function parameter, which 
+  // This is needed to flag the first function parameter, which
   // needs no line break before being written:
   bool is_first_parameter = true;
 
@@ -299,12 +299,12 @@ void write_method_header( ofstream& ofs,
   bool pass_workspace = false;
 
   // There are four lists of parameters that we have to
-  // write. 
-  ArrayOfIndex  vo=mdd.Out();   // Output 
+  // write.
+  ArrayOfIndex  vo=mdd.Out();   // Output
   const ArrayOfIndex &vi = mdd.InOnly(); // Input
-  ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output 
+  ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output
   ArrayOfIndex  vgi=mdd.GInType();  // Generic Input
-  // vo and vi contain handles of workspace variables, 
+  // vo and vi contain handles of workspace variables,
   // vgo and vgi handles of workspace variable groups.
 
   // Find out if the WSM gets an agenda as input. If so, pass
@@ -433,15 +433,15 @@ void write_method_header( ofstream& ofs,
       {
         // Add comma and line break, if not first element:
         align(ofs,is_first_parameter,indent);
-                    
+
         // Add type if this is the first of this sort.
         if (is_first_of_these)
           {
             ofs << "// WS Input:\n";
-            ofs << indent;                
+            ofs << indent;
             is_first_of_these = false;
           }
-                
+
         ofs << "const "
           << wsv_group_names[Workspace::wsv_data[vi[j]].Group()] << "& "
           << Workspace::wsv_data[vi[j]].Name();
@@ -457,15 +457,15 @@ void write_method_header( ofstream& ofs,
       {
         // Add comma and line break, if not first element:
         align(ofs,is_first_parameter,indent);
-                    
+
         // Add type if this is the first of this sort.
         if (is_first_of_these)
           {
             ofs << "// WS Generic Input:\n";
-            ofs << indent;                
+            ofs << indent;
             is_first_of_these = false;
           }
-                
+
         if (wsv_group_names[mdd.GInType()[j]] == "Any")
           {
             ofs << "const T& ";
@@ -513,7 +513,7 @@ void write_method_header( ofstream& ofs,
     {
       align(ofs,is_first_parameter,indent);
       ofs << "// Agenda from controlfile:\n";
-      ofs << indent;              
+      ofs << indent;
       ofs << "const Agenda& input_agenda";
     }
 
@@ -529,7 +529,7 @@ void write_method_header( ofstream& ofs,
       pass_verbosity = false;
     }
   }
-  
+
   // Find out if the WSM has the verbosity as output.
   for (Index j = 0; pass_verbosity && j < mdd.Out().nelem(); j++)
   {
@@ -538,15 +538,15 @@ void write_method_header( ofstream& ofs,
       pass_verbosity = false;
     }
   }
-  
+
   if (pass_verbosity)
   {
     align(ofs,is_first_parameter,indent);
     ofs << "// Verbosity object:\n";
-    ofs << indent;              
+    ofs << indent;
     ofs << "const Verbosity& verbosity";
   }
-  
+
   ofs << ");\n\n";
 }
 
@@ -660,7 +660,7 @@ int main()
           << "// number of WSMs from md_data.nelem().\n"
           << "#define N_MD " << n_md << "\n\n";
 
-     
+
       // Add all the method function declarations
       ofs << "// Method function declarations:\n\n";
       for (Index i=0; i<n_md; ++i)
@@ -712,9 +712,13 @@ int main()
       define_agenda_data ();
 
       using global_data::agenda_data;
+      const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
       for (Index i = 0; i < agenda_data.nelem (); i++)
         {
-          write_agenda_wrapper_header (ofs, agenda_data[i]);
+          bool is_agenda_array =
+                  wsv_data[get_wsv_id(agenda_data[i].Name())].Group() ==
+                      get_wsv_group_id("ArrayOfAgenda");
+            write_agenda_wrapper_header (ofs, agenda_data[i], is_agenda_array);
 
           ofs << ";\n\n";
         }

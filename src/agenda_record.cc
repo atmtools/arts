@@ -285,7 +285,8 @@ ostream& operator<<(ostream& os, const WsvRecord& wr)
   \param agr Agenda record.
 */
 void write_agenda_wrapper_header(ofstream&       ofs,
-                                 const AgRecord& agr)
+                                 const AgRecord& agr,
+                                 bool is_agenda_array)
 {
   using global_data::wsv_group_names;
 
@@ -333,6 +334,14 @@ void write_agenda_wrapper_header(ofstream&       ofs,
 
   // Wrapper function agenda and silent parameters
   ofs << "        // Wrapper Input\n";
-  ofs << "        const Agenda& input_agenda)";
+  if (is_agenda_array)
+  {
+    ofs << "        const ArrayOfAgenda& input_agenda_array,\n";
+    ofs << "        const Index index)";
+  }
+  else
+  {
+    ofs << "        const Agenda& input_agenda)";
+  }
 }
 

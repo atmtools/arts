@@ -30,6 +30,7 @@ arts_test_run_ctlfile(fast artscomponents/helpers/TestAgendaCopy.arts)
 arts_test_run_ctlfile(fast artscomponents/helpers/TestHSE.arts)
 
 arts_test_run_ctlfile(fast artscomponents/agendas/TestAgendaExecute.arts)
+arts_test_run_ctlfile(fast artscomponents/agendas/TestArrayOfAgenda.arts)
 
 arts_test_run_ctlfile(fast artscomponents/absorption/TestAbs.arts)
 arts_test_run_ctlfile(fast
