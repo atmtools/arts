@@ -54,6 +54,7 @@
 
 extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
+extern const String SCATSPECIES_MAINTAG;
 
 
 
@@ -72,7 +73,6 @@ void pndFromPsdBasic(
   const Index ng  = psd_size_grid.nelem();
         Index ndx = 0;
   const bool  do_dx = !dpsd_data_dx.empty();
-  
 
   // Checks
   if( ng < 2 )
@@ -136,10 +136,10 @@ void pndFromPsdBasic(
 
       if( do_dx )
         {
-          for( Index ip=0; ip>np; ip++ )
+          for( Index ip=0; ip<np; ip++ )
             {
-              for ( Index x=0; x<ndx; x++ )
-                { dpnd_data_dx(x,ip,i) = binsize * dpsd_data_dx(x,ip,i); }
+              for ( Index ix=0; ix<ndx; ix++ )
+                { dpnd_data_dx(ix,ip,i) = binsize * dpsd_data_dx(ix,ip,i); }
             }
         }
     }
@@ -156,7 +156,7 @@ void psdMH97 (
     const ArrayOfArrayOfScatteringMetaData&   scat_meta,
     const Matrix&                             pnd_agenda_input,
     const ArrayOfString&                      pnd_agenda_input_names,
-    const ArrayOfString&                      dpnd_data_dx_vars,
+    const ArrayOfString&                      dpnd_data_dx_names,
     const Numeric&                            t_min, 
     const Numeric&                            t_max, 
     const Index&                              picky, 
@@ -169,7 +169,7 @@ void psdMH97 (
   // Some sizes 
   const Index nss = scat_meta.nelem();
   const Index nin = pnd_agenda_input_names.nelem();
-  const Index ndx = dpnd_data_dx_vars.nelem();
+  const Index ndx = dpnd_data_dx_names.nelem();
   const Index np  = pnd_agenda_input.nrows();
   
   // Checks
@@ -191,16 +191,18 @@ void psdMH97 (
   if( pnd_agenda_input_names[0] != "IWC" )
     throw runtime_error( "Element 0 of *pnd_agenda_input_names* must be \"IWC\"." );
   if( pnd_agenda_input_names[1] != "Temperature" )
-    throw runtime_error( "Element 1 of *pnd_agenda_input_names* must be \"Temperature\"." );
+    throw runtime_error( "Element 1 of *pnd_agenda_input_names* must be "
+                         "\"Temperature\"." );
   if( ndx )
     {
       if( ndx != 1 )
-        throw runtime_error( "*dpnd_data_dx_vars* must have length 0 or 1." );
-      if( dpnd_data_dx_vars[0] != "IWC" )
-        throw runtime_error( "Valid options for *dpnd_data_dx_vars* are: \"IWC\"." );
+        throw runtime_error( "*dpnd_data_dx_names* must have length 0 or 1." );
+      if( dpnd_data_dx_names[0] != "IWC" )
+        throw runtime_error( "The only valid options for *dpnd_data_dx_names* "
+                             "is: \"IWC\"." );
     }        
   if( noisy  &&   ndx )
-    throw runtime_error( "Jacobian calculatiopns and \"noisy\" can not be "
+    throw runtime_error( "Jacobian calculations and \"noisy\" can not be "
                          "combined." );
 
   
@@ -300,6 +302,7 @@ void pnd_fieldCalcFromParticleBulkProps(
    const Agenda&                      pnd_agenda,
    const ArrayOfArrayOfString&        pnd_agendas_input_names,
    const Index&                       jacobian_do,
+   const ArrayOfRetrievalQuantity&    jacobian_quantities,
    const Verbosity&)
 {
   // Number of scattering species
@@ -420,24 +423,39 @@ void pnd_fieldCalcFromParticleBulkProps(
   pnd_field.resize( ncumse[nss], np, nlat, nlon );
   pnd_field = 0.0;  // To set all end values to zero
   //
-  if( jacobian_do )
-    {
-      /*
-      dpndfield_dq.resize(nss);
-      nq.resize(nss);
-      for( Index is=0; is<nss; is++ )
-        {
-          nq[is] = 1;  // Number of pnd quantities shall be set here
-          dpndfield_dq[is].resize(nq[is]);
-          const Index nse = ncumse[is+1]-ncumse[is];
-          for( Index iq=0; iq<nq[is]; iq++ )
-            { dpndfield_dq[is][iq].resize( nse, np, nlat, nlon ); }
-        }
-      */
-    }
-  else
+  // Help variables for partial derivatives
+  Index                nq = 0;
+  ArrayOfArrayOfIndex  scatspecies_to_jq;
+  //
+  if( !jacobian_do )
     { dpnd_field_dx.resize(0); }
-  
+  else
+    {
+      nq = jacobian_quantities.nelem();
+      dpnd_field_dx.resize( nq );
+      scatspecies_to_jq.resize( nss );
+      //
+      for( Index iq=0; iq<nq; iq++ )
+        {
+          if( jacobian_quantities[iq].MainTag() == SCATSPECIES_MAINTAG  )
+            {
+              const Index ihit = find_first( scat_species,
+                                             jacobian_quantities[iq].Subtag() );
+              if( ihit < 0 )
+                {
+                  ostringstream os;
+                  os << "Jacobian quantity with index " << iq << " refers to\n"
+                     << "  " << jacobian_quantities[iq].Subtag()
+                     << "\nbut this species could not be found in *scat_species*.";
+                  throw runtime_error(os.str());
+                }
+              scatspecies_to_jq[ihit].push_back( iq );
+              dpnd_field_dx[iq].resize( ncumse[nss], np, nlat, nlon );
+              dpnd_field_dx[iq] = 0.0;  // To set all end values to zero
+            }
+        }
+    }
+
   // Extract data from pnd-agenda array
   for( Index is=0; is<nss; is++ )
     {
@@ -470,6 +488,17 @@ void pnd_fieldCalcFromParticleBulkProps(
             }
         }
 
+      // Set *dpnd_data_dx_names*
+      //
+      const Index ndx = scatspecies_to_jq[is].nelem();
+      ArrayOfString dpnd_data_dx_names( ndx );
+      //
+      for( Index ix=0; ix<ndx; ix++ )
+        { dpnd_data_dx_names[ix] =
+            jacobian_quantities[scatspecies_to_jq[is][ix]].SubSubtag(); }
+
+      
+      // Loop lat/lon positions and call *pnd_agenda*
       for( Index ilon=0; ilon<nlon; ilon++ )
         { 
           for( Index ilat=0; ilat<nlat; ilat++ )
@@ -483,7 +512,7 @@ void pnd_fieldCalcFromParticleBulkProps(
                   
               // Pressure handled here, by not including end points in loops
               Matrix pnd_agenda_input( np-2, nin );
-              ArrayOfString dpnd_data_dx_names(0);
+
               
               for( Index i=0; i<nin; i++ )
                 {
@@ -514,11 +543,20 @@ void pnd_fieldCalcFromParticleBulkProps(
                                  pnd_agenda_input, pnd_agendas_input_names[is],
                                  dpnd_data_dx_names, pnd_agenda );
 
+              if( ndx )
+                {
+                  cout << pnd_data(50,joker) << endl;
+                  cout << dpnd_data_dx(0,50,joker) << endl;
+                }
+                 
               // Copy to output variables
               for( Index ip=1; ip<np-1; ip++ )
+                { pnd_field(se_range,ip,ilat,ilon) = pnd_data(ip-1,joker); }
+              for( Index ix=0; ix<ndx; ix++ )
                 {
-                  pnd_field(se_range,ip,ilat,ilon) = pnd_data(ip-1,joker);
-                  // Add transfer of dpnd_data_dx
+                  for( Index ip=1; ip<np-1; ip++ )
+                    { dpnd_field_dx[scatspecies_to_jq[is][ix]]
+                            (se_range,ip,ilat,ilon) = dpnd_data_dx(ix,ip-1,joker); }
                 }
             }
         }
