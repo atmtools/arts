@@ -450,7 +450,8 @@ void TestArrayOfAgenda(Workspace& ws,
                        const Verbosity&)
 {
     ostringstream os;
-    os << "Executed agenda #" << index;
+    os << "  Local value of iy_unit, agenda #"
+       << index << " of " << test_agenda_array.nelem();
     test_agenda_arrayExecute(ws, os.str(), test_agenda_array, index);
 }
 

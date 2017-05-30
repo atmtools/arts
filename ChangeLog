@@ -1,5 +1,15 @@
 2017-05-30  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-680
+
+	* controlfiles/artscomponents/agendas/TestArrayOfAgenda.arts:
+
+	Make test case output a bit more exciting.
+
+	* src/m_general.cc (TestArrayOfAgenda): Tweak local iy_unit value.
+
+2017-05-30  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-679
 
 	* src/agenda_record.{h,cc} (write_agenda_wrapper_header):

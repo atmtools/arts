@@ -1,6 +1,8 @@
 Arts2 {
 
-StringSet(iy_unit, "test")
+StringCreate(s)
+
+StringSet(iy_unit, "  Global value of iy_unit")
 
 # Create a custom ArrayOfAgenda
 ArrayOfAgendaCreate(myagendaarray)
@@ -8,36 +10,43 @@ ArrayOfAgendaCreate(myagendaarray)
 # Test appending to the array
 ArrayOfAgendaAppend(myagendaarray)
 {
+    StringSet(s, "  First agenda in array")
+    Print(s, 0)
     Print(iy_unit, 0)
 }
 
 ArrayOfAgendaAppend(myagendaarray)
 {
+    StringSet(s, "  Second agenda in array")
+    Print(s, 0)
     Print(iy_unit, 0)
 }
 
 
-# Create custom agenda
+# Create new agenda
 AgendaCreate(myagenda)
 AgendaSet(myagenda)
 {
+    StringSet(s, "  Third agenda in array")
+    Print(s, 0)
     Print(iy_unit, 0)
 }
 
-# Append agenda to custom array
+# Append new agenda to custom array
 Append(myagendaarray, myagenda)
-AgendaSet(myagenda)
-{
-    Print(iy_unit, 0)
-    Print(iy_unit, 0)
-}
 
-
-# Copy custom agenda array to WSV
+# Copy agenda array to WSV
 Copy(test_agenda_array, myagendaarray)
 
 
-# Append agenda to WSV
+# Append another agenda directly to WSV
+AgendaSet(myagenda)
+{
+    StringSet(s, "  Forth agenda in array")
+    Print(s, 0)
+    Print(iy_unit, 0)
+}
+
 Append(test_agenda_array, myagenda)
 
 
