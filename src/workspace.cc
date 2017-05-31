@@ -3480,12 +3480,12 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "pnd_agenda" ),
+     ( NAME( "pnd_agenda_array" ),
       DESCRIPTION
       (
        "Work in progress ....\n"
        ),
-      GROUP( "Agenda" )));
+      GROUP( "ArrayOfAgenda" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -3500,6 +3500,17 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "pnd_agenda_array_input_names" ),
+      DESCRIPTION
+      (
+       "Work in progress ....\n"
+       "\n"
+       "Dimension: [ n_scattering_species ][ n_input_variables ]\n"
+       ),
+      GROUP( "ArrayOfArrayOfString" )));
+  
+  wsv_data.push_back
+    (WsvRecord
      ( NAME( "pnd_agenda_input_names" ),
       DESCRIPTION
       (
@@ -3509,17 +3520,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "ArrayOfString" )));
 
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "pnd_agendas_input_names" ),
-      DESCRIPTION
-      (
-       "Work in progress ....\n"
-       "\n"
-       "Dimension: [ n_scattering_species ][ n_input_variables ]\n"
-       ),
-      GROUP( "ArrayOfArrayOfString" )));
-  
   wsv_data.push_back
     (WsvRecord
      ( NAME( "pnd_data" ),

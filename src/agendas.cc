@@ -673,16 +673,16 @@ void define_agenda_data()
        INPUT( "pha_mat_spt", "scat_za_index", "scat_lat_index", "scat_lon_index",
               "scat_p_index", "scat_aa_index", "rtp_temperature")));
        
- agenda_data.push_back
+  agenda_data.push_back
     (AgRecord
-     ( NAME( "pnd_agenda" ),
+     ( NAME( "pnd_agenda_array" ),
        DESCRIPTION
        (
         "Work in progress ....\n"
         ),
        OUTPUT( "pnd_data", "dpnd_data_dx" ),
        INPUT( "pnd_agenda_input", "pnd_agenda_input_names", "dpnd_data_dx_names" )));
-       
+ 
   agenda_data.push_back
     (AgRecord
      ( NAME( "ppath_agenda" ),

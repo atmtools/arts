@@ -1,3 +1,17 @@
+2017-05-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-682
+
+	* src/m_cloudradar.cc (pnd_fieldCalcFromParticleBulkProps): Now
+	making use of the new agenda array feature, and is then hopefully
+	a ready WSM.
+
+	* src/workspace.cc:
+	* src/agendas.cc: Changed pnd_agenda to pnd_agenda_array.
+
+	* src/m_cloudradar.cc (psdMH97): Now handles negative IWC, which
+	can happen during iterative inversions.
+
 2017-05-30 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-681

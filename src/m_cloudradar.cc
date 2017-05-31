@@ -68,6 +68,9 @@ void pndFromPsdBasic(
    const Tensor3&   dpsd_data_dx,
    const Verbosity& )
 {
+  // This code is just for testing. Shall be replaced with code using
+  // piece-wise linear representation when mapping psd to pnd.
+  
   // Some sizes 
   const Index np  = psd_data.nrows();
   const Index ng  = psd_size_grid.nelem();
@@ -100,7 +103,7 @@ void pndFromPsdBasic(
   else
     { dpnd_data_dx.resize( 0, 0, 0 ); }
 
-  // Jana!!! I leave to you to add handling of unsored grids
+  // Jana!!! I leave to you to add handling of unsorted grids
   if( !is_increasing( psd_size_grid ) )
     throw runtime_error( "*psd_size_grid* must be strictly increasing." );    
 
@@ -198,8 +201,8 @@ void psdMH97 (
       if( ndx != 1 )
         throw runtime_error( "*dpnd_data_dx_names* must have length 0 or 1." );
       if( dpnd_data_dx_names[0] != "IWC" )
-        throw runtime_error( "The only valid options for *dpnd_data_dx_names* "
-                             "is: \"IWC\"." );
+        throw runtime_error( "With MH97, the only valid option for "
+                             "*dpnd_data_dx_names* is: \"IWC\"." );
     }        
   if( noisy  &&   ndx )
     throw runtime_error( "Jacobian calculations and \"noisy\" can not be "
@@ -235,7 +238,15 @@ void psdMH97 (
       // Extract the input variables
       Numeric iwc = pnd_agenda_input(ip,0);
       Numeric   t = pnd_agenda_input(ip,1);
-  
+
+      // Negative iwc?
+      Numeric psd_weight = 1.0;
+      if( iwc < 0 )
+        {
+          psd_weight = -1.0;
+          iwc       *= -1.0;
+        }
+      
       // Outside of [t_min,tmax]?
       if( t < t_min  ||  t > t_max )
         {
@@ -262,15 +273,16 @@ void psdMH97 (
       if( iwc != 0 )
         {
           for ( Index i=0; i<nse; i++ )
-            { psd_data(ip,i) = IWCtopnd_MH97( iwc, psd_size_grid[i], t, noisy, 1 ); }
+            { psd_data(ip,i) = psd_weight *
+                           IWCtopnd_MH97( iwc, psd_size_grid[i], t, noisy, 1 ); }
         }
-  
+
       // Calculate derivative with respect to IWC
       if( ndx )
         {
-          // Obtain derivative by perturbation of 1%, but not less than 0.1 mg/m3.
+          // Obtain derivative by perturbation of 0.1%, but not less than 0.01 mg/m3.
           // Note that the last value becomes the perturbation for IWC=0.
-          const Numeric diwc = max( 0.01*iwc, 1e-7 );
+          const Numeric diwc = max( 0.001*iwc, 1e-8 );
           const Numeric iwcp = iwc + diwc;
           for ( Index i=0; i<nse; i++ )
             { dpsd_data_dx(0,ip,i) = (
@@ -299,8 +311,8 @@ void pnd_fieldCalcFromParticleBulkProps(
    const ArrayOfString&               scat_species,
    const Tensor4&                     particle_bulkprop_field,
    const ArrayOfString&               particle_bulkprop_names,
-   const Agenda&                      pnd_agenda,
-   const ArrayOfArrayOfString&        pnd_agendas_input_names,
+   const ArrayOfAgenda&               pnd_agenda_array,
+   const ArrayOfArrayOfString&        pnd_agenda_array_input_names,
    const Index&                       jacobian_do,
    const ArrayOfRetrievalQuantity&    jacobian_quantities,
    const Verbosity&)
@@ -308,9 +320,6 @@ void pnd_fieldCalcFromParticleBulkProps(
   // Number of scattering species
   const Index nss = scat_data.nelem();
 
-  if( nss > 1 )
-    throw runtime_error( "So far this method handles only one scattering species." );
-  
   // Checks (not totally complete, but should cover most mistakes)
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
@@ -343,12 +352,15 @@ void pnd_fieldCalcFromParticleBulkProps(
   if( nss < 1 )
     throw runtime_error( "*scat_data* is empty!." );
   if( scat_species.nelem() != nss )
-    throw runtime_error( "*scat_data* and *scat_species* have inconsistent sizes." );
+    throw runtime_error( "*scat_data* and *scat_species* are inconsistent in size." );
   if( scat_meta.nelem() != nss )
-    throw runtime_error( "*scat_data* and *scat_meta* have inconsistent sizes." );
-  if( pnd_agendas_input_names.nelem() != nss )
-    throw runtime_error( "*scat_data* and *pnd_agendas_input_names* have "
-                         "inconsistent sizes." );
+    throw runtime_error( "*scat_data* and *scat_meta* are inconsistent in size." );
+  if( pnd_agenda_array.nelem() != nss )
+    throw runtime_error( "*scat_data* and *pnd_agenda_array* are inconsistent "
+                         "in size." );
+  if( pnd_agenda_array_input_names.nelem() != nss )
+    throw runtime_error( "*scat_data* and *pnd_agenda_array_input_names* are "
+                         "inconsistent in size." );
   // Further checks of scat_data vs. scat_meta below  
 
   
@@ -462,25 +474,25 @@ void pnd_fieldCalcFromParticleBulkProps(
       // Index range with respect to pnd_field
       Range se_range( ncumse[is], ncumse[is+1]-ncumse[is] );
 
-      // Determine how pnd_agendas_input_names are related to input fields
+      // Determine how pnd_agenda_array_input_names are related to input fields
       //
-      const Index nin = pnd_agendas_input_names[is].nelem();
+      const Index nin = pnd_agenda_array_input_names[is].nelem();
       ArrayOfIndex i_pbulkprop(nin);
       //
       for( Index i=0; i<nin; i++ )
         {
           // We flag temperature with -100
-          if( pnd_agendas_input_names[is][i] == "Temperature" )
+          if( pnd_agenda_array_input_names[is][i] == "Temperature" )
             { i_pbulkprop[i] = -100; }
           else
             {
               i_pbulkprop[i] = find_first( particle_bulkprop_names,
-                                           pnd_agendas_input_names[is][i] );
+                                           pnd_agenda_array_input_names[is][i] );
               if( i_pbulkprop[i] < 0 )
                 {
                   ostringstream os;
                   os << "Pnd-agenda with index " << is << " is set to require \""
-                     << pnd_agendas_input_names[is][i] << "\",\nbut this quantity "
+                     << pnd_agenda_array_input_names[is][i] << "\",\nbut this quantity "
                      << "could not found in *particle_bulkprop_names*.\n"
                      << "(Note that temperature must be written as \"Temperature\")";
                   throw runtime_error(os.str());
@@ -535,20 +547,16 @@ void pnd_fieldCalcFromParticleBulkProps(
                     }
                 }
               
-              // Call pnd-agenda 
+              // Call pnd-agenda array
               Matrix pnd_data;
               Tensor3 dpnd_data_dx;
               //
-              pnd_agendaExecute( ws, pnd_data, dpnd_data_dx,
-                                 pnd_agenda_input, pnd_agendas_input_names[is],
-                                 dpnd_data_dx_names, pnd_agenda );
+              pnd_agenda_arrayExecute( ws, pnd_data, dpnd_data_dx,
+                                       pnd_agenda_input,
+                                       pnd_agenda_array_input_names[is],
+                                       dpnd_data_dx_names, pnd_agenda_array,
+                                       is );
 
-              if( ndx )
-                {
-                  cout << pnd_data(50,joker) << endl;
-                  cout << dpnd_data_dx(0,50,joker) << endl;
-                }
-                 
               // Copy to output variables
               for( Index ip=1; ip<np-1; ip++ )
                 { pnd_field(se_range,ip,ilat,ilon) = pnd_data(ip-1,joker); }
@@ -621,26 +629,6 @@ void iyCloudRadar(
     throw runtime_error( 
                     "The cloudbox must be activated (cloudbox_on must be 1)." );
 
-  /*
-  // Shall pnd_field be created?
-  //
-  ArrayOfArrayOfTensor4  dpndfield_dq;
-  //
-  if( jacobian_do )
-    {
-      if( !pnd_field.empty() )
-        throw runtime_error( "With jacobian_do=1, *pnd_field* must be empty "
-                             "it is generated from ???." );
-
-      // Create pnd_field
-      pnd_field_from_ppdata( ws, pnd_field, dpndfield_dq,
-                             atmosphere_dim, t_field, cloudbox_limits, scat_meta,
-                             particle_bulkprop, particle_bulkprop_names,
-                             pnd_agenda, pnd_input_names,
-                             jacobian_do );
-    }
-  */
-  
   // Determine propagation path
   //
   ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace, rte_pos, rte_los,

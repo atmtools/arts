@@ -10525,7 +10525,7 @@ void define_md_data_raw()
         IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "t_field",
             "cloudbox_on", "cloudbox_limits", "scat_data", "scat_meta",
             "scat_species", "particle_bulkprop_field", "particle_bulkprop_names",
-            "pnd_agenda", "pnd_agendas_input_names",
+            "pnd_agenda_array", "pnd_agenda_array_input_names",
             "jacobian_do", "jacobian_quantities" ),
         GIN(),
         GIN_TYPE(),
