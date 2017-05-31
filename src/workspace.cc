@@ -1405,7 +1405,10 @@ void Workspace::define_wsv_data()
      ( NAME( "dpnd_data_dx" ),
       DESCRIPTION
       (
-       "Work in progress ....\n"
+       "Partial derivates of *pnd_data*.\n"
+       "\n"
+       "The variable gives the particle derivate of *pnd_data* with respect\n"
+       "to the quantities set in *dpnd_data_dx_names*.\n"
        "\n"
        "Dimensions: [ n_quantities, n_points, n_scattering_elements ]\n"
        ),
@@ -1416,8 +1419,10 @@ void Workspace::define_wsv_data()
      ( NAME( "dpnd_data_dx_names" ),
       DESCRIPTION
       (
-       "Work in progress ....\n"
+       "Selection of partial derivatives of *pnd_data*.\n"
        "\n"
+       "This variable tells an element in *pnd_agenda_array* for which\n"
+       "quantities partial derivatives shall be calculated.\n"
        "\n"
        "Dimensions: [ n_quantities ]\n"
        ),
@@ -1428,7 +1433,14 @@ void Workspace::define_wsv_data()
      ( NAME( "dpnd_field_dx" ),
       DESCRIPTION
       (
-       "Work in progress ....\n"
+       "Partial derivatives of *pnd_field*.\n"
+       "\n"
+       "The variable gives the particle derivative of *pnd_field* with respect\n"
+       "to scattering species variables included in *jacobian_quantities*.\n"
+       "\n"
+       "The length of this array shall match the size of *jacobian_quantities*.\n"
+       "For retrieval quantities that are not scattering species, the matching\n"
+       "Tensor4 is of no relevance and should be set to be empty.\n"
        "\n"
        "Dimensions: [n_quantities][ n_scattering_elements, n_p, n_lat, n_lon ]\n"
        ),
@@ -1458,9 +1470,12 @@ void Workspace::define_wsv_data()
      ( NAME( "dpsd_data_dx" ),
       DESCRIPTION
       (
-       "Work in progress ....\n"
+       "Partial derivates of *psd_data*.\n"
        "\n"
-       "Dimensions: [ n_retrieval_quantities, n_points, n_sizes ]\n"
+       "The variable gives the particle derivate of *psd_data* with respect\n"
+       "to the quantities set in *dpnd_data_dx_names*.\n"
+       "\n"
+       "Dimensions: [ n_quantities, n_points, n_scattering_elements ]\n"
        ),
       GROUP( "Tensor3" )));
 
@@ -3304,7 +3319,14 @@ void Workspace::define_wsv_data()
      ( NAME( "particle_bulkprop_field" ),
       DESCRIPTION
       (
-       "Work in progress ....\n"
+       "Container for various data that describes scattering bulk properties.\n"
+       "\n"
+       "The number and order of bulk properties is free, as long as the data are\n"
+       "consistent with the content of *particle_bulkprop_names*. \n"
+       "\n"
+       "The data shall be given on the standard atmospheric grids. When actually\n"
+       "used, this variable must have zeros at all positions outside and at the\n"
+       "border of the *cloudbox*.\n"
        "\n"
        "Dimensions: [ particle_bulkprop_names, p_grid, lat_grid, lon_grid ]\n"       
        ),
@@ -3315,9 +3337,13 @@ void Workspace::define_wsv_data()
      ( NAME( "particle_bulkprop_names" ),
       DESCRIPTION
       (
-       "Work in progress ....\n"
+       "Identification of the data in *particle_bulkprop_field*.\n"
        "\n"
-       "Dimensions: length should match book-dimesion of *particle_bulkprop_field*\n" 
+       "This variable assigns a name to each field in *particle_bulkprop_field*.\n"
+       "The naming is totally free. If two fields are given the same name, the\n"
+       "first one will be selected.\n"
+       "\n"
+       "Dimensions: length should match book-dimension of *particle_bulkprop_field*\n" 
        ),
       GROUP( "ArrayOfString" )));
   
@@ -3483,7 +3509,14 @@ void Workspace::define_wsv_data()
      ( NAME( "pnd_agenda_array" ),
       DESCRIPTION
       (
-       "Work in progress ....\n"
+       "Mapping of particle bulk properties to number density data.\n"
+       "\n"
+       "The length of this agenda array shall match the size of *scat_species*.\n"
+       "That is there is a \"pnd-agenda\" associated with each scattering species.\n"
+       "\n"
+       "In short, each agenda takes some bulk property data as input, and returns\n"
+       "particle number densities for all scattering elements of the species.\n"
+       "See further *pnd_agenda_input* and associated variables.\n"
        ),
       GROUP( "ArrayOfAgenda" )));
 
@@ -3492,7 +3525,15 @@ void Workspace::define_wsv_data()
      ( NAME( "pnd_agenda_input" ),
       DESCRIPTION
       (
-       "Work in progress ....\n"
+       "The variable input to one element of *pnd_agenda_array*.\n"
+       "\n"
+       "The column dimension corresponds to the input to the underlying\n"
+       "particle size distribution method. For example, the first column\n"
+       "can hold ice water content values, and the second one temperature\n"
+       "data.\n"
+       "\n"
+       "Each row corresponds to a position. That is, the methods in the\n"
+       "pnd-agendas are expected to process multiple points in one call.\n"
        "\n"
        "Dimensions: [ n_points, n_input_variables ]\n"
        ),
@@ -3503,7 +3544,10 @@ void Workspace::define_wsv_data()
      ( NAME( "pnd_agenda_array_input_names" ),
       DESCRIPTION
       (
-       "Work in progress ....\n"
+       "Naming of all input expected by *pnd_agenda_array*.\n"
+       "\n"
+       "This variable contains *pnd_agenda_input_names* for each agenda\n"
+       "element in *pnd_agenda_array*.\n"
        "\n"
        "Dimension: [ n_scattering_species ][ n_input_variables ]\n"
        ),
@@ -3514,7 +3558,10 @@ void Workspace::define_wsv_data()
      ( NAME( "pnd_agenda_input_names" ),
       DESCRIPTION
       (
-       "Work in progress ....\n"
+       "Naming of (existing or expected) data in *pnd_agenda_input*.\n"
+       "\n"
+       "The strings of this variable refer to the corresponding column in\n"
+       "*pnd_agenda_input*.\n"
        "\n"
        "Dimension: [ n_input_variables ]\n"
        ),
@@ -3525,7 +3572,11 @@ void Workspace::define_wsv_data()
      ( NAME( "pnd_data" ),
       DESCRIPTION
       (
-       "Work in progress ....\n"
+       "Particle number density values for a set of points.\n"
+       "\n"
+       "The variable contains particle number density data for one scattering\n"
+       "species. The row dimension corresponds to different positions, in the\n"
+       "same way as *pnd_agenda_input* is defined.\n"
        "\n"
        "Dimensions: [ n_points, n_scattering_elements ]\n"
        ),
@@ -3568,7 +3619,12 @@ void Workspace::define_wsv_data()
      ( NAME( "pnd_size_grid" ),
       DESCRIPTION
       (
-       "Work in progress ....\n"
+       "The particle sizes associated with *pnd_data*.\n"
+       "\n"
+       "This variable holds the size of each scattering element considered.\n"
+       "Size can be defined differently, depending on particle size distribution\n"
+       "used. Most common choices should by equivalent diameter, maximum diameter\n"
+       "and mass.\n"
        "\n"
        "Dimension: [ n_sizes ]\n"
        ),
@@ -3768,9 +3824,13 @@ void Workspace::define_wsv_data()
      ( NAME( "psd_data" ),
       DESCRIPTION
       (
-       "Work in progress ....\n"
+       "Particle size distribution values for a set of points.\n"
        "\n"
-       "Dimensions: [ n_points, n_sizes ]\n"
+       "The variable contains particle size distribution data for one scattering\n"
+       "species. The row dimension corresponds to different positions, in the\n"
+       "same way as *pnd_agenda_input* is defined.\n"
+       "\n"
+       "Dimensions: [ n_points, n_scattering_elements ]\n"
        ),
       GROUP( "Matrix" )));
 
@@ -3779,7 +3839,12 @@ void Workspace::define_wsv_data()
      ( NAME( "psd_size_grid" ),
       DESCRIPTION
       (
-       "Work in progress ....\n"
+       "The particle sizes associated with *psd_data*.\n"
+       "\n"
+       "This variable holds the size of each scattering element considered.\n"
+       "Size can be defined differently, depending on particle size distribution\n"
+       "used. Most common choices should by equivalent diameter, maximum diameter\n"
+       "and mass.\n"
        "\n"
        "Dimension: [ n_sizes ]\n"
        ),

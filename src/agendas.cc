@@ -678,7 +678,14 @@ void define_agenda_data()
      ( NAME( "pnd_agenda_array" ),
        DESCRIPTION
        (
-        "Work in progress ....\n"
+        "Returns particle number density data for each scattering species.\n"
+        "\n"
+        "This variable is used when mapping data in *particle_bulkprop_field*\n"
+        "to *pnd_field*. The variable is also necessary when calculating\n"
+        "scattering species weighting functions.\n"
+        "\n"
+        "Note that content of this agenda array, *scat_species* and\n"
+        "*pnd_agenda_array_input_names* must be consistent.\n"
         ),
        OUTPUT( "pnd_data", "dpnd_data_dx" ),
        INPUT( "pnd_agenda_input", "pnd_agenda_input_names", "dpnd_data_dx_names" )));

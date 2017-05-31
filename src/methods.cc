@@ -10496,9 +10496,9 @@ void define_md_data_raw()
         (
         "Calculates *pnd* from given *psd*.\n"
         "\n"
-        "Work in progress ....\n"
+        "A temporary method, will be rewritten.\n"
         ),
-        AUTHORS( "Jana Mendrok and Patrick Eriksson" ),
+        AUTHORS( "Jana Mendrok" ),
         OUT( "pnd_data", "dpnd_data_dx" ),
         GOUT(),
         GOUT_TYPE(),
@@ -10515,7 +10515,15 @@ void define_md_data_raw()
       ( NAME( "pnd_fieldCalcFromParticleBulkProps" ),
         DESCRIPTION
         (
-         "Work in progress ...\n"
+         "Converts particle bulk property data to *pnd_field*.\n"
+         "\n"
+         "In short, the method combines *scat_species*, *pnd_agenda_array*,\n"
+         "*particle_bulkprop_field* and their associated variables to derive\n"
+         "*pnd_field*.\n"
+         "\n"
+         "Cloudbox limits must be set before calling the method, and\n"
+         "*particle_bulkprop_field* is checked to have non-zero elements just\n"
+         "inside the cloudbox.\n"
          ),
         AUTHORS( "Jana Mendrok and Patrick Eriksson" ),
         OUT( "pnd_field", "dpnd_field_dx" ),
@@ -10662,6 +10670,31 @@ void define_md_data_raw()
         GIN_TYPE( "Index"),
         GIN_DEFAULT( "1" ),
         GIN_DESC( "Number of zero values inside lat and lon limits." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "pnd_size_gridFromScatMeta" ),
+        DESCRIPTION
+        (
+         "Sets *pnd_size_grid* based on *scat_meta*.\n"
+         "\n"
+         "The size parameter to use is selected by *unit*. The options are:\n"
+         " \"dveq\" : The size grid is set to scat_meta.diameter_volume_equ\n"
+         " \"dmax\" : The size grid is set to scat_meta.diameter_max\n"
+         " \"mass\" : The size grid is set to scat_meta.mass\n"
+         " \"area\" : The size grid is set to scat_meta.diameter_area_equ_aerodynamical\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "pnd_size_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "scat_meta" ),
+        GIN( "unit" ),
+        GIN_TYPE( "String"),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Size grid unit, allowed options listed above." )
         ));
 
   md_data_raw.push_back
@@ -11425,14 +11458,19 @@ void define_md_data_raw()
       ( NAME( "psdMH97" ),
         DESCRIPTION
         (
-        "Work in progress ....\n"
+         "Generation of *psd_data* following the MH97 PSD\n"
+         "\n"
+         "The particle size distribution (PSD) ofMcFarquahar and Heymsfield\n"
+         "(1997) parametrization is here denoted as MH97.\n"
+         "\n"
+         "To be writen ...\n"
         ),
         AUTHORS( "Jana Mendrok and Patrick Eriksson" ),
-        OUT( "psd_data", "psd_size_grid", "dpsd_data_dx", "pnd_size_grid" ),
+        OUT( "psd_data", "dpsd_data_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_meta", "pnd_agenda_input", "pnd_agenda_input_names",
+        IN( "psd_size_grid", "pnd_agenda_input", "pnd_agenda_input_names",
             "dpnd_data_dx_names" ),
         GIN( "t_min", "t_max", "picky", "noisy" ),
         GIN_TYPE( "Numeric", "Numeric", "Index", "Index" ),

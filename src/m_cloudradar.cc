@@ -59,6 +59,68 @@ extern const String SCATSPECIES_MAINTAG;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void pnd_size_gridFromScatMeta(
+          Vector&                             pnd_size_grid,
+    const ArrayOfArrayOfScatteringMetaData&   scat_meta,
+    const String&                             unit,
+    const Verbosity& )
+{
+  // So far scattering species == 0 is hard-coded
+  const Index iss = 0;
+
+  // Sizes
+  const Index nss = scat_meta.nelem();
+
+  // Checks
+  if( nss == 0 )
+    throw runtime_error( "*scat_meta* is empty!" );
+  if( nss < iss+1 )
+    {
+      ostringstream os;
+      os << "Selected scattering species index is " << iss << " but this "
+         << "is not allowed since *scat_meta* has only" << scat_meta.nelem()
+         << " elements.";
+      throw runtime_error(os.str());
+    }
+
+  // Create size grid
+  //
+  const Index nse = scat_meta[iss].nelem();
+  //
+  pnd_size_grid.resize( nse );
+  //
+  if( unit == "dveq" )
+    {
+      for ( Index i=0; i<nse; i++ )
+        { pnd_size_grid[i] = scat_meta[iss][i].diameter_volume_equ; }
+    }
+  else if( unit == "dmax" )
+    {
+      for ( Index i=0; i<nse; i++ )
+        { pnd_size_grid[i] = scat_meta[iss][i].diameter_max; }
+    }
+  else if( unit == "mass" )
+    {
+      for ( Index i=0; i<nse; i++ )
+        { pnd_size_grid[i] = scat_meta[iss][i].mass; }
+    }
+  else if( unit == "area" )
+    {
+      for ( Index i=0; i<nse; i++ )
+        { pnd_size_grid[i] = scat_meta[iss][i].diameter_area_equ_aerodynamical; }
+    }
+  else
+    {
+      ostringstream os;
+      os << "You have selected the unit: " << unit 
+         << "while accepted choices are: \"dveq\", \"dmax\", \"mass\" and \"area\"";
+      throw runtime_error(os.str());
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void pndFromPsdBasic(
          Matrix&    pnd_data,
          Tensor3&   dpnd_data_dx,
@@ -153,10 +215,8 @@ void pndFromPsdBasic(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void psdMH97 (
           Matrix&                             psd_data,
-          Vector&                             psd_size_grid,
           Tensor3&                            dpsd_data_dx,
-          Vector&                             pnd_size_grid,
-    const ArrayOfArrayOfScatteringMetaData&   scat_meta,
+    const Vector&                             psd_size_grid,
     const Matrix&                             pnd_agenda_input,
     const ArrayOfString&                      pnd_agenda_input_names,
     const ArrayOfString&                      dpnd_data_dx_names,
@@ -166,26 +226,13 @@ void psdMH97 (
     const Index&                              noisy,
     const Verbosity&)
 {
-  // So far scattering species == 0 is hard-coded
-  const Index iss = 0;
-
   // Some sizes 
-  const Index nss = scat_meta.nelem();
   const Index nin = pnd_agenda_input_names.nelem();
   const Index ndx = dpnd_data_dx_names.nelem();
   const Index np  = pnd_agenda_input.nrows();
+  const Index nsi = psd_size_grid.nelem();
   
   // Checks
-  if( nss == 0 )
-    throw runtime_error( "*scat_meta* is empty!" );
-  if( nss < iss+1 )
-    {
-      ostringstream os;
-      os << "Selected scattering species index is " << iss << " but this "
-         << "is not allowed since *scat_meta* has only" << scat_meta.nelem()
-         << " elements.";
-      throw runtime_error(os.str());
-    }
   if( pnd_agenda_input.ncols() != nin )
     throw runtime_error( "Length of *pnd_agenda_input_names* and number of "
                          "columns in *pnd_agenda_input* must be equal." );
@@ -209,20 +256,12 @@ void psdMH97 (
                          "combined." );
 
   
-  // Create size grids, so far set to be equal
-  //
-  const Index nse = scat_meta[iss].nelem();
-  psd_size_grid.resize( nse );
-  for ( Index i=0; i<nse; i++ )
-    { psd_size_grid[i] = scat_meta[iss][i].diameter_volume_equ; }
-  pnd_size_grid = psd_size_grid;
-  
   // Init psd_data and dpsd_data_dx with zeros
-  psd_data.resize( np, nse );
+  psd_data.resize( np, nsi );
   psd_data = 0.0;
   if( ndx )
     {
-      dpsd_data_dx.resize( 1, np, nse );   // IWC only possible retrieval quantity
+      dpsd_data_dx.resize( 1, np, nsi );   // IWC only possible retrieval quantity
       dpsd_data_dx = 0.0;
     }
   else
@@ -272,7 +311,7 @@ void psdMH97 (
       // Calculate PSD
       if( iwc != 0 )
         {
-          for ( Index i=0; i<nse; i++ )
+          for ( Index i=0; i<nsi; i++ )
             { psd_data(ip,i) = psd_weight *
                            IWCtopnd_MH97( iwc, psd_size_grid[i], t, noisy, 1 ); }
         }
@@ -284,7 +323,7 @@ void psdMH97 (
           // Note that the last value becomes the perturbation for IWC=0.
           const Numeric diwc = max( 0.001*iwc, 1e-8 );
           const Numeric iwcp = iwc + diwc;
-          for ( Index i=0; i<nse; i++ )
+          for ( Index i=0; i<nsi; i++ )
             { dpsd_data_dx(0,ip,i) = (
                          IWCtopnd_MH97( iwcp, psd_size_grid[i], t, noisy, 1 ) -
                          psd_data(ip,i) ) / diwc; }
