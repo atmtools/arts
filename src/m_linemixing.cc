@@ -1233,7 +1233,7 @@ void calculate_xsec_from_relmat(ArrayOfMatrix& xsec,
             
             Complex dw_df = Complex(0.0, 0.0);
             if(ppd.do_frequency())
-                dw_df = 2 * (z * w - ls_normfac);
+                dw_df = 2. * (z * w - ls_normfac);
             
             for(Index iq = 0; iq < ppd.nelem(); iq++)
             {

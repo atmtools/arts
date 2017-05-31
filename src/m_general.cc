@@ -294,7 +294,7 @@ void Print(// WS Generic Input:
     / (Numeric)clktck;
 
     os << "  system: " << setprecision (2)
-    << (Numeric)(timer.cputime_end.tms_stime - timer.cputime_end.tms_stime)
+    << (Numeric)(timer.cputime_end.tms_stime - timer.cputime_start.tms_stime)
     / (Numeric)clktck;
 
     os << "\n               real: " << setprecision (2)

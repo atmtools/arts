@@ -25,11 +25,16 @@ set (CMAKE_LEGACY_CYGWIN_WIN32 0)
 if (NOT ENABLE_ALLPATHS)
   # Avoid possible linker incompatibilities for
   # libstdc++ and libgomp on Linux if anaconda is installed
-  set (CMAKE_IGNORE_PATH ${CMAKE_IGNORE_PATH}
-                         $ENV{HOME}/anaconda/lib
-                         $ENV{HOME}/anaconda/include
-                         $ENV{HOME}/anaconda3/lib
-                         $ENV{HOME}/anaconda3/include)
+  find_program(CONDA_PROG NAMES conda)
+  if (CONDA_PROG)
+    get_filename_component(CONDA_PATH ${CONDA_PROG} DIRECTORY)
+    get_filename_component(CONDA_PATH ${CONDA_PATH} DIRECTORY)
+    if (NOT CONDA_PATH MATCHES "/usr.*")
+      set(CMAKE_IGNORE_PATH ${CMAKE_IGNORE_PATH}
+              ${CONDA_PATH}/lib
+              ${CONDA_PATH}/include)
+    endif()
+  endif()
 endif()
 
 project (ARTS)
@@ -223,10 +228,10 @@ endif (NOT BLAS_FOUND)
 
 ########## LAPACK support #########
 
-include (FindLAPACK)
+include (FindCblasLapack)
 if (NOT LAPACK_FOUND)
   unset(LAPACK_FOUND)
-  include (FindCblasLapack)
+  include (FindLAPACK)
   if (NOT LAPACK_FOUND)
     message (FATAL_ERROR "No LAPACK library found. Please install it.")
   endif (NOT LAPACK_FOUND)
