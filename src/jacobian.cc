@@ -282,7 +282,7 @@ void get_pointers_for_analytical_jacobians(
          ArrayOfIndex&               integrate_i,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
-   const Index&                      nscats )
+   const ArrayOfString&              scat_species )
 {
 
   FOR_ANALYTICAL_JACOBIANS_DO( 
@@ -335,16 +335,15 @@ void get_pointers_for_analytical_jacobians(
     //
     if( jacobian_quantities[iq].MainTag() == SCATSPECIES_MAINTAG )
       {
-        scat_species_i[iq] = atoi( jacobian_quantities[iq].Subtag().substr(19).c_str() );
+        scat_species_i[iq] = find_first( scat_species,
+                                             jacobian_quantities[iq].Subtag() );
         if( scat_species_i[iq] < 0 )
-          throw runtime_error( "Negative scattering species index obtained." );
-        if( scat_species_i[iq] >= nscats  )
           {
             ostringstream os;
-            os << "Scattering species index " << scat_species_i[iq]
-               << " was found.\nThis is not allowed as the number of"
-               << " scattering species is only " << nscats << ".";
-            throw std::runtime_error(os.str());
+            os << "Jacobian quantity with index " << iq << " refers to\n"
+               << "  " << jacobian_quantities[iq].Subtag()
+               << "\nbut this species could not be found in *scat_species*.";
+            throw runtime_error(os.str());
           }
       }
     else

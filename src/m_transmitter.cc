@@ -778,9 +778,12 @@ void iyTransmissionStandard(
         }
       )
         
+      const ArrayOfString scat_species(0);
+
       get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
                                              jac_wind_i, jac_mag_i, jac_to_integrate, 
-                                             jacobian_quantities, abs_species, 0 );
+                                             jacobian_quantities,
+                                             abs_species, scat_species );
 
       FOR_ANALYTICAL_JACOBIANS_DO( 
         jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 

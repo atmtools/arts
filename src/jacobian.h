@@ -197,7 +197,7 @@ void get_pointers_for_analytical_jacobians(
          ArrayOfIndex&               integrate_i,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
-   const Index&                      nscats );
+   const ArrayOfString&              scat_species );
 
 void jacobian_type_extrapol( ArrayOfGridPos&   gp );
 

@@ -165,7 +165,6 @@ void pndFromPsdBasic(
   else
     { dpnd_data_dx.resize( 0, 0, 0 ); }
 
-  // Jana!!! I leave to you to add handling of unsorted grids
   if( !is_increasing( psd_size_grid ) )
     throw runtime_error( "*psd_size_grid* must be strictly increasing." );    
 
@@ -345,9 +344,9 @@ void pnd_fieldCalcFromParticleBulkProps(
    const Tensor3&                     t_field,
    const Index&                       cloudbox_on,
    const ArrayOfIndex&                cloudbox_limits,
+   const ArrayOfString&               scat_species,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
    const ArrayOfArrayOfScatteringMetaData&   scat_meta,
-   const ArrayOfString&               scat_species,
    const Tensor4&                     particle_bulkprop_field,
    const ArrayOfString&               particle_bulkprop_names,
    const ArrayOfAgenda&               pnd_agenda_array,
@@ -638,6 +637,7 @@ void iyCloudRadar(
    const ArrayOfIndex&                cloudbox_limits,
    const Tensor4&                     pnd_field,
    const ArrayOfTensor4&              dpnd_field_dx,
+   const ArrayOfString&               scat_species,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
    const Matrix&                      particle_masses,
    const String&                      iy_unit,
@@ -668,6 +668,7 @@ void iyCloudRadar(
     throw runtime_error( 
                     "The cloudbox must be activated (cloudbox_on must be 1)." );
 
+  
   // Determine propagation path
   //
   ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace, rte_pos, rte_los,
@@ -680,7 +681,6 @@ void iyCloudRadar(
   const Index ns = stokes_dim;
   const Index np = ppath.np;
   const Index nq = jacobian_quantities.nelem();
-  const Index nscats = scat_data.nelem();
   const Index nsetot = pnd_field.nbooks();
 
       
@@ -725,9 +725,9 @@ void iyCloudRadar(
         
       get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
                                              jac_wind_i, jac_mag_i, jac_to_integrate, 
-                                             jacobian_quantities, abs_species,
-                                             nscats );
-
+                                             jacobian_quantities,
+                                             abs_species, scat_species );
+      
       FOR_ANALYTICAL_JACOBIANS_DO(
         jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
         if( jac_to_integrate[iq] == JAC_IS_FLUX )
@@ -1148,8 +1148,6 @@ void yCloudRadar(
     }
 
 
-  // Are range_bins z or t?
-
   // Loop positions
   for( Index p=0; p<npos; p++ )
     {
@@ -1216,7 +1214,7 @@ void yCloudRadar(
               for( Index i=0; i<n_in; i++ )
                 { zt[i+1] = range[i_in[i]]; }
               zt[n_in+1]  = zthigh;
-              n_in      += 2;
+              n_in       += 2;
 
               // Height of layer, for reflectivity and aux, respectively
               Numeric dl1 = range_bins[b+1] - range_bins[b];

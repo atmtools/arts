@@ -1714,6 +1714,7 @@ void jacobianAddScatSpecies(
   rq.MainTag( SCATSPECIES_MAINTAG );
   rq.Subtag( species );
   rq.SubSubtag( quantity );
+  rq.Analytical( 1 );
   rq.Grids( grids );
   
   // Add it to the *jacobian_quantities*
