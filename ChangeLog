@@ -1,3 +1,10 @@
+2017-06-01 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-690
+
+	* src/m_fos.cc (iyHybrid):
+	Implemented scat source term calculation (not jacobians capable yet).
+
 2017-06-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-689
