@@ -1,3 +1,40 @@
+2017-06-01 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-688
+
+	* src/rt4.cc:
+	General cleanup from (outcommented and active) couts.
+
+	(sca_optpropCalc):
+	Bugfix I. Affected calculations with "semi-bad" normed RT4 scattering
+	matrices (ie cases that did pass the error threshold, but were bad
+	enough to trigger a out2 warning message and by that unintentionally
+	skip the renormalization), which easily occured when increasing
+	pfct_threshold to avoid the bad-norm error throwing. :(((
+	Good thing: RT4 results are more stable over nstreams now. Bad thing:
+	complete (re)normalisartion takes time, i.e. calculations take
+	noticeably longer now.
+	Bugfix II. Calculate complete scattering matrix structure when
+	auto_inc_stream limit is hit, but calculation shall be executed (aka
+	robust=1) anyways.
+
+	* src/m_rt4.cc:
+	Made pfct_threshold an internal global constant (to avoid inconsistent
+	settings in the different RT4Calc* methods).
+
+	* 3rdparty/polradtran/rt4/radscat4.f, radtran4.f:
+	Remove outcommenting of info message inside CHECK_NORM. instead,
+	outcomment call of it as such (no sense to call it and spend comp time
+	when it has zero effect anyways). Cleaned out some earlier added
+	comments/write statements.
+
+	* src/m_surface.cc, methods.cc
+	(surface_reflectivityFromSurface_rmatrix):
+	Vector method equivalent to
+	surface_scalar_reflectivityFromSurface_rmatrix. Not in effect so far
+	(as in the end i didn't need it and was not sure whether the approach
+	is correct like this in the general, aka non-scalar, case.
+
 2017-06-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-687

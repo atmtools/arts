@@ -269,16 +269,18 @@ C           Loop through the layers
 C              Do doubling to make the reflection and transmission matrices
 C              and soure vectors for each layer, which are stored.
 
-      IF (NSL .GT. 0) THEN
-          CALL CHECK_NORM (NSTOKES, NUMMU, NSL,
-     .                     QUAD_WEIGHTS,
-     .                     SCATTER_MATRIX,
-     .                     EXTINCT_MATRIX, EMIS_VECTOR)
-      END IF
-c      WRITE(*,'(A)') 'norm check done'
+c jm: skip this check as it has no consequences at all anyways (at least
+c     since after we switched off the info message in CHECK_NORM).
+c !!! the calling code, i.e. ARTS has to handle this issue reliably. !!!
+c
+c      IF (NSL .GT. 0) THEN
+c          CALL CHECK_NORM (NSTOKES, NUMMU, NSL,
+c     .                     QUAD_WEIGHTS,
+c     .                     SCATTER_MATRIX,
+c     .                     EXTINCT_MATRIX, EMIS_VECTOR)
+c      END IF
 
       DO LAYER = 1, NUM_LAYERS
-c          WRITE(*,'(A,I4)') 'processing layer', LAYER
 C                   Calculate the layer thickness
           ZDIFF = ABS(HEIGHT(LAYER) - HEIGHT(LAYER+1))
           GAS_EXTINCT(LAYER) = MAX(GAS_EXTINCT(LAYER),0.0D0)
@@ -308,7 +310,6 @@ C                     and source vector instead of doubling.
 
 C                   Find initial thickness of sublayer and
 C                     the number of times to double
-c              WRITE(*,'(A)') 'scatt layer'
               EXTINCT = EXTINCT_MATRIX(1,1,1,1,TSL)+GAS_EXTINCT(LAYER)
               F =DLOG(MAX(EXTINCT*ZDIFF,1.0D-7)/MAX_DELTA_TAU)/LOG(2.)
               NUM_DOUBLES = 0
@@ -345,7 +346,6 @@ C                   Double up to the thickness of the layer
       ENDDO
 C            End of layer loop
 
-c      WRITE(*,'(A)') 'layer looping finished'
 
 C           Get the surface reflection and transmission matrices
 C             and the surface radiance

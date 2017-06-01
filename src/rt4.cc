@@ -422,8 +422,6 @@ void get_rt4surf_props( // Output
       for (Index f_index=0; f_index<nf; f_index++)
       {
         ground_index[f_index] = Complex(n_real(f_index,0),n_imag(f_index,0));
-        //cout << "set ground_index[f#" << f_index << "] = "
-        //     << ground_index[f_index] << "\n";
       }
     }
   else
@@ -599,11 +597,11 @@ void run_rt4( Workspace& ws,
   // Loop over frequencies
   for (f_index = 0; f_index < f_grid.nelem(); f_index ++) 
     {
+      //cout << "\nProcessing freq #" << f_index << "\n";
+
       // Wavelength [um]
       Numeric wavelength;
       wavelength = 1e6*SPEED_OF_LIGHT/f_grid[f_index];
-      //cout << "# processing freq #" << f_index << " at " << f_grid[f_index]*1e-9
-      //     << "GHz\n";
 
       Matrix groundreflec=ground_reflec(f_index,joker,joker);
       Tensor4 surfreflmat=surf_refl_mat(f_index,joker,joker,joker,joker);
@@ -627,10 +625,6 @@ void run_rt4( Workspace& ws,
         }
 
       Index pfct_failed = 0;
-      cout << "\nProcessing freq #" << f_index << "\n";
-      cout << "Requested nstreams: " << 2*nummu
-           << ". Starting with pfct_failed=" << pfct_failed
-           << ", new stream=" << 2*nummu_new << ".\n";
       if( pndtot && (nummu_new<nummu) )
         {
           par_optpropCalc( ws, emis_vector, extinct_matrix,
@@ -646,14 +640,12 @@ void run_rt4( Workspace& ws,
                            pfct_method, pfct_aa_grid_size, pfct_threshold,
                            auto_inc_nstreams,
                            verbosity );
-          //cout << "Returning from sca_optpropCalc with pfct_failed=" << pfct_failed << ".\n";
         }
       else
         pfct_failed = 1;
 
       if (!pfct_failed)
       {
-        cout << "Performing RT4 in no-failed branch with nstreams: " << 2*nummu << "\n";
 #pragma omp critical(fortran_rt4)
         {
           // Call RT4
@@ -694,9 +686,6 @@ void run_rt4( Workspace& ws,
         if (nummu_new<nummu)
           nummu_new = nummu+1;
 
-        cout << "Entering failed-branch. Starting with pfct_failed="
-             << pfct_failed << ", new stream=" << 2*nummu_new << ".\n";
-
         Index nhstreams_new;
         Vector mu_values_new, quad_weights_new, scat_aa_grid_new;
         Tensor6 scatter_matrix_new;
@@ -712,13 +701,8 @@ void run_rt4( Workspace& ws,
         // that here.
         Vector scat_za_grid_orig = scat_za_grid;
 
-        //cout << "pfct_failed=" << pfct_failed << ", new nstream=" << 2*nummu_new
-        //     << ", max nstreams=" << auto_inc_nstreams << "\n";
-        //cout << "new streams <= max streams? "
-        //     << ((2*nummu_new)<=auto_inc_nstreams) << "\n";
         while (pfct_failed && (2*nummu_new)<=auto_inc_nstreams)
         {
-          cout << "  increased nstreams to: " << 2*nummu_new << "\n";
         // resize and recalc nstream-affected/determined variables:
         //   - mu_values, quad_weights (resize & recalc)
           nhstreams_new = nummu_new-nhza;
@@ -743,6 +727,7 @@ void run_rt4( Workspace& ws,
         //   - resize & recalc scatter_matrix
           scatter_matrix_new.resize(num_scatlayers,4,nummu_new,stokes_dim,nummu_new,stokes_dim);
           scatter_matrix_new = 0.;
+          pfct_failed = 0;
           sca_optpropCalc( scatter_matrix_new, pfct_failed,
                            emis_vector_new, extinct_matrix_new,
                            scat_data_mono, pnd_field, stokes_dim,
@@ -750,7 +735,6 @@ void run_rt4( Workspace& ws,
                            pfct_method, pfct_aa_grid_size, pfct_threshold,
                            auto_inc_nstreams,
                            verbosity );
-          cout << "Returning from sca_optpropCalc with pfct_failed=" << pfct_failed << ".\n";
           
           if (pfct_failed)
             nummu_new = nummu_new+1;
@@ -779,10 +763,16 @@ void run_rt4( Workspace& ws,
             os << "Continuing with nstreams=" << 2*nummu_new
                << ". Output for this frequency might be erroneous.";
             out1 << os.str();
+            pfct_failed = -1;
+            sca_optpropCalc( scatter_matrix_new, pfct_failed,
+                             emis_vector_new, extinct_matrix_new,
+                             scat_data_mono, pnd_field, stokes_dim,
+                             scat_za_grid, quad_weights_new,
+                             pfct_method, pfct_aa_grid_size, pfct_threshold,
+                             0,
+                             verbosity );
           }
         }
-
-        cout << "  Performing RT4 with nstreams: " << 2*nummu_new << "\n";
 
         // resize and calc remaining nstream-affected variables:
         //   - in case of surface_rtprop_agenda driven surface: surfreflmat, surfemisvec
@@ -849,22 +839,8 @@ void run_rt4( Workspace& ws,
         //       down)
         //     - loop over num_layers and stokes_dim:
         //       - apply weights
-        //cout << "scat_za_grid has " << scat_za_grid.nelem() << " (=2*nummu_new="
-        //     << 2*nummu_new << ") elements.\n";
-        for (Index j = 0; j<nummu_new; j++)
-        {
-          //cout << "scat_za_grid[" << j << "]=" << scat_za_grid[j]
-          //     << ", mu=" << mu_values_new[j];
-          //if (j>0)
-            //cout << " (dza=" << scat_za_grid[j]-scat_za_grid[j-1] << ", dmu="
-            //     <<  mu_values_new[j]-mu_values_new[j-1] << ")\n";
-          //else
-            //cout << "\n";
-        }
-        
         for (Index j = 0; j<nummu; j++)
         {
-          //cout << "interpolating to za=" << scat_za_grid_orig[j] << "\n";
           GridPosPoly gp_za;
           if( cos_za_interp )
           {
@@ -886,7 +862,7 @@ void run_rt4( Workspace& ws,
               down_rad(k,j,ist) = interp(itw, down_rad_new(k,joker,ist), gp_za);
             }
         }
-
+ 
         // reconstruct scat_za_grid
         scat_za_grid = scat_za_grid_orig;
       }
@@ -946,8 +922,6 @@ void scat_za_grid_adjust( // Output
                           ConstVectorView mu_values,
                           const Index& nummu )
 {
-  //scat_za_grid.resize(nstreams);
-  //cout << "Setting scat_za_grid for ARTS consistent with doit_i_field.\n";
   for (Index j=0; j<nummu; j++)
     {
       scat_za_grid[nummu-1-j] = acos(mu_values[j])*RAD2DEG;
@@ -1203,8 +1177,6 @@ void sca_optpropCalc( //Output
   // FIXME: do we have numerical issues, too, here in case of tiny pnd? check
   // with Patrick's Disort-issue case.
 
-  //cout << "in sca_optpropCalc starting with pfct_failed=" << pfct_failed << "\n";
-
   // Check that we do indeed have scat_data_mono here.
   if( scat_data_mono[0][0].f_grid.nelem() > 1 )
   {
@@ -1365,8 +1337,6 @@ void sca_optpropCalc( //Output
         }
     }
 
-  pfct_failed = 0;
-  //cout << "in sca_optpropCalc reset pfct_failed to " << pfct_failed << "\n";
   assert( i_se_flat == N_se );
   // now we sum up the Z(mu,mu') over the scattering elements weighted by the
   // pnd_field data, deriving Z(z,mu,mu') and sorting this into
@@ -1379,7 +1349,6 @@ void sca_optpropCalc( //Output
              scat_p_index_local < Np_cloud-1; 
              scat_p_index_local ++)
     {
-      //cout << "  cloudbox level #" << scat_p_index_local << "\n";
       for (Index i_se = 0; i_se < N_se; i_se++)
         {
           Numeric pnd_mean = 0.5 * ( pnd_field(i_se,scat_p_index_local+1,0,0)+
@@ -1402,10 +1371,8 @@ void sca_optpropCalc( //Output
                         pnd_mean * sca_mat(i_se,nummu+iza,nummu+sza,ist1,ist2);
                     }
         }
-//      cout << "cloudbox layer #" << scat_p_index_local << "\n";
       for (Index iza=0; iza<nummu; iza++)
       {
-        //cout << "    stream direction #" << iza << "\n";
         for (Index ih=0; ih<2; ih++)
           if ( extinct_matrix(scat_p_index_local,ih,iza,0,0) > 0. )
             {
@@ -1438,26 +1405,27 @@ void sca_optpropCalc( //Output
 
               if (abs(w0_act-w0_nom) > pfct_threshold)
               {
-                if (auto_inc_nstreams)
+                if (pfct_failed>=0)
                 {
-                  pfct_failed = 1;
-                  //cout << "Scattering matrix norm deviates too much.\n"
-                  //     << "Trying to increase nstreams to improve norm.\n";
-                  return;
-                }
-                else
-                {
-                  ostringstream os;
-                  os << "Bulk scattering matrix normalization deviates significantly\n"
-                     << "from expected value (" << 1e2*abs(1.-pfct_norm) << "%, "
-                     << "resulting in albedo deviation of " << abs(w0_act-w0_nom)
-                     << ").\n"
-                     << "Something seems wrong with your scattering data "
-                     << "(did you run *scat_dataCheck*?)\n"
-                     << "or your RT4 setup (try increasing *nstreams* and in case "
-                     << "of randomly oriented particles possibly also "
-                     << "pfct_aa_grid_size).";
-                  throw runtime_error( os.str() );
+                  if (auto_inc_nstreams)
+                  {
+                    pfct_failed = 1;
+                    return;
+                  }
+                  else
+                  {
+                    ostringstream os;
+                    os << "Bulk scattering matrix normalization deviates significantly\n"
+                       << "from expected value (" << 1e2*abs(1.-pfct_norm) << "%, "
+                       << "resulting in albedo deviation of " << abs(w0_act-w0_nom)
+                       << ").\n"
+                       << "Something seems wrong with your scattering data "
+                       << "(did you run *scat_dataCheck*?)\n"
+                       << "or your RT4 setup (try increasing *nstreams* and in case "
+                       << "of randomly oriented particles possibly also "
+                       << "pfct_aa_grid_size).";
+                    throw runtime_error( os.str() );
+                  }
                 }
               }
               else if (abs(w0_act-w0_nom) > pfct_threshold*0.1 || abs(1.-pfct_norm) > 1e-2)
@@ -1467,22 +1435,17 @@ void sca_optpropCalc( //Output
                      << "Deviating from expected value by " << 1e2*abs(1.-pfct_norm)
                      << "% (and " << abs(w0_act-w0_nom)
                      << " in terms of scattering albedo).\n";
-//                cout << "polar angle #" << iza << "." << ih << "\n";
-//                cout << "Scattering matrix deviating from expected value by "
-//                     << 1e2*abs(1.-norm) << "%.\n";
               }
-              else
-              {
-                // rescale scattering matrix to expected (0,0) value (and scale all
-                // other elements accordingly)
-                // FIXME: not fully clear whether applying the same rescaling
-                // factor is the correct way to do. check out, e.g., Vasilieva
-                // (JQSRT 2006) for better approaches.
-                scatter_matrix(scat_p_index_local,ih,iza,joker,joker,joker) /=
-                  pfct_norm;
-                scatter_matrix(scat_p_index_local,ih+2,iza,joker,joker,joker) /=
-                  pfct_norm;
-              }
+              // rescale scattering matrix to expected (0,0) value (and scale all
+              // other elements accordingly)
+              // FIXME: not fully clear whether applying the same rescaling
+              // factor is the correct way to do. check out, e.g., Vasilieva
+              // (JQSRT 2006) for better approaches.
+              scatter_matrix(scat_p_index_local,ih,iza,joker,joker,joker) /=
+                pfct_norm;
+              scatter_matrix(scat_p_index_local,ih+2,iza,joker,joker,joker) /=
+                pfct_norm;
+              //if (scat_p_index_local==49)
             }
       }
     }
@@ -1578,7 +1541,6 @@ void surf_optpropCalc( Workspace& ws,
       // half, upwelling (90->180) in second half. that is, here we have to take
       // the second half grid or, alternatively, use 180deg-za[imu].
       Vector rtp_los(1, scat_za_grid[nummu+rmu]);
-      //cout << "Doing reflected dir #" << rmu << " at " << rtp_los[0] << " degs\n";
 
       surface_rtprop_agendaExecute( ws,
                                     surface_skin_t, surface_emission,
@@ -1586,8 +1548,6 @@ void surf_optpropCalc( Workspace& ws,
                                     f_grid, rtp_pos, rtp_los,
                                     surface_rtprop_agenda );
       Index nsl = surface_los.nrows();
-      //cout << "surf_los has " << surface_los.ncols() << " columns and "
-      //     << nsl << " rows.\n";
       assert( surface_los.ncols()==1 || nsl==0 );
 
       // ARTS' surface_emission is equivalent to RT4's gnd_radiance (here:
@@ -1650,13 +1610,7 @@ void surf_optpropCalc( Workspace& ws,
               //Numeric coshigh = cos(2.*surf_int_grid[imu+1]);
               //Numeric w = 0.5*(coslow-coshigh);
               Numeric w = 0.5*(cos(2.*surf_int_grid[imu])-cos(2.*surf_int_grid[imu+1]));
-              //cout << "at surf_los[" << imu << "]=" << surface_los(imu,0) << ":\n";
-              //cout << "  angle weight derives as w = 0.5*(" << coslow << "-"
-              //     << coshigh << ") = " << w << "\n";
-              //cout << "  de-scaling with w from rmat="
-              //     << surface_rmatrix(imu,0,0,0);
               surface_rmatrix(imu,joker,joker,joker) /= w;
-              //cout << " to " << surface_rmatrix(imu,0,0,0) << "\n";
             }
 
 
@@ -1667,7 +1621,6 @@ void surf_optpropCalc( Workspace& ws,
 
           for (Index imu=0; imu<nummu; imu++)
           {
-            //cout << "Doing incident dir #" <<imu << " at " << scat_za_grid[imu] << " degs\n";
             try
               {
                 GridPos gp_za;
@@ -1688,11 +1641,8 @@ void surf_optpropCalc( Workspace& ws,
                         interp( itw, surface_rmatrix(joker,f_index,sto1,sto2), gp_za );
                 // Apply new angle range weights - as this is for RT4, we apply
                 // the actual RT4 angle (aka quadrature) weights:
-                //cout << "  rescaling with quad weight w=" << quad_weights[imu]
-                //     << " from " << surf_refl_mat(0,imu,0,rmu,0);
                 surf_refl_mat(joker,imu,joker,rmu,joker) *=
                   (quad_weights[imu]*mu_values[imu]);
-                //cout << " to " << surf_refl_mat(0,imu,0,rmu,0) << "\n";
               }
             catch( runtime_error e ) 
               { 
@@ -1746,10 +1696,6 @@ void surf_optpropCalc( Workspace& ws,
             R_scale = R_arts[f_index]/R_rt4;
             surf_refl_mat(f_index,joker,joker,rmu,joker) *= R_scale;
           }
-        //Numeric R_rert4 = surf_refl_mat(f_index,joker,0,rmu,0).sum();
-        //cout << "at f#" << f_index << " R_arts=" << R_arts[f_index]
-        //     << ", R_rt4=" << R_rt4 << ", R_scale=" << R_scale
-        //     << ", rescaled R_rt4=" << R_rert4 << "\n";
       }
     }
 }

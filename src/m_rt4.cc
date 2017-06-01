@@ -40,6 +40,8 @@
 #include "m_xml.h"
 #include "rt4.h"
 
+//const Numeric pfct_threshold=100.;
+const Numeric pfct_threshold=0.05;
 
 #ifdef ENABLE_RT4
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -138,7 +140,6 @@ void RT4Calc( Workspace& ws,
                     quad_weights, stokes_dim,
                     surf_altitude );
 
-  const Numeric pfct_threshold=0.05; //0.1;
   run_rt4( ws, doit_i_field, scat_za_grid,
            f_index, f_grid, p_grid, z_field, t_field, vmr_field, pnd_field,
            scat_data, scat_data_mono,
@@ -254,7 +255,6 @@ void RT4CalcWithRT4Surface(
                   surface_scalar_reflectivity, surface_reflectivity,
                   surface_complex_refr_index, stokes_dim );
 
-  Numeric pfct_threshold=0.05; //0.1;
   Agenda dummy_agenda;
   run_rt4( ws, doit_i_field, scat_za_grid,
            f_index, f_grid, p_grid, z_field, t_field, vmr_field, pnd_field,

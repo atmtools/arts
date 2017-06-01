@@ -14504,6 +14504,32 @@ void define_md_data_raw()
         GIN_DESC( "A field of scalar surface reflectivities" )
         ));
 
+/*
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "surface_reflectivityFromSurface_rmatrix" ),
+        DESCRIPTION
+        (
+         "As *surface_scalar_reflectivityFromSurface_rmatrix*, but for (vectorRT)"
+         "*surface_reflectivity*.\n"
+         "\n"
+         "For each frequency f and stokes parameter combi st_in and st_out,"
+         "*surface_reflectivity* is set to the sum of"
+         "surface_rmatrix(joker,f,st_in,st_out).\n"
+        ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "surface_reflectivity" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "surface_rmatrix" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+*/
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "surface_scalar_reflectivityFromSurface_rmatrix" ),

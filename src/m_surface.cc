@@ -1902,6 +1902,31 @@ void surface_scalar_reflectivityFromSurface_rmatrix(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+/*
+void surface_reflectivityFromSurface_rmatrix(
+          Tensor3&         surface_reflectivity,
+    const Tensor4&         surface_rmatrix,
+    const Verbosity&)
+{
+  const Index nf   = surface_rmatrix.npages();
+  const Index nlos = surface_rmatrix.nbooks();
+  const Index nst  = surface_rmatrix.ncols();
+
+  surface_reflectivity.resize( nf, nst, nst );
+  surface_reflectivity = 0;
+
+  for( Index i=0; i<nf; i++)
+    for( Index j=0; j<nst; j++)
+      for( Index k=0; k<nst; k++)
+        for( Index l=0; l<nlos; l++)
+        {
+          surface_reflectivity(i,j,k) += surface_rmatrix(l,i,j,k);
+        }
+}
+*/
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void surface_typeInterpTypeMask(
           Index&           surface_type,
           Numeric&         surface_type_aux,
