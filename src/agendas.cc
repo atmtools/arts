@@ -444,7 +444,7 @@ void define_agenda_data()
         "Agenda array for TestArrayOfAgenda test case.\n"
         ),
        OUTPUT(),
-       INPUT( "iy_unit" )));
+       INPUT( "agenda_array_index", "iy_unit" )));
 
   agenda_data.push_back
     (AgRecord
@@ -688,7 +688,7 @@ void define_agenda_data()
         "*pnd_agenda_array_input_names* must be consistent.\n"
         ),
        OUTPUT( "pnd_data", "dpnd_data_dx" ),
-       INPUT( "pnd_agenda_input", "pnd_agenda_input_names", "dpnd_data_dx_names" )));
+       INPUT( "agenda_array_index", "pnd_agenda_input", "pnd_agenda_input_names", "dpnd_data_dx_names" )));
  
   agenda_data.push_back
     (AgRecord

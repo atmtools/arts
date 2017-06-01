@@ -2125,11 +2125,11 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(),
-        GIN(         "agendas", "index" ),
-        GIN_TYPE(    "ArrayOfAgenda", "Index" ),
-        GIN_DEFAULT( NODEF, NODEF ),
-        GIN_DESC(    "Array of agendas.", "Index of Agenda to be executed." ),
+        IN( "agenda_array_index" ),
+        GIN(         "agendas" ),
+        GIN_TYPE(    "ArrayOfAgenda" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC(    "Array of agendas." ),
         SETMETHOD(    false ),
         AGENDAMETHOD( false )
         ));

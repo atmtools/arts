@@ -589,11 +589,10 @@ void pnd_fieldCalcFromParticleBulkProps(
               Matrix pnd_data;
               Tensor3 dpnd_data_dx;
               //
-              pnd_agenda_arrayExecute( ws, pnd_data, dpnd_data_dx,
+              pnd_agenda_arrayExecute( ws, pnd_data, dpnd_data_dx, is,
                                        pnd_agenda_input,
                                        pnd_agenda_array_input_names[is],
-                                       dpnd_data_dx_names, pnd_agenda_array,
-                                       is );
+                                       dpnd_data_dx_names, pnd_agenda_array );
 
               // Copy to output variables
               for( Index ip=1; ip<np-1; ip++ )

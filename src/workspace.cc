@@ -743,6 +743,20 @@ void Workspace::define_wsv_data()
     
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "agenda_array_index" ),
+      DESCRIPTION
+      (
+       "Index of the current agenda in *ArrayOfAgenda*.\n"
+       "\n"
+       "This is set during the execution of an agenda from an *ArrayOfAgenda*.\n"
+       "It indicates the index of the current agenda inside the array.\n"
+       "\n"
+       "Unit:  Integer value.\n"
+       ),
+      GROUP( "Index" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "antenna_dim" ),
       DESCRIPTION
       (

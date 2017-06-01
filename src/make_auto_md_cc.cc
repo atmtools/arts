@@ -453,14 +453,14 @@ int main()
             {
               if (is_agenda_array)
               {
-                  ofs << "  if (index < 0 || index >= input_agenda_array.nelem())\n"
+                  ofs << "  if (agenda_array_index < 0 || agenda_array_index >= input_agenda_array.nelem())\n"
                       << "  {\n"
                       << "      std::ostringstream os;\n"
-                      << "      os << \"Agenda index \" << index\n"
+                      << "      os << \"Agenda index \" << agenda_array_index\n"
                       << "         << \" out of bounds. 0 <= index < \" << input_agenda_array.nelem();\n"
                       << "      throw std::runtime_error(os.str());\n"
                       << "  }\n\n"
-                      << "  const Agenda& input_agenda = input_agenda_array[index];\n\n";
+                      << "  const Agenda& input_agenda = input_agenda_array[agenda_array_index];\n\n";
               }
               ofs << "  using global_data::AgendaMap;\n"
                 << "  using global_data::agenda_data;\n"

@@ -127,18 +127,18 @@ void AgendaExecute(Workspace& ws,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfAgendaExecute(Workspace& ws,
                           // WS Generic Input:
+                          const Index& agenda_array_index,
                           const ArrayOfAgenda& agenda_array,
-                          const Index& agenda_index,
                           const Verbosity& verbosity)
 {
-    if (agenda_index < 0 || agenda_index >= agenda_array.nelem())
+    if (agenda_array_index < 0 || agenda_array_index >= agenda_array.nelem())
     {
         std::ostringstream os;
-        os << "Agenda index " << agenda_index
+        os << "Agenda index " << agenda_array_index
            << " out of bounds. 0 <= index < " << agenda_array.nelem();
         throw std::runtime_error(os.str());
     }
-    AgendaExecute(ws, agenda_array[agenda_index], verbosity);
+    AgendaExecute(ws, agenda_array[agenda_array_index], verbosity);
 }
 
 

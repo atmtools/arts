@@ -1,3 +1,35 @@
+2017-06-01  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-686
+
+	* src/workspace.cc: New WSV agenda_array_index.
+
+	* src/agendas.cc:
+
+	Add agenda_array_index as input to test_agenda_array and
+	pnd_agenda_array.
+
+	* src/agenda_record.cc:
+
+	Remove agenda index as last argument in agenda_arrayExecute interface.
+	It is now passed as a normal WSV input for agenda arrays.
+
+	* src/m_cloudradar.cc: Adapt call to pnd_agenda_arrayExecute.
+
+	* src/m_general.cc: Adapt call to test_agenda_arrayExecute.
+
+	* src/m_agenda.cc, src/methods.cc:
+
+	Add agenda_array_index as input to ArrayOfAgendaExecute.
+
+	* controlfiles/artscomponents/agendas/TestArrayOfAgenda.arts:
+
+	Adapt for introduction of new WSV agenda_array_index.
+
+	* src/make_auto_md_cc.cc:
+
+	Adapt generated code for changed variable name.
+
 2017-06-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-685

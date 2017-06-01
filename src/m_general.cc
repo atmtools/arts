@@ -452,7 +452,7 @@ void TestArrayOfAgenda(Workspace& ws,
     ostringstream os;
     os << "  Local value of iy_unit, agenda #"
        << index << " of " << test_agenda_array.nelem();
-    test_agenda_arrayExecute(ws, os.str(), test_agenda_array, index);
+    test_agenda_arrayExecute(ws, index, os.str(), test_agenda_array);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

@@ -336,8 +336,7 @@ void write_agenda_wrapper_header(ofstream&       ofs,
   ofs << "        // Wrapper Input\n";
   if (is_agenda_array)
   {
-    ofs << "        const ArrayOfAgenda& input_agenda_array,\n";
-    ofs << "        const Index index)";
+    ofs << "        const ArrayOfAgenda& input_agenda_array)";
   }
   else
   {
