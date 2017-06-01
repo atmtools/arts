@@ -62,22 +62,20 @@ extern const String SCATSPECIES_MAINTAG;
 void pnd_size_gridFromScatMeta(
           Vector&                             pnd_size_grid,
     const ArrayOfArrayOfScatteringMetaData&   scat_meta,
+    const Index&                              scat_index,
     const String&                             unit,
     const Verbosity& )
 {
-  // So far scattering species == 0 is hard-coded
-  const Index iss = 0;
-
   // Sizes
   const Index nss = scat_meta.nelem();
 
   // Checks
   if( nss == 0 )
     throw runtime_error( "*scat_meta* is empty!" );
-  if( nss < iss+1 )
+  if( nss < scat_index+1 )
     {
       ostringstream os;
-      os << "Selected scattering species index is " << iss << " but this "
+      os << "Selected scattering species index is " << scat_index << " but this "
          << "is not allowed since *scat_meta* has only" << scat_meta.nelem()
          << " elements.";
       throw runtime_error(os.str());
@@ -85,29 +83,29 @@ void pnd_size_gridFromScatMeta(
 
   // Create size grid
   //
-  const Index nse = scat_meta[iss].nelem();
+  const Index nse = scat_meta[scat_index].nelem();
   //
   pnd_size_grid.resize( nse );
   //
   if( unit == "dveq" )
     {
       for ( Index i=0; i<nse; i++ )
-        { pnd_size_grid[i] = scat_meta[iss][i].diameter_volume_equ; }
+        { pnd_size_grid[i] = scat_meta[scat_index][i].diameter_volume_equ; }
     }
   else if( unit == "dmax" )
     {
       for ( Index i=0; i<nse; i++ )
-        { pnd_size_grid[i] = scat_meta[iss][i].diameter_max; }
+        { pnd_size_grid[i] = scat_meta[scat_index][i].diameter_max; }
     }
   else if( unit == "mass" )
     {
       for ( Index i=0; i<nse; i++ )
-        { pnd_size_grid[i] = scat_meta[iss][i].mass; }
+        { pnd_size_grid[i] = scat_meta[scat_index][i].mass; }
     }
   else if( unit == "area" )
     {
       for ( Index i=0; i<nse; i++ )
-        { pnd_size_grid[i] = scat_meta[iss][i].diameter_area_equ_aerodynamical; }
+        { pnd_size_grid[i] = scat_meta[scat_index][i].diameter_area_equ_aerodynamical; }
     }
   else
     {

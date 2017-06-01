@@ -10679,6 +10679,9 @@ void define_md_data_raw()
         (
          "Sets *pnd_size_grid* based on *scat_meta*.\n"
          "\n"
+         "If this method is used in side *pnd_agenda_array*, it is suitable to\n"
+         "set scat_index = agenda_array_index.\n"
+         "\n"
          "The size parameter to use is selected by *unit*. The options are:\n"
          " \"dveq\" : The size grid is set to scat_meta.diameter_volume_equ\n"
          " \"dmax\" : The size grid is set to scat_meta.diameter_max\n"
@@ -10691,10 +10694,11 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_meta" ),
-        GIN( "unit" ),
-        GIN_TYPE( "String"),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "Size grid unit, allowed options listed above." )
+        GIN( "scat_index", "unit" ),
+        GIN_TYPE( "Index", "String"),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Take data from *scat_meta* with this index (0-based).",
+                  "Size grid unit, allowed options listed above." )
         ));
 
   md_data_raw.push_back
