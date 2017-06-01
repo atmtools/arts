@@ -384,6 +384,18 @@ void get_ppath_pmat_and_tmat(
                             const bool&           cloudbox_on,
                             const Verbosity&      verbosity);
 
+void get_ppath_scat_source(
+                           Tensor4&         ppath_scat_source,
+                           const Ppath&     ppath,
+                           ConstMatrixView  ppath_pnd,
+                           ConstVectorView  ppath_t, 
+                           const ArrayOfArrayOfSingleScatteringData scat_data,
+                           ConstTensor7View doit_i_field,
+                           ConstVectorView  scat_za_grid,
+                           ConstVectorView  f_grid, 
+                           const Index&     stokes_dim,
+                           const Index&     Naa,
+                           const Verbosity& verbosity );
 void iyb_calc(
         Workspace&                  ws,
         Vector&                     iyb,

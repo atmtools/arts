@@ -1,5 +1,12 @@
 2017-06-01 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-691
+
+	* src/m_fos.cc (iyHybrid), rte.[cc,h] (get_ppath_scat_source):
+	Moved all scat source calculation stuff into an individual function.
+
+2017-06-01 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-690
 
 	* src/m_fos.cc (iyHybrid):

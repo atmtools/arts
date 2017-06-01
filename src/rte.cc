@@ -2401,6 +2401,158 @@ void get_ppath_pmat_and_tmat(
 }
 
 
+//! get_ppath_scatsource
+/*!
+    Determines scattering source term along the propagation path.
+
+    The output variable is sized inside the function. The dimension order is 
+       [ frequency, stokes_dim, scattering element, path point ]
+
+    \param   ppath_scat_source Out: Scattering source term at each ppath point 
+    \param   ...               ...
+
+    \author Jana Mendrok 
+    \date   2017-06-01
+*/
+void get_ppath_scat_source(
+                           Tensor4&         ppath_scat_source,
+                           const Ppath&     ppath,
+                           ConstMatrixView  ppath_pnd,
+                           ConstVectorView  ppath_t, 
+                           const ArrayOfArrayOfSingleScatteringData scat_data,
+                           ConstTensor7View doit_i_field,
+                           ConstVectorView  scat_za_grid,
+                           ConstVectorView  f_grid, 
+                           const Index&     stokes_dim,
+                           const Index&     Naa,
+                           const Verbosity& verbosity )
+{
+  // Sizes
+  const Index nf = f_grid.nelem();
+  const Index ne = ppath_pnd.nrows();
+  const Index np = ppath.np;
+  assert( TotalNumberOfElements(scat_data) == ne );
+
+  ppath_scat_source.resize( nf, stokes_dim, ne, np );
+  ppath_scat_source = 0;
+      //
+      Vector aa_grid(Naa);
+      if( Naa > 2 )
+        nlinspace(aa_grid, 0, 360, Naa);
+      else
+      {
+        ostringstream os;
+        os << "Naa_grid must be > 2.";
+        throw runtime_error( os.str() );
+      }
+      Index Nza = scat_za_grid.nelem();
+
+      for( Index ip=0; ip<np; ip++ )
+      {
+        if( max(ppath_pnd(joker,ip)) > 0 )
+        {
+          // Jana: add your code here !!!
+          //
+          // You need only to fill the variable ppath_scat_source, that
+          // should contain the scattering source term at the np ppath
+          // points. The idea is to keep the contribution for each
+          // scattering element seperated. This is the row dimension.
+          //
+          // The variable ppath_pnd holds pnd_field interpolated to each
+          // ppath point. If here, at least one pnd > 0 at this ppath
+          // point. About 25 lines below you see an example on how the
+          // doit_i_field can be interpolated. Note that only 1D is allowed
+          // and that cloudbox is forced to span complete atmosphere
+
+          // determine p/z-interp weights for this ppath point (apply in freq
+          // loop)
+          GridPos gp_p;
+          gridpos_copy( gp_p, ppath.gp_p[np-1] );
+          Vector itw_p(2);
+          interpweights( itw_p, gp_p );
+
+          // determine scattered direction (=LOS dir) weights for this ppath
+          // point (apply in scat element loop) and adapt gridpos structure for
+          // 2pts-reduced za grid.
+          GridPos gp_za, gp_iza;
+          gridpos(gp_za, scat_za_grid, ppath.los(ip,0), 0.5);
+          gridpos_copy( gp_iza, gp_za );
+          gp_iza.idx = 0;
+          Vector itw_iza(2);
+          interpweights( itw_iza, gp_iza ); 
+
+          Tensor4 pndT4(ne, 1, 1, 1);
+          pndT4(joker, 0, 0, 0) = ppath_pnd(joker,ip);
+
+          for( Index f_index=0; f_index<f_grid.nelem(); f_index++ )
+          {
+            Matrix inc_field(Nza, stokes_dim, 0.);
+            Tensor3 scat_field(2, ne, stokes_dim, 0.);
+
+            for( Index za_in=0; za_in<Nza; za_in++ )
+            {
+              for( Index i=0; i<stokes_dim; i++ )
+              {
+                inc_field(za_in, i) = 
+                  interp( itw_p, doit_i_field(f_index,joker,0,0,za_in,0,i), gp_p );
+              }
+            }
+
+            Tensor5 pha_mat_spt(ne, Nza, Naa, stokes_dim, stokes_dim, 0.);
+            Tensor5 product_fields(2, ne, Nza, Naa, stokes_dim, 0.);
+            for( Index iza=0; iza<2; iza++ )
+            {
+              pha_mat_sptFromData(pha_mat_spt,
+                                  scat_data,
+                                  scat_za_grid, aa_grid, iza+gp_za.idx, 0,
+                                  f_index, f_grid, ppath_t[ip],
+                                  pndT4, 0, 0, 0, verbosity );
+              for( Index ise_flat=0; ise_flat<ne; ise_flat++ )
+              {
+                for( Index za_in = 0; za_in < Nza; ++ za_in )
+                {
+                  for( Index aa_in = 0; aa_in < Naa; ++ aa_in )
+                  {
+                    // Multiplication of phase matrix with incoming intensity
+                    // field.
+                    for ( Index i = 0; i < stokes_dim; i++)
+                      for (Index j = 0; j< stokes_dim; j++)
+                      {
+                        product_fields(iza, ise_flat, za_in, aa_in, i) +=
+                          pha_mat_spt(ise_flat, za_in, aa_in, i, j) *
+                          inc_field(za_in, j);
+                      }
+                  }//end aa_in loop
+                }//end za_in loop
+
+                for (Index i = 0; i < stokes_dim; i++)
+                {
+                  // Integration of the phase matrix with inc field product
+                  // from above over zenith angle and azimuth angle grid.
+                  scat_field(iza,ise_flat,i) = AngIntegrate_trapezoid(
+                    product_fields(iza, ise_flat, joker, joker, i),
+                    scat_za_grid, aa_grid);
+                } //end i loop
+              } // end ise_flat
+            } // end iza
+
+            for( Index ise_flat=0; ise_flat<ne; ise_flat++ )
+            {
+              for (Index i = 0; i < stokes_dim; i++)
+              {
+                // Interpolate scattered intensity to LOS direction
+                ppath_scat_source( f_index, i, ise_flat, ip ) =
+                  ppath_pnd(ise_flat,ip) *
+                  interp(itw_iza, scat_field(joker,ise_flat,i), gp_iza );
+              } //end i loop
+            } // end ise_flat
+          } // end f_index
+        } // end if ppath_pnd
+      } // end ip
+}
+
+
+
 //! get_ppath_blackrad
 /*!
     Determines blackbody radiation along the propagation path.
