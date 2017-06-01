@@ -54,7 +54,8 @@ extern const Index GFIELD4_AA_GRID;
 
 
 /*===========================================================================
-  === The functions (in alphabetical order)
+  === The functions, besides the core integration and sum functions that are
+  === placed together at the end
   ===========================================================================*/
 
 //! antenna1d_matrix
@@ -62,7 +63,7 @@ extern const Index GFIELD4_AA_GRID;
   Core function for setting up the response matrix for 1D antenna cases.
   
   Main task is to extract correct antenna pattern, including frequency 
-  interpolation. Actual weights are calculated in *sensor_integration_vector*.
+  interpolation. Actual weights are calculated in *integration_func_by_vectmult*.
 
 
    \param   H            The antenna transfer matrix
@@ -126,7 +127,7 @@ void antenna1d_matrix(
   assert( n_ar_aa == 1 );
 
   // If response data extend outside za_grid is checked in 
-  // sensor_integration_vector
+  // integration_func_by_vecmult
   
   // Some size(s)
   const Index nfpol = n_f * n_pol;  
@@ -194,9 +195,9 @@ void antenna1d_matrix(
               // Calculate response weights
               if( new_antenna )
                 {
-                  sensor_integration_vector( hza, aresponse,
-                                             shifted_aresponse_za_grid,
-                                             za_grid );
+                  integration_func_by_vecmult( hza, aresponse,
+                                               shifted_aresponse_za_grid,
+                                               za_grid );
                   // Normalisation?
                   if( do_norm )
                     { hza /= hza.sum(); }
@@ -516,7 +517,7 @@ void mixer_matrix(
   assert( lo < last(f_grid) );
   assert( filter_grid.nelem() == nrp );
   assert( fabs(last(filter_grid)+filter_grid[0]) < 1e3 );
-  // If response data extend outside f_grid is checked in sensor_summation_vector
+  // If response data extend outside f_grid is checked in summation_by_vecmult
 
   // Find indices in f_grid where f_grid is just below and above the
   // lo frequency.
@@ -580,8 +581,8 @@ void mixer_matrix(
   //
   for( Index i=0; i<f_mixer.nelem(); i++ ) 
     {
-      sensor_summation_vector( row_temp, filter.data, filter_grid, 
-                               if_grid, f_mixer[i], -f_mixer[i] );
+      summation_by_vecmult( row_temp, filter.data, filter_grid, 
+                            if_grid, f_mixer[i], -f_mixer[i] );
 
       // Normalise if flag is set
       if (do_norm)
@@ -890,384 +891,6 @@ void sensor_aux_vectors(
 
 
 
-//! sensor_integration_vector
-/*!
-   Calculates the (row) vector that multiplied with an unknown (column) vector
-   approximates the integral of the product between the functions represented
-   by the two vectors: h*g = integral( f(x)*g(x) dx )
-
-   Basic principle follows Eriksson et al., Efficient forward modelling by
-   matrix representation of sensor responses, Int. J. Remote Sensing, 27,
-   1793-1808, 2006. However, while in Eriksson et al. the product between f*g
-   is assumed to vary linearly between the grid point, the expressions applied
-   here are more advanced and are completly exact as long as f and g are
-   piece-wise linear functions. The product f*g is then a quadratic funtion
-   between the grid points.
-
-   \param   h       The multiplication (row) vector.
-   \param   f       The values of function f(x).
-   \param   x_f_in  The grid points of function f(x). Must be increasing.
-   \param   x_g_in  The grid points of function g(x). Can be increasing or 
-                    decreasing. Must cover a wider range than x_f (in
-                    both ends).
-
-   \author Mattias Ekström and Patrick Eriksson
-   \date   2003-02-13 / 2008-06-12
-*/
-void sensor_integration_vector(
-        VectorView   h,
-   ConstVectorView   f,
-   ConstVectorView   x_f_in,
-   ConstVectorView   x_g_in )
-{
-  // Basic sizes 
-  const Index nf = x_f_in.nelem();
-  const Index ng = x_g_in.nelem();
-
-  // Asserts
-  assert( h.nelem() == ng );
-  assert( f.nelem() == nf );
-  assert( is_increasing( x_f_in ) );
-  assert( is_increasing( x_g_in ) || is_decreasing( x_g_in ) );
-  // More asserts below
-
-  // End points of x_f
-  Numeric xfmin = x_f_in[0];
-  Numeric xfmax = x_f_in[nf-1];
-
-  // Handle possibly reversed x_g.
-  Vector x_g;
-  Index  xg_reversed = 0;
-  //
-  if( is_decreasing( x_g_in ) )
-    {
-      x_g = x_g_in[Range(ng-1,ng,-1)];
-      xg_reversed = 1;
-    }
-  else
-    { 
-      x_g = x_g_in; 
-    }
-  //
-  assert( x_g[0]    <= xfmin );
-  assert( x_g[ng-1] >= xfmax );
-
-  // Normalise grids so x_f covers [0,1]
-  const Numeric df = xfmax - xfmin;
-  Vector x_f(nf);
-  //
-  for( Index i=0; i<nf; i++ )
-    { x_f[i] = ( x_f_in[i] - xfmin ) / df; }
-  for( Index i=0; i<ng; i++ )
-    { x_g[i] = ( x_g[i] - xfmin ) / df; }
-  xfmin = 0;
-  xfmax = 1;
-  // To test without normalisation, comment out lines above and use:
-  //const Numeric df  = 1;
-  //const Vector  x_f = x_f_in;
-  
-  // Create a reference grid vector, x_ref that containing the values
-  // of x_f and x_g strictly sorted. Only g points inside the f range
-  // are of concern.
-  list<Numeric> l_x;
-  for( Index it=0; it<nf; it++ )
-    { l_x.push_back(x_f[it]); }
-  for (Index it=0; it<ng; it++) 
-    {
-      if( x_g[it] > xfmin  &&  x_g[it] < xfmax )  
-        { l_x.push_back(x_g[it]); }
-    }
-  l_x.sort();
-  l_x.unique();
-  //
-  Vector x_ref(l_x.size());
-  Index  e = 0;
-  for( list<Numeric>::iterator li=l_x.begin(); li != l_x.end(); li++ ) 
-    {
-      x_ref[e] = *li;
-      e++;
-    }
-
-  // Initiate output vector, with equal size as x_g, with zeros.
-  // Start calculations
-  h = 0.0;
-  Index i_f = 0;
-  Index i_g = 0;
-  Numeric dx,a0,b0,c0,a1,b1,c1,x3,x2,x1;
-  //
-  for( Index i=0; i<x_ref.nelem()-1; i++ ) 
-    {
-      // Find for what index in x_g (which is the same as for h) and f
-      // calculation corresponds to
-      while( x_g[i_g+1] <= x_ref[i] ) 
-        { i_g++; }
-      while( x_f[i_f+1] <= x_ref[i] ) 
-        { i_f++; }
-
-      // If x_ref[i] is out of x_f's range then that part of the integral is 0,
-      // and no calculations should be done
-      if( x_ref[i] >= xfmin  &&  x_ref[i] < xfmax ) 
-        {
-          // Product of steps in x_f and x_g
-          dx = ( x_f[i_f+1] - x_f[i_f] ) * ( x_g[i_g+1] - x_g[i_g] );
-
-          // Calculate a, b and c coefficients; h[i]=ax^3+bx^2+cx
-          a0 = ( f[i_f] - f[i_f+1] ) / 3.0;
-          b0 = (-f[i_f]   * ( x_g[i_g+1] + x_f[i_f+1] ) + 
-                 f[i_f+1] * (x_g[i_g+1]+x_f[i_f]) ) / 2.0;
-          c0 = x_g[i_g+1] * ( f[i_f] * x_f[i_f+1] - f[i_f+1] * x_f[i_f] );
-
-          a1 = -a0;
-          b1 = ( f[i_f]   * ( x_g[i_g] + x_f[i_f+1] ) - 
-                 f[i_f+1] * ( x_g[i_g] + x_f[i_f]) ) / 2.0;
-          c1 = x_g[i_g] * ( -f[i_f] * x_f[i_f+1] + f[i_f+1] * x_f[i_f] );
-
-          x1 = x_ref[i+1]-x_ref[i];
-          // Simple way, but sensitive to numerical problems:
-          //x2 = pow(x_ref[i+1],2) - pow(x_ref[i],2);
-          //x3 = pow(x_ref[i+1],3) - pow(x_ref[i],3);
-          // The same but a numerically better way:
-          x2 = x1 * ( 2*x_ref[i] + x1 );
-          x3 = x1 * ( 3*x_ref[i]*(x_ref[i]+x1) + x1*x1 );
-
-          // Calculate h[i] and h[i+1] increment
-          // (df-factor to compensate for normalisation)
-          h[i_g]   += df * ( a0*x3 + b0*x2 + c0*x1 ) / dx;
-          h[i_g+1] += df * ( a1*x3 + b1*x2 + c1*x1 ) / dx;
-        }
-    }
-
-  // Flip back if x_g was decreasing
-  if( xg_reversed )
-    {
-      Vector tmp = h[Range(ng-1,ng,-1)];   // Flip order
-      h = tmp;
-    }
-
-  // The expressions are sensitive to numerical issues if two points in x_ref
-  // are very close compared to the values in x_ref. A test trying to warn when
-  // this happens:
-  if( min(f) >= 0  &&  min(h) < -1e-15 )
-    throw runtime_error( "Significant negative response value obtained, "
-                         "despite sensor reponse is strictly positive. This "
-                         "indicates numerical problems. Is there any very "
-                         "small spacing of the sensor response grid?"
-                         "Please, send a report to Patrick if you see this!" );
-}
-
-//! sensor_integration_vector
-/*!
-   Calculates the (row) vector that multiplied with an unknown
-   (column) vector approximates the integral of the product
-   between the functions represented by the two vectors.
-
-   E.g. h*g = integral( f(x)*g(x) dx )
-
-   See Eriksson et al., Efficient forward modelling by matrix
-   representation of sensor responses, Int. J. Remote Sensing, 27,
-   1793-1808, 2006, for details.
-
-   \param   h       The multiplication (row) vector.
-   \param   f       The values of function f(x).
-   \param   x_f_in  The grid points of function f(x). Must be increasing.
-   \param   x_g_in  The grid points of function g(x). Can be increasing or 
-                    decreasing. Must cover a wider range than x_ft (in
-                    both ends).
-
-   \author Mattias Ekström and Patrick Eriksson
-   \date   2003-02-13 / 2008-06-12
-*/
-void sensor_integration_vector2(
-        VectorView   h,
-   ConstVectorView   f,
-   ConstVectorView   x_f,
-   ConstVectorView   x_g_in )
-{
-  // Basic sizes 
-  const Index nf = x_f.nelem();
-  const Index ng = x_g_in.nelem();
-
-  // Asserts
-  assert( h.nelem() == ng );
-  assert( f.nelem() == nf );
-  assert( is_increasing( x_f ) );
-  assert( is_increasing( x_g_in ) || is_decreasing( x_g_in ) );
-  // More asserts below
-
-  // End points of x_f
-  const Numeric xfmin = x_f[0];
-  const Numeric xfmax = x_f[nf-1];
-
-  // Handle possibly reversed x_g.
-  Vector x_g;
-  Index  xg_reversed = 0;
-  //
-  if( is_decreasing( x_g_in ) )
-    {
-      x_g = x_g_in[Range(ng-1,ng,-1)];
-      xg_reversed = 1;
-    }
-  else
-    { 
-      x_g = x_g_in; 
-    }
-  //
-  assert( x_g[0]    <= xfmin );
-  assert( x_g[ng-1] >= xfmax );
-
-  // Create a reference grid vector, x_ref that containing the values
-  // of x_f and x_g strictly sorted. Only g points inside the f range
-  // are of concern.
-  list<Numeric> l_x;
-  for( Index it=0; it<nf; it++ )
-    l_x.push_back(x_f[it]);
-  for( Index it=0; it<ng; it++ ) 
-    {
-      if( x_g[it] > xfmin  &&  x_g[it] < xfmax )
-        { l_x.push_back(x_g[it]); }
-    }
-  l_x.sort();
-  l_x.unique();
-  //
-  Vector x_ref(l_x.size());
-  Index  e = 0;
-  for( list<Numeric>::iterator li=l_x.begin(); li != l_x.end(); li++ ) 
-    {
-      x_ref[e] = *li;
-      e++;
-    }
-
-  // Initiate output vector, with equal size as x_g, with zeros.
-  h = 0.0;
-
-  // Start calculations
-  //
-  Index i_f = 0;
-  Index i_g = 0;
-  //
-  for( Index i=0; i<x_ref.nelem()-1; i++ ) 
-    {
-      // Find for what index in x_g (which is the same as for h) and f
-      // calculation corresponds to
-      while( x_g[i_g+1] <= x_ref[i] ) 
-        { i_g++; }
-      while( x_f[i_f+1] <= x_ref[i] ) 
-        { i_f++; }
-
-      // If x_ref[i] is out of x_f's range then that part of the integral
-      // is  0, and no calculations should be done
-      if( x_ref[i] >= xfmin  &&  x_ref[i] < xfmax ) 
-        {
-          // ( x_k+1 - x_k )/2
-          const Numeric dxk = 0.5 * ( x_ref[i+1] - x_ref[i] );
-
-          // ( x_i+1 - x_i )
-          const Numeric dxi = x_g[i_g+1] - x_g[i_g];
-
-          // The ratio of the two quantities above
-          const Numeric r = dxk / dxi;
-        
-          // Values of f at x_ref[i] and x_ref[i+1]
-          const Numeric dx = x_f[i_f+1] - x_f[i_f];
-          const Numeric f0 = ( f[i_f]   * (x_f[i_f+1]-x_ref[i]) +
-                               f[i_f+1] * (x_ref[i]-x_f[i_f]) ) / dx;
-          const Numeric f1 = ( f[i_f]   * (x_f[i_f+1]-x_ref[i+1]) +
-                               f[i_f+1] * (x_ref[i+1]-x_f[i_f]) ) / dx;
-
-          //cout << "f0/f1 = " << f0-x_ref[i] << " / " << f1-x_ref[i+1] << endl;
-
-          // Add increaments to h
-          h[i_g]   += r * ( f0 * ( x_g[i_g+1] - x_ref[i]   ) + 
-                            f1 * ( x_g[i_g+1] - x_ref[i+1] ) );
-          h[i_g+1] += r * ( f0 * ( x_ref[i]   - x_g[i_g]   ) + 
-                            f1 * ( x_ref[i+1] - x_g[i_g]   ) );
-        }
-    }
-
-  // Flip back if x_g was decreasing
-  if( xg_reversed )
-    {
-      Vector tmp = h[Range(ng-1,ng,-1)];   // Flip order
-      h = tmp;
-    }
-}
-
-
-
-//! sensor_summation_vector
-/*!
-   Calculates the (row) vector that multiplied with an unknown
-   (column) vector approximates the sum of the product 
-   between the functions at two points.
-
-   E.g. h*g = f(x1)*g(x1) + f(x2)*g(x2)
-
-   The typical application is to set up the combined response matrix
-   for mixer and sideband filter.
-
-   See Eriksson et al., Efficient forward modelling by matrix
-   representation of sensor responses, Int. J. Remote Sensing, 27,
-   1793-1808, 2006, for details.
-
-   No normalisation of the response is made.
-
-   \param   h     The summation (row) vector.
-   \param   f     Sideband response.
-   \param   x_f   The grid points of function f(x).
-   \param   x_g   The grid for spectral values (normally equal to f_grid) 
-   \param   x1    Point 1
-   \param   x2    Point 2
-
-   \author Mattias Ekström / Patrick Eriksson
-   \date   2003-05-26 / 2008-06-17
-*/
-void sensor_summation_vector(
-        VectorView   h,
-   ConstVectorView   f,
-   ConstVectorView   x_f,
-   ConstVectorView   x_g,
-     const Numeric   x1,
-     const Numeric   x2 )
-{
-  // Asserts
-  assert( h.nelem() == x_g.nelem() );
-  assert( f.nelem() == x_f.nelem() );
-  assert( x_g[0]    <= x_f[0] );
-  assert( last(x_g) >= last(x_f) );
-  assert( x1        >= x_f[0] );
-  assert( x2        >= x_f[0] );
-  assert( x1        <= last(x_f) );
-  assert( x2        <= last(x_f) );
-
-  // Determine grid positions for point 1 (both with respect to f and g grids)
-  // and interpolate response function.
-  ArrayOfGridPos gp1g(1), gp1f(1);
-  gridpos( gp1g, x_g, x1 );
-  gridpos( gp1f, x_f, x1 );
-  Matrix itw1(1,2);
-  interpweights( itw1, gp1f );
-  Numeric f1;
-  interp( f1, itw1, f, gp1f );
-
-  // Same for point 2
-  ArrayOfGridPos gp2g(1), gp2f(1);
-  gridpos( gp2g, x_g, x2 );
-  gridpos( gp2f, x_f, x2 );
-  Matrix itw2(1,2);
-  interpweights( itw2, gp2f );
-  Numeric f2;
-  interp( f2, itw2, f, gp2f );
-
-  //Initialise h at zero and store calculated weighting components
-  h = 0.0;
-  h[gp1g[0].idx]   += f1 * gp1g[0].fd[1];
-  h[gp1g[0].idx+1] += f1 * gp1g[0].fd[0];
-  h[gp2g[0].idx]   += f2 * gp2g[0].fd[1];
-  h[gp2g[0].idx+1] += f2 * gp2g[0].fd[0];
-}
-
-
-
 //! spectrometer_matrix
 /*!
    Constructs the sparse matrix that multiplied with the spectral values
@@ -1304,7 +927,7 @@ void spectrometer_matrix(
   Index freq_full = ch_response.nelem() > 1;
 
   // If response data extend outside sensor_f is checked in 
-  // sensor_integration_vector
+  // integration_func_by_vecmult
 
   // Reisze H
   //
@@ -1330,9 +953,9 @@ void spectrometer_matrix(
       ch_response_f  = ch_response[irp].get_numeric_grid(GFIELD1_F_GRID);
       ch_response_f += ch_f[ifr];
 
-      // Call sensor_integration_vector and store it in the temp vector
-      sensor_integration_vector( weights, ch_response[irp].data,
-                                 ch_response_f, sensor_f );
+      // Call *integration_func_by_vecmult* and store it in the temp vector
+      integration_func_by_vecmult( weights, ch_response[irp].data,
+                                   ch_response_f, sensor_f );
 
       // Normalise if flag is set
       if( do_norm )
@@ -1489,6 +1112,7 @@ bool test_and_merge_two_channels(Vector& fmin,
 
   return false;
 }
+
 
 
 //! Calculate channel boundaries from instrument response functions.
@@ -1736,5 +1360,375 @@ void find_effective_channel_boundaries(// Output:
     out2 << "  " << fmin[i] << "               " << fmax[i] << "\n";
 
 }
+
+
+
+
+
+/*===========================================================================
+  === Core integration and sum functions:
+  ===========================================================================*/
+
+
+
+//! integration_func_by_vecmult
+/*!
+   Calculates the (row) vector that multiplied with an unknown (column) vector
+   approximates the integral of the product between the functions represented
+   by the two vectors: h*g = integral( f(x)*g(x) dx )
+
+   Basic principle follows Eriksson et al., Efficient forward modelling by
+   matrix representation of sensor responses, Int. J. Remote Sensing, 27,
+   1793-1808, 2006. However, while in Eriksson et al. the product between f*g
+   is assumed to vary linearly between the grid point, the expressions applied
+   here are more advanced and are completly exact as long as f and g are
+   piece-wise linear functions. The product f*g is then a quadratic funtion
+   between the grid points.
+
+   \param   h       The multiplication (row) vector.
+   \param   f       The values of function f(x).
+   \param   x_f_in  The grid points of function f(x). Must be increasing.
+   \param   x_g_in  The grid points of function g(x). Can be increasing or 
+                    decreasing. Must cover a wider range than x_f (in
+                    both ends).
+
+   \author Mattias Ekström and Patrick Eriksson
+   \date   2003-02-13 / 2008-06-12
+*/
+void integration_func_by_vecmult(
+        VectorView   h,
+   ConstVectorView   f,
+   ConstVectorView   x_f_in,
+   ConstVectorView   x_g_in )
+{
+  // Basic sizes 
+  const Index nf = x_f_in.nelem();
+  const Index ng = x_g_in.nelem();
+
+  // Asserts
+  assert( h.nelem() == ng );
+  assert( f.nelem() == nf );
+  assert( is_increasing( x_f_in ) );
+  assert( is_increasing( x_g_in ) || is_decreasing( x_g_in ) );
+  // More asserts below
+
+  // End points of x_f
+  Numeric xfmin = x_f_in[0];
+  Numeric xfmax = x_f_in[nf-1];
+
+  // Handle possibly reversed x_g.
+  Vector x_g;
+  Index  xg_reversed = 0;
+  //
+  if( is_decreasing( x_g_in ) )
+    {
+      x_g = x_g_in[Range(ng-1,ng,-1)];
+      xg_reversed = 1;
+    }
+  else
+    { 
+      x_g = x_g_in; 
+    }
+  //
+  assert( x_g[0]    <= xfmin );
+  assert( x_g[ng-1] >= xfmax );
+
+  // Normalise grids so x_f covers [0,1]
+  const Numeric df = xfmax - xfmin;
+  Vector x_f(nf);
+  //
+  for( Index i=0; i<nf; i++ )
+    { x_f[i] = ( x_f_in[i] - xfmin ) / df; }
+  for( Index i=0; i<ng; i++ )
+    { x_g[i] = ( x_g[i] - xfmin ) / df; }
+  xfmin = 0;
+  xfmax = 1;
+  // To test without normalisation, comment out lines above and use:
+  //const Numeric df  = 1;
+  //const Vector  x_f = x_f_in;
+  
+  // Create a reference grid vector, x_ref that containing the values
+  // of x_f and x_g strictly sorted. Only g points inside the f range
+  // are of concern.
+  list<Numeric> l_x;
+  for( Index it=0; it<nf; it++ )
+    { l_x.push_back(x_f[it]); }
+  for (Index it=0; it<ng; it++) 
+    {
+      if( x_g[it] > xfmin  &&  x_g[it] < xfmax )  
+        { l_x.push_back(x_g[it]); }
+    }
+  l_x.sort();
+  l_x.unique();
+  //
+  Vector x_ref(l_x.size());
+  Index  e = 0;
+  for( list<Numeric>::iterator li=l_x.begin(); li != l_x.end(); li++ ) 
+    {
+      x_ref[e] = *li;
+      e++;
+    }
+
+  // Initiate output vector, with equal size as x_g, with zeros.
+  // Start calculations
+  h = 0.0;
+  Index i_f = 0;
+  Index i_g = 0;
+  Numeric dx,a0,b0,c0,a1,b1,c1,x3,x2,x1;
+  //
+  for( Index i=0; i<x_ref.nelem()-1; i++ ) 
+    {
+      // Find for what index in x_g (which is the same as for h) and f
+      // calculation corresponds to
+      while( x_g[i_g+1] <= x_ref[i] ) 
+        { i_g++; }
+      while( x_f[i_f+1] <= x_ref[i] ) 
+        { i_f++; }
+
+      // If x_ref[i] is out of x_f's range then that part of the integral is 0,
+      // and no calculations should be done
+      if( x_ref[i] >= xfmin  &&  x_ref[i] < xfmax ) 
+        {
+          // Product of steps in x_f and x_g
+          dx = ( x_f[i_f+1] - x_f[i_f] ) * ( x_g[i_g+1] - x_g[i_g] );
+
+          // Calculate a, b and c coefficients; h[i]=ax^3+bx^2+cx
+          a0 = ( f[i_f] - f[i_f+1] ) / 3.0;
+          b0 = (-f[i_f]   * ( x_g[i_g+1] + x_f[i_f+1] ) + 
+                 f[i_f+1] * (x_g[i_g+1]+x_f[i_f]) ) / 2.0;
+          c0 = x_g[i_g+1] * ( f[i_f] * x_f[i_f+1] - f[i_f+1] * x_f[i_f] );
+
+          a1 = -a0;
+          b1 = ( f[i_f]   * ( x_g[i_g] + x_f[i_f+1] ) - 
+                 f[i_f+1] * ( x_g[i_g] + x_f[i_f]) ) / 2.0;
+          c1 = x_g[i_g] * ( -f[i_f] * x_f[i_f+1] + f[i_f+1] * x_f[i_f] );
+
+          x1 = x_ref[i+1]-x_ref[i];
+          // Simple way, but sensitive to numerical problems:
+          //x2 = pow(x_ref[i+1],2) - pow(x_ref[i],2);
+          //x3 = pow(x_ref[i+1],3) - pow(x_ref[i],3);
+          // The same but a numerically better way:
+          x2 = x1 * ( 2*x_ref[i] + x1 );
+          x3 = x1 * ( 3*x_ref[i]*(x_ref[i]+x1) + x1*x1 );
+
+          // Calculate h[i] and h[i+1] increment
+          // (df-factor to compensate for normalisation)
+          h[i_g]   += df * ( a0*x3 + b0*x2 + c0*x1 ) / dx;
+          h[i_g+1] += df * ( a1*x3 + b1*x2 + c1*x1 ) / dx;
+        }
+    }
+
+  // Flip back if x_g was decreasing
+  if( xg_reversed )
+    {
+      Vector tmp = h[Range(ng-1,ng,-1)];   // Flip order
+      h = tmp;
+    }
+
+  // The expressions are sensitive to numerical issues if two points in x_ref
+  // are very close compared to the values in x_ref. A test trying to warn when
+  // this happens:
+  if( min(f) >= 0  &&  min(h) < -1e-15 )
+    throw runtime_error( "Significant negative response value obtained, "
+                         "despite sensor reponse is strictly positive. This "
+                         "indicates numerical problems. Is there any very "
+                         "small spacing of the sensor response grid?"
+                         "Please, send a report to Patrick if you see this!" );
+}
+
+
+
+//! integration_bin_by_vecmult
+/*!
+   Calculates the (row) vector that multiplied with an unknown (column) vector
+   approximates the integral of f between limit1 and limit2, where limit1 >=
+   limit2.
+
+   This can be seen as a special case of what is handled by 
+   *integration_func_by_vecmult*, where the function g is a boxcar function. Or
+   expressed differently, the function f is "binned" between limit1 and limit2.
+
+   \param   h       The multiplication (row) vector.
+   \param   f       The values of function f(x).
+   \param   x_f     The grid points of function f(x). Must be increasing.
+   \param   limit1  The lower integration limit.
+   \param   limit2  The upper integration limit.
+
+   \author Patrick Eriksson
+   \date   2017-06-02
+*/
+void integration_bin_by_vecmult(
+        VectorView   h,
+   ConstVectorView   f,
+   ConstVectorView   x_f,
+   const Numeric&    limit1, 
+   const Numeric&    limit2 )
+{
+  // Basic sizes 
+  const Index nf = x_f.nelem();
+
+  // Asserts
+  assert( nf > 1 );
+  assert( h.nelem() == nf );
+  assert( f.nelem() == nf );
+  assert( is_increasing( x_f ) );
+  assert( limit1 <= limit2 );
+
+  // Crop any part outside range of x_f
+  //
+  Numeric l1 = min( max( limit1, x_f[0] ), x_f[nf-1] );
+  Numeric l2 = min( max( limit2, x_f[0] ), x_f[nf-1] );
+
+  cout << l1 << " " << l2 << endl;
+  
+  // Handle extreme cases
+  // Bin has zero width or is totally outside range of x_f:
+  if( l1 == l2 )  
+    {
+      h = 0.0;
+      return;
+    }
+  // Bin covers complete x_f:
+  else if( l1 == x_f[0]  &&  l2 == x_f[nf-1] )
+    {
+      h[0] = f[0] * ( x_f[1] - x_f[0] ) / 2.0;
+      for( Index i=1; i<nf-1; i++ )
+        { h[i] = f[i] * ( x_f[i+1] - x_f[i-1] ) / 2.0; }
+      h[nf-1] = f[nf-1] * ( x_f[nf-1] - x_f[nf-2] ) / 2.0;
+      return;
+    }
+
+  // The general case
+  Numeric x1, x2;   // End points of bin, inside basis range of present grid point
+  for( Index i=1; i<nf; i++ )
+    {
+      bool inside = false;
+
+      if( i == 0 )
+        {
+          if( l1 < x_f[1] )
+            {
+              inside = true;
+              x1     = l1;
+              x2     = min( l2, x_f[1] );
+            }
+        }
+      else if( i == nf-1 )
+        {
+          if( l2 > x_f[nf-2] )
+            {
+              inside = true;
+              x1     = max( l1, x_f[nf-2] );
+              x2     = l2;
+            }
+        }
+      else
+        {
+          if( l1 < x_f[i+1]  ||  l2 > x_f[i-1] )
+            {
+              inside = true;
+              x1     = max( l1, x_f[nf-1] );
+              x2     = max( l2, x_f[nf+1] );;
+            }
+        }
+
+      // h is zero if no overlap between bin and basis range of point
+      if( !inside )
+        { h[i] = 0.0; }
+      else
+        {
+          // Lower part
+          if( x1 < x_f[i] )
+            {
+              const Numeric dx = x_f[i] - x1;
+              h[i] = f[i] * dx * ( 1 + 0.5*dx/(x_f[i]-x_f[i-1]) );
+            }
+          else
+            { h[i] = 0.0; }
+
+          // Upper part
+          if( x2 > x_f[i] )
+            {
+              const Numeric dx = x2 - x_f[i];
+              h[i] = f[i] * dx * ( 1 + 0.5*dx/(x_f[i+1]-x_f[i]) );
+            }
+        }
+    }
+}
+
+
+
+//! summation_by_vecmult
+/*!
+   Calculates the (row) vector that multiplied with an unknown
+   (column) vector approximates the sum of the product 
+   between the functions at two points.
+
+   E.g. h*g = f(x1)*g(x1) + f(x2)*g(x2)
+
+   The typical application is to set up the combined response matrix
+   for mixer and sideband filter.
+
+   See Eriksson et al., Efficient forward modelling by matrix
+   representation of sensor responses, Int. J. Remote Sensing, 27,
+   1793-1808, 2006, for details.
+
+   No normalisation of the response is made.
+
+   \param   h     The summation (row) vector.
+   \param   f     Sideband response.
+   \param   x_f   The grid points of function f(x).
+   \param   x_g   The grid for spectral values (normally equal to f_grid) 
+   \param   x1    Point 1
+   \param   x2    Point 2
+
+   \author Mattias Ekström / Patrick Eriksson
+   \date   2003-05-26 / 2008-06-17
+*/
+void summation_by_vecmult(
+        VectorView   h,
+   ConstVectorView   f,
+   ConstVectorView   x_f,
+   ConstVectorView   x_g,
+     const Numeric   x1,
+     const Numeric   x2 )
+{
+  // Asserts
+  assert( h.nelem() == x_g.nelem() );
+  assert( f.nelem() == x_f.nelem() );
+  assert( x_g[0]    <= x_f[0] );
+  assert( last(x_g) >= last(x_f) );
+  assert( x1        >= x_f[0] );
+  assert( x2        >= x_f[0] );
+  assert( x1        <= last(x_f) );
+  assert( x2        <= last(x_f) );
+
+  // Determine grid positions for point 1 (both with respect to f and g grids)
+  // and interpolate response function.
+  ArrayOfGridPos gp1g(1), gp1f(1);
+  gridpos( gp1g, x_g, x1 );
+  gridpos( gp1f, x_f, x1 );
+  Matrix itw1(1,2);
+  interpweights( itw1, gp1f );
+  Numeric f1;
+  interp( f1, itw1, f, gp1f );
+
+  // Same for point 2
+  ArrayOfGridPos gp2g(1), gp2f(1);
+  gridpos( gp2g, x_g, x2 );
+  gridpos( gp2f, x_f, x2 );
+  Matrix itw2(1,2);
+  interpweights( itw2, gp2f );
+  Numeric f2;
+  interp( f2, itw2, f, gp2f );
+
+  //Initialise h at zero and store calculated weighting components
+  h = 0.0;
+  h[gp1g[0].idx]   += f1 * gp1g[0].fd[1];
+  h[gp1g[0].idx+1] += f1 * gp1g[0].fd[0];
+  h[gp2g[0].idx]   += f2 * gp2g[0].fd[1];
+  h[gp2g[0].idx+1] += f2 * gp2g[0].fd[0];
+}
+
 
 

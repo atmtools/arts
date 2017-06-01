@@ -101,25 +101,6 @@ void sensor_aux_vectors(
    const ArrayOfIndex&   sensor_response_pol_grid,
        ConstMatrixView   sensor_response_dlos_grid );
 
-void sensor_integration_vector(
-        VectorView   h,
-   ConstVectorView   f,
-   ConstVectorView   x_f_in,
-   ConstVectorView   x_g_in );
-void sensor_integration_vector2(
-        VectorView   h,
-   ConstVectorView   f,
-   ConstVectorView   x_f_in,
-   ConstVectorView   x_g_in );
-
-void sensor_summation_vector(
-        VectorView   h,
-   ConstVectorView   f,
-   ConstVectorView   x_f,
-   ConstVectorView   x_g,
-     const Numeric   x1,
-     const Numeric   x2 );
-
 void spectrometer_matrix( 
            Sparse&         H,
    ConstVectorView         ch_f,
@@ -141,5 +122,30 @@ void find_effective_channel_boundaries(// Output:
                                        const ArrayOfGriddedField1& backend_channel_response,
                                        const Numeric& delta,
                                        const Verbosity& verbosity);
+
+
+
+void integration_func_by_vecmult(
+        VectorView   h,
+   ConstVectorView   f,
+   ConstVectorView   x_f_in,
+   ConstVectorView   x_g_in );
+
+void integration_bin_by_vecmult(
+        VectorView   h,
+   ConstVectorView   f,
+   ConstVectorView   x_f,
+   const Numeric&    limit1, 
+   const Numeric&    limit2 );
+
+void summation_by_vecmult(
+        VectorView   h,
+   ConstVectorView   f,
+   ConstVectorView   x_f,
+   ConstVectorView   x_g,
+     const Numeric   x1,
+     const Numeric   x2 );
+
+
 
 #endif  // sensor_h
