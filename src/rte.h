@@ -386,14 +386,15 @@ void get_ppath_pmat_and_tmat(
 
 void get_ppath_scat_source(
                            Tensor4&         ppath_scat_source,
-                           const Ppath&     ppath,
-                           ConstMatrixView  ppath_pnd,
-                           ConstVectorView  ppath_t, 
                            const ArrayOfArrayOfSingleScatteringData scat_data,
                            ConstTensor7View doit_i_field,
                            ConstVectorView  scat_za_grid,
                            ConstVectorView  f_grid, 
                            const Index&     stokes_dim,
+                           const Ppath&     ppath,
+                           ConstVectorView  ppath_t, 
+                           ConstMatrixView  ppath_pnd,
+                           const Index&     j_analytical_do,
                            const Index&     Naa,
                            const Verbosity& verbosity );
 void iyb_calc(

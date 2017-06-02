@@ -42,6 +42,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "geodetic.h"
+#include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
 #include "montecarlo.h"
@@ -49,7 +50,6 @@
 #include "ppath.h"
 #include "rte.h"
 #include "special_interp.h"
-#include "lin_alg.h"
 
 extern const Numeric SPEED_OF_LIGHT;
 
@@ -2416,14 +2416,15 @@ void get_ppath_pmat_and_tmat(
 */
 void get_ppath_scat_source(
                            Tensor4&         ppath_scat_source,
-                           const Ppath&     ppath,
-                           ConstMatrixView  ppath_pnd,
-                           ConstVectorView  ppath_t, 
                            const ArrayOfArrayOfSingleScatteringData scat_data,
                            ConstTensor7View doit_i_field,
                            ConstVectorView  scat_za_grid,
                            ConstVectorView  f_grid, 
                            const Index&     stokes_dim,
+                           const Ppath&     ppath,
+                           ConstVectorView  ppath_t, 
+                           ConstMatrixView  ppath_pnd,
+                           const Index&     j_analytical_do,
                            const Index&     Naa,
                            const Verbosity& verbosity )
 {
@@ -2435,6 +2436,7 @@ void get_ppath_scat_source(
 
   ppath_scat_source.resize( nf, stokes_dim, ne, np );
   ppath_scat_source = 0;
+  //Tensor3 ppath_rad( nf, stokes_dim, np, 0. ); // for debugging
       //
       Vector aa_grid(Naa);
       if( Naa > 2 )
@@ -2449,25 +2451,19 @@ void get_ppath_scat_source(
 
       for( Index ip=0; ip<np; ip++ )
       {
-        if( max(ppath_pnd(joker,ip)) > 0 )
+        // FIXME: is that max(ppath_pnd(joker,ip))>0 check ok? for inversions?
+        // should negative pnd not be allowed (though physically impossible),
+        // just like negative vmr are?
+        if( j_analytical_do || (max(ppath_pnd(joker,ip)) > 0) )
+        //if (1) // for debugging
         {
-          // Jana: add your code here !!!
-          //
-          // You need only to fill the variable ppath_scat_source, that
-          // should contain the scattering source term at the np ppath
-          // points. The idea is to keep the contribution for each
-          // scattering element seperated. This is the row dimension.
-          //
-          // The variable ppath_pnd holds pnd_field interpolated to each
-          // ppath point. If here, at least one pnd > 0 at this ppath
-          // point. About 25 lines below you see an example on how the
-          // doit_i_field can be interpolated. Note that only 1D is allowed
-          // and that cloudbox is forced to span complete atmosphere
+          // Note that, so far, only 1D is allowed and that cloudbox is forced
+          // to span complete atmosphere.
 
           // determine p/z-interp weights for this ppath point (apply in freq
           // loop)
           GridPos gp_p;
-          gridpos_copy( gp_p, ppath.gp_p[np-1] );
+          gridpos_copy( gp_p, ppath.gp_p[ip] );
           Vector itw_p(2);
           interpweights( itw_p, gp_p );
 
@@ -2481,13 +2477,20 @@ void get_ppath_scat_source(
           Vector itw_iza(2);
           interpweights( itw_iza, gp_iza ); 
 
-          Tensor4 pndT4(ne, 1, 1, 1);
-          pndT4(joker, 0, 0, 0) = ppath_pnd(joker,ip);
+          // we should not skip pha_mat_spt calculation (which is internally
+          // done in pha_mat_sptFromData in pnd is, practically, 0) if we want
+          // jacobians. for pure forward it's ok. hence, set pndT4 to 1 for all
+          // scat elems in general. for forward, update it with the actual
+          // values.
+          Tensor4 pndT4(ne, 1, 1, 1, 1.);
+          if (!j_analytical_do) // switch(ed) off for debugging
+            pndT4(joker, 0, 0, 0) = ppath_pnd(joker,ip);
 
           for( Index f_index=0; f_index<f_grid.nelem(); f_index++ )
           {
             Matrix inc_field(Nza, stokes_dim, 0.);
             Tensor3 scat_field(2, ne, stokes_dim, 0.);
+            Matrix rad_field(2, stokes_dim, 0.);
 
             for( Index za_in=0; za_in<Nza; za_in++ )
             {
@@ -2497,6 +2500,10 @@ void get_ppath_scat_source(
                   interp( itw_p, doit_i_field(f_index,joker,0,0,za_in,0,i), gp_p );
               }
             }
+
+            // for debugging
+            //WriteXML( "ascii", inc_field, "inc_field.xml", 1,
+            //          "inc_field", "", "", verbosity );
 
             Tensor5 pha_mat_spt(ne, Nza, Naa, stokes_dim, stokes_dim, 0.);
             Tensor5 product_fields(2, ne, Nza, Naa, stokes_dim, 0.);
@@ -2525,7 +2532,7 @@ void get_ppath_scat_source(
                   }//end aa_in loop
                 }//end za_in loop
 
-                for (Index i = 0; i < stokes_dim; i++)
+                for ( Index i = 0; i < stokes_dim; i++ )
                 {
                   // Integration of the phase matrix with inc field product
                   // from above over zenith angle and azimuth angle grid.
@@ -2534,21 +2541,46 @@ void get_ppath_scat_source(
                     scat_za_grid, aa_grid);
                 } //end i loop
               } // end ise_flat
+
+              // for debugging
+              //for ( Index i = 0; i < stokes_dim; i++ )
+              //{
+              //  Matrix inc_field2D(Nza,Naa,0.);
+              //  for ( Index iaa=0; iaa<Naa; iaa++ )
+              //    inc_field2D(joker,iaa) = inc_field(joker,i);
+              //  rad_field(iza,i) = AngIntegrate_trapezoid(
+              //    inc_field2D, scat_za_grid, aa_grid);
+              //} //end i loop
             } // end iza
 
             for( Index ise_flat=0; ise_flat<ne; ise_flat++ )
             {
-              for (Index i = 0; i < stokes_dim; i++)
+              for ( Index i = 0; i < stokes_dim; i++ )
               {
                 // Interpolate scattered intensity to LOS direction
                 ppath_scat_source( f_index, i, ise_flat, ip ) =
-                  ppath_pnd(ise_flat,ip) *
+                  // Nope, do NOT multiply by pnd, instead return scat source
+                  // contribution from one particle of the scattering element
+                  // type. in that way we can derive the jacobians directly from
+                  // this and don't need to have a separate variable for them
+                  //ppath_pnd(ise_flat,ip) *
                   interp(itw_iza, scat_field(joker,ise_flat,i), gp_iza );
               } //end i loop
             } // end ise_flat
+
+            // for debugging
+            //for ( Index i = 0; i < stokes_dim; i++ )
+            //{
+            //  ppath_rad( f_index, i, ip) = interp(itw_iza, rad_field(joker,i), gp_iza );
+            //} //end i loop
+
           } // end f_index
         } // end if ppath_pnd
       } // end ip
+
+      // for debugging
+      //WriteXML( "ascii", ppath_rad, "ppath_rad.xml", 0,
+      //          "ppath_rad", "", "", verbosity );
 }
 
 

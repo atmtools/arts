@@ -1,3 +1,22 @@
+2017-06-02 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-693
+
+	* src/rte.cc (get_ppath_scat_source):
+	Remove scaling of scat source per scat element with its pnd, ie
+	outputting scat source one single particle of each element. Removes
+	requirement of separately calculating and storing dppath_scat_source.
+	For jacobians, do NOT skip pha_mat_spt and ppath_scat_source calcs for
+	pnd=0.
+	Bugfix in incoming field p-interpolation.
+
+	* src/m_fos.cc (iyHybrid):
+	Some code for layer bulk source calculation for applying in scat
+	source in RT solution.
+
+	* src/rt4.cc:
+	Layout fixes for a couple of error/info messages.
+	
 2017-06-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-692

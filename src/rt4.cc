@@ -101,49 +101,49 @@ void check_rt4_input( // Output
   if (!cloudbox_on)
   {
     throw runtime_error( "Cloudbox is off, no scattering calculations to be"
-                         "performed." );
+                         " performed." );
   }
 
   if( atmfields_checked != 1 )
-    throw runtime_error( "The atmospheric fields must be flagged to have "
-                         "passed a consistency check (atmfields_checked=1)." );
+    throw runtime_error( "The atmospheric fields must be flagged to have"
+                         " passed a consistency check (atmfields_checked=1)." );
   if( atmgeom_checked != 1 )
-    throw runtime_error( "The atmospheric geometry must be flagged to have "
-                         "passed a consistency check (atmgeom_checked=1)." );
+    throw runtime_error( "The atmospheric geometry must be flagged to have"
+                         " passed a consistency check (atmgeom_checked=1)." );
   if( cloudbox_checked != 1 )
-    throw runtime_error( "The cloudbox must be flagged to have "
-                         "passed a consistency check (cloudbox_checked=1)." );
+    throw runtime_error( "The cloudbox must be flagged to have"
+                         " passed a consistency check (cloudbox_checked=1)." );
 
   if( atmosphere_dim != 1   )
-    throw runtime_error( "For running RT4, atmospheric dimensionality "
-                         "must be 1.\n");
+    throw runtime_error( "For running RT4, atmospheric dimensionality"
+                         " must be 1.\n");
 
   if (stokes_dim < 0 || stokes_dim > 2)
-    throw runtime_error( "For running RT4, the dimension of stokes vector "
-                         "must be 1 or 2.\n");
+    throw runtime_error( "For running RT4, the dimension of stokes vector"
+                         " must be 1 or 2.\n");
 
   if( cloudbox_limits[0] != 0   )
     {
       ostringstream os;
-      os << "RT4 calculations currently only possible with "
-         << "lower cloudbox limit\n"
-         << "at 0th atmospheric level "
-         << "(assumes surface there, ignoring z_surface).\n";
+      os << "RT4 calculations currently only possible with"
+         << " lower cloudbox limit\n"
+         << "at 0th atmospheric level"
+         << " (assumes surface there, ignoring z_surface).\n";
       throw runtime_error(os.str());
     }
 
   if ( cloudbox_limits.nelem()!= 2*atmosphere_dim )
     throw runtime_error(
                         "*cloudbox_limits* is a vector which contains the"
-                        "upper and lower limit of the cloud for all "
-                        "atmospheric dimensions. So its dimension must"
-                        "be 2 x *atmosphere_dim*");
+                        " upper and lower limit of the cloud for all"
+                        " atmospheric dimensions. So its dimension must"
+                        " be 2 x *atmosphere_dim*");
 
   if ( scat_data.empty() )
     throw runtime_error(
                          "No single scattering data present.\n"
-                         "See documentation of WSV *scat_data* for options to "
-                         "make single scattering data available.\n"
+                         "See documentation of WSV *scat_data* for options to"
+                         " make single scattering data available.\n"
                          );
 
   if( pnd_ncols != 1 ) 
@@ -153,8 +153,8 @@ void check_rt4_input( // Output
   if( quad_type.length()>1 )
     {
       ostringstream os;
-      os << "Input parameter *quad_type* not allowed to contain more than a "
-         << "single character.\n"
+      os << "Input parameter *quad_type* not allowed to contain more than a"
+         << " single character.\n"
          << "Yours has " << quad_type.length() << ".\n";
       throw runtime_error(os.str());
     }
@@ -1209,8 +1209,8 @@ void sca_optpropCalc( //Output
   if( pfct_aa_grid_size < 2 )
   {
       ostringstream os;
-      os << "Azimuth grid size for scatt matrix extraction "
-         << "(*pfct_aa_grid_size*) must be >1.\n"
+      os << "Azimuth grid size for scatt matrix extraction"
+         << " (*pfct_aa_grid_size*) must be >1.\n"
          << "Yours is " << pfct_aa_grid_size << ".\n";
       throw runtime_error( os.str() );
   }
@@ -1416,14 +1416,14 @@ void sca_optpropCalc( //Output
                   {
                     ostringstream os;
                     os << "Bulk scattering matrix normalization deviates significantly\n"
-                       << "from expected value (" << 1e2*abs(1.-pfct_norm) << "%, "
-                       << "resulting in albedo deviation of " << abs(w0_act-w0_nom)
+                       << "from expected value (" << 1e2*abs(1.-pfct_norm) << "%,"
+                       << " resulting in albedo deviation of " << abs(w0_act-w0_nom)
                        << ").\n"
                        << "Something seems wrong with your scattering data "
-                       << "(did you run *scat_dataCheck*?)\n"
-                       << "or your RT4 setup (try increasing *nstreams* and in case "
-                       << "of randomly oriented particles possibly also "
-                       << "pfct_aa_grid_size).";
+                       << " (did you run *scat_dataCheck*?)\n"
+                       << "or your RT4 setup (try increasing *nstreams* and in case"
+                       << " of randomly oriented particles possibly also"
+                       << " pfct_aa_grid_size).";
                     throw runtime_error( os.str() );
                   }
                 }

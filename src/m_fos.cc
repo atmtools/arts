@@ -956,7 +956,7 @@ void iyHybrid(
   const Index nf = f_grid.nelem();
   const Index ns = stokes_dim;
   const Index np = ppath.np;
-  //const Index ne = pnd_field.nbooks();
+  const Index ne = pnd_field.nbooks();
   const Index nq = jacobian_quantities.nelem();
 
   // Obtain i_field
@@ -968,7 +968,7 @@ void iyHybrid(
     Vector scat_aa_grid;
     //
     doit_i_field_agendaExecute( ws, doit_i_field, scat_za_grid, scat_aa_grid,
-                            doit_i_field_agenda );
+                                doit_i_field_agenda );
     if( doit_i_field.ncols() != stokes_dim  )
       throw runtime_error(
         "Obtained *doit_i_field* has wrong number of Stokes elements."  );
@@ -1247,7 +1247,6 @@ void iyHybrid(
       get_ppath_f( ppath_f, ppath, f_grid,  atmosphere_dim, 
                    rte_alonglos_v, ppath_wind );
 
-      // FIXME? where is ppath_pnd actually from, where is it derived/exctracted?
       get_ppath_pmat_and_tmat( ws, ppath_ext, ppath_nlte_source, lte, abs_per_species,
                                dppath_ext_dx, dppath_nlte_source_dx,
                                trans_partial, dtrans_partial_dx_above,
@@ -1267,9 +1266,17 @@ void iyHybrid(
       get_dppath_blackrad_dt( dppath_blackrad_dt, ppath_t, ppath_f, jac_is_t, 
                               j_analytical_do );
 
+      // for debugging
+      //WriteXML( "ascii", doit_i_field, "doit_i_field_iyHybrid.xml", 0,
+      //          "doit_i_field", "", "", verbosity );
       get_ppath_scat_source( ppath_scat_source,
-                             ppath, ppath_pnd, ppath_t, scat_data, doit_i_field,
-                             scat_za_grid, f_grid, stokes_dim, Naa, verbosity );
+                             scat_data, doit_i_field, scat_za_grid,
+                             f_grid, stokes_dim, ppath, ppath_t, ppath_pnd, 
+                             j_analytical_do, Naa, verbosity );
+      // for debugging
+      //WriteXML( "ascii", ppath_scat_source, "ppath_scat_source.xml", 0,
+      //          "ppath_scat_source", "", "", verbosity );
+
     }
   else
     {  
@@ -1410,6 +1417,7 @@ void iyHybrid(
       
       //=======================================================================
       // Loop ppath steps
+      //Tensor3 layer_bulk_scatsource( nf, stokes_dim, np-1, 0. ); // just for debugging
       for( Index ip=np-2; ip>=0; ip-- )
         {
           // Path step average of B: Bbar
@@ -1444,6 +1452,38 @@ void iyHybrid(
                     }
                 }
             }
+
+          // Extra variables for scattering
+          //
+          // FIXME: is that max(ppath_pnd(joker,ip))>0 check ok? for inversions?
+          // should negative pnd not be allowed (though physically impossible),
+          // just like negative vmr are?
+          const bool scat = ( max(ppath_pnd(joker,ip))>0 ) || ( max(ppath_pnd(joker,ip+1))>0 );
+          Matrix scatsourcebar(0,0);
+          Vector bulk_scat_source(2);
+          if( scat )
+            { 
+              scatsourcebar.resize( nf, stokes_dim );
+              for( Index iv=0; iv<nf; iv++ )  
+                { 
+                  for( Index is1=0; is1<stokes_dim; is1++ )  
+                    {
+                      bulk_scat_source = 0.;
+                      for( Index ise=0; ise<ne; ise++ )
+                        {
+                          bulk_scat_source[0] += ppath_pnd(ise,ip) *
+                                                 ppath_scat_source(iv,is1,ise,ip);
+                          bulk_scat_source[1] += ppath_pnd(ise,ip+1) *
+                                                 ppath_scat_source(iv,is1,ise,ip+1);
+                        }
+                      scatsourcebar(iv,is1) = 0.5 * ( bulk_scat_source[0] +
+                                                      bulk_scat_source[1] );
+                      //layer_bulk_scatsource(iv, is1, ip)=scatsourcebar(iv,is1); // just for debugging
+
+                    }
+                }
+            }
+
               
           
           //### jacobian part #################################################
@@ -1609,6 +1649,10 @@ void iyHybrid(
                                             abs_per_species(ife,iv,1,2,ip); } }
         } // path point loop
       //=======================================================================
+
+      // for debugging
+      //WriteXML( "ascii", layer_bulk_scatsource, "layer_bulk_scatsource.xml", 0,
+      //          "layer_bulk_scatsource", "", "", verbosity );
 
 
       //### jacobian part #####################################################
