@@ -167,7 +167,30 @@ void pha_mat_sptFromData( // Output:
               GridPos t_gp;
               Vector itw;
 
-              if( T_DATAGRID.nelem() > 1 )
+              Index ti=-1;
+
+              if( PHA_MAT_DATA_RAW.nvitrines() == 1 ) // just 1 T_grid element
+              {
+                  ti=0;
+              }
+              else if( rtp_temperature < 0. ) // coding for 'not interpolate, but
+                                              // pick one temperature'
+              {
+                if( rtp_temperature > -10. )      // lowest T-point
+                {
+                  ti = 0;
+                }
+                else if( rtp_temperature > -20. ) // highest T-point
+                {
+                  ti = T_DATAGRID.nelem()-1;
+                }
+                else                              // median T-point
+                {
+                  ti = T_DATAGRID.nelem()/2;
+                }
+              }
+
+              if( ti<0 ) // temperature interpolation
               {
                   ostringstream os;
                   os << "The temperature grid of the scattering data does not\n"
@@ -218,7 +241,7 @@ void pha_mat_sptFromData( // Output:
                             pha_mat_data_int(i_za_sca, i_aa_sca,
                                              i_za_inc, i_aa_inc, i) =
                               interp(itw,
-                                     PHA_MAT_DATA_RAW(joker, 0,
+                                     PHA_MAT_DATA_RAW(joker, ti,
                                      i_za_sca, i_aa_sca, i_za_inc, i_aa_inc, i),
                                      freq_gp);
               }
@@ -361,7 +384,31 @@ void pha_mat_sptFromDataDOITOpt(// Output:
           if (pnd_field(i_se_flat, scat_p_index, scat_lat_index, scat_lon_index)
               > PND_LIMIT) //TRS
           {
-              if( scat_data_mono[i_ss][i_se].T_grid.nelem() > 1)
+
+              Index nT = scat_data_mono[i_ss][i_se].pha_mat_data.nvitrines();
+              Index ti=-1;
+
+              if( nT == 1 ) // just 1 T_grid element
+              {
+                  ti=0;
+              }
+              else if( rtp_temperature < 0. ) // coding for 'not interpolate, but
+                                              // pick one temperature'
+              {
+                if( rtp_temperature > -10. )      // lowest T-point
+                {
+                  ti = 0;
+                }
+                else if( rtp_temperature > -20. ) // highest T-point
+                {
+                  ti = nT-1;
+                }
+                else                              // median T-point
+                {
+                  ti = nT/2;
+                }
+              }
+              else
               {
                   ostringstream os;
                   os << "The temperature grid of the scattering data does not\n"
@@ -387,17 +434,7 @@ void pha_mat_sptFromDataDOITOpt(// Output:
                   for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
                        aa_inc_idx ++)
                   {
-                      if( scat_data_mono[i_ss][i_se].T_grid.nelem() == 1)
-                      {
-                          pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx,
-                                      joker, joker) =
-                          pha_mat_sptDOITOpt[i_se_flat](0, scat_za_index,
-                                                        scat_aa_index, za_inc_idx,
-                                                        aa_inc_idx, joker, joker);
-                      }
-
-                      // Temperature interpolation
-                      else
+                      if( ti<0 ) // Temperature interpolation
                       {
                           for (Index i = 0; i< stokes_dim; i++)
                           {
@@ -411,6 +448,14 @@ void pha_mat_sptFromDataDOITOpt(// Output:
                                           aa_inc_idx, i, j) , T_gp);
                               }
                           }
+                      }
+                      else
+                      {
+                          pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx,
+                                      joker, joker) =
+                          pha_mat_sptDOITOpt[i_se_flat](ti, scat_za_index,
+                                                        scat_aa_index, za_inc_idx,
+                                                        aa_inc_idx, joker, joker);
                       }
                   }
               }
@@ -1815,7 +1860,7 @@ void pha_mat_sptFromMonoData(// Output:
       throw runtime_error( os.str() );
   }
 
-  GridPos T_gp;
+  GridPos T_gp, Tred_gp;
   Vector itw(2);
 
   // Initialisation
@@ -1833,12 +1878,34 @@ void pha_mat_sptFromMonoData(// Output:
               > PND_LIMIT)
           {
               // Temporary phase matrix which includes all temperatures.
-              Tensor3 pha_mat_spt_tmp(scat_data_mono[i_ss][i_se].T_grid.nelem(),
+              Index nT = scat_data_mono[i_ss][i_se].pha_mat_data.nvitrines();
+              Tensor3 pha_mat_spt_tmp(nT,
                                       pha_mat_spt.nrows(), pha_mat_spt.ncols());
 
               pha_mat_spt_tmp = 0.;
 
-              if( scat_data_mono[i_ss][i_se].T_grid.nelem() > 1 )
+              Index ti=-1;
+              if( nT == 1 ) // just 1 T_grid element
+              {
+                  ti=0;
+              }
+              else if( rtp_temperature < 0. ) // coding for 'not interpolate, but
+                                              // pick one temperature'
+              {
+                if( rtp_temperature > -10. )      // lowest T-point
+                {
+                  ti = 0;
+                }
+                else if( rtp_temperature > -20. ) // highest T-point
+                {
+                  ti = nT-1;
+                }
+                else                              // median T-point
+                {
+                  ti = nT/2;
+                }
+              }
+              else
               {
                   ostringstream os;
                   os << "The temperature grid of the scattering data does not\n"
@@ -1852,33 +1919,12 @@ void pha_mat_sptFromMonoData(// Output:
                   // Gridpositions:
                   gridpos( T_gp, scat_data_mono[i_ss][i_se].T_grid, 
                            rtp_temperature );
+                  gridpos_copy( Tred_gp, T_gp );
+                  Tred_gp.idx = 0;
                   // Interpolation weights:
-                  interpweights(itw, T_gp);
+                  interpweights(itw, Tred_gp);
               }
 
-/*
-              if( i_se_flat==65 && rtp_temperature==292.61 )
-                {
-                  Tensor7 p=scat_data_mono[i_ss][i_se].pha_mat_data;
-                  cout << "#original pfct:\n";
-                  for( Index i_za=0; i_za<p.nshelves(); i_za++ )
-                  {
-                    cout << "  "
-                         << scat_data_mono[i_ss][i_se].za_grid[i_za];
-                    for( Index i_t=0; i_t<p.nvitrines(); i_t++ )
-                      cout << "  " << p(0,i_t,i_za,0,0,0,0);
-                    cout << "\n";
-                  }
-                }
-
-              Tensor3 pha_mat_lab;
-              if( i_se_flat==65 )
-              {
-                pha_mat_lab.resize( scat_data_mono[i_ss][i_se].T_grid.nelem(),
-                                    doit_za_grid_size,scat_aa_grid.nelem() );
-                pha_mat_lab=0.;
-              }
-*/
               // Do the transformation into the laboratory coordinate system.
               for (Index za_inc_idx = 0; za_inc_idx < doit_za_grid_size;
                    za_inc_idx ++)
@@ -1886,14 +1932,14 @@ void pha_mat_sptFromMonoData(// Output:
                   for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
                        aa_inc_idx ++)
                   {
-                      for (Index t_idx = 0; t_idx <
-                           scat_data_mono[i_ss][i_se].T_grid.nelem();
-                           t_idx ++)
+                      if( ti<0 ) // Temperature interpolation
                       {
-                          pha_matTransform( pha_mat_spt_tmp(t_idx, joker, joker),
+                          for (Index t_idx = 0; t_idx<2; t_idx ++)
+                          {
+                              pha_matTransform( pha_mat_spt_tmp(t_idx, joker, joker),
                                            scat_data_mono[i_ss][i_se].
                                            pha_mat_data
-                                           (0,t_idx,joker,joker,joker,
+                                           (0,t_idx+T_gp.idx,joker,joker,joker,
                                             joker,joker),
                                            scat_data_mono[i_ss][i_se].za_grid,
                                            scat_data_mono[i_ss][i_se].aa_grid,
@@ -1902,15 +1948,8 @@ void pha_mat_sptFromMonoData(// Output:
                                            za_inc_idx,
                                            aa_inc_idx, za_grid, scat_aa_grid,
                                            verbosity );
-                      }
-/*
-                      if( i_se_flat==65 )
-                        pha_mat_lab(joker, za_inc_idx, aa_inc_idx) = 
-                          pha_mat_spt_tmp(joker, 0, 0);
-*/
-                      // Temperature interpolation
-                      if( scat_data_mono[i_ss][i_se].T_grid.nelem() > 1)
-                      {
+                          }
+
                           for (Index i = 0; i< stokes_dim; i++)
                           {
                               for (Index j = 0; j< stokes_dim; j++)
@@ -1918,40 +1957,28 @@ void pha_mat_sptFromMonoData(// Output:
                                   pha_mat_spt(i_se_flat,
                                               za_inc_idx, aa_inc_idx, i, j)=
                                   interp(itw,
-                                         pha_mat_spt_tmp(joker, i, j), T_gp);
+                                         pha_mat_spt_tmp(joker, i, j), Tred_gp);
                               }
                           }
-                      }
-                      else // no temperature interpolation required
-                      {
-                          pha_mat_spt(i_se_flat,
-                                      za_inc_idx, aa_inc_idx, joker, joker) =
-                          pha_mat_spt_tmp(0, joker, joker);
-                      }
+                    }
+                    else // no temperature interpolation required
+                    {
+                          pha_matTransform( pha_mat_spt(i_se_flat, za_inc_idx,
+                                            aa_inc_idx, joker, joker),
+                                           scat_data_mono[i_ss][i_se].
+                                           pha_mat_data
+                                           (0,ti,joker,joker,joker,
+                                            joker,joker),
+                                           scat_data_mono[i_ss][i_se].za_grid,
+                                           scat_data_mono[i_ss][i_se].aa_grid,
+                                           scat_data_mono[i_ss][i_se].ptype,
+                                           scat_za_index, scat_aa_index,
+                                           za_inc_idx,
+                                           aa_inc_idx, za_grid, scat_aa_grid,
+                                           verbosity );
+                    }
                   }
               }
-/*
-              if( i_se_flat==65 && rtp_temperature==292.61 )
-                {
-                  cout << "\n#angle-converted pfct:\n";
-                  for( Index i_za=0; i_za<pha_mat_lab.nrows(); i_za++ )
-                  {
-                    cout << "  "
-                         << za_grid[i_za];
-                    for( Index i_t=0; i_t<pha_mat_lab.npages(); i_t++ )
-                      cout << "  " << pha_mat_lab(i_t,i_za,0);
-                    cout << "\n";
-                  }
-                  cout << "\n#temperature-interpolated pfct:\n";
-                  for( Index i_za=0; i_za<pha_mat_lab.nrows(); i_za++ )
-                  {
-                    cout << "  "
-                         << za_grid[i_za];
-                    cout << "  " << pha_mat_spt(i_se_flat,i_za,0,0,0);
-                    cout << "\n";
-                  }
-                }
-*/
          }
 
           i_se_flat++;

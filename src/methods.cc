@@ -10388,9 +10388,23 @@ void define_md_data_raw()
          "This function can be used in *pha_mat_spt_agenda* as part of\n"
          "the calculation of the scattering integral.\n"
          "\n"
-         "The interpolation of the data on the actual frequency is the first\n"
-         "step in this function. This is followed by a transformation from the\n"
-         "database coordinate system to the laboratory coordinate system.\n"
+         "First, data at the requested frequency (given by *f_grid* and\n"
+         "*f_index*) and temperature (given by *rtp_temperature*) is\n"
+         "extracted. This is followed by a transformation from the database\n"
+         "coordinate system to the laboratory coordinate system.\n"
+         "\n"
+         "Frequency extraction is always done by (linear) interpolation.\n"
+         "Temperature is (linearly) interpolated when at least two\n"
+         "temperature grid points are present in the *scat_data* and\n"
+         "*rtp_temperature* is positive. If only a single temperature point\n"
+         "is available, data for this point is used without modification. In\n"
+         "order to spedd up calculations, temperature interpolation can be\n"
+         "avoided by passing a *rtp_temperature*<0. In this case, a specific\n"
+         "temperature grid from the *scat_data* grid is used without\n"
+         "modification. The selection is as follows:\n"
+         "  -10 < *rtp_temperature * <   0   T_grid[0]     lowest temperature\n"
+         "  -20 < *rtp_temperature * < -10   T_grid[nT-1]  highest temperature\n"
+         "        *rtp_temperature*  < -20   T_grid[nT/2]  median grid point\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "pha_mat_spt" ),
@@ -10441,6 +10455,8 @@ void define_md_data_raw()
          "*pha_mat_sptDOITOpt*. It can be used in the agenda\n"
          "*pha_mat_spt_agenda*. This method must be used in combination with\n"
          "*DoitScatteringDataPrepare*.\n"
+         "\n"
+         "Temperature is considered as described for *pha_mat_sptFromData*\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "pha_mat_spt" ),

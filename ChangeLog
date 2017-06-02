@@ -1,5 +1,16 @@
 2017-06-02 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-694
+
+	* src/m_optproperties.cc, methods.cc (pha_mat_dataFrom*):
+	Introduced non-T-interpolation option (governed via rtp_temperature
+	variable; see online doc) in order to allow speedier pha_mat
+	extraction (and, specifically, to be able optimize the amount of
+	pha_mat_spt extraction in iyHybrid - perfomring that only once instead
+	of per each ppath grid point).
+
+2017-06-02 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-693
 
 	* src/rte.cc (get_ppath_scat_source):
