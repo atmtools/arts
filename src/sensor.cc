@@ -1540,17 +1540,20 @@ void integration_func_by_vecmult(
 
 //! integration_bin_by_vecmult
 /*!
-   Calculates the (row) vector that multiplied with an unknown (column) vector
-   approximates the integral of f between limit1 and limit2, where limit1 >=
+   Calculates the (row) vector that multiplied with an unknown (column) vector,
+   g, approximates the integral between limit1 and limit2, where limit1 >=
    limit2.
 
    This can be seen as a special case of what is handled by 
-   *integration_func_by_vecmult*, where the function g is a boxcar function. Or
-   expressed differently, the function f is "binned" between limit1 and limit2.
+   *integration_func_by_vecmult*, where the function f is a boxcar function. Or
+   expressed differently, the function g is "binned" between limit1 and limit2.
+
+   The limits must be inside the range the x_g.
 
    \param   h       The multiplication (row) vector.
-   \param   f       The values of function f(x).
-   \param   x_f     The grid points of function f(x). Must be increasing.
+   \param   x_g_in  The grid points of function g(x). Can be increasing or 
+                    decreasing. Must cover a wider range than the boxcar
+                    function (in both ends).
    \param   limit1  The lower integration limit.
    \param   limit2  The upper integration limit.
 
@@ -1559,76 +1562,85 @@ void integration_func_by_vecmult(
 */
 void integration_bin_by_vecmult(
         VectorView   h,
-   ConstVectorView   f,
-   ConstVectorView   x_f,
+   ConstVectorView   x_g_in,
    const Numeric&    limit1, 
    const Numeric&    limit2 )
 {
   // Basic sizes 
-  const Index nf = x_f.nelem();
+  const Index ng = x_g_in.nelem();
 
   // Asserts
-  assert( nf > 1 );
-  assert( h.nelem() == nf );
-  assert( f.nelem() == nf );
-  assert( is_increasing( x_f ) );
+  assert( ng > 1 );
+  assert( h.nelem() == ng );
   assert( limit1 <= limit2 );
 
-  // Crop any part outside range of x_f
+  // Handle possibly reversed x_g.
+  Vector x_g;
+  Index  xg_reversed = 0;
   //
-  Numeric l1 = min( max( limit1, x_f[0] ), x_f[nf-1] );
-  Numeric l2 = min( max( limit2, x_f[0] ), x_f[nf-1] );
+  if( is_decreasing( x_g_in ) )
+    {
+      x_g = x_g_in[Range(ng-1,ng,-1)];
+      xg_reversed = 1;
+    }
+  else
+    { 
+      x_g = x_g_in; 
+    }
+  //
+  assert( x_g[0]    <= limit1 );
+  assert( x_g[ng-1] >= limit2 );
 
-  cout << l1 << " " << l2 << endl;
   
   // Handle extreme cases
-  // Bin has zero width or is totally outside range of x_f:
-  if( l1 == l2 )  
+  // Bin has zero width
+  if( limit1 == limit2 )  
     {
       h = 0.0;
       return;
     }
-  // Bin covers complete x_f:
-  else if( l1 == x_f[0]  &&  l2 == x_f[nf-1] )
+  // Bin covers complete x_g:
+  else if( limit1 == x_g[0]  &&  limit2 == x_g[ng-1] )
     {
-      h[0] = f[0] * ( x_f[1] - x_f[0] ) / 2.0;
-      for( Index i=1; i<nf-1; i++ )
-        { h[i] = f[i] * ( x_f[i+1] - x_f[i-1] ) / 2.0; }
-      h[nf-1] = f[nf-1] * ( x_f[nf-1] - x_f[nf-2] ) / 2.0;
+      h[0] = ( x_g[1] - x_g[0] ) / 2.0;
+      for( Index i=1; i<ng-1; i++ )
+        { h[i] = ( x_g[i+1] - x_g[i-1] ) / 2.0; }
+      h[ng-1] = ( x_g[ng-1] - x_g[ng-2] ) / 2.0;
       return;
     }
 
   // The general case
-  Numeric x1, x2;   // End points of bin, inside basis range of present grid point
-  for( Index i=1; i<nf; i++ )
+  Numeric x1=0, x2=0;   // End points of bin, inside basis range of present grid point
+  for( Index i=0; i<ng; i++ )
     {
       bool inside = false;
 
       if( i == 0 )
         {
-          if( l1 < x_f[1] )
+          if( limit1 < x_g[1] )
             {
               inside = true;
-              x1     = l1;
-              x2     = min( l2, x_f[1] );
+              x1     = limit1;
+              x2     = min( limit2, x_g[1] );
             }
         }
-      else if( i == nf-1 )
+      else if( i == ng-1 )
         {
-          if( l2 > x_f[nf-2] )
+          if( limit2 > x_g[ng-2] )
             {
               inside = true;
-              x1     = max( l1, x_f[nf-2] );
-              x2     = l2;
+              x1     = max( limit1, x_g[ng-2] );
+              x2     = limit2;
             }
         }
       else
         {
-          if( l1 < x_f[i+1]  ||  l2 > x_f[i-1] )
+          if( ( limit1 < x_g[i+1] && limit2 > x_g[i-1] )  ||
+              ( limit2 > x_g[i-1] && limit1 < x_g[i+1] ) )
             {
               inside = true;
-              x1     = max( l1, x_f[nf-1] );
-              x2     = max( l2, x_f[nf+1] );;
+              x1     = max( limit1, x_g[i-1] );
+              x2     = min( limit2, x_g[i+1] );
             }
         }
 
@@ -1638,22 +1650,36 @@ void integration_bin_by_vecmult(
       else
         {
           // Lower part
-          if( x1 < x_f[i] )
+          if( x1 < x_g[i] )
             {
-              const Numeric dx = x_f[i] - x1;
-              h[i] = f[i] * dx * ( 1 + 0.5*dx/(x_f[i]-x_f[i-1]) );
+              const Numeric r  = 1.0 / (x_g[i]-x_g[i-1]);
+              const Numeric y1 = r * (x1-x_g[i-1]);
+              const Numeric dx = min( x2, x_g[i] ) - x1;
+              const Numeric y2 = y1 + r * dx;
+              h[i] = 0.5 * dx * ( y1 + y2 );
             }
           else
             { h[i] = 0.0; }
 
           // Upper part
-          if( x2 > x_f[i] )
+          if( x2 > x_g[i] )
             {
-              const Numeric dx = x2 - x_f[i];
-              h[i] = f[i] * dx * ( 1 + 0.5*dx/(x_f[i+1]-x_f[i]) );
+              const Numeric r  = 1.0 / (x_g[i+1]-x_g[i]);
+              const Numeric y2 = r * (x_g[i+1]-x2);
+              const Numeric dx = x2 - max( x1, x_g[i] );
+              const Numeric y1 = y2 + r * dx;
+              h[i] += 0.5 * dx * ( y1 + y2 );
             }
         }
     }
+
+  // Flip back if x_g was decreasing
+  if( xg_reversed )
+    {
+      Vector tmp = h[Range(ng-1,ng,-1)];   // Flip order
+      h = tmp;
+    }
+  
 }
 
 

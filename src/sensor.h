@@ -133,8 +133,7 @@ void integration_func_by_vecmult(
 
 void integration_bin_by_vecmult(
         VectorView   h,
-   ConstVectorView   f,
-   ConstVectorView   x_f,
+   ConstVectorView   x_g_in,
    const Numeric&    limit1, 
    const Numeric&    limit2 );
 

@@ -1050,6 +1050,222 @@ void iyCloudRadar(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void yCloudRadarNew(
+         Workspace&             ws,
+         Vector&                y,
+         ArrayOfVector&         y_aux,
+   const Index&                 atmfields_checked,
+   const Index&                 atmgeom_checked,
+   const String&                iy_unit,   
+   const ArrayOfString&         iy_aux_vars,
+   const Index&                 stokes_dim,
+   const Vector&                f_grid,
+   const Tensor3&               t_field,
+   const Tensor3&               z_field,
+   const Tensor4&               vmr_field,
+   const Index&                 cloudbox_on,
+   const Index&                 cloudbox_checked,
+   const Matrix&                sensor_pos,
+   const Matrix&                sensor_los,
+   const Index&                 sensor_checked,
+   const Agenda&                iy_main_agenda,
+   const ArrayOfArrayOfIndex&   instrument_pol_array,
+   const Vector&                range_bins,
+   const Verbosity& )
+{
+  // Important sizes
+  const Index npos    = sensor_pos.nrows();
+  const Index nbins   = range_bins.nelem() - 1;
+  const Index nf      = f_grid.nelem();
+  const Index naux    = iy_aux_vars.nelem();
+
+  //---------------------------------------------------------------------------
+  // Input checks
+  //---------------------------------------------------------------------------
+
+  // Basics
+  //
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  if( atmfields_checked != 1 )
+    throw runtime_error( "The atmospheric fields must be flagged to have "
+                         "passed a consistency check (atmfields_checked=1)." );
+  if( atmgeom_checked != 1 )
+    throw runtime_error( "The atmospheric geometry must be flagged to have "
+                         "passed a consistency check (atmgeom_checked=1)." );
+  if( cloudbox_checked != 1 )
+    throw runtime_error( "The cloudbox must be flagged to have "
+                         "passed a consistency check (cloudbox_checked=1)." );
+  if( sensor_checked != 1 )
+    throw runtime_error( "The sensor variables must be flagged to have "
+                         "passed a consistency check (sensor_checked=1)." );
+
+  // Method specific variables
+  bool is_z = max(range_bins) > 1;
+  if( !is_increasing( range_bins ) )
+    throw runtime_error( "The vector *range_bins* must contain strictly "
+                         "increasing values." );
+  if( !is_z && min(range_bins) < 0 )
+    throw runtime_error( "The vector *range_bins* is not allowed to contain "
+                         "negative times." );
+  if( instrument_pol_array.nelem() != nf )
+    throw runtime_error( "The main length of *instrument_pol_array* must match "
+                         "the number of frequencies." );
+
+
+  //---------------------------------------------------------------------------
+  // The calculations
+  //---------------------------------------------------------------------------
+
+  // Conversion from Stokes to instrument_pol
+  ArrayOfVector   s2p;
+  stokes2pol( s2p, 0.5 );
+
+  ArrayOfIndex npolcum(nf+1); npolcum[0]=0;
+  for( Index i=0; i<nf; i++ )
+    { 
+      npolcum[i+1] = npolcum[i] + instrument_pol_array[i].nelem(); 
+      for( Index j=0; j<instrument_pol_array[i].nelem(); j++ )
+        {
+          if( s2p[instrument_pol_array[i][j]-1].nelem() > stokes_dim )
+            throw runtime_error( "Your definition of *instrument_pol_array* " 
+                                 "requires a higher value for *stokes_dim*." );
+        }
+    }
+
+  // Size output arguments, and set to 0
+  const Index ntot = npos * npolcum[nf] * nbins;
+  y.resize( ntot );
+  y = 0;
+  //
+  y_aux.resize( naux );
+  for( Index i=0; i<naux; i++ )
+    { 
+      y_aux[i].resize( ntot ); 
+      y_aux[i] = 0; 
+    }
+
+
+  // Loop positions
+  for( Index p=0; p<npos; p++ )
+    {
+      // RT part
+      Tensor3        iy_transmission(0,0,0);
+      ArrayOfTensor3 diy_dx;
+      Vector         rte_pos2(0);
+      Matrix         iy;
+      Ppath          ppath;
+      ArrayOfTensor4 iy_aux;
+      const Index    iy_id = (Index)1e6*p;
+      //
+      iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
+                             1, iy_unit, iy_transmission, iy_aux_vars,
+                             iy_id, cloudbox_on, 0, t_field, z_field, 
+                             vmr_field, f_grid, 
+                             sensor_pos(p,joker), sensor_los(p,joker), 
+                             rte_pos2, iy_main_agenda );
+
+      // Check if path and size OK
+      const Index np = ppath.np;
+      if( np == 1 )
+        throw runtime_error( "A path consisting of a single point found. "
+                             "This is not allowed." );
+      const bool isupward = ppath.pos(1,0) > ppath.pos(0,0);
+      if( !( ( isupward & is_increasing( ppath.pos(joker,0) ) ) ||
+             ( !isupward & is_decreasing( ppath.pos(joker,0) ) ) ) )
+        throw runtime_error( "A path with strictly increasing or decreasing "
+                             "altitudes must be obtained (e.g. limb "
+                             "measurements are not allowed)." );
+      if( iy.nrows() != nf*np )
+        throw runtime_error( "The size of *iy* returned from *iy_main_agenda* "
+                             "is not correct (for this method)." );
+
+      // Range of ppath, in altitude or time
+      Vector range(np);
+      if( is_z )
+        { range = ppath.pos(joker,0); }
+      else
+        { // Calculate round-trip time
+          range[0] = 2 * ppath.end_lstep / SPEED_OF_LIGHT;
+          for( Index i=1; i<np; i++ )
+            { range[i] = range[i-1] + ppath.lstep[i-1] * 
+                      ( ppath.ngroup[i-1]+ppath.ngroup[i] ) / SPEED_OF_LIGHT; }
+        }
+      const Numeric range_end1 = min( range[0], range[np-1] );
+      const Numeric range_end2 = max( range[0], range[np-1] );
+
+      
+      // Loop radar bins
+      for( Index b=0; b<nbins; b++ )
+        {
+          if( ! ( range_bins[b] >= range_end2  ||     // Otherwise bin totally outside
+                  range_bins[b+1] <= range_end1 ) )   // range of ppath
+            {
+              // Bin limits
+              Numeric blim1 = max( range_bins[b], range_end1 );
+              Numeric blim2 = min( range_bins[b+1], range_end2 );
+
+              // Determine weight vector to obtain mean inside bin
+              Vector hbin(np);
+              integration_bin_by_vecmult( hbin, range, blim1, blim2 );
+              hbin /= (blim2-blim1);
+
+              for( Index iv=0; iv<nf; iv++ )
+                {
+                  // Pick out part of iy for frequency
+                  Matrix I = iy( Range(iv*np,np), joker );
+
+                  for( Index ip=0; ip<instrument_pol_array[iv].nelem(); ip++ )
+                    {
+                      // Extract reflectivity for recieved polarisation
+                      Vector refl( np, 0 );
+                      Vector w = s2p[instrument_pol_array[iv][ip]-1];
+                      for( Index i=0; i<w.nelem(); i++ )     // Note that w can
+                        { for( Index j=0; j<np; j++ )        // be shorter than
+                            { refl[j] += I(j,i) * w[i]; } }  // stokes_dim (and
+                                                             // dot product can 
+                                                             // not be used)
+                      // Apply weight vector to get final value
+                      Index iout = nbins * ( p*npolcum[nf] + 
+                                             npolcum[iv] + ip ) + b;
+                      y[iout] = hbin * refl;
+
+                      // Same for aux variables
+                      for( Index a=0; a<naux; a++ )
+                        {
+                          if( iy_aux_vars[a] == "Backscattering" )
+                            {
+                              // I2 matches I, but is transposed
+                              Matrix I2 = iy_aux[a](iv,joker,0,joker);
+                              refl = 0;
+                              for( Index i=0; i<w.nelem(); i++ )
+                                { for( Index j=0; j<np; j++ )
+                                    { refl[j] += I2(i,j) * w[i]; } }
+                              y_aux[a][iout] = hbin * refl;
+                            }                          
+                          else if( iy_aux[a].nbooks()==1 && iy_aux[a].npages()==1 &&
+                              iy_aux[a].nrows() ==1 && iy_aux[a].ncols() ==np )
+                            {
+                              y_aux[a][iout] = hbin * iy_aux[a](0,0,0,joker);
+                            }
+                          else
+                            {
+                              ostringstream os;
+                              os << "The auxiliary variable " << iy_aux_vars[a]
+                                 << "is not handled by this WSM (but OK when "
+                                 << "using *iyCalc*).";
+                              throw runtime_error( os.str() );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void yCloudRadar(
          Workspace&             ws,
          Vector&                y,
@@ -1284,6 +1500,9 @@ void yCloudRadar(
         }
     }
 }
+
+
+
 
 
 
