@@ -1922,6 +1922,7 @@ void get_ppath_pmat_and_tmat(
                             Vector&                scalar_tau,
                             Tensor4&               pnd_ext_mat,
                             Matrix&                ppath_pnd,
+                            ArrayOfMatrix&         ppath_dpnd_dx,
                             const Agenda&         propmat_clearsky_agenda,
                             const ArrayOfRetrievalQuantity& jacobian_quantities,
                             const PropmatPartialsData&      ppd,
@@ -1943,6 +1944,7 @@ void get_ppath_pmat_and_tmat(
                             const ArrayOfIndex&   ispecies,
                             const ArrayOfArrayOfSingleScatteringData scat_data,
                             const Tensor4&        pnd_field,
+                            const ArrayOfTensor4& dpnd_field_dx,
                             const ArrayOfIndex&   cloudbox_limits,
                             const Index&          use_mean_scat_data,
                             const Numeric&        rte_alonglos_v,
@@ -2374,8 +2376,8 @@ void get_ppath_pmat_and_tmat(
         Tensor3 pnd_abs_vec;
         //
         get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
-                       ppath_pnd, ppath, ppath_t, stokes_dim, ppath_f, 
-                       atmosphere_dim, cloudbox_limits, pnd_field, 
+                       ppath_pnd, ppath_dpnd_dx, ppath, ppath_t, stokes_dim, ppath_f, 
+                       atmosphere_dim, cloudbox_limits, pnd_field, dpnd_field_dx,
                        use_mean_scat_data, scat_data, verbosity );
         if(dppath_ext_dx.empty())
             get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
@@ -2895,14 +2897,17 @@ void get_dppath_blackrad_dt(
                                       array affected by *use_mean_scat_data*.
     \param   ppath_pnd           Out. The particle number density for each
                                       path point (also outside cloudbox).
+    \param   ppath_dpnd_dx       Out. dpnd_field_dx for each path point
+                                      (also outside cloudbox).
     \param   ppath               As the WSV.    
     \param   ppath_t             Temperature for each ppath point.
     \param   stokes_dim          As the WSV.    
     \param   f_grid              As the WSV.    
     \param   cloubox_limits      As the WSV.    
     \param   pnd_field           As the WSV.    
+    \param   dpnd_field_dx       As the WSV.    
     \param   use_mean_scat_data  As the WSV.    
-    \param   scat_data       As the WSV.    
+    \param   scat_data           As the WSV.    
 
     \author Patrick Eriksson 
     \date   2012-08-23
@@ -2913,6 +2918,7 @@ void get_ppath_ext(
         Tensor4&                       pnd_ext_mat, 
   Array<ArrayOfArrayOfSingleScatteringData>&  scat_data_single,
         Matrix&                        ppath_pnd,
+        ArrayOfMatrix&                 ppath_dpnd_dx,
   const Ppath&                         ppath,
   ConstVectorView                      ppath_t, 
   const Index&                         stokes_dim,
@@ -2920,6 +2926,7 @@ void get_ppath_ext(
   const Index&                         atmosphere_dim,
   const ArrayOfIndex&                  cloudbox_limits,
   const Tensor4&                       pnd_field,
+  const ArrayOfTensor4&                dpnd_field_dx,
   const Index&                         use_mean_scat_data,
   const ArrayOfArrayOfSingleScatteringData&   scat_data,
   const Verbosity&                     verbosity )
@@ -2930,13 +2937,25 @@ void get_ppath_ext(
   // Pnd along the ppath
   ppath_pnd.resize( pnd_field.nbooks(), np );
   ppath_pnd = 0;
+  ppath_dpnd_dx.resize( dpnd_field_dx.nelem() );
+  bool any_dpnd = false;
+  for( Index iq=0; iq<dpnd_field_dx.nelem(); iq++ )
+    {
+      if( dpnd_field_dx[iq].empty() )
+        { ppath_dpnd_dx[iq].resize( 0, 0 ); }
+      else
+        {
+          any_dpnd = true;
+          ppath_dpnd_dx[iq].resize( pnd_field.nbooks(), np );
+        }
+    }
 
   // A variable that maps from total ppath to extension data index.
   // If outside cloudbox or all pnd=0, this variable holds -1.
   // Otherwise it gives the index in pnd_ext_mat etc.
   clear2cloudbox.resize( np );
 
-  // Determine ppath_pnd
+  // Determine ppath_pnd and ppath_dpnd_dx
   Index nin = 0;
   for( Index ip=0; ip<np; ip++ )
     {
@@ -2958,6 +2977,20 @@ void get_ppath_ext(
               interp_atmfield_by_itw( ppath_pnd(i,ip), atmosphere_dim,
                                       pnd_field(i,joker,joker,joker), 
                                       gpc_p, gpc_lat, gpc_lon, itw );
+            }
+          if( any_dpnd )
+            {
+              for( Index iq=0; iq<dpnd_field_dx.nelem(); iq++ )
+                {
+                  if( !dpnd_field_dx[iq].empty() )
+                    {
+                      for( Index i=0; i<pnd_field.nbooks(); i++ )
+                        { interp_atmfield_by_itw( ppath_dpnd_dx[iq](i,ip),
+                                                  atmosphere_dim,
+                                                  dpnd_field_dx[iq](i,joker,joker,joker), 
+                                                  gpc_p, gpc_lat, gpc_lon, itw ); }
+                    }
+                }
             }
           if( max(ppath_pnd(joker,ip)) > 0 )
             { clear2cloudbox[ip] = nin;   nin++; }

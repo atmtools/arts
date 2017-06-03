@@ -462,6 +462,8 @@ void iyEmissionStandard(
   Vector    scalar_tau;
   ArrayOfIndex         lte, clear2cloudbox_dummy;
   ArrayOfArrayOfIndex  extmat_case;
+  ArrayOfMatrix        dummy_ppath_dpnd_dx;
+  ArrayOfTensor4       dummy_dpnd_field_dx;
   const ArrayOfArrayOfSingleScatteringData scat_data_dummy;
   const Tensor4 pnd_field_dummy;
   const ArrayOfIndex cloudbox_limits_dummy;
@@ -483,11 +485,13 @@ void iyEmissionStandard(
                                dtrans_partial_dx_above, dtrans_partial_dx_below,
                                extmat_case, clear2cloudbox_dummy, trans_cumulat,
                                scalar_tau, pnd_ext_mat_dummy, ppath_pnd_dummy,
+                               dummy_ppath_dpnd_dx,
                                propmat_clearsky_agenda, jacobian_quantities,
                                ppd, ppath, ppath_p,  ppath_t, ppath_t_nlte, ppath_vmr, 
                                ppath_mag, ppath_wind, ppath_f, f_grid, 
-                               jac_species_i, jac_is_t, jac_wind_i, jac_mag_i, jac_to_integrate,
-                               jac_other, iaps, scat_data_dummy, pnd_field_dummy,
+                               jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,
+                               jac_to_integrate, jac_other, iaps, scat_data_dummy,
+                               pnd_field_dummy, dummy_dpnd_field_dx,
                                cloudbox_limits_dummy, use_mean_scat_data_dummy,
                                rte_alonglos_v, atmosphere_dim, stokes_dim,
                                jacobian_do, false, verbosity);

@@ -836,7 +836,8 @@ void iyCloudRadar(
   Tensor4   ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat, dummy_dppath_nlte_dx;
   Tensor5   dummy_abs_per_species, dummy_dppath_ext_dx;
   Vector    scalar_tau;
-  ArrayOfIndex clear2cloudbox, dummy_lte;
+  ArrayOfIndex   clear2cloudbox, dummy_lte;
+  ArrayOfMatrix  ppath_dpnd_dx;
   Array<ArrayOfArrayOfSingleScatteringData> scat_data_single;
   const Tensor4 t_nlte_field_empty(0,0,0,0);
   //
@@ -864,8 +865,8 @@ void iyCloudRadar(
       Tensor3              pnd_abs_vec;
       //
       get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
-                     ppath_pnd, ppath, ppath_t, stokes_dim, ppath_f, 
-                     atmosphere_dim, cloudbox_limits, pnd_field, 
+                     ppath_pnd, ppath_dpnd_dx, ppath, ppath_t, stokes_dim, ppath_f, 
+                     atmosphere_dim, cloudbox_limits, pnd_field, dpnd_field_dx,
                      0, scat_data, verbosity );
       
       get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, scalar_tau, 
@@ -906,7 +907,8 @@ void iyCloudRadar(
             {
               // Obtain scattering matrix data
               //
-              Matrix P(ns,ns);
+              Matrix  P(ns,ns);
+              Tensor3 Pe(nsetot,ns,ns);
               //
               if( !jacobian_do )
                 {
@@ -919,18 +921,11 @@ void iyCloudRadar(
                 }
               else
                 {
-                  // Here we need the matrix per scattering element, but only
-                  // for those that have pnd!=0 or, if part of retrieval
-                  // quantity, any derivative is != 0.
+                  // Here we need the matrix per scattering element. 
                   // We extract data for pnd=1.
                   //
-                  Vector pnd_probe(nsetot); pnd_probe = 0;
+                  Vector pnd_probe(nsetot); pnd_probe = 1;
                   //
-                  for( Index i=0; i<nsetot; i++ )
-                    { if( ppath_pnd(i,ip) != 0 )
-                        { pnd_probe[i] = 1; } }
-                  
-                  Tensor3 Pe(nsetot,ns,ns);
                   pha_mat_singleCalcScatElement( Pe, los_sca[0], los_sca[1],
                                                  los_inc[0], los_inc[1],
                                                  scat_data_single[iv],
@@ -939,12 +934,12 @@ void iyCloudRadar(
 
                   // Total scattering matrix
                   P = 0.0;
-                  for( Index i=0; i<nsetot; i++ )
-                    { if( ppath_pnd(i,ip) != 0 )
-                        { for( Index is1=0; is1<ns; is1++ )
-                            { for( Index is2=0; is2<ns; is2++ )
-                                { P(is1,is2) += ppath_pnd(i,ip) * Pe(i,is1,is2);
-                    }   }   }   }
+                  for( Index i=0; i<nsetot; i++ ) {
+                    if( ppath_pnd(i,ip) != 0 ) {
+                      for( Index is1=0; is1<ns; is1++ ) {
+                        for( Index is2=0; is2<ns; is2++ )
+                          { P(is1,is2) += ppath_pnd(i,ip) * Pe(i,is1,is2); }
+                    } } } 
                 }
               
               // Combine iy0, double transmission and scattering matrix
@@ -953,6 +948,29 @@ void iyCloudRadar(
               mult( iy2, P,                      iy1 );
               mult( iy(iv*np+ip,joker), trans_cumulat(iv,joker,joker,ip), iy2 );
 
+              // Jacobians
+              if( j_analytical_do )
+                {
+                  for( Index iq=0; iq<nq; iq++ ) 
+                    {
+                      if( jacobian_quantities[iq].Analytical() )
+                        {
+                          // Scattering species
+                          if( jac_scat_i[iq] >= 0)
+                            {
+                              // Change of scattering scattering matrix
+                              P = 0.0;
+                              for( Index i=0; i<nsetot; i++ ) {
+                                if( ppath_pnd(i,ip) != 0 ) {
+                                  for( Index is1=0; is1<ns; is1++ ) {
+                                    for( Index is2=0; is2<ns; is2++ )
+                                      { P(is1,is2) += ppath_dpnd_dx[iq](i,ip) *
+                                                                Pe(i,is1,is2); }
+                               } } } 
+                            }
+                        }
+                    }
+                }
               //=== iy_aux part ===========================================
               // Backscattering
               if( auxBackScat >= 0 ) {

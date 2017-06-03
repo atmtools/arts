@@ -1,5 +1,22 @@
 2017-06-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-697
+
+	* src/m_fos.cc (iyHybrid, fos):
+	* src/m_rte.cc (iyEmissionStandard):
+	* src/m_transmitter.cc (iyTransmissionStandard, iyRadioLink):
+	Adopted calls of the two functions below, by adding even more
+	dummy variables.
+
+	* src/rte.cc (get_ppath_ext): Added ppath_dpnd_dx as output
+	argument and dpnd_field_dx as input. Added handling of
+	ppath_dpnd_dx.
+
+	(get_ppath_pmat_and_tmat): Added ppath_dpnd_dx as output
+	argument and dpnd_field_dx as input.
+
+2017-06-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-696
 
 	* src/m_cloudradar.cc (iyCloudRadar): The reference dielectric

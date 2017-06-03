@@ -262,8 +262,10 @@ void fos(
   Tensor4      ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat, dummy_dppath_nlte_dx;
   Tensor3      pnd_abs_vec, ppath_nlte_source;
   Vector       scalar_tau;
-  ArrayOfIndex clear2cloudbox, lte;
-  const Tensor4 t_nlte_field_empty(0,0,0,0);
+  ArrayOfIndex   clear2cloudbox, lte;
+  ArrayOfMatrix   dummy_ppath_dpnd_dx;
+  ArrayOfTensor4  dummy_dpnd_field_dx;
+  const Tensor4   t_nlte_field_empty(0,0,0,0);
   //
   Array<ArrayOfArrayOfSingleScatteringData> scat_data_single;
   ArrayOfArrayOfIndex                extmat_case;  
@@ -301,10 +303,12 @@ void fos(
         }
       else
         {
-          get_ppath_ext(    clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
-                            ppath_pnd, ppath, ppath_t, stokes_dim, ppath_f, 
-                            atmosphere_dim, cloudbox_limits, pnd_field, 
-                            use_mean_scat_data, scat_data, verbosity );
+          get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat,
+                         scat_data_single, ppath_pnd,
+                         dummy_ppath_dpnd_dx, ppath, ppath_t, stokes_dim,
+                         ppath_f, atmosphere_dim, cloudbox_limits,
+                         pnd_field, dummy_dpnd_field_dx,
+                         use_mean_scat_data, scat_data, verbosity );
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
                             scalar_tau, ppath, ppath_ext, f_grid, stokes_dim, 
                             clear2cloudbox, pnd_ext_mat );
@@ -1236,7 +1240,10 @@ void iyHybrid(
   Tensor5             dppath_ext_dx;
   Tensor4             dppath_nlte_dx, dppath_nlte_source_dx, ppath_scat_source;
   Tensor3             ppath_nlte_source;
-  ArrayOfIndex        lte;  
+  ArrayOfIndex        lte;
+  ArrayOfMatrix       dummy_ppath_dpnd_dx;
+  ArrayOfTensor4      dummy_dpnd_field_dx;
+  
   if( np > 1 )
     {
       get_ppath_atmvars( ppath_p, ppath_t, ppath_t_nlte, ppath_vmr,
@@ -1252,13 +1259,15 @@ void iyHybrid(
                                dppath_ext_dx, dppath_nlte_source_dx,
                                trans_partial, dtrans_partial_dx_above,
                                dtrans_partial_dx_below, extmat_case, clear2cloudbox,
-                               trans_cumulat, scalar_tau, pnd_ext_mat, ppath_pnd,
+                               trans_cumulat, scalar_tau, pnd_ext_mat,
+                               ppath_pnd, dummy_ppath_dpnd_dx,
                                propmat_clearsky_agenda, jacobian_quantities,
                                ppd, ppath, ppath_p, ppath_t, ppath_t_nlte,
                                ppath_vmr, ppath_mag, ppath_wind, ppath_f, f_grid, 
                                jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,
                                jac_to_integrate, jac_other, iaps, scat_data,
-                               pnd_field, cloudbox_limits, use_mean_scat_data,
+                               pnd_field, dummy_dpnd_field_dx,
+                               cloudbox_limits, use_mean_scat_data,
                                rte_alonglos_v, atmosphere_dim, stokes_dim,
                                jacobian_do, cloudbox_on, verbosity );
       

@@ -1454,7 +1454,7 @@ void Workspace::define_wsv_data()
        "\n"
        "The length of this array shall match the size of *jacobian_quantities*.\n"
        "For retrieval quantities that are not scattering species, the matching\n"
-       "Tensor4 is of no relevance and should be set to be empty.\n"
+       "Tensor4 is of no relevance and must be set to be empty.\n"
        "\n"
        "Dimensions: [n_quantities][ n_scattering_elements, n_p, n_lat, n_lon ]\n"
        ),
