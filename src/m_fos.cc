@@ -909,6 +909,7 @@ void iyHybrid(
    const Numeric&                     ppath_lmax,      
    const Numeric&                     ppath_lraytrace,
    const Index&                       Naa,   
+   const String&                      pfct_method,
    const Verbosity&                   verbosity )
 {
   // If cloudbox off, switch to use clearsky method
@@ -1269,13 +1270,32 @@ void iyHybrid(
       // for debugging
       //WriteXML( "ascii", doit_i_field, "doit_i_field_iyHybrid.xml", 0,
       //          "doit_i_field", "", "", verbosity );
-      get_ppath_scat_source( ppath_scat_source,
-                             scat_data, doit_i_field, scat_za_grid,
-                             f_grid, stokes_dim, ppath, ppath_t, ppath_pnd, 
-                             j_analytical_do, Naa, verbosity );
+      if( pfct_method=="interpolate" )
+      {
+        //cout << "T-interpolating pha_mat\n";
+        get_ppath_scat_source( ppath_scat_source,
+                               scat_data, doit_i_field, scat_za_grid,
+                               f_grid, stokes_dim, ppath, ppath_t, ppath_pnd, 
+                               j_analytical_do, Naa, verbosity );
+      }
+      else
+      {
+        Numeric rtp_temp_id;
+        if( pfct_method=="low" )
+          rtp_temp_id = -9.;
+        else if( pfct_method=="high" )
+          rtp_temp_id = -19.;
+        else //if( pfct_method=="median" )
+          rtp_temp_id = -99.;
+
+        get_ppath_scat_source_fixT( ppath_scat_source,
+                               scat_data, doit_i_field, scat_za_grid,
+                               f_grid, stokes_dim, ppath, ppath_pnd,
+                               j_analytical_do, Naa, rtp_temp_id, verbosity );
+      }
       // for debugging
-      //WriteXML( "ascii", ppath_scat_source, "ppath_scat_source.xml", 0,
-      //          "ppath_scat_source", "", "", verbosity );
+      WriteXML( "ascii", ppath_scat_source, "ppath_scat_source.xml", 0,
+                "ppath_scat_source", "", "", verbosity );
 
     }
   else
@@ -1417,7 +1437,7 @@ void iyHybrid(
       
       //=======================================================================
       // Loop ppath steps
-      //Tensor3 layer_bulk_scatsource( nf, stokes_dim, np-1, 0. ); // just for debugging
+      Tensor3 layer_bulk_scatsource( nf, stokes_dim, np-1, 0. ); // just for debugging
       for( Index ip=np-2; ip>=0; ip-- )
         {
           // Path step average of B: Bbar
@@ -1478,7 +1498,7 @@ void iyHybrid(
                         }
                       scatsourcebar(iv,is1) = 0.5 * ( bulk_scat_source[0] +
                                                       bulk_scat_source[1] );
-                      //layer_bulk_scatsource(iv, is1, ip)=scatsourcebar(iv,is1); // just for debugging
+                      layer_bulk_scatsource(iv, is1, ip)=scatsourcebar(iv,is1); // just for debugging
 
                     }
                 }
@@ -1651,8 +1671,8 @@ void iyHybrid(
       //=======================================================================
 
       // for debugging
-      //WriteXML( "ascii", layer_bulk_scatsource, "layer_bulk_scatsource.xml", 0,
-      //          "layer_bulk_scatsource", "", "", verbosity );
+      WriteXML( "ascii", layer_bulk_scatsource, "layer_bulk_scatsource.xml", 0,
+                "layer_bulk_scatsource", "", "", verbosity );
 
 
       //### jacobian part #####################################################

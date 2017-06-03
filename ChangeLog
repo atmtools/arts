@@ -1,5 +1,18 @@
 2017-06-02 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-695
+
+	* src/rte.[cc,h] (get_ppath_scat_source_fixT):
+	Make separate function for optimized pha_mat_spt extraction without
+	temperature interpolation.
+
+	* src/m_fos.cc, methods.cc (iyHybrid):
+	Add keyword pfct_method to allow choosing pha_mat_spt temperature
+	adaptation method and calls to respective get_ppath_scat_source*
+	functions. Made median-T-point extraction the default.
+
+2017-06-02 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-694
 
 	* src/m_optproperties.cc, methods.cc (pha_mat_dataFrom*):

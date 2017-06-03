@@ -6902,7 +6902,19 @@ void define_md_data_raw()
     ( NAME( "iyHybrid" ),
       DESCRIPTION
       (
-          "So far just for testing.\n"
+         "So far just for testing.\n"
+         "\n" 
+         "The keyword *pfct_method* allows to choose the method to extract the\n"
+         "scattering matrix. 'interpolate' considers temperature dependence,\n"
+         "others neglect it by chosing one specific temperature grid point\n"
+         "from the single scattering data: 'low' choses the lowest T-point,\n"
+         "'high' the highest T-point, and 'median' the median T-point. As\n"
+         "different scattering elements can have different temperature grids,\n"
+         "the actual temperature value used can differ between the scattering\n"
+         "elements.\n"
+         "Note that this keyword solely affects the scattering matrix;\n"
+         "extinction matrix and absorption vector are always interpolated to\n"
+         "the actual temperature.\n"
       ),
       AUTHORS( "Patrick Eriksson" ),
       OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
@@ -6922,11 +6934,13 @@ void define_md_data_raw()
           "iy_agenda_call1", "iy_transmission", 
           "rte_pos", "rte_los", "rte_pos2", "rte_alonglos_v", "ppath_lmax",
           "ppath_lraytrace" ),
-      GIN(         "Naa_grid" ),
-      GIN_TYPE(    "Index" ),
-      GIN_DEFAULT( "19" ),
+      GIN(         "Naa_grid", "pfct_method" ),
+      GIN_TYPE(    "Index",    "String" ),
+      GIN_DEFAULT( "19",       "median" ),
       GIN_DESC( "Number of azimuth angles to consider in scattering source term"
-                " integral." )
+                " integral.",
+                "Flag which method to apply for temperature adaptation of phase"
+                " matrix (for available options see above)." )
     ));
     
   md_data_raw.push_back
@@ -12241,7 +12255,7 @@ void define_md_data_raw()
          "  background (temperature taken from the ARTS-internal constant).\n"
          "- *pfct_method* 'interpolate' currently not implemented here.\n"
          "\n"
-         "The keyword *pfct_method* allows to chose the method to extract the\n"
+         "The keyword *pfct_method* allows to choose the method to extract the\n"
          "scattering matrix. 'interpolate' considers temperature dependence,\n"
          "others neglect it by chosing one specific temperature grid point\n"
          "from the single scattering data: 'low' choses the lowest T-point,\n"

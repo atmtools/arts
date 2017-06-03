@@ -2437,150 +2437,366 @@ void get_ppath_scat_source(
   ppath_scat_source.resize( nf, stokes_dim, ne, np );
   ppath_scat_source = 0;
   //Tensor3 ppath_rad( nf, stokes_dim, np, 0. ); // for debugging
-      //
-      Vector aa_grid(Naa);
-      if( Naa > 2 )
-        nlinspace(aa_grid, 0, 360, Naa);
-      else
-      {
-        ostringstream os;
-        os << "Naa_grid must be > 2.";
-        throw runtime_error( os.str() );
-      }
-      Index Nza = scat_za_grid.nelem();
 
-      for( Index ip=0; ip<np; ip++ )
+  Vector aa_grid(Naa);
+  if( Naa > 2 )
+    nlinspace(aa_grid, 0, 360, Naa);
+  else
+  {
+    ostringstream os;
+    os << "Naa_grid must be > 2.";
+    throw runtime_error( os.str() );
+  }
+  Index Nza = scat_za_grid.nelem();
+
+  for( Index ip=0; ip<np; ip++ )
+  {
+    // FIXME: is that max(ppath_pnd(joker,ip))>0 check ok? for inversions?
+    // should negative pnd not be allowed (though physically impossible), just
+    // like negative vmr are?
+    if( j_analytical_do || (max(ppath_pnd(joker,ip)) > 0) )
+    //if (1) // for debugging
+    {
+      // Note that, so far, only 1D is allowed and that cloudbox is forced to
+      // span complete atmosphere
+
+      // determine p/z-interp weights for this ppath point (apply in freq loop)
+      GridPos gp_p;
+      gridpos_copy( gp_p, ppath.gp_p[ip] );
+      Vector itw_p(2);
+      interpweights( itw_p, gp_p );
+
+      // determine scattered direction (=LOS dir) weights for this ppath
+      // point (apply in scat element loop) and adapt gridpos structure for
+      // 2pts-reduced za grid.
+      GridPos gp_za, gp_iza;
+      gridpos(gp_za, scat_za_grid, ppath.los(ip,0), 0.5);
+      gridpos_copy( gp_iza, gp_za );
+      gp_iza.idx = 0;
+      Vector itw_iza(2);
+      interpweights( itw_iza, gp_iza ); 
+
+      // we should not skip pha_mat_spt calculation (which is internally
+      // done in pha_mat_sptFromData in pnd is, practically, 0) if we want
+      // jacobians. for pure forward it's ok. hence, set pndT4 to 1 for all
+      // scat elems in general. for forward, update it with the actual
+      // values.
+      Tensor4 pndT4(ne, 1, 1, 1, 1.);
+      if (!j_analytical_do) // switch(ed) off for debugging
+        pndT4(joker, 0, 0, 0) = ppath_pnd(joker,ip);
+
+      for( Index f_index=0; f_index<f_grid.nelem(); f_index++ )
       {
-        // FIXME: is that max(ppath_pnd(joker,ip))>0 check ok? for inversions?
-        // should negative pnd not be allowed (though physically impossible),
-        // just like negative vmr are?
-        if( j_analytical_do || (max(ppath_pnd(joker,ip)) > 0) )
-        //if (1) // for debugging
+        Matrix inc_field(Nza, stokes_dim, 0.);
+        Tensor3 scat_field(2, ne, stokes_dim, 0.);
+        Matrix rad_field(2, stokes_dim, 0.);
+
+        for( Index za_in=0; za_in<Nza; za_in++ )
         {
-          // Note that, so far, only 1D is allowed and that cloudbox is forced
-          // to span complete atmosphere.
-
-          // determine p/z-interp weights for this ppath point (apply in freq
-          // loop)
-          GridPos gp_p;
-          gridpos_copy( gp_p, ppath.gp_p[ip] );
-          Vector itw_p(2);
-          interpweights( itw_p, gp_p );
-
-          // determine scattered direction (=LOS dir) weights for this ppath
-          // point (apply in scat element loop) and adapt gridpos structure for
-          // 2pts-reduced za grid.
-          GridPos gp_za, gp_iza;
-          gridpos(gp_za, scat_za_grid, ppath.los(ip,0), 0.5);
-          gridpos_copy( gp_iza, gp_za );
-          gp_iza.idx = 0;
-          Vector itw_iza(2);
-          interpweights( itw_iza, gp_iza ); 
-
-          // we should not skip pha_mat_spt calculation (which is internally
-          // done in pha_mat_sptFromData in pnd is, practically, 0) if we want
-          // jacobians. for pure forward it's ok. hence, set pndT4 to 1 for all
-          // scat elems in general. for forward, update it with the actual
-          // values.
-          Tensor4 pndT4(ne, 1, 1, 1, 1.);
-          if (!j_analytical_do) // switch(ed) off for debugging
-            pndT4(joker, 0, 0, 0) = ppath_pnd(joker,ip);
-
-          for( Index f_index=0; f_index<f_grid.nelem(); f_index++ )
+          for( Index i=0; i<stokes_dim; i++ )
           {
-            Matrix inc_field(Nza, stokes_dim, 0.);
-            Tensor3 scat_field(2, ne, stokes_dim, 0.);
-            Matrix rad_field(2, stokes_dim, 0.);
+            inc_field(za_in, i) = 
+              interp( itw_p, doit_i_field(f_index,joker,0,0,za_in,0,i), gp_p );
+          }
+        }
 
-            for( Index za_in=0; za_in<Nza; za_in++ )
+        // for debugging
+        //WriteXML( "ascii", inc_field, "inc_field.xml", 1,
+        //          "inc_field", "", "", verbosity );
+
+        Tensor5 pha_mat_spt(ne, Nza, Naa, stokes_dim, stokes_dim, 0.);
+        Tensor5 product_fields(2, ne, Nza, Naa, stokes_dim, 0.);
+        for( Index iza=0; iza<2; iza++ )
+        {
+          pha_mat_sptFromData(pha_mat_spt,
+                              scat_data,
+                              scat_za_grid, aa_grid, iza+gp_za.idx, 0,
+                              f_index, f_grid, ppath_t[ip],
+                              pndT4, 0, 0, 0, verbosity );
+          for( Index ise_flat=0; ise_flat<ne; ise_flat++ )
+          {
+            for( Index za_in = 0; za_in < Nza; ++ za_in )
             {
-              for( Index i=0; i<stokes_dim; i++ )
+              for( Index aa_in = 0; aa_in < Naa; ++ aa_in )
               {
-                inc_field(za_in, i) = 
-                  interp( itw_p, doit_i_field(f_index,joker,0,0,za_in,0,i), gp_p );
-              }
-            }
-
-            // for debugging
-            //WriteXML( "ascii", inc_field, "inc_field.xml", 1,
-            //          "inc_field", "", "", verbosity );
-
-            Tensor5 pha_mat_spt(ne, Nza, Naa, stokes_dim, stokes_dim, 0.);
-            Tensor5 product_fields(2, ne, Nza, Naa, stokes_dim, 0.);
-            for( Index iza=0; iza<2; iza++ )
-            {
-              pha_mat_sptFromData(pha_mat_spt,
-                                  scat_data,
-                                  scat_za_grid, aa_grid, iza+gp_za.idx, 0,
-                                  f_index, f_grid, ppath_t[ip],
-                                  pndT4, 0, 0, 0, verbosity );
-              for( Index ise_flat=0; ise_flat<ne; ise_flat++ )
-              {
-                for( Index za_in = 0; za_in < Nza; ++ za_in )
-                {
-                  for( Index aa_in = 0; aa_in < Naa; ++ aa_in )
+                // Multiplication of phase matrix with incoming intensity
+                // field.
+                for ( Index i = 0; i < stokes_dim; i++)
+                  for (Index j = 0; j< stokes_dim; j++)
                   {
-                    // Multiplication of phase matrix with incoming intensity
-                    // field.
-                    for ( Index i = 0; i < stokes_dim; i++)
-                      for (Index j = 0; j< stokes_dim; j++)
-                      {
-                        product_fields(iza, ise_flat, za_in, aa_in, i) +=
-                          pha_mat_spt(ise_flat, za_in, aa_in, i, j) *
-                          inc_field(za_in, j);
-                      }
-                  }//end aa_in loop
-                }//end za_in loop
+                    product_fields(iza, ise_flat, za_in, aa_in, i) +=
+                      pha_mat_spt(ise_flat, za_in, aa_in, i, j) *
+                      inc_field(za_in, j);
+                  }
+              }//end aa_in loop
+            }//end za_in loop
 
-                for ( Index i = 0; i < stokes_dim; i++ )
-                {
-                  // Integration of the phase matrix with inc field product
-                  // from above over zenith angle and azimuth angle grid.
-                  scat_field(iza,ise_flat,i) = AngIntegrate_trapezoid(
-                    product_fields(iza, ise_flat, joker, joker, i),
-                    scat_za_grid, aa_grid);
-                } //end i loop
-              } // end ise_flat
-
-              // for debugging
-              //for ( Index i = 0; i < stokes_dim; i++ )
-              //{
-              //  Matrix inc_field2D(Nza,Naa,0.);
-              //  for ( Index iaa=0; iaa<Naa; iaa++ )
-              //    inc_field2D(joker,iaa) = inc_field(joker,i);
-              //  rad_field(iza,i) = AngIntegrate_trapezoid(
-              //    inc_field2D, scat_za_grid, aa_grid);
-              //} //end i loop
-            } // end iza
-
-            for( Index ise_flat=0; ise_flat<ne; ise_flat++ )
+            for ( Index i = 0; i < stokes_dim; i++ )
             {
-              for ( Index i = 0; i < stokes_dim; i++ )
+              // Integration of the phase matrix with inc field product
+              // from above over zenith angle and azimuth angle grid.
+              scat_field(iza,ise_flat,i) = AngIntegrate_trapezoid(
+                product_fields(iza, ise_flat, joker, joker, i),
+                scat_za_grid, aa_grid);
+            } //end i loop
+          } // end ise_flat
+
+          // for debugging
+          //for ( Index i = 0; i < stokes_dim; i++ )
+          //{
+          //  Matrix inc_field2D(Nza,Naa,0.);
+          //  for ( Index iaa=0; iaa<Naa; iaa++ )
+          //    inc_field2D(joker,iaa) = inc_field(joker,i);
+          //  rad_field(iza,i) = AngIntegrate_trapezoid(
+          //    inc_field2D, scat_za_grid, aa_grid);
+          //} //end i loop
+        } // end iza
+
+        for( Index ise_flat=0; ise_flat<ne; ise_flat++ )
+        {
+          for ( Index i = 0; i < stokes_dim; i++ )
+          {
+            // Interpolate scattered intensity to LOS direction
+            ppath_scat_source( f_index, i, ise_flat, ip ) =
+              // Nope, do NOT multiply by pnd, instead return scat source
+              // contribution from one particle of the scattering element
+              // type. in that way we can derive the jacobians directly from
+              // this and don't need to have a separate variable for them
+              //ppath_pnd(ise_flat,ip) *
+              interp(itw_iza, scat_field(joker,ise_flat,i), gp_iza );
+          } //end i loop
+        } // end ise_flat
+
+        // for debugging
+        //for ( Index i = 0; i < stokes_dim; i++ )
+        //{
+        //  ppath_rad( f_index, i, ip) = interp(itw_iza, rad_field(joker,i), gp_iza );
+        //} //end i loop
+
+      } // end f_index
+    } // end if ppath_pnd
+  } // end ip
+
+  // for debugging
+  //WriteXML( "ascii", ppath_rad, "ppath_rad.xml", 0,
+  //          "ppath_rad", "", "", verbosity );
+}
+
+
+
+//! get_ppath_scatsource_fixT
+/*!
+    Determines scattering source term along the propagation path.
+
+    The output variable is sized inside the function. The dimension order is 
+       [ frequency, stokes_dim, scattering element, path point ]
+
+    As get_ppath_scatsource, but allowing for optimized pha_mat_spt extraction
+    (by skipping T-interpolation; instead extracting pha_mat_spt at each scat
+    elements lowest/median/max T-point).
+
+    \param   ppath_scat_source Out: Scattering source term at each ppath point 
+    \param   ...               ...
+
+    \author Jana Mendrok 
+    \date   2017-06-02
+*/
+void get_ppath_scat_source_fixT(
+                           Tensor4&         ppath_scat_source,
+                           const ArrayOfArrayOfSingleScatteringData scat_data,
+                           ConstTensor7View doit_i_field,
+                           ConstVectorView  scat_za_grid,
+                           ConstVectorView  f_grid, 
+                           const Index&     stokes_dim,
+                           const Ppath&     ppath,
+                           ConstMatrixView  ppath_pnd,
+                           const Index&     j_analytical_do,
+                           const Index&     Naa,
+                           const Numeric&   rtp_temp,
+                           const Verbosity& verbosity )
+{
+  // Sizes
+  const Index nf = f_grid.nelem();
+  const Index ne = ppath_pnd.nrows();
+  const Index np = ppath.np;
+  assert( TotalNumberOfElements(scat_data) == ne );
+
+  ppath_scat_source.resize( nf, stokes_dim, ne, np );
+  ppath_scat_source = 0;
+  //Tensor3 ppath_rad( nf, stokes_dim, np, 0. ); // for debugging
+
+  Vector aa_grid(Naa);
+  if( Naa > 2 )
+    nlinspace(aa_grid, 0, 360, Naa);
+  else
+  {
+    ostringstream os;
+    os << "Naa_grid must be > 2.";
+    throw runtime_error( os.str() );
+  }
+  Index Nza = scat_za_grid.nelem();
+
+  // Precalculate all required pha_mat_spt (we need them for a bunch of grid
+  // points in scat_za_grid to (linearly) interpolate the radiance for the
+  // actual, exact los angle. range depends on through which angles the los
+  // runs; should be low number, maybe only the minimum two, for steep los, but
+  // some more for limb views.)
+  Index isza, ieza;
+  Numeric za_lim;
+  GridPos gp_za;
+
+  za_lim = min(ppath.los(joker,0));
+  gridpos(gp_za, scat_za_grid, za_lim, 1e-2);
+  isza = gp_za.idx;
+  za_lim = max(ppath.los(joker,0));
+  gridpos(gp_za, scat_za_grid, za_lim, 1e-2);
+  ieza = gp_za.idx;
+  if( ieza<Nza-1 )
+    ieza = gp_za.idx+1;
+  Index niza = ieza-isza+1;
+
+  // for pure forward calculation, we can skip pha_mat_spt calc for scat
+  // elements, where pnd is zero (that's what is done internally in
+  // pha_mat_spfFromData). can't skip for jacobian calcs, though, i.e. for these
+  // we need a complete filled pnd tensor.
+  Tensor4 pndT4(ne, 1, 1, 1, 1.);
+  if (!j_analytical_do) // switch(ed) off for debugging
+    for( Index ie=0; ie<ne; ie++ )
+      pndT4(ie, 0, 0, 0) = max(ppath_pnd(ie,joker));
+
+  Tensor7 pha_mat_spt_all(nf, niza, ne, Nza, Naa, stokes_dim, stokes_dim, 0.);
+  Tensor5 pha_mat_spt(ne, Nza, Naa, stokes_dim, stokes_dim);
+
+  for( Index f_index=0; f_index<f_grid.nelem(); f_index++ )
+  {
+    for( Index iza=0; iza<niza; iza++ )
+      {
+        pha_mat_sptFromData(pha_mat_spt,
+                            scat_data, scat_za_grid, aa_grid,
+                            iza+isza, 0,                // offset starting point in scat_za_grid
+                            f_index, f_grid, rtp_temp,  // identified for fixed temperature point
+                            pndT4, 0, 0, 0, verbosity );
+        pha_mat_spt_all(f_index,iza,joker,joker,joker,joker,joker) = pha_mat_spt;
+      }
+  }
+
+  for( Index ip=0; ip<np; ip++ )
+  {
+    // FIXME: is that max(ppath_pnd(joker,ip))>0 check ok? for inversions?
+    // should negative pnd not be allowed (though physically impossible), just
+    // like negative vmr are?
+    if( j_analytical_do || (max(ppath_pnd(joker,ip)) > 0) )
+    //if (1) // for debugging
+    {
+      // Note that, so far, only 1D is allowed and that cloudbox is forced to
+      // span complete atmosphere
+
+      // determine p/z-interp weights for this ppath point (apply in freq loop)
+      GridPos gp_p;
+      gridpos_copy( gp_p, ppath.gp_p[ip] );
+      Vector itw_p(2);
+      interpweights( itw_p, gp_p );
+
+      // determine scattered direction (=LOS dir) weights for this ppath
+      // point (apply in scat element loop) and adapt gridpos structure for
+      // 2pts-reduced za grid.
+      GridPos gp_iza;
+      gridpos(gp_iza, scat_za_grid[Range(isza,niza)], ppath.los(ip,0), 0.5);
+      Index iza_idx = gp_iza.idx;
+      gp_iza.idx = 0;
+      Vector itw_iza(2);
+      interpweights( itw_iza, gp_iza ); 
+
+      for( Index f_index=0; f_index<f_grid.nelem(); f_index++ )
+      {
+        Matrix inc_field(Nza, stokes_dim, 0.);
+        Tensor3 scat_field(2, ne, stokes_dim, 0.);
+        Matrix rad_field(2, stokes_dim, 0.);
+
+        for( Index za_in=0; za_in<Nza; za_in++ )
+        {
+          for( Index i=0; i<stokes_dim; i++ )
+          {
+            inc_field(za_in, i) = 
+              interp( itw_p, doit_i_field(f_index,joker,0,0,za_in,0,i), gp_p );
+          }
+        }
+
+        // for debugging
+        //WriteXML( "ascii", inc_field, "inc_field.xml", 1,
+        //          "inc_field", "", "", verbosity );
+
+        Tensor5 product_fields(2, ne, Nza, Naa, stokes_dim, 0.);
+        for( Index iza=0; iza<2; iza++ )
+        {
+          for( Index ise_flat=0; ise_flat<ne; ise_flat++ )
+          {
+            for( Index za_in = 0; za_in < Nza; ++ za_in )
+            {
+              for( Index aa_in = 0; aa_in < Naa; ++ aa_in )
               {
-                // Interpolate scattered intensity to LOS direction
-                ppath_scat_source( f_index, i, ise_flat, ip ) =
-                  // Nope, do NOT multiply by pnd, instead return scat source
-                  // contribution from one particle of the scattering element
-                  // type. in that way we can derive the jacobians directly from
-                  // this and don't need to have a separate variable for them
-                  //ppath_pnd(ise_flat,ip) *
-                  interp(itw_iza, scat_field(joker,ise_flat,i), gp_iza );
-              } //end i loop
-            } // end ise_flat
+                // Multiplication of phase matrix with incoming intensity
+                // field.
+                for ( Index i = 0; i < stokes_dim; i++)
+                  for (Index j = 0; j< stokes_dim; j++)
+                  {
+                    product_fields(iza, ise_flat, za_in, aa_in, i) +=
+                      pha_mat_spt_all(f_index, iza+iza_idx,
+                                      ise_flat, za_in, aa_in, i, j) *
+                      inc_field(za_in, j);
+                  }
+              }//end aa_in loop
+            }//end za_in loop
 
-            // for debugging
-            //for ( Index i = 0; i < stokes_dim; i++ )
-            //{
-            //  ppath_rad( f_index, i, ip) = interp(itw_iza, rad_field(joker,i), gp_iza );
-            //} //end i loop
+            for ( Index i = 0; i < stokes_dim; i++ )
+            {
+              // Integration of the phase matrix with inc field product
+              // from above over zenith angle and azimuth angle grid.
+              scat_field(iza,ise_flat,i) = AngIntegrate_trapezoid(
+                product_fields(iza, ise_flat, joker, joker, i),
+                scat_za_grid, aa_grid);
+            } //end i loop
+          } // end ise_flat
 
-          } // end f_index
-        } // end if ppath_pnd
-      } // end ip
+          // for debugging
+          //for ( Index i = 0; i < stokes_dim; i++ )
+          //{
+          //  Matrix inc_field2D(Nza,Naa,0.);
+          //  for ( Index iaa=0; iaa<Naa; iaa++ )
+          //    inc_field2D(joker,iaa) = inc_field(joker,i);
+          //  rad_field(iza,i) = AngIntegrate_trapezoid(
+          //    inc_field2D, scat_za_grid, aa_grid);
+          //} //end i loop
+        } // end iza
 
-      // for debugging
-      //WriteXML( "ascii", ppath_rad, "ppath_rad.xml", 0,
-      //          "ppath_rad", "", "", verbosity );
+        for( Index ise_flat=0; ise_flat<ne; ise_flat++ )
+        {
+          for ( Index i = 0; i < stokes_dim; i++ )
+          {
+            // Interpolate scattered intensity to LOS direction
+            ppath_scat_source( f_index, i, ise_flat, ip ) =
+              // Nope, do NOT multiply by pnd, instead return scat source
+              // contribution from one particle of the scattering element
+              // type. in that way we can derive the jacobians directly from
+              // this and don't need to have a separate variable for them
+              //ppath_pnd(ise_flat,ip) *
+              interp(itw_iza, scat_field(joker,ise_flat,i), gp_iza );
+          } //end i loop
+        } // end ise_flat
+
+        // for debugging
+        //for ( Index i = 0; i < stokes_dim; i++ )
+        //{
+        //  ppath_rad( f_index, i, ip) = interp(itw_iza, rad_field(joker,i), gp_iza );
+        //} //end i loop
+
+      } // end f_index
+    } // end if ppath_pnd
+  } // end ip
+
+  // for debugging
+  //WriteXML( "ascii", ppath_rad, "ppath_rad.xml", 0,
+  //          "ppath_rad", "", "", verbosity );
 }
 
 

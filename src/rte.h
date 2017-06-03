@@ -397,6 +397,21 @@ void get_ppath_scat_source(
                            const Index&     j_analytical_do,
                            const Index&     Naa,
                            const Verbosity& verbosity );
+
+void get_ppath_scat_source_fixT(
+                           Tensor4&         ppath_scat_source,
+                           const ArrayOfArrayOfSingleScatteringData scat_data,
+                           ConstTensor7View doit_i_field,
+                           ConstVectorView  scat_za_grid,
+                           ConstVectorView  f_grid, 
+                           const Index&     stokes_dim,
+                           const Ppath&     ppath,
+                           ConstMatrixView  ppath_pnd,
+                           const Index&     j_analytical_do,
+                           const Index&     Naa,
+                           const Numeric&   rtp_temp,
+                           const Verbosity& verbosity );
+
 void iyb_calc(
         Workspace&                  ws,
         Vector&                     iyb,
