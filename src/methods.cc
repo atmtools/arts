@@ -6671,13 +6671,25 @@ void define_md_data_raw()
          "you need to handle this by using two frequencies in *f_grid*, but\n"
          "but these can be almost identical.\n"
          "\n"
-         "The options *iy_unit* are:\n"
-         " \"1\"  : Backscatter coefficient. Unit is 1/(m*sr). Without\n"
+         "The options for *iy_unit* are:\n"
+         " \"1\"  : Backscatter coefficient. Unit is 1/(m*sr). At zero\n"
          "          attenuation, this equals the scattering matrix value for\n"
          "          the backward direction. See further AUG.\n"
-         " \"Ze\" : Equivalent reflectivity. In the conversion, \"K\" is\n"
-         "          calculated using the refractive index for liquid water,\n"
-         "          at the temperature defined by *ze_tref*.\n"
+         " \"Ze\" : Equivalent reflectivity. Unit is mm^6/m^3. Conversion\n"
+         "          formula is given below.\n"
+         "\n"
+         "The conversion from backscatter coefficient to Ze is:\n"
+         "   Ze = 1e18 * lambda^4 / (k2 * pi^5) * sum(sigma),\n"
+         "where sum(sigma) = 4*pi*b, and b is the backscatter coefficient.\n"
+         "\n"
+         "The reference dielectric factor can either specified directly by\n"
+         "the argument *k2*. For example, to mimic the CloudSat data, *k2*\n"
+         "shall be set to 0.75 (citaion needed). If *k2* is set to be \n"
+         "negative (which is defualt), k2 is calculated as:\n"
+         "   k2 = abs( (n^2-1)/(n^2+2) )^2,\n"
+         "where n is the refractive index of liquid water at temperature\n"
+         "*ze_tref* and the frequency of the radar, calculated by the MPM93\n"
+         "parameterization.\n"
          "\n"
          "No Jacobian quantities are yet handled.\n"
          "\n"
@@ -6716,10 +6728,11 @@ void define_md_data_raw()
             "ppath_agenda", "propmat_clearsky_agenda", "iy_transmitter_agenda",
             "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los",
             "rte_alonglos_v", "ppath_lmax", "ppath_lraytrace" ),
-        GIN(      "ze_tref" ),
-        GIN_TYPE( "Numeric" ),
-        GIN_DEFAULT( "273.15"  ),
-        GIN_DESC( "Reference temperature for conversion to Ze" )
+        GIN(      "ze_tref", "k2" ),
+        GIN_TYPE( "Numeric", "Numeric" ),
+        GIN_DEFAULT( "273.15", "-1"  ),
+        GIN_DESC( "Reference temperature for conversion to Ze.",
+                  "Reference dielectric factor." )
         ));
 
   md_data_raw.push_back
@@ -16467,9 +16480,8 @@ void define_md_data_raw()
          "bins can either be specified in altitude or two-way travel time.\n"
          "In both case, the edges of the range bins shall be specified.\n"
          "All data (including auxiliary variables) are returned as the\n"
-         "average inside the bins. If any bin extands outisde the covered\n"
-         "range, zeros are added reflectivities, while for other quantities\n"
-         "(e.g. temperature) the averaging is restricted to covered part.\n"
+         "average inside the bins. If a bin is totally outside the model\n"
+         "atmosphere, NaN is returned.\n"
          "\n"
          "All auxiliary data from *iyCloudRadar* are handled.\n"
          "\n"

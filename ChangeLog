@@ -1,3 +1,25 @@
+2017-06-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-696
+
+	* src/m_cloudradar.cc (iyCloudRadar): The reference dielectric
+	factor can now be specied directly, and not just be calculated by
+	MPM93 refractive index. The new feature is needed to mimic e.g.
+	CloudSat data. Extended built-in doc significantly regarding
+	units.
+
+	(yCloudRadar): Switched to new version. The difference is that
+	binning is done differently. This is now done with
+	integration_bin_by_vecmult, that should be both faster and more
+	accurate.
+
+	In fact, in my test case I noticed clear deviations when comparing
+	to old bin scheme, when using more wide bins. And it was the old
+	scheme that failed, it e.g. did not conserve the integrated Ze.
+
+	That is, the previous version did not work properly! I have not
+	tried to find the exact reason.
+
 2017-06-02 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-695
