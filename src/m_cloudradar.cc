@@ -318,7 +318,7 @@ void psdMH97 (
         {
           // Obtain derivative by perturbation of 0.1%, but not less than 0.01 mg/m3.
           // Note that the last value becomes the perturbation for IWC=0.
-          const Numeric diwc = max( 0.001*iwc, 1e-8 );
+          const Numeric diwc = max( 0.001*iwc, 1e-7 );
           const Numeric iwcp = iwc + diwc;
           for ( Index i=0; i<nsi; i++ )
             { dpsd_data_dx(0,ip,i) = (
@@ -610,7 +610,7 @@ void pnd_fieldCalcFromParticleBulkProps(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyCloudRadar(
+void iyActiveSingleScat(
          Workspace&                   ws,
          Matrix&                      iy,
          ArrayOfTensor4&              iy_aux,
@@ -711,12 +711,12 @@ void iyCloudRadar(
       FOR_ANALYTICAL_JACOBIANS_DO( 
         if( jacobian_quantities[iq].Integration() )
         {
-            diy_dpath[iq].resize( 1, nf, ns ); 
+            diy_dpath[iq].resize( 1, nf*np, ns ); 
             diy_dpath[iq] = 0.0;
         }
         else
         {
-            diy_dpath[iq].resize( np, nf, ns ); 
+            diy_dpath[iq].resize( np, nf*np, ns ); 
             diy_dpath[iq] = 0.0;
         }
       )
@@ -737,7 +737,7 @@ void iyCloudRadar(
           diy_dx.resize( nq ); 
           //
           FOR_ANALYTICAL_JACOBIANS_DO( diy_dx[iq].resize( 
-            jacobian_indices[iq][1]-jacobian_indices[iq][0]+1, nf, ns ); 
+            jacobian_indices[iq][1]-jacobian_indices[iq][0]+1, nf*np, ns ); 
             diy_dx[iq] = 0.0;
           )
         }
@@ -884,7 +884,7 @@ void iyCloudRadar(
   for( Index iv=0; iv<nf; iv++ ) 
     { id_mat( tr_rev(iv,joker,joker) ); }
 
-  
+
   // Loop ppath steps
   for( Index ip=0; ip<np; ip++ )
     {
@@ -910,7 +910,7 @@ void iyCloudRadar(
               Matrix  P(ns,ns);
               Tensor3 Pe(nsetot,ns,ns);
               //
-              if( !jacobian_do )
+              if( !j_analytical_do )
                 {
                   // Here we just need the total matrix
                   pha_mat_singleCalc( P, los_sca[0], los_sca[1],
@@ -939,13 +939,13 @@ void iyCloudRadar(
                       for( Index is1=0; is1<ns; is1++ ) {
                         for( Index is2=0; is2<ns; is2++ )
                           { P(is1,is2) += ppath_pnd(i,ip) * Pe(i,is1,is2); }
-                    } } } 
+                    } } }
                 }
               
               // Combine iy0, double transmission and scattering matrix
               Vector iy1(stokes_dim), iy2(stokes_dim);
               mult( iy1, tr_rev(iv,joker,joker), iy0(iv,joker) );
-              mult( iy2, P,                      iy1 );
+              mult( iy2, P, iy1 );
               mult( iy(iv*np+ip,joker), trans_cumulat(iv,joker,joker,ip), iy2 );
 
               // Jacobians
@@ -966,7 +966,12 @@ void iyCloudRadar(
                                     for( Index is2=0; is2<ns; is2++ )
                                       { P(is1,is2) += ppath_dpnd_dx[iq](i,ip) *
                                                                 Pe(i,is1,is2); }
-                               } } } 
+                               } } }
+
+                              // Apply transmissions as above
+                              mult( iy2, P, iy1 );
+                              mult( diy_dpath[iq](ip,iv*np+ip,joker),
+                                    trans_cumulat(iv,joker,joker,ip), iy2 ); 
                             }
                         }
                     }
@@ -1025,6 +1030,18 @@ void iyCloudRadar(
             }
         }
     } // for ip
+
+
+  //### jacobian part #####################################################
+  if( j_analytical_do )
+    { 
+      // Map to retrieval grids
+      FOR_ANALYTICAL_JACOBIANS_DO( 
+        diy_from_path_to_rgrids( diy_dx[iq], jacobian_quantities[iq], 
+                                 diy_dpath[iq], atmosphere_dim, ppath, ppath_p );
+      )
+    }
+  //#######################################################################
   
   
   if( iy_unit == "1" )
@@ -1061,6 +1078,13 @@ void iyCloudRadar(
       
           iy(Range(iv*np,np),joker) *= fac;
 
+          // Jacobian part (must be converted to Tb before iy for PlanckBT)
+          // 
+          if( j_analytical_do )
+            {
+              FOR_ANALYTICAL_JACOBIANS_DO( diy_dx[iq] *= fac; )
+            }
+          
           //=== iy_aux part ===========================================
           // Backscattering
           if( auxBackScat >= 0 ) {
@@ -1080,15 +1104,22 @@ void iyCloudRadar(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void yCloudRadar(
+void yActive(
          Workspace&             ws,
          Vector&                y,
+         Vector&                y_f,
+         ArrayOfIndex&          y_pol,
+         Matrix&                y_pos,
+         Matrix&                y_los,
          ArrayOfVector&         y_aux,
+         Matrix&                y_geo,
+         Matrix&                jacobian,
    const Index&                 atmfields_checked,
    const Index&                 atmgeom_checked,
    const String&                iy_unit,   
    const ArrayOfString&         iy_aux_vars,
    const Index&                 stokes_dim,
+   const Index&                 atmosphere_dim,
    const Vector&                f_grid,
    const Tensor3&               t_field,
    const Tensor3&               z_field,
@@ -1098,22 +1129,31 @@ void yCloudRadar(
    const Matrix&                sensor_pos,
    const Matrix&                sensor_los,
    const Index&                 sensor_checked,
+   const Index&                 jacobian_do,     
    const Agenda&                iy_main_agenda,
    const ArrayOfArrayOfIndex&   instrument_pol_array,
    const Vector&                range_bins,
    const Verbosity& )
 {
   // Important sizes
-  const Index npos    = sensor_pos.nrows();
-  const Index nbins   = range_bins.nelem() - 1;
-  const Index nf      = f_grid.nelem();
-  const Index naux    = iy_aux_vars.nelem();
+  const Index npos  = sensor_pos.nrows();
+  const Index nbins = range_bins.nelem() - 1;
+  const Index nf    = f_grid.nelem();
+  const Index naux  = iy_aux_vars.nelem();
 
   //---------------------------------------------------------------------------
   // Input checks
   //---------------------------------------------------------------------------
 
   // Basics
+  //
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  //
+  if ( f_grid.empty() )
+    { throw runtime_error ( "The frequency grid is empty." ); }
+  chk_if_increasing ( "f_grid", f_grid );
+  if( f_grid[0] <= 0) 
+    { throw runtime_error( "All frequencies in *f_grid* must be > 0." ); }
   //
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   if( atmfields_checked != 1 )
@@ -1141,7 +1181,6 @@ void yCloudRadar(
     throw runtime_error( "The main length of *instrument_pol_array* must match "
                          "the number of frequencies." );
 
-
   //---------------------------------------------------------------------------
   // The calculations
   //---------------------------------------------------------------------------
@@ -1162,17 +1201,33 @@ void yCloudRadar(
         }
     }
 
-  // Size output arguments, and set to 0
+  //---------------------------------------------------------------------------
+  // Allocations and resizing
+  //---------------------------------------------------------------------------
+
+  // Resize and init *y* and *y_XXX*
+  //
   const Index ntot = npos * npolcum[nf] * nbins;
   y.resize( ntot );
   y = NAN;
-  //
+  y_f.resize( ntot );
+  y_pol.resize( ntot );
+  y_pos.resize( ntot, sensor_pos.ncols() );
+  y_los.resize( ntot, sensor_los.ncols() );
+  y_geo.resize( ntot, atmosphere_dim );
+  y_geo = -99999;   // Will be replaced if relavant data are provided (*geo_pos*)
+
+  // y_aux
   y_aux.resize( naux );
   for( Index i=0; i<naux; i++ )
     { 
       y_aux[i].resize( ntot ); 
       y_aux[i] = NAN; 
     }
+  
+
+  
+  
 
 
   // Loop positions
@@ -1189,8 +1244,8 @@ void yCloudRadar(
       //
       iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
                              1, iy_unit, iy_transmission, iy_aux_vars,
-                             iy_id, cloudbox_on, 0, t_field, z_field, 
-                             vmr_field, f_grid, 
+                             iy_id, cloudbox_on, jacobian_do, t_field,
+                             z_field, vmr_field, f_grid, 
                              sensor_pos(p,joker), sensor_los(p,joker), 
                              rte_pos2, iy_main_agenda );
 

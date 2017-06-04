@@ -2085,7 +2085,8 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:      Used by radiative transfer methods.\n"
        "\n"
-       "Unit:       W / (m^2 Hz sr) or transmission.\n"
+       "Unit:       For passive observations, as  selected by *iy_unit*.\n"
+       "            For transmission type, same as for transmitted signal.\n"
        "\n"
        "Dimensions: [ f_grid, stokes_dim ]\n"
        ),

@@ -6640,14 +6640,14 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "iyCloudRadar" ),
+      ( NAME( "iyActiveSingleScat" ),
         DESCRIPTION
         (
-         "Simulation of cloud radars, restricted to single scattering.\n"
+         "Simulation of radar/lidar, restricted to single scattering.\n"
          "\n"
-         "The WSM treats radar measurements of cloud and precipitation, on\n"
-         "the condition that multiple scattering can be ignored. Beside the\n"
-         "direct backsacttering, the two-way attenuation by gases and\n"
+         "The WSM treats e.g. radar measurements of cloud and precipitation,\n"
+         "on the condition that multiple scattering can be ignored. Beside\n"
+         "the direct backsacttering, the two-way attenuation by gases and\n"
          "particles is considered. Surface scattering is ignored. Further\n"
          "details are given in AUG.\n"
          "\n"
@@ -6656,7 +6656,7 @@ void define_md_data_raw()
          "applications.\n"
          "\n"
          "The method can be used with *iyCalc*, but not with *yCalc*. In the\n" 
-         "later case, use instead *yCloudRadar*.\n"
+         "later case, use instead *yActive*.\n"
          "\n"
          "The method returns the backscattering for each point of *ppath*.\n"
          "Several frequencies can be treated in parallel. The size of *iy*\n"
@@ -6666,10 +6666,9 @@ void define_md_data_raw()
          "frequency occupy the np first rows of *iy* etc.\n"
          "\n"
          "The polarisation state of the transmitted pulse is taken from\n"
-         "*iy_transmitter_agenda*, see further *iy_transmitterCloudRadar*\n"
-         "If the radar transmits several polarisations at the same frequency,\n"
-         "you need to handle this by using two frequencies in *f_grid*, but\n"
-         "but these can be almost identical.\n"
+         "*iy_transmitter_agenda*. If the radar transmits several polarisations\n"
+         "at the same frequency, you need to handle this by using two frequencies\n" 
+         "in *f_grid*, but these can be almost identical.\n"
          "\n"
          "The options for *iy_unit* are:\n"
          " \"1\"  : Backscatter coefficient. Unit is 1/(m*sr). At zero\n"
@@ -6690,8 +6689,6 @@ void define_md_data_raw()
          "where n is the refractive index of liquid water at temperature\n"
          "*ze_tref* and the frequency of the radar, calculated by the MPM93\n"
          "parameterization.\n"
-         "\n"
-         "No Jacobian quantities are yet handled.\n"
          "\n"
          "The following auxiliary data can be obtained:\n"
          "  \"Pressure\": The pressure along the propagation path.\n"
@@ -9618,7 +9615,7 @@ void define_md_data_raw()
           "radar reflectivity integrated over the antenna function, and the\n"
           "estimated error in this vector, respectively.\n"
           "\n"
-          "Unlike with yCloudRadar, the range bins gives the boundaries of \n"
+          "Unlike with yActive, the range bins gives the boundaries of \n"
           "the range bins as either round-trip time or distance from radar.\n"
           "\n"
           "The WSV *mc_y_tx* gives the polarization state of the \n"
@@ -16459,15 +16456,15 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "yCloudRadar" ),
+      ( NAME( "yActive" ),
         DESCRIPTION
         (
-         "Replaces *yCalc* for cloud radar calculations.\n"
+         "Replaces *yCalc* for radar/lidar calculations.\n"
          "\n"
-         "The output format for *iy* from *iyCloudRadar* differs from the\n"
-         "standard one, and *yCalc* can not be used for cloud radar\n"
+         "The output format for *iy* when silumting radars and lidars differs\n"
+         "from the standard one, and *yCalc* can not be used for cloud radar\n"
          "simulations. This method works largely as *yCalc*, but is tailored\n"
-         "to handle the output from *iyCloudRadar*.\n"
+         "to handle the output from *iyActiveSingleScattering*.\n"
          "\n"
          "The method requires additional information about the sensor,\n"
          "regarding its recieving properties. First of all, recieved\n"
@@ -16483,20 +16480,18 @@ void define_md_data_raw()
          "average inside the bins. If a bin is totally outside the model\n"
          "atmosphere, NaN is returned.\n"
          "\n"
-         "All auxiliary data from *iyCloudRadar* are handled.\n"
-         "\n"
-         "No Jacobian quantities are yet handled.\n"
+         "All auxiliary data from *iyActiveSingleScattering* are handled.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "y_aux" ),
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmgeom_checked", "atmfields_checked", 
-            "iy_unit", "iy_aux_vars", "stokes_dim",
+            "iy_unit", "iy_aux_vars", "atmosphere_dim", "stokes_dim",
             "f_grid", "t_field", "z_field", "vmr_field", "cloudbox_on", 
             "cloudbox_checked", "sensor_pos", "sensor_los", "sensor_checked",
-            "iy_main_agenda", "instrument_pol_array", "range_bins" ),
+            "jacobian_do", "iy_main_agenda", "instrument_pol_array", "range_bins" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

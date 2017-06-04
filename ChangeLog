@@ -1,3 +1,16 @@
+2017-06-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-698
+
+	* src/m_cloudradar.cc (iyActiveSingleScat): Renamed iyCloudRadar,
+	as the method is not restriced to neither clouds or radars.
+
+	(yActive): Renamed iyCloudRadar, for same reason as above. Added
+	jacobian_do as input. Added y_f, y_pol, y_pos, y_los,"y_geo and
+	jacobian as output. Started to add handling of these variables.
+
+	* src/workspace.cc: Improved unit part of *iy*.
+
 2017-06-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-697
