@@ -316,7 +316,7 @@ void psdMH97 (
       // Calculate derivative with respect to IWC
       if( ndx )
         {
-          // Obtain derivative by perturbation of 0.1%, but not less than 0.01 mg/m3.
+          // Obtain derivative by perturbation of 0.1%, but not less than 0.1 mg/m3.
           // Note that the last value becomes the perturbation for IWC=0.
           const Numeric diwc = max( 0.001*iwc, 1e-7 );
           const Numeric iwcp = iwc + diwc;
@@ -660,7 +660,7 @@ void iyActiveSingleScat(
   if( !iy_agenda_call1 )
     throw runtime_error( 
                   "Recursive usage not possible (iy_agenda_call1 must be 1)." );
-  if( iy_transmission.ncols() )
+  if( !iy_transmission.empty() )
     throw runtime_error( "*iy_transmission* must be empty." );
   if( !cloudbox_on )
     throw runtime_error( 
@@ -943,11 +943,17 @@ void iyActiveSingleScat(
                 }
               
               // Combine iy0, double transmission and scattering matrix
-              Vector iy1(stokes_dim), iy2(stokes_dim);
+              Vector iy1(ns), iy2(ns);
+              const Index iout = iv*np + ip;
               mult( iy1, tr_rev(iv,joker,joker), iy0(iv,joker) );
               mult( iy2, P, iy1 );
-              mult( iy(iv*np+ip,joker), trans_cumulat(iv,joker,joker,ip), iy2 );
-
+              mult( iy(iout,joker), trans_cumulat(iv,joker,joker,ip), iy2 );
+              
+              //=== iy_aux part ===========================================
+              // Backscattering
+              if( auxBackScat >= 0 ) {
+                mult( iy_aux[auxBackScat](iv,joker,0,ip), P, iy0(iv,joker) ); }
+              
               // Jacobians
               if( j_analytical_do )
                 {
@@ -956,7 +962,7 @@ void iyActiveSingleScat(
                       if( jacobian_quantities[iq].Analytical() )
                         {
                           // Scattering species
-                          if( jac_scat_i[iq] >= 0)
+                          if( jac_scat_i[iq] >= 0 )
                             {
                               // Change of scattering scattering matrix
                               P = 0.0;
@@ -971,17 +977,13 @@ void iyActiveSingleScat(
                               // Apply transmissions as above
                               mult( iy2, P, iy1 );
                               mult( diy_dpath[iq](ip,iv*np+ip,joker),
-                                    trans_cumulat(iv,joker,joker,ip), iy2 ); 
+                                    trans_cumulat(iv,joker,joker,ip), iy2 );
                             }
                         }
                     }
-                }
-              //=== iy_aux part ===========================================
-              // Backscattering
-              if( auxBackScat >= 0 ) {
-                mult( iy_aux[auxBackScat](iv,joker,0,ip), P, iy0(iv,joker) ); }
+                }  // j_analytical_do
             }
-        }
+        }  // if inside cloudbox
 
       
       // Stuff to do even outside cloudbox:      
@@ -1034,7 +1036,7 @@ void iyActiveSingleScat(
 
   //### jacobian part #####################################################
   if( j_analytical_do )
-    { 
+    {
       // Map to retrieval grids
       FOR_ANALYTICAL_JACOBIANS_DO( 
         diy_from_path_to_rgrids( diy_dx[iq], jacobian_quantities[iq], 
@@ -1078,7 +1080,7 @@ void iyActiveSingleScat(
       
           iy(Range(iv*np,np),joker) *= fac;
 
-          // Jacobian part (must be converted to Tb before iy for PlanckBT)
+          // Jacobian part
           // 
           if( j_analytical_do )
             {
@@ -1105,40 +1107,44 @@ void iyActiveSingleScat(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void yActive(
-         Workspace&             ws,
-         Vector&                y,
-         Vector&                y_f,
-         ArrayOfIndex&          y_pol,
-         Matrix&                y_pos,
-         Matrix&                y_los,
-         ArrayOfVector&         y_aux,
-         Matrix&                y_geo,
-         Matrix&                jacobian,
-   const Index&                 atmfields_checked,
-   const Index&                 atmgeom_checked,
-   const String&                iy_unit,   
-   const ArrayOfString&         iy_aux_vars,
-   const Index&                 stokes_dim,
-   const Index&                 atmosphere_dim,
-   const Vector&                f_grid,
-   const Tensor3&               t_field,
-   const Tensor3&               z_field,
-   const Tensor4&               vmr_field,
-   const Index&                 cloudbox_on,
-   const Index&                 cloudbox_checked,
-   const Matrix&                sensor_pos,
-   const Matrix&                sensor_los,
-   const Index&                 sensor_checked,
-   const Index&                 jacobian_do,     
-   const Agenda&                iy_main_agenda,
-   const ArrayOfArrayOfIndex&   instrument_pol_array,
-   const Vector&                range_bins,
+         Workspace&                ws,
+         Vector&                   y,
+         Vector&                   y_f,
+         ArrayOfIndex&             y_pol,
+         Matrix&                   y_pos,
+         Matrix&                   y_los,
+         ArrayOfVector&            y_aux,
+         Matrix&                   y_geo,
+         Matrix&                   jacobian,
+   const Index&                    atmgeom_checked,
+   const Index&                    atmfields_checked,
+   const String&                   iy_unit,   
+   const ArrayOfString&            iy_aux_vars,
+   const Index&                    stokes_dim,
+   const Vector&                   f_grid,
+   const Index&                    atmosphere_dim,
+   const Tensor3&                  t_field,
+   const Tensor3&                  z_field,
+   const Tensor4&                  vmr_field,
+   const Index&                    cloudbox_on,
+   const Index&                    cloudbox_checked,
+   const Matrix&                   sensor_pos,
+   const Matrix&                   sensor_los,
+   const Index&                    sensor_checked,
+   const Index&                    jacobian_do,     
+   const ArrayOfRetrievalQuantity& jacobian_quantities,
+   const ArrayOfArrayOfIndex&      jacobian_indices,
+   const Agenda&                   iy_main_agenda,
+   const Agenda&                   geo_pos_agenda,
+   const ArrayOfArrayOfIndex&      instrument_pol_array,
+   const Vector&                   range_bins,
    const Verbosity& )
 {
   // Important sizes
   const Index npos  = sensor_pos.nrows();
   const Index nbins = range_bins.nelem() - 1;
   const Index nf    = f_grid.nelem();
+  const Index ns    = stokes_dim;
   const Index naux  = iy_aux_vars.nelem();
 
   //---------------------------------------------------------------------------
@@ -1181,14 +1187,14 @@ void yActive(
     throw runtime_error( "The main length of *instrument_pol_array* must match "
                          "the number of frequencies." );
 
+  
   //---------------------------------------------------------------------------
-  // The calculations
+  // Various  initializations
   //---------------------------------------------------------------------------
 
   // Conversion from Stokes to instrument_pol
   ArrayOfVector   s2p;
   stokes2pol( s2p, 0.5 );
-
   ArrayOfIndex npolcum(nf+1); npolcum[0]=0;
   for( Index i=0; i<nf; i++ )
     { 
@@ -1201,10 +1207,6 @@ void yActive(
         }
     }
 
-  //---------------------------------------------------------------------------
-  // Allocations and resizing
-  //---------------------------------------------------------------------------
-
   // Resize and init *y* and *y_XXX*
   //
   const Index ntot = npos * npolcum[nf] * nbins;
@@ -1215,7 +1217,7 @@ void yActive(
   y_pos.resize( ntot, sensor_pos.ncols() );
   y_los.resize( ntot, sensor_los.ncols() );
   y_geo.resize( ntot, atmosphere_dim );
-  y_geo = -99999;   // Will be replaced if relavant data are provided (*geo_pos*)
+  y_geo = NAN;   // Will be replaced if relavant data are provided (*geo_pos*)
 
   // y_aux
   y_aux.resize( naux );
@@ -1224,11 +1226,30 @@ void yActive(
       y_aux[i].resize( ntot ); 
       y_aux[i] = NAN; 
     }
+
+  // Jacobian variables
+  //
+  Index j_analytical_do = 0;
+  Index njq             = 0;
+  //
+  if( jacobian_do )
+    {
+      jacobian.resize( ntot, 
+                       jacobian_indices[jacobian_indices.nelem()-1][1]+1 );
+      jacobian = 0;
+      njq      = jacobian_quantities.nelem();
+      //
+      FOR_ANALYTICAL_JACOBIANS_DO(
+        j_analytical_do  = 1; 
+      )
+    }
+  else
+    { jacobian.resize( 0, 0 ); }
   
 
-  
-  
-
+  //---------------------------------------------------------------------------
+  // The calculations
+  //---------------------------------------------------------------------------
 
   // Loop positions
   for( Index p=0; p<npos; p++ )
@@ -1278,6 +1299,16 @@ void yActive(
       const Numeric range_end1 = min( range[0], range[np-1] );
       const Numeric range_end2 = max( range[0], range[np-1] );
 
+      // Help variables to calculate jacobians
+      ArrayOfTensor3 dI(njq);
+      ArrayOfMatrix drefl(njq);
+      if( j_analytical_do )
+        {
+          FOR_ANALYTICAL_JACOBIANS_DO(
+            dI[iq].resize( jacobian_indices[iq][1]-jacobian_indices[iq][0]+1, np, ns ); 
+            drefl[iq].resize( dI[iq].npages(), np ); 
+          )
+        }
       
       // Loop radar bins
       for( Index b=0; b<nbins; b++ )
@@ -1299,23 +1330,55 @@ void yActive(
               for( Index iv=0; iv<nf; iv++ )
                 {
                   // Pick out part of iy for frequency
+                  //
                   Matrix I = iy( Range(iv*np,np), joker );
+                  //
+                  if( j_analytical_do )
+                    {
+                      FOR_ANALYTICAL_JACOBIANS_DO(
+                        dI[iq] = diy_dx[iq]( joker, Range(iv*np,np), joker );
+                      )
+                    }
 
+                  
                   for( Index ip=0; ip<instrument_pol_array[iv].nelem(); ip++ )
                     {
-                      // Extract reflectivity for recieved polarisation
-                      Vector refl( np, 0 );
+                      // Extract reflectivity for received polarisation
+                      Vector refl( np, 0.0 );
+                      if( j_analytical_do )
+                        { FOR_ANALYTICAL_JACOBIANS_DO( drefl[iq] = 0.0; ) }
                       Vector w = s2p[instrument_pol_array[iv][ip]-1];
                       for( Index i=0; i<w.nelem(); i++ )     // Note that w can
-                        { for( Index j=0; j<np; j++ )        // be shorter than
-                            { refl[j] += I(j,i) * w[i]; } }  // stokes_dim (and
-                                                             // dot product can 
-                                                             // not be used)
+                        {                                    // be shorter than
+                          for( Index j=0; j<np; j++ )        // stokes_dim (and
+                            {                                // dot product can 
+                              refl[j] += I(j,i) * w[i];      // not be used)
+                              if( j_analytical_do )
+                                {
+                                  FOR_ANALYTICAL_JACOBIANS_DO(
+                                    for( Index k=0; k<drefl[iq].nrows(); k++ )
+                                      { drefl[iq](k,j) += dI[iq](k,j,i) * w[i]; }
+                                  )
+                                }
+                            }
+                        }  
+                                                             
+                                                             
                       // Apply weight vector to get final value
+                      //
                       Index iout = nbins * ( p*npolcum[nf] + 
                                              npolcum[iv] + ip ) + b;
                       y[iout] = hbin * refl;
-
+                      //
+                      if( j_analytical_do )
+                        {
+                          FOR_ANALYTICAL_JACOBIANS_DO(
+                            for( Index k=0; k<drefl[iq].nrows(); k++ )
+                              { jacobian(iout,jacobian_indices[iq][0]+k) =
+                                                   hbin * drefl[iq](k,joker); }
+                          )
+                        }
+                      
                       // Same for aux variables
                       for( Index a=0; a<naux; a++ )
                         {
@@ -1344,6 +1407,35 @@ void yActive(
                             }
                         }
                     }
+                }
+            }
+        }
+
+      // Other aux variables
+      //
+      Vector geo_pos;
+      geo_pos_agendaExecute( ws, geo_pos, ppath, geo_pos_agenda );
+      if( geo_pos.nelem() &&  geo_pos.nelem() != atmosphere_dim )
+        {
+          throw runtime_error( "Wrong size of *geo_pos* obtained from "
+                               "*geo_pos_agenda*.\nThe length of *geo_pos* must "
+                               "be zero or equal to *atmosphere_dim*." );
+        }
+      //
+      for( Index b=0; b<nbins; b++ )
+        {
+          for( Index iv=0; iv<nf; iv++ )
+            {
+              for( Index ip=0; ip<instrument_pol_array[iv].nelem(); ip++ )
+                {
+                  const Index iout = nbins * ( p*npolcum[nf] + 
+                                               npolcum[iv] + ip ) + b;
+                  y_f[iout]         = f_grid[iv];
+                  y_pol[iout]       = instrument_pol_array[iv][ip];
+                  y_pos(iout,joker) = sensor_pos(p,joker);
+                  y_los(iout,joker) = sensor_los(p,joker);
+                  if( geo_pos.nelem() )
+                    { y_geo(iout,joker) = geo_pos; }
                 }
             }
         }

@@ -1,3 +1,29 @@
+2017-06-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-699
+
+	* First radar jacobian in place. So far just considering the
+	change in back-scattering, effect on attenuation of both gases and
+	particles to be added.
+
+	[But still happy as I spent 5 hours on bug hunting, finding that
+	all had been correct from start. I just strongly under-estimated
+	the particle attenuation and my test did not work as expected.]
+
+	* src/m_cloudradar.cc (iyActiveSingleScat): Work around jacobian
+	calculations.
+
+	* src/m_cloudradar.cc (yActive): Added geo_pos_agenda as input.
+	y_f, y_geo etc. now set. Now alos jacobian quantities processed
+	and the jacobian matrix is compiled.
+
+	* src/workspace.cc: Updated and polished text for *y_geo*.
+
+	* src/m_rte.cc (yCalc): Default for y_geo is now NAN, instead of -99999.
+
+	* src/m_transmitter.cc (iyRadioLink, iyTransmissionStandard):
+	Initial check of iy_transmission now using .empty.
+
 2017-06-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-698
@@ -6,7 +32,7 @@
 	as the method is not restriced to neither clouds or radars.
 
 	(yActive): Renamed iyCloudRadar, for same reason as above. Added
-	jacobian_do as input. Added y_f, y_pol, y_pos, y_los,"y_geo and
+	jacobian_do as input. Added y_f, y_pol, y_pos, y_los, y_geo and
 	jacobian as output. Started to add handling of these variables.
 
 	* src/workspace.cc: Improved unit part of *iy*.

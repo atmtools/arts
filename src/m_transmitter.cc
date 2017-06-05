@@ -115,7 +115,7 @@ void iyRadioLink(
   if( !iy_agenda_call1 )
     throw runtime_error( 
                   "Recursive usage not possible (iy_agenda_call1 must be 1)" );
-  if( iy_transmission.ncols() )
+  if( !iy_transmission.empty() )
     throw runtime_error( "*iy_transmission* must be empty" );
   if( jacobian_do )
     throw runtime_error( "This method does not provide any jacobians and "
@@ -704,7 +704,7 @@ void iyTransmissionStandard(
   if( !iy_agenda_call1 )
     throw runtime_error( 
                   "Recursive usage not possible (iy_agenda_call1 must be 1)" );
-  if( iy_transmission.ncols() )
+  if( !iy_transmission.empty() )
     throw runtime_error( "*iy_transmission* must be empty" );
 
 

@@ -1409,14 +1409,14 @@ void yCalc_mblock_loop_body(
 
 
         // Handle geo-positioning
-        if( geo_pos_matrix(0,0) > -99900 )  // No data are flagged with -99999
+        if( !isnan(geo_pos_matrix(0,0)) )  // No data are flagged as NaN
           {
-            // Find bore sigtht direction be proping sensor_response
+            // Find bore sigtht direction be probing sensor_response
             const Index   nf   = f_grid.nelem();
             const Index   nlos = mblock_dlos_grid.nrows();
             const Index   niyb = nf * nlos * stokes_dim;
             ArrayOfIndex i_of_max( n1y );
-            Vector max_contr( n1y, -99999 );
+            Vector max_contr( n1y, NAN );
             for( Index ilos=0; ilos<nlos; ilos++ )
               {
                 Vector itry( niyb, 0 );
@@ -1534,7 +1534,7 @@ void yCalc(
   y_pos.resize( nmblock*n1y, sensor_pos.ncols() );
   y_los.resize( nmblock*n1y, sensor_los.ncols() );
   y_geo.resize( nmblock*n1y, atmosphere_dim );
-  y_geo = -99999;   // Will be replaced if relavant data are provided (*geo_pos*)
+  y_geo = NAN;   // Will be replaced if relavant data are provided (*geo_pos*)
 
   // For y_aux we don't know the number of quantities, and we need to 
   // store all output

@@ -6085,8 +6085,8 @@ void Workspace::define_wsv_data()
        "Definition of positions matches *sensor_pos* (such as first column\n"
        "holds the altitude). Data are provided for each element of *y*.\n"
        "\n"
-       "All elements of *yGeo* are set to -99999 if *geo_pos_agenda* sets\n"
-       "*geo_pos* to be empty, to flag that no data have been provided.\n"
+       "If no geo-position is obtained (i.e. *geo_pos_agenda* sets *geo_pos*\n"
+       "to be empty), all elements of *y_geo* is set to NaN.\n"
        "\n"
        "Unit:  [ m, deg, deg ]\n"
         ),
