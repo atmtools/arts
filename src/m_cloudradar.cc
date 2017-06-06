@@ -420,14 +420,14 @@ void pnd_fieldCalcFromParticleBulkProps(
 
   // Check that *particle_bulkprop_field* contains zeros outside and at
   // cloudbox boundaries
-  const String estring = "*particle_bulkprop_field* can only contaon non-zero "
+  const String estring = "*particle_bulkprop_field* can only contain non-zero "
     "values inside the cloudbox.";
   // Pressure end ranges
   for( Index ilon=0; ilon<nlon; ilon++ ) {
     for( Index ilat=0; ilat<nlat; ilat++ ) {
       for( Index ip=0; ip<=cloudbox_limits[0]; ip++ ) {
         if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
-          throw runtime_error( estring ); }
+          throw runtime_error( estring ); } 
       for( Index ip=cloudbox_limits[1]; ip<p_grid.nelem(); ip++ ) {
         if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
           throw runtime_error( estring ); } } }
@@ -538,13 +538,17 @@ void pnd_fieldCalcFromParticleBulkProps(
 
       // Set *dpnd_data_dx_names*
       //
-      const Index ndx = scatspecies_to_jq[is].nelem();
-      ArrayOfString dpnd_data_dx_names( ndx );
+      Index ndx = 0;
+      ArrayOfString dpnd_data_dx_names( 0 );
       //
-      for( Index ix=0; ix<ndx; ix++ )
-        { dpnd_data_dx_names[ix] =
-            jacobian_quantities[scatspecies_to_jq[is][ix]].SubSubtag(); }
-
+      if( jacobian_do )
+        {
+          ndx = scatspecies_to_jq[is].nelem();
+          dpnd_data_dx_names.resize( ndx );
+          for( Index ix=0; ix<ndx; ix++ )
+            { dpnd_data_dx_names[ix] =
+                jacobian_quantities[scatspecies_to_jq[is][ix]].SubSubtag(); }
+        }
       
       // Loop lat/lon positions and call *pnd_agenda*
       for( Index ilon=0; ilon<nlon; ilon++ )

@@ -16093,6 +16093,31 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "x2artsScatSpecies" ),
+        DESCRIPTION
+        (
+         "Mapping of scattering species retrieval state vector data to ARTS variables.\n"
+         "\n"
+         "Work in progress ...\n"
+         "\n"
+         "Should only be used inside *inversion_iterate_agenda*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "particle_bulkprop_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "particle_bulkprop_field", "particle_bulkprop_names",
+            "jacobian_quantities", "jacobian_indices", "x",
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "x2artsStandard" ),
         DESCRIPTION
         (

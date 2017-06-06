@@ -51,10 +51,10 @@
 
 extern const String ABSSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
-
 extern const String POINTING_MAINTAG;
 extern const String POINTING_SUBTAG_A;
 extern const String POLYFIT_MAINTAG;
+extern const String SCATSPECIES_MAINTAG;
 extern const String SINEFIT_MAINTAG;
 
 
@@ -531,13 +531,20 @@ void x2artsStandard(
             }
         }
 
+      // Baseline fit: polynomial or sinusoidal
+      // ----------------------------------------------------------------------------
+      else if( jq[q].MainTag() == SCATSPECIES_MAINTAG )
+        {
+          // Here we trust the user!
+        }
+      
       // Or we have to throw an error
       // ----------------------------------------------------------------------------
       else
         {
           ostringstream os;
           os << "Found a retrieval quantity that is not yet handled by\n"
-             << "internal retrievals: " << jq[q].MainTag() << endl;
+             << "ARTS internal retrievals: " << jq[q].MainTag() << endl;
           throw runtime_error(os.str());
         }
     }
@@ -550,6 +557,71 @@ void x2artsStandard(
     }
 }
 
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void x2artsScatSpecies(
+         Tensor4&                    particle_bulkprop_field,
+   const ArrayOfString&              particle_bulkprop_names,         
+   const ArrayOfRetrievalQuantity&   jq,
+   const ArrayOfArrayOfIndex&        ji,
+   const Vector&                     x,
+   const Index&                      atmosphere_dim,
+   const Vector&                     p_grid,
+   const Vector&                     lat_grid,
+   const Vector&                     lon_grid,
+   const Verbosity&)
+{
+  // Main sizes
+  const Index nq = jq.nelem();
+
+  // Check input
+  if( x.nelem() != ji[nq-1][1]+1 )
+    throw runtime_error( "Length of *x* does not match information in "
+                         "*jacobian_quantities*.");
+
+  // Note that when this method is called, output variables
+  // have original values, i.e. matching the a priori state.
+
+  // Loop retrieval quantities and fill *xa*
+  for( Index q=0; q<nq; q++ )
+    {
+      // Index range of this retrieval quantity
+      const Index np = ji[q][1] - ji[q][0] + 1;
+      Range ind( ji[q][0], np );
+
+      if( jq[q].MainTag() == SCATSPECIES_MAINTAG )
+        {
+          const Index isp = find_first( particle_bulkprop_names,
+                                        jq[q].SubSubtag() );
+          if( isp < 0 )
+            {
+              ostringstream os;
+              os << "Jacobian quantity with index " << q << " covers a "
+                 << "scattering species, and the field quantity is set to \""
+                 << jq[q].SubSubtag() << "\", but this quantity "
+                 << "could not found in *particle_bulkprop_names*.";
+              throw runtime_error(os.str());
+            }
+          
+          // Determine grid positions for interpolation from retrieval grids back
+          // to atmospheric grids
+          ArrayOfGridPos gp_p, gp_lat, gp_lon;
+          Index          n_p, n_lat, n_lon;
+          get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
+                                 jq[q], atmosphere_dim, p_grid, lat_grid, lon_grid );
+          // Map x to particle_bulkprop_field
+          Tensor3 pbfield_x( n_p, n_lat, n_lon );
+          reshape( pbfield_x, x[ind] ); 
+          Tensor3 pbfield( particle_bulkprop_field.npages(),
+                           particle_bulkprop_field.nrows(),
+                           particle_bulkprop_field.ncols() );
+          regrid_atmfield_by_gp( pbfield, atmosphere_dim, pbfield_x,
+                                 gp_p, gp_lat, gp_lon );
+          particle_bulkprop_field(isp,joker,joker,joker) = pbfield;
+        }
+    }
+}
 
 
 /*===========================================================================
