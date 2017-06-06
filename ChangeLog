@@ -1,3 +1,13 @@
+2017-06-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-700
+
+	* 3rdparty/polradtran/rt4/radmat.f:
+
+	Rename daxpy and dswap to rt4_* to avoid name clash with function from
+	external BLAS library. Avoids possible segfaults due to implementation
+	differences. Reported by Patrick and Simon.
+
 2017-06-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-699

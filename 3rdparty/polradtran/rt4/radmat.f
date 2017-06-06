@@ -235,7 +235,7 @@ c     cleve moler, university of new mexico, argonne national lab.
 c
 c     subroutines and functions
 c
-c     blas daxpy,dscal,idamax
+c     blas rt4_daxpy,rt4_dscal,rt4_idamax
 c
 c     internal variables
 c
@@ -281,7 +281,7 @@ c
                   a(l,j) = a(k,j)
                   a(k,j) = t
    20          continue
-               call daxpy(n-k,t,a(k+1,k),1,a(k+1,j),1)
+               call rt4_daxpy(n-k,t,a(k+1,k),1,a(k+1,j),1)
    30       continue
          go to 50
    40    continue
@@ -349,7 +349,7 @@ c     cleve moler, university of new mexico, argonne national lab.
 c
 c     subroutines and functions
 c
-c     blas daxpy,dscal,dswap
+c     blas rt4_daxpy,rt4_dscal,rt4_dswap
 c     fortran dabs,mod
 c
 c     internal variables
@@ -396,7 +396,7 @@ c
             do 80 j = kp1, n
                t = a(k,j)
                a(k,j) = 0.0d0
-               call daxpy(k,t,a(1,k),1,a(1,j),1)
+               call rt4_daxpy(k,t,a(1,k),1,a(1,j),1)
    80       continue
    90       continue
   100    continue
@@ -414,10 +414,10 @@ c
   110       continue
             do 120 j = kp1, n
                t = work(j)
-               call daxpy(n,t,a(1,j),1,a(1,k),1)
+               call rt4_daxpy(n,t,a(1,j),1,a(1,k),1)
   120       continue
             l = ipvt(k)
-            if (l .ne. k) call dswap(n,a(1,k),1,a(1,l),1)
+            if (l .ne. k) call rt4_dswap(n,a(1,k),1,a(1,l),1)
   130    continue
   140    continue
   150 continue
@@ -425,7 +425,7 @@ c
       end
 
 
-      subroutine daxpy(n,da,dx,incx,dy,incy)
+      subroutine rt4_daxpy(n,da,dx,incx,dy,incy)
 c
 c     constant times a vector plus a vector.
 c     uses unrolled loops for increments equal to one.
@@ -558,7 +558,7 @@ c
       end
 
 
-      subroutine  dswap (n,dx,incx,dy,incy)
+      subroutine  rt4_dswap (n,dx,incx,dy,incy)
 c
 c     interchanges two vectors.
 c     uses unrolled loops for increments equal one.
