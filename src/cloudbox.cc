@@ -2975,13 +2975,12 @@ void pnd_fieldH98 (Tensor4View pnd_field,
  *  Adapted from the 'old' IWCtopnd_MH97.
 
     \param psd     particle number density per size interval [#/m3*m]
-    \param iwc     atmospheric ice water content [kg/m3]
     \param diameter  size of the scattering elements (supposed to be mass (aka
                        volume) equivalent diameter of pure ice particle) [m]
+    \param iwc     atmospheric ice water content [kg/m3]
     \param t       atmospheric temperature [K]
     \param noisy   flag whether to add noise onto PSD parameters according to
                      their reported error statistics
-    \param robust  ?
   
   \author Jana Mendrok, Daniel Kreyling
   \date 2017-06-07
@@ -3002,7 +3001,7 @@ void psdFromMH97 ( Vector& psd,
   {
     return;
   }
-  assert (iwc<=0.);
+  assert (iwc>0.);
 
   // convert m to microns
   Vector d_um(nD);

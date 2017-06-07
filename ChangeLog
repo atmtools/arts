@@ -1,3 +1,10 @@
+2017-06-07 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-707
+
+	* src/cloudbox.[cc,h] (psdFromMH97):
+	Fixed last-minute introduced bug *eyeroll*.
+
 2017-06-07  Simon Pfreundschuh <simonpf@chalmers.se>
 
 	* arts-2-3-706
