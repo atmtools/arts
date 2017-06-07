@@ -1,12 +1,17 @@
 2017-06-07  Simon Pfreundschuh <simonpf@chalmers.se>
 
-	* arts-2-3-702
+	* arts-2-3-704
+
+	* 3rdparty/invlib/src/invlib/invlib.h: Added missing invlib file.
+
+2017-06-07  Simon Pfreundschuh <simonpf@chalmers.se>
+
+	* arts-2-3-703
 
 	* src/m_oem.cc: Added guards to keep isnan macro out of invlib code.
 
 	* src/matpack.h: Rolled back using declarations, which cause build error
 	on different configuration.
-
 
 2017-06-07  Simon Pfreundschuh <simonpf@chalmers.se>
 
