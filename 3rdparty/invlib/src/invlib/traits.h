@@ -9,6 +9,8 @@
 #include <type_traits>
 #include <functional>
 
+#include "invlib/invlib.h"
+
 #ifndef TRAITS_H
 #define TRAITS_H
 
@@ -182,28 +184,13 @@ struct is_same_template<TT1, TT1>
     static constexpr bool value = true;
 };
 
-// ----------------------------- //
-//        Is Callable            //
-// ----------------------------- //
+// ------------------- //
+//  Detect Invlib Code //
+// ------------------- //
 
-template
-<
-    typename F,
-    typename = void
->
-struct is_callable
-{
-    static constexpr bool value = false;
-};
+template<typename T>
+    using is_invlib_expression = std::is_base_of<Invlib, T>;
 
-template
-<
-    typename F
->
-struct is_callable<F, typename std::result_of<F>::type>
-{
-    static constexpr bool value = true;
-};
+}     // namespace::invlib
 
-}      // invlib
 #endif // TRAITS_H

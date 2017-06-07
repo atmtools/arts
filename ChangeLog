@@ -1,3 +1,17 @@
+2017-06-07  Simon Pfreundschuh <simonpf@chalmers.se>
+
+	* arts-2-3-702
+
+	* src/oem.h(ArtsLog): Some cosmetical fixes for the logging class.
+
+	* src/m_oem.cc (oem_template): Implemented some changes discussed
+	with Patrick. Also fixed the length of the ml_ga_history_vector.
+
+	* 3rdparty/invlib/*: Updated invlib library
+
+	* src/matpack.h: Replaced Macros by using directives. Same effect, but doesn't
+	break other code that uses the std:: prefix for the isnan and isinf functions.
+
 2017-06-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-701

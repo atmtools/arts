@@ -782,12 +782,12 @@ void oem_template(
     if( method == "ml" || method == "lm"
         || method == "ml_cg" || method == "lm_cg" )
     {
-        ml_ga_history.resize( max_iter );
+        ml_ga_history.resize(max_iter + 1);
         ml_ga_history = NAN;
     }
     else
     {
-        ml_ga_history.resize( 0 );
+        ml_ga_history.resize(0);
     }
 
     // Start value of cost function
@@ -799,6 +799,12 @@ void oem_template(
         cost_start = dy * sdy;
     }
     oem_diagnostics[1] = cost_start;
+
+    // Check for start vector and precomputed yf, jacobian
+    if (x.nelem() != n) {
+        yf.resize(0);
+        jacobian.resize(0,0);
+    }
 
     // Handle cases with too large start cost
     if( max_start_cost > 0  &&  cost_start > max_start_cost )  
@@ -813,20 +819,14 @@ void oem_template(
                  << "      Found value : " << cost_start << endl << endl;
         }
     }
-
     // Otherwise do inversion
     else
     {
-        // Size remaining output arguments
-        x.resize( n );
-        dxdy.resize( n, m );
-
         OEMSparse SeInv(covmat_so_inv), SaInv(covmat_sx_inv);
         PrecisionSparse Pe(SeInv), Pa(SaInv);
-        OEMVector xa_oem(xa), y_oem(y), x_oem;
-        AgendaWrapper aw(
-            &ws, (unsigned int) m, (unsigned int) n,
-            jacobian, yf, &inversion_iterate_agenda);
+        OEMVector xa_oem(xa), y_oem(y), x_oem(x);
+        AgendaWrapper aw(&ws, (unsigned int) m, (unsigned int) n,
+                         jacobian, yf, &inversion_iterate_agenda);
         OEM_PS_PS<AgendaWrapper> oem(aw, xa_oem, Pa, Pe);
         int oem_verbosity = static_cast<int>(display_progress);
 
@@ -847,7 +847,7 @@ void oem_template(
                 GN_CG gn(stop_dx, 1, cg); // Linear case, only one step.
                 return_code = oem.compute<GN_CG, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
-                    ml_ga_history);
+                    ml_ga_history, true);
             }
             else if (method == "gn")
             {
@@ -904,11 +904,11 @@ void oem_template(
         }
         catch (const std::exception & e)
         {
-
             oem_diagnostics[0]  = 99;
             oem_diagnostics[2] = oem.cost;
             oem_diagnostics[3] = oem.cost_y;
             oem_diagnostics[4] = static_cast<Numeric>(oem.iterations);
+            x_oem *= NAN;
             std::vector<std::string> sv = handle_nested_exception(e);
             for (auto & s : sv)
             {

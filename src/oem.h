@@ -300,12 +300,12 @@ public:
             std::cout << std::get<2>(tuple) * scaling_factor << std::endl;
 
             bool converged = std::get<0>(tuple);
-            if (converged && !linear)
+            if (converged)
             {
                 std::cout << "OEM computation converged." << std::endl;
-            }
-            else
-            {
+            } else if (linear) {
+                std::cout << "Linear OEM computation finished." << std::endl;
+            } else {
                 std::cout << "OEM computation DID NOT converge!" << std::endl;
             }
         }

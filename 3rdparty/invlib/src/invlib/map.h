@@ -1,14 +1,13 @@
 #ifndef MAP_H
 #define MAP_H
 
+#include <iostream>
 #include <chrono>
 #include <exception>
-#include <iostream>
 
 using std::chrono::steady_clock;
 using std::chrono::duration;
 using std::chrono::duration_cast;
-
 
 #include "invlib/algebra.h"
 #include "invlib/algebra/solvers.h"
@@ -120,11 +119,11 @@ public:
                                                         const VectorType &,
                                                         VectorType &)>;
 
-    /*! Jacobian type that can be assigned to. */
-    using JacobianType          = CopyWrapper<FMJacobianType>;
-
     /*! Measurement vector type that can be assigned to. */
-    using MeasurementVectorType = FMVectorType;
+    using MeasurementVectorType = CopyWrapper<FMVectorType>;
+
+    /*! Jacobian type that can be assigned to. */
+    using JacobianType = CopyWrapper<FMJacobianType>;
 
     // ------------------------------- //
     //  Constructors and Destructors   //
@@ -205,7 +204,7 @@ public:
     /*! Exception safe wrapper for the evaluate function of the forward
      * model.
      */
-    FMVectorType evaluate(const VectorType &x);
+    MeasurementVectorType evaluate(const VectorType &x);
 
     /*! Exception safe wrapper for the Jaobian computation function of the
      * forward model.
@@ -225,7 +224,7 @@ public:
 
 protected:
 
-    size_t m, n;
+    unsigned int m, n;
 
     ForwardModel &F;
     const VectorType   &xa;
@@ -325,19 +324,14 @@ public:
      * gradient before solving the subproblem.
      * that should be used to minimize the likelihood.
      */
-    template
-    <
-        typename Minimizer,
-        template <LogType> class Log = StandardLog,
-        typename ... LogArgs
-    >
+    template<typename Minimizer, template <LogType> class Log = StandardLog, typename ... LogParams>
     int compute(VectorType       &x,
                 const VectorType &y,
                 Minimizer M,
-                LogArgs && ... log_args);
+                LogParams ... log_params);
 
     RealType cost, cost_x, cost_y;
-    size_t iterations;
+    unsigned int iterations;
 
 };
 
@@ -415,19 +409,14 @@ public:
      * gradient before solving the subproblem.
      * that should be used to minimize the likelihood.
      */
-    template
-    <
-        typename Minimizer,
-        template <LogType> class Log = StandardLog,
-        typename ... LogArgs
-    >
+    template<typename Minimizer, template <LogType> class Log = StandardLog, typename ... LogParams>
     int compute(VectorType       &x,
                 const VectorType &y,
                 Minimizer M,
-                LogArgs && ... log_args);
+                LogParams ... log_params);
 
     RealType cost, cost_x, cost_y;
-    size_t iterations;
+    unsigned int iterations;
 
 };
 
@@ -510,19 +499,14 @@ public:
      * gradient before solving the subproblem.
      * that should be used to minimize the likelihood.
      */
-    template
-    <
-        typename Minimizer,
-        template <LogType> class Log = StandardLog,
-        typename ... LogArgs
-    >
+    template<typename Minimizer, template <LogType> class Log = StandardLog, typename ... LogParams>
     int compute(VectorType       &x,
                 const VectorType &y,
                 Minimizer M,
-                LogArgs && ... log_args);
+                LogParams ... log_params);
 
     RealType cost, cost_x, cost_y;
-    size_t iterations;
+    unsigned int iterations;
 
 };
 

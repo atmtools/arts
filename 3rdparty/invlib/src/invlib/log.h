@@ -1,6 +1,7 @@
 #ifndef LOG_H
 #define LOG_H
 
+#include <cmath>
 #include <tuple>
 #include <string>
 #include <iostream>
@@ -167,6 +168,7 @@ struct OptimizerLog<GaussNewton<RealType, Solver>>
     }
 
 };
+
 // ---------------------- //
 //        MAP Log         //
 // ---------------------- //
@@ -219,7 +221,6 @@ template<>
 template<typename... Params>
 void StandardLog<LogType::MAP>::step(Params... params)
 {
-
     if (verbosity >= 2)
     {
         auto tuple = std::make_tuple(params...);
@@ -230,7 +231,12 @@ void StandardLog<LogType::MAP>::step(Params... params)
         std::cout<< std::setw(15) << std::get<1>(tuple);
         std::cout<< std::setw(15) << std::get<2>(tuple);
         std::cout<< std::setw(15) << std::get<3>(tuple);
-        std::cout<< std::setw(15) << std::get<4>(tuple);
+        if (std::isnan(std::get<4>(tuple)))
+        {
+            std::cout << std::setw(15) << " ";
+        } else {
+            std::cout << std::setw(15) << std::get<4>(tuple);
+        }
         std::cout<< OptimizerLog<OptimizationType>::log(std::get<5>(tuple));
         std::cout << std::endl;
     }
@@ -262,8 +268,6 @@ void StandardLog<LogType::MAP>::finalize(Params... params)
         {
             std::cout << "MAP Computation NOT converged!" << std::endl;
         }
-
-
     }
 }
 
