@@ -1,3 +1,20 @@
+2017-06-07 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-705
+
+	* src/cloudbox.[cc,h] (psdFromMH97):
+	Revised and renamed old IWCtopnd_MH97. Now takes a Vector of sizes.
+	More rigid behaviour for out-of-bounds input parameters, pushing all
+	responsibility to handle/fix them to calling function.
+
+	* src/m_cloudbox.cc (dNdD_MH97):
+	Adapted to apply new psdFromMH97 conserving old behaviour.
+
+	* src/m_cloudradar.cc:
+	Adapted to apply new psdFromMH97.
+
+	* src/methods.cc: Cosmetical fixes.
+
 2017-06-07  Simon Pfreundschuh <simonpf@chalmers.se>
 
 	* arts-2-3-704

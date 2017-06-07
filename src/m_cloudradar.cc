@@ -264,10 +264,6 @@ void psdMH97 (
   else
     { dpsd_data_dx.resize( 0, 0, 0  ); }  
 
-  // Jana!!! Should core code of MH97 be included in this method. Or change
-  // core function to take multiple input, to avoid calculation overhead.
-  // Anyhow, ore function should be renamed (pnd in name is incorrect)
-
   for( Index ip=0; ip<np; ip++ )
     {
       
@@ -298,19 +294,24 @@ void psdMH97 (
             { continue; }   // If here, we are ready with this point!
         }
 
-      // PSD assumed to be constant outside [200,273]
+      // PSD assumed to be constant outside [200,273.15]
       // Shall these temperature limits be GIN?
       if( t < 200 )
         { t = 200; }
-      else if( t > 273 )
-        { t = 273; }
+      else if( t > 273.15 )
+        { t = 273.15; }
   
+      // To Patrick & Oliver: Shall the core psd fucntion (psdFromMH97) handle
+      // even more input (i.e. Vectors of IWC and T) for calculation overhead
+      // avoidance?
+
+      Vector psd_1p(nsi);
       // Calculate PSD
       if( iwc != 0 )
         {
+          psdFromMH97 ( psd_1p, psd_size_grid, iwc, t, noisy );
           for ( Index i=0; i<nsi; i++ )
-            { psd_data(ip,i) = psd_weight *
-                           IWCtopnd_MH97( iwc, psd_size_grid[i], t, noisy, 1 ); }
+            { psd_data(ip,i) = psd_weight * psd_1p[i]; }
         }
 
       // Calculate derivative with respect to IWC
@@ -320,10 +321,9 @@ void psdMH97 (
           // Note that the last value becomes the perturbation for IWC=0.
           const Numeric diwc = max( 0.001*iwc, 1e-7 );
           const Numeric iwcp = iwc + diwc;
+          psdFromMH97 ( psd_1p, psd_size_grid, iwcp, t, noisy );
           for ( Index i=0; i<nsi; i++ )
-            { dpsd_data_dx(0,ip,i) = (
-                         IWCtopnd_MH97( iwcp, psd_size_grid[i], t, noisy, 1 ) -
-                         psd_data(ip,i) ) / diwc; }
+            { dpsd_data_dx(0,ip,i) = ( psd_1p[i] - psd_data(ip,i) ) / diwc; }
         }   
     }
 }

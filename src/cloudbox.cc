@@ -877,6 +877,23 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
             // a valid IWC value encountered. Calculating dNdD.
             if (IWC_field ( p, lat, lon ) > 0.)
               {
+                Numeric T = t_field ( p, lat, lon );
+
+                // abort if T is too high
+                if ( !robust && T>280. )
+                  {
+                    ostringstream os;
+                    os << "Temperatures above 280K not allowed by MH97"
+                       << " (to allow: run with robust option).\n"
+                       << "Yours is " << T << "K.";
+                    throw runtime_error ( os.str() );
+                  }
+                // allow some margin on T>0C (but use T=0C for PSD calc)
+                T = min( T, 273.15 );
+
+                psdFromMH97 ( dNdD, diameter_mass_equivalent,
+                              IWC_field(p,lat,lon), T, noisy );
+/*
                 // iteration over all given size bins
                 for ( Index i=0; i<diameter_mass_equivalent.nelem(); i++ )
                   {
@@ -888,6 +905,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
                                               t_field ( p, lat, lon ),
                                               noisy, robust );
                   }
+*/
 
                 // ensure that any particles where produced
                 if ( dNdD.sum() == 0.0 )
@@ -907,7 +925,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
                     throw runtime_error ( os.str() );
                   }
 
-                // scale pnds by bin width
+                // derive pnds from scaling dNdD with bin width
                 if (diameter_mass_equivalent.nelem() > 1)
                   scale_pnd( pnd, diameter_mass_equivalent, dNdD );
                 else
@@ -917,7 +935,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
                 chk_pndsum ( pnd, IWC_field ( p,lat,lon ), mass,
                              p, lat, lon, partfield_name, verbosity );
 	    
-                // writing pnd vector to wsv pnd_field
+                // writing pnd vector to WSV pnd_field
                 for ( Index i = 0; i< N_se; i++ )
                   {
                     pnd_field ( intarr[i]+scat_data_start, p-limits[0],
@@ -2948,53 +2966,52 @@ void pnd_fieldH98 (Tensor4View pnd_field,
 }
 
 
+/*! Calculates particle size distribution of cloud ice using MH97 parametrization.
+ *  
+ *  Handles a vector of sizes at a time. Implicitly assumes particles of water
+ *  ice. Strictly requires temperature to be <=273.15K (<=0C), i.e. calling
+ *  method needs to ensure this.
+ *  
+ *  Adapted from the 'old' IWCtopnd_MH97.
 
-/*! Calculates particle size distribution using MH97 parametrization.
- *  Each diameter of the scattering elements is a node in the distribution.
- *  One call of this function calculates number density for one scattering
- *  element. Implicitly assumes particles of water ice.
-
-    \return dNdD particle number density per diameter interval [#/m3*m]
-          
+    \param psd     particle number density per size interval [#/m3*m]
     \param iwc     atmospheric ice water content [kg/m3]
-    \param diameter_mass_equivalent  mass equivalent diameter of scattering element [m]
+    \param diameter  size of the scattering elements (supposed to be mass (aka
+                       volume) equivalent diameter of pure ice particle) [m]
     \param t       atmospheric temperature [K]
-    \param perturb flag whether to add noise onto PSD parameters according to
-                   their reported error statistics
+    \param noisy   flag whether to add noise onto PSD parameters according to
+                     their reported error statistics
+    \param robust  ?
   
-  \author Daniel Kreyling
-  \date 2010-12-06
+  \author Jana Mendrok, Daniel Kreyling
+  \date 2017-06-07
 
 */
-Numeric IWCtopnd_MH97 ( const Numeric iwc,
-                        const Numeric diameter_mass_equivalent,
-                        const Numeric t,
-                        const bool noisy,
-                        const bool robust )
+void psdFromMH97 ( Vector& psd,
+                   const Vector& diameter,
+                   const Numeric& iwc,
+                   const Numeric& t,
+                   const bool noisy )
 {
+  Index nD = diameter.nelem();
+  psd.resize(nD);
+  psd = 0.;
+
   // skip calculation if IWC is 0.0
   if ( iwc == 0.0 )
   {
-    return 0.0;
+    return;
   }
+  assert (iwc<=0.);
 
   // convert m to microns
-  Numeric dmass = diameter_mass_equivalent * 1e6;
+  Vector d_um(nD);
+  for ( Index iD=0; iD<nD; iD++ )
+    d_um[iD] = 1e6 * diameter[iD];
   //convert T from Kelvin to Celsius
   Numeric T = t-273.15;
 
-  // abort if T is too high
-  if ( !robust && t>280. )
-    {
-      ostringstream os;
-      os << "Temperatures above 280K not allowed by MH97"
-         << " (to allow: run with robust option).\n"
-         << "Yours is " << t << "K.";
-      throw runtime_error ( os.str() );
-    }
-  // allow some margin on T>0C (but use T=0C for PSD calc)
-  if ( T>0. )
-    T = 0.;
+  assert (T<=0.);
 
   //[kg/m3] -> [g/m3] as used by parameterisation
   Numeric ciwc = iwc*1e3;
@@ -3037,10 +3054,6 @@ Numeric IWCtopnd_MH97 ( const Numeric iwc,
     sig_absigma=0., sig_bbsigma=0.;
   }
 
-  Numeric dNdD1;
-  Numeric dNdD2;
-  Numeric dNdD;
-
   //split IWC in IWCs100 and IWCl100
   // determine iwc<100um and iwc>100um
   Numeric a=0.252+sig_a; //g/m^3
@@ -3057,24 +3070,22 @@ Numeric IWCtopnd_MH97 ( const Numeric iwc,
   // for large IWC alpha, hence dNdD1, goes negative. avoid that.
   // towards this limit, particles anyway get larger 100um, i.e.,
   // outside the size region gamma distrib is intended for
+  Vector dNdD1(nD, 0.);
   if (alphas100>0.)
   {
     Numeric Ns100 = 6*IWCs100 * pow ( alphas100,5. ) /
                     ( PI*cdensity*gamma_func ( 5. ) );//micron^-5
-    Numeric Nm1 = Ns100*dmass*exp ( -alphas100*dmass ); //micron^-4
-    dNdD1 = Nm1*1e18; // m^-3 micron^-1
+    for ( Index iD=0; iD<nD; iD++ )
+      dNdD1[iD] = 1e18 * Ns100*d_um[iD] *
+                  exp ( -alphas100*d_um[iD] ); //micron^-4 -> m^-3 micron^-1
   }
-  else
-  {
-    dNdD1 = 0.;
-  }
-
 
 
   //Log normal distribution component
 
   // for small IWC, IWCtotal==IWC<100 & IWC>100=0.
   // this will give dNdD2=NaN. avoid that by explicitly setting to 0
+  Vector dNdD2(nD, 0.);
   if (IWCl100>0.)
   {
     //FIXME: Do we need to ensure mul100>0 and sigmal100>0?
@@ -3098,36 +3109,22 @@ Numeric IWCtopnd_MH97 ( const Numeric iwc,
     if ( (mul100>0.) & (sigmal100>0.) )
     {
       Numeric a1 = 6*IWCl100; //g/m^3
-      Numeric a2 = pow ( PI,3./2. ) * cdensity*sqrt(2) *
+      Numeric a2_fac = pow ( PI,3./2. ) * cdensity*sqrt(2) *
                    exp( 3*mul100+9./2. * pow ( sigmal100,2 ) ) * 
-                   sigmal100 * pow ( 1.,3 ) * dmass; //g/m^3/micron^4
-      Numeric Nm2 = a1/a2 *
-                    exp ( -0.5 * pow ( ( log ( dmass )-mul100 ) /sigmal100,2 ) );
-                    //micron^-4
-      dNdD2 = Nm2*1e18; // m^-3 micron^-1
+                   sigmal100 * pow ( 1.,3 );
+      //a2 = a2_fac * d_um; //g/m^3/micron^4
+      for ( Index iD=0; iD<nD; iD++ )
+        dNdD2[iD] = 1e18 * a1 / (a2_fac*d_um[iD]) *
+                    exp ( -0.5 * pow ( ( log ( d_um[iD] )-mul100 ) /sigmal100,2 ) );
+                    //micron^-4 -> m^-3 micron^-1
     }
-    else
+  }
+
+  for( Index iD=0; iD<nD; iD++ )
     {
-      dNdD2 = 0.;
-/*      ostringstream os;
-      os<< "ERROR: not a valid MH97 size distribution:\n"
-        << "mu>100=" << mul100 << " resulting from amu="<< amu << " and bmu="<< bmu << "\n"
-        << "(aamu="<<aamu<<", bamu="<<bamu<<", abmu="<<abmu<<", bbmu="<<bbmu<<")\n"
-        << "sigma>100=" << sigmal100 << " resulting from asigma="<< asigma << " and bsigma="<< bsigma << "\n"
-        << "(aasigma="<<aasigma<<", basigma="<<basigma<<", absigma="<<absigma<<", bbsigma="<<bbsigma<<")\n";
-      throw runtime_error ( os.str() );      */
+      if ( !isnan(dNdD1[iD]) && !isnan(dNdD2[iD]) )
+        psd[iD] = ( dNdD1[iD]+dNdD2[iD] ) *1e6; // m^-3 m^-1
     }
-  }
-  else
-  {
-    dNdD2 = 0.;
-  }
-
-
-
-  dNdD = ( dNdD1+dNdD2 ) *1e6; // m^-3 m^-1
-  if (isnan(dNdD)) dNdD = 0.0;
-  return dNdD;
 }
 
 

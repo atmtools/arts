@@ -4252,7 +4252,7 @@ void define_md_data_raw()
          "Calculation of particle size distribution (dN/dD) following\n"
          "McFarquahar and Heymsfield (1997) parametrization.\n"
          "\n"
-         "A wrapper to internal particle size distribution calculation.\n"
+         "A wrapper to the internal particle size distribution calculation.\n"
          "McFarquhar and Heymsfield (1997) is a parametrization for cloud\n"
          "ice in the tropics. Parametrization is in ice water content (IWC)\n"
          "and ambient atmospheric temperature over particle size in terms of\n"
@@ -11507,7 +11507,7 @@ void define_md_data_raw()
          "The particle size distribution (PSD) ofMcFarquahar and Heymsfield\n"
          "(1997) parametrization is here denoted as MH97.\n"
          "\n"
-         "To be writen ...\n"
+         "To be written ...\n"
         ),
         AUTHORS( "Jana Mendrok and Patrick Eriksson" ),
         OUT( "psd_data", "dpsd_data_dx" ),
@@ -11518,10 +11518,10 @@ void define_md_data_raw()
             "dpnd_data_dx_names" ),
         GIN( "t_min", "t_max", "picky", "noisy" ),
         GIN_TYPE( "Numeric", "Numeric", "Index", "Index" ),
-        GIN_DEFAULT( "0", "273", "0", "0" ),
+        GIN_DEFAULT( "0", "273.15", "0", "0" ),
         GIN_DESC( "Set *psd* to zero if below this temperature.",
                   "Set *psd* to zero if above this temperature.",
-                  "Flag to control if outside [t_min,t_max] resulst in an error.",
+                  "Flag to control if values outside [t_min,t_max] result in an error.",
                   "Distribution parameter perturbance flag" )
         ));
  

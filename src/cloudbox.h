@@ -208,11 +208,11 @@ void pnd_fieldH98 (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity);
 
-Numeric IWCtopnd_MH97 (const Numeric iwc,
-                       Numeric diameter_volume_equivalent,
-                       const Numeric t,
-                       const bool noisy,
-                       const bool robust);
+void psdFromMH97 ( Vector& psd, 
+                   const Vector& diameter,
+                   const Numeric& iwc,
+                   const Numeric& t,
+                   const bool noisy );
 
 Numeric IWCtopnd_H11 (const Numeric diameter_mass_equivalent,
                       const Numeric t);

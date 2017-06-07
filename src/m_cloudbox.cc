@@ -2432,12 +2432,23 @@ void dNdD_MH97 (//WS Output:
   Index n_se = diameter_mass_equivalent.nelem();
   dNdD.resize(n_se);
 
+  // abort if T is too high
+  if ( !robust && t>280. )
+    {
+      ostringstream os;
+      os << "Temperatures above 280K not allowed by MH97"
+         << " (to allow: run with robust option).\n"
+         << "Yours is " << t << "K.";
+      throw runtime_error ( os.str() );
+    }
+  // allow some margin on T>0C (but use T=0C for PSD calc)
+  Numeric T = min( t, 273.15 );
+
   for ( Index i=0; i<n_se; i++ )
     {
       // calculate particle size distribution with MH97
       // [# m^-3 m^-1]
-      dNdD[i] = IWCtopnd_MH97 ( IWC, diameter_mass_equivalent[i], t, noisy,
-                                robust );
+      psdFromMH97 ( dNdD, diameter_mass_equivalent, IWC, T, noisy );
     }
 }
 
