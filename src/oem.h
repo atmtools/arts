@@ -273,7 +273,7 @@ public:
             std::cout<< std::setw(15) << scaling_factor * std::get<2>(tuple);
             std::cout<< std::setw(15) << scaling_factor * std::get<3>(tuple);
 
-            if (isnan(std::get<4>(tuple)))
+            if (std::isnan(std::get<4>(tuple)))
             {
                 std::cout<< std::setw(15) << " ";
             } else {
