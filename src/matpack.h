@@ -39,8 +39,8 @@ typedef INDEX Index;
 // call the old functions or the new ones
 #if (__cplusplus >= 201103L)
 #include <cmath>
-using std::isnan;
-using std::isinf;
+#define isnan std::isnan
+#define isinf std::isinf
 #endif
 
 #endif    // matpackI_h

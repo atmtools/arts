@@ -628,10 +628,21 @@ void x2artsScatSpecies(
   === OEM itself (with wrappers and tempate definitions)
   ===========================================================================*/
 
+// Include only if compiling with C++11.
 #ifdef OEM_SUPPORT
 
-// Include only if compiling with C++11.
+// isnan macro breaks invlib.
+#ifdef isnan
+#undef isnan
+#define ISNAN_SET
+#endif
+
 #include "oem.h"
+
+#ifdef ISNAN_SET
+#define isnan std::isnan
+#endif
+
 #include "agenda_wrapper.h"
 
 //

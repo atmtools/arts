@@ -2,6 +2,16 @@
 
 	* arts-2-3-702
 
+	* src/m_oem.cc: Added guards to keep isnan macro out of invlib code.
+
+	* src/matpack.h: Rolled back using declarations, which cause build error
+	on different configuration.
+
+
+2017-06-07  Simon Pfreundschuh <simonpf@chalmers.se>
+
+	* arts-2-3-702
+
 	* src/oem.h(ArtsLog): Some cosmetical fixes for the logging class.
 
 	* src/m_oem.cc (oem_template): Implemented some changes discussed
