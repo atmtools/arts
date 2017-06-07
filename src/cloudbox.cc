@@ -891,7 +891,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
                 // allow some margin on T>0C (but use T=0C for PSD calc)
                 T = min( T, 273.15 );
 
-                psdFromMH97 ( dNdD, diameter_mass_equivalent,
+                psd_cloudice_MH97 ( dNdD, diameter_mass_equivalent,
                               IWC_field(p,lat,lon), T, noisy );
 /*
                 // iteration over all given size bins
@@ -2966,6 +2966,138 @@ void pnd_fieldH98 (Tensor4View pnd_field,
 }
 
 
+/*! Calculates particle size distribution according to a general modified gamma
+ *  distribution
+ *  
+ *  Uses all four free parameters (N0, mu, lambda, gamma) to calculate
+ *    psd(D) = N0 * D^mu * exp( -lambda * D^gamma )
+ *  
+ *  Reference: Petty & Huang, JAS, (2011).
+ *  Ported from Atmlab.
+
+    \param psd     particle number density per size interval [#/m3*m]
+    \param diameter  size of the scattering elements (volume equivalent
+                       diameter) [m]
+    \param N0      Intercept parameter. See above. [ ? ]
+    \param mu      See above. [ ? ]
+    \param lambda  See above. [ ? ]
+    \param gamma   See above. [ ? ]
+  
+  \author Jana Mendrok, Patrick Eriksson
+  \date 2017-06-07
+
+*/
+void psd_general_MGD ( Vector& psd,
+                   const Vector& diameter,
+                   const Numeric& N0,
+                   const Numeric& mu,
+                   const Numeric& lambda,
+                   const Numeric& gamma )
+{
+  Index nD = diameter.nelem();
+  psd.resize(nD);
+  psd = 0.;
+
+  // ensure numerical stability
+  if( (mu+1)/gamma <= 0. )
+    {
+      ostringstream os;
+      os << "(mu+1) / gamma must be > 0.";
+      throw runtime_error( os.str() );
+    }
+
+  // skip calculation if N0 is 0.0
+  if ( N0 == 0.0 )
+  {
+    return;
+  }
+  assert (N0>0.);
+
+  if( gamma == 1 )
+    {
+      if( mu == 0 )
+        // Exponential distribution
+        for( Index iD=0; iD<nD; iD++ )
+          {
+            psd[iD] = N0 *
+                      exp( -lambda*diameter[iD] );
+          }
+      else
+        // Gamma distribution
+        for( Index iD=0; iD<nD; iD++ )
+          {
+            psd[iD] = N0 * pow( diameter[iD], mu ) *
+                      exp( -lambda*diameter[iD] );
+          }
+    }
+  else
+    {
+      // Complete MGD
+      for( Index iD=0; iD<nD; iD++ )
+        {
+          psd[iD] = N0 * pow( diameter[iD], mu ) * 
+                    exp( -lambda*pow( diameter[iD], gamma ) );
+        }
+    }
+
+  //for( Index iD=0; iD<nD; iD++ )
+  //  if( isnan(psd[iD]) )
+  //    psd[iD] = 0.0;
+}
+
+
+/*! Calculates particle size distribution of (stratiform) rain using Wang16
+ *  parametrization.
+ *  
+ *  Uses rain water water content. PSD follows an exponential distribution.
+ *  Handles a vector of sizes at a time.
+ *  
+ *  Reference: Wang et al., 2016, "Investigation of liquid cloud microphysical
+ *  properties of deep convective systems: 1. Parameterization raindrop size
+ *  distribution and its application for stratiform rain estimation".
+ *  Ported from CloudArts matlab implementation.
+
+    \param psd     particle number density per size interval [#/m3*m]
+    \param diameter  size of the scattering elements (volume equivalent
+                       diameter) [m]
+    \param rwc     atmospheric rain water content [kg/m3]
+  
+  \author Jana Mendrok, Bengt Rydberg
+  \date 2017-06-07
+
+*/
+void psd_rain_W16 ( Vector& psd,
+                   const Vector& diameter,
+                   const Numeric& rwc )
+{
+  Index nD = diameter.nelem();
+  psd.resize(nD);
+  psd = 0.;
+
+  // skip calculation if RWC is 0.0
+  if ( rwc == 0.0 )
+  {
+    return;
+  }
+  assert (rwc>0.);
+
+  // a and b relates N0 to lambda N0 = a*lambda^b
+  Numeric a = 0.000141;
+  Numeric b = 1.49;
+  Numeric c1 = DENSITY_OF_WATER * PI / 6;
+  Numeric base = c1 / rwc * a * tgamma(4);
+  Numeric exponent = 1. / (4 - b);
+  Numeric lambda = 1e2 * pow( base, exponent );
+  Numeric N0 = 1e8 * a * pow( lambda, b );
+
+  //psd_general_MGD( psd, N0, 0, lambda, 1 );
+  for( Index iD=0; iD<nD; iD++ )
+    {
+      psd[iD] = N0 * exp( -lambda*diameter[iD] );
+    }
+}
+
+
 /*! Calculates particle size distribution of cloud ice using MH97 parametrization.
  *  
  *  Handles a vector of sizes at a time. Implicitly assumes particles of water
@@ -2986,7 +3118,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
   \date 2017-06-07
 
 */
-void psdFromMH97 ( Vector& psd,
+void psd_cloudice_MH97 ( Vector& psd,
                    const Vector& diameter,
                    const Numeric& iwc,
                    const Numeric& t,

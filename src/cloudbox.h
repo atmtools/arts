@@ -208,7 +208,18 @@ void pnd_fieldH98 (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity);
 
-void psdFromMH97 ( Vector& psd, 
+void psd_general_MGD ( Vector& psd,
+                   const Vector& diameter,
+                   const Numeric& N0,
+                   const Numeric& mu,
+                   const Numeric& lambda,
+                   const Numeric& gamma );
+
+void psd_rain_W16 ( Vector& psd,
+                   const Vector& diameter,
+                   const Numeric& rwc );
+
+void psd_cloudice_MH97 ( Vector& psd, 
                    const Vector& diameter,
                    const Numeric& iwc,
                    const Numeric& t,

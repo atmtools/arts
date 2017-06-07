@@ -2419,12 +2419,42 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void dNdD_W16 (//WS Output:
+              Vector& dNdD,
+              //WS Input:
+              const Vector& diameter_mass_equivalent,
+              const Numeric& RWC,
+              const Index& robust,
+              const Verbosity&)
+{
+  Index n_se = diameter_mass_equivalent.nelem();
+  dNdD.resize(n_se);
+
+  // abort if RWC is negative
+  if ( !robust && RWC<0. )
+    {
+      ostringstream os;
+      os << "Ice water content can not be negative."
+         << " Yours is " << RWC << "kg/m3.";
+      throw runtime_error ( os.str() );
+    }
+  Numeric rwc = max( RWC, 0. );
+
+  for ( Index i=0; i<n_se; i++ )
+    {
+      // calculate particle size distribution with W16
+      // [# m^-3 m^-1]
+      psd_rain_W16 ( dNdD, diameter_mass_equivalent, rwc );
+    }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void dNdD_MH97 (//WS Output:
               Vector& dNdD,
               //WS Input:
               const Vector& diameter_mass_equivalent,
               const Numeric& IWC,
-              const Numeric& t,
+              const Numeric& T,
               const Index& noisy,
               const Index& robust,
               const Verbosity&)
@@ -2432,23 +2462,33 @@ void dNdD_MH97 (//WS Output:
   Index n_se = diameter_mass_equivalent.nelem();
   dNdD.resize(n_se);
 
+  // abort if IWC is negative
+  if ( !robust && IWC<0. )
+    {
+      ostringstream os;
+      os << "Ice water content can not be negative."
+         << " Yours is " << IWC << "kg/m3.";
+      throw runtime_error ( os.str() );
+    }
+  Numeric iwc = max( IWC, 0. );
+
   // abort if T is too high
-  if ( !robust && t>280. )
+  if ( !robust && T>280. )
     {
       ostringstream os;
       os << "Temperatures above 280K not allowed by MH97"
          << " (to allow: run with robust option).\n"
-         << "Yours is " << t << "K.";
+         << "Yours is " << T << "K.";
       throw runtime_error ( os.str() );
     }
   // allow some margin on T>0C (but use T=0C for PSD calc)
-  Numeric T = min( t, 273.15 );
+  Numeric t = min( T, 273.15 );
 
   for ( Index i=0; i<n_se; i++ )
     {
       // calculate particle size distribution with MH97
       // [# m^-3 m^-1]
-      psdFromMH97 ( dNdD, diameter_mass_equivalent, IWC, T, noisy );
+      psd_cloudice_MH97 ( dNdD, diameter_mass_equivalent, iwc, t, noisy );
     }
 }
 

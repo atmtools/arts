@@ -4273,11 +4273,11 @@ void define_md_data_raw()
                      "Index", "Index" ),
         GIN_DEFAULT( NODEF,                      NODEF,     NODEF,
                      "0",     "0" ),
-        GIN_DESC( "Mass equivalent sphere diameter of the particles [m]",
-                  "Atmospheric ice water content [kg/m3]",
-                  "Ambient atmospheric temperature [K]",
-                  "Distribution parameter perturbance flag",
-                  "Flag whether to ignore internal temperature range check" )
+        GIN_DESC( "Mass equivalent sphere diameter of the particles [m].",
+                  "Atmospheric ice water content [kg/m3].",
+                  "Ambient atmospheric temperature [K].",
+                  "Distribution parameter perturbance flag.",
+                  "Flag whether to ignore parametrization value checks." )
         ));
     
   md_data_raw.push_back
@@ -4512,6 +4512,33 @@ void define_md_data_raw()
                   "Precipitation rate unit",
                   "Material density [kg/m3] (required if PRunit!='mm/h')" )
         ));  
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "dNdD_W16" ),
+        DESCRIPTION
+        (
+         "Calculation of raindrop size distribution (dN/dD) following\n"
+         "Wang et al. (2016) parametrization.\n"
+         "\n"
+         "A wrapper to the internal particle size distribution calculation.\n"
+         "Wang et al. (2016) is a parametrization for stratiform rain.\n"
+         "Parametrization is in rain water content (RWC) over particle size\n"
+         "in terms of mass equivalent sphere diameter of the liquid drops.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT(      "dNdD" ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "size distribution number density [#/m3/m]" ),
+        IN(),
+        GIN(         "diameter_mass_equivalent", "RWC",     "robust" ),
+        GIN_TYPE(    "Vector",                   "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF,                      NODEF,     "0" ),
+        GIN_DESC( "Mass equivalent sphere diameter of the particles [m].",
+                  "Rain water content [kg/m3].",
+                  "Flag whether to ignore parametrization value checks." )
+        ));
     
   md_data_raw.push_back
     ( MdRecord

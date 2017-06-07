@@ -1,5 +1,25 @@
 2017-06-07 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-708
+
+	* src/cloudbox.[cc,h]
+	(psd_rain_W16, psd_general_MGD):
+	Added. PSD core functions for Wang16 raindrop PSD and general
+	modified gamma distribution. Both ported from Matlab code in CloudARTS
+	and Atmlab, respectively.
+
+	(psd_cloudice_MH97):
+	Rename former IWCtopnd_MH97 / psdFromMH97 once more.
+
+	* src/m_cloudbox.cc, methods.cc (dNdD_W16):
+	Added. Wrapper WSM for Wang16 rain PSD.
+	(dNdD_MH97):
+	Check for negative IWC.
+
+	* src/m_cloudbox.cc (psdMH97): IWCtopnd_MH97 / psdFromMH97 rename.
+
+2017-06-07 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-707
 
 	* src/cloudbox.[cc,h] (psdFromMH97):
