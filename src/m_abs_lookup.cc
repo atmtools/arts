@@ -1400,14 +1400,18 @@ void abs_lookupSetupBatch(// WS Output:
           if (robust)
           {
               out1 << "  WARNING! Skipped invalid atmfield "
-                   << "at batch_atmfield index " << i << ".\n";
+                   << "at batch_atmfield index " << i << ".\n"
+                   << "The runtime error produced was:\n"
+                   << e.what() << "\n";
               continue;
           }
           // ... else throw an error.
           else
           {
               stringstream err;
-              err << "Invalid atmfield at batch_atmfield index " << i << ".\n";
+              err << "Invalid atmfield at batch_atmfield index " << i << ".\n"
+                  << "The runtime error produced was:\n"
+                  << e.what() << "\n";
               throw std::runtime_error( err.str() );
           }
       };
