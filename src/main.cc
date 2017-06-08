@@ -802,12 +802,6 @@ int main (int argc, char **argv)
 #else
         << "disabled" << endl
 #endif
-        << "   C++11 support:        "
-#ifdef CXX11_SUPPORT
-        << "enabled" << endl
-#else
-        << "disabled" << endl
-#endif
         << "   OEM support:          "
 #ifdef OEM_SUPPORT
         << "enabled" << endl
@@ -842,20 +836,18 @@ int main (int argc, char **argv)
 #else
         << "disabled" << endl
 #endif
-        << ""
-        << "Include search paths: " << endl;
-      
-      for (ArrayOfString::const_iterator it = parameters.includepath.begin();
-           it != parameters.includepath.end(); it++)
+        << "";
+
+      osfeatures  << "Include search paths: " << endl;
+      for (auto& path : parameters.includepath)
       {
-        osfeatures <<  "   " << (*it) << endl;
+        osfeatures <<  "   " << path << endl;
       }
-        osfeatures << "Data search paths: " << endl;
-      
-      for (ArrayOfString::const_iterator it = parameters.datapath.begin();
-           it != parameters.datapath.end(); it++)
+
+      osfeatures << "Data searchpaths: " << endl;
+      for (auto& path : parameters.datapath)
       {
-        osfeatures <<  "   " << (*it) << endl;
+        osfeatures <<  "   " << path << endl;
       }
     }
 

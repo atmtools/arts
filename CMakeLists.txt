@@ -19,7 +19,7 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 )
 endif ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 
-cmake_minimum_required (VERSION 2.8.0)
+cmake_minimum_required (VERSION 3.1.0)
 set (CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 if (NOT ENABLE_ALLPATHS)
@@ -45,7 +45,7 @@ if (ENABLE_FORTRAN)
   enable_language (Fortran)
 
   get_filename_component (FORTRAN_COMPILER ${CMAKE_Fortran_COMPILER} NAME)
-  
+
   if (FORTRAN_COMPILER MATCHES "gfortran.*")
     set (FORTRAN_EXTRA_FLAGS "-fdefault-double-8 -fdefault-integer-8 -fdefault-real-8")
     if (ENABLE_TMATRIX_QUAD)
@@ -80,13 +80,6 @@ set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 include (ArtsTestcases)
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-  set (CMAKE_COMPILER_IS_INTELCXX 1)
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "16.1")
-    set (NO_CXX11 1)
-  endif()
-endif (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-
 set (DATA_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/arts)
 
 if (NOT NUMERIC)
@@ -116,45 +109,41 @@ if (ENABLE_CCACHE)
   endif (CCACHE_FOUND)
 endif ()
 
-########### Check C++11 Support ##########
+########### C++11 Support ##########
 
-# Disable OEM support if compiling with clang on OSX
-# Xcode's clang as well as vanilla clang currently fails
-# compiling invlib
-if (NOT ENABLE_OEM AND APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set (NO_OEM 1)
-endif()
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-if (NOT NO_CXX11)
-  INCLUDE(CheckCXXCompilerFlag)
-  CHECK_CXX_COMPILER_FLAG("-std=c++11" CXX11_SUPPORT)
+# Explicitly set C++ flags for Intel compiler because cmake
+# only supports it from version 3.6.0+. We don't want to
+# depend on this newer version of cmake because it was only
+# released in June 2016.
+if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif ()
 
-  if (CXX11_SUPPORT)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-    MESSAGE("-- C++11 support detected.")
-  else()
-    MESSAGE("-- No C++11 support detected.")
-    set (NO_OEM true)
-  endif()
-  if (NOT NO_OEM)
-      set (OEM_SUPPORT true)
-  else()
-    set (OEM_SUPPORT false)
-    message(WARNING "OEM support disabled because of invlib "
-            "incompatibility with clang. Use -DENABLE_OEM=1 to force OEM.")
-  endif()
-else()
-  set (CXX11_SUPPORT false)
+########### OEM Support ##########
+
+if (NOT NO_OEM)
+  set (OEM_SUPPORT true)
+endif ()
+
+# Disable OEM support if compiling with clang, as it
+# currently fails compiling invlib
+if (NOT ENABLE_OEM AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  message(WARNING "OEM support disabled because of invlib "
+          "incompatibility with clang. Use -DENABLE_OEM=1 to force OEM.")
   set (OEM_SUPPORT false)
-endif()
+endif ()
 
 ########### Check MPI Support ############
 if (ENABLE_MPI) # User must enable MPI using -DENABLE_MPI=ON
   find_package(MPI)
   if (NOT MPI_CXX_FOUND)
     message (FATAL_ERROR "No MPI with C++ support found.")
-  endif()
-endif()
+  endif ()
+endif ()
 
 ########### Check C header files ##########
 check_include_file (stdlib.h    HAVE_STDLIB_H)
@@ -284,10 +273,10 @@ else (CMAKE_GENERATOR STREQUAL "Xcode")
   ARTS_ADD_COMPILER_FLAG (Wno-strict-overflow)
 endif (CMAKE_GENERATOR STREQUAL "Xcode")
 
-if (CMAKE_COMPILER_IS_INTELCXX)
+if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
   ARTS_ADD_COMPILER_FLAG (w1)
   ARTS_ADD_COMPILER_FLAG (diag-disable=383,980,981,1418,1419,1682)
-endif (CMAKE_COMPILER_IS_INTELCXX)
+endif ()
 
 if (WERROR)
   ARTS_ADD_COMPILER_FLAG (Werror)
@@ -443,6 +432,12 @@ get_directory_property(ENABLE_TMATRIX DIRECTORY
 get_directory_property(ENABLE_RELMAT DIRECTORY
                        3rdparty/relmat
                        DEFINITION ENABLE_RELMAT)
+
+if (OEM_SUPPORT)
+  message (STATUS "OEM enabled")
+else()
+  message (STATUS "OEM disabled")
+endif()
 
 add_subdirectory (src)
 add_subdirectory (doc)

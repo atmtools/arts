@@ -48,6 +48,7 @@
 #include "math_funcs.h"
 #include "montecarlo.h"
 #include "rte.h"
+#include "m_xml.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;

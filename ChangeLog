@@ -1,5 +1,29 @@
 2017-06-08  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-710
+
+	* CMakeLists.txt:
+
+	Up requirement for cmake to 3.1.0 (released in December 2014).
+
+	Make C++11 compiler support a requirement. This utilizes the macros
+	CMAKE_CXX_STANDARD, CMAKE_CXX_STANDARD_REQUIRED, CMAKE_CXX_EXTENSIONS
+	available since cmake 3.1.0.
+
+	Add status output whether OEM is enabled.
+
+	* src/main.cc (main):
+
+	Remove C++11 support output from feature list because it is not
+	optional anymore.
+
+	Changed two loops to test C++11 range-based for loops.
+
+	* src/m_fos.cc: Include m_xml.h for WriteXML. Fixes unresolved
+	reference with Intel compiler.
+
+2017-06-08  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-709
 
 	* src/m_abs_lookup.cc (abs_lookupSetupBatch):
