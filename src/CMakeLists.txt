@@ -205,6 +205,7 @@ add_library (artscore STATIC
   linerecord_partitionfunctiondata.cc
   linescaling.cc
   lineshapes.cc
+  lineshapesdata.cc
   m_abs.cc
   m_abs_lookup.cc
   m_agenda.cc

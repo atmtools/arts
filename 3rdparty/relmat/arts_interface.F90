@@ -385,9 +385,10 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
     integer*8              :: sys(2), lM, lP
     character*6            :: perturber(2)
     character*2            :: fmt1, fmt2
+    logical                :: enough_Lines, my_print
 !    
-!    runE_deb = 1
     rT = T/T0
+    my_print = .false.
 !
     if (runE_deb .eq. 1) then 
         write(*,*), "RELMAT RUN-TYPE = Verbose."
@@ -408,6 +409,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
     molP % Temp = T !Kelvin
     molP % Ptot = Ptot!atm
     molP % QTy  = "REG"
+    !my_print = .true.
 !
 !----------
 ! Obtainig the molecule ID from the Formula specified in "module_common_var"
@@ -433,6 +435,8 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
                                             sgmin  , sgmax, &
                                             econtrol)
 !
+    if (runE_deb .eq. 1) write(*,2020), dta_size1, nLines
+2020 Format("Allowed lines: ",I8,"/",I8)
 !---------
 ! Compute the relative population of the lower state
 ! at Temperature T0
@@ -480,7 +484,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 !---------
 ! Write SDF file
 !  
-    if (rule1(dta_size1)) then
+    if (rule1(dta_size1) .and. .not.(ordered .eq. 0)) then
         if (econtrol % e(1) .ge. 1) then
             print*,"Looping over system of perturbers..."
             print*,"----------------------------------->"
@@ -553,62 +557,73 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
             CALL includeW(nLines,vLines_Indx,W_rn, &
                           artsNA, artsGA, rT,Ptot, &
                           dta_size1, Wrno)
+            !
+            ! ---------
+            ! Allocate and Copy RM-data to final struct and file
+            !
+            if (my_print) then
+                CALL alloRMF(nLines, dta2)
+                pd2 => dta2
+            !
+                if (econtrol % e(1) .ge. 1) print*, 'Copying data to final struct...'
+                !!CALL W2dta2(nLines, pd1, pd2, W_rn) 
+                CALL W2dta2(dta_size1, pd1, pd2, Wrno) 
+            !--------
+            ! Write RMF file
+            ! 
+                if (econtrol % e(1) .ge. 1) print*, 'Saving Relaxation Matrix File'
+                call save_W2plot(nLines, pd1, pd2, molP, npert, perturber, econtrol, 'htm')
+            !
+                NULLIFY( pd2 )
+            endif
+            !
+            !
+            CALL InitM(nLines,1, Y1)
+            CALL InitM(nLines,1, Y2)
+            CALL InitM(nLines,1, Y3)
+            if (ordered .ge. 1) then
+            !---------
+            ! Linemixing first order coeff. calculation.
+            !
+                allocate(Y_RosT(dta_size1),STAT = IERR4)
+                if (IERR4 .ne. 0) call memoError("Y_RosT",econtrol)
+                !
+                if (econtrol % e(1) .ge. 1) print*, 'Linemixing first order coeff...'
+                call LM_Rosen(molP,dta_size1,pd1,Wrno,Y_RosT)
+                call includeY(nLines,vLines_Indx,Y1,dta_size1,Y_RosT)
+
+                if (ordered .eq. 2) then
+                !---------
+                ! Linemixing second order coeff. calculation.
+                !
+                    allocate(Y_G(dta_size1),STAT = IERR4)
+                    if (IERR4 .ne. 0) call memoError("Y2   :",econtrol)
+                    allocate(Y_DV(dta_size1),STAT = IERR4)
+                    if (IERR4 .ne. 0) call memoError("Y3   :",econtrol)
+                    !
+                    if (econtrol % e(1) .ge. 1) print*, 'Linemixing second order coeffs...'
+                    call LM_2ord(molP,dta_size1,pd1,Wrno,Y2,Y3)
+                    CALL includeY(nLines,vLines_Indx,Y2,dta_size1,Y_G)
+                    CALL includeY(nLines,vLines_Indx,Y3,dta_size1,Y_DV)
+                endif
+                !--------
+                ! Write Y parameter file
+                !
+                if (my_print) then
+                    if (econtrol % e(1) .ge. 1) print*, 'Saving Rosenkranz parameter Y...'
+                    CALL save_Yrp(pd1, dta_size1, molP, Y_RosT,'htm')
+                endif
+            !
+            endif
+        
         else
             if (econtrol % e(1) .ge. 1) print*, "Rule 2 failed, RM(diagonal matrix) no OFF-diagonal elements are returned."
             CALL just_fill_DiagWRn(nLines,artsNA, artsGA, rT, Ptot,W_rn)
+            CALL InitM(nLines,1, Y1)
+            CALL InitM(nLines,1, Y2)
+            CALL InitM(nLines,1, Y3)
         endif
-        !
-        !if (econtrol % e(1) .ge. 1) print*, 'Copying data to final struct...'
-        !
-        !CALL alloRMF(nLines, dta2)
-        !pd2 => dta2
-        !
-        !CALL W2dta2(nLines, pd1, pd2, W_rn) 
-        !CALL W2dta2(dta_size1, pd1, pd2, Wrno) 
-        !--------
-        ! Write RMF file
-        ! 
-        !if (econtrol % e(1) .ge. 1) print*, 'Saving Relaxation Matrix File'
-        !call save_W2plot(nLines, pd1, pd2, molP, npert, perturber, econtrol, 'htm')
-        !
-        !NULLIFY( pd2 )
-        !
-        !
-        CALL InitM(nLines,1, Y1)
-        CALL InitM(nLines,1, Y2)
-        CALL InitM(nLines,1, Y3)
-        if (ordered .ge. 1) then
-        !---------
-        ! Linemixing first order coeff. calculation.
-        !
-            allocate(Y_RosT(dta_size1),STAT = IERR4)
-            if (IERR4 .ne. 0) call memoError("Y_RosT",econtrol)
-            !
-            if (econtrol % e(1) .ge. 1) print*, 'Linemixing first order coeff...'
-            call LM_Rosen(molP,dta_size1,pd1,Wrno,Y_RosT)
-            CALL includeY(nLines,vLines_Indx,Y1,dta_size1,Y_RosT)
-
-            if (ordered .eq. 2) then
-            !---------
-            ! Linemixing second order coeff. calculation.
-            !
-                allocate(Y_G(dta_size1),STAT = IERR4)
-                if (IERR4 .ne. 0) call memoError("Y2   :",econtrol)
-                allocate(Y_DV(dta_size1),STAT = IERR4)
-                if (IERR4 .ne. 0) call memoError("Y3   :",econtrol)
-            !
-                if (econtrol % e(1) .ge. 1) print*, 'Linemixing second order coeffs...'
-                call LM_2ord(molP,dta_size1,pd1,Wrno,Y2,Y3)
-                CALL includeY(nLines,vLines_Indx,Y2,dta_size1,Y_G)
-                CALL includeY(nLines,vLines_Indx,Y3,dta_size1,Y_DV)
-            endif
-        endif
-        !--------
-        ! Write Y parameter file
-        !
-        !if (econtrol % e(1) .ge. 1) print*, 'Saving Rosenkranz parameter Y...'
-        !CALL save_Yrp(pd1, dta_size1, molP, Y_RosT,'htm')
-        !
+        
     else
         if (econtrol % e(1) .ge. 1) then
             print*, "Rule 1: Not enough Lines to calculate Relaxation Matrix"
@@ -763,9 +778,10 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     integer*8              :: sys(2), lM, lP
     character*6            :: perturber(2)
     character*2            :: fmt1, fmt2
-    logical                :: enough_Lines
+    logical                :: enough_Lines, my_print
 !
     rT = T/T0
+    my_print = .false.
 !
     if (runE_deb .eq. 1) then 
         write(*,*), "RELMAT RUN-TYPE = Verbose."
@@ -790,7 +806,8 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     molP % v0   = meanV0(nLines,artsWNO)
     !
     !Disable the Adiabatic factor option because it requires from external inputs
-    molP % AF_ON= .false. 
+    molP % AF_ON= .false.
+    !my_print = .true. 
 !
 !----------
 ! Obtainig the molecule ID from the Formula specified in "module_common_var"
@@ -907,10 +924,13 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
                 if (.not.(molP%availableParam)) then
                     if (molP % LLSty .eq. "Linear") then
                         CALL calc_QParam(dta_size1, pd1, molP, PerM, econtrol)
+                        if (econtrol % e(1) .ge. 1) write(*,*),"A1 = ", molP%a1,";A2= ", molP%a2,";A3= ", molP%a3
                     else if (molP % LLSty .eq. "Li--AF") then
                         CALL calc_QParam_AF(dta_size1, pd1, molP, PerM, econtrol)
+                        if (econtrol % e(1) .ge. 1) write(*,*),"A1 = ", molP%a1,";A2= ", molP%a2,";A3= ", molP%a3
+                        if (econtrol % e(1) .ge. 1) write(*,*),"A4 = ", molP%a4,";A5= ", molP%a5,";A6= ", molP%a6
+                        if (econtrol % e(1) .ge. 1) write(*,*),"A7 = ", molP%a7,";A8= ", molP%a8,";A9= ", molP%a9
                     endif
-                    if (econtrol % e(1) .ge. 1) write(*,*),"A1 = ", molP%a1,";A2= ", molP%a2,";A3= ", molP%a3
                 endif
             !
                 perturber(i)=PerM%chmol
@@ -947,27 +967,26 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     ! ---------
     ! Allocate and Copy RM-data to final struct and file
     !
-    !    CALL alloRMF(nLines, dta2)
-    !    pd2 => dta2
+        if (my_print) then
+            CALL alloRMF(nLines, dta2)
+            pd2 => dta2
     !
-    !    if (econtrol % e(1) .ge. 1) print*, 'Copying data to final struct...'
-    !!    CALL W2dta2(nLines, pd1, pd2, W_rn) 
-    !    CALL W2dta2(dta_size1, pd1, pd2, Wmat) 
+            if (econtrol % e(1) .ge. 1) print*, 'Copying data to final struct...'
+            !!CALL W2dta2(nLines, pd1, pd2, W_rn) 
+            CALL W2dta2(dta_size1, pd1, pd2, Wmat) 
     !--------
     ! Write RMF file
     ! 
-    !    if (econtrol % e(1) .ge. 1) print*, 'Saving Relaxation Matrix File'
-    !    call save_W2plot(nLines, pd1, pd2, molP, npert, perturber, econtrol, 'tmc')
+            if (econtrol % e(1) .ge. 1) print*, 'Saving Relaxation Matrix File'
+            call save_W2plot(nLines, pd1, pd2, molP, npert, perturber, econtrol, 'tmc')
     !
-    !    NULLIFY( pd2 )
+            NULLIFY( pd2 )
+        endif
     !
         CALL InitM(nLines,1, Y1)
         CALL InitM(nLines,1, Y2)
         CALL InitM(nLines,1, Y3)
         if (ordered .ge. 1) then
-            !CALL InitM(nLines,1, Y1)
-            !CALL InitM(nLines,1, Y2)
-            !CALL InitM(nLines,1, Y3)
         !---------
         ! Linemixing first order coeff. calculation.
         !
@@ -992,13 +1011,15 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
                 CALL includeY(nLines,vLines_Indx,Y2,dta_size1,Y_G)
                 CALL includeY(nLines,vLines_Indx,Y3,dta_size1,Y_DV)
             endif
-        endif
-    ! --------
-    ! Write Y parameter file
-    !
-    !    if (econtrol % e(1) .ge. 1) print*, 'Saving Rosenkranz parameter Y...'
-    !    CALL save_Yrp(pd1, dta_size1, molP, Y_RosT,'tmc')
+            ! --------
+            ! Write Y parameter file
+            !
+            if (my_print) then
+                if (econtrol % e(1) .ge. 1) print*, 'Saving Rosenkranz parameter Y...'
+                CALL save_Yrp(pd1, dta_size1, molP, Y_RosT,'tmc')
+            endif
         !
+        endif
     else
         if (econtrol % e(1) .ge. 1) then
             print*, "Rule 1: Not enough Lines to calculate Relaxation Matrix"
@@ -1485,7 +1506,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
    !
     ! DATA
     do i = 1, n   ! do1
-       write (u, 1006) dta1%sig(i),dta1%Str(i),&
+        write (u, 1006) dta1%sig(i),dta1%Str(i),&
                        Y_RosenP(i),&
                        int(dta1%J(i,1)),int(dta1%J(i,2))
     end do    ! do1

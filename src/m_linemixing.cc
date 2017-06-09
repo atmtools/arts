@@ -25,6 +25,7 @@
 #include "Faddeeva.hh"
 #include "linescaling.h"
 #include "jacobian.h"
+#include "lineshapesdata.h"
 #include <Eigen/Eigenvalues>
 
 
@@ -1259,24 +1260,24 @@ void calculate_xsec_from_relmat(ArrayOfMatrix& xsec,
 
 
 void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
-                                             ArrayOfArrayOfMatrix& dxsec_dx,
+                                             ArrayOfArrayOfMatrix& /*dxsec_dx*/,
                                              const PropmatPartialsData& ppd,
                                              const ConstVectorView pressure_broadening,
-                                             const ConstVectorView pressure_broadening_dt,
+                                             const ConstVectorView /*pressure_broadening_dt*/,
                                              const ConstVectorView f0,
                                              const ConstVectorView f_grid,
                                              const ConstVectorView d0,
-                                             const ConstVectorView d0_dt,
+                                             const ConstVectorView /*d0_dt*/,
                                              const ConstVectorView rhoT,
-                                             const ConstVectorView rhoT_dt,
+                                             const ConstVectorView /*rhoT_dt*/,
                                              const ConstVectorView psf,
-                                             const ConstVectorView psf_dt,
+                                             const ConstVectorView /*psf_dt*/,
                                              const ConstVectorView Y,
-                                             const ConstVectorView Y_dt,
+                                             const ConstVectorView /*Y_dt*/,
                                              const ConstVectorView G,
-                                             const ConstVectorView G_dt,
+                                             const ConstVectorView /*G_dt*/,
                                              const ConstVectorView DV,
-                                             const ConstVectorView DV_dt,
+                                             const ConstVectorView /*DV_dt*/,
                                              const Numeric&  T,
                                              const Numeric&  isotopologue_mass,
                                              const Numeric&  isotopologue_ratio,
@@ -1288,52 +1289,27 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
     extern const Numeric BOLTZMAN_CONST;
     extern const Numeric AVOGADROS_NUMB;
     extern const Numeric SPEED_OF_LIGHT;
-    extern const Numeric PI;
-    extern const Numeric PLANCK_CONST;
     
     // internal constant
     const Index nf  = f_grid.nelem();
-    const Numeric kT = BOLTZMAN_CONST * T,  sqrtT = sqrt(T);
-    const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST * AVOGADROS_NUMB / isotopologue_mass ) / SPEED_OF_LIGHT * sqrtT;
-    static const Numeric invSqrtPI = 1.0/sqrt(PI);
-    
-    
-    // Conjunction of eigenvalues and the Doppler broadening
-    Vector sigma(n), sigma_dt;
-    {
-        if(ppd.do_temperature())
-        {
-            //dsigma_dt.resize(n);
-            sigma_dt.resize(n);
-            for(Index if1 = 0; if1 < n; if1++)
-            {
-                sigma[if1] = f0[if1] * doppler_const;
-                sigma_dt[if1] = sigma[if1]/T ;
-            }
-        }
-        else
-        {
-            for(Index if1 = 0; if1 < n; if1++)
-            {
-                sigma[if1]= f0[if1] * doppler_const;
-            }
-        }
-    }
+    const Numeric kT = BOLTZMAN_CONST * T;
+    const Numeric doppler_const = sqrt( 2.0 * kT * AVOGADROS_NUMB / isotopologue_mass ) / SPEED_OF_LIGHT;
+//    static const Numeric invSqrtPI = 1.0/sqrt(PI);
     
     // Equivalent line strength
     Vector S0(n), S0_dt;
     {
-        if(ppd.do_temperature())
-        {
-            S0_dt.resize(n);
-            
-            for(Index k = 0; k < n; k++)
-            {
-                S0[k] = d0[k] * d0[k] * rhoT[k] * isotopologue_ratio;
-                S0_dt[k] = (2.0 * d0_dt[k] * d0[k] * rhoT[k] + d0[k] * d0[k] * rhoT_dt[k]) * isotopologue_ratio;
-            }
-        }
-        else
+//         if(ppd.do_temperature())
+//         {
+//             S0_dt.resize(n);
+//             
+//             for(Index k = 0; k < n; k++)
+//             {
+//                 S0[k] = d0[k] * d0[k] * rhoT[k] * isotopologue_ratio;
+//                 S0_dt[k] = (2.0 * d0_dt[k] * d0[k] * rhoT[k] + d0[k] * d0[k] * rhoT_dt[k]) * isotopologue_ratio;
+//             }
+//         }
+//        else
         {
             for(Index k = 0; k < n; k++)
             {
@@ -1342,61 +1318,80 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
         }
     }
     
-    // Perform the computations to get at the cross-sections
-    for(Index iline = 0; iline < n; iline ++)
+    ComplexVector F(nf);
+    ArrayOfComplexVector dF(ppd.nelem());
+    for(auto& df : dF) 
+      df.resize(nf);
+    for(Index iline = 0; iline < n; iline++)
     {
-        const Numeric invSigma = 1.0 / sigma[iline];
-        
-        const Complex LM = Complex(1.0 + G[iline], Y[iline]);
-        
-        Complex dLM;
-        if(ppd.do_temperature())
-        {
-            dLM = Complex(G_dt[iline], Y_dt[iline]);
-        }
-            
-        for(Index iv = 0; iv < nf; iv++)
-        {   
-            const Numeric s0_freqfac =  f_grid[iv] * (1 - exp(- PLANCK_CONST * f_grid[iv] / kT)); // Adapted from Niro's code --- why are they changing from f0 to f?
-            
-            const Numeric x = (f_grid[iv] - (f0[iline] + psf[iline] + DV[iline])) * invSigma; 
-            
-            const Numeric y = pressure_broadening[iline] * invSigma;
-            const Complex z(x, y);
-            const Complex w = Faddeeva::w(z);
-            const Complex F = w * invSqrtPI * invSigma;
-            const Complex SF = s0_freqfac * S0[iline] * F;
-            const Complex LM_SF = LM * SF;
-            
-            #pragma om atomic
-            xsec[this_species](iv, this_level) += LM_SF.real();
-            
-            Complex dw_dz;
-            if(ppd.do_frequency() or ppd.do_temperature())
-                dw_dz = 2.0 * (z * w - invSqrtPI * invSigma);
-            
-            for(Index iq = 0; iq < ppd.nelem(); iq++)
-            {
-                if(ppd(iq) == JQT_frequency  or ppd(iq) == JQT_wind_magnitude  or 
-                    ppd(iq) == JQT_wind_u  or ppd(iq) == JQT_wind_v  or ppd(iq) == JQT_wind_w)
-                {
-                    const Complex dw_df = dw_dz / sigma[iline];
-                    const Numeric s0_freqfac_dt = (f_grid[iv]*PLANCK_CONST + kT*exp(f_grid[iv]*PLANCK_CONST/kT) - 
-                    kT)*exp(-f_grid[iv]*PLANCK_CONST/kT)/kT;
-                    const Complex LM_SF_dx = dw_df * invSqrtPI * invSigma * LM * SF + LM * F * S0[iline] * s0_freqfac_dt;
-                    
-                    #pragma om atomic
-                    dxsec_dx[iq][this_species](iv, this_level) += LM_SF_dx.real();
-                }
-                else if(ppd(iq) == JQT_temperature)
-                {
-                    const Numeric s0_freqfac_dt = (s0_freqfac - f_grid[iv]) * f_grid[iv]*PLANCK_CONST/(kT * T);
-                    // WARNING NOT WORKING ONLY HERE TO KILL WARNINGS
-                    dxsec_dx[iq][this_species](iv, this_level) += psf_dt[iline] + DV_dt[iline] + pressure_broadening_dt[iline] + s0_freqfac_dt;
-                }
-            }   
-        }
+      LineFunctions().get_faddeeva_algorithm916(F, dF, f_grid,
+                                                ppd, 0.0, 0.0, f0[iline],
+                                                doppler_const, pressure_broadening[iline], psf[iline] + DV[iline]);
+      LineFunctions().apply_linemixing(F, dF, ppd, Y[iline], G[iline]);
+      LineFunctions().apply_linestrength(F, dF, ppd, S0[iline], 1.0, 1.0, 1.0, 1.0, 1.0);
+      for(Index ii = 0; ii < nf; ii++)
+      {
+        #pragma omp atomic
+        xsec[this_species](ii, this_level) += F[ii].real();
+      }
     }
+    
+    
+//     // Perform the computations to get at the cross-sections
+//     for(Index iline = 0; iline < n; iline ++)
+//     {
+//         const Numeric invSigma = 1.0 / sigma[iline];
+//         
+//         const Complex LM = Complex(1.0 + G[iline], Y[iline]);
+//         
+//         Complex dLM;
+//         if(ppd.do_temperature())
+//         {
+//             dLM = Complex(G_dt[iline], Y_dt[iline]);
+//         }
+//             
+//         for(Index iv = 0; iv < nf; iv++)
+//         {   
+//             const Numeric s0_freqfac =  f_grid[iv] * (1 - exp(- PLANCK_CONST * f_grid[iv] / kT)); // Adapted from Niro's code --- why are they changing from f0 to f?
+//             
+//             const Numeric x = (f_grid[iv] - (f0[iline] + psf[iline] + DV[iline])) * invSigma; 
+//             
+//             const Numeric y = pressure_broadening[iline] * invSigma;
+//             const Complex z(x, y);
+//             const Complex w = Faddeeva::w(z);
+//             const Complex F = w * invSqrtPI * invSigma;
+//             const Complex SF = s0_freqfac * S0[iline] * F;
+//             const Complex LM_SF = LM * SF;
+//             
+//             #pragma om atomic
+//             xsec[this_species](iv, this_level) += LM_SF.real();
+//             
+//             Complex dw_dz;
+//             if(ppd.do_frequency() or ppd.do_temperature())
+//                 dw_dz = 2.0 * (z * w - invSqrtPI * invSigma);
+//             
+//             for(Index iq = 0; iq < ppd.nelem(); iq++)
+//             {
+//                 if(ppd(iq) == JQT_frequency  or ppd(iq) == JQT_wind_magnitude  or 
+//                     ppd(iq) == JQT_wind_u  or ppd(iq) == JQT_wind_v  or ppd(iq) == JQT_wind_w)
+//                 {
+//                     const Complex dw_df = dw_dz / sigma[iline];
+//                     const Numeric s0_freqfac_dt = (f_grid[iv]*PLANCK_CONST + kT*exp(f_grid[iv]*PLANCK_CONST/kT) - 
+//                     kT)*exp(-f_grid[iv]*PLANCK_CONST/kT)/kT;
+//                     const Complex LM_SF_dx = dw_df * invSqrtPI * invSigma * LM * SF + LM * F * S0[iline] * s0_freqfac_dt;
+//                     
+//                     #pragma om atomic
+//                     dxsec_dx[iq][this_species](iv, this_level) += LM_SF_dx.real();
+//                 }
+//                 else if(ppd(iq) == JQT_temperature)
+//                 {
+//                     const Numeric s0_freqfac_dt = (s0_freqfac - f_grid[iv]) * f_grid[iv]*PLANCK_CONST/(kT * T);
+//                     // WARNING NOT WORKING ONLY HERE TO KILL WARNINGS
+//                     dxsec_dx[iq][this_species](iv, this_level) += psf_dt[iline] + DV_dt[iline] + pressure_broadening_dt[iline] + s0_freqfac_dt;
+//                 }
+//             }   
+//         }
+//    }
 }
 
 
@@ -1565,7 +1560,6 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
   extern const Numeric SPEED_OF_LIGHT;
   extern const Numeric BOLTZMAN_CONST;
   extern const Numeric AVOGADROS_NUMB;
-  extern const Numeric PI;
   extern const Numeric ATM2PA;
   
   // HITRAN to ARTS constants
@@ -1574,7 +1568,6 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
   static const Numeric lower_energy_const = wavenumber_to_joule(1.0);
   static const Numeric I0_hi2arts         = 1E-2 * SPEED_OF_LIGHT;
   static const Numeric gamma_hi2arts      = w2Hz / ATM2PA;
-  static const Numeric invSqrtPI = 1.0/sqrt(PI);
   
   // size of atmosphere and input/output
   const Index nps         = abs_p.nelem();
@@ -1977,17 +1970,17 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             }
             else 
             {
-              #pragma critical omp
+              #pragma omp critical
               throw std::runtime_error("Unsupported relaxation matrix type encountered.\n");
             }
             
-            #pragma critical omp
-            if(error_handling == 1) // If it is still one here, then the program has found some error
+            if(error_handling_type == 1) // If it is still one here, then the program has found some error
             {
               std::ostringstream os;
               os << "Fatal error encountered in relmat calculations.  Check your input for sanity.\n" <<
               "\tTo check what relmat is doing, activate the debug flag of this code." <<
               "\tIdentity: " << band_identifiers[iband] << std::endl;
+              #pragma omp critical
               throw std:: runtime_error(os.str());
             }
             
@@ -2046,7 +2039,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                                     W_dt.get_c_array(), dipole_dt.get_c_array(), rhoT_dt.get_c_array(), Y_dt.get_c_array(), G_dt.get_c_array(), DV_dt.get_c_array() );
               }
               
-              #pragma critical omp
+              #pragma omp critical
               if(e_tmp == 1) // If it is still one here, then the program has found some error
               {
                 std::ostringstream os;
@@ -2174,10 +2167,18 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           }
           else 
           {
+            Numeric QT = -1, QT0 = -1, part_ratio;
+            ComplexVector F(nf);
+            ArrayOfComplexVector dF(ppd.nelem());
+            const Numeric GD_div_F0 = doppler_const * sqrt(abs_t[ip] / mass);
+            
+            for(auto& df : dF) 
+              df.resize(nf);
+              
             for( long iline=0; iline<nlines; iline++ )
             {
-              
-              Numeric QT = -1, QT0 = -1, part_ratio, K1, K2, tmp1;
+              //a.get_faddeeva_algorithm916();
+              Numeric K1, K2, tmp1;
               static const Vector v_tmp(0);
               
               GetLineScalingData(QT, QT0, part_ratio, K1, K2, tmp1, tmp1, 
@@ -2189,76 +2190,27 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                   abs_lines_per_band[iband][iline].Ti0(), 
                                   abs_lines_per_band[iband][iline].F(),
                                   abs_lines_per_band[iband][iline].Elow(),
-                                  false,
-                                  -1.0, -1.0, -1, -1, v_tmp);
+                                  false, -1.0, -1.0, -1, -1, v_tmp);
               
-              W = 0;
-              //assert(abs_lines_per_band[iband][iline].PressureBroadening().isAirBroadening());
               abs_lines_per_band[iband][iline].PressureBroadening().GetAirBroadening(W(iline, iline),  psf[iline],
                                                                                       abs_lines_per_band[iband][iline].Ti0()/abs_t[ip],
                                                                                       abs_p[ip], 0.0);
               
-              const Numeric S0 = abs_lines_per_band[iband][iline].I0() * part_ratio * K1 * K2 * iso_ratio;
-              const Numeric F0_pseudo = abs_lines_per_band[iband][iline].F() + psf[iline];
-              const Numeric sigma = abs_lines_per_band[iband][iline].F() * doppler_const * sqrt(abs_t[ip] / mass);
-              const Numeric ls_normfac = invSqrtPI / sigma;
+              // TODO: Add derivatives here
               
-              const Complex z_tmp = Complex(-F0_pseudo,W(iline, iline))/sigma;
+              LineFunctions().get_faddeeva_algorithm916(F, dF, f_grid,
+                ppd, 0.0, 0.0, abs_lines_per_band[iband][iline].F(),
+                GD_div_F0, W(iline, iline), psf[iline]); // Derivatives in temperature need to be added...
+              //LineFunctions().apply_VVW(F, dF, ppd, abs_lines_per_band[iband][iline].F(), f_grid);
+              LineFunctions().apply_linestrength(F, dF, ppd, 
+                abs_lines_per_band[iband][iline].I0(), iso_ratio,
+                QT, QT0, K1, K2);
               
-              Numeric ratio_dS0dT = 0.0, df0dT, dgdT;
-              if(ppd.do_temperature())
+              for(Index ii = 0; ii < nf; ii++)
               {
-                Numeric dQT = -1, dpart_ratio, dK2;
-                GetLineScalingData_dT(dQT, dK2, dpart_ratio, tmp1, tmp1, tmp1, QT, tmp1,
-                                      partition_functions.getParamType(abs_lines_per_band[iband][0].Species(), 
-                                                                        abs_lines_per_band[iband][0].Isotopologue()),
-                                      partition_functions.getParam(abs_lines_per_band[iband][0].Species(), 
-                                                                    abs_lines_per_band[iband][0].Isotopologue()), 
-                                      abs_t[ip],
-                                      abs_lines_per_band[iband][iline].Ti0(), 
-                                      ppd.Temperature_Perturbation(),
-                                      abs_lines_per_band[iband][iline].F(),
-                                      false,
-                                      -1.0, -1.0, -1, -1, v_tmp );
-                ratio_dS0dT = abs_lines_per_band[iband][iline].Elow() / BOLTZMAN_CONST / abs_t[ip] / abs_t[ip] + // K1-ratio 
-                dK2/K2 +  // K2-ratio
-                dQT; // Already as a ratio
-                
-                abs_lines_per_band[iband][iline].PressureBroadening().GetAirBroadening_dT(dgdT,  df0dT,
-                                                                                          abs_t[ip], abs_lines_per_band[iband][iline].Ti0(),
-                                                                                          abs_p[ip], 0.0);
-              }
-              
-              for(Index iv = 0; iv < f_grid.nelem(); iv++)
-              {
-                const Complex z = z_tmp + f_grid[iv]/sigma;
-                const Complex w = Faddeeva::w(z) * ls_normfac;
-                
-                const Numeric xsec_this = S0 * real(w);
-                
                 #pragma omp atomic
-                abs_xsec_per_species[this_species](iv, ip) += xsec_this;
-                
-                Complex dwdz = 0.0;
-                if(ppd.do_frequency() or ppd.do_temperature())
-                  dwdz = 2.0 * (z * w - ls_normfac);
-                
-                for(Index iq = 0; iq < ppd.nelem(); iq++)
-                {
-                  if(ppd(iq) == JQT_frequency  or ppd(iq) == JQT_wind_magnitude  or 
-                    ppd(iq) == JQT_wind_u  or ppd(iq) == JQT_wind_v  or ppd(iq) == JQT_wind_w)
-                  {
-                    #pragma omp atomic
-                    dabs_xsec_per_species_dx[this_species][iq](iv, ip) += S0 * real(dwdz * z_tmp);
-                  }
-                  else if(ppd(iq) == JQT_temperature)
-                  {
-                    const Complex dzdT = - z / (2.0 * abs_t[ip]) + Complex(-df0dT, dgdT)/sigma;
-                    dabs_xsec_per_species_dx[this_species][iq](iv, ip) += 
-                    real( invSqrtPI * (S0 * dwdz * dzdT - 1/2/abs_t[ip] * xsec_this) ) + ratio_dS0dT * xsec_this;
-                  }
-                }
-              } 
+                abs_xsec_per_species[this_species](ii, ip) += F[ii].real();
+              }
             }
           }
           delete[] g_prime;

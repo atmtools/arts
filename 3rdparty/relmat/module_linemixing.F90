@@ -424,18 +424,31 @@ END module module_linemixing
       ! use '2.0' if Wii = half-width 
       e20 = econ % e(2)
       CALL sumRule(nLines,indexS,dta1%D0(1:nLines),W_rn,1.0,econ)
-      if (( econ % e(2) .gt. e20 ) .and. (econ % e(1) .eq. -1)) then
-            econ % e(2) = econ % e(2) - 1
-            CALL just_fill_DiagWRn(nLines,dta1 % BHW, dta1 % HWT0, T/T0, P,W_rn)
-      endif
       ! 
       ! Reordered by wno
       !
-      do i=1,nLines
-        do j=1,nLines
-          W_rnO(i,j)  =  W_rn( indexI(i) , indexI(j) )
+      if (( econ % e(2) .gt. e20 ) .and. ((econ % e(1) .eq. -1).or.(econ % e(1) .eq. 2) )) then
+        econ % e(2) = econ % e(2) - 1
+        CALL just_fill_DiagWRn(nLines,dta1 % BHW, dta1 % HWT0, T/T0, P,W_rnO)
+        !do i = 1, nLines
+        !  print*,'wno', dta1 % sig(i) 
+        !  print*,'Str', dta1 % Str(i)
+        !  print*,'HWT', dta1 % HWT0(i)
+        !  print*,'BHW', dta1 % BHW(i) 
+        !  print*,'E  ', dta1 % E(i)
+        !  print*,'g0 ', dta1 % swei0(i) 
+        !  print*,'g00', dta1 % swei00(i)
+        !  print*,'UP ', dta1%J(i,1),dta1%N(i,1),dta1%espin(i,1)
+        !  print*,'LO ', dta1%J(i,2),dta1%N(i,2),dta1%espin(i,2)
+        !  print*,'bra', dta1%br(i)
+        !enddo
+      else 
+        do i=1,nLines
+          do j=1,nLines
+            W_rnO(i,j)  =  W_rn( indexI(i) , indexI(j) )
+          enddo
         enddo
-      enddo
+      endif
   END SUBROUTINE RN_Wmat
 !--------------------------------------------------------------------------------------------------------------------
   SUBROUTINE LM_Rosen(molP, nLines,dta1,Wmat,Y_RosT)
@@ -594,7 +607,7 @@ END module module_linemixing
             sumG4 = sumG4 + rD_ki*sumG42
             sumDV = sumDV + Wmat(i,k)*Wmat(k,i)/delta
         enddo
-        Y2(i)=sumG1 - (sumG2)**2 + 2*sumG3 - 2*sumG4
+        Y2(i)=sumG1 - (sumG2)**2 + 2.0d0*sumG3 - 2.0d0*sumG4
         Y3(i)=sumDV
     ENDDO
   END SUBROUTINE LM_2ord  

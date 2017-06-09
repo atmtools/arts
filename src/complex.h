@@ -855,5 +855,8 @@ ComplexMatrixViewMap MapToEigenRow(ComplexVectorView& A);
 // Converts vector to eigen map column-view
 ComplexMatrixViewMap MapToEigenCol(ComplexVectorView& A);
 
+typedef Array<ComplexVector> ArrayOfComplexVector;
+typedef Array<ComplexMatrix> ArrayOfComplexMatrix;
+
 #endif
 

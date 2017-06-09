@@ -122,6 +122,23 @@ typedef Array<JacobianQuantityType> ArrayOfJacobianQuantityType;
 class PropmatPartialsData
 {
 public:
+  
+    // Empty init
+    PropmatPartialsData()
+    {
+      mreal_nelem = 0;
+      mcontains_temperature = false;
+      mcontains_frequency_term = false;
+      mcontains_linemixing_0_term = false;
+      mcontains_linemixing_1_term = false;
+      mcontains_linemixing_exponent_term = false;
+      mmagnetic_u = false;
+      mmagnetic_v = false; 
+      mmagnetic_w = false;
+      mmagnetic_abs = false;
+      mmagnetic_theta = false;
+      mmagnetic_eta = false;
+    }
     
     // Reduces jacobian_quantities down to only relevant quantities for the propmat_clearsky
     PropmatPartialsData(const ArrayOfRetrievalQuantity& jacobian_quantities)
@@ -499,10 +516,11 @@ public:
                     throw std::runtime_error("Unknown Jacobian quantity for propagation calculations.\n");
             }
         }
+        set_first_frequency();
+        set_first_pressure_term();
     }
     
     Index nelem() const {return mreal_nelem;}
-    bool do_temperature() const {return mcontains_temperature;}
     
     const JacobianQuantityType&  operator()(const Index& iq) const {return mqtype[iq];}
     const ArrayOfRetrievalQuantity& jac() const {return mjacobian_quantities;}
@@ -733,9 +751,27 @@ public:
     bool do_frequency() const
     {
         for(Index iq=0; iq<nelem(); iq++)
-            if( mqtype[iq]==JQT_frequency || mqtype[iq]==JQT_wind_magnitude || mqtype[iq]==JQT_wind_u || mqtype[iq]==JQT_wind_v || mqtype[iq]==JQT_wind_w)
-                return true;
+        {
+          if( mqtype[iq]==JQT_frequency || mqtype[iq]==JQT_wind_magnitude || mqtype[iq]==JQT_wind_u || mqtype[iq]==JQT_wind_v || mqtype[iq]==JQT_wind_w)
+          {
+            return true;
+          }
+        }
         return false;
+    }
+    
+    bool do_temperature() const {return mcontains_temperature;}
+    
+    bool do_line_center() const
+    {
+      for(Index iq=0; iq<nelem(); iq++)
+      {
+        if( mqtype[iq] == JQT_line_center)
+        {
+          return true;
+        }
+      }
+      return false;
     }
     
     bool do_magnetic_field() const
@@ -765,6 +801,47 @@ public:
     bool FirstTermLM() const {return mcontains_linemixing_1_term;};
     bool ExponentLM() const {return mcontains_linemixing_exponent_term;};
     
+    void set_first_frequency()
+    {
+      mfirst_frequency = -1;
+      for(Index iq=0; iq<nelem(); iq++)
+      {
+        if(mqtype[iq] == JQT_frequency or
+          mqtype[iq] == JQT_wind_magnitude or
+          mqtype[iq] == JQT_wind_u or 
+          mqtype[iq] == JQT_wind_v or 
+          mqtype[iq]==JQT_wind_w)
+        {
+          mfirst_frequency = iq;
+          return;
+        }
+      }
+    }
+    
+    void set_first_pressure_term()
+    {
+      mfirst_pressure = -1;
+      for(Index iq=0; iq<nelem(); iq++)
+      {
+        if(mqtype[iq] == JQT_line_gamma_self or 
+          mqtype[iq] == JQT_line_gamma_selfexponent or
+          mqtype[iq] == JQT_line_pressureshift_self or
+          mqtype[iq] == JQT_line_gamma_foreign or
+          mqtype[iq] == JQT_line_gamma_foreignexponent or
+          mqtype[iq] == JQT_line_pressureshift_foreign or
+          mqtype[iq] == JQT_line_gamma_water or
+          mqtype[iq] == JQT_line_gamma_waterexponent or 
+          mqtype[iq] == JQT_line_pressureshift_water)
+        {
+          mfirst_pressure = iq;
+          return;
+        }
+      }
+    }
+    
+    Index get_first_frequency() const {return mfirst_frequency;}
+    Index get_first_pressure_term() const {return mfirst_pressure;}
+    
 private:
     ArrayOfJacobianQuantityType mqtype;
     ArrayOfIndex                mjacobian_pos;
@@ -774,6 +851,8 @@ private:
     Numeric                     mmag_perturbation;
     Numeric                     mfreq_perturbation;
     Index                       mreal_nelem;
+    Index                       mfirst_frequency;
+    Index                       mfirst_pressure;
     bool mcontains_temperature;
     bool mcontains_frequency_term;
     bool mcontains_linemixing_0_term;

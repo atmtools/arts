@@ -1418,7 +1418,7 @@ END module module_phsub
       
         !print*, "SUM-RULE TEST FINISHED"
         if ( .not.(testOK) ) then
-                call SumRuleError(econ)
+            call SumRuleError(econ)
         else
             if (econ % e(1) .ge. 1) then
                 print*, "sumRule: The calculation correctly verifies the sum rule!"

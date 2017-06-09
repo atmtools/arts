@@ -1,3 +1,27 @@
+2017-06-09  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-713
+	
+	* 3rdparty/relmat/*: Updated to latest version
+	
+	* src/lineshapesdata.{cc,h}: Added LineFunctions helper class because
+	I keep having to rewrite code for special cases.  Can handle line shapes,
+	line strengths, line mixing, Zeeman, and their derivatives presently but
+	only used by m_linemixing.cc to simplify those calculations.  Some  
+	todos to integrate with rest of ARTS if desired (it simplifies computations 
+	significantly, or at least makes them readable easier).  Lacks 
+	cutoff-frequencies and purely real line shapes.  Also the generalization
+	to line specific partial derivatives needs to take the quantumidentifiers 
+	still.  Beta code in other words.
+	
+	* src/complex.h: Added ArrayOfComplex{Vector,Matrix}
+	
+	* src/m_linemixing.cc: Making use on parts of lineshapesdata.{cc,h} to simplify
+	reading.  Still left with a lot of old code commented out for easy switching 
+	since I am still testing it.
+	
+	* src/partial_derivatives.h: Added some more checks
+
 2017-06-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-712
