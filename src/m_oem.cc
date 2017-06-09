@@ -45,6 +45,7 @@
 #include <sstream>
 #include "arts.h"
 #include "arts_omp.h"
+#include "array.h"
 #include "auto_md.h"
 #include "math_funcs.h"
 #include "physics_funcs.h"
@@ -807,7 +808,9 @@ void oem_template(
     {
         Vector dy  = y; dy -= yf;
         Vector sdy = y; mult(sdy, covmat_so_inv, dy);
-        cost_start = dy * sdy;
+        Vector dx  = x; dx -= xa;
+        Vector sdx = x; mult(sdx, covmat_sx_inv, dx);
+        cost_start = dx * sdx + dy * sdy;
     }
     oem_diagnostics[1] = cost_start;
 
@@ -833,6 +836,18 @@ void oem_template(
     // Otherwise do inversion
     else
     {
+      bool apply_norm = false;
+      OEMMatrix T{};
+      if (x_norm.nelem() == n) {
+          T.resize(n,n);
+          T *= 0.0;
+          T.diagonal() = x_norm;
+          for (Index i = 0; i < n; i++) {
+              T(i,i) = x_norm[i];
+          }
+          apply_norm = true;
+      }
+
         OEMSparse SeInv(covmat_so_inv), SaInv(covmat_sx_inv);
         PrecisionSparse Pe(SeInv), Pa(SaInv);
         OEMVector xa_oem(xa), y_oem(y), x_oem(x);
@@ -847,14 +862,15 @@ void oem_template(
         {
             if (method == "li")
             {
-                GN gn(stop_dx, 1); // Linear case, only one step.
+                Normed<> s(T, apply_norm);
+                GN gn(stop_dx, 1, s); // Linear case, only one step.
                 return_code = oem.compute<GN, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
                     ml_ga_history, true);
             }
             else if (method == "li_cg")
             {
-                CG cg(1e-12, oem_verbosity);
+                Normed<CG> cg(T, apply_norm, 1e-12, oem_verbosity);
                 GN_CG gn(stop_dx, 1, cg); // Linear case, only one step.
                 return_code = oem.compute<GN_CG, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
@@ -862,14 +878,15 @@ void oem_template(
             }
             else if (method == "gn")
             {
-                GN gn(stop_dx, (unsigned int) max_iter); // Linear case, only one step.
+                Normed<> s(T, apply_norm);
+                GN gn(stop_dx, (unsigned int) max_iter, s); // Linear case, only one step.
                 return_code = oem.compute<GN, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
                     ml_ga_history);
             }
             else if (method == "gn_cg")
             {
-                CG cg(1e-12, 0);
+                Normed<CG> cg(T, apply_norm, 1e-12, oem_verbosity);
                 GN_CG gn(stop_dx, (unsigned int) max_iter, cg);
                 return_code = oem.compute<GN_CG, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
@@ -877,7 +894,8 @@ void oem_template(
             }
             else if ( (method == "lm") || (method == "ml") )
             {
-                LM_S lm(SaInv);
+                Normed<> s(T, apply_norm);
+                LM_S lm(SaInv, s);
 
                 lm.set_tolerance(stop_dx);
                 lm.set_maximum_iterations((unsigned int) max_iter);
@@ -893,7 +911,7 @@ void oem_template(
             }
             else if ( (method == "lm_cg") || (method == "ml_cg") )
             {
-                CG cg(1e-12, 0);
+                Normed<CG> cg(T, apply_norm, 1e-12, oem_verbosity);
                 LM_CG_S lm(SaInv, cg);
 
                 lm.set_maximum_iterations((unsigned int) max_iter);

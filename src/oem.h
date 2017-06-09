@@ -95,19 +95,71 @@ using OEM_MFORM_PD_PD = invlib::MAP<ForwardModel, OEMMatrix, PrecisionMatrix,
 
 using Std     = invlib::Standard;
 using CG      = invlib::ConjugateGradient<>;
+template <typename TransformationMatrixType, typename SolverType>
+class NormalizingSolver;
+
+// Normed solvers. Currently uses dense matrices to store the normalization
+// so this could be optimized.
+
+template <typename SolverType = invlib::Standard>
+using Normed  = NormalizingSolver<OEMMatrix, SolverType>;
 
 // Optimization Methods.
 
-using GN        = invlib::GaussNewton<Numeric>;
-using GN_CG     = invlib::GaussNewton<Numeric, CG>;
-using LM_D        = invlib::LevenbergMarquardt<Numeric, OEMMatrix>;
-using LM_CG_D     = invlib::LevenbergMarquardt<Numeric, OEMMatrix, CG>;
-using LM_Sparse_D = invlib::LevenbergMarquardt<Numeric, OEMMatrix>;
-using LM_S        = invlib::LevenbergMarquardt<Numeric, OEMSparse>;
-using LM_CG_S     = invlib::LevenbergMarquardt<Numeric, OEMSparse, CG>;
-using LM_I        = invlib::LevenbergMarquardt<Numeric, Identity>;
-using LM_CG_I     = invlib::LevenbergMarquardt<Numeric, Identity, CG>;
-using LM_Sparse_S = invlib::LevenbergMarquardt<Numeric, OEMSparse>;
+using GN          = invlib::GaussNewton<Numeric, Normed<>>;
+using GN_CG       = invlib::GaussNewton<Numeric, Normed<CG>>;
+using LM_D        = invlib::LevenbergMarquardt<Numeric, OEMMatrix, Normed<>>;
+using LM_CG_D     = invlib::LevenbergMarquardt<Numeric, OEMMatrix, Normed<CG>>;
+using LM_Sparse_D = invlib::LevenbergMarquardt<Numeric, OEMMatrix, Normed<>>;
+using LM_S        = invlib::LevenbergMarquardt<Numeric, OEMSparse, Normed<>>;
+using LM_CG_S     = invlib::LevenbergMarquardt<Numeric, OEMSparse, Normed<CG>>;
+using LM_I        = invlib::LevenbergMarquardt<Numeric, Identity,  Normed<>>;
+using LM_CG_I     = invlib::LevenbergMarquardt<Numeric, Identity,  Normed<CG>>;
+using LM_Sparse_S = invlib::LevenbergMarquardt<Numeric, OEMSparse, Normed<>>;
+
+////////////////////////////////////////////////////////////////////////////////
+//  Normalizing Solver
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Invlib Solver class, that wraps around a given solver and transforms the linear
+ * system from left and right with the given transformation matrix. This is used
+ * to implement the normalization from qpack.
+ */
+template
+<
+    typename TransformationMatrixType,
+    typename SolverType = invlib::Standard
+>
+class NormalizingSolver : SolverType
+{
+public:
+    NormalizingSolver(const SolverType & s)
+    : SolverType(s), apply(false), trans() {}
+
+    template<typename ...Params>
+    NormalizingSolver(const TransformationMatrixType &t, bool a, Params ...params)
+    : SolverType(params...), apply(a), trans(t) {}
+
+    template <typename MatrixType, typename VectorType>
+    auto solve(const MatrixType & A, const VectorType & v)
+    -> typename VectorType::ResultType
+    {
+        typename VectorType::ResultType w;
+        if (apply) {
+            typename VectorType::ResultType vv = trans * v;
+            auto && ww = SolverType::solve(trans * A * trans, vv);
+            w = trans * ww;
+        } else {
+            w = SolverType::solve(A, v);
+        }
+        return w;
+    }
+
+private:
+    const bool apply = false;
+    const TransformationMatrixType & trans;
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 //  Custom Log Class
