@@ -1,3 +1,14 @@
+2017-06-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-712
+
+	* doc/uguide/cloudradar.tex: Rudimentary update of the chapter.
+
+	* src/m_cloudradar.cc (iyActiveSingleScat): Now allows that
+	cloudbox_on = 0. But note some calculations will be done even in
+	this case, such as calculation of ppath. And if there is any
+	iy_aux_var, the full method is run.
+
 2017-06-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-711

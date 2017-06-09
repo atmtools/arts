@@ -295,18 +295,13 @@ void psdMH97 (
         }
 
       // PSD assumed to be constant outside [200,273.15]
-      // Shall these temperature limits be GIN?
       if( t < 200 )
         { t = 200; }
       else if( t > 273.15 )
         { t = 273.15; }
   
-      // To Patrick & Oliver: Shall the core psd function (psd_cloudice_MH97)
-      // handle even more input (i.e. Vectors of IWC and T) for calculation
-      // overhead avoidance?
-
-      Vector psd_1p(nsi);
       // Calculate PSD
+      Vector psd_1p(nsi);
       if( iwc != 0 )
         {
           psd_cloudice_MH97 ( psd_1p, psd_size_grid, iwc, t, noisy );
@@ -666,9 +661,6 @@ void iyActiveSingleScat(
                   "Recursive usage not possible (iy_agenda_call1 must be 1)." );
   if( !iy_transmission.empty() )
     throw runtime_error( "*iy_transmission* must be empty." );
-  if( !cloudbox_on )
-    throw runtime_error( 
-                    "The cloudbox must be activated (cloudbox_on must be 1)." );
 
   
   // Determine propagation path
@@ -816,6 +808,14 @@ void iyActiveSingleScat(
   //===========================================================================
 
 
+  // Size iy and set to zero
+  iy.resize( nf*np, ns );
+  iy = 0;
+
+  // If neither cloudbox or aux variables, nothing more to do
+  if( !cloudbox_on  &&  !naux )
+    { return; }
+  
   // Transmitted signal
   //
   Matrix iy0;
@@ -878,10 +878,6 @@ void iyActiveSingleScat(
                         clear2cloudbox, pnd_ext_mat );
     }
 
-
-  // Size iy and set to zero (as not filled if pnd=0)
-  iy.resize( nf*np, ns );
-  iy = 0;
 
   // Transmission for reversed direction
   Tensor3 tr_rev( nf, ns, ns );

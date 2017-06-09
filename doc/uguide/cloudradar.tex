@@ -1,32 +1,40 @@
-\chapter{Cloud radar simulations}
+\chapter{Active measurements}
  \label{sec:cradar}
 
 
 \starthistory
- 121108 & Written byPatrick Eriksson.\\
+ 170609 & Started updates following recent changes.\\
+ 121108 & Written by Patrick Eriksson.\\
 \stophistory
 
 ARTS provides some support for modelling measurements of backscattering inside
-the atmosphere. This deviates for the active measurements discussed in the
-previous chapter, as in this case the transmitter and receiver are placed at the
-same position. Here backscattering is recorded, while in the ``transmission
-case'' the attenuation through the atmosphere is probed. This has the
-consequence that the measurement data not only span the frequency and a
+the atmosphere. Such observations are for simplicity denoted as ``active''.
+These radar or lidar measurements deviate for the transmission observations
+discussed in the previous chapter, as in this case the transmitter and receiver
+are placed at the same position. Here backscattering is recorded, while in the
+transmission case the attenuation through the atmosphere is probed. This has
+the consequence that the measurement data not only span the frequency and a
 polarisation dimensions, but also has a time (or distance) dimension. That is,
 the backscattering is basically reported as a function of distance from the
 sensor, for one or several frequencies frequencies and combinations of
 transmitted and received polarisations. Accordingly, these data differ in
-nature from the other types of measurements, and the standard main function 
+nature from the other types of measurements, and the standard main function
 (\builtindoc{yCalc}) is not applicable.
 
-A very important restriction applies, only single scattering is treated. That
-is, no other scattering than the targeted backscattering is considered. This is
-frequently an acceptable simplification for precipitation and cloud radars
-observations, and such observations should be the main applications of the
-discussed workspace methods. The basic measurement approach is the same for
-lidars, but the assumption of single scattering is much less commonly met for
-such instruments.
 
+
+\section{Single scattering}
+%===================
+\label{sec:cradar:single}
+
+The fastest method for this observation approach is
+\wsmindex{iyActiveSingleScat}. As the name of the method indicates a very
+important restriction applies, only single scattering is treated (but the
+attenuation due to particles is also considered). This is frequently an
+acceptable simplification for precipitation and cloud radars observations, and
+such observations should be the main applications of this workspace methods.
+The basic measurement approach is the same for lidars, but the assumption of
+single scattering is much more restrictive for such instruments.
 
 \section{Theory}
 %===================
@@ -99,8 +107,8 @@ water, $n$:
 \label{sec:cradar:usage}
 
 As for other measurements, the main radiative transfer calculations are
-performed inside \builtindoc{iy\_main\_agenda}. The workspace method to be used
-inside this agenda is \wsmindex{iyCloudRadar}. This method returns \aStoVec{b}
+performed inside \builtindoc{iy\_main\_agenda}. When using
+\builtindoc{iyActiveSingleScat}, \aStoVec{b} is returned
 for each point of the propagation path, and for each frequency in
 \builtindoc{f\_grid}. The calculated data are packed into \builtindoc{iy}. Here
 the difference to other measurement types emerge. For example, the second row
@@ -123,20 +131,28 @@ refractive index of water at the specified temperature.
 Hence, the basic calculations are performed in standard manner, using
 \builtindoc{iy\_main\_agenda}. However, the deviating data pattern in
 \wsvindex{iy} results in that an alternative to \builtindoc{yCalc} is needed
-and it is \wsmindex{yCloudRadar}. The method applies two instrument effects.
-Firstly, the polarisation response of the receiever is incorporated
+and it is \wsmindex{yActive}. The method applies two instrument effects.
+Firstly, the polarisation response of the receiver is incorporated
 (Eq.~\ref{eq:cradar:bscatt2}). Secondly, the data are averaged as a
 function of ``range'', following the \wsvindex{range\_bins}. These range bins
-can be specified either as geomtrical altitude or the two-way propagation time.
+can be specified either as geometrical altitude or the two-way propagation time.
 The range binning is described further in the built-in documentation.
 Further, the data are rearranged into a vector and returned as \builtindoc{y}.
 
-A number of auxiliary data can be obtained by \builtindoc{iyCloudRadar}, this
+A number of auxiliary data can be obtained by \builtindoc{iyActiveSingleScat}, this
 including $\beta$. For a list of possible variables:
 \begin{code}
-arts -d iyCloudRadar
+arts -d iyActiveSingleScat
 \end{code}
-A difference of \builtindoc{yCloudRadar}, compared to \builtindoc{yCalc}, is
-that all auxiliary quantities provided by \builtindoc{iyCloudRadar} are
+A difference of \builtindoc{yActive}, compared to \builtindoc{yCalc}, is
+that all auxiliary quantities provided by \builtindoc{iyActiveSingleScat} are
 treated.
 
+
+
+\section{Multiple scattering}
+%===================
+\label{sec:cradar:multi}
+
+Radar measurements involving multiple scattering can be simulated by using
+\wsmindex{MCRadar}. To be written \dots
