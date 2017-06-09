@@ -1,3 +1,17 @@
+2017-06-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-711
+
+	* CMakeLists.txt, src/CMakeLists.txt:
+
+	Add better Threads detection. The pthread library needed by
+	libmicrohttpd was not properly linked on all configurations
+	(clang on Ubuntu 17.04).
+
+	* src/binio.cc (binostream::float2ieee_single):
+
+	Remove deprecated 'register' keyword.
+
 2017-06-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-710

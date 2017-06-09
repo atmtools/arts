@@ -37,7 +37,7 @@ if (NOT ENABLE_ALLPATHS)
   endif()
 endif()
 
-project (ARTS)
+project (ARTS C CXX)
 
 enable_testing ()
 
@@ -156,6 +156,7 @@ check_include_file (unistd.h    HAVE_UNISTD_H)
 check_include_file (getopt.h    HAVE_GETOPT_H)
 
 ########### Check C header files for libmicrohttpd ##########
+find_package( Threads REQUIRED )
 check_include_file (fcntl.h     HAVE_FCNTL_H)
 check_include_file (math.h      HAVE_MATH_H)
 check_include_file (errno.h     HAVE_ERRNO_H)

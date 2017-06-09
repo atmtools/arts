@@ -290,7 +290,7 @@ if (ENABLE_MPI)
 endif (ENABLE_MPI)
 
 if (ENABLE_DOCSERVER)
-  target_link_libraries (artscore microhttpd)
+  target_link_libraries (artscore microhttpd ${CMAKE_THREAD_LIBS_INIT})
 endif (ENABLE_DOCSERVER)
 
 ########### next target ###############
