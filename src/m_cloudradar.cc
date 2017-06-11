@@ -348,6 +348,9 @@ void pnd_fieldCalcFromParticleBulkProps(
    const ArrayOfRetrievalQuantity&    jacobian_quantities,
    const Verbosity&)
 {
+  // As we allow this method to be called with cloudbox_checkedCalc, it must
+  // contain quite a number of checks.
+  
   // Number of scattering species
   const Index nss = scat_data.nelem();
 

@@ -3657,8 +3657,8 @@ void define_md_data_raw()
          "Checks consistency and validity of the cloudbox governing variables.\n"
          "\n"
          "The following WSVs are treated: *cloudbox_on*, *cloudbox_limits*,\n"
-         "*pnd_field*, *scat_data*, *scat_species*, *abs_species*,\n"
-         "*particle_masses* and wind_u/v/w_field.\n"
+         "*pnd_field*, *scat_data*, *scat_species*, *abs_species*, *particle_masses*\n"
+         "*particle_bulkprop_field*, *particle_bulkprop_names* and wind_u/v/w_field.\n"
          "\n"
          "If any of these variables is changed, then this method shall be\n"
          "called again (no automatic check that this is fulfilled!).\n"
@@ -3680,6 +3680,11 @@ void define_md_data_raw()
          "the data is correct, e.g. by having run *scat_dataCheck* on the set\n"
          "of data before in a separate ARTS run.\n"
          "\n"
+         "*scat_species*, *particle_masses*, *particle_bulkprop_field* and\n"
+         "*particle_bulkprop_names* must either be empty or have a size that\n"         
+         "matches the other data. If non-zero, some check of these variables\n" 
+         "are performed.\n"
+         "\n"
          "If any test fails, there is an error. Otherwise, *cloudbox_checked*\n"
          "is set to 1.\n"
          ),
@@ -3688,12 +3693,12 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmfields_checked", "atmosphere_dim", "p_grid", "lat_grid", 
+        IN( "atmfields_checked", "f_grid",  "atmosphere_dim", "p_grid", "lat_grid", 
             "lon_grid", "z_field", "z_surface",
             "wind_u_field", "wind_v_field", "wind_w_field", 
-            "cloudbox_on", "cloudbox_limits", "pnd_field",
-            "f_grid", "scat_data", "scat_species",
-            "abs_species", "particle_masses" ),
+            "cloudbox_on", "cloudbox_limits", "pnd_field", "scat_data",
+            "scat_species", "particle_bulkprop_field", "particle_bulkprop_names",
+            "particle_masses", "abs_species" ),
         GIN(         "scat_data_check_type", "sca_mat_threshold" ),
         GIN_TYPE(    "String",               "Numeric" ),
         GIN_DEFAULT( "all",                  "5e-2" ),
@@ -16113,43 +16118,29 @@ void define_md_data_raw()
       ( NAME( "xaStandard" ),
         DESCRIPTION
         (
-         "Standard function for creating *xa*\n"
+         "Standard function for creating *xa*.\n"
          "\n"
-         "Work in progress ...\n"
+         "The method creates *xa* based on *jacobian_quantities* and the various\n"
+         "atmospheric fields. In the case of scattering species, the data are\n"
+         "taken from *particle_bulkprop_field*. The following retrieval quantities\n"
+         "are handled:\n"
+         "   Temperature\n"
+         "   Absorption species\n"
+         "   Scattering species\n"
+         "   Pointing\n"
+         "   Polynomial baseline fit\n"
+         "   Sinusoidal baseline fit\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "xa" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_quantities", "jacobian_indices", 
-            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid",
-            "t_field", "vmr_field", "abs_species" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "x2artsScatSpecies" ),
-        DESCRIPTION
-        (
-         "Mapping of scattering species retrieval state vector data to ARTS variables.\n"
-         "\n"
-         "Work in progress ...\n"
-         "\n"
-         "Should only be used inside *inversion_iterate_agenda*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "particle_bulkprop_field" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "particle_bulkprop_field", "particle_bulkprop_names",
-            "jacobian_quantities", "jacobian_indices", "x",
-            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+        IN( "atmfields_checked", "atmgeom_checked",
+            "jacobian_quantities", "jacobian_indices", "atmosphere_dim",
+            "p_grid", "lat_grid", "lon_grid", "t_field", "vmr_field",
+            "abs_species", "cloudbox_on", "cloudbox_checked",
+            "particle_bulkprop_field", "particle_bulkprop_names" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -16163,18 +16154,28 @@ void define_md_data_raw()
         (
          "Standard mapping from retrieval state vector to ARTS variables\n"
          "\n"
-         "Work in progress ...\n"
+         "Maps OEM's state vector, *x*, to the matching ARTS variables. The\n"
+         "following retrieval quantities are handled:\n"
+         "   Temperature\n"
+         "   Absorption species\n"
+         "   Scattering species\n"
+         "   Pointing\n"
+         "   Polynomial baseline fit\n"
+         "   Sinusoidal baseline fit\n"
          "\n"
          "Should only be used inside *inversion_iterate_agenda*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "y_baseline", "vmr_field", "t_field", "sensor_los" ),
+        OUT( "y_baseline", "vmr_field", "t_field", "particle_bulkprop_field",
+             "sensor_los" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "vmr_field", "t_field", "sensor_los",
+        IN( "vmr_field", "t_field", "particle_bulkprop_field", "sensor_los",
+            "atmfields_checked", "atmgeom_checked",
             "jacobian", "jacobian_quantities", "jacobian_indices", "x", "xa",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species",
+            "cloudbox_on", "cloudbox_checked", "particle_bulkprop_names",
             "sensor_time" ),
         GIN(),
         GIN_TYPE(),

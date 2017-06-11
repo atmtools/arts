@@ -218,6 +218,8 @@ void get_gp_rq_to_atmgrids(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void xaStandard( 
          Vector&                     xa,
+   const Index&                      atmfields_checked,
+   const Index&                      atmgeom_checked,
    const ArrayOfRetrievalQuantity&   jq,
    const ArrayOfArrayOfIndex&        ji,
    const Index&                      atmosphere_dim,
@@ -227,8 +229,24 @@ void xaStandard(
    const Tensor3&                    t_field,
    const Tensor4&                    vmr_field,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Index&                      cloudbox_on,
+   const Index&                      cloudbox_checked,
+   const Tensor4&                    particle_bulkprop_field,
+   const ArrayOfString&              particle_bulkprop_names,         
    const Verbosity&)
 {
+  // Basics
+  //
+  if( atmfields_checked != 1 )
+    throw runtime_error( "The atmospheric fields must be flagged to have "
+                         "passed a consistency check (atmfields_checked=1)." );
+  if( atmgeom_checked != 1 )
+    throw runtime_error( "The atmospheric geometry must be flagged to have "
+                         "passed a consistency check (atmgeom_checked=1)." );
+  if( cloudbox_checked != 1 )
+    throw runtime_error( "The cloudbox must be flagged to have "
+                         "passed a consistency check (cloudbox_checked=1)." );
+
   // Sizes
   const Index nq = jq.nelem();
   //
@@ -241,6 +259,7 @@ void xaStandard(
       const Index np = ji[q][1] - ji[q][0] + 1;
       Range ind( ji[q][0], np );
 
+      
       // Atmospheric temperatures
       if( jq[q].MainTag() == TEMPERATURE_MAINTAG )
         {
@@ -254,6 +273,7 @@ void xaStandard(
           flat( xa[ind], t_x );
         }
 
+      
       // Abs species
       else if( jq[q].MainTag() == ABSSPECIES_MAINTAG )
         {
@@ -312,6 +332,49 @@ void xaStandard(
             { assert(0); }
         }
 
+      
+      // Scattering species
+      else if( jq[q].MainTag() == SCATSPECIES_MAINTAG )
+        {
+          if( cloudbox_on )
+            {
+              if( particle_bulkprop_field.empty() )
+                {
+                  throw runtime_error( "One jacobian quantity belongs to the "
+                    "scattering species category, but *particle_bulkprop_field* "
+                    "is empty." );
+                }
+              if( particle_bulkprop_field.nbooks() != particle_bulkprop_names.nelem() )
+                {
+                  throw runtime_error( "Mismatch in size between "
+                    "*particle_bulkprop_field* and *particle_bulkprop_field*." );
+                }
+
+              const Index isp = find_first( particle_bulkprop_names,
+                                        jq[q].SubSubtag() );
+              if( isp < 0 )
+                {
+                  ostringstream os;
+                  os << "Jacobian quantity with index " << q << " covers a "
+                     << "scattering species, and the field quantity is set to \""
+                     << jq[q].SubSubtag() << "\", but this quantity "
+                     << "could not found in *particle_bulkprop_names*.";
+                  throw runtime_error(os.str());
+                }
+              
+              ArrayOfGridPos gp_p, gp_lat, gp_lon;
+              get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
+                                     p_grid, lat_grid, lon_grid );
+              Tensor3 pbp_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
+              regrid_atmfield_by_gp( pbp_x, atmosphere_dim, 
+                                     particle_bulkprop_field(isp,joker,joker,joker), 
+                                     gp_p, gp_lat, gp_lon );
+              flat( xa[ind], pbp_x );
+            }
+          else
+            { xa[ind] = 0; }
+        }
+
       // All variables having zero as a priori
       // ----------------------------------------------------------------------------
       else if( jq[q].MainTag() == POINTING_MAINTAG ||
@@ -338,7 +401,10 @@ void x2artsStandard(
          Vector&                     y_baseline,
          Tensor4&                    vmr_field,
          Tensor3&                    t_field,
+         Tensor4&                    particle_bulkprop_field,
          Matrix&                     sensor_los,
+   const Index&                      atmfields_checked,
+   const Index&                      atmgeom_checked,
    const Matrix&                     jacobian,
    const ArrayOfRetrievalQuantity&   jq,
    const ArrayOfArrayOfIndex&        ji,
@@ -349,9 +415,24 @@ void x2artsStandard(
    const Vector&                     lat_grid,
    const Vector&                     lon_grid,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Index&                      cloudbox_on,
+   const Index&                      cloudbox_checked,
+   const ArrayOfString&              particle_bulkprop_names,         
    const Vector&                     sensor_time,
    const Verbosity&)
 {
+  // Basics
+  //
+  if( atmfields_checked != 1 )
+    throw runtime_error( "The atmospheric fields must be flagged to have "
+                         "passed a consistency check (atmfields_checked=1)." );
+  if( atmgeom_checked != 1 )
+    throw runtime_error( "The atmospheric geometry must be flagged to have "
+                         "passed a consistency check (atmgeom_checked=1)." );
+  if( cloudbox_checked != 1 )
+    throw runtime_error( "The cloudbox must be flagged to have "
+                         "passed a consistency check (cloudbox_checked=1)." );
+
   // Main sizes
   const Index nq = jq.nelem();
 
@@ -373,6 +454,7 @@ void x2artsStandard(
       const Index np = ji[q][1] - ji[q][0] + 1;
       Range ind( ji[q][0], np );
 
+      
       // Atmospheric temperatures
       // ----------------------------------------------------------------------------
       if( jq[q].MainTag() == TEMPERATURE_MAINTAG )
@@ -391,6 +473,7 @@ void x2artsStandard(
                                  gp_p, gp_lat, gp_lon );
         }
 
+      
       // Abs species
       // ----------------------------------------------------------------------------
       else if( jq[q].MainTag() == ABSSPECIES_MAINTAG )
@@ -458,6 +541,57 @@ void x2artsStandard(
             { assert(0); }
         }
 
+      
+      // Scattering species
+      // ----------------------------------------------------------------------------
+      else if( jq[q].MainTag() == SCATSPECIES_MAINTAG )
+        {
+          // If no cloudbox, we assume that there is nothing to do
+          if( cloudbox_on )
+            {
+              if( particle_bulkprop_field.empty() )
+                {
+                  throw runtime_error( "One jacobian quantity belongs to the "
+                    "scattering species category, but *particle_bulkprop_field* "
+                    "is empty." );
+                }
+              if( particle_bulkprop_field.nbooks() != particle_bulkprop_names.nelem() )
+                {
+                  throw runtime_error( "Mismatch in size between "
+                    "*particle_bulkprop_field* and *particle_bulkprop_field*." );
+                }
+              
+              const Index isp = find_first( particle_bulkprop_names,
+                                        jq[q].SubSubtag() );
+              if( isp < 0 )
+                {
+                  ostringstream os;
+                  os << "Jacobian quantity with index " << q << " covers a "
+                     << "scattering species, and the field quantity is set to \""
+                     << jq[q].SubSubtag() << "\", but this quantity "
+                     << "could not found in *particle_bulkprop_names*.";
+                  throw runtime_error(os.str());
+                }
+          
+              // Determine grid positions for interpolation from retrieval grids back
+              // to atmospheric grids
+              ArrayOfGridPos gp_p, gp_lat, gp_lon;
+              Index          n_p, n_lat, n_lon;
+              get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
+                                     jq[q], atmosphere_dim, p_grid, lat_grid, lon_grid );
+              // Map x to particle_bulkprop_field
+              Tensor3 pbfield_x( n_p, n_lat, n_lon );
+              reshape( pbfield_x, x[ind] ); 
+              Tensor3 pbfield( particle_bulkprop_field.npages(),
+                               particle_bulkprop_field.nrows(),
+                               particle_bulkprop_field.ncols() );
+              regrid_atmfield_by_gp( pbfield, atmosphere_dim, pbfield_x,
+                                     gp_p, gp_lat, gp_lon );
+              particle_bulkprop_field(isp,joker,joker,joker) = pbfield;
+            }
+        }
+
+      
       // Pointing off-set
       // ----------------------------------------------------------------------------
       else if( jq[q].MainTag() == POINTING_MAINTAG )
@@ -495,6 +629,7 @@ void x2artsStandard(
             }
         }
 
+      
       // Baseline fit: polynomial or sinusoidal
       // ----------------------------------------------------------------------------
       else if( jq[q].MainTag() == POLYFIT_MAINTAG  ||  
@@ -532,12 +667,6 @@ void x2artsStandard(
             }
         }
 
-      // Baseline fit: polynomial or sinusoidal
-      // ----------------------------------------------------------------------------
-      else if( jq[q].MainTag() == SCATSPECIES_MAINTAG )
-        {
-          // Here we trust the user!
-        }
       
       // Or we have to throw an error
       // ----------------------------------------------------------------------------
@@ -550,6 +679,7 @@ void x2artsStandard(
         }
     }
 
+  
   // *y_baseline* not yet set?
   if( !yb_set )
     {
@@ -558,71 +688,6 @@ void x2artsStandard(
     }
 }
 
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void x2artsScatSpecies(
-         Tensor4&                    particle_bulkprop_field,
-   const ArrayOfString&              particle_bulkprop_names,         
-   const ArrayOfRetrievalQuantity&   jq,
-   const ArrayOfArrayOfIndex&        ji,
-   const Vector&                     x,
-   const Index&                      atmosphere_dim,
-   const Vector&                     p_grid,
-   const Vector&                     lat_grid,
-   const Vector&                     lon_grid,
-   const Verbosity&)
-{
-  // Main sizes
-  const Index nq = jq.nelem();
-
-  // Check input
-  if( x.nelem() != ji[nq-1][1]+1 )
-    throw runtime_error( "Length of *x* does not match information in "
-                         "*jacobian_quantities*.");
-
-  // Note that when this method is called, output variables
-  // have original values, i.e. matching the a priori state.
-
-  // Loop retrieval quantities and fill *xa*
-  for( Index q=0; q<nq; q++ )
-    {
-      // Index range of this retrieval quantity
-      const Index np = ji[q][1] - ji[q][0] + 1;
-      Range ind( ji[q][0], np );
-
-      if( jq[q].MainTag() == SCATSPECIES_MAINTAG )
-        {
-          const Index isp = find_first( particle_bulkprop_names,
-                                        jq[q].SubSubtag() );
-          if( isp < 0 )
-            {
-              ostringstream os;
-              os << "Jacobian quantity with index " << q << " covers a "
-                 << "scattering species, and the field quantity is set to \""
-                 << jq[q].SubSubtag() << "\", but this quantity "
-                 << "could not found in *particle_bulkprop_names*.";
-              throw runtime_error(os.str());
-            }
-          
-          // Determine grid positions for interpolation from retrieval grids back
-          // to atmospheric grids
-          ArrayOfGridPos gp_p, gp_lat, gp_lon;
-          Index          n_p, n_lat, n_lon;
-          get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
-                                 jq[q], atmosphere_dim, p_grid, lat_grid, lon_grid );
-          // Map x to particle_bulkprop_field
-          Tensor3 pbfield_x( n_p, n_lat, n_lon );
-          reshape( pbfield_x, x[ind] ); 
-          Tensor3 pbfield( particle_bulkprop_field.npages(),
-                           particle_bulkprop_field.nrows(),
-                           particle_bulkprop_field.ncols() );
-          regrid_atmfield_by_gp( pbfield, atmosphere_dim, pbfield_x,
-                                 gp_p, gp_lat, gp_lon );
-          particle_bulkprop_field(isp,joker,joker,joker) = pbfield;
-        }
-    }
-}
 
 
 /*===========================================================================

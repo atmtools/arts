@@ -1,9 +1,35 @@
+2017-06-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-714
+
+	* particle_bulkprop_field and particle_bulkprop_names are now
+	semi-mandatory variables, i.e. they must at least be set to be
+	empty in line with e.g. the wind fields.
+
+	* src/m_oem.cc (x2artsScatSpecies): Removed. Obselete after
+	changing x2artsStandard.
+
+	(x2artsStandard): Now handling scattering species. The method now
+	also considers atmfields_checked, atmgeom_checked, cloudbox_on and
+	cloudbox_checked.
+
+	* src/m_jacobian.cc (jacobianDoit): Adopted call of cloudbox_checkedCalc.
+
+	* src/m_checked.cc (cloudbox_checkedCalc): Added checks of
+	particle_bulkprop_field and particle_bulkprop_names.
+
+	* src/m_cloudradar.cc (pnd_fieldCalcFromParticleBulkProps): Added
+	comment, to explain why this method contains a lot of checks.
+
+	* controlfiles/general/general.arts: particle_bulkprop_field and
+	particle_bulkprop_names added. Set to be empty.
+
 2017-06-09  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-713
-	
+
 	* 3rdparty/relmat/*: Updated to latest version
-	
+
 	* src/lineshapesdata.{cc,h}: Added LineFunctions helper class because
 	I keep having to rewrite code for special cases.  Can handle line shapes,
 	line strengths, line mixing, Zeeman, and their derivatives presently but

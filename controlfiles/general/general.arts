@@ -31,10 +31,13 @@ verbosityInit
 
 
 #
-# No particle/scattering species (yet)
+# Semi-mandatory variables associated with scattering calculations
 #
 scat_speciesSet( scat_species, [] )
 MatrixSet( particle_masses, [] )
+Tensor4SetConstant( particle_bulkprop_field, 0, 0, 0, 0, 0.0 )
+ArrayOfStringSet( particle_bulkprop_names, [] )
+
 
 
 #
@@ -71,6 +74,7 @@ Tensor3SetConstant( wind_w_field, 0, 0, 0, 0.0 )
 Tensor3SetConstant( mag_u_field, 0, 0, 0, 0.0 )
 Tensor3SetConstant( mag_v_field, 0, 0, 0, 0.0 )
 Tensor3SetConstant( mag_w_field, 0, 0, 0, 0.0 )
+
 
 
 ############

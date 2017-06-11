@@ -429,6 +429,7 @@ void atmgeom_checkedCalc(
 void cloudbox_checkedCalc(      
          Index&          cloudbox_checked,
    const Index&          atmfields_checked,
+   const Vector&         f_grid,
    const Index&          atmosphere_dim,
    const Vector&         p_grid,
    const Vector&         lat_grid,
@@ -441,11 +442,12 @@ void cloudbox_checkedCalc(
    const Index&          cloudbox_on,    
    const ArrayOfIndex&   cloudbox_limits,
    const Tensor4&        pnd_field,
-   const Vector&         f_grid,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
    const ArrayOfString&  scat_species,
-   const ArrayOfArrayOfSpeciesTag& abs_species,
+   const Tensor4&        particle_bulkprop_field,
+   const ArrayOfString&  particle_bulkprop_names,         
    const Matrix&         particle_masses,
+   const ArrayOfArrayOfSpeciesTag& abs_species,
    const String&         scat_data_check_type,
    const Numeric&        sca_mat_threshold,
    const Verbosity&      verbosity )
@@ -606,21 +608,6 @@ void cloudbox_checkedCalc(
             }
         }
 
-      // Check consistency of scat_species and scat_data (only if scat_species
-      // is set at all, i.e., only for cases were pnd_fields have been calculated
-      // from hydrometeor fields)
-      if( scat_species.nelem()>0 )
-        // here we have scat_species defined at all
-        if( scat_species.nelem() != scat_data.nelem() )
-          {
-            ostringstream os;
-            os << "Number of scattering species specified by scat_species does\n"
-               << "not agree with number of scattering species in scat_data:\n"
-               << "scat_species has " << scat_species.nelem()
-               << " entries, while scat_data has " << scat_data.nelem() << ".";
-            throw runtime_error ( os.str() );
-          }
-
       // Check pnd_field
       //
       const Index np = TotalNumberOfElements(scat_data);
@@ -670,19 +657,6 @@ void cloudbox_checkedCalc(
                                  "upper longitude limit of the cloudbox." );
         }
 
-      // particle_masses
-      //
-      if( particle_masses.nrows() > 0 )
-        {
-          if( particle_masses.nrows() != np )
-            throw runtime_error( "The WSV *particle_masses* must either be "
-                                 "empty or have a row size matching the "
-                                 "length of *scat_data*." );
-          if( min(particle_masses) < 0 )
-            throw runtime_error( 
-                           "All values in *particles_masses* must be >= 0." );
-        }
-
       // Check scat_data
       // freq range of calc covered?
       if( f_grid.empty() )
@@ -710,6 +684,96 @@ void cloudbox_checkedCalc(
           scat_dataCheck( scat_data, scat_data_check_type, sca_mat_threshold,
                           verbosity );
         }
+
+
+      // Check semi-madatory variables, that are alowed to be empty
+      //
+      const Index nss = scat_data.nelem();
+
+      // scat_species:
+      if( scat_species.nelem()>0 )
+        if( scat_species.nelem() != nss )
+          {
+            ostringstream os;
+            os << "Number of scattering species specified by scat_species does\n"
+               << "not agree with number of scattering species in scat_data:\n"
+               << "scat_species has " << scat_species.nelem()
+               << " entries, while scat_data has " << scat_data.nelem() << ".";
+            throw runtime_error ( os.str() );
+          }
+
+      // particle_masses:
+      if( !particle_masses.empty() )
+        {
+          if( particle_masses.nrows() != np )
+            throw runtime_error( "The WSV *particle_masses* must either be "
+                                 "empty or have a row size matching the "
+                                 "length of *scat_data*." );
+          if( min(particle_masses) < 0 )
+            throw runtime_error( 
+                           "All values in *particles_masses* must be >= 0." );
+        }
+      
+      // particle_bulkprop_field/names
+      if( !particle_bulkprop_field.empty() )
+        {
+          chk_atm_field( "particle_bulkprop_field", particle_bulkprop_field,
+                         atmosphere_dim, particle_bulkprop_field.nbooks(),
+                         p_grid, lat_grid, lon_grid );
+          //
+          if( particle_bulkprop_names.nelem() == 0 )
+            {
+              throw runtime_error( "If *particle_bulkprop_field* is set, also "
+                                   "*particle_bulkprop_names* must be set (but "
+                                   "it is empty)." );
+            }
+          if( particle_bulkprop_names.nelem() != particle_bulkprop_field.nbooks() )
+            {
+              throw runtime_error( "If *particle_bulkprop_field* is set, "
+                                   "*particle_bulkprop_names* must be set to "
+                                   "have a matching length." );
+            }
+          
+          // Check that *particle_bulkprop_field* contains zeros outside and at
+          // cloudbox boundaries
+          const String estring = "*particle_bulkprop_field* can only contain non-zero "
+            "values inside the cloudbox.";
+          // Pressure end ranges
+          for( Index ilon=0; ilon<nlon; ilon++ ) {
+            for( Index ilat=0; ilat<nlat; ilat++ ) {
+              for( Index ip=0; ip<=cloudbox_limits[0]; ip++ ) {
+                if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
+                  throw runtime_error( estring ); } 
+              for( Index ip=cloudbox_limits[1]; ip<p_grid.nelem(); ip++ ) {
+                if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
+                  throw runtime_error( estring ); } } }
+          if( atmosphere_dim > 1 )
+            {
+              // Latitude end ranges
+              for( Index ilon=0; ilon<nlon; ilon++ ) {
+                for( Index ip=cloudbox_limits[0]+1; ip<cloudbox_limits[1]-1; ip++ ) {
+                  for( Index ilat=0; ilat<=cloudbox_limits[2]; ilat++ ) {
+                    if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
+                      throw runtime_error( estring ); }
+                  for( Index ilat=cloudbox_limits[3]; ilat<lat_grid.nelem(); ilat++ ) {
+                    if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
+                      throw runtime_error( estring ); } } }
+              if( atmosphere_dim > 2 )
+                {
+                  // Longitude end ranges
+                  for( Index ip=cloudbox_limits[0]+1; ip<cloudbox_limits[1]-1; ip++ ) {
+                    for( Index ilat=cloudbox_limits[2]+1;
+                         ilat<cloudbox_limits[3]-1; ilat++ ) {
+                      for( Index ilon=0; ilon<=cloudbox_limits[4]; ilon++ ) {
+                        if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
+                          throw runtime_error( estring ); }
+                      for( Index ilon=cloudbox_limits[5];
+                           ilon<lon_grid.nelem(); ilon++ ) {
+                        if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
+                          throw runtime_error( estring ); } } }
+                }
+            }
+        }      
     }
 
   // If here, all OK

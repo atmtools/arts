@@ -2618,18 +2618,21 @@ void jacobianDoit(//WS Output:
       Vector latlon_dummy(0);
       Matrix part_mass_dummy(0,0);
       Tensor3 wind_dummy(0,0,0);
+      Tensor4 pbp_field_dummy(0,0,0,0);
+      ArrayOfString pbp_names_dummy(0);
       ScatSpeciesMerge(	pnd_field, scat_data, scat_meta, scat_species,
                         cb_chk_internal,
                         atmosphere_dim, cloudbox_on, cloudbox_limits,
                         t_field, z_field,
                         z_surface, verbosity );
-    // check that the merged scat_data still fulfills the requirements
-      cloudbox_checkedCalc( cb_chk_internal, atmfields_checked, atmosphere_dim,
-                            p_grid, latlon_dummy, latlon_dummy, z_field,
-                            z_surface, wind_dummy, wind_dummy, wind_dummy,
-                            cloudbox_on, cloudbox_limits, pnd_field, f_grid,
-                            scat_data, scat_species, abs_species,
-                            part_mass_dummy, scat_data_check_type,
+      // check that the merged scat_data still fulfills the requirements
+      cloudbox_checkedCalc( cb_chk_internal, atmfields_checked, f_grid,
+                            atmosphere_dim, p_grid, latlon_dummy, latlon_dummy,
+                            z_field, z_surface, wind_dummy, wind_dummy, wind_dummy,
+                            cloudbox_on, cloudbox_limits, pnd_field,
+                            scat_data, scat_species, pbp_field_dummy,
+                            pbp_names_dummy, part_mass_dummy, 
+                            abs_species, scat_data_check_type,
                             sca_mat_threshold, verbosity );
       if( debug )
         {
@@ -3034,6 +3037,8 @@ void jacobianDoit(//WS Output:
                       Vector latlon_dummy(0);
                       Matrix part_mass_dummy(0,0);
                       Tensor3 wind_dummy(0,0,0);
+                      Tensor4 pbp_field_dummy(0,0,0,0);
+                      ArrayOfString pbp_names_dummy(0);
                       ScatSpeciesMerge( pnd_field,
                                         scat_data, scat_meta, scat_species,
                                         cb_chk_internal,
@@ -3042,15 +3047,15 @@ void jacobianDoit(//WS Output:
                                         t_field, z_field,
                                         z_surface, verbosity );
                       cloudbox_checkedCalc( cb_chk_internal,
-                                            atmfields_checked, atmosphere_dim,
+                                            atmfields_checked, f_grid, atmosphere_dim,
                                             p_grid, latlon_dummy, latlon_dummy,
                                             z_field, z_surface,
                                             wind_dummy, wind_dummy, wind_dummy,
                                             cloudbox_on, cloudbox_limits,
-                                            pnd_field, f_grid, scat_data,
-                                            scat_species, abs_species,
+                                            pnd_field, scat_data, scat_species, 
+                                            pbp_field_dummy, pbp_names_dummy,
                                             part_mass_dummy,
-                                            scat_data_check_type,
+                                            abs_species, scat_data_check_type,
                                             sca_mat_threshold, verbosity );
                       if( debug )
                         {
