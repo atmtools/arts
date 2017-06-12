@@ -85,6 +85,13 @@ void RT4Calc( Workspace& ws,
                 const Numeric& max_delta_tau,
                 const Verbosity& verbosity )
 {
+  if (!cloudbox_on)
+  {
+    CREATE_OUT0;
+    out0 << "  Cloudbox is off, RT4 calculation will be skipped.\n";
+    return;
+  }
+
   // FIXME: so far surface is implictly assumed at lowest atmospheric level.
   // That should be fixed (using z_surface and allowing other altitudes) at some
   // point.
@@ -206,6 +213,13 @@ void RT4CalcWithRT4Surface(
                 const Numeric& max_delta_tau,
                 const Verbosity& verbosity )
 {
+  if (!cloudbox_on)
+  {
+    CREATE_OUT0;
+    out0 << "  Cloudbox is off, RT4 calculation will be skipped.\n";
+    return;
+  }
+
   // FIXME: so far surface is implictly assumed at lowest atmospheric level.
   // That should be fixed (using z_surface and allowing other altitudes) at some
   // point.

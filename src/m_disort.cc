@@ -83,13 +83,20 @@ void DisortCalc(Workspace& ws,
                 const String& pfct_method,
                 const Verbosity& verbosity )
 {
+  if (!cloudbox_on)
+  {
+    CREATE_OUT0;
+    out0 << "  Cloudbox is off, DISORT calculation will be skipped.\n";
+    return;
+  }
+
   // FIXME: so far surface is implictly assumed at lowest atmospheric level.
   // That should be fixed (using z_surface and allowing other altitudes) at some
   // point.
 
   // FIXME: At the moment, combining scattering elements stored on different
   //  scattering angle grids is only possible for pfct_method 'interpolate'.
-
+  // Don't do anything if there's no cloudbox defined.
   check_disort_input( cloudbox_on,
                       atmfields_checked, atmgeom_checked, cloudbox_checked,
                       atmosphere_dim, stokes_dim, cloudbox_limits,
@@ -148,6 +155,13 @@ void DisortCalcWithARTSSurface(Workspace& ws,
                 const String& pfct_method,
                 const Verbosity& verbosity )
 {
+  if (!cloudbox_on)
+  {
+    CREATE_OUT0;
+    out0 << "  Cloudbox is off, DISORT calculation will be skipped.\n";
+    return;
+  }
+
   // FIXME: so far surface is implictly assumed at lowest atmospheric level.
   // That should be fixed (using z_surface and allowing other altitudes) at some
   // point.

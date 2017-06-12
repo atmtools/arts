@@ -1,3 +1,11 @@
+2017-06-12 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-715
+
+	* src/m_disort.cc (DisortCalc*), m_doit.cc (DoitCalc), m_rt4.cc (RT4Clac*):
+	Rolled back to only-warning and return to clearsky calc if scatt solvers
+	are called with cloudbox off (as used pre arts-2-3-633).
+
 2017-06-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-714
