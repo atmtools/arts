@@ -10093,23 +10093,24 @@ void define_md_data_raw()
          "of *y*, is:\n"
          "   cost = cost_y + cost_x\n"
          "where\n"
-         "   cost_y = 1/m * [y-yf]' * covmat_so_inv * [y-yf]\n"
+         "   cost_y = 1/m * [y-yf]' * covmat_se_inv * [y-yf]\n"
          "   cost_x = 1/m * [x-xa]' * covmat_sx_inv * [x-xa]\n"
          "\n"
-         " The current implementation provides 3 methods for the minimization of the\n"
-         "cost functional: Linear, Gauss-Newton and Levenberg-Marquardt."
-         "The Gauss-Newton minimizer attempts to find a minimum solution by fitting a \n"
-         "quadratic function to the cost functional. The linear minimizer is a special "
-         "case of the Gauss-Newton method, since for a linear forward model the exact\n"
-         "solution of the minimization problem is obtained after the first step. \n"
-         "The Levenberg-Marquardt method adaptively constrains the search region for the\n"
-         "minimum by means of the so-called gamma-factor. This makes the method more suitable\n"
-         "for strongly non-linear problems. If the gamma-factor is 0, Levenberg-Marquardt\n"
-         "and Gauss-Newton method are identical.\n"
-         "Each minimization method (li,gn,lm) has an indirect variant (li_cg,gn_cg,lm_cg),"
-         "which uses the conjugate gradient solver for the linear system that has to be\n"
-         "solved in each minimzation step. This of advantage for very large problems, that would \n"
-         "otherwise\n require the computation of expensive matrix products.\n"
+         " The current implementation provides 3 methods for the minimization of\n"
+         "the cost functional: Linear, Gauss-Newton and Levenberg-Marquardt.\n"
+         "The Gauss-Newton minimizer attempts to find a minimum solution by \n"
+         "fitting a quadratic function to the cost functional. The linear minimizer\n"
+         "is a special case of the Gauss-Newton method, since for a linear forward\n"
+         "model the exact solution of the minimization problem is obtained after\n"
+         "the first step. The Levenberg-Marquardt method adaptively constrains the\n"
+         "search region for the minimum by means of the so-called gamma-factor.\n"
+         "This makes the method more suitable for strongly non-linear problems.\n"
+         "If the gamma-factor is 0, Levenberg-Marquardt and Gauss-Newton method\n"
+         "are identical.Each minimization method (li,gn,lm) has an indirect\n"
+         "variant (li_cg,gn_cg,lm_cg), which uses the conjugate gradient solver\n"
+         "for the linear system that has to be solved in each minimzation step.\n"
+         "This of advantage for very large problems, that would otherwise require\n"
+         "the computation of expensive matrix products.\n"
          "\n"
          "Description of the special input arguments:\n"
          "\n"
@@ -10165,7 +10166,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "xa", "x", "covmat_sx_inv", "yf", "y", "covmat_so_inv", "jacobian",
+        IN( "xa", "x", "covmat_sx_inv", "yf", "y", "covmat_se_inv", "jacobian",
             "jacobian_do", "jacobian_quantities", "jacobian_indices",
             "inversion_iterate_agenda" ),
         GIN( "method", "max_start_cost", "x_norm", "max_iter", "stop_dx", 
@@ -10199,12 +10200,12 @@ void define_md_data_raw()
         AUTHORS( "Patrick Eriksson, Simon Pfreundschuh" ),
         OUT( "x", "yf", "jacobian", "dxdy", "oem_diagnostics",
              "ml_ga_history", "sensor_los", "sensor_pos", "sensor_time",
-             "covmat_sx_inv", "covmat_so_inv"),
+             "covmat_sx_inv", "covmat_se_inv"),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_los", "sensor_pos", "sensor_time", "covmat_sx_inv",
-            "covmat_so_inv", "xa", "y", "jacobian_do", "jacobian_quantities",
+            "covmat_se_inv", "xa", "y", "jacobian_do", "jacobian_quantities",
             "jacobian_indices", "inversion_iterate_agenda" ),
         GIN( "method", "max_start_cost", "x_norm", "max_iter", "stop_dx", 
              "ml_ga_settings", "clear_matrices", "display_progress" ),
@@ -10223,6 +10224,51 @@ void define_md_data_raw()
                   "Flag to control if inversion diagnostics shall be printed "
                   "on the screen.")
         ));
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME("computeAVK"),
+          DESCRIPTION
+          (
+           "Calculates the averaging kernel matrix describing the sensitivity of the\n"
+           "OEM retrieval with respect to the true state of the system. A prerequisite\n"
+           "for the calculation of the averaging kernel matrix is a successful OEM\n"
+           "calculation in which the jacobian and the gain matrix dxdy have been calculated.\n"
+           ),
+          AUTHORS("Simon Pfreundschuh"),
+          OUT("avk"),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN("dxdy", "jacobian"),
+          GIN(),
+          GIN_TYPE(),
+          GIN_DEFAULT(),
+          GIN_DESC()
+          ));
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME("computeSo"),
+            DESCRIPTION
+          (
+           "Calculates the covariance matrix describing the a posteriori distribution of\n"
+           "the OEM retrieval. A prerequisite for the calculation of the retrieval\n"
+           "covariance is a successful OEM calculation in which the jacobian has been\n"
+           "calculated.\n"
+           ),
+          AUTHORS("Simon Pfreundschuh"),
+          OUT("covmat_so"),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN("jacobian", "covmat_sx_inv", "covmat_se_inv"),
+          GIN(),
+          GIN_TYPE(),
+          GIN_DEFAULT(),
+          GIN_DESC()
+          ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "opt_prop_sptFromData" ),

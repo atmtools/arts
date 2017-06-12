@@ -1,3 +1,23 @@
+2017-06-13 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-716
+
+	* src/m_oem.cc(oem_template): Renamed covmat_so to covmat_se.
+
+	* src/m_oem.cc(OEM_checks): Added check to ensure dimensions of
+	Jacobian and yf.
+
+	* src/m_oem.cc(computeSo): Added workspace method to compute the retrieval
+	covariance matrix.
+
+	* src/m_oem.cc(computeAVK): Added workspace method to compute the averaging
+	kernel matrix.
+
+	* src/workspace.cc: Added avk and covmat_so workspace variables.
+
+	* src/methods.cc: Added documentation for new workspace methods. Fixed missing
+	linebreaks from previous commit.
+
 2017-06-12 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-715

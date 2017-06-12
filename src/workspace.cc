@@ -1234,7 +1234,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "covmat_so" ),
+    ( NAME( "covmat_se" ),
       DESCRIPTION
       (
        "Covariance matrix for observation uncertainties.\n"
@@ -1250,7 +1250,7 @@ void Workspace::define_wsv_data()
  
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "covmat_so_inv" ),
+    ( NAME( "covmat_se_inv" ),
       DESCRIPTION
       (
        "The inverse of the covariance matrix for observation uncertainties.\n"
@@ -1291,6 +1291,35 @@ void Workspace::define_wsv_data()
        "     [ x, x ]\n"
        ),
       GROUP( "Sparse" )));
+
+  wsv_data.push_back
+      (WsvRecord
+       (NAME("covmat_so"),
+        DESCRIPTION
+        (
+            "Retrieval covariance matrix.\n"
+            "\n"
+            "Usage: Describes the spread of the Gaussian posterior of the OEM.\n"
+            "\n"
+            "Dimensions:\n"
+            "    [x,x]\n"
+            ),
+        GROUP("Matrix")));
+
+  wsv_data.push_back
+      (WsvRecord
+       (NAME("avk"),
+        DESCRIPTION
+        (
+            "Averaging Kernel Matrix"
+            "\n"
+            "Usage: The rows of the averaging kernel matrix describe the extent to which\n"
+            "the information about the true state of the system is smoothed by the retrieval."
+            "\n"
+            "Dimensions:\n"
+            "    [x,x]\n"
+            ),
+        GROUP("Matrix")));
 
   wsv_data.push_back
    (WsvRecord
@@ -1766,7 +1795,33 @@ void Workspace::define_wsv_data()
        "Usage: Used and set by inversion methods. \n"
        ),
       GROUP( "Matrix" )));
-
+ wsv_data.push_back
+     (WsvRecord
+      ( NAME( "avk" ),
+        DESCRIPTION
+        (
+            "Averaging kernel matrix.\n"
+            "\n"
+            "This matrix describes the smoothing error. Its columns represent the measurement responses\n"
+            "to a unit perturbation in the corresponding state vector."
+            "with respect to the measurement vector (*y*).\n"
+            "\n"
+            "Usage: Used and set by inversion methods. \n"
+            ),
+        GROUP( "Matrix" )));
+ wsv_data.push_back
+     (WsvRecord
+      ( NAME( "avk" ),
+        DESCRIPTION
+        (
+            "Averaging kernel matrix.\n"
+            "\n"
+            "This matrix is the partial derivative of the retrieved state vector\n"
+            "with respect to the measurement vector (*y*).\n"
+            "\n"
+            "Usage: Used and set by inversion methods. \n"
+            ),
+        GROUP( "Matrix" )));
   wsv_data.push_back
     (WsvRecord
      ( NAME( "ext_mat" ),
