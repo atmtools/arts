@@ -1,3 +1,17 @@
+2017-06-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-717
+
+	* CMakeLists.txt:
+
+	Only disable OEM on macOS with clang. The error on macOS is only a
+	warning with clang on Linux.
+
+	* src/m_oem.cc (computeSo, computeAVK):
+
+	Add implementations that throw a runtime error if OEM support is
+	disabled.
+
 2017-06-13 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-716

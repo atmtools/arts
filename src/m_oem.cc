@@ -1128,6 +1128,29 @@ void OEM(
 
 #else
 
+void computeSo(
+        Matrix& /* covmat_so */,
+        const Matrix& /* jacobian */,
+        const Sparse& /* covmat_sx_inv */,
+        const Sparse& /* covmat_se_inv */,
+        const Verbosity& /*v*/)
+{
+  throw runtime_error("WSM is not available because ARTS was compiled without "
+                      "OEM support.");
+}
+
+
+void computeAVK(
+        Matrix& /* avk */,
+        const Matrix& /* dxdy */,
+        const Matrix& /* jacobian */,
+        const Verbosity& /*v*/)
+{
+  throw runtime_error("WSM is not available because ARTS was compiled without "
+                      "OEM support.");
+}
+
+
 void OEM(Workspace&,
          Vector&,
          Vector&,
@@ -1154,7 +1177,8 @@ void OEM(Workspace&,
          const Index&,
          const Verbosity&)
 {
-    throw runtime_error("You have to compile ARTS with C++11 support to enable OEM.");
+  throw runtime_error("WSM is not available because ARTS was compiled without "
+                      "OEM support.");
 }
 
 #endif // OEM_SUPPORT
@@ -1452,7 +1476,7 @@ void OEM_MPI(
     const Index&,
     const Verbosity&)
 {
-    throw runtime_error("You have to compile ARTS with C++11 support "
+    throw runtime_error("You have to compile ARTS with OEM support "
                         " and enable MPI to use OEM_MPI.");
 }
 

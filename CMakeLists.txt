@@ -129,9 +129,9 @@ if (NOT NO_OEM)
   set (OEM_SUPPORT true)
 endif ()
 
-# Disable OEM support if compiling with clang, as it
+# Disable OEM support if compiling with clang on macOS, as it
 # currently fails compiling invlib
-if (NOT ENABLE_OEM AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+if (NOT ENABLE_OEM AND APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   message(WARNING "OEM support disabled because of invlib "
           "incompatibility with clang. Use -DENABLE_OEM=1 to force OEM.")
   set (OEM_SUPPORT false)
