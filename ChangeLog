@@ -1,3 +1,20 @@
+2017-06-13  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-721
+
+	* controlfiles/testdata/ozone-line.xml: Moved from groundbased
+	tests to be reused for OEM testing.
+
+	* controlfiles/artscomponents/groundbased/*.arts: Updated position
+	of ozone line file.
+
+	* controlfiles/artscomponents/oem/TestOEM.arts: Added OEM test.
+
+	* controlfiles/CMakeLists.txt: Added new OEM test.
+
+	* src/m_oem.cc(oem_checks): Extended oem_checks to properly handle
+	missing or precomputed x, yf, jacobian.
+
 2017-06-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-720

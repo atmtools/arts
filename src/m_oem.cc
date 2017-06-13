@@ -715,12 +715,14 @@ void x2artsStandard(
 // Check input OEM input arguments.
 //
 void OEM_checks(
-    const Vector&                     x,
+          Workspace&                  ws,
+          Vector&                     x,
+          Vector&                     yf,
+          Matrix&                     jacobian,
+    const Agenda&                     inversion_iterate_agenda,
     const Vector&                     xa,
-    const Vector&                     yf,
     const Sparse&                     covmat_sx_inv,
     const Sparse&                     covmat_se_inv,
-    const Matrix&                     jacobian,
     const Index&                      jacobian_do,
     const ArrayOfRetrievalQuantity&   jacobian_quantities,
     const ArrayOfArrayOfIndex&        jacobian_indices,
@@ -811,6 +813,17 @@ void OEM_checks(
     throw runtime_error( "Valid options for *clear_matrices* are 0 and 1." );
   if( display_progress < 0  ||  display_progress > 1 )
     throw runtime_error( "Valid options for *display_progress* are 0 and 1." );
+
+  // If necessary compute yf and jacobian.
+  if(x.nelem() == 0) {
+    x = xa;
+    inversion_iterate_agendaExecute( ws, yf, jacobian, xa, 1,
+                                     inversion_iterate_agenda );
+  }
+  if((yf.nelem() == 0) || (jacobian.empty())) {
+    inversion_iterate_agendaExecute( ws, yf, jacobian, x, 1,
+                                     inversion_iterate_agenda );
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -847,8 +860,8 @@ void oem_template(
     const Index m = y.nelem();
 
     // Checks
-    OEM_checks(x, xa, yf, covmat_sx_inv, covmat_se_inv, jacobian,
-               jacobian_do, jacobian_quantities, jacobian_indices,
+    OEM_checks(ws, x, yf, jacobian, inversion_iterate_agenda, xa, covmat_sx_inv,
+               covmat_se_inv, jacobian_do, jacobian_quantities, jacobian_indices,
                method, x_norm, max_iter, stop_dx, ml_ga_settings,
                clear_matrices, display_progress);
 
@@ -1342,8 +1355,8 @@ void OEM_MPI(
     const Index m = y.nelem();
 
     // Check WSVs
-    OEM_checks(x, xa, yf, covmat_sx_inv, covmat_se_inv, jacobian,
-               jacobian_do, jacobian_quantities, jacobian_indices,
+    OEM_checks(ws, x, yf, jacobian, inversion_iterate_agenda, xa, covmat_sx_inv,
+               covmat_se_inv, jacobian_do, jacobian_quantities, jacobian_indices,
                method, x_norm, max_iter, stop_dx, ml_ga_settings,
                clear_matrices, display_progress);
 
