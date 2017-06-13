@@ -1,4 +1,27 @@
-2017-06-09  Richard Larsson  <ric.larsson@gmail.com>
+2017-06-13 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-719
+
+	* src/m_cloudradar, m_cloudbox.cc (psdMH97,
+	pnd_fieldCalcFromParticleBulkProps, pndFrompsdBasic,
+	pnd_size_gridFromScatMeta):
+	Moved from m_cloudradar.cc to m_cloudbox.cc
+
+	* src/m_cloudbox.cc 
+	
+	(psdW16): Added pnd_agenda WSM for rain following Wang, 2016.
+
+	(dNdD_MH97): Throw error when T (in K) is negative.
+	(dNdD_W16): Error message fix. 
+
+	* src/cloudbox.cc (psd_cloudiceMH97):
+	Initialize all sig_* with 0 (as not noisy is the more often used
+	option), then reset only if noisy is chosen.
+
+	* src/methods.cc (psdW16, psdMH97, dNdD_MH97, dNdD_W16):
+	Written/updated/completed built-in doc.
+
+2017-06-13  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-718
 	
@@ -7,7 +30,7 @@
 	
 	* src/lineshapesdata.h:  Some renames, reshuffling, and additions
 	(still beta)
-	
+
 2017-06-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-717

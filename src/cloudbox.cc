@@ -3148,12 +3148,12 @@ void psd_cloudice_MH97 ( Vector& psd,
   Numeric ciwc = iwc*1e3;
   Numeric cdensity = DENSITY_OF_ICE*1e3;
 
-  Numeric sig_a=0.068, sig_b1=0.054;
-  Numeric sig_b2=5.5e-3, sig_m=0.0029;
-  Numeric sig_aamu=0.02, sig_bamu=0.0005;
-  Numeric sig_abmu=0.023, sig_bbmu=0.5e-3;
-  Numeric sig_aasigma=0.02, sig_basigma=0.5e-3;
-  Numeric sig_absigma=0.023, sig_bbsigma=4.7e-4;
+  Numeric sig_a=0., sig_b1=0.;
+  Numeric sig_b2=0., sig_m=0.;
+  Numeric sig_aamu=0., sig_bamu=0.;
+  Numeric sig_abmu=0., sig_bbmu=0.;
+  Numeric sig_aasigma=0., sig_basigma=0;
+  Numeric sig_absigma=0., sig_bbsigma=0.;
 
   if ( noisy )
   {
@@ -3161,6 +3161,13 @@ void psd_cloudice_MH97 ( Vector& psd,
     Index mc_seed;
     mc_seed = (Index)time(NULL);
     rng.seed(mc_seed, Verbosity());
+
+    sig_a=0.068, sig_b1=0.054;
+    sig_b2=5.5e-3, sig_m=0.0029;
+    sig_aamu=0.02, sig_bamu=0.0005;
+    sig_abmu=0.023, sig_bbmu=0.5e-3;
+    sig_aasigma=0.02, sig_basigma=0.5e-3;
+    sig_absigma=0.023, sig_bbsigma=4.7e-4;
 
     sig_a = ran_gaussian(rng,sig_a);
     sig_b1 = ran_gaussian(rng,sig_b1);
@@ -3174,15 +3181,6 @@ void psd_cloudice_MH97 ( Vector& psd,
     sig_basigma = ran_gaussian(rng,sig_basigma);
     sig_absigma = ran_gaussian(rng,sig_absigma);
     sig_bbsigma = ran_gaussian(rng,sig_bbsigma);
-  }
-  else
-  {
-    sig_a=0., sig_b1=0.;
-    sig_b2=0., sig_m=0.;
-    sig_aamu=0., sig_bamu=0.;
-    sig_abmu=0., sig_bbmu=0.;
-    sig_aasigma=0., sig_basigma=0;
-    sig_absigma=0., sig_bbsigma=0.;
   }
 
   //split IWC in IWCs100 and IWCl100

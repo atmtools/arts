@@ -4193,6 +4193,66 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
+     ( NAME( "dNdD_F07ML" ),
+      DESCRIPTION
+      (
+       "Calculation of particle size distribution (dN/dD) following\n"
+       "Field et al. (2007) parametrization for mid-latitude conditions.\n"
+       "\n"
+       "A wrapper to internal particle size distribution calculation.\n"
+       "This distribution is a parametrization for snow and cloud ice in the\n"
+       "mid-latitudes. Parametrization is in snow water or ice water content\n"
+       "(SWC, IWC) and ambient atmospheric temperature over particle size in\n"
+       "terms of maximum diameter.\n"
+       ),
+      AUTHORS( "Manfred Brath" ),
+      OUT(),
+      GOUT(      "dNdD" ),
+      GOUT_TYPE( "Vector" ),
+      GOUT_DESC( "size distribution number density [#/m3/m]" ),
+      IN(),
+      GIN(         "diameter_max", "SWC",     "t",       "alpha",   "beta" ),
+      GIN_TYPE(    "Vector",       "Numeric", "Numeric", "Numeric", "Numeric" ),
+      GIN_DEFAULT( NODEF,          NODEF,     NODEF,     "0.0257",  "2.0" ),
+      GIN_DESC( "Maximum diameter of the particles [m]",
+                "Atmospheric ice water content [kg/m3]",
+                "Ambient atmospheric temperature [K]",
+                "Factor for the mass-dimension (m=alpha*(Dmax/D0)^beta) relationship [kg]",
+                "Exponent for the mass-dimension relationship [pure number]")
+      ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+     ( NAME( "dNdD_F07TR" ),
+      DESCRIPTION
+      (
+       "Calculation of particle size distribution (dN/dD) following\n"
+       "Field et al. (2007) parametrization for tropical conditions.\n"
+       "\n"
+       "A wrapper to internal particle size distribution calculation.\n"
+       "This distribution is a parametrization for snow and cloud ice in the\n"
+       "tropics. Parametrization is in snow water or ice water content (SWC,\n"
+       "IWC) and ambient atmospheric temperature over particle size in terms\n"
+       "of maximum diameter.\n"
+       ),
+      AUTHORS( "Manfred Brath" ),
+      OUT(),
+      GOUT(      "dNdD" ),
+      GOUT_TYPE( "Vector" ),
+      GOUT_DESC( "size distribution number density [#/m3/m]" ),
+      IN(),
+      GIN(         "diameter_max", "SWC",     "t",       "alpha",   "beta" ),
+      GIN_TYPE(    "Vector",       "Numeric", "Numeric", "Numeric", "Numeric" ),
+      GIN_DEFAULT( NODEF,          NODEF,     NODEF,     "0.0257",  "2.0" ),
+      GIN_DESC( "Maximum diameter of the particles [m]",
+                "Atmospheric ice water content [kg/m3]",
+                "Ambient atmospheric temperature [K]",
+                "Factor for the mass-dimension (m=alpha*(Dmax/D0)^beta) relationship [kg]",
+                "Exponent for the mass-dimension relationship [pure number]")
+      ));
+    
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "dNdD_H11" ),
         DESCRIPTION
         (
@@ -4251,6 +4311,65 @@ void define_md_data_raw()
    
   md_data_raw.push_back
     ( MdRecord
+     ( NAME( "dNdD_MGD_IWC" ),
+      DESCRIPTION
+      (
+       "Calculation of particle size distribution (dN/dD) according\n"
+       "to the modified gamma distribution for cloud ice\n"
+       "inside of Geer and Baordo (2014).\n"
+       "\n"
+       "A wrapper to internal particle size distribution calculation.\n"
+       "MDG_IWC is a parametrization for cloud ice water. It is a\n"
+       "modified gamma distribution with the coefficients of\n"
+       "Geer and Baordo (2014). It assumes spherical particles of constant\n"
+       "density.\n"
+       ),
+      AUTHORS( "Manfred Brath" ),
+      OUT(),
+      GOUT(      "dNdD" ),
+      GOUT_TYPE( "Vector" ),
+      GOUT_DESC( "size distribution number density [#/m3/m]" ),
+      IN(),
+      GIN(         "diameter_volume_equ", "rho",     "IWC"),
+      GIN_TYPE(    "Vector",              "Numeric", "Numeric" ),
+      GIN_DEFAULT( NODEF,                 NODEF,     NODEF ),
+      GIN_DESC( "Volume equivalent diameter of the particles [m]",
+                "Density of the particles [kg/m^3]",
+                "Atmospheric ice water content [kg/m3]")
+      ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+     ( NAME( "dNdD_MGD_LWC" ),
+      DESCRIPTION
+      (
+       "Calculation of particle size distribution (dN/dD) according\n"
+       "to the fixed modified gamma distribution for liquid cloud water\n"
+       "inside of Geer and Baordo (2014).\n"
+       "\n"
+       "A wrapper to internal particle size distribution calculation.\n"
+       "MDG_LWC is a parametrization for cloud liquid water. It is a\n"
+       "modified gamma distribution with the coefficients of\n"
+       " Geer and Baordo (2014). It assumes spherical particles of constant\n"
+       "density.\n"
+       ),
+      AUTHORS( "Manfred Brath" ),
+      OUT(),
+      GOUT(      "dNdD" ),
+      GOUT_TYPE( "Vector" ),
+      GOUT_DESC( "size distribution number density [#/m3/m]" ),
+      IN(),
+      GIN(         "diameter_volume_equ", "rho",     "LWC"),
+      GIN_TYPE(    "Vector",              "Numeric", "Numeric" ),
+      GIN_DEFAULT( NODEF,                 NODEF,     NODEF ),
+      GIN_DESC( "Volume equivalent diameter of the particles [m]",
+                "Density of the particles [kg/m^3]",
+                "Atmospheric ice water content [kg/m3]")
+
+      ));
+    
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "dNdD_MH97" ),
         DESCRIPTION
         (
@@ -4265,6 +4384,13 @@ void define_md_data_raw()
          "and Heymsfield (1997) additionally provide uncertainties of the\n"
          "distribution's parameters, which can be used here to create\n"
          "perturbed distributions (set *noisy* to 1).\n"
+         "\n"
+         "Negative IWC trigger an error (unless robust=1, where IWC=0 is used\n"
+         "internally, hence dNdD=0 is returned).\n"
+         "Negative temperatures always trigger an error, temperatures >280K\n"
+         "are only accepted if robust=1.\n"
+         "For temperatures >273.15K (=0C), the distribution is evaluated\n"
+         "assuming T=273.15K.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
@@ -4287,63 +4413,38 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-     ( NAME( "dNdD_F07TR" ),
-      DESCRIPTION
-      (
-       "Calculation of particle size distribution (dN/dD) following\n"
-       "Field et al. (2007) parametrization for tropical conditions.\n"
-       "\n"
-       "A wrapper to internal particle size distribution calculation.\n"
-       "This distribution is a parametrization for snow and cloud ice in the\n"
-       "tropics. Parametrization is in snow water or ice water content (SWC,\n"
-       "IWC) and ambient atmospheric temperature over particle size in terms\n"
-       "of maximum diameter.\n"
-       ),
-      AUTHORS( "Manfred Brath" ),
-      OUT(),
-      GOUT(      "dNdD" ),
-      GOUT_TYPE( "Vector" ),
-      GOUT_DESC( "size distribution number density [#/m3/m]" ),
-      IN(),
-      GIN(         "diameter_max", "SWC",     "t",       "alpha",   "beta" ),
-      GIN_TYPE(    "Vector",       "Numeric", "Numeric", "Numeric", "Numeric" ),
-      GIN_DEFAULT( NODEF,          NODEF,     NODEF,     "0.0257",  "2.0" ),
-      GIN_DESC( "Maximum diameter of the particles [m]",
-                "Atmospheric ice water content [kg/m3]",
-                "Ambient atmospheric temperature [K]",
-                "Factor for the mass-dimension (m=alpha*(Dmax/D0)^beta) relationship [kg]",
-                "Exponent for the mass-dimension relationship [pure number]")
-      ));
-    
-  md_data_raw.push_back
-    ( MdRecord
-     ( NAME( "dNdD_F07ML" ),
-      DESCRIPTION
-      (
-       "Calculation of particle size distribution (dN/dD) following\n"
-       "Field et al. (2007) parametrization for mid-latitude conditions.\n"
-       "\n"
-       "A wrapper to internal particle size distribution calculation.\n"
-       "This distribution is a parametrization for snow and cloud ice in the\n"
-       "mid-latitudes. Parametrization is in snow water or ice water content\n"
-       "(SWC, IWC) and ambient atmospheric temperature over particle size in\n"
-       "terms of maximum diameter.\n"
-       ),
-      AUTHORS( "Manfred Brath" ),
-      OUT(),
-      GOUT(      "dNdD" ),
-      GOUT_TYPE( "Vector" ),
-      GOUT_DESC( "size distribution number density [#/m3/m]" ),
-      IN(),
-      GIN(         "diameter_max", "SWC",     "t",       "alpha",   "beta" ),
-      GIN_TYPE(    "Vector",       "Numeric", "Numeric", "Numeric", "Numeric" ),
-      GIN_DEFAULT( NODEF,          NODEF,     NODEF,     "0.0257",  "2.0" ),
-      GIN_DESC( "Maximum diameter of the particles [m]",
-                "Atmospheric ice water content [kg/m3]",
-                "Ambient atmospheric temperature [K]",
-                "Factor for the mass-dimension (m=alpha*(Dmax/D0)^beta) relationship [kg]",
-                "Exponent for the mass-dimension relationship [pure number]")
-      ));
+      ( NAME( "dNdD_MP48" ),
+        DESCRIPTION
+        (
+         "Calculation of particle size distribution (dN/dD) following\n"
+         "Marshall and Palmer (1948) parametrization.\n"
+         "\n"
+         "A wrapper to internal particle size distribution calculation.\n"
+         "Marshall and Palmer (1948) is a parametrization for precipitating\n"
+         "hydrometeors, e.g., rain and snow. Parametrization is in\n"
+         "precipitation rate (PR) over particle size, here taken in terms of\n"
+         "melted equivalent sphere diameter.\n"
+         "\n"
+         "Precipitation rate can be given in different units, indicated by\n"
+         "*PRunit*. Allowed are: 'mm/h' and 'kg/m2/s' and 'SI', where the\n"
+         "latter two are equivalent. The latter two also require\n"
+         "specification of *density* assuming a constant or mean density over\n"
+         "all particle sizes.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT(      "dNdD" ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "size distribution number density [#/m3/m]" ),
+        IN(),
+        GIN(         "diameter_melted_equivalent", "PR",      "PRunit", "density" ),
+        GIN_TYPE(    "Vector",                     "Numeric", "String", "Numeric" ),
+        GIN_DEFAULT( NODEF,                        NODEF,     "SI",     NODEF ),
+        GIN_DESC( "Melted equivalent sphere diameter of the particles [m]",
+                  "Precipitation rate [mm/h or kg/m2/s]",
+                  "Precipitation rate unit",
+                  "Material density [kg/m3] (required if PRunit!='mm/h')" )
+        ));  
     
     md_data_raw.push_back
     ( MdRecord
@@ -4426,100 +4527,6 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-     ( NAME( "dNdD_MGD_LWC" ),
-      DESCRIPTION
-      (
-       "Calculation of particle size distribution (dN/dD) according\n"
-       "to the fixed modified gamma distribution for liquid cloud water\n"
-       "inside of Geer and Baordo (2014).\n"
-       "\n"
-       "A wrapper to internal particle size distribution calculation.\n"
-       "MDG_LWC is a parametrization for cloud liquid water. It is a\n"
-       "modified gamma distribution with the coefficients of\n"
-       " Geer and Baordo (2014). It assumes spherical particles of constant\n"
-       "density.\n"
-       ),
-      AUTHORS( "Manfred Brath" ),
-      OUT(),
-      GOUT(      "dNdD" ),
-      GOUT_TYPE( "Vector" ),
-      GOUT_DESC( "size distribution number density [#/m3/m]" ),
-      IN(),
-      GIN(         "diameter_volume_equ", "rho",     "LWC"),
-      GIN_TYPE(    "Vector",              "Numeric", "Numeric" ),
-      GIN_DEFAULT( NODEF,                 NODEF,     NODEF ),
-      GIN_DESC( "Volume equivalent diameter of the particles [m]",
-                "Density of the particles [kg/m^3]",
-                "Atmospheric ice water content [kg/m3]")
-
-      ));
-    
-  md_data_raw.push_back
-    ( MdRecord
-     ( NAME( "dNdD_MGD_IWC" ),
-      DESCRIPTION
-      (
-       "Calculation of particle size distribution (dN/dD) according\n"
-       "to the modified gamma distribution for cloud ice\n"
-       "inside of Geer and Baordo (2014).\n"
-       "\n"
-       "A wrapper to internal particle size distribution calculation.\n"
-       "MDG_IWC is a parametrization for cloud ice water. It is a\n"
-       "modified gamma distribution with the coefficients of\n"
-       "Geer and Baordo (2014). It assumes spherical particles of constant\n"
-       "density.\n"
-       ),
-      AUTHORS( "Manfred Brath" ),
-      OUT(),
-      GOUT(      "dNdD" ),
-      GOUT_TYPE( "Vector" ),
-      GOUT_DESC( "size distribution number density [#/m3/m]" ),
-      IN(),
-      GIN(         "diameter_volume_equ", "rho",     "IWC"),
-      GIN_TYPE(    "Vector",              "Numeric", "Numeric" ),
-      GIN_DEFAULT( NODEF,                 NODEF,     NODEF ),
-      GIN_DESC( "Volume equivalent diameter of the particles [m]",
-                "Density of the particles [kg/m^3]",
-                "Atmospheric ice water content [kg/m3]")
-      ));
-    
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "dNdD_MP48" ),
-        DESCRIPTION
-        (
-         "Calculation of particle size distribution (dN/dD) following\n"
-         "Marshall and Palmer (1948) parametrization.\n"
-         "\n"
-         "A wrapper to internal particle size distribution calculation.\n"
-         "Marshall and Palmer (1948) is a parametrization for precipitating\n"
-         "hydrometeors, e.g., rain and snow. Parametrization is in\n"
-         "precipitation rate (PR) over particle size, here taken in terms of\n"
-         "melted equivalent sphere diameter.\n"
-         "\n"
-         "Precipitation rate can be given in different units, indicated by\n"
-         "*PRunit*. Allowed are: 'mm/h' and 'kg/m2/s' and 'SI', where the\n"
-         "latter two are equivalent. The latter two also require\n"
-         "specification of *density* assuming a constant or mean density over\n"
-         "all particle sizes.\n"
-         ),
-        AUTHORS( "Jana Mendrok" ),
-        OUT(),
-        GOUT(      "dNdD" ),
-        GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "size distribution number density [#/m3/m]" ),
-        IN(),
-        GIN(         "diameter_melted_equivalent", "PR",      "PRunit", "density" ),
-        GIN_TYPE(    "Vector",                     "Numeric", "String", "Numeric" ),
-        GIN_DEFAULT( NODEF,                        NODEF,     "SI",     NODEF ),
-        GIN_DESC( "Melted equivalent sphere diameter of the particles [m]",
-                  "Precipitation rate [mm/h or kg/m2/s]",
-                  "Precipitation rate unit",
-                  "Material density [kg/m3] (required if PRunit!='mm/h')" )
-        ));  
-    
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "dNdD_W16" ),
         DESCRIPTION
         (
@@ -4530,6 +4537,9 @@ void define_md_data_raw()
          "Wang et al. (2016) is a parametrization for stratiform rain.\n"
          "Parametrization is in rain water content (RWC) over particle size\n"
          "in terms of mass equivalent sphere diameter of the liquid drops.\n"
+         "\n"
+         "Negative RWC trigger an error (unless robust=1, where RWC=0 is used\n"
+         "internally, hence dNdD=0 is returned).\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
@@ -4545,6 +4555,29 @@ void define_md_data_raw()
                   "Flag whether to ignore parametrization value checks." )
         ));
     
+/*      ( NAME( "dNdD_MH97" ),
+        DESCRIPTION
+        (
+         "Calculation of particle size distribution (dN/dD) following\n"
+         "McFarquahar and Heymsfield (1997) parametrization.\n"
+         "\n"
+         "A wrapper to the internal particle size distribution calculation.\n"
+         "McFarquhar and Heymsfield (1997) is a parametrization for cloud\n"
+         "ice in the tropics. Parametrization is in ice water content (IWC)\n"
+         "and ambient atmospheric temperature over particle size in terms of\n"
+         "mass equivalent sphere diameter of the ice particles. McFarquhar\n"
+         "and Heymsfield (1997) additionally provide uncertainties of the\n"
+         "distribution's parameters, which can be used here to create\n"
+         "perturbed distributions (set *noisy* to 1).\n"
+         "\n"
+         "Negative IWC trigger an error (unless robust=1, where IWC=0 is used\n"
+         "internally, hence dNdD=0 is returned).\n"
+         "Negative temperatures always trigger an error, temperatures >280K\n"
+         "are only accepted if robust=1.\n"
+         "For temperatures >273.15K (=0C), the distribution is evaluated\n"
+         "assuming T=273.15K.\n"
+         ), */
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "DOAngularGridsSet" ),
@@ -11593,14 +11626,37 @@ void define_md_data_raw()
       ( NAME( "psdMH97" ),
         DESCRIPTION
         (
-         "Generation of *psd_data* following the MH97 PSD\n"
+         "Calculates *psd_data* and  *dpsd_data_dx* following McFarquahar and\n"
+         "Heymsfield (1997) (MH97) particle size distribution for cloud ice.\n"
          "\n"
-         "The particle size distribution (PSD) ofMcFarquahar and Heymsfield\n"
-         "(1997) parametrization is here denoted as MH97.\n"
+         "WSM for use in *pnd_agenda_array* for mapping *particle_bulkprop_field*\n"
+         "to *pnd_field* using *pnd_fieldCalcFromParticleBulkProps*.\n"
+         "Produces the particle size distribution values (dN/dD) and their\n"
+         "derivates with respect to independent variables x by *dpnd_data_dx_names*\n"
+         "over multiple particle sizes and atmospheric levels (or IWC/T\n"
+         "combinations).\n"
+         "Derivatives are obtained by IWC perturbation of 0.1%, but not less\n"
+         "than 0.1 mg/m3.\n"
          "\n"
-         "To be written ...\n"
+         "Requirements:\n"
+         "\n"
+         "*pnd_agenda_input_names* must be [\"IWC\",\"Temperature\"]\n"
+         "corresponding to IWC and T (1D-)profiles in *pnd_agenda_input*.\n"
+         "The only allowed entry in *dpnd_data_dx_names* (ie. the only allowed\n"
+         "independent variable x) is \"IWC\".\n"
+         "\n"
+         "The validity range of IWC is not limited. Negative IWC will produce\n"
+         "negative psd values following a distribution given by abs(IWC), ie.\n"
+         "abs(psd)=f(abs(IWC)).\n"
+         "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+         "picky=0, or an error is thrown if picky=1.\n"
+         "For temperatures below 200K or above 273.15K, the size distribution\n"
+         "follows the one for T=200K or T=273.15, respectively."
+         "\n"
+         "The noisy option can not be used together with calculation of\n"
+         "derivatives (ie. when *dpnd_data_dx_names* is not empty).\n"
         ),
-        AUTHORS( "Jana Mendrok and Patrick Eriksson" ),
+        AUTHORS( "Patrick Eriksson, Jana Mendrok" ),
         OUT( "psd_data", "dpsd_data_dx" ),
         GOUT(),
         GOUT_TYPE(),
@@ -11614,6 +11670,53 @@ void define_md_data_raw()
                   "Set *psd* to zero if above this temperature.",
                   "Flag to control if values outside [t_min,t_max] result in an error.",
                   "Distribution parameter perturbance flag" )
+        ));
+ 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "psdW16" ),
+        DESCRIPTION
+        (
+         "Calculates *psd_data* and  *dpsd_data_dx* following Wang et al. (2016)\n"
+         "(W16) particle size distribution for rain.\n"
+         "\n"
+         "WSM for use in *pnd_agenda_array* for mapping *particle_bulkprop_field*\n"
+         "to *pnd_field* using *pnd_fieldCalcFromParticleBulkProps*.\n"
+         "Produces the particle size distribution values (dN/dD) and their\n"
+         "derivates with respect to independent variables x by *dpnd_data_dx_names*\n"
+         "over multiple particle sizes and atmospheric levels (RWCs).\n"
+         "Derivatives are obtained by RWC perturbation of 0.1%, but not less\n"
+         "than 0.1 mg/m3.\n"
+         "\n"
+         "Requirements:\n"
+         "\n"
+         "*pnd_agenda_input_names* must be [\"RWC\"] corresponding to RWC\n"
+         "(1D-)profiles in *pnd_agenda_input*.\n"
+         "The only allowed entry in *dpnd_data_dx_names* (ie. the only allowed\n"
+         "independent variable x) is \"RWC\".\n"
+         "\n"
+         "The validity range of RWC is not limited. Negative RWC will produce\n"
+         "negative psd values following a distribution given by abs(RWC), ie.\n"
+         "abs(psd)=f(abs(RWC)).\n"
+         "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+         "picky=0, or an error is thrown if picky=1.\n"
+         "For temperatures below 200K or above 273.15K, the size distribution\n"
+         "follows the one for T=200K or T=273.15, respectively."
+         "\n"
+         "The noisy option can not be used together with calculation of\n"
+         "derivatives (ie. when *dpnd_data_dx_names* is not empty).\n"
+        ),
+        AUTHORS( "Jana Mendrok, Patrick Eriksson" ),
+        OUT( "psd_data", "dpsd_data_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "psd_size_grid", "pnd_agenda_input", "pnd_agenda_input_names",
+            "dpnd_data_dx_names" ),
+        GIN( "picky" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "0" ),
+        GIN_DESC( "Flag whether to ignore parametrization value checks." )
         ));
  
   md_data_raw.push_back     
