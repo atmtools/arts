@@ -10260,7 +10260,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
       ( MdRecord
-        ( NAME("computeAVK"),
+        ( NAME("avkCalc"),
           DESCRIPTION
           (
            "Calculates the averaging kernel matrix describing the sensitivity of the\n"
@@ -10282,25 +10282,50 @@ void define_md_data_raw()
 
   md_data_raw.push_back
       ( MdRecord
-        ( NAME("computeSo"),
+        ( NAME("covmat_soCalc"),
             DESCRIPTION
           (
-           "Calculates the covariance matrix describing the a posteriori distribution of\n"
-           "the OEM retrieval. A prerequisite for the calculation of the retrieval\n"
-           "covariance is a successful OEM calculation in which the jacobian has been\n"
-           "calculated.\n"
+           "Calculates the covariance matrix describing the error due to uncertainties\n"
+           "in the observation system. The uncertainties of the observation system are\n"
+           "described by *covmat_se*, which must be set by the user to include the\n"
+           "relevant contributions from the measurement and the forward model.\n"
+           "\n"
+           "Prerequisite for the calculation of *covmat_so* is a successful OEM\n"
+           "computation where also the gain matrix has been computed.\n"
            ),
           AUTHORS("Simon Pfreundschuh"),
           OUT("covmat_so"),
           GOUT(),
           GOUT_TYPE(),
           GOUT_DESC(),
-          IN("jacobian", "covmat_sx_inv", "covmat_se_inv"),
+          IN("dxdy", "covmat_se"),
           GIN(),
           GIN_TYPE(),
           GIN_DEFAULT(),
           GIN_DESC()
           ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("covmat_ssCalc"),
+        DESCRIPTION
+        (
+         "Calculates the covariance matrix describing the error due to smoothing.\n"
+         ""
+         "The calculation of *covmat_ss* also requires the averaging kernel matrix *avk*\n"
+         "to be computed after a successful OEM calculation.\n"
+         ),
+        AUTHORS("Simon Pfreundschuh"),
+        OUT("covmat_ss"),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN("avk", "covmat_sx"),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
 
   md_data_raw.push_back
     ( MdRecord

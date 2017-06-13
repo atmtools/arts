@@ -1297,15 +1297,31 @@ void Workspace::define_wsv_data()
        (NAME("covmat_so"),
         DESCRIPTION
         (
-            "Retrieval covariance matrix.\n"
+            "Covariance matrix describing the retrieval error due to uncertainties of\n"
+            "the observation system.\n"
             "\n"
-            "Usage: Describes the spread of the Gaussian posterior of the OEM.\n"
+            "Usage: Set by the covmat_soCalc workspace method to characterize the error.\n"
+            "of a successful OEM calculation.\n"
             "\n"
             "Dimensions:\n"
             "    [x,x]\n"
             ),
         GROUP("Matrix")));
 
+  wsv_data.push_back
+    (WsvRecord
+     (NAME("covmat_ss"),
+      DESCRIPTION
+      (
+       "Covariance matrix describing the retrieval error due to smoothing.\n"
+       "\n"
+       "Usage: Set by the covmat_ssCalc workspace method to characterize the.\n"
+       "errors of a successful OEM calculation."
+       "\n"
+       "Dimensions:\n"
+       "    [x,x]\n"
+       ),
+      GROUP("Matrix")));
   wsv_data.push_back
       (WsvRecord
        (NAME("avk"),

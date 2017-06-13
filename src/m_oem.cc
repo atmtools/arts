@@ -750,9 +750,9 @@ void OEM_checks(
     throw runtime_error( "Inconsistency in size between *y* and *covmat_se_inv*." );
   if( !jacobian_do )
     throw runtime_error( "Jacobian calculations must be turned on (but jacobian_do=0)." );
-  if((jacobian.nrows() != m) && (jacobian.nrows() != 0))
+  if((jacobian.nrows() != m) && (!jacobian.empty()))
     throw runtime_error( "The number of rows of the jacobian must be either the number of elements in *y* or 0." );
-  if((jacobian.ncols() != n) && (jacobian.ncols() != 0))
+  if((jacobian.ncols() != n) && (!jacobian.empty()))
       throw runtime_error( "The number of cols of the jacobian must be either the number of elements in *xa* or 0." );
   if( jacobian_indices.nelem() != nq )
     throw runtime_error( "Different number of elements in *jacobian_quantities* "
@@ -1042,35 +1042,56 @@ void oem_template(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void computeSo(
+void covmat_soCalc(
     Matrix& covmat_so,
-    const Matrix& jacobian,
-    const Sparse& covmat_sx_inv,
-    const Sparse& covmat_se_inv,
+    const Matrix& dxdy,
+    const Sparse& covmat_se,
     const Verbosity& /*v*/)
 {
-    Index m(jacobian.nrows()), n(jacobian.ncols());
-    Matrix tmp1(m,n), tmp2(n,n);
+    Index n(dxdy.nrows()), m(dxdy.ncols());
+    Matrix tmp1(m,n);
 
     if ((m == 0) || (n == 0)) {
-        throw runtime_error("A Jacobian is required to compute the retrieval covariance matrix.");
+        throw runtime_error("The gain matrix *dxdy* is required to compute the observation error covariance matrix.");
     }
-    if ((covmat_sx_inv.nrows() != n) || (covmat_sx_inv.ncols() != n)) {
-        throw runtime_error("The inverse of the covariance matrix covmat_sx_inv has invalid dimensions.");
-    }
-    if ((covmat_se_inv.nrows() != m) || (covmat_se_inv.ncols() != m)) {
-        throw runtime_error("The inverse of the covariance matrix covmat_se_inv has invalid dimensions.");
+    if ((covmat_se.nrows() != m) || (covmat_se.ncols() != m)) {
+        throw runtime_error("The covariance matrix covmat_se_inv has invalid dimensions.");
     }
 
-    mult(tmp1, covmat_se_inv, jacobian);
-    mult(tmp2, transpose(jacobian), tmp1);
-    tmp2 += covmat_sx_inv;
     covmat_so.resize(n,n);
-    inv(covmat_so, tmp2);
+    mult(tmp1, covmat_se, transpose(dxdy));
+    mult(covmat_so, dxdy, tmp1);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void computeAVK(
+void covmat_ssCalc(
+    Matrix& covmat_ss,
+    const Matrix& avk,
+    const Sparse& covmat_sx,
+    const Verbosity& /*v*/)
+{
+    Index n(avk.ncols());
+    Matrix tmp1(n,n), tmp2(n,n);
+
+    if (n == 0) {
+      throw runtime_error("The averaging kernel matrix *dxdy* is required to compute the smoothing error covariance matrix.");
+    }
+    if ((covmat_sx.nrows() != n) || (covmat_sx.ncols() != n)) {
+      throw runtime_error("The covariance matrix *covmat_sx* invalid dimensions.");
+    }
+
+    covmat_ss.resize(n,n);
+
+    // Sign doesn't matter since we're dealing with a quadratic form.
+    id_mat(tmp1);
+    tmp1 -= avk;
+
+    mult(tmp2, covmat_sx, tmp1);
+    mult(covmat_ss, tmp1, tmp2);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void avkCalc(
     Matrix& avk,
     const Matrix& dxdy,
     const Matrix& jacobian,
@@ -1128,23 +1149,31 @@ void OEM(
 
 #else
 
-void computeSo(
-        Matrix& /* covmat_so */,
-        const Matrix& /* jacobian */,
-        const Sparse& /* covmat_sx_inv */,
-        const Sparse& /* covmat_se_inv */,
-        const Verbosity& /*v*/)
+void covmat_soCalc(
+          Matrix& /* covmat_so */,
+    const Matrix& /* dxdy */,
+    const Sparse& /* covmat_se_inv */,
+    const Verbosity& /*v*/)
 {
   throw runtime_error("WSM is not available because ARTS was compiled without "
                       "OEM support.");
 }
 
+void covmat_ssCalc(
+          Matrix& /*covmat_ss*/,
+    const Matrix& /*avk*/,
+    const Sparse& /*covmat_sx*/,
+    const Verbosity& /*v*/)
+{
+  throw runtime_error("WSM is not available because ARTS was compiled without "
+                          "OEM support.");
+}
 
-void computeAVK(
-        Matrix& /* avk */,
-        const Matrix& /* dxdy */,
-        const Matrix& /* jacobian */,
-        const Verbosity& /*v*/)
+void avkCalc(
+    Matrix& /* avk */,
+    const Matrix& /* dxdy */,
+    const Matrix& /* jacobian */,
+    const Verbosity& /*v*/)
 {
   throw runtime_error("WSM is not available because ARTS was compiled without "
                       "OEM support.");
