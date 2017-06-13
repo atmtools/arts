@@ -1322,17 +1322,20 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
     ArrayOfComplexVector dF(ppd.nelem());
     for(auto& df : dF) 
       df.resize(nf);
+    
     for(Index iline = 0; iline < n; iline++)
     {
-      LineFunctions().get_faddeeva_algorithm916(F, dF, f_grid,
-                                                ppd, 0.0, 0.0, f0[iline],
+      // Need to add derivatives
+      LineFunctions().set_faddeeva_algorithm916(F, dF, f_grid,
+                                                0.0, 0.0, f0[iline],
                                                 doppler_const, pressure_broadening[iline], psf[iline] + DV[iline]);
-      LineFunctions().apply_linemixing(F, dF, ppd, Y[iline], G[iline]);
-      LineFunctions().apply_linestrength(F, dF, ppd, S0[iline], 1.0, 1.0, 1.0, 1.0, 1.0);
+      LineFunctions().apply_linemixing(F, dF, Y[iline], G[iline]);
+      LineFunctions().apply_linestrength(F, dF, S0[iline], 1.0, 1.0, 1.0, 1.0, 1.0);
       for(Index ii = 0; ii < nf; ii++)
       {
+        const Numeric& ls = F[ii].real();
         #pragma omp atomic
-        xsec[this_species](ii, this_level) += F[ii].real();
+        xsec[this_species](ii, this_level) += ls;
       }
     }
     
@@ -2083,68 +2086,62 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             // Using Rodrigues etal method
             if(order_of_linemixing == -1)
             {
-              if(not error_handling)
+              calculate_xsec_from_relmat( abs_xsec_per_species,
+                                          dabs_xsec_per_species_dx,
+                                          ppd,
+                                          W,
+                                          W_dt,
+                                          f0,
+                                          f_grid,
+                                          dipole,
+                                          dipole_dt,
+                                          rhoT,
+                                          rhoT_dt,
+                                          psf,
+                                          psf_dt,
+                                          abs_t[ip],
+                                          mass,
+                                          iso_ratio,
+                                          this_species,
+                                          ip,
+                                          nlines);
+              
+              if(write_relmat_per_band not_eq 0)
               {
-                calculate_xsec_from_relmat( abs_xsec_per_species,
-                                            dabs_xsec_per_species_dx,
-                                            ppd,
-                                            W,
-                                            W_dt,
-                                            f0,
-                                            f_grid,
-                                            dipole,
-                                            dipole_dt,
-                                            rhoT,
-                                            rhoT_dt,
-                                            psf,
-                                            psf_dt,
-                                            abs_t[ip],
-                                            mass,
-                                            iso_ratio,
-                                            this_species,
-                                            ip,
-                                            nlines);
+                relmat_per_band[ip][iband] = W;
               }
-                
-                if(write_relmat_per_band not_eq 0)
-                {
-                  relmat_per_band[ip][iband] = W;
-                }
             }
             else
             {
+              ConstVectorView pressure_broadening = W.diagonal();
+              ConstVectorView pressure_broadening_dt = ppd.do_temperature()?W_dt.diagonal():pressure_broadening;
               
-              if(not error_handling)
-              {
-                ConstVectorView pressure_broadening = W.diagonal();
-                ConstVectorView pressure_broadening_dt = ppd.do_temperature()?W_dt.diagonal():pressure_broadening;
-                
-                calculate_xsec_from_relmat_coefficients(abs_xsec_per_species,
-                                                        dabs_xsec_per_species_dx,
-                                                        ppd,
-                                                        pressure_broadening,
-                                                        pressure_broadening_dt,
-                                                        f0,
-                                                        f_grid,
-                                                        dipole,
-                                                        dipole_dt,
-                                                        rhoT,
-                                                        rhoT_dt,
-                                                        psf,
-                                                        psf_dt,
-                                                        Y,
-                                                        ppd.do_temperature()?Y_dt:Y,
-                                                        G,
-                                                        ppd.do_temperature()?G_dt:G,
-                                                        DV,
-                                                        ppd.do_temperature()?DV_dt:DV,
-                                                        abs_t[ip],
-                                                        mass,
-                                                        iso_ratio,
-                                                        this_species,
-                                                        ip,
-                                                        nlines);
-              }
+              calculate_xsec_from_relmat_coefficients(abs_xsec_per_species,
+                                                      dabs_xsec_per_species_dx,
+                                                      ppd,
+                                                      pressure_broadening,
+                                                      pressure_broadening_dt,
+                                                      f0,
+                                                      f_grid,
+                                                      dipole,
+                                                      dipole_dt,
+                                                      rhoT,
+                                                      rhoT_dt,
+                                                      psf,
+                                                      psf_dt,
+                                                      Y,
+                                                      ppd.do_temperature()?Y_dt:Y,
+                                                      G,
+                                                      ppd.do_temperature()?G_dt:G,
+                                                      DV,
+                                                      ppd.do_temperature()?DV_dt:DV,
+                                                      abs_t[ip],
+                                                      mass,
+                                                      iso_ratio,
+                                                      this_species,
+                                                      ip,
+                                                      nlines);
+              
               
               if(write_relmat_per_band not_eq 0)
               {
@@ -2177,7 +2174,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
               
             for( long iline=0; iline<nlines; iline++ )
             {
-              //a.get_faddeeva_algorithm916();
+              
               Numeric K1, K2, tmp1;
               static const Vector v_tmp(0);
               
@@ -2198,11 +2195,10 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
               
               // TODO: Add derivatives here
               
-              LineFunctions().get_faddeeva_algorithm916(F, dF, f_grid,
-                ppd, 0.0, 0.0, abs_lines_per_band[iband][iline].F(),
-                GD_div_F0, W(iline, iline), psf[iline]); // Derivatives in temperature need to be added...
-              //LineFunctions().apply_VVW(F, dF, ppd, abs_lines_per_band[iband][iline].F(), f_grid);
-              LineFunctions().apply_linestrength(F, dF, ppd, 
+              LineFunctions().set_faddeeva_algorithm916(F, dF, f_grid,
+                0.0, 0.0, abs_lines_per_band[iband][iline].F(),
+                GD_div_F0, W(iline, iline), psf[iline]); // Derivatives need to be added...
+              LineFunctions().apply_linestrength(F, dF, 
                 abs_lines_per_band[iband][iline].I0(), iso_ratio,
                 QT, QT0, K1, K2);
               

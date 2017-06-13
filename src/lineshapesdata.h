@@ -76,19 +76,19 @@ public:
   enum LineShapeNorm {
     LSN_NONE,                      // No normalization  X
     LSN_ROSENKRANZ_QUADRATIC,      // Quadratic normalization (f/f0)^2*h*f0/(2*k*T)/sinh(h*f0/(2*k*T))  X
-    LSN_VVW,                       // Van Vleck Weiskopf normalization (f*f) / (f0*f0)
-    LSN_VVH                        // Van Vleck Huber normalization f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T)))
+    LSN_VVW,                       // Van Vleck Weiskopf normalization (f*f) / (f0*f0)  X
+    LSN_VVH                        // Van Vleck Huber normalization f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T)))  X
   };
   
-  void get_lorentz(ComplexVector& F, // Returns the full complex line shape without line mixing
-                   ArrayOfComplexVector& dF, // Returns the derivatives of the full line shape for list_of_derivatives
+  void set_lorentz(ComplexVector& F, // Sets the full complex line shape without line mixing
+                   ArrayOfComplexVector& dF,
                    const Vector& f_grid,
-                   const PropmatPartialsData& derivatives_data,
                    const Numeric& zeeman_df,
                    const Numeric& magnetic_magnitude,
                    const Numeric& F0_noshift,
                    const Numeric& G0,
                    const Numeric& L0,
+                   const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
                    const Numeric& dG0_dT=0.0,
                    const Numeric& dL0_dT=0.0) const
   { 
@@ -103,9 +103,11 @@ public:
     // Signa change of F and F0?
     const Complex denom0 = Complex(G0, F0);
     
+    F = invPI;
+    
     for(Index ii = 0; ii < nf; ii++)
     {
-      F[ii] = invPI / (denom0 - Complex(0.0, f_grid[ii]));
+      F[ii] /= (denom0 - Complex(0.0, f_grid[ii]));
     }
     
     if(nppd > 0)
@@ -158,15 +160,15 @@ public:
     }
   }
   
-  void get_mirrored_lorentz(ComplexVector& F, // Returns the full complex line shape without line mixing
-                            ArrayOfComplexVector& dF, // Returns the derivatives of the full line shape for list_of_derivatives
+  void set_mirrored_lorentz(ComplexVector& F, // Sets the full complex line shape without line mixing
+                            ArrayOfComplexVector& dF, 
                             const Vector& f_grid,
-                            const PropmatPartialsData& derivatives_data,
                             const Numeric& zeeman_df,
                             const Numeric& magnetic_magnitude,
                             const Numeric& F0_noshift,
                             const Numeric& G0,
                             const Numeric& L0,
+                            const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
                             const Numeric& dG0_dT=0.0,
                             const Numeric& dL0_dT=0.0) const
   { 
@@ -193,7 +195,7 @@ public:
       {
         if(derivatives_data(jj) == JQT_temperature)
         {
-          dF[jj] = (Fplus * Fplus * Complex(dG0_dT, dL0_dT) + Fminus * Fminus * Complex(dG0_dT, -dL0_dT)) * PI;
+          dF[jj][ii] = (Fplus * Fplus * Complex(dG0_dT, dL0_dT) + Fminus * Fminus * Complex(dG0_dT, -dL0_dT)) * PI;
         }
         else if(derivatives_data(jj) == JQT_frequency or
           derivatives_data(jj) == JQT_wind_magnitude or
@@ -201,12 +203,12 @@ public:
           derivatives_data(jj) == JQT_wind_v or
           derivatives_data(jj) == JQT_wind_w)
         {
-          dF[jj] = (Fplus * Fplus + Fminus * Fminus) * PI;
-          dF[jj] *= Complex(0.0, -1.0);
+          dF[jj][ii] = (Fplus * Fplus + Fminus * Fminus) * PI;
+          dF[jj][ii] *= Complex(0.0, -1.0);
         }
         else if(derivatives_data(jj) == JQT_line_center)
         {
-          dF[jj] = (Fplus * Fplus * Complex(0.0, 1.0) + Fminus * Fminus * Complex(0.0, -1.0)) * PI;
+          dF[jj][ii] = (Fplus * Fplus * Complex(0.0, 1.0) + Fminus * Fminus * Complex(0.0, -1.0)) * PI;
         }
         else if(derivatives_data(jj) == JQT_line_gamma_self or 
           derivatives_data(jj) == JQT_line_gamma_selfexponent or
@@ -218,76 +220,40 @@ public:
           derivatives_data(jj) == JQT_line_gamma_waterexponent or 
           derivatives_data(jj) == JQT_line_pressureshift_water) // Only the zeroth order terms --- the derivative with respect to these have to happen later
         {
-          dF[jj] = (Fplus * Fplus * Complex(1.0, 1.0) + Fminus * Fminus * Complex(1.0, -1.0)) * PI;
+          dF[jj][ii] = (Fplus * Fplus * Complex(1.0, 1.0) + Fminus * Fminus * Complex(1.0, -1.0)) * PI;
         }
         else if(derivatives_data(jj) == JQT_magnetic_magntitude)// No external inputs --- errors because of frequency shift when Zeeman is used?
         {
-          dF[jj] = (Fplus * Fplus * Complex(0.0, zeeman_df) + Fminus * Fminus * Complex(0.0, -zeeman_df)) * PI;
+          dF[jj][ii] = (Fplus * Fplus * Complex(0.0, zeeman_df) + Fminus * Fminus * Complex(0.0, -zeeman_df)) * PI;
         }
       }
     }
   }
   
-  void get_doppler(ComplexVector& F, // Returns the full complex line shape without line mixing
-                   ArrayOfComplexVector& dF, // Returns the derivatives of the full line shape for list_of_derivatives
+  void set_doppler(ComplexVector& F, // Sets the full complex line shape without line mixing
+                   ArrayOfComplexVector& dF,
                    const Vector& f_grid,
-                   const PropmatPartialsData& derivatives_data,
                    const Numeric& zeeman_df,
                    const Numeric& magnetic_magnitude,
                    const Numeric& F0_noshift,
                    const Numeric& GD_div_F0,
+                   const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
                    const Numeric& dGD_div_F0_dT=0.0) const
   {
-    Numeric e, dx, dx2;
-    
-    const Index nf = f_grid.nelem(), nppd = derivatives_data.nelem();
-    
-    extern const Numeric PI;
-    static const Numeric sqrtPI = sqrt(PI);
-    
-    const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude;
-    const Numeric GD = GD_div_F0 * F0;
-    const Numeric invGD = 1.0 / GD;
-    const Numeric invGD2 = invGD * invGD;
-    const Numeric dGD_dT = dGD_div_F0_dT * F0;
-    const Numeric fac = 1.0 / (sqrtPI * GD);
-    
-    for(Index ii = 0; ii < nf ; ii++)
-    {
-      dx = f_grid[ii] - F0;
-      dx2 = dx * dx;
-      e = exp(-dx2 * invGD2);
-      F[ii] = fac * e;
-      for(Index jj = 0; jj < nppd; jj++)
-      {
-        if(derivatives_data(jj) == JQT_temperature)
-        {
-          dF[jj][ii] = -F[ii] * invGD * (dGD_dT + 2.0 * (dx + dx2 * dGD_dT) * invGD2);
-        }
-        else if(derivatives_data(jj) == JQT_line_center)
-        {
-          dF[jj][ii] = -F[ii] * invGD * GD_div_F0 * (1.0 + 2.0 * dx2 * invGD2);
-        }
-        else if(derivatives_data(jj) == JQT_frequency or
-          derivatives_data(jj) == JQT_wind_magnitude or
-          derivatives_data(jj) == JQT_wind_u or
-          derivatives_data(jj) == JQT_wind_v or
-          derivatives_data(jj) == JQT_wind_w)
-        {
-          dF[jj][ii] = -2.0 * dx * F[ii];
-        }
-        else if(derivatives_data(jj) == JQT_magnetic_magntitude)
-        {
-          dF[jj][ii] = -F[ii] * invGD * GD_div_F0 * zeeman_df * (1.0 + 2.0 * dx2 * invGD2);
-        }
-      }
-    }
+    set_faddeeva_algorithm916(F, 
+                              dF, 
+                              f_grid, 
+                              zeeman_df, 
+                              magnetic_magnitude, 
+                              F0_noshift, 
+                              GD_div_F0, 0.0, 0.0,
+                              derivatives_data, 
+                              dGD_div_F0_dT);
   }
   
-  void get_htp(ComplexVector& F, // Returns the full complex line shape without line mixing
-               ArrayOfComplexVector& dF, // Returns the derivatives of the full line shape for list_of_derivatives
+  void set_htp(ComplexVector& F, // Sets the full complex line shape without line mixing
+               ArrayOfComplexVector& dF,
                const Vector& f_grid,
-               const PropmatPartialsData& derivatives_data,
                const Numeric& zeeman_df,
                const Numeric& magnetic_magnitude,
                const Numeric& F0_noshift,
@@ -298,6 +264,7 @@ public:
                const Numeric& G2,
                const Numeric& eta,
                const Numeric& FVC,
+               const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
                const Numeric& dGD_div_F0_dT=0.0,
                const Numeric& dG0_dT=0.0,
                const Numeric& dL0_dT=0.0,
@@ -308,7 +275,7 @@ public:
   {
     /*
      * 
-     * Function is meant to comput the Hartmann-Tran lineshape
+     * Function is meant to compute the Hartmann-Tran lineshape
      * 
      * The assumptions on input are described in accompanying pdf-documents
      * 
@@ -573,16 +540,16 @@ public:
     }
   }
   
-  void get_faddeeva_algorithm916(ComplexVector& F, // Returns the full complex line shape without line mixing
-                                 ArrayOfComplexVector& dF, // Returns the derivatives of the full line shape for list_of_derivatives
+  void set_faddeeva_algorithm916(ComplexVector& F, // Sets the full complex line shape without line mixing
+                                 ArrayOfComplexVector& dF,
                                  const Vector& f_grid,
-                                 const PropmatPartialsData& derivatives_data,
                                  const Numeric& zeeman_df,
                                  const Numeric& magnetic_magnitude,
                                  const Numeric& F0_noshift,
                                  const Numeric& GD_div_F0,
                                  const Numeric& G0,
                                  const Numeric& L0,
+                                 const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
                                  const Numeric& dGD_div_F0_dT=0.0,
                                  const Numeric& dG0_dT=0.0,
                                  const Numeric& dL0_dT=0.0) const
@@ -597,7 +564,7 @@ public:
     extern const Numeric PI;
     
     // constant sqrt(1/pi)
-    static const Numeric sqrt_invPI =  sqrt(1/PI);
+    static const Numeric sqrt_invPI =  sqrt(1.0/PI);
     
     // Doppler broadening and line center
     const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude + L0;
@@ -607,6 +574,7 @@ public:
     
     // constant normalization factor for voigt
     const Numeric fac = sqrt_invPI * invGD;
+    F = fac;
     
     // Ratio of the Lorentz halfwidth to the Doppler halfwidth
     const Complex z0 = Complex(-F0, G0) * invGD;
@@ -621,7 +589,7 @@ public:
       z = z0 + dx;
       w = Faddeeva::w(z);
       
-      F[ii] = fac * w;
+      F[ii] *= w;
       
       for(Index jj = 0; jj < nppd; jj++)
       {
@@ -703,16 +671,16 @@ public:
     }
   }
   
-  void get_hui_etal_1978(ComplexVector& F, // Returns the full complex line shape without line mixing
-                         ArrayOfComplexVector& dF, // Returns the derivatives of the full line shape for list_of_derivatives
+  void set_hui_etal_1978(ComplexVector& F, // Sets the full complex line shape without line mixing
+                         ArrayOfComplexVector& dF,
                          const Vector& f_grid,
-                         const PropmatPartialsData& derivatives_data,
                          const Numeric& zeeman_df,
                          const Numeric& magnetic_magnitude,
                          const Numeric& F0_noshift,
                          const Numeric& GD_div_F0,
                          const Numeric& G0,
                          const Numeric& L0,
+                         const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
                          const Numeric& dGD_div_F0_dT=0.0,
                          const Numeric& dG0_dT=0.0,
                          const Numeric& dL0_dT=0.0) const
@@ -848,12 +816,12 @@ public:
     }
   }
   
-  void get_o2_non_resonant(ComplexVector& F, // Returns the full complex line shape without line mixing
-                           ArrayOfComplexVector& dF, // Returns the derivatives of the full line shape for list_of_derivatives
+  void set_o2_non_resonant(ComplexVector& F, // Sets the full complex line shape without line mixing
+                           ArrayOfComplexVector& dF,
                            const Vector& f_grid,
-                           const PropmatPartialsData& derivatives_data,
                            const Numeric& F0,
                            const Numeric& G0,
+                           const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
                            const Numeric& dG0_dT=0.0)
   {
     const Index nf = f_grid.nelem(), nppd = derivatives_data.nelem();
@@ -907,11 +875,11 @@ public:
     }
   }
   
-  void apply_linemixing(ComplexVector& F, // Returns the full complex line shape without line mixing
-                        ArrayOfComplexVector& dF, // Returns the derivatives of the full line shape for list_of_derivatives
-                        const PropmatPartialsData& derivatives_data,
+  void apply_linemixing(ComplexVector& F, // Returns the full complex or normalized line shape with line mixing
+                        ArrayOfComplexVector& dF,
                         const Numeric& Y,
                         const Numeric& G,
+                        const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
                         const Numeric& dY_dT=0.0,
                         const Numeric& dG_dT=0.0) const
   {
@@ -954,12 +922,12 @@ public:
     F *= LM;
   }
   
-  void apply_rosenkranz_quadratic(ComplexVector& F, // Returns the full complex line shape without line mixing
-                                  ArrayOfComplexVector& dF, // Returns the derivatives of the full line shape for list_of_derivatives
-                                  const PropmatPartialsData& derivatives_data,
-                                  const Numeric& F0, // Only line center without any shifts
+  void apply_rosenkranz_quadratic(ComplexVector& F, // Returns as normalized complex line shape with or without line mixing
+                                  ArrayOfComplexVector& dF,
                                   const Vector& f_grid,
-                                  const Numeric& T) const
+                                  const Numeric& F0, // Only line center without any shifts
+                                  const Numeric& T,
+                                  const PropmatPartialsData& derivatives_data=PropmatPartialsData()) const
   {
     const Index nf = f_grid.nelem(), nppd = derivatives_data.nelem();
     
@@ -1012,12 +980,12 @@ public:
     }
   }
   
-  void apply_VVH(ComplexVector& F, // Returns the full complex line shape without line mixing
-                 ArrayOfComplexVector& dF, // Returns the derivatives of the full line shape for list_of_derivatives
-                 const PropmatPartialsData& derivatives_data,
-                 const Numeric& F0, // Only line center without any shifts
+  void apply_VVH(ComplexVector& F, // Returns as normalized complex line shape with or without line mixing
+                 ArrayOfComplexVector& dF,
                  const Vector& f_grid,
-                 const Numeric& T) const
+                 const Numeric& F0, // Only line center without any shifts
+                 const Numeric& T,
+                 const PropmatPartialsData& derivatives_data=PropmatPartialsData()) const
   {
     extern const Numeric PLANCK_CONST;
     extern const Numeric BOLTZMAN_CONST;
@@ -1066,11 +1034,11 @@ public:
     }
   }
   
-  void apply_VVW(ComplexVector& F, // Returns the full complex line shape without line mixing
-                 ArrayOfComplexVector& dF, // Returns the derivatives of the full line shape for list_of_derivatives
-                 const PropmatPartialsData& derivatives_data,
+  void apply_VVW(ComplexVector& F, // Returns as normalized line shape with or without line mixing
+                 ArrayOfComplexVector& dF,
+                 const Vector& f_grid,
                  const Numeric& F0, // Only line center without any shifts
-                 const Vector& f_grid) const
+                 const PropmatPartialsData& derivatives_data=PropmatPartialsData()) const
   {
     const Index nf = f_grid.nelem(), nppd = derivatives_data.nelem();
     
@@ -1102,9 +1070,8 @@ public:
     }
   }
   
-  void apply_linestrength(ComplexVector& F, // Returns the full complex line shape without line mixing
-                          ArrayOfComplexVector& dF, // Returns the derivatives of the full line shape for list_of_derivatives
-                          const PropmatPartialsData& derivatives_data,
+  void apply_linestrength(ComplexVector& F, // Returns the full complex line shape with or without line mixing
+                          ArrayOfComplexVector& dF,
                           const Numeric& S0,
                           const Numeric& isotopic_ratio,
                           const Numeric& QT,
@@ -1113,6 +1080,7 @@ public:
                           const Numeric& K2,
                           //const Numeric& K3,  Add again when NLTE is considered
                           //const Numeric& K4,  Add again when NLTE is considered
+                          const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
                           const Numeric& dQT_dT=0.0,
                           const Numeric& dK1_dT=0.0,
                           const Numeric& dK2_dT=0.0,
@@ -1123,18 +1091,18 @@ public:
     const Numeric invQT = 1.0/QT;
     const Numeric QT_ratio = QT0 * invQT;
     const Numeric S = S0 * isotopic_ratio * QT_ratio * K1 * K2;
-    ComplexVector tmp;
+    
     for(Index jj = 0; jj < nppd; jj++)
     {
       if(derivatives_data(jj) == JQT_temperature)
       {
-        dF[jj] *= S;
-        tmp = F;
-        tmp *= S0 * isotopic_ratio * 
-        (QT_ratio * K1 * dK2_dT + 
-         QT_ratio * dK1_dT * K2 - 
-         QT_ratio * invQT * dQT_dT * K1 * K2);
-        dF[jj] += tmp;
+        Eigen::VectorXcd eig_dF = MapToEigen(dF[jj]);
+        
+        eig_dF *= S;
+        eig_dF += MapToEigen(F) * (S0 * isotopic_ratio * QT_ratio * 
+                                  (K1 * dK2_dT + 
+                                   dK1_dT * K2 - 
+                                   invQT * dQT_dT * K1 * K2));
       }
       else if(derivatives_data(jj) == JQT_line_strength)
       {
@@ -1143,16 +1111,50 @@ public:
       }
       else if(derivatives_data(jj) == JQT_line_center)
       {
-        dF[jj] *= S;
-        tmp = F;
-        tmp *= S0 * isotopic_ratio * QT_ratio * K1 * dK2_dF0;
-        dF[jj] += tmp;
+        Eigen::VectorXcd eig_dF = MapToEigen(dF[jj]);
+        
+        eig_dF *= S;
+        eig_dF += MapToEigen(F) * (S0 * isotopic_ratio * QT_ratio * K1 * dK2_dF0);
       }
       else
       {
         dF[jj] *= S;
       }
     }
+    F *= S;
+  }
+  
+  void apply_dipole(ComplexVector& F, // Returns the full complex line shape without line mixing
+                    ArrayOfComplexVector& dF, // Returns the derivatives of the full line shape for list_of_derivatives
+                    const Numeric& d0,
+                    const Numeric& rho,
+                    const Numeric& isotopic_ratio,
+                    const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                    const Numeric& dd0_dT=0.0,
+                    const Numeric& drho_dT=0.0) const
+  {
+    // Output is d0^2 * rho * F * isotopic_ratio
+    
+    const Index nppd = derivatives_data.nelem();
+    
+    const Numeric S = d0 * d0 * rho * isotopic_ratio;
+    
+    // WARNING:  Needs fixing for line parameters "JQT_line_center" and "JQT_line_strength"
+    for(Index jj = 0; jj < nppd; jj++)
+    {
+      if(derivatives_data(jj) == JQT_temperature)
+      {
+        Eigen::VectorXcd eig_dF = MapToEigen(dF[jj]);
+        
+        eig_dF *= S;
+        eig_dF += MapToEigen(F) * ((2.0 * rho * dd0_dT + d0 * drho_dT) * d0);
+      }
+      else
+      {
+        dF[jj] *= S;
+      }
+    }
+    
     F *= S;
   }
                           

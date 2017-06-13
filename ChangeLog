@@ -1,3 +1,13 @@
+2017-06-09  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-718
+	
+	* src/m_linemixing.cc: Updated for not ignoring that error handling
+	is different now compared to when I started this file...
+	
+	* src/lineshapesdata.h:  Some renames, reshuffling, and additions
+	(still beta)
+	
 2017-06-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-717
