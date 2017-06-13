@@ -36,7 +36,7 @@ such observations should be the main applications of this workspace methods.
 The basic measurement approach is the same for lidars, but the assumption of
 single scattering is much more restrictive for such instruments.
 
-\section{Theory}
+\subsection{Theory}
 %===================
 \label{sec:cradar:theory}
 
@@ -50,15 +50,15 @@ For the conditions given above, the backscattered radiation, \aStoVec{b}, can be
 written as
 \begin{equation}
   \label{eq:cradar:bscatt1}
-  \aStoVec{b} = \aTraMat{h}\PhaMat(\Omega=0)\aTraMat{a}\aStoVec{t}.
+  \aStoVec{b} = \aTraMat{h}\PhaMat^b\aTraMat{a}\aStoVec{t}.
 \end{equation}
 The terms in this equation are:
 \begin{itemize}
 \item[\aStoVec{t}] Stokes vector describing the transmitted pulse.
 \item[\aTraMat{a}] A matrix describing the transmission from the receiver to
   the scattering point (the away direction). 
-\item[\PhaMat]$\!\!\!(\Omega=0)$ The scattering (or phase) matrix value for the
-  backward direction. 
+\item[\PhaMat$^b$] The bulk scattering (or phase) matrix value
+  for the backward direction.
 \item[\aTraMat{h}] As \aTraMat{a}, but for the reversed direction (the home
   direction). Note that for vector radiative transfer, in general
   $\aTraMat{a}\neq\aTraMat{h}$.
@@ -78,7 +78,7 @@ The corresponding unattenuated backscattering coefficient is
 \end{equation}
 
 
-\section{Units}
+\subsection{Units}
 %===================
 \label{sec:cradar:units}
 
@@ -102,7 +102,7 @@ water, $n$:
 
 
 
-\section{Practical usage}
+\subsection{Practical usage}
 %===================
 \label{sec:cradar:usage}
 
@@ -147,6 +147,58 @@ arts -d iyActiveSingleScat
 A difference of \builtindoc{yActive}, compared to \builtindoc{yCalc}, is
 that all auxiliary quantities provided by \builtindoc{iyActiveSingleScat} are
 treated.
+
+
+
+\subsection{Jacobian calculations}
+%===================
+\label{sec:cradar:jac}
+
+For better clarity, Eq.~\ref{eq:cradar:bscatt1} is expanded to make dependency
+on particle number densities clear:
+\begin{equation}
+  \aStoVec{b} = \aTraMat{h}\sum_i\left(n_i<\PhaMat^b_i>\right)\aTraMat{a}\aStoVec{t}.
+\end{equation}
+where $n_i$ is the particle number density of scattering element $i$ and
+$<\PhaMat^b_i>$ is the back-scattering cross-section of individual particles.
+
+For an element of the state vector, \aSttElm{p}, that influences $\PhaMat^b$
+(beside temperature, see below) the main expression for the Jacobian is:
+\begin{equation}
+  \frac{\partial\aStoVec{b}}{\partial\aSttElm{p}} = \aTraMat{h}
+    \frac{\partial\PhaMat^b}{\partial\aSttElm{p}}\aTraMat{a}\aStoVec{t} = 
+    \aTraMat{h} \sum_i\left(\frac{\partial n_i}{\partial\aSttElm{p}}<\PhaMat^b_i>\right)
+    \aTraMat{a}\aStoVec{t}.
+  \label{eq:wfuns:cradar1}
+\end{equation}
+If for example \aSttElm{p} represents ice water content at an altitude, the
+expression above covers the effect on $\PhaMat^b$ at the same altitude. There
+is no effect of \aSttElm{p} on $\PhaMat^b$ at other altitudes, and this part of
+the Jacobian becomes zero. The terms $\partial n_i/\partial\aSttElm{p}$ are
+taken from the workspace variable \wsvindex{dpnd\_field\_dx}.
+
+The back-scattering has a weak temperature dependency. Some particle size
+distributions have temperature as input, and Eq.~\ref{eq:wfuns:cradar1} is then
+also valid for temperature. So far both these aspects are ignored, and the
+temperature Jacobian is set to zero.
+
+Changes in both absorption and scattering species can affect \aTraMat{a} and
+\aTraMat{h}. The Jacobian corresponding to this effect is:
+\begin{equation}
+  \frac{\partial\aStoVec{b}}{\partial\aSttElm{p}} = 
+   \frac{\partial\aTraMat{h}}{\partial\aSttElm{p}}\PhaMat^b\aTraMat{a}\aStoVec{t} +
+   \aTraMat{h}\PhaMat^b\frac{\partial\aTraMat{a}}{\partial\aSttElm{p}}\aStoVec{t} 
+   \approx 2 \frac{\partial\aTraMat{h}}{\partial\aSttElm{p}}\PhaMat^b
+   \aTraMat{a}\aStoVec{t}.
+  \label{eq:wfuns:cradar2}
+\end{equation}
+The last, approximate, expression is used, which assumes that the attenuation
+not induces significant polarisation. For this condition
+$\aTraMat{a}\approx\aTraMat{h}$. The derivative
+$\partial\aTraMat{h}/\partial\aSttElm{p}$ is calculated following
+Sec.~\ref{sec:wfuns:atmvars}
+
+
 
 
 
