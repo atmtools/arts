@@ -145,16 +145,24 @@ AgendaSet( inversion_iterate_agenda ){
 #
 Tensor4AddScalar( vmr_field, vmr_field, 1e-6 )
 
-# Create xa, and initial x, jacobian and yf
+
+# Create xa
 #
 xaStandard
 
 
-# Create initial x, jacobian and yf
+# x, jacobian and yf must be initialised (or pre-calculated as shown below)
 #
-Copy( x, xa )
+VectorSet( x, [] )
+VectorSet( yf, [] )
 MatrixSet( jacobian, [] )
-AgendaExecute( inversion_iterate_agenda )
+
+
+# Or to pre-set x, jacobian and yf
+#
+#Copy( x, xa )
+#MatrixSet( jacobian, [] )
+#AgendaExecute( inversion_iterate_agenda )
 
 
 # Covariance matrices covmat_sx, covmat_se and their inverse.

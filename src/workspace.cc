@@ -1239,9 +1239,14 @@ void Workspace::define_wsv_data()
       (
        "Covariance matrix for observation uncertainties.\n"
        "\n"
-       "This matrix describes the uncertainty of the measurement vector (*y*).\n"
+       "This matrix (Se) describes the uncertainty of the measurement vector (*y*),\n"
+       "and can be writtenn as\n"
+       "   Se = Seps + Kb*Sb*Kb',\n"
+       "where Seps describes direct measurement errors (such as thermal noise),\n"
+       "Kb is Jacobian for forward model parameters, and Sb describes the uncertainty\n"
+       "of the forwatrd model parameters.\n"
        "\n"
-       "Usage:      Used by inversion methods.\n"
+       "Usage:   Used by inversion methods.\n"
        "\n"
        "Dimensions: \n"
        "     [ y, y ]\n"
@@ -1253,7 +1258,7 @@ void Workspace::define_wsv_data()
     ( NAME( "covmat_se_inv" ),
       DESCRIPTION
       (
-       "The inverse of the covariance matrix for observation uncertainties.\n"
+       "The inverse of *covmat_se*..\n"
        "\n"
        "Usage:      Used by inversion methods.\n"
        "\n"
@@ -1271,7 +1276,7 @@ void Workspace::define_wsv_data()
        "\n"
        "This matrix describes the uncertainty of the elements in *x*.\n"
        "\n"
-       "Usage:      Used by inversion methods.\n"
+       "Usage:   Used by inversion methods.\n"
        "\n"
        "Dimensions: \n"
        "     [ x, x ]\n"
@@ -1283,9 +1288,9 @@ void Workspace::define_wsv_data()
     ( NAME( "covmat_sx_inv" ),
       DESCRIPTION
       (
-       "The inverse of the covariance matrix for a priori uncertainty.\n"
+       "The inverse *covmat_sx*.\n"
        "\n"
-       "Usage:      Used by inversion methods.\n"
+       "Usage:   Used by inversion methods.\n"
        "\n"
        "Dimensions: \n"
        "     [ x, x ]\n"
@@ -1297,15 +1302,17 @@ void Workspace::define_wsv_data()
        (NAME("covmat_so"),
         DESCRIPTION
         (
-            "Covariance matrix describing the retrieval error due to uncertainties of\n"
-            "the observation system.\n"
-            "\n"
-            "Usage: Set by the covmat_soCalc workspace method to characterize the error.\n"
-            "of a successful OEM calculation.\n"
-            "\n"
-            "Dimensions:\n"
-            "    [x,x]\n"
-            ),
+         "Covariance matrix describing the retrieval error due to uncertainties of\n"
+         "the observation system.\n"
+         "\n"
+         "That is: So = G*Se*G', where G is the gain matrix (*dxdy*).\n"
+         "\n"
+         "Usage: Set by the covmat_soCalc workspace method to characterize the error.\n"
+         "of a successful OEM calculation.\n"
+         "\n"
+         "Dimensions:\n"
+         "    [x,x]\n"
+         ),
         GROUP("Matrix")));
 
   wsv_data.push_back
@@ -1314,6 +1321,8 @@ void Workspace::define_wsv_data()
       DESCRIPTION
       (
        "Covariance matrix describing the retrieval error due to smoothing.\n"
+       "\n"
+       "That is: Ss = (A-I)*Sx*(A-I)', where A is the averaging kernel matrix (*avk*).\n"
        "\n"
        "Usage: Set by the covmat_ssCalc workspace method to characterize the.\n"
        "errors of a successful OEM calculation."
@@ -1327,7 +1336,7 @@ void Workspace::define_wsv_data()
        (NAME("avk"),
         DESCRIPTION
         (
-            "Averaging Kernel Matrix"
+            "Averaging kernel matrix"
             "\n"
             "Usage: The rows of the averaging kernel matrix describe the extent to which\n"
             "the information about the true state of the system is smoothed by the retrieval."
