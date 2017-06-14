@@ -1,3 +1,9 @@
+2017-06-14  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-722
+
+	* controlfiles/artscomponents/oem/TestOEM.arts: Added missing OEM test.
+
 2017-06-13  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-721
@@ -7,8 +13,6 @@
 
 	* controlfiles/artscomponents/groundbased/*.arts: Updated position
 	of ozone line file.
-
-	* controlfiles/artscomponents/oem/TestOEM.arts: Added OEM test.
 
 	* controlfiles/CMakeLists.txt: Added new OEM test.
 
