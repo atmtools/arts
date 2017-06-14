@@ -1,3 +1,16 @@
+2017-06-14  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-724
+
+	* src/parser.cc (parse_matrix):
+
+	For empty matrices, ncols was set to 1. Fixed and cleaned up code. Bug
+	reported by Patrick.
+
+	* controlfiles/CMakeLists.txt:
+
+	Use OEM_SUPPORT variable instead of NO_OEM.
+
 2017-06-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-723

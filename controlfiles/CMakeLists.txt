@@ -115,7 +115,7 @@ if (ENABLE_REFICE)
   arts_test_run_ctlfile(fast artscomponents/refice/TestRefice.arts)
 endif ()
 
-if (NOT NO_OEM)
+if (OEM_SUPPORT)
   arts_test_run_ctlfile(fast artscomponents/oem/TestOEM.arts)
 endif ()
 

@@ -2546,7 +2546,8 @@ void ArtsParser::parse_matrix(Matrix& res)
     eat_whitespace();
 
     Index ncols = -1;
-    Index cur_ncols = 1;
+    Index nrows = 0;
+    Index cur_ncols = 0;
     // Read the elements of the vector (`]' means that we have
     // reached the end):
     while ( ']' != msource.Current() )
@@ -2554,7 +2555,11 @@ void ArtsParser::parse_matrix(Matrix& res)
         Numeric dummy;
 
         if (first)
+        {
             first = false;
+            cur_ncols = 1;
+            nrows = 1;
+        }
         else
         {
             if (',' == msource.Current())
@@ -2574,6 +2579,7 @@ void ArtsParser::parse_matrix(Matrix& res)
             }
             else if (';' == msource.Current())
             {
+                nrows++;
                 if (ncols == -1)
                 {
                     ncols = cur_ncols;
@@ -2621,7 +2627,6 @@ void ArtsParser::parse_matrix(Matrix& res)
 
 
     // Copy tres to res:
-    Index nrows = tres.nelem() / ncols;
     res.resize(nrows, ncols);
     for (Index i = 0; i < nrows; i++)
         for (Index j = 0; j < ncols; j++)
