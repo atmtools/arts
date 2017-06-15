@@ -328,7 +328,7 @@ public:
     int compute(VectorType       &x,
                 const VectorType &y,
                 Minimizer M,
-                LogParams ... log_params);
+                LogParams && ... log_params);
 
     RealType cost, cost_x, cost_y;
     unsigned int iterations;
@@ -413,7 +413,7 @@ public:
     int compute(VectorType       &x,
                 const VectorType &y,
                 Minimizer M,
-                LogParams ... log_params);
+                LogParams && ... log_params);
 
     RealType cost, cost_x, cost_y;
     unsigned int iterations;
@@ -503,7 +503,7 @@ public:
     int compute(VectorType       &x,
                 const VectorType &y,
                 Minimizer M,
-                LogParams ... log_params);
+                LogParams && ... log_params);
 
     RealType cost, cost_x, cost_y;
     unsigned int iterations;

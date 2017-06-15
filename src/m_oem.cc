@@ -979,8 +979,9 @@ void oem_template(
                 lm.set_lambda(ml_ga_settings[0]);
                 lm.set_lambda_decrease(ml_ga_settings[1]);
                 lm.set_lambda_increase(ml_ga_settings[2]);
-                lm.set_lambda_threshold(ml_ga_settings[3]);
-                lm.set_lambda_maximum(ml_ga_settings[4]);
+                lm.set_lambda_maximum(ml_ga_settings[3]);
+                lm.set_lambda_threshold(ml_ga_settings[4]);
+                lm.set_lambda_constraint(ml_ga_settings[5]);
 
                 return_code = oem.compute<LM_S, ArtsLog>(
                     x_oem, y_oem, lm, oem_verbosity,

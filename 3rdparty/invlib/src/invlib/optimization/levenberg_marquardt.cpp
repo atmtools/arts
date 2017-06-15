@@ -14,7 +14,8 @@ LevenbergMarquardt<RealType, DampingMatrix, Solver>
                      Solver solver)
     : current_cost(0.0), tolerance(1e-5), lambda(4.0), lambda_maximum(100.0),
       lambda_increase(2.0), lambda_decrease(3.0), lambda_threshold(1.0),
-      maximum_iterations(100), step_count(0),D(D_), s(solver)
+      lambda_constraint(std::numeric_limits<RealType>::min()), maximum_iterations(100),
+      step_count(0), D(D_), s(solver)
 {
     // Nothing to do here.
 }
@@ -58,7 +59,11 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
 ::get_tolerance() const
     -> RealType
 {
-    return tolerance;
+    if (lambda > lambda_constraint) {
+        return std::numeric_limits<RealType>::min();
+    } else {
+        return tolerance;
+    }
 }
 
 template
@@ -198,6 +203,31 @@ void LevenbergMarquardt<RealType, DampingMatrix, Solver>
     lambda_threshold = lambda_threshold_;
 }
 
+template
+<
+    typename RealType,
+    typename DampingMatrix,
+    typename Solver
+    >
+auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
+::get_lambda_constraint() const
+    -> RealType
+{
+    return lambda_constraint;
+}
+
+template
+<
+    typename RealType,
+    typename DampingMatrix,
+    typename Solver
+    >
+void LevenbergMarquardt<RealType, DampingMatrix, Solver>
+::set_lambda_constraint(RealType lambda_constraint_)
+{
+    lambda_constraint = lambda_constraint_;
+}
+
 // --------------------------- //
 //  Perform Minimization Step  //
 // --------------------------- //
@@ -233,19 +263,17 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
         // Compute step.
         auto C = B + lambda * D;
 
-        try
-        {
+        try {
             dx = -1.0 * s.solve(C, g);
-        }
-        catch(...)
-        {
+        } catch(...) {
             std::throw_with_nested(
                 std::runtime_error(
                     "Linear System Solution Error in Levenberg-Marquardt Method."
-                )
-            );
+                    )
+                );
         }
 
+        dx = -1.0 * s.solve(C, g);
         VectorType xnew = x + dx;
 
         // Compute model accuracy.

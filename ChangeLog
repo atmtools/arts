@@ -1,3 +1,12 @@
+2017-06-16  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-725
+
+	* src/m_oem.cc (oem_template): Fixed passing of ml_ga_settings to
+	invlib. Bug reported by Theresa.
+
+	* 3rdparty/invlib/*: invlib update.
+
 2017-06-14  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-724

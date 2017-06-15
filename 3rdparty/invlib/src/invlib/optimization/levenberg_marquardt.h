@@ -10,6 +10,7 @@
 
 #include "invlib/algebra/solvers.h"
 #include <iostream>
+#include <limits>
 
 namespace invlib
 {
@@ -93,6 +94,9 @@ public:
     RealType get_lambda_threshold() const;
     void set_lambda_threshold(RealType);
 
+    RealType get_lambda_constraint() const;
+    void set_lambda_constraint(RealType);
+
     // --------------------------- //
     //  Perform Minimization Step  //
     // --------------------------- //
@@ -128,7 +132,7 @@ public:
 private:
 
     RealType current_cost, tolerance, lambda, lambda_maximum, lambda_increase,
-    lambda_decrease, lambda_threshold;
+    lambda_decrease, lambda_threshold, lambda_constraint;
     unsigned int maximum_iterations, step_count;
 
     // Positive definite matrix defining the trust region sphere r < ||Mx||.

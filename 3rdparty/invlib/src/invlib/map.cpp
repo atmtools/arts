@@ -206,7 +206,7 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STAN
 ::compute(VectorType       &x,
           const VectorType &y,
           Minimizer M,
-          LogParams ... log_params)
+          LogParams && ... log_params)
     -> int
 {
 
@@ -309,7 +309,7 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFOR
 ::compute(VectorType       &x,
           const VectorType &y,
           Minimizer M,
-          LogParams ... log_params)
+          LogParams && ... log_params)
     -> int
 {
 
@@ -429,7 +429,7 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFOR
 ::compute(VectorType       &x,
           const VectorType &y,
           Minimizer M,
-          LogParams ... log_params)
+          LogParams && ... log_params)
     -> int
 {
     Log<LogType::MAP> log(log_params ...);
