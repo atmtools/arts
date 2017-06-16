@@ -1,3 +1,16 @@
+
+2017-06-16  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-727
+	
+	* src/lineshapesdata.h: Updated to fit with line mixing scenario
+	
+	* src/m_linemixing.cc: Using the updated line shape functions 
+	better
+	
+	* src/rte.cc: Changed order of two RT loops to be frequency-first 
+	so that OpenMP can be applied
+	
 2017-06-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-726

@@ -2369,6 +2369,7 @@ void get_ppath_pmat_and_tmat(
                 trans_partial, dtrans_partial_dx_above, dtrans_partial_dx_below, 
                 extmat_case, trans_cumulat, scalar_tau, ppath, ppath_ext, 
                 dppath_ext_dx, jacobian_quantities, f_grid, jac_to_integrate, stokes_dim );
+            
     }
     else
     {
@@ -3252,53 +3253,51 @@ void get_ppath_trans(
   const Index   np = ppath.np;
 
   // Init variables
-  //
-  trans_partial.resize( nf, stokes_dim, stokes_dim, np-1 );
-  trans_cumulat.resize( nf, stokes_dim, stokes_dim, np );
-  //
+  trans_partial.resize(nf, stokes_dim, stokes_dim, np-1);
+  trans_cumulat.resize(nf, stokes_dim, stokes_dim, np);
+
   extmat_case.resize(np-1);
-  for( Index i=0; i<np-1; i++ )
-    { extmat_case[i].resize(nf); }
-  //
+  for(auto& ecase : extmat_case)
+    ecase.resize(nf);
+
   scalar_tau.resize( nf );
   scalar_tau = 0;
-
-  // Loop ppath points (in the anti-direction of photons)  
-  //
-  for( Index ip=0; ip<np; ip++ )
+  
+  #pragma omp parallel for      \
+  if (!arts_omp_in_parallel())
+  for(Index iv = 0; iv < nf; iv++)
+  {
+    // Extinction matrix
+    Matrix ext_mat(stokes_dim, stokes_dim);
+    
+    // Cumulative transmission to space from after last atmospheric layer is unity
+    id_mat(trans_cumulat(iv, joker, joker, 0)); 
+    
+    // Loop over all atmospheric layers (nb, ip = 1)
+    for(Index ip = 1; ip < np; ip++)
     {
-      // If first point, calculate sum of absorption and set transmission
-      // to identity matrix.
-      if( ip == 0 )
-        { 
-          for( Index iv=0; iv<nf; iv++ )
-            { id_mat( trans_cumulat(iv,joker,joker,ip) ); }
-        }
-
-      else
+      for(Index is1 = 0; is1 < stokes_dim; is1++) 
+      {
+        for(Index is2 = 0; is2 < stokes_dim; is2++) 
         {
-          for( Index iv=0; iv<nf; iv++ )
-            {
-              // Transmission due to absorption
-              Matrix ext_mat(stokes_dim,stokes_dim);
-              for( Index is1=0; is1<stokes_dim; is1++ ) {
-                for( Index is2=0; is2<stokes_dim; is2++ ) {
-                  ext_mat(is1,is2) = 0.5 * ( ppath_ext(iv,is1,is2,ip-1) + 
-                                             ppath_ext(iv,is1,is2,ip  ) );
-                } }
-              scalar_tau[iv] += ppath.lstep[ip-1] * ext_mat(0,0); 
-              extmat_case[ip-1][iv] = 0;
-              ext2trans( trans_partial(iv,joker,joker,ip-1), 
-                         extmat_case[ip-1][iv], ext_mat, ppath.lstep[ip-1] );
-
-              // Cumulative transmission
-              // (note that multiplication below depends on ppath loop order)
-              mult( trans_cumulat(iv,joker,joker,ip), 
-                    trans_cumulat(iv,joker,joker,ip-1), 
-                    trans_partial(iv,joker,joker,ip-1) );
-            }
-        }
+          // Extinction is the average of the extinction in the surrounding levels
+          ext_mat(is1, is2) = 0.5 * (ppath_ext(iv, is1, is2, ip-1) + ppath_ext(iv, is1, is2, ip));
+        } 
+      }
+      
+      scalar_tau[iv] += ppath.lstep[ip-1] * ext_mat(0,0); 
+      extmat_case[ip-1][iv] = 0;
+      
+      ext2trans(trans_partial(iv, joker, joker, ip-1), 
+                extmat_case[ip-1][iv], ext_mat, ppath.lstep[ip-1]);
+      
+      // Cumulative transmission
+      // (note that multiplication below depends on ppath loop order)
+      mult(trans_cumulat(iv, joker, joker, ip), 
+           trans_cumulat(iv, joker, joker, ip-1), 
+           trans_partial(iv, joker, joker, ip-1));
     }
+  }
 }
 
 
@@ -3359,92 +3358,81 @@ void get_ppath_trans_and_dppath_trans_dx(
   const ArrayOfIndex&          for_distance_integration,
   const Index&                 stokes_dim )
 {
+  // Sizes
+  const Index   nf = f_grid.nelem();
+  const Index   np = ppath.np;
+  const Index   nq = jacobian_quantities.nelem();
+  
+  // Init variables
+  trans_partial.resize(nf, stokes_dim, stokes_dim, np-1);
+  trans_cumulat.resize(nf, stokes_dim, stokes_dim, np);
+  
+  dtrans_partial_dx_from_above.resize(nq, nf, stokes_dim, stokes_dim, np-1);
+  dtrans_partial_dx_from_below.resize(nq, nf, stokes_dim, stokes_dim, np-1);
+
+  extmat_case.resize(np-1);
+  for(auto& ecase : extmat_case)
+    ecase.resize(nf);
+
+  scalar_tau.resize( nf );
+  scalar_tau = 0;
+  
+  #pragma omp parallel for      \
+  if (!arts_omp_in_parallel())
+  for(Index iv=0; iv<nf; iv++)
+  {
+    // Extinction matrix and upper/lower extinction derivatives
+    Matrix ext_mat(stokes_dim, stokes_dim);
+    Tensor3 dext_mat_dx_from_above(nq, stokes_dim, stokes_dim),
+    dext_mat_dx_from_below(nq, stokes_dim, stokes_dim);
     
-    // Sizes
-    const Index   nf = f_grid.nelem();
-    const Index   np = ppath.np;
-    const Index   nq = jacobian_quantities.nelem();
-    
-    // Init variables
-    //
-    trans_partial.resize( nf, stokes_dim, stokes_dim, np-1 );
-    trans_cumulat.resize( nf, stokes_dim, stokes_dim, np );
-    
-    dtrans_partial_dx_from_above.resize( nq, nf, stokes_dim, stokes_dim, np-1 );
-    dtrans_partial_dx_from_below.resize( nq, nf, stokes_dim, stokes_dim, np-1 );
-    //
-    extmat_case.resize(np-1);
-    for( Index i=0; i<np-1; i++ )
-    { extmat_case[i].resize(nf); }
-    //
-    scalar_tau.resize( nf );
-    scalar_tau = 0;
-    
-    // Loop ppath points (in the anti-direction of photons)  
-    //
-    for( Index ip=0; ip<np; ip++ )
+    // Cumulative transmission to space from after last atmospheric layer is unity
+    id_mat( trans_cumulat(iv, joker, joker, 0));
+    for(Index ip = 1; ip < np; ip++)
     {
-        // If first point, calculate sum of absorption and set transmission
-        // to identity matrix.
-        if( ip == 0 )
-        { 
-            for( Index iv=0; iv<nf; iv++ )
-            { id_mat( trans_cumulat(iv,joker,joker,ip) ); }
+      for(Index is1 = 0; is1 < stokes_dim; is1++) 
+      {
+        for(Index is2 = 0; is2 < stokes_dim; is2++) 
+        {
+          ext_mat(is1,is2) = 0.5 * (ppath_ext(iv, is1, is2, ip-1) + ppath_ext(iv, is1, is2, ip));
+          for( Index iq=0; iq<nq; iq++ )
+          {
+            if(for_distance_integration[iq] == JAC_IS_FLUX)
+            {
+              dext_mat_dx_from_above(iq, is1, is2) = 
+                0.5 / ppath.lstep[ip-1] * dppath_ext_dx(iq, iv, is1, is2, ip);
+              dext_mat_dx_from_below(iq,is1,is2) = 
+                0.5 / ppath.lstep[ip-1] * dppath_ext_dx(iq, iv, is1, is2, ip-1);
+            }
+            else 
+            {
+              // Upper and lower level influence on the dependency at layer
+              dext_mat_dx_from_above(iq, is1, is2) =  0.5 * dppath_ext_dx(iq, iv, is1, is2, ip);
+              dext_mat_dx_from_below(iq, is1, is2) =  0.5 * dppath_ext_dx(iq, iv, is1, is2, ip-1);
+            }
+          } 
         }
         
-        else
-        {
-            for( Index iv=0; iv<nf; iv++ )
-            {
-                // Transmission due to absorption
-                Matrix ext_mat(stokes_dim,stokes_dim);
-                Tensor3 dext_mat_dx_from_above(nq,stokes_dim,stokes_dim),
-                        dext_mat_dx_from_below(nq,stokes_dim,stokes_dim);
-                for( Index is1=0; is1<stokes_dim; is1++ ) 
-                {
-                    for( Index is2=0; is2<stokes_dim; is2++ ) 
-                    {
-                        ext_mat(is1,is2) = 0.5 * ( ppath_ext(iv,is1,is2,ip-1) + 
-                                                   ppath_ext(iv,is1,is2,ip  ) );
-                        for( Index iq=0; iq<nq; iq++ )
-                        {
-                          if(for_distance_integration[iq] == JAC_IS_FLUX)
-                          {
-                            dext_mat_dx_from_above(iq,is1,is2) =  
-                            0.5 / ppath.lstep[ip-1] * dppath_ext_dx(iq,iv,is1,is2,ip);
-                            dext_mat_dx_from_below(iq,is1,is2) =  
-                            0.5 / ppath.lstep[ip-1] * dppath_ext_dx(iq,iv,is1,is2,ip-1);
-                          }
-                          else 
-                          {
-                            // Upper and lower level influence on the dependency at layer
-                            dext_mat_dx_from_above(iq,is1,is2) = 
-                            0.5 * dppath_ext_dx(iq,iv,is1,is2,ip);
-                            dext_mat_dx_from_below(iq,is1,is2) = 
-                            0.5 * dppath_ext_dx(iq,iv,is1,is2,ip-1);
-                          }
-                        } 
-                    } 
-                    
-                }
-                scalar_tau[iv] += ppath.lstep[ip-1] * ext_mat(0,0); 
-                extmat_case[ip-1][iv] = 0;
-                ext2trans_and_ext2dtrans_dx( 
-                            trans_partial(iv,joker,joker,ip-1), 
-                            dtrans_partial_dx_from_above(joker, iv,joker,joker,ip-1), 
-                            dtrans_partial_dx_from_below(joker, iv,joker,joker,ip-1), 
-                            extmat_case[ip-1][iv], ext_mat, 
-                            dext_mat_dx_from_above, dext_mat_dx_from_below,
-                            ppath.lstep[ip-1] );
-                
-                // Cumulative transmission
-                // (note that multiplication below depends on ppath loop order)
-                mult( trans_cumulat(iv,joker,joker,ip), 
-                        trans_cumulat(iv,joker,joker,ip-1), 
-                        trans_partial(iv,joker,joker,ip-1) );
-            }
-        }
+        scalar_tau[iv] += ppath.lstep[ip-1] * ext_mat(0,0); 
+        extmat_case[ip-1][iv] = 0;
+        
+        ext2trans_and_ext2dtrans_dx(trans_partial(iv, joker, joker, ip-1), 
+                                    dtrans_partial_dx_from_above(joker, iv,joker, joker, ip-1), 
+                                    dtrans_partial_dx_from_below(joker, iv,joker, joker, ip-1), 
+                                    extmat_case[ip-1][iv], 
+                                    ext_mat, 
+                                    dext_mat_dx_from_above, 
+                                    dext_mat_dx_from_below,
+                                    ppath.lstep[ip-1]);
+        
+        // Cumulative transmission
+        // (note that multiplication below depends on ppath loop order)
+        mult(trans_cumulat(iv, joker, joker, ip), 
+              trans_cumulat(iv, joker, joker, ip-1), 
+              trans_partial(iv, joker, joker, ip-1));
+      }
     }
+  }
 }
 
 

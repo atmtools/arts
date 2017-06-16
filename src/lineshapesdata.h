@@ -671,6 +671,129 @@ public:
     }
   }
   
+  void set_faddeeva_from_full_linemixing(ComplexVector& F, // Sets the full complex line shape without line mixing
+                                        ArrayOfComplexVector& dF,
+                                        const Vector& f_grid,
+                                        const Complex& eigenvalue_no_shift,
+                                        const Numeric& GD_div_F0,
+                                        const Numeric& L0,
+                                        const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                                        const Numeric& dGD_div_F0_dT=0.0,
+                                        const Complex& deigenvalue_dT=0.0,
+                                        const Numeric& dL0_dT=0.0) const
+  {
+    // For calculations
+    Numeric dx;
+    Complex w, z, dw_over_dz, dz;
+    
+    const Index nf = f_grid.nelem(), nppd = derivatives_data.nelem();
+    
+    // PI
+    extern const Numeric PI;
+    
+    // constant sqrt(1/pi)
+    static const Numeric sqrt_invPI =  sqrt(1.0/PI);
+    
+    // Doppler broadening and line center
+    const Complex eigenvalue = eigenvalue_no_shift + L0;
+    const Numeric F0 = eigenvalue.real() + L0;
+    const Numeric GD = GD_div_F0 * F0;
+    const Numeric invGD = 1.0 / GD;
+    const Numeric dGD_dT = dGD_div_F0_dT * F0;
+    
+    // constant normalization factor for voigt
+    const Numeric fac = sqrt_invPI * invGD;
+    F = fac;
+    
+    // Ratio of the Lorentz halfwidth to the Doppler halfwidth
+    const Complex z0 = -eigenvalue * invGD;
+    
+    const Index first_pressure_broadening = derivatives_data.get_first_pressure_term(),
+    first_frequency = derivatives_data.get_first_frequency();
+    
+    // frequency in units of Doppler
+    for (Index ii=0; ii<nf; ii++)
+    {
+      dx = f_grid[ii] * invGD;
+      z = z0 + dx;
+      w = Faddeeva::w(z);
+      
+      F[ii] *= w;
+      
+      for(Index jj = 0; jj < nppd; jj++)
+      {
+        if(jj==0)
+          dw_over_dz = 2.0 * (z * w - sqrt_invPI);
+        
+        if(derivatives_data(jj) == JQT_frequency or
+          derivatives_data(jj) == JQT_wind_magnitude or
+          derivatives_data(jj) == JQT_wind_u or
+          derivatives_data(jj) == JQT_wind_v or
+          derivatives_data(jj) == JQT_wind_w) // No external inputs
+        { 
+          // If this is the first time it is calculated this frequency bin, do the full calculation
+          if(first_frequency == jj)
+          {
+            //dz = Complex(invGD, 0.0);
+            
+            dF[jj][ii] = fac * dw_over_dz * invGD; //dz; 
+          }
+          else  // copy for repeated occurences
+          {
+            dF[jj][ii] = dF[first_frequency][ii]; 
+          }
+        }
+        else if(derivatives_data(jj) == JQT_temperature)
+        {
+          dz = (deigenvalue_dT - dL0_dT) - z * dGD_dT;
+          
+          dF[jj][ii] = -F[ii] * dGD_dT;
+          dF[jj][ii] += fac * dw_over_dz * dz;
+          dF[jj][ii] *= invGD;
+        }
+        else if(derivatives_data(jj) == JQT_line_center) // No external inputs --- errors because of frequency shift when Zeeman is used?
+        {
+          dz = -z * GD_div_F0 - 1.0;
+          
+          dF[jj][ii] = -F[ii] * GD_div_F0;
+          dF[jj][ii] += dw_over_dz * dz;
+          dF[jj][ii] *= fac * invGD;
+        }
+        else if(derivatives_data(jj) == JQT_line_gamma_self or 
+          derivatives_data(jj) == JQT_line_gamma_selfexponent or
+          derivatives_data(jj) == JQT_line_pressureshift_self or
+          derivatives_data(jj) == JQT_line_gamma_foreign or
+          derivatives_data(jj) == JQT_line_gamma_foreignexponent or
+          derivatives_data(jj) == JQT_line_pressureshift_foreign or
+          derivatives_data(jj) == JQT_line_gamma_water or
+          derivatives_data(jj) == JQT_line_gamma_waterexponent or 
+          derivatives_data(jj) == JQT_line_pressureshift_water) // Only the zeroth order terms --- the derivative with respect to these have to happen later
+        {
+          // Note that if the species vmr partial derivative is necessary here is where it goes
+          if(first_pressure_broadening == jj)
+          {
+            dz = Complex(-1.0, 1.0) * invGD;
+            dF[jj][ii] = fac * dw_over_dz * dz; 
+          }
+          else
+          {
+            dF[jj][ii] = dF[first_frequency][ii]; 
+          }
+        }
+        else if(derivatives_data(jj) == JQT_line_mixing_DF or
+          derivatives_data(jj) == JQT_line_mixing_DF0 or
+          derivatives_data(jj) == JQT_line_mixing_DF1 or
+          derivatives_data(jj) == JQT_line_mixing_DFexp)
+        {
+          // dz = Complex(-invGD, 0.0);
+          
+          dF[jj][ii] = fac * dw_over_dz * (-invGD); //* dz;
+        }
+      }
+      
+    }
+  }
+  
   void set_hui_etal_1978(ComplexVector& F, // Sets the full complex line shape without line mixing
                          ArrayOfComplexVector& dF,
                          const Vector& f_grid,
@@ -1124,30 +1247,45 @@ public:
     F *= S;
   }
   
-  void apply_dipole(ComplexVector& F, // Returns the full complex line shape without line mixing
-                    ArrayOfComplexVector& dF, // Returns the derivatives of the full line shape for list_of_derivatives
-                    const Numeric& d0,
-                    const Numeric& rho,
-                    const Numeric& isotopic_ratio,
-                    const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
-                    const Numeric& dd0_dT=0.0,
-                    const Numeric& drho_dT=0.0) const
+  void apply_linestrength_from_full_linemixing(ComplexVector& F, // Returns the full complex line shape with line mixing
+                                               ArrayOfComplexVector& dF,
+                                               const Numeric& F0,
+                                               const Numeric& T,
+                                               const Complex& S_LM,
+                                               const Numeric& isotopic_ratio,
+                                               const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                                               const Complex& dS_LM_dT=0.0) const
   {
-    // Output is d0^2 * rho * F * isotopic_ratio
+    extern const Numeric PLANCK_CONST;
+    extern const Numeric BOLTZMAN_CONST;
+    static const Numeric C1 = - PLANCK_CONST / BOLTZMAN_CONST;
     
     const Index nppd = derivatives_data.nelem();
     
-    const Numeric S = d0 * d0 * rho * isotopic_ratio;
-    
-    // WARNING:  Needs fixing for line parameters "JQT_line_center" and "JQT_line_strength"
+    const Numeric invT = 1.0 / T, 
+      F0_invT = F0 * invT,
+      exp_factor = exp(C1 * F0_invT), 
+      f0_factor = F0 * (1.0 - exp_factor); 
+      
+    const Complex S = S_LM * f0_factor * isotopic_ratio;
+      
     for(Index jj = 0; jj < nppd; jj++)
     {
       if(derivatives_data(jj) == JQT_temperature)
       {
         Eigen::VectorXcd eig_dF = MapToEigen(dF[jj]);
         
-        eig_dF *= S;
-        eig_dF += MapToEigen(F) * ((2.0 * rho * dd0_dT + d0 * drho_dT) * d0);
+        eig_dF *= S_LM;
+        eig_dF += MapToEigen(F) * (dS_LM_dT * f0_factor + 
+                                   S_LM * C1 * F0_invT * F0_invT * exp_factor) * isotopic_ratio;
+      }
+      else if(derivatives_data(jj) == JQT_line_strength)
+      {
+        throw std::runtime_error("Not working yet");
+      }
+      else if(derivatives_data(jj) == JQT_line_center)
+      {
+        throw std::runtime_error("Not working yet");
       }
       else
       {
@@ -1157,7 +1295,108 @@ public:
     
     F *= S;
   }
+  
+  void apply_dipole(ComplexVector& F, // Returns the full complex line shape without line mixing
+                    ArrayOfComplexVector& dF, // Returns the derivatives of the full line shape for list_of_derivatives
+                    const Numeric& F0,
+                    const Numeric& T,
+                    const Numeric& d0,
+                    const Numeric& rho,
+                    const Numeric& isotopic_ratio,
+                    const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                    const Numeric& drho_dT=0.0) const
+  {
+    // Output is d0^2 * rho * F * isotopic_ratio * F0 * (1-e^(hF0/kT))
+    
+    extern const Numeric PLANCK_CONST;
+    extern const Numeric BOLTZMAN_CONST;
+    static const Numeric C1 = - PLANCK_CONST / BOLTZMAN_CONST;
+    
+    const Index nppd = derivatives_data.nelem();
+    
+    const Numeric S = d0 * d0 * rho * isotopic_ratio, 
+      invT = 1.0 / T, 
+      F0_invT = F0 * invT,
+      exp_factor = exp(C1 * F0_invT), 
+      f0_factor = F0 * (1.0 - exp_factor);
+    
+    for(Index jj = 0; jj < nppd; jj++)
+    {
+      if(derivatives_data(jj) == JQT_temperature)
+      {
+        ComplexMatrixViewMap eig_dF = MapToEigen(dF[jj]);
+        
+        eig_dF *= S * f0_factor;
+        eig_dF += MapToEigen(F) * (d0 * d0 * (drho_dT * f0_factor + 
+          rho * C1 * F0_invT * F0_invT * exp_factor) * isotopic_ratio);
+      }
+      else if(derivatives_data(jj) == JQT_line_center)
+      {
+        throw std::runtime_error("Not working yet");
+      }
+      else
+      {
+        dF[jj] *= S * f0_factor;
+      }
+    }
+    
+    F *= S * f0_factor;
+  }
                           
+  void apply_pressurebroadening_jacobian(ArrayOfComplexVector& dF,
+                                         const PropmatPartialsData& derivatives_data,
+                                         const Numeric& dgamma_dline_gamma_self=0.0,
+                                         const Numeric& dgamma_dline_gamma_foreign=0.0,
+                                         const Numeric& dgamma_dline_gamma_water=0.0,
+                                         const Numeric& dgamma_dline_pressureshift_self=0.0,
+                                         const Numeric& dgamma_dline_pressureshift_foreign=0.0,
+                                         const Numeric& dgamma_dline_pressureshift_water=0.0,
+                                         const Complex& dgamma_dline_gamma_selfexponent=0.0,
+                                         const Complex& dgamma_dline_gamma_foreignexponent=0.0,
+                                         const Complex& dgamma_dline_gamma_waterexponent=0.0)
+  {
+    const Index nppd = derivatives_data.nelem();
+    
+    for(Index jj = 0; jj < nppd; jj++)
+    {
+      if(derivatives_data(jj) == JQT_line_gamma_self)
+      {
+        dF[jj] *= dgamma_dline_gamma_self;
+      }
+      else if(derivatives_data(jj) == JQT_line_gamma_foreign)
+      {
+        dF[jj] *= dgamma_dline_gamma_foreign;
+      }
+      else if(derivatives_data(jj) == JQT_line_gamma_water)
+      {
+        dF[jj] *= dgamma_dline_gamma_water;
+      }
+      else if(derivatives_data(jj) == JQT_line_pressureshift_self)
+      {
+        dF[jj] *= Complex(0.0, dgamma_dline_pressureshift_self);
+      }
+      else if(derivatives_data(jj) == JQT_line_pressureshift_foreign)
+      {
+        dF[jj] *= Complex(0.0, dgamma_dline_pressureshift_foreign);
+      }
+      else if(derivatives_data(jj) == JQT_line_pressureshift_water)
+      {
+        dF[jj] *= Complex(0.0, dgamma_dline_pressureshift_water);
+      }
+      else if(derivatives_data(jj) == JQT_line_gamma_selfexponent)
+      {
+        dF[jj] *= dgamma_dline_gamma_selfexponent;
+      }
+      else if(derivatives_data(jj) == JQT_line_gamma_foreignexponent)
+      {
+        dF[jj] *= dgamma_dline_gamma_foreignexponent;
+      }
+      else if(derivatives_data(jj) == JQT_line_gamma_waterexponent)
+      {
+        dF[jj] *= dgamma_dline_gamma_waterexponent;
+      }
+    }
+  }
   
 private:
   LineShapeType mtype;
