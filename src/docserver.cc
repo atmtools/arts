@@ -454,14 +454,14 @@ void Docserver::list_variables()
   Index hitcount = 0;
   for (i = 0; i < Workspace::wsv_data.nelem(); ++i)
     {
-      if (is_agenda_group_id(Workspace::wsv_data[i].Group()))
+      if (!is_agenda_group_id(Workspace::wsv_data[i].Group()))
         hitcount++;
     }
 
   Index hitcount2 = 0;
   for (i = 0; i < Workspace::wsv_data.nelem(); ++i)
     {
-      if (is_agenda_group_id(Workspace::wsv_data[i].Group()))
+      if (!is_agenda_group_id(Workspace::wsv_data[i].Group()))
         {
           get_os() << "<li>" << insert_wsv_link(Workspace::wsv_data[i].Name()) << "</li>" << endl;
           hitcount2++;
