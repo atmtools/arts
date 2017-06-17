@@ -1923,6 +1923,7 @@ void get_ppath_pmat_and_tmat(
                             Tensor4&               pnd_ext_mat,
                             Matrix&                ppath_pnd,
                             ArrayOfMatrix&         ppath_dpnd_dx,
+                            Array<ArrayOfArrayOfSingleScatteringData>& scat_data_single,
                             const Agenda&         propmat_clearsky_agenda,
                             const ArrayOfRetrievalQuantity& jacobian_quantities,
                             const PropmatPartialsData&      ppd,
@@ -2358,9 +2359,12 @@ void get_ppath_pmat_and_tmat(
                 for(Index is2=0;is2<stokes_dim;is2++)
                     dppath_ext_dx(iq,joker,is1,is2,joker)*=AO_dWdx[component];
     }
+
     
     if(!cloudbox_on)
     {
+        scat_data_single.resize(0);
+      
         if(dppath_ext_dx.empty())
             get_ppath_trans(    trans_partial, extmat_case, trans_cumulat, 
                                 scalar_tau, ppath, ppath_ext, f_grid, stokes_dim );
@@ -2373,13 +2377,13 @@ void get_ppath_pmat_and_tmat(
     }
     else
     {
-        Array<ArrayOfArrayOfSingleScatteringData> scat_data_single;
         Tensor3 pnd_abs_vec;
         //
         get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
                        ppath_pnd, ppath_dpnd_dx, ppath, ppath_t, stokes_dim, ppath_f, 
                        atmosphere_dim, cloudbox_limits, pnd_field, dpnd_field_dx,
                        use_mean_scat_data, scat_data, verbosity );
+        
         if(dppath_ext_dx.empty())
             get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
                             scalar_tau, ppath, ppath_ext, f_grid, stokes_dim, 

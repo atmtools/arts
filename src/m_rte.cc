@@ -464,6 +464,7 @@ void iyEmissionStandard(
   ArrayOfArrayOfIndex  extmat_case;
   ArrayOfMatrix        dummy_ppath_dpnd_dx;
   ArrayOfTensor4       dummy_dpnd_field_dx;
+  Array<ArrayOfArrayOfSingleScatteringData> scat_data_single_dummy;
   const ArrayOfArrayOfSingleScatteringData scat_data_dummy;
   const Tensor4 pnd_field_dummy;
   const ArrayOfIndex cloudbox_limits_dummy;
@@ -485,7 +486,7 @@ void iyEmissionStandard(
                                dtrans_partial_dx_above, dtrans_partial_dx_below,
                                extmat_case, clear2cloudbox_dummy, trans_cumulat,
                                scalar_tau, pnd_ext_mat_dummy, ppath_pnd_dummy,
-                               dummy_ppath_dpnd_dx,
+                               dummy_ppath_dpnd_dx, scat_data_single_dummy,
                                propmat_clearsky_agenda, jacobian_quantities,
                                ppd, ppath, ppath_p,  ppath_t, ppath_t_nlte, ppath_vmr, 
                                ppath_mag, ppath_wind, ppath_f, f_grid, 

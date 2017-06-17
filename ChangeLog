@@ -1,10 +1,25 @@
+2017-06-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-728
+
+	* src/m_cloudradar.cc (iyActiveSingleScat): Made a switch to use,
+	get_ppath_pmat_and_tmat that is needed for handling remaining
+	jacobians. Changes below side-effects. But the switch made the
+	calculations nearly double as long. Reason should be checked.
+
+	* src/m_transmitter.cc (iyTransmissionStandard):
+	* src/m_rte.cc (iyEmissionStandard):
+	* src/m_fos.cc (iyHybrid): Adopted call of get_ppath_pmat_and_tmat.
+
+	* src/rte.cc (get_ppath_pmat_and_tmat): Added scat_data_single as
+	output argument.
 
 2017-06-16  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-727
-	
+
 	* src/lineshapesdata.h: Updated to fit with line mixing scenario
-	
+
 	* src/m_linemixing.cc: Using the updated line shape functions 
 	better
 	

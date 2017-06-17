@@ -284,16 +284,24 @@ void iyActiveSingleScat(
 
   // Get atmospheric and RT quantities for each ppath point/step
   //
-  Vector    ppath_p, ppath_t;
-  Matrix    ppath_vmr, ppath_pnd, ppath_wind, ppath_mag, ppath_f, ppath_t_nlte;
-  Tensor3   dummy_ppath_nlte_source;
-  Tensor4   ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat, dummy_dppath_nlte_dx;
-  Tensor5   dummy_abs_per_species, dummy_dppath_ext_dx;
-  Vector    scalar_tau;
-  ArrayOfIndex   clear2cloudbox, dummy_lte;
-  ArrayOfMatrix  ppath_dpnd_dx;
+  ArrayOfIndex        iaps(0);
+  //
+  Vector              ppath_p, ppath_t;
+  Matrix              ppath_vmr, ppath_pnd, ppath_wind, ppath_mag;
+  Matrix              ppath_f, ppath_t_nlte;
+  Tensor5             abs_per_species;
+  Tensor5             dtrans_partial_dx_above, dtrans_partial_dx_below;
+  Tensor4             ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat;
+  Vector              scalar_tau;
+  ArrayOfIndex        clear2cloudbox;
+  ArrayOfArrayOfIndex extmat_case;   
+  Tensor5             dppath_ext_dx;
+  Tensor4             dppath_nlte_dx, dppath_nlte_source_dx;
+  Tensor3             ppath_nlte_source;
+  ArrayOfIndex        lte;  
+  ArrayOfMatrix       ppath_dpnd_dx;
+  const Tensor4       t_nlte_field_empty(0,0,0,0);
   Array<ArrayOfArrayOfSingleScatteringData> scat_data_single;
-  const Tensor4 t_nlte_field_empty(0,0,0,0);
   //
   if( np > 1 )
     {
@@ -306,26 +314,46 @@ void iyActiveSingleScat(
       
       get_ppath_f( ppath_f, ppath, f_grid,  atmosphere_dim, 
                    rte_alonglos_v, ppath_wind );
-      
-      get_ppath_pmat( ws, ppath_ext, dummy_ppath_nlte_source, dummy_lte, 
-                      dummy_abs_per_species, 
-                      dummy_dppath_ext_dx, dummy_dppath_nlte_dx,
-                      propmat_clearsky_agenda, ArrayOfRetrievalQuantity(0), ppath, 
+
+      if( jacobian_do )
+        {
+          get_ppath_pmat_and_tmat( ws, ppath_ext, ppath_nlte_source, lte, abs_per_species,
+                               dppath_ext_dx, dppath_nlte_source_dx,
+                               trans_partial, dtrans_partial_dx_above,
+                               dtrans_partial_dx_below, extmat_case, clear2cloudbox,
+                               trans_cumulat, scalar_tau, pnd_ext_mat, ppath_pnd,
+                               ppath_dpnd_dx, scat_data_single,
+                               propmat_clearsky_agenda, jacobian_quantities,
+                               ppd, ppath, ppath_p, ppath_t, ppath_t_nlte,
+                               ppath_vmr, ppath_mag, ppath_wind, ppath_f, f_grid, 
+                               jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,
+                               jac_to_integrate, jac_other, iaps, scat_data,
+                               pnd_field, dpnd_field_dx,
+                               cloudbox_limits, 0,
+                               rte_alonglos_v, atmosphere_dim, stokes_dim,
+                               jacobian_do, cloudbox_on, verbosity );
+        }
+      else
+        {
+          get_ppath_pmat( ws, ppath_ext, ppath_nlte_source, lte, 
+                      abs_per_species, 
+                      dppath_ext_dx, dppath_nlte_dx,
+                      propmat_clearsky_agenda, jacobian_quantities, ppath, 
                       ppath_p, ppath_t, ppath_t_nlte, ppath_vmr, ppath_f, ppath_mag,
                       f_grid, stokes_dim, ArrayOfIndex(0) );
       
-      // Extract basic scattering data
-      ArrayOfArrayOfIndex  extmat_case;
-      Tensor3              pnd_abs_vec;
-      //
-      get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
+          // Extract basic scattering data
+          Tensor3              pnd_abs_vec;
+          //
+          get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
                      ppath_pnd, ppath_dpnd_dx, ppath, ppath_t, stokes_dim, ppath_f, 
                      atmosphere_dim, cloudbox_limits, pnd_field, dpnd_field_dx,
                      0, scat_data, verbosity );
       
-      get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, scalar_tau, 
+          get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, scalar_tau, 
                         ppath, ppath_ext, f_grid, stokes_dim, 
                         clear2cloudbox, pnd_ext_mat );
+        }
     }
 
 
@@ -411,7 +439,8 @@ void iyActiveSingleScat(
                     {
                       if( jacobian_quantities[iq].Analytical() )
                         {
-                          // Scattering species
+                          // Impact on back-scattering.
+                          // Only non-zero for scattering species
                           if( jac_scat_i[iq] >= 0 )
                             {
                               // Change of scattering scattering matrix
@@ -425,10 +454,16 @@ void iyActiveSingleScat(
                                } } }
 
                               // Apply transmissions as above
-                              mult( iy2, P, iy1 );
+                              Vector iy3(ns);
+                              mult( iy3, P, iy1 );
                               mult( diy_dpath[iq](ip,iv*np+ip,joker),
-                                    trans_cumulat(iv,joker,joker,ip), iy2 );
+                                    trans_cumulat(iv,joker,joker,ip), iy3 );
                             }
+                        }
+
+                      // Impact on attenuation
+                      if( jac_scat_i[iq] >= 0  ||  jac_species_i[iq] >= 0 )
+                        {
                         }
                     }
                 }  // j_analytical_do

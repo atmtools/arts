@@ -357,6 +357,7 @@ void get_ppath_pmat_and_tmat(
                             Tensor4&               pnd_ext_mat,
                             Matrix&                ppath_pnd,
                             ArrayOfMatrix&         ppath_dpnd_dx,
+                            Array<ArrayOfArrayOfSingleScatteringData>& scat_data_single,
                             const Agenda&         propmat_clearsky_agenda,
                             const ArrayOfRetrievalQuantity& jacobian_quantities,
                             const PropmatPartialsData&      ppd,
