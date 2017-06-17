@@ -1,5 +1,12 @@
 2017-06-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-729
+
+	* src/m_cloudradar.cc (iyActiveSingleScat): Added Jacobian for
+	impact of gases on attenuation.
+
+2017-06-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-728
 
 	* src/m_cloudradar.cc (iyActiveSingleScat): Made a switch to use,

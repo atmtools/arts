@@ -454,16 +454,31 @@ void iyActiveSingleScat(
                                } } }
 
                               // Apply transmissions as above
-                              Vector iy3(ns);
-                              mult( iy3, P, iy1 );
-                              mult( diy_dpath[iq](ip,iv*np+ip,joker),
-                                    trans_cumulat(iv,joker,joker,ip), iy3 );
+                              Vector iy_tmp(ns);
+                              mult( iy_tmp, P, iy1 );
+                              mult( diy_dpath[iq](ip,iout,joker),
+                                    trans_cumulat(iv,joker,joker,ip), iy_tmp );
                             }
                         }
 
                       // Impact on attenuation
-                      if( jac_scat_i[iq] >= 0  ||  jac_species_i[iq] >= 0 )
+                      if( ip > 0  &&  jac_species_i[iq] >= 0 )
                         {
+                          Vector iy_tmp0(ns), iy_tmp1(ns);
+                          for( Index ip2=ip-1; ip2>=0; ip2-- )
+                            {
+                              mult( iy_tmp0,
+                                    dtrans_partial_dx_below(iq,iv,joker,joker,ip2),
+                                    iy2 );
+                              mult( iy_tmp1,
+                                    dtrans_partial_dx_above(iq,iv,joker,joker,ip2+1),
+                                    iy2 );
+                              for( Index is1=0; is1<ns; is1++ )
+                                {
+                                  diy_dpath[iq](ip2,iout,is1)   += 2*iy_tmp0[is1];
+                                  diy_dpath[iq](ip2+1,iout,is1) += 2*iy_tmp1[is1];
+                                }
+                            }
                         }
                     }
                 }  // j_analytical_do
