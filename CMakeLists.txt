@@ -211,21 +211,9 @@ if (${CMAKE_VERSION} VERSION_LESS "2.8.8")
   enable_language (Fortran)
 endif()
 
-include (FindBLAS)
-if (NOT BLAS_FOUND)
-  message (FATAL_ERROR "No BLAS library found. Please install it.")
-endif (NOT BLAS_FOUND)
+########## BLAS/LAPACK support #########
 
-########## LAPACK support #########
-
-include (FindCblasLapack)
-if (NOT LAPACK_FOUND)
-  unset(LAPACK_FOUND)
-  include (FindLAPACK)
-  if (NOT LAPACK_FOUND)
-    message (FATAL_ERROR "No LAPACK library found. Please install it.")
-  endif (NOT LAPACK_FOUND)
-endif (NOT LAPACK_FOUND)
+find_package (LAPACK REQUIRED)
 
 ########## NetCDF support #########
 if (ENABLE_NETCDF)

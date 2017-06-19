@@ -312,7 +312,7 @@ add_library (matpack STATIC
         )
 
 include_directories ( SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty )
-target_link_libraries( matpack ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} )
+target_link_libraries( matpack ${LAPACK_LIBRARIES} )
 
 ########### next target ###############
 
@@ -368,7 +368,7 @@ add_executable (test_linalg
   lin_alg.cc
   test_linalg.cc)
 
-target_link_libraries (test_linalg ${ALL_ARTS_LIBRARIES} ${BLAS_LIBRARIES}
+target_link_libraries (test_linalg ${ALL_ARTS_LIBRARIES}
   ${LAPACK_LIBRARIES} test_utils)
 
 ########### next testcase ###############
