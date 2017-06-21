@@ -868,6 +868,1021 @@ MatrixViewMap MapToEigen(Tensor3View& A, const Index& i)
 }
 
 
+/*!
+ * Special method developed by Philippe Baron to solve cases similar to Zeeman matrices,
+ * 
+ *       --------------
+ *       | a  b  c  d |
+ * A = - | b  a  u  v | r
+ *       | c -u  a  w |
+ *       | d -v -w  a |
+ *       --------------
+ * 
+ * F = exp(A)
+ * 
+ * The method is to use the Cayley-Hamilton theorem that states that you can get at the function
+ * of a matrix by fitting coefficients as found from the eigenvalues to an expansion in the matrix...
+ * 
+ * In our case, F = (C0*I + C1*A + C2*A^2 + C3*A^3) * exp(-ar), where the Cs are from solving the problem
+ * 
+ * c0 + c1*x + c2*x^2 + c3*x^3, x := exp(x)
+ * c0 - c1*x + c2*x^2 - c3*x^3, x := exp(-x)
+ * c0 + c1*y + c2*y^2 + c3*y^3, y := exp(y)
+ * c0 - c1*y + c2*y^2 - c3*y^3, y := exp(-y),
+ * 
+ * for the pairs of x, y eigenvalues that can be analytically found
+ * (using preferably symbolic expressions or via handwork) from the
+ * off-diagonal elements of A. The variables Const1 and Const2 below
+ * denotes the analytical solution for getting x and y
+ * 
+ * \param F Output: The matrix exponential of A (Has to be initialized before
+ * calling the function.
+ * \param dF Output: The derivative  of the matrix exponential of A (Has to be initialized before
+ * calling the function.  Page dimension is for each derivative.
+ * \param A Input:  arbitrary square matrix.
+ * \param dA Input: derivative of A.   Page dimension is for each derivative.
+ */
+void cayley_hamilton_fitted_method_4x4_propmat_to_transmat__explicit(MatrixView F,
+                                                                     ConstMatrixView A)
+{
+  static const Numeric sqrt_05 = sqrt(0.5);
+  
+  const Numeric a = A(0, 0), b = A(0, 1),
+                c = A(0, 2), d = A(0, 3),
+                u = A(1, 2), v = A(1, 3),
+                w = A(2, 3);
+  const Numeric exp_a = exp(a);
+  const Numeric b2 = b * b, c2 = c * c,
+  d2 = d * d, u2 = u * u,
+  v2 = v * v, w2 = w * w;
+  
+  const Numeric Const2 = b2 + c2 + d2 - u2 - v2 - w2;
+  
+  Numeric Const1;
+  Const1  = b2 * (b2 * 0.5 + c2 + d2 - u2 - v2 + w2);
+  Const1 += c2 * (c2 * 0.5 + d2 - u2 + v2 - w2);
+  Const1 += d2 * (d2 * 0.5 + u2 - v2 - w2);
+  Const1 += u2 * (u2 * 0.5 + v2 + w2);
+  Const1 += v2 * (v2 * 0.5 + w2);
+  Const1 *= 2;
+  Const1 += 8 * (b * d * u * w - b * c * v * w - c * d * u * v);
+  Const1 += w2 * w2;
+  
+  if(Const1 > 0.0)
+    Const1 = sqrt(Const1);
+  else
+    Const1 = 0.0;
+  
+  if(Const1 == 0 and Const2 == 0)  // Diagonal matrix... ---> x and y will be zero...
+  {
+    F(0, 0) = F(1, 1) = F(2, 2) = F(3, 3) = exp_a;
+    return;
+  }
+  
+  const Complex sqrt_BpA = sqrt(Complex(Const2 + Const1, 0.0));
+  const Complex sqrt_BmA = sqrt(Complex(Const2 - Const1, 0.0));
+  const Numeric x = sqrt_BpA.real() * sqrt_05;
+  const Numeric y = sqrt_BmA.imag() * sqrt_05;
+  const Numeric x2 = x * x;
+  const Numeric y2 = y * y;
+  const Numeric cos_y = cos(y);
+  const Numeric sin_y = sin(y);
+  const Numeric cosh_x = cosh(x);
+  const Numeric sinh_x = sinh(x);
+  const Numeric x2y2 = x2 + y2;
+  const Numeric inv_x2y2 = 1.0 / x2y2;
+  
+  Numeric C0, C1, C2, C3;
+  Numeric inv_y=0.0, inv_x=0.0;  // Init'd to remove warnings
+  
+  // X and Y cannot both be zero
+  if(x == 0.0)
+  {
+    inv_y = 1.0 / y;
+    C0 = 1.0;
+    C1 = 1.0;
+    C2 = (1.0 - cos_y) * inv_x2y2;
+    C3 = (1.0 - sin_y*inv_y) * inv_x2y2;
+  }
+  else if(y == 0.0)
+  {
+    inv_x = 1.0 / x;
+    C0 = 1.0;
+    C1 = 1.0;
+    C2 = (cosh_x - 1.0) * inv_x2y2;
+    C3 = (sinh_x*inv_x -1.0) * inv_x2y2;
+  }
+  else
+  {
+    inv_x = 1.0 / x;
+    inv_y = 1.0 / y;
+    
+    C0 = (cos_y*x2 + cosh_x*y2) * inv_x2y2;
+    C1 = (sin_y*x2*inv_y + sinh_x*y2*inv_x) * inv_x2y2;
+    C2 = (cosh_x - cos_y) * inv_x2y2;
+    C3 = (sinh_x*inv_x - sin_y*inv_y) * inv_x2y2;
+  }
+  
+  F(0, 0) = F(1, 1) = F(2, 2) = F(3, 3) = C0;
+  
+  F(0, 0) += C2 * (b2 + c2 + d2);
+  
+  F(1, 1) += C2 * (b2 - u2 - v2);
+  
+  F(2, 2) += C2 * (c2 - u2 - w2);
+  
+  F(3, 3) += C2 * (d2 - v2 - w2);
+  
+  
+  F(0, 1) = F(1, 0) = C1 * b;
+  
+  F(0, 1) += C2 * (-c *  u -  d *  v) + C3 * ( b * ( b2 + c2 + d2) - u * ( b *  u -  d *  w) - v * ( b *  v +  c *  w));
+  
+  F(1, 0) += C2 * ( c * u + d * v) + C3 * (-b * (-b2 + u2 + v2) + c * (b * c - v * w) + d * (b * d + u * w));
+  
+  
+  F(0, 2) = F(2, 0) = C1 * c;
+  
+  F(0, 2) += C2 * ( b * u - d * w) + C3 * (c * (b2 + c2 + d2)  - u * (c * u + d * v) - w * (b * v + c * w));
+  
+  F(2, 0) += C2 * (-b * u + d * w) + C3 * (b * (b * c - v * w) - c * (-c2 + u2 + w2) + d * (c * d - u * v));
+  
+  
+  F(0, 3) = F(3, 0) = C1 * d;
+  
+  F(0, 3) += C2 * ( b * v + c * w) + C3 * (d * (b2 + c2 + d2)  - v * (c * u + d * v) + w * (b * u - d * w));
+  
+  F(3, 0) += C2 * (-b * v - c * w) + C3 * (b * (b * d + u * w) + c * (c * d - u * v) - d * (-d2 + v2 + w2));
+  
+  
+  F(1, 2) = F(2, 1) = C2 * (b * c - v * w);
+  
+  F(1, 2) +=  C1 * u + C3 * ( c * (c * u + d * v) - u * (-b2 + u2 + v2) - w * (b * d + u * w));
+  
+  F(2, 1) += -C1 * u + C3 * (-b * (b * u - d * w) + u * (-c2 + u2 + w2) - v * (c * d - u * v));
+  
+  
+  F(1, 3) = F(3, 1) = C2 * (b * d + u * w);
+  
+  F(1, 3) +=  C1 * v + C3 * ( d * (c * u + d * v) - v * (-b2 + u2 + v2) + w * (b * c - v * w));
+  
+  F(3, 1) += -C1 * v + C3 * (-b * (b * v + c * w) - u * (c * d - u * v) + v * (-d2 + v2 + w2));
+  
+  
+  F(2, 3) = F(3, 2) = C2 * (c * d - u * v);
+  
+  F(2, 3) +=  C1 * w + C3 * (-d * (b * u - d * w) + v * (b * c - v * w) - w * (-c2 + u2 + w2));
+  
+  F(3, 2) += -C1 * w + C3 * (-c * (b * v + c * w) + u * (b * d + u * w) + w * (-d2 + v2 + w2));
+  
+  F *= exp_a;
+}
+
+
+/*!
+ * Special method developed by Philippe Baron to solve cases similar to Zeeman matrices,
+ * 
+ *       --------------
+ *       | a  b  c  d |
+ * A = - | b  a  u  v | r
+ *       | c -u  a  w |
+ *       | d -v -w  a |
+ *       --------------
+ * 
+ * F = exp(A)
+ * 
+ * The method is to use the Cayley-Hamilton theorem that states that you can get at the function
+ * of a matrix by fitting coefficients as found from the eigenvalues to an expansion in the matrix...
+ * 
+ * In our case, F = (C0*I + C1*A + C2*A^2 + C3*A^3) * exp(-ar), where the Cs are from solving the problem
+ * 
+ * c0 + c1*x + c2*x^2 + c3*x^3, x := exp(x)
+ * c0 - c1*x + c2*x^2 - c3*x^3, x := exp(-x)
+ * c0 + c1*y + c2*y^2 + c3*y^3, y := exp(y)
+ * c0 - c1*y + c2*y^2 - c3*y^3, y := exp(-y),
+ * 
+ * for the pairs of x, y eigenvalues that can be analytically found
+ * (using preferably symbolic expressions or via handwork) from the
+ * off-diagonal elements of A. The variables Const1 and Const2 below
+ * denotes the analytical solution for getting x and y
+ * 
+ * \param F Output: The matrix exponential of A (Has to be initialized before
+ * calling the function.
+ * \param dF Output: The derivative  of the matrix exponential of A (Has to be initialized before
+ * calling the function.  Page dimension is for each derivative.
+ * \param A Input:  arbitrary square matrix.
+ * \param dA Input: derivative of A.   Page dimension is for each derivative.
+ */
+void cayley_hamilton_fitted_method_4x4_propmat_to_transmat__eigen(MatrixView F,
+                                                                  ConstMatrixView A)
+{
+  Matrix4x4ViewMap eigF = MapToEigen4x4(F);
+  Eigen::Matrix4d eigA = MapToEigen4x4(A);
+//   eigA  <<  0,        A(0, 1),  A(0, 2), A(0, 3),
+//             A(0, 1),  0,        A(1, 2), A(1, 3),
+//             A(0, 2), -A(1, 2),  0,       A(2, 3),
+//             A(0, 3), -A(1, 3), -A(2, 3), 0;
+  eigA(0, 0) = eigA(1, 1) = eigA(2, 2) = eigA(3, 3) = 0.0;
+            
+  Eigen::Matrix4d eigA2 = eigA;
+  eigA2 *= eigA;
+  Eigen::Matrix4d eigA3 = eigA2;
+  eigA3 *= eigA;
+  
+  static const Numeric sqrt_05 = sqrt(0.5);
+  
+  const Numeric a = A(0, 0), b = A(0, 1),
+  c = A(0, 2), d = A(0, 3),
+  u = A(1, 2), v = A(1, 3),
+  w = A(2, 3);
+  const Numeric exp_a = exp(a);
+  const Numeric b2 = b * b, c2 = c * c,
+  d2 = d * d, u2 = u * u,
+  v2 = v * v, w2 = w * w;
+  
+  const Numeric Const2 = b2 + c2 + d2 - u2 - v2 - w2;
+  
+  Numeric Const1;
+  Const1  = b2 * (b2 * 0.5 + c2 + d2 - u2 - v2 + w2);
+  Const1 += c2 * (c2 * 0.5 + d2 - u2 + v2 - w2);
+  Const1 += d2 * (d2 * 0.5 + u2 - v2 - w2);
+  Const1 += u2 * (u2 * 0.5 + v2 + w2);
+  Const1 += v2 * (v2 * 0.5 + w2);
+  Const1 *= 2;
+  Const1 += 8 * (b * d * u * w - b * c * v * w - c * d * u * v);
+  Const1 += w2 * w2;
+  
+  if(Const1 > 0.0)
+    Const1 = sqrt(Const1);
+  else
+    Const1 = 0.0;
+  
+  if(Const1 == 0 and Const2 == 0)  // Diagonal matrix... ---> x and y will be zero...
+  {
+    F(0, 0) = F(1, 1) = F(2, 2) = F(3, 3) = exp_a;
+    return;
+  }
+  
+  const Complex sqrt_BpA = sqrt(Complex(Const2 + Const1, 0.0));
+  const Complex sqrt_BmA = sqrt(Complex(Const2 - Const1, 0.0));
+  const Numeric x = sqrt_BpA.real() * sqrt_05;
+  const Numeric y = sqrt_BmA.imag() * sqrt_05;
+  const Numeric x2 = x * x;
+  const Numeric y2 = y * y;
+  const Numeric cos_y = cos(y);
+  const Numeric sin_y = sin(y);
+  const Numeric cosh_x = cosh(x);
+  const Numeric sinh_x = sinh(x);
+  const Numeric x2y2 = x2 + y2;
+  const Numeric inv_x2y2 = 1.0 / x2y2;
+  
+  
+  Numeric C0, C1, C2, C3;
+  Numeric inv_y=0.0, inv_x=0.0;  // Init'd to remove warnings
+  
+  // X and Y cannot both be zero
+  if(x == 0.0)
+  {
+    inv_y = 1.0 / y;
+    C0 = 1.0;
+    C1 = 1.0;
+    C2 = (1.0 - cos_y) * inv_x2y2;
+    C3 = (1.0 - sin_y*inv_y) * inv_x2y2;
+  }
+  else if(y == 0.0)
+  {
+    inv_x = 1.0 / x;
+    C0 = 1.0;
+    C1 = 1.0;
+    C2 = (cosh_x - 1.0) * inv_x2y2;
+    C3 = (sinh_x*inv_x -1.0) * inv_x2y2;
+  }
+  else
+  {
+    inv_x = 1.0 / x;
+    inv_y = 1.0 / y;
+    
+    C0 = (cos_y*x2 + cosh_x*y2) * inv_x2y2;
+    C1 = (sin_y*x2*inv_y + sinh_x*y2*inv_x) * inv_x2y2;
+    C2 = (cosh_x - cos_y) * inv_x2y2;
+    C3 = (sinh_x*inv_x - sin_y*inv_y) * inv_x2y2;
+  }
+  
+  eigF.noalias() = C1 * eigA + C2 * eigA2 + C3 * eigA3;
+  eigF(0, 0) += C0; eigF(1, 1) += C0; eigF(2, 2) += C0; eigF(3, 3) += C0;
+  eigF *= exp_a;
+}
+
+
+/*!
+ * Special method developed by Philippe Baron to solve cases similar to Zeeman matrices,
+ * 
+ *       --------------
+ *       | a  b  c  d |
+ * A = - | b  a  u  v | r
+ *       | c -u  a  w |
+ *       | d -v -w  a |
+ *       --------------
+ * 
+ * F = exp(A)
+ * 
+ * The method is to use the Cayley-Hamilton theorem that states that you can get at the function
+ * of a matrix by fitting coefficients as found from the eigenvalues to an expansion in the matrix...
+ * 
+ * In our case, 
+ * 
+ * F = (C0*I + C1*A + C2*A^2 + C3*A^3) * exp(-ar), 
+ * 
+ * where the Cs are from solving the problem
+ * 
+ * c0 + c1*x + c2*x^2 + c3*x^3, x := exp(x)
+ * c0 - c1*x + c2*x^2 - c3*x^3, x := exp(-x)
+ * c0 + c1*y + c2*y^2 + c3*y^3, y := exp(y)
+ * c0 - c1*y + c2*y^2 - c3*y^3, y := exp(-y),
+ * 
+ * for the pairs of x, y eigenvalues that can be analytically found
+ * (using preferably symbolic expressions or via handwork) from the
+ * off-diagonal elements of A. The variables Const1 and Const2 below
+ * denotes the analytical solution for getting x and y
+ * 
+ * Derivatives then simply follows from the analytical expression such that
+ * 
+ * dF = (dC0*I + dC1*A + C1*dA + dC2*A^2 + C2*(A*dA+dA*A) + dC3*A^3 + C3*(A*A*dA+A*dA*A+A*A*dA)) * exp(-ar) - F * da * r
+ * 
+ * where
+ * 
+ *        ------------------
+ *        | da  db  dc  dd |
+ * dA = - | db  da  du  dv | r,
+ *        | dc -du  da  dw |
+ *        | dd -dv -dw  da |
+ *        ------------------
+ * 
+ * and the dCs can be found analytically as well by simply taking the derivative of 
+ * the problem, regarding x and y as functions of some variable
+ * 
+ * \param F Output: The matrix exponential of A (Has to be initialized before
+ * calling the function.
+ * \param dF Output: The derivative  of the matrix exponential of A (Has to be initialized before
+ * calling the function.  Page dimension is for each derivative.
+ * \param A Input:  arbitrary square matrix.
+ * \param dA Input: derivative of A.   Page dimension is for each derivative.
+ */
+void cayley_hamilton_fitted_method_4x4_propmat_to_transmat__explicit(MatrixView F,
+                                                                     Tensor3View dF_upp,
+                                                                     Tensor3View dF_low,
+                                                                     ConstMatrixView A,
+                                                                     ConstTensor3View dA_upp,
+                                                                     ConstTensor3View dA_low)
+{
+  static const Numeric sqrt_05 = sqrt(0.5);
+  const Index npd = dF_upp.npages();
+  
+  const Numeric a = A(0, 0), b = A(0, 1),
+                c = A(0, 2), d = A(0, 3),
+                u = A(1, 2), v = A(1, 3),
+                w = A(2, 3);
+  const Numeric exp_a = exp(a);
+  const Numeric b2 = b * b, c2 = c * c,
+                d2 = d * d, u2 = u * u,
+                v2 = v * v, w2 = w * w;
+                
+  const Numeric Const2 = b2 + c2 + d2 - u2 - v2 - w2;
+  
+  Numeric Const1;
+  Const1  = b2 * (b2 * 0.5 + c2 + d2 - u2 - v2 + w2);
+  Const1 += c2 * (c2 * 0.5 + d2 - u2 + v2 - w2);
+  Const1 += d2 * (d2 * 0.5 + u2 - v2 - w2);
+  Const1 += u2 * (u2 * 0.5 + v2 + w2);
+  Const1 += v2 * (v2 * 0.5 + w2);
+  Const1 *= 2;
+  Const1 += 8 * (b * d * u * w - b * c * v * w - c * d * u * v);
+  Const1 += w2 * w2;
+  
+  if(Const1 > 0.0)
+    Const1 = sqrt(Const1);
+  else
+    Const1 = 0.0;
+  
+  if(Const1 == 0 and Const2 == 0)  // Diagonal matrix... ---> x and y will be zero...
+  {
+    F(0, 0) = F(1, 1) = F(2, 2) = F(3, 3) = exp_a;
+    for(Index i = 0; i < npd; i++)
+    {
+      // mult incase the derivative is still non-zero, e.g., as when mag-field is considered 0 but derivative is computed
+      mult(dF_upp(i, joker, joker), F, dA_upp(i, joker, joker));
+      mult(dF_low(i, joker, joker), F, dA_low(i, joker, joker));
+    }
+    return;
+  }
+    
+  const Complex sqrt_BpA = sqrt(Complex(Const2 + Const1, 0.0));
+  const Complex sqrt_BmA = sqrt(Complex(Const2 - Const1, 0.0));
+  const Numeric x = sqrt_BpA.real() * sqrt_05;
+  const Numeric y = sqrt_BmA.imag() * sqrt_05;
+  const Numeric x2 = x * x;
+  const Numeric y2 = y * y;
+  const Numeric cos_y = cos(y);
+  const Numeric sin_y = sin(y);
+  const Numeric cosh_x = cosh(x);
+  const Numeric sinh_x = sinh(x);
+  const Numeric x2y2 = x2 + y2;
+  const Numeric inv_x2y2 = 1.0 / x2y2;
+  
+  Numeric C0, C1, C2, C3;
+  Numeric inv_y=0.0, inv_x=0.0;  // Init'd to remove warnings
+  
+  // X and Y cannot both be zero
+  if(x == 0.0)
+  {
+    inv_y = 1.0 / y;
+    C0 = 1.0;
+    C1 = 1.0;
+    C2 = (1.0 - cos_y) * inv_x2y2;
+    C3 = (1.0 - sin_y*inv_y) * inv_x2y2;
+  }
+  else if(y == 0.0)
+  {
+    inv_x = 1.0 / x;
+    C0 = 1.0;
+    C1 = 1.0;
+    C2 = (cosh_x - 1.0) * inv_x2y2;
+    C3 = (sinh_x*inv_x -1.0) * inv_x2y2;
+  }
+  else
+  {
+    inv_x = 1.0 / x;
+    inv_y = 1.0 / y;
+    
+    C0 = (cos_y*x2 + cosh_x*y2) * inv_x2y2;
+    C1 = (sin_y*x2*inv_y + sinh_x*y2*inv_x) * inv_x2y2;
+    C2 = (cosh_x - cos_y) * inv_x2y2;
+    C3 = (sinh_x*inv_x - sin_y*inv_y) * inv_x2y2;
+  }
+  
+  F(0, 0) = F(1, 1) = F(2, 2) = F(3, 3) = C0;
+  
+  F(0, 0) += C2 * (b2 + c2 + d2);
+  
+  F(1, 1) += C2 * (b2 - u2 - v2);
+  
+  F(2, 2) += C2 * (c2 - u2 - w2);
+  
+  F(3, 3) += C2 * (d2 - v2 - w2);
+  
+  
+  F(0, 1) = F(1, 0) = C1 * b;
+  
+  F(0, 1) += C2 * (-c *  u -  d *  v) + C3 * ( b * ( b2 + c2 + d2) - u * ( b *  u -  d *  w) - v * ( b *  v +  c *  w));
+  
+  F(1, 0) += C2 * ( c * u + d * v) + C3 * (-b * (-b2 + u2 + v2) + c * (b * c - v * w) + d * (b * d + u * w));
+  
+  
+  F(0, 2) = F(2, 0) = C1 * c;
+  
+  F(0, 2) += C2 * ( b * u - d * w) + C3 * (c * (b2 + c2 + d2)  - u * (c * u + d * v) - w * (b * v + c * w));
+  
+  F(2, 0) += C2 * (-b * u + d * w) + C3 * (b * (b * c - v * w) - c * (-c2 + u2 + w2) + d * (c * d - u * v));
+  
+  
+  F(0, 3) = F(3, 0) = C1 * d;
+  
+  F(0, 3) += C2 * ( b * v + c * w) + C3 * (d * (b2 + c2 + d2)  - v * (c * u + d * v) + w * (b * u - d * w));
+  
+  F(3, 0) += C2 * (-b * v - c * w) + C3 * (b * (b * d + u * w) + c * (c * d - u * v) - d * (-d2 + v2 + w2));
+  
+  
+  F(1, 2) = F(2, 1) = C2 * (b * c - v * w);
+  
+  F(1, 2) +=  C1 * u + C3 * ( c * (c * u + d * v) - u * (-b2 + u2 + v2) - w * (b * d + u * w));
+  
+  F(2, 1) += -C1 * u + C3 * (-b * (b * u - d * w) + u * (-c2 + u2 + w2) - v * (c * d - u * v));
+  
+  
+  F(1, 3) = F(3, 1) = C2 * (b * d + u * w);
+  
+  F(1, 3) +=  C1 * v + C3 * ( d * (c * u + d * v) - v * (-b2 + u2 + v2) + w * (b * c - v * w));
+  
+  F(3, 1) += -C1 * v + C3 * (-b * (b * v + c * w) - u * (c * d - u * v) + v * (-d2 + v2 + w2));
+  
+  
+  F(2, 3) = F(3, 2) = C2 * (c * d - u * v);
+  
+  F(2, 3) +=  C1 * w + C3 * (-d * (b * u - d * w) + v * (b * c - v * w) - w * (-c2 + u2 + w2));
+  
+  F(3, 2) += -C1 * w + C3 * (-c * (b * v + c * w) + u * (b * d + u * w) + w * (-d2 + v2 + w2));
+  
+  F *= exp_a;
+  
+  if(npd)
+  {
+    const Numeric inv_x2 = inv_x * inv_x;
+    const Numeric inv_y2 = inv_y * inv_y;
+    
+    for(Index upp_or_low = 0; upp_or_low < 2; upp_or_low++)
+    {
+      for(Index i = 0; i < npd; i++)
+      {
+        MatrixView dF      = upp_or_low ? dF_low(i, joker, joker) : dF_upp(i, joker, joker);
+        ConstMatrixView dA = upp_or_low ? dA_low(i, joker, joker) : dA_upp(i, joker, joker);
+        
+        const Numeric da = dA(0, 0), db = dA(0, 1),
+                      dc = dA(0, 2), dd = dA(0, 3),
+                      du = dA(1, 2), dv = dA(1, 3),
+                      dw = dA(2, 3);
+                        
+        const Numeric db2 = 2 * db * b, dc2 = 2 * dc * c,
+                      dd2 = 2 * dd * d, du2 = 2 * du * u,
+                      dv2 = 2 * dv * v, dw2 = 2 * dw * w;
+                      
+        const Numeric dConst2 = db2 + dc2 + dd2 - du2 - dv2 - dw2;
+        
+        Numeric dConst1;
+        if(Const1 > 0.)
+        {
+          dConst1 = db2 * ( b2 * 0.5 +  c2 +  d2 -  u2 -  v2 +  w2);
+          dConst1 += b2 * (db2 * 0.5 + dc2 + dd2 - du2 - dv2 + dw2);
+          
+          dConst1 += dc2 * (c2 * 0.5 +  d2 -  u2 +  v2 -  w2);
+          dConst1 += c2 * (dc2 * 0.5 + dd2 - du2 + dv2 - dw2);
+          
+          dConst1 += dd2 * (d2 * 0.5 +  u2 -  v2 -  w2);
+          dConst1 += d2 * (dd2 * 0.5 + du2 - dv2 - dw2);
+          
+          dConst1 += du2 * (u2 * 0.5 +  v2 +  w2);
+          dConst1 += u2 * (du2 * 0.5 + dv2 + dw2);
+          
+          dConst1 += dv2 * (v2 * 0.5 +  w2);
+          dConst1 += v2 * (dv2 * 0.5 + dw2);
+          
+          dConst1 += 4 * ((db *  d *  u *  w - db *  c *  v *  w - dc *  d *  u *  v +
+                            b * dd *  u *  w -  b * dc *  v *  w -  c * dd *  u *  v +
+                            b *  d * du *  w -  b *  c * dv *  w -  c *  d * du *  v +
+                            b *  d *  u * dw -  b *  c *  v * dw -  c *  d *  u * dv));
+          dConst1 += dw2 * w2;
+          dConst1 /= Const1;
+        }
+        else
+          dConst1 = 0.0;
+        
+        Numeric dC0, dC1, dC2, dC3;
+        if(x == 0.0)
+        {
+          const Numeric dy = (0.5 * (dConst2 - dConst1)/sqrt_BmA).imag() * sqrt_05;
+          
+          dC0 = 0.0;
+          dC1 = 0.0;
+          dC2 = -2*y*dy * C2 * inv_x2y2 + dy*sin_y * inv_x2y2;
+          dC3 = -2*y*dy * C3 * inv_x2y2 + (dy*sin_y*inv_y2 - cos_y*dy*inv_y) * inv_x2y2;;
+        }
+        else if(y == 0.0)
+        {
+          const Numeric dx = (0.5 * (dConst2 + dConst1)/sqrt_BpA).real() * sqrt_05;
+          
+          dC0 = 0.0;
+          dC1 = 0.0;
+          dC2 = -2*x*dx * C2 * inv_x2y2 + dx*sinh_x * inv_x2y2;
+          dC3 = -2*x*dx * C3 * inv_x2y2 + (cosh_x*dx*inv_x - dx*sinh_x*inv_x2) * inv_x2y2;
+        }
+        else
+        { 
+          const Numeric dx = (0.5 * (dConst2 + dConst1)/sqrt_BpA).real() * sqrt_05;
+          const Numeric dy = (0.5 * (dConst2 - dConst1)/sqrt_BmA).imag() * sqrt_05;
+          const Numeric dy2 = 2 * y * dy;
+          const Numeric dx2 = 2 * x * dx;
+          const Numeric dx2dy2 = dx2 + dy2;
+          
+          dC0 = -dx2dy2 * C0 * inv_x2y2 + 
+          (2*cos_y*dx*x + 2*cosh_x*dy*y + dx*sinh_x*y2 - dy*sin_y*x2) * inv_x2y2;
+          
+          dC1 = -dx2dy2 * C1 * inv_x2y2 + 
+                (cos_y*dy*x2*inv_y + dx2*sin_y*inv_y - dy*sin_y*x2*inv_y2 - 
+                 dx*sinh_x*y2*inv_x2 + cosh_x*dx*y2*inv_x + dy2*sinh_x*inv_x) * inv_x2y2;
+          
+          dC2 =  -dx2dy2 * C2 * inv_x2y2 + (dx*sinh_x + dy*sin_y) * inv_x2y2;
+          
+          dC3 =  -dx2dy2 * C3 * inv_x2y2 + 
+          (dy*sin_y*inv_y2 - cos_y*dy*inv_y + cosh_x*dx*inv_x - dx*sinh_x*inv_x2) * inv_x2y2;
+        }
+        
+        dF(0, 0) = dF(1, 1) = dF(2, 2) = dF(3, 3) = dC0;
+        
+        dF(0, 0) += dC2 * ( b2 +  c2 +  d2) + C2 * (db2 + dc2 + dd2);
+        
+        dF(1, 1) += dC2 * ( b2 -  u2 -  v2) + C2 * (db2 - du2 - dv2);
+        
+        dF(2, 2) += dC2 * ( c2 -  u2 -  w2) + C2 * (dc2 - du2 - dw2);
+        
+        dF(3, 3) += dC2 * ( d2 -  v2 -  w2) + C2 * (dd2 - dv2 - dw2);
+        
+        
+        dF(0, 1) = dF(1, 0) = db * C1 + b * dC1;
+        
+        dF(0, 1) += dC2 * (- c *  u -  d *  v) 
+                 +   C2 * (-dc *  u - dd *  v 
+                 -           c * du -  d * dv)
+                 +  dC3 * ( b * ( b2 +  c2 +  d2) -  u * ( b *  u -  d *  w) -  v * ( b *  v +  c *  w))
+                 +   C3 * (db * ( b2 +  c2 +  d2) - du * ( b *  u -  d *  w) - dv * ( b *  v +  c *  w)
+                 +          b * (db2 + dc2 + dd2) -  u * (db *  u - dd *  w) -  v * (db *  v + dc *  w)
+                 -                                   u * ( b * du -  d * dw) -  v * ( b * dv +  c * dw));
+        dF(1, 0) += dC2 * ( c *  u +  d *  v) 
+                 +   C2 * (dc *  u + dd *  v
+                 +          c * du +  d * dv)
+                 +  dC3 * (- b * (- b2 +  u2 +  v2) +  c * ( b *  c -  v *  w) +  d * ( b *  d +  u *  w))
+                 +   C3 * (-db * (- b2 +  u2 +  v2) + dc * ( b *  c -  v *  w) + dd * ( b *  d +  u *  w)
+                 -           b * (-db2 + du2 + dv2) +  c * (db *  c - dv *  w) +  d * (db *  d + du *  w)
+                 +                                     c * ( b * dc -  v * dw) +  d * ( b * dd +  u * dw));
+        
+        
+        dF(0, 2) = dF(2, 0) = dC1 * c + C1 * dc;
+        
+        dF(0, 2) += dC2 * ( b *  u -  d *  w)
+                 +   C2 * (db *  u - dd *  w
+                 +          b * du -  d * dw)
+                 +  dC3 * ( c * ( b2 +  c2 +  d2) -  u * ( c *  u +  d *  v) -  w * ( b *  v +  c *  w))
+                 +   C3 * (dc * ( b2 +  c2 +  d2) - du * ( c *  u +  d *  v) - dw * ( b *  v +  c *  w)
+                 +          c * (db2 + dc2 + dd2) -  u * (dc *  u + dd *  v) -  w * (db *  v + dc *  w)
+                 -                                   u * ( c * du +  d * dv) -  w * ( b * dv +  c * dw));
+        dF(2, 0) += dC2 * (- b *  u +  d *  w)
+                 +   C2 * (-db *  u + dd *  w
+                 -           b * du +  d * dw)
+                 +  dC3 * ( b * ( b *  c -  v *  w) -  c * (- c2 +  u2 +  w2) +  d * ( c *  d -  u *  v))
+                 +   C3 * (db * ( b *  c -  v *  w) - dc * (- c2 +  u2 +  w2) + dd * ( c *  d -  u *  v)
+                 +          b * (db *  c - dv *  w) -  c * (-dc2 + du2 + dw2) +  d * (dc *  d - du *  v)
+                 +          b * ( b * dc -  v * dw)                           +  d * ( c * dd -  u * dv));
+        
+        
+        dF(0, 3) = dF(3, 0) = dC1 * d + C1 * dd;
+        
+        dF(0, 3) += dC2 * ( b *  v +  c *  w)
+                 +   C2 * (db *  v + dc *  w
+                 +          b * dv +  c * dw)
+                 +  dC3 * ( d * ( b2 +  c2 +  d2) -  v * ( c *  u +  d *  v) +  w * ( b *  u -  d *  w))
+                 +   C3 * (dd * ( b2 +  c2 +  d2) - dv * ( c *  u +  d *  v) + dw * ( b *  u -  d *  w)
+                 +          d * (db2 + dc2 + dd2) -  v * (dc *  u + dd *  v) +  w * (db *  u - dd *  w)
+                 -                                   v * ( c * du +  d * dv) +  w * ( b * du -  d * dw));
+        dF(3, 0) += dC2 * (- b *  v -  c *  w)
+                 +   C2 * (-db *  v - dc *  w
+                 -           b * dv -  c * dw)
+                 +  dC3 * ( b * ( b *  d +  u *  w) +  c * ( c *  d -  u *  v) -  d * (- d2 +  v2 +  w2))
+                 +   C3 * (db * ( b *  d +  u *  w) + dc * ( c *  d -  u *  v) - dd * (- d2 +  v2 +  w2)
+                 +          b * (db *  d + du *  w) +  c * (dc *  d - du *  v) -  d * (-dd2 + dv2 + dw2)
+                 +          b * ( b * dd +  u * dw) +  c * ( c * dd -  u * dv)                          );
+        
+                 
+        dF(1, 2) = dF(2, 1) = dC2 * (b * c - v * w) + C2 * (db * c + b * dc - dv * w - v * dw);
+        
+        dF(1, 2) += dC1 *  u 
+                 +   C1 * du
+                 +  dC3 * ( c * ( c *  u +  d *  v) -  u * (- b2 +  u2 +  v2) -  w * ( b *  d +  u *  w))
+                 +   C3 * (dc * ( c *  u +  d *  v) - du * (- b2 +  u2 +  v2) - dw * ( b *  d +  u *  w)
+                 +          c * (dc *  u + dd *  v) -  u * (-db2 + du2 + dv2) -  w * (db *  d + du *  w)
+                 +          c * ( c * du +  d * dv)                           -  w * ( b * dd +  u * dw));
+        dF(2, 1) += -dC1 *  u
+                 -    C1 * du
+                 +   dC3 * (- b * ( b *  u -  d *  w) +  u * (- c2 +  u2 +  w2) -  v * ( c *  d -  u *  v))
+                 +    C3 * (-db * ( b *  u -  d *  w) + du * (- c2 +  u2 +  w2) - dv * ( c *  d -  u *  v)
+                 -            b * (db *  u - dd *  w) +  u * (-dc2 + du2 + dw2) -  v * (dc *  d - du *  v)
+                 -            b * ( b * du -  d * dw)                           -  v * ( c * dd -  u * dv));
+        
+                 
+        dF(1, 3) = dF(3, 1) = dC2 * (b * d + u * w) + C2 * (db * d + b * dd + du * w + u * dw);
+        
+        dF(1, 3) += dC1 *  v
+                 +   C1 * dv
+                 +  dC3 * ( d * ( c *  u +  d *  v) -  v * (- b2 +  u2 +  v2) +  w * ( b *  c -  v *  w))
+                 +   C3 * (dd * ( c *  u +  d *  v) - dv * (- b2 +  u2 +  v2) + dw * ( b *  c -  v *  w)
+                 +          d * (dc *  u + dd *  v) -  v * (-db2 + du2 + dv2) +  w * (db *  c - dv *  w)
+                 +          d * ( c * du +  d * dv)                           +  w * ( b * dc -  v * dw));
+        dF(3, 1) += -dC1 *  v
+                 -    C1 * dv
+                 +   dC3 * (- b * ( b *  v +  c *  w) -  u * ( c *  d -  u *  v) +  v * (- d2 +  v2 +  w2))
+                 +    C3 * (-db * ( b *  v +  c *  w) - du * ( c *  d -  u *  v) + dv * (- d2 +  v2 +  w2)
+                 -            b * (db *  v + dc *  w) -  u * (dc *  d - du *  v) +  v * (-dd2 + dv2 + dw2)
+                 -            b * ( b * dv +  c * dw) -  u * ( c * dd -  u * dv)                          );
+        
+                 
+        dF(2, 3) = dF(3, 2) = dC2 * (c * d - u * v) + C2 * (dc * d + c * dd - du * v - u * dv);
+        
+        dF(2, 3) += dC1 *  w
+                 +   C1 * dw
+                 +  dC3 * (- d * ( b *  u -  d *  w) +  v * ( b *  c -  v *  w) -  w * (- c2 +  u2 +  w2))
+                 +   C3 * (-dd * ( b *  u -  d *  w) + dv * ( b *  c -  v *  w) - dw * (- c2 +  u2 +  w2)
+                 -           d * (db *  u - dd *  w) +  v * (db *  c - dv *  w) -  w * (-dc2 + du2 + dw2)
+                 -           d * ( b * du -  d * dw) +  v * ( b * dc -  v * dw)                          );
+        dF(3, 2) += -dC1 *  w
+                 -    C1 * dw
+                 +   dC3 * (- c * ( b *  v +  c *  w) +  u * ( b *  d +  u *  w) +  w * (- d2 +  v2 +  w2))
+                 +    C3 * (-dc * ( b *  v +  c *  w) + du * ( b *  d +  u *  w) + dw * (- d2 +  v2 +  w2)
+                 -            c * (db *  v + dc *  w) +  u * (db *  d + du *  w) +  w * (-dd2 + dv2 + dw2)
+                 -            c * ( b * dv +  c * dw) +  u * ( b * dd +  u * dw)                          );
+        
+        dF *= exp_a;
+        
+        // Finalize derivation by the chian rule
+        dF(0, 0) += F(0, 0) * da;
+        dF(0, 1) += F(0, 1) * da;
+        dF(0, 2) += F(0, 2) * da;
+        dF(0, 3) += F(0, 3) * da;
+        dF(1, 0) += F(1, 0) * da;
+        dF(1, 1) += F(1, 1) * da;
+        dF(1, 2) += F(1, 2) * da;
+        dF(1, 3) += F(1, 3) * da;
+        dF(2, 0) += F(2, 0) * da;
+        dF(2, 1) += F(2, 1) * da;
+        dF(2, 2) += F(2, 2) * da;
+        dF(2, 3) += F(2, 3) * da;
+        dF(3, 0) += F(3, 0) * da;
+        dF(3, 1) += F(3, 1) * da;
+        dF(3, 2) += F(3, 2) * da;
+        dF(3, 3) += F(3, 3) * da; 
+      }
+    }
+  }
+}
+
+
+/*!
+ * Special method developed by Philippe Baron to solve cases similar to Zeeman matrices,
+ * 
+ *       --------------
+ *       | a  b  c  d |
+ * A = - | b  a  u  v | r
+ *       | c -u  a  w |
+ *       | d -v -w  a |
+ *       --------------
+ * 
+ * F = exp(A)
+ * 
+ * The method is to use the Cayley-Hamilton theorem that states that you can get at the function
+ * of a matrix by fitting coefficients as found from the eigenvalues to an expansion in the matrix...
+ * 
+ * In our case, F = (C0*I + C1*A + C2*A^2 + C3*A^3) * exp(-ar), where the Cs are from solving the problem
+ * 
+ * c0 + c1*x + c2*x^2 + c3*x^3, x := exp(x)
+ * c0 - c1*x + c2*x^2 - c3*x^3, x := exp(-x)
+ * c0 + c1*y + c2*y^2 + c3*y^3, y := exp(y)
+ * c0 - c1*y + c2*y^2 - c3*y^3, y := exp(-y),
+ * 
+ * for the pairs of x, y eigenvalues that can be analytically found
+ * (using preferably symbolic expressions or via handwork) from the
+ * off-diagonal elements of A. The variables Const1 and Const2 below
+ * denotes the analytical solution for getting x and y
+ * 
+ * Derivatives then simply follows from the analytical expression such that
+ * 
+ * dF = (dC0*I + dC1*A + C1*dA + dC2*A^2 + C2*(A*dA+dA*A) + dC3*A^3 + C3*(A*A*dA+A*dA*A+A*A*dA)) * exp(-ar) - F * da * r
+ * 
+ * where
+ * 
+ *        ------------------
+ *        | da  db  dc  dd |
+ * dA = - | db  da  du  dv | r,
+ *        | dc -du  da  dw |
+ *        | dd -dv -dw  da |
+ *        ------------------
+ * 
+ * and the dCs can be found analytically as well by simply taking the derivative of 
+ * the problem, regarding x and y as functions of some variable
+ * 
+ * \param F Output: The matrix exponential of A (Has to be initialized before
+ * calling the function.
+ * \param dF Output: The derivative  of the matrix exponential of A (Has to be initialized before
+ * calling the function.  Page dimension is for each derivative.
+ * \param A Input:  arbitrary square matrix.
+ * \param dA Input: derivative of A.   Page dimension is for each derivative.
+ */
+void cayley_hamilton_fitted_method_4x4_propmat_to_transmat__eigen(MatrixView F,
+                                                                  Tensor3View dF_upp,
+                                                                  Tensor3View dF_low,
+                                                                  ConstMatrixView A,
+                                                                  ConstTensor3View dA_upp,
+                                                                  ConstTensor3View dA_low)
+{
+  Matrix4x4ViewMap eigF = MapToEigen4x4(F);
+  Eigen::Matrix4d  eigA = MapToEigen4x4(A);
+  //   eigA  <<  0,        A(0, 1),  A(0, 2), A(0, 3),
+  //             A(0, 1),  0,        A(1, 2), A(1, 3),
+  //             A(0, 2), -A(1, 2),  0,       A(2, 3),
+  //             A(0, 3), -A(1, 3), -A(2, 3), 0;
+  eigA(0, 0) = eigA(1, 1) = eigA(2, 2) = eigA(3, 3) = 0.0;
+  
+  Eigen::Matrix4d eigA2 = eigA;
+  eigA2 *= eigA;
+  Eigen::Matrix4d eigA3 = eigA2;
+  eigA3 *= eigA;
+  
+  static const Numeric sqrt_05 = sqrt(0.5);
+  const Index npd = dF_low.npages();
+  
+  const Numeric a = A(0, 0), b = A(0, 1),
+                c = A(0, 2), d = A(0, 3),
+                u = A(1, 2), v = A(1, 3),
+                w = A(2, 3);
+  const Numeric exp_a = exp(a);
+  const Numeric b2 = b * b, c2 = c * c,
+                d2 = d * d, u2 = u * u,
+                v2 = v * v, w2 = w * w;
+  
+  const Numeric Const2 = b2 + c2 + d2 - u2 - v2 - w2;
+  
+  Numeric Const1;
+  Const1  = b2 * (b2 * 0.5 + c2 + d2 - u2 - v2 + w2);
+  Const1 += c2 * (c2 * 0.5 + d2 - u2 + v2 - w2);
+  Const1 += d2 * (d2 * 0.5 + u2 - v2 - w2);
+  Const1 += u2 * (u2 * 0.5 + v2 + w2);
+  Const1 += v2 * (v2 * 0.5 + w2);
+  Const1 *= 2;
+  Const1 += 8 * (b * d * u * w - b * c * v * w - c * d * u * v);
+  Const1 += w2 * w2;
+  
+  if(Const1 > 0.0)
+    Const1 = sqrt(Const1);
+  else
+    Const1 = 0.0;
+  
+  if(Const1 == 0 and Const2 == 0)  // Diagonal matrix... ---> x and y will be zero...
+  {
+    F(0, 0) = F(1, 1) = F(2, 2) = F(3, 3) = exp_a;
+    for(Index i = 0; i < npd; i++)
+    {
+      // mult incase the derivative is still non-zero, e.g., as when mag-field is considered 0 but derivative is computed
+      mult(dF_upp(i, joker, joker), F, dA_upp(i, joker, joker));
+      mult(dF_low(i, joker, joker), F, dA_low(i, joker, joker));
+    }
+    return;
+  }
+  
+  const Complex sqrt_BpA = sqrt(Complex(Const2 + Const1, 0.0));
+  const Complex sqrt_BmA = sqrt(Complex(Const2 - Const1, 0.0));
+  const Numeric x = sqrt_BpA.real() * sqrt_05;
+  const Numeric y = sqrt_BmA.imag() * sqrt_05;
+  const Numeric x2 = x * x;
+  const Numeric y2 = y * y;
+  const Numeric cos_y = cos(y);
+  const Numeric sin_y = sin(y);
+  const Numeric cosh_x = cosh(x);
+  const Numeric sinh_x = sinh(x);
+  const Numeric x2y2 = x2 + y2;
+  const Numeric inv_x2y2 = 1.0 / x2y2;
+  
+  Numeric C0, C1, C2, C3;
+  Numeric inv_y=0.0, inv_x=0.0;  // Init'd to remove warnings
+  
+  // X and Y cannot both be zero
+  if(x == 0.0)
+  {
+    inv_y = 1.0 / y;
+    C0 = 1.0;
+    C1 = 1.0;
+    C2 = (1.0 - cos_y) * inv_x2y2;
+    C3 = (1.0 - sin_y*inv_y) * inv_x2y2;
+  }
+  else if(y == 0.0)
+  {
+    inv_x = 1.0 / x;
+    C0 = 1.0;
+    C1 = 1.0;
+    C2 = (cosh_x - 1.0) * inv_x2y2;
+    C3 = (sinh_x*inv_x -1.0) * inv_x2y2;
+  }
+  else
+  {
+    inv_x = 1.0 / x;
+    inv_y = 1.0 / y;
+    
+    C0 = (cos_y*x2 + cosh_x*y2) * inv_x2y2;
+    C1 = (sin_y*x2*inv_y + sinh_x*y2*inv_x) * inv_x2y2;
+    C2 = (cosh_x - cos_y) * inv_x2y2;
+    C3 = (sinh_x*inv_x - sin_y*inv_y) * inv_x2y2;
+  }
+  
+  eigF(0, 0) = eigF(1, 1) = eigF(2, 2) = eigF(3, 3) = C0;
+  eigF.noalias() = C1 * eigA + C2 * eigA2 + C3 * eigA3;
+  eigF(0, 0) += C0; eigF(1, 1) += C0; eigF(2, 2) += C0; eigF(3, 3) += C0;
+  eigF *= exp_a;
+  
+  if(npd)
+  {
+    const Numeric inv_x2 = inv_x * inv_x;
+    const Numeric inv_y2 = inv_y * inv_y;
+    
+    for(Index upp_or_low = 0; upp_or_low < 2; upp_or_low++)
+    {
+      for(Index i = 0; i < npd; i++)
+      {
+        MatrixView tmp = upp_or_low ? dF_low(i, joker, joker) : dF_upp(i, joker, joker);
+        Matrix4x4ViewMap dF = MapToEigen4x4(tmp);
+        Eigen::Matrix4d  dA = MapToEigen4x4(upp_or_low ? dA_low(i, joker, joker) : dA_upp(i, joker, joker));
+        
+        const Numeric da = dA(0, 0), db = dA(0, 1),
+                      dc = dA(0, 2), dd = dA(0, 3),
+                      du = dA(1, 2), dv = dA(1, 3),
+                      dw = dA(2, 3);
+                      
+        dA(0, 0) = dA(1, 1) = dA(2, 2) = dA(3, 3) = 0.0;
+        
+        Eigen::Matrix4d dA2;;
+        dA2.noalias()  = eigA * dA;
+        dA2.noalias() += dA * eigA;
+        
+        Eigen::Matrix4d dA3;
+        dA3.noalias()  = dA2 * eigA;
+        dA3.noalias() += eigA2 * dA;
+        
+        const Numeric db2 = 2 * db * b, dc2 = 2 * dc * c,
+        dd2 = 2 * dd * d, du2 = 2 * du * u,
+        dv2 = 2 * dv * v, dw2 = 2 * dw * w;
+        
+        const Numeric dConst2 = db2 + dc2 + dd2 - du2 - dv2 - dw2;
+        
+        Numeric dConst1;
+        if(Const1 > 0.)
+        {
+          dConst1 = db2 * ( b2 * 0.5 +  c2 +  d2 -  u2 -  v2 +  w2);
+          dConst1 += b2 * (db2 * 0.5 + dc2 + dd2 - du2 - dv2 + dw2);
+          
+          dConst1 += dc2 * (c2 * 0.5 +  d2 -  u2 +  v2 -  w2);
+          dConst1 += c2 * (dc2 * 0.5 + dd2 - du2 + dv2 - dw2);
+          
+          dConst1 += dd2 * (d2 * 0.5 +  u2 -  v2 -  w2);
+          dConst1 += d2 * (dd2 * 0.5 + du2 - dv2 - dw2);
+          
+          dConst1 += du2 * (u2 * 0.5 +  v2 +  w2);
+          dConst1 += u2 * (du2 * 0.5 + dv2 + dw2);
+          
+          dConst1 += dv2 * (v2 * 0.5 +  w2);
+          dConst1 += v2 * (dv2 * 0.5 + dw2);
+          
+          dConst1 += 4 * ((db *  d *  u *  w - db *  c *  v *  w - dc *  d *  u *  v +
+          b * dd *  u *  w -  b * dc *  v *  w -  c * dd *  u *  v +
+          b *  d * du *  w -  b *  c * dv *  w -  c *  d * du *  v +
+          b *  d *  u * dw -  b *  c *  v * dw -  c *  d *  u * dv));
+          dConst1 += dw2 * w2;
+          dConst1 /= Const1;
+        }
+        else
+          dConst1 = 0.0;
+        
+        if(x == 0.0)
+        {
+          const Numeric dy = (0.5 * (dConst2 - dConst1)/sqrt_BmA).imag() * sqrt_05;
+          
+          const Numeric dC2 = -2*y*dy * C2 * inv_x2y2 + dy*sin_y * inv_x2y2;
+          const Numeric dC3 = -2*y*dy * C3 * inv_x2y2 + (dy*sin_y*inv_y2 - cos_y*dy*inv_y) * inv_x2y2;
+          
+          dF.noalias() = dC2 * eigA2;
+                       +  C2 * dA2
+                       + dC3 * eigA3
+                       +  C3 * dA3;
+          dF *= exp_a;
+          dF.noalias() += eigF * da;
+        }
+        else if(y == 0.0)
+        {
+          const Numeric dx = (0.5 * (dConst2 + dConst1)/sqrt_BpA).real() * sqrt_05;
+          
+          const Numeric dC2 = -2*x*dx * C2 * inv_x2y2 + dx*sinh_x * inv_x2y2;
+          const Numeric dC3 = -2*x*dx * C3 * inv_x2y2 + (cosh_x*dx*inv_x - dx*sinh_x*inv_x2) * inv_x2y2;
+          
+          dF.noalias() =  dC2 * eigA2 
+                       +   C2 * dA2
+                       +  dC3 * eigA3
+                       +   C3 * dA3;
+          dF *= exp_a;
+          dF.noalias() += eigF * da;
+        }
+        else
+        { 
+          const Numeric dx = (0.5 * (dConst2 + dConst1)/sqrt_BpA).real() * sqrt_05;
+          const Numeric dy = (0.5 * (dConst2 - dConst1)/sqrt_BmA).imag() * sqrt_05;
+          const Numeric dy2 = 2 * y * dy;
+          const Numeric dx2 = 2 * x * dx;
+          const Numeric dx2dy2 = dx2 + dy2;
+          
+          const Numeric dC0 = -dx2dy2 * C0 * inv_x2y2 + (2*cos_y*dx*x + 2*cosh_x*dy*y + dx*sinh_x*y2 - dy*sin_y*x2) * inv_x2y2;
+          
+          const Numeric dC1 = -dx2dy2 * C1 * inv_x2y2 + (cos_y*dy*x2*inv_y + dx2*sin_y*inv_y - dy*sin_y*x2*inv_y2 - dx*sinh_x*y2*inv_x2 + cosh_x*dx*y2*inv_x + dy2*sinh_x*inv_x) * inv_x2y2;
+          
+          const Numeric dC2 =  -dx2dy2 * C2 * inv_x2y2 + (dx*sinh_x + dy*sin_y) * inv_x2y2;
+          
+          const Numeric dC3 =  -dx2dy2 * C3 * inv_x2y2 + (dy*sin_y*inv_y2 - cos_y*dy*inv_y + cosh_x*dx*inv_x - dx*sinh_x*inv_x2) * inv_x2y2;
+          
+          dF.noalias() = dC1 * eigA
+                       +  C1 * dA
+                       + dC2 * eigA2
+                       +  C2 * dA2
+                       + dC3 * eigA3
+                       +  C3 * dA3;
+          dF(0, 0) += dC0; dF(1, 1) += dC0; dF(2, 2) += dC0; dF(3, 3) += dC0;
+          dF *= exp_a;
+          dF.noalias() += eigF * da;
+        }
+      }
+    }
+  }
+}
+
 void propmat4x4_to_transmat4x4(
     MatrixView          F,
     Tensor3View         dF_upp,

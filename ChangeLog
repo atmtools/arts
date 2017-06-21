@@ -1,3 +1,27 @@
+2017-06-21  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-731
+	
+	* src/lin_alg.cc:  Added solution by Philippe Baron on matrix exponent
+	for RT using a Cayley-Hamilton theorem fit to eigenvalues and 
+	coefficients.  Both explicit and Eigen solutions are available.
+	The Eigen solution is faster despite technically performing more
+	operations and copying in my test cases [by 10%].  
+	
+	Speed-up in simple test of 1,000,000 computations: 24 sec for
+	old method, 0.9 sec for new method.  Single core.
+	
+	* src/rte.cc: Updated to use new matrix exponent.  Please revert if this
+	breaks anyones test case (and send me the test case).  Description of the
+	method can be found in the functions in lin_alg.cc.  The Eigen-code should
+	also be fairly straightforward to read
+	
+	Note:  there is a lot of copying going on in the trans_mat calculations
+	because we are sending in A=-K*r, where K is a constant.  Same for the 
+	jacobians, in which case the copying is multiplied by a lot.  I wonder 
+	if we should redesign the matrix exponent, or at least the interface in
+	rte.cc, to explicitly expect K rather than A=-K*r?
+
 2017-06-19  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-730

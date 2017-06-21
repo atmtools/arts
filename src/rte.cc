@@ -1100,7 +1100,7 @@ void ext2trans(
       switch( stokes_dim )
       {
         case 4:
-          matrix_exp_4x4( trans_mat, ext_mat_ds, q );
+          cayley_hamilton_fitted_method_4x4_propmat_to_transmat__eigen( trans_mat, ext_mat_ds );
           break;
         default :
           matrix_exp( trans_mat, ext_mat_ds, q );
@@ -1270,28 +1270,21 @@ void ext2trans_and_ext2dtrans_dx(
     }*/
     else
     {
-        Matrix ext_mat_ds(stokes_dim,stokes_dim);
-        Tensor3 dext_mat_ds_dx_upp(nq,stokes_dim,stokes_dim),dext_mat_ds_dx_low(nq,stokes_dim,stokes_dim);
-        for(Index is1=0; is1<stokes_dim; is1++ )
-        {
-            for(Index is2=0; is2<stokes_dim; is2++ )
-            {
-                ext_mat_ds(is1,is2) = - ext_mat(is1,is2)*lstep;
-                for(Index iq=0; iq<nq; iq++ )
-                {
-                    dext_mat_ds_dx_upp(iq,is1,is2) = - dext_mat_dx_upp(iq,is1,is2)*lstep;
-                    dext_mat_ds_dx_low(iq,is1,is2) = - dext_mat_dx_low(iq,is1,is2)*lstep;
-                }
-            }
-        }
+        Matrix ext_mat_ds = ext_mat;
+        Tensor3 dext_mat_ds_dx_upp = dext_mat_dx_upp,
+                dext_mat_ds_dx_low = dext_mat_dx_low;
+        ext_mat_ds *= -lstep;
+        dext_mat_ds_dx_low *= -lstep;
+        dext_mat_ds_dx_upp *= -lstep;
+        
         //         
         Index q = 10;  // index for the precision of the matrix exp function
         //
         switch(stokes_dim)
         {
           case 4:
-            propmat4x4_to_transmat4x4( trans_mat, dtrans_mat_dx_upp, dtrans_mat_dx_low,
-                                       ext_mat_ds, dext_mat_ds_dx_upp, dext_mat_ds_dx_low, q );
+            cayley_hamilton_fitted_method_4x4_propmat_to_transmat__eigen( trans_mat, dtrans_mat_dx_upp, dtrans_mat_dx_low,
+                                                                          ext_mat_ds, dext_mat_ds_dx_upp, dext_mat_ds_dx_low);
             break;
           default :
             special_matrix_exp_and_dmatrix_exp_dx_for_rt(trans_mat, dtrans_mat_dx_upp, dtrans_mat_dx_low,
