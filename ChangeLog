@@ -1,3 +1,78 @@
+2017-06-21 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-732
+
+	* m_cloudbox.cc, methods.cc:
+
+	(pnd_fieldCalcFromscat_speciesFields):
+	Added W16 PSD. Adapted for merged F07 interface.
+
+	(pndFromPsdBasic2):
+	Added. An extended, more flexible version of pndFromPsdBasic. For
+	testing. Work in progress.
+
+	(pndAdjustFromScatMeta):
+	Added. Allows to rescale calculated pnd values such that is represents
+	given material content. For testing, to allow
+	*pnd_fieldCalcFromBulkProperties* to reproduce what
+	*pnd_fieldCalcFromscat_speciesFields* used to do.
+
+	(MassSizeParamsFromScatMeta):
+	Added. WSM to calculatem-D's alpha and beta from the scat_meta info.
+	Code mostly copied from pnd_fieldF07.
+
+	(psdF07):
+	Added. WSM analogous to psdMH97, but for F07 psd.
+
+	(psdMH97):
+	Temporarily introduced user parameter to switch off temperature
+	adjustment.
+
+	(pnd_fieldCalcFromParticleBulkProps):
+	Bugfix in deriving flat indices in case of multiple scat_species.
+
+	(dNdD_F07):
+	Added. Merged the two F07* WSM and adapted to apply new psd_snow_F07.
+
+	(dNdD_W16):
+	Bugfix. psd_rain_W16 already returns dNdD for complete size grid; no
+	need to call it per size entry.
+
+	* cloudbox.cc,h:
+	
+	(pnd_fieldW16):
+	Added. Interface from pnd_fieldCalcFromscat_speciesFields to rain drop
+	size distribution W16 (psd_rain_W16).
+
+	(pnd_fieldF07):
+	Merged both Field, 2007 methods into one (the only difference are some
+	coefficients that have not even been handled here, but in the further
+	submethods IWCtopnd_F07*). Removed useless "unit conversion factor" as
+	this was anyway hardcoded to 1. Throw error if SWC<0 (in contrast to
+	what the comments claimed, F07 formulas do not provide meaningful
+	results at negative WC (rather NaN in my tests).
+
+	(pnd_fieldMH97):
+	Don't calculate dveq from mass, but take it from scat_meta.
+
+	(psd_snow_F07):
+	Renamed from IWCtopnd_F07* and merged both these Field, 2007 core
+	methods. Changed to handle a grid of sizes at once.
+
+	(bin_integral):
+	Renamed from 'scale_pnd' (as it's more general applicable than just
+	for psd to pnd integration) and separated the node (or bin) weight
+	calculation from the actual integration into it's own method.
+	Generalized doc accordingly.
+
+	(bin_quadweights):
+	Added. The separated node/bin weight calculation for bin_integral.
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.ybatch.ref.xml:
+	Updated. Using vol_equ_diameter from scat_meta instead of calculating
+	dveq from mass makes a slightly larger difference than the 0.01K
+	threshold.
+
 2017-06-21  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-731

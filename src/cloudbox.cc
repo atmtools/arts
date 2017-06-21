@@ -36,24 +36,24 @@ extern const Numeric DENSITY_OF_WATER;
 /*===========================================================================
   === External declarations
   ===========================================================================*/
-#include <stdexcept>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <ctime>
 #include <limits>
+#include <stdexcept>
 
 #include "arts.h"
-#include "messages.h"
-#include "make_vector.h"
-#include "logic.h"
-#include "ppath.h"
-#include "physics_funcs.h"
-#include "math_funcs.h"
 #include "check_input.h"
-#include "rng.h"
-#include <ctime>
-#include "mc_antenna.h"
-#include "sorting.h"
 #include "lin_alg.h"
+#include "logic.h"
+#include "make_vector.h"
+#include "math_funcs.h"
+#include "mc_antenna.h"
+#include "messages.h"
+#include "physics_funcs.h"
+#include "ppath.h"
+#include "rng.h"
+#include "sorting.h"
 
 
 
@@ -838,7 +838,9 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
   bool robust = false;
   parse_psd_options( psd_options, part_string, delim);
   for ( Index i=0; i<psd_options.nelem(); i++ )
+  {
     robust = (robust || (psd_options[i]=="robust") );
+  }
 
   for ( Index i=0; i < N_se; i++ )
     {
@@ -859,8 +861,19 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
   // extract scattering meta data
   for ( Index i=0; i< N_se; i++ )
   {
-      mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
-      diameter_mass_equivalent[i] = pow(6.*mass[i]/PI/DENSITY_OF_ICE,1./3.); // [m]
+    mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
+    if ( isnan(scat_meta[scat_species][i].diameter_volume_equ) )
+        {
+          ostringstream os;
+          os << "Use of size distribution " << psdname << " (as requested for\n"
+             << "scattering species #" << scat_species << ")\n"
+             << "requires knowledge of scattering element volume equ. diameter.\n"
+             << "But volume equ. diameter is not given for scattering elements #"
+             << i << "!";
+          throw runtime_error( os.str() );
+        }
+    diameter_mass_equivalent[i] =
+      scat_meta[scat_species][intarr[i]].diameter_volume_equ;
   }
   
   if (mass.nelem() > 0)
@@ -893,19 +906,6 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
 
                 psd_cloudice_MH97 ( dNdD, diameter_mass_equivalent,
                               IWC_field(p,lat,lon), T, noisy );
-/*
-                // iteration over all given size bins
-                for ( Index i=0; i<diameter_mass_equivalent.nelem(); i++ )
-                  {
-
-                    // calculate particle size distribution with MH97
-                    // [# m^-3 m^-1]
-                    dNdD[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon ),
-                                              diameter_mass_equivalent[i],
-                                              t_field ( p, lat, lon ),
-                                              noisy, robust );
-                  }
-*/
 
                 // ensure that any particles where produced
                 if ( dNdD.sum() == 0.0 )
@@ -927,7 +927,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
 
                 // derive pnds from scaling dNdD with bin width
                 if (diameter_mass_equivalent.nelem() > 1)
-                  scale_pnd( pnd, diameter_mass_equivalent, dNdD );
+                  bin_integral( pnd, diameter_mass_equivalent, dNdD );
                 else
                   pnd = dNdD;
 	    
@@ -947,7 +947,8 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
             else if ( isnan(IWC_field ( p, lat, lon )) )
               {
                 ostringstream os;
-                os << "Size distribution " << psdname << " requires knowledge of mass "
+                os << "Size distribution " << psdname
+                   << " requires knowledge of mass "
                    << "density of atmospheric ice.\n"
                    << "At grid point (" << p << ", " << lat << ", " << lon
                    << ") in (p,lat,lon) a NaN value is encountered, "
@@ -960,8 +961,8 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
             else if (IWC_field ( p, lat, lon ) < 0.)
               {
                 ostringstream os;
-                os << "Size distribution " << psdname << " is parametrized in ice mass"
-                   << "content.\n"
+                os << "Size distribution " << psdname
+                   << " is parametrized in ice mass content.\n"
                    << "It can not handle negative values like IWC="
                    << IWC_field (p,lat,lon) << " kg/m3\n"
                    << "found at grid point ("
@@ -1113,7 +1114,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
 
                 // scale pnds by scale width
                 if (diameter_max.nelem() > 1)
-                    scale_pnd( pnd, diameter_max, dNdD ); //[# m^-3]
+                    bin_integral( pnd, diameter_max, dNdD ); //[# m^-3]
                 else
                     pnd = dNdD;
 
@@ -1275,7 +1276,7 @@ void pnd_fieldH13 (Tensor4View pnd_field,
 
                 // scale pnds by scale width
                 if (diameter_max.nelem() > 1)
-                    scale_pnd( pnd, diameter_max, dNdD ); //[# m^-3]
+                    bin_integral( pnd, diameter_max, dNdD ); //[# m^-3]
                 else
                     pnd = dNdD;
 
@@ -1500,7 +1501,7 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
 
                 // scale pnds by scale width
                 if (diameter_max_input.nelem() > 1)
-                    scale_pnd( pnd_temp, diameter_max_input, dNdD ); //[# m^-3]
+                    bin_integral( pnd_temp, diameter_max_input, dNdD ); //[# m^-3]
                 else
                     pnd_temp = dNdD;
 
@@ -1561,11 +1562,14 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
   }
 }
 
+
 /*! Calculates the particle number density field for Field (2007) size
- *  distribution for tropics.
+ *  distribution, both for tropics or midlatitudes.
+ *
  *  For the estimation of the second moment the mass dimension
  *  relationship is estimated by regression from the meta data.
- To be used for snow. For this distribution the snow has to be as mass content.
+ *
+ *  To be used for snow, to be given in terms of mass content.
  
  \param pnd_field Particle number density field
  \param SWC_field (snow) mass content field [kg/m3]
@@ -1577,13 +1581,14 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
  \param part_string part_species tag for profile/distribution handled here
  \param delim Delimiter string of *part_species* elements
  
- \author Manfred Brath (parts of the function is based on pnd_H11 (of J. Mendrok & D. Kreyling))
- \date 2014-1202
+ \author Manfred Brath, Jana Mendrok, D. Kreyling
+ \date 2014-12-02
  
  */
-void pnd_fieldF07TR (Tensor4View pnd_field,
+void pnd_fieldF07 (Tensor4View pnd_field,
                    const Tensor3& SWC_field,
                    const Tensor3& t_field,
+                   const String& regime,
                    const ArrayOfIndex& limits,
                    const ArrayOfArrayOfScatteringMetaData& scat_meta,
                    const Index& scat_species,
@@ -1591,29 +1596,30 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity)
 {
-    const String psdname="F07TR";
-    const Index N_se = scat_meta[scat_species].nelem();
-    const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
-    ArrayOfIndex intarr;
-    Vector diameter_max_unsorted ( N_se, 0.0 );
-    Vector diameter_max ( N_se, 0.0 );
-    Vector mass ( N_se, 0.0 );
-    Vector pnd ( N_se, 0.0 );
-    Vector dNdD ( N_se, 0.0 );
-    String partfield_name;
-    Numeric alpha;
-    Numeric beta;
-    Vector log_m( N_se, 0.0 );
-    Vector log_D( N_se, 0.0 );
-    Vector q;
+  assert( (regime=="TR") || (regime=="ML") );
+  const String psdname=string("F07")+regime;
+
+  const Index N_se = scat_meta[scat_species].nelem();
+  const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
+  ArrayOfIndex intarr;
+
+  Vector diameter_max_unsorted ( N_se, 0.0 );
+  Vector diameter_max ( N_se, 0.0 );
+  Vector mass ( N_se, 0.0 );
+  Vector pnd ( N_se, 0.0 );
+  Vector dNdD ( N_se, 0.0 );
+  String partfield_name;
+
+  Numeric alpha;
+  Numeric beta;
+  Vector log_m( N_se, 0.0 );
+  Vector log_D( N_se, 0.0 );
+  Vector q;
     
-    if ( diameter_max.nelem() > 0 )
+  if ( diameter_max.nelem() > 0 )
     // diameter_max.nelem()=0 implies no selected scattering element for the respective
     // scattering species field. should not occur anymore.
     {
-      //unit conversion
-      const Numeric D0=1; //[m]
-    
       //split String and copy to ArrayOfString
       parse_partfield_name( partfield_name, part_string, delim);
     
@@ -1651,7 +1657,7 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
         mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
         
         // logarithm of Dmax, needed for estimating mass-dimension-relationship
-        log_D[i]=log(diameter_max[i]/D0);
+        log_D[i]=log(diameter_max[i]);
         
         // logarithm of the mass, even though it is  little weird to have
         // a logarithm of something with a unit...
@@ -1676,11 +1682,11 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
         // the end result whatever we choose here (all ice has to end up with this
         // scattering anyways)
         beta=2;
-        alpha=mass[0]/(diameter_max[0]*diameter_max[0]);
+        alpha=mass[0]/pow(diameter_max[0],beta);
       }
     
       CREATE_OUT2;
-      out2 << "Mass-dimension relationship m=alpha*(dmax/D0)^beta:\n"
+      out2 << "Mass-dimension relationship m=alpha*(dmax)^beta:\n"
            << "alpha = " << alpha << " kg \n"
            << "beta = " << beta << "\n";
 
@@ -1691,30 +1697,12 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
             {
                 for ( Index lon=limits[4]; lon<limits[5]; lon++ )
                 {
-                    // F07 requires mass density. If not set, abort calculation.
-                    if ( isnan(SWC_field ( p, lat, lon )) )
+                    if (SWC_field ( p, lat, lon ) > 0.)
                     {
-                        ostringstream os;
-                        os << "Size distribution " << psdname << " requires knowledge of mass "
-                        << "density of atmospheric ice.\n"
-                        << "At grid point (" << p << ", " << lat << ", " << lon
-                        << ") in (p,lat,lon) a NaN value is encountered, "
-                        << "i.e. mass density is unknown.";
-                        throw runtime_error( os.str() );
-                    }
-                    
-                    // A valid IWC value encountered (here, we can also handle negative
-                    // values!). Calculating dNdD.
-                    else if (SWC_field ( p, lat, lon ) != 0.)
-                    {
-                        // iteration over all given size bins
-                        for ( Index i=0; i<diameter_max.nelem(); i++ ) //loop over number of scattering elements
-                        {
-                            // calculate particle size distribution for H11
-                            // [# m^-3 m^-1]
-                            dNdD[i] = IWCtopnd_F07TR( diameter_max[i], t_field ( p, lat, lon ),
-                                                   SWC_field ( p, lat, lon ), alpha, beta);
-                        }
+                        psd_snow_F07( dNdD, diameter_max,
+                                      SWC_field ( p, lat, lon ),
+                                      t_field ( p, lat, lon ),
+                                      alpha, beta, regime);
 
                         // ensure that any particles where produced
                         if ( dNdD.sum() == 0.0 )
@@ -1728,7 +1716,7 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
                              << "(likely results\n"
                              << "from considered particles being too large or too "
                              << "small)\n"
-                             << "The problem occured for profile '"<< partfield_name
+                             << "The problem occured for profile '" << partfield_name
                              << "' at: " << "p = " << p << ", lat = " << lat
                              << ", lon = " << lon << ".\n";
                           throw runtime_error ( os.str() );
@@ -1736,7 +1724,7 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
 
                         // scale pnds by scale width
                         if (diameter_max.nelem() > 1)
-                            scale_pnd( pnd, diameter_max, dNdD ); //[# m^-3]
+                            bin_integral( pnd, diameter_max, dNdD ); //[# m^-3]
                         else
                             pnd = dNdD;
                         
@@ -1752,212 +1740,34 @@ void pnd_fieldF07TR (Tensor4View pnd_field,
                         }
                     }
                     
-                    // for IWC==0, we just set pnd_field=0
-                    else
-                    {
-                        for ( Index i = 0; i< N_se; i++ )
-                        {
-                            pnd_field ( intarr[i]+scat_data_start, p-limits[0],
-                                       lat-limits[2], lon-limits[4] ) = 0.;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-/*! Calculates the particle number density field for Field (2007) size
- *  distribution for mid latitude.
- *  For the estimation of the second moment the mass dimension
- *  relationship is estimated by regression from the meta data.
- To be used for snow. For this distribution the snow has to be as mass content.
- 
- \param pnd_field Particle number density field
- \param SWC_field (snow) mass content field [kg/m3]
- \param t_field atmospheric temperature [K]
- \\param limits pnd_field boundaries (indices in p, lat, lon)
- \param scat_meta_array particle meta data for particles
- \param scat_data_start start index for particles handled by this distribution
- \param npart number of particles handled by this distribution
- \param part_string part_species tag for profile/distribution handled here
- \param delim Delimiter string of *part_species* elements
- 
- \author Manfred Brath (parts of the function is based on pnd_H11 (of J. Mendrok & D. Kreyling))
- \date 2014-12-02
- 
- */
-void pnd_fieldF07ML (Tensor4View pnd_field,
-                     const Tensor3& SWC_field,
-                     const Tensor3& t_field,
-                     const ArrayOfIndex& limits,
-                     const ArrayOfArrayOfScatteringMetaData& scat_meta,
-                     const Index& scat_species,
-                     const String& part_string,
-                     const String& delim,
-                     const Verbosity& verbosity)
-{
-    const String psdname="F07ML";
-    const Index N_se = scat_meta[scat_species].nelem();
-    const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
-    ArrayOfIndex intarr;
-    Vector diameter_max_unsorted ( N_se, 0.0 );
-    Vector diameter_max ( N_se, 0.0 );
-    Vector mass ( N_se, 0.0 );
-    Vector pnd ( N_se, 0.0 );
-    Vector dNdD ( N_se, 0.0 );
-    String partfield_name;
-    Numeric alpha;
-    Numeric beta;
-    Vector log_m( N_se, 0.0 );
-    Vector log_D( N_se, 0.0 );
-    Vector q;
-    
-    if ( diameter_max.nelem() > 0 )
-    // diameter_max.nelem()=0 implies no selected scattering element for the respective
-    // scattering species field. should not occur anymore.
-    {
-      //unit conversion
-      const Numeric D0=1; //[m]
-    
-      //split String and copy to ArrayOfString
-      parse_partfield_name( partfield_name, part_string, delim);
-  
-      for ( Index i=0; i < N_se; i++ )
-      {
-          if ( isnan(scat_meta[scat_species][i].diameter_max) )
-          {
-            ostringstream os;
-            os << "Use of size distribution " << psdname << " (as requested for\n"
-            << "scattering species #" << scat_species << ")\n"
-            << "requires knowledge of scattering element maximum diameter.\n"
-            << "But maximum diameter is not given for scattering elements #"
-            << i << "!";
-            throw runtime_error( os.str() );
-          }
-          diameter_max_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
-      }
-      get_sorted_indexes(intarr, diameter_max_unsorted);
-    
-      // extract scattering meta data
-      for ( Index i=0; i< N_se; i++ )
-      {
-        diameter_max[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
-        
-        if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
-        {
-            ostringstream os;
-            os << "Use of size distribution " << psdname << " (as requested for\n"
-            << "scattering species #" << scat_species << ")\n"
-            << "requires knowledge of scattering element mass.\n"
-            << "But mass is not given for scattering elements #"
-            << i << "!";
-            throw runtime_error( os.str() );
-        }
-        mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
-        
-        // logarithm of Dmax, needed for estimating mass-dimension-relationship
-        log_D[i]=log(diameter_max[i]/D0);
-        
-        // logarithm of the mass, even though it is  little weird to have
-        // a logarithm of something with a unit...
-        log_m[i]=log(mass[i]);      
-      }
-    
-      if ( N_se>1 )
-      {
-        //estimate mass-dimension relationship from meta data by linear regression
-        // Assumption of a power law for the mass dimension relationship
-        // Approach: log(m) = log(alpha)+beta*log(dmax/D0)
-        linreg(q,log_D, log_m);
-    
-        alpha=exp(q[0]);
-        beta=q[1];
-      }
-      else
-      {
-        // for a monodispersion we can't estimate the m-D relation (1 relation, 2
-        // unknowns), hence we fix one of the parameters and calculate the other
-        // such that we have them consistent. but shouldn't make any difference on
-        // the end result whatever we choose here (all ice has to end up with this
-        // scattering anyways)
-        beta=2;
-        alpha=mass[0]/(diameter_max[0]*diameter_max[0]);
-      }
-    
-      CREATE_OUT2;
-      out2 << "Mass-dimension relationship m=alpha*(dmax/D0)^beta:\n"
-           << "alpha = " << alpha << " kg \n"
-           << "beta = " << beta << "\n";
-    
-      // itertation over all atm. levels
-      for ( Index p=limits[0]; p<limits[1]; p++ )
-        {
-            for ( Index lat=limits[2]; lat<limits[3]; lat++ )
-            {
-                for ( Index lon=limits[4]; lon<limits[5]; lon++ )
-                {
                     // F07 requires mass density. If not set, abort calculation.
-                    if ( isnan(SWC_field ( p, lat, lon )) )
+                    else if ( isnan(SWC_field ( p, lat, lon )) )
                     {
                         ostringstream os;
-                        os << "Size distribution " << psdname << " requires knowledge of mass "
-                        << "density of atmospheric ice.\n"
-                        << "At grid point (" << p << ", " << lat << ", " << lon
-                        << ") in (p,lat,lon) a NaN value is encountered, "
-                        << "i.e. mass density is unknown.";
+                        os << "Size distribution " << psdname
+                           << " requires knowledge of mass "
+                           << "density of atmospheric ice.\n"
+                           << "At grid point (" << p << ", " << lat << ", " << lon
+                           << ") in (p,lat,lon) a NaN value is encountered, "
+                           << "i.e. mass density is unknown.";
                         throw runtime_error( os.str() );
                     }
                     
-                    // A valid IWC value encountered (here, we can also handle negative
-                    // values!). Calculating dNdD.
-                    else if (SWC_field ( p, lat, lon ) != 0.)
-                    {
-                        // iteration over all given size bins
-                        for ( Index i=0; i<diameter_max.nelem(); i++ ) //loop over number of scattering elements
-                        {
-                            // calculate particle size distribution for H11
-                            // [# m^-3 m^-1]
-                            dNdD[i] = IWCtopnd_F07ML( diameter_max[i], t_field ( p, lat, lon ),
-                                                     SWC_field ( p, lat, lon ), alpha, beta);
-                        }
+                    // F07 can basically handle negative numbers, but we do not
+                    // allow these unphysical values (if we want this at one
+                    // point, first change psd_snow_F07).
+                    else if (SWC_field ( p, lat, lon ) < 0.)
+                      {
+                        ostringstream os;
+                        os << "Size distribution " << psdname
+                           << " is parametrized in snow mass content.\n"
+                           << "It does not handle negative values like SWC="
+                           << SWC_field (p,lat,lon) << " kg/m3\n"
+                           << "found at grid point ("
+                           << p << ", " << lat << ", " << lon << ")";
+                        throw runtime_error( os.str() );
+                      }
 
-                        // ensure that any particles where produced
-                        if ( dNdD.sum() == 0.0 )
-                        { // no particles at all were produced. means, there's some
-                          // issue with the setup (none of the included particles
-                          // produces numerically considerable amount of particles
-                          // with this PSD, likely due to all the particles being
-                          // either too large or too small)
-                          ostringstream os;
-                          os <<  psdname << " PSD did not produce any non-zero pnd values "
-                             << "(likely results\n"
-                             << "from considered particles being too large or too "
-                             << "small)\n"
-                             << "The problem occured for profile '"<< partfield_name
-                             << "' at: " << "p = " << p << ", lat = " << lat
-                             << ", lon = " << lon << ".\n";
-                          throw runtime_error ( os.str() );
-                        }
-
-                        // scale pnds by scale width
-                        if (diameter_max.nelem() > 1)
-                            scale_pnd( pnd, diameter_max, dNdD ); //[# m^-3]
-                        else
-                            pnd = dNdD;
-                        
-                        // calculate proper scaling of pnd sum from real IWC and apply
-                        chk_pndsum ( pnd, SWC_field ( p,lat,lon ), mass,
-                                    p, lat, lon, partfield_name, verbosity );
-                        
-                        // writing pnd vector to wsv pnd_field
-                        for ( Index i =0; i< N_se; i++ )
-                        {
-                            pnd_field ( intarr[i]+scat_data_start, p-limits[0],
-                                       lat-limits[2], lon-limits[4] ) = pnd[i];
-                        }
-                    }
-                    
                     // for IWC==0, we just set pnd_field=0
                     else
                     {
@@ -2163,7 +1973,7 @@ void pnd_fieldS2M (Tensor4View pnd_field,
                         
                             // scale pnds by scale width
                             if (mass.nelem() > 1)
-                                scale_pnd( pnd, mass, dNdD ); //[# m^-3]
+                                bin_integral( pnd, mass, dNdD ); //[# m^-3]
                             else
                                 pnd = dNdD;
                             
@@ -2357,7 +2167,7 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
 
                         // scale pnds by scale width
                         if (diameter_volume_equ.nelem() > 1)
-                            scale_pnd( pnd, diameter_volume_equ, dNdD ); //[# m^-3]
+                            bin_integral( pnd, diameter_volume_equ, dNdD ); //[# m^-3]
                         else
                             pnd = dNdD;
                         
@@ -2499,7 +2309,7 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
             {
                 for ( Index lon=limits[4]; lon<limits[5]; lon++ )
                 {
-                    // F07 requires mass density. If not set, abort calculation.
+                    // MGD requires mass density. If not set, abort calculation.
                     if ( isnan(IWC_field ( p, lat, lon )) )
                     {
                         ostringstream os;
@@ -2545,7 +2355,7 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
 
                         // scale pnds by scale width
                         if (diameter_volume_equ.nelem() > 1)
-                            scale_pnd( pnd, diameter_volume_equ, dNdD ); //[# m^-3]
+                            bin_integral( pnd, diameter_volume_equ, dNdD ); //[# m^-3]
                         else
                             pnd = dNdD;
                         
@@ -2747,7 +2557,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
 
                 // scale pnds by bin width
                 if (diameter_melted_equivalent.nelem() > 1)
-                    scale_pnd( pnd, diameter_melted_equivalent, dNdD );
+                    bin_integral( pnd, diameter_melted_equivalent, dNdD );
                 else
                     pnd = dNdD;
 
@@ -2818,6 +2628,179 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   }
 }
 
+
+/*! Calculates the particle number density field for Wang et al. (2016) size
+    distribution. To be used for rain.
+
+    \return pnd_field   Particle number density field
+    \param RWC_field    mass content (rain) field [kg/m3]
+    \param limits       pnd_field boundaries (indices in p, lat, lon)
+    \param scat_meta    scattering meta data for all scattering elements
+    \param scat_species array index of scattering species handled by this distribution
+    \param part_string  scat_species tag for profile/distribution handled here
+    \param delim        delimiter string of *scat_species* elements
+  
+  \author Jana Mendrok, Daniel Kreyling
+  \date 2017-06-13
+
+*/
+void pnd_fieldW16 (Tensor4View pnd_field,
+                    const Tensor3& RWC_field,
+                    const ArrayOfIndex& limits,
+                    const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                    const Index& scat_species,
+                    const String& part_string,
+                    const String& delim,
+                    const Verbosity& verbosity)
+{
+  const String psdname="W16";
+  const Index N_se = scat_meta[scat_species].nelem();
+  const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
+  ArrayOfIndex intarr;
+  Vector mass_unsorted ( N_se, 0.0 );
+  Vector mass ( N_se, 0.0 );
+  Vector diameter_mass_equivalent ( N_se, 0.0 );
+  Vector pnd ( N_se, 0.0 );
+  Vector dNdD ( N_se, 0.0 );
+
+  String psd_param;
+  String partfield_name;
+  ArrayOfString psd_options;
+
+  //split String and copy to ArrayOfString
+  parse_psd_param( psd_param, part_string, delim);
+  parse_partfield_name( partfield_name, part_string, delim);
+
+  bool robust = false;
+  parse_psd_options( psd_options, part_string, delim);
+  for ( Index i=0; i<psd_options.nelem(); i++ )
+    robust = (robust || (psd_options[i]=="robust") );
+
+  for ( Index i=0; i < N_se; i++ )
+    {
+      if ( isnan(scat_meta[scat_species][i].mass) ||
+           isnan(scat_meta[scat_species][i].diameter_volume_equ) )
+        {
+          ostringstream os;
+          os << "Use of size distribution " << psdname << " (as requested for\n"
+             << "scattering species #" << scat_species << ")\n"
+             << "requires knowledge of scattering element mass.\n"
+             << "But mass is not given for scattering elements #"
+             << i << "!";
+          throw runtime_error( os.str() );
+        }
+      mass_unsorted[i] = ( scat_meta[scat_species][i].mass );
+    }
+  get_sorted_indexes(intarr, mass_unsorted);
+
+  // extract scattering meta data
+  for ( Index i=0; i< N_se; i++ )
+  {
+      mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
+      if ( isnan(scat_meta[scat_species][intarr[i]].diameter_volume_equ) )
+        {
+          ostringstream os;
+          os << "Use of size distribution " << psdname << " (as requested for\n"
+             << "scattering species #" << scat_species << ")\n"
+             << "requires knowledge of scattering element volume equivalent diameter.\n"
+             << "But volume equivalent diameter is not given for scattering elements #"
+             << intarr[i] << "!";
+          throw runtime_error( os.str() );
+        }
+      diameter_mass_equivalent[i] = scat_meta[scat_species][intarr[i]].diameter_volume_equ;
+  }
+  
+  if (mass.nelem() > 0)
+  // mass.nelem()=0 implies no selected scattering element for the respective
+  // scattering species field. should not occur.
+  {
+      // iteration over all atm. levels
+      for ( Index p=limits[0]; p<limits[1]; p++ )
+      {
+        for ( Index lat=limits[2]; lat<limits[3]; lat++ )
+        {
+          for ( Index lon=limits[4]; lon<limits[5]; lon++ )
+          {
+            // a valid RWC value encountered. Calculating dNdD.
+            if (RWC_field ( p, lat, lon ) > 0.)
+              {
+                psd_rain_W16 ( dNdD, diameter_mass_equivalent,
+                               RWC_field(p,lat,lon) );
+
+                // ensure that any particles where produced
+                if ( dNdD.sum() == 0.0 )
+                  { // no particles at all were produced. means, there's some
+                    // issue with the setup (none of the included particles
+                    // produces numerically considerable amount of particles
+                    // with this PSD, likely due to all the particles being
+                    // either too large or too small)
+                    ostringstream os;
+                    os <<  psdname << " PSD did not produce any non-zero pnd values "
+                       << "(likely results\n"
+                       << "from considered particles being too large or too "
+                       << "small)\n"
+                       << "The problem occured for profile '"<< partfield_name
+                       << "' at: " << "p = " << p << ", lat = " << lat
+                       << ", lon = " << lon << ".\n";
+                    throw runtime_error ( os.str() );
+                  }
+
+                // derive pnds from scaling dNdD with bin width
+                if (diameter_mass_equivalent.nelem() > 1)
+                  bin_integral( pnd, diameter_mass_equivalent, dNdD );
+                else
+                  pnd = dNdD;
+	    
+                // calculate error of pnd sum and real XWC
+                chk_pndsum ( pnd, RWC_field ( p,lat,lon ), mass,
+                             p, lat, lon, partfield_name, verbosity );
+	    
+                // writing pnd vector to WSV pnd_field
+                for ( Index i = 0; i< N_se; i++ )
+                  {
+                    pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                                lat-limits[2], lon-limits[4] ) = pnd[i];
+                  }
+              }
+
+            // W16 requires mass density. If not set, abort calculation.
+            else if ( isnan(RWC_field ( p, lat, lon )) )
+              {
+                ostringstream os;
+                os << "Size distribution " << psdname << " requires knowledge of mass "
+                   << "density of rain.\n"
+                   << "At grid point (" << p << ", " << lat << ", " << lon
+                   << ") in (p,lat,lon) a NaN value is encountered, "
+                   << "i.e. mass density is unknown.";
+                throw runtime_error( os.str() );
+              }
+
+            // W16 is parameterized in RWC and does not handle negative
+            // numbers, hence abort.
+            else if (RWC_field ( p, lat, lon ) < 0.)
+              {
+                ostringstream os;
+                os << "Size distribution " << psdname
+                   << " is parametrized in rain mass content.\n"
+                   << "It can not handle negative values like RWC="
+                   << RWC_field (p,lat,lon) << " kg/m3\n"
+                   << "found at grid point ("
+                   << p << ", " << lat << ", " << lon << ")";
+                throw runtime_error( os.str() );
+              }
+
+            // for RWC==0, we just set pnd_field=0
+            else
+                for ( Index i = 0; i< N_se; i++ )
+                {
+                  pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                              lat-limits[2], lon-limits[4] ) = 0.;
+                }
+          }
+        }
+      }
+  }
+}
 
 
 /*! Calculates the particle number density field for Hess et al. (1998)
@@ -2933,7 +2916,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
 
                 // scale pnds by scale width. output: [# m^-3]
                 if (radius.nelem() > 1)
-                    scale_pnd( pnd, radius, dNdr );
+                    bin_integral( pnd, radius, dNdr );
                 else
                     pnd = dNdr;
 	    
@@ -3257,6 +3240,117 @@ void psd_cloudice_MH97 ( Vector& psd,
 }
 
 
+/*! Calculates particle size distribution of tropical or midlatitude snow using
+ *  F07 parametrization.
+ *
+ *  Handles a vector of sizes at a time.
+ *  No requirements on valid temperatures implemented so far (the parameters have
+ *  been derived for measurments -60<=T<=0C, though; no tests for degeneration
+ *  at extrapolation done so far(?)).
+ *
+ *  Adapted from the 'old' IWCtopnd_F07TR/ML.
+ 
+    \param psd     particle number density per size interval [#/m3*m]
+    \param diameter  size of the scattering elements (supposed to be maximum
+                       diameter of the ice particles) [m]
+    \param swc     atmospheric snow water content [kg/m^3]
+    \param regime  parametrization regime to apply (TR=tropical, ML=midlatitude)
+    \param t       atmospheric temperature [K]
+    \param alpha   mass-dimension relationship scaling factor
+                     (m=alpha*(Dmax/D0)^beta) [kg]
+    \param beta    mass-dimension relationship exponent [-]
+ 
+ \author Manfred Brath, Jana Mendrok
+ \date 2017-06-13
+ 
+ */
+void psd_snow_F07 ( Vector& psd,
+                   const Vector& diameter,
+                   const Numeric& swc,
+                   const Numeric& t,
+                   const Numeric alpha,
+                   const Numeric beta,
+                   const String& regime )
+{
+  Index nD = diameter.nelem();
+  psd.resize(nD);
+  psd = 0.;
+
+  // skip calculation if SWC is 0.0
+  if ( swc == 0.0 )
+  {
+    return;
+  }
+  assert (swc>0.);
+
+  Numeric An, Bn, Cn;
+  Numeric M2, Mn, M2Mn;
+  Numeric base, pp;
+  Numeric x, phi23, dN;
+
+  Vector q(5);
+
+  assert( (regime=="TR") || (regime=="ML") );
+
+  //factors of phi23
+  if( regime=="TR" )
+    q=MakeVector(152., -12.4, 3.28, -0.78, -1.94);
+  else // if( regime=="ML" )
+    q=MakeVector(141., -16.8, 102.,  2.07, -4.82);
+
+  //Factors of factors of the moment estimation parametrization
+  Vector Aq=MakeVector(13.6,-7.76,0.479);
+  Vector Bq=MakeVector(-0.0361,0.0151,0.00149);
+  Vector Cq=MakeVector(0.807,0.00581,0.0457);
+
+  //convert T from Kelvin to Celsius
+  Numeric Tc = t-273.15;
+
+  // estimate second moment
+  M2 = swc/alpha;
+  if (beta!=2)
+    {
+      // calculate factors of the moment estimation parametrization
+      An = exp(Aq[0]+Aq[1]*beta+Aq[2]*pow(beta,2));
+      Bn = Bq[0]+Bq[1]*beta+Bq[2]*pow(beta,2);
+      Cn = Cq[0]+Cq[1]*beta+Cq[2]*pow(beta,2);
+
+      base = M2*exp(-Bn*Tc)/An;
+      pp = 1./(Cn);
+
+      M2 = pow(base,pp);
+    }
+
+  // order of the moment parametrization
+  const Numeric n=3;
+
+  // calculate factors of the moment estimation parametrization
+  An = exp(Aq[0]+Aq[1]*n+Aq[2]*pow(n,2));
+  Bn = Bq[0]+Bq[1]*n+Bq[2]*pow(n,2);
+  Cn = Cq[0]+Cq[1]*n+Cq[2]*pow(n,2);
+
+  // moment parametrization
+  Mn = An*exp(Bn*Tc)*pow(M2,Cn);
+
+  M2Mn = pow(M2,4.)/pow(Mn,3.);
+
+  for( Index iD=0; iD<nD; iD++ )
+    {
+      // define x
+      x = diameter[iD]*M2/Mn;
+
+      // characteristic function
+      phi23 = q[0]*exp(q[1]*x)+q[2]*pow(x,q[3])*exp(q[4]*x);
+    
+      // distribution function
+      dN = phi23*M2Mn;
+
+      if ( !isnan(psd[iD]) )
+        psd[iD] = dN;
+    }
+}
+
+
 
 /*! Calculates particle size distribution using H11 parametrization.
  *  Each diameter of the scattering elements is a node in the distribution.
@@ -3454,186 +3548,6 @@ Numeric area_ratioH13 ( const Numeric diameter_max,
 
   if (isnan(Ar)) Ar = 0.0;
   return Ar;
-}
-
-/*! Calculates particle size distribution using F07 parametrization for
- *  tropics.
- *  Each diameter of the scattering particles is a node in the distribution.
- *  One call of this function calculates one particle number density.
- 
- \return dN particle number density per diameter interval [#/m3/m]
- 
- \param d maximum diameter of scattering particle [m]
- \param t atmospheric temperature [K]
- \param swc snow water content [kg/m^3]
- \param alpha Factor for the mass-dimension (m=alpha*(Dmax/D0)^beta) relationship [kg]
- \param beta Exponent for the mass-dimension relationship [pure number]
- 
- \author Manfred Brath
- \date 2014-11-28
- 
- */
-Numeric IWCtopnd_F07TR ( const Numeric d, const Numeric t,
-                        const Numeric swc,const Numeric alpha,
-                        const Numeric beta)
-{
-    Numeric dN;
-    Numeric phi23;
-    Numeric An;
-    Numeric Bn;
-    Numeric Cn;
-    Numeric M2;
-    Numeric Mn;
-    
-    Numeric x;
-    
-    Numeric Mbeta;
-    Numeric base;
-    Numeric pp;
-    
-    
-    
-    //factors of phi23
-    Vector q=MakeVector(152,-12.4,3.28,-0.78,-1.94);
-    
-    //Factors of factors of the moment estimation parametrization
-    Vector Aq=MakeVector(13.6,-7.76,0.479);
-    Vector Bq=MakeVector(-0.0361,0.0151,0.00149);
-    Vector Cq=MakeVector(0.807,0.00581,0.0457);
-    
-    
-    //convert T from Kelvin to Celsius
-    Numeric Tc = t-273.15;
-    
-    // estimate second moment
-    if (beta==2)
-        M2=swc/alpha;
-    else
-    {
-        Mbeta=swc/alpha;
-        
-        // calculate factors of the moment estimation parametrization
-        An=exp(Aq[0]+Aq[1]*beta+Aq[2]*pow(beta,2));
-        Bn=Bq[0]+Bq[1]*beta+Bq[2]*pow(beta,2);
-        Cn=Cq[0]+Cq[1]*beta+Cq[2]*pow(beta,2);
-        
-        base=Mbeta*exp(-Bn*Tc)/An;
-        pp=1./(Cn);
-        
-        M2=pow(base,pp);
-    }
-    
-    // order of the moment parametrization
-    const Numeric n=3;
-    
-    // calculate factors of the moment estimation parametrization
-    An=exp(Aq[0]+Aq[1]*n+Aq[2]*pow(n,2));
-    Bn=Bq[0]+Bq[1]*n+Bq[2]*pow(n,2);
-    Cn=Cq[0]+Cq[1]*n+Cq[2]*pow(n,2);
-    
-    // moment parametrization
-    Mn=An*exp(Bn*Tc)*pow(M2,Cn);
-    
-    //Define x
-    x=d*M2/Mn;
-    
-    //Characteristic function
-    phi23 = q[0]*exp(q[1]*x)+q[2]*pow(x,q[3])*exp(q[4]*x);
-    
-    //Distribution function
-    dN=phi23*pow(M2,4.)/pow(Mn,3.);
-    
-    if (isnan(dN)) dN = 0.0;
-    return dN;
-}
-
-/*! Calculates particle size distribution using F07 parametrization for
- *  mid latitude.
- *  Each diameter of the scattering particles is a node in the distribution.
- *  One call of this function calculates one particle number density.
- 
- \return dN particle number density per diameter interval [#/m3/m]
- 
- \param d maximum diameter of scattering particle [m]
- \param t atmospheric temperature [K]
- \param swc snow water content [kg/m^3]
- \param alpha Factor for the mass-dimension (m=alpha*(Dmax/D0)^beta) relationship [kg]
- \param beta Exponent for the mass-dimension relationship [pure number]
- 
- \author Manfred Brath
- \date 2014-11-14
- 
- */
-Numeric IWCtopnd_F07ML ( const Numeric d, const Numeric t,
-                        const Numeric swc,const Numeric alpha,
-                        const Numeric beta)
-{
-    Numeric dN;
-    Numeric phi23;
-    Numeric An;
-    Numeric Bn;
-    Numeric Cn;
-    Numeric M2;
-    Numeric Mn;
-    
-    Numeric x;
-    
-    Numeric Mbeta;
-    Numeric base;
-    Numeric pp;
-    
-    //factors of phi23
-    Vector q=MakeVector(141,-16.8,102,2.07,-4.82);
-    
-    //Factors of factors of the moment estimation parametrization
-    Vector Aq=MakeVector(13.6,-7.76,0.479);
-    Vector Bq=MakeVector(-0.0361,0.0151,0.00149);
-    Vector Cq=MakeVector(0.807,0.00581,0.0457);
-    
-    
-    //convert T from Kelvin to Celsius
-    Numeric Tc = t-273.15;
-    
-    // estimate second moment
-    if (beta==2)
-        M2=swc/alpha;
-    else
-    {
-        Mbeta=swc/alpha;
-        
-        // calculate factors of the moment estimation parametrization
-        An=exp(Aq[0]+Aq[1]*beta+Aq[2]*pow(beta,2));
-        Bn=Bq[0]+Bq[1]*beta+Bq[2]*pow(beta,2);
-        Cn=Cq[0]+Cq[1]*beta+Cq[2]*pow(beta,2);
-        
-        base=Mbeta*exp(-Bn*Tc)/An;
-        pp=1./Cn;
-        
-        M2=pow(base,pp);
-    }
-    
-    // order of the moment parametrization
-    const Numeric n=3;
-    
-    // calculate factors of the moment estimation parametrization
-    An=exp(Aq[0]+Aq[1]*n+Aq[2]*pow(n,2));
-    Bn=Bq[0]+Bq[1]*n+Bq[2]*pow(n,2);
-    Cn=Cq[0]+Cq[1]*n+Cq[2]*pow(n,2);
-    
-    // moment parametrization
-    Mn=An*exp(Bn*Tc)*pow(M2,Cn);
-    
-    //Define x
-    x=d*M2/Mn;
-    
-    //Characteristic function
-    phi23 = q[0]*exp(q[1]*x)+q[2]*pow(x,q[3])*exp(q[4]*x);
-    
-    //Distribution function
-    dN=phi23*pow(M2,4.)/pow(Mn,3.);
-    
-    if (isnan(dN)) dN = 0.0;
-    return dN;
 }
 
 
@@ -3919,22 +3833,71 @@ Numeric PRtopnd_MP48 (const Numeric PR,
 
 
 
-/*! Scaling pnd values by width of size bin. 
- * Bin width is determined from preceeding and following scattering element size.
- * Vector y and x must be equal in size. Vector w holds the weights.
- * Derived from trapezoid integration rule.
+/*! Derives weights of a bin-type quadrature for arbitrary wide bins.
+ *
+ * Note: Rectangular and trapezoidal rule essentially give the same weights
+ * when considering the same nodes x (not the mid-points between the nodes as
+ * rectangular is sometimes using) and limiting the quadrature range by the
+ * first and last node).
+ * Keyword order=0 calculates rectangular bins (ie bins extend beyond the first
+ * and last nodes), order=1 to trapezoidal bins (ie bins end exactly at nodes).
          
-    \param w weights
-    \param x e.g. scattering element radius [m]
-    \param y e.g. particle number density per radius interval [#/m3*m]
+ \param w      resulting weights at ordinates.
+ \param x      ordinates.
+ \param order  order of quadrature (see above for details).
   
-  \author Daniel Kreyling
+  \author Jana Mendrok, Daniel Kreyling
+  \date 2017-06-16
+
+*/
+void bin_quadweights( Vector& w,
+                const Vector& x,
+                const Index& order )
+{
+  Index nx = x.nelem();
+  assert( nx>1 );
+
+  if( order==0 )
+    {
+      w[0] = min(x[1]-x[0],0.5*(x[1]+x[0])); // the latter is the half distance
+                                             // from x0 to x1 plus the distance
+                                             // to 0, ie 0.5(x1-x0)+x0.
+      w[nx-1] = x[nx-1]-x[nx-2];
+    }
+  else
+    {
+      w[0] = 0.5*(x[1]-x[0]);
+      w[nx-1] = 0.5*(x[nx-1]-x[nx-2]);
+    }
+  for (Index i = 1; i<nx-1; i++)
+    {
+      w[i] = 0.5*(x[i+1]-x[i-1]);
+    }
+}
+
+
+
+/*! Derives bin-wise integral of y over x
+ *
+ * Used eg for Scaling pnd values by width of size bin. 
+ * Bin width is determined from preceeding and following ordinates of a node.
+ * Vector y and x must be equal in size. Vector w holds the local (ie over the
+ * individual bins) quadrature results.
+ *
+ * Derived from rectengular/trapezoid integration rule (both provide the same
+ * results).
+         
+  \param w   local quadrature result of y over x bins
+  \param x   function nodes, eg scattering element size in [m]
+  \param y   function values, eg particle number density per size interval [#/m3/m]
+  
+  \author Daniel Kreyling, Jana Mendrok
   \date 2010-12-15
 
 */
-void scale_pnd  (  Vector& w,
-		   const Vector& x,
-		   const Vector& y) 
+void bin_integral( Vector& w,
+             const Vector& x,
+             const Vector& y)
 {
     // check if vectors have same size
     if (x.nelem() != y.nelem()) 
@@ -3944,21 +3907,9 @@ void scale_pnd  (  Vector& w,
     
     if (x.nelem()>1) // calc. integration weights (using trapezoid integration)
     {
-        for (Index i = 0; i<x.nelem(); i++)
-        {
-            if (i == 0) // first value
-            {
-                w[i] = 0.5*(x[i+1]-x[i])*y[i]; // m^-3
-            }
-            else if (i == x.nelem()-1) //last value
-            {
-                w[i] = 0.5*(x[i]-x[i-1])*y[i]; // m^-3
-            }
-            else // all values inbetween
-            {
-                w[i] = 0.5*(x[i+1]-x[i-1])*y[i]; // m^-3
-            }
-        }
+      bin_quadweights(w, x);
+      for (Index i = 0; i<x.nelem(); i++)
+        w[i] *= y[i];
     }
     else // for monodisperse pnd=dNdD
     {

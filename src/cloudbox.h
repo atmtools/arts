@@ -140,25 +140,16 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
                         const String& delim,
                         const Verbosity& verbosity);
 
-void pnd_fieldF07TR (Tensor4View pnd_field,
+void pnd_fieldF07 (Tensor4View pnd_field,
                    const Tensor3& SWC_field,
                    const Tensor3& t_field,
+                   const String& regime,
                    const ArrayOfIndex& limits,
                    const ArrayOfArrayOfScatteringMetaData& scat_meta,
                    const Index& scat_species,
                    const String& part_string,
                    const String& delim,
                    const Verbosity& verbosity);
-
-void pnd_fieldF07ML (Tensor4View pnd_field,
-                     const Tensor3& SWC_field,
-                     const Tensor3& t_field,
-                     const ArrayOfIndex& limits,
-                     const ArrayOfArrayOfScatteringMetaData& scat_meta,
-                     const Index& scat_species,
-                     const String& part_string,
-                     const String& delim,
-                     const Verbosity& verbosity);
 
 void pnd_fieldS2M (Tensor4View pnd_field,
                    const Tensor3& WC_field,
@@ -199,6 +190,15 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
                     const String& delim,
                     const Verbosity& verbosity);
 
+void pnd_fieldW16 (Tensor4View pnd_field,
+                    const Tensor3& RWC_field,
+                    const ArrayOfIndex& limits,
+                    const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                    const Index& scat_species,
+                    const String& part_string,
+                    const String& delim,
+                    const Verbosity& verbosity);
+
 void pnd_fieldH98 (Tensor4View pnd_field,
                    const Tensor3& LWC_field,
                    const ArrayOfIndex& limits,
@@ -215,15 +215,23 @@ void psd_general_MGD ( Vector& psd,
                    const Numeric& lambda,
                    const Numeric& gamma );
 
-void psd_rain_W16 ( Vector& psd,
-                   const Vector& diameter,
-                   const Numeric& rwc );
-
 void psd_cloudice_MH97 ( Vector& psd, 
                    const Vector& diameter,
                    const Numeric& iwc,
                    const Numeric& t,
                    const bool noisy );
+
+void psd_rain_W16 ( Vector& psd,
+                   const Vector& diameter,
+                   const Numeric& rwc );
+
+void psd_snow_F07 ( Vector& psd,
+                   const Vector& diameter,
+                   const Numeric& swc,
+                   const Numeric& t,
+                   const Numeric alpha,
+                   const Numeric beta,
+                   const String& regime );
 
 Numeric IWCtopnd_H11 (const Numeric diameter_mass_equivalent,
                       const Numeric t);
@@ -236,14 +244,6 @@ Numeric IWCtopnd_H13Shape (const Numeric diameter_mass_equivalent,
 
 Numeric area_ratioH13 (const Numeric diameter_mass_equivalent,
                        const Numeric t);
-
-Numeric IWCtopnd_F07TR ( const Numeric d, const Numeric t,
-                        const Numeric swc,const Numeric alpha,
-                        const Numeric beta );
-
-Numeric IWCtopnd_F07ML ( const Numeric d, const Numeric t,
-                        const Numeric swc,const Numeric alpha,
-                        const Numeric beta );
 
 Numeric WCtopnd_S2M (const Numeric mass,
                      const Numeric N_tot,
@@ -260,10 +260,13 @@ Numeric LWCtopnd (const Numeric lwc,
 Numeric PRtopnd_MP48 (const Numeric R,
                       const Numeric diameter_melted_equivalent);
 
-
-void scale_pnd (Vector& w,
+void bin_quadweights( Vector& w,
                 const Vector& x,
-                const Vector& y);
+                const Index& order=1 );
+
+void bin_integral( Vector& w,
+             const Vector& x,
+             const Vector& y);
 
 void chk_pndsum (Vector& pnd,
                  const Numeric xwc,

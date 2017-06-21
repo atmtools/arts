@@ -3204,9 +3204,9 @@ void define_md_data_raw()
       ( NAME( "atm_fields_compactFromMatrix" ),
         DESCRIPTION
         (
-         "Sets *atm_fields_compact* from 1D profiles in a matrix.\n"
+         "Sets *atm_fields_compact* from 1D fields given in form of a matrix.\n"
          "\n"
-         "For clear-sky batch calculations it is handy to store atmospheric\n"
+         "For batch calculations it is handy to store atmospheric\n"
          "profiles in an array of matrix. We take such a matrix, and create\n"
          "*atm_fields_compact* from it.\n"
          "\n"
@@ -3220,10 +3220,13 @@ void define_md_data_raw()
          "directly used by ARTS for calculations but can be required for\n"
          "further processing, e.g. wind speed and direction. These fields do\n"
          "not need to be transfered into the *atm_fields_compact* variable.\n"
+         "\n"
          "Selection of fields into *atm_fields_compact* works by providing a\n"
-         "field name tag for the selected fields, while not-to-select fields\n"
-         "are tagged by 'ignore'.\n"
-         "The pressure fields by convention are the first column of the\n"
+         "field name tag in *field_names* for the selected fields, while\n"
+         "unselected fields are tagged by 'ignore'. Order of tags in\n"
+         "*field_names* is strictly taken as corresponding to column order in\n"
+         "the matrix.\n"
+         "The pressure fields are by convention the first column of the\n"
          "matrix, hence must not be tagged. That is, there must be given one\n"
          "field name tag less than matrix columns.\n"
          "\n"
@@ -3393,27 +3396,20 @@ void define_md_data_raw()
       ( NAME( "batch_atm_fields_compactFromArrayOfMatrix" ),
         DESCRIPTION
         (
-         "Expand batch of 1D atmospheric states to a batch_atm_fields_compact.\n"
+         "Expand batch of 1D atmospheric state matrices to batch_atm_fields_compact.\n"
          "\n"
          "This is used to handle 1D batch cases, e.g. from NWP/GCM model like\n"
-         "the Chevallier91L data set, stored in a matrix.\n"
-         "\n"
-         "See *atm_fields_compactFromArrayOfMatrix* for documentation. Here,\n"
-         "only additional, batch specific information is provided.\n"
-         "For the batch case, it is possible to atmospheric fields with\n"
-         "constant field values to the ones given in the field matrices. This\n"
-         "is done by specifying the following two parameters:\n"
-         "\n"
-         "extra_field_names:\n:"
-         "  You can add additional constant VMR fields, which is handy for O2\n"
-         "  and N2. Here, give an array of the field names to add following\n"
-         "  the name tag conventions as described at *atm_fields_compact*,\n"
-         "  e.g., \"abs_species-O2\". Default: Empty.\n"
-         "extra_field_values:\n"
-         "  Here, give an array containing the constant field values.\n"
-         "  Default: Empty. Dimension must match extra_field_names.\n"
+         "the Chevallier91L data set, stored in a matrix (it is preferred,\n"
+         "though, to immediatedly store the model fields as\n"
+         "*ArrayOfGriddedField4* and use *ReadXML* to load them directly into\n"
+         "*batch_atm_fields_compact*).\n"
          "\n"
          "Works only for *atmosphere_dim==1.*\n"
+         "\n"
+         "See *atm_fields_compactFromMatrix* for basic documentation.\n"
+         "\n"
+         "See *batch_atm_fields_compactAddConstant* and\n"
+         "batch_atm_fields_compactAddSpecies* for adding additional fields.\n"
          ),
         AUTHORS( "Stefan Buehler", "Daniel Kreyling", "Jana Mendrok" ),
         OUT( "batch_atm_fields_compact" ),
@@ -4193,62 +4189,46 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-     ( NAME( "dNdD_F07ML" ),
-      DESCRIPTION
-      (
-       "Calculation of particle size distribution (dN/dD) following\n"
-       "Field et al. (2007) parametrization for mid-latitude conditions.\n"
-       "\n"
-       "A wrapper to internal particle size distribution calculation.\n"
-       "This distribution is a parametrization for snow and cloud ice in the\n"
-       "mid-latitudes. Parametrization is in snow water or ice water content\n"
-       "(SWC, IWC) and ambient atmospheric temperature over particle size in\n"
-       "terms of maximum diameter.\n"
+      ( NAME( "dNdD_F07" ),
+        DESCRIPTION
+        (
+         "Calculation of particle size distribution (dN/dD) following\n"
+         "Field et al. (2007) parametrization.\n"
+         "\n"
+         "A wrapper to internal particle size distribution calculation.\n"
+         "Field et al. (2007) provides parametrizations for snow/cloud ice in\n"
+         "the tropics and the midlatitudes. The parametrization is in snow\n"
+         "(or ice) water mass content (SWC) and ambient atmospheric\n"
+         "temperature over particle size in terms of maximum diameter of the\n"
+         "snow particles. It furthermore depends on the parameters of the\n"
+         "mass-dimension relation m = alpha * Dmax^beta.\n"
+         "\n"
+         "Negative SWC trigger an error (unless robust=1, where SWC=0 is used\n"
+         "internally, hence dNdD=0 is returned).\n"
+         "Negative temperatures always trigger an error. Currently, no further\n"
+         "temperature validity limits are implemented (although the\n"
+         "parametrization itself has been derived from measurements limited\n"
+         "to -60C<=T<=0C, i.e. shall strictly only be applied then).\n"
        ),
-      AUTHORS( "Manfred Brath" ),
-      OUT(),
-      GOUT(      "dNdD" ),
-      GOUT_TYPE( "Vector" ),
-      GOUT_DESC( "size distribution number density [#/m3/m]" ),
-      IN(),
-      GIN(         "diameter_max", "SWC",     "t",       "alpha",   "beta" ),
-      GIN_TYPE(    "Vector",       "Numeric", "Numeric", "Numeric", "Numeric" ),
-      GIN_DEFAULT( NODEF,          NODEF,     NODEF,     "0.0257",  "2.0" ),
-      GIN_DESC( "Maximum diameter of the particles [m]",
-                "Atmospheric ice water content [kg/m3]",
-                "Ambient atmospheric temperature [K]",
-                "Factor for the mass-dimension (m=alpha*(Dmax/D0)^beta) relationship [kg]",
-                "Exponent for the mass-dimension relationship [pure number]")
-      ));
-    
-  md_data_raw.push_back
-    ( MdRecord
-     ( NAME( "dNdD_F07TR" ),
-      DESCRIPTION
-      (
-       "Calculation of particle size distribution (dN/dD) following\n"
-       "Field et al. (2007) parametrization for tropical conditions.\n"
-       "\n"
-       "A wrapper to internal particle size distribution calculation.\n"
-       "This distribution is a parametrization for snow and cloud ice in the\n"
-       "tropics. Parametrization is in snow water or ice water content (SWC,\n"
-       "IWC) and ambient atmospheric temperature over particle size in terms\n"
-       "of maximum diameter.\n"
-       ),
-      AUTHORS( "Manfred Brath" ),
-      OUT(),
-      GOUT(      "dNdD" ),
-      GOUT_TYPE( "Vector" ),
-      GOUT_DESC( "size distribution number density [#/m3/m]" ),
-      IN(),
-      GIN(         "diameter_max", "SWC",     "t",       "alpha",   "beta" ),
-      GIN_TYPE(    "Vector",       "Numeric", "Numeric", "Numeric", "Numeric" ),
-      GIN_DEFAULT( NODEF,          NODEF,     NODEF,     "0.0257",  "2.0" ),
-      GIN_DESC( "Maximum diameter of the particles [m]",
-                "Atmospheric ice water content [kg/m3]",
-                "Ambient atmospheric temperature [K]",
-                "Factor for the mass-dimension (m=alpha*(Dmax/D0)^beta) relationship [kg]",
-                "Exponent for the mass-dimension relationship [pure number]")
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT(      "dNdD" ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "size distribution number density [#/m3/m]" ),
+        IN(),
+        GIN(         "diameter_max", "SWC",     "T",       "regime", "alpha",
+                     "beta",    "robust" ),
+        GIN_TYPE(    "Vector",       "Numeric", "Numeric", "String", "Numeric",
+                     "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF,          NODEF,     NODEF,     NODEF,    "0.0257",
+                     "2.0",     "0" ),
+        GIN_DESC( "Maximum diameter of the particles [m].",
+                  "Atmospheric snow water mass content [kg/m3].",
+                  "Ambient atmospheric temperature [K].",
+                  "Parametrization regime (\"TR\"=tropical or \"ML\"=midlatitude).",
+                  "Mass-dimension relationship scaling factor [kg].",
+                  "Mass-dimension relationship exponent [-].",
+                  "Flag whether to ignore parametrization value checks." )
       ));
     
   md_data_raw.push_back
@@ -4398,7 +4378,7 @@ void define_md_data_raw()
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "size distribution number density [#/m3/m]" ),
         IN(),
-        GIN(         "diameter_mass_equivalent", "IWC",     "t",
+        GIN(         "diameter_mass_equivalent", "IWC",     "T",
                      "noisy", "robust" ),
         GIN_TYPE(    "Vector",                   "Numeric", "Numeric",
                      "Index", "Index" ),
@@ -4535,8 +4515,9 @@ void define_md_data_raw()
          "\n"
          "A wrapper to the internal particle size distribution calculation.\n"
          "Wang et al. (2016) is a parametrization for stratiform rain.\n"
-         "Parametrization is in rain water content (RWC) over particle size\n"
-         "in terms of mass equivalent sphere diameter of the liquid drops.\n"
+         "Parametrization is in rain water mass content (RWC) over particle\n"
+         "size in terms of mass equivalent sphere diameter of the liquid\n"
+         "drops.\n"
          "\n"
          "Negative RWC trigger an error (unless robust=1, where RWC=0 is used\n"
          "internally, hence dNdD=0 is returned).\n"
@@ -4551,7 +4532,7 @@ void define_md_data_raw()
         GIN_TYPE(    "Vector",                   "Numeric", "Index" ),
         GIN_DEFAULT( NODEF,                      NODEF,     "0" ),
         GIN_DESC( "Mass equivalent sphere diameter of the particles [m].",
-                  "Rain water content [kg/m3].",
+                  "Rain water mass content [kg/m3].",
                   "Flag whether to ignore parametrization value checks." )
         ));
     
@@ -9113,6 +9094,41 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "MassSizeParamsFromScatMeta" ),
+        DESCRIPTION
+        (
+        "Estimates mass-dimension relation parameters from *scat_meta*.\n"
+        "\n"
+        "Estimates alpha and beta of mass-dimension relationship\n"
+        "   m = alpha * Dmax^beta\n"
+        "using linear regression of the logarithm of m.\n"
+        "\n"
+        "The method is applied on one scattering species at a time, the one\n"
+        "of index *scat_index*.\n"
+        "If this method is used in side *pnd_agenda_array*, it is suitable to\n"
+        "set scat_index = agenda_array_index.\n"
+        "\n"
+        "In case the scattering species contains only one scattering element\n"
+        "(ie is a monodispersion), then beta is set from *beta_default* and\n"
+        "alpha matching the given m-dmax relation is derived.\n"
+        ),
+        AUTHORS( "Manfred Brath, Jana Mendrok" ),
+        OUT(),
+        GOUT( "alpha", "beta" ),
+        GOUT_TYPE( "Numeric", "Numeric" ),
+        GOUT_DESC( "Mass-dimension relationship scaling factor [kg].",
+                   "Mass-dimension relationship exponent [-]." ),
+        IN( "scat_meta" ),
+        GIN(         "scat_index", "beta_default" ),
+        GIN_TYPE(    "Index",      "Numeric" ),
+        GIN_DEFAULT( NODEF,        "2" ),
+        GIN_DESC(  "Take data from scattering species of this index (0-based) in"
+                   " *scat_meta*.",
+                   "Value to set beta to in case of a monodispersion." )
+        ));
+ 
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "MatrixAddScalar" ),
         DESCRIPTION
         (
@@ -10649,14 +10665,41 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "pndAdjustFromScatMeta" ),
+        DESCRIPTION
+        (
+         "Rescales *pnd_data* to match expected material content.\n"
+         "\n"
+         "A temporary method...\n"
+         "Reproduces rescaling (using chk_pndsum) applied in\n"
+         "*pnd_fieldCalcFromscat_speciesFields*\n"
+        ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "pnd_data" ), //, "dpnd_data_dx" ), 
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "pnd_data", // "dpnd_data_dx",
+            "pnd_agenda_input", "pnd_agenda_input_names", "scat_meta" ),
+        GIN(         "pnd_agenda_input_tag", "scat_index" ),
+        GIN_TYPE(    "String",               "Index" ),
+        GIN_DEFAULT( NODEF,                  NODEF ),
+        GIN_DESC( "Name of field in *pnd_agenda_input* to which to adjust"
+                  " pnd_data to.",
+                  "Take data from scattering species of this index (0-based) in"
+                  " *scat_meta*." )
+        ));
+ 
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "pndFromdNdD" ),
         DESCRIPTION
         (
-        "Calculates pnds from given dNdD.\n"
-        "\n"
-        "The method mimics what happens inside *pnd_fieldCalcFromscat_speciesFields*,\n"
-        "but for a single size distribution. It is supposed to be used with\n"
-        "the *dNdD* methods.\n"
+         "Calculates pnds from given dNdD.\n"
+         "\n"
+         "The method mimics what happens inside\n"
+         "*pnd_fieldCalcFromscat_speciesFields*, but for a single size\n"
+         "distribution. It is supposed to be used with the *dNdD* methods.\n"
         ),
         AUTHORS( "Jana Mendrok" ),
         OUT(),
@@ -10667,15 +10710,15 @@ void define_md_data_raw()
         GIN(         "dNdD",   "diameter", "total_content", "scatelem_content" ),
         GIN_TYPE(    "Vector", "Vector",   "Numeric",       "Vector" ),
         GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF ),
-        GIN_DESC(    "Size distribution number density",
-                     "Size of the particles (the same as used in deriving dNdD",
-                     "Material content that should be contained in the"
-                     "distribution. E.g., Mass density, mass flux, total number"
-                     "density. If dNdD was derived from a content-dependent PSD,"
-                     "then this value should correspond to the one used there.",
-                     "Material content of each particle (scattering element)."
-                     "Needs to be the same content type as the total content"
-                     "above." )
+        GIN_DESC( "Size distribution number density",
+                  "Size of the particles (the same as used in deriving dNdD",
+                  "Material content that should be contained in the"
+                  "distribution. E.g., Mass density, mass flux, total number"
+                  "density. If dNdD was derived from a content-dependent PSD,"
+                  "then this value should correspond to the one used there.",
+                  "Material content of each particle (scattering element)."
+                  "Needs to be the same content type as the total content"
+                  "above." )
         ));
  
   md_data_raw.push_back
@@ -10683,11 +10726,11 @@ void define_md_data_raw()
       ( NAME( "pndFromPsdBasic" ),
         DESCRIPTION
         (
-        "Calculates *pnd* from given *psd*.\n"
-        "\n"
-        "A temporary method, will be rewritten.\n"
+         "Calculates *pnd_data* from given *psd_data*.\n"
+         "\n"
+         "A temporary method, will be rewritten.\n"
         ),
-        AUTHORS( "Jana Mendrok" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUT( "pnd_data", "dpnd_data_dx" ),
         GOUT(),
         GOUT_TYPE(),
@@ -10697,6 +10740,32 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+ 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "pndFromPsdBasic2" ),
+        DESCRIPTION
+        (
+         "Calculates *pnd_data* from given *psd_data*.\n"
+         "\n"
+         "A temporary method, will be rewritten.\n"
+         "*quad_order* can be 0 for rectangular or 1 for trapezoidal\n"
+         "integration. The only difference is the treatment of the start and\n"
+         "end nodes. For trapezoidal their corresponding bins end exactly at\n"
+         "the nodes, while for rectangular the extend further out by the half\n"
+         "distance to the neighbor node (but not beyond 0).\n"
+        ),
+        AUTHORS( "Jana Mendrok, Patrick Eriksson" ),
+        OUT( "pnd_data", "dpnd_data_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "pnd_size_grid", "psd_data", "psd_size_grid", "dpsd_data_dx" ),
+        GIN( "quad_order" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC( "Order of bin quadrature." )
         ));
  
   md_data_raw.push_back
@@ -10777,29 +10846,30 @@ void define_md_data_raw()
          "The following PSDs are available (for further information check\n"
          "their corresponding distribution WSM):\n"
          "\n"
-         "Tag       PSD WSM       fields(s) used           Target         Notes\n"
-         "MH97      *dNdD_MH97*     mass density           cloud ice\n"
-         "H11       *dNdD_H11*      mass density           cloud ice\n"
-         "H13       *dNdD_Ar_H13*   mass density           cloud ice      neglects shape information\n"
-         "H13Shape  *dNdD_Ar_H13*   mass density           cloud ice\n"
-         "MGD_IWC   *dNdD_MGD_IWC*  mass density           cloud ice      fixed modified gamma psd\n"
-         "S2M_IWC   *dNdD_S2M*      number/mass density    cloud ice      two moment scheme psd\n"
-         "S2M_IWC_M *dNdD_S2M_M*    mean mass/mass density cloud ice      two moment scheme psd\n"
-         "F07TR     *dNdD_F07TR*    mass density           snow           for tropics\n"
-         "F07ML     *dNdD_F07ML*    mass density           snow           for mid latitudes\n"
-         "S2M_SWC   *dNdD_S2M*      number/mass density    snow           two moment scheme psd\n"
-         "S2M_SWC_M *dNdD_S2M_M*    mean mass/mass density snow           two moment scheme psd\n"
-         "MP48      *dNdD_MP48*     mass flux              precipitation  rain in particular\n"
-         "S2M_RWC   *dNdD_S2M*      number/mass density    rain           two moment scheme psd\n"
-         "S2M_RWC_M *dNdD_S2M_M*    mean mass/mass density rain           two moment scheme psd\n"
-         "H98_STCO  *dNdD_H98*      mass density           cloud liquid   specifically continental stratus\n"
-         "MGD_LWC   *dNdD_MGD_LWC*  mass density           cloud liquid   fixed modified gamma psd\n"
-         "S2M_LWC   *dNdD_S2M*      number/mass density    cloud liquid   two moment scheme psd\n"
-         "S2M_LWC_M *dNdD_S2M_M*    mean mass/mass density cloud liquid   two moment scheme psd\n"
-         "S2M_GWC   *dNdD_S2M*      number/mass density    graupel        two moment scheme psd\n"
-         "S2M_GWC_M *dNdD_S2M_M*    mean mass/mass density graupel        two moment scheme psd\n"
-         "S2M_HWC   *dNdD_S2M*      number/mass density    hail           two moment scheme psd\n"
-         "S2M_HWC_M *dNdD_S2M_M*    mean mass/mass density hail           two moment scheme psd\n"
+         "Tag       PSD WSM         fields(s) used           Target         Notes\n"
+         "MH97      *dNdD_MH97*     mass density             cloud ice\n"
+         "H11       *dNdD_H11*      mass density             cloud ice\n"
+         "H13       *dNdD_Ar_H13*   mass density             cloud ice      neglects shape information\n"
+         "H13Shape  *dNdD_Ar_H13*   mass density             cloud ice\n"
+         "MGD_IWC   *dNdD_MGD_IWC*  mass density             cloud ice      fixed modified gamma psd\n"
+         "S2M_IWC   *dNdD_S2M*      number & mass density    cloud ice      two moment scheme psd\n"
+         "S2M_IWC_M *dNdD_S2M_M*    mean mass & mass density cloud ice      two moment scheme psd\n"
+         "F07TR     *dNdD_F07*      mass density             snow           for tropics\n"
+         "F07ML     *dNdD_F07*      mass density             snow           for midlatitudes\n"
+         "S2M_SWC   *dNdD_S2M*      number & mass density    snow           two moment scheme psd\n"
+         "S2M_SWC_M *dNdD_S2M_M*    mean mass & mass density snow           two moment scheme psd\n"
+         "MP48      *dNdD_MP48*     mass flux                precipitation  rain in particular\n"
+         "W16       *dNdD_W16*      mass density             rain\n"
+         "S2M_RWC   *dNdD_S2M*      number & mass density    rain           two moment scheme psd\n"
+         "S2M_RWC_M *dNdD_S2M_M*    mean mass & mass density rain           two moment scheme psd\n"
+         "H98_STCO  *dNdD_H98*      mass density             cloud liquid   specifically continental stratus\n"
+         "MGD_LWC   *dNdD_MGD_LWC*  mass density             cloud liquid   fixed modified gamma psd\n"
+         "S2M_LWC   *dNdD_S2M*      number & mass density    cloud liquid   two moment scheme psd\n"
+         "S2M_LWC_M *dNdD_S2M_M*    mean mass & mass density cloud liquid   two moment scheme psd\n"
+         "S2M_GWC   *dNdD_S2M*      number & mass density    graupel        two moment scheme psd\n"
+         "S2M_GWC_M *dNdD_S2M_M*    mean mass & mass density graupel        two moment scheme psd\n"
+         "S2M_HWC   *dNdD_S2M*      number & mass density    hail           two moment scheme psd\n"
+         "S2M_HWC_M *dNdD_S2M_M*    mean mass & mass density hail           two moment scheme psd\n"
          "\n"
          "NOTE: The number and order of the scattering species in the\n"
          "scattering species fields (*scat_species_mass_density_field*,\n"
@@ -10823,7 +10893,7 @@ void define_md_data_raw()
         GIN( "delim" ),
         GIN_TYPE( "String" ),
         GIN_DEFAULT( "-" ),
-        GIN_DESC( "Delimiter string of *scat_species* elements" )
+        GIN_DESC( "Delimiter string of *scat_species* elements." )
         ));  
     
   md_data_raw.push_back
@@ -10886,8 +10956,9 @@ void define_md_data_raw()
         GIN( "scat_index", "unit" ),
         GIN_TYPE( "Index", "String"),
         GIN_DEFAULT( NODEF, NODEF ),
-        GIN_DESC( "Take data from *scat_meta* with this index (0-based).",
-                  "Size grid unit, allowed options listed above." )
+        GIN_DESC( "Take data from scattering species of this index (0-based) in"
+                  " *scat_meta*.",
+                  "Size parameter for size grid, allowed options listed above." )
         ));
 
   md_data_raw.push_back
@@ -11648,6 +11719,73 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "psdF07" ),
+        DESCRIPTION
+        (
+         "Calculates *psd_data* and  *dpsd_data_dx* following Field et al. (2007)\n"
+         "(F07) particle size distribution for snow and cloud ice.\n"
+         "\n"
+         "WSM for use in *pnd_agenda_array* for mapping *particle_bulkprop_field*\n"
+         "to *pnd_field* using *pnd_fieldCalcFromParticleBulkProps*.\n"
+         "Produces the particle size distribution values (dN/dD) and their\n"
+         "derivates with respect to independent variables x by *dpnd_data_dx_names*\n"
+         "over multiple particle sizes and atmospheric levels (or SWC/T\n"
+         "combinations).\n"
+         "Derivatives are obtained by SWC perturbation of 0.1%, but not less\n"
+         "than 0.1 mg/m3.\n"
+         "\n"
+         "Requirements:\n"
+         "\n"
+         "*pnd_agenda_input_names* must be [\"SWC\",\"Temperature\"]\n"
+         "corresponding to SWC and T (1D-)profiles in *pnd_agenda_input*.\n"
+         "The only allowed entry in *dpnd_data_dx_names* (ie. the only allowed\n"
+         "independent variable x) is \"SWC\".\n"
+         "\n"
+         "The validity range of SWC is not limited. Negative SWC will produce\n"
+         "negative psd values following a distribution given by abs(SWC), ie.\n"
+         "abs(psd)=f(abs(SWC)).\n"
+         "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+         "picky=0, or an error is thrown if picky=1.\n"
+         "For temperatures below 210K or above 273.15K, the size distribution\n"
+         "follows the one for T=210K or T=273.15, respectively, if adjust_t=1.\n"
+         "\n"
+         "If picky, checks of the sanity of the mass-dimension relationship\n"
+         "are performed. Errors are thrown if:\n"
+         "- Mass-dimension relation exponent *beta* is outside\n"
+         "  [*beta_min*, *beta_max*].\n"
+         "- Minimum density (ie that resulting from a solid sphere of\n"
+         "  diameter according to *psd_size_grid*) of a particle exceeds the\n"
+         "  density of ice by more than a factor of *density_deviation*.\n"
+        ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "psd_data", "dpsd_data_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "psd_size_grid", "pnd_agenda_input", "pnd_agenda_input_names",
+            "dpnd_data_dx_names" ),
+        GIN(         "regime", "alpha",   "beta",    "t_min",   "t_max",
+                     "beta_min", "beta_max", "density_deviation", "adjust_t", "picky" ),
+        GIN_TYPE(    "String", "Numeric", "Numeric", "Numeric", "Numeric",
+                     "Numeric",  "Numeric",  "Numeric",           "Index",    "Index" ),
+        GIN_DEFAULT( NODEF,    NODEF,     NODEF,     "0",       "273.15",
+                     "0",        "4",        "0.2",               "1",        "0" ),
+        GIN_DESC( "Parametrization regime (\"TR\"=tropical or \"ML\"=midlatitude).",
+                  "Mass-dimension relationship scaling factor [kg].",
+                  "Mass-dimension relationship exponent [-].",
+                  "Set *psd* to zero (or fail) if below this temperature.",
+                  "Set *psd* to zero (or fail) if above this temperature.",
+                  "Fail if *beta* is below this value (only if picky).",
+                  "Fail if *beta* is above this value (only if picky).",
+                  "Fail if particle minimum density exceeds ice density by this"
+                  " fraction (only if picky).",
+                  "Flag whether to adjust parametrization temperature to be"
+                  " within [210.,273.15]K.",
+                  "Flag whether to ignore parametrization value checks." )
+        ));
+ 
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "psdMH97" ),
         DESCRIPTION
         (
@@ -11676,7 +11814,7 @@ void define_md_data_raw()
          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
          "picky=0, or an error is thrown if picky=1.\n"
          "For temperatures below 200K or above 273.15K, the size distribution\n"
-         "follows the one for T=200K or T=273.15, respectively."
+         "follows the one for T=200K or T=273.15, respectively.\n"
          "\n"
          "The noisy option can not be used together with calculation of\n"
          "derivatives (ie. when *dpnd_data_dx_names* is not empty).\n"
@@ -11688,12 +11826,14 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "psd_size_grid", "pnd_agenda_input", "pnd_agenda_input_names",
             "dpnd_data_dx_names" ),
-        GIN( "t_min", "t_max", "picky", "noisy" ),
-        GIN_TYPE( "Numeric", "Numeric", "Index", "Index" ),
-        GIN_DEFAULT( "0", "273.15", "0", "0" ),
-        GIN_DESC( "Set *psd* to zero if below this temperature.",
-                  "Set *psd* to zero if above this temperature.",
-                  "Flag to control if values outside [t_min,t_max] result in an error.",
+        GIN(         "t_min",   "t_max",   "adjust_tlow", "picky", "noisy" ),
+        GIN_TYPE(    "Numeric", "Numeric", "Index",       "Index", "Index" ),
+        GIN_DEFAULT( "0",       "273.15",  "1",           "0",     "0" ),
+        GIN_DESC( "Set *psd* to zero (or fail) if below this temperature.",
+                  "Set *psd* to zero (or fail) if above this temperature.",
+                  "Flag whether to adjust parametrization temperature to be"
+                  " within [210.,273.15]K.",
+                  "Flag whether to ignore parametrization value checks.",
                   "Distribution parameter perturbance flag" )
         ));
  
@@ -11726,7 +11866,7 @@ void define_md_data_raw()
          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
          "picky=0, or an error is thrown if picky=1.\n"
          "For temperatures below 200K or above 273.15K, the size distribution\n"
-         "follows the one for T=200K or T=273.15, respectively."
+         "follows the one for T=200K or T=273.15, respectively.\n"
          "\n"
          "The noisy option can not be used together with calculation of\n"
          "derivatives (ie. when *dpnd_data_dx_names* is not empty).\n"
