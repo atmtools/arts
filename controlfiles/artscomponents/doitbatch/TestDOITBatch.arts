@@ -312,7 +312,7 @@ WriteXML( output_file_format, ybatch)
 ArrayOfVectorCreate( ybatch_ref )
 ReadXML( ybatch_ref, "TestDOITBatch.ybatch.ref.xml" )
 
-Compare( ybatch, ybatch_ref, 0.015,
+Compare( ybatch, ybatch_ref, 0.01,
          "Total BT should be close to the reference values")
 
 #==================stop==========================

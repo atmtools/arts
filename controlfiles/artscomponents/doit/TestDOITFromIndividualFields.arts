@@ -88,7 +88,7 @@ ReadXML( ybatch_ref, "../doitbatch/TestDOITBatch.ybatch.ref.xml" )
 VectorCreate( y_ref )
 Extract( y_ref, ybatch_ref, 0 )
 
-Compare( y, y_ref, 0.015,
+Compare( y, y_ref, 0.01,
          "Total BT should be close to the reference values")
 
 #==================stop==========================

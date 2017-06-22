@@ -1,5 +1,23 @@
 2017-06-22  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-734
+
+	* CMakeLists.txt:
+
+	The Intel compiler has value-unsafe floating-point optimizations
+	enabled by 'factory-default' which leads to large discrepancies
+	compared to gcc/clang for certain calcucations (esp. Jacobians).
+	To avoid these inaccuracies we now set the option '-fp-model precise'
+	by default.
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/artscomponents/doit/TestDOITFromIndividualFields.arts:
+
+	Revert changes from previous commit. Not needed anymore with -fp-model
+	precise.
+
+2017-06-22  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-733
 
 	* cmake/modules/FindBLAS.cmake, cmake/modules/FindLAPACK.cmake:

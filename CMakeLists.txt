@@ -123,6 +123,19 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif ()
 
+########### Intel compiler specific settings ##########
+
+# Turn off value-unsafe floating-point optimizations which lead
+# to large descrepancies compared to other compilers
+if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fp-model precise")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model precise")
+endif ()
+
+if (ENABLE_FORTRAN AND CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fp-model precise")
+endif ()
+
 ########### OEM Support ##########
 
 if (NOT NO_OEM)
