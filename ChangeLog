@@ -1,3 +1,24 @@
+2017-06-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-733
+
+	* cmake/modules/FindBLAS.cmake, cmake/modules/FindLAPACK.cmake:
+
+	Add modules from cmake master version ded9859. Adds support for
+	OpenBLAS detection without introducing a dependency for ARTS on a
+	newer cmake.
+
+	* 3rdparty/relmat/module_error.F90:
+
+	Add missing comma in format description. Fixes compile failure with
+	Intel Fortran.
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/artscomponents/doit/TestDOITFromIndividualFields.arts:
+
+	Increase BT comparison tolerance from 0.01 to 0.015 to account for
+	numerical differences when using the Intel compiler.
+
 2017-06-21 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-732
