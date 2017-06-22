@@ -2889,12 +2889,13 @@ void psdF07 (
     const String&                             regime,
     const Numeric&                            alpha,
     const Numeric&                            beta,
-    const Numeric&                            t_min, 
-    const Numeric&                            t_max, 
+    const Numeric&                            t_min,
+    const Numeric&                            t_max,
+    const Numeric&                            t_min_psd,
+    const Numeric&                            t_max_psd,
     const Numeric&                            beta_min, 
     const Numeric&                            beta_max, 
-    const Numeric&                            density_deviation,
-    const Index&                              adjust_t,
+    //const Numeric&                            density_deviation,
     const Index&                              picky, 
     const Verbosity&)
 {
@@ -2965,6 +2966,8 @@ void psdF07 (
 
       // now calc resulting densities for solid spheres D_small and D_large
       // diameters
+      /* that seems unpractical. for beta<3., small particles will frequently
+         exceed ice density quite significantly.
       for( Index iD=0; iD<2; iD++ )
         {
           Numeric rho = 6.*alpha/PI * pow(D_lims[iD],(beta-3.));
@@ -2980,6 +2983,7 @@ void psdF07 (
               throw runtime_error(os.str());
             }
         }
+      */
     }
 
   for( Index ip=0; ip<np; ip++ )
@@ -3013,20 +3017,15 @@ void psdF07 (
               throw runtime_error(os.str());
             }
           else  
-            { 
-              continue; }   // If here, we are ready with this point!
+            { continue; }   // If here, we are ready with this point!
         }
 
-      if( adjust_t )
-      {
-        // PSD assumed to be constant outside [-210,273.15]
-        // (based on that F07 derived from meas between -60 and 0C)
-        if( t < 210. )
-          { t = 210.; }
-        else if( t > 273.15 )
-          { t = 273.15; }
-      }
-  
+      // PSD assumed to be constant outside [*t_min_psd*,*t_max_psd*]
+      if( t < t_min_psd )
+        { t = t_min_psd; }
+      else if( t > t_max_psd )
+        { t = t_max_psd; }
+    
       // Calculate PSD
       Vector psd_1p(nsi);
       if( swc != 0 )
@@ -3061,7 +3060,8 @@ void psdMH97 (
     const ArrayOfString&                      dpnd_data_dx_names,
     const Numeric&                            t_min, 
     const Numeric&                            t_max, 
-    const Index&                              adjust_tlow,
+    const Numeric&                            t_min_psd, 
+    const Numeric&                            t_max_psd, 
     const Index&                              picky, 
     const Index&                              noisy,
     const Verbosity&)
@@ -3141,16 +3141,10 @@ void psdMH97 (
             { continue; }   // If here, we are ready with this point!
         }
 
-      if( adjust_tlow )
-      {
-      // PSD assumed to be constant outside [200,273.15]
-        if( t < 200 )
-          { t = 200; }
-        //else if( t > 273.15 )
-        //  { t = 273.15; }
-      }
-      if( t > 273.15 )
-        { t = 273.15; }
+      if( t < t_min_psd )
+        { t = t_min_psd; }
+      else if( t > t_max_psd )
+        { t = t_max_psd; }
   
       // Calculate PSD
       Vector psd_1p(nsi);
@@ -3227,6 +3221,10 @@ void psdW16 (
       
       // Extract the input variables
       Numeric rwc = pnd_agenda_input(ip,0);
+
+      // No calc needed if swc==0 and no jacobians requested.
+      if( (rwc==0.) && (!ndx) )
+        { continue; }   // If here, we are ready with this point!
 
       // Negative rwc?
       Numeric psd_weight = 1.0;
@@ -3600,7 +3598,6 @@ void dNdD_MH97 (//WS Output:
       throw runtime_error ( os.str() );
     }
   Numeric iwc = max( IWC, 0. );
-  //Numeric iwc = IWC;
 
   // abort if T is negative
   if ( T<0. )
@@ -3653,8 +3650,7 @@ void dNdD_F07 (//WS Output:
          << " Yours is " << SWC << "kg/m3.";
       throw runtime_error ( os.str() );
     }
-  //Numeric swc = max( SWC, 0. );
-  Numeric swc = SWC;
+  Numeric swc = max( SWC, 0. );
 
   // abort if T is negative
   if ( T<0. )

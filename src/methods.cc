@@ -4536,29 +4536,6 @@ void define_md_data_raw()
                   "Flag whether to ignore parametrization value checks." )
         ));
     
-/*      ( NAME( "dNdD_MH97" ),
-        DESCRIPTION
-        (
-         "Calculation of particle size distribution (dN/dD) following\n"
-         "McFarquahar and Heymsfield (1997) parametrization.\n"
-         "\n"
-         "A wrapper to the internal particle size distribution calculation.\n"
-         "McFarquhar and Heymsfield (1997) is a parametrization for cloud\n"
-         "ice in the tropics. Parametrization is in ice water content (IWC)\n"
-         "and ambient atmospheric temperature over particle size in terms of\n"
-         "mass equivalent sphere diameter of the ice particles. McFarquhar\n"
-         "and Heymsfield (1997) additionally provide uncertainties of the\n"
-         "distribution's parameters, which can be used here to create\n"
-         "perturbed distributions (set *noisy* to 1).\n"
-         "\n"
-         "Negative IWC trigger an error (unless robust=1, where IWC=0 is used\n"
-         "internally, hence dNdD=0 is returned).\n"
-         "Negative temperatures always trigger an error, temperatures >280K\n"
-         "are only accepted if robust=1.\n"
-         "For temperatures >273.15K (=0C), the distribution is evaluated\n"
-         "assuming T=273.15K.\n"
-         ), */
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "DOAngularGridsSet" ),
@@ -10783,7 +10760,7 @@ void define_md_data_raw()
          "*particle_bulkprop_field* is checked to have non-zero elements just\n"
          "inside the cloudbox.\n"
          ),
-        AUTHORS( "Jana Mendrok and Patrick Eriksson" ),
+        AUTHORS( "Patrick Eriksson, Jana Mendrok" ),
         OUT( "pnd_field", "dpnd_field_dx" ),
         GOUT(),
         GOUT_TYPE(),
@@ -11731,8 +11708,17 @@ void define_md_data_raw()
          "derivates with respect to independent variables x by *dpnd_data_dx_names*\n"
          "over multiple particle sizes and atmospheric levels (or SWC/T\n"
          "combinations).\n"
+         "\n"
+         "*psd_size_grid* is considered to be in terms of maximum diameter.\n"
+         "SWC is considered to be in terms of mass content (or mass density),\n"
+         "ie. units of [kg/m3]. Temperature is supposed to be in K."
+         "\n"
          "Derivatives are obtained by SWC perturbation of 0.1%, but not less\n"
          "than 0.1 mg/m3.\n"
+         "\n"
+         "Both, parametrization for tropics and midlatitudes are handled,\n"
+         "governed by setting of *regime*, where \"TR\" selectes the tropical\n"
+         "case, and \"ML\" the idlatitude one.\n"
          "\n"
          "Requirements:\n"
          "\n"
@@ -11744,18 +11730,36 @@ void define_md_data_raw()
          "The validity range of SWC is not limited. Negative SWC will produce\n"
          "negative psd values following a distribution given by abs(SWC), ie.\n"
          "abs(psd)=f(abs(SWC)).\n"
+         "\n"
          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
          "picky=0, or an error is thrown if picky=1.\n"
-         "For temperatures below 210K or above 273.15K, the size distribution\n"
-         "follows the one for T=210K or T=273.15, respectively, if adjust_t=1.\n"
+         "For temperatures below *t_min_psd*, the size distribution is\n"
+         "calculated for T = *t_min_psd*. Likewise, for temperatures above\n"
+         "*t_max_psd*, the distribution is derived for T = *t_max_psd*.\n"
+         "That is, these temperature limits (can) create 5 different psd\n"
+         "calculation regions:\n"
+         "\n"
+         "<--0--|--f(*t_min_psd*)--|--f(T)--|--f(*t_max_psd*)--|--0-->\n"
+         "   *t_min*        *t_min_psd*  *t_max_psd*        *t_max*\n"
+         "\n"
+         "Defaults of *t_min_psd* and *t_max_psd* were set considering that\n"
+         "the parametrization has been derived from measurements over\n"
+         "temperatures of -60C to 0C."
          "\n"
          "If picky, checks of the sanity of the mass-dimension relationship\n"
          "are performed. Errors are thrown if:\n"
          "- Mass-dimension relation exponent *beta* is outside\n"
          "  [*beta_min*, *beta_max*].\n"
+/*
          "- Minimum density (ie that resulting from a solid sphere of\n"
          "  diameter according to *psd_size_grid*) of a particle exceeds the\n"
          "  density of ice by more than a factor of *density_deviation*.\n"
+*/
+         "\n"
+         "Backward compatability note: reproducing F07 for IWC>=0 from\n"
+         "*pnd_fieldCalcFromscat_speciesFields* can be ensured with\n"
+         "practically switching off the temperature limits, e.g.\n"
+         "*t_min*=-999., *t_max*=999., *t_min_psd*=-999., *t_max_psd*=999.\n"
         ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "psd_data", "dpsd_data_dx" ),
@@ -11764,24 +11768,29 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "psd_size_grid", "pnd_agenda_input", "pnd_agenda_input_names",
             "dpnd_data_dx_names" ),
-        GIN(         "regime", "alpha",   "beta",    "t_min",   "t_max",
-                     "beta_min", "beta_max", "density_deviation", "adjust_t", "picky" ),
-        GIN_TYPE(    "String", "Numeric", "Numeric", "Numeric", "Numeric",
-                     "Numeric",  "Numeric",  "Numeric",           "Index",    "Index" ),
-        GIN_DEFAULT( NODEF,    NODEF,     NODEF,     "0",       "273.15",
-                     "0",        "4",        "0.2",               "1",        "0" ),
+        GIN(         "regime", "alpha",   "beta",
+                     "t_min",   "t_max",   "t_min_psd", "t_max_psd",
+                     "beta_min", "beta_max", "picky" ),
+        GIN_TYPE(    "String", "Numeric", "Numeric",
+                     "Numeric", "Numeric", "Numeric",   "Numeric",
+                     "Numeric",  "Numeric",  "Index" ),
+        GIN_DEFAULT( NODEF,    NODEF,     NODEF,
+                     "0",       "290.",    "200.",      "273.15",
+                     "0",        "4",        "0" ),
         GIN_DESC( "Parametrization regime (\"TR\"=tropical or \"ML\"=midlatitude).",
                   "Mass-dimension relationship scaling factor [kg].",
                   "Mass-dimension relationship exponent [-].",
-                  "Set *psd* to zero (or fail) if below this temperature.",
-                  "Set *psd* to zero (or fail) if above this temperature.",
-                  "Fail if *beta* is below this value (only if picky).",
-                  "Fail if *beta* is above this value (only if picky).",
+                  "Low temperature limit to calculate a psd.",
+                  "High temperature limit to calculate a psd.",
+                  "Low temperature limit to use as paramtrization temperature.",
+                  "High temperature limit to use as paramtrization temperature.",
+                  "Low *beta* limit (only if picky).",
+                  "High *beta* limit (only if picky).",
+/*
                   "Fail if particle minimum density exceeds ice density by this"
                   " fraction (only if picky).",
-                  "Flag whether to adjust parametrization temperature to be"
-                  " within [210.,273.15]K.",
-                  "Flag whether to ignore parametrization value checks." )
+*/
+                  "Flag whether to be strict with parametrization value checks." )
         ));
  
   md_data_raw.push_back
@@ -11798,6 +11807,12 @@ void define_md_data_raw()
          "derivates with respect to independent variables x by *dpnd_data_dx_names*\n"
          "over multiple particle sizes and atmospheric levels (or IWC/T\n"
          "combinations).\n"
+         "\n"
+         "*psd_size_grid* is considered to be in terms of volume (or mass)\n"
+         "equivalent diameter.\n"
+         "IWC is considered to be in terms of mass content (or mass density),\n"
+         "ie. units of [kg/m3]. Temperature is supposed to be in K."
+         "\n"
          "Derivatives are obtained by IWC perturbation of 0.1%, but not less\n"
          "than 0.1 mg/m3.\n"
          "\n"
@@ -11811,13 +11826,28 @@ void define_md_data_raw()
          "The validity range of IWC is not limited. Negative IWC will produce\n"
          "negative psd values following a distribution given by abs(IWC), ie.\n"
          "abs(psd)=f(abs(IWC)).\n"
+         "\n"
          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
          "picky=0, or an error is thrown if picky=1.\n"
-         "For temperatures below 200K or above 273.15K, the size distribution\n"
-         "follows the one for T=200K or T=273.15, respectively.\n"
+         "For temperatures below *t_min_psd*, the size distribution is\n"
+         "calculated for T = *t_min_psd*. Likewise, for temperatures above\n"
+         "*t_max_psd*, the distribution is derived for T = *t_max_psd*.\n"
+         "That is, these temperature limits (can) create 5 different psd\n"
+         "calculation regions:\n"
+         "\n"
+         "<--0--|--f(*t_min_psd*)--|--f(T)--|--f(*t_max_psd*)--|--0-->\n"
+         "   *t_min*        *t_min_psd*  *t_max_psd*        *t_max*\n"
+         "\n"
+         "Defaults of *t_min_psd* and *t_max_psd* were set considering that\n"
+         "the parametrization has been derived from measurements over\n"
+         "temperatures of -70C to -20C."
          "\n"
          "The noisy option can not be used together with calculation of\n"
          "derivatives (ie. when *dpnd_data_dx_names* is not empty).\n"
+         "\n"
+         "Backward compatability note: reproducing MH97 for IWC>=0 from\n"
+         "*pnd_fieldCalcFromscat_speciesFields* can be ensured with\n"
+         "*t_min*=0., *t_max*=280., *t_min_psd*=0., *t_max_psd*=273.15.\n"
         ),
         AUTHORS( "Patrick Eriksson, Jana Mendrok" ),
         OUT( "psd_data", "dpsd_data_dx" ),
@@ -11826,14 +11856,17 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "psd_size_grid", "pnd_agenda_input", "pnd_agenda_input_names",
             "dpnd_data_dx_names" ),
-        GIN(         "t_min",   "t_max",   "adjust_tlow", "picky", "noisy" ),
-        GIN_TYPE(    "Numeric", "Numeric", "Index",       "Index", "Index" ),
-        GIN_DEFAULT( "0",       "273.15",  "1",           "0",     "0" ),
-        GIN_DESC( "Set *psd* to zero (or fail) if below this temperature.",
-                  "Set *psd* to zero (or fail) if above this temperature.",
-                  "Flag whether to adjust parametrization temperature to be"
-                  " within [210.,273.15]K.",
-                  "Flag whether to ignore parametrization value checks.",
+        GIN(         "t_min",   "t_max",   "t_min_psd", "t_max_psd",
+                     "picky", "noisy" ),
+        GIN_TYPE(    "Numeric", "Numeric", "Numeric",   "Numeric",
+                     "Index", "Index" ),
+        GIN_DEFAULT( "0",       "280.",    "180.",      "273.15",
+                     "0",     "0" ),
+        GIN_DESC( "Low temperature limit to calculate a psd.",
+                  "High temperature limit to calculate a psd.",
+                  "Low temperature limit to use as paramtrization temperature.",
+                  "High temperature limit to use as paramtrization temperature.",
+                  "Flag whether to be strict with parametrization value checks.",
                   "Distribution parameter perturbance flag" )
         ));
  
@@ -11850,6 +11883,13 @@ void define_md_data_raw()
          "Produces the particle size distribution values (dN/dD) and their\n"
          "derivates with respect to independent variables x by *dpnd_data_dx_names*\n"
          "over multiple particle sizes and atmospheric levels (RWCs).\n"
+         "\n"
+         "Particles are assumed to be near-spherical, ie. *psd_size_grid* can\n"
+         "either be in terms of volume (or mass) equivalent diameter or\n"
+         "maximum diameter.\n"
+         "RWC is considered to be in terms of mass content (or mass density),\n"
+         "ie. units of [kg/m3]."
+         "\n"
          "Derivatives are obtained by RWC perturbation of 0.1%, but not less\n"
          "than 0.1 mg/m3.\n"
          "\n"

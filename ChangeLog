@@ -1,3 +1,18 @@
+2017-06-22 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-735
+
+	* src/m_cloudbox.cc (psdMH97, psdF07):
+	Added parametrization-T adjustment limits as user parameters.
+
+	* src/methods.cc (psdMH97, psdF07, psdW16):
+	Adapted to changes above. Adapted/improved built-in doc.
+
+	* src/cloudbox.cc (psd_cloudice_MH97, psd_snow_F07):
+	Removed Tc<0 requirement since math is sufficiently stable also for
+	positive T. Removed final isnan check (NaN cases should be avoided
+	before).
+
 2017-06-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-734

@@ -3029,58 +3029,6 @@ void psd_general_MGD ( Vector& psd,
 }
 
 
-/*! Calculates particle size distribution of (stratiform) rain using Wang16
- *  parametrization.
- *  
- *  Uses rain water water content. PSD follows an exponential distribution.
- *  Handles a vector of sizes at a time.
- *  
- *  Reference: Wang et al., 2016, "Investigation of liquid cloud microphysical
- *  properties of deep convective systems: 1. Parameterization raindrop size
- *  distribution and its application for stratiform rain estimation".
- *  Ported from CloudArts matlab implementation.
-
-    \param psd     particle number density per size interval [#/m3*m]
-    \param diameter  size of the scattering elements (volume equivalent
-                       diameter) [m]
-    \param rwc     atmospheric rain water content [kg/m3]
-  
-  \author Jana Mendrok, Bengt Rydberg
-  \date 2017-06-07
-
-*/
-void psd_rain_W16 ( Vector& psd,
-                   const Vector& diameter,
-                   const Numeric& rwc )
-{
-  Index nD = diameter.nelem();
-  psd.resize(nD);
-  psd = 0.;
-
-  // skip calculation if RWC is 0.0
-  if ( rwc == 0.0 )
-  {
-    return;
-  }
-  assert (rwc>0.);
-
-  // a and b relates N0 to lambda N0 = a*lambda^b
-  Numeric a = 0.000141;
-  Numeric b = 1.49;
-  Numeric c1 = DENSITY_OF_WATER * PI / 6;
-  Numeric base = c1 / rwc * a * tgamma(4);
-  Numeric exponent = 1. / (4 - b);
-  Numeric lambda = 1e2 * pow( base, exponent );
-  Numeric N0 = 1e8 * a * pow( lambda, b );
-
-  //psd_general_MGD( psd, N0, 0, lambda, 1 );
-  for( Index iD=0; iD<nD; iD++ )
-    {
-      psd[iD] = N0 * exp( -lambda*diameter[iD] );
-    }
-}
-
-
 /*! Calculates particle size distribution of cloud ice using MH97 parametrization.
  *  
  *  Handles a vector of sizes at a time. Implicitly assumes particles of water
@@ -3123,9 +3071,7 @@ void psd_cloudice_MH97 ( Vector& psd,
   for ( Index iD=0; iD<nD; iD++ )
     d_um[iD] = 1e6 * diameter[iD];
   //convert T from Kelvin to Celsius
-  Numeric T = t-273.15;
-
-  assert (T<=0.);
+  Numeric Tc = t-273.15;
 
   //[kg/m3] -> [g/m3] as used by parameterisation
   Numeric ciwc = iwc*1e3;
@@ -3166,22 +3112,28 @@ void psd_cloudice_MH97 ( Vector& psd,
     sig_bbsigma = ran_gaussian(rng,sig_bbsigma);
   }
 
-  //split IWC in IWCs100 and IWCl100
-  // determine iwc<100um and iwc>100um
+  // Split IWC in small and large size modes
+
+  // Calculate IWC in each mode
   Numeric a=0.252+sig_a; //g/m^3
   Numeric b1=0.837+sig_b1;
   Numeric IWCs100=min ( ciwc,a*pow ( ciwc,b1 ) );
   Numeric IWCl100=ciwc-IWCs100;
 
 
-  //Gamma distribution component
+  // Gamma distribution component (small mode)
 
   Numeric b2=-4.99e-3+sig_b2; //micron^-1
   Numeric m=0.0494+sig_m; //micron^-1
   Numeric alphas100=b2-m*log10 ( IWCs100 ); //micron^-1
-  // for large IWC alpha, hence dNdD1, goes negative. avoid that.
-  // towards this limit, particles anyway get larger 100um, i.e.,
-  // outside the size region gamma distrib is intended for
+
+  // alpha, and hence dNdD1, becomes NaN if IWC>0.
+  // this should be ensured to not happen before.
+  //
+  // alpha, and hence dNdD1, becomes negative for large IWC.
+  // towards this limit, particles anyway get larger than 100um, i.e., outside
+  // the size region the small-particle mode gamma distrib is intended for.
+  // hence, leave dNdD1 at 0 for those cases.
   Vector dNdD1(nD, 0.);
   if (alphas100>0.)
   {
@@ -3193,7 +3145,7 @@ void psd_cloudice_MH97 ( Vector& psd,
   }
 
 
-  //Log normal distribution component
+  // Log normal distribution component (large mode)
 
   // for small IWC, IWCtotal==IWC<100 & IWC>100=0.
   // this will give dNdD2=NaN. avoid that by explicitly setting to 0
@@ -3206,16 +3158,16 @@ void psd_cloudice_MH97 ( Vector& psd,
     Numeric bamu=0.0013+sig_bamu;
     Numeric abmu=0.026+sig_abmu;
     Numeric bbmu=-1.2e-3+sig_bbmu;
-    Numeric amu=aamu+bamu*T;
-    Numeric bmu=abmu+bbmu*T;
+    Numeric amu=aamu+bamu*Tc;
+    Numeric bmu=abmu+bbmu*Tc;
     Numeric mul100=amu+bmu*log10 ( IWCl100 );
 
     Numeric aasigma=0.47+sig_aasigma;
     Numeric basigma=2.1e-3+sig_basigma;
     Numeric absigma=0.018+sig_absigma;
     Numeric bbsigma=-2.1e-4+sig_bbsigma;
-    Numeric asigma=aasigma+basigma*T;
-    Numeric bsigma=absigma+bbsigma*T;
+    Numeric asigma=aasigma+basigma*Tc;
+    Numeric bsigma=absigma+bbsigma*Tc;
     Numeric sigmal100=asigma+bsigma*log10 ( IWCl100 );
 
     if ( (mul100>0.) & (sigmal100>0.) )
@@ -3234,7 +3186,10 @@ void psd_cloudice_MH97 ( Vector& psd,
 
   for( Index iD=0; iD<nD; iD++ )
     {
-      if ( !isnan(dNdD1[iD]) && !isnan(dNdD2[iD]) )
+      // FIXME: Do we still need this check here? Non-NaN of each mode should
+      // now be ensure by the checks/if-loops for each of the modes separately.
+      // I, JM, think (and hope).
+      //if ( !isnan(dNdD1[iD]) && !isnan(dNdD2[iD]) )
         psd[iD] = ( dNdD1[iD]+dNdD2[iD] ) *1e6; // m^-3 m^-1
     }
 }
@@ -3286,7 +3241,8 @@ void psd_snow_F07 ( Vector& psd,
   Numeric An, Bn, Cn;
   Numeric M2, Mn, M2Mn;
   Numeric base, pp;
-  Numeric x, phi23, dN;
+  Numeric x, phi23;
+  //Numeric dN;
 
   Vector q(5);
 
@@ -3343,10 +3299,68 @@ void psd_snow_F07 ( Vector& psd,
       phi23 = q[0]*exp(q[1]*x)+q[2]*pow(x,q[3])*exp(q[4]*x);
     
       // distribution function
-      dN = phi23*M2Mn;
+      //dN = phi23*M2Mn;
 
-      if ( !isnan(psd[iD]) )
-        psd[iD] = dN;
+      //if ( !isnan(psd[dN]) )
+      //  psd[iD] = dN;
+
+      // set psd directly. Non-NaN should be (and is, hopefully) ensured by
+      // checks above (if we encounter further NaN, that should e handled above.
+      // which intermediate quantities make problems? at which parametrisation
+      // values, ie WC, T, alpha, beta?).
+      psd[iD] = phi23*M2Mn;
+    }
+}
+
+
+/*! Calculates particle size distribution of (stratiform) rain using Wang16
+ *  parametrization.
+ *  
+ *  Uses rain water water content. PSD follows an exponential distribution.
+ *  Handles a vector of sizes at a time.
+ *  
+ *  Reference: Wang et al., 2016, "Investigation of liquid cloud microphysical
+ *  properties of deep convective systems: 1. Parameterization raindrop size
+ *  distribution and its application for stratiform rain estimation".
+ *  Ported from CloudArts matlab implementation.
+
+    \param psd     particle number density per size interval [#/m3*m]
+    \param diameter  size of the scattering elements (volume equivalent
+                       diameter) [m]
+    \param rwc     atmospheric rain water content [kg/m3]
+  
+  \author Jana Mendrok, Bengt Rydberg
+  \date 2017-06-07
+
+*/
+void psd_rain_W16 ( Vector& psd,
+                   const Vector& diameter,
+                   const Numeric& rwc )
+{
+  Index nD = diameter.nelem();
+  psd.resize(nD);
+  psd = 0.;
+
+  // skip calculation if RWC is 0.0
+  if ( rwc == 0.0 )
+  {
+    return;
+  }
+  assert (rwc>0.);
+
+  // a and b relates N0 to lambda N0 = a*lambda^b
+  Numeric a = 0.000141;
+  Numeric b = 1.49;
+  Numeric c1 = DENSITY_OF_WATER * PI / 6;
+  Numeric base = c1 / rwc * a * tgamma(4);
+  Numeric exponent = 1. / (4 - b);
+  Numeric lambda = 1e2 * pow( base, exponent );
+  Numeric N0 = 1e8 * a * pow( lambda, b );
+
+  //psd_general_MGD( psd, N0, 0, lambda, 1 );
+  for( Index iD=0; iD<nD; iD++ )
+    {
+      psd[iD] = N0 * exp( -lambda*diameter[iD] );
     }
 }
 
