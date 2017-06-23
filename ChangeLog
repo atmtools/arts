@@ -1,3 +1,11 @@
+2017-06-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-737
+
+	* CMakeLists.txt:
+
+	Do not disable OEM by default when using clang anymore.
+
 2017-06-23 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-736
