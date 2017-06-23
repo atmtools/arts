@@ -116,10 +116,10 @@ auto Vector<Base>::ElementIterator::operator*()
 }
 
 template<typename Base>
-auto Vector<Base>::ElementIterator::operator++()
-    -> RealType &
+typename Vector<Base>::ElementIterator & Vector<Base>::ElementIterator::operator++()
 {
-    k++;
+    ++k;
+    return *this;
 }
 
 template<typename Base>

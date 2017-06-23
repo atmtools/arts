@@ -233,7 +233,7 @@ public:
     ElementIterator(VectorType* v_, unsigned int k);
 
     RealType& operator*();
-    RealType& operator++();
+    typename Vector<Base>::ElementIterator & operator++();
     bool operator!=(ElementIterator it);
 
 private:

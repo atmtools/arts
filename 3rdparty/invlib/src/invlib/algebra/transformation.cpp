@@ -78,7 +78,7 @@ auto Transformation<T1, Transform>::operator*(T2 &&B) const
 }
 
 template <typename T1>
-constexpr auto Identity::apply(T1 &&t)
+constexpr auto Identity::apply(T1 &&t) const
     -> decltype(std::forward<T1>(t))
 {
     return std::forward<T1>(t);

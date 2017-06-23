@@ -5,6 +5,8 @@
 #include <utility>
 
 #include "invlib/traits.h"
+#include "invlib/dense/vector_data.h"
+#include "invlib/sparse/sparse_data.h"
 
 namespace invlib {
 
@@ -42,7 +44,7 @@ public:
     template
     <
     typename T,
-    typename = invlib::enable_if<invlib::is_constructible<EigenVectorBase, T>>
+    typename = disable_if<is_invlib_expression<T>>
     >
     EigenVector(T &&t)
         : EigenVectorBase(std::forward<T>(t))
@@ -91,7 +93,7 @@ public:
 
     EigenVector get_block(unsigned int start, unsigned int extent) const
     {
-        return this->block((int) start, 0, (int) extent, 1);
+        return EigenVector(this->block((int) start, 0, (int) extent, 1));
     }
 
     RealType * data_pointer()
@@ -172,12 +174,10 @@ public:
     //  Constructors  //
     // -------------- //
 
-    EigenSparse() = default;
-
     template
     <
     typename T,
-    typename = invlib::enable_if<invlib::is_constructible<BaseType, T>>
+    typename = invlib::disable_if<is_invlib_expression<T>>
     >
     EigenSparse(T &&t)
         : EigenSparseBase(std::forward<T>(t))

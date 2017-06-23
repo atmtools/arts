@@ -128,7 +128,7 @@ public:
     * \brief Apply identity.
     */
     template <typename T1>
-    constexpr auto apply(T1 &&t)
+    constexpr auto apply(T1 &&t) const
         -> decltype(std::forward<T1>(t));
 
 };

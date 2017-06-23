@@ -1,3 +1,11 @@
+2017-06-23 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-736
+
+	* 3rdparty/invlib/*: invlib update which fixes compile error
+	with llvm libc++ and warnings encountered when building
+	with clang++.
+
 2017-06-22 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-735

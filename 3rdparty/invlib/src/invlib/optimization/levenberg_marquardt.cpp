@@ -262,7 +262,6 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
     {
         // Compute step.
         auto C = B + lambda * D;
-
         try {
             dx = -1.0 * s.solve(C, g);
         } catch(...) {
@@ -272,8 +271,6 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
                     )
                 );
         }
-
-        dx = -1.0 * s.solve(C, g);
         VectorType xnew = x + dx;
 
         // Compute model accuracy.

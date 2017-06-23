@@ -107,17 +107,12 @@ private:
 public:
 
     /*! The type of the gradient vector as returned by the forward model. */
-    using FMVectorType =
-        return_type<decltype(&MAPBase::evaluate_helper)(MAPBase,
-                                                        ForwardModel&,
-                                                        const VectorType &)>;
+    using FMVectorType = decltype(std::declval<ForwardModel>().evaluate(std::declval<VectorType>()));
 
     /*! The type of the Jacobian matrix as returned by the forward model. */
-    using FMJacobianType =
-        return_type<decltype(&MAPBase::Jacobian_helper)(MAPBase,
-                                                        ForwardModel &,
-                                                        const VectorType &,
-                                                        VectorType &)>;
+    using FMJacobianType = decltype(std::declval<ForwardModel>().Jacobian(
+                                        std::declval<VectorType>(),
+                                        std::declval<VectorType&>()));
 
     /*! Measurement vector type that can be assigned to. */
     using MeasurementVectorType = CopyWrapper<FMVectorType>;

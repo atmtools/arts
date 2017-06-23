@@ -201,7 +201,7 @@ public:
      * \return The dot product \f$ \sum_{i=1}^n v_i w_i \f$ of the
      * two given vectors.
      */
-    friend RealType dot<>(const VectorArchetype&, const VectorArchetype&);
+    friend RealType dot<RealType>(const VectorArchetype&, const VectorArchetype&);
 
     /*! Euclidean norm of a vector.
     *
@@ -211,7 +211,7 @@ public:
 
 private:
 
-    unsigned int n;
+    unsigned int n = 0;
     std::unique_ptr<RealType[]> data;
 
 };

@@ -143,12 +143,12 @@ auto Matrix<Base>::ElementIterator::operator*()
 }
 
 template<typename Base>
-auto Matrix<Base>::ElementIterator::operator++()
-    -> RealType&
+typename Matrix<Base>::ElementIterator& Matrix<Base>::ElementIterator::operator++()
 {
     k++;
     i = k / n;
     j = k % n;
+    return *this;
 }
 
 template<typename Base>

@@ -22,6 +22,7 @@ MatrixArchetype<Real>& MatrixArchetype<Real>::operator=(const MatrixArchetype &A
 
     data = std::unique_ptr<Real[]>(new Real[m * n]);
     std::copy(&A.data[0], &A.data[n*m], &data[0]);
+    return * this;
 }
 
 template <typename Real>
@@ -31,6 +32,7 @@ MatrixArchetype<Real>& MatrixArchetype<Real>::operator=(MatrixArchetype &&A)
     n = A.cols();
     data = std::move(A.data);
     A.resize(0, 0);
+    return * this;
 }
 
 template <typename Real>

@@ -244,7 +244,7 @@ public:
     ElementIterator(MatrixType* M_, unsigned int i, unsigned int j);
 
     RealType& operator*();
-    RealType& operator++();
+    ElementIterator & operator++();
 
     bool operator!=(ElementIterator it);
 
