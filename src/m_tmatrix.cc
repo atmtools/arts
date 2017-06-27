@@ -28,7 +28,6 @@
 #include <stdexcept>
 #include "check_input.h"
 #include "logic.h"
-#include "make_array.h"
 #include "math_funcs.h"
 #include "messages.h"
 #include "refraction.h"

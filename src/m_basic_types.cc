@@ -58,7 +58,6 @@
 #include "matpackVII.h"
 #include "mystring.h"
 #include "exceptions.h"
-#include "make_array.h"
 #include "math_funcs.h"
 #include "messages.h"
 #include "lin_alg.h"

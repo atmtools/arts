@@ -18,7 +18,6 @@
 
 #include "rational.h"
 #include <cmath>
-#include "make_array.h"
 
 Numeric wigner3j(const Rational j1,const Rational j2,const Rational j3,
                  const Rational m1,const Rational m2,const Rational m3);

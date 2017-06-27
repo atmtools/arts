@@ -36,7 +36,6 @@
 */
 
 #include "arts.h"
-#include "make_array.h"
 #include "absorption.h"
 
 /*! The lookup information for all the different species. */
@@ -51,9 +50,9 @@ using global_data::species_data;
 //@{ 
 #define NAME(x) x                               
 #define DEGFR(x) x                              
-#define ISOTOPOLOGUES MakeArray<IsotopologueRecord>
+#define ISOTOPOLOGUES(...) {__VA_ARGS__}
 #define REC           IsotopologueRecord
-#define TAGS          MakeArray<Index>
+#define TAGS(...) {__VA_ARGS__}
 //@} 
 
 

@@ -33,8 +33,8 @@
 // Some #defines and typedefs to make the records better readable:
 #define NAME(x) x 
 #define DESCRIPTION(x) x
-#define OUTPUT   MakeArray<String>
-#define INPUT    MakeArray<String>
+#define OUTPUT(...)   {__VA_ARGS__}
+#define INPUT(...)    {__VA_ARGS__}
 
 /*! The lookup information for the agendas. */
 namespace global_data {

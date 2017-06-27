@@ -30,7 +30,6 @@
 
 #include <iosfwd>
 #include "messages.h"
-#include "make_array.h"
 #include "matpackI.h"
 
 #define NODEF "@@THIS_KEYWORD_HAS_NO_DEFAULT_VALUE@@"
@@ -66,23 +65,23 @@ public:
   {}
 
   // Initializing constructor. Implementation in methods_aux.cc.
-  MdRecord(const char                   name[],
-           const char                   description[],
-           const MakeArray<String>&     authors,
-           const MakeArray<String>&     output,
-           const MakeArray<String>&     gout,
-           const MakeArray<String>&     gouttype,
-           const MakeArray<String>&     goutdesc,
-           const MakeArray<String>&     input,   
-           const MakeArray<String>&     gin,
-           const MakeArray<String>&     gintype,   
-           const MakeArray<String>&     gindefault _U_,
-           const MakeArray<String>&     gindesc,
-           bool                         set_method      = false,
-           bool                         agenda_method   = false,
-           bool                         uses_templates  = false,
-           bool                         pass_workspace  = false,
-           bool                         pass_wsv_names  = false
+  MdRecord(const char           name[],
+           const char           description[],
+           const ArrayOfString& authors,
+           const ArrayOfString& output,
+           const ArrayOfString& gout,
+           const ArrayOfString& gouttype,
+           const ArrayOfString& goutdesc,
+           const ArrayOfString& input,
+           const ArrayOfString& gin,
+           const ArrayOfString& gintype,
+           const ArrayOfString& gindefault _U_,
+           const ArrayOfString& gindesc,
+           bool                 set_method      = false,
+           bool                 agenda_method   = false,
+           bool                 uses_templates  = false,
+           bool                 pass_workspace  = false,
+           bool                 pass_wsv_names  = false
            );
 
   // Methods returning the lookup information:

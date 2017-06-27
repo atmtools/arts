@@ -33,7 +33,6 @@
 #include "matpackI.h"
 #include "array.h"
 #include "mystring.h"
-#include "make_array.h"
 #include "messages.h"
 #include "abs_species_tags.h"
 #include "linerecord.h"
@@ -330,12 +329,12 @@ public:
   { /* Nothing left to do here. */ }
 
   /** Constructor that sets the values. */
-  IsotopologueRecord(const String&           name,
-                const Numeric&          abundance,
-                const Numeric&          mass,
-                const Index&            mytrantag,
-                const Index&            hitrantag,
-                const MakeArray<Index>& jpltags) :
+  IsotopologueRecord(const String&  name,
+                     const Numeric&      abundance,
+                     const Numeric&      mass,
+                     const Index&        mytrantag,
+                     const Index&        hitrantag,
+                     const ArrayOfIndex& jpltags) :
     mname(name),
     mabundance(abundance),
     mmass(mass),
@@ -495,7 +494,7 @@ public:
   /** The constructor used in define_species_data. */
   SpeciesRecord(const char name[],
                 const Index degfr,
-                const MakeArray<IsotopologueRecord>& isotopologue)
+                const Array<IsotopologueRecord>& isotopologue)
     : mname(name),
       mdegfr(degfr),
       misotopologue(isotopologue)

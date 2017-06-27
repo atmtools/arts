@@ -344,7 +344,7 @@ void complex_refr_indexConstant(
   complex_refr_index.set_grid_name(1, "Temperature");
   complex_refr_index.set_grid(1, Vector(1,0) );
   complex_refr_index.set_grid_name(2, "Complex");
-  complex_refr_index.set_grid(2, MakeArray<String>("real", "imaginary"));
+  complex_refr_index.set_grid(2, {"real", "imaginary"});
   
   complex_refr_index.data(joker, joker, 0) = refr_index_real;
   complex_refr_index.data(joker, joker, 1) = refr_index_imag;
@@ -377,7 +377,7 @@ void complex_refr_indexWaterLiebe93(
   complex_refr_index.set_grid_name( 1, "Temperature" );
   complex_refr_index.set_grid( 1, t_grid );
   complex_refr_index.set_grid_name( 2, "Complex" );
-  complex_refr_index.set_grid( 2, MakeArray<String>("real", "imaginary") );
+  complex_refr_index.set_grid( 2, {"real", "imaginary"} );
 
   Matrix complex_n;
   for (Index t = 0; t < nt; ++t)
@@ -416,7 +416,7 @@ void complex_refr_indexIceMatzler06(
   complex_refr_index.set_grid_name( 1, "Temperature" );
   complex_refr_index.set_grid( 1, t_grid );
   complex_refr_index.set_grid_name( 2, "Complex" );
-  complex_refr_index.set_grid( 2, MakeArray<String>("real", "imaginary") );
+  complex_refr_index.set_grid( 2, {"real", "imaginary"} );
 
   Matrix complex_n;
   for (Index i_t = 0; i_t < nt; ++i_t)
@@ -457,7 +457,7 @@ void complex_refr_indexIceWarren84(
     complex_refr_index.set_grid_name(1, "Temperature");
     complex_refr_index.set_grid(1, t_grid);
     complex_refr_index.set_grid_name(2, "Complex");
-    complex_refr_index.set_grid(2, MakeArray<String>("real", "imaginary"));
+    complex_refr_index.set_grid(2, {"real", "imaginary"});
 
     Complex n;
 /*#pragma omp parallel for                 \

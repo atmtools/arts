@@ -99,8 +99,7 @@ typedef Array<Tensor7> ArrayOfTensor7;
     Vector.
 
     Because constructors are not inherited, I have to re-define all
-    costructors. In addition to the constructors here, explicit
-    constructors are provided by the derived class MakeArray.
+    constructors.
 */
 template<class base>
 class Array : public std::vector<base>
@@ -111,6 +110,7 @@ public:
   explicit Array(Index n)     : std::vector<base>(n) { /* Nothing to do here. */ }
   Array(Index n, const base& fillvalue);
   Array(const Array<base>& A) : std::vector<base>(A) { /* Nothing to do here. */ }
+  Array(std::initializer_list<base> init) : std::vector<base>(init) { /* Nothing to do here. */ }
 
   // Assignment operators:
   Array& operator=(base x);

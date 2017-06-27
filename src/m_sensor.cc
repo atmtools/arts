@@ -232,7 +232,7 @@ void antenna_responseGaussian(GriddedField4&   r,
   r.set_name( "Antenna response" );
 
   r.set_grid_name( 0, "Polarisation" );
-  r.set_grid( 0, MakeArray<String>( "NaN" ) ); 
+  r.set_grid( 0, {"NaN"} );
 
   r.set_grid_name( 1, "Frequency" );
   r.set_grid( 1, Vector(1,-999) );
@@ -285,7 +285,7 @@ void antenna_responseVaryingGaussian(
   r.set_name( "Antenna response" );
 
   r.set_grid_name( 0, "Polarisation" );
-  r.set_grid( 0, MakeArray<String>( "NaN" ) ); 
+  r.set_grid( 0, {"NaN"} );
 
   r.set_grid_name( 3, "Azimuth angle" );
   r.set_grid( 3, Vector(1,0) );

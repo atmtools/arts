@@ -39,7 +39,6 @@
 #include "file.h"
 #include "auto_md.h"
 #include "math_funcs.h"
-#include "make_array.h"
 #include "make_vector.h"
 #include "global_data.h"
 #include "physics_funcs.h"
@@ -698,10 +697,10 @@ void abs_lines_per_speciesReadFromCatalogues(// WS Output:
   // real catalogues, along with a data structure that tells us which
   // tag groups should use this catalogue.
 
-  MakeArray<String>      real_filenames ( filenames[0] );
-  MakeArray<String>      real_formats   ( formats[0]   );
-  MakeArray<Numeric>     real_fmin      ( fmin[0]      );
-  MakeArray<Numeric>     real_fmax      ( fmax[0]      );
+  ArrayOfString real_filenames{filenames[0]};
+  ArrayOfString real_formats{formats[0]};
+  ArrayOfNumeric real_fmin{fmin[0]};
+  ArrayOfNumeric real_fmax{fmax[0]};
 
   Array< ArrayOfIndex > real_tgs(1);
   real_tgs[0].resize(1);
@@ -749,7 +748,7 @@ void abs_lines_per_speciesReadFromCatalogues(// WS Output:
             {
               // No, it has not been specified before.
               // ==> Add an entry to real_tgs and the other real_ variables:
-              real_tgs.push_back( MakeArray<Index>(i) );
+              real_tgs.push_back({i});
 
               real_filenames.push_back( filenames[i] );
               real_formats.push_back  ( formats[i]   );  

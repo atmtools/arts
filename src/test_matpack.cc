@@ -22,7 +22,6 @@
 #include "exceptions.h"
 #include <iostream>
 #include "logic.h"
-#include "make_array.h"
 #include "make_vector.h"
 #include "math_funcs.h"
 #include "matpackII.h"
@@ -310,9 +309,9 @@ void test13()
 void test14()
 {
   // Test explicit Array constructors.
-  Array<String> a = MakeArray<String>("Test");
-  Array<Index>  b = MakeArray<Index>(1,2);
-  Array<Numeric> c = MakeArray<Numeric>(1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0);
+  Array<String> a = {"Test"};
+  Array<Index>  b = {1,2};
+  Array<Numeric> c = {1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0};
   cout << "a = \n" << a << "\n";
   cout << "b = \n" << b << "\n";
   cout << "c = \n" << c << "\n";
@@ -428,7 +427,7 @@ void test24()
 void test25()
 {
   // Test min and max for Array:
-  MakeArray<Index> a(1,2,3,4,5,6,5,4,3,2,1);
+  Array<Index> a{1,2,3,4,5,6,5,4,3,2,1};
   cout << "min/max of a = " << min(a) << "/" << max(a) << "\n";
 }
 
@@ -889,8 +888,8 @@ void test45()
     //Rational j1=1,j2=1,j3=1,m1=0,m2=0,m3=0;
     //std::cout << "My function " << wigner3j(j1,j2,j3,m1,m2,m3)  << std::endl;
 /*
-    ArrayOfIndex a,b;
-    a=MakeArray<Index>(1,4,5);b=MakeArray<Index>(20,10,10);
+    ArrayOfIndex a{1,4,5};
+    ArrayOfIndex b{20,10,10};
     std::cout << "My factorials for nominators ["<<a<<" ] and denominators ["<<b<<" ]: " << factorials(a,b)  <<"." << std::endl;*/
 
 /*
@@ -908,10 +907,10 @@ void test45()
         std::cout << std::endl;
     }*/
 std::cout<<pow(0,0.3)<<std::endl;
-ArrayOfIndex N;N=MakeArray<Index>(1, 1, 3, 3, 5, 5, 7, 7, 9,  9, 11, 11, 13, 13, 15, 15, 17, 17, 19, 19, 21, 21, 23, 23, 25, 25, 27, 27, 29, 29,
-                                  31, 31, 33, 33, 35, 35, 37, 37);
-ArrayOfIndex J;J=MakeArray<Index>(0, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 18, 18, 20, 20, 22, 22, 24, 24, 26, 26, 28, 28, 30,
-                                  30, 32, 32, 34, 34, 36, 36, 38);
+ArrayOfIndex N{1, 1, 3, 3, 5, 5, 7, 7, 9,  9, 11, 11, 13, 13, 15, 15, 17, 17, 19, 19, 21, 21, 23, 23, 25, 25, 27, 27, 29, 29,
+               31, 31, 33, 33, 35, 35, 37, 37};
+ArrayOfIndex J{0, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 18, 18, 20, 20, 22, 22, 24, 24, 26, 26, 28, 28, 30,
+               30, 32, 32, 34, 34, 36, 36, 38};
 
     for(Index II = 0; II<N.nelem(); II++)
     {

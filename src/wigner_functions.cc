@@ -53,18 +53,18 @@ Numeric wigner3j(const Rational j1,const Rational j2,const Rational j3,
             else
             {
                 return ((((J/2)%2)==0)?(1.):(-1.)) * sqrt( factorials(
-                        MakeArray<Index>(       (J-2*j1).toIndex(),
-                                                (J-2*j2).toIndex(),
-                                                (J-2*j3).toIndex(),
-                                                (J/2).toIndex(),
-                                                (J/2).toIndex()),
-                        MakeArray<Index>(       (J+1).toIndex(),
-                                                (J/2-j1).toIndex(),
-                                                (J/2-j1).toIndex(),
-                                                (J/2-j2).toIndex(),
-                                                (J/2-j2).toIndex(),
-                                                (J/2-j3).toIndex(),
-                                                (J/2-j3).toIndex())));
+                        {(J-2*j1).toIndex(),
+                         (J-2*j2).toIndex(),
+                         (J-2*j3).toIndex(),
+                         (J/2).toIndex(),
+                         (J/2).toIndex()},
+                        {(J+1).toIndex(),
+                         (J/2-j1).toIndex(),
+                         (J/2-j1).toIndex(),
+                         (J/2-j2).toIndex(),
+                         (J/2-j2).toIndex(),
+                         (J/2-j3).toIndex(),
+                         (J/2-j3).toIndex()}));
             }
         }
     }// End of TEST Area
@@ -73,16 +73,16 @@ Numeric wigner3j(const Rational j1,const Rational j2,const Rational j3,
     
     // This is the first row of equation 32.2.4 on the webpage specified.
     const Numeric constant = ((((j1-j2-m3)%2)==0)?(1.):(-1.)) * sqrt(factorials(
-        MakeArray<Index>(       (+j1+j2-j3).toIndex(),
-                                (+j1-j2+j3).toIndex(),
-                                (-j1+j2+j3).toIndex(),
-                                (j1+m1).toIndex(), 
-                                (j1-m1).toIndex(), 
-                                (j2+m2).toIndex(),
-                                (j2-m2).toIndex(), 
-                                (j3+m3).toIndex(), 
-                                (j3-m3).toIndex()), 
-        MakeArray<Index>(       (J+1).toIndex())));
+                              {(+j1+j2-j3).toIndex(),
+                               (+j1-j2+j3).toIndex(),
+                               (-j1+j2+j3).toIndex(),
+                               (j1+m1).toIndex(),
+                               (j1-m1).toIndex(),
+                               (j2+m2).toIndex(),
+                               (j2-m2).toIndex(),
+                               (j3+m3).toIndex(),
+                               (j3-m3).toIndex()},
+                              {(J+1).toIndex()}));
     
     Numeric sum=0; Rational s=0;
         
@@ -95,13 +95,13 @@ Numeric wigner3j(const Rational j1,const Rational j2,const Rational j3,
                 (j3-j1-m2+s).toIndex() >= 0 )
         {
             sum += ((((s)%2)==0)?(1.):(-1.)) * factorials(
-                MakeArray<Index>(   1),
-                MakeArray<Index>(   s.toIndex(),
-                                    (j1+j2-j3-s).toIndex(), 
-                                    (j1-m1-s).toIndex(),
-                                    (j2+m2-s).toIndex(), 
-                                    (j3-j2+m1+s).toIndex(),
-                                    (j3-j1-m2+s).toIndex()));
+                    {1},
+                    {s.toIndex(),
+                     (j1+j2-j3-s).toIndex(),
+                     (j1-m1-s).toIndex(),
+                     (j2+m2-s).toIndex(),
+                     (j3-j2+m1+s).toIndex(),
+                     (j3-j1-m2+s).toIndex()});
                 }
         s++;
     }
@@ -153,15 +153,15 @@ Numeric wigner6j(const Rational j1,const Rational j2,const Rational j3,
             (s-J1-j2-J3).toIndex() >= 0 &&
             (s-J1-J2-j3).toIndex() >= 0 )
         {
-            sum += ((((s)%2)==0)?(1.):(-1.))*factorials( 
-                MakeArray<Index>(       s.toIndex()+1),
-                MakeArray<Index>(       (s-j1-j2-j3).toIndex(),
-                                        (s-j1-J2-J3).toIndex(),
-                                        (s-J1-j2-J3).toIndex(),
-                                        (s-J1-J2-j3).toIndex(),
-                                        (j1+j2+J1+J2-s).toIndex(),
-                                        (j2+j3+J2+J3-s).toIndex(),
-                                        (j3+j1+J3+J1-s).toIndex()));
+            sum += ((((s)%2)==0)?(1.):(-1.))*factorials(
+                    {s.toIndex()+1},
+                    {(s-j1-j2-j3).toIndex(),
+                     (s-j1-J2-J3).toIndex(),
+                     (s-J1-j2-J3).toIndex(),
+                     (s-J1-J2-j3).toIndex(),
+                     (j1+j2+J1+J2-s).toIndex(),
+                     (j2+j3+J2+J3-s).toIndex(),
+                     (j3+j1+J3+J1-s).toIndex()});
         }
         s++;
     }
@@ -213,9 +213,8 @@ Numeric ECS_wigner(Rational L, Rational Nl, Rational Nk,
 Numeric triangle_coefficient(const Rational a, const Rational b, const Rational c)
 {    
     Rational nom1=(a+b-c), nom2=(a-b+c), nom3=(-a+b+c), denom1=(a+b+c+1);
-    return factorials(
-        MakeArray<Index>(nom1.toIndex(),nom2.toIndex(),nom3.toIndex()),
-        MakeArray<Index>(denom1.toIndex()));
+    return factorials({nom1.toIndex(),nom2.toIndex(),nom3.toIndex()},
+                      {denom1.toIndex()});
 }
 
 bool triangular_inequality(const Rational x, const Rational y, const Rational z)

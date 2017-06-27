@@ -76,7 +76,6 @@ int main()
           << __TIME__ << "\n\n";
 
       ofs << "#include \"arts.h\"\n"
-          << "#include \"make_array.h\"\n"
           << "#include \"auto_md.h\"\n"
           << "#include \"wsv_aux.h\"\n"
           << "#include \"mc_interp.h\"\n"

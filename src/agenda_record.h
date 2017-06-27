@@ -29,7 +29,6 @@
 
 #include <iostream>
 #include "arts.h"
-#include "make_array.h"
 #include "mystring.h"
 
 //! Lookup information for one agenda.
@@ -54,10 +53,10 @@ public:
   }
 
   // Initializing constructor. Implementation in .cc file.
-  AgRecord(const char               name[],
-           const char               description[],
-           const MakeArray<String>& output,
-           const MakeArray<String>& input);
+  AgRecord(const char           name[],
+           const char           description[],
+           const ArrayOfString& output,
+           const ArrayOfString& input);
 
   const String&            Name()         const { return mname;          }   
   const String&            Description()  const { return mdescription;   }

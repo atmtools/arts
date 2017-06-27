@@ -36,7 +36,6 @@
    */
 
 #include "arts.h"
-#include "make_array.h"
 #include "absorption.h"
 
 namespace global_data {
@@ -66,7 +65,7 @@ extern Array<SpeciesRecord> species_data;
 
 /*! \name Some #defines for better readability */
 //@{ 
-#define Qcoeff       MakeArray<Numeric>         
+#define Qcoeff(...) {__VA_ARGS__}
 //@} 
 
 

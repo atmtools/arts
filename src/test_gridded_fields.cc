@@ -1,5 +1,4 @@
 #include "matpack.h"
-#include "make_array.h"
 #include "gridded_fields.h"
 
 using std::cout;
@@ -22,7 +21,7 @@ int main (void)
   gfone.set_grid(0, gfonegrid);   // Set grid for the vector elements.
   
   Vector gftwogrid0(1,5,1);       // gftwogrid0 = [1,2,3,4,5]
-  MakeArray<String> gftwogrid1("Chan1", "Chan2", "Chan3");
+  ArrayOfString gftwogrid1{"Chan1", "Chan2", "Chan3"};
   
   gftwo.set_grid(0, gftwogrid0);  // Set grid for the matrix rows.
   gftwo.set_grid(1, gftwogrid1);  // Set grid for the matrix columns.

@@ -1590,8 +1590,7 @@ void surface_complex_refr_indexFromGriddedField5(
   surface_complex_refr_index.set_grid( 1, 
                                  complex_n_field.get_numeric_grid(gfield_tID));
   surface_complex_refr_index.set_grid_name( 2, "Complex" );
-  surface_complex_refr_index.set_grid( 2, 
-                                       MakeArray<String>("real", "imaginary"));
+  surface_complex_refr_index.set_grid( 2, {"real", "imaginary"});
 
   // Interpolate in lat and lon
   //

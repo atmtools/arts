@@ -36,7 +36,6 @@
 #include "matpackI.h"
 #include "mystring.h"
 #include "messages.h"
-#include "make_array.h"
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -74,7 +73,7 @@ int check_newline(const String& s);
 bool file_exists(const String& filename);
 
 bool find_file(ArrayOfString& matches, const String& filename, const ArrayOfString& paths,
-               const ArrayOfString& extensions = MakeArray<String>(""));
+               const ArrayOfString& extensions = {""});
 
 void find_xml_file(String& filename, const Verbosity& verbosity);
 

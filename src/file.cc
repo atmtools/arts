@@ -471,7 +471,7 @@ void find_xml_file(String& filename, const Verbosity& verbosity)
                     parameters.datapath.end());
 
     ArrayOfString matching_files;
-    find_file(matching_files, filename, allpaths, MakeArray<String>("", ".xml", ".gz", ".xml.gz"));
+    find_file(matching_files, filename, allpaths, {"", ".xml", ".gz", ".xml.gz"});
 
     if (matching_files.nelem() > 1)
     {

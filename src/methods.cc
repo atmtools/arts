@@ -31,7 +31,6 @@
   \date 2000-06-10 */
 
 #include "arts.h"
-#include "make_array.h"
 #include "methods.h"
 #include "wsv_aux.h"
 
@@ -43,16 +42,16 @@ namespace global_data {
 // Some #defines and typedefs to make the records better readable:
 #define NAME(x) x
 #define DESCRIPTION(x) x
-#define AUTHORS     MakeArray<String>
-#define OUT         MakeArray<String>
-#define GOUT        MakeArray<String>
-#define GOUT_TYPE   MakeArray<String>
-#define GOUT_DESC   MakeArray<String>
-#define IN          MakeArray<String>
-#define GIN         MakeArray<String>
-#define GIN_TYPE    MakeArray<String>
-#define GIN_DEFAULT MakeArray<String>
-#define GIN_DESC    MakeArray<String>
+#define AUTHORS(...) {__VA_ARGS__}
+#define OUT(...) {__VA_ARGS__}
+#define GOUT(...) {__VA_ARGS__}
+#define GOUT_TYPE(...) {__VA_ARGS__}
+#define GOUT_DESC(...) {__VA_ARGS__}
+#define IN(...) {__VA_ARGS__}
+#define GIN(...) {__VA_ARGS__}
+#define GIN_TYPE(...) {__VA_ARGS__}
+#define GIN_DEFAULT(...) {__VA_ARGS__}
+#define GIN_DESC(...) {__VA_ARGS__}
 #define SETMETHOD(x) x
 #define AGENDAMETHOD(x) x
 #define USES_TEMPLATES(x) x

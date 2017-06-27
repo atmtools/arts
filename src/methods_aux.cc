@@ -29,7 +29,6 @@
 
 #include "arts.h"
 #include <map>
-#include "make_array.h"
 #include "methods.h"
 #include "wsv_aux.h"
 #include "workspace_ng.h"
@@ -62,23 +61,23 @@ void limit_line_length( ostream& os, ostringstream& curline,
   inferred from the presence of Any_ in the generic input or output
   list. 
 */
-MdRecord::MdRecord(const char                   name[],
-                   const char                   description[],
-                   const MakeArray<String>&     authors,
-                   const MakeArray<String>&     output,
-                   const MakeArray<String>&     gout,
-                   const MakeArray<String>&     gouttype,
-                   const MakeArray<String>&     goutdesc,
-                   const MakeArray<String>&     input,   
-                   const MakeArray<String>&     gin,   
-                   const MakeArray<String>&     gintype,   
-                   const MakeArray<String>&     gindefault,
-                   const MakeArray<String>&     gindesc,
-                   bool                         set_method,
-                   bool                         agenda_method,
-                   bool                         uses_templates,
-                   bool                         pass_workspace,
-                   bool                         pass_wsv_names ) :
+MdRecord::MdRecord(const char           name[],
+                   const char           description[],
+                   const ArrayOfString& authors,
+                   const ArrayOfString& output,
+                   const ArrayOfString& gout,
+                   const ArrayOfString& gouttype,
+                   const ArrayOfString& goutdesc,
+                   const ArrayOfString& input,
+                   const ArrayOfString& gin,
+                   const ArrayOfString& gintype,
+                   const ArrayOfString& gindefault,
+                   const ArrayOfString& gindesc,
+                   bool                 set_method,
+                   bool                 agenda_method,
+                   bool                 uses_templates,
+                   bool                 pass_workspace,
+                   bool                 pass_wsv_names ) :
     mname(            name                ),
     mdescription(     description         ),    
     mauthors(         authors             ),

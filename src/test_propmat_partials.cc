@@ -67,6 +67,10 @@ void test_pressurebroadening()
     }
 }
 
+Numeric test2(Numeric x)
+{
+    return x*x;
+}
 void test_partitionfunction()
 {
     
@@ -78,10 +82,11 @@ void test_partitionfunction()
     Numeric qt_cache, qt_cache_d, qref_cache, qref_cache_d, dqt;
     
     const Numeric dT =1e-1;
-    
+
+    Numeric x = 7.315888e-01;
     Vector part_data;
-    part_data=MakeArray<Numeric>( 4.016432e-01,  7.315888e-01,  -3.313678e-05,  6.642877e-08 );//O2 66 partition function
-    
+    part_data={ 4.016432e-01,  7.315888e-01,  -3.313678e-05,  6.642877e-08 };//O2 66 partition function
+
     
     
     for(Numeric T = 150; T<350; T+=20)

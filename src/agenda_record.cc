@@ -49,10 +49,10 @@ extern const ArrayOfString wsv_group_names;
   \param output List of output WSVs.
   \param input List of input WSVs.
 */
-AgRecord::AgRecord(const char               name[],
-                   const char               description[],
-                   const MakeArray<String>& output,
-                   const MakeArray<String>& input) : mname(name),
+AgRecord::AgRecord(const char           name[],
+                   const char           description[],
+                   const ArrayOfString& output,
+                   const ArrayOfString& input) : mname(name),
                                                      mdescription(description),
                                                      moutput(0),
                                                      minput(0)

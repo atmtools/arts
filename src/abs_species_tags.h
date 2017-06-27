@@ -36,7 +36,6 @@
 #include "matpackI.h"
 #include "array.h"
 #include "mystring.h"
-#include "make_array.h"
 #include "bifstream.h"
 
 
