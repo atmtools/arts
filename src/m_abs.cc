@@ -39,7 +39,6 @@
 #include "file.h"
 #include "auto_md.h"
 #include "math_funcs.h"
-#include "make_vector.h"
 #include "global_data.h"
 #include "physics_funcs.h"
 #include "absorption.h"

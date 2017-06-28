@@ -37,7 +37,6 @@
 #include "matpackV.h"
 #include "physics_funcs.h"
 #include "math_funcs.h"
-#include "make_vector.h"
 #include "arts_omp.h"
 #include "interpolation_poly.h"
 #include "rng.h"
@@ -854,7 +853,7 @@ void choose_abs_nls_pert(Vector&         abs_nls_pert,
   // is that 0 is a turning point.
   if (allownegative)
     {
-      VectorInsertGridPoints(abs_nls_pert, abs_nls_pert, MakeVector(0), verbosity);
+      VectorInsertGridPoints(abs_nls_pert, abs_nls_pert, {0}, verbosity);
       out2 << "  I am including also 0 in the abs_nls_pert, because it is a turning \n"
            << "  point. Consider to use a higher abs_nls_interp_order, for example 4.\n";
     }

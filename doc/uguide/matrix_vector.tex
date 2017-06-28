@@ -106,26 +106,15 @@ Vector d=c;       // Make d a copy of c.
 Vector e(1,5,1);  // 1, 2, 3, 4, 5
 Vector f(1,5,.5); // 1, 1.5, 2, 2.5, 3
 Vector g(5,5,-1); // 5, 4, 3, 2, 1
+Vector h{1.0,2.0,3.0};  // Creates a vector of length 3
+                        // containing the values
+                        // 1.0, 2.0, and 3.0.
 \end{code}
 
 The last three examples all use the same constructor, which takes
 the three arguments `start', `extent', and `stride'. It will create a
 Vector containing `extent' elements, starting with `start', with a
 step of `stride'.
-
-There also exists a special sub-class of Vector that can be initialized
-explicitly. This must be a special class in order to avoid ambiguities
-with the standard constructors. Usage:
-
-\begin{code}
-MakeVector a(1.0,2.0,3.0);  // Creates a vector of length 3 
-                            // containing the values 
-                            // 1.0, 2.0, and 3.0.
-\end{code}
-
-You can use MakeVectors just like Vectors, except that the
-constructors are different. Otherwise you can mix them freely with
-Vectors. 
 
 \subsection{VectorViews}
 %-------------------------------------------------------------------------
@@ -140,7 +129,7 @@ operator `[]', the class \typeindex{Range}, and the special \shortcode{joker}
 object. Examples:
 
 \begin{code}
-MakeVector x(1,2,3,4,5,6,7); 
+Vector x{1,2,3,4,5,6,7};
 VectorView a = x;                 // Now a refers to the 
                                   // whole of x;
 VectorView b = x[Range(joker)];   // Same effect.
@@ -210,7 +199,7 @@ conventional argument types \shortcode{const Vector\&} for input and
 %-------------------------------------------------------------------------
 
 All examples below (except for the first) assume that \shortcode{a} is a
-Vector, MakeVector, or VectorView.
+Vector or VectorView.
 
 \subsubsection{Resize (only for Vector, not for VectorView!):}
 \begin{code}
@@ -359,10 +348,6 @@ Matrix c(3,4,0.0); // Similar, but
 
 Matrix d=c;        // Make d a copy of c.
 \end{code}
-
-That is all. More fancy constructors, like for Vector, do not exist
-for Matrix. There is also no equivalent to the \shortcode{MakeVector}
-class.
 
 \subsection{MatrixViews}
 %-------------------------------------------------------------------------
@@ -840,6 +825,10 @@ Array<String> b(5);     // String Array with 5
 Array<String> c(5,"x"); // The same, but fill with "x".
 
 Array<Index>  d=a;      // Make d a copy of a;
+Array<String> a{"ARTS",
+                "is",
+                "great"}; // Creates an array of String
+                          // with these 3 elements.
 \end{code}
 
 There are already a lot of predefined Array classes. The naming
@@ -848,14 +837,8 @@ etc.. Normally you should use these predefined classes. But if you want
 to define an Array of some uncommon type, you can do it with `$<>$',
 as in the above examples.
 
-As for Vector, there is a special sub-class of Array that can be
-initialized explicitly. Usage:
-
 \begin{code}
-MakeArray<String> a("ARTS",
-                    "is",
-                    "great"); // Creates an array of String
-                              // with these 3 elements.
+
 \end{code}
 
 \subsection{What you can do with an Array}
@@ -951,9 +934,6 @@ Sparse b(3,4);     // Create Sparse with 3 rows
 
 Sparse d=c;        // Make d a copy of c.
 \end{code}
-
-That is all. As for Matrix there exist no more fancy constructors, like an
-equivalent to the \shortcode{MakeVector} class.
 
 \subsection{What you can do with a Sparse}
 %-------------------------------------------------------------------------

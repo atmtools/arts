@@ -27,7 +27,6 @@
 #include "gas_abs_lookup.h"
 #include "interpolation.h"
 #include "interpolation_poly.h"
-#include "make_vector.h"
 #include "logic.h"
 #include "check_input.h"
 #include "messages.h"

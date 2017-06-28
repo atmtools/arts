@@ -44,7 +44,6 @@
 #include "logic.h"
 #include "interpolation_poly.h"
 #include "linemixingdata.h"
-#include "make_vector.h"
 #include "linescaling.h"
 
 #include "global_data.h"

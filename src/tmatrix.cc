@@ -30,7 +30,6 @@
 #include "complex.h"
 #include "messages.h"
 #include "matpackI.h"
-#include "make_vector.h"
 #include "math_funcs.h"
 #include "optproperties.h"
 
@@ -1395,8 +1394,8 @@ void calc_ssp_random_test(const Verbosity& verbosity)
     SingleScatteringData ssd;
 
     ssd.ptype = PTYPE_TOTAL_RND;
-    ssd.f_grid = MakeVector(230e9, 240e9);
-    ssd.T_grid = MakeVector(220, 250);
+    ssd.f_grid = {230e9, 240e9};
+    ssd.T_grid = {220, 250};
     nlinspace(ssd.za_grid, 0, 180, 19);
     nlinspace(ssd.aa_grid, 0, 180, 19);
 
@@ -1453,8 +1452,8 @@ void calc_ssp_fixed_test(const Verbosity& verbosity)
     SingleScatteringData ssd;
 
     ssd.ptype = PTYPE_AZIMUTH_RND;
-    ssd.f_grid = MakeVector(230e9, 240e9);
-    ssd.T_grid = MakeVector(220, 250);
+    ssd.f_grid = {230e9, 240e9};
+    ssd.T_grid = {220, 250};
     nlinspace(ssd.za_grid, 0, 180, 19);
     nlinspace(ssd.aa_grid, 0, 180, 19);
 

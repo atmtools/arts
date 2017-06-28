@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2012 Mattias Ekström <ekstrom@rss.chalmers.se>
+/* Copyright (C) 2003-2012 Mattias Ekstrï¿½m <ekstrom@rss.chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -17,7 +17,7 @@
 
 /*!
   \file   sensor.cc
-  \author Mattias Ekström <ekstrom@rss.chalmers.se>
+  \author Mattias Ekstrï¿½m <ekstrom@rss.chalmers.se>
   \date   2003-02-27
 
   \brief  Functions related to sensor modelling.
@@ -35,7 +35,6 @@
 #include <stdexcept>
 #include "arts.h"
 #include "logic.h"
-#include "make_vector.h"
 #include "matpackI.h"
 #include "matpackII.h"
 #include "messages.h"
@@ -75,7 +74,7 @@ extern const Index GFIELD4_AA_GRID;
    \param   n_pol        Number of polarisation states
    \param   do_norm      Flag whether response should be normalised
 
-   \author Mattias Ekström / Patrick Eriksson
+   \author Mattias Ekstrï¿½m / Patrick Eriksson
    \date   2003-05-27 / 2008-06-17
 */
 void antenna1d_matrix(      
@@ -494,7 +493,7 @@ void gaussian_response(
    \param   n_sp      The number of spectra (viewing directions)
    \param   do_norm   Flag whether rows should be normalised
 
-   \author Mattias Ekström / Patrick Eriksson
+   \author Mattias Ekstrï¿½m / Patrick Eriksson
    \date   2003-05-27 / 2008-06-17
 */
 void mixer_matrix(
@@ -907,7 +906,7 @@ void sensor_aux_vectors(
    \param   n_sp          The number of spectra (viewing directions).
    \param   do_norm       Corresponds directly to WSV sensor_norm.
 
-   \author Mattias Ekström and Patrick Eriksson
+   \author Mattias Ekstrï¿½m and Patrick Eriksson
    \date   2003-08-26 / 2008-06-10
 */
 void spectrometer_matrix( 
@@ -1016,16 +1015,16 @@ void stokes2pol(
 {
   s2p.resize(10);
 
-  s2p[0] = MakeVector( 1 );               // I
-  s2p[1] = MakeVector( 0, 1 );            // Q
-  s2p[2] = MakeVector( 0, 0, 1 );         // U
-  s2p[3] = MakeVector( 0, 0, 0, 1 );      // V
-  s2p[4] = MakeVector( nv, nv );          // Iv
-  s2p[5] = MakeVector( nv, -nv );         // Ih
-  s2p[6] = MakeVector( nv, 0, nv );       // I+45
-  s2p[7] = MakeVector( nv, 0, -nv );      // I-45
-  s2p[8] = MakeVector( nv, 0, 0, nv );    // Ilhc
-  s2p[9] = MakeVector( nv, 0, 0, -nv );   // Irhc
+  s2p[0] = {1};               // I
+  s2p[1] = {0, 1};            // Q
+  s2p[2] = {0, 0, 1};         // U
+  s2p[3] = {0, 0, 0, 1};      // V
+  s2p[4] = {nv, nv};          // Iv
+  s2p[5] = {nv, -nv};         // Ih
+  s2p[6] = {nv, 0, nv};       // I+45
+  s2p[7] = {nv, 0, -nv};      // I-45
+  s2p[8] = {nv, 0, 0, nv};    // Ilhc
+  s2p[9] = {nv, 0, 0, -nv};   // Irhc
 }
 
 
@@ -1392,7 +1391,7 @@ void find_effective_channel_boundaries(// Output:
                     decreasing. Must cover a wider range than x_f (in
                     both ends).
 
-   \author Mattias Ekström and Patrick Eriksson
+   \author Mattias Ekstrï¿½m and Patrick Eriksson
    \date   2003-02-13 / 2008-06-12
 */
 void integration_func_by_vecmult(
@@ -1708,7 +1707,7 @@ void integration_bin_by_vecmult(
    \param   x1    Point 1
    \param   x2    Point 2
 
-   \author Mattias Ekström / Patrick Eriksson
+   \author Mattias Ekstrï¿½m / Patrick Eriksson
    \date   2003-05-26 / 2008-06-17
 */
 void summation_by_vecmult(

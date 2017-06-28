@@ -100,7 +100,7 @@ Range::Range(Index max_size, const Range& r) :
 
   // Stride must be != 0:
   assert( 0!=mstride);
-  
+
   // Convert negative extent (joker) to explicit extent
   if ( mextent<0 )
     {
@@ -233,7 +233,7 @@ ConstVectorView::operator ConstMatrixView() const
     //    return ConstMatrixView(mdata,mrange,Range(mrange.mstart,1));
     // Bus this was a bug! The problem is that the matrix index operator adds
     // the mstart from both row and columm range object to mdata
-    
+
     return ConstMatrixView(mdata,mrange,Range(0,1));
 }
 
@@ -319,7 +319,7 @@ VectorView::VectorView (const Vector&)
   throw runtime_error("Creating a VectorView from a const Vector is not allowed.");
   // This is not really a runtime error, but I don't want to start
   // producing direct output from inside matpack. And just exiting is
-  // not so nice. 
+  // not so nice.
   // If you see this error, there is a bug in the code, not in the
   // ARTS input.
 }
@@ -420,7 +420,7 @@ VectorView& VectorView::operator=(const Vector& v)
 
   // Check that sizes are compatible:
   assert(mrange.mextent==v.mrange.mextent);
-  
+
   copy( v.begin(), v.end(), begin() );
 
   return *this;
@@ -565,7 +565,7 @@ Numeric * VectorView::get_c_array()
 {
     if (mrange.mstart != 0 || mrange.mstride != 1)
         throw std::runtime_error("A VectorView can only be converted to a plain C-array if it's pointing to a continuous block of data");
-    
+
   return mdata;
 }
 
@@ -644,9 +644,17 @@ void copy(Numeric x,
 // ---------------------
 
 /** Default constructor. */
-Vector::Vector() 
+Vector::Vector()
 {
   // Nothing to do here
+}
+
+/** Initialization list constructor. */
+Vector::Vector(std::initializer_list<Numeric> init) : VectorView(
+        new Numeric[init.size()],
+        Range(0, init.size()))
+{
+  std::copy(init.begin(), init.end(), begin());
 }
 
 /** Constructor setting size. */
@@ -726,6 +734,14 @@ Vector::Vector(const std::vector<Numeric>& v) :
         *this_it = *vec_it;
 }
 
+//! Assignment from an initializatoin list.
+Vector& Vector::operator=(std::initializer_list<Numeric> v)
+{
+  resize(v.size());
+  std::copy(v.begin(), v.end(), begin());
+  return *this;
+}
+
 //! Assignment from another Vector.
 /*! 
   While dimensions of VectorViews can not be adjusted, dimensions of
@@ -776,13 +792,13 @@ Vector& Vector::operator=(Vector v)
 */
 Vector& Vector::operator=(const Array<Numeric>& x)
 {
-  resize( x.nelem() ); 
+  resize( x.nelem() );
   VectorView::operator=(x);
   return *this;
 }
 
 /** Assignment operator from scalar. Assignment operators are not
-    inherited. */  
+    inherited. */
 Vector& Vector::operator=(Numeric x)
 {
   VectorView::operator=(x);
@@ -1030,7 +1046,7 @@ std::ostream& operator<<(std::ostream& os, const ConstMatrixView& v)
     hiden by the non-const operator of the derived class. */
 ConstMatrixView MatrixView::operator()(const Range& r, const Range& c) const
 {
-  return ConstMatrixView::operator()(r,c);  
+  return ConstMatrixView::operator()(r,c);
 }
 
 /** Const index operator returning a column as an object of type
@@ -1276,7 +1292,7 @@ MatrixView& MatrixView::operator*=(const ConstMatrixView& x)
   const Iterator2D er = end();
   for ( ; r!=er ; ++r,++sr )
     {
-      ConstIterator1D  sc = sr->begin(); 
+      ConstIterator1D  sc = sr->begin();
       Iterator1D        c = r->begin();
       const Iterator1D ec = r->end();
       for ( ; c!=ec ; ++c,++sc )
@@ -1295,7 +1311,7 @@ MatrixView& MatrixView::operator/=(const ConstMatrixView& x)
   const Iterator2D er = end();
   for ( ; r!=er ; ++r,++sr )
     {
-      ConstIterator1D  sc = sr->begin(); 
+      ConstIterator1D  sc = sr->begin();
       Iterator1D        c = r->begin();
       const Iterator1D ec = r->end();
       for ( ; c!=ec ; ++c,++sc )
@@ -1314,7 +1330,7 @@ MatrixView& MatrixView::operator+=(const ConstMatrixView& x)
   const Iterator2D er = end();
   for ( ; r!=er ; ++r,++sr )
     {
-      ConstIterator1D  sc = sr->begin(); 
+      ConstIterator1D  sc = sr->begin();
       Iterator1D        c = r->begin();
       const Iterator1D ec = r->end();
       for ( ; c!=ec ; ++c,++sc )
@@ -1333,7 +1349,7 @@ MatrixView& MatrixView::operator-=(const ConstMatrixView& x)
   const Iterator2D er = end();
   for ( ; r!=er ; ++r,++sr )
     {
-      ConstIterator1D  sc = sr->begin(); 
+      ConstIterator1D  sc = sr->begin();
       Iterator1D        c = r->begin();
       const Iterator1D ec = r->end();
       for ( ; c!=ec ; ++c,++sc )
@@ -1347,7 +1363,7 @@ MatrixView& MatrixView::operator*=(const ConstVectorView& x)
 {
   assert(nrows()==x.nelem());
   assert(ncols()==1);
-  ConstIterator1D  sc = x.begin(); 
+  ConstIterator1D  sc = x.begin();
   Iterator2D        r = begin();
   const Iterator2D er = end();
   for ( ; r!=er ; ++r,++sc )
@@ -1363,7 +1379,7 @@ MatrixView& MatrixView::operator/=(const ConstVectorView& x)
 {
   assert(nrows()==x.nelem());
   assert(ncols()==1);
-  ConstIterator1D  sc = x.begin(); 
+  ConstIterator1D  sc = x.begin();
   Iterator2D        r = begin();
   const Iterator2D er = end();
   for ( ; r!=er ; ++r,++sc )
@@ -1379,7 +1395,7 @@ MatrixView& MatrixView::operator+=(const ConstVectorView& x)
 {
   assert(nrows()==x.nelem());
   assert(ncols()==1);
-  ConstIterator1D  sc = x.begin(); 
+  ConstIterator1D  sc = x.begin();
   Iterator2D        r = begin();
   const Iterator2D er = end();
   for ( ; r!=er ; ++r,++sc )
@@ -1395,7 +1411,7 @@ MatrixView& MatrixView::operator-=(const ConstVectorView& x)
 {
   assert(nrows()==x.nelem());
   assert(ncols()==1);
-  ConstIterator1D  sc = x.begin(); 
+  ConstIterator1D  sc = x.begin();
   Iterator2D        r = begin();
   const Iterator2D er = end();
   for ( ; r!=er ; ++r,++sc )
@@ -1495,7 +1511,7 @@ Matrix::Matrix() :
   // Nothing to do here. However, note that the default constructor
   // for MatrixView has been called in the initializer list. That is
   // crucial, otherwise internal range objects will not be properly
-  // initialized. 
+  // initialized.
 }
 
 /** Constructor setting size. This constructor has to set the stride
@@ -1599,7 +1615,7 @@ Matrix& Matrix::operator=(Numeric x)
 */
 Matrix& Matrix::operator=(const ConstVectorView& v)
 {
-  resize( v.nelem(), 1 ); 
+  resize( v.nelem(), 1 );
   ConstMatrixView dummy(v);
   copy( dummy.begin(), dummy.end(), begin() );
   return *this;
@@ -2159,7 +2175,7 @@ Numeric max(const ConstMatrixView& x)
         if ( *cx > max )
           max = *cx;
     }
-  
+
   return max;
 }
 
@@ -2199,7 +2215,7 @@ Numeric min(const ConstMatrixView& x)
         if ( *cx < min )
           min = *cx;
     }
-  
+
   return min;
 }
 
@@ -2215,7 +2231,7 @@ Numeric mean(const ConstVectorView& x)
   for ( ; xi!=xe ; ++xi ) mean += *xi;
 
   mean /= (Numeric)x.nelem();
-  
+
   return mean;
 }
 
@@ -2235,7 +2251,7 @@ Numeric mean(const ConstMatrixView& x)
 
       for ( ; cx!=cxe ; ++cx ) mean += *cx;
     }
-  
+
   mean /= (Numeric)(x.nrows()*x.ncols());
 
   return mean;
@@ -2275,7 +2291,7 @@ VectorView& VectorView::operator=(const Array<Numeric>& v)
 ConstMatrixViewMap MapToEigen(const ConstMatrixView& A){
   return ConstMatrixViewMap(A.mdata+A.mrr.get_start()+A.mcr.get_start(),
    A.nrows(), A.ncols(), StrideType(A.mrr.get_stride(), A.mcr.get_stride())); }
-   
+
 // Converts constant vector to constant eigen row-view
 ConstMatrixViewMap MapToEigen(const ConstVectorView& A){
   return ConstMatrixViewMap(A.mdata+A.mrange.get_start(),
@@ -2290,7 +2306,7 @@ ConstMatrixViewMap MapToEigenCol(const ConstVectorView& A){
    1, A.nelem(), StrideType(1, A.mrange.get_stride())); }
 
 // Non- const
-   
+
 // Converts matrix to eigen map
 MatrixViewMap MapToEigen(MatrixView& A){
   return MatrixViewMap(A.mdata+A.mrr.get_start()+A.mcr.get_start(),
@@ -2308,14 +2324,14 @@ MatrixViewMap MapToEigenRow(VectorView& A){return MapToEigen(A);}
 MatrixViewMap MapToEigenCol(VectorView& A){
   return MatrixViewMap(A.mdata+A.mrange.get_start(),
    1, A.nelem(), StrideType(1, A.mrange.get_stride())); }
-   
+
 // Special 4x4
 
 // Converts matrix to eigen map
 Matrix4x4ViewMap MapToEigen4x4(MatrixView& A){
   return Matrix4x4ViewMap(A.mdata+A.mrr.get_start()+A.mcr.get_start(),
                           4, 4, StrideType(A.mrr.get_stride(), A.mcr.get_stride())); }
-   
+
 // Converts constant matrix to constant eigen map
 ConstMatrix4x4ViewMap MapToEigen4x4(const ConstMatrixView& A){
   return ConstMatrix4x4ViewMap(A.mdata+A.mrr.get_start()+A.mcr.get_start(),

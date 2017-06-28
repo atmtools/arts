@@ -38,7 +38,6 @@
 #include "arts_omp.h"
 #include "lapack.h"
 #include "matpackIII.h"
-#include "make_vector.h"
 #include "array.h"
 #include "logic.h"
 #include <new>

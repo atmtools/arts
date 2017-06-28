@@ -54,7 +54,6 @@
 #include "interpolation.h"
 #include "lin_alg.h"
 #include "logic.h"
-#include "make_vector.h"
 #include "math_funcs.h"
 #include "messages.h"
 #include "optproperties.h"
@@ -2956,7 +2955,7 @@ void psdF07 (
 
       // first, find the smallest and largest particles D_small and D_large (as
       // psd_size grid is not necessarily sorted).
-      Vector D_lims=MakeVector(1e3,-1.); // 1km should be large enough to find
+      Vector D_lims{1e3,-1.}; // 1km should be large enough to find
                                          // one that is smaller...
       for( Index iD=0; iD<nsi; iD++ )
         {

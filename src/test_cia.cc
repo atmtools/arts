@@ -24,7 +24,6 @@
 */
 
 #include "cia.h"
-#include "make_vector.h"
 
 void test01()
 {
@@ -36,8 +35,8 @@ void test01()
     //    cout << "A:" << A << endl;
     
     cia_data.data = A;
-    cia_data.set_grid(0, MakeVector(1,2,3,4,5));
-    cia_data.set_grid(1, MakeVector(100,200,300));
+    cia_data.set_grid(0, {1,2,3,4,5});
+    cia_data.set_grid(1, {100,200,300});
     
     cout << "cia_data:" << cia_data << endl;
     

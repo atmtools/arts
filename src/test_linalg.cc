@@ -32,7 +32,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include "lin_alg.h"
-#include "make_vector.h"
 #include "array.h"
 #include "test_utils.h"
 #include <random>

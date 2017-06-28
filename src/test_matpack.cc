@@ -22,7 +22,6 @@
 #include "exceptions.h"
 #include <iostream>
 #include "logic.h"
-#include "make_vector.h"
 #include "math_funcs.h"
 #include "matpackII.h"
 #include "matpackVII.h"
@@ -309,9 +308,9 @@ void test13()
 void test14()
 {
   // Test explicit Array constructors.
-  Array<String> a = {"Test"};
-  Array<Index>  b = {1,2};
-  Array<Numeric> c = {1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0};
+  Array<String> a{"Test"};
+  Array<Index>  b{1,2};
+  Array<Numeric> c{1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0};
   cout << "a = \n" << a << "\n";
   cout << "b = \n" << b << "\n";
   cout << "c = \n" << c << "\n";
@@ -369,8 +368,8 @@ void test19()
 
 void test20()
 {
-  // Test MakeVector:
-  MakeVector a(1,2,3,4,5,6,7,8,9,10);
+  // Test initialization list constructor:
+  Vector a{1,2,3,4,5,6,7,8,9,10};
   cout << "a =\n" << a << "\n";
 }
 
@@ -442,7 +441,7 @@ void test27()
 {
   cout << "Test Arrays of Vectors:\n";
   Array<Vector> a;
-  a.push_back(MakeVector(1.0,2.0));
+  a.push_back({1.0,2.0});
   a.push_back(Vector(1.0,10,1.0));
   cout << "a =\n" << a << "\n";
 }
@@ -615,7 +614,7 @@ void test33()
   {
     cout << "\n2. Make a vector look like a matrix:\n"
          << "This is an exception, because the new dimension is added at the end.\n";
-    MakeVector a(1,2,3,4,5);
+    Vector a{1,2,3,4,5};
     MatrixView am = a;
     cout << "a, viewed as a matrix:\n" << am << "\n";
     cout << "Trasnpose view:\n" << transpose(am) << "\n";
@@ -809,7 +808,7 @@ void test41()
 void test42()
 {
     cout << "test42\n";
-    Vector x = MakeVector(1,2,3,4,5,6,7,8,9,10);
+    Vector x{1,2,3,4,5,6,7,8,9,10};
     cout << "x: " << x << endl;
 
     VectorView y = x[Range(2,4,2)];
@@ -844,37 +843,37 @@ void test44()
 #define docheck(fn, val, expect) \
   cout << #fn << "(" << val << ") = " << fn(x) << " (expected " << #expect << ")" << std::endl;
 
-    Vector x = MakeVector(1, 2, 3);
+    Vector x{1, 2, 3};
     docheck(is_increasing, x, 1)
     docheck(is_decreasing, x, 0)
     docheck(is_sorted, x, 1)
 
-    x = MakeVector(3, 2, 1);
+    x = {3, 2, 1};
     docheck(is_increasing, x, 0)
     docheck(is_decreasing, x, 1)
     docheck(is_sorted, x, 0)
 
-    x = MakeVector(1, 2, 2);
+    x = {1, 2, 2};
     docheck(is_increasing, x, 0)
     docheck(is_decreasing, x, 0)
     docheck(is_sorted, x, 1)
 
-    x = MakeVector(2, 2, 1);
+    x = {2, 2, 1};
     docheck(is_increasing, x, 0)
     docheck(is_decreasing, x, 0)
     docheck(is_sorted, x, 0)
 
-    x = MakeVector(1, NAN, 2);
+    x = {1, NAN, 2};
     docheck(is_increasing, x, 0)
     docheck(is_decreasing, x, 0)
     docheck(is_sorted, x, 0)
 
-    x = MakeVector(2, NAN, 1);
+    x = {2, NAN, 1};
     docheck(is_increasing, x, 0)
     docheck(is_decreasing, x, 0)
     docheck(is_sorted, x, 0)
 
-    x = MakeVector(NAN, NAN, NAN);
+    x = {NAN, NAN, NAN};
     docheck(is_increasing, x, 0)
     docheck(is_decreasing, x, 0)
     docheck(is_sorted, x, 0)
@@ -1502,28 +1501,28 @@ int main()
 //  test41();
 //    test42();
 //    test43();
-//    test44();
+    test44();
 //    test45();
 
-    const double tolerance = 1e-9;
-    double error;
-
-    // Matrix Vector Multiplication.
-    error = test_matrix_vector_multiplication(false);
-    cout << "Matrix Vector Multiplication: ";
-    if (error > tolerance)
-        cout << "FAILED, maximum error: " << error << endl;
-    else
-        cout << "PASSED." << endl;
-
-    // Matrix Matrix Multiplication.
-    error = test_matrix_multiplication(false);
-
-    cout << "Matrix Matrix Multiplication: ";
-    if (error > tolerance)
-        cout << "FAILED, maximum error: " << error << endl;
-    else
-        cout << "PASSED." << endl;
+//    const double tolerance = 1e-9;
+//    double error;
+//
+//    // Matrix Vector Multiplication.
+//    error = test_matrix_vector_multiplication(false);
+//    cout << "Matrix Vector Multiplication: ";
+//    if (error > tolerance)
+//        cout << "FAILED, maximum error: " << error << endl;
+//    else
+//        cout << "PASSED." << endl;
+//
+//    // Matrix Matrix Multiplication.
+//    error = test_matrix_multiplication(false);
+//
+//    cout << "Matrix Matrix Multiplication: ";
+//    if (error > tolerance)
+//        cout << "FAILED, maximum error: " << error << endl;
+//    else
+//        cout << "PASSED." << endl;
 
     //test_diagonal( 100 );
     //test_empty();

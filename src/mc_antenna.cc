@@ -35,7 +35,6 @@
   ===========================================================================*/
 
 #include "mc_antenna.h"
-#include "make_vector.h"
 #include <cfloat>
 
 //#ifdef HAVE_SSTREAM
@@ -405,7 +404,7 @@ void MCAntenna::draw_los(VectorView sampled_rte_los,
         }
       else
         {
-          const Vector uhat = MakeVector(0.0, 0.0, 1.0);
+          const Vector uhat{0.0, 0.0, 1.0};
           Numeric magh;
           sampled_rte_los[1] = atan2( R_los(0,2), R_los(1,2) ) * RAD2DEG;
           cross3(R_los(joker,1), R_los(joker,2), uhat);

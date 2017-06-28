@@ -57,7 +57,6 @@ by Monte Carlo methods.  All of these functions refer to 3D calculations
 #include "mc_interp.h"
 #include "math_funcs.h"
 #include "refraction.h"
-#include "make_vector.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
@@ -756,7 +755,7 @@ void MCRadar(// Workspace reference:
       Numeric absK, absKsqr;
 
       // Compute dielectric factor (should change this to input variable)
-      Vector ff = MakeVector(f_mono);
+      Vector ff{f_mono};
       complex_n_water_liebe93( complex_n, ff, ze_tref );
       n = Complex( complex_n(0,0), complex_n(0,1) );
       nsqr = n * n;

@@ -300,7 +300,6 @@ add_library (matpack STATIC
         complex.cc
         lin_alg.cc
         logic.cc
-        make_vector.cc
         rational.cc
         matpackI.cc
         matpackII.cc
@@ -364,7 +363,6 @@ target_link_libraries (test_legendre matpack)
 
 add_executable (test_linalg
   constants.cc
-  make_vector.cc
   lin_alg.cc
   test_linalg.cc)
 

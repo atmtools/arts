@@ -21,7 +21,6 @@
 #include "matpackVII.h"
 #include "interpolation.h"
 #include "interpolation_poly.h"
-#include "make_vector.h"
 #include "xml_io.h"
 #include "math_funcs.h"
 
@@ -292,7 +291,7 @@ void test06()
        << "--------------------------\n";
   //  Vector og(5,5,-1);                // 5,4,3,2,1
   Vector og(1,5,+1);                // 1, 2, 3, 4, 5
-  MakeVector ng(0.9,1.5,3,4.5,5.1); // 0.9, 1.5, 3, 4.5, 5.1
+  Vector ng{0.9,1.5,3,4.5,5.1}; // 0.9, 1.5, 3, 4.5, 5.1
 
   cout << "og:\n" << og << "\n";
   cout << "ng:\n" << ng << "\n";

@@ -1,3 +1,33 @@
+2017-06-28  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-739
+
+	* src/make_vector.{cc,h}, src/CMakeLists.txt:
+
+	Removed make_vector implementation for same reason as MakeArray.
+
+	* src/matpackI.{cc,h}:
+
+	(Vector): Implement list initialization constructor and assignment
+	operator for Vector.
+
+	(Iterator1D, ConstIterator1d): Define iterator_traits to enable use
+	with std::copy. Needed for list initialization assignment operator.
+
+	* doc/uguide/matrix_vector.tex, doc/uguide/gridded_fields.tex:
+
+	Update docs for changes of MakeArray and MakeVector.
+
+	* src/absorption.cc, src/cloudbox.cc, src/gas_abs_lookup.cc,
+	src/lin_alg.cc, src/m_abs.cc, src/m_abs_lookup.cc, src/m_cloudbox.cc,
+	src/m_general.cc, src/m_montecarlo.cc, src/mc_antenna.cc,
+	src/sensor.cc, src/test_cia.cc, src/test_interpolation.cc,
+	src/test_linalg.cc, src/test_matpack.cc, src/tmatrix.cc:
+
+	Removed make_array.h include.
+
+	Replace MakeVector with list initialization.
+
 2017-06-27  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-738

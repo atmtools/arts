@@ -223,7 +223,13 @@ private:
     defined stride. */
 class Iterator1D {
 public:
-  /** Default constructor. */
+  using difference_type = Index;
+  using value_type = Numeric;
+  using pointer = Numeric*;
+  using reference = Numeric&;
+  using iterator_category = std::random_access_iterator_tag;
+
+   /** Default constructor. */
   Iterator1D() : mx(NULL), mstride(0) { /* Nothing to do here. */ }
 
   /** Explicit constructor. */
@@ -258,6 +264,12 @@ private:
     account the defined stride. */
 class ConstIterator1D {
 public:
+  using difference_type = Index;
+  using value_type = const Numeric;
+  using pointer = const Numeric*;
+  using reference = const Numeric&;
+  using iterator_category = std::random_access_iterator_tag;
+
   /** Default constructor. */
   ConstIterator1D() : mx(NULL), mstride(0)
     { /* Nothing to do here. */ }
@@ -591,6 +603,7 @@ class Vector : public VectorView {
 public:
   // Constructors:
   Vector();
+  Vector(std::initializer_list<Numeric> init);
   explicit Vector(Index n);
   Vector(Index n, Numeric fill);
   Vector(Numeric start, Index extent, Numeric stride);
@@ -600,6 +613,7 @@ public:
 
   // Assignment operators:
   Vector& operator=(Vector v);
+  Vector& operator=(std::initializer_list<Numeric> v);
   Vector& operator=(const Array<Numeric>& v);
   Vector& operator=(Numeric x);
 

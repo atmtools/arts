@@ -57,7 +57,6 @@
 #include "mystring.h"
 
 #include "math_funcs.h"
-#include "make_vector.h"
 #include "wsv_aux.h"
 
 #include "auto_md.h"

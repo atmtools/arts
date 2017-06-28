@@ -46,7 +46,6 @@ extern const Numeric DENSITY_OF_WATER;
 #include "check_input.h"
 #include "lin_alg.h"
 #include "logic.h"
-#include "make_vector.h"
 #include "math_funcs.h"
 #include "mc_antenna.h"
 #include "messages.h"
@@ -3250,14 +3249,14 @@ void psd_snow_F07 ( Vector& psd,
 
   //factors of phi23
   if( regime=="TR" )
-    q=MakeVector(152., -12.4, 3.28, -0.78, -1.94);
+    q={152., -12.4, 3.28, -0.78, -1.94};
   else // if( regime=="ML" )
-    q=MakeVector(141., -16.8, 102.,  2.07, -4.82);
+    q={141., -16.8, 102.,  2.07, -4.82};
 
   //Factors of factors of the moment estimation parametrization
-  Vector Aq=MakeVector(13.6,-7.76,0.479);
-  Vector Bq=MakeVector(-0.0361,0.0151,0.00149);
-  Vector Cq=MakeVector(0.807,0.00581,0.0457);
+  Vector Aq{13.6,-7.76,0.479};
+  Vector Bq{-0.0361,0.0151,0.00149};
+  Vector Cq{0.807,0.00581,0.0457};
 
   //convert T from Kelvin to Celsius
   Numeric Tc = t-273.15;
