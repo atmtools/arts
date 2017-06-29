@@ -4157,37 +4157,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "dNdD_Ar_H13" ),
-        DESCRIPTION
-        (
-         "Calculation of particle size and shape distribution (dN/dD, area\n"
-         "ratio) following Heymsfield (2013).\n"
-         "\n"
-         "A wrapper to internal particle size and shape distribution\n"
-         "calculation. Heymsfield (2013) is a globally valid parametrization\n"
-         "for cloud ice. The parametrization is in ambient atmospheric\n"
-         "temperature over particle size in terms of maximum dimension.\n"
-         "\n"
-         "Provides only the shape of the distribution function of both number\n"
-         "density and area ratio. When used by *pnd_fieldCalcFromscat_speciesFields*,\n"
-         "number density is rescaled to the given ice water content [kg/m3].\n"
-         ),
-        AUTHORS( "Jana Mendrok" ),
-        OUT(),
-        GOUT(      "dNdD",   "Ar" ),
-        GOUT_TYPE( "Vector", "Vector" ),
-        GOUT_DESC( "size distribution number density [#/m3/m]",
-                   "area ratio distribution" ),
-        IN(),
-        GIN(         "Dmax",   "t" ),
-        GIN_TYPE(    "Vector", "Numeric" ),
-        GIN_DEFAULT( NODEF,    NODEF ),
-        GIN_DESC( "Maximum dimension of the particles [m]",
-                  "Ambient atmospheric temperature [K]" )
-        ));  
-    
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "dNdD_F07" ),
         DESCRIPTION
         (
@@ -4254,6 +4223,37 @@ void define_md_data_raw()
         GOUT(      "dNdD" ),
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "size distribution number density [#/m3/m]" ),
+        IN(),
+        GIN(         "Dmax",   "t" ),
+        GIN_TYPE(    "Vector", "Numeric" ),
+        GIN_DEFAULT( NODEF,    NODEF ),
+        GIN_DESC( "Maximum dimension of the particles [m]",
+                  "Ambient atmospheric temperature [K]" )
+        ));  
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "dNdD_H13_Ar" ),
+        DESCRIPTION
+        (
+         "Calculation of particle size and shape distribution (dN/dD, area\n"
+         "ratio) following Heymsfield (2013).\n"
+         "\n"
+         "A wrapper to internal particle size and shape distribution\n"
+         "calculation. Heymsfield (2013) is a globally valid parametrization\n"
+         "for cloud ice. The parametrization is in ambient atmospheric\n"
+         "temperature over particle size in terms of maximum dimension.\n"
+         "\n"
+         "Provides only the shape of the distribution function of both number\n"
+         "density and area ratio. When used by *pnd_fieldCalcFromscat_speciesFields*,\n"
+         "number density is rescaled to the given ice water content [kg/m3].\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT(),
+        GOUT(      "dNdD",   "Ar" ),
+        GOUT_TYPE( "Vector", "Vector" ),
+        GOUT_DESC( "size distribution number density [#/m3/m]",
+                   "area ratio distribution" ),
         IN(),
         GIN(         "Dmax",   "t" ),
         GIN_TYPE(    "Vector", "Numeric" ),
@@ -10708,28 +10708,8 @@ void define_md_data_raw()
         (
          "Calculates *pnd_data* from given *psd_data*.\n"
          "\n"
-         "A temporary method, will be rewritten.\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "pnd_data", "dpnd_data_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "pnd_size_grid", "psd_data", "psd_size_grid", "dpsd_data_dx" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
- 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "pndFromPsdBasic2" ),
-        DESCRIPTION
-        (
-         "Calculates *pnd_data* from given *psd_data*.\n"
+         "Work in progress...\n"
          "\n"
-         "A temporary method, will be rewritten.\n"
          "*quad_order* can be 0 for rectangular or 1 for trapezoidal\n"
          "integration. The only difference is the treatment of the start and\n"
          "end nodes. For trapezoidal their corresponding bins end exactly at\n"
@@ -10830,8 +10810,8 @@ void define_md_data_raw()
          "Tag       PSD WSM         fields(s) used           Target         Notes\n"
          "MH97      *dNdD_MH97*     mass density             cloud ice\n"
          "H11       *dNdD_H11*      mass density             cloud ice\n"
-         "H13       *dNdD_Ar_H13*   mass density             cloud ice      neglects shape information\n"
-         "H13Shape  *dNdD_Ar_H13*   mass density             cloud ice\n"
+         "H13       *dNdD_H13_Ar*   mass density             cloud ice      neglects shape information\n"
+         "H13Shape  *dNdD_H13_Ar*   mass density             cloud ice\n"
          "MGD_IWC   *dNdD_MGD_IWC*  mass density             cloud ice      fixed modified gamma psd\n"
          "S2M_IWC   *dNdD_S2M*      number & mass density    cloud ice      two moment scheme psd\n"
          "S2M_IWC_M *dNdD_S2M_M*    mean mass & mass density cloud ice      two moment scheme psd\n"

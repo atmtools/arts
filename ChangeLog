@@ -1,5 +1,20 @@
 2017-06-29 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-742
+
+	* src/methods.cc, m_cloudbox.cc (pndFromPsdBasic):
+	Removed former version and rename former pndFromPsdBasic2 to this.
+	Added capability to handle unsorted psd/pnd_size_grid (this as they
+	might be extracted from scat_meta, hence in the order of scat_meta
+	with no guarantee that the scat elements in scat_meta are sorted -
+	particularly since sorted order of scat_meta could depend on the
+	actual size parameter chosen).
+
+	* src/cloudbox.cc (bin_quadweights, pnd_field*):
+	Assert that psd size grids / quadrature ordinates are increasing.
+
+2017-06-29 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-741
 
 	* src/methods.cc, m_cloudbox.cc, cloudbox.cc

@@ -884,6 +884,8 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
   // mass.nelem()=0 implies no selected scattering element for the respective
   // scattering species field. should not occur.
   {
+      assert( is_increasing(diameter_mass_equivalent) );
+
       // iteration over all atm. levels
       for ( Index p=limits[0]; p<limits[1]; p++ )
       {
@@ -1075,7 +1077,9 @@ void pnd_fieldH11 (Tensor4View pnd_field,
   // diameter_max.nelem()=0 implies no selected scattering element for the respective
   // scattering species field. should not occur anymore.
   {
-      // itertation over all atm. levels
+      assert( is_increasing(diameter_max) );
+
+      // iteration over all atm. levels
       for ( Index p=limits[0]; p<limits[1]; p++ )
       {
         for ( Index lat=limits[2]; lat<limits[3]; lat++ )
@@ -1237,7 +1241,9 @@ void pnd_fieldH13 (Tensor4View pnd_field,
   // diameter_max.nelem()=0 implies no selected scattering elements for the respective
   // scattering species field. should not occur anymore.
   {
-      // itertation over all atm. levels
+      assert( is_increasing(diameter_max) );
+
+      // iteration over all atm. levels
       for ( Index p=limits[0]; p<limits[1]; p++ )
       {
         for ( Index lat=limits[2]; lat<limits[3]; lat++ )
@@ -1459,7 +1465,9 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
   // diameter_max.nelem()=0 implies no selected scattering elements for the respective
   // scattering species field. should not occur anymore.
   {
-      // itertation over all atm. levels
+      assert( is_increasing(diameter_max_input) );
+
+      // iteration over all atm. levels
       for ( Index p=limits[0]; p<limits[1]; p++ )
       {
         for ( Index lat=limits[2]; lat<limits[3]; lat++ )
@@ -1718,6 +1726,7 @@ void pnd_fieldF07 (Tensor4View pnd_field,
        << "alpha = " << alpha << " kg \n"
        << "beta = " << beta << "\n";
 
+  assert( is_increasing(diameter_max) );
   // iteration over all atm. levels
   for ( Index p=limits[0]; p<limits[1]; p++ )
     {
@@ -1895,12 +1904,7 @@ void pnd_fieldS2M (Tensor4View pnd_field,
         logic_M=false;
         psd_str=psd_param;
     }
-    
-    
-    
-    
-    
-    
+
     for ( Index i=0; i < N_se; i++ )
     {
         if ( isnan(scat_meta[scat_species][i].mass) )
@@ -1922,14 +1926,14 @@ void pnd_fieldS2M (Tensor4View pnd_field,
     {
         mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
     }
-    
-   
-    
+
     if (mass.nelem() > 0)
         // diameter_max.nelem()=0 implies no selected scattering element for the respective
         // scattering species field. should not occur anymore.
     {
-        // itertation over all atm. levels
+        assert( is_increasing(mass) );
+
+        // iteration over all atm. levels
         for ( Index p=limits[0]; p<limits[1]; p++ )
         {
             for ( Index lat=limits[2]; lat<limits[3]; lat++ )
@@ -2125,7 +2129,6 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
     }
     mean_rho=rho.sum()/(Numeric)rho.nelem();
     
-    
     // checking if the particles have the same density
     max_rho=max(rho);
     delta_rho=(max_rho-min(rho))/max_rho;
@@ -2140,14 +2143,14 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
         "Check your scattering particles";
         throw runtime_error( os.str() );
     }
-    
-    
-    
+
     if (diameter_volume_equ.nelem() > 0)
         // diameter_max.nelem()=0 implies no selected scattering element for the respective
         // scattering species field. should not occur anymore.
     {
-        // itertation over all atm. levels
+        assert( is_increasing(diameter_volume_equ) );
+
+        // iteration over all atm. levels
         for ( Index p=limits[0]; p<limits[1]; p++ )
         {
             for ( Index lat=limits[2]; lat<limits[3]; lat++ )
@@ -2314,7 +2317,6 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
     }
     mean_rho=rho.sum()/(Numeric)rho.nelem();
     
-    
     // checking if the particles have the same density
     max_rho=max(rho);
     delta_rho=(max_rho-min(rho))/max_rho;
@@ -2335,7 +2337,9 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
         // diameter_max.nelem()=0 implies no selected scattering element for the respective
         // scattering species field. should not occur anymore.
     {
-        // itertation over all atm. levels
+        assert( is_increasing(diameter_volume_equ) );
+
+        // iteration over all atm. levels
         for ( Index p=limits[0]; p<limits[1]; p++ )
         {
             for ( Index lat=limits[2]; lat<limits[3]; lat++ )
@@ -2522,6 +2526,8 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   // diameter_melted_equivalent.nelem()=0 implies no selected scattering elements for the respective
   // scattering species field. should not occur.
   {
+      assert( is_increasing(diameter_melted_equivalent) );
+
       // iteration over all atm. levels
       for ( Index p=limits[0]; p<limits[1]; p++ )
       {
@@ -2747,6 +2753,8 @@ void pnd_fieldW16 (Tensor4View pnd_field,
   // mass.nelem()=0 implies no selected scattering element for the respective
   // scattering species field. should not occur.
   {
+      assert( is_increasing(diameter_mass_equivalent) );
+      
       // iteration over all atm. levels
       for ( Index p=limits[0]; p<limits[1]; p++ )
       {
@@ -2916,6 +2924,8 @@ void pnd_fieldH98 (Tensor4View pnd_field,
   // radius.nelem()=0 implies no selected scattering elements for the respective
   // scattering species field. should not occur anymore
   {
+      assert( is_increasing(radius) );
+
       // iteration over all atm. levels
       for ( Index p=limits[0]; p<limits[1]; p++ )
       {
@@ -3908,7 +3918,9 @@ void bin_quadweights( Vector& w,
                 const Index& order )
 {
   Index nx = x.nelem();
+
   assert( nx>1 );
+  assert( is_increasing(x) );
 
   if( order==0 )
     {

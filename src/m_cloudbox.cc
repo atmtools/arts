@@ -2522,100 +2522,8 @@ void pnd_size_gridFromScatMeta(
 }
 
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pndFromPsdBasic(
-         Matrix&    pnd_data,
-         Tensor3&   dpnd_data_dx,
-   const Vector&    pnd_size_grid,
-   const Matrix&    psd_data,
-   const Vector&    psd_size_grid,
-   const Tensor3&   dpsd_data_dx,
-   const Verbosity& )
-{
-  // This code is just for testing. Shall be replaced with code using
-  // piece-wise linear representation when mapping psd to pnd.
-  
-  // Some sizes 
-  const Index np  = psd_data.nrows();
-  const Index ng  = psd_size_grid.nelem();
-        Index ndx = 0;
-  const bool  do_dx = !dpsd_data_dx.empty();
-
-  // Checks
-  if( ng < 2 )
-    throw runtime_error( "The method requires that length of *psd_size_grid* is >= 2." );
-  if( ng != pnd_size_grid.nelem() )
-    throw runtime_error( "The method requires that *psd_size_grid* and "
-                         "*pnd_size_grid* have same length." );
-  for( Index i=0; i<ng; i++ )
-    {
-      if( psd_size_grid[i] != pnd_size_grid[i] )
-        throw runtime_error( "So far, the method requires that *psd_size_grid* and "
-                             "*pnd_size_grid* are identical." );
-    }
-  if( psd_data.ncols() != ng )
-    throw runtime_error( "Number of columns in *psd_data* and length of "
-                         "*psd_size_grid* must match." );
-  if( do_dx )
-    {
-      if( dpsd_data_dx.ncols() != ng )
-        throw runtime_error( "Number of columns in *dpsd_data_dx* and length of "
-                             "*psd_size_grid* must match." );
-      ndx = dpsd_data_dx.npages();
-      dpnd_data_dx.resize( ndx, np, ng );
-    }
-  else
-    { dpnd_data_dx.resize( 0, 0, 0 ); }
-
-  if( !is_increasing( psd_size_grid ) )
-    throw runtime_error( "*psd_size_grid* must be strictly increasing." );    
-
-
-  // Also, is my scheme to define bin sizes the same as you used?
-  // Asking as I get deviating results, and I suspect it could come from this
-  // part 
-
-  // dpnd_dx is sized above    
-  pnd_data.resize( np, ng );
-
-  
-  // Calculate
-  Numeric binsize;
-  for ( Index i=0; i<ng; i++ )
-    {
-      // This bin is twice the half-distance to point 1, but could be limited
-      // by 0 in lower end
-      if( i == 0 )
-        {
-          const Numeric dd = ( psd_size_grid[1] - psd_size_grid[0] ) / 2.0;
-          binsize = dd + min( dd, psd_size_grid[0] );
-        }
-      // This bin is twice the half-distance to closest point      
-      else if( i == ng-1 )
-        { binsize = 2.0 * ( psd_size_grid[i] - psd_size_grid[i-1] ) / 2.0; }
-      // This bin is the sum of the two half-distances      
-      else
-        { binsize = ( psd_size_grid[i+1] - psd_size_grid[i-1] ) / 2.0; }
-
-      for( Index ip=0; ip<np; ip++ )
-        { pnd_data(ip,i) = binsize * psd_data(ip,i); }
-
-      if( do_dx )
-        {
-          for( Index ip=0; ip<np; ip++ )
-            {
-              for ( Index ix=0; ix<ndx; ix++ )
-                { dpnd_data_dx(ix,ip,i) = binsize * dpsd_data_dx(ix,ip,i); }
-            }
-        }
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void pndFromPsdBasic2(
          Matrix&    pnd_data,
          Tensor3&   dpnd_data_dx,
    const Vector&    pnd_size_grid,
@@ -2646,6 +2554,8 @@ void pndFromPsdBasic2(
   if( psd_data.ncols() != ng )
     throw runtime_error( "Number of columns in *psd_data* and length of "
                          "*psd_size_grid* must match." );
+
+  pnd_data.resize( np, ng );
   if( do_dx )
     {
       if( dpsd_data_dx.ncols() != ng )
@@ -2657,37 +2567,36 @@ void pndFromPsdBasic2(
   else
     { dpnd_data_dx.resize( 0, 0, 0 ); }
 
-  // the psd_data calculation methods allow unsorted size grids. so, we should
-  // either provide a WSM that sorts size grids or do sorting here (note,
-  // particularly there is no guarantee that sizes in scat_meta are sorted. a
-  // special problem there is, that sorting might depend on the size parameter
-  // chosen.
-  if( !is_increasing( psd_size_grid ) )
-    throw runtime_error( "*psd_size_grid* must be strictly increasing." );    
 
-  // dpnd_dx is sized above    
-  pnd_data.resize( np, ng );
+  // Get sorted version of psd_size_grid (and, since pnd_size_grid so far is
+  // identical, of this as well implicitly)
+  ArrayOfIndex intarr;
+  Vector psd_size_grid_sorted(ng);
+  get_sorted_indexes(intarr, psd_size_grid);
+  for( Index i=0; i<ng; i++ )
+    psd_size_grid_sorted[i] = psd_size_grid[intarr[i]];
 
-  // Calculate
+  // Calculate pnd by intrgation of psd for given nodes/bins
   Vector quadweights( ng );
-  bin_quadweights( quadweights, psd_size_grid, quad_order );
+  bin_quadweights( quadweights, psd_size_grid_sorted, quad_order );
 
   for ( Index i=0; i<ng; i++ )
     {
       for( Index ip=0; ip<np; ip++ )
-        { pnd_data(ip,i) = quadweights[i] * psd_data(ip,i); }
+        { pnd_data(ip,intarr[i]) = quadweights[i] * psd_data(ip,intarr[i]); }
 
       if( do_dx )
         {
           for( Index ip=0; ip<np; ip++ )
             {
               for ( Index ix=0; ix<ndx; ix++ )
-                { dpnd_data_dx(ix,ip,i) = quadweights[i] *
-                                          dpsd_data_dx(ix,ip,i); }
+                { dpnd_data_dx(ix,ip,intarr[i]) = quadweights[i] *
+                                          dpsd_data_dx(ix,ip,intarr[i]); }
             }
         }
     }
 }
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pndAdjustFromScatMeta(
@@ -3555,86 +3464,6 @@ void pnd_fieldCalcFromParticleBulkProps(
    
                            
 
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void dNdD_W16 (//WS Output:
-              Vector& dNdD,
-              //WS Input:
-              const Vector& diameter_mass_equivalent,
-              const Numeric& RWC,
-              const Index& robust,
-              const Verbosity&)
-{
-  Index n_se = diameter_mass_equivalent.nelem();
-  dNdD.resize(n_se);
-
-  // abort if RWC is negative
-  if ( !robust && RWC<0. )
-    {
-      ostringstream os;
-      os << "Rain water content can not be negative."
-         << " Yours is " << RWC << "kg/m3.";
-      throw runtime_error ( os.str() );
-    }
-  Numeric rwc = max( RWC, 0. );
-
-  // calculate particle size distribution with W16
-  // [# m^-3 m^-1]
-  psd_rain_W16 ( dNdD, diameter_mass_equivalent, rwc );
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void dNdD_MH97 (//WS Output:
-              Vector& dNdD,
-              //WS Input:
-              const Vector& diameter_mass_equivalent,
-              const Numeric& IWC,
-              const Numeric& T,
-              const Index& noisy,
-              const Index& robust,
-              const Verbosity&)
-{
-  Index n_se = diameter_mass_equivalent.nelem();
-  dNdD.resize(n_se);
-
-  // abort if IWC is negative
-  if ( !robust && IWC<0. )
-    {
-      ostringstream os;
-      os << "Ice water content can not be negative."
-         << " Yours is " << IWC << "kg/m3.";
-      throw runtime_error ( os.str() );
-    }
-  Numeric iwc = max( IWC, 0. );
-
-  // abort if T is negative
-  if ( T<0. )
-    {
-      ostringstream os;
-      os << "Negative temperatures not allowed.\n"
-         << "Yours is " << T << "K.";
-      throw runtime_error ( os.str() );
-    }
-  // abort if T is too high
-  if ( !robust && T>280. )
-    {
-      ostringstream os;
-      os << "Temperatures above 280K not allowed by MH97"
-         << " (to allow: run with robust option).\n"
-         << "Yours is " << T << "K.";
-      throw runtime_error ( os.str() );
-    }
-  // allow some margin on T>0C (but use T=0C for PSD calc)
-  Numeric t = min( T, 273.15 );
-
-  // calculate particle size distribution with MH97
-  // [# m^-3 m^-1]
-  psd_cloudice_MH97 ( dNdD, diameter_mass_equivalent, iwc, t, noisy );
-}
-
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void dNdD_F07 (//WS Output:
                 Vector& dNdD,
@@ -3705,7 +3534,7 @@ void dNdD_H11 (//WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void dNdD_Ar_H13 (//WS Output:
+void dNdD_H13_Ar (//WS Output:
                 Vector& dNdD,
                 Vector& Ar,
                 //WS Input:
@@ -3724,6 +3553,164 @@ void dNdD_Ar_H13 (//WS Output:
       dNdD[i] = IWCtopnd_H13Shape ( Dmax[i], t );
       // calculate Area ratio distribution for H13Shape
       Ar[i] = area_ratioH13 ( Dmax[i], t );
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dNdD_H98 (//WS Output:
+             Vector& dNdD,
+             //WS Input:
+             const Vector& diameter_volume_equivalent,
+             const Numeric& LWC,
+             const Verbosity&)
+{
+  Index n_se = diameter_volume_equivalent.nelem();
+  dNdD.resize(n_se);
+  const Numeric dDdR = 2.; 
+
+  for ( Index i=0; i<n_se; i++ )
+    {
+      // calculate particle size distribution for liquid
+      // and compensate for LWCtopnd providing dNdR
+      // [# m^-3 m^-1]
+      dNdD[i] = LWCtopnd ( LWC, diameter_volume_equivalent[i]/2. ) / dDdR;
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dNdD_MGD_IWC (//WS Output:
+                   Vector& dNdD,
+                   //WS Input:
+                   const Vector& diameter_volume_equ,
+                   const Numeric& rho,
+                   const Numeric& IWC,
+                   const Verbosity&)
+{
+    Index n_se = diameter_volume_equ.nelem();
+    dNdD.resize(n_se);
+    
+    for ( Index i=0; i<n_se; i++ )
+    {
+        // calculate particle size distribution with ModGamma for ice
+        // [# m^-3 m^-1]
+        dNdD[i] = IWCtopnd_MGD_IWC( diameter_volume_equ[i],rho,IWC );
+    }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dNdD_MGD_LWC (//WS Output:
+                 Vector& dNdD,
+                 //WS Input:
+                 const Vector& diameter_volume_equ,
+                 const Numeric& rho,
+                 const Numeric& LWC,
+                 const Verbosity&)
+{
+    Index n_se = diameter_volume_equ.nelem();
+    dNdD.resize(n_se);
+    
+    for ( Index i=0; i<n_se; i++ )
+    {
+        // calculate particle size distribution with ModGamma for liquid
+        // [# m^-3 m^-1]
+        dNdD[i] = LWCtopnd_MGD_LWC( diameter_volume_equ[i],rho ,LWC );
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dNdD_MH97 (//WS Output:
+              Vector& dNdD,
+              //WS Input:
+              const Vector& diameter_mass_equivalent,
+              const Numeric& IWC,
+              const Numeric& T,
+              const Index& noisy,
+              const Index& robust,
+              const Verbosity&)
+{
+  Index n_se = diameter_mass_equivalent.nelem();
+  dNdD.resize(n_se);
+
+  // abort if IWC is negative
+  if ( !robust && IWC<0. )
+    {
+      ostringstream os;
+      os << "Ice water content can not be negative."
+         << " Yours is " << IWC << "kg/m3.";
+      throw runtime_error ( os.str() );
+    }
+  Numeric iwc = max( IWC, 0. );
+
+  // abort if T is negative
+  if ( T<0. )
+    {
+      ostringstream os;
+      os << "Negative temperatures not allowed.\n"
+         << "Yours is " << T << "K.";
+      throw runtime_error ( os.str() );
+    }
+  // abort if T is too high
+  if ( !robust && T>280. )
+    {
+      ostringstream os;
+      os << "Temperatures above 280K not allowed by MH97"
+         << " (to allow: run with robust option).\n"
+         << "Yours is " << T << "K.";
+      throw runtime_error ( os.str() );
+    }
+  // allow some margin on T>0C (but use T=0C for PSD calc)
+  Numeric t = min( T, 273.15 );
+
+  // calculate particle size distribution with MH97
+  // [# m^-3 m^-1]
+  psd_cloudice_MH97 ( dNdD, diameter_mass_equivalent, iwc, t, noisy );
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dNdD_MP48 (//WS Output:
+              Vector& dNdD,
+              //WS Input:
+              const Vector& diameter_melted_equivalent,
+              const Numeric& PR,
+              const String& PRunit,
+              const Numeric& rho,
+              const Verbosity&)
+{
+  Numeric tPR;
+  if (PRunit == "mm/h")
+    tPR = PR;
+  else if ( (PRunit == "SI") || (PRunit == "kg/m2/s") )
+    {
+      if (rho<=0.)
+        {
+          ostringstream os;
+          os << "Precipitation unit " << PRunit
+             << " requires valid material density (rho>0).\n"
+             << "Yours is rho=" << rho << "kg/m3.\n";
+          throw runtime_error ( os.str() );
+        }
+      tPR = PR * (3.6e6/rho);
+    }
+  else
+    {
+      ostringstream os;
+      os << "Precipitation unit '" << PRunit << "' unknown.\n";
+      throw runtime_error ( os.str() );
+    }
+
+  Index n_se = diameter_melted_equivalent.nelem();
+  dNdD.resize(n_se);
+
+  // derive particle number density for all given sizes
+  for ( Index i=0; i<n_se; i++ )
+    {
+      // calculate particle size distribution with MP48
+      // output: [# m^-3 m^-1]
+      dNdD[i] = PRtopnd_MP48 ( tPR, diameter_melted_equivalent[i]);
     }
 }
 
@@ -3778,109 +3765,29 @@ void dNdD_S2M_M (//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void dNdD_MGD_LWC (//WS Output:
-                 Vector& dNdD,
-                 //WS Input:
-                 const Vector& diameter_volume_equ,
-                 const Numeric& rho,
-                 const Numeric& LWC,
-                 const Verbosity&)
-{
-    Index n_se = diameter_volume_equ.nelem();
-    dNdD.resize(n_se);
-    
-    for ( Index i=0; i<n_se; i++ )
-    {
-        // calculate particle size distribution with ModGamma for liquid
-        // [# m^-3 m^-1]
-        dNdD[i] = LWCtopnd_MGD_LWC( diameter_volume_equ[i],rho ,LWC );
-    }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void dNdD_MGD_IWC (//WS Output:
-                   Vector& dNdD,
-                   //WS Input:
-                   const Vector& diameter_volume_equ,
-                   const Numeric& rho,
-                   const Numeric& IWC,
-                   const Verbosity&)
-{
-    Index n_se = diameter_volume_equ.nelem();
-    dNdD.resize(n_se);
-    
-    for ( Index i=0; i<n_se; i++ )
-    {
-        // calculate particle size distribution with ModGamma for ice
-        // [# m^-3 m^-1]
-        dNdD[i] = IWCtopnd_MGD_IWC( diameter_volume_equ[i],rho,IWC );
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void dNdD_H98 (//WS Output:
-             Vector& dNdD,
-             //WS Input:
-             const Vector& diameter_volume_equivalent,
-             const Numeric& LWC,
-             const Verbosity&)
-{
-  Index n_se = diameter_volume_equivalent.nelem();
-  dNdD.resize(n_se);
-  const Numeric dDdR = 2.; 
-
-  for ( Index i=0; i<n_se; i++ )
-    {
-      // calculate particle size distribution for liquid
-      // and compensate for LWCtopnd providing dNdR
-      // [# m^-3 m^-1]
-      dNdD[i] = LWCtopnd ( LWC, diameter_volume_equivalent[i]/2. ) / dDdR;
-    }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void dNdD_MP48 (//WS Output:
+void dNdD_W16 (//WS Output:
               Vector& dNdD,
               //WS Input:
-              const Vector& diameter_melted_equivalent,
-              const Numeric& PR,
-              const String& PRunit,
-              const Numeric& rho,
+              const Vector& diameter_mass_equivalent,
+              const Numeric& RWC,
+              const Index& robust,
               const Verbosity&)
 {
-  Numeric tPR;
-  if (PRunit == "mm/h")
-    tPR = PR;
-  else if ( (PRunit == "SI") || (PRunit == "kg/m2/s") )
-    {
-      if (rho<=0.)
-        {
-          ostringstream os;
-          os << "Precipitation unit " << PRunit
-             << " requires valid material density (rho>0).\n"
-             << "Yours is rho=" << rho << "kg/m3.\n";
-          throw runtime_error ( os.str() );
-        }
-      tPR = PR * (3.6e6/rho);
-    }
-  else
-    {
-      ostringstream os;
-      os << "Precipitation unit '" << PRunit << "' unknown.\n";
-      throw runtime_error ( os.str() );
-    }
-
-  Index n_se = diameter_melted_equivalent.nelem();
+  Index n_se = diameter_mass_equivalent.nelem();
   dNdD.resize(n_se);
 
-  // derive particle number density for all given sizes
-  for ( Index i=0; i<n_se; i++ )
+  // abort if RWC is negative
+  if ( !robust && RWC<0. )
     {
-      // calculate particle size distribution with MP48
-      // output: [# m^-3 m^-1]
-      dNdD[i] = PRtopnd_MP48 ( tPR, diameter_melted_equivalent[i]);
+      ostringstream os;
+      os << "Rain water content can not be negative."
+         << " Yours is " << RWC << "kg/m3.";
+      throw runtime_error ( os.str() );
     }
+  Numeric rwc = max( RWC, 0. );
+
+  // calculate particle size distribution with W16
+  // [# m^-3 m^-1]
+  psd_rain_W16 ( dNdD, diameter_mass_equivalent, rwc );
 }
 
