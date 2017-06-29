@@ -792,6 +792,11 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
 /*! Calculates the particle number density field for McFarquhar and Heymsfield
     (1997) size distribution. To be used for cloud ice.
 
+    Negative IWC trigger an error (unless robust=1, where IWC=0 is applied,
+    hence pnd_field=0 is returned. Negative temperatures trigger an error,
+    temperatures >280K are only accepted if robust=1. For temperatures >273.15K
+    (=0C), the distribution is evaluated assuming T=273.15K.
+
     \return pnd_field   Particle number density field
     \param IWC_field    mass content (cloud ice) field [kg/m3]
     \param t_field      atmospheric temperature [K]
@@ -891,6 +896,14 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
               {
                 Numeric T = t_field ( p, lat, lon );
 
+                // abort if T is negative
+                if ( T<0. )
+                  {
+                    ostringstream os;
+                    os << "Negative temperatures not allowed.\n"
+                       << "Yours is " << T << "K.";
+                    throw runtime_error ( os.str() );
+                  }
                 // abort if T is too high
                 if ( !robust && T>280. )
                   {
@@ -957,7 +970,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
 
             // MH97 PSD is parameterized in IWC and can not handle negative
             // numbers, hence abort.
-            else if (IWC_field ( p, lat, lon ) < 0.)
+            else if (!robust && IWC_field ( p, lat, lon ) < 0.)
               {
                 ostringstream os;
                 os << "Size distribution " << psdname
@@ -969,7 +982,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
                 throw runtime_error( os.str() );
               }
 
-            // for IWC==0, we just set pnd_field=0
+            // for IWC==0 or robust&&IWC<0. we just set pnd_field=0
             else
                 for ( Index i = 0; i< N_se; i++ )
                 {
@@ -1569,6 +1582,12 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
  *  relationship is estimated by regression from the meta data.
  *
  *  To be used for snow, to be given in terms of mass content.
+
+    Negative SWC trigger an error (unless robust=1, where SWC=0 is applied,
+    hence pnd_field=0 is returned. Negative temperatures trigger an error.
+    No further temperature validity limits are implemented (although the
+    parametrization itself has been derived from measurements limited to
+    -60C<=T<=0C, i.e. shall strictly only be applied then).
  
  \param pnd_field Particle number density field
  \param SWC_field (snow) mass content field [kg/m3]
@@ -1598,6 +1617,9 @@ void pnd_fieldF07 (Tensor4View pnd_field,
   assert( (regime=="TR") || (regime=="ML") );
   const String psdname=string("F07")+regime;
 
+  String partfield_name;
+  ArrayOfString psd_options;
+
   const Index N_se = scat_meta[scat_species].nelem();
   const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
   ArrayOfIndex intarr;
@@ -1607,7 +1629,6 @@ void pnd_fieldF07 (Tensor4View pnd_field,
   Vector mass ( N_se, 0.0 );
   Vector pnd ( N_se, 0.0 );
   Vector dNdD ( N_se, 0.0 );
-  String partfield_name;
 
   Numeric alpha;
   Numeric beta;
@@ -1615,16 +1636,24 @@ void pnd_fieldF07 (Tensor4View pnd_field,
   Vector log_D( N_se, 0.0 );
   Vector q;
     
-  if ( diameter_max.nelem() > 0 )
-    // diameter_max.nelem()=0 implies no selected scattering element for the respective
-    // scattering species field. should not occur anymore.
-    {
-      //split String and copy to ArrayOfString
-      parse_partfield_name( partfield_name, part_string, delim);
+  // diameter_max.nelem()=0 implies no selected scattering element for the respective
+  // scattering species field. should not occur anymore.
+  if ( diameter_max.nelem() == 0 )
+    return;
+
+  //split String and copy to ArrayOfString
+  parse_partfield_name( partfield_name, part_string, delim);
     
-      for ( Index i=0; i < N_se; i++ )
-      {
-        if ( isnan(scat_meta[scat_species][i].diameter_max) )
+  bool robust = false;
+  parse_psd_options( psd_options, part_string, delim);
+  for ( Index i=0; i<psd_options.nelem(); i++ )
+    {
+      robust = (robust || (psd_options[i]=="robust") );
+    }
+
+  for ( Index i=0; i < N_se; i++ )
+    {
+      if ( isnan(scat_meta[scat_species][i].diameter_max) )
         {
             ostringstream os;
             os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -1635,15 +1664,15 @@ void pnd_fieldF07 (Tensor4View pnd_field,
             throw runtime_error( os.str() );
         }
         diameter_max_unsorted[i] = ( scat_meta[scat_species][i].diameter_max );
-      }
-      get_sorted_indexes(intarr, diameter_max_unsorted);
+    }
+  get_sorted_indexes(intarr, diameter_max_unsorted);
     
-      // extract scattering meta data
-      for ( Index i=0; i< N_se; i++ )
-      {
-        diameter_max[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
+  // extract scattering meta data
+  for ( Index i=0; i< N_se; i++ )
+    {
+      diameter_max[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
         
-        if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
+      if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
             ostringstream os;
             os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -1653,131 +1682,136 @@ void pnd_fieldF07 (Tensor4View pnd_field,
             << i << "!";
             throw runtime_error( os.str() );
         }
-        mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
+      mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
         
-        // logarithm of Dmax, needed for estimating mass-dimension-relationship
-        log_D[i]=log(diameter_max[i]);
+      // logarithm of Dmax, needed for estimating mass-dimension-relationship
+      log_D[i]=log(diameter_max[i]);
         
-        // logarithm of the mass, even though it is  little weird to have
-        // a logarithm of something with a unit...
-        log_m[i]=log(mass[i]);
-      }
+      // logarithm of the mass, even though it is  little weird to have
+      // a logarithm of something with a unit...
+      log_m[i]=log(mass[i]);
+    }
     
-      if ( N_se>1 )
-      {
-        //estimate mass-dimension relationship from meta data by linear regression
-        // Assumption of a power law for the mass dimension relationship
-        // Approach: log(m) = log(alpha)+beta*log(dmax/D0)
-        linreg(q,log_D, log_m);
-    
-        alpha=exp(q[0]);
-        beta=q[1];
-      }
-      else
-      {
-        // for a monodispersion we can't estimate the m-D relation (1 relation, 2
-        // unknowns), hence we fix one of the parameters and calculate the other
-        // such that we have them consistent. but shouldn't make any difference on
-        // the end result whatever we choose here (all ice has to end up with this
-        // scattering anyways)
-        beta=2;
-        alpha=mass[0]/pow(diameter_max[0],beta);
-      }
-    
-      CREATE_OUT2;
-      out2 << "Mass-dimension relationship m=alpha*(dmax)^beta:\n"
-           << "alpha = " << alpha << " kg \n"
-           << "beta = " << beta << "\n";
+  if ( N_se>1 )
+    {
+      //estimate mass-dimension relationship from meta data by linear regression
+      // Assumption of a power law for the mass dimension relationship
+      // Approach: log(m) = log(alpha)+beta*log(dmax/D0)
+      linreg(q,log_D, log_m);
 
-      // itertation over all atm. levels
-      for ( Index p=limits[0]; p<limits[1]; p++ )
+      alpha=exp(q[0]);
+      beta=q[1];
+    }
+  else
+    {
+      // for a monodispersion we can't estimate the m-D relation (1 relation, 2
+      // unknowns), hence we fix one of the parameters and calculate the other
+      // such that we have them consistent. but shouldn't make any difference on
+      // the end result whatever we choose here (all ice has to end up with this
+      // scattering anyways)
+      beta=2;
+      alpha=mass[0]/pow(diameter_max[0],beta);
+    }
+    
+  CREATE_OUT2;
+  out2 << "Mass-dimension relationship m=alpha*(dmax)^beta:\n"
+       << "alpha = " << alpha << " kg \n"
+       << "beta = " << beta << "\n";
+
+  // iteration over all atm. levels
+  for ( Index p=limits[0]; p<limits[1]; p++ )
+    {
+      for ( Index lat=limits[2]; lat<limits[3]; lat++ )
         {
-            for ( Index lat=limits[2]; lat<limits[3]; lat++ )
+          for ( Index lon=limits[4]; lon<limits[5]; lon++ )
+          {
+            if (SWC_field ( p, lat, lon ) > 0.)
             {
-                for ( Index lon=limits[4]; lon<limits[5]; lon++ )
+              Numeric T = t_field ( p, lat, lon );
+
+              // abort if T is negative
+              if ( T<0. )
                 {
-                    if (SWC_field ( p, lat, lon ) > 0.)
-                    {
-                        psd_snow_F07( dNdD, diameter_max,
-                                      SWC_field ( p, lat, lon ),
-                                      t_field ( p, lat, lon ),
-                                      alpha, beta, regime);
-
-                        // ensure that any particles where produced
-                        if ( dNdD.sum() == 0.0 )
-                        { // no particles at all were produced. means, there's some
-                          // issue with the setup (none of the included particles
-                          // produces numerically considerable amount of particles
-                          // with this PSD, likely due to all the particles being
-                          // either too large or too small)
-                          ostringstream os;
-                          os <<  psdname << " PSD did not produce any non-zero pnd values "
-                             << "(likely results\n"
-                             << "from considered particles being too large or too "
-                             << "small)\n"
-                             << "The problem occured for profile '" << partfield_name
-                             << "' at: " << "p = " << p << ", lat = " << lat
-                             << ", lon = " << lon << ".\n";
-                          throw runtime_error ( os.str() );
-                        }
-
-                        // scale pnds by scale width
-                        if (diameter_max.nelem() > 1)
-                            bin_integral( pnd, diameter_max, dNdD ); //[# m^-3]
-                        else
-                            pnd = dNdD;
-                        
-                        // calculate proper scaling of pnd sum from real IWC and apply
-                        chk_pndsum ( pnd, SWC_field ( p,lat,lon ), mass,
-                                    p, lat, lon, partfield_name, verbosity );
-                        
-                        // writing pnd vector to wsv pnd_field
-                        for ( Index i =0; i< N_se; i++ )
-                        {
-                            pnd_field ( intarr[i]+scat_data_start, p-limits[0],
-                                       lat-limits[2], lon-limits[4] ) = pnd[i];
-                        }
-                    }
-                    
-                    // F07 requires mass density. If not set, abort calculation.
-                    else if ( isnan(SWC_field ( p, lat, lon )) )
-                    {
-                        ostringstream os;
-                        os << "Size distribution " << psdname
-                           << " requires knowledge of mass "
-                           << "density of atmospheric ice.\n"
-                           << "At grid point (" << p << ", " << lat << ", " << lon
-                           << ") in (p,lat,lon) a NaN value is encountered, "
-                           << "i.e. mass density is unknown.";
-                        throw runtime_error( os.str() );
-                    }
-                    
-                    // F07 can basically handle negative numbers, but we do not
-                    // allow these unphysical values (if we want this at one
-                    // point, first change psd_snow_F07).
-                    else if (SWC_field ( p, lat, lon ) < 0.)
-                      {
-                        ostringstream os;
-                        os << "Size distribution " << psdname
-                           << " is parametrized in snow mass content.\n"
-                           << "It does not handle negative values like SWC="
-                           << SWC_field (p,lat,lon) << " kg/m3\n"
-                           << "found at grid point ("
-                           << p << ", " << lat << ", " << lon << ")";
-                        throw runtime_error( os.str() );
-                      }
-
-                    // for IWC==0, we just set pnd_field=0
-                    else
-                    {
-                        for ( Index i = 0; i< N_se; i++ )
-                        {
-                            pnd_field ( intarr[i]+scat_data_start, p-limits[0],
-                                       lat-limits[2], lon-limits[4] ) = 0.;
-                        }
-                    }
+                  ostringstream os;
+                  os << "Negative temperatures not allowed.\n"
+                     << "Yours is " << T << "K.";
+                  throw runtime_error ( os.str() );
                 }
+
+              psd_snow_F07( dNdD, diameter_max,
+                            SWC_field ( p, lat, lon ), T,
+                            alpha, beta, regime);
+
+              // ensure that any particles where produced
+              if ( dNdD.sum() == 0.0 )
+              { // no particles at all were produced. means, there's some
+                // issue with the setup (none of the included particles
+                // produces numerically considerable amount of particles
+                // with this PSD, likely due to all the particles being
+                // either too large or too small)
+                ostringstream os;
+                os <<  psdname << " PSD did not produce any non-zero pnd values "
+                  << "(likely results\n"
+                  << "from considered particles being too large or too small)\n"
+                  << "The problem occured for profile '" << partfield_name
+                  << "' at: " << "p = " << p << ", lat = " << lat
+                  << ", lon = " << lon << ".\n";
+                throw runtime_error ( os.str() );
+              }
+
+              // scale pnds by scale width
+              if (diameter_max.nelem() > 1)
+                bin_integral( pnd, diameter_max, dNdD ); //[# m^-3]
+              else
+                pnd = dNdD;
+                        
+              // calculate proper scaling of pnd sum from real IWC and apply
+              chk_pndsum ( pnd, SWC_field ( p,lat,lon ), mass,
+                           p, lat, lon, partfield_name, verbosity );
+                        
+              // writing pnd vector to wsv pnd_field
+              for ( Index i =0; i< N_se; i++ )
+              {
+                pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                            lat-limits[2], lon-limits[4] ) = pnd[i];
+              }
             }
+
+            // F07 requires mass density. If not set, abort calculation.
+            else if ( isnan(SWC_field ( p, lat, lon )) )
+            {
+              ostringstream os;
+              os << "Size distribution " << psdname << " requires knowledge"
+                 << " of mass density of atmospheric ice.\n"
+                 << "At grid point (" << p << ", " << lat << ", " << lon
+                 << ") in (p,lat,lon) a NaN value is encountered, "
+                 << "i.e. mass density is unknown.";
+              throw runtime_error( os.str() );
+            }
+                    
+            // F07 can not handle negative SWC.
+            else if (!robust && SWC_field ( p, lat, lon ) < 0.)
+            {
+              ostringstream os;
+              os << "Size distribution " << psdname
+                 << " is parametrized in snow mass content.\n"
+                 << "It does not handle negative values like SWC="
+                 << SWC_field (p,lat,lon) << " kg/m3\n"
+                 << "found at grid point ("
+                 << p << ", " << lat << ", " << lon << ")";
+              throw runtime_error( os.str() );
+            }
+
+            // for SWC==0 or robust&&SWC<0. we just set pnd_field=0
+            else
+            {
+              for ( Index i = 0; i< N_se; i++ )
+              {
+                pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                            lat-limits[2], lon-limits[4] ) = 0.;
+              }
+            }
+          }
         }
     }
 }
@@ -3031,8 +3065,8 @@ void psd_general_MGD ( Vector& psd,
 /*! Calculates particle size distribution of cloud ice using MH97 parametrization.
  *  
  *  Handles a vector of sizes at a time. Implicitly assumes particles of water
- *  ice. Strictly requires temperature to be <=273.15K (<=0C), i.e. calling
- *  method needs to ensure this.
+ *  ice. Strictly requires IWC and T to be positive, i.e. calling method needs
+ *  to ensure this.
  *  
  *  Adapted from the 'old' IWCtopnd_MH97.
 
@@ -3057,6 +3091,8 @@ void psd_cloudice_MH97 ( Vector& psd,
   Index nD = diameter.nelem();
   psd.resize(nD);
   psd = 0.;
+
+  assert (t>0.);
 
   // skip calculation if IWC is 0.0
   if ( iwc == 0.0 )
@@ -3198,9 +3234,11 @@ void psd_cloudice_MH97 ( Vector& psd,
  *  F07 parametrization.
  *
  *  Handles a vector of sizes at a time.
- *  No requirements on valid temperatures implemented so far (the parameters have
- *  been derived for measurments -60<=T<=0C, though; no tests for degeneration
- *  at extrapolation done so far(?)).
+ *  Strictly requires SWC and T to be positive and regime to be either "TR" or
+ *  "ML", i.e. calling methods need to ensure these.
+ *  No further limitations on the allowed temperatures here. Strictly valid it's
+ *  only within -60<=t<=0C, the measured t-range the parametrization is based
+ *  on. However, this is left to be handled by the calling methods.
  *
  *  Adapted from the 'old' IWCtopnd_F07TR/ML.
  
@@ -3208,11 +3246,11 @@ void psd_cloudice_MH97 ( Vector& psd,
     \param diameter  size of the scattering elements (supposed to be maximum
                        diameter of the ice particles) [m]
     \param swc     atmospheric snow water content [kg/m^3]
-    \param regime  parametrization regime to apply (TR=tropical, ML=midlatitude)
     \param t       atmospheric temperature [K]
     \param alpha   mass-dimension relationship scaling factor
                      (m=alpha*(Dmax/D0)^beta) [kg]
     \param beta    mass-dimension relationship exponent [-]
+    \param regime  parametrization regime to apply (TR=tropical, ML=midlatitude)
  
  \author Manfred Brath, Jana Mendrok
  \date 2017-06-13
@@ -3229,6 +3267,8 @@ void psd_snow_F07 ( Vector& psd,
   Index nD = diameter.nelem();
   psd.resize(nD);
   psd = 0.;
+
+  assert (t>0.);
 
   // skip calculation if SWC is 0.0
   if ( swc == 0.0 )

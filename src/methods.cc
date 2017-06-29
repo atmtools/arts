@@ -9078,6 +9078,8 @@ void define_md_data_raw()
         "Estimates alpha and beta of mass-dimension relationship\n"
         "   m = alpha * Dmax^beta\n"
         "using linear regression of the logarithm of m.\n"
+        "The size range over which the fit is performed can be limited by\n"
+        "*D_min* and *D_max*.\n"
         "\n"
         "The method is applied on one scattering species at a time, the one\n"
         "of index *scat_index*.\n"
@@ -9086,20 +9088,22 @@ void define_md_data_raw()
         "\n"
         "In case the scattering species contains only one scattering element\n"
         "(ie is a monodispersion), then beta is set from *beta_default* and\n"
-        "alpha matching the given m-dmax relation is derived.\n"
+        "alpha matching the given m-Dmax relation is derived.\n"
         ),
         AUTHORS( "Manfred Brath, Jana Mendrok" ),
         OUT(),
-        GOUT( "alpha", "beta" ),
+        GOUT(      "alpha",   "beta" ),
         GOUT_TYPE( "Numeric", "Numeric" ),
         GOUT_DESC( "Mass-dimension relationship scaling factor [kg].",
                    "Mass-dimension relationship exponent [-]." ),
         IN( "scat_meta" ),
-        GIN(         "scat_index", "beta_default" ),
-        GIN_TYPE(    "Index",      "Numeric" ),
-        GIN_DEFAULT( NODEF,        "2" ),
+        GIN(         "scat_index", "D_min",   "D_max",   "beta_default" ),
+        GIN_TYPE(    "Index",      "Numeric", "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF,        "-1",      "1",       "2" ),
         GIN_DESC(  "Take data from scattering species of this index (0-based) in"
                    " *scat_meta*.",
+                   "Smallest Dmax to consider in m-Dmax fit [m].",
+                   "Largest Dmax to consider in m-Dmax fit. [m]",
                    "Value to set beta to in case of a monodispersion." )
         ));
  
@@ -10563,7 +10567,7 @@ void define_md_data_raw()
          "temperature grid points are present in the *scat_data* and\n"
          "*rtp_temperature* is positive. If only a single temperature point\n"
          "is available, data for this point is used without modification. In\n"
-         "order to spedd up calculations, temperature interpolation can be\n"
+         "order to speed up calculations, temperature interpolation can be\n"
          "avoided by passing a *rtp_temperature*<0. In this case, a specific\n"
          "temperature grid from the *scat_data* grid is used without\n"
          "modification. The selection is as follows:\n"
@@ -10819,8 +10823,9 @@ void define_md_data_raw()
          "of the scattering species according to the particle size\n"
          "distribution (PSD) chosen for the respective scattering species.\n"
          "\n"
-         "The following PSDs are available (for further information check\n"
-         "their corresponding distribution WSM):\n"
+         "The following PSDs are available (for further information,\n"
+         "including parametrization limits and internal assumptions, see\n"
+         "their corresponding PSD WSM):\n"
          "\n"
          "Tag       PSD WSM         fields(s) used           Target         Notes\n"
          "MH97      *dNdD_MH97*     mass density             cloud ice\n"
@@ -11717,7 +11722,7 @@ void define_md_data_raw()
          "\n"
          "Both, parametrization for tropics and midlatitudes are handled,\n"
          "governed by setting of *regime*, where \"TR\" selectes the tropical\n"
-         "case, and \"ML\" the idlatitude one.\n"
+         "case, and \"ML\" the midlatitude one.\n"
          "\n"
          "Requirements:\n"
          "\n"

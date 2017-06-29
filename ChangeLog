@@ -1,3 +1,22 @@
+2017-06-29 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-741
+
+	* src/methods.cc, m_cloudbox.cc, cloudbox.cc
+
+	(dNdD_MH97, dNdD_F07, dNdD_W16; pnd_fieldMH97, pnd_fieldF07):
+	Ensure meeting requirements of psd_cloudice_MH97, psd_snow_F07,
+	psd_rain_W16 by calling methods. Make (default) setup of dNdD*
+	consistent with pnd_field*. Document settings properly in dNdD*
+	built-in doc. Also document settings in non-WSM in their headers.
+
+	(MassSizeParamsFromScatMeta):
+	Added ability to limit size range of alpha and beta fit.
+
+	* doc/uguide/clouds.tex, doit.tex, montecarlo.tex:
+	Updated leftover references to outdated ptype names
+	"horizontally_aligned" and "macroscopically_isotropic".
+
 2017-06-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-740

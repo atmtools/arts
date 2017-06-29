@@ -1869,7 +1869,6 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
   //resize pnd_field to required atmospheric dimension and scattering elements
   pnd_field.resize ( TotalNumberOfElements(scat_meta), limits[1]-limits[0],
                      limits[3]-limits[2], limits[5]-limits[4] );
-  ArrayOfIndex intarr;
 
   //-------- Start pnd_field calculations---------------------------------------
 
@@ -2771,6 +2770,8 @@ void MassSizeParamsFromScatMeta(
           Numeric&                            beta,
     const ArrayOfArrayOfScatteringMetaData&   scat_meta,
     const Index&                              scat_index,
+    const Numeric&                            D_min,
+    const Numeric&                            D_max,
     const Numeric&                            beta_default,
     const Verbosity& )
 {
@@ -2802,11 +2803,10 @@ void MassSizeParamsFromScatMeta(
 
   if( nse>1 )
     {
-      ArrayOfIndex intarr;
+      ArrayOfIndex intarr_sort, intarr_unsort( 0 );
       Vector dmax_unsorted( nse );
-      Vector dmax( nse ), log_D( nse );
-      Vector mass( nse ), log_m( nse );
       Vector q;
+      Index nsev=0;
 
       for ( Index i=0; i<nse; i++ )
       {
@@ -2818,25 +2818,33 @@ void MassSizeParamsFromScatMeta(
                << ".";
             throw runtime_error( os.str() );
         }
-        dmax_unsorted[i] = scat_meta[scat_index][i].diameter_max;
+        if( scat_meta[scat_index][i].diameter_max>=D_min &&
+            scat_meta[scat_index][i].diameter_max<=D_max )
+          {
+            dmax_unsorted[nsev] = scat_meta[scat_index][i].diameter_max;
+            intarr_unsort.push_back( i );
+            nsev += 1;
+          }
       }
 
-      get_sorted_indexes(intarr, dmax_unsorted);
+      get_sorted_indexes(intarr_sort, dmax_unsorted[Range(0,nsev)]);
+      Vector dmax( nsev ), log_D( nsev );
+      Vector mass( nsev ), log_m( nsev );
     
       // extract scattering meta data
-      for ( Index i=0; i<nse; i++ )
+      for ( Index i=0; i<nsev; i++ )
       {
-        dmax[i] = dmax_unsorted[intarr[i]]; // [m]
+        dmax[i] = dmax_unsorted[intarr_sort[i]]; // [m]
         
-        if ( isnan(scat_meta[scat_index][intarr[i]].mass) )
+        if ( isnan(scat_meta[scat_index][intarr_unsort[intarr_sort[i]]].mass) )
         {
             ostringstream os;
             os << "No mass data available for scattering element #"
-               << intarr[i] << " of scattering species with index "
-               << scat_index << ".";
+               << intarr_unsort[intarr_sort[i]]
+               << " of scattering species with index " << scat_index << ".";
             throw runtime_error( os.str() );
         }
-        mass[i] = scat_meta[scat_index][intarr[i]].mass; // [kg]
+        mass[i] = scat_meta[scat_index][intarr_unsort[intarr_sort[i]]].mass; // [kg]
         
         // logarithm of Dmax, needed for estimating mass-dimension-relationship
         log_D[i] = log(dmax[i]);
@@ -2922,7 +2930,9 @@ void psdF07 (
       if( dpnd_data_dx_names[0] != "SWC" )
         throw runtime_error( "With F07, the only valid option for "
                              "*dpnd_data_dx_names* is: \"SWC\"." );
-    }        
+    }
+  if( regime!="TR" && regime!="ML" )
+    throw runtime_error( "regime must either be \"TR\" or \"ML\"." );
   
   // Init psd_data and dpsd_data_dx with zeros
   psd_data.resize( np, nsi );
@@ -2953,6 +2963,9 @@ void psdF07 (
       // shouldn't be > DENSITY_ICE? we check the smallest and largest
       // particles.
 
+      /* that seems unpractical. for beta<3., small particles will frequently
+         exceed ice density quite significantly. hence, don't apply this.
+
       // first, find the smallest and largest particles D_small and D_large (as
       // psd_size grid is not necessarily sorted).
       Vector D_lims{1e3,-1.}; // 1km should be large enough to find
@@ -2965,8 +2978,6 @@ void psdF07 (
 
       // now calc resulting densities for solid spheres D_small and D_large
       // diameters
-      /* that seems unpractical. for beta<3., small particles will frequently
-         exceed ice density quite significantly.
       for( Index iD=0; iD<2; iD++ )
         {
           Numeric rho = 6.*alpha/PI * pow(D_lims[iD],(beta-3.));
@@ -3005,14 +3016,14 @@ void psdF07 (
         }
       
       // Outside of [t_min,tmax]?
-      if( t < t_min  ||  t > t_max )
+      if( t < t_min  ||  t > t_max || t < 0.)
         {
           if( picky )
             {
               ostringstream os;
               os << "Method called with a temperature of " << t << " K.\n"
-                 << "This is outside the specified allowed range: ["
-                 << t_min << "," << t_max << "]";
+                 << "This is outside the specified allowed range: [ max(0.,"
+                 << t_min << "), " << t_max << " ]";
               throw runtime_error(os.str());
             }
           else  
@@ -3126,14 +3137,14 @@ void psdMH97 (
         }
       
       // Outside of [t_min,tmax]?
-      if( t < t_min  ||  t > t_max )
+      if( t < t_min  ||  t > t_max || t < 0.)
         {
           if( picky )
             {
               ostringstream os;
               os << "Method called with a temperature of " << t << " K.\n"
-                 << "This is outside the specified allowed range: ["
-                 << t_min << "," << t_max << "]";
+                 << "This is outside the specified allowed range: [ max(0.,"
+                 << t_min << "), " << t_max << " ]";
               throw runtime_error(os.str());
             }
           else  
@@ -3617,7 +3628,6 @@ void dNdD_MH97 (//WS Output:
     }
   // allow some margin on T>0C (but use T=0C for PSD calc)
   Numeric t = min( T, 273.15 );
-  //Numeric t = T;
 
   // calculate particle size distribution with MH97
   // [# m^-3 m^-1]

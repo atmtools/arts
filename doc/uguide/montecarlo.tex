@@ -530,7 +530,7 @@ summarized graphically in Figure \ref{fig:montecarlo:flowchart}.
 \subsection{Particle orientation and the evolution operator}
 The calculation of the evolution operator in Eqs. \ref{OconstK} and
 \ref{Ogeneral} requires evaluation of the matrix exponential.  If the scattering
-elements are spheres or randomly orientated ("macroscopically\_isotropic"), as described in
+elements are spheres or randomly orientated ("totally\_random"), as described in
 \user, Section \ref{U-sec:clouds:particle_types}, then Eq. \ref{OconstK} is simply
 \begin{equation}
 O_{jj}(s',s)=\exp\left(-K_{jj}\Delta s\right)
@@ -538,7 +538,7 @@ O_{jj}(s',s)=\exp\left(-K_{jj}\Delta s\right)
 \end{equation}
 If scattering elements have rotational symmetry, and the axis of symmetry is
 oriented vertically, or if the scattering elements are have random azimuthal orientation
-("horizontally\_aligned") then the extinction matrix has a block diagonal form with 3 independent
+("azimuthally\_random") then the extinction matrix has a block diagonal form with 3 independent
 elements, $K_{jj}$, $K_{12}$, and $K_{34}$.
 
 \subsection{Particle orientation and the phase matrix}
