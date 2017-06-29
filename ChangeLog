@@ -1,3 +1,14 @@
+2017-06-29  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-740
+
+	* CMakeLists.txt:
+
+	While OEM works fine with Clang now, Apple Clang is still not
+	cooperating -> disable OEM by default if Apple Clang is used.
+
+	Error: https://gist.github.com/olemke/a2d5b7621a425a245ee2180d52d6b7a7
+
 2017-06-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-739
