@@ -125,7 +125,7 @@ typename CostFunction
 >
 auto GradientDescent<RealType>::step(const VectorType &x,
                                      const VectorType &g,
-                                     const MatrixType &B,
+                                     const MatrixType &/*B*/,
                                      CostFunction &J)
     -> VectorType
 {

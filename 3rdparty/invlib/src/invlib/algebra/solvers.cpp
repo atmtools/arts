@@ -116,7 +116,7 @@ auto ConjugateGradient<CGSettings>::solve(const MatrixType &A,
 
     Log<LogType::SOL_CG> log(verbosity);
 
-    RealType tol, alpha, beta, rnorm, vnorm;
+    RealType alpha, beta, rnorm, vnorm;
     VectorType r, p, xnew, rnew, pnew;
 
     auto x = settings.start_vector(v);
@@ -178,7 +178,7 @@ auto PreconditionedConjugateGradient<F, true>::solve(const MatrixType &A,
 
     Log<LogType::SOL_CG> log(verbosity);
 
-    RealType tol, alpha, beta, rnorm, r0;
+    RealType tol, alpha, beta, rnorm, r0, vnorm;
     VectorType x, y, r, p, xnew, ynew, rnew, pnew;
 
     x = 0.0 * v;
@@ -187,8 +187,9 @@ auto PreconditionedConjugateGradient<F, true>::solve(const MatrixType &A,
     p = -1.0 * y;
     rnorm = r.norm();
     r0    = rnorm;
+    vnorm = v.norm();
 
-    log.init(tolerance, rnorm, v.norm());
+    log.init(tolerance, rnorm, vnorm);
     int i = 0;
     while (rnorm / r0 > tolerance)
     {
@@ -239,7 +240,7 @@ auto PreconditionedConjugateGradient<F, false>::solve(const MatrixType &A,
     F f(A);
     Log<LogType::SOL_CG> log(verbosity);
 
-    RealType tol, alpha, beta, rnorm, r0;
+    RealType tol, alpha, beta, rnorm, r0, vnorm;
     VectorType x, y, r, p, xnew, ynew, rnew, pnew;
 
     x = 0.0 * v;
@@ -248,8 +249,9 @@ auto PreconditionedConjugateGradient<F, false>::solve(const MatrixType &A,
     p = -1.0 * y;
     rnorm = r.norm();
     r0    = rnorm;
+    vnorm = v.norm();
 
-    log.init(tolerance, rnorm, v.norm());
+    log.init(tolerance, rnorm, vnorm);
     int i = 0;
     while (rnorm / r0 > tolerance)
     {

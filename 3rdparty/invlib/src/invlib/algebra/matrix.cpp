@@ -80,7 +80,7 @@ void Matrix<Base>::accumulate(const MatrixIdentity<Matrix> &B)
 }
 
 template <typename Base>
-void Matrix<Base>::accumulate(const MatrixZero &Z)
+void Matrix<Base>::accumulate(const MatrixZero &/*Z*/)
 {
     // <Insert obscure method to add zeros to elements here>
 }

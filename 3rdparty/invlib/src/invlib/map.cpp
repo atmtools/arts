@@ -211,7 +211,8 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STAN
 {
 
     Log<LogType::MAP> log(log_params ...);
-    log.init(F, xa, Sa, Se, y, M, Formulation::STANDARD);
+    Formulation f = Formulation::STANDARD;
+    log.init(F, xa, Sa, Se, y, M, f);
 
     auto t1 = std::chrono::steady_clock::now();
 
@@ -314,7 +315,8 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFOR
 {
 
     Log<LogType::MAP> log(log_params ...);
-    log.init(F, xa, Sa, Se, y, M, Formulation::NFORM);
+    Formulation f = Formulation::NFORM;
+    log.init(F, xa, Sa, Se, y, M, f);
 
     auto t1 = std::chrono::steady_clock::now();
 

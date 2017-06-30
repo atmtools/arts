@@ -134,9 +134,6 @@ template
 class NormalizingSolver : SolverType
 {
 public:
-    NormalizingSolver(const SolverType & s)
-    : SolverType(s), apply(false), trans() {}
-
     template<typename ...Params>
     NormalizingSolver(const TransformationMatrixType &t, bool a, Params ...params)
     : SolverType(params...), apply(a), trans(t) {}
@@ -269,9 +266,9 @@ public:
     }
 
     template <typename... Params>
-    void init(Params... params)
+    void init(Params & ... params)
     {
-        auto tuple = std::make_tuple(params...);
+        std::tuple<Params & ...> tuple(params ...);
 
         auto & y       =  std::get<4>(tuple);
         scaling_factor =  1.0 / static_cast<Numeric>(y.nelem());
@@ -296,7 +293,7 @@ public:
 
         // Print optimization method.
         using OptimizationType =
-            typename std::tuple_element<5, decltype(tuple)>::type;
+            typename std::decay<typename std::tuple_element<5, decltype(tuple)>::type>::type;
         std::cout << "Method:      " << invlib::OptimizerLog<OptimizationType>::name;
         std::cout << std::endl;
 
@@ -312,13 +309,13 @@ public:
     }
 
     template <typename... Params>
-    void step(Params... params)
+    void step(const Params & ... params)
     {
         if (verbosity >= 1)
         {
-            auto tuple = std::make_tuple(params...);
+            std::tuple<const Params & ...> tuple(params...);
             using OptimizationType =
-                typename std::tuple_element<5, decltype(tuple)>::type;
+                typename std::decay<typename std::tuple_element<5, decltype(tuple)>::type>::type;
 
             std::cout<< std::setw(5)  << std::get<0>(tuple);
             std::cout<< std::setw(15) << scaling_factor * std::get<1>(tuple);
@@ -337,13 +334,13 @@ public:
     }
 
     template <typename... Params>
-    void finalize(Params... params)
+    void finalize(const Params & ... params)
     {
         if (verbosity >= 1)
         {
             std::cout << invlib::separator() << std::endl;
 
-            auto tuple = std::make_tuple(params...);
+            std::tuple<const Params & ...> tuple(params...);
             std::cout << std::endl;
 
             std::cout << "Total number of steps:            ";
@@ -367,11 +364,11 @@ public:
     }
 
     template <typename... Params>
-    void time(Params... params)
+    void time(const Params & ... params)
     {
         if (verbosity >= 1)
         {
-            auto tuple = std::make_tuple(params...);
+            std::tuple<const Params & ...> tuple(params...);
             std::cout << std::endl;
             std::cout << "Elapsed Time for Retrieval:                       ";
             std::cout << std::get<0>(tuple) << std::endl;

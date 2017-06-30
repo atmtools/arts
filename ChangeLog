@@ -1,3 +1,27 @@
+2017-06-30  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-743
+
+	* Apply patch provided by Simon P. to fix compilation of OEM with Apple
+	Clang by removing an unneeded constructor that caused trouble.
+
+	* Changes from patch:
+
+	* 3rdparty/invlib/src/invlib/algebra/matrix.cpp,
+	3rdparty/invlib/src/invlib/algebra/solvers.cpp,
+	3rdparty/invlib/src/invlib/log.h,
+	3rdparty/invlib/src/invlib/map.cpp,
+	3rdparty/invlib/src/invlib/optimization/gradient_descent.cpp,
+	src/oem.h:
+
+	Fixes for several warnings.
+
+	* oem.h (NormalizingSolver): Removed unneed copy constructor.
+
+	* Change by me:
+
+	* CMakeLists.txt: Reenable OEM by default with AppleClang.
+	
 2017-06-29 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-742

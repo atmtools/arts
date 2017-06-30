@@ -7,6 +7,7 @@
 #include <iostream>
 #include <iomanip>
 
+#include "invlib/traits.h"
 #include "invlib/profiling/timer.h"
 
 namespace invlib
@@ -55,16 +56,16 @@ public:
     StandardLog(unsigned int v = 0) : verbosity(v) {}
 
     template <typename... Params>
-    void init(Params... params) {}
+    void init(Params & ... /*params*/) {}
 
     template <typename... Params>
-    void step(Params... params) {}
+    void step(Params... /*params*/) {}
 
     template <typename... Params>
-    void finalize(Params... params) {}
+    void finalize(Params... /*params*/) {}
 
     template <typename... Params>
-    void time(Params... params) {}
+    void time(Params... /*params*/) {}
 
 private:
 
@@ -175,9 +176,9 @@ struct OptimizerLog<GaussNewton<RealType, Solver>>
 
 template<>
 template<typename... Params>
-void StandardLog<LogType::MAP>::init(Params... params)
+void StandardLog<LogType::MAP>::init(Params & ... params)
 {
-    auto tuple = std::make_tuple(params...);
+    std::tuple<Params &...> tuple(params...);
     if (verbosity >= 1)
     {
         std::cout << std::endl;
@@ -201,7 +202,7 @@ void StandardLog<LogType::MAP>::init(Params... params)
 
         // Print optimization method.
         using OptimizationType =
-            typename std::tuple_element<5, decltype(tuple)>::type;
+            decay<typename std::tuple_element<5, decltype(tuple)>::type>;
         std::cout << "Method:      " << OptimizerLog<OptimizationType>::name;
         std::cout << std::endl;
 
@@ -312,7 +313,7 @@ void StandardLog<LogType::MAP>::time(Params... params)
 
 template<>
 template<typename... Params>
-void StandardLog<LogType::SOL_CG>::init(Params... params)
+void StandardLog<LogType::SOL_CG>::init(Params & ... params)
 {
     auto tuple = std::make_tuple(params...);
     if (verbosity >= 1)
