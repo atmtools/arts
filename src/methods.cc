@@ -3492,8 +3492,7 @@ void define_md_data_raw()
         GIN_DESC()
         ));
     
-    
-    md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "cloudboxSetAutomatically" ),
         DESCRIPTION
@@ -3508,7 +3507,7 @@ void define_md_data_raw()
          "check, to see if the corresponding scattering species fields do\n"
          "contain non-zero, non-NaN mass/number density/flux values. In case\n"
          "none of the scattering species fields contains any non-zero,\n"
-         "non-NaN value, the cloudbox is switched off (see WSM *cloudboxOff*).\n"
+         "non-NaN value, the cloudbox is switched off (*cloudbox_on*=0).\n"
          "\n"
          "Each scattering species field is searched for the first and last\n"
          "pressure index, where the value is unequal to zero. This index\n"
@@ -3546,6 +3545,77 @@ void define_md_data_raw()
         )
         ));
   
+    md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "cloudboxSetAutomaticallyGeneric" ),
+        DESCRIPTION
+        (
+         "Sets the cloud box to encompass the cloud given by the entries\n"
+         "in *particle_field*.\n"
+         "\n"
+         "This WSM handles one *Tensor4* type *particle_field* at a time. It can\n"
+         "be used to determine the cloudbox from *particle_bulkprop_field*,\n"
+         "but also from the various *scat_species_XXX_field*. For the latter,\n"
+         "the WSM needs to be called once per each *scat_species_XXX_field*,\n"
+         "with previously determined *cloudbox_limits* provided through\n"
+         "*cloudbox_limits_old* (Note: if you use the DEBUG version of ARTS,\n"
+         "you can not pass *cloudbox_limits* directly as\n"
+         "*cloudbox_limits_old*, but have to copy it to another variable and\n"
+         "pass that as *cloudbox_limits_old*).\n"
+         "\n"
+         "The function must be called before executing any WSM that applies\n"
+         "*cloudbox_limits*.\n"
+         "\n"
+         "The function iterates over all 3D fields in *particle_field* (which\n"
+         "might correspond to the different scattering species as in\n"
+         "*scat_species_XX_field* or to different particle bulk properties as\n"
+         "in *particle_bulkprop_field*). Each field is searched for the first\n"
+         "and last pressure index, where the value is unequal to zero. This\n"
+         "index is then copied to *cloudbox_limits*.\n"
+         "If *particle_field* is empty, the cloudbox is switched off\n"
+         "(*cloudbox_on*=0).\n"
+         "\n"
+         "Additionaly the lower cloudbox_limit is altered by *cloudbox_margin*.\n"
+         "The margin is given as a height difference in meters and transformed\n"
+         "into a pressure (via isothermal barometric height formula). This\n"
+         "alteration is to ensure covering photons that leave the cloud, but\n"
+         "reenter through a limb path.\n"
+         "If *cloudbox_margin* is set to -1 (default), the cloudbox will extend\n" 
+         "to the surface. Hence, the lower cloudbox_limit is set to 0 (index\n"
+         "of first pressure level).\n"
+         "*cloudbox_margin* will be applied on each call of the WSM. Hence,\n"
+         "if called successively for several *scat_species_XXX_field* and\n"
+         "*cloudbox_margin* not -1, it is suggested to apply the desired\n"
+         "*cloudbox_margin* only for the last WSM call, while for the others\n"
+         "set *cloudbox_margin* to 0.\n"
+         "\n"
+         "Works only for *atmosphere_dim==1.*\n"
+         ),
+        AUTHORS( "Jana Mendrok, Daniel Kreyling" ),
+        OUT( "cloudbox_on", "cloudbox_limits" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+        GIN(         "particle_field", "particle_field_name",
+                     "cloudbox_limits_old",  "cloudbox_margin" ),
+        GIN_TYPE(    "Tensor4",        "String",
+                     "ArrayOfIndex",         "Numeric" ),
+        GIN_DEFAULT( NODEF,            "user particle field",
+                     "[-1]",                 "-1" ),
+        GIN_DESC( "A collection of particle property fields (e.g."
+                  " *particle_bulkprop_field*,"
+                  " *scat_species_mass_density_field*.",
+                  "The name of the particle property field.",
+                  "Preset cloudbox limits, resulting from a previous run of"
+                  " *cloudboxSetAutomaticallyGen*.",
+                  "Minimum distance [m] between lowest 'cloudy' level and"
+                  " cloudbox lower limit. If set to *-1* (default), the"
+                  " cloudbox lower limit is fixed to 0, i.e., corresponds to"
+                  " the lowest atmospheric level (or the surface)."
+        )
+        ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "cloudboxSetFullAtm" ),

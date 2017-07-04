@@ -365,6 +365,186 @@ void cloudboxSetAutomatically (// WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void cloudboxSetAutomaticallyGeneric (// WS Output:
+                               //Workspace& /* ws */,
+                               Index&          cloudbox_on,
+                               ArrayOfIndex&   cloudbox_limits,
+                               //Agenda&  iy_cloudbox_agenda,
+                               // WS Input:
+                               const Index&    atmosphere_dim,
+                               const Vector&   p_grid,
+                               const Vector&   lat_grid,
+                               const Vector&   lon_grid,
+                               const Tensor4&  particle_field,
+                               const String&   particle_field_name,
+                               // Control Parameters
+                               const ArrayOfIndex&  cloudbox_limits_old,
+                               const Numeric&  cloudbox_margin,
+                               const Verbosity& verbosity)
+{
+  // Check existing WSV
+  chk_if_in_range ( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  // includes p_grid chk_if_decresasing
+  chk_atm_grids ( atmosphere_dim, p_grid, lat_grid, lon_grid ); 
+  // Set cloudbox_on
+  cloudbox_on = 1;
+
+  if ( atmosphere_dim > 1 )
+    {
+      ostringstream os;
+      os << "cloudboxSetAutomaticallyGen not yet available for 2D and 3D cases.";
+      throw runtime_error( os.str() );
+    }
+
+  Index np = p_grid.nelem();
+
+  // Allocate cloudbox_limits
+  cloudbox_limits.resize ( atmosphere_dim*2 );
+
+  bool cb_preset = ( min(cloudbox_limits_old)>-1 );
+  if( cb_preset )
+  {
+    if( cloudbox_limits_old.nelem() != atmosphere_dim*2 )
+        {
+          ostringstream os;
+          os << "The array *cloudbox_limits_old* has incorrect length.\n"
+             << "For atmospheric dim. = " << atmosphere_dim 
+             << " the length shall be " << atmosphere_dim*2
+             << " but it is " << cloudbox_limits_old.nelem() << ".";
+          throw runtime_error( os.str() );
+        }
+  }
+
+  // Initialize boundary counters
+  Index p1=0, p2=0;
+  if ( cloudbox_margin == -1 )
+    {
+      cloudbox_limits[0] = 0;
+      // if margin is -1, the lower boundary shall be at 0 regardless whether cb
+      // is preset or not.
+      //p1 = 0;
+    }
+  else
+    if( cb_preset )
+    {
+      p1 = cloudbox_limits_old[0]+1;
+      p2 = cloudbox_limits_old[1]-1;
+    }
+    else
+      p1 = np-1;
+
+// OLE: Commented out until code that uses it at the end of this function is commented back in
+/*
+  if ( atmosphere_dim > 1 )
+    {
+      Index lat1 = particle_field.nrows()-1;
+      Index lat2 = 0;
+    }
+  if ( atmosphere_dim > 2 )
+    {
+      Index lon1 = particle_field.ncols()-1;
+      Index lon2 = 0;
+    }
+*/
+
+  bool not_empty = false;
+
+  if ( !particle_field.empty() )
+  {  
+    Index nss = particle_field.nbooks();
+
+    //--------- Start loop over fields in particle_field------------------------
+    for ( Index l=0; l<nss; l++ )
+    {
+      //not_empty is set to true, if a single value of particle_field
+      //is unequal zero (and not NaN), i.e. if we actually have some amount of
+      //these scattering species in the atmosphere.
+      chk_scat_species_field ( not_empty,
+                               particle_field( l, joker, joker, joker ),
+                               particle_field_name,
+                               atmosphere_dim, p_grid, lat_grid, lon_grid );
+
+      //if particles found, enter detailed search
+      if (not_empty)
+      {
+        find_cloudlimits(p1, p2,
+                         particle_field( l, joker, joker, joker ),
+                         atmosphere_dim, cloudbox_margin);
+      }
+    }
+  }
+
+  if ( not_empty || cb_preset )
+  {
+    // decrease lower cb limit by one to ensure that linear interpolation of 
+    // particle number densities is possible.
+    p1 = max(p1-1, Index(0));
+
+    Numeric p_margin1;
+
+    // alter lower cloudbox_limit by cloudbox_margin, using barometric
+    // height formula
+    p_margin1 = barometric_heightformula ( p_grid[p1], cloudbox_margin );
+    while ( (p_grid[p1] < p_margin1) && (p1 > 0) ) p1--;
+    cloudbox_limits[0]= p1;
+
+    // increase upper cb limit by one to ensure that linear interpolation of 
+    // particle number densities is possible.
+    p2 = min(p2+1, np-1);
+    // set upper cloudbox_limit
+    // if cloudbox reaches to the upper most pressure level
+    if ( p2 >= np-1)
+    {
+      CREATE_OUT2;
+      out2 << "The cloud reaches to TOA!\n"
+           << "Check " << particle_field_name << " data, if realistic!\n";
+    }
+    cloudbox_limits[1] = p2;
+
+    // assert keyword arguments
+
+    // The pressure in *p1* must be bigger than the pressure in *p2*.
+    assert ( p_grid[p1] > p_grid[p2] );
+    // The pressure in *p1* must be larger than the last value in *p_grid*.
+    assert ( p_grid[p1] > p_grid[p_grid.nelem()-1] );
+    // The pressure in *p2* must be smaller than the first value in *p_grid*."
+    assert ( p_grid[p2] < p_grid[0] );
+
+    /*
+    if ( atmosphere_dim >= 2 )
+    {
+      // The latitude in *lat2* must be bigger than the latitude in *lat1*.
+      assert ( lat_grid[lat2] > lat_grid[lat1] );
+      // The latitude in *lat1* must be >= the second value in *lat_grid*.
+      assert ( lat_grid[lat1] >= lat_grid[1] );
+      // The latitude in *lat2* must be <= the next to last value in *lat_grid*.
+      assert ( lat_grid[lat2] <= lat_grid[lat_grid.nelem()-2] );
+    }
+    if ( atmosphere_dim == 3 )
+    {
+      // The longitude in *lon2* must be bigger than the longitude in *lon1*.
+      assert ( lon_grid[lon2] > lon_grid[lon1] );
+      // The longitude in *lon1* must be >= the second value in *lon_grid*.
+      assert ( lon_grid[lon1] >= lon_grid[1] );
+      // The longitude in *lon2* must be <= the next to last value in *lon_grid*.
+      assert ( lon_grid[lon2] <= lon_grid[lon_grid.nelem()-2] );
+    }
+    */
+  }
+
+  else
+  // if all particle fields are zero at each level and cloudbox was not preset,
+  // switch cloudbox off.
+  {
+    CREATE_OUT0;
+    cloudbox_on = 0;
+    cloudbox_limits[1] = -1; // just for consistency with cloudboxSetAutomatically
+    out0 << "Cloudbox is switched off!\n";
+  }
+
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void cloudboxSetFullAtm(//WS Output
                        Index& cloudbox_on,
                        ArrayOfIndex& cloudbox_limits,

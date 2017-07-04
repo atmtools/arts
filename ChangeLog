@@ -1,3 +1,18 @@
+2017-07-04 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-744
+
+	* src/m_cloudbox.cc, methods.cc (cloudboxSetAutomaticallyGeneric):
+	A new instance of cloudboxSetAutomatically (to replace that in future)
+	that handles one Tensor4 particle field at a time, i.e. can be applied
+	for particle_bulkprop_field (and, on the scat_species_XXX_field one
+	after the other).
+
+	* src/m_checked.cc (cloudbox_checkedCalc):
+	Minor rewording of bulkprop non-zero outside cloudbox error message.
+	Prep for allowing negative pnd (we'll need that for inversions, won't
+	we?).
+
 2017-06-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-743

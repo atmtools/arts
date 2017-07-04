@@ -448,6 +448,7 @@ void cloudbox_checkedCalc(
    const ArrayOfString&  particle_bulkprop_names,         
    const Matrix&         particle_masses,
    const ArrayOfArrayOfSpeciesTag& abs_species,
+//   const Index&          negative_pnd_ok,
    const String&         scat_data_check_type,
    const Numeric&        sca_mat_threshold,
    const Verbosity&      verbosity )
@@ -620,6 +621,7 @@ void cloudbox_checkedCalc(
       //
       chk_atm_field( "pnd_field", pnd_field, atmosphere_dim, np, g1, g2, g3 );
       //
+      //if( !negative_pnd_ok && min(pnd_field) < 0 )
       if( min(pnd_field) < 0 )
         throw runtime_error( "Negative values in *pnd_field* not allowed." );
       // No non-zero pnd at lower boundary unless lower boundary is at or below
@@ -736,8 +738,8 @@ void cloudbox_checkedCalc(
           
           // Check that *particle_bulkprop_field* contains zeros outside and at
           // cloudbox boundaries
-          const String estring = "*particle_bulkprop_field* can only contain non-zero "
-            "values inside the cloudbox.";
+          const String estring = "*particle_bulkprop_field* not allowed to "
+            "contain non-zero values outside the cloudbox.";
           // Pressure end ranges
           for( Index ilon=0; ilon<nlon; ilon++ ) {
             for( Index ilat=0; ilat<nlat; ilat++ ) {
