@@ -1,3 +1,19 @@
+2017-07-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-745
+
+	* src/make_auto_md_cc.cc (main):
+
+	Only zero-out the output-only variables if the same WSV is not also
+	passed as a generic input to another parameter in the same WSM call.
+	Can create unwanted side-effects in debug mode as discovered by Jana.
+
+	Move a large part of the *agenda_execute functions into a separate
+	helper function. Use range-based loops. Reduces the size of auto_md.cc
+	by ~1400 lines.
+
+	* src/CMakeLists.txt: Small indentation fix.
+
 2017-07-04 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-744

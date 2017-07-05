@@ -138,7 +138,7 @@ add_custom_command (
 add_executable (make_auto_md_cc
         agenda_record.cc
         arts.cc
-  auto_workspace.h
+        auto_workspace.h
         file.cc
         make_auto_md_cc.cc
         messages.cc

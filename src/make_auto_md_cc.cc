@@ -210,7 +210,7 @@ int main()
         for (Index j=0; j < voutonly.nelem(); j++)
           {
             ostringstream docstr;
-            docstr << "  " << "// " << wsv_data[vo[voutonly[j]]].Name() << " is Output only.\n";
+            docstr << "  // " << wsv_data[vo[voutonly[j]]].Name() << "\n";
 
             String gname = wsv_group_names[wsv_data[vo[voutonly[j]]].Group()];
             ostringstream initstr;
@@ -221,7 +221,11 @@ int main()
             else
               initstr << " = " << gname << "();";
 
-            ofs << "  (*(("
+            // Only zero-out the variable if it is not passed as an input
+            // variable for any other parameter
+            ofs << "  if (mr.In().end() == find(mr.In().begin(), mr.In().end(),"
+                << " mr.Out()[" << voutonly[j] << "]))\n";
+            ofs << "    (*(("
                 << wsv_group_names[wsv_data[vo[voutonly[j]]].Group()]
                 << " *)ws[mr.Out()[" << voutonly[j]
                 << "]]))" << initstr.str();
@@ -424,6 +428,48 @@ int main()
         ofs << "};\n\n";
       }
 
+        // Agenda execute helper function
+
+      ofs << "void auto_md_agenda_execute_helper(bool& agenda_failed, String& agenda_error_msg, Workspace& ws, const Agenda& input_agenda)\n";
+      ofs << "{\n";
+      ofs << "    const ArrayOfIndex& outputs_to_push = input_agenda.get_output2push();\n";
+      ofs << "    const ArrayOfIndex& outputs_to_dup = input_agenda.get_output2dup();\n";
+      ofs << "\n";
+      ofs << "    for (auto&& i : outputs_to_push)\n";
+      ofs << "    {\n";
+      ofs << "        // Even if a variable is only used as WSM output inside this agenda,\n";
+      ofs << "        // It is possible that it is used as input further down by another agenda,\n";
+      ofs << "        // which we can't see here. Therefore initialized variables have to be\n";
+      ofs << "        // duplicated.\n";
+      ofs << "        if (ws.is_initialized(i))\n";
+      ofs << "            ws.duplicate(i);\n";
+      ofs << "        else\n";
+      ofs << "            ws.push_uninitialized(i, NULL);\n";
+      ofs << "    }\n";
+      ofs << "\n";
+      ofs << "    for (auto&& i : outputs_to_dup)\n";
+      ofs << "        ws.duplicate(i);\n";
+      ofs << "\n";
+      ofs << "    agenda_failed = false;\n";
+      ofs << "    try\n";
+      ofs << "    {\n";
+      ofs << "        input_agenda.execute(ws);\n";
+      ofs << "    }\n";
+      ofs << "    catch (runtime_error e)\n";
+      ofs << "    {\n";
+      ofs << "        ostringstream os;\n";
+      ofs << "        os << \"Run-time error in agenda: \"\n";
+      ofs << "           << input_agenda.name() << \'\\n\' << e.what();\n";
+      ofs << "        agenda_failed = true;\n";
+      ofs << "        agenda_error_msg = os.str();\n";
+      ofs << "    }\n";
+      ofs << "\n";
+      ofs << "    for (auto&& i : outputs_to_push)\n";
+      ofs << "        ws.pop_free(i);\n";
+      ofs << "\n";
+      ofs << "    for (auto&& i : outputs_to_dup)\n";
+      ofs << "        ws.pop_free(i);\n";
+      ofs << "}\n\n";
 
       // Create implementation of the agenda wrappers
 
@@ -521,46 +567,9 @@ int main()
               ofs << ain_push_os.str () << "\n";
             }
 
-          ofs << "  const ArrayOfIndex& outputs_to_push = input_agenda.get_output2push();\n"
-              << "  const ArrayOfIndex& outputs_to_dup = input_agenda.get_output2dup();\n"
-              << "\n"
-              << "  for (ArrayOfIndex::const_iterator it = outputs_to_push.begin ();\n"
-              << "       it != outputs_to_push.end (); it++)\n"
-              << "  {\n"
-          // Even if a variable is only used as WSM output inside this agenda,
-          // It is possible that it is used as input further down by another agenda,
-          // which we can't see here. Therefore initialized variables have to be
-          // duplicated.
-              << "     if (ws.is_initialized(*it))\n"
-              << "       ws.duplicate (*it);\n"
-              << "     else\n"
-              << "       ws.push_uninitialized (*it, NULL);\n"
-              << "  }\n"
-              << "\n"
-              << "  for (ArrayOfIndex::const_iterator it = outputs_to_dup.begin ();\n"
-              << "       it != outputs_to_dup.end (); it++)\n"
-              << "  { ws.duplicate (*it); }\n"
-              << "\n";
-
-          ofs << "  String agenda_error_msg;\n"
-              << "  bool agenda_failed = false;\n\n"
-              << "  try {\n"
-              << "    input_agenda.execute (ws);\n"
-              << "  } catch (runtime_error e) {\n"
-              << "    ostringstream os;\n"
-              << "    os << \"Run-time error in agenda: \"\n"
-              << "       << input_agenda.name() << \'\\n\' << e.what();\n"
-              << "    agenda_failed = true;\n"
-              << "    agenda_error_msg = os.str();\n"
-              << "  }\n";
-
-          ofs << "  for (ArrayOfIndex::const_iterator it = outputs_to_push.begin ();\n"
-              << "       it != outputs_to_push.end (); it++)\n"
-              << "    { ws.pop_free (*it); }\n"
-              << "\n"
-              << "  for (ArrayOfIndex::const_iterator it = outputs_to_dup.begin ();\n"
-              << "       it != outputs_to_dup.end (); it++)\n"
-              << "    { ws.pop_free (*it); }\n\n";
+          ofs << "  bool agenda_failed;\n";
+          ofs << "  String agenda_error_msg;\n";
+          ofs << "  auto_md_agenda_execute_helper(agenda_failed, agenda_error_msg, ws, input_agenda);\n\n";
 
           if (aout_pop_os.str().length())
             {
@@ -571,32 +580,30 @@ int main()
               ofs << ain_pop_os.str () << "\n";
             }
 
-          ofs << "  if (agenda_failed) throw runtime_error (agenda_error_msg);\n\n";
-
+          ofs << "  if (agenda_failed) throw runtime_error (agenda_error_msg);\n";
           ofs << "}\n\n";
         }
 
 
       // Create implementation of the GroupCreate WSMs
       //
-      for (ArrayOfString::const_iterator it = wsv_group_names.begin();
-           it != wsv_group_names.end(); it++)
+      for (auto&& it : wsv_group_names)
       {
-        if (*it != "Any")
+        if (it != "Any")
         {
           ofs
           << "/* Workspace method: Doxygen documentation will be auto-generated */\n"
-          << "void " << *it << "Create(" << *it << "& var, const Verbosity&)\n"
+          << "void " << it << "Create(" << it << "& var, const Verbosity&)\n"
           << "{ ";
 
           // Treat atomic types separately.
           // For objects the default constructor is used.
-          if (*it == "Index")
+          if (it == "Index")
             ofs << "var = 0;";
-          else if (*it == "Numeric")
+          else if (it == "Numeric")
             ofs << "var = 0.;";
           else
-            ofs << "var = " << *it << "();";
+            ofs << "var = " << it << "();";
 
           ofs << " }\n\n";
         }
