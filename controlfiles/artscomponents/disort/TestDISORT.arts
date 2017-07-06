@@ -24,7 +24,13 @@ INCLUDE "artscomponents/disort/indivfieldsatmo_setup.arts"
 #####
 #Copy( surface_rtprop_agenda,
 #      surface_rtprop_agenda__Blackbody_SurfTFromt_surface )
-#cloudboxSetAutomatically
+#cloudboxSetAutomatically( particle_field=scat_species_mass_density_field )
+#cloudboxSetAutomatically( particle_field=scat_species_mass_flux_field,
+#                          cloudbox_limits_old=cloudbox_limits )
+#cloudboxSetAutomatically( particle_field=scat_species_number_density_field,
+#                          cloudbox_limits_old=cloudbox_limits )
+#cloudboxSetAutomatically( particle_field=scat_species_mean_mass_field,
+#                          cloudbox_limits_old=cloudbox_limits )
 #pnd_fieldCalcFromscat_speciesFields
 ##cloudbox_checkedCalc  
 ##ScatSpeciesMerge
@@ -63,7 +69,13 @@ Extract( surface_skin_t, tskin_vector, 0 )
 # Set cloudbox limits 
 # ---------------------------------------------------------------------
 #cloudboxSetFullATm
-cloudboxSetAutomatically
+cloudboxSetAutomatically( particle_field=scat_species_mass_density_field )
+cloudboxSetAutomatically( particle_field=scat_species_mass_flux_field,
+                          cloudbox_limits_old=cloudbox_limits )
+cloudboxSetAutomatically( particle_field=scat_species_number_density_field,
+                          cloudbox_limits_old=cloudbox_limits )
+cloudboxSetAutomatically( particle_field=scat_species_mean_mass_field,
+                          cloudbox_limits_old=cloudbox_limits )
 
 # Particle Number Density field calculation
 # -----------------------------------------

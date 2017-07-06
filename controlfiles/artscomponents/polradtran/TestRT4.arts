@@ -45,7 +45,13 @@ INCLUDE "artscomponents/disort/indivfieldsatmo_setup.arts"
 # Set cloudbox limits 
 # ---------------------------------------------------------------------
 #cloudboxSetFullAtm
-cloudboxSetAutomatically
+cloudboxSetAutomatically( particle_field=scat_species_mass_density_field )
+cloudboxSetAutomatically( particle_field=scat_species_mass_flux_field,
+                          cloudbox_limits_old=cloudbox_limits )
+cloudboxSetAutomatically( particle_field=scat_species_number_density_field,
+                          cloudbox_limits_old=cloudbox_limits )
+cloudboxSetAutomatically( particle_field=scat_species_mean_mass_field,
+                          cloudbox_limits_old=cloudbox_limits )
 
 # Particle Number Density field calculation
 # -----------------------------------------

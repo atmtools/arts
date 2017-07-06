@@ -1337,7 +1337,6 @@ void DoitScatteringDataPrepare(Workspace& ws,//Output:
                                const ArrayOfIndex& cloudbox_limits,
                                const Tensor4& pnd_field,
                                const Agenda& pha_mat_spt_agenda,
-                            
                                const Verbosity& verbosity)
 {
 

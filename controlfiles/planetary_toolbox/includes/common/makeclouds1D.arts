@@ -21,7 +21,7 @@
 #                                                                              #
 # Output:                                                                      #
 #   pnd_field          as the WSV                                              #
-#   scat_data    as the WSV                                              #
+#   scat_data          as the WSV                                              #
 #   cloudbox_on        as the WSV                                              #
 #   cloudbox_limits    as the WSV                                              #
 #                                                                              #
@@ -36,22 +36,17 @@ ReadXML( out=ssdfiles, filename=poptmp )
 ScatSpeciesPndAndScatAdd( scat_data_files=ssdfiles, pnd_fieldarray_file=pndtmp )
 scat_dataCheck
 
-Extract( pmax_cb, p_grid, 0 )
 nelemGet( itmp, p_grid )
 IndexStepDown( itmp, itmp )
 Extract( pmin_cb, p_grid, itmp )
+
+# prepare a temporary pnd_field over whole atmosphere (very big cloudbox)
 cloudboxSetManually( p1=pmax, p2=pmin,
                      lat1=0, lat2=0, lon1=0, lon2=0 )
 pnd_fieldCalcFrompnd_field_raw( zeropadding=1 )
 
-# cloudboxSetAutomatically typically works on scat_Species_fields. To make it
-#  work with pnd_field, we need to pass some empty dummy fields in instead.
-Tensor4Create( t4tmp )
-Touch( t4tmp )
-cloudboxSetAutomatically( scat_species_mass_density_field=pnd_field,
-                          scat_species_mass_flux_field=t4tmp,
-                          scat_species_number_density_field=t4tmp,
-                          scat_species_mean_mass_field=t4tmp )
+# from the whole-atmo pnd_field now determine the actual necessary cloudbox
+cloudboxSetAutomatically( particle_field=pnd_field )
 pnd_fieldCalcFrompnd_field_raw( zeropadding=1 )
 
 # finally, we clean up the dummy files (not completely, though, as deleting

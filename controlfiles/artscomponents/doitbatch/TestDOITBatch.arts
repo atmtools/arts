@@ -209,6 +209,7 @@ AgendaSet( doit_conv_test_agenda ){
                        nonconv_return_nan=1)
 }
 
+StringCreate( info )
 # Batch Agenda-----------------------------------------------------------
 #------------------------------------------------------------------------
 AgendaSet( ybatch_calc_agenda ){
@@ -241,10 +242,14 @@ AgendaSet( ybatch_calc_agenda ){
   # Set cloudbox limits automatically from scattering particle profiles 
   #(pressure units)
   # ---------------------------------------------------------------------
-  cloudboxSetAutomatically
-  # cloudboxSetAutomatically( cloudbox_on, cloudbox_limits, atmosphere_dim, 
-  #    p_grid, lat_grid, lon_grid, massdensity_field, -1 )
-  #
+  cloudboxSetAutomatically( particle_field=scat_species_mass_density_field )
+  cloudboxSetAutomatically( particle_field=scat_species_mass_flux_field,
+                            cloudbox_limits_old=cloudbox_limits )
+  cloudboxSetAutomatically( particle_field=scat_species_number_density_field,
+                            cloudbox_limits_old=cloudbox_limits )
+  cloudboxSetAutomatically( particle_field=scat_species_mean_mass_field,
+                            cloudbox_limits_old=cloudbox_limits )
+
   # Alternative: set cloudbox manually
   # In this case the extent of the cloudbox should cover almost the 
   # whole troposphere, to make sure, that all scattering particles of all 

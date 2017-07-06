@@ -276,8 +276,8 @@ INCLUDE "planetary_toolbox/demos/common/DemoMarsSurface1D.arts"
 #     with IndexSet( surface_level, 0 )
 #  - Does NOT work with Lambertian reflecting surface.
 #  - Does NOT work with winds.
-#  - Performs POOR in thin atmosphere, hence we STRONGLY DISrecommend its usage
-#     here.
+#  - Performs POOR in thin atmosphere, hence we STRONGLY advise AGAINST its
+#     usage here.
 #INCLUDE "planetary_toolbox/demos/passive/DemoScat_DOIT_1D.arts"
 
 # b) MC solver
@@ -285,7 +285,8 @@ INCLUDE "planetary_toolbox/demos/common/DemoMarsSurface1D.arts"
 # NOTEs:
 #  - Does NOT work with Lambertian reflecting surface.
 #  - Does NOT work with winds.
-#  - Performs fairly poor in thin atmosphere, hence we discommend its usage here.
+#  - Performs fairly poor in thin atmosphere, hence we advise against its usage
+#     here.
 #INCLUDE "planetary_toolbox/demos/passive/DemoScat_MC_1D.arts"
 
 # c) FOS solver
