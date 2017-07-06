@@ -1,8 +1,23 @@
 2017-07-06 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-747
+
+	* src/m_optproperties.cc (scat_dataCalc):
+	A start towards a pre-scatt-solver prepared scat_data (on RT f_grid or
+	const over f). Work in progress.
+
+	* CHANGES-2.3:
+	Added note on cloudboxSetAutomatically from previous commit since that
+	broke backward compatibility.
+
+2017-07-06 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-746
 
-	* src/m_cloudbox.cc, methods.cc (cloudboxSetAutmoatically[Generic]):
+	THIS BREAKS BACKWARD COMPATIBILITY OF CONTROLFILES THAT USE
+	cloudboxSetAutomatically.
+
+	* src/m_cloudbox.cc, methods.cc (cloudboxSetAutomatically[Generic]):
 	Replaced old, scat_species_XXX_field tailored WSM with generic one.
 	Bug fixes in generic version.
 	

@@ -1481,6 +1481,144 @@ void DoitScatteringDataPrepare(Workspace& ws,//Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
+             const ArrayOfArrayOfSingleScatteringData& scat_data_raw,
+             const Vector& f_grid,
+             const Index& order,
+             const Verbosity&)
+{
+  //Extrapolation factor:
+  //const Numeric extpolfac = 0.5;
+
+  Index nf=f_grid.nelem();
+  
+  // Check, whether single scattering data contains the right frequencies:
+  // The check was changed to allow extrapolation at the boundaries of the 
+  // frequency grid.
+  for (Index i_ss = 0; i_ss<scat_data_raw.nelem(); i_ss++)
+  {
+    for (Index i_se = 0; i_se<scat_data_raw[i_ss].nelem(); i_se++)
+    {
+      // check with extrapolation
+      chk_interpolation_grids("scat_data_raw.f_grid to f_grid",
+                              scat_data_raw[i_ss][i_se].f_grid, f_grid, order);
+    }
+  }
+
+  //Initialise scat_data
+  scat_data.resize(scat_data_raw.nelem());
+
+  // Loop over the included scattering species
+  for (Index i_ss = 0; i_ss<scat_data_raw.nelem(); i_ss++)
+  {
+    const Index N_se = scat_data_raw[i_ss].nelem();
+
+    //Initialise scat_data
+    scat_data[i_ss].resize(N_se);
+
+    // Loop over the included scattering elements
+    for (Index i_se = 0; i_se < N_se; i_se++)
+    {
+      // Gridpositions:
+      ArrayOfGridPosPoly freq_gp( nf );;
+      gridpos_poly(freq_gp, scat_data_raw[i_ss][i_se].f_grid, f_grid, order);
+
+      // Interpolation weights:
+      Matrix itw(nf, order+1);
+      interpweights(itw, freq_gp);
+
+      //Stuff that doesn't need interpolating
+      PART_TYPE   = scat_data_raw[i_ss][i_se].ptype;
+      F_DATAGRID  = f_grid;
+      T_DATAGRID  = scat_data_raw[i_ss][i_se].T_grid;
+      ZA_DATAGRID = scat_data_raw[i_ss][i_se].za_grid;
+      AA_DATAGRID = scat_data_raw[i_ss][i_se].aa_grid;
+
+      //Phase matrix data
+      PHA_MAT_DATA_RAW.resize(nf,
+                              scat_data_raw[i_ss][i_se].pha_mat_data.nvitrines(),
+                              scat_data_raw[i_ss][i_se].pha_mat_data.nshelves(),
+                              scat_data_raw[i_ss][i_se].pha_mat_data.nbooks(),
+                              scat_data_raw[i_ss][i_se].pha_mat_data.npages(),
+                              scat_data_raw[i_ss][i_se].pha_mat_data.nrows(),
+                              scat_data_raw[i_ss][i_se].pha_mat_data.ncols());
+
+      for (Index t_index = 0; t_index < scat_data_raw[i_ss][i_se].pha_mat_data.nvitrines(); t_index ++)
+      {
+        for (Index i_za_sca = 0; i_za_sca < scat_data_raw[i_ss][i_se].pha_mat_data.nshelves(); i_za_sca++)
+        {
+          for (Index i_aa_sca = 0; i_aa_sca < scat_data_raw[i_ss][i_se].pha_mat_data.nbooks(); i_aa_sca++)
+          {
+            for (Index i_za_inc = 0; i_za_inc < scat_data_raw[i_ss][i_se].pha_mat_data.npages(); i_za_inc++)
+            {
+              for (Index i_aa_inc = 0; i_aa_inc < scat_data_raw[i_ss][i_se].pha_mat_data.nrows(); i_aa_inc++)
+              {
+                for (Index i = 0; i < scat_data_raw[i_ss][i_se].pha_mat_data.ncols(); i++)
+                {
+                  interp(scat_data[i_ss][i_se].pha_mat_data(joker, t_index,
+                                                            i_za_sca, i_aa_sca,
+                                                            i_za_inc, i_aa_inc, i),
+                         itw,
+                         scat_data_raw[i_ss][i_se].pha_mat_data(joker, t_index,
+                                                                i_za_sca, i_aa_sca,
+                                                                i_za_inc, i_aa_inc, i),
+                         freq_gp);
+                }
+              }
+            }
+          }
+        }
+
+        //Extinction matrix data
+        EXT_MAT_DATA_RAW.resize(nf,
+                                scat_data_raw[i_ss][i_se].ext_mat_data.nbooks(),
+                                scat_data_raw[i_ss][i_se].ext_mat_data.npages(),
+                                scat_data_raw[i_ss][i_se].ext_mat_data.nrows(),
+                                scat_data_raw[i_ss][i_se].ext_mat_data.ncols());
+        for (Index i_za_sca = 0; i_za_sca < scat_data_raw[i_ss][i_se].ext_mat_data.npages(); i_za_sca++)
+        {
+          for (Index i_aa_sca = 0; i_aa_sca < scat_data_raw[i_ss][i_se].ext_mat_data.nrows(); i_aa_sca++)
+          {
+            for (Index i = 0; i < scat_data_raw[i_ss][i_se].ext_mat_data.ncols(); i++)
+            {
+              interp(scat_data[i_ss][i_se].ext_mat_data(joker, t_index,
+                                                        i_za_sca, i_aa_sca, i),
+                     itw,
+                     scat_data_raw[i_ss][i_se].ext_mat_data(joker, t_index,
+                                                            i_za_sca, i_aa_sca, i),
+                     freq_gp);
+            }
+          }
+        }
+
+        //Absorption vector data
+        ABS_VEC_DATA_RAW.resize(nf,
+                                scat_data_raw[i_ss][i_se].abs_vec_data.nbooks(),
+                                scat_data_raw[i_ss][i_se].abs_vec_data.npages(),
+                                scat_data_raw[i_ss][i_se].abs_vec_data.nrows(),
+                                scat_data_raw[i_ss][i_se].abs_vec_data.ncols());
+        for (Index i_za_sca = 0; i_za_sca < scat_data_raw[i_ss][i_se].abs_vec_data.npages(); i_za_sca++)
+        {
+          for (Index i_aa_sca = 0; i_aa_sca < scat_data_raw[i_ss][i_se].abs_vec_data.nrows(); i_aa_sca++)
+          {
+            for (Index i = 0; i < scat_data_raw[i_ss][i_se].abs_vec_data.ncols(); i++)
+            {
+              interp(scat_data[i_ss][i_se].abs_vec_data(joker, t_index,
+                                                        i_za_sca, i_aa_sca, i),
+                     itw,
+                     scat_data_raw[i_ss][i_se].abs_vec_data(joker, t_index,
+                                                            i_za_sca, i_aa_sca, i),
+                     freq_gp);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                         const ArrayOfArrayOfSingleScatteringData& scat_data,
                         const Vector& f_grid,

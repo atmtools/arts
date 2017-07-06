@@ -78,11 +78,19 @@ General
 
 - Added a convergence acceleration for DOIT calculations 
 
-- New format of scattering data for azumuthally randomly oriented scatterers
+- New format of scattering data for azimuthally randomly oriented scatterers
   (formerly known as horizontally aligned or p30). See AUG. Old format data is
   automatically converted when read.
 
 - Interfaces to scattering solvers Disort and RT4.
+
+- new, more general approach for pnd_field calculation from particle (e.g.
+  hydrometeor) fields and particle size distributions using ArrayOfAgenda.
+
+- cloudboxSetAutomatically now takes only a single Tensor4 field collection, but
+  can start from/update previously determined cloudbox_limits. For processing
+  scat_species_XXX_fields, the WSM needs to be called separately with each of
+  these WSV (and using cloudbox_limits update option).
 
 NAME CHANGES-2.3
 ================
