@@ -63,6 +63,103 @@ extern const Numeric PI;
 #define F34 pha_mat_int[4]
 #define F44 pha_mat_int[5]
 
+#define PART_TYPE scat_data[i_ss][i_se].ptype
+#define F_DATAGRID scat_data[i_ss][i_se].f_grid
+#define T_DATAGRID scat_data[i_ss][i_se].T_grid
+#define ZA_DATAGRID scat_data[i_ss][i_se].za_grid
+#define AA_DATAGRID scat_data[i_ss][i_se].aa_grid
+#define PHA_MAT_DATA_RAW scat_data[i_ss][i_se].pha_mat_data  //CPD: changed from pha_mat_data
+#define EXT_MAT_DATA_RAW scat_data[i_ss][i_se].ext_mat_data  //which wouldn't let me play with
+#define ABS_VEC_DATA_RAW scat_data[i_ss][i_se].abs_vec_data  //scat_data_mono.
+
+
+
+//! Extraction of scat_data_mono from pre-interpolated scat_data
+/*! 
+  \param scat_data_mono  as the WSV
+  \param scat_data       as the WSV
+  \param f_index         as the WSV
+     
+  \author Jana Mendrok
+  \date   2017-07-11 
+*/
+void scat_data_monoExtract(//Output
+                           ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                           //Input
+                     const ArrayOfArrayOfSingleScatteringData& scat_data,
+                     const Index& f_index )
+{
+  //Initialise scat_data_mono
+  scat_data_mono.resize(scat_data.nelem());
+
+  Index this_f_index;
+
+  // Loop over the included scattering species
+  for (Index i_ss = 0; i_ss<scat_data.nelem(); i_ss++)
+  {
+      const Index N_se = scat_data[i_ss].nelem();
+
+      //Initialise scat_data_mono
+      scat_data_mono[i_ss].resize(N_se);
+
+      // Loop over the included scattering elements
+      for (Index i_se = 0; i_se < N_se; i_se++)
+      {
+          scat_data_mono[i_ss][i_se].ptype=PART_TYPE;
+          scat_data_mono[i_ss][i_se].f_grid=F_DATAGRID;
+          scat_data_mono[i_ss][i_se].T_grid=T_DATAGRID;
+          scat_data_mono[i_ss][i_se].za_grid=ZA_DATAGRID;
+          scat_data_mono[i_ss][i_se].aa_grid=AA_DATAGRID;
+
+          //Phase matrix data
+          if( PHA_MAT_DATA_RAW.nlibraries()==1 )
+            this_f_index = 0;
+          else
+            this_f_index = f_index;
+          scat_data_mono[i_ss][i_se].pha_mat_data.resize(1,
+                                                  PHA_MAT_DATA_RAW.nvitrines(),
+                                                  PHA_MAT_DATA_RAW.nshelves(),
+                                                  PHA_MAT_DATA_RAW.nbooks(),
+                                                  PHA_MAT_DATA_RAW.npages(),
+                                                  PHA_MAT_DATA_RAW.nrows(),
+                                                  PHA_MAT_DATA_RAW.ncols());
+          scat_data_mono[i_ss][i_se].pha_mat_data(0, joker, joker, joker,
+                                                     joker, joker, joker) =
+            PHA_MAT_DATA_RAW(this_f_index, joker, joker, joker,
+                             joker, joker, joker );
+
+          //Extinction matrix data
+          if( EXT_MAT_DATA_RAW.nshelves()==1 )
+            this_f_index = 0;
+          else
+            this_f_index = f_index;
+          scat_data_mono[i_ss][i_se].ext_mat_data.resize(1,
+                                                  EXT_MAT_DATA_RAW.nbooks(),
+                                                  EXT_MAT_DATA_RAW.npages(),
+                                                  EXT_MAT_DATA_RAW.nrows(),
+                                                  EXT_MAT_DATA_RAW.ncols());
+          scat_data_mono[i_ss][i_se].ext_mat_data(0, joker,
+                                                  joker, joker, joker) =
+            EXT_MAT_DATA_RAW(this_f_index, joker, joker, joker, joker );
+
+          //Absorption vector data
+          if(  ABS_VEC_DATA_RAW.nshelves()==1 )
+            this_f_index = 0;
+          else
+            this_f_index = f_index;
+          scat_data_mono[i_ss][i_se].abs_vec_data.resize(1,
+                                                  ABS_VEC_DATA_RAW.nbooks(),
+                                                  ABS_VEC_DATA_RAW.npages(),
+                                                  ABS_VEC_DATA_RAW.nrows(),
+                                                  ABS_VEC_DATA_RAW.ncols());
+          scat_data_mono[i_ss][i_se].abs_vec_data(0, joker,
+                                                  joker, joker, joker) =
+            ABS_VEC_DATA_RAW(this_f_index, joker, joker, joker, joker );
+      }
+  }
+}
+
+
 //! Transformation of absorption vector.
 /*! 
   In the single scattering database the data of the absorption vector is 

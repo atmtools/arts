@@ -1,3 +1,58 @@
+2017-07-11 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-748
+
+	WARNING: This breaks scattering related controlfiles.
+
+	More work towards pre-prepared scat_data. Specifically, started to
+	modify DISORT interface to (exclusively) use pre-prepared scat_data
+	(equals to replacing several agendas by hard-wired solutions).
+
+	* src/[m_]disort.[cc,h]:
+	Started to adapt for use of new, pre-interpolated scat_data.
+
+	* src/m_optproperties.cc (opt_prop_sptFromScat_data):
+	Added. A temporary WSM for use of new scat_data in spt_calc_agenda.
+
+	* src/optproperties.[cc,h] (scat_data_monoExtract):
+	A (temporary?) method to extract scat_data_mono out of new type (ie
+	already freq interpolated) scat_data, avoiding the interpolation
+	overhead of scat_data_monoCalc.
+
+	* src/m_checked.cc (cloudbox_checkedCalc):
+	Switch on use of negative pnd keyword. Switch of scat_data f_grid
+	checks for new-type scat_data (they would fail) via user keyword.
+
+	(scat_data_checkedCalc):
+	Added. A WSM to check correct prep of (new, preinterpolated) scat_data.
+
+	* src/m_jacobian.cc (jacobianDoit):
+	Adapt for cloudbox_checkedCalc interface changes.
+
+	* src/workspace.cc (scat_data_checked, scat_data_raw): Added.
+
+	* controlfiles/artscomponents/disort/TestDISORT.arts:
+	Adapt for new scat_data use.
+
+	* controlfiles/artscomponents/disort/yREFERENCE.y.xml:
+	Added. An actual Disort-solver created solution as more exact reference
+	allowing to monitor changes in the Disort approach.
+
+	* src/m_cloudbox.cc (particle_fieldCleanup):
+	Renamed from scat_species_fieldCleanup.
+
+	* controlfiles/artscomponents/disort/indivfieldsatmo_setup.arts,
+	controlfiles/artscomponents/doit/indivfieldsatmo_setup.arts,
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/artscomponents/wfuns/TestDoitJacobians.arts:
+	Adapted to scat_speciesCleanup name change.
+
+	* CHANGES-2.3: Renaming note.
+
+	* src/[m_]microphysics.[cc,h], [m_]cloudbox.[cc,h], CMakeLists.txt:
+	Separated the size distribution (and other microphysics related)
+	functionality into their own source files.
+
 2017-07-06 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-747

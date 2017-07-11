@@ -93,10 +93,6 @@ DOAngularGridsSet( N_za_grid=38 )
 # and extiction to the gaseous properties to get total extinction and
 # absorption:
 
-AgendaSet( spt_calc_agenda ){
-  opt_prop_sptFromMonoData
-}
-
 AgendaSet( opt_prop_part_agenda ){
   ext_matInit
   abs_vecInit
@@ -118,6 +114,10 @@ atmgeom_checkedCalc
 cloudbox_checkedCalc  
 sensor_checkedCalc
 
+Copy( scat_data_raw, scat_data )
+scat_dataCalc
+scat_data_checkedCalc
+
 # Perform scattering calculation 
 DisortCalc #( nstreams=64 ) #( non_iso_inc=1 )
 #WriteXML( output_file_format, doit_i_field )
@@ -128,15 +128,12 @@ yCalc
 #WriteXML( output_file_format, y )
 
 # Verify results
-#ArrayOfVectorCreate( ybatch_ref )
-#ReadXML( ybatch_ref, "../doitbatch/TestDOITBatch.ybatch.ref.xml" )
-#VectorCreate( y_ref )
-#Extract( y_ref, ybatch_ref, 0 )
-#Compare( y, y_ref, 0.01 )
-
 VectorCreate(yREFERENCE)
 ReadXML( yREFERENCE, "yREFERENCEfromDOIT.y.xml" )
 Compare( y, yREFERENCE, 1. )
+
+ReadXML( yREFERENCE, "yREFERENCE.y.xml" )
+Compare( y, yREFERENCE, 1e-2 )
 
 } # End of Main
  

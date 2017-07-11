@@ -172,10 +172,10 @@ AgendaSet( ybatch_calc_agenda ){
   AtmFieldsFromCompact
 
   # Remove unrealistic (small) values from scat_species_*_*_fields
-  scat_species_fieldCleanup (scat_species_mass_density_field,
+  particle_fieldCleanup (scat_species_mass_density_field,
                              scat_species_mass_density_field,
                              1e-7)
-  scat_species_fieldCleanup (scat_species_mass_flux_field,
+  particle_fieldCleanup (scat_species_mass_flux_field,
                              scat_species_mass_flux_field,
                              1e-7)
 

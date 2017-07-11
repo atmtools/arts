@@ -227,10 +227,10 @@ AgendaSet( ybatch_calc_agenda ){
   AtmFieldsFromCompact( p_min=1e3 )
 
   # Unrealistic (small) values in scat_species_*_*_fields set to zero
-  scat_species_fieldCleanup (scat_species_mass_density_field,
+  particle_fieldCleanup (scat_species_mass_density_field,
                              scat_species_mass_density_field,
                              1e-15)
-  scat_species_fieldCleanup (scat_species_mass_flux_field,
+  particle_fieldCleanup (scat_species_mass_flux_field,
                              scat_species_mass_flux_field,
                              1e-15)
   #WriteXMLIndexed (output_file_format, ybatch_index, scat_species_mass_density_field)

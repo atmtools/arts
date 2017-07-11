@@ -224,6 +224,7 @@ add_library (artscore STATIC
   m_jacobian.cc
   m_linemixing.cc
   m_linerecord.cc
+  m_microphysics.cc
   m_montecarlo.cc
   m_oem.cc
   m_optproperties.cc
@@ -244,6 +245,7 @@ add_library (artscore STATIC
   mc_antenna.cc
   mc_interp.cc
   messages.cc
+  microphysics.cc
   montecarlo.cc
   optproperties.cc
   parameters.cc

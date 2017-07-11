@@ -2631,8 +2631,8 @@ void jacobianDoit(//WS Output:
                             z_field, z_surface, wind_dummy, wind_dummy, wind_dummy,
                             cloudbox_on, cloudbox_limits, pnd_field,
                             scat_data, scat_species, pbp_field_dummy,
-                            pbp_names_dummy, part_mass_dummy, 
-                            abs_species, scat_data_check_type,
+                            pbp_names_dummy, part_mass_dummy, abs_species,
+                            0, "old", scat_data_check_type,
                             sca_mat_threshold, verbosity );
       if( debug )
         {
@@ -3054,8 +3054,8 @@ void jacobianDoit(//WS Output:
                                             cloudbox_on, cloudbox_limits,
                                             pnd_field, scat_data, scat_species, 
                                             pbp_field_dummy, pbp_names_dummy,
-                                            part_mass_dummy,
-                                            abs_species, scat_data_check_type,
+                                            part_mass_dummy, abs_species,
+                                            0, "old", scat_data_check_type,
                                             sca_mat_threshold, verbosity );
                       if( debug )
                         {

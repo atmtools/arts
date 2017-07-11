@@ -133,6 +133,12 @@ ostream& operator<< (ostream& os, const ArrayOfScatteringMetaData& assd);
 // General functions:
 // =============================================================
 
+void scat_data_monoExtract(//Output
+                           ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                           //Input
+                     const ArrayOfArrayOfSingleScatteringData& scat_data,
+                     const Index& f_index );
+
 void abs_vecTransform(//Output and Input
                       VectorView abs_vec_lab,
                       //Input

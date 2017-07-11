@@ -2877,11 +2877,12 @@ void define_md_data_raw()
             "t_field", "vmr_field", "wind_u_field", "wind_v_field",
             "wind_w_field", "mag_u_field", "mag_v_field", "mag_w_field",
             "partition_functions", "abs_f_interp_order" ),
-        GIN(  "negative_vmr_ok", "bad_partition_functions_ok" ),
-        GIN_TYPE( "Index", "Index" ),
-        GIN_DEFAULT( "0", "0" ),
-        GIN_DESC("Boolean for demanding vmr_field > 0 or not.",
-                 "Boolean for not demanding partition function defined inside *t_field* range.")
+        GIN(         "negative_vmr_ok", "bad_partition_functions_ok" ),
+        GIN_TYPE(    "Index",           "Index" ),
+        GIN_DEFAULT( "0",               "0" ),
+        GIN_DESC( "Flag whether to accept vmr_field < 0.",
+                  "Flag whether to accept partition functions not covering"
+                  " *t_field* range.")
         ));
 
   md_data_raw.push_back
@@ -3707,10 +3708,17 @@ void define_md_data_raw()
             "cloudbox_on", "cloudbox_limits", "pnd_field", "scat_data",
             "scat_species", "particle_bulkprop_field", "particle_bulkprop_names",
             "particle_masses", "abs_species" ),
-        GIN(         "scat_data_check_type", "sca_mat_threshold" ),
-        GIN_TYPE(    "String",               "Numeric" ),
-        GIN_DEFAULT( "all",                  "5e-2" ),
-        GIN_DESC( "The level of checks to apply on scat_data (see above).",
+        GIN(         "negative_pnd_ok", "scat_data_fcheck",
+                     "scat_data_check_type", "sca_mat_threshold" ),
+        GIN_TYPE(    "Index",           "String",
+                     "String",               "Numeric" ),
+        GIN_DEFAULT( "0",               "old",
+                     "all",                  "5e-2" ),
+        GIN_DESC( "Flag whether to accept pnd_field < 0.",
+                  "Flag whether to apply checks on *scat_data*'s f_grid (set"
+                  " 'new' if *scat_dataCalc* was applied, particularly if"
+                  " *scat_data*'s f_grid has been reduced to a single entry).",
+                  "The level of checks to apply on scat_data (see above).",
                   "Threshold for allowed albedo deviation." )
         ));
 
@@ -4099,15 +4107,13 @@ void define_md_data_raw()
          "interpolated to the actual temperature.\n"
          ),
         AUTHORS( "Claudia Emde, Jana Mendrok" ),
-        OUT( "doit_i_field",
-             "f_index", "scat_data_mono" ),
+        OUT( "doit_i_field", "f_index" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
-            "cloudbox_on", "cloudbox_limits",
-            "propmat_clearsky_agenda",
-            "opt_prop_part_agenda", "spt_calc_agenda", "iy_main_agenda",
+        IN( "atmfields_checked", "atmgeom_checked", "scat_data_checked",
+            "cloudbox_checked", "cloudbox_on", "cloudbox_limits",
+            "propmat_clearsky_agenda", "opt_prop_part_agenda", "iy_main_agenda",
             "atmosphere_dim", "pnd_field", "t_field", "z_field", "vmr_field",
             "p_grid", "scat_data", "f_grid", "scat_za_grid", "stokes_dim",
             "surface_skin_t", "surface_scalar_reflectivity" ),
@@ -4146,15 +4152,13 @@ void define_md_data_raw()
          "10K for stronger reflecting surfaces (r~0.4).\n"
          ),
         AUTHORS( "Jana Mendrok" ),
-        OUT( "doit_i_field",
-             "f_index", "scat_data_mono" ),
+        OUT( "doit_i_field", "f_index" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
-            "cloudbox_on", "cloudbox_limits",
-            "propmat_clearsky_agenda",
-            "opt_prop_part_agenda", "spt_calc_agenda", "iy_main_agenda",
+        IN( "atmfields_checked", "atmgeom_checked", "scat_data_checked",
+            "cloudbox_checked", "cloudbox_on", "cloudbox_limits",
+            "propmat_clearsky_agenda", "opt_prop_part_agenda", "iy_main_agenda",
             "surface_rtprop_agenda", "atmosphere_dim", 
             "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
             "scat_data", "f_grid", "scat_za_grid", "stokes_dim" ),
@@ -10371,6 +10375,33 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "opt_prop_sptFromScat_data" ),
+        DESCRIPTION
+        (
+         "Calculates monochromatic optical properties for all scattering\n"
+         "elements.\n"
+         "\n"
+         "As *opt_prop_sptFromData*, but using frequency pre-interpolated\n"
+         "data (as produced by *scat_dataCalc*), i.e. in here no frequency\n"
+         "interpolation is done anymore.\n"
+         ),
+        AUTHORS( "Jana Mendrok, Claudia Emde" ),
+        OUT( "ext_mat_spt", "abs_vec_spt" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ext_mat_spt", "abs_vec_spt", "scat_data", "scat_data_checked",
+            "scat_za_grid", "scat_aa_grid", "scat_za_index", "scat_aa_index", 
+            "f_index", "rtp_temperature", "pnd_field",
+            "scat_p_index", "scat_lat_index", "scat_lon_index" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "opt_prop_sptFromMonoData" ),
         DESCRIPTION
         (
@@ -13370,6 +13401,33 @@ void define_md_data_raw()
   
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "scat_data_checkedCalc" ),
+        DESCRIPTION
+        (
+         "Checks grids and dimensions of all scattering elements in *scat_data*.\n"
+         "\n"
+         "Requirements:\n"
+         "- The scattering elements f_grid is either identical to *f_grid* or\n"
+         "  of dimension 1.\n"
+         "- The frequency dimension of pha_mat_data, ext_mat_data, and abs_vec\n"
+         "  is either equal to this scattering elements f_grid or 1.\n"
+         "- The temperature dimension of pha_mat_data, ext_mat_data, and abs_vec\n"
+         "  is either equal to this scattering elements T_grid or 1.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "scat_data_checked" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "scat_data", "f_grid" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "scat_data_monoCalc" ),
         DESCRIPTION
         (
@@ -13385,6 +13443,27 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "scat_dataCalc" ),
+        DESCRIPTION
+        (
+         "Prepares *scat_data* for the scattering solver.\n"
+         "\n"
+         "So far, only interpolates all *scat_data* to *f_grid*.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "scat_data" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "scat_data_raw", "f_grid" ),
+        GIN( "order" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC( "Interpolation order (for frequency interpolation)." )
         ));
 
   md_data_raw.push_back
@@ -13484,41 +13563,43 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "scat_species_fieldCleanup" ),
+      ( NAME( "particle_fieldCleanup" ),
         DESCRIPTION
         (
-         "Removes unrealistically small or erroneous data from scat_species\n"
-         "fields\n"
+         "Removes unrealistically small or erroneous data from particle fields.\n"
          "\n"
-         "This WSM checks if the input scat_species field\n"
-         "(*scat_species_mass_density_field*, *scat_species_mass_flux_field*,\n"
-         "*scat_species_number_density_field*, *scat_species_mean_mass_field*)\n"
-         "contains values smaller than the given *threshold*. In this case,\n"
-         "these values will be set to zero.\n"
+         "This WSM checks if the input particle field (e.g.\n"
+         "*particle_bulkprop_field*, *scat_species_XXX_field) contains values\n"
+         "smaller than the given *threshold*. In this case, these values will\n"
+         "be set to zero.\n"
          "\n"
-         "The method should be applied if the scat_species fields contain\n"
+         "The method should be applied if the particle fields contain\n"
          "unrealistically small or erroneous data (NWP/GCM model data, e.g.\n"
-         "from theChevallierl_91l sets, often contain very small or even\n"
+         "from the Chevallierl_91l sets, often contain very small or even\n"
          "negative values, which are numerical artefacts rather than physical\n"
          "values.)\n"
-         "It needs to be applied separately per scat_species field that shall\n"
-         "be handled. This allows to use different thresholds for the\n"
-         "different types of fields.\n"
+         "For the scat_species_XXX_fields, it needs to be applied separately\n"
+         "per Tensor4 type field collection. This allows to use different\n"
+         "thresholds for the different types of fields (not for the different\n"
+         "scattering species, though).\n"
          "\n"
-         "*scat_species_fieldCleanup* shall be called after generation of the\n"
+         "*particle_fieldCleanup* shall be called after generation of the\n"
          "atmopheric fields.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT(),
-        GOUT( "scat_species_field_out" ),
+        GOUT( "particle_field_out" ),
         GOUT_TYPE( "Tensor4" ),
-        GOUT_DESC( "A scattering species field, e.g. *scat_species_mass_density_field*" ),
+        GOUT_DESC( "A particle property field, e.g. *particle_bulkprop_field*"
+                   " or *scat_species_mass_density_field*" ),
         IN(),
-        GIN(         "scat_species_field_in", "threshold" ),
+        GIN(         "particle_field_in", "threshold" ),
         GIN_TYPE(    "Tensor4",               "Numeric" ),
         GIN_DEFAULT( NODEF,                   NODEF ),
-        GIN_DESC( "A scattering species field, e.g. *scat_species_mass_density_field*" ,
-                  "Threshold below which the *scat_species_field* values are set to zero." )
+        GIN_DESC( "A particle property field, e.g. *particle_bulkprop_field* or"
+                  " *scat_species_mass_density_field*" ,
+                  "Threshold below which the *particle_field* values are set to"
+                  " zero." )
         ));
 
   md_data_raw.push_back

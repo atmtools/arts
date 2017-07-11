@@ -448,7 +448,8 @@ void cloudbox_checkedCalc(
    const ArrayOfString&  particle_bulkprop_names,         
    const Matrix&         particle_masses,
    const ArrayOfArrayOfSpeciesTag& abs_species,
-//   const Index&          negative_pnd_ok,
+   const Index&          negative_pnd_ok,
+   const String&         scat_data_fcheck,
    const String&         scat_data_check_type,
    const Numeric&        sca_mat_threshold,
    const Verbosity&      verbosity )
@@ -618,12 +619,12 @@ void cloudbox_checkedCalc(
         { g2.resize( cloudbox_limits[3]-cloudbox_limits[2]+1 ); }
       if( atmosphere_dim > 2 ) 
         { g3.resize( cloudbox_limits[5]-cloudbox_limits[4]+1 ); }
-      //
+      
       chk_atm_field( "pnd_field", pnd_field, atmosphere_dim, np, g1, g2, g3 );
-      //
-      //if( !negative_pnd_ok && min(pnd_field) < 0 )
-      if( min(pnd_field) < 0 )
+
+      if( !negative_pnd_ok && min(pnd_field) < 0 )
         throw runtime_error( "Negative values in *pnd_field* not allowed." );
+
       // No non-zero pnd at lower boundary unless lower boundary is at or below
       // surface
       for( Index a=0; a<g2.nelem(); a++ ) { 
@@ -634,6 +635,7 @@ void cloudbox_checkedCalc(
                          " lower altitude limit of the cloudbox (but the "
                          "position is not at or below the surface altitude)." );
           } }
+
       // No non-zero pnd at upper boundary unless upper boundary is top of
       // atmosphere
       if ( cloudbox_limits[1] != p_grid.nelem()-1 )
@@ -664,8 +666,11 @@ void cloudbox_checkedCalc(
       if( f_grid.empty() )
         throw runtime_error ( "The frequency grid is empty." );
       chk_if_increasing ( "f_grid", f_grid );
-      Index N_ss = scat_species.nelem();
-      for( Index i_ss=0; i_ss<N_ss; i_ss++ )
+
+      if( scat_data_fcheck.toupper() != "NEW" )
+      {
+        Index N_ss = scat_species.nelem();
+        for( Index i_ss=0; i_ss<N_ss; i_ss++ )
         {
           Index N_se = scat_data[i_ss].nelem();
           for( Index i_se=0; i_se<N_se; i_se++ )
@@ -675,6 +680,8 @@ void cloudbox_checkedCalc(
               chk_scat_data_fgrid ( scat_data[i_ss][i_se], f_grid, os.str() );
             }
         }
+      }
+      
       if( scat_data_check_type.toupper() != "NONE" )
         {
           // handing over to scat_dataCheck which checks whether
@@ -688,7 +695,7 @@ void cloudbox_checkedCalc(
         }
 
 
-      // Check semi-madatory variables, that are alowed to be empty
+      // Check semi-madatory variables, that are allowed to be empty
       //
       const Index nss = scat_data.nelem();
 
@@ -782,6 +789,117 @@ void cloudbox_checkedCalc(
   cloudbox_checked = 1;
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void scat_data_checkedCalc(      
+         Index&          scat_data_checked,
+   const ArrayOfArrayOfSingleScatteringData& scat_data,
+   const Vector&         f_grid,
+   const Verbosity& )
+{
+  Index nf = f_grid.nelem();
+  Index N_ss = scat_data.nelem();
+  for( Index i_ss=0; i_ss<N_ss; i_ss++ )
+  {
+    Index N_se = scat_data[i_ss].nelem();
+    for( Index i_se=0; i_se<N_se; i_se++ )
+    {
+      // check that f_grid of all scatt elements is either identical to
+      // f_grid or contains a single entry only (should it matter which?)
+      Index nf_se = scat_data[i_ss][i_se].f_grid.nelem();
+      if( nf_se != 1 )
+      {
+        if( nf_se != nf )
+        {
+          ostringstream os;
+          os << "*scat_data* must have either one or *f_grid* (=" << nf
+             << ") frequency entries,\n"
+             << "but scattering element #" << i_se
+             << " in scattering species #" << i_ss
+             << " has " << nf_se << ".";
+          throw runtime_error( os.str() );
+        }
+        else
+        {
+          for( Index f=0; f<nf_se; f++ )
+          {
+            if( !is_same_within_epsilon( scat_data[i_ss][i_se].f_grid[f],
+                                         f_grid[f], 0.5 ) )
+            {
+              ostringstream os;
+              os << "*scat_data* frequency grid has to be identical to *f_grid*\n"
+                 << "(or contain only a single entry),\n"
+                 << "but scattering element #" << i_se
+                 << " in scattering species #" << i_ss
+                 << " deviates for f_index " << f << ".";
+              throw runtime_error( os.str() );
+            }
+          }
+        }
+      }
+
+      // check that the freq dimension of sca_mat, ext_mat, and abs_vec is
+      // either 1 or ssd.f_grid.nelem()
+      ostringstream bs1, bs2;
+      bs1 << "Frequency dimension of ";
+      bs2 << " must be either one or ssd.f_grid.nelem() (=" << nf_se << "),\n"
+          << "but scattering element #" << i_se
+          << " in scattering species #" << i_ss << " is ";
+      Index nf_sd = scat_data[i_ss][i_se].pha_mat_data.nlibraries();
+      if( nf_sd != 1 && nf_sd != nf_se )
+      {
+        ostringstream os;
+        os << bs1.str() << "pha_mat_data" << bs2.str() << nf_se << ".";
+        throw runtime_error( os.str() );
+      }
+      nf_se = scat_data[i_ss][i_se].ext_mat_data.nshelves();
+      if( nf_sd != 1 && nf_sd != nf_se )
+      {
+        ostringstream os;
+        os << bs1.str() << "ext_mat_data" << bs2.str() << nf_se << ".";
+        throw runtime_error( os.str() );
+      }
+      nf_se = scat_data[i_ss][i_se].abs_vec_data.nshelves();
+      if( nf_sd != 1 && nf_sd != nf_se )
+      {
+        ostringstream os;
+        os << bs1.str() << "abs_vec_data" << bs2.str() << nf_se << ".";
+        throw runtime_error( os.str() );
+      }
+
+      // check that the temp dimension of sca_mat, ext_mat, and abs_vec is
+      // either 1 or ssd.T_grid.nelem()
+      Index nt_se = scat_data[i_ss][i_se].T_grid.nelem();
+      bs1 << "Temperature dimension of ";
+      bs2 << " must be either one or ssd.T_grid.nelem(),\n"
+          << "but scattering element #" << i_se
+          << " in scattering species #" << i_ss << " is ";
+      Index nt_sd = scat_data[i_ss][i_se].pha_mat_data.nvitrines();
+      if( nt_sd != 1 && nt_sd != nt_se )
+      {
+        ostringstream os;
+        os << bs1.str() << "pha_mat_data" << bs2.str() << nt_se << ".";
+        throw runtime_error( os.str() );
+      }
+      nt_se = scat_data[i_ss][i_se].ext_mat_data.nbooks();
+      if( nt_sd != 1 && nt_sd != nt_se )
+      {
+        ostringstream os;
+        os << bs1.str() << "ext_mat_data" << bs2.str() << nt_se << ".";
+        throw runtime_error( os.str() );
+      }
+      nt_se = scat_data[i_ss][i_se].abs_vec_data.nbooks();
+      if( nt_sd != 1 && nt_sd != nt_se )
+      {
+        ostringstream os;
+        os << bs1.str() << "abs_vec_data" << bs2.str() << nt_se << ".";
+        throw runtime_error( os.str() );
+      }
+    }
+  }
+
+  // If here, all OK
+  scat_data_checked = 1;
+}
 
 
 

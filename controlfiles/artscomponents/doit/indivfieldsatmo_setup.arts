@@ -209,10 +209,10 @@ Touch( scat_species_number_density_field )
 Touch( scat_species_mean_mass_field )
 
 # Unrealistic (small) values in massdensity_field will be set to zero
-scat_species_fieldCleanup (scat_species_mass_density_field,
+particle_fieldCleanup (scat_species_mass_density_field,
                            scat_species_mass_density_field,
                            1e-15)
-scat_species_fieldCleanup (scat_species_mass_flux_field,
+particle_fieldCleanup (scat_species_mass_flux_field,
                            scat_species_mass_flux_field,
                            1e-15)
 

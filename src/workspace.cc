@@ -1863,8 +1863,7 @@ void Workspace::define_wsv_data()
        "find where this variable is discussed. The variable is listed as a\n"
        "subentry to \"workspace variables\".\n"
        "\n"
-       "Usage:      Output of the agendas *opt_prop_gas_agenda* \n"
-       "                             and *opt_prop_part_agenda* \n" 
+       "Usage:      Output of *opt_prop_part_agenda* \n" 
        "\n"
        "Unit:       m^2\n" //FIXME: really m2? not 1/m?
        "\n"
@@ -4456,7 +4455,29 @@ void Workspace::define_wsv_data()
          "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
          "\n"
          "Dimensions: [number of scattering species][number of scattering elements] \n"
+         ),
+        GROUP( "ArrayOfArrayOfSingleScatteringData" )));
+   
+   wsv_data.push_back
+     (WsvRecord
+      ( NAME( "scat_data_checked" ),
+        DESCRIPTION
+        (
+         "OK-flag for *scat_data*.\n"
          "\n"
+         "Relevant checks are performed by *scat_data_checkedCalc. Only the\n"
+         "value 1 is taken as OK.\n"
+         ),
+        GROUP( "Index" )));
+
+   wsv_data.push_back
+     (WsvRecord
+      ( NAME( "scat_data_raw" ),
+        DESCRIPTION
+        (
+         "Array of raw single scattering data.\n"
+         "\n"
+         "TBD\n"
          ),
         GROUP( "ArrayOfArrayOfSingleScatteringData" )));
    
