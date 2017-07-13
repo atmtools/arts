@@ -1,3 +1,11 @@
+2017-07-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-750
+
+	* src/m_disort.cc (DisortCalcWithARTSSurface):
+
+	Fix compilation if Disort is disabled.
+
 2017-07-12 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-749

@@ -239,7 +239,6 @@ void DisortCalcWithARTSSurface(Workspace&,
                 // WS Output:
                 Tensor7&,
                 Index&,
-                ArrayOfArrayOfSingleScatteringData&,
                 // WS Input
                 const Index&,
                 const Index&,
