@@ -1,3 +1,43 @@
+2017-07-12 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-749
+
+	Continuation of scatt solver adaptation for use of new-type scat_data
+
+	* src/m_optproperties.cc:
+	(opt_prop_sptFromScat_data):
+	Separate f-extraction for ext_mat and abs_vec (allowing for different
+	f-dimensioning in these. Cosmetics.
+
+	(pha_mat_sptFromScat_data):
+	WSM for pha_mat extraction from new-type scat_data. For use in
+	pha_mat_spt_agenda or to replace internal use of
+	pha_mat_spt_From(Mono)Data).
+
+	(opt_prop_bulkCalc):
+	WSM reproducing the standard (and only one applied?) setup for
+	opt_prop_part_agenda. Can be used within the agenda or in place of the
+	agenda.
+
+	* src/disort.cc (phase_functionCalc, phase_functionCalc2):
+	Adapted for use of new-type scat_data, particularly in place of
+	scat_data_mono. 
+
+	* controlfiles/artscomponents/disort/TestDISORT.arts:
+	Use new umbrella WSM opt_prop_bulkCalc in opt_prop_part_agenda (in a
+	next step, the agenda call inside the ARTS interface will be replaced
+	instead).
+
+	* src/m_checked.cc, methods.cc (scat_data_checkedCalc:
+	Some adaptations to current new-type scat_data state and assumptions.
+	Updated built-in doc accordingly (for details see there).
+
+	* src/m_disort.cc (DisortCalcWithARTSSurface):
+	Bugfix.
+
+	* src/methods.cc:
+	Updated according to WSM changes above.
+
 2017-07-11 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-748

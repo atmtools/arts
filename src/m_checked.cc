@@ -795,6 +795,8 @@ void scat_data_checkedCalc(
    const ArrayOfArrayOfSingleScatteringData& scat_data,
    const Vector&         f_grid,
    const Verbosity& )
+// FIXME: when we allow K, a, Z to be on different f and T grids, their use in
+// the scatt solvers needs to be reviewed again and adaptedto this!
 {
   Index nf = f_grid.nelem();
   Index N_ss = scat_data.nelem();
@@ -838,60 +840,72 @@ void scat_data_checkedCalc(
       }
 
       // check that the freq dimension of sca_mat, ext_mat, and abs_vec is
-      // either 1 or ssd.f_grid.nelem()
+      // either ssd.f_grid.nelem() or 1 (FIXME: so far, being freq dim !=
+      // ssd.f_grid.nelem() switched off, as usage in scatt solvers so far
+      // doesn't allow this. see FIXME at start.).
       ostringstream bs1, bs2;
       bs1 << "Frequency dimension of ";
-      bs2 << " must be either one or ssd.f_grid.nelem() (=" << nf_se << "),\n"
+      //bs2 << " must be either one or ssd.f_grid.nelem() (=" << nf_se << "),\n"
+      bs2 << " must be ssd.f_grid.nelem() (=" << nf_se << "),\n"
           << "but scattering element #" << i_se
           << " in scattering species #" << i_ss << " is ";
       Index nf_sd = scat_data[i_ss][i_se].pha_mat_data.nlibraries();
-      if( nf_sd != 1 && nf_sd != nf_se )
+      if( nf_sd != nf_se ) //&& nf_sd != 1)
       {
         ostringstream os;
         os << bs1.str() << "pha_mat_data" << bs2.str() << nf_se << ".";
         throw runtime_error( os.str() );
       }
-      nf_se = scat_data[i_ss][i_se].ext_mat_data.nshelves();
-      if( nf_sd != 1 && nf_sd != nf_se )
+      nf_sd = scat_data[i_ss][i_se].ext_mat_data.nshelves();
+      if( nf_sd != nf_se ) //&& nf_sd != 1)
       {
         ostringstream os;
         os << bs1.str() << "ext_mat_data" << bs2.str() << nf_se << ".";
         throw runtime_error( os.str() );
       }
-      nf_se = scat_data[i_ss][i_se].abs_vec_data.nshelves();
-      if( nf_sd != 1 && nf_sd != nf_se )
+      nf_sd = scat_data[i_ss][i_se].abs_vec_data.nshelves();
+      if( nf_sd != nf_se ) //&& nf_sd != 1)
       {
         ostringstream os;
         os << bs1.str() << "abs_vec_data" << bs2.str() << nf_se << ".";
         throw runtime_error( os.str() );
       }
 
-      // check that the temp dimension of sca_mat, ext_mat, and abs_vec is
-      // either 1 or ssd.T_grid.nelem()
+      // check that the temp dimension of K and a is identical and that it is
+      // either ssd.T_grid.nelem() or 1 (this also for Z).
       Index nt_se = scat_data[i_ss][i_se].T_grid.nelem();
       bs1 << "Temperature dimension of ";
-      bs2 << " must be either one or ssd.T_grid.nelem(),\n"
+      //bs2 << " must be either one or ssd.T_grid.nelem(),\n"
+      bs2 << " must be ssd.T_grid.nelem() (=" << nf_se << "),\n"
           << "but scattering element #" << i_se
           << " in scattering species #" << i_ss << " is ";
       Index nt_sd = scat_data[i_ss][i_se].pha_mat_data.nvitrines();
-      if( nt_sd != 1 && nt_sd != nt_se )
+      if( nt_sd != nt_se ) //&& nt_sd != 1 )
       {
         ostringstream os;
         os << bs1.str() << "pha_mat_data" << bs2.str() << nt_se << ".";
         throw runtime_error( os.str() );
       }
-      nt_se = scat_data[i_ss][i_se].ext_mat_data.nbooks();
-      if( nt_sd != 1 && nt_sd != nt_se )
+      nt_sd = scat_data[i_ss][i_se].ext_mat_data.nbooks();
+      if( nt_sd != nt_se && nt_sd != 1 )
       {
         ostringstream os;
         os << bs1.str() << "ext_mat_data" << bs2.str() << nt_se << ".";
         throw runtime_error( os.str() );
       }
-      nt_se = scat_data[i_ss][i_se].abs_vec_data.nbooks();
-      if( nt_sd != 1 && nt_sd != nt_se )
+      Index nt_sda = scat_data[i_ss][i_se].abs_vec_data.nbooks();
+      if( nt_sda != nt_se && nt_sda != 1 )
       {
         ostringstream os;
         os << bs1.str() << "abs_vec_data" << bs2.str() << nt_se << ".";
+        throw runtime_error( os.str() );
+      }
+      if( nt_sd != nt_sda )
+      {
+        ostringstream os;
+        os << "ext_mat_data and abs_vec_data must have the same temperature"
+           << " dimensions,\n" << "but are " << nt_sd << " and " << nt_sda
+           << ", respectively.";
         throw runtime_error( os.str() );
       }
     }

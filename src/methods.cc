@@ -10342,6 +10342,45 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "opt_prop_bulkCalc" ),
+        DESCRIPTION
+        (
+         "Calculates bulk absorption extinction at one atmospheric grid point.\n"
+         "\n"
+         "This WSM sums up the monochromatic absorption vectors and\n"
+         "extinction matrices of all scattering elements (*abs_vec_spt* and\n"
+         "*ext_mat_spt*, respectively) weighted by their respective\n"
+         "particle number density given by *pnd_field*, for a single location\n"
+         "within the cloudbox, given by *scat_p_index*, *scat_lat_index*, and\n"
+         "*scat_lon_index*.\n"
+         "The resulting  extinction matrix is added to the workspace variable\n"
+         "*ext_mat*.\n"
+         "\n"
+         "The WSM can be used in *opt_prop_part_agenda*, instead of the\n"
+         "following setup using a chain of WSM:\n"
+         "  AgendaSet( opt_prop_part_agenda ){\n"
+         "  ext_matInit\n"
+         "  abs_vecInit\n"
+         "  ext_matAddPart\n"
+         "  abs_vecAddPart\n"
+         "  }\n"
+         ),
+        AUTHORS( "Jana Mendrok, Sreerekha T.R." ),
+        OUT( "ext_mat", "abs_vec" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ext_mat", "abs_vec", "ext_mat_spt", "abs_vec_spt",
+            "pnd_field", "atmosphere_dim", 
+            "scat_p_index", "scat_lat_index", "scat_lon_index" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+ 
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "opt_prop_sptFromData" ),
         DESCRIPTION
         (
@@ -10636,6 +10675,36 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "pha_mat_sptFromDataDOITOpt" ),
+        DESCRIPTION
+        (
+         "Calculation of the phase matrix of the individual scattering elements.\n"
+         "\n"
+         "In this function the phase matrix is extracted from\n"
+         "*pha_mat_sptDOITOpt*. It can be used in the agenda\n"
+         "*pha_mat_spt_agenda*. This method must be used in combination with\n"
+         "*DoitScatteringDataPrepare*.\n"
+         "\n"
+         "Temperature is considered as described for *pha_mat_sptFromData*\n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT( "pha_mat_spt" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "pha_mat_spt", "pha_mat_sptDOITOpt", "scat_data_mono", 
+            "doit_za_grid_size",
+            "scat_aa_grid", 
+            "scat_za_index", "scat_aa_index", "rtp_temperature",
+            "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
+        GIN(),
+        GIN_TYPE(), 
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "pha_mat_sptFromMonoData" ),
         DESCRIPTION
         (
@@ -10659,28 +10728,24 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "pha_mat_sptFromDataDOITOpt" ),
+      ( NAME( "pha_mat_sptFromScat_data" ),
         DESCRIPTION
         (
          "Calculation of the phase matrix of the individual scattering elements.\n"
          "\n"
-         "In this function the phase matrix is extracted from\n"
-         "*pha_mat_sptDOITOpt*. It can be used in the agenda\n"
-         "*pha_mat_spt_agenda*. This method must be used in combination with\n"
-         "*DoitScatteringDataPrepare*.\n"
-         "\n"
-         "Temperature is considered as described for *pha_mat_sptFromData*\n"
+         "As *pha_mat_sptFromData*, but using frequency pre-interpolated\n"
+         "data (as produced by *scat_dataCalc*), i.e. in here no frequency\n"
+         "interpolation is done anymore.\n"
          ),
-        AUTHORS( "Claudia Emde" ),
+        AUTHORS( "Jana Mendrok, Claudia Emde" ),
         OUT( "pha_mat_spt" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "pha_mat_spt", "pha_mat_sptDOITOpt", "scat_data_mono", 
-            "doit_za_grid_size",
-            "scat_aa_grid", 
-            "scat_za_index", "scat_aa_index", "rtp_temperature",
-            "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
+        IN( "pha_mat_spt", "scat_data", "scat_data_checked",
+            "scat_za_grid", "scat_aa_grid", "scat_za_index", "scat_aa_index",
+            "f_index", "rtp_temperature", "pnd_field",
+            "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(), 
         GIN_DEFAULT(),
@@ -13410,9 +13475,12 @@ void define_md_data_raw()
          "- The scattering elements f_grid is either identical to *f_grid* or\n"
          "  of dimension 1.\n"
          "- The frequency dimension of pha_mat_data, ext_mat_data, and abs_vec\n"
-         "  is either equal to this scattering elements f_grid or 1.\n"
-         "- The temperature dimension of pha_mat_data, ext_mat_data, and abs_vec\n"
-         "  is either equal to this scattering elements T_grid or 1.\n"
+         "  is either equal to this scattering element's f_grid or 1.\n"
+         "- The temperature dimension of pha_mat_data, ext_mat_data, and\n"
+         "  abs_vec_data is either equal to this scattering element's T_grid\n"
+         "  or 1.\n"
+         "- The temperature dimension of ext_mat_data, and abs_vec_data is\n"
+         "  identical.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "scat_data_checked" ),

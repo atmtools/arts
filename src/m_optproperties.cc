@@ -724,7 +724,8 @@ void opt_prop_sptFromScat_data(// Output and Input:
   const Numeric za_sca = scat_za_grid[scat_za_index];
   const Numeric aa_sca = scat_aa_grid[scat_aa_index];
   
-  if (stokes_dim > 4 || stokes_dim < 1){
+  if (stokes_dim > 4 || stokes_dim < 1)
+  {
     throw runtime_error("The dimension of the stokes vector \n"
                         "must be 1,2,3 or 4");
   }
@@ -742,6 +743,7 @@ void opt_prop_sptFromScat_data(// Output and Input:
   ext_mat_spt = 0.;
   abs_vec_spt = 0.;
 
+  Index this_f_index;
 
   Index i_se_flat = 0;
   // Loop over the included scattering species
@@ -771,15 +773,11 @@ void opt_prop_sptFromScat_data(// Output and Input:
                                       ABS_VEC_DATA_RAW.nrows(),
                                       ABS_VEC_DATA_RAW.ncols());
 
-              // Gridpositions:
+              // Gridpositions and interpolation weights;
               GridPos t_gp;
               Vector itw;
-
-              // Frequency extraction and temoerature interpolation
-              Index this_f_index;
-
-              if ( T_DATAGRID.nelem() > 1)
-              {
+              if ( EXT_MAT_DATA_RAW.nbooks()>1 || ABS_VEC_DATA_RAW.nbooks()>1 )
+                {
                   ostringstream os;
                   os << "The temperature grid of the scattering data does not\n"
                      << "cover the atmospheric temperature at cloud location.\n"
@@ -793,20 +791,24 @@ void opt_prop_sptFromScat_data(// Output and Input:
                   // Interpolation weights:
                   itw.resize(2);
                   interpweights(itw, t_gp);
+                }
 
-                  if( EXT_MAT_DATA_RAW.nshelves()==1 )
-                    this_f_index = 0;
-                  else
-                    this_f_index = f_index;
+              // Frequency extraction and temperature interpolation
+
+              if( EXT_MAT_DATA_RAW.nshelves()==1 )
+                this_f_index = 0;
+              else
+                this_f_index = f_index;
+
+              if ( EXT_MAT_DATA_RAW.nbooks() > 1)
+                {
+                  // Interpolation of extinction matrix:
                   for (Index i_za_sca = 0; i_za_sca < EXT_MAT_DATA_RAW.npages();
                        i_za_sca++)
                   {
                       for(Index i_aa_sca = 0; i_aa_sca < EXT_MAT_DATA_RAW.nrows();
                           i_aa_sca++)
                       {
-                          //
-                          // Interpolation of extinction matrix:
-                          //
                           for (Index i = 0; i < EXT_MAT_DATA_RAW.ncols(); i++)
                           {
                               ext_mat_data_int(i_za_sca, i_aa_sca, i) =
@@ -816,36 +818,9 @@ void opt_prop_sptFromScat_data(// Output and Input:
                           }
                       }
                   }
-
-                  if( ABS_VEC_DATA_RAW.nshelves()==1 )
-                    this_f_index = 0;
-                  else
-                    this_f_index = f_index;
-                  for (Index i_za_sca = 0; i_za_sca < ABS_VEC_DATA_RAW.npages();
-                       i_za_sca++)
-                  {
-                      for(Index i_aa_sca = 0; i_aa_sca < ABS_VEC_DATA_RAW.nrows();
-                          i_aa_sca++)
-                      {
-                          //
-                          // Interpolation of absorption vector:
-                          //
-                          for (Index i = 0; i < ABS_VEC_DATA_RAW.ncols(); i++)
-                          {
-                              abs_vec_data_int(i_za_sca, i_aa_sca, i) =
-                              interp(itw, ABS_VEC_DATA_RAW(this_f_index, joker,
-                                                           i_za_sca, i_aa_sca, i),
-                                     t_gp);
-                          }
-                      }
-                  }
-              }
+                }
               else
-              {
-                  if( EXT_MAT_DATA_RAW.nshelves()==1 )
-                    this_f_index = 0;
-                  else
-                    this_f_index = f_index;
+                {
                   ext_mat_data_int = EXT_MAT_DATA_RAW(this_f_index, 0,
                                                       joker, joker, joker);
                   /*
@@ -863,11 +838,34 @@ void opt_prop_sptFromScat_data(// Output and Input:
                           }
                       }
                   } */
+                }
 
-                  if( ABS_VEC_DATA_RAW.nshelves()==1 )
-                    this_f_index = 0;
-                  else
-                    this_f_index = f_index;
+              if( ABS_VEC_DATA_RAW.nshelves()==1 )
+                this_f_index = 0;
+              else
+                this_f_index = f_index;
+
+              if ( ABS_VEC_DATA_RAW.nbooks() > 1)
+                {
+                  // Interpolation of absorption vector:
+                  for (Index i_za_sca = 0; i_za_sca < ABS_VEC_DATA_RAW.npages();
+                       i_za_sca++)
+                  {
+                      for(Index i_aa_sca = 0; i_aa_sca < ABS_VEC_DATA_RAW.nrows();
+                          i_aa_sca++)
+                      {
+                          for (Index i = 0; i < ABS_VEC_DATA_RAW.ncols(); i++)
+                          {
+                              abs_vec_data_int(i_za_sca, i_aa_sca, i) =
+                              interp(itw, ABS_VEC_DATA_RAW(this_f_index, joker,
+                                                           i_za_sca, i_aa_sca, i),
+                                     t_gp);
+                          }
+                      }
+                  }
+                }
+              else
+                {
                   abs_vec_data_int = ABS_VEC_DATA_RAW(this_f_index, 0,
                                                       joker, joker, joker);
                   /*
@@ -885,8 +883,7 @@ void opt_prop_sptFromScat_data(// Output and Input:
                           }
                       }
                   } */
-              }
-
+                }
 
               //
               // Do the transformation into the laboratory coordinate system.
@@ -903,11 +900,86 @@ void opt_prop_sptFromScat_data(// Output and Input:
                                ZA_DATAGRID, AA_DATAGRID, PART_TYPE,
                                za_sca, aa_sca, verbosity);
           }
-
           i_se_flat++;
       }
   }
 }
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void opt_prop_bulkCalc(// Output and Input:
+                       Tensor3& ext_mat,
+                       Matrix&  abs_vec,
+                       // Input:
+                 const Tensor3& ext_mat_spt,
+                 const Matrix& abs_vec_spt,
+                 const Tensor4& pnd_field,
+                 const Index&   atmosphere_dim,
+                 const Index&   scat_p_index,
+                 const Index&   scat_lat_index,
+                 const Index&   scat_lon_index,
+                 const Verbosity&)
+{
+  Index N_se = abs_vec_spt.nrows();
+  //assert( ext_mat_spt.npages()==N_se )
+  if( ext_mat_spt.npages()!=N_se )
+    {
+      ostringstream os;
+      os << "Number of scattering elements in *abs_vec_spt* and *ext_mat_spt*\n"
+         << "does not agree.";
+      throw runtime_error( os.str() );
+    }
+  
+  Index stokes_dim = abs_vec_spt.ncols();
+  //assert( ext_mat_spt.ncols()==stokes_dim && ext_mat_spt.nrows()==stokes_dim )
+  if( ext_mat_spt.ncols()!=stokes_dim && ext_mat_spt.nrows()!=stokes_dim )
+    {
+      ostringstream os;
+      os << "*stokes_dim* of *abs_vec_spt* and *ext_mat_spt* does not agree.";
+      throw runtime_error( os.str() );
+    }
+  if (stokes_dim > 4 || stokes_dim < 1){
+      ostringstream os;
+      os << "The dimension of stokes vector can only be 1, 2, 3, or 4.";
+      throw runtime_error( os.str() );
+  }
+
+  ext_mat.resize( 1, stokes_dim, stokes_dim );
+  ext_mat = 0;                  // Initialize to zero!
+  abs_vec.resize( 1, stokes_dim );
+  abs_vec = 0;                  // Initialize to zero!
+
+  Matrix ext_mat_part(stokes_dim, stokes_dim, 0.0);
+  Vector abs_vec_part(stokes_dim, 0.0);
+
+  // this is the loop over the different scattering elements
+  for (Index l = 0; l < N_se; l++)
+    { 
+      // now the two loops over the stokes dimension.
+      for (Index m = 0; m < stokes_dim; m++)
+        {
+          //summation of the product of pnd_field and 
+          //abs_vec_spt.
+          abs_vec_part[m] += abs_vec_spt(l, m) *
+                             pnd_field(l, scat_p_index,
+                                       scat_lat_index, scat_lon_index);
+
+          for (Index n = 0; n < stokes_dim; n++)
+            {
+              //summation of the product of pnd_field and 
+              //ext_mat_spt.
+              ext_mat_part(m, n) += ext_mat_spt(l, m, n) *
+                                    pnd_field(l, scat_p_index,
+                                              scat_lat_index, scat_lon_index);
+            }
+        }
+    }
+
+  //Add absorption due single scattering element.
+  abs_vec(0, Range(joker)) += abs_vec_part;
+  //Add extinction matrix due single scattering element to *ext_mat*.
+  ext_mat(0, Range(joker), Range(joker)) += ext_mat_part;
+} 
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1701,6 +1773,8 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
              const Vector& f_grid,
              const Index& order,
              const Verbosity&)
+// FIXME: when we allow K, a, Z to be on different f and T grids, their use in
+// the scatt solvers needs to be reviewed again and adaptedto this!
 {
   //Extrapolation factor:
   //const Numeric extpolfac = 0.5;
@@ -2333,6 +2407,201 @@ void pha_mat_sptFromMonoData(// Output:
               }
          }
 
+          i_se_flat++;
+      }
+  }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void pha_mat_sptFromScat_data( // Output:
+                         Tensor5& pha_mat_spt,
+                         // Input:
+                         const ArrayOfArrayOfSingleScatteringData& scat_data,
+                         const Index& scat_data_checked,
+                         const Vector& scat_za_grid,
+                         const Vector& scat_aa_grid,
+                         const Index& scat_za_index, // propagation directions
+                         const Index& scat_aa_index,
+                         const Index& f_index,
+                         const Numeric& rtp_temperature,
+                         const Tensor4& pnd_field, 
+                         const Index& scat_p_index,
+                         const Index& scat_lat_index,
+                         const Index& scat_lon_index,
+                         const Verbosity& verbosity
+                         )
+{
+  if( scat_data_checked != 1 )
+    throw runtime_error( "The scattering data must be flagged to have "
+                         "passed a consistency check (scat_data_checked=1)." );
+
+  const Index stokes_dim = pha_mat_spt.ncols();
+  if (stokes_dim > 4 || stokes_dim < 1){
+    throw runtime_error("The dimension of the stokes vector \n"
+                        "must be 1,2,3 or 4");
+  }
+
+  // Determine total number of scattering elements
+  const Index N_se_total = TotalNumberOfElements(scat_data);
+  if( N_se_total != pnd_field.nbooks() )
+    {
+      ostringstream os;
+      os << "Total number of scattering elements in scat_data "
+         << "inconsistent with size of pnd_field.";
+      throw runtime_error(os.str());
+    }
+  // as pha_mat_spt is typically initiallized from pnd_field, this theoretically
+  // checks the same as the runtime_error above. Still, we keep it to be on the
+  // save side.
+  assert( pha_mat_spt.nshelves() == N_se_total );
+  
+  const Index N_ss = scat_data.nelem();
+
+  // Phase matrix in laboratory coordinate system. Dimensions:
+  // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
+  Tensor5 pha_mat_data_int;
+
+  Index this_f_index;
+
+  Index i_se_flat = 0;
+  // Loop over scattering species
+  for (Index i_ss = 0; i_ss < N_ss; i_ss++)
+  {
+      const Index N_se = scat_data[i_ss].nelem();
+
+      // Loop over the included scattering elements
+      for (Index i_se = 0; i_se < N_se; i_se++)
+      {
+          // If the particle number density at a specific point in the
+          // atmosphere for the i_se scattering element is zero, we don't need
+          // to do the transfromation!
+          if (pnd_field(i_se_flat, scat_p_index, scat_lat_index, scat_lon_index)
+              > PND_LIMIT)
+          {
+
+              // First we have to transform the data from the coordinate system
+              // used in the database (depending on the kind of ptype) to the
+              // laboratory coordinate system.
+
+              // Resize the variables for the interpolated data (1freq, 1T):
+              pha_mat_data_int.resize(PHA_MAT_DATA_RAW.nshelves(),
+                                      PHA_MAT_DATA_RAW.nbooks(),
+                                      PHA_MAT_DATA_RAW.npages(),
+                                      PHA_MAT_DATA_RAW.nrows(),
+                                      PHA_MAT_DATA_RAW.ncols());
+
+              // Frequency extraction and temperature interpolation
+
+              // Gridpositions and interpolation weights;
+              GridPos t_gp;
+              Vector itw;
+              Index this_T_index = -1;
+              if ( PHA_MAT_DATA_RAW.nvitrines()==1 )
+                {
+                  this_T_index = 0;
+                }
+              else if( rtp_temperature < 0. ) // coding for 'not interpolate, but
+                                              // pick one temperature'
+                {
+                  if( rtp_temperature > -10. )      // lowest T-point
+                    {
+                      this_T_index = 0;
+                    }
+                  else if( rtp_temperature > -20. ) // highest T-point
+                    {
+                      this_T_index = PHA_MAT_DATA_RAW.nvitrines()-1;
+                    }
+                  else                              // median T-point
+                    {
+                      this_T_index = PHA_MAT_DATA_RAW.nvitrines()/2;
+                    }
+                }
+              else
+                {
+                  ostringstream os;
+                  os << "The temperature grid of the scattering data does not\n"
+                     << "cover the atmospheric temperature at cloud location.\n"
+                     << "The data should include the value T = "
+                     << rtp_temperature << " K.";
+                  chk_interpolation_grids( os.str(), T_DATAGRID, 
+                                           rtp_temperature );
+
+                  gridpos(t_gp, T_DATAGRID, rtp_temperature);
+
+                  // Interpolation weights:
+                  itw.resize(2);
+                  interpweights(itw, t_gp);
+                }
+
+              if( PHA_MAT_DATA_RAW.nlibraries()==1 )
+                this_f_index = 0;
+              else
+                this_f_index = f_index;
+
+              if ( this_T_index < 0 )
+                {
+                  // Interpolation of scattering matrix:
+                  for (Index i_za_sca = 0;
+                       i_za_sca < PHA_MAT_DATA_RAW.nshelves(); i_za_sca++)
+                    for (Index i_aa_sca = 0;
+                         i_aa_sca < PHA_MAT_DATA_RAW.nbooks(); i_aa_sca++)
+                      for (Index i_za_inc = 0;
+                           i_za_inc < PHA_MAT_DATA_RAW.npages(); i_za_inc++)
+                        for (Index i_aa_inc = 0;
+                             i_aa_inc < PHA_MAT_DATA_RAW.nrows(); i_aa_inc++)
+                          for (Index i = 0; i < PHA_MAT_DATA_RAW.ncols(); i++)
+                            pha_mat_data_int(i_za_sca, i_aa_sca,
+                                             i_za_inc, i_aa_inc, i) =
+                              interp(itw,
+                                     PHA_MAT_DATA_RAW(this_f_index, joker,
+                                                      i_za_sca, i_aa_sca,
+                                                      i_za_inc, i_aa_inc, i),
+                                     t_gp);
+                }
+              else
+                {
+                  pha_mat_data_int = PHA_MAT_DATA_RAW(this_f_index, this_T_index,
+                                                      joker, joker,
+                                                      joker, joker, joker);
+                  /*
+                  for (Index i_za_sca = 0;
+                       i_za_sca < PHA_MAT_DATA_RAW.nshelves(); i_za_sca++)
+                    for (Index i_aa_sca = 0;
+                         i_aa_sca < PHA_MAT_DATA_RAW.nbooks(); i_aa_sca++)
+                      for (Index i_za_inc = 0;
+                           i_za_inc < PHA_MAT_DATA_RAW.npages(); i_za_inc++)
+                        for (Index i_aa_inc = 0;
+                             i_aa_inc < PHA_MAT_DATA_RAW.nrows(); i_aa_inc++)
+                          for (Index i = 0; i < PHA_MAT_DATA_RAW.ncols(); i++)
+                            // Interpolation of phase matrix:
+                            pha_mat_data_int(i_za_sca, i_aa_sca,
+                                             i_za_inc, i_aa_inc, i) =
+                                PHA_MAT_DATA_RAW(this_f_index, this_T_index,
+                                                 i_za_sca, i_aa_sca,
+                  */
+                }
+
+
+              // Do the transformation into the laboratory coordinate system.
+              for (Index za_inc_idx = 0; za_inc_idx < scat_za_grid.nelem();
+                   za_inc_idx ++)
+              {
+                  for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
+                       aa_inc_idx ++)
+                  {
+                      pha_matTransform(pha_mat_spt(i_se_flat,
+                                                   za_inc_idx, aa_inc_idx,
+                                                   joker, joker),
+                                       pha_mat_data_int,
+                                       ZA_DATAGRID, AA_DATAGRID,
+                                       PART_TYPE, scat_za_index, scat_aa_index,
+                                       za_inc_idx, 
+                                       aa_inc_idx, scat_za_grid, scat_aa_grid,
+                                       verbosity);
+                  }
+              }
+          }
           i_se_flat++;
       }
   }

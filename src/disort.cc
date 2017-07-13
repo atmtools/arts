@@ -557,38 +557,38 @@ void phase_functionCalc2( Workspace& ws,
       cout << "at cloud-lev #" << scat_p_index_local << "\n";
       Index i_se_flat=0;
       Numeric sca_coeff;
-      for( Index i_ss=0; i_ss<scat_data_mono.nelem(); i_ss++ )
+      for( Index i_ss=0; i_ss<scat_data.nelem(); i_ss++ )
       {
         cout << " scat species #" << i_ss << "\n";
-        for( Index i_se=0; i_se<scat_data_mono[i_ss].nelem(); i_se++ )
+        for( Index i_se=0; i_se<scat_data[i_ss].nelem(); i_se++ )
         {
           if( i_se_flat==65 )
           {
           cout << "  scat element #" << i_se << " (flat element #" << i_se_flat
                << ")\n";
-          for( Index i_t=0; i_t<scat_data_mono[i_ss][i_se].T_grid.nelem(); i_t++ )
+          for( Index i_t=0; i_t<scat_data[i_ss][i_se].T_grid.nelem(); i_t++ )
           {
-            sca_coeff = scat_data_mono[i_ss][i_se].ext_mat_data(0,i_t,0,0,0) -
-                        scat_data_mono[i_ss][i_se].abs_vec_data(0,i_t,0,0,0);
-            cout << "   T[" << i_t << "]=" << scat_data_mono[i_ss][i_se].T_grid[i_t]
+            sca_coeff = scat_data[i_ss][i_se].ext_mat_data(0,i_t,0,0,0) -
+                        scat_data[i_ss][i_se].abs_vec_data(0,i_t,0,0,0);
+            cout << "   T[" << i_t << "]=" << scat_data[i_ss][i_se].T_grid[i_t]
                  << "K with sca_coeff=" << sca_coeff << "\n";
             if( sca_coeff!=0. )
             {
               Numeric intP=0.;
               for (Index i_a = 0; i_a <
-                   scat_data_mono[i_ss][i_se].za_grid.nelem(); i_a++)
+                   scat_data[i_ss][i_se].za_grid.nelem(); i_a++)
               {
                 //cout << "    processing ang grid point #" << i_a << "\n";
                 if( i_a>0 )
                 {
                   intP += PI *
-                        (scat_data_mono[i_ss][i_se].pha_mat_data(0,i_t,i_a,0,0,0,0)+
-                         scat_data_mono[i_ss][i_se].pha_mat_data(0,i_t,i_a,0,0,0,0)) *
-                        (abs(cos(scat_data_mono[i_ss][i_se].za_grid[i_a]*PI/180.)-
-                             cos(scat_data_mono[i_ss][i_se].za_grid[i_a-1]*PI/180.)));
+                        (scat_data[i_ss][i_se].pha_mat_data(0,i_t,i_a,0,0,0,0)+
+                         scat_data[i_ss][i_se].pha_mat_data(0,i_t,i_a,0,0,0,0)) *
+                        (abs(cos(scat_data[i_ss][i_se].za_grid[i_a]*PI/180.)-
+                             cos(scat_data[i_ss][i_se].za_grid[i_a-1]*PI/180.)));
                 }
               }
-              cout << "  at T[" << i_t << "]=" << scat_data_mono[i_ss][i_se].T_grid[i_t]
+              cout << "  at T[" << i_t << "]=" << scat_data[i_ss][i_se].T_grid[i_t]
                    << "K: int PFCT / scatcoef="
                      << intP / sca_coeff << "\n";
             }
@@ -615,8 +615,6 @@ void phase_functionCalc2( Workspace& ws,
                                 rtp_temperature_local, pnd_field, 
                                 scat_p_index_local, 0, 0, verbosity);
 
-      ArrayOfArrayOfSingleScatteringData scat_data_mono;
-      scat_data_monoExtract(scat_data_mono, scat_data, f_index);
       opt_prop_part_agendaExecute(ws,
                                   ext_mat_local, abs_vec_local, 
                                   ext_mat_spt_local, 
@@ -630,23 +628,14 @@ void phase_functionCalc2( Workspace& ws,
         ext_mat_local(0,0,0) - abs_vec_local(0,0);
       //cout << "  => scatcoef_total=" << sca_coeff_level[scat_p_index_local] << "\n";
 
-      // FIXME: replace loop over scat_data_mono with something appropriate.
-      // we don't have access to scat_data_mono here (we could arrange it.
-      // but is it a good solution?). we could use the desired angle grid
-      // from which pmom will be derived directly here (the agenda takes
-      // care of interpolation!). check whether there are requirements on
-      // the pmom grid (equidistant?)!
       if (sca_coeff_level[scat_p_index_local] != 0)
         {
           // Calculate the phase matrix of individual scattering elements
-          pha_mat_sptFromMonoData( pha_mat_spt_local,
-                                   scat_data_mono,
-                                   pfct_za_grid_size, aa_grid,
-                                   0, 0, // angles, only needed for za=0
-                                   rtp_temperature_local,
-                                   pnd_field,
-                                   scat_p_index_local, 0, 0,
-                                   verbosity );
+          pha_mat_sptFromScat_data(pha_mat_spt_local,
+                                   scat_data, scat_data_checked,
+                                   za_grid, aa_grid, 0, 0, // angles, only needed for za=0
+                                   f_index, rtp_temperature_local,  pnd_field,
+                                   scat_p_index_local, 0, 0, verbosity );
               
           // Sum over all scattering elements
           pha_matCalc( pha_mat_local,
@@ -795,18 +784,15 @@ void phase_functionCalc(//Output
   // 1e-99 means less than one particle in our galaxy.
   Numeric pnd_threshold = 1e-99;
 
-  ArrayOfArrayOfSingleScatteringData scat_data_mono;
-  scat_data_monoExtract(scat_data_mono, scat_data, f_index);
-
   // Initialization
   phase_function=0.;
   const Index nlyr = phase_function.nrows();
 
   const Index Np_cloud = pnd_field.npages();
-  Matrix phase_function_level(Np_cloud, 
-                              scat_data_mono[0][0].za_grid.nelem(), 0.);
+  Matrix phase_function_level(Np_cloud, scat_data[0][0].za_grid.nelem(), 0.);
   
   Vector sca_coeff_level(Np_cloud, 0.);
+  Index this_f_index;
 
   //Loop over pressure levels
   for (Index i_p = 0; i_p < Np_cloud; i_p++)
@@ -816,22 +802,47 @@ void phase_functionCalc(//Output
       Index i_se_flat=0;
       //Numeric intP=0.;
 
-      for (Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss++)
+      for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++)
         {
-          for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
+          for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
             {
               if( pnd_field(i_se_flat, i_p, 0, 0) > pnd_threshold )
                 {
-                  Index i_pfct;
-                  if( pfct_method=="low" )
-                    i_pfct = 0;
-                  else if( pfct_method=="high" )
-                    i_pfct = scat_data_mono[i_ss][i_se].T_grid.nelem()-1;
-                  else //if( pfct_method=="median" )
-                    i_pfct = scat_data_mono[i_ss][i_se].T_grid.nelem()/2;
+                  // FIXME: In case we allow K,a,Z to have different
+                  // f-dimensions, we need to derive this_f_index individually
+                  // for K, a, and Z!
+                  if( scat_data[i_ss][i_se].ext_mat_data.nshelves()==1 )
+                    this_f_index = 0;
+                  else
+                    this_f_index = f_index;
+    
+                  // For T, we assume that K and a have the same T dimensions
+                  // (but Z can have a different one). That is as checked by
+                  // scat_data_checkedCalc.
+                  Index this_T_index = -1;
+                  if ( scat_data[i_ss][i_se].ext_mat_data.nbooks()==1 )
+                    {
+                      this_T_index = 0;
+                    }
+                  else
+                    {
+                      if( pfct_method=="low" )
+                        this_T_index = 0;
+                      else if( pfct_method=="high" )
+                        this_T_index =
+                          scat_data[i_ss][i_se].ext_mat_data.nbooks()-1;
+                      else //if( pfct_method=="median" )
+                        this_T_index =
+                          scat_data[i_ss][i_se].ext_mat_data.nbooks()/2;
+                    }
+
                   sca_coeff +=  pnd_field(i_se_flat, i_p, 0, 0) *
-                    (scat_data_mono[i_ss][i_se].ext_mat_data(0, i_pfct, 0, 0, 0)-
-                     scat_data_mono[i_ss][i_se].abs_vec_data(0, i_pfct, 0, 0, 0));
+                    ( scat_data[i_ss][i_se].ext_mat_data(this_f_index,
+                                                         this_T_index,
+                                                         0, 0, 0)
+                     -scat_data[i_ss][i_se].abs_vec_data(this_f_index,
+                                                         this_T_index,
+                                                         0, 0, 0));
                 }
               i_se_flat++;
             }
@@ -845,35 +856,51 @@ void phase_functionCalc(//Output
       if (sca_coeff != 0)
         {
           // Loop over scattering angles
-          for (Index i_t = 0; i_t < scat_data_mono[0][0].za_grid.nelem(); i_t++)
+          for (Index i_t = 0; i_t < scat_data[0][0].za_grid.nelem(); i_t++)
             {
               i_se_flat=0;
-              for (Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss++)
+              for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++)
+              {
+                for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
                 {
-                  for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
+                  if( scat_data[i_ss][i_se].pha_mat_data.nlibraries()==1 )
+                    this_f_index = 0;
+                  else
+                    this_f_index = f_index;
+    
+                  Index this_T_index = -1;
+                  if ( scat_data[i_ss][i_se].pha_mat_data.nvitrines()==1 )
                     {
-                      Index i_pfct;
-                      if( pfct_method=="low" )
-                        i_pfct = 0;
-                      else if( pfct_method=="high" )
-                        i_pfct = scat_data_mono[i_ss][i_se].T_grid.nelem()-1;
-                      else //if( pfct_method=="median" )
-                        i_pfct = scat_data_mono[i_ss][i_se].T_grid.nelem()/2;
-                      phase_function_level(i_p, i_t) += 
-                        pnd_field(i_se_flat, i_p, 0, 0) *
-                        scat_data_mono[i_ss][i_se].pha_mat_data(0, i_pfct, i_t,
-                                                                0, 0, 0, 0);
-                      i_se_flat++;
+                      this_T_index = 0;
                     }
+                  else
+                    {
+                      if( pfct_method=="low" )
+                        this_T_index = 0;
+                      else if( pfct_method=="high" )
+                        this_T_index =
+                          scat_data[i_ss][i_se].pha_mat_data.nvitrines()-1;
+                      else //if( pfct_method=="median" )
+                        this_T_index =
+                          scat_data[i_ss][i_se].pha_mat_data.nvitrines()/2;
+                    }
+
+                  phase_function_level(i_p, i_t) += 
+                    pnd_field(i_se_flat, i_p, 0, 0) *
+                    scat_data[i_ss][i_se].pha_mat_data(this_f_index,
+                                                       this_T_index,
+                                                       i_t, 0, 0, 0, 0);
+                  i_se_flat++;
                 }
+              }
             }
 /*
               if( i_t>0 )
                   intP += PI *
                     (phase_function_level(i_p, i_t) +
                      phase_function_level(i_p, i_t-1)) *
-                    abs(cos(scat_data_mono[0][0].za_grid[i_t]*PI/180.)-
-                        cos(scat_data_mono[0][0].za_grid[i_t-1]*PI/180.));
+                    abs(cos(scat_data[0][0].za_grid[i_t]*PI/180.)-
+                        cos(scat_data[0][0].za_grid[i_t-1]*PI/180.));
             }
 
           cout << "at lev_cloud #" << i_p << ": "
