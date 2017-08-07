@@ -1,3 +1,30 @@
+2017-08-07  Manfred Brath  <manfred.brath@uni-hamburg.de>
+
+	* arts-2-3-751
+
+	* src/microphysics.{h,cc} (pnd_fieldMY2,psd_MY2), 
+	src/m_cloudbox.cc (pnd_fieldCalcFromscat_speciesFields): 
+	
+	Added new two moment scheme distributions.
+	
+	* src/m_cloudbox.cc (dNdD_MY2,dNdD_MY2_M),
+	src/methods.cc: 	
+	
+	Added new WSMs for the new distributions.
+	
+	* src/methods.cc 
+	
+	added new distributions to pnd_fieldCalcFromscat_speciesFields 
+
+	* src/microphysics.{h,cc} (psd_S2M):
+	
+	Renamed from WCtopnd_S2M. Corrected upper and lower limit
+	behaviour of distribution. Updated documentation
+	
+	*src/microphysics.cc (pnd_fieldS2M):
+	
+	Updated documentation.
+	
 2017-07-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-750

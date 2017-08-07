@@ -4523,6 +4523,79 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
+     ( NAME( "dNdD_MY2" ),
+      DESCRIPTION
+      (
+       "Calculation of particle size distribution (dN/dm) following\n"
+       "the Milbrandt and Yau two moment scheme, which is used in the GEM model.\n"
+       "See also milbrandt and yau, 2005.\n"
+       "\n"
+       "A wrapper to internal particle size distribution calculation. The Milbrandt-Yau two\n"
+       "moment scheme is a parametrization for 6 different hydrometeors in total number\n"
+       "density  (zeroth moment) and the mass concentration (first moment) as function\n"
+       "of the  mximum diameter.\n"
+       "The 6 hydrometeors are:\n"
+       "'MY2_LWC' - cloud liquid water\n"
+       "'MY2_IWC' - cloud ice water\n"
+       "'MY2_RWC' - rain\n"
+       "'MY2_SWC' - snow\n"
+       "'MY2_GWC' - graupel\n"
+       "'MY2_HWC' - hail\n"
+       ),
+      AUTHORS( "Manfred Brath" ),
+      OUT(),
+      GOUT(      "dNdD" ),
+      GOUT_TYPE( "Vector" ),
+      GOUT_DESC( "size distribution number density [#/m3/m]" ),
+      IN(),
+      GIN(         "diameter_max",   "N_tot",   "M",       "psd_type" ),
+      GIN_TYPE(    "Vector", "Numeric", "Numeric", "String" ),
+      GIN_DEFAULT( NODEF,    NODEF,     NODEF,     "MY2_LWC" ),
+      GIN_DESC( "Maximum diameter of each particle [m]",
+               "Total number density [1/m3]",
+               "Mass concentration [kg/m^3]",
+               "Type of particle size distribution (hydrometeor type)")
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+     ( NAME( "dNdD_MY2_M" ),
+      DESCRIPTION
+      (
+       "Calculation of particle size distribution (dN/dm) following\n"
+       "the Milbrandt and Yau two moment scheme, which is used in the GEM model.\n"
+       "See also milbrandt and yau, 2005.\n"
+       "\n"
+       "A wrapper to internal particle size distribution calculation. The Milbrandt-Yau two\n"
+       "moment scheme is a parametrization for 6 different hydrometeors in total number\n"
+       "density  (zeroth moment) and the mass concentration (first moment) as function\n"
+       "of the  mximum diameter.\n"
+       "The 6 hydrometeors are:\n"
+       "'MY2_LWC' - cloud liquid water\n"
+       "'MY2_IWC' - cloud ice water\n"
+       "'MY2_RWC' - rain\n"
+       "'MY2_SWC' - snow\n"
+       "'MY2_GWC' - graupel\n"
+       "'MY2_HWC' - hail\n"
+       ),
+      AUTHORS( "Manfred Brath" ),
+      OUT(),
+      GOUT(      "dNdD" ),
+      GOUT_TYPE( "Vector" ),
+      GOUT_DESC( "size distribution number density [#/m3/m]" ),
+      IN(),
+      GIN(         "diameter_max",   "N_tot",   "M",       "psd_type" ),
+      GIN_TYPE(    "Vector", "Numeric", "Numeric", "String" ),
+      GIN_DEFAULT( NODEF,    NODEF,     NODEF,     "MY2_LWC" ),
+      GIN_DESC( "Maximum diameter of each particle [m]",
+               "Total number density [1/m3]",
+               "Mass concentration [kg/m^3]",
+               "Type of particle size distribution (hydrometeor type)")
+      ));
+    
+    
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "dNdD_W16" ),
         DESCRIPTION
         (
@@ -10924,22 +10997,34 @@ void define_md_data_raw()
          "MGD_IWC   *dNdD_MGD_IWC*  mass density             cloud ice      fixed modified gamma psd\n"
          "S2M_IWC   *dNdD_S2M*      number & mass density    cloud ice      two moment scheme psd\n"
          "S2M_IWC_M *dNdD_S2M_M*    mean mass & mass density cloud ice      two moment scheme psd\n"
+         "MY2_IWC   *dNdD_MY2*      number & mass density    cloud ice      two moment scheme psd\n"
+         "MY2_IWC_M *dNdD_MY2_M*    mean mass & mass density cloud ice      two moment scheme psd\n"
          "F07TR     *dNdD_F07*      mass density             snow           for tropics\n"
          "F07ML     *dNdD_F07*      mass density             snow           for midlatitudes\n"
          "S2M_SWC   *dNdD_S2M*      number & mass density    snow           two moment scheme psd\n"
          "S2M_SWC_M *dNdD_S2M_M*    mean mass & mass density snow           two moment scheme psd\n"
+         "MY2_SWC   *dNdD_MY2*      number & mass density    snow           two moment scheme psd\n"
+         "MY2_SWC_M *dNdD_MY2_M*    mean mass & mass density snow           two moment scheme psd\n"
          "MP48      *dNdD_MP48*     mass flux                precipitation  rain in particular\n"
          "W16       *dNdD_W16*      mass density             rain\n"
          "S2M_RWC   *dNdD_S2M*      number & mass density    rain           two moment scheme psd\n"
          "S2M_RWC_M *dNdD_S2M_M*    mean mass & mass density rain           two moment scheme psd\n"
+         "MY2_RWC   *dNdD_MY2*      number & mass density    rain           two moment scheme psd\n"
+         "MY2_RWC_M *dNdD_MY2_M*    mean mass & mass density rain           two moment scheme psd\n"
          "H98_STCO  *dNdD_H98*      mass density             cloud liquid   specifically continental stratus\n"
          "MGD_LWC   *dNdD_MGD_LWC*  mass density             cloud liquid   fixed modified gamma psd\n"
          "S2M_LWC   *dNdD_S2M*      number & mass density    cloud liquid   two moment scheme psd\n"
          "S2M_LWC_M *dNdD_S2M_M*    mean mass & mass density cloud liquid   two moment scheme psd\n"
+         "MY2_LWC   *dNdD_MY2*      number & mass density    cloud liquid   two moment scheme psd\n"
+         "MY2_LWC_M *dNdD_MY2_M*    mean mass & mass density cloud liquid   two moment scheme psd\n"
          "S2M_GWC   *dNdD_S2M*      number & mass density    graupel        two moment scheme psd\n"
          "S2M_GWC_M *dNdD_S2M_M*    mean mass & mass density graupel        two moment scheme psd\n"
+         "MY2_GWC   *dNdD_MY2*      number & mass density    graupel        two moment scheme psd\n"
+         "MY2_GWC_M *dNdD_MY2_M*    mean mass & mass density graupel        two moment scheme psd\n"
          "S2M_HWC   *dNdD_S2M*      number & mass density    hail           two moment scheme psd\n"
          "S2M_HWC_M *dNdD_S2M_M*    mean mass & mass density hail           two moment scheme psd\n"
+         "MY2_HWC   *dNdD_MY2*      number & mass density    hail           two moment scheme psd\n"
+         "MY2_HWC_M *dNdD_MY2_M*    mean mass & mass density hail           two moment scheme psd\n"
          "\n"
          "NOTE: The number and order of the scattering species in the\n"
          "scattering species fields (*scat_species_mass_density_field*,\n"

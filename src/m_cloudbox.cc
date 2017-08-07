@@ -2159,6 +2159,281 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       delim,
                       verbosity);
     }
+
+      //---- pnd_field calculations for MY2_LWC ----------------------------
+    else if ( psd_param == "MY2_LWC" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "LWC" && partfield_name != "CLW" )
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to liquid cloud water.\n";
+        }
+        
+        pnd_fieldMY2 (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_number_density_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      verbosity);
+    }
+      
+      //---- pnd_field calculations for MY2_LWC_M ----------------------------
+    else if ( psd_param == "MY2_LWC_M" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "LWC" && partfield_name != "CLW" )
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to liquid cloud water.\n";
+        }
+        
+        pnd_fieldMY2 (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      verbosity);
+    }
+      
+      //---- pnd_field calculations for MY2_IWC ----------------------------
+    else if ( psd_param == "MY2_IWC" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "IWC" && partfield_name != "CIW" )
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param<< ".\n"
+            << psd_param << " should only be applied to cloud ice.\n";
+        }
+        
+        pnd_fieldMY2 (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_number_density_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      verbosity);
+    }
+      //---- pnd_field calculations for MY2_IWC_M ----------------------------
+    else if ( psd_param == "MY2_IWC_M" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "IWC" && partfield_name != "CIW" )
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to cloud ice.\n";
+        }
+        
+        pnd_fieldMY2 (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      verbosity);
+    }
+      
+      //---- pnd_field calculations for MY2_RWC ----------------------------
+    else if ( psd_param == "MY2_RWC" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "Rain" && partfield_name != "RWC")
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to precipitating liquid water\n";
+        }
+        
+        pnd_fieldMY2 (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_number_density_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      verbosity);
+    }
+      
+      //---- pnd_field calculations for MY2_RWC_M ----------------------------
+    else if ( psd_param == "MY2_RWC_M" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "Rain" && partfield_name != "RWC")
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to precipitating liquid water\n";
+        }
+        
+        pnd_fieldMY2 (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      verbosity);
+    }
+      
+      //---- pnd_field calculations for MY2_SWC ----------------------------
+    else if ( psd_param == "MY2_SWC" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "Snow" && partfield_name != "SWC")
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to snow\n";
+        }
+        
+        pnd_fieldMY2 (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_number_density_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      verbosity);
+    }
+      
+      //---- pnd_field calculations for MY2_SWC_M ----------------------------
+    else if ( psd_param == "MY2_SWC_M" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "Snow" && partfield_name != "SWC")
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to snow\n";
+        }
+        
+        pnd_fieldMY2 (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      verbosity);
+    }
+      
+      //---- pnd_field calculations for MY2_GWC ----------------------------
+    else if ( psd_param == "MY2_GWC" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "Graupel" && partfield_name != "GWC")
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to graupel\n";
+        }
+        
+        pnd_fieldMY2 (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_number_density_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      verbosity);
+    }
+      
+      //---- pnd_field calculations for MY2_GWC_M ----------------------------
+    else if ( psd_param == "MY2_GWC_M" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "Graupel" && partfield_name != "GWC")
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to graupel\n";
+        }
+        
+        pnd_fieldMY2 (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      verbosity);
+    }
+      
+      //---- pnd_field calculations for MY2_HWC ----------------------------
+    else if ( psd_param == "MY2_HWC" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "Hail" && partfield_name != "HWC")
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to hail\n";
+        }
+        
+        pnd_fieldMY2 (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_number_density_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      verbosity);
+    }
+      
+      //---- pnd_field calculations for MY2_HWC_M ----------------------------
+    else if ( psd_param == "MY2_HWC_M" )
+    {
+        
+        //check for expected scattering species field name
+        if ( partfield_name != "Hail" && partfield_name != "HWC")
+        {
+            out2 << "WARNING! Unexpected scattering species field name ("
+            << partfield_name << ") for distribution " << psd_param << ".\n"
+            << psd_param << " should only be applied to hail\n";
+        }
+        
+        pnd_fieldMY2 (pnd_field,
+                      scat_species_mass_density_field ( i_ss, joker, joker, joker ),
+                      scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
+                      limits,
+                      scat_meta,
+                      i_ss,
+                      scat_species[i_ss],
+                      delim,
+                      verbosity);
+    }
       
       //---- pnd_field calculations for MGD_LWC ----------------------------
     else if ( psd_param == "MGD_LWC" )

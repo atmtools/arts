@@ -1436,7 +1436,7 @@ void dNdD_S2M (//WS Output:
     {
         // calculate particle size distribution with S2M
         // [# m^-3 kg^-1]
-        dNdD[i] = WCtopnd_S2M(mass[i], N_tot, M, psd_type) ;
+        dNdD[i] = psd_S2M(mass[i], N_tot, M, psd_type) ;
     }
 }
 
@@ -1463,9 +1463,58 @@ void dNdD_S2M_M (//WS Output:
     {
         // calculate particle size distribution with S2M
         // [# m^-3 kg^-1]
-        dNdD[i] = WCtopnd_S2M(mass[i], N_tot, M, psd_type) ;
+        dNdD[i] = psd_S2M(mass[i], N_tot, M, psd_type) ;
     }
 }
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dNdD_MY2 (//WS Output:
+               Vector& dNdD,
+               //WS Input:
+               const Vector& diameter_max,
+               const Numeric& N_tot,
+               const Numeric& M,
+               const String& psd_type,
+               const Verbosity&)
+{
+    Index n_se = diameter_max.nelem();
+    dNdD.resize(n_se);
+    
+    for ( Index i=0; i<n_se; i++ )
+    {
+        // calculate particle size distribution with S2M
+        // [# m^-3 kg^-1]
+        dNdD[i] = psd_MY2(diameter_max[i], N_tot, M, psd_type) ;
+    }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dNdD_MY2_M (//WS Output:
+                 Vector& dNdD,
+                 //WS Input:
+                 const Vector& diameter_max,
+                 const Numeric& mean_mass,
+                 const Numeric& M,
+                 const String& psd_type,
+                 const Verbosity&)
+{
+    Numeric N_tot;
+    
+    // Calculate the total number density from mass density M and the
+    // mean particle mass
+    N_tot=M/mean_mass;
+    
+    Index n_se = diameter_max.nelem();
+    dNdD.resize(n_se);
+    
+    for ( Index i=0; i<n_se; i++ )
+    {
+        // calculate particle size distribution with S2M
+        // [# m^-3 kg^-1]
+        dNdD[i] = psd_MY2(diameter_max[i], N_tot, M, psd_type) ;
+    }
+}
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */

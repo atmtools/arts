@@ -97,6 +97,16 @@ void pnd_fieldS2M (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity);
 
+void pnd_fieldMY2 (Tensor4View pnd_field,
+                   const Tensor3& WC_field,
+                   const Tensor3& N_field,
+                   const ArrayOfIndex& limits,
+                   const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                   const Index& scat_species,
+                   const String& part_string,
+                   const String& delim,
+                   const Verbosity& verbosity);
+
 void pnd_fieldMGD_LWC (Tensor4View pnd_field,
                        const Tensor3& LWC_field,
                        const ArrayOfIndex& limits,
@@ -181,7 +191,12 @@ Numeric IWCtopnd_H13Shape (const Numeric diameter_mass_equivalent,
 Numeric area_ratioH13 (const Numeric diameter_mass_equivalent,
                        const Numeric t);
 
-Numeric WCtopnd_S2M (const Numeric mass,
+Numeric psd_S2M (const Numeric mass,
+                     const Numeric N_tot,
+                     const Numeric M,
+                     const String psd_type);
+
+Numeric psd_MY2 (const Numeric mass,
                      const Numeric N_tot,
                      const Numeric M,
                      const String psd_type);
