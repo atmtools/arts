@@ -931,36 +931,43 @@ void ScatSpeciesScatAndMetaRead (//WS Output:
 
       if( i==0 )
         {
-          try
-            {
-              scat_data_files[i].split ( strarr, ".xml" );
-              scat_meta_file = strarr[0]+".meta.xml";
+          scat_data_files[i].split ( strarr, ".xml" );
+          scat_meta_file = strarr[0]+".meta.xml";
 
-              out2 << "  Read scattering meta data\n";
-              xml_read_from_file ( scat_meta_file, arr_smd[i], verbosity );
+          out2 << "  Read scattering meta data\n";
+
+          if (file_exists(scat_meta_file))
+            {
+              xml_read_from_file(scat_meta_file, arr_smd[i], verbosity);
 
               meta_naming_conv = 1;
             }
-          catch (runtime_error e1)
+          else
             {
               try
                 {
                   scat_data_files[i].split ( strarr, "scat_data" );
+                  if (strarr.nelem() < 2)
+                  {
+                    throw std::runtime_error("Splitting scattering data filename up at 'scat_data' also failed.");
+                  }
                   scat_meta_file = strarr[0]+"scat_meta"+strarr[1];
 
                   out2 << "  Read scattering meta data\n";
                   xml_read_from_file ( scat_meta_file, arr_smd[i], verbosity );
 
                   meta_naming_conv = 2;
-                 }
-              catch (runtime_error e2)
+                }
+              catch (runtime_error e)
                 {
                   ostringstream os;
                   os << "No meta data file following one of the allowed naming "
                      << "conventions was found.\n"
                      << "Allowed are "
                      << "*.meta.xml from *.xml and "
-                     << "*scat_meta* from *scat_data*";
+                     << "*scat_meta* from *scat_data*\n"
+                     << "Scattering meta data file not found: " << scat_meta_file
+                     << "\n" << e.what();
                   throw runtime_error(os.str());
                 }
             }
