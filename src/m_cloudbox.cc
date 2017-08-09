@@ -936,6 +936,12 @@ void ScatSpeciesScatAndMetaRead (//WS Output:
 
           out2 << "  Read scattering meta data\n";
 
+          try
+          {
+            find_xml_file(scat_meta_file, verbosity);
+          }
+          catch (runtime_error) { continue; }
+
           if (file_exists(scat_meta_file))
             {
               xml_read_from_file(scat_meta_file, arr_smd[i], verbosity);
