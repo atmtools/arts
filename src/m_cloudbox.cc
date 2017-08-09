@@ -934,16 +934,16 @@ void ScatSpeciesScatAndMetaRead (//WS Output:
           scat_data_files[i].split ( strarr, ".xml" );
           scat_meta_file = strarr[0]+".meta.xml";
 
-          out2 << "  Read scattering meta data\n";
-
           try
           {
             find_xml_file(scat_meta_file, verbosity);
           }
-          catch (runtime_error) { continue; }
+          catch (runtime_error) { }
 
           if (file_exists(scat_meta_file))
             {
+              out2 << "  Read scattering meta data\n";
+
               xml_read_from_file(scat_meta_file, arr_smd[i], verbosity);
 
               meta_naming_conv = 1;

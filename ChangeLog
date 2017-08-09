@@ -1,5 +1,13 @@
 2017-08-09  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-754
+
+	* src/m_cloudbox.cc (ScatSpeciesScatAndMetaRead):
+
+	Remove spurious continue and move out2 to better place.
+
+2017-08-09  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-753
 
 	* src/m_cloudbox.cc (ScatSpeciesScatAndMetaRead):
