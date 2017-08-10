@@ -233,7 +233,7 @@ void inv( ComplexMatrixView Ainv,
           const ConstComplexMatrixView& A)
 { 
     // A must be a square matrix.
-    Index n = A.ncols();
+    DEBUG_ONLY(const Index n = A.ncols());
     assert(n == A.nrows());
     assert(n == Ainv.nrows());
     assert(n == Ainv.ncols());
@@ -343,7 +343,7 @@ void diagonalize( ComplexMatrixView P,
                   const ConstComplexMatrixView& A)
 { 
   // A must be a square matrix
-  const Index n = A.ncols();
+  DEBUG_ONLY(const Index n = A.ncols());
   assert(n == A.nrows());
   assert(n == W.nelem());
   assert(n == P.nrows());

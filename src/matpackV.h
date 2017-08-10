@@ -457,9 +457,12 @@ public:
   Tensor5(Index s, Index b, Index p, Index r, Index c, Numeric fill);
   Tensor5(const ConstTensor5View& v);
   Tensor5(const Tensor5& v);
+  Tensor5(Tensor5&& v) noexcept : Tensor5View(std::forward<Tensor5View>(v))
+  { v.mdata = nullptr; }
 
   // Assignment operators:
-  Tensor5& operator=(Tensor5 x);
+  Tensor5& operator=(const Tensor5& x);
+  Tensor5& operator=(Tensor5&& x) noexcept;
   Tensor5& operator=(Numeric x);
 
   // Resize function:

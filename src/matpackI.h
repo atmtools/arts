@@ -609,10 +609,13 @@ public:
   Vector(Numeric start, Index extent, Numeric stride);
   Vector(const ConstVectorView& v);
   Vector(const Vector& v);
+  Vector(Vector&& v) noexcept : VectorView(std::forward<VectorView>(v))
+  { v.mdata = nullptr; }
   Vector(const std::vector<Numeric>&);
 
   // Assignment operators:
-  Vector& operator=(Vector v);
+  Vector& operator=(const Vector& v);
+  Vector& operator=(Vector&& v) noexcept;
   Vector& operator=(std::initializer_list<Numeric> v);
   Vector& operator=(const Array<Numeric>& v);
   Vector& operator=(Numeric x);
@@ -883,9 +886,12 @@ public:
   Matrix(Index r, Index c, Numeric fill);
   Matrix(const ConstMatrixView& v);
   Matrix(const Matrix& v);
+  Matrix(Matrix&& v) noexcept : MatrixView(std::forward<MatrixView>(v))
+  { v.mdata = nullptr; }
 
   // Assignment operators:
-  Matrix& operator=(Matrix x);
+  Matrix& operator=(const Matrix& x);
+  Matrix& operator=(Matrix&& x) noexcept;
   Matrix& operator=(Numeric x);
   Matrix& operator=(const ConstVectorView& v);
 

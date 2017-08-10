@@ -214,7 +214,7 @@ void abs_linesReadFromLBLRTM(
           if ( fmin <= lr.F() )
             {
               if ( lr.F() <= fmax )
-                abs_lines.push_back(lr);
+                abs_lines.push_back(std::move(lr));
               else
                 go_on = false;
             }
@@ -259,7 +259,7 @@ void abs_linesReadFromHitranPre2004(
           if ( fmin <= lr.F() )
             {
               if ( lr.F() <= fmax )
-                abs_lines.push_back(lr);
+                abs_lines.push_back(std::move(lr));
               else
                 go_on = false;
             }
@@ -344,7 +344,7 @@ void abs_linesReadFromHitran(// WS Output:
                 if ( fmin <= lr.F() )
                 {
                     if ( lr.F() <= fmax )
-                        abs_lines.push_back(lr);
+                        abs_lines.push_back(std::move(lr));
                     else
                         go_on = false;
                 }
@@ -396,7 +396,7 @@ void abs_linesReadFromMytran2(// WS Output:
           // lines are not necessarily frequency sorted 
           if ( fmin <= lr.F() )
             if ( lr.F() <= fmax )
-              abs_lines.push_back(lr);
+              abs_lines.push_back(std::move(lr));
         }
     }
   out2 << "  Read " << abs_lines.nelem() << " lines.\n";
@@ -438,7 +438,7 @@ void abs_linesReadFromJpl(// WS Output:
           if ( fmin <= lr.F() )
             {
               if ( lr.F() <= fmax )
-                abs_lines.push_back(lr);
+                abs_lines.push_back(std::move(lr));
               else
                 go_on = false;
             }
@@ -620,7 +620,7 @@ void abs_linesReadFromArtsObsolete(// WS Output:
           // lines are not necessarily frequency sorted 
           if ( fmin <= lr.F() && lr.F() <= fmax )
             {
-              abs_lines.push_back(lr);
+              abs_lines.push_back(std::move(lr));
             }
         }
     }
@@ -832,7 +832,7 @@ void abs_lines_per_speciesReadFromCatalogues(// WS Output:
       // Put these lines in the right place in abs_lines_per_species:
       for ( Index s=0; s<real_tgs[i].nelem(); ++s )
         {
-          abs_lines_per_species[real_tgs[i][s]] = these_abs_lines_per_species[s];
+          abs_lines_per_species[real_tgs[i][s]] = std::move(these_abs_lines_per_species[s]);
         }
     }
 }
@@ -1025,7 +1025,7 @@ void abs_lines_per_speciesAddMirrorLines(
             {
               LineRecord dummy = ll[j];
               dummy.setF( -dummy.F() );
-              ll.push_back(dummy);
+              ll.push_back(std::move(dummy));
             }
         }
     }
@@ -1115,11 +1115,11 @@ void abs_lines_per_speciesCompact(// WS Output:
               for (Array<ArrayOfLineRecord::iterator>::iterator j
                    = keep.begin(); j != keep.end(); j++)
                 {
-                  nll.push_back (**j);
+                  nll.push_back (std::move(**j));
                 }
               // Overwrite the old array with the new one
               ll.resize (nll.nelem ());
-              ll = nll;
+              ll = std::move(nll);
             }
         }
     }

@@ -356,9 +356,12 @@ public:
   Tensor3(Index p, Index r, Index c, Numeric fill);
   Tensor3(const ConstTensor3View& v);
   Tensor3(const Tensor3& v);
+  Tensor3(Tensor3&& v) noexcept : Tensor3View(std::forward<Tensor3View>(v))
+  { v.mdata = nullptr; }
 
   // Assignment operators:
-  Tensor3& operator=(Tensor3 x);
+  Tensor3& operator=(const Tensor3& x);
+  Tensor3& operator=(Tensor3&& x) noexcept;
   Tensor3& operator=(Numeric x);
 
   // Resize function:

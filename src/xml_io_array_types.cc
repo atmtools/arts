@@ -2892,7 +2892,7 @@ void xml_read_from_stream(istream&           is_xml,
             }
 
           if ((isnan(fmin) || fmin <= lr.F()) && (isnan(fmax) || lr.F() <= fmax))
-            alrecord.push_back(lr);
+            alrecord.push_back(std::move(lr));
         }
     }
   catch (runtime_error e)

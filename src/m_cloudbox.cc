@@ -586,29 +586,29 @@ void particle_fieldCleanup (//WS Output:
                           const Numeric& threshold,
                           const Verbosity&)
 {
-  // First make a copy of particle_field_in as it might be identical with
-  // particle_field_out. And resize particle_field_out appropriately.
-  Tensor4 infield = particle_field_in;
+  if (&particle_field_out != &particle_field_in)
+  {
+    particle_field_out = particle_field_in;
+  }
 
   // Check that particle_field contains realistic values
   //(values smaller than the threshold will be set to 0)
-  for ( Index i=0; i<particle_field_in.nbooks(); i++ )
+  for ( Index i=0; i<particle_field_out.nbooks(); i++ )
   {
-    for ( Index j=0; j<particle_field_in.npages(); j++ )
+    for ( Index j=0; j<particle_field_out.npages(); j++ )
     {
-      for ( Index k=0; k<particle_field_in.nrows(); k++ )
+      for ( Index k=0; k<particle_field_out.nrows(); k++ )
       {
-        for ( Index l=0; l<particle_field_in.ncols(); l++ )
+        for ( Index l=0; l<particle_field_out.ncols(); l++ )
         {
-          if ( particle_field_in ( i,j,k,l ) < threshold ) 
+          if ( particle_field_out ( i,j,k,l ) < threshold )
           {
-            infield ( i,j,k,l ) = 0.0;
+            particle_field_out( i,j,k,l ) = 0.0;
           }
         }
       }
     }
   }
-  particle_field_out = infield;
 }
 
 

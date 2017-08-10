@@ -110,11 +110,13 @@ public:
   explicit Array(Index n)     : std::vector<base>(n) { /* Nothing to do here. */ }
   Array(Index n, const base& fillvalue);
   Array(const Array<base>& A) : std::vector<base>(A) { /* Nothing to do here. */ }
+  Array(Array<base>&& A) noexcept : std::vector<base>(std::move(A)) { /* Nothing to do here. */ }
   Array(std::initializer_list<base> init) : std::vector<base>(init) { /* Nothing to do here. */ }
 
   // Assignment operators:
   Array& operator=(base x);
   Array& operator=(const Array<base>& A);
+  Array& operator=(Array<base>&& A) noexcept;
 
   // Number of elements:
   Index nelem() const;
@@ -171,6 +173,13 @@ inline Array<base>& Array<base>::operator=(const Array<base>& A)
   //  cout << "size this / A = " << size() << " / " << A.size() << "\n";
   this->resize(A.size());
   std::copy( A.begin(), A.end(), this->begin() );
+  return *this;
+}
+
+template<class base>
+inline Array<base>& Array<base>::operator=(Array<base>&& A) noexcept
+{
+  std::vector<base>::operator=(std::move(A));
   return *this;
 }
 

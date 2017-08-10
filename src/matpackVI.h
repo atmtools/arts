@@ -959,9 +959,12 @@ public:
           Numeric fill);
   Tensor6(const ConstTensor6View& v);
   Tensor6(const Tensor6& v);
+  Tensor6(Tensor6&& v) noexcept : Tensor6View(std::forward<Tensor6View>(v))
+  { v.mdata = nullptr; }
 
   // Assignment operators:
-  Tensor6& operator=(Tensor6 x);
+  Tensor6& operator=(const Tensor6& x);
+  Tensor6& operator=(Tensor6&& x) noexcept;
   Tensor6& operator=(Numeric x);
 
   // Resize function:

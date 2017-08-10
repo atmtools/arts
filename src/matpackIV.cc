@@ -1366,7 +1366,7 @@ Tensor4::Tensor4(const Tensor4& m) :
   // for higher dimensions! Thus, this method has to be consistent
   // with the behaviour of Range::Range. For now, Range::Range allows
   // also stride 0.
-  copy( m.begin(), m.end(), begin());
+  std::memcpy(mdata, m.mdata, nbooks()*npages()*nrows()*ncols()*sizeof(Numeric));
 }
 
 //! Assignment operator from another tensor.
@@ -1393,9 +1393,29 @@ Tensor4::Tensor4(const Tensor4& m) :
   \author Stefan Buehler
   \date   2002-12-19
 */
-Tensor4& Tensor4::operator=(Tensor4 x)
+Tensor4& Tensor4::operator=(const Tensor4& x)
 {
-  swap(*this, x);
+  if (this != &x)
+  {
+    resize(x.nbooks(), x.npages(), x.nrows(), x.ncols());
+    std::memcpy(mdata, x.mdata, nbooks()*npages()*nrows()*ncols()*sizeof(Numeric));
+  }
+  return *this;
+}
+
+//! Move assignment operator from another tensor.
+Tensor4& Tensor4::operator=(Tensor4&& x) noexcept
+{
+  if (this != &x)
+  {
+    delete[] mdata;
+    mdata = x.mdata;
+    mbr = std::move(x.mbr);
+    mpr = std::move(x.mpr);
+    mrr = std::move(x.mrr);
+    mcr = std::move(x.mcr);
+    x.mdata = nullptr;
+  }
   return *this;
 }
 

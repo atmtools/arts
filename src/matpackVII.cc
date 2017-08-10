@@ -5345,7 +5345,7 @@ Tensor7::Tensor7(const Tensor7& m) :
   // for higher dimensions! Thus, this method has to be consistent
   // with the behaviour of Range::Range. For now, Range::Range allows
   // also stride 0.
-  copy(m.begin(),m.end(),begin());
+  std::memcpy(mdata, m.mdata, nlibraries()*nvitrines()*nshelves()*nbooks()*npages()*nrows()*ncols()*sizeof(Numeric));
 }
 
 //! Assignment operator from another tensor.
@@ -5372,9 +5372,32 @@ Tensor7::Tensor7(const Tensor7& m) :
   \author Stefan Buehler
   \date   2002-12-19
 */
-Tensor7& Tensor7::operator=(Tensor7 x)
+Tensor7& Tensor7::operator=(const Tensor7& x)
 {
-  swap(*this, x);
+  if (this != &x)
+  {
+    resize(x.nlibraries(), x.nvitrines(), x.nshelves(), x.nbooks(), x.npages(), x.nrows(), x.ncols());
+    std::memcpy(mdata, x.mdata, nlibraries()*nvitrines()*nshelves()*nbooks()*npages()*nrows()*ncols()*sizeof(Numeric));
+  }
+  return *this;
+}
+
+//! Copy assignment operator from another tensor.
+Tensor7& Tensor7::operator=(Tensor7&& x) noexcept
+{
+  if (this != &x)
+  {
+    delete[] mdata;
+    mdata = x.mdata;
+    mlr = x.mlr;
+    mvr = x.mvr;
+    msr = x.msr;
+    mbr = x.mbr;
+    mpr = x.mpr;
+    mrr = x.mrr;
+    mcr = x.mcr;
+    x.mdata = nullptr;
+  }
   return *this;
 }
 

@@ -2142,8 +2142,6 @@ void opt_prop_sptFromMonoData(// Output and Input:
               Index abs_npages = scat_data_mono[i_ss][i_se].abs_vec_data.npages();
               Index abs_nrows = scat_data_mono[i_ss][i_se].abs_vec_data.nrows();
               Index abs_ncols = scat_data_mono[i_ss][i_se].abs_vec_data.ncols();
-              Tensor3 ext_mat_data1temp(ext_npages,ext_nrows,ext_ncols,0.0);
-              Tensor3 abs_vec_data1temp(abs_npages,abs_nrows,abs_ncols,0.0);
 
               //Check that scattering data temperature range covers required temperature
               ConstVectorView t_grid = scat_data_mono[i_ss][i_se].T_grid;
@@ -2158,6 +2156,7 @@ void opt_prop_sptFromMonoData(// Output and Input:
                   chk_interpolation_grids( os.str(), t_grid, rtp_temperature );
 
                   //interpolate over temperature
+                  Tensor3 ext_mat_data1temp(ext_npages,ext_nrows,ext_ncols);
                   gridpos(t_gp, t_grid, rtp_temperature);
                   interpweights(itw, t_gp);
                   for (Index i_p = 0; i_p < ext_npages ; i_p++)
@@ -2174,55 +2173,68 @@ void opt_prop_sptFromMonoData(// Output and Input:
                           }
                       }
                   }
+                  ext_matTransform(ext_mat_spt(i_se_flat, joker, joker),
+                                   ext_mat_data1temp,
+                                   scat_data_mono[i_ss][i_se].za_grid,
+                                   scat_data_mono[i_ss][i_se].aa_grid,
+                                   scat_data_mono[i_ss][i_se].ptype,
+                                   za_sca, aa_sca,
+                                   verbosity);
               }
               else
               {
-                  ext_mat_data1temp =
-                  scat_data_mono[i_ss][i_se].ext_mat_data(0,0,joker,joker,joker);
+                  ext_matTransform(ext_mat_spt(i_se_flat, joker, joker),
+                                   scat_data_mono[i_ss][i_se].ext_mat_data(0, 0, joker, joker, joker),
+                                   scat_data_mono[i_ss][i_se].za_grid,
+                                   scat_data_mono[i_ss][i_se].aa_grid,
+                                   scat_data_mono[i_ss][i_se].ptype,
+                                   za_sca, aa_sca,
+                                   verbosity);
               }
 
-              ext_matTransform(ext_mat_spt(i_se_flat, joker, joker),
-                               ext_mat_data1temp,
-                               scat_data_mono[i_ss][i_se].za_grid,
-                               scat_data_mono[i_ss][i_se].aa_grid,
-                               scat_data_mono[i_ss][i_se].ptype,
-                               za_sca, aa_sca,
-                               verbosity);
+
               //
               // Absorption vector:
               //
 
               if (t_grid.nelem() > 1)
               {
+                  Tensor3 abs_vec_data1temp(abs_npages, abs_nrows, abs_ncols);
                   //interpolate over temperature
-                  for (Index i_p = 0; i_p < abs_npages ; i_p++)
+                  for (Index i_p = 0; i_p < abs_npages; i_p++)
                   {
-                      for (Index i_r = 0; i_r < abs_nrows ; i_r++)
+                      for (Index i_r = 0; i_r < abs_nrows; i_r++)
                       {
-                          for (Index i_c = 0; i_c < abs_ncols ; i_c++)
+                          for (Index i_c = 0; i_c < abs_ncols; i_c++)
                           {
-                              abs_vec_data1temp(i_p,i_r,i_c) =
-                              interp(itw,
-                                     scat_data_mono[i_ss][i_se].abs_vec_data( 
-                                     0,joker,i_p,i_r,i_c),
-                                     t_gp);
+                              abs_vec_data1temp(i_p, i_r, i_c) =
+                                      interp(itw,
+                                             scat_data_mono[i_ss][i_se].abs_vec_data(
+                                                     0, joker, i_p, i_r, i_c),
+                                             t_gp);
                           }
                       }
                   }
+                  abs_vecTransform(abs_vec_spt(i_se_flat, joker),
+                                   abs_vec_data1temp,
+                                   scat_data_mono[i_ss][i_se].za_grid,
+                                   scat_data_mono[i_ss][i_se].aa_grid,
+                                   scat_data_mono[i_ss][i_se].ptype,
+                                   za_sca, aa_sca,
+                                   verbosity);
               }
               else
               {
-                  abs_vec_data1temp =
-                  scat_data_mono[i_ss][i_se].abs_vec_data(0,0,joker,joker,joker);
+                  abs_vecTransform(abs_vec_spt(i_se_flat, joker),
+                                   scat_data_mono[i_ss][i_se].abs_vec_data(0, 0, joker, joker, joker),
+                                   scat_data_mono[i_ss][i_se].za_grid,
+                                   scat_data_mono[i_ss][i_se].aa_grid,
+                                   scat_data_mono[i_ss][i_se].ptype,
+                                   za_sca, aa_sca,
+                                   verbosity);
               }
 
-              abs_vecTransform(abs_vec_spt(i_se_flat, joker),
-                               abs_vec_data1temp,
-                               scat_data_mono[i_ss][i_se].za_grid,
-                               scat_data_mono[i_ss][i_se].aa_grid,
-                               scat_data_mono[i_ss][i_se].ptype,
-                               za_sca, aa_sca,
-                               verbosity);                
+
           }
           
           i_se_flat++;

@@ -1,5 +1,73 @@
 2017-08-09  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-755
+
+	* src/array.h:
+
+	Introduce C++11 move constructor and move assignment operator.
+
+	* src/matpack{I,III,IV,V,VI,VII}.{cc,h}:
+
+	Introduce move constructors and move assignment operators for all
+	memory allocating types (all non-views).
+
+	Since we know that the data of non-view types is stored in one
+	continuous block of memory, std::memcpy is now used instead of iterator
+	loops for data duplication in copy constructors and assignment
+	operators of those types. This can give a significant speed boost
+	depending on the calculation. For a radar calculation from Manfred,
+	which uses ybatchCalc for 600 cases, the memcpy implementation gives
+	almost a factor 2(!) speed up. This is mostly due to the fact that in
+	each iteration ScatSpeciesMerge needs to be called. Since it uses
+	scat_data as In+Out, the agenda engine has to make a full copy of the
+	ArrayOfArrayOfSingleScatteringData for each batch case. Deep copies of
+	SingleScatteringData are very expensive because it contains four
+	Vectors, two Tensor5s and a Tensor7 which makes the performance
+	advantage of using memcpy very noticeable.
+
+	* src/optproperties.{cc,h} (opt_prop_sum_propmat_clearsky):
+
+	Last argument was not passed by reference thus causing a Tensor4 copy
+	on every call.
+
+	* src/rational.h:
+
+	Remove converting constructor Rational(int). It is redundant because a
+	converting ctor for Index also exists.
+
+	* src/m_optproperties.cc (opt_prop_sptFromMonoData):
+
+	Avoid copying of ext_mat_data and abs_vec_data to temporary variable in
+	every iteration for the t_grid.nelem()==1 case. This code is called
+	very often and the copy to a local variable can be completely avoided
+	by moving the ext_matTransform call into the if and else blocks calling
+	it with different arguments for the two cases.
+
+	* src/m_abs.cc (abs_linesReadFrom*):
+
+	In all reading routines use std::move when pushing the temporary
+	LineRecord to the abs_lines array. Avoids copying every line.
+
+	* src/lin_alg.cc (inv, diagonalize):
+
+	Only create variable n in debug mode. Avoids warning in release mode.
+
+	* src/xml_io_array_types.cc (xml_read_from_stream):
+
+	Use std::move in ArrayOfLineRecord reading routine to avoid an
+	unnecessary copying of the LineRecord.
+
+	* src/m_cloudbox.cc (particle_fieldCleanup):
+
+	Remove unneeded local variable. If particle_field_in and
+	particle_field_out are not pointing to the same variable, just copy
+	p_f_i to p_f_o. Keeping p_f_i and p_f_o while looping over all elements
+	is not necessary because the loop only operates on a single element at
+	a time. Avoids two unneeded Tensor4 copies if p_f_i and p_f_o are the
+	same WSV or one copy if they're not.
+
+2017-08-09  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-754
 
 	* src/m_cloudbox.cc (ScatSpeciesScatAndMetaRead):

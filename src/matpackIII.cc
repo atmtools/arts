@@ -825,7 +825,7 @@ Tensor3::Tensor3(const Tensor3& m) :
   // for higher dimensions! Thus, this method has to be consistent
   // with the behaviour of Range::Range. For now, Range::Range allows
   // also stride 0.
-  copy(m.begin(),m.end(),begin());
+  std::memcpy(mdata, m.mdata, npages()*nrows()*ncols()*sizeof(Numeric));
 }
 
 //! Assignment operator from another tensor.
@@ -852,9 +852,28 @@ Tensor3::Tensor3(const Tensor3& m) :
   \author Stefan Buehler
   \date   2002-12-19
 */
-Tensor3& Tensor3::operator=(Tensor3 x)
+Tensor3& Tensor3::operator=(const Tensor3& x)
 {
-  swap(*this, x);
+  if (this != &x)
+  {
+    resize(x.npages(), x.nrows(), x.ncols());
+    std::memcpy(mdata, x.mdata, npages()*nrows()*ncols()*sizeof(Numeric));
+  }
+  return *this;
+}
+
+//! Move assignment operator from another tensor.
+Tensor3& Tensor3::operator=(Tensor3&& x) noexcept
+{
+  if (this != &x)
+  {
+    delete[] mdata;
+    mdata = x.mdata;
+    mpr = x.mpr;
+    mrr = x.mrr;
+    mcr = x.mcr;
+    x.mdata = nullptr;
+  }
   return *this;
 }
 

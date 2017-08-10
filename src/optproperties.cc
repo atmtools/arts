@@ -1099,7 +1099,7 @@ void opt_prop_sum_propmat_clearsky(//Output:
                                       Tensor3&         ext_mat,
                                       Matrix&          abs_vec,
                                       //Input:
-                                      const Tensor4    propmat_clearsky)
+                                      const Tensor4&   propmat_clearsky)
 {
 
     Index stokes_dim = propmat_clearsky.ncols();

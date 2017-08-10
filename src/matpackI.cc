@@ -718,7 +718,7 @@ Vector::Vector(const Vector& v) :
   VectorView( new Numeric[v.nelem()],
               Range(0,v.nelem()))
 {
-  copy(v.begin(),v.end(),begin());
+  std::memcpy(mdata, v.mdata, nelem()*sizeof(Numeric));
 }
 
 /** Converting constructor from std::vector<Numeric>. */
@@ -767,9 +767,26 @@ Vector& Vector::operator=(std::initializer_list<Numeric> v)
   \author Stefan Buehler
   \date   2002-12-19
 */
-Vector& Vector::operator=(Vector v)
+Vector& Vector::operator=(const Vector& v)
 {
-  swap(*this, v);
+  if (this != &v)
+  {
+    resize(v.nelem());
+    std::memcpy(mdata, v.mdata, nelem()*sizeof(Numeric));
+  }
+  return *this;
+}
+
+//! Move assignment from another Vector.
+Vector& Vector::operator=(Vector&& v) noexcept
+{
+  if (this != &v)
+  {
+    delete[] mdata;
+    mdata = v.mdata;
+    mrange = v.mrange;
+    v.mdata = nullptr;
+  }
   return *this;
 }
 
@@ -1558,7 +1575,7 @@ Matrix::Matrix(const Matrix& m) :
   // 0 colunns. But this is used to initialize the stride of the row
   // Range! Thus, this method has to be consistent with the behaviour
   // of Range::Range. For now, Range::Range allows also stride 0.
-  copy(m.begin(),m.end(),begin());
+  std::memcpy(mdata, m.mdata, nrows()*ncols()*sizeof(Numeric));
 }
 
 //! Assignment operator from another matrix.
@@ -1586,9 +1603,27 @@ Matrix::Matrix(const Matrix& m) :
   \author Stefan Buehler
   \date   2002-12-19
 */
-Matrix& Matrix::operator=(Matrix m)
+Matrix& Matrix::operator=(const Matrix& m)
 {
-  swap(*this, m);
+  if (this != &m)
+  {
+    resize(m.nrows(), m.ncols());
+    std::memcpy(mdata, m.mdata, nrows()*ncols()*sizeof(Numeric));
+  }
+  return *this;
+}
+
+//! Move assignment operator from another matrix.
+Matrix& Matrix::operator=(Matrix&& m) noexcept
+{
+  if (this != &m)
+  {
+    delete[] mdata;
+    mdata = m.mdata;
+    mrr = m.mrr;
+    mcr = m.mcr;
+    m.mdata = nullptr;
+  }
   return *this;
 }
 

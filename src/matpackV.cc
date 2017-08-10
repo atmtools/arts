@@ -2395,7 +2395,7 @@ Tensor5::Tensor5(const Tensor5& m) :
   // for higher dimensions! Thus, this method has to be consistent
   // with the behaviour of Range::Range. For now, Range::Range allows
   // also stride 0.
-  copy( m.begin(), m.end(), begin() );
+  std::memcpy(mdata, m.mdata, nshelves()*nbooks()*npages()*nrows()*ncols()*sizeof(Numeric));
 }
 
 //! Assignment operator from another tensor.
@@ -2422,9 +2422,30 @@ Tensor5::Tensor5(const Tensor5& m) :
   \author Stefan Buehler
   \date   2002-12-19
 */
-Tensor5& Tensor5::operator=(Tensor5 x)
+Tensor5& Tensor5::operator=(const Tensor5& x)
 {
-  swap(*this, x);
+  if (this != &x)
+  {
+    resize(x.nshelves(), x.nbooks(), x.npages(), x.nrows(), x.ncols());
+    std::memcpy(mdata, x.mdata, nshelves()*nbooks()*npages()*nrows()*ncols()*sizeof(Numeric));
+  }
+  return *this;
+}
+
+//! Move assignment operator from another tensor.
+Tensor5& Tensor5::operator=(Tensor5&& x) noexcept
+{
+  if (this != &x)
+  {
+    delete[] mdata;
+    mdata = x.mdata;
+    msr = x.msr;
+    mbr = x.mbr;
+    mpr = x.mpr;
+    mrr = x.mrr;
+    mcr = x.mcr;
+    x.mdata = nullptr;
+  }
   return *this;
 }
 

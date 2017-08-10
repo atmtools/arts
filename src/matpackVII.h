@@ -1942,9 +1942,12 @@ public:
           Numeric fill);
   Tensor7(const ConstTensor7View& v);
   Tensor7(const Tensor7& v);
+  Tensor7(Tensor7&& v) noexcept : Tensor7View(std::forward<Tensor7View>(v))
+  { v.mdata = nullptr; }
 
   // Assignment operators:
-  Tensor7& operator=(Tensor7 x);
+  Tensor7& operator=(const Tensor7& x);
+  Tensor7& operator=(Tensor7&& x) noexcept;
   Tensor7& operator=(Numeric x);
 
   // Resize function:

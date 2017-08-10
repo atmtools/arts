@@ -391,9 +391,12 @@ public:
   Tensor4(Index b, Index p, Index r, Index c, Numeric fill);
   Tensor4(const ConstTensor4View& v);
   Tensor4(const Tensor4& v);
+  Tensor4(Tensor4&& v) noexcept : Tensor4View(std::forward<Tensor4View>(v))
+  { v.mdata = nullptr; }
 
   // Assignment operators:
-  Tensor4& operator=(Tensor4 x);
+  Tensor4& operator=(const Tensor4& x);
+  Tensor4& operator=(Tensor4&& x) noexcept;
   Tensor4& operator=(Numeric x);
 
   // Resize function:

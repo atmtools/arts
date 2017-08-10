@@ -218,7 +218,7 @@ void opt_prop_sum_propmat_clearsky(//Output:
                                       Tensor3&         ext_mat,
                                       Matrix&          abs_vec,
                                       //Input:
-                                      const Tensor4    propmat_clearsky);
+                                      const Tensor4&   propmat_clearsky);
 
 PType PTypeFromString(const String& ptype_string);
 PType PType2FromString(const String& ptype_string);

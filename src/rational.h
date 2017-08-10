@@ -39,7 +39,6 @@ public:
     // Defining an object
     Rational() : mnom(0), mdenom(1) {}
     Rational(const Index& n1) : mnom(n1), mdenom(1) {}
-    Rational(const int& n1) : mnom((Index)n1), mdenom(1) {}
     Rational(const Index& n1, const Index& n2) : mnom(n1), mdenom(n2) {}
     
     // Reading values of object
