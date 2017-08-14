@@ -16,15 +16,10 @@
  */
 
 #include "arts.h"
-#include "absorption.h"
 #include "file.h"
-#include "linemixingrecord.h"
-#include "complex.h"
 #include "lin_alg.h"
 #include "global_data.h"
-#include "Faddeeva.hh"
 #include "linescaling.h"
-#include "jacobian.h"
 #include "lineshapesdata.h"
 #include <Eigen/Eigenvalues>
 
@@ -1081,6 +1076,7 @@ void calculate_xsec_from_relmat(ArrayOfMatrix& xsec,
   const Numeric kT = BOLTZMAN_CONST * T;
   const Numeric doppler_const = sqrt(2.0 * kT * AVOGADROS_NUMB / isotopologue_mass) / SPEED_OF_LIGHT;
   const Numeric ddoppler_const_dT = doppler_const / T;
+  const QuantumIdentifier QI;
   
   // temperature jacobian --- and should it be done?
   const bool do_temperature_jacobians = ppd.do_temperature();
@@ -1171,11 +1167,11 @@ void calculate_xsec_from_relmat(ArrayOfMatrix& xsec,
   
   for(Index iline = 0; iline < n; iline++)
   {
-    LineFunctions().set_faddeeva_from_full_linemixing(F, dF, f_grid, z_eigs[iline], 
-                                                      doppler_const, psf[iline], ppd,
+    Linefunctions::set_faddeeva_from_full_linemixing(F, dF, f_grid, z_eigs[iline], 
+                                                     doppler_const, psf[iline], ppd, QI,
                                                       ddoppler_const_dT, dz_eigs_dT[iline],
                                                       dpsf_dT[iline]);
-    LineFunctions().apply_linestrength_from_full_linemixing(F, dF, f0[iline], T, equivS0[iline],
+    Linefunctions::apply_linestrength_from_full_linemixing(F, dF, f0[iline], T, equivS0[iline],
                                                             isotopologue_ratio, ppd, dequivS0_dT[iline]);
     for(Index ii = 0; ii < nf; ii++)
     {
@@ -1229,6 +1225,7 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
   const Numeric kT = BOLTZMAN_CONST * T;
   const Numeric doppler_const = sqrt( 2.0 * kT * AVOGADROS_NUMB / isotopologue_mass ) / SPEED_OF_LIGHT,
     ddoppler_const_dT = doppler_const / T;
+  const QuantumIdentifier QI;
   
   ComplexVector F(nf);
   ArrayOfComplexVector dF(ppd.nelem());
@@ -1237,17 +1234,17 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
   
   for(Index iline = 0; iline < n; iline++)
   {
-    LineFunctions().set_faddeeva_algorithm916(F, dF, f_grid,
+    Linefunctions::set_faddeeva_algorithm916(F, dF, f_grid,
                                               0.0, 0.0, f0[iline],
                                               doppler_const, pressure_broadening[iline], 
                                               psf[iline] + DV[iline],
-                                              ppd,
+                                              ppd, QI,
                                               ddoppler_const_dT, dpressure_broadening_dT[iline], 
                                               dpsf_dT[iline] + dDV_dT[iline]);
     
-    LineFunctions().apply_linemixing(F, dF, Y[iline], G[iline], ppd, dY_dT[iline], dG_dT[iline]);
+    Linefunctions::apply_linemixing(F, dF, Y[iline], G[iline], ppd, QI, dY_dT[iline], dG_dT[iline]);
     
-    LineFunctions().apply_dipole(F, dF, f0[iline], T, d0[iline], rhoT[iline], isotopologue_ratio, 
+    Linefunctions::apply_dipole(F, dF, f0[iline], T, d0[iline], rhoT[iline], isotopologue_ratio, 
                                  ppd, drhoT_dT[iline]);
     
     for(Index ii = 0; ii < nf; ii++)
@@ -1859,8 +1856,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             // Convert to SI-units
             W *= w2Hz * 0.5;
             dipole /= 100.0; // sqrt(I0_hi2arts / w2Hz) = 1/100;
-            G *= abs_p[ip]*abs_p[ip];
-            DV *= abs_p[ip]*abs_p[ip]*w2Hz;
+            DV *= w2Hz;
             
             // The temperature derivatives are for now only possible to do with perturbations
             if(ppd.do_temperature())
@@ -2062,10 +2058,10 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
               
               // TODO: Add derivatives here
               
-              LineFunctions().set_faddeeva_algorithm916(F, dF, f_grid,
+              Linefunctions::set_faddeeva_algorithm916(F, dF, f_grid,
                 0.0, 0.0, abs_lines_per_band[iband][iline].F(),
                 GD_div_F0, W(iline, iline), psf[iline]); // Derivatives need to be added...
-              LineFunctions().apply_linestrength(F, dF, 
+              Linefunctions::apply_linestrength(F, dF, 
                 abs_lines_per_band[iband][iline].I0(), iso_ratio,
                 QT, QT0, K1, K2);
               
@@ -2097,25 +2093,25 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
 
 #else
 void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
-ArrayOfMatrix&                   abs_xsec_per_species,
-ArrayOfArrayOfMatrix&            dabs_xsec_per_species_dx,
-ArrayOfArrayOfMatrix&            relmat_per_band,
+ArrayOfMatrix&,
+ArrayOfArrayOfMatrix&,
+ArrayOfArrayOfMatrix&,
 // WS Input:                     
-const ArrayOfArrayOfLineRecord&  abs_lines_per_band,
-const ArrayOfArrayOfSpeciesTag&  abs_species_per_band,
-const ArrayOfQuantumIdentifier&  band_identifiers,
-const ArrayOfArrayOfSpeciesTag&  abs_species,
-const SpeciesAuxData&            isotopologue_ratios,
-const SpeciesAuxData&            partition_functions,
-const ArrayOfRetrievalQuantity&  jacobian_quantities,
-const Vector&                    f_grid,
-const Vector&                    abs_p,
-const Vector&                    abs_t,
-const Numeric&                   lm_p_lim,
-const ArrayOfIndex&              relmat_type_per_band,
-const Index&                     write_relmat_per_band,
-const Index&                     error_handling,
-const Index&                     order_of_linemixing, // -1 is full relaxation matrix, 0 is LBL, 1 is first order, 2 is second order ... limited implementations so far
+const ArrayOfArrayOfLineRecord&,
+const ArrayOfArrayOfSpeciesTag&,
+const ArrayOfQuantumIdentifier&,
+const ArrayOfArrayOfSpeciesTag&,
+const SpeciesAuxData&,
+const SpeciesAuxData&,
+const ArrayOfRetrievalQuantity&,
+const Vector&,
+const Vector&,
+const Vector&,
+const Numeric&,
+const ArrayOfIndex&,
+const Index&,
+const Index&,
+const Index&,
 const Verbosity&)
 {
    throw std::runtime_error("This version of ARTS was compiled without external line mixing support.");

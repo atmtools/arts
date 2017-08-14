@@ -670,7 +670,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [f_grid, stokes_dim]\n"
         ),
-       GROUP( "Matrix" )));
+      GROUP( "StokesVector" )));
 
  wsv_data.push_back
     (WsvRecord
@@ -691,7 +691,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Dimensions: [number of scattering elements, stokes_dim]\n"
         ),
-       GROUP( "Matrix" ) ));
+       GROUP( "ArrayOfStokesVector" ) ));
 
   wsv_data.push_back
     (WsvRecord
@@ -1531,7 +1531,7 @@ void Workspace::define_wsv_data()
          "\n"
          "Unit: 1/m/jacobian_quantity\n"
      ),
-     GROUP( "ArrayOfTensor3" )));
+     GROUP( "ArrayOfPropagationMatrix" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1564,7 +1564,7 @@ void Workspace::define_wsv_data()
          "\n"
          "Unit: 1/m/jacobian_quantity\n"
      ),
-     GROUP( "ArrayOfMatrix" )));
+     GROUP( "ArrayOfStokesVector" )));
    
    wsv_data.push_back
    (WsvRecord
@@ -1583,7 +1583,7 @@ void Workspace::define_wsv_data()
          "\n"
          "Unit: 1/m/jacobian_quantity\n"
      ),
-     GROUP( "ArrayOfMatrix" )));
+     GROUP( "ArrayOfStokesVector" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1869,7 +1869,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [f_grid, stokes_dim, stokes_dim]\n"
        ),
-       GROUP( "Tensor3" )));
+       GROUP( "PropagationMatrix" )));
 
   wsv_data.push_back
      (WsvRecord
@@ -1888,7 +1888,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [number of scattering elements, stokes_dim, stokes_dim]\n"
        ),
-      GROUP( "Tensor3" )));
+      GROUP( "ArrayOfPropagationMatrix" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -3333,7 +3333,7 @@ void Workspace::define_wsv_data()
        "[length(abs_species), length(f_grid), stokes_dim], or [0, 0, 0],\n"
        "where the latter should be true when LTE calculations are performed.\n"
        ),
-      GROUP( "Tensor3" )));
+      GROUP( "ArrayOfStokesVector" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -3870,7 +3870,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit: 1/m\n"
        ),
-      GROUP( "Tensor4" )));
+      GROUP( "ArrayOfPropagationMatrix" )));
   
   wsv_data.push_back
    (WsvRecord

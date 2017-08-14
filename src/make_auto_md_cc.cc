@@ -92,6 +92,7 @@ int main()
           << "#include \"m_select.h\"\n"
           << "#include \"m_xml.h\"\n"
           << "#include \"m_basic_types.h\"\n"
+          << "#include \"propagationmatrix.h\"\n"
           << "#include \"agenda_record.h\"\n"
           << "#include \"workspace_ng.h\"\n"
           << "#include \"global_data.h\"\n"

@@ -281,8 +281,8 @@ void xml_write_to_stream(ostream&            os_xml,
       switch (gfield.get_grid_type(i))
         {
         case GRID_TYPE_NUMERIC:
-          xml_write_to_stream(os_xml, gfield.get_numeric_grid(i),
-                              pbofs, gfield.get_grid_name(i), verbosity);
+//           xml_write_to_stream(os_xml, gfield.get_numeric_grid(i),
+//                               pbofs, gfield.get_grid_name(i), verbosity);
           break;
         case GRID_TYPE_STRING:
           xml_write_to_stream(os_xml, gfield.get_string_grid(i),
@@ -975,6 +975,96 @@ void xml_write_to_stream(ostream& os_xml,
 
   close_tag.set_name("/Ppath");
   close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
+
+//=== PropagationMatrix ======================================================
+
+//! Reads PropagationMatrix from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param pm         PropagationMatrix return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream&              is_xml,
+                          PropagationMatrix&    pm,
+                          bifstream*            pbifs,
+                          const Verbosity&      verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+  Index stokes_dim;
+  Index nr_frequencies;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("PropagationMatrix");
+  tag.check_attribute("type", "ArrayOfVector");
+
+  pm.SetVectorType(false);
+  tag.get_attribute_value("nelem", nelem);
+  tag.get_attribute_value("nr_frequencies", nr_frequencies);
+  tag.get_attribute_value("stokes_dim", stokes_dim);
+  pm = PropagationMatrix(nr_frequencies, stokes_dim);
+
+  Index n;
+  try
+  {
+     for (n = 0; n < nelem; n++)
+     {
+       Vector v;
+       xml_read_from_stream(is_xml, v, pbifs, verbosity);
+       pm.GetMatrix()(joker, n) = v;
+     }
+  }
+  catch (runtime_error e)
+  {
+    ostringstream os;
+    os << "Error reading PropagationMatrix: "
+    << "\n Element: " << n
+    << "\n" << e.what();
+    throw runtime_error(os.str());
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/PropagationMatrix");
+}
+
+
+//! Writes PropagationMatrix to XML output stream
+/*!
+ * \param os_xml     XML Output stream
+ * \param pm         PropagationMatrix
+ * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+ * \param name       Optional name attribute
+ */
+void xml_write_to_stream(ostream&                    os_xml,
+                         const PropagationMatrix&    pm,
+                         bofstream*                  pbofs,
+                         const String&               name,
+                         const Verbosity&            verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("PropagationMatrix");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+
+  open_tag.add_attribute("type", "ArrayOfVector");
+  open_tag.add_attribute("nelem", pm.NumberOfNeededVectors());
+  open_tag.add_attribute("nr_frequencies", pm.NumberOfFrequencies());
+  open_tag.add_attribute("stokes_dim", pm.StokesDimensions());
+
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < pm.NumberOfNeededVectors(); n++)
+    xml_write_to_stream(os_xml, pm.GetMatrix()(joker, n), pbofs, "", verbosity);
+
+  close_tag.set_name("/PropagationMatrix");
+  close_tag.write_to_stream(os_xml);
+
   os_xml << '\n';
 }
 
@@ -1854,6 +1944,96 @@ void xml_write_to_stream(ostream& os_xml,
 
   close_tag.set_name("/SpeciesTag");
   close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
+
+//=== StokesVector ======================================================
+
+//! Reads StokesVector from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param pm         StokesVector return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream&              is_xml,
+                          StokesVector&         sv,
+                          bifstream*            pbifs,
+                          const Verbosity&      verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+  Index nr_frequencies;
+  Index stokes_dim;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("StokesVector");
+  tag.check_attribute("type", "ArrayOfVector");
+
+  tag.get_attribute_value("nelem", nelem);
+  tag.get_attribute_value("nr_frequencies", nr_frequencies);
+  tag.get_attribute_value("stokes_dim", stokes_dim);
+  sv = StokesVector(nr_frequencies, stokes_dim);
+  sv.SetVectorType(true);
+
+  Index n;
+  try
+  {
+     for (n = 0; n < nelem; n++)
+     {
+       Vector v;
+       xml_read_from_stream(is_xml, v, pbifs, verbosity);
+       sv.GetMatrix()(joker, n) = v;
+     }
+  }
+  catch (runtime_error e)
+  {
+    ostringstream os;
+    os << "Error reading StokesVector: "
+    << "\n Element: " << n
+    << "\n" << e.what();
+    throw runtime_error(os.str());
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/StokesVector");
+}
+
+
+//! Writes StokesVector to XML output stream
+/*!
+ * \param os_xml     XML Output stream
+ * \param pm         StokesVector
+ * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+ * \param name       Optional name attribute
+ */
+void xml_write_to_stream(ostream&                    os_xml,
+                         const StokesVector&         sv,
+                         bofstream*                  pbofs,
+                         const String&               name,
+                         const Verbosity&            verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("StokesVector");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+
+  open_tag.add_attribute("type", "ArrayOfVector");
+  open_tag.add_attribute("nelem", sv.NumberOfNeededVectors());
+  open_tag.add_attribute("stokes_dim", sv.StokesDimensions());
+  open_tag.add_attribute("nr_frequencies", sv.NumberOfFrequencies());
+
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+   for (Index n = 0; n < sv.NumberOfNeededVectors(); n++)
+     xml_write_to_stream(os_xml, sv.GetMatrix()(joker, n), pbofs, "", verbosity);
+
+  close_tag.set_name("/StokesVector");
+  close_tag.write_to_stream(os_xml);
+
   os_xml << '\n';
 }
 

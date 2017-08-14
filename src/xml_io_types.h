@@ -51,6 +51,7 @@
 #include "messages.h"
 #include "optproperties.h"
 #include "ppath.h"
+#include "propagationmatrix.h"
 #include "xml_io_private.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what) \
@@ -152,6 +153,12 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor4)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor6)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor7)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfVector)
+TMPL_XML_READ_WRITE_STREAM(PropagationMatrix)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfPropagationMatrix)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfPropagationMatrix)
+TMPL_XML_READ_WRITE_STREAM(StokesVector)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfStokesVector)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfStokesVector)
 
 //==========================================================================
 

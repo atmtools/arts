@@ -133,6 +133,12 @@ TMPL_XML_READ_WRITE(ArrayOfTensor4)
 TMPL_XML_READ_WRITE(ArrayOfTensor6)
 TMPL_XML_READ_WRITE(ArrayOfTensor7)
 TMPL_XML_READ_WRITE(ArrayOfVector)
+TMPL_XML_READ_WRITE(PropagationMatrix)
+TMPL_XML_READ_WRITE(ArrayOfPropagationMatrix)
+TMPL_XML_READ_WRITE(ArrayOfArrayOfPropagationMatrix)
+TMPL_XML_READ_WRITE(StokesVector)
+TMPL_XML_READ_WRITE(ArrayOfStokesVector)
+TMPL_XML_READ_WRITE(ArrayOfArrayOfStokesVector)
 
 //==========================================================================
 

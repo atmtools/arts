@@ -3346,28 +3346,43 @@ void match_lines_by_quantum_identifier(ArrayOfIndex& matches,
         }
     }
     else if (qi.Type() == QuantumIdentifier::TRANSITION)
+    {
+        for (Index i = 0; i < abs_lines.nelem(); i++)
         {
-            for (Index i = 0; i < abs_lines.nelem(); i++)
+            const LineRecord& this_line = abs_lines[i];
+            if (this_line.Species() == qi.Species()
+                && this_line.Isotopologue() == qi.Isotopologue())
             {
-                const LineRecord& this_line = abs_lines[i];
-                if (this_line.Species() == qi.Species()
-                    && this_line.Isotopologue() == qi.Isotopologue())
-                {
-                    // Matching by transition means that upper AND lower quantum numbers
-                    // must match
-                    this_line.QuantumNumbers().Upper().CompareDetailed
-                    (qmi.Upper(), qi.QuantumMatch()[QuantumIdentifier::TRANSITION_UPPER_INDEX]);
-                    this_line.QuantumNumbers().Lower().CompareDetailed
-                    (qmi.Lower(), qi.QuantumMatch()[QuantumIdentifier::TRANSITION_LOWER_INDEX]);
+                // Matching by transition means that upper AND lower quantum numbers
+                // must match
+                this_line.QuantumNumbers().Upper().CompareDetailed
+                (qmi.Upper(), qi.QuantumMatch()[QuantumIdentifier::TRANSITION_UPPER_INDEX]);
+                this_line.QuantumNumbers().Lower().CompareDetailed
+                (qmi.Lower(), qi.QuantumMatch()[QuantumIdentifier::TRANSITION_LOWER_INDEX]);
 
-                    if (qmi.Upper() && qmi.Lower())
-                    {
-                        match_info.push_back(qmi);
-                        matches.push_back(i);
-                    }
+                if (qmi.Upper() && qmi.Lower())
+                {
+                    match_info.push_back(qmi);
+                    matches.push_back(i);
                 }
             }
         }
+    }
+    else if (qi.Type() == QuantumIdentifier::ALL)
+    {
+      for (Index i = 0; i < abs_lines.nelem(); i++)
+      {
+        const LineRecord& this_line = abs_lines[i];
+        if (this_line.Species() == qi.Species()
+          && this_line.Isotopologue() == qi.Isotopologue())
+        {
+          qmi.SetLower(QMI_FULL);
+          qmi.SetUpper(QMI_FULL);
+          match_info.push_back(qmi);
+          matches.push_back(i);
+        }
+      }
+    }
     else
     {
         assert(0);

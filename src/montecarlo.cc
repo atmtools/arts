@@ -296,11 +296,12 @@ void clear_rt_vars_at_gp(Workspace&          ws,
   Matrix   vmr_mat(ns,1), itw_field;
   
   //local versions of workspace variables
-  Matrix  local_abs_vec;
-  Tensor3 local_ext_mat, local_nlte_source_dummy;
-  Tensor4 local_propmat_clearsky;
-  ArrayOfTensor3 local_partial_dummy; // This is right since there should be only clearsky partials
-  ArrayOfMatrix local_dnlte_dx_source_dummy,local_nlte_dsource_dx_dummy;
+  StokesVector  local_abs_vec;
+  ArrayOfStokesVector local_nlte_source_dummy;
+  PropagationMatrix local_ext_mat;
+  ArrayOfPropagationMatrix local_propmat_clearsky;
+  ArrayOfPropagationMatrix local_partial_dummy; // This is right since there should be only clearsky partials
+  ArrayOfStokesVector local_dnlte_dx_source_dummy,local_nlte_dsource_dx_dummy;
   ao_gp_p[0]=gp_p;
   ao_gp_lat[0]=gp_lat;
   ao_gp_lon[0]=gp_lon;
@@ -341,8 +342,8 @@ void clear_rt_vars_at_gp(Workspace&          ws,
 
   opt_prop_sum_propmat_clearsky(local_ext_mat, local_abs_vec, local_propmat_clearsky);
   
-  ext_mat_mono=local_ext_mat(0, joker, joker);
-  abs_vec_mono=local_abs_vec(0,joker);
+  local_ext_mat.MatrixAtFrequency(ext_mat_mono, 0);
+  local_abs_vec.VectorAtFrequency(abs_vec_mono, 0);
 }
 
 
@@ -392,13 +393,13 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   Vector abs_vec_part(stokes_dim, 0.0);
 
   //local versions of workspace variables
-  ArrayOfTensor3 local_partial_dummy; // This is right since there should be only clearsky partials
-  ArrayOfMatrix local_dnlte_dx_source_dummy; // This is right since there should be only clearsky partials
-  ArrayOfMatrix local_nlte_dsource_dx_dummy; // This is right since there should be only clearsky partials
-  Tensor4 local_propmat_clearsky;
-  Tensor3 local_nlte_source_dummy;//FIXME: Do this right?
-  Matrix  local_abs_vec;
-  Tensor3 local_ext_mat;
+  ArrayOfPropagationMatrix local_partial_dummy; // This is right since there should be only clearsky partials
+  ArrayOfStokesVector local_dnlte_dx_source_dummy; // This is right since there should be only clearsky partials
+  ArrayOfStokesVector local_nlte_dsource_dx_dummy; // This is right since there should be only clearsky partials
+  ArrayOfPropagationMatrix local_propmat_clearsky;
+  ArrayOfStokesVector local_nlte_source_dummy;//FIXME: Do this right?
+  StokesVector  local_abs_vec;
+  PropagationMatrix local_ext_mat;
 
   ao_gp_p[0]=gp_p;
   ao_gp_lat[0]=gp_lat;
@@ -428,8 +429,8 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   opt_prop_sum_propmat_clearsky(local_ext_mat, local_abs_vec, local_propmat_clearsky);
 
   
-  ext_mat_mono=local_ext_mat(0, joker, joker);
-  abs_vec_mono=local_abs_vec(0,joker);
+  local_ext_mat.MatrixAtFrequency(ext_mat_mono, 0);
+  local_abs_vec.VectorAtFrequency(abs_vec_mono, 0);
   ext_mat_part=0.0;
   abs_vec_part=0.0;
 

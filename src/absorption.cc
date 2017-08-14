@@ -1063,6 +1063,7 @@ firstprivate(ls_attenuation, fac, f_local, aux)
             
             // Loop all lines:
             if (nl)
+            {
 #pragma omp parallel for                   \
 if (!arts_omp_in_parallel()               \
 && nl >= arts_omp_get_max_threads())  \
@@ -1189,19 +1190,20 @@ firstprivate(ls_attenuation, fac, f_local, aux, qt_cache, qref_cache, iso_cache,
                     }
                     
                 } // end of parallel LBL loop
+            }
                 
-                // Bail out if an error occurred in the LBL loop
-                if (failed) continue;
-                
-                // Now we just have to add up all the rows of xsec_accum:
-                for (Index j=0; j<xsec_accum_attenuation.nrows(); ++j)
-                {
-                    xsec_i_attenuation += xsec_accum_attenuation(j, Range(joker));
-                    if(calc_src)
-                        {
-                            xsec_i_source += xsec_accum_source(j, Range(joker));
-                        }
-                }
+            // Bail out if an error occurred in the LBL loop
+            if (failed) continue;
+            
+            // Now we just have to add up all the rows of xsec_accum:
+            for (Index j=0; j<xsec_accum_attenuation.nrows(); ++j)
+            {
+                xsec_i_attenuation += xsec_accum_attenuation(j, Range(joker));
+                if(calc_src)
+                    {
+                        xsec_i_source += xsec_accum_source(j, Range(joker));
+                    }
+            }
     } // end of parallel pressure loop
     
     if (failed) throw std::runtime_error("Run-time error in function: xsec_species\n" + fail_msg);
@@ -2322,6 +2324,8 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                          dDV1,
                                                          dDVexp,
                                                          abs_lines[ii].QuantumNumbers(),
+                                                         abs_lines[ii].Species(),
+                                                         abs_lines[ii].Isotopologue(),
                                                          // LINE SHAPE
                                                          ind_ls,
                                                          ind_lsn,

@@ -15,11 +15,11 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
-   
-   
+
 
 #include "zeeman.h"
 #include "global_data.h"
+#include "lineshapesdata.h"
 
 /*!
  *  Defines the phase of the propagation matrix.
@@ -501,11 +501,11 @@ Numeric frequency_change(const LineRecord& lr,
 }
 
 
-void xsec_species_line_mixing_wrapper_with_zeeman(  Tensor4View propmat_clearsky, 
-                                                    Tensor3View nlte_source,
-                                                    ArrayOfTensor3& dpropmat_clearsky_dx,
-                                                    ArrayOfMatrix&  dnlte_dx_source,
-                                                    ArrayOfMatrix&  nlte_dsource_dx,
+void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& propmat_clearsky, 
+                                                    ArrayOfStokesVector& nlte_source,
+                                                    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+                                                    ArrayOfStokesVector& dnlte_dx_source,
+                                                    ArrayOfStokesVector& nlte_dsource_dx,
                                                     const ArrayOfArrayOfSpeciesTag& abs_species, 
                                                     const PropmatPartialsData& flag_partials,
                                                     const Index& abs_lineshape_ls, 
@@ -534,266 +534,783 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  Tensor4View propmat_clearsky
                                                 
                                                 
 {
+  const bool do_src  =  !nlte_source.empty();
+  const Index nq = flag_partials.nelem();
+  const Index nf = f_grid.nelem();
+  const Numeric n = abs_vmrs(this_species, 0)*number_density( abs_p[0],abs_t[0]);
+  const Numeric dn_dT = abs_vmrs(this_species, 0)*dnumber_density_dt( abs_p[0],abs_t[0]);
+  
+  // Setting up variables
+  Matrix attenuation(nf, 1),phase(nf, 1),source(do_src?nf:0,do_src?1:0),
+  attenuation_du(nf, 1),phase_du(nf, 1),attenuation_dv(nf, 1),phase_dv(nf, 1),attenuation_dw(nf, 1),phase_dw(nf, 1),
+  source_du(do_src?nf:0,do_src?1:0),source_dv(do_src?nf:0,do_src?1:0),source_dw(do_src?nf:0,do_src?1:0);
+  
+  
+  ArrayOfMatrix partial_attenuation(nq), partial_phase(nq), partial_source(do_src?nq:0);
+  for(Index iq = 0; iq<nq; iq++)
+  {
+    if(flag_partials(iq)!=JQT_NOT_JQT)
+    {
+      partial_attenuation[iq].resize(nf, 1);
+      partial_phase[iq].resize(nf, 1);
+      if(do_src)
+        partial_source[iq].resize(nf, 1);
+    }
+  }
+  // FIXME: Have to perturb for magnetic u, v, and w since it is too complicated otherwise
+  Numeric dB=0.0;
+  if(nq)
+    dB = flag_partials.Magnetic_Field_Perturbation();
+  
+  Numeric H_dummy, deta_du, dtheta_du, deta_dv, dtheta_dv, deta_dw, dtheta_dw;
+  Vector dmag = rtp_mag;
+  
+  if(flag_partials.do_zeeman_u())
+  {
+    dmag[0]+=dB;
+    set_magnetic_parameters(H_dummy,deta_du,dtheta_du,0,0,0,0,dmag,r_path_los);
+    deta_du -= eta;
+    deta_du /= dB;
+    dtheta_du -= theta;
+    dtheta_du /= dB;
+    dmag[0]-=dB;
+  }
+  
+  if(flag_partials.do_zeeman_v())
+  {
+    dmag[1]+=dB;
+    set_magnetic_parameters(H_dummy,deta_dv,dtheta_dv,0,0,0,0,dmag,r_path_los);
+    deta_dv -= eta;
+    deta_dv /= dB;
+    dtheta_dv -= theta;
+    dtheta_dv /= dB;
+    dmag[1]-=dB;
+  }
+  
+  if(flag_partials.do_zeeman_w())
+  {
+    dmag[2]+=dB;
+    set_magnetic_parameters(H_dummy,deta_dw,dtheta_dw,0,0,0,0,dmag,r_path_los);
+    deta_dw -= eta;
+    deta_dw /= dB;
+    dtheta_dw -= theta;
+    dtheta_dw /= dB;
+    dmag[2]-=dB;
+  }
+  // JACOBIAN SETUP END
+  
+  attenuation(joker, 0) = 0.;
+  phase(joker, 0) = 0.;
+  if(flag_partials.do_zeeman_u())
+  {
+    attenuation_du(joker,0)=0.;
+    phase_du(joker,0)=0.;
+  }
+  if(flag_partials.do_zeeman_v())
+  {
+    attenuation_dv(joker,0)=0.;
+    phase_dv(joker,0)=0.;
+  }
+  if(flag_partials.do_zeeman_w())
+  {
+    attenuation_dw(joker,0)=0.;
+    phase_dw(joker,0)=0.;
+  }
+  if(do_src)
+    source(joker, 0)=0.;
+  for(Index iq = 0; iq < nq; iq++)
+  {
+    if(flag_partials(iq)!=JQT_NOT_JQT)
+    {
+      partial_attenuation[iq](joker,0)=0.;
+      partial_phase[iq](joker,0)=0.;
+      if(do_src)
+        partial_source[iq](joker,0)=0.;
+    }
+  }
+  
+  xsec_species_line_mixing_wrapper(   attenuation,         source,         phase, 
+                                      partial_attenuation, partial_source, partial_phase, flag_partials,
+                                      f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
+                                      this_species, lr, Zeeman_DF, H_mag,
+                                      abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
+                                      isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
+  if(flag_partials.do_zeeman_u())
+  {
+    dmag[0]+=dB;
     
-    const bool do_src  =  !nlte_source.empty();
-    const Index nq = flag_partials.nelem();
-    const Index nf = f_grid.nelem();
-    const Numeric n = abs_vmrs(this_species, 0)*number_density( abs_p[0],abs_t[0]);
-    const Numeric dn_dT = abs_vmrs(this_species, 0)*dnumber_density_dt( abs_p[0],abs_t[0]);
+    xsec_species_line_mixing_wrapper(         attenuation_du,         source_du,         phase_du, 
+                                              partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
+                                              f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
+                                              this_species, lr, Zeeman_DF, sqrt(dmag*dmag),
+                                              abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
+                                              isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
+    dmag[0]-=dB;
+  }
+  if(flag_partials.do_zeeman_v())
+  {
+    dmag[1]+=dB;
     
-    // Setting up variables
-    Matrix attenuation(nf, 1),phase(nf, 1),source(do_src?nf:0,do_src?1:0),
-    attenuation_du(nf, 1),phase_du(nf, 1),attenuation_dv(nf, 1),phase_dv(nf, 1),attenuation_dw(nf, 1),phase_dw(nf, 1),
-    source_du(do_src?nf:0,do_src?1:0),source_dv(do_src?nf:0,do_src?1:0),source_dw(do_src?nf:0,do_src?1:0);
+    xsec_species_line_mixing_wrapper(         attenuation_dv,         source_dv,         phase_dv, 
+                                              partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
+                                              f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
+                                              this_species, lr, Zeeman_DF, sqrt(dmag*dmag),
+                                              abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
+                                              isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
+    dmag[1]-=dB;
+  }
+  if(flag_partials.do_zeeman_w())
+  {
+    dmag[2]+=dB;
     
+    xsec_species_line_mixing_wrapper(         attenuation_dw,         source_dw,         phase_dw, 
+                                              partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
+                                              f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
+                                              this_species, lr, Zeeman_DF, sqrt(dmag*dmag),
+                                              abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
+                                              isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
+    dmag[2]-=dB;
+  }
+  
+  if(DM == 0)
+  {
+    propmat_clearsky[this_species].AddZeemanPiComponent(attenuation(joker, 0), phase(joker, 0), n, theta*DEG2RAD, 
+                                                        eta*DEG2RAD);
+    
+    if(do_src)
+      nlte_source[this_species].AddZeemanPiComponent(source(joker,0), phase(joker, 0), n, theta*DEG2RAD, 
+                                                     eta*DEG2RAD, planck_BT);
+    
+    for(Index iq = 0; iq < nq; iq++)
+    {
+      if(flag_partials(iq)==JQT_magnetic_u)
+      {
+        attenuation_du -= attenuation;
+        attenuation_du /= dB;
+        phase_du -= phase;
+        phase_du /= dB;
         
-    ArrayOfMatrix partial_attenuation(nq), partial_phase(nq), partial_source(do_src?nq:0);
-    for(Index iq = 0; iq<nq; iq++)
-    {
-        if(flag_partials(iq)!=JQT_NOT_JQT)
-        {
-            partial_attenuation[iq].resize(nf, 1);
-            partial_phase[iq].resize(nf, 1);
-            if(do_src)
-                partial_source[iq].resize(nf, 1);
-        }
-    }
-    
-    //Geometry for normal calculations
-    Matrix  K_a(4,4), K_b(4,4);
-    attenuation_matrix(K_a, theta*DEG2RAD, eta*DEG2RAD, DM);
-    phase_matrix(K_b, theta*DEG2RAD, eta*DEG2RAD, DM);
-    
-    // FIXME: Have to perturb for magnetic u, v, and w since it is too complicated otherwise
-    Numeric dB=0.0;
-    if(nq)
-        dB = flag_partials.Magnetic_Field_Perturbation();
-    
-    //Geometry for derivative calculations
-    Matrix  dK_a_dtheta(4,4), dK_b_dtheta(4,4),dK_a_deta(4,4), dK_b_deta(4,4),
-    dK_a_du(4,4),dK_a_dv(4,4),dK_a_dw(4,4),dK_b_du(4,4),dK_b_dv(4,4),dK_b_dw(4,4);
-    
-    // JACOBIAN SETUP START
-    if(flag_partials.do_zeeman_eta())
-    {
-        dattenuation_matrix_deta(dK_a_deta, theta*DEG2RAD, eta*DEG2RAD, DM);
-        dphase_matrix_deta(dK_b_deta, theta*DEG2RAD, eta*DEG2RAD, DM);
-    }
-    
-    if(flag_partials.do_zeeman_theta())
-    {
-        dattenuation_matrix_dtheta(dK_a_dtheta, theta*DEG2RAD, eta*DEG2RAD, DM);
-        dphase_matrix_dtheta(dK_b_dtheta, theta*DEG2RAD, eta*DEG2RAD, DM);
-    }
-    
-    Numeric H_dummy, deta, dtheta;
-    Vector dmag = rtp_mag;
-    
-    if(flag_partials.do_zeeman_u())
-    {
-        dmag[0]+=dB;
-        set_magnetic_parameters(H_dummy,deta,dtheta,0,0,0,0,dmag,r_path_los);
-        attenuation_matrix(dK_a_du, dtheta*DEG2RAD, deta*DEG2RAD, DM);
-        phase_matrix(dK_b_du, dtheta*DEG2RAD, deta*DEG2RAD, DM);
-        dmag[0]-=dB;
-    }
-    
-    if(flag_partials.do_zeeman_v())
-    {
-        dmag[1]+=dB;
-        set_magnetic_parameters(H_dummy,deta,dtheta,0,0,0,0,dmag,r_path_los);
-        attenuation_matrix(dK_a_dv, dtheta*DEG2RAD, deta*DEG2RAD, DM);
-        phase_matrix(dK_b_dv, dtheta*DEG2RAD, deta*DEG2RAD, DM);
-        dmag[1]-=dB;
-    }
-    
-    if(flag_partials.do_zeeman_w())
-    {
-        dmag[2]+=dB;
-        set_magnetic_parameters(H_dummy,deta,dtheta,0,0,0,0,dmag,r_path_los);
-        attenuation_matrix(dK_a_dw, dtheta*DEG2RAD, deta*DEG2RAD, DM);
-        phase_matrix(dK_b_dw, dtheta*DEG2RAD, deta*DEG2RAD, DM);
-        dmag[2]-=dB;
-    }
-    // JACOBIAN SETUP END
-    
-    for(Index iv=0;iv<nf;iv++)
-    {
-        attenuation(iv,0)=0.;phase(iv,0)=0.;
-        if(flag_partials.do_zeeman_u())
-        {
-            attenuation_du(iv,0)=0.;
-            phase_du(iv,0)=0.;
-        }
-        if(flag_partials.do_zeeman_v())
-        {
-            attenuation_dv(iv,0)=0.;
-            phase_dv(iv,0)=0.;
-        }
-        if(flag_partials.do_zeeman_w())
-        {
-            attenuation_dw(iv,0)=0.;
-            phase_dw(iv,0)=0.;
-        }
+        dpropmat_clearsky_dx[iq].AddZeemanPiComponentDerivative(attenuation(joker, 0), attenuation_du(joker, 0), 
+                                                                phase(joker, 0), phase_du(joker, 0), n, theta*DEG2RAD, 
+                                                                dtheta_du*DEG2RAD, eta*DEG2RAD, deta_du*DEG2RAD);
+        
         if(do_src)
-            source(iv,0)=0.;
-        for(Index iq = 0; iq < nq; iq++)
         {
-            if(flag_partials(iq)!=JQT_NOT_JQT)
-            {
-                partial_attenuation[iq](iv,0)=0.;
-                partial_phase[iq](iv,0)=0.;
-                if(do_src)
-                    partial_source[iq](iv,0)=0.;
-            }
+          source_du -= source;
+          source_du /= dB;
+          dnlte_dx_source[iq].AddZeemanPiComponentDerivative(source(joker, 0), source_du(joker, 0), phase(joker, 0), 
+                                                             phase_du(joker, 0), n, theta*DEG2RAD, dtheta_du*DEG2RAD, 
+                                                             eta*DEG2RAD, deta_du*DEG2RAD, planck_BT);
         }
-    }
-
-    xsec_species_line_mixing_wrapper(   attenuation,         source,         phase, 
-                                        partial_attenuation, partial_source, partial_phase, flag_partials,
-                                        f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
-                                        this_species, lr, Zeeman_DF, H_mag,
-                                        abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
-                                        isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
-    if(flag_partials.do_zeeman_u())
-    {
-        dmag[0]+=dB;
+      }
+      else if(flag_partials(iq)==JQT_magnetic_v)
+      {
+        attenuation_dv -= attenuation;
+        attenuation_dv /= dB;
+        phase_dv -= phase;
+        phase_dv /= dB;
         
-        xsec_species_line_mixing_wrapper(         attenuation_du,         source_du,         phase_du, 
-                                                  partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
-                                                  f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
-                                                  this_species, lr, Zeeman_DF, sqrt(dmag*dmag),
-                                                  abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
-                                                  isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
-        dmag[0]-=dB;
-    }
-    if(flag_partials.do_zeeman_v())
-    {
-        dmag[1]+=dB;
+        dpropmat_clearsky_dx[iq].AddZeemanPiComponentDerivative(attenuation(joker, 0), attenuation_dv(joker, 0), 
+                                                                phase(joker, 0), phase_dv(joker, 0), n, theta*DEG2RAD, 
+                                                                dtheta_dv*DEG2RAD, eta*DEG2RAD, deta_dv*DEG2RAD);
         
-        xsec_species_line_mixing_wrapper(         attenuation_dv,         source_dv,         phase_dv, 
-                                                  partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
-                                                  f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
-                                                  this_species, lr, Zeeman_DF, sqrt(dmag*dmag),
-                                                  abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
-                                                  isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
-        dmag[1]-=dB;
-    }
-    if(flag_partials.do_zeeman_w())
-    {
-        dmag[2]+=dB;
-        
-        xsec_species_line_mixing_wrapper(         attenuation_dw,         source_dw,         phase_dw, 
-                                                  partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
-                                                  f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
-                                                  this_species, lr, Zeeman_DF, sqrt(dmag*dmag),
-                                                  abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
-                                                  isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
-        dmag[2]-=dB;
-    }
-
-    //Add things to the total propagation
-    for(Index iv=0;iv<nf;iv++)
-    {
-        for(Index is1 = 0;is1<4;is1++)
+        if(do_src)
         {
-            if(do_src)
-                nlte_source(this_species,iv,is1) += source(iv,0)*K_a(is1,0)*planck_BT[iv]*n;
-            for(Index is2 = 0;is2<4;is2++)
-            {
-                propmat_clearsky(this_species,iv,is1,is2) += (attenuation(iv,0)*K_a(is1,is2)+2.0*phase(iv,0)*K_b(is1,is2))*n;
-                
-                for(Index iq = 0; iq<nq; iq++)
-                {
-                    if(flag_partials(iq)==JQT_magnetic_u)
-                    {
-                        dpropmat_clearsky_dx[iq](iv,is1,is2) += 
-                        (
-                            attenuation_du(iv,0)*dK_a_du(is1,is2)+2.0*phase_du(iv,0)*dK_b_du(is1,is2) -
-                            (attenuation(iv,0)*K_a(is1,is2)+2.0*phase(iv,0)*K_b(is1,is2))
-                        )*n/dB;
-                        if(do_src&&is2==0)
-                            dnlte_dx_source[iq](iv,is1) += (source_du(iv,0)*dK_a_du(is1,is2)-source(iv,0)*K_a(is1,is2))*n*planck_BT[iv];
-                    }
-                    else if(flag_partials(iq)==JQT_magnetic_v)
-                    {
-                        dpropmat_clearsky_dx[iq](iv,is1,is2) += 
-                        (
-                            attenuation_dv(iv,0)*dK_a_dv(is1,is2)+2.0*phase_dv(iv,0)*dK_b_dv(is1,is2) -
-                            (attenuation(iv,0)*K_a(is1,is2)+2.0*phase(iv,0)*K_b(is1,is2))
-                        )*n/dB;
-                        if(do_src&&is2==0)
-                            dnlte_dx_source[iq](iv,is1) += (source_dv(iv,0)*dK_a_dv(is1,is2)-source(iv,0)*K_a(is1,is2))*n*planck_BT[iv];
-                    }
-                    else if(flag_partials(iq)==JQT_magnetic_w)
-                    {
-                        dpropmat_clearsky_dx[iq](iv,is1,is2) += 
-                        (
-                            attenuation_dw(iv,0)*dK_a_dw(is1,is2)+2.0*phase_dw(iv,0)*dK_b_dw(is1,is2) -
-                            (attenuation(iv,0)*K_a(is1,is2)+2.0*phase(iv,0)*K_b(is1,is2))
-                        )*n/dB;
-                        if(do_src&&is2==0)
-                            dnlte_dx_source[iq](iv,is1) += (source_dw(iv,0)*dK_a_dw(is1,is2)-source(iv,0)*K_a(is1,is2))*n*planck_BT[iv];
-                    }
-                    else if(flag_partials(iq)==JQT_magnetic_theta)
-                    {
-                        dpropmat_clearsky_dx[iq](iv,is1,is2) += (attenuation(iv,0)*dK_a_dtheta(is1,is2)+2.0*phase(iv,0)*dK_b_dtheta(is1,is2))*n;
-                        if(do_src&&is2==0)
-                            dnlte_dx_source[iq](iv,is1) += source(iv,0)*n*dK_a_dtheta(is1,is2)*planck_BT[iv];
-                    }
-                    else if(flag_partials(iq)==JQT_magnetic_eta)
-                    {
-                        dpropmat_clearsky_dx[iq](iv,is1,is2) += (attenuation(iv,0)*dK_a_deta(is1,is2)+2.0*phase(iv,0)*dK_b_deta(is1,is2))*n;
-                        if(do_src&&is2==0)
-                            dnlte_dx_source[iq](iv,is1) += source(iv,0)*n*dK_a_deta(is1,is2)*planck_BT[iv];
-                    }
-                    else if(flag_partials(iq)==JQT_temperature&&do_src)
-                    {
-                        dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)* n + attenuation(iv,0) * dn_dT) * K_a(is1,is2)
-                                                              +   2.0*(partial_phase[iq](iv,0) * n  + phase(iv,0)      * dn_dT) * K_b(is1,is2);
-                        if(is2==0)
-                        {
-                            dnlte_dx_source[iq](iv,is1) += (partial_source[iq](iv,0)*n + source(iv,0)*dn_dT)*K_a(is1,is2)*planck_BT[iv];
-                            nlte_dsource_dx[iq](iv,is1) += source(iv,0)*n*K_a(is1,is2)*dplanck_BT(0,iv);//zeroth index is the temperature derivative
-                        }
-                    }
-                    else if(flag_partials(iq)==JQT_frequency&&do_src)
-                    {
-                        dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)*K_a(is1,is2)+2.0*partial_phase[iq](iv,0)*K_b(is1,is2))*n;
-                        if(is2==0)
-                        {
-                            dnlte_dx_source[iq](iv,is1) += partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv];
-                            nlte_dsource_dx[iq](iv,is1) += source(iv,0)*n*K_a(is1,is2)*dplanck_BT(1,iv);//first index is the frequency derivative
-                        }
-                    }
-                    else if(flag_partials(iq)==JQT_temperature)
-                    {   
-                        dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)* n + attenuation(iv,0) * dn_dT) * K_a(is1,is2)
-                                                              +   2.0*(partial_phase[iq](iv,0) * n  + phase(iv,0)      * dn_dT) * K_b(is1,is2);
-                    }
-                    else if(flag_partials(iq)==JQT_VMR)
-                    {   
-                        //WARNING:  if VMR starts being used for p_partial derivatives, then this fails...
-                        dpropmat_clearsky_dx[iq](iv,is1,is2) += 
-                        attenuation(iv,0) * n/abs_vmrs(this_species, 0) * K_a(is1,is2)
-                        + 2.0*phase(iv,0) * n/abs_vmrs(this_species, 0) * K_b(is1,is2);
-                        if(do_src&&is2==0)
-                            dnlte_dx_source[iq](iv,is1) += 
-                            partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv]/abs_vmrs(this_species, 0);
-                    }
-                    else if(flag_partials(iq)!=JQT_NOT_JQT)
-                    {
-                        dpropmat_clearsky_dx[iq](iv,is1,is2) += (partial_attenuation[iq](iv,0)*K_a(is1,is2)+2.0*partial_phase[iq](iv,0)*K_b(is1,is2))*n;
-                        if(do_src&&is2==0)
-                            dnlte_dx_source[iq](iv,is1) += 
-                            partial_source[iq](iv,0)*n*K_a(is1,is2)*planck_BT[iv];
-                    }
-                }
-            }
+          source_dv -= source;
+          source_dv /= dB;
+          dnlte_dx_source[iq].AddZeemanPiComponentDerivative(source(joker, 0), source_dv(joker, 0), phase(joker, 0),
+                                                             phase_dv(joker, 0), n, theta*DEG2RAD, dtheta_dv*DEG2RAD, 
+                                                             eta*DEG2RAD, deta_dv*DEG2RAD, planck_BT);
         }
+      }
+      else if(flag_partials(iq)==JQT_magnetic_w)
+      {
+        attenuation_dw -= attenuation;
+        attenuation_dw /= dB;
+        phase_dw -= phase;
+        phase_dw /= dB;
+        
+        dpropmat_clearsky_dx[iq].AddZeemanPiComponentDerivative(attenuation(joker, 0), attenuation_dw(joker, 0), 
+                                                                phase(joker, 0), phase_dw(joker, 0), n, theta*DEG2RAD,
+                                                                dtheta_dw*DEG2RAD, eta*DEG2RAD, deta_dw*DEG2RAD);
+        
+        if(do_src)
+        {
+          source_dw -= source;
+          source_dw /= dB;
+          dnlte_dx_source[iq].AddZeemanPiComponentDerivative(source(joker, 0), source_dw(joker, 0), phase(joker, 0),
+                                                             phase_dw(joker, 0), n, theta*DEG2RAD, dtheta_dw*DEG2RAD,
+                                                             eta*DEG2RAD, deta_dw*DEG2RAD, planck_BT);
+        }
+      }
+      else if(flag_partials(iq)==JQT_magnetic_theta)
+      {
+        dpropmat_clearsky_dx[iq].AddZeemanPiComponentThetaDerivative(attenuation(joker, 0), phase(joker, 0), n, 
+                                                                     theta*DEG2RAD, eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dnlte_dx_source[iq].AddZeemanPiComponentThetaDerivative(source(joker, 0), phase(joker, 0), n, theta*DEG2RAD,
+                                                                  eta*DEG2RAD, planck_BT);
+        }
+      }
+      else if(flag_partials(iq)==JQT_magnetic_eta)
+      {
+        dpropmat_clearsky_dx[iq].AddZeemanPiComponentEtaDerivative(attenuation(joker, 0), phase(joker, 0), n,
+                                                                   theta*DEG2RAD, eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dpropmat_clearsky_dx[iq].AddZeemanPiComponentEtaDerivative(source(joker, 0), phase(joker, 0), n, 
+                                                                     theta*DEG2RAD, eta*DEG2RAD, planck_BT);
+        }
+      }
+      else if(flag_partials(iq)==JQT_temperature)
+      {
+        dpropmat_clearsky_dx[iq].AddZeemanPiComponent(attenuation(joker, 0), phase(joker, 0), dn_dT, theta*DEG2RAD, 
+                                                      eta*DEG2RAD);
+        dpropmat_clearsky_dx[iq].AddZeemanPiComponent(partial_attenuation[iq](joker, 0), partial_phase[iq](joker, 0), n, 
+                                                      theta*DEG2RAD, eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dnlte_dx_source[iq].AddZeemanPiComponent(source(joker, 0), phase(joker, 0), dn_dT, theta*DEG2RAD, eta*DEG2RAD, 
+                                                   planck_BT);
+          dnlte_dx_source[iq].AddZeemanPiComponent(partial_source[iq](joker, 0), phase(joker, 0), n, theta*DEG2RAD, 
+                                                   eta*DEG2RAD, planck_BT);
+          
+          nlte_dsource_dx[iq].AddZeemanPiComponent(source(joker, 0), phase(joker, 0), n, theta*DEG2RAD, eta*DEG2RAD, 
+                                                   dplanck_BT(0, joker));
+        }
+      }
+      else if(flag_partials(iq)==JQT_frequency)
+      {
+        dpropmat_clearsky_dx[iq].AddZeemanPiComponent(partial_attenuation[iq](joker, 0), partial_phase[iq](joker, 0), n, 
+                                                      theta*DEG2RAD, eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dnlte_dx_source[iq].AddZeemanPiComponent(partial_source[iq](joker, 0), phase(joker, 0), n, theta*DEG2RAD,
+                                                   eta*DEG2RAD, planck_BT);
+          
+          nlte_dsource_dx[iq].AddZeemanPiComponent(source(joker, 0), phase(joker, 0), n, theta*DEG2RAD, eta*DEG2RAD,
+                                                   dplanck_BT(1, joker));
+        }
+      }
+      else if(flag_partials(iq)==JQT_VMR)
+      {  
+        dpropmat_clearsky_dx[iq].AddZeemanPiComponent(attenuation(joker, 0), phase(joker, 0), 
+                                                      n/abs_vmrs(this_species, 0), theta*DEG2RAD, eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dnlte_dx_source[iq].AddZeemanPiComponent(source(joker, 0), phase(joker, 0), n/abs_vmrs(this_species, 0),
+                                                   theta*DEG2RAD, eta*DEG2RAD, planck_BT);
+        }
+      }
+      else if(flag_partials(iq) not_eq JQT_NOT_JQT)
+      {
+        dpropmat_clearsky_dx[iq].AddZeemanPiComponent(partial_attenuation[iq](joker, 0), partial_phase[iq](joker, 0), n,
+                                                      theta*DEG2RAD, eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dnlte_dx_source[iq].AddZeemanPiComponent(partial_source[iq](joker, 0), phase(joker, 0), n, theta*DEG2RAD,
+                                                   eta*DEG2RAD, planck_BT);
+        }
+      }
     }
+  }
+  else if(DM == -1)
+  {
+    propmat_clearsky[this_species].AddZeemanSigmaMinusComponent(attenuation(joker, 0), phase(joker, 0), n,
+                                                                theta*DEG2RAD, eta*DEG2RAD);
+    
+    if(do_src)
+      nlte_source[this_species].AddZeemanSigmaMinusComponent(source(joker,0), phase(joker, 0), n, theta*DEG2RAD,
+                                                             eta*DEG2RAD, planck_BT);
+    
+    for(Index iq = 0; iq < nq; iq++)
+    {
+      if(flag_partials(iq)==JQT_magnetic_u)
+      {
+        attenuation_du -= attenuation;
+        attenuation_du /= dB;
+        phase_du -= phase;
+        phase_du /= dB;
+        
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaMinusComponentDerivative(attenuation(joker, 0), attenuation_du(joker, 0),
+                                                                        phase(joker, 0), phase_du(joker, 0), n, 
+                                                                        theta*DEG2RAD, dtheta_du*DEG2RAD, eta*DEG2RAD,
+                                                                        deta_du*DEG2RAD);
+        
+        if(do_src)
+        {
+          source_du -= source;
+          source_du /= dB;
+          dnlte_dx_source[iq].AddZeemanSigmaMinusComponentDerivative(source(joker, 0), source_du(joker, 0),
+                                                                     phase(joker, 0), phase_du(joker, 0), n, 
+                                                                     theta*DEG2RAD, dtheta_du*DEG2RAD, eta*DEG2RAD,
+                                                                     deta_du*DEG2RAD, planck_BT);
+        }
+      }
+      else if(flag_partials(iq)==JQT_magnetic_v)
+      {
+        attenuation_dv -= attenuation;
+        attenuation_dv /= dB;
+        phase_dv -= phase;
+        phase_dv /= dB;
+        
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaMinusComponentDerivative(attenuation(joker, 0), attenuation_dv(joker, 0),
+                                                                        phase(joker, 0), phase_dv(joker, 0), n,
+                                                                        theta*DEG2RAD, dtheta_dv*DEG2RAD, eta*DEG2RAD,
+                                                                        deta_dv*DEG2RAD);
+        
+        if(do_src)
+        {
+          source_dv -= source;
+          source_dv /= dB;
+          dnlte_dx_source[iq].AddZeemanSigmaMinusComponentDerivative(source(joker, 0), source_dv(joker, 0), 
+                                                                     phase(joker, 0), phase_dv(joker, 0), n, 
+                                                                     theta*DEG2RAD, dtheta_dv*DEG2RAD, eta*DEG2RAD,
+                                                                     deta_dv*DEG2RAD, planck_BT);
+        }
+      }
+      else if(flag_partials(iq)==JQT_magnetic_w)
+      {
+        attenuation_dw -= attenuation;
+        attenuation_dw /= dB;
+        phase_dw -= phase;
+        phase_dw /= dB;
+        
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaMinusComponentDerivative(attenuation(joker, 0), attenuation_dw(joker, 0),
+                                                                        phase(joker, 0), phase_dw(joker, 0), n,
+                                                                        theta*DEG2RAD, dtheta_dw*DEG2RAD, eta*DEG2RAD,
+                                                                        deta_dw*DEG2RAD);
+        
+        if(do_src)
+        {
+          source_dw -= source;
+          source_dw /= dB;
+          dnlte_dx_source[iq].AddZeemanSigmaMinusComponentDerivative(source(joker, 0), source_dw(joker, 0),
+                                                                     phase(joker, 0), phase_dw(joker, 0), n,
+                                                                     theta*DEG2RAD, dtheta_dw*DEG2RAD, eta*DEG2RAD,
+                                                                     deta_dw*DEG2RAD, planck_BT);
+        }
+      }
+      else if(flag_partials(iq)==JQT_magnetic_theta)
+      {
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaMinusComponentThetaDerivative(attenuation(joker, 0), phase(joker, 0), n,
+                                                                             theta*DEG2RAD, eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dnlte_dx_source[iq].AddZeemanSigmaMinusComponentThetaDerivative(source(joker, 0), phase(joker, 0), n,
+                                                                          theta*DEG2RAD, eta*DEG2RAD, planck_BT);
+        }
+      }
+      else if(flag_partials(iq)==JQT_magnetic_eta)
+      {
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaMinusComponentEtaDerivative(attenuation(joker, 0), phase(joker, 0), n,
+                                                                           theta*DEG2RAD, eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dpropmat_clearsky_dx[iq].AddZeemanSigmaMinusComponentEtaDerivative(source(joker, 0), phase(joker, 0), n,
+                                                                             theta*DEG2RAD, eta*DEG2RAD, planck_BT);
+        }
+      }
+      else if(flag_partials(iq)==JQT_temperature)
+      {
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaMinusComponent(attenuation(joker, 0), phase(joker, 0), dn_dT,
+                                                              theta*DEG2RAD, eta*DEG2RAD);
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaMinusComponent(partial_attenuation[iq](joker, 0), 
+                                                              partial_phase[iq](joker, 0), n, theta*DEG2RAD, 
+                                                              eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dnlte_dx_source[iq].AddZeemanSigmaMinusComponent(source(joker, 0), phase(joker, 0), dn_dT, theta*DEG2RAD,
+                                                           eta*DEG2RAD, planck_BT);
+          dnlte_dx_source[iq].AddZeemanSigmaMinusComponent(partial_source[iq](joker, 0), phase(joker, 0), n,
+                                                           theta*DEG2RAD, eta*DEG2RAD, planck_BT);
+          
+          nlte_dsource_dx[iq].AddZeemanSigmaMinusComponent(source(joker, 0), phase(joker, 0), n, theta*DEG2RAD,
+                                                           eta*DEG2RAD, dplanck_BT(0, joker));
+        }
+      }
+      else if(flag_partials(iq)==JQT_frequency)
+      {
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaMinusComponent(partial_attenuation[iq](joker, 0), 
+                                                              partial_phase[iq](joker, 0), n, theta*DEG2RAD,
+                                                              eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dnlte_dx_source[iq].AddZeemanSigmaMinusComponent(partial_source[iq](joker, 0), phase(joker, 0), n,
+                                                           theta*DEG2RAD, eta*DEG2RAD, planck_BT);
+          
+          nlte_dsource_dx[iq].AddZeemanSigmaMinusComponent(source(joker, 0), phase(joker, 0), n, theta*DEG2RAD,
+                                                           eta*DEG2RAD, dplanck_BT(1, joker));
+        }
+      }
+      else if(flag_partials(iq)==JQT_VMR)
+      {  
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaMinusComponent(attenuation(joker, 0), phase(joker, 0),
+                                                              n/abs_vmrs(this_species, 0), theta*DEG2RAD, eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dnlte_dx_source[iq].AddZeemanSigmaMinusComponent(source(joker, 0), phase(joker, 0),
+                                                           n/abs_vmrs(this_species, 0), theta*DEG2RAD, eta*DEG2RAD,
+                                                           planck_BT);
+        }
+      }
+      else if(flag_partials(iq) not_eq JQT_NOT_JQT)
+      {
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaMinusComponent(partial_attenuation[iq](joker, 0),
+                                                              partial_phase[iq](joker, 0), n, theta*DEG2RAD,
+                                                              eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dnlte_dx_source[iq].AddZeemanSigmaMinusComponent(partial_source[iq](joker, 0), phase(joker, 0), n,
+                                                           theta*DEG2RAD, eta*DEG2RAD, planck_BT);
+        }
+      }
+    }
+  }
+  else if(DM == 1)
+  {
+    propmat_clearsky[this_species].AddZeemanSigmaPlusComponent(attenuation(joker, 0), phase(joker, 0), n,
+                                                               theta*DEG2RAD, eta*DEG2RAD);
+    
+    if(do_src)
+      nlte_source[this_species].AddZeemanSigmaPlusComponent(source(joker,0), phase(joker, 0), n, theta*DEG2RAD,
+                                                            eta*DEG2RAD, planck_BT);
+    
+    for(Index iq = 0; iq < nq; iq++)
+    {
+      if(flag_partials(iq)==JQT_magnetic_u)
+      {
+        attenuation_du -= attenuation;
+        attenuation_du /= dB;
+        phase_du -= phase;
+        phase_du /= dB;
+        
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaPlusComponentDerivative(attenuation(joker, 0), attenuation_du(joker, 0),
+                                                                       phase(joker, 0), phase_du(joker, 0), n, 
+                                                                       theta*DEG2RAD, dtheta_du*DEG2RAD, eta*DEG2RAD, 
+                                                                       deta_du*DEG2RAD);
+        
+        if(do_src)
+        {
+          source_du -= source;
+          source_du /= dB;
+          dnlte_dx_source[iq].AddZeemanSigmaPlusComponentDerivative(source(joker, 0), source_du(joker, 0), 
+                                                                    phase(joker, 0), phase_du(joker, 0), n, 
+                                                                    theta*DEG2RAD, dtheta_du*DEG2RAD, eta*DEG2RAD, 
+                                                                    deta_du*DEG2RAD, planck_BT);
+        }
+      }
+      else if(flag_partials(iq)==JQT_magnetic_v)
+      {
+        attenuation_dv -= attenuation;
+        attenuation_dv /= dB;
+        phase_dv -= phase;
+        phase_dv /= dB;
+        
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaPlusComponentDerivative(attenuation(joker, 0), attenuation_dv(joker, 0),
+                                                                       phase(joker, 0), phase_dv(joker, 0), n,
+                                                                       theta*DEG2RAD, dtheta_dv*DEG2RAD, eta*DEG2RAD,
+                                                                       deta_dv*DEG2RAD);
+        
+        if(do_src)
+        {
+          source_dv -= source;
+          source_dv /= dB;
+          dnlte_dx_source[iq].AddZeemanSigmaPlusComponentDerivative(source(joker, 0), source_dv(joker, 0),
+                                                                    phase(joker, 0), phase_dv(joker, 0), n,
+                                                                    theta*DEG2RAD, dtheta_dv*DEG2RAD, eta*DEG2RAD,
+                                                                    deta_dv*DEG2RAD, planck_BT);
+        }
+      }
+      else if(flag_partials(iq)==JQT_magnetic_w)
+      {
+        attenuation_dw -= attenuation;
+        attenuation_dw /= dB;
+        phase_dw -= phase;
+        phase_dw /= dB;
+        
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaPlusComponentDerivative(attenuation(joker, 0), attenuation_dw(joker, 0),
+                                                                       phase(joker, 0), phase_dw(joker, 0), n, 
+                                                                       theta*DEG2RAD, dtheta_dw*DEG2RAD, eta*DEG2RAD,
+                                                                       deta_dw*DEG2RAD);
+        
+        if(do_src)
+        {
+          source_dw -= source;
+          source_dw /= dB;
+          dnlte_dx_source[iq].AddZeemanSigmaPlusComponentDerivative(source(joker, 0), source_dw(joker, 0), 
+                                                                    phase(joker, 0), phase_dw(joker, 0), n,
+                                                                    theta*DEG2RAD, dtheta_dw*DEG2RAD, eta*DEG2RAD,
+                                                                    deta_dw*DEG2RAD, planck_BT);
+        }
+      }
+      else if(flag_partials(iq)==JQT_magnetic_theta)
+      {
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaPlusComponentThetaDerivative(attenuation(joker, 0), phase(joker, 0), n,
+                                                                            theta*DEG2RAD, eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dnlte_dx_source[iq].AddZeemanSigmaPlusComponentThetaDerivative(source(joker, 0), phase(joker, 0), n,
+                                                                         theta*DEG2RAD, eta*DEG2RAD, planck_BT);
+        }
+      }
+      else if(flag_partials(iq)==JQT_magnetic_eta)
+      {
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaPlusComponentEtaDerivative(attenuation(joker, 0), phase(joker, 0), n,
+                                                                          theta*DEG2RAD, eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dpropmat_clearsky_dx[iq].AddZeemanSigmaPlusComponentEtaDerivative(source(joker, 0), phase(joker, 0), n,
+                                                                            theta*DEG2RAD, eta*DEG2RAD, planck_BT);
+        }
+      }
+      else if(flag_partials(iq)==JQT_temperature)
+      {
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaPlusComponent(attenuation(joker, 0), phase(joker, 0), dn_dT,
+                                                             theta*DEG2RAD, eta*DEG2RAD);
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaPlusComponent(partial_attenuation[iq](joker, 0),
+                                                             partial_phase[iq](joker, 0), n, theta*DEG2RAD,
+                                                             eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dnlte_dx_source[iq].AddZeemanSigmaPlusComponent(source(joker, 0), phase(joker, 0), dn_dT, theta*DEG2RAD,
+                                                          eta*DEG2RAD, planck_BT);
+          dnlte_dx_source[iq].AddZeemanSigmaPlusComponent(partial_source[iq](joker, 0), phase(joker, 0), n,
+                                                          theta*DEG2RAD, eta*DEG2RAD, planck_BT);
+          
+          nlte_dsource_dx[iq].AddZeemanSigmaPlusComponent(source(joker, 0), phase(joker, 0), n, theta*DEG2RAD,
+                                                          eta*DEG2RAD, dplanck_BT(0, joker));
+        }
+      }
+      else if(flag_partials(iq)==JQT_frequency)
+      {
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaPlusComponent(partial_attenuation[iq](joker, 0),
+                                                             partial_phase[iq](joker, 0), n, theta*DEG2RAD,
+                                                             eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dnlte_dx_source[iq].AddZeemanSigmaPlusComponent(partial_source[iq](joker, 0), phase(joker, 0), n,
+                                                          theta*DEG2RAD, eta*DEG2RAD, planck_BT);
+          
+          nlte_dsource_dx[iq].AddZeemanSigmaPlusComponent(source(joker, 0), phase(joker, 0), n, theta*DEG2RAD,
+                                                          eta*DEG2RAD, dplanck_BT(1, joker));
+        }
+      }
+      else if(flag_partials(iq)==JQT_VMR)
+      {  
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaPlusComponent(attenuation(joker, 0), phase(joker, 0),
+                                                             n/abs_vmrs(this_species, 0), theta*DEG2RAD, eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dnlte_dx_source[iq].AddZeemanSigmaPlusComponent(source(joker, 0), phase(joker, 0),
+                                                          n/abs_vmrs(this_species, 0), theta*DEG2RAD, eta*DEG2RAD,
+                                                          planck_BT);
+        }
+      }
+      else if(flag_partials(iq) not_eq JQT_NOT_JQT)
+      {
+        dpropmat_clearsky_dx[iq].AddZeemanSigmaPlusComponent(partial_attenuation[iq](joker, 0),
+                                                             partial_phase[iq](joker, 0), n, theta*DEG2RAD,
+                                                             eta*DEG2RAD);
+        
+        if(do_src)
+        {
+          dnlte_dx_source[iq].AddZeemanSigmaPlusComponent(partial_source[iq](joker, 0), phase(joker, 0), n,
+                                                          theta*DEG2RAD, eta*DEG2RAD, planck_BT);
+        }
+      }
+    }
+  }
 }
 
+/*
+void xsec_species_line_mixing_wrapper_with_zeeman_replacement(PropagationMatrix& propmat_clearsky, 
+                                                              StokesVector& nlte_source,
+                                                              ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+                                                              ArrayOfStokesVector& dnlte_dx_source,
+                                                              ArrayOfStokesVector& nlte_dsource_dx,
+                                                              const ArrayOfArrayOfSpeciesTag& abs_species, 
+                                                              const PropmatPartialsData& flag_partials,
+                                                              const Index& abs_lineshape_ls, 
+                                                              const Index& abs_lineshape_lsn, 
+                                                              const Numeric& abs_lineshape_cutoff, 
+                                                              const ArrayOfLineRecord& lr, 
+                                                              const Vector&  Zeeman_DF,
+                                                              const Vector&  planck_BT,
+                                                              const Matrix&  dplanck_BT,
+                                                              const SpeciesAuxData& isotopologue_ratios, 
+                                                              const SpeciesAuxData& partition_functions,
+                                                              const Vector& T_nlte, 
+                                                              const Vector& abs_vmrs, 
+                                                              const Numeric& P,
+                                                              const Numeric& T, 
+                                                              const Vector& f_grid,
+                                                              const Vector& rtp_mag,
+                                                              const Vector& r_path_los,
+                                                              const Numeric& lm_p_lim,
+                                                              const Numeric& theta, 
+                                                              const Numeric& eta, 
+                                                              const Numeric& H_mag, 
+                                                              const Index& DM, 
+                                                              const Index& this_species,
+                                                              const Verbosity& verbosity )
+
+
+{
+  // Setup the size of the problem
+  const Index nf = f_grid.nelem();
+  const Index nq = flag_partials.nelem();
+  const Index nl = lr.nelem();
+  
+  if(not nf or not nl)
+    return;
+  
+  // Compute variables for pressure broadening
+  Numeric G0, G2, L0, L2, e, FVC;
+  
+  // Compute variables for pressure broadening derivatives
+  Numeric dG0_dT, dG2_dT, dL0_dT, dL2_dT, de_dT, dFVC_dT;
+  
+  // Compute variables for line mixing
+  Numeric Y, G, DV;
+  
+  // Compute variables for line mixing derivatives
+  Numeric dY_dT, dG_dT, dDV_dT;
+  
+  // Compute variables for Line strength
+  Numeric QT, QT0, K1, K2; // K3, K4
+  
+  // Compute variables for Line strength derivatives
+  Numeric dQT_dT, dK1_dT, dK2_dT, dK2_dF0; // K3, K4
+  
+  // Compute vectors attenuation/phase
+  ComplexVector F(nf), F_single_line(nf);
+  
+  // Compute vectors derivative of attenuation/phase
+  ArrayOfComplexVector dF(nq);
+  for(auto& cv : dF) 
+    cv.resize(nf);
+  
+  ArrayOfComplexVector dF_single_line(nq);
+  for(auto& cv : dF_single_line) 
+    cv.resize(nf);
+  
+  // All should be of same species here
+  const Index spec = lr[0].Species();
+  const Index isop = lr[0].Isotopologue();
+  const Numeric isotopic_ratio = isotopologue_ratios.getParam(spec, isop)[0].data[0];
+  
+  // Partial pressure of this species
+  const Numeric P_partial = abs_vmrs[this_species] * P;
+                          
+  // Number density of molecules of the level
+  const Numeric nd = abs_vmrs[this_species] * number_density(P, T); // NB: OF SPECIES NOT ISOTOPOLOGUE
+  
+  // Doppler broadening parameters
+  const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, lr[0].IsotopologueData().Mass());
+  const Numeric dGD_div_F0_dT = Linefunctions::dDopplerConstant_dT(T, lr[0].IsotopologueData().Mass());
+  
+  // Broadening species
+  ArrayOfIndex broad_spec_locations;
+  find_broad_spec_locations(broad_spec_locations, abs_species, this_species);
+  
+  // Water index
+  const Index h2o_index = find_first_species_tg(abs_species, species_index_from_species_name("H2O"));
+  
+  for(Index il = 0; il < nl; il++)
+  {
+    const LineRecord& l = lr[il];
+    const Numeric& F0 = l.F();
+    const Numeric& S0 = l.I0();
+    
+    // QuantumIdentifier
+    const QuantumIdentifier QI = lr[il].QuantumIdentity(); 
+    
+    l.PressureBroadening().GetPressureBroadeningParams(G0, G2, e, L0, L2, FVC,
+                                                       l.Ti0()/T, P, P_partial, 
+                                                       this_species, h2o_index,
+                                                       broad_spec_locations,
+                                                       abs_vmrs, verbosity);
+    
+    // Get line mixing parameters of this line in this
+    l.LineMixing().GetLineMixingParams(Y,  G,  DV, T, P, lm_p_lim, 1);
+    
+    // Treat line mixing as a line center shift
+    L0 += DV;
+    
+    if(flag_partials.do_temperature())
+    {
+      l.PressureBroadening().GetPressureBroadeningParams_dT(dG0_dT, dL0_dT,
+                                                            T, l.Ti0(), P, P_partial, 
+                                                            this_species, h2o_index,
+                                                            broad_spec_locations,
+                                                            abs_vmrs, verbosity);
+      
+      
+      l.LineMixing().GetLineMixingParams_dT(dY_dT,  dG_dT,  dDV_dT, T, 
+                                            flag_partials.Temperature_Perturbation(),
+                                            P, lm_p_lim, 1);
+      
+      dL0_dT += dDV_dT;
+    }
+    
+    switch(l.PressureBroadening().Type())
+    {
+      case PressureBroadeningData::PB_SD_AIR_VOLUME:
+        Linefunctions::set_htp(F_single_line, dF_single_line,
+                               f_grid, Zeeman_DF[il], H_mag, F0,
+                               GD_div_F0, G0, L0, L2, G2, e, FVC,
+                               flag_partials, QI, 
+                               dGD_div_F0_dT, dG0_dT, 
+                               dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT);
+        break;
+      case PressureBroadeningData::PB_AIR_AND_WATER_BROADENING:
+      case PressureBroadeningData::PB_PLANETARY_BROADENING:
+      case PressureBroadeningData::PB_AIR_BROADENING:
+        Linefunctions::set_faddeeva_algorithm916(F_single_line, dF_single_line, 
+                                                 f_grid, Zeeman_DF[il], H_mag, F0,
+                                                 GD_div_F0, G0, L0, 
+                                                 flag_partials, QI,
+                                                 dGD_div_F0_dT, dG0_dT, dL0_dT);
+        break;
+      default:
+        throw std::runtime_error("Developer messed up");
+    }
+    
+    Linefunctions::apply_linemixing(F_single_line, dF_single_line,
+                                    Y, G, flag_partials, QI, dY_dT, dG_dT);
+    
+    Linefunctions::apply_VVH(F_single_line, dF_single_line, f_grid, F0, T, flag_partials);
+    
+    Linefunctions::apply_linestrength(F_single_line, dF_single_line, 
+                                      S0, isotopic_ratio,
+                                      QT, QT0, K1, K2, //K3, K4,
+                                      flag_partials, QI,
+                                      dQT_dT, dK1_dT, dK2_dT, dK2_dF0);
+    
+    Vector dgamma;
+    Linefunctions:: apply_pressurebroadening_jacobian(dF_single_line, flag_partials, QI, dgamma);
+  }
+}
+*/
 
 void set_magnetic_parameters(Numeric& H_mag,
                              Numeric& eta,

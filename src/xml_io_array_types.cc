@@ -3586,3 +3586,318 @@ void xml_write_to_stream(ostream&             os_xml,
   os_xml << '\n';
 }
 
+
+//=== ArrayOfPropagationMatrix ======================================================
+
+//! Reads ArrayOfPropagationMatrix from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param apm        ArrayOfPropagationMatrix return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream&         is_xml,
+                          ArrayOfPropagationMatrix&    apm,
+                          bifstream*       pbifs,
+                          const Verbosity& verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "PropagationMatrix");
+  
+  tag.get_attribute_value("nelem", nelem);
+  apm.resize(nelem);
+  
+  Index n;
+  try
+  {
+    for (n = 0; n < nelem; n++)
+      xml_read_from_stream(is_xml, apm[n], pbifs, verbosity);
+  }
+  catch (runtime_error e)
+  {
+    ostringstream os;
+    os << "Error reading ArrayOfPropagationMatrix: "
+    << "\n Element: " << n
+    << "\n" << e.what();
+    throw runtime_error(os.str());
+  }
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+
+//! Writes ArrayOfPropagationMatrix to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param apm     ArrayOfPropagationMatrix
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute
+ */
+void xml_write_to_stream(ostream&            os_xml,
+                         const ArrayOfPropagationMatrix& apm,
+                         bofstream*          pbofs,
+                         const String&       name,
+                         const Verbosity&    verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+  
+  open_tag.set_name("Array");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  
+  open_tag.add_attribute("type", "PropagationMatrix");
+  open_tag.add_attribute("nelem", apm.nelem());
+  
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+  
+  for (Index n = 0; n < apm.nelem(); n++)
+    xml_write_to_stream(os_xml, apm[n], pbofs, "", verbosity);
+  
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+  
+  os_xml << '\n';
+}
+
+
+//=== ArrayOfArrayOfPropagationMatrix ======================================================
+
+//! Reads ArrayOfArrayOfPropagationMatrix from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param aapm       ArrayOfArrayOfPropagationMatrix return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream&         is_xml,
+                          ArrayOfArrayOfPropagationMatrix&   aapm,
+                          bifstream*       pbifs,
+                          const Verbosity& verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "ArrayOfPropagationMatrix");
+  
+  tag.get_attribute_value("nelem", nelem);
+  aapm.resize(nelem);
+  
+  Index n;
+  try
+  {
+    for (n = 0; n < nelem; n++)
+      xml_read_from_stream(is_xml, aapm[n], pbifs, verbosity);
+  }
+  catch (runtime_error e)
+  {
+    ostringstream os;
+    os << "Error reading ArrayOfArrayOfPropagationMatrix: "
+    << "\n Element: " << n
+    << "\n" << e.what();
+    throw runtime_error(os.str());
+  }
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+
+//! Writes ArrayOfArrayOfPropagationMatrix to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param aapm    ArrayOfArrayOfPropagationMatrix
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute
+ */
+void xml_write_to_stream(ostream&            os_xml,
+                         const ArrayOfArrayOfPropagationMatrix& aapm,
+                         bofstream*          pbofs,
+                         const String&       name,
+                         const Verbosity&    verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+  
+  open_tag.set_name("Array");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  
+  open_tag.add_attribute("type", "ArrayOfPropagationMatrix");
+  open_tag.add_attribute("nelem", aapm.nelem());
+  
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+  
+  for (Index n = 0; n < aapm.nelem(); n++)
+    xml_write_to_stream(os_xml, aapm[n], pbofs, "", verbosity);
+  
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+  
+  os_xml << '\n';
+}
+
+
+//=== ArrayOfStokesVector ======================================================
+
+//! Reads ArrayOfStokesVector from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param apm        ArrayOfStokesVector return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream&         is_xml,
+                          ArrayOfStokesVector&    apm,
+                          bifstream*       pbifs,
+                          const Verbosity& verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "StokesVector");
+  
+  tag.get_attribute_value("nelem", nelem);
+  apm.resize(nelem);
+  
+  Index n;
+  try
+  {
+    for (n = 0; n < nelem; n++)
+      xml_read_from_stream(is_xml, apm[n], pbifs, verbosity);
+  }
+  catch (runtime_error e)
+  {
+    ostringstream os;
+    os << "Error reading ArrayOfStokesVector: "
+    << "\n Element: " << n
+    << "\n" << e.what();
+    throw runtime_error(os.str());
+  }
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+
+//! Writes ArrayOfStokesVector to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param apm     ArrayOfStokesVector
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute
+ */
+void xml_write_to_stream(ostream&            os_xml,
+                         const ArrayOfStokesVector& apm,
+                         bofstream*          pbofs,
+                         const String&       name,
+                         const Verbosity&    verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+  
+  open_tag.set_name("Array");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  
+  open_tag.add_attribute("type", "StokesVector");
+  open_tag.add_attribute("nelem", apm.nelem());
+  
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+  
+  for (Index n = 0; n < apm.nelem(); n++)
+    xml_write_to_stream(os_xml, apm[n], pbofs, "", verbosity);
+  
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+  
+  os_xml << '\n';
+}
+
+
+//=== ArrayOfArrayOfStokesVector ======================================================
+
+//! Reads ArrayOfArrayOfStokesVector from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param aapm       ArrayOfArrayOfStokesVector return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream&         is_xml,
+                          ArrayOfArrayOfStokesVector&   aapm,
+                          bifstream*       pbifs,
+                          const Verbosity& verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "ArrayOfStokesVector");
+  
+  tag.get_attribute_value("nelem", nelem);
+  aapm.resize(nelem);
+  
+  Index n;
+  try
+  {
+    for (n = 0; n < nelem; n++)
+      xml_read_from_stream(is_xml, aapm[n], pbifs, verbosity);
+  }
+  catch (runtime_error e)
+  {
+    ostringstream os;
+    os << "Error reading ArrayOfArrayOfStokesVector: "
+    << "\n Element: " << n
+    << "\n" << e.what();
+    throw runtime_error(os.str());
+  }
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+
+//! Writes ArrayOfArrayOfStokesVector to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param aapm    ArrayOfArrayOfStokesVector
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute
+ */
+void xml_write_to_stream(ostream&            os_xml,
+                         const ArrayOfArrayOfStokesVector& aapm,
+                         bofstream*          pbofs,
+                         const String&       name,
+                         const Verbosity&    verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+  
+  open_tag.set_name("Array");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  
+  open_tag.add_attribute("type", "ArrayOfStokesVector");
+  open_tag.add_attribute("nelem", aapm.nelem());
+  
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+  
+  for (Index n = 0; n < aapm.nelem(); n++)
+    xml_write_to_stream(os_xml, aapm[n], pbofs, "", verbosity);
+  
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+  
+  os_xml << '\n';
+}

@@ -654,6 +654,7 @@ int main()
           << "#include \"workspace_ng.h\"\n"
           << "#include \"cia.h\"\n"
           << "#include \"linemixingrecord.h\"\n"
+          << "#include \"propagationmatrix.h\"\n"
           << "\n";
 
       ofs << "// This is only used for a consistency check. You can get the\n"

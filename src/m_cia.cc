@@ -143,7 +143,7 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
     // Jacobian vectors END
     
     // Loop over CIA data sets.
-    // Index i loops through the outer array (different tag groups),
+    // Index ii loops through the outer array (different tag groups),
     // index s through the inner array (different tags within each goup).
     for (Index ii = 0; ii < abs_species_active.nelem(); ii++)
     {
@@ -259,10 +259,14 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
                                 this_dxsec[iq](iv,ip) += n*(dxsec_temp_dT[iv]-xsec_temp[iv])/dt + xsec_temp[iv]*dn_dT; 
                             else if(ppd(iq)==JQT_VMR)
                             {
-                                if(abs_species[i_sec][0].Species()==ppd.species(iq)&&i_sec==i)
-                                    this_dxsec[iq](iv,ip) += xsec_temp[iv] / abs_vmrs(i,ip); 
-                                else if(abs_species[i_sec][0].Species()==ppd.species(iq))
-                                    this_dxsec[iq](iv,ip) += xsec_temp[iv]; 
+                              if( abs_species[i_sec][0].Species() == ppd.species(iq) )
+                              {
+                                this_dxsec[iq](iv,ip) += xsec_temp[iv];
+                              }
+                              if( abs_species[i][0].Species() == ppd.species(iq) )
+                              {
+                                this_dxsec[iq](iv,ip) += xsec_temp[iv];
+                              }
                             }
                             // Note for coef that d/dt(a*n*n) = da/dt * n1*n2 + a * dn1/dt * n2 + a * n1 * dn2/dt, 
                             // we now output da/dt*n2 + a*dn2/dt and coef conversion then have to do 

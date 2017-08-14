@@ -469,8 +469,8 @@ void pha_mat_sptFromDataDOITOpt(// Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void opt_prop_sptFromData(// Output and Input:
-                          Tensor3& ext_mat_spt,
-                          Matrix& abs_vec_spt,
+                          ArrayOfPropagationMatrix& ext_mat_spt,
+                          ArrayOfStokesVector& abs_vec_spt,
                           // Input:
                           const ArrayOfArrayOfSingleScatteringData& scat_data,
                           const Vector& scat_za_grid,
@@ -488,19 +488,17 @@ void opt_prop_sptFromData(// Output and Input:
 {
   
   const Index N_ss = scat_data.nelem();
-  const Index stokes_dim = ext_mat_spt.ncols();
   const Numeric za_sca = scat_za_grid[scat_za_index];
   const Numeric aa_sca = scat_aa_grid[scat_aa_index];
-  
-  if (stokes_dim > 4 || stokes_dim < 1){
-    throw runtime_error("The dimension of the stokes vector \n"
-                        "must be 1,2,3 or 4");
+
+  DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data);
+  if(N_ss)
+  {
+    assert( ext_mat_spt[0].NumberOfFrequencies() == N_se_total );
+    assert( abs_vec_spt[0].NumberOfFrequencies() == N_se_total );
   }
-
-  DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data);)
-  assert( ext_mat_spt.npages() == N_se_total );
-  assert( abs_vec_spt.nrows() == N_se_total );
-
+  );
+  
   // Check that we don't have scat_data_mono here. Only checking the first
   // scat element, assuming the other elements have been processed in the same
   // manner. That's save against having mono data, but not against having
@@ -673,20 +671,18 @@ void opt_prop_sptFromData(// Output and Input:
               //
               // Extinction matrix:
               //
-
-
-              ext_matTransform(ext_mat_spt(i_se_flat, joker, joker),
-                               ext_mat_data_int,
-                               ZA_DATAGRID, AA_DATAGRID, PART_TYPE,
-                               za_sca, aa_sca,
-                               verbosity);
+              ext_matTransform(ext_mat_spt[i_se_flat],
+                              ext_mat_data_int,
+                              ZA_DATAGRID, AA_DATAGRID, PART_TYPE,
+                              za_sca, aa_sca,
+                              verbosity);
               //
               // Absorption vector:
               //
-              abs_vecTransform(abs_vec_spt(i_se_flat, joker),
-                               abs_vec_data_int,
-                               ZA_DATAGRID, AA_DATAGRID, PART_TYPE,
-                               za_sca, aa_sca, verbosity);
+              abs_vecTransform(abs_vec_spt[i_se_flat],
+                              abs_vec_data_int,
+                              ZA_DATAGRID, AA_DATAGRID, PART_TYPE,
+                              za_sca, aa_sca, verbosity);
           }
 
           i_se_flat++;
@@ -697,8 +693,8 @@ void opt_prop_sptFromData(// Output and Input:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void opt_prop_sptFromScat_data(// Output and Input:
-                          Tensor3& ext_mat_spt,
-                          Matrix& abs_vec_spt,
+                          ArrayOfPropagationMatrix& ext_mat_spt,
+                          ArrayOfStokesVector& abs_vec_spt,
                           // Input:
                           const ArrayOfArrayOfSingleScatteringData& scat_data,
                           const Index& scat_data_checked,
@@ -720,7 +716,7 @@ void opt_prop_sptFromScat_data(// Output and Input:
                          "passed a consistency check (scat_data_checked=1)." );
 
   const Index N_ss = scat_data.nelem();
-  const Index stokes_dim = ext_mat_spt.ncols();
+  const Index stokes_dim = ext_mat_spt[0].StokesDimensions();
   const Numeric za_sca = scat_za_grid[scat_za_index];
   const Numeric aa_sca = scat_aa_grid[scat_aa_index];
   
@@ -731,8 +727,8 @@ void opt_prop_sptFromScat_data(// Output and Input:
   }
 
   DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data);)
-  assert( ext_mat_spt.npages() == N_se_total );
-  assert( abs_vec_spt.nrows() == N_se_total );
+  assert( ext_mat_spt.nelem() == N_se_total );
+  assert( abs_vec_spt.nelem() == N_se_total );
 
   // Phase matrix in laboratory coordinate system. Dimensions:
   // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
@@ -740,8 +736,10 @@ void opt_prop_sptFromScat_data(// Output and Input:
   Tensor3 abs_vec_data_int;
   
   // Initialisation
-  ext_mat_spt = 0.;
-  abs_vec_spt = 0.;
+  for(auto& pm : ext_mat_spt)
+    pm.SetZero();
+  for(auto& sv : abs_vec_spt)
+    sv.SetZero();
 
   Index this_f_index;
 
@@ -889,13 +887,13 @@ void opt_prop_sptFromScat_data(// Output and Input:
               // Do the transformation into the laboratory coordinate system.
               //
               // Extinction matrix:
-              ext_matTransform(ext_mat_spt(i_se_flat, joker, joker),
+              ext_matTransform(ext_mat_spt[i_se_flat],
                                ext_mat_data_int,
                                ZA_DATAGRID, AA_DATAGRID, PART_TYPE,
                                za_sca, aa_sca,
                                verbosity);
               // Absorption vector:
-              abs_vecTransform(abs_vec_spt(i_se_flat, joker),
+              abs_vecTransform(abs_vec_spt[i_se_flat],
                                abs_vec_data_int,
                                ZA_DATAGRID, AA_DATAGRID, PART_TYPE,
                                za_sca, aa_sca, verbosity);
@@ -908,20 +906,20 @@ void opt_prop_sptFromScat_data(// Output and Input:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void opt_prop_bulkCalc(// Output and Input:
-                       Tensor3& ext_mat,
-                       Matrix&  abs_vec,
+                       PropagationMatrix& ext_mat,
+                       StokesVector&  abs_vec,
                        // Input:
-                 const Tensor3& ext_mat_spt,
-                 const Matrix& abs_vec_spt,
+                 const ArrayOfPropagationMatrix& ext_mat_spt,
+                 const ArrayOfStokesVector& abs_vec_spt,
                  const Tensor4& pnd_field,
                  const Index&   scat_p_index,
                  const Index&   scat_lat_index,
                  const Index&   scat_lon_index,
                  const Verbosity&)
 {
-  Index N_se = abs_vec_spt.nrows();
+  Index N_se = abs_vec_spt.nelem();
   //assert( ext_mat_spt.npages()==N_se )
-  if( ext_mat_spt.npages()!=N_se )
+  if( ext_mat_spt.nelem() not_eq N_se )
     {
       ostringstream os;
       os << "Number of scattering elements in *abs_vec_spt* and *ext_mat_spt*\n"
@@ -929,61 +927,47 @@ void opt_prop_bulkCalc(// Output and Input:
       throw runtime_error( os.str() );
     }
   
-  Index stokes_dim = abs_vec_spt.ncols();
+  Index stokes_dim = abs_vec_spt[0].StokesDimensions();
   //assert( ext_mat_spt.ncols()==stokes_dim && ext_mat_spt.nrows()==stokes_dim )
-  if( ext_mat_spt.ncols()!=stokes_dim && ext_mat_spt.nrows()!=stokes_dim )
-    {
-      ostringstream os;
-      os << "*stokes_dim* of *abs_vec_spt* and *ext_mat_spt* does not agree.";
-      throw runtime_error( os.str() );
-    }
+  if( ext_mat_spt[0].StokesDimensions() not_eq stokes_dim )
+  {
+    ostringstream os;
+    os << "*stokes_dim* of *abs_vec_spt* and *ext_mat_spt* does not agree.";
+    throw runtime_error( os.str() );
+  }
   if (stokes_dim > 4 || stokes_dim < 1){
       ostringstream os;
       os << "The dimension of stokes vector can only be 1, 2, 3, or 4.";
       throw runtime_error( os.str() );
   }
 
-  ext_mat.resize( 1, stokes_dim, stokes_dim );
-  ext_mat = 0;                  // Initialize to zero!
-  abs_vec.resize( 1, stokes_dim );
-  abs_vec = 0;                  // Initialize to zero!
+  ext_mat = PropagationMatrix( 1, stokes_dim );
+  ext_mat.SetZero();                  // Initialize to zero!
+  abs_vec = StokesVector( 1, stokes_dim );
+  abs_vec.SetZero();                  // Initialize to zero!
 
-  Matrix ext_mat_part(stokes_dim, stokes_dim, 0.0);
-  Vector abs_vec_part(stokes_dim, 0.0);
+  PropagationMatrix ext_mat_part(1, stokes_dim);
+  ext_mat_part.SetZero();
+  StokesVector abs_vec_part(1, stokes_dim);
+  abs_vec_part.SetZero();
 
   // this is the loop over the different scattering elements
   for (Index l = 0; l < N_se; l++)
-    { 
-      // now the two loops over the stokes dimension.
-      for (Index m = 0; m < stokes_dim; m++)
-        {
-          //summation of the product of pnd_field and 
-          //abs_vec_spt.
-          abs_vec_part[m] += abs_vec_spt(l, m) *
-                             pnd_field(l, scat_p_index,
-                                       scat_lat_index, scat_lon_index);
-
-          for (Index n = 0; n < stokes_dim; n++)
-            {
-              //summation of the product of pnd_field and 
-              //ext_mat_spt.
-              ext_mat_part(m, n) += ext_mat_spt(l, m, n) *
-                                    pnd_field(l, scat_p_index,
-                                              scat_lat_index, scat_lon_index);
-            }
-        }
-    }
+  { 
+    abs_vec_part.MultiplyAndAdd(pnd_field(l, scat_p_index, scat_lat_index, scat_lon_index), abs_vec_spt[l]);
+    ext_mat_part.MultiplyAndAdd(pnd_field(l, scat_p_index, scat_lat_index, scat_lon_index), ext_mat_spt[l]);
+  }
 
   //Add absorption due single scattering element.
-  abs_vec(0, Range(joker)) += abs_vec_part;
+  abs_vec += abs_vec_part;
   //Add extinction matrix due single scattering element to *ext_mat*.
-  ext_mat(0, Range(joker), Range(joker)) += ext_mat_part;
+  ext_mat += ext_mat_part;
 } 
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ext_matAddPart(Tensor3& ext_mat,
-                    const Tensor3& ext_mat_spt,
+void ext_matAddPart(PropagationMatrix& ext_mat,
+                    const ArrayOfPropagationMatrix& ext_mat_spt,
                     const Tensor4& pnd_field,
                     const Index& atmosphere_dim,
                     const Index& scat_p_index,
@@ -992,21 +976,24 @@ void ext_matAddPart(Tensor3& ext_mat,
                     const Verbosity&)
                      
 {
-  Index N_se = ext_mat_spt.npages();
-  Index stokes_dim = ext_mat_spt.nrows();
+  Index N_se = ext_mat_spt.nelem();
+  Index stokes_dim = ext_mat.StokesDimensions();
   
-  Matrix ext_mat_part(stokes_dim, stokes_dim, 0.0);
-
+  PropagationMatrix ext_mat_part(1, stokes_dim);
+  ext_mat_part.SetZero();
   
-  if (stokes_dim > 4 || stokes_dim < 1){
+  if (stokes_dim > 4 or stokes_dim < 1){
     throw runtime_error(
                         "The dimension of stokes vector can be "
                         "only 1,2,3, or 4");
   }
-  if ( ext_mat_spt.ncols() != stokes_dim){
-    
-    throw runtime_error(" The columns of ext_mat_spt should "
-                        "agree to stokes_dim");
+  
+  for(auto& pm : ext_mat_spt)
+  {
+    if ( pm.StokesDimensions() not_eq stokes_dim)
+    {
+      throw runtime_error("The shape of ext_mat_spt should agree to the shape of ext_mat");
+    }
   }
 
   if (atmosphere_dim == 1)
@@ -1016,18 +1003,17 @@ void ext_matAddPart(Tensor3& ext_mat,
         { 
           
           // now the last two loops over the stokes dimension.
-          for (Index m = 0; m < stokes_dim; m++)
-            {
-              for (Index n = 0; n < stokes_dim; n++)
+          //for (Index m = 0; m < stokes_dim; m++)
+            //{
+              //for (Index n = 0; n < stokes_dim; n++)
                 //summation of the product of pnd_field and 
                 //ext_mat_spt.
-                ext_mat_part(m, n) += 
-                  (ext_mat_spt(l, m, n) * pnd_field(l, scat_p_index, 0, 0));
-            }
+              ext_mat_part.MultiplyAndAdd( pnd_field(l, scat_p_index, 0, 0), ext_mat_spt[l]);
+            //}
         }
 
       //Add extinction matrix due single scattering element to *ext_mat*.
-      ext_mat(0, Range(joker), Range(joker)) += ext_mat_part;
+      ext_mat += ext_mat_part;
     }
  
   if (atmosphere_dim == 3)
@@ -1038,21 +1024,18 @@ void ext_matAddPart(Tensor3& ext_mat,
         { 
           
           // now the last two loops over the stokes dimension.
-          for (Index m = 0; m < stokes_dim; m++)
-            {
-              for (Index n = 0; n < stokes_dim; n++)
+          //for (Index m = 0; m < stokes_dim; m++)
+            //{
+              //for (Index n = 0; n < stokes_dim; n++)
                 //summation of the product of pnd_field and 
                 //ext_mat_spt.
-                ext_mat_part(m, n) +=  (ext_mat_spt(l, m, n) * 
-                                        pnd_field(l, scat_p_index, 
-                                                  scat_lat_index, 
-                                                  scat_lon_index));
+                ext_mat_part.MultiplyAndAdd( pnd_field(l, scat_p_index, scat_lat_index, scat_lon_index), ext_mat_spt[l]);
               
-            } 
+            //} 
         }
 
       //Add extinction matrix due single scattering element to *ext_mat*.
-      ext_mat(0, Range(joker), Range(joker)) += ext_mat_part;
+      ext_mat += ext_mat_part;
 
     }
 
@@ -1060,8 +1043,8 @@ void ext_matAddPart(Tensor3& ext_mat,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_vecAddPart(Matrix& abs_vec,
-                    const Matrix& abs_vec_spt,
+void abs_vecAddPart(StokesVector& abs_vec,
+                    const ArrayOfStokesVector& abs_vec_spt,
                     const Tensor4& pnd_field,
                     const Index& atmosphere_dim,
                     const Index& scat_p_index,
@@ -1070,10 +1053,11 @@ void abs_vecAddPart(Matrix& abs_vec,
                     const Verbosity&)
                     
 {
-  Index N_se = abs_vec_spt.nrows();
-  Index stokes_dim = abs_vec_spt.ncols();
+  Index N_se = abs_vec_spt.nelem();
+  Index stokes_dim = abs_vec.StokesDimensions();
 
-  Vector abs_vec_part(stokes_dim, 0.0);
+  StokesVector abs_vec_part(1, stokes_dim);
+  abs_vec_part.SetZero();
 
   if ((stokes_dim > 4) || (stokes_dim <1)){
     throw runtime_error("The dimension of stokes vector "
@@ -1087,41 +1071,37 @@ void abs_vecAddPart(Matrix& abs_vec,
         {
           // now the loop over the stokes dimension.
           //(CE:) in the middle was l instead of m
-          for (Index m = 0; m < stokes_dim; ++m)
+          //for (Index m = 0; m < stokes_dim; ++m)
              //summation of the product of pnd_field and 
             //abs_vec_spt.
-            abs_vec_part[m] += 
-              (abs_vec_spt(l, m) * pnd_field(l, scat_p_index, 0, 0));
+          abs_vec_part.MultiplyAndAdd(pnd_field(l, scat_p_index, 0, 0), abs_vec_spt[l]);
           
         }
       //Add absorption due single scattering element.
-      abs_vec(0, Range(joker)) += abs_vec_part;
+      abs_vec += abs_vec_part;
     }
   
-  if (atmosphere_dim == 3)
+  else if (atmosphere_dim == 3)
     {
       // this is a loop over the different scattering elements
       for (Index l = 0; l < N_se ; ++l)
         {
           
           // now the loop over the stokes dimension.
-          for (Index m = 0; m < stokes_dim; ++m)
+          //for (Index m = 0; m < stokes_dim; ++m)
              //summation of the product of pnd_field and 
             //abs_vec_spt.
-            abs_vec_part[m] += (abs_vec_spt(l, m) *
-                                pnd_field(l, scat_p_index,
-                                          scat_lat_index, 
-                                          scat_lon_index));
+            abs_vec_part.MultiplyAndAdd(pnd_field(l, scat_p_index, scat_lat_index,  scat_lon_index), abs_vec_spt[l]);
           
         }
       //Add absorption due single scattering element.
-      abs_vec(0,Range(joker)) += abs_vec_part;
+      abs_vec += abs_vec_part;
     }
 } 
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ext_matInit(Tensor3&         ext_mat,
+void ext_matInit(PropagationMatrix&         ext_mat,
                  const Vector&    f_grid,
                  const Index&     stokes_dim,
                  const Index&     f_index,
@@ -1136,10 +1116,8 @@ void ext_matInit(Tensor3&         ext_mat,
   else
     freq_dim = 1;
  
-  ext_mat.resize( freq_dim,
-                  stokes_dim,
-                  stokes_dim );
-  ext_mat = 0;                  // Initialize to zero!
+  ext_mat = PropagationMatrix( freq_dim, stokes_dim);
+  ext_mat.SetZero();
 
   out2 << "Set dimensions of ext_mat as ["
        << freq_dim << ","
@@ -1149,52 +1127,36 @@ void ext_matInit(Tensor3&         ext_mat,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ext_matAddGas(Tensor3&      ext_mat,
-                   const Tensor4& propmat_clearsky,
+void ext_matAddGas(PropagationMatrix& ext_mat,
+                   const ArrayOfPropagationMatrix& propmat_clearsky,
                    const Verbosity&)
 {
   // Number of Stokes parameters:
-  const Index stokes_dim = ext_mat.ncols();
+  const Index stokes_dim = ext_mat.StokesDimensions();
 
   // The second dimension of ext_mat must also match the number of
   // Stokes parameters:
-  if ( stokes_dim != ext_mat.nrows() )
-    throw runtime_error("Row dimension of ext_mat inconsistent with "
-                        "column dimension.");
-  if ( stokes_dim != propmat_clearsky.ncols() )
+  if ( stokes_dim != propmat_clearsky[0].StokesDimensions() )
     throw runtime_error("Col dimension of propmat_clearsky "
                         "inconsistent with col dimension in ext_mat.");
 
   // Number of frequencies:
-  const Index f_dim = ext_mat.npages();
+  const Index f_dim = ext_mat.NumberOfFrequencies();
 
   // This must be consistent with the second dimension of
   // propmat_clearsky. Check this:
-  if ( f_dim != propmat_clearsky.npages() )
+  if ( f_dim != propmat_clearsky[0].NumberOfFrequencies() )
     throw runtime_error("Frequency dimension of ext_mat and propmat_clearsky\n"
                         "are inconsistent in ext_matAddGas.");
 
-  // Sum up absorption over all species.
-  // This gives us an absorption vector for all frequencies. Of course
-  // this includes the special case that there is only one frequency.
-  Tensor3 abs_total(f_dim,stokes_dim,stokes_dim);
-  abs_total = 0;
-  
-//   for ( Index i=0; i<f_dim; ++i )
-//     abs_total[i] = abs_scalar_gas(i,joker).sum();
-  for ( Index iv=0; iv<f_dim; ++iv )
-        for ( Index is1=0; is1<stokes_dim; ++is1 )
-              for ( Index is2=0; is2<stokes_dim; ++is2 )
-                    abs_total(iv,is1,is2) += propmat_clearsky(joker,iv,is1,is2).sum();
-  
-    // Add the absorption value to all the elements:
-      ext_mat += abs_total;
+  for(auto& pm : propmat_clearsky)
+    ext_mat += pm;
       
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_vecInit(Matrix&       abs_vec,
+void abs_vecInit(StokesVector& abs_vec,
                  const Vector& f_grid,
                  const Index&  stokes_dim,
                  const Index&  f_index,
@@ -1209,9 +1171,8 @@ void abs_vecInit(Matrix&       abs_vec,
   else
     freq_dim = 1;
  
-  abs_vec.resize( freq_dim,
-                  stokes_dim );
-  abs_vec = 0;                  // Initialize to zero!
+  abs_vec = StokesVector(freq_dim, stokes_dim);
+  abs_vec.SetZero();
 
   out2 << "Set dimensions of abs_vec as ["
        << freq_dim << ","
@@ -1220,32 +1181,27 @@ void abs_vecInit(Matrix&       abs_vec,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_vecAddGas(Matrix&       abs_vec,
-                   const Tensor4& propmat_clearsky,
+void abs_vecAddGas(StokesVector& abs_vec,
+                   const ArrayOfPropagationMatrix& propmat_clearsky,
                    const Verbosity&)
 {
   // Number of frequencies:
-  const Index f_dim = abs_vec.nrows();
-  const Index stokes_dim = abs_vec.ncols();
+  const Index f_dim = abs_vec.NumberOfFrequencies();
+  const Index stokes_dim = abs_vec.StokesDimensions();
   
   // This must be consistent with the second dimension of
   // propmat_clearsky. Check this:
-  if ( f_dim != propmat_clearsky.npages() )
+  if ( f_dim != propmat_clearsky[0].NumberOfFrequencies() )
     throw runtime_error("Frequency dimension of abs_vec and propmat_clearsky\n"
                         "are inconsistent in abs_vecAddGas.");
-  if ( stokes_dim != propmat_clearsky.ncols() )
+  if ( stokes_dim != propmat_clearsky[0].StokesDimensions() )
     throw runtime_error("Stokes dimension of abs_vec and propmat_clearsky\n"
                         "are inconsistent in abs_vecAddGas.");
     
   // Loop all frequencies. Of course this includes the special case
   // that there is only one frequency.
-  for ( Index i=0; i<f_dim; ++i )
-    {
-      // Sum up the columns of propmat_clearsky and add to the first
-      // element of abs_vec.
-      for(Index is = 0; is < stokes_dim;is++)
-        abs_vec(i,is) += propmat_clearsky(joker,i,is,0).sum();
-    }
+  for(auto& pm : propmat_clearsky)
+    abs_vec += pm; // Defined to only add to the 
 
   // We don't have to do anything about higher elements of abs_vec,
   // since scalar gas absorption only influences the first element.
@@ -2059,8 +2015,8 @@ void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void opt_prop_sptFromMonoData(// Output and Input:
-                              Tensor3& ext_mat_spt,
-                              Matrix& abs_vec_spt,
+                              ArrayOfPropagationMatrix& ext_mat_spt,
+                              ArrayOfStokesVector& abs_vec_spt,
                               // Input:
                               const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                               const Vector& scat_za_grid,
@@ -2075,17 +2031,17 @@ void opt_prop_sptFromMonoData(// Output and Input:
                               const Verbosity& verbosity)
 {
   DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data_mono);)
-  const Index stokes_dim = ext_mat_spt.ncols();
+  const Index stokes_dim = ext_mat_spt[0].StokesDimensions();
   const Numeric za_sca = scat_za_grid[scat_za_index];
   const Numeric aa_sca = scat_aa_grid[scat_aa_index];
   
-  if (stokes_dim > 4 || stokes_dim < 1){
+  if (stokes_dim > 4 or stokes_dim < 1){
     throw runtime_error("The dimension of the stokes vector \n"
                          "must be 1,2,3 or 4");
   }
   
-  assert( ext_mat_spt.npages() == N_se_total );
-  assert( abs_vec_spt.nrows() == N_se_total );
+  assert( ext_mat_spt.nelem() == N_se_total );
+  assert( abs_vec_spt.nelem() == N_se_total );
 
   // Check that we do indeed have scat_data_mono here. Only checking the first
   // scat element, assuming the other elements have been processed in the same
@@ -2105,8 +2061,10 @@ void opt_prop_sptFromMonoData(// Output and Input:
   }
 
   // Initialisation
-  ext_mat_spt = 0.;
-  abs_vec_spt = 0.;
+  for(auto& pm : ext_mat_spt)
+    pm.SetZero();
+  for(auto& av : abs_vec_spt)
+    av.SetZero();
 
   GridPos t_gp;
   
@@ -2172,7 +2130,7 @@ void opt_prop_sptFromMonoData(// Output and Input:
                           }
                       }
                   }
-                  ext_matTransform(ext_mat_spt(i_se_flat, joker, joker),
+                  ext_matTransform(ext_mat_spt[i_se_flat],
                                    ext_mat_data1temp,
                                    scat_data_mono[i_ss][i_se].za_grid,
                                    scat_data_mono[i_ss][i_se].aa_grid,
@@ -2182,7 +2140,7 @@ void opt_prop_sptFromMonoData(// Output and Input:
               }
               else
               {
-                  ext_matTransform(ext_mat_spt(i_se_flat, joker, joker),
+                  ext_matTransform(ext_mat_spt[i_se_flat],
                                    scat_data_mono[i_ss][i_se].ext_mat_data(0, 0, joker, joker, joker),
                                    scat_data_mono[i_ss][i_se].za_grid,
                                    scat_data_mono[i_ss][i_se].aa_grid,
@@ -2190,8 +2148,6 @@ void opt_prop_sptFromMonoData(// Output and Input:
                                    za_sca, aa_sca,
                                    verbosity);
               }
-
-
               //
               // Absorption vector:
               //
@@ -2214,7 +2170,7 @@ void opt_prop_sptFromMonoData(// Output and Input:
                           }
                       }
                   }
-                  abs_vecTransform(abs_vec_spt(i_se_flat, joker),
+                  abs_vecTransform(abs_vec_spt[i_se_flat],
                                    abs_vec_data1temp,
                                    scat_data_mono[i_ss][i_se].za_grid,
                                    scat_data_mono[i_ss][i_se].aa_grid,
@@ -2224,7 +2180,7 @@ void opt_prop_sptFromMonoData(// Output and Input:
               }
               else
               {
-                  abs_vecTransform(abs_vec_spt(i_se_flat, joker),
+                  abs_vecTransform(abs_vec_spt[i_se_flat],
                                    scat_data_mono[i_ss][i_se].abs_vec_data(0, 0, joker, joker, joker),
                                    scat_data_mono[i_ss][i_se].za_grid,
                                    scat_data_mono[i_ss][i_se].aa_grid,
@@ -2232,8 +2188,6 @@ void opt_prop_sptFromMonoData(// Output and Input:
                                    za_sca, aa_sca,
                                    verbosity);
               }
-
-
           }
           
           i_se_flat++;
@@ -3134,11 +3088,28 @@ void TestScatDataInterp(Workspace& ws,
   //
 
   // for abs_vec and ext_mat, the same implementation is used in RT4 and DOIT.
-  Matrix abs_vec_spt(N_se, stokes_dim, 0.);
-  Tensor3 ext_mat_spt(N_se, stokes_dim, stokes_dim, 0.);
+  ArrayOfStokesVector abs_vec_spt(N_se);
+  for(auto& av : abs_vec_spt)
+  {
+    av = StokesVector(1, stokes_dim);
+    av.SetZero();
+  }
+  
+  ArrayOfPropagationMatrix ext_mat_spt(N_se);
+  for(auto& pm : ext_mat_spt)
+  {
+    pm = PropagationMatrix(1, stokes_dim);
+    pm.SetZero();
+  }
+  
   Tensor5 pha_mat_spt( N_se, n_za, n_aa, stokes_dim, stokes_dim, 0.0 );
-  Matrix abs_vec_doit(n_f, stokes_dim, 0.);
-  Tensor3 ext_mat_doit(n_f, stokes_dim, stokes_dim, 0.);
+  
+  StokesVector abs_vec_doit(n_f, stokes_dim);
+  abs_vec_doit.SetZero();
+  
+  PropagationMatrix ext_mat_doit(n_f, stokes_dim);
+  ext_mat_doit.SetZero();
+  
   Tensor4 pha_mat_doit( n_za, n_aa, stokes_dim, stokes_dim, 0.0 );
 
   Tensor4 pnd(N_se, 1, 1, 1, 0.);
@@ -3219,9 +3190,13 @@ void TestScatDataInterp(Workspace& ws,
 
   if (printinfo)
     {
+      Matrix tmp1(stokes_dim, stokes_dim);
+      ext_mat_doit.MatrixAtFrequency(tmp1, 0);
+      Vector tmp2(stokes_dim);
+      abs_vec_doit.VectorAtFrequency(tmp2, 0);
       cout << "----- DOIT -----" << endl;
-      cout << "absorption vector:\n" << abs_vec_doit(0,joker) << endl;
-      cout << "extinction matrix:\n" << ext_mat_doit(0,joker,joker) << endl;
+      cout << "absorption vector:\n" << tmp2 << endl;
+      cout << "extinction matrix:\n" << tmp1 << endl;
       cout << "phase matrix (" << za_printinfo_index
            << "," << aa_printinfo_index << "):\n"
            << pha_mat_doit(za_printinfo_index,aa_printinfo_index,joker,joker)
@@ -3232,8 +3207,12 @@ void TestScatDataInterp(Workspace& ws,
     
   ////// RT4 //////
   //
-  Matrix abs_vec_rt4(n_f, stokes_dim, 0.);
-  Tensor3 ext_mat_rt4(n_f, stokes_dim, stokes_dim, 0.);
+  StokesVector abs_vec_rt4(n_f, stokes_dim);
+  abs_vec_rt4.SetZero();
+  
+  PropagationMatrix ext_mat_rt4(n_f, stokes_dim);
+  ext_mat_rt4.SetZero();
+  
   Tensor4 pha_mat_rt4( n_za, n_aa, stokes_dim, stokes_dim, 0.0 );
   Vector sza_grid(1);
   sza_grid[0] = rtp_los[0];
@@ -3360,9 +3339,13 @@ void TestScatDataInterp(Workspace& ws,
 
   if (printinfo)
     {
+      Matrix tmp1(stokes_dim, stokes_dim);
+      ext_mat_rt4.MatrixAtFrequency(tmp1, 0);
+      Vector tmp2(stokes_dim);
+      abs_vec_rt4.VectorAtFrequency(tmp2, 0);
       cout << "----- RT4 -----" << endl;
-      cout << "absorption vector:\n" << abs_vec_rt4(0,joker) << endl;
-      cout << "extinction matrix:\n" << ext_mat_rt4(0,joker,joker) << endl;
+      cout << "absorption vector:\n" << tmp2 << endl;
+      cout << "extinction matrix:\n" << tmp1 << endl;
       cout << "phase matrix (" << za_printinfo_index
            << "," << aa_printinfo_index << "):\n"
            << pha_mat_rt4(za_printinfo_index,aa_printinfo_index,joker,joker)
@@ -3421,13 +3404,17 @@ void TestScatDataInterp(Workspace& ws,
   ////// Compare //////
   //
   if (compare==1 || compare>2)
-    {
+  {
+    Matrix tmp1(stokes_dim, stokes_dim, 0.0);
+    ext_mat_doit.MatrixAtFrequency(tmp1, 0);
+    Vector tmp2(stokes_dim);
+    abs_vec_doit.VectorAtFrequency(tmp2, 0);
       Numeric dmax;
       dmax = 0.5e-6*(abs_vec_doit(0,0)+abs_vec_mc[0]);
-      Compare(abs_vec_doit(0,joker), abs_vec_mc, dmax, "Deviation in abs_vec",
+      Compare(tmp2, abs_vec_mc, dmax, "Deviation in abs_vec",
               "DOIT", "MC", "", "", verbosity);
       dmax = 0.5e-6*(ext_mat_doit(0,0,0)+ext_mat_mc(0,0));
-      Compare(ext_mat_doit(0,joker,joker), ext_mat_mc, dmax, "Deviation in ext_mat",
+      Compare(tmp1, ext_mat_mc, dmax, "Deviation in ext_mat",
               "DOIT", "MC", "", "", verbosity);
       for (Index iza=0; iza<n_za; iza++)
         for (Index iaa=0; iaa<n_aa; iaa++)
@@ -3439,15 +3426,20 @@ void TestScatDataInterp(Workspace& ws,
           Compare(pha_mat_doit(iza,iaa,joker,joker), pha_mat_mc(iza,iaa,joker,joker),
                   dmax, os.str(), "DOIT", "MC", "", "", verbosity);
         }
-    }
+  }
   if (compare>1)
-    {
+  {
+    Matrix tmp1(stokes_dim, stokes_dim);
+    ext_mat_rt4.MatrixAtFrequency(tmp1, 0);
+    Vector tmp2(stokes_dim);
+    abs_vec_rt4.VectorAtFrequency(tmp2, 0);
+    
       Numeric dmax;
       dmax = 0.5e-6*(abs_vec_rt4(0,0)+abs_vec_mc[0]);
-      Compare(abs_vec_rt4(0,joker), abs_vec_mc, dmax, "Deviation in abs_vec",
+      Compare(tmp2, abs_vec_mc, dmax, "Deviation in abs_vec",
               "RT4", "MC", "", "", verbosity);
       dmax = 0.5e-6*(ext_mat_rt4(0,0,0)+ext_mat_mc(0,0));
-      Compare(ext_mat_rt4(0,joker,joker), ext_mat_mc, dmax, "Deviation in ext_mat",
+      Compare(tmp1, ext_mat_mc, dmax, "Deviation in ext_mat",
               "RT4", "MC", "", "", verbosity);
       for (Index iza=0; iza<n_za; iza++)
         for (Index iaa=0; iaa<n_aa; iaa++)
@@ -3459,6 +3451,6 @@ void TestScatDataInterp(Workspace& ws,
           Compare(pha_mat_rt4(iza,iaa,joker,joker), pha_mat_mc(iza,iaa,joker,joker),
                   dmax, os.str(), "RT4", "MC", "", "", verbosity);
         }
-    }
+  }
 
 }

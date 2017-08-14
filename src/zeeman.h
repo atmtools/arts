@@ -17,20 +17,10 @@
    USA. */
    
    
-
-#include <cmath>
-#include <stdexcept>
-#include <string>
-#include "ppath.h"
-#include "messages.h"
-#include "math_funcs.h"
-#include "absorption.h"
 #include "abs_species_tags.h"
 #include "physics_funcs.h"
-#include "matpackIII.h"
 #include "rte.h"
-#include "rational.h"
-#include "partial_derivatives.h"
+#include "global_data.h"
 #include "quantum.h"
 
 extern const Numeric PI;
@@ -65,11 +55,11 @@ Numeric relative_strength(const Rational& m, const Rational& j, const Index& dj,
 
 Numeric frequency_change(const LineRecord& lr, const Numeric& H_mag, const Numeric& GS);
 
-void xsec_species_line_mixing_wrapper_with_zeeman(  Tensor4View propmat_clearsky, 
-                                                    Tensor3View nlte_source,
-                                                    ArrayOfTensor3& dpropmat_clearsky_dx,
-                                                    ArrayOfMatrix&  dnlte_dx_source,
-                                                    ArrayOfMatrix&  nlte_dsource_dx,
+void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& propmat_clearsky, 
+                                                    ArrayOfStokesVector& nlte_source,
+                                                    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+                                                    ArrayOfStokesVector&  dnlte_dx_source,
+                                                    ArrayOfStokesVector&  nlte_dsource_dx,
                                                     const ArrayOfArrayOfSpeciesTag& abs_species, 
                                                     const PropmatPartialsData& flag_partials,
                                                     const Index& abs_lineshape_ls, 

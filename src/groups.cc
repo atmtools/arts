@@ -88,7 +88,7 @@ void define_wsv_group_names()
   //--------------------< Build the group names array >--------------------
   // Initialize to empty, just in case.
   wsv_group_names.resize(0);
-
+  
   wsv_group_names.push_back("Agenda");
   wsv_group_names.push_back("Any");
   wsv_group_names.push_back("ArrayOfAgenda");
@@ -99,9 +99,11 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfArrayOfLineMixingRecord");
   wsv_group_names.push_back("ArrayOfArrayOfLineRecord");
   wsv_group_names.push_back("ArrayOfArrayOfMatrix");
+  wsv_group_names.push_back("ArrayOfArrayOfPropagationMatrix");
   wsv_group_names.push_back("ArrayOfArrayOfScatteringMetaData");
   wsv_group_names.push_back("ArrayOfArrayOfSingleScatteringData");
   wsv_group_names.push_back("ArrayOfArrayOfSpeciesTag");
+  wsv_group_names.push_back("ArrayOfArrayOfStokesVector");
   wsv_group_names.push_back("ArrayOfArrayOfString");
   wsv_group_names.push_back("ArrayOfArrayOfTensor3");
   wsv_group_names.push_back("ArrayOfArrayOfTensor6");
@@ -116,11 +118,13 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfLineRecord");
   wsv_group_names.push_back("ArrayOfLineshapeSpec");
   wsv_group_names.push_back("ArrayOfMatrix");
+  wsv_group_names.push_back("ArrayOfPropagationMatrix");
   wsv_group_names.push_back("ArrayOfQuantumIdentifier");
   wsv_group_names.push_back("ArrayOfRetrievalQuantity");
   wsv_group_names.push_back("ArrayOfScatteringMetaData");
   wsv_group_names.push_back("ArrayOfSingleScatteringData");
   wsv_group_names.push_back("ArrayOfSparse");
+  wsv_group_names.push_back("ArrayOfStokesVector");
   wsv_group_names.push_back("ArrayOfString");
   wsv_group_names.push_back("ArrayOfTensor3");
   wsv_group_names.push_back("ArrayOfTensor4");
@@ -141,11 +145,13 @@ void define_wsv_group_names()
   wsv_group_names.push_back("Matrix");
   wsv_group_names.push_back("Numeric");
   wsv_group_names.push_back("Ppath");
+  wsv_group_names.push_back("PropagationMatrix");
   wsv_group_names.push_back("QuantumIdentifier");
   wsv_group_names.push_back("ScatteringMetaData");
   wsv_group_names.push_back("SingleScatteringData");
   wsv_group_names.push_back("Sparse");
   wsv_group_names.push_back("SpeciesAuxData");
+  wsv_group_names.push_back("StokesVector");
   wsv_group_names.push_back("String");
   wsv_group_names.push_back("Tensor3");
   wsv_group_names.push_back("Tensor4");

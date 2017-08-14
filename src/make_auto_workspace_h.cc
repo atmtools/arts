@@ -67,6 +67,7 @@ int main()
           << "#include \"mc_interp.h\"\n"
           << "#include \"mc_antenna.h\"\n"
           << "#include \"cia.h\"\n"
+          << "#include \"propagationmatrix.h\"\n"
           << "#include \"linemixingrecord.h\"\n"
           << "\n";
 

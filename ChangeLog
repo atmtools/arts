@@ -1,3 +1,161 @@
+2017-08-14 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-757
+	
+	This also breaks controlfiles.  Those directly using the propagation matrix
+	
+	Introducing new internal class and sub-class PropagationMatrix and
+	StokesVector to handle propagation a bit more efficiently.  StokesVector
+	is basically only there to easier convert from one to another.
+	
+	Note:  This lacks a lot of optimizations.  Only iyemissionstandard is optimized,
+	the rest receives only moderat boosts.  In my own work predicting Martian parameter
+	retrieval expectations using loads of RetrievalQuantity, I see around 
+	50% speed increase, so a few tricks could help other code-paths speed-up some
+	as well.
+	
+	* controlfiles/artscomponents/wfuns/ReferenceJacobianInTestErrorJacobian.xml:
+	Changed because this committ altered the numbers (with same magnitude of the 
+	change if you do perturbation calculations).
+	
+	* src/CMakeLists.txt: Added files
+	
+	* src/absorption.cc:  Fix error found investigating catalog jacobian change
+	
+	* src/disort.cc:  Changed to use new classes: dtauc_ssalbCalc 
+	
+	* src/doit.{cc,h}:  Created temporary function rte_step_doit_replacement
+	to replace rte_step_doit using new classes.  Basically the same thing but 
+	without the need to create many local copies
+	
+	Changed to use new classes: cloud_fieldsCalc, cloud_RT_no_background,
+	cloud_ppath_update1D_planeparallel
+	
+	* src/groups.cc:  Added new classes up to ArrayOfArrayOf*
+	
+	* src/linerecord.cc:  Fix for added quantum identifier for match all in
+	match_lines_by_quantum_identifier
+	
+	* src/linerecord.h:  Added method for returning line quantum identifier
+	
+	* src/lineshapesdata.{cc,h}: Changed a lot.  Still work in progress.
+	Will be namespace and make life easier for adding new methods...
+	
+	* src/m_abs.cc:  Changed to use new classes:  
+	nlte_sourceFromTemperatureAndSrcCoefPerSpecies, 
+	propmat_clearskyAddFromAbsCoefPerSpecies,
+	propmat_clearskyInit,
+	propmat_clearskyAddFaraday,
+	propmat_clearskyAddParticles,
+	propmat_clearskyAddOnTheFly,
+	
+	* src/m_abs_lookup.cc: Changed to use new classes: 
+	propmat_clearskyAddFromLookup,
+	propmat_clearsky_fieldCalc
+	
+	* src/m_cia.cc: Found bug in VMR stuff.  Still under debug-status...
+	
+	* src/m_cloudradar.cc: Changed to use new classes:  
+	iyActiveSingleScat
+	
+	* src/m_doit.cc:   Changed to use new classes:  
+	OptimizeDoitPressureGrid,
+	
+	* src/m_fos.cc:  Changed to use new classes: 
+	fos, iyHybrid
+	
+	* src/m_linemixing.cc: Updated interface
+	
+	* src/m_optproperties.cc: Changed to use new classes: 
+	 opt_prop_sptFromData,
+	 opt_prop_sptFromScat_data,
+	 opt_prop_bulkCalc,
+	 ext_matAddPart,
+	 abs_vecAddPart,
+	 ext_matAddGas,
+	 abs_vecInit,
+	 opt_prop_sptFromMonoData,
+	 TestScatDataInterp,
+	 
+	 * src/m_rte.cc:  Changed to use new classes: 
+	 iyEmissionStandard
+	 
+	 * src/m_transmitter.cc: Changed to use new classes: 
+	 iyRadioLink,
+	 iyTransmissionStandard
+	 
+	 * src/m_zeeman.cc: Changed to use new classes: 
+	 propmat_clearskyAddZeeman, 
+	 propmat_clearskyAddZeemanFromPreCalc
+	 
+	 * src/make_auto_md_cc.cc,src/make_auto_md_h.cc,src/make_auto_workspace_h.cc:
+	 Includes propagationmatrix.h
+	 
+	 * src/montecarlo.cc:  Changed to use new classes: 
+	 clear_rt_vars_at_gp,
+	 cloudy_rt_vars_at_gp
+	 
+	 * src/optproperties.{cc,h}:  Changed to use new classes: 
+	 abs_vecTransform,
+	 ext_matTransform,
+	 opt_prop_sum_propmat_clearsky
+	 
+	 * src/partial_derivatives.{cc,h}:  Added species and isotopologue to
+	 test.  otherwise, species with same quantum numbers but different
+	 species/isotopologue's might add together.  Also fixed error where
+	 only if the catalogue parameters were first in line and there was no
+	 perturbation parameters work...
+	 
+	 * src/propagationmatrix.{cc,h}:  Added.  Contains implementations
+	 of the class including some specific functions needed to operate
+	 and manipulate the matrix/vectors
+	 
+	 Especially key functions include:
+	 compute_transmission_matrix_and_derivative,
+	 compute_transmission_matrix,
+	 get_diydx_replacement
+	 
+	 * src/quantum.{cc,h}: Added QuantumIdentifier::operator< and 
+	 QuantumIdentifier::operator> to mean contained in, and contains
+	 (left<right means left is part of right and vice versa).  Also
+	 added simple way to initialize a QuantumIdentifier and an ALL 
+	 type of identifying all lines of a species-isotopologue
+	 combination (rather than implementing an exception to the rule)
+	 
+	 * src/rte.cc: Separated ext_mat_case to its own function.
+	 I think it is mostly not used by the new setup so it might be removed
+	 at some point. ext2trans uses this function, so does get_ppath_trans.
+	 
+	 get_ppath_trans is also updated to use a list of PropagationMatrix
+	 to get the transmission.
+	 
+	 get_ppath_pmat is updated to use new classes. So is 
+	 get_ppath_pmat_and_tmat, get_ppath_ext, get_ppath_trans,
+	 get_ppath_trans_and_dppath_trans_dx, get_ppath_trans2, and
+	 get_ppath_trans2_and_dppath_trans_dx
+	 
+	 Finally, implemented emission_rtstep_replacement as a replacement
+	 of emission_rtstep.  Does the same things but without copies when NLTE
+	 is active
+	 
+	 * src/workspace.cc:  Changed to use new classes: 
+	  abs_vec, 
+	  abs_vec_spt, 
+	  dpropmat_clearsky_dx, 
+	  dnlte_dx_source, 
+	  nlte_dsource_dx, 
+	  ext_mat, 
+	  ext_mat_spt,
+	  nlte_source,
+	  propmat_clearsky
+	  
+	  * XML-files:  Writing and reading for the new classes added 
+	  with Oliver's help
+	  
+	  * src/zeeman.{cc,h}: xsec_species_line_mixing_wrapper_with_zeeman
+	  uses new classes.  Beginnings of implementations of an replacement
+	  to use new LineFunctions namespace.  Not ready yet.
+
 2017-08-13 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-756

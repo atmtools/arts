@@ -2148,8 +2148,8 @@ void abs_lookupAdapt( GasAbsLookup&                   abs_lookup,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddFromLookup( Tensor4&       propmat_clearsky,
-                                    ArrayOfTensor3& dpropmat_clearsky_dx,
+void propmat_clearskyAddFromLookup( ArrayOfPropagationMatrix& propmat_clearsky,
+                                    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
                                       const GasAbsLookup& abs_lookup,
                                       const Index&        abs_lookup_is_adapted,
                                       const Index&        abs_p_interp_order,
@@ -2226,59 +2226,41 @@ void propmat_clearskyAddFromLookup( Tensor4&       propmat_clearsky,
 
     // Now add to the right place in the absorption matrix.
     
-    Index nr, nc, stokes_dim;
-    
-    // In the two stokes dimensions, propmat_clearsky should be a
-    // square matrix of stokes_dim*stokes_dim. Check this, and determine
-    // stokes_dim:
-    nr = propmat_clearsky.nrows();
-    nc = propmat_clearsky.ncols();
-    if ( nr!=nc )
+    if(not do_jac)
     {
-        ostringstream os;
-        os << "The last two dimensions of propmat_clearsky must be equal (stokes_dim).\n"
-           << "But here they are " << nr << " and " << nc << ".";
-        throw runtime_error( os.str() );
-    }
-    stokes_dim = nr;       // Could be nc here too, since they are the same.
-    
-    if(!do_jac)
-    {
-        for(Index ii = 0; ii < stokes_dim; ii++)
-        {
-            propmat_clearsky(joker,joker,ii, ii) += abs_scalar_gas;
-        }
+      for(Index ii = 0; ii < propmat_clearsky.nelem(); ii++)
+      {
+        propmat_clearsky[ii].AddToDiagonalAttenuation(abs_scalar_gas(ii, joker));
+      }
     }
     else
     {
-        for(Index isp = 0; isp<propmat_clearsky.nbooks();isp++)
-        {
-            for(Index iv = 0; iv<propmat_clearsky.npages();iv++)
+      for(Index isp = 0; isp<propmat_clearsky.nelem();isp++)
+      {
+        propmat_clearsky[isp].AddToDiagonalAttenuation(abs_scalar_gas(isp, joker));
+        
+        for(Index iv = 0; iv<propmat_clearsky[isp].NumberOfFrequencies();iv++)
+        {  
+          for(Index iq=0; iq<ppd.nelem();iq++)
+          {
+            if(ppd(iq)==JQT_temperature)
             {
-                for(Index ii = 0; ii < stokes_dim; ii++)
-                {
-                    propmat_clearsky(isp,iv,ii, ii) += abs_scalar_gas(isp,iv);
-                    for(Index iq=0; iq<ppd.nelem();iq++)
-                    {
-                        if(ppd(iq)==JQT_temperature)
-                        {
-                            dpropmat_clearsky_dx[iq](iv,ii,ii) += (dabs_scalar_gas_dt(isp,iv)-abs_scalar_gas(isp,iv))/dt;
-                        }
-                        else if(ppd(iq)==JQT_frequency || ppd(iq)==JQT_wind_magnitude || ppd(iq)==JQT_wind_u || ppd(iq)==JQT_wind_v || ppd(iq)==JQT_wind_w)
-                        {
-                            dpropmat_clearsky_dx[iq](iv,ii,ii) += (dabs_scalar_gas_df(isp,iv)-abs_scalar_gas(isp,iv))/df;
-                        }
-                        else if(ppd(iq)==JQT_VMR)
-                        {
-                            if(ppd.species(iq)!=abs_lookup.GetSpeciesIndex(isp)) continue;
-                            
-                            dpropmat_clearsky_dx[iq](iv,ii,ii) += abs_scalar_gas(isp,iv) /
-                            a_vmr_list[isp]; // WARNING:  If CIA in list, this scales wrong by factor 2
-                        }
-                    }
-                }
+              dpropmat_clearsky_dx[iq].AddToSinglePointOnDiagonalAttenuation((dabs_scalar_gas_dt(isp,iv)-abs_scalar_gas(isp,iv))/dt, iv);
             }
+            else if(ppd(iq)==JQT_frequency || ppd(iq)==JQT_wind_magnitude || ppd(iq)==JQT_wind_u || ppd(iq)==JQT_wind_v || ppd(iq)==JQT_wind_w)
+            {
+              dpropmat_clearsky_dx[iq].AddToSinglePointOnDiagonalAttenuation((dabs_scalar_gas_df(isp,iv)-abs_scalar_gas(isp,iv))/df, iv);
+            }
+            else if(ppd(iq)==JQT_VMR)
+            {
+              if(ppd.species(iq)!=abs_lookup.GetSpeciesIndex(isp)) continue;
+              
+              // WARNING:  If CIA in list, this scales wrong by factor 2
+              dpropmat_clearsky_dx[iq].AddToSinglePointOnDiagonalAttenuation(abs_scalar_gas(isp,iv) / a_vmr_list[isp], iv); 
+            }
+          }
         }
+      }
     }
 }
 
@@ -2315,10 +2297,10 @@ void propmat_clearsky_fieldCalc( Workspace& ws,
         throw runtime_error( "The atmospheric fields must be flagged to have "
                             "passed a consistency check (atmfields_checked=1)." );
     
-    ArrayOfTensor3 partial_abs;
-    ArrayOfMatrix partial_nlte_source,nlte_partial_source;// FIXME: This is not stored!
-    Tensor4  abs;
-    Tensor3  nlte;
+    ArrayOfPropagationMatrix partial_abs;
+    ArrayOfStokesVector partial_nlte_source,nlte_partial_source;// FIXME: This is not stored!
+    ArrayOfPropagationMatrix  abs;
+    ArrayOfStokesVector  nlte;
     Vector  a_vmr_list;
     Vector  a_t_nlte_list;
 
@@ -2480,57 +2462,61 @@ private(abs, nlte, partial_abs, partial_nlte_source, nlte_partial_source, a_vmr_
 
                         // Verify, that the number of elements in abs matrix is
                         // constistent with stokes_dim:
-                        if ( stokes_dim != abs.nrows() || stokes_dim != abs.ncols() )
+                        if(abs.nelem() > 0) 
                         {
+                          if(stokes_dim != abs[0].StokesDimensions())
+                          {
                             ostringstream os;
                             os << "propmat_clearsky_fieldCalc was called with stokes_dim = "
                             << stokes_dim << ",\n"
                             << "but the stokes_dim returned by the agenda is "
-                            << abs.nrows() << ".";
+                            << abs[0].StokesDimensions() << ".";
                             throw runtime_error( os.str() );
+                          }
                         }
                             
                         // Verify, that the number of species in abs is
                         // constistent with vmr_field:
-                        if ( n_species != abs.nbooks() )
+                        if ( n_species != abs.nelem() )
                         {
                             ostringstream os;
                             os << "The number of gas species in vmr_field is "
                             << n_species << ",\n"
                             << "but the number of species returned by the agenda is "
-                            << abs.nbooks() << ".";
+                            << abs.nelem() << ".";
                             throw runtime_error( os.str() );
                         }
 
                         // Verify, that the number of frequencies in abs is
                         // constistent with f_extent:
-                        if ( n_frequencies != abs.npages() )
+                        if(abs.nelem() > 0) 
                         {
-                            ostringstream os;
-                            os << "The number of frequencies desired is "
-                            << n_frequencies << ",\n"
-                            << "but the number of frequencies returned by the agenda is "
-                            << abs.npages() << ".";
-                            throw runtime_error( os.str() );
+                          if ( n_frequencies != abs[0].NumberOfFrequencies() )
+                          {
+                              ostringstream os;
+                              os << "The number of frequencies desired is "
+                              << n_frequencies << ",\n"
+                              << "but the number of frequencies returned by the agenda is "
+                              << abs[0].NumberOfFrequencies() << ".";
+                              throw runtime_error( os.str() );
+                          }
                         }
                         
                         // Store the result in output field.
                         // We have to transpose abs, because the dimensions of the
                         // two variables are:
-                        // abs_field: [ abs_species, f_grid, p_grid, lat_grid, lon_grid]
-                        // abs:       [ f_grid, abs_species ]
-                        propmat_clearsky_field( joker,
-                                               joker,
-                                               joker,
-                                               joker,
-                                               ipr, ila, ilo ) = abs ;
-                        if(!t_nlte_field.empty())
-                          nlte_source_field(joker,
-                                            joker,
-                                            joker,
-                                            ipr, ila, ilo ) = nlte ;//If some are NLTE and others not, this will be bad.
-                                            
-                        
+                        // abs_field: [abs_species, f_grid, stokes, stokes, p_grid, lat_grid, lon_grid]
+                        // abs:       [abs_species][f_grid, stokes, stokes]
+                        for(Index i = 0; i < abs.nelem(); i++)
+                        {
+                          abs[i].GetTensor3(propmat_clearsky_field(i, joker, joker, joker, ipr, ila, ilo ));
+                          
+                          if(not t_nlte_field.empty())
+                          {
+                            //If some are NLTE and others not, this might be bad...
+                            nlte_source_field(i, joker, joker, ipr, ila, ilo) = nlte[i].GetMatrix();
+                          }
+                        }
                     }
             }
             catch (runtime_error e)
@@ -2647,7 +2633,7 @@ Numeric calc_lookup_error(// Parameters for lookup table:
   
   // Allocate some vectors with this dimension:
   Vector abs_tab(n_f);
-  Vector abs_lbl(n_f);
+  Vector abs_lbl(n_f, 0.0);
   Vector abs_rel_diff(n_f);                  
 
   // Sum up for all species, to get total absorption:          
@@ -2658,10 +2644,10 @@ Numeric calc_lookup_error(// Parameters for lookup table:
   // Now get absorption line-by-line.
   
   // Variable to hold result of absorption calculation:
-  Tensor4 propmat_clearsky;
-  Tensor3 nlte_source;
-  ArrayOfTensor3 dpropmat_clearsky_dx;
-  ArrayOfMatrix dnlte_dx_source, nlte_dsource_dx;
+  ArrayOfPropagationMatrix propmat_clearsky;
+  ArrayOfStokesVector nlte_source;
+  ArrayOfPropagationMatrix dpropmat_clearsky_dx;
+  ArrayOfStokesVector dnlte_dx_source, nlte_dsource_dx;
   ArrayOfMatrix  d;
   const ArrayOfRetrievalQuantity jacobian_quantities(0);
   Index propmat_clearsky_checked = 1, nlte_do = 0; // FIXME: OLE: Properly pass this through?
@@ -2701,8 +2687,8 @@ Numeric calc_lookup_error(// Parameters for lookup table:
   // rtp_doppler). Should be zero in this case.
 
   // Sum up for all species, to get total absorption:
-  for (Index i=0; i<n_f; ++i)
-    abs_lbl[i] = propmat_clearsky(joker,i,0,0).sum();
+  for(auto& pm : propmat_clearsky)
+    abs_lbl += pm.Kjj();
 
 
   // Ok. What we have to compare is abs_tab and abs_lbl.

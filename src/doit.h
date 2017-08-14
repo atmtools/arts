@@ -53,6 +53,18 @@ void rte_step_doit(//Output and Input:
               const bool& trans_is_precalc=false );
 
 
+void rte_step_doit_replacement(//Output and Input:
+                               VectorView stokes_vec,
+                               MatrixView trans_mat,
+                               //Input
+                               const PropagationMatrix& ext_mat_av,
+                               const StokesVector& abs_vec_av,
+                               ConstVectorView sca_vec_av,
+                               const Numeric& lstep,
+                               const Numeric& rtp_planck_value,
+                               const bool& trans_is_precalc=false );
+
+
 void cloud_fieldsCalc(Workspace& ws,
                       // Output:
                       Tensor5View ext_mat_field,

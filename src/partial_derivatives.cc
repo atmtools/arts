@@ -144,6 +144,8 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                                               const Numeric&  dDF_LM1,
                                               const Numeric&  dDF_LMexp,
                                               const QuantumNumberRecord&  qnr,
+                                              const Index& species,
+                                              const Index& isotopologue,
                                               // LINE SHAPE
                                               const Index& ind_ls,
                                               const Index& ind_lsn,
@@ -335,7 +337,8 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
         }
         else if(flag_partials(ii) == JQT_line_center)
         {
-            if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
+          if(!line_match_line(flag_partials.jac(ii).QuantumIdentity(),
+            species, isotopologue, qnr.Lower(),qnr.Upper()))
                 continue;
             
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
@@ -378,7 +381,8 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
         }
         else if(flag_partials(ii) == JQT_line_strength)
         {
-            if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
+          if(!line_match_line(flag_partials.jac(ii).QuantumIdentity(),
+            species, isotopologue, qnr.Lower(),qnr.Upper()))
                 continue;
             
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
@@ -408,7 +412,8 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                 flag_partials(ii) == JQT_line_gamma_foreign         ||
                 flag_partials(ii) == JQT_line_gamma_water)
         {
-            if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
+          if(!line_match_line(flag_partials.jac(ii).QuantumIdentity(),
+            species, isotopologue, qnr.Lower(),qnr.Upper()))
                 continue;
             
             Numeric y_constant = 1.0;
@@ -520,7 +525,8 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                 flag_partials(ii)==JQT_line_mixing_G1  ||
                 flag_partials(ii)==JQT_line_mixing_Gexp)
         {
-            if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
+          if(!line_match_line(flag_partials.jac(ii).QuantumIdentity(),
+            species, isotopologue, qnr.Lower(), qnr.Upper()))
                 continue;
             
             Numeric lma_real = 0.0, lmb_real = 0.0, lma_imag = 0.0, lmb_imag = 0.0;
@@ -587,7 +593,8 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                 flag_partials(ii)==JQT_line_mixing_DF1 ||
                 flag_partials(ii)==JQT_line_mixing_DFexp)
         {
-            if(!line_match_line(flag_partials.jac()[ii].QuantumIdentity(),qnr.Lower(),qnr.Upper()))
+          if(!line_match_line(flag_partials.jac(ii).QuantumIdentity(),
+            species, isotopologue,qnr.Lower(),qnr.Upper()))
                 continue;
             
             Numeric constant = 1.0;
@@ -635,7 +642,10 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
              */
             
             bool lower, upper;
-            line_match_level(lower, upper, flag_partials.jac()[ii].QuantumIdentity(), qnr.Lower(), qnr.Upper());
+            line_match_level(lower, upper, 
+                             flag_partials.jac(ii).QuantumIdentity(),
+                             species, isotopologue,
+                             qnr.Lower(), qnr.Upper());
             if(!(lower||upper))
                 continue;
             
@@ -683,24 +693,53 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
 
 
 bool line_match_line(const QuantumIdentifier& from_jac,
+                     const Index& species,
+                     const Index& isotopologue,
                      const QuantumNumbers& lower_qn, 
                      const QuantumNumbers& upper_qn)
 {
+  if(species not_eq from_jac.Species() or isotopologue not_eq from_jac.Isotopologue())
+  {
+    return false;
+  }
+  else
+  {
     QuantumMatchInfoEnum lower, upper;
-    
-    lower_qn.CompareDetailed(lower, from_jac.QuantumMatch()[from_jac.TRANSITION_LOWER_INDEX]);
-    upper_qn.CompareDetailed(upper, from_jac.QuantumMatch()[from_jac.TRANSITION_UPPER_INDEX]);
-    
-    return (lower==QMI_FULL&&upper==QMI_FULL); //Must be perfect match for this to be true.
+    if(from_jac.Type() == QuantumIdentifier::TRANSITION)
+    {
+      lower_qn.CompareDetailed(lower, from_jac.QuantumMatch()[from_jac.TRANSITION_LOWER_INDEX]);
+      upper_qn.CompareDetailed(upper, from_jac.QuantumMatch()[from_jac.TRANSITION_UPPER_INDEX]);
+      
+      return (lower==QMI_FULL&&upper==QMI_FULL); //Must be perfect match for this to be true.
+    }
+    else if(from_jac.Type() == QuantumIdentifier::ALL)
+    {
+      return true;
+    }
+    else 
+    {
+      return false;
+    }
+  }
 }
 
 void line_match_level(bool& lower_energy_level,
                       bool& upper_energy_level,
                       const QuantumIdentifier& from_jac,
+                      const Index& species,
+                      const Index& isotopologue,
                       const QuantumNumbers& lower_qn, 
                       const QuantumNumbers& upper_qn)
 {
+  if(species not_eq from_jac.Species() or isotopologue not_eq from_jac.Isotopologue())
+  {
+    lower_energy_level = false;
+    upper_energy_level = false;
+  } 
+  else
+  {
     // These can be partial, because vibrational energy levels are partial matches, so using simpler function
     lower_energy_level = lower_qn.Compare(from_jac.QuantumMatch()[from_jac.TRANSITION_UPPER_INDEX]);
     upper_energy_level = upper_qn.Compare(from_jac.QuantumMatch()[from_jac.TRANSITION_UPPER_INDEX]);
+  }
 }

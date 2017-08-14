@@ -2353,9 +2353,9 @@ void abs_cont_descriptionAppend(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(// WS Output:
-                                                    Tensor3&       nlte_source,
-                                                    ArrayOfMatrix& dnlte_dx_source,
-                                                    ArrayOfMatrix& nlte_dsource_dx,
+                                                    ArrayOfStokesVector& nlte_source,
+                                                    ArrayOfStokesVector& dnlte_dx_source,
+                                                    ArrayOfStokesVector& nlte_dsource_dx,
                                                     // WS Input:
                                                     const ArrayOfMatrix& src_coef_per_species,
                                                     const ArrayOfMatrix& dsrc_coef_dx,
@@ -2389,7 +2389,7 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(// WS Output:
     }
   
   // Check species dimension of propmat_clearsky
-  if ( nlte_source.npages()!=n_species )
+  if ( nlte_source.nelem()!=n_species )
   {
     ostringstream os;
     os << "Species dimension of propmat_clearsky does not\n"
@@ -2398,7 +2398,7 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(// WS Output:
   }
   
   // Check frequency dimension of propmat_clearsky
-  if ( nlte_source.nrows()!=n_f )
+  if ( nlte_source[0].NumberOfFrequencies()!=n_f )
   {
     ostringstream os;
     os << "Frequency dimension of propmat_clearsky does not\n"
@@ -2407,38 +2407,71 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(// WS Output:
   }
   
   const PropmatPartialsData pps(jacobian_quantities);
+  Vector B(n_f);
   
-  for(Index iv = 0; iv<f_grid.nelem(); iv++)
+  for(Index iv=0; iv<n_f; iv++)
+    B[iv] = planck(f_grid[iv], rtp_temperature);
+  
+  StokesVector sv(n_f, nlte_source[0].StokesDimensions());
+  for ( Index si=0; si<n_species; ++si )
   {
-      const Numeric B = planck(f_grid[iv],rtp_temperature);
-      for ( Index si=0; si<n_species; ++si )
-          nlte_source(si,iv,0)+=src_coef_per_species[si](iv,0)*B;
+    sv.Kjj() = src_coef_per_species[si](joker, 0);
+    sv *= B;
+    nlte_source[si].Kjj() += sv.Kjj();
+  }
+  
+  // Jacobian
+  for(Index ii = 0; ii<pps.nelem(); ii++)
+  {
+    if(pps(ii)==JQT_temperature)
+    {
+      Vector dB(n_f);
+      for(Index iv=0; iv<n_f; iv++)
+        dB[iv] = dplanck_dt(f_grid[iv], rtp_temperature);
       
-      // Jacobian
-      for(Index ii = 0; ii<pps.nelem(); ii++)
-          if(pps(ii)==JQT_temperature)
-          {
-              for( Index si=0; si<n_species; ++si )
-                  nlte_dsource_dx[ii](iv,0) += src_coef_per_species[si](iv,0)*dplanck_dt(f_grid[iv],rtp_temperature);
-              dnlte_dx_source[ii](iv,0)+= dsrc_coef_dx[ii](iv,0)*B;
-          }
-          else if(pps(ii)==JQT_frequency)
-          {
-              for( Index si=0; si<n_species; ++si )
-                  nlte_dsource_dx[ii](iv,0) += src_coef_per_species[si](iv,0)*dplanck_df(f_grid[iv],rtp_temperature);
-              dnlte_dx_source[ii](iv,0)+= dsrc_coef_dx[ii](iv,0)*B;
-          }
-          else if(pps(ii)!=JQT_NOT_JQT)
-              dnlte_dx_source[ii](iv,0)+= dsrc_coef_dx[ii](iv,0)*B;
-          else{/* All is fine! */}
+      for( Index si=0; si<n_species; ++si )
+      {
+        sv.Kjj() = src_coef_per_species[si](joker, 0);
+        sv *= dB;
+        nlte_dsource_dx[ii].Kjj() += sv.Kjj();
+      }
+      
+      sv.Kjj() = dsrc_coef_dx[ii](joker,0);
+      sv *= B;
+      dnlte_dx_source[ii].Kjj() += sv.Kjj();
+    }
+    else if(pps(ii)==JQT_frequency)
+    {
+      Vector dB(n_f);
+      for(Index iv=0; iv<n_f; iv++)
+        dB[iv] = dplanck_df(f_grid[iv],rtp_temperature);
+      
+      for( Index si=0; si<n_species; ++si )
+      {
+        sv.Kjj() = src_coef_per_species[si](joker, 0);
+        sv *= dB;
+        nlte_dsource_dx[ii].Kjj() += sv.Kjj();
+      }
+      
+      sv.Kjj() = dsrc_coef_dx[ii](joker,0);
+      sv *= B;
+      dnlte_dx_source[ii].Kjj() += sv.Kjj();
+    }
+    else if(pps(ii)!=JQT_NOT_JQT)
+    {
+      sv.Kjj() = dsrc_coef_dx[ii](joker, 0);
+      sv *= B;
+      dnlte_dx_source[ii].Kjj() += sv.Kjj();
+    }
+    else{/* All is fine! */}
   }
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddFromAbsCoefPerSpecies(// WS Output:
-                               Tensor4&       propmat_clearsky,
-                               ArrayOfTensor3& dpropmat_clearsky_dx,
+                               ArrayOfPropagationMatrix&  propmat_clearsky,
+                               ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
                                // WS Input:
                                const ArrayOfMatrix& abs_coef_per_species,
                                const ArrayOfMatrix& dabs_coef_dx,
@@ -2448,39 +2481,20 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(// WS Output:
   // [ abs_species, f_grid, stokes_dim, stokes_dim ].
   // abs_coef_per_species has format ArrayOfMatrix (over species),
   // where for each species the matrix has format [f_grid, abs_p].
-    
-    
-  // Set stokes_dim (and check that the last two dimensions of
-  // propmat_clearsky really are equal).
-  Index nr, nc, stokes_dim;
-  // In the two stokes dimensions, propmat_clearsky should be a
-  // square matrix of stokes_dim*stokes_dim. Check this, and determine
-  // stokes_dim:
-  nr = propmat_clearsky.nrows();
-  nc = propmat_clearsky.ncols();
-  if ( nr!=nc )
-  {
-    ostringstream os;
-    os << "The last two dimensions of propmat_clearsky must be equal (stokes_dim).\n"
-    << "But here they are " << nr << " and " << nc << ".";
-    throw runtime_error( os.str() );
-  }
-  stokes_dim = nr;       // Could be nc here too, since they are the same.
-
   
   Index n_species = abs_coef_per_species.nelem(); // # species
 
   if (0==n_species)
-    {
-      ostringstream os;
-      os << "Must have at least one species.";
-      throw runtime_error(os.str());
-    }
+  {
+    ostringstream os;
+    os << "Must have at least one species.";
+    throw runtime_error(os.str());
+  }
 
-  Index n_f       = abs_coef_per_species[0].nrows(); // # frequencies
+  Index n_f = abs_coef_per_species[0].nrows(); // # frequencies
 
   // # pressures must be 1:
-  if (1!=abs_coef_per_species[0].ncols())
+  if (1 not_eq abs_coef_per_species[0].ncols())
     {
       ostringstream os;
       os << "Must have exactly one pressure.";
@@ -2488,7 +2502,7 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(// WS Output:
     }
   
   // Check species dimension of propmat_clearsky
-  if ( propmat_clearsky.nbooks()!=n_species )
+  if ( propmat_clearsky.nelem() not_eq n_species )
   {
     ostringstream os;
     os << "Species dimension of propmat_clearsky does not\n"
@@ -2497,7 +2511,7 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(// WS Output:
   }
   
   // Check frequency dimension of propmat_clearsky
-  if ( propmat_clearsky.npages()!=n_f )
+  if ( propmat_clearsky[0].NumberOfFrequencies() not_eq n_f )
   {
     ostringstream os;
     os << "Frequency dimension of propmat_clearsky does not\n"
@@ -2507,8 +2521,7 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(// WS Output:
   
   // Loop species and stokes dimensions, and add to propmat_clearsky:
   for ( Index si=0; si<n_species; ++si )
-    for ( Index ii=0; ii<stokes_dim; ++ii )
-      propmat_clearsky(si,joker,ii, ii) += abs_coef_per_species[si](joker,0);
+      propmat_clearsky[si].AddToDiagonalAttenuation(abs_coef_per_species[si](joker,0));
   
   for(Index iqn=0; iqn<dabs_coef_dx.nelem();iqn++)
   {
@@ -2516,23 +2529,21 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(// WS Output:
     {
       if(dabs_coef_dx[iqn].ncols()==1)
       {
-        for ( Index ii=0; ii<stokes_dim; ++ii )
-          dpropmat_clearsky_dx[iqn](joker,ii,ii) += dabs_coef_dx[iqn](joker,0);
+        dpropmat_clearsky_dx[iqn].AddToDiagonalAttenuation(dabs_coef_dx[iqn](joker,0));
       }
       else throw std::runtime_error( "Must have exactly one pressure.");
     }
   }
-
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyInit(   //WS Output
-                             Tensor4&                        propmat_clearsky,
-                             Tensor3&                        nlte_source,
-                             ArrayOfTensor3&                 dpropmat_clearsky_dx,
-                             ArrayOfMatrix&                  dnlte_dx_source,
-                             ArrayOfMatrix&                  nlte_dsource_dx,
+                             ArrayOfPropagationMatrix& propmat_clearsky,
+                             ArrayOfStokesVector& nlte_source,
+                             ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+                             ArrayOfStokesVector& dnlte_dx_source,
+                             ArrayOfStokesVector& nlte_dsource_dx,
                              //WS Input
                              const ArrayOfArrayOfSpeciesTag& abs_species,
                              const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -2543,80 +2554,79 @@ void propmat_clearskyInit(   //WS Output
                              const Verbosity&
                             )
 {
-    if (!propmat_clearsky_agenda_checked)
-        throw runtime_error("You must call *propmat_clearsky_agenda_checkedCalc* before calling this method.");
-
-    Index nf = f_grid.nelem();
-    
-    if(abs_species.nelem() > 0 )
+  if (!propmat_clearsky_agenda_checked)
+    throw runtime_error("You must call *propmat_clearsky_agenda_checkedCalc* before calling this method.");
+  
+  Index nf = f_grid.nelem();
+  
+  if(abs_species.nelem() > 0 )
+  {
+    if(nf > 0)
     {
-        if(nf > 0)
+      if(stokes_dim > 0)
+      {
+        propmat_clearsky.resize(abs_species.nelem());
+        
+        for(auto& pm : propmat_clearsky)
         {
-            if(stokes_dim > 0)
-            {
-                propmat_clearsky.resize(abs_species.nelem(),nf, stokes_dim, stokes_dim);
-                propmat_clearsky = 0;
-                if (nlte_do)
-                {
-                    nlte_source.resize(abs_species.nelem(), nf, stokes_dim);
-                    nlte_source = 0;
-                }
-                else
-                {
-                    nlte_source.resize(0,0,0);
-                }
-            }
-            else throw  runtime_error("stokes_dim = 0");
+          pm = PropagationMatrix(nf, stokes_dim);
+          pm.SetZero();
         }
-        else throw runtime_error("nf = 0");
+        
+        if (nlte_do)
+        {
+          nlte_source.resize(abs_species.nelem());
+          for(auto& av : nlte_source)
+          {
+            av = StokesVector(nf, stokes_dim);
+            av.SetZero();
+          }
+        }
+        else
+        {
+          nlte_source.resize(0);
+        }
+      }
+      else throw  runtime_error("stokes_dim = 0");
     }
-    else throw runtime_error("abs_species.nelem() = 0");
-    
-    PropmatPartialsData ppd(jacobian_quantities);
-    
-    if(ppd.supportsPropmatClearsky(-1))
+    else throw runtime_error("nf = 0");
+  }
+  else throw runtime_error("abs_species.nelem() = 0");
+  
+  PropmatPartialsData ppd(jacobian_quantities);
+  
+  if(ppd.supportsPropmatClearsky(-1))
+  {
+    dpropmat_clearsky_dx.resize(ppd.nelem());
+    if(nlte_do)
     {
-        dpropmat_clearsky_dx.resize(ppd.nelem());
+      dnlte_dx_source.resize(ppd.nelem());
+      nlte_dsource_dx.resize(ppd.nelem());
+    }
+    for(Index iq=0;iq<ppd.nelem();iq++)
+    {
+      if(ppd(iq) not_eq JQT_NOT_JQT)
+      {
+        dpropmat_clearsky_dx[iq] = PropagationMatrix(nf, stokes_dim); //No reason to have species here, since that should be caught elsewhere
+        dpropmat_clearsky_dx[iq].SetZero();
         if(nlte_do)
         {
-            dnlte_dx_source.resize(ppd.nelem());
-            nlte_dsource_dx.resize(ppd.nelem());
+          dnlte_dx_source[iq] = StokesVector(nf, stokes_dim);
+          dnlte_dx_source[iq].SetZero();
+          
+          nlte_dsource_dx[iq] = StokesVector(nf, stokes_dim);
+          nlte_dsource_dx[iq].SetZero();
         }
-        for(Index iq=0;iq<ppd.nelem();iq++)
-        {
-            if(ppd(iq)!=JQT_NOT_JQT)
-            {
-                dpropmat_clearsky_dx[iq].resize(nf, stokes_dim, stokes_dim); //No reason to have species here, since that should be caught elsewhere
-                if(nlte_do)
-                {
-                    dnlte_dx_source[iq].resize(nf, stokes_dim); //No reason to have species here, since that should be caught elsewhere
-                    nlte_dsource_dx[iq].resize(nf, stokes_dim); //No reason to have species here, since that should be caught elsewhere
-                }
-                for(Index iv=0;iv<nf;iv++)
-                {
-                    for(Index i1=0;i1<stokes_dim;i1++)
-                    {
-                        if(nlte_do)
-                        {
-                            dnlte_dx_source[iq](iv,i1)      = 0.0;
-                            nlte_dsource_dx[iq](iv,i1)      = 0.0;
-                        }
-                        for(Index i2=0;i2<stokes_dim;i2++)
-                        {
-                            dpropmat_clearsky_dx[iq](iv,i1,i2) = 0.0;
-                        }
-                    }
-                }
-            }
-        }
+      }
     }
+  }
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddFaraday(
-         Tensor4&                  propmat_clearsky,
-         ArrayOfTensor3&           dpropmat_clearsky_dx,
+         ArrayOfPropagationMatrix& propmat_clearsky,
+         ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
    const Index&                    stokes_dim,
    const Index&                    atmosphere_dim,
    const Vector&                   f_grid,
@@ -2693,13 +2703,12 @@ void propmat_clearskyAddFaraday(
               rtp_los, rtp_mag[0], rtp_mag[1], rtp_mag[2]+dmag, atmosphere_dim ) - c1)/dmag;
           }
 
-          if(!do_jac)
+          if(not do_jac)
           {
               for( Index iv=0; iv<f_grid.nelem(); iv++ )
               {
                   const Numeric r = c1 / ( f_grid[iv] * f_grid[iv] );
-                  propmat_clearsky(ife,iv,1,2) =  r;
-                  propmat_clearsky(ife,iv,2,1) = -r;
+                  propmat_clearsky[ife].SetFaraday(r, iv);
               }
           }
           else
@@ -2708,8 +2717,7 @@ void propmat_clearskyAddFaraday(
             {
                 const Numeric f2 = f_grid[iv] * f_grid[iv];
                 const Numeric r = c1 / f2;
-                propmat_clearsky(ife,iv,1,2) =  r;
-                propmat_clearsky(ife,iv,2,1) = -r;
+                propmat_clearsky[ife].SetFaraday(r, iv);
                 
                 // The Jacobian loop
                 for(Index iq=0;iq<ppd.nelem();iq++)
@@ -2717,30 +2725,23 @@ void propmat_clearskyAddFaraday(
                     if(ppd(iq)==JQT_frequency || ppd(iq)==JQT_wind_magnitude || 
                       ppd(iq)==JQT_wind_u || ppd(iq)==JQT_wind_v || ppd(iq)==JQT_wind_w)
                     {
-                        dpropmat_clearsky_dx[iq](iv,1,2) -= 2.0 * r / f_grid[iv];
-                        dpropmat_clearsky_dx[iq](iv,2,1) += 2.0 * r / f_grid[iv];
+                        dpropmat_clearsky_dx[iq].AddFaraday(-2.0 * r / f_grid[iv], iv);
                     }
                     else if(ppd(iq)==JQT_magnetic_u)
                     { 
-                        dpropmat_clearsky_dx[iq](iv,1,2) += dc1_u / f2;
-                        dpropmat_clearsky_dx[iq](iv,2,1) -= dc1_u / f2;
+                      dpropmat_clearsky_dx[iq].AddFaraday(dc1_u / f2, iv);
                     }
                     else if(ppd(iq)==JQT_magnetic_v)
                     { 
-                        dpropmat_clearsky_dx[iq](iv,1,2) += dc1_v / f2;
-                        dpropmat_clearsky_dx[iq](iv,2,1) -= dc1_v / f2;
+                      dpropmat_clearsky_dx[iq].AddFaraday(dc1_v / f2, iv);
                     }
                     else if(ppd(iq)==JQT_magnetic_w)
                     { 
-                        dpropmat_clearsky_dx[iq](iv,1,2) += dc1_w / f2;
-                        dpropmat_clearsky_dx[iq](iv,2,1) -= dc1_w / f2;
+                      dpropmat_clearsky_dx[iq].AddFaraday(dc1_w / f2, iv);
                     }
                     else if(ppd(iq)==JQT_electrons)
                     {
-                      Matrix tmp;
-                      tmp = propmat_clearsky(ife, iv, joker, joker);
-                      tmp /= ne;
-                      dpropmat_clearsky_dx[iq](iv, joker, joker) += tmp;
+                      dpropmat_clearsky_dx[iq].AddFaraday(r/ne, iv);
                     }
                 }
             }
@@ -2753,8 +2754,8 @@ void propmat_clearskyAddFaraday(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddParticles(
                                     // WS Output:
-                                    Tensor4& propmat_clearsky,
-                                    ArrayOfTensor3& dpropmat_clearsky_dx,
+                                    ArrayOfPropagationMatrix& propmat_clearsky,
+                                    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
                                     // WS Input:
                                     const Index& stokes_dim,
                                     const Index& atmosphere_dim,
@@ -2828,7 +2829,8 @@ void propmat_clearskyAddParticles(
   Vector rtp_los_back;
   mirror_los( rtp_los_back, rtp_los, atmosphere_dim );
   ArrayOfArrayOfSingleScatteringData scat_data_mono, scat_data_mono_df;
-  Matrix pnd_ext_mat(stokes_dim,stokes_dim), pnd_ext_mat_df(stokes_dim,stokes_dim), pnd_ext_mat_dt(stokes_dim,stokes_dim);
+  Matrix pnd_ext_mat(stokes_dim,stokes_dim), pnd_ext_mat_df(stokes_dim,stokes_dim), pnd_ext_mat_dt(stokes_dim,stokes_dim),
+         tmp(stokes_dim, stokes_dim), tmp2(stokes_dim, stokes_dim);
   Vector pnd_abs_vec(stokes_dim), pnd_abs_vec_df(stokes_dim), pnd_abs_vec_dt(stokes_dim);
   Vector f_grid_df;
   
@@ -2853,115 +2855,117 @@ void propmat_clearskyAddParticles(
       // abs_species.
       Index sp = 0;
       for( Index i_ss=0; i_ss<scat_data.nelem(); i_ss++ )
+      {
+        for( Index i_se=0; i_se<scat_data[i_ss].nelem(); i_se++ )
         {
-          for( Index i_se=0; i_se<scat_data[i_ss].nelem(); i_se++ )
+          // forward to next particle entry in abs_species
+          while ( sp < na && 
+            abs_species[sp][0].Type() != SpeciesTag::TYPE_PARTICLES )
+            sp++;
+          
+          //cout << "redone: found " << i_se << "th particle entry at abs_species "
+          //     << "entry #" << sp << "\n";
+          // running beyond number of abs_species entries when looking for
+          // next particle entry. shouldn't happen, though.
+          assert ( sp < na );
+          
+          if ( rtp_vmr[sp] > 0. )
+          {
+            // get extinction matrix and absorption vector at
+            // required temperature and direction for the individual
+            // scattering element and multiply with their occurence.
+            opt_propExtract(pnd_ext_mat, pnd_abs_vec,
+                            scat_data_mono[i_ss][i_se],
+                            rtp_los_back[0], rtp_los_back[1],
+                            rtp_temperature, stokes_dim, verbosity);
+            //cout << "absvec[0] = " << pnd_abs_vec[0] << "\n";
+            pnd_ext_mat *= rtp_vmr[sp];
+            pnd_abs_vec *= rtp_vmr[sp];
+            
+            // For wind derivatives
+            if(ppd.do_frequency())
             {
-              // forward to next particle entry in abs_species
-              while ( sp < na && 
-                      abs_species[sp][0].Type() != SpeciesTag::TYPE_PARTICLES )
-                sp++;
-
-              //cout << "redone: found " << i_se << "th particle entry at abs_species "
-              //     << "entry #" << sp << "\n";
-              // running beyond number of abs_species entries when looking for
-              // next particle entry. shouldn't happen, though.
-              assert ( sp < na );
-              
-              if ( rtp_vmr[sp] > 0. )
-                {
-                  // get extinction matrix and absorption vector at
-                  // required temperature and direction for the individual
-                  // scattering element and multiply with their occurence.
-                  opt_propExtract(pnd_ext_mat, pnd_abs_vec,
-                                  scat_data_mono[i_ss][i_se],
-                                  rtp_los_back[0], rtp_los_back[1],
-                                  rtp_temperature, stokes_dim, verbosity);
-                  //cout << "absvec[0] = " << pnd_abs_vec[0] << "\n";
-                  pnd_ext_mat *= rtp_vmr[sp];
-                  pnd_abs_vec *= rtp_vmr[sp];
-                  
-                  // For wind derivatives
-                  if(ppd.do_frequency())
-                  {
-                    opt_propExtract(pnd_ext_mat_df, pnd_abs_vec_df,
-                                    scat_data_mono_df[i_ss][i_se],
-                                    rtp_los_back[0], rtp_los_back[1],
-                                    rtp_temperature, stokes_dim, verbosity);
-                    pnd_ext_mat_df *= rtp_vmr[sp];
-                    pnd_abs_vec_df *= rtp_vmr[sp];
-                  }
-                  
-                  // For temperature derivatives
-                  if(ppd.do_temperature())
-                  {
-                    opt_propExtract(pnd_ext_mat_dt, pnd_abs_vec_dt,
-                                    scat_data_mono[i_ss][i_se],
-                                    rtp_los_back[0], rtp_los_back[1],
-                                    rtp_temperature+ppd.Temperature_Perturbation(), 
-                                    stokes_dim, verbosity);
-                    pnd_ext_mat_dt *= rtp_vmr[sp];
-                    pnd_abs_vec_dt *= rtp_vmr[sp];
-                  }
-                  
-                  // For number density derivatives
-                  if(do_jac && first_loop)
-                    rtp_vmr_sum += rtp_vmr[sp];
-
-                  if (use_abs_as_ext)
-                    {
-                      // sort the extracted absorption vector data into
-                      // propmat_clearsky, which is of extinction matrix type
-                      ext_matFromabs_vec(propmat_clearsky(sp,iv,joker,joker),
-                                         pnd_abs_vec, stokes_dim);
-                    }
-                  else
-                    {
-                      propmat_clearsky(sp,iv,joker,joker) = pnd_ext_mat;
-
-                    }
-                    for(Index iq=0; iq<ppd.nelem(); iq++)
-                    {
-                      Matrix tmp(stokes_dim, stokes_dim);     
-                      if(ppd(iq)==JQT_frequency || ppd(iq)==JQT_wind_magnitude || 
-                        ppd(iq)==JQT_wind_u || ppd(iq)==JQT_wind_v || ppd(iq)==JQT_wind_w)
-                      {
-                        if(use_abs_as_ext)
-                          ext_matFromabs_vec(tmp, pnd_abs_vec_df, stokes_dim);
-                        else
-                          tmp = pnd_ext_mat_df;
-                        tmp -= propmat_clearsky(sp,iv,joker,joker);
-                        tmp /= ppd.Frequency_Perturbation();
-                        dpropmat_clearsky_dx[iq](iv, joker, joker) += tmp;
-                      }
-                      else if(ppd(iq) == JQT_temperature)
-                      {
-                        if(use_abs_as_ext)
-                          ext_matFromabs_vec(tmp, pnd_abs_vec_dt, stokes_dim);
-                        else
-                          tmp = pnd_ext_mat_dt;
-                        tmp -= propmat_clearsky(sp,iv,joker,joker);
-                        tmp /= ppd.Temperature_Perturbation();
-                        dpropmat_clearsky_dx[iq](iv, joker, joker) += tmp;
-                      }
-                      else if(ppd(iq) == JQT_particulates)
-                      {
-                        dpropmat_clearsky_dx[iq](iv, joker, joker) += propmat_clearsky(sp,iv,joker,joker);
-                      }
-                    }
-                  
-                  
-                }
-              sp++;
+              opt_propExtract(pnd_ext_mat_df, pnd_abs_vec_df,
+                              scat_data_mono_df[i_ss][i_se],
+                              rtp_los_back[0], rtp_los_back[1],
+                              rtp_temperature, stokes_dim, verbosity);
+              pnd_ext_mat_df *= rtp_vmr[sp];
+              pnd_abs_vec_df *= rtp_vmr[sp];
             }
+            
+            // For temperature derivatives
+            if(ppd.do_temperature())
+            {
+              opt_propExtract(pnd_ext_mat_dt, pnd_abs_vec_dt,
+                              scat_data_mono[i_ss][i_se],
+                              rtp_los_back[0], rtp_los_back[1],
+                              rtp_temperature+ppd.Temperature_Perturbation(), 
+                              stokes_dim, verbosity);
+              pnd_ext_mat_dt *= rtp_vmr[sp];
+              pnd_abs_vec_dt *= rtp_vmr[sp];
+            }
+            
+            // For number density derivatives
+            if(do_jac && first_loop)
+              rtp_vmr_sum += rtp_vmr[sp];
+            
+            if (use_abs_as_ext)
+            {
+              propmat_clearsky[sp].AddAbsorptionVectorAtFrequency(iv, pnd_abs_vec);
+            }
+            else
+            {
+              propmat_clearsky[sp].SetAtFrequency(iv, pnd_ext_mat);
+              
+            }
+            
+            for(Index iq=0; iq<ppd.nelem(); iq++)
+            {     
+              if(ppd(iq)==JQT_frequency || ppd(iq)==JQT_wind_magnitude || 
+                ppd(iq)==JQT_wind_u || ppd(iq)==JQT_wind_v || ppd(iq)==JQT_wind_w)
+              {
+                if(use_abs_as_ext)
+                {
+                  ext_matFromabs_vec(tmp, pnd_abs_vec_df, stokes_dim);
+                }
+                else
+                  tmp = pnd_ext_mat_df;
+                
+                propmat_clearsky[sp].MatrixAtFrequency(tmp2, iv);
+                tmp -= tmp2;
+                tmp /= ppd.Frequency_Perturbation();
+                dpropmat_clearsky_dx[iq].AddAtFrequency(iv, tmp);
+              }
+              else if(ppd(iq) == JQT_temperature)
+              {
+                if(use_abs_as_ext)
+                {
+                  ext_matFromabs_vec(tmp, pnd_abs_vec_dt, stokes_dim);
+                }
+                else
+                  tmp = pnd_ext_mat_dt;
+                propmat_clearsky[sp].MatrixAtFrequency(tmp2, iv);
+                tmp -= tmp2;
+                tmp /= ppd.Temperature_Perturbation();
+                dpropmat_clearsky_dx[iq].AddAtFrequency(iv, tmp);
+              }
+              else if(ppd(iq) == JQT_particulates)
+              {
+                dpropmat_clearsky_dx[iq].AddAtFrequency(iv, propmat_clearsky[sp]);
+              }
+            }
+          }
+          sp++;
         }
+      }
       //checking that no further 'particle' entry left after all scat_data
       //entries are processes. this is basically not necessary. but checking it
       //anyway to really be safe. remove later, when more extensively tested.
       while (sp < na)
-        {
-          assert ( abs_species[sp][0].Type() != SpeciesTag::TYPE_PARTICLES );
-          sp++;
-        }
+      {
+        assert ( abs_species[sp][0].Type() != SpeciesTag::TYPE_PARTICLES );
+        sp++;
+      }
         
       // Not first loop anymore
       first_loop = false;
@@ -2976,7 +2980,7 @@ void propmat_clearskyAddParticles(
           dpropmat_clearsky_dx[iq] /= rtp_vmr_sum;
         }
       }
-    }
+    };
 }
 
 
@@ -2984,11 +2988,11 @@ void propmat_clearskyAddParticles(
 void propmat_clearskyAddOnTheFly(// Workspace reference:
                                     Workspace& ws,
                                     // WS Output:
-                                    Tensor4& propmat_clearsky,
-                                    Tensor3& nlte_source,
-                                    ArrayOfTensor3& dpropmat_clearsky_dx,
-                                    ArrayOfMatrix& dnlte_dx_source,
-                                    ArrayOfMatrix& nlte_dsource_dx,
+                                    ArrayOfPropagationMatrix& propmat_clearsky,
+                                    ArrayOfStokesVector& nlte_source,
+                                    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+                                    ArrayOfStokesVector& dnlte_dx_source,
+                                    ArrayOfStokesVector& nlte_dsource_dx,
                                     // WS Input:
                                     const Vector& f_grid,
                                     const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -3064,7 +3068,7 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
   propmat_clearskyAddFromAbsCoefPerSpecies(propmat_clearsky, dpropmat_clearsky_dx, abs_coef_per_species, dabs_coef_dx, verbosity);
   
   // Now turn nlte_source from absorption into a proper source function
-  if(! nlte_source.empty())
+  if(not nlte_source.empty())
       nlte_sourceFromTemperatureAndSrcCoefPerSpecies(nlte_source, dnlte_dx_source, nlte_dsource_dx, 
                                                      src_coef_per_species, dsrc_coef_dx, jacobian_quantities,
                                                      f_grid, rtp_temperature, verbosity);
@@ -3073,25 +3077,27 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyZero(
-         Tensor4&    propmat_clearsky,
+         ArrayOfPropagationMatrix&    propmat_clearsky,
    const Vector&     f_grid,
    const Index&      stokes_dim,
    const Verbosity& )
 {
-  propmat_clearsky.resize( 1, f_grid.nelem(), stokes_dim, stokes_dim );
-  propmat_clearsky = 0;
+  propmat_clearsky.resize(1);
+  propmat_clearsky[0] = PropagationMatrix(f_grid.nelem(), stokes_dim);
+  propmat_clearsky[0].SetZero();
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyForceNegativeToZero(
-    Tensor4&    propmat_clearsky,
+    ArrayOfPropagationMatrix&    propmat_clearsky,
     const Verbosity& )
 {
-    for(Index ii=0;ii<propmat_clearsky.nbooks();ii++)
-        for(Index jj=0;jj<propmat_clearsky.npages();jj++)
-            if(propmat_clearsky(ii,jj,0,0)<0)
-                propmat_clearsky(ii,jj,joker,joker) = 0;
+    for(auto& pm : propmat_clearsky)
+      for(Index i = 0; i < pm.NumberOfFrequencies(); i++)
+        if(pm.Kjj()[i] < 0.0)
+          pm.SetAtFrequency(i, 0.0);
+          
 }
 
 

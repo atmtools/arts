@@ -579,6 +579,9 @@ public:
   void SetQuantumNumberLower(const Index i, const Rational r) { mquantum_numbers.SetLower(i,r); }
   void SetQuantumNumberUpper(const Index i, const Rational r) { mquantum_numbers.SetUpper(i,r); }
   
+  /** Quantum identifier */
+  QuantumIdentifier QuantumIdentity() const {return QuantumIdentifier(mspecies, misotopologue, mquantum_numbers);}
+  
   /** Line Mixing data */
   const LineMixingData& LineMixing() const { return mlinemixingdata; }
   void SetLineMixingData(const LineMixingData& input) { mlinemixingdata=input; }

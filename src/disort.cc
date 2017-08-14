@@ -401,13 +401,25 @@ void dtauc_ssalbCalc( Workspace &ws,
   const Index stokes_dim = 1; 
 
   // Local variables to be used in agendas
-  Matrix abs_vec_spt_local(N_se, stokes_dim, 0.);
-  Tensor3 ext_mat_spt_local(N_se, stokes_dim, stokes_dim, 0.);
-  Matrix abs_vec_local;
-  Tensor3 ext_mat_local;
+  ArrayOfStokesVector abs_vec_spt_local(N_se);
+  for(auto& av : abs_vec_spt_local)
+  {
+    av = StokesVector(1, stokes_dim);
+    av.SetZero();
+  }
+  
+  ArrayOfPropagationMatrix ext_mat_spt_local(N_se);
+  for(auto& pm : ext_mat_spt_local)
+  {
+    pm = PropagationMatrix(1, stokes_dim);
+    pm.SetZero();
+  }
+    
+  StokesVector abs_vec_local;
+  PropagationMatrix ext_mat_local;
   Numeric rtp_temperature_local; 
   Numeric rtp_pressure_local;
-  Tensor4 propmat_clearsky_local;
+  ArrayOfPropagationMatrix propmat_clearsky_local;
   Vector ext_vector(Np, 0.); 
   Vector abs_vector(Np, 0.); 
   Vector rtp_vmr_local(vmr_field.nbooks());
@@ -433,14 +445,18 @@ void dtauc_ssalbCalc( Workspace &ws,
                         pnd_field,
                         scat_p_index_local, 0, 0, verbosity);
 
-      ext_vector[scat_p_index_local+cloudbox_limits[0]] = ext_mat_local(0,0,0);
-      abs_vector[scat_p_index_local+cloudbox_limits[0]] = abs_vec_local(0,0);
+      ext_vector[scat_p_index_local+cloudbox_limits[0]] = ext_mat_local.Kjj()[0];
+      abs_vector[scat_p_index_local+cloudbox_limits[0]] = abs_vec_local.Kjj()[0];
     }
 
   const Vector  rtp_temperature_nlte_local_dummy(0);
 
   // Calculate layer averaged single scattering albedo and layer optical depth
-  propmat_clearsky_local = 0.;
+  for(auto& pm : propmat_clearsky_local)
+  {
+    pm.SetZero();
+  }
+  
   for (Index i = 0; i < Np-1; i++)
     {
       Numeric ext_part = 0.;
@@ -461,10 +477,10 @@ void dtauc_ssalbCalc( Workspace &ws,
       const Vector ppath_los_dummy;
 
       //FIXME: do this right?
-      Tensor3 nlte_dummy;
+      ArrayOfStokesVector nlte_dummy;
       // This is right since there should be only clearsky partials
-      ArrayOfTensor3 partial_dummy;
-      ArrayOfMatrix partial_source_dummy,partial_nlte_dummy;
+      ArrayOfPropagationMatrix partial_dummy;
+      ArrayOfStokesVector partial_source_dummy,partial_nlte_dummy;
       propmat_clearsky_agendaExecute(ws,
                                      propmat_clearsky_local,
                                      nlte_dummy,
@@ -481,7 +497,9 @@ void dtauc_ssalbCalc( Workspace &ws,
                                      propmat_clearsky_agenda);  
 
       //Assuming non-polarized light and only one frequency
-      Numeric abs_gas = propmat_clearsky_local(joker,0,0,0).sum();
+      Numeric abs_gas = 0.;
+      for(auto& pm : propmat_clearsky_local)
+        abs_gas += pm.Kjj()[0];
 
       if (ext_part!=0)
         ssalb[Np-2-i]=(ext_part-abs_part) / (ext_part+abs_gas);
@@ -533,10 +551,19 @@ void phase_functionCalc2( //Output
 
   // Local variables to be used in agendas
   Numeric rtp_temperature_local; 
-  Matrix abs_vec_spt_local(N_se, stokes_dim, 0.);
-  Matrix abs_vec_local;
-  Tensor3 ext_mat_spt_local(N_se, stokes_dim, stokes_dim, 0.);
-  Tensor3 ext_mat_local;
+  ArrayOfStokesVector abs_vec_spt_local(N_se);
+  for(auto& av : abs_vec_spt_local)
+  {
+    av = StokesVector(1, stokes_dim);
+    av.SetZero();
+  }
+  
+  StokesVector abs_vec_local;
+  ArrayOfPropagationMatrix ext_mat_spt_local(N_se);
+  for(auto& pm : ext_mat_spt_local)
+    pm = PropagationMatrix(1, stokes_dim);
+  
+  PropagationMatrix ext_mat_local;
   Tensor5 pha_mat_spt_local(N_se, pfct_za_grid_size, 1,
                             stokes_dim, stokes_dim, 0.);
   Tensor4 pha_mat_local;

@@ -212,12 +212,12 @@ void get_ppath_atmvars(
 
 void get_ppath_pmat( 
         Workspace&      ws,
-        Tensor4&        ppath_ext,
-        Tensor3&        ppath_nlte_source,
+        ArrayOfPropagationMatrix&        ppath_ext,
+        ArrayOfStokesVector&        ppath_nlte_source,
         ArrayOfIndex&   lte,
-        Tensor5&        abs_per_species,
-        Tensor5&        dppath_ext_dx,
-        Tensor4&        dppath_nlte_source_dx,
+        ArrayOfArrayOfPropagationMatrix&        abs_per_species,
+        ArrayOfArrayOfPropagationMatrix&        dppath_ext_dx,
+        ArrayOfArrayOfStokesVector&        dppath_nlte_source_dx,
   const Agenda&         propmat_clearsky_agenda,
   const ArrayOfRetrievalQuantity& jacobian_quantities,
   const Ppath&          ppath,
@@ -247,7 +247,7 @@ void get_dppath_blackrad_dt(
 void get_ppath_ext( 
         ArrayOfIndex&                  clear2cloudbox,
         Tensor3&                       pnd_abs_vec, 
-        Tensor4&                       pnd_ext_mat, 
+        ArrayOfPropagationMatrix& pnd_ext_mat, 
   Array<ArrayOfArrayOfSingleScatteringData>&  scat_data_single,
         Matrix&                        ppath_pnd,
         ArrayOfMatrix&                 ppath_dpnd_dx,
@@ -284,7 +284,7 @@ void get_ppath_trans(
         Tensor4&               trans_cumulat,
         Vector&                scalar_tau,
   const Ppath&                 ppath,
-  ConstTensor4View&            ppath_ext,
+  const ArrayOfPropagationMatrix& ppath_ext,
   ConstVectorView              f_grid, 
   const Index&                 stokes_dim );
 
@@ -296,8 +296,8 @@ void get_ppath_trans_and_dppath_trans_dx(
         Tensor4&               trans_cumulat,
         Vector&                scalar_tau,
   const Ppath&                 ppath,
-  ConstTensor4View&            ppath_ext,
-  ConstTensor5View&            dppath_ext_dx,
+  const ArrayOfPropagationMatrix& ppath_ext,
+  const ArrayOfArrayOfPropagationMatrix& dppath_ext_dx,
   const ArrayOfRetrievalQuantity& jacobian_quantities,
   ConstVectorView              f_grid, 
   const ArrayOfIndex&          for_distance_integration,
@@ -309,11 +309,11 @@ void get_ppath_trans2(
         Tensor4&               trans_cumulat,
         Vector&                scalar_tau,
   const Ppath&                 ppath,
-  ConstTensor4View&            ppath_ext,
+  const ArrayOfPropagationMatrix& ppath_ext,
   ConstVectorView              f_grid, 
   const Index&                 stokes_dim,
   const ArrayOfIndex&          clear2cloudbox,
-  ConstTensor4View             pnd_ext_mat );
+  const ArrayOfPropagationMatrix& pnd_ext_mat );
 
 void get_ppath_trans2_and_dppath_trans_dx(  Tensor4&               trans_partial,
                                             Tensor5&               dtrans_partial_dx_from_above,
@@ -322,13 +322,13 @@ void get_ppath_trans2_and_dppath_trans_dx(  Tensor4&               trans_partial
                                             Tensor4&               trans_cumulat,
                                             Vector&                scalar_tau,
                                             const Ppath&                 ppath,
-                                            ConstTensor4View&            ppath_ext,
-                                            ConstTensor5View&            dppath_ext_dx,
+                                            const ArrayOfPropagationMatrix& ppath_ext,
+                                            const ArrayOfArrayOfPropagationMatrix& dppath_ext_dx,
                                             const ArrayOfRetrievalQuantity& jacobian_quantities,
                                             ConstVectorView              f_grid, 
                                             const Index&                 stokes_dim,
                                             const ArrayOfIndex&          clear2cloudbox,
-                                            ConstTensor4View             pnd_ext_mat );
+                                            const ArrayOfPropagationMatrix& pnd_ext_mat );
 
 Range get_rowindex_for_mblock( 
   const Sparse&   sensor_response, 
@@ -341,12 +341,12 @@ void iy_transmission_mult(
 
 void get_ppath_pmat_and_tmat( 
                             Workspace&      ws,
-                            Tensor4&        ppath_ext,
-                            Tensor3&        ppath_nlte_source,
+                            ArrayOfPropagationMatrix&        ppath_ext,
+                            ArrayOfStokesVector&        ppath_nlte_source,
                             ArrayOfIndex&   lte,
-                            Tensor5&        abs_per_species,
-                            Tensor5&        dppath_ext_dx,
-                            Tensor4&        dppath_nlte_source_dx,
+                            ArrayOfArrayOfPropagationMatrix&        abs_per_species,
+                            ArrayOfArrayOfPropagationMatrix&        dppath_ext_dx,
+                            ArrayOfArrayOfStokesVector&        dppath_nlte_source_dx,
                             Tensor4&               trans_partial,
                             Tensor5&               dtrans_partial_dx_above,
                             Tensor5&               dtrans_partial_dx_below,
@@ -354,7 +354,7 @@ void get_ppath_pmat_and_tmat(
                             ArrayOfIndex&   clear2cloudbox,
                             Tensor4&               trans_cumulat,
                             Vector&                scalar_tau,
-                            Tensor4&               pnd_ext_mat,
+                            ArrayOfPropagationMatrix&               pnd_ext_mat,
                             Matrix&                ppath_pnd,
                             ArrayOfMatrix&         ppath_dpnd_dx,
                             Array<ArrayOfArrayOfSingleScatteringData>& scat_data_single,
@@ -367,7 +367,6 @@ void get_ppath_pmat_and_tmat(
                             ConstMatrixView       ppath_t_nlte, 
                             ConstMatrixView       ppath_vmr, 
                             ConstMatrixView       ppath_mag,
-                            ConstMatrixView       ppath_wind,
                             ConstMatrixView       ppath_f, 
                             ConstVectorView       f_grid, 
                             const ArrayOfIndex&   jac_species_i,
@@ -382,7 +381,6 @@ void get_ppath_pmat_and_tmat(
                             const ArrayOfTensor4& dpnd_field_dx,
                             const ArrayOfIndex&   cloudbox_limits,
                             const Index&          use_mean_scat_data,
-                            const Numeric&        rte_alonglos_v,
                             const Index&          atmosphere_dim,
                             const Index&          stokes_dim,
                             const bool&           jacobian_do,
@@ -457,5 +455,16 @@ void pos2true_latlon(
     ConstVectorView    lat_true,
     ConstVectorView    lon_true,
     ConstVectorView    pos );
+
+void ext_mat_case(Index& icase, ConstMatrixView ext_mat, const Index stokes_dim);
+
+void emission_rtstep_replacement( MatrixView iy,
+                                  const Index stokes_dim,
+                                  ConstVectorView planck_emission,
+                                  const ArrayOfIndex&   extmat_case,
+                                  ConstTensor3View transmission,
+                                  const bool nonlte,
+                                  const PropagationMatrix& propagation_matrix,
+                                  const StokesVector& source_vector);
 
 #endif  // rte_h

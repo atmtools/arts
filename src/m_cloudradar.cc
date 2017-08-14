@@ -289,15 +289,16 @@ void iyActiveSingleScat(
   Vector              ppath_p, ppath_t;
   Matrix              ppath_vmr, ppath_pnd, ppath_wind, ppath_mag;
   Matrix              ppath_f, ppath_t_nlte;
-  Tensor5             abs_per_species;
+  ArrayOfArrayOfPropagationMatrix abs_per_species;
   Tensor5             dtrans_partial_dx_above, dtrans_partial_dx_below;
-  Tensor4             ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat;
+  ArrayOfPropagationMatrix ppath_ext, pnd_ext_mat;
+  Tensor4 trans_partial, trans_cumulat;
   Vector              scalar_tau;
   ArrayOfIndex        clear2cloudbox;
   ArrayOfArrayOfIndex extmat_case;   
-  Tensor5             dppath_ext_dx;
-  Tensor4             dppath_nlte_dx, dppath_nlte_source_dx;
-  Tensor3             ppath_nlte_source;
+  ArrayOfArrayOfPropagationMatrix dppath_ext_dx;
+  ArrayOfArrayOfStokesVector dppath_nlte_dx, dppath_nlte_source_dx;
+  ArrayOfStokesVector        ppath_nlte_source;
   ArrayOfIndex        lte;  
   ArrayOfMatrix       ppath_dpnd_dx;
   const Tensor4       t_nlte_field_empty(0,0,0,0);
@@ -325,12 +326,12 @@ void iyActiveSingleScat(
                                ppath_dpnd_dx, scat_data_single,
                                propmat_clearsky_agenda, jacobian_quantities,
                                ppd, ppath, ppath_p, ppath_t, ppath_t_nlte,
-                               ppath_vmr, ppath_mag, ppath_wind, ppath_f, f_grid, 
+                               ppath_vmr, ppath_mag, ppath_f, f_grid, 
                                jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,
                                jac_to_integrate, jac_other, iaps, scat_data,
                                pnd_field, dpnd_field_dx,
                                cloudbox_limits, 0,
-                               rte_alonglos_v, atmosphere_dim, stokes_dim,
+                               atmosphere_dim, stokes_dim,
                                jacobian_do, cloudbox_on, verbosity );
         }
       else

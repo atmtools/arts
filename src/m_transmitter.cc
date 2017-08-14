@@ -357,9 +357,11 @@ void iyRadioLink(
   //
   Vector       ppath_p, ppath_t;
   Matrix       ppath_vmr, ppath_pnd, ppath_mag, ppath_wind, ppath_f, ppath_t_nlte;
-  Tensor5      abs_per_species, dummy_dppath_ext_dx;
-  Tensor4      ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat, dummy_dppath_nlte_dx;
-  Tensor3      dummy_ppath_nlte_source;
+  ArrayOfArrayOfPropagationMatrix      abs_per_species, dummy_dppath_ext_dx;
+  ArrayOfPropagationMatrix      ppath_ext, pnd_ext_mat;
+  Tensor4 trans_partial, trans_cumulat;
+  ArrayOfArrayOfStokesVector dummy_dppath_nlte_dx;
+  ArrayOfStokesVector      dummy_ppath_nlte_source;
   Vector       scalar_tau;
   ArrayOfIndex clear2cloudbox, dummy_lte;
   ArrayOfMatrix        dummy_ppath_dpnd_dx;
@@ -436,13 +438,13 @@ void iyRadioLink(
             for( Index is1=0; is1<ns; is1++ ){
               for( Index is2=0; is2<ns; is2++ ){
                 iy_aux[auxAbsSum](iv,is1,is2,np-1) = 
-                                            ppath_ext(iv,is1,is2,np-1); } } } }
+                                            ppath_ext[np-1](iv,is1,is2); } } } }
       for( Index j=0; j<auxAbsSpecies.nelem(); j++ )
         { for( Index iv=0; iv<nf; iv++ ) {
             for( Index is1=0; is1<stokes_dim; is1++ ){
               for( Index is2=0; is2<stokes_dim; is2++ ){
                 iy_aux[auxAbsSpecies[j]](iv,is1,is2,np-1) = 
-                         abs_per_species(auxAbsIsp[j],iv,is1,is2,np-1); } } } }
+                         abs_per_species[np-1][auxAbsIsp[j]](iv,is1,is2); } } } }
       // Particle properties
       if( cloudbox_on  )
         {
@@ -454,7 +456,7 @@ void iyRadioLink(
                 for( Index is1=0; is1<ns; is1++ ){
                   for( Index is2=0; is2<ns; is2++ ){
                     iy_aux[auxPartExt](iv,is1,is2,np-1) = 
-                                              pnd_ext_mat(iv,is1,is2,ic); } } } 
+                                              pnd_ext_mat[ic](iv,is1,is2); } } } 
             } 
           // Particle mass content
           for( Index j=0; j<auxPartCont.nelem(); j++ )
@@ -472,7 +474,7 @@ void iyRadioLink(
       if( auxFarRotSpeed >= 0 )
         { for( Index iv=0; iv<nf; iv++ ) {
             iy_aux[auxFarRotSpeed](iv,0,0,np-1) = 0.5 *
-                                          abs_per_species(ife,iv,1,2,np-1); } }
+                                          abs_per_species[np-1][ife](iv,1,2); } }
       //=======================================================================
 
       // Loop ppath steps
@@ -524,13 +526,13 @@ void iyRadioLink(
                 for( Index is1=0; is1<ns; is1++ ){
                   for( Index is2=0; is2<ns; is2++ ){
                     iy_aux[auxAbsSum](iv,is1,is2,ip) = 
-                                               ppath_ext(iv,is1,is2,ip); } } } }
+                                               ppath_ext[ip](iv,is1,is2); } } } }
           for( Index j=0; j<auxAbsSpecies.nelem(); j++ )
             { for( Index iv=0; iv<nf; iv++ ) {
                 for( Index is1=0; is1<stokes_dim; is1++ ){
                   for( Index is2=0; is2<stokes_dim; is2++ ){
                     iy_aux[auxAbsSpecies[j]](iv,is1,is2,ip) = 
-                            abs_per_species(auxAbsIsp[j],iv,is1,is2,ip); } } } }
+                            abs_per_species[ip][auxAbsIsp[j]](iv,is1,is2); } } } }
           // Particle properties
           if( cloudbox_on ) 
             {
@@ -542,7 +544,7 @@ void iyRadioLink(
                     for( Index is1=0; is1<ns; is1++ ){
                       for( Index is2=0; is2<ns; is2++ ){
                         iy_aux[auxPartExt](iv,is1,is2,ip) = 
-                                              pnd_ext_mat(iv,is1,is2,ic); } } }
+                                              pnd_ext_mat[ic](iv,is1,is2); } } }
                 }
               // Particle mass content
               for( Index j=0; j<auxPartCont.nelem(); j++ )
@@ -560,13 +562,13 @@ void iyRadioLink(
           if( auxFarRotTotal >= 0 )
             { for( Index iv=0; iv<nf; iv++ ) {
                 iy_aux[auxFarRotTotal](iv,0,0,0) += RAD2DEG * ppath.lstep[ip] *
-                  0.25 * ( abs_per_species(ife,iv,1,2,ip)+
-                           abs_per_species(ife,iv,1,2,ip+1)); } }
+                  0.25 * ( abs_per_species[ip][ife](iv,1,2)+
+                           abs_per_species[ip+1][ife](iv,1,2)); } }
           // Faraday speed
           if( auxFarRotSpeed >= 0 )
             { for( Index iv=0; iv<nf; iv++ ) {  
                 iy_aux[auxFarRotSpeed](iv,0,0,ip) = 0.5 *
-                                            abs_per_species(ife,iv,1,2,ip); } }
+                                            abs_per_species[ip][ife](iv,1,2); } }
           //===================================================================
         }
 
@@ -972,15 +974,16 @@ void iyTransmissionStandard(
   Vector              ppath_p, ppath_t;
   Matrix              ppath_vmr, ppath_pnd, ppath_wind, ppath_mag;
   Matrix              ppath_f, ppath_t_nlte;
-  Tensor5             abs_per_species;
+  ArrayOfArrayOfPropagationMatrix abs_per_species;
   Tensor5             dtrans_partial_dx_above, dtrans_partial_dx_below;
-  Tensor4             ppath_ext, trans_partial, trans_cumulat, pnd_ext_mat;
+  ArrayOfPropagationMatrix ppath_ext, pnd_ext_mat;
+  Tensor4             trans_partial, trans_cumulat;
   Vector              scalar_tau;
   ArrayOfIndex        clear2cloudbox;
   ArrayOfArrayOfIndex extmat_case;   
-  Tensor5             dppath_ext_dx;
-  Tensor4             dppath_nlte_dx, dppath_nlte_source_dx;
-  Tensor3             ppath_nlte_source;
+  ArrayOfArrayOfPropagationMatrix dppath_ext_dx;
+  ArrayOfArrayOfStokesVector dppath_nlte_dx, dppath_nlte_source_dx;
+  ArrayOfStokesVector ppath_nlte_source;
   ArrayOfIndex        lte;  
   ArrayOfMatrix       dummy_ppath_dpnd_dx;
   ArrayOfTensor4      dummy_dpnd_field_dx;
@@ -1004,15 +1007,14 @@ void iyTransmissionStandard(
                                dummy_ppath_dpnd_dx, scat_data_single,
                                propmat_clearsky_agenda, jacobian_quantities,
                                ppd, ppath, ppath_p, ppath_t, ppath_t_nlte,
-                               ppath_vmr, ppath_mag, ppath_wind, ppath_f, f_grid, 
+                               ppath_vmr, ppath_mag, ppath_f, f_grid, 
                                jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,
                                jac_to_integrate, jac_other, iaps, scat_data,
                                pnd_field, dummy_dpnd_field_dx,
                                cloudbox_limits, use_mean_scat_data,
-                               rte_alonglos_v, atmosphere_dim, stokes_dim,
+                               atmosphere_dim, stokes_dim,
                                jacobian_do, cloudbox_on, verbosity );
     }
-
   //=== iy_aux part ===========================================================
   // Fill parts of iy_aux that are defined even for np=1.
   // Radiance 
@@ -1068,13 +1070,13 @@ void iyTransmissionStandard(
             for( Index is1=0; is1<ns; is1++ ){
               for( Index is2=0; is2<ns; is2++ ){
                 iy_aux[auxAbsSum](iv,is1,is2,np-1) = 
-                                             ppath_ext(iv,is1,is2,np-1); } } } }
+                                             ppath_ext[np-1](iv,is1,is2); } } } }
       for( Index j=0; j<auxAbsSpecies.nelem(); j++ )
         { for( Index iv=0; iv<nf; iv++ ) {
             for( Index is1=0; is1<stokes_dim; is1++ ){
               for( Index is2=0; is2<stokes_dim; is2++ ){
                 iy_aux[auxAbsSpecies[j]](iv,is1,is2,np-1) = 
-                         abs_per_species(auxAbsIsp[j],iv,is1,is2,np-1); } } } }
+                         abs_per_species[np-1][auxAbsIsp[j]](iv,is1,is2); } } } }
       // Particle properties
       if( cloudbox_on  )
         {
@@ -1086,7 +1088,7 @@ void iyTransmissionStandard(
                 for( Index is1=0; is1<ns; is1++ ){
                   for( Index is2=0; is2<ns; is2++ ){
                     iy_aux[auxPartExt](iv,is1,is2,np-1) = 
-                                              pnd_ext_mat(iv,is1,is2,ic); } } } 
+                                              pnd_ext_mat[ic](iv,is1,is2); } } } 
             } 
           // Particle mass content
           for( Index j=0; j<auxPartCont.nelem(); j++ )
@@ -1102,7 +1104,7 @@ void iyTransmissionStandard(
       if( auxFarRotSpeed >= 0 )
         { for( Index iv=0; iv<nf; iv++ ) {
             iy_aux[auxFarRotSpeed](iv,0,0,np-1) = 0.5 *
-                                          abs_per_species(ife,iv,1,2,np-1); } }
+                                          abs_per_species[np-1][ife](iv,1,2); } }
       //=======================================================================
 
       
@@ -1122,87 +1124,79 @@ void iyTransmissionStandard(
 
 
               // Zero Stokes vector (to be used for some non-extsing terms)
-              const Vector zerovec(ns,0);
+              const StokesVector zerovec(0,ns);
 
               for( Index iq=0; iq<nq; iq++ ) 
+              {
+                if( jacobian_quantities[iq].Analytical() )
                 {
-                    if( jacobian_quantities[iq].Analytical() )
+                  if( jac_species_i[iq] >= 0 || jac_wind_i[iq] ||
+                    jac_mag_i[iq] || jac_other[iq] || jac_is_t[iq] )
+                  {   
+                    const bool this_is_t = jac_is_t[iq],
+                    this_is_hse = this_is_t ? jacobian_quantities[iq].Subtag() == "HSE on" : false;
+                    
+                    if(jac_to_integrate[iq])
                     {
-                        if( jac_species_i[iq] >= 0 || jac_wind_i[iq] ||
-                            jac_mag_i[iq] || jac_other[iq] || jac_is_t[iq] )
-                        {   
-                            const bool this_is_t = jac_is_t[iq],
-                            this_is_hse = this_is_t ? jacobian_quantities[iq].Subtag() == "HSE on" : false;
-                            
-                            for( Index iv=0; iv<nf; iv++ )
-                            {
-                                if(jac_to_integrate[iq])
-                                {
-                                    Vector tmp1(stokes_dim, 0.), tmp2(stokes_dim, 0.);
-                                    get_diydx( diy_dpath[iq](0, iv, joker),
-                                               diy_dpath[iq](0, iv, joker),
-                                               extmat_case[ip][iv],
-                                               iy(iv,joker),
-                                               iy(iv,joker),
-                                               zerovec,
-                                               zerovec,
-                                               zerovec,
-                                               zerovec,
-                                               ppath_ext(iv,joker,joker,ip  ),
-                                               ppath_ext(iv,joker,joker,ip+1),
-                                               dppath_ext_dx(iq,iv,joker,joker,ip  ),
-                                               dppath_ext_dx(iq,iv,joker,joker,ip+1),
-                                               trans_partial(iv,joker,joker,ip),
-                                               dtrans_partial_dx_below(iq,iv,joker,joker,ip),
-                                               dtrans_partial_dx_above(iq,iv,joker,joker,ip),
-                                               trans_cumulat(iv,joker,joker,ip  ),
-                                               trans_cumulat(iv,joker,joker,ip+1),
-                                               ppath_t[ip  ],
-                                               ppath_t[ip+1],
-                                               dt,
-                                               0,
-                                               0,
-                                               ppath.lstep[ip],
-                                               stokes_dim,
-                                               false,
-                                               this_is_hse,
-                                               false );
-                                }
-                                else
-                                {
-                                    get_diydx( diy_dpath[iq](ip  ,iv,joker),
-                                               diy_dpath[iq](ip+1,iv,joker),
-                                               extmat_case[ip][iv],
-                                               iy(iv,joker),
-                                               iy(iv,joker),
-                                               zerovec,
-                                               zerovec,
-                                               zerovec,
-                                               zerovec,
-                                               ppath_ext(iv,joker,joker,ip  ),
-                                               ppath_ext(iv,joker,joker,ip+1),
-                                               dppath_ext_dx(iq,iv,joker,joker,ip  ),
-                                               dppath_ext_dx(iq,iv,joker,joker,ip+1),
-                                               trans_partial(iv,joker,joker,ip),
-                                               dtrans_partial_dx_below(iq,iv,joker,joker,ip),
-                                               dtrans_partial_dx_above(iq,iv,joker,joker,ip),
-                                               trans_cumulat(iv,joker,joker,ip  ),
-                                               trans_cumulat(iv,joker,joker,ip+1),
-                                               ppath_t[ip  ],
-                                               ppath_t[ip+1],
-                                               dt,
-                                               0,
-                                               0,
-                                               ppath.lstep[ip],
-                                               stokes_dim,
-                                               false,
-                                               this_is_hse,
-                                               false );
-                                }
-                            } // for all frequencies
-                        } // if this iq is analytical
-                    } // if this analytical
-                } // for iq
+                      get_diydx_replacement(diy_dpath[iq](0, joker, joker),
+                                            diy_dpath[iq](0, joker, joker),
+                                            iy,
+                                            iy,
+                                            zerovec,
+                                            zerovec,
+                                            zerovec,
+                                            zerovec,
+                                            ppath_ext[ip],
+                                            ppath_ext[ip+1],
+                                            dppath_ext_dx[ip][iq],
+                                            dppath_ext_dx[ip+1][iq],
+                                            trans_partial(joker,joker,joker,ip),
+                                            dtrans_partial_dx_below(iq,joker,joker,joker,ip),
+                                            dtrans_partial_dx_above(iq,joker,joker,joker,ip),
+                                            trans_cumulat(joker,joker,joker,ip  ),
+                                            trans_cumulat(joker,joker,joker,ip+1),
+                                            ppath_t[ip  ],
+                                            ppath_t[ip+1],
+                                            dt,
+                                            0,
+                                            0,
+                                            ppath.lstep[ip],
+                                            false,
+                                            this_is_hse,
+                                            false );
+                    }
+                    else
+                    {
+                      get_diydx_replacement(diy_dpath[iq](ip  ,joker,joker),
+                                            diy_dpath[iq](ip+1,joker,joker),
+                                            iy,
+                                            iy,
+                                            zerovec,
+                                            zerovec,
+                                            zerovec,
+                                            zerovec,
+                                            ppath_ext[ip],
+                                            ppath_ext[ip+1],
+                                            dppath_ext_dx[ip][iq],
+                                            dppath_ext_dx[ip+1][iq],
+                                            trans_partial(joker,joker,joker,ip),
+                                            dtrans_partial_dx_below(iq,joker,joker,joker,ip),
+                                            dtrans_partial_dx_above(iq,joker,joker,joker,ip),
+                                            trans_cumulat(joker,joker,joker,ip  ),
+                                            trans_cumulat(joker,joker,joker,ip+1),
+                                            ppath_t[ip  ],
+                                            ppath_t[ip+1],
+                                            dt,
+                                            0,
+                                            0,
+                                            ppath.lstep[ip],
+                                            false,
+                                            this_is_hse,
+                                            false );
+                    }
+                  } // if this iq is analytical
+                } // if this analytical
+              } // for iq
             } // if any analytical
           //###################################################################
 
@@ -1250,13 +1244,13 @@ void iyTransmissionStandard(
                 for( Index is1=0; is1<ns; is1++ ){
                   for( Index is2=0; is2<ns; is2++ ){
                     iy_aux[auxAbsSum](iv,is1,is2,ip) = 
-                                               ppath_ext(iv,is1,is2,ip); } } } }
+                                               ppath_ext[ip](iv,is1,is2); } } } }
           for( Index j=0; j<auxAbsSpecies.nelem(); j++ )
             { for( Index iv=0; iv<nf; iv++ ) {
                 for( Index is1=0; is1<stokes_dim; is1++ ){
                   for( Index is2=0; is2<stokes_dim; is2++ ){
                     iy_aux[auxAbsSpecies[j]](iv,is1,is2,ip) = 
-                            abs_per_species(auxAbsIsp[j],iv,is1,is2,ip); } } } }
+                            abs_per_species[ip][auxAbsIsp[j]](iv,is1,is2); } } } }
           // Particle properties
           if( cloudbox_on ) 
             {
@@ -1268,7 +1262,7 @@ void iyTransmissionStandard(
                     for( Index is1=0; is1<ns; is1++ ){
                       for( Index is2=0; is2<ns; is2++ ){
                         iy_aux[auxPartExt](iv,is1,is2,ip) = 
-                                              pnd_ext_mat(iv,is1,is2,ic); } } }
+                                              pnd_ext_mat[ic](iv,is1,is2); } } }
                 }
               // Particle mass content
               for( Index j=0; j<auxPartCont.nelem(); j++ )
@@ -1286,13 +1280,11 @@ void iyTransmissionStandard(
           if( auxFarRotTotal >= 0 )
             { for( Index iv=0; iv<nf; iv++ ) {
                 iy_aux[auxFarRotTotal](iv,0,0,0) += RAD2DEG * ppath.lstep[ip] *
-                                0.25 * ( abs_per_species(ife,iv,1,2,ip  ) +
-                                         abs_per_species(ife,iv,1,2,ip+1)); } }
+                0.25 * ( abs_per_species[ip][ife](iv,1,2) + abs_per_species[ip+1][ife](iv,1,2)); } }
           // Faraday speed
           if( auxFarRotSpeed >= 0 )
             { for( Index iv=0; iv<nf; iv++ ) {  
-                iy_aux[auxFarRotSpeed](iv,0,0,ip) = 0.5 *
-                                            abs_per_species(ife,iv,1,2,ip); } }
+                iy_aux[auxFarRotSpeed](iv,0,0,ip) = 0.5 * abs_per_species[ip][ife](iv,1,2); } }
         } // path point loop
       //=======================================================================
 

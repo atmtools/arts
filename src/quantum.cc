@@ -90,6 +90,147 @@ bool QuantumNumbers::CompareDetailed(QuantumMatchInfoEnum& imatch, const Quantum
 }
 
 
+bool QuantumIdentifier::operator>(const QuantumIdentifier& other) const
+{
+  if(mspecies not_eq other.mspecies)
+    return false;
+  if(miso not_eq other.miso)
+    return false;
+  if(mqtype not_eq other.mqtype)
+    return false;
+  
+  Index qnri = 0;
+  
+  switch(mqtype)
+  {
+    case QuantumIdentifier::TRANSITION:
+      assert(other.Type() == QuantumIdentifier::TRANSITION);
+      while (qnri != QN_FINAL_ENTRY)
+      {
+        if(mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined())
+        {
+          if(not other.mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined())
+            return false;
+        }
+        else 
+        {
+          if(other.mqm[TRANSITION_LOWER_INDEX][qnri] not_eq mqm[TRANSITION_LOWER_INDEX][qnri])
+          {
+            return false;
+          }
+        }
+        if(mqm[TRANSITION_LOWER_INDEX][qnri].isUndefined())
+        {
+          if(not other.mqm[TRANSITION_LOWER_INDEX][qnri].isUndefined())
+            return false;
+        }
+        else 
+        {
+          if(other.mqm[TRANSITION_LOWER_INDEX][qnri] not_eq mqm[TRANSITION_LOWER_INDEX][qnri])
+          {
+            return false;
+          }
+        }
+        qnri++;
+      }
+      return true;
+      break;
+    case QuantumIdentifier::ENERGY_LEVEL:
+      assert(other.Type() == QuantumIdentifier::ENERGY_LEVEL);
+      if(mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
+      {
+        if(not other.mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
+          return false;
+      }
+      else 
+      {
+        if(other.mqm[ENERGY_LEVEL_INDEX][qnri] not_eq mqm[ENERGY_LEVEL_INDEX][qnri])
+        {
+          return false;
+        }
+      }
+      qnri++;
+      return true;
+      break;
+    case QuantumIdentifier::ALL:
+      assert(other.Type() == QuantumIdentifier::ALL);
+      return true;
+      break;
+    default:
+      throw std::runtime_error("This is a developer error");
+  }
+}
+
+
+bool QuantumIdentifier::operator<(const QuantumIdentifier& other) const
+{
+  if(mspecies not_eq other.mspecies)
+    return false;
+  if(miso not_eq other.miso)
+    return false;
+  if(mqtype not_eq other.mqtype)
+    return false;
+  
+  Index qnri = 0;
+  
+  switch(mqtype)
+  {
+    case QuantumIdentifier::TRANSITION:
+      while (qnri != QN_FINAL_ENTRY)
+      {
+        if(other.mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined())
+        {
+          if(not mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined())
+            return false;
+        }
+        else 
+        {
+          if(other.mqm[TRANSITION_LOWER_INDEX][qnri] not_eq mqm[TRANSITION_LOWER_INDEX][qnri])
+          {
+            return false;
+          }
+        }
+        if(other.mqm[TRANSITION_LOWER_INDEX][qnri].isUndefined())
+        {
+          if(not mqm[TRANSITION_LOWER_INDEX][qnri].isUndefined())
+            return false;
+        }
+        else 
+        {
+          if(other.mqm[TRANSITION_LOWER_INDEX][qnri] not_eq mqm[TRANSITION_LOWER_INDEX][qnri])
+          {
+            return false;
+          }
+        }
+        qnri++;
+      }
+      return true;
+      break;
+    case QuantumIdentifier::ENERGY_LEVEL:
+      if(other.mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
+      {
+        if(not mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
+          return false;
+      }
+      else 
+      {
+        if(other.mqm[ENERGY_LEVEL_INDEX][qnri] not_eq mqm[ENERGY_LEVEL_INDEX][qnri])
+        {
+          return false;
+        }
+      }
+      qnri++;
+      return true;
+      break;
+    case QuantumIdentifier::ALL:
+      return true;
+      break;
+    default:
+      throw std::runtime_error("This is a developer error");
+  }
+}
+
+
 bool IsValidQuantumNumberName(String name)
 {
     bool valid = false;
@@ -249,6 +390,9 @@ String QuantumIdentifier::TypeStr() const {
         case QuantumIdentifier::ENERGY_LEVEL:
             t = "EN";
             break;
+        case QuantumIdentifier::ALL:
+          t = "ALL";
+          break;
         default:
             assert(0);
             break;
@@ -271,6 +415,13 @@ void QuantumIdentifier::SetEnergyLevel(const QuantumNumbers q)
     mqtype = QuantumIdentifier::ENERGY_LEVEL;
     mqm.resize(1);
     mqm[ENERGY_LEVEL_INDEX] = q;
+}
+
+
+void QuantumIdentifier::SetAll()
+{
+  mqtype = QuantumIdentifier::ALL;
+  mqm.resize(0);
 }
 
 
@@ -375,6 +526,10 @@ void QuantumIdentifier::SetFromString(String str)
             is >> token;
         }
     }
+    else if (token == "ALL")
+    {
+      SetType(QuantumIdentifier::ALL);
+    }
     else
     {
         std::ostringstream os;
@@ -428,6 +583,10 @@ std::ostream& operator<<(std::ostream& os, const QuantumIdentifier& qi)
     else if (qi.Type() == QuantumIdentifier::ENERGY_LEVEL)
     {
         os << "EN " << qi.QuantumMatch()[QuantumIdentifier::ENERGY_LEVEL_INDEX];
+    }
+    else if (qi.Type() == QuantumIdentifier::ALL)
+    {
+      os << "ALL";
     }
     else
     {

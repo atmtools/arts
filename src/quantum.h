@@ -261,9 +261,11 @@ private:
  
  Transition:   SPECIES_NAME-ISOTOPE TR UP QUANTUMNUMBERS LO QUANTUMNUMBERS
  Energy level: SPECIES_NAME-ISOTOPE EN QUANTUMNUMBERS
+ All lines:    SPECIES_NAME-ISOTOPE ALL
  
  H2O-161 TR UP J 0/1 v1 2/3 LO J 1/1 v2 1/2
  H2O-161 EN J 0/1 v1 2/3
+ H2O-161 ALL
 
 */
 class QuantumIdentifier
@@ -272,9 +274,18 @@ public:
     //! Identify lines by transition or energy level
     typedef enum {
         TRANSITION,
-        ENERGY_LEVEL
+        ENERGY_LEVEL,
+        ALL
     } QType;
+    
+    QuantumIdentifier() {}
 
+    QuantumIdentifier(const Index spec, const Index isot, const QuantumNumberRecord& qnr)
+    : mspecies(spec), miso(isot)
+    {
+      SetTransition(qnr.Upper(), qnr.Lower());
+    }
+    
     typedef Array<QuantumNumbers> QuantumMatchCriteria;
 
     static const Index TRANSITION_UPPER_INDEX = 0;
@@ -291,6 +302,9 @@ public:
             case QuantumIdentifier::ENERGY_LEVEL:
                 mqm.resize(1);
                 break;
+            case QuantumIdentifier::ALL:
+              mqm.resize(0);
+              break;
             default:
                 break;
         }
@@ -300,6 +314,7 @@ public:
     void SetIsotopologue(const Index &iso) { miso = iso; }
     void SetTransition(const QuantumNumbers upper, const QuantumNumbers lower);
     void SetEnergyLevel(const QuantumNumbers q);
+    void SetAll();
     void SetFromString(String str);
     void SetFromStringForCO2Band(String upper, String lower, String iso);
 
@@ -309,6 +324,9 @@ public:
     Index Isotopologue() const { return miso; }
     const QuantumMatchCriteria& QuantumMatch() const { return mqm; }
     QuantumMatchCriteria& QuantumMatch() { return mqm; }
+    
+    bool operator>(const QuantumIdentifier& other) const;
+    bool operator<(const QuantumIdentifier& other) const;
 
 private:
     QType mqtype;
@@ -325,9 +343,13 @@ inline bool operator==(const QuantumIdentifier a,const QuantumIdentifier b){
     
     if(a.Type()==QuantumIdentifier::ENERGY_LEVEL)
         return a.QuantumMatch()[a.ENERGY_LEVEL_INDEX].Compare(b.QuantumMatch()[b.ENERGY_LEVEL_INDEX]);
-    else
+    else if(a.Type()==QuantumIdentifier::TRANSITION)
         return a.QuantumMatch()[a.TRANSITION_LOWER_INDEX].Compare(b.QuantumMatch()[ b.TRANSITION_LOWER_INDEX ]) && 
         a.QuantumMatch()[a.TRANSITION_UPPER_INDEX].Compare(b.QuantumMatch()[ b.TRANSITION_UPPER_INDEX ]) ;
+    else if(a.Type()==QuantumIdentifier::ALL)
+      return true;
+    else
+      throw std::runtime_error("Programmer error --- added type is missing");
 }
 
 typedef Array<QuantumIdentifier> ArrayOfQuantumIdentifier;

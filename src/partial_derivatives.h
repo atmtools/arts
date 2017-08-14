@@ -520,14 +520,22 @@ public:
         set_first_pressure_term();
     }
     
+    // Returns the length of Jacobians that are computed inside the propagation agenda
     Index nelem() const {return mreal_nelem;}
     
+    // Returns the type of the jacobian at the index (index < nelem())
     const JacobianQuantityType&  operator()(const Index& iq) const {return mqtype[iq];}
+    
+    // Returns the full jacobian ArrayOfRetrievalQuantity
     const ArrayOfRetrievalQuantity& jac() const {return mjacobian_quantities;}
+    
+    // Returns the jacobian RetrievalQuantity at the index (index < nelem())
     const RetrievalQuantity& jac(const Index& iq) const {return mjacobian_quantities[mjacobian_pos[iq]];}
     
+    // Returns the species at the index
     Index species(Index iq) const { return mspecies[iq]; }
     
+    // Run this check in CIA calculations to find if there is anything wrong with it
     bool supportsCIA() const 
     {
         bool testvar = false;
@@ -547,6 +555,7 @@ public:
         return testvar;
     };
     
+    // Run this check in Continuum calculations to find if there is anything wrong with it
     bool supportsContinuum() const 
     {
         bool testvar = false;
@@ -579,6 +588,7 @@ public:
         return testvar;
     };
     
+    // Run this check in line-by-line calculations without phase to find if there is anything wrong with it
     bool supportsLBLwithoutPhase() const 
     {
         
@@ -593,6 +603,7 @@ public:
         return true;
     }
     
+    // Run this check in Relaxation Matrix calculations to find if there is anything wrong with it
     bool supportsRelaxationMatrix() const 
     {
         bool testvar = false;
@@ -625,6 +636,7 @@ public:
         return testvar;
     };
     
+    // Run this check in Lookup calculations to find if there is anything wrong with it
     bool supportsLookup() const 
     {
         bool testvar = false;
@@ -657,6 +669,7 @@ public:
         return testvar;
     };
     
+    // Run this check in Zeeman calculations to find if there is anything wrong with it
     bool supportsZeeman() const 
     {
         bool testvar = false;
@@ -677,6 +690,7 @@ public:
         return testvar;
     };
     
+    // Run this check in Zeeman precalc calculations to find if there is anything wrong with it
     bool supportsZeemanPrecalc() const 
     {
         for(Index iq=0; iq<nelem(); iq++) 
@@ -685,6 +699,7 @@ public:
         return false;
     }
     
+    // Run this check in Faraday calculations to find if there is anything wrong with it
     bool supportsFaraday() const
     {
         bool testvar = false;
@@ -713,6 +728,7 @@ public:
         return testvar;
     }
     
+    // Run this check in Particulates calculations to find if there is anything wrong with it
     bool supportsParticles() const
     {
         for(Index iq=0; iq<nelem(); iq++)
@@ -721,6 +737,7 @@ public:
         return false;
     }
     
+    // Run this check to see if species is in jacobian list calculations to find if there is anything wrong with it
     bool supportsPropmatClearsky(const Index this_species) const
     {   
         for(Index iq=0; iq<nelem(); iq++) 
@@ -729,6 +746,7 @@ public:
         return false;
     }
     
+    // Returns the counter to the jacobian position
     Index this_jq_index(Index& jqt_index) const
     {
         Index counter = -1;
@@ -738,6 +756,7 @@ public:
         return counter;
     };
     
+    // Returns if this type should be computed
     bool is_this_propmattype(Index& jqt_index) const
     {
         const Index this_index = this_jq_index(jqt_index);
@@ -762,6 +781,7 @@ public:
     
     bool do_temperature() const {return mcontains_temperature;}
     
+    // Returns if any line center jacobains are needed
     bool do_line_center() const
     {
       for(Index iq=0; iq<nelem(); iq++)
@@ -774,6 +794,7 @@ public:
       return false;
     }
     
+    // Returns if any magnetic jacobian calculations are needed
     bool do_magnetic_field() const
     {
         for(Index iq=0; iq<nelem(); iq++)
@@ -841,6 +862,98 @@ public:
     
     Index get_first_frequency() const {return mfirst_frequency;}
     Index get_first_pressure_term() const {return mfirst_pressure;}
+    
+    // Only for debug purposes
+    String StringTypeAtIndex(Index ii) const
+    {
+      switch(mqtype[ii])
+      {
+        case JQT_VMR:
+          return "VMR";
+        case JQT_electrons:
+          return "Electrons-VMR";
+        case JQT_particulates:
+          return "Particulate-VMR";
+        case JQT_temperature:
+          return "Temperature";
+        case JQT_magnetic_magntitude:
+          return "Magnetic-Strength";
+        case JQT_magnetic_eta:
+          return "Magnetic-Eta";
+        case JQT_magnetic_theta:
+          return "Magnetic-Theta";
+        case JQT_magnetic_u:
+          return "Magnetic-u";
+        case JQT_magnetic_v:
+          return "Magnetic-v";
+        case JQT_magnetic_w:
+          return "Magnetic-w";
+        case JQT_wind_magnitude:
+          return "Wind-Strength";
+        case JQT_wind_u:
+          return "Wind-u";
+        case JQT_wind_v:
+          return "Wind-v";
+        case JQT_wind_w:
+          return "Wind-w";
+        case JQT_frequency:
+          return "Frequency";
+        case JQT_line_strength:
+          return "Line-Strength";
+        case JQT_line_center:
+          return "Line-Center";
+        case JQT_line_gamma:
+          return "Line-Gamma";
+        case JQT_line_gamma_self:
+          return "Line-Gamma-Self";
+        case JQT_line_gamma_foreign:
+          return "Line-Gamma-Foreign";
+        case JQT_line_gamma_water:
+          return "Line-Gamma-Water";
+        case JQT_line_gamma_selfexponent:
+          return "Line-Gamma-SelfExponent";
+        case JQT_line_gamma_foreignexponent:
+          return "Line-Gamma-ForeignExponent";
+        case JQT_line_gamma_waterexponent:
+          return "Line-Gamma-WaterExponent";
+        case JQT_line_pressureshift_self:
+          return "Line-PressureShift-Self";
+        case JQT_line_pressureshift_foreign:
+          return "Line-PressureShift-Foreign";
+        case JQT_line_pressureshift_water:
+          return "Line-PressureShift-Water";
+        case JQT_line_mixing_Y:
+          return "Line-Mixing-Y";
+        case JQT_line_mixing_G:
+          return "Line-Mixing-G";
+        case JQT_line_mixing_DF:
+          return "Line-Mixing-DF";
+        case JQT_line_mixing_Y0:
+          return "Line-Mixing-Y0";
+        case JQT_line_mixing_G0:
+          return "Line-Mixing-G0";
+        case JQT_line_mixing_DF0:
+          return "Line-Mixing-DF0";
+        case JQT_line_mixing_Y1:
+          return "Line-Mixing-Y1";
+        case JQT_line_mixing_G1:
+          return "Line-Mixing-G1";
+        case JQT_line_mixing_DF1:
+          return "Line-Mixing-DF1";
+        case JQT_line_mixing_Yexp:
+          return "Line-Mixing-YExp";
+        case JQT_line_mixing_Gexp:
+          return "Line-Mixing-GExp";
+        case JQT_line_mixing_DFexp:
+          return "Line-Mixing-DFExp";
+        case JQT_nlte_temperature:
+          return "NLTE-Temperatures";
+        case JQT_NOT_JQT:
+          return "Not-A-PropMat-Variable";
+        default:
+          throw std::runtime_error("Dev forgot to add this...");
+      }
+    }
     
 private:
     ArrayOfJacobianQuantityType mqtype;
@@ -913,6 +1026,8 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix& partials_attenuatio
                                               const Numeric&  dDF_LM1,
                                               const Numeric&  dDF_LMexp,
                                               const QuantumNumberRecord&  qnr,
+                                              const Index& species,
+                                              const Index& isotopologue,
                                               // LINE SHAPE
                                               const Index& ind_ls,
                                               const Index& ind_lsn,
@@ -951,12 +1066,16 @@ void partial_derivatives_of_stokes_along_path(ArrayOfMatrix& dIn_dt,  //Size is 
                                               const Numeric&                  atmospheric_temperature);
 
 bool line_match_line(const QuantumIdentifier& from_jac,
+                     const Index& species,
+                     const Index& isotopologue,
                      const QuantumNumbers& lower_qn, 
                      const QuantumNumbers& upper_qn);
 
 void line_match_level(bool& lower_energy_level,
                       bool& upper_energy_level,
                       const QuantumIdentifier& from_jac,
+                      const Index& species,
+                      const Index& isotopologue,
                       const QuantumNumbers& lower_qn, 
                       const QuantumNumbers& upper_qn);
 

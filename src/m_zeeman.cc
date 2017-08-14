@@ -21,11 +21,11 @@
 #include "global_data.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddZeeman( Tensor4& propmat_clearsky,
-                                Tensor3& nlte_source,
-                                ArrayOfTensor3& dpropmat_clearsky_dx,
-                                ArrayOfMatrix& dnlte_dx_source,
-                                ArrayOfMatrix& nlte_dsource_dx,
+void propmat_clearskyAddZeeman( ArrayOfPropagationMatrix& propmat_clearsky,
+                                ArrayOfStokesVector& nlte_source,
+                                ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+                                ArrayOfStokesVector& dnlte_dx_source,
+                                ArrayOfStokesVector& nlte_dsource_dx,
                                 const Vector& f_grid,
                                 const ArrayOfArrayOfSpeciesTag& abs_species,
                                 const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -117,11 +117,11 @@ void zeeman_linerecord_precalcCreateFromLines( ArrayOfArrayOfLineRecord& zeeman_
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
-                                          Tensor3& nlte_source,
-                                          ArrayOfTensor3& dpropmat_clearsky_dx,
-                                          ArrayOfMatrix& dnlte_dx_source,
-                                          ArrayOfMatrix& nlte_dsource_dx,
+void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clearsky,
+                                          ArrayOfStokesVector& nlte_source,
+                                          ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+                                          ArrayOfStokesVector& dnlte_dx_source,
+                                          ArrayOfStokesVector& nlte_dsource_dx,
                                           const ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
                                           const ArrayOfVector& zeeman_frequencyshiftconstant_precalc,
                                           const Vector& f_grid,
@@ -156,13 +156,11 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
   {// Begin TEST(s)
     if (abs_species.nelem() == 0)
         throw std::runtime_error("No Zeeman species have been defined.");
-    if( propmat_clearsky.ncols()  != 4 )
+    if( propmat_clearsky[0].StokesDimensions()  != 4 )
         throw std::runtime_error("Zeeman Effect is only implemented for Stokes dimension 4.");
-    if( propmat_clearsky.nrows()  != 4 )
-        throw std::runtime_error("Zeeman Effect is only implemented for Stokes dimension 4.");
-    if( propmat_clearsky.npages() != f_grid.nelem() )
+    if( propmat_clearsky[0].NumberOfFrequencies() != f_grid.nelem() )
         throw std::runtime_error("Frequency dimension of *propmat_clearsky* not equal to length of *f_grid*.");
-    if( propmat_clearsky.nbooks() != abs_species.nelem() )
+    if( propmat_clearsky.nelem() != abs_species.nelem() )
         throw std::runtime_error("Species dimension of *propmat_clearsky* not equal to length of *abs_species*.");
     if( rtp_mag.nelem() != 3 )
         throw std::runtime_error("*rtp_mag* must have length 3.");
@@ -174,11 +172,11 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
         throw std::runtime_error("Length of *zeeman_linerecord_precalc* must be multiple of 3 for polarization states.  It is not.");
     if(do_src)
     {
-        if(nlte_source.npages()!=propmat_clearsky.nbooks())
+        if(nlte_source.nelem() != abs_species.nelem())
         throw std::runtime_error("Species dimension of *nlte_source* not equal to length of *abs_species*.");
-        if(nlte_source.npages()!=propmat_clearsky.npages())
+        if(nlte_source[0].NumberOfFrequencies() != f_grid.nelem())
         throw std::runtime_error("Frequency dimension of *nlte_source* not equal to length of *f_grid*.");
-        if(nlte_source.npages()!=propmat_clearsky.nrows())
+        if(nlte_source[0].StokesDimensions() != 4)
         throw std::runtime_error("Zeeman Effect is only implemented for Stokes dimension 4.");
     }
     if(nzeeman!=zeeman_frequencyshiftconstant_precalc.nelem())
@@ -232,7 +230,6 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
   
   for(Index II = 0; II<abs_species.nelem(); II++)
   {
-    
     const Index ls_index = (1==abs_lineshape.nelem())?0:II;
     
     // If the species isn't Zeeman, look at the next species
@@ -265,5 +262,4 @@ void propmat_clearskyAddZeemanFromPreCalc(Tensor4& propmat_clearsky,
     // The flat structure reminder for 3-component ArrayOfArrayOfLineRecord
     zeeman_ind += 3;
   }
-    
 }
