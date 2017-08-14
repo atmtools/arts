@@ -965,13 +965,12 @@ void gas_optpropCalc( Workspace& ws,
   // Local variables to be used in agendas
   Numeric rtp_temperature_local; 
   Numeric rtp_pressure_local;
-  Tensor4 propmat_clearsky_local;
+  ArrayOfPropagationMatrix propmat_clearsky_local;
   Vector rtp_vmr_local(vmr_field.nbooks());
 
   const Vector  rtp_temperature_nlte_local_dummy(0);
 
   // Calculate layer averaged gaseous extinction
-  propmat_clearsky_local = 0.;
   for (Index i = 0; i < Np-1; i++)
     {
       rtp_pressure_local = 0.5 * (p_grid[i] + p_grid[i+1]);
@@ -986,10 +985,10 @@ void gas_optpropCalc( Workspace& ws,
       const Vector ppath_los_dummy;
 
       //FIXME: do this right?
-      Tensor3 nlte_dummy;
+      ArrayOfStokesVector nlte_dummy;
       // This is right since there should be only clearsky partials
-      ArrayOfTensor3 partial_dummy;
-      ArrayOfMatrix partial_source_dummy,partial_nlte_dummy;
+      ArrayOfPropagationMatrix partial_dummy;
+      ArrayOfStokesVector partial_source_dummy,partial_nlte_dummy;
       propmat_clearsky_agendaExecute(ws,
                                      propmat_clearsky_local,
                                      nlte_dummy,
@@ -1006,7 +1005,14 @@ void gas_optpropCalc( Workspace& ws,
                                      propmat_clearsky_agenda);  
 
       //Assuming non-polarized light and only one frequency
-      gas_extinct[Np-2-i] = propmat_clearsky_local(joker,0,0,0).sum();
+      if(propmat_clearsky_local.nelem())
+      {
+        gas_extinct[Np-2-i] = propmat_clearsky_local[0].Kjj()[0];
+        for(Index j = 1; j < propmat_clearsky_local.nelem(); j++)
+        {
+          gas_extinct[Np-2-i] += propmat_clearsky_local[j].Kjj()[0];
+        }
+      }
     }  
 }
 
@@ -1054,10 +1060,25 @@ void par_optpropCalc( Tensor4View emis_vector,
   assert( extinct_matrix.nshelves() == Np_cloud-1 );
 
   // Local variables to be used in agendas
-  Matrix abs_vec_spt_local(N_se, stokes_dim, 0.);
-  Tensor3 ext_mat_spt_local(N_se, stokes_dim, stokes_dim, 0.);
-  Matrix abs_vec_local;
-  Tensor3 ext_mat_local;
+  ArrayOfStokesVector abs_vec_spt_local(N_se);
+  for(auto& sv : abs_vec_spt_local)
+  {
+    sv = StokesVector(1, stokes_dim);
+    sv.SetZero();
+  }
+  
+  ArrayOfPropagationMatrix ext_mat_spt_local(N_se);
+  for(auto& pm : ext_mat_spt_local)
+  {
+    pm = PropagationMatrix(1, stokes_dim);
+    pm.SetZero();
+  }
+  
+  StokesVector abs_vec_local(1, stokes_dim);
+  
+  PropagationMatrix ext_mat_local(1, stokes_dim);
+  
+  
   Numeric rtp_temperature_local;
   Tensor4 ext_vector(Np_cloud, 2*nummu, stokes_dim, stokes_dim, 0.);
   Tensor3 abs_vector(Np_cloud, 2*nummu, stokes_dim, 0.);
@@ -1085,10 +1106,9 @@ void par_optpropCalc( Tensor4View emis_vector,
                             ext_mat_spt_local, abs_vec_spt_local,
                             pnd_field,
                             scat_p_index_local, 0, 0, verbosity);
-
-          ext_vector(scat_p_index_local,iza,joker,joker) =
-            ext_mat_local(0,joker,joker);
-          abs_vector(scat_p_index_local,iza,joker) = abs_vec_local(0,joker);
+          
+          ext_mat_local.MatrixAtFrequency(ext_vector(scat_p_index_local,iza,joker,joker), 0);
+          abs_vec_local.VectorAtFrequency(abs_vector(scat_p_index_local,iza,joker), 0);
         }
     }
 

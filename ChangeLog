@@ -1,5 +1,20 @@
 2017-08-14  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-759
+
+	All checks are working again.
+	
+	* src/rt4.cc:
+
+	Add fixes for PropagationMatrix changes. Patch supplied by Richard.
+
+	* src/xml_io_compound_types.cc:
+
+	Grid writing code for GriddedField3 was accidentally commented out and
+	broke xml files.
+
+2017-08-14  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-758
 	
 	* controlfiles/artscomponents/wfuns/ReferenceJacobianInTestErrorJacobian.xml:

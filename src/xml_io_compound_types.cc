@@ -281,8 +281,8 @@ void xml_write_to_stream(ostream&            os_xml,
       switch (gfield.get_grid_type(i))
         {
         case GRID_TYPE_NUMERIC:
-//           xml_write_to_stream(os_xml, gfield.get_numeric_grid(i),
-//                               pbofs, gfield.get_grid_name(i), verbosity);
+           xml_write_to_stream(os_xml, gfield.get_numeric_grid(i),
+                               pbofs, gfield.get_grid_name(i), verbosity);
           break;
         case GRID_TYPE_STRING:
           xml_write_to_stream(os_xml, gfield.get_string_grid(i),
