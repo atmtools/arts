@@ -72,6 +72,7 @@ void check_disort_input( // Input
                          const Index& atmfields_checked,
                          const Index& atmgeom_checked,
                          const Index& cloudbox_checked,
+                         const Index& scat_data_checked,
                          const Index& atmosphere_dim,
                          const Index& stokes_dim,
                          const ArrayOfIndex& cloudbox_limits, 
@@ -102,6 +103,9 @@ void check_disort_input( // Input
   if( cloudbox_checked != 1 )
     throw runtime_error( "The cloudbox must be flagged to have "
                          "passed a consistency check (cloudbox_checked=1)." );
+  if( scat_data_checked != 1 )
+    throw runtime_error( "The scat_data must be flagged to have "
+                         "passed a consistency check (scat_data_checked=1)." );
 
   if( atmosphere_dim != 1   )
     throw runtime_error( "For running DISORT, atmospheric dimensionality "
@@ -353,8 +357,9 @@ void get_disortsurf_props( // Output
   \param ws                    Current workspace
   \param dtauc                 optical depths for all layers
   \param ssalb                 single scattering albedos for all layers
+  \param scat_data             as the WSV
+  \param f_index               index of frequency grid point handeled
   \param propmat_clearsky_agenda as the WSA
-  \param opt_prop_part_agenda  as the WSA
   \param pnd_field             as the WSV 
   \param t_field               as the WSV 
   \param z_field               as the WSV 
@@ -370,10 +375,8 @@ void dtauc_ssalbCalc( Workspace &ws,
                       VectorView dtauc,
                       VectorView ssalb,
                       const ArrayOfArrayOfSingleScatteringData& scat_data,
-                      const Index& scat_data_checked,
                       const Index& f_index,
                       const Agenda& propmat_clearsky_agenda,
-                      const Agenda& opt_prop_part_agenda,
                       ConstTensor4View pnd_field,
                       ConstTensor3View t_field,
                       ConstTensor3View z_field, 
@@ -420,17 +423,15 @@ void dtauc_ssalbCalc( Workspace &ws,
      
       //Calculate optical properties for all individual scattering elements:
       opt_prop_sptFromScat_data(ext_mat_spt_local, abs_vec_spt_local,
-                                scat_data, scat_data_checked,
+                                scat_data, 1,
                                 za_dummy, aa_dummy, 0, 0, f_index,
                                 rtp_temperature_local, pnd_field, 
                                 scat_p_index_local, 0, 0, verbosity);
 
-      opt_prop_part_agendaExecute(ws,
-                                  ext_mat_local, abs_vec_local, 
-                                  ext_mat_spt_local, 
-                                  abs_vec_spt_local,
-                                  scat_p_index_local, 0, 0, 
-                                  opt_prop_part_agenda);
+      opt_prop_bulkCalc(ext_mat_local, abs_vec_local, 
+                        ext_mat_spt_local, abs_vec_spt_local,
+                        pnd_field,
+                        scat_p_index_local, 0, 0, verbosity);
 
       ext_vector[scat_p_index_local+cloudbox_limits[0]] = ext_mat_local(0,0,0);
       abs_vector[scat_p_index_local+cloudbox_limits[0]] = abs_vec_local(0,0);
@@ -498,7 +499,7 @@ void dtauc_ssalbCalc( Workspace &ws,
 
   \param phase_function  normalized layer-averaged bulk phase function
   \param scat_data         as the WSV
-  \param opt_prop_part_agenda  as the WSA
+  \param f_index           index of frequency grid point handeled
   \param pnd_field         as the WSV
   \param t_field           as the WSV 
   \param cloudbox_limits   as the WSV
@@ -507,14 +508,11 @@ void dtauc_ssalbCalc( Workspace &ws,
   \author Claudia Emde, Jana Mendrok
   \date   2006-02-10
 */
-void phase_functionCalc2( Workspace& ws,
-                          //Output
+void phase_functionCalc2( //Output
                           MatrixView phase_function,
                           //Input
                           const ArrayOfArrayOfSingleScatteringData& scat_data,
-                          const Index& scat_data_checked,
                           const Index& f_index,
-                          const Agenda& opt_prop_part_agenda,
                           ConstTensor4View pnd_field,
                           ConstTensor3View t_field,
                           const ArrayOfIndex& cloudbox_limits,
@@ -610,17 +608,15 @@ void phase_functionCalc2( Workspace& ws,
      
       //Calculate optical properties for all individual scattering elements:
       opt_prop_sptFromScat_data(ext_mat_spt_local, abs_vec_spt_local,
-                                scat_data, scat_data_checked,
+                                scat_data, 1,
                                 za_grid, aa_grid, 0, 0, f_index,
                                 rtp_temperature_local, pnd_field, 
                                 scat_p_index_local, 0, 0, verbosity);
 
-      opt_prop_part_agendaExecute(ws,
-                                  ext_mat_local, abs_vec_local, 
-                                  ext_mat_spt_local, 
-                                  abs_vec_spt_local,
-                                  scat_p_index_local, 0, 0, 
-                                  opt_prop_part_agenda);
+      opt_prop_bulkCalc(ext_mat_local, abs_vec_local, 
+                        ext_mat_spt_local, abs_vec_spt_local,
+                        pnd_field,
+                        scat_p_index_local, 0, 0, verbosity);
 
       //cout << "  extmat_total=" << ext_mat_local(0,0,0) << "\n";
       //cout << "  absvec_total=" << abs_vec_local(0,0) << "\n";
@@ -632,7 +628,7 @@ void phase_functionCalc2( Workspace& ws,
         {
           // Calculate the phase matrix of individual scattering elements
           pha_mat_sptFromScat_data(pha_mat_spt_local,
-                                   scat_data, scat_data_checked,
+                                   scat_data, 1,
                                    za_grid, aa_grid, 0, 0, // angles, only needed for za=0
                                    f_index, rtp_temperature_local,  pnd_field,
                                    scat_p_index_local, 0, 0, verbosity );
@@ -763,6 +759,7 @@ void phase_functionCalc2( Workspace& ws,
 
   \param phase_function normalized phase function
   \param scat_data       as the WSV
+  \param f_index         index of frequency grid point handeled
   \param pnd_field       as the WSV
   \param cloudbox_limits as the WSV
   
@@ -1398,7 +1395,6 @@ void surf_albedoCalc( Workspace& ws,
 
   \param ws                    Current workspace
   \param doit_i_field          as the WSV
-  \param f_index               as the WSV
   \param f_grid                as the WSV
   \param p_grid                as the WSV
   \param z_field               as the WSV
@@ -1407,7 +1403,6 @@ void surf_albedoCalc( Workspace& ws,
   \param pnd_field             as the WSV
   \param scat_data             as the WSV
   \param propmat_clearsky_agenda  as the WSA
-  \param opt_prop_part_agenda  as the WSA
   \param iy_main_agenda        as the WSA
   \param cloudbox_limits       as the WSV 
   \param surface_skin_t        as the WSV
@@ -1424,7 +1419,6 @@ void run_disort( Workspace& ws,
               // Output
               Tensor7& doit_i_field,
               // Input
-              Index& f_index,
               ConstVectorView f_grid,
               ConstVectorView p_grid,
               ConstTensor3View z_field,
@@ -1432,9 +1426,7 @@ void run_disort( Workspace& ws,
               ConstTensor4View vmr_field,
               ConstTensor4View pnd_field,
               const ArrayOfArrayOfSingleScatteringData& scat_data,
-              const Index& scat_data_checked,
               const Agenda& propmat_clearsky_agenda, 
-              const Agenda& opt_prop_part_agenda,
               const Agenda& iy_main_agenda,
               const ArrayOfIndex& cloudbox_limits,
               Numeric& surface_skin_t,
@@ -1611,7 +1603,7 @@ void run_disort( Workspace& ws,
   Vector utau(maxulv,0.);
   
   // Loop over frequencies
-  for (f_index = 0; f_index < f_grid.nelem(); f_index ++)
+  for (Index f_index = 0; f_index < f_grid.nelem(); f_index ++)
     {
       // Top of the atmosphere non-isotropic incoming radiation
       if( do_non_iso )
@@ -1640,8 +1632,8 @@ void run_disort( Workspace& ws,
 
 //#pragma omp critical(fortran_disort)
 //      {
-      dtauc_ssalbCalc(ws, dtauc, ssalb, scat_data, scat_data_checked, f_index,
-                      propmat_clearsky_agenda, opt_prop_part_agenda,
+      dtauc_ssalbCalc(ws, dtauc, ssalb, scat_data, f_index,
+                      propmat_clearsky_agenda,
                       pnd_field,
                       t_field(Range(0,nlyr+1),joker,joker),
                       z_field(Range(0,nlyr+1),joker,joker),
@@ -1651,9 +1643,8 @@ void run_disort( Workspace& ws,
 
       if( pfct_method=="interpolate" )
       {
-        phase_functionCalc2(ws, phase_function,
-                            scat_data, scat_data_checked, f_index,
-                            opt_prop_part_agenda,
+        phase_functionCalc2(phase_function,
+                            scat_data, f_index,
                             pnd_field, t_field, cloudbox_limits,
                             pfct_za_grid_size, verbosity);
         for( Index l=0; l<nlyr; l++ )
@@ -1809,7 +1800,6 @@ void get_cb_inc_field(Workspace&      ws,
 
 void run_disort( Workspace&,
               Tensor7&,
-              Index&,
               ConstVectorView,
               ConstVectorView,
               ConstTensor3View,
@@ -1817,9 +1807,6 @@ void run_disort( Workspace&,
               ConstTensor4View,
               ConstTensor4View,
               const ArrayOfArrayOfSingleScatteringData&,
-              ArrayOfArrayOfSingleScatteringData&,
-              const Agenda&, 
-              const Agenda&,
               const Agenda&,
               const Agenda&,
               const ArrayOfIndex&,

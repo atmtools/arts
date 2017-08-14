@@ -2081,7 +2081,7 @@ void Workspace::define_wsv_data()
        "See the documentation for definition of the Stokes vector and the\n"
        "different components.\n"
        "\n"
-       "If the instrument measures, or transmits, the vertical and horisontal\n"
+       "If the instrument measures, or transmits, the vertical and horizontal\n"
        "components, this variable shall accordingly be set to [5,6].\n"
        "\n"
        "The conversion to Planck-BT of components 2-4 requires that component\n"

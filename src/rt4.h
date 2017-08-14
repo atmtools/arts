@@ -41,6 +41,7 @@ void check_rt4_input( // Output
                       const Index& atmfields_checked,
                       const Index& atmgeom_checked,
                       const Index& cloudbox_checked,
+                      const Index& scat_data_checked,
                       const ArrayOfIndex& cloudbox_limits, 
                       const ArrayOfArrayOfSingleScatteringData& scat_data,
                       const Index& atmosphere_dim,
@@ -79,7 +80,6 @@ void run_rt4( Workspace& ws,
               Tensor7& doit_i_field,
               Vector& scat_za_grid,
               // Input
-              Index& f_index,
               ConstVectorView f_grid,
               ConstVectorView p_grid,
               ConstTensor3View z_field,
@@ -87,10 +87,7 @@ void run_rt4( Workspace& ws,
               ConstTensor4View vmr_field,
               ConstTensor4View pnd_field,
               const ArrayOfArrayOfSingleScatteringData& scat_data,
-              ArrayOfArrayOfSingleScatteringData& scat_data_mono,
               const Agenda& propmat_clearsky_agenda, 
-              const Agenda& opt_prop_part_agenda,
-              const Agenda& spt_calc_agenda,
               const ArrayOfIndex& cloudbox_limits,
               const Index& stokes_dim,
               const Index& nummu,
@@ -133,19 +130,20 @@ void gas_optpropCalc( Workspace& ws,
                       ConstVectorView p_grid,
                       ConstVectorView f_mono );
 
-void par_optpropCalc( Workspace& ws,
-                      //Output
+void par_optpropCalc( //Output
                       Tensor4View emis_vector,
                       Tensor5View extinct_matrix,
                       //VectorView scatlayers,
                       //Input
-                      const Agenda& spt_calc_agenda,
-                      const Agenda& opt_prop_part_agenda,
+                      const ArrayOfArrayOfSingleScatteringData& scat_data,
+                      const Vector& scat_za_grid,
+                      const Index& f_index,
                       ConstTensor4View pnd_field,
                       ConstTensor3View t_field,
                       const ArrayOfIndex& cloudbox_limits,
                       const Index& stokes_dim,
-                      const Index& nummu );
+                      const Index& nummu,
+                      const Verbosity& verbosity );
 
 void sca_optpropCalc( //Output
                       Tensor6View scatter_matrix,
@@ -153,7 +151,8 @@ void sca_optpropCalc( //Output
                       //Input
                       ConstTensor4View emis_vector,
                       ConstTensor5View extinct_matrix,
-                      const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                      const Index& f_index,
+                      const ArrayOfArrayOfSingleScatteringData& scat_data,
                       ConstTensor4View pnd_field,
                       const Index& stokes_dim,
                       const Vector& scat_za_grid,

@@ -69,17 +69,6 @@ pnd_fieldCalcFromscat_speciesFields
 # and extiction to the gaseous properties to get total extinction and
 # absorption:
 
-AgendaSet( spt_calc_agenda ){
-  opt_prop_sptFromMonoData
-}
-
-AgendaSet( opt_prop_part_agenda ){
-  ext_matInit
-  abs_vecInit
-  ext_matAddPart
-  abs_vecAddPart
-}
-	
 AgendaSet( iy_cloudbox_agenda ){
   iyInterpCloudboxField
   #iyInterpCloudboxField( za_inter_order=3, za_restrict=1 )
@@ -95,6 +84,9 @@ atmgeom_checkedCalc
 cloudbox_checkedCalc  
 sensor_checkedCalc
 
+Copy( scat_data_raw, scat_data )
+scat_dataCalc
+scat_data_checkedCalc
 
 # Perform scattering calculation
 RT4Calc #( nstreams=32 )

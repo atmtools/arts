@@ -914,7 +914,6 @@ void opt_prop_bulkCalc(// Output and Input:
                  const Tensor3& ext_mat_spt,
                  const Matrix& abs_vec_spt,
                  const Tensor4& pnd_field,
-                 const Index&   atmosphere_dim,
                  const Index&   scat_p_index,
                  const Index&   scat_lat_index,
                  const Index&   scat_lon_index,

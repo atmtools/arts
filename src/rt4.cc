@@ -83,6 +83,7 @@ void check_rt4_input( // Output
                       const Index& atmfields_checked,
                       const Index& atmgeom_checked,
                       const Index& cloudbox_checked,
+                      const Index& scat_data_checked,
                       const ArrayOfIndex& cloudbox_limits, 
                       const ArrayOfArrayOfSingleScatteringData& scat_data,
                       const Index& atmosphere_dim,
@@ -113,6 +114,9 @@ void check_rt4_input( // Output
   if( cloudbox_checked != 1 )
     throw runtime_error( "The cloudbox must be flagged to have"
                          " passed a consistency check (cloudbox_checked=1)." );
+  if( scat_data_checked != 1 )
+    throw runtime_error( "The scat_data must be flagged to have "
+                         "passed a consistency check (scat_data_checked=1)." );
 
   if( atmosphere_dim != 1   )
     throw runtime_error( "For running RT4, atmospheric dimensionality"
@@ -439,7 +443,6 @@ void get_rt4surf_props( // Output
 
   \param ws                    Current workspace
   \param doit_i_field          as the WSV
-  \param f_index               as the WSV
   \param f_grid                as the WSV
   \param p_grid                as the WSV
   \param z_field               as the WSV
@@ -447,10 +450,7 @@ void get_rt4surf_props( // Output
   \param vmr_field             as the WSV
   \param pnd_field             as the WSV
   \param scat_data             as the WSV
-  \param scat_data_mono        as the WSV
   \param propmat_clearsky_agenda  as the WSA
-  \param opt_prop_part_agenda  as the WSA
-  \param spt_calc_agenda       as the WSA
   \param cloudbox_limits       as the WSV 
   \param stokes_dim            as the WSV
   \param nummu                 Total number of single hemisphere angles with RT output. 
@@ -480,7 +480,6 @@ void run_rt4( Workspace& ws,
               Tensor7& doit_i_field,
               Vector& scat_za_grid,
               // Input
-              Index& f_index,
               ConstVectorView f_grid,
               ConstVectorView p_grid,
               ConstTensor3View z_field,
@@ -488,10 +487,7 @@ void run_rt4( Workspace& ws,
               ConstTensor4View vmr_field,
               ConstTensor4View pnd_field,
               const ArrayOfArrayOfSingleScatteringData& scat_data,
-              ArrayOfArrayOfSingleScatteringData& scat_data_mono,
               const Agenda& propmat_clearsky_agenda, 
-              const Agenda& opt_prop_part_agenda,
-              const Agenda& spt_calc_agenda,
               const ArrayOfIndex& cloudbox_limits,
               const Index& stokes_dim,
               const Index& nummu,
@@ -595,7 +591,7 @@ void run_rt4( Workspace& ws,
 
   Index nummu_new = 0;
   // Loop over frequencies
-  for (f_index = 0; f_index < f_grid.nelem(); f_index ++) 
+  for (Index f_index = 0; f_index < f_grid.nelem(); f_index ++) 
     {
       //cout << "\nProcessing freq #" << f_index << "\n";
 
@@ -607,8 +603,6 @@ void run_rt4( Workspace& ws,
       Tensor4 surfreflmat=surf_refl_mat(f_index,joker,joker,joker,joker);
       Matrix surfemisvec=surf_emis_vec(f_index,joker,joker);
       //Vector muvalues=mu_values;
-
-      scat_data_monoCalc(scat_data_mono, scat_data, f_grid, f_index, verbosity);
 
       // only update gas_extinct if there is any gas absorption at all (since
       // vmr_field is not freq-dependent, gas_extinct will remain as above
@@ -627,15 +621,16 @@ void run_rt4( Workspace& ws,
       Index pfct_failed = 0;
       if( pndtot && (nummu_new<nummu) )
         {
-          par_optpropCalc( ws, emis_vector, extinct_matrix,
+          par_optpropCalc( emis_vector, extinct_matrix,
                            //scatlayers,
-                           spt_calc_agenda, opt_prop_part_agenda,
+                           scat_data, scat_za_grid, f_index,
                            pnd_field,
                            t_field(Range(0,num_layers+1),joker,joker),
-                           cloudbox_limits, stokes_dim, nummu );
+                           cloudbox_limits, stokes_dim, nummu,
+                           verbosity );
           sca_optpropCalc( scatter_matrix, pfct_failed,
                            emis_vector, extinct_matrix,
-                           scat_data_mono, pnd_field, stokes_dim,
+                           f_index, scat_data, pnd_field, stokes_dim,
                            scat_za_grid, quad_weights,
                            pfct_method, pfct_aa_grid_size, pfct_threshold,
                            auto_inc_nstreams,
@@ -718,19 +713,20 @@ void run_rt4( Workspace& ws,
           extinct_matrix_new = 0.;
           emis_vector_new.resize(num_scatlayers,2,nummu_new,stokes_dim);
           emis_vector_new = 0.;
-          par_optpropCalc( ws, emis_vector_new, extinct_matrix_new,
+          par_optpropCalc( emis_vector_new, extinct_matrix_new,
                            //scatlayers,
-                           spt_calc_agenda, opt_prop_part_agenda,
+                           scat_data, scat_za_grid, f_index,
                            pnd_field,
                            t_field(Range(0,num_layers+1),joker,joker),
-                           cloudbox_limits, stokes_dim, nummu_new );
+                           cloudbox_limits, stokes_dim, nummu_new,
+                           verbosity );
         //   - resize & recalc scatter_matrix
           scatter_matrix_new.resize(num_scatlayers,4,nummu_new,stokes_dim,nummu_new,stokes_dim);
           scatter_matrix_new = 0.;
           pfct_failed = 0;
           sca_optpropCalc( scatter_matrix_new, pfct_failed,
                            emis_vector_new, extinct_matrix_new,
-                           scat_data_mono, pnd_field, stokes_dim,
+                           f_index, scat_data, pnd_field, stokes_dim,
                            scat_za_grid, quad_weights_new,
                            pfct_method, pfct_aa_grid_size, pfct_threshold,
                            auto_inc_nstreams,
@@ -766,7 +762,7 @@ void run_rt4( Workspace& ws,
             pfct_failed = -1;
             sca_optpropCalc( scatter_matrix_new, pfct_failed,
                              emis_vector_new, extinct_matrix_new,
-                             scat_data_mono, pnd_field, stokes_dim,
+                             f_index, scat_data, pnd_field, stokes_dim,
                              scat_za_grid, quad_weights_new,
                              pfct_method, pfct_aa_grid_size, pfct_threshold,
                              0,
@@ -1020,11 +1016,11 @@ void gas_optpropCalc( Workspace& ws,
   Calculates layer averaged particle extinction and absorption (extinct_matrix
   and emis_vector)). These variables are required as input for the RT4 subroutine.
 
-  \param ws                    Current workspace
   \param emis_vector           Layer averaged particle absorption for all particle layers
   \param extinct_matrix        Layer averaged particle extinction for all particle layers
-  \param spt_calc_agenda       as the WSA
-  \param opt_prop_part_agenda  as the WSA
+  \param scat_data             as the WSV
+  \param scat_za_grid          as the WSV
+  \param f_index               index of frequency grid point handeled
   \param pnd_field             as the WSV
   \param t_field               as the WSV
   \param cloudbox_limits       as the WSV 
@@ -1034,18 +1030,18 @@ void gas_optpropCalc( Workspace& ws,
   \author Jana Mendrok
   \date   2016-08-08
 */
-void par_optpropCalc( Workspace& ws,
-                      Tensor4View emis_vector,
+void par_optpropCalc( Tensor4View emis_vector,
                       Tensor5View extinct_matrix,
                       //VectorView scatlayers,
-                      const Agenda& spt_calc_agenda,
-                      const Agenda& opt_prop_part_agenda,
+                      const ArrayOfArrayOfSingleScatteringData& scat_data,
+                      const Vector& scat_za_grid,
+                      const Index& f_index,
                       ConstTensor4View pnd_field,
                       ConstTensor3View t_field,
                       const ArrayOfIndex& cloudbox_limits,
                       const Index& stokes_dim,
-                      const Index& nummu
-                    )
+                      const Index& nummu,
+                      const Verbosity& verbosity )
 {
   // Initialization
   extinct_matrix=0.;
@@ -1065,6 +1061,7 @@ void par_optpropCalc( Workspace& ws,
   Numeric rtp_temperature_local;
   Tensor4 ext_vector(Np_cloud, 2*nummu, stokes_dim, stokes_dim, 0.);
   Tensor3 abs_vector(Np_cloud, 2*nummu, stokes_dim, 0.);
+  Vector aa_dummy(1, 0.);
 
   // Calculate ext_mat and abs_vec for all pressure points in cloudbox 
   for (Index scat_p_index_local = 0;
@@ -1077,21 +1074,17 @@ void par_optpropCalc( Workspace& ws,
       for (Index iza=0; iza<2*nummu; iza++)
         {
           //Calculate optical properties for all individual scattering elements:
-          spt_calc_agendaExecute(ws,
-                                 ext_mat_spt_local, 
-                                 abs_vec_spt_local,
-                                 scat_p_index_local, 0, 0, //position
-                                 rtp_temperature_local,
-                                 iza, 0, // angles, only needed for aa=0
-                                 spt_calc_agenda);
+          opt_prop_sptFromScat_data(ext_mat_spt_local, abs_vec_spt_local,
+                                    scat_data, 1,
+                                    scat_za_grid, aa_dummy, iza, 0, f_index,
+                                    rtp_temperature_local, pnd_field, 
+                                    scat_p_index_local, 0, 0, verbosity);
 
           //Calculate bulk optical properties:
-          opt_prop_part_agendaExecute(ws,
-                                      ext_mat_local, abs_vec_local, 
-                                      ext_mat_spt_local, 
-                                      abs_vec_spt_local,
-                                      scat_p_index_local, 0, 0, 
-                                      opt_prop_part_agenda);
+          opt_prop_bulkCalc(ext_mat_local, abs_vec_local, 
+                            ext_mat_spt_local, abs_vec_spt_local,
+                            pnd_field,
+                            scat_p_index_local, 0, 0, verbosity);
 
           ext_vector(scat_p_index_local,iza,joker,joker) =
             ext_mat_local(0,joker,joker);
@@ -1144,7 +1137,8 @@ void par_optpropCalc( Workspace& ws,
   \param pfct_failed           Flag whether norm of scatter_matrix is sufficiently accurate
   \param emis_vector           Layer averaged particle absorption for all particle layers
   \param extinct_matrix        Layer averaged particle extinction for all particle layers
-  \param scat_data_mono        as the WSV
+  \param f_index               as the WSV
+  \param scat_data             as the (new-type, f_grid prepared) WSV
   \param pnd_field             as the WSV
   \param stokes_dim            as the WSV
   \param scat_za_grid          as the WSV
@@ -1163,7 +1157,8 @@ void sca_optpropCalc( //Output
                       //Input
                       ConstTensor4View emis_vector,
                       ConstTensor5View extinct_matrix,
-                      const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                      const Index& f_index,
+                      const ArrayOfArrayOfSingleScatteringData& scat_data,
                       ConstTensor4View pnd_field,
                       const Index& stokes_dim,
                       const Vector& scat_za_grid,
@@ -1177,15 +1172,6 @@ void sca_optpropCalc( //Output
   // FIXME: do we have numerical issues, too, here in case of tiny pnd? check
   // with Patrick's Disort-issue case.
 
-  // Check that we do indeed have scat_data_mono here.
-  if( scat_data_mono[0][0].f_grid.nelem() > 1 )
-  {
-      ostringstream os;
-      os << "Scattering data seems to be scat_data (several freq points),\n"
-         << "but scat_data_mono (1 freq point only) is expected here.";
-      throw runtime_error( os.str() );
-  }
-
   // Initialization
   scatter_matrix=0.;
   
@@ -1197,11 +1183,11 @@ void sca_optpropCalc( //Output
 
   // Check that total number of scattering elements in scat_data and pnd_field
   // agree.
-  if( TotalNumberOfElements(scat_data_mono) != N_se )
+  if( TotalNumberOfElements(scat_data) != N_se )
   {
       ostringstream os;
       os << "Total number of scattering elements in scat_data ("
-         << TotalNumberOfElements(scat_data_mono)
+         << TotalNumberOfElements(scat_data)
          << ") and pnd_field (" << N_se << ") disagree.";
       throw runtime_error( os.str() );
   }
@@ -1223,11 +1209,11 @@ void sca_optpropCalc( //Output
   // first we extract Z at one T, integrate the azimuth data at each
   // za_inc/za_sca combi (to get the Fourier series 0.th mode), then interpolate
   // to the mu/mu' combis we need in RT.
-  for (Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss++)
+  for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++)
     {
-      for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
+      for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
         {
-          SingleScatteringData ssd=scat_data_mono[i_ss][i_se];
+          SingleScatteringData ssd=scat_data[i_ss][i_se];
           Index i_pfct;
           if( pfct_method=="low" )
             i_pfct = 0;
@@ -1246,8 +1232,9 @@ void sca_optpropCalc( //Output
                     for (Index saa=0; saa<pfct_aa_grid_size; saa++)
                       {
                         pha_matTransform( pha_mat(joker,joker),
-                                          ssd.pha_mat_data(0,i_pfct,joker,
-                                            joker,joker,joker,joker),
+                                          ssd.pha_mat_data(f_index, i_pfct,
+                                                           joker, joker,
+                                                           joker, joker, joker),
                                           ssd.za_grid, ssd.aa_grid, ssd.ptype,
                                           sza, saa, iza, 0,
                                           scat_za_grid, aa_grid,
@@ -1293,8 +1280,9 @@ void sca_optpropCalc( //Output
                           daa = (aa_datagrid[saa+1]-aa_datagrid[saa-1])/360.;
                         for (Index ist1=0; ist1<stokes_dim; ist1++)
                           for (Index ist2=0; ist2<stokes_dim; ist2++)
-                            pha_mat_int(sza,iza,ist1,ist2) +=
-                              ssd.pha_mat_data(0,i_pfct,sza,saa,iza,0,ist1*4+ist2) * daa;
+                            pha_mat_int(sza,iza,ist1,ist2) += daa *
+                              ssd.pha_mat_data(f_index, i_pfct,
+                                               sza, saa, iza, 0, ist1*4+ist2);
                       }
                   }
 

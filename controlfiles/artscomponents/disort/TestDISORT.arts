@@ -93,14 +93,6 @@ DOAngularGridsSet( N_za_grid=38 )
 # and extiction to the gaseous properties to get total extinction and
 # absorption:
 
-AgendaSet( opt_prop_part_agenda ){
-  #ext_matInit
-  #abs_vecInit
-  #ext_matAddPart
-  #abs_vecAddPart
-  opt_prop_bulkCalc
-}
-	
 AgendaSet( iy_cloudbox_agenda ){
   iyInterpCloudboxField
 }
