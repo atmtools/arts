@@ -672,9 +672,7 @@ Vector::Vector(Index n, Numeric fill) :
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
-  const Numeric *stop = mdata+n;
-  for ( Numeric *x=mdata; x<stop; ++x )
-    *x = fill;
+  std::fill_n(mdata, n, fill);
 }
 
 /** Constructor filling with values. 
@@ -818,7 +816,7 @@ Vector& Vector::operator=(const Array<Numeric>& x)
     inherited. */
 Vector& Vector::operator=(Numeric x)
 {
-  VectorView::operator=(x);
+  std::fill_n(mdata, nelem(), x);
   return *this;
 }
 
@@ -1549,9 +1547,7 @@ Matrix::Matrix(Index r, Index c, Numeric fill) :
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
-  const Numeric *stop = mdata+r*c;
-  for ( Numeric *x=mdata; x<stop; ++x )
-    *x = fill;
+  std::fill_n(mdata, r*c, fill);
 }
 
 /** Copy constructor from MatrixView. This automatically sets the size
@@ -1631,7 +1627,7 @@ Matrix& Matrix::operator=(Matrix&& m) noexcept
     be not inherited. */
 Matrix& Matrix::operator=(Numeric x)
 {
-  copy( x, begin(), end() );
+  std::fill_n(mdata, nrows()*ncols(), x);
   return *this;
 }
 

@@ -528,7 +528,7 @@ void chk_scat_data_fgrid(const SingleScatteringData& scat_data_single,
 void chk_scat_data(const SingleScatteringData& scat_data_single,
                    const Verbosity& verbosity)
 {
-  CREATE_OUT2;
+  CREATE_OUT3;
 
   assert(scat_data_single.ptype == PTYPE_GENERAL ||
          scat_data_single.ptype == PTYPE_TOTAL_RND ||
@@ -589,7 +589,7 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
     
   case PTYPE_GENERAL:
     
-    out2 << "  Data is for arbitrarily orientated particles. \n";
+    out3 << "  Data is for arbitrarily orientated particles. \n";
     
     chk_size(os_pha_mat.str(), scat_data_single.pha_mat_data,
              scat_data_single.f_grid.nelem(), scat_data_single.T_grid.nelem(),
@@ -610,7 +610,7 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
     
   case PTYPE_TOTAL_RND:
     
-    out2 << "  Data is for macroscopically isotropic and mirror-symmetric "
+    out3 << "  Data is for macroscopically isotropic and mirror-symmetric "
          << "scattering media, i.e. for totally randomly oriented particles "
          << "with at least one plane of symmetry. \n";
     
@@ -629,7 +629,7 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
     
   case PTYPE_AZIMUTH_RND:
     
-    out2 << "  Data is for azimuthally randomly oriented particles. \n";
+    out3 << "  Data is for azimuthally randomly oriented particles. \n";
     
     chk_size(os_pha_mat.str(), scat_data_single.pha_mat_data,
              scat_data_single.f_grid.nelem(), scat_data_single.T_grid.nelem(),

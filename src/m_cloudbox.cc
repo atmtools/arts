@@ -910,6 +910,7 @@ void ScatSpeciesScatAndMetaRead (//WS Output:
                                  const Verbosity& verbosity)
 {
   CREATE_OUT2;
+  CREATE_OUT3;
 
   //--- Reading the data ---------------------------------------------------
   ArrayOfSingleScatteringData arr_ssd;
@@ -920,9 +921,9 @@ void ScatSpeciesScatAndMetaRead (//WS Output:
 
   Index meta_naming_conv=0;
 
-  for ( Index i = 0; i<scat_data_files.nelem(); i++ )
+  for ( Index i = 0; i < 1 && i < scat_data_files.nelem(); i++ )
     {
-      out2 << "  Read single scattering data file " << scat_data_files[i] << "\n";
+      out3 << "  Read single scattering data file " << scat_data_files[i] << "\n";
       xml_read_from_file ( scat_data_files[i], arr_ssd[i], verbosity );
 
       // make meta data name from scat data name
@@ -942,7 +943,7 @@ void ScatSpeciesScatAndMetaRead (//WS Output:
 
           if (file_exists(scat_meta_file))
             {
-              out2 << "  Read scattering meta data\n";
+              out3 << "  Read scattering meta data\n";
 
               xml_read_from_file(scat_meta_file, arr_smd[i], verbosity);
 
@@ -959,7 +960,7 @@ void ScatSpeciesScatAndMetaRead (//WS Output:
                   }
                   scat_meta_file = strarr[0]+"scat_meta"+strarr[1];
 
-                  out2 << "  Read scattering meta data\n";
+                  out3 << "  Read scattering meta data\n";
                   xml_read_from_file ( scat_meta_file, arr_smd[i], verbosity );
 
                   meta_naming_conv = 2;
@@ -978,30 +979,71 @@ void ScatSpeciesScatAndMetaRead (//WS Output:
                 }
             }
         }
-      else
-        {
-          if( meta_naming_conv==1 )
-            {
-              scat_data_files[i].split ( strarr, ".xml" );
-              scat_meta_file = strarr[0]+".meta.xml";
+    }
 
-              out2 << "  Read scattering meta data\n";
-              xml_read_from_file ( scat_meta_file, arr_smd[i], verbosity );
-            }
-          else
-            {
-              scat_data_files[i].split ( strarr, "scat_data" );
-              scat_meta_file = strarr[0]+"scat_meta"+strarr[1];
+  ArrayOfString fail_msg;
 
-              out2 << "  Read scattering meta data\n";
-              xml_read_from_file ( scat_meta_file, arr_smd[i], verbosity );
-            }
-        }
+#pragma omp parallel for                                    \
+if(!arts_omp_in_parallel() && scat_data_files.nelem() > 1)    \
+num_threads(arts_omp_get_max_threads()>16?16:arts_omp_get_max_threads()) \
+shared(out3, scat_data_files, arr_ssd, arr_smd)
+  for ( Index i = 1; i < scat_data_files.nelem(); i++ )
+    {
+      // make meta data name from scat data name
+      ArrayOfString strarr;
+      String scat_meta_file;
+      SingleScatteringData ssd;
+      ScatteringMetaData smd;
+
+      try {
+        out3 << "  Read single scattering data file " << scat_data_files[i] << "\n";
+        xml_read_from_file ( scat_data_files[i], ssd, verbosity );
+
+        scat_data_files[i].split ( strarr, ".xml" );
+        scat_meta_file = strarr[0]+".meta.xml";
+
+        if( meta_naming_conv==1 )
+          {
+            scat_data_files[i].split ( strarr, ".xml" );
+            scat_meta_file = strarr[0]+".meta.xml";
+
+            out3 << "  Read scattering meta data\n";
+            xml_read_from_file ( scat_meta_file, smd, verbosity );
+          }
+        else
+          {
+            scat_data_files[i].split ( strarr, "scat_data" );
+            scat_meta_file = strarr[0]+"scat_meta"+strarr[1];
+
+            out3 << "  Read scattering meta data\n";
+            xml_read_from_file ( scat_meta_file, smd, verbosity );
+          }
+      }
+      catch (runtime_error e)
+      {
+        ostringstream os;
+        os << "Run-time error reading scattering data : \n" << e.what();
+#pragma omp critical (ybatchCalc_push_fail_msg)
+        fail_msg.push_back(os.str());
+      }
 
       //FIXME: currently nothing is done in chk_scattering_meta_data!
-      chk_scattering_meta_data ( arr_smd[i],
+      chk_scattering_meta_data ( smd,
                                  scat_meta_file, verbosity );
-            
+
+#pragma omp critical (ScatSpeciesScatAndMetaRead_assign_ssd)
+      arr_ssd[i] = std::move(ssd);
+#pragma omp critical (ScatSpeciesScatAndMetaRead_assign_smd)
+      arr_smd[i] = std::move(smd);
+    }
+
+  if (fail_msg.nelem())
+    {
+      ostringstream os;
+      for (auto& msg : fail_msg)
+          os << msg << '\n';
+
+      throw runtime_error(os.str());
     }
 
   // check if arrays have same size
@@ -1009,8 +1051,8 @@ void ScatSpeciesScatAndMetaRead (//WS Output:
                         arr_smd, verbosity );
 
   // append as new scattering species
-  scat_data.push_back(arr_ssd);
-  scat_meta.push_back(arr_smd);
+  scat_data.push_back(std::move(arr_ssd));
+  scat_meta.push_back(std::move(arr_smd));
 }
 
 
@@ -1128,8 +1170,8 @@ void ScatElementsSelect (//WS Output:
       throw runtime_error ( os.str() );
       }
 
-  scat_meta[i_ss] = scat_meta_tmp;
-  scat_data[i_ss] = scat_data_tmp;
+  scat_meta[i_ss] = std::move(scat_meta_tmp);
+  scat_data[i_ss] = std::move(scat_data_tmp);
 
   // check if array is empty. should never apply (since we checked the re-worked
   // data before and that error should also catch cases that are empty from the
@@ -1199,7 +1241,7 @@ void ScatSpeciesExtendTemperature( //WS Output:
 
     for ( Index i_se=0; i_se<scat_data[i_ss].nelem(); i_se++ )
       {
-        const SingleScatteringData ssdo = scat_data[i_ss][i_se];
+        const SingleScatteringData& ssdo = scat_data[i_ss][i_se];
         const Index nTo = ssdo.T_grid.nelem();
         Index nTn = nTo;
         bool do_htl, do_hth;
@@ -1239,7 +1281,7 @@ void ScatSpeciesExtendTemperature( //WS Output:
               T_grid_new[iT+iToff] = scat_data[i_ss][i_se].T_grid[iT];
           if( do_hth )
               T_grid_new[nTo+iToff] = T_high;
-          ssdn.T_grid = T_grid_new;
+          ssdn.T_grid = std::move(T_grid_new);
 
           // copy grids and other descriptive data that is to remain identical
           ssdn.ptype = ssdo.ptype;
@@ -1302,7 +1344,7 @@ void ScatSpeciesExtendTemperature( //WS Output:
                           << " single scattering properties.";
             }
           ssdn.description = description.str();
-          scat_data[i_ss][i_se] = ssdn;
+          scat_data[i_ss][i_se] = std::move(ssdn);
         }
       }
   }

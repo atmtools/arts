@@ -860,7 +860,7 @@ void xml_read_from_file(const String&    filename,
 
   String xml_file = filename;
   find_xml_file(xml_file, verbosity);
-  out2 << "  Reading " << xml_file << '\n';
+  out2 << "  Reading " + xml_file + '\n';
 
   // Open input stream:
   istream* ifs;

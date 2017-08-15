@@ -1,3 +1,58 @@
+2017-08-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-760
+
+	* src/matpack{I,III,IV,V,VI,VII}.cc:
+
+	Use std::fill_n instead of iterator loop for initialization with a
+	Numeric in assignment operator of the non-view types. This was already
+	done in the initialization constructor. Added here for consistency.
+	Also replaced the iterator loops in the ctor with std::fill_n for
+	better readability. The compiler generates the same code for both.
+
+	* src/m_cloudbox.cc:
+
+	(ScatSpeciesScatAndMetaRead):
+
+	Parallelize the reading of scattering data and meta data files. Gives a
+	significant speedup (factor 2 - 10 depending on cores and filesystem
+	performance) especially when reading lots of particles. Number of
+	concurrent reads is limited to 16 to not put too much strain on the
+	filesystem.
+
+	Move output from out2 to out3 for less clutter.
+
+	Use std::move to push local arr_ssd and arr_smd variables to the
+	workspace variables. Avoids unnecessary copy operations. Note that
+	std::move can only be used if the original variable is not needed
+	anymore!
+
+	(ScatElementsSelect):
+
+	Use std::move to push local scat_meta_tmp and scat_data_tmp variables
+	to the workspace variables. Avoids unnecessary copy operations.
+
+	(ScatSpeciesExtendTemperature):
+
+	Make ssdo a reference to SingleScatteringData to avoid unnecessary
+	copying.
+
+	Use std::move for assigning local variables T_grid_new and ssdn to
+	avoid unnecessary copies.
+	
+	* src/xml_io.cc (xml_read_from_file):
+
+	Assemble string before sending it into the output stream to avoid it
+	being split up in multithreaded calls.
+
+	* src/interpolation_poly.cc (gridpos_poly):
+
+	Make non-changing interp order variable m const.
+
+	* src/cloudbox.cc (chk_scat_data):
+
+	Move output from out2 to out3 for less clutter.
+
 2017-08-14  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-759

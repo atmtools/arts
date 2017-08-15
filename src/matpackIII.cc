@@ -796,9 +796,7 @@ Tensor3::Tensor3(Index p, Index r, Index c, Numeric fill) :
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
-  const Numeric *stop = mdata+p*r*c;
-  for ( Numeric *x=mdata; x<stop; ++x )
-    *x = fill;
+  std::fill_n(mdata, p*r*c, fill);
 }
 
 /** Copy constructor from Tensor3View. This automatically sets the size
@@ -881,7 +879,7 @@ Tensor3& Tensor3::operator=(Tensor3&& x) noexcept
     inherited. */
 Tensor3& Tensor3::operator=(Numeric x)
 {
-  copy( x, begin(), end() );
+  std::fill_n(mdata, npages()*nrows()*ncols(), x);
   return *this;
 }
 

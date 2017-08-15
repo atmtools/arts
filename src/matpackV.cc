@@ -2362,9 +2362,7 @@ Tensor5::Tensor5(Index s, Index b, Index p, Index r, Index c, Numeric fill) :
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
-  const Numeric *stop = mdata + s*b*p*r*c;
-  for ( Numeric *x = mdata; x < stop; ++x )
-    *x = fill;
+  std::fill_n(mdata, s*b*p*r*c, fill);
 }
 
 /** Copy constructor from Tensor5View. This automatically sets the size
@@ -2453,7 +2451,7 @@ Tensor5& Tensor5::operator=(Tensor5&& x) noexcept
     inherited. */
 Tensor5& Tensor5::operator=(Numeric x)
 {
-  copy( x, begin(), end() );
+  std::fill_n(mdata, nshelves()*nbooks()*npages()*nrows()*ncols(), x);
   return *this;
 }
 

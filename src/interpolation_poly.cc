@@ -131,7 +131,7 @@ void gridpos_poly(ArrayOfGridPosPoly& gp,
                   const Numeric&  extpolfac)
 {
   // Number of points used in the interpolation (order + 1):
-  Index m=order+1;
+  const Index m=order+1;
 
   const Index n_old = old_grid.nelem();
   const Index n_new = new_grid.nelem();

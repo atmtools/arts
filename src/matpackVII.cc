@@ -5306,9 +5306,7 @@ Tensor7::Tensor7(Index l,
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
-  const Numeric *stop = mdata+l*v*s*b*p*r*c;
-  for ( Numeric *x=mdata; x<stop; ++x )
-    *x = fill;
+  std::fill_n(mdata, l*v*s*b*p*r*c, fill);
 }
 
 /** Copy constructor from Tensor7View. This automatically sets the size
@@ -5405,7 +5403,7 @@ Tensor7& Tensor7::operator=(Tensor7&& x) noexcept
     inherited. */
 Tensor7& Tensor7::operator=(Numeric x)
 {
-  copy( x, begin(), end() );
+  std::fill_n(mdata, nlibraries()*nvitrines()*nshelves()*nbooks()*npages()*nrows()*ncols(), x);
   return *this;
 }
 

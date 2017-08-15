@@ -1335,9 +1335,7 @@ Tensor4::Tensor4(Index b, Index p, Index r, Index c, Numeric fill) :
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
-  const Numeric *stop = mdata + b*p*r*c;
-  for ( Numeric *x = mdata; x < stop; ++x )
-    *x = fill;
+  std::fill_n(mdata, b*p*r*c, fill);
 }
 
 /** Copy constructor from Tensor4View. This automatically sets the size
@@ -1423,7 +1421,7 @@ Tensor4& Tensor4::operator=(Tensor4&& x) noexcept
     inherited. */
 Tensor4& Tensor4::operator=(Numeric x)
 {
-  copy( x, begin(), end() );
+  std::fill_n(mdata, nbooks()*npages()*nrows()*ncols(), x);
   return *this;
 }
 

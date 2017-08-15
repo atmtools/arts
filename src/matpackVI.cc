@@ -2807,9 +2807,7 @@ Tensor6::Tensor6(Index v, Index s, Index b,
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
-  const Numeric *stop = mdata+v*s*b*p*r*c;
-  for ( Numeric *x=mdata; x<stop; ++x )
-    *x = fill;
+  std::fill_n(mdata, v*s*b*p*r*c, fill);
 }
 
 /** Copy constructor from Tensor6View. This automatically sets the size
@@ -2903,7 +2901,7 @@ Tensor6& Tensor6::operator=(Tensor6&& x) noexcept
     inherited. */
 Tensor6& Tensor6::operator=(Numeric x)
 {
-  copy( x, begin(), end() );
+  std::fill_n(mdata, nvitrines()*nshelves()*nbooks()*npages()*nrows()*ncols(), x);
   return *this;
 }
 
