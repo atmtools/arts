@@ -6415,8 +6415,7 @@ void define_md_data_raw()
          "about unused input workspace variables. What it does is: Nothing!\n"
          "In other words, it just ignores the variable it is called on.\n"
          "\n"
-         "This method can ignore any workspace variable\n"
-         "you want.\n"
+         "This method can ignore any workspace variable you want.\n"
          "\n"
          "Usage example:\n"
          "\n"
@@ -7488,7 +7487,7 @@ void define_md_data_raw()
          "in the case of a negative zenith angle). For 3D, the true wind\n"
          "direction shall be used.\n"
          "\n"
-         "FASTEM is called by *FastemStandAlone* and see that WSM for further\n"
+         "FASTEM is called by *FastemStandAlone*. See that WSM for further\n"
          "comments on variables and limitations.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
@@ -15727,8 +15726,11 @@ void define_md_data_raw()
          "As *Ignore* but for agenda output.\n"
          "\n"
          "This method is handy for use in agendas in order to suppress\n"
-         "warnings about unused output workspace variables. What it does is:\n"
+         "warnings about not-produced output workspace variables.\n"
+         "\n"
+         "What it does, in case the variable is initialized already, is:\n"
          "Nothing!\n"
+         "In case the variable is not yet initialized, it is set to NaN.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),

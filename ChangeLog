@@ -1,3 +1,12 @@
+2017-08-16 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-761
+
+	* src/methods.cc (Touch, Ignore, iySurfaceFastem),
+	src/workspace.cc (surface_type_mask),
+	src/agendas.cc (surface_rtprop_sub_agenda0):
+	Minor doc substantiations, spell fixes, etc.
+
 2017-08-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-760
