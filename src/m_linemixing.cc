@@ -1234,18 +1234,33 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
   
   for(Index iline = 0; iline < n; iline++)
   {
-    Linefunctions::set_faddeeva_algorithm916(F, dF, f_grid,
-                                              0.0, 0.0, f0[iline],
-                                              doppler_const, pressure_broadening[iline], 
-                                              psf[iline] + DV[iline],
-                                              ppd, QI,
-                                              ddoppler_const_dT, dpressure_broadening_dT[iline], 
-                                              dpsf_dT[iline] + dDV_dT[iline]);
     
-    Linefunctions::apply_linemixing(F, dF, Y[iline], G[iline], ppd, QI, dY_dT[iline], dG_dT[iline]);
-    
-    Linefunctions::apply_dipole(F, dF, f0[iline], T, d0[iline], rhoT[iline], isotopologue_ratio, 
-                                 ppd, drhoT_dT[iline]);
+    if(ppd.do_temperature())
+    {
+      Linefunctions::set_faddeeva_algorithm916(F, dF, f_grid,
+                                                0.0, 0.0, f0[iline],
+                                                doppler_const, pressure_broadening[iline], 
+                                                psf[iline] + DV[iline],
+                                                ppd, QI,
+                                                ddoppler_const_dT, dpressure_broadening_dT[iline], 
+                                                dpsf_dT[iline] + dDV_dT[iline]);
+      
+      Linefunctions::apply_linemixing(F, dF, Y[iline], G[iline], ppd, QI, dY_dT[iline], dG_dT[iline]);
+      
+      Linefunctions::apply_dipole(F, dF, f0[iline], T, d0[iline], rhoT[iline], isotopologue_ratio, 
+                                  ppd, drhoT_dT[iline]);
+    }
+    else
+    {
+      Linefunctions::set_faddeeva_algorithm916(F, dF, f_grid,
+                                               0.0, 0.0, f0[iline],
+                                               doppler_const, pressure_broadening[iline], 
+                                               psf[iline] + DV[iline], ppd, QI);
+      
+      Linefunctions::apply_linemixing(F, dF, Y[iline], G[iline], ppd, QI);
+      
+      Linefunctions::apply_dipole(F, dF, f0[iline], T, d0[iline], rhoT[iline], isotopologue_ratio, ppd);
+    }
     
     for(Index ii = 0; ii < nf; ii++)
     {
@@ -1978,7 +1993,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             else
             {
               ConstVectorView pressure_broadening = W.diagonal();
-              ConstVectorView pressure_broadening_dt = ppd.do_temperature()?W_dt.diagonal():pressure_broadening;
+              ConstVectorView pressure_broadening_dt = ppd.do_temperature()?W_dt.diagonal():Vector(0);
               
               calculate_xsec_from_relmat_coefficients(abs_xsec_per_species,
                                                       dabs_xsec_per_species_dx,
@@ -1993,11 +2008,11 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                                       psf,
                                                       psf_dt,
                                                       Y,
-                                                      ppd.do_temperature()?Y_dt:Y,
+                                                      Y_dt,
                                                       G,
-                                                      ppd.do_temperature()?G_dt:G,
+                                                      G_dt,
                                                       DV,
-                                                      ppd.do_temperature()?DV_dt:DV,
+                                                      DV_dt,
                                                       abs_t[ip],
                                                       mass,
                                                       iso_ratio,
