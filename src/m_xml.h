@@ -28,7 +28,7 @@
 #define m_xml_h
 
 #ifdef ENABLE_MPI
-#include "mpi.h"
+#include "/usr/include/mpich/mpi.h"
 #endif
 
 #include "exceptions.h"

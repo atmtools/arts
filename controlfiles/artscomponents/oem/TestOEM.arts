@@ -178,9 +178,6 @@ MatrixSet( jacobian, [] )
 #MatrixSet( jacobian, [] )
 #AgendaExecute( inversion_iterate_agenda )
 
-Print(covmat_sx, 1)
-Print(covmat_se, 1)
-
 # Run OEM
 OEM(method="gn", 
     max_iter=5, 

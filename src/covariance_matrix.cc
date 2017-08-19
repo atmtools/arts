@@ -616,17 +616,18 @@ void add_inv(MatrixView A, const CovarianceMatrix &B)
 
 std::ostream& operator<<(std::ostream &os, const CovarianceMatrix &covmat)
 {
-    os << "Covariance Matrix " << std::endl;
+    os << "Covariance Matrix, ";
     os << "\tDimensions: [" << covmat.nrows() << " x " << covmat.ncols() << "]" << std::endl;
     os << "Blocks:" << std::endl;
     for (const Block &b : covmat.correlations_) {
         Index i,j;
         tie(i,j) = b.get_indices();
-        os << "\t" << i << ", " << j << ": " << b.get_row_range().get_extent();
+        os << "\ti = " << i << ", j = " << j << ": " << b.get_row_range().get_extent();
         os << " x " << b.get_column_range().get_extent();
         os << ", has inverse: " << (covmat.has_inverse(std::make_pair(i,j)) ? "yes" : "no");
         os << std::endl;
     }
+    return os;
 }
 
 // Explicit instantiations.
