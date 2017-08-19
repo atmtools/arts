@@ -1,4 +1,4 @@
-2017-08-19  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+2017-08-18  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-756
 
@@ -34,7 +34,6 @@
 
 	* src/make_auto_workspace_h.cc: Add covariance_matrix.h to auto_workspace.h
 
-<<<<<<< 1cddc4f98db5adb8daebdc2c281c243f2f4bcd3d
 2017-08-14 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-762
@@ -325,20 +324,19 @@
 	Adapted to changes above.
 
 	* src/workspace.cc (instrument_pol): Typo fixed.
-=======
-	* src/methods.cc: Added WSMs for new retrieval workflow.
 
-	* src/test_covariance_matrix.cc: Test for new CovarianceMatrix class.
+       * src/methods.cc: Added WSMs for new retrieval workflow.
 
-	* src/workspace.cc: Added new covmat_sx, covmat_se, covmat_block and covmat_block_inv
-	WSVs.
+       * src/test_covariance_matrix.cc: Test for new CovarianceMatrix class.
 
-	* src/xml_io_compound_types.cc: XML IO for CovarianceMatrix class.
+       * src/workspace.cc: Added new covmat_sx, covmat_se, covmat_block and covmat_block_inv
+       WSVs.
 
-	* src/xml_io_instantiation: Instantiation for xml io templates.
+       * src/xml_io_compound_types.cc: XML IO for CovarianceMatrix class.
 
-	* src/xml_io_types.h: Instantiation for xml io templates.
->>>>>>> Still preparing commit.
+       * src/xml_io_instantiation: Instantiation for xml io templates.
+
+       * src/xml_io_types.h: Instantiation for xml io templates.
 
 2017-08-09  Oliver Lemke  <olemke@core-dump.info>
 
