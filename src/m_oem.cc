@@ -1191,7 +1191,7 @@ void OEM(Workspace&,
 
 #endif // OEM_SUPPORT
 
-#if defined(OEM_SUPPORT) && defined (ENABLE_MPI)
+#if defined(OEM_SUPPORT) && 0
 
 #include "oem_mpi.h"
 #include "agenda_wrapper_mpi.h"

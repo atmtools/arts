@@ -1,3 +1,39 @@
+2017-08-19  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-756
+
+	* 3rdparty/invlib/*:
+
+	invlib update
+
+	* controlfiles/artscomponents/oem/TestOEM.arts:
+
+	Controlfile adapted to new retrieval workflow.
+
+	* src/CMakeLists.txt:
+
+	Added new target for covariance matrix code.
+
+	* src/CovarianceMatrix.*:
+
+	New CovarianceMatrix class which simplifies handling of block-diagonal matrices and their
+	inverses.
+
+	* src/groups.cc:
+
+	Added CovarianceMatrix class to groups.
+
+	* src/m_oem.*:
+
+	Adapted OEM to new covariance matrix class. This for now will break MPI version,
+	will fix it or remove depending on needs.
+
+	* src/m_retrieval.*: Contains the WSMs for the new retrieval workflow.
+
+	* src/make_auto_md_h.cc: Add covariance_matrix.h to auto_md.h.
+
+	* src/make_auto_workspace_h.cc: Add covariance_matrix.h to auto_workspace.h
+
 2017-08-14 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-762

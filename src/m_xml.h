@@ -148,7 +148,7 @@ WriteXML (//WS Input:
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   if (rank != 0)
   {
-    return
+      return;
   }
 #endif // ENABLE_MPI
 
