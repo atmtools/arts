@@ -81,7 +81,7 @@ public:
     /*! The basic matrix type. */
     using MatrixType = typename decay<T1>::MatrixType;
     /*! The type of the result of the expression */
-    using ResultType = MatrixType;
+    using ResultType = typename decay<T1>::ResultType;
 
     // ------------------------------- //
     //  Constructors and Destructors   //
@@ -123,7 +123,8 @@ public:
      *
      * \todo Could be optimized by combining inversion and product.
      */
-    MatrixType multiply(const MatrixType &B) const;
+    template <typename T2, typename U = disable_if<has_solve<MatrixType, T2>>>
+    typename T2::ResultType multiply(const T2 &B) const;
 
     /*! Evaluates the algebraic expression and multiplies it
      * from the right by the given vector.
@@ -235,7 +236,7 @@ class PrecisionMatrix;
  * expression.
  *
  */
-template <typename T1>
+template <typename T1, typename T2 = enable_if<is_invertible<T1>>>
 MatrixInverse<T1> inv(T1 &&A);
 
 #include "matrix_inverse.cpp"

@@ -105,18 +105,33 @@ sensor_checkedCalc
 jacobianOff
 yCalc
 
+
+# Covariance matrices covmat_sx, covmat_se and their inverse.
+#
 # Define Jacobian
 #
-jacobianInit
-jacobianAddAbsSpecies( 
-   species = "O3",
-      unit = "vmr",
-        g1 = p_ret_grid,
-        g2 = lat_grid,
-        g3 = lon_grid
-)
-jacobianClose
 
+
+retrievalDefInit
+VectorCreate(vars)
+nelemGet( nelem, p_ret_grid )
+VectorSetConstant(vars, nelem, 1e-12)
+covmat_blockSetDiagonal(vars = vars)
+
+retrievalAddAbsSpecies( 
+    species = "O3",
+    unit = "vmr",
+    g1 = p_ret_grid,
+    g2 = lat_grid,
+    g3 = lon_grid
+)
+
+nelemGet( nelem, y )
+VectorSetConstant(vars, nelem, 1e-2)
+covmat_blockSetDiagonal(vars = vars)
+covmat_seSet
+
+retrievalDefClose
 
 # Iteration agenda 
 #
@@ -150,7 +165,6 @@ Tensor4AddScalar( vmr_field, vmr_field, 1e-6 )
 #
 xaStandard
 
-
 # x, jacobian and yf must be initialised (or pre-calculated as shown below)
 #
 VectorSet( x, [] )
@@ -164,15 +178,8 @@ MatrixSet( jacobian, [] )
 #MatrixSet( jacobian, [] )
 #AgendaExecute( inversion_iterate_agenda )
 
-
-# Covariance matrices covmat_sx, covmat_se and their inverse.
-#
-nelemGet( nelem, xa )
-SparseMatrixIdentity( covmat_sx, nelem, 1e-12 )
-SparseMatrixIdentity( covmat_sx_inv, nelem, 1e12 )
-nelemGet( nelem, y )
-SparseMatrixIdentity( covmat_se, nelem, 0.01 )  # 1/0.1 K^2
-SparseMatrixIdentity( covmat_se_inv, nelem, 100 )  # 1/0.1 K^2
+Print(covmat_sx, 1)
+Print(covmat_se, 1)
 
 # Run OEM
 OEM(method="gn", 

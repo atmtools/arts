@@ -14,10 +14,11 @@ auto MatrixInverse<T1>::multiply(const VectorType &v) const
 }
 
 template<typename T1>
-auto MatrixInverse<T1>::multiply(const MatrixType &B) const
-    -> MatrixType
+template <typename T2, typename U>
+auto MatrixInverse<T1>::multiply(const T2 &B) const
+    -> typename T2::ResultType
 {
-    MatrixType C = A.invert();
+    auto C = A.invert();
     return C.multiply(B);
 }
 
@@ -25,8 +26,7 @@ template<typename T1>
 auto MatrixInverse<T1>::solve(const VectorType &v) const
     -> VectorType
 {
-    MatrixType B = A;
-    return B.multiply(v);
+    return A.multiply(v);
 }
 
 template<typename T1>
@@ -68,7 +68,7 @@ MatrixInverse<T1>::operator ResultType() const
     return B;
 }
 
-template <typename T1>
+template <typename T1, typename T2>
 MatrixInverse<T1> inv(T1 &&A)
 {
     return MatrixInverse<T1>(A);

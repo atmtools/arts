@@ -1232,6 +1232,35 @@ void Workspace::define_wsv_data()
         ),
        GROUP( "GriddedField3" ) ));
 
+ wsv_data.push_back
+     (WsvRecord
+      ( NAME( "covmat_block" ),
+        DESCRIPTION
+        (
+            "Holds matrices used to set blocks in covmat_sx and covmat_se.\n"
+            "\n"
+            "The matrix contained in this block will be added to the blocks in\n"
+            "in covmat_sx and covmat_se by the corresponding WSMs. Its dimensions\n"
+            "must agree with gridpoints of the correlated retrieval quantities."
+            "\n"
+            "Usage:   Used by the retrievalAdd functions.\n"
+            ),
+        GROUP( "Sparse" )));
+
+ wsv_data.push_back
+     (WsvRecord
+      ( NAME( "covmat_inv_block" ),
+        DESCRIPTION
+        (
+            "Holds matrices used to set the inverse blocks in covmat_sx and covmat_se.\n"
+            "\n"
+            "The matrix contained in this block will be used as the inverse of the matrix\n"
+            "contained in covmat_block.\n"
+            "\n"
+            "Usage:   Used by the retrievalAdd functions.\n"
+            ),
+        GROUP( "Sparse" )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "covmat_se" ),
@@ -1251,22 +1280,8 @@ void Workspace::define_wsv_data()
        "Dimensions: \n"
        "     [ y, y ]\n"
        ),
-      GROUP( "Sparse" )));
- 
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "covmat_se_inv" ),
-      DESCRIPTION
-      (
-       "The inverse of *covmat_se*..\n"
-       "\n"
-       "Usage:      Used by inversion methods.\n"
-       "\n"
-       "Dimensions: \n"
-       "     [ y, y ]\n"
-       ),
-      GROUP( "Sparse" )));
- 
+      GROUP( "CovarianceMatrix" )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "covmat_sx" ),
@@ -1281,21 +1296,8 @@ void Workspace::define_wsv_data()
        "Dimensions: \n"
        "     [ x, x ]\n"
        ),
-      GROUP( "Sparse" )));
-   
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "covmat_sx_inv" ),
-      DESCRIPTION
-      (
-       "The inverse *covmat_sx*.\n"
-       "\n"
-       "Usage:   Used by inversion methods.\n"
-       "\n"
-       "Dimensions: \n"
-       "     [ x, x ]\n"
-       ),
-      GROUP( "Sparse" )));
+      GROUP( "CovarianceMatrix" )));
+
 
   wsv_data.push_back
       (WsvRecord
@@ -1331,6 +1333,7 @@ void Workspace::define_wsv_data()
        "    [x,x]\n"
        ),
       GROUP("Matrix")));
+
   wsv_data.push_back
       (WsvRecord
        (NAME("avk"),
@@ -4131,6 +4134,17 @@ void Workspace::define_wsv_data()
          "Dimensions: [number of bands]\n"
      ),
      GROUP( "ArrayOfIndex" )));
+
+  wsv_data.push_back
+      (WsvRecord
+       ( NAME( "retrieval_checked" ),
+         DESCRIPTION
+         (
+             "Flag indicating completeness and consistency of retrieval setup.\n"
+             "\n"
+             "Unit: Boolean\n"
+             ),
+         GROUP( "Index" )));
 
   wsv_data.push_back
    (WsvRecord

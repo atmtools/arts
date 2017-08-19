@@ -653,6 +653,7 @@ int main()
           << "#include \"parser.h\"\n"
           << "#include \"workspace_ng.h\"\n"
           << "#include \"cia.h\"\n"
+          << "#include \"covariance_matrix.h\"\n"
           << "#include \"linemixingrecord.h\"\n"
           << "#include \"propagationmatrix.h\"\n"
           << "\n";

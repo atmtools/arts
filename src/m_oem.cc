@@ -721,8 +721,8 @@ void OEM_checks(
           Matrix&                     jacobian,
     const Agenda&                     inversion_iterate_agenda,
     const Vector&                     xa,
-    const Sparse&                     covmat_sx_inv,
-    const Sparse&                     covmat_se_inv,
+    const CovarianceMatrix&           covmat_sx,
+    const CovarianceMatrix&           covmat_se,
     const Index&                      jacobian_do,
     const ArrayOfRetrievalQuantity&   jacobian_quantities,
     const ArrayOfArrayOfIndex&        jacobian_indices,
@@ -736,20 +736,20 @@ void OEM_checks(
 {
   const Index nq = jacobian_quantities.nelem();
   const Index n  = xa.nelem();
-  const Index m  = covmat_se_inv.nrows();
+  const Index m  = covmat_se.nrows();
 
   if((x.nelem() != n) && (x.nelem() !=0))
     throw runtime_error( "The length of *x* must be either the same as *xa* or 0." );
-  if( covmat_sx_inv.ncols() != covmat_sx_inv.nrows() )
-    throw runtime_error( "*covmat_sx_inv* must be a square matrix." );
-  if( covmat_sx_inv.ncols() != n )
-    throw runtime_error( "Inconsistency in size between *x* and *covmat_sx_inv*." );
+  if( covmat_sx.ncols() != covmat_sx.nrows() )
+    throw runtime_error( "*covmat_sx* must be a square matrix." );
+  if( covmat_sx.ncols() != n )
+    throw runtime_error( "Inconsistency in size between *x* and *covmat_sx*." );
   if((yf.nelem() != m) && (yf.nelem() != 0))
     throw runtime_error( "The length of *yf* must be either the same as *y* or 0." );
-  if( covmat_se_inv.ncols() != covmat_se_inv.nrows() )
-    throw runtime_error( "*covmat_se_inv* must be a square matrix." );
-  if( covmat_se_inv.ncols() != m )
-    throw runtime_error( "Inconsistency in size between *y* and *covmat_se_inv*." );
+  if( covmat_se.ncols() != covmat_se.nrows() )
+    throw runtime_error( "*covmat_se* must be a square matrix." );
+  if( covmat_se.ncols() != m )
+    throw runtime_error( "Inconsistency in size between *y* and *covmat_se*." );
   if( !jacobian_do )
     throw runtime_error( "Jacobian calculations must be turned on (but jacobian_do=0)." );
   if((jacobian.nrows() != m) && (!jacobian.empty()))
@@ -760,7 +760,7 @@ void OEM_checks(
     throw runtime_error( "Different number of elements in *jacobian_quantities* "
                           "and *jacobian_indices*." );
   if( nq  &&  jacobian_indices[nq-1][1]+1 != n )
-    throw runtime_error( "Size of *covmat_sx_inv* do not agree with Jacobian " 
+    throw runtime_error( "Size of *covmat_sx* do not agree with Jacobian " 
                           "information (*jacobian_indices*)." );
 
 
@@ -777,7 +777,7 @@ void OEM_checks(
   if( !( x_norm.nelem() == 0  ||  x_norm.nelem() == n ) )
   {
     throw runtime_error( "The vector *x_norm* must have length 0 or match "
-                         "*covmat_sx_inv*." );
+                         "*covmat_sx*." );
   }
 
   if( x_norm.nelem() > 0  &&  min( x_norm ) <= 0 )
@@ -827,8 +827,7 @@ void OEM_checks(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-template <typename Se_t, typename Sx_t>
-void oem_template(
+void OEM(
          Workspace&                  ws,
          Vector&                     x,
          Vector&                     yf,
@@ -838,9 +837,9 @@ void oem_template(
          Vector&                     ml_ga_history,
          ArrayOfString&              errors,
    const Vector&                     xa,
-   const Sx_t&                       covmat_sx_inv,
+   const CovarianceMatrix&           covmat_sx,
    const Vector&                     y,
-   const Se_t&                       covmat_se_inv,
+   const CovarianceMatrix&           covmat_se,
    const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&        jacobian_indices,
@@ -856,12 +855,15 @@ void oem_template(
    const Verbosity& )
 {
     // Main sizes
-    const Index n = covmat_sx_inv.nrows();
+    const Index n = covmat_sx.nrows();
     const Index m = y.nelem();
 
     // Checks
-    OEM_checks(ws, x, yf, jacobian, inversion_iterate_agenda, xa, covmat_sx_inv,
-               covmat_se_inv, jacobian_do, jacobian_quantities, jacobian_indices,
+    covmat_sx.compute_inverse();
+    covmat_se.compute_inverse();
+
+    OEM_checks(ws, x, yf, jacobian, inversion_iterate_agenda, xa, covmat_sx,
+               covmat_se, jacobian_do, jacobian_quantities, jacobian_indices,
                method, x_norm, max_iter, stop_dx, ml_ga_settings,
                clear_matrices, display_progress);
 
@@ -885,9 +887,9 @@ void oem_template(
     if( method == "ml" || method == "lm" || display_progress || max_start_cost > 0 )
     {
         Vector dy  = y; dy -= yf;
-        Vector sdy = y; mult(sdy, covmat_se_inv, dy);
+        Vector sdy = y; mult(sdy, covmat_se, dy);
         Vector dx  = x; dx -= xa;
-        Vector sdx = x; mult(sdx, covmat_sx_inv, dx);
+        Vector sdx = x; mult(sdx, covmat_sx, dx);
         cost_start = dx * sdx + dy * sdy;
     }
     oem_diagnostics[1] = cost_start;
@@ -925,12 +927,11 @@ void oem_template(
           apply_norm = true;
       }
 
-        OEMSparse SeInv(covmat_se_inv), SaInv(covmat_sx_inv);
-        PrecisionSparse Pe(SeInv), Pa(SaInv);
+        OEMCovarianceMatrix SeInv(covmat_se), SaInv(covmat_sx);
         OEMVector xa_oem(xa), y_oem(y), x_oem(x);
         AgendaWrapper aw(&ws, (unsigned int) m, (unsigned int) n,
                          jacobian, yf, &inversion_iterate_agenda);
-        OEM_PS_PS<AgendaWrapper> oem(aw, xa_oem, Pa, Pe);
+        OEM_STANDARD<AgendaWrapper> oem(aw, xa_oem, SaInv, SeInv);
         int oem_verbosity = static_cast<int>(display_progress);
 
         int return_code = 0;
@@ -1046,9 +1047,9 @@ void oem_template(
         {
             dxdy.resize(n, m);
             Matrix tmp1(n,m), tmp2(n,n), tmp3(n,n);
-            mult(tmp1, transpose(jacobian), covmat_se_inv);
+            mult_inv(tmp1, transpose(jacobian), covmat_se);
             mult(tmp2, tmp1, jacobian);
-            tmp2 += covmat_sx_inv;
+            add_inv(tmp2, covmat_sx);
             inv(tmp3, tmp2);
             mult(dxdy, tmp3, tmp1);
         }
@@ -1059,7 +1060,7 @@ void oem_template(
 void covmat_soCalc(
     Matrix& covmat_so,
     const Matrix& dxdy,
-    const Sparse& covmat_se,
+    const CovarianceMatrix& covmat_se,
     const Verbosity& /*v*/)
 {
     Index n(dxdy.nrows()), m(dxdy.ncols());
@@ -1069,7 +1070,7 @@ void covmat_soCalc(
         throw runtime_error("The gain matrix *dxdy* is required to compute the observation error covariance matrix.");
     }
     if ((covmat_se.nrows() != m) || (covmat_se.ncols() != m)) {
-        throw runtime_error("The covariance matrix covmat_se_inv has invalid dimensions.");
+        throw runtime_error("The covariance matrix covmat_se has invalid dimensions.");
     }
 
     covmat_so.resize(n,n);
@@ -1081,7 +1082,7 @@ void covmat_soCalc(
 void covmat_ssCalc(
     Matrix& covmat_ss,
     const Matrix& avk,
-    const Sparse& covmat_sx,
+    const CovarianceMatrix& covmat_sx,
     const Verbosity& /*v*/)
 {
     Index n(avk.ncols());
@@ -1125,48 +1126,12 @@ void avkCalc(
     mult(avk, dxdy, jacobian);
 }
 
-void OEM(
-    Workspace&                  ws,
-    Vector&                     x,
-    Vector&                     yf,
-    Matrix&                     jacobian,
-    Matrix&                     dxdy,
-    Vector&                     oem_diagnostics,
-    Vector&                     ml_ga_history,
-    ArrayOfString &             errors,
-    const Vector&                     xa,
-    const Sparse&                     covmat_sx_inv,
-    const Vector&                     y,
-    const Sparse&                     covmat_se_inv,
-    const Index&                      jacobian_do,
-    const ArrayOfRetrievalQuantity&   jacobian_quantities,
-    const ArrayOfArrayOfIndex&        jacobian_indices,
-    const Agenda&                     inversion_iterate_agenda,
-    const String&                     method,
-    const Numeric&                    max_start_cost,
-    const Vector&                     x_norm,
-    const Index&                      max_iter,
-    const Numeric&                    stop_dx,
-    const Vector&                     ml_ga_settings,
-    const Index&                      clear_matrices,
-    const Index&                      display_progress,
-    const Verbosity&                  v )
-{
-    oem_template( ws, x, yf, jacobian, dxdy, oem_diagnostics, ml_ga_history, errors,
-                  xa, covmat_sx_inv, y, covmat_se_inv,
-                  jacobian_do, jacobian_quantities, jacobian_indices,
-                  inversion_iterate_agenda, 
-                  method, max_start_cost, x_norm, max_iter, stop_dx,
-                  ml_ga_settings, clear_matrices, display_progress, v );
-}
-
-
 #else
 
 void covmat_soCalc(
           Matrix& /* covmat_so */,
     const Matrix& /* dxdy */,
-    const Sparse& /* covmat_se_inv */,
+    const CovarianceMatrix& /* covmat_se*/,
     const Verbosity& /*v*/)
 {
   throw runtime_error("WSM is not available because ARTS was compiled without "
@@ -1176,7 +1141,7 @@ void covmat_soCalc(
 void covmat_ssCalc(
           Matrix& /*covmat_ss*/,
     const Matrix& /*avk*/,
-    const Sparse& /*covmat_sx*/,
+    const CovarianceMatrix& /*covmat_sx*/,
     const Verbosity& /*v*/)
 {
   throw runtime_error("WSM is not available because ARTS was compiled without "
@@ -1203,9 +1168,9 @@ void OEM(Workspace&,
          Vector&,
          ArrayOfString&,
          const Vector&,
-         const Sparse&,
+         const CovarianceMatrix&,
          const Vector&,
-         const Sparse&,
+         const CovarianceMatrix&,
          const Index&,
          const ArrayOfRetrievalQuantity&,
          const ArrayOfArrayOfIndex&,
@@ -1240,9 +1205,7 @@ void OEM(Workspace&,
 //
 void MPI_Initialize(Matrix&    sensor_los,
                     Matrix&    sensor_pos,
-                    Vector&    sensor_time,
-                    Sparse&    covmat_se_inv,
-                    Sparse&    covmat_sx_inv)
+                    Vector&    sensor_time)
 {
     int initialized;
 
@@ -1296,30 +1259,6 @@ void MPI_Initialize(Matrix&    sensor_los,
         sensor_time.resize(0);
     }
 
-    //
-    // Split up covariance matrices.
-    //
-
-    Index n = covmat_sx_inv.nrows();
-    Index rows_per_block = n / nprocs;
-    remainder      = (int)n % nprocs;
-
-    Index start = rows_per_block * rank;
-
-    rows_per_block += (rank < remainder) ? 1 : 0;
-    start          += (rank < remainder) ? rank : remainder;
-
-    covmat_sx_inv.split(start, rows_per_block);
-
-    Index m = covmat_se_inv.nrows();
-    rows_per_block = m / nprocs;
-    remainder      = (int)m % nprocs;
-
-    start = rows_per_block * rank;
-    rows_per_block += (rank < remainder) ? 1 : 0;
-    start          += (rank < remainder) ? rank : remainder;
-
-    covmat_se_inv.split(start, rows_per_block);
 }
 
 void OEM_MPI(
@@ -1333,8 +1272,8 @@ void OEM_MPI(
     Matrix&                     sensor_los,
     Matrix&                     sensor_pos,
     Vector&                     sensor_time,
-    Sparse&                     covmat_sx_inv,
-    Sparse&                     covmat_se_inv,
+    CovarianceMatrix&           covmat_sx,
+    CovarianceMatrix&           covmat_se,
     const Vector&                     xa,
     const Vector&                     y,
     const Index&                      jacobian_do,
@@ -1352,12 +1291,12 @@ void OEM_MPI(
     const Verbosity&                  /*v*/ )
 {
     // Main sizes
-    const Index n = covmat_sx_inv.nrows();
+    const Index n = covmat_sx.nrows();
     const Index m = y.nelem();
 
     // Check WSVs
-    OEM_checks(ws, x, yf, jacobian, inversion_iterate_agenda, xa, covmat_sx_inv,
-               covmat_se_inv, jacobian_do, jacobian_quantities, jacobian_indices,
+    OEM_checks(ws, x, yf, jacobian, inversion_iterate_agenda, xa, covmat_sx,
+               covmat_se, jacobian_do, jacobian_quantities, jacobian_indices,
                method, x_norm, max_iter, stop_dx, ml_ga_settings,
                clear_matrices, display_progress);
 
@@ -1367,12 +1306,11 @@ void OEM_MPI(
     jacobian.resize(0,0);
 
     // Initialize MPI environment.
-    MPI_Initialize(sensor_los, sensor_pos, sensor_time,
-                   covmat_se_inv, covmat_sx_inv);
+    MPI_Initialize(sensor_los, sensor_pos, sensor_time);
 
     // Setup distributed matrices.
-    MPISparse        SeInvMPI(covmat_se_inv);
-    MPISparse        SaInvMPI(covmat_sx_inv);
+    MPICovarianceMatrix SeInvMPI(covmat_se);
+    MPICovarianceMatrix SaInvMPI(covmat_sx);
 
     // Create temporary MPI vector from local results and use conversion to
     // standard vector to broadcast results to all processes.
@@ -1429,11 +1367,10 @@ void OEM_MPI(
         x.resize( n );
         dxdy.resize( n, m );
 
-        PrecisionMPI     Pe(SeInvMPI), Pa(SaInvMPI);
         OEMVector        xa_oem(xa), y_oem(y), x_oem;
         AgendaWrapperMPI aw(&ws, &inversion_iterate_agenda, m, n);
 
-        OEM_PS_PS_MPI<AgendaWrapperMPI> oem(aw, xa_oem, Pa, Pe);
+        OEM_PS_PS_MPI<AgendaWrapperMPI> oem(aw, xa_oem, SaInvMPI, SeInvMPI);
 
         // Call selected method
         int return_value = 99;
@@ -1501,8 +1438,8 @@ void OEM_MPI(
     Matrix&,
     Matrix&,
     Vector&,
-    Sparse&,
-    Sparse&,
+    CovarianceMatrix&,
+    CovarianceMatrix&,
     const Vector&,
     const Vector&,
     const Index&,

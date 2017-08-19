@@ -126,7 +126,159 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
+//! Reads CovarianceMatrix from XML input stream
+/*!
+  \param is_xml    XML Input stream
+  \param covmat    CovarianceMatrix
+  \param pbifs     Pointer to binary file stream. NULL for ASCII output.
+  \param verbosity
+*/
+void xml_read_from_stream(istream& is_xml,
+                          CovarianceMatrix& covmat,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity)
+{
+    ArtsXMLTag    tag(verbosity);
+    String        name, type;
+    Index n_blocks, row_start, row_extent, column_start, column_extent, row_index, column_index,
+        is_inverse;
 
+    tag.read_from_stream(is_xml);
+    tag.check_name("CovarianceMatrix");
+    tag.get_attribute_value("n_blocks", n_blocks);
+
+    for (Index i = 0; i < n_blocks; i++) {
+        tag.read_from_stream(is_xml);
+        tag.check_name("Block");
+
+        tag.get_attribute_value("row_index",  row_index);
+        tag.get_attribute_value("column_index",  column_index);
+        tag.get_attribute_value("row_start",  row_start);
+        tag.get_attribute_value("row_extent", row_extent);
+        tag.get_attribute_value("column_start",  column_start);
+        tag.get_attribute_value("column_extent", column_extent);
+        tag.get_attribute_value("type", type);
+        tag.get_attribute_value("is_inverse", is_inverse);
+
+        Range row_range(row_start, row_extent);
+        Range column_range(column_start, column_extent);
+        if (type == "Matrix") {
+            std::shared_ptr<Matrix> M = std::make_shared<Matrix>(row_extent, column_extent);
+            xml_read_from_stream(is_xml, *M, pbifs, verbosity);
+            if (!is_inverse) {
+                covmat.correlations_.emplace_back(row_range, column_range,
+                                                  std::make_pair(row_index, column_index), M);
+            } else {
+                covmat.inverses_.emplace_back(row_range, column_range,
+                                           std::make_pair(row_index, column_index), M);
+            }
+        } else if (type == "Sparse") {
+            std::shared_ptr<Sparse> M = std::make_shared<Sparse>(row_extent, column_extent);
+            xml_read_from_stream(is_xml, *M, pbifs, verbosity);
+            if (!is_inverse) {
+                covmat.correlations_.emplace_back(row_range, column_range,
+                                                  std::make_pair(row_index, column_index), M);
+            } else {
+                covmat.inverses_.emplace_back(row_range, column_range,
+                                              std::make_pair(row_index, column_index), M);
+            }
+        }
+        tag.read_from_stream(is_xml);
+        tag.check_name("/Block");
+    }
+    tag.read_from_stream(is_xml);
+    tag.check_name("/CovarianceMatrix");
+}
+
+//=== CovarianceMatrix =========================================================
+
+//! Write CovarianceMatrix to XML output stream
+/*!
+  \param os_xml    XML output stream
+  \param covmat    CovarianceMatrix
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Unused
+  \param verbosity
+*/
+void xml_write_to_stream(ostream& os_xml,
+                         const CovarianceMatrix& covmat,
+                         bofstream* pbofs,
+                         const String& name _U_, const Verbosity& verbosity)
+{
+    ArtsXMLTag covmat_tag(verbosity);
+    ArtsXMLTag close_tag(verbosity);
+
+
+    covmat_tag.set_name("CovarianceMatrix");
+    covmat_tag.add_attribute("n_blocks", covmat.correlations_.size() + covmat.inverses_.size());
+    covmat_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+    for (const Block &c : covmat.correlations_) {
+        ArtsXMLTag block_tag(verbosity);
+        block_tag.set_name("Block");
+
+        Index i,j;
+        std::tie(i,j) = c.get_indices();
+        block_tag.add_attribute("row_index", i);
+        block_tag.add_attribute("column_index", j);
+
+        Range row_range = c.get_row_range();
+        Range column_range = c.get_column_range();
+        block_tag.add_attribute("row_start", row_range.get_start());
+        block_tag.add_attribute("row_extent", row_range.get_extent());
+        block_tag.add_attribute("column_start", column_range.get_start());
+        block_tag.add_attribute("column_extent", column_range.get_extent());
+        block_tag.add_attribute("is_inverse", 0);
+        if (c.get_matrix_type() == Block::MatrixType::dense) {
+            block_tag.add_attribute("type", "Matrix");
+            block_tag.write_to_stream(os_xml);
+            os_xml << '\n';
+            xml_write_to_stream(os_xml, c.get_dense(), pbofs, name, verbosity);
+        } else {
+            block_tag.add_attribute("type", "Sparse");
+            block_tag.write_to_stream(os_xml);
+            os_xml << '\n';
+            xml_write_to_stream(os_xml, c.get_sparse(), pbofs, name, verbosity);
+        }
+        close_tag.set_name("/Block");
+        close_tag.write_to_stream(os_xml);
+        os_xml << '\n';
+    }
+    for (const Block &c : covmat.inverses_) {
+        ArtsXMLTag block_tag(verbosity);
+        block_tag.set_name("Block");
+
+        Index i,j;
+        std::tie(i,j) = c.get_indices();
+        block_tag.add_attribute("row_index", i);
+        block_tag.add_attribute("column_index", j);
+
+        Range row_range = c.get_row_range();
+        Range column_range = c.get_column_range();
+        block_tag.add_attribute("row_start", row_range.get_start());
+        block_tag.add_attribute("row_extent", row_range.get_extent());
+        block_tag.add_attribute("column_start", column_range.get_start());
+        block_tag.add_attribute("column_extent", column_range.get_extent());
+        block_tag.add_attribute("is_inverse", 1);
+        if (c.get_matrix_type() == Block::MatrixType::dense) {
+            block_tag.add_attribute("type", "Matrix");
+            block_tag.write_to_stream(os_xml);
+            os_xml << '\n';
+            xml_write_to_stream(os_xml, c.get_dense(), pbofs, name, verbosity);
+        } else {
+            block_tag.add_attribute("type", "Sparse");
+            block_tag.write_to_stream(os_xml);
+            os_xml << '\n';
+            xml_write_to_stream(os_xml, c.get_sparse(), pbofs, name, verbosity);
+        }
+        close_tag.set_name("/Block");
+        close_tag.write_to_stream(os_xml);
+        os_xml << '\n';
+    }
+    os_xml << '\n';
+    close_tag.set_name("/CovarianceMatrix");
+    close_tag.write_to_stream(os_xml);
+}
 
 //=== GasAbsLookup ===========================================================
 

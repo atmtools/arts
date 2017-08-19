@@ -146,9 +146,18 @@ auto ArtsMatrix::data_pointer()
     return this->mdata;
 }
 
-void ArtsMatrix::accumulate(const ArtsMatrix & B)
+void ArtsMatrix::accumulate(const MatrixType & B)
 {
     this->operator+=(B);
+}
+
+void ArtsMatrix::accumulate(const ArtsCovarianceMatrixWrapper & B)
+{
+    if (B.is_inverse()) {
+        ::add_inv(*this, B);
+    } else {
+        ::operator+=(*this, B);
+    }
 }
 
 void ArtsMatrix::subtract(const ArtsMatrix& B)
@@ -214,6 +223,7 @@ auto ArtsMatrix::invert() const
     ::inv(B, *this);
     return B;
 }
+
 void ArtsMatrix::scale(Numeric c)
 {
     this->operator*=(c);
@@ -301,5 +311,73 @@ auto ArtsMatrixReference<ArtsType>::transpose_multiply(
 {
     ArtsMatrix C; C.resize(A.get().ncols(), B.ncols());
     ::mult(C, transpose(A.get()), B);
+    return C;
+}
+
+//---------------------------//
+//   Arts Covariance Matrix  //
+//---------------------------//
+
+auto ArtsCovarianceMatrixWrapper::rows() const
+    -> Index
+{
+    return covmat_.nrows();
+}
+
+auto ArtsCovarianceMatrixWrapper::cols() const
+    -> Index
+{
+    return covmat_.ncols();
+}
+
+auto ArtsCovarianceMatrixWrapper::multiply(
+    const ArtsVector &v) const
+    -> ArtsVector
+{
+    ArtsVector w; w.resize(covmat_.nrows());
+    if (is_inverse_) {
+        ::mult_inv(w, covmat_, v);
+    } else {
+        ::mult(w, covmat_, v);
+    }
+    return w;
+}
+
+auto ArtsCovarianceMatrixWrapper::multiply(
+    const ArtsMatrix &B) const
+    -> ArtsMatrix
+{
+    ArtsMatrix C; C.resize(covmat_.nrows(), B.ncols());
+    if (is_inverse_) {
+        ::mult_inv(C, covmat_, B);
+    } else {
+        ::mult(C, covmat_, B);
+    }
+    return C;
+}
+
+auto ArtsCovarianceMatrixWrapper::transpose_multiply(
+    const ArtsVector &v) const
+    -> ArtsVector
+{
+    ArtsVector w; w.resize(covmat_.ncols());
+    if (is_inverse_) {
+        ::mult_inv(w, covmat_, v);
+    } else {
+        ::mult(w, covmat_, v);
+    }
+    return w;
+}
+
+auto ArtsCovarianceMatrixWrapper::transpose_multiply(
+    const ArtsMatrix & B) const
+    -> ArtsMatrix
+{
+    ArtsMatrix C; C.resize(covmat_.ncols(), B.ncols());
+    if (is_inverse_) {
+        ::mult_inv(C, covmat_, B);
+    } else {
+        ::mult(C, covmat_, B);
+    }
     return C;
 }

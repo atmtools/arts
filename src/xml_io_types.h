@@ -40,6 +40,7 @@
 #include "bifstream.h"
 #include "bofstream.h"
 #include "cia.h"
+#include "covariance_matrix.h"
 #include "gas_abs_lookup.h"
 #include "gridded_fields.h"
 #include "jacobian.h"
@@ -83,6 +84,7 @@ TMPL_XML_READ_WRITE_STREAM(Vector)
 
 TMPL_XML_READ_WRITE_STREAM(Agenda)
 TMPL_XML_READ_WRITE_STREAM(CIARecord)
+TMPL_XML_READ_WRITE_STREAM(CovarianceMatrix)
 TMPL_XML_READ_WRITE_STREAM(GriddedField1)
 TMPL_XML_READ_WRITE_STREAM(GriddedField2)
 TMPL_XML_READ_WRITE_STREAM(GriddedField3)

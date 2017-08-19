@@ -68,6 +68,7 @@ int main()
           << "#include \"mc_antenna.h\"\n"
           << "#include \"cia.h\"\n"
           << "#include \"propagationmatrix.h\"\n"
+          << "#include \"covariance_matrix.h\"\n"
           << "#include \"linemixingrecord.h\"\n"
           << "\n";
 

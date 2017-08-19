@@ -283,7 +283,7 @@ add_library (artscore STATIC
   )
 add_dependencies (artscore auto_version_h)
 
-target_link_libraries (artscore ${ZLIB_LIBRARIES})
+target_link_libraries (artscore ${ZLIB_LIBRARIES} covariance_matrix)
 
 if (NETCDF_FOUND)
   target_link_libraries (artscore ${NETCDF_LIBRARIES})
@@ -296,6 +296,11 @@ endif (ENABLE_MPI)
 if (ENABLE_DOCSERVER)
   target_link_libraries (artscore microhttpd ${CMAKE_THREAD_LIBS_INIT})
 endif (ENABLE_DOCSERVER)
+
+########### next target ###############
+
+add_library (covariance_matrix STATIC covariance_matrix.cc m_retrieval.cc)
+target_link_libraries (covariance_matrix matpack)
 
 ########### next target ###############
 
@@ -482,6 +487,10 @@ target_link_libraries (test_cia ${ALL_ARTS_LIBRARIES})
 add_executable (test_propagationmatrix test_propagationmatrix.cc absorption.h jacobian.h linescaling.h propagationmatrix.h)
 target_link_libraries (test_propagationmatrix ${ALL_ARTS_LIBRARIES})
 
+########### next testcase ###############
+
+add_executable (test_covariance_matrix test_covariance_matrix.cc)
+target_link_libraries(test_covariance_matrix test_utils covariance_matrix ${ALL_ARTS_LIBRARIES})
 
 ########### subdirs ###############
 

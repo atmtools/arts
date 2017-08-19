@@ -233,7 +233,8 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STAN
     bool converged = false;
     iterations     = 0;
 
-    log.step(iterations, cost, cost_x, cost_y, NAN, M);
+    RealType conv = NAN;
+    log.step(iterations, cost, cost_x, cost_y, conv, M);
 
     while ((iterations < M.get_maximum_iterations()) && !converged)
     {
@@ -246,7 +247,7 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STAN
         x += dx;
 
         // Check for convergence.
-        RealType conv = dot(dx, H * dx) / n;
+        conv = dot(dx, H * dx) / n;
         if (conv < M.get_tolerance())
         {
             converged = true;

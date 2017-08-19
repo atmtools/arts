@@ -22,15 +22,14 @@
 
 // OEM types.
 using MPIMatrix       = invlib::Matrix<invlib::MPIMatrix<invlib::Timer<ArtsMatrix>>>;
-using MPISparse       = invlib::Matrix<invlib::MPIMatrix<invlib::Timer<ArtsMatrixReference<const Sparse>>>>;
+using MPICovarianceMatrix =
+    invlib::Matrix<invlib::MPIMatrix<invlib::Timer<ArtsCovarianceMatrixWrapper>>>;
 using MPIVector       = invlib::Vector<invlib::MPIVector<invlib::Timer<ArtsVector>>>;
-
-using PrecisionMPI    = invlib::PrecisionMatrix<MPISparse>;
 
 // Standard Form.
 template <typename ForwardModel>
-using OEM_PS_PS_MPI = invlib::MAP<ForwardModel, OEMMatrix, PrecisionMPI,
-    PrecisionMPI, OEMVector, Formulation::STANDARD>;
+using OEM_PS_PS_MPI = invlib::MAP<ForwardModel, OEMMatrix, MPICovarianceMatrix,
+    MPICovarianceMatrix, OEMVector, Formulation::STANDARD>;
 
 // Optimization Methods.
 using LM_CG_S_MPI = invlib::LevenbergMarquardt<Numeric, MPISparse, CG>;

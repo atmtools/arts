@@ -27,11 +27,9 @@
 using OEMVector          = invlib::Vector<invlib::Timer<ArtsVector>>;
 using OEMMatrix          = invlib::Matrix<ArtsMatrix>;
 using OEMMatrixReference = invlib::Matrix<ArtsMatrixReference<Matrix>>;
-using OEMSparse          = invlib::Matrix<invlib::Timer<ArtsMatrixReference<const Sparse>>>;
+using OEMCovarianceMatrix = invlib::Matrix<ArtsCovarianceMatrixWrapper>;
 
 using Identity        = invlib::MatrixIdentity<OEMMatrix>;
-using PrecisionMatrix = invlib::PrecisionMatrix<OEMMatrix>;
-using PrecisionSparse = invlib::PrecisionMatrix<OEMSparse>;
 
 // OEM types.
 
@@ -40,56 +38,35 @@ using invlib::Formulation;
 // Standard Form.
 
 template <typename ForwardModel>
-using OEM_S_S = invlib::MAP<ForwardModel, OEMMatrix, Sparse,
-    Sparse, OEMVector, Formulation::STANDARD>;
-
-template <typename ForwardModel>
-using OEM_PS_PS = invlib::MAP<ForwardModel, OEMMatrix, PrecisionSparse,
-    PrecisionSparse, OEMVector, Formulation::STANDARD>;
-
-template <typename ForwardModel>
-using OEM_D_D = invlib::MAP<ForwardModel, OEMMatrix, OEMMatrix,
-    OEMMatrix, OEMVector, Formulation::STANDARD>;
-
-template <typename ForwardModel>
-using OEM_PD_PD = invlib::MAP<ForwardModel, OEMMatrix, PrecisionMatrix,
-    PrecisionMatrix, OEMVector, Formulation::STANDARD>;
+using OEM_STANDARD = invlib::MAP<
+    ForwardModel,
+    OEMMatrix,
+    OEMCovarianceMatrix,
+    OEMCovarianceMatrix,
+    OEMVector,
+    Formulation::STANDARD>;
 
 // N-Form.
 
 template <typename ForwardModel>
-using OEM_NFORM_S_S = invlib::MAP<ForwardModel, OEMMatrix, Sparse,
-    Sparse, OEMVector, Formulation::NFORM>;
-
-template <typename ForwardModel>
-using OEM_NFORM_PS_PS = invlib::MAP<ForwardModel, OEMMatrix, PrecisionSparse,
-    PrecisionSparse, OEMVector, Formulation::NFORM>;
-
-template <typename ForwardModel>
-using OEM_NFORM_D_D = invlib::MAP<ForwardModel, OEMMatrix, OEMMatrix,
-    OEMMatrix, OEMVector, Formulation::NFORM>;
-
-template <typename ForwardModel>
-using OEM_NFORM_PD_PD = invlib::MAP<ForwardModel, OEMMatrix, PrecisionMatrix,
-    PrecisionMatrix, OEMVector, Formulation::NFORM>;
+using OEM_NFORM = invlib::MAP<
+    ForwardModel,
+    OEMMatrix,
+    OEMCovarianceMatrix,
+    OEMCovarianceMatrix,
+    OEMVector,
+    Formulation::NFORM>;
 
 // M-Form.
 
 template <typename ForwardModel>
-using OEM_MFORM_S_S = invlib::MAP<ForwardModel, OEMMatrix, Sparse,
-    Sparse, OEMVector, Formulation::MFORM>;
-
-template <typename ForwardModel>
-using OEM_MFORM_PS_PS = invlib::MAP<ForwardModel, OEMMatrix, PrecisionSparse,
-    PrecisionSparse, OEMVector, Formulation::MFORM>;
-
-template <typename ForwardModel>
-using OEM_MFORM_D_D = invlib::MAP<ForwardModel, OEMMatrix, OEMMatrix,
-    OEMMatrix, OEMVector, Formulation::MFORM>;
-
-template <typename ForwardModel>
-using OEM_MFORM_PD_PD = invlib::MAP<ForwardModel, OEMMatrix, PrecisionMatrix,
-    PrecisionMatrix, OEMVector, Formulation::MFORM>;
+using OEM_MFORM = invlib::MAP<
+    ForwardModel,
+    OEMMatrix,
+    OEMCovarianceMatrix,
+    OEMCovarianceMatrix,
+    OEMVector,
+    Formulation::MFORM>;
 
 // Solvers.
 
@@ -111,11 +88,10 @@ using GN_CG       = invlib::GaussNewton<Numeric, Normed<CG>>;
 using LM_D        = invlib::LevenbergMarquardt<Numeric, OEMMatrix, Normed<>>;
 using LM_CG_D     = invlib::LevenbergMarquardt<Numeric, OEMMatrix, Normed<CG>>;
 using LM_Sparse_D = invlib::LevenbergMarquardt<Numeric, OEMMatrix, Normed<>>;
-using LM_S        = invlib::LevenbergMarquardt<Numeric, OEMSparse, Normed<>>;
-using LM_CG_S     = invlib::LevenbergMarquardt<Numeric, OEMSparse, Normed<CG>>;
+using LM_S        = invlib::LevenbergMarquardt<Numeric, OEMCovarianceMatrix, Normed<>>;
+using LM_CG_S     = invlib::LevenbergMarquardt<Numeric, OEMCovarianceMatrix, Normed<CG>>;
 using LM_I        = invlib::LevenbergMarquardt<Numeric, Identity,  Normed<>>;
 using LM_CG_I     = invlib::LevenbergMarquardt<Numeric, Identity,  Normed<CG>>;
-using LM_Sparse_S = invlib::LevenbergMarquardt<Numeric, OEMSparse, Normed<>>;
 
 ////////////////////////////////////////////////////////////////////////////////
 //  Normalizing Solver

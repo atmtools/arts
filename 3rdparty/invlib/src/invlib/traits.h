@@ -185,6 +185,40 @@ struct is_same_template<TT1, TT1>
 };
 
 // ------------------- //
+//  Has solve method   //
+// ------------------- //
+
+template<typename T1, typename T2>
+struct has_solve {
+    template <typename U, typename V, typename W = decltype(std::declval<U>().solve(std::declval<V>()))>
+        static constexpr char test(int);
+    template <typename U, typename V>
+    static constexpr int  test(double);
+    static constexpr bool value = sizeof(char) == sizeof(test<T1, T2>(0));
+};
+
+// ------------------- //
+//  Has solve method   //
+// ------------------- //
+
+template<typename T1>
+    struct is_invertible {
+        template <typename U, typename V = decltype(std::declval<U>().invert())>
+            static constexpr char test_invert(int);
+        template <typename U>
+            static constexpr int  test_invert(double);
+        static constexpr bool has_invert = sizeof(char) == sizeof(test_invert<T1>(0));
+
+        template <typename U, typename V = decltype(&U::solve)>
+            static constexpr char test_solve(int);
+        template <typename U>
+        static constexpr int  test_solve(double);
+        static constexpr bool has_solve = sizeof(char) == sizeof(test_solve<T1>(0));
+
+        static constexpr bool value = has_solve || has_invert;
+};
+
+// ------------------- //
 //  Detect Invlib Code //
 // ------------------- //
 

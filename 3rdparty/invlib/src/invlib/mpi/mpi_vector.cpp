@@ -8,7 +8,7 @@ typename LocalType,
 template <typename> class StorageType
 >
 MPIVector<LocalType, StorageType>::MPIVector()
-    : local_rows(0), local()
+    : local(), local_rows(0)
 {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
@@ -19,7 +19,7 @@ MPIVector<LocalType, StorageType>::MPIVector()
     row_indices.reserve(nprocs);
     row_ranges.reserve(nprocs);
 
-    for (int i = 0; i < nprocs; i++)
+    for (unsigned int i = 0; i < nprocs; i++)
     {
         row_indices.push_back(0);
         row_ranges.push_back(0);
@@ -35,8 +35,7 @@ template <typename> class StorageType
 >
     template<typename T, typename>
 MPIVector<LocalType, StorageType>::MPIVector(T && local_vector)
-    : local_rows(static_cast<unsigned int>(local_vector.rows())),
-      local(local_vector)
+    : local(local_vector), local_rows(local_vector.rows())
 {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
@@ -48,7 +47,7 @@ MPIVector<LocalType, StorageType>::MPIVector(T && local_vector)
     row_indices.reserve(nprocs);
     row_ranges.reserve(nprocs);
 
-    for (int i = 0; i < nprocs; i++)
+    for (unsigned int i = 0; i < nprocs; i++)
     {
         row_indices.push_back(index);
         row_ranges.push_back(proc_rows[i]);
@@ -111,7 +110,7 @@ auto MPIVector<LocalType, StorageType>::resize(unsigned int i)
     row_indices.reserve(nprocs);
     row_ranges.reserve(nprocs);
 
-    for (int k = 0; k < nprocs; k++)
+    for (unsigned int k = 0; k < nprocs; k++)
     {
         row_indices[k] = index;
         row_ranges[k]  = proc_rows[k];
@@ -242,7 +241,7 @@ auto MPIVector<LocalType, StorageType>::broadcast_local_rows(int rows[]) const
     -> void
 {
     rows[rank] = local_rows;
-    for (int i = 0; i < nprocs; i++)
+    for (unsigned int i = 0; i < nprocs; i++)
     {
         MPI_Bcast(rows + i, 1, MPI_INTEGER, i, MPI_COMM_WORLD);
     }
@@ -258,7 +257,7 @@ auto MPIVector<LocalType, StorageType>::broadcast_local_block(double *vector,
     -> void
 {
     memcpy(vector + row_indices[rank], block, row_ranges[rank] * sizeof(double));
-    for (int i = 0; i < nprocs; i++)
+    for (unsigned int i = 0; i < nprocs; i++)
     {
         MPI_Bcast(vector + row_indices[i], row_ranges[i], mpi_data_type,
                   i, MPI_COMM_WORLD);

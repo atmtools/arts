@@ -3931,6 +3931,51 @@ void define_md_data_raw()
         ));
 
   md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "covmat_seSet" ),
+          DESCRIPTION
+          (
+              "Set covmat_se to the matrix in covmat_block.\n"
+              "\n"
+              "If covmat_inv_block is non-empty, it will be used as the inverse for the\n"
+              "covariance matrix.\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT("covmat_se"),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN("covmat_se", "covmat_block", "covmat_inv_block"),
+          GIN(),
+          GIN_TYPE(),
+          GIN_DEFAULT(),
+          GIN_DESC()
+            ));
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "covmat_blockSetDiagonal" ),
+          DESCRIPTION
+          (
+              "Sets the matrix in covmat_block to a diagonal matrix with the variances\n"
+              "provided in *vars* as diagonal elements."
+              "\n"
+              "Also sets covmat_block_inv to the inverse of the block so that the\n"
+              "computation of the inverse is avoided.\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT("covmat_block", "covmat_inv_block"),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN(),
+          GIN( "vars" ),
+          GIN_TYPE( "Vector" ),
+          GIN_DEFAULT( NODEF),
+          GIN_DESC( "Variances to be used as diagonal elements of covmat_block.")
+            ));
+
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "Delete" ),
         DESCRIPTION
@@ -10284,7 +10329,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "xa", "x", "covmat_sx_inv", "yf", "y", "covmat_se_inv", "jacobian",
+        IN( "xa", "x", "covmat_sx", "yf", "y", "covmat_se", "jacobian",
             "jacobian_do", "jacobian_quantities", "jacobian_indices",
             "inversion_iterate_agenda" ),
         GIN( "method", "max_start_cost", "x_norm", "max_iter", "stop_dx", 
@@ -10318,12 +10363,12 @@ void define_md_data_raw()
         AUTHORS( "Patrick Eriksson, Simon Pfreundschuh" ),
         OUT( "x", "yf", "jacobian", "dxdy", "oem_diagnostics",
              "ml_ga_history", "sensor_los", "sensor_pos", "sensor_time",
-             "covmat_sx_inv", "covmat_se_inv"),
+             "covmat_sx", "covmat_se"),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "sensor_los", "sensor_pos", "sensor_time", "covmat_sx_inv",
-            "covmat_se_inv", "xa", "y", "jacobian_do", "jacobian_quantities",
+        IN( "sensor_los", "sensor_pos", "sensor_time", "covmat_sx",
+            "covmat_se", "xa", "y", "jacobian_do", "jacobian_quantities",
             "jacobian_indices", "inversion_iterate_agenda" ),
         GIN( "method", "max_start_cost", "x_norm", "max_iter", "stop_dx", 
              "ml_ga_settings", "clear_matrices", "display_progress" ),
@@ -12781,8 +12826,502 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "RT4Calc" ),
+      ( NAME( "retrievalDefClose" ),
         DESCRIPTION
+        (
+            "Closes the definition of retrieval quantities and correlations and\n" 
+            "prepares related WSVs for the retrieval.\n"
+            "\n"
+            "This function calls jacobianClose and checks that the corvariance matrices\n"
+            "are consistent with the Jacobian.\n"
+            ),
+        AUTHORS( "Simon Pfreundschuh" ),
+        OUT( "jacobian_do", "jacobian_indices", "jacobian_agenda", "retrieval_checked"),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "covmat_se", "covmat_sx", "jacobian_agenda", "jacobian_quantities", "sensor_pos",
+            "sensor_response" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+          ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "retrievalAddAbsSpecies" ),
+        DESCRIPTION
+        (
+            "Adds an absorption species to the retrieval quantities.\n"
+            "\n"
+            "Similar to jacobianAddAbsSpecies but also sets the corresponding block in\n"
+            "*covmat_sx* to the matrices provided in *covmat_block* and *covmat_inv_block*.\n"
+            "The dimensions of *covmat_block* are required to agree with the dimensions of the\n"
+            "retrieval grid.\n"
+            "\n"
+            "*covmat_inv_block* must be either empty or the same dimension as *covmat_block*.\n"
+            "If provided, this matrix will be used as the inverse for the covariance matrix block\n"
+            "and numerical inversion of this block is thus avoided. Note, however, that this is\n"
+            "only effective if this block is uncorrelated with any other retrieval quantity.\n"
+            ),
+        AUTHORS( "Simon Pfreundschuh" ),
+        OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN("covmat_sx", "jacobian_quantities", "jacobian_agenda", "atmosphere_dim", "covmat_block",
+           "covmat_inv_block", "p_grid", "lat_grid", "lon_grid" ),
+        GIN( "g1", "g2", "g3", "species", "method", "unit","for_species_tag","dx" ),
+        GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "String", "Index",
+                  "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "analytical", "rel", "1", "0.001" ),
+        GIN_DESC( "Pressure retrieval grid.",
+                  "Latitude retrieval grid.",
+                  "Longitude retreival grid.",
+                  "The species tag of the retrieval quantity.",
+                  "Calculation method. See above.",
+                  "Retrieval unit. See above.",
+                  "Index-bool for acting on species tags or species.",
+                  "Size of perturbation." 
+            ),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        USES_TEMPLATES( false ),
+        PASSWORKSPACE(  true  )
+          ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "retrievalAddFreqShift" ),
+      DESCRIPTION
+      (
+          "Same as jacobianAddFreqShift but also add the correlation block contained\n"
+          "in *covmat_block* and *covmat_inv_block* to the *covmat_sx*\n"
+          ),
+      AUTHORS( "Simon Pfreundschuh" ),
+      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "covmat_sx", "covmat_block", "covmat_inv_block", "jacobian_quantities",
+          "jacobian_agenda", "f_grid", "sensor_pos", "sensor_time" ),
+      GIN( "poly_order", "df" ),
+      GIN_TYPE( "Index", "Numeric" ),
+      GIN_DEFAULT( "0", "100e3" ),
+      GIN_DESC( "Order of polynomial to describe the time variation of "
+                "frequency shift.",
+                "Size of perturbation to apply."
+          )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "retrievalAddFreqStretch" ),
+      DESCRIPTION
+      (
+          "Same as jacobianAddFreqShift but also adds the correlation block contained\n"
+          "in *covmat_block* and *covmat_inv_block* to the *covmat_sx*\n"
+          ),
+      AUTHORS( "Simon Pfreundschuh" ),
+      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "jacobian_quantities", "jacobian_agenda", "f_grid", "sensor_pos",
+          "sensor_time", "covmat_block", "covmat_inv_block" ),
+      GIN( "poly_order", "df" ),
+      GIN_TYPE( "Index", "Numeric" ),
+      GIN_DEFAULT( "0", "100e3" ),
+      GIN_DESC( "Order of polynomial to describe the time variation of "
+                "frequency stretch.",
+                "Size of perturbation to apply."
+          )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "retrievalDefInit" ),
+      DESCRIPTION
+      (
+          "Initialises the variables needed for retrievals.\n"
+          "\n"
+          "This function initialises all variables required for the jacobian\n"
+          "as well as the covariance matrices *covmat_sx* and *covmat_se*.\n"
+          "Must be called before any other retrieval definition WSM.\n"
+          ),
+      AUTHORS( "Simon Pfreundschuh" ),
+      OUT( "covmat_se", "covmat_sx", "jacobian_quantities", "jacobian_indices",
+           "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "retrievalAddConstantVMRAbsSpecies" ),
+      DESCRIPTION
+      (
+        "Add an absorption species to the retrieval.\n"
+        "\n"
+        "This method is similar to *jacobianAddConstantVMRAbsSpecies* but also adds\n"
+        "a corresponding blog to *covmat_sx*.\n"
+      ),
+      AUTHORS( "Simon Pfreundschuh" ),
+      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GIN( "species", "mode", "for_species_tag", "dx", "var" ),
+      GIN_TYPE( "String", "String", "Index", "Numeric", "Numeric" ),
+      GIN_DEFAULT( NODEF, "rel", "1", "0.001", NODEF ),
+      GIN_DESC( "The species tag of the retrieval quantity.",
+                "Retrieval unit. See above.",
+                "Index-bool for acting on species tags or species.",
+                "Size of perturbation.",
+                "Variance of the quantity."
+      ),
+      SETMETHOD(      false ),
+      AGENDAMETHOD(   false ),
+      USES_TEMPLATES( false ),
+      PASSWORKSPACE(  true  )
+    ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "retrievalAddBeamFlux" ),
+      DESCRIPTION
+      (
+          "Same as jacobianAddBeamFlux but also adds the covariance block contained \n"
+          "in *covmat_sx* to the covariance matrix."
+          "\n"
+          ),
+      AUTHORS( "Simon Pfreundschuh" ),
+      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "covmat_sx", "jacobian_quantities", "jacobian_agenda",
+          "atmosphere_dim", "covmat_block", "covmat_inv_block", "p_grid",
+          "lat_grid", "lon_grid" ),
+      GIN( "g1", "g2", "g3" ),
+      GIN_TYPE( "Vector", "Vector", "Vector" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF ),
+      GIN_DESC( "Pressure retrieval grid.",
+                "Latitude retrieval grid.",
+                "Longitude retrieval grid."
+          )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "retrievalAddCatalogParameter" ),
+      DESCRIPTION
+      (
+          "Siminlar to *jacobianAddCatalogParameter* but also adds a corresponding\n"
+          " block to *covmat_sx* with the given *var* as variance value.\n"
+          ),
+      AUTHORS( "Simon Pfreundschuh" ),
+      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GIN( "catalog_identity", "catalog_parameter", "var"),
+      GIN_TYPE( "QuantumIdentifier", "String", "Numeric" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF ),
+      GIN_DESC( "The catalog line matching information.",
+                "The catalog parameter of the retrieval quantity.",
+                "The variance of the catalog parameter.")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "retrievalAddCatalogParameters" ),
+      DESCRIPTION
+      (
+          "Same as *jacobianAddCatalogParameters* but also adds a new block to *covmat_sx*\n"
+          " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "\n"
+          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
+          "which avoids its numerical computation.\n"
+      ),
+      AUTHORS( "Simon Pfreundschuh" ),
+      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "covmat_sx", "jacobian_quantities", "jacobian_agenda", "covmat_block",
+          "covmat_inv_block"),
+      GIN( "catalog_identities", "catalog_parameters" ),
+      GIN_TYPE( "ArrayOfQuantumIdentifier", "ArrayOfString" ),
+      GIN_DEFAULT( NODEF, NODEF ),
+      GIN_DESC( "The catalog line matching informations.",
+                "The catalog parameters of the retrieval quantity.")
+    ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "retrievalAddMagField" ),
+    DESCRIPTION
+      (
+          "Same as *jacobianAddMagField* but also adds a new block to *covmat_sx*\n"
+          " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "\n"
+          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
+          "which avoids its numerical computation.\n"
+      ),
+      AUTHORS( "Simon Pfreundschuh"),
+      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "covmat_sx", "jacobian_quantities", "jacobian_agenda", "atmosphere_dim",
+          "covmat_block", "covmat_inv_block", "p_grid", "lat_grid", "lon_grid" ),
+      GIN( "g1", "g2", "g3", "component","dB" ),
+      GIN_TYPE( "Vector", "Vector", "Vector", "String", "Numeric" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, "v", "1.0e-7" ),
+      GIN_DESC( "Pressure retrieval grid.",
+                "Latitude retrieval grid.",
+                "Longitude retreival grid.",
+                "Magnetic field component to retrieve",
+                "Magnetic field perturbation"
+          )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "retrievalAddPointingZa" ),
+      DESCRIPTION
+      (
+          "Same as *jacobianAddPointingZa* but also adds a new block to *covmat_sx*\n"
+          " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "\n"
+          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
+          "which avoids its numerical computation.\n"
+          ),
+      AUTHORS( "Simon Pfreundschuh"),
+      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "covmat_sx", "jacobian_quantities", "jacobian_agenda", "covmat_block",
+          "covmat_inv_block", "sensor_pos", "sensor_time" ),
+      GIN( "poly_order", "calcmode", "dza" ),
+      GIN_TYPE( "Index", "String", "Numeric" ),
+      GIN_DEFAULT( "0", "recalc", "0.01" ),
+      GIN_DESC( "Order of polynomial to describe the time variation of "
+                "pointing off-sets.",
+                "Calculation method. See above",
+                "Size of perturbation to apply (when applicable)."
+          )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "retrievalAddPolyfit" ),
+      DESCRIPTION
+      (
+          "Same as *jacobianAddPolyfit* but also adds a new block to *covmat_sx*\n"
+          " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "\n"
+          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
+          "which avoids its numerical computation.\n"
+          ),
+      AUTHORS( "Simon Pfreundschuh" ),
+      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "covmat_sx", "jacobian_quantities", "jacobian_agenda", "covmat_block",
+          "covmat_inv_block", "sensor_response_pol_grid", "sensor_response_dlos_grid",
+          "sensor_pos" ),
+      GIN( "poly_order", "no_pol_variation", "no_los_variation",
+           "no_mblock_variation" ),
+      GIN_TYPE( "Index", "Index", "Index", "Index" ),
+      GIN_DEFAULT( NODEF, "0", "0", "0" ),
+      GIN_DESC( "Polynomial order to use for the fit.",
+                "Set to 1 if the baseline off-set is the same for all "
+                "Stokes components.",
+                "Set to 1 if the baseline off-set is the same for all "
+                "line-of-sights (inside each measurement block).",
+                "Set to 1 if the baseline off-set is the same for all "
+                "measurement blocks."
+          )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "retrievalAddScatSpecies" ),
+      DESCRIPTION
+      (
+          "Same as *jacobianAddPolyfit* but also adds a new block to *covmat_sx*\n"
+          " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "\n"
+          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
+          "which avoids its numerical computation.\n"
+          ),
+      AUTHORS( "Simon Pfreundschuh" ),
+      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "covmat_sx", "jacobian_quantities", "jacobian_agenda",
+          "atmosphere_dim", "covmat_block", "covmat_inv_block", "p_grid", "lat_grid",
+          "lon_grid" ),
+      GIN( "g1", "g2", "g3", "species", "quantity" ),
+      GIN_TYPE( "Vector", "Vector", "Vector", "String", "String" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, NODEF ),
+      GIN_DESC( "Pressure retrieval grid.",
+                "Latitude retrieval grid.",
+                "Longitude retreival grid.",
+                "Name of scattering species, must match one element in *scat_species*.",
+                "Retrieval quantity, e.g. \"IWC\"."
+          ),
+      SETMETHOD(      false ),
+      AGENDAMETHOD(   false ),
+      USES_TEMPLATES( false ),
+      PASSWORKSPACE(  true  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "retrievalAddSinefit" ),
+      DESCRIPTION
+      (
+          "Same as *jacobianAddSinefit* but also adds a new block to *covmat_sx*\n"
+          " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "\n"
+          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
+          "which avoids its numerical computation.\n"
+          ),
+      AUTHORS( "Simon Pfreundschuh" ),
+      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "covmat_sx", "jacobian_quantities", "jacobian_agenda", "covmat_block",
+          "covmat_inv_block", "sensor_response_pol_grid", "sensor_response_dlos_grid", 
+          "sensor_pos" ),
+      GIN( "period_lengths", "no_pol_variation", "no_los_variation", 
+           "no_mblock_variation" ),
+      GIN_TYPE( "Vector", "Index", "Index", "Index" ),
+      GIN_DEFAULT( NODEF, "0", "0", "0" ),
+      GIN_DESC( "Period lengths of the fit.", 
+                "Set to 1 if the baseline off-set is the same for all "
+                "Stokes components.", 
+                "Set to 1 if the baseline off-set is the same for all "
+                "line-of-sights (inside each measurement block).", 
+                "Set to 1 if the baseline off-set is the same for all "
+                "measurement blocks." 
+          )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "retrievalAddSpecialSpecies" ),
+      DESCRIPTION
+      (
+          "Same as *jacobianAddSpecialSpecies* but also adds a new block to *covmat_sx*\n"
+          " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "\n"
+          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
+          "which avoids its numerical computation.\n"
+          ),
+      AUTHORS( "Simon Pfreundschuh" ),
+      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "covmat_sx", "jacobian_quantities", "jacobian_agenda",
+          "atmosphere_dim", "covmat_block", "covmat_inv_block", "p_grid",
+          "lat_grid", "lon_grid" ),
+      GIN( "g1", "g2", "g3", "species" ),
+      GIN_TYPE( "Vector", "Vector", "Vector", "String" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF ),
+      GIN_DESC( "Pressure retrieval grid.",
+                "Latitude retrieval grid.",
+                "Longitude retreival grid.",
+                "The species of the retrieval quantity."
+          ),
+      SETMETHOD(      false ),
+      AGENDAMETHOD(   false ),
+      USES_TEMPLATES( false ),
+      PASSWORKSPACE(  true  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "retrievalAddWind" ),
+      DESCRIPTION
+      (
+          "Same as *jacobianAddWind* but also adds a new block to *covmat_sx*\n"
+          " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "\n"
+          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
+          "which avoids its numerical computation.\n"
+          ),
+      AUTHORS( "Simon Pfreundschuh" ),
+      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "covmat_sx", "jacobian_quantities", "jacobian_agenda", 
+          "atmosphere_dim", "covmat_block", "covmat_inv_block", "p_grid",
+          "lat_grid", "lon_grid" ),
+      GIN( "g1", "g2", "g3", "component", "dfrequency" ),
+      GIN_TYPE( "Vector", "Vector", "Vector", "String", "Numeric" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, "v", "0.1" ),
+      GIN_DESC( "Pressure retrieval grid.",
+                "Latitude retrieval grid.",
+                "Longitude retrieval grid.",
+                "Wind component to retrieve",
+                "This is the frequency perturbation"
+          )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "retrievalAddTemperature" ),
+      DESCRIPTION
+        (
+        "Same as *jacobianAddTemperature* but also adds a new block to *covmat_sx*\n"
+        " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+        "\n"
+        "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
+        "which avoids its numerical computation.\n"
+        ),
+      AUTHORS( "Simon Pfreundschuh"),
+      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "covmat_sx", "jacobian_quantities", "jacobian_agenda", 
+          "atmosphere_dim", "covmat_block", "covmat_inv_block", "p_grid",
+          "lat_grid", "lon_grid" ),
+      GIN( "g1", "g2", "g3", "hse", "method", "dt" ),
+      GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "Numeric" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, "on", "analytical", "0.1" ),
+      GIN_DESC( "Pressure retrieval grid.",
+                "Latitude retrieval grid.",
+                "Longitude retreival grid.",
+                "Flag to assume HSE or not (\"on\" or \"off\").",
+                "Calculation method. See above.",
+                "Size of perturbation [K]." 
+          )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "RT4Calc" ),
+      DESCRIPTION
         (
          "Interface to the PolRadTran RT4 scattering solver (Evans).\n"
          "\n"

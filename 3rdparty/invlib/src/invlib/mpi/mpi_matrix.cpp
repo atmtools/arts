@@ -6,7 +6,7 @@ typename LocalType,
 template <typename> class StorageTemplate
 >
 MPIMatrix<LocalType, StorageTemplate>::MPIMatrix()
-    : local_rows(0), local()
+    : local(), local_rows(0)
 {
     static_assert(!is_same_template<StorageTemplate, ConstRef>::value,
                   "Default constructor not supported for reference "
@@ -19,7 +19,7 @@ MPIMatrix<LocalType, StorageTemplate>::MPIMatrix()
     row_indices.reserve(nprocs);
     row_ranges.reserve(nprocs);
 
-    for (int i = 0; i < nprocs; i++)
+    for (unsigned int i = 0; i < nprocs; i++)
     {
         row_indices.push_back(0);
         row_ranges.push_back(0);
@@ -28,6 +28,38 @@ MPIMatrix<LocalType, StorageTemplate>::MPIMatrix()
     m = 0;
     n = 0;
 }
+
+// template
+// <
+// typename LocalType,
+// template <typename> class StorageTemplate
+// >
+// auto MPIMatrix<LocalType, StorageTemplate>::operator=(const MPIMatrix &A)
+//     -> MPIMatrix &
+// {
+//     local = A.local;
+//     local_rows = A.local_rows;
+
+//     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+
+//     int *proc_rows = new int[nprocs];
+//     broadcast_local_rows(proc_rows);
+
+//     unsigned int index = 0;
+//     row_indices.reserve(nprocs);
+//     row_ranges.reserve(nprocs);
+
+//     for (unsigned int i = 0; i < nprocs; i++)
+//     {
+//         row_indices.push_back(index);
+//         row_ranges.push_back(proc_rows[i]);
+//         index += proc_rows[i];
+//     }
+
+//     m = index;
+//     n = local.cols();
+// }
 
 template
 <
@@ -49,7 +81,7 @@ MPIMatrix<LocalType, StorageTemplate>::MPIMatrix(T &&local_matrix)
     row_indices.reserve(nprocs);
     row_ranges.reserve(nprocs);
 
-    for (int i = 0; i < nprocs; i++)
+    for (unsigned int i = 0; i < nprocs; i++)
     {
         row_indices.push_back(index);
         row_ranges.push_back(proc_rows[i]);
@@ -66,7 +98,7 @@ typename LocalType,
 template <typename> class StorageTemplate
 >
 MPIMatrix<LocalType, StorageTemplate>::MPIMatrix(const LocalType &local_matrix)
-    : local(local_matrix), local_rows(static_cast<unsigned int>(remove_reference_wrapper(local).rows()))
+    : local(local_matrix), local_rows(remove_reference_wrapper(local).rows())
 {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
@@ -78,7 +110,7 @@ MPIMatrix<LocalType, StorageTemplate>::MPIMatrix(const LocalType &local_matrix)
     row_indices.reserve(nprocs);
     row_ranges.reserve(nprocs);
 
-    for (int i = 0; i < nprocs; i++)
+    for (unsigned int i = 0; i < nprocs; i++)
     {
         row_indices.push_back(index);
         row_ranges.push_back(proc_rows[i]);
@@ -86,7 +118,7 @@ MPIMatrix<LocalType, StorageTemplate>::MPIMatrix(const LocalType &local_matrix)
     }
 
     m = index;
-    n = static_cast<unsigned int>(remove_reference_wrapper(local).cols());
+    n = remove_reference_wrapper(local).cols();
 }
 
 template
@@ -109,7 +141,7 @@ auto MPIMatrix<LocalType, StorageTemplate>::split_matrix(const MatrixType &local
     unsigned int local_start = local_rows * rank;
 
 
-    if (rank < static_cast<int>(remainder))
+    if (rank < remainder)
     {
         local_rows += 1;
         local_start += rank;
@@ -119,7 +151,7 @@ auto MPIMatrix<LocalType, StorageTemplate>::split_matrix(const MatrixType &local
         local_start += remainder;
     }
 
-    unsigned int n = static_cast<unsigned int>(local_matrix.cols());
+    unsigned int n = local_matrix.cols();
     LocalType block = local_matrix.get_block(local_start, 0, local_rows, n);
     MPIMatrix<LocalType, LValue> splitted_matrix(block);
     return splitted_matrix;
@@ -159,7 +191,7 @@ auto MPIMatrix<LocalType, StorageTemplate>::resize(unsigned int i,
     row_indices.reserve(nprocs);
     row_ranges.reserve(nprocs);
 
-    for (int k = 0; k < nprocs; k++)
+    for (unsigned int k = 0; k < nprocs; k++)
     {
         row_indices[k] = index;
         row_ranges[k]  = proc_rows[k];
@@ -427,7 +459,7 @@ auto MPIMatrix<LocalType, StorageTemplate>::broadcast_local_block(double *vector
     -> void
 {
     memcpy(vector + row_indices[rank], block, row_ranges[rank] * sizeof(double));
-    for (int i = 0; i < nprocs; i++)
+    for (unsigned int i = 0; i < nprocs; i++)
     {
         MPI_Bcast(vector + row_indices[i], row_ranges[i], mpi_data_type,
                   i, MPI_COMM_WORLD);

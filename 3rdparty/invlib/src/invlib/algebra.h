@@ -7,7 +7,6 @@
 #include "invlib/algebra/matrix_difference.h"
 #include "invlib/algebra/matrix_identity.h"
 #include "invlib/algebra/matrix_transpose.h"
-#include "invlib/algebra/matrix_zero.h"
 #include "invlib/algebra/precision_matrix.h"
 #include "invlib/algebra/transformation.h"
 #include "invlib/algebra/vector.h"
