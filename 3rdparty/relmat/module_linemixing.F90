@@ -499,9 +499,13 @@ END module module_linemixing
 !     
     DO i=1,nLines
          sumY=0.d0
-         DipoI= abs(dsqrt(dta1%Str(i)/(dta1%Sig(i)*dta1%PopuT0(i))))
+         !DipoI= abs(dsqrt(dta1%Str(i)/(dta1%Sig(i)*dta1%PopuT0(i))))
+         DipoI  = abs(dsqrt(dta1%Str(i)/(dta1%Sig(i)*dta1%PopuT(i))))
+         !DipoI= dta1%DipoT(i)
          do k=1,nLines
-            DipoK= abs(dsqrt(dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT0(k))))
+            !DipoK= abs(dsqrt(dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT0(k))))
+            DipoK = abs(dsqrt(dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT(k))))
+            !DipoK= dta1%DipoT(k)
             if(k.eq.i)cycle
             !
             !  Correction for asym hysothopes
@@ -562,13 +566,14 @@ END module module_linemixing
     type (dta_MOL)        , intent(in   ) :: molP
     !Local Var
     integer*8                     :: i,l,k
-    double precision              :: delta, deltaL, T, Ptot
+    double precision              :: delta, deltaL, T, Ptot, Pto2
     double precision              :: sumG1, sumG2, sumG3, sumG4, sumG42
     double precision              :: sumDV
     double precision              :: DipoI, DipoK, rD_ki
 !-----------------------------------------
     T    = molP % Temp
     Ptot = molP % Ptot
+    Pto2 = Ptot**2
 !-----------------------------------------
 !
 !     Build the Y2 and Y3 from the W
@@ -580,10 +585,16 @@ END module module_linemixing
          sumG4  = 0.d0
          sumG42 = 0.d0
          sumDV  = 0.d0
-         DipoI  = abs(dsqrt(dta1%Str(i)/(dta1%Sig(i)*dta1%PopuT0(i))))
+         !DipoI  = abs(dsqrt(dta1%Str(i)/(dta1%Sig(i)*dta1%PopuT0(i))))
+         DipoI  = abs(dsqrt(dta1%Str(i)/(dta1%Sig(i)*dta1%PopuT(i))))
+         !DipoI= dta1%DipoT(i)
          do k=1,nLines
-            DipoK = abs(dsqrt(dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT0(k))))
+            !DipoK = abs(dsqrt(dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT0(k))))
+            DipoK = abs(dsqrt(dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT(k))))
+            !DipoK= dta1%DipoT(k)
+            !
             rD_ki = DipoK/DipoI
+            if (isnan(rD_ki).or.isinf(rD_ki))rD_ki = 1.0d0
             if(k.eq.i)cycle
             !
             !  Correction for asym hysothopes
@@ -598,11 +609,13 @@ END module module_linemixing
             sumG2 = sumG2 + rD_ki*( Wmat(i,k)/delta ) 
             sumG3 = sumG3 + rD_ki*( Wmat(i,k)*Wmat(i,i)/(delta**2) )
             do l = 1,nLines
-              if (l.eq.i) cycle
-              deltaL= dta1%sig(l) - dta1%sig(i)
-              if( dabs(deltaL) .lt. 1.d-4 ) deltaL=1.d-4
-
-              sumG42 = sumG42 + ( Wmat(l,k)*Wmat(i,l)/(delta*deltaL) )
+              if (l.eq.i) then
+                cycle
+              else
+                deltaL= dta1%sig(l) - dta1%sig(i)
+                if( dabs(deltaL) .lt. 1.d-4 ) deltaL=1.d-4
+                sumG42 = sumG42 + ( Wmat(l,k)*Wmat(i,l)/(delta*deltaL) )
+              endif
             enddo
             sumG4 = sumG4 + rD_ki*sumG42
             sumDV = sumDV + Wmat(i,k)*Wmat(k,i)/delta
@@ -610,6 +623,8 @@ END module module_linemixing
         Y2(i)=sumG1 - (sumG2)**2 + 2.0d0*sumG3 - 2.0d0*sumG4
         Y3(i)=sumDV
     ENDDO
+    Y2=Y2*Pto2
+    Y3=Y3*Pto2
   END SUBROUTINE LM_2ord  
 !--------------------------------------------------------------------------------------------------------------------
   SUBROUTINE calc_QParam(nLines, dta1, molP, PerM, econ)

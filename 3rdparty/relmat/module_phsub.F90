@@ -344,13 +344,14 @@ END module module_phsub
 !-----------
     DO k = 1, nLines
       !print*, k, nLines
-!      !
-!      ! DIPOLE MOMENT 
-!      !
+      !
+      ! DIPOLE MOMENT 
+      !
        ! Hartmann's style (Using LINE-INTENSITY):
         fA  = -c2*dta1%Sig(k)/T0
         fB  = 1.D0 - dexp(fA)
-        dta1%DipoT(k)= dsqrt( dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT0(k)*fB) )
+        !dta1%DipoT(k)= dsqrt( dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT0(k)*fB) )
+        dta1%DipoT(k)= dsqrt( dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT(k)*fB) )
             !cm/molecules**0.5
     !
     ! REDUCE DIPOLE MOMENT, D0
@@ -864,10 +865,10 @@ END module module_phsub
         !
         ! Calculation of the basis rates "Q_mol-X":
           if (molP % QTy .eq. "TMC") then
-            if (molP % LLSty .eq. "Linear") then
-                Qaux = Ql_mol_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,L)
-            else if (molP % LLSty .eq. "Li--AF") then
+            if (molP % LLSty .eq. "Li--AF") then
                 Qaux = Ql_mol_AF_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,PerM,L)
+            else !if molP % LLSty = "Linear" or "Model1/2/3/4"
+                Qaux = Ql_mol_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,L)
             endif
           else
             Qaux = Ql_mol_X(molP,L)
@@ -998,12 +999,12 @@ END module module_phsub
         !
         ! Calculation of the basis rates "Q_mol-X":
           if (molP % QTy .eq. "TMC") then
-            if (molP % LLSty .eq. "Linear") then
-                !Qaux = Ql_mol_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,L)
-                Qaux = Ql_mol_LLS(real(Ni,dp),real(Ni_p,dp),h%Sig(j),h%Sig(k),molP,L)
-            else if (molP % LLSty .eq. "Li--AF") then
+            if (molP % LLSty .eq. "Li--AF") then
                 !Qaux = Ql_mol_AF_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,PerM,L)
                 Qaux = Ql_mol_AF_LLS(real(Ni,dp),real(Ni_p,dp),h%Sig(j),h%Sig(k),molP,PerM,L)
+            else !if molP % LLSty = "Linear" or "Model1/2/3/4"
+                !Qaux = Ql_mol_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,L)
+                Qaux = Ql_mol_LLS(real(Ni,dp),real(Ni_p,dp),h%Sig(j),h%Sig(k),molP,L)
             endif
           else
             Qaux = Ql_mol_X(molP,L)
@@ -1137,33 +1138,39 @@ END module module_phsub
       else
         ! Bsed in [Niro et al. 2004]
         !Ql_mol_LLS = A1 - A2*Ln( E_l ) - A3*( c*hplank*B0*E_l/(T*kb) ) 
-        !Linear
-        !Ql_mol_LLS = (molP%a1) - &
-        !        ( (molP%a2)*log(E_l) ) - &
-        !        ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
-        ! 
+        !
         ![Mendaza et al., 2017]
-        ! Correction 1:
-        !Ql_mol_LLS = (molP%a1)/((dabs(v1-v2)/molP%B0)**(J2/Jaux)) - &
-        !        ( (molP%a2)*log(E_l) ) - &
-        !        ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
-        !
-        ! Correction 4: ---> 2
-        !Ql_mol_LLS = (molP%a1)*T/(c2*(dabs(v1-v2)**(J2/Jaux))) - &
-        !        ( (molP%a2)*log(E_l) ) - &
-        !        ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
-        !
-        ! Correction 5: ---> 3
-        Ql_mol_LLS = (exp(-(c2/Jaux)*dabs(molP%v0-v1)/T))*(molP%a1) - &
+        if (molP % LLSty .eq. "Linear") then
+        ! 1) Linear
+            Ql_mol_LLS = (molP%a1) - &
+                ( (molP%a2)*log(E_l) ) - &
+                ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
+        else if (molP % LLSty .eq. "Model1") then 
+        ! 2) correction 1
+            Ql_mol_LLS = (molP%a1)/((dabs(v1-v2)/molP%B0)**(J2/Jaux)) - &
+                ( (molP%a2)*log(E_l) ) - &
+                ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
+        else if (molP % LLSty .eq. "Model2") then
+        ! 2) correction 2
+            Ql_mol_LLS = (molP%a1)*T/(c2*(dabs(v1-v2)**(J2/Jaux))) - &
+                ( (molP%a2)*log(E_l) ) - &
+                ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
+        else if (molP % LLSty .eq. "Model3") then
+        ! 2) correction 3
+            Ql_mol_LLS = (exp(-(c2/Jaux)*dabs(molP%v0-v1)/T))*(molP%a1) - &
+                ( (molP%a2)*log(E_l) ) - &
+                ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp  
+        else if (molP % LLSty .eq. "Model4") then
+        ! 2) Correction 4
+            delta = molP%v0-v1
+            if (delta .lt. TOL) delta = 0.5
+            Ql_mol_LLS = (molP%a1)/(exp(-molP%B0/(dabs(delta)**(1/Jaux)))) - &
                 ( (molP%a2)*log(E_l) ) - &
                 ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp 
-        !
-        ! Correction 6: ---> 4
-        !delta = molP%v0-v1
-        !if (delta .lt. TOL) delta = 0.5
-        !Ql_mol_LLS = (molP%a1)/(exp(-molP%B0/(dabs(delta)**(1/Jaux)))) - &
-        !        ( (molP%a2)*log(E_l) ) - &
-        !        ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp 
+        else
+            print*, "LLS_Matrix/Ql_mol_LLS:LLSty selection not valid... try: Linear, Model1,Model2,Model3,Model4"
+            stop
+        endif
         !
       endif
       !

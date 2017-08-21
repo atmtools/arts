@@ -157,38 +157,38 @@ StringSet(column, "column")
 
 VectorExtractFromMatrix( calculated, jacobian, 0, column )
 VectorExtractFromMatrix( reference, test_jacobian, 0, column)
-Compare(calculated, reference, 1e7, "Line Strength Comparison Fails")
+CompareRelative(calculated, reference, 1e-5, "Line Strength Comparison Fails")
 
 VectorExtractFromMatrix( calculated, jacobian, 1, column )
 VectorExtractFromMatrix( reference, test_jacobian, 1, column)
-Compare(calculated, reference, 1e-20, "Line Center Comparison Fails")
+CompareRelative(calculated, reference, 1e-5, "Line Center Comparison Fails")
 
 VectorExtractFromMatrix( calculated, jacobian, 2, column )
 VectorExtractFromMatrix( reference, test_jacobian, 2, column)
-Compare(calculated, reference, 1e-15, "PB Self Gamma Comparison Fails")
+CompareRelative(calculated, reference, 1e-5, "PB Self Gamma Comparison Fails")
 
 VectorExtractFromMatrix( calculated, jacobian, 3, column )
 VectorExtractFromMatrix( reference, test_jacobian, 3, column)
-Compare(calculated, reference, 1e-11, "PB Self Exponent Comparison Fails")
+CompareRelative(calculated, reference, 1e-5, "PB Self Exponent Comparison Fails")
 
 VectorExtractFromMatrix( calculated, jacobian, 4, column )
 VectorExtractFromMatrix( reference, test_jacobian, 4, column)
-Compare(calculated, reference, 1e-15, "PB Foreign Gamma Comparison Fails")
+CompareRelative(calculated, reference, 1e-5, "PB Foreign Gamma Comparison Fails")
 
 VectorExtractFromMatrix( calculated, jacobian, 5, column )
 VectorExtractFromMatrix( reference, test_jacobian, 5, column)
-Compare(calculated, reference, 1e-11, "PB Foreign Exponent Comparison Fails")
+CompareRelative(calculated, reference, 1e-5, "PB Foreign Exponent Comparison Fails")
 
 VectorExtractFromMatrix( calculated, jacobian, 6, column )
 VectorExtractFromMatrix( reference, test_jacobian, 6, column)
-Compare(calculated, reference, 1e-15, "PB Foreign Pressure Shift Comparison Fails")
+CompareRelative(calculated, reference, 1e-5, "PB Foreign Pressure Shift Comparison Fails")
 
 VectorExtractFromMatrix( calculated, jacobian, 7, column )
 VectorExtractFromMatrix( reference, test_jacobian, 7, column)
-Compare(calculated, reference, 1e-6, "LM Y Zeroth Comparison Fails")
+CompareRelative(calculated, reference, 1e-5, "LM Y Zeroth Comparison Fails")
 
 VectorExtractFromMatrix( calculated, jacobian, 8, column )
 VectorExtractFromMatrix( reference, test_jacobian, 8, column)
-Compare(calculated, reference, 1e-15, "LM Y Exponent Comparison Fails")
+CompareRelative(calculated, reference, 1e-5, "LM Y Exponent Comparison Fails")
 
 }

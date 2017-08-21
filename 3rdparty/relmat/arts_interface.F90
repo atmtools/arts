@@ -602,9 +602,11 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
                     if (IERR4 .ne. 0) call memoError("Y3   :",econtrol)
                     !
                     if (econtrol % e(1) .ge. 1) print*, 'Linemixing second order coeffs...'
-                    call LM_2ord(molP,dta_size1,pd1,Wrno,Y2,Y3)
+                    call LM_2ord(molP,dta_size1,pd1,Wrno,Y_G,Y_DV)
+                    !call show_PD(nLines,dta1%sig,Y_G,Y_DV)
                     CALL includeY(nLines,vLines_Indx,Y2,dta_size1,Y_G)
                     CALL includeY(nLines,vLines_Indx,Y3,dta_size1,Y_DV)
+                    !call show_PD(nLines,artsWNO,Y2,Y3)
                 endif
                 !--------
                 ! Write Y parameter file
@@ -802,7 +804,13 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     molP % Temp = T !Kelvin
     molP % Ptot = Ptot!atm
     molP % QTy  = "TMC"
+    molP % LLSty= "Linear"
+    !molP % LLSty= "Model1"
+    !molP % LLSty= "Model2"
+    !molP % LLSty= "Model3"
+    !molP % LLSty= "Model4"
     !molP % LLSty= "Li--AF"
+
     molP % v0   = meanV0(nLines,artsWNO)
     !
     !Disable the Adiabatic factor option because it requires from external inputs
@@ -922,14 +930,14 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
                 CALL systemQParam_LLS(sys,molP)
             !
                 if (.not.(molP%availableParam)) then
-                    if (molP % LLSty .eq. "Linear") then
-                        CALL calc_QParam(dta_size1, pd1, molP, PerM, econtrol)
-                        if (econtrol % e(1) .ge. 1) write(*,*),"A1 = ", molP%a1,";A2= ", molP%a2,";A3= ", molP%a3
-                    else if (molP % LLSty .eq. "Li--AF") then
+                    if (molP % LLSty .eq. "Li--AF") then
                         CALL calc_QParam_AF(dta_size1, pd1, molP, PerM, econtrol)
                         if (econtrol % e(1) .ge. 1) write(*,*),"A1 = ", molP%a1,";A2= ", molP%a2,";A3= ", molP%a3
                         if (econtrol % e(1) .ge. 1) write(*,*),"A4 = ", molP%a4,";A5= ", molP%a5,";A6= ", molP%a6
                         if (econtrol % e(1) .ge. 1) write(*,*),"A7 = ", molP%a7,";A8= ", molP%a8,";A9= ", molP%a9
+                    else !if "Linear" or "Model1/2/3/4"
+                        CALL calc_QParam(dta_size1, pd1, molP, PerM, econtrol)
+                        if (econtrol % e(1) .ge. 1) write(*,*),"A1 = ", molP%a1,";A2= ", molP%a2,";A3= ", molP%a3
                     endif
                 endif
             !
@@ -1007,7 +1015,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
                 if (IERR4 .ne. 0) call memoError("Y3   :",econtrol)
             !
                 if (econtrol % e(1) .ge. 1) print*, 'Linemixing second order coeffs...'
-                call LM_2ord(molP,dta_size1,pd1,Wrno,Y2,Y3)
+                call LM_2ord(molP,dta_size1,pd1,Wrno,Y_G,Y_DV)
                 CALL includeY(nLines,vLines_Indx,Y2,dta_size1,Y_G)
                 CALL includeY(nLines,vLines_Indx,Y3,dta_size1,Y_DV)
             endif
@@ -1493,7 +1501,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 ! INIT. VAR.
     write(cTemp,'(f5.1)'),molP%Temp
     !path = trim(out_file_path)//trim(out_fil2_RMF)
-    path ="Y_paper_"//trim(molP%chmol)//"_"//model//"_"//trim(cTemp(1:3))//"K.dat"
+    path ="Y_Test1_"//trim(molP%chmol)//"_"//model//"_"//trim(cTemp(1:3))//"K.dat"
     call idate(today)   ! today(1)=day, (2)=month, (3)=year
     open (UNIT = u, FILE = trim(path), STATUS = 'REPLACE', ACTION = 'WRITE')
 ! HEADER

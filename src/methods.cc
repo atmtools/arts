@@ -3721,6 +3721,44 @@ void define_md_data_raw()
                   "The level of checks to apply on scat_data (see above).",
                   "Threshold for allowed albedo deviation." )
         ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "CompareRelative" ),
+        DESCRIPTION
+        (
+         "Checks the consistency between two variables by their relative values.\n" 
+         "\n"
+         "The two variables are checked to not deviate outside the specified\n"
+         "relative value (*maxabsreldiff*). An error is issued if this is not\n"
+         "fulfilled.\n"
+         "\n"
+         "The main application of this method is to be part of the test\n"
+         "control files, and then used to check that a calculated value\n"
+         "is consistent with an old, reference, value.\n"
+         "\n"
+         "If either value is 0., the relative error is considered as 1\n"
+         ),
+        AUTHORS( "Oliver Lemke", "Richard Larsson" ),
+        OUT( ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN( "var1", "var2", "maxabsreldiff", "error_message" ),
+        GIN_TYPE( "Vector",
+                  "Vector",
+                  "Numeric", "String" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "" ),
+        GIN_DESC( "A first variable", "A second variable", 
+                  "Threshold for maximum absolute difference.",
+                  "Additional error message."),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        USES_TEMPLATES( false ),
+        PASSWORKSPACE(  false ),
+        PASSWSVNAMES(   true  )
+        ));
 
   md_data_raw.push_back
     ( MdRecord

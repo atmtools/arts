@@ -1,3 +1,18 @@
+2017-08-21 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-764
+	
+	* 3rdparty/relmat*:  Updated to latest version
+	
+	* controlfiles/artscomponents/wfuns/TestCatalogJacobians.arts:
+	Made the tests relative since they kept failing for random reasons.
+	Now accepts changes on order of 0.001%.  This makes -march=native
+	work
+	
+	* src/lineshapesdata.{cc,h}:  Fixed some indexing and some compile errors
+	
+	* src/m_basic_types.cc:  Added CompareRelative to make relative comparisons
+	
 2017-08-18  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-756

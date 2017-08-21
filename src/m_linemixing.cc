@@ -1172,7 +1172,7 @@ void calculate_xsec_from_relmat(ArrayOfMatrix& xsec,
                                                       ddoppler_const_dT, dz_eigs_dT[iline],
                                                       dpsf_dT[iline]);
     Linefunctions::apply_linestrength_from_full_linemixing(F, dF, f0[iline], T, equivS0[iline],
-                                                            isotopologue_ratio, ppd, dequivS0_dT[iline]);
+                                                           isotopologue_ratio, ppd, QI, dequivS0_dT[iline]);
     for(Index ii = 0; ii < nf; ii++)
     {
       const Numeric& y = F[ii].real();
@@ -1248,7 +1248,7 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
       Linefunctions::apply_linemixing(F, dF, Y[iline], G[iline], ppd, QI, dY_dT[iline], dG_dT[iline]);
       
       Linefunctions::apply_dipole(F, dF, f0[iline], T, d0[iline], rhoT[iline], isotopologue_ratio, 
-                                  ppd, drhoT_dT[iline]);
+                                  ppd, QI, drhoT_dT[iline]);
     }
     else
     {
@@ -1259,7 +1259,7 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
       
       Linefunctions::apply_linemixing(F, dF, Y[iline], G[iline], ppd, QI);
       
-      Linefunctions::apply_dipole(F, dF, f0[iline], T, d0[iline], rhoT[iline], isotopologue_ratio, ppd);
+      Linefunctions::apply_dipole(F, dF, f0[iline], T, d0[iline], rhoT[iline], isotopologue_ratio, ppd, QI);
     }
     
     for(Index ii = 0; ii < nf; ii++)

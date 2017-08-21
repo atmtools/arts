@@ -90,6 +90,7 @@ bool QuantumNumbers::CompareDetailed(QuantumMatchInfoEnum& imatch, const Quantum
 }
 
 
+// Tests that all of other is in this 
 bool QuantumIdentifier::operator>(const QuantumIdentifier& other) const
 {
   if(mspecies not_eq other.mspecies)
@@ -162,6 +163,7 @@ bool QuantumIdentifier::operator>(const QuantumIdentifier& other) const
 }
 
 
+// Tests that all of this is in other 
 bool QuantumIdentifier::operator<(const QuantumIdentifier& other) const
 {
   if(mspecies not_eq other.mspecies)

@@ -490,8 +490,12 @@ MODULE module_common_var
     ! QTy        = "REG" or "TMC"               a3      depends on the called method:
     !                                                   "REG" = RM_LM_tmc_arts
     !                                                   "TMC" = RM_LM_LLS_tmc_arts
-    ! LLSty      = "Linear" or "Li--AF"         a6      depends on the LLS method:
-    !                                                   "Linear" = LLS_Matrix
+    ! LLSty      = "Linear" to "Li--AF"         a6      depends on the LLS method:
+    !                                                   "Linear" = LLS_Matrix + Li
+    !                                                   "Model1" = LLS_Matrix + M1
+    !                                                   "Model2" = LLS_Matrix + M2
+    !                                                   "Model3" = LLS_Matrix + M3
+    !                                                   "Model4" = LLS_Matrix + M4
     !                                                   "Li--AF" = LLS_AF_Matrix
     !
     !

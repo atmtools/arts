@@ -421,11 +421,11 @@ subroutine renorm_error(flag, n, k, W, Su, econ)
     econ % e(2) = econ % e(2) + 1
     
 1008    Format(1x,"****************** RN_Wmat: upper Sum-Renormatization process- overflows",&
-        1x,"Upper sum: Sup=",e12.2,&
+        1x,"Upper sum: Sup=",e12.2, &
         1x,"Last elemet if the sum is: W_rn(",i3,",",i3,")=",e12.2)
          
 1009    Format(1x,"****************** RN_Wmat: Lower Sum-Renormatization process- overflows",&
-        1x,"Lower sum: Slow=",e12.2,&
+        1x,"Lower sum: Slow=",e12.2, &
         1x,"Last elemet if the sum is: W_rn(",i3,",",i3,")=",e12.2)
 
 end subroutine renorm_error

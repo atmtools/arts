@@ -133,18 +133,27 @@ END module module_LLS
       Jaux = Ji
       if (Jaux .eq. 0) Jaux = 0.5_dp
       ! Approximations:
-      ! 1) Linear
-      !M(1) = K1 * M(1) 
-      ! 2) correction 1
-      !M(1) = K1 * M(1)/( (dabs(h%Sig(j)-h%Sig(k))/ molP%B0) )**(Ji_p/Jaux) !
-      ! 2) correction 4 --> 2
-      !M(1) = K1 * M(1)*T/(c2*( dabs(h%Sig(j)-h%Sig(k)) )**(Ji_p/Jaux))
-      ! 2) correction 5 --> 3
-      M(1) = K1 * M(1)* exp(-(c2/Jaux)*dabs(molP%v0-h%Sig(j))/T) 
-      ! 2) Correction 6: ---> 4
-      !delta = molP%v0-h%Sig(j)
-      !if (delta .lt. TOL) delta = 0.5
-      !M(1) = K1 * M(1)/exp(-molP%B0/(dabs(delta)**(1/Jaux))) 
+      if (molP % LLSty .eq. "Linear") then
+        ! 1) Linear
+        M(1) = K1 * M(1)
+      else if (molP % LLSty .eq. "Model1") then 
+        ! 2) correction 1
+        M(1) = K1 * M(1)/( (dabs(h%Sig(j)-h%Sig(k))/ molP%B0) )**(Ji_p/Jaux) !
+      else if (molP % LLSty .eq. "Model2") then
+        ! 2) correction 2
+        M(1) = K1 * M(1)*T/(c2*( dabs(h%Sig(j)-h%Sig(k)) )**(Ji_p/Jaux))
+      else if (molP % LLSty .eq. "Model3") then
+        ! 2) correction 3
+        M(1) = K1 * M(1)* exp(-(c2/Jaux)*dabs(molP%v0-h%Sig(j))/T) 
+      else if (molP % LLSty .eq. "Model4") then
+        ! 2) Correction 4
+        delta = molP%v0-h%Sig(j)
+        if (delta .lt. TOL) delta = 0.5
+        M(1) = K1 * M(1)/exp(-molP%B0/(dabs(delta)**(1/Jaux))) 
+      else
+            print*, "LLS_Matrix:LLSty selection not valid... try: Linear, Model1,Model2,Model3,Model4"
+            stop
+      endif
       M(2) = K1 * M(2)
       M(3) = K1 * (c2/T) * M(3)
       !M(4) = K1 * M(4)

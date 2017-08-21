@@ -325,7 +325,10 @@ public:
     const QuantumMatchCriteria& QuantumMatch() const { return mqm; }
     QuantumMatchCriteria& QuantumMatch() { return mqm; }
     
+    // Tests that all of other is in this
     bool operator>(const QuantumIdentifier& other) const;
+    
+    // Tests that all of this is in other 
     bool operator<(const QuantumIdentifier& other) const;
 
 private:

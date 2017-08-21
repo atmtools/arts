@@ -2238,3 +2238,77 @@ void Compare(const SingleScatteringData&    var1,
 }
 
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void CompareRelative(const Vector&    var1,
+                     const Vector&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  const Index n = var1.nelem();
+
+  if( var2.nelem() != n )
+  {
+    ostringstream os;
+    os << var1name << " (" << n << ") and "
+       << var2name << " (" << var2.nelem() << ") do not have the same size.";
+    throw runtime_error(os.str());
+  }
+
+  Numeric maxreldiff = 0.0;
+  for(Index i = 0; i <n; i++)
+  {
+    Numeric diff;
+    
+    if(isnan(var1[i])  ||  isnan(var2[i]))
+    {
+      if(isnan(var1[i])  &&  isnan(var2[i]))
+        diff = 0.0;
+      else if( isnan(var1[i]) )
+      {
+        ostringstream os;
+        os << "Nan found in " << var1name << ", but there is no "
+            << "NaN at same position in " << var2name << ".\nThis "
+            << "is not allowed.";
+        throw runtime_error(os.str());
+      }
+      else 
+      {
+        ostringstream os;
+        os << "Nan found in " << var2name << ", but there is no "
+            << "NaN at same position in " << var1name << ".\nThis "
+            << "is not allowed.";
+        throw runtime_error(os.str());
+      }
+    }
+    else if(var1[i] == 0.0)
+      if(var2[i] == 0.0)
+        diff = 0.0;
+      else
+        diff = 1.0;
+    else 
+      diff = (var1[i] - var2[i])/var1[i];
+
+    if( abs(diff) > abs(maxreldiff) )
+      maxreldiff = diff;
+  }
+    
+  if(isnan(maxreldiff)  ||  abs(maxreldiff) > maxabsreldiff)
+  {
+    ostringstream os;
+    os << var1name << "-" << var2name << " FAILED!\n";
+    if (error_message.length()) os << error_message << "\n";
+    os << "Max allowed deviation set to: " << maxabsreldiff*100.0 << "%" << endl
+       << "but the vectors deviate with: " << maxreldiff*100.0 << "%" << endl;
+    throw runtime_error(os.str());
+  }
+  
+  CREATE_OUT2;
+  out2 << "   " << var1name << "-" << var2name
+       << " OK (maximum difference = " << maxreldiff*100.0 << "%" << ").\n";
+}

@@ -47,11 +47,7 @@
  *      
  *      dsigma = dS x F + S x dF
  * 
- * TODO: Add QuantumIdentifier input to test for line catalog-parameters derivatives in relevant places
- * 
  * TODO: Add NLTE line strength calculator
- * 
- * TODO: Better combination with Zeeman calculations
  * 
  * TODO: Find work-around for incomplete line-shapes like "Voigt Kuntz"
  */
@@ -86,6 +82,7 @@ namespace Linefunctions
     Van_Vleck_and_Huber     // Van Vleck Huber normalization f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T)))  X
   };
   
+  // Sets lineshape to the Lorentz lineshape 
   void set_lorentz(ComplexVector& F, // Sets the full complex line shape without line mixing
                    ArrayOfComplexVector& dF,
                    const Vector& f_grid,
@@ -99,6 +96,7 @@ namespace Linefunctions
                    const Numeric& dG0_dT=0.0,
                    const Numeric& dL0_dT=0.0);
   
+  // Sets lineshape to the mirrored Lorentz lineshape (F0 at plus-and-minus)
   void set_mirrored_lorentz(ComplexVector& F, // Sets the full complex line shape without line mixing
                             ArrayOfComplexVector& dF, 
                             const Vector& f_grid,
@@ -112,6 +110,7 @@ namespace Linefunctions
                             const Numeric& dG0_dT=0.0,
                             const Numeric& dL0_dT=0.0);
   
+  // Set lineshape to the complex Hartmann-Tran lineshape
   void set_htp(ComplexVector& F, // Sets the full complex line shape without line mixing
                ArrayOfComplexVector& dF,
                const Vector& f_grid,
@@ -135,6 +134,7 @@ namespace Linefunctions
                const Numeric& deta_dT=0.0,
                const Numeric& dFVC_dT=0.0);
   
+  // Set lineshape to the complex Voigt function
   void set_faddeeva_algorithm916(ComplexVector& F, // Sets the full complex line shape without line mixing
                                  ArrayOfComplexVector& dF,
                                  const Vector& f_grid,
@@ -150,6 +150,7 @@ namespace Linefunctions
                                  const Numeric& dG0_dT=0.0,
                                  const Numeric& dL0_dT=0.0);
   
+  // Set lineshape to the doppler Lineshape using the Faddeeva algorithm
   void set_doppler(ComplexVector& F, // Sets the full complex line shape without line mixing
                    ArrayOfComplexVector& dF,
                    const Vector& f_grid,
@@ -254,6 +255,7 @@ namespace Linefunctions
                                                const Complex& S_LM,
                                                const Numeric& isotopic_ratio,
                                                const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                                               const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                                                const Complex& dS_LM_dT=0.0);
   
   void apply_dipole(ComplexVector& F, // Returns the full complex line shape without line mixing
@@ -264,12 +266,13 @@ namespace Linefunctions
                     const Numeric& rho,
                     const Numeric& isotopic_ratio,
                     const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                    const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                     const Numeric& drho_dT=0.0);
   
   void apply_pressurebroadening_jacobian(ArrayOfComplexVector& dF,
                                          const PropmatPartialsData& derivatives_data,
-                                         const QuantumIdentifier& quantum_identity,
-                                         const Vector& dgamma);
+                                         const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
+                                         const Vector& dgamma=Vector(0));
   
   Numeric DopplerConstant(const Numeric T, const Numeric mass);
   
