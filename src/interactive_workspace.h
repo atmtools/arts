@@ -1,0 +1,95 @@
+/* Copyright (C) 2017 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as
+   published by the Free Software Foundation; either version 2 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+   USA. */
+
+////////////////////////////////////////////////////////////////////////////
+//   File description
+////////////////////////////////////////////////////////////////////////////
+/*!
+  \file   interactive_workspace.h
+  \author Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+  \date   2017-08-21
+
+  \brief This file contains the declaration and partly the implementation
+         of the InteractiveWorkspace class.
+*/
+
+#ifndef INTERACTIVE_WORKSPACE_INCLUDED
+#define INTERACTIVE_WORKSPACE_INCLUDED
+
+#include "workspace_ng.h"
+#include "agenda_class.h"
+
+class InteractiveWorkspace : private Workspace {
+public:
+
+    InteractiveWorkspace();
+
+    using Workspace::is_initialized;
+    using Workspace::operator[];
+
+    static void initialize();
+
+    const char * execute_agenda(const Agenda *a);
+
+
+    const char * execute_workspace_method(long id, const long * args_out, const long * args_in);
+
+    void set_index_variable(Index id, const Index &src);
+    void set_numeric_variable(Index id, const Numeric &src);
+    void set_string_variable(Index id, const char *src);
+    void set_array_of_string_variable(Index id, size_t n, const char * const *src);
+    void set_vector_variable(Index id, size_t n, const Numeric *src);
+    void set_matrix_variable(Index id, size_t m, size_t n, const Numeric *src);
+
+    void resize();
+
+    //! Push a stack for a new variable to the workspace.
+    /*!
+    Adds a new stack for a variable that is not a registered workspace variable.
+    This is used by the C API to add variables to the workspace.
+
+    \param grou_id Index of the group of the variable to add to the workspace.
+    \return Index of the newly pushed stack
+    */
+    Index add_variable(Index group_id);
+
+    //! Remove a variable stack from the workspace.
+    /*!
+    Remove the stack given by index id from the workspace. This is used by
+    the C API to control the workspace size.
+
+    \param i Index of the stack to erase.
+    \param group_id Index of the group of the variable.
+    */
+    void erase_variable(Index i, Index group_id);
+
+    //! Remove a variable stack from the workspace.
+    /*!
+    Remove the stack given by index id from the workspace. This is used by
+    the C API to control the workspace size.
+
+    \param i Index of the stack to erase.
+    */
+    void swap(Index i, Index j);
+
+private:
+
+    Verbosity  verbosity_;
+    size_t     n_anonymous_variables_ = 0;
+};
+
+#endif // INTERACTIVE_WORKSPACE_INCLUDED

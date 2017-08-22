@@ -1,3 +1,21 @@
+2017-08-22 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-765
+
+	* src/arts_c_api.[h,cc]: Implemented C API that can be used to build interfaces to other
+	software.
+
+	* src/workspace_ng.h: Changed private to protected in order to be able to reuse
+	code.
+
+	* src/interactive_workspace.[h,cc]: Implemented new workspace class to provided features
+	required by C API.
+
+	* CMakeLists.txt: Added ENABLE_C_API flag to switch on building of C API.
+
+	* src/CMakeLists.txt: Add target for C API.
+
+
 2017-08-21 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-764

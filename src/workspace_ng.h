@@ -45,7 +45,7 @@ class Workspace;
   Manages the workspace variables.
 */
 class Workspace {
-private:
+protected:
   struct WsvStruct {
     void *wsv;
     bool initialized;

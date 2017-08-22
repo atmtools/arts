@@ -150,6 +150,13 @@ if (ENABLE_MPI) # User must enable MPI using -DENABLE_MPI=ON
   endif ()
 endif ()
 
+########### C API ##########
+
+if (ENABLE_C_API)
+  set (C_API true)
+  add_definitions(-fPIC)
+endif ()
+
 ########### Check C header files ##########
 check_include_file (stdlib.h    HAVE_STDLIB_H)
 check_include_file (string.h    HAVE_STRING_H)

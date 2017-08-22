@@ -92,6 +92,14 @@ set_source_files_properties (species_data.cc PROPERTIES COMPILE_FLAGS "-O0")
 
 ########### next target ###############
 
+if (C_API)
+add_library (arts_api SHARED arts_api.cc interactive_workspace.cc)
+add_dependencies (arts_api arts)
+target_link_libraries (arts_api ${ALL_ARTS_LIBRARIES})
+endif (C_API)
+
+########### next target ###############
+
 add_executable (make_auto_workspace_h
         arts.cc
         file.cc
