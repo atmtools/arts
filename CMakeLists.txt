@@ -440,6 +440,12 @@ else()
   message (STATUS "OEM disabled")
 endif()
 
+if (C_API)
+  message (STATUS "C API enabled")
+else()
+  message (STATUS "C API disabled (use -DENABLE_C_API=1 to enable)")
+endif()
+
 add_subdirectory (src)
 add_subdirectory (doc)
 add_subdirectory (controlfiles)

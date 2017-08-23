@@ -1,3 +1,16 @@
+2017-08-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-766
+
+	* src/CMakeLists.txt:
+
+	Force .so ending for the arts_api library. OSX uses .dylib as a default
+	suffix for dynamic libraries. Makes typhon find the library on OSX.
+
+	* CMakeLists.txt: Output status of C API and info on how to enable it.
+
+	* README: Add info on enabling C API.
+
 2017-08-22 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-765

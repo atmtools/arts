@@ -150,6 +150,14 @@ cmake -DENABLE_FORTRAN=1 -DNO_REFICE=1 ..
 IMPORTANT: Only gfortran and Intel Fortran are currently supported.
 Also, a 64-bit system is required (size of long type must be 8 bytes).
 
+
+Enable C_API:
+To be able to use the ARTS workspace interface in typhon, you need to enable
+building the C API:
+
+cmake -DENABLE_C_API=1 ..
+
+
 Enable NetCDF:
 The basic matpack types can be read from NetCDF files, if NetCDF support
 is enabled:
