@@ -12,6 +12,8 @@ Index get_wsv_id(const char*);
 
 std::string *error_buffer;
 
+size_t InteractiveWorkspace::n_anonymous_variables_ = 0;
+
 InteractiveWorkspace::InteractiveWorkspace() : Workspace(), verbosity_(1, 1, 1)
 {
     Workspace::initialize();
@@ -127,6 +129,17 @@ void InteractiveWorkspace::set_array_of_string_variable(Index id,
     }
 }
 
+void InteractiveWorkspace::set_array_of_index_variable(Index id,
+                                                       size_t n,
+                                                       const Index *src)
+{
+    ArrayOfIndex *dst = reinterpret_cast<ArrayOfIndex*>(this->operator[](id));
+    dst->resize(n);
+    for (size_t i = 0; i < n; ++i) {
+        dst->operator[](i) = src[i];
+    }
+}
+
 void InteractiveWorkspace::set_vector_variable(Index id,
                                                size_t n,
                                                const Numeric *src)
@@ -152,21 +165,30 @@ void InteractiveWorkspace::set_matrix_variable(Index id,
 
 void InteractiveWorkspace::resize()
 {
-    Array<stack<WsvStruct *>> ws_new(wsv_data.nelem() + n_anonymous_variables_);
-    std::copy(ws.begin(), ws.end() - n_anonymous_variables_, ws_new.begin());
-    std::copy(ws.end() - n_anonymous_variables_, ws.end(), ws_new.begin() + wsv_data.nelem());
+    Array<stack<WsvStruct *>> ws_new(wsv_data.nelem());
+    std::copy(ws.begin(), ws.end(), ws_new.begin());
+    //std::copy(ws.end() - n_anonymous_variables_, ws.end(), ws_new.begin() + wsv_data.nelem());
     std::swap(ws, ws_new);
 }
 
 Index InteractiveWorkspace::add_variable(Index group_id)
 {
+    Index id = static_cast<Index>(ws.size());
+
     ws.push_back(stack<WsvStruct *>());
     push(ws.size()-1, nullptr);
     ws.back().top()->wsv = wsmh.allocate (group_id);
     ws.back().top()->auto_allocated = true;
     ws.back().top()->initialized = true;
+
+    std::stringstream stream;
+    stream << "anonymous_variable_" << n_anonymous_variables_;
+    String s(stream.str());
+    wsv_data.push_back(WsvRecord(s.c_str(), "Created by C API.", group_id));
+    WsvMap[s] = id;
+
     ++n_anonymous_variables_;
-    return static_cast<Index>(ws.size() - 1);
+    return id;
 }
 
 void InteractiveWorkspace::erase_variable(Index i, Index group_id)
@@ -183,6 +205,9 @@ void InteractiveWorkspace::erase_variable(Index i, Index group_id)
         ws[i].pop ();
     }
     ws.erase(ws.begin() + i);
+
+    WsvMap.erase(wsv_data[i].Name());
+    wsv_data.erase(wsv_data.begin() + i);
     --n_anonymous_variables_;
 }
 

@@ -78,6 +78,17 @@ extern "C" {
          * number of columns in the last position.
          */
         long        dimensions[6];
+        /** @var VariableValueStruct::inner_pointer
+         * This field is only used to return sparse matrices. In this case inner pointer
+         * will point to the array of column indices.
+         */
+        const int *inner_ptr;
+        /** @var VariableValueStruct::outer_pointer
+         * This field is only used to return sparse matrices. In this case outer pointer
+         * will point to the array of column indices.
+         */
+        const int *outer_ptr;
+
     };
 
     /** @struct MethodStruct
@@ -193,9 +204,7 @@ extern "C" {
     DLL_PUBLIC
     Agenda * parse_agenda(const char *filename);
     //! Execute Agenda
-    /** Executes the given agenda on a given workspace. If the agenda creates new WSVs
-     *  the workspace will be resized, which may require an updating of the indices
-     *  of anonymous variables.
+    /** Executes the given agenda on a given workspace.
      *
      *  \param workspace Pointer of the InteractiveWorkspace object to execute the agenda on.
      *  \param a Pointer to the agenda to execute.
@@ -357,19 +366,10 @@ extern "C" {
                             long id,
                             long group_id,
                             VariableValueStruct value);
-    //! Add anonymous variable of given type to workspace.
+    //! Add variable of given type to workspace.
     /**
-     * Anonymous variables are workspace variables that have no entry in the global
-     * wsv_data. This has the advantage of avoiding synchronization between different
-     * InteractiveWorkspace objects, when a new variable is added to the workspace.
-     *
-     * Just like a normal WSV, an anonymous variable is uniquely identified in the
-     * workspace where it is defined by its index.
-     *
-     * Anonymous variables are always kept at the highest indices of the workspace
-     * in order to ensure consistency. When an agenda that creates new WSVs is executed
-     * on a given workspace it is thus necessary to update referencese to existing
-     * anonymous variables.
+     * This adds and initializes a variable in the current workspace and also
+     * adds a new entry to the global wsv_data array and updates WsvMap.
      *
      * \param workspace The pointer to the InteractiveWorkspace object where to create
      * the object.
@@ -381,8 +381,9 @@ extern "C" {
 
     //! Erase variable from workspace.
     /**
-     * This variable removes a variable from the workspace. It should be used only to
-     * remove anonymous variables from the workspace.
+     * This variable removes a variable from the workspace and the global wsv_data
+     * and WsvMap. This is likely to invalidate indices of existing variables so it
+     * should be used with care.
      *
      * \param workspace Pointer to the InteractiveWorkspace object owning the variable
      * \param id The index of the variable

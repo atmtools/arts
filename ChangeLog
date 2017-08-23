@@ -1,3 +1,20 @@
+2017-08-23 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-767
+
+	* src/matpackII.h: Added getters for pointer to data arrays.
+
+	* src/arts_c_api.[h,cc]:
+	- Extended VariableValueStruct to support returning Sparse matrix data
+	- Added support for setting and returning ArrayOfIndex
+	- Updated documentation to be consistent with new memory management
+
+	* src/interactive_workspace.[h,cc]:
+	- Had to abandon workspace local variables since it doesn't work with WSMs that
+	try to access the variable name. Now all new variables are added to the global
+	wsv_data.
+	- Added method to set ArrayOfIndex variables.
+
 2017-08-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-766

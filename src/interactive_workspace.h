@@ -52,6 +52,7 @@ public:
     void set_numeric_variable(Index id, const Numeric &src);
     void set_string_variable(Index id, const char *src);
     void set_array_of_string_variable(Index id, size_t n, const char * const *src);
+    void set_array_of_index_variable(Index id, size_t n, const Index *src);
     void set_vector_variable(Index id, size_t n, const Numeric *src);
     void set_matrix_variable(Index id, size_t m, size_t n, const Numeric *src);
 
@@ -89,7 +90,7 @@ public:
 private:
 
     Verbosity  verbosity_;
-    size_t     n_anonymous_variables_ = 0;
+    static size_t     n_anonymous_variables_;
 };
 
 #endif // INTERACTIVE_WORKSPACE_INCLUDED

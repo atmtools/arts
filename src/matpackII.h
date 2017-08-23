@@ -102,6 +102,10 @@ public:
                         ArrayOfIndex &row_indices,
                         ArrayOfIndex &column_indices ) const;
 
+    Numeric * get_element_pointer()    {return matrix.valuePtr();}
+    int *   get_column_index_pointer() {return matrix.innerIndexPtr();}
+    int *   get_row_start_pointer()    {return matrix.outerIndexPtr();}
+
     // Friends:
     friend std::ostream& operator<<(std::ostream& os, const Sparse& v);
     friend void abs (Sparse& A, const Sparse& B );

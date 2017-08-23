@@ -205,11 +205,21 @@ VariableValueStruct get_variable_value(InteractiveWorkspace *workspace, Index id
 {
     VariableValueStruct value{nullptr,
                               workspace->is_initialized(id),
-                              {0, 0, 0, 0, 0, 0}};
+                              {0, 0, 0, 0, 0, 0},
+                              nullptr,
+                              nullptr};
     // Index
     if (wsv_group_names[group_id] == "Index") {
         if (value.initialized) {
             value.ptr = workspace->operator[](id);
+        }
+    }
+    // ArrayOfIndex
+    else if (wsv_group_names[group_id] == "ArrayOfIndex") {
+        if (value.initialized) {
+            ArrayOfIndex *a = reinterpret_cast<ArrayOfIndex*>(workspace->operator[](id));
+            value.dimensions[0] = a->size();
+            value.ptr = &a->operator[](0);
         }
     }
     // String
@@ -297,6 +307,18 @@ VariableValueStruct get_variable_value(InteractiveWorkspace *workspace, Index id
             value.dimensions[5] = t->ncols();
         }
     }
+    // Sparse
+    else if (wsv_group_names[group_id] == "Sparse") {
+        if (value.initialized) {
+            Sparse *s = reinterpret_cast<Sparse*>(workspace->operator[](id));
+            value.dimensions[0] = s->nrows();
+            value.dimensions[1] = s->ncols();
+            value.dimensions[2] = s->nnz();
+            value.ptr = s->get_element_pointer();
+            value.inner_ptr = s->get_column_index_pointer();
+            value.outer_ptr = s->get_row_start_pointer();
+        }
+    }
     return value;
 }
 
@@ -324,6 +346,11 @@ void set_variable_value(InteractiveWorkspace *workspace,
     else if (wsv_group_names[group_id] == "ArrayOfString") {
         const char * const * ptr = reinterpret_cast<const char * const *>(value.ptr);
         workspace->set_array_of_string_variable(id, value.dimensions[0], ptr);
+    }
+    // Array of Index
+    else if (wsv_group_names[group_id] == "ArrayOfIndex") {
+        const Index *ptr = reinterpret_cast<const Index *>(value.ptr);
+        workspace->set_array_of_index_variable(id, value.dimensions[0], ptr);
     }
     // Vector
     else if (wsv_group_names[group_id] == "Vector") {
