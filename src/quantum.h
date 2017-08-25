@@ -206,6 +206,10 @@ if (name == #ID) this->Set(QN_ ## ID, r)
     bool Compare(const QuantumNumbers& qn) const;
 
     bool CompareDetailed(QuantumMatchInfoEnum& imatch, const QuantumNumbers& qn) const;
+    
+    bool operator<(const QuantumNumbers& other) const;
+    
+    bool operator>(const QuantumNumbers& other) const;
 
 private:
     QuantumContainer mqnumbers;

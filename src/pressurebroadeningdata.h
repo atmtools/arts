@@ -30,6 +30,8 @@
 #include "array.h"
 #include "messages.h"
 #include "matpackI.h"
+#include "complex.h"
+#include "partial_derivatives.h"
 
 
 
@@ -144,6 +146,23 @@ public:
                              const Numeric& delta0_exp,
                              const Numeric& delta2,
                              const Numeric& delta2_exp);
+    
+    /**
+      Sets a vector of derivatives that fits with the QuantumIdentifier 
+      and partial derivative
+      
+      
+     */
+    void SetInternalDerivatives(ComplexVector& derivatives,
+                                const PropmatPartialsData& ppd,
+                                const QuantumIdentifier& QI,
+                                const Numeric& theta,
+                                const Numeric& pressure,
+                                const Numeric& self_pressure,
+                                const Index    this_species,
+                                const Index    h2o_species,
+                                ConstVectorView vmrs,
+                                const Verbosity& verbosity) const;
     
     // Get the Planetary foreign broadening data vector
     ConstVectorView PlanetaryGammaForeign() const { assert(isPlanetaryBroadening()); return mdata[2]; }

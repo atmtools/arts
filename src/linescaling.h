@@ -76,7 +76,16 @@ void partition_function( Numeric& q_ref,
                          const Numeric& atm_t,
                          const SpeciesAuxData::AuxType& partition_type,
                          const ArrayOfGriddedField1& partition_data,
-                         const bool& do_rotational);
+                         const bool& do_rotational=false);
+
+void dpartition_function_dT( Numeric& dq_t_dT,
+                             const Numeric& q_t,
+                             const Numeric& atm_t,
+                             const Numeric& dt,
+                             const SpeciesAuxData::AuxType& partition_type,
+                             const ArrayOfGriddedField1& partition_data,
+                             const bool& do_rotational=false);
+
 
 void GetChangeInPartitionRatio(Numeric& dQ_dT, 
                                const Numeric& q_t,
@@ -124,3 +133,54 @@ void CalculatePartitionFctFromVibrotCoeff_dT(Numeric& dQ_dT,
                                              const Numeric& t_rot,
                                              ConstVectorView qvib_grid,
                                              ConstVectorView qrot_grid);
+
+Numeric stimulated_emission(const Numeric& T,
+                            const Numeric& F0);
+
+Numeric stimulated_relative_emission(const Numeric& gamma, 
+                                     const Numeric& gamma_ref);
+
+Numeric dstimulated_relative_emission_dT(const Numeric& gamma,
+                                         const Numeric& gamma_ref,
+                                         const Numeric& F0);
+
+Numeric dstimulated_relative_emission_dF0(const Numeric& gamma,
+                                          const Numeric& gamma_ref,
+                                          const Numeric& T);
+
+Numeric boltzman_ratio(const Numeric& T,
+                       const Numeric& T0,
+                       const Numeric& E0);
+
+Numeric dboltzman_ratio_dT(const Numeric& boltzmann_ratio,
+                           const Numeric& T,
+                           const Numeric& E0);
+
+Numeric absorption_nlte_ratio(const Numeric& gamma,
+                              const Numeric& r_upp=1.0,
+                              const Numeric& r_low=1.0);
+
+Numeric dabsorption_nlte_rate_dT(const Numeric& gamma,
+                                 const Numeric& T,
+                                 const Numeric& F0,
+                                 const Numeric& El,
+                                 const Numeric& Eu,
+                                 const Numeric& r_upp=1.0,
+                                 const Numeric& r_low=1.0);
+
+Numeric dabsorption_nlte_rate_dF0(const Numeric& gamma,
+                                  const Numeric& T,
+                                  const Numeric& r_upp=1.0,
+                                  const Numeric& r_low=1.0);
+
+Numeric dabsorption_nlte_rate_dTl(const Numeric& gamma,
+                                  const Numeric& T,
+                                  const Numeric& Tl,
+                                  const Numeric& El,
+                                  const Numeric& r_low=1.0);
+
+Numeric dabsorption_nlte_rate_dTu(const Numeric& gamma,
+                                  const Numeric& T,
+                                  const Numeric& Tu,
+                                  const Numeric& Eu,
+                                  const Numeric& r_upp=1.0);

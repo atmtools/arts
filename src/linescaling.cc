@@ -318,6 +318,41 @@ void partition_function( Numeric& q_ref,
 }
 
 
+void dpartition_function_dT( Numeric& dq_t_dT,
+                             const Numeric& q_t,
+                             const Numeric& atm_t,
+                             const Numeric& dT,
+                             const SpeciesAuxData::AuxType& partition_type,
+                             const ArrayOfGriddedField1& partition_data,
+                             const bool& do_rotational)
+{
+  switch(partition_type)
+  {
+    case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
+      CalculatePartitionFctFromCoeff_dT(dq_t_dT, atm_t,
+                                        partition_data[0].data);
+      break;
+    case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF_VIBROT:
+      if(!do_rotational)
+        CalculatePartitionFctFromVibrotCoeff_dT(dq_t_dT, atm_t, atm_t,
+                                                partition_data[0].data,partition_data[1].data);
+      else
+        CalculatePartitionFctFromVibrotCoeff_dT(dq_t_dT, atm_t, /*t_rot*/ atm_t, //This must be implemented!  How...???
+                                                partition_data[0].data,partition_data[1].data);
+      break;
+    case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
+      CalculatePartitionFctFromData_perturbed(dq_t_dT, atm_t, dT, q_t,
+                                              partition_data[0].get_numeric_grid(0),
+                                              partition_data[0].data, 
+                                              1);
+      break;
+    default:
+      throw std::runtime_error("Unknown partition type requested.\n");
+      break;
+  }
+}
+
+
 void CalculatePartitionFctFromData( Numeric& q_ref, 
                                     Numeric& q_t, 
                                     const Numeric& ref, 
@@ -453,4 +488,150 @@ void CalculatePartitionFctFromVibrotCoeff_dT(Numeric& dQ_dT,
     //FIXME:  This is wrong...
     dQ_dT   = dQvibT*dQrotT;
     throw std::runtime_error("Vibrot does not yet work with propmat partial derivatives.\n");
+}
+
+
+Numeric stimulated_emission(const Numeric& T,
+                            const Numeric& F0)
+{
+  extern const Numeric PLANCK_CONST;
+  extern const Numeric BOLTZMAN_CONST;
+  static const Numeric c = - PLANCK_CONST / BOLTZMAN_CONST;
+  
+  return exp(c * F0 / T);
+}
+
+
+Numeric stimulated_relative_emission(const Numeric& gamma, 
+                                     const Numeric& gamma_ref)
+{
+  return (1.-gamma)/(1.-gamma_ref);
+}
+
+
+Numeric dstimulated_relative_emission_dT(const Numeric& gamma,
+                                         const Numeric& gamma_ref,
+                                         const Numeric& F0)
+{
+  extern const Numeric PLANCK_CONST;
+  extern const Numeric BOLTZMAN_CONST;
+  static const Numeric c = - PLANCK_CONST / BOLTZMAN_CONST;
+  
+  return (c * F0 * gamma)/(1.-gamma_ref);
+}
+
+
+Numeric dstimulated_relative_emission_dF0(const Numeric& gamma,
+                                          const Numeric& gamma_ref,
+                                          const Numeric& T)
+{
+  extern const Numeric PLANCK_CONST;
+  extern const Numeric BOLTZMAN_CONST;
+  static const Numeric c = - PLANCK_CONST / BOLTZMAN_CONST;
+  
+  return (-c / T * gamma)/(1.-gamma_ref);
+}
+
+
+// Ratio of boltzman emission at T and T0
+Numeric boltzman_ratio(const Numeric& T,
+                       const Numeric& T0,
+                       const Numeric& E0)
+{
+  extern const Numeric BOLTZMAN_CONST;
+  static const Numeric c = 1/BOLTZMAN_CONST;
+  
+  return exp( E0 * c * (T-T0)/(T*T0) );
+}
+
+
+Numeric dboltzman_ratio_dT(const Numeric& boltzmann_ratio,
+                           const Numeric& T,
+                           const Numeric& E0)
+{
+  extern const Numeric BOLTZMAN_CONST;
+  static const Numeric c = 1/BOLTZMAN_CONST;
+  const Numeric x = 1/T;
+  
+  return E0 * c * boltzmann_ratio * x * x;
+}
+
+
+Numeric absorption_nlte_ratio(const Numeric& gamma,
+                              const Numeric& r_upp,
+                              const Numeric& r_low)
+{
+  return (r_low - r_upp * gamma ) / ( 1 - gamma );
+}
+
+
+Numeric dabsorption_nlte_rate_dT(const Numeric& gamma,
+                                 const Numeric& T,
+                                 const Numeric& F0,
+                                 const Numeric& El,
+                                 const Numeric& Eu,
+                                 const Numeric& r_upp,
+                                 const Numeric& r_low)
+{
+  extern const Numeric PLANCK_CONST;
+  extern const Numeric BOLTZMAN_CONST;
+  static const Numeric c = 1/BOLTZMAN_CONST;
+  
+  if(El < 0 or Eu < 0)
+  {
+    std::ostringstream os;
+    os << "It is considered undefined behavior to NLTE and "
+        <<"temperature Jacobian without defining all " 
+        << "vibrational energy states";
+    throw std::runtime_error(os.str());
+  }
+  
+  const Numeric x = 1/(T * (gamma - 1));
+  const Numeric hf = F0*PLANCK_CONST;
+  
+  return x * x * c * 
+  ((gamma - 1) * (El * r_low - Eu * gamma * r_upp) - hf * gamma * (r_low - r_upp));
+}
+
+
+Numeric dabsorption_nlte_rate_dF0(const Numeric& gamma,
+                                  const Numeric& T,
+                                  const Numeric& r_upp,
+                                  const Numeric& r_low)
+{
+  extern const Numeric PLANCK_CONST;
+  extern const Numeric BOLTZMAN_CONST;
+  static const Numeric c = - PLANCK_CONST / BOLTZMAN_CONST;
+  
+  return c*gamma*(r_low - r_upp)/(T*(gamma*gamma - 2*gamma + 1));
+}
+
+
+Numeric dabsorption_nlte_rate_dTl(const Numeric& gamma,
+                                  const Numeric& T,
+                                  const Numeric& Tl,
+                                  const Numeric& El,
+                                  const Numeric& r_low)
+{
+  extern const Numeric BOLTZMAN_CONST;
+  
+  const Numeric x = 1 / (BOLTZMAN_CONST * T);
+  const Numeric y = 1 / Tl;
+  
+  return El * x * y * y * T * r_low/(gamma - 1);
+}
+
+
+Numeric dabsorption_nlte_rate_dTu(const Numeric& gamma,
+                                  const Numeric& T,
+                                  const Numeric& Tu,
+                                  const Numeric& Eu,
+                                  const Numeric& r_upp)
+{
+  extern const Numeric BOLTZMAN_CONST;
+  
+  const Numeric x = 1/(BOLTZMAN_CONST * T);
+  const Numeric y = 1/Tu;
+  
+  return Eu * x * y * y * T * gamma * r_upp / (gamma - 1);
 }

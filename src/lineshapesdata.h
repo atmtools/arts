@@ -239,14 +239,27 @@ namespace Linefunctions
                           const Numeric& QT0,
                           const Numeric& K1,
                           const Numeric& K2,
-                          //const Numeric& K3,  Add again when NLTE is considered
-                          //const Numeric& K4,  Add again when NLTE is considered
                           const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
                           const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                           const Numeric& dQT_dT=0.0,
                           const Numeric& dK1_dT=0.0,
                           const Numeric& dK2_dT=0.0,
-                          const Numeric& dK2_dF0=0.0); // Add all other derivatives related to NLTE
+                          const Numeric& dK2_dF0=0.0);
+  
+  void apply_nonlte(ComplexVector& F, // Values that will go into the K-matrix
+                    ArrayOfComplexVector& dF,
+                    ComplexVector& N, // Values used to scale the source-term
+                    ArrayOfComplexVector& dN,
+                    const Numeric& K3=1.0,
+                    const Numeric& K4=1.0,
+                    const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                    const QuantumIdentifier& quantum_identity=QuantumIdentifier(), 
+                    const Numeric& dK3_dT=0.0, 
+                    const Numeric& dK4_dT=0.0,
+                    const Numeric& dK3_dF0=0.0, 
+                    const Numeric& dK3_dTl=0.0, 
+                    const Numeric& dK3_dTu=0.0, 
+                    const Numeric& dK4_dTu=0.0);
   
   void apply_linestrength_from_full_linemixing(ComplexVector& F, // Returns the full complex line shape with line mixing
                                                ArrayOfComplexVector& dF,
@@ -272,7 +285,7 @@ namespace Linefunctions
   void apply_pressurebroadening_jacobian(ArrayOfComplexVector& dF,
                                          const PropmatPartialsData& derivatives_data,
                                          const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                                         const Vector& dgamma=Vector(0));
+                                         const ComplexVector& dgamma=ComplexVector(0));
   
   Numeric DopplerConstant(const Numeric T, const Numeric mass);
   

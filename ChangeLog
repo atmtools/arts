@@ -1,3 +1,22 @@
+2017-08-25 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-768
+	
+	Work-in-progress.
+	
+	* src/linescaling.cc,h: Split the big function up into smaller parts,
+	having their derivative functions explicit (but mostly only callable
+	by themselves). 
+	
+	* src/lineshapesdata.cc,h:  Added the NLTE formulations
+	
+	* src/pressurebroadeningdata.cc,h:  Added the interface
+	method for lineshapesdata
+	
+	* src/quantum.cc,h:  Added some simple matching logic
+	
+	* src/zeeman.cc:  Testing function commented out as it does nothing yet.
+	
 2017-08-23 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-767

@@ -20,6 +20,7 @@
 #include "zeeman.h"
 #include "global_data.h"
 #include "lineshapesdata.h"
+#include "linescaling.h"
 
 /*!
  *  Defines the phase of the propagation matrix.
@@ -1179,8 +1180,9 @@ void xsec_species_line_mixing_wrapper_with_zeeman_replacement(PropagationMatrix&
   const Index nf = f_grid.nelem();
   const Index nq = flag_partials.nelem();
   const Index nl = lr.nelem();
+  const Index nnlte = T_nlte.nelem();
   
-  if(not nf or not nl)
+  if(0 == nf or 0 == nl)
     return;
   
   // Compute variables for pressure broadening
@@ -1196,26 +1198,33 @@ void xsec_species_line_mixing_wrapper_with_zeeman_replacement(PropagationMatrix&
   Numeric dY_dT, dG_dT, dDV_dT;
   
   // Compute variables for Line strength
-  Numeric QT, QT0, K1, K2; // K3, K4
+  Numeric QT, QT0, K3, K4, Tu, Tl, r_low;
   
   // Compute variables for Line strength derivatives
-  Numeric dQT_dT, dK1_dT, dK2_dT, dK2_dF0; // K3, K4
+  Numeric dQT_dT, dK1_dT, dK2_dT, dK2_dF0, dK3_dT, dK4_dT, 
+    dK3_dF0, dK3_dTl, dK3_dTu, dK4_dTu;
   
   // Compute vectors attenuation/phase
-  ComplexVector F(nf), F_single_line(nf);
+  ComplexVector F, F_single_line(nf), N, N_single_line;  // Only single line lineshape needs to be initialized
   
   // Compute vectors derivative of attenuation/phase
-  ArrayOfComplexVector dF(nq);
-  for(auto& cv : dF) 
-    cv.resize(nf);
-  
-  ArrayOfComplexVector dF_single_line(nq);
+  ArrayOfComplexVector dF, dF_single_line(nq);
   for(auto& cv : dF_single_line) 
     cv.resize(nf);
+  
+  ArrayOfComplexVector dN, dN_single_line(nq);
+  if(nnlte)
+  {
+    N_single_line.resize(nf);
+    
+    for(auto& cv : dN_single_line) 
+      cv.resize(nf);
+  }
   
   // All should be of same species here
   const Index spec = lr[0].Species();
   const Index isop = lr[0].Isotopologue();
+  const Numeric T0 = lr[0].Ti0();
   const Numeric isotopic_ratio = isotopologue_ratios.getParam(spec, isop)[0].data[0];
   
   // Partial pressure of this species
@@ -1235,11 +1244,40 @@ void xsec_species_line_mixing_wrapper_with_zeeman_replacement(PropagationMatrix&
   // Water index
   const Index h2o_index = find_first_species_tg(abs_species, species_index_from_species_name("H2O"));
   
+  // Pressure broadening derivatives
+  ComplexVector dgamma;
+  
+  partition_function(QT0, QT, lr[0].Ti0(), T, 
+                     partition_functions.getParamType(spec, isop), 
+                     partition_functions.getParam(spec, isop));
+  
+  if(flag_partials.do_temperature())
+  {
+    dpartition_function_dT( dQT_dT,
+                            QT,
+                            T,
+                            flag_partials.Temperature_Perturbation(), 
+                            partition_functions.getParamType(spec, isop), 
+                            partition_functions.getParam(spec, isop));
+  }
+  
   for(Index il = 0; il < nl; il++)
   {
     const LineRecord& l = lr[il];
+    
+    // Need to check that Ti0, Species, and Isotopologue of line has not changed...
+    assert(T0 == l.Ti0());
+    assert(spec == l.Species());
+    assert(isop == l.Isotopologue());
+    
     const Numeric& F0 = l.F();
     const Numeric& S0 = l.I0();
+    const Numeric& E0 = l.Elow();
+    
+    const Numeric gamma = stimulated_emission(T, F0);
+    const Numeric gamma_ref = stimulated_emission(T0, F0);
+    const Numeric K1 = boltzman_ratio(T, T0, E0);
+    const Numeric K2 = stimulated_relative_emission(gamma, gamma_ref);
     
     // QuantumIdentifier
     const QuantumIdentifier QI = lr[il].QuantumIdentity(); 
@@ -1264,14 +1302,26 @@ void xsec_species_line_mixing_wrapper_with_zeeman_replacement(PropagationMatrix&
                                                             broad_spec_locations,
                                                             abs_vmrs, verbosity);
       
+      if(flag_partials.get_first_pressure_term() > -1)
+        l.PressureBroadening().SetInternalDerivatives(dgamma, flag_partials, QI, l.Ti0()/T,
+                                                      P, P_partial, this_species, h2o_index,
+                                                      abs_vmrs, verbosity);
       
       l.LineMixing().GetLineMixingParams_dT(dY_dT,  dG_dT,  dDV_dT, T, 
                                             flag_partials.Temperature_Perturbation(),
                                             P, lm_p_lim, 1);
       
       dL0_dT += dDV_dT;
+      
+      dK1_dT = dboltzman_ratio_dT(K1, T, E0);
+      dK2_dT = dstimulated_relative_emission_dT(gamma, gamma_ref, F0);
     }
     
+    if(flag_partials.do_line_center())
+    {
+      dK2_dF0 = dstimulated_relative_emission_dF0(gamma, gamma_ref, T);
+    }
+      
     switch(l.PressureBroadening().Type())
     {
       case PressureBroadeningData::PB_SD_AIR_VOLUME:
@@ -1295,6 +1345,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman_replacement(PropagationMatrix&
         throw std::runtime_error("Developer messed up");
     }
     
+    
     Linefunctions::apply_linemixing(F_single_line, dF_single_line,
                                     Y, G, flag_partials, QI, dY_dT, dG_dT);
     
@@ -1302,13 +1353,102 @@ void xsec_species_line_mixing_wrapper_with_zeeman_replacement(PropagationMatrix&
     
     Linefunctions::apply_linestrength(F_single_line, dF_single_line, 
                                       S0, isotopic_ratio,
-                                      QT, QT0, K1, K2, //K3, K4,
+                                      QT, QT0, K1, K2,
                                       flag_partials, QI,
                                       dQT_dT, dK1_dT, dK2_dT, dK2_dF0);
     
-    Vector dgamma;
-    Linefunctions:: apply_pressurebroadening_jacobian(dF_single_line, flag_partials, QI, dgamma);
+    
+    if(flag_partials.get_first_pressure_term() > -1)
+    {
+      Linefunctions::apply_pressurebroadening_jacobian(dF_single_line, flag_partials, QI, dgamma);
+    }
+    
+    if(nnlte)
+    {
+      const Index evlow_index = l.EvlowIndex();
+      const Index evupp_index = l.EvuppIndex();
+      const Numeric El = l.Evlow();
+      const Numeric Eu = l.Evupp();
+      
+      if(evlow_index > -1)
+      {
+        Tu = T_nlte[evupp_index];
+        K4 = boltzman_ratio(Tu, T, Eu);
+      }
+      else
+      {
+        Tu = T;
+        K4 = 1.0;
+      }
+      
+      if(evlow_index > -1)
+      {
+        Tl = T_nlte[evlow_index];
+        r_low = boltzman_ratio(Tl, T, El);
+      }
+      else 
+      {
+        Tl = T;
+        r_low = 1.0;
+      }
+      
+      K3 = absorption_nlte_ratio(gamma, K4, r_low);
+      
+      if(flag_partials.do_frequency())
+      {
+        dK3_dF0 = dabsorption_nlte_rate_dF0(gamma, T, K4, r_low);
+      }
+      
+      if(flag_partials.do_temperature())
+      {
+        dK3_dT = dabsorption_nlte_rate_dT(gamma, T, F0, El, Eu, K4, r_low);
+      }
+      
+      if(El > 0)
+      {
+        dK3_dTl = dabsorption_nlte_rate_dTl(gamma, T, Tl, El, r_low);
+      }
+      
+      if(Eu > 0)
+      {
+        dK3_dTu = dabsorption_nlte_rate_dTu(gamma, T, Tu, Eu, K4);
+        dK4_dTu = dboltzman_ratio_dT(K4, Tu, Eu);
+      }
+      
+      Linefunctions::apply_nonlte(F_single_line, dF_single_line, N_single_line, dN_single_line, K3, K4, 
+                                  flag_partials, QI, dK3_dT, dK4_dT, dK3_dF0, dK3_dTl, dK3_dTu, dK4_dTu);
+    }
+    
+    if(il)
+    {
+      F += F_single_line;
+      
+      if(nnlte)
+        N += N_single_line;
+      
+      for(Index iq = 0; iq < nq; iq++)
+      {
+        dF[iq] += dF_single_line[iq];
+        
+        if(nnlte)
+          dN[iq] += dN_single_line[iq];
+      }
+    }
+    else
+    {
+      F = F_single_line;
+      
+      dF = dF_single_line;
+      
+      if(nnlte)
+        N = N_single_line;
+      
+      if(nnlte)
+        dN = dN_single_line;
+    }
   }
+  
+  
 }
 */
 

@@ -118,6 +118,136 @@ void PressureBroadeningData::GetPressureBroadeningParams_dT(Numeric& dgamma_0_dT
     }
 }
 
+
+void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives, 
+                                                    const PropmatPartialsData& ppd, 
+                                                    const QuantumIdentifier& QI,
+                                                    const Numeric& theta,
+                                                    const Numeric& pressure,
+                                                    const Numeric& self_pressure,
+                                                    const Index    this_species,
+                                                    const Index    h2o_species,
+                                                    ConstVectorView vmrs,
+                                                    const Verbosity& verbosity) const
+{
+  const Index nppd = ppd.nelem();
+  
+  ComplexVector res(10);
+  Numeric results1, results2;
+  Index ipd = 0;
+  
+  for(Index iq = 0; iq < nppd; iq++)
+  {
+    if(ppd(iq) == JQT_line_gamma_self)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        GetPressureBroadeningParams_dSelfGamma(results1, theta, self_pressure);
+        res[ipd] = results1;
+      }
+      else 
+        continue;
+    }
+    else if(ppd(iq) == JQT_line_gamma_foreign)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        GetPressureBroadeningParams_dForeignGamma(results1, theta, pressure, self_pressure, 
+                                                  this_species, h2o_species, vmrs);
+        res[ipd] = results1;
+      }
+      else
+        continue;
+    }
+    else if(ppd(iq) == JQT_line_gamma_water)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        GetPressureBroadeningParams_dWaterGamma(results1, theta, pressure, 
+                                                this_species, h2o_species, vmrs, verbosity);
+        res[ipd] = results1;
+      }
+      else
+        continue;
+    }
+    else if(ppd(iq) == JQT_line_pressureshift_self)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        GetPressureBroadeningParams_dSelfPsf(results2, theta, self_pressure);
+        res[ipd] = Complex(0, results2);
+      }
+      else
+        continue;
+    }
+    else if(ppd(iq) == JQT_line_pressureshift_foreign)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        GetPressureBroadeningParams_dForeignPsf(results2, theta, pressure, self_pressure, 
+                                                this_species, h2o_species, vmrs);
+        res[ipd] = Complex(0, results2);
+      }
+      else
+        continue;
+    }
+    else if(ppd(iq) == JQT_line_pressureshift_water)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        GetPressureBroadeningParams_dWaterPsf(results2, theta, pressure, 
+                                              this_species, h2o_species, vmrs, verbosity);
+        res[ipd] = Complex(0, results2);
+      }
+      else
+        continue;
+    }
+    else if(ppd(iq) == JQT_line_gamma_selfexponent)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        GetPressureBroadeningParams_dSelfExponent(results1, results2, theta, self_pressure);
+        res[ipd] = Complex(results1, results2);
+      }
+      else
+        continue;
+    }
+    else if(ppd(iq) == JQT_line_gamma_foreignexponent)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        GetPressureBroadeningParams_dForeignExponent(results1, results2, theta, pressure, self_pressure, 
+                                                     this_species, h2o_species, vmrs);
+        res[ipd] = Complex(results1, results2);
+      }
+      else
+        continue;
+    }
+    else if(ppd(iq) == JQT_line_gamma_waterexponent)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        GetPressureBroadeningParams_dWaterExponent(results1, results2, theta, pressure, 
+                                                   this_species, h2o_species, vmrs, verbosity);
+        res[ipd] = Complex(results1, results2);
+      }
+      else
+        continue;
+    }
+    else
+      continue;
+    
+    // Only activate this when something hit the target
+    ++ipd;
+  }
+  
+  derivatives.resize(ipd);
+  for(Index iq = 0; iq < ipd; iq++)
+    derivatives[iq] = res[iq];
+}
+
+
+
 // Get catalog parameter derivatives:  self broadening gamma
 void PressureBroadeningData::GetPressureBroadeningParams_dSelfGamma(Numeric& gamma_dSelf,
                                                                     const Numeric& theta,

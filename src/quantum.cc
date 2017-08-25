@@ -233,6 +233,57 @@ bool QuantumIdentifier::operator<(const QuantumIdentifier& other) const
 }
 
 
+// Tests that all of other is in this
+bool QuantumNumbers::operator<(const QuantumNumbers& other) const
+{
+  Index qnri = 0;
+  
+  while (qnri != QN_FINAL_ENTRY)
+  {
+    if(other.mqnumbers[qnri].isUndefined())
+    {
+      if(not mqnumbers[qnri].isUndefined())
+        return false;
+    }
+    else if(not mqnumbers[qnri].isUndefined())
+    {
+      if(other.mqnumbers[qnri] not_eq mqnumbers[qnri])
+      {
+        return false;
+      }
+    }
+    qnri++;
+  }
+  return true;
+}
+
+
+// Tests that all of this is in other
+bool QuantumNumbers::operator>(const QuantumNumbers& other) const
+{
+  Index qnri = 0;
+  
+  while (qnri != QN_FINAL_ENTRY)
+  {
+    if(mqnumbers[qnri].isUndefined())
+    {
+      if(not other.mqnumbers[qnri].isUndefined())
+        return false;
+    }
+    else if(not other.mqnumbers[qnri].isUndefined())
+    {
+      if(other.mqnumbers[qnri] not_eq mqnumbers[qnri])
+      {
+        return false;
+      }
+    }
+    qnri++;
+  }
+  return true;
+}
+
+
+
 bool IsValidQuantumNumberName(String name)
 {
     bool valid = false;

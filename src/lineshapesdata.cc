@@ -1393,7 +1393,7 @@ void Linefunctions::apply_dipole(ComplexVector& F,
 void Linefunctions::apply_pressurebroadening_jacobian(ArrayOfComplexVector& dF,
                                                       const PropmatPartialsData& derivatives_data,
                                                       const QuantumIdentifier& quantum_identity,
-                                                      const Vector& dgamma)
+                                                      const ComplexVector& dgamma)
 {
   const Index nppd = derivatives_data.nelem(), ng = dgamma.nelem();
   
@@ -1402,55 +1402,75 @@ void Linefunctions::apply_pressurebroadening_jacobian(ArrayOfComplexVector& dF,
   // Length of dgamma must be the same as total number of instances of pressure broadening jacobians
   for(Index iq = 0; iq < nppd; iq++)
   {
-    if(ipd == ng) return;
+    if(ipd == ng) break;
     
     if(derivatives_data(iq) == JQT_line_gamma_self)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
         dF[iq] *= dgamma[ipd];
+      else
+        continue;
     }
     else if(derivatives_data(iq) == JQT_line_gamma_foreign)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
         dF[iq] *= dgamma[ipd];
+      else
+        continue;
     }
     else if(derivatives_data(iq) == JQT_line_gamma_water)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
         dF[iq] *= dgamma[ipd];
+      else
+        continue;
     }
     else if(derivatives_data(iq) == JQT_line_pressureshift_self)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-        dF[iq] *= Complex(0.0,  dgamma[ipd]);
+        dF[iq] *= dgamma[ipd];
+      else
+        continue;
     }
     else if(derivatives_data(iq) == JQT_line_pressureshift_foreign)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-        dF[iq] *= Complex(0.0,  dgamma[ipd]);
+        dF[iq] *= dgamma[ipd];
+      else
+        continue;
     }
     else if(derivatives_data(iq) == JQT_line_pressureshift_water)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-        dF[iq] *= Complex(0.0,  dgamma[ipd]);
+        dF[iq] *= 0.0;
+      else
+        continue;
     }
     else if(derivatives_data(iq) == JQT_line_gamma_selfexponent)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
         dF[iq] *= dgamma[ipd];
+      else
+        continue;
     }
     else if(derivatives_data(iq) == JQT_line_gamma_foreignexponent)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
         dF[iq] *= dgamma[ipd];
+      else
+        continue;
     }
     else if(derivatives_data(iq) == JQT_line_gamma_waterexponent)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
         dF[iq] *= dgamma[ipd];
+      else
+        continue;
     }
     else
       continue;
+    
+    // Only activate this when something hit the target
     ++ipd;
   }
 }
@@ -1466,3 +1486,95 @@ Numeric Linefunctions::dDopplerConstant_dT(const Numeric T, const Numeric mass)
 {
   return doppler_const * 0.5 * sqrt(1.0 / mass / T);
 }
+
+
+void Linefunctions::apply_nonlte(ComplexVector& F, 
+                                 ArrayOfComplexVector& dF, 
+                                 ComplexVector& N, 
+                                 ArrayOfComplexVector& dN, 
+                                 const Numeric& K3, 
+                                 const Numeric& K4,
+                                 const PropmatPartialsData& derivatives_data,
+                                 const QuantumIdentifier& quantum_identity,
+                                 const Numeric& dK3_dT, 
+                                 const Numeric& dK4_dT,
+                                 const Numeric& dK3_dF0, 
+                                 const Numeric& dK3_dTl, 
+                                 const Numeric& dK3_dTu, 
+                                 const Numeric& dK4_dTu)
+{
+  const Index nppd = derivatives_data.nelem(), nf = F.nelem();
+  
+  const Numeric scaled_ratio = K4/K3 - 1.0;
+  
+  // Set the non-lte source factors
+  N = F;
+  N *= scaled_ratio;
+  
+  for(Index iq = 0; iq < nppd; iq++)
+  {
+    dN[iq] = dF[iq];
+    dN[iq] *= scaled_ratio;
+    dF[iq] *= K3;
+    
+    if(derivatives_data(iq) == JQT_temperature)
+    {
+      const Numeric dscaled_ratio_dT = (dK4_dT - dK3_dT / K3) / K3;
+      
+      for(Index iv = 0; iv < nf; iv++)
+      {
+        dF[iq][iv] += F[iv] * dK3_dT;
+        dN[iq][iv] += F[iv] * dscaled_ratio_dT;
+      }
+    }
+    else if(derivatives_data(iq) == JQT_line_center)
+    {
+      if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
+      {
+        const Numeric dscaled_ratio_dF0 = - dK3_dF0 / K3 / K3;
+        
+        for(Index iv = 0; iv < nf; iv++)
+        {
+          dF[iq][iv] += F[iv] * dK3_dF0;
+          dN[iq][iv] += F[iv] * dscaled_ratio_dF0;
+        }
+      }
+    }
+    else if(derivatives_data(iq) == JQT_nlte_temperature)
+    {
+      if(derivatives_data.jac(iq).QuantumIdentity().Species() not_eq quantum_identity.Species() or
+        derivatives_data.jac(iq).QuantumIdentity().Isotopologue() not_eq quantum_identity.Isotopologue())
+        continue;  // Wrong species or wrong isotopologue
+      
+      if(quantum_identity.QuantumMatch()[QuantumIdentifier::TRANSITION_LOWER_INDEX] >
+        derivatives_data.jac(iq).QuantumIdentity().QuantumMatch()[QuantumIdentifier::ENERGY_LEVEL] or
+        derivatives_data.jac(iq).QuantumIdentity().Type() == QuantumIdentifier::ALL)
+      {
+        const Numeric dscaled_ratio_dTl = - dK3_dTl / K3 / K3;
+        
+        for(Index iv = 0; iv < nf; iv++)
+        {
+          dF[iq][iv] += F[iv] * dK3_dTl;
+          dN[iq][iv] += F[iv] * dscaled_ratio_dTl;
+        }
+      }
+      
+      if(quantum_identity.QuantumMatch()[QuantumIdentifier::TRANSITION_UPPER_INDEX] >
+        derivatives_data.jac(iq).QuantumIdentity().QuantumMatch()[QuantumIdentifier::ENERGY_LEVEL] or
+        derivatives_data.jac(iq).QuantumIdentity().Type() == QuantumIdentifier::ALL)
+      {
+        const Numeric dscaled_ratio_dTu = (dK4_dTu - dK3_dTu / K3) / K3;
+        
+        for(Index iv = 0; iv < nf; iv++)
+        {
+          dF[iq][iv] += F[iv] * dK3_dTu;
+          dN[iq][iv] += F[iv] * dscaled_ratio_dTu;
+        }
+      }
+    }
+  }
+  
+  // Finish by scaling F to the true value
+  F *= K3;
+}
+
