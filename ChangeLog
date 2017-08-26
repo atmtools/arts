@@ -1,3 +1,16 @@
+2017-08-26 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-769
+
+	* src/arts_api.[h,cc]:
+	- Some changes to the passing of input and output parameters of functions calls
+	- Added methods for manipulation of agendas (agenda_add_method, agenda_insert_set,
+	agenda_clear)
+
+	* src/interactive_workspace.[h,cc]:
+	- Adapted code to changes in arts_api.[h,cc]
+	- Added set method for agenda variables
+
 2017-08-25 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-768

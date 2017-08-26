@@ -15,9 +15,32 @@ extern Verbosity verbosity_at_launch;
 extern void (*getaways[])(Workspace&, const MRecord&);
 Index get_wsv_id(const char*);
 
+using global_data::MdMap;
+
 extern std::string *error_buffer;
 
 //extern "C" {
+
+////////////////////////////////////////////////////////////////////////////
+// Internal Helper Functions
+////////////////////////////////////////////////////////////////////////////
+
+void copy_output_and_input(ArrayOfIndex &output,
+                           ArrayOfIndex &input,
+                           unsigned long n_args_out,
+                           const long *args_out,
+                           unsigned long n_args_in,
+                           const long *args_in)
+{
+    output.reserve(n_args_out);
+    for (size_t i = 0; i < n_args_out; ++i) {
+        output.push_back(args_out[i]);
+    }
+    input.reserve(n_args_in);
+    for (size_t i = 0; i < n_args_in; ++i) {
+        input.push_back(args_in[i]);
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////
 // Setup and Finalization.
@@ -63,10 +86,81 @@ Agenda * parse_agenda(const char *filename)
         a->set_main_agenda();
     } catch(const std::runtime_error &e) {
         *error_buffer = std::string(e.what());
-        std::cout << e.what() << std::endl;
         return nullptr;
     }
     return a;
+}
+
+Agenda * create_agenda(const char *name)
+{
+    Agenda * ptr = new Agenda;
+    ptr->set_name(name);
+    return ptr;
+}
+
+void agenda_insert_set(InteractiveWorkspace *workspace,
+                       Agenda *a,
+                       long id,
+                       long group_id)
+{
+    TokVal t;
+    // Index
+    if (wsv_group_names[group_id] == "Index") {
+        t = TokVal(*reinterpret_cast<Index*>(workspace->operator[](id)));
+    }
+    // ArrayOfIndex
+    if (wsv_group_names[group_id] == "ArrayOfIndex") {
+        t = TokVal(*reinterpret_cast<ArrayOfIndex*>(workspace->operator[](id)));
+    }
+    // String
+    if (wsv_group_names[group_id] == "String") {
+        t = TokVal(*reinterpret_cast<String*>(workspace->operator[](id)));
+    }
+    // ArrayOfString
+    if (wsv_group_names[group_id] == "ArrayOfString") {
+        t = TokVal(*reinterpret_cast<ArrayOfString*>(workspace->operator[](id)));
+    }
+    // ArrayOfIndex
+    if (wsv_group_names[group_id] == "ArrayOfIndex") {
+        t = TokVal(*reinterpret_cast<ArrayOfString*>(workspace->operator[](id)));
+    }
+    // Vector
+    if (wsv_group_names[group_id] == "Vector") {
+        t = TokVal(*reinterpret_cast<Vector*>(workspace->operator[](id)));
+    }
+    // Matrix
+    if (wsv_group_names[group_id] == "Matrix") {
+        t = TokVal(*reinterpret_cast<Matrix*>(workspace->operator[](id)));
+    }
+
+    std::stringstream s;
+    s << wsv_group_names[group_id] << "Set";
+
+    Index m_id = MdMap.at(String(s.str()));
+    ArrayOfIndex output(1), input(0);
+    output[0] = id;
+    MRecord mr(m_id, output, input, t, Agenda{});
+    a->push_back(mr);
+}
+
+void agenda_add_method(Agenda * a,
+                       const long id,
+                       unsigned long n_output_args,
+                       const long *output_args,
+                       unsigned long n_input_args,
+                       const long *input_args)
+{
+    ArrayOfIndex output, input;
+    Agenda aa{};
+    TokVal t{};
+    copy_output_and_input(output, input, n_output_args, output_args, n_input_args, input_args);
+    MRecord mr(id, output, input, t, Agenda{});
+    a->push_back(mr);
+}
+
+void agenda_clear(Agenda * a)
+{
+    a->operator=(Agenda());
 }
 
 const char * execute_agenda(InteractiveWorkspace *workspace, const Agenda *a)
@@ -167,11 +261,15 @@ const char * get_method_g_out(Index i, Index j)
 }
 
 const char * execute_workspace_method(InteractiveWorkspace *workspace,
-                                        long i,
+                                        long id,
+                                        unsigned long n_args_out,
                                         const long * args_out,
+                                        unsigned long n_args_in,
                                         const long * args_in)
 {
-    return workspace->execute_workspace_method(i, args_out, args_in);
+    ArrayOfIndex output, input;
+    copy_output_and_input(output, input, n_args_out, args_out, n_args_in, args_in);
+    return workspace->execute_workspace_method(id, output, input);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -318,6 +416,10 @@ VariableValueStruct get_variable_value(InteractiveWorkspace *workspace, Index id
             value.inner_ptr = s->get_column_index_pointer();
             value.outer_ptr = s->get_row_start_pointer();
         }
+    } else {
+        if (value.initialized) {
+            value.ptr = workspace->operator[](id);
+        }
     }
     return value;
 }
@@ -327,6 +429,11 @@ void set_variable_value(InteractiveWorkspace *workspace,
                         long group_id,
                         VariableValueStruct value)
 {
+    // Agenda
+    if (wsv_group_names[group_id] == "Agenda") {
+        const Agenda *ptr = reinterpret_cast<const Agenda *>(value.ptr);
+        workspace->set_agenda_variable(id, *ptr);
+    }
     // Index
     if (wsv_group_names[group_id] == "Index") {
         const Index *ptr = reinterpret_cast<const Index *>(value.ptr);

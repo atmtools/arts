@@ -200,9 +200,60 @@ extern "C" {
      *  \return Pointer to the agenda holding the parsed controlfile or NULL if
      *   an error occurred during parsing.
      */
-
     DLL_PUBLIC
     Agenda * parse_agenda(const char *filename);
+
+    //! Create Agenda
+    /** Creates an empyt agenda.
+     *
+     *  \param name Name of the agenda
+     *  \return Pointer to the newly created agenda.
+     */
+    DLL_PUBLIC
+    Agenda * create_agenda(const char *name);
+
+    //! Add method to agenda
+    /**
+     * Add a method to the given agenda.
+     *  \param a Pointer to agenda object.
+     *  \param id Index of the method to add to the agenda.
+     *  \param n_args_out Number of non-generic and generic output arguments.
+     *  \param args_out Indices of the output variables.
+     *  \param n_args_in Number of non-generic and generic input arguments.
+     *  \param args_in Indices of the input variables.
+     */
+    DLL_PUBLIC
+    void agenda_add_method(Agenda *a, const Index id,
+                           unsigned long n_args_out,
+                           const long * args_out,
+                           unsigned long n_args_in,
+                           const long * args_in);
+
+    DLL_PUBLIC
+    //! Insert a set method into an agenda.
+    /**
+     * This inserts a set method into the given agenda which sets the a workspace variable
+     * given by its ID to to the value it currently has in the given workspace.
+     *
+     *  \param Pointer to the workspace
+     *  \param Pointer to the agenda
+     *  \param The workspace variables which should be set to the value it currently has in
+     *  the given workspace.
+     *  \param The group_id of the workspace variable.
+     */
+    void agenda_insert_set(InteractiveWorkspace *ws,
+                           Agenda * a,
+                           long id,
+                           long group_id);
+
+    //! Clear Agenda
+    /**
+     *  Resets a given agenda to be emtpy.
+     *  \param a Pointer to agenda object.
+     */
+    DLL_PUBLIC
+    void agenda_clear(Agenda *a);
+
     //! Execute Agenda
     /** Executes the given agenda on a given workspace.
      *
@@ -211,7 +262,6 @@ extern "C" {
      *  \return NULL if execution was successfull, otherwise pointer to the c_str holding the
      *  error message from ARTS.
      */
-
     DLL_PUBLIC
     const char * execute_agenda(InteractiveWorkspace *workspace, const Agenda *a);
 
@@ -303,8 +353,10 @@ extern "C" {
      */
     DLL_PUBLIC
     const char * execute_workspace_method(InteractiveWorkspace *workspace,
-                                          long i,
+                                          long id,
+                                          unsigned long n_args_out,
                                           const long * args_out,
+                                          unsigned long n_args_in,
                                           const long * args_in);
 
     ////////////////////////////////////////////////////////////////////////////

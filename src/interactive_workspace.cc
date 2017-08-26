@@ -50,8 +50,8 @@ const char * InteractiveWorkspace::execute_agenda(const Agenda *a)
 }
 
 const char * InteractiveWorkspace::execute_workspace_method(long id,
-                                                            const long * args_out,
-                                                            const long * args_in)
+                                                            const ArrayOfIndex &output,
+                                                            const ArrayOfIndex &input)
 {
     // Make sure verbosity is set.
     Index wsv_id_verbosity = get_wsv_id("verbosity");
@@ -61,38 +61,13 @@ const char * InteractiveWorkspace::execute_workspace_method(long id,
     CREATE_OUTS;
 
     const MdRecord &m = md_data[id];
-    ArrayOfIndex output{};
-    ArrayOfIndex input{};
-    TokVal t{};
-    Agenda a{};
-
     if (m.SetMethod()) {
-        swap(args_out[0], args_in[0]);
+        swap(output[0], input[0]);
         return nullptr;
     }
 
-    size_t arg_index = 0;
-    for (size_t i = 0; i < m.Out().size(); ++i) {
-        output.push_back(args_out[arg_index]);
-        ++arg_index;
-    }
-    try {
-        for (size_t i = 0; i < m.GOut().size(); ++i) {
-            output.push_back(args_out[arg_index]);
-            ++arg_index;
-        }
-    } catch (...) {}
-
-    arg_index = 0;
-    for (size_t i = 0; i < m.In().size(); ++i) {
-        input.push_back(args_in[arg_index]);
-        ++arg_index;
-    }
-    for (size_t i = 0; i < m.GIn().size(); ++i) {
-        input.push_back(args_in[arg_index]);
-        ++arg_index;
-    }
-
+    TokVal t{};
+    Agenda a{};
     try {
         MRecord mr(id, output, input, t, a);
         getaways[id](*this, mr);
@@ -101,6 +76,12 @@ const char * InteractiveWorkspace::execute_workspace_method(long id,
         return error_buffer->c_str();
     }
     return nullptr;
+}
+
+void InteractiveWorkspace::set_agenda_variable(Index id, const Agenda &src)
+{
+    *reinterpret_cast<Agenda*>(this->operator[](id)) = src;
+    resize();
 }
 
 void InteractiveWorkspace::set_index_variable(Index id, const Index &src)
@@ -173,6 +154,9 @@ void InteractiveWorkspace::resize()
 
 Index InteractiveWorkspace::add_variable(Index group_id)
 {
+    if (wsv_data.size() != ws.size()) {
+        resize();
+    }
     Index id = static_cast<Index>(ws.size());
 
     ws.push_back(stack<WsvStruct *>());

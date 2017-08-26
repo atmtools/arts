@@ -46,8 +46,11 @@ public:
     const char * execute_agenda(const Agenda *a);
 
 
-    const char * execute_workspace_method(long id, const long * args_out, const long * args_in);
+    const char * execute_workspace_method(long id,
+                                          const ArrayOfIndex &output,
+                                          const ArrayOfIndex &input);
 
+    void set_agenda_variable(Index id, const Agenda &src);
     void set_index_variable(Index id, const Index &src);
     void set_numeric_variable(Index id, const Numeric &src);
     void set_string_variable(Index id, const char *src);
