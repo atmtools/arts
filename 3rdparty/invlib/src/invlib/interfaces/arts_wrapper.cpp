@@ -290,7 +290,7 @@ auto ArtsMatrixReference<ArtsType>::transpose_multiply(
     -> ArtsVector
 {
     ArtsVector w; w.resize(A.get().ncols());
-    ::mult(w, transpose(A.get()), v);
+    ::mult(w, ::transpose(A.get()), v);
     return w;
 }
 
@@ -310,8 +310,15 @@ auto ArtsMatrixReference<ArtsType>::transpose_multiply(
     -> ArtsMatrix
 {
     ArtsMatrix C; C.resize(A.get().ncols(), B.ncols());
-    ::mult(C, transpose(A.get()), B);
+    ::mult(C, ::transpose(A.get()), B);
     return C;
+}
+
+template<typename ArtsType>
+auto ArtsMatrixReference<ArtsType>::transpose() const
+    -> ConstMatrixView
+{
+    return ::transpose(A.get());
 }
 
 //---------------------------//

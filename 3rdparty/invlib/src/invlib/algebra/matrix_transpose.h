@@ -49,7 +49,7 @@ public:
     /*! The basic matrix type. */
     using MatrixType = typename decay<T1>::MatrixType;
     /*! The basic matrix type. */
-    using ResultType = MatrixType;
+    using ResultType = typename decay<T1>::ResultType;
 
     // ------------------------------- //
     //  Constructors and Destructors   //

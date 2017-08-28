@@ -72,7 +72,7 @@ public:
     OEMMatrixReference Jacobian(const OEMVector & xi,
                                 OEMVector & yi_)
     {
-        if (true)
+        if (!reuse_jacobian)
         {
             inversion_iterate_agendaExecute(
                 *ws, yi, jacobian, xi, 1,

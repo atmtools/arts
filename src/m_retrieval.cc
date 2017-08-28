@@ -105,7 +105,6 @@ void check_and_add_block(CovarianceMatrix &covmat,
         std::shared_ptr<Sparse> mat = make_shared<Sparse>(covmat_block);
         covmat.add_correlation(Block(range, range, std::make_pair(i,i), mat));
     } else {
-        std::cout << n_gps << " " << extent << " " << covmat_block.ncols() << std::endl;
         throw runtime_error("Matrix in covmat_block is inconsistent with the retrieval grids.");
     }
     if (!covmat_inv_block.empty()) {
@@ -202,26 +201,20 @@ void Covmat1DMarkov(Sparse& covmat_block,
                     const Vector& grid,
                     const Vector& sigma,
                     const Numeric& lc,
-                    const Numeric& co)
+                    const Numeric& co,
+                    const Verbosity &)
 {
     Index n = grid.nelem();
     ArrayOfIndex row_indices, column_indices;
     Vector       elements, elements_inv;
 
-    Numeric dz = abs(grid[1] - grid[0]);
-
-    for (Index i = 0; i < n; ++i) {
-        for (Index j = 0; j < n; ++j) {
-            Numeric e  = sigma[i] * sigma[j] * exp(-dz/lc);
-            if (e > co) {
-                row_indices.push_back(i);
-                column_indices.push_back(j);
-            }
-        }
+    if (n != sigma.nelem()) {
+        throw runtime_error("Size of grid incompatible with given variances.");
     }
 
     elements = Vector(row_indices.size());
     for (size_t i = 0; i < row_indices.size(); ++i) {
+        Numeric dz = abs(grid[row_indices[i]] - grid[column_indices[i]]);
         Numeric e  = sigma[row_indices[i]] * sigma[column_indices[i]] * exp(-dz/lc);
         elements[i] = e;
     }
@@ -233,6 +226,7 @@ void Covmat1DMarkov(Sparse& covmat_block,
     column_indices = ArrayOfIndex{};
     elements       = Vector(3 * n - 2);
 
+    Numeric dz = abs(grid[1] - grid[0]);
     Numeric alpha = exp(-dz / lc);
     Numeric c1    = - alpha / (1.0 - alpha * alpha);
     Numeric c2    = 1.0 /  (1.0 - alpha * alpha);
@@ -259,8 +253,8 @@ void Covmat1DMarkov(Sparse& covmat_block,
 
         // Upper Tri-diagonal
         if (i < n-1) {
-            column_indices.push_back(i);
-            row_indices.push_back(i+1);
+            column_indices.push_back(i+1);
+            row_indices.push_back(i);
             elements[i*3 + 1] = c1;
             elements[i*3 + 1] /= (sigma[i] * sigma[i+1]);
         }
@@ -278,15 +272,16 @@ void Covmat1D(Sparse& covmat_block,
               const Vector& cls_1,
               const Vector& cls_2,
               const Numeric& co,
-              const String& fname)
+              const String& fname,
+              const Verbosity &)
 {
     Index m = grid_1.nelem();
     assert(sigma_1.nelem() == m);
     assert(cls_1.nelem() == m);
 
-    Index n = grid_1.nelem();
-    assert(sigma_1.nelem() == n);
-    assert(cls_1.nelem() == n);
+    Index n = grid_2.nelem();
+    assert(sigma_2.nelem() == n);
+    assert(cls_2.nelem() == n);
 
     assert((n == m) || (n==0));
 
@@ -294,6 +289,7 @@ void Covmat1D(Sparse& covmat_block,
     ConstVectorView grid_view_2(grid_2), sigma_view_2(sigma_2), cls_view_2(cls_2);
 
     if (n==0) {
+        n = m;
         grid_view_2  = grid_view_1;
         sigma_view_2 = sigma_view_1;
         cls_view_2   = sigma_view_1;
@@ -339,7 +335,7 @@ void Covmat1D(Sparse& covmat_block,
             Numeric e = sigma_view_1[i] * sigma_view_2[j] * f(i,j);
             if (e > co) {
                 row_indices.push_back(i);
-                column_indices.push_back(i);
+                column_indices.push_back(j);
             }
         }
     }
@@ -415,7 +411,6 @@ void retrievalAddAbsSpecies(
     jacobianAddAbsSpecies(ws, jacobian_quantities, jacobian_agenda, atmosphere_dim, p_grid,
                           lat_grid, lon_grid, rq_p_grid, rq_lat_grid, rq_lon_grid, species,
                           method, mode, for_species_tag, dx, verbosity);
-    std::cout << "jq size:" << jacobian_quantities.size() << std::endl;
     check_and_add_block(covmat_sx, jacobian_quantities, atmosphere_dim, covmat_block, covmat_inv_block);
 }
 

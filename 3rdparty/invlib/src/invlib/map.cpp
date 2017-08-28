@@ -437,6 +437,8 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFOR
 {
     Log<LogType::MAP> log(log_params ...);
     auto t1 = std::chrono::steady_clock::now();
+    Formulation f = Formulation::MFORM;
+    log.init(F, xa, Sa, Se, y, M, f);
 
     y_ptr = &y;
     if (x.rows() != n) {
@@ -445,6 +447,13 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFOR
     MeasurementVectorType yi; yi.resize(m);
     JacobianType K = Jacobian(x, yi);
     VectorType dx, yold;
+
+    cost_x = this->Base::cost_x(x);
+    cost_y = this->Base::cost_y(y, yi);
+    cost   = cost_x + cost_y;
+
+    RealType conv = NAN;
+    log.step(iterations, cost, cost_x, cost_y, conv, M);
 
     bool converged = false;
     iterations = 0;
@@ -463,23 +472,28 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFOR
         yi = evaluate(x);
         VectorType dy = yi - yold;
         VectorType r = inv(Se) * H * inv(Se) * dy;
-        RealType conv = dot(dy, r) / m;
-        if (conv < M.get_tolerance())
-        {
+        conv = dot(dy, r) / m;
+
+        if (conv < M.get_tolerance()) {
             converged = true;
-            break;
+        } else {
+            K = Jacobian(x , yi);
         }
 
-        // Book keeping.
+        // Log output.
         iterations++;
-
-        if (!converged)
-            K = Jacobian(x , yi);
+        cost_x = this->Base::cost_x(x);
+        cost_y = this->Base::cost_y(y, yi);
+        cost   = cost_x + cost_y;
+        log.step(iterations, cost, cost_x, cost_y, conv, M);
     }
-    return 0;
 
     // Timing output.
     auto t2 = std::chrono::steady_clock::now();
     auto compute_time = duration_cast<duration<double>>(t2 - t1);
     log.time(compute_time.count(), evaluate_time.count(), Jacobian_time.count());
+
+    log.finalize(converged, iterations, cost, cost_x, cost_y);
+
+    return 0;
 }

@@ -1,3 +1,23 @@
+2017-08-28 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-770
+
+	* 3rdparty/invlib/*:
+	- Fixed handling of log-output of m-form.
+
+	* src/methods.cc:
+	- Added Covmat1D and Markov1D workspace method for creation of correlation blocks
+	  of the covariance matrix.
+
+	* src/oem.cc:
+	- Added m-form for linear and gauss-newton methods.
+
+	* src/m_retrieval.cc:
+	- Some fixed for Covmat1D and Markov1D
+
+	* src/agenda_wrapper.h:
+	- Fix bug in handling of precomputed Jacobian.
+
 2017-08-26 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-769

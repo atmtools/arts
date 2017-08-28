@@ -765,10 +765,12 @@ void OEM_checks(
 
 
   // Check GINs
-  if( !( method == "li"    || method == "gn"    ||
-         method == "ml"    || method == "lm"    ||
-         method == "li_cg" || method == "gn_cg" ||
-         method == "lm_cg" || method == "ml_cg" ) )
+  if( !( method == "li"      || method == "gn"      ||
+         method == "li_m"    || method == "gn_m"    ||
+         method == "ml"      || method == "lm"      ||
+         method == "li_cg"   || method == "gn_cg"   ||
+         method == "li_cg_m" || method == "gn_cg_m" ||
+         method == "lm_cg"   || method == "ml_cg" ) )
   {
     throw runtime_error( "Valid options for *method* are \"nl\", \"gn\" and " 
                          "\"ml\" or \"lm\"." );
@@ -932,6 +934,7 @@ void OEM(
         AgendaWrapper aw(&ws, (unsigned int) m, (unsigned int) n,
                          jacobian, yf, &inversion_iterate_agenda);
         OEM_STANDARD<AgendaWrapper> oem(aw, xa_oem, SaInv, SeInv);
+        OEM_MFORM<AgendaWrapper> oem_m(aw, xa_oem, SaInv, SeInv);
         int oem_verbosity = static_cast<int>(display_progress);
 
         int return_code = 0;
@@ -946,6 +949,14 @@ void OEM(
                     x_oem, y_oem, gn, oem_verbosity,
                     ml_ga_history, true);
             }
+            else if (method == "li_m")
+            {
+                Normed<> s(T, apply_norm);
+                GN gn(stop_dx, 1, s); // Linear case, only one step.
+                return_code = oem_m.compute<GN, ArtsLog>(
+                    x_oem, y_oem, gn, oem_verbosity,
+                    ml_ga_history, true);
+            }
             else if (method == "li_cg")
             {
                 Normed<CG> cg(T, apply_norm, 1e-12, oem_verbosity);
@@ -954,11 +965,27 @@ void OEM(
                     x_oem, y_oem, gn, oem_verbosity,
                     ml_ga_history, true);
             }
+            else if (method == "li_cg_m")
+            {
+                Normed<CG> cg(T, apply_norm, 1e-12, oem_verbosity);
+                GN_CG gn(stop_dx, 1, cg); // Linear case, only one step.
+                return_code = oem_m.compute<GN_CG, ArtsLog>(
+                    x_oem, y_oem, gn, oem_verbosity,
+                    ml_ga_history, true);
+            }
             else if (method == "gn")
             {
                 Normed<> s(T, apply_norm);
                 GN gn(stop_dx, (unsigned int) max_iter, s); // Linear case, only one step.
-                return_code = oem.compute<GN, ArtsLog>(
+                    return_code = oem.compute<GN, ArtsLog>(
+                        x_oem, y_oem, gn, oem_verbosity,
+                        ml_ga_history);
+            }
+            else if (method == "gn_m")
+            {
+                Normed<> s(T, apply_norm);
+                GN gn(stop_dx, (unsigned int) max_iter, s); // Linear case, only one step.
+                return_code = oem_m.compute<GN, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
                     ml_ga_history);
             }
@@ -967,6 +994,14 @@ void OEM(
                 Normed<CG> cg(T, apply_norm, 1e-12, oem_verbosity);
                 GN_CG gn(stop_dx, (unsigned int) max_iter, cg);
                 return_code = oem.compute<GN_CG, ArtsLog>(
+                    x_oem, y_oem, gn, oem_verbosity,
+                    ml_ga_history);
+            }
+            else if (method == "gn_cg_m")
+            {
+                Normed<CG> cg(T, apply_norm, 1e-12, oem_verbosity);
+                GN_CG gn(stop_dx, (unsigned int) max_iter, cg);
+                return_code = oem_m.compute<GN_CG, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
                     ml_ga_history);
             }
@@ -1012,6 +1047,7 @@ void OEM(
         }
         catch (const std::exception & e)
         {
+            throw e;
             oem_diagnostics[0]  = 99;
             oem_diagnostics[2] = oem.cost;
             oem_diagnostics[3] = oem.cost_y;

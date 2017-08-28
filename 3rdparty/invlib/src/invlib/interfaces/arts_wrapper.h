@@ -205,6 +205,8 @@ public:
     ArtsMatrix multiply(const ArtsMatrix &B) const;
     ArtsMatrix transpose_multiply(const ArtsMatrix &v) const;
 
+    ConstMatrixView transpose() const;
+
 private:
 
     std::reference_wrapper<ArtsType> A;

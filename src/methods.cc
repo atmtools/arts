@@ -3970,6 +3970,85 @@ void define_md_data_raw()
 
   md_data_raw.push_back
       ( MdRecord
+        ( NAME( "Covmat1D" ),
+          DESCRIPTION
+          (
+              "Create 1D covariance matrix.\n"
+              "\n"
+              "Creates a 1D covariance matrix for two retrieval quantities on given \n"
+              " grids from a given functional form. Elements  of the covariance matrix\n"
+              "are computed as\n"
+              " S_{i,j} = sigma_i * sigma_j * f(d_{i,j} / l_{i,j}) \n"
+              " where d_{i,j} is the distance between the two grid points and l_{i,j}\n"
+              " the mean of the correlation lengths of the grid points.\n"
+              "\n"
+              " If a cutoff value co is given elements with absolute value less than this \n"
+              " are set to zero.\n"
+              "\n"
+              "The following functional forms are available:\n"
+              "  \"exp\": f(x) = exp(-x) \n"
+              "  \"lin\": f(x) = 1.0 - x, for x > 1.0, 0.0 otherwise \n"
+              "  \"gauss\": f(x) = exp(-x^2) \n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT("covmat_block", "covmat_inv_block"),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN(),
+          GIN("grid_1", "grid_2", "sigma_1", "sigma_2", "cls_1", "cls_2", "co", "fname"),
+          GIN_TYPE("Vector", "Vector", "Vector", "Vector", "Vector", "Vector",
+                   "Numeric", "String"),
+          GIN_DEFAULT(NODEF, "[]", NODEF, "[]", NODEF, "[]", "0.0", NODEF),
+          GIN_DESC("The retrieval grid for the first retrieval quantity.",
+                   "The retrieval grid for the second retrieval quantity."
+                   " (If empty taken as grid_1)",
+                   "The variances of the first retrieval quantity.",
+                   "The variances of the second retrieval quantity."
+                   "(If empty taken as sigma_1)",
+                   "The correlations lengths of the first retrieval quantity.",
+                   "The correlations lengths of the second retrieval quantity."
+                   "(If empty taken as cls_1)",
+                   "The cutoff value for covariance matrix elements.",
+                   "The name of the functional form to use.",
+              )
+            ));
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "Covmat1DMarkov" ),
+          DESCRIPTION
+          (
+              "Create Markov Process Covariance Matrix.\n"
+              "\n"
+              "Create a markov process covariance matrix for a retrieval quantity on \n"
+              " evenly spaced 1D grid. The correlation between two grid points i,j is \n"
+              " is computed as \n"
+              " cov(i,j) = sigma[i] * sigma[j] * exp(- d(i,j) / lc)\n"
+              " where d(i,j) = abs(grid[i] - grid[j]).\n"
+              "\n"
+              "This function also sets covmat_inv_block to the analytically computed inverse\n"
+              "of the covariance matrix of the markov provess, which is tri-diagonal. Note\n"
+              "that this requires the retrieval grid to be evenly spaced.\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT("covmat_block", "covmat_inv_block"),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN(),
+          GIN("grid", "sigma", "lc", "co"),
+          GIN_TYPE("Vector", "Vector", "Numeric", "Numeric"),
+          GIN_DEFAULT(NODEF, NODEF, NODEF, "0.0"),
+          GIN_DESC("The retrieval grid.",
+                   "The vairance for each grid point.",
+                   "The correlation length of the Markov process.",
+                   "The cutoff value below which elements will be set to 0.0"
+              )
+            ));
+
+  md_data_raw.push_back
+      ( MdRecord
         ( NAME( "covmat_seSet" ),
           DESCRIPTION
           (
