@@ -1,6 +1,21 @@
 2017-08-28 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-772
+
+	* ChangeLog: Missed save from prev commit.
+
+2017-08-28 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-771
+
+	* src/m_microphysics.cc, methods.cc (pndFromPsd):
+	New, extended WSM for psd-to-pnd conversion including some checks that
+	main part of bulk properties is covered by the chosen size grid (and
+	corresponding scat_data).
+
+	(pndAdjustFromScatMeta):
+	Do not throw error if cloudbox is off (unless jacobians requested),
+	just return.
 
 2017-08-28 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
