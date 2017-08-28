@@ -11046,18 +11046,76 @@ void define_md_data_raw()
  
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "pndFromPsdBasic" ),
+      ( NAME( "pndFromPsd" ),
         DESCRIPTION
         (
-         "Calculates *pnd_data* from given *psd_data*.\n"
+         "Calculates *pnd_data* from given *psd_data* for one scattering species.\n"
          "\n"
-         "Work in progress...\n"
+         "Performs integration of the size distribution over the size grid\n"
+         "bin deriving pnd (units #/m3) from psd (units #/m3/m). Some checks\n"
+         "on the sufficiency of the size grid range and coverage are applied.\n"
          "\n"
          "*quad_order* can be 0 for rectangular or 1 for trapezoidal\n"
          "integration. The only difference is the treatment of the start and\n"
          "end nodes. For trapezoidal their corresponding bins end exactly at\n"
          "the nodes, while for rectangular the extend further out by the half\n"
          "distance to the neighbor node (but not beyond 0).\n"
+         "\n"
+         "Attempts to check that the size grids and *scat_data* represent the\n"
+         "bulk extinction sufficiently. Specifically, it is tested that\n"
+         " (a) psd*ext is decreasing at the small and large particle size\n"
+         "     ends of the size grid - but only if scattering species bulk\n"
+         "     extinction exceeds 0.02 times *threshold_ss_ext*.\n"
+         " (b) removing the smallest and largest particles changes the\n"
+         "     resulting bulk extinction by less then a fraction of\n"
+         "     *threshold_se_ext* - but only if scattering species bulk\n"
+         "     extinction exceeds *threshold_ss_ext* and number density (pnd)\n"
+         "     of the edge size point at this atmospheric level is larger\n"
+         "     than *threshold_se_pnd* times the maximum pnd of this\n"
+         "     scattering element over all atmospheric levels.\n"
+         "Skipping tests in order the thresholds are not met is done to\n"
+         "minimize issues arising from very low mass densities,\n"
+         "particularly at single atmospheric levels, and very low bulk\n"
+         "extinctions, i.e. in cases the effect on the radiance fields are\n"
+         "estimated to be low."
+         "\n"
+         "NOTE: The tests are only approximate and do not guarantee the\n"
+         "validity of the resulting bulk properties (and increasing the\n"
+         "thresholds will decrease the reliability of the bulk properties).\n"
+        ),
+        AUTHORS( "Jana Mendrok, Patrick Eriksson" ),
+        OUT( "pnd_data", "dpnd_data_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "pnd_size_grid", "psd_data", "psd_size_grid", "dpsd_data_dx",
+            "scat_data", "f_grid", "scat_data_checked" ),
+        GIN(         "quad_order", "scat_index", "threshold_se_ext",
+                     "threshold_ss_ext", "threshold_se_pnd" ),
+        GIN_TYPE(    "Index",      "Index",      "Numeric",
+                     "Numeric",        "Numeric" ),
+        GIN_DEFAULT( "1",          NODEF,        "0.02",
+                     "1e-8",           "0.02" ),
+        GIN_DESC( "Order of bin quadrature.",
+                  "Take data from scattering species of this index (0-based) in"
+                  " *scat_data*.",
+                  "Maximum allowed extinction fraction in each of the edge size"
+                  " bins.",
+                  "Minimum bulk extinction in the processed scattering species"
+                  " for which to apply size grid representation checks.",
+                  "Minimum ratio of edge point pnd to maximum pnd of this"
+                  " scattering element over all pressure levels." )
+        ));
+ 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "pndFromPsdBasic" ),
+        DESCRIPTION
+        (
+         "Calculates *pnd_data* from given *psd_data*.\n"
+         "\n"
+         "As *pndFromPsdBasic*, but without bulk extinction representation\n"
+         "checks.\n"
         ),
         AUTHORS( "Jana Mendrok, Patrick Eriksson" ),
         OUT( "pnd_data", "dpnd_data_dx" ),

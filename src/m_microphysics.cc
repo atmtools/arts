@@ -303,6 +303,292 @@ void pndFromPsdBasic(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void pndFromPsd(
+         Matrix&    pnd_data,
+         Tensor3&   dpnd_data_dx,
+   const Vector&    pnd_size_grid,
+   const Matrix&    psd_data,
+   const Vector&    psd_size_grid,
+   const Tensor3&   dpsd_data_dx,
+   const ArrayOfArrayOfSingleScatteringData& scat_data,
+   const Vector&    f_grid,
+   const Index&     scat_data_checked,
+   const Index&     quad_order,
+   const Index&     scat_index,
+   const Numeric&   threshold_rsec,
+   const Numeric&   threshold_bext,
+   const Numeric&   threshold_rpnd,
+   const Verbosity& )
+{
+  // Some sizes 
+  const Index np  = psd_data.nrows();
+  const Index ng  = psd_size_grid.nelem();
+        Index ndx = 0;
+  const bool  do_dx = !dpsd_data_dx.empty();
+
+  // Checks
+  if( ng < 3 )
+    throw runtime_error( "The method requires that length of *psd_size_grid* is >= 3." );
+  if( ng != pnd_size_grid.nelem() )
+    throw runtime_error( "So far, the method requires that *psd_size_grid* and"
+                         " *pnd_size_grid* have the same length." );
+  for( Index i=0; i<ng; i++ )
+    {
+      if( psd_size_grid[i] != pnd_size_grid[i] )
+        throw runtime_error( "So far, the method requires that *psd_size_grid* and"
+                             " *pnd_size_grid* are identical." );
+    }
+  if( psd_data.ncols() != ng )
+    throw runtime_error( "Number of columns in *psd_data* and length of"
+                         " *psd_size_grid* must match." );
+
+  pnd_data.resize( np, ng );
+  if( do_dx )
+    {
+      if( dpsd_data_dx.ncols() != ng )
+        throw runtime_error( "Number of columns in *dpsd_data_dx* and length of"
+                             " *psd_size_grid* must match." );
+      ndx = dpsd_data_dx.npages();
+      dpnd_data_dx.resize( ndx, np, ng );
+    }
+  else
+    { dpnd_data_dx.resize( 0, 0, 0 ); }
+
+  if( !scat_data_checked )
+    throw runtime_error( "*scat_data* must have passed a consistency check"
+                         " (scat_data_checked=1).\n"
+                         "Alternatively, use *pndFromPsdBasic*." );
+  if( scat_index >= scat_data.nelem() )
+    throw runtime_error( "*scat_index* exceeds the number of available"
+                         " scattering species." );
+  if( scat_data[scat_index].nelem() != ng )
+    throw runtime_error( "Number of scattering elements in this scattering"
+                         " species (*scat_index*) inconsistent with length of"
+                         " *pnd_size_grid*." );
+
+  // Get sorted version of psd_size_grid (and, since pnd_size_grid so far is
+  // identical, of this as well implicitly)
+  ArrayOfIndex intarr;
+  Vector psd_size_grid_sorted(ng);
+  get_sorted_indexes(intarr, psd_size_grid);
+  for( Index i=0; i<ng; i++ )
+    psd_size_grid_sorted[i] = psd_size_grid[intarr[i]];
+
+  // Calculate pnd by integration of psd for given nodes/bins
+  Vector quadweights( ng );
+  bin_quadweights( quadweights, psd_size_grid_sorted, quad_order );
+
+  for ( Index i=0; i<ng; i++ ) //loop over pnd_size_grid aka scattering elements
+    {
+      for( Index ip=0; ip<np; ip++ ) //loop over pressure levels
+        { pnd_data(ip,intarr[i]) = quadweights[i] * psd_data(ip,intarr[i]); }
+
+      if( do_dx )
+        {
+          for( Index ip=0; ip<np; ip++ )
+            {
+              for ( Index ix=0; ix<ndx; ix++ )
+                { dpnd_data_dx(ix,ip,intarr[i]) = quadweights[i] *
+                                          dpsd_data_dx(ix,ip,intarr[i]); }
+            }
+        }
+    }
+
+  ArrayOfSingleScatteringData  sds = scat_data[scat_index];
+  Index fstart = 0;
+  Index nf = f_grid.nelem();
+  Matrix bulkext(np, nf, 0.);
+  Vector ext(nf), ext_s0(nf), ext_s1(nf), ext_l0(nf), ext_l1(nf);
+
+  // check that pnd_size_grid and scat_data cover (scalar) bulk extinction properly.
+  // (formerly we used mass. but heavy particles might not necessarily
+  // contribute much to optprops. same is valid for total particle number.)
+  //
+  // We do that by 
+  // (a) checking that psd*ext decreases at the edges, i.e. to increase the
+  //     probability that the main extinction peak is covered and in order to
+  //     avoid passing check (b) through making the edge bins tiny
+  // (b) checking that the extinction contributions of the edge bins is small
+  //     compared to the total bulk bin.
+  // The tests are somewhat over-sensitive on the small particle side in the
+  // sense that the checks are triggered easily by low mass density cases - which
+  // have their main extinction contributed by small particles, but for which
+  // the total extinction is quite low. Hence, there is also a total extinction
+  // threshold, below which the checks are not applied. Furthermore, such low
+  // densities do typically not occur throughout the whole atmospheric profile,
+  // but higher density layers might exists, meaning the low density layers
+  // contribute very little to the total optical properties, hence should not
+  // dominate the check criteria (no need to be very strict with them if they
+  // hardly contribute anyways). Therefore, checks are also not applied if the
+  // edge bin number density at a given atmospheric level is low compared to the
+  // maximum number of this scattering element in the profile.
+  //
+  // Technically, we need to cover all freqs separately (as optprops vary
+  // strongly with freq). We indeed do that here.
+  // FIXME: Shall a single freq or reduced freq-number option be implemented?
+  // If so, the don't-apply-test criteria need to be checked again though (so it
+  // does not happen that effectively all of the reduced-freq testing is skipped
+  // due to them.
+  //
+  // Technically, we also need to use identical temperatures (and preferably the
+  // ones used for deriving psd). But all scat elements can be on different
+  // T-grids, ie we would need to interpolate. Instead we just use the first in
+  // line.
+  // FIXME: Maybe refine in future allowing to select between low, high, median
+  // grid point or even specify one temp to use.
+  //
+  // And, technically ext might be directional dependent (for oriented
+  // particles). Also this might be different for each scat element. However, at
+  // least for now, we only check the 0-direction.
+  // FIXME: Check further directions?
+
+  for( Index ise=0; ise<ng; ise++ ) //loop over pnd_size_grid aka scattering elements
+    {
+      if( sds[intarr[ise]].ext_mat_data.nshelves()>1 )
+        ext = sds[intarr[ise]].ext_mat_data(joker,0,0,0,0);
+      else
+        ext = sds[intarr[ise]].ext_mat_data(0,0,0,0,0);
+
+      // keep the ext data of the edge bins 
+      if( ise==0 )
+        ext_s0 = ext;
+      else if( ise==1 )
+        ext_s1 = ext;
+      else if( ise==ng-2 )
+        ext_l1 = ext;
+      else if( ise==ng-1 )
+        ext_l0 = ext;
+    
+      for( Index ip=0; ip<np; ip++ ) //loop over pressure levels
+        if( abs(pnd_data(ip,joker).sum()) > 0. )
+          for( Index f=fstart; f<(fstart+nf); f++ )
+            bulkext(ip,f) += pnd_data(ip,intarr[ise]) * ext[f];
+    }
+
+  Numeric max0=0, max1=0;
+  for( Index ip=0; ip<np; ip++ ) //loop over pressure levels
+    {
+      max0 = max(abs(pnd_data(ip,intarr[0])),max0);
+      max1 = max(abs(pnd_data(ip,intarr[ng-1])),max1);
+    }
+
+  Numeric contrib;
+  for( Index ip=0; ip<np; ip++ ) //loop over pressure levels
+  {
+    if( abs(pnd_data(ip,joker).sum()) > 0. )
+    {
+      for( Index f=fstart; f<(fstart+nf); f++ )
+      {
+/*        for( Index ise=0; ise<ng; ise++ )
+        {
+          if( sds[ise].ext_mat_data.nshelves()>1 )
+            ext = sds[ise].ext_mat_data(joker,0,0,0,0);
+          else
+            ext = sds[ise].ext_mat_data(0,0,0,0,0);
+          cout << "    se #" << ise << ": contrib = pnd*ext/bext = "
+               << abs(pnd_data(ip,ise)) << "*" << ext[f] << "/"
+               << abs(bulkext(ip,f)) << " = "
+               << 1e2*abs(pnd_data(ip,ise))*ext[f]/abs(bulkext(ip,f))
+               << "%\n";
+        }*/
+
+        // check that bin-width normalized extinction (or ext*psd) is
+        // decreasing.
+        if( abs(bulkext(ip,f)) > 1e-2*threshold_bext )
+        {
+          if( abs(psd_data(ip,intarr[0])) > 0. and
+              ext_s0[f]*abs(psd_data(ip,intarr[0])) >=
+              ext_s1[f]*abs(psd_data(ip,intarr[1])) )
+          {
+            ostringstream os;
+            os << "  Bin-width normalized extinction (ext*psd) not decreasing"
+               << " at small size edge\n"
+               << "  at atm level #" << ip
+               << " and freq point #" << f << ".\n"
+               << "  ext_s0=" << ext_s0[f]
+               << ", psd_s0=" << abs(psd_data(ip,intarr[0]))
+               << ", ext_s0*psd_s0=" << ext_s0[f]*abs(psd_data(ip,intarr[0]))
+               << "\n    LARGER EQUAL\n"
+               << "  ext_s1=" << ext_s1[f]
+               << ", psd_s1=" << abs(psd_data(ip,intarr[1]))
+               << ", ext_s1*psd_s1=" << ext_s1[f]*abs(psd_data(ip,intarr[1])) << "\n"
+               << "    Total bulk ext = " << abs(bulkext(ip,f)) << "\n"
+               << "  Need to add smaller sized particles!\n";
+            throw runtime_error(os.str());
+          }
+
+          if( abs(psd_data(ip,intarr[ng-1])) > 0. and
+              ext_l0[f]*abs(psd_data(ip,intarr[ng-1])) >=
+              ext_l1[f]*abs(psd_data(ip,intarr[ng-2])) )
+          {
+            ostringstream os;
+            os << "Bin-width normalized extinction (ext*psd) not decreasing"
+              << " at large size edge\n"
+              << "at atm level #" << ip
+              << " and freq point #" << f << ".\n"
+              << "  ext_l0=" << ext_l0[f]
+              << ", psd_l0=" << abs(psd_data(ip,intarr[ng-1]))
+              << ", ext_l0*psd_l0=" << ext_l0[f]*abs(psd_data(ip,intarr[ng-1]))
+              << "\n    LARGER EQUAL\n"
+              << "  ext_l1=" << ext_l1[f]
+              << ", psd_l1=" << abs(psd_data(ip,intarr[ng-2]))
+              << ", ext_l1*psd_l1=" << ext_l1[f]*abs(psd_data(ip,intarr[ng-2])) << "\n"
+               << "    Total bulk ext = " << abs(bulkext(ip,f)) << "\n"
+              << "  Need to add larger sized particles!\n";
+            throw runtime_error(os.str());
+          }
+        }
+
+        // check that contribution of edge bins to total extinction is
+        // sufficiently small
+        if( abs(bulkext(ip,f)) > threshold_bext )
+        {
+          if( abs(pnd_data(ip,intarr[0])) > threshold_rpnd*max0 )
+          {
+            contrib = abs(pnd_data(ip,intarr[0]))*ext_s0[f]/abs(bulkext(ip,f));
+            //cout << "    small edge contrib = pnd*ext/bext = "
+            //     << abs(pnd_data(ip,intarr[0])) << "*" << ext_s0[f] << "/"
+            //     << abs(bulkext(ip,f)) << " = " << contrib << "\n";
+            if( abs(pnd_data(ip,intarr[0]))*ext_s0[f] > threshold_rsec * abs(bulkext(ip,f)) )
+            {
+              ostringstream os;
+              os << "Contribution of edge bin to total extinction too high"
+                 << " (" << contrib*1e2 << "% of " << abs(bulkext(ip,f))
+                 << ") at small size edge\n"
+                 << "at atm level #" << ip
+                 << " and freq point #" << f << ".\n"
+                 << "  Need to add smaller sized particles or refine the size"
+                 << " grid on the small size edge!\n";
+              throw runtime_error(os.str());
+            }
+          }
+          if( abs(pnd_data(ip,intarr[ng-1])) > threshold_rpnd*max1 )
+          {
+            contrib = abs(pnd_data(ip,intarr[ng-1]))*ext_l0[f]/abs(bulkext(ip,f));
+            //cout << "    large edge contrib = pnd*ext/bext = "
+            //     << abs(pnd_data(ip,ng-1)) << "*" << ext_l0[f] << "/"
+            //     << abs(bulkext(ip,f)) << " = " << contrib << "\n";
+            if( abs(pnd_data(ip,intarr[ng-1]))*ext_l0[f] > threshold_rsec * abs(bulkext(ip,f)) )
+            {
+              ostringstream os;
+              os << "Contribution of edge bin to total extinction too high"
+                 << " (" << contrib*1e2 << "% of " << abs(bulkext(ip,f))
+                 << ") at large size edge\n"
+                 << "at atm level #" << ip
+                 << " and freq point #" << f << ".\n"
+                 << "  Need to add larger sized particles or refine the size"
+                 << " grid on the large size edge!\n";
+              throw runtime_error(os.str());
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void pndAdjustFromScatMeta(
           Matrix&                             pnd_data,
 //          Tensor3&                            dpnd_data_dx,
@@ -919,9 +1205,21 @@ void pnd_fieldCalcFromParticleBulkProps(
   chk_atm_field( "particle_bulkprop_field", particle_bulkprop_field,
                  atmosphere_dim, particle_bulkprop_names.nelem(),
                  p_grid, lat_grid, lon_grid );
+
   // Further checks of *particle_bulkprop_field* below
   if( !cloudbox_on )
-    throw runtime_error( "*cloudbox_on* must be true to use this method." );
+  {
+    if( jacobian_do )
+    {
+      // FIXME: we might be able to avoid error throwing, but need to fill
+      // dpnd_field_dx properly then, don't we?
+      throw runtime_error( "*cloudbox_on* must be true to derive jacobians"
+                           " using this method." );
+    }
+    else
+      return;
+  }
+
   if( cloudbox_limits.nelem() != 2*atmosphere_dim )
     throw runtime_error( "Length of *cloudbox_limits* incorrect with respect "
                          "to *atmosphere_dim*." );
