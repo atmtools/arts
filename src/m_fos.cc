@@ -1238,6 +1238,7 @@ void iyHybrid(
   ArrayOfArrayOfPropagationMatrix abs_per_species;
   Tensor5             dtrans_partial_dx_above, dtrans_partial_dx_below;
   ArrayOfPropagationMatrix ppath_ext, pnd_ext_mat;
+  Tensor3             pnd_abs_vec;
   Tensor4 trans_partial, trans_cumulat;
   Vector              scalar_tau;
   ArrayOfIndex        clear2cloudbox;
@@ -1266,7 +1267,7 @@ void iyHybrid(
                                dppath_ext_dx, dppath_nlte_source_dx,
                                trans_partial, dtrans_partial_dx_above,
                                dtrans_partial_dx_below, extmat_case, clear2cloudbox,
-                               trans_cumulat, scalar_tau, pnd_ext_mat,
+                               trans_cumulat, scalar_tau, pnd_ext_mat, pnd_abs_vec,
                                ppath_pnd, dummy_ppath_dpnd_dx, scat_data_single,
                                propmat_clearsky_agenda, jacobian_quantities,
                                ppd, ppath, ppath_p, ppath_t, ppath_t_nlte,
@@ -1493,7 +1494,9 @@ void iyHybrid(
                 {
                   // Absorption is still missing in this expression
                   sourcebar(iv,is1) = scatsourcebar(iv,is1) +
-                    0.5 * ( ppath_blackrad(iv,ip) +
+                    0.5 * ( (ppath_ext[ip](iv,is1)+pnd_abs_vec(iv,is1,ip)) *
+                            ppath_blackrad(iv,ip) +
+                           +(ppath_ext[ip+1](iv,is1)+pnd_abs_vec(iv,is1,ip+1)) *
                             ppath_blackrad(iv,ip+1) );  
                   //
                   for( Index is2=0; is2<stokes_dim; is2++ )  

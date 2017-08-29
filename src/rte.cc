@@ -1931,6 +1931,7 @@ void get_ppath_pmat_and_tmat(
                             Tensor4&               trans_cumulat,
                             Vector&                scalar_tau,
                             ArrayOfPropagationMatrix& pnd_ext_mat,
+                            Tensor3&               pnd_abs_vec,
                             Matrix&                ppath_pnd,
                             ArrayOfMatrix&         ppath_dpnd_dx,
                             Array<ArrayOfArrayOfSingleScatteringData>& scat_data_single,
@@ -2262,7 +2263,7 @@ void get_ppath_pmat_and_tmat(
     }
     else
     {
-        Tensor3 pnd_abs_vec;
+        //Tensor3 pnd_abs_vec;
         //
         get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
                        ppath_pnd, ppath_dpnd_dx, ppath, ppath_t, stokes_dim, ppath_f, 

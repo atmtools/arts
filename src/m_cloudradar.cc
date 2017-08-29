@@ -292,6 +292,7 @@ void iyActiveSingleScat(
   ArrayOfArrayOfPropagationMatrix abs_per_species;
   Tensor5             dtrans_partial_dx_above, dtrans_partial_dx_below;
   ArrayOfPropagationMatrix ppath_ext, pnd_ext_mat;
+  Tensor3             pnd_abs_vec;
   Tensor4 trans_partial, trans_cumulat;
   Vector              scalar_tau;
   ArrayOfIndex        clear2cloudbox;
@@ -322,8 +323,8 @@ void iyActiveSingleScat(
                                dppath_ext_dx, dppath_nlte_source_dx,
                                trans_partial, dtrans_partial_dx_above,
                                dtrans_partial_dx_below, extmat_case, clear2cloudbox,
-                               trans_cumulat, scalar_tau, pnd_ext_mat, ppath_pnd,
-                               ppath_dpnd_dx, scat_data_single,
+                               trans_cumulat, scalar_tau, pnd_ext_mat, pnd_abs_vec,
+                               ppath_pnd, ppath_dpnd_dx, scat_data_single,
                                propmat_clearsky_agenda, jacobian_quantities,
                                ppd, ppath, ppath_p, ppath_t, ppath_t_nlte,
                                ppath_vmr, ppath_mag, ppath_f, f_grid, 
@@ -344,7 +345,7 @@ void iyActiveSingleScat(
                       f_grid, stokes_dim, ArrayOfIndex(0) );
       
           // Extract basic scattering data
-          Tensor3              pnd_abs_vec;
+          //Tensor3              pnd_abs_vec;
           //
           get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
                      ppath_pnd, ppath_dpnd_dx, ppath, ppath_t, stokes_dim, ppath_f, 

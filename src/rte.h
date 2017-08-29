@@ -355,6 +355,7 @@ void get_ppath_pmat_and_tmat(
                             Tensor4&               trans_cumulat,
                             Vector&                scalar_tau,
                             ArrayOfPropagationMatrix&               pnd_ext_mat,
+                            Tensor3&               pnd_abs_vec,
                             Matrix&                ppath_pnd,
                             ArrayOfMatrix&         ppath_dpnd_dx,
                             Array<ArrayOfArrayOfSingleScatteringData>& scat_data_single,

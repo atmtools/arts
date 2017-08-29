@@ -977,6 +977,7 @@ void iyTransmissionStandard(
   ArrayOfArrayOfPropagationMatrix abs_per_species;
   Tensor5             dtrans_partial_dx_above, dtrans_partial_dx_below;
   ArrayOfPropagationMatrix ppath_ext, pnd_ext_mat;
+  Tensor3             pnd_abs_vec;
   Tensor4             trans_partial, trans_cumulat;
   Vector              scalar_tau;
   ArrayOfIndex        clear2cloudbox;
@@ -1003,8 +1004,8 @@ void iyTransmissionStandard(
                                dppath_ext_dx, dppath_nlte_source_dx,
                                trans_partial, dtrans_partial_dx_above,
                                dtrans_partial_dx_below, extmat_case, clear2cloudbox,
-                               trans_cumulat, scalar_tau, pnd_ext_mat, ppath_pnd,
-                               dummy_ppath_dpnd_dx, scat_data_single,
+                               trans_cumulat, scalar_tau, pnd_ext_mat, pnd_abs_vec,
+                               ppath_pnd, dummy_ppath_dpnd_dx, scat_data_single,
                                propmat_clearsky_agenda, jacobian_quantities,
                                ppd, ppath, ppath_p, ppath_t, ppath_t_nlte,
                                ppath_vmr, ppath_mag, ppath_f, f_grid, 
