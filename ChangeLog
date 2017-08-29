@@ -1,3 +1,9 @@
+2017-08-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-773
+
+	* src/m_fos.cc (iyHybrid): Added some code. Still not ready.
+
 2017-08-28 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-772

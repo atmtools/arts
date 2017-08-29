@@ -1389,12 +1389,6 @@ void iyHybrid(
   //
   if( np > 1 )
     {
-      // Temperature disturbance, K   
-      //
-      // (This variable is used in some parts of the T-jacobian)
-      //
-      const Numeric   dt = 0.1;     
-
 
       //=== iy_aux part =======================================================
       // iy_aux for point np-1:
@@ -1456,40 +1450,8 @@ void iyHybrid(
       Tensor3 layer_bulk_scatsource( nf, stokes_dim, np-1, 0. ); // just for debugging
       for( Index ip=np-2; ip>=0; ip-- )
         {
-          // Path step average of B: Bbar
-          //
-          Vector bbar(nf);
-          //
-          for( Index iv=0; iv<nf; iv++ )  
-            { bbar[iv] = 0.5 * ( ppath_blackrad(iv,ip) +
-                                 ppath_blackrad(iv,ip+1) ); }
 
-          // Extra variables for non-LTE
-          //
-          const bool nonlte = lte[ip]==0 || lte[ip+1]==0; 
-          //
-          Matrix sourcebar(0,0);
-          Tensor3 extbar(0,0,0);
-          //
-          if( nonlte )
-            { 
-              sourcebar.resize( nf, stokes_dim );
-              extbar.resize( nf, stokes_dim, stokes_dim );
-              for( Index iv=0; iv<nf; iv++ )  
-                { 
-                  for( Index is1=0; is1<stokes_dim; is1++ )  
-                    {
-                      sourcebar(iv,is1) = 0.5 * ( ppath_nlte_source[ip](iv,is1) + 
-                                                  ppath_nlte_source[ip+1](iv,is1) );
-                      for( Index is2=0; is2<stokes_dim; is2++ )  
-                        { extbar(iv,is1,is2) = 0.5 * ( 
-                                               ppath_ext[ip](iv,is1,is2) + 
-                                               ppath_ext[ip+1](iv,is1,is2) ); }
-                    }
-                }
-            }
-
-          // Extra variables for scattering
+          // Scattering source term
           //
           // FIXME: is that max(ppath_pnd(joker,ip))>0 check ok? for inversions?
           // should negative pnd not be allowed (though physically impossible),
@@ -1515,123 +1477,58 @@ void iyHybrid(
                       scatsourcebar(iv,is1) = 0.5 * ( bulk_scat_source[0] +
                                                       bulk_scat_source[1] );
                       layer_bulk_scatsource(iv, is1, ip)=scatsourcebar(iv,is1); // just for debugging
-
                     }
                 }
             }
-
-              
           
-          //### jacobian part #################################################
-          if( j_analytical_do )
+          // Path step average of K: extbar
+          // Path step average of source terms: sourcebar
+          //
+          Tensor3 extbar(nf,stokes_dim, stokes_dim);
+          Matrix  sourcebar(nf,stokes_dim);
+          // 
+          for( Index iv=0; iv<nf; iv++ )  
             { 
-              // This part is kept as similar to iyEmissionStandard.
-              // This includes the variable names, even if e.g. "s_i" does not
-              // exists here.
-              // However, non-LTE does not affect any of the variables created
-              // locally, and there is no special code for non-LTE absorption
-
-
-              // Zero Stokes vector (to be used for some non-extsing terms)
-              const Vector zerovec(ns,0);
-
-              for( Index iq=0; iq<nq; iq++ ) 
+              for( Index is1=0; is1<stokes_dim; is1++ )  
                 {
-                    if( jacobian_quantities[iq].Analytical() )
-                    {
-                        if( jac_species_i[iq] >= 0 || jac_wind_i[iq] ||
-                            jac_mag_i[iq] || jac_other[iq] || jac_is_t[iq] )
-                        {   
-                            const bool this_is_t = jac_is_t[iq],
-                            this_is_hse = this_is_t ? jacobian_quantities[iq].Subtag() == "HSE on" : false;
-                            
-                            for( Index iv=0; iv<nf; iv++ )
-                            {
-                                if(jac_to_integrate[iq])
-                                {
-                                  Matrix upper(stokes_dim, stokes_dim), lower(stokes_dim, stokes_dim), dupper(stokes_dim, stokes_dim), dlower(stokes_dim, stokes_dim);
-                                  ppath_ext[ip].MatrixAtFrequency(lower, iv);
-                                  ppath_ext[ip+1].MatrixAtFrequency(upper, iv);
-                                  dppath_ext_dx[ip][iq].MatrixAtFrequency(dlower, iv);
-                                  dppath_ext_dx[ip+1][iq].MatrixAtFrequency(dupper, iv);
-                                    Vector tmp1(stokes_dim, 0.), tmp2(stokes_dim, 0.);
-                                    get_diydx( diy_dpath[iq](0, iv, joker),
-                                               diy_dpath[iq](0, iv, joker),
-                                               extmat_case[ip][iv],
-                                               iy(iv,joker),
-                                               iy(iv,joker),
-                                               zerovec,
-                                               zerovec,
-                                               zerovec,
-                                               zerovec,
-                                               lower,
-                                               upper,
-                                               dlower,
-                                               dupper,
-                                               trans_partial(iv,joker,joker,ip),
-                                               dtrans_partial_dx_below(iq,iv,joker,joker,ip),
-                                               dtrans_partial_dx_above(iq,iv,joker,joker,ip),
-                                               trans_cumulat(iv,joker,joker,ip  ),
-                                               trans_cumulat(iv,joker,joker,ip+1),
-                                               ppath_t[ip  ],
-                                               ppath_t[ip+1],
-                                               dt,
-                                               0,
-                                               0,
-                                               ppath.lstep[ip],
-                                               stokes_dim,
-                                               false,
-                                               this_is_hse,
-                                               false );
-                                }
-                                else
-                                {
-                                  Matrix upper(stokes_dim, stokes_dim), lower(stokes_dim, stokes_dim), dupper(stokes_dim, stokes_dim), dlower(stokes_dim, stokes_dim);
-                                  ppath_ext[ip].MatrixAtFrequency(lower, iv);
-                                  ppath_ext[ip+1].MatrixAtFrequency(upper, iv);
-                                  dppath_ext_dx[ip][iq].MatrixAtFrequency(dlower, iv);
-                                  dppath_ext_dx[ip+1][iq].MatrixAtFrequency(dupper, iv);
-                                    get_diydx( diy_dpath[iq](ip  ,iv,joker),
-                                               diy_dpath[iq](ip+1,iv,joker),
-                                               extmat_case[ip][iv],
-                                               iy(iv,joker),
-                                               iy(iv,joker),
-                                               zerovec,
-                                               zerovec,
-                                               zerovec,
-                                               zerovec,
-                                               lower,
-                                               upper,
-                                               dlower,
-                                               dupper,
-                                               trans_partial(iv,joker,joker,ip),
-                                               dtrans_partial_dx_below(iq,iv,joker,joker,ip),
-                                               dtrans_partial_dx_above(iq,iv,joker,joker,ip),
-                                               trans_cumulat(iv,joker,joker,ip  ),
-                                               trans_cumulat(iv,joker,joker,ip+1),
-                                               ppath_t[ip  ],
-                                               ppath_t[ip+1],
-                                               dt,
-                                               0,
-                                               0,
-                                               ppath.lstep[ip],
-                                               stokes_dim,
-                                               false,
-                                               this_is_hse,
-                                               false );
-                                }
-                            } // for all frequencies
-                        } // if this iq is analytical
-                    } // if this analytical
-                } // for iq
-            } // if any analytical
-          //###################################################################
+                  // Absorption is still missing in this expression
+                  sourcebar(iv,is1) = scatsourcebar(iv,is1) +
+                    0.5 * ( ppath_blackrad(iv,ip) +
+                            ppath_blackrad(iv,ip+1) );  
+                  //
+                  for( Index is2=0; is2<stokes_dim; is2++ )  
+                    { extbar(iv,is1,is2) = 0.5 * ( ppath_ext[ip]  (iv,is1,is2) + 
+                                                   ppath_ext[ip+1](iv,is1,is2) ); }
+                }
+            }
 
 
-          // Spectrum at end of ppath step
-          emission_rtstep( iy, stokes_dim, bbar, extmat_case[ip],
-                           trans_partial(joker,joker,joker,ip),
-                           nonlte, extbar, sourcebar );
+          // Jacobian code temporarily removed
+
+          for( Index iv=0; iv<nf; iv++ )
+            {
+              // Transmitted part
+              Vector part1(stokes_dim);
+              mult( part1, trans_partial(iv,joker,joker,ip), iy(iv,joker) );
+
+              // Inverse of extbar
+              Matrix extbarinv(stokes_dim,stokes_dim);
+              inv( extbarinv, extbar(iv,joker,joker) );
+
+              // Emission and scattering
+              Vector part2(stokes_dim);
+              Vector tmp_vector(stokes_dim);
+              mult( tmp_vector, extbarinv, sourcebar );
+              Matrix tmp_matrix(stokes_dim,stokes_dim);
+              id_mat(tmp_matrix); 
+              tmp_matrix -= trans_partial(iv,joker,joker,ip);
+              mult( part2, tmp_matrix, tmp_vector); 
+
+              // Sum up
+              for( Index i=0; i<stokes_dim; i++ )
+                { iy(iv,i) = part1[i] + part2[i]; }
+
+            }
 
 
           //=== iy_aux part ===================================================
