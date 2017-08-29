@@ -1449,20 +1449,24 @@ void iyHybrid(
       //=======================================================================
       // Loop ppath steps
       Tensor3 layer_bulk_scatsource( nf, stokes_dim, np-1, 0. ); // just for debugging
+      Matrix scatsourcebar(nf,stokes_dim);
+      Vector bulk_scat_source(2);
       for( Index ip=np-2; ip>=0; ip-- )
         {
 
           // Scattering source term
           //
-          // FIXME: is that max(ppath_pnd(joker,ip))>0 check ok? for inversions?
-          // should negative pnd not be allowed (though physically impossible),
-          // just like negative vmr are?
-          const bool scat = ( max(ppath_pnd(joker,ip))>0 ) || ( max(ppath_pnd(joker,ip+1))>0 );
-          Matrix scatsourcebar(0,0);
-          Vector bulk_scat_source(2);
-          if( scat )
+          bool scat0=0, scat1=0;
+          if ( clear2cloudbox[ip] > -1 )
+            scat0 = ( max(ppath_pnd(joker,clear2cloudbox[ip]))>0 ) ||
+                   ( min(ppath_pnd(joker,clear2cloudbox[ip]))<0 );
+          if ( clear2cloudbox[ip+1] > -1 )
+            scat1 = ( max(ppath_pnd(joker,clear2cloudbox[ip+1]))>0 ) ||
+                   ( min(ppath_pnd(joker,clear2cloudbox[ip+1]))<0 );
+          scatsourcebar = 0.;
+
+          if( scat0 || scat1 )
             { 
-              scatsourcebar.resize( nf, stokes_dim );
               for( Index iv=0; iv<nf; iv++ )  
                 { 
                   for( Index is1=0; is1<stokes_dim; is1++ )  
@@ -1470,10 +1474,14 @@ void iyHybrid(
                       bulk_scat_source = 0.;
                       for( Index ise=0; ise<ne; ise++ )
                         {
-                          bulk_scat_source[0] += ppath_pnd(ise,ip) *
-                                                 ppath_scat_source(iv,is1,ise,ip);
-                          bulk_scat_source[1] += ppath_pnd(ise,ip+1) *
-                                                 ppath_scat_source(iv,is1,ise,ip+1);
+                          if( scat0 )
+                            bulk_scat_source[0] +=
+                              ppath_pnd(ise,clear2cloudbox[ip]) *
+                              ppath_scat_source(iv,is1,ise,clear2cloudbox[ip]);
+                          if( scat1 )
+                            bulk_scat_source[1] +=
+                              ppath_pnd(ise,clear2cloudbox[ip+1]) *
+                              ppath_scat_source(iv,is1,ise,clear2cloudbox[ip+1]);
                         }
                       scatsourcebar(iv,is1) = 0.5 * ( bulk_scat_source[0] +
                                                       bulk_scat_source[1] );
@@ -1487,21 +1495,30 @@ void iyHybrid(
           //
           Tensor3 extbar(nf,stokes_dim, stokes_dim);
           Matrix  sourcebar(nf,stokes_dim);
+          Numeric pabs0, pabs1;
           // 
           for( Index iv=0; iv<nf; iv++ )  
             { 
               for( Index is1=0; is1<stokes_dim; is1++ )  
                 {
-                  // Absorption is still missing in this expression
+                  if( clear2cloudbox[ip] > -1 )
+                    pabs0 = pnd_abs_vec(iv,is1,clear2cloudbox[ip]);
+                  else
+                    pabs0 = 0.;
+                  if( clear2cloudbox[ip+1] > -1 )
+                    pabs1 = pnd_abs_vec(iv,is1,clear2cloudbox[ip+1]);
+                  else
+                    pabs1 = 0.;
                   sourcebar(iv,is1) = scatsourcebar(iv,is1) +
-                    0.5 * ( (ppath_ext[ip](iv,is1)+pnd_abs_vec(iv,is1,ip)) *
+                    0.5 * ( (ppath_ext[ip](iv,is1)+pabs0) *
                             ppath_blackrad(iv,ip) +
-                           +(ppath_ext[ip+1](iv,is1)+pnd_abs_vec(iv,is1,ip+1)) *
+                           +(ppath_ext[ip+1](iv,is1)+pabs1) *
                             ppath_blackrad(iv,ip+1) );  
                   //
                   for( Index is2=0; is2<stokes_dim; is2++ )  
                     { extbar(iv,is1,is2) = 0.5 * ( ppath_ext[ip]  (iv,is1,is2) + 
-                                                   ppath_ext[ip+1](iv,is1,is2) ); }
+                                                   ppath_ext[ip+1](iv,is1,is2)
+                                                   ); }
                 }
             }
 
@@ -1521,7 +1538,7 @@ void iyHybrid(
               // Emission and scattering
               Vector part2(stokes_dim);
               Vector tmp_vector(stokes_dim);
-              mult( tmp_vector, extbarinv, sourcebar );
+              mult( tmp_vector, extbarinv, sourcebar(iv,joker) );
               Matrix tmp_matrix(stokes_dim,stokes_dim);
               id_mat(tmp_matrix); 
               tmp_matrix -= trans_partial(iv,joker,joker,ip);
