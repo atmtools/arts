@@ -1,3 +1,4 @@
+#include <typeinfo>
 template<typename T1, typename T2>
 MatrixSum<T1, T2>::MatrixSum(T1 Op1, T2 Op2)
         : A(Op1), B(Op2)
@@ -6,7 +7,7 @@ MatrixSum<T1, T2>::MatrixSum(T1 Op1, T2 Op2)
 }
 
 template<typename T1, typename T2>
-    template<typename T3>
+    template<typename T3, typename>
 auto MatrixSum<T1, T2>::multiply(const T3 &t) const
     -> typename T3::ResultType
 {

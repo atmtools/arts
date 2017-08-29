@@ -96,7 +96,7 @@ public:
     //   Nested Evaluation   //
     // --------------------- //
 
-    template <typename T3>
+    template <typename T3, typename = disable_if<is_constructible<VectorType, T3>>>
     auto multiply(const T3 &v) const -> typename T3::ResultType;
     /*! Multiply sum expression by a vector.
      *

@@ -160,6 +160,17 @@ void ArtsMatrix::accumulate(const ArtsCovarianceMatrixWrapper & B)
     }
 }
 
+auto ArtsMatrix::multiply(const ArtsCovarianceMatrixWrapper & B)
+    -> ArtsMatrix
+{
+    ArtsMatrix C; C.resize(this->nrows(), B.cols());
+    if (B.is_inverse()) {
+        ::mult_inv(C, *this, B);
+    } else {
+        ::mult(C, *this, B.get_covmat());
+    }
+}
+
 void ArtsMatrix::subtract(const ArtsMatrix& B)
 {
     this->operator-=(B);

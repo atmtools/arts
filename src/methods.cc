@@ -10424,7 +10424,7 @@ void define_md_data_raw()
          "  Settings controlling the gamma factor, part of the \"ML\" method.\n"
          "  This is a vector of length 6, having the elements (0-based index):\n"
          "    0: Start value.\n"
-         "    1: Fractional decrease after succesfull iteration..\n"
+         "    1: Fractional decrease after succesfull iteration.\n"
          "    2: Fractional increase after unsuccessful iteration.\n"
          "    3: Maximum allowed value. If the value is passed, the inversion\n"
          "       is halted.\n"
@@ -11633,6 +11633,34 @@ void define_md_data_raw()
         USES_TEMPLATES( true  ),
         PASSWORKSPACE( true  )
         ));
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "P2zSimple" ),
+          DESCRIPTION
+          (
+              "Simple conversion from pressure to heights.\n"
+              "\n"
+              "This function converts a vector of pressure values to an approximate vector\n"
+              "of corresponding heights. The formula used to convert pressure to height is:\n"
+              "z = 16000 * (5.0 - log10(p))"
+              "That is, a pressure is  assumed to decrease by a factor of 10 every 16km.\n"
+              "\n"
+              "Note that all pressure values in the vector must be greater than 0.01.\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT(),
+          GOUT( "z_grid" ),
+          GOUT_TYPE( "Vector" ),
+          GOUT_DESC( "Approximate heights of pressure grid points." ),
+          IN(),
+          GIN( "p_grid" ),
+          GIN_TYPE(    "Vector" ),
+          GIN_DEFAULT( NODEF ),
+          GIN_DESC( "Pressure grid." ),
+          SETMETHOD( false ),
+          AGENDAMETHOD(   false )
+            ));
 
   md_data_raw.push_back
     ( MdRecord

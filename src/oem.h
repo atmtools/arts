@@ -24,7 +24,7 @@
 //  Type Aliases
 ////////////////////////////////////////////////////////////////////////////////
 
-using OEMVector          = invlib::Vector<invlib::Timer<ArtsVector>>;
+using OEMVector          = invlib::Vector<ArtsVector>;
 using OEMMatrix          = invlib::Matrix<ArtsMatrix>;
 using OEMMatrixReference = invlib::Matrix<ArtsMatrixReference<Matrix>>;
 using OEMCovarianceMatrix = invlib::Matrix<ArtsCovarianceMatrixWrapper>;
@@ -125,6 +125,7 @@ public:
             w = trans * ww;
         } else {
             w = SolverType::solve(A, v);
+            VectorType u = v - A * w;
         }
         return w;
     }

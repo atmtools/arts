@@ -127,6 +127,7 @@ public:
     void accumulate(const ArtsCovarianceMatrixWrapper &B);
     void subtract(const ArtsMatrix &B);
 
+    ArtsMatrix multiply(const ArtsCovarianceMatrixWrapper & B);
     ArtsMatrix multiply(const ArtsMatrix &B) const;
     ArtsVector multiply(const ArtsVector &v) const;
 

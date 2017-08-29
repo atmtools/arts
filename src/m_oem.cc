@@ -797,7 +797,7 @@ void OEM_checks(
     throw runtime_error( "The argument *stop_dx* must be > 0." );
   }
 
-  if( method == "ml" )
+  if( (method == "ml") || (method == "lm") || (method == "lm_cg") || (method == "ml_cg") )
   {
       if( ml_ga_settings.nelem() != 6 )
       {
@@ -868,6 +868,7 @@ void OEM(
                covmat_se, jacobian_do, jacobian_quantities, jacobian_indices,
                method, x_norm, max_iter, stop_dx, ml_ga_settings,
                clear_matrices, display_progress);
+
 
     // Size diagnostic output and init with NaNs
     oem_diagnostics.resize( 5 );
@@ -959,7 +960,7 @@ void OEM(
             }
             else if (method == "li_cg")
             {
-                Normed<CG> cg(T, apply_norm, 1e-12, oem_verbosity);
+                Normed<CG> cg(T, apply_norm, 1e-10, 0);
                 GN_CG gn(stop_dx, 1, cg); // Linear case, only one step.
                 return_code = oem.compute<GN_CG, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
@@ -967,7 +968,7 @@ void OEM(
             }
             else if (method == "li_cg_m")
             {
-                Normed<CG> cg(T, apply_norm, 1e-12, oem_verbosity);
+                Normed<CG> cg(T, apply_norm, 1e-10, 0);
                 GN_CG gn(stop_dx, 1, cg); // Linear case, only one step.
                 return_code = oem_m.compute<GN_CG, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
@@ -976,7 +977,7 @@ void OEM(
             else if (method == "gn")
             {
                 Normed<> s(T, apply_norm);
-                GN gn(stop_dx, (unsigned int) max_iter, s); // Linear case, only one step.
+                GN gn(stop_dx, (unsigned int) max_iter, s);
                     return_code = oem.compute<GN, ArtsLog>(
                         x_oem, y_oem, gn, oem_verbosity,
                         ml_ga_history);
@@ -984,14 +985,14 @@ void OEM(
             else if (method == "gn_m")
             {
                 Normed<> s(T, apply_norm);
-                GN gn(stop_dx, (unsigned int) max_iter, s); // Linear case, only one step.
+                GN gn(stop_dx, (unsigned int) max_iter, s);
                 return_code = oem_m.compute<GN, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
                     ml_ga_history);
             }
             else if (method == "gn_cg")
             {
-                Normed<CG> cg(T, apply_norm, 1e-12, oem_verbosity);
+                Normed<CG> cg(T, apply_norm, 1e-10, 0);
                 GN_CG gn(stop_dx, (unsigned int) max_iter, cg);
                 return_code = oem.compute<GN_CG, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
@@ -999,7 +1000,7 @@ void OEM(
             }
             else if (method == "gn_cg_m")
             {
-                Normed<CG> cg(T, apply_norm, 1e-12, oem_verbosity);
+                Normed<CG> cg(T, apply_norm, 1e-10, 0);
                 GN_CG gn(stop_dx, (unsigned int) max_iter, cg);
                 return_code = oem_m.compute<GN_CG, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
@@ -1025,7 +1026,7 @@ void OEM(
             }
             else if ( (method == "lm_cg") || (method == "ml_cg") )
             {
-                Normed<CG> cg(T, apply_norm, 1e-12, oem_verbosity);
+                Normed<CG> cg(T, apply_norm, 1e-10, 0);
                 LM_CG_S lm(SaInv, cg);
 
                 lm.set_maximum_iterations((unsigned int) max_iter);
@@ -1047,7 +1048,6 @@ void OEM(
         }
         catch (const std::exception & e)
         {
-            throw e;
             oem_diagnostics[0]  = 99;
             oem_diagnostics[2] = oem.cost;
             oem_diagnostics[3] = oem.cost_y;

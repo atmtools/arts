@@ -86,31 +86,31 @@ void jacobianAddTemperature(
 ////////////////////////////////////////////////////////////////////////////////
 
 void check_and_add_block(CovarianceMatrix &covmat,
-                         const ArrayOfRetrievalQuantity &jacobian_quantities,
+                         const RetrievalQuantity &jq,
+                         const Index rq_index,
                          const Index grid_dimensions,
                          const Sparse &covmat_block,
                          const Sparse &covmat_inv_block)
 {
 
-    Index i = jacobian_quantities.size() - 1;
     Index start = covmat.nrows();
     Index extent = covmat_block.nrows();
     Range range(start, extent);
     Index n_gps = 1;
     for (Index j = 0; j < grid_dimensions; ++j) {
-        n_gps *= jacobian_quantities.back().Grids()[j].nelem();
+        n_gps *= jq.Grids()[j].nelem();
     }
 
     if ((n_gps == extent) && (n_gps == covmat_block.ncols())) {
         std::shared_ptr<Sparse> mat = make_shared<Sparse>(covmat_block);
-        covmat.add_correlation(Block(range, range, std::make_pair(i,i), mat));
+        covmat.add_correlation(Block(range, range, std::make_pair(rq_index,rq_index), mat));
     } else {
         throw runtime_error("Matrix in covmat_block is inconsistent with the retrieval grids.");
     }
     if (!covmat_inv_block.empty()) {
         if ((n_gps == covmat_inv_block.nrows()) && (n_gps == covmat_inv_block.ncols())) {
             std::shared_ptr<Sparse> mat = make_shared<Sparse>(covmat_inv_block);
-            covmat.add_correlation_inverse(Block(range, range, std::make_pair(i,i), mat));
+            covmat.add_correlation_inverse(Block(range, range, std::make_pair(rq_index, rq_index), mat));
         } else {
             throw runtime_error("Matrix in covmat_inv_block is inconsistent with the retrieval"
                                 "grids.");
@@ -132,6 +132,26 @@ void add_scalar_variance(CovarianceMatrix &covmat,
     mat = make_shared<Matrix>(1,1);
     mat->operator()(0,0) = 1.0 / var;
     covmat.add_correlation_inverse(Block(range, range, std::make_pair(i,i), mat));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Simple Pressure-Height Conversion
+////////////////////////////////////////////////////////////////////////////////
+
+void P2zSimple(Vector &z_grid,
+               const Vector &p_grid,
+               const Verbosity &)
+{
+    z_grid = Vector(p_grid.nelem());
+
+    for (Index i = 0; i < p_grid.nelem(); ++i) {
+        Numeric p = p_grid[i];
+        if (p < 0.01) {
+            throw runtime_error("Pressures below 0.01 Pa are not accedpted.");
+        } else {
+            z_grid[i] = 16e3 * (5.0 - log10(p));
+        }
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -411,7 +431,8 @@ void retrievalAddAbsSpecies(
     jacobianAddAbsSpecies(ws, jacobian_quantities, jacobian_agenda, atmosphere_dim, p_grid,
                           lat_grid, lon_grid, rq_p_grid, rq_lat_grid, rq_lon_grid, species,
                           method, mode, for_species_tag, dx, verbosity);
-    check_and_add_block(covmat_sx, jacobian_quantities, atmosphere_dim, covmat_block, covmat_inv_block);
+    check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
+                        atmosphere_dim, covmat_block, covmat_inv_block);
 }
 
 void retrievalAddConstantVMRAbsSpecies(
@@ -446,7 +467,8 @@ void retrievalAddFreqShift(Workspace& ws,
 {
     jacobianAddFreqShift(ws, jacobian_quantities, jacobian_agenda, f_grid, sensor_pos,
                          sensor_time, poly_order, df, verbosity);
-    check_and_add_block(covmat_sx, jacobian_quantities, 1, covmat_block, covmat_inv_block);
+    check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() + 1,
+                        1, covmat_block, covmat_inv_block);
 }
 
 void retrievalAddFreqStretch(Workspace& ws,
@@ -464,7 +486,8 @@ void retrievalAddFreqStretch(Workspace& ws,
 {
     jacobianAddFreqStretch(ws, jacobian_quantities, jacobian_agenda, f_grid, sensor_pos,
                          sensor_time, poly_order, df, verbosity);
-    check_and_add_block(covmat_sx, jacobian_quantities, 1, covmat_block, covmat_inv_block);
+    check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
+                        1, covmat_block, covmat_inv_block);
 }
 
 void retrievalAddBeamFlux(
@@ -485,7 +508,8 @@ void retrievalAddBeamFlux(
 {
     jacobianAddBeamFlux(ws, jacobian_quantities, jacobian_agenda, atmosphere_dim, p_grid,
                         lat_grid, lon_grid, rq_p_grid, rq_lat_grid, rq_lon_grid, verbosity);
-    check_and_add_block(covmat_sx, jacobian_quantities, atmosphere_dim, covmat_block, covmat_inv_block);
+    check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
+                        atmosphere_dim, covmat_block, covmat_inv_block);
 }
 
 
@@ -516,7 +540,8 @@ void retrievalAddCatalogParameters(Workspace& ws,
 {
     jacobianAddCatalogParameters(ws, jacobian_quantities, jacobian_agenda,
                                  catalog_identities, catalog_parameters, verbosity);
-    check_and_add_block(covmat_sx, jacobian_quantities, 0, covmat_block, covmat_inv_block);
+    check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
+                        0, covmat_block, covmat_inv_block);
 }
 
 void retrievalAddMagField(Workspace& ws,
@@ -539,7 +564,8 @@ void retrievalAddMagField(Workspace& ws,
     jacobianAddMagField(ws, jacobian_quantities, jacobian_agenda, atmosphere_dim, p_grid,
                         lat_grid, lon_grid, rq_p_grid, rq_lat_grid, rq_lon_grid, component, dB,
                         verbosity);
-    check_and_add_block(covmat_sx, jacobian_quantities, atmosphere_dim, covmat_block, covmat_inv_block);
+    check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
+                        atmosphere_dim, covmat_block, covmat_inv_block);
 }
 
 void retrievalAddPointingZa(Workspace& ws,
@@ -557,7 +583,8 @@ void retrievalAddPointingZa(Workspace& ws,
 {
     jacobianAddPointingZa(ws, jacobian_quantities, jacobian_agenda, sensor_pos,
                           sensor_time, poly_order, calcmode, dza, verbosity);
-    check_and_add_block(covmat_sx, jacobian_quantities, 1, covmat_block, covmat_inv_block);
+    check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
+                        1, covmat_block, covmat_inv_block);
 }
 
 void retrievalAddPolyfit(Workspace& ws,
@@ -575,10 +602,14 @@ void retrievalAddPolyfit(Workspace& ws,
                         const Index& no_mblock_variation,
                         const Verbosity& verbosity)
 {
+    size_t jq_start = jacobian_quantities.size();
     jacobianAddPolyfit(ws, jacobian_quantities, jacobian_agenda, sensor_response_pol_grid,
                        sensor_response_dlos_grid, sensor_pos, poly_order, no_pol_variation,
                        no_los_variation, no_mblock_variation, verbosity);
-    check_and_add_block(covmat_sx, jacobian_quantities, 4, covmat_block, covmat_inv_block);
+    for (size_t i = 0; i <= poly_order; ++i) {
+        check_and_add_block(covmat_sx, jacobian_quantities[jq_start + i], jq_start + i,
+                            4, covmat_block, covmat_inv_block);
+    }
 }
 
 void retrievalAddScatSpecies(Workspace& ws,
@@ -601,7 +632,8 @@ void retrievalAddScatSpecies(Workspace& ws,
     jacobianAddScatSpecies(ws, jacobian_quantities, jacobian_agenda, atmosphere_dim, p_grid,
                            lat_grid, lon_grid, rq_p_grid, rq_lat_grid, rq_lon_grid, species,
                            quantity, verbosity);
-    check_and_add_block(covmat_sx, jacobian_quantities, atmosphere_dim, covmat_block, covmat_inv_block);
+    check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
+                        atmosphere_dim, covmat_block, covmat_inv_block);
 }
 
 void retrievalAddSinefit(Workspace& ws,
@@ -622,7 +654,8 @@ void retrievalAddSinefit(Workspace& ws,
     jacobianAddSinefit(ws, jacobian_quantities, jacobian_agenda, sensor_response_pol_grid,
                          sensor_response_dlos_grid, sensor_pos, period_lengths,
                        no_pol_variation, no_los_variation, no_mblock_variation, verbosity);
-    check_and_add_block(covmat_sx, jacobian_quantities, 4, covmat_block, covmat_inv_block);
+    check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
+                        4, covmat_block, covmat_inv_block);
 }
 
 void retrievalAddSpecialSpecies(Workspace& ws,
@@ -644,7 +677,8 @@ void retrievalAddSpecialSpecies(Workspace& ws,
     jacobianAddSpecialSpecies(ws, jacobian_quantities, jacobian_agenda, atmosphere_dim, p_grid,
                     lat_grid, lon_grid, rq_p_grid, rq_lat_grid, rq_lon_grid, species,
                     verbosity);
-    check_and_add_block(covmat_sx, jacobian_quantities, atmosphere_dim, covmat_block, covmat_inv_block);
+    check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
+                        atmosphere_dim, covmat_block, covmat_inv_block);
 }
 
 void retrievalAddWind(Workspace& ws,
@@ -667,7 +701,8 @@ void retrievalAddWind(Workspace& ws,
     jacobianAddWind(ws, jacobian_quantities, jacobian_agenda, atmosphere_dim, p_grid,
                     lat_grid, lon_grid, rq_p_grid, rq_lat_grid, rq_lon_grid, component,
                     dfrequency, verbosity);
-    check_and_add_block(covmat_sx, jacobian_quantities, atmosphere_dim, covmat_block,
+    check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
+                        atmosphere_dim, covmat_block,
                         covmat_inv_block);
 }
 
@@ -692,7 +727,8 @@ void retrievalAddTemperature(Workspace& ws,
     jacobianAddTemperature(ws, jacobian_quantities, jacobian_agenda, atmosphere_dim, p_grid,
                            lat_grid, lon_grid, rq_p_grid, rq_lat_grid, rq_lon_grid, hse,
                            method, dx, verbosity);
-    check_and_add_block(covmat_sx, jacobian_quantities, atmosphere_dim, covmat_block,
+    check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
+                        atmosphere_dim, covmat_block,
                         covmat_inv_block);
 }
 
