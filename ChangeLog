@@ -1,5 +1,15 @@
 2017-08-30 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-780
+
+	* controlfiles/artscomponents/transmission/TestTransmissionWithScat.arts,
+	clearREFERENCE.xml, cloudyREFERENCE.xml,
+	controlfiles/CMakeLists.txt:
+	Added. Transmission test case with scattering particles. Also added to
+	standard checks.
+
+2017-08-30 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-779
 
 	* controlfiles/CMakeLists.txt:

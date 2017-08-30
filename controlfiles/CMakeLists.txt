@@ -62,6 +62,7 @@ arts_test_run_ctlfile(fast artscomponents/groundbased/TestGbased.arts)
 arts_test_run_ctlfile(fast artscomponents/groundbased/TestWinds.arts)
 
 arts_test_run_ctlfile(fast artscomponents/transmission/TestTransmission.arts)
+arts_test_run_ctlfile(fast artscomponents/transmission/TestTransmissionWithScat.arts)
 
 arts_test_run_ctlfile(fast artscomponents/faraday/TestFaradayRotation.arts)
 
