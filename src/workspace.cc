@@ -3698,16 +3698,16 @@ void Workspace::define_wsv_data()
        "\n"
        "Note: To ensure that no particles exist outside the cloudbox,\n"
        "*pnd_field* is required to be 0 at its outer limits (corresponding\n"
-       "to the cloudbox limits).\n"
+       "to the *cloudbox_limits*).\n"
        "\n"
        "Usage:      Set by user or output of *pnd_fieldCalcFromscat_speciesFields*\n"
        "\n"
        "Unit:        m^-3\n"
        "\n"
        "Size: [number of scattering elements, \n"
-       "       (cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
-       "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
-       "       (cloudbox_limits[5] - cloudbox_limits[4]) +1 ] \n"
+       "       (*cloudbox_limits*[1] - *cloudbox_limits*[0]) +1, \n"
+       "       (*cloudbox_limits*[3] - *cloudbox_limits*[2]) +1, \n"
+       "       (*cloudbox_limits*[5] - *cloudbox_limits*[4]) +1 ] \n"
         ),
       GROUP( "Tensor4" )));
 

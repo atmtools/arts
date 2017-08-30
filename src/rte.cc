@@ -2841,7 +2841,7 @@ void get_ppath_ext(
         }
     }
 
-  // A variable that maps from total ppath to extension data index.
+  // A variable that maps from total ppath to extinction data index.
   // If outside cloudbox or all pnd=0, this variable holds -1.
   // Otherwise it gives the index in pnd_ext_mat etc.
   clear2cloudbox.resize( np );

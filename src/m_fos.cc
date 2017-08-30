@@ -1448,85 +1448,106 @@ void iyHybrid(
       
       //=======================================================================
       // Loop ppath steps
+/*
       Tensor3 layer_bulk_scatsource( nf, stokes_dim, np-1, 0. ); // just for debugging
-      Matrix scatsourcebar(nf,stokes_dim);
-      Vector bulk_scat_source(2);
+      Tensor3 layer_bulk_emissource( nf, stokes_dim, np-1, 0. ); // just for debugging
+      Tensor3 layer_gas_emissource( nf, stokes_dim, np-1, 0. ); // just for debugging
+      Tensor3 layer_bulk_ext( nf, stokes_dim, np-1, 0. ); // just for debugging
+      Tensor3 layer_gas_ext( nf, stokes_dim, np-1, 0. ); // just for debugging
+*/
+      Vector bulk_scat_source(2), pabs(2);
+      Matrix pext(2,stokes_dim);
+      Matrix  sourcebar(nf,stokes_dim);
+      Tensor3 extbar(nf,stokes_dim, stokes_dim);
       for( Index ip=np-2; ip>=0; ip-- )
         {
 
-          // Scattering source term
-          //
-          bool scat0=0, scat1=0;
-          if ( clear2cloudbox[ip] > -1 )
-            scat0 = ( max(ppath_pnd(joker,clear2cloudbox[ip]))>0 ) ||
-                   ( min(ppath_pnd(joker,clear2cloudbox[ip]))<0 );
-          if ( clear2cloudbox[ip+1] > -1 )
-            scat1 = ( max(ppath_pnd(joker,clear2cloudbox[ip+1]))>0 ) ||
-                   ( min(ppath_pnd(joker,clear2cloudbox[ip+1]))<0 );
-          scatsourcebar = 0.;
+          //cout << "atmlev #" << ip << "\n";
 
-          if( scat0 || scat1 )
-            { 
-              for( Index iv=0; iv<nf; iv++ )  
-                { 
-                  for( Index is1=0; is1<stokes_dim; is1++ )  
-                    {
-                      bulk_scat_source = 0.;
-                      for( Index ise=0; ise<ne; ise++ )
-                        {
-                          if( scat0 )
-                            bulk_scat_source[0] +=
-                              ppath_pnd(ise,clear2cloudbox[ip]) *
-                              ppath_scat_source(iv,is1,ise,clear2cloudbox[ip]);
-                          if( scat1 )
-                            bulk_scat_source[1] +=
-                              ppath_pnd(ise,clear2cloudbox[ip+1]) *
-                              ppath_scat_source(iv,is1,ise,clear2cloudbox[ip+1]);
-                        }
-                      scatsourcebar(iv,is1) = 0.5 * ( bulk_scat_source[0] +
-                                                      bulk_scat_source[1] );
-                      layer_bulk_scatsource(iv, is1, ip)=scatsourcebar(iv,is1); // just for debugging
-                    }
-                }
-            }
-          
           // Path step average of K: extbar
           // Path step average of source terms: sourcebar
-          //
-          Tensor3 extbar(nf,stokes_dim, stokes_dim);
-          Matrix  sourcebar(nf,stokes_dim);
-          Numeric pabs0, pabs1;
-          // 
-          for( Index iv=0; iv<nf; iv++ )  
-            { 
-              for( Index is1=0; is1<stokes_dim; is1++ )  
-                {
-                  if( clear2cloudbox[ip] > -1 )
-                    pabs0 = pnd_abs_vec(iv,is1,clear2cloudbox[ip]);
-                  else
-                    pabs0 = 0.;
-                  if( clear2cloudbox[ip+1] > -1 )
-                    pabs1 = pnd_abs_vec(iv,is1,clear2cloudbox[ip+1]);
-                  else
-                    pabs1 = 0.;
-                  sourcebar(iv,is1) = scatsourcebar(iv,is1) +
-                    0.5 * ( (ppath_ext[ip](iv,is1)+pabs0) *
-                            ppath_blackrad(iv,ip) +
-                           +(ppath_ext[ip+1](iv,is1)+pabs1) *
-                            ppath_blackrad(iv,ip+1) );  
-                  //
-                  for( Index is2=0; is2<stokes_dim; is2++ )  
-                    { extbar(iv,is1,is2) = 0.5 * ( ppath_ext[ip]  (iv,is1,is2) + 
-                                                   ppath_ext[ip+1](iv,is1,is2)
-                                                   ); }
-                }
-            }
 
+          for( Index iv=0; iv<nf; iv++ )  
+          { 
+            //cout << "freq #" << iv << "\n";
+
+            for( Index is1=0; is1<stokes_dim; is1++ )  
+            {
+              // Scattering source term
+              //
+              bulk_scat_source = 0.;
+              for( Index ise=0; ise<ne; ise++ )
+              {
+                bulk_scat_source[0] += ppath_pnd(ise,ip) *
+                                       ppath_scat_source(iv,is1,ise,ip);
+                bulk_scat_source[1] += ppath_pnd(ise,ip+1) *
+                                       ppath_scat_source(iv,is1,ise,ip+1);
+              }
+
+              // Emission and total source term
+              //
+              pabs = 0.;
+              if( clear2cloudbox[ip] > -1 )
+                pabs[0] = pnd_abs_vec(iv,is1,clear2cloudbox[ip]);
+              if( clear2cloudbox[ip+1] > -1 )
+                pabs[1] = pnd_abs_vec(iv,is1,clear2cloudbox[ip+1]);
+
+              sourcebar(iv,is1) = 0.5 * (
+                                  bulk_scat_source[0] + bulk_scat_source[1] //particle scattering contrib
+                                + ( ppath_ext[ip](iv,is1)+pabs[0] ) *
+                                  ppath_blackrad(iv,ip)
+                                + ( ppath_ext[ip+1](iv,is1)+pabs[1] ) *
+                                  ppath_blackrad(iv,ip+1) );
+
+              // Extinction
+              pext = 0.;
+              if( clear2cloudbox[ip] > -1 )
+                for( Index is2=0; is2<stokes_dim; is2++ )
+                  pext(0,is2) = pnd_ext_mat[clear2cloudbox[ip]](iv,is1,is2);
+              if( clear2cloudbox[ip+1] > -1 )
+                for( Index is2=0; is2<stokes_dim; is2++ )
+                  pext(1,is2) = pnd_ext_mat[clear2cloudbox[ip+1]](iv,is1,is2);
+              for( Index is2=0; is2<stokes_dim; is2++ )  
+              {
+                extbar(iv,is1,is2) = 0.5 * ( 
+                                     ppath_ext[ip](iv,is1,is2)
+                                   + ppath_ext[ip+1](iv,is1,is2)
+                                   + pext(0,is2) + pext(1,is2) );
+              }
+
+/*
+              // just for debugging
+              layer_bulk_scatsource(iv, is1, ip) =
+                0.5 * ( bulk_scat_source[0] + bulk_scat_source[1] );
+              layer_bulk_emissource(iv, is1, ip) =
+                0.5 * ( pabs[0]*ppath_blackrad(iv,ip) + 
+                        pabs[1]*ppath_blackrad(iv,ip+1) );
+              layer_gas_emissource(iv, is1, ip) =
+                0.5 * ( ppath_ext[ip](iv,is1)*ppath_blackrad(iv,ip) + 
+                        ppath_ext[ip+1](iv,is1)*ppath_blackrad(iv,ip+1) );
+              layer_bulk_ext(iv, is1, ip) =
+                0.5 * ( pext(0,0) + pext(1,0) );
+              layer_gas_ext(iv, is1, ip) =
+                0.5 * ( ppath_ext[ip](iv,is1,0) +
+                        ppath_ext[ip+1](iv,is1,0) );
+              cout << "part scat source = " << layer_bulk_scatsource(iv, is1, ip) << "\n";
+              cout << "part emis source = " << layer_bulk_emissource(iv, is1, ip) << "\n";
+              cout << "gas emis source  = " << layer_gas_emissource(iv, is1, ip) << "\n";
+              cout << "total source     = " << sourcebar(iv,is1) << "\n";
+              cout << "part extinction  = " << layer_bulk_ext(iv, is1, ip) << "\n";
+              cout << "gas extinction   = " << layer_gas_ext(iv, is1, ip) << "\n";
+              cout << "total extinction = " << extbar(iv,is1,0) << "\n";
+              cout << "\n";
+*/
+            }
+          }
 
           // Jacobian code temporarily removed
 
           for( Index iv=0; iv<nf; iv++ )
             {
+              //cout << "freq #" << iv << "\n";
+
               // Transmitted part
               Vector part1(stokes_dim);
               mult( part1, trans_partial(iv,joker,joker,ip), iy(iv,joker) );
@@ -1544,10 +1565,21 @@ void iyHybrid(
               tmp_matrix -= trans_partial(iv,joker,joker,ip);
               mult( part2, tmp_matrix, tmp_vector); 
 
+/*
+              cout << "iy0                  = " << iy(iv,0) << "\n";
+              cout << "T                    = " << trans_partial(iv,0,0,ip) << "\n";
+              cout << "part1 = iy0*T        = " << part1[0] << "\n";
+              cout << "Kinv                 = " << extbarinv(0,0) << "\n";
+              cout << "S                    = " << sourcebar(iv,0) << "\n";
+              cout << "(1-T)                = " << tmp_matrix(0,0) << "\n";
+              cout << "part2 = (1-T)*Kinv*S = " << part2[0] << "\n";
+*/
+
               // Sum up
               for( Index i=0; i<stokes_dim; i++ )
                 { iy(iv,i) = part1[i] + part2[i]; }
 
+//              cout << "iy1 = part1+part2    = " << iy(iv,0) << "\n";
             }
 
 
@@ -1614,8 +1646,8 @@ void iyHybrid(
       //=======================================================================
 
       // for debugging
-      WriteXML( "ascii", layer_bulk_scatsource, "layer_bulk_scatsource.xml", 0,
-                "layer_bulk_scatsource", "", "", verbosity );
+      //WriteXML( "ascii", layer_bulk_scatsource, "layer_bulk_scatsource.xml", 0,
+      //          "layer_bulk_scatsource", "", "", verbosity );
 
 
       //### jacobian part #####################################################

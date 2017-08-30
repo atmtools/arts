@@ -1,0 +1,70 @@
+#DEFINITIONS:  -*-sh-*-
+
+Arts2 {
+
+INCLUDE "artscomponents/disort/indivfieldsatmo_setup.arts"
+
+VectorSetConstant( surface_scalar_reflectivity, 1, 0.2 )
+
+
+# Cloud variables
+#
+cloudboxSetFullAtm
+pnd_fieldCalcFromscat_speciesFields
+
+Copy( scat_data_raw, scat_data )
+scat_dataCalc
+scat_data_checkedCalc
+
+#cloudboxOff
+#pnd_fieldZero
+#Tensor4Scale( pnd_field, pnd_field, 1e-10 )
+
+# RT4 settings
+
+# Consistency checks
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc( scat_data_fcheck="new" )
+sensor_checkedCalc
+
+
+# Pure RT4
+
+AgendaSet( iy_cloudbox_agenda ){
+  iyInterpCloudboxField
+}
+
+RT4Calc 
+yCalc
+Print( y, 0 )
+
+VectorCreate( yREFERENCE )
+Copy( yREFERENCE, y )
+
+
+# Hybrid calculations
+
+AgendaSet( doit_i_field_agenda ){
+  RT4Calc
+}
+
+AgendaSet( iy_main_agenda ){
+  Ignore( t_nlte_field )
+  Ignore( iy_id )
+  iyHybrid
+}
+
+#FlagOff( cloudbox_on )
+
+yCalc
+Print( y, 0 )
+#WriteXML( in=y )
+
+Compare( y, yREFERENCE, 2. )
+
+ReadXML( yREFERENCE, "yREFERENCE.xml" )
+Compare( y, yREFERENCE, 1e-2 )
+
+}
+ 

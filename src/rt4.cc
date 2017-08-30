@@ -619,7 +619,9 @@ void run_rt4( Workspace& ws,
         }
 
       Index pfct_failed = 0;
-      if( pndtot && (nummu_new<nummu) )
+      if( pndtot )
+      {
+        if( nummu_new<nummu )
         {
           par_optpropCalc( emis_vector, extinct_matrix,
                            //scatlayers,
@@ -636,8 +638,11 @@ void run_rt4( Workspace& ws,
                            auto_inc_nstreams,
                            verbosity );
         }
-      else
-        pfct_failed = 1;
+        else
+        {
+          pfct_failed = 1;
+        }
+      }
 
       if (!pfct_failed)
       {

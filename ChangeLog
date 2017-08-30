@@ -1,3 +1,25 @@
+2017-08-30 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-778
+
+	* src/m_fos.cc (iyHybrid):
+	Bugfixed RTE integration part. Seems to work now.
+
+	* controlfiles/artscomponents/hybridscat/TestHybrid.arts, yREFERENCE.xml,
+	controlfiles/CMakeLists.txt:
+	Added. Test case and reference solution for hybrid scatt solver. Added
+	test case to standard checks.
+
+	* src/rt4.cc (run_rt4):
+	Re-enable empty-cloudbox capability that accidentially got lost during
+	implementing the auto-increase streams option.
+
+	* src/rte.cc:
+	Minor spell fix.
+
+	* src/workspace.cc (pnd_field):
+	Added crossrefs to cloudbox_limits for understanding dimensions.
+
 2017-08-30 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-777
@@ -47,7 +69,7 @@
 	* src/methods.cc:
 	- Added entry for P2zSimple 
 
-2017-08-29Jana Mendrok  <jana.mendrok@chalmers.se>
+2017-08-29 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-774
 
