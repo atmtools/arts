@@ -49,6 +49,7 @@
 #include "auto_md.h"
 #include "math_funcs.h"
 #include "physics_funcs.h"
+#include "jacobian.h"
 
 extern const String ABSSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
@@ -405,11 +406,9 @@ void x2artsStandard(
          Matrix&                     sensor_los,
    const Index&                      atmfields_checked,
    const Index&                      atmgeom_checked,
-   const Matrix&                     jacobian,
    const ArrayOfRetrievalQuantity&   jq,
    const ArrayOfArrayOfIndex&        ji,
    const Vector&                     x,
-   const Vector&                     xa,
    const Index&                      atmosphere_dim,
    const Vector&                     p_grid,
    const Vector&                     lat_grid,
@@ -419,6 +418,10 @@ void x2artsStandard(
    const Index&                      cloudbox_checked,
    const ArrayOfString&              particle_bulkprop_names,         
    const Vector&                     sensor_time,
+   const Sparse &                    sensor_response,
+   const Matrix &                    sensor_response_dlos_grid,
+   const Vector &                    sensor_response_f_grid,
+   const ArrayOfIndex &              sensor_response_pol_grid,
    const Verbosity&)
 {
   // Basics
@@ -629,45 +632,30 @@ void x2artsStandard(
             }
         }
 
-      
+
       // Baseline fit: polynomial or sinusoidal
       // ----------------------------------------------------------------------------
       else if( jq[q].MainTag() == POLYFIT_MAINTAG  ||  
                jq[q].MainTag() == SINEFIT_MAINTAG )
-        {
-          // As the baseline is set using *jacobian*, there must exist a
-          // calculated Jacobian, but this is not these case for the first
-          // iteration. This should in general be no problem as the a priori
-          // for baseline variables should throughout be zero. But this must
-          // anyhow be checked:
-          if( jacobian.empty() )
-            {
-              if( min(xa[ind]) != 0  ||  max(xa[ind]) != 0 )
-                throw runtime_error(
-                   "If any value in *x* that matches a baseline variable "
-                   "deviates from zero, *jacobian* must be set." );
-            }
-          else
-            {
-              if( jacobian.ncols() != ji[nq-1][1]+1 ) 
-                throw runtime_error( "Number of columns in *jacobian* is "
-                                     "inconsistent with *jacobian_indices*.");
-              if( yb_set )
-                {
-                    Vector bl( y_baseline.nelem() );
-                    mult( bl, jacobian(joker,ind), x[ind] );
-                    y_baseline += bl;
-                }
-                else
-                {
-                    yb_set = true;
-                    y_baseline.resize( jacobian.nrows() );
-                    mult(y_baseline, jacobian(joker,ind), x[ind]);
-                }
-            }
-        }
+      {
+          if(! yb_set ) {
+              yb_set = true;
+              Index y_size =   sensor_los.nrows()
+                             * sensor_response_f_grid.nelem()
+                             * sensor_response_pol_grid.nelem()
+                             * sensor_response_dlos_grid.nrows();
+              y_baseline.resize(y_size);
+              y_baseline = 0;
+          }
 
-      
+          for (Index mb = 0; mb < sensor_los.nrows(); ++mb) {
+              calcBaselineFit(y_baseline, x, mb, sensor_response,
+                              sensor_response_pol_grid, sensor_response_f_grid,
+                              sensor_response_dlos_grid, jq[q], q, ji);
+          }
+      }
+
+
       // Or we have to throw an error
       // ----------------------------------------------------------------------------
       else

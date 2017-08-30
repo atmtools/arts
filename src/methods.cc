@@ -11636,7 +11636,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
       ( MdRecord
-        ( NAME( "P2zSimple" ),
+        ( NAME( "ZFromPSimple" ),
           DESCRIPTION
           (
               "Simple conversion from pressure to heights.\n"
@@ -17498,10 +17498,11 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "vmr_field", "t_field", "particle_bulkprop_field", "sensor_los",
             "atmfields_checked", "atmgeom_checked",
-            "jacobian", "jacobian_quantities", "jacobian_indices", "x", "xa",
+            "jacobian_quantities", "jacobian_indices", "x",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species",
             "cloudbox_on", "cloudbox_checked", "particle_bulkprop_names",
-            "sensor_time" ),
+            "sensor_time", "sensor_response", "sensor_response_dlos_grid",
+            "sensor_response_f_grid", "sensor_response_pol_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

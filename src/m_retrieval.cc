@@ -138,9 +138,9 @@ void add_scalar_variance(CovarianceMatrix &covmat,
 // Simple Pressure-Height Conversion
 ////////////////////////////////////////////////////////////////////////////////
 
-void P2zSimple(Vector &z_grid,
-               const Vector &p_grid,
-               const Verbosity &)
+void ZFromPSimple(Vector &z_grid,
+                  const Vector &p_grid,
+                  const Verbosity &)
 {
     z_grid = Vector(p_grid.nelem());
 
@@ -221,7 +221,7 @@ void Covmat1DMarkov(Sparse& covmat_block,
                     const Vector& grid,
                     const Vector& sigma,
                     const Numeric& lc,
-                    const Numeric& co,
+                    const Numeric& /*co*/,
                     const Verbosity &)
 {
     Index n = grid.nelem();
@@ -606,7 +606,7 @@ void retrievalAddPolyfit(Workspace& ws,
     jacobianAddPolyfit(ws, jacobian_quantities, jacobian_agenda, sensor_response_pol_grid,
                        sensor_response_dlos_grid, sensor_pos, poly_order, no_pol_variation,
                        no_los_variation, no_mblock_variation, verbosity);
-    for (size_t i = 0; i <= poly_order; ++i) {
+    for (Index i = 0; i <= poly_order; ++i) {
         check_and_add_block(covmat_sx, jacobian_quantities[jq_start + i], jq_start + i,
                             4, covmat_block, covmat_inv_block);
     }
@@ -651,11 +651,14 @@ void retrievalAddSinefit(Workspace& ws,
                          const Index& no_mblock_variation,
                          const Verbosity& verbosity)
 {
+    size_t jq_start = jacobian_quantities.size();
     jacobianAddSinefit(ws, jacobian_quantities, jacobian_agenda, sensor_response_pol_grid,
                          sensor_response_dlos_grid, sensor_pos, period_lengths,
                        no_pol_variation, no_los_variation, no_mblock_variation, verbosity);
-    check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
-                        4, covmat_block, covmat_inv_block);
+    for (Index i = 0; i < period_lengths.nelem(); ++i) {
+        check_and_add_block(covmat_sx, jacobian_quantities[jq_start + i], jq_start + i, 4,
+                            covmat_block, covmat_inv_block);
+    }
 }
 
 void retrievalAddSpecialSpecies(Workspace& ws,

@@ -235,6 +235,37 @@ void polynomial_basis_func(
   const Vector&   x,
   const Index&    poly_coeff );
 
+//! Calculate baseline fit
+/**
+ * Computes the baseline fit from a given state vector.
+ *
+ * Given a retrieval quantitiy which is either a polynomial or a sine baseline fit
+ * this function computes the baseline offset in y_baseline.
+ *
+ *  \param y_baseline (output) The computed baseline offset. Computed baseline offset are
+ *  accumulated into this vector, so it must be initialized externally!
+ *  \param x State vector consisten with given retrieval quantity
+ *  \param mblock_index The index of the measurement block.
+ *  \param sensor_response Must be consistent with size of y_baseline.
+ *  \param sensor_response_pol_grid Must be consistent with size of y_baseline.
+ *  \param sensor_response_f_grid Must be consistent with size of y_baseline.
+ *  \param sensor_dlos_grid Must be consistent with size of y_baseline.
+ *  \param rq The poly- or sinefit retrieval quantity
+ *  \param rq_index The index of the retrieval quantity
+ *  \param jacobian_indices
+ */
+void calcBaselineFit(
+    Vector&                    y_baseline,
+    const Vector&                    x,
+    const Index&                     mblock_index,
+    const Sparse&                    sensor_response,
+    const ArrayOfIndex&              sensor_response_pol_grid,
+    const Vector&                    sensor_response_f_grid,
+    const Matrix&                    sensor_response_dlos_grid,
+    const RetrievalQuantity&         rq,
+    const Index                      rq_index,
+    const ArrayOfArrayOfIndex&       jacobian_indices);
+
 void vmrunitscf(  
         Numeric&   x, 
   const String&    unit, 

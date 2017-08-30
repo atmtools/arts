@@ -963,7 +963,93 @@ void polynomial_basis_func(
     }  
 }
 
+extern const String POLYFIT_MAINTAG;
+extern const String SINEFIT_MAINTAG;
+extern const Numeric PI;
 
+void calcBaselineFit(
+        Vector&                    y_baseline,
+  const Vector&                    x,
+  const Index&                     mblock_index,
+  const Sparse&                    sensor_response,
+  const ArrayOfIndex&              sensor_response_pol_grid,
+  const Vector&                    sensor_response_f_grid,
+  const Matrix&                    sensor_response_dlos_grid,
+  const RetrievalQuantity&         rq,
+  const Index                      rq_index,
+  const ArrayOfArrayOfIndex&       jacobian_indices)
+{
+
+    bool is_sine_fit = false;
+    if (rq.MainTag() == POLYFIT_MAINTAG) {
+        is_sine_fit = false;
+    } else if (rq.MainTag() == SINEFIT_MAINTAG) {
+        is_sine_fit = true;
+    } else {
+        throw runtime_error("Retrieval quantity is neither a polynomial or a sine "
+                            " baseline fit." );
+    }
+
+    // Size and check of sensor_response
+    //
+    const Index nf     = sensor_response_f_grid.nelem();
+    const Index npol   = sensor_response_pol_grid.nelem();
+    const Index nlos    = sensor_response_dlos_grid.nrows();
+
+    // Evaluate basis functions for fits.
+    Vector w, s, c;
+    if (is_sine_fit) {
+        s.resize(nf);
+        c.resize(nf);
+        Numeric period = rq.Grids()[0][0];
+        for( Index f=0; f<nf; f++ )
+        {
+            Numeric a = (sensor_response_f_grid[f]-sensor_response_f_grid[0]) * 
+                2 * PI / period;
+            s[f] = sin( a );
+            c[f] = cos( a );
+        }
+    } else {
+        Numeric poly_coeff = rq.Grids()[0][0];
+        polynomial_basis_func( w, sensor_response_f_grid, static_cast<Index>(poly_coeff));
+    }
+
+    // Compute baseline
+    ArrayOfVector jg   = rq.Grids();
+    const Index n1     = jg[1].nelem();
+    const Index n2     = jg[2].nelem();
+    const Index n3     = jg[3].nelem();
+    const Range rowind = get_rowindex_for_mblock( sensor_response, mblock_index );
+    const Index row4   = rowind.get_start();
+    Index col4   = jacobian_indices[rq_index][0];
+
+    if( n3 > 1 ) {
+        col4 += mblock_index*n2*n1;
+    }
+
+    for( Index l=0; l<nlos; l++ ) {
+
+        const Index row3 = row4 + l*nf*npol;
+        const Index col3 = col4 + l * n1 * (is_sine_fit ? 2 : 1);
+
+        for( Index f=0; f<nf; f++ ) {
+
+            const Index row2 = row3 + f*npol;
+
+            for( Index p=0; p<npol; p++ ) {
+                Index col1 = col3;
+                if( n1 > 1 ) {
+                    col1 += p;
+                }
+                if (is_sine_fit) {
+                    y_baseline[row2+p] += x[col1] * s[f] + x[col1 + 1] * c[f];
+                } else {
+                    y_baseline[row2+p] += w[f] * x[col1];
+                }
+            }
+        }
+    }
+}
 
 //! vmrunitscf
 /*!

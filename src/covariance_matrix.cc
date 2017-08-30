@@ -267,14 +267,9 @@ bool CovarianceMatrix::has_inverse(std::pair<Index, Index> indices) const
 
 void CovarianceMatrix::generate_blocks(std::vector<std::vector<const Block *>> &corr_blocks) const
 {
-
-    Index n_rqs;
     for (size_t i = 0; i < correlations_.size(); i++) {
         Index ci, cj;
         std::tie(ci, cj) = correlations_[i].get_indices();
-        if (ci == cj) {
-            ++n_rqs;
-        }
     }
 
     std::vector<bool> has_block(correlations_.size(), false);
