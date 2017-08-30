@@ -1,5 +1,13 @@
 2017-08-30 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-779
+
+	* controlfiles/CMakeLists.txt:
+	Move TestHybrid into ENABLE_RT4 loop as uses (ie requires) RT4 for the
+	background rad field calc.
+
+2017-08-30 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-778
 
 	* src/m_fos.cc (iyHybrid):
