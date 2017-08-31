@@ -2063,7 +2063,6 @@ void get_ppath_pmat_and_tmat(
             //
             try 
             {
-                Vector rtp_vmr(0);
                 propmat_clearsky_agendaExecute( 
                 l_ws, propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dx_dsource_dx,
                 jacobian_quantities, ppath_f(joker,ip), ppath_mag(joker,ip), ppath.los(ip,joker), 
@@ -2127,7 +2126,7 @@ void get_ppath_pmat_and_tmat(
                 for(Index iq=0;iq<nq&&jacobian_do;iq++)
                 {
                   if( jac_species_i[iq] > -1 && jacobian_quantities[iq].Analytical() )
-                  {   
+                  {
                     const bool from_propmat = jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG;
                     const Index isp = jac_species_i[iq];
                     
@@ -2200,11 +2199,6 @@ void get_ppath_pmat_and_tmat(
                     }
                       
                   }
-                  else if(jac_species_i[iq]==-9999)
-                  {
-                    /* Pass and do nothing, if this is to be integrated, 
-                      * then it has to ignore the next else-statement */
-                  }
                   else if(jac_to_integrate[iq] == JAC_IS_FLUX)
                   {
                     
@@ -2214,12 +2208,6 @@ void get_ppath_pmat_and_tmat(
                     {
                         dppath_nlte_source_dx[ip][iq] = 0.0;
                     }
-                  }
-                  else 
-                  {
-                    /* This should only happen to things that have to be perturbed,
-                        like pointing errors, or for flux, since distance then matters.  
-                        So do nothing here. */
                   }
               }
             }
@@ -2251,7 +2239,7 @@ void get_ppath_pmat_and_tmat(
     {
         scat_data_single.resize(0);
       
-        if(dppath_ext_dx.empty())
+        if(not jacobian_do)
             get_ppath_trans(    trans_partial, extmat_case, trans_cumulat, 
                                 scalar_tau, ppath, ppath_ext, f_grid, stokes_dim );
         else
@@ -2270,7 +2258,7 @@ void get_ppath_pmat_and_tmat(
                        atmosphere_dim, cloudbox_limits, pnd_field, dpnd_field_dx,
                        use_mean_scat_data, scat_data, verbosity );
         
-        if(not dppath_ext_dx.nelem())
+        if(not jacobian_do)
             get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
                             scalar_tau, ppath, ppath_ext, f_grid, stokes_dim, 
                             clear2cloudbox, pnd_ext_mat );
@@ -4266,3 +4254,565 @@ void emission_rtstep_replacement( MatrixView iy,
     }
   }
 }
+
+
+void get_stepwise_clearsky_propmat(Workspace& ws,
+                                   PropagationMatrix& K,
+                                   StokesVector& S,
+                                   Index& lte,
+                                   ArrayOfPropagationMatrix& dK_dx,
+                                   ArrayOfStokesVector& dS_dx,
+                                   const Agenda& propmat_clearsky_agenda,
+                                   const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                   const PropmatPartialsData& partial_derivatives,
+                                   ConstVectorView ppath_f_grid,
+                                   ConstVectorView ppath_magnetic_field,
+                                   ConstVectorView ppath_line_of_sight,
+                                   ConstVectorView ppath_nlte_temperatures,
+                                   ConstVectorView ppath_vmrs,
+                                   const Numeric& ppath_temperature,
+                                   const Numeric& ppath_pressure,
+                                   const ArrayOfIndex& jacobian_species,
+                                   const bool& jacobian_do)
+{
+  // All relevant quantities are extracted first
+  const Index nq = jacobian_quantities.nelem();
+  
+  // Local variables inside Agenda
+  ArrayOfPropagationMatrix propmat_clearsky, dpropmat_clearsky_dx;
+  ArrayOfStokesVector nlte_source, dnlte_dx_source, nlte_dx_dsource_dx;
+  
+  // Perform the propagation matrix computations
+  propmat_clearsky_agendaExecute( 
+                ws, propmat_clearsky, nlte_source, 
+                dpropmat_clearsky_dx, dnlte_dx_source, nlte_dx_dsource_dx,
+                jacobian_quantities, 
+                ppath_f_grid, ppath_magnetic_field, ppath_line_of_sight,
+                ppath_pressure, ppath_temperature, 
+                ppath_nlte_temperatures, ppath_vmrs, 
+                propmat_clearsky_agenda);
+  
+  // We only now know how large the propagation matrix will be!
+  const Index npmat = propmat_clearsky.nelem();
+  
+  // If therea re no NLTE elements, then set the LTE flag
+  lte = nlte_source.nelem()?0:1; 
+  
+  // Sum the propagation matrix
+  K = propmat_clearsky[0];
+  for(Index i = 1; i < npmat; i++)
+    K += propmat_clearsky[i];
+  
+  // Set NLTE source term if applicable
+  if(not lte)
+  {
+    // Add all source terms up
+    S = nlte_source[0];
+    for(Index i = 1; i < npmat; i++)
+      S += nlte_source[i];
+  }
+  
+  // Set the partial derivatives
+  if(jacobian_do)
+  {
+    for(Index i = 0; i < nq; i++)
+    {
+      if(jacobian_quantities[i].SubSubtag() == PROPMAT_SUBSUBTAG) 
+      {
+        // Find position of index in ppd
+        Index j = partial_derivatives.this_jq_index(i);
+        
+        dK_dx[i] = dpropmat_clearsky_dx[j];
+        if(not lte)
+        {
+          dS_dx[i] = dnlte_dx_source[j];
+          dS_dx[i] = nlte_dx_dsource_dx[j];
+          
+          // TEST:  Old routine applied unit conversion on only the last
+          // part of the equation. Was this correct or wrong?  If correct,
+          // this is an issue.  Otherwise, the old version was incorrect.  
+          // Have to setup perturbation test-case to study which is most 
+          // reasonable...
+        }
+      }
+      else if(jacobian_species[i] > -1)  // Did not compute values in Agenda
+      {
+        dK_dx[i] = propmat_clearsky[jacobian_species[i]];
+        
+        // We cannot know the NLTE jacobian if this method was used
+        // because that information is thrown away. It is still faster 
+        // to retain this method since it requires less computations 
+        // when we do not need NLTE, which is most of the time...
+        if(not lte)
+        {
+          ostringstream os;
+          
+          os << "We do not yet support species" <<
+                " tag and NLTE Jacobians yet.\n";
+          throw std::runtime_error(os.str());
+        }
+      }
+    }
+  }
+}
+
+
+void adapt_stepwise_partial_derivatives(ArrayOfPropagationMatrix& dK_dx,
+                                        ArrayOfStokesVector& dS_dx,
+                                        const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                        ConstVectorView ppath_f_grid,
+                                        ConstVectorView ppath_line_of_sight,
+                                        ConstVectorView ppath_vmrs,
+                                        const Numeric& ppath_temperature,
+                                        const Numeric& ppath_pressure,
+                                        const ArrayOfIndex& jacobian_species,
+                                        const ArrayOfIndex& jacobian_wind,
+                                        const Index& lte,
+                                        const Index& atmosphere_dim,
+                                        const bool& jacobian_do)
+{
+  if(not jacobian_do)
+    return;
+  
+  // All relevant quantities are extracted first
+  const Index nq = jacobian_quantities.nelem();
+  
+  // Computational temporary vector
+  Vector a;
+  
+  for(Index i = 0; i < nq; i++)
+  {
+    if(not jacobian_quantities[i].Analytical())
+      continue;
+    
+    Index component;
+    
+    switch(jacobian_wind[i])
+    {
+      case JAC_IS_WIND_ABS_FROM_PROPMAT:
+        component = 0;
+        break;
+      case JAC_IS_WIND_U_FROM_PROPMAT:
+        component = 1;
+        break;
+      case JAC_IS_WIND_V_FROM_PROPMAT:
+        component = 2;
+        break;
+      case JAC_IS_WIND_W_FROM_PROPMAT:
+        component = 3;
+        break;
+      default:
+        component = -1;  // This could be frequency derivative...
+    }
+    if(component not_eq -1)
+    {
+      get_stepwise_f_partials(a, component,
+                              ppath_line_of_sight, 
+                              ppath_f_grid,  atmosphere_dim);
+      
+      // Apply conversion to K-matrix partial derivative
+      dK_dx[i] *= a;
+      
+      // Apply conversion to source vector partial derivative
+      if(not lte)
+        dS_dx[i] *= a;
+    }
+    else if(jacobian_species[i] > -1)
+    {
+      const bool from_propmat = jacobian_quantities[i].SubSubtag() == PROPMAT_SUBSUBTAG;
+      const Index& isp = jacobian_species[i];
+      
+      // Computational factor
+      Numeric factor;
+        
+      // Scaling factors to handle retrieval unit
+      if(not from_propmat)
+      {
+        vmrunitscf(factor, jacobian_quantities[i].Mode(), 
+                   ppath_vmrs[isp], ppath_pressure, 
+                   ppath_temperature);
+      }
+      else 
+      {
+        dxdvmrscf(factor, jacobian_quantities[i].Mode(), 
+                  ppath_vmrs[isp], ppath_pressure, 
+                  ppath_temperature);
+      }
+      
+      // Apply conversion to K-matrix partial derivative
+      dK_dx[i] *= factor;
+      
+      // Apply conversion to source vector partial derivative
+      if(not lte)
+        dS_dx[i] *= factor;
+    }
+    else 
+    {
+      // All other partial derivatives should already be adapted...
+    }
+  }
+}
+
+
+void get_stepwise_transmission_matrix(Tensor3View cumulative_transmission,
+                                      Tensor3View T,
+                                      Tensor4View dT_close_dx,
+                                      Tensor4View dT_far_dx,
+                                      ConstTensor3View cumulative_transmission_close,
+                                      const PropagationMatrix& K_close,
+                                      const PropagationMatrix& K_far,
+                                      const ArrayOfPropagationMatrix& dK_close_dx,
+                                      const ArrayOfPropagationMatrix& dK_far_dx,
+                                      const Numeric& ppath_distance,
+                                      const bool& first_level)
+{
+  // Frequency counter
+  const Index nf = K_close.NumberOfFrequencies();
+  
+  // Compute the transmission of the layer between close and far
+  if(not dK_close_dx.nelem())
+  {
+    compute_transmission_matrix(T, ppath_distance, K_close, K_far);
+  }
+  else
+  {
+    compute_transmission_matrix_and_derivative(T, dT_close_dx, dT_far_dx, ppath_distance, 
+                                               K_close, K_far, dK_close_dx, dK_far_dx);
+  }
+  
+  // If this is the first level, then transmission to space is full
+  if(not first_level)
+  {
+    // If this is not the first level, then the transmission to space is reduced by subsequent layers
+    for(Index iv = 0; iv < nf; iv++)
+      mult(cumulative_transmission(iv, joker, joker), 
+           cumulative_transmission_close(iv, joker, joker),
+           T(iv, joker, joker));
+  }
+  else
+  {
+    // Everything from after the first level is getting to the sensor by ARTS standard
+    for(Index iv = 0; iv < nf; iv++)
+      id_mat(cumulative_transmission(iv, joker, joker));
+  }
+}
+
+
+void get_stepwise_blackbody_radiation(VectorView B,
+                                      VectorView dB_dT,
+                                      ConstVectorView ppath_f_grid,
+                                      const Numeric& ppath_temperature,
+                                      const bool& do_temperature_derivative)
+{
+  const Index nf = ppath_f_grid.nelem();
+  
+  for(Index i = 0; i < nf; i++)
+    B[i] = planck(ppath_f_grid[i], ppath_temperature);
+  
+  if(do_temperature_derivative)
+    for(Index i = 0; i < nf; i++)
+      dB_dT[i] = dplanck_dt(ppath_f_grid[i], ppath_temperature);
+}
+
+
+void get_stepwise_effective_source(MatrixView J,
+                                   Tensor3View dJ_dx,
+                                   const PropagationMatrix& K,
+                                   const StokesVector& a,
+                                   const StokesVector& additional_sources,
+                                   const ArrayOfPropagationMatrix& dK_dx,
+                                   const ArrayOfStokesVector& da_dx,
+                                   const ArrayOfStokesVector& dadditional_sources_dx,
+                                   ConstVectorView B,
+                                   ConstVectorView dB_dT,
+                                   const ArrayOfRetrievalQuantity& jacobian_quantities)
+{
+  const Index nq = jacobian_quantities.nelem();
+  const Index nf = K.NumberOfFrequencies();
+  const Index ns = K.StokesDimensions();
+  
+  for(Index i1 = 0; i1 < nf; i1++)
+  {
+    Matrix invK(ns, ns);
+    Vector j(ns);
+    
+    // Get the Matrix inverse
+    K.MatrixInverseAtFrequency(invK, i1);
+    
+    // Get the absorption at the level  Q: Is it faster to have something just return a*B directly?
+    
+    j = a.GetMatrix()(i1, joker);
+    j *= B[i1];
+    j += additional_sources.GetMatrix()(i1, joker);
+    
+    // Set end result
+    mult(J(i1, joker), invK, j);
+    
+    for(Index i2 = 0; i2 < nq; i2++)
+    {
+      Matrix dk(ns, ns), tmp_matrix(ns, ns);
+      Vector dj(ns), dabs(ns);
+      
+      dK_dx[i2].MatrixAtFrequency(dk, i1);
+      mult(tmp_matrix, invK, dk);
+      mult(dk, invK, tmp_matrix);
+      dk *= -1;
+      
+      // Set part of derivative
+      mult(dJ_dx(i2, i1, joker), dk, j);
+      
+      dabs = da_dx[i2].GetMatrix()(i1, joker);
+      dabs *= B[i1];
+      
+      if(jacobian_quantities[i2].MainTag() == TEMPERATURE_MAINTAG)
+      {
+        dj = a.GetMatrix()(i1, joker);
+        dj *= dB_dT[i1];
+        dj += dabs;
+      }
+      else
+      {
+        dj = dabs;
+      }
+      
+      dj += dadditional_sources_dx[i2].GetMatrix()(i1, joker);
+      
+      mult(dabs, invK, dj);
+      dJ_dx(i2, i1, joker)+= dabs;
+    }
+  }
+}
+
+
+void sum_stepwise_scalar_tau_and_extmat_case(VectorView scalar_tau,
+                                             ArrayOfIndex& extmat_case,
+                                             const PropagationMatrix& upper_level,
+                                             const PropagationMatrix& lower_level,
+                                             const Numeric& distance)
+{
+  Index nf = scalar_tau.nelem();
+  
+  for(Index i = 0; i < nf; i++)
+  {
+    scalar_tau[i] += 0.5 * (upper_level.Kjj()[i] + lower_level.Kjj()[i]) * distance;
+    
+    if(upper_level.StokesDimensions() > 1 or lower_level.StokesDimensions() > 1)
+      extmat_case[i] = 3;
+    else
+      extmat_case[i] = 1;
+  }
+}
+
+
+void get_stepwise_frequency_grid(VectorView ppath_f_grid,
+                                 ConstVectorView f_grid,
+                                 ConstVectorView ppath_wind,
+                                 ConstVectorView ppath_line_of_sight,
+                                 const Numeric& rte_alonglos_v,
+                                 const Index& atmosphere_dim)
+{
+  Numeric v_doppler = rte_alonglos_v;
+  
+  if(ppath_wind[0] not_eq 0 or ppath_wind[1] not_eq 0 or ppath_wind[2] not_eq 0)
+    v_doppler += dotprod_with_los(ppath_line_of_sight, 
+                                  ppath_wind[0], ppath_wind[1], ppath_wind[2],
+                                  atmosphere_dim);
+  ppath_f_grid = f_grid;
+  
+  if(v_doppler not_eq 0)
+   ppath_f_grid *= 1 - v_doppler / SPEED_OF_LIGHT;
+}
+
+
+
+void get_stepwise_f_partials(Vector& f_partials,
+                             const Index& component,
+                             ConstVectorView& line_of_sight,
+                             ConstVectorView f_grid, 
+                             const Index& atmosphere_dim)
+{
+  // component 0 means total speed
+  // component 1 means u speed
+  // component 2 means v speed
+  // component 3 means w speed
+  
+  // Sizes
+  const Index   nf = f_grid.nelem();
+  
+  // Doppler relevant velocity
+  //
+  // initialize
+  Numeric dv_doppler_dx = 0.0;
+    
+  switch( component )
+  {
+    case 0:// this is total and is already initialized to avoid compiler warnings
+        dv_doppler_dx = 1.0;
+        break;
+    case 1:// this is the u-component
+        dv_doppler_dx = (dotprod_with_los(line_of_sight, 1, 0, 0, atmosphere_dim));
+        break;
+    case 2:// this is v-component
+        dv_doppler_dx = (dotprod_with_los(line_of_sight, 0, 1, 0, atmosphere_dim));
+        break;
+    case 3:// this is w-component
+        dv_doppler_dx = (dotprod_with_los(line_of_sight, 0, 0, 1, atmosphere_dim));
+        break;
+    default:
+        throw std::runtime_error("This being seen means that there is a development bug in interactions with get_ppath_df_dW.\n");
+        break;
+  }
+    
+  // Determine frequency grid
+  if( dv_doppler_dx == 0.0 )
+  {
+    f_partials.resize(nf);
+    f_partials = 0.0;
+  }
+  else
+  { 
+    f_partials = f_grid;
+    f_partials *= - dv_doppler_dx / SPEED_OF_LIGHT;
+  }
+}
+
+
+void get_stepwise_scattersky_propmat(StokesVector& ap,
+                                     PropagationMatrix& Kp,
+                                     VectorView ppath_pnd,
+                                     ArrayOfVector& ppath_dpnd_dx,
+                                     const Tensor4& pnd_field,
+                                     const ArrayOfTensor4& dpnd_field_dx,
+                                     ConstVectorView ppath_f_grid,
+                                     ConstVectorView ppath_line_of_sight,
+                                     const GridPos& ppath_latitude,
+                                     const GridPos& ppath_longitude,
+                                     const GridPos& ppath_pressure,
+                                     const ArrayOfIndex& cloudbox_limits,
+                                     const ArrayOfArrayOfSingleScatteringData& scat_data,
+                                     const Numeric& ppath_temperature,
+                                     const Index& atmosphere_dim,
+                                     const bool& do_pnd_jacobian,
+                                     const Verbosity& verbosity)
+{
+  const Index nf = ppath_f_grid.nelem(), stokes_dim = Kp.StokesDimensions();
+  
+  Matrix itw(1, 1 << atmosphere_dim);
+  
+  ArrayOfGridPos gpc_p(1), gpc_lat(1), gpc_lon(1);
+  Array<ArrayOfArrayOfSingleScatteringData> scat_data_single(nf);
+  
+  // ppath latitude and longitude has to be set outside if they exist at all
+  const bool do_calcs = is_gp_inside_cloudbox(ppath_pressure, 
+                                              ppath_latitude, 
+                                              ppath_longitude, 
+                                              cloudbox_limits, 
+                                              true, 
+                                              atmosphere_dim);
+  if(do_calcs)
+  {
+    interp_cloudfield_gp2itw(itw(0, joker), 
+                             gpc_p[0], gpc_lat[0], gpc_lon[0], 
+                             ppath_pressure, ppath_latitude, ppath_longitude,
+                             atmosphere_dim, cloudbox_limits);
+    
+    for(Index i = 0; i < pnd_field.nbooks(); i++)
+      interp_atmfield_by_itw(ppath_pnd[i], atmosphere_dim,
+                             pnd_field(i, joker, joker, joker), 
+                             gpc_p, gpc_lat, gpc_lon, itw);
+    
+    if(do_pnd_jacobian)
+    {
+      for(Index iq = 0; iq < dpnd_field_dx.nelem(); iq++)
+      {
+        if( !dpnd_field_dx[iq].empty() )
+        {
+          for(Index i = 0; i < pnd_field.nbooks(); i++)
+          { 
+            interp_atmfield_by_itw(ppath_dpnd_dx[iq][i],
+                                   atmosphere_dim,
+                                   dpnd_field_dx[iq](i,joker,joker,joker), 
+                                   gpc_p, gpc_lat, gpc_lon, itw);
+          }
+        }
+      }
+    }
+    
+    for(Index iv = 0; iv < nf; iv++)
+      scat_data_monoCalc(scat_data_single[iv], scat_data, 
+                          Vector(1, ppath_f_grid[iv]), 0, verbosity);
+    
+    // Direction of outgoing scattered radiation (which is reversed to
+    // LOS). Note that rtp_los2 is only used for extracting scattering
+    // properties.
+    Vector rtp_los2;
+    mirror_los(rtp_los2, ppath_line_of_sight, atmosphere_dim);
+    for( Index iv=0; iv<nf; iv++ )
+    { 
+      Matrix ext_mat(stokes_dim, stokes_dim);
+      Vector abs_vec(stokes_dim);
+      opt_propCalc(ext_mat, abs_vec, rtp_los2[0], 
+                   rtp_los2[1], scat_data_single[iv], stokes_dim,
+                   ppath_pnd, ppath_temperature, verbosity);
+      
+      ap.SetAtFrequency(iv, abs_vec);
+      Kp.SetAtFrequency(iv, ext_mat);
+    }
+  }
+}
+
+
+/*
+ * Kg gaseous propagation matrix
+ * ap particulate absorption vector
+ * Sg gaseuous source vector
+ * dKg_dx gaseous partial propagation partial derivatives
+ * dap_dx particulate absorption vector partial derivatives
+ * dS_dx gaseuous source vector partial derivatives
+ * Kp particlate propagation matrix
+ * dKp_dx particlate propagation matrix partial derivatives
+ * Se extra source vector terms
+ * dSe_dx extra source vector terms partial derivatives
+ * jacobian_quantities the partial derivative orders (same size as outer-most partial derivative arrays)
+*/
+// void add_stepwise_absorption_and_emission(PropagationMatrix& Kg,
+//                                           StokesVector& ap,
+//                                           StokesVector& Sg,
+//                                           ArrayOfPropagationMatrix& dKG_dx,
+//                                           ArrayOfStokesVector& dap_dx,
+//                                           ArrayOfStokesVector& dSg_dx,
+//                                           const PropagationMatrix& Kp,
+//                                           const ArrayOfPropagationMatrix& dKp_dx,
+//                                           const ArrayOfStokesVector& Se,
+//                                           const ArrayOfArrayOfStokesVector& dSe_dx,
+//                                           const ArrayOfRetrievalQuantity& jacobian_quantities)
+// {
+//   const Index nf = Kg.NumberOfFrequencies();
+//   
+//   ap += Kg;
+//   Kg += Kp;
+//   
+//   for(auto& sv : Se)
+//     Sg += sv;
+//   
+//   
+// }
+                                          
+
+
+// void allocate_stepwise_variables(PropagationMatrix& Kg,
+//                                  ArrayOfPropagationMatrix& dKg_dx,
+//                                  PropagationMatrix& Kp,
+//                                  ArrayOfPropagationMatrix& dKp_dx,
+//                                  StokesVector& Sg,
+//                                  ArrayOfStokesVector& dSg_dx,
+//                                  StokesVector& ap,
+//                                  ArrayOfStokesVector& dap_dx,
+//                                  Vector& ppath_f_grid,
+//                                  Vector& ppath_pnd,
+//                                  Vector& ppath_nlte_temperatures,
+//                                  ArrayOfVector& ppath_dpnd_dx,
+//                                  Vector& B,
+//                                  Vector& dB_dT,
+//                                  const ArrayOfRetrievalQuantity& jacobian_quantities)
+// {}

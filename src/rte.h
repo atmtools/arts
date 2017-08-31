@@ -468,4 +468,92 @@ void emission_rtstep_replacement( MatrixView iy,
                                   const PropagationMatrix& propagation_matrix,
                                   const StokesVector& source_vector);
 
+void get_stepwise_frequency_grid(VectorView ppath_f_grid,
+                                 ConstVectorView  f_grid,
+                                 ConstVectorView ppath_wind,
+                                 ConstVectorView ppath_line_of_sight,
+                                 const Numeric& rte_alonglos_v,
+                                 const Index& atmosphere_dim);
+
+void get_stepwise_f_partials(Vector& f_partials,
+                             const Index& component,
+                             ConstVectorView& line_of_sight,
+                             ConstVectorView f_grid, 
+                             const Index& atmosphere_dim);
+
+void get_stepwise_blackbody_radiation(VectorView B,
+                                      VectorView dB_dT,
+                                      ConstVectorView ppath_f_grid,
+                                      const Numeric& ppath_temperature,
+                                      const bool& do_temperature_derivative);
+
+void get_stepwise_clearsky_propmat(Workspace& ws,
+                                   PropagationMatrix& K,
+                                   StokesVector& S,
+                                   Index& lte,
+                                   ArrayOfPropagationMatrix& dK_dx,
+                                   ArrayOfStokesVector& dS_dx,
+                                   const Agenda& propmat_clearsky_agenda,
+                                   const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                   const PropmatPartialsData& partial_derivatives,
+                                   ConstVectorView ppath_f_grid,
+                                   ConstVectorView ppath_magnetic_field,
+                                   ConstVectorView ppath_line_of_sight,
+                                   ConstVectorView ppath_nlte_temperatures,
+                                   ConstVectorView ppath_vmrs,
+                                   const Numeric& ppath_temperature,
+                                   const Numeric& ppath_pressure,
+                                   const ArrayOfIndex& jacobian_species,
+                                   const bool& jacobian_do);
+
+void adapt_stepwise_partial_derivatives(ArrayOfPropagationMatrix& dK_dx,
+                                        ArrayOfStokesVector& dS_dx,
+                                        const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                        ConstVectorView ppath_f_grid,
+                                        ConstVectorView ppath_line_of_sight,
+                                        ConstVectorView ppath_vmrs,
+                                        const Numeric& ppath_temperature,
+                                        const Numeric& ppath_pressure,
+                                        const ArrayOfIndex& jacobian_species,
+                                        const ArrayOfIndex& jacobian_wind,
+                                        const Index& lte,
+                                        const Index& atmosphere_dim,
+                                        const bool& jacobian_do);
+
+void get_stepwise_transmission_matrix(Tensor3View cumulative_transmission,
+                                      Tensor3View T,
+                                      Tensor4View dT_dx_close,
+                                      Tensor4View dT_dx_far,
+                                      ConstTensor3View cumulative_transmission_close,
+                                      const PropagationMatrix& K_close,
+                                      const PropagationMatrix& K_far,
+                                      const ArrayOfPropagationMatrix& dK_close_dx,
+                                      const ArrayOfPropagationMatrix& dK_far_dx,
+                                      const Numeric& ppath_distance,
+                                      const bool& first_level);
+
+void sum_stepwise_scalar_tau_and_extmat_case(VectorView scalar_tau,
+                                             ArrayOfIndex& extmat_case,
+                                             const PropagationMatrix& upper_level,
+                                             const PropagationMatrix& lower_level,
+                                             const Numeric& distance);
+
+void get_stepwise_scattersky_propmat(StokesVector& ap,
+                                     PropagationMatrix& Kp,
+                                     VectorView ppath_pnd,
+                                     ArrayOfVector& ppath_dpnd_dx,
+                                     const Tensor4& pnd_field,
+                                     const ArrayOfTensor4& dpnd_field_dx,
+                                     ConstVectorView ppath_f_grid,
+                                     ConstVectorView ppath_line_of_sight,
+                                     const GridPos& ppath_latitude,
+                                     const GridPos& ppath_longitude,
+                                     const GridPos& ppath_pressure,
+                                     const ArrayOfIndex& cloudbox_limits,
+                                     const ArrayOfArrayOfSingleScatteringData& scat_data,
+                                     const Numeric& ppath_temperature,
+                                     const Index& atmosphere_dim,
+                                     const bool& do_pnd_jacobian,
+                                     const Verbosity& verbosity);
+
 #endif  // rte_h

@@ -1,3 +1,13 @@
+2017-08-31 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-781
+	
+	* src/rte.{cc,h}:  Added some stepwise functions to begin splitting
+	of the *pmat_and_tmat giant function.
+	
+	* src/propagationmatrix_h:  Added const return of Matrix because
+	of compiler complaints
+
 2017-08-30 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-780

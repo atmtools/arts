@@ -529,6 +529,8 @@ public:
   
   void VectorAtFrequency(VectorView ret, const Index ifreq) { ret = mdata(ifreq, joker); }
   
+  void VectorAtFrequency(VectorView ret, const Index ifreq) const { ret = mdata(ifreq, joker); }
+  
   void SetAtFrequency(const Index ifreq, ConstVectorView x)  { mdata(ifreq, joker) = x; }
   
   void AddAverageAtFrequency(const Index ifreq, ConstVectorView vec1, ConstVectorView vec2)
