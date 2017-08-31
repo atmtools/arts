@@ -1,3 +1,21 @@
+2017-08-31 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-782
+
+	There are only two hard things in Computer Science: cache invalidation
+	and naming things.
+
+	* src/m_oem.cc: Changed abbreviation ml to lm in variables related to
+	Levenberg-Marquardt method.
+
+	* src/m_retrieval.cc: Renamed Covmat1D to covmat1D, Covmat1DMarkov
+	to covmat1DMarkov, covmat_blockSetDiagonal to covmatSetDiagonal to get some
+	consistency somewhere.
+
+	* src/methods.cc: Updated method and argument names.
+
+	* src/workspace.cc: Updated name of lm_ga_history WSV
+
 2017-08-31 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-781

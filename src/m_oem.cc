@@ -718,7 +718,7 @@ void OEM_checks(
     const Vector&                     x_norm,
     const Index&                      max_iter,
     const Numeric&                    stop_dx,
-    const Vector&                     ml_ga_settings,
+    const Vector&                     lm_ga_settings,
     const Index&                      clear_matrices,
     const Index&                      display_progress)
 {
@@ -787,12 +787,12 @@ void OEM_checks(
 
   if( (method == "ml") || (method == "lm") || (method == "lm_cg") || (method == "ml_cg") )
   {
-      if( ml_ga_settings.nelem() != 6 )
+      if( lm_ga_settings.nelem() != 6 )
       {
           throw runtime_error( "When using \"ml\", *ml_ga_setings* must be a "
                              "vector of length 6." );
       }
-      if( min(ml_ga_settings) < 0 )
+      if( min(lm_ga_settings) < 0 )
       {
           throw runtime_error( "The vector *ml_ga_setings* can not contain any "
                                "negative value." );
@@ -824,7 +824,7 @@ void OEM(
          Matrix&                     jacobian,
          Matrix&                     dxdy,
          Vector&                     oem_diagnostics,
-         Vector&                     ml_ga_history,
+         Vector&                     lm_ga_history,
          ArrayOfString&              errors,
    const Vector&                     xa,
    const CovarianceMatrix&           covmat_sx,
@@ -839,7 +839,7 @@ void OEM(
    const Vector&                     x_norm,
    const Index&                      max_iter,
    const Numeric&                    stop_dx,
-   const Vector&                     ml_ga_settings,
+   const Vector&                     lm_ga_settings,
    const Index&                      clear_matrices,
    const Index&                      display_progress,
    const Verbosity& )
@@ -854,7 +854,7 @@ void OEM(
 
     OEM_checks(ws, x, yf, jacobian, inversion_iterate_agenda, xa, covmat_sx,
                covmat_se, jacobian_do, jacobian_quantities, jacobian_indices,
-               method, x_norm, max_iter, stop_dx, ml_ga_settings,
+               method, x_norm, max_iter, stop_dx, lm_ga_settings,
                clear_matrices, display_progress);
 
 
@@ -865,12 +865,12 @@ void OEM(
     if( method == "ml" || method == "lm"
         || method == "ml_cg" || method == "lm_cg" )
     {
-        ml_ga_history.resize(max_iter + 1);
-        ml_ga_history = NAN;
+        lm_ga_history.resize(max_iter + 1);
+        lm_ga_history = NAN;
     }
     else
     {
-        ml_ga_history.resize(0);
+        lm_ga_history.resize(0);
     }
 
     // Start value of cost function
@@ -936,7 +936,7 @@ void OEM(
                 GN gn(stop_dx, 1, s); // Linear case, only one step.
                 return_code = oem.compute<GN, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
-                    ml_ga_history, true);
+                    lm_ga_history, true);
             }
             else if (method == "li_m")
             {
@@ -944,7 +944,7 @@ void OEM(
                 GN gn(stop_dx, 1, s); // Linear case, only one step.
                 return_code = oem_m.compute<GN, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
-                    ml_ga_history, true);
+                    lm_ga_history, true);
             }
             else if (method == "li_cg")
             {
@@ -952,7 +952,7 @@ void OEM(
                 GN_CG gn(stop_dx, 1, cg); // Linear case, only one step.
                 return_code = oem.compute<GN_CG, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
-                    ml_ga_history, true);
+                    lm_ga_history, true);
             }
             else if (method == "li_cg_m")
             {
@@ -960,7 +960,7 @@ void OEM(
                 GN_CG gn(stop_dx, 1, cg); // Linear case, only one step.
                 return_code = oem_m.compute<GN_CG, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
-                    ml_ga_history, true);
+                    lm_ga_history, true);
             }
             else if (method == "gn")
             {
@@ -968,7 +968,7 @@ void OEM(
                 GN gn(stop_dx, (unsigned int) max_iter, s);
                     return_code = oem.compute<GN, ArtsLog>(
                         x_oem, y_oem, gn, oem_verbosity,
-                        ml_ga_history);
+                        lm_ga_history);
             }
             else if (method == "gn_m")
             {
@@ -976,7 +976,7 @@ void OEM(
                 GN gn(stop_dx, (unsigned int) max_iter, s);
                 return_code = oem_m.compute<GN, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
-                    ml_ga_history);
+                    lm_ga_history);
             }
             else if (method == "gn_cg")
             {
@@ -984,7 +984,7 @@ void OEM(
                 GN_CG gn(stop_dx, (unsigned int) max_iter, cg);
                 return_code = oem.compute<GN_CG, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
-                    ml_ga_history);
+                    lm_ga_history);
             }
             else if (method == "gn_cg_m")
             {
@@ -992,7 +992,7 @@ void OEM(
                 GN_CG gn(stop_dx, (unsigned int) max_iter, cg);
                 return_code = oem_m.compute<GN_CG, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
-                    ml_ga_history);
+                    lm_ga_history);
             }
             else if ( (method == "lm") || (method == "ml") )
             {
@@ -1001,16 +1001,16 @@ void OEM(
 
                 lm.set_tolerance(stop_dx);
                 lm.set_maximum_iterations((unsigned int) max_iter);
-                lm.set_lambda(ml_ga_settings[0]);
-                lm.set_lambda_decrease(ml_ga_settings[1]);
-                lm.set_lambda_increase(ml_ga_settings[2]);
-                lm.set_lambda_maximum(ml_ga_settings[3]);
-                lm.set_lambda_threshold(ml_ga_settings[4]);
-                lm.set_lambda_constraint(ml_ga_settings[5]);
+                lm.set_lambda(lm_ga_settings[0]);
+                lm.set_lambda_decrease(lm_ga_settings[1]);
+                lm.set_lambda_increase(lm_ga_settings[2]);
+                lm.set_lambda_maximum(lm_ga_settings[3]);
+                lm.set_lambda_threshold(lm_ga_settings[4]);
+                lm.set_lambda_constraint(lm_ga_settings[5]);
 
                 return_code = oem.compute<LM_S, ArtsLog>(
                     x_oem, y_oem, lm, oem_verbosity,
-                    ml_ga_history);
+                    lm_ga_history);
             }
             else if ( (method == "lm_cg") || (method == "ml_cg") )
             {
@@ -1018,15 +1018,15 @@ void OEM(
                 LM_CG_S lm(SaInv, cg);
 
                 lm.set_maximum_iterations((unsigned int) max_iter);
-                lm.set_lambda(ml_ga_settings[0]);
-                lm.set_lambda_decrease(ml_ga_settings[1]);
-                lm.set_lambda_increase(ml_ga_settings[2]);
-                lm.set_lambda_threshold(ml_ga_settings[3]);
-                lm.set_lambda_maximum(ml_ga_settings[4]);
+                lm.set_lambda(lm_ga_settings[0]);
+                lm.set_lambda_decrease(lm_ga_settings[1]);
+                lm.set_lambda_increase(lm_ga_settings[2]);
+                lm.set_lambda_threshold(lm_ga_settings[3]);
+                lm.set_lambda_maximum(lm_ga_settings[4]);
 
                 return_code = oem.compute<LM_CG_S, ArtsLog>(
                     x_oem, y_oem, lm, oem_verbosity,
-                    ml_ga_history);
+                    lm_ga_history);
             }
 
             oem_diagnostics[0] = static_cast<Index>(return_code);
@@ -1292,7 +1292,7 @@ void OEM_MPI(
     Matrix&                     jacobian,
     Matrix&                     dxdy,
     Vector&                     oem_diagnostics,
-    Vector&                     ml_ga_history,
+    Vector&                     lm_ga_history,
     Matrix&                     sensor_los,
     Matrix&                     sensor_pos,
     Vector&                     sensor_time,
@@ -1309,7 +1309,7 @@ void OEM_MPI(
     const Vector&                     x_norm,
     const Index&                      max_iter,
     const Numeric&                    stop_dx,
-    const Vector&                     ml_ga_settings,
+    const Vector&                     lm_ga_settings,
     const Index&                      clear_matrices,
     const Index&                      display_progress,
     const Verbosity&                  /*v*/ )
@@ -1321,7 +1321,7 @@ void OEM_MPI(
     // Check WSVs
     OEM_checks(ws, x, yf, jacobian, inversion_iterate_agenda, xa, covmat_sx,
                covmat_se, jacobian_do, jacobian_quantities, jacobian_indices,
-               method, x_norm, max_iter, stop_dx, ml_ga_settings,
+               method, x_norm, max_iter, stop_dx, lm_ga_settings,
                clear_matrices, display_progress);
 
     // Calculate spectrum and Jacobian for a priori state
@@ -1349,12 +1349,12 @@ void OEM_MPI(
     //
     if( method == "ml"  || method == "lm" )
     {
-        ml_ga_history.resize( max_iter );
-        ml_ga_history = NAN;
+        lm_ga_history.resize( max_iter );
+        lm_ga_history = NAN;
     }
     else
     {
-        ml_ga_history.resize( 0 );
+        lm_ga_history.resize( 0 );
     }
 
     // Start value of cost function. Covariance matrices are already distributed
@@ -1422,11 +1422,11 @@ void OEM_MPI(
 
             lm.set_tolerance(stop_dx);
             lm.set_maximum_iterations((unsigned int) max_iter);
-            lm.set_lambda(ml_ga_settings[0]);
-            lm.set_lambda_decrease(ml_ga_settings[1]);
-            lm.set_lambda_increase(ml_ga_settings[2]);
-            lm.set_lambda_threshold(ml_ga_settings[3]);
-            lm.set_lambda_maximum(ml_ga_settings[4]);
+            lm.set_lambda(lm_ga_settings[0]);
+            lm.set_lambda_decrease(lm_ga_settings[1]);
+            lm.set_lambda_increase(lm_ga_settings[2]);
+            lm.set_lambda_threshold(lm_ga_settings[3]);
+            lm.set_lambda_maximum(lm_ga_settings[4]);
 
             return_value = oem.compute<LM_CG_S_MPI, invlib::MPILog>(
                 x_oem, y_oem, lm,

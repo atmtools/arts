@@ -3970,7 +3970,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
       ( MdRecord
-        ( NAME( "Covmat1D" ),
+        ( NAME( "covmat1D" ),
           DESCRIPTION
           (
               "Create 1D covariance matrix.\n"
@@ -4016,7 +4016,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
       ( MdRecord
-        ( NAME( "Covmat1DMarkov" ),
+        ( NAME( "covmat1DMarkov" ),
           DESCRIPTION
           (
               "Create Markov Process Covariance Matrix.\n"
@@ -4071,7 +4071,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
       ( MdRecord
-        ( NAME( "covmat_blockSetDiagonal" ),
+        ( NAME( "covmatSetDiagonal" ),
           DESCRIPTION
           (
               "Sets the matrix in covmat_block to a diagonal matrix with the variances\n"
@@ -10399,8 +10399,8 @@ void define_md_data_raw()
          "  \"li_cg\": A linear problem is assumed and solved using the CG solver.\n"
          "  \"gn\": Non-linear, with Gauss-Newton iteration scheme.\n"
          "  \"gn_cg\": Non-linear, with Gauss-Newton and conjugate gradient solver.\n"
-         "  \"ml\": Non-linear, with Levenberg-Marquardt (LM) iteration scheme.\n"
-         "  \"ml_cg\": Non-linear, with Levenberg-Marquardt (LM) iteration scheme and conjugate gradient solver.\n"
+         "  \"lm\": Non-linear, with Levenberg-Marquardt (LM) iteration scheme.\n"
+         "  \"lm_cg\": Non-linear, with Levenberg-Marquardt (LM) iteration scheme and conjugate gradient solver.\n"
          "*max_start_cost*\n"
          "  No inversion is done if the cost matching the a priori state is above\n"
          "  this value. If set to a negative value, all values are accepted.\n"
@@ -10420,8 +10420,8 @@ void define_md_data_raw()
          "*stop_dx*\n"
          "  Iteration stop criterion. The criterion used is the same as given\n"
          "  in Rodgers\' \"Inverse Methods for Atmospheric Sounding\"\n"
-         "*ml_ga_settings*\n"
-         "  Settings controlling the gamma factor, part of the \"ML\" method.\n"
+         "*lm_ga_settings*\n"
+         "  Settings controlling the gamma factor, part of the \"LM\" method.\n"
          "  This is a vector of length 6, having the elements (0-based index):\n"
          "    0: Start value.\n"
          "    1: Fractional decrease after succesfull iteration.\n"
@@ -10433,7 +10433,7 @@ void define_md_data_raw()
          "    5: Gamma limit. This is an additional stop criterion. Convergence\n"
          "       is not considered until there has been one succesful iteration\n"
          "       having a gamma <= this value.\n"
-         "  The default setting triggers an error if \"ml\" is selected.\n"
+         "  The default setting triggers an error if \"lm\" is selected.\n"
          "*clear matrices*\n"
          "   With this flag set to 1, *jacobian* and *dxdy* are returned as empty\n"
          "   matrices.\n"
@@ -10442,7 +10442,7 @@ void define_md_data_raw()
          "   is ignored by this WSM.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "x", "yf", "jacobian", "dxdy", "oem_diagnostics", "ml_ga_history", "oem_errors"),
+        OUT( "x", "yf", "jacobian", "dxdy", "oem_diagnostics", "lm_ga_history", "oem_errors"),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -10450,7 +10450,7 @@ void define_md_data_raw()
             "jacobian_do", "jacobian_quantities", "jacobian_indices",
             "inversion_iterate_agenda" ),
         GIN( "method", "max_start_cost", "x_norm", "max_iter", "stop_dx", 
-             "ml_ga_settings", "clear_matrices", "display_progress" ),
+             "lm_ga_settings", "clear_matrices", "display_progress" ),
         GIN_TYPE( "String", "Numeric", "Vector", "Index", "Numeric", 
                   "Vector", "Index", "Index" ),
         GIN_DEFAULT( NODEF, "Inf", "[]", "10", "0.01", 
@@ -10461,7 +10461,7 @@ void define_md_data_raw()
                   "Normalisation of Sx.",
                   "Maximum number of iterations.",
                   "Stop criterion for iterative inversions.",
-                  "Settings associated with the ga factor of the ML method.",
+                  "Settings associated with the ga factor of the LM method.",
                   "An option to save memory.",
                   "Flag to control if inversion diagnostics shall be printed "
                   "on the screen.")
@@ -10479,7 +10479,7 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson, Simon Pfreundschuh" ),
         OUT( "x", "yf", "jacobian", "dxdy", "oem_diagnostics",
-             "ml_ga_history", "sensor_los", "sensor_pos", "sensor_time",
+             "lm_ga_history", "sensor_los", "sensor_pos", "sensor_time",
              "covmat_sx", "covmat_se"),
         GOUT(),
         GOUT_TYPE(),
@@ -10488,7 +10488,7 @@ void define_md_data_raw()
             "covmat_se", "xa", "y", "jacobian_do", "jacobian_quantities",
             "jacobian_indices", "inversion_iterate_agenda" ),
         GIN( "method", "max_start_cost", "x_norm", "max_iter", "stop_dx", 
-             "ml_ga_settings", "clear_matrices", "display_progress" ),
+             "lm_ga_settings", "clear_matrices", "display_progress" ),
         GIN_TYPE( "String", "Numeric", "Vector", "Index", "Numeric", 
                   "Vector", "Index", "Index" ),
         GIN_DEFAULT( NODEF, "Inf", "[]", "10", "0.01", 
@@ -10499,7 +10499,7 @@ void define_md_data_raw()
                   "Normalisation of Sx.",
                   "Maximum number of iterations.",
                   "Stop criterion for iterative inversions.",
-                  "Settings associated with the ga factor of the ML method.",
+                  "Settings associated with the ga factor of the LM method.",
                   "An option to save memory.",
                   "Flag to control if inversion diagnostics shall be printed "
                   "on the screen.")

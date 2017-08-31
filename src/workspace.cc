@@ -3209,7 +3209,7 @@ void Workspace::define_wsv_data()
 
    wsv_data.push_back
    (WsvRecord
-    ( NAME( "ml_ga_history" ),
+    ( NAME( "lm_ga_history" ),
       DESCRIPTION
       (
         "The series of gamma values for a Marquardt-levenberg inversion.\n"

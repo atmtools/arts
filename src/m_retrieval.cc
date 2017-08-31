@@ -158,10 +158,10 @@ void ZFromPSimple(Vector &z_grid,
 // Creation of Correlation Blocks
 ////////////////////////////////////////////////////////////////////////////////
 
-void covmat_blockSetDiagonal(Sparse &covmat_block,
-                             Sparse &covmat_inv_block,
-                             const Vector &vars,
-                             const Verbosity &)
+void covmatSetDiagonal(Sparse &covmat_block,
+                       Sparse &covmat_inv_block,
+                       const Vector &vars,
+                       const Verbosity &)
 {
     if (vars.empty()) {
         throw runtime_error("Cannot pass empty vector of variances to covmat_blockSetDiagonal");
@@ -216,7 +216,7 @@ void covmat_seSet(CovarianceMatrix &covmat_se,
     }
 }
 
-void Covmat1DMarkov(Sparse& covmat_block,
+void covmat1DMarkov(Sparse& covmat_block,
                     Sparse& covmat_inv_block,
                     const Vector& grid,
                     const Vector& sigma,
@@ -283,30 +283,30 @@ void Covmat1DMarkov(Sparse& covmat_block,
     covmat_inv_block.insert_elements(row_indices.size(), row_indices, column_indices, elements);
 }
 
-void Covmat1D(Sparse& covmat_block,
+void covmat1D(Sparse& covmat_block,
               Sparse& covmat_inv_block,
-              const Vector& grid_1,
-              const Vector& grid_2,
-              const Vector& sigma_1,
-              const Vector& sigma_2,
-              const Vector& cls_1,
-              const Vector& cls_2,
+              const Vector& grid1,
+              const Vector& grid2,
+              const Vector& sigma1,
+              const Vector& sigma2,
+              const Vector& lc1,
+              const Vector& lc2,
               const Numeric& co,
               const String& fname,
               const Verbosity &)
 {
-    Index m = grid_1.nelem();
-    assert(sigma_1.nelem() == m);
-    assert(cls_1.nelem() == m);
+    Index m = grid1.nelem();
+    assert(sigma1.nelem() == m);
+    assert(lc1.nelem() == m);
 
-    Index n = grid_2.nelem();
-    assert(sigma_2.nelem() == n);
-    assert(cls_2.nelem() == n);
+    Index n = grid2.nelem();
+    assert(sigma2.nelem() == n);
+    assert(lc2.nelem() == n);
 
     assert((n == m) || (n==0));
 
-    ConstVectorView grid_view_1(grid_1), sigma_view_1(sigma_1), cls_view_1(cls_1);
-    ConstVectorView grid_view_2(grid_2), sigma_view_2(sigma_2), cls_view_2(cls_2);
+    ConstVectorView grid_view_1(grid1), sigma_view_1(sigma1), cls_view_1(lc1);
+    ConstVectorView grid_view_2(grid2), sigma_view_2(sigma2), cls_view_2(lc2);
 
     if (n==0) {
         n = m;
