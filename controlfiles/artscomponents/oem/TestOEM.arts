@@ -116,7 +116,7 @@ retrievalDefInit
 VectorCreate(vars)
 nelemGet( nelem, p_ret_grid )
 VectorSetConstant(vars, nelem, 1e-12)
-covmat_blockSetDiagonal(vars = vars)
+covmatSetDiagonal(vars = vars)
 retrievalAddAbsSpecies( 
     species = "O3",
     unit = "vmr",
@@ -127,7 +127,7 @@ retrievalAddAbsSpecies(
 
 nelemGet( nelem, y )
 VectorSetConstant(vars, nelem, 1e-2)
-covmat_blockSetDiagonal(vars = vars)
+covmatSetDiagonal(vars = vars)
 covmat_seSet
 
 retrievalDefClose
@@ -181,7 +181,7 @@ MatrixSet( jacobian, [] )
 OEM(method="gn", 
     max_iter=5, 
     display_progress=1, 
-    ml_ga_settings=[10,2,2,100,1,99])
+    lm_ga_settings=[10,2,2,100,1,99])
 #
 Print( oem_errors, 0 )
 

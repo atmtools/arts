@@ -1,5 +1,15 @@
 2017-08-31 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
+	* arts-2-3-783
+
+	There are only two hard things in Computer Science: cache invalidation
+	and REnaming things.
+
+	* controlfiles/artscomponents/oem/TestOEM.arts: Updated function names changed
+	in previous commit.
+
+2017-08-31 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
 	* arts-2-3-782
 
 	There are only two hard things in Computer Science: cache invalidation
