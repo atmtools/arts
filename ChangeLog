@@ -1,3 +1,15 @@
+2017-09-01  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-785
+
+	* cmake/modules/ArtsTestcases.cmake:
+
+	Explicitly pass include path to ignore the environment variable
+	ARTS_INCLUDE_PATH. Otherwise the test can break depending on the user's
+	environment.
+
+	Remove special cases for cmake 2.6 which we don't support anymore.
+
 2017-09-01 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-784
