@@ -7226,6 +7226,44 @@ void define_md_data_raw()
                 " matrix (for available options see above)." )
     ));
     
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "iyHybrid2" ),
+      DESCRIPTION
+      (
+        "So far just for testing.\n"
+        "\n" 
+        "Pure radiative transfer splitting up the calculation to be stepwise\n"
+      ),
+      AUTHORS( "Patrick Eriksson" ),
+      OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "iy_id", "diy_dx", "stokes_dim", "f_grid", "atmosphere_dim", "p_grid",
+          "z_field", "t_field", "t_nlte_field", "vmr_field", "abs_species", 
+          "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
+          "mag_v_field", "mag_w_field", 
+          "cloudbox_on", "cloudbox_limits", "pnd_field", 
+          "use_mean_scat_data", "scat_data", "particle_masses",
+          "iy_unit", "iy_aux_vars", "jacobian_do", "jacobian_quantities", 
+          "jacobian_indices", "ppath_agenda", "propmat_clearsky_agenda",
+          "iy_main_agenda", "iy_space_agenda", "iy_surface_agenda",
+          "iy_cloudbox_agenda", "doit_i_field_agenda",
+          "iy_agenda_call1", "iy_transmission", 
+          "rte_pos", "rte_los", "rte_pos2", "rte_alonglos_v", "ppath_lmax",
+          "ppath_lraytrace" ),
+      GIN(         "Naa_grid", "pfct_method" ),
+      GIN_TYPE(    "Index",    "String" ),
+      GIN_DEFAULT( "19",       "median" ),
+      GIN_DESC( "Number of azimuth angles to consider in scattering source term"
+      " integral.",
+      "Flag which method to apply for temperature adaptation of phase"
+      " matrix (for available options see above)." )
+    ));
+    
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "iyIndependentBeamApproximation" ),

@@ -538,7 +538,8 @@ void sum_stepwise_scalar_tau_and_extmat_case(VectorView scalar_tau,
                                              const PropagationMatrix& lower_level,
                                              const Numeric& distance);
 
-void get_stepwise_scattersky_propmat(StokesVector& ap,
+void get_stepwise_scattersky_propmat(bool& do_cloudbox_calculations,
+                                     StokesVector& ap,
                                      PropagationMatrix& Kp,
                                      VectorView ppath_pnd,
                                      ArrayOfVector& ppath_dpnd_dx,
@@ -555,5 +556,31 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
                                      const Index& atmosphere_dim,
                                      const bool& do_pnd_jacobian,
                                      const Verbosity& verbosity);
+
+void get_stepwise_scattersky_source(ArrayOfStokesVector& ppath_scat_source,
+                                    const ArrayOfArrayOfSingleScatteringData& scat_data,
+                                    ConstTensor7View doit_i_field,
+                                    ConstVectorView  scat_za_grid,
+                                    ConstVectorView  f_grid, 
+                                    const Index&     stokes_dim,
+                                    const GridPos& ppath_p,
+                                    ConstVectorView ppath_line_of_sight,
+                                    const Numeric& ppath_t,
+                                    ConstVectorView ppath_pnd,
+                                    const Index& j_analytical_do,
+                                    const Index& Naa,
+                                    const Verbosity& verbosity);
+
+void get_stepwise_effective_source(MatrixView J,
+                                   Tensor3View dJ_dx,
+                                   const PropagationMatrix& K,
+                                   const StokesVector& a,
+                                   const StokesVector& S,
+                                   const ArrayOfPropagationMatrix& dK_dx,
+                                   const ArrayOfStokesVector& da_dx,
+                                   const ArrayOfStokesVector& dS_dx,
+                                   ConstVectorView B,
+                                   ConstVectorView dB_dT,
+                                   const ArrayOfRetrievalQuantity& jacobian_quantities);
 
 #endif  // rte_h

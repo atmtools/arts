@@ -507,6 +507,20 @@ public:
     return *this;
   }
   
+  StokesVector& operator=(const PropagationMatrix& x)
+  {
+    mstokes_dim = x.StokesDimensions();
+    mfreqs = x.NumberOfFrequencies();
+    mdata = x.GetMatrix()(joker, Range(0, mstokes_dim, 1));
+    return *this;
+  }
+  
+  StokesVector& operator=(const Numeric& x)
+  {
+    mdata = x;
+    return *this;
+  }
+  
   void MultiplyAndAdd(const Numeric x, const StokesVector& y)
   {
     assert(mstokes_dim == y.mstokes_dim);

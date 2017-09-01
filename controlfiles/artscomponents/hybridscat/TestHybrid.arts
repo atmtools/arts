@@ -68,5 +68,16 @@ Compare( y, yREFERENCE, 2. )
 ReadXML( yREFERENCE, "yREFERENCE.xml" )
 Compare( y, yREFERENCE, 1e-2 )
 
+AgendaSet( iy_main_agenda ){
+  Ignore( t_nlte_field )
+  Ignore( iy_id )
+  iyHybrid2
+}
+
+yCalc
+Print( y, 0 )
+
+Compare( y, yREFERENCE, 1e-1 )
+
 }
  

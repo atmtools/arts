@@ -4311,6 +4311,10 @@ void get_stepwise_clearsky_propmat(Workspace& ws,
     for(Index i = 1; i < npmat; i++)
       S += nlte_source[i];
   }
+  else
+  {
+    S.SetZero();
+  }
   
   // Set the partial derivatives
   if(jacobian_do)
@@ -4326,7 +4330,7 @@ void get_stepwise_clearsky_propmat(Workspace& ws,
         if(not lte)
         {
           dS_dx[i] = dnlte_dx_source[j];
-          dS_dx[i] = nlte_dx_dsource_dx[j];
+          dS_dx[i] += nlte_dx_dsource_dx[j];
           
           // TEST:  Old routine applied unit conversion on only the last
           // part of the equation. Was this correct or wrong?  If correct,
@@ -4469,32 +4473,28 @@ void get_stepwise_transmission_matrix(Tensor3View cumulative_transmission,
   // Frequency counter
   const Index nf = K_close.NumberOfFrequencies();
   
-  // Compute the transmission of the layer between close and far
-  if(not dK_close_dx.nelem())
+  if(first_level)
   {
-    compute_transmission_matrix(T, ppath_distance, K_close, K_far);
-  }
-  else
-  {
-    compute_transmission_matrix_and_derivative(T, dT_close_dx, dT_far_dx, ppath_distance, 
-                                               K_close, K_far, dK_close_dx, dK_far_dx);
-  }
-  
-  // If this is the first level, then transmission to space is full
-  if(not first_level)
-  {
-    // If this is not the first level, then the transmission to space is reduced by subsequent layers
-    for(Index iv = 0; iv < nf; iv++)
-      mult(cumulative_transmission(iv, joker, joker), 
-           cumulative_transmission_close(iv, joker, joker),
-           T(iv, joker, joker));
-  }
-  else
-  {
-    // Everything from after the first level is getting to the sensor by ARTS standard
     for(Index iv = 0; iv < nf; iv++)
       id_mat(cumulative_transmission(iv, joker, joker));
+    return;
   }
+  
+  // Compute the transmission of the layer between close and far
+  if(not dK_close_dx.nelem())
+    compute_transmission_matrix(T, ppath_distance, K_close, K_far);
+  else
+    compute_transmission_matrix_and_derivative(T, 
+                                               dT_close_dx, dT_far_dx, 
+                                               ppath_distance, 
+                                               K_close, K_far, 
+                                               dK_close_dx, dK_far_dx);
+  
+  // Cumulate transmission
+  for(Index iv = 0; iv < nf; iv++)
+    mult(cumulative_transmission(iv, joker, joker), 
+         cumulative_transmission_close(iv, joker, joker),
+         T(iv, joker, joker));
 }
 
 
@@ -4519,10 +4519,10 @@ void get_stepwise_effective_source(MatrixView J,
                                    Tensor3View dJ_dx,
                                    const PropagationMatrix& K,
                                    const StokesVector& a,
-                                   const StokesVector& additional_sources,
+                                   const StokesVector& S,
                                    const ArrayOfPropagationMatrix& dK_dx,
                                    const ArrayOfStokesVector& da_dx,
-                                   const ArrayOfStokesVector& dadditional_sources_dx,
+                                   const ArrayOfStokesVector& dS_dx,
                                    ConstVectorView B,
                                    ConstVectorView dB_dT,
                                    const ArrayOfRetrievalQuantity& jacobian_quantities)
@@ -4543,7 +4543,7 @@ void get_stepwise_effective_source(MatrixView J,
     
     j = a.GetMatrix()(i1, joker);
     j *= B[i1];
-    j += additional_sources.GetMatrix()(i1, joker);
+    j += S.GetMatrix()(i1, joker);
     
     // Set end result
     mult(J(i1, joker), invK, j);
@@ -4575,10 +4575,10 @@ void get_stepwise_effective_source(MatrixView J,
         dj = dabs;
       }
       
-      dj += dadditional_sources_dx[i2].GetMatrix()(i1, joker);
+      dj += dS_dx[i2].GetMatrix()(i1, joker);
       
       mult(dabs, invK, dj);
-      dJ_dx(i2, i1, joker)+= dabs;
+      dJ_dx(i2, i1, joker) += dabs;
     }
   }
 }
@@ -4677,7 +4677,8 @@ void get_stepwise_f_partials(Vector& f_partials,
 }
 
 
-void get_stepwise_scattersky_propmat(StokesVector& ap,
+void get_stepwise_scattersky_propmat(bool& do_cloudbox_calculations,
+                                     StokesVector& ap,
                                      PropagationMatrix& Kp,
                                      VectorView ppath_pnd,
                                      ArrayOfVector& ppath_dpnd_dx,
@@ -4695,22 +4696,19 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
                                      const bool& do_pnd_jacobian,
                                      const Verbosity& verbosity)
 {
-  const Index nf = ppath_f_grid.nelem(), stokes_dim = Kp.StokesDimensions();
-  
-  Matrix itw(1, 1 << atmosphere_dim);
-  
-  ArrayOfGridPos gpc_p(1), gpc_lat(1), gpc_lon(1);
-  Array<ArrayOfArrayOfSingleScatteringData> scat_data_single(nf);
-  
   // ppath latitude and longitude has to be set outside if they exist at all
-  const bool do_calcs = is_gp_inside_cloudbox(ppath_pressure, 
-                                              ppath_latitude, 
-                                              ppath_longitude, 
-                                              cloudbox_limits, 
-                                              true, 
-                                              atmosphere_dim);
-  if(do_calcs)
+  do_cloudbox_calculations = is_gp_inside_cloudbox(ppath_pressure, ppath_latitude, 
+                                                   ppath_longitude, cloudbox_limits, 
+                                                   true, atmosphere_dim);
+  if(do_cloudbox_calculations)
   {
+    const Index nf = Kp.NumberOfFrequencies(), stokes_dim = Kp.StokesDimensions();
+    
+    Matrix itw(1, 1 << atmosphere_dim);
+    
+    ArrayOfGridPos gpc_p(1), gpc_lat(1), gpc_lon(1);
+    Array<ArrayOfArrayOfSingleScatteringData> scat_data_single(nf);
+    
     interp_cloudfield_gp2itw(itw(0, joker), 
                              gpc_p[0], gpc_lat[0], gpc_lon[0], 
                              ppath_pressure, ppath_latitude, ppath_longitude,
@@ -4758,6 +4756,11 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
       ap.SetAtFrequency(iv, abs_vec);
       Kp.SetAtFrequency(iv, ext_mat);
     }
+  }
+  else
+  {
+    ap.SetZero();
+    Kp.SetZero();
   }
 }
 
@@ -4816,3 +4819,110 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
 //                                  Vector& dB_dT,
 //                                  const ArrayOfRetrievalQuantity& jacobian_quantities)
 // {}
+
+
+void get_stepwise_scattersky_source(ArrayOfStokesVector& ppath_scat_source,
+                                    const ArrayOfArrayOfSingleScatteringData& scat_data,
+                                    ConstTensor7View doit_i_field,
+                                    ConstVectorView  scat_za_grid,
+                                    ConstVectorView  f_grid, 
+                                    const Index&     stokes_dim,
+                                    const GridPos& ppath_p,
+                                    ConstVectorView ppath_line_of_sight,
+                                    const Numeric& ppath_t,
+                                    ConstVectorView ppath_pnd,
+                                    const Index& j_analytical_do,
+                                    const Index& Naa,
+                                    const Verbosity& verbosity)
+{
+  const Index ne = ppath_pnd.nelem();
+  assert( TotalNumberOfElements(scat_data) == ne );
+  
+  Vector aa_grid(Naa);
+  if( Naa > 2 )
+    nlinspace(aa_grid, 0, 360, Naa);
+  else
+  {
+    ostringstream os;
+    os << "Naa_grid must be > 2.";
+    throw runtime_error( os.str() );
+  }
+  Index Nza = scat_za_grid.nelem();
+  
+  if( j_analytical_do || (max(ppath_pnd) > 0) )
+  {
+    GridPos gp_p;
+    gridpos_copy( gp_p, ppath_p );
+    Vector itw_p(2);
+    interpweights( itw_p, gp_p );
+    
+    GridPos gp_za, gp_iza;
+    gridpos(gp_za, scat_za_grid, ppath_line_of_sight[0], 0.5);
+    gridpos_copy( gp_iza, gp_za );
+    gp_iza.idx = 0;
+    Vector itw_iza(2);
+    interpweights( itw_iza, gp_iza ); 
+    
+    Tensor4 pndT4(ne, 1, 1, 1, 1.);
+    if (!j_analytical_do) // switch(ed) off for debugging
+      pndT4(joker, 0, 0, 0) = ppath_pnd;
+    
+    for( Index f_index=0; f_index<f_grid.nelem(); f_index++ )
+    {
+      Matrix inc_field(Nza, stokes_dim, 0.);
+      Tensor3 scat_field(2, ne, stokes_dim, 0.);
+      Matrix rad_field(2, stokes_dim, 0.);
+      
+      for( Index za_in=0; za_in<Nza; za_in++ )
+      {
+        for( Index i=0; i<stokes_dim; i++ )
+        {
+          inc_field(za_in, i) = 
+          interp( itw_p, doit_i_field(f_index,joker,0,0,za_in,0,i), gp_p );
+        }
+      }
+      
+      Tensor5 pha_mat_spt(ne, Nza, Naa, stokes_dim, stokes_dim, 0.);
+      Tensor5 product_fields(2, ne, Nza, Naa, stokes_dim, 0.);
+      for( Index iza=0; iza<2; iza++ )
+      {
+        pha_mat_sptFromData(pha_mat_spt,
+                            scat_data,
+                            scat_za_grid, aa_grid, iza+gp_za.idx, 0,
+                            f_index, f_grid, ppath_t,
+                            pndT4, 0, 0, 0, verbosity );
+        for( Index ise_flat=0; ise_flat<ne; ise_flat++ )
+        {
+          for( Index za_in = 0; za_in < Nza; ++ za_in )
+          {
+            for( Index aa_in = 0; aa_in < Naa; ++ aa_in )
+            {
+              for ( Index i = 0; i < stokes_dim; i++)
+                for (Index j = 0; j< stokes_dim; j++)
+                {
+                  product_fields(iza, ise_flat, za_in, aa_in, i) +=
+                  pha_mat_spt(ise_flat, za_in, aa_in, i, j) *
+                  inc_field(za_in, j);
+                }
+            }
+          }
+          
+          for ( Index i = 0; i < stokes_dim; i++ )
+          {
+            scat_field(iza,ise_flat,i) = AngIntegrate_trapezoid(
+              product_fields(iza, ise_flat, joker, joker, i),
+                                                                scat_za_grid, aa_grid);
+          }
+        }
+      }
+      for( Index ise_flat=0; ise_flat<ne; ise_flat++ )
+      {
+        for ( Index i = 0; i < stokes_dim; i++ )
+        {
+          ppath_scat_source[ise_flat].GetMatrix()(f_index, i) =
+            interp(itw_iza, scat_field(joker,ise_flat,i), gp_iza );
+        } 
+      } 
+    }
+  } 
+}

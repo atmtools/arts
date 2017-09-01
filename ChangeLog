@@ -1,3 +1,19 @@
+2017-09-01 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-786
+	
+	* src/m_fos.cc:  Added a iyHybrid2 that is splitting up the call
+	to the *and_tmat functionality and also changing the averaging
+	over levels.  (Make average of all the source term on a level 
+	rather than the individual elements.)
+	
+	* controlfiles/artscomponents/hybridscat/TestHybrid.arts: 
+	Added new method to test
+	
+	* src/rte.{cc, h}:  Added scattering source for single level.
+	Makes a lot of unecessary calls because of a failed check which
+	is still being investigated...
+
 2017-09-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-785
