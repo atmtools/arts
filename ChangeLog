@@ -1,3 +1,20 @@
+2017-09-01 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-784
+
+	* src/m_fos.cc (iyHybrid):
+	Removed a leftover debugging write out.
+
+	* src/m_rt4.cc (RT4Calc):
+	Set dummy surface_skin_t when initializing.
+
+	* src/cloudbox.cc (check_pndsum):
+	Downgrade outlevel to 3.
+
+	* controlfiles/artscomponents/hybridscat/TestHybrid.arts:
+	Set iy_main_agenda for yCalc using RT4 explicitly here (not rely on
+	setting from an INCLUDE).
+
 2017-08-31 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-783

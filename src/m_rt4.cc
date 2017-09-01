@@ -124,7 +124,7 @@ void RT4Calc( Workspace& ws,
   const Index nf = f_grid.nelem();
 
   // dummy values for parameters not relevant for this ground_type
-  Numeric surface_skin_t;
+  Numeric surface_skin_t=0.;
   Vector ground_albedo(nf, 0.);
   Tensor3 ground_reflec(nf,stokes_dim,stokes_dim, 0.);
   Complex gidef(1,0.);

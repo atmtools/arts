@@ -895,6 +895,7 @@ void iyHybrid(
    const Tensor4&                     pnd_field,
    const Index&                       use_mean_scat_data,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
+   //const Index&                       scat_data_checked,
    const Matrix&                      particle_masses,
    const String&                      iy_unit,
    const ArrayOfString&               iy_aux_vars,
@@ -1311,8 +1312,8 @@ void iyHybrid(
                                j_analytical_do, Naa, rtp_temp_id, verbosity );
       }
       // for debugging
-      WriteXML( "ascii", ppath_scat_source, "ppath_scat_source.xml", 0,
-                "ppath_scat_source", "", "", verbosity );
+      //WriteXML( "ascii", ppath_scat_source, "ppath_scat_source.xml", 0,
+      //          "ppath_scat_source", "", "", verbosity );
 
     }
   else

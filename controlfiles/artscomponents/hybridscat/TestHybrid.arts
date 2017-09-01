@@ -20,8 +20,6 @@ scat_data_checkedCalc
 #pnd_fieldZero
 #Tensor4Scale( pnd_field, pnd_field, 1e-10 )
 
-# RT4 settings
-
 # Consistency checks
 atmfields_checkedCalc
 atmgeom_checkedCalc
@@ -33,6 +31,10 @@ sensor_checkedCalc
 
 AgendaSet( iy_cloudbox_agenda ){
   iyInterpCloudboxField
+}
+AgendaSet( iy_main_agenda ){
+  Ignore( iy_id )
+  iyEmissionStandard
 }
 
 RT4Calc 

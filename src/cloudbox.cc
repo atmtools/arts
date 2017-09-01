@@ -895,7 +895,7 @@ void chk_pndsum (Vector& pnd,
                  const Verbosity& verbosity)
 
 {
-  CREATE_OUT2;
+  CREATE_OUT3;
   
   if ( xwc == 0.0 )
     {
@@ -940,16 +940,16 @@ void chk_pndsum (Vector& pnd,
       if ( error > 1.10 || error < 0.90 )
         {
           //CREATE_OUT1;
-          out2<< "WARNING: in WSM chk_pndsum in pnd_fieldCalcFromscat_speciesFields!\n" 
-              << "The deviation of the sum of nodes in the particle size distribution\n"
-              << "to the initial input mass density of '"<< partfield_name
-              <<"' is larger than 10%!\n"
-              << "The deviation of: "<< error-1.0<<" occured in the atmospheric level: "
-              << "p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<".\n";
+          out3 << "WARNING: in WSM chk_pndsum in pnd_fieldCalcFromscat_speciesFields!\n" 
+               << "The deviation of the sum of nodes in the particle size distribution\n"
+               << "to the initial input mass density of '"<< partfield_name
+               <<"' is larger than 10%!\n"
+               << "The deviation of: "<< error-1.0<<" occured in the atmospheric level: "
+               << "p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<".\n";
         }
     }
 
-  out2 << "PND scaling factor in atm. level "
+  out3 << "PND scaling factor in atm. level "
        << "(p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<"): "<< error <<"\n";
 }
 
