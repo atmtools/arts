@@ -789,6 +789,7 @@ void psdF07 (
           Matrix&                             psd_data,
           Tensor3&                            dpsd_data_dx,
     const Vector&                             psd_size_grid,
+    const Vector&                             pnd_agenda_input_t,
     const Matrix&                             pnd_agenda_input,
     const ArrayOfString&                      pnd_agenda_input_names,
     const ArrayOfString&                      dpnd_data_dx_names,
@@ -815,13 +816,10 @@ void psdF07 (
   if( pnd_agenda_input.ncols() != nin )
     throw runtime_error( "Length of *pnd_agenda_input_names* and number of "
                          "columns in *pnd_agenda_input* must be equal." );
-  if( pnd_agenda_input.ncols() != 2 )
-    throw runtime_error( "*pnd_agenda_input* must have two columns (SWC and Temperature)." );
+  if( pnd_agenda_input.ncols() != 1 )
+    throw runtime_error( "*pnd_agenda_input* must have two columns (SWC)." );
   if( pnd_agenda_input_names[0] != "SWC" )
     throw runtime_error( "Element 0 of *pnd_agenda_input_names* must be \"SWC\"." );
-  if( pnd_agenda_input_names[1] != "Temperature" )
-    throw runtime_error( "Element 1 of *pnd_agenda_input_names* must be "
-                         "\"Temperature\"." );
   if( ndx )
     {
       if( ndx != 1 )
@@ -900,22 +898,10 @@ void psdF07 (
       
       // Extract the input variables
       Numeric swc = pnd_agenda_input(ip,0);
-      Numeric   t = pnd_agenda_input(ip,1);
+      Numeric   t = pnd_agenda_input_t[ip];
 
-      // No calc needed if swc==0 and no jacobians requested.
-      if( (swc==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-
-      // Negative swc?
-      Numeric psd_weight = 1.0;
-      if( swc < 0 )
-        {
-          psd_weight = -1.0;
-          swc       *= -1.0;
-        }
-      
       // Outside of [t_min,tmax]?
-      if( t < t_min  ||  t > t_max || t < 0.)
+      if( t < t_min  ||  t > t_max )
         {
           if( picky )
             {
@@ -929,6 +915,18 @@ void psdF07 (
             { continue; }   // If here, we are ready with this point!
         }
 
+      // No calc needed if swc==0 and no jacobians requested.
+      if( (swc==0.) && (!ndx) )
+        { continue; }   // If here, we are ready with this point!
+
+      // Negative swc?
+      Numeric psd_weight = 1.0;
+      if( swc < 0 )
+        {
+          psd_weight = -1.0;
+          swc       *= -1.0;
+        }
+      
       // PSD assumed to be constant outside [*t_min_psd*,*t_max_psd*]
       if( t < t_min_psd )
         { t = t_min_psd; }
@@ -964,6 +962,7 @@ void psdMH97 (
           Matrix&                             psd_data,
           Tensor3&                            dpsd_data_dx,
     const Vector&                             psd_size_grid,
+    const Vector&                             pnd_agenda_input_t,
     const Matrix&                             pnd_agenda_input,
     const ArrayOfString&                      pnd_agenda_input_names,
     const ArrayOfString&                      dpnd_data_dx_names,
@@ -985,13 +984,11 @@ void psdMH97 (
   if( pnd_agenda_input.ncols() != nin )
     throw runtime_error( "Length of *pnd_agenda_input_names* and number of "
                          "columns in *pnd_agenda_input* must be equal." );
-  if( pnd_agenda_input.ncols() != 2 )
-    throw runtime_error( "*pnd_agenda_input* must have two columns (IWC and Temperature)." );
+  if( pnd_agenda_input.ncols() != 1 )
+    throw runtime_error( "*pnd_agenda_input* must have one column (IWC)." );
   if( pnd_agenda_input_names[0] != "IWC" )
     throw runtime_error( "Element 0 of *pnd_agenda_input_names* must be \"IWC\"." );
-  if( pnd_agenda_input_names[1] != "Temperature" )
-    throw runtime_error( "Element 1 of *pnd_agenda_input_names* must be "
-                         "\"Temperature\"." );
+
   if( ndx )
     {
       if( ndx != 1 )
@@ -1021,22 +1018,10 @@ void psdMH97 (
       
       // Extract the input variables
       Numeric iwc = pnd_agenda_input(ip,0);
-      Numeric   t = pnd_agenda_input(ip,1);
+      Numeric   t = pnd_agenda_input_t[ip];
 
-      // No calc needed if iwc==0 and no jacobians requested.
-      if( (iwc==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-
-      // Negative iwc?
-      Numeric psd_weight = 1.0;
-      if( iwc < 0 )
-        {
-          psd_weight = -1.0;
-          iwc       *= -1.0;
-        }
-      
       // Outside of [t_min,tmax]?
-      if( t < t_min  ||  t > t_max || t < 0.)
+      if( t < t_min  ||  t > t_max )
         {
           if( picky )
             {
@@ -1050,6 +1035,19 @@ void psdMH97 (
             { continue; }   // If here, we are ready with this point!
         }
 
+      // No calc needed if iwc==0 and no jacobians requested.
+      if( (iwc==0.) && (!ndx) )
+        { continue; }   // If here, we are ready with this point!
+
+      // Negative iwc?
+      Numeric psd_weight = 1.0;
+      if( iwc < 0 )
+        {
+          psd_weight = -1.0;
+          iwc       *= -1.0;
+        }
+      
+      // PSD assumed to be constant outside [*t_min_psd*,*t_max_psd*]
       if( t < t_min_psd )
         { t = t_min_psd; }
       else if( t > t_max_psd )
@@ -1079,15 +1077,19 @@ void psdMH97 (
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void psdW16 (
           Matrix&                             psd_data,
           Tensor3&                            dpsd_data_dx,
     const Vector&                             psd_size_grid,
+    const Vector&                             pnd_agenda_input_t,
     const Matrix&                             pnd_agenda_input,
     const ArrayOfString&                      pnd_agenda_input_names,
     const ArrayOfString&                      dpnd_data_dx_names,
-    const Index&                              picky _U_, 
+    const Numeric&                            t_min, 
+    const Numeric&                            t_max, 
+    const Index&                              picky, 
     const Verbosity&)
 {
   // Some sizes 
@@ -1127,10 +1129,25 @@ void psdW16 (
 
   for( Index ip=0; ip<np; ip++ )
     {
-      
       // Extract the input variables
       Numeric rwc = pnd_agenda_input(ip,0);
+      Numeric   t = pnd_agenda_input_t[ip];
 
+      // Outside of [t_min,tmax]?
+      if( t < t_min  ||  t > t_max )
+        {
+          if( picky )
+            {
+              ostringstream os;
+              os << "Method called with a temperature of " << t << " K.\n"
+                 << "This is outside the specified allowed range: [ max(0.,"
+                 << t_min << "), " << t_max << " ]";
+              throw runtime_error(os.str());
+            }
+          else  
+            { continue; }   // If here, we are ready with this point!
+        }
+      
       // No calc needed if swc==0 and no jacobians requested.
       if( (rwc==0.) && (!ndx) )
         { continue; }   // If here, we are ready with this point!
@@ -1142,7 +1159,7 @@ void psdW16 (
           psd_weight = -1.0;
           rwc       *= -1.0;
         }
-      
+
       // Calculate PSD
       Vector psd_1p(nsi);
       if( rwc != 0 )
@@ -1191,7 +1208,7 @@ void pnd_fieldCalcFromParticleBulkProps(
    const ArrayOfRetrievalQuantity&    jacobian_quantities,
    const Verbosity&)
 {
-  // As we allow this method to be called with cloudbox_checkedCalc, it must
+  // As we allow this method to be called without cloudbox_checkedCalc, it must
   // contain quite a number of checks.
   
   // Number of scattering species
@@ -1370,22 +1387,16 @@ void pnd_fieldCalcFromParticleBulkProps(
       //
       for( Index i=0; i<nin; i++ )
         {
-          // We flag temperature with -100
-          if( pnd_agenda_array_input_names[is][i] == "Temperature" )
-            { i_pbulkprop[i] = -100; }
-          else
+          i_pbulkprop[i] = find_first( particle_bulkprop_names,
+                                       pnd_agenda_array_input_names[is][i] );
+          if( i_pbulkprop[i] < 0 )
             {
-              i_pbulkprop[i] = find_first( particle_bulkprop_names,
-                                           pnd_agenda_array_input_names[is][i] );
-              if( i_pbulkprop[i] < 0 )
-                {
-                  ostringstream os;
-                  os << "Pnd-agenda with index " << is << " is set to require \""
-                     << pnd_agenda_array_input_names[is][i] << "\",\nbut this quantity "
-                     << "could not found in *particle_bulkprop_names*.\n"
-                     << "(Note that temperature must be written as \"Temperature\")";
+              ostringstream os;
+              os << "Pnd-agenda with index " << is << " is set to require \""
+                 << pnd_agenda_array_input_names[is][i] << "\",\nbut this quantity "
+                 << "could not found in *particle_bulkprop_names*.\n"
+                 << "(Note that temperature must be written as \"Temperature\")";
                   throw runtime_error(os.str());
-                }
             }
         }
 
@@ -1416,37 +1427,33 @@ void pnd_fieldCalcFromParticleBulkProps(
                 { continue; }
                   
               // Pressure handled here, by not including end points in loops
-              Matrix pnd_agenda_input( np-2, nin );
 
-              
+              Matrix pnd_agenda_input( np-2, nin );
+              //
               for( Index i=0; i<nin; i++ )
                 {
-                  if( i_pbulkprop[i] == -100 )
-                    {
-                      for( Index ip=1; ip<np-1; ip++ )
-                        { pnd_agenda_input(ip-1 ,i) = t_field(
-                                                         ip_offset   + ip,
-                                                         ilat_offset + ilat,
-                                                         ilon_offset + ilon ); }
-                    }
-                  else
-                    {
-                      for( Index ip=1; ip<np-1; ip++ )
-                        { pnd_agenda_input(ip-1,i) = particle_bulkprop_field(
+                  for( Index ip=1; ip<np-1; ip++ )
+                    { pnd_agenda_input(ip-1,i) = particle_bulkprop_field(
                                                          i_pbulkprop[i],
                                                          ip_offset   + ip,
                                                          ilat_offset + ilat,
                                                          ilon_offset + ilon );
-                        }
                     }
                 }
+
+              Vector pnd_agenda_input_t( np-2 );
+              //
+              for( Index ip=1; ip<np-1; ip++ )
+                { pnd_agenda_input_t[ip-1] = t_field( ip_offset   + ip,
+                                                      ilat_offset + ilat,
+                                                      ilon_offset + ilon ); }
               
               // Call pnd-agenda array
               Matrix pnd_data;
               Tensor3 dpnd_data_dx;
               //
               pnd_agenda_arrayExecute( ws, pnd_data, dpnd_data_dx, is,
-                                       pnd_agenda_input,
+                                       pnd_agenda_input_t, pnd_agenda_input,
                                        pnd_agenda_array_input_names[is],
                                        dpnd_data_dx_names, pnd_agenda_array );
 

@@ -318,7 +318,7 @@ void define_agenda_data()
         "the input *jacobian* shall be set to have size zero, to flag that there\n" 
         "is not yet any calculated Jacobian.\n" ),
        OUTPUT( "yf", "jacobian" ),
-       INPUT( "jacobian", "x", "jacobian_do" )));
+       INPUT( "x", "jacobian_do" )));
 
   agenda_data.push_back
     (AgRecord
@@ -688,7 +688,8 @@ void define_agenda_data()
         "*pnd_agenda_array_input_names* must be consistent.\n"
         ),
        OUTPUT( "pnd_data", "dpnd_data_dx" ),
-       INPUT( "agenda_array_index", "pnd_agenda_input", "pnd_agenda_input_names", "dpnd_data_dx_names" )));
+       INPUT( "agenda_array_index", "pnd_agenda_input_t", "pnd_agenda_input", 
+              "pnd_agenda_input_names", "dpnd_data_dx_names" )));
  
   agenda_data.push_back
     (AgRecord

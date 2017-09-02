@@ -12185,8 +12185,7 @@ void define_md_data_raw()
          "\n"
          "Requirements:\n"
          "\n"
-         "*pnd_agenda_input_names* must be [\"SWC\",\"Temperature\"]\n"
-         "corresponding to SWC and T (1D-)profiles in *pnd_agenda_input*.\n"
+         "*pnd_agenda_input_names* must be [\"SWC\"].\n"
          "The only allowed entry in *dpnd_data_dx_names* (ie. the only allowed\n"
          "independent variable x) is \"SWC\".\n"
          "\n"
@@ -12213,11 +12212,6 @@ void define_md_data_raw()
          "are performed. Errors are thrown if:\n"
          "- Mass-dimension relation exponent *beta* is outside\n"
          "  [*beta_min*, *beta_max*].\n"
-/*
-         "- Minimum density (ie that resulting from a solid sphere of\n"
-         "  diameter according to *psd_size_grid*) of a particle exceeds the\n"
-         "  density of ice by more than a factor of *density_deviation*.\n"
-*/
          "\n"
          "Backward compatability note: reproducing F07 for IWC>=0 from\n"
          "*pnd_fieldCalcFromscat_speciesFields* can be ensured with\n"
@@ -12229,8 +12223,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "psd_size_grid", "pnd_agenda_input", "pnd_agenda_input_names",
-            "dpnd_data_dx_names" ),
+        IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
+            "pnd_agenda_input_names", "dpnd_data_dx_names" ),
         GIN(         "regime", "alpha",   "beta",
                      "t_min",   "t_max",   "t_min_psd", "t_max_psd",
                      "beta_min", "beta_max", "picky" ),
@@ -12249,10 +12243,6 @@ void define_md_data_raw()
                   "High temperature limit to use as paramtrization temperature.",
                   "Low *beta* limit (only if picky).",
                   "High *beta* limit (only if picky).",
-/*
-                  "Fail if particle minimum density exceeds ice density by this"
-                  " fraction (only if picky).",
-*/
                   "Flag whether to be strict with parametrization value checks." )
         ));
  
@@ -12274,15 +12264,14 @@ void define_md_data_raw()
          "*psd_size_grid* is considered to be in terms of volume (or mass)\n"
          "equivalent diameter.\n"
          "IWC is considered to be in terms of mass content (or mass density),\n"
-         "ie. units of [kg/m3]. Temperature is supposed to be in K."
+         "ie. units of [kg/m3].\n"
          "\n"
          "Derivatives are obtained by IWC perturbation of 0.1%, but not less\n"
          "than 0.1 mg/m3.\n"
          "\n"
          "Requirements:\n"
          "\n"
-         "*pnd_agenda_input_names* must be [\"IWC\",\"Temperature\"]\n"
-         "corresponding to IWC and T (1D-)profiles in *pnd_agenda_input*.\n"
+         "*pnd_agenda_input_names* must be [\"IWC\"].\n"
          "The only allowed entry in *dpnd_data_dx_names* (ie. the only allowed\n"
          "independent variable x) is \"IWC\".\n"
          "\n"
@@ -12317,13 +12306,13 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "psd_size_grid", "pnd_agenda_input", "pnd_agenda_input_names",
-            "dpnd_data_dx_names" ),
+        IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
+            "pnd_agenda_input_names", "dpnd_data_dx_names" ),
         GIN(         "t_min",   "t_max",   "t_min_psd", "t_max_psd",
                      "picky", "noisy" ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric",   "Numeric",
                      "Index", "Index" ),
-        GIN_DEFAULT( "0",       "280.",    "180.",      "273.15",
+        GIN_DEFAULT( "0",       "280.",    "180",      "273.15",
                      "0",     "0" ),
         GIN_DESC( "Low temperature limit to calculate a psd.",
                   "High temperature limit to calculate a psd.",
@@ -12368,23 +12357,20 @@ void define_md_data_raw()
          "abs(psd)=f(abs(RWC)).\n"
          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
          "picky=0, or an error is thrown if picky=1.\n"
-         "For temperatures below 200K or above 273.15K, the size distribution\n"
-         "follows the one for T=200K or T=273.15, respectively.\n"
-         "\n"
-         "The noisy option can not be used together with calculation of\n"
-         "derivatives (ie. when *dpnd_data_dx_names* is not empty).\n"
         ),
         AUTHORS( "Jana Mendrok, Patrick Eriksson" ),
         OUT( "psd_data", "dpsd_data_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "psd_size_grid", "pnd_agenda_input", "pnd_agenda_input_names",
-            "dpnd_data_dx_names" ),
-        GIN( "picky" ),
-        GIN_TYPE( "Index" ),
-        GIN_DEFAULT( "0" ),
-        GIN_DESC( "Flag whether to ignore parametrization value checks." )
+        IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
+            "pnd_agenda_input_names", "dpnd_data_dx_names" ),
+        GIN( "t_min",   "t_max", "picky" ),
+        GIN_TYPE( "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( "273", "373", "0" ),
+        GIN_DESC( "Low temperature limit to calculate a psd.",
+                  "High temperature limit to calculate a psd.",
+                  "Flag whether to be strict with parametrization value checks." )
         ));
  
   md_data_raw.push_back     

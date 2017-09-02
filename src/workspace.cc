@@ -3629,12 +3629,32 @@ void Workspace::define_wsv_data()
        "can hold ice water content values, and the second one temperature\n"
        "data.\n"
        "\n"
+       "Temperatures are handled by *pnd_agenda_input_t* and shall not be\n"
+       "included in this variable.\n"
+       "\n"
        "Each row corresponds to a position. That is, the methods in the\n"
        "pnd-agendas are expected to process multiple points in one call.\n"
        "\n"
        "Dimensions: [ n_points, n_input_variables ]\n"
        ),
       GROUP( "Matrix" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "pnd_agenda_input_t" ),
+      DESCRIPTION
+      (
+       "Temperature input to one element of *pnd_agenda_array*.\n"
+       "\n"
+       "This WSV works as *pnd_agenda_input* but holds a specific quantity,\n"
+       "temperature.\n"
+       "\n"
+       "Each element corresponds to a position. That is, the methods in the\n"
+       "pnd-agendas are expected to process multiple points in one call.\n"
+       "\n"
+       "Dimensions: [ n_points ]\n"
+       ),
+      GROUP( "Vector" )));
 
   wsv_data.push_back
     (WsvRecord

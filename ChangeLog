@@ -1,3 +1,30 @@
+2017-09-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-787
+
+	* Temperature changed from being treated as a formal pnd/psd input
+	variable, to be an auxiliary variable that is always at hand. This
+	means that "Temperature" no longer shall be included in
+	pnd_agenda_input_names. So e.g.:
+
+	ArrayOfStringSet( pnd_agenda_input_names, [ "IWC", "Temperature" ] )
+
+	shall be changed to
+
+	ArrayOfStringSet( pnd_agenda_input_names, [ "IWC"] )
+
+	* src/m_microphysics.cc (psdMH97,psdF07): Temperature now taken
+	from pnd_agenda_input_t.
+
+	(psdW16): As above and also added t_min, t_max and picky.
+
+	* src/agendas.cc (define_agenda_data): Removed jacobian as input
+	to inversion_iterate_agenda. Not needed after Simon's improvement
+	of x2artsStandard. And added pnd_agenda_input_t as input to
+	pnd_agenda_array.
+
+	* src/workspace.cc (define_wsv_data): Introduced pnd_agenda_input_t.
+
 2017-09-01 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-786
