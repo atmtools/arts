@@ -900,6 +900,10 @@ void psdF07 (
       Numeric swc = pnd_agenda_input(ip,0);
       Numeric   t = pnd_agenda_input_t[ip];
 
+      // No calc needed if swc==0 and no jacobians requested.
+      if( (swc==0.) && (!ndx) )
+        { continue; }   // If here, we are ready with this point!
+
       // Outside of [t_min,tmax]?
       if( t < t_min  ||  t > t_max )
         {
@@ -915,10 +919,12 @@ void psdF07 (
             { continue; }   // If here, we are ready with this point!
         }
 
-      // No calc needed if swc==0 and no jacobians requested.
-      if( (swc==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-
+      // PSD assumed to be constant outside [*t_min_psd*,*t_max_psd*]
+      if( t < t_min_psd )
+        { t = t_min_psd; }
+      else if( t > t_max_psd )
+        { t = t_max_psd; }
+    
       // Negative swc?
       Numeric psd_weight = 1.0;
       if( swc < 0 )
@@ -927,12 +933,6 @@ void psdF07 (
           swc       *= -1.0;
         }
       
-      // PSD assumed to be constant outside [*t_min_psd*,*t_max_psd*]
-      if( t < t_min_psd )
-        { t = t_min_psd; }
-      else if( t > t_max_psd )
-        { t = t_max_psd; }
-    
       // Calculate PSD
       Vector psd_1p(nsi);
       if( swc != 0 )
@@ -1020,6 +1020,10 @@ void psdMH97 (
       Numeric iwc = pnd_agenda_input(ip,0);
       Numeric   t = pnd_agenda_input_t[ip];
 
+      // No calc needed if iwc==0 and no jacobians requested.
+      if( (iwc==0.) && (!ndx) )
+        { continue; }   // If here, we are ready with this point!
+
       // Outside of [t_min,tmax]?
       if( t < t_min  ||  t > t_max )
         {
@@ -1035,10 +1039,12 @@ void psdMH97 (
             { continue; }   // If here, we are ready with this point!
         }
 
-      // No calc needed if iwc==0 and no jacobians requested.
-      if( (iwc==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-
+      // PSD assumed to be constant outside [*t_min_psd*,*t_max_psd*]
+      if( t < t_min_psd )
+        { t = t_min_psd; }
+      else if( t > t_max_psd )
+        { t = t_max_psd; }
+  
       // Negative iwc?
       Numeric psd_weight = 1.0;
       if( iwc < 0 )
@@ -1047,12 +1053,6 @@ void psdMH97 (
           iwc       *= -1.0;
         }
       
-      // PSD assumed to be constant outside [*t_min_psd*,*t_max_psd*]
-      if( t < t_min_psd )
-        { t = t_min_psd; }
-      else if( t > t_max_psd )
-        { t = t_max_psd; }
-  
       // Calculate PSD
       Vector psd_1p(nsi);
       if( iwc != 0 )
@@ -1133,6 +1133,10 @@ void psdW16 (
       Numeric rwc = pnd_agenda_input(ip,0);
       Numeric   t = pnd_agenda_input_t[ip];
 
+      // No calc needed if swc==0 and no jacobians requested.
+      if( (rwc==0.) && (!ndx) )
+        { continue; }   // If here, we are ready with this point!
+
       // Outside of [t_min,tmax]?
       if( t < t_min  ||  t > t_max )
         {
@@ -1148,10 +1152,6 @@ void psdW16 (
             { continue; }   // If here, we are ready with this point!
         }
       
-      // No calc needed if swc==0 and no jacobians requested.
-      if( (rwc==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-
       // Negative rwc?
       Numeric psd_weight = 1.0;
       if( rwc < 0 )
