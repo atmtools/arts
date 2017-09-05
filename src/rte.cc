@@ -1954,6 +1954,7 @@ void get_ppath_pmat_and_tmat(
                             const ArrayOfIndex&   jac_other,
                             const ArrayOfIndex&   ispecies,
                             const ArrayOfArrayOfSingleScatteringData scat_data,
+                            const Index&          scat_data_checked,
                             const Tensor4&        pnd_field,
                             const ArrayOfTensor4& dpnd_field_dx,
                             const ArrayOfIndex&   cloudbox_limits,
@@ -2253,10 +2254,10 @@ void get_ppath_pmat_and_tmat(
     {
         //Tensor3 pnd_abs_vec;
         //
-        get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
+        get_ppath_partopt( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
                        ppath_pnd, ppath_dpnd_dx, ppath, ppath_t, stokes_dim, ppath_f, 
                        atmosphere_dim, cloudbox_limits, pnd_field, dpnd_field_dx,
-                       use_mean_scat_data, scat_data, verbosity );
+                       use_mean_scat_data, scat_data, scat_data_checked, verbosity );
         
         if(not jacobian_do)
             get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
@@ -2298,6 +2299,7 @@ void get_ppath_pmat_and_tmat(
 void get_ppath_scat_source(
                            Tensor4&         ppath_scat_source,
                            const ArrayOfArrayOfSingleScatteringData scat_data,
+                           const Index&     scat_data_checked,
                            ConstTensor7View doit_i_field,
                            ConstVectorView  scat_za_grid,
                            ConstVectorView  f_grid, 
@@ -2389,11 +2391,12 @@ void get_ppath_scat_source(
         Tensor5 product_fields(2, ne, Nza, Naa, stokes_dim, 0.);
         for( Index iza=0; iza<2; iza++ )
         {
-          pha_mat_sptFromData(pha_mat_spt,
-                              scat_data,
+          pha_mat_sptFromScat_data(pha_mat_spt,
+                              scat_data, scat_data_checked,
                               scat_za_grid, aa_grid, iza+gp_za.idx, 0,
-                              f_index, f_grid, ppath_t[ip],
+                              f_index, ppath_t[ip],
                               pndT4, 0, 0, 0, verbosity );
+
           for( Index ise_flat=0; ise_flat<ne; ise_flat++ )
           {
             for( Index za_in = 0; za_in < Nza; ++ za_in )
@@ -2485,6 +2488,7 @@ void get_ppath_scat_source(
 void get_ppath_scat_source_fixT(
                            Tensor4&         ppath_scat_source,
                            const ArrayOfArrayOfSingleScatteringData scat_data,
+                           const Index&     scat_data_checked,
                            ConstTensor7View doit_i_field,
                            ConstVectorView  scat_za_grid,
                            ConstVectorView  f_grid, 
@@ -2552,11 +2556,12 @@ void get_ppath_scat_source_fixT(
   {
     for( Index iza=0; iza<niza; iza++ )
       {
-        pha_mat_sptFromData(pha_mat_spt,
-                            scat_data, scat_za_grid, aa_grid,
-                            iza+isza, 0,                // offset starting point in scat_za_grid
-                            f_index, f_grid, rtp_temp,  // identified for fixed temperature point
-                            pndT4, 0, 0, 0, verbosity );
+        pha_mat_sptFromScat_data(pha_mat_spt,
+                              scat_data, scat_data_checked,
+                              scat_za_grid, aa_grid,
+                              iza+isza, 0,       // offset starting point in scat_za_grid
+                              f_index, rtp_temp, // identified for fixed temperature point
+                              pndT4, 0, 0, 0, verbosity );
         pha_mat_spt_all(f_index,iza,joker,joker,joker,joker,joker) = pha_mat_spt;
       }
   }
@@ -2758,7 +2763,7 @@ void get_dppath_blackrad_dt(
 }
 
 
-//! get_ppath_ext
+//! get_ppath_partopt
 /*!
     Determines the particle optical properties along a propagation path.
 
@@ -2791,7 +2796,7 @@ void get_dppath_blackrad_dt(
     \author Patrick Eriksson 
     \date   2012-08-23
 */
-void get_ppath_ext( 
+void get_ppath_partopt( 
         ArrayOfIndex&                  clear2cloudbox,
         Tensor3&                       pnd_abs_vec, 
         ArrayOfPropagationMatrix&      pnd_ext_mat, 
@@ -2808,6 +2813,7 @@ void get_ppath_ext(
   const ArrayOfTensor4&                dpnd_field_dx,
   const Index&                         use_mean_scat_data,
   const ArrayOfArrayOfSingleScatteringData&   scat_data,
+  const Index&                         scat_data_checked,
   const Verbosity&                     verbosity )
 {
   const Index nf = ppath_f.nrows();
@@ -2882,7 +2888,16 @@ void get_ppath_ext(
 
   // Particle single scattering properties (are independent of position)
   //
-  if( use_mean_scat_data )
+  if( scat_data_checked )
+    {
+      scat_data_single.resize( nf );
+      for( Index iv=0; iv<nf; iv++ )
+        { 
+          scat_data_monoExtract( scat_data_single[iv], scat_data, iv,
+                                 verbosity );
+        }
+    }
+  else if( use_mean_scat_data )
     {
       const Numeric f = (mean(ppath_f(0,joker))+mean(ppath_f(nf-1,joker)))/2.0;
       scat_data_single.resize( 1 );
@@ -3116,7 +3131,7 @@ const Index&     atmosphere_dim)
     \param   trans_cumulat  Out: Transmission to each path point.
     \param   scalar_tau     Out: Total (scalar) optical thickness of path
     \param   ppath          As the WSV.    
-    \param   ppath_ext      See get_ppath_ext.
+    \param   ppath_ext      See get_ppath_pmat_and_tmat.
     \param   f_grid         As the WSV.    
     \param   stokes_dim     As the WSV.
 
@@ -3221,7 +3236,7 @@ void get_ppath_trans(
  *   \param   trans_cumulat                     Out: Transmission to each path point.
  *   \param   scalar_tau                        Out: Total (scalar) optical thickness of path
  *   \param   ppath                             In:  As the WSV.    
- *   \param   ppath_ext                         In:  See get_ppath_ext.
+ *   \param   ppath_ext                         In:  See get_ppath_pmat_and_tmat.
  *   \param   dppath_ext_dx                     In:  See get_ppath_ext_and_dppath_ext_dx.
  *   \param   jacobian_quantities               In:  As the WSV.    
  *   \param   f_grid                            In:  As the WSV.    
@@ -3329,11 +3344,11 @@ void get_ppath_trans_and_dppath_trans_dx(
     \param   trans_cumulat    Out: Transmission to each path point.
     \param   scalar_tau       Out: Total (scalar) optical thickness of path
     \param   ppath            As the WSV.    
-    \param   ppath_ext        See get_ppath_ext.
+    \param   ppath_ext        See get_ppath_pmat_and_tmat.
     \param   f_grid           As the WSV.    
     \param   stokes_dim       As the WSV.
-    \param   clear2cloudbox   See get_ppath_ext.
-    \param   pnd_ext_mat      See get_ppath_ext.
+    \param   clear2cloudbox   See get_ppath_partopt.
+    \param   pnd_ext_mat      See get_ppath_partopt.
 
     \author Patrick Eriksson 
     \date   2012-08-23
@@ -3436,13 +3451,13 @@ void get_ppath_trans2(
  *   \param   trans_cumulat    Out: Transmission to each path point.
  *   \param   scalar_tau       Out: Total (scalar) optical thickness of path
  *   \param   ppath            As the WSV.    
- *   \param   ppath_ext        See get_ppath_ext.
+ *   \param   ppath_ext        See get_ppath_pmat_and_tmat.
  *   \param   dppath_ext_dx                     In:  See get_ppath_ext_and_dppath_ext_dx.
  *   \param   jacobian_quantities               In:  As the WSV.    
  *   \param   f_grid           As the WSV.    
  *   \param   stokes_dim       As the WSV.
- *   \param   clear2cloudbox   See get_ppath_ext.
- *   \param   pnd_ext_mat      See get_ppath_ext.
+ *   \param   clear2cloudbox   See get_ppath_partopt.
+ *   \param   pnd_ext_mat      See get_ppath_partopt.
  * 
  *   \author Patrick Eriksson 
  *   \date   2012-08-23

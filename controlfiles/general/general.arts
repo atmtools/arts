@@ -195,4 +195,6 @@ nlteOff
 # Use built-in Partition functions per default
 #
 partition_functionsInitFromBuiltin
+
+IndexSet( scat_data_checked, 0 )
 }

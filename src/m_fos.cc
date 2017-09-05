@@ -81,6 +81,7 @@ void fos(
    const Tensor4&                       pnd_field,
    const Index&                         use_mean_scat_data,
    const ArrayOfArrayOfSingleScatteringData&   scat_data,
+   const Index&                         scat_data_checked,
    const Matrix&                        particle_masses,
    const String&                        iy_unit,
    const ArrayOfString&                 iy_aux_vars,
@@ -307,12 +308,12 @@ void fos(
         }
       else
         {
-          get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat,
+          get_ppath_partopt( clear2cloudbox, pnd_abs_vec, pnd_ext_mat,
                          scat_data_single, ppath_pnd,
                          dummy_ppath_dpnd_dx, ppath, ppath_t, stokes_dim,
                          ppath_f, atmosphere_dim, cloudbox_limits,
                          pnd_field, dummy_dpnd_field_dx,
-                         use_mean_scat_data, scat_data, verbosity );
+                         use_mean_scat_data, scat_data, scat_data_checked, verbosity );
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
                             scalar_tau, ppath, ppath_ext, f_grid, stokes_dim, 
                             clear2cloudbox, pnd_ext_mat );
@@ -551,7 +552,8 @@ void fos(
                                  abs_species, wind_u_field, wind_v_field, 
                                  wind_w_field, mag_u_field, mag_v_field, 
                                  mag_w_field, cloudbox_on, cloudbox_limits, 
-                                 pnd_field, use_mean_scat_data, scat_data, 
+                                 pnd_field, use_mean_scat_data,
+                                 scat_data, scat_data_checked, 
                                  particle_masses, iy_unit, iy_aux_vars, 
                                  jacobian_do, ppath_agenda, 
                                  propmat_clearsky_agenda, iy_main_agenda, 
@@ -790,6 +792,7 @@ void iyFOS(
    const Tensor4&                     pnd_field,
    const Index&                       use_mean_scat_data,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
+   const Index&                       scat_data_checked,
    const Matrix&                      particle_masses,
    const String&                      iy_unit,
    const ArrayOfString&               iy_aux_vars,
@@ -853,7 +856,7 @@ void iyFOS(
        p_grid, z_field, t_field, vmr_field, abs_species, wind_u_field, 
        wind_v_field, wind_w_field, mag_u_field, mag_v_field, mag_w_field,
        cloudbox_on, cloudbox_limits, pnd_field, use_mean_scat_data,
-       scat_data, particle_masses, iy_unit, iy_aux_vars, jacobian_do, 
+       scat_data, scat_data_checked, particle_masses, iy_unit, iy_aux_vars, jacobian_do, 
        ppath_agenda, propmat_clearsky_agenda,
        iy_main_agenda, iy_space_agenda, iy_surface_agenda, iy_agenda_call1,
        iy_transmission, rte_pos, rte_los, rte_pos2, rte_alonglos_v, 
@@ -893,9 +896,8 @@ void iyHybrid(
    const Index&                       cloudbox_on,
    const ArrayOfIndex&                cloudbox_limits,
    const Tensor4&                     pnd_field,
-   const Index&                       use_mean_scat_data,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
-   //const Index&                       scat_data_checked,
+   const Index&                       scat_data_checked,
    const Matrix&                      particle_masses,
    const String&                      iy_unit,
    const ArrayOfString&               iy_aux_vars,
@@ -945,13 +947,18 @@ void iyHybrid(
     throw runtime_error( "With cloudbox on, this method handles only "
                          "1D calculations." );
   if( !iy_agenda_call1 )
-    throw runtime_error( "With cloudbox on,  recursive usage not possible "
+    throw runtime_error( "With cloudbox on, recursive usage not possible "
                          "(iy_agenda_call1 must be 1)." );
   if( iy_transmission.ncols() )
     throw runtime_error( "*iy_transmission* must be empty." );
   if( cloudbox_limits[0] != 0  ||  cloudbox_limits[1] != p_grid.nelem()-1 )
         throw runtime_error( "The cloudbox must be set to cover the complete "
                              "atmosphere." );
+  // for now have that here. when all iy* WSM using scat_data are fixed to new
+  // type scat_data, then put check inot (i)yCalc and remove here.
+  if( scat_data_checked != 1 )
+    throw runtime_error( "The scat_data must be flagged to have "
+                         "passed a consistency check (scat_data_checked=1)." );
   
   
   // Determine propagation path
@@ -1274,9 +1281,10 @@ void iyHybrid(
                                ppd, ppath, ppath_p, ppath_t, ppath_t_nlte,
                                ppath_vmr, ppath_mag, ppath_f, f_grid, 
                                jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,
-                               jac_to_integrate, jac_other, iaps, scat_data,
+                               jac_to_integrate, jac_other, iaps,
+                               scat_data, scat_data_checked,
                                pnd_field, dummy_dpnd_field_dx,
-                               cloudbox_limits, use_mean_scat_data,
+                               cloudbox_limits, 0,
                                atmosphere_dim, stokes_dim,
                                jacobian_do, cloudbox_on, verbosity );
       
@@ -1292,7 +1300,7 @@ void iyHybrid(
       {
         //cout << "T-interpolating pha_mat\n";
         get_ppath_scat_source( ppath_scat_source,
-                               scat_data, doit_i_field, scat_za_grid,
+                               scat_data, scat_data_checked, doit_i_field, scat_za_grid,
                                f_grid, stokes_dim, ppath, ppath_t, ppath_pnd, 
                                j_analytical_do, Naa, verbosity );
       }
@@ -1307,7 +1315,7 @@ void iyHybrid(
           rtp_temp_id = -99.;
 
         get_ppath_scat_source_fixT( ppath_scat_source,
-                               scat_data, doit_i_field, scat_za_grid,
+                               scat_data, scat_data_checked, doit_i_field, scat_za_grid,
                                f_grid, stokes_dim, ppath, ppath_pnd,
                                j_analytical_do, Naa, rtp_temp_id, verbosity );
       }
@@ -1730,9 +1738,9 @@ void iyHybrid2(
   const Index&                              cloudbox_on,
   const ArrayOfIndex&                       cloudbox_limits,
   const Tensor4&                            pnd_field,
-  const Index&                              ,
   const ArrayOfArrayOfSingleScatteringData& scat_data,
-  const Matrix&                             ,
+  //const Index&                              scat_data_checked,
+  const Matrix&                             particle_masses _U_,
   const String&                             iy_unit,
   const ArrayOfString&                      iy_aux_vars,
   const Index&                              jacobian_do,
@@ -1754,7 +1762,7 @@ void iyHybrid2(
   const Numeric&                            ppath_lmax,      
   const Numeric&                            ppath_lraytrace,
   const Index&                              Naa,   
-  const String&                             ,
+  const String&                             pfct_method _U_,
   const Verbosity&                          verbosity)
 {
   // If cloudbox off, switch to use clearsky method
@@ -1788,6 +1796,11 @@ void iyHybrid2(
   if( cloudbox_limits[0] != 0  ||  cloudbox_limits[1] != p_grid.nelem()-1 )
     throw runtime_error( "The cloudbox must be set to cover the complete "
     "atmosphere." );
+  // for now have that here. when all iy* WSM using scat_data are fixed to new
+  // type scat_data, then put check inot (i)yCalc and remove here.
+  //if( scat_data_checked != 1 )
+  //  throw runtime_error( "The scat_data must be flagged to have "
+  //                       "passed a consistency check (scat_data_checked=1)." );
   
   
   // Determine propagation path

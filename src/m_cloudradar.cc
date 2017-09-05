@@ -85,6 +85,7 @@ void iyActiveSingleScat(
    const ArrayOfTensor4&              dpnd_field_dx,
    const ArrayOfString&               scat_species,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
+   const Index&                       scat_data_checked,
    const Matrix&                      particle_masses,
    const String&                      iy_unit,
    const ArrayOfString&               iy_aux_vars,
@@ -329,7 +330,8 @@ void iyActiveSingleScat(
                                ppd, ppath, ppath_p, ppath_t, ppath_t_nlte,
                                ppath_vmr, ppath_mag, ppath_f, f_grid, 
                                jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,
-                               jac_to_integrate, jac_other, iaps, scat_data,
+                               jac_to_integrate, jac_other, iaps,
+                               scat_data, scat_data_checked,
                                pnd_field, dpnd_field_dx,
                                cloudbox_limits, 0,
                                atmosphere_dim, stokes_dim,
@@ -347,10 +349,10 @@ void iyActiveSingleScat(
           // Extract basic scattering data
           //Tensor3              pnd_abs_vec;
           //
-          get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
+          get_ppath_partopt( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
                      ppath_pnd, ppath_dpnd_dx, ppath, ppath_t, stokes_dim, ppath_f, 
                      atmosphere_dim, cloudbox_limits, pnd_field, dpnd_field_dx,
-                     0, scat_data, verbosity );
+                     0, scat_data, scat_data_checked, verbosity );
       
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, scalar_tau, 
                         ppath, ppath_ext, f_grid, stokes_dim, 

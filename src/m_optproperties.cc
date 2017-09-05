@@ -2014,6 +2014,80 @@ void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void scat_data_monoExtract(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                        const ArrayOfArrayOfSingleScatteringData& scat_data,
+                        const Index& f_index,
+                        const Verbosity&)
+{
+  //Initialise scat_data_mono
+  scat_data_mono.resize(scat_data.nelem());
+
+  // Loop over the included scattering species
+  for (Index i_ss = 0; i_ss<scat_data.nelem(); i_ss++)
+    {
+      const Index N_se = scat_data[i_ss].nelem();
+
+      //Initialise scat_data_mono
+      scat_data_mono[i_ss].resize(N_se);
+
+      // Loop over the included scattering elements
+      for (Index i_se = 0; i_se < N_se; i_se++)
+      {
+        Index this_f_index;
+  
+        //Stuff that doesn't need interpolating
+        scat_data_mono[i_ss][i_se].ptype=PART_TYPE;
+        scat_data_mono[i_ss][i_se].f_grid.resize(1);
+        scat_data_mono[i_ss][i_se].T_grid=scat_data[i_ss][i_se].T_grid;
+        scat_data_mono[i_ss][i_se].za_grid=ZA_DATAGRID;
+        scat_data_mono[i_ss][i_se].aa_grid=AA_DATAGRID;
+
+        Index nf = F_DATAGRID.nelem();
+        if( nf == 1 )
+        {
+          scat_data_mono[i_ss][i_se] = scat_data[i_ss][i_se];
+        }
+        else
+        {
+          scat_data_mono[i_ss][i_se].f_grid = F_DATAGRID[f_index];
+
+          //Phase matrix data
+          /*scat_data_mono[i_ss][i_se].pha_mat_data.resize(1,
+                                                 PHA_MAT_DATA_RAW.nvitrines(),
+                                                 PHA_MAT_DATA_RAW.nshelves(),
+                                                 PHA_MAT_DATA_RAW.nbooks(),
+                                                 PHA_MAT_DATA_RAW.npages(),
+                                                 PHA_MAT_DATA_RAW.nrows(),
+                                                 PHA_MAT_DATA_RAW.ncols());*/
+          this_f_index = (PHA_MAT_DATA_RAW.nlibraries()==1) ? 0 : f_index;
+          scat_data_mono[i_ss][i_se].pha_mat_data =
+              PHA_MAT_DATA_RAW(Range(f_index,1),joker,joker,joker,joker,joker,joker);
+
+          //Extinction matrix data
+          /*scat_data_mono[i_ss][i_se].ext_mat_data.resize(1, T_DATAGRID.nelem(),
+                                                     EXT_MAT_DATA_RAW.npages(),
+                                                     EXT_MAT_DATA_RAW.nrows(),
+                                                     EXT_MAT_DATA_RAW.ncols());*/
+          this_f_index = (EXT_MAT_DATA_RAW.nshelves()==1) ? 0 : f_index;
+          scat_data_mono[i_ss][i_se].ext_mat_data =
+              EXT_MAT_DATA_RAW(Range(f_index,1),joker,joker,joker,joker);
+
+          //Absorption vector data
+          /*scat_data_mono[i_ss][i_se].abs_vec_data.resize(1, T_DATAGRID.nelem(),
+                                                     ABS_VEC_DATA_RAW.npages(),
+                                                     ABS_VEC_DATA_RAW.nrows(),
+                                                     ABS_VEC_DATA_RAW.ncols());*/
+          this_f_index = (ABS_VEC_DATA_RAW.nshelves()==1) ? 0 : f_index;
+          scat_data_mono[i_ss][i_se].abs_vec_data =
+              ABS_VEC_DATA_RAW(Range(f_index,1),joker,joker,joker,joker);
+
+        }
+      }
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void opt_prop_sptFromMonoData(// Output and Input:
                               ArrayOfPropagationMatrix& ext_mat_spt,
                               ArrayOfStokesVector& abs_vec_spt,

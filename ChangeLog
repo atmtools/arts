@@ -1,3 +1,54 @@
+2017-09-05 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-789
+
+	More work toward using pre-interpolated scat_data throughout.
+
+	* controlfiles/general/general.arts:
+	Inititalize scat_data_checked. Will go away again once all solvers are
+	converted.
+
+	* src/m_cloudbox.cc (ScatSpeciesInit):
+	Inititalize/reset scat_data_checked.
+
+	* src/rte.[cc,h]:
+	(throughout):
+	Sorted out references to get_ppath_ext (either get_ppath_partopt or
+	get_ppath_pmat_and_tmat).
+	
+	(get_ppath_ext):
+	Renamed to get_ppath_partopt (as it does NOT provide "clearsky"
+	ppath_ext but particle abs and ext). Use scat_data_checked to decide
+	which type scat_data is at hand.
+
+	(get_ppath_pmat_and_tmat):
+	Adapted to get_ppath_ext/get_ppath_partopt renaming and interface change.
+
+	(get_ppath_scat_source, get_ppath_scat_source_fixT):
+	Adapted to exclusively use pre-interpolated scat_data.
+
+	* src/m_fos.cc (iyHybrid):
+	Revised for use of pre-interpolated scat_data. Removed
+	use_mean_scat_data option.
+
+	* src/m_optproperties.cc (scat_data_monoExtract):
+	Added, probably tentative. Extracts scat_data_mono from pre-interpolated
+	scat_data (instead of performing an interpolation as scat_data_monoCalc
+	does).
+
+	* src/m_cloudradar.cc (iyActiveSingleScat), src/m_fos.cc (iyFOS, fos),
+	src/m_transmitter.cc (iyRadioLink, iyTransmissionStandard):
+	Use scat_data_checked. At the moment needed as input to
+	get_ppath_partopt and get_ppath_pmat_and_tmat to distinguish whether we
+	it's pre-interpolated scat_data or not that are at hand (for those WSMs
+	they are typically not yet).
+
+	* src/m_rte.cc (iyEmissionStandard):
+	Dummy scat_data_checked in get_ppath_pmat_and_tmat call.
+
+	* src/methods.cc:
+	Adapted to WSM additions/interface changes above.
+
 2017-09-03 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-788

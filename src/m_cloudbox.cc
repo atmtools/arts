@@ -643,6 +643,7 @@ void ScatSpeciesInit (//WS Output:
                        ArrayOfString& scat_species,
                        ArrayOfArrayOfSingleScatteringData& scat_data,
                        ArrayOfArrayOfScatteringMetaData& scat_meta,
+                       Index& scat_data_checked,
                        ArrayOfGriddedField3& pnd_field_raw,
                        const Verbosity&)
 {
@@ -650,6 +651,7 @@ void ScatSpeciesInit (//WS Output:
   scat_data.resize(0);
   scat_meta.resize(0);
   pnd_field_raw.resize(0);
+  scat_data_checked = 0;
 }
 
 
