@@ -1,5 +1,12 @@
 2017-09-05 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-790
+
+	* src/methods.cc (iyHybrid2):
+	Fixed interface definition.
+
+2017-09-05 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-789
 
 	More work toward using pre-interpolated scat_data throughout.
