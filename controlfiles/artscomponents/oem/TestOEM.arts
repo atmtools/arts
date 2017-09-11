@@ -125,7 +125,7 @@ retrievalAddAbsSpecies(
     g3 = lon_grid
 )
 
-nelemGet( nelem, y )
+nelemGet(nelem, y)
 VectorSetConstant(vars, nelem, 1e-2)
 covmatSetDiagonal(vars = vars)
 covmat_seSet
@@ -148,7 +148,7 @@ AgendaSet( inversion_iterate_agenda ){
 
   # Add baseline term
   VectorAddVector( yf, yf, y_baseline )
-  
+
   # This method takes cares of some "fixes" that are needed to get the Jacobian
   # right for iterative solutions. No need to call this WSM for linear inversions.
   jacobianAdjustAfterIteration

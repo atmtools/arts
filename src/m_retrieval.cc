@@ -145,12 +145,30 @@ void ZFromPSimple(Vector &z_grid,
     z_grid = Vector(p_grid.nelem());
 
     for (Index i = 0; i < p_grid.nelem(); ++i) {
-        Numeric p = p_grid[i];
-        if (p < 0.01) {
+        if (p_grid[i] < 0.01) {
             throw runtime_error("Pressures below 0.01 Pa are not accedpted.");
-        } else {
-            z_grid[i] = 16e3 * (5.0 - log10(p));
         }
+    }
+
+    for (Index i = 0; i < p_grid.nelem(); ++i) {
+        z_grid[i] = 16e3 * (5.0 - log10(p_grid[i]));
+    }
+}
+
+void PFromZSimple(Vector &p_grid,
+                  const Vector &z_grid,
+                  const Verbosity &)
+{
+    p_grid = Vector(z_grid.nelem());
+
+    for (Index i = 0; i < p_grid.nelem(); ++i) {
+        if (z_grid[i] > 120e3) {
+            throw runtime_error("Altitudes above 120 km are not accepted.");
+        }
+    }
+
+    for (Index i = 0; i < z_grid.nelem(); ++i) {
+        p_grid[i] = pow(10.0, 5.0 - z_grid[i] / 16e3);
     }
 }
 

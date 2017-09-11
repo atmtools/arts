@@ -789,12 +789,12 @@ void OEM_checks(
   {
       if( lm_ga_settings.nelem() != 6 )
       {
-          throw runtime_error( "When using \"ml\", *ml_ga_setings* must be a "
+          throw runtime_error( "When using \"ml\", *lm_ga_setings* must be a "
                              "vector of length 6." );
       }
       if( min(lm_ga_settings) < 0 )
       {
-          throw runtime_error( "The vector *ml_ga_setings* can not contain any "
+          throw runtime_error( "The vector *lm_ga_setings* can not contain any "
                                "negative value." );
       }
   }
