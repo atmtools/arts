@@ -11679,7 +11679,7 @@ void define_md_data_raw()
         ( NAME( "ZFromPSimple" ),
           DESCRIPTION
           (
-              "Simple conversion from pressure to heights.\n"
+              "Simple conversion from pressure to altitude.\n"
               "\n"
               "This function converts a vector of pressure values to an approximate vector\n"
               "of corresponding heights. The formula used to convert pressure to height is:\n"
@@ -11698,6 +11698,35 @@ void define_md_data_raw()
           GIN_TYPE(    "Vector" ),
           GIN_DEFAULT( NODEF ),
           GIN_DESC( "Pressure grid." ),
+          SETMETHOD( false ),
+          AGENDAMETHOD(   false )
+            ));
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "PFromZSimple" ),
+          DESCRIPTION
+          (
+              "Simple conversion from altitude to pressure.\n"
+              "\n"
+              "This function converts a vector of altitudes to an approximate vector\n"
+              "of corresponding pressures. The formula used to convert altitide z to height\n"
+              " is:\n"
+              "p = 10.0^(5.0 - z / 1600)\n"
+              "\n"
+              "Note that all altitude values in the vector must be less than 120 km, \n"
+              " otherwise an error will be thrown.\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT(),
+          GOUT( "p_grid" ),
+          GOUT_TYPE( "Vector" ),
+          GOUT_DESC( "Approximate pressures of corresponding to given altitudes." ),
+          IN(),
+          GIN( "z_grid" ),
+          GIN_TYPE(    "Vector" ),
+          GIN_DEFAULT( NODEF ),
+          GIN_DESC( "Altitude grid." ),
           SETMETHOD( false ),
           AGENDAMETHOD(   false )
             ));

@@ -1,12 +1,19 @@
+2017-09-14 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-792
+
+	* src/methods.cc (PFromZSimple):
+	Added md_data entry for PFromZSimple.
+
 2017-09-11 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-791
 
-	* src/methods.cc (ZFromPSimple):
+	* src/m_retrieval.cc (ZFromPSimple):
 	Moved pressure check out of loop to avoid inconsistent state in case
 	of error.
 
-	* src/methods.cc (PFromZSimple):
+	* src/m_retrieval.cc (PFromZSimple):
 	Ported PFromZSimple method from atmlab.
 
 2017-09-05 Jana Mendrok  <jana.mendrok@chalmers.se>
