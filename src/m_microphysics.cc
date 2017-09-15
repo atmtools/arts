@@ -279,7 +279,8 @@ void pndFromPsdBasic(
   get_sorted_indexes(intarr, psd_size_grid);
   for( Index i=0; i<ng; i++ )
     psd_size_grid_sorted[i] = psd_size_grid[intarr[i]];
-
+    
+      
   // Calculate pnd by intrgation of psd for given nodes/bins
   Vector quadweights( ng );
   bin_quadweights( quadweights, psd_size_grid_sorted, quad_order );
@@ -1076,7 +1077,335 @@ void psdMH97 (
     }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void psdS2M (
+             Matrix&                             psd_data,
+             Tensor3&                            dpsd_data_dx,
+             const Vector&                             psd_size_grid,
+             const Vector&                             pnd_agenda_input_t,
+             const Matrix&                             pnd_agenda_input,
+             const ArrayOfString&                      pnd_agenda_input_names,
+             const ArrayOfString&                      dpnd_data_dx_names,
+             const String&                             hydrometeor_type,
+             const Numeric&                            t_min,
+             const Numeric&                            t_max,
+             const Index&                              picky,
+             const Verbosity&)
+{
+    // Some sizes
+    const Index nin = pnd_agenda_input_names.nelem();
+    const Index ndx = dpnd_data_dx_names.nelem();
+    const Index np  = pnd_agenda_input.nrows();
+    const Index nsi = psd_size_grid.nelem();
+    
+    // Checks
+    if( pnd_agenda_input.ncols() != nin )
+    {
+        throw runtime_error( "Length of *pnd_agenda_input_names* and number of "
+                            "columns in *pnd_agenda_input* must be equal." );
+    }
+    if( pnd_agenda_input.ncols() != 2 )
+    {
+        throw runtime_error( "*pnd_agenda_input* must have two columns"
+                            "(mass density and number density)." );
+    }
+    
+    if( ndx > 2 )
+    {
+        throw runtime_error( "*dpnd_data_dx_names* must have length <=2." );
+    }
+    
+    
+    // check name tags
+    ArrayOfIndex input_idx={-1,-1};
+    
+    for (Index i = 0; i<nin; i++)
+    {
+        if ((Index) pnd_agenda_input_names[i].find("mass_density")!=String::npos)
+        {
+            input_idx[0]=i; //mass density index
+        }
+        else if ((Index) pnd_agenda_input_names[i].find("number_density")!=String::npos)
+        {
+            input_idx[1]=i; //number density index
+        }
+    }
+    
+    
+    if (input_idx[0]==-1)
+    {
+        throw runtime_error( "mass_density-tag not found " );
+    }
+    if (input_idx[1]==-1)
+    {
+        throw runtime_error( "number_density-tag not found " );
+    }
+    
+    
+    // look after jacobian tags
+    ArrayOfIndex dpnd_data_dx_idx={-1,-1};
+    
+    for (Index i = 0; i<ndx; i++)
+    {
+        if ((Index) dpnd_data_dx_names[i].find("mass_density")!=String::npos)
+        {
+            dpnd_data_dx_idx[0]=i; //mass density index
+        }
+        else if ((Index) dpnd_data_dx_names[i].find("number_density")!=String::npos)
+        {
+            dpnd_data_dx_idx[1]=i; //number density index
+        }
+    }
+    
+    
+    
+    
+    
+    //        if( dpnd_data_dx_names[0] != "SWC" )
+    //            throw runtime_error( "With F07, the only valid option for "
+    //                                "*dpnd_data_dx_names* is: \"SWC\"." );
+    //    }
+    
+    // Init psd_data and dpsd_data_dx with zeros
+    psd_data.resize( np, nsi );
+    psd_data = 0.0;
+    if( ndx!=0 )
+    {
+        dpsd_data_dx.resize( ndx, np, nsi );
+        dpsd_data_dx = 0.0;
+    }
+    else
+    { dpsd_data_dx.resize( 0, 0, 0  ); }
+    
+    
+    for( Index ip=0; ip<np; ip++ )
+    {
+        
+        // Extract the input variables
+        Numeric WC = pnd_agenda_input(ip,input_idx[0]);
+        Numeric N_tot = pnd_agenda_input(ip,input_idx[1]);
+        Numeric   t = pnd_agenda_input_t[ip];
+        
+        // No calc needed if swc==0 and no jacobians requested.
+        if( (WC==0.) && (!ndx) )
+        { continue; }   // If here, we are ready with this point!
+        
+        // Outside of [t_min,tmax]?
+        if( t < t_min  ||  t > t_max )
+        {
+            if( picky )
+            {
+                ostringstream os;
+                os << "Method called with a temperature of " << t << " K.\n"
+                << "This is outside the specified allowed range: [ max(0.,"
+                << t_min << "), " << t_max << " ]";
+                throw runtime_error(os.str());
+            }
+            else
+            { continue; }   // If here, we are ready with this point!
+        }
+        
+        
+        // Negative swc?
+        Numeric psd_weight = 1.0;
+        if( WC < 0 )
+        {
+            psd_weight = -1.0;
+            WC       *= -1.0;
+        }
+        
+        // Calculate PSD and derivatives
+        Vector psd_1p(nsi);
+        Matrix dpsd_1p(nsi,2);
+        if( WC>0  )
+        {
+            psd_S2M ( psd_1p,dpsd_1p, psd_size_grid, N_tot, WC, hydrometeor_type );
+            
+            for ( Index i=0; i<nsi; i++ )
+            {
+                psd_data(ip,i) = psd_weight * psd_1p[i];
+                
+                
+                for (Index idx=0; idx<dpnd_data_dx_idx.nelem(); idx++)
+                {
+                    // with respect to WC
+                    
+                    if (dpnd_data_dx_idx[idx]!=-1)
+                    {
+                        dpsd_data_dx(dpnd_data_dx_idx[idx],ip,i )=psd_weight *dpsd_1p(i,idx);
+                    }
+                    
+                }
+            }
+        }
+    }
+}
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void psdMY2 (
+             Matrix&                             psd_data,
+             Tensor3&                            dpsd_data_dx,
+             const Vector&                             psd_size_grid,
+             const Vector&                             pnd_agenda_input_t,
+             const Matrix&                             pnd_agenda_input,
+             const ArrayOfString&                      pnd_agenda_input_names,
+             const ArrayOfString&                      dpnd_data_dx_names,
+             const String&                             hydrometeor_type,
+             const Numeric&                            t_min,
+             const Numeric&                            t_max,
+             const Index&                              picky,
+             const Verbosity&)
+{
+    // Some sizes
+    const Index nin = pnd_agenda_input_names.nelem();
+    const Index ndx = dpnd_data_dx_names.nelem();
+    const Index np  = pnd_agenda_input.nrows();
+    const Index nsi = psd_size_grid.nelem();
+    
+    // Checks
+    if( pnd_agenda_input.ncols() != nin )
+    {
+        throw runtime_error( "Length of *pnd_agenda_input_names* and number of "
+                            "columns in *pnd_agenda_input* must be equal." );
+    }
+    if( pnd_agenda_input.ncols() != 2 )
+    {
+        throw runtime_error( "*pnd_agenda_input* must have two columns"
+                            "(mass density and number density)." );
+    }
+    
+    if( ndx > 2 )
+    {
+        throw runtime_error( "*dpnd_data_dx_names* must have length <=2." );
+    }
+    
+    
+    // check name tags
+    ArrayOfIndex input_idx={-1,-1};
+    
+    for (Index i = 0; i<nin; i++)
+    {
+        if ((Index) pnd_agenda_input_names[i].find("mass_density")!=String::npos)
+        {
+            input_idx[0]=i; //mass density index
+        }
+        else if ((Index) pnd_agenda_input_names[i].find("number_density")!=String::npos)
+        {
+            input_idx[1]=i; //number density index
+        }
+    }
+    
+    
+    if (input_idx[0]==-1)
+    {
+        throw runtime_error( "mass_density-tag not found " );
+    }
+    if (input_idx[1]==-1)
+    {
+        throw runtime_error( "number_density-tag not found " );
+    }
+    
+    
+    // look after jacobian tags
+    ArrayOfIndex dpnd_data_dx_idx={-1,-1};
+    
+    for (Index i = 0; i<ndx; i++)
+    {
+        if ((Index) dpnd_data_dx_names[i].find("mass_density")!=String::npos)
+        {
+            dpnd_data_dx_idx[0]=i; //mass density index
+        }
+        else if ((Index) dpnd_data_dx_names[i].find("number_density")!=String::npos)
+        {
+            dpnd_data_dx_idx[1]=i; //number density index
+        }
+    }
+    
+    
+    
+    
+    
+    //        if( dpnd_data_dx_names[0] != "SWC" )
+    //            throw runtime_error( "With F07, the only valid option for "
+    //                                "*dpnd_data_dx_names* is: \"SWC\"." );
+    //    }
+    
+    // Init psd_data and dpsd_data_dx with zeros
+    psd_data.resize( np, nsi );
+    psd_data = 0.0;
+    if( ndx!=0 )
+    {
+        dpsd_data_dx.resize( ndx, np, nsi );
+        dpsd_data_dx = 0.0;
+    }
+    else
+    { dpsd_data_dx.resize( 0, 0, 0  ); }
+    
+    
+    for( Index ip=0; ip<np; ip++ )
+    {
+        
+        // Extract the input variables
+        Numeric WC = pnd_agenda_input(ip,input_idx[0]);
+        Numeric N_tot = pnd_agenda_input(ip,input_idx[1]);
+        Numeric   t = pnd_agenda_input_t[ip];
+        
+        // No calc needed if wc==0 and no jacobians requested.
+        if( (WC==0.) && (!ndx) )
+        { continue; }   // If here, we are ready with this point!
+        
+        // Outside of [t_min,tmax]?
+        if( t < t_min  ||  t > t_max )
+        {
+            if( picky )
+            {
+                ostringstream os;
+                os << "Method called with a temperature of " << t << " K.\n"
+                << "This is outside the specified allowed range: [ max(0.,"
+                << t_min << "), " << t_max << " ]";
+                throw runtime_error(os.str());
+            }
+            else
+            { continue; }   // If here, we are ready with this point!
+        }
+        
+        
+        // Negative wc?
+        Numeric psd_weight = 1.0;
+        if( WC < 0 )
+        {
+            psd_weight = -1.0;
+            WC       *= -1.0;
+        }
+        
+        
+        // Calculate PSD and derivatives
+        Vector psd_1p(nsi);
+        Matrix dpsd_1p(nsi,2);
+        if( WC>0  )
+        {
+            psd_MY2 ( psd_1p,dpsd_1p, psd_size_grid, N_tot, WC, hydrometeor_type );
+            
+            for ( Index i=0; i<nsi; i++ )
+            {
+                psd_data(ip,i) = psd_weight * psd_1p[i];
+                
+                
+                for (Index idx=0; idx<dpnd_data_dx_idx.nelem(); idx++)
+                {
+                    // with respect to WC
+                    
+                    if (dpnd_data_dx_idx[idx]!=-1)
+                    {
+                        dpsd_data_dx(dpnd_data_dx_idx[idx],ip,i )=psd_weight *dpsd_1p(i,idx);
+                    }
+                    
+                }
+            }
+        }
+    }
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void psdW16 (
@@ -1206,7 +1535,7 @@ void pnd_fieldCalcFromParticleBulkProps(
    const ArrayOfArrayOfString&        pnd_agenda_array_input_names,
    const Index&                       jacobian_do,
    const ArrayOfRetrievalQuantity&    jacobian_quantities,
-   const Verbosity&)
+   const Verbosity& )
 {
   // As we allow this method to be called without cloudbox_checkedCalc, it must
   // contain quite a number of checks.
@@ -1293,14 +1622,29 @@ void pnd_fieldCalcFromParticleBulkProps(
   const String estring = "*particle_bulkprop_field* can only contain non-zero "
     "values inside the cloudbox.";
   // Pressure end ranges
-  for( Index ilon=0; ilon<nlon; ilon++ ) {
-    for( Index ilat=0; ilat<nlat; ilat++ ) {
-      for( Index ip=0; ip<=cloudbox_limits[0]; ip++ ) {
-        if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
-          throw runtime_error( estring ); } 
-      for( Index ip=cloudbox_limits[1]; ip<p_grid.nelem(); ip++ ) {
-        if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
-          throw runtime_error( estring ); } } }
+  for( Index ilon=0; ilon<nlon; ilon++ )
+  {
+    for( Index ilat=0; ilat<nlat; ilat++ )
+    {
+        if (cloudbox_limits[0])
+        {
+            for( Index ip=0; ip<=cloudbox_limits[0]; ip++ )
+            {
+                if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
+                {
+                    throw runtime_error( estring );
+                }
+            }
+        }
+        for( Index ip=cloudbox_limits[1]; ip<p_grid.nelem(); ip++ )
+        {
+            if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
+            {
+                throw runtime_error( estring );
+            }
+        }
+    }
+  }
   if( atmosphere_dim > 1 )
     {
       // Latitude end ranges
@@ -1734,15 +2078,47 @@ void dNdD_S2M (//WS Output:
                const String& psd_type,
                const Verbosity&)
 {
-    Index n_se = mass.nelem();
-    dNdD.resize(n_se);
+    Matrix dummy;
+    String hydrometeor_type;
     
-    for ( Index i=0; i<n_se; i++ )
+    //Get the right hydrometeor type
+    if (psd_type=="S2M_LWC")
     {
-        // calculate particle size distribution with S2M
-        // [# m^-3 kg^-1]
-        dNdD[i] = psd_S2M(mass[i], N_tot, M, psd_type) ;
+        hydrometeor_type="cloud_water";
     }
+    else if (psd_type=="S2M_IWC")
+    {
+        hydrometeor_type="cloud_ice";
+    }
+    else if (psd_type=="S2M_RWC")
+    {
+        hydrometeor_type="rain";
+    }
+    else if (psd_type=="S2M_SWC")
+    {
+        hydrometeor_type="snow";
+    }
+    else if (psd_type=="S2M_GWC")
+    {
+        hydrometeor_type="graupel";
+    }
+    else if (psd_type=="S2M_HWC")
+    {
+        hydrometeor_type="hail";
+    }
+    else
+    {
+        ostringstream os;
+        os << "You use a wrong tag! ";
+        throw runtime_error( os.str() );
+    }
+    
+    Numeric M1 = max( M, 0. );
+    
+    // calculate particle size distribution with S2M
+    // [# m^-3 kg^-1]
+    psd_S2M(dNdD, dummy,mass, N_tot, M1, hydrometeor_type) ;
+    
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1756,20 +2132,51 @@ void dNdD_S2M_M (//WS Output:
                const Verbosity&)
 {
     Numeric N_tot;
-
+    Matrix dummy;
+    String hydrometeor_type;
+    
     // Calculate the total number density from mass density M and the
     // mean particle mass
     N_tot=M/mean_mass;
     
-    Index n_se = mass.nelem();
-    dNdD.resize(n_se);
-    
-    for ( Index i=0; i<n_se; i++ )
+    //Get the right hydrometeor type
+    if (psd_type=="S2M_LWC")
     {
-        // calculate particle size distribution with S2M
-        // [# m^-3 kg^-1]
-        dNdD[i] = psd_S2M(mass[i], N_tot, M, psd_type) ;
+        hydrometeor_type="cloud_water";
     }
+    else if (psd_type=="S2M_IWC")
+    {
+        hydrometeor_type="cloud_ice";
+    }
+    else if (psd_type=="S2M_RWC")
+    {
+        hydrometeor_type="rain";
+    }
+    else if (psd_type=="S2M_SWC")
+    {
+        hydrometeor_type="snow";
+    }
+    else if (psd_type=="S2M_GWC")
+    {
+        hydrometeor_type="graupel";
+    }
+    else if (psd_type=="S2M_HWC")
+    {
+        hydrometeor_type="hail";
+    }
+    else
+    {
+        ostringstream os;
+        os << "You use a wrong tag! ";
+        throw runtime_error( os.str() );
+    }
+    
+    Numeric M1 = max( M, 0. );
+    
+    // calculate particle size distribution with S2M
+    // [# m^-3 kg^-1]
+    psd_S2M(dNdD, dummy, mass, N_tot, M1, psd_type) ;
+
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1782,15 +2189,46 @@ void dNdD_MY2 (//WS Output:
                const String& psd_type,
                const Verbosity&)
 {
-    Index n_se = diameter_max.nelem();
-    dNdD.resize(n_se);
+    Matrix dummy;
+    String hydrometeor_type;
     
-    for ( Index i=0; i<n_se; i++ )
+    //Get the right hydrometeor type
+    if (psd_type=="MY2_LWC")
     {
-        // calculate particle size distribution with S2M
-        // [# m^-3 kg^-1]
-        dNdD[i] = psd_MY2(diameter_max[i], N_tot, M, psd_type) ;
+        hydrometeor_type="cloud_water";
     }
+    else if (psd_type=="MY2_IWC")
+    {
+        hydrometeor_type="cloud_ice";
+    }
+    else if (psd_type=="MY2_RWC")
+    {
+        hydrometeor_type="rain";
+    }
+    else if (psd_type=="MY2_SWC")
+    {
+        hydrometeor_type="snow";
+    }
+    else if (psd_type=="MY2_GWC")
+    {
+        hydrometeor_type="graupel";
+    }
+    else if (psd_type=="MY2_HWC")
+    {
+        hydrometeor_type="hail";
+    }
+    else
+    {
+        ostringstream os;
+        os << "You use a wrong tag! ";
+        throw runtime_error( os.str() );
+    }
+    
+    Numeric M1 = max( M, 0. );
+    
+    // calculate particle size distribution with S2M
+    // [# m^-3 kg^-1]
+    psd_MY2(dNdD, dummy,diameter_max, N_tot, M1, hydrometeor_type);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1804,20 +2242,51 @@ void dNdD_MY2_M (//WS Output:
                  const Verbosity&)
 {
     Numeric N_tot;
+    Matrix dummy;
+    String hydrometeor_type;
     
     // Calculate the total number density from mass density M and the
     // mean particle mass
     N_tot=M/mean_mass;
     
-    Index n_se = diameter_max.nelem();
-    dNdD.resize(n_se);
-    
-    for ( Index i=0; i<n_se; i++ )
+    //Get the right hydrometeor type
+    if (psd_type=="MY2_LWC")
     {
-        // calculate particle size distribution with S2M
-        // [# m^-3 kg^-1]
-        dNdD[i] = psd_MY2(diameter_max[i], N_tot, M, psd_type) ;
+        hydrometeor_type="cloud_water";
     }
+    else if (psd_type=="MY2_IWC")
+    {
+        hydrometeor_type="cloud_ice";
+    }
+    else if (psd_type=="MY2_RWC")
+    {
+        hydrometeor_type="rain";
+    }
+    else if (psd_type=="MY2_SWC")
+    {
+        hydrometeor_type="snow";
+    }
+    else if (psd_type=="MY2_GWC")
+    {
+        hydrometeor_type="graupel";
+    }
+    else if (psd_type=="MY2_HWC")
+    {
+        hydrometeor_type="hail";
+    }
+    else
+    {
+        ostringstream os;
+        os << "You use a wrong tag! ";
+        throw runtime_error( os.str() );
+    }
+    
+    Numeric M1 = max( M, 0. );
+    
+    // calculate particle size distribution with S2M
+    // [# m^-3 kg^-1]
+    psd_MY2(dNdD, dummy,diameter_max, N_tot, M1, hydrometeor_type);
+
 }
 
 

@@ -179,6 +179,20 @@ void psd_snow_F07 ( Vector& psd,
                    const Numeric beta,
                    const String& regime );
 
+void psd_S2M (Vector& psd,
+              Matrix& dpsd,
+              const Vector& mass,
+              const Numeric& N_tot,
+              const Numeric& WC,
+              const String& hydrometeor_type);
+
+void psd_MY2 (Vector& psd,
+              Matrix& dpsd,
+              const Vector& diameter_max,
+              const Numeric N_tot,
+              const Numeric WC,
+              const String psd_type);
+
 Numeric IWCtopnd_H11 (const Numeric diameter_mass_equivalent,
                       const Numeric t);
 
@@ -190,16 +204,6 @@ Numeric IWCtopnd_H13Shape (const Numeric diameter_mass_equivalent,
 
 Numeric area_ratioH13 (const Numeric diameter_mass_equivalent,
                        const Numeric t);
-
-Numeric psd_S2M (const Numeric mass,
-                     const Numeric N_tot,
-                     const Numeric M,
-                     const String psd_type);
-
-Numeric psd_MY2 (const Numeric mass,
-                     const Numeric N_tot,
-                     const Numeric M,
-                     const String psd_type);
 
 Numeric LWCtopnd_MGD_LWC ( const Numeric d, const Numeric m, const Numeric lwc);
 

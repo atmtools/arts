@@ -12352,7 +12352,133 @@ void define_md_data_raw()
                   "Flag whether to be strict with parametrization value checks.",
                   "Distribution parameter perturbance flag" )
         ));
- 
+    
+    md_data_raw.push_back
+    ( MdRecord
+     ( NAME( "psdMY2" ),
+      DESCRIPTION
+      (
+       "Calculates *psd_data* and  *dpsd_data_dx* following Milbrandt and Yau (2005)\n"
+       "two moment particle size distribution (MY2) for cloud water, cloud ice,\n"
+       "rain, snow, graupel and hail, which is used in the GEM model.\n"
+       "\n"
+       "WSM for use in *pnd_agenda_array* for mapping *particle_bulkprop_field*\n"
+       "to *pnd_field* using *pnd_fieldCalcFromParticleBulkProps*.\n"
+       "Produces the particle size distribution values (dN/dD) and their\n"
+       "derivates with respect to independent variables x by *dpnd_data_dx_names*\n"
+       "over multiple particle sizes and atmospheric levels (or SWC/T\n"
+       "combinations).\n"
+       "\n"
+       "*psd_size_grid* is considered to be in terms of maximum diameter.\n"
+       "WC is considered to be in terms of mass content (or mass density),\n"
+       "ie. units of [kg/m3]. N_tot in terms of number density, ie. units of [1/m3] ."
+       "\n"
+       "Derivatives with respect to WC and N_tot are obtained analytically.\n"
+       "\n"
+       "Six particle size distributions for the different hydrometeors are handled,\n"
+       "governed by setting of *hydrometeor_type*, where \n"
+       "    \"cloud_water\" selects cloud liquid water , \n"
+       "    \"cloud_ice\" selects cloud ice, \n"
+       "    \"snow\" selects snow, \n"
+       "    \"rain\" selects rain, \n"
+       "    \"graupel\" selects graupel, and \n"
+       "    \"hail\" selects hail, \n"
+       "\n"
+       "Requirements:\n"
+       "\n"
+       "*pnd_agenda_input_names* must include :\n"
+       "    [\"X-mass_density\", \"X-number_density\" ]. \"X\" is an arbitrary name\n"
+       "The entries in  *dpnd_data_dx_names* (ie. the allowed\n"
+       "independent variablea ) can be \"X-mass_density\" and\\or \n"
+       "\"X-number_density\".\n"
+       "\n"
+       "The validity range of WC is not limited. Negative WC will produce\n"
+       "negative psd values following a distribution given by abs(WC), ie.\n"
+       "abs(psd)=f(abs(WC)).\n"
+       "\n"
+       "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+       "picky=0, or an error is thrown if picky=1.\n"
+       
+       ),
+      AUTHORS( "Manfred Brath" ),
+      OUT( "psd_data", "dpsd_data_dx" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
+         "pnd_agenda_input_names", "dpnd_data_dx_names" ),
+      GIN(         "hydrometeor_type", "t_min",   "t_max", "picky" ),
+      GIN_TYPE(    "String", "Numeric", "Numeric","Index" ),
+      GIN_DEFAULT( NODEF, "0", "999", "0"),
+      GIN_DESC("Hydrometeor type (see above description).",
+               "Low temperature limit to calculate a psd.",
+               "High temperature limit to calculate a psd.",
+               "Flag whether to be strict with parametrization value checks." )
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+     ( NAME( "psdS2M" ),
+      DESCRIPTION
+      (
+       "Calculates *psd_data* and  *dpsd_data_dx* following Seifert and Beheng (2006)\n"
+       "two moment particle size distribution (S2M) for cloud water, cloud ice,\n"
+       "rain, snow, graupel and hail, which is used in the ICON model.\n"
+       "\n"
+       "WSM for use in *pnd_agenda_array* for mapping *particle_bulkprop_field*\n"
+       "to *pnd_field* using *pnd_fieldCalcFromParticleBulkProps*.\n"
+       "Produces the particle size distribution values (dN/dD) and their\n"
+       "derivates with respect to independent variables x by *dpnd_data_dx_names*\n"
+       "over multiple particle sizes and atmospheric levels (or SWC/T\n"
+       "combinations).\n"
+       "\n"
+       "*psd_size_grid* is considered to be in terms of mass.\n"
+       "WC is considered to be in terms of mass content (or mass density),\n"
+       "ie. units of [kg/m3]. N_tot in terms of number density, ie. units of [1/m3] ."
+       "\n"
+       "Derivatives with respect to WC and N_tot are obtained analytically.\n"
+       "\n"
+       "Six particle size distributions for the different hydrometeors are handled,\n"
+       "governed by setting of *hydrometeor_type*, where \n"
+       "    \"cloud_water\" selects cloud liquid water , \n"
+       "    \"cloud_ice\" selects cloud ice, \n"
+       "    \"snow\" selects snow, \n"
+       "    \"rain\" selects rain, \n"
+       "    \"graupel\" selects graupel, and \n"
+       "    \"hail\" selects hail, \n"
+       "\n"
+       "Requirements:\n"
+       "\n"
+       "*pnd_agenda_input_names* must include :\n"
+       "    [\"X-mass_density\", \"X-number_density\" ]. \"X\" is an arbitrary name\n"
+       "The entries in  *dpnd_data_dx_names* (ie. the allowed\n"
+       "independent variablea ) can be \"X-mass_density\" and\\or \n"
+       "\"X-number_density\".\n"
+       "\n"
+       "The validity range of WC is not limited. Negative WC will produce\n"
+       "negative psd values following a distribution given by abs(WC), ie.\n"
+       "abs(psd)=f(abs(WC)).\n"
+       "\n"
+       "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+       "picky=0, or an error is thrown if picky=1.\n"
+       
+       ),
+      AUTHORS( "Manfred Brath" ),
+      OUT( "psd_data", "dpsd_data_dx" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
+         "pnd_agenda_input_names", "dpnd_data_dx_names" ),
+      GIN(         "hydrometeor_type", "t_min",   "t_max", "picky" ),
+      GIN_TYPE(    "String", "Numeric", "Numeric","Index" ),
+      GIN_DEFAULT( NODEF, "0", "999", "0"),
+      GIN_DESC("Hydrometeor type (see above description).",
+               "Low temperature limit to calculate a psd.",
+               "High temperature limit to calculate a psd.",
+               "Flag whether to be strict with parametrization value checks." )
+      ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "psdW16" ),

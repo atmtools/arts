@@ -1127,8 +1127,10 @@ void pnd_fieldS2M (Tensor4View pnd_field,
     Vector mass ( N_se, 0.0 );
     Vector pnd ( N_se, 0.0 );
     Vector dNdD ( N_se, 0.0 );
+    Matrix dummy ;
     String partfield_name;
     String psd_str;
+    String hydrometeor_type;
     String psd_param;
     bool logic_M;
     Numeric N_tot;
@@ -1166,6 +1168,39 @@ void pnd_fieldS2M (Tensor4View pnd_field,
         logic_M=false;
         psd_str=psd_param;
     }
+    
+    //Get the right hydrometeor type
+    if (psd_str=="S2M_LWC")
+    {
+        hydrometeor_type="cloud_water";
+    }
+    else if (psd_str=="S2M_IWC")
+    {
+        hydrometeor_type="cloud_ice";
+    }
+    else if (psd_str=="S2M_RWC")
+    {
+        hydrometeor_type="rain";
+    }
+    else if (psd_str=="S2M_SWC")
+    {
+        hydrometeor_type="snow";
+    }
+    else if (psd_str=="S2M_GWC")
+    {
+        hydrometeor_type="graupel";
+    }
+    else if (psd_str=="S2M_HWC")
+    {
+        hydrometeor_type="hail";
+    }
+    else
+    {
+        ostringstream os;
+        os << "You use a wrong tag! ";
+        throw runtime_error( os.str() );
+    }
+    
 
     for ( Index i=0; i < N_se; i++ )
     {
@@ -1256,19 +1291,17 @@ void pnd_fieldS2M (Tensor4View pnd_field,
                         
                         
                         // iteration over all given size bins
-                        for ( Index i=0; i<mass.nelem(); i++ ) //loop over number of scattering elements
-                        {
-                            // calculate particle size distribution for H11
+                            // calculate particle size distribution
                             // [# m^-3 m^-1]
-                            dNdD[i] = psd_S2M( mass[i], N_tot,
-                                                     WC_field ( p, lat, lon ),
-                                                     psd_str);
-                        }
+                        psd_S2M(dNdD,dummy, mass, N_tot,
+                                          WC_field ( p, lat, lon ),
+                                          hydrometeor_type);
+                        
                         
                         // sometimes there is possibility if WC_field is very small
                         // but still greater than zero and N_tot is large that dNdD
                         // could be zero
-                        if (dNdD.sum()==0)
+                        if (dNdD.sum()==0.)
                         {
                             
                             for ( Index i = 0; i< N_se; i++ )
@@ -1355,8 +1388,10 @@ void pnd_fieldMY2 (Tensor4View pnd_field,
     Vector mass ( N_se, 0.0 );
     Vector pnd ( N_se, 0.0 );
     Vector dNdD ( N_se, 0.0 );
+    Matrix dummy ;
     String partfield_name;
     String psd_str;
+    String hydrometeor_type;
     String psd_param;
     bool logic_M;
     Numeric N_tot;
@@ -1394,6 +1429,39 @@ void pnd_fieldMY2 (Tensor4View pnd_field,
         logic_M=false;
         psd_str=psd_param;
     }
+    
+    //Get the right hydrometeor type
+    if (psd_str=="MY2_LWC")
+    {
+        hydrometeor_type="cloud_water";
+    }
+    else if (psd_str=="MY2_IWC")
+    {
+        hydrometeor_type="cloud_ice";
+    }
+    else if (psd_str=="MY2_RWC")
+    {
+        hydrometeor_type="rain";
+    }
+    else if (psd_str=="MY2_SWC")
+    {
+        hydrometeor_type="snow";
+    }
+    else if (psd_str=="MY2_GWC")
+    {
+        hydrometeor_type="graupel";
+    }
+    else if (psd_str=="MY2_HWC")
+    {
+        hydrometeor_type="hail";
+    }
+    else
+    {
+        ostringstream os;
+        os << "You use a wrong tag! ";
+        throw runtime_error( os.str() );
+    }
+    
     
     for ( Index i=0; i < N_se; i++ )
     {
@@ -1490,19 +1558,17 @@ void pnd_fieldMY2 (Tensor4View pnd_field,
                         
                         
                         // iteration over all given size bins
-                        for ( Index i=0; i<diameter_max.nelem(); i++ ) //loop over number of scattering elements
-                        {
-                            // calculate particle size distribution for H11
-                            // [# m^-3 m^-1]
-                            dNdD[i] = psd_MY2( diameter_max[i], N_tot,
-                                                  WC_field ( p, lat, lon ),
-                                                  psd_str);
-                        }
+                        // calculate particle size distribution
+                        // [# m^-3 m^-1]
+                        psd_MY2(dNdD,dummy, diameter_max, N_tot,
+                                WC_field ( p, lat, lon ),
+                                hydrometeor_type);
+                        
                         
                         // sometimes there is possibility if WC_field is very small
                         // but still greater than zero and N_tot is large that dNdD
                         // could be zero
-                        if (dNdD.sum()==0)
+                        if (dNdD.sum()==0.)
                         {
                             
                             for ( Index i = 0; i< N_se; i++ )
@@ -2869,6 +2935,356 @@ void psd_snow_F07 ( Vector& psd,
     }
 }
 
+/*! Calculates the particle number density field according
+ *  to the two moment scheme of Axel Seifert, that is used the ICON model.
+ *  One call of this function calculates one particle number density.
+ 
+ \return dN particle number density per diameter interval [#/m3/m]
+ 
+ \param mass   Mass of scattering particle [kg]
+ \param N_tot  Total number of particles (0th moment) [#/m3/m/kg^mu]
+ \param M      Total mass concentration of Particles (1st moment) [kg/m^3]
+ \param psd_type string with a tag defining the (hydrometeor) scheme
+ 
+ 
+ \author Manfred Brath
+ \date 2015-01-19
+ 
+ */
+void psd_S2M (Vector& psd,
+              Matrix& dpsd,
+              const Vector& mass,
+              const Numeric& N_tot,
+              const Numeric& WC,
+              const String& hydrometeor_type)
+{
+    Numeric N0;
+    Numeric Lambda;
+    Numeric arg1;
+    Numeric arg2;
+    Numeric brk;
+    Numeric mu;
+    Numeric gamma;
+    Numeric xmin;
+    Numeric xmax;
+    Numeric M0min;
+    Numeric M0max;
+    Numeric M0;
+    Numeric M1;
+    Numeric c1;
+    Numeric c2;
+    Numeric L1;
+    Numeric mMu;
+    Numeric mGamma;
+    Numeric brkMu1;
+    Numeric brkMu2;
+    
+    
+    // Get the coefficients for the right hydrometeor
+    if ( hydrometeor_type == "cloud_ice" ) //Cloud ice water
+    {
+        mu=0.;
+        gamma=1./3.;
+        xmin=1e-12;
+        xmax=1e-5;
+    }
+    else if ( hydrometeor_type == "rain" ) //Rain
+    {
+        mu=0.;
+        gamma=1./3.;
+        xmin=2.6e-10;
+        xmax=3e-6;
+    }
+    else if ( hydrometeor_type == "snow" ) //Snow
+    {
+        mu=0.;
+        gamma=1./2.;
+        xmin=1e-10;
+        xmax=2e-5;
+    }
+    else if ( hydrometeor_type == "graupel" ) //Graupel
+    {
+        mu=1.;
+        gamma=1./3.;
+        xmin=1e-9;
+        xmax=5e-4;
+    }
+    else if ( hydrometeor_type == "hail" ) //Hail
+    {
+        mu=1.;
+        gamma=1./3.;
+        xmin=2.6e-10;
+        xmax=5e-4;
+    }
+    else if ( hydrometeor_type == "cloud_water" ) //Cloud liquid water
+    {
+        mu=1;
+        gamma=1;
+        xmin=4.2e-15;
+        xmax=2.6e-10;
+    }
+    else
+    {
+        ostringstream os;
+        os << "You use a wrong tag! ";
+        throw runtime_error( os.str() );
+    }
+    
+    M0=N_tot;
+    M1=WC;
+    
+    
+    Index nD = mass.nelem();
+    psd.resize(nD);
+    psd = 0.;
+    
+    dpsd.resize(nD, 2);
+    dpsd = 0.;
+    
+    
+    
+    if ( M1 > 0.0  )
+    {
+        
+        
+        // lower and upper limit check is taken from the ICON code of the two moment
+        //scheme
+        
+        M0max=M1/xmax;
+        M0min=M1/xmin;
+        
+        //check lower limit of the scheme
+        if (M0>M0min)
+        {
+            M0=M0min;
+        }
+        
+        //check upper limit of the scheme
+        if (M0<M0max)
+        {
+            M0=M0max;
+        }
+        
+        
+        //arguments for Gamma function
+        arg2=(mu+2)/gamma;
+        arg1=(mu+1)/gamma;
+        
+        // results of gamma function
+        c1=gamma_func(arg1);
+        c2=gamma_func(arg2);
+        
+        
+        // variable to shorthen the formula
+        brk=M0/M1*c2/c1;
+        brkMu2=pow(brk, (mu+2));
+        brkMu1=pow(brk, (mu+1));
+        
+        //Lambda (parameter for modified gamma distribution)
+        Lambda=pow(brk, gamma);
+        
+        L1=pow(Lambda, arg1);
+        
+        //N0
+        N0=M0*gamma/gamma_func(arg1)*L1;
+        
+        
+        // Calculate distribution function
+        for( Index iD=0; iD<nD; iD++ )
+        {
+            
+            //Distribution function
+            psd[iD]=mod_gamma_dist(mass[iD], N0,Lambda, mu, gamma);
+            
+            if (isnan(psd[iD])) psd[iD] = 0.0;
+            if (isinf(psd[iD])) psd[iD] = 0.0;
+            
+            //Calculate derivatives analytically
+            mMu=pow(mass[iD],mu);
+            mGamma=pow(mass[iD],gamma);
+            
+            // dpsd/dM1
+            dpsd(iD,0)=gamma/c2*mMu*exp(-Lambda*mGamma)*brkMu2*(-1-mu+gamma*mGamma*Lambda);
+            
+            // dpsd/dM0
+            dpsd(iD,1)=-gamma/c1*mMu*exp(-Lambda*mGamma)*brkMu1*(-2-mu-gamma*mGamma*Lambda);
+            
+            
+        }
+    }
+    else
+    {
+        return;
+    }
+    
+    
+}
+
+
+/*! Calculates the particle number density field according
+ *  to the Milbrandt and Yau two moment scheme, which is used in the GEM model.
+ *  See also milbrandt and yau, 2005.
+ *  One call of this function calculates one particle number density.
+ 
+ 
+ \return dN particle number density per diameter interval [#/m3/m]
+ 
+ \param mass   Mass of scattering particle [kg]
+ \param N_tot  Total number of particles (0th moment) [#/m3/m/kg^mu]
+ \param M      Total mass concentration of Particles (1st moment) [kg/m^3]
+ \param psd_type string with a tag defining the (hydrometeor) scheme
+ 
+ 
+ \author Manfred Brath
+ \date 2017-08-01
+ 
+ */
+void psd_MY2 (Vector& psd,
+              Matrix& dpsd,
+              const Vector& diameter_max,
+              const Numeric N_tot,
+              const Numeric WC,
+              const String psd_type)
+{
+    Numeric N0;
+    Numeric Lambda;
+    Numeric arg1;
+    Numeric arg2;
+    Numeric temp;
+    Numeric mu;
+    Numeric gamma;
+    Numeric alpha;
+    Numeric beta;
+    Numeric M0;
+    Numeric M1;
+    Numeric c1;
+    Numeric c2;
+    Numeric Lmg;
+    Numeric DMu;
+    Numeric DGamma;
+    
+    
+    
+    // Get the coefficients for the right hydrometeor
+    if ( psd_type == "cloud_ice" ) //Cloud ice water
+    {
+        mu=0.;
+        gamma=1.;
+        alpha=440.; //[kg]
+        beta=3;
+    }
+    else if ( psd_type == "rain" ) //Rain
+    {
+        mu=0.;
+        gamma=1;
+        alpha=523.5988; //[kg]
+        beta=3;
+    }
+    else if ( psd_type == "snow" ) //Snow
+    {
+        mu=0.;
+        gamma=1;
+        alpha=52.35988; //[kg]
+        beta=3;
+    }
+    else if ( psd_type == "graupel" ) //Graupel
+    {
+        mu=0.;
+        gamma=1;
+        alpha=209.4395; //[kg]
+        beta=3;
+    }
+    else if ( psd_type == "hail" ) //Hail
+    {
+        mu=0.;
+        gamma=1;
+        alpha=471.2389; //[kg]
+        beta=3;
+    }
+    else if ( psd_type == "cloud_water" ) //Cloud liquid water
+    {
+        mu=1;
+        gamma=1;
+        alpha=523.5988; //[kg]
+        beta=3;
+    }
+    else
+    {
+        ostringstream os;
+        os << "You use a wrong tag! ";
+        throw runtime_error( os.str() );
+    }
+    
+    
+    M0=N_tot;
+    M1=WC;
+    
+    
+    Index nD = diameter_max.nelem();
+    psd.resize(nD);
+    psd = 0.;
+    
+    dpsd.resize(nD, 2);
+    dpsd = 0.;
+    
+    
+    if ( M1 > 0.0  && M0 > 0)
+    {
+        
+        
+        //arguments for Gamma function
+        arg2=(mu+beta+1)/gamma;
+        arg1=(mu+1)/gamma;
+        
+        // results of gamma function
+        c1=gamma_func(arg1);
+        c2=gamma_func(arg2);
+        
+        //base of lambda
+        temp=alpha*M0/M1*c2/c1;
+        
+        //Lambda (parameter for modified gamma distribution)
+        Lambda=pow(temp, gamma/beta);
+        
+        Lmg=pow(Lambda, arg1);
+        
+        
+        //N0
+        N0=M0*gamma/c1*Lmg;
+        
+        //Distribution function
+        
+        // Calculate distribution function
+        for( Index iD=0; iD<nD; iD++ )
+        {
+            
+            psd[iD]=mod_gamma_dist(diameter_max[iD], N0,Lambda, mu, gamma);
+            
+            if (isnan(psd[iD])) psd[iD] = 0.0;
+            if (isinf(psd[iD])) psd[iD] = 0.0;
+            
+            //Calculate derivatives analytically
+            DMu=pow(diameter_max[iD],mu);
+            DGamma=pow(diameter_max[iD],gamma);
+            
+            // dpsd/dM1
+            dpsd(iD,0)=(DMu*exp(-DGamma*Lambda)*gamma*M0*Lmg*
+                        (-1-mu+DGamma*gamma*Lambda)/(M1*beta*c1));
+            
+            // dpsd/dM0
+            dpsd(iD,1)=(DMu*exp(-DGamma*Lambda)*gamma*Lmg*
+                        (1+beta+mu-DGamma*gamma*Lambda)/(beta*c1));
+            
+        }
+        
+    }
+    else
+    {
+        return;
+    }
+    
+}
+
 
 /*! Calculates particle size distribution of (stratiform) rain using Wang16
  *  parametrization.
@@ -3169,249 +3585,6 @@ Numeric LWCtopnd (const Numeric lwc, //[kg/m^3]
 
   if (isnan(dNdr)) dNdr = 0.0;
 	return dNdr;
-}
-
-/*! Calculates the particle number density field according
- *  to the two moment scheme of Axel Seifert, that is used the ICON model.
- *  One call of this function calculates one particle number density.
- 
- \return dN particle number density per diameter interval [#/m3/m]
- 
- \param mass   Mass of scattering particle [kg]
- \param N_tot  Total number of particles (0th moment) [#/m3/m/kg^mu]
- \param M      Total mass concentration of Particles (1st moment) [kg/m^3]
- \param psd_type string with a tag defining the (hydrometeor) scheme
-
- 
- \author Manfred Brath
- \date 2015-01-19
- 
- */
-Numeric psd_S2M (const Numeric mass,
-                     const Numeric N_tot,
-                     const Numeric M1,
-                     const String psd_type)
-{
-    Numeric dN;
-    Numeric N0;
-    Numeric Lambda;
-    Numeric arg1;
-    Numeric arg2;
-    Numeric temp;
-    Numeric mu;
-    Numeric gamma;
-    Numeric xmin;
-    Numeric xmax;
-    Numeric M0min;
-    Numeric M0max;
-    Numeric M0;
-    
-    
-    
-    // Get the coefficients for the right hydrometeor
-    if ( psd_type == "S2M_IWC" ) //Cloud ice water
-    {
-        mu=0.;
-        gamma=1./3.;
-        xmin=1e-12;
-        xmax=1e-5;
-    }
-    else if ( psd_type == "S2M_RWC" ) //Rain
-    {
-        mu=0.;
-        gamma=1./3.;
-        xmin=2.6e-10;
-        xmax=3e-6;
-    }
-    else if ( psd_type == "S2M_SWC" ) //Snow
-    {
-        mu=0.;
-        gamma=1./2.;
-        xmin=1e-10;
-        xmax=2e-5;
-    }
-    else if ( psd_type == "S2M_GWC" ) //Graupel
-    {
-        mu=1.;
-        gamma=1./3.;
-        xmin=1e-9;
-        xmax=5e-4;
-    }
-    else if ( psd_type == "S2M_HWC" ) //Hail
-    {
-        mu=1.;
-        gamma=1./3.;
-        xmin=2.6e-10;
-        xmax=5e-4;
-    }
-    else if ( psd_type == "S2M_LWC" ) //Cloud liquid water
-    {
-        mu=1;
-        gamma=1;
-        xmin=4.2e-15;
-        xmax=2.6e-10;
-    }
-    else
-    {
-        ostringstream os;
-        os << "You use a wrong tag! ";
-        throw runtime_error( os.str() );
-    }
-
-    M0=N_tot;
-    
-    // lower and upper limit check is taken from the ICON code of the two moment
-    //scheme
-    
-    M0max=M1/xmax;
-    M0min=M1/xmin;
-    
-    //check lower limit of the scheme
-    if (M0>M0min)
-    {
-        M0=M0min;
-    }
-    
-    //check upper limit of the scheme
-    if (M0<M0max)
-    {
-        M0=M0max;
-    }
-    
-    
-    //arguments for Gamma function
-    arg2=(mu+2)/gamma;
-    arg1=(mu+1)/gamma;
-    
-    
-    temp=M0/M1*gamma_func(arg2)/gamma_func(arg1);
-    
-    //Lambda (parameter for modified gamma distribution)
-    Lambda=pow(temp, gamma);
-    
-    //N0
-    N0=M0*gamma/gamma_func(arg1)*pow(Lambda, arg1);
-    
-    //Distribution function
-    dN=mod_gamma_dist(mass, N0,Lambda, mu, gamma);
-    
-    if (isnan(dN)) dN = 0.0;
-    
-    
-    return dN;
-}
-
-
-/*! Calculates the particle number density field according
- *  to the Milbrandt and Yau two moment scheme, which is used in the GEM model.
- *  See also milbrandt and yau, 2005.
- *  One call of this function calculates one particle number density.
-
- 
- \return dN particle number density per diameter interval [#/m3/m]
- 
- \param mass   Mass of scattering particle [kg]
- \param N_tot  Total number of particles (0th moment) [#/m3/m/kg^mu]
- \param M      Total mass concentration of Particles (1st moment) [kg/m^3]
- \param psd_type string with a tag defining the (hydrometeor) scheme
- 
- 
- \author Manfred Brath
- \date 2015-08-01
- 
- */
-Numeric psd_MY2 (const Numeric diameter_max,
-                     const Numeric N_tot,
-                     const Numeric M,
-                     const String psd_type)
-{
-    Numeric dN;
-    Numeric N0;
-    Numeric Lambda;
-    Numeric arg1;
-    Numeric arg2;
-    Numeric temp;
-    Numeric mu;
-    Numeric gamma;
-    Numeric alpha;
-    Numeric beta;
-    
-    
-    // Get the coefficients for the right hydrometeor
-    if ( psd_type == "MY2_IWC" ) //Cloud ice water
-    {
-        mu=0.;
-        gamma=1.;
-        alpha=440.; //[kg]
-        beta=3;
-    }
-    else if ( psd_type == "MY2_RWC" ) //Rain
-    {
-        mu=0.;
-        gamma=1;
-        alpha=523.5988; //[kg]
-        beta=3;
-    }
-    else if ( psd_type == "MY2_SWC" ) //Snow
-    {
-        mu=0.;
-        gamma=1;
-        alpha=52.35988; //[kg]
-        beta=3;
-    }
-    else if ( psd_type == "MY2_GWC" ) //Graupel
-    {
-        mu=0.;
-        gamma=1;
-        alpha=209.4395; //[kg]
-        beta=3;
-    }
-    else if ( psd_type == "MY2_HWC" ) //Hail
-    {
-        mu=0.;
-        gamma=1;
-        alpha=471.2389; //[kg]
-        beta=3;
-    }
-    else if ( psd_type == "MY2_LWC" ) //Cloud liquid water
-    {
-        mu=1;
-        gamma=1;
-        alpha=523.5988; //[kg]
-        beta=3;
-    }
-    else
-    {
-        ostringstream os;
-        os << "You use a wrong tag! ";
-        throw runtime_error( os.str() );
-    }
-    
-    
-    
-    
-    //Calculate Number density only, if mass is between xmin and xmax
-
-    //arguments for Gamma function
-    arg2=(mu+beta+1)/gamma;
-    arg1=(mu+1)/gamma;
-    
-    
-    temp=alpha*N_tot/M*gamma_func(arg2)/gamma_func(arg1);
-    
-    //Lambda (parameter for modified gamma distribution)
-    Lambda=pow(temp, gamma/beta);
-    
-    //N0
-    N0=N_tot*gamma/gamma_func(arg1)*pow(Lambda, arg1);
-    
-    //Distribution function
-    dN=mod_gamma_dist(diameter_max, N0,Lambda, mu, gamma);
-    
-    if (isnan(dN)) dN = 0.0;
-    
-    
-    return dN;
 }
 
 

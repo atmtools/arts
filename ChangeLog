@@ -1,3 +1,40 @@
+2017-09-15  Manfred Brath  <manfred.brath@uni-hamburg.de>
+
+	* arts-2-3-794
+
+	* src/m_checked.cc (cloudbox_checkedCalc):  Changed the check for 
+	particle_bulkprop_field. If the lower cloudbox limit is set to the lowest
+	atmospheric level, then the check will not give an error if the
+	particle_bulkprop_field has non-zero value at the lower cloudbox boundary.	
+	
+	* src/math_funcs.cc (mod_gamma_dist): Changed the error message
+	
+	* src/methods.cc (psdS2M, psdMY2): Written built-in doc
+	
+    * src/m_microphysics.cc: 
+    
+    (psdS2M, psdMY2) 
+    Added new two moment scheme distributions. Particle size distribution values
+    are tested. The new scheme will give except for the differences due to 
+    rescalling the same pndfields as pnd_fieldS2M/MY2. The partial derivatives
+    need further testing,  but so far they seem to be working. 
+	
+	(dNdD_SM2, dNdD_SM2_M, dNdD_MY2, dNdD_MY2_M) 
+	Changed to handle the new calls of psd_S2M, psd_MY2.
+	
+	(pnd_fieldCalcFromParticleBulkProps):
+	Changed the check for particle_bulkprop_field. If the lower cloudbox limit 
+	is set to the lowest atmospheric level, then the check will not give an 
+	error if the particle_bulkprop_field has non-zero value at the lower 
+	cloudbox boundary.
+	
+	* src/microphysics.{h,cc} (psd_MY2, psd_S2M):
+	Changed to handle a grid of sizes at once and changed the tags defining the
+	hydrometeor) scheme.
+	
+	* src/microphysics.cc (pnd_fieldS2M, pnd_fieldMY2): Changed to handle the 
+	new calls of psd_S2M, psd_MY2.
+
 2017-09-15 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-793

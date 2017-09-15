@@ -748,14 +748,23 @@ void cloudbox_checkedCalc(
           const String estring = "*particle_bulkprop_field* not allowed to "
             "contain non-zero values outside the cloudbox.";
           // Pressure end ranges
-          for( Index ilon=0; ilon<nlon; ilon++ ) {
-            for( Index ilat=0; ilat<nlat; ilat++ ) {
-              for( Index ip=0; ip<=cloudbox_limits[0]; ip++ ) {
-                if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
-                  throw runtime_error( estring ); } 
-              for( Index ip=cloudbox_limits[1]; ip<p_grid.nelem(); ip++ ) {
-                if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
-                  throw runtime_error( estring ); } } }
+          for( Index ilon=0; ilon<nlon; ilon++ )
+            {
+                for( Index ilat=0; ilat<nlat; ilat++ )
+                {
+                    if (cloudbox_limits[0])
+                        for( Index ip=0; ip<=cloudbox_limits[0]; ip++ )
+                        {
+                            if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
+                                throw runtime_error( estring );
+                        }
+                    for( Index ip=cloudbox_limits[1]; ip<p_grid.nelem(); ip++ )
+                    {
+                        if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
+                            throw runtime_error( estring );
+                    }
+                }
+            }
           if( atmosphere_dim > 1 )
             {
               // Latitude end ranges
