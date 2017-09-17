@@ -471,9 +471,9 @@ void set_variable_value(InteractiveWorkspace *workspace,
     }
 }
 
-long add_variable(InteractiveWorkspace *workspace, long group_id)
+long add_variable(InteractiveWorkspace *workspace, long group_id, const char *name)
 {
-    return workspace->add_variable(group_id);
+    return workspace->add_variable(group_id, name);
 }
 
 DLL_PUBLIC

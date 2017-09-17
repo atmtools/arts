@@ -152,7 +152,7 @@ void InteractiveWorkspace::resize()
     std::swap(ws, ws_new);
 }
 
-Index InteractiveWorkspace::add_variable(Index group_id)
+Index InteractiveWorkspace::add_variable(Index group_id, const char *name)
 {
     if (wsv_data.size() != ws.size()) {
         resize();
@@ -165,9 +165,15 @@ Index InteractiveWorkspace::add_variable(Index group_id)
     ws.back().top()->auto_allocated = true;
     ws.back().top()->initialized = true;
 
-    std::stringstream stream;
-    stream << "anonymous_variable_" << n_anonymous_variables_;
-    String s(stream.str());
+    String s;
+    if (name) {
+        s = String(name);
+    } else {
+        std::stringstream stream;
+        stream << "anonymous_variable_" << n_anonymous_variables_;
+        s = stream.str();
+    }
+
     wsv_data.push_back(WsvRecord(s.c_str(), "Created by C API.", group_id));
     WsvMap[s] = id;
 

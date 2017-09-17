@@ -1,3 +1,15 @@
+2017-09-17 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-795
+
+	* src/arts_api.[h/cc](add_variable):
+	Added name argument so that names of newly created variables can be also used
+	by the ARTS runtime.
+
+	* src/interactive_workspace.[h/cc](add_variable):
+	Added name argument so that names of newly created variables can be also used
+	by the ARTS runtime.
+
 2017-09-15  Manfred Brath  <manfred.brath@uni-hamburg.de>
 
 	* arts-2-3-794

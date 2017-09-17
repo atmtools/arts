@@ -426,10 +426,12 @@ extern "C" {
      * \param workspace The pointer to the InteractiveWorkspace object where to create
      * the object.
      * \param group_id The index of the group of the variable
+     * \param name Pointer to a null-terminated string containing the name of the variable.
+     *             If nullptr, a name will be auto-generated.
      * \return The index which indentifies the variable in the given workspace.
      */
     DLL_PUBLIC
-    long add_variable(InteractiveWorkspace *workspace, long group_id);
+    long add_variable(InteractiveWorkspace *workspace, long group_id, const char *name);
 
     //! Erase variable from workspace.
     /**

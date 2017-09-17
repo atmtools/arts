@@ -63,13 +63,14 @@ public:
 
     //! Push a stack for a new variable to the workspace.
     /*!
-    Adds a new stack for a variable that is not a registered workspace variable.
-    This is used by the C API to add variables to the workspace.
+    Registers a new variable with and adds a new stack to the given workspace.
+    If name is nullptr, a unique name is created.
 
     \param grou_id Index of the group of the variable to add to the workspace.
+    \param name Char pointer to the name of the variable.
     \return Index of the newly pushed stack
     */
-    Index add_variable(Index group_id);
+    Index add_variable(Index group_id, const char *name);
 
     //! Remove a variable stack from the workspace.
     /*!
