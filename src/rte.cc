@@ -2355,6 +2355,14 @@ void get_ppath_scat_source(
       // determine scattered direction (=LOS dir) weights for this ppath
       // point (apply in scat element loop) and adapt gridpos structure for
       // 2pts-reduced za grid.
+      // FIXME:
+      // Why interpolate the scattered field? (It's clear that we can not just
+      // interpolate the incident field as we want to allow the scat matrix to
+      // vary/adapt with the actual ppath particle conditions while the
+      // background (aka incident) field is fixed). Can't we just calculated the
+      // scattered field at the specific LOS direction directly? (That's how I,
+      // JM, did in SARTre. Any reasons why we can't do this here? Why didn't I?
+      // :-/ )
       GridPos gp_za, gp_iza;
       gridpos(gp_za, scat_za_grid, ppath.los(ip,0), 0.5);
       gridpos_copy( gp_iza, gp_za );
@@ -4728,17 +4736,17 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
                                      ArrayOfStokesVector& dap_dx,
                                      ArrayOfPropagationMatrix& dKp_dx,
                                      const Index& do_cloudy_calc,
-                                     const VectorView ppath_1p_pnd,      // the ppath_pnd at this ppath point
+                                     ConstVectorView ppath_1p_pnd,       // the ppath_pnd at this ppath point
                                      const ArrayOfMatrix& ppath_dpnd_dx, // the full ppath_dpnd_dx, ie all ppath points
                                      const Index ppath_1p_id,
-                                     ConstVectorView ppath_line_of_sight,
                                      const ArrayOfArrayOfSingleScatteringData& scat_data,
+                                     ConstVectorView ppath_line_of_sight,
                                      const Numeric& ppath_temperature,
                                      const Index& atmosphere_dim,
                                      const bool& do_jacobian,
                                      const Verbosity& verbosity)
 {
-  if(do_cloudy_calc)
+  if( do_cloudy_calc )
   {
     const Index nf = Kp.NumberOfFrequencies(), stokes_dim = Kp.StokesDimensions();
     
@@ -4871,42 +4879,77 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
 // {}
 
 
-void get_stepwise_scattersky_source(ArrayOfStokesVector& ppath_scat_source,
+void get_stepwise_scattersky_source(StokesVector& Sp,
+                                    ArrayOfStokesVector& dSp_dx,
+                                    const Index& do_cloudy_calc,
+                                    ConstVectorView ppath_1p_pnd,       // the ppath_pnd at this ppath point
+                                    const ArrayOfMatrix& ppath_dpnd_dx, // the full ppath_dpnd_dx, ie all ppath points
+                                    const Index ppath_1p_id,
                                     const ArrayOfArrayOfSingleScatteringData& scat_data,
+                                    const Index& scat_data_checked,
                                     ConstTensor7View doit_i_field,
-                                    ConstVectorView  scat_za_grid,
-                                    ConstVectorView  f_grid, 
-                                    const Index&     stokes_dim,
-                                    const GridPos& ppath_p,
+                                    ConstVectorView scat_za_grid,
+                                    ConstVectorView scat_aa_grid,
                                     ConstVectorView ppath_line_of_sight,
-                                    const Numeric& ppath_t,
-                                    ConstVectorView ppath_pnd,
-                                    const Index& j_analytical_do,
-                                    const Index& Naa,
+                                    const GridPos& ppath_pressure,
+                                    const Numeric& ppath_temperature,
+                                    const Index& atmosphere_dim,
+                                    const bool& do_jacobian,
                                     const Verbosity& verbosity)
 {
-  const Index ne = ppath_pnd.nelem();
-  assert( TotalNumberOfElements(scat_data) == ne );
-  
-  Vector aa_grid(Naa);
-  if( Naa > 2 )
-    nlinspace(aa_grid, 0, 360, Naa);
-  else
+  if( do_cloudy_calc )
   {
-    ostringstream os;
-    os << "Naa_grid must be > 2.";
-    throw runtime_error( os.str() );
-  }
-  Index Nza = scat_za_grid.nelem();
-  
-  if( j_analytical_do || (max(ppath_pnd) > 0) )
-  {
+    const Index nf = Sp.NumberOfFrequencies();
+    const Index stokes_dim = Sp.StokesDimensions();
+    const Index ne = ppath_1p_pnd.nelem();
+    assert( TotalNumberOfElements(scat_data) == ne );
+    const Index nza = scat_za_grid.nelem();
+    const Index naa = scat_aa_grid.nelem();
+
+    //ArrayOfStokesVector scat_source_1se(ne);
+    //for(auto& sv : scat_source_1se)
+    //  sv = StokesVector(nf, stokes_dim);
+    Matrix scat_source_1se(stokes_dim, ne, 0.);
+      
+    // determine p/z-interp weights for this ppath point
+    // (needed for p/z-interpolation of incident field, applied in freq loop)
     GridPos gp_p;
-    gridpos_copy( gp_p, ppath_p );
+    gridpos_copy( gp_p, ppath_pressure );
     Vector itw_p(2);
     interpweights( itw_p, gp_p );
     
+    // FIXME:
+    // Something goes wrong here (or rather below, when applying rtp_los2.
+    // Unmirrored ppath_line_of_sight yields correct results (at least in I.
+    // higher stokes_dim not tested, but Q should also be ok).
+    // Analyze what's going on - which directions have to be mirrored, which
+    // not, such that the scat source calc is done in a consistent system and
+    // applies the correct mutually associated directions.
+    // (I guess, the issues is that doit_i_field (and scat_field) are in "ARTS"
+    // coordinate system. In contrast to scat_data, which is in "Mishchenko"
+    // system. Hence, we'd need to mirrow the scat_za/aa_grids for the pha_mat
+    // extraction)
+    //
+    // Direction of outgoing scattered radiation (which is reversed to
+    // LOS). Note that rtp_los2 is only used for extracting scattering
+    // properties.
+    //Vector rtp_los2;
+    //mirror_los(rtp_los2, ppath_line_of_sight, atmosphere_dim);
+
+    // determine scattered direction (=LOS dir) weights for this ppath point
+    // and adapt gridpos structure for 2pts-reduced za grid.
+    // (needed for direction interpolation of scattered field, applied in scat
+    // element loop)
+    // FIXME:
+    // Why interpolate the scattered field? (It's clear that we can not just
+    // interpolate the incident field because we want to allow the scat matrix to
+    // vary/adapt with the actual ppath particle conditions while the
+    // background (aka incident) field is fixed). Can't we just calculated the
+    // scattered field at the specific LOS direction directly? (That's how I,
+    // JM, did in SARTre. Any reasons why we can't do this here? Why didn't I?
+    // :-/ )
     GridPos gp_za, gp_iza;
+    //gridpos(gp_za, scat_za_grid, rtp_los2[0], 0.5);
     gridpos(gp_za, scat_za_grid, ppath_line_of_sight[0], 0.5);
     gridpos_copy( gp_iza, gp_za );
     gp_iza.idx = 0;
@@ -4914,41 +4957,43 @@ void get_stepwise_scattersky_source(ArrayOfStokesVector& ppath_scat_source,
     interpweights( itw_iza, gp_iza ); 
     
     Tensor4 pndT4(ne, 1, 1, 1, 1.);
-    if (!j_analytical_do) // switch(ed) off for debugging
-      pndT4(joker, 0, 0, 0) = ppath_pnd;
+    if ( do_jacobian ) // switch(ed) off for debugging
+      pndT4(joker, 0, 0, 0) = ppath_1p_pnd;
     
-    for( Index f_index=0; f_index<f_grid.nelem(); f_index++ )
+    for( Index f_index = 0; f_index < nf; f_index++ )
     {
-      Matrix inc_field(Nza, stokes_dim, 0.);
+      Matrix inc_field(nza, stokes_dim, 0.);
       Tensor3 scat_field(2, ne, stokes_dim, 0.);
       Matrix rad_field(2, stokes_dim, 0.);
+      Vector scat_source(stokes_dim, 0.);
       
-      for( Index za_in=0; za_in<Nza; za_in++ )
+      for( Index za_in = 0; za_in < nza; za_in++ )
       {
-        for( Index i=0; i<stokes_dim; i++ )
+        for( Index i = 0; i < stokes_dim; i++ )
         {
           inc_field(za_in, i) = 
           interp( itw_p, doit_i_field(f_index,joker,0,0,za_in,0,i), gp_p );
         }
       }
       
-      Tensor5 pha_mat_spt(ne, Nza, Naa, stokes_dim, stokes_dim, 0.);
-      Tensor5 product_fields(2, ne, Nza, Naa, stokes_dim, 0.);
-      for( Index iza=0; iza<2; iza++ )
+      Tensor5 pha_mat_spt(ne, nza, naa, stokes_dim, stokes_dim, 0.);
+      Tensor5 product_fields(2, ne, nza, naa, stokes_dim, 0.);
+      for( Index iza = 0; iza < 2; iza++ )
       {
-        pha_mat_sptFromData(pha_mat_spt,
-                            scat_data,
-                            scat_za_grid, aa_grid, iza+gp_za.idx, 0,
-                            f_index, f_grid, ppath_t,
-                            pndT4, 0, 0, 0, verbosity );
-        for( Index ise_flat=0; ise_flat<ne; ise_flat++ )
+        pha_mat_sptFromScat_data(pha_mat_spt,
+                                 scat_data, scat_data_checked,
+                                 scat_za_grid, scat_aa_grid, iza+gp_za.idx, 0,
+                                 f_index, ppath_temperature,
+                                 pndT4, 0, 0, 0, verbosity );
+
+        for( Index ise_flat = 0; ise_flat < ne; ise_flat++ )
         {
-          for( Index za_in = 0; za_in < Nza; ++ za_in )
+          for( Index za_in = 0; za_in < nza; za_in++ )
           {
-            for( Index aa_in = 0; aa_in < Naa; ++ aa_in )
+            for( Index aa_in = 0; aa_in < naa; aa_in++ )
             {
               for ( Index i = 0; i < stokes_dim; i++)
-                for (Index j = 0; j< stokes_dim; j++)
+                for ( Index j = 0; j < stokes_dim; j++ )
                 {
                   product_fields(iza, ise_flat, za_in, aa_in, i) +=
                   pha_mat_spt(ise_flat, za_in, aa_in, i, j) *
@@ -4959,20 +5004,58 @@ void get_stepwise_scattersky_source(ArrayOfStokesVector& ppath_scat_source,
           
           for ( Index i = 0; i < stokes_dim; i++ )
           {
-            scat_field(iza,ise_flat,i) = AngIntegrate_trapezoid(
+            scat_field(iza, ise_flat, i) = AngIntegrate_trapezoid(
               product_fields(iza, ise_flat, joker, joker, i),
-                                                                scat_za_grid, aa_grid);
+              scat_za_grid, scat_aa_grid);
           }
         }
       }
-      for( Index ise_flat=0; ise_flat<ne; ise_flat++ )
+
+      for( Index ise_flat = 0; ise_flat < ne; ise_flat++ )
       {
         for ( Index i = 0; i < stokes_dim; i++ )
         {
-          ppath_scat_source[ise_flat].GetMatrix()(f_index, i) =
-            interp(itw_iza, scat_field(joker,ise_flat,i), gp_iza );
-        } 
-      } 
-    }
-  } 
+          scat_source_1se( i, ise_flat) =
+            interp(itw_iza, scat_field(joker, ise_flat, i), gp_iza );
+        }
+      }
+
+      scat_source = 0.;
+      for( Index ise_flat = 0; ise_flat < ne; ise_flat++ )
+      {
+        scat_source += scat_source_1se(joker, ise_flat) *
+                       ppath_1p_pnd[ise_flat];
+      }
+      Sp.SetAtFrequency(f_index, scat_source);
+
+      if( do_jacobian )
+      {
+        for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
+        {
+          // check first, whether we have any non-zero ppath_dpnd_dx in this
+          // pnd-affecting x? might speed up things. specifically when we have
+          // more than one scat species.
+          if( !ppath_dpnd_dx[iq].empty() )
+          {
+            scat_source = 0.;
+            for( Index ise_flat = 0; ise_flat < ne; ise_flat++ )
+            {
+              scat_source += scat_source_1se(joker, ise_flat) *
+                             ppath_dpnd_dx[iq](ise_flat, ppath_1p_id);
+            }
+            dSp_dx[iq].SetAtFrequency(f_index, scat_source);
+          }
+        }
+      }
+    } // freq loop
+  } // cloudy branch
+  else
+  {
+    Sp.SetZero();
+    if( do_jacobian )
+      for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
+      {
+        dSp_dx[iq].SetZero();
+      }
+  }
 }

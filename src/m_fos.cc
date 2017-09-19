@@ -1796,6 +1796,8 @@ void iyHybrid2(
   if( cloudbox_limits[0] != 0  ||  cloudbox_limits[1] != p_grid.nelem()-1 )
     throw runtime_error( "The cloudbox must be set to cover the complete "
     "atmosphere." );
+  if( Naa < 3 )
+    throw runtime_error( "Naa must be > 2." );
   // for now have that here. when all iy* WSM using scat_data are fixed to new
   // type scat_data, then put check inot (i)yCalc and remove here.
   if( scat_data_checked != 1 )
@@ -1815,16 +1817,15 @@ void iyHybrid2(
   const Index nf = f_grid.nelem();
   const Index ns = stokes_dim;
   const Index np = ppath.np;
-  const Index ne = pnd_field.nbooks();
   const Index nq = jacobian_quantities.nelem();
   
   // Obtain i_field
   //
   Tensor7 doit_i_field;
   Vector  scat_za_grid;
+  Vector scat_aa_grid;
   //
   {
-    Vector scat_aa_grid;
     //
     doit_i_field_agendaExecute( ws, doit_i_field, scat_za_grid, scat_aa_grid,
                                 doit_i_field_agenda );
@@ -1847,6 +1848,9 @@ void iyHybrid2(
       throw runtime_error(
         "Obtained *doit_i_field* has wrong number of frequency points."  );
   }
+
+  // Reset azimuth grid for scattering source calc later on
+  nlinspace(scat_aa_grid, 0, 360, Naa);
   
   // For a brief description of internal variables used, see
   // iyEmissionStandard. 
@@ -1945,10 +1949,10 @@ void iyHybrid2(
                          pnd_field, dpnd_field_dx );
     
     PropagationMatrix K_this, K_past, Kp(nf, stokes_dim);
-    StokesVector S(nf, stokes_dim), a(nf, stokes_dim);
+    StokesVector S(nf, stokes_dim), Sp(nf, stokes_dim), a(nf, stokes_dim);
     lte.resize(np);
     ArrayOfPropagationMatrix dK_this_dx(nq), dK_past_dx(nq), dKp_dx(nq);
-    ArrayOfStokesVector da_dx(nq), dS_dx(nq);
+    ArrayOfStokesVector da_dx(nq), dS_dx(nq), dSp_dx(nq);
 
     trans_cumulat.resize(np, nf, stokes_dim, stokes_dim);
     trans_partial.resize(np, nf, stokes_dim, stokes_dim);
@@ -1992,12 +1996,13 @@ void iyHybrid2(
                                       ppath_pnd(joker, ip),
                                       ppath_dpnd_dx,
                                       ip,
-                                      ppath.los(ip, joker),
                                       scat_data,
+                                      ppath.los(ip, joker),
                                       ppath_t[ip],
                                       atmosphere_dim,
                                       jacobian_do,
                                       verbosity);
+
       a += K_this;
       K_this += Kp;
       for( Index iq = 0; iq < nq; iq++ )
@@ -2021,33 +2026,29 @@ void iyHybrid2(
                                        dK_this_dx,
                                        (ip > 0)?ppath.lstep[ip-1]:Numeric(1.0),
                                        ip==0);
-      
-      ArrayOfStokesVector stepwise_source(ppath_pnd.nrows());
-      for(auto& sv : stepwise_source)
-        sv = StokesVector(nf, stokes_dim);
-      
-      get_stepwise_scattersky_source(stepwise_source,
+
+      get_stepwise_scattersky_source(Sp, dSp_dx,
+                                     clear2cloudy[ip]+1,
+                                     ppath_pnd(joker, ip),
+                                     ppath_dpnd_dx,
+                                     ip,
                                      scat_data,
+                                     scat_data_checked,
                                      doit_i_field,
                                      scat_za_grid,
-                                     ppath_f(joker, ip),
-                                     stokes_dim,
-                                     ppath.gp_p[ip],
+                                     scat_aa_grid,
                                      ppath.los(ip, joker),
+                                     ppath.gp_p[ip],
                                      ppath_t[ip],
-                                     ppath_pnd(joker, ip),
-                                     false,  // jacobian_do,
-                                     Naa,
+                                     atmosphere_dim,
+                                     jacobian_do,
                                      verbosity);
-      
-      for(Index i = 0; i < ppath_pnd.nrows(); i++)
+      S += Sp;
+      for( Index iq = 0; iq < nq; iq++ )
       {
-        // dummy_ppath_dpnd_dx should be used here to set dS_dx...
-        
-        stepwise_source[i] *= ppath_pnd(i, ip);
-        S += stepwise_source[i];
+        dS_dx[iq] += dSp_dx[iq];
       }
-      
+
       get_stepwise_effective_source(J(ip, joker, joker),
                                     nq?dJ_dx(ip, joker, joker, joker):Tensor3(0,0,0),
                                     K_this,

@@ -553,28 +553,32 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
                                      ArrayOfStokesVector& dap_dx,
                                      ArrayOfPropagationMatrix& dKp_dx,
                                      const Index& do_cloudy_calc,
-                                     const VectorView ppath_1p_pnd,      // the ppath_pnd at this ppath point
+                                     ConstVectorView ppath_1p_pnd,       // the ppath_pnd at this ppath point
                                      const ArrayOfMatrix& ppath_dpnd_dx, // the full ppath_dpnd_dx, ie all ppath points
                                      const Index ppath_1p_id,
-                                     ConstVectorView ppath_line_of_sight,
                                      const ArrayOfArrayOfSingleScatteringData& scat_data,
+                                     ConstVectorView ppath_line_of_sight,
                                      const Numeric& ppath_temperature,
                                      const Index& atmosphere_dim,
                                      const bool& do_jacobian,
                                      const Verbosity& verbosity);
 
-void get_stepwise_scattersky_source(ArrayOfStokesVector& ppath_scat_source,
+void get_stepwise_scattersky_source(StokesVector& Sp,
+                                    ArrayOfStokesVector& dSp_dx,
+                                    const Index& do_cloudy_calc,
+                                    ConstVectorView ppath_1p_pnd,       // the ppath_pnd at this ppath point
+                                    const ArrayOfMatrix& ppath_dpnd_dx, // the full ppath_dpnd_dx, ie all ppath points
+                                    const Index ppath_1p_id,
                                     const ArrayOfArrayOfSingleScatteringData& scat_data,
+                                    const Index& scat_data_checked,
                                     ConstTensor7View doit_i_field,
-                                    ConstVectorView  scat_za_grid,
-                                    ConstVectorView  f_grid, 
-                                    const Index&     stokes_dim,
-                                    const GridPos& ppath_p,
+                                    ConstVectorView scat_za_grid,
+                                    ConstVectorView scat_aa_grid,
                                     ConstVectorView ppath_line_of_sight,
-                                    const Numeric& ppath_t,
-                                    ConstVectorView ppath_pnd,
-                                    const Index& j_analytical_do,
-                                    const Index& Naa,
+                                    const GridPos& ppath_pressure,
+                                    const Numeric& ppath_temperature,
+                                    const Index& atmosphere_dim,
+                                    const bool& do_jacobian,
                                     const Verbosity& verbosity);
 
 void get_stepwise_effective_source(MatrixView J,
