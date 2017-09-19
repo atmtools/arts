@@ -1,8 +1,22 @@
 2017-09-19 Jana Mendrok  <jana.mendrok@chalmers.se>
 
+	* arts-2-3-799
+
+	* ChangeLog: Missed save from prev commit.
+
+2017-09-19 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-798
+
+	* src/m_fos.cc (iyHybrid2),
+	src/rte.[cc,h] (get_stepwise_scattersky_source):
+	Revised scattering source calculation and added derivatives for it.
+
+2017-09-19 Jana Mendrok  <jana.mendrok@chalmers.se>
+
 	* arts-2-3-797
 
-	* src/m_fos.cc, src/methods.cc(iyHybrid2),
+	* src/m_fos.cc, src/methods.cc (iyHybrid2),
 	src/rte.[cc,h] (get_stepwise_scattersky_propmat):
 	Revised scatt-sky optical property extraction and added derivatives to
 	this. Removed ppath(d)pnd(_dx) calc from get_stepwise_scattersky_propmat,
