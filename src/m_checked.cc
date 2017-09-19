@@ -449,8 +449,8 @@ void cloudbox_checkedCalc(
    const Matrix&         particle_masses,
    const ArrayOfArrayOfSpeciesTag& abs_species,
    const Index&          negative_pnd_ok,
-   const String&         scat_data_fcheck,
-   const String&         scat_data_check_type,
+   const String&         scat_data_type,
+   const String&         scat_data_check_level,
    const Numeric&        sca_mat_threshold,
    const Verbosity&      verbosity )
 {
@@ -667,7 +667,7 @@ void cloudbox_checkedCalc(
         throw runtime_error ( "The frequency grid is empty." );
       chk_if_increasing ( "f_grid", f_grid );
 
-      if( scat_data_fcheck.toupper() != "NEW" )
+      if( scat_data_type.toupper() == "RAW" )
       {
         Index N_ss = scat_species.nelem();
         for( Index i_ss=0; i_ss<N_ss; i_ss++ )
@@ -682,20 +682,20 @@ void cloudbox_checkedCalc(
         }
       }
       
-      if( scat_data_check_type.toupper() != "NONE" )
+      if( scat_data_check_level.toupper() != "NONE" )
         {
           // handing over to scat_dataCheck which checks whether
           // 1) scat_data containing any NaN?
           // 2) any negative values in Z11, K11, or a1?
           // 3) sca_mat norm sufficiently good (int(Z11)~=K11-a1?)
           // 1) & 2) always done
-          // 3) only done if scat_data_check_type is "all"
-          scat_dataCheck( scat_data, scat_data_check_type, sca_mat_threshold,
+          // 3) only done if scat_data_check_level is "all"
+          scat_dataCheck( scat_data, scat_data_check_level, sca_mat_threshold,
                           verbosity );
         }
 
 
-      // Check semi-madatory variables, that are allowed to be empty
+      // Check semi-mandatory variables, that are allowed to be empty
       //
       const Index nss = scat_data.nelem();
 
@@ -805,7 +805,7 @@ void scat_data_checkedCalc(
    const Vector&         f_grid,
    const Verbosity& )
 // FIXME: when we allow K, a, Z to be on different f and T grids, their use in
-// the scatt solvers needs to be reviewed again and adaptedto this!
+// the scatt solvers needs to be reviewed again and adapted to this!
 {
   Index nf = f_grid.nelem();
   Index N_ss = scat_data.nelem();
@@ -834,7 +834,7 @@ void scat_data_checkedCalc(
           for( Index f=0; f<nf_se; f++ )
           {
             if( !is_same_within_epsilon( scat_data[i_ss][i_se].f_grid[f],
-                                         f_grid[f], 0.5 ) )
+                                         f_grid[f], 0.5e-9 ) )
             {
               ostringstream os;
               os << "*scat_data* frequency grid has to be identical to *f_grid*\n"

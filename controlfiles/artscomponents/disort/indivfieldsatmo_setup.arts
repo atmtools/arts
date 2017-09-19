@@ -232,6 +232,8 @@ ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
 #ReadXML( scat_data_files, "testdata/SingleScatteringFile_H2Oliquid.xml" )
 #ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
 
+scat_dataCalc
+
 # Selection/filtering of particles according to *scat_species*
 #-------------------------------------------------------------
 #ScatElementsSelect( species="LWC", sizeparam="diameter_volume_equ",

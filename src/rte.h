@@ -245,24 +245,30 @@ void get_dppath_blackrad_dt(
         const bool&         j_analytical_do);
 
 void get_ppath_partopt( 
-        ArrayOfIndex&                  clear2cloudbox,
         Tensor3&                       pnd_abs_vec, 
-        ArrayOfPropagationMatrix& pnd_ext_mat, 
+        ArrayOfPropagationMatrix&      pnd_ext_mat, 
   Array<ArrayOfArrayOfSingleScatteringData>&  scat_data_single,
-        Matrix&                        ppath_pnd,
-        ArrayOfMatrix&                 ppath_dpnd_dx,
+  const ArrayOfIndex&                  clear2cloudbox,
+  const Matrix&                        ppath_pnd,
   const Ppath&                         ppath,
   ConstVectorView                      ppath_t, 
   const Index&                         stokes_dim,
   ConstMatrixView                      ppath_f, 
   const Index&                         atmosphere_dim,
-  const ArrayOfIndex&                  cloudbox_limits,
-  const Tensor4&                       pnd_field,
-  const ArrayOfTensor4&                dpnd_field_dx,        
   const Index&                         use_mean_scat_data,
   const ArrayOfArrayOfSingleScatteringData&   scat_data,
   const Index&                         scat_data_checked,
   const Verbosity&                     verbosity );
+
+void get_ppath_cloudvars( 
+        ArrayOfIndex&                  clear2cloudbox,
+        Matrix&                        ppath_pnd,
+        ArrayOfMatrix&                 ppath_dpnd_dx,
+  const Ppath&                         ppath,
+  const Index&                         atmosphere_dim,
+  const ArrayOfIndex&                  cloudbox_limits,
+  const Tensor4&                       pnd_field,
+  const ArrayOfTensor4&                dpnd_field_dx );
 
 void get_ppath_f( 
         Matrix&    ppath_f,

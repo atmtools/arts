@@ -2252,12 +2252,15 @@ void get_ppath_pmat_and_tmat(
     }
     else
     {
-        //Tensor3 pnd_abs_vec;
-        //
-        get_ppath_partopt( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
-                       ppath_pnd, ppath_dpnd_dx, ppath, ppath_t, stokes_dim, ppath_f, 
-                       atmosphere_dim, cloudbox_limits, pnd_field, dpnd_field_dx,
-                       use_mean_scat_data, scat_data, scat_data_checked, verbosity );
+          // Extract basic scattering data
+          get_ppath_cloudvars( clear2cloudbox, ppath_pnd, ppath_dpnd_dx,
+                       ppath, atmosphere_dim, cloudbox_limits,
+                       pnd_field, dpnd_field_dx );
+          get_ppath_partopt( pnd_abs_vec, pnd_ext_mat, scat_data_single,
+                             clear2cloudbox, ppath_pnd,
+                             ppath, ppath_t, stokes_dim, ppath_f, atmosphere_dim,
+                             use_mean_scat_data, scat_data, scat_data_checked,
+                             verbosity );
         
         if(not jacobian_do)
             get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
@@ -2360,7 +2363,7 @@ void get_ppath_scat_source(
       interpweights( itw_iza, gp_iza ); 
 
       // we should not skip pha_mat_spt calculation (which is internally
-      // done in pha_mat_sptFromData in pnd is, practically, 0) if we want
+      // done in pha_mat_sptFromData if pnd is, practically, 0) if we want
       // jacobians. for pure forward it's ok. hence, set pndT4 to 1 for all
       // scat elems in general. for forward, update it with the actual
       // values.
@@ -2771,46 +2774,35 @@ void get_dppath_blackrad_dt(
     all frequencies are filled for pnd_abs_vec and pnd_ext_mat even if
     use_mean_scat_data is true (but data equal for all frequencies).
 
-    \param   ws                  Out: The workspace
-    \param   clear2cloudbox      Out: Mapping of index. See code for details. 
     \param   pnd_abs_vec         Out: Particle absorption vector
                                       (defined only where particles are found)
     \param   pnd_ext_vec         Out: Particle extinction matrix
                                       (defined only where particles are found)
     \param   scat_data_single    Out: Extracted scattering data. Length of
                                       array affected by *use_mean_scat_data*.
-    \param   ppath_pnd           Out. The particle number density for each
-                                      path point (also outside cloudbox).
-    \param   ppath_dpnd_dx       Out. dpnd_field_dx for each path point
-                                      (also outside cloudbox).
+    \param   clear2cloudbox      Mapping index. See get_ppath_cloudvars for details. 
     \param   ppath               As the WSV.    
     \param   ppath_t             Temperature for each ppath point.
     \param   stokes_dim          As the WSV.    
     \param   f_grid              As the WSV.    
-    \param   cloubox_limits      As the WSV.    
-    \param   pnd_field           As the WSV.    
-    \param   dpnd_field_dx       As the WSV.    
     \param   use_mean_scat_data  As the WSV.    
     \param   scat_data           As the WSV.    
 
-    \author Patrick Eriksson 
+    \author Patrick Eriksson, Jana Mendrok
     \date   2012-08-23
+    \date   2017-09-18
 */
 void get_ppath_partopt( 
-        ArrayOfIndex&                  clear2cloudbox,
         Tensor3&                       pnd_abs_vec, 
         ArrayOfPropagationMatrix&      pnd_ext_mat, 
   Array<ArrayOfArrayOfSingleScatteringData>&  scat_data_single,
-        Matrix&                        ppath_pnd,
-        ArrayOfMatrix&                 ppath_dpnd_dx,
+  const ArrayOfIndex&                  clear2cloudbox,
+  const Matrix&                        ppath_pnd,
   const Ppath&                         ppath,
   ConstVectorView                      ppath_t, 
   const Index&                         stokes_dim,
   ConstMatrixView                      ppath_f, 
   const Index&                         atmosphere_dim,
-  const ArrayOfIndex&                  cloudbox_limits,
-  const Tensor4&                       pnd_field,
-  const ArrayOfTensor4&                dpnd_field_dx,
   const Index&                         use_mean_scat_data,
   const ArrayOfArrayOfSingleScatteringData&   scat_data,
   const Index&                         scat_data_checked,
@@ -2818,73 +2810,6 @@ void get_ppath_partopt(
 {
   const Index nf = ppath_f.nrows();
   const Index np = ppath.np;
-
-  // Pnd along the ppath
-  ppath_pnd.resize( pnd_field.nbooks(), np );
-  ppath_pnd = 0;
-  ppath_dpnd_dx.resize( dpnd_field_dx.nelem() );
-  bool any_dpnd = false;
-  for( Index iq=0; iq<dpnd_field_dx.nelem(); iq++ )
-    {
-      if( dpnd_field_dx[iq].empty() )
-        { ppath_dpnd_dx[iq].resize( 0, 0 ); }
-      else
-        {
-          any_dpnd = true;
-          ppath_dpnd_dx[iq].resize( pnd_field.nbooks(), np );
-        }
-    }
-
-  // A variable that maps from total ppath to extinction data index.
-  // If outside cloudbox or all pnd=0, this variable holds -1.
-  // Otherwise it gives the index in pnd_ext_mat etc.
-  clear2cloudbox.resize( np );
-
-  // Determine ppath_pnd and ppath_dpnd_dx
-  Index nin = 0;
-  for( Index ip=0; ip<np; ip++ )
-    {
-      Matrix itw( 1, Index(pow(2.0,Numeric(atmosphere_dim))) );
-
-      ArrayOfGridPos gpc_p(1), gpc_lat(1), gpc_lon(1);
-      GridPos gp_lat, gp_lon;
-      if( atmosphere_dim >= 2 ) { gridpos_copy( gp_lat, ppath.gp_lat[ip] ); } 
-      if( atmosphere_dim == 3 ) { gridpos_copy( gp_lon, ppath.gp_lon[ip] ); }
-      if( is_gp_inside_cloudbox( ppath.gp_p[ip], gp_lat, gp_lon, 
-                                 cloudbox_limits, true, atmosphere_dim ) )
-        { 
-          interp_cloudfield_gp2itw( itw(0,joker), 
-                                    gpc_p[0], gpc_lat[0], gpc_lon[0], 
-                                    ppath.gp_p[ip], gp_lat, gp_lon,
-                                    atmosphere_dim, cloudbox_limits );
-          for( Index i=0; i<pnd_field.nbooks(); i++ )
-            {
-              interp_atmfield_by_itw( ppath_pnd(i,ip), atmosphere_dim,
-                                      pnd_field(i,joker,joker,joker), 
-                                      gpc_p, gpc_lat, gpc_lon, itw );
-            }
-          if( any_dpnd )
-            {
-              for( Index iq=0; iq<dpnd_field_dx.nelem(); iq++ )
-                {
-                  if( !dpnd_field_dx[iq].empty() )
-                    {
-                      for( Index i=0; i<pnd_field.nbooks(); i++ )
-                        { interp_atmfield_by_itw( ppath_dpnd_dx[iq](i,ip),
-                                                  atmosphere_dim,
-                                                  dpnd_field_dx[iq](i,joker,joker,joker), 
-                                                  gpc_p, gpc_lat, gpc_lon, itw ); }
-                    }
-                }
-            }
-          if( max(ppath_pnd(joker,ip)) > 0 )
-            { clear2cloudbox[ip] = nin;   nin++; }
-          else
-            { clear2cloudbox[ip] = -1; }
-        }
-      else
-        { clear2cloudbox[ip] = -1; }
-    }
 
   // Particle single scattering properties (are independent of position)
   //
@@ -2916,6 +2841,7 @@ void get_ppath_partopt(
     }
 
   // Resize absorption and extension tensors
+  Index nin = max(clear2cloudbox)+1;
   pnd_abs_vec.resize( nf, stokes_dim, nin ); 
   pnd_ext_mat.resize( nin );
   for(auto& pm : pnd_ext_mat)
@@ -2964,6 +2890,111 @@ void get_ppath_partopt(
                 }
             }
         }
+    }
+}
+
+
+//! get_ppath_cloudvars
+/*!
+    Determines the particle fields along a propagation path.
+
+    \param   clear2cloudbox      Out: Mapping of index. See code for details. 
+    \param   ppath_pnd           Out. The particle number density for each
+                                      path point (also outside cloudbox).
+    \param   ppath_dpnd_dx       Out. dpnd_field_dx for each path point
+                                      (also outside cloudbox).
+    \param   ppath               As the WSV.    
+    \param   cloubox_limits      As the WSV.    
+    \param   pnd_field           As the WSV.    
+    \param   dpnd_field_dx       As the WSV.    
+
+    \author Jana Mendrok, Patrick Eriksson 
+    \date   2017-09-18
+*/
+void get_ppath_cloudvars( 
+        ArrayOfIndex&                  clear2cloudbox,
+        Matrix&                        ppath_pnd,
+        ArrayOfMatrix&                 ppath_dpnd_dx,
+  const Ppath&                         ppath,
+  const Index&                         atmosphere_dim,
+  const ArrayOfIndex&                  cloudbox_limits,
+  const Tensor4&                       pnd_field,
+  const ArrayOfTensor4&                dpnd_field_dx )
+{
+  const Index np = ppath.np;
+
+  // Pnd along the ppath
+  ppath_pnd.resize( pnd_field.nbooks(), np );
+  ppath_pnd = 0;
+  ppath_dpnd_dx.resize( dpnd_field_dx.nelem() );
+
+  bool any_dpnd = false;
+  for( Index iq=0; iq<dpnd_field_dx.nelem(); iq++ )
+    {
+      if( dpnd_field_dx[iq].empty() )
+        { ppath_dpnd_dx[iq].resize( 0, 0 ); }
+      else
+        {
+          any_dpnd = true;
+          ppath_dpnd_dx[iq].resize( pnd_field.nbooks(), np );
+        }
+    }
+
+  // A variable that can map frpm ppath to particle containers.
+  // If outside cloudbox or all (d)pnd=0, this variable holds -1.
+  // Otherwise it gives the index in pnd_ext_mat etc.
+  clear2cloudbox.resize( np );
+
+  // Determine ppath_pnd and ppath_dpnd_dx
+  Index nin = 0;
+  for( Index ip=0; ip<np; ip++ ) // PPath point
+    {
+      Matrix itw( 1, Index(pow(2.0,Numeric(atmosphere_dim))) );
+
+      ArrayOfGridPos gpc_p(1), gpc_lat(1), gpc_lon(1);
+      GridPos gp_lat, gp_lon;
+      if( atmosphere_dim >= 2 ) { gridpos_copy( gp_lat, ppath.gp_lat[ip] ); } 
+      if( atmosphere_dim == 3 ) { gridpos_copy( gp_lon, ppath.gp_lon[ip] ); }
+
+      if( is_gp_inside_cloudbox( ppath.gp_p[ip], gp_lat, gp_lon, 
+                                 cloudbox_limits, true, atmosphere_dim ) )
+        { 
+          interp_cloudfield_gp2itw( itw(0,joker), 
+                                    gpc_p[0], gpc_lat[0], gpc_lon[0], 
+                                    ppath.gp_p[ip], gp_lat, gp_lon,
+                                    atmosphere_dim, cloudbox_limits );
+          for( Index i=0; i<pnd_field.nbooks(); i++ )
+            {
+              interp_atmfield_by_itw( ppath_pnd(i,ip), atmosphere_dim,
+                                      pnd_field(i,joker,joker,joker), 
+                                      gpc_p, gpc_lat, gpc_lon, itw );
+            }
+          bool any_ppath_dpnd = false;
+          if( any_dpnd )
+            {
+              for( Index iq=0; iq<dpnd_field_dx.nelem(); iq++ ) // Jacobian parameter
+                {
+                  if( !dpnd_field_dx[iq].empty() )
+                    {
+                      for( Index i=0; i<pnd_field.nbooks(); i++ ) // Scattering element
+                        { interp_atmfield_by_itw( ppath_dpnd_dx[iq](i,ip),
+                                                  atmosphere_dim,
+                                                  dpnd_field_dx[iq](i,joker,joker,joker), 
+                                                  gpc_p, gpc_lat, gpc_lon, itw ); }
+                      if( max(ppath_dpnd_dx[iq](joker,ip)) > 0. ||
+                          min(ppath_dpnd_dx[iq](joker,ip)) < 0. )
+                        any_ppath_dpnd = true;
+                    }
+                }
+            }
+          if( max(ppath_pnd(joker,ip)) > 0. || min(ppath_pnd(joker,ip)) < 0. ||
+              any_ppath_dpnd )
+            { clear2cloudbox[ip] = nin;   nin++; }
+          else
+            { clear2cloudbox[ip] = -1; }
+        }
+      else
+        { clear2cloudbox[ip] = -1; }
     }
 }
 
@@ -3347,7 +3378,7 @@ void get_ppath_trans_and_dppath_trans_dx(
     \param   ppath_ext        See get_ppath_pmat_and_tmat.
     \param   f_grid           As the WSV.    
     \param   stokes_dim       As the WSV.
-    \param   clear2cloudbox   See get_ppath_partopt.
+    \param   clear2cloudbox   See get_ppath_cloudvars.
     \param   pnd_ext_mat      See get_ppath_partopt.
 
     \author Patrick Eriksson 
@@ -3456,7 +3487,7 @@ void get_ppath_trans2(
  *   \param   jacobian_quantities               In:  As the WSV.    
  *   \param   f_grid           As the WSV.    
  *   \param   stokes_dim       As the WSV.
- *   \param   clear2cloudbox   See get_ppath_partopt.
+ *   \param   clear2cloudbox   See get_ppath_cloudvars.
  *   \param   pnd_ext_mat      See get_ppath_partopt.
  * 
  *   \author Patrick Eriksson 

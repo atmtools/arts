@@ -34,7 +34,7 @@ Arts2 {
 ScatSpeciesInit
 ReadXML( out=ssdfiles, filename=poptmp )
 ScatSpeciesPndAndScatAdd( scat_data_files=ssdfiles, pnd_fieldarray_file=pndtmp )
-scat_dataCheck
+scat_dataCheck( scat_data=scat_data_raw )
 
 nelemGet( itmp, p_grid )
 IndexStepDown( itmp, itmp )

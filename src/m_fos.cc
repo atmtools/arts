@@ -308,12 +308,14 @@ void fos(
         }
       else
         {
-          get_ppath_partopt( clear2cloudbox, pnd_abs_vec, pnd_ext_mat,
-                         scat_data_single, ppath_pnd,
-                         dummy_ppath_dpnd_dx, ppath, ppath_t, stokes_dim,
-                         ppath_f, atmosphere_dim, cloudbox_limits,
-                         pnd_field, dummy_dpnd_field_dx,
-                         use_mean_scat_data, scat_data, scat_data_checked, verbosity );
+          get_ppath_cloudvars( clear2cloudbox, ppath_pnd, dummy_ppath_dpnd_dx,
+                       ppath, atmosphere_dim, cloudbox_limits,
+                       pnd_field, dummy_dpnd_field_dx );
+          get_ppath_partopt( pnd_abs_vec, pnd_ext_mat, scat_data_single,
+                             clear2cloudbox, ppath_pnd,
+                             ppath, ppath_t, stokes_dim, ppath_f, atmosphere_dim,
+                             use_mean_scat_data, scat_data, scat_data_checked,
+                             verbosity );
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
                             scalar_tau, ppath, ppath_ext, f_grid, stokes_dim, 
                             clear2cloudbox, pnd_ext_mat );
@@ -992,9 +994,6 @@ void iyHybrid(
     if( doit_i_field.nrows() != 1  )
       throw runtime_error(
         "Obtained *doit_i_field* has wrong number of azimuth angles."  );
-    if( doit_i_field.nbooks() != 1  )
-      throw runtime_error(
-        "Obtained *doit_i_field* has wrong number of longitude points."  );
     if( doit_i_field.nbooks() != 1  )
       throw runtime_error(
         "Obtained *doit_i_field* has wrong number of longitude points."  );
@@ -1837,9 +1836,6 @@ void iyHybrid2(
     if( doit_i_field.nbooks() != 1  )
       throw runtime_error(
         "Obtained *doit_i_field* has wrong number of longitude points."  );
-    if( doit_i_field.nbooks() != 1  )
-      throw runtime_error(
-        "Obtained *doit_i_field* has wrong number of longitude points."  );
     if( doit_i_field.nshelves() != 1  )
       throw runtime_error(
         "Obtained *doit_i_field* has wrong number of latitude points."  );
@@ -1910,8 +1906,9 @@ void iyHybrid2(
     {
       diy_dx.resize( nq ); 
       //
-      FOR_ANALYTICAL_JACOBIANS_DO( diy_dx[iq].resize( 
-      jacobian_indices[iq][1]-jacobian_indices[iq][0]+1, nf, ns ); 
+      FOR_ANALYTICAL_JACOBIANS_DO( 
+        diy_dx[iq].resize( jacobian_indices[iq][1]-jacobian_indices[iq][0]+1,
+                           nf, ns ); 
       diy_dx[iq] = 0.0;
       )
     }
@@ -1923,23 +1920,13 @@ void iyHybrid2(
   Vector              ppath_p, ppath_t;
   Matrix              ppath_vmr, ppath_pnd, ppath_wind, ppath_mag;
   Matrix              ppath_f, ppath_t_nlte;
-  Matrix              ppath_blackrad, dppath_blackrad_dt;
-  ArrayOfArrayOfPropagationMatrix abs_per_species;
   Tensor5             dtrans_partial_dx_above, dtrans_partial_dx_below;
-  ArrayOfPropagationMatrix ppath_ext, pnd_ext_mat;
-  Tensor3             pnd_abs_vec;
-  Tensor4 trans_partial, trans_cumulat;
-  Vector              scalar_tau;
-  ArrayOfIndex        clear2cloudbox;
-  ArrayOfArrayOfIndex extmat_case;   
-  ArrayOfArrayOfPropagationMatrix dppath_ext_dx;
-  ArrayOfArrayOfStokesVector  dppath_nlte_dx, dppath_nlte_source_dx;
-  Tensor4                     ppath_scat_source;
-  ArrayOfStokesVector         ppath_nlte_source;
+  Tensor4             trans_partial, trans_cumulat;
+  //ArrayOfIndex        clear2cloudbox;
   ArrayOfIndex        lte;
   ArrayOfArrayOfVector dummy_ppath_dpnd_dx;
+  //ArrayOfMatrix       dummy_ppath_dpnd_dx;
   ArrayOfTensor4      dummy_dpnd_field_dx;
-  Array<ArrayOfArrayOfSingleScatteringData> scat_data_single;
   bool cloudbox_level = false;
   
   if( np > 1 )
@@ -1953,18 +1940,23 @@ void iyHybrid2(
     get_ppath_f( ppath_f, ppath, f_grid,  atmosphere_dim, 
                  rte_alonglos_v, ppath_wind );
     
+    //get_ppath_cloudvars( clear2cloudbox, ppath_pnd, dummy_ppath_dpnd_dx,
+    //                     ppath, atmosphere_dim, cloudbox_limits,
+    //                     pnd_field, dummy_dpnd_field_dx );
+    
     PropagationMatrix K_this, K_past, Kp(nf, stokes_dim);
     StokesVector S(nf, stokes_dim), a(nf, stokes_dim);
     lte.resize(np);
     ArrayOfPropagationMatrix dK_this_dx(nq), dK_past_dx(nq);
     ArrayOfStokesVector dS_dx(nq);
+
     dummy_ppath_dpnd_dx.resize(np);
     ppath_pnd.resize(ne, np);
+
     trans_cumulat.resize(np, nf, stokes_dim, stokes_dim);
     trans_partial.resize(np, nf, stokes_dim, stokes_dim);
     dtrans_partial_dx_above.resize(np, nq, nf, stokes_dim, stokes_dim);
     dtrans_partial_dx_below.resize(np, nq, nf, stokes_dim, stokes_dim);
-    clear2cloudbox.resize(np);
     Vector B(nf), dB_dT(nf);
     Tensor3 J(np, nf, stokes_dim);
     Tensor4 dJ_dx(np, nq, nf, stokes_dim);

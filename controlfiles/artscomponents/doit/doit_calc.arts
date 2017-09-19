@@ -3,7 +3,7 @@ Arts2 {
 propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
-cloudbox_checkedCalc
+cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
 sensor_checkedCalc
 
 # Initialize Doit variables

@@ -155,6 +155,8 @@ ScatElementsPndAndScatAdd(
 )
 scat_dataCheck
 ScatSpeciesExtendTemperature( T_low=200. )
+scat_dataCalc
+scat_data_checkedCalc
 ReadXML( pnd_field_raw, "artscomponents/montecarlo/pnd_field_raw.xml" )
 pnd_fieldCalcFrompnd_field_raw
 

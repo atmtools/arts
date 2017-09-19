@@ -147,7 +147,7 @@ ScatElementsPndAndScatAdd(
 #                   "testdata/scatData/azi-random_f229-231T214-225r100NP-1ar1_5ice.xml"],
   pnd_field_files=["testdata/testdoit_pnd_field_1D.xml"])
 #                   "testdata/testdoit_pnd_field_1D.xml"] )
-scat_dataCheck
+scat_dataCheck( scat_data = scat_data_raw )
 #pnd_fieldCalcFromscat_speciesFields
 pnd_fieldCalcFrompnd_field_raw
 
@@ -157,12 +157,12 @@ Tensor4Scale( out=pnd_field, in=pnd_field, value=0.01 )
 # Consistency check
 atmfields_checkedCalc( bad_partition_functions_ok = 1 )
 atmgeom_checkedCalc
-cloudbox_checkedCalc(sca_mat_threshold = 10)      
+cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw", sca_mat_threshold = 10)      
 sensor_checkedCalc
 
-ScatSpeciesMerge
-scat_dataCheck
-cloudbox_checkedCalc
+ScatSpeciesMerge( scat_data = scat_data_raw )
+scat_dataCheck( scat_data = scat_data_raw )
+cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
 # Select interpolation method ('linear' or 'polynomial'):
 # ----------------------------------------------------
 

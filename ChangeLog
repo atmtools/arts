@@ -1,3 +1,110 @@
+2017-09-18 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-796
+
+	ATTENTION: Breaks backward compatability of cloudy-sky controlfiles.
+
+	Moved "old type" scat_data to scat_data_raw. Sorted out WSM that
+	(primarily, hence per default) act on each of the scat_data*.
+
+	Break get_ppath_partopt into a part deriving atmospheric
+	particle-related path variables (get_ppath_cloudvars) and one deriving
+	particle optical properties along path (get_ppath_partopt).
+
+	* src/m_abs.cc (propmat_clearskyAddParticles):
+	Ported to exclusively use new type scat_data. Removed frequency
+	perturbation feature (considering that typical freq perturbs on
+	particle props has negligible effects only).
+
+	* src/m_checked.cc (cloudbox_checkedCalc):
+	Renamed GIN parameters scat_data_fcheck and scat_data_check_type to
+	more descriptive scat_data_type and scat_data_check_level, respectively.
+	Made (new type) scat_data the default, changed scat_data_type tag for
+	scat_data_raw to "raw".
+
+	* src/m_cloudbox.cc (cloudboxOff, ScatSpeciesInit):
+	Adapted for scat_data_raw.
+
+	(ScatElementsPndAndScatAdd, ScatSpeciesPndAndScatAdd,
+	ScatElementsToabs_speciesAdd, ScatSpeciesScatAndMetaRead,
+	ScatSpeciesExtendTemperature):
+	Act on scat_data_raw.
+
+	(pnd_fieldZero):
+	Adapt such that valid (new type) scat_data is created.
+
+	* src/m_doit.cc (DoitInit), src/m_jacobian.cc (JacobianDoit),
+	src/m_rte.cc(iyMC),
+	src/m_optproperties.cc (pha_mat_sptFromData, opt_prop_sptFromData,
+	DoitScatteringDataPrepare, scat_data_monoCalc):
+	Use scat_data_raw.
+
+	* src/m_optproperties.cc:
+	New/revised shortcuts to scat_data and scat_data_raw members.
+
+	* src/m_optproperties.cc (opt_prop_sptFromScat_data, scat_dataCheck,
+	scat_dataCalc, pha_mat_sptFromScat_data):
+	Adapted shortcuts to scat_data members.
+
+	* src/m_optproperties.cc (scat_data_monoExtract):
+	Bugfix: Actually use this_f_index in K/Z/a extraction. Minor code
+	optimization. Adapted shortcuts to scat_data members.
+
+	* src/rte.[cc,h] (get_ppath_partopt, get_ppath_cloudvars):
+	Broke old get_ppath_partopt down into atm and optprop variables parts.
+
+	* src/m_cloudradar.cc (iyActiveSingleScat), m_fos.cc (fos),
+	src/m_transmitter.cc(iyRadioLink), src/rte.cc (get_ppath_pmat_and_tmat):
+	Adapt for get_ppath_partopt breakup.
+
+	* src/m_fos.cc (iyHybrid2):
+	Remove ununsed variable declarations.
+
+	* src/optproperties.[cc,h]:
+	Removed unused scat_data shortcuts.
+
+	(scat_data_monoExtract):
+	Removed. Semi-duplicate of WSM with same name in m_optproperties.cc. Was
+	not used anywhere anyways (anymore?).
+
+	* src/cloudbox.cc, src/m_optproperties.cc (opt_prop_sptFromMonoData,
+	pha_mat_sptFromMonoData, ScatSpeciesMerge):
+	Minor stuff like typo fixes, comment and error/info msg updates.
+
+	* src/m_optproperties.cc (TestScatDataInterp):
+	Outcommented this WSM. Not up-to-date anymore.
+
+	* src/workspace.cc (scat_data, scat_data_raw):
+	Adapted/extended doc.
+
+	* src/methods.cc:
+	Adapted for WSM interface changes described above.
+
+	* controlfiles/artscomponents/absorption/TestAbsParticle.arts,
+	controlfiles/artscomponents/arts-xml-data/TestClouds_Mars.arts,
+	controlfiles/artscomponents/arts-xml-data/TestClouds_Venus.arts,
+	controlfiles/artscomponents/disort/TestDISORT.arts,
+	controlfiles/artscomponents/disort/indivfieldsatmo_setup.arts,
+	controlfiles/artscomponents/doit/TestDOITFromIndividualFields.arts,
+	controlfiles/artscomponents/doit/TestDOITprecalcInit.arts,
+	controlfiles/artscomponents/doit/doit_calc.arts,
+	controlfiles/artscomponents/doit/doit_setup.arts,
+	controlfiles/artscomponents/doit/doit_setup_accelerated.arts,
+	controlfiles/artscomponents/doit/doit_setup_pressureoptimization.arts,
+	controlfiles/artscomponents/doit/indivfieldsatmo_setup.arts,
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/artscomponents/hybridscat/TestHybrid.arts,
+	controlfiles/artscomponents/montecarlo/TestMonteCarloDataPrepare.arts,
+	controlfiles/artscomponents/montecarlo/TestRteCalcMC.arts,
+	controlfiles/artscomponents/polradtran/TestRT4.arts,
+	controlfiles/artscomponents/transmission/TestTransmissionWithScat.arts,
+	controlfiles/artscomponents/wfuns/TestDoitJacobians.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoScat_DOIT_1D.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoScat_FOS_1D.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoScat_MC_1D.arts,
+	controlfiles/planetary_toolbox/includes/common/makeclouds1D.arts:
+	Adapted to scat_data/scat_data_raw related WSM interface changes above.
+
 2017-09-17 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-795
@@ -23,13 +130,13 @@
 	
 	* src/methods.cc (psdS2M, psdMY2): Written built-in doc
 	
-    * src/m_microphysics.cc: 
-    
-    (psdS2M, psdMY2) 
-    Added new two moment scheme distributions. Particle size distribution values
-    are tested. The new scheme will give except for the differences due to 
-    rescalling the same pndfields as pnd_fieldS2M/MY2. The partial derivatives
-    need further testing,  but so far they seem to be working. 
+	* src/m_microphysics.cc: 
+
+	(psdS2M, psdMY2):
+	Added new two moment scheme distributions. Particle size distribution values
+	are tested. The new scheme will give except for the differences due to 
+	rescalling the same pndfields as pnd_fieldS2M/MY2. The partial derivatives
+	need further testing,  but so far they seem to be working. 
 	
 	(dNdD_SM2, dNdD_SM2_M, dNdD_MY2, dNdD_MY2_M) 
 	Changed to handle the new calls of psd_S2M, psd_MY2.
@@ -19191,20 +19298,20 @@
 	Removed, since this is obsolete with the new absorption lookup
 	table frequency treatment.
 
-        * doc/uguide/absorption.tex: Overall revision, added new intro and
+	* doc/uguide/absorption.tex: Overall revision, added new intro and
 	CIA part.
 
-        * doc/uguide/common.tex: Removed deprecated dvips option from
+	* doc/uguide/common.tex: Removed deprecated dvips option from
 	\usepackage{graphicx}.
 
-        * doc/uguide/interpolation.tex (Higher order interpolation): Added
+	* doc/uguide/interpolation.tex (Higher order interpolation): Added
 	paragraph on zeroth-order interpolation (nearest neighbor).
 
-        * doc/uguide/references.bib (richard:12): Added.
+	* doc/uguide/references.bib (richard:12): Added.
 
 	* doc/uguide/Figs/abs/plot_all_arts_cia_generic_1.pdf: Added.
 
-        * doc/uguide/Figs/abs/plot_earth_continua_1_1.pdf: Added
+	* doc/uguide/Figs/abs/plot_earth_continua_1_1.pdf: Added
 
 2013-06-20  Oliver Lemke  <olemke@core-dump.info>
 

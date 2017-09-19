@@ -57,14 +57,24 @@ extern const Numeric PI;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 
-#define PART_TYPE scat_data[i_ss][i_se].ptype
-#define F_DATAGRID scat_data[i_ss][i_se].f_grid
-#define T_DATAGRID scat_data[i_ss][i_se].T_grid
-#define ZA_DATAGRID scat_data[i_ss][i_se].za_grid
-#define AA_DATAGRID scat_data[i_ss][i_se].aa_grid
-#define PHA_MAT_DATA_RAW scat_data[i_ss][i_se].pha_mat_data  //CPD: changed from pha_mat_data
-#define EXT_MAT_DATA_RAW scat_data[i_ss][i_se].ext_mat_data  //which wouldn't let me play with
-#define ABS_VEC_DATA_RAW scat_data[i_ss][i_se].abs_vec_data  //scat_data_mono.
+#define PART_TYPE_RAW scat_data_raw[i_ss][i_se].ptype
+#define F_DATAGRID_RAW scat_data_raw[i_ss][i_se].f_grid
+#define T_DATAGRID_RAW scat_data_raw[i_ss][i_se].T_grid
+#define ZA_DATAGRID_RAW scat_data_raw[i_ss][i_se].za_grid
+#define AA_DATAGRID_RAW scat_data_raw[i_ss][i_se].aa_grid
+#define PHA_MAT_DATA_RAW scat_data_raw[i_ss][i_se].pha_mat_data  //CPD: changed from pha_mat_data
+#define EXT_MAT_DATA_RAW scat_data_raw[i_ss][i_se].ext_mat_data  //which wouldn't let me play with
+#define ABS_VEC_DATA_RAW scat_data_raw[i_ss][i_se].abs_vec_data  //scat_data_mono.
+
+#define PART_TYPE_NEW scat_data[i_ss][i_se].ptype
+#define F_DATAGRID_NEW scat_data[i_ss][i_se].f_grid
+#define T_DATAGRID_NEW scat_data[i_ss][i_se].T_grid
+#define ZA_DATAGRID_NEW scat_data[i_ss][i_se].za_grid
+#define AA_DATAGRID_NEW scat_data[i_ss][i_se].aa_grid
+#define PHA_MAT_DATA_NEW scat_data[i_ss][i_se].pha_mat_data
+#define EXT_MAT_DATA_NEW scat_data[i_ss][i_se].ext_mat_data
+#define ABS_VEC_DATA_NEW scat_data[i_ss][i_se].abs_vec_data
+
 #define PND_LIMIT 1e-12 // If particle number density is below this value, 
                         // no transformations will be performed
 
@@ -73,7 +83,7 @@ extern const Numeric RAD2DEG;
 void pha_mat_sptFromData( // Output:
                          Tensor5& pha_mat_spt,
                          // Input:
-                         const ArrayOfArrayOfSingleScatteringData& scat_data,
+                         const ArrayOfArrayOfSingleScatteringData& scat_data_raw,
                          const Vector& scat_za_grid,
                          const Vector& scat_aa_grid,
                          const Index& scat_za_index, // propagation directions
@@ -95,11 +105,11 @@ void pha_mat_sptFromData( // Output:
   }
 
   // Determine total number of scattering elements
-  const Index N_se_total = TotalNumberOfElements(scat_data);
+  const Index N_se_total = TotalNumberOfElements(scat_data_raw);
   if( N_se_total != pnd_field.nbooks() )
     {
       ostringstream os;
-      os << "Total number of scattering elements in scat_data "
+      os << "Total number of scattering elements in scat_data_raw "
          << "inconsistent with size of pnd_field.";
       throw runtime_error(os.str());
     }
@@ -112,19 +122,19 @@ void pha_mat_sptFromData( // Output:
   // scat element, assuming the other elements have been processed in the same
   // manner. That's save against having mono data, but not against having
   // individual elements produced with only a single frequency. This, however,
-  // has been checked by scat_data reading routines (ScatSpecies/Element*Add/Read).
-  // Unsafe, however, remain when ReadXML is used directly or if scat_data is
+  // has been checked by scat_data_raw reading routines (ScatSpecies/Element*Add/Read).
+  // Unsafe, however, remain when ReadXML is used directly or if scat_data_raw is
   // (partly) produced from scat_data_singleTmatrix.
-  if( scat_data[0][0].f_grid.nelem() < 2 )
+  if( scat_data_raw[0][0].f_grid.nelem() < 2 )
   {
       ostringstream os;
-      os << "Scattering data seems to be scat_data_mono (1 freq point only),\n"
-         << "but frequency interpolable data (scat_data with >=2 freq points) "
+      os << "Scattering data seems to be *scat_data_mono* (1 freq point only),\n"
+         << "but frequency interpolable data (*scat_data_raw* with >=2 freq points) "
          << "is expected here.";
       throw runtime_error( os.str() );
   }
           
-  const Index N_ss = scat_data.nelem();
+  const Index N_ss = scat_data_raw.nelem();
 
   // Phase matrix in laboratory coordinate system. Dimensions:
   // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
@@ -135,7 +145,7 @@ void pha_mat_sptFromData( // Output:
   // Loop over scattering species
   for (Index i_ss = 0; i_ss < N_ss; i_ss++)
   {
-      const Index N_se = scat_data[i_ss].nelem();
+      const Index N_se = scat_data_raw[i_ss].nelem();
 
       // Loop over the included scattering elements
       for (Index i_se = 0; i_se < N_se; i_se++)
@@ -163,7 +173,7 @@ void pha_mat_sptFromData( // Output:
 
               // Gridpositions:
               GridPos freq_gp;
-              gridpos(freq_gp, F_DATAGRID, f_grid[f_index]);
+              gridpos(freq_gp, F_DATAGRID_RAW, f_grid[f_index]);
               GridPos t_gp;
               Vector itw;
 
@@ -182,11 +192,11 @@ void pha_mat_sptFromData( // Output:
                 }
                 else if( rtp_temperature > -20. ) // highest T-point
                 {
-                  ti = T_DATAGRID.nelem()-1;
+                  ti = T_DATAGRID_RAW.nelem()-1;
                 }
                 else                              // median T-point
                 {
-                  ti = T_DATAGRID.nelem()/2;
+                  ti = T_DATAGRID_RAW.nelem()/2;
                 }
               }
 
@@ -197,10 +207,10 @@ void pha_mat_sptFromData( // Output:
                      << "cover the atmospheric temperature at cloud location.\n"
                      << "The data should include the value T = "
                      << rtp_temperature << " K.";
-                  chk_interpolation_grids( os.str(), T_DATAGRID, 
+                  chk_interpolation_grids( os.str(), T_DATAGRID_RAW, 
                                            rtp_temperature );
 
-                  gridpos(t_gp, T_DATAGRID, rtp_temperature);
+                  gridpos(t_gp, T_DATAGRID_RAW, rtp_temperature);
 
                   // Interpolation weights:
                   itw.resize(4);
@@ -257,8 +267,8 @@ void pha_mat_sptFromData( // Output:
                                                    za_inc_idx, aa_inc_idx,
                                                    joker, joker),
                                        pha_mat_data_int,
-                                       ZA_DATAGRID, AA_DATAGRID,
-                                       PART_TYPE, scat_za_index, scat_aa_index,
+                                       ZA_DATAGRID_RAW, AA_DATAGRID_RAW,
+                                       PART_TYPE_RAW, scat_za_index, scat_aa_index,
                                        za_inc_idx, 
                                        aa_inc_idx, scat_za_grid, scat_aa_grid,
                                        verbosity);
@@ -293,7 +303,7 @@ void pha_mat_sptFromDataDOITOpt(// Output:
   if( N_se_total != pnd_field.nbooks() )
     {
       ostringstream os;
-      os << "Total number of scattering elements in scat_data(_mono) "
+      os << "Total number of scattering elements in scat_data_mono "
          << "inconsistent with size of pnd_field.";
       throw runtime_error(os.str());
     }
@@ -336,9 +346,9 @@ void pha_mat_sptFromDataDOITOpt(// Output:
   
   // Check that we do indeed have scat_data_mono here. Only checking the first
   // scat element, assuming the other elements have been processed in the same
-  // manner. That's save against having scat_data here if that originated from
-  // scat_data reading routines (ScatSpecies/Element*Add/Read), it's not safe
-  // against data read by ReadXML directly or if scat_data has been (partly)
+  // manner. That's save against having scat_data_raw here if that originated from
+  // scat_data_raw reading routines (ScatSpecies/Element*Add/Read), it's not safe
+  // against data read by ReadXML directly or if scat_data_raw has been (partly)
   // produced from scat_data_singleTmatrix. That would be too costly here,
   // though.
   // Also, we can't check here whether data is at the correct frequency since we
@@ -346,8 +356,8 @@ void pha_mat_sptFromDataDOITOpt(// Output:
   if( scat_data_mono[0][0].f_grid.nelem() > 1 )
   {
       ostringstream os;
-      os << "Scattering data seems to be scat_data (several freq points),\n"
-         << "but scat_data_mono (1 freq point only) is expected here.";
+      os << "Scattering data seems to be *scat_data_raw* (several freq points),\n"
+         << "but *scat_data_mono* (1 freq point only) is expected here.";
       throw runtime_error( os.str() );
   }
   
@@ -472,7 +482,7 @@ void opt_prop_sptFromData(// Output and Input:
                           ArrayOfPropagationMatrix& ext_mat_spt,
                           ArrayOfStokesVector& abs_vec_spt,
                           // Input:
-                          const ArrayOfArrayOfSingleScatteringData& scat_data,
+                          const ArrayOfArrayOfSingleScatteringData& scat_data_raw,
                           const Vector& scat_za_grid,
                           const Vector& scat_aa_grid,
                           const Index& scat_za_index, // propagation directions
@@ -487,11 +497,11 @@ void opt_prop_sptFromData(// Output and Input:
                           const Verbosity& verbosity)
 {
   
-  const Index N_ss = scat_data.nelem();
+  const Index N_ss = scat_data_raw.nelem();
   const Numeric za_sca = scat_za_grid[scat_za_index];
   const Numeric aa_sca = scat_aa_grid[scat_aa_index];
 
-  DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data);
+  DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data_raw);
   if(N_ss)
   {
     assert( ext_mat_spt[0].NumberOfFrequencies() == N_se_total );
@@ -503,14 +513,14 @@ void opt_prop_sptFromData(// Output and Input:
   // scat element, assuming the other elements have been processed in the same
   // manner. That's save against having mono data, but not against having
   // individual elements produced with only a single frequency. This, however,
-  // has been checked by scat_data reading routines (ScatSpecies/Element*Add/Read).
-  // Unsafe, however, remain when ReadXML is used directly or if scat_data is
+  // has been checked by scat_data_raw reading routines (ScatSpecies/Element*Add/Read).
+  // Unsafe, however, remain when ReadXML is used directly or if scat_data_raw is
   // (partly) produced from scat_data_singleTmatrix.
-  if( scat_data[0][0].f_grid.nelem() < 2 )
+  if( scat_data_raw[0][0].f_grid.nelem() < 2 )
   {
       ostringstream os;
-      os << "Scattering data seems to be scat_data_mono (1 freq point only),\n"
-         << "but frequency interpolable data (scat_data with >=2 freq points) "
+      os << "Scattering data seems to be *scat_data_mono* (1 freq point only),\n"
+         << "but frequency interpolable data (*scat_data_raw* with >=2 freq points) "
          << "is expected here.";
       throw runtime_error( os.str() );
   }
@@ -529,7 +539,7 @@ void opt_prop_sptFromData(// Output and Input:
   // Loop over the included scattering species
   for (Index i_ss = 0; i_ss < N_ss; i_ss++)
   {
-      const Index N_se = scat_data[i_ss].nelem();
+      const Index N_se = scat_data_raw[i_ss].nelem();
 
       // Loop over the included scattering elements
       for (Index i_se = 0; i_se < N_se; i_se++)
@@ -562,21 +572,21 @@ void opt_prop_sptFromData(// Output and Input:
 
               // Gridpositions:
               GridPos freq_gp;
-              gridpos(freq_gp, F_DATAGRID, f_grid[f_index]);
+              gridpos(freq_gp, F_DATAGRID_RAW, f_grid[f_index]);
               GridPos t_gp;
               Vector itw;
 
-              if ( T_DATAGRID.nelem() > 1)
+              if ( T_DATAGRID_RAW.nelem() > 1)
               {
                   ostringstream os;
                   os << "The temperature grid of the scattering data does not\n"
                      << "cover the atmospheric temperature at cloud location.\n"
                      << "The data should include the value T = "
                      << rtp_temperature << " K.";
-                  chk_interpolation_grids( os.str(), T_DATAGRID, 
+                  chk_interpolation_grids( os.str(), T_DATAGRID_RAW, 
                                            rtp_temperature );
 
-                  gridpos(t_gp, T_DATAGRID, rtp_temperature);
+                  gridpos(t_gp, T_DATAGRID_RAW, rtp_temperature);
 
                   // Interpolation weights:
                   itw.resize(4);
@@ -673,7 +683,7 @@ void opt_prop_sptFromData(// Output and Input:
               //
               ext_matTransform(ext_mat_spt[i_se_flat],
                               ext_mat_data_int,
-                              ZA_DATAGRID, AA_DATAGRID, PART_TYPE,
+                              ZA_DATAGRID_RAW, AA_DATAGRID_RAW, PART_TYPE_RAW,
                               za_sca, aa_sca,
                               verbosity);
               //
@@ -681,7 +691,7 @@ void opt_prop_sptFromData(// Output and Input:
               //
               abs_vecTransform(abs_vec_spt[i_se_flat],
                               abs_vec_data_int,
-                              ZA_DATAGRID, AA_DATAGRID, PART_TYPE,
+                              ZA_DATAGRID_RAW, AA_DATAGRID_RAW, PART_TYPE_RAW,
                               za_sca, aa_sca, verbosity);
           }
 
@@ -764,27 +774,27 @@ void opt_prop_sptFromScat_data(// Output and Input:
               // laboratory coordinate system.
 
               // Resize the variables for the interpolated data (1freq, 1T):
-              ext_mat_data_int.resize(EXT_MAT_DATA_RAW.npages(),
-                                      EXT_MAT_DATA_RAW.nrows(),
-                                      EXT_MAT_DATA_RAW.ncols());
-              abs_vec_data_int.resize(ABS_VEC_DATA_RAW.npages(),
-                                      ABS_VEC_DATA_RAW.nrows(),
-                                      ABS_VEC_DATA_RAW.ncols());
+              ext_mat_data_int.resize(EXT_MAT_DATA_NEW.npages(),
+                                      EXT_MAT_DATA_NEW.nrows(),
+                                      EXT_MAT_DATA_NEW.ncols());
+              abs_vec_data_int.resize(ABS_VEC_DATA_NEW.npages(),
+                                      ABS_VEC_DATA_NEW.nrows(),
+                                      ABS_VEC_DATA_NEW.ncols());
 
               // Gridpositions and interpolation weights;
               GridPos t_gp;
               Vector itw;
-              if ( EXT_MAT_DATA_RAW.nbooks()>1 || ABS_VEC_DATA_RAW.nbooks()>1 )
+              if ( EXT_MAT_DATA_NEW.nbooks()>1 || ABS_VEC_DATA_NEW.nbooks()>1 )
                 {
                   ostringstream os;
                   os << "The temperature grid of the scattering data does not\n"
                      << "cover the atmospheric temperature at cloud location.\n"
                      << "The data should include the value T = "
                      << rtp_temperature << " K.";
-                  chk_interpolation_grids( os.str(), T_DATAGRID, 
+                  chk_interpolation_grids( os.str(), T_DATAGRID_NEW, 
                                            rtp_temperature );
 
-                  gridpos(t_gp, T_DATAGRID, rtp_temperature);
+                  gridpos(t_gp, T_DATAGRID_NEW, rtp_temperature);
 
                   // Interpolation weights:
                   itw.resize(2);
@@ -793,24 +803,24 @@ void opt_prop_sptFromScat_data(// Output and Input:
 
               // Frequency extraction and temperature interpolation
 
-              if( EXT_MAT_DATA_RAW.nshelves()==1 )
+              if( EXT_MAT_DATA_NEW.nshelves()==1 )
                 this_f_index = 0;
               else
                 this_f_index = f_index;
 
-              if ( EXT_MAT_DATA_RAW.nbooks() > 1)
+              if ( EXT_MAT_DATA_NEW.nbooks() > 1)
                 {
                   // Interpolation of extinction matrix:
-                  for (Index i_za_sca = 0; i_za_sca < EXT_MAT_DATA_RAW.npages();
+                  for (Index i_za_sca = 0; i_za_sca < EXT_MAT_DATA_NEW.npages();
                        i_za_sca++)
                   {
-                      for(Index i_aa_sca = 0; i_aa_sca < EXT_MAT_DATA_RAW.nrows();
+                      for(Index i_aa_sca = 0; i_aa_sca < EXT_MAT_DATA_NEW.nrows();
                           i_aa_sca++)
                       {
-                          for (Index i = 0; i < EXT_MAT_DATA_RAW.ncols(); i++)
+                          for (Index i = 0; i < EXT_MAT_DATA_NEW.ncols(); i++)
                           {
                               ext_mat_data_int(i_za_sca, i_aa_sca, i) =
-                              interp(itw, EXT_MAT_DATA_RAW(this_f_index, joker,
+                              interp(itw, EXT_MAT_DATA_NEW(this_f_index, joker,
                                                            i_za_sca, i_aa_sca, i),
                                      t_gp);
                           }
@@ -819,43 +829,43 @@ void opt_prop_sptFromScat_data(// Output and Input:
                 }
               else
                 {
-                  ext_mat_data_int = EXT_MAT_DATA_RAW(this_f_index, 0,
+                  ext_mat_data_int = EXT_MAT_DATA_NEW(this_f_index, 0,
                                                       joker, joker, joker);
                   /*
-                  for (Index i_za_sca = 0; i_za_sca < EXT_MAT_DATA_RAW.npages();
+                  for (Index i_za_sca = 0; i_za_sca < EXT_MAT_DATA_NEW.npages();
                        i_za_sca++)
                   {
-                      for(Index i_aa_sca = 0; i_aa_sca < EXT_MAT_DATA_RAW.nrows();
+                      for(Index i_aa_sca = 0; i_aa_sca < EXT_MAT_DATA_NEW.nrows();
                           i_aa_sca++)
                       {
-                          for (Index i = 0; i < EXT_MAT_DATA_RAW.ncols(); i++)
+                          for (Index i = 0; i < EXT_MAT_DATA_NEW.ncols(); i++)
                           {
                               ext_mat_data_int(i_za_sca, i_aa_sca, i) =
-                                EXT_MAT_DATA_RAW(this_f_index, 0,
+                                EXT_MAT_DATA_NEW(this_f_index, 0,
                                                  i_za_sca, i_aa_sca, i);
                           }
                       }
                   } */
                 }
 
-              if( ABS_VEC_DATA_RAW.nshelves()==1 )
+              if( ABS_VEC_DATA_NEW.nshelves()==1 )
                 this_f_index = 0;
               else
                 this_f_index = f_index;
 
-              if ( ABS_VEC_DATA_RAW.nbooks() > 1)
+              if ( ABS_VEC_DATA_NEW.nbooks() > 1)
                 {
                   // Interpolation of absorption vector:
-                  for (Index i_za_sca = 0; i_za_sca < ABS_VEC_DATA_RAW.npages();
+                  for (Index i_za_sca = 0; i_za_sca < ABS_VEC_DATA_NEW.npages();
                        i_za_sca++)
                   {
-                      for(Index i_aa_sca = 0; i_aa_sca < ABS_VEC_DATA_RAW.nrows();
+                      for(Index i_aa_sca = 0; i_aa_sca < ABS_VEC_DATA_NEW.nrows();
                           i_aa_sca++)
                       {
-                          for (Index i = 0; i < ABS_VEC_DATA_RAW.ncols(); i++)
+                          for (Index i = 0; i < ABS_VEC_DATA_NEW.ncols(); i++)
                           {
                               abs_vec_data_int(i_za_sca, i_aa_sca, i) =
-                              interp(itw, ABS_VEC_DATA_RAW(this_f_index, joker,
+                              interp(itw, ABS_VEC_DATA_NEW(this_f_index, joker,
                                                            i_za_sca, i_aa_sca, i),
                                      t_gp);
                           }
@@ -864,19 +874,19 @@ void opt_prop_sptFromScat_data(// Output and Input:
                 }
               else
                 {
-                  abs_vec_data_int = ABS_VEC_DATA_RAW(this_f_index, 0,
+                  abs_vec_data_int = ABS_VEC_DATA_NEW(this_f_index, 0,
                                                       joker, joker, joker);
                   /*
-                  for (Index i_za_sca = 0; i_za_sca < ABS_VEC_DATA_RAW.npages();
+                  for (Index i_za_sca = 0; i_za_sca < ABS_VEC_DATA_NEW.npages();
                        i_za_sca++)
                   {
-                      for(Index i_aa_sca = 0; i_aa_sca < ABS_VEC_DATA_RAW.nrows();
+                      for(Index i_aa_sca = 0; i_aa_sca < ABS_VEC_DATA_NEW.nrows();
                           i_aa_sca++)
                       {
-                          for (Index i = 0; i < ABS_VEC_DATA_RAW.ncols(); i++)
+                          for (Index i = 0; i < ABS_VEC_DATA_NEW.ncols(); i++)
                           {
                               abs_vec_data_int(i_za_sca, i_aa_sca, i) =
-                                ABS_VEC_DATA_RAW(this_f_index, 0,
+                                ABS_VEC_DATA_NEW(this_f_index, 0,
                                                  i_za_sca, i_aa_sca, i);
                           }
                       }
@@ -889,13 +899,13 @@ void opt_prop_sptFromScat_data(// Output and Input:
               // Extinction matrix:
               ext_matTransform(ext_mat_spt[i_se_flat],
                                ext_mat_data_int,
-                               ZA_DATAGRID, AA_DATAGRID, PART_TYPE,
+                               ZA_DATAGRID_NEW, AA_DATAGRID_NEW, PART_TYPE_NEW,
                                za_sca, aa_sca,
                                verbosity);
               // Absorption vector:
               abs_vecTransform(abs_vec_spt[i_se_flat],
                                abs_vec_data_int,
-                               ZA_DATAGRID, AA_DATAGRID, PART_TYPE,
+                               ZA_DATAGRID_NEW, AA_DATAGRID_NEW, PART_TYPE_NEW,
                                za_sca, aa_sca, verbosity);
           }
           i_se_flat++;
@@ -1313,6 +1323,11 @@ void scat_dataCheck( //Input:
     CREATE_OUT2;
     //CREATE_OUT3;
 
+    // FIXME:
+    // so far, this works for both scat_data and scat_data_raw. Needs to be
+    // adapted, though, once we have WSM that can create Z/K/a with different
+    // f/T dimensions than scat_data_single.f/T_grid.
+
     const Index N_ss = scat_data.nelem();
 
     // 1) any negative values in Z11, K11, or a1? K11>=a1?
@@ -1328,15 +1343,15 @@ void scat_dataCheck( //Input:
       // Loop over the included scattering elements
       for (Index i_se = 0; i_se < N_se; i_se++)
       {
-        for (Index f = 0; f < F_DATAGRID.nelem(); f++)
+        for (Index f = 0; f < F_DATAGRID_NEW.nelem(); f++)
         {
-          for (Index t = 0; t < T_DATAGRID.nelem(); t++)
+          for (Index t = 0; t < T_DATAGRID_NEW.nelem(); t++)
           {
-            for (Index zai=0; zai<ABS_VEC_DATA_RAW.npages(); zai++)
-              for (Index aai=0; aai<ABS_VEC_DATA_RAW.nrows(); aai++)
+            for (Index zai=0; zai<ABS_VEC_DATA_NEW.npages(); zai++)
+              for (Index aai=0; aai<ABS_VEC_DATA_NEW.nrows(); aai++)
               {
-                if( EXT_MAT_DATA_RAW(f,t,zai,aai,0)<0 ||
-                    ABS_VEC_DATA_RAW(f,t,zai,aai,0)<0 )
+                if( EXT_MAT_DATA_NEW(f,t,zai,aai,0)<0 ||
+                    ABS_VEC_DATA_NEW(f,t,zai,aai,0)<0 )
                   {
                     ostringstream os;
                     os << "Scatt. species #" << i_ss << " element #" << i_se
@@ -1345,8 +1360,8 @@ void scat_dataCheck( //Input:
                        << "\n";
                     throw runtime_error( os.str() );
                   }
-                if( EXT_MAT_DATA_RAW(f,t,zai,aai,0) <
-                    ABS_VEC_DATA_RAW(f,t,zai,aai,0) )
+                if( EXT_MAT_DATA_NEW(f,t,zai,aai,0) <
+                    ABS_VEC_DATA_NEW(f,t,zai,aai,0) )
                   {
                     ostringstream os;
                     os << "Scatt. species #" << i_ss << " element #" << i_se
@@ -1355,9 +1370,9 @@ void scat_dataCheck( //Input:
                        << "\n";
                     throw runtime_error( os.str() );
                   }
-                for (Index zas=0; zas<PHA_MAT_DATA_RAW.nshelves(); zas++)
-                  for (Index aas=0; aas<PHA_MAT_DATA_RAW.nbooks(); aas++)
-                    if( PHA_MAT_DATA_RAW(f,t,zas,aas,zai,aai,0)<0 )
+                for (Index zas=0; zas<PHA_MAT_DATA_NEW.nshelves(); zas++)
+                  for (Index aas=0; aas<PHA_MAT_DATA_NEW.nbooks(); aas++)
+                    if( PHA_MAT_DATA_NEW(f,t,zas,aas,zai,aai,0)<0 )
                     {
                       ostringstream os;
                       os << "Scatt. species #" << i_ss << " element #" << i_se
@@ -1382,15 +1397,15 @@ void scat_dataCheck( //Input:
       // Loop over the included scattering elements
       for (Index i_se = 0; i_se < N_se; i_se++)
       {
-        for (Index f = 0; f < F_DATAGRID.nelem(); f++)
+        for (Index f = 0; f < F_DATAGRID_NEW.nelem(); f++)
         {
-          for (Index t = 0; t < T_DATAGRID.nelem(); t++)
+          for (Index t = 0; t < T_DATAGRID_NEW.nelem(); t++)
           {
-            for (Index zai=0; zai<ABS_VEC_DATA_RAW.npages(); zai++)
-              for (Index aai=0; aai<ABS_VEC_DATA_RAW.nrows(); aai++)
+            for (Index zai=0; zai<ABS_VEC_DATA_NEW.npages(); zai++)
+              for (Index aai=0; aai<ABS_VEC_DATA_NEW.nrows(); aai++)
               {
-                for (Index st=0; st<ABS_VEC_DATA_RAW.ncols(); st++)
-                  if( isnan(ABS_VEC_DATA_RAW(f,t,zai,aai,st)) )
+                for (Index st=0; st<ABS_VEC_DATA_NEW.ncols(); st++)
+                  if( isnan(ABS_VEC_DATA_NEW(f,t,zai,aai,st)) )
                   {
                     ostringstream os;
                     os << "Scatt. species #" << i_ss << " element #" << i_se
@@ -1399,8 +1414,8 @@ void scat_dataCheck( //Input:
                        << st << "\n";
                     throw runtime_error( os.str() );
                   }
-                for (Index st=0; st<EXT_MAT_DATA_RAW.ncols(); st++)
-                  if( isnan(EXT_MAT_DATA_RAW(f,t,zai,aai,st)) )
+                for (Index st=0; st<EXT_MAT_DATA_NEW.ncols(); st++)
+                  if( isnan(EXT_MAT_DATA_NEW(f,t,zai,aai,st)) )
                   {
                     ostringstream os;
                     os << "Scatt. species #" << i_ss << " element #" << i_se
@@ -1409,10 +1424,10 @@ void scat_dataCheck( //Input:
                        << st << "\n";
                     throw runtime_error( os.str() );
                   }
-                for (Index zas=0; zas<PHA_MAT_DATA_RAW.nshelves(); zas++)
-                  for (Index aas=0; aas<PHA_MAT_DATA_RAW.nbooks(); aas++)
-                    for (Index st=0; st<PHA_MAT_DATA_RAW.ncols(); st++)
-                      if( isnan(PHA_MAT_DATA_RAW(f,t,zas,aas,zai,aai,st)) )
+                for (Index zas=0; zas<PHA_MAT_DATA_NEW.nshelves(); zas++)
+                  for (Index aas=0; aas<PHA_MAT_DATA_NEW.nbooks(); aas++)
+                    for (Index st=0; st<PHA_MAT_DATA_NEW.ncols(); st++)
+                      if( isnan(PHA_MAT_DATA_NEW(f,t,zas,aas,zai,aai,st)) )
                       {
                         ostringstream os;
                         os << "Scatt. species #" << i_ss << " element #" << i_se
@@ -1439,20 +1454,20 @@ void scat_dataCheck( //Input:
         // Loop over the included scattering elements
         for (Index i_se = 0; i_se < N_se; i_se++)
         {
-          switch (PART_TYPE)
+          switch (PART_TYPE_NEW)
           {
             case PTYPE_TOTAL_RND:
             {
-              for (Index f = 0; f < F_DATAGRID.nelem(); f++)
+              for (Index f = 0; f < F_DATAGRID_NEW.nelem(); f++)
               {
-                for (Index t = 0; t < T_DATAGRID.nelem(); t++)
+                for (Index t = 0; t < T_DATAGRID_NEW.nelem(); t++)
                 {
                   Numeric Csca = AngIntegrate_trapezoid(
-                                  PHA_MAT_DATA_RAW(f, t, joker, 0, 0, 0, 0),
-                                  ZA_DATAGRID);
-                  Numeric Cext_data = EXT_MAT_DATA_RAW(f,t,0,0,0);
+                                  PHA_MAT_DATA_NEW(f, t, joker, 0, 0, 0, 0),
+                                  ZA_DATAGRID_NEW);
+                  Numeric Cext_data = EXT_MAT_DATA_NEW(f,t,0,0,0);
                   //Numeric Cabs = Cext_data - Csca;
-                  Numeric Cabs_data = ABS_VEC_DATA_RAW(f,t,0,0,0);
+                  Numeric Cabs_data = ABS_VEC_DATA_NEW(f,t,0,0,0);
                   Numeric Csca_data = Cext_data - Cabs_data;
 
                   /*
@@ -1489,18 +1504,18 @@ void scat_dataCheck( //Input:
                     
             case PTYPE_AZIMUTH_RND:
             {
-              for (Index f = 0; f < F_DATAGRID.nelem(); f++)
+              for (Index f = 0; f < F_DATAGRID_NEW.nelem(); f++)
               {
-                for (Index t = 0; t < T_DATAGRID.nelem(); t++)
+                for (Index t = 0; t < T_DATAGRID_NEW.nelem(); t++)
                 {
-                  for (Index iza = 0; iza < ABS_VEC_DATA_RAW.npages(); iza++)
+                  for (Index iza = 0; iza < ABS_VEC_DATA_NEW.npages(); iza++)
                   {
                     Numeric Csca = 2 * AngIntegrate_trapezoid(
-                                    PHA_MAT_DATA_RAW(f, t, joker, joker, iza, 0, 0),
-                                    ZA_DATAGRID, AA_DATAGRID );
-                    Numeric Cext_data = EXT_MAT_DATA_RAW(f,t,iza,0,0);
+                                    PHA_MAT_DATA_NEW(f, t, joker, joker, iza, 0, 0),
+                                    ZA_DATAGRID_NEW, AA_DATAGRID_NEW );
+                    Numeric Cext_data = EXT_MAT_DATA_NEW(f,t,iza,0,0);
                     //Numeric Cabs = Cext_data - Csca;
-                    Numeric Cabs_data = ABS_VEC_DATA_RAW(f,t,iza,0,0);
+                    Numeric Cabs_data = ABS_VEC_DATA_NEW(f,t,iza,0,0);
                     Numeric Csca_data = Cext_data - Cabs_data;
                     /*
                     out3 << "  Coefficients in database: "
@@ -1539,7 +1554,7 @@ void scat_dataCheck( //Input:
             {
               out0 << "  WARNING:\n"
                    << "  scat_data consistency check not implemented (yet?!) for\n"
-                   << "  ptype " << PART_TYPE << "!\n";
+                   << "  ptype " << PART_TYPE_NEW << "!\n";
             }
           }
         }
@@ -1570,7 +1585,7 @@ void DoitScatteringDataPrepare(Workspace& ws,//Output:
                                //Input:
                                const Index& doit_za_grid_size,
                                const Vector& scat_aa_grid,
-                               const ArrayOfArrayOfSingleScatteringData& scat_data,
+                               const ArrayOfArrayOfSingleScatteringData& scat_data_raw,
                                const Vector& f_grid,
                                const Index& f_index,
                                const Index& atmosphere_dim,
@@ -1598,7 +1613,7 @@ void DoitScatteringDataPrepare(Workspace& ws,//Output:
     Tensor6 pha_mat_local_out(cloudbox_limits[1]-cloudbox_limits[0]+1,doit_za_grid_size,
                               doit_za_grid_size, Naa, stokes_dim, stokes_dim, 0.);
   // Interpolate all the data in frequency
-  scat_data_monoCalc(scat_data_mono, scat_data, f_grid, f_index, verbosity);
+  scat_data_monoCalc(scat_data_mono, scat_data_raw, f_grid, f_index, verbosity);
   
   // For 1D calculation the scat_aa dimension is not required:
   Index N_aa_sca;
@@ -1610,17 +1625,17 @@ void DoitScatteringDataPrepare(Workspace& ws,//Output:
   Vector za_grid;
   nlinspace(za_grid, 0, 180, doit_za_grid_size);
 
-  assert( scat_data.nelem() == scat_data_mono.nelem() );
+  assert( scat_data_raw.nelem() == scat_data_mono.nelem() );
   
-  const Index N_ss = scat_data.nelem();
+  const Index N_ss = scat_data_raw.nelem();
   // FIXME: We need this still as a workspace variable because pha_mat_spt_agenda
   // contains a WS method that requires it as input
-  pha_mat_sptDOITOpt.resize(TotalNumberOfElements(scat_data));
+  pha_mat_sptDOITOpt.resize(TotalNumberOfElements(scat_data_raw));
 
   Index i_se_flat = 0;
   for (Index i_ss = 0; i_ss < N_ss; i_ss++)
   {
-      const Index N_se = scat_data[i_ss].nelem();
+      const Index N_se = scat_data_raw[i_ss].nelem();
 
       for (Index i_se = 0; i_se < N_se; i_se++)
       {
@@ -1772,14 +1787,14 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
       interpweights(itw, freq_gp);
 
       //Stuff that doesn't need interpolating
-      PART_TYPE   = scat_data_raw[i_ss][i_se].ptype;
-      F_DATAGRID  = f_grid;
-      T_DATAGRID  = scat_data_raw[i_ss][i_se].T_grid;
-      ZA_DATAGRID = scat_data_raw[i_ss][i_se].za_grid;
-      AA_DATAGRID = scat_data_raw[i_ss][i_se].aa_grid;
+      PART_TYPE_NEW   = scat_data_raw[i_ss][i_se].ptype;
+      F_DATAGRID_NEW  = f_grid;
+      T_DATAGRID_NEW  = scat_data_raw[i_ss][i_se].T_grid;
+      ZA_DATAGRID_NEW = scat_data_raw[i_ss][i_se].za_grid;
+      AA_DATAGRID_NEW = scat_data_raw[i_ss][i_se].aa_grid;
 
       //Phase matrix data
-      PHA_MAT_DATA_RAW.resize(nf,
+      PHA_MAT_DATA_NEW.resize(nf,
                               scat_data_raw[i_ss][i_se].pha_mat_data.nvitrines(),
                               scat_data_raw[i_ss][i_se].pha_mat_data.nshelves(),
                               scat_data_raw[i_ss][i_se].pha_mat_data.nbooks(),
@@ -1814,7 +1829,7 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
         }
 
         //Extinction matrix data
-        EXT_MAT_DATA_RAW.resize(nf,
+        EXT_MAT_DATA_NEW.resize(nf,
                                 scat_data_raw[i_ss][i_se].ext_mat_data.nbooks(),
                                 scat_data_raw[i_ss][i_se].ext_mat_data.npages(),
                                 scat_data_raw[i_ss][i_se].ext_mat_data.nrows(),
@@ -1836,7 +1851,7 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
         }
 
         //Absorption vector data
-        ABS_VEC_DATA_RAW.resize(nf,
+        ABS_VEC_DATA_NEW.resize(nf,
                                 scat_data_raw[i_ss][i_se].abs_vec_data.nbooks(),
                                 scat_data_raw[i_ss][i_se].abs_vec_data.npages(),
                                 scat_data_raw[i_ss][i_se].abs_vec_data.nrows(),
@@ -1864,7 +1879,7 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
-                        const ArrayOfArrayOfSingleScatteringData& scat_data,
+                        const ArrayOfArrayOfSingleScatteringData& scat_data_raw,
                         const Vector& f_grid,
                         const Index& f_index,
                         const Verbosity&)
@@ -1875,24 +1890,24 @@ void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
   // Check, whether single scattering data contains the right frequencies:
   // The check was changed to allow extrapolation at the boundaries of the 
   // frequency grid.
-  for (Index h = 0; h<scat_data.nelem(); h++)
+  for (Index h = 0; h<scat_data_raw.nelem(); h++)
   {
-    for (Index i = 0; i<scat_data[h].nelem(); i++)
+    for (Index i = 0; i<scat_data_raw[h].nelem(); i++)
     {
       // check with extrapolation
-      chk_interpolation_grids("scat_data.f_grid to f_grid",
-                              scat_data[h][i].f_grid,
+      chk_interpolation_grids("scat_data_raw.f_grid to f_grid",
+                              scat_data_raw[h][i].f_grid,
                               f_grid[f_index]);
     }
   }
 
   //Initialise scat_data_mono
-  scat_data_mono.resize(scat_data.nelem());
+  scat_data_mono.resize(scat_data_raw.nelem());
 
   // Loop over the included scattering species
-  for (Index i_ss = 0; i_ss<scat_data.nelem(); i_ss++)
+  for (Index i_ss = 0; i_ss<scat_data_raw.nelem(); i_ss++)
   {
-      const Index N_se = scat_data[i_ss].nelem();
+      const Index N_se = scat_data_raw[i_ss].nelem();
 
       //Initialise scat_data_mono
       scat_data_mono[i_ss].resize(N_se);
@@ -1902,19 +1917,19 @@ void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
       {
           // Gridpositions:
           GridPos freq_gp;
-          gridpos(freq_gp, F_DATAGRID, f_grid[f_index]);
+          gridpos(freq_gp, F_DATAGRID_RAW, f_grid[f_index]);
 
           // Interpolation weights:
           Vector itw(2);
           interpweights(itw, freq_gp);
 
           //Stuff that doesn't need interpolating
-          scat_data_mono[i_ss][i_se].ptype=PART_TYPE;
+          scat_data_mono[i_ss][i_se].ptype=PART_TYPE_RAW;
           scat_data_mono[i_ss][i_se].f_grid.resize(1);
           scat_data_mono[i_ss][i_se].f_grid=f_grid[f_index];
-          scat_data_mono[i_ss][i_se].T_grid=scat_data[i_ss][i_se].T_grid;
-          scat_data_mono[i_ss][i_se].za_grid=ZA_DATAGRID;
-          scat_data_mono[i_ss][i_se].aa_grid=AA_DATAGRID;
+          scat_data_mono[i_ss][i_se].T_grid=scat_data_raw[i_ss][i_se].T_grid;
+          scat_data_mono[i_ss][i_se].za_grid=ZA_DATAGRID_RAW;
+          scat_data_mono[i_ss][i_se].aa_grid=AA_DATAGRID_RAW;
 
           //Phase matrix data
           scat_data_mono[i_ss][i_se].pha_mat_data.resize(1,
@@ -1960,7 +1975,7 @@ void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                   }
               }
               //Extinction matrix data
-              scat_data_mono[i_ss][i_se].ext_mat_data.resize(1, T_DATAGRID.nelem(),
+              scat_data_mono[i_ss][i_se].ext_mat_data.resize(1, T_DATAGRID_RAW.nelem(),
                                                        EXT_MAT_DATA_RAW.npages(),
                                                        EXT_MAT_DATA_RAW.nrows(),
                                                        EXT_MAT_DATA_RAW.ncols());
@@ -1984,7 +1999,7 @@ void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                   }
               }
               //Absorption vector data
-              scat_data_mono[i_ss][i_se].abs_vec_data.resize(1, T_DATAGRID.nelem(),
+              scat_data_mono[i_ss][i_se].abs_vec_data.resize(1, T_DATAGRID_RAW.nelem(),
                                                        ABS_VEC_DATA_RAW.npages(),
                                                        ABS_VEC_DATA_RAW.nrows(),
                                                        ABS_VEC_DATA_RAW.ncols());
@@ -2033,53 +2048,54 @@ void scat_data_monoExtract(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
       // Loop over the included scattering elements
       for (Index i_se = 0; i_se < N_se; i_se++)
       {
-        Index this_f_index;
-  
-        //Stuff that doesn't need interpolating
-        scat_data_mono[i_ss][i_se].ptype=PART_TYPE;
-        scat_data_mono[i_ss][i_se].f_grid.resize(1);
-        scat_data_mono[i_ss][i_se].T_grid=scat_data[i_ss][i_se].T_grid;
-        scat_data_mono[i_ss][i_se].za_grid=ZA_DATAGRID;
-        scat_data_mono[i_ss][i_se].aa_grid=AA_DATAGRID;
 
-        Index nf = F_DATAGRID.nelem();
+        Index nf = F_DATAGRID_NEW.nelem();
         if( nf == 1 )
         {
           scat_data_mono[i_ss][i_se] = scat_data[i_ss][i_se];
         }
         else
         {
-          scat_data_mono[i_ss][i_se].f_grid = F_DATAGRID[f_index];
+          //Stuff that doesn't need interpolating
+          scat_data_mono[i_ss][i_se].ptype=PART_TYPE_NEW;
+          scat_data_mono[i_ss][i_se].T_grid=T_DATAGRID_NEW;
+          scat_data_mono[i_ss][i_se].za_grid=ZA_DATAGRID_NEW;
+          scat_data_mono[i_ss][i_se].aa_grid=AA_DATAGRID_NEW;
+
+          scat_data_mono[i_ss][i_se].f_grid.resize(1);
+          scat_data_mono[i_ss][i_se].f_grid = F_DATAGRID_NEW[f_index];
+
+          Index this_f_index;
 
           //Phase matrix data
           /*scat_data_mono[i_ss][i_se].pha_mat_data.resize(1,
-                                                 PHA_MAT_DATA_RAW.nvitrines(),
-                                                 PHA_MAT_DATA_RAW.nshelves(),
-                                                 PHA_MAT_DATA_RAW.nbooks(),
-                                                 PHA_MAT_DATA_RAW.npages(),
-                                                 PHA_MAT_DATA_RAW.nrows(),
-                                                 PHA_MAT_DATA_RAW.ncols());*/
-          this_f_index = (PHA_MAT_DATA_RAW.nlibraries()==1) ? 0 : f_index;
+                                                 PHA_MAT_DATA_NEW.nvitrines(),
+                                                 PHA_MAT_DATA_NEW.nshelves(),
+                                                 PHA_MAT_DATA_NEW.nbooks(),
+                                                 PHA_MAT_DATA_NEW.npages(),
+                                                 PHA_MAT_DATA_NEW.nrows(),
+                                                 PHA_MAT_DATA_NEW.ncols());*/
+          this_f_index = (PHA_MAT_DATA_NEW.nlibraries()==1) ? 0 : f_index;
           scat_data_mono[i_ss][i_se].pha_mat_data =
-              PHA_MAT_DATA_RAW(Range(f_index,1),joker,joker,joker,joker,joker,joker);
+              PHA_MAT_DATA_NEW(Range(this_f_index,1),joker,joker,joker,joker,joker,joker);
 
           //Extinction matrix data
           /*scat_data_mono[i_ss][i_se].ext_mat_data.resize(1, T_DATAGRID.nelem(),
-                                                     EXT_MAT_DATA_RAW.npages(),
-                                                     EXT_MAT_DATA_RAW.nrows(),
-                                                     EXT_MAT_DATA_RAW.ncols());*/
-          this_f_index = (EXT_MAT_DATA_RAW.nshelves()==1) ? 0 : f_index;
+                                                     EXT_MAT_DATA_NEW.npages(),
+                                                     EXT_MAT_DATA_NEW.nrows(),
+                                                     EXT_MAT_DATA_NEW.ncols());*/
+          this_f_index = (EXT_MAT_DATA_NEW.nshelves()==1) ? 0 : f_index;
           scat_data_mono[i_ss][i_se].ext_mat_data =
-              EXT_MAT_DATA_RAW(Range(f_index,1),joker,joker,joker,joker);
+              EXT_MAT_DATA_NEW(Range(this_f_index,1),joker,joker,joker,joker);
 
           //Absorption vector data
           /*scat_data_mono[i_ss][i_se].abs_vec_data.resize(1, T_DATAGRID.nelem(),
-                                                     ABS_VEC_DATA_RAW.npages(),
-                                                     ABS_VEC_DATA_RAW.nrows(),
-                                                     ABS_VEC_DATA_RAW.ncols());*/
-          this_f_index = (ABS_VEC_DATA_RAW.nshelves()==1) ? 0 : f_index;
+                                                     ABS_VEC_DATA_NEW.npages(),
+                                                     ABS_VEC_DATA_NEW.nrows(),
+                                                     ABS_VEC_DATA_NEW.ncols());*/
+          this_f_index = (ABS_VEC_DATA_NEW.nshelves()==1) ? 0 : f_index;
           scat_data_mono[i_ss][i_se].abs_vec_data =
-              ABS_VEC_DATA_RAW(Range(f_index,1),joker,joker,joker,joker);
+              ABS_VEC_DATA_NEW(Range(this_f_index,1),joker,joker,joker,joker);
 
         }
       }
@@ -2119,9 +2135,9 @@ void opt_prop_sptFromMonoData(// Output and Input:
 
   // Check that we do indeed have scat_data_mono here. Only checking the first
   // scat element, assuming the other elements have been processed in the same
-  // manner. That's save against having scat_data here if that originated from
-  // scat_data reading routines (ScatSpecies/Element*Add/Read), it's not safe
-  // against data read by ReadXML directly or if scat_data has been (partly)
+  // manner. That's save against having scat_data_raw here if that originated from
+  // scat_data_raw reading routines (ScatSpecies/Element*Add/Read), it's not safe
+  // against data read by ReadXML directly or if scat_data_raw has been (partly)
   // produced from scat_data_singleTmatrix. That would be too costly here,
   // though.
   // Also, we can't check here whether data is at the correct frequency since we
@@ -2129,8 +2145,8 @@ void opt_prop_sptFromMonoData(// Output and Input:
   if( scat_data_mono[0][0].f_grid.nelem() > 1 )
   {
       ostringstream os;
-      os << "Scattering data seems to be scat_data (several freq points),\n"
-         << "but scat_data_mono (1 freq point only) is expected here.";
+      os << "Scattering data seems to be *scat_data_raw* (several freq points),\n"
+         << "but *scat_data_mono* (1 freq point only) is expected here.";
       throw runtime_error( os.str() );
   }
 
@@ -2293,7 +2309,7 @@ void pha_mat_sptFromMonoData(// Output:
   if( N_se_total != pnd_field.nbooks() )
     {
       ostringstream os;
-      os << "Total number of scattering elements in scat_data(_mono) "
+      os << "Total number of scattering elements in *scat_data_mono* "
          << "inconsistent with size of pnd_field.";
       throw runtime_error(os.str());
     }
@@ -2310,9 +2326,9 @@ void pha_mat_sptFromMonoData(// Output:
   
   // Check that we do indeed have scat_data_mono here. Only checking the first
   // scat element, assuming the other elements have been processed in the same
-  // manner. That's save against having scat_data here if that originated from
-  // scat_data reading routines (ScatSpecies/Element*Add/Read), it's not safe
-  // against data read by ReadXML directly or if scat_data has been (partly)
+  // manner. That's save against having scat_data_raw here if that originated from
+  // scat_data_raw reading routines (ScatSpecies/Element*Add/Read), it's not safe
+  // against data read by ReadXML directly or if scat_data_raw has been (partly)
   // produced from scat_data_singleTmatrix. That would be too costly here,
   // though.
   // Also, we can't check here whether data is at the correct frequency since we
@@ -2320,8 +2336,8 @@ void pha_mat_sptFromMonoData(// Output:
   if( scat_data_mono[0][0].f_grid.nelem() > 1 )
   {
       ostringstream os;
-      os << "Scattering data seems to be scat_data (several freq points),\n"
-         << "but scat_data_mono (1 freq point only) is expected here.";
+      os << "Scattering data seems to be *scat_data_raw* (several freq points),\n"
+         << "but *scat_data_mono* (1 freq point only) is expected here.";
       throw runtime_error( os.str() );
   }
 
@@ -2524,11 +2540,11 @@ void pha_mat_sptFromScat_data( // Output:
               // laboratory coordinate system.
 
               // Resize the variables for the interpolated data (1freq, 1T):
-              pha_mat_data_int.resize(PHA_MAT_DATA_RAW.nshelves(),
-                                      PHA_MAT_DATA_RAW.nbooks(),
-                                      PHA_MAT_DATA_RAW.npages(),
-                                      PHA_MAT_DATA_RAW.nrows(),
-                                      PHA_MAT_DATA_RAW.ncols());
+              pha_mat_data_int.resize(PHA_MAT_DATA_NEW.nshelves(),
+                                      PHA_MAT_DATA_NEW.nbooks(),
+                                      PHA_MAT_DATA_NEW.npages(),
+                                      PHA_MAT_DATA_NEW.nrows(),
+                                      PHA_MAT_DATA_NEW.ncols());
 
               // Frequency extraction and temperature interpolation
 
@@ -2536,7 +2552,7 @@ void pha_mat_sptFromScat_data( // Output:
               GridPos t_gp;
               Vector itw;
               Index this_T_index = -1;
-              if ( PHA_MAT_DATA_RAW.nvitrines()==1 )
+              if ( PHA_MAT_DATA_NEW.nvitrines()==1 )
                 {
                   this_T_index = 0;
                 }
@@ -2549,11 +2565,11 @@ void pha_mat_sptFromScat_data( // Output:
                     }
                   else if( rtp_temperature > -20. ) // highest T-point
                     {
-                      this_T_index = PHA_MAT_DATA_RAW.nvitrines()-1;
+                      this_T_index = PHA_MAT_DATA_NEW.nvitrines()-1;
                     }
                   else                              // median T-point
                     {
-                      this_T_index = PHA_MAT_DATA_RAW.nvitrines()/2;
+                      this_T_index = PHA_MAT_DATA_NEW.nvitrines()/2;
                     }
                 }
               else
@@ -2563,17 +2579,17 @@ void pha_mat_sptFromScat_data( // Output:
                      << "cover the atmospheric temperature at cloud location.\n"
                      << "The data should include the value T = "
                      << rtp_temperature << " K.";
-                  chk_interpolation_grids( os.str(), T_DATAGRID, 
+                  chk_interpolation_grids( os.str(), T_DATAGRID_NEW, 
                                            rtp_temperature );
 
-                  gridpos(t_gp, T_DATAGRID, rtp_temperature);
+                  gridpos(t_gp, T_DATAGRID_NEW, rtp_temperature);
 
                   // Interpolation weights:
                   itw.resize(2);
                   interpweights(itw, t_gp);
                 }
 
-              if( PHA_MAT_DATA_RAW.nlibraries()==1 )
+              if( PHA_MAT_DATA_NEW.nlibraries()==1 )
                 this_f_index = 0;
               else
                 this_f_index = f_index;
@@ -2582,41 +2598,41 @@ void pha_mat_sptFromScat_data( // Output:
                 {
                   // Interpolation of scattering matrix:
                   for (Index i_za_sca = 0;
-                       i_za_sca < PHA_MAT_DATA_RAW.nshelves(); i_za_sca++)
+                       i_za_sca < PHA_MAT_DATA_NEW.nshelves(); i_za_sca++)
                     for (Index i_aa_sca = 0;
-                         i_aa_sca < PHA_MAT_DATA_RAW.nbooks(); i_aa_sca++)
+                         i_aa_sca < PHA_MAT_DATA_NEW.nbooks(); i_aa_sca++)
                       for (Index i_za_inc = 0;
-                           i_za_inc < PHA_MAT_DATA_RAW.npages(); i_za_inc++)
+                           i_za_inc < PHA_MAT_DATA_NEW.npages(); i_za_inc++)
                         for (Index i_aa_inc = 0;
-                             i_aa_inc < PHA_MAT_DATA_RAW.nrows(); i_aa_inc++)
-                          for (Index i = 0; i < PHA_MAT_DATA_RAW.ncols(); i++)
+                             i_aa_inc < PHA_MAT_DATA_NEW.nrows(); i_aa_inc++)
+                          for (Index i = 0; i < PHA_MAT_DATA_NEW.ncols(); i++)
                             pha_mat_data_int(i_za_sca, i_aa_sca,
                                              i_za_inc, i_aa_inc, i) =
                               interp(itw,
-                                     PHA_MAT_DATA_RAW(this_f_index, joker,
+                                     PHA_MAT_DATA_NEW(this_f_index, joker,
                                                       i_za_sca, i_aa_sca,
                                                       i_za_inc, i_aa_inc, i),
                                      t_gp);
                 }
               else
                 {
-                  pha_mat_data_int = PHA_MAT_DATA_RAW(this_f_index, this_T_index,
+                  pha_mat_data_int = PHA_MAT_DATA_NEW(this_f_index, this_T_index,
                                                       joker, joker,
                                                       joker, joker, joker);
                   /*
                   for (Index i_za_sca = 0;
-                       i_za_sca < PHA_MAT_DATA_RAW.nshelves(); i_za_sca++)
+                       i_za_sca < PHA_MAT_DATA_NEW.nshelves(); i_za_sca++)
                     for (Index i_aa_sca = 0;
-                         i_aa_sca < PHA_MAT_DATA_RAW.nbooks(); i_aa_sca++)
+                         i_aa_sca < PHA_MAT_DATA_NEW.nbooks(); i_aa_sca++)
                       for (Index i_za_inc = 0;
-                           i_za_inc < PHA_MAT_DATA_RAW.npages(); i_za_inc++)
+                           i_za_inc < PHA_MAT_DATA_NEW.npages(); i_za_inc++)
                         for (Index i_aa_inc = 0;
-                             i_aa_inc < PHA_MAT_DATA_RAW.nrows(); i_aa_inc++)
-                          for (Index i = 0; i < PHA_MAT_DATA_RAW.ncols(); i++)
+                             i_aa_inc < PHA_MAT_DATA_NEW.nrows(); i_aa_inc++)
+                          for (Index i = 0; i < PHA_MAT_DATA_NEW.ncols(); i++)
                             // Interpolation of phase matrix:
                             pha_mat_data_int(i_za_sca, i_aa_sca,
                                              i_za_inc, i_aa_inc, i) =
-                                PHA_MAT_DATA_RAW(this_f_index, this_T_index,
+                                PHA_MAT_DATA_NEW(this_f_index, this_T_index,
                                                  i_za_sca, i_aa_sca,
                   */
                 }
@@ -2633,8 +2649,8 @@ void pha_mat_sptFromScat_data( // Output:
                                                    za_inc_idx, aa_inc_idx,
                                                    joker, joker),
                                        pha_mat_data_int,
-                                       ZA_DATAGRID, AA_DATAGRID,
-                                       PART_TYPE, scat_za_index, scat_aa_index,
+                                       ZA_DATAGRID_NEW, AA_DATAGRID_NEW,
+                                       PART_TYPE_NEW, scat_za_index, scat_aa_index,
                                        za_inc_idx, 
                                        aa_inc_idx, scat_za_grid, scat_aa_grid,
                                        verbosity);
@@ -2663,6 +2679,11 @@ void ScatSpeciesMerge(//WS Output:
                       const Matrix& z_surface,
                       const Verbosity& /*verbosity*/)
 {
+    // FIXME:
+    // so far, this works for both scat_data and scat_data_raw. Needs to be
+    // adapted, though, once we have WSM that can create Z/K/a with different
+    // f/T dimensions than scat_data_single.f/T_grid.
+
     // cloudbox variable state should be ok before entering here
     if (!cloudbox_checked)
         throw std::runtime_error(
@@ -3024,6 +3045,7 @@ void ExtractFromMetaSingleScatSpecies(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+/*
 void TestScatDataInterp(Workspace& ws,
                         const ArrayOfArrayOfSingleScatteringData&   scat_data,
                         const Index&       stokes_dim,
@@ -3528,3 +3550,4 @@ void TestScatDataInterp(Workspace& ws,
   }
 
 }
+*/

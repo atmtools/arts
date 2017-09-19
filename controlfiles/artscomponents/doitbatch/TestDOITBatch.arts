@@ -166,14 +166,16 @@ ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
 
 # Selection/filterting of particles according to *scat_species*
 #--------------------------------------------------------------
-ScatElementsSelect( species="LWC", sizeparam="diameter_volume_equ", sizemin=0.1e-6, sizemax=2000e-6 )
-ScatElementsSelect( species="IWC", sizeparam="diameter_volume_equ", sizemin=0.1e-6, sizemax=2000e-6 )
+ScatElementsSelect( scat_data=scat_data_raw, species="LWC",
+                    sizeparam="diameter_volume_equ", sizemin=0.1e-6, sizemax=2000e-6 )
+ScatElementsSelect( scat_data=scat_data_raw, species="IWC",
+                    sizeparam="diameter_volume_equ", sizemin=0.1e-6, sizemax=2000e-6 )
 
 # Extend scattering data temperature range (allow ice at positive atm temps)
 #--------------------------------------------------------------
 ScatSpeciesExtendTemperature( species="IWC", T_high=350. )
 
-scat_dataCheck
+scat_dataCheck( scat_data=scat_data_raw )
 
 # 7.AGENDAS--------------------------------------------------------------
 #------------------------------------------------------------------------
@@ -267,7 +269,7 @@ AgendaSet( ybatch_calc_agenda ){
   # Consistency checks
   atmfields_checkedCalc( bad_partition_functions_ok = 1 )
   atmgeom_checkedCalc
-  cloudbox_checkedCalc  
+  cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
   sensor_checkedCalc
 
   # Initialize Doit variables

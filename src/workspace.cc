@@ -4459,11 +4459,40 @@ void Workspace::define_wsv_data()
       ( NAME( "scat_data" ),
         DESCRIPTION
         (
+         "Array of single scattering data.\n"
+         "\n"
+         "As *scat_data_raw*, but with frequency grids and dimensions reduced\n"
+         "to the RT's *f_grid* or a single frequency entry. Also, temperature\n"
+         "grid or dimensions can be reduced to a single entry, meaning no\n"
+         "temperature interpolation is done for the respective data.\n"
+         "\n"
+         "Standard approach to derive scat_data is to use *scat_dataCalc* to\n"
+         "derive it from *scat_data_raw*."
+         ),
+        GROUP( "ArrayOfArrayOfSingleScatteringData" )));
+   
+   wsv_data.push_back
+     (WsvRecord
+      ( NAME( "scat_data_checked" ),
+        DESCRIPTION
+        (
+         "OK-flag for *scat_data*.\n"
+         "\n"
+         "Relevant checks are performed by *scat_data_checkedCalc. Only the\n"
+         "value 1 is taken as OK.\n"
+         ),
+        GROUP( "Index" )));
+
+   wsv_data.push_back
+     (WsvRecord
+      ( NAME( "scat_data_raw" ),
+        DESCRIPTION
+        (
          "Array of raw single scattering data.\n"
          "\n"
          "This variable holds the single scattering properties for all \n"
          "scattering elements, organized according to their assignment to a\n"
-         "scattering species. *scat_data* entries can be derived from\n"
+         "scattering species. *scat_data_raw* entries can be derived from\n"
          "precalculated data files using the methods *ScatElementsPndAndScatAdd*,\n"
          "*ScatSpeciesPndAndScatAdd*, or *ScatSpeciesScatAndMetaRead* or\n" 
          "can be calculated using *scat_data_singleTmatrix*.\n"
@@ -4489,29 +4518,6 @@ void Workspace::define_wsv_data()
          "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
          "\n"
          "Dimensions: [number of scattering species][number of scattering elements] \n"
-         ),
-        GROUP( "ArrayOfArrayOfSingleScatteringData" )));
-   
-   wsv_data.push_back
-     (WsvRecord
-      ( NAME( "scat_data_checked" ),
-        DESCRIPTION
-        (
-         "OK-flag for *scat_data*.\n"
-         "\n"
-         "Relevant checks are performed by *scat_data_checkedCalc. Only the\n"
-         "value 1 is taken as OK.\n"
-         ),
-        GROUP( "Index" )));
-
-   wsv_data.push_back
-     (WsvRecord
-      ( NAME( "scat_data_raw" ),
-        DESCRIPTION
-        (
-         "Array of raw single scattering data.\n"
-         "\n"
-         "TBD\n"
          ),
         GROUP( "ArrayOfArrayOfSingleScatteringData" )));
    

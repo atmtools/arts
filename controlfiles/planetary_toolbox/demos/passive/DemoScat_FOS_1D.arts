@@ -52,6 +52,7 @@ Arts2 {
 # do NOT modify
 IndexCreate( scatorder )
 
+
 ################################################################################
 # START USER SETTINGS - Modify settings according to you wishes                #
 ################################################################################
@@ -164,6 +165,7 @@ jacobianOff
 #####
 atmfields_checkedCalc( bad_partition_functions_ok=bad_partition_functions_ok )
 atmgeom_checkedCalc
+scat_dataCalc
 cloudbox_checkedCalc
 propmat_clearsky_agenda_checkedCalc 
 

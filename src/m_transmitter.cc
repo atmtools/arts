@@ -394,16 +394,20 @@ void iyRadioLink(
         }
       else
         {
+          // Extract basic scattering data
           Array<ArrayOfArrayOfSingleScatteringData> scat_data_single;
           ArrayOfArrayOfIndex                       extmat_case;          
           Tensor3                                   pnd_abs_vec;
-          //
-          get_ppath_partopt( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, 
-                         scat_data_single, ppath_pnd, dummy_ppath_dpnd_dx,
-                         ppath, ppath_t, stokes_dim, ppath_f, atmosphere_dim,
-                         cloudbox_limits, pnd_field, dummy_dpnd_field_dx,
-                         use_mean_scat_data, scat_data, scat_data_checked, verbosity );
-          
+
+          get_ppath_cloudvars( clear2cloudbox, ppath_pnd, dummy_ppath_dpnd_dx,
+                               ppath, atmosphere_dim, cloudbox_limits,
+                               pnd_field, dummy_dpnd_field_dx );
+          get_ppath_partopt( pnd_abs_vec, pnd_ext_mat, scat_data_single,
+                             clear2cloudbox, ppath_pnd,
+                             ppath, ppath_t, stokes_dim, ppath_f, atmosphere_dim,
+                             use_mean_scat_data, scat_data, scat_data_checked,
+                             verbosity );
+
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
                             scalar_tau, ppath, ppath_ext, f_grid, stokes_dim, 
                             clear2cloudbox, pnd_ext_mat );

@@ -88,7 +88,7 @@ scat_data_monoCalc
 #For some reason SingleScatteringData binary files can't be loaded 
 output_file_formatSetAscii
 
-WriteXML( output_file_format, scat_data )
+WriteXML( output_file_format, scat_data_raw )
 
 WriteXML( output_file_format, scat_data_mono )
 

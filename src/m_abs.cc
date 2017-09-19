@@ -2766,10 +2766,17 @@ void propmat_clearskyAddParticles(
                                     const Vector& rtp_los,
                                     const Numeric& rtp_temperature,
                                     const ArrayOfArrayOfSingleScatteringData& scat_data,
+                                    const Index& scat_data_checked,
                                     const Index& use_abs_as_ext,
                                     // Verbosity object:
                                     const Verbosity& verbosity)
 {
+  CREATE_OUT2;
+
+  if( scat_data_checked != 1 )
+    throw runtime_error( "The scat_data must be flagged to have "
+                         "passed a consistency check (scat_data_checked=1)." );
+
   const Index ns = TotalNumberOfElements(scat_data);
   Index np = 0;
   for( Index sp = 0; sp < abs_species.nelem(); sp++ )
@@ -2783,7 +2790,7 @@ void propmat_clearskyAddParticles(
   if( np == 0 )
     {
        ostringstream os; 
-       os << "For applying propmat_clearskyAddParticles, abs_species needs to"
+       os << "For applying propmat_clearskyAddParticles, *abs_species* needs to"
           << "contain species 'particles', but it does not.\n";
        throw runtime_error( os.str() );
     }
@@ -2792,16 +2799,16 @@ void propmat_clearskyAddParticles(
     {
       ostringstream os; 
       os << "Number of 'particles' entries in abs_species and of elements in\n"
-         << "scat_data needs to be identical. But you have " << np
+         << "*scat_data* needs to be identical. But you have " << np
          << " 'particles' entries\n"
-         << "and " << ns << " scat_data elements.\n";
+         << "and " << ns << " *scat_data* elements.\n";
       throw runtime_error( os.str() );
     }
 
   if( atmosphere_dim==1 && rtp_los.nelem() < 1 )
     {
        ostringstream os; 
-       os << "For applying propmat_clearskyAddParticles, los needs to be specified\n"
+       os << "For applying *propmat_clearskyAddParticles*, *rtp_los* needs to be specified\n"
           << "(at least zenith angle component for atmosphere_dim==1),\n"
           << "but it is not.\n";
        throw runtime_error( os.str() );
@@ -2809,7 +2816,7 @@ void propmat_clearskyAddParticles(
   else if(  atmosphere_dim>1 && rtp_los.nelem() < 2 )
     {
        ostringstream os; 
-       os << "For applying propmat_clearskyAddParticles, los needs to be specified\n"
+       os << "For applying *propmat_clearskyAddParticles*, *rtp_los* needs to be specified\n"
           << "(both zenith and azimuth angle components for atmosphere_dim>1),\n"
           << "but it is not.\n";
        throw runtime_error( os.str() );
@@ -2834,21 +2841,29 @@ void propmat_clearskyAddParticles(
   Vector pnd_abs_vec(stokes_dim), pnd_abs_vec_df(stokes_dim), pnd_abs_vec_dt(stokes_dim);
   Vector f_grid_df;
   
+  // 170918 JM: along with transition to use of new-type (aka
+  // pre-f_grid-interpolated) scat_data, freq perturbation switched off. Typical
+  // clear-sky freq perturbations yield insignificant effects in particle
+  // properties. Hence, the effort to make scat_data_monoCalc safely usable with
+  // new-type scat_data is too high, and therefore this feature is neglected
+  // here.
   if(ppd.do_frequency())
   {
-    f_grid_df = f_grid;
-    f_grid_df += ppd.Frequency_Perturbation();
+    out2 << "WARNING:\n"
+         << "Frequency perturbation not available for absorbing particles.\n";
+    //f_grid_df = f_grid;
+    //f_grid_df += ppd.Frequency_Perturbation();
   }
   
   for( Index iv=0; iv<nf; iv++ )
     { 
       // first, get the scat_data_single at the required frequency. we can do that for
       // all scattering elements at once.
-      scat_data_monoCalc( scat_data_mono, scat_data, f_grid, iv, 
-                          verbosity );
-      if(ppd.do_frequency())
-        scat_data_monoCalc( scat_data_mono_df, scat_data, f_grid_df, iv, 
-                            verbosity );
+      scat_data_monoExtract( scat_data_mono, scat_data, iv, verbosity );
+      // 170918 JM: switched off (see above)
+      //if(ppd.do_frequency())
+      //  scat_data_monoCalc( scat_data_mono_df, scat_data, f_grid_df, iv, 
+      //                      verbosity );
 
       // then we loop over the scat_data and link them with correct vmr_field
       // entry according to the position of the particle type entries in
@@ -2863,8 +2878,6 @@ void propmat_clearskyAddParticles(
             abs_species[sp][0].Type() != SpeciesTag::TYPE_PARTICLES )
             sp++;
           
-          //cout << "redone: found " << i_se << "th particle entry at abs_species "
-          //     << "entry #" << sp << "\n";
           // running beyond number of abs_species entries when looking for
           // next particle entry. shouldn't happen, though.
           assert ( sp < na );
@@ -2883,6 +2896,7 @@ void propmat_clearskyAddParticles(
             pnd_abs_vec *= rtp_vmr[sp];
             
             // For wind derivatives
+            /*
             if(ppd.do_frequency())
             {
               opt_propExtract(pnd_ext_mat_df, pnd_abs_vec_df,
@@ -2892,6 +2906,7 @@ void propmat_clearskyAddParticles(
               pnd_ext_mat_df *= rtp_vmr[sp];
               pnd_abs_vec_df *= rtp_vmr[sp];
             }
+            */
             
             // For temperature derivatives
             if(ppd.do_temperature())

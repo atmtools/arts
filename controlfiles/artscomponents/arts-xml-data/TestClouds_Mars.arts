@@ -219,13 +219,15 @@ AgendaSet( forloop_agenda_particles ){
   #Print( assd, 0 )
   ScatSpeciesInit
   ScatElementsPndAndScatAdd( scat_data_files=assd, pnd_field_files=[""] )
+  scat_dataCalc
+  #scat_dataCheck
   ReadXML( pnd_field_raw, pndname )
-  #scat_data_rawCheck
   pnd_fieldCalcFrompnd_field_raw( zeropadding=1 )
 
   atmfields_checkedCalc( bad_partition_functions_ok = 1 )
   atmgeom_checkedCalc
   cloudbox_checkedCalc
+  scat_data_checkedCalc
   sensor_checkedCalc
   propmat_clearsky_agenda_checkedCalc 
 

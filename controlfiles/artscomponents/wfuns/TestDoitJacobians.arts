@@ -78,12 +78,12 @@ ReadXML( scat_data_files, "scattering/H2O_ice/SingleScatteringFile_allH2Oice.xml
 ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
 ReadXML( scat_data_files, "scattering/H2O_liquid/SingleScatteringFile_allH2Oliquid.xml" )
 ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
-ScatElementsSelect( species="LWC", sizeparam="diameter_volume_equ",
+ScatElementsSelect( scat_data=scat_data_raw, species="LWC", sizeparam="diameter_volume_equ",
                     sizemin=0.1e-6, sizemax=2000e-6 )
-ScatElementsSelect( species="IWC", sizeparam="diameter_volume_equ",
+ScatElementsSelect( scat_data=scat_data_raw, species="IWC", sizeparam="diameter_volume_equ",
                     sizemin=0.1e-6, sizemax=2000e-6 )
-#ScatElementsSelect( species="RR", sizeparam="diameter_volume_equ" )
-#ScatElementsSelect( species="SR", sizeparam="diameter_volume_equ" )
+#ScatElementsSelect( scat_data=scat_data_raw, species="RR", sizeparam="diameter_volume_equ" )
+#ScatElementsSelect( scat_data=scat_data_raw, species="SR", sizeparam="diameter_volume_equ" )
 
 
 doit_za_interpSet( doit_za_interp, atmosphere_dim, "linear" )
@@ -196,7 +196,7 @@ AgendaSet( ybatch_calc_agenda ){
   # Consistency checks
   atmgeom_checkedCalc
   atmfields_checkedCalc( bad_partition_functions_ok = 1 )
-  cloudbox_checkedCalc
+  cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
   sensor_checkedCalc
   propmat_clearsky_agenda_checkedCalc
 
@@ -223,12 +223,12 @@ AgendaSet( ybatch_calc_agenda ){
 
   # when doing no ScatSpeciesMerge (neither here, nor in
   # jacobianDoit!), comment out this complete block
-  Copy( scat_data_orig, scat_data )
+  Copy( scat_data_orig, scat_data_raw )
   Copy( scat_meta_orig, scat_meta )
   Copy( scat_species_orig, scat_species )
   Copy( pnd_field_orig, pnd_field )
-  ScatSpeciesMerge
-  cloudbox_checkedCalc
+  ScatSpeciesMerge( scat_data=scat_data_raw )
+  cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
 
   # Initialize Doit variables
   DoitInit
@@ -247,7 +247,7 @@ AgendaSet( ybatch_calc_agenda ){
   Copy( doit_conv_test_agenda, doit_conv_test_agenda_perturb )
   # Comment that out if ScatSpeciesMerge not used (neither here, nor in
   # jacobianDoit!)
-  Copy( scat_data, scat_data_orig )
+  Copy( scat_data_raw, scat_data_orig )
   Copy( scat_meta, scat_meta_orig )
   Copy( scat_species, scat_species_orig )
   Copy( pnd_field, pnd_field_orig )

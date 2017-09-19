@@ -347,13 +347,15 @@ void iyActiveSingleScat(
                       f_grid, stokes_dim, ArrayOfIndex(0) );
       
           // Extract basic scattering data
-          //Tensor3              pnd_abs_vec;
-          //
-          get_ppath_partopt( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data_single,
-                     ppath_pnd, ppath_dpnd_dx, ppath, ppath_t, stokes_dim, ppath_f, 
-                     atmosphere_dim, cloudbox_limits, pnd_field, dpnd_field_dx,
-                     0, scat_data, scat_data_checked, verbosity );
-      
+          get_ppath_cloudvars( clear2cloudbox, ppath_pnd, ppath_dpnd_dx,
+                       ppath, atmosphere_dim, cloudbox_limits,
+                       pnd_field, dpnd_field_dx );
+          get_ppath_partopt( pnd_abs_vec, pnd_ext_mat, scat_data_single,
+                             clear2cloudbox, ppath_pnd,
+                             ppath, ppath_t, stokes_dim, ppath_f, atmosphere_dim,
+                             0, scat_data, scat_data_checked,
+                             verbosity );
+
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, scalar_tau, 
                         ppath, ppath_ext, f_grid, stokes_dim, 
                         clear2cloudbox, pnd_ext_mat );

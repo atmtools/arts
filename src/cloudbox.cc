@@ -443,7 +443,7 @@ void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data,
     ostringstream os;
     os << "The number of elements in in current scat_species'  *scat_data* and "
        << "*scat_meta* do not match.\n"
-       << "Each scat_data entry must correspond to one entry in scat_meta.";
+       << "Each *scat_data* entry must correspond to one entry in *scat_meta*.";
     throw runtime_error( os.str());
   }
 

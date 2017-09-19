@@ -142,7 +142,7 @@ ScatElementsPndAndScatAdd(
                    "testdata/scatData/azi-random_f229-231T214-225r100NP-1ar1_5ice.xml"],
   pnd_field_files=["testdata/testdoit_pnd_field_1D.xml",
                    "testdata/testdoit_pnd_field_1D.xml"] )
-scat_dataCheck
+scat_dataCheck( scat_data = scat_data_raw )
 pnd_fieldCalcFrompnd_field_raw
 # rescaling back to pnd equivalent to only one scattering element. in a true
 # case, this is NOT needed!

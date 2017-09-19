@@ -10,11 +10,15 @@ VectorSetConstant( surface_scalar_reflectivity, 1, 0.2 )
 # Cloud variables
 #
 cloudboxSetFullAtm
+#cloudboxSetAutomatically( particle_field=scat_species_mass_density_field )
+#cloudboxSetAutomatically( particle_field=scat_species_mass_flux_field,
+#                          cloudbox_limits_old=cloudbox_limits )
+#cloudboxSetAutomatically( particle_field=scat_species_number_density_field,
+#                          cloudbox_limits_old=cloudbox_limits )
+#cloudboxSetAutomatically( particle_field=scat_species_mean_mass_field,
+#                          cloudbox_limits_old=cloudbox_limits )
 pnd_fieldCalcFromscat_speciesFields
 
-Copy( scat_data_raw, scat_data )
-scat_dataCalc
-scat_data_checkedCalc
 
 #cloudboxOff
 #pnd_fieldZero
@@ -23,8 +27,9 @@ scat_data_checkedCalc
 # Consistency checks
 atmfields_checkedCalc
 atmgeom_checkedCalc
-cloudbox_checkedCalc( scat_data_fcheck="new" )
+cloudbox_checkedCalc
 sensor_checkedCalc
+scat_data_checkedCalc
 
 
 # Pure RT4
@@ -41,8 +46,8 @@ RT4Calc
 yCalc
 Print( y, 0 )
 
-VectorCreate( yREFERENCE )
-Copy( yREFERENCE, y )
+VectorCreate( yref_RT4 )
+Copy( yref_RT4, y )
 
 
 # Hybrid calculations
@@ -63,9 +68,12 @@ yCalc
 Print( y, 0 )
 #WriteXML( in=y )
 
-Compare( y, yREFERENCE, 2. )
+# Compare iyHybrid with RT4 as background solver to RT4-based "standard" yCalc
+Compare( y, yref_RT4, 2. )
 
+VectorCreate( yREFERENCE )
 ReadXML( yREFERENCE, "yREFERENCE.xml" )
+# Compare iyHybrid with RT4 as background solver to its own reference solution
 Compare( y, yREFERENCE, 1e-2 )
 
 AgendaSet( iy_main_agenda ){
@@ -77,6 +85,7 @@ AgendaSet( iy_main_agenda ){
 yCalc
 Print( y, 0 )
 
+# Compare iyHybrid2 to iyHybrid (both with RT4 as background solver)
 Compare( y, yREFERENCE, 1e-1 )
 
 }
