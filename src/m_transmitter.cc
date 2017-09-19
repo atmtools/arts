@@ -364,7 +364,7 @@ void iyRadioLink(
   ArrayOfArrayOfStokesVector dummy_dppath_nlte_dx;
   ArrayOfStokesVector      dummy_ppath_nlte_source;
   Vector       scalar_tau;
-  ArrayOfIndex clear2cloudbox, dummy_lte;
+  ArrayOfIndex clear2cloudy, dummy_lte;
   ArrayOfMatrix        dummy_ppath_dpnd_dx;
   ArrayOfTensor4       dummy_dpnd_field_dx;
   const Tensor4 t_nlte_field_empty(0,0,0,0);
@@ -399,18 +399,18 @@ void iyRadioLink(
           ArrayOfArrayOfIndex                       extmat_case;          
           Tensor3                                   pnd_abs_vec;
 
-          get_ppath_cloudvars( clear2cloudbox, ppath_pnd, dummy_ppath_dpnd_dx,
+          get_ppath_cloudvars( clear2cloudy, ppath_pnd, dummy_ppath_dpnd_dx,
                                ppath, atmosphere_dim, cloudbox_limits,
                                pnd_field, dummy_dpnd_field_dx );
           get_ppath_partopt( pnd_abs_vec, pnd_ext_mat, scat_data_single,
-                             clear2cloudbox, ppath_pnd,
+                             clear2cloudy, ppath_pnd,
                              ppath, ppath_t, stokes_dim, ppath_f, atmosphere_dim,
                              use_mean_scat_data, scat_data, scat_data_checked,
                              verbosity );
 
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
                             scalar_tau, ppath, ppath_ext, f_grid, stokes_dim, 
-                            clear2cloudbox, pnd_ext_mat );
+                            clear2cloudy, pnd_ext_mat );
         }
     }
 
@@ -454,9 +454,9 @@ void iyRadioLink(
       if( cloudbox_on  )
         {
           // Extinction
-          if( auxPartExt >= 0  && clear2cloudbox[np-1] >= 0 ) 
+          if( auxPartExt >= 0  && clear2cloudy[np-1] >= 0 ) 
             { 
-              const Index ic = clear2cloudbox[np-1];
+              const Index ic = clear2cloudy[np-1];
               for( Index iv=0; iv<nf; iv++ ) {
                 for( Index is1=0; is1<ns; is1++ ){
                   for( Index is2=0; is2<ns; is2++ ){
@@ -542,9 +542,9 @@ void iyRadioLink(
           if( cloudbox_on ) 
             {
               // Extinction
-              if( auxPartExt >= 0  &&  clear2cloudbox[ip] >= 0 ) 
+              if( auxPartExt >= 0  &&  clear2cloudy[ip] >= 0 ) 
                 { 
-                  const Index ic = clear2cloudbox[ip];
+                  const Index ic = clear2cloudy[ip];
                   for( Index iv=0; iv<nf; iv++ ) {
                     for( Index is1=0; is1<ns; is1++ ){
                       for( Index is2=0; is2<ns; is2++ ){
@@ -986,7 +986,7 @@ void iyTransmissionStandard(
   Tensor3             pnd_abs_vec;
   Tensor4             trans_partial, trans_cumulat;
   Vector              scalar_tau;
-  ArrayOfIndex        clear2cloudbox;
+  ArrayOfIndex        clear2cloudy;
   ArrayOfArrayOfIndex extmat_case;   
   ArrayOfArrayOfPropagationMatrix dppath_ext_dx;
   ArrayOfArrayOfStokesVector dppath_nlte_dx, dppath_nlte_source_dx;
@@ -1009,7 +1009,7 @@ void iyTransmissionStandard(
       get_ppath_pmat_and_tmat( ws, ppath_ext, ppath_nlte_source, lte, abs_per_species,
                                dppath_ext_dx, dppath_nlte_source_dx,
                                trans_partial, dtrans_partial_dx_above,
-                               dtrans_partial_dx_below, extmat_case, clear2cloudbox,
+                               dtrans_partial_dx_below, extmat_case, clear2cloudy,
                                trans_cumulat, scalar_tau, pnd_ext_mat, pnd_abs_vec,
                                ppath_pnd, dummy_ppath_dpnd_dx, scat_data_single,
                                propmat_clearsky_agenda, jacobian_quantities,
@@ -1089,9 +1089,9 @@ void iyTransmissionStandard(
       if( cloudbox_on  )
         {
           // Extinction
-          if( auxPartExt >= 0  && clear2cloudbox[np-1] >= 0 ) 
+          if( auxPartExt >= 0  && clear2cloudy[np-1] >= 0 ) 
             { 
-              const Index ic = clear2cloudbox[np-1];
+              const Index ic = clear2cloudy[np-1];
               for( Index iv=0; iv<nf; iv++ ) {
                 for( Index is1=0; is1<ns; is1++ ){
                   for( Index is2=0; is2<ns; is2++ ){
@@ -1263,9 +1263,9 @@ void iyTransmissionStandard(
           if( cloudbox_on ) 
             {
               // Extinction
-              if( auxPartExt >= 0  &&  clear2cloudbox[ip] >= 0 ) 
+              if( auxPartExt >= 0  &&  clear2cloudy[ip] >= 0 ) 
                 { 
-                  const Index ic = clear2cloudbox[ip];
+                  const Index ic = clear2cloudy[ip];
                   for( Index iv=0; iv<nf; iv++ ) {
                     for( Index is1=0; is1<ns; is1++ ){
                       for( Index is2=0; is2<ns; is2++ ){

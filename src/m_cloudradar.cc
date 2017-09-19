@@ -296,7 +296,7 @@ void iyActiveSingleScat(
   Tensor3             pnd_abs_vec;
   Tensor4 trans_partial, trans_cumulat;
   Vector              scalar_tau;
-  ArrayOfIndex        clear2cloudbox;
+  ArrayOfIndex        clear2cloudy;
   ArrayOfArrayOfIndex extmat_case;   
   ArrayOfArrayOfPropagationMatrix dppath_ext_dx;
   ArrayOfArrayOfStokesVector dppath_nlte_dx, dppath_nlte_source_dx;
@@ -323,7 +323,7 @@ void iyActiveSingleScat(
           get_ppath_pmat_and_tmat( ws, ppath_ext, ppath_nlte_source, lte, abs_per_species,
                                dppath_ext_dx, dppath_nlte_source_dx,
                                trans_partial, dtrans_partial_dx_above,
-                               dtrans_partial_dx_below, extmat_case, clear2cloudbox,
+                               dtrans_partial_dx_below, extmat_case, clear2cloudy,
                                trans_cumulat, scalar_tau, pnd_ext_mat, pnd_abs_vec,
                                ppath_pnd, ppath_dpnd_dx, scat_data_single,
                                propmat_clearsky_agenda, jacobian_quantities,
@@ -347,18 +347,18 @@ void iyActiveSingleScat(
                       f_grid, stokes_dim, ArrayOfIndex(0) );
       
           // Extract basic scattering data
-          get_ppath_cloudvars( clear2cloudbox, ppath_pnd, ppath_dpnd_dx,
+          get_ppath_cloudvars( clear2cloudy, ppath_pnd, ppath_dpnd_dx,
                        ppath, atmosphere_dim, cloudbox_limits,
                        pnd_field, dpnd_field_dx );
           get_ppath_partopt( pnd_abs_vec, pnd_ext_mat, scat_data_single,
-                             clear2cloudbox, ppath_pnd,
+                             clear2cloudy, ppath_pnd,
                              ppath, ppath_t, stokes_dim, ppath_f, atmosphere_dim,
                              0, scat_data, scat_data_checked,
                              verbosity );
 
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, scalar_tau, 
                         ppath, ppath_ext, f_grid, stokes_dim, 
-                        clear2cloudbox, pnd_ext_mat );
+                        clear2cloudy, pnd_ext_mat );
         }
     }
 
@@ -385,7 +385,7 @@ void iyActiveSingleScat(
 
       
       // Radar return only possible if inside cloudbox
-      if( clear2cloudbox[ip] >= 0 )
+      if( clear2cloudy[ip] >= 0 )
         {
           for( Index iv=0; iv<nf; iv++ )
             {

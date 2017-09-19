@@ -1,3 +1,29 @@
+2017-09-19 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-797
+
+	* src/m_fos.cc, src/methods.cc(iyHybrid2),
+	src/rte.[cc,h] (get_stepwise_scattersky_propmat):
+	Revised scatt-sky optical property extraction and added derivatives to
+	this. Removed ppath(d)pnd(_dx) calc from get_stepwise_scattersky_propmat,
+	instead do this outside the level-loop at once using the dedicated
+	function get_ppath_cloudvars.
+
+	* src/m_fos.cc, src/methods.cc(iyHybrid):
+	Make dpnd_field_dx and input.
+
+	* src/m_cloudradar.cc, src/m_fos.cc, src/m_transmitter.cc, src/m_rte.cc,
+	src/rte.[cc,h]:
+	Renamed clear2cloudbox to clear2cloudy as it is not only checking/
+	flagging whether in cloudbox, but even whether any non-zero pnd exist at
+	the level in question.
+
+	* controlfiles/artscomponents/hybridscat/TestHybrid.arts:
+	Adapt for now required Jacobian input.
+
+	* CHANGES-2.3:
+	Update with (some of) the recent changes.
+
 2017-09-18 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-796

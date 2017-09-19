@@ -267,7 +267,7 @@ void fos(
   Tensor3      pnd_abs_vec;
   ArrayOfStokesVector ppath_nlte_source;
   Vector       scalar_tau;
-  ArrayOfIndex   clear2cloudbox, lte;
+  ArrayOfIndex   clear2cloudy, lte;
   ArrayOfMatrix   dummy_ppath_dpnd_dx;
   ArrayOfTensor4  dummy_dpnd_field_dx;
   const Tensor4   t_nlte_field_empty(0,0,0,0);
@@ -308,17 +308,17 @@ void fos(
         }
       else
         {
-          get_ppath_cloudvars( clear2cloudbox, ppath_pnd, dummy_ppath_dpnd_dx,
-                       ppath, atmosphere_dim, cloudbox_limits,
-                       pnd_field, dummy_dpnd_field_dx );
+          get_ppath_cloudvars( clear2cloudy, ppath_pnd, dummy_ppath_dpnd_dx,
+                               ppath, atmosphere_dim, cloudbox_limits,
+                               pnd_field, dummy_dpnd_field_dx );
           get_ppath_partopt( pnd_abs_vec, pnd_ext_mat, scat_data_single,
-                             clear2cloudbox, ppath_pnd,
+                             clear2cloudy, ppath_pnd,
                              ppath, ppath_t, stokes_dim, ppath_f, atmosphere_dim,
                              use_mean_scat_data, scat_data, scat_data_checked,
                              verbosity );
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
                             scalar_tau, ppath, ppath_ext, f_grid, stokes_dim, 
-                            clear2cloudbox, pnd_ext_mat );
+                            clear2cloudy, pnd_ext_mat );
         }      
     }
   else // For cases totally outside the atmosphere,
@@ -438,8 +438,8 @@ void fos(
                                  ppath_blackrad(iv,ip+1) ); }
 
           // Check if any particles to consider
-          bool any_particles = clear2cloudbox[ip] >= 0 || 
-                               clear2cloudbox[ip+1] >= 0;
+          bool any_particles = clear2cloudy[ip] >= 0 || 
+                               clear2cloudy[ip+1] >= 0;
 
           // -----------------------------------------------------------------
           // i = N (only absorption/emission)
@@ -465,12 +465,12 @@ void fos(
                       //
                       Matrix pabs_mat(ns,ns,0);
                       //
-                      if( clear2cloudbox[ip] >= 0 )
+                      if( clear2cloudy[ip] >= 0 )
                         { ext_matFromabs_vec( pabs_mat, pnd_abs_vec(iv,joker,
-                                          clear2cloudbox[ip]), stokes_dim ); } 
-                      if( clear2cloudbox[ip+1] >= 0 )
+                                          clear2cloudy[ip]), stokes_dim ); } 
+                      if( clear2cloudy[ip+1] >= 0 )
                         { ext_matFromabs_vec( pabs_mat, pnd_abs_vec(iv,joker,
-                                        clear2cloudbox[ip+1]), stokes_dim ); } 
+                                        clear2cloudy[ip+1]), stokes_dim ); } 
 
                       // Transmission of step
                       Matrix ext_mat(stokes_dim,stokes_dim);  
@@ -517,7 +517,7 @@ void fos(
               else
                 {
                   // Determine scattering source term at ip
-                  if( clear2cloudbox[ip] < 0 )
+                  if( clear2cloudy[ip] < 0 )
                     { ssource0 = 0; }
                   else
                     {
@@ -649,31 +649,31 @@ void fos(
                             }
                         }
                       // Particle contribution
-                      if( clear2cloudbox[ip] >= 0 )
+                      if( clear2cloudy[ip] >= 0 )
                         {
                           for( Index is1=0; is1<stokes_dim; is1++ )
                             { 
                               sbar[is1]    += 0.5 * ssource0(iv,is1); 
                               abs_vec[is1] += 0.5 * (
-                                     pnd_abs_vec(iv,is1,clear2cloudbox[ip]) );
+                                     pnd_abs_vec(iv,is1,clear2cloudy[ip]) );
                               for( Index is2=0; is2<stokes_dim; is2++ )
                                 {
                                   ext_mat(is1,is2) += 0.5 * (
-                                    pnd_ext_mat[clear2cloudbox[ip]](iv,is1,is2) );
+                                    pnd_ext_mat[clear2cloudy[ip]](iv,is1,is2) );
                                 }
                             }
                         }
-                      if( clear2cloudbox[ip+1] >= 0 )
+                      if( clear2cloudy[ip+1] >= 0 )
                         {
                           for( Index is1=0; is1<stokes_dim; is1++ )
                             { 
                               sbar[is1]    += 0.5 * ssource1(iv,is1); 
                               abs_vec[is1] += 0.5 * (
-                                    pnd_abs_vec(iv,is1,clear2cloudbox[ip+1]) );
+                                    pnd_abs_vec(iv,is1,clear2cloudy[ip+1]) );
                               for( Index is2=0; is2<stokes_dim; is2++ )
                                 {
                                   ext_mat(is1,is2) += 0.5 * (
-                                    pnd_ext_mat[clear2cloudbox[ip+1]](iv,is1,is2));
+                                    pnd_ext_mat[clear2cloudy[ip+1]](iv,is1,is2));
                                 }
                             }
                         }
@@ -898,6 +898,7 @@ void iyHybrid(
    const Index&                       cloudbox_on,
    const ArrayOfIndex&                cloudbox_limits,
    const Tensor4&                     pnd_field,
+   const ArrayOfTensor4&              dpnd_field_dx,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
    const Index&                       scat_data_checked,
    const Matrix&                      particle_masses,
@@ -1242,21 +1243,20 @@ void iyHybrid(
   Matrix              ppath_vmr, ppath_pnd, ppath_wind, ppath_mag;
   Matrix              ppath_f, ppath_t_nlte;
   Matrix              ppath_blackrad, dppath_blackrad_dt;
-  ArrayOfArrayOfPropagationMatrix abs_per_species;
+  ArrayOfMatrix       ppath_dpnd_dx;
   Tensor5             dtrans_partial_dx_above, dtrans_partial_dx_below;
-  ArrayOfPropagationMatrix ppath_ext, pnd_ext_mat;
-  Tensor3             pnd_abs_vec;
-  Tensor4 trans_partial, trans_cumulat;
   Vector              scalar_tau;
-  ArrayOfIndex        clear2cloudbox;
-  ArrayOfArrayOfIndex extmat_case;   
+  Tensor3             pnd_abs_vec;
+  ArrayOfPropagationMatrix pnd_ext_mat, ppath_ext;
   ArrayOfArrayOfPropagationMatrix dppath_ext_dx;
+  Tensor4             ppath_scat_source;
+  ArrayOfStokesVector ppath_nlte_source;
   ArrayOfArrayOfStokesVector  dppath_nlte_dx, dppath_nlte_source_dx;
-  Tensor4                     ppath_scat_source;
-  ArrayOfStokesVector         ppath_nlte_source;
+  Tensor4             trans_partial, trans_cumulat;
+  ArrayOfArrayOfPropagationMatrix abs_per_species;
+  ArrayOfIndex        clear2cloudy;
   ArrayOfIndex        lte;
-  ArrayOfMatrix       dummy_ppath_dpnd_dx;
-  ArrayOfTensor4      dummy_dpnd_field_dx;
+  ArrayOfArrayOfIndex extmat_case;   
   Array<ArrayOfArrayOfSingleScatteringData> scat_data_single;
   
   if( np > 1 )
@@ -1273,16 +1273,16 @@ void iyHybrid(
       get_ppath_pmat_and_tmat( ws, ppath_ext, ppath_nlte_source, lte, abs_per_species,
                                dppath_ext_dx, dppath_nlte_source_dx,
                                trans_partial, dtrans_partial_dx_above,
-                               dtrans_partial_dx_below, extmat_case, clear2cloudbox,
+                               dtrans_partial_dx_below, extmat_case, clear2cloudy,
                                trans_cumulat, scalar_tau, pnd_ext_mat, pnd_abs_vec,
-                               ppath_pnd, dummy_ppath_dpnd_dx, scat_data_single,
+                               ppath_pnd, ppath_dpnd_dx, scat_data_single,
                                propmat_clearsky_agenda, jacobian_quantities,
                                ppd, ppath, ppath_p, ppath_t, ppath_t_nlte,
                                ppath_vmr, ppath_mag, ppath_f, f_grid, 
                                jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,
                                jac_to_integrate, jac_other, iaps,
                                scat_data, scat_data_checked,
-                               pnd_field, dummy_dpnd_field_dx,
+                               pnd_field, dpnd_field_dx,
                                cloudbox_limits, 0,
                                atmosphere_dim, stokes_dim,
                                jacobian_do, cloudbox_on, verbosity );
@@ -1427,9 +1427,9 @@ void iyHybrid(
       if( cloudbox_on  )
         {
           // Extinction
-          if( auxPartExt >= 0  && clear2cloudbox[np-1] >= 0 ) 
+          if( auxPartExt >= 0  && clear2cloudy[np-1] >= 0 ) 
             { 
-              const Index ic = clear2cloudbox[np-1];
+              const Index ic = clear2cloudy[np-1];
               for( Index iv=0; iv<nf; iv++ ) {
                 for( Index is1=0; is1<ns; is1++ ){
                   for( Index is2=0; is2<ns; is2++ ){
@@ -1495,10 +1495,10 @@ void iyHybrid(
               // Emission and total source term
               //
               pabs = 0.;
-              if( clear2cloudbox[ip] > -1 )
-                pabs[0] = pnd_abs_vec(iv,is1,clear2cloudbox[ip]);
-              if( clear2cloudbox[ip+1] > -1 )
-                pabs[1] = pnd_abs_vec(iv,is1,clear2cloudbox[ip+1]);
+              if( clear2cloudy[ip] > -1 )
+                pabs[0] = pnd_abs_vec(iv,is1,clear2cloudy[ip]);
+              if( clear2cloudy[ip+1] > -1 )
+                pabs[1] = pnd_abs_vec(iv,is1,clear2cloudy[ip+1]);
 
               sourcebar(iv,is1) = 0.5 * (
                                   bulk_scat_source[0] + bulk_scat_source[1] //particle scattering contrib
@@ -1509,12 +1509,12 @@ void iyHybrid(
 
               // Extinction
               pext = 0.;
-              if( clear2cloudbox[ip] > -1 )
+              if( clear2cloudy[ip] > -1 )
                 for( Index is2=0; is2<stokes_dim; is2++ )
-                  pext(0,is2) = pnd_ext_mat[clear2cloudbox[ip]](iv,is1,is2);
-              if( clear2cloudbox[ip+1] > -1 )
+                  pext(0,is2) = pnd_ext_mat[clear2cloudy[ip]](iv,is1,is2);
+              if( clear2cloudy[ip+1] > -1 )
                 for( Index is2=0; is2<stokes_dim; is2++ )
-                  pext(1,is2) = pnd_ext_mat[clear2cloudbox[ip+1]](iv,is1,is2);
+                  pext(1,is2) = pnd_ext_mat[clear2cloudy[ip+1]](iv,is1,is2);
               for( Index is2=0; is2<stokes_dim; is2++ )  
               {
                 extbar(iv,is1,is2) = 0.5 * ( 
@@ -1618,9 +1618,9 @@ void iyHybrid(
           if( cloudbox_on ) 
             {
               // Extinction
-              if( auxPartExt >= 0  &&  clear2cloudbox[ip] >= 0 ) 
+              if( auxPartExt >= 0  &&  clear2cloudy[ip] >= 0 ) 
                 { 
-                  const Index ic = clear2cloudbox[ip];
+                  const Index ic = clear2cloudy[ip];
                   for( Index iv=0; iv<nf; iv++ ) {
                     for( Index is1=0; is1<ns; is1++ ){
                       for( Index is2=0; is2<ns; is2++ ){
@@ -1737,8 +1737,9 @@ void iyHybrid2(
   const Index&                              cloudbox_on,
   const ArrayOfIndex&                       cloudbox_limits,
   const Tensor4&                            pnd_field,
+  const ArrayOfTensor4&                     dpnd_field_dx,
   const ArrayOfArrayOfSingleScatteringData& scat_data,
-  //const Index&                              scat_data_checked,
+  const Index&                              scat_data_checked,
   const Matrix&                             particle_masses _U_,
   const String&                             iy_unit,
   const ArrayOfString&                      iy_aux_vars,
@@ -1797,9 +1798,9 @@ void iyHybrid2(
     "atmosphere." );
   // for now have that here. when all iy* WSM using scat_data are fixed to new
   // type scat_data, then put check inot (i)yCalc and remove here.
-  //if( scat_data_checked != 1 )
-  //  throw runtime_error( "The scat_data must be flagged to have "
-  //                       "passed a consistency check (scat_data_checked=1)." );
+  if( scat_data_checked != 1 )
+    throw runtime_error( "The scat_data must be flagged to have "
+                         "passed a consistency check (scat_data_checked=1)." );
   
   
   // Determine propagation path
@@ -1920,14 +1921,11 @@ void iyHybrid2(
   Vector              ppath_p, ppath_t;
   Matrix              ppath_vmr, ppath_pnd, ppath_wind, ppath_mag;
   Matrix              ppath_f, ppath_t_nlte;
+  ArrayOfMatrix       ppath_dpnd_dx;
   Tensor5             dtrans_partial_dx_above, dtrans_partial_dx_below;
   Tensor4             trans_partial, trans_cumulat;
-  //ArrayOfIndex        clear2cloudbox;
+  ArrayOfIndex        clear2cloudy;
   ArrayOfIndex        lte;
-  ArrayOfArrayOfVector dummy_ppath_dpnd_dx;
-  //ArrayOfMatrix       dummy_ppath_dpnd_dx;
-  ArrayOfTensor4      dummy_dpnd_field_dx;
-  bool cloudbox_level = false;
   
   if( np > 1 )
   {
@@ -1940,18 +1938,17 @@ void iyHybrid2(
     get_ppath_f( ppath_f, ppath, f_grid,  atmosphere_dim, 
                  rte_alonglos_v, ppath_wind );
     
-    //get_ppath_cloudvars( clear2cloudbox, ppath_pnd, dummy_ppath_dpnd_dx,
-    //                     ppath, atmosphere_dim, cloudbox_limits,
-    //                     pnd_field, dummy_dpnd_field_dx );
+    // here, the cloudbox is on, ie we don't need to check and branch this here
+    // anymore.
+    get_ppath_cloudvars( clear2cloudy, ppath_pnd, ppath_dpnd_dx,
+                         ppath, atmosphere_dim, cloudbox_limits,
+                         pnd_field, dpnd_field_dx );
     
     PropagationMatrix K_this, K_past, Kp(nf, stokes_dim);
     StokesVector S(nf, stokes_dim), a(nf, stokes_dim);
     lte.resize(np);
-    ArrayOfPropagationMatrix dK_this_dx(nq), dK_past_dx(nq);
-    ArrayOfStokesVector dS_dx(nq);
-
-    dummy_ppath_dpnd_dx.resize(np);
-    ppath_pnd.resize(ne, np);
+    ArrayOfPropagationMatrix dK_this_dx(nq), dK_past_dx(nq), dKp_dx(nq);
+    ArrayOfStokesVector da_dx(nq), dS_dx(nq);
 
     trans_cumulat.resize(np, nf, stokes_dim, stokes_dim);
     trans_partial.resize(np, nf, stokes_dim, stokes_dim);
@@ -1960,8 +1957,6 @@ void iyHybrid2(
     Vector B(nf), dB_dT(nf);
     Tensor3 J(np, nf, stokes_dim);
     Tensor4 dJ_dx(np, nq, nf, stokes_dim);
-    
-    GridPos tmp1, tmp2;
     
     for(Index ip = 0; ip < np; ip++)
     {
@@ -1991,30 +1986,25 @@ void iyHybrid2(
                                     ppath_p[ip],
                                     jac_species_i,
                                     jacobian_do);
-      
-      get_stepwise_scattersky_propmat(cloudbox_level,
-                                      a,
-                                      Kp,
+
+      get_stepwise_scattersky_propmat(a, Kp, da_dx, dKp_dx,
+                                      clear2cloudy[ip]+1,
                                       ppath_pnd(joker, ip),
-                                      dummy_ppath_dpnd_dx[ip],
-                                      pnd_field,
-                                      dummy_dpnd_field_dx,
-                                      ppath_f(joker, ip),
+                                      ppath_dpnd_dx,
+                                      ip,
                                       ppath.los(ip, joker),
-                                      atmosphere_dim >= 2?
-                                      ppath.gp_lat[ip]:tmp1,
-                                      atmosphere_dim == 3?
-                                      ppath.gp_lon[ip]:tmp2,
-                                      ppath.gp_p[ip],
-                                      cloudbox_limits,
                                       scat_data,
                                       ppath_t[ip],
                                       atmosphere_dim,
-                                      false,  // jacobian_do,
+                                      jacobian_do,
                                       verbosity);
-      
       a += K_this;
       K_this += Kp;
+      for( Index iq = 0; iq < nq; iq++ )
+      {
+        da_dx[iq] += dK_this_dx[iq];
+        dK_this_dx[iq] += dKp_dx[iq];
+      }
       
       get_stepwise_transmission_matrix(trans_cumulat(ip, joker, joker, joker),
                                        trans_partial(ip, joker, joker, joker),

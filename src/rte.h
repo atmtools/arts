@@ -248,7 +248,7 @@ void get_ppath_partopt(
         Tensor3&                       pnd_abs_vec, 
         ArrayOfPropagationMatrix&      pnd_ext_mat, 
   Array<ArrayOfArrayOfSingleScatteringData>&  scat_data_single,
-  const ArrayOfIndex&                  clear2cloudbox,
+  const ArrayOfIndex&                  clear2cloudy,
   const Matrix&                        ppath_pnd,
   const Ppath&                         ppath,
   ConstVectorView                      ppath_t, 
@@ -261,7 +261,7 @@ void get_ppath_partopt(
   const Verbosity&                     verbosity );
 
 void get_ppath_cloudvars( 
-        ArrayOfIndex&                  clear2cloudbox,
+        ArrayOfIndex&                  clear2cloudy,
         Matrix&                        ppath_pnd,
         ArrayOfMatrix&                 ppath_dpnd_dx,
   const Ppath&                         ppath,
@@ -319,7 +319,7 @@ void get_ppath_trans2(
   const ArrayOfPropagationMatrix& ppath_ext,
   ConstVectorView              f_grid, 
   const Index&                 stokes_dim,
-  const ArrayOfIndex&          clear2cloudbox,
+  const ArrayOfIndex&          clear2cloudy,
   const ArrayOfPropagationMatrix& pnd_ext_mat );
 
 void get_ppath_trans2_and_dppath_trans_dx(  Tensor4&               trans_partial,
@@ -334,7 +334,7 @@ void get_ppath_trans2_and_dppath_trans_dx(  Tensor4&               trans_partial
                                             const ArrayOfRetrievalQuantity& jacobian_quantities,
                                             ConstVectorView              f_grid, 
                                             const Index&                 stokes_dim,
-                                            const ArrayOfIndex&          clear2cloudbox,
+                                            const ArrayOfIndex&          clear2cloudy,
                                             const ArrayOfPropagationMatrix& pnd_ext_mat );
 
 Range get_rowindex_for_mblock( 
@@ -358,7 +358,7 @@ void get_ppath_pmat_and_tmat(
                             Tensor5&               dtrans_partial_dx_above,
                             Tensor5&               dtrans_partial_dx_below,
                             ArrayOfArrayOfIndex&   extmat_case,
-                            ArrayOfIndex&   clear2cloudbox,
+                            ArrayOfIndex&   clear2cloudy,
                             Tensor4&               trans_cumulat,
                             Vector&                scalar_tau,
                             ArrayOfPropagationMatrix&               pnd_ext_mat,
@@ -548,23 +548,19 @@ void sum_stepwise_scalar_tau_and_extmat_case(VectorView scalar_tau,
                                              const PropagationMatrix& lower_level,
                                              const Numeric& distance);
 
-void get_stepwise_scattersky_propmat(bool& do_cloudbox_calculations,
-                                     StokesVector& ap,
+void get_stepwise_scattersky_propmat(StokesVector& ap,
                                      PropagationMatrix& Kp,
-                                     VectorView ppath_pnd,
-                                     ArrayOfVector& ppath_dpnd_dx,
-                                     const Tensor4& pnd_field,
-                                     const ArrayOfTensor4& dpnd_field_dx,
-                                     ConstVectorView ppath_f_grid,
+                                     ArrayOfStokesVector& dap_dx,
+                                     ArrayOfPropagationMatrix& dKp_dx,
+                                     const Index& do_cloudy_calc,
+                                     const VectorView ppath_1p_pnd,      // the ppath_pnd at this ppath point
+                                     const ArrayOfMatrix& ppath_dpnd_dx, // the full ppath_dpnd_dx, ie all ppath points
+                                     const Index ppath_1p_id,
                                      ConstVectorView ppath_line_of_sight,
-                                     const GridPos& ppath_latitude,
-                                     const GridPos& ppath_longitude,
-                                     const GridPos& ppath_pressure,
-                                     const ArrayOfIndex& cloudbox_limits,
                                      const ArrayOfArrayOfSingleScatteringData& scat_data,
                                      const Numeric& ppath_temperature,
                                      const Index& atmosphere_dim,
-                                     const bool& do_pnd_jacobian,
+                                     const bool& do_jacobian,
                                      const Verbosity& verbosity);
 
 void get_stepwise_scattersky_source(ArrayOfStokesVector& ppath_scat_source,

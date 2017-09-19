@@ -18,6 +18,7 @@ cloudboxSetFullAtm
 #cloudboxSetAutomatically( particle_field=scat_species_mean_mass_field,
 #                          cloudbox_limits_old=cloudbox_limits )
 pnd_fieldCalcFromscat_speciesFields
+Touch( dpnd_field_dx )
 
 
 #cloudboxOff
@@ -85,7 +86,7 @@ AgendaSet( iy_main_agenda ){
 yCalc
 Print( y, 0 )
 
-# Compare iyHybrid2 to iyHybrid (both with RT4 as background solver)
+# Compare iyHybrid2 to iyHybrid reference solution (both with RT4 as background solver)
 Compare( y, yREFERENCE, 1e-1 )
 
 }

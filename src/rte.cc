@@ -1927,7 +1927,7 @@ void get_ppath_pmat_and_tmat(
                             Tensor5&               dtrans_partial_dx_above,
                             Tensor5&               dtrans_partial_dx_below,
                             ArrayOfArrayOfIndex&   extmat_case,
-                            ArrayOfIndex&   clear2cloudbox,
+                            ArrayOfIndex&   clear2cloudy,
                             Tensor4&               trans_cumulat,
                             Vector&                scalar_tau,
                             ArrayOfPropagationMatrix& pnd_ext_mat,
@@ -2253,11 +2253,11 @@ void get_ppath_pmat_and_tmat(
     else
     {
           // Extract basic scattering data
-          get_ppath_cloudvars( clear2cloudbox, ppath_pnd, ppath_dpnd_dx,
+          get_ppath_cloudvars( clear2cloudy, ppath_pnd, ppath_dpnd_dx,
                        ppath, atmosphere_dim, cloudbox_limits,
                        pnd_field, dpnd_field_dx );
           get_ppath_partopt( pnd_abs_vec, pnd_ext_mat, scat_data_single,
-                             clear2cloudbox, ppath_pnd,
+                             clear2cloudy, ppath_pnd,
                              ppath, ppath_t, stokes_dim, ppath_f, atmosphere_dim,
                              use_mean_scat_data, scat_data, scat_data_checked,
                              verbosity );
@@ -2265,7 +2265,7 @@ void get_ppath_pmat_and_tmat(
         if(not jacobian_do)
             get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
                             scalar_tau, ppath, ppath_ext, f_grid, stokes_dim, 
-                            clear2cloudbox, pnd_ext_mat );
+                            clear2cloudy, pnd_ext_mat );
         else
             get_ppath_trans2_and_dppath_trans_dx(  trans_partial,
                                                    dtrans_partial_dx_above,
@@ -2279,7 +2279,7 @@ void get_ppath_pmat_and_tmat(
                                                    jacobian_quantities,
                                                    f_grid, 
                                                    stokes_dim,
-                                                   clear2cloudbox,
+                                                   clear2cloudy,
                                                    pnd_ext_mat );
             
     }
@@ -2780,7 +2780,7 @@ void get_dppath_blackrad_dt(
                                       (defined only where particles are found)
     \param   scat_data_single    Out: Extracted scattering data. Length of
                                       array affected by *use_mean_scat_data*.
-    \param   clear2cloudbox      Mapping index. See get_ppath_cloudvars for details. 
+    \param   clear2cloudy      Mapping index. See get_ppath_cloudvars for details. 
     \param   ppath               As the WSV.    
     \param   ppath_t             Temperature for each ppath point.
     \param   stokes_dim          As the WSV.    
@@ -2796,7 +2796,7 @@ void get_ppath_partopt(
         Tensor3&                       pnd_abs_vec, 
         ArrayOfPropagationMatrix&      pnd_ext_mat, 
   Array<ArrayOfArrayOfSingleScatteringData>&  scat_data_single,
-  const ArrayOfIndex&                  clear2cloudbox,
+  const ArrayOfIndex&                  clear2cloudy,
   const Matrix&                        ppath_pnd,
   const Ppath&                         ppath,
   ConstVectorView                      ppath_t, 
@@ -2841,7 +2841,7 @@ void get_ppath_partopt(
     }
 
   // Resize absorption and extension tensors
-  Index nin = max(clear2cloudbox)+1;
+  Index nin = max(clear2cloudy)+1;
   pnd_abs_vec.resize( nf, stokes_dim, nin ); 
   pnd_ext_mat.resize( nin );
   for(auto& pm : pnd_ext_mat)
@@ -2854,7 +2854,7 @@ void get_ppath_partopt(
   //
   for( Index ip=0; ip<np; ip++ )
     {
-      const Index i = clear2cloudbox[ip];
+      const Index i = clear2cloudy[ip];
       if( i>=0 )
         {
           // Direction of outgoing scattered radiation (which is reversed to
@@ -2898,7 +2898,7 @@ void get_ppath_partopt(
 /*!
     Determines the particle fields along a propagation path.
 
-    \param   clear2cloudbox      Out: Mapping of index. See code for details. 
+    \param   clear2cloudy      Out: Mapping of index. See code for details. 
     \param   ppath_pnd           Out. The particle number density for each
                                       path point (also outside cloudbox).
     \param   ppath_dpnd_dx       Out. dpnd_field_dx for each path point
@@ -2912,7 +2912,7 @@ void get_ppath_partopt(
     \date   2017-09-18
 */
 void get_ppath_cloudvars( 
-        ArrayOfIndex&                  clear2cloudbox,
+        ArrayOfIndex&                  clear2cloudy,
         Matrix&                        ppath_pnd,
         ArrayOfMatrix&                 ppath_dpnd_dx,
   const Ppath&                         ppath,
@@ -2943,7 +2943,7 @@ void get_ppath_cloudvars(
   // A variable that can map frpm ppath to particle containers.
   // If outside cloudbox or all (d)pnd=0, this variable holds -1.
   // Otherwise it gives the index in pnd_ext_mat etc.
-  clear2cloudbox.resize( np );
+  clear2cloudy.resize( np );
 
   // Determine ppath_pnd and ppath_dpnd_dx
   Index nin = 0;
@@ -2989,12 +2989,12 @@ void get_ppath_cloudvars(
             }
           if( max(ppath_pnd(joker,ip)) > 0. || min(ppath_pnd(joker,ip)) < 0. ||
               any_ppath_dpnd )
-            { clear2cloudbox[ip] = nin;   nin++; }
+            { clear2cloudy[ip] = nin;   nin++; }
           else
-            { clear2cloudbox[ip] = -1; }
+            { clear2cloudy[ip] = -1; }
         }
       else
-        { clear2cloudbox[ip] = -1; }
+        { clear2cloudy[ip] = -1; }
     }
 }
 
@@ -3378,7 +3378,7 @@ void get_ppath_trans_and_dppath_trans_dx(
     \param   ppath_ext        See get_ppath_pmat_and_tmat.
     \param   f_grid           As the WSV.    
     \param   stokes_dim       As the WSV.
-    \param   clear2cloudbox   See get_ppath_cloudvars.
+    \param   clear2cloudy   See get_ppath_cloudvars.
     \param   pnd_ext_mat      See get_ppath_partopt.
 
     \author Patrick Eriksson 
@@ -3393,7 +3393,7 @@ void get_ppath_trans2(
   const ArrayOfPropagationMatrix& ppath_ext,
   ConstVectorView              f_grid, 
   const Index&                 stokes_dim,
-  const ArrayOfIndex&          clear2cloudbox,
+  const ArrayOfIndex&          clear2cloudy,
   const ArrayOfPropagationMatrix& pnd_ext_mat )
 {
   // Sizes
@@ -3423,8 +3423,8 @@ void get_ppath_trans2(
     if( ip == 0 )
     { 
       extsum_this = ppath_ext[ip];
-      if(clear2cloudbox[ip] >= 0)
-        extsum_this += pnd_ext_mat[clear2cloudbox[ip]];
+      if(clear2cloudy[ip] >= 0)
+        extsum_this += pnd_ext_mat[clear2cloudy[ip]];
       
       for( Index iv=0; iv<nf; iv++ ) 
       {
@@ -3435,8 +3435,8 @@ void get_ppath_trans2(
     else
     {
       extsum_this = ppath_ext[ip];
-      if(clear2cloudbox[ip] >= 0)
-        extsum_this += pnd_ext_mat[clear2cloudbox[ip]];
+      if(clear2cloudy[ip] >= 0)
+        extsum_this += pnd_ext_mat[clear2cloudy[ip]];
       
       compute_transmission_matrix(trans_partial(joker, joker, joker, ip-1), 
                                   ppath.lstep[ip-1], extsum_this, extsum_old);
@@ -3487,7 +3487,7 @@ void get_ppath_trans2(
  *   \param   jacobian_quantities               In:  As the WSV.    
  *   \param   f_grid           As the WSV.    
  *   \param   stokes_dim       As the WSV.
- *   \param   clear2cloudbox   See get_ppath_cloudvars.
+ *   \param   clear2cloudy   See get_ppath_cloudvars.
  *   \param   pnd_ext_mat      See get_ppath_partopt.
  * 
  *   \author Patrick Eriksson 
@@ -3508,7 +3508,7 @@ void get_ppath_trans2_and_dppath_trans_dx(  Tensor4&               trans_partial
                                             const ArrayOfRetrievalQuantity& jacobian_quantities,
                                             ConstVectorView              f_grid, 
                                             const Index&                 stokes_dim,
-                                            const ArrayOfIndex&          clear2cloudbox,
+                                            const ArrayOfIndex&          clear2cloudy,
                                             const ArrayOfPropagationMatrix& pnd_ext_mat )
 {
   // Sizes
@@ -3547,15 +3547,15 @@ void get_ppath_trans2_and_dppath_trans_dx(  Tensor4&               trans_partial
         id_mat( trans_cumulat(iv,joker,joker,ip) );
       }
       // First point should not be "cloudy", but just in case:
-      if( clear2cloudbox[ip] >= 0 )
+      if( clear2cloudy[ip] >= 0 )
       {
-        const Index ic = clear2cloudbox[ip];
+        const Index ic = clear2cloudy[ip];
         extsum_this += pnd_ext_mat[ic];
       }
     }
     else
     {
-      const Index ic = clear2cloudbox[ip];
+      const Index ic = clear2cloudy[ip];
       //
       if( ic >= 0 )
         extsum_this += pnd_ext_mat[ic];
@@ -4723,90 +4723,94 @@ void get_stepwise_f_partials(Vector& f_partials,
 }
 
 
-void get_stepwise_scattersky_propmat(bool& do_cloudbox_calculations,
-                                     StokesVector& ap,
+void get_stepwise_scattersky_propmat(StokesVector& ap,
                                      PropagationMatrix& Kp,
-                                     VectorView ppath_pnd,
-                                     ArrayOfVector& ppath_dpnd_dx,
-                                     const Tensor4& pnd_field,
-                                     const ArrayOfTensor4& dpnd_field_dx,
-                                     ConstVectorView ppath_f_grid,
+                                     ArrayOfStokesVector& dap_dx,
+                                     ArrayOfPropagationMatrix& dKp_dx,
+                                     const Index& do_cloudy_calc,
+                                     const VectorView ppath_1p_pnd,      // the ppath_pnd at this ppath point
+                                     const ArrayOfMatrix& ppath_dpnd_dx, // the full ppath_dpnd_dx, ie all ppath points
+                                     const Index ppath_1p_id,
                                      ConstVectorView ppath_line_of_sight,
-                                     const GridPos& ppath_latitude,
-                                     const GridPos& ppath_longitude,
-                                     const GridPos& ppath_pressure,
-                                     const ArrayOfIndex& cloudbox_limits,
                                      const ArrayOfArrayOfSingleScatteringData& scat_data,
                                      const Numeric& ppath_temperature,
                                      const Index& atmosphere_dim,
-                                     const bool& do_pnd_jacobian,
+                                     const bool& do_jacobian,
                                      const Verbosity& verbosity)
 {
-  // ppath latitude and longitude has to be set outside if they exist at all
-  do_cloudbox_calculations = is_gp_inside_cloudbox(ppath_pressure, ppath_latitude, 
-                                                   ppath_longitude, cloudbox_limits, 
-                                                   true, atmosphere_dim);
-  if(do_cloudbox_calculations)
+  if(do_cloudy_calc)
   {
     const Index nf = Kp.NumberOfFrequencies(), stokes_dim = Kp.StokesDimensions();
     
-    Matrix itw(1, 1 << atmosphere_dim);
-    
-    ArrayOfGridPos gpc_p(1), gpc_lat(1), gpc_lon(1);
-    Array<ArrayOfArrayOfSingleScatteringData> scat_data_single(nf);
-    
-    interp_cloudfield_gp2itw(itw(0, joker), 
-                             gpc_p[0], gpc_lat[0], gpc_lon[0], 
-                             ppath_pressure, ppath_latitude, ppath_longitude,
-                             atmosphere_dim, cloudbox_limits);
-    
-    for(Index i = 0; i < pnd_field.nbooks(); i++)
-      interp_atmfield_by_itw(ppath_pnd[i], atmosphere_dim,
-                             pnd_field(i, joker, joker, joker), 
-                             gpc_p, gpc_lat, gpc_lon, itw);
-    
-    if(do_pnd_jacobian)
-    {
-      for(Index iq = 0; iq < dpnd_field_dx.nelem(); iq++)
-      {
-        if( !dpnd_field_dx[iq].empty() )
-        {
-          for(Index i = 0; i < pnd_field.nbooks(); i++)
-          { 
-            interp_atmfield_by_itw(ppath_dpnd_dx[iq][i],
-                                   atmosphere_dim,
-                                   dpnd_field_dx[iq](i,joker,joker,joker), 
-                                   gpc_p, gpc_lat, gpc_lon, itw);
-          }
-        }
-      }
-    }
-    
-    for(Index iv = 0; iv < nf; iv++)
-      scat_data_monoCalc(scat_data_single[iv], scat_data, 
-                          Vector(1, ppath_f_grid[iv]), 0, verbosity);
-    
+    ArrayOfArrayOfSingleScatteringData scat_data_mono;
+
     // Direction of outgoing scattered radiation (which is reversed to
     // LOS). Note that rtp_los2 is only used for extracting scattering
     // properties.
     Vector rtp_los2;
     mirror_los(rtp_los2, ppath_line_of_sight, atmosphere_dim);
-    for( Index iv=0; iv<nf; iv++ )
-    { 
+
+    // Preparing empty derivative containers for non-pnd-affecting x.
+    // This here as we don't want to SetSero each freq entry separately.
+    // On the other hand, we want the freq loop as outer loop for pnd-affecting
+    // x since then we need to extract the scat_data_mono only once.
+    if( do_jacobian )
+      for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
+        if( ppath_dpnd_dx[iq].empty() )
+        {
+          dap_dx[iq].SetZero();
+          dKp_dx[iq].SetZero();
+        }
+
+    for( Index iv = 0; iv < nf; iv++ )
+    {
+      scat_data_monoExtract(scat_data_mono, scat_data, iv, verbosity);
+    
       Matrix ext_mat(stokes_dim, stokes_dim);
       Vector abs_vec(stokes_dim);
+
       opt_propCalc(ext_mat, abs_vec, rtp_los2[0], 
-                   rtp_los2[1], scat_data_single[iv], stokes_dim,
-                   ppath_pnd, ppath_temperature, verbosity);
-      
+                   rtp_los2[1], scat_data_mono, stokes_dim,
+                   ppath_1p_pnd, ppath_temperature, verbosity);
       ap.SetAtFrequency(iv, abs_vec);
       Kp.SetAtFrequency(iv, ext_mat);
+
+      if( do_jacobian )
+      {
+        for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
+        {
+          // check first, whether we have any non-zero ppath_dpnd_dx in this
+          // pnd-affecting x? might speed up things. specifically when we have
+          // more than one scat species.
+          //
+          // also, calling opt_propCalc several times seems disadvantagoues.
+          // better would be to call a routine that returns ext and abs per scat
+          // element (opt_propExtract?), then multiple&sum up separately per x
+          // (and for the ap and Kp). 
+          if( !ppath_dpnd_dx[iq].empty() )
+          {
+            opt_propCalc(ext_mat, abs_vec, rtp_los2[0], 
+                         rtp_los2[1], scat_data_mono, stokes_dim,
+                         ppath_dpnd_dx[iq](joker,ppath_1p_id),
+                         ppath_temperature, verbosity);
+            dap_dx[iq].SetAtFrequency(iv, abs_vec);
+            dKp_dx[iq].SetAtFrequency(iv, ext_mat);
+          }
+        }
+      }
+
     }
   }
   else
   {
     ap.SetZero();
     Kp.SetZero();
+    if( do_jacobian )
+      for(Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++)
+      {
+        dap_dx[iq].SetZero();
+        dKp_dx[iq].SetZero();
+      }
   }
 }
 

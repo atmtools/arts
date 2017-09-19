@@ -464,7 +464,7 @@ void iyEmissionStandard(
   ArrayOfStokesVector   ppath_nlte_source;
   Matrix    ppath_blackrad, dppath_blackrad_dt;
   Vector    scalar_tau;
-  ArrayOfIndex         lte, clear2cloudbox_dummy;
+  ArrayOfIndex         lte, clear2cloudy_dummy;
   ArrayOfArrayOfIndex  extmat_case;
   ArrayOfMatrix        dummy_ppath_dpnd_dx;
   ArrayOfTensor4       dummy_dpnd_field_dx;
@@ -488,7 +488,7 @@ void iyEmissionStandard(
       get_ppath_pmat_and_tmat( ws, ppath_ext, ppath_nlte_source, lte, abs_per_species,
                                dppath_ext_dx, dppath_nlte_source_dx, trans_partial,
                                dtrans_partial_dx_above, dtrans_partial_dx_below,
-                               extmat_case, clear2cloudbox_dummy, trans_cumulat,
+                               extmat_case, clear2cloudy_dummy, trans_cumulat,
                                scalar_tau, pnd_ext_mat_dummy, pnd_abs_vec, ppath_pnd_dummy,
                                dummy_ppath_dpnd_dx, scat_data_single_dummy,
                                propmat_clearsky_agenda, jacobian_quantities,
