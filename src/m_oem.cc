@@ -393,9 +393,8 @@ void xaStandard(
           throw runtime_error(os.str());
         }
     }
+  transform_x(xa, jq, ji);
 }
-
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void x2artsStandard(
@@ -450,6 +449,9 @@ void x2artsStandard(
   // Flag indicating that y_baseline is not set
   bool yb_set = false;
 
+  Vector x_t(x);
+  transform_x_back(x_t, jq, ji);
+
   // Loop retrieval quantities and fill *xa*
   for( Index q=0; q<nq; q++ )
     {
@@ -457,7 +459,6 @@ void x2artsStandard(
       const Index np = ji[q][1] - ji[q][0] + 1;
       Range ind( ji[q][0], np );
 
-      
       // Atmospheric temperatures
       // ----------------------------------------------------------------------------
       if( jq[q].MainTag() == TEMPERATURE_MAINTAG )
@@ -471,12 +472,12 @@ void x2artsStandard(
 
           // Map values in x back to t_field
           Tensor3 t_x( n_p, n_lat, n_lon );
-          reshape( t_x, x[ind] );
+          reshape( t_x, x_t[ind] );
           regrid_atmfield_by_gp( t_field, atmosphere_dim, t_x,
                                  gp_p, gp_lat, gp_lon );
         }
 
-      
+
       // Abs species
       // ----------------------------------------------------------------------------
       else if( jq[q].MainTag() == ABSSPECIES_MAINTAG )
@@ -497,7 +498,7 @@ void x2artsStandard(
             {
               // Find multiplicate factor for elements in vmr_field
               Tensor3 fac_x( n_p, n_lat, n_lon );
-              reshape( fac_x, x[ind] ); 
+              reshape( fac_x, x_t[ind] ); 
               // Take exp(x) if logrel
               if( jq[q].Mode() == "logrel" )
                 { transform( fac_x, exp, fac_x ); }
@@ -516,7 +517,7 @@ void x2artsStandard(
             {
               // Here we just need to map back state x
               Tensor3 vmr_x( n_p, n_lat, n_lon );
-              reshape( vmr_x, x[ind] ); 
+              reshape( vmr_x, x_t[ind] ); 
               Tensor3 vmr( vmr_field.npages(), vmr_field.nrows(),
                                                vmr_field.ncols() );
               regrid_atmfield_by_gp( vmr, atmosphere_dim, vmr_x,
@@ -526,7 +527,7 @@ void x2artsStandard(
           else if( jq[q].Mode() == "nd" )
             {
               Tensor3 nd_x( n_p, n_lat, n_lon );
-              reshape( nd_x, x[ind] ); 
+              reshape( nd_x, x_t[ind] ); 
               Tensor3 nd( vmr_field.npages(), vmr_field.nrows(),
                                               vmr_field.ncols() );
               regrid_atmfield_by_gp( nd, atmosphere_dim, nd_x,
@@ -584,7 +585,7 @@ void x2artsStandard(
                                      jq[q], atmosphere_dim, p_grid, lat_grid, lon_grid );
               // Map x to particle_bulkprop_field
               Tensor3 pbfield_x( n_p, n_lat, n_lon );
-              reshape( pbfield_x, x[ind] ); 
+              reshape( pbfield_x, x_t[ind] ); 
               Tensor3 pbfield( particle_bulkprop_field.npages(),
                                particle_bulkprop_field.nrows(),
                                particle_bulkprop_field.ncols() );

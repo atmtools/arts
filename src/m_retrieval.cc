@@ -10,7 +10,8 @@
 void jacobianAddAbsSpecies(
     Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const Index&, const Vector&,
     const Vector&, const Vector&, const Vector&, const Vector&, const Vector&,
-    const String&, const String&, const String&, const Index&, const Numeric&, const Verbosity&
+    const String&, const String&, const String&, const Index&, const Numeric&,
+    const Matrix&, const Vector&, const Verbosity&
     );
 void jacobianClose(
     Workspace&, Index&, ArrayOfArrayOfIndex&, Agenda&, const ArrayOfRetrievalQuantity&,
@@ -78,7 +79,7 @@ void jacobianAddWind(
 void jacobianAddTemperature(
     Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const Index&, const Vector&,
     const Vector&, const Vector&, const Vector&, const Vector&, const Vector&,
-    const String&, const String&, const Numeric&, const Verbosity&
+    const String&, const String&, const Numeric&, const Matrix&, const Vector&, const Verbosity&
     );
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -444,11 +445,14 @@ void retrievalAddAbsSpecies(
   const String&                     mode,
   const Index&                      for_species_tag,
   const Numeric&                    dx,
+  const Matrix&                     transformation_matrix,
+  const Vector&                     offset_vector,
   const Verbosity&                  verbosity )
 {
     jacobianAddAbsSpecies(ws, jacobian_quantities, jacobian_agenda, atmosphere_dim, p_grid,
                           lat_grid, lon_grid, rq_p_grid, rq_lat_grid, rq_lon_grid, species,
-                          method, mode, for_species_tag, dx, verbosity);
+                          method, mode, for_species_tag, dx, transformation_matrix,
+                          offset_vector, verbosity);
     check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
                         atmosphere_dim, covmat_block, covmat_inv_block);
 }
@@ -747,7 +751,7 @@ void retrievalAddTemperature(Workspace& ws,
 {
     jacobianAddTemperature(ws, jacobian_quantities, jacobian_agenda, atmosphere_dim, p_grid,
                            lat_grid, lon_grid, rq_p_grid, rq_lat_grid, rq_lon_grid, hse,
-                           method, dx, verbosity);
+                           method, dx, Matrix(), Vector(), verbosity);
     check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
                         atmosphere_dim, covmat_block,
                         covmat_inv_block);

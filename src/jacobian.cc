@@ -49,8 +49,107 @@ ostream& operator << (ostream& os, const RetrievalQuantity& ot)
             << "\n     Analytical = " << ot.Analytical();
 }
 
+ArrayOfArrayOfIndex transform_jacobian_indices(
+    const ArrayOfArrayOfIndex&      jis,
+    const ArrayOfRetrievalQuantity& jqs)
+{
+    ArrayOfArrayOfIndex jis_t(jis);
+    for (Index i = 0; i < jqs.nelem(); ++i) {
+        if (i > 0) {
+            jis_t[i][0] = jis_t[i-1][1] + 1;
+        }
+        const RetrievalQuantity &jq = jqs[i];
+        if (jq.HasTransformation()) {
+            jis_t[i][1] = jis_t[i][0] + jq.TransformationMatrix().nrows() - 1;
+        } else {
+            jis_t[i][1] = jis_t[i][0] + jis[i][1] - jis[i][0];
+        }
+    }
+    return jis_t;
+}
 
+void transform_jacobian(
+    Matrix&                     jacobian,
+    const ArrayOfRetrievalQuantity&   jqs,
+    const ArrayOfArrayOfIndex&        jis)
+{
+    ArrayOfArrayOfIndex jis_t = transform_jacobian_indices(jis, jqs);
+    Matrix jacobian_t(jacobian.nrows(), jis_t.back()[1] + 1);
+    std::cout << jis_t << std::endl;
 
+    for (Index i = 0; i < jqs.nelem(); ++i) {
+        std::cout << i << std::endl;
+        const RetrievalQuantity &jq = jqs[i];
+        Index col_start  = jis[i][0];
+        Index col_extent = jis[i][1] - jis[i][0] + 1;
+        Range col_range(col_start, col_extent);
+        Index col_start_t  = jis_t[i][0];
+        Index col_extent_t = jis_t[i][1] - jis_t[i][0] + 1;
+        Range col_range_t(col_start_t, col_extent_t);
+        if (jq.HasTransformation()) {
+            std::cout << "has transform." << std::endl;
+            mult(jacobian_t(joker, col_range_t),
+                 jacobian(joker, col_range),
+                 transpose(jq.TransformationMatrix()));
+        } else {
+            jacobian_t(joker, col_range_t) = jacobian(joker, col_range);
+        }
+    }
+    swap(jacobian_t, jacobian);
+}
+
+void transform_x(
+    Vector&                     x,
+    const ArrayOfRetrievalQuantity&   jqs,
+    const ArrayOfArrayOfIndex&        jis)
+{
+    ArrayOfArrayOfIndex jis_t = transform_jacobian_indices(jis, jqs);
+    Vector x_t(jis_t.back()[1] + 1);
+
+    for (Index i = 0; i < jqs.nelem(); ++i) {
+        const RetrievalQuantity &jq = jqs[i];
+        Index col_start  = jis[i][0];
+        Index col_extent = jis[i][1] - jis[i][0] + 1;
+        Range col_range(col_start, col_extent);
+        Index col_start_t  = jis_t[i][0];
+        Index col_extent_t = jis_t[i][1] - jis_t[i][0] + 1;
+        Range col_range_t(col_start_t, col_extent_t);
+        if (jq.HasTransformation()) {
+            Vector t(x[col_range]);
+            t -= jq.OffsetVector();
+            mult(x_t[col_range_t], jq.TransformationMatrix(), t);
+        } else {
+            x_t[col_range_t] = x[col_range];
+        }
+    }
+    swap(x, x_t);
+}
+
+void transform_x_back(
+    Vector&                     x_t,
+    const ArrayOfRetrievalQuantity&   jqs,
+    const ArrayOfArrayOfIndex&        jis)
+{
+    ArrayOfArrayOfIndex jis_t = transform_jacobian_indices(jis, jqs);
+    Vector x(jis.back()[1] + 1);
+
+    for (Index i = 0; i < jqs.nelem(); ++i) {
+        const RetrievalQuantity &jq = jqs[i];
+        Index col_start  = jis[i][0];
+        Index col_extent = jis[i][1] - jis[i][0] + 1;
+        Range col_range(col_start, col_extent);
+        Index col_start_t  = jis_t[i][0];
+        Index col_extent_t = jis_t[i][1] - jis_t[i][0] + 1;
+        Range col_range_t(col_start_t, col_extent_t);
+        if (jq.HasTransformation()) {
+            mult(x[col_range], transpose(jq.TransformationMatrix()), x_t[col_range_t]);
+            x[col_range] += jq.OffsetVector();
+        } else {
+            x[col_range] = x[col_range_t];
+        }
+    }
+    swap(x_t, x_t);
+}
 
 /*===========================================================================
   === Help sub-functions to handle analytical jacobians (in alphabetical order)

@@ -1,3 +1,31 @@
+2017-09-20 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-801
+
+	First shot add affine transformations of quantities in Jacobian.
+
+	* src/jacobian.{cc,h}: Added functions to apply affine transformations to
+	x vector and jacobian.
+
+	* src/m_jacobian.cc:
+	- Added arguments to add affine transformations to absorption species and
+	temperatures.
+	- Added workspace method to apply transformations to jacobian, which is automatically
+	add to jacobian_agenda if any RQ has a transformation.
+
+	* src/m_abs_lookup.{cc,h}: Adapted call to jacobianAddAbsSpecies
+
+	* src/m_oem.cc:
+	- Modified x2artsStandard to include transformation
+	- Modified xaStandard to include inverse transformation
+
+	* src/m_retrieval.cc:
+	- Adapted calls to jacobianAddAbsSpecies and jacobianAddTemperature
+
+	* src/methods.cc:
+	- Adapted md_data entries for jacobianAddAbsSpecies, jacobianAddTemperatures,
+	retrievalAddAbsSpecies,  
+
 2017-09-20 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-800

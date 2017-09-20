@@ -177,6 +177,7 @@ void jacobianClose(
 
   // Loop over retrieval quantities, set JacobianIndices
   Index ncols = 0;
+  bool has_transformation = false;
   //
   for( Index it=0; it<jacobian_quantities.nelem(); it++ )
     {
@@ -195,8 +196,14 @@ void jacobianClose(
       jacobian_indices.push_back( indices );
 
       ncols += cols;
+
+      has_transformation |= jacobian_quantities[it].HasTransformation();
     }
-  
+
+  if (has_transformation) {
+      jacobian_agenda.append("jacobianTransform", TokVal());
+  }
+
   jacobian_agenda.check(ws, verbosity);
   jacobian_do = 1;
 }
@@ -258,6 +265,8 @@ void jacobianAddAbsSpecies(
   const String&                     mode,
   const Index&                      for_species_tag,
   const Numeric&                    dx,
+  const Matrix&                     transformation_matrix,
+  const Vector&                     offset_vector,
   const Verbosity&                  verbosity )
 {
   CREATE_OUT2;
@@ -362,7 +371,12 @@ void jacobianAddAbsSpecies(
 
       jacobian_agenda.append( "jacobianCalcAbsSpeciesPerturbations", species );
     }
-}                    
+
+  if ((!transformation_matrix.empty()) && (!offset_vector.empty())) {
+      jq.back().SetTransformationMatrix(transformation_matrix);
+      jq.back().SetOffsetVector(offset_vector);
+  }
+}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1946,6 +1960,8 @@ void jacobianAddTemperature(
   const String&                   hse,
   const String&                   method,
   const Numeric&                  dx,
+  const Matrix&                   transformation_matrix,
+  const Vector&                   offset_vector,
   const Verbosity&                verbosity )
 {
   CREATE_OUT3;
@@ -2042,7 +2058,13 @@ void jacobianAddTemperature(
 
       jacobian_agenda.append( "jacobianCalcTemperaturePerturbations", "" );
     }
-}                    
+
+  if ((!transformation_matrix.empty()) && (!offset_vector.empty())) {
+      jq.back().SetTransformationMatrix(transformation_matrix);
+      jq.back().SetOffsetVector(offset_vector);
+  }
+
+}
 
 
 
@@ -4203,5 +4225,17 @@ void jacobianAddSpecialSpecies(
   
 }                    
 
+//----------------------------------------------------------------------------
+// Transformations
+//----------------------------------------------------------------------------
 
-
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianTransform(
+  Matrix&                     jacobian,
+  const ArrayOfRetrievalQuantity&   jqs,
+  const ArrayOfArrayOfIndex&        jis,
+  const Verbosity & /*v*/
+    )
+{
+    transform_jacobian(jacobian, jqs, jis);
+}
