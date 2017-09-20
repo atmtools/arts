@@ -1,0 +1,326 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# This is a test of weighting function calculations using iyHybrid.
+#
+# The setup is equivalent to TestWfuns.arts in the same folder, but using
+# iyHybrid (with an empty cloudbox) instead of iyEmissionStandard in the
+# iy_main_agenda.
+#
+# Author: Jana Mendrok
+
+
+Arts2 {
+
+
+##############################################################################
+#
+# Initial part
+#
+##############################################################################
+
+
+# Select frequency band here:
+#
+
+# Number of Stokes components to be computed
+#
+IndexSet( stokes_dim, 1 )
+
+# 1D atmosphere
+#
+AtmosphereSet1D
+
+jacobianOff
+
+INCLUDE "instruments/odinsmr/odinsmr_501.arts"
+
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+
+# (standard) emission calculation
+#Copy( iy_main_agenda, iy_main_agenda__Emission )
+# Nope, hybrid RTE solver instead.
+AgendaSet( iy_main_agenda ){
+  Ignore( t_nlte_field )
+  Ignore( iy_id )
+  iyHybrid2
+}
+
+# cosmic background radiation
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# standard surface agenda (i.e., make use of surface_rtprop_agenda)
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+
+# no refraction
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+# absorption from LUT
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+#Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+
+# Some more agendas needed for iyHybrid
+AgendaSet( iy_cloudbox_agenda ){
+  iyInterpCloudboxField
+}
+MatrixCreate( iyspace )
+VectorCreate( iyspace_1f )
+AgendaSet( doit_i_field_agenda ){
+  DOAngularGridsSet( N_za_grid=19, N_aa_grid=6 )
+  DoitInit( scat_data_raw=scat_data )
+  MatrixCBR( out=iyspace, f=f_grid )
+  #VectorExtractFromMatrix( out=iyspace_1f, in=iyspace, i=0, direction="row" )
+  doit_i_fieldSetConstPerFreq( value=iyspace ) #_1f )
+  #RT4Calc
+}
+Copy( surface_rtprop_agenda,
+      surface_rtprop_agenda__Blackbody_SurfTFromt_surface )
+
+# ---- Atmospheric scenario --------------------------------------------------
+
+# A pressure grid rougly matching 0 to 80 km in 250 m steps.
+#
+VectorNLogSpace( p_grid, 321, 1000e2, 1 )
+
+# Atmospheric profiles here taken from Fascod
+AtmRawRead( basename = "testdata/tropical" )
+#
+AtmFieldsCalc
+
+# Get ground altitude (z_surface) from z_field
+Extract( z_surface, z_field, 0 )
+Extract( t_surface, t_field, 0 )
+
+# No scattering
+#
+#cloudboxOff
+
+# To test iyHybrid in clear-sky case, we need to use an empty cloudbox setup
+# instead (else it's falling back to the standard emission solver).
+cloudboxSetFullAtm
+Touch( scat_data )
+pnd_fieldZero
+Touch( dpnd_field_dx )
+
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+scat_data_checkedCalc
+
+
+
+# ---- Create absorption table -----------------------------------------------
+
+abs_lines_per_speciesCreateFromLines
+
+abs_lineshapeDefine( shape="Faddeeva_Algorithm_916",
+                     forefactor="VVH",
+                     cutoff=750e9 )
+
+AbsInputFromAtmFields
+abs_speciesSet( abs_species=abs_nls, species=[] )
+VectorSet( abs_nls_pert, [] )
+VectorSet( abs_t_pert, [] )
+
+abs_xsec_agenda_checkedCalc
+abs_lookupCalc
+
+# ---- Sensor position and LOS -----------------------------------------------
+
+# Number of tangent altitudes
+IndexCreate( n_tan )
+IndexSet( n_tan, 3 )
+
+# Sensor position, with platform altitude set to 600 km
+MatrixSetConstant( sensor_pos, n_tan, 1, 600e3 )
+
+# LOS, specified by the corresponding geometrical tangent altitudes
+# Tangent altitudes will be equally spaced between 50 and 20 km
+VectorCreate( z_tan )
+VectorNLinSpace( z_tan, n_tan, 50e3, 20e3 )
+VectorCreate( za )
+VectorZtanToZa1D( za, sensor_pos, refellipsoid, atmosphere_dim, z_tan )
+Matrix1ColFromVector( sensor_los, za )
+
+sensor_checkedCalc
+
+propmat_clearsky_agenda_checkedCalc
+
+
+
+##############################################################################
+#
+# Absorption
+#
+##############################################################################
+
+MatrixCreate( Ja )
+MatrixCreate( Jp )
+
+# Species (just O3)
+#
+# Retrieve for a grid rougly matching 16 to 64 km in 2 km steps.
+#
+VectorCreate( retrieval_grid )
+VectorNLogSpace( retrieval_grid, 25, 100e2, 10 )
+
+#jacobianInit
+#jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
+#    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+#    retrieval_grid, lat_grid, lon_grid, 
+#    "O3", "analytical", "rel", 1, 0.01 )
+#jacobianClose
+#WriteXML( in=jacobian_quantities )
+#jacobianOff
+#yCalc
+#WriteXML( in=y )
+#Copy( Ja, jacobian )
+#
+#
+## Same with perturbations
+#jacobianInit
+#jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
+#    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+#    retrieval_grid, lat_grid, lon_grid, 
+#    "O3", "perturbation", "rel", 1, 0.01 )
+#jacobianClose
+#yCalc
+#Copy( Jp, jacobian )
+#
+#WriteXML( "ascii", Ja, "JHyb_O3_analytical.xml" )
+#WriteXML( "ascii", Jp, "JHyb_O3_perturbation.xml" )
+#
+## Compare
+#Compare( Ja, Jp, 0.005 )
+#
+#
+# Analytical but now using VMR, though for all "O2" species
+jacobianInit
+jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
+    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+    retrieval_grid, lat_grid, lon_grid, 
+    "O2", "analytical", "vmr", 0, 0.01 )
+jacobianClose
+WriteXML( in=jacobian_quantities )
+yCalc
+WriteXML( in=y )
+Copy( Ja, jacobian )
+
+WriteXML( "ascii", Ja, "JHyb_O2_analytical.xml" )
+
+
+##############################################################################
+#
+# Temperature, without HSE
+#
+##############################################################################
+
+# For limb sounding, the analytical expressions do not cover all effects
+# related to HSE and refraction and HSE must be "off" here to get consistent
+# results. 
+
+## Stuff needed for HSE
+#NumericSet( p_hse, 1000e2 )
+#NumericSet( z_hse_accuracy, 1 )
+#VectorSet( lat_true, [15] )
+#VectorSet( lon_true, [123] )
+#
+#jacobianInit
+#jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
+#    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+#    retrieval_grid, lat_grid, lon_grid, 
+#    "off", "analytical", 0.1 )
+#jacobianClose
+#yCalc
+#Copy( Ja, jacobian )
+#
+#
+## Same with perturbations
+#jacobianInit
+#jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
+#    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+#    retrieval_grid, lat_grid, lon_grid, 
+#    "off", "perturbation", 0.1 )
+#jacobianClose
+#yCalc
+#Copy( Jp, jacobian )
+#
+##WriteXML( "ascii", Ja, "JHyb_temp_analytical.xml" )
+##WriteXML( "ascii", Jp, "JHyb_temp_perturbation.xml" )
+#
+## Compare
+#Compare( Ja, Jp, 0.001 )
+
+
+
+##############################################################################
+#
+# Pointing
+#
+##############################################################################
+
+# Sensor time must be specified here
+#nrowsGet( nrows, sensor_pos )
+#VectorNLinSpace( sensor_time, nrows, 0, 1 )
+#
+#jacobianInit
+#jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
+#                       sensor_pos, sensor_time, 0, "recalc", 0.001 )
+#jacobianClose
+#yCalc
+#Copy( Ja, jacobian )
+#
+#jacobianInit
+#jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
+#                       sensor_pos, sensor_time, 0, "interp", 0.001 )
+#jacobianClose
+#yCalc
+#Copy( Jp, jacobian )
+#
+##WriteXML( "ascii", Ja, "JHyb_pointing_analytical.xml" )
+##WriteXML( "ascii", Jp, "JHyb_pointing_perturbation.xml" )
+#
+## Compare (Note that the WF is for 1 deg change, corresponding to about
+## 60 km change in tangent altitude, and 10 K/deg accuracy is OK)
+#Compare( Ja, Jp, 10 )
+
+
+
+
+
+##############################################################################
+#
+# Just check that remaining weighting functions don't cause any error
+#
+##############################################################################
+
+#jacobianInit
+#
+#jacobianAddFreqShift( jacobian_quantities, jacobian_agenda, f_grid, 
+#    sensor_pos, sensor_time, 0, 50e3 )
+#jacobianAddFreqStretch( jacobian_quantities, jacobian_agenda, f_grid, 
+#    sensor_pos, sensor_time, 0, 50e3 )
+#
+#jacobianAddPolyfit( jacobian_quantities, jacobian_agenda, 
+#    sensor_response_pol_grid, sensor_response_dlos_grid, sensor_pos, 
+#    1, 0, 0, 0 )
+#
+#jacobianAddSinefit( jacobian_quantities, jacobian_agenda, 
+#    sensor_response_pol_grid, sensor_response_dlos_grid, sensor_pos, 
+#    [200e6,40e6], 0, 0, 0 )
+#
+#jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
+#    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "v" )
+#
+#jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
+#    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "w", 0.1 )
+#    
+#jacobianClose
+#
+#IndexSet( abs_f_interp_order, 1 )
+#yCalc
+
+}

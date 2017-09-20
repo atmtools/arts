@@ -2063,8 +2063,8 @@ void DoitWriteIterationFields(//WS input
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void
-doit_scat_fieldCalc(Workspace& ws,
+void doit_scat_fieldCalc(
+                    Workspace& ws,
                     // WS Output and Input
                     Tensor6& doit_scat_field,
                     //WS Input:
@@ -2342,8 +2342,8 @@ doit_scat_fieldCalc(Workspace& ws,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void
-doit_scat_fieldCalcLimb(Workspace& ws,
+void doit_scat_fieldCalcLimb(
+                        Workspace& ws,
                         // WS Output and Input
                         Tensor6& doit_scat_field,
                         //WS Input:
@@ -4394,6 +4394,7 @@ void doit_i_fieldSetConst(//WS Output:
     {
         doit_i_field_mono =
           doit_i_field(f_index, joker, joker, joker, joker, joker, joker);
+
         doit_i_field_monoSetConst(doit_i_field_mono,
                                   p_grid,
                                   lat_grid,
@@ -4403,6 +4404,56 @@ void doit_i_fieldSetConst(//WS Output:
                                   stokes_dim,
                                   doit_i_field_values,
                                   verbosity);
+
+        doit_i_field(f_index, joker, joker, joker, joker, joker, joker) =
+          doit_i_field_mono;
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void doit_i_fieldSetConstPerFreq(//WS Output:
+                          Tensor7& doit_i_field,
+                          //WS Input:
+                          const Vector& p_grid,
+                          const Vector& lat_grid,
+                          const Vector& lon_grid,
+                          const ArrayOfIndex& cloudbox_limits,
+                          const Index& atmosphere_dim,
+                          const Index& stokes_dim,
+                          // Keyword
+                          const Matrix& doit_i_field_values,
+                          const Verbosity& verbosity)
+{
+    CREATE_OUT2;
+
+    if (doit_i_field.nlibraries() != doit_i_field_values.nrows())
+      throw runtime_error(
+                        "Number of rows in *doit_i_field_values* has to be equal"
+                        " the frequency dimension of *doit_i_field*.");
+
+    Tensor6 doit_i_field_mono(doit_i_field.nvitrines(),
+                              doit_i_field.nshelves(),
+                              doit_i_field.nbooks(),
+                              doit_i_field.npages(),
+                              doit_i_field.nrows(),
+                              doit_i_field.ncols());
+
+    for (Index f_index = 0; f_index < doit_i_field.nlibraries(); f_index++)
+    {
+        doit_i_field_mono =
+          doit_i_field(f_index, joker, joker, joker, joker, joker, joker);
+
+        doit_i_field_monoSetConst(doit_i_field_mono,
+                                  p_grid,
+                                  lat_grid,
+                                  lon_grid,
+                                  cloudbox_limits,
+                                  atmosphere_dim,
+                                  stokes_dim,
+                                  doit_i_field_values(f_index,joker),
+                                  verbosity);
+
         doit_i_field(f_index, joker, joker, joker, joker, joker, joker) =
           doit_i_field_mono;
     }
@@ -4428,13 +4479,6 @@ void doit_i_field_monoSetConst(//WS Output:
   
   out2 << "  Set initial field to constant values: " << doit_i_field_values << "\n"; 
 
-  // In the 1D case the atmospheric layers are defined by p_grid and doit_i_field.
-  Index N_za = doit_i_field_mono.npages();
-  Index N_aa = doit_i_field_mono.nrows();
-  Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
-  Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
-  Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
-
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   
   // Grids have to be adapted to atmosphere_dim.
@@ -4444,81 +4488,24 @@ void doit_i_field_monoSetConst(//WS Output:
   if (stokes_dim < 0 || stokes_dim > 4)
     throw runtime_error(
                         "The dimension of stokes vector must be"
-                        "1,2,3, or 4");
+                        "1,2,3, or 4.");
 
+  if (stokes_dim != doit_i_field_values.nelem())
+    throw runtime_error(
+                        "Length of *doit_i_field_values* has to be equal"
+                        " *stokes_dim*.");
   if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
     throw runtime_error(
                         "*cloudbox_limits* is a vector which contains the"
                         "upper and lower limit of the cloud for all "
                         "atmospheric dimensions. So its dimension must"
-                        "be 2 x *atmosphere_dim*"); 
+                        "be 2 x *atmosphere_dim*."); 
 
 
- 
-  if(atmosphere_dim == 1)
-    {
-      out3 << "  atm_dim = 1\n"; 
-      
-    // Loop over all zenith angle directions.
-    for (Index za_index = 0; za_index < N_za; za_index++)
-      {
-        for (Index i = 0; i < stokes_dim; i++)
-          { 
-            for (Index scat_p_index = 1; scat_p_index < cloudbox_limits[1] -
-                   cloudbox_limits[0]; scat_p_index++ )
-              // The field inside the cloudbox is set to some arbitrary value.
-              doit_i_field_mono(scat_p_index, 0, 0, za_index, 0, i) =  doit_i_field_values[i];
-          }    
-      }
-    }
-  else 
-    {
-      if ( !is_size(doit_i_field_mono, 1, Np_cloud, Nlat_cloud,
-                Nlon_cloud, N_za, N_aa, stokes_dim) )
-        throw runtime_error(
-                            "*doit_i_field_mono* does not have "
-                            "the right dimensions.  \n Probably you have "
-                            "calculated it before for another value of "
-                            "*stokes_dim*."
-                            );
-      
+  for (Index i = 0; i < stokes_dim; i++)
+  {
+    doit_i_field_mono(joker, joker, joker, joker, joker, i) =
+      doit_i_field_values[i];
+  }
 
-      
-      out3 << "atm_dim = 3\n";      
-
-      // Loop over all directions:
-      for (Index za_index = 0; za_index < N_za; za_index++)
-        {
-          for (Index aa_index = 0; aa_index < N_aa; aa_index++)
-            {
-              for (Index i = 0; i < stokes_dim; i++)
-                { 
-                   //
-                   // Set the initial field to a constant value inside the 
-                   // cloudbox:
-                   // 
-                   for( Index p_index = (cloudbox_limits[0]+1); 
-                                 p_index <  cloudbox_limits[1] ;
-                                 p_index ++)
-                     {
-                       for (Index lat_index = (cloudbox_limits[2]+1); 
-                            lat_index < cloudbox_limits[3]; 
-                            lat_index++)
-                         {
-                           for (Index lon_index = (cloudbox_limits[4]+1); 
-                                lon_index < cloudbox_limits[5];
-                                lon_index++)
-                             {
-                               doit_i_field_mono(p_index-cloudbox_limits[0],
-                                       lat_index-cloudbox_limits[2],
-                                       lon_index-cloudbox_limits[4],
-                                       za_index, aa_index, i) =  
-                                 doit_i_field_values[i];
-                             }
-                         }
-                     }
-                } // stokes loop
-            } // aa_grid loop
-        } // za_grid loop
-    } // atmosphere dim = 3
 }

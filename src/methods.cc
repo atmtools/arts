@@ -5256,7 +5256,7 @@ void define_md_data_raw()
          "This method sets the initial field inside the cloudbox to a\n"
          "constant value.\n"
          "\n"
-         "The user can specify a value for each Stokes dimension in the\n"
+         "The user has to specify a value for each Stokes dimension in the\n"
          "control file by *value*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
@@ -5271,8 +5271,37 @@ void define_md_data_raw()
         GIN( "value" ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "A vector containing 4 elements with the value of the "
-                  "initial field for each Stokes dimension."
+        GIN_DESC( "A vector containing *stokes_dim* elements with the value of"
+                  " the initial field for each Stokes dimension."
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "doit_i_fieldSetConstPerFreq" ),
+        DESCRIPTION
+        (
+         "This method sets the initial field inside the cloudbox to a\n"
+         "constant value per frequency slice.\n"
+         "\n"
+         "The user has specify a value for each frequency and Stokes\n"
+         "dimension in the control file by *value*.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "doit_i_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "doit_i_field",
+            "p_grid", "lat_grid",
+            "lon_grid", 
+            "cloudbox_limits", "atmosphere_dim", "stokes_dim" ),
+        GIN( "value" ),
+        GIN_TYPE(    "Matrix" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "A matrix containing *stokes_dim* elements per frequency"
+                  " (row) with the value of the initial field for each"
+                  " frequency and Stokes dimension."
                   )
         ));
 

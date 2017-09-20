@@ -4893,7 +4893,7 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
                                     ConstVectorView ppath_line_of_sight,
                                     const GridPos& ppath_pressure,
                                     const Numeric& ppath_temperature,
-                                    const Index& atmosphere_dim,
+                                    const Index& atmosphere_dim _U_,
                                     const bool& do_jacobian,
                                     const Verbosity& verbosity)
 {

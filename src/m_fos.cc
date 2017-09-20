@@ -1823,7 +1823,7 @@ void iyHybrid2(
   //
   Tensor7 doit_i_field;
   Vector  scat_za_grid;
-  Vector scat_aa_grid;
+  Vector  scat_aa_grid;
   //
   {
     //
@@ -1831,10 +1831,15 @@ void iyHybrid2(
                                 doit_i_field_agenda );
     if( doit_i_field.ncols() != stokes_dim  )
       throw runtime_error(
-        "Obtained *doit_i_field* has wrong number of Stokes elements."  );
+        "Obtained *doit_i_field* number of Stokes elements inconsistent with"
+        " *stokes_dim*."  );
     if( doit_i_field.nrows() != 1  )
       throw runtime_error(
         "Obtained *doit_i_field* has wrong number of azimuth angles."  );
+    if( doit_i_field.npages() != scat_za_grid.nelem()  )
+      throw runtime_error(
+        "Obtained *doit_i_field* number of zenith angles inconsistent with"
+        " *scat_za_grid*."  );
     if( doit_i_field.nbooks() != 1  )
       throw runtime_error(
         "Obtained *doit_i_field* has wrong number of longitude points."  );
@@ -1843,10 +1848,12 @@ void iyHybrid2(
         "Obtained *doit_i_field* has wrong number of latitude points."  );
     if( doit_i_field.nvitrines() != cloudbox_limits[1]-cloudbox_limits[0]+1  )
       throw runtime_error(
-        "Obtained *doit_i_field* has wrong number of pressure points."  );
+        "Obtained *doit_i_field* number of pressure points inconsistent with"
+        " *cloudbox_limits*."  );
     if( doit_i_field.nlibraries() != nf  )
       throw runtime_error(
-        "Obtained *doit_i_field* has wrong number of frequency points."  );
+        "Obtained *doit_i_field* number of frequency points inconsistent with"
+        " *f_grid*."  );
   }
 
   // Reset azimuth grid for scattering source calc later on
@@ -2003,12 +2010,37 @@ void iyHybrid2(
                                       jacobian_do,
                                       verbosity);
 
-      a += K_this;
-      K_this += Kp;
+      a += K_this;  // a is initialized in get_stepwise_scattersky_propmat
+      K_this += Kp; // K_this is initialized in get_stepwise_clearsky_propmat
       for( Index iq = 0; iq < nq; iq++ )
       {
-        da_dx[iq] += dK_this_dx[iq];
-        dK_this_dx[iq] += dKp_dx[iq];
+        // da_dx and dKp_dx are initialized in get_stepwise_scattersky_propmat,
+        // dK_this_dx in get_stepwise_clearsky_propmat.
+        // iq entries can be set through .SetZero, though, which makes adding
+        // them to each other impossible.
+        if ( dK_this_dx[iq].GetMatrix().nrows() *
+             dK_this_dx[iq].GetMatrix().ncols() != 0 ) // dK_this_dx set
+        {
+          if( da_dx[iq].GetMatrix().nrows() *
+              da_dx[iq].GetMatrix().ncols() == 0 )       // and da_dx unset
+            {da_dx[iq] = dK_this_dx[iq];}
+          else                                           // and da_dx unset
+            {da_dx[iq] += dK_this_dx[iq];}
+        }
+        // else                                        // dK_this_dx unset
+        // nothing to update
+
+        if ( dKp_dx[iq].GetMatrix().nrows() *
+             dKp_dx[iq].GetMatrix().ncols() != 0 )       // dKp_dx set
+        {
+          if( dK_this_dx[iq].GetMatrix().nrows() *
+              dK_this_dx[iq].GetMatrix().ncols() == 0 )    // and dK_this_dx unset
+            {dK_this_dx[iq] = dKp_dx[iq];}
+          else                                             // and dK_this_dx unset
+            {dK_this_dx[iq] += dKp_dx[iq];}
+        }
+        // else                                         // dKp_dx unset
+        // nothing to update
       }
       
       get_stepwise_transmission_matrix(trans_cumulat(ip, joker, joker, joker),
@@ -2046,7 +2078,17 @@ void iyHybrid2(
       S += Sp;
       for( Index iq = 0; iq < nq; iq++ )
       {
-        dS_dx[iq] += dSp_dx[iq];
+        if ( dSp_dx[iq].GetMatrix().nrows() *
+             dSp_dx[iq].GetMatrix().ncols() != 0 )       // dSp_dx set
+        {
+          if( dS_dx[iq].GetMatrix().nrows() *
+              dS_dx[iq].GetMatrix().ncols() == 0 )    // and dS_dx unset
+            {dS_dx[iq] = dSp_dx[iq];}
+          else                                             // and dS_dx unset
+            {dS_dx[iq] += dSp_dx[iq];}
+        }
+        // else                                         // dSp_dx unset
+        // nothing to update
       }
 
       get_stepwise_effective_source(J(ip, joker, joker),
@@ -2055,7 +2097,7 @@ void iyHybrid2(
                                     a,
                                     S,
                                     dK_this_dx,
-                                    ArrayOfStokesVector(0),  // da_dx,
+                                    da_dx,
                                     dS_dx,
                                     B,
                                     dB_dT,
@@ -2066,7 +2108,7 @@ void iyHybrid2(
       
     }
     
-    // Get *iy* at end ppath by interpoling doit_i_field
+    // Get *iy* at end ppath by interpolating doit_i_field
     {
       Tensor4 i_field = doit_i_field(joker,joker,0,0,joker,0,joker);
       

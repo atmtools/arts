@@ -1,3 +1,28 @@
+2017-09-20 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-803
+
+	* src/m_fos.cc (iyHybrid2):
+	Debugging of derivatives sum up.
+
+	* src/methods.cc, src/m_doit.cc (doit_i_fieldSetConstPerFreq):
+	Added new WSM to set a freq-dependent, but otherwise constant doit_i_field.
+
+	(doit_i_field_monoSetConst):
+	Bugfixes & cleanup.
+
+	* controlfiles/artscomponents/wfuns/TestWfunsHybClear.arts:
+	Added. (Quasi-)clearsky test case for Jacobians from iyHybrid*. Setup
+	equivalent to TestWfuns.arts.
+
+	* controlfiles/artscomponents/wfuns/TestWfuns.arts:
+	Some (outcommented) write statements to help comparison with WfunsHybrid
+	case.
+
+	* 3rdparty/polradtran/rt4/radtran4.f:
+	Increased max number of layers in order to allow it to run on wfun test
+	case atm setup. Revert in case this degrades performance noticeably.
+
 2017-09-20 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	Reverted changes to jacobianAddAbsSpecies that caused tests to fail.
