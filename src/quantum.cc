@@ -154,7 +154,6 @@ bool QuantumIdentifier::operator>(const QuantumIdentifier& other) const
       return true;
       break;
     case QuantumIdentifier::ALL:
-      assert(other.Type() == QuantumIdentifier::ALL);
       return true;
       break;
     default:

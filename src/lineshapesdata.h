@@ -55,32 +55,6 @@
 
 namespace Linefunctions
 {
-
-  /*!
-   * 
-   * 
-   * 
-   */
-  
-  enum class Lineshape
-  {
-    None,                       // Holder that should always fail if evoked  X
-    O2_resonant,                // Debye lineshape  X
-    Doppler,                    // Doppler lineshape  X
-    Lorentz,                    // Lorentz lineshape  X
-    Mirrored_lorentz,           // Mirrored Lorentz lineshape  X
-    Faddeeva_algorithm916,      // Faddeeva lineshape  X
-    Faddeeva_Hui_etal_1979,     // Faddeeva lineshape  X
-    Hartmann_and_Tran_profile   // Hartmann-Tran lineshape  X
-  }; 
-  
-  enum class Linenormalization
-  {
-    None,                   // No normalization  X
-    Rosenkranz_quadratic,   // Quadratic normalization (f/f0)^2*h*f0/(2*k*T)/sinh(h*f0/(2*k*T))  X
-    Van_Vleck_and_Weiskopf, // Van Vleck Weiskopf normalization (f*f) / (f0*f0)  X
-    Van_Vleck_and_Huber     // Van Vleck Huber normalization f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T)))  X
-  };
   
   // Sets lineshape to the Lorentz lineshape 
   void set_lorentz(ComplexVector& F, // Sets the full complex line shape without line mixing
@@ -95,20 +69,6 @@ namespace Linefunctions
                    const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                    const Numeric& dG0_dT=0.0,
                    const Numeric& dL0_dT=0.0);
-  
-  // Sets lineshape to the mirrored Lorentz lineshape (F0 at plus-and-minus)
-  void set_mirrored_lorentz(ComplexVector& F, // Sets the full complex line shape without line mixing
-                            ArrayOfComplexVector& dF, 
-                            const Vector& f_grid,
-                            const Numeric& zeeman_df,
-                            const Numeric& magnetic_magnitude,
-                            const Numeric& F0_noshift,
-                            const Numeric& G0,
-                            const Numeric& L0,
-                            const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
-                            const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                            const Numeric& dG0_dT=0.0,
-                            const Numeric& dL0_dT=0.0);
   
   // Set lineshape to the complex Hartmann-Tran lineshape
   void set_htp(ComplexVector& F, // Sets the full complex line shape without line mixing
@@ -173,31 +133,6 @@ namespace Linefunctions
                                          const Numeric& dGD_div_F0_dT=0.0,
                                          const Complex& deigenvalue_dT=0.0,
                                          const Numeric& dL0_dT=0.0);
-  
-  
-  void set_hui_etal_1978(ComplexVector& F, // Sets the full complex line shape without line mixing
-                         ArrayOfComplexVector& dF,
-                         const Vector& f_grid,
-                         const Numeric& zeeman_df,
-                         const Numeric& magnetic_magnitude,
-                         const Numeric& F0_noshift,
-                         const Numeric& GD_div_F0,
-                         const Numeric& G0,
-                         const Numeric& L0,
-                         const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
-                         const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                         const Numeric& dGD_div_F0_dT=0.0,
-                         const Numeric& dG0_dT=0.0,
-                         const Numeric& dL0_dT=0.0);
-  
-  void set_o2_non_resonant(ComplexVector& F, // Sets the full complex line shape without line mixing
-                           ArrayOfComplexVector& dF,
-                           const Vector& f_grid,
-                           const Numeric& F0,
-                           const Numeric& G0,
-                           const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
-                           const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                           const Numeric& dG0_dT=0.0);
   
   void apply_linemixing(ComplexVector& F, // Returns the full complex or normalized line shape with line mixing
                         ArrayOfComplexVector& dF,

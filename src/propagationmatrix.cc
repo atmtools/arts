@@ -268,8 +268,6 @@ void compute_transmission_matrix(Tensor3View T,
 }
 
 
-
-
 void compute_transmission_matrix_from_averaged_matrix_at_frequency(MatrixView T, 
                                                                    const Numeric& r, 
                                                                    const PropagationMatrix& averaged_propagation_matrix,

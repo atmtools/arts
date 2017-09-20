@@ -282,7 +282,7 @@ public:
         ALL
     } QType;
     
-    QuantumIdentifier() {}
+    QuantumIdentifier() : mspecies(-1), miso(-1) {}
 
     QuantumIdentifier(const Index spec, const Index isot, const QuantumNumberRecord& qnr)
     : mspecies(spec), miso(isot)

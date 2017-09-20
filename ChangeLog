@@ -1,3 +1,17 @@
+2017-09-20 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-800
+	
+	* src/jacobian.{cc,h}:  Added solution for new formulation of RTE in
+	iyHybrid2.  Still need HSE since this is treated on pseudo-expressions
+	rather than actual dependencies in old path.  Needs better integration
+	into RTE.
+	
+	* src/m_fos.{cc,h}:  Added temporary solution to Jacobian calculations.
+	Still need a test for this...
+	
+	* rest:  Some small fixes
+
 2017-09-19 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-799

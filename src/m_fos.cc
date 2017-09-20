@@ -2093,24 +2093,46 @@ void iyHybrid2(
     // Radiative transfer solver
     for(Index iv = 0; iv < nf; iv++)
     {
-      Matrix ImT(stokes_dim, stokes_dim);
-      Vector one(stokes_dim), two(stokes_dim), three(stokes_dim);
+      Matrix one_minus_transmission(stokes_dim, stokes_dim);
+      Vector through_level(stokes_dim), from_level(stokes_dim), dfrom_level_dx(stokes_dim);
       
       for(Index ip = np - 2; ip >= 0; ip--)
       {
         
-        MatrixView T = trans_partial(ip+1, iv, joker, joker);
+        ConstMatrixView T = trans_partial(ip+1, iv, joker, joker);
         
-        mult(one, T, iy(iv, joker));
-        id_mat(ImT);
-        ImT -= T;
-        three = J(ip, iv, joker);
-        three += J(ip+1, iv, joker);
-        three *= 0.5;
+        if(nq)
+        {
+          id_mat(one_minus_transmission);
+          one_minus_transmission -= T;
+        }
         
-        mult(two, ImT, three);
-        iy(iv, joker) = one;
-        iy(iv, joker) += two;
+        from_level = J(ip, iv, joker);
+        from_level += J(ip+1, iv, joker);
+        from_level *= 0.5;
+        through_level = iy(iv, joker);
+        through_level -= from_level;
+        
+        for(Index iq = 0; iq < nq; iq++)
+        {
+          ConstMatrixView dT_upp = dtrans_partial_dx_above(ip+1, iq, iv, joker, joker);
+          ConstMatrixView dT_low = dtrans_partial_dx_below(ip+1, iq, iv, joker, joker);
+          
+          dfrom_level_dx = dJ_dx(ip, iq, iv, joker);
+          dfrom_level_dx += dJ_dx(ip+1, iq, iv, joker);
+          dfrom_level_dx *= 0.5;
+          
+          get_diydx(diy_dpath[iq](ip, iv, joker), 
+                    one_minus_transmission,
+                    trans_cumulat(ip, iv, joker, joker), 
+                    dT_upp, dT_low, 
+                    through_level, dfrom_level_dx, 
+                    stokes_dim);
+        }
+        
+        // Equation is I1 = T (I0 - 0.5(J_1+J_2)) + 0.5(J_1+J_2)
+        mult(iy(iv, joker), T, through_level);
+        iy(iv, joker) += from_level;
       }
     }
   }

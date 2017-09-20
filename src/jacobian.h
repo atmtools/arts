@@ -333,4 +333,14 @@ void get_diydx( VectorView diydx_this,
                 const bool& do_HSE,
                 const bool& do_nonlte );
 
+void get_diydx( VectorView diy,
+                ConstMatrixView ImT,
+                ConstMatrixView cumulative_transmission,
+                ConstMatrixView dT1,
+                ConstMatrixView dT2,
+                ConstVectorView iYmJ,
+                ConstVectorView dJ,
+                const Index stokes_dim);
+
 #endif // jacobian_h
+

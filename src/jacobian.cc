@@ -1459,3 +1459,53 @@ void get_diydx( VectorView diydx_this,
         } // HSE
     } // General case
 }
+
+
+/*!
+ *   The function helps to calculate the partial derivative of iy with respect
+ *   to one input at one pressure.  The formalism here assumes that the radiation
+ *   terms are averaged rather than the absorption parameters, thus this can be 
+ *   solved per layer rather than for two layers at a time.  Still, the absorption
+ *   parameters for the transmission needs to be considered by the two layer derivatives
+ * 
+ *   FIXME:  Add HSE support
+ * 
+ *   \param   diy                       Out: diy for one level
+ *   \param   ImT                       In: identity matrix minus tranmsission matrix
+ *   \param   cumulative_transmission   In: cumulative transmission from level to sensor
+ *   \param   dT1                       In: upper or lower transmission matrix derivative
+ *   \param   dT2                       In: upper or lower transmission matrix derivative
+ *   \param   iYmJ                      In: incoming radiation to layer minus source of layer
+ *   \param   dJ                        In: derivative of source term emitted by layer
+ * 
+ * 
+ *   \author Richard Larsson
+ *   \date   2017-09-20
+ */
+void get_diydx(VectorView diy,
+               ConstMatrixView ImT,
+               ConstMatrixView cumulative_transmission,
+               ConstMatrixView dT1,
+               ConstMatrixView dT2,
+               ConstVectorView iYmJ,
+               ConstVectorView dJ,
+               const Index stokes_dim)
+{
+  /*
+   * Solves diy = PiT [ dT1 iYmJ + dT2 iYmJ + ImT dJ + HSE ]
+  */
+  
+  // Transmitted terms thorugh a layer
+  Vector x(stokes_dim), x_tmp(stokes_dim);
+  mult(x, dT1, iYmJ);
+  mult(x_tmp, dT2, iYmJ);
+  x += x_tmp;
+  
+  // Emitted term by a layer
+  mult(x_tmp, ImT, dJ);
+  x += x_tmp;
+  
+  // Final transmission to space
+  mult(diy, cumulative_transmission, x);
+}
+

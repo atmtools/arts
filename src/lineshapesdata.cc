@@ -54,7 +54,7 @@ void Linefunctions::set_lorentz(ComplexVector& F, // Sets the full complex line 
                                 const Numeric& magnetic_magnitude,
                                 const Numeric& F0_noshift,
                                 const Numeric& G0,
-                                const Numeric& L0,
+                                const Numeric& L0, 
                                 const PropmatPartialsData& derivatives_data,
                                 const QuantumIdentifier& quantum_identity,
                                 const Numeric& dG0_dT,
@@ -62,9 +62,10 @@ void Linefunctions::set_lorentz(ComplexVector& F, // Sets the full complex line 
 { 
   const Index nf = f_grid.nelem(), nppd = derivatives_data.nelem();
   
+  // Compute the true central frequency
   const Numeric F0 = F0_noshift + L0 + zeeman_df * magnetic_magnitude;
   
-  // Signa change of F and F0?
+  // Sigma change of F and F0?
   const Complex denom0 = Complex(G0, F0);
   
   F = invPI;
@@ -74,6 +75,10 @@ void Linefunctions::set_lorentz(ComplexVector& F, // Sets the full complex line 
     F[iv] /= (denom0 - Complex(0.0, f_grid[iv]));
   }
   
+  // If there are partial derivatives, then the last 
+  // one will now contain a temporary speed increasing 
+  // variable since d (1/F(x)) / dx = - (dF(x)/dx) / F(x)^2
+  // hopefully, C++ knows that A[i] = A[i] does nothing....
   if(nppd > 0)
   {
     dF[nppd-1] = F;
@@ -86,6 +91,7 @@ void Linefunctions::set_lorentz(ComplexVector& F, // Sets the full complex line 
     
     if(derivatives_data(iq) == JQT_temperature)
     {
+      // Temperature derivative only depends on how pressure shift and broadening change
       dF[iq] = dF[nppd-1];
       dF[iq] *= Complex(dG0_dT, dL0_dT);
     }
@@ -95,6 +101,7 @@ void Linefunctions::set_lorentz(ComplexVector& F, // Sets the full complex line 
       derivatives_data(iq) == JQT_wind_v or
       derivatives_data(iq) == JQT_wind_w)
     {
+      // Frequency scale 1 to -1 linearly
       dF[iq] = dF[nppd-1];
       dF[iq] *= Complex(0.0, -1.0);
     }
@@ -102,6 +109,7 @@ void Linefunctions::set_lorentz(ComplexVector& F, // Sets the full complex line 
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
       {
+        // Line center scales 1 to 1 linearly
         dF[iq] = dF[nppd-1];
         dF[iq] *= Complex(0.0, 1.0);
       }
@@ -114,92 +122,22 @@ void Linefunctions::set_lorentz(ComplexVector& F, // Sets the full complex line 
       derivatives_data(iq) == JQT_line_pressureshift_foreign or
       derivatives_data(iq) == JQT_line_gamma_water or
       derivatives_data(iq) == JQT_line_gamma_waterexponent or 
-      derivatives_data(iq) == JQT_line_pressureshift_water) // Only the zeroth order terms --- the derivative with respect to these have to happen later
+      derivatives_data(iq) == JQT_line_pressureshift_water) 
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
       {
+        // Pressure broadening will be dealt with in another function, though the partial derivative
+        // messes some things up (should this 1+1i be removed?)
         dF[iq] = dF[nppd-1];
         dF[iq] *= Complex(1.0, 1.0);
       }
     }
-    else if(derivatives_data(iq) == JQT_magnetic_magntitude)// No //external inputs --- errors because of frequency shift when Zeeman is used?
+    else if(derivatives_data(iq) == JQT_magnetic_magntitude)
     {
+      // Magnetic magnitude changes like line center in part
+      // FIXME: Add magnetic components here
       dF[iq] = dF[nppd-1];
       dF[iq] *= Complex(0.0, zeeman_df);
-    }
-  }
-}
-
-
-void Linefunctions::set_mirrored_lorentz(ComplexVector& F, // Sets the full complex line shape without line mixing
-                                         ArrayOfComplexVector& dF, 
-                                         const Vector& f_grid,
-                                         const Numeric& zeeman_df,
-                                         const Numeric& magnetic_magnitude,
-                                         const Numeric& F0_noshift,
-                                         const Numeric& G0,
-                                         const Numeric& L0,
-                                         const PropmatPartialsData& derivatives_data,
-                                         const QuantumIdentifier& quantum_identity,
-                                         const Numeric& dG0_dT,
-                                         const Numeric& dL0_dT)
-{ 
-  Complex Fplus, Fminus;
-  
-  const Index nf = f_grid.nelem(), nppd = derivatives_data.nelem();
-  
-  const Numeric F0 = F0_noshift + L0 + zeeman_df * magnetic_magnitude;
-  
-  // Signa change of F and F0?
-  const Complex denom0 = Complex(G0, F0), denom1 = Complex(G0, -F0);
-  
-  for(Index iv = 0; iv < nf; iv++)
-  {
-    Fplus = invPI / (denom0 - Complex(0.0, f_grid[iv]));
-    Fminus = invPI / (denom1 - Complex(0.0, f_grid[iv]));
-    F[iv] = Fplus + Fminus;
-    
-    for(Index iq = 0; iq < nppd; iq++)
-    {
-      if(derivatives_data(iq) == JQT_temperature)
-      {
-        dF[iq][iv] = (Fplus * Fplus * Complex(dG0_dT, dL0_dT) + Fminus * Fminus * Complex(dG0_dT, -dL0_dT)) * PI;
-      }
-      else if(derivatives_data(iq) == JQT_frequency or
-        derivatives_data(iq) == JQT_wind_magnitude or
-        derivatives_data(iq) == JQT_wind_u or
-        derivatives_data(iq) == JQT_wind_v or
-        derivatives_data(iq) == JQT_wind_w)
-      {
-        dF[iq][iv] = (Fplus * Fplus + Fminus * Fminus) * PI;
-        dF[iq][iv] *= Complex(0.0, -1.0);
-      }
-      else if(derivatives_data(iq) == JQT_line_center)
-      {
-        if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-        {
-          dF[iq][iv] = (Fplus * Fplus * Complex(0.0, 1.0) + Fminus * Fminus * Complex(0.0, -1.0)) * PI;
-        }
-      }
-      else if(derivatives_data(iq) == JQT_line_gamma_self or 
-        derivatives_data(iq) == JQT_line_gamma_selfexponent or
-        derivatives_data(iq) == JQT_line_pressureshift_self or
-        derivatives_data(iq) == JQT_line_gamma_foreign or
-        derivatives_data(iq) == JQT_line_gamma_foreignexponent or
-        derivatives_data(iq) == JQT_line_pressureshift_foreign or
-        derivatives_data(iq) == JQT_line_gamma_water or
-        derivatives_data(iq) == JQT_line_gamma_waterexponent or 
-        derivatives_data(iq) == JQT_line_pressureshift_water) // Only the zeroth order terms --- the derivative with respect to these have to happen later
-      {
-        if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-        {
-          dF[iq][iv] = (Fplus * Fplus * Complex(1.0, 1.0) + Fminus * Fminus * Complex(1.0, -1.0)) * PI;
-        }
-      }
-      else if(derivatives_data(iq) == JQT_magnetic_magntitude)// No //external inputs --- errors because of frequency shift when Zeeman is used?
-      {
-        dF[iq][iv] = (Fplus * Fplus * Complex(0.0, zeeman_df) + Fminus * Fminus * Complex(0.0, -zeeman_df)) * PI;
-      }
     }
   }
 }
@@ -228,15 +166,6 @@ void Linefunctions::set_htp(ComplexVector& F, // Sets the full complex line shap
                             const Numeric& deta_dT,
                             const Numeric& dFVC_dT)
 {
-  /*
-   * 
-   * Function is meant to compute the Hartmann-Tran lineshape
-   * 
-   * The assumptions on input are described in accompanying pdf-documents
-   * 
-   * Note that Hartmann-Tran lineshape does not support line mixing in this version
-   * 
-   */
   //extern const Numeric PI;
   static const Complex i(0.0, 1.0), one_plus_one_i(1.0, 1.0);
   static const Numeric ln2 = log(2.0), sqrtLN2 = sqrt(ln2); 
@@ -305,11 +234,11 @@ void Linefunctions::set_htp(ComplexVector& F, // Sets the full complex line shap
       Zm2 = Zm * Zm;
       Zp2 = Zp * Zp;
       B = (1.0 / one_minus_eta) * (-1.0 + 0.5 * sqrtPI / sqrtY * ((1.0 - Zm2)*wiZm - (1.0 - Zp2)*wiZp));
-      invG = 1.0 / (1.0 - (FVC - eta * C0_m1p5_C2)*A + eta * B);
+      invG = 1.0 / (1.0 - (FVC - eta * C0_m1p5_C2)*A + eta * B); // WARNING What to do at denom 0?  Catch earlier?
     }
     else
     {
-      invG = 1.0 / (1.0 - FVC*A);  // WARNING if FVC x A == 1 then this fail --- no way around it, though A should be very small and FVC should not be too large
+      invG = 1.0 / (1.0 - FVC*A);  // WARNING What to do at denom 0?  Catch earlier?
     }
     F[iv] = A * invG * invPI;
     
@@ -780,213 +709,6 @@ void Linefunctions::set_faddeeva_from_full_linemixing(ComplexVector& F,
       }
     }
     
-  }
-}
-
-
-void Linefunctions::set_hui_etal_1978(ComplexVector& F,
-                                      ArrayOfComplexVector& dF,
-                                      const Vector& f_grid,
-                                      const Numeric& zeeman_df,
-                                      const Numeric& magnetic_magnitude,
-                                      const Numeric& F0_noshift,
-                                      const Numeric& GD_div_F0,
-                                      const Numeric& G0,
-                                      const Numeric& L0,
-                                      const PropmatPartialsData& derivatives_data,
-                                      const QuantumIdentifier& quantum_identity,
-                                      const Numeric& dGD_div_F0_dT,
-                                      const Numeric& dG0_dT,
-                                      const Numeric& dL0_dT)
-{
-  /*
-   * Exact copy of get_faddeeva_algorithm916 but with the change of A and B calculations from empirical numbers
-   * 
-   * For future extensions and corrections, make sure get_faddeeva_algorithm916 first works and then update this
-   */
-  
-  // For calculations
-  Numeric dx;
-  Complex w, z, dw_over_dz, dz, A, B;
-  
-  const Index nf = f_grid.nelem(), nppd = derivatives_data.nelem();
-  
-  // Doppler broadening and line center
-  const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude + L0;
-  const Numeric GD = GD_div_F0 * F0;
-  const Numeric invGD = 1.0 / GD;
-  const Numeric dGD_dT = dGD_div_F0_dT * F0;
-  
-  // constant normalization factor for voigt
-  const Numeric fac = sqrtInvPI * invGD;
-  
-  // Ratio of the Lorentz halfwidth to the Doppler halfwidth
-  const Complex z0 = Complex(-F0, G0) * invGD;
-  
-  const Index first_pressure_broadening = derivatives_data.get_first_pressure_term(),
-  first_frequency = derivatives_data.get_first_frequency();
-  
-  // frequency in units of Doppler
-  for (Index iv=0; iv<nf; iv++)
-  {
-    dx = f_grid[iv] * invGD;
-    z = z0 + dx;
-    //  Since this is ported from old FORTRAN code, intention must be that A and B coeffs are floats?
-    A = (((((.5641896*z+5.912626)*z+30.18014)*z+
-    93.15558)*z+181.9285)*z+214.3824)*z+122.6079;
-    B = ((((((z+10.47986)*z+53.99291)*z+170.3540)*z+
-    348.7039)*z+457.3345)*z+352.7306)*z+122.6079;
-    
-    F[iv] = fac * w;
-    
-    for(Index iq = 0; iq < nppd; iq++)
-    {
-      if(iq==0)
-        dw_over_dz = 2.0 * (z * w - sqrtInvPI);
-      
-      if(derivatives_data(iq) == JQT_frequency or
-        derivatives_data(iq) == JQT_wind_magnitude or
-        derivatives_data(iq) == JQT_wind_u or
-        derivatives_data(iq) == JQT_wind_v or
-        derivatives_data(iq) == JQT_wind_w) // No //external inputs
-      { 
-        // If this is the first time it is calculated this frequency bin, do the full calculation
-        if(first_frequency == iq)
-        {
-          //dz = Complex(invGD, 0.0);
-          
-          dF[iq][iv] = fac * dw_over_dz * invGD; //dz; 
-        }
-        else  // copy for repeated occurences
-        {
-          dF[iq][iv] = dF[first_frequency][iv]; 
-        }
-      }
-      else if(derivatives_data(iq) == JQT_temperature)
-      {
-        dz = Complex(-dL0_dT, dG0_dT) - z * dGD_dT;
-        
-        dF[iq][iv] = -F[iv] * dGD_dT;
-        dF[iq][iv] += fac * dw_over_dz * dz;
-        dF[iq][iv] *= invGD;
-      }
-      else if(derivatives_data(iq) == JQT_line_center) // No //external inputs --- errors because of frequency shift when Zeeman is used?
-      {
-        if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-        {
-          dz = -z * GD_div_F0 - 1.0;
-          
-          dF[iq][iv] = -F[iv] * GD_div_F0;
-          dF[iq][iv] += dw_over_dz * dz;
-          dF[iq][iv] *= fac * invGD;
-        }
-      }
-      else if(derivatives_data(iq) == JQT_line_gamma_self or 
-        derivatives_data(iq) == JQT_line_gamma_selfexponent or
-        derivatives_data(iq) == JQT_line_pressureshift_self or
-        derivatives_data(iq) == JQT_line_gamma_foreign or
-        derivatives_data(iq) == JQT_line_gamma_foreignexponent or
-        derivatives_data(iq) == JQT_line_pressureshift_foreign or
-        derivatives_data(iq) == JQT_line_gamma_water or
-        derivatives_data(iq) == JQT_line_gamma_waterexponent or 
-        derivatives_data(iq) == JQT_line_pressureshift_water) // Only the zeroth order terms --- the derivative with respect to these have to happen later
-      {
-        if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-        {
-          // Note that if the species vmr partial derivative is necessary here is where it goes
-          if(first_pressure_broadening == iq)
-          {
-            dz = Complex(-1.0, 1.0) * invGD;
-            dF[iq][iv] = fac * dw_over_dz * dz; 
-          }
-          else
-          {
-            dF[iq][iv] = dF[first_frequency][iv]; 
-          }
-        }
-      }
-      else if(derivatives_data(iq) == JQT_magnetic_magntitude)// No //external inputs --- errors because of frequency shift when Zeeman is used?
-      {
-        // dz = Complex(- zeeman_df * invGD, 0.0);
-        
-        dF[iq][iv] = fac * dw_over_dz * (- zeeman_df * invGD); //* dz; 
-      }
-      else if(derivatives_data(iq) == JQT_line_mixing_DF or
-        derivatives_data(iq) == JQT_line_mixing_DF0 or
-        derivatives_data(iq) == JQT_line_mixing_DF1 or
-        derivatives_data(iq) == JQT_line_mixing_DFexp)
-      {
-        // dz = Complex(-invGD, 0.0);
-        
-        if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-          dF[iq][iv] = fac * dw_over_dz * (-invGD); //* dz;
-      }
-    } 
-  }
-}
-
-
-void Linefunctions::set_o2_non_resonant(ComplexVector& F,
-                                        ArrayOfComplexVector& dF,
-                                        const Vector& f_grid,
-                                        const Numeric& F0,
-                                        const Numeric& G0,
-                                        const PropmatPartialsData& derivatives_data,
-                                        const QuantumIdentifier& quantum_identity,
-                                        const Numeric& dG0_dT)
-{
-  const Index nf = f_grid.nelem(), nppd = derivatives_data.nelem();
-  
-  const Numeric fac = G0 * invPI, invG0 = 1.0/G0;
-  
-  for(Index iv = 0; iv < nf; iv++)
-  {
-    F[iv] =  fac / ((f_grid[iv]-F0) * (f_grid[iv]-F0));
-  }
-  
-  for(Index iq = 0; iq < nppd; iq++)
-  {
-    if(derivatives_data(iq) == JQT_temperature)
-    {
-      dF[iq] = F;
-      dF[iq] *= dG0_dT * invG0;
-    }
-    else if(derivatives_data(iq) == JQT_frequency or
-      derivatives_data(iq) == JQT_wind_magnitude or
-      derivatives_data(iq) == JQT_wind_u or
-      derivatives_data(iq) == JQT_wind_v or
-      derivatives_data(iq) == JQT_wind_w)
-    {
-      dF[iq] = F;
-      for(Index iv = 0; iv < nf; iv++)
-      {
-        dF[iq][iv] /= -2.0 / (f_grid[iv] - F0);
-      }
-    }
-    else if(derivatives_data(iq) == JQT_line_center)
-    {
-      if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-      {
-        dF[iq] = F;
-        for(Index iv = 0; iv < nf; iv++)
-        {
-          dF[iq][iv] *= 2.0 / (f_grid[iv] - F0);
-        }
-      }
-    }
-    else if(derivatives_data(iq) == JQT_line_gamma_self or 
-      derivatives_data(iq) == JQT_line_gamma_selfexponent or
-      derivatives_data(iq) == JQT_line_gamma_foreign or
-      derivatives_data(iq) == JQT_line_gamma_foreignexponent or
-      derivatives_data(iq) == JQT_line_gamma_water or
-      derivatives_data(iq) == JQT_line_gamma_waterexponent)
-    {
-      if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-      {
-        dF[iq] = F;
-        dF[iq] *= invG0;
-      }
-    }
   }
 }
 
