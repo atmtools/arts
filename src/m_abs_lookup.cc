@@ -2080,8 +2080,7 @@ void abs_speciesAdd2(// WS Output:
   // Do retrieval part
   jacobianAddAbsSpecies( ws, jq, jacobian_agenda, atmosphere_dim, 
                          p_grid, lat_grid, lon_grid, rq_p_grid, rq_lat_grid, 
-                         rq_lon_grid, species, method, mode, 1, dx, Matrix(), Vector(),
-                         verbosity);
+                         rq_lon_grid, species, method, mode, 1, dx, verbosity);
 }
 
 

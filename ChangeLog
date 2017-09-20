@@ -1,5 +1,30 @@
 2017-09-20 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
+	Reverted changes to jacobianAddAbsSpecies that caused tests to fail.
+
+	* arts-2-3-802
+
+	* src/jacobian.{cc,h}: Added functions to apply affine transformations to
+	x vector and jacobian.
+
+	* src/m_jacobian.cc:
+	- Removed tranformation_matrix and offset_vector arguments
+	- Added addTransformation WSM, that can be used to add transformation to quantities.
+	  This is a much better solution anyways.
+
+	* src/m_abs_lookup.{cc,h}:
+	- Reverted changes in call to jacobianAddAbsSpecies
+
+	* src/m_retrieval.cc:
+	- Reverted changes in call to jacobianAddAbsSpecies and jacobianAddTemperature
+
+	* src/methods.cc:
+	- Reverted changes to jacobianAddAbsSpecies, jacobianAddTemperature,
+	retrievalAddAbsSpecies
+	- Added addTransformation WSM
+
+2017-09-20 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
 	* arts-2-3-801
 
 	First shot add affine transformations of quantities in Jacobian.
@@ -24,7 +49,8 @@
 
 	* src/methods.cc:
 	- Adapted md_data entries for jacobianAddAbsSpecies, jacobianAddTemperatures,
-	retrievalAddAbsSpecies,  
+	retrievalAddAbsSpecies
+	- Added jacobianTransform WSM
 
 2017-09-20 Richard Larsson  <ric.larsson@gmail.com>
 

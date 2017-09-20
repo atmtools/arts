@@ -265,8 +265,6 @@ void jacobianAddAbsSpecies(
   const String&                     mode,
   const Index&                      for_species_tag,
   const Numeric&                    dx,
-  const Matrix&                     transformation_matrix,
-  const Vector&                     offset_vector,
   const Verbosity&                  verbosity )
 {
   CREATE_OUT2;
@@ -371,11 +369,6 @@ void jacobianAddAbsSpecies(
 
       jacobian_agenda.append( "jacobianCalcAbsSpeciesPerturbations", species );
     }
-
-  if ((!transformation_matrix.empty()) && (!offset_vector.empty())) {
-      jq.back().SetTransformationMatrix(transformation_matrix);
-      jq.back().SetOffsetVector(offset_vector);
-  }
 }
 
 
@@ -1960,8 +1953,6 @@ void jacobianAddTemperature(
   const String&                   hse,
   const String&                   method,
   const Numeric&                  dx,
-  const Matrix&                   transformation_matrix,
-  const Vector&                   offset_vector,
   const Verbosity&                verbosity )
 {
   CREATE_OUT3;
@@ -2058,12 +2049,6 @@ void jacobianAddTemperature(
 
       jacobian_agenda.append( "jacobianCalcTemperaturePerturbations", "" );
     }
-
-  if ((!transformation_matrix.empty()) && (!offset_vector.empty())) {
-      jq.back().SetTransformationMatrix(transformation_matrix);
-      jq.back().SetOffsetVector(offset_vector);
-  }
-
 }
 
 
@@ -4228,6 +4213,37 @@ void jacobianAddSpecialSpecies(
 //----------------------------------------------------------------------------
 // Transformations
 //----------------------------------------------------------------------------
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void addTransformation(
+    ArrayOfRetrievalQuantity& jqs,
+    const Matrix& transformation_matrix,
+    const Vector& offset_vector,
+    const Verbosity& /*v*/
+    )
+{
+
+    if (jqs.empty()) {
+        runtime_error("Jacobian quantities is empty, so there is nothing to add the"
+                      "transformation to.");
+    }
+
+    Index nelem = 1;
+    std::cout << "add trans." << std::endl;
+    for (Index i = 0; i < jqs.back().Grids().nelem(); ++i) {
+        std::cout << i << " / " << nelem;
+        nelem *= jqs.back().Grids()[i].nelem();
+    }
+
+    if (!(nelem == transformation_matrix.ncols())) {
+        runtime_error("Dimension of transformation matrix incompatible with retrieval grids.");
+    }
+    if (!(nelem == offset_vector.nelem())) {
+        runtime_error("Dimension of offset vector incompatible with retrieval grids.");
+    }
+    jqs.back().SetTransformationMatrix(transformation_matrix);
+    jqs.back().SetOffsetVector(offset_vector);
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianTransform(

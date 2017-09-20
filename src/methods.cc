@@ -7994,11 +7994,10 @@ void define_md_data_raw()
       GOUT_DESC(),
       IN( "jacobian_quantities", "jacobian_agenda",
           "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-      GIN( "g1", "g2", "g3", "species", "method", "unit","for_species_tag","dx",
-           "transformation_matrix", "offset_vector"),
+      GIN( "g1", "g2", "g3", "species", "method", "unit","for_species_tag","dx"),
       GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "String", "Index",
-                "Numeric", "Matrix", "Vector"),
-      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "analytical", "rel", "1", "0.001", "[]", "[]"),
+                "Numeric"),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "analytical", "rel", "1", "0.001"),
       GIN_DESC( "Pressure retrieval grid.",
                 "Latitude retrieval grid.",
                 "Longitude retreival grid.",
@@ -8006,9 +8005,7 @@ void define_md_data_raw()
                 "Calculation method. See above.",
                 "Retrieval unit. See above.",
                 "Index-bool for acting on species tags or species.",
-                "Size of perturbation.",
-                "The matrix A describing a mapping from RT grid to linearly transformed space.",
-                "The offset vector of to the retrieval quantity after applying A."
+                "Size of perturbation."
           ),
       SETMETHOD(      false ),
       AGENDAMETHOD(   false ),
@@ -8509,18 +8506,15 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "jacobian_quantities", "jacobian_agenda", 
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GIN( "g1", "g2", "g3", "hse", "method", "dt" , "transformation_matrix", "offset_vector"),
-        GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "Numeric", "Matrix",
-                  "Vector" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, "on", "analytical", "0.1", "[]", "[]" ),
+        GIN( "g1", "g2", "g3", "hse", "method", "dt" ),
+        GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "on", "analytical", "0.1"),
         GIN_DESC( "Pressure retrieval grid.",
                   "Latitude retrieval grid.",
                   "Longitude retreival grid.",
                   "Flag to assume HSE or not (\"on\" or \"off\").",
                   "Calculation method. See above.",
-                  "Size of perturbation [K].",
-                  "The matrix A describing a mapping from RT grid to linearly transformed space.",
-                  "The offset vector of to the retrieval quantity after applying A."
+                  "Size of perturbation [K]."
                   )
         ));
 
@@ -9220,6 +9214,28 @@ void define_md_data_raw()
           GIN_TYPE(),
           GIN_DEFAULT(),
           GIN_DESC()
+            ));
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "addTransformation" ),
+          DESCRIPTION
+          (
+              "Adds an affine transformation to the last element of *jacobian_quantities*. The \n"
+              " affine transformation is given by the matrix A and an offset vector b and \n"
+              " and transforms the retrieval space according to\n"
+              " x_t = A * (x - b)\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT( "jacobian_quantities" ),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN( "jacobian_quantities" ),
+          GIN( "transformation_matrix", "offset_vector"),
+          GIN_TYPE( "Matrix", "Vector"),
+          GIN_DEFAULT( NODEF, NODEF ),
+          GIN_DESC( "The transformation matrix A", "The offset vector b")
             ));
 
   md_data_raw.push_back     
@@ -13287,13 +13303,12 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("covmat_sx", "jacobian_quantities", "jacobian_agenda", "atmosphere_dim", "covmat_block",
-           "covmat_inv_block", "p_grid", "lat_grid", "lon_grid" ),
-        GIN( "g1", "g2", "g3", "species", "method", "unit","for_species_tag","dx",
-             "transformation_matrix", "offset_vector"),
+        IN("covmat_sx", "jacobian_quantities", "jacobian_agenda", "atmosphere_dim",
+           "covmat_block", "covmat_inv_block", "p_grid", "lat_grid", "lon_grid" ),
+        GIN( "g1", "g2", "g3", "species", "method", "unit","for_species_tag","dx"),
         GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "String", "Index",
-                  "Numeric", "Matrix", "Vector"),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "analytical", "rel", "1", "0.001", "[]", "[]"),
+                  "Numeric"),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "analytical", "rel", "1", "0.001"),
         GIN_DESC( "Pressure retrieval grid.",
                   "Latitude retrieval grid.",
                   "Longitude retreival grid.",
@@ -13301,9 +13316,7 @@ void define_md_data_raw()
                   "Calculation method. See above.",
                   "Retrieval unit. See above.",
                   "Index-bool for acting on species tags or species.",
-                  "Size of perturbation.",
-                  "The matrix A describing a mapping from RT grid to linearly transformed space.",
-                  "The offset vector of to the retrieval quantity after applying A."
+                  "Size of perturbation."
             ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
