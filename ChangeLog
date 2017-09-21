@@ -1,3 +1,29 @@
+2017-09-21 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-804
+	
+	* src/jacobian.{cc,h}:  Changed to level-based system.  Dunno why 
+	I forgot this is the ARTS way in the original implementation.
+	Still missing HSE derivative since HSE is not based on physics
+	under consideration in any iy-calculator
+	
+	* src/rte.cc:  Added some comments for the stepwise functions.
+	Added some extra checks for get_stepwise_effective_source.
+	
+	* src/m_fos.cc:  Changed iyHybrid2 to use different checks,
+	use the level definition of jacobian, and to convert path-values
+	to Rodger's values.  (Discussion point for future: why can't we
+	let the iy-calculators do the physics and let the y-calculators
+	worry about converting to Rodger's nomenclature?  It would 
+	make life easier to not mix the two together. Twice in the same 
+	commit realizing that this mixing makes life difficult has me 
+	wondering...)
+	
+	* src/propagationmatrix.h:  Added an IsEmpty() return of bool.
+	Returns true if there are no frequencies defined.  Would also
+	want an IsZero() test, but could not get the <algorithm> library
+	working on our vectors.
+
 2017-09-20 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-803

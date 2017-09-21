@@ -1569,25 +1569,29 @@ void get_diydx( VectorView diydx_this,
  * 
  *   FIXME:  Add HSE support
  * 
- *   \param   diy                       Out: diy for one level
+ *   \param   diy1                      Out: diy for one level
+ *   \param   diy2                      Out: diy for another level
  *   \param   ImT                       In: identity matrix minus tranmsission matrix
  *   \param   cumulative_transmission   In: cumulative transmission from level to sensor
- *   \param   dT1                       In: upper or lower transmission matrix derivative
- *   \param   dT2                       In: upper or lower transmission matrix derivative
+ *   \param   dT1                       In: one transmission matrix derivative
+ *   \param   dT2                       In: another transmission matrix derivative
  *   \param   iYmJ                      In: incoming radiation to layer minus source of layer
- *   \param   dJ                        In: derivative of source term emitted by layer
+ *   \param   dJ1                        In: derivative of source term emitted by one level
+ *   \param   dJ2                        In: derivative of source term emitted by another level
  * 
  * 
  *   \author Richard Larsson
  *   \date   2017-09-20
  */
-void get_diydx(VectorView diy,
+void get_diydx(VectorView diy1,
+               VectorView diy2,
                ConstMatrixView ImT,
                ConstMatrixView cumulative_transmission,
                ConstMatrixView dT1,
                ConstMatrixView dT2,
                ConstVectorView iYmJ,
-               ConstVectorView dJ,
+               ConstVectorView dJ1,
+               ConstVectorView dJ2,
                const Index stokes_dim)
 {
   /*
@@ -1597,14 +1601,22 @@ void get_diydx(VectorView diy,
   // Transmitted terms thorugh a layer
   Vector x(stokes_dim), x_tmp(stokes_dim);
   mult(x, dT1, iYmJ);
-  mult(x_tmp, dT2, iYmJ);
+  mult(x_tmp, ImT, dJ1);
+  x_tmp *= 0.5;
   x += x_tmp;
+  mult(x_tmp, cumulative_transmission, x);
+  diy1 += x_tmp;
   
-  // Emitted term by a layer
-  mult(x_tmp, ImT, dJ);
+  // Another
+  mult(x, dT2, iYmJ);
+  mult(x_tmp, ImT, dJ2);
+  x_tmp *= 0.5;
   x += x_tmp;
+  mult(x_tmp, cumulative_transmission, x);
+  diy2 += x_tmp;
   
-  // Final transmission to space
-  mult(diy, cumulative_transmission, x);
+  // FIXME:  Add HSE for temperature
+  // FIXME:  Add a check for dJ being zero ("nlte or diy_dT or scattering" being non-zero cases)
+  
 }
 

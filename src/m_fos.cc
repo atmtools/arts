@@ -2009,7 +2009,7 @@ void iyHybrid2(
                                       atmosphere_dim,
                                       jacobian_do,
                                       verbosity);
-
+      
       a += K_this;  // a is initialized in get_stepwise_scattersky_propmat
       K_this += Kp; // K_this is initialized in get_stepwise_clearsky_propmat
       for( Index iq = 0; iq < nq; iq++ )
@@ -2018,26 +2018,22 @@ void iyHybrid2(
         // dK_this_dx in get_stepwise_clearsky_propmat.
         // iq entries can be set through .SetZero, though, which makes adding
         // them to each other impossible.
-        if ( dK_this_dx[iq].GetMatrix().nrows() *
-             dK_this_dx[iq].GetMatrix().ncols() != 0 ) // dK_this_dx set
+        if ( not dK_this_dx[iq].IsEmpty() ) // dK_this_dx set
         {
-          if( da_dx[iq].GetMatrix().nrows() *
-              da_dx[iq].GetMatrix().ncols() == 0 )       // and da_dx unset
-            {da_dx[iq] = dK_this_dx[iq];}
-          else                                           // and da_dx unset
-            {da_dx[iq] += dK_this_dx[iq];}
+          if( da_dx[iq].IsEmpty() )
+            da_dx[iq] = dK_this_dx[iq]; // da_dx is set elsewhere
+          else     
+            da_dx[iq] += dK_this_dx[iq]; // da_dx set here
         }
         // else                                        // dK_this_dx unset
         // nothing to update
 
-        if ( dKp_dx[iq].GetMatrix().nrows() *
-             dKp_dx[iq].GetMatrix().ncols() != 0 )       // dKp_dx set
+        if ( not dKp_dx[iq].IsEmpty() )       // dKp_dx set
         {
-          if( dK_this_dx[iq].GetMatrix().nrows() *
-              dK_this_dx[iq].GetMatrix().ncols() == 0 )    // and dK_this_dx unset
-            {dK_this_dx[iq] = dKp_dx[iq];}
-          else                                             // and dK_this_dx unset
-            {dK_this_dx[iq] += dKp_dx[iq];}
+          if( dK_this_dx[iq].IsEmpty() )
+            dK_this_dx[iq] = dKp_dx[iq]; // and dK_this_dx unset
+          else
+            dK_this_dx[iq] += dKp_dx[iq]; // and dK_this_dx unset
         }
         // else                                         // dKp_dx unset
         // nothing to update
@@ -2078,14 +2074,12 @@ void iyHybrid2(
       S += Sp;
       for( Index iq = 0; iq < nq; iq++ )
       {
-        if ( dSp_dx[iq].GetMatrix().nrows() *
-             dSp_dx[iq].GetMatrix().ncols() != 0 )       // dSp_dx set
+        if ( not dSp_dx[iq].IsEmpty() )       // dSp_dx set
         {
-          if( dS_dx[iq].GetMatrix().nrows() *
-              dS_dx[iq].GetMatrix().ncols() == 0 )    // and dS_dx unset
-            {dS_dx[iq] = dSp_dx[iq];}
-          else                                             // and dS_dx unset
-            {dS_dx[iq] += dSp_dx[iq];}
+          if( dS_dx[iq].IsEmpty() ) 
+            dS_dx[iq] = dSp_dx[iq]; // and dS_dx unset
+          else
+            dS_dx[iq] += dSp_dx[iq]; // and dS_dx unset
         }
         // else                                         // dSp_dx unset
         // nothing to update
@@ -2156,19 +2150,16 @@ void iyHybrid2(
         through_level -= from_level;
         
         for(Index iq = 0; iq < nq; iq++)
-        {
-          ConstMatrixView dT_upp = dtrans_partial_dx_above(ip+1, iq, iv, joker, joker);
-          ConstMatrixView dT_low = dtrans_partial_dx_below(ip+1, iq, iv, joker, joker);
-          
-          dfrom_level_dx = dJ_dx(ip, iq, iv, joker);
-          dfrom_level_dx += dJ_dx(ip+1, iq, iv, joker);
-          dfrom_level_dx *= 0.5;
-          
+        { 
           get_diydx(diy_dpath[iq](ip, iv, joker), 
+                    diy_dpath[iq](ip+1, iv, joker), 
                     one_minus_transmission,
                     trans_cumulat(ip, iv, joker, joker), 
-                    dT_upp, dT_low, 
-                    through_level, dfrom_level_dx, 
+                    dtrans_partial_dx_above(ip+1, iq, iv, joker, joker), 
+                    dtrans_partial_dx_below(ip+1, iq, iv, joker, joker), 
+                    through_level, 
+                    dJ_dx(ip, iq, iv, joker), 
+                    dJ_dx(ip+1, iq, iv, joker),
                     stokes_dim);
         }
         
@@ -2183,6 +2174,45 @@ void iyHybrid2(
     trans_cumulat.resize( np, nf, ns, ns );
     for( Index iv=0; iv<nf; iv++ )
     { id_mat( trans_cumulat(np-1, iv,joker,joker) ); }
+  }
+  
+  //### jacobian part #####################################################
+  // Map jacobians from ppath to retrieval grids
+  // (this operation corresponds to the term Dx_i/Dx)
+  if( j_analytical_do )
+  { 
+    // Weight with iy_transmission
+    if( !iy_agenda_call1 )
+    {
+      Matrix X, Y; 
+      //
+      FOR_ANALYTICAL_JACOBIANS_DO
+      ( 
+        Y.resize(ns,diy_dpath[iq].npages());
+        for( Index iv=0; iv<nf; iv++ )
+        { 
+          if( jac_to_integrate[iq] )
+          {
+            X = transpose( diy_dpath[iq](joker,iv,joker) );
+            mult( Y, iy_transmission(iv,joker,joker), X );
+            diy_dpath[iq](joker,iv,joker) = transpose( Y );
+          }
+          else
+          {
+            X = transpose( diy_dpath[iq](joker,iv,joker) );
+            mult( Y, iy_transmission(iv,joker,joker), X );
+            diy_dpath[iq](joker,iv,joker) = transpose( Y );
+          }
+        }
+      )
+    }
+    
+    // Map to retrieval grids
+    FOR_ANALYTICAL_JACOBIANS_DO
+    ( 
+      diy_from_path_to_rgrids( diy_dx[iq], jacobian_quantities[iq], 
+                               diy_dpath[iq], atmosphere_dim, ppath, ppath_p );
+    )
   }
   
   // Unit conversions

@@ -128,6 +128,8 @@ public:
   
   void SetVectorType(bool vectortype) {mvectortype = vectortype;}
   
+  bool IsEmpty() const {return not ((bool) mfreqs);};
+  
   /* The number of required vectors to fill this PropagationMatrix --- designed for GetVector(i) */
   Index NumberOfNeededVectors() const
   {

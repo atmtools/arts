@@ -4310,6 +4310,21 @@ void emission_rtstep_replacement( MatrixView iy,
 }
 
 
+//! get_stepwise_clearsky_propmat
+/*!
+ *  Gets the clearsky propgation matrix and NLTE contributions
+ * 
+ *  \param K                Out: Level propagation matrix
+ *  \param S                Out: NLTE source vector for level
+ *  \param lte              Out: Index indicating if there is any NLTE source term
+ *  \param dK_dx            Out: Unadopted propagation matrix derivatives of level
+ *  \param dS_dx            Out: Unadopted NLTE source derivatives of level
+...
+ * 
+ *  \author Jana Mendrok and Richard Larsson 
+ *  \adapted from non-stepwise function
+ *  \date   2017-09-21
+ */
 void get_stepwise_clearsky_propmat(Workspace& ws,
                                    PropagationMatrix& K,
                                    StokesVector& S,
@@ -4406,7 +4421,7 @@ void get_stepwise_clearsky_propmat(Workspace& ws,
           ostringstream os;
           
           os << "We do not yet support species" <<
-                " tag and NLTE Jacobians yet.\n";
+                " tag and NLTE Jacobians.\n";
           throw std::runtime_error(os.str());
         }
       }
@@ -4415,6 +4430,23 @@ void get_stepwise_clearsky_propmat(Workspace& ws,
 }
 
 
+//! adapt_stepwise_partial_derivatives
+/*!
+ *  Adapts clearsky partial derivatives for the following fields:
+ * 
+ *   Wind
+ *   VMR
+ * 
+ *  Adaptation means changing unit by user input
+ * 
+ *  \param dK_dx            In/Out: In is unadopted out is adopted propagation matrix derivatives
+ *  \param dS_dx            In/Out: In is unadopted extra source and out is adopted extra source derivatives
+...
+ * 
+ *  \author Jana Mendrok and Richard Larsson 
+ *  \adapted from non-stepwise function
+ *  \date   2017-09-21
+ */
 void adapt_stepwise_partial_derivatives(ArrayOfPropagationMatrix& dK_dx,
                                         ArrayOfStokesVector& dS_dx,
                                         const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -4512,6 +4544,20 @@ void adapt_stepwise_partial_derivatives(ArrayOfPropagationMatrix& dK_dx,
 }
 
 
+//! get_stepwise_transmission_matrix
+/*!
+ *  Computes layer transmission matrix and cumulative transmission
+ * 
+ *  \param cumulative_transmission Out: cumulation of transmission for jacobian computations
+ *  \param T                       Out: Layer transmission
+ *  \param dT_close_dx             Out: Layer transmission derivative due to closest level
+ *  \param dT_far_dx               Out: Layer transmission derivative due to furthest level
+...
+ * 
+ *  \author Jana Mendrok and Richard Larsson 
+ *  \adapted from non-stepwise function
+ *  \date   2017-09-21
+ */
 void get_stepwise_transmission_matrix(Tensor3View cumulative_transmission,
                                       Tensor3View T,
                                       Tensor4View dT_close_dx,
@@ -4569,6 +4615,34 @@ void get_stepwise_blackbody_radiation(VectorView B,
 }
 
 
+//! get_stepwise_effective_source
+/*!
+ *  Computes
+ * 
+ *  J = K^-1 (a B + S)
+ * 
+ *  and
+ * 
+ *  dJ = - K^-1 dK/dx K^-1 (a B + S) + K^-1 (da B + a dB + dS)
+ * 
+ *  Assumes zeroes for the a and K if nothing is happening but checks all other variables
+ * 
+ *  \param J                   Out: Source term, frequency times stokes dimension
+ *  \param dJ_dx               Out: Source term derivative, quantities times frequency times stokes dimension
+ *  \param K                   In: Propagation matrix of level --- all contributions
+ *  \param a                   In: Absorption vector of level --- all contributions
+ *  \param S                   In: Source terms other than absorption times planck --- all contributions
+ *  \param dK_dx               In: Propagation matrix derivatives of level --- all contributions
+ *  \param da_dx               In: Absorption vector derivatives of level --- all contributions
+ *  \param dS_dx               In: Source terms derivatives other than absorption times planck --- all contributions
+ *  \param B                   In: Planck function in Stokes vector form
+ *  \param dB_dT               In: Planck function derivative wrt temperatures in Stokes vector form
+ *  \param jacobian_quantities In: As wsv
+ * 
+ *  \author Jana Mendrok and Richard Larsson 
+ *  \adapted from non-stepwise function
+ *  \date   2017-09-21
+ */
 void get_stepwise_effective_source(MatrixView J,
                                    Tensor3View dJ_dx,
                                    const PropagationMatrix& K,
@@ -4590,54 +4664,93 @@ void get_stepwise_effective_source(MatrixView J,
     Matrix invK(ns, ns);
     Vector j(ns);
     
-    // Get the Matrix inverse
+    // Get the Matrix inverse --- FIXME: K == 0 will not work here
     K.MatrixInverseAtFrequency(invK, i1);
     
-    // Get the absorption at the level  Q: Is it faster to have something just return a*B directly?
-    
+    // Set a B to j
     j = a.GetMatrix()(i1, joker);
     j *= B[i1];
-    j += S.GetMatrix()(i1, joker);
     
-    // Set end result
+    // Add S to j
+    if(not S.IsEmpty())
+      j += S.GetMatrix()(i1, joker);
+    
+    // Compute J = K^-1 (a B + S)
     mult(J(i1, joker), invK, j);
     
     for(Index i2 = 0; i2 < nq; i2++)
     {
       Matrix dk(ns, ns), tmp_matrix(ns, ns);
-      Vector dj(ns), dabs(ns);
+      Vector dj(ns, 0), tmp(ns);
       
-      dK_dx[i2].MatrixAtFrequency(dk, i1);
-      mult(tmp_matrix, invK, dk);
-      mult(dk, invK, tmp_matrix);
-      dk *= -1;
+      // Control parameters for special jacobians that are computed elsewhere
+      const bool has_dk = (not dK_dx[i2].IsEmpty());
+      const bool has_da = (not da_dx[i2].IsEmpty());
+      const bool has_ds = (not dS_dx[i2].IsEmpty());
+      const bool has_dt = (jacobian_quantities[i2].MainTag() == TEMPERATURE_MAINTAG);
       
-      // Set part of derivative
-      mult(dJ_dx(i2, i1, joker), dk, j);
-      
-      dabs = da_dx[i2].GetMatrix()(i1, joker);
-      dabs *= B[i1];
-      
-      if(jacobian_quantities[i2].MainTag() == TEMPERATURE_MAINTAG)
+      // Sets the -K^-1 dK/dx K^-1 (a B + S) term
+      if(has_dk)
       {
-        dj = a.GetMatrix()(i1, joker);
-        dj *= dB_dT[i1];
-        dj += dabs;
-      }
-      else
-      {
-        dj = dabs;
+        dK_dx[i2].MatrixAtFrequency(dk, i1);
+        mult(tmp_matrix, invK, dk);
+        mult(dk, invK, tmp_matrix);
+        dk *= -1;
+        mult(dJ_dx(i2, i1, joker), dk, j);
       }
       
-      dj += dS_dx[i2].GetMatrix()(i1, joker);
+      // Adds da B to dj
+      if(has_da)
+      {
+        dj = da_dx[i2].GetMatrix()(i1, joker);
+        dj *= B[i1];
+      }
       
-      mult(dabs, invK, dj);
-      dJ_dx(i2, i1, joker) += dabs;
+      // Adds a dB to dj
+      if(has_dt)
+      {
+        tmp = a.GetMatrix()(i1, joker);
+        tmp *= dB_dT[i1];
+        dj += tmp;
+      }
+      
+      // Adds dS to dj
+      if(has_ds)
+        dj += dS_dx[i2].GetMatrix()(i1, joker);
+      
+      // Sets full dJ for output
+      if(has_dk)
+      {
+        // dJ = - K^-1 dK/dx K^-1 (a B + S) + K^-1 (da B + a dB + dS)
+        mult(tmp, invK, dj);
+        dJ_dx(i2, i1, joker) += tmp;
+      }
+      else if(has_da or has_dt or has_ds)
+      {
+        // dJ = K^-1 (da B + a dB + dS)
+        mult(dJ_dx(i2, i1, joker), invK, dj);
+      }
+      else 
+      {
+        // dJ = 0
+        dJ_dx(i2, i1, joker) = 0;
+      }
     }
   }
 }
 
 
+//! sum_stepwise_scalar_tau_and_extmat_case
+/*!
+ *  Sums the scala tau for iy_aux...
+ * 
+ *  \param scalar_tau                  Out: as in iy_aux
+...
+ * 
+ *  \author Jana Mendrok and Richard Larsson 
+ *  \adapted from non-stepwise function
+ *  \date   2017-09-21
+ */
 void sum_stepwise_scalar_tau_and_extmat_case(VectorView scalar_tau,
                                              ArrayOfIndex& extmat_case,
                                              const PropagationMatrix& upper_level,
@@ -4658,6 +4771,18 @@ void sum_stepwise_scalar_tau_and_extmat_case(VectorView scalar_tau,
 }
 
 
+//! get_stepwise_frequency_grid
+/*!
+ *  Inverse of get_stepwise_f_partials
+ * 
+ *  Computes practical frequency grid due to wind for propmat_clearsky_agenda
+ * 
+...
+ * 
+ *  \author Jana Mendrok and Richard Larsson 
+ *  \adapted from non-stepwise function
+ *  \date   2017-09-21
+ */
 void get_stepwise_frequency_grid(VectorView ppath_f_grid,
                                  ConstVectorView f_grid,
                                  ConstVectorView ppath_wind,
@@ -4678,7 +4803,23 @@ void get_stepwise_frequency_grid(VectorView ppath_f_grid,
 }
 
 
-
+//! get_stepwise_f_partials
+/*!
+ *  Computes the ratio that a partial derivative with regards to frequency
+ *  relates to the wind of come component
+ * 
+ *  \param   f_partial             Out: The frequency vector to multiply each frequency 
+ *                                      grid point in clearsky propmat derivatives
+ *  \param   component             In: The wind component
+ *  \param   line_of_sight         In: The line of sight vector as in workspace rtp_los
+ *  \param   f_grid                In: The computational frequency grid
+ *  \param   atmosphere_dim        In: atmospheric diemension as wsv
+ ...
+ * 
+ *  \author Jana Mendrok and Richard Larsson 
+ *  \adapted from non-stepwise function
+ *  \date   2017-09-21
+ */
 void get_stepwise_f_partials(Vector& f_partials,
                              const Index& component,
                              ConstVectorView& line_of_sight,
@@ -4731,6 +4872,21 @@ void get_stepwise_f_partials(Vector& f_partials,
 }
 
 
+//! get_stepwise_scattersky_propmat
+/*!
+ *  Computes the contribution by scattering elements towards the absorption 
+ *  and emission from a level
+ * 
+ *  \param   ap                    Out: The scattering absorption term
+ *  \param   Kp                    Out: The scattering propagation matrix term
+ *  \param   dap_dx                Out: The scattering absorption term deriative
+ *  \param   dKp_dx                Out: The scattering propagation matrix term deriative
+ ...
+ * 
+ *  \author Jana Mendrok and Richard Larsson 
+ *  \adapted from non-stepwise function
+ *  \date   2017-09-21
+ */
 void get_stepwise_scattersky_propmat(StokesVector& ap,
                                      PropagationMatrix& Kp,
                                      ArrayOfStokesVector& dap_dx,
@@ -4823,62 +4979,19 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
 }
 
 
-/*
- * Kg gaseous propagation matrix
- * ap particulate absorption vector
- * Sg gaseuous source vector
- * dKg_dx gaseous partial propagation partial derivatives
- * dap_dx particulate absorption vector partial derivatives
- * dS_dx gaseuous source vector partial derivatives
- * Kp particlate propagation matrix
- * dKp_dx particlate propagation matrix partial derivatives
- * Se extra source vector terms
- * dSe_dx extra source vector terms partial derivatives
- * jacobian_quantities the partial derivative orders (same size as outer-most partial derivative arrays)
-*/
-// void add_stepwise_absorption_and_emission(PropagationMatrix& Kg,
-//                                           StokesVector& ap,
-//                                           StokesVector& Sg,
-//                                           ArrayOfPropagationMatrix& dKG_dx,
-//                                           ArrayOfStokesVector& dap_dx,
-//                                           ArrayOfStokesVector& dSg_dx,
-//                                           const PropagationMatrix& Kp,
-//                                           const ArrayOfPropagationMatrix& dKp_dx,
-//                                           const ArrayOfStokesVector& Se,
-//                                           const ArrayOfArrayOfStokesVector& dSe_dx,
-//                                           const ArrayOfRetrievalQuantity& jacobian_quantities)
-// {
-//   const Index nf = Kg.NumberOfFrequencies();
-//   
-//   ap += Kg;
-//   Kg += Kp;
-//   
-//   for(auto& sv : Se)
-//     Sg += sv;
-//   
-//   
-// }
-                                          
-
-
-// void allocate_stepwise_variables(PropagationMatrix& Kg,
-//                                  ArrayOfPropagationMatrix& dKg_dx,
-//                                  PropagationMatrix& Kp,
-//                                  ArrayOfPropagationMatrix& dKp_dx,
-//                                  StokesVector& Sg,
-//                                  ArrayOfStokesVector& dSg_dx,
-//                                  StokesVector& ap,
-//                                  ArrayOfStokesVector& dap_dx,
-//                                  Vector& ppath_f_grid,
-//                                  Vector& ppath_pnd,
-//                                  Vector& ppath_nlte_temperatures,
-//                                  ArrayOfVector& ppath_dpnd_dx,
-//                                  Vector& B,
-//                                  Vector& dB_dT,
-//                                  const ArrayOfRetrievalQuantity& jacobian_quantities)
-// {}
-
-
+//! get_stepwise_scattersky_source
+/*!
+ *  Extracts the stepwise scattering source terms from pre-computed data
+ * 
+ *  \param   Sp                    Out: The scattering source term
+ *  \param   dSp_dx                Out: The derivative of the scattering source term
+ *  \param   do_cloudy_calc        Out: Index to indicate relevance of this function to current run
+ ...
+ * 
+ *  \author Jana Mendrok and Richard Larsson 
+ *  \adapted from non-stepwise function
+ *  \date   2017-09-21
+ */
 void get_stepwise_scattersky_source(StokesVector& Sp,
                                     ArrayOfStokesVector& dSp_dx,
                                     const Index& do_cloudy_calc,
