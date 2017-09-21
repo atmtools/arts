@@ -1,3 +1,15 @@
+2017-09-21 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-806
+
+	* controlfiles/artscomponents/wfuns/TestWfuns.arts:
+	Some info print output. Some more xml output as ref for Hyb test case.
+
+	* controlfiles/artscomponents/wfuns/TestWfuns.arts:
+	More subcases switched on (remaining switched-off-ones not
+	working (yet?)). Use TestWfuns y & jacobian output as reference (output
+	not commited, though. Ie run TestWfuns first to create that).
+
 2017-09-21  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-805

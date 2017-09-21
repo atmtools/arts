@@ -126,6 +126,7 @@ propmat_clearsky_agenda_checkedCalc
 
 MatrixCreate( Ja )
 MatrixCreate( Jp )
+StringCreate( info )
 
 # Species (just O3)
 #
@@ -134,48 +135,55 @@ MatrixCreate( Jp )
 VectorCreate( retrieval_grid )
 VectorNLogSpace( retrieval_grid, 25, 100e2, 10 )
 
+StringSet( info, "O3 rel analytical" )
+Print( info, 0 )
 jacobianInit
 jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
     retrieval_grid, lat_grid, lon_grid, 
     "O3", "analytical", "rel", 1, 0.01 )
 jacobianClose
-WriteXML( in=jacobian_quantities )
+#WriteXML( in=jacobian_quantities, filename="Jq_O3_analytical.xml" )
 yCalc
-#WriteXML( in=y )
+WriteXML( in=y, filename="y_O3_analytical.xml" )
+WriteXML( in=jacobian, filename="J_O3_analytical.xml" )
 Copy( Ja, jacobian )
 
 
 # Same with perturbations
+StringSet( info, "O3 rel perturbation" )
+Print( info, 0 )
 jacobianInit
 jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
     retrieval_grid, lat_grid, lon_grid, 
     "O3", "perturbation", "rel", 1, 0.01 )
 jacobianClose
+#WriteXML( in=jacobian_quantities, filename="Jq_O3_perturbation.xml" )
 yCalc
+#WriteXML( in=y, filename="y_O3_perturbation.xml" )
+#WriteXML( in=jacobian, filename="J_O3_perturbation.xml" )
 Copy( Jp, jacobian )
-
-#WriteXML( "ascii", Ja, "J_O3_analytical.xml" )
-#WriteXML( "ascii", Jp, "J_O3_perturbation.xml" )
 
 # Compare
 Compare( Ja, Jp, 0.005 )
 
 
 # Analytical but now using VMR, though for all "O2" species
+StringSet( info, "O2 vmr analytical" )
+Print( info, 0 )
 jacobianInit
 jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
     retrieval_grid, lat_grid, lon_grid, 
     "O2", "analytical", "vmr", 0, 0.01 )
 jacobianClose
-WriteXML( in=jacobian_quantities )
+#WriteXML( in=jacobian_quantities, filename="Jq_O2_analytical.xml" )
 yCalc
-#WriteXML( in=y )
-Copy( Ja, jacobian )
+WriteXML( in=y, filename="y_O2_analytical.xml" )
+WriteXML( in=jacobian, filename="J_O2_analytical.xml" )
+#Copy( Ja, jacobian )
 
-#WriteXML( "ascii", Ja, "J_O2_analytical.xml" )
 
 
 ##############################################################################
@@ -194,28 +202,35 @@ NumericSet( z_hse_accuracy, 1 )
 VectorSet( lat_true, [15] )
 VectorSet( lon_true, [123] )
 
+StringSet( info, "T analytical" )
+Print( info, 0 )
 jacobianInit
 jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
     retrieval_grid, lat_grid, lon_grid, 
     "off", "analytical", 0.1 )
 jacobianClose
+#WriteXML( in=jacobian_quantities, filename="Jq_T_analytical.xml" )
 yCalc
+WriteXML( in=y, filename="y_T_analytical.xml" )
+WriteXML( in=jacobian, filename="J_T_analytical.xml" )
 Copy( Ja, jacobian )
 
 
 # Same with perturbations
+StringSet( info, "T perturbation" )
+Print( info, 0 )
 jacobianInit
 jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
     retrieval_grid, lat_grid, lon_grid, 
     "off", "perturbation", 0.1 )
 jacobianClose
+#WriteXML( in=jacobian_quantities, filename="Jq_T_perturbation.xml" )
 yCalc
+#WriteXML( in=y, filename="y_T_perturbation.xml" )
+#WriteXML( in=jacobian, filename="J_T_perturbation.xml" )
 Copy( Jp, jacobian )
-
-#WriteXML( "ascii", Ja, "J_temp_analytical.xml" )
-#WriteXML( "ascii", Jp, "J_temp_perturbation.xml" )
 
 # Compare
 Compare( Ja, Jp, 0.001 )
@@ -232,6 +247,8 @@ Compare( Ja, Jp, 0.001 )
 nrowsGet( nrows, sensor_pos )
 VectorNLinSpace( sensor_time, nrows, 0, 1 )
 
+StringSet( info, "Pointing recalc" )
+Print( info, 0 )
 jacobianInit
 jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
                        sensor_pos, sensor_time, 0, "recalc", 0.001 )
@@ -239,6 +256,8 @@ jacobianClose
 yCalc
 Copy( Ja, jacobian )
 
+StringSet( info, "Pointing interp" )
+Print( info, 0 )
 jacobianInit
 jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
                        sensor_pos, sensor_time, 0, "interp", 0.001 )
@@ -263,6 +282,8 @@ Compare( Ja, Jp, 10 )
 #
 ##############################################################################
 
+StringSet( info, "Others: Freqs, Baseline, Winds" )
+Print( info, 0 )
 jacobianInit
 
 jacobianAddFreqShift( jacobian_quantities, jacobian_agenda, f_grid, 
@@ -295,6 +316,8 @@ yCalc
 #
 ##############################################################################
 
+StringSet( info, "Transmission analytical" )
+Print( info, 0 )
 # (standard) transmission calculation
 Copy( iy_main_agenda, iy_main_agenda__Transmission )
 Copy( iy_transmitter_agenda , iy_transmitter_agenda__UnitUnpolIntensity )
@@ -310,6 +333,8 @@ yCalc
 Copy( Ja, jacobian )
 
 # Same with perturbations
+StringSet( info, "Transmission perturbation" )
+Print( info, 0 )
 jacobianInit
 jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 

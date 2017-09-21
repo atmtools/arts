@@ -159,6 +159,9 @@ propmat_clearsky_agenda_checkedCalc
 
 MatrixCreate( Ja )
 MatrixCreate( Jp )
+MatrixCreate( Jr )
+VectorCreate( yr )
+StringCreate( info )
 
 # Species (just O3)
 #
@@ -167,49 +170,64 @@ MatrixCreate( Jp )
 VectorCreate( retrieval_grid )
 VectorNLogSpace( retrieval_grid, 25, 100e2, 10 )
 
-#jacobianInit
-#jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
-#    atmosphere_dim, p_grid, lat_grid, lon_grid, 
-#    retrieval_grid, lat_grid, lon_grid, 
-#    "O3", "analytical", "rel", 1, 0.01 )
-#jacobianClose
-#WriteXML( in=jacobian_quantities )
-#jacobianOff
-#yCalc
-#WriteXML( in=y )
+StringSet( info, "O3 rel analytical" )
+Print( info, 0 )
+jacobianInit
+jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
+    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+    retrieval_grid, lat_grid, lon_grid, 
+    "O3", "analytical", "rel", 1, 0.01 )
+jacobianClose
+#WriteXML( in=jacobian_quantities, filename="JqHyb_O3_analytical.xml" )
+yCalc
+#WriteXML( in=y, filename="yHyb_O3_analytical.xml" )
+ReadXML( yr, "y_O3_analytical.xml" )
+Compare( y, yr, 1e-6 )
+#WriteXML( in=jacobian, filename="JHyb_O3_analytical.xml" )
+ReadXML( Jr, "J_O3_analytical.xml" )
+#Compare( jacobian, Jr, 0.005 )
 #Copy( Ja, jacobian )
-#
-#
+
 ## Same with perturbations
+#StringSet( info, "O3 rel perturbation" )
+#Print( info, 0 )
 #jacobianInit
 #jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
 #    atmosphere_dim, p_grid, lat_grid, lon_grid, 
 #    retrieval_grid, lat_grid, lon_grid, 
 #    "O3", "perturbation", "rel", 1, 0.01 )
 #jacobianClose
+##WriteXML( in=jacobian_quantities, filename="JqHyb_O3_perturbation.xml" )
 #yCalc
+##WriteXML( in=y, filename="yHyb_O3_perturbation.xml" )
+##WriteXML( in=jacobian, filename="JHyb_O3_perturbation.xml" )
+#ReadXML( Jr, "J_O3_perturbation.xml" )
+#Compare( jacobian, Jr, 0.005 )
 #Copy( Jp, jacobian )
-#
-#WriteXML( "ascii", Ja, "JHyb_O3_analytical.xml" )
-#WriteXML( "ascii", Jp, "JHyb_O3_perturbation.xml" )
-#
+
 ## Compare
 #Compare( Ja, Jp, 0.005 )
-#
-#
+
+
 # Analytical but now using VMR, though for all "O2" species
+StringSet( info, "O2 vmr analytical" )
+Print( info, 0 )
 jacobianInit
 jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
     retrieval_grid, lat_grid, lon_grid, 
     "O2", "analytical", "vmr", 0, 0.01 )
 jacobianClose
-WriteXML( in=jacobian_quantities )
+#WriteXML( in=jacobian_quantities, filename="JqHyb_O2_analytical.xml" )
 yCalc
-WriteXML( in=y )
-Copy( Ja, jacobian )
+#WriteXML( in=y, filename="yHyb_O2_analytical.xml" )
+ReadXML( yr, "y_O2_analytical.xml" )
+Compare( y, yr, 1e-6 )
+#WriteXML( in=jacobian, filename="JHyb_O2_analytical.xml" )
+ReadXML( Jr, "J_O2_analytical.xml" )
+#Compare( jacobian, Jr, 0.005 )
+#Copy( Ja, jacobian )
 
-WriteXML( "ascii", Ja, "JHyb_O2_analytical.xml" )
 
 
 ##############################################################################
@@ -222,35 +240,48 @@ WriteXML( "ascii", Ja, "JHyb_O2_analytical.xml" )
 # related to HSE and refraction and HSE must be "off" here to get consistent
 # results. 
 
-## Stuff needed for HSE
-#NumericSet( p_hse, 1000e2 )
-#NumericSet( z_hse_accuracy, 1 )
-#VectorSet( lat_true, [15] )
-#VectorSet( lon_true, [123] )
-#
-#jacobianInit
-#jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
-#    atmosphere_dim, p_grid, lat_grid, lon_grid, 
-#    retrieval_grid, lat_grid, lon_grid, 
-#    "off", "analytical", 0.1 )
-#jacobianClose
-#yCalc
+# Stuff needed for HSE
+NumericSet( p_hse, 1000e2 )
+NumericSet( z_hse_accuracy, 1 )
+VectorSet( lat_true, [15] )
+VectorSet( lon_true, [123] )
+
+StringSet( info, "T analytical" )
+Print( info, 0 )
+jacobianInit
+jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
+    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+    retrieval_grid, lat_grid, lon_grid, 
+    "off", "analytical", 0.1 )
+jacobianClose
+#WriteXML( in=jacobian_quantities, filename="JqHyb_T_analytical.xml" )
+yCalc
+#WriteXML( in=y, filename="yHyb_T_analytical.xml" )
+ReadXML( yr, "y_T_analytical.xml" )
+Compare( y, yr, 1e-6 )
+#WriteXML( in=jacobian, filename="JHyb_T_analytical.xml" )
+ReadXML( Jr, "J_T_analytical.xml" )
+#Compare( jacobian, Jr, 0.005 )
 #Copy( Ja, jacobian )
-#
-#
+
+
 ## Same with perturbations
+#StringSet( info, "T perturbation" )
+#Print( info, 0 )
 #jacobianInit
 #jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
 #    atmosphere_dim, p_grid, lat_grid, lon_grid, 
 #    retrieval_grid, lat_grid, lon_grid, 
 #    "off", "perturbation", 0.1 )
 #jacobianClose
+##WriteXML( in=jacobian_quantities, filename="JqHyb_T_perturbation.xml" )
 #yCalc
+##WriteXML( in=y, filename="yHyb_T_perturbation.xml" )
+##WriteXML( in=jacobian, filename="JHyb_T_perturbation.xml" )
+#ReadXML( Jr, "J_T_perturbation.xml" )
+#Compare( jacobian, Jr, 0.005 )
 #Copy( Jp, jacobian )
-#
-##WriteXML( "ascii", Ja, "JHyb_temp_analytical.xml" )
-##WriteXML( "ascii", Jp, "JHyb_temp_perturbation.xml" )
-#
+
 ## Compare
 #Compare( Ja, Jp, 0.001 )
 
@@ -263,28 +294,32 @@ WriteXML( "ascii", Ja, "JHyb_O2_analytical.xml" )
 ##############################################################################
 
 # Sensor time must be specified here
-#nrowsGet( nrows, sensor_pos )
-#VectorNLinSpace( sensor_time, nrows, 0, 1 )
-#
+nrowsGet( nrows, sensor_pos )
+VectorNLinSpace( sensor_time, nrows, 0, 1 )
+
+#StringSet( info, "Pointing recalc" )
+#Print( info, 0 )
 #jacobianInit
 #jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
 #                       sensor_pos, sensor_time, 0, "recalc", 0.001 )
 #jacobianClose
 #yCalc
 #Copy( Ja, jacobian )
-#
+
+#StringSet( info, "Pointing interp" )
+#Print( info, 0 )
 #jacobianInit
 #jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
 #                       sensor_pos, sensor_time, 0, "interp", 0.001 )
 #jacobianClose
 #yCalc
 #Copy( Jp, jacobian )
-#
-##WriteXML( "ascii", Ja, "JHyb_pointing_analytical.xml" )
-##WriteXML( "ascii", Jp, "JHyb_pointing_perturbation.xml" )
-#
-## Compare (Note that the WF is for 1 deg change, corresponding to about
-## 60 km change in tangent altitude, and 10 K/deg accuracy is OK)
+
+#WriteXML( "ascii", Ja, "JHyb_pointing_analytical.xml" )
+#WriteXML( "ascii", Jp, "JHyb_pointing_perturbation.xml" )
+
+# Compare (Note that the WF is for 1 deg change, corresponding to about
+# 60 km change in tangent altitude, and 10 K/deg accuracy is OK)
 #Compare( Ja, Jp, 10 )
 
 
@@ -297,30 +332,32 @@ WriteXML( "ascii", Ja, "JHyb_O2_analytical.xml" )
 #
 ##############################################################################
 
-#jacobianInit
-#
+StringSet( info, "Others: (Freqs, Baseline - not yet), Winds" )
+Print( info, 0 )
+jacobianInit
+
 #jacobianAddFreqShift( jacobian_quantities, jacobian_agenda, f_grid, 
 #    sensor_pos, sensor_time, 0, 50e3 )
 #jacobianAddFreqStretch( jacobian_quantities, jacobian_agenda, f_grid, 
 #    sensor_pos, sensor_time, 0, 50e3 )
-#
+
 #jacobianAddPolyfit( jacobian_quantities, jacobian_agenda, 
 #    sensor_response_pol_grid, sensor_response_dlos_grid, sensor_pos, 
 #    1, 0, 0, 0 )
-#
+
 #jacobianAddSinefit( jacobian_quantities, jacobian_agenda, 
 #    sensor_response_pol_grid, sensor_response_dlos_grid, sensor_pos, 
 #    [200e6,40e6], 0, 0, 0 )
-#
-#jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
-#    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "v" )
-#
-#jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
-#    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "w", 0.1 )
-#    
-#jacobianClose
-#
-#IndexSet( abs_f_interp_order, 1 )
-#yCalc
+
+jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
+    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "v" )
+
+jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
+    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "w", 0.1 )
+    
+jacobianClose
+
+IndexSet( abs_f_interp_order, 1 )
+yCalc
 
 }
