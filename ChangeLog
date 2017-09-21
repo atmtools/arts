@@ -1,3 +1,42 @@
+2017-09-21  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-805
+	
+	* Added TESSEM2 implementation.
+
+	* controlfiles/CMakeLists.txt,
+	controlfiles/artscomponents/tessem/TestTessem.arts,
+	controlfiles/testdata/tessem_sav_net_H.txt,
+	controlfiles/testdata/tessem_sav_net_V.txt:
+
+	Added TESSEM test case and neural net parameter data.
+
+	* src/CMakeLists.txt, src/tessem.{cc,h}:
+
+	C++ port of the original TESSEM2 Fortran code.
+
+	* src/m_tessem.cc, src/methods.cc:
+
+	Added workspace methods TessemNNReadAscii and TestTessem.
+
+	TestTessem should be adapted to serve then as the main interface
+	function to the model.
+
+	* src/m_general.{cc,h}: Add Print for TessemNN.
+
+	* src/groups.cc: Add TessemNN type.
+
+	* src/make_auto_md_h.cc, src/make_auto_workspace_h.cc:
+
+	Include tessem.h were needed.
+
+	* src/workspace.cc: Add WSVs tessem_neth and tessem_netv.
+
+	* src/xml_io_compound_types.cc, src/xml_io_instantiation.h,
+	src/xml_io_types.h:
+
+	Add dummy routines for TessemNN type.
+
 2017-09-21 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-804

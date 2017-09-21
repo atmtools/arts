@@ -2233,6 +2233,25 @@ void xml_write_to_stream(ostream&,
 }
 
 
+//=== TessemNN ================================================
+
+void xml_read_from_stream(istream&,
+                          TessemNN&,
+                          bifstream* /* pbifs */, const Verbosity&)
+{
+  throw runtime_error("Method not implemented!");
+}
+
+
+void xml_write_to_stream(ostream&,
+                         const TessemNN&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */, const Verbosity&)
+{
+  throw runtime_error("Method not implemented!");
+}
+
+
 //=== Verbosity ================================================
 
 void xml_read_from_stream(istream&,

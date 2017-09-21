@@ -5665,6 +5665,24 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "tessem_neth" ),
+     DESCRIPTION
+     (
+      "TESSEM2 neural network parameters for horizontal polarization.\n"
+     ),
+     GROUP( "TessemNN" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "tessem_netv" ),
+     DESCRIPTION
+     (
+      "TESSEM2 neural network parameters for vertical polarization.\n"
+     ),
+     GROUP( "TessemNN" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "test_agenda" ),
      DESCRIPTION
      (

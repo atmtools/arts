@@ -39,6 +39,7 @@
 #include "special_interp.h"
 #include "mystring.h"
 #include "cia.h"
+#include "tessem.h"
 
 class Workspace;
 
@@ -150,6 +151,13 @@ void Print(// WS Generic Input:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Print(// WS Generic Input:
            const Timer&     x,
+           // Keywords:
+           const Index&     level,
+           const Verbosity& verbosity);
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Print(// WS Generic Input:
+           const TessemNN&  x,
            // Keywords:
            const Index&     level,
            const Verbosity& verbosity);

@@ -53,6 +53,7 @@
 #include "optproperties.h"
 #include "ppath.h"
 #include "propagationmatrix.h"
+#include "tessem.h"
 #include "xml_io_private.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what) \
@@ -107,6 +108,7 @@ TMPL_XML_READ_WRITE_STREAM(SingleScatteringData)
 TMPL_XML_READ_WRITE_STREAM(SpeciesAuxData)
 TMPL_XML_READ_WRITE_STREAM(SpeciesRecord)
 TMPL_XML_READ_WRITE_STREAM(SpeciesTag)
+TMPL_XML_READ_WRITE_STREAM(TessemNN)
 TMPL_XML_READ_WRITE_STREAM(Verbosity)
 
 //=== Array Types ==========================================================

@@ -87,6 +87,7 @@ TMPL_XML_READ_WRITE(SingleScatteringData)
 TMPL_XML_READ_WRITE(SpeciesAuxData)
 TMPL_XML_READ_WRITE(SpeciesRecord)
 TMPL_XML_READ_WRITE(SpeciesTag)
+TMPL_XML_READ_WRITE(TessemNN)
 TMPL_XML_READ_WRITE(Verbosity)
 
 //=== Array Types ==========================================================

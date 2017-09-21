@@ -160,6 +160,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("Tensor6");
   wsv_group_names.push_back("Tensor7");
   wsv_group_names.push_back("Timer");
+  wsv_group_names.push_back("TessemNN");
   wsv_group_names.push_back("Vector");
   wsv_group_names.push_back("Verbosity");
 

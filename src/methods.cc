@@ -16608,6 +16608,54 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "TessemNNReadAscii" ),
+        DESCRIPTION
+        (
+         "Reads the initialization data for the Tessem NeuralNet from an ASCII file.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT("tessem_nn"),
+        GOUT_TYPE("TessemNN"),
+        GOUT_DESC("Tessem NeuralNet configuration."),
+        IN(),
+        GIN("filename"),
+        GIN_TYPE("String"),
+        GIN_DEFAULT(NODEF),
+        GIN_DESC("NeuralNet parameters file as provided in the TESSEM 2 distribution.")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "TestTessem" ),
+        DESCRIPTION
+        (
+         "Example method for Tessem 2.\n"
+         "\n"
+         "When using the default neural network parameter files\n"
+         "from the Tessem 2 distribution, the input Vector should contain\n"
+         "5 elements:\n"
+         "   - Frequency (10-700) in GHz.\n"
+         "   - Theta (0-90) Incidence angle in degrees.\n"
+         "   - Windspeed (0-25) at 10m (m/s)\n"
+         "     Higher wind speed can be used, but without garantee.\n"
+         "   - Surface skin temperature (270-310) in K.\n"
+         "   - Salinity (0-40) in psu (practical salinity units or g/kg)\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT("outvalues"),
+        GOUT_TYPE("Vector"),
+        GOUT_DESC("Tessem output emissivity."),
+        IN(),
+        GIN("net", "invalues"),
+        GIN_TYPE("TessemNN", "Vector"),
+        GIN_DEFAULT(NODEF, NODEF),
+        GIN_DESC("Tessem NeuralNet parameters.", "Input data.")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "Test" ),
         DESCRIPTION
         (

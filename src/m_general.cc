@@ -65,6 +65,7 @@
 #include "sensor.h"
 
 #include "fastem.h"
+#include "tessem.h"
 
 extern const Numeric SPEED_OF_LIGHT;
 
@@ -317,6 +318,20 @@ void Print(// WS Generic Input:
     SWITCH_OUTPUT (level, "Timer error: ARTS was compiled without timer support");
 }
 #endif
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Print(// WS Generic Input:
+        const TessemNN& x,
+        // Keywords:
+        const Index& level,
+        const Verbosity& verbosity)
+{
+    CREATE_OUTS;
+    ostringstream os;
+    os << "TessemNN size: Inputs = " << x.nb_inputs << ", Outputs = " << x.nb_outputs << ", Cache = " << x.nb_cache;
+    SWITCH_OUTPUT (level, os.str ());
+}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
