@@ -102,11 +102,13 @@ void check_and_add_block(CovarianceMatrix &covmat,
         n_gps *= jq.Grids()[j].nelem();
     }
 
-    if ((n_gps == extent) && (n_gps == covmat_block.ncols())) {
-        std::shared_ptr<Sparse> mat = make_shared<Sparse>(covmat_block);
-        covmat.add_correlation(Block(range, range, std::make_pair(rq_index,rq_index), mat));
-    } else {
-        throw runtime_error("Matrix in covmat_block is inconsistent with the retrieval grids.");
+    if (!covmat_block.empty()) {
+        if ((n_gps == extent) && (n_gps == covmat_block.ncols())) {
+            std::shared_ptr<Sparse> mat = make_shared<Sparse>(covmat_block);
+            covmat.add_correlation(Block(range, range, std::make_pair(rq_index,rq_index), mat));
+        } else {
+            throw runtime_error("Matrix in covmat_block is inconsistent with the retrieval grids.");
+        }
     }
     if (!covmat_inv_block.empty()) {
         if ((n_gps == covmat_inv_block.nrows()) && (n_gps == covmat_inv_block.ncols())) {
@@ -177,10 +179,10 @@ void PFromZSimple(Vector &p_grid,
 // Creation of Correlation Blocks
 ////////////////////////////////////////////////////////////////////////////////
 
-void covmatSetDiagonal(Sparse &covmat_block,
-                       Sparse &covmat_inv_block,
-                       const Vector &vars,
-                       const Verbosity &)
+void covmatDiagonal(Sparse &covmat_block,
+                    Sparse &covmat_inv_block,
+                    const Vector &vars,
+                    const Verbosity &)
 {
     if (vars.empty()) {
         throw runtime_error("Cannot pass empty vector of variances to covmat_blockSetDiagonal");
@@ -389,6 +391,65 @@ void covmat1D(Sparse& covmat_block,
     covmat_block = Sparse(m,n);
     covmat_block.insert_elements(column_indices.size(), row_indices, column_indices, elements);
     covmat_inv_block = Sparse(0,0);
+}
+
+void covmat_sxAddBlock(CovarianceMatrix&               covmat_sx,
+                       const ArrayOfRetrievalQuantity& jq,
+                       const Sparse&                   block,
+                       const Index&                    i,
+                       const Index&                    j,
+                       const Index&                    inverse_flag,
+                       const Verbosity&                /*v*/)
+{
+    Index ii(i), jj(j);
+    if ((ii < 0) && (jj < 0)) {
+        ii = jq.size() - 1;
+        jj = jq.size() - 1;
+    } else if (!((ii > 0) && (jj > 0) && (ii < jq.nelem()) && (jj < jq.nelem()))) {
+        throw runtime_error("The block indices must either be both -1 (default) or larger"
+                            "than zero and smaller than the number of retrieval"
+                            "quantities.");
+    } else if (ii > jj) {
+        throw runtime_error("*i* must be less than or equal to *j*.");
+    }
+
+    Index m = jq[ii].nelem();
+    if (jq[ii].HasTransformation()) {
+        m = jq[ii].TransformationMatrix().ncols();
+    }
+    Index n = jq[jj].nelem();
+    if (jq[jj].HasTransformation()) {
+        n = jq[jj].TransformationMatrix().ncols();
+    }
+
+    if (!((block.nrows() == m) && (block.ncols() == n))) {
+        ostringstream os;
+        os << "The dimensions of the covariance block ( " << block.nrows();
+        os << " x " << block.ncols() << " )" << " with the dimensionality of ";
+        os << " retrieval quantity " << ii << " and " << jj << ", respectively.";
+
+        throw runtime_error(os.str());
+    }
+
+    ArrayOfArrayOfIndex ji = get_jacobian_indices(jq);
+    Index row_start  = ji[ii][0];
+    Index row_extent = ji[ii][1] - ji[ii][0] + 1;
+    Range row_range(row_start, row_extent);
+
+    Index col_start  = ji[jj][0];
+    Index col_extent = ji[jj][1] - ji[jj][0] + 1;
+    Range col_range(col_start, col_extent);
+
+    std::shared_ptr<Sparse> mat = make_shared<Sparse>(block);
+    if (inverse_flag == 0) {
+        covmat_sx.add_correlation(
+            Block(row_range, col_range, std::make_pair(ii, jj), mat)
+            );
+    } else {
+        covmat_sx.add_correlation_inverse(
+            Block(row_range, col_range, std::make_pair(ii, jj), mat)
+            );
+    }
 }
 
 // void covmat_seAddDiagonalBlock(CovarianceMatrix &covmat_se,
@@ -754,14 +815,14 @@ void retrievalAddTemperature(Workspace& ws,
                         covmat_inv_block);
 }
 
-void retrievalDefClose(Workspace &ws,
-                       Index &jacobian_do,
-                       ArrayOfArrayOfIndex &jacobian_indices,
-                       Agenda &jacobian_agenda,
-                       Index  &retrieval_checked,
-                       const CovarianceMatrix &/*covmat_se*/,
-                       const CovarianceMatrix &covmat_sx,
-                       const ArrayOfRetrievalQuantity &jacobian_quantities,
+void retrievalDefClose(Workspace& ws,
+                       Index& jacobian_do,
+                       ArrayOfArrayOfIndex& jacobian_indices,
+                       Agenda& jacobian_agenda,
+                       Index& retrieval_checked,
+                       const CovarianceMatrix& covmat_se,
+                       const CovarianceMatrix& covmat_sx,
+                       const ArrayOfRetrievalQuantity& jacobian_quantities,
                        const Matrix& sensor_pos,
                        const Sparse& sensor_response,
                        const Verbosity& verbosity)
@@ -769,25 +830,68 @@ void retrievalDefClose(Workspace &ws,
     jacobianClose(ws, jacobian_do, jacobian_indices, jacobian_agenda, jacobian_quantities,
                   sensor_pos, sensor_response, verbosity);
 
-    if (!covmat_sx.has_diagonal_blocks(jacobian_indices)) {
+    ArrayOfArrayOfIndex ji_t = transform_jacobian_indices(jacobian_indices,
+                                                          jacobian_quantities);
+
+    if (!covmat_sx.has_diagonal_blocks(ji_t)) {
         throw runtime_error("*covmat_sx* does not contain a diagonal block for each retrieval"
                             " quantity in the Jacobian.");
     }
-    if (!covmat_sx.is_consistent(jacobian_indices)) {
+    if (!covmat_sx.is_consistent(ji_t)) {
         throw runtime_error("The blocks in *covmat_sx* are not consistent with the retrieval"
                             " quantities in the Jacobian.");
+    }
+
+    Index m = sensor_response.nrows() * sensor_pos.nrows();
+    if (!(covmat_se.nrows() == m)) {
+        throw runtime_error("The dimensions of *covmat_se* are not consistent with the of the"
+                            " measurement vector *y*.");
     }
     retrieval_checked = true;
 }
 
-void retrievalDefInit(CovarianceMatrix &covmat_se,
-                      CovarianceMatrix &covmat_sx,
-                      ArrayOfRetrievalQuantity &jacobian_quantities,
-                      ArrayOfArrayOfIndex &jacobian_indices,
-                      Agenda &jacobian_agenda,
-                      const Verbosity &verbosity)
+void retrievalDefInit(CovarianceMatrix& covmat_se,
+                      CovarianceMatrix& covmat_sx,
+                      Sparse&           covmat_block,
+                      Sparse&           covmat_inv_block,
+                      ArrayOfRetrievalQuantity& jacobian_quantities,
+                      ArrayOfArrayOfIndex& jacobian_indices,
+                      Agenda& jacobian_agenda,
+                      const Verbosity& verbosity)
 {
     jacobianInit(jacobian_quantities, jacobian_indices, jacobian_agenda, verbosity);
+    covmat_block = Sparse();
+    covmat_inv_block = Sparse();
     covmat_sx = CovarianceMatrix();
     covmat_se = CovarianceMatrix();
+}
+
+extern const String ABSSPECIES_MAINTAG;
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void retrievalConstraintAdd(
+    ArrayOfRetrievalQuantity& jqs,
+    const String& constraint,
+    const Numeric& boundary,
+    const Index& i,
+    const Verbosity& /*v*/
+    )
+{
+    Index ii(i);
+    if (ii < 0) {
+        ii = jqs.nelem() - 1;
+    }
+
+    if (!((ii >= 0) && (ii < jqs.nelem()))) {
+        runtime_error("Index of retrieval quantity is invalid.");
+    }
+
+    if (!(jqs[ii].MainTag() == ABSSPECIES_MAINTAG)) {
+        runtime_error("Constraints are currently only supported for absorption species.");
+    }
+
+    if (!((constraint == "lt") || (constraint == "gt"))) {
+        runtime_error("Invalid constraint. Must be either \"lt\" or \"gt\".");
+    }
+    jqs[ii].AddConstraint(constraint, boundary);
 }

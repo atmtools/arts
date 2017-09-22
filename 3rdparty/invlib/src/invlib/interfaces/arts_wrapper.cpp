@@ -169,6 +169,7 @@ auto ArtsMatrix::multiply(const ArtsCovarianceMatrixWrapper & B)
     } else {
         ::mult(C, *this, B.get_covmat());
     }
+    return C;
 }
 
 void ArtsMatrix::subtract(const ArtsMatrix& B)

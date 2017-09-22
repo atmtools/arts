@@ -49,6 +49,27 @@ ostream& operator << (ostream& os, const RetrievalQuantity& ot)
             << "\n     Analytical = " << ot.Analytical();
 }
 
+ArrayOfArrayOfIndex get_jacobian_indices(
+    const ArrayOfRetrievalQuantity& jqs)
+{
+    ArrayOfArrayOfIndex jis(jqs.nelem());
+    for (Index i = 0; i < jqs.nelem(); ++i) {
+        jis[i] = ArrayOfIndex(2);
+        if (i > 0) {
+            jis[i][0] = jis[i-1][1] + 1;
+        } else {
+            jis[i][0] = 0;
+        }
+        const RetrievalQuantity &jq = jqs[i];
+        if (jq.HasTransformation()) {
+            jis[i][1] = jis[i][0] + jq.TransformationMatrix().ncols() - 1;
+        } else {
+            jis[i][1] = jis[i][0] + jq.nelem() - 1;
+        }
+    }
+    return jis;
+}
+
 ArrayOfArrayOfIndex transform_jacobian_indices(
     const ArrayOfArrayOfIndex&      jis,
     const ArrayOfRetrievalQuantity& jqs)
@@ -60,7 +81,7 @@ ArrayOfArrayOfIndex transform_jacobian_indices(
         }
         const RetrievalQuantity &jq = jqs[i];
         if (jq.HasTransformation()) {
-            jis_t[i][1] = jis_t[i][0] + jq.TransformationMatrix().nrows() - 1;
+            jis_t[i][1] = jis_t[i][0] + jq.TransformationMatrix().ncols() - 1;
         } else {
             jis_t[i][1] = jis_t[i][0] + jis[i][1] - jis[i][0];
         }
@@ -75,10 +96,8 @@ void transform_jacobian(
 {
     ArrayOfArrayOfIndex jis_t = transform_jacobian_indices(jis, jqs);
     Matrix jacobian_t(jacobian.nrows(), jis_t.back()[1] + 1);
-    std::cout << jis_t << std::endl;
 
     for (Index i = 0; i < jqs.nelem(); ++i) {
-        std::cout << i << std::endl;
         const RetrievalQuantity &jq = jqs[i];
         Index col_start  = jis[i][0];
         Index col_extent = jis[i][1] - jis[i][0] + 1;
@@ -87,10 +106,9 @@ void transform_jacobian(
         Index col_extent_t = jis_t[i][1] - jis_t[i][0] + 1;
         Range col_range_t(col_start_t, col_extent_t);
         if (jq.HasTransformation()) {
-            std::cout << "has transform." << std::endl;
             mult(jacobian_t(joker, col_range_t),
                  jacobian(joker, col_range),
-                 transpose(jq.TransformationMatrix()));
+                 jq.TransformationMatrix());
         } else {
             jacobian_t(joker, col_range_t) = jacobian(joker, col_range);
         }
@@ -117,7 +135,7 @@ void transform_x(
         if (jq.HasTransformation()) {
             Vector t(x[col_range]);
             t -= jq.OffsetVector();
-            mult(x_t[col_range_t], jq.TransformationMatrix(), t);
+            mult(x_t[col_range_t], transpose(jq.TransformationMatrix()), t);
         } else {
             x_t[col_range_t] = x[col_range];
         }
@@ -142,13 +160,13 @@ void transform_x_back(
         Index col_extent_t = jis_t[i][1] - jis_t[i][0] + 1;
         Range col_range_t(col_start_t, col_extent_t);
         if (jq.HasTransformation()) {
-            mult(x[col_range], transpose(jq.TransformationMatrix()), x_t[col_range_t]);
+            mult(x[col_range], jq.TransformationMatrix(), x_t[col_range_t]);
             x[col_range] += jq.OffsetVector();
         } else {
-            x[col_range] = x[col_range_t];
+            x[col_range] = x_t[col_range_t];
         }
     }
-    swap(x_t, x_t);
+    swap(x_t, x);
 }
 
 /*===========================================================================

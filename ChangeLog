@@ -1,3 +1,44 @@
+2017-09-21 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-807
+
+	Adde functionality needed to set up retrievals of principal components.
+	Also added functionality to enforce constraints on retrieval quantities.
+
+	* src/jacobian.[h,cc]:
+	- Added get_jacobian_indices function to get indices of transformed retrieval
+	quantities before jacobianClose is calles
+	- Some changes related to change of conventions for transformation matrices
+	- Added members to hold constraints on retrieval quantities
+	- Add nelem member function to get number of grid points from quantity
+
+	* src/m_jacobian.cc(transformationAdd):
+	- Renamed addTransformation
+
+	* src/m_oem.cc:
+	- Added function to enforce constraints on VMR quantities
+	- Enforce constraints in x2artsStandard
+	- Fixed application of transformation in x2artsStandard
+	- Removed jacobian_indices arguments from OEM WSMs since only the transformed
+	  indices are needed
+
+	* src/m_retrieval:
+	- Enabled adding of retrieval quantities without corresponding covariance
+	  block to *covmat_sx*
+	- Renamed covmatSetDiagonal to covmatDiagonal
+	- Added covmat_sxAddBlock WSM
+	- Adapted retrievalDefClose to take into account transformations
+	- Add retrievalConstraintAdd method to add constraints on RQs
+
+	* src/methods.cc:
+	- Renamed covmatSetDiagonal to covmatDiagonal
+	- Renamed addTransformation to transformationAdd
+	- Added covmat_sxAddBlock WSM
+	- Added retrievalConstraintAdd WSM
+
+	* controlfiles/artscomponents/oem/TestOEM.arts
+	- Fixed call to covmatDiagonal
+
 2017-09-21 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-806

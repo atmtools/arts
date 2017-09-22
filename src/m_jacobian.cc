@@ -4215,7 +4215,7 @@ void jacobianAddSpecialSpecies(
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void addTransformation(
+void transformationAdd(
     ArrayOfRetrievalQuantity& jqs,
     const Matrix& transformation_matrix,
     const Vector& offset_vector,
@@ -4228,19 +4228,15 @@ void addTransformation(
                       "transformation to.");
     }
 
-    Index nelem = 1;
-    std::cout << "add trans." << std::endl;
-    for (Index i = 0; i < jqs.back().Grids().nelem(); ++i) {
-        std::cout << i << " / " << nelem;
-        nelem *= jqs.back().Grids()[i].nelem();
-    }
+    Index nelem = jqs.back().Grids().nelem();
 
-    if (!(nelem == transformation_matrix.ncols())) {
+    if (!(nelem == transformation_matrix.nrows())) {
         runtime_error("Dimension of transformation matrix incompatible with retrieval grids.");
     }
     if (!(nelem == offset_vector.nelem())) {
         runtime_error("Dimension of offset vector incompatible with retrieval grids.");
     }
+
     jqs.back().SetTransformationMatrix(transformation_matrix);
     jqs.back().SetOffsetVector(offset_vector);
 }

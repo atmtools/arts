@@ -101,7 +101,15 @@ public:
   /** Grids. Definition grids for the jacobian, eg. p, lat and lon. */
   const ArrayOfVector& Grids() const { return mgrids; }
   void Grids( const ArrayOfVector& g ) { mgrids = g; }
-  
+
+  Index nelem() const {
+      Index i = 1;
+      for (Index j = 0; j < mgrids.nelem(); ++j) {
+          i *= mgrids[j].nelem();
+      }
+      return i;
+  }
+
   /** QuantumIdentifier as necessary for matching line specific parameters to jacobian grid */
   const QuantumIdentifier& QuantumIdentity() const { return mquantumidentifier; }
   void QuantumIdentity( const QuantumIdentifier& qi ) { mquantumidentifier = qi; }
@@ -115,8 +123,19 @@ public:
   void SetTransformationMatrix(const Matrix& A) {transformation_matrix = A;}
   void SetOffsetVector(const Vector& b)         {offset_vector = b;}
   bool HasTransformation()            const     {return !transformation_matrix.empty();}
-  const Matrix TransformationMatrix() const     {return transformation_matrix;}
-  const Vector OffsetVector()         const     {return offset_vector;}
+  const Matrix& TransformationMatrix() const    {return transformation_matrix;}
+  const Vector& OffsetVector()         const    {return offset_vector;}
+
+  /** Constraints **/
+  bool HasConstraints() const {return constraints.nelem() > 0;}
+  void AddConstraint(const String& s, Numeric b)
+  {
+      constraints.push_back(s);
+      boundaries.push_back(b);
+  }
+  const ArrayOfString&  GetConstraints() const {return constraints;}
+  const ArrayOfNumeric& GetBoundaries()  const {return boundaries;}
+
 
 private:
 
@@ -132,6 +151,10 @@ private:
 
   Matrix transformation_matrix;
   Vector offset_vector;
+
+  ArrayOfString  constraints;
+  ArrayOfNumeric boundaries;
+
 };
 
 /** Output operator for RetrievalQuantity.
@@ -150,6 +173,30 @@ typedef Array<RetrievalQuantity> ArrayOfRetrievalQuantity;
       if( jacobian_quantities[iq].Analytical() ) \
         { what_to_do } \
     } 
+
+//! Compute jacobian indices from retrieval quantities.
+/**
+ * This functions computes the array holding the index of the first and the last element of
+ * each retrieval quantity in the jacobian taking into account transformations.
+ *
+ *  \param jqs The retrieval quantities.
+ *  \return ArrayOfArrayOfIndex Holding for each RQ in jqs the index of the first and last
+ *  grid point of this retrieval quantity.
+ */
+ArrayOfArrayOfIndex get_jacobian_indices(
+    const ArrayOfRetrievalQuantity& jqs);
+
+//! Transform jacobian indices according to linear transformations of RQs.
+/**
+ * This transforms the array of jacobian indices according to the
+ * linear transformations given for each retrieval quantity.
+ *
+ *  \param jis The untransformed array of jacobian indices.
+ *  \param jqs The retrieval quantities.
+ */
+ArrayOfArrayOfIndex transform_jacobian_indices(
+    const ArrayOfArrayOfIndex&      jis,
+    const ArrayOfRetrievalQuantity& jqs);
 
 //! Transform jacobian matrix according to linear transformations of RQs.
 /**

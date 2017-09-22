@@ -209,8 +209,41 @@ void get_gp_rq_to_atmgrids(
     }
 }
 
+/*===========================================================================
+  === Methods enforcing constraints
+  ===========================================================================*/
+
+void vmr_enforce_lt(Tensor3View vmr, Numeric b)
+{
+    for (Index i = 0; i < vmr.npages(); ++i) {
+        for (Index j = 0; j < vmr.nrows(); ++j) {
+            for (Index k = 0; k < vmr.ncols(); ++k) {
+                vmr(i,j,k) = vmr(i,j,k) > b ? b : vmr(i,j,k);
+            }
+        }
+    }
+}
+
+void vmr_enforce_gt(Tensor3View vmr, Numeric b)
+{
+    for (Index i = 0; i < vmr.npages(); ++i) {
+        for (Index j = 0; j < vmr.nrows(); ++j) {
+            for (Index k = 0; k < vmr.ncols(); ++k) {
+                vmr(i,j,k) = vmr(i,j,k) < b ? b : vmr(i,j,k);
+            }
+        }
+    }
+}
 
 
+void vmr_enforce_constraint(Tensor3View vmr, const String & constraint, Numeric b)
+{
+    if (constraint == "lt") {
+        vmr_enforce_lt(vmr, b);
+    } else if (constraint == "gt") {
+        vmr_enforce_gt(vmr, b);
+    }
+}
 
 /*===========================================================================
   === Workspace methods associated with OEM
@@ -435,11 +468,22 @@ void x2artsStandard(
     throw runtime_error( "The cloudbox must be flagged to have "
                          "passed a consistency check (cloudbox_checked=1)." );
 
+  // Transform x back to retrieval grid space.
+  bool has_transform = false;
+  for (Index i = 0; i < jq.nelem(); ++i) {
+      has_transform |= jq[i].HasTransformation();
+  }
+
+  Vector x_t(x);
+  if (has_transform) {
+      transform_x_back(x_t, jq, ji);
+  }
+
   // Main sizes
   const Index nq = jq.nelem();
 
   // Check input
-  if( x.nelem() != ji[nq-1][1]+1 )
+  if( x_t.nelem() != ji[nq-1][1]+1 )
     throw runtime_error( "Length of *x* does not match information in "
                          "*jacobian_quantities*.");
 
@@ -448,9 +492,6 @@ void x2artsStandard(
 
   // Flag indicating that y_baseline is not set
   bool yb_set = false;
-
-  Vector x_t(x);
-  transform_x_back(x_t, jq, ji);
 
   // Loop retrieval quantities and fill *xa*
   for( Index q=0; q<nq; q++ )
@@ -543,6 +584,16 @@ void x2artsStandard(
             }
           else
             { assert(0); }
+
+          if (jq[q].HasConstraints()) {
+              for (Index i = 0; i < jq[q].GetConstraints().nelem(); ++i) {
+                  std::cout << "enforcing constraint" << std::endl;
+                  vmr_enforce_constraint(vmr_field(isp, joker, joker, joker),
+                                         jq[q].GetConstraints()[i],
+                                         jq[q].GetBoundaries()[i]);
+              }
+
+          }
         }
 
       
@@ -714,7 +765,6 @@ void OEM_checks(
     const CovarianceMatrix&           covmat_se,
     const Index&                      jacobian_do,
     const ArrayOfRetrievalQuantity&   jacobian_quantities,
-    const ArrayOfArrayOfIndex&        jacobian_indices,
     const String&                     method,
     const Vector&                     x_norm,
     const Index&                      max_iter,
@@ -745,6 +795,9 @@ void OEM_checks(
     throw runtime_error( "The number of rows of the jacobian must be either the number of elements in *y* or 0." );
   if((jacobian.ncols() != n) && (!jacobian.empty()))
       throw runtime_error( "The number of cols of the jacobian must be either the number of elements in *xa* or 0." );
+  // Compute jacobian indices from jacobian quantities. Here we need to take into account
+  // transformations, so we cannot use the standard jacobian_indices.
+  ArrayOfArrayOfIndex jacobian_indices = get_jacobian_indices(jacobian_quantities);
   if( jacobian_indices.nelem() != nq )
     throw runtime_error( "Different number of elements in *jacobian_quantities* "
                           "and *jacobian_indices*." );
@@ -833,7 +886,6 @@ void OEM(
    const CovarianceMatrix&           covmat_se,
    const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
-   const ArrayOfArrayOfIndex&        jacobian_indices,
    const Agenda&                     inversion_iterate_agenda,
    const String&                     method,
    const Numeric&                    max_start_cost,
@@ -854,7 +906,7 @@ void OEM(
     covmat_se.compute_inverse();
 
     OEM_checks(ws, x, yf, jacobian, inversion_iterate_agenda, xa, covmat_sx,
-               covmat_se, jacobian_do, jacobian_quantities, jacobian_indices,
+               covmat_se, jacobian_do, jacobian_quantities,
                method, x_norm, max_iter, stop_dx, lm_ga_settings,
                clear_matrices, display_progress);
 
@@ -1321,7 +1373,7 @@ void OEM_MPI(
 
     // Check WSVs
     OEM_checks(ws, x, yf, jacobian, inversion_iterate_agenda, xa, covmat_sx,
-               covmat_se, jacobian_do, jacobian_quantities, jacobian_indices,
+               covmat_se, jacobian_do, jacobian_quantities,
                method, x_norm, max_iter, stop_dx, lm_ga_settings,
                clear_matrices, display_progress);
 

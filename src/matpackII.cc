@@ -162,7 +162,7 @@ Numeric Sparse::ro (Index r, Index c) const
   \date   Tue Jul 15 15:05:40 2003
 */
 Sparse::Sparse() :
-    matrix()
+    matrix(0,0)
 {
   // Nothing to do here
 }

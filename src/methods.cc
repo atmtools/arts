@@ -4070,7 +4070,44 @@ void define_md_data_raw()
 
   md_data_raw.push_back
       ( MdRecord
-        ( NAME( "covmatSetDiagonal" ),
+        ( NAME( "covmat_sxAddBlock" ),
+          DESCRIPTION
+          (
+              "Add a block to the a priori covariance matrix *covmat_sx*\n"
+              "\n"
+              "This functions adds the given sparse matrix as a block in the covariance\n"
+              "matrix *covmatrix_sx*. The position of the block can be given by the generic\n"
+              "arguments *i* and *j*, which should give the index of the retrieval quantity in\n"
+              "*jacobian_quantities*, which is given just by the order the quantities have been\n"
+              "added to the retrieval.\n"
+              "\n"
+              "If arguments *i* and *j* are not given the block will be added as diagonal block\n"
+              "for the last added retrieval quantity.\n"
+              "\n"
+              "If provided, the index *i* must be less than or equal to *j*. Also the provided\n"
+              "block must be consistent with the corresponding retrieval quantities."
+              "\n"
+              "If the argument *inverse_flag* is non-zero, the block will be as a block of the\n"
+              "precision matrix, i.e.the inverse covariance matrix.\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT("covmat_sx"),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN("covmat_sx", "jacobian_quantities"),
+          GIN("block", "i", "j", "inverse_flag"),
+          GIN_TYPE("Sparse", "Index", "Index", "Index"),
+          GIN_DEFAULT(NODEF, "-1", "-1", "0"),
+          GIN_DESC("The block to add to the covariance matrix",
+                   "Index of a retrieval quantity. Must satisfy *i* <= *j*.",
+                   "Index of a retrieval quantity. Must satisfy *i* <= *j*.",
+                   "Boolean flag indicating whether block should be used as inverse.")
+            ));
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "covmatDiagonal" ),
           DESCRIPTION
           (
               "Sets the matrix in covmat_block to a diagonal matrix with the variances\n"
@@ -9247,7 +9284,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
       ( MdRecord
-        ( NAME( "addTransformation" ),
+        ( NAME( "transformationAdd" ),
           DESCRIPTION
           (
               "Adds an affine transformation to the last element of *jacobian_quantities*. The \n"
@@ -10562,8 +10599,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "xa", "x", "covmat_sx", "yf", "y", "covmat_se", "jacobian",
-            "jacobian_do", "jacobian_quantities", "jacobian_indices",
-            "inversion_iterate_agenda" ),
+            "jacobian_do", "jacobian_quantities", "inversion_iterate_agenda" ),
         GIN( "method", "max_start_cost", "x_norm", "max_iter", "stop_dx", 
              "lm_ga_settings", "clear_matrices", "display_progress" ),
         GIN_TYPE( "String", "Numeric", "Vector", "Index", "Numeric", 
@@ -13413,8 +13449,8 @@ void define_md_data_raw()
           "Must be called before any other retrieval definition WSM.\n"
           ),
       AUTHORS( "Simon Pfreundschuh" ),
-      OUT( "covmat_se", "covmat_sx", "jacobian_quantities", "jacobian_indices",
-           "jacobian_agenda" ),
+      OUT( "covmat_se", "covmat_sx", "covmat_block", "covmat_inv_block", "jacobian_quantities",
+           "jacobian_indices", "jacobian_agenda" ),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -13778,6 +13814,39 @@ void define_md_data_raw()
                 "Calculation method. See above.",
                 "Size of perturbation [K]." 
           )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "retrievalConstraintAdd" ),
+      DESCRIPTION
+        (
+            "Constrain a retrieval quantity.\n"
+            "\n"
+            "Adds a constraint to a given retrieval quantity. This can be used to force the\n"
+            "values of the retrieval quantity to always be greater than (\"gt\") or less\n"
+            "than (\"lt\"). Constraints are enforced by replacing all values that don't\n"
+            "satisfy the constraint by the given limit."
+            "\n"
+            "The argument *i* should be the index of the retrieval quantity, which is given\n"
+            "by the order in which the quantities have been defined in the retrieval. If it\n"
+            "is -1 (default), the constraint will be added to retrieval quantity the was added\n"
+            "last."
+            "\n"
+            "Currently only works for vmr quantities.\n"
+        ),
+      AUTHORS( "Simon Pfreundschuh"),
+      OUT( "jacobian_quantities"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "jacobian_quantities" ),
+      GIN( "type", "limit", "i"),
+      GIN_TYPE( "String", "Numeric", "Index"),
+      GIN_DEFAULT( NODEF, NODEF, "-1"),
+      GIN_DESC( "The type of the constraint, i.e. \"lt\" or \"gt\"",
+                "The limit of the constraint.",
+                "The index of the retrieval quantity to which to add the constraint.")
         ));
 
   md_data_raw.push_back
