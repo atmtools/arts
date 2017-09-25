@@ -424,10 +424,10 @@ VariableValueStruct get_variable_value(InteractiveWorkspace *workspace, Index id
     return value;
 }
 
-void set_variable_value(InteractiveWorkspace *workspace,
-                        long id,
-                        long group_id,
-                        VariableValueStruct value)
+const char * set_variable_value(InteractiveWorkspace *workspace,
+                                long id,
+                                long group_id,
+                                VariableValueStruct value)
 {
     // Agenda
     if (wsv_group_names[group_id] == "Agenda") {
@@ -435,12 +435,12 @@ void set_variable_value(InteractiveWorkspace *workspace,
         workspace->set_agenda_variable(id, *ptr);
     }
     // Index
-    if (wsv_group_names[group_id] == "Index") {
+    else if (wsv_group_names[group_id] == "Index") {
         const Index *ptr = reinterpret_cast<const Index *>(value.ptr);
         workspace->set_index_variable(id, *ptr);
     }
     // Numeric
-    if (wsv_group_names[group_id] == "Numeric") {
+    else if (wsv_group_names[group_id] == "Numeric") {
         const Numeric *ptr = reinterpret_cast<const Numeric *>(value.ptr);
         workspace->set_numeric_variable(id, *ptr);
     }
@@ -469,6 +469,20 @@ void set_variable_value(InteractiveWorkspace *workspace,
         const Numeric * ptr = reinterpret_cast<const Numeric *>(value.ptr);
         workspace->set_matrix_variable(id, value.dimensions[0], value.dimensions[1], ptr);
     }
+    // Tensor3
+    else if (wsv_group_names[group_id] == "Tensor3") {
+        const Numeric * ptr = reinterpret_cast<const Numeric *>(value.ptr);
+        workspace->set_tensor3_variable(id,
+                                        value.dimensions[0],
+                                        value.dimensions[1],
+                                        value.dimensions[2],
+                                        ptr);
+    } else {
+        *error_buffer = std::string("This variable can currently not be set through the C API."
+                                    " Signal your need to ARTS dev mailing list.");
+        return error_buffer->c_str();
+    }
+    return nullptr;
 }
 
 long add_variable(InteractiveWorkspace *workspace, long group_id, const char *name)

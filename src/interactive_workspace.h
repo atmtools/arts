@@ -58,6 +58,7 @@ public:
     void set_array_of_index_variable(Index id, size_t n, const Index *src);
     void set_vector_variable(Index id, size_t n, const Numeric *src);
     void set_matrix_variable(Index id, size_t m, size_t n, const Numeric *src);
+    void set_tensor3_variable(Index id, size_t l, size_t m, size_t n, const Numeric *src);
 
     void resize();
 

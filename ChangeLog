@@ -1,3 +1,14 @@
+2017-09-25 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-807
+
+	* interactive_workspace.[cc,h]:
+	- Added functions to set WSVs of type Tensor3 through python interface.
+
+	* arts_api.[cc,h]:
+	- Return error if variable cannot be set through interface.
+
+
 2017-09-21 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-807

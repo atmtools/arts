@@ -412,12 +412,14 @@ extern "C" {
      * \param workspace Pointer to a InteractiveWorkspace object.
      * \param id Index of the workspace variable.
      * \param group_id Index of the group the variable belongs to.
+     * \return Poiter to null-terminated string containing the error message if setting of
+     * variable fails.
      */
     DLL_PUBLIC
-    void set_variable_value(InteractiveWorkspace *workspace,
-                            long id,
-                            long group_id,
-                            VariableValueStruct value);
+    const char * set_variable_value(InteractiveWorkspace *workspace,
+                                    long id,
+                                    long group_id,
+                                    VariableValueStruct value);
     //! Add variable of given type to workspace.
     /**
      * This adds and initializes a variable in the current workspace and also

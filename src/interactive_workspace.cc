@@ -144,6 +144,19 @@ void InteractiveWorkspace::set_matrix_variable(Index id,
     }
 }
 
+void InteractiveWorkspace::set_tensor3_variable(Index id,
+                                                size_t l,
+                                                size_t m,
+                                                size_t n,
+                                                const Numeric *src)
+{
+    Tensor3 *dst = reinterpret_cast<Tensor3*>(this->operator[](id));
+    dst->resize(l, m, n);
+    for (size_t i = 0; i < l * n * m; ++i) {
+        dst->get_c_array()[i] = src[i];
+    }
+}
+
 void InteractiveWorkspace::resize()
 {
     Array<stack<WsvStruct *>> ws_new(wsv_data.nelem());
