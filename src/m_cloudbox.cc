@@ -1951,8 +1951,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       scat_meta, i_ss, scat_species[i_ss], delim, verbosity);
     }
       
-      //---- pnd_field calculations for S2M_LWC ----------------------------
-    else if ( psd_param == "S2M_LWC" )
+      //---- pnd_field calculations for SB06_LWC ----------------------------
+    else if ( psd_param == "SB06_LWC" )
     {
         
         //check for expected scattering species field name
@@ -1963,7 +1963,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to liquid cloud water.\n";
         }
         
-        pnd_fieldS2M (pnd_field,
+        pnd_fieldSB06 (pnd_field,
                         scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                         scat_species_number_density_field ( i_ss, joker, joker, joker ),
                         limits,
@@ -1974,8 +1974,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                         verbosity);
     }
       
-      //---- pnd_field calculations for S2M_LWC_M ----------------------------
-    else if ( psd_param == "S2M_LWC_M" )
+      //---- pnd_field calculations for SB06_LWC_M ----------------------------
+    else if ( psd_param == "SB06_LWC_M" )
     {
         
         //check for expected scattering species field name
@@ -1986,7 +1986,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to liquid cloud water.\n";
         }
         
-        pnd_fieldS2M (pnd_field,
+        pnd_fieldSB06 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -1997,8 +1997,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for S2M_IWC ----------------------------
-    else if ( psd_param == "S2M_IWC" )
+      //---- pnd_field calculations for SB06_IWC ----------------------------
+    else if ( psd_param == "SB06_IWC" )
     {
         
         //check for expected scattering species field name
@@ -2009,7 +2009,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to cloud ice.\n";
         }
         
-        pnd_fieldS2M (pnd_field,
+        pnd_fieldSB06 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_number_density_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2019,8 +2019,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       delim,
                       verbosity);
     }
-      //---- pnd_field calculations for S2M_IWC_M ----------------------------
-    else if ( psd_param == "S2M_IWC_M" )
+      //---- pnd_field calculations for SB06_IWC_M ----------------------------
+    else if ( psd_param == "SB06_IWC_M" )
     {
         
         //check for expected scattering species field name
@@ -2031,7 +2031,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to cloud ice.\n";
         }
         
-        pnd_fieldS2M (pnd_field,
+        pnd_fieldSB06 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2042,8 +2042,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for S2M_RWC ----------------------------
-    else if ( psd_param == "S2M_RWC" )
+      //---- pnd_field calculations for SB06_RWC ----------------------------
+    else if ( psd_param == "SB06_RWC" )
     {
         
         //check for expected scattering species field name
@@ -2054,7 +2054,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to precipitating liquid water\n";
         }
         
-        pnd_fieldS2M (pnd_field,
+        pnd_fieldSB06 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_number_density_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2065,8 +2065,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for S2M_RWC_M ----------------------------
-    else if ( psd_param == "S2M_RWC_M" )
+      //---- pnd_field calculations for SB06_RWC_M ----------------------------
+    else if ( psd_param == "SB06_RWC_M" )
     {
         
         //check for expected scattering species field name
@@ -2077,7 +2077,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to precipitating liquid water\n";
         }
         
-        pnd_fieldS2M (pnd_field,
+        pnd_fieldSB06 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2088,8 +2088,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for S2M_SWC ----------------------------
-    else if ( psd_param == "S2M_SWC" )
+      //---- pnd_field calculations for SB06_SWC ----------------------------
+    else if ( psd_param == "SB06_SWC" )
     {
         
         //check for expected scattering species field name
@@ -2100,7 +2100,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to snow\n";
         }
         
-        pnd_fieldS2M (pnd_field,
+        pnd_fieldSB06 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_number_density_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2111,8 +2111,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
 
-      //---- pnd_field calculations for S2M_SWC_M ----------------------------
-    else if ( psd_param == "S2M_SWC_M" )
+      //---- pnd_field calculations for SB06_SWC_M ----------------------------
+    else if ( psd_param == "SB06_SWC_M" )
     {
         
         //check for expected scattering species field name
@@ -2123,7 +2123,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to snow\n";
         }
         
-        pnd_fieldS2M (pnd_field,
+        pnd_fieldSB06 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2134,8 +2134,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for S2M_GWC ----------------------------
-    else if ( psd_param == "S2M_GWC" )
+      //---- pnd_field calculations for SB06_GWC ----------------------------
+    else if ( psd_param == "SB06_GWC" )
     {
         
         //check for expected scattering species field name
@@ -2146,7 +2146,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to graupel\n";
         }
         
-        pnd_fieldS2M (pnd_field,
+        pnd_fieldSB06 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_number_density_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2157,8 +2157,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for S2M_GWC_M ----------------------------
-    else if ( psd_param == "S2M_GWC_M" )
+      //---- pnd_field calculations for SB06_GWC_M ----------------------------
+    else if ( psd_param == "SB06_GWC_M" )
     {
         
         //check for expected scattering species field name
@@ -2169,7 +2169,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to graupel\n";
         }
         
-        pnd_fieldS2M (pnd_field,
+        pnd_fieldSB06 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2180,8 +2180,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for S2M_HWC ----------------------------
-    else if ( psd_param == "S2M_HWC" )
+      //---- pnd_field calculations for SB06_HWC ----------------------------
+    else if ( psd_param == "SB06_HWC" )
     {
         
         //check for expected scattering species field name
@@ -2192,7 +2192,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to hail\n";
         }
         
-        pnd_fieldS2M (pnd_field,
+        pnd_fieldSB06 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_number_density_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2203,8 +2203,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for S2M_HWC_M ----------------------------
-    else if ( psd_param == "S2M_HWC_M" )
+      //---- pnd_field calculations for SB06_HWC_M ----------------------------
+    else if ( psd_param == "SB06_HWC_M" )
     {
         
         //check for expected scattering species field name
@@ -2215,7 +2215,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to hail\n";
         }
         
-        pnd_fieldS2M (pnd_field,
+        pnd_fieldSB06 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2226,8 +2226,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
 
-      //---- pnd_field calculations for MY2_LWC ----------------------------
-    else if ( psd_param == "MY2_LWC" )
+      //---- pnd_field calculations for MY05_LWC ----------------------------
+    else if ( psd_param == "MY05_LWC" )
     {
         
         //check for expected scattering species field name
@@ -2238,7 +2238,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to liquid cloud water.\n";
         }
         
-        pnd_fieldMY2 (pnd_field,
+        pnd_fieldMY05 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_number_density_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2249,8 +2249,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for MY2_LWC_M ----------------------------
-    else if ( psd_param == "MY2_LWC_M" )
+      //---- pnd_field calculations for MY05_LWC_M ----------------------------
+    else if ( psd_param == "MY05_LWC_M" )
     {
         
         //check for expected scattering species field name
@@ -2261,7 +2261,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to liquid cloud water.\n";
         }
         
-        pnd_fieldMY2 (pnd_field,
+        pnd_fieldMY05 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2272,8 +2272,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for MY2_IWC ----------------------------
-    else if ( psd_param == "MY2_IWC" )
+      //---- pnd_field calculations for MY05_IWC ----------------------------
+    else if ( psd_param == "MY05_IWC" )
     {
         
         //check for expected scattering species field name
@@ -2284,7 +2284,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to cloud ice.\n";
         }
         
-        pnd_fieldMY2 (pnd_field,
+        pnd_fieldMY05 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_number_density_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2294,8 +2294,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       delim,
                       verbosity);
     }
-      //---- pnd_field calculations for MY2_IWC_M ----------------------------
-    else if ( psd_param == "MY2_IWC_M" )
+      //---- pnd_field calculations for MY05_IWC_M ----------------------------
+    else if ( psd_param == "MY05_IWC_M" )
     {
         
         //check for expected scattering species field name
@@ -2306,7 +2306,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to cloud ice.\n";
         }
         
-        pnd_fieldMY2 (pnd_field,
+        pnd_fieldMY05 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2317,8 +2317,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for MY2_RWC ----------------------------
-    else if ( psd_param == "MY2_RWC" )
+      //---- pnd_field calculations for MY05_RWC ----------------------------
+    else if ( psd_param == "MY05_RWC" )
     {
         
         //check for expected scattering species field name
@@ -2329,7 +2329,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to precipitating liquid water\n";
         }
         
-        pnd_fieldMY2 (pnd_field,
+        pnd_fieldMY05 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_number_density_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2340,8 +2340,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for MY2_RWC_M ----------------------------
-    else if ( psd_param == "MY2_RWC_M" )
+      //---- pnd_field calculations for MY05_RWC_M ----------------------------
+    else if ( psd_param == "MY05_RWC_M" )
     {
         
         //check for expected scattering species field name
@@ -2352,7 +2352,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to precipitating liquid water\n";
         }
         
-        pnd_fieldMY2 (pnd_field,
+        pnd_fieldMY05 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2363,8 +2363,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for MY2_SWC ----------------------------
-    else if ( psd_param == "MY2_SWC" )
+      //---- pnd_field calculations for MY05_SWC ----------------------------
+    else if ( psd_param == "MY05_SWC" )
     {
         
         //check for expected scattering species field name
@@ -2375,7 +2375,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to snow\n";
         }
         
-        pnd_fieldMY2 (pnd_field,
+        pnd_fieldMY05 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_number_density_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2386,8 +2386,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for MY2_SWC_M ----------------------------
-    else if ( psd_param == "MY2_SWC_M" )
+      //---- pnd_field calculations for MY05_SWC_M ----------------------------
+    else if ( psd_param == "MY05_SWC_M" )
     {
         
         //check for expected scattering species field name
@@ -2398,7 +2398,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to snow\n";
         }
         
-        pnd_fieldMY2 (pnd_field,
+        pnd_fieldMY05 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2409,8 +2409,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for MY2_GWC ----------------------------
-    else if ( psd_param == "MY2_GWC" )
+      //---- pnd_field calculations for MY05_GWC ----------------------------
+    else if ( psd_param == "MY05_GWC" )
     {
         
         //check for expected scattering species field name
@@ -2421,7 +2421,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to graupel\n";
         }
         
-        pnd_fieldMY2 (pnd_field,
+        pnd_fieldMY05 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_number_density_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2432,8 +2432,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for MY2_GWC_M ----------------------------
-    else if ( psd_param == "MY2_GWC_M" )
+      //---- pnd_field calculations for MY05_GWC_M ----------------------------
+    else if ( psd_param == "MY05_GWC_M" )
     {
         
         //check for expected scattering species field name
@@ -2444,7 +2444,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to graupel\n";
         }
         
-        pnd_fieldMY2 (pnd_field,
+        pnd_fieldMY05 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2455,8 +2455,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for MY2_HWC ----------------------------
-    else if ( psd_param == "MY2_HWC" )
+      //---- pnd_field calculations for MY05_HWC ----------------------------
+    else if ( psd_param == "MY05_HWC" )
     {
         
         //check for expected scattering species field name
@@ -2467,7 +2467,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to hail\n";
         }
         
-        pnd_fieldMY2 (pnd_field,
+        pnd_fieldMY05 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_number_density_field ( i_ss, joker, joker, joker ),
                       limits,
@@ -2478,8 +2478,8 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                       verbosity);
     }
       
-      //---- pnd_field calculations for MY2_HWC_M ----------------------------
-    else if ( psd_param == "MY2_HWC_M" )
+      //---- pnd_field calculations for MY05_HWC_M ----------------------------
+    else if ( psd_param == "MY05_HWC_M" )
     {
         
         //check for expected scattering species field name
@@ -2490,7 +2490,7 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
             << psd_param << " should only be applied to hail\n";
         }
         
-        pnd_fieldMY2 (pnd_field,
+        pnd_fieldMY05 (pnd_field,
                       scat_species_mass_density_field ( i_ss, joker, joker, joker ),
                       scat_species_mean_mass_field ( i_ss, joker, joker, joker ),
                       limits,

@@ -87,7 +87,7 @@ void pnd_fieldF07 (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity);
 
-void pnd_fieldS2M (Tensor4View pnd_field,
+void pnd_fieldSB06 (Tensor4View pnd_field,
                    const Tensor3& WC_field,
                    const Tensor3& N_field,
                    const ArrayOfIndex& limits,
@@ -97,7 +97,7 @@ void pnd_fieldS2M (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity);
 
-void pnd_fieldMY2 (Tensor4View pnd_field,
+void pnd_fieldMY05 (Tensor4View pnd_field,
                    const Tensor3& WC_field,
                    const Tensor3& N_field,
                    const ArrayOfIndex& limits,
@@ -179,14 +179,14 @@ void psd_snow_F07 ( Vector& psd,
                    const Numeric beta,
                    const String& regime );
 
-void psd_S2M (Vector& psd,
+void psd_SB06 (Vector& psd,
               Matrix& dpsd,
               const Vector& mass,
               const Numeric& N_tot,
               const Numeric& WC,
               const String& hydrometeor_type);
 
-void psd_MY2 (Vector& psd,
+void psd_MY05 (Vector& psd,
               Matrix& dpsd,
               const Vector& diameter_max,
               const Numeric N_tot,

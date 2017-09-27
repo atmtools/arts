@@ -1092,8 +1092,8 @@ void pnd_fieldF07 (Tensor4View pnd_field,
 
 
 /*! Calculates the particle number density field according
- *  to the two moment scheme of Axel Seifert, that is used the ICON model.
- 
+ *  to the two moment scheme of Seifert and Beheng, 2006b,a that is used
+ *  in the ICON model.
  \param pnd_field Particle number density field
  \param WC_field  mass content field [kg/m3]
  \param N_field Total Number density field [1/m^3]
@@ -1109,7 +1109,7 @@ void pnd_fieldF07 (Tensor4View pnd_field,
  \date 2015-01-19
  
  */
-void pnd_fieldS2M (Tensor4View pnd_field,
+void pnd_fieldSB06 (Tensor4View pnd_field,
                      const Tensor3& WC_field,
                      const Tensor3& N_field,
                      const ArrayOfIndex& limits,
@@ -1119,7 +1119,7 @@ void pnd_fieldS2M (Tensor4View pnd_field,
                      const String& delim,
                      const Verbosity& verbosity)
 {
-    const String psdname="S2M";
+    const String psdname="SB06";
     const Index N_se = scat_meta[scat_species].nelem();
     const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
     ArrayOfIndex intarr;
@@ -1170,27 +1170,27 @@ void pnd_fieldS2M (Tensor4View pnd_field,
     }
     
     //Get the right hydrometeor type
-    if (psd_str=="S2M_LWC")
+    if (psd_str=="SB06_LWC")
     {
         hydrometeor_type="cloud_water";
     }
-    else if (psd_str=="S2M_IWC")
+    else if (psd_str=="SB06_IWC")
     {
         hydrometeor_type="cloud_ice";
     }
-    else if (psd_str=="S2M_RWC")
+    else if (psd_str=="SB06_RWC")
     {
         hydrometeor_type="rain";
     }
-    else if (psd_str=="S2M_SWC")
+    else if (psd_str=="SB06_SWC")
     {
         hydrometeor_type="snow";
     }
-    else if (psd_str=="S2M_GWC")
+    else if (psd_str=="SB06_GWC")
     {
         hydrometeor_type="graupel";
     }
-    else if (psd_str=="S2M_HWC")
+    else if (psd_str=="SB06_HWC")
     {
         hydrometeor_type="hail";
     }
@@ -1237,7 +1237,7 @@ void pnd_fieldS2M (Tensor4View pnd_field,
             {
                 for ( Index lon=limits[4]; lon<limits[5]; lon++ )
                 {
-                    // S2M requires mass density. If not set, abort calculation.
+                    // SB06 requires mass density. If not set, abort calculation.
                     if ( isnan(WC_field ( p, lat, lon )) || isnan(N_field ( p, lat, lon )))
                     {
                         if (logic_M)
@@ -1276,7 +1276,7 @@ void pnd_fieldS2M (Tensor4View pnd_field,
                             }
                             else//if mean particle mass is zero, then the number density is
                                 //set to zero. The number density will be adjusted to
-                                //a non-zero within psd_S2M due to the limits
+                                //a non-zero within psd_SB06 due to the limits
                                 //of the scheme
                             {
                                 N_tot=0;
@@ -1293,7 +1293,7 @@ void pnd_fieldS2M (Tensor4View pnd_field,
                         // iteration over all given size bins
                             // calculate particle size distribution
                             // [# m^-3 m^-1]
-                        psd_S2M(dNdD,dummy, mass, N_tot,
+                        psd_SB06(dNdD,dummy, mass, N_tot,
                                           WC_field ( p, lat, lon ),
                                           hydrometeor_type);
                         
@@ -1369,7 +1369,7 @@ void pnd_fieldS2M (Tensor4View pnd_field,
  \date 2017-08-01
  
  */
-void pnd_fieldMY2 (Tensor4View pnd_field,
+void pnd_fieldMY05 (Tensor4View pnd_field,
                    const Tensor3& WC_field,
                    const Tensor3& N_field,
                    const ArrayOfIndex& limits,
@@ -1379,7 +1379,7 @@ void pnd_fieldMY2 (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity)
 {
-    const String psdname="MY2";
+    const String psdname="MY05";
     const Index N_se = scat_meta[scat_species].nelem();
     const Index scat_data_start = FlattenedIndex(scat_meta, scat_species);
     ArrayOfIndex intarr;
@@ -1431,27 +1431,27 @@ void pnd_fieldMY2 (Tensor4View pnd_field,
     }
     
     //Get the right hydrometeor type
-    if (psd_str=="MY2_LWC")
+    if (psd_str=="MY05_LWC")
     {
         hydrometeor_type="cloud_water";
     }
-    else if (psd_str=="MY2_IWC")
+    else if (psd_str=="MY05_IWC")
     {
         hydrometeor_type="cloud_ice";
     }
-    else if (psd_str=="MY2_RWC")
+    else if (psd_str=="MY05_RWC")
     {
         hydrometeor_type="rain";
     }
-    else if (psd_str=="MY2_SWC")
+    else if (psd_str=="MY05_SWC")
     {
         hydrometeor_type="snow";
     }
-    else if (psd_str=="MY2_GWC")
+    else if (psd_str=="MY05_GWC")
     {
         hydrometeor_type="graupel";
     }
-    else if (psd_str=="MY2_HWC")
+    else if (psd_str=="MY05_HWC")
     {
         hydrometeor_type="hail";
     }
@@ -1513,7 +1513,7 @@ void pnd_fieldMY2 (Tensor4View pnd_field,
             {
                 for ( Index lon=limits[4]; lon<limits[5]; lon++ )
                 {
-                    // MY2 requires mass density. If not set, abort calculation.
+                    // MY05 requires mass density. If not set, abort calculation.
                     if ( isnan(WC_field ( p, lat, lon )) || isnan(N_field ( p, lat, lon )))
                     {
                         if (logic_M)
@@ -1560,7 +1560,7 @@ void pnd_fieldMY2 (Tensor4View pnd_field,
                         // iteration over all given size bins
                         // calculate particle size distribution
                         // [# m^-3 m^-1]
-                        psd_MY2(dNdD,dummy, diameter_max, N_tot,
+                        psd_MY05(dNdD,dummy, diameter_max, N_tot,
                                 WC_field ( p, lat, lon ),
                                 hydrometeor_type);
                         
@@ -2936,7 +2936,8 @@ void psd_snow_F07 ( Vector& psd,
 }
 
 /*! Calculates the particle number density field according
- *  to the two moment scheme of Axel Seifert, that is used the ICON model.
+ *  to the two moment scheme of Seifert and Beheng, 2006b,a that is used 
+ *  in the ICON model.
  *  One call of this function calculates one particle number density.
  
  \return dN particle number density per diameter interval [#/m3/m]
@@ -2951,7 +2952,7 @@ void psd_snow_F07 ( Vector& psd,
  \date 2015-01-19
  
  */
-void psd_S2M (Vector& psd,
+void psd_SB06 (Vector& psd,
               Matrix& dpsd,
               const Vector& mass,
               const Numeric& N_tot,
@@ -3139,7 +3140,7 @@ void psd_S2M (Vector& psd,
  \date 2017-08-01
  
  */
-void psd_MY2 (Vector& psd,
+void psd_MY05 (Vector& psd,
               Matrix& dpsd,
               const Vector& diameter_max,
               const Numeric N_tot,

@@ -1,3 +1,30 @@
+2017-09-27  Manfred Brath  <manfred.brath@uni-hamburg.de>
+
+	* arts-2-3-808
+
+	* src/m_microphysics.cc  
+	- (psdMY2, dNdD_MY2, dNdD_MY2_M,psdS2M, dNdD_SM2, dNdD_SM2_M):
+	Renamed to psdMY05, dNdD_MY05, dNdD_MY05_M,psdSB06, dNdD_SB06, dNdD_SB06_M, 	
+	and adjusted the function when needed to handle the new names including
+	changed name-tags.
+		
+	* src/microphysics.{cc,h} (psd_MY2, psd_S2M, pnd_fieldMY2, pnd_fieldS2M):
+	Renamed to psd_MY05, psd_SB06, pnd_fieldMY05, pnd_fieldSB06
+	and adjusted the function when needed to handle the new names including
+	changed name-tags.
+	
+	* src/methods.cc 
+	- (psdS2M, psdMY2): 
+	Renamed to psdSB06, psdMY05.
+	
+	- (dNdD_SB06, dNdD_SB06_M,dNdD_MY05, dNdD_MY05_M, 
+	pnd_fieldCalcFromscat_speciesFields):
+	Updated built-in doc according to the new names.
+	
+	* src/m_cloudbox.cc (pnd_fieldCalcFromscat_speciesFields):
+	Changed to handle the new names.	
+
+
 2017-09-25 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-807

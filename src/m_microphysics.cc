@@ -1078,7 +1078,7 @@ void psdMH97 (
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdS2M (
+void psdSB06 (
              Matrix&                             psd_data,
              Tensor3&                            dpsd_data_dx,
              const Vector&                             psd_size_grid,
@@ -1219,7 +1219,7 @@ void psdS2M (
         Matrix dpsd_1p(nsi,2);
         if( WC>0  )
         {
-            psd_S2M ( psd_1p,dpsd_1p, psd_size_grid, N_tot, WC, hydrometeor_type );
+            psd_SB06 ( psd_1p,dpsd_1p, psd_size_grid, N_tot, WC, hydrometeor_type );
             
             for ( Index i=0; i<nsi; i++ )
             {
@@ -1243,7 +1243,7 @@ void psdS2M (
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdMY2 (
+void psdMY05 (
              Matrix&                             psd_data,
              Tensor3&                            dpsd_data_dx,
              const Vector&                             psd_size_grid,
@@ -1385,7 +1385,7 @@ void psdMY2 (
         Matrix dpsd_1p(nsi,2);
         if( WC>0  )
         {
-            psd_MY2 ( psd_1p,dpsd_1p, psd_size_grid, N_tot, WC, hydrometeor_type );
+            psd_MY05 ( psd_1p,dpsd_1p, psd_size_grid, N_tot, WC, hydrometeor_type );
             
             for ( Index i=0; i<nsi; i++ )
             {
@@ -2069,7 +2069,7 @@ void dNdD_MP48 (//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void dNdD_S2M (//WS Output:
+void dNdD_SB06 (//WS Output:
                  Vector& dNdD,
                  //WS Input:
                const Vector& mass,
@@ -2082,27 +2082,27 @@ void dNdD_S2M (//WS Output:
     String hydrometeor_type;
     
     //Get the right hydrometeor type
-    if (psd_type=="S2M_LWC")
+    if (psd_type=="SB06_LWC")
     {
         hydrometeor_type="cloud_water";
     }
-    else if (psd_type=="S2M_IWC")
+    else if (psd_type=="SB06_IWC")
     {
         hydrometeor_type="cloud_ice";
     }
-    else if (psd_type=="S2M_RWC")
+    else if (psd_type=="SB06_RWC")
     {
         hydrometeor_type="rain";
     }
-    else if (psd_type=="S2M_SWC")
+    else if (psd_type=="SB06_SWC")
     {
         hydrometeor_type="snow";
     }
-    else if (psd_type=="S2M_GWC")
+    else if (psd_type=="SB06_GWC")
     {
         hydrometeor_type="graupel";
     }
-    else if (psd_type=="S2M_HWC")
+    else if (psd_type=="SB06_HWC")
     {
         hydrometeor_type="hail";
     }
@@ -2115,14 +2115,14 @@ void dNdD_S2M (//WS Output:
     
     Numeric M1 = max( M, 0. );
     
-    // calculate particle size distribution with S2M
+    // calculate particle size distribution with SB06
     // [# m^-3 kg^-1]
-    psd_S2M(dNdD, dummy,mass, N_tot, M1, hydrometeor_type) ;
+    psd_SB06(dNdD, dummy,mass, N_tot, M1, hydrometeor_type) ;
     
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void dNdD_S2M_M (//WS Output:
+void dNdD_SB06_M (//WS Output:
                Vector& dNdD,
                //WS Input:
                const Vector& mass,
@@ -2140,27 +2140,27 @@ void dNdD_S2M_M (//WS Output:
     N_tot=M/mean_mass;
     
     //Get the right hydrometeor type
-    if (psd_type=="S2M_LWC")
+    if (psd_type=="SB06_LWC")
     {
         hydrometeor_type="cloud_water";
     }
-    else if (psd_type=="S2M_IWC")
+    else if (psd_type=="SB06_IWC")
     {
         hydrometeor_type="cloud_ice";
     }
-    else if (psd_type=="S2M_RWC")
+    else if (psd_type=="SB06_RWC")
     {
         hydrometeor_type="rain";
     }
-    else if (psd_type=="S2M_SWC")
+    else if (psd_type=="SB06_SWC")
     {
         hydrometeor_type="snow";
     }
-    else if (psd_type=="S2M_GWC")
+    else if (psd_type=="SB06_GWC")
     {
         hydrometeor_type="graupel";
     }
-    else if (psd_type=="S2M_HWC")
+    else if (psd_type=="SB06_HWC")
     {
         hydrometeor_type="hail";
     }
@@ -2173,14 +2173,14 @@ void dNdD_S2M_M (//WS Output:
     
     Numeric M1 = max( M, 0. );
     
-    // calculate particle size distribution with S2M
+    // calculate particle size distribution with SB06
     // [# m^-3 kg^-1]
-    psd_S2M(dNdD, dummy, mass, N_tot, M1, psd_type) ;
+    psd_SB06(dNdD, dummy, mass, N_tot, M1, psd_type) ;
 
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void dNdD_MY2 (//WS Output:
+void dNdD_MY05 (//WS Output:
                Vector& dNdD,
                //WS Input:
                const Vector& diameter_max,
@@ -2193,27 +2193,27 @@ void dNdD_MY2 (//WS Output:
     String hydrometeor_type;
     
     //Get the right hydrometeor type
-    if (psd_type=="MY2_LWC")
+    if (psd_type=="MY05_LWC")
     {
         hydrometeor_type="cloud_water";
     }
-    else if (psd_type=="MY2_IWC")
+    else if (psd_type=="MY05_IWC")
     {
         hydrometeor_type="cloud_ice";
     }
-    else if (psd_type=="MY2_RWC")
+    else if (psd_type=="MY05_RWC")
     {
         hydrometeor_type="rain";
     }
-    else if (psd_type=="MY2_SWC")
+    else if (psd_type=="MY05_SWC")
     {
         hydrometeor_type="snow";
     }
-    else if (psd_type=="MY2_GWC")
+    else if (psd_type=="MY05_GWC")
     {
         hydrometeor_type="graupel";
     }
-    else if (psd_type=="MY2_HWC")
+    else if (psd_type=="MY05_HWC")
     {
         hydrometeor_type="hail";
     }
@@ -2226,13 +2226,13 @@ void dNdD_MY2 (//WS Output:
     
     Numeric M1 = max( M, 0. );
     
-    // calculate particle size distribution with S2M
+    // calculate particle size distribution with SB06
     // [# m^-3 kg^-1]
-    psd_MY2(dNdD, dummy,diameter_max, N_tot, M1, hydrometeor_type);
+    psd_MY05(dNdD, dummy,diameter_max, N_tot, M1, hydrometeor_type);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void dNdD_MY2_M (//WS Output:
+void dNdD_MY05_M (//WS Output:
                  Vector& dNdD,
                  //WS Input:
                  const Vector& diameter_max,
@@ -2250,27 +2250,27 @@ void dNdD_MY2_M (//WS Output:
     N_tot=M/mean_mass;
     
     //Get the right hydrometeor type
-    if (psd_type=="MY2_LWC")
+    if (psd_type=="MY05_LWC")
     {
         hydrometeor_type="cloud_water";
     }
-    else if (psd_type=="MY2_IWC")
+    else if (psd_type=="MY05_IWC")
     {
         hydrometeor_type="cloud_ice";
     }
-    else if (psd_type=="MY2_RWC")
+    else if (psd_type=="MY05_RWC")
     {
         hydrometeor_type="rain";
     }
-    else if (psd_type=="MY2_SWC")
+    else if (psd_type=="MY05_SWC")
     {
         hydrometeor_type="snow";
     }
-    else if (psd_type=="MY2_GWC")
+    else if (psd_type=="MY05_GWC")
     {
         hydrometeor_type="graupel";
     }
-    else if (psd_type=="MY2_HWC")
+    else if (psd_type=="MY05_HWC")
     {
         hydrometeor_type="hail";
     }
@@ -2283,9 +2283,9 @@ void dNdD_MY2_M (//WS Output:
     
     Numeric M1 = max( M, 0. );
     
-    // calculate particle size distribution with S2M
+    // calculate particle size distribution with SB06
     // [# m^-3 kg^-1]
-    psd_MY2(dNdD, dummy,diameter_max, N_tot, M1, hydrometeor_type);
+    psd_MY05(dNdD, dummy,diameter_max, N_tot, M1, hydrometeor_type);
 
 }
 
