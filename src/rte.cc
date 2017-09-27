@@ -4572,11 +4572,15 @@ void get_stepwise_transmission_matrix(Tensor3View cumulative_transmission,
 {
   // Frequency counter
   const Index nf = K_close.NumberOfFrequencies();
+  const Index stokes_dim = T.ncols();
   
   if(first_level)
   {
-    for(Index iv = 0; iv < nf; iv++)
-      id_mat(cumulative_transmission(iv, joker, joker));
+    if(stokes_dim>1)
+      for(Index iv = 0; iv < nf; iv++)
+        id_mat(cumulative_transmission(iv, joker, joker));
+    else 
+      cumulative_transmission = 1;
     return;
   }
   
@@ -4591,10 +4595,17 @@ void get_stepwise_transmission_matrix(Tensor3View cumulative_transmission,
                                                dK_close_dx, dK_far_dx);
   
   // Cumulate transmission
-  for(Index iv = 0; iv < nf; iv++)
-    mult(cumulative_transmission(iv, joker, joker), 
-         cumulative_transmission_close(iv, joker, joker),
-         T(iv, joker, joker));
+  if(stokes_dim>1)
+    for(Index iv = 0; iv < nf; iv++)
+      mult(cumulative_transmission(iv, joker, joker), 
+          cumulative_transmission_close(iv, joker, joker),
+          T(iv, joker, joker));
+  else
+  {
+    cumulative_transmission = cumulative_transmission_close;
+    cumulative_transmission  *= T;
+  }
+  
 }
 
 

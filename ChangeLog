@@ -1,3 +1,14 @@
+2017-09-28 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-809
+	
+	* src/m_fos.cc:  Needed call to (adapt_stepwise_partial_derivatives)
+	Also updated so that there is a check for stokes_dim since the linalg
+	function "id_mat" does not work for 1-by-1 matrices (sometimes; why?)
+	
+	* src/rte.cc: Updated (get_stepwise_transmission_matrix) to check 
+	stokes_dim since id_mat did not work for 1-by-1 matrices (again; why?)
+
 2017-09-27  Manfred Brath  <manfred.brath@uni-hamburg.de>
 
 	* arts-2-3-808

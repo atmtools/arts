@@ -1997,6 +1997,22 @@ void iyHybrid2(
                                     ppath_p[ip],
                                     jac_species_i,
                                     jacobian_do);
+      if(nq)
+        adapt_stepwise_partial_derivatives(dK_this_dx,
+                                           dS_dx,
+                                           jacobian_quantities,
+                                           ppath_f(joker, ip),
+                                           ppath.los(ip, joker),
+                                           ppath_vmr.nrows()?
+                                           ppath_vmr(joker, ip):
+                                           Vector(0),
+                                           ppath_t[ip],
+                                           ppath_p[ip],
+                                           jac_species_i,
+                                           jac_wind_i,
+                                           lte[ip],
+                                           atmosphere_dim,
+                                           jacobian_do);
 
       get_stepwise_scattersky_propmat(a, Kp, da_dx, dKp_dx,
                                       clear2cloudy[ip]+1,
@@ -2139,7 +2155,10 @@ void iyHybrid2(
         
         if(nq)
         {
-          id_mat(one_minus_transmission);
+          if(stokes_dim>1)
+            id_mat(one_minus_transmission);
+          else 
+            one_minus_transmission = 1.;
           one_minus_transmission -= T;
         }
         
