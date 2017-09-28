@@ -1,5 +1,22 @@
 2017-09-28 Richard Larsson  <ric.larsson@gmail.com>
 
+	* arts-2-3-810
+	
+	clearsky jacobians are now working for iyhybrid2 (so long as the input
+	system is correct, which remains to be tested for things other than
+	rel VMR).  There is still some friction between definitions in clearsky
+	and scattersky variables that needs working out (size mismatches)
+	
+	* src/jacobian.cc:  Simplified expressions.  Also, has to add to diy2
+	not diy1...  this explains the factor 2 error!
+	
+	* src/rte.cc:  (get_stepwise_effective_source) simplified expressions.
+	(get_stepwise_scattersky_propmat) fixed setting derivaitves to zero 
+	in non-cloudy cases.  (get_stepwise_scattersky_source) fixed setting
+	to zero in non-cloudy cases. 
+
+2017-09-28 Richard Larsson  <ric.larsson@gmail.com>
+
 	* arts-2-3-809
 	
 	* src/m_fos.cc:  Needed call to (adapt_stepwise_partial_derivatives)

@@ -4679,16 +4679,17 @@ void get_stepwise_effective_source(MatrixView J,
     K.MatrixInverseAtFrequency(invK, i1);
     
     // Set a B to j
-    j = a.GetMatrix()(i1, joker);
+    j = a.VectorAtFrequency(i1);;
     j *= B[i1];
     
     // Add S to j
     if(not S.IsEmpty())
-      j += S.GetMatrix()(i1, joker);
+      j += S.VectorAtFrequency(i1);;
     
     // Compute J = K^-1 (a B + S)
     mult(J(i1, joker), invK, j);
     
+    // Compute dJ = K^-1((da B + a dB + S) - dK K^-1(a B + S))
     for(Index i2 = 0; i2 < nq; i2++)
     {
       Matrix dk(ns, ns), tmp_matrix(ns, ns);
@@ -4696,7 +4697,6 @@ void get_stepwise_effective_source(MatrixView J,
       
       // Control parameters for special jacobians that are computed elsewhere
       const bool has_dk = (not dK_dx[i2].IsEmpty());
-      const bool has_da = (not da_dx[i2].IsEmpty());
       const bool has_ds = (not dS_dx[i2].IsEmpty());
       const bool has_dt = (jacobian_quantities[i2].MainTag() == TEMPERATURE_MAINTAG);
       
@@ -4704,50 +4704,34 @@ void get_stepwise_effective_source(MatrixView J,
       if(has_dk)
       {
         dK_dx[i2].MatrixAtFrequency(dk, i1);
-        mult(tmp_matrix, invK, dk);
-        mult(dk, invK, tmp_matrix);
-        dk *= -1;
-        mult(dJ_dx(i2, i1, joker), dk, j);
-      }
-      
-      // Adds da B to dj
-      if(has_da)
-      {
-        dj = da_dx[i2].GetMatrix()(i1, joker);
+        mult(tmp, dk, J(i1, joker));
+        
+        dj = da_dx[i2].VectorAtFrequency(i1);
         dj *= B[i1];
-      }
-      
-      // Adds a dB to dj
-      if(has_dt)
-      {
-        tmp = a.GetMatrix()(i1, joker);
-        tmp *= dB_dT[i1];
-        dj += tmp;
-      }
-      
-      // Adds dS to dj
-      if(has_ds)
-        dj += dS_dx[i2].GetMatrix()(i1, joker);
-      
-      // Sets full dJ for output
-      if(has_dk)
-      {
-        // dJ = - K^-1 dK/dx K^-1 (a B + S) + K^-1 (da B + a dB + dS)
-        mult(tmp, invK, dj);
-        dJ_dx(i2, i1, joker) += tmp;
-      }
-      else if(has_da or has_dt or has_ds)
-      {
-        // dJ = K^-1 (da B + a dB + dS)
+        
+        dj -= tmp;
+        
+        // Adds a dB to dj
+        if(has_dt)
+        {
+          tmp = a.VectorAtFrequency(i1);
+          tmp *= dB_dT[i1];
+          dj += tmp;
+        }
+        
+        // Adds dS to dj
+        if(has_ds)
+          dj += dS_dx[i2].VectorAtFrequency(i1);
+        
         mult(dJ_dx(i2, i1, joker), invK, dj);
       }
-      else 
-      {
-        // dJ = 0
+      else
         dJ_dx(i2, i1, joker) = 0;
-      }
     }
   }
+  
+  if(nq)
+    dJ_dx *= 0.5;
 }
 
 
@@ -4930,12 +4914,14 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
     // On the other hand, we want the freq loop as outer loop for pnd-affecting
     // x since then we need to extract the scat_data_mono only once.
     if( do_jacobian )
+    {
       for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
         if( ppath_dpnd_dx[iq].empty() )
         {
           dap_dx[iq].SetZero();
           dKp_dx[iq].SetZero();
         }
+    }
 
     for( Index iv = 0; iv < nf; iv++ )
     {
@@ -4949,7 +4935,7 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
                    ppath_1p_pnd, ppath_temperature, verbosity);
       ap.SetAtFrequency(iv, abs_vec);
       Kp.SetAtFrequency(iv, ext_mat);
-
+      
       if( do_jacobian )
       {
         for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
@@ -4980,12 +4966,10 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
   {
     ap.SetZero();
     Kp.SetZero();
-    if( do_jacobian )
-      for(Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++)
-      {
-        dap_dx[iq].SetZero();
-        dKp_dx[iq].SetZero();
-      }
+    for(auto& sv : dap_dx)
+      sv.SetZero();
+    for(auto& pm : dKp_dx)
+      pm.SetZero();
   }
 }
 
@@ -5176,10 +5160,7 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
   else
   {
     Sp.SetZero();
-    if( do_jacobian )
-      for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
-      {
-        dSp_dx[iq].SetZero();
-      }
+    for(auto& sv : dSp_dx)
+      sv.SetZero();
   }
 }
