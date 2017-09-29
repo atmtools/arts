@@ -75,13 +75,13 @@ AtmFieldsCalcExpand1D
 MatrixSetConstant( z_surface, 11, 11, 0 )
 
 
-# No scattering
-#
-cloudboxOff
-
 # No jacobian calculations
 #
 jacobianOff
+
+# No scattering
+#
+cloudboxOff
 
 # Check model atmosphere
 # 

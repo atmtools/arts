@@ -180,7 +180,7 @@ jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
 jacobianClose
 #WriteXML( in=jacobian_quantities, filename="Jq_O2_analytical.xml" )
 yCalc
-WriteXML( in=y, filename="y_O2_analytical.xml" )
+#WriteXML( in=y, filename="y_O2_analytical.xml" )
 WriteXML( in=jacobian, filename="J_O2_analytical.xml" )
 #Copy( Ja, jacobian )
 
@@ -212,7 +212,7 @@ jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
 jacobianClose
 #WriteXML( in=jacobian_quantities, filename="Jq_T_analytical.xml" )
 yCalc
-WriteXML( in=y, filename="y_T_analytical.xml" )
+#WriteXML( in=y, filename="y_T_analytical.xml" )
 WriteXML( in=jacobian, filename="J_T_analytical.xml" )
 Copy( Ja, jacobian )
 
@@ -282,7 +282,27 @@ Compare( Ja, Jp, 10 )
 #
 ##############################################################################
 
-StringSet( info, "Others: Freqs, Baseline, Winds" )
+StringSet( info, "Others: Winds" )
+Print( info, 0 )
+jacobianInit
+
+jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
+    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "v" )
+
+jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
+    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "w", 0.1 )
+    
+jacobianClose
+#WriteXML( in=jacobian_quantities, filename="Jq_Winds.xml" )
+
+IndexSet( abs_f_interp_order, 1 )
+yCalc
+#WriteXML( in=y, filename="y_Winds.xml" )
+WriteXML( in=jacobian, filename="J_Winds.xml" )
+
+
+
+StringSet( info, "Others: Freqs, Baseline" )
 Print( info, 0 )
 jacobianInit
 
@@ -299,16 +319,14 @@ jacobianAddSinefit( jacobian_quantities, jacobian_agenda,
     sensor_response_pol_grid, sensor_response_dlos_grid, sensor_pos, 
     [200e6,40e6], 0, 0, 0 )
 
-jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
-    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "v" )
-
-jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
-    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "w", 0.1 )
-    
 jacobianClose
+#WriteXML( in=jacobian_quantities, filename="Jq_Other.xml" )
 
 IndexSet( abs_f_interp_order, 1 )
 yCalc
+#WriteXML( in=y, filename="y_Other.xml" )
+#WriteXML( in=jacobian, filename="J_Other.xml" )
+
 
 ##############################################################################
 #

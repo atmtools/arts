@@ -90,6 +90,7 @@ VectorSetConstant( sensor_time, 1, 0 )
 
 # Deactive parts not used and perform all remaining tests
 #
+jacobianOff
 cloudboxOff
 sensorOff
 #
@@ -102,7 +103,6 @@ sensor_checkedCalc
 
 # Simulate "measurement vector"
 #
-jacobianOff
 yCalc
 
 

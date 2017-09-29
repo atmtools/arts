@@ -442,10 +442,10 @@ void cloudbox_checkedCalc(
    const Index&          cloudbox_on,    
    const ArrayOfIndex&   cloudbox_limits,
    const Tensor4&        pnd_field,
+   const ArrayOfTensor4& dpnd_field_dx,
+   const ArrayOfRetrievalQuantity&  jacobian_quantities,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
    const ArrayOfString&  scat_species,
-   const Tensor4&        particle_bulkprop_field,
-   const ArrayOfString&  particle_bulkprop_names,         
    const Matrix&         particle_masses,
    const ArrayOfArrayOfSpeciesTag& abs_species,
    const Index&          negative_pnd_ok,
@@ -661,6 +661,11 @@ void cloudbox_checkedCalc(
                                  "upper longitude limit of the cloudbox." );
         }
 
+      // And dpnd_field_dx
+      if( dpnd_field_dx.nelem() != jacobian_quantities.nelem() )
+        throw runtime_error( "Size of *dpnd_field_dx* inconsistent with number "
+                             "of *jacobian_quantities*." );
+
       // Check scat_data
       // freq range of calc covered?
       if( f_grid.empty() )
@@ -721,77 +726,7 @@ void cloudbox_checkedCalc(
           if( min(particle_masses) < 0 )
             throw runtime_error( 
                            "All values in *particles_masses* must be >= 0." );
-        }
-      
-      // particle_bulkprop_field/names
-      if( !particle_bulkprop_field.empty() )
-        {
-          chk_atm_field( "particle_bulkprop_field", particle_bulkprop_field,
-                         atmosphere_dim, particle_bulkprop_field.nbooks(),
-                         p_grid, lat_grid, lon_grid );
-          //
-          if( particle_bulkprop_names.nelem() == 0 )
-            {
-              throw runtime_error( "If *particle_bulkprop_field* is set, also "
-                                   "*particle_bulkprop_names* must be set (but "
-                                   "it is empty)." );
-            }
-          if( particle_bulkprop_names.nelem() != particle_bulkprop_field.nbooks() )
-            {
-              throw runtime_error( "If *particle_bulkprop_field* is set, "
-                                   "*particle_bulkprop_names* must be set to "
-                                   "have a matching length." );
-            }
-          
-          // Check that *particle_bulkprop_field* contains zeros outside and at
-          // cloudbox boundaries
-          const String estring = "*particle_bulkprop_field* not allowed to "
-            "contain non-zero values outside the cloudbox.";
-          // Pressure end ranges
-          for( Index ilon=0; ilon<nlon; ilon++ )
-            {
-                for( Index ilat=0; ilat<nlat; ilat++ )
-                {
-                    if (cloudbox_limits[0])
-                        for( Index ip=0; ip<=cloudbox_limits[0]; ip++ )
-                        {
-                            if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
-                                throw runtime_error( estring );
-                        }
-                    for( Index ip=cloudbox_limits[1]; ip<p_grid.nelem(); ip++ )
-                    {
-                        if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
-                            throw runtime_error( estring );
-                    }
-                }
-            }
-          if( atmosphere_dim > 1 )
-            {
-              // Latitude end ranges
-              for( Index ilon=0; ilon<nlon; ilon++ ) {
-                for( Index ip=cloudbox_limits[0]+1; ip<cloudbox_limits[1]-1; ip++ ) {
-                  for( Index ilat=0; ilat<=cloudbox_limits[2]; ilat++ ) {
-                    if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
-                      throw runtime_error( estring ); }
-                  for( Index ilat=cloudbox_limits[3]; ilat<lat_grid.nelem(); ilat++ ) {
-                    if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
-                      throw runtime_error( estring ); } } }
-              if( atmosphere_dim > 2 )
-                {
-                  // Longitude end ranges
-                  for( Index ip=cloudbox_limits[0]+1; ip<cloudbox_limits[1]-1; ip++ ) {
-                    for( Index ilat=cloudbox_limits[2]+1;
-                         ilat<cloudbox_limits[3]-1; ilat++ ) {
-                      for( Index ilon=0; ilon<=cloudbox_limits[4]; ilon++ ) {
-                        if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
-                          throw runtime_error( estring ); }
-                      for( Index ilon=cloudbox_limits[5];
-                           ilon<lon_grid.nelem(); ilon++ ) {
-                        if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
-                          throw runtime_error( estring ); } } }
-                }
-            }
-        }      
+        }     
     }
 
   // If here, all OK

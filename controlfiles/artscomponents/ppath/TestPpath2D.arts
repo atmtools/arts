@@ -53,6 +53,10 @@ nelemGet( nlat, lat_grid )
 MatrixSetConstant( z_surface, nlat, 1, 500 )
 
 
+# No jacobian calculations
+#
+jacobianOff
+
 # Initializing cloudbox: No scattering
 #
 cloudboxOff

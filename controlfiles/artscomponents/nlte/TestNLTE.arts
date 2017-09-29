@@ -50,8 +50,8 @@ FrequencyFromCGSKayserWavenumber( f_grid, tmp_kayser )
 ReadXML(abs_lines_per_species,"testdata/NLTE_CO2_testlines.xml")
 isotopologue_ratiosInitFromBuiltin
 sensorOff
-cloudboxOff
 jacobianOff
+cloudboxOff
 StringSet( iy_unit, "W/(m^2 m-1 sr)" )
 
 # Note that this data is not at all reliable and does not represent a real world scenario...

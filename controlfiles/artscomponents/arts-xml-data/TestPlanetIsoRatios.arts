@@ -44,8 +44,8 @@ VectorNLogSpace( p_grid, 41, 1000e2, 0.1 )
 # monchromatic pencilbeam 1D scalar clearsky RT without Jacobians
 AtmosphereSet1D
 IndexSet( stokes_dim, 1 )
-cloudboxOff
 jacobianOff
+cloudboxOff
 sensorOff
 
 # output radiances in Planck-Tb

@@ -70,11 +70,11 @@ AtmFieldsCalc
 # Get ground altitude (z_surface) from z_field
 Extract( z_surface, z_field, 0 )
 
-# No scattering
-cloudboxOff
-
 # No jacobian calculations
 jacobianOff
+
+# No scattering
+cloudboxOff
 
 atmfields_checkedCalc
 atmgeom_checkedCalc

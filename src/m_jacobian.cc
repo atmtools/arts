@@ -2616,6 +2616,7 @@ void jacobianDoit(//WS Output:
   ArrayOfArrayOfSingleScatteringData scat_data_ref;
   ArrayOfArrayOfScatteringMetaData scat_meta_ref;
   ArrayOfString scat_species_ref;
+  ArrayOfTensor4 dummy_dpnd_field_dx( jacobian_quantities.nelem() );
   if( ScatSpeciesMerge_do )
     {
       Index cb_chk_internal=cloudbox_checked;
@@ -2625,8 +2626,6 @@ void jacobianDoit(//WS Output:
       Vector latlon_dummy(0);
       Matrix part_mass_dummy(0,0);
       Tensor3 wind_dummy(0,0,0);
-      Tensor4 pbp_field_dummy(0,0,0,0);
-      ArrayOfString pbp_names_dummy(0);
       ScatSpeciesMerge(	pnd_field, scat_data_raw, scat_meta, scat_species,
                         cb_chk_internal,
                         atmosphere_dim, cloudbox_on, cloudbox_limits,
@@ -2635,10 +2634,12 @@ void jacobianDoit(//WS Output:
       // check that the merged scat_data_raw still fulfills the requirements
       cloudbox_checkedCalc( cb_chk_internal, atmfields_checked, f_grid,
                             atmosphere_dim, p_grid, latlon_dummy, latlon_dummy,
-                            z_field, z_surface, wind_dummy, wind_dummy, wind_dummy,
-                            cloudbox_on, cloudbox_limits, pnd_field,
-                            scat_data_raw, scat_species, pbp_field_dummy,
-                            pbp_names_dummy, part_mass_dummy, abs_species,
+                            z_field, z_surface,
+                            wind_dummy, wind_dummy, wind_dummy,
+                            cloudbox_on, cloudbox_limits,
+                            pnd_field, dummy_dpnd_field_dx, jacobian_quantities,
+                            scat_data_raw, scat_species, part_mass_dummy,
+                            abs_species,
                             0, "raw", scat_data_check_type,
                             sca_mat_threshold, verbosity );
       if( debug )
@@ -3025,10 +3026,12 @@ void jacobianDoit(//WS Output:
                   scat_species_mean_mass_field.npages()!=0 )
                 {
                   pnd_fieldCalcFromscat_speciesFields(
-                    pnd_field, atmosphere_dim, cloudbox_on, cloudbox_limits,
+                    pnd_field, dummy_dpnd_field_dx,
+                    atmosphere_dim, cloudbox_on, cloudbox_limits,
                     scat_species_mass_density_field, scat_species_mass_flux_field,
                     scat_species_number_density_field, scat_species_mean_mass_field,
-                    t_field, scat_meta, scat_species, delim, verbosity );
+                    t_field, scat_meta, scat_species, jacobian_quantities,
+                    delim, verbosity );
                   if( debug )
                     {
                       WriteXMLIndexed( "ascii", iq*np+il, pnd_field,
@@ -3044,8 +3047,6 @@ void jacobianDoit(//WS Output:
                       Vector latlon_dummy(0);
                       Matrix part_mass_dummy(0,0);
                       Tensor3 wind_dummy(0,0,0);
-                      Tensor4 pbp_field_dummy(0,0,0,0);
-                      ArrayOfString pbp_names_dummy(0);
                       ScatSpeciesMerge( pnd_field,
                                         scat_data_raw, scat_meta, scat_species,
                                         cb_chk_internal,
@@ -3059,8 +3060,9 @@ void jacobianDoit(//WS Output:
                                             z_field, z_surface,
                                             wind_dummy, wind_dummy, wind_dummy,
                                             cloudbox_on, cloudbox_limits,
-                                            pnd_field, scat_data_raw, scat_species, 
-                                            pbp_field_dummy, pbp_names_dummy,
+                                            pnd_field, dummy_dpnd_field_dx,
+                                            jacobian_quantities,
+                                            scat_data_raw, scat_species, 
                                             part_mass_dummy, abs_species,
                                             0, "raw", scat_data_check_type,
                                             sca_mat_threshold, verbosity );
@@ -3276,7 +3278,6 @@ void jacobianDoitAddSpecies(//WS Output:
                             ArrayOfRetrievalQuantity& jacobian_quantities,
                             // WS Input:
                             const Index& jacobian_do,
-                            const Index& cloudbox_checked,
                             const Index& atmosphere_dim,
                             const Vector& p_grid,
                             const Vector& lat_grid,
@@ -3292,11 +3293,6 @@ void jacobianDoitAddSpecies(//WS Output:
   if( jacobian_do != 0 )
     throw runtime_error(
           "Currently not possible to combine clearksy and DOIT Jacobians.");
-
-  // Make sure the atmospheric grids and cloudbox are already defined
-  if( cloudbox_checked != 1 )
-    throw runtime_error(
-          "You must call *cloudbox_checkedCalc* before this method.");
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;

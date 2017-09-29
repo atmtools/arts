@@ -62,11 +62,11 @@ isotopologue_ratiosInitFromBuiltin
 # monochromatic, pencilbeam sensor
 sensorOff
 
-# No scattering
-cloudboxOff
-
 # No jacobian calculations
 jacobianOff
+
+# No scattering
+cloudboxOff
 
 # We select here to use Rayleigh-Jean brightness temperatures
 # ---

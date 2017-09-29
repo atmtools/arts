@@ -26,10 +26,6 @@ AgendaSet( geo_pos_agenda ){
 }
 
 
-# No scattering
-#
-cloudboxOff
-
 
 
 #
@@ -107,6 +103,10 @@ VectorNLinSpace( sensor_time, nrows, 0, 1 )
 jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
                        sensor_pos, sensor_time, 0, "recalc", 0.001 )
 jacobianClose
+
+# No scattering
+#
+cloudboxOff
 
 
 # Perform remaining checks 

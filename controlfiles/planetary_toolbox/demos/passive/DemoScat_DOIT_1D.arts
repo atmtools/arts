@@ -211,10 +211,6 @@ DOAngularGridsSet( doit_za_grid_size, scat_aa_grid, scat_za_grid,
 # do NOT modify
 #####
 
-# no Jacobians
-#####
-jacobianOff
-
 # the checks necessary for full RT calc
 #####
 atmfields_checkedCalc( bad_partition_functions_ok=bad_partition_functions_ok )

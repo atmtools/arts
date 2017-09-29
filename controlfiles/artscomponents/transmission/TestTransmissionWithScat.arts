@@ -83,13 +83,13 @@ nelemGet( nlon, lon_grid )
 MatrixSetConstant( z_surface, nlat, nlon, 0 )
 
 
-# No scattering
-#
-cloudboxOff
-
 # No jacobian calculations
 #
 jacobianOff
+
+# No scattering
+#
+cloudboxOff
 
 # Check model atmosphere
 # 

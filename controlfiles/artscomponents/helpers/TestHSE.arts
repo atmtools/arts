@@ -80,13 +80,13 @@ atmfields_checkedCalc
 z_fieldFromHSE
 
 
-# No scattering
-#
-cloudboxOff
-
 # No jacobian calculations
 #
 jacobianOff
+
+# No scattering
+#
+cloudboxOff
 
 # Check model atmosphere
 # 

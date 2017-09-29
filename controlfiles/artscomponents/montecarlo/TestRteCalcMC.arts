@@ -24,6 +24,7 @@ Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
 
 IndexSet( stokes_dim, 1 )
 AtmosphereSet3D
+jacobianOff
 
 #### LOAD DATA: these files were created with MCDataPrepare.arts ######
 
@@ -53,6 +54,7 @@ FlagOn( cloudbox_on )
 ReadXML( cloudbox_limits, "TestMonteCarloDataPrepare.cloudbox_limits.xml" )
 
 ReadXML( pnd_field, "TestMonteCarloDataPrepare.pnd_field.xml" )
+Touch( dpnd_field_dx )
 
 ReadXML( scat_data_raw, "TestMonteCarloDataPrepare.scat_data_raw.xml" )
 scat_dataCheck( scat_data=scat_data_raw )
@@ -60,7 +62,6 @@ scat_dataCheck( scat_data=scat_data_raw )
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
-jacobianOff
 
 
 #### Define Agendas #################################################

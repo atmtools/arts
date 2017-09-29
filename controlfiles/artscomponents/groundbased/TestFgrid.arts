@@ -123,8 +123,8 @@ VectorAddScalar( f_grid, f_grid, v0 )
 #--- Checks & Misc settings --------------------------------------------------
 
 IndexSet( stokes_dim, 1 )
-cloudboxOff
 jacobianOff
+cloudboxOff
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc

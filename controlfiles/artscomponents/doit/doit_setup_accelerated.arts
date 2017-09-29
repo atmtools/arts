@@ -23,6 +23,10 @@ Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 # no refraction
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
+# No jacobian calculations
+#
+jacobianOff
+
 
 # Frequency grid 
 # --------------
@@ -262,9 +266,5 @@ AgendaSet( doit_conv_test_agenda ){
 AgendaSet( iy_cloudbox_agenda ){
   iyInterpCloudboxField
 }
-
-# No jacobian calculations
-#
-jacobianOff
 
 } # End of Main

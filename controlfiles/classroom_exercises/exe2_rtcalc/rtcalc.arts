@@ -38,13 +38,13 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 #
 IndexSet( stokes_dim, 1 )
 
-# Clearsky = No scattering
-#
-cloudboxOff
-
 # No jacobian calculation
 #
 jacobianOff
+
+# Clearsky = No scattering
+#
+cloudboxOff
 
 #########################################################################
 

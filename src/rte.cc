@@ -2906,10 +2906,10 @@ void get_ppath_partopt(
 /*!
     Determines the particle fields along a propagation path.
 
-    \param   clear2cloudy      Out: Mapping of index. See code for details. 
-    \param   ppath_pnd           Out. The particle number density for each
+    \param   clear2cloudy        Out: Mapping of index. See code for details. 
+    \param   ppath_pnd           Out: The particle number density for each
                                       path point (also outside cloudbox).
-    \param   ppath_dpnd_dx       Out. dpnd_field_dx for each path point
+    \param   ppath_dpnd_dx       Out: dpnd_field_dx for each path point
                                       (also outside cloudbox).
     \param   ppath               As the WSV.    
     \param   cloubox_limits      As the WSV.    
@@ -4321,7 +4321,7 @@ void emission_rtstep_replacement( MatrixView iy,
  *  \param dS_dx            Out: Unadopted NLTE source derivatives of level
 ...
  * 
- *  \author Jana Mendrok and Richard Larsson 
+ *  \author Richard Larsson 
  *  \adapted from non-stepwise function
  *  \date   2017-09-21
  */
@@ -4443,7 +4443,7 @@ void get_stepwise_clearsky_propmat(Workspace& ws,
  *  \param dS_dx            In/Out: In is unadopted extra source and out is adopted extra source derivatives
 ...
  * 
- *  \author Jana Mendrok and Richard Larsson 
+ *  \author Richard Larsson 
  *  \adapted from non-stepwise function
  *  \date   2017-09-21
  */
@@ -4554,7 +4554,7 @@ void adapt_stepwise_partial_derivatives(ArrayOfPropagationMatrix& dK_dx,
  *  \param dT_far_dx               Out: Layer transmission derivative due to furthest level
 ...
  * 
- *  \author Jana Mendrok and Richard Larsson 
+ *  \author Richard Larsson 
  *  \adapted from non-stepwise function
  *  \date   2017-09-21
  */
@@ -4650,7 +4650,7 @@ void get_stepwise_blackbody_radiation(VectorView B,
  *  \param dB_dT               In: Planck function derivative wrt temperatures in Stokes vector form
  *  \param jacobian_quantities In: As wsv
  * 
- *  \author Jana Mendrok and Richard Larsson 
+ *  \author Richard Larsson 
  *  \adapted from non-stepwise function
  *  \date   2017-09-21
  */
@@ -4742,7 +4742,7 @@ void get_stepwise_effective_source(MatrixView J,
  *  \param scalar_tau                  Out: as in iy_aux
 ...
  * 
- *  \author Jana Mendrok and Richard Larsson 
+ *  \author Richard Larsson 
  *  \adapted from non-stepwise function
  *  \date   2017-09-21
  */
@@ -4774,7 +4774,7 @@ void sum_stepwise_scalar_tau_and_extmat_case(VectorView scalar_tau,
  * 
 ...
  * 
- *  \author Jana Mendrok and Richard Larsson 
+ *  \author Richard Larsson 
  *  \adapted from non-stepwise function
  *  \date   2017-09-21
  */
@@ -4811,7 +4811,7 @@ void get_stepwise_frequency_grid(VectorView ppath_f_grid,
  *  \param   atmosphere_dim        In: atmospheric diemension as wsv
  ...
  * 
- *  \author Jana Mendrok and Richard Larsson 
+ *  \author Richard Larsson 
  *  \adapted from non-stepwise function
  *  \date   2017-09-21
  */
@@ -4870,7 +4870,7 @@ void get_stepwise_f_partials(Vector& f_partials,
 //! get_stepwise_scattersky_propmat
 /*!
  *  Computes the contribution by scattering elements towards the absorption 
- *  and emission from a level
+ *  and emission from a level.
  * 
  *  \param   ap                    Out: The scattering absorption term
  *  \param   Kp                    Out: The scattering propagation matrix term
@@ -4878,7 +4878,7 @@ void get_stepwise_f_partials(Vector& f_partials,
  *  \param   dKp_dx                Out: The scattering propagation matrix term deriative
  ...
  * 
- *  \author Jana Mendrok and Richard Larsson 
+ *  \author Jana Mendrok, Richard Larsson 
  *  \adapted from non-stepwise function
  *  \date   2017-09-21
  */
@@ -4886,7 +4886,6 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
                                      PropagationMatrix& Kp,
                                      ArrayOfStokesVector& dap_dx,
                                      ArrayOfPropagationMatrix& dKp_dx,
-                                     const Index& do_cloudy_calc,
                                      ConstVectorView ppath_1p_pnd,       // the ppath_pnd at this ppath point
                                      const ArrayOfMatrix& ppath_dpnd_dx, // the full ppath_dpnd_dx, ie all ppath points
                                      const Index ppath_1p_id,
@@ -4894,102 +4893,86 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
                                      ConstVectorView ppath_line_of_sight,
                                      const Numeric& ppath_temperature,
                                      const Index& atmosphere_dim,
-                                     const bool& do_jacobian,
                                      const Verbosity& verbosity)
 {
-  if( do_cloudy_calc )
+  const Index nf = Kp.NumberOfFrequencies(),
+              stokes_dim = Kp.StokesDimensions(),
+              nq = ppath_dpnd_dx.nelem();
+    
+  ArrayOfArrayOfSingleScatteringData scat_data_mono;
+
+  // Direction of outgoing scattered radiation (which is reversed to
+  // LOS). Note that rtp_los2 is only used for extracting scattering
+  // properties.
+  Vector rtp_los2;
+  mirror_los(rtp_los2, ppath_line_of_sight, atmosphere_dim);
+
+  // Preparing empty derivative containers for non-pnd-affecting x.
+  // This here as we don't want to SetSero each freq entry separately.
+  // On the other hand, we want the freq loop as outer loop for pnd-affecting
+  // x since then we need to extract the scat_data_mono only once.
+  // Don't need to check do_jacobian here as nq should be 0 is do_jacobian is
+  // false.
+  for( Index iq = 0; iq < nq; iq++ )
   {
-    const Index nf = Kp.NumberOfFrequencies(), stokes_dim = Kp.StokesDimensions();
-    
-    ArrayOfArrayOfSingleScatteringData scat_data_mono;
-
-    // Direction of outgoing scattered radiation (which is reversed to
-    // LOS). Note that rtp_los2 is only used for extracting scattering
-    // properties.
-    Vector rtp_los2;
-    mirror_los(rtp_los2, ppath_line_of_sight, atmosphere_dim);
-
-    // Preparing empty derivative containers for non-pnd-affecting x.
-    // This here as we don't want to SetSero each freq entry separately.
-    // On the other hand, we want the freq loop as outer loop for pnd-affecting
-    // x since then we need to extract the scat_data_mono only once.
-    if( do_jacobian )
+    if( ppath_dpnd_dx[iq].empty() )
     {
-      for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
-        if( ppath_dpnd_dx[iq].empty() )
-        {
-          dap_dx[iq].SetZero();
-          dKp_dx[iq].SetZero();
-        }
-    }
-
-    for( Index iv = 0; iv < nf; iv++ )
-    {
-      scat_data_monoExtract(scat_data_mono, scat_data, iv, verbosity);
-    
-      Matrix ext_mat(stokes_dim, stokes_dim);
-      Vector abs_vec(stokes_dim);
-
-      opt_propCalc(ext_mat, abs_vec, rtp_los2[0], 
-                   rtp_los2[1], scat_data_mono, stokes_dim,
-                   ppath_1p_pnd, ppath_temperature, verbosity);
-      ap.SetAtFrequency(iv, abs_vec);
-      Kp.SetAtFrequency(iv, ext_mat);
-      
-      if( do_jacobian )
-      {
-        for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
-        {
-          // check first, whether we have any non-zero ppath_dpnd_dx in this
-          // pnd-affecting x? might speed up things. specifically when we have
-          // more than one scat species.
-          //
-          // also, calling opt_propCalc several times seems disadvantagoues.
-          // better would be to call a routine that returns ext and abs per scat
-          // element (opt_propExtract?), then multiple&sum up separately per x
-          // (and for the ap and Kp). 
-          if( !ppath_dpnd_dx[iq].empty() )
-          {
-            opt_propCalc(ext_mat, abs_vec, rtp_los2[0], 
-                         rtp_los2[1], scat_data_mono, stokes_dim,
-                         ppath_dpnd_dx[iq](joker,ppath_1p_id),
-                         ppath_temperature, verbosity);
-            dap_dx[iq].SetAtFrequency(iv, abs_vec);
-            dKp_dx[iq].SetAtFrequency(iv, ext_mat);
-          }
-        }
-      }
-
+      dap_dx[iq].SetZero();
+      dKp_dx[iq].SetZero();
     }
   }
-  else
+
+  for( Index iv = 0; iv < nf; iv++ )
   {
-    ap.SetZero();
-    Kp.SetZero();
-    for(auto& sv : dap_dx)
-      sv.SetZero();
-    for(auto& pm : dKp_dx)
-      pm.SetZero();
+    scat_data_monoExtract(scat_data_mono, scat_data, iv, verbosity);
+
+    Matrix ext_mat(stokes_dim, stokes_dim);
+    Vector abs_vec(stokes_dim);
+
+    opt_propCalc(ext_mat, abs_vec, rtp_los2[0], 
+                 rtp_los2[1], scat_data_mono, stokes_dim,
+                 ppath_1p_pnd, ppath_temperature, verbosity);
+    ap.SetAtFrequency(iv, abs_vec);
+    Kp.SetAtFrequency(iv, ext_mat);
+
+    for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
+    {
+      // check first, whether we have any non-zero ppath_dpnd_dx in this
+      // pnd-affecting x? might speed up things. specifically when we have
+      // more than one scat species.
+      //
+      // also, calling opt_propCalc several times seems disadvantagoues.
+      // better would be to call a routine that returns ext and abs per scat
+      // element (opt_propExtract?), then multiple&sum up separately per x
+      // (and for the ap and Kp). 
+      if( !ppath_dpnd_dx[iq].empty() )
+      {
+        opt_propCalc(ext_mat, abs_vec, rtp_los2[0], 
+                     rtp_los2[1], scat_data_mono, stokes_dim,
+                     ppath_dpnd_dx[iq](joker,ppath_1p_id),
+                     ppath_temperature, verbosity);
+        dap_dx[iq].SetAtFrequency(iv, abs_vec);
+        dKp_dx[iq].SetAtFrequency(iv, ext_mat);
+      }
+    }
   }
 }
 
 
 //! get_stepwise_scattersky_source
 /*!
- *  Extracts the stepwise scattering source terms from pre-computed data
+ *  Calculates the stepwise scattering source terms.
  * 
  *  \param   Sp                    Out: The scattering source term
  *  \param   dSp_dx                Out: The derivative of the scattering source term
- *  \param   do_cloudy_calc        Out: Index to indicate relevance of this function to current run
  ...
  * 
- *  \author Jana Mendrok and Richard Larsson 
+ *  \author Jana Mendrok 
  *  \adapted from non-stepwise function
  *  \date   2017-09-21
  */
 void get_stepwise_scattersky_source(StokesVector& Sp,
                                     ArrayOfStokesVector& dSp_dx,
-                                    const Index& do_cloudy_calc,
                                     ConstVectorView ppath_1p_pnd,       // the ppath_pnd at this ppath point
                                     const ArrayOfMatrix& ppath_dpnd_dx, // the full ppath_dpnd_dx, ie all ppath points
                                     const Index ppath_1p_id,
@@ -5002,165 +4985,153 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
                                     const GridPos& ppath_pressure,
                                     const Numeric& ppath_temperature,
                                     const Index& atmosphere_dim _U_,
-                                    const bool& do_jacobian,
                                     const Verbosity& verbosity)
 {
-  if( do_cloudy_calc )
+  const Index nf = Sp.NumberOfFrequencies(),
+              stokes_dim = Sp.StokesDimensions(),
+              nq = ppath_dpnd_dx.nelem();
+  const Index ne = ppath_1p_pnd.nelem();
+  assert( TotalNumberOfElements(scat_data) == ne );
+  const Index nza = scat_za_grid.nelem();
+  const Index naa = scat_aa_grid.nelem();
+
+  //ArrayOfStokesVector scat_source_1se(ne);
+  //for(auto& sv : scat_source_1se)
+  //  sv = StokesVector(nf, stokes_dim);
+  Matrix scat_source_1se(stokes_dim, ne, 0.);
+
+  // determine p/z-interp weights for this ppath point
+  // (needed for p/z-interpolation of incident field, applied in freq loop)
+  GridPos gp_p;
+  gridpos_copy( gp_p, ppath_pressure );
+  Vector itw_p(2);
+  interpweights( itw_p, gp_p );
+
+  // FIXME:
+  // Something goes wrong here (or rather below, when applying rtp_los2.
+  // Unmirrored ppath_line_of_sight yields correct results (at least in I.
+  // higher stokes_dim not tested, but Q should also be ok).
+  // Analyze what's going on - which directions have to be mirrored, which
+  // not, such that the scat source calc is done in a consistent system and
+  // applies the correct mutually associated directions.
+  // (I guess, the issues is that doit_i_field (and scat_field) are in "ARTS"
+  // coordinate system. In contrast to scat_data, which is in "Mishchenko"
+  // system. Hence, we'd need to mirrow the scat_za/aa_grids for the pha_mat
+  // extraction)
+  //
+  // Direction of outgoing scattered radiation (which is reversed to
+  // LOS). Note that rtp_los2 is only used for extracting scattering
+  // properties.
+  //Vector rtp_los2;
+  //mirror_los(rtp_los2, ppath_line_of_sight, atmosphere_dim);
+
+  // determine scattered direction (=LOS dir) weights for this ppath point
+  // and adapt gridpos structure for 2pts-reduced za grid.
+  // (needed for direction interpolation of scattered field, applied in scat
+  // element loop)
+  // FIXME:
+  // Why interpolate the scattered field? (It's clear that we can not just
+  // interpolate the incident field because we want to allow the scat matrix to
+  // vary/adapt with the actual ppath particle conditions while the
+  // background (aka incident) field is fixed). Can't we just calculated the
+  // scattered field at the specific LOS direction directly? (That's how I,
+  // JM, did in SARTre. Any reasons why we can't do this here? Why didn't I?
+  // :-/ )
+  GridPos gp_za, gp_iza;
+  //gridpos(gp_za, scat_za_grid, rtp_los2[0], 0.5);
+  gridpos(gp_za, scat_za_grid, ppath_line_of_sight[0], 0.5);
+  gridpos_copy( gp_iza, gp_za );
+  gp_iza.idx = 0;
+  Vector itw_iza(2);
+  interpweights( itw_iza, gp_iza ); 
+
+  Tensor4 pndT4(ne, 1, 1, 1, 1.);
+  if ( nq ) // switch(ed) off for debugging
+    pndT4(joker, 0, 0, 0) = ppath_1p_pnd;
+
+  for( Index f_index = 0; f_index < nf; f_index++ )
   {
-    const Index nf = Sp.NumberOfFrequencies();
-    const Index stokes_dim = Sp.StokesDimensions();
-    const Index ne = ppath_1p_pnd.nelem();
-    assert( TotalNumberOfElements(scat_data) == ne );
-    const Index nza = scat_za_grid.nelem();
-    const Index naa = scat_aa_grid.nelem();
+    Matrix inc_field(nza, stokes_dim, 0.);
+    Tensor3 scat_field(2, ne, stokes_dim, 0.);
+    Matrix rad_field(2, stokes_dim, 0.);
+    Vector scat_source(stokes_dim, 0.);
 
-    //ArrayOfStokesVector scat_source_1se(ne);
-    //for(auto& sv : scat_source_1se)
-    //  sv = StokesVector(nf, stokes_dim);
-    Matrix scat_source_1se(stokes_dim, ne, 0.);
-      
-    // determine p/z-interp weights for this ppath point
-    // (needed for p/z-interpolation of incident field, applied in freq loop)
-    GridPos gp_p;
-    gridpos_copy( gp_p, ppath_pressure );
-    Vector itw_p(2);
-    interpweights( itw_p, gp_p );
-    
-    // FIXME:
-    // Something goes wrong here (or rather below, when applying rtp_los2.
-    // Unmirrored ppath_line_of_sight yields correct results (at least in I.
-    // higher stokes_dim not tested, but Q should also be ok).
-    // Analyze what's going on - which directions have to be mirrored, which
-    // not, such that the scat source calc is done in a consistent system and
-    // applies the correct mutually associated directions.
-    // (I guess, the issues is that doit_i_field (and scat_field) are in "ARTS"
-    // coordinate system. In contrast to scat_data, which is in "Mishchenko"
-    // system. Hence, we'd need to mirrow the scat_za/aa_grids for the pha_mat
-    // extraction)
-    //
-    // Direction of outgoing scattered radiation (which is reversed to
-    // LOS). Note that rtp_los2 is only used for extracting scattering
-    // properties.
-    //Vector rtp_los2;
-    //mirror_los(rtp_los2, ppath_line_of_sight, atmosphere_dim);
-
-    // determine scattered direction (=LOS dir) weights for this ppath point
-    // and adapt gridpos structure for 2pts-reduced za grid.
-    // (needed for direction interpolation of scattered field, applied in scat
-    // element loop)
-    // FIXME:
-    // Why interpolate the scattered field? (It's clear that we can not just
-    // interpolate the incident field because we want to allow the scat matrix to
-    // vary/adapt with the actual ppath particle conditions while the
-    // background (aka incident) field is fixed). Can't we just calculated the
-    // scattered field at the specific LOS direction directly? (That's how I,
-    // JM, did in SARTre. Any reasons why we can't do this here? Why didn't I?
-    // :-/ )
-    GridPos gp_za, gp_iza;
-    //gridpos(gp_za, scat_za_grid, rtp_los2[0], 0.5);
-    gridpos(gp_za, scat_za_grid, ppath_line_of_sight[0], 0.5);
-    gridpos_copy( gp_iza, gp_za );
-    gp_iza.idx = 0;
-    Vector itw_iza(2);
-    interpweights( itw_iza, gp_iza ); 
-    
-    Tensor4 pndT4(ne, 1, 1, 1, 1.);
-    if ( do_jacobian ) // switch(ed) off for debugging
-      pndT4(joker, 0, 0, 0) = ppath_1p_pnd;
-    
-    for( Index f_index = 0; f_index < nf; f_index++ )
+    for( Index za_in = 0; za_in < nza; za_in++ )
     {
-      Matrix inc_field(nza, stokes_dim, 0.);
-      Tensor3 scat_field(2, ne, stokes_dim, 0.);
-      Matrix rad_field(2, stokes_dim, 0.);
-      Vector scat_source(stokes_dim, 0.);
-      
-      for( Index za_in = 0; za_in < nza; za_in++ )
+      for( Index i = 0; i < stokes_dim; i++ )
       {
-        for( Index i = 0; i < stokes_dim; i++ )
-        {
-          inc_field(za_in, i) = 
-          interp( itw_p, doit_i_field(f_index,joker,0,0,za_in,0,i), gp_p );
-        }
+        inc_field(za_in, i) = 
+        interp( itw_p, doit_i_field(f_index,joker,0,0,za_in,0,i), gp_p );
       }
-      
-      Tensor5 pha_mat_spt(ne, nza, naa, stokes_dim, stokes_dim, 0.);
-      Tensor5 product_fields(2, ne, nza, naa, stokes_dim, 0.);
-      for( Index iza = 0; iza < 2; iza++ )
-      {
-        pha_mat_sptFromScat_data(pha_mat_spt,
-                                 scat_data, scat_data_checked,
-                                 scat_za_grid, scat_aa_grid, iza+gp_za.idx, 0,
-                                 f_index, ppath_temperature,
-                                 pndT4, 0, 0, 0, verbosity );
+    }
 
-        for( Index ise_flat = 0; ise_flat < ne; ise_flat++ )
-        {
-          for( Index za_in = 0; za_in < nza; za_in++ )
-          {
-            for( Index aa_in = 0; aa_in < naa; aa_in++ )
-            {
-              for ( Index i = 0; i < stokes_dim; i++)
-                for ( Index j = 0; j < stokes_dim; j++ )
-                {
-                  product_fields(iza, ise_flat, za_in, aa_in, i) +=
-                  pha_mat_spt(ise_flat, za_in, aa_in, i, j) *
-                  inc_field(za_in, j);
-                }
-            }
-          }
-          
-          for ( Index i = 0; i < stokes_dim; i++ )
-          {
-            scat_field(iza, ise_flat, i) = AngIntegrate_trapezoid(
-              product_fields(iza, ise_flat, joker, joker, i),
-              scat_za_grid, scat_aa_grid);
-          }
-        }
-      }
+    Tensor5 pha_mat_spt(ne, nza, naa, stokes_dim, stokes_dim, 0.);
+    Tensor5 product_fields(2, ne, nza, naa, stokes_dim, 0.);
+    for( Index iza = 0; iza < 2; iza++ )
+    {
+      pha_mat_sptFromScat_data(pha_mat_spt,
+                               scat_data, scat_data_checked,
+                               scat_za_grid, scat_aa_grid, iza+gp_za.idx, 0,
+                               f_index, ppath_temperature,
+                               pndT4, 0, 0, 0, verbosity );
 
       for( Index ise_flat = 0; ise_flat < ne; ise_flat++ )
       {
+        for( Index za_in = 0; za_in < nza; za_in++ )
+        {
+          for( Index aa_in = 0; aa_in < naa; aa_in++ )
+          {
+            for ( Index i = 0; i < stokes_dim; i++)
+              for ( Index j = 0; j < stokes_dim; j++ )
+              {
+                product_fields(iza, ise_flat, za_in, aa_in, i) +=
+                pha_mat_spt(ise_flat, za_in, aa_in, i, j) *
+                inc_field(za_in, j);
+              }
+          }
+        }
+
         for ( Index i = 0; i < stokes_dim; i++ )
         {
-          scat_source_1se( i, ise_flat) =
-            interp(itw_iza, scat_field(joker, ise_flat, i), gp_iza );
+          scat_field(iza, ise_flat, i) = AngIntegrate_trapezoid(
+            product_fields(iza, ise_flat, joker, joker, i),
+            scat_za_grid, scat_aa_grid);
         }
       }
+    }
 
-      scat_source = 0.;
-      for( Index ise_flat = 0; ise_flat < ne; ise_flat++ )
+    for( Index ise_flat = 0; ise_flat < ne; ise_flat++ )
+    {
+      for ( Index i = 0; i < stokes_dim; i++ )
       {
-        scat_source += scat_source_1se(joker, ise_flat) *
-                       ppath_1p_pnd[ise_flat];
+        scat_source_1se( i, ise_flat) =
+          interp(itw_iza, scat_field(joker, ise_flat, i), gp_iza );
       }
-      Sp.SetAtFrequency(f_index, scat_source);
+    }
 
-      if( do_jacobian )
+    scat_source = 0.;
+    for( Index ise_flat = 0; ise_flat < ne; ise_flat++ )
+    {
+      scat_source += scat_source_1se(joker, ise_flat) *
+                     ppath_1p_pnd[ise_flat];
+    }
+    Sp.SetAtFrequency(f_index, scat_source);
+
+    for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
+    {
+      // check first, whether we have any non-zero ppath_dpnd_dx in this
+      // pnd-affecting x? might speed up things. specifically when we have
+      // more than one scat species.
+      if( !ppath_dpnd_dx[iq].empty() )
       {
-        for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
+        scat_source = 0.;
+        for( Index ise_flat = 0; ise_flat < ne; ise_flat++ )
         {
-          // check first, whether we have any non-zero ppath_dpnd_dx in this
-          // pnd-affecting x? might speed up things. specifically when we have
-          // more than one scat species.
-          if( !ppath_dpnd_dx[iq].empty() )
-          {
-            scat_source = 0.;
-            for( Index ise_flat = 0; ise_flat < ne; ise_flat++ )
-            {
-              scat_source += scat_source_1se(joker, ise_flat) *
-                             ppath_dpnd_dx[iq](ise_flat, ppath_1p_id);
-            }
-            dSp_dx[iq].SetAtFrequency(f_index, scat_source);
-          }
+          scat_source += scat_source_1se(joker, ise_flat) *
+                         ppath_dpnd_dx[iq](ise_flat, ppath_1p_id);
         }
+        dSp_dx[iq].SetAtFrequency(f_index, scat_source);
       }
-    } // freq loop
-  } // cloudy branch
-  else
-  {
-    Sp.SetZero();
-    for(auto& sv : dSp_dx)
-      sv.SetZero();
-  }
+    }
+  } // freq loop
 }

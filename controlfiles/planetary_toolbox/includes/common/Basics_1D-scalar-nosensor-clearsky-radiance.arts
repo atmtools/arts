@@ -21,11 +21,11 @@ IndexSet( stokes_dim, 1 )
 # 1-dimensional atmosphere
 AtmosphereSet1D
 
-# Clearsky = No scattering
-cloudboxOff
-
 # No jacobian calculation
 jacobianOff
+
+# Clearsky = No scattering
+cloudboxOff
 
 # Monochromatic pencilbeam measurement
 sensorOff

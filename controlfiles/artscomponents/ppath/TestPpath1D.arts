@@ -53,6 +53,10 @@ AtmFieldsCalc
 MatrixSetConstant( z_surface, 1, 1, 500 )
 
 
+# No jacobian calculations
+#
+jacobianOff
+
 # Initializing cloudbox: No scattering
 #
 cloudboxOff

@@ -1239,6 +1239,7 @@ void sca_optpropCalc( //Output
       for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
         {
           SingleScatteringData ssd=scat_data[i_ss][i_se];
+          Index this_f_index = (ssd.pha_mat_data.nlibraries()==1?0:f_index);
           Index i_pfct;
           if( pfct_method=="low" )
             i_pfct = 0;
@@ -1257,7 +1258,7 @@ void sca_optpropCalc( //Output
                     for (Index saa=0; saa<pfct_aa_grid_size; saa++)
                       {
                         pha_matTransform( pha_mat(joker,joker),
-                                          ssd.pha_mat_data(f_index, i_pfct,
+                                          ssd.pha_mat_data(this_f_index, i_pfct,
                                                            joker, joker,
                                                            joker, joker, joker),
                                           ssd.za_grid, ssd.aa_grid, ssd.ptype,
@@ -1306,7 +1307,7 @@ void sca_optpropCalc( //Output
                         for (Index ist1=0; ist1<stokes_dim; ist1++)
                           for (Index ist2=0; ist2<stokes_dim; ist2++)
                             pha_mat_int(sza,iza,ist1,ist2) += daa *
-                              ssd.pha_mat_data(f_index, i_pfct,
+                              ssd.pha_mat_data(this_f_index, i_pfct,
                                                sza, saa, iza, 0, ist1*4+ist2);
                       }
                   }

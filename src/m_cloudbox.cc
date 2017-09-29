@@ -87,9 +87,11 @@ void cloudboxOff (
          ArrayOfIndex&                cloudbox_limits,
          Agenda&                      iy_cloudbox_agenda,
          Tensor4&                     pnd_field,
+         ArrayOfTensor4&              dpnd_field_dx,
          ArrayOfArrayOfSingleScatteringData& scat_data,
          ArrayOfArrayOfSingleScatteringData& scat_data_raw,
          Matrix&                      particle_masses,
+         const ArrayOfRetrievalQuantity& jacobian_quantities,
    const Verbosity&)
 {
   cloudbox_on = 0;
@@ -97,6 +99,8 @@ void cloudboxOff (
   iy_cloudbox_agenda = Agenda();
   iy_cloudbox_agenda.set_name ( "iy_cloudbox_agenda" );
   pnd_field.resize(0,0,0,0);
+  // we need to size dpnd_field to be consistent with jacobian_quantities.
+  dpnd_field_dx.resize( jacobian_quantities.nelem() );
   scat_data.resize(0);
   // remove scat_data_raw resizing once all scat solvers have been convert to
   // use of (new-type) scat_data
@@ -1361,6 +1365,7 @@ void ScatSpeciesExtendTemperature( //WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pnd_fieldCalcFrompnd_field_raw(//WS Output:
                    Tensor4& pnd_field,
+                   ArrayOfTensor4& dpnd_field_dx,
                    //WS Input
                    const Vector& p_grid,
                    const Vector& lat_grid,
@@ -1368,6 +1373,7 @@ void pnd_fieldCalcFrompnd_field_raw(//WS Output:
                    const ArrayOfGriddedField3& pnd_field_raw,
                    const Index& atmosphere_dim,
                    const ArrayOfIndex& cloudbox_limits,
+                   const ArrayOfRetrievalQuantity& jacobian_quantities,
                    const Index& zeropadding,
                    const Verbosity& verbosity)
 {
@@ -1553,6 +1559,10 @@ void pnd_fieldCalcFrompnd_field_raw(//WS Output:
                   pnd_field_raw[i].data, gp_p, gp_lat, gp_lon );
         }
     }
+
+  // no (cloudy) Jacobians with this WSM, hence no calc.
+  // but we need to size dpnd_field to be consistent with jacobian_quantities.
+  dpnd_field_dx.resize( jacobian_quantities.nelem() );
 }
 
 
@@ -1614,11 +1624,13 @@ void pnd_fieldExpand1D(Tensor4&        pnd_field,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pnd_fieldZero(//WS Output:
                    Tensor4& pnd_field,
+                   ArrayOfTensor4& dpnd_field_dx,
                    ArrayOfArrayOfSingleScatteringData& scat_data,
                    //WS Input:
                    const Index& atmosphere_dim,
                    const Vector& f_grid,
                    const ArrayOfIndex& cloudbox_limits,
+                   const ArrayOfRetrievalQuantity& jacobian_quantities,
                    const Verbosity&)
 {
   chk_if_in_range ( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -1631,7 +1643,7 @@ void pnd_fieldZero(//WS Output:
                         "be 2 x *atmosphere_dim*");
 
   
-  //Resize pnd_field and set it to 0:
+  // Resize pnd_field and set it to 0:
   Index np = cloudbox_limits[1]-cloudbox_limits[0]+1;
   Index nlat=1, nlon=1;
   if( atmosphere_dim > 1 )
@@ -1643,6 +1655,9 @@ void pnd_fieldZero(//WS Output:
         }
     }
 
+  // no (cloudy) Jacobians with this WSM, hence no setting.
+  // but we need to size dpnd_field to be consistent with jacobian_quantities.
+  dpnd_field_dx.resize( jacobian_quantities.nelem() );
     
   // Do only reset scat_data if it has not been set yet.
   // There's no need otherwise, and it's rather unpractical for testing when
@@ -1688,6 +1703,7 @@ void pnd_fieldZero(//WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                      Tensor4& pnd_field,
+                     ArrayOfTensor4& dpnd_field_dx,
                      //WS Input:
                      const Index& atmosphere_dim,
                      const Index& cloudbox_on,
@@ -1699,10 +1715,15 @@ void pnd_fieldCalcFromscat_speciesFields (//WS Output:
                      const Tensor3& t_field,
                      const ArrayOfArrayOfScatteringMetaData& scat_meta,
                      const ArrayOfString& scat_species,
+                     const ArrayOfRetrievalQuantity& jacobian_quantities,
                      const String& delim,
                      const Verbosity& verbosity)
 {
   CREATE_OUT2;
+
+  // no (cloudy) Jacobians with this WSM, hence no calc.
+  // but we need to size dpnd_field to be consistent with jacobian_quantities.
+  dpnd_field_dx.resize( jacobian_quantities.nelem() );
 
   // Cloudbox on/off?
   if ( !cloudbox_on )

@@ -1537,11 +1537,8 @@ void pnd_fieldCalcFromParticleBulkProps(
    const ArrayOfRetrievalQuantity&    jacobian_quantities,
    const Verbosity& )
 {
-  // As we allow this method to be called without cloudbox_checkedCalc, it must
-  // contain quite a number of checks.
-  
-  // Number of scattering species
-  const Index nss = scat_data.nelem();
+  if( particle_bulkprop_field.empty() )
+      throw runtime_error( "*particle_bulkprop_field* is empty." );
 
   // Checks (not totally complete, but should cover most mistakes)
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -1551,6 +1548,22 @@ void pnd_fieldCalcFromParticleBulkProps(
   chk_atm_field( "particle_bulkprop_field", particle_bulkprop_field,
                  atmosphere_dim, particle_bulkprop_names.nelem(),
                  p_grid, lat_grid, lon_grid );
+
+  // Number of scattering species
+  const Index nss = scat_data.nelem();
+
+  if( particle_bulkprop_names.nelem() == 0 ||
+      particle_bulkprop_names.nelem()!= particle_bulkprop_field.nbooks() )
+  {
+    throw runtime_error( "Number of fields in *particle_bulkprop_field*"
+                         " inconsistent with number of names in"
+                         " *particle_bulkprop_names*." );
+  }
+  if( particle_bulkprop_field.nbooks() < nss )
+  {
+    throw runtime_error( "At least one field per scattering species required"
+                         " in *particle_bulkprop_field*." );
+  }
 
   // Further checks of *particle_bulkprop_field* below
   if( !cloudbox_on )
@@ -1584,6 +1597,7 @@ void pnd_fieldCalcFromParticleBulkProps(
             throw runtime_error( "Invalid data in longitude part of *cloudbox_limits*." );
         }
     }
+
   if( nss < 1 )
     throw runtime_error( "*scat_data* is empty!." );
   if( scat_species.nelem() != nss )
@@ -1619,57 +1633,27 @@ void pnd_fieldCalcFromParticleBulkProps(
 
   // Check that *particle_bulkprop_field* contains zeros outside and at
   // cloudbox boundaries
-  const String estring = "*particle_bulkprop_field* can only contain non-zero "
-    "values inside the cloudbox.";
+  const String estring = "*particle_bulkprop_field* allowed to contain"
+    " non-zero values only inside the cloudbox.";
   // Pressure end ranges
-  for( Index ilon=0; ilon<nlon; ilon++ )
+  if( cloudbox_limits[0]!=0 )
   {
-    for( Index ilat=0; ilat<nlat; ilat++ )
-    {
-        if (cloudbox_limits[0])
-        {
-            for( Index ip=0; ip<=cloudbox_limits[0]; ip++ )
-            {
-                if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
-                {
-                    throw runtime_error( estring );
-                }
-            }
-        }
-        for( Index ip=cloudbox_limits[1]; ip<p_grid.nelem(); ip++ )
-        {
-            if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
-            {
-                throw runtime_error( estring );
-            }
-        }
-    }
+    if( max(particle_bulkprop_field(joker,Range(0,ip_offset+1),
+                                    joker,joker)) > 0 ||
+        min(particle_bulkprop_field(joker,Range(0,ip_offset+1),
+                                    joker,joker)) < 0 )
+      throw runtime_error( estring );
   }
-  if( atmosphere_dim > 1 )
-    {
-      // Latitude end ranges
-      for( Index ilon=0; ilon<nlon; ilon++ ) {
-        for( Index ip=cloudbox_limits[0]+1; ip<cloudbox_limits[1]-1; ip++ ) {
-          for( Index ilat=0; ilat<=cloudbox_limits[2]; ilat++ ) {
-            if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
-              throw runtime_error( estring ); }
-          for( Index ilat=cloudbox_limits[3]; ilat<lat_grid.nelem(); ilat++ ) {
-            if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
-              throw runtime_error( estring ); } } }
-      if( atmosphere_dim > 2 )
-        {
-          // Longitude end ranges
-          for( Index ip=cloudbox_limits[0]+1; ip<cloudbox_limits[1]-1; ip++ ) {
-            for( Index ilat=cloudbox_limits[2]+1; ilat<cloudbox_limits[3]-1; ilat++ ) {
-              for( Index ilon=0; ilon<=cloudbox_limits[4]; ilon++ ) {
-                if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
-                  throw runtime_error( estring ); }
-              for( Index ilon=cloudbox_limits[5]; ilon<lon_grid.nelem(); ilon++ ) {
-                if( max(particle_bulkprop_field(joker,ip,ilat,ilon)) > 0 )
-                  throw runtime_error( estring ); } } }
-        }
-    }
-  
+  if( cloudbox_limits[1]!= p_grid.nelem()-1 )
+  {
+    const Index np_above = p_grid.nelem()+1 - (np+ip_offset);
+    if( max(particle_bulkprop_field(joker,Range(cloudbox_limits[1],np_above),
+                                    joker,joker)) > 0 ||
+        min(particle_bulkprop_field(joker,Range(cloudbox_limits[1],np_above),
+                                    joker,joker)) < 0 )
+      throw runtime_error( estring );
+  }
+
   // Cumulative number of scattering elements
   ArrayOfIndex ncumse(nss+1);
   ncumse[0] = 0;

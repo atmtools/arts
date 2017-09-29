@@ -30,6 +30,7 @@ IndexStepDown( ilast, ilast )
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 IndexSet( stokes_dim, 1 )
 AtmosphereSet1D
+jacobianOff
 cloudboxOff
 NumericSet( ppath_lmax, 5e3 )
 

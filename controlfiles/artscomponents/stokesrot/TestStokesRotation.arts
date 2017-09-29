@@ -28,11 +28,11 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 
-# Clearsky = No scattering
-cloudboxOff
-
 # No jacobian calculation
 jacobianOff
+
+# Clearsky = No scattering
+cloudboxOff
 
 
 # A dummy, empty atmosphere

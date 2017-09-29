@@ -102,13 +102,6 @@ Extract( t_surface, t_field, 0 )
 # instead (else it's falling back to the standard emission solver).
 cloudboxSetFullAtm
 Touch( scat_data )
-pnd_fieldZero
-Touch( dpnd_field_dx )
-
-atmfields_checkedCalc
-atmgeom_checkedCalc
-cloudbox_checkedCalc
-scat_data_checkedCalc
 
 
 
@@ -179,13 +172,21 @@ jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
     "O3", "analytical", "rel", 1, 0.01 )
 jacobianClose
 #WriteXML( in=jacobian_quantities, filename="JqHyb_O3_analytical.xml" )
+
+pnd_fieldZero
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+scat_data_checkedCalc
+
 yCalc
 #WriteXML( in=y, filename="yHyb_O3_analytical.xml" )
+
 ReadXML( yr, "y_O3_analytical.xml" )
 Compare( y, yr, 1e-6 )
 #WriteXML( in=jacobian, filename="JHyb_O3_analytical.xml" )
 ReadXML( Jr, "J_O3_analytical.xml" )
-#Compare( jacobian, Jr, 0.005 )
+Compare( jacobian, Jr, 1e-6 )
 #Copy( Ja, jacobian )
 
 ## Same with perturbations
@@ -198,9 +199,17 @@ ReadXML( Jr, "J_O3_analytical.xml" )
 #    "O3", "perturbation", "rel", 1, 0.01 )
 #jacobianClose
 ##WriteXML( in=jacobian_quantities, filename="JqHyb_O3_perturbation.xml" )
+#
+#pnd_fieldZero
+#atmfields_checkedCalc
+#atmgeom_checkedCalc
+#cloudbox_checkedCalc
+#scat_data_checkedCalc
+#
 #yCalc
 ##WriteXML( in=y, filename="yHyb_O3_perturbation.xml" )
 ##WriteXML( in=jacobian, filename="JHyb_O3_perturbation.xml" )
+#
 #ReadXML( Jr, "J_O3_perturbation.xml" )
 #Compare( jacobian, Jr, 0.005 )
 #Copy( Jp, jacobian )
@@ -219,13 +228,21 @@ jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
     "O2", "analytical", "vmr", 0, 0.01 )
 jacobianClose
 #WriteXML( in=jacobian_quantities, filename="JqHyb_O2_analytical.xml" )
+
+pnd_fieldZero
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+scat_data_checkedCalc
+
 yCalc
 #WriteXML( in=y, filename="yHyb_O2_analytical.xml" )
-ReadXML( yr, "y_O2_analytical.xml" )
-Compare( y, yr, 1e-6 )
+
+#ReadXML( yr, "y_O2_analytical.xml" )
+#Compare( y, yr, 1e-6 )
 #WriteXML( in=jacobian, filename="JHyb_O2_analytical.xml" )
 ReadXML( Jr, "J_O2_analytical.xml" )
-#Compare( jacobian, Jr, 0.005 )
+Compare( jacobian, Jr, 1e-6 )
 #Copy( Ja, jacobian )
 
 
@@ -255,13 +272,21 @@ jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
     "off", "analytical", 0.1 )
 jacobianClose
 #WriteXML( in=jacobian_quantities, filename="JqHyb_T_analytical.xml" )
+
+pnd_fieldZero
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+scat_data_checkedCalc
+
 yCalc
 #WriteXML( in=y, filename="yHyb_T_analytical.xml" )
-ReadXML( yr, "y_T_analytical.xml" )
-Compare( y, yr, 1e-6 )
+
+#ReadXML( yr, "y_T_analytical.xml" )
+#Compare( y, yr, 1e-6 )
 #WriteXML( in=jacobian, filename="JHyb_T_analytical.xml" )
 ReadXML( Jr, "J_T_analytical.xml" )
-#Compare( jacobian, Jr, 0.005 )
+Compare( jacobian, Jr, 1e-6 )
 #Copy( Ja, jacobian )
 
 
@@ -275,9 +300,17 @@ ReadXML( Jr, "J_T_analytical.xml" )
 #    "off", "perturbation", 0.1 )
 #jacobianClose
 ##WriteXML( in=jacobian_quantities, filename="JqHyb_T_perturbation.xml" )
+#
+#pnd_fieldZero
+#atmfields_checkedCalc
+#atmgeom_checkedCalc
+#cloudbox_checkedCalc
+#scat_data_checkedCalc
+#
 #yCalc
 ##WriteXML( in=y, filename="yHyb_T_perturbation.xml" )
 ##WriteXML( in=jacobian, filename="JHyb_T_perturbation.xml" )
+#
 #ReadXML( Jr, "J_T_perturbation.xml" )
 #Compare( jacobian, Jr, 0.005 )
 #Copy( Jp, jacobian )
@@ -303,6 +336,13 @@ VectorNLinSpace( sensor_time, nrows, 0, 1 )
 #jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
 #                       sensor_pos, sensor_time, 0, "recalc", 0.001 )
 #jacobianClose
+#
+#pnd_fieldZero
+#atmfields_checkedCalc
+#atmgeom_checkedCalc
+#cloudbox_checkedCalc
+#scat_data_checkedCalc
+#
 #yCalc
 #Copy( Ja, jacobian )
 
@@ -312,6 +352,13 @@ VectorNLinSpace( sensor_time, nrows, 0, 1 )
 #jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
 #                       sensor_pos, sensor_time, 0, "interp", 0.001 )
 #jacobianClose
+#
+#pnd_fieldZero
+#atmfields_checkedCalc
+#atmgeom_checkedCalc
+#cloudbox_checkedCalc
+#scat_data_checkedCalc
+#
 #yCalc
 #Copy( Jp, jacobian )
 
@@ -332,22 +379,9 @@ VectorNLinSpace( sensor_time, nrows, 0, 1 )
 #
 ##############################################################################
 
-StringSet( info, "Others: (Freqs, Baseline - not yet), Winds" )
+StringSet( info, "Others: Winds" )
 Print( info, 0 )
 jacobianInit
-
-#jacobianAddFreqShift( jacobian_quantities, jacobian_agenda, f_grid, 
-#    sensor_pos, sensor_time, 0, 50e3 )
-#jacobianAddFreqStretch( jacobian_quantities, jacobian_agenda, f_grid, 
-#    sensor_pos, sensor_time, 0, 50e3 )
-
-#jacobianAddPolyfit( jacobian_quantities, jacobian_agenda, 
-#    sensor_response_pol_grid, sensor_response_dlos_grid, sensor_pos, 
-#    1, 0, 0, 0 )
-
-#jacobianAddSinefit( jacobian_quantities, jacobian_agenda, 
-#    sensor_response_pol_grid, sensor_response_dlos_grid, sensor_pos, 
-#    [200e6,40e6], 0, 0, 0 )
 
 jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
     p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "v" )
@@ -356,8 +390,60 @@ jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim,
     p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "w", 0.1 )
     
 jacobianClose
+#WriteXML( in=jacobian_quantities, filename="JqHyb_Winds.xml" )
+
+pnd_fieldZero
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+scat_data_checkedCalc
 
 IndexSet( abs_f_interp_order, 1 )
 yCalc
+#WriteXML( in=y, filename="yHyb_Winds.xml" )
+
+#ReadXML( yr, "y_Winds.xml" )
+#Compare( y, yr, 1e-6 )
+#WriteXML( in=jacobian, filename="JHyb_Winds.xml" )
+ReadXML( Jr, "J_Winds.xml" )
+Compare( jacobian, Jr, 1e-6 )
+
+
+
+#StringSet( info, "Others: Freqs, Baseline" )
+#Print( info, 0 )
+#jacobianInit
+#
+#jacobianAddFreqShift( jacobian_quantities, jacobian_agenda, f_grid, 
+#    sensor_pos, sensor_time, 0, 50e3 )
+#jacobianAddFreqStretch( jacobian_quantities, jacobian_agenda, f_grid, 
+#    sensor_pos, sensor_time, 0, 50e3 )
+#
+#jacobianAddPolyfit( jacobian_quantities, jacobian_agenda, 
+#    sensor_response_pol_grid, sensor_response_dlos_grid, sensor_pos, 
+#    1, 0, 0, 0 )
+#
+#jacobianAddSinefit( jacobian_quantities, jacobian_agenda, 
+#    sensor_response_pol_grid, sensor_response_dlos_grid, sensor_pos, 
+#    [200e6,40e6], 0, 0, 0 )
+#    
+#jacobianClose
+##WriteXML( in=jacobian_quantities, filename="JqHyb_Other.xml" )
+#
+#pnd_fieldZero
+#atmfields_checkedCalc
+#atmgeom_checkedCalc
+#cloudbox_checkedCalc
+#scat_data_checkedCalc
+#
+#IndexSet( abs_f_interp_order, 1 )
+#yCalc
+##WriteXML( in=y, filename="yHyb_Other.xml" )
+#
+##ReadXML( yr, "y_Other.xml" )
+##Compare( y, yr, 1e-6 )
+##WriteXML( in=jacobian, filename="JHyb_Other.xml" )
+#ReadXML( Jr, "J_Other.xml" )
+#Compare( jacobian, Jr, 1e-6 )
 
 }

@@ -1786,24 +1786,35 @@ void iyHybrid2(
   
   // Throw error if unsupported features are requested
   if( atmosphere_dim != 1 )
-    throw runtime_error( "With cloudbox on, this method handles only "
-    "1D calculations." );
+    throw runtime_error(
+      "With cloudbox on, this method handles only 1D calculations." );
   if( !iy_agenda_call1 )
-    throw runtime_error( "With cloudbox on,  recursive usage not possible "
-    "(iy_agenda_call1 must be 1)." );
+    throw runtime_error(
+      "With cloudbox on, recursive usage not possible (iy_agenda_call1 must be"
+      " 1)." );
   if( iy_transmission.ncols() )
     throw runtime_error( "*iy_transmission* must be empty." );
   if( cloudbox_limits[0] != 0  ||  cloudbox_limits[1] != p_grid.nelem()-1 )
-    throw runtime_error( "The cloudbox must be set to cover the complete "
-    "atmosphere." );
+    throw runtime_error(
+      "The cloudbox must be set to cover the complete atmosphere." );
   if( Naa < 3 )
     throw runtime_error( "Naa must be > 2." );
   // for now have that here. when all iy* WSM using scat_data are fixed to new
   // type scat_data, then put check inot (i)yCalc and remove here.
   if( scat_data_checked != 1 )
-    throw runtime_error( "The scat_data must be flagged to have "
-                         "passed a consistency check (scat_data_checked=1)." );
-  
+    throw runtime_error(
+      "The scat_data must be flagged to have passed a consistency check"
+      " (scat_data_checked=1)." );
+  if( jacobian_do )
+  {
+    if( dpnd_field_dx.nelem() != jacobian_quantities.nelem() )
+      throw runtime_error(
+        "*dpnd_field_dx* not properly initialized:\n"
+        "Number of elements in dpnd_field_dx must be equal number of jacobian"
+        " quantities.\n(Note: jacobians have to be defined BEFORE *pnd_field*"
+        " is calculated/set." );
+  }
+
   
   // Determine propagation path
   //
@@ -1832,28 +1843,28 @@ void iyHybrid2(
     if( doit_i_field.ncols() != stokes_dim  )
       throw runtime_error(
         "Obtained *doit_i_field* number of Stokes elements inconsistent with"
-        " *stokes_dim*."  );
+        " *stokes_dim*." );
     if( doit_i_field.nrows() != 1  )
       throw runtime_error(
-        "Obtained *doit_i_field* has wrong number of azimuth angles."  );
+        "Obtained *doit_i_field* has wrong number of azimuth angles." );
     if( doit_i_field.npages() != scat_za_grid.nelem()  )
       throw runtime_error(
         "Obtained *doit_i_field* number of zenith angles inconsistent with"
-        " *scat_za_grid*."  );
+        " *scat_za_grid*." );
     if( doit_i_field.nbooks() != 1  )
       throw runtime_error(
-        "Obtained *doit_i_field* has wrong number of longitude points."  );
+        "Obtained *doit_i_field* has wrong number of longitude points." );
     if( doit_i_field.nshelves() != 1  )
       throw runtime_error(
-        "Obtained *doit_i_field* has wrong number of latitude points."  );
+        "Obtained *doit_i_field* has wrong number of latitude points." );
     if( doit_i_field.nvitrines() != cloudbox_limits[1]-cloudbox_limits[0]+1  )
       throw runtime_error(
         "Obtained *doit_i_field* number of pressure points inconsistent with"
-        " *cloudbox_limits*."  );
+        " *cloudbox_limits*." );
     if( doit_i_field.nlibraries() != nf  )
       throw runtime_error(
         "Obtained *doit_i_field* number of frequency points inconsistent with"
-        " *f_grid*."  );
+        " *f_grid*." );
   }
 
   // Reset azimuth grid for scattering source calc later on
@@ -1902,6 +1913,8 @@ void iyHybrid2(
     }
     )
     
+    // FIXME (JM): I think, this needs replacement. we need to use the actual
+    // scat_species, I guess. Check in iyActiveSingleScat what is done there.
     const ArrayOfString scat_species(0);
     
     get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
@@ -1997,6 +2010,7 @@ void iyHybrid2(
                                     ppath_p[ip],
                                     jac_species_i,
                                     jacobian_do);
+
       if(nq)
         adapt_stepwise_partial_derivatives(dK_this_dx,
                                            dS_dx,
@@ -2014,45 +2028,84 @@ void iyHybrid2(
                                            atmosphere_dim,
                                            jacobian_do);
 
-      get_stepwise_scattersky_propmat(a, Kp, da_dx, dKp_dx,
-                                      clear2cloudy[ip]+1,
-                                      ppath_pnd(joker, ip),
-                                      ppath_dpnd_dx,
-                                      ip,
-                                      scat_data,
-                                      ppath.los(ip, joker),
-                                      ppath_t[ip],
-                                      atmosphere_dim,
-                                      jacobian_do,
-                                      verbosity);
-      
-      a += K_this;  // a is initialized in get_stepwise_scattersky_propmat
-      K_this += Kp; // K_this is initialized in get_stepwise_clearsky_propmat
-      for( Index iq = 0; iq < nq; iq++ )
+      if( clear2cloudy[ip]+1 )
       {
-        // da_dx and dKp_dx are initialized in get_stepwise_scattersky_propmat,
-        // dK_this_dx in get_stepwise_clearsky_propmat.
-        // iq entries can be set through .SetZero, though, which makes adding
-        // them to each other impossible.
-        if ( not dK_this_dx[iq].IsEmpty() ) // dK_this_dx set
+        get_stepwise_scattersky_propmat(a, Kp, da_dx, dKp_dx,
+                                        ppath_pnd(joker, ip),
+                                        ppath_dpnd_dx,
+                                        ip,
+                                        scat_data,
+                                        ppath.los(ip, joker),
+                                        ppath_t[ip],
+                                        atmosphere_dim,
+                                        verbosity);
+      
+        a += K_this;  // a (and da_dx) is initialized in get_stepwise_scattersky_propmat
+        K_this += Kp; // K_this  (and dK_this_dx) is initialized in get_stepwise_clearsky_propmat
+        for( Index iq = 0; iq < nq; iq++ )
         {
-          if( da_dx[iq].IsEmpty() )
-            da_dx[iq] = dK_this_dx[iq]; // da_dx is set elsewhere
-          else     
-            da_dx[iq] += dK_this_dx[iq]; // da_dx set here
-        }
-        // else                                        // dK_this_dx unset
-        // nothing to update
+          // da_dx and dKp_dx are initialized in get_stepwise_scattersky_propmat,
+          // dK_this_dx in get_stepwise_clearsky_propmat.
+          // iq entries can be set through .SetZero, though, which makes adding
+          // them to each other impossible.
+          if ( not dK_this_dx[iq].IsEmpty() ) // dK_this_dx is set
+          {
+            if( da_dx[iq].IsEmpty() )
+              da_dx[iq] = dK_this_dx[iq];       // da_dx is (previously) unset: set here
+            else     
+              da_dx[iq] += dK_this_dx[iq];      // da_dx is (previously) set: update here
+          }
+          // else                             // dK_this_dx unset
+          // nothing to update
 
-        if ( not dKp_dx[iq].IsEmpty() )       // dKp_dx set
-        {
-          if( dK_this_dx[iq].IsEmpty() )
-            dK_this_dx[iq] = dKp_dx[iq]; // and dK_this_dx unset
-          else
-            dK_this_dx[iq] += dKp_dx[iq]; // and dK_this_dx unset
+          if ( not dKp_dx[iq].IsEmpty() )     // dKp_dx is set
+          {
+            if( dK_this_dx[iq].IsEmpty() )
+              dK_this_dx[iq] = dKp_dx[iq];      // dK_this_dx is (previously) unset: set here
+            else
+              dK_this_dx[iq] += dKp_dx[iq];     // dK_this_dx is (previously) set: update here
+          }
+          // else                             // dKp_dx unset
+          // nothing to update
         }
-        // else                                         // dKp_dx unset
-        // nothing to update
+
+        get_stepwise_scattersky_source(Sp, dSp_dx,
+                                       ppath_pnd(joker, ip),
+                                       ppath_dpnd_dx,
+                                       ip,
+                                       scat_data,
+                                       scat_data_checked,
+                                       doit_i_field,
+                                       scat_za_grid,
+                                       scat_aa_grid,
+                                       ppath.los(ip, joker),
+                                       ppath.gp_p[ip],
+                                       ppath_t[ip],
+                                       atmosphere_dim,
+                                       verbosity);
+        S += Sp;  // S (and dS_dx) is initialized in get_stepwise_clearsky_propmat
+        for( Index iq = 0; iq < nq; iq++ )
+        {
+          if ( not dSp_dx[iq].IsEmpty() )     // dSp_dx set
+          {
+            if( dS_dx[iq].IsEmpty() ) 
+              dS_dx[iq] = dSp_dx[iq];           // and dS_dx unset: set here
+            else
+              dS_dx[iq] += dSp_dx[iq];          // and dS_dx set: update here
+          }
+          // else                             // dSp_dx unset
+          // nothing to update
+        }
+      }
+      else // no particles present at this level
+      {
+        a = K_this;
+        for( Index iq = 0; iq < nq; iq++ ) // we can only assign a PropMat to a
+          da_dx[iq] = dK_this_dx[iq];      // StokesVec, not full ArrayOf to
+                                           // each other
+
+        // nothing to do for (d)K_this(_dx) and (d)S(_dx) as they are filled
+        // already by get_stepwise_clearsky_propmat.
       }
       
       get_stepwise_transmission_matrix(trans_cumulat(ip, joker, joker, joker),
@@ -2070,36 +2123,6 @@ void iyHybrid2(
                                        dK_this_dx,
                                        (ip > 0)?ppath.lstep[ip-1]:Numeric(1.0),
                                        ip==0);
-
-      get_stepwise_scattersky_source(Sp, dSp_dx,
-                                     clear2cloudy[ip]+1,
-                                     ppath_pnd(joker, ip),
-                                     ppath_dpnd_dx,
-                                     ip,
-                                     scat_data,
-                                     scat_data_checked,
-                                     doit_i_field,
-                                     scat_za_grid,
-                                     scat_aa_grid,
-                                     ppath.los(ip, joker),
-                                     ppath.gp_p[ip],
-                                     ppath_t[ip],
-                                     atmosphere_dim,
-                                     jacobian_do,
-                                     verbosity);
-      S += Sp;
-      for( Index iq = 0; iq < nq; iq++ )
-      {
-        if ( not dSp_dx[iq].IsEmpty() )       // dSp_dx set
-        {
-          if( dS_dx[iq].IsEmpty() ) 
-            dS_dx[iq] = dSp_dx[iq]; // and dS_dx unset
-          else
-            dS_dx[iq] += dSp_dx[iq]; // and dS_dx unset
-        }
-        // else                                         // dSp_dx unset
-        // nothing to update
-      }
 
       get_stepwise_effective_source(J(ip, joker, joker),
                                     nq?dJ_dx(ip, joker, joker, joker):Tensor3(0,0,0),

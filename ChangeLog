@@ -1,3 +1,108 @@
+2017-09-29 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-811
+
+	* src/m_fos.cc(iyHybrid2),
+	src/rte.[cc,h] (get_stepwise_scattersky_propmat, get_stepwise_scattersky_source):
+	Moved cloudy-level-check outside the scattersky methods, ie only call
+	them for cloudy levels. This also circumvents previous issues with
+	un-updated cloud contributions. Add explicit check for dpnd_field_dx
+	consistency with jacobian_quantities.
+
+	* src/m_cloudbox.cc(cloudboxOff, pnd_fieldCalcFrompnd_field_raw,
+	pnd_fieldZero, pnd_fieldCalcFromscat_speciesFields):
+	Output dpnd_field_dx, sized consistently with jacobian_quantities.
+
+	* src/m_checked.cc (cloudbox_checkedCalc):
+	Don't check particle_bulkprop_field. But do check dpnd_field_dx, for
+	consistency with jacobian_quantities (ie we now need to make the
+	jacobian definitions before this).
+
+	* src/methods.cc: Adapted for changes above.
+
+	* src/m_jacobian.cc (JacobianDoit):
+	Adapted for changes above.
+
+	(jacobianDoitAddSpecies):
+	Do not require cloudbox_checked anymore.
+
+	* src/m_microphysics.cc (pnd_fieldCalcFromParticleBulkProps):
+	Check particle_bulkprop_field and particle_bulkprop_names here (instead
+	of in cloudbox_checkedCalc). Generalized zero-outside-of-cloudbox check
+	of particle_bulkprop_field.
+
+	* src/rt4.cc (sca_optpropCalc):
+	Bugfix in handling 1freq-reduced scat_data.
+
+	* CHANGES-2.3: Document jacobians-before-cloudbox requirement.
+
+	* controlfiles/CMakeLists.txt:
+	Added TestWfunsHybClear to test suite.
+
+	* controlfiles/artscomponents/wfuns/TestWfunsHybClear.arts:
+	Switched on all analytical abs species and wind cases incl Compares to
+	TestWfuns results.
+
+	* controlfiles/artscomponents/wfuns/TestWfuns.arts:
+	Separated instrument jacobians from wind jacobians for better
+	comparability with TestWfunsHybClear (that can't handle instrument yet).
+
+	* controlfiles/artscomponents/absorption/TestAbsParticle.arts,
+	controlfiles/artscomponents/absorption/TestIsoRatios.arts,
+	controlfiles/artscomponents/arts-xml-data/TestPlanetIsoRatios.arts,
+	controlfiles/artscomponents/arts-xml-data/TestSurf_Earth.arts,
+	controlfiles/artscomponents/arts-xml-data/TestSurf_Mars.arts,
+	controlfiles/artscomponents/arts-xml-data/TestSurf_Venus.arts,
+	controlfiles/artscomponents/cia/TestRTwithCIA.arts,
+	controlfiles/artscomponents/clearsky/TestClearSky.arts,
+	controlfiles/artscomponents/clearsky/TestClearSky2.arts,
+	controlfiles/artscomponents/clearsky/TestClearSkyTips.arts,
+	controlfiles/artscomponents/doit/doit_setup.arts,
+	controlfiles/artscomponents/doit/doit_setup_accelerated.arts,
+	controlfiles/artscomponents/doit/doit_setup_pressureoptimization.arts,
+	controlfiles/artscomponents/faraday/TestFaradayRotation.arts,
+	controlfiles/artscomponents/groundbased/TestFgrid.arts,
+	controlfiles/artscomponents/groundbased/TestWinds.arts,
+	controlfiles/artscomponents/helpers/TestHSE.arts,
+	controlfiles/artscomponents/linemixing/TestLineMixing.arts,
+	controlfiles/artscomponents/linemixing/TestLineMixingAndZeeman.arts,
+	controlfiles/artscomponents/linemixing/TestLineMixingAndZeemanPreCalc_50_to_70_GHz.arts,
+	controlfiles/artscomponents/linemixing/TestLineMixingAndZeeman_50_to_70_GHz.arts,
+	controlfiles/artscomponents/montecarlo/TestMonteCarloGeneral.arts,
+	controlfiles/artscomponents/montecarlo/TestMonteCarloGeneralGaussian.arts,
+	controlfiles/artscomponents/montecarlo/TestRteCalcMC.arts,
+	controlfiles/artscomponents/nlte/TestNLTE.arts,
+	controlfiles/artscomponents/oem/TestOEM.arts,
+	controlfiles/artscomponents/pencilbeam/TestPencilBeam.arts,
+	controlfiles/artscomponents/ppath/TestPpath1D.arts,
+	controlfiles/artscomponents/ppath/TestPpath2D.arts,
+	controlfiles/artscomponents/ppath/TestPpath3D.arts,
+	controlfiles/artscomponents/ppath/TestRefractPlanets.arts,
+	controlfiles/artscomponents/radiolink/TestRadioLink.arts,
+	controlfiles/artscomponents/radiolink/TestRadioLink2.arts,
+	controlfiles/artscomponents/radiolink/TestRadioOccultation.arts,
+	controlfiles/artscomponents/regrid/TestRegridFields.arts,
+	controlfiles/artscomponents/stokesrot/TestSensorPol.arts,
+	controlfiles/artscomponents/stokesrot/TestStokesRotation.arts,
+	controlfiles/artscomponents/transmission/TestTransmission.arts,
+	controlfiles/artscomponents/transmission/TestTransmissionWithScat.arts,
+	controlfiles/artscomponents/wfuns/TestDoitJacobians.arts,
+	controlfiles/artscomponents/ycalcappend/TestYCalcAppend.arts,
+	controlfiles/artscomponents/zeeman/TestZeeman.arts,
+	controlfiles/artscomponents/zeeman/TestZeemanPreCalc.arts,
+	controlfiles/classroom_exercises/exe2_rtcalc/rtcalc.arts,
+	controlfiles/classroom_exercises/exe3_jacobian/jacobian.arts,
+	controlfiles/classroom_exercises/exe4_olr/olr.arts,
+	controlfiles/instruments/odinsmr/TestOdinSMR.arts,
+	controlfiles/instruments/odinsmr/TestOdinSMR_1D.arts,
+	controlfiles/planetary_toolbox/demos/active/DemoLinkBudget.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoMars_fullRT_1D_cloudy.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoScat_DOIT_1D.arts,
+	controlfiles/planetary_toolbox/demos/passive/DemoVenus_fullRT_1D_cloudy.arts,
+	controlfiles/planetary_toolbox/includes/common/Basics_1D-scalar-clearsky-radiance.arts,
+	controlfiles/planetary_toolbox/includes/common/Basics_1D-scalar-nosensor-clearsky-radiance.arts:
+	Moved jacobian settings to before cloudbox settings.
+
 2017-09-28 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-810

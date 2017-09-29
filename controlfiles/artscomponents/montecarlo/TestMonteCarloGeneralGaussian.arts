@@ -57,6 +57,7 @@ FlagOn( cloudbox_on )
 ReadXML( cloudbox_limits, "TestMonteCarloDataPrepare.cloudbox_limits.xml" )
 
 ReadXML( pnd_field, "TestMonteCarloDataPrepare.pnd_field.xml" )
+Touch( dpnd_field_dx )
 
 ReadXML( scat_data_mono, "TestMonteCarloDataPrepare.scat_data_mono.xml" )
 

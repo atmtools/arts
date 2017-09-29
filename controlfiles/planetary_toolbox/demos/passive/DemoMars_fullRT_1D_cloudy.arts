@@ -108,7 +108,7 @@ NumericCreate( obsh )
 VectorCreate( tanh )
 VectorCreate( viewang )
 
-# No Jacobian Matrix
+# do NOT modify
 jacobianOff
 
 ################################################################################

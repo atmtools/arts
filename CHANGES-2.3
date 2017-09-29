@@ -98,6 +98,11 @@ General
   entry. Previous arbitrary-f_grid scat_data is now in scat_data_raw. DOIT and
   MC so far still use scat_data_raw.
 
+- all WSM that set/calculate pnd_field now also output dpnd_field_dx initialized
+  to the correct size according to jacobian_quantities. That includes, that
+  jacobians need to be readily defined before these methods are called, or, more
+  generalized, that jacobians have to be defined before the cloudbox is set.
+
 NAME CHANGES-2.3
 ================
 

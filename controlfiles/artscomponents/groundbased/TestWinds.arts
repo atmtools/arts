@@ -116,9 +116,9 @@ MatrixSetConstant( sensor_pos, 1, atmosphere_dim, 0 )
 
 # ---- Final stuff -----------------------------------------------------------
 
-cloudboxOff
 sensorOff
 jacobianOff
+cloudboxOff
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc

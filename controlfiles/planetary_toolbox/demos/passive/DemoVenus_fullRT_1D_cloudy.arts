@@ -112,6 +112,8 @@ NumericCreate( obsh )
 VectorCreate( tanh )
 VectorCreate( viewang )
 
+# do NOT modify
+jacobianOff
 
 ################################################################################
 # START USER SETTINGS - Modify settings according to you wishes                #

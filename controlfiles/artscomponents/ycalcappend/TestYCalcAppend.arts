@@ -68,15 +68,11 @@ AtmRawRead( basename = "testdata/tropical" )
 AtmFieldsCalc
 
 
-# No cloudbox
-cloudboxOff
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
-cloudbox_checkedCalc
-
 
 
 # ---- Part 1: An emission measurement at 110.8 GHz --------------------------
@@ -98,6 +94,10 @@ jacobianAddAbsSpecies( g1=p_grid, g2=lat_grid, g3=lon_grid,
                        species="O3", method="analytical", unit="rel" )
 jacobianAddPolyfit( poly_order=1 )
 jacobianClose
+
+# No cloudbox
+cloudboxOff
+cloudbox_checkedCalc
 
 yCalc
 
@@ -133,6 +133,10 @@ jacobianAddAbsSpecies( g1=rgrid, g2=lat_grid, g3=lon_grid,
 jacobianAddPolyfit( poly_order=0 )
 jacobianClose
 
+# No cloudbox
+cloudboxOff( jacobian_quantities=jacobian_quantities_copy )
+cloudbox_checkedCalc( jacobian_quantities=jacobian_quantities_copy )
+
 yCalcAppend( jacobian_quantities_copy=jacobian_quantities_copy, 
              jacobian_indices_copy=jacobian_indices_copy,
              append_instrument_wfs=0 )
@@ -160,6 +164,10 @@ jacobianInit
 jacobianAddAbsSpecies( g1=p_grid, g2=lat_grid, g3=lon_grid,
                        species="H2O-PWR98", method="analytical", unit="rel" )
 jacobianClose
+
+# No cloudbox
+cloudboxOff( jacobian_quantities=jacobian_quantities_copy )
+cloudbox_checkedCalc( jacobian_quantities=jacobian_quantities_copy )
 
 yCalcAppend( jacobian_quantities_copy=jacobian_quantities_copy, 
              jacobian_indices_copy=jacobian_indices_copy )

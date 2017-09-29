@@ -132,13 +132,13 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly_Faraday )
 
 
 
-# No scattering
-#
-cloudboxOff
-
 # No jacobian calculations
 #
 jacobianOff
+
+# No scattering
+#
+cloudboxOff
 
 # Check model atmosphere
 # 

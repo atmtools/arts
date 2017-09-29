@@ -101,13 +101,13 @@ ArrayOfStringSet( iy_aux_vars,
       "Optical depth" ] )
 
 
-# No scattering
-#
-cloudboxOff
-
 # No jacobian calculation
 #
 jacobianOff
+
+# No scattering
+#
+cloudboxOff
 
 # Perform RT calculations
 # 

@@ -33,6 +33,9 @@ Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 # no refraction
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
+# No jacobian calculations
+jacobianOff
+
 
 # Frequency grid 
 # --------------
@@ -147,10 +150,6 @@ Matrix1ColFromVector( sensor_los, vector_1 )
 # which are not modified by sensor properties
 sensorOff
 
-
-# No jacobian calculations
-#
-jacobianOff
 
 #==================start==========================
 

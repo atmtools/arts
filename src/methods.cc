@@ -3476,17 +3476,19 @@ void define_md_data_raw()
          "Use this method if no scattering calculations shall be performed.\n"
          "\n"
          "The function sets *cloudbox_on* to 0, *cloudbox_limits*,\n"
-         "*pnd_field*, *scat_data*, *scat_data_raw*, *iy_cloudbox_agenda* and\n"
-         "*particle_masses* to be empty and *use_mean_scat_data* to -999.\n"
+         "*pnd_field*, *scat_data*, *scat_data_raw*, *iy_cloudbox_agenda*\n"
+         "and *particle_masses* to be empty and sizes *dpnd_field_dx* to be\n"
+         "consitent with *jacobian_quantities*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "cloudbox_on", "cloudbox_limits", "iy_cloudbox_agenda", 
-             "pnd_field", "scat_data", "scat_data_raw", "particle_masses"
+             "pnd_field", "dpnd_field_dx",
+             "scat_data", "scat_data_raw", "particle_masses"
            ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(),
+        IN( "jacobian_quantities" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -3689,10 +3691,9 @@ void define_md_data_raw()
          "the data is correct, e.g. by having run *scat_dataCheck* on the set\n"
          "of data before in a separate ARTS run.\n"
          "\n"
-         "*scat_species*, *particle_masses*, *particle_bulkprop_field* and\n"
-         "*particle_bulkprop_names* must either be empty or have a size that\n"         
-         "matches the other data. If non-zero, some check of these variables\n" 
-         "are performed.\n"
+         "*scat_species* and *particle_masses* must either be empty or have a\n"
+         "size that matches the other data. If non-empty, some check of these\n"
+         "variables are performed.\n"
          "\n"
          "If any test fails, there is an error. Otherwise, *cloudbox_checked*\n"
          "is set to 1.\n"
@@ -3702,11 +3703,12 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmfields_checked", "f_grid",  "atmosphere_dim", "p_grid", "lat_grid", 
-            "lon_grid", "z_field", "z_surface",
+        IN( "atmfields_checked", "f_grid",
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid",
+            "z_field", "z_surface",
             "wind_u_field", "wind_v_field", "wind_w_field", 
-            "cloudbox_on", "cloudbox_limits", "pnd_field", "scat_data",
-            "scat_species", "particle_bulkprop_field", "particle_bulkprop_names",
+            "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
+            "jacobian_quantities", "scat_data", "scat_species",
             "particle_masses", "abs_species" ),
         GIN(         "negative_pnd_ok", "scat_data_type",
                      "scat_data_check_level", "sca_mat_threshold" ),
@@ -9172,7 +9174,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_quantities", "jacobian_do", "cloudbox_checked",
+        IN( "jacobian_quantities", "jacobian_do",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid",
             "cloudbox_limits" ),
         GIN( "species", "unit", "dx" ),
@@ -11329,12 +11331,12 @@ void define_md_data_raw()
           "*p_grid* is not completely covered by pnd_field_raw's pressure grid.\n"
           ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde", "Oliver Lemke" ),
-        OUT( "pnd_field" ),
+        OUT( "pnd_field", "dpnd_field_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid", "pnd_field_raw", "atmosphere_dim",
-            "cloudbox_limits" ),
+            "cloudbox_limits", "jacobian_quantities" ),
         GIN( "zeropadding" ),
         GIN_TYPE( "Index" ),
         GIN_DEFAULT( "0" ),
@@ -11408,14 +11410,14 @@ void define_md_data_raw()
          "data and meta data files has to be applied in the right order!\n"
          ),
         AUTHORS( "Daniel Kreyling, Jana Mendrok, Manfred Brath" ),
-        OUT( "pnd_field"),
+        OUT( "pnd_field", "dpnd_field_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmosphere_dim","cloudbox_on", "cloudbox_limits",
+        IN( "atmosphere_dim", "cloudbox_on", "cloudbox_limits",
             "scat_species_mass_density_field", "scat_species_mass_flux_field",
             "scat_species_number_density_field", "scat_species_mean_mass_field",
-            "t_field", "scat_meta", "scat_species" ),
+            "t_field", "scat_meta", "scat_species", "jacobian_quantities" ),
         GIN( "delim" ),
         GIN_TYPE( "String" ),
         GIN_DEFAULT( "-" ),
@@ -11459,6 +11461,45 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "pnd_fieldZero" ),
+        DESCRIPTION
+        (
+         "Sets *pnd_field* to zero.\n"
+         "\n"
+         "Creates an empty *pnd_field* of cloudbox size according to\n"
+         "*cloudbox_limits* and with number of scattering elemements\n"
+         "according to *scat_data*. If *scat_data* is not set yet, it will be\n"
+         "filled with one dummy scattering element.\n"
+         "\n"
+         "The method works with both *scat_data* and *scat_data_raw*."
+         "\n"
+         "This method primarily exists for testing purposes.\n"
+         "On the one hand, empty *pnd_field* runs can be used to test the\n"
+         "agreement between true clear-sky (*cloudboxOff*) solutions and the\n"
+         "scattering solver solution in factual clear-sky conditions. It is\n"
+         "important to avoid discontinuities when switching from thin-cloud\n"
+         "to clear-sky conditions.\n"
+         "Moreover, scattering calculations using the DOIT method include\n"
+         "interpolation errors. If one is interested in this effect, one\n"
+         "should compare the DOIT result with an empty cloudbox to a clearsky\n"
+         "calculation. That means that the iterative method is performed for\n"
+         "a cloudbox with no particles.\n"
+         ),
+        AUTHORS( "Claudia Emde, Jana Mendrok" ),
+        OUT( "pnd_field", "dpnd_field_dx", "scat_data" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "scat_data", "atmosphere_dim", "f_grid", "cloudbox_limits",
+            "jacobian_quantities" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "pnd_size_gridFromScatMeta" ),
         DESCRIPTION
         (
@@ -11485,44 +11526,6 @@ void define_md_data_raw()
         GIN_DESC( "Take data from scattering species of this index (0-based) in"
                   " *scat_meta*.",
                   "Size parameter for size grid, allowed options listed above." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "pnd_fieldZero" ),
-        DESCRIPTION
-        (
-         "Sets *pnd_field* to zero.\n"
-         "\n"
-         "Creates an empty *pnd_field* of cloudbox size according to\n"
-         "*cloudbox_limits* and with number of scattering elemements\n"
-         "according to *scat_data*. If *scat_data* is not set yet, it will be\n"
-         "filled with one dummy scattering element.\n"
-         "\n"
-         "The method works with both *scat_data* and *scat_data_raw*."
-         "\n"
-         "This method primarily exists for testing purposes.\n"
-         "On the one hand, empty *pnd_field* runs can be used to test the\n"
-         "agreement between true clear-sky (*cloudboxOff*) solutions and the\n"
-         "scattering solver solution in factual clear-sky conditions. It is\n"
-         "important to avoid discontinuities when switching from thin-cloud\n"
-         "to clear-sky conditions.\n"
-         "Moreover, scattering calculations using the DOIT method include\n"
-         "interpolation errors. If one is interested in this effect, one\n"
-         "should compare the DOIT result with an empty cloudbox to a clearsky\n"
-         "calculation. That means that the iterative method is performed for\n"
-         "a cloudbox with no particles.\n"
-         ),
-        AUTHORS( "Claudia Emde, Jana Mendrok" ),
-        OUT( "pnd_field", "scat_data" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "scat_data", "atmosphere_dim", "f_grid", "cloudbox_limits" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -14691,7 +14694,9 @@ void define_md_data_raw()
         (
          "Prepares *scat_data* for the scattering solver.\n"
          "\n"
-         "So far, only interpolates all *scat_data* to *f_grid*.\n"
+         "Derives single scattering data for the frequencies given by\n"
+         "*f_grid* by interpolation from *scat_data_raw*. *f_grid* should be\n"
+         "the actual WSV *f_grid* or a single-element Vector.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "scat_data" ),

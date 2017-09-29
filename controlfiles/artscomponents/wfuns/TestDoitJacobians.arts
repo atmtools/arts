@@ -190,16 +190,6 @@ AgendaSet( ybatch_calc_agenda ){
   cloudboxSetManually(p1=11e4, p2=1e-1, lat1=0, lat2=0, lon1=0, lon2=0 )
   Copy(cloudbox_limits, cloudlimit_levels)
 
-  # Particle Number Density calculations
-  pnd_fieldCalcFromscat_speciesFields
-
-  # Consistency checks
-  atmgeom_checkedCalc
-  atmfields_checkedCalc( bad_partition_functions_ok = 1 )
-  cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
-  sensor_checkedCalc
-  propmat_clearsky_agenda_checkedCalc
-
 ######################################################################################
 # Case specific Jacobian settings
 # -------------------------------
@@ -220,6 +210,16 @@ AgendaSet( ybatch_calc_agenda ){
   #WriteXMLIndexed( in=jacobian_quantities, file_index=ybatch_index )
   #WriteXMLIndexed( in=jacobian_indices, file_index=ybatch_index )
 ######################################################################################
+
+  # Particle Number Density calculations
+  pnd_fieldCalcFromscat_speciesFields
+
+  # Consistency checks
+  atmgeom_checkedCalc
+  atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+  cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
+  sensor_checkedCalc
+  propmat_clearsky_agenda_checkedCalc
 
   # when doing no ScatSpeciesMerge (neither here, nor in
   # jacobianDoit!), comment out this complete block

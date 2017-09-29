@@ -94,8 +94,8 @@ p_gridFromZRaw(	p_grid, z_field_raw, 0 )
 
 # and some further settings in order to be able to do an RT calc
 #####
-cloudboxOff
 jacobianOff
+cloudboxOff
 IndexSet( stokes_dim, 1 )
 VectorSet( f_grid, [300e9] )
 sensorOff

@@ -37,10 +37,6 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 #
 IndexSet( stokes_dim, 1 )
 
-# Clearsky = No scattering
-#
-cloudboxOff
-
 
 
 #########################################################################
@@ -127,6 +123,10 @@ VectorCreate(g3)
 jacobianAddAbsSpecies( 	jacobian_quantities, jacobian_agenda, atmosphere_dim,
 	p_grid, lat_grid, lon_grid, p_grid, lat_grid, lon_grid, "H2O")
 jacobianClose
+
+# Clearsky = No scattering
+#
+cloudboxOff
 
 # Perform RT calculations
 # ---
