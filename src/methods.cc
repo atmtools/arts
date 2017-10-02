@@ -7712,14 +7712,14 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "iySurfaceCallSubAgendaX" ),
+      ( NAME( "iySurfaceCallAgendaX" ),
         DESCRIPTION
         (
-         "Switch between the different *iy_surface_sub_agendaX*.\n"
+         "Switch between the elements of *iy_surface_agenda_array*.\n"
          "\n"
          "This method simply calls the agenda matching *surface_type* and\n"
-         "returns the results. That is, if surface_type=X, the agenda with\n"
-         "name iy_surface_sub_agendaX is called.\n"
+         "returns the results. That is, the agenda in *iy_surface_agenda_array*\n"
+         "with index *surface_type* (0-based) is called.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "diy_dx" ),
@@ -7729,9 +7729,7 @@ void define_md_data_raw()
         IN(  "diy_dx", "iy_unit", "iy_transmission", "iy_id", "cloudbox_on",
              "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
              "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2", 
-             "iy_surface_sub_agenda0", "iy_surface_sub_agenda1", "iy_surface_sub_agenda2",
-             "iy_surface_sub_agenda3", "iy_surface_sub_agenda4", "iy_surface_sub_agenda5",
-             "surface_type", "surface_type_aux"
+             "iy_surface_agenda_array", "surface_type", "surface_type_aux"
           ),
         GIN(),
         GIN_TYPE(),
@@ -16194,24 +16192,21 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "surface_rtpropCallSubAgendaX" ),
+      ( NAME( "surface_rtpropCallAgendaX" ),
         DESCRIPTION
         (
-         "Switch between the different *surface_rtprop_sub_agendaX*.\n"
+         "Switch between the elements of *surfacertprop__agenda_array*.\n"
          "\n"
          "This method simply calls the agenda matching *surface_type* and\n"
-         "returns the results. That is, if surface_type=X, the agenda with\n"
-         "name surface_rtprop_sub_agendaX is called.\n"
+         "returns the results. That is, the agenda in *surface_rtprop_agenda_array*\n"
+         "with index *surface_type* (0-based) is called.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_skin_t", "surface_los", "surface_rmatrix", "surface_emission" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(  "f_grid", "rtp_pos", "rtp_los", 
-             "surface_rtprop_sub_agenda0", "surface_rtprop_sub_agenda1", 
-             "surface_rtprop_sub_agenda2", "surface_rtprop_sub_agenda3", 
-             "surface_rtprop_sub_agenda4", "surface_rtprop_sub_agenda5",
+        IN(  "f_grid", "rtp_pos", "rtp_los", "surface_rtprop_agenda_array", 
              "surface_type", "surface_type_aux"
           ),
         GIN(),

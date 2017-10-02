@@ -2325,68 +2325,14 @@ void Workspace::define_wsv_data()
         ),
        GROUP( "Agenda" )));
 
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "test_agenda_array" ),
-      DESCRIPTION
-      (
-       "Array of agenda for TestArrayOfAgenda case.\n"
-       ),
-      GROUP( "ArrayOfAgenda" )));
-
    wsv_data.push_back
     (WsvRecord
-     ( NAME( "iy_surface_sub_agenda0" ),
+     ( NAME( "iy_surface_agenda_array" ),
       DESCRIPTION
       (
-       "Agenda for radiative properties of surface type 0.\n"
+        "Upwelling radiation from the surface, divided into surface types.\n"
        ),
-      GROUP( "Agenda" )));
-    
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "iy_surface_sub_agenda1" ),
-      DESCRIPTION
-      (
-       "Agenda for radiative properties of surface type 1.\n"
-       ),
-      GROUP( "Agenda" )));
-    
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "iy_surface_sub_agenda2" ),
-      DESCRIPTION
-      (
-       "Agenda for radiative properties of surface type 2.\n"
-       ),
-      GROUP( "Agenda" )));
-    
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "iy_surface_sub_agenda3" ),
-      DESCRIPTION
-      (
-       "Agenda for radiative properties of surface type 3.\n"
-       ),
-      GROUP( "Agenda" )));
-    
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "iy_surface_sub_agenda4" ),
-      DESCRIPTION
-      (
-       "Agenda for radiative properties of surface type 4.\n"
-       ),
-      GROUP( "Agenda" )));
-    
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "iy_surface_sub_agenda5" ),
-      DESCRIPTION
-      (
-       "Agenda for radiative properties of surface type 5.\n"
-       ),
-      GROUP( "Agenda" )));
+      GROUP( "ArrayOfAgenda" )));
     
   wsv_data.push_back
    (WsvRecord
@@ -5489,6 +5435,15 @@ void Workspace::define_wsv_data()
   
  wsv_data.push_back
     (WsvRecord
+     ( NAME( "surface_rtprop_agenda_array" ),
+       DESCRIPTION
+       (
+        "Description of surface radiative properties, divided into surface types.\n"
+        ),
+       GROUP( "ArrayOfAgenda" )));
+  
+ wsv_data.push_back
+    (WsvRecord
      ( NAME( "surface_rtprop_sub_agenda" ),
       DESCRIPTION
       (
@@ -5496,60 +5451,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Agenda" )));
     
- wsv_data.push_back
-    (WsvRecord
-     ( NAME( "surface_rtprop_sub_agenda0" ),
-       DESCRIPTION
-       (
-        "Agenda providing radiative properties of surface type 0.\n"
-        ),
-       GROUP( "Agenda" )));
-  
- wsv_data.push_back
-    (WsvRecord
-     ( NAME( "surface_rtprop_sub_agenda1" ),
-       DESCRIPTION
-       (
-        "Agenda providing radiative properties of surface type 1.\n"
-        ),
-       GROUP( "Agenda" )));
-  
- wsv_data.push_back
-    (WsvRecord
-     ( NAME( "surface_rtprop_sub_agenda2" ),
-       DESCRIPTION
-       (
-        "Agenda providing radiative properties of surface type 2.\n"
-        ),
-       GROUP( "Agenda" )));
-  
- wsv_data.push_back
-    (WsvRecord
-     ( NAME( "surface_rtprop_sub_agenda3" ),
-       DESCRIPTION
-       (
-        "Agenda providing radiative properties of surface type 3.\n"
-        ),
-       GROUP( "Agenda" )));
-  
- wsv_data.push_back
-    (WsvRecord
-     ( NAME( "surface_rtprop_sub_agenda4" ),
-       DESCRIPTION
-       (
-        "Agenda providing radiative properties of surface type 4.\n"
-        ),
-       GROUP( "Agenda" )));
-  
- wsv_data.push_back
-    (WsvRecord
-     ( NAME( "surface_rtprop_sub_agenda5" ),
-       DESCRIPTION
-       (
-        "Agenda providing radiative properties of surface type 5.\n"
-        ),
-       GROUP( "Agenda" )));
-  
    wsv_data.push_back
    (WsvRecord
     ( NAME( "surface_skin_t" ),
@@ -5690,6 +5591,15 @@ void Workspace::define_wsv_data()
      ),
      GROUP( "Agenda" )));
   
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "test_agenda_array" ),
+      DESCRIPTION
+      (
+       "Array of agenda for TestArrayOfAgenda case.\n"
+       ),
+      GROUP( "ArrayOfAgenda" )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "timer" ),

@@ -438,111 +438,24 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
-     ( NAME( "test_agenda_array" ),
+     ( NAME( "iy_surface_agenda_array" ),
        DESCRIPTION
        (
-        "Agenda array for TestArrayOfAgenda test case.\n"
-        ),
-       OUTPUT(),
-       INPUT( "agenda_array_index", "iy_unit" )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "iy_surface_sub_agenda0" ),
-       DESCRIPTION
-       (
-        "Agenda for radiative properties of surface type 0.\n"
+        "Upwelling radiation from the surface, divided into surface types.\n"
         "\n"
-        "This is the first agenda in a set of agendas. Each of these agendas\n"
-        "shall treat the radiative properties of a surface type. The task\n"
-        "of these agendas match directly *iy_surface_agenda*. That is, it\n"
-        "should be possible to copy the content of these agendas to\n"
-        "*iy_surface_agenda*. This with one exception, these agendas\n"
-        "have one additional input: *surface_type_aux*.\n"
+        "Each agenda element shall treat the radiative properties of a surface\n"
+        "type. The task of these agendas match directly *iy_surface_agenda*.\n"
+        "This with one exception, these agendas have one additional input:\n"
+        "*surface_type_aux*.\n"
         "\n"
         "See *surface_type_mask* for comments on the surface type coding\n"
-        "scheme.  Note the parallel agenda series: surface_rtprop_sub_agendaX.\n"
+        "scheme.  Note the parallel agenda array: surface_rtprop_agenda_array.\n"
         ),
        OUTPUT( "iy", "diy_dx" ),
-       INPUT( "diy_dx", "iy_unit", "iy_transmission", "iy_id", "cloudbox_on",
-              "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
-              "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2",
-              "surface_type_aux" )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "iy_surface_sub_agenda1" ),
-       DESCRIPTION
-       (
-        "Agenda for radiative properties of surface type 1.\n"
-        "\n"
-        "See further *iy_surface_sub_agenda0*.\n"
-        ),
-       OUTPUT( "iy", "diy_dx" ),
-       INPUT( "diy_dx", "iy_unit", "iy_transmission", "iy_id", "cloudbox_on",
-              "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
-              "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2",
-              "surface_type_aux" )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "iy_surface_sub_agenda2" ),
-       DESCRIPTION
-       (
-        "Agenda for radiative properties of surface type 2.\n"
-        "\n"
-        "See further *iy_surface_sub_agenda0*.\n"
-        ),
-       OUTPUT( "iy", "diy_dx" ),
-       INPUT( "diy_dx", "iy_unit", "iy_transmission", "iy_id", "cloudbox_on",
-              "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
-              "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2",
-              "surface_type_aux" )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "iy_surface_sub_agenda3" ),
-       DESCRIPTION
-       (
-        "Agenda for radiative properties of surface type 3.\n"
-        "\n"
-        "See further *iy_surface_sub_agenda0*.\n"
-        ),
-       OUTPUT( "iy", "diy_dx" ),
-       INPUT( "diy_dx", "iy_unit", "iy_transmission", "iy_id", "cloudbox_on",
-              "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
-              "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2",
-              "surface_type_aux" )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "iy_surface_sub_agenda4" ),
-       DESCRIPTION
-       (
-        "Agenda for radiative properties of surface type 4.\n"
-        "\n"
-        "See further *iy_surface_sub_agenda0*.\n"
-        ),
-       OUTPUT( "iy", "diy_dx" ),
-       INPUT( "diy_dx", "iy_unit", "iy_transmission", "iy_id", "cloudbox_on",
-              "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
-              "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2",
-              "surface_type_aux" )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "iy_surface_sub_agenda5" ),
-       DESCRIPTION
-       (
-        "Agenda for radiative properties of surface type 5.\n"
-        "\n"
-        "See further *iy_surface_sub_agenda0*.\n"
-        ),
-       OUTPUT( "iy", "diy_dx" ),
-       INPUT( "diy_dx", "iy_unit", "iy_transmission", "iy_id", "cloudbox_on",
-              "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
-              "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2",
-              "surface_type_aux" )));
+       INPUT( "agenda_array_index", "diy_dx", "iy_unit", "iy_transmission",
+              "iy_id", "cloudbox_on", "jacobian_do", "t_field", "z_field",
+              "vmr_field", "f_grid", "iy_main_agenda", "rtp_pos", "rtp_los",
+              "rte_pos2", "surface_type_aux" )));
 
   agenda_data.push_back
     (AgRecord
@@ -834,6 +747,24 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
+     ( NAME( "surface_rtprop_agenda_array" ),
+       DESCRIPTION
+       (
+        "Description of surface radiative properties, divided into surface types.\n"
+        "\n"
+        "Each of these agendas shall treat the radiative properties of a\n"
+        " surface type. The task of these agendas is equivalent to that of\n"
+        "*surface_rtprop_agenda*. This with one exception, these agendas\n"
+        "have one additional input: *surface_type_aux*.\n"
+        "\n"
+        "See *surface_type_mask* for comments on the surface type coding\n"
+        "scheme. Note the parallel agenda series: iy_surface_sub_agendaX.\n"
+        ),
+       OUTPUT( "surface_skin_t", "surface_emission", "surface_los", "surface_rmatrix" ),
+       INPUT( "agenda_array_index", "f_grid", "rtp_pos", "rtp_los", "surface_type_aux" )));
+
+  agenda_data.push_back
+    (AgRecord
      ( NAME( "surface_rtprop_sub_agenda" ),
        DESCRIPTION
        (
@@ -844,95 +775,9 @@ void define_agenda_data()
         "For example, this agenda can describe the properties for pure specular\n"
         "reflections, and *surface_rtprop_agenda* can call this agenda for several\n"
         "angles to build up a more complex surface model.\n"
-        "\n"
-        "Note that this agenda is not part of the series of agendas named as\n"
-        "surface_rtprop_sub_agendaX.\n"
         ),
        OUTPUT( "surface_skin_t", "surface_emission", "surface_los", "surface_rmatrix" ),
        INPUT( "f_grid", "rtp_pos", "rtp_los" )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "surface_rtprop_sub_agenda0" ),
-       DESCRIPTION
-       (
-        "Provides radiative properties of surface type 0.\n"
-        "\n"
-        "This is the first agenda in a set of agendas. Each of these agendas\n"
-        "shall treat the radiative properties of a surface type. The task\n"
-        "of these agendas is equivalent to that of *surface_rtprop_agenda*.\n"
-        "That is, it should be possible to copy the content of these agendas\n"
-        "to *surface_rtprop_agenda*. This with one exception, these agendas\n"
-        "have one additional input: *surface_type_aux*.\n"
-        "\n"
-        "See *surface_type_mask* for comments on the surface type coding\n"
-        "scheme. Note the parallel agenda series: iy_surface_sub_agendaX.\n"
-        "\n"
-        "Note that *surface_rtprop_sub_agenda* is not part of this series of\n"
-        "agendas, it has a different functionality.\n"
-        ),
-       OUTPUT( "surface_skin_t", "surface_emission", "surface_los", "surface_rmatrix" ),
-       INPUT( "f_grid", "rtp_pos", "rtp_los", "surface_type_aux" )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "surface_rtprop_sub_agenda1" ),
-       DESCRIPTION
-       (
-        "Provides radiative properties of surface type 1.\n"
-        "\n"
-        "See further *surface_rtprop_sub_agenda0*.\n"
-        ),
-       OUTPUT( "surface_skin_t", "surface_emission", "surface_los", "surface_rmatrix" ),
-       INPUT( "f_grid", "rtp_pos", "rtp_los", "surface_type_aux" )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "surface_rtprop_sub_agenda2" ),
-       DESCRIPTION
-       (
-        "Provides radiative properties of surface type 2.\n"
-        "\n"
-        "See further *surface_rtprop_sub_agenda0*.\n"
-        ),
-       OUTPUT( "surface_skin_t", "surface_emission", "surface_los", "surface_rmatrix" ),
-       INPUT( "f_grid", "rtp_pos", "rtp_los", "surface_type_aux" )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "surface_rtprop_sub_agenda3" ),
-       DESCRIPTION
-       (
-        "Provides radiative properties of surface type 3.\n"
-        "\n"
-        "See further *surface_rtprop_sub_agenda0*.\n"
-        ),
-       OUTPUT( "surface_skin_t", "surface_emission", "surface_los", "surface_rmatrix" ),
-       INPUT( "f_grid", "rtp_pos", "rtp_los", "surface_type_aux" )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "surface_rtprop_sub_agenda4" ),
-       DESCRIPTION
-       (
-        "Provides radiative properties of surface type 4.\n"
-        "\n"
-        "See further *surface_rtprop_sub_agenda0*.\n"
-        ),
-       OUTPUT( "surface_skin_t", "surface_emission", "surface_los", "surface_rmatrix" ),
-       INPUT( "f_grid", "rtp_pos", "rtp_los", "surface_type_aux" )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "surface_rtprop_sub_agenda5" ),
-       DESCRIPTION
-       (
-        "Provides radiative properties of surface type 5.\n"
-        "\n"
-        "See further *surface_rtprop_sub_agenda0*.\n"
-        ),
-       OUTPUT( "surface_skin_t", "surface_emission", "surface_los", "surface_rmatrix" ),
-       INPUT( "f_grid", "rtp_pos", "rtp_los", "surface_type_aux" )));
 
   agenda_data.push_back
     (AgRecord
@@ -943,6 +788,16 @@ void define_agenda_data()
        ),
       OUTPUT(),
       INPUT()));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "test_agenda_array" ),
+       DESCRIPTION
+       (
+        "Agenda array for TestArrayOfAgenda test case.\n"
+        ),
+       OUTPUT(),
+       INPUT( "agenda_array_index", "iy_unit" )));
 
  agenda_data.push_back
     (AgRecord

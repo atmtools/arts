@@ -1,3 +1,19 @@
+2017-10-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-812
+
+	* The system for surface types is now changed to make use of the
+	ArrayOfAgenda mechanism.
+
+	* src/m_surface.cc (surface_rtpropCallAgendaX)
+	(iySurfaceCallAgendaX): New methods, replace the sub_agenda methods.
+
+	* src/workspace.cc:
+	* src/agendas.cc: iy_surface_sub_agenda0-5 and
+	surface_rtprop_sub_agenda_0-5 replaced with
+	iy_surface_agenda_array and surface_rtprop_agenda_array,
+	respectively.
+
 2017-09-29 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-811
