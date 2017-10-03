@@ -97,13 +97,7 @@ sensorOff
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 atmgeom_checkedCalc
-cloudbox_checkedCalc
 sensor_checkedCalc
-
-
-# Simulate "measurement vector"
-#
-yCalc
 
 
 # Covariance matrices covmat_sx, covmat_se and their inverse.
@@ -125,12 +119,18 @@ retrievalAddAbsSpecies(
     g3 = lon_grid
 )
 
-nelemGet(nelem, y)
-VectorSetConstant(vars, nelem, 1e-2)
+VectorSetConstant(vars, nf, 1e-2)
 covmatDiagonal(vars = vars)
 covmat_seSet
 
 retrievalDefClose
+
+# Simulate "measurement vector"
+#
+cloudbox_checkedCalc
+yCalc
+
+
 
 # Iteration agenda 
 #

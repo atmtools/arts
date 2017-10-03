@@ -1,3 +1,16 @@
+2017-10-03  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se	>
+
+	* arts-2-3-813
+
+	* src/m_oem.cc (x2artsStandard)
+	- Removed trailing whitespaces
+
+	* src/m_retrieval.cc (retrievalDefClose)
+	- Removed size check between covmat_se and sensor_response.
+
+	* controlfiles/artscomponents/oem/TestOEM.arts
+	- Fixed order of retrieval definition and cloudbox_checkedCalc
+
 2017-10-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-812

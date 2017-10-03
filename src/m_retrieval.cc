@@ -841,12 +841,6 @@ void retrievalDefClose(Workspace& ws,
         throw runtime_error("The blocks in *covmat_sx* are not consistent with the retrieval"
                             " quantities in the Jacobian.");
     }
-
-    Index m = sensor_response.nrows() * sensor_pos.nrows();
-    if (!(covmat_se.nrows() == m)) {
-        throw runtime_error("The dimensions of *covmat_se* are not consistent with the of the"
-                            " measurement vector *y*.");
-    }
     retrieval_checked = true;
 }
 

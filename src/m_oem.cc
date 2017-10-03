@@ -97,12 +97,12 @@ void get_gp_atmgrids_to_rq(
    const Vector&              lon_grid )
 {
   gp_p.resize( rq.Grids()[0].nelem() );
-  p2gridpos( gp_p, p_grid, rq.Grids()[0], 0 );  
+  p2gridpos( gp_p, p_grid, rq.Grids()[0], 0 );
   //
   if( atmosphere_dim >= 2 )
     {
       gp_lat.resize( rq.Grids()[1].nelem() );
-      gridpos( gp_lat, lat_grid, rq.Grids()[1], 0 );  
+      gridpos( gp_lat, lat_grid, rq.Grids()[1], 0 );
     }
   else
     { gp_lat.resize(0); }
@@ -110,7 +110,7 @@ void get_gp_atmgrids_to_rq(
   if( atmosphere_dim >= 3 )
     {
       gp_lon.resize( rq.Grids()[2].nelem() );
-      gridpos( gp_lon, lon_grid, rq.Grids()[2], 0 );  
+      gridpos( gp_lon, lon_grid, rq.Grids()[2], 0 );
     }
   else
     { gp_lon.resize(0); }
@@ -119,7 +119,7 @@ void get_gp_atmgrids_to_rq(
 
 
 //! Determines grid positions for regridding of atmospheric fields to retrieval
-//  grids 
+//  grids
 /*!
   The grid positions arrays are sized inside the function. gp_lat is given
   length 0 for atmosphere_dim=1 etc.
@@ -142,10 +142,10 @@ void get_gp_atmgrids_to_rq(
   \param[in]  lat_grid             As the WSV with same name.
   \param[in]  lon_grid             As the WSV with same name.
 
-  \author Patrick Eriksson 
+  \author Patrick Eriksson
   \date   2015-09-09
 */
-void get_gp_rq_to_atmgrids( 
+void get_gp_rq_to_atmgrids(
          ArrayOfGridPos&      gp_p,
          ArrayOfGridPos&      gp_lat,
          ArrayOfGridPos&      gp_lon,
@@ -158,35 +158,35 @@ void get_gp_rq_to_atmgrids(
    const Vector&              lat_grid,
    const Vector&              lon_grid )
 {
-  // We want here an extrapolation to infinity -> 
+  // We want here an extrapolation to infinity ->
   //                                        extremly high extrapolation factor
   const Numeric inf_proxy = 1.0e99;
 
   gp_p.resize( p_grid.nelem() );
   n_p = rq.Grids()[0].nelem();
   if( n_p > 1 )
-    { 
-      p2gridpos( gp_p, rq.Grids()[0], p_grid, inf_proxy ); 
+    {
+      p2gridpos( gp_p, rq.Grids()[0], p_grid, inf_proxy );
       jacobian_type_extrapol( gp_p );
     }
   else
-    { gp4length1grid( gp_p ); }        
+    { gp4length1grid( gp_p ); }
 
   if( atmosphere_dim >= 2 )
     {
       gp_lat.resize( lat_grid.nelem() );
       n_lat = rq.Grids()[1].nelem();
       if( n_lat > 1 )
-        { 
-          gridpos( gp_lat, rq.Grids()[1], lat_grid, inf_proxy );  
+        {
+          gridpos( gp_lat, rq.Grids()[1], lat_grid, inf_proxy );
           jacobian_type_extrapol( gp_lat );
         }
       else
-        { gp4length1grid( gp_lat ); }        
+        { gp4length1grid( gp_lat ); }
     }
   else
-    { 
-      gp_lat.resize(0); 
+    {
+      gp_lat.resize(0);
       n_lat = 1;
     }
   //
@@ -195,16 +195,16 @@ void get_gp_rq_to_atmgrids(
       gp_lon.resize( lon_grid.nelem() );
       n_lon = rq.Grids()[2].nelem();
       if( n_lon > 1 )
-        { 
-          gridpos( gp_lon, rq.Grids()[2], lon_grid, inf_proxy ); 
+        {
+          gridpos( gp_lon, rq.Grids()[2], lon_grid, inf_proxy );
           jacobian_type_extrapol( gp_lon );
         }
       else
-        { gp4length1grid( gp_lon ); }        
+        { gp4length1grid( gp_lon ); }
     }
   else
-    { 
-      gp_lon.resize(0); 
+    {
+      gp_lon.resize(0);
       n_lon = 1;
     }
 }
@@ -250,7 +250,7 @@ void vmr_enforce_constraint(Tensor3View vmr, const String & constraint, Numeric 
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void xaStandard( 
+void xaStandard(
          Vector&                     xa,
    const Index&                      atmfields_checked,
    const Index&                      atmgeom_checked,
@@ -266,7 +266,7 @@ void xaStandard(
    const Index&                      cloudbox_on,
    const Index&                      cloudbox_checked,
    const Tensor4&                    particle_bulkprop_field,
-   const ArrayOfString&              particle_bulkprop_names,         
+   const ArrayOfString&              particle_bulkprop_names,
    const Verbosity&)
 {
   // Basics
@@ -293,7 +293,7 @@ void xaStandard(
       const Index np = ji[q][1] - ji[q][0] + 1;
       Range ind( ji[q][0], np );
 
-      
+
       // Atmospheric temperatures
       if( jq[q].MainTag() == TEMPERATURE_MAINTAG )
         {
@@ -302,12 +302,12 @@ void xaStandard(
           get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
                                  p_grid, lat_grid, lon_grid );
           Tensor3 t_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
-          regrid_atmfield_by_gp( t_x, atmosphere_dim, t_field, 
+          regrid_atmfield_by_gp( t_x, atmosphere_dim, t_field,
                                  gp_p, gp_lat, gp_lon );
           flat( xa[ind], t_x );
         }
 
-      
+
       // Abs species
       else if( jq[q].MainTag() == ABSSPECIES_MAINTAG )
         {
@@ -319,12 +319,12 @@ void xaStandard(
           if( jq[q].Mode() == "rel" )
             {
               // This one is simple, just a vector of ones
-              xa[ind] = 1; 
+              xa[ind] = 1;
             }
           else if( jq[q].Mode() == "logrel" )
             {
               // Also simple, just a vector of zeros
-              xa[ind] = 0; 
+              xa[ind] = 0;
             }
           else if( jq[q].Mode() == "vmr" )
             {
@@ -333,8 +333,8 @@ void xaStandard(
               get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
                                      p_grid, lat_grid, lon_grid );
               Tensor3 vmr_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
-              regrid_atmfield_by_gp( vmr_x, atmosphere_dim, 
-                                     vmr_field(isp,joker,joker,joker), 
+              regrid_atmfield_by_gp( vmr_x, atmosphere_dim,
+                                     vmr_field(isp,joker,joker,joker),
                                      gp_p, gp_lat, gp_lon );
               flat( xa[ind], vmr_x );
             }
@@ -346,8 +346,8 @@ void xaStandard(
                                      p_grid, lat_grid, lon_grid );
               Tensor3 vmr_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
               Tensor3 t_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
-              regrid_atmfield_by_gp( vmr_x, atmosphere_dim, 
-                                     vmr_field(isp,joker,joker,joker), 
+              regrid_atmfield_by_gp( vmr_x, atmosphere_dim,
+                                     vmr_field(isp,joker,joker,joker),
                                      gp_p, gp_lat, gp_lon );
               regrid_atmfield_by_gp( t_x, atmosphere_dim,  t_field,
                                      gp_p, gp_lat, gp_lon );
@@ -356,7 +356,7 @@ void xaStandard(
               for( Index i3=0; i3<=vmr_x.ncols(); i3++ )
                 { for( Index i2=0; i2<=vmr_x.nrows(); i2++ )
                     { for( Index i1=0; i1<=vmr_x.npages(); i1++ )
-                        { 
+                        {
                           xa[ji[q][0]+i] = vmr_x(i1,i2,i3) *
                             number_density( jq[q].Grids()[0][i1], t_x(i1,i2,i3) );
                           i += 1;
@@ -366,7 +366,7 @@ void xaStandard(
             { assert(0); }
         }
 
-      
+
       // Scattering species
       else if( jq[q].MainTag() == SCATSPECIES_MAINTAG )
         {
@@ -395,13 +395,13 @@ void xaStandard(
                      << "could not found in *particle_bulkprop_names*.";
                   throw runtime_error(os.str());
                 }
-              
+
               ArrayOfGridPos gp_p, gp_lat, gp_lon;
               get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
                                      p_grid, lat_grid, lon_grid );
               Tensor3 pbp_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
-              regrid_atmfield_by_gp( pbp_x, atmosphere_dim, 
-                                     particle_bulkprop_field(isp,joker,joker,joker), 
+              regrid_atmfield_by_gp( pbp_x, atmosphere_dim,
+                                     particle_bulkprop_field(isp,joker,joker,joker),
                                      gp_p, gp_lat, gp_lon );
               flat( xa[ind], pbp_x );
             }
@@ -412,7 +412,7 @@ void xaStandard(
       // All variables having zero as a priori
       // ----------------------------------------------------------------------------
       else if( jq[q].MainTag() == POINTING_MAINTAG ||
-               jq[q].MainTag() == POLYFIT_MAINTAG  ||  
+               jq[q].MainTag() == POLYFIT_MAINTAG  ||
                jq[q].MainTag() == SINEFIT_MAINTAG )
         {
           xa[ind] = 0;
@@ -448,7 +448,7 @@ void x2artsStandard(
    const ArrayOfArrayOfSpeciesTag&   abs_species,
    const Index&                      cloudbox_on,
    const Index&                      cloudbox_checked,
-   const ArrayOfString&              particle_bulkprop_names,         
+   const ArrayOfString&              particle_bulkprop_names,
    const Vector&                     sensor_time,
    const Sparse &                    sensor_response,
    const Matrix &                    sensor_response_dlos_grid,
@@ -539,7 +539,7 @@ void x2artsStandard(
             {
               // Find multiplicate factor for elements in vmr_field
               Tensor3 fac_x( n_p, n_lat, n_lon );
-              reshape( fac_x, x_t[ind] ); 
+              reshape( fac_x, x_t[ind] );
               // Take exp(x) if logrel
               if( jq[q].Mode() == "logrel" )
                 { transform( fac_x, exp, fac_x ); }
@@ -550,15 +550,15 @@ void x2artsStandard(
               for( Index i3=0; i3<vmr_field.ncols(); i3++ )
                 { for( Index i2=0; i2<vmr_field.nrows(); i2++ )
                     { for( Index i1=0; i1<vmr_field.npages(); i1++ )
-                        { 
-                            vmr_field(isp,i1,i2,i3) *= factor(i1,i2,i3); 
+                        {
+                            vmr_field(isp,i1,i2,i3) *= factor(i1,i2,i3);
                 }   }   }
             }
           else if( jq[q].Mode() == "vmr" )
             {
               // Here we just need to map back state x
               Tensor3 vmr_x( n_p, n_lat, n_lon );
-              reshape( vmr_x, x_t[ind] ); 
+              reshape( vmr_x, x_t[ind] );
               Tensor3 vmr( vmr_field.npages(), vmr_field.nrows(),
                                                vmr_field.ncols() );
               regrid_atmfield_by_gp( vmr, atmosphere_dim, vmr_x,
@@ -568,7 +568,7 @@ void x2artsStandard(
           else if( jq[q].Mode() == "nd" )
             {
               Tensor3 nd_x( n_p, n_lat, n_lon );
-              reshape( nd_x, x_t[ind] ); 
+              reshape( nd_x, x_t[ind] );
               Tensor3 nd( vmr_field.npages(), vmr_field.nrows(),
                                               vmr_field.ncols() );
               regrid_atmfield_by_gp( nd, atmosphere_dim, nd_x,
@@ -577,7 +577,7 @@ void x2artsStandard(
               for( Index i3=0; i3<vmr_field.ncols(); i3++ )
                 { for( Index i2=0; i2<vmr_field.nrows(); i2++ )
                     { for( Index i1=0; i1<vmr_field.npages(); i1++ )
-                        { 
+                        {
                           vmr_field(isp,i1,i2,i3) = nd(i1,i2,i3) /
                             number_density( p_grid[i1], t_field(i1,i2,i3) );
                 }   }   }
@@ -587,7 +587,6 @@ void x2artsStandard(
 
           if (jq[q].HasConstraints()) {
               for (Index i = 0; i < jq[q].GetConstraints().nelem(); ++i) {
-                  std::cout << "enforcing constraint" << std::endl;
                   vmr_enforce_constraint(vmr_field(isp, joker, joker, joker),
                                          jq[q].GetConstraints()[i],
                                          jq[q].GetBoundaries()[i]);
@@ -596,7 +595,7 @@ void x2artsStandard(
           }
         }
 
-      
+
       // Scattering species
       // ----------------------------------------------------------------------------
       else if( jq[q].MainTag() == SCATSPECIES_MAINTAG )
@@ -615,7 +614,7 @@ void x2artsStandard(
                   throw runtime_error( "Mismatch in size between "
                     "*particle_bulkprop_field* and *particle_bulkprop_field*." );
                 }
-              
+
               const Index isp = find_first( particle_bulkprop_names,
                                         jq[q].SubSubtag() );
               if( isp < 0 )
@@ -627,7 +626,7 @@ void x2artsStandard(
                      << "could not found in *particle_bulkprop_names*.";
                   throw runtime_error(os.str());
                 }
-          
+
               // Determine grid positions for interpolation from retrieval grids back
               // to atmospheric grids
               ArrayOfGridPos gp_p, gp_lat, gp_lon;
@@ -636,7 +635,7 @@ void x2artsStandard(
                                      jq[q], atmosphere_dim, p_grid, lat_grid, lon_grid );
               // Map x to particle_bulkprop_field
               Tensor3 pbfield_x( n_p, n_lat, n_lon );
-              reshape( pbfield_x, x_t[ind] ); 
+              reshape( pbfield_x, x_t[ind] );
               Tensor3 pbfield( particle_bulkprop_field.npages(),
                                particle_bulkprop_field.nrows(),
                                particle_bulkprop_field.ncols() );
@@ -646,7 +645,7 @@ void x2artsStandard(
             }
         }
 
-      
+
       // Pointing off-set
       // ----------------------------------------------------------------------------
       else if( jq[q].MainTag() == POINTING_MAINTAG )
@@ -659,20 +658,20 @@ void x2artsStandard(
               throw runtime_error(os.str());
             }
           // Handle pointing "jitter" seperately
-          if( jq[q].Grids()[0][0] == -1 ) 
-            {                          
+          if( jq[q].Grids()[0][0] == -1 )
+            {
               if( sensor_los.nrows() != np )
-                throw runtime_error( 
+                throw runtime_error(
                      "Mismatch between pointing jacobian and *sensor_los* found." );
               // Simply add retrieved off-set(s) to za column of *sensor_los*
               for( Index i=0; i<np; i++ )
                 { sensor_los(i,0) += x[ji[q][0]+i]; }
-            }                                
+            }
           // Polynomial representation
           else
             {
               if( sensor_los.nrows() != sensor_time.nelem() )
-                throw runtime_error( 
+                throw runtime_error(
                      "Sizes of *sensor_los* and *sensor_time* do not match." );
               Vector w;
               for( Index c=0; c<np; c++ )
@@ -687,7 +686,7 @@ void x2artsStandard(
 
       // Baseline fit: polynomial or sinusoidal
       // ----------------------------------------------------------------------------
-      else if( jq[q].MainTag() == POLYFIT_MAINTAG  ||  
+      else if( jq[q].MainTag() == POLYFIT_MAINTAG  ||
                jq[q].MainTag() == SINEFIT_MAINTAG )
       {
           if(! yb_set ) {
@@ -719,7 +718,7 @@ void x2artsStandard(
         }
     }
 
-  
+
   // *y_baseline* not yet set?
   if( !yb_set )
     {
@@ -802,7 +801,7 @@ void OEM_checks(
     throw runtime_error( "Different number of elements in *jacobian_quantities* "
                           "and *jacobian_indices*." );
   if( nq  &&  jacobian_indices[nq-1][1]+1 != n )
-    throw runtime_error( "Size of *covmat_sx* do not agree with Jacobian " 
+    throw runtime_error( "Size of *covmat_sx* do not agree with Jacobian "
                           "information (*jacobian_indices*)." );
 
 
@@ -814,7 +813,7 @@ void OEM_checks(
          method == "li_cg_m" || method == "gn_cg_m" ||
          method == "lm_cg"   || method == "ml_cg" ) )
   {
-    throw runtime_error( "Valid options for *method* are \"nl\", \"gn\" and " 
+    throw runtime_error( "Valid options for *method* are \"nl\", \"gn\" and "
                          "\"ml\" or \"lm\"." );
   }
 
@@ -945,14 +944,14 @@ void OEM(
     }
 
     // Handle cases with too large start cost
-    if( max_start_cost > 0  &&  cost_start > max_start_cost )  
+    if( max_start_cost > 0  &&  cost_start > max_start_cost )
     {
-        // Flag no inversion in oem_diagnostics, and let x to be undefined 
+        // Flag no inversion in oem_diagnostics, and let x to be undefined
         oem_diagnostics[0] = 99;
         //
         if( display_progress )
         {
-            cout << "\n   No OEM inversion, too high start cost:\n" 
+            cout << "\n   No OEM inversion, too high start cost:\n"
                  << "        Set limit : " << max_start_cost << endl
                  << "      Found value : " << cost_start << endl << endl;
         }
@@ -1413,7 +1412,7 @@ void OEM_MPI(
     // Start value of cost function. Covariance matrices are already distributed
     // over processes, so we need to use invlib matrix algebra.
     Numeric cost_start = NAN;
-    if( method == "ml" || method == "lm" || display_progress ||  
+    if( method == "ml" || method == "lm" || display_progress ||
         max_start_cost > 0 )
     {
         OEMVector dy = y;
@@ -1424,14 +1423,14 @@ void OEM_MPI(
 
 
     // Handle cases with too large start cost
-    if( max_start_cost > 0  &&  cost_start > max_start_cost )  
+    if( max_start_cost > 0  &&  cost_start > max_start_cost )
     {
-        // Flag no inversion in oem_diagnostics, and let x to be undefined 
+        // Flag no inversion in oem_diagnostics, and let x to be undefined
         oem_diagnostics[0] = 99;
         //
         if( display_progress )
         {
-            cout << "\n   No OEM inversion, too high start cost:\n" 
+            cout << "\n   No OEM inversion, too high start cost:\n"
                  << "        Set limit : " << max_start_cost << endl
                  << "      Found value : " << cost_start << endl << endl;
         }
