@@ -1,3 +1,44 @@
+2017-10-03 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-814
+
+	* src/rt4.cc (sca_optpropCalc):
+	Revision for more consistent handling of scattering matrix (from single
+	T-gridpoint) with extinction and absorption data (from T-interpolation).
+	Preservation of bulk-Z norm needs to be checked vs. gridpoint-T
+	ext/abs	(regards the structure of the phase function), but output
+	bulk-Z for RT4 solution needs to be normalized to bulk-scatt coeff
+	consistent with ext/abs extracted for use in RT4 solution (regards the
+	scattering coefficient).
+
+	ATTENTION:
+	This needs to be taken care of also when implementing T-grid reduction
+	for scat_data. Seems to be a bad idea to allow K and a on different
+	T-grids than Z (or we need to use unity-normalized Z. or keep track
+	of which T is used for Z when reduced to single T-point).
+
+	* src/m_fos.cc(iyHybrid2),
+	src/m_cloudradar.cc (iyActiveSingleScat):
+	Pass scat_species for getting scat jacobian pointers.
+	Safety check for jacobian_quantities and dpnd_field_dx consistency
+	(dpnd_field_dx needs filled array elements for scat jacobian, empty
+	elements for non-scat jacobians).
+
+	* src/m_checked.cc (cloudbox_checkedCalc):
+	Made scat_data check non-scat_species safe.
+
+	* src/optproperties.cc (pha_mat_labCalc, interpolate_scat_angle):
+	Minor stuff.
+
+	* controlfiles/general/general.arts:
+	Initialize dpnd_field_dx.
+
+	* controlfiles/artscomponents/hybridscat/TestHybrid.arts,
+	controlfiles/artscomponents/montecarlo/TestMonteCarloGeneral.arts,
+	controlfiles/artscomponents/montecarlo/TestMonteCarloGeneralGaussian.arts,
+	controlfiles/artscomponents/montecarlo/TestRteCalcMC.arts:
+	Remove now redundant dpnd_field_dx initialization.
+
 2017-10-03  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se	>
 
 	* arts-2-3-813
@@ -15,6 +56,8 @@
 
 	* arts-2-3-812
 
+	BREAKS CONTROLFILES using iy_surface/surface_rtprop__sub_agenda.
+
 	* The system for surface types is now changed to make use of the
 	ArrayOfAgenda mechanism.
 
@@ -30,6 +73,8 @@
 2017-09-29 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-811
+
+	BREAKS CONTROLFILES.
 
 	* src/m_fos.cc(iyHybrid2),
 	src/rte.[cc,h] (get_stepwise_scattersky_propmat, get_stepwise_scattersky_source):

@@ -666,7 +666,10 @@ void cloudbox_checkedCalc(
         throw runtime_error( "Size of *dpnd_field_dx* inconsistent with number "
                              "of *jacobian_quantities*." );
 
+
       // Check scat_data
+      const Index nss = scat_data.nelem();
+
       // freq range of calc covered?
       if( f_grid.empty() )
         throw runtime_error ( "The frequency grid is empty." );
@@ -674,11 +677,10 @@ void cloudbox_checkedCalc(
 
       if( scat_data_type.toupper() == "RAW" )
       {
-        Index N_ss = scat_species.nelem();
-        for( Index i_ss=0; i_ss<N_ss; i_ss++ )
+        for( Index i_ss=0; i_ss<nss; i_ss++ )
         {
-          Index N_se = scat_data[i_ss].nelem();
-          for( Index i_se=0; i_se<N_se; i_se++ )
+          Index nse = scat_data[i_ss].nelem();
+          for( Index i_se=0; i_se<nse; i_se++ )
             {
               ostringstream os;
               os << "scat_data[" << i_ss << "][" << i_se << "].f_grid to f_grid";
@@ -702,7 +704,6 @@ void cloudbox_checkedCalc(
 
       // Check semi-mandatory variables, that are allowed to be empty
       //
-      const Index nss = scat_data.nelem();
 
       // scat_species:
       if( scat_species.nelem()>0 )

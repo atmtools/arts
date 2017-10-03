@@ -18,7 +18,6 @@ cloudboxSetFullAtm
 #cloudboxSetAutomatically( particle_field=scat_species_mean_mass_field,
 #                          cloudbox_limits_old=cloudbox_limits )
 pnd_fieldCalcFromscat_speciesFields
-Touch( dpnd_field_dx )
 
 
 #cloudboxOff

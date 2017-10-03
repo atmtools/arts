@@ -1738,6 +1738,7 @@ void iyHybrid2(
   const ArrayOfIndex&                       cloudbox_limits,
   const Tensor4&                            pnd_field,
   const ArrayOfTensor4&                     dpnd_field_dx,
+  const ArrayOfString&                      scat_species,
   const ArrayOfArrayOfSingleScatteringData& scat_data,
   const Index&                              scat_data_checked,
   const Matrix&                             particle_masses _U_,
@@ -1800,7 +1801,7 @@ void iyHybrid2(
   if( Naa < 3 )
     throw runtime_error( "Naa must be > 2." );
   // for now have that here. when all iy* WSM using scat_data are fixed to new
-  // type scat_data, then put check inot (i)yCalc and remove here.
+  // type scat_data, then put check in (i)yCalc and remove here.
   if( scat_data_checked != 1 )
     throw runtime_error(
       "The scat_data must be flagged to have passed a consistency check"
@@ -1912,19 +1913,28 @@ void iyHybrid2(
       diy_dpath[iq] = 0.0;
     }
     )
-    
-    // FIXME (JM): I think, this needs replacement. we need to use the actual
-    // scat_species, I guess. Check in iyActiveSingleScat what is done there.
-    const ArrayOfString scat_species(0);
-    
+
     get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
                                            jac_wind_i, jac_mag_i, jac_to_integrate, 
                                            jacobian_quantities,
                                            abs_species, scat_species );
     FOR_ANALYTICAL_JACOBIANS_DO( 
-    jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
-    if( jac_to_integrate[iq] == JAC_IS_FLUX )
-      throw std::runtime_error("This method can not perform flux calculations.\n");
+      jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
+      if( jac_to_integrate[iq] == JAC_IS_FLUX )
+        throw std::runtime_error("This method can not perform flux calculations.\n");
+      if( jac_scat_i[iq]+1 )
+      {
+        if( dpnd_field_dx[iq].empty() )
+          throw std::runtime_error("*dpnd_field_dx* not allowed to be empty for"
+                                   " scattering Jacobian species.\n");
+      }
+      // FIXME: should we indeed check for that? remove if it causes issues.
+      else
+      {
+        if( !dpnd_field_dx[iq].empty() )
+          throw std::runtime_error("*dpnd_field_dx* must be empty for"
+                                   " non-scattering Jacobian species.\n");
+      }
     )
     
     if( iy_agenda_call1 )

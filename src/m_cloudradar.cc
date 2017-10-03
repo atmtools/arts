@@ -173,10 +173,24 @@ void iyActiveSingleScat(
                                              jacobian_quantities,
                                              abs_species, scat_species );
       
-      FOR_ANALYTICAL_JACOBIANS_DO(
+      FOR_ANALYTICAL_JACOBIANS_DO( 
         jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
         if( jac_to_integrate[iq] == JAC_IS_FLUX )
-          throw std::runtime_error("This method can not perform flux calculations.\n");
+          throw std::runtime_error("This method can not perform flux"
+                                   " calculations.\n");
+        if( jac_scat_i[iq]+1 )
+        {
+          if( dpnd_field_dx[iq].empty() )
+            throw std::runtime_error("*dpnd_field_dx* not allowed to be empty"
+                                     " for scattering Jacobian species.\n");
+        }
+        // FIXME: should we indeed check for that? remove if it causes issues.
+        else
+        {
+          if( !dpnd_field_dx[iq].empty() )
+            throw std::runtime_error("*dpnd_field_dx* must be empty for"
+                                     " non-scattering Jacobian species.\n");
+        }
       )
 
       if( iy_agenda_call1 )

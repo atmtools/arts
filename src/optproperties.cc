@@ -679,20 +679,20 @@ void interpolate_scat_angle(//Output:
       theta_rad = acos(cos(za_sca_rad) * cos(za_inc_rad) + 
                        sin(za_sca_rad) * sin(za_inc_rad) * 
                        cos(aa_sca_rad - aa_inc_rad));
-   }
-      const Numeric theta = RAD2DEG * theta_rad;
+    }
+  const Numeric theta = RAD2DEG * theta_rad;
       
   // Interpolation of the data on the scattering angle:
  
-      GridPos thet_gp;
-      gridpos(thet_gp, za_datagrid, theta);
+  GridPos thet_gp;
+  gridpos(thet_gp, za_datagrid, theta);
+
+  Vector itw(2);
+  interpweights(itw, thet_gp);
       
-      Vector itw(2);
-      interpweights(itw, thet_gp);
-      
-      for (Index i = 0; i < 6; i++)
-        {
-          pha_mat_int[i] = interp(itw, pha_mat_data(joker, 0, 0, 0, i), 
+  for (Index i = 0; i < 6; i++)
+    {
+      pha_mat_int[i] = interp(itw, pha_mat_data(joker, 0, 0, 0, i), 
                               thet_gp);
     }
 } 
@@ -743,10 +743,7 @@ void pha_mat_labCalc(//Output:
 
   const Index stokes_dim = pha_mat_lab.ncols();
 
-  // For stokes_dim = 1, we only need Z11=F11:
-  pha_mat_lab(0,0) = F11;
-
-  if( isnan(pha_mat_lab(0,0)) )
+  if( isnan(F11) )
     {
       throw runtime_error(
         "NaN value(s) detected in *pha_mat_labCalc* (0,0). Could the "
@@ -758,6 +755,10 @@ void pha_mat_labCalc(//Output:
         "when doing MC calculations, it should not be critical. This path "
         "sampling will be rejected and replaced with a new one." );
     }
+
+  // For stokes_dim = 1, we only need Z11=F11:
+  pha_mat_lab(0,0) = F11;
+
   
   if( stokes_dim > 1 ){
 

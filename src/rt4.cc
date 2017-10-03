@@ -593,8 +593,6 @@ void run_rt4( Workspace& ws,
   // Loop over frequencies
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index ++) 
     {
-      //cout << "\nProcessing freq #" << f_index << "\n";
-
       // Wavelength [um]
       Numeric wavelength;
       wavelength = 1e6*SPEED_OF_LIGHT/f_grid[f_index];
@@ -1080,7 +1078,6 @@ void par_optpropCalc( Tensor4View emis_vector,
   }
   
   StokesVector abs_vec_local(1, stokes_dim);
-  
   PropagationMatrix ext_mat_local(1, stokes_dim);
   
   
@@ -1100,6 +1097,11 @@ void par_optpropCalc( Tensor4View emis_vector,
       for (Index iza=0; iza<2*nummu; iza++)
         {
           //Calculate optical properties for all individual scattering elements:
+          //
+          // FIXME: this might be better done PER scatt element
+          // why?
+          //   - for p20, we only need to extract for 1 angle
+          //   - if T-dimension is 1, we only need to do once for all p-levels
           opt_prop_sptFromScat_data(ext_mat_spt_local, abs_vec_spt_local,
                                     scat_data, 1,
                                     scat_za_grid, aa_dummy, iza, 0, f_index,
@@ -1111,7 +1113,7 @@ void par_optpropCalc( Tensor4View emis_vector,
                             ext_mat_spt_local, abs_vec_spt_local,
                             pnd_field,
                             scat_p_index_local, 0, 0, verbosity);
-          
+
           ext_mat_local.MatrixAtFrequency(ext_vector(scat_p_index_local,iza,joker,joker), 0);
           abs_vec_local.VectorAtFrequency(abs_vector(scat_p_index_local,iza,joker), 0);
         }
@@ -1194,6 +1196,14 @@ void sca_optpropCalc( //Output
                       const Index& auto_inc_nstreams,
                       const Verbosity& verbosity )
 {
+  // FIXME: this whole funtions needs revision/optimization regarding
+  // - temperature dependence (using new-type scat_data)
+  // - using redundancies in sca_mat data at least for totally random
+  //   orientation particles (are there some for az. random, too? like
+  //   upper/lower hemisphere equiv?) - we might at least have a flag
+  //   (transported down from calling function?) whether we deal exclusively
+  //   with totally random orient particles (and then take some shortcuts...)
+
   // FIXME: do we have numerical issues, too, here in case of tiny pnd? check
   // with Patrick's Disort-issue case.
 
@@ -1230,10 +1240,18 @@ void sca_optpropCalc( //Output
 
   Index i_se_flat=0;
   Tensor5 sca_mat(N_se,nza_rt,nza_rt,stokes_dim,stokes_dim, 0.);
+  Matrix ext_fixT_spt(N_se,nza_rt, 0.), abs_fixT_spt(N_se,nza_rt, 0.);
+
+  // Precalculate azimuth integration weights for totally randomly oriented
+  // (they are only determined by pfct_aa_grid_size)
+  Numeric daap20 = 1. / float(pfct_aa_grid_size-1); // 2*180./360./(pfct_aa_grid_size-1)
 
   // first we extract Z at one T, integrate the azimuth data at each
   // za_inc/za_sca combi (to get the Fourier series 0.th mode), then interpolate
   // to the mu/mu' combis we need in RT.
+  //
+  // FIXME: are the stokes component assignments correct? for p20? and p30? (as
+  // they are done differently...)
   for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++)
     {
       for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
@@ -1252,6 +1270,7 @@ void sca_optpropCalc( //Output
             {
               Matrix pha_mat(stokes_dim,stokes_dim, 0.);
               for (Index iza=0; iza<nza_rt; iza++)
+              {
                 for (Index sza=0; sza<nza_rt; sza++)
                   {
                     Matrix pha_mat_int(stokes_dim,stokes_dim, 0.);
@@ -1265,19 +1284,20 @@ void sca_optpropCalc( //Output
                                           sza, saa, iza, 0,
                                           scat_za_grid, aa_grid,
                                           verbosity );
-                        Numeric daa;
-                        if (saa==0)
-                          daa = (aa_grid[saa+1]-aa_grid[saa])/360.;
-                        else if (saa==pfct_aa_grid_size-1)
-                          daa = (aa_grid[saa]-aa_grid[saa-1])/360.;
+
+                        if (saa==0 || saa==pfct_aa_grid_size-1)
+                          pha_mat *= (daap20/2.);
                         else
-                          daa = (aa_grid[saa+1]-aa_grid[saa-1])/360.;
-                        for (Index ist1=0; ist1<stokes_dim; ist1++)
-                          for (Index ist2=0; ist2<stokes_dim; ist2++)
-                            pha_mat_int(ist1,ist2) += pha_mat(ist1,ist2) * daa;
+                          pha_mat *= daap20;
+                        pha_mat_int += pha_mat;
                       }
                     sca_mat(i_se_flat,iza,sza,joker,joker) = pha_mat_int;
                   }
+                ext_fixT_spt(i_se_flat,iza) =
+                  ssd.ext_mat_data(this_f_index, i_pfct, 0, 0, 0);
+                abs_fixT_spt(i_se_flat,iza) =
+                  ssd.abs_vec_data(this_f_index, i_pfct, 0, 0, 0);
+              }
             }
           else if (ssd.ptype == PTYPE_AZIMUTH_RND)
             {
@@ -1288,6 +1308,18 @@ void sca_optpropCalc( //Output
               ConstVectorView aa_datagrid = ssd.aa_grid;
               assert( aa_datagrid[0]==0. );
               assert( aa_datagrid[naa_se-1]==180. );
+              Vector daa(naa_se);
+
+              // Precalculate azimuth integration weights for this azimuthally
+              // randomly oriented scat element
+              // (need to do this per scat element as ssd.aa_grid is scat
+              //  element specific (might change between elements) and need to do
+              //  this on actual grid instead of grid number since the grid can,
+              //  at least theoretically be non-equidistant)
+              daa[0] = (aa_datagrid[0]-aa_datagrid[1])/360.;
+              for (Index saa=1; saa<naa_se-1; saa++)
+                daa[saa] = (aa_datagrid[saa+1]-aa_datagrid[saa-1])/360.;
+              daa[naa_se-1] = (aa_datagrid[naa_se-1]-aa_datagrid[naa_se-2])/360.;
 
               // first, extracting the phase matrix at the scatt elements own
               // polar angle grid, deriving their respective azimuthal (Fourier
@@ -1297,13 +1329,6 @@ void sca_optpropCalc( //Output
                   {
                     for (Index saa=0; saa<naa_se; saa++)
                       {
-                        Numeric daa;
-                        if (saa==0)
-                          daa = (aa_datagrid[saa+1]-aa_datagrid[saa])/360.;
-                        else if (saa==naa_se-1)
-                          daa = (aa_datagrid[saa]-aa_datagrid[saa-1])/360.;
-                        else
-                          daa = (aa_datagrid[saa+1]-aa_datagrid[saa-1])/360.;
                         for (Index ist1=0; ist1<stokes_dim; ist1++)
                           for (Index ist2=0; ist2<stokes_dim; ist2++)
                             pha_mat_int(sza,iza,ist1,ist2) += daa *
@@ -1315,6 +1340,7 @@ void sca_optpropCalc( //Output
               // second, interpolating the extracted azimuthal mode to the RT4
               // solver polar angles
               for (Index iza=0; iza<nza_rt; iza++)
+              {
                 for (Index sza=0; sza<nza_rt; sza++)
                   {
                     GridPos za_sca_gp;
@@ -1340,6 +1366,11 @@ void sca_optpropCalc( //Output
 
                     sca_mat(i_se_flat,iza,sza,joker,joker) = pha_mat_lab;
                   }
+                ext_fixT_spt(i_se_flat,iza) =
+                  ssd.ext_mat_data(this_f_index, i_pfct, iza, 0, 0);
+                abs_fixT_spt(i_se_flat,iza) =
+                  ssd.abs_vec_data(this_f_index, i_pfct, iza, 0, 0);
+              }
             }
           else
             {
@@ -1363,18 +1394,29 @@ void sca_optpropCalc( //Output
              scat_p_index_local < Np_cloud-1; 
              scat_p_index_local ++)
     {
+      Vector ext_fixT(nza_rt, 0.), abs_fixT(nza_rt, 0.);
+
       for (Index i_se = 0; i_se < N_se; i_se++)
         {
           Numeric pnd_mean = 0.5 * ( pnd_field(i_se,scat_p_index_local+1,0,0)+
                                      pnd_field(i_se,scat_p_index_local,0,0) );
-          if ( pnd_mean > 0. )
+          if ( pnd_mean != 0. )
             for (Index iza=0; iza<nummu; iza++)
-              if ( (extinct_matrix(scat_p_index_local,0,iza,0,0)+
-                    extinct_matrix(scat_p_index_local,1,iza,0,0)) > 0. )
-                for (Index sza=0; sza<nummu; sza++)
+            {
+              // JM171003: not clear to me anymore why this check. if pnd_mean
+              // is non-zero, then extinction should also be non-zero by
+              // default?
+              //if ( (extinct_matrix(scat_p_index_local,0,iza,0,0)+
+              //      extinct_matrix(scat_p_index_local,1,iza,0,0)) > 0. )
+              for (Index sza=0; sza<nummu; sza++)
+                {
                   for (Index ist1=0; ist1<stokes_dim; ist1++)
                     for (Index ist2=0; ist2<stokes_dim; ist2++)
                     {
+                      // we can't use stokes_dim jokers here since '*' doesn't
+                      // exist for Num*MatView. Also, order of stokes matrix
+                      // dimensions is inverted here (aka scat matrix is
+                      // transposed).
                       scatter_matrix(scat_p_index_local,0,iza,ist2,sza,ist1) +=
                         pnd_mean * sca_mat(i_se,iza,sza,ist1,ist2);
                       scatter_matrix(scat_p_index_local,1,iza,ist2,sza,ist1) +=
@@ -1384,16 +1426,29 @@ void sca_optpropCalc( //Output
                       scatter_matrix(scat_p_index_local,3,iza,ist2,sza,ist1) +=
                         pnd_mean * sca_mat(i_se,nummu+iza,nummu+sza,ist1,ist2);
                     }
+                }
+
+              ext_fixT[iza] += pnd_mean * ext_fixT_spt(i_se,iza);
+              abs_fixT[iza] += pnd_mean * abs_fixT_spt(i_se,iza);
+            }
         }
+
       for (Index iza=0; iza<nummu; iza++)
       {
         for (Index ih=0; ih<2; ih++)
+        {
           if ( extinct_matrix(scat_p_index_local,ih,iza,0,0) > 0. )
             {
               Numeric sca_mat_integ = 0.;
 
-              Numeric ext_nom = extinct_matrix(scat_p_index_local,ih,iza,0,0);
-              Numeric sca_nom = ext_nom-emis_vector(scat_p_index_local,ih,iza,0);
+              // We need to calculate the nominal values for the fixed T, we
+              // used above in the pha_mat extraction. Only this tell us whether
+              // angular resulotion is sufficient.
+              //
+              //Numeric ext_nom = extinct_matrix(scat_p_index_local,ih,iza,0,0);
+              //Numeric sca_nom = ext_nom-emis_vector(scat_p_index_local,ih,iza,0);
+              Numeric ext_nom = ext_fixT[iza];
+              Numeric sca_nom = ext_nom-abs_fixT[iza];
               Numeric w0_nom = sca_nom/ext_nom;
               assert( w0_nom>=0. );
 
@@ -1409,13 +1464,26 @@ void sca_optpropCalc( //Output
 
               // compare integrated scatt matrix with ext-abs for respective
               // incident polar angle - consistently with scat_dataCheck, we do
-              // this in trms of albedo deviation (since PFCT deviations at
+              // this in terms of albedo deviation (since PFCT deviations at
               // small albedos matter less than those at high albedos)
 //            SUM1 = EMIS_VECTOR(1,J1,L,TSL)-EXTINCT_MATRIX(1,1,J1,L,TSL)
-              Numeric pfct_norm = 2.*PI*sca_mat_integ / sca_nom;
               Numeric w0_act = 2.*PI*sca_mat_integ / ext_nom;
+              Numeric pfct_norm = 2.*PI*sca_mat_integ / sca_nom;
               //cout << "sca_mat norm deviates " << 1e2*abs(1.-pfct_norm) << "%"
               //     << " (" << abs(w0_act-w0_nom) << " in albedo).\n";
+
+              Numeric sca_nom_paropt =
+                extinct_matrix(scat_p_index_local,ih,iza,0,0) -
+                emis_vector(scat_p_index_local,ih,iza,0);
+              //Numeric w0_nom_paropt = sca_nom_paropt /
+              //  extinct_matrix(scat_p_index_local,ih,iza,0,0);
+              //cout << "scat_p=" << scat_p_index_local
+              //     << ", iza=" << iza << ", hem=" << ih << "\n";
+              //cout << "  scaopt (paropt) w0_act= " << w0_act
+              //     << ", w0_nom = " << w0_nom
+              //     << " (" << w0_nom_paropt
+              //     << "), diff=" << w0_act-w0_nom
+              //     << " (" << w0_nom-w0_nom_paropt << ").\n";
 
               if (abs(w0_act-w0_nom) > pfct_threshold)
               {
@@ -1442,7 +1510,8 @@ void sca_optpropCalc( //Output
                   }
                 }
               }
-              else if (abs(w0_act-w0_nom) > pfct_threshold*0.1 || abs(1.-pfct_norm) > 1e-2)
+              else if (abs(w0_act-w0_nom) > pfct_threshold*0.1 ||
+                       abs(1.-pfct_norm) > 1e-2)
               {
                 CREATE_OUT2;
                 out2 << "Warning: The bulk scattering matrix is not well normalized\n"
@@ -1452,15 +1521,26 @@ void sca_optpropCalc( //Output
               }
               // rescale scattering matrix to expected (0,0) value (and scale all
               // other elements accordingly)
+              //
+              // However, here we should not use the pfct_norm based on the
+              // deviation from the fixed-temperature ext and abs. Instead, for
+              // energy conservation reasons, this needs to be consistent with
+              // extinct_matrix and emis_vector. Hence, recalculate pfct_norm
+              // from them.
+              //cout << "  scaopt (paropt) pfct_norm dev = " << 1e2*pfct_norm-1e2;
+              pfct_norm = 2.*PI*sca_mat_integ / sca_nom_paropt;
+              //cout << " (" << 1e2*pfct_norm-1e2 << ")%.\n";
+              //
               // FIXME: not fully clear whether applying the same rescaling
-              // factor is the correct way to do. check out, e.g., Vasilieva
-              // (JQSRT 2006) for better approaches.
+              // factor to all stokes elements is the correct way to do. check
+              // out, e.g., Vasilieva (JQSRT 2006) for better approaches.
               scatter_matrix(scat_p_index_local,ih,iza,joker,joker,joker) /=
                 pfct_norm;
               scatter_matrix(scat_p_index_local,ih+2,iza,joker,joker,joker) /=
                 pfct_norm;
               //if (scat_p_index_local==49)
             }
+        }
       }
     }
 }
