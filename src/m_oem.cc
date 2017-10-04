@@ -384,7 +384,7 @@ void xaStandard(
               if( particle_bulkprop_field.nbooks() != particle_bulkprop_names.nelem() )
                 {
                   throw runtime_error( "Mismatch in size between "
-                    "*particle_bulkprop_field* and *particle_bulkprop_field*." );
+                    "*particle_bulkprop_field* and *particle_bulkprop_names*." );
                 }
 
               const Index isp = find_first( particle_bulkprop_names,

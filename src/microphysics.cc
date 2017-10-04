@@ -3328,10 +3328,12 @@ void psd_rain_W16 ( Vector& psd,
   Numeric c1 = DENSITY_OF_WATER * PI / 6;
   Numeric base = c1 / rwc * a * tgamma(4);
   Numeric exponent = 1. / (4 - b);
-  Numeric lambda = 1e2 * pow( base, exponent );
-  Numeric N0 = 1e8 * a * pow( lambda, b );
+  Numeric lambda = pow( base, exponent );
+  Numeric N0 = a * pow( lambda, b );
 
   //psd_general_MGD( psd, N0, 0, lambda, 1 );
+  N0     *= 1e8;
+  lambda *= 100;
   for( Index iD=0; iD<nD; iD++ )
     {
       psd[iD] = N0 * exp( -lambda*diameter[iD] );

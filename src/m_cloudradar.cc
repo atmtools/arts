@@ -420,9 +420,31 @@ void iyActiveSingleScat(
               else
                 {
                   // Here we need the matrix per scattering element. 
-                  // We extract data for pnd=1.
+                  // We extract data for pnd=1 (but only when either
+                  // ppath_pnd or ppath_dpnd_dx is non-zero
                   //
-                  Vector pnd_probe(nsetot); pnd_probe = 1;
+                  Vector pnd_probe(nsetot,0);
+                  for( Index i=0; i<nsetot; i++ )
+                    {
+                      if( ppath_pnd(i,ip) != 0 )
+                        {
+                          pnd_probe[i] = 1;
+                        }
+                      else
+                        {
+                          for( Index iq=0; iq<nq && !pnd_probe[i]; iq++ ) 
+                            {
+                              if( jac_scat_i[iq] >= 0 )
+                                {
+                                  if( ppath_dpnd_dx[iq](i,ip) != 0 )
+                                    {
+                                      pnd_probe[i] = 1;
+                                      break;
+                                    }
+                                }
+                            }
+                        }
+                    }
                   //
                   pha_mat_singleCalcScatElement( Pe, los_sca[0], los_sca[1],
                                                  los_inc[0], los_inc[1],
@@ -466,7 +488,7 @@ void iyActiveSingleScat(
                               // Change of scattering scattering matrix
                               P = 0.0;
                               for( Index i=0; i<nsetot; i++ ) {
-                                if( ppath_pnd(i,ip) != 0 ) {
+                                if( ppath_dpnd_dx[iq](i,ip) != 0 ) {
                                   for( Index is1=0; is1<ns; is1++ ) {
                                     for( Index is2=0; is2<ns; is2++ )
                                       { P(is1,is2) += ppath_dpnd_dx[iq](i,ip) *
