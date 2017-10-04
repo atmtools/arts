@@ -1615,23 +1615,27 @@ void get_diydx(VectorView diy1,
   /*
    * Solves 
    * 
-   * diy1 = PiT [ dT1 iYmJ + (1-T) dJ1 ]
+   * diy1 = PiT [ dT1 iYmJ + (1-T) dJ1 ],
    * 
    * and
    * 
    * diy2 += PiT [ dT2 iYmJ + (1-T) dJ2 ],
    * 
-   * where diy2 is diy1 from a different layer
+   * where diy2 is diy1 from a prior layer
    * 
    * FIXME:  Needs HSE
   */
+  
+  // Computation vectors
   Vector a(stokes_dim), b(stokes_dim);
   
+  // The first time a level is involved in a layer
   mult(a, dT1, iYmJ);
   mult(b, ImT, dJ1);
   a += b;
   mult(diy1, cumulative_transmission, a);
   
+  // The second time a level is involved in a layer
   mult(a, dT2, iYmJ);
   mult(b, ImT, dJ2);
   a += b;

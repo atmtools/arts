@@ -2201,19 +2201,19 @@ void iyHybrid2(
         through_level = iy(iv, joker);
         through_level -= from_level;
         
-        for(Index iq = 0; iq < nq; iq++)
-        { 
-          get_diydx(diy_dpath[iq](ip, iv, joker), 
-                    diy_dpath[iq](ip+1, iv, joker), 
-                    one_minus_transmission,
-                    trans_cumulat(ip, iv, joker, joker), 
-                    dtrans_partial_dx_above(ip+1, iq, iv, joker, joker), 
-                    dtrans_partial_dx_below(ip+1, iq, iv, joker, joker), 
-                    through_level, 
-                    dJ_dx(ip, iq, iv, joker), 
-                    dJ_dx(ip+1, iq, iv, joker),
-                    stokes_dim);
-        }
+        FOR_ANALYTICAL_JACOBIANS_DO
+        (
+            get_diydx(diy_dpath[iq](ip, iv, joker), 
+                      diy_dpath[iq](ip+1, iv, joker), 
+                      one_minus_transmission,
+                      trans_cumulat(ip, iv, joker, joker), 
+                      dtrans_partial_dx_above(ip+1, iq, iv, joker, joker), 
+                      dtrans_partial_dx_below(ip+1, iq, iv, joker, joker), 
+                      through_level, 
+                      dJ_dx(ip, iq, iv, joker), 
+                      dJ_dx(ip+1, iq, iv, joker),
+                      stokes_dim);
+        )
         
         // Equation is I1 = T (I0 - 0.5(J_1+J_2)) + 0.5(J_1+J_2)
         mult(iy(iv, joker), T, through_level);

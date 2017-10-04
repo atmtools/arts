@@ -1,3 +1,11 @@
+2017-10-04 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-816
+	
+	* src/m_fox.cc:  Should now work with sensor jacobians
+	
+	* src/jacobian.cc:  Updated some comments
+
 2017-10-03  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-815
