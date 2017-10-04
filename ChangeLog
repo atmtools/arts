@@ -1,3 +1,16 @@
+2017-10-03  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-815
+
+	* src/m_oem.cc (x2artsStandard, xaStandard)
+	- Added conversion for wind components
+
+	* src/methods.cc (x2artsStandard, xaStandard)
+	- Added wind fields to arguments
+
+	* src/special_interp.cc(regrid_atmfield_by_gp)
+	- Fixed if statement for 3D atmosphere
+
 2017-10-03 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-814
@@ -39,7 +52,7 @@
 	controlfiles/artscomponents/montecarlo/TestRteCalcMC.arts:
 	Remove now redundant dpnd_field_dx initialization.
 
-2017-10-03  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se	>
+2017-10-03  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-813
 

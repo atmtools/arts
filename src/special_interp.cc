@@ -580,7 +580,7 @@ void regrid_atmfield_by_gp(
       interpweights( itw, gp_p, gp_lat );
       interp( field_new(joker,joker,0), itw, field_old(joker,joker,0), gp_p, gp_lat ); 
     }
-  else if( atmosphere_dim == 2 )
+  else if( atmosphere_dim == 3 )
     {
       const Index n2 = gp_lat.nelem();
       const Index n3 = gp_lon.nelem();

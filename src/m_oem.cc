@@ -267,6 +267,9 @@ void xaStandard(
    const Index&                      cloudbox_checked,
    const Tensor4&                    particle_bulkprop_field,
    const ArrayOfString&              particle_bulkprop_names,
+   const Tensor3&                    wind_u_field,
+   const Tensor3&                    wind_v_field,
+   const Tensor3&                    wind_w_field,
    const Verbosity&)
 {
   // Basics
@@ -409,6 +412,27 @@ void xaStandard(
             { xa[ind] = 0; }
         }
 
+      // Wind
+      else if( jq[q].MainTag() == WIND_MAINTAG)
+      {
+          ConstTensor3View source_field(wind_u_field);
+          if (jq[q].Subtag() == "v") {
+              source_field = wind_v_field;
+          } else if (jq[q].Subtag() == "w") {
+              source_field = wind_w_field;
+          }
+
+          // Determine grid positions for interpolation from retrieval grids back
+          // to atmospheric grids
+          ArrayOfGridPos gp_p, gp_lat, gp_lon;
+          get_gp_atmgrids_to_rq(gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
+                                p_grid, lat_grid, lon_grid);
+
+          Tensor3 wind_x(gp_p.nelem(), gp_lat.nelem(), gp_lon.nelem());
+          regrid_atmfield_by_gp(wind_x, atmosphere_dim, source_field,
+                                gp_p, gp_lat, gp_lon);
+          flat(xa[ind], wind_x);
+      }
       // All variables having zero as a priori
       // ----------------------------------------------------------------------------
       else if( jq[q].MainTag() == POINTING_MAINTAG ||
@@ -436,6 +460,9 @@ void x2artsStandard(
          Tensor3&                    t_field,
          Tensor4&                    particle_bulkprop_field,
          Matrix&                     sensor_los,
+         Tensor3&                    wind_u_field,
+         Tensor3&                    wind_v_field,
+         Tensor3&                    wind_w_field,
    const Index&                      atmfields_checked,
    const Index&                      atmgeom_checked,
    const ArrayOfRetrievalQuantity&   jq,
@@ -705,8 +732,34 @@ void x2artsStandard(
                               sensor_response_dlos_grid, jq[q], q, ji);
           }
       }
+      // Wind
+      // ----------------------------------------------------------------------------
+      else if( jq[q].MainTag() == WIND_MAINTAG)
+      {
+          // Determine grid positions for interpolation from retrieval grids back
+          // to atmospheric grids
+          ArrayOfGridPos gp_p, gp_lat, gp_lon;
+          Index          n_p, n_lat, n_lon;
+          get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
+                                 jq[q], atmosphere_dim, p_grid, lat_grid, lon_grid );
 
+          // TODO Could be done without copying.
+          Tensor3 wind_x(n_p, n_lat, n_lon);
+          reshape(wind_x, x_t[ind]);
 
+          Tensor3View target_field(wind_u_field);
+          if (jq[q].Subtag() == "v") {
+              target_field = wind_v_field;
+          } else if (jq[q].Subtag() == "w") {
+              target_field = wind_w_field;
+          }
+
+          Tensor3 wind_field(target_field.npages(), target_field.nrows(),
+                             target_field.ncols());
+          regrid_atmfield_by_gp(wind_field, atmosphere_dim, wind_x,
+                                 gp_p, gp_lat, gp_lon);
+          target_field = wind_field;
+      }
       // Or we have to throw an error
       // ----------------------------------------------------------------------------
       else
