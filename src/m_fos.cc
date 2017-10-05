@@ -2052,8 +2052,8 @@ void iyHybrid2(
       
         a += K_this;  // a (and da_dx) is initialized in get_stepwise_scattersky_propmat
         K_this += Kp; // K_this  (and dK_this_dx) is initialized in get_stepwise_clearsky_propmat
-        for( Index iq = 0; iq < nq; iq++ )
-        {
+        FOR_ANALYTICAL_JACOBIANS_DO
+        (
           // da_dx and dKp_dx are initialized in get_stepwise_scattersky_propmat,
           // dK_this_dx in get_stepwise_clearsky_propmat.
           // iq entries can be set through .SetZero, though, which makes adding
@@ -2077,7 +2077,7 @@ void iyHybrid2(
           }
           // else                             // dKp_dx unset
           // nothing to update
-        }
+        )
 
         get_stepwise_scattersky_source(Sp, dSp_dx,
                                        ppath_pnd(joker, ip),
@@ -2094,8 +2094,8 @@ void iyHybrid2(
                                        atmosphere_dim,
                                        verbosity);
         S += Sp;  // S (and dS_dx) is initialized in get_stepwise_clearsky_propmat
-        for( Index iq = 0; iq < nq; iq++ )
-        {
+        FOR_ANALYTICAL_JACOBIANS_DO
+        (
           if ( not dSp_dx[iq].IsEmpty() )     // dSp_dx set
           {
             if( dS_dx[iq].IsEmpty() ) 
@@ -2105,14 +2105,15 @@ void iyHybrid2(
           }
           // else                             // dSp_dx unset
           // nothing to update
-        }
+        )
       }
       else // no particles present at this level
       {
         a = K_this;
-        for( Index iq = 0; iq < nq; iq++ ) // we can only assign a PropMat to a
+        FOR_ANALYTICAL_JACOBIANS_DO
+        (                                  // we can only assign a PropMat to a
           da_dx[iq] = dK_this_dx[iq];      // StokesVec, not full ArrayOf to
-                                           // each other
+        )                                  // each other
 
         // nothing to do for (d)K_this(_dx) and (d)S(_dx) as they are filled
         // already by get_stepwise_clearsky_propmat.
