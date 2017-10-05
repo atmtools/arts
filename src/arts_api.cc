@@ -477,6 +477,16 @@ const char * set_variable_value(InteractiveWorkspace *workspace,
                                         value.dimensions[1],
                                         value.dimensions[2],
                                         ptr);
+    }
+    // Tensor4
+    else if (wsv_group_names[group_id] == "Tensor4") {
+      const Numeric * ptr = reinterpret_cast<const Numeric *>(value.ptr);
+      workspace->set_tensor4_variable(id,
+                                      value.dimensions[0],
+                                      value.dimensions[1],
+                                      value.dimensions[2],
+                                      value.dimensions[3],
+                                      ptr);
     } else {
         *error_buffer = std::string("This variable can currently not be set through the C API."
                                     " Signal your need to ARTS dev mailing list.");

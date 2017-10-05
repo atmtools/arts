@@ -157,6 +157,20 @@ void InteractiveWorkspace::set_tensor3_variable(Index id,
     }
 }
 
+void InteractiveWorkspace::set_tensor4_variable(Index id,
+                                                size_t k,
+                                                size_t l,
+                                                size_t m,
+                                                size_t n,
+                                                const Numeric *src)
+{
+  Tensor4 *dst = reinterpret_cast<Tensor4*>(this->operator[](id));
+  dst->resize(k, l, m, n);
+  for (size_t i = 0; i < k * l * n * m; ++i) {
+    dst->get_c_array()[i] = src[i];
+  }
+}
+
 void InteractiveWorkspace::resize()
 {
     Array<stack<WsvStruct *>> ws_new(wsv_data.nelem());
