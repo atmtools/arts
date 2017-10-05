@@ -1,3 +1,31 @@
+2017-10-05 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-820
+
+	* src/m_fos.cc (iyHybrid2):
+	Initialize jacobian containers properly. Makes plenty of the former
+	issues go away. Removed the IsEmpty checks accordingly.
+
+	* src/rte.[cc,h] (get_stepwise_scattersky_propmat,
+	get_stepwise_scattersky_source):
+	Use FOR_ANALYTICAL_JACOBIANS_DO instead of blindly looping over jacobian
+	dimension.
+
+	* src/m_append.h, methods.cc (Append):
+	Added Tensor3-to-Tensor4 append flavour.
+
+	* controlfiles/artscomponents/wfuns/TestWfuns.arts:
+	Write out instrumental jacobians.
+
+	* controlfiles/artscomponents/wfuns/TestWfunsHybClear.arts:
+	Switch on instrumental jacobians and test vs. TestWfuns.arts results.
+
+	* controlfiles/artscomponents/wfuns/TestWfunsHybCloudy.arts:
+	Added. Work in progress.
+
+	* controlfiles/artscomponents/wfuns/TestDoitJacobians.arts:
+	Minor clean up.
+
 2017-10-05 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-819
@@ -39,13 +67,13 @@
 
 	* arts-2-3-815
 
-	* src/m_oem.cc (x2artsStandard, xaStandard)
+	* src/m_oem.cc (x2artsStandard, xaStandard):
 	- Added conversion for wind components
 
-	* src/methods.cc (x2artsStandard, xaStandard)
+	* src/methods.cc (x2artsStandard, xaStandard):
 	- Added wind fields to arguments
 
-	* src/special_interp.cc(regrid_atmfield_by_gp)
+	* src/special_interp.cc(regrid_atmfield_by_gp):
 	- Fixed if statement for 3D atmosphere
 
 2017-10-03 Jana Mendrok  <jana.mendrok@chalmers.se>

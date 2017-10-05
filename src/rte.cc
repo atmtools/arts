@@ -4886,6 +4886,7 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
                                      PropagationMatrix& Kp,
                                      ArrayOfStokesVector& dap_dx,
                                      ArrayOfPropagationMatrix& dKp_dx,
+                                     const ArrayOfRetrievalQuantity& jacobian_quantities,
                                      ConstVectorView ppath_1p_pnd,       // the ppath_pnd at this ppath point
                                      const ArrayOfMatrix& ppath_dpnd_dx, // the full ppath_dpnd_dx, ie all ppath points
                                      const Index ppath_1p_id,
@@ -4896,9 +4897,11 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
                                      const Verbosity& verbosity)
 {
   const Index nf = Kp.NumberOfFrequencies(),
-              stokes_dim = Kp.StokesDimensions(),
-              nq = ppath_dpnd_dx.nelem();
-    
+              stokes_dim = Kp.StokesDimensions();
+
+  //StokesVector da_aux(nf, stokes_dim);
+  //PropagationMatrix dK_aux(nf, stokes_dim);
+
   ArrayOfArrayOfSingleScatteringData scat_data_mono;
 
   // Direction of outgoing scattered radiation (which is reversed to
@@ -4908,19 +4911,20 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
   mirror_los(rtp_los2, ppath_line_of_sight, atmosphere_dim);
 
   // Preparing empty derivative containers for non-pnd-affecting x.
-  // This here as we don't want to SetSero each freq entry separately.
+  // This here as we don't want to SetZero each freq entry separately.
   // On the other hand, we want the freq loop as outer loop for pnd-affecting
   // x since then we need to extract the scat_data_mono only once.
-  // Don't need to check do_jacobian here as nq should be 0 is do_jacobian is
-  // false.
-  for( Index iq = 0; iq < nq; iq++ )
-  {
+  FOR_ANALYTICAL_JACOBIANS_DO
+  (
+  //for( Index iq = 0; iq < nq; iq++ )
+  //{
     if( ppath_dpnd_dx[iq].empty() )
     {
       dap_dx[iq].SetZero();
       dKp_dx[iq].SetZero();
     }
-  }
+  //}
+  )
 
   for( Index iv = 0; iv < nf; iv++ )
   {
@@ -4935,8 +4939,10 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
     ap.SetAtFrequency(iv, abs_vec);
     Kp.SetAtFrequency(iv, ext_mat);
 
-    for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
-    {
+    FOR_ANALYTICAL_JACOBIANS_DO
+    (
+    //for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
+    //{
       // check first, whether we have any non-zero ppath_dpnd_dx in this
       // pnd-affecting x? might speed up things. specifically when we have
       // more than one scat species.
@@ -4953,8 +4959,13 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
                      ppath_temperature, verbosity);
         dap_dx[iq].SetAtFrequency(iv, abs_vec);
         dKp_dx[iq].SetAtFrequency(iv, ext_mat);
+        //da_aux.SetAtFrequency(iv, abs_vec);
+        //dK_aux.SetAtFrequency(iv, ext_mat);
+        //dap_dx[iq] = da_aux;;
+        //dKp_dx[iq] = dK_aux;
       }
-    }
+    //}
+    )
   }
 }
 
@@ -4973,6 +4984,7 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
  */
 void get_stepwise_scattersky_source(StokesVector& Sp,
                                     ArrayOfStokesVector& dSp_dx,
+                                    const ArrayOfRetrievalQuantity& jacobian_quantities,
                                     ConstVectorView ppath_1p_pnd,       // the ppath_pnd at this ppath point
                                     const ArrayOfMatrix& ppath_dpnd_dx, // the full ppath_dpnd_dx, ie all ppath points
                                     const Index ppath_1p_id,
@@ -4988,16 +5000,13 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
                                     const Verbosity& verbosity)
 {
   const Index nf = Sp.NumberOfFrequencies(),
-              stokes_dim = Sp.StokesDimensions(),
-              nq = ppath_dpnd_dx.nelem();
+              stokes_dim = Sp.StokesDimensions();
   const Index ne = ppath_1p_pnd.nelem();
   assert( TotalNumberOfElements(scat_data) == ne );
   const Index nza = scat_za_grid.nelem();
   const Index naa = scat_aa_grid.nelem();
 
-  //ArrayOfStokesVector scat_source_1se(ne);
-  //for(auto& sv : scat_source_1se)
-  //  sv = StokesVector(nf, stokes_dim);
+  //StokesVector dS_aux(nf, stokes_dim);
   Matrix scat_source_1se(stokes_dim, ne, 0.);
 
   // determine p/z-interp weights for this ppath point
@@ -5046,7 +5055,9 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
   interpweights( itw_iza, gp_iza ); 
 
   Tensor4 pndT4(ne, 1, 1, 1, 1.);
-  if ( nq ) // switch(ed) off for debugging
+  Index j_analytical_do=0;
+  FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; )
+  if ( j_analytical_do ) // switch(ed) off for debugging
     pndT4(joker, 0, 0, 0) = ppath_1p_pnd;
 
   for( Index f_index = 0; f_index < nf; f_index++ )
@@ -5117,8 +5128,10 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
     }
     Sp.SetAtFrequency(f_index, scat_source);
 
-    for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
-    {
+    FOR_ANALYTICAL_JACOBIANS_DO
+    (
+    //for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
+    //{
       // check first, whether we have any non-zero ppath_dpnd_dx in this
       // pnd-affecting x? might speed up things. specifically when we have
       // more than one scat species.
@@ -5131,7 +5144,10 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
                          ppath_dpnd_dx[iq](ise_flat, ppath_1p_id);
         }
         dSp_dx[iq].SetAtFrequency(f_index, scat_source);
+        //dS_aux.SetAtFrequency(f_index, scat_source);
+        //dSp_dx[iq] = dS_aux;
       }
-    }
+    //}
+    )
   } // freq loop
 }

@@ -265,8 +265,8 @@ jacobianClose
 yCalc
 Copy( Jp, jacobian )
 
-#WriteXML( "ascii", Ja, "J_pointing_analytical.xml" )
-#WriteXML( "ascii", Jp, "J_pointing_perturbation.xml" )
+#WriteXML( "ascii", Ja, "J_pointing_recalc.xml" )
+#WriteXML( "ascii", Jp, "J_pointing_interp.xml" )
 
 # Compare (Note that the WF is for 1 deg change, corresponding to about
 # 60 km change in tangent altitude, and 10 K/deg accuracy is OK)
@@ -325,7 +325,7 @@ jacobianClose
 IndexSet( abs_f_interp_order, 1 )
 yCalc
 #WriteXML( in=y, filename="y_Other.xml" )
-#WriteXML( in=jacobian, filename="J_Other.xml" )
+WriteXML( in=jacobian, filename="J_Other.xml" )
 
 
 ##############################################################################

@@ -552,6 +552,7 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
                                      PropagationMatrix& Kp,
                                      ArrayOfStokesVector& dap_dx,
                                      ArrayOfPropagationMatrix& dKp_dx,
+                                     const ArrayOfRetrievalQuantity& jacobian_quantities,
                                      ConstVectorView ppath_1p_pnd,       // the ppath_pnd at this ppath point
                                      const ArrayOfMatrix& ppath_dpnd_dx, // the full ppath_dpnd_dx, ie all ppath points
                                      const Index ppath_1p_id,
@@ -563,6 +564,7 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
 
 void get_stepwise_scattersky_source(StokesVector& Sp,
                                     ArrayOfStokesVector& dSp_dx,
+                                    const ArrayOfRetrievalQuantity& jacobian_quantities,
                                     ConstVectorView ppath_1p_pnd,       // the ppath_pnd at this ppath point
                                     const ArrayOfMatrix& ppath_dpnd_dx, // the full ppath_dpnd_dx, ie all ppath points
                                     const Index ppath_1p_id,

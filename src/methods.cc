@@ -2346,13 +2346,21 @@ void define_md_data_raw()
         AUTHORS( "Stefan Buehler, Oliver Lemke" ),
         OUT(),
         GOUT( "out" ),
-        GOUT_TYPE( "Vector, Vector, Matrix, Matrix, Tensor3, Tensor3, Tensor4, String, " +
+        GOUT_TYPE( "Vector, Vector,"
+                   "Matrix, Matrix,"
+                   "Tensor3, Tensor3,"
+                   "Tensor4, Tensor4,"
+                   "String, " +
                    ARRAY_GROUPS + ", " + ARRAY_GROUPS_WITH_BASETYPE ),
         GOUT_DESC( "The variable to append to." ),
         IN(),
         GIN( "in",
              "dimension" ),
-        GIN_TYPE( "Numeric, Vector, Matrix, Vector, Matrix, Tensor3, Tensor4, String, " +
+        GIN_TYPE( "Numeric, Vector,"
+                  "Matrix, Vector,"
+                  "Matrix, Tensor3,"
+                  "Tensor3, Tensor4,"
+                  "String, " +
                   ARRAY_GROUPS + "," + GROUPS_WITH_ARRAY_TYPE,
                   "String" ),
         GIN_DEFAULT( NODEF,

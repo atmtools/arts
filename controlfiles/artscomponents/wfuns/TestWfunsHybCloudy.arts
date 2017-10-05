@@ -1,12 +1,14 @@
-# This controlfile demonstrates the calculation of Jacobians under cloudy
-# conditions using the scattering module DOIT.
+#DEFINITIONS:  -*-sh-*-
 #
-# It is based on TestDoitBatch, but has been slightly adapted in certain
-# RT parameters. The Jacobian calculation control parameters are set in
-# section 2 (around l.130-160).
+# This is a test of weighting function calculations under cloudy conditions
+# using iyHybrid with background field from RT4 calculations.
+#
+# The setup is as far as possible equivalent to TestDoitJacobians.arts in the
+# same folder, but using yCalc with iyHybrid in the iy_main_agenda in place of
+# the jacobianDoit WSM.
 #
 # Author: Jana Mendrok
-# 
+
 
 Arts2{
 # include general settings
@@ -21,12 +23,23 @@ INCLUDE "general/planet_earth.arts"
 
 # Preparing  a bunch of required agendas
 Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+#Copy( iy_main_agenda, iy_main_agenda__Emission )
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
+AgendaCreate( iy_main_agenda__Hybrid )
+AgendaSet( iy_main_agenda__Hybrid ){
+  Ignore( t_nlte_field )
+  Ignore( iy_id )
+  iyHybrid2
+}
+AgendaSet( doit_i_field_agenda ){
+  RT4Calc #( pfct_aa_grid_size=28, nstreams=36 ) # sufficient to make Z-norm accurate
+                                                 # enough for monodisperse 1cm raindrop
+}
+VectorCreate( yref )
 
 output_file_formatSetAscii
 
@@ -47,7 +60,8 @@ MatrixSetConstant( sensor_pos, nrows, ncols, 600e3 )
 sensorOff
 
 
-ReadXML( batch_atm_fields_compact, "testdata/chevallierl91_all_extract.xml" )
+ReadXML( batch_atm_fields_compact, "chevallierl91_all_extract_RWC.xml" )
+#ReadXML( batch_atm_fields_compact, "testdata/chevallierl91_all_extract.xml" )
 batch_atm_fields_compactAddConstant( name="abs_species-O2", value=0.2095 )
 batch_atm_fields_compactAddConstant( name="abs_species-N2", value=0.7808 )
 
@@ -65,29 +79,53 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 ScatSpeciesInit
 
 scat_speciesSet(scat_tags=[
-                    "LWC-MGD_LWC",
-                    "IWC-MGD_IWC",
-                    "RR-MP48"
+#                    "LWC-MGD_LWC",
+#                    "IWC-MGD_IWC",
+                    "RR-W16"
 #                    "SR-F07TR"
 ])
 
+# Microphysics
+ArrayOfStringSet( pnd_agenda_input_names, [ "RWC" ] ) # parameters of this PSD.
+                                                      # can be multiple (T not to
+                                                      # appear here; is passed
+                                                      # anyways).
+Append( pnd_agenda_array_input_names, pnd_agenda_input_names )
+ArrayOfAgendaAppend( pnd_agenda_array ){
+  pnd_size_gridFromScatMeta( scat_index=agenda_array_index, unit="dveq" )
+  Copy( psd_size_grid, pnd_size_grid )
+  psdW16( t_min=258 ) # t-limits modified for consistency with
+                      # pnd_fieldCalcFromscat_speciesFields interface
+                      # to W16, which has no t-limits at all (but scat_data
+                      # allow T down to 210K at most. hence, t_min=0 doesn't
+                      # work either.)
+                      # semi-sensible setting that is still consistent with
+                      # pnd_fieldCalcFromscat_speciesFields:
+                      # allowing supercooled rain drops down to -15C
+  pndFromPsd( scat_index=agenda_array_index )
+  #pndAdjustFromScatMeta( scat_index=agenda_array_index, pnd_agenda_input_tag="RWC" )
+}
+
 ArrayOfStringCreate( scat_data_files )
+#ReadXML( scat_data_files, "scattering/H2O_liquid/SingleScatteringFile_allH2Oliquid.xml" )
+#ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
+#ReadXML( scat_data_files, "scattering/H2O_ice/SingleScatteringFile_allH2Oice.xml" )
+#ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
 ReadXML( scat_data_files, "scattering/H2O_liquid/SingleScatteringFile_allH2Oliquid.xml" )
 ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
-ReadXML( scat_data_files, "scattering/H2O_ice/SingleScatteringFile_allH2Oice.xml" )
-ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
-ReadXML( scat_data_files, "scattering/H2O_liquid/SingleScatteringFile_allH2Oliquid.xml" )
-ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
-ScatElementsSelect( scat_data=scat_data_raw, species="LWC", sizeparam="diameter_volume_equ",
-                    sizemin=0.1e-6, sizemax=2000e-6 )
-ScatElementsSelect( scat_data=scat_data_raw, species="IWC", sizeparam="diameter_volume_equ",
-                    sizemin=0.1e-6, sizemax=2000e-6 )
+#ScatElementsSelect( scat_data=scat_data_raw, species="LWC", sizeparam="diameter_volume_equ",
+#                    sizemin=0.1e-6, sizemax=2000e-6 )
+#ScatElementsSelect( scat_data=scat_data_raw, species="IWC", sizeparam="diameter_volume_equ",
+#                    sizemin=0.1e-6, sizemax=2000e-6 )
 #ScatElementsSelect( scat_data=scat_data_raw, species="RR", sizeparam="diameter_volume_equ" )
 #ScatElementsSelect( scat_data=scat_data_raw, species="SR", sizeparam="diameter_volume_equ" )
+#scat_dataCheck( scat_data=scat_data_raw )
 
+scat_dataCalc
+#scat_dataCheck( sca_mat_threshold=8e-3 )
+scat_data_checkedCalc
 
 doit_za_interpSet( doit_za_interp, atmosphere_dim, "linear" )
-DOAngularGridsSet( N_aa_grid=19, N_za_grid=37 )
 
 
 
@@ -130,7 +168,7 @@ AgendaSet( doit_mono_agenda ){
 
 
 ######################################################################################
-# Set Jacobian parameters.
+# Set Jacobian parameters (DOIT)
 # -----------------------
 
 # Set epsilon for reference run of DOIT (give limits for all Stokes components)
@@ -152,6 +190,10 @@ ArrayOfIndexSet( cloudlimit_levels, [0,32] )
 ######################################################################################
 
 
+StringCreate( info )
+StringCreate( scat_name )
+Tensor3Create( scat_field )
+ArrayOfTensor4Create( dpnd_dummy )
 
 # 3. The RT and Jacobian calculation -----------------------------
 #----------------------------------------------------------------- 
@@ -170,16 +212,77 @@ AgendaSet( ybatch_calc_agenda ){
   # Split up compact atmosphere into atmospheric fields
   AtmFieldsFromCompact
 
+  # for now AtmFieldsFromCompact extracts into scat_species_*_*_field(s)
+  # hence, to get the data into particle_bulkprop_field, we need to do a bit of
+  # massaging...
+  # (what exactly needs to be done depends a bit on what is in the compact atm
+  # data, and therefore need to be manually adjusted for your specific atm
+  # compact data :-/ )
+  Extract( scat_field, scat_species_mass_density_field, 0 )
+  Append( particle_bulkprop_field, scat_field )
+  StringSet( scat_name, "RWC" )
+  Append( particle_bulkprop_names, scat_name )
+
   # Remove unrealistic (small) values from scat_species_*_*_fields
   particle_fieldCleanup (scat_species_mass_density_field,
-                             scat_species_mass_density_field,
-                             1e-7)
+                         scat_species_mass_density_field,
+                         1e-7)
   particle_fieldCleanup (scat_species_mass_flux_field,
-                             scat_species_mass_flux_field,
-                             1e-7)
+                         scat_species_mass_flux_field,
+                         1e-7)
+  particle_fieldCleanup (particle_bulkprop_field,
+                         particle_bulkprop_field,
+                         1e-7)
 
   # Get some surface properties from corresponding atmospheric fields
   Extract( z_surface, z_field, 0 )
+
+
+  #####
+  # iyHybrid
+  #####
+
+  # iyHybrid calc (here instead of after jacDoit for debugging (don't want to
+  # wait jacDoit to finish each time...). Also, doing it here we don't have to
+  # deal with troubles from ScatSpeciesMerge.
+  jacobianInit
+  #jacobianAddAbsSpecies(  g1=p_grid, g2=lat_grid, g3=lon_grid,
+  #                        species="H2O-PWR98",
+  #                        unit="vmr" )
+  jacobianAddScatSpecies( g1=p_grid, g2=lat_grid, g3=lon_grid,
+                          species="RR-W16",
+                          quantity="RWC" )
+  jacobianClose
+  cloudboxSetFullAtm
+  #pnd_fieldCalcFromscat_speciesFields
+  pnd_fieldCalcFromParticleBulkProps
+  #WriteXML( in=t_field )
+  #WriteXML( in=z_field )
+  WriteXML( in=pnd_field, filename="BulkProp.pnd_field.xml" )
+  WriteXML( in=pnd_field, filename="BulkProp.dpnd_field_dx.xml" )
+  atmgeom_checkedCalc
+  atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+  cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
+  sensor_checkedCalc
+  propmat_clearsky_agenda_checkedCalc
+  StringSet( info, "RT4Calc" )
+  Print( info, 0 )
+  RT4Calc #( pfct_aa_grid_size=28, nstreams=36 ) # sufficient to make Z-norm accurate
+                                                 # enough for monodisperse 1cm raindrop
+  WriteXMLIndexed( in=doit_i_field, file_index=ybatch_index, filename="RT4.doit_i_field" )
+  WriteXML( in=scat_za_grid, filename="RT4.scat_za_grid.xml" )
+  Copy( iy_main_agenda, iy_main_agenda__Hybrid )
+  StringSet( info, "yCalc with iyHybrid" )
+  Print( info, 0 )
+  yCalc
+  WriteXMLIndexed( in=jacobian, file_index=ybatch_index, filename="RT4.jacobian" )
+  Copy( yref, y )
+
+  #####
+  # DOIT
+  #####
+
+  DOAngularGridsSet( N_aa_grid=19, N_za_grid=37 )
 
   # Set cloudbox limits 
   # ---
@@ -201,17 +304,24 @@ AgendaSet( ybatch_calc_agenda ){
 
   # DOIT Jacobians to calculate
   #jacobianDoitAddSpecies( species="T", unit="abs", dx=1. )
-  #jacobianDoitAddSpecies( species="abs_species.H2O-PWR98", unit="abs", dx=1e-6 )
+  jacobianDoitAddSpecies( species="abs_species.H2O-PWR98", unit="abs", dx=1e-6 )
   #jacobianDoitAddSpecies( species="scat_species.LWC.mass_density", unit="abs", dx=1e-6 )
   #jacobianDoitAddSpecies( species="scat_species.IWC.mass_density", unit="abs", dx=1e-6 )
-  jacobianDoitAddSpecies( species="scat_species.RR.mass_flux", unit="abs", dx=1e-6 )
+  jacobianDoitAddSpecies( species="scat_species.RR.mass_density", unit="abs", dx=1e-6 )
   jacobianDoitClose
   #WriteXMLIndexed( in=jacobian_quantities, file_index=ybatch_index )
   #WriteXMLIndexed( in=jacobian_indices, file_index=ybatch_index )
 ######################################################################################
 
   # Particle Number Density calculations
+  # keep using old microphys scheme here so far. as this is hard-wired inside
+  # jacobianDoit, i.e. we have to keep/set the scat_species_*_*_field(s) anyways
   pnd_fieldCalcFromscat_speciesFields
+  WriteXML( in=pnd_field, filename="ScatSpec.pnd_field.xml" )
+  #pnd_fieldZero
+  #Copy( dpnd_dummy, dpnd_field_dx ) #need this for getting dpnd_field in the correct size
+  #pnd_fieldCalcFromParticleBulkProps
+  #Copy( dpnd_field_dx, dpnd_dummy )
 
   # Consistency checks
   atmgeom_checkedCalc
@@ -230,6 +340,7 @@ AgendaSet( ybatch_calc_agenda ){
   cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
 
   # Initialize Doit variables
+  Copy( iy_main_agenda, iy_main_agenda__Emission )
   DoitInit
   # Calculate incoming radiation field on cloudbox boundaries
   DoitGetIncoming(rigorous=0)
@@ -239,8 +350,12 @@ AgendaSet( ybatch_calc_agenda ){
   # Initialization convergence agenda for reference RT case (for Jacobians)
   Copy( doit_conv_test_agenda, doit_conv_test_agenda_refcase )
   # Executes doit_mono_agenda for all frequencies
+  StringSet( info, "DoitCalc" )
+  Print( info, 0 )
   DoitCalc
-  #WriteXMLIndexed(in=doit_i_field,file_index=ybatch_index)
+  WriteXMLIndexed( in=doit_i_field, file_index=ybatch_index, filename="DOIT.doit_i_field" )
+  WriteXML( in=scat_za_grid, filename="DOIT.scat_za_grid.xml" )
+
 
   # Re-setting agendas and WSV containers for perturbation runs
   Copy( doit_conv_test_agenda, doit_conv_test_agenda_perturb )
@@ -251,7 +366,12 @@ AgendaSet( ybatch_calc_agenda ){
   Copy( scat_species, scat_species_orig )
   Copy( pnd_field, pnd_field_orig )
 
+  StringSet( info, "jacobianDoit" )
+  Print( info, 0 )
   jacobianDoit( ScatSpeciesMerge_do=1 )
+  WriteXMLIndexed( in=jacobian_quantities, file_index=ybatch_index, filename="DOIT.jacobian_quantities" )
+  WriteXMLIndexed( in=jacobian, file_index=ybatch_index, filename="DOIT.jacobian" )
+  Compare( yref, y, 1. )
 }
 
 # for batch cases:

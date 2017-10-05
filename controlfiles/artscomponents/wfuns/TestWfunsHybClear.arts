@@ -66,14 +66,18 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 AgendaSet( iy_cloudbox_agenda ){
   iyInterpCloudboxField
 }
+# we only need a dummy background field here since the cloudbox is empty, ie
+# scattering contribution is anyways 0. Therefore, we don't do a RT4 calc here,
+# but explicitly set the doit_i_field.
+# However, also the surface and space (as the obs cases here are limb, it's
+# space that matters for them!) contributions are taken from the background
+# field, hence we have to massage them a little to get the radiances correct.
 MatrixCreate( iyspace )
-VectorCreate( iyspace_1f )
 AgendaSet( doit_i_field_agenda ){
   DOAngularGridsSet( N_za_grid=19, N_aa_grid=6 )
   DoitInit( scat_data_raw=scat_data )
   MatrixCBR( out=iyspace, f=f_grid )
-  #VectorExtractFromMatrix( out=iyspace_1f, in=iyspace, i=0, direction="row" )
-  doit_i_fieldSetConstPerFreq( value=iyspace ) #_1f )
+  doit_i_fieldSetConstPerFreq( value=iyspace )
   #RT4Calc
 }
 Copy( surface_rtprop_agenda,
@@ -345,7 +349,9 @@ VectorNLinSpace( sensor_time, nrows, 0, 1 )
 #
 #yCalc
 #Copy( Ja, jacobian )
-
+#ReadXML( Jr, "J_pointing_recalc.xml" )
+#Compare( Ja, Jr, 1e-6 )
+#
 #StringSet( info, "Pointing interp" )
 #Print( info, 0 )
 #jacobianInit
@@ -361,12 +367,14 @@ VectorNLinSpace( sensor_time, nrows, 0, 1 )
 #
 #yCalc
 #Copy( Jp, jacobian )
-
-#WriteXML( "ascii", Ja, "JHyb_pointing_analytical.xml" )
-#WriteXML( "ascii", Jp, "JHyb_pointing_perturbation.xml" )
-
-# Compare (Note that the WF is for 1 deg change, corresponding to about
-# 60 km change in tangent altitude, and 10 K/deg accuracy is OK)
+#ReadXML( Jr, "J_pointing_interp.xml" )
+#Compare( Jp, Jr, 1e-6 )
+#
+##WriteXML( "ascii", Ja, "JHyb_pointing_recalc.xml" )
+##WriteXML( "ascii", Jp, "JHyb_pointing_interp.xml" )
+#
+## Compare (Note that the WF is for 1 deg change, corresponding to about
+## 60 km change in tangent altitude, and 10 K/deg accuracy is OK)
 #Compare( Ja, Jp, 10 )
 
 
@@ -410,40 +418,40 @@ Compare( jacobian, Jr, 1e-6 )
 
 
 
-#StringSet( info, "Others: Freqs, Baseline" )
-#Print( info, 0 )
-#jacobianInit
-#
-#jacobianAddFreqShift( jacobian_quantities, jacobian_agenda, f_grid, 
-#    sensor_pos, sensor_time, 0, 50e3 )
-#jacobianAddFreqStretch( jacobian_quantities, jacobian_agenda, f_grid, 
-#    sensor_pos, sensor_time, 0, 50e3 )
-#
-#jacobianAddPolyfit( jacobian_quantities, jacobian_agenda, 
-#    sensor_response_pol_grid, sensor_response_dlos_grid, sensor_pos, 
-#    1, 0, 0, 0 )
-#
-#jacobianAddSinefit( jacobian_quantities, jacobian_agenda, 
-#    sensor_response_pol_grid, sensor_response_dlos_grid, sensor_pos, 
-#    [200e6,40e6], 0, 0, 0 )
-#    
-#jacobianClose
-##WriteXML( in=jacobian_quantities, filename="JqHyb_Other.xml" )
-#
-#pnd_fieldZero
-#atmfields_checkedCalc
-#atmgeom_checkedCalc
-#cloudbox_checkedCalc
-#scat_data_checkedCalc
-#
-#IndexSet( abs_f_interp_order, 1 )
-#yCalc
-##WriteXML( in=y, filename="yHyb_Other.xml" )
-#
-##ReadXML( yr, "y_Other.xml" )
-##Compare( y, yr, 1e-6 )
-##WriteXML( in=jacobian, filename="JHyb_Other.xml" )
-#ReadXML( Jr, "J_Other.xml" )
-#Compare( jacobian, Jr, 1e-6 )
+StringSet( info, "Others: Freqs, Baseline" )
+Print( info, 0 )
+jacobianInit
+
+jacobianAddFreqShift( jacobian_quantities, jacobian_agenda, f_grid, 
+    sensor_pos, sensor_time, 0, 50e3 )
+jacobianAddFreqStretch( jacobian_quantities, jacobian_agenda, f_grid, 
+    sensor_pos, sensor_time, 0, 50e3 )
+
+jacobianAddPolyfit( jacobian_quantities, jacobian_agenda, 
+    sensor_response_pol_grid, sensor_response_dlos_grid, sensor_pos, 
+    1, 0, 0, 0 )
+
+jacobianAddSinefit( jacobian_quantities, jacobian_agenda, 
+    sensor_response_pol_grid, sensor_response_dlos_grid, sensor_pos, 
+    [200e6,40e6], 0, 0, 0 )
+    
+jacobianClose
+#WriteXML( in=jacobian_quantities, filename="JqHyb_Other.xml" )
+
+pnd_fieldZero
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+scat_data_checkedCalc
+
+IndexSet( abs_f_interp_order, 1 )
+yCalc
+#WriteXML( in=y, filename="yHyb_Other.xml" )
+
+#ReadXML( yr, "y_Other.xml" )
+#Compare( y, yr, 1e-6 )
+#WriteXML( in=jacobian, filename="JHyb_Other.xml" )
+ReadXML( Jr, "J_Other.xml" )
+Compare( jacobian, Jr, 1e-6 )
 
 }

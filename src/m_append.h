@@ -390,6 +390,43 @@ void Append(// WS Generic Output:
 }
 
 
+/* Implementation for Tensor4/Tensor3 */
+void Append(// WS Generic Output:
+            Tensor4& out,
+            const String& /* out_name */,
+            // WS Generic Input:
+            const Tensor3& in,
+//            const String& direction,
+            const String& direction _U_,
+            const String& /* in_name */,
+            const String& /* direction_name */,
+            const Verbosity&)
+{
+    // Get backup of out:
+    Tensor4 dummy = out;
+
+    if (!out.nbooks() || !out.npages() || !out.nrows() || !out.ncols())
+      {
+        out.resize(1, in.npages(), in.nrows(), in.ncols());
+        out(0,joker,joker,joker) = in;
+      }
+    else
+      {
+        if (out.npages() != in.npages() || out.nrows() != in.nrows() ||
+            out.ncols() != in.ncols())
+            throw runtime_error(
+              "Dimensions of input Tensor3 have to match corresponding\n"
+              "dimensions in the output Tensor4.");
+
+        out.resize(dummy.nbooks() + 1, dummy.npages(), dummy.nrows(), dummy.ncols());
+        out(Range(0, dummy.nbooks()), Range(0, dummy.npages()),
+            Range(0, dummy.nrows()),  Range(0, dummy.ncols())) = dummy;
+        out(dummy.nbooks(), Range(0, dummy.npages()), Range(0, dummy.nrows()),
+            Range(0, dummy.ncols())) = in;
+      }
+}
+
+
 /* Implementation for Tensor4 */
 void Append(// WS Generic Output:
             Tensor4& out,
