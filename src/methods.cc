@@ -13861,6 +13861,33 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+    ( NAME( "retrievalErrorsExtract" ),
+      DESCRIPTION
+        (
+            "Extract retrieval error from covariance matrices.\n"
+            "\n"
+            "Extracts the error estimates for the retrieved quantities from the covariance\n"
+            "matrices for the error due to measurement noise *covmat_so* and the error due\n"
+            "to limited resolution of the observation system *covmat_ss* and stores them in\n"
+            "the vectors *retrieval_eo* and *retrieval_ss*, respectively."
+            "\n"
+            "To etract these errors, first the convariance matrices have to be computed using\n"
+            "the WSMs *covmat_soCalc* and *covmat_ssCalc*.\n"
+        ),
+      AUTHORS( "Simon Pfreundschuh"),
+      OUT( "retrieval_eo", "retrieval_ss"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "covmat_so", "covmat_ss" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
     ( NAME( "RT4Calc" ),
       DESCRIPTION
         (

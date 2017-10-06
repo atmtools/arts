@@ -889,3 +889,24 @@ void retrievalConstraintAdd(
     }
     jqs[ii].AddConstraint(constraint, boundary);
 }
+
+void retrievalErrorsExtract(
+    Vector& retrieval_eo,
+    Vector& retrieval_ss,
+    const Matrix& covmat_so,
+    const Matrix& covmat_ss,
+    const Verbosity& /*v*/)
+{
+    Index n_so = covmat_so.nrows();
+    Index n_ss = covmat_ss.nrows();
+
+    retrieval_eo.resize(n_so);
+    for (Index i = 0; i < n_so; ++i) {
+        retrieval_eo[i] = covmat_so(i,i);
+    }
+
+    retrieval_ss.resize(n_ss);
+    for (Index i = 0; i < n_ss; ++i) {
+        retrieval_ss[i] = covmat_ss(i,i);
+    }
+}

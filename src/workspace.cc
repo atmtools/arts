@@ -4113,6 +4113,28 @@ void Workspace::define_wsv_data()
          GROUP( "Index" )));
 
   wsv_data.push_back
+      (WsvRecord
+       ( NAME( "retrieval_eo" ),
+         DESCRIPTION
+         (
+             "The estimated error in the retrieval due to uncertainty in the observations\n"
+             " This is the diagonal of covariance matrix of the error due to measurement\n"
+             " noise, *S_m* in Rodgers' book.\n"
+             ),
+         GROUP( "Vector" )));
+
+  wsv_data.push_back
+      (WsvRecord
+       ( NAME( "retrieval_ss" ),
+         DESCRIPTION
+         (
+             "The retrieval error due to uncertainty in the observation. This is the diagonal\n"
+             " of the observation error covariance matrix, *S_m* in the Rodgers book."
+             "\n"
+             ),
+         GROUP( "Vector" )));
+
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "rt4_is_initialized" ),
       DESCRIPTION

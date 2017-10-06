@@ -1,3 +1,26 @@
+2017-10-06 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-821
+
+	* oem.h(ArtsLog):
+	- Fixed verbosity of output for zero verbosity.
+
+	* m_oem.cc(OEM):
+	- Fixed computation of start cost for *oem_diagnostics*.
+
+	* m_retrieval.cc(retrievalErrorsExtract):
+	- Added method to extract errors from error covariance matrices.
+
+	* methods.cc(retrievalErrorsExtract):
+	- Added WSM to extract errors from error covariance matrices.
+
+	* workspace.cc(retrieval_eo, retrieval_ss):
+	- Added WSVs for retrieval error due to measurement noise (retrieval_eo) and
+	limited resolution of observation system (retrieval_ss)
+
+	* controlfile/artscomponents/oem/TestOEM.arts:
+	- Added retrievalErrorsExtract WSM to controlfile.
+
 2017-10-05 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-820

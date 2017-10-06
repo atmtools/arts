@@ -232,7 +232,7 @@ public:
 
     ~ArtsLog()
     {
-        if (!finalized)
+        if ((verbosity >= 1) && (!finalized))
         {
             std::cout << invlib::separator() << std::endl << std::endl;
             std::cout << "Error during OEM computation." << std::endl;
@@ -245,37 +245,37 @@ public:
     template <typename... Params>
     void init(Params & ... params)
     {
-        std::tuple<Params & ...> tuple(params ...);
-
-        auto & y       =  std::get<4>(tuple);
-        scaling_factor =  1.0 / static_cast<Numeric>(y.nelem());
-        std::cout << std::endl;
-        std::cout << invlib::center("MAP Computation") << std::endl;
-
-        // Print formulation.
-        int formulation = static_cast<int>(std::get<6>(tuple));
-        switch (formulation)
+        if (verbosity >= 1)
         {
-        case 0:
+            std::tuple<Params & ...> tuple(params ...);
+
+            auto & y       =  std::get<4>(tuple);
+            scaling_factor =  1.0 / static_cast<Numeric>(y.nelem());
+            std::cout << std::endl;
+            std::cout << invlib::center("MAP Computation") << std::endl;
+
+            // Print formulation.
+            int formulation = static_cast<int>(std::get<6>(tuple));
+            switch (formulation)
+            {
+            case 0:
                 std::cout << "Formulation: Standard" << std::endl;
                 break;
-        case 1:
+            case 1:
                 std::cout << "Formulation: N-Form" << std::endl;
                 break;
 
-        case 2:
+            case 2:
                 std::cout << "Formulation: M-Form" << std::endl;
                 break;
-        }
+            }
 
-        // Print optimization method.
-        using OptimizationType =
-            typename std::decay<typename std::tuple_element<5, decltype(tuple)>::type>::type;
-        std::cout << "Method:      " << invlib::OptimizerLog<OptimizationType>::name;
-        std::cout << std::endl;
+            // Print optimization method.
+            using OptimizationType =
+                typename std::decay<typename std::tuple_element<5, decltype(tuple)>::type>::type;
+            std::cout << "Method:      " << invlib::OptimizerLog<OptimizationType>::name;
+            std::cout << std::endl;
 
-        if (verbosity >= 1)
-        {
             std::cout << std::endl;
             std::cout << std::setw(5) << "Step" << std::setw(15) << "Total Cost";
             std::cout << std::setw(15) << "x-Cost" << std::setw(15) << "y-Cost";
@@ -294,7 +294,11 @@ public:
             using OptimizationType =
                 typename std::decay<typename std::tuple_element<5, decltype(tuple)>::type>::type;
 
-            std::cout<< std::setw(5)  << std::get<0>(tuple);
+            auto step = std::get<0>(tuple);
+            std::cout<< std::setw(5)  << step;
+            if (step == 0) {
+                start_cost = std::get<1>(tuple);
+            }
             std::cout<< std::setw(15) << scaling_factor * std::get<1>(tuple);
             std::cout<< std::setw(15) << scaling_factor * std::get<2>(tuple);
             std::cout<< std::setw(15) << scaling_factor * std::get<3>(tuple);
@@ -354,11 +358,11 @@ public:
             std::cout << "Time in inversion_iterate Agenda (With Jacobian): ";
             std::cout << std::get<2>(tuple) << std::endl;
 
-        }
+            std::cout << std::endl;
+            std::cout << invlib::center("----") << std::endl;
+            std::cout << std::endl;
 
-        std::cout << std::endl;
-        std::cout << invlib::center("----") << std::endl;
-        std::cout << std::endl;
+        }
 
     }
 
@@ -367,7 +371,7 @@ private:
 
     int      verbosity;
     Vector & gamma_history;
-    Numeric  scaling_factor;
+    Numeric  scaling_factor, start_cost;
     bool     linear, finalized;
 
 };

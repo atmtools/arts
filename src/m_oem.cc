@@ -748,17 +748,20 @@ void x2artsStandard(
           reshape(wind_x, x_t[ind]);
 
           Tensor3View target_field(wind_u_field);
-          if (jq[q].Subtag() == "v") {
-              target_field = wind_v_field;
-          } else if (jq[q].Subtag() == "w") {
-              target_field = wind_w_field;
-          }
 
           Tensor3 wind_field(target_field.npages(), target_field.nrows(),
                              target_field.ncols());
           regrid_atmfield_by_gp(wind_field, atmosphere_dim, wind_x,
                                  gp_p, gp_lat, gp_lon);
-          target_field = wind_field;
+
+
+          if (jq[q].Subtag() == "u") {
+              wind_u_field = wind_field;
+          } else if (jq[q].Subtag() == "v") {
+              wind_v_field = wind_field;
+          } else if (jq[q].Subtag() == "w") {
+              wind_w_field = wind_field;
+          }
       }
       // Or we have to throw an error
       // ----------------------------------------------------------------------------
@@ -978,6 +981,21 @@ void OEM(
         lm_ga_history.resize(0);
     }
 
+    // Check for start vector and precomputed yf, jacobian
+    if (x.nelem() != n) {
+        x = xa;
+        yf.resize(0);
+        jacobian.resize(0,0);
+    }
+
+    // If no precomputed value given, we compute yf and jacobian to
+    // compute initial cost (and use in the first OEM iteration).
+    if (yf.nelem() == 0) {
+        inversion_iterate_agendaExecute( ws, yf, jacobian, xa, 1,
+                                         inversion_iterate_agenda );
+    }
+
+    // TODO: Get this from invlib log.
     // Start value of cost function
     Numeric cost_start = NAN;
     if( method == "ml" || method == "lm" || display_progress || max_start_cost > 0 )
@@ -987,14 +1005,9 @@ void OEM(
         Vector dx  = x; dx -= xa;
         Vector sdx = x; mult(sdx, covmat_sx, dx);
         cost_start = dx * sdx + dy * sdy;
+        cost_start /= static_cast<Numeric>(m);
     }
     oem_diagnostics[1] = cost_start;
-
-    // Check for start vector and precomputed yf, jacobian
-    if (x.nelem() != n) {
-        yf.resize(0);
-        jacobian.resize(0,0);
-    }
 
     // Handle cases with too large start cost
     if( max_start_cost > 0  &&  cost_start > max_start_cost )
