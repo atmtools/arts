@@ -902,11 +902,11 @@ void retrievalErrorsExtract(
 
     retrieval_eo.resize(n_so);
     for (Index i = 0; i < n_so; ++i) {
-        retrieval_eo[i] = covmat_so(i,i);
+        retrieval_eo[i] = sqrt(covmat_so(i,i));
     }
 
     retrieval_ss.resize(n_ss);
     for (Index i = 0; i < n_ss; ++i) {
-        retrieval_ss[i] = covmat_ss(i,i);
+        retrieval_ss[i] = sqrt(covmat_ss(i,i));
     }
 }

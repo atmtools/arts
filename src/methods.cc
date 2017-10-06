@@ -13871,8 +13871,10 @@ void define_md_data_raw()
             "to limited resolution of the observation system *covmat_ss* and stores them in\n"
             "the vectors *retrieval_eo* and *retrieval_ss*, respectively."
             "\n"
-            "To etract these errors, first the convariance matrices have to be computed using\n"
-            "the WSMs *covmat_soCalc* and *covmat_ssCalc*.\n"
+            "To etract these errors, first the convariance matrices of which the errors \n"
+            "should be extracted have to be computed using the WSMs *covmat_soCalc*\n"
+            "and *covmat_ssCalc* or set to be empty in order to be ignored. Note, however,\n"
+            "that this will also set the corresponding error vector to be empty.\n"
         ),
       AUTHORS( "Simon Pfreundschuh"),
       OUT( "retrieval_eo", "retrieval_ss"),

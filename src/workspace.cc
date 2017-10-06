@@ -4118,8 +4118,9 @@ void Workspace::define_wsv_data()
          DESCRIPTION
          (
              "The estimated error in the retrieval due to uncertainty in the observations\n"
-             " This is the diagonal of covariance matrix of the error due to measurement\n"
-             " noise, *S_m* in Rodgers' book.\n"
+             "The vector contains the square roots  of the diagonal elements of  the\n"
+             "covariance matrix of the error due to measurement noise, *S_m* in Rodgers'\n"
+             " book.\n"
              ),
          GROUP( "Vector" )));
 
@@ -4128,9 +4129,10 @@ void Workspace::define_wsv_data()
        ( NAME( "retrieval_ss" ),
          DESCRIPTION
          (
-             "The retrieval error due to uncertainty in the observation. This is the diagonal\n"
-             " of the observation error covariance matrix, *S_m* in the Rodgers book."
-             "\n"
+             "The estimated error in the retrieval due to limited resolution of the \n"
+             " observation system. The vector contains the square roots of the diagonal\n"
+             " elements of the covariance matrix of the smoothing error, *S_s* in Rodgers'\n"
+             " book.\n"
              ),
          GROUP( "Vector" )));
 
