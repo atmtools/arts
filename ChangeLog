@@ -2,14 +2,7 @@
 
 	* arts-2-3-822
 
-	* m_retrieval.cc(retrievalErrorsExtract):
-	- Fixed computation of retrieval errors
-
-	* methods.cc(retrievalErrorsExtract):
-	- Extended description to include possibility of excluding covariance matrices.
-
-	* workspace.cc(retrieval_eo, retrieval_ss):
-	- Added to description that errors are square roots
+	- Dummy change to trigger Hudson build.
 
 2017-10-06 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
