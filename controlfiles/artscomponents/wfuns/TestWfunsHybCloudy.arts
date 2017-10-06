@@ -256,10 +256,11 @@ AgendaSet( ybatch_calc_agenda ){
   cloudboxSetFullAtm
   #pnd_fieldCalcFromscat_speciesFields
   pnd_fieldCalcFromParticleBulkProps
-  #WriteXML( in=t_field )
-  #WriteXML( in=z_field )
+  WriteXML( in=t_field )
+  WriteXML( in=z_field )
+  WriteXML( in=particle_bulkprop_field, filename="BulkProp.particle_bulkprop_field.xml" )
   WriteXML( in=pnd_field, filename="BulkProp.pnd_field.xml" )
-  WriteXML( in=pnd_field, filename="BulkProp.dpnd_field_dx.xml" )
+  WriteXML( in=dpnd_field_dx, filename="BulkProp.dpnd_field_dx.xml" )
   atmgeom_checkedCalc
   atmfields_checkedCalc( bad_partition_functions_ok = 1 )
   cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
@@ -304,10 +305,10 @@ AgendaSet( ybatch_calc_agenda ){
 
   # DOIT Jacobians to calculate
   #jacobianDoitAddSpecies( species="T", unit="abs", dx=1. )
-  jacobianDoitAddSpecies( species="abs_species.H2O-PWR98", unit="abs", dx=1e-6 )
+  #jacobianDoitAddSpecies( species="abs_species.H2O-PWR98", unit="abs", dx=1e-6 )
   #jacobianDoitAddSpecies( species="scat_species.LWC.mass_density", unit="abs", dx=1e-6 )
   #jacobianDoitAddSpecies( species="scat_species.IWC.mass_density", unit="abs", dx=1e-6 )
-  jacobianDoitAddSpecies( species="scat_species.RR.mass_density", unit="abs", dx=1e-6 )
+  jacobianDoitAddSpecies( species="scat_species.RR.mass_density", unit="rel", dx=1e-3 )
   jacobianDoitClose
   #WriteXMLIndexed( in=jacobian_quantities, file_index=ybatch_index )
   #WriteXMLIndexed( in=jacobian_indices, file_index=ybatch_index )
@@ -372,6 +373,40 @@ AgendaSet( ybatch_calc_agenda ){
   WriteXMLIndexed( in=jacobian_quantities, file_index=ybatch_index, filename="DOIT.jacobian_quantities" )
   WriteXMLIndexed( in=jacobian, file_index=ybatch_index, filename="DOIT.jacobian" )
   Compare( yref, y, 1. )
+
+
+  jacobianOff
+  jacobianDoitAddSpecies( species="scat_species.RR.mass_density", unit="abs", dx=1e-7 )
+  jacobianDoitClose
+  Copy( scat_data_raw, scat_data_orig )
+  Copy( scat_meta, scat_meta_orig )
+  Copy( scat_species, scat_species_orig )
+  Copy( pnd_field, pnd_field_orig )
+  nbooksGet( ybatch_n, pnd_field )
+  Print( ybatch_n, 0 )
+  ScatSpeciesMerge( scat_data=scat_data_raw )
+  cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
+  DoitInit
+  DoitGetIncoming(rigorous=0)
+  doit_i_fieldSetClearsky
+  Copy( doit_conv_test_agenda, doit_conv_test_agenda_refcase )
+  StringSet( info, "DoitCalc2" )
+  Print( info, 0 )
+  DoitCalc
+  WriteXMLIndexed( in=doit_i_field, file_index=ybatch_index, filename="DOIT2.doit_i_field" )
+  WriteXML( in=scat_za_grid, filename="DOIT2.scat_za_grid.xml" )
+  Copy( doit_conv_test_agenda, doit_conv_test_agenda_perturb )
+  Copy( scat_data_raw, scat_data_orig )
+  Copy( scat_meta, scat_meta_orig )
+  Copy( scat_species, scat_species_orig )
+  Copy( pnd_field, pnd_field_orig )
+  nbooksGet( ybatch_n, pnd_field )
+  Print( ybatch_n, 0 )
+  StringSet( info, "jacobianDoit2" )
+  Print( info, 0 )
+  jacobianDoit( ScatSpeciesMerge_do=1 )
+  WriteXMLIndexed( in=jacobian_quantities, file_index=ybatch_index, filename="DOIT2.jacobian_quantities" )
+  WriteXMLIndexed( in=jacobian, file_index=ybatch_index, filename="DOIT2.jacobian" )
 }
 
 # for batch cases:
@@ -402,14 +437,14 @@ ybatchCalc #( robust=1 )
 
 # Verify results
 # ---
-ArrayOfVectorCreate( ybatch_ref )
-ReadXML( ybatch_ref, "ybatchREFERENCE_DoitJacobians.xml" )
+#ArrayOfVectorCreate( ybatch_ref )
+#ReadXML( ybatch_ref, "ybatchREFERENCE_DoitJacobians.xml" )
 
-Compare( ybatch, ybatch_ref, 1e-3 )
+#Compare( ybatch, ybatch_ref, 1e-3 )
 
-ArrayOfMatrixCreate( ybatch_jacobians_ref )
-ReadXML( ybatch_jacobians_ref, "ybatch_jacobiansREFERENCE_DoitJacobians.xml" )
+#ArrayOfMatrixCreate( ybatch_jacobians_ref )
+#ReadXML( ybatch_jacobians_ref, "ybatch_jacobiansREFERENCE_DoitJacobians.xml" )
 
-Compare( ybatch_jacobians, ybatch_jacobians_ref, 1e-4 )
+#Compare( ybatch_jacobians, ybatch_jacobians_ref, 1e-4 )
 
 }

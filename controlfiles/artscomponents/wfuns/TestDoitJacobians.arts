@@ -87,7 +87,7 @@ ScatElementsSelect( scat_data=scat_data_raw, species="IWC", sizeparam="diameter_
 
 
 doit_za_interpSet( doit_za_interp, atmosphere_dim, "linear" )
-DOAngularGridsSet( N_aa_grid=19, N_za_grid=37 )
+DOAngularGridsSet( N_za_grid=19, N_aa_grid=37 )
 
 
 

@@ -31,6 +31,7 @@ extern const String FREQUENCY_MAINTAG;
 extern const String ABSSPECIES_MAINTAG;
 extern const String ELECTRONS_MAINTAG;
 extern const String PARTICULATES_MAINTAG;
+extern const String SCATSPECIES_MAINTAG;
 
 // Main tag for this type of Jacobian calculation
 extern const String PROPMAT_SUBSUBTAG;

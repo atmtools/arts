@@ -2709,8 +2709,12 @@ void jacobianDoit(//WS Output:
   // ready-made doit_i_field (were we do not modify the clear incoming part
   // again), we can only perturb until the last level below the upper
   // cloudbox limit (cause else we also modify the outside-cloudbox state,
-  // i.e., we'd need a new clear incoming calc).
-  lend = cloudbox_limits[1];
+  // i.e., we'd need a new clear incoming calc) unless cloudbox reaches till
+  // TOA.
+  if( cloudbox_limits[1]==p_grid.nelem() )
+    lend = cloudbox_limits[1]+1;
+  else
+    lend = cloudbox_limits[1];
   // this also applies for lower limit, IF lower limit is not on the
   // surface.
   if( cloudbox_limits[0]==0 )
@@ -3464,16 +3468,26 @@ void jacobianDoitAddSpecies(//WS Output:
   // Perturbations are done over the cloudbox. But not on the outermost grid
   // points (as this would also imply value changes outside the box, through the
   // linear interpolation between gridpoints. and we don't allow this since we
-  // don't yet allow incoming field modifications!).
+  // don't yet allow incoming field modifications!) unless outermost is at
+  // surface or TOA.
   ArrayOfVector grids(atmosphere_dim);
   Vector rq_p_grid(0), rq_lat_grid(0), rq_lon_grid(0);
 
+  Index range_start, // surface-closest point with perturb
+        range_end,   // space-closest point with perturb
+        range_extent;
+
   if( cloudbox_limits[0]==0 )
-    rq_p_grid = p_grid[ Range(cloudbox_limits[0],
-                              cloudbox_limits[1]-cloudbox_limits[0]) ];
+    range_start = cloudbox_limits[0];
   else
-    rq_p_grid = p_grid[ Range(cloudbox_limits[0]+1,
-                              cloudbox_limits[1]-cloudbox_limits[0]) ];
+    range_start = cloudbox_limits[0]+1;
+  if( cloudbox_limits[1]==p_grid.nelem() )
+    range_end = cloudbox_limits[1];
+  else
+    range_end = cloudbox_limits[1]-1;
+  range_extent = range_end - range_start + 1;
+
+  rq_p_grid = p_grid[ Range(range_start,range_extent) ];
 
   if( atmosphere_dim>1 )
     {

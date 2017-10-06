@@ -4390,7 +4390,12 @@ void get_stepwise_clearsky_propmat(Workspace& ws,
   {
     for(Index i = 0; i < nq; i++)
     {
-      if(jacobian_quantities[i].SubSubtag() == PROPMAT_SUBSUBTAG) 
+      if(jacobian_quantities[i].MainTag() == SCATSPECIES_MAINTAG)
+      {
+        dK_dx[i].SetZero();
+        dS_dx[i].SetZero();
+      }
+      else if(jacobian_quantities[i].SubSubtag() == PROPMAT_SUBSUBTAG) 
       {
         // Find position of index in ppd
         Index j = partial_derivatives.this_jq_index(i);

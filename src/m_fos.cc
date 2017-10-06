@@ -1978,7 +1978,7 @@ void iyHybrid2(
                          ppath, atmosphere_dim, cloudbox_limits,
                          pnd_field, dpnd_field_dx );
     
-    PropagationMatrix K_this, K_past, Kp(nf, stokes_dim);
+    PropagationMatrix K_this(nf, stokes_dim), K_past(nf, stokes_dim), Kp(nf, stokes_dim);
     StokesVector S(nf, stokes_dim), Sp(nf, stokes_dim), a(nf, stokes_dim);
     lte.resize(np);
     ArrayOfPropagationMatrix dK_this_dx(nq), dK_past_dx(nq), dKp_dx(nq);
@@ -2059,34 +2059,12 @@ void iyHybrid2(
                                         ppath_t[ip],
                                         atmosphere_dim,
                                         verbosity);
-      
         a += K_this;  // a (and da_dx) is initialized in get_stepwise_scattersky_propmat
         K_this += Kp; // K_this  (and dK_this_dx) is initialized in get_stepwise_clearsky_propmat
         FOR_ANALYTICAL_JACOBIANS_DO
         (
-          // da_dx and dKp_dx are initialized in get_stepwise_scattersky_propmat,
-          // dK_this_dx in get_stepwise_clearsky_propmat.
-          // iq entries can be set through .SetZero, though, which makes adding
-          // them to each other impossible.
-          //if ( not dK_this_dx[iq].IsEmpty() ) // dK_this_dx is set
-          //{
-          //  if( da_dx[iq].IsEmpty() )
-          //    da_dx[iq] = dK_this_dx[iq];       // da_dx is (previously) unset: set here
-          //  else     
-              da_dx[iq] += dK_this_dx[iq];      // da_dx is (previously) set: update here
-          //}
-          // else                             // dK_this_dx unset
-          // nothing to update
-
-          //if ( not dKp_dx[iq].IsEmpty() )     // dKp_dx is set
-          //{
-          //  if( dK_this_dx[iq].IsEmpty() )
-          //    dK_this_dx[iq] = dKp_dx[iq];      // dK_this_dx is (previously) unset: set here
-          //  else
-              dK_this_dx[iq] += dKp_dx[iq];     // dK_this_dx is (previously) set: update here
-          //}
-          // else                             // dKp_dx unset
-          // nothing to update
+          da_dx[iq] += dK_this_dx[iq];
+          dK_this_dx[iq] += dKp_dx[iq];
         )
 
         get_stepwise_scattersky_source(Sp, dSp_dx,
@@ -2107,31 +2085,18 @@ void iyHybrid2(
         S += Sp;  // S (and dS_dx) is initialized in get_stepwise_clearsky_propmat
         FOR_ANALYTICAL_JACOBIANS_DO
         (
-          //if ( not dSp_dx[iq].IsEmpty() )     // dSp_dx set
-          //{
-          //  if( dS_dx[iq].IsEmpty() ) 
-          //    dS_dx[iq] = dSp_dx[iq];           // and dS_dx unset: set here
-          //  else
-              dS_dx[iq] += dSp_dx[iq];          // and dS_dx set: update here
-          //}
-          // else                             // dSp_dx unset
-          // nothing to update
+          dS_dx[iq] += dSp_dx[iq];
         )
       }
       else // no particles present at this level
       {
         // nothing to do for K_this and S as they are filled already by
         // get_stepwise_clearsky_propmat.
-        // However, their derivatives might be empty (if jacobian only contains
-        // scat species)
         a = K_this;
         FOR_ANALYTICAL_JACOBIANS_DO        // we can only assign a PropMat to a
         (                                  // StokesVec, not full ArrayOf to
-          //if( dK_this_dx[iq].IsEmpty() )   // each other, hence loop over
-          //  da_dx[iq].SetZero();           // jacobian quantities
-          //else
-            da_dx[iq] = dK_this_dx[iq];
-        )
+          da_dx[iq] = dK_this_dx[iq];      // each other, hence loop over
+        )                                  // jacobian quantities
       }
       
       get_stepwise_transmission_matrix(trans_cumulat(ip, joker, joker, joker),

@@ -1,3 +1,26 @@
+2017-10-06 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-823
+
+	* src/m_fos.cc (iyHybrid), rte.cc (get_stepwise_clearsky_propmat):
+	Some further proper initializations. Cleanup.
+
+	* src/partial_derivatives.h:
+	Added missing extern const declaration for SCATSPECIES_MAINTAG (needed
+	now in get_stepwise_clearsky_propmat and all other jacobian tags seem to
+	be drawn from there).
+
+	* src/m_jacobian.cc (jacobianDoit, jacobianDoitAddSpecies):
+	Consider cloudbox-at-TOA case. Bugfix jacobian sizing for
+	cloudbox-not-at-surface case.
+
+	* controlfiles/artscomponents/wfuns/TestWfunsHybCloudy.arts:
+	Work in progress, trying to get comparable setups for iyHybrid and
+	JacobianDoit jacobians.
+
+	* controlfiles/artscomponents/wfuns/TestDoitJacobians.arts:
+	Fixed bug introduced in arts-2-3-820.
+
 2017-10-06 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-822
