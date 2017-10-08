@@ -796,26 +796,34 @@ void MassSizeParamsFromScatMeta(
 // Macros to avoid duplication of code inside PSD methods
 // ------------------------------------------------------
 
-#define START_OF_PSD_1FREE()                        \
+#define START_OF_PSD_METHODS() \
   const Index nin = pnd_agenda_input_names.nelem(); \
   const Index ndx = dpnd_data_dx_names.nelem(); \
   const Index np  = pnd_agenda_input.nrows(); \
   const Index nsi = psd_size_grid.nelem(); \
-  if( pnd_agenda_input.ncols() != nin )  \
+  ArrayOfIndex dx2in(ndx); \
+   \
+  if( pnd_agenda_input.ncols() != nin ) \
     throw runtime_error( "Length of *pnd_agenda_input_names* and number of " \
                          "columns in *pnd_agenda_input* must be equal." ); \
-  if( pnd_agenda_input.ncols() != 1 ) \
-    throw runtime_error( "*pnd_agenda_input* must have one column." ); \
   if( ndx ) \
     { \
-      if( ndx != 1 ) \
-        throw runtime_error( "*dpnd_data_dx_names* must have length 0 or 1." ); \
-      if( dpnd_data_dx_names[0] != pnd_agenda_input_names[0] ) \
-        throw runtime_error( "For this method, the name in *dpnd_data_dx_names* " \
-                             "must be the same as in *pnd_agenda_input_names*." ); \
+      if( ndx > nin ) \
+        throw runtime_error( "The length of *dpnd_data_dx_names* can not " \
+                             "exceed the one of *pnd_agenda_input_names*." ); \
+      for( Index i=0; i<ndx; i++ ) \
+        { \
+          dx2in[i] = find_first( pnd_agenda_input_names, dpnd_data_dx_names[i] ); \
+          if( dx2in[i] < 0 ) \
+            { \
+              ostringstream os; \
+              os << "dpnd_data_dx_names[" << i << "] is " << dpnd_data_dx_names[i] \
+                 << "\nThis string could not be found in *pnd_agenda_input_names*.";\
+              throw std::runtime_error(os.str()); \
+            } \
+        } \
     } \
-  if( t_min >= t_max ) \
-    throw runtime_error( "*t_min* must be smaller than *t_max*." ); \
+   \
   psd_data.resize( np, nsi ); \
   psd_data = 0.0; \
   if( ndx ) \
@@ -830,131 +838,6 @@ void MassSizeParamsFromScatMeta(
 // ------------------------------------------------------
 // ------------------------------------------------------
 
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-/*
-void psdExpN0Lambda (
-          Matrix&           psd_data,
-          Tensor3&          dpsd_data_dx,
-    const Vector&           psd_size_grid,
-    const Vector&           pnd_agenda_input_t,
-    const Matrix&           pnd_agenda_input,
-    const ArrayOfString&    pnd_agenda_input_names,
-    const ArrayOfString&    dpnd_data_dx_names,
-    const Numeric&          t_min, 
-    const Numeric&          t_max, 
-    const Index&            picky, 
-    const Verbosity&)
-{
-  // Some sizes 
-  const Index nin = pnd_agenda_input_names.nelem();
-  const Index ndx = dpnd_data_dx_names.nelem();
-  const Index np  = pnd_agenda_input.nrows();
-  const Index nsi = psd_size_grid.nelem();
-  ArrayOfIndex what_moment(ndx);
-  
-  // Checks
-  if( pnd_agenda_input.ncols() != nin )
-    throw runtime_error( "Length of *pnd_agenda_input_names* and number of "
-                         "columns in *pnd_agenda_input* must be equal." );
-  if( pnd_agenda_input.ncols() != 2 )
-    throw runtime_error( "*pnd_agenda_input* must have two columns." );
-  if( ndx )
-    {
-      if( ndx > 2 )
-        throw runtime_error( "*dpnd_data_dx_names* must have length 0, 1 or 2." );
-      what_moment[0] = find_first( pnd_agenda_input_names, dpnd_data_dx_names[0] );
-      if(  what_moment[0] < 0 )
-        throw runtime_error( "First element of *dpnd_data_dx_names* has no "
-                             "(identical) match in *pnd_agenda_input_names*." );
-      if( ndx > 1 )
-        {
-          what_moment[1] = find_first( pnd_agenda_input_names, dpnd_data_dx_names[1] );
-          if(  what_moment[1] < 0 )
-            throw runtime_error( "Second element of *dpnd_data_dx_names* has no "
-                                 "(identical) match in *pnd_agenda_input_names*." );
-        }
-    }
-
-  
-  // Init psd_data and dpsd_data_dx with zeros
-  psd_data.resize( np, nsi );
-  psd_data = 0.0;
-  if( ndx )
-    {
-      dpsd_data_dx.resize( ndx, np, nsi );   
-      dpsd_data_dx = 0.0;
-    }
-  else
-    { dpsd_data_dx.resize( 0, 0, 0  ); }  
-
-  // Help variables to handle derivatives, and to avoid recalc exp-term
-  bool   do_dn0_dx = false, do_dla_dx = false;
-  Index  i_dn0_dx = -1, i_dla_dx = -1; 
-  Vector dn0_dx(0), dla_dx(0), exp_term(nsi);
-  //
-  for( Index i=0; i<ndx; i++ )
-    {
-      if( what_moment[i] == 0 )
-        { do_dn0_dx = true; i_dn0_dx = i; dn0_dx.resize( nsi ); }
-      if( what_moment[i] == 1 )
-        { do_dla_dx = true; i_dla_dx = i; dla_dx.resize( nsi ); }
-    }
-  
-  for( Index ip=0; ip<np; ip++ )
-    {
-      // Extract the input variables
-      Numeric  n0 = pnd_agenda_input(ip,0);
-      Numeric  la = pnd_agenda_input(ip,1);
-      Numeric   t = pnd_agenda_input_t[ip];
-
-      // No calc needed if n0==0 and no jacobians requested.
-      if( (n0==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-
-      // Outside of [t_min,tmax]?
-      if( t < t_min  ||  t > t_max )
-        {
-          if( picky )
-            {
-              ostringstream os;
-              os << "Method called with a temperature of " << t << " K.\n"
-                 << "This is outside the specified allowed range: [ max(0.,"
-                 << t_min << "), " << t_max << " ]";
-              throw runtime_error(os.str());
-            }
-          else  
-            { continue; }   // If here, we are ready with this point!
-        }
-      
-      // Calculate PSD
-      if( n0 != 0 )
-        {
-          for ( Index i=0; i<nsi; i++ )
-            {
-              exp_term[i]    = exp( -la * psd_size_grid[i] );
-              psd_data(ip,i) = n0 * exp_term[i];
-            }
-        }
-
-      // Calculate derivatives
-      if( ndx )
-        {
-          if( do_dn0_dx )
-            {
-              for ( Index i=0; i<nsi; i++ )
-                { dpsd_data_dx(i_dn0_dx,ip,i) = exp_term[i]; }
-            }
-          if( do_dla_dx )
-            {
-              for ( Index i=0; i<nsi; i++ )
-                { dpsd_data_dx(i_dla_dx,ip,i) = -psd_size_grid[i] * psd_data(ip,i); }
-            }
-        }   
-    }
-}
-*/
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -978,7 +861,10 @@ void psdF07 (
     const Index&           picky, 
     const Verbosity&)
 {
-  START_OF_PSD_1FREE();
+  // Standard checcks
+  if( pnd_agenda_input.ncols() != 1 ) \
+    throw runtime_error( "*pnd_agenda_input* must have one column." ); \
+  START_OF_PSD_METHODS();
 
   // Extra checks for this PSD
   if( regime!="TR" && regime!="ML" )
@@ -1101,8 +987,7 @@ void psdF07 (
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-/*
-void psdMgd1free (
+void psdMgd (
           Matrix&          psd_data,
           Tensor3&         dpsd_data_dx,
     const Vector&          psd_size_grid,
@@ -1111,42 +996,66 @@ void psdMgd1free (
     const ArrayOfString&   pnd_agenda_input_names,
     const ArrayOfString&   dpnd_data_dx_names,
     const Numeric&         n0, 
-    const Numeric&         la, 
     const Numeric&         mu, 
+    const Numeric&         la, 
     const Numeric&         ga, 
     const Numeric&         t_min, 
     const Numeric&         t_max, 
     const Index&           picky, 
     const Verbosity&)
 {
-  START_OF_PSD_1FREE()
+  // Standard checks
+  START_OF_PSD_METHODS();
   
-  // Check and determine free parameter
+  // Check and determine free parameters
   const Index n0_free = (Index) isnan( n0 );
-  const Index la_free = (Index) isnan( la );
   const Index mu_free = (Index) isnan( mu );
+  const Index la_free = (Index) isnan( la );
   const Index ga_free = (Index) isnan( ga );
   //
-  if( n0_free + la_free + mu_free + ga_free != 1 )
-    throw runtime_error( "There must be exactly one free parameter. That is "
-                         "either n0, la, mu or ga must be set to NaN (but only "
-                         "one of them)." );
+  if( nin + !n0_free + !mu_free + !la_free + !ga_free != 4 )
+    throw runtime_error( "This PSD has four free parameters. This means that "
+                         "the number\nof columns in *pnd_agenda_input* and the "
+                         "number of non-NaNs found\namong the GIN arguments n0, mu, "
+                         "la and ga must add up to four.\nAnd this was found "
+                         "not to be the case." );
 
-  // Create vector with the four MGD parameters
+  // Create variables to form vector to hold the four MGD parameters
   Vector mgd_pars(4);
-  Index  i_free = -1;
-  //
-  if( nO_free ) { i_free = 0; } else { mgd_pars[0] = n0; }
-  if( la_free ) { i_free = 1; } else { mgd_pars[1] = la; }
-  if( mu_free ) { i_free = 2; } else { mgd_pars[2] = mu; }
-  if( ga_free ) { i_free = 3; } else { mgd_pars[3] = ga; }
+  ArrayOfIndex in_pos = {-1,-1,-1,-1}; // Position in pnd_agenda_input
+  {
+    Index nhit=0;
+    if( n0_free ) { in_pos[0]=nhit++; } else { mgd_pars[0]=n0; }
+    if( mu_free ) { in_pos[1]=nhit++; } else { mgd_pars[1]=mu; }
+    if( la_free ) { in_pos[2]=nhit++; } else { mgd_pars[2]=la; }
+    if( ga_free ) { in_pos[3]=nhit++; } else { mgd_pars[3]=ga; }
+  }
 
-  
+  // Determine what derivatives to do and their position in dpsd_data_dx
+  ArrayOfIndex do_jac = {0,0,0,0};
+  ArrayOfIndex jac_i = {-1,-1,-1,-1};
+  for( Index i=0; i<ndx; i++ )
+    {
+      for( Index j=0; j<4; j++ )
+        {
+          if( dx2in[i] == in_pos[j] )
+            {
+              do_jac[j] = 1;
+              jac_i[j] = i;
+              break;
+            }
+        }
+    }
+
   for( Index ip=0; ip<np; ip++ )
     {
       // Extract the input variables
-      mgd_pars[i_free] = pnd_agenda_input(ip,0);
-      Numeric        t = pnd_agenda_input_t[ip];
+      for( Index i=0; i<4; i++ )
+        {
+          if( in_pos[i] >= 0 )
+            { mgd_pars[i] = pnd_agenda_input(ip,in_pos[i]); }
+        }
+      Numeric t = pnd_agenda_input_t[ip];
 
       // No calc needed if n0==0 and no jacobians requested.
       if( (mgd_pars[0]==0.) && (!ndx) )
@@ -1167,11 +1076,22 @@ void psdMgd1free (
             { continue; }   // If here, we are ready with this point!
         }
 
-      // Calculate PSD
-      mgd_psd( psd_data(ip,joker), n0, la, mu, ga, psd_size_grid );
+      // Calculate PSD and derivatives
+      //
+      Matrix  jac_data(4,nsi);    
+      //
+      psd_general_MGD( psd_data(ip,joker), jac_data, psd_size_grid,
+                       mgd_pars[0], mgd_pars[1], mgd_pars[2], mgd_pars[3],
+                       do_jac[0], do_jac[1], do_jac[2], do_jac[3] );
+      //
+      for( Index i=0; i<4; i++ )
+        {
+          if( do_jac[i] )
+            { dpsd_data_dx(jac_i[i],ip,joker) = jac_data(i,joker); }
+        }
     }
 }
-*/
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1191,7 +1111,10 @@ void psdMH97 (
     const Index&            noisy,
     const Verbosity&)
 {
-  START_OF_PSD_1FREE();
+  // Standard checcks
+  if( pnd_agenda_input.ncols() != 1 ) \
+    throw runtime_error( "*pnd_agenda_input* must have one column." ); \
+  START_OF_PSD_METHODS();
 
   // Extra checks for this PSD
   if( noisy  &&   ndx )
@@ -1610,7 +1533,10 @@ void psdW16 (
     const Index&            picky, 
     const Verbosity&)
 {
-  START_OF_PSD_1FREE();
+  // Standard checcks
+  if( pnd_agenda_input.ncols() != 1 ) \
+    throw runtime_error( "*pnd_agenda_input* must have one column." ); \
+  START_OF_PSD_METHODS();
   
   for( Index ip=0; ip<np; ip++ )
     {

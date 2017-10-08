@@ -12311,52 +12311,7 @@ void define_md_data_raw()
                  "Line of sight"
                  )
         ));
-  /*
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "psdExpN0Lambda" ),
-        DESCRIPTION
-        (
-         "Exponential particle size distribution woth N0 and lambda as input\n"
-         "arguments.\n"
-         "\n"
-         "This PSD can be written as\n"
-         "  f(x) = N0 * exp( -lamda * x )\n"
-         "where x is either particle size or mass, and N0 and lambda are the.\n"
-         "parameters of the PSD.\n"         
-         "\n" 
-         "I.e. this is a 2-moment PSD and *pnd_agenda_input* shall have two\n"
-         "columns and *pnd_agenda_input_names* shall contain two strings.\n"
-         "More precisely, the first column in *pnd_agenda_input* is taken as N0\n"
-         "and the second column as lambda. The naming in *pnd_agenda_input_names*\n"
-         "is free but the same name must be used in *particle_bulkprop_names* and\n"
-         "*dpnd_data_dx_names*.\n"
-         "\n" 
-         "*psd_size_grid* can hold any quantity, as long as N0 and lambda are set\n"
-         "accordingly to the size quantity used."
-         "\n" 
-         "Derivatives can be obtained of either N0 or lambda, or both two in\n"
-         "parallel. This selection is done by **dpnd_data_dx_names*. The order\n"
-         "inside *dpnd_data_dx_names* is free.\n"
-         "\n"
-         "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
-         "picky=0, or an error is thrown if picky=1.\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "psd_data", "dpsd_data_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
-            "pnd_agenda_input_names", "dpnd_data_dx_names" ),
-        GIN( "t_min",   "t_max", "picky" ),
-        GIN_TYPE( "Numeric", "Numeric", "Index" ),
-        GIN_DEFAULT( NODEF, NODEF, "0" ),
-        GIN_DESC( "Low temperature limit to calculate a psd.",
-                  "High temperature limit to calculate a psd.",
-                  "Flag whether to be strict with parametrization value checks." )
-        ));
-  */
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "psdF07" ),
@@ -12365,7 +12320,7 @@ void define_md_data_raw()
          "The Field et al. [2007] (F07) particle size distribution for snow and\n"
          "cloud ice.\n"
          "\n"
-         "This is a 1-moment PSD, i.e. *pnd_agenda_input* shall have one\n"
+         "This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one\n"
          "column and *pnd_agenda_input_names* shall contain a single string.\n"
          "The input data in *pnd_agenda_input* shall be ice hydrometeor mass\n"
          "content in unit of [kg/m3]. The naming used is *pnd_agenda_input_names*\n"
@@ -12440,13 +12395,63 @@ void define_md_data_raw()
  
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "psdMgd" ),
+        DESCRIPTION
+        (
+         "Modelling of particle size distribution by modified gamma distribution,\n"
+         "using n0, mu, la and ga as parameters.\n"
+         "\n"
+         "The modified gamma distribution is a 4-parameter (n0, mu, la and ga)\n"
+         "distribution [Petty & Huang, JAS, 2011)]:\n"
+         "   n(x) = n0 * x^mu * exp( -la*x^ga )\n"
+         "where x is particle size or mass.\n"
+         "\n"
+         "The parameters can be given in two ways, either by *pnd_agenda_input* or\n"
+         "as GIN arguments. The first option allows the parameter to vary, while\n"
+         "in the second case the parameter gets a fixed value. If a parameter is\n"
+         "part of *pnd_agenda_input*, the corresponding GIN argument must be set\n"
+         "to NaN (which is default). This means that the number of columns in\n"
+         "*pnd_agenda_input* and the number of non-NaN choices for n0, mu, la and\n"
+         "ga must add up to four.\n"
+         "\n"
+         "The GIN option is especially suitable for selecting special cases of MGD.\n"
+         "For example, by setting mu=0 and ga=1, an exponential PSD is obtained:\n"
+         "   n(x) = n0 * exp( -la*x )\n"
+         "With mu=1 and ga=1, the gamma PSD is obtained:\n"
+         "   n(x) = n0 * x^mu *exp( -la*x )\n"
+         "There should be little overhead in using the method for exponential\n"
+         "and gamma PSD, there is an internal switch to dedicated expressions for\n"
+         "those PSDs.\n"
+         "\n"
+         "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+         "picky=0, or an error is thrown if picky=1.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "psd_data", "dpsd_data_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
+            "pnd_agenda_input_names", "dpnd_data_dx_names" ),
+        GIN( "n0", "mu", "la", "ga", "t_min", "t_max", "picky" ),
+        GIN_TYPE( "Numeric", "Numeric",  "Numeric", "Numeric",
+                  "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( "NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0" ),
+        GIN_DESC( "N0", "mu", "la", "ga",
+                  "Low temperature limit to calculate a psd.",
+                  "High temperature limit to calculate a psd.",
+                  "Flag whether to be strict with parametrization value checks." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "psdMH97" ),
         DESCRIPTION
         (
          "McFarquahar and Heymsfield [1997] (MH97) particle size distribution\n"
          "for cloud ice.\n"
          "\n"
-         "This is a 1-moment PSD, i.e. *pnd_agenda_input* shall have one\n"
+         "This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one\n"
          "column and *pnd_agenda_input_names* shall contain a single string.\n"
          "The input data in *pnd_agenda_input* shall be ice hydrometeor mass\n"
          "content in unit of [kg/m3]. The naming used is *pnd_agenda_input_names*\n"
@@ -12638,7 +12643,7 @@ void define_md_data_raw()
         (
          "Wang et al. [2016] (W16) particle size distribution for rain.\n"
          "\n"
-         "This is a 1-moment PSD, i.e. *pnd_agenda_input* shall have one\n"
+         "This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one\n"
          "column and *pnd_agenda_input_names* shall contain a single string.\n"
          "The input data in *pnd_agenda_input* shall be rain mass content in\n"
          "unit of [kg/m3]. The naming used is *pnd_agenda_input_names* is free\n"

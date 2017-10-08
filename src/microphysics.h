@@ -154,12 +154,18 @@ void pnd_fieldH98 (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity);
 
-void psd_general_MGD ( Vector& psd,
-                   const Vector& diameter,
-                   const Numeric& N0,
-                   const Numeric& mu,
-                   const Numeric& lambda,
-                   const Numeric& gamma );
+void psd_general_MGD (
+          VectorView  psd,
+          MatrixView  jac_data,
+    const Vector&     x,
+    const Numeric&    n0,
+    const Numeric&    mu,
+    const Numeric&    la,
+    const Numeric&    ga,
+    const bool&       do_n0_jac,
+    const bool&       do_mu_jac,
+    const bool&       do_la_jac,
+    const bool&       do_ga_jac );
 
 void psd_cloudice_MH97 ( Vector& psd, 
                    const Vector& diameter,

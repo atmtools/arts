@@ -2569,80 +2569,134 @@ void pnd_fieldH98 (Tensor4View pnd_field,
 /*! Calculates particle size distribution according to a general modified gamma
  *  distribution
  *  
- *  Uses all four free parameters (N0, mu, lambda, gamma) to calculate
- *    psd(D) = N0 * D^mu * exp( -lambda * D^gamma )
+ *  Uses all four free parameters (n0, mu, la, ga) to calculate
+ *    psd(D) = n0 * D^mu * exp( -la * x^ga )
  *  
  *  Reference: Petty & Huang, JAS, (2011).
  *  Ported from Atmlab.
 
-    \param psd     particle number density per size interval [#/m3*m]
-    \param diameter  size of the scattering elements (volume equivalent
-                       diameter) [m]
-    \param N0      Intercept parameter. See above. [ ? ]
-    \param mu      See above. [ ? ]
-    \param lambda  See above. [ ? ]
-    \param gamma   See above. [ ? ]
+    \param psd       Particle number density per x-interval. Sizing of vector
+                     should be done before calling the function.
+    \param jac_data  Container for returning jacobian data. Shall be a matrix
+                     with four rows, where the rows match n0, mu, la and ga.  
+                     Number of columns same as length of psd.
+    \param x       Mass or size.
+    \param n0      See above.
+    \param mu      See above.
+    \param la      See above.
+    \param ga      See above.
   
   \author Jana Mendrok, Patrick Eriksson
   \date 2017-06-07
 
 */
-void psd_general_MGD ( Vector& psd,
-                   const Vector& diameter,
-                   const Numeric& N0,
-                   const Numeric& mu,
-                   const Numeric& lambda,
-                   const Numeric& gamma )
+void psd_general_MGD (
+          VectorView  psd,
+          MatrixView  jac_data,
+    const Vector&     x,
+    const Numeric&    n0,
+    const Numeric&    mu,
+    const Numeric&    la,
+    const Numeric&    ga,
+    const bool&       do_n0_jac,
+    const bool&       do_mu_jac,
+    const bool&       do_la_jac,
+    const bool&       do_ga_jac )
 {
-  Index nD = diameter.nelem();
-  psd.resize(nD);
-  psd = 0.;
+  const Index nx = x.nelem();
+
+  assert( psd.nelem() == nx );
+  assert( jac_data.nrows() == 4 );
+  assert( jac_data.ncols() == nx );
 
   // ensure numerical stability
-  if( (mu+1)/gamma <= 0. )
+  if( (mu+1)/ga <= 0. )
     {
       ostringstream os;
       os << "(mu+1) / gamma must be > 0.";
       throw runtime_error( os.str() );
     }
 
-  // skip calculation if N0 is 0.0
-  if ( N0 == 0.0 )
-  {
-    return;
-  }
-  assert (N0>0.);
-
-  if( gamma == 1 )
+  // skip calculation if n0 is 0.0
+  if ( n0 == 0.0 )
     {
-      if( mu == 0 )
-        // Exponential distribution
-        for( Index iD=0; iD<nD; iD++ )
-          {
-            psd[iD] = N0 *
-                      exp( -lambda*diameter[iD] );
-          }
+      psd = 0.;
+      return;
+    }
+  
+  if( ga == 1  &&  !do_ga_jac )
+    {
+      if( mu == 0  &&  !do_mu_jac )
+        {
+          // Exponential distribution
+          for( Index ix=0; ix<nx; ix++ )
+            {
+              const Numeric eterm = exp( -la*x[ix] );
+              psd[ix] = n0 * eterm;
+              if( do_n0_jac )
+                { jac_data(0,ix) = eterm; }
+              if( do_la_jac )
+                { jac_data(2,ix) = -x[ix] * psd[ix]; }
+            }
+        }
       else
-        // Gamma distribution
-        for( Index iD=0; iD<nD; iD++ )
-          {
-            psd[iD] = N0 * pow( diameter[iD], mu ) *
-                      exp( -lambda*diameter[iD] );
-          }
+        {
+          if( mu > 10 )
+            {
+              ostringstream os;
+              os << "Given mu is " << mu << endl
+                 <<"Seems unreasonable. Have you mixed up the inputs?";
+              throw runtime_error(os.str());
+            }
+          // Gamma distribution
+          for( Index ix=0; ix<nx; ix++ )
+            {
+              const Numeric eterm = exp( -la*x[ix] );
+              const Numeric xterm = pow( x[ix], mu );
+              psd[ix] = n0 * xterm * eterm;
+              if( do_n0_jac )
+                { jac_data(0,ix) = xterm * eterm; }
+              if( do_mu_jac )
+                { jac_data(1,ix) = log(x[ix]) * psd[ix]; }
+              if( do_la_jac )
+                { jac_data(2,ix) = -x[ix] * psd[ix]; }
+              psd[ix] = n0 * pow( x[ix], mu ) * exp( -la*x[ix] );
+            }
+        }
     }
   else
     {
       // Complete MGD
-      for( Index iD=0; iD<nD; iD++ )
+      if( mu > 10 )
         {
-          psd[iD] = N0 * pow( diameter[iD], mu ) * 
-                    exp( -lambda*pow( diameter[iD], gamma ) );
+          ostringstream os;
+          os << "Given mu is " << mu << endl
+             <<"Seems unreasonable. Have you mixed up the inputs?";
+          throw runtime_error(os.str());
+        }
+      if( ga > 10 )
+        {
+          ostringstream os;
+          os << "Given gamma is " << ga << endl
+             <<"Seems unreasonable. Have you mixed up the inputs?";
+          throw runtime_error(os.str());
+        }
+      for( Index ix=0; ix<nx; ix++ )
+        {
+          const Numeric pterm = pow( x[ix], ga );
+          const Numeric eterm = exp( -la * pterm );
+          const Numeric xterm = pow( x[ix], mu );
+          psd[ix] = n0 * xterm * eterm;
+          if( do_n0_jac )
+            { jac_data(0,ix) = xterm * eterm; }
+          if( do_mu_jac )
+            { jac_data(1,ix) = log(x[ix]) * psd[ix]; }
+          if( do_la_jac )
+            { jac_data(2,ix) = -pterm * psd[ix]; }
+          if( do_ga_jac )
+            { jac_data(3,ix) = -la * pterm * log(x[ix]) * psd[ix]; }
         }
     }
-
-  //for( Index iD=0; iD<nD; iD++ )
-  //  if( isnan(psd[iD]) )
-  //    psd[iD] = 0.0;
 }
 
 

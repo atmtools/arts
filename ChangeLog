@@ -1,5 +1,20 @@
 2017-10-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-825
+
+	* src/m_microphysics.cc (psdMgd): A general treatment of MGD for
+	the case when the native paraneters are used (i.e. n0, mu, la and ga).
+
+	(psdExpN0Lambda): Removed.
+
+	* src/m_microphysics.cc (psdMH97,psdF07, psdW16): Now using an
+	even more genral macro for initial part of function.
+
+	* src/microphysics.cc (psd_general_MGD): Revised and extended. Can
+	now also return the derivative with respect to n0, mu, la and ga.
+
+2017-10-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-824
 
 	* src/m_microphysics.cc (psdMgd1free, psdExpN0Lambda): Started to
