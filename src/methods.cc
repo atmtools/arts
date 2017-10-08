@@ -12311,42 +12311,79 @@ void define_md_data_raw()
                  "Line of sight"
                  )
         ));
-
+  /*
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "psdExpN0Lambda" ),
+        DESCRIPTION
+        (
+         "Exponential particle size distribution woth N0 and lambda as input\n"
+         "arguments.\n"
+         "\n"
+         "This PSD can be written as\n"
+         "  f(x) = N0 * exp( -lamda * x )\n"
+         "where x is either particle size or mass, and N0 and lambda are the.\n"
+         "parameters of the PSD.\n"         
+         "\n" 
+         "I.e. this is a 2-moment PSD and *pnd_agenda_input* shall have two\n"
+         "columns and *pnd_agenda_input_names* shall contain two strings.\n"
+         "More precisely, the first column in *pnd_agenda_input* is taken as N0\n"
+         "and the second column as lambda. The naming in *pnd_agenda_input_names*\n"
+         "is free but the same name must be used in *particle_bulkprop_names* and\n"
+         "*dpnd_data_dx_names*.\n"
+         "\n" 
+         "*psd_size_grid* can hold any quantity, as long as N0 and lambda are set\n"
+         "accordingly to the size quantity used."
+         "\n" 
+         "Derivatives can be obtained of either N0 or lambda, or both two in\n"
+         "parallel. This selection is done by **dpnd_data_dx_names*. The order\n"
+         "inside *dpnd_data_dx_names* is free.\n"
+         "\n"
+         "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+         "picky=0, or an error is thrown if picky=1.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "psd_data", "dpsd_data_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
+            "pnd_agenda_input_names", "dpnd_data_dx_names" ),
+        GIN( "t_min",   "t_max", "picky" ),
+        GIN_TYPE( "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF, NODEF, "0" ),
+        GIN_DESC( "Low temperature limit to calculate a psd.",
+                  "High temperature limit to calculate a psd.",
+                  "Flag whether to be strict with parametrization value checks." )
+        ));
+  */
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "psdF07" ),
         DESCRIPTION
         (
-         "Calculates *psd_data* and  *dpsd_data_dx* following Field et al. (2007)\n"
-         "(F07) particle size distribution for snow and cloud ice.\n"
+         "The Field et al. [2007] (F07) particle size distribution for snow and\n"
+         "cloud ice.\n"
          "\n"
-         "WSM for use in *pnd_agenda_array* for mapping *particle_bulkprop_field*\n"
-         "to *pnd_field* using *pnd_fieldCalcFromParticleBulkProps*.\n"
-         "Produces the particle size distribution values (dN/dD) and their\n"
-         "derivates with respect to independent variables x by *dpnd_data_dx_names*\n"
-         "over multiple particle sizes and atmospheric levels (or SWC/T\n"
-         "combinations).\n"
+         "This is a 1-moment PSD, i.e. *pnd_agenda_input* shall have one\n"
+         "column and *pnd_agenda_input_names* shall contain a single string.\n"
+         "The input data in *pnd_agenda_input* shall be ice hydrometeor mass\n"
+         "content in unit of [kg/m3]. The naming used is *pnd_agenda_input_names*\n"
+         "is free but the same name must be used in *particle_bulkprop_names* and\n"
+         "*dpnd_data_dx_names*.\n"
          "\n"
          "*psd_size_grid* is considered to be in terms of maximum diameter.\n"
-         "SWC is considered to be in terms of mass content (or mass density),\n"
-         "ie. units of [kg/m3]. Temperature is supposed to be in K."
          "\n"
-         "Derivatives are obtained by SWC perturbation of 0.1%, but not less\n"
-         "than 0.1 mg/m3.\n"
+         "Derivatives are obtained by perturbation of 0.1%, but not less than\n"
+         "0.1 mg/m3.\n"
          "\n"
          "Both, parametrization for tropics and midlatitudes are handled,\n"
          "governed by setting of *regime*, where \"TR\" selectes the tropical\n"
          "case, and \"ML\" the midlatitude one.\n"
          "\n"
-         "Requirements:\n"
-         "\n"
-         "*pnd_agenda_input_names* must be [\"SWC\"].\n"
-         "The only allowed entry in *dpnd_data_dx_names* (ie. the only allowed\n"
-         "independent variable x) is \"SWC\".\n"
-         "\n"
-         "The validity range of SWC is not limited. Negative SWC will produce\n"
-         "negative psd values following a distribution given by abs(SWC), ie.\n"
-         "abs(psd)=f(abs(SWC)).\n"
+         "The validity range of mass content is not limited. Negative mass\n"
+         "contents wil produce negative psd values following a distribution\n"
+         "given by abs(IWC), ie. abs(psd)=f(abs(IWC)).\n"
          "\n"
          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
          "picky=0, or an error is thrown if picky=1.\n"
@@ -12406,33 +12443,24 @@ void define_md_data_raw()
       ( NAME( "psdMH97" ),
         DESCRIPTION
         (
-         "Calculates *psd_data* and  *dpsd_data_dx* following McFarquahar and\n"
-         "Heymsfield (1997) (MH97) particle size distribution for cloud ice.\n"
+         "McFarquahar and Heymsfield [1997] (MH97) particle size distribution\n"
+         "for cloud ice.\n"
          "\n"
-         "WSM for use in *pnd_agenda_array* for mapping *particle_bulkprop_field*\n"
-         "to *pnd_field* using *pnd_fieldCalcFromParticleBulkProps*.\n"
-         "Produces the particle size distribution values (dN/dD) and their\n"
-         "derivates with respect to independent variables x by *dpnd_data_dx_names*\n"
-         "over multiple particle sizes and atmospheric levels (or IWC/T\n"
-         "combinations).\n"
+         "This is a 1-moment PSD, i.e. *pnd_agenda_input* shall have one\n"
+         "column and *pnd_agenda_input_names* shall contain a single string.\n"
+         "The input data in *pnd_agenda_input* shall be ice hydrometeor mass\n"
+         "content in unit of [kg/m3]. The naming used is *pnd_agenda_input_names*\n"
+         "is free but the same name must be used in *particle_bulkprop_names* and\n"
+         "*dpnd_data_dx_names*.\n"
          "\n"
-         "*psd_size_grid* is considered to be in terms of volume (or mass)\n"
-         "equivalent diameter.\n"
-         "IWC is considered to be in terms of mass content (or mass density),\n"
-         "ie. units of [kg/m3].\n"
+         "*psd_size_grid* is considered to be in terms of volume equivalent diameter.\n"
          "\n"
-         "Derivatives are obtained by IWC perturbation of 0.1%, but not less\n"
-         "than 0.1 mg/m3.\n"
+         "Derivatives are obtained by perturbation of 0.1%, but not less than\n"
+         "0.1 mg/m3.\n"
          "\n"
-         "Requirements:\n"
-         "\n"
-         "*pnd_agenda_input_names* must be [\"IWC\"].\n"
-         "The only allowed entry in *dpnd_data_dx_names* (ie. the only allowed\n"
-         "independent variable x) is \"IWC\".\n"
-         "\n"
-         "The validity range of IWC is not limited. Negative IWC will produce\n"
-         "negative psd values following a distribution given by abs(IWC), ie.\n"
-         "abs(psd)=f(abs(IWC)).\n"
+         "The validity range of mass content is not limited. Negative mass\n"
+         "contents wil produce negative psd values following a distribution\n"
+         "given by abs(IWC), ie. abs(psd)=f(abs(IWC)).\n"
          "\n"
          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
          "picky=0, or an error is thrown if picky=1.\n"
@@ -12608,34 +12636,26 @@ void define_md_data_raw()
       ( NAME( "psdW16" ),
         DESCRIPTION
         (
-         "Calculates *psd_data* and  *dpsd_data_dx* following Wang et al. (2016)\n"
-         "(W16) particle size distribution for rain.\n"
+         "Wang et al. [2016] (W16) particle size distribution for rain.\n"
          "\n"
-         "WSM for use in *pnd_agenda_array* for mapping *particle_bulkprop_field*\n"
-         "to *pnd_field* using *pnd_fieldCalcFromParticleBulkProps*.\n"
-         "Produces the particle size distribution values (dN/dD) and their\n"
-         "derivates with respect to independent variables x by *dpnd_data_dx_names*\n"
-         "over multiple particle sizes and atmospheric levels (RWCs).\n"
+         "This is a 1-moment PSD, i.e. *pnd_agenda_input* shall have one\n"
+         "column and *pnd_agenda_input_names* shall contain a single string.\n"
+         "The input data in *pnd_agenda_input* shall be rain mass content in\n"
+         "unit of [kg/m3]. The naming used is *pnd_agenda_input_names* is free\n"
+         "but the same name must be used in *particle_bulkprop_names* and\n"
+         "*dpnd_data_dx_names*.\n"
          "\n"
          "Particles are assumed to be near-spherical, ie. *psd_size_grid* can\n"
          "either be in terms of volume (or mass) equivalent diameter or\n"
          "maximum diameter.\n"
-         "RWC is considered to be in terms of mass content (or mass density),\n"
-         "ie. units of [kg/m3]."
          "\n"
-         "Derivatives are obtained by RWC perturbation of 0.1%, but not less\n"
-         "than 0.1 mg/m3.\n"
+         "Derivatives are obtained by perturbation of 0.1%, but not less than\n"
+         "0.1 mg/m3.\n"
          "\n"
-         "Requirements:\n"
+         "The validity range of mass content is not limited. Negative mass\n"
+         "contents wil produce negative psd values following a distribution\n"
+         "given by abs(IWC), ie. abs(psd)=f(abs(IWC)).\n"
          "\n"
-         "*pnd_agenda_input_names* must be [\"RWC\"] corresponding to RWC\n"
-         "(1D-)profiles in *pnd_agenda_input*.\n"
-         "The only allowed entry in *dpnd_data_dx_names* (ie. the only allowed\n"
-         "independent variable x) is \"RWC\".\n"
-         "\n"
-         "The validity range of RWC is not limited. Negative RWC will produce\n"
-         "negative psd values following a distribution given by abs(RWC), ie.\n"
-         "abs(psd)=f(abs(RWC)).\n"
          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
          "picky=0, or an error is thrown if picky=1.\n"
         ),

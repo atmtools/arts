@@ -1,3 +1,15 @@
+2017-10-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-824
+
+	* src/m_microphysics.cc (psdMgd1free, psdExpN0Lambda): Started to
+	play around with how to implement MGD PSDs in a relatively general
+	manner. But so far just test coding.
+
+	* src/m_microphysics.cc (psdMH97,psdF07, psdW16): Removed demand
+	that input must have a specific name. Start of methods now handled
+	by a common macro. Added check of t_min vs t_max.
+
 2017-10-06 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-823

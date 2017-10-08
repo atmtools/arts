@@ -116,6 +116,7 @@ void particle_massesFromMetaDataSingleCategory(
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void particle_massesFromMetaData
                         (//WS Output:
@@ -139,6 +140,7 @@ void particle_massesFromMetaData
     }
   }
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -226,6 +228,7 @@ void pnd_size_gridFromScatMeta(
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pndFromPsdBasic(
          Matrix&    pnd_data,
@@ -301,6 +304,7 @@ void pndFromPsdBasic(
         }
     }
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -589,6 +593,7 @@ void pndFromPsd(
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pndAdjustFromScatMeta(
           Matrix&                             pnd_data,
@@ -663,6 +668,8 @@ void pndAdjustFromScatMeta(
       pnd_data(ip,joker) = pnd;
     }
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void MassSizeParamsFromScatMeta(
@@ -785,26 +792,59 @@ void MassSizeParamsFromScatMeta(
 
 
 
+// ------------------------------------------------------
+// Macros to avoid duplication of code inside PSD methods
+// ------------------------------------------------------
+
+#define START_OF_PSD_1FREE()                        \
+  const Index nin = pnd_agenda_input_names.nelem(); \
+  const Index ndx = dpnd_data_dx_names.nelem(); \
+  const Index np  = pnd_agenda_input.nrows(); \
+  const Index nsi = psd_size_grid.nelem(); \
+  if( pnd_agenda_input.ncols() != nin )  \
+    throw runtime_error( "Length of *pnd_agenda_input_names* and number of " \
+                         "columns in *pnd_agenda_input* must be equal." ); \
+  if( pnd_agenda_input.ncols() != 1 ) \
+    throw runtime_error( "*pnd_agenda_input* must have one column." ); \
+  if( ndx ) \
+    { \
+      if( ndx != 1 ) \
+        throw runtime_error( "*dpnd_data_dx_names* must have length 0 or 1." ); \
+      if( dpnd_data_dx_names[0] != pnd_agenda_input_names[0] ) \
+        throw runtime_error( "For this method, the name in *dpnd_data_dx_names* " \
+                             "must be the same as in *pnd_agenda_input_names*." ); \
+    } \
+  if( t_min >= t_max ) \
+    throw runtime_error( "*t_min* must be smaller than *t_max*." ); \
+  psd_data.resize( np, nsi ); \
+  psd_data = 0.0; \
+  if( ndx ) \
+    { \
+      dpsd_data_dx.resize( ndx, np, nsi ); \
+      dpsd_data_dx = 0.0; \
+    } \
+  else \
+    { dpsd_data_dx.resize( 0, 0, 0  ); }  
+
+// ------------------------------------------------------
+// ------------------------------------------------------
+// ------------------------------------------------------
+
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdF07 (
-          Matrix&                             psd_data,
-          Tensor3&                            dpsd_data_dx,
-    const Vector&                             psd_size_grid,
-    const Vector&                             pnd_agenda_input_t,
-    const Matrix&                             pnd_agenda_input,
-    const ArrayOfString&                      pnd_agenda_input_names,
-    const ArrayOfString&                      dpnd_data_dx_names,
-    const String&                             regime,
-    const Numeric&                            alpha,
-    const Numeric&                            beta,
-    const Numeric&                            t_min,
-    const Numeric&                            t_max,
-    const Numeric&                            t_min_psd,
-    const Numeric&                            t_max_psd,
-    const Numeric&                            beta_min, 
-    const Numeric&                            beta_max, 
-    //const Numeric&                            density_deviation,
-    const Index&                              picky, 
+/*
+void psdExpN0Lambda (
+          Matrix&           psd_data,
+          Tensor3&          dpsd_data_dx,
+    const Vector&           psd_size_grid,
+    const Vector&           pnd_agenda_input_t,
+    const Matrix&           pnd_agenda_input,
+    const ArrayOfString&    pnd_agenda_input_names,
+    const ArrayOfString&    dpnd_data_dx_names,
+    const Numeric&          t_min, 
+    const Numeric&          t_max, 
+    const Index&            picky, 
     const Verbosity&)
 {
   // Some sizes 
@@ -812,36 +852,137 @@ void psdF07 (
   const Index ndx = dpnd_data_dx_names.nelem();
   const Index np  = pnd_agenda_input.nrows();
   const Index nsi = psd_size_grid.nelem();
+  ArrayOfIndex what_moment(ndx);
   
   // Checks
   if( pnd_agenda_input.ncols() != nin )
     throw runtime_error( "Length of *pnd_agenda_input_names* and number of "
                          "columns in *pnd_agenda_input* must be equal." );
-  if( pnd_agenda_input.ncols() != 1 )
-    throw runtime_error( "*pnd_agenda_input* must have two columns (SWC)." );
-  if( pnd_agenda_input_names[0] != "SWC" )
-    throw runtime_error( "Element 0 of *pnd_agenda_input_names* must be \"SWC\"." );
+  if( pnd_agenda_input.ncols() != 2 )
+    throw runtime_error( "*pnd_agenda_input* must have two columns." );
   if( ndx )
     {
-      if( ndx != 1 )
-        throw runtime_error( "*dpnd_data_dx_names* must have length 0 or 1." );
-      if( dpnd_data_dx_names[0] != "SWC" )
-        throw runtime_error( "With F07, the only valid option for "
-                             "*dpnd_data_dx_names* is: \"SWC\"." );
+      if( ndx > 2 )
+        throw runtime_error( "*dpnd_data_dx_names* must have length 0, 1 or 2." );
+      what_moment[0] = find_first( pnd_agenda_input_names, dpnd_data_dx_names[0] );
+      if(  what_moment[0] < 0 )
+        throw runtime_error( "First element of *dpnd_data_dx_names* has no "
+                             "(identical) match in *pnd_agenda_input_names*." );
+      if( ndx > 1 )
+        {
+          what_moment[1] = find_first( pnd_agenda_input_names, dpnd_data_dx_names[1] );
+          if(  what_moment[1] < 0 )
+            throw runtime_error( "Second element of *dpnd_data_dx_names* has no "
+                                 "(identical) match in *pnd_agenda_input_names*." );
+        }
     }
-  if( regime!="TR" && regime!="ML" )
-    throw runtime_error( "regime must either be \"TR\" or \"ML\"." );
+
   
   // Init psd_data and dpsd_data_dx with zeros
   psd_data.resize( np, nsi );
   psd_data = 0.0;
   if( ndx )
     {
-      dpsd_data_dx.resize( 1, np, nsi );   // SWC only possible retrieval quantity
+      dpsd_data_dx.resize( ndx, np, nsi );   
       dpsd_data_dx = 0.0;
     }
   else
     { dpsd_data_dx.resize( 0, 0, 0  ); }  
+
+  // Help variables to handle derivatives, and to avoid recalc exp-term
+  bool   do_dn0_dx = false, do_dla_dx = false;
+  Index  i_dn0_dx = -1, i_dla_dx = -1; 
+  Vector dn0_dx(0), dla_dx(0), exp_term(nsi);
+  //
+  for( Index i=0; i<ndx; i++ )
+    {
+      if( what_moment[i] == 0 )
+        { do_dn0_dx = true; i_dn0_dx = i; dn0_dx.resize( nsi ); }
+      if( what_moment[i] == 1 )
+        { do_dla_dx = true; i_dla_dx = i; dla_dx.resize( nsi ); }
+    }
+  
+  for( Index ip=0; ip<np; ip++ )
+    {
+      // Extract the input variables
+      Numeric  n0 = pnd_agenda_input(ip,0);
+      Numeric  la = pnd_agenda_input(ip,1);
+      Numeric   t = pnd_agenda_input_t[ip];
+
+      // No calc needed if n0==0 and no jacobians requested.
+      if( (n0==0.) && (!ndx) )
+        { continue; }   // If here, we are ready with this point!
+
+      // Outside of [t_min,tmax]?
+      if( t < t_min  ||  t > t_max )
+        {
+          if( picky )
+            {
+              ostringstream os;
+              os << "Method called with a temperature of " << t << " K.\n"
+                 << "This is outside the specified allowed range: [ max(0.,"
+                 << t_min << "), " << t_max << " ]";
+              throw runtime_error(os.str());
+            }
+          else  
+            { continue; }   // If here, we are ready with this point!
+        }
+      
+      // Calculate PSD
+      if( n0 != 0 )
+        {
+          for ( Index i=0; i<nsi; i++ )
+            {
+              exp_term[i]    = exp( -la * psd_size_grid[i] );
+              psd_data(ip,i) = n0 * exp_term[i];
+            }
+        }
+
+      // Calculate derivatives
+      if( ndx )
+        {
+          if( do_dn0_dx )
+            {
+              for ( Index i=0; i<nsi; i++ )
+                { dpsd_data_dx(i_dn0_dx,ip,i) = exp_term[i]; }
+            }
+          if( do_dla_dx )
+            {
+              for ( Index i=0; i<nsi; i++ )
+                { dpsd_data_dx(i_dla_dx,ip,i) = -psd_size_grid[i] * psd_data(ip,i); }
+            }
+        }   
+    }
+}
+*/
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void psdF07 (
+          Matrix&          psd_data,
+          Tensor3&         dpsd_data_dx,
+    const Vector&          psd_size_grid,
+    const Vector&          pnd_agenda_input_t,
+    const Matrix&          pnd_agenda_input,
+    const ArrayOfString&   pnd_agenda_input_names,
+    const ArrayOfString&   dpnd_data_dx_names,
+    const String&          regime,
+    const Numeric&         alpha,
+    const Numeric&         beta,
+    const Numeric&         t_min,
+    const Numeric&         t_max,
+    const Numeric&         t_min_psd,
+    const Numeric&         t_max_psd,
+    const Numeric&         beta_min, 
+    const Numeric&         beta_max, 
+    const Index&           picky, 
+    const Verbosity&)
+{
+  START_OF_PSD_1FREE();
+
+  // Extra checks for this PSD
+  if( regime!="TR" && regime!="ML" )
+    throw runtime_error( "regime must either be \"TR\" or \"ML\"." );
 
   // Some sanity checks. If not picky, we just ignore the insanities.
   if( picky )
@@ -958,61 +1099,104 @@ void psdF07 (
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdMH97 (
-          Matrix&                             psd_data,
-          Tensor3&                            dpsd_data_dx,
-    const Vector&                             psd_size_grid,
-    const Vector&                             pnd_agenda_input_t,
-    const Matrix&                             pnd_agenda_input,
-    const ArrayOfString&                      pnd_agenda_input_names,
-    const ArrayOfString&                      dpnd_data_dx_names,
-    const Numeric&                            t_min, 
-    const Numeric&                            t_max, 
-    const Numeric&                            t_min_psd, 
-    const Numeric&                            t_max_psd, 
-    const Index&                              picky, 
-    const Index&                              noisy,
+/*
+void psdMgd1free (
+          Matrix&          psd_data,
+          Tensor3&         dpsd_data_dx,
+    const Vector&          psd_size_grid,
+    const Vector&          pnd_agenda_input_t,
+    const Matrix&          pnd_agenda_input,
+    const ArrayOfString&   pnd_agenda_input_names,
+    const ArrayOfString&   dpnd_data_dx_names,
+    const Numeric&         n0, 
+    const Numeric&         la, 
+    const Numeric&         mu, 
+    const Numeric&         ga, 
+    const Numeric&         t_min, 
+    const Numeric&         t_max, 
+    const Index&           picky, 
     const Verbosity&)
 {
-  // Some sizes 
-  const Index nin = pnd_agenda_input_names.nelem();
-  const Index ndx = dpnd_data_dx_names.nelem();
-  const Index np  = pnd_agenda_input.nrows();
-  const Index nsi = psd_size_grid.nelem();
+  START_OF_PSD_1FREE()
   
-  // Checks
-  if( pnd_agenda_input.ncols() != nin )
-    throw runtime_error( "Length of *pnd_agenda_input_names* and number of "
-                         "columns in *pnd_agenda_input* must be equal." );
-  if( pnd_agenda_input.ncols() != 1 )
-    throw runtime_error( "*pnd_agenda_input* must have one column (IWC)." );
-  if( pnd_agenda_input_names[0] != "IWC" )
-    throw runtime_error( "Element 0 of *pnd_agenda_input_names* must be \"IWC\"." );
+  // Check and determine free parameter
+  const Index n0_free = (Index) isnan( n0 );
+  const Index la_free = (Index) isnan( la );
+  const Index mu_free = (Index) isnan( mu );
+  const Index ga_free = (Index) isnan( ga );
+  //
+  if( n0_free + la_free + mu_free + ga_free != 1 )
+    throw runtime_error( "There must be exactly one free parameter. That is "
+                         "either n0, la, mu or ga must be set to NaN (but only "
+                         "one of them)." );
 
-  if( ndx )
+  // Create vector with the four MGD parameters
+  Vector mgd_pars(4);
+  Index  i_free = -1;
+  //
+  if( nO_free ) { i_free = 0; } else { mgd_pars[0] = n0; }
+  if( la_free ) { i_free = 1; } else { mgd_pars[1] = la; }
+  if( mu_free ) { i_free = 2; } else { mgd_pars[2] = mu; }
+  if( ga_free ) { i_free = 3; } else { mgd_pars[3] = ga; }
+
+  
+  for( Index ip=0; ip<np; ip++ )
     {
-      if( ndx != 1 )
-        throw runtime_error( "*dpnd_data_dx_names* must have length 0 or 1." );
-      if( dpnd_data_dx_names[0] != "IWC" )
-        throw runtime_error( "With MH97, the only valid option for "
-                             "*dpnd_data_dx_names* is: \"IWC\"." );
-    }        
+      // Extract the input variables
+      mgd_pars[i_free] = pnd_agenda_input(ip,0);
+      Numeric        t = pnd_agenda_input_t[ip];
+
+      // No calc needed if n0==0 and no jacobians requested.
+      if( (mgd_pars[0]==0.) && (!ndx) )
+        { continue; }   // If here, we are ready with this point!
+
+      // Outside of [t_min,tmax]?
+      if( t < t_min  ||  t > t_max )
+        {
+          if( picky )
+            {
+              ostringstream os;
+              os << "Method called with a temperature of " << t << " K.\n"
+                 << "This is outside the specified allowed range: [ max(0.,"
+                 << t_min << "), " << t_max << " ]";
+              throw runtime_error(os.str());
+            }
+          else  
+            { continue; }   // If here, we are ready with this point!
+        }
+
+      // Calculate PSD
+      mgd_psd( psd_data(ip,joker), n0, la, mu, ga, psd_size_grid );
+    }
+}
+*/
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void psdMH97 (
+          Matrix&           psd_data,
+          Tensor3&          dpsd_data_dx,
+    const Vector&           psd_size_grid,
+    const Vector&           pnd_agenda_input_t,
+    const Matrix&           pnd_agenda_input,
+    const ArrayOfString&    pnd_agenda_input_names,
+    const ArrayOfString&    dpnd_data_dx_names,
+    const Numeric&          t_min, 
+    const Numeric&          t_max, 
+    const Numeric&          t_min_psd, 
+    const Numeric&          t_max_psd, 
+    const Index&            picky, 
+    const Index&            noisy,
+    const Verbosity&)
+{
+  START_OF_PSD_1FREE();
+
+  // Extra checks for this PSD
   if( noisy  &&   ndx )
     throw runtime_error( "Jacobian calculations and \"noisy\" can not be "
                          "combined." );
-
-  
-  // Init psd_data and dpsd_data_dx with zeros
-  psd_data.resize( np, nsi );
-  psd_data = 0.0;
-  if( ndx )
-    {
-      dpsd_data_dx.resize( 1, np, nsi );   // IWC only possible retrieval quantity
-      dpsd_data_dx = 0.0;
-    }
-  else
-    { dpsd_data_dx.resize( 0, 0, 0  ); }  
 
   for( Index ip=0; ip<np; ip++ )
     {
@@ -1076,6 +1260,8 @@ void psdMH97 (
         }   
     }
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void psdSB06 (
@@ -1240,6 +1426,7 @@ void psdSB06 (
         }
     }
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1407,55 +1594,24 @@ void psdMY05 (
     }
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void psdW16 (
-          Matrix&                             psd_data,
-          Tensor3&                            dpsd_data_dx,
-    const Vector&                             psd_size_grid,
-    const Vector&                             pnd_agenda_input_t,
-    const Matrix&                             pnd_agenda_input,
-    const ArrayOfString&                      pnd_agenda_input_names,
-    const ArrayOfString&                      dpnd_data_dx_names,
-    const Numeric&                            t_min, 
-    const Numeric&                            t_max, 
-    const Index&                              picky, 
+          Matrix&           psd_data,
+          Tensor3&          dpsd_data_dx,
+    const Vector&           psd_size_grid,
+    const Vector&           pnd_agenda_input_t,
+    const Matrix&           pnd_agenda_input,
+    const ArrayOfString&    pnd_agenda_input_names,
+    const ArrayOfString&    dpnd_data_dx_names,
+    const Numeric&          t_min, 
+    const Numeric&          t_max, 
+    const Index&            picky, 
     const Verbosity&)
 {
-  // Some sizes 
-  const Index nin = pnd_agenda_input_names.nelem();
-  const Index ndx = dpnd_data_dx_names.nelem();
-  const Index np  = pnd_agenda_input.nrows();
-  const Index nsi = psd_size_grid.nelem();
+  START_OF_PSD_1FREE();
   
-  // Checks
-  if( pnd_agenda_input.ncols() != nin )
-    throw runtime_error( "Length of *pnd_agenda_input_names* and number of "
-                         "columns in *pnd_agenda_input* must be equal." );
-  if( pnd_agenda_input.ncols() != 1 )
-    throw runtime_error( "*pnd_agenda_input* must have one column." );
-  if( pnd_agenda_input_names[0] != "RWC" )
-    throw runtime_error( "Element 0 of *pnd_agenda_input_names* must be \"RWC\"." );
-  if( ndx )
-    {
-      if( ndx != 1 )
-        throw runtime_error( "*dpnd_data_dx_names* must have length 0 or 1." );
-      if( dpnd_data_dx_names[0] != "RWC" )
-        throw runtime_error( "With W16, the only valid option for "
-                             "*dpnd_data_dx_names* is: \"RWC\"." );
-    }        
-
-  
-  // Init psd_data and dpsd_data_dx with zeros
-  psd_data.resize( np, nsi );
-  psd_data = 0.0;
-  if( ndx )
-    {
-      dpsd_data_dx.resize( 1, np, nsi );   // RWC only possible retrieval quantity
-      dpsd_data_dx = 0.0;
-    }
-  else
-    { dpsd_data_dx.resize( 0, 0, 0  ); }  
-
   for( Index ip=0; ip<np; ip++ )
     {
       // Extract the input variables
@@ -1851,6 +2007,7 @@ void dNdD_F07 (//WS Output:
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void dNdD_H11 (//WS Output:
              Vector& dNdD,
@@ -1869,6 +2026,8 @@ void dNdD_H11 (//WS Output:
       dNdD[i] = IWCtopnd_H11 ( Dmax[i], t );
     }
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void dNdD_H13_Ar (//WS Output:
@@ -1894,6 +2053,7 @@ void dNdD_H13_Ar (//WS Output:
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void dNdD_H98 (//WS Output:
              Vector& dNdD,
@@ -1916,6 +2076,7 @@ void dNdD_H98 (//WS Output:
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void dNdD_MGD_IWC (//WS Output:
                    Vector& dNdD,
@@ -1936,6 +2097,8 @@ void dNdD_MGD_IWC (//WS Output:
     }
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void dNdD_MGD_LWC (//WS Output:
                  Vector& dNdD,
@@ -1955,6 +2118,7 @@ void dNdD_MGD_LWC (//WS Output:
         dNdD[i] = LWCtopnd_MGD_LWC( diameter_volume_equ[i],rho ,LWC );
     }
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2007,6 +2171,7 @@ void dNdD_MH97 (//WS Output:
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void dNdD_MP48 (//WS Output:
               Vector& dNdD,
@@ -2050,6 +2215,7 @@ void dNdD_MP48 (//WS Output:
       dNdD[i] = PRtopnd_MP48 ( tPR, diameter_melted_equivalent[i]);
     }
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2104,6 +2270,8 @@ void dNdD_SB06 (//WS Output:
     psd_SB06(dNdD, dummy,mass, N_tot, M1, hydrometeor_type) ;
     
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void dNdD_SB06_M (//WS Output:
@@ -2163,6 +2331,8 @@ void dNdD_SB06_M (//WS Output:
 
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void dNdD_MY05 (//WS Output:
                Vector& dNdD,
@@ -2214,6 +2384,8 @@ void dNdD_MY05 (//WS Output:
     // [# m^-3 kg^-1]
     psd_MY05(dNdD, dummy,diameter_max, N_tot, M1, hydrometeor_type);
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void dNdD_MY05_M (//WS Output:
