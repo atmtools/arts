@@ -1718,6 +1718,7 @@ void pnd_fieldCalcFromParticleBulkProps(
   const String estring = "*particle_bulkprop_field* allowed to contain"
     " non-zero values only inside the cloudbox.";
   // Pressure end ranges
+  Index dp_start, dp_end;
   if( cloudbox_limits[0]!=0 )
   {
     if( max(particle_bulkprop_field(joker,Range(0,ip_offset+1),
@@ -1725,7 +1726,10 @@ void pnd_fieldCalcFromParticleBulkProps(
         min(particle_bulkprop_field(joker,Range(0,ip_offset+1),
                                     joker,joker)) < 0 )
       throw runtime_error( estring );
+    dp_start = 1;
   }
+  else
+    dp_start = 0;
   if( cloudbox_limits[1]!= p_grid.nelem()-1 )
   {
     const Index np_above = p_grid.nelem()+1 - (np+ip_offset);
@@ -1734,7 +1738,10 @@ void pnd_fieldCalcFromParticleBulkProps(
         min(particle_bulkprop_field(joker,Range(cloudbox_limits[1],np_above),
                                     joker,joker)) < 0 )
       throw runtime_error( estring );
+    dp_end = np-1;
   }
+  else
+    dp_end = np;
 
   // Cumulative number of scattering elements
   ArrayOfIndex ncumse(nss+1);
@@ -1838,12 +1845,12 @@ void pnd_fieldCalcFromParticleBulkProps(
                   
               // Pressure handled here, by not including end points in loops
 
-              Matrix pnd_agenda_input( np-2, nin );
+              Matrix pnd_agenda_input( np, nin );
               //
               for( Index i=0; i<nin; i++ )
                 {
-                  for( Index ip=1; ip<np-1; ip++ )
-                    { pnd_agenda_input(ip-1,i) = particle_bulkprop_field(
+                  for( Index ip=0; ip<np; ip++ )
+                    { pnd_agenda_input(ip,i) = particle_bulkprop_field(
                                                          i_pbulkprop[i],
                                                          ip_offset   + ip,
                                                          ilat_offset + ilat,
@@ -1851,12 +1858,12 @@ void pnd_fieldCalcFromParticleBulkProps(
                     }
                 }
 
-              Vector pnd_agenda_input_t( np-2 );
+              Vector pnd_agenda_input_t( np );
               //
-              for( Index ip=1; ip<np-1; ip++ )
-                { pnd_agenda_input_t[ip-1] = t_field( ip_offset   + ip,
-                                                      ilat_offset + ilat,
-                                                      ilon_offset + ilon ); }
+              for( Index ip=0; ip<np; ip++ )
+                { pnd_agenda_input_t[ip] = t_field( ip_offset   + ip,
+                                                    ilat_offset + ilat,
+                                                    ilon_offset + ilon ); }
               
               // Call pnd-agenda array
               Matrix pnd_data;
@@ -1868,13 +1875,13 @@ void pnd_fieldCalcFromParticleBulkProps(
                                        dpnd_data_dx_names, pnd_agenda_array );
 
               // Copy to output variables
-              for( Index ip=1; ip<np-1; ip++ )
-                { pnd_field(se_range,ip,ilat,ilon) = pnd_data(ip-1,joker); }
+              for( Index ip=0; ip<np; ip++ )
+                { pnd_field(se_range,ip,ilat,ilon) = pnd_data(ip,joker); }
               for( Index ix=0; ix<ndx; ix++ )
                 {
-                  for( Index ip=1; ip<np-1; ip++ )
+                  for( Index ip=dp_start; ip<dp_end; ip++ )
                     { dpnd_field_dx[scatspecies_to_jq[is][ix]]
-                            (se_range,ip,ilat,ilon) = dpnd_data_dx(ix,ip-1,joker); }
+                            (se_range,ip,ilat,ilon) = dpnd_data_dx(ix,ip,joker); }
                 }
             }
         }

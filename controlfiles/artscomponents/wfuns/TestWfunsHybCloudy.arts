@@ -53,12 +53,19 @@ VectorSetConstant( surface_scalar_reflectivity, 1, 0.4)
 Copy( surface_rtprop_agenda, surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_field )
 
 
-MatrixSet( sensor_los,  [180.])
+MatrixSet( sensor_los,  [180.] ) #; 150.])
 nrowsGet( nrows, sensor_los )
 ncolsGet( ncols, sensor_los )
 MatrixSetConstant( sensor_pos, nrows, ncols, 600e3 )
+#VectorNLinSpace( sensor_time, nrows, 0, 1 )
+VectorSetConstant( sensor_time, nrows, 0. )
 sensorOff
 
+# some stuff for temperature perturbations
+NumericSet( p_hse, 1000e2 )
+NumericSet( z_hse_accuracy, 1 )
+VectorSet( lat_true, [15] )
+VectorSet( lon_true, [123] )
 
 ReadXML( batch_atm_fields_compact, "chevallierl91_all_extract_RWC.xml" )
 #ReadXML( batch_atm_fields_compact, "testdata/chevallierl91_all_extract.xml" )
@@ -80,12 +87,28 @@ ScatSpeciesInit
 
 scat_speciesSet(scat_tags=[
 #                    "LWC-MGD_LWC",
-#                    "IWC-MGD_IWC",
+                    "IWC-MH97",
                     "RR-W16"
 #                    "SR-F07TR"
 ])
 
 # Microphysics
+# scat species #0
+ArrayOfStringSet( pnd_agenda_input_names, [ "IWC" ] ) # parameters of this PSD.
+                                                      # can be multiple (T not to
+                                                      # appear here; is passed
+                                                      # anyways).
+Append( pnd_agenda_array_input_names, pnd_agenda_input_names )
+ArrayOfAgendaAppend( pnd_agenda_array ){
+  pnd_size_gridFromScatMeta( scat_index=agenda_array_index, unit="dveq" )
+  Copy( psd_size_grid, pnd_size_grid )
+  psdMH97 #( t_min=258 ) # t-limits modified for consistency with
+                      # pnd_fieldCalcFromscat_speciesFields interface
+  pndFromPsd( scat_index=agenda_array_index )
+  #pndAdjustFromScatMeta( scat_index=agenda_array_index, pnd_agenda_input_tag="RWC" )
+}
+
+# scat species #1
 ArrayOfStringSet( pnd_agenda_input_names, [ "RWC" ] ) # parameters of this PSD.
                                                       # can be multiple (T not to
                                                       # appear here; is passed
@@ -109,8 +132,8 @@ ArrayOfAgendaAppend( pnd_agenda_array ){
 ArrayOfStringCreate( scat_data_files )
 #ReadXML( scat_data_files, "scattering/H2O_liquid/SingleScatteringFile_allH2Oliquid.xml" )
 #ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
-#ReadXML( scat_data_files, "scattering/H2O_ice/SingleScatteringFile_allH2Oice.xml" )
-#ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
+ReadXML( scat_data_files, "scattering/H2O_ice/SingleScatteringFile_allH2Oice.xml" )
+ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
 ReadXML( scat_data_files, "scattering/H2O_liquid/SingleScatteringFile_allH2Oliquid.xml" )
 ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
 #ScatElementsSelect( scat_data=scat_data_raw, species="LWC", sizeparam="diameter_volume_equ",
@@ -186,7 +209,7 @@ IndexSet( n_iterations, 23 )
 # regions of scattering species fields need to be within cloudbox! (you can
 # switch off the fixed cloudbox limit setting and switch on automatic cloudbox
 # limits below. then setting here will have no effect).
-ArrayOfIndexSet( cloudlimit_levels, [0,32] )
+#ArrayOfIndexSet( cloudlimit_levels, [0,32] )
 ######################################################################################
 
 
@@ -220,6 +243,10 @@ AgendaSet( ybatch_calc_agenda ){
   # compact data :-/ )
   Extract( scat_field, scat_species_mass_density_field, 0 )
   Append( particle_bulkprop_field, scat_field )
+  StringSet( scat_name, "IWC" )
+  Append( particle_bulkprop_names, scat_name )
+  Extract( scat_field, scat_species_mass_density_field, 1 )
+  Append( particle_bulkprop_field, scat_field )
   StringSet( scat_name, "RWC" )
   Append( particle_bulkprop_names, scat_name )
 
@@ -246,18 +273,40 @@ AgendaSet( ybatch_calc_agenda ){
   # wait jacDoit to finish each time...). Also, doing it here we don't have to
   # deal with troubles from ScatSpeciesMerge.
   jacobianInit
-  #jacobianAddAbsSpecies(  g1=p_grid, g2=lat_grid, g3=lon_grid,
-  #                        species="H2O-PWR98",
-  #                        unit="vmr" )
   jacobianAddScatSpecies( g1=p_grid, g2=lat_grid, g3=lon_grid,
                           species="RR-W16",
                           quantity="RWC" )
+  jacobianAddScatSpecies( g1=p_grid, g2=lat_grid, g3=lon_grid,
+                          species="IWC-MH97",
+                          quantity="IWC" )
+  #jacobianAddWind( g1=p_grid, g2=lat_grid, g3=lon_grid,
+  #                 component="v" )
+  #jacobianAddTemperature( g1=p_grid, g2=lat_grid, g3=lon_grid,
+  #                        hse="off", method="analytical", dt=0.1 )
+  ### not working simultaneously with analytical jacs so far (assert fail)
+  #jacobianAddTemperature( g1=p_grid, g2=lat_grid, g3=lon_grid,
+  #                        hse="off", method="perturbation", dt=0.1 )
+  #jacobianAddWind( g1=p_grid, g2=lat_grid, g3=lon_grid,
+  #                 component="w" )
+  jacobianAddAbsSpecies( g1=p_grid, g2=lat_grid, g3=lon_grid,
+                         species="H2O-PWR98",
+                         unit="vmr" )
+  ### not working simultaneously with analytical jacs so far (assert fail)
+  #jacobianAddAbsSpecies( g1=p_grid, g2=lat_grid, g3=lon_grid,
+  #                       species="O3",
+  #                       method="perturbation", unit="rel", dx=0.01 )
+  ### not working so far (assert fail)
+  #jacobianAddFreqShift( df=50e3 )
+  #jacobianAddFreqStretch( df=50e3 )
+  #jacobianAddPolyfit( poly_order=1 )
+  #jacobianAddSinefit( period_lengths=[200e6,40e6] )
   jacobianClose
   cloudboxSetFullAtm
   #pnd_fieldCalcFromscat_speciesFields
   pnd_fieldCalcFromParticleBulkProps
   WriteXML( in=t_field )
   WriteXML( in=z_field )
+  WriteXML( in=vmr_field )
   WriteXML( in=particle_bulkprop_field, filename="BulkProp.particle_bulkprop_field.xml" )
   WriteXML( in=pnd_field, filename="BulkProp.pnd_field.xml" )
   WriteXML( in=dpnd_field_dx, filename="BulkProp.dpnd_field_dx.xml" )
@@ -283,130 +332,127 @@ AgendaSet( ybatch_calc_agenda ){
   # DOIT
   #####
 
-  DOAngularGridsSet( N_aa_grid=19, N_za_grid=37 )
-
-  # Set cloudbox limits 
-  # ---
-  # here, we prefer the manual setting with a resetting to a constant range of
-  # atm levels (to make all cases having roughly the same vertical extend)
-  #cloudboxSetAutomatically
-  cloudboxSetManually(p1=11e4, p2=1e-1, lat1=0, lat2=0, lon1=0, lon2=0 )
-  Copy(cloudbox_limits, cloudlimit_levels)
-
-######################################################################################
-# Case specific Jacobian settings
-# -------------------------------
-
-  # if you want to have DOIT jacobians, this need to be done, but BEFORE the
-  # jacobianDoitAddSpecies!
-  # it's used here also the (re)initialize the jacobian WSV for each batch
-  # calculation (for example, retrieval grids might be different).
-  jacobianOff
-
-  # DOIT Jacobians to calculate
-  #jacobianDoitAddSpecies( species="T", unit="abs", dx=1. )
-  #jacobianDoitAddSpecies( species="abs_species.H2O-PWR98", unit="abs", dx=1e-6 )
-  #jacobianDoitAddSpecies( species="scat_species.LWC.mass_density", unit="abs", dx=1e-6 )
-  #jacobianDoitAddSpecies( species="scat_species.IWC.mass_density", unit="abs", dx=1e-6 )
-  jacobianDoitAddSpecies( species="scat_species.RR.mass_density", unit="rel", dx=1e-3 )
-  jacobianDoitClose
-  #WriteXMLIndexed( in=jacobian_quantities, file_index=ybatch_index )
-  #WriteXMLIndexed( in=jacobian_indices, file_index=ybatch_index )
-######################################################################################
-
-  # Particle Number Density calculations
-  # keep using old microphys scheme here so far. as this is hard-wired inside
-  # jacobianDoit, i.e. we have to keep/set the scat_species_*_*_field(s) anyways
-  pnd_fieldCalcFromscat_speciesFields
-  WriteXML( in=pnd_field, filename="ScatSpec.pnd_field.xml" )
-  #pnd_fieldZero
-  #Copy( dpnd_dummy, dpnd_field_dx ) #need this for getting dpnd_field in the correct size
-  #pnd_fieldCalcFromParticleBulkProps
-  #Copy( dpnd_field_dx, dpnd_dummy )
-
-  # Consistency checks
-  atmgeom_checkedCalc
-  atmfields_checkedCalc( bad_partition_functions_ok = 1 )
-  cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
-  sensor_checkedCalc
-  propmat_clearsky_agenda_checkedCalc
-
-  # when doing no ScatSpeciesMerge (neither here, nor in
-  # jacobianDoit!), comment out this complete block
-  Copy( scat_data_orig, scat_data_raw )
-  Copy( scat_meta_orig, scat_meta )
-  Copy( scat_species_orig, scat_species )
-  Copy( pnd_field_orig, pnd_field )
-  ScatSpeciesMerge( scat_data=scat_data_raw )
-  cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
-
-  # Initialize Doit variables
-  Copy( iy_main_agenda, iy_main_agenda__Emission )
-  DoitInit
-  # Calculate incoming radiation field on cloudbox boundaries
-  DoitGetIncoming(rigorous=0)
-  # Set first guess field:              
-  doit_i_fieldSetClearsky
-
-  # Initialization convergence agenda for reference RT case (for Jacobians)
-  Copy( doit_conv_test_agenda, doit_conv_test_agenda_refcase )
-  # Executes doit_mono_agenda for all frequencies
-  StringSet( info, "DoitCalc" )
-  Print( info, 0 )
-  DoitCalc
-  WriteXMLIndexed( in=doit_i_field, file_index=ybatch_index, filename="DOIT.doit_i_field" )
-  WriteXML( in=scat_za_grid, filename="DOIT.scat_za_grid.xml" )
-
-
-  # Re-setting agendas and WSV containers for perturbation runs
-  Copy( doit_conv_test_agenda, doit_conv_test_agenda_perturb )
-  # Comment that out if ScatSpeciesMerge not used (neither here, nor in
-  # jacobianDoit!)
-  Copy( scat_data_raw, scat_data_orig )
-  Copy( scat_meta, scat_meta_orig )
-  Copy( scat_species, scat_species_orig )
-  Copy( pnd_field, pnd_field_orig )
-
-  StringSet( info, "jacobianDoit" )
-  Print( info, 0 )
-  jacobianDoit( ScatSpeciesMerge_do=1 )
-  WriteXMLIndexed( in=jacobian_quantities, file_index=ybatch_index, filename="DOIT.jacobian_quantities" )
-  WriteXMLIndexed( in=jacobian, file_index=ybatch_index, filename="DOIT.jacobian" )
-  Compare( yref, y, 1. )
-
-
-  jacobianOff
-  jacobianDoitAddSpecies( species="scat_species.RR.mass_density", unit="abs", dx=1e-7 )
-  jacobianDoitClose
-  Copy( scat_data_raw, scat_data_orig )
-  Copy( scat_meta, scat_meta_orig )
-  Copy( scat_species, scat_species_orig )
-  Copy( pnd_field, pnd_field_orig )
-  nbooksGet( ybatch_n, pnd_field )
-  Print( ybatch_n, 0 )
-  ScatSpeciesMerge( scat_data=scat_data_raw )
-  cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
-  DoitInit
-  DoitGetIncoming(rigorous=0)
-  doit_i_fieldSetClearsky
-  Copy( doit_conv_test_agenda, doit_conv_test_agenda_refcase )
-  StringSet( info, "DoitCalc2" )
-  Print( info, 0 )
-  DoitCalc
-  WriteXMLIndexed( in=doit_i_field, file_index=ybatch_index, filename="DOIT2.doit_i_field" )
-  WriteXML( in=scat_za_grid, filename="DOIT2.scat_za_grid.xml" )
-  Copy( doit_conv_test_agenda, doit_conv_test_agenda_perturb )
-  Copy( scat_data_raw, scat_data_orig )
-  Copy( scat_meta, scat_meta_orig )
-  Copy( scat_species, scat_species_orig )
-  Copy( pnd_field, pnd_field_orig )
-  nbooksGet( ybatch_n, pnd_field )
-  Print( ybatch_n, 0 )
-  StringSet( info, "jacobianDoit2" )
-  Print( info, 0 )
-  jacobianDoit( ScatSpeciesMerge_do=1 )
-  WriteXMLIndexed( in=jacobian_quantities, file_index=ybatch_index, filename="DOIT2.jacobian_quantities" )
-  WriteXMLIndexed( in=jacobian, file_index=ybatch_index, filename="DOIT2.jacobian" )
+#  DOAngularGridsSet( N_aa_grid=19, N_za_grid=37 )
+#
+#  # Set cloudbox limits 
+#  # ---
+#  # here, we prefer the manual setting with a resetting to a constant range of
+#  # atm levels (to make all cases having roughly the same vertical extend)
+#  #cloudboxSetAutomatically
+#  cloudboxSetManually(p1=11e4, p2=1e-1, lat1=0, lat2=0, lon1=0, lon2=0 )
+#  Copy(cloudbox_limits, cloudlimit_levels)
+#
+#######################################################################################
+## Case specific Jacobian settings
+## -------------------------------
+#
+#  # if you want to have DOIT jacobians, this need to be done, but BEFORE the
+#  # jacobianDoitAddSpecies!
+#  # it's used here also the (re)initialize the jacobian WSV for each batch
+#  # calculation (for example, retrieval grids might be different).
+#  jacobianOff
+#
+#  # DOIT Jacobians to calculate
+#  #jacobianDoitAddSpecies( species="T", unit="abs", dx=1. )
+#  jacobianDoitAddSpecies( species="abs_species.H2O-PWR98", unit="rel", dx=1e-3 )
+#  #jacobianDoitAddSpecies( species="scat_species.LWC.mass_density", unit="abs", dx=1e-6 )
+#  #jacobianDoitAddSpecies( species="scat_species.IWC.mass_density", unit="abs", dx=1e-6 )
+#  jacobianDoitAddSpecies( species="scat_species.RR.mass_density", unit="rel", dx=1e-3 )
+#  jacobianDoitClose
+#  #WriteXMLIndexed( in=jacobian_quantities, file_index=ybatch_index )
+#  #WriteXMLIndexed( in=jacobian_indices, file_index=ybatch_index )
+#######################################################################################
+#
+#  # Particle Number Density calculations
+#  # keep using old microphys scheme here so far. as this is hard-wired inside
+#  # jacobianDoit, i.e. we have to keep/set the scat_species_*_*_field(s) anyways
+#  pnd_fieldCalcFromscat_speciesFields
+#  WriteXML( in=pnd_field, filename="ScatSpec.pnd_field.xml" )
+#  #pnd_fieldZero
+#  #Copy( dpnd_dummy, dpnd_field_dx ) #need this for getting dpnd_field in the correct size
+#  #pnd_fieldCalcFromParticleBulkProps
+#  #Copy( dpnd_field_dx, dpnd_dummy )
+#
+#  # Consistency checks
+#  atmgeom_checkedCalc
+#  atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+#  cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
+#  sensor_checkedCalc
+#  propmat_clearsky_agenda_checkedCalc
+#
+#  # when doing no ScatSpeciesMerge (neither here, nor in
+#  # jacobianDoit!), comment out this complete block
+#  Copy( scat_data_orig, scat_data_raw )
+#  Copy( scat_meta_orig, scat_meta )
+#  Copy( scat_species_orig, scat_species )
+#  Copy( pnd_field_orig, pnd_field )
+#  ScatSpeciesMerge( scat_data=scat_data_raw )
+#  cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
+#
+#  # Initialize Doit variables
+#  Copy( iy_main_agenda, iy_main_agenda__Emission )
+#  DoitInit
+#  # Calculate incoming radiation field on cloudbox boundaries
+#  DoitGetIncoming(rigorous=0)
+#  # Set first guess field:              
+#  doit_i_fieldSetClearsky
+#
+#  # Initialization convergence agenda for reference RT case (for Jacobians)
+#  Copy( doit_conv_test_agenda, doit_conv_test_agenda_refcase )
+#  # Executes doit_mono_agenda for all frequencies
+#  StringSet( info, "DoitCalc" )
+#  Print( info, 0 )
+#  DoitCalc
+#  WriteXMLIndexed( in=doit_i_field, file_index=ybatch_index, filename="DOIT.doit_i_field" )
+#  WriteXML( in=scat_za_grid, filename="DOIT.scat_za_grid.xml" )
+#
+#
+#  # Re-setting agendas and WSV containers for perturbation runs
+#  Copy( doit_conv_test_agenda, doit_conv_test_agenda_perturb )
+#  # Comment that out if ScatSpeciesMerge not used (neither here, nor in
+#  # jacobianDoit!)
+#  Copy( scat_data_raw, scat_data_orig )
+#  Copy( scat_meta, scat_meta_orig )
+#  Copy( scat_species, scat_species_orig )
+#  Copy( pnd_field, pnd_field_orig )
+#
+#  StringSet( info, "jacobianDoit" )
+#  Print( info, 0 )
+#  jacobianDoit( ScatSpeciesMerge_do=1 )
+#  WriteXMLIndexed( in=jacobian_quantities, file_index=ybatch_index, filename="DOIT.jacobian_quantities" )
+#  WriteXMLIndexed( in=jacobian, file_index=ybatch_index, filename="DOIT.jacobian" )
+#  Compare( yref, y, 1. )
+#
+#
+#  jacobianOff
+#  jacobianDoitAddSpecies( species="abs_species.H2O-PWR98", unit="abs", dx=1e-6 )
+#  jacobianDoitAddSpecies( species="scat_species.RR.mass_density", unit="abs", dx=1e-7 )
+#  jacobianDoitClose
+#  Copy( scat_data_raw, scat_data_orig )
+#  Copy( scat_meta, scat_meta_orig )
+#  Copy( scat_species, scat_species_orig )
+#  Copy( pnd_field, pnd_field_orig )
+#  ScatSpeciesMerge( scat_data=scat_data_raw )
+#  cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
+#  DoitInit
+#  DoitGetIncoming(rigorous=0)
+#  doit_i_fieldSetClearsky
+#  Copy( doit_conv_test_agenda, doit_conv_test_agenda_refcase )
+#  StringSet( info, "DoitCalc2" )
+#  Print( info, 0 )
+#  DoitCalc
+#  WriteXMLIndexed( in=doit_i_field, file_index=ybatch_index, filename="DOIT2.doit_i_field" )
+#  WriteXML( in=scat_za_grid, filename="DOIT2.scat_za_grid.xml" )
+#  Copy( doit_conv_test_agenda, doit_conv_test_agenda_perturb )
+#  Copy( scat_data_raw, scat_data_orig )
+#  Copy( scat_meta, scat_meta_orig )
+#  Copy( scat_species, scat_species_orig )
+#  Copy( pnd_field, pnd_field_orig )
+#  StringSet( info, "jacobianDoit2" )
+#  Print( info, 0 )
+#  jacobianDoit( ScatSpeciesMerge_do=1 )
+#  WriteXMLIndexed( in=jacobian_quantities, file_index=ybatch_index, filename="DOIT2.jacobian_quantities" )
+#  WriteXMLIndexed( in=jacobian, file_index=ybatch_index, filename="DOIT2.jacobian" )
 }
 
 # for batch cases:

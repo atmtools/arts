@@ -3712,17 +3712,19 @@ void iyb_calc_body(
       //
       if( j_analytical_do )
         {
-          FOR_ANALYTICAL_JACOBIANS_DO(
-                                      for( Index ip=0; ip<jacobian_indices[iq][1] -
-                                             jacobian_indices[iq][0]+1; ip++ )
-                                        {
-                                          for( Index is=0; is<stokes_dim; is++ )
-                                            {
-                                              diyb_dx[iq](Range(row0+is,nf,stokes_dim),ip)=
-                                                diy_dx[iq](ip,joker,is);
-                                            }
-                                        }
-                                      )
+          FOR_ANALYTICAL_JACOBIANS_DO
+            (
+                for( Index ip=0;
+                           ip<jacobian_indices[iq][1] - jacobian_indices[iq][0]+1;
+                           ip++ )
+                  {
+                    for( Index is=0; is<stokes_dim; is++ )
+                      {
+                        diyb_dx[iq](Range(row0+is,nf,stokes_dim),ip)=
+                          diy_dx[iq](ip,joker,is);
+                      }
+                  }
+            )
         }
 
       // iy : copy to iyb
@@ -4401,7 +4403,11 @@ void get_stepwise_clearsky_propmat(Workspace& ws,
         Index j = partial_derivatives.this_jq_index(i);
         
         dK_dx[i] = dpropmat_clearsky_dx[j];
-        if(not lte)
+        if(lte)
+        {
+          dS_dx[i].SetZero();
+        }
+        else
         {
           dS_dx[i] = dnlte_dx_source[j];
           dS_dx[i] += nlte_dx_dsource_dx[j];
@@ -4429,6 +4435,7 @@ void get_stepwise_clearsky_propmat(Workspace& ws,
                 " tag and NLTE Jacobians.\n";
           throw std::runtime_error(os.str());
         }
+        dS_dx[i].SetZero();
       }
     }
   }
@@ -4695,23 +4702,27 @@ void get_stepwise_effective_source(MatrixView J,
     mult(J(i1, joker), invK, j);
     
     // Compute dJ = K^-1((da B + a dB + S) - dK K^-1(a B + S))
-    for(Index i2 = 0; i2 < nq; i2++)
+    //FOR_ANALYTICAL_JACOBIANS_DO
+    //(
+    for(Index iq = 0; iq < nq; iq++)
     {
-      Matrix dk(ns, ns), tmp_matrix(ns, ns);
-      Vector dj(ns, 0), tmp(ns);
+      if( jacobian_quantities[iq].Analytical() )
+      {
+        Matrix dk(ns, ns), tmp_matrix(ns, ns);
+        Vector dj(ns, 0), tmp(ns);
       
-      // Control parameters for special jacobians that are computed elsewhere
-      const bool has_dk = (not dK_dx[i2].IsEmpty());
-      const bool has_ds = (not dS_dx[i2].IsEmpty());
-      const bool has_dt = (jacobian_quantities[i2].MainTag() == TEMPERATURE_MAINTAG);
+        // Control parameters for special jacobians that are computed elsewhere
+        //const bool has_dk = (not dK_dx[iq].IsEmpty());   // currently always
+        //const bool has_ds = (not dS_dx[iq].IsEmpty());   // evaluate as true
+        const bool has_dt = (jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG);
       
       // Sets the -K^-1 dK/dx K^-1 (a B + S) term
-      if(has_dk)
-      {
-        dK_dx[i2].MatrixAtFrequency(dk, i1);
+      //if(has_dk)
+      //{
+        dK_dx[iq].MatrixAtFrequency(dk, i1);
         mult(tmp, dk, J(i1, joker));
         
-        dj = da_dx[i2].VectorAtFrequency(i1);
+        dj = da_dx[iq].VectorAtFrequency(i1);
         dj *= B[i1];
         
         dj -= tmp;
@@ -4725,14 +4736,17 @@ void get_stepwise_effective_source(MatrixView J,
         }
         
         // Adds dS to dj
-        if(has_ds)
-          dj += dS_dx[i2].VectorAtFrequency(i1);
+        //if(has_ds)
+          dj += dS_dx[iq].VectorAtFrequency(i1);
         
-        mult(dJ_dx(i2, i1, joker), invK, dj);
+        mult(dJ_dx(iq, i1, joker), invK, dj);
       }
       else
-        dJ_dx(i2, i1, joker) = 0;
+      {
+        dJ_dx(iq, i1, joker) = 0;
+      }
     }
+    //)
   }
   
   if(nq)

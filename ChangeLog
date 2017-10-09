@@ -1,3 +1,23 @@
+2017-10-09 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-827
+
+	* src/rte.cc (get_stepwise_clearsky_propmat,
+	get_stepwise_effective_source):
+	Fixing issues that commit arts-2-3-823 brought up (its break of
+	TestWfunsHybClear test case went unnoticed :-/) by further active
+	initializations of variables and by replacing the not-applicable-anymore
+	IsEmpty by an explicit check for analytical jacobians (the macro doesn't
+	work here, though).
+
+	* src/m_microphysics (pnd_fieldCalcFromParticleBulkProps):
+	Fixed to allow pnds and dpnd_dx to be non-zero at the cloudbox limits
+	when cloudbox limits at BOA and/or TOA. Fixes the issue of 0-tied
+	Jacobians at BOA in iyHybrid2.
+
+	* controlfiles/artscomponents/wfuns/TestWfunsHybCloudy.arts:
+	Work in progress, testing further Jac species.
+
 2017-10-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-826
@@ -35,7 +55,7 @@
 
 	* arts-2-3-823
 
-	* src/m_fos.cc (iyHybrid), rte.cc (get_stepwise_clearsky_propmat):
+	* src/m_fos.cc (iyHybrid2), rte.cc (get_stepwise_clearsky_propmat):
 	Some further proper initializations. Cleanup.
 
 	* src/partial_derivatives.h:

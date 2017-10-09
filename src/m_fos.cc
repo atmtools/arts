@@ -1784,7 +1784,6 @@ void iyHybrid2(
     return;
   }
   
-  
   // Throw error if unsupported features are requested
   if( atmosphere_dim != 1 )
     throw runtime_error(
@@ -2175,13 +2174,13 @@ void iyHybrid2(
             one_minus_transmission = 1.;
           one_minus_transmission -= T;
         }
-        
+
         from_level = J(ip, iv, joker);
         from_level += J(ip+1, iv, joker);
         from_level *= 0.5;
         through_level = iy(iv, joker);
         through_level -= from_level;
-        
+
         FOR_ANALYTICAL_JACOBIANS_DO
         (
             get_diydx(diy_dpath[iq](ip, iv, joker), 
