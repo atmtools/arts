@@ -1828,7 +1828,7 @@ void iyHybrid2(
   const Index nf = f_grid.nelem();
   const Index ns = stokes_dim;
   const Index np = ppath.np;
-  const Index nq = jacobian_quantities.nelem();
+  const Index nq = jacobian_do?jacobian_quantities.nelem():0;
   
   // Obtain i_field
   //
@@ -1982,15 +1982,16 @@ void iyHybrid2(
     lte.resize(np);
     ArrayOfPropagationMatrix dK_this_dx(nq), dK_past_dx(nq), dKp_dx(nq);
     ArrayOfStokesVector da_dx(nq), dS_dx(nq), dSp_dx(nq);
-    FOR_ANALYTICAL_JACOBIANS_DO
-    (
-      dK_this_dx[iq] = PropagationMatrix(nf, stokes_dim);
-      dK_past_dx[iq] = PropagationMatrix(nf, stokes_dim);
-      dKp_dx[iq] = PropagationMatrix(nf, stokes_dim);
-      da_dx[iq] = StokesVector(nf, stokes_dim);
-      dS_dx[iq] = StokesVector(nf, stokes_dim);
-      dSp_dx[iq] = StokesVector(nf, stokes_dim);
-    )
+    if( j_analytical_do )
+      FOR_ANALYTICAL_JACOBIANS_DO
+      (
+        dK_this_dx[iq] = PropagationMatrix(nf, stokes_dim);
+        dK_past_dx[iq] = PropagationMatrix(nf, stokes_dim);
+        dKp_dx[iq] = PropagationMatrix(nf, stokes_dim);
+        da_dx[iq] = StokesVector(nf, stokes_dim);
+        dS_dx[iq] = StokesVector(nf, stokes_dim);
+        dSp_dx[iq] = StokesVector(nf, stokes_dim);
+      )
 
     trans_cumulat.resize(np, nf, stokes_dim, stokes_dim);
     trans_partial.resize(np, nf, stokes_dim, stokes_dim);
@@ -2029,7 +2030,7 @@ void iyHybrid2(
                                     jac_species_i,
                                     jacobian_do);
 
-      if(nq)
+      if(jacobian_do)
         adapt_stepwise_partial_derivatives(dK_this_dx,
                                            dS_dx,
                                            jacobian_quantities,
@@ -2057,14 +2058,16 @@ void iyHybrid2(
                                         ppath.los(ip, joker),
                                         ppath_t[ip],
                                         atmosphere_dim,
+                                        jacobian_do,
                                         verbosity);
         a += K_this;  // a (and da_dx) is initialized in get_stepwise_scattersky_propmat
         K_this += Kp; // K_this  (and dK_this_dx) is initialized in get_stepwise_clearsky_propmat
-        FOR_ANALYTICAL_JACOBIANS_DO
-        (
-          da_dx[iq] += dK_this_dx[iq];
-          dK_this_dx[iq] += dKp_dx[iq];
-        )
+        if( j_analytical_do )
+          FOR_ANALYTICAL_JACOBIANS_DO
+          (
+            da_dx[iq] += dK_this_dx[iq];
+            dK_this_dx[iq] += dKp_dx[iq];
+          )
 
         get_stepwise_scattersky_source(Sp, dSp_dx,
                                        jacobian_quantities,
@@ -2080,29 +2083,32 @@ void iyHybrid2(
                                        ppath.gp_p[ip],
                                        ppath_t[ip],
                                        atmosphere_dim,
+                                       jacobian_do,
                                        verbosity);
         S += Sp;  // S (and dS_dx) is initialized in get_stepwise_clearsky_propmat
-        FOR_ANALYTICAL_JACOBIANS_DO
-        (
-          dS_dx[iq] += dSp_dx[iq];
-        )
+        if( j_analytical_do )
+          FOR_ANALYTICAL_JACOBIANS_DO
+          (
+            dS_dx[iq] += dSp_dx[iq];
+          )
       }
       else // no particles present at this level
       {
         // nothing to do for K_this and S as they are filled already by
         // get_stepwise_clearsky_propmat.
         a = K_this;
-        FOR_ANALYTICAL_JACOBIANS_DO        // we can only assign a PropMat to a
-        (                                  // StokesVec, not full ArrayOf to
-          da_dx[iq] = dK_this_dx[iq];      // each other, hence loop over
-        )                                  // jacobian quantities
+        if( j_analytical_do )
+          FOR_ANALYTICAL_JACOBIANS_DO        // we can only assign a PropMat to a
+          (                                  // StokesVec, not full ArrayOf to
+            da_dx[iq] = dK_this_dx[iq];      // each other, hence loop over
+          )                                  // jacobian quantities
       }
       
       get_stepwise_transmission_matrix(trans_cumulat(ip, joker, joker, joker),
                                        trans_partial(ip, joker, joker, joker),
-                                       nq?dtrans_partial_dx_above(ip, joker, joker, 
+                                       jacobian_do?dtrans_partial_dx_above(ip, joker, joker, 
                                            joker, joker):Tensor4(0,0,0,0),
-                                       nq?dtrans_partial_dx_below(ip, joker, joker, 
+                                       jacobian_do?dtrans_partial_dx_below(ip, joker, joker, 
                                            joker, joker):Tensor4(0,0,0,0),
                                        (ip > 0)?
                                        trans_cumulat(ip-1, joker, joker, joker):
@@ -2115,7 +2121,7 @@ void iyHybrid2(
                                        ip==0);
 
       get_stepwise_effective_source(J(ip, joker, joker),
-                                    nq?dJ_dx(ip, joker, joker, joker):Tensor3(0,0,0),
+                                    jacobian_do?dJ_dx(ip, joker, joker, joker):Tensor3(0,0,0),
                                     K_this,
                                     a,
                                     S,
@@ -2124,7 +2130,8 @@ void iyHybrid2(
                                     dS_dx,
                                     B,
                                     dB_dT,
-                                    jacobian_quantities);
+                                    jacobian_quantities,
+                                    jacobian_do);
       
       swap(K_past, K_this);
       swap(dK_past_dx, dK_this_dx);
@@ -2166,7 +2173,7 @@ void iyHybrid2(
         
         ConstMatrixView T = trans_partial(ip+1, iv, joker, joker);
         
-        if(nq)
+        if(jacobian_do)
         {
           if(stokes_dim>1)
             id_mat(one_minus_transmission);
@@ -2181,8 +2188,9 @@ void iyHybrid2(
         through_level = iy(iv, joker);
         through_level -= from_level;
 
-        FOR_ANALYTICAL_JACOBIANS_DO
-        (
+        if(jacobian_do)
+          FOR_ANALYTICAL_JACOBIANS_DO
+          (
             get_diydx(diy_dpath[iq](ip, iv, joker), 
                       diy_dpath[iq](ip+1, iv, joker), 
                       one_minus_transmission,
@@ -2193,7 +2201,7 @@ void iyHybrid2(
                       dJ_dx(ip, iq, iv, joker), 
                       dJ_dx(ip+1, iq, iv, joker),
                       stokes_dim);
-        )
+          )
         
         // Equation is I1 = T (I0 - 0.5(J_1+J_2)) + 0.5(J_1+J_2)
         mult(iy(iv, joker), T, through_level);

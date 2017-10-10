@@ -4676,12 +4676,14 @@ void get_stepwise_effective_source(MatrixView J,
                                    const ArrayOfStokesVector& dS_dx,
                                    ConstVectorView B,
                                    ConstVectorView dB_dT,
-                                   const ArrayOfRetrievalQuantity& jacobian_quantities)
+                                   const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                   const bool& jacobian_do)
 {
   const Index nq = jacobian_quantities.nelem();
   const Index nf = K.NumberOfFrequencies();
   const Index ns = K.StokesDimensions();
   
+  dJ_dx = 0;
   for(Index i1 = 0; i1 < nf; i1++)
   {
     Matrix invK(ns, ns);
@@ -4702,51 +4704,54 @@ void get_stepwise_effective_source(MatrixView J,
     mult(J(i1, joker), invK, j);
     
     // Compute dJ = K^-1((da B + a dB + S) - dK K^-1(a B + S))
-    //FOR_ANALYTICAL_JACOBIANS_DO
-    //(
-    for(Index iq = 0; iq < nq; iq++)
-    {
-      if( jacobian_quantities[iq].Analytical() )
+    if( jacobian_do )
+      //FOR_ANALYTICAL_JACOBIANS_DO
+      //(
+      for(Index iq = 0; iq < nq; iq++)
       {
-        Matrix dk(ns, ns), tmp_matrix(ns, ns);
-        Vector dj(ns, 0), tmp(ns);
-      
-        // Control parameters for special jacobians that are computed elsewhere
-        //const bool has_dk = (not dK_dx[iq].IsEmpty());   // currently always
-        //const bool has_ds = (not dS_dx[iq].IsEmpty());   // evaluate as true
-        const bool has_dt = (jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG);
-      
-      // Sets the -K^-1 dK/dx K^-1 (a B + S) term
-      //if(has_dk)
-      //{
-        dK_dx[iq].MatrixAtFrequency(dk, i1);
-        mult(tmp, dk, J(i1, joker));
-        
-        dj = da_dx[iq].VectorAtFrequency(i1);
-        dj *= B[i1];
-        
-        dj -= tmp;
-        
-        // Adds a dB to dj
-        if(has_dt)
+        if( jacobian_quantities[iq].Analytical() )
         {
-          tmp = a.VectorAtFrequency(i1);
-          tmp *= dB_dT[i1];
-          dj += tmp;
+          Matrix dk(ns, ns), tmp_matrix(ns, ns);
+          Vector dj(ns, 0), tmp(ns);
+      
+          // Control parameters for special jacobians that are computed elsewhere
+          //const bool has_dk = (not dK_dx[iq].IsEmpty());   // currently always
+          //const bool has_ds = (not dS_dx[iq].IsEmpty());   // evaluate as true
+          const bool has_dt = (jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG);
+      
+          // Sets the -K^-1 dK/dx K^-1 (a B + S) term
+          //if(has_dk)
+          //{
+            dK_dx[iq].MatrixAtFrequency(dk, i1);
+            mult(tmp, dk, J(i1, joker));
+        
+            dj = da_dx[iq].VectorAtFrequency(i1);
+            dj *= B[i1];
+        
+            dj -= tmp;
+        
+            // Adds a dB to dj
+            if(has_dt)
+            {
+              tmp = a.VectorAtFrequency(i1);
+              tmp *= dB_dT[i1];
+              dj += tmp;
+            }
+        
+            // Adds dS to dj
+            //if(has_ds)
+              dj += dS_dx[iq].VectorAtFrequency(i1);
+        
+            mult(dJ_dx(iq, i1, joker), invK, dj);
+          //}
         }
-        
-        // Adds dS to dj
-        //if(has_ds)
-          dj += dS_dx[iq].VectorAtFrequency(i1);
-        
-        mult(dJ_dx(iq, i1, joker), invK, dj);
+        // don't need that anymore now that we zero dJ_dx at the very beginning
+        //else
+        //{
+        //  dJ_dx(iq, i1, joker) = 0;
+        //}
       }
-      else
-      {
-        dJ_dx(iq, i1, joker) = 0;
-      }
-    }
-    //)
+      //)
   }
   
   if(nq)
@@ -4913,6 +4918,7 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
                                      ConstVectorView ppath_line_of_sight,
                                      const Numeric& ppath_temperature,
                                      const Index& atmosphere_dim,
+                                     const bool& jacobian_do,
                                      const Verbosity& verbosity)
 {
   const Index nf = Kp.NumberOfFrequencies(),
@@ -4933,17 +4939,18 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
   // This here as we don't want to SetZero each freq entry separately.
   // On the other hand, we want the freq loop as outer loop for pnd-affecting
   // x since then we need to extract the scat_data_mono only once.
-  FOR_ANALYTICAL_JACOBIANS_DO
-  (
-  //for( Index iq = 0; iq < nq; iq++ )
-  //{
-    if( ppath_dpnd_dx[iq].empty() )
-    {
-      dap_dx[iq].SetZero();
-      dKp_dx[iq].SetZero();
-    }
-  //}
-  )
+  if( jacobian_do )
+    FOR_ANALYTICAL_JACOBIANS_DO
+    (
+    //for( Index iq = 0; iq < nq; iq++ )
+    //{
+      if( ppath_dpnd_dx[iq].empty() )
+      {
+        dap_dx[iq].SetZero();
+        dKp_dx[iq].SetZero();
+      }
+    //}
+    )
 
   for( Index iv = 0; iv < nf; iv++ )
   {
@@ -4958,33 +4965,34 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
     ap.SetAtFrequency(iv, abs_vec);
     Kp.SetAtFrequency(iv, ext_mat);
 
-    FOR_ANALYTICAL_JACOBIANS_DO
-    (
-    //for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
-    //{
-      // check first, whether we have any non-zero ppath_dpnd_dx in this
-      // pnd-affecting x? might speed up things. specifically when we have
-      // more than one scat species.
-      //
-      // also, calling opt_propCalc several times seems disadvantagoues.
-      // better would be to call a routine that returns ext and abs per scat
-      // element (opt_propExtract?), then multiple&sum up separately per x
-      // (and for the ap and Kp). 
-      if( !ppath_dpnd_dx[iq].empty() )
-      {
-        opt_propCalc(ext_mat, abs_vec, rtp_los2[0], 
-                     rtp_los2[1], scat_data_mono, stokes_dim,
-                     ppath_dpnd_dx[iq](joker,ppath_1p_id),
-                     ppath_temperature, verbosity);
-        dap_dx[iq].SetAtFrequency(iv, abs_vec);
-        dKp_dx[iq].SetAtFrequency(iv, ext_mat);
-        //da_aux.SetAtFrequency(iv, abs_vec);
-        //dK_aux.SetAtFrequency(iv, ext_mat);
-        //dap_dx[iq] = da_aux;;
-        //dKp_dx[iq] = dK_aux;
-      }
-    //}
-    )
+    if( jacobian_do )
+      FOR_ANALYTICAL_JACOBIANS_DO
+      (
+      //for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
+      //{
+        // check first, whether we have any non-zero ppath_dpnd_dx in this
+        // pnd-affecting x? might speed up things. specifically when we have
+        // more than one scat species.
+        //
+        // also, calling opt_propCalc several times seems disadvantagoues.
+        // better would be to call a routine that returns ext and abs per scat
+        // element (opt_propExtract?), then multiple&sum up separately per x
+        // (and for the ap and Kp). 
+        if( !ppath_dpnd_dx[iq].empty() )
+        {
+          opt_propCalc(ext_mat, abs_vec, rtp_los2[0], 
+                       rtp_los2[1], scat_data_mono, stokes_dim,
+                       ppath_dpnd_dx[iq](joker,ppath_1p_id),
+                       ppath_temperature, verbosity);
+          dap_dx[iq].SetAtFrequency(iv, abs_vec);
+          dKp_dx[iq].SetAtFrequency(iv, ext_mat);
+          //da_aux.SetAtFrequency(iv, abs_vec);
+          //dK_aux.SetAtFrequency(iv, ext_mat);
+          //dap_dx[iq] = da_aux;;
+          //dKp_dx[iq] = dK_aux;
+        }
+      //}
+      )
   }
 }
 
@@ -5016,6 +5024,7 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
                                     const GridPos& ppath_pressure,
                                     const Numeric& ppath_temperature,
                                     const Index& atmosphere_dim _U_,
+                                    const bool& jacobian_do,
                                     const Verbosity& verbosity)
 {
   const Index nf = Sp.NumberOfFrequencies(),
@@ -5075,7 +5084,8 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
 
   Tensor4 pndT4(ne, 1, 1, 1, 1.);
   Index j_analytical_do=0;
-  FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; )
+  if( jacobian_do )
+    FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; )
   if ( j_analytical_do ) // switch(ed) off for debugging
     pndT4(joker, 0, 0, 0) = ppath_1p_pnd;
 
@@ -5147,26 +5157,27 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
     }
     Sp.SetAtFrequency(f_index, scat_source);
 
-    FOR_ANALYTICAL_JACOBIANS_DO
-    (
-    //for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
-    //{
-      // check first, whether we have any non-zero ppath_dpnd_dx in this
-      // pnd-affecting x? might speed up things. specifically when we have
-      // more than one scat species.
-      if( !ppath_dpnd_dx[iq].empty() )
-      {
-        scat_source = 0.;
-        for( Index ise_flat = 0; ise_flat < ne; ise_flat++ )
+    if( jacobian_do )
+      FOR_ANALYTICAL_JACOBIANS_DO
+      (
+      //for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
+      //{
+        // check first, whether we have any non-zero ppath_dpnd_dx in this
+        // pnd-affecting x? might speed up things. specifically when we have
+        // more than one scat species.
+        if( !ppath_dpnd_dx[iq].empty() )
         {
-          scat_source += scat_source_1se(joker, ise_flat) *
-                         ppath_dpnd_dx[iq](ise_flat, ppath_1p_id);
+          scat_source = 0.;
+          for( Index ise_flat = 0; ise_flat < ne; ise_flat++ )
+          {
+            scat_source += scat_source_1se(joker, ise_flat) *
+                           ppath_dpnd_dx[iq](ise_flat, ppath_1p_id);
+          }
+          dSp_dx[iq].SetAtFrequency(f_index, scat_source);
+          //dS_aux.SetAtFrequency(f_index, scat_source);
+          //dSp_dx[iq] = dS_aux;
         }
-        dSp_dx[iq].SetAtFrequency(f_index, scat_source);
-        //dS_aux.SetAtFrequency(f_index, scat_source);
-        //dSp_dx[iq] = dS_aux;
-      }
-    //}
-    )
+      //}
+      )
   } // freq loop
 }

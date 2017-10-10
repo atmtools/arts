@@ -560,6 +560,7 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
                                      ConstVectorView ppath_line_of_sight,
                                      const Numeric& ppath_temperature,
                                      const Index& atmosphere_dim,
+                                     const bool& jacobian_do,
                                      const Verbosity& verbosity);
 
 void get_stepwise_scattersky_source(StokesVector& Sp,
@@ -577,6 +578,7 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
                                     const GridPos& ppath_pressure,
                                     const Numeric& ppath_temperature,
                                     const Index& atmosphere_dim,
+                                    const bool& jacobian_do,
                                     const Verbosity& verbosity);
 
 void get_stepwise_effective_source(MatrixView J,
@@ -589,6 +591,7 @@ void get_stepwise_effective_source(MatrixView J,
                                    const ArrayOfStokesVector& dS_dx,
                                    ConstVectorView B,
                                    ConstVectorView dB_dT,
-                                   const ArrayOfRetrievalQuantity& jacobian_quantities);
+                                   const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                   const bool& jacobian_do);
 
 #endif  // rte_h

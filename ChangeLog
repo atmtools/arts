@@ -1,3 +1,22 @@
+2017-10-10 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-828
+
+	* src/m_fos.cc (iyHybrid2):
+	Put derivative variable manipulation behind jacobian_do/j_analytical_do
+	barriers. This as perturbation jacobian calcs will call the
+	iy_main_agenda with jacobian_do flag, but unmodified jacobian_quantities
+	settings (i.e. we can not rely on the contents or size of
+	jacobian_quantities only).
+	Should work now for all kinds of jacobian species.
+
+	* src/rte.[cc,h] (get_stepwise_scattersky_propmat,
+	get_stepwise_scattersky_source, get_stepwise_effective_source):
+	Pass jacobian_do and put derivative manipulation behind barriers.
+
+	* controlfiles/artscomponents/wfuns/TestWfunsHybCloudy.arts:
+	Work in progress. Set back to use cheval data shipped with arts.
+
 2017-10-09 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-827
