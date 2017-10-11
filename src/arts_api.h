@@ -146,6 +146,27 @@ extern "C" {
         const long * g_in_types;
     };
 
+    /** @struct VersionStruct
+     * This struct is used to return the version of ARTS
+     */
+    struct VersionStruct {
+        /** @var VersionStruct::major
+         * long The major version number of ARTS
+         */
+        long major;
+        /** @var VersionStruct::release
+         * long The major release number of this ARTS major version.
+         */
+        long minor;
+        /** @var VersionStruct::
+         * long The minor release number of this ARTS major version.
+         */
+        long revision;
+        /** @var MethodStruct::description
+         * long The revision number of this ARTS major version.
+         */
+    };
+
     ////////////////////////////////////////////////////////////////////////////
     // Setup and Finalization.
     ////////////////////////////////////////////////////////////////////////////
@@ -447,6 +468,16 @@ extern "C" {
      */
     DLL_PUBLIC
     void erase_variable(InteractiveWorkspace *workspace, long id, long group_id);
+
+    //! Get ARTS Version
+    /**
+     * This function returns the ARTS version number as a double precision floating
+     * point number.
+     *
+     * \return The ARTS version.
+     */
+    DLL_PUBLIC
+    VersionStruct get_version();
 }
 
 #endif

@@ -2,6 +2,7 @@
 #include "arts.h"
 #include "arts_api.h"
 #include "auto_md.h"
+#include "auto_version.h"
 #include "global_data.h"
 #include "interactive_workspace.h"
 #include "parser.h"
@@ -504,5 +505,27 @@ DLL_PUBLIC
 void erase_variable(InteractiveWorkspace *workspace, long id, long group_id)
 {
     return workspace->erase_variable(id, group_id);
+}
+
+DLL_PUBLIC
+VersionStruct get_version()
+{
+    VersionStruct version;
+    std::string version_string(ARTS_FULL_VERSION);
+
+    version_string = version_string.substr(5, std::string::npos);
+    size_t dash_pos = version_string.find('.');
+    version.major = static_cast<Index>(std::stoi(version_string.substr(0, dash_pos)));
+
+    version_string = version_string.substr(dash_pos + 1, std::string::npos);
+    dash_pos = version_string.find('.');
+    version.minor = static_cast<Index>(std::stoi(version_string.substr(0, dash_pos)));
+
+    version_string = version_string.substr(dash_pos + 1, std::string::npos);
+    version.revision = static_cast<Index>(
+        std::stoi(version_string.substr(0, std::string::npos))
+        );
+
+    return version;
 }
 //}

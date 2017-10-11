@@ -1,3 +1,10 @@
+2017-10-11 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-829
+
+	* src/arts_api.[h.cc] (get_version, VersionStruct):
+	Added function and struct to return ARTS version number.
+
 2017-10-10 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-828
