@@ -246,7 +246,8 @@ ostream& operator<<(ostream& os, const WsvRecord& wr)
 
   // We need a special treatment for the case that the WSV is an agenda.
 
-  if (get_wsv_group_id("Agenda") != wr.Group())
+  if (get_wsv_group_id("Agenda") != wr.Group()
+      && get_wsv_group_id("ArrayOfAgenda") != wr.Group())
     {
       // No agenda.
       
