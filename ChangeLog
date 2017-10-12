@@ -1,3 +1,14 @@
+2017-10-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-831
+
+	* src/m_microphysics.cc (psdF07, psdMH97, psdW16): To calculate
+	dpsd_data_dx, the perturbation of IWC/RWC is now always 1e-9. That
+	was found to work better in tests.
+
+	* src/m_jacobian.cc (jacobianAddFreqShift): It is now checked that
+	length of f_grid is > 1, which is a required by the code.
+
 2017-10-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-830

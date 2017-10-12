@@ -973,9 +973,8 @@ void psdF07 (
       // Calculate derivative with respect to IWC
       if( ndx )
         {
-          // Obtain derivative by perturbation of 0.1%, but not less than 0.1 mg/m3.
-          // Note that the latter value becomes the perturbation for IWC=0.
-          const Numeric dswc = max( 0.001*swc, 1e-7 );
+          //const Numeric dswc = max( 0.001*swc, 1e-7 );
+          const Numeric dswc = 1e-9;
           const Numeric swcp = swc + dswc;
           psd_snow_F07 ( psd_1p, psd_size_grid, swcp, t, alpha, beta, regime );
           for ( Index i=0; i<nsi; i++ )
@@ -1173,9 +1172,8 @@ void psdMH97 (
       // Calculate derivative with respect to IWC
       if( ndx )
         {
-          // Obtain derivative by perturbation of 0.1%, but not less than 0.1 mg/m3.
-          // Note that the latter value becomes the perturbation for IWC=0.
-          const Numeric diwc = max( 0.001*iwc, 1e-7 );
+          //const Numeric diwc = max( 0.001*iwc, 1e-9 );
+          const Numeric diwc = 1e-9;
           const Numeric iwcp = iwc + diwc;
           psd_cloudice_MH97 ( psd_1p, psd_size_grid, iwcp, t, noisy );
           for ( Index i=0; i<nsi; i++ )
@@ -1583,9 +1581,8 @@ void psdW16 (
       // Calculate derivative with respect to IWC
       if( ndx )
         {
-          // Obtain derivative by perturbation of 0.1%, but not less than 0.1 mg/m3.
-          // Note that the latter value becomes the perturbation for RWC=0.
-          const Numeric drwc = max( 0.001*rwc, 1e-7 );
+          //const Numeric drwc = max( 0.001*rwc, 1e-7 );
+          const Numeric drwc = 1e-9;
           const Numeric rwcp = rwc + drwc;
           psd_rain_W16 ( psd_1p, psd_size_grid, rwcp );
           for ( Index i=0; i<nsi; i++ )
