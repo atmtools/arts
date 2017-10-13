@@ -2566,140 +2566,6 @@ void pnd_fieldH98 (Tensor4View pnd_field,
 }
 
 
-/*! Calculates particle size distribution according to a general modified gamma
- *  distribution
- *  
- *  Uses all four free parameters (n0, mu, la, ga) to calculate
- *    psd(D) = n0 * D^mu * exp( -la * x^ga )
- *  
- *  Reference: Petty & Huang, JAS, (2011).
- *  Ported from Atmlab.
-
-    \param psd       Particle number density per x-interval. Sizing of vector
-                     should be done before calling the function.
-    \param jac_data  Container for returning jacobian data. Shall be a matrix
-                     with four rows, where the rows match n0, mu, la and ga.  
-                     Number of columns same as length of psd.
-    \param x       Mass or size.
-    \param n0      See above.
-    \param mu      See above.
-    \param la      See above.
-    \param ga      See above.
-  
-  \author Jana Mendrok, Patrick Eriksson
-  \date 2017-06-07
-
-*/
-void psd_general_MGD (
-          VectorView  psd,
-          MatrixView  jac_data,
-    const Vector&     x,
-    const Numeric&    n0,
-    const Numeric&    mu,
-    const Numeric&    la,
-    const Numeric&    ga,
-    const bool&       do_n0_jac,
-    const bool&       do_mu_jac,
-    const bool&       do_la_jac,
-    const bool&       do_ga_jac )
-{
-  const Index nx = x.nelem();
-
-  assert( psd.nelem() == nx );
-  assert( jac_data.nrows() == 4 );
-  assert( jac_data.ncols() == nx );
-
-  // ensure numerical stability
-  if( (mu+1)/ga <= 0. )
-    {
-      ostringstream os;
-      os << "(mu+1) / gamma must be > 0.";
-      throw runtime_error( os.str() );
-    }
-
-  // skip calculation if n0 is 0.0
-  if ( n0 == 0.0 )
-    {
-      psd = 0.;
-      return;
-    }
-  
-  if( ga == 1  &&  !do_ga_jac )
-    {
-      if( mu == 0  &&  !do_mu_jac )
-        {
-          // Exponential distribution
-          for( Index ix=0; ix<nx; ix++ )
-            {
-              const Numeric eterm = exp( -la*x[ix] );
-              psd[ix] = n0 * eterm;
-              if( do_n0_jac )
-                { jac_data(0,ix) = eterm; }
-              if( do_la_jac )
-                { jac_data(2,ix) = -x[ix] * psd[ix]; }
-            }
-        }
-      else
-        {
-          if( mu > 10 )
-            {
-              ostringstream os;
-              os << "Given mu is " << mu << endl
-                 <<"Seems unreasonable. Have you mixed up the inputs?";
-              throw runtime_error(os.str());
-            }
-          // Gamma distribution
-          for( Index ix=0; ix<nx; ix++ )
-            {
-              const Numeric eterm = exp( -la*x[ix] );
-              const Numeric xterm = pow( x[ix], mu );
-              psd[ix] = n0 * xterm * eterm;
-              if( do_n0_jac )
-                { jac_data(0,ix) = xterm * eterm; }
-              if( do_mu_jac )
-                { jac_data(1,ix) = log(x[ix]) * psd[ix]; }
-              if( do_la_jac )
-                { jac_data(2,ix) = -x[ix] * psd[ix]; }
-              psd[ix] = n0 * pow( x[ix], mu ) * exp( -la*x[ix] );
-            }
-        }
-    }
-  else
-    {
-      // Complete MGD
-      if( mu > 10 )
-        {
-          ostringstream os;
-          os << "Given mu is " << mu << endl
-             <<"Seems unreasonable. Have you mixed up the inputs?";
-          throw runtime_error(os.str());
-        }
-      if( ga > 10 )
-        {
-          ostringstream os;
-          os << "Given gamma is " << ga << endl
-             <<"Seems unreasonable. Have you mixed up the inputs?";
-          throw runtime_error(os.str());
-        }
-      for( Index ix=0; ix<nx; ix++ )
-        {
-          const Numeric pterm = pow( x[ix], ga );
-          const Numeric eterm = exp( -la * pterm );
-          const Numeric xterm = pow( x[ix], mu );
-          psd[ix] = n0 * xterm * eterm;
-          if( do_n0_jac )
-            { jac_data(0,ix) = xterm * eterm; }
-          if( do_mu_jac )
-            { jac_data(1,ix) = log(x[ix]) * psd[ix]; }
-          if( do_la_jac )
-            { jac_data(2,ix) = -pterm * psd[ix]; }
-          if( do_ga_jac )
-            { jac_data(3,ix) = -la * pterm * log(x[ix]) * psd[ix]; }
-        }
-    }
-}
-
-
 /*! Calculates particle size distribution of cloud ice using MH97 parametrization.
  *  
  *  Handles a vector of sizes at a time. Implicitly assumes particles of water
@@ -2811,7 +2677,7 @@ void psd_cloudice_MH97 ( Vector& psd,
   if (alphas100>0.)
   {
     Numeric Ns100 = 6*IWCs100 * pow ( alphas100,5. ) /
-                    ( PI*cdensity*gamma_func ( 5. ) );//micron^-5
+                    ( PI*cdensity*tgamma ( 5. ) );//micron^-5
     for ( Index iD=0; iD<nD; iD++ )
       dNdD1[iD] = 1e18 * Ns100*d_um[iD] *
                   exp ( -alphas100*d_um[iD] ); //micron^-4 -> m^-3 micron^-1
@@ -3126,8 +2992,8 @@ void psd_SB06 (Vector& psd,
         arg1=(mu+1)/gamma;
         
         // results of gamma function
-        c1=gamma_func(arg1);
-        c2=gamma_func(arg2);
+        c1=tgamma(arg1);
+        c2=tgamma(arg2);
         
         
         // variable to shorthen the formula
@@ -3141,7 +3007,7 @@ void psd_SB06 (Vector& psd,
         L1=pow(Lambda, arg1);
         
         //N0
-        N0=M0*gamma/gamma_func(arg1)*L1;
+        N0=M0*gamma/tgamma(arg1)*L1;
         
         
         // Calculate distribution function
@@ -3292,8 +3158,8 @@ void psd_MY05 (Vector& psd,
         arg1=(mu+1)/gamma;
         
         // results of gamma function
-        c1=gamma_func(arg1);
-        c2=gamma_func(arg2);
+        c1=tgamma(arg1);
+        c2=tgamma(arg2);
         
         //base of lambda
         temp=alpha*M0/M1*c2/c1;
@@ -3627,7 +3493,7 @@ Numeric LWCtopnd (const Numeric lwc, //[kg/m^3]
 	Numeric a4g = (alpha+4.)/gam;
 	Numeric B = (alpha/gam) / pow(rc,gam); 
 	Numeric A = 0.75/PI * lwc/DENSITY_OF_WATER * gam * pow(B,a4g) /
-                    gamma_func(a4g);
+                    tgamma(a4g);
 	Numeric dNdr = A * (pow(radius,alpha) * exp(-B*pow(radius,gam))); // [#/m3/m]
 	
 /* alternative implementation
@@ -3636,7 +3502,7 @@ Numeric LWCtopnd (const Numeric lwc, //[kg/m^3]
 	Numeric gam = 1.05;
 	
 	Numeric B=(alpha/gam)/pow(rc,gam); 
-	Numeric A=gam*pow(B,((alpha+1)/gam))/gamma_func((alpha+1)/gam);
+	Numeric A=gam*pow(B,((alpha+1)/gam))/tgamma((alpha+1)/gam);
 	Numeric dNdr=A*(pow(radius*1e6,alpha)*exp(-B*pow(radius*1e6,gam)))*1e6; // [#/m3/m]
 */
 

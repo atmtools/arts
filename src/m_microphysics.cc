@@ -1007,15 +1007,19 @@ void psdMgd (
   START_OF_PSD_METHODS();
   
   // Check and determine free parameters
-  const Index n0_free = (Index) isnan( n0 );
-  const Index mu_free = (Index) isnan( mu );
-  const Index la_free = (Index) isnan( la );
-  const Index ga_free = (Index) isnan( ga );
   //
-  if( nin + !n0_free + !mu_free + !la_free + !ga_free != 4 )
+  if( isnan( n0 ) | isnan( mu ) | isnan( la ) | isnan( ga ) )
+    throw runtime_error( "None of n0, mu, la and ga is allowed to be NaN." );
+  //
+  const Index n0_nonfixed = (Index) isinf( n0 );
+  const Index mu_nonfixed = (Index) isinf( mu );
+  const Index la_nonfixed = (Index) isinf( la );
+  const Index ga_nonfixed = (Index) isinf( ga );
+  //
+  if( nin + !n0_nonfixed + !mu_nonfixed + !la_nonfixed + !ga_nonfixed != 4 )
     throw runtime_error( "This PSD has four free parameters. This means that "
                          "the number\nof columns in *pnd_agenda_input* and the "
-                         "number of non-NaNs found\namong the GIN arguments n0, mu, "
+                         "number of non-Inf found\namong the GIN arguments n0, mu, "
                          "la and ga must add up to four.\nAnd this was found "
                          "not to be the case." );
 
@@ -1024,12 +1028,14 @@ void psdMgd (
   ArrayOfIndex in_pos = {-1,-1,-1,-1}; // Position in pnd_agenda_input
   {
     Index nhit=0;
-    if( n0_free ) { in_pos[0]=nhit++; } else { mgd_pars[0]=n0; }
-    if( mu_free ) { in_pos[1]=nhit++; } else { mgd_pars[1]=mu; }
-    if( la_free ) { in_pos[2]=nhit++; } else { mgd_pars[2]=la; }
-    if( ga_free ) { in_pos[3]=nhit++; } else { mgd_pars[3]=ga; }
+    if( n0_nonfixed ) { in_pos[0]=nhit++; } else { mgd_pars[0]=n0; }
+    if( mu_nonfixed ) { in_pos[1]=nhit++; } else { mgd_pars[1]=mu; }
+    if( la_nonfixed ) { in_pos[2]=nhit++; } else { mgd_pars[2]=la; }
+    if( ga_nonfixed ) { in_pos[3]=nhit++; } else { mgd_pars[3]=ga; }
   }
 
+
+  
   // Determine what derivatives to do and their position in dpsd_data_dx
   ArrayOfIndex do_jac = {0,0,0,0};
   ArrayOfIndex jac_i = {-1,-1,-1,-1};
@@ -1079,9 +1085,9 @@ void psdMgd (
       //
       Matrix  jac_data(4,nsi);    
       //
-      psd_general_MGD( psd_data(ip,joker), jac_data, psd_size_grid,
-                       mgd_pars[0], mgd_pars[1], mgd_pars[2], mgd_pars[3],
-                       do_jac[0], do_jac[1], do_jac[2], do_jac[3] );
+      mgd( psd_data(ip,joker), jac_data, psd_size_grid,
+           mgd_pars[0], mgd_pars[1], mgd_pars[2], mgd_pars[3],
+           do_jac[0], do_jac[1], do_jac[2], do_jac[3] );
       //
       for( Index i=0; i<4; i++ )
         {
@@ -1091,6 +1097,81 @@ void psdMgd (
     }
 }
 
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+/*
+void psdMgdMass(
+          Matrix&          psd_data,
+          Tensor3&         dpsd_data_dx,
+    const Vector&          psd_size_grid,
+    const Vector&          pnd_agenda_input_t,
+    const Matrix&          pnd_agenda_input,
+    const ArrayOfString&   pnd_agenda_input_names,
+    const ArrayOfString&   dpnd_data_dx_names,
+    const Numeric&         n0, 
+    const Numeric&         mu, 
+    const Numeric&         la, 
+    const Numeric&         ga, 
+    const Numeric&         t_min, 
+    const Numeric&         t_max, 
+    const Index&           picky, 
+    const Verbosity&)
+{
+  // Standard checks
+  START_OF_PSD_METHODS();
+  
+  // Check and determine free parameters
+  //
+  const Index n0_implied = (Index) isnan( n0 );
+  const Index mu_implied = (Index) isnan( mu );
+  const Index la_implied = (Index) isnan( la );
+  const Index ga_implied = (Index) isnan( ga );
+  //
+  if( !n0_implied + !mu_implied + !la_implied + !ga_implied != 1 )
+    throw runtime_error( "One of n0, mu, la and ga must be NaN, to flag that "
+                         "this parameter is the one implied by mass content." );
+  //
+  const Index n0_nonfixed = (Index) isinf( n0 );
+  const Index mu_nonfixed = (Index) isinf( mu );
+  const Index la_nonfixed = (Index) isinf( la );
+  const Index ga_nonfixed = (Index) isinf( ga );
+  //
+  if( nin + !n0_nonfixed + !mu_nonfixed + !la_nonfixed + !ga_nonfixed != 4 )
+    throw runtime_error( "This PSD has four free parameters. This means that "
+                         "the number\nof columns in *pnd_agenda_input* and the "
+                         "number of non-Inf found\namong the GIN arguments n0, mu, "
+                         "la and ga must add up to four.\nAnd this was found "
+                         "not to be the case." );
+
+  // Create variables to form vector to hold the four MGD parameters
+  Vector mgd_pars(4);
+  ArrayOfIndex in_pos = {-1,-1,-1,-1}; // Position in pnd_agenda_input
+  {
+    Index nhit=0;
+    if( n0_nonfixed ) { in_pos[0]=nhit++; } else { mgd_pars[0]=n0; }
+    if( mu_nonfixed ) { in_pos[1]=nhit++; } else { mgd_pars[1]=mu; }
+    if( la_nonfixed ) { in_pos[2]=nhit++; } else { mgd_pars[2]=la; }
+    if( ga_nonfixed ) { in_pos[3]=nhit++; } else { mgd_pars[3]=ga; }
+  }
+
+  // Determine what derivatives to do and their position in dpsd_data_dx
+  ArrayOfIndex do_jac = {0,0,0,0};
+  ArrayOfIndex jac_i = {-1,-1,-1,-1};
+  for( Index i=0; i<ndx; i++ )
+    {
+      for( Index j=0; j<4; j++ )
+        {
+          if( dx2in[i] == in_pos[j] )
+            {
+              do_jac[j] = 1;
+              jac_i[j] = i;
+              break;
+            }
+        }
+    }
+}
+*/
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */

@@ -1,3 +1,16 @@
+2017-10-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-832
+
+	* src/m_microphysics.cc (psdMgdMass): A small start.
+
+	(psdMgd): Non-fixed parameters are now flagged by Inf, instead of NaN.
+
+	* src/math_funcs.cc (gamma_func, lgamma_func): Removed.
+	std::tgamma and std::lgamma are now at hand.
+
+	(mgd): Moved from microphysics.cc.
+
 2017-10-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-831

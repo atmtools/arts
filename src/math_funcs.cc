@@ -482,82 +482,139 @@ Numeric sign( const Numeric& x )
 }
 
 
-//! Gamma Function
-/*! Returns gamma function of real argument 'x'.
-    Returns error msg if argument is a negative integer or 0,
-    or use lgamma function if argument exceeds 32.0.
 
-    \return  gam Gamma function of x.
-    
-    \param   xx  Numeric
+/*! Modified gamma distribution, and derivatives
+ *  
+ *  Uses all four free parameters (n0, mu, la, ga) to calculate
+ *    psd(D) = n0 * D^mu * exp( -la * x^ga )
+ *  
+ *  Reference: Petty & Huang, JAS, (2011).
+ *  Ported from Atmlab.
 
-    \author Daniel Kreyling 
-    \date   2010-12-13
+    \param psd       Particle number density per x-interval. Sizing of vector
+                     should be done before calling the function.
+    \param jac_data  Container for returning jacobian data. Shall be a matrix
+                     with four rows, where the rows match n0, mu, la and ga.  
+                     Number of columns same as length of psd.
+    \param x       Mass or size.
+    \param n0      See above.
+    \param mu      See above.
+    \param la      See above.
+    \param ga      See above.
+  
+  \author Jana Mendrok, Patrick Eriksson
+  \date 2017-06-07
+
 */
-
-Numeric gamma_func(Numeric xx)
+void mgd(
+          VectorView  psd,
+          MatrixView  jac_data,
+    const Vector&     x,
+    const Numeric&    n0,
+    const Numeric&    mu,
+    const Numeric&    la,
+    const Numeric&    ga,
+    const bool&       do_n0_jac,
+    const bool&       do_mu_jac,
+    const bool&       do_la_jac,
+    const bool&       do_ga_jac )
 {
-    //double lgamma(double xx);
+  const Index nx = x.nelem();
 
-    Numeric gam;
+  assert( psd.nelem() == nx );
+  assert( jac_data.nrows() == 4 );
+  assert( jac_data.ncols() == nx );
 
-    if (xx > 0.0) {
-        if (xx == (int)xx)
-        {
-            gam = fac(Index(xx)-1);
-        }
-        else
-        {
-            gam = exp(lgamma_func(xx));
-        }
-    } else {
-        ostringstream os;
-        os << "Argument is zero or negative."
-        << "Gamma function can not be calculated.\n";
-        throw runtime_error(os.str());
+  // ensure numerical stability
+  if( (mu+1)/ga <= 0. )
+    {
+      ostringstream os;
+      os << "(mu+1) / gamma must be > 0.";
+      throw runtime_error( os.str() );
     }
-    
-    return gam;
-}
 
-
-//! ln Gamma Function
-/*! Returns ln of gamma function for real argument 'x'.
-   
-    \return      ln Gamma function of x.
-    \param   xx  Numeric
-
-    \author Daniel Kreyling 
-     \date   2010-12-13
-*/
-
-
-Numeric lgamma_func(Numeric xx)
-{
+  // skip calculation if n0 is 0.0
+  if ( n0 == 0.0 )
+    {
+      psd = 0.;
+      return;
+    }
   
-  Numeric x,y,tmp,ser;
-  static const Numeric cof[6] = {
-    76.18009172947146, -86.50532032941677, 24.01409824083091,
-    -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5
-  };
-  
-  if (xx > 0.0)
-  {
-    y=x=xx;
-    tmp = x+5.5;
-    tmp -= (x+0.5)*log(tmp);
-    ser = 1.000000000190015;
-    for (Index j=0;j<=5;j++) ser += cof[j]/++y;
-    return -tmp+log(2.5066282746310005*ser/x);
-  }
+  if( ga == 1  &&  !do_ga_jac )
+    {
+      if( mu == 0  &&  !do_mu_jac )
+        {
+          // Exponential distribution
+          for( Index ix=0; ix<nx; ix++ )
+            {
+              const Numeric eterm = exp( -la*x[ix] );
+              psd[ix] = n0 * eterm;
+              if( do_n0_jac )
+                { jac_data(0,ix) = eterm; }
+              if( do_la_jac )
+                { jac_data(2,ix) = -x[ix] * psd[ix]; }
+            }
+        }
+      else
+        {
+          if( mu > 10 )
+            {
+              ostringstream os;
+              os << "Given mu is " << mu << endl
+                 <<"Seems unreasonable. Have you mixed up the inputs?";
+              throw runtime_error(os.str());
+            }
+          // Gamma distribution
+          for( Index ix=0; ix<nx; ix++ )
+            {
+              const Numeric eterm = exp( -la*x[ix] );
+              const Numeric xterm = pow( x[ix], mu );
+              psd[ix] = n0 * xterm * eterm;
+              if( do_n0_jac )
+                { jac_data(0,ix) = xterm * eterm; }
+              if( do_mu_jac )
+                { jac_data(1,ix) = log(x[ix]) * psd[ix]; }
+              if( do_la_jac )
+                { jac_data(2,ix) = -x[ix] * psd[ix]; }
+              psd[ix] = n0 * pow( x[ix], mu ) * exp( -la*x[ix] );
+            }
+        }
+    }
   else
-  {
-    ostringstream os;
-    os << "Argument is zero or negative.\n"
-    << "log Gamma function can not be calculated.\n";
-    throw runtime_error(os.str());
-  }
+    {
+      // Complete MGD
+      if( mu > 10 )
+        {
+          ostringstream os;
+          os << "Given mu is " << mu << endl
+             <<"Seems unreasonable. Have you mixed up the inputs?";
+          throw runtime_error(os.str());
+        }
+      if( ga > 10 )
+        {
+          ostringstream os;
+          os << "Given gamma is " << ga << endl
+             <<"Seems unreasonable. Have you mixed up the inputs?";
+          throw runtime_error(os.str());
+        }
+      for( Index ix=0; ix<nx; ix++ )
+        {
+          const Numeric pterm = pow( x[ix], ga );
+          const Numeric eterm = exp( -la * pterm );
+          const Numeric xterm = pow( x[ix], mu );
+          psd[ix] = n0 * xterm * eterm;
+          if( do_n0_jac )
+            { jac_data(0,ix) = xterm * eterm; }
+          if( do_mu_jac )
+            { jac_data(1,ix) = log(x[ix]) * psd[ix]; }
+          if( do_la_jac )
+            { jac_data(2,ix) = -pterm * psd[ix]; }
+          if( do_ga_jac )
+            { jac_data(3,ix) = -la * pterm * log(x[ix]) * psd[ix]; }
+        }
+    }
 }
+
 
 
 //! Generalized Modified Gamma Distribution

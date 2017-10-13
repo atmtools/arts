@@ -79,9 +79,18 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
 
 Numeric sign( const Numeric& x );
 
-Numeric gamma_func(Numeric xx);
-
-Numeric lgamma_func(Numeric xx);
+void mgd(
+          VectorView  psd,
+          MatrixView  jac_data,
+    const Vector&     x,
+    const Numeric&    n0,
+    const Numeric&    mu,
+    const Numeric&    la,
+    const Numeric&    ga,
+    const bool&       do_n0_jac,
+    const bool&       do_mu_jac,
+    const bool&       do_la_jac,
+    const bool&       do_ga_jac );
 
 Numeric mod_gamma_dist(Numeric x,
                        Numeric N0,
