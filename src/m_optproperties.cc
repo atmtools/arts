@@ -203,7 +203,8 @@ void pha_mat_sptFromData( // Output:
               if( ti<0 ) // temperature interpolation
               {
                   ostringstream os;
-                  os << "The temperature grid of the scattering data does not\n"
+                  os << "In pha_mat_sptFromData.\n"
+                     << "The temperature grid of the scattering data does not\n"
                      << "cover the atmospheric temperature at cloud location.\n"
                      << "The data should include the value T = "
                      << rtp_temperature << " K.";
@@ -421,7 +422,8 @@ void pha_mat_sptFromDataDOITOpt(// Output:
               else
               {
                   ostringstream os;
-                  os << "The temperature grid of the scattering data does not\n"
+                  os << "In pha_mat_sptFromDataDOITOpt.\n"
+                     << "The temperature grid of the scattering data does not\n"
                      << "cover the atmospheric temperature at cloud location.\n"
                      << "The data should include the value T = "
                      << rtp_temperature << " K.";
@@ -579,7 +581,8 @@ void opt_prop_sptFromData(// Output and Input:
               if ( T_DATAGRID_RAW.nelem() > 1)
               {
                   ostringstream os;
-                  os << "The temperature grid of the scattering data does not\n"
+                  os << "In opt_prop_sptFromData.\n"
+                     << "The temperature grid of the scattering data does not\n"
                      << "cover the atmospheric temperature at cloud location.\n"
                      << "The data should include the value T = "
                      << rtp_temperature << " K.";
@@ -787,7 +790,8 @@ void opt_prop_sptFromScat_data(// Output and Input:
               if ( EXT_MAT_DATA_NEW.nbooks()>1 || ABS_VEC_DATA_NEW.nbooks()>1 )
                 {
                   ostringstream os;
-                  os << "The temperature grid of the scattering data does not\n"
+                  os << "In opt_prop_sptFromScat_data.\n"
+                     << "The temperature grid of the scattering data does not\n"
                      << "cover the atmospheric temperature at cloud location.\n"
                      << "The data should include the value T = "
                      << rtp_temperature << " K.";
@@ -1491,7 +1495,9 @@ void scat_dataCheck( //Input:
                     ostringstream os;
                     os << "  Deviations in scat_data too large:\n"
                        << "  scat dev [%] " << 1e2*Csca/Csca_data-1e2
-                       << " at albedo of " << Csca_data/Cext_data << "\n"
+                       << " at nominal (actual) albedo of "
+                       << Csca_data/Cext_data << " ("
+                       << Csca/Cext_data << ").\n"
                        << "  Check entry for scattering element " << i_se
                        << " of scattering species " << i_ss << " at "
                        << f << ".frequency and " << t << ".temperature!\n";
@@ -1537,7 +1543,9 @@ void scat_dataCheck( //Input:
                       ostringstream os;
                       os << "  Deviations in scat_data too large:\n"
                          << "  scat dev [%] " << 1e2*Csca/Csca_data-1e2
-                         << " at albedo of " << Csca_data/Cext_data << "\n"
+                         << " at nominal (actual) albedo of "
+                         << Csca_data/Cext_data << " ("
+                         << Csca/Cext_data << ").\n"
                          << "  Check entry for scattering element " << i_se
                          << " of scattering species " << i_ss << " at "
                          << f << ". frequency, " << t << ". temperature, and "
@@ -2196,7 +2204,8 @@ void opt_prop_sptFromMonoData(// Output and Input:
               if (t_grid.nelem() > 1)
               {
                   ostringstream os;
-                  os << "The temperature grid of the scattering data does not\n"
+                  os << "In opt_prop_sptFromMonoData.\n"
+                     << "The temperature grid of the scattering data does not\n"
                      << "cover the atmospheric temperature at cloud location.\n"
                      << "The data should include the value T = "
                      << rtp_temperature << " K.";
@@ -2389,7 +2398,8 @@ void pha_mat_sptFromMonoData(// Output:
               else
               {
                   ostringstream os;
-                  os << "The temperature grid of the scattering data does not\n"
+                  os << "In pha_mat_sptFromMonoData.\n"
+                     << "The temperature grid of the scattering data does not\n"
                      << "cover the atmospheric temperature at cloud location.\n"
                      << "The data should include the value T = "
                      << rtp_temperature << " K.";
@@ -2531,7 +2541,8 @@ void pha_mat_sptFromScat_data( // Output:
           // If the particle number density at a specific point in the
           // atmosphere for the i_se scattering element is zero, we don't need
           // to do the transfromation!
-          if (pnd_field(i_se_flat, scat_p_index, scat_lat_index, scat_lon_index)
+          if (abs(pnd_field(i_se_flat, scat_p_index,
+                            scat_lat_index, scat_lon_index))
               > PND_LIMIT)
           {
 
@@ -2575,7 +2586,8 @@ void pha_mat_sptFromScat_data( // Output:
               else
                 {
                   ostringstream os;
-                  os << "The temperature grid of the scattering data does not\n"
+                  os << "In pha_mat_sptFromScat_data.\n"
+                     << "The temperature grid of the scattering data does not\n"
                      << "cover the atmospheric temperature at cloud location.\n"
                      << "The data should include the value T = "
                      << rtp_temperature << " K.";

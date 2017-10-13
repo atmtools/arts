@@ -1,3 +1,16 @@
+2017-10-13 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-833
+
+	* src/rte.cc (get_stepwise_scattersky_source):
+	Bugfix in setting up pnd input for pha_mat_sptFromScat_data. Fixes bugg
+	reported by Patrick (hopefully...).
+
+	* src/m_optproperties.cc ([opt_prop,pha_mat]_sptFrom*):
+	Identical temperature-range-exceed error messages are raised by all the
+	methods. For easier debugging, add info by which (non-WS-)method it was
+	raised.
+
 2017-10-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-832

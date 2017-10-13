@@ -5027,6 +5027,8 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
                                     const bool& jacobian_do,
                                     const Verbosity& verbosity)
 {
+  //cout << "In get_stepwise_scattersky_source\n";
+  //cout << ppath_1p_pnd << "\n";
   const Index nf = Sp.NumberOfFrequencies(),
               stokes_dim = Sp.StokesDimensions();
   const Index ne = ppath_1p_pnd.nelem();
@@ -5082,12 +5084,37 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
   Vector itw_iza(2);
   interpweights( itw_iza, gp_iza ); 
 
-  Tensor4 pndT4(ne, 1, 1, 1, 1.);
-  Index j_analytical_do=0;
-  if( jacobian_do )
-    FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; )
-  if ( j_analytical_do ) // switch(ed) off for debugging
-    pndT4(joker, 0, 0, 0) = ppath_1p_pnd;
+  // pndT4 is used inside pha_mat_sptFromScat_data as a flag whether we need
+  // pha_mat data for this scattering element.
+  // We need it if either pnd or the dpnd at this scat element for any jac
+  // species is non-zero (technically, we need it only when pnd or the dpnd for
+  // the jac species corresponding to (a) a scat species at all and (b) this
+  // specific scat species is non-zero. that seems a bit tedious (or even
+  // impossible?) to check here, though.)
+  Tensor4 pndT4(ne, 1, 1, 1, 0.);
+
+  const Index nq = jacobian_do?jacobian_quantities.nelem():0;
+  for ( Index ise_flat = 0; ise_flat < ne; ise_flat++ )
+  {
+    if( abs(ppath_1p_pnd[ise_flat]) != 0)
+      pndT4(ise_flat, 0, 0, 0) = 1.;
+    else
+    {
+      Index iq=0;
+      bool unfilled=true;
+      while( unfilled && (iq < nq) && jacobian_quantities[iq].Analytical() &&
+             !ppath_dpnd_dx[iq].empty() )
+      {
+        if( abs(ppath_dpnd_dx[iq](ise_flat, ppath_1p_id)) != 0)
+        {
+          pndT4(ise_flat, 0, 0, 0) = 1.;
+          unfilled=false;
+        }
+        iq += 1;
+      }
+    }
+  }
+  //cout << pndT4(joker, 0, 0, 0) << "\n";
 
   for( Index f_index = 0; f_index < nf; f_index++ )
   {

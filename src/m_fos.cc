@@ -2003,6 +2003,7 @@ void iyHybrid2(
 
     for(Index ip = 0; ip < np; ip++)
     {
+      //cout << "ppath point #" << ip << ": ";
       get_stepwise_blackbody_radiation(B, dB_dT,
                                        ppath_f(joker, ip), ppath_t[ip],
                                        ppd.do_temperature());
@@ -2049,6 +2050,8 @@ void iyHybrid2(
 
       if( clear2cloudy[ip]+1 )
       {
+        //cout << "cloudy.\n";
+        //cout << "  ppath_pnd=" << ppath_pnd(joker, ip) << "\n";
         get_stepwise_scattersky_propmat(a, Kp, da_dx, dKp_dx,
                                         jacobian_quantities,
                                         ppath_pnd(joker, ip),
@@ -2094,6 +2097,7 @@ void iyHybrid2(
       }
       else // no particles present at this level
       {
+        //cout << "clear.\n";
         // nothing to do for K_this and S as they are filled already by
         // get_stepwise_clearsky_propmat.
         a = K_this;
