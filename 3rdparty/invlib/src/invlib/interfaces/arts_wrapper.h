@@ -245,9 +245,15 @@ public:
     ~ArtsCovarianceMatrixWrapper() = default;
 
     operator const CovarianceMatrix & () const {return covmat_;}
-    operator ArtsMatrix() const {return static_cast<ArtsMatrix>(covmat_);}
+    operator ArtsMatrix() const {
+        if (is_inverse_) {
+            return covmat_.get_inverse();
+        } else {
+            return static_cast<ArtsMatrix>(covmat_);
+        }
+    }
 
-    // ----------------- //
+// ----------------- //
     //   Manipulations   //
     // ----------------- //
 

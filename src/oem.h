@@ -294,9 +294,9 @@ public:
             using OptimizationType =
                 typename std::decay<typename std::tuple_element<5, decltype(tuple)>::type>::type;
 
-            auto step = std::get<0>(tuple);
-            std::cout<< std::setw(5)  << step;
-            if (step == 0) {
+            auto step_number = std::get<0>(tuple);
+            std::cout<< std::setw(5)  << step_number;
+            if (step_number == 0) {
                 start_cost = std::get<1>(tuple);
             }
             std::cout<< std::setw(15) << scaling_factor * std::get<1>(tuple);

@@ -1036,12 +1036,12 @@ void OEM(
           apply_norm = true;
       }
 
-        OEMCovarianceMatrix SeInv(covmat_se), SaInv(covmat_sx);
+        OEMCovarianceMatrix Se(covmat_se), Sa(covmat_sx);
         OEMVector xa_oem(xa), y_oem(y), x_oem(x);
         AgendaWrapper aw(&ws, (unsigned int) m, (unsigned int) n,
                          jacobian, yf, &inversion_iterate_agenda);
-        OEM_STANDARD<AgendaWrapper> oem(aw, xa_oem, SaInv, SeInv);
-        OEM_MFORM<AgendaWrapper> oem_m(aw, xa_oem, SaInv, SeInv);
+        OEM_STANDARD<AgendaWrapper> oem(aw, xa_oem, Sa, Se);
+        OEM_MFORM<AgendaWrapper> oem_m(aw, xa_oem, Sa, Se);
         int oem_verbosity = static_cast<int>(display_progress);
 
         int return_code = 0;
@@ -1115,6 +1115,7 @@ void OEM(
             else if ( (method == "lm") || (method == "ml") )
             {
                 Normed<> s(T, apply_norm);
+                OEMCovarianceMatrix SaInv = inv(Sa);
                 LM_S lm(SaInv, s);
 
                 lm.set_tolerance(stop_dx);
@@ -1132,6 +1133,7 @@ void OEM(
             }
             else if ( (method == "lm_cg") || (method == "ml_cg") )
             {
+                OEMCovarianceMatrix SaInv = inv(Sa);
                 Normed<CG> cg(T, apply_norm, 1e-10, 0);
                 LM_CG_S lm(SaInv, cg);
 

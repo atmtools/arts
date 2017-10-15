@@ -183,6 +183,7 @@ public:
     ~CovarianceMatrix() = default;
 
     operator Matrix() const;
+    Matrix get_inverse() const;
 
     Index nrows() const;
     Index ncols() const;

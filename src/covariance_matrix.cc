@@ -174,6 +174,34 @@ CovarianceMatrix::operator Matrix() const {
     return A;
 }
 
+Matrix CovarianceMatrix::get_inverse() const {
+
+    Index n = nrows();
+    Matrix A(n,n);
+    A = 0.0;
+
+    for (const Block & c : inverses_) {
+        MatrixView Aview = A(c.get_row_range(), c.get_column_range());
+        if (c.get_matrix_type() == Block::MatrixType::dense) {
+            Aview = c.get_dense();
+        } else {
+            Aview = c.get_sparse();
+        }
+
+        Index ci, cj;
+        std::tie(ci, cj) = c.get_indices();
+        if (ci != cj) {
+            MatrixView ATview = A(c.get_column_range(), c.get_row_range());
+            if (c.get_matrix_type() == Block::MatrixType::dense) {
+                ATview = transpose(c.get_dense());
+            } else {
+                ATview = transpose(static_cast<Matrix>(c.get_sparse()));
+            }
+        }
+    }
+    return A;
+}
+
 Index CovarianceMatrix::nrows() const
 {
     Index m = 0;

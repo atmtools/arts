@@ -1,3 +1,19 @@
+2017-10-16 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-835
+
+	* src/oem.h (ArtsLog::step):
+	Change name of variable to avoid shadowing of function name.
+
+	* src/m_oem.cc(OEM):
+	Fix naming of covariance matrices and damping matrix of LM method.
+
+	* src/covariance_matrix.[h,cc] (get_inverse):
+	Added function to extract inverse from covariance matrix.
+
+	* 3rdparty/invlib/src/invlib/interfaces/arts_wrapper.h:
+	Fixed conversion to dense matrix.
+
 2017-10-15  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-3-834
