@@ -1,3 +1,14 @@
+2017-10-15  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-3-834
+
+	* src/absorption.cc (xsec_single_line): Stuart Fox has reported
+	the bug that for mirror lines (negative F0) the shift was in the
+	wrong direction. Added an if statement that makes sure that the shift
+	goes in the other direction for negative frequency mirror lines,
+	so that they really end up at the negative of the frequency of the
+	original line.
+
 2017-10-13 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-833

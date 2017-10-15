@@ -1347,7 +1347,18 @@ void xsec_single_line(// Output:
     intensity *= part_fct_ratio * boltzmann_ratio;
     
     // Apply pressure shift:
-    F0 += df_0 + LM_DF;// FIXME:  This is probably not compatible with HTP line shape
+    //
+    // 2017-10-15: Stuart Fox had reported the bug that for mirror
+    // lines (negative F0) the shift was in the wrong direction. The
+    // if statement below makes sure that the shift goes in the other
+    // direction for negative frequency mirror lines, so that they
+    // really end up at the negative of the frequency of the original
+    // line.
+    if (F0 >= 0)
+      F0 += ( df_0 + LM_DF );
+    else
+      F0 -= ( df_0 + LM_DF );
+    // FIXME:  This is probably not compatible with HTP line shape
     
     // Indices pointing at begin/end frequencies of f_grid or at
     // the elements that have to be calculated in case of cutoff
