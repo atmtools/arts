@@ -992,13 +992,15 @@ void ArtsParser::parse_method_args(const MdRecord*& mdd,
         {
             ostringstream os;
 
-            os << "Too many arguments passed to " << mdd->Name() << ": ";
-            bool first = true;
-            for (size_t i = 0; i < named_arguments.size(); i++)
+            os << "Error in arguments passed to " << mdd->Name() << ":\n";
+            for (auto &argument_name : named_arguments)
             {
-                if (!first) os << ", ";
-                else first = false;
-                os << named_arguments[i].name;
+                if (std::find(mdd->GIn().begin(), mdd->GIn().end(),
+                              argument_name.name) == mdd->GIn().end())
+                    os << "  Unkown argument: ";
+                else
+                    os << "  Duplicate argument: ";
+                os << argument_name.name << std::endl;
             }
             throw ParseError(os.str(),
                              msource.File(),
