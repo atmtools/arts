@@ -1,3 +1,12 @@
+2017-10-16  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-839
+
+	* src/arts_api.cc (agenda_insert_set):
+	Fixed implementation so that values of type Numeric are handled
+	correctly. Thanks to Richard for reporting this bug.
+
+
 2017-10-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-838

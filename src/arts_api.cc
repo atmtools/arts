@@ -109,6 +109,10 @@ void agenda_insert_set(InteractiveWorkspace *workspace,
     if (wsv_group_names[group_id] == "Index") {
         t = TokVal(*reinterpret_cast<Index*>(workspace->operator[](id)));
     }
+    // Numeric
+    if (wsv_group_names[group_id] == "Numeric") {
+        t = TokVal(*reinterpret_cast<Numeric*>(workspace->operator[](id)));
+    }
     // ArrayOfIndex
     if (wsv_group_names[group_id] == "ArrayOfIndex") {
         t = TokVal(*reinterpret_cast<ArrayOfIndex*>(workspace->operator[](id)));
