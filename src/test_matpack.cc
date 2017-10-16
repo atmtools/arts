@@ -18,6 +18,7 @@
 #include "array.h"
 #include <cmath>
 #include <cstdlib>
+#include <algorithm>
 #include "describe.h"
 #include "exceptions.h"
 #include <iostream>
@@ -951,6 +952,19 @@ ArrayOfIndex J{0, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 18, 18
 
 }
 
+
+void test46()
+{
+  Vector v(5, 0.);
+  nlinspace(v, 1, 10, 10);
+  VectorView v1 = v;
+  auto compare_func = [](Numeric n){return n != 0;};
+  cout << std::any_of(v1.begin(), v1.end(), compare_func) << endl;
+  v1 = 0.;
+  cout << std::any_of(v1.begin(), v1.end(), compare_func) << endl;
+}
+
+
 //! Test diagonal vector.
 /*!
   Generates ntest random (m,n)-matrices and checks if the returned diagonal
@@ -1455,6 +1469,21 @@ void test_empty()
     }
 }
 
+
+void nlinspace(
+        Vector&     x,
+        const Numeric     start,
+        const Numeric     stop,
+        const Index       n )
+{
+  assert( 1<n );                // Number of points must be greater 1.
+  x.resize(n);
+  Numeric step = (stop-start)/((double)n-1) ;
+  for ( Index i=0; i<n-1; i++ )
+    x[i] = start + (double)i*step;
+  x[n-1] = stop;
+}
+
 int main()
 {
 //   test1();
@@ -1501,8 +1530,9 @@ int main()
 //  test41();
 //    test42();
 //    test43();
-    test44();
+//    test44();
 //    test45();
+    test46();
 
 //    const double tolerance = 1e-9;
 //    double error;
@@ -1526,6 +1556,7 @@ int main()
 
     //test_diagonal( 100 );
     //test_empty();
+
 
     return 1;
 }

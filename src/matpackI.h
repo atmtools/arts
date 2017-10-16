@@ -249,6 +249,14 @@ public:
   bool operator!=(const Iterator1D& other) const
     { if (mx != other.mx) return true; else return false; }
 
+#ifdef __GLIBCXX__
+  bool operator==(const Iterator1D& other) const
+    { return !operator!=(other); }
+
+  Index operator-(const Iterator1D& other) const
+    { return (Index)(mx - other.mx)/mstride; }
+#endif
+
   friend void copy(ConstIterator1D origin,
                    const ConstIterator1D& end,
                    Iterator1D target);

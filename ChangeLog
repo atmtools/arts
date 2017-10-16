@@ -1,5 +1,17 @@
 2017-10-16  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-838
+
+	* src/matpackI.h (Iterator1D):
+
+	Add operator== and operator- when compiled with libstdc++ to make
+	Iterator1D compatible with stl functions such as std::any_of. Reported
+	by Richard.
+
+	* src/test_matpack.cc (test46): Add test for std::any_of.
+
+2017-10-16  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-837
 
 	* src/parser.cc (ArtsParser::parse_method_args):
