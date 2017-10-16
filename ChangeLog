@@ -1,5 +1,13 @@
 2017-10-16  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-837
+
+	* src/parser.cc (ArtsParser::parse_method_args):
+
+	Also consider output arguments.
+
+2017-10-16  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-836
 
 	* src/parser.cc (ArtsParser::parse_method_args):

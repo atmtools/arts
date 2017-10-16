@@ -996,7 +996,9 @@ void ArtsParser::parse_method_args(const MdRecord*& mdd,
             for (auto &argument_name : named_arguments)
             {
                 if (std::find(mdd->GIn().begin(), mdd->GIn().end(),
-                              argument_name.name) == mdd->GIn().end())
+                              argument_name.name) == mdd->GIn().end()
+                    && std::find(mdd->GOut().begin(), mdd->GOut().end(),
+                                 argument_name.name) == mdd->GOut().end())
                     os << "  Unkown argument: ";
                 else
                     os << "  Duplicate argument: ";
