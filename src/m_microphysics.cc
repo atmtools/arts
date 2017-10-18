@@ -1005,7 +1005,7 @@ void psdMgd (
 {
   // Standard checks
   START_OF_PSD_METHODS();
-  
+
   // Check and determine free parameters
   //
   if( isnan( n0 ) | isnan( mu ) | isnan( la ) | isnan( ga ) )
@@ -1052,6 +1052,7 @@ void psdMgd (
         }
     }
 
+  // Loop input data and calculate PSDs
   for( Index ip=0; ip<np; ip++ )
     {
       // Extract the input variables
@@ -1100,7 +1101,6 @@ void psdMgd (
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-/*
 void psdMgdMass(
           Matrix&          psd_data,
           Tensor3&         dpsd_data_dx,
@@ -1121,57 +1121,137 @@ void psdMgdMass(
   // Standard checks
   START_OF_PSD_METHODS();
   
-  // Check and determine free parameters
+  // Additional (basic) checks
+  if( nin < 1 || nin > 4 )
+    throw runtime_error( "The number of columns in *pnd_agenda_input* must "
+                         "be 1, 2, 3 or 4." );
+  
+  // Check and determine implied and fixed parameters
   //
-  const Index n0_implied = (Index) isnan( n0 );
-  const Index mu_implied = (Index) isnan( mu );
-  const Index la_implied = (Index) isnan( la );
-  const Index ga_implied = (Index) isnan( ga );
+  const Index n0_implied = (Index) n0 == -999;
+  const Index mu_implied = (Index) mu == -999;
+  const Index la_implied = (Index) la == -999;
+  const Index ga_implied = (Index) ga == -999;  
+  cout<<"Implied: "<<n0_implied<<" "<<mu_implied<<" "<<la_implied<<" "<<ga_implied<<"\n";
   //
-  if( !n0_implied + !mu_implied + !la_implied + !ga_implied != 1 )
-    throw runtime_error( "One of n0, mu, la and ga must be NaN, to flag that "
-                         "this parameter is the one implied by mass content." );
+  if( n0_implied + mu_implied + la_implied + ga_implied != 1 )
+    throw runtime_error( "One (but only one) of n0, mu, la and ga must be NaN, "
+                         "to flag that this parameter is the one implied by "
+                         "mass content." );
   //
-  const Index n0_nonfixed = (Index) isinf( n0 );
-  const Index mu_nonfixed = (Index) isinf( mu );
-  const Index la_nonfixed = (Index) isinf( la );
-  const Index ga_nonfixed = (Index) isinf( ga );
+  const Index n0_fixed = (Index) !( n0_implied  ||  isinf(n0) );
+  const Index mu_fixed = (Index) !( mu_implied  ||  isinf(mu) );
+  const Index la_fixed = (Index) !( la_implied  ||  isinf(la) );
+  const Index ga_fixed = (Index) !( ga_implied  ||  isinf(ga) );
+  cout<<"Fixed: "<<n0_fixed<<" "<<mu_fixed<<" "<<la_fixed<<" "<<ga_fixed<<"\n";
   //
-  if( nin + !n0_nonfixed + !mu_nonfixed + !la_nonfixed + !ga_nonfixed != 4 )
+  if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
     throw runtime_error( "This PSD has four free parameters. This means that "
                          "the number\nof columns in *pnd_agenda_input* and the "
-                         "number of non-Inf found\namong the GIN arguments n0, mu, "
-                         "la and ga must add up to four.\nAnd this was found "
-                         "not to be the case." );
+                         "number of numerics\n(i.e. not Inf or NaN) and among "
+                         "the GIN arguments n0, mu, la and\nga must add up to "
+                         "four. And this was found not to be the case." );
 
-  // Create variables to form vector to hold the four MGD parameters
-  Vector mgd_pars(4);
-  ArrayOfIndex in_pos = {-1,-1,-1,-1}; // Position in pnd_agenda_input
+  // Create vectors to hold the four MGD and the "extra" parameters 
+  Vector mgd_pars(4), ext_pars(1);
+  ArrayOfIndex mgd_i_pai = {-1,-1,-1,-1}; // Position in pnd_agenda_input
+  const ArrayOfIndex ext_i_pai = {0};     // Position in pnd_agenda_input
   {
-    Index nhit=0;
-    if( n0_nonfixed ) { in_pos[0]=nhit++; } else { mgd_pars[0]=n0; }
-    if( mu_nonfixed ) { in_pos[1]=nhit++; } else { mgd_pars[1]=mu; }
-    if( la_nonfixed ) { in_pos[2]=nhit++; } else { mgd_pars[2]=la; }
-    if( ga_nonfixed ) { in_pos[3]=nhit++; } else { mgd_pars[3]=ga; }
+    Index nhit=1;
+    if( n0_fixed ) { mgd_pars[0]=n0; } else if( !n0_implied ) { mgd_i_pai[0]=nhit++; } 
+    if( mu_fixed ) { mgd_pars[1]=mu; } else if( !mu_implied ) { mgd_i_pai[1]=nhit++; } 
+    if( la_fixed ) { mgd_pars[2]=la; } else if( !la_implied ) { mgd_i_pai[2]=nhit++; } 
+    if( ga_fixed ) { mgd_pars[3]=ga; } else if( !ga_implied ) { mgd_i_pai[3]=nhit++; } 
   }
 
-  // Determine what derivatives to do and their position in dpsd_data_dx
-  ArrayOfIndex do_jac = {0,0,0,0};
-  ArrayOfIndex jac_i = {-1,-1,-1,-1};
+  // Determine what derivatives to do and their positions
+  ArrayOfIndex mgd_do_jac = {0,0,0,0,}; 
+  ArrayOfIndex ext_do_jac = {0};        
+  ArrayOfIndex mgd_i_jac = {-1,-1,-1,-1}; // Position among jacobian quants 
+  ArrayOfIndex ext_i_jac = {-1};          // Position among jacobian quants
+  //
   for( Index i=0; i<ndx; i++ )
     {
-      for( Index j=0; j<4; j++ )
+      if( dx2in[i] == 0 )  // That is,  mass is a derivative
         {
-          if( dx2in[i] == in_pos[j] )
+          ext_do_jac[0] = 1;
+          ext_i_jac[0]  = i;
+        }
+      else  // Otherwise, either n0, mu, la or ga
+        {
+          for( Index j=0; j<4; j++ )
             {
-              do_jac[j] = 1;
-              jac_i[j] = i;
-              break;
+              if( dx2in[i] == mgd_i_pai[j] )
+                {
+                  mgd_do_jac[j] = 1;
+                  mgd_i_jac[j]  = i;
+                  break;
+                }
             }
         }
     }
+  cout << "mgd_pars\n" << mgd_pars << endl;
+  cout << "mgd_i_pai\n" << mgd_i_pai << endl;
+  cout << "mgd_do_jac\n" << mgd_do_jac << endl;
+  cout << "mgd_i_jac\n" << mgd_i_jac << endl;
+  cout << "ext_pars\n" << ext_pars << endl;
+  cout << "ext_i_pai\n" << ext_i_pai << endl;
+  cout << "ext_do_jac\n" << ext_do_jac << endl;
+  cout << "ext_i_jac\n" << ext_i_jac << endl;
+
+  // Loop input data and calculate PSDs
+  for( Index ip=0; ip<np; ip++ )
+    {
+      // Extract mass
+      ext_pars[0] = pnd_agenda_input(ip,ext_i_pai[0]);
+      // Extract core MGD parameters
+      for( Index i=0; i<4; i++ )
+        {
+          if( mgd_i_pai[i] >= 0 )
+            { mgd_pars[i] = pnd_agenda_input(ip,mgd_i_pai[i]); }
+        }
+      Numeric t = pnd_agenda_input_t[ip];
+
+      cout << "mgd_pars\n" << mgd_pars << endl;
+      cout << "ext_pars\n" << ext_pars << endl;
+
+      // No calc needed if n0==0 and no jacobians requested.
+      if( (mgd_pars[0]==0.) && (!ndx) )
+        { continue; }   // If here, we are ready with this point!
+
+      // Outside of [t_min,tmax]?
+      if( t < t_min  ||  t > t_max )
+        {
+          if( picky )
+            {
+              ostringstream os;
+              os << "Method called with a temperature of " << t << " K.\n"
+                 << "This is outside the specified allowed range: [ max(0.,"
+                 << t_min << "), " << t_max << " ]";
+              throw runtime_error(os.str());
+            }
+          else  
+            { continue; }   // If here, we are ready with this point!
+        }
+
+      // Calculate PSD and derivatives
+      //
+      /*
+      Matrix  jac_data(4,nsi);    
+      //
+      mgd( psd_data(ip,joker), jac_data, psd_size_grid,
+           mgd_pars[0], mgd_pars[1], mgd_pars[2], mgd_pars[3],
+           do_jac[0], do_jac[1], do_jac[2], do_jac[3] );
+      //
+      for( Index i=0; i<4; i++ )
+        {
+          if( do_jac[i] )
+            { dpsd_data_dx(jac_i[i],ip,joker) = jac_data(i,joker); }
+        } 
+      */
+    }  
 }
-*/
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2485,3 +2565,91 @@ void dNdD_W16 (//WS Output:
   psd_rain_W16 ( dNdD, diameter_mass_equivalent, rwc );
 }
 
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ScatSpeciesSizeMassInfo(
+          Vector&                             scat_species_x,
+          Numeric&                            scat_species_a,
+          Numeric&                            scat_species_b,
+    const ArrayOfArrayOfScatteringMetaData&   scat_meta,
+    const Index&                              species_index,
+    const String&                             x_unit,
+    const Numeric&                            x_fit_start,
+    const Numeric&                            x_fit_end,
+    const Verbosity& )
+{
+  // Checks
+  const Index nss = scat_meta.nelem();
+  if( nss == 0 )
+    throw runtime_error( "*scat_meta* is empty!" );
+  if( nss < species_index+1 )
+    {
+      ostringstream os;
+      os << "Selected scattering species index is " << species_index << " but this "
+         << "is not allowed since *scat_meta* has only" << scat_meta.nelem()
+         << " elements.";
+      throw runtime_error(os.str());
+    }
+  //
+  const Index nse = scat_meta[species_index].nelem();
+  if( nse < 2 )
+    throw runtime_error( "The scattering species must have at least two "
+                         "elements to use this method." );
+
+  // Extract particle masses
+  //
+  Vector mass( nse );
+  //
+  for ( Index i=0; i<nse; i++ )
+    { mass[i] = scat_meta[species_index][i].mass; }
+  
+  // Create size grid
+  //
+  scat_species_x.resize( nse );
+  //
+  if( x_unit == "dveq" )
+    {
+      for ( Index i=0; i<nse; i++ )
+        { scat_species_x[i] = scat_meta[species_index][i].diameter_volume_equ; }
+      //
+      derive_scat_species_a_and_b( scat_species_a, scat_species_b,
+                                   scat_species_x, mass, x_fit_start, x_fit_end );
+    }
+  
+  else if( x_unit == "dmax" )
+    {
+      for ( Index i=0; i<nse; i++ )
+        { scat_species_x[i] = scat_meta[species_index][i].diameter_max; }
+      //
+      derive_scat_species_a_and_b( scat_species_a, scat_species_b,
+                                   scat_species_x, mass, x_fit_start, x_fit_end );
+    }
+  
+  else if( x_unit == "area" )
+    {
+      for ( Index i=0; i<nse; i++ )
+        { scat_species_x[i] =
+            scat_meta[species_index][i].diameter_area_equ_aerodynamical; }
+      //
+      derive_scat_species_a_and_b( scat_species_a, scat_species_b,
+                                   scat_species_x, mass, x_fit_start, x_fit_end );
+    }
+
+  else if( x_unit == "mass" )
+    {
+      scat_species_x = mass;
+      //
+      scat_species_a = 1;
+      scat_species_b = 1;
+    }
+
+  else
+    {
+      ostringstream os;
+      os << "You have selected the x_unit: " << x_unit 
+         << "while accepted choices are: \"dveq\", \"dmax\", \"mass\" and \"area\"";
+      throw runtime_error(os.str());
+    }
+}

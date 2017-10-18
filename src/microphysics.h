@@ -36,6 +36,14 @@
 #include "ppath.h"
 #include "messages.h"
 
+void derive_scat_species_a_and_b(
+          Numeric&   a,
+          Numeric&   b,
+    const Vector&    x,          
+    const Vector&    mass,          
+    const Numeric&   x_fit_start,
+    const Numeric&   x_fit_end );
+
 void pnd_fieldMH97 (Tensor4View pnd_field,
                     const Tensor3& IWC_field,
                     const Tensor3& t_field,

@@ -4708,6 +4708,56 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "ArrayOfString" )));
 
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_species_a" ),
+      DESCRIPTION
+      (
+       "Mass-size relationship parameter, for one scattering species.\n"
+       "\n"
+       "Some methods require a relationship between mass and particle size,\n"
+       "valid for the complete scattering species. A common model for this\n"
+       "relationship is:\n"
+       "    mass(x) = a * x^b,\n"
+       "where x is size (that could be Dveq, Dmax or mass) and a/b are parameters.\n"
+       "\n"
+       "This WSV is a in the expression above.\n"
+       "The WSV matching b is *scat_species_a*.\n"
+       "The WSV matching x is *scat_species_x*.\n"
+       ),
+      GROUP( "Numeric" )));
+
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_species_b" ),
+      DESCRIPTION
+      (
+       "Mass-size relationship parameter, for one scattering species.\n"
+       "\n"
+       "See *scat_species_a* for details.\n"
+       ),
+      GROUP( "Numeric" )));
+
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_species_x" ),
+      DESCRIPTION
+      (
+       "The size grid of one scattering species.\n"
+       "\n"
+       "The variable holds the sizes associated with one scattering species.\n"
+       "The typical application of these data are as the size grid when\n"
+       "calculating particle size distributions.\n"
+       "\n"
+       "The user must set this WSV as several quantities can be used as size,\n"
+       "such as mass and maximum diamater.\n"
+       "\n"
+       "See also *scat_species_a*, for example usage of this WSV.\n"       
+       "\n"
+       "Dimension:  [number of scattering elements]\n"
+       ),
+      GROUP( "Vector" )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "scat_species_mass_density_field" ),

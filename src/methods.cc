@@ -12449,7 +12449,31 @@ void define_md_data_raw()
         GIN( "n0", "mu", "la", "ga", "t_min", "t_max", "picky" ),
         GIN_TYPE( "Numeric", "Numeric",  "Numeric", "Numeric",
                   "Numeric", "Numeric", "Index" ),
-        GIN_DEFAULT( "NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0" ),
+        GIN_DEFAULT( "Inf", "Inf", "Inf", "Inf", NODEF, NODEF, "0" ),
+        GIN_DESC( "N0", "mu", "la", "ga",
+                  "Low temperature limit to calculate a psd.",
+                  "High temperature limit to calculate a psd.",
+                  "Flag whether to be strict with parametrization value checks." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "psdMgdMass" ),
+        DESCRIPTION
+        (
+         ",\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "psd_data", "dpsd_data_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
+            "pnd_agenda_input_names", "dpnd_data_dx_names" ),
+        GIN( "n0", "mu", "la", "ga", "t_min", "t_max", "picky" ),
+        GIN_TYPE( "Numeric", "Numeric",  "Numeric", "Numeric",
+                  "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( "Inf", "Inf", "Inf", "Inf", NODEF, NODEF, "0" ),
         GIN_DESC( "N0", "mu", "la", "ga",
                   "Low temperature limit to calculate a psd.",
                   "High temperature limit to calculate a psd.",
@@ -14877,6 +14901,47 @@ void define_md_data_raw()
                   "Delimiter string of *scat_species* elements." )
         ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ScatSpeciesSizeMassInfo" ),
+        DESCRIPTION
+        (
+         "Derives size and mass information for a scattering species."
+         "\n"
+         "This method assumes that the mass-size relationship can described\n"
+         "by *scat_species_a* and *scat_species_b*. See documentation of \n"
+         "*scat_species_a* for details.\n"
+         "\n"
+         "The quantity to be used as size descriptor is here denoted as x, and\n"         
+         "is selected by setting *x_unit*. The options are:\n"
+         " \"dveq\" : The size grid is set to scat_meta.diameter_volume_equ\n"
+         " \"dmax\" : The size grid is set to scat_meta.diameter_max\n"
+         " \"area\" : The size grid is set to scat_meta.diameter_area_equ_aerodynamical\n"
+         " \"mass\" : The size grid is set to scat_meta.mass\n"
+         "This selection determines *scat_species_x*.\n"
+         "\n"
+         "The parameters *scat_species_a* and *scat_species_b* are determined by\n"
+         "a numeric fit between *scat_species_x* and corresponding masses in\n"
+         "*scat_meta*. This fit is performed over sizes inside the range\n"
+         "[x_fit_start,x_fit_end]. This range is allowed to be broader than\n"
+         "the coverage of *scat_species_x*. There must be at least two sizes\n"
+         "inside [x_fit_start,x_fit_end].\n"
+         ),
+        AUTHORS( "Jana Mendrok", "Patrick Eriksson" ),
+        OUT( "scat_species_x", "scat_species_a", "scat_species_b" ),
+        GOUT( ),
+        GOUT_TYPE( ),
+        GOUT_DESC( ),
+        IN( "scat_meta"),
+        GIN( "species_index", "x_unit", "x_fit_start", "x_fit_end"  ),
+        GIN_TYPE(  "Index", "String", "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF ),
+        GIN_DESC( "Take data from scattering species of this index (0-based) in"
+                  " *scat_meta*.",
+                  "Unit for size grid, allowed options listed above.",
+                  "Smallest size to consider in fit to determine a and b.",
+                  "Largest size to consider in fit to determine a and b." )
+        ));  
 
   md_data_raw.push_back
     ( MdRecord

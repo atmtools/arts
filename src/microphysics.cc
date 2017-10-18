@@ -54,6 +54,80 @@ extern const Numeric DENSITY_OF_WATER;
 
 
 
+
+/*! Derives a and b for relationship mass = a * x^b
+
+    The parameters a and b are derived by a fit including all data inside the
+    size range [x_fit_start,x_fit_end].
+
+    The vector x must have been checked to have at least 2 elements.
+
+    An error is thrown if less than two data points are found inside
+    [x_fit_start,x_fit_end].
+
+    \return a           Derived a parameter.
+    \return b           Derived b parameter.
+    \param  x           Size grid
+    \param  mass        Particle masses
+    \param  x_fit_start Start point of x-range to use for fitting
+    \param  x_fit_end   Endpoint of x-range to use for fitting
+  
+  \author Jana Mendrok, Patrick Eriksson
+  \date 2017-10-18
+
+*/
+void derive_scat_species_a_and_b(
+          Numeric&   a,
+          Numeric&   b,
+    const Vector&    x,          
+    const Vector&    mass,          
+    const Numeric&   x_fit_start,
+    const Numeric&   x_fit_end )
+{
+  const Index nse = x.nelem();
+  assert( nse > 1 );
+
+  ArrayOfIndex intarr_sort, intarr_unsort( 0 );
+  Vector x_unsorted( nse ), m_unsorted( nse );
+  Vector q;
+  Index nsev=0;
+
+  for ( Index i=0; i<nse; i++ )
+    {
+      if ( isnan(x[i]) )
+        throw runtime_error( "NaN found in selected size grid data." );
+      if ( isnan(mass[i]) )
+        throw runtime_error( "NaN found among particle mass data." );
+
+      if( x[i] >= x_fit_start  &&  x[i] <= x_fit_end )
+        {
+          x_unsorted[nsev] = x[i];
+          m_unsorted[nsev] = mass[i];
+          nsev += 1;
+        }
+    }
+
+  if( nsev < 2 )
+    throw runtime_error( "Less than two size points found in the range "
+                         "[x_fit_start,x_fit_end]. It is then not possible "
+                         "to determine the a and b parameters." );
+      
+  get_sorted_indexes( intarr_sort, x_unsorted[Range(0,nsev)]);
+  Vector log_x(nsev), log_m(nsev);
+
+  for ( Index i=0; i<nsev; i++ )
+    {
+      log_x[i] = log( x_unsorted[intarr_sort[i]] );
+      log_m[i] = log( m_unsorted[intarr_sort[i]] );
+    }
+
+  linreg( q, log_x, log_m );
+  a = exp(q[0]);
+  b = q[1];
+}
+
+
+
 /*! Calculates the particle number density field for McFarquhar and Heymsfield
     (1997) size distribution. To be used for cloud ice.
 

@@ -1,3 +1,19 @@
+2017-10-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-841
+
+	* src/m_microphysics.cc (psdMgdMass): Extended, but still work in
+	progress.
+
+	* src/m_microphysics.cc (ScatSpeciesSizeMassInfo): A generalised
+	combo of pnd_size_gridFromScatMeta and MassSizeParamsFromScatMeta.
+
+	* src/microphysics.cc (derive_scat_species_a_and_b): A
+	generalisation of MassSizeParamsFromScatMeta.
+
+	* src/workspace.cc: Introduced scat_species_a, scat_species_b and
+	scat_species_x.
+
 2017-10-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-840
