@@ -488,7 +488,10 @@ Numeric sign( const Numeric& x )
  *  Uses all four free parameters (n0, mu, la, ga) to calculate
  *    psd(D) = n0 * D^mu * exp( -la * x^ga )
  *  
- *  Reference: Petty & Huang, JAS, (2011).
+ *  The function cal also return the derivate of psd with respect to the four
+ *  parameters.   
+ * 
+ *  Reference: Eq 1 of Petty & Huang, JAS, (2011).
  *  Ported from Atmlab.
 
     \param psd       Particle number density per x-interval. Sizing of vector
@@ -501,6 +504,10 @@ Numeric sign( const Numeric& x )
     \param mu      See above.
     \param la      See above.
     \param ga      See above.
+    \param do_n0_jac  Flag to actaully calculate d_psd/d_n0
+    \param do_mu_jac  Flag to actaully calculate d_psd/d_mu
+    \param do_la_jac  Flag to actaully calculate d_psd/d_la
+    \param do_ga_jac  Flag to actaully calculate d_psd/d_ga
   
   \author Jana Mendrok, Patrick Eriksson
   \date 2017-06-07

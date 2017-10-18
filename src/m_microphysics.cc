@@ -1109,6 +1109,8 @@ void psdMgdMass(
     const Matrix&          pnd_agenda_input,
     const ArrayOfString&   pnd_agenda_input_names,
     const ArrayOfString&   dpnd_data_dx_names,
+    const Numeric&         scat_species_a, 
+    const Numeric&         scat_species_b, 
     const Numeric&         n0, 
     const Numeric&         mu, 
     const Numeric&         la, 
@@ -1212,11 +1214,8 @@ void psdMgdMass(
         }
       Numeric t = pnd_agenda_input_t[ip];
 
-      cout << "mgd_pars\n" << mgd_pars << endl;
-      cout << "ext_pars\n" << ext_pars << endl;
-
-      // No calc needed if n0==0 and no jacobians requested.
-      if( (mgd_pars[0]==0.) && (!ndx) )
+      // No calc needed if mass==0 and no jacobians requested.
+      if( (ext_pars[0]==0.) && (!ndx) )
         { continue; }   // If here, we are ready with this point!
 
       // Outside of [t_min,tmax]?
@@ -1234,21 +1233,59 @@ void psdMgdMass(
             { continue; }   // If here, we are ready with this point!
         }
 
+      // Derive the implied parameter
+      // The equation to solve is Eq 31 in Petty&Huang, JAS, 2011
+      // There should be some checks to avoid division with zero etc
+      Numeric eterm = 0, scfac = 0;
+      if( n0_implied )
+        {
+          eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
+          scfac = scat_species_a * tgamma(eterm) /
+            ( mgd_pars[3] * pow( mgd_pars[2], eterm ) );
+          mgd_pars[0] = ext_pars[0] / scfac;
+        }
+      else if( la_implied )
+        {
+          eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
+          scfac = scat_species_a * mgd_pars[0] * tgamma(eterm) /
+            mgd_pars[3];
+          mgd_pars[2] = pow( scfac/ext_pars[0], 1/eterm );
+
+        }
+      
+      else
+        throw runtime_error( "Only n0 and la can be implied so far." );
+      
+      cout << "mgd_pars\n" << mgd_pars << endl;
+      cout << "ext_pars\n" << ext_pars << endl;
+
       // Calculate PSD and derivatives
       //
-      /*
       Matrix  jac_data(4,nsi);    
-      //
       mgd( psd_data(ip,joker), jac_data, psd_size_grid,
            mgd_pars[0], mgd_pars[1], mgd_pars[2], mgd_pars[3],
-           do_jac[0], do_jac[1], do_jac[2], do_jac[3] );
+           (bool)mgd_do_jac[0] || n0_implied,
+           (bool)mgd_do_jac[1] || mu_implied,
+           (bool)mgd_do_jac[2] || la_implied,
+           (bool)mgd_do_jac[3] || ga_implied );
+      //
+      if( ext_do_jac[0] )
+        {
+          // The derivative with respect to mass is handled by the chain rule.
+          // For example, for n0 we have that:
+          // d_psd(n0)/d_mass = d_psd/d_n0 * d_n0/d_mass
+          if( n0_implied )
+            {
+              dpsd_data_dx(ext_i_jac[0],ip,joker) = jac_data(0,joker);
+              dpsd_data_dx(ext_i_jac[0],ip,joker) /= scfac; 
+            }
+        }
       //
       for( Index i=0; i<4; i++ )
         {
-          if( do_jac[i] )
-            { dpsd_data_dx(jac_i[i],ip,joker) = jac_data(i,joker); }
+          if( mgd_do_jac[i] )
+            { dpsd_data_dx(mgd_i_jac[i],ip,joker) = jac_data(i,joker); }
         } 
-      */
     }  
 }
 
