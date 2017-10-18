@@ -80,9 +80,10 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
         }
 
     }
-
-    if (needs_lines
-        && !abs_xsec_agenda.has_method("abs_xsec_per_speciesAddLines"))
+    
+    if (needs_lines and not
+        (abs_xsec_agenda.has_method("abs_xsec_per_speciesAddLines") or
+         abs_xsec_agenda.has_method("abs_xsec_per_speciesAddLines2")))
     {
         throw runtime_error(
                  "*abs_species* contains line species but *abs_xsec_agenda*\n"

@@ -32,6 +32,7 @@
 
 #include "complex.h"
 #include "partial_derivatives.h"
+#include "linerecord.h"
 
 
 /*
@@ -122,7 +123,7 @@ namespace Linefunctions
                    const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                    const Numeric& dGD_div_F0_dT=0.0);
   
-  void set_faddeeva_from_full_linemixing(ComplexVector& F, // Sets the full complex line shape without line mixing
+  void set_faddeeva_from_full_linemixing(ComplexVector& F, // Sets the full complex line shape from eigenvalue decomposition method
                                          ArrayOfComplexVector& dF,
                                          const Vector& f_grid,
                                          const Complex& eigenvalue_no_shift,
@@ -225,6 +226,32 @@ namespace Linefunctions
   Numeric DopplerConstant(const Numeric T, const Numeric mass);
   
   Numeric dDopplerConstant_dT(const Numeric T, const Numeric mass);
+  
+  void set_cross_section_for_single_line(ComplexVector& F,
+                                         ArrayOfComplexVector& dF,
+                                         ComplexVector& N,
+                                         ArrayOfComplexVector& dN,
+                                         const PropmatPartialsData& derivatives_data,
+                                         const LineRecord& line,
+                                         ConstVectorView f_grid,
+                                         ConstVectorView volume_mixing_ratio_of_all_species,
+                                         ConstVectorView nlte_temperatures,
+                                         const Numeric& pressure,
+                                         const Numeric& temperature,
+                                         const Numeric& doppler_constant,
+                                         const Numeric& partial_pressure,
+                                         const Numeric& isotopologue_ratio,
+                                         const Numeric& magnetic_magnitude,
+                                         const Numeric& ddoppler_constant_dT,
+                                         const Numeric& pressure_limit_for_linemixing,
+                                         const Numeric& zeeman_frequency_shift_constant,
+                                         const Numeric& partition_function_at_temperature,
+                                         const Numeric& dpartition_function_at_temperature_dT,
+                                         const Numeric& partition_function_at_line_temperature,
+                                         const ArrayOfIndex& broad_spec_locations,
+                                         const Index& this_species_location_in_tags,
+                                         const Index& water_index_location_in_tags,
+                                         const Verbosity& verbosity);
 };
 
 #endif //lineshapedata_h

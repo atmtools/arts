@@ -32,7 +32,7 @@ USA. */
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void LineMixingData::GetLineMixingParams(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order=1) const
+void LineMixingData::GetLineMixingParams(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const
 {
     if(mtype == LM_NONE) {} // The standard case
     else if(mtype == LM_LBLRTM) // The LBLRTM case
@@ -51,7 +51,7 @@ void LineMixingData::GetLineMixingParams(Numeric& Y, Numeric& G, Numeric& DV, co
 }
 
 
-void LineMixingData::GetLineMixingParams_dT(Numeric& dY_dT, Numeric& dG_dT, Numeric& dDV_dT, const Numeric& Temperature, const Numeric& dt, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order=1) const
+void LineMixingData::GetLineMixingParams_dT(Numeric& dY_dT, Numeric& dG_dT, Numeric& dDV_dT, const Numeric& Temperature, const Numeric& dt, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const
 {
     if(mtype == LM_NONE) {} // The standard case
     else if(mtype == LM_LBLRTM) // The LBLRTM case

@@ -47,6 +47,7 @@
 #include "linescaling.h"
 
 #include "global_data.h"
+#include "lineshapesdata.h"
 
 
 /** Mapping of species auxiliary type names to SpeciesAuxData::AuxType enum */
@@ -2369,4 +2370,181 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             }
         }
     }
+}
+
+
+void xsec_species2(MatrixView xsec,
+                   MatrixView source,
+                   MatrixView phase,
+                   ArrayOfMatrix& dxsec_dx,
+                   ArrayOfMatrix& dsource_dx,
+                   ArrayOfMatrix& dphase_dx,
+                   const PropmatPartialsData& flag_partials,
+                   ConstVectorView f_grid,
+                   ConstVectorView abs_p,
+                   ConstVectorView abs_t,
+                   ConstMatrixView abs_t_nlte,
+                   ConstMatrixView all_vmrs,
+                   const ArrayOfArrayOfSpeciesTag& abs_species,
+                   const Index this_species,
+                   const ArrayOfLineRecord& abs_lines,
+                   const Vector& Z_DF,
+                   const Numeric H_magntitude_Zeeman,
+                   const Numeric lm_p_lim,
+                   const SpeciesAuxData& isotopologue_ratios,
+                   const SpeciesAuxData& partition_functions,
+                   const Verbosity& verbosity)
+{
+  // Size of problem
+  const Index np = abs_p.nelem();                      // number of pressure levels
+  const Index nf = f_grid.nelem();                     // number of Dirac frequencies
+  DEBUG_ONLY(const Index ns = abs_species.nelem();)    // number of species vmrs
+  const Index nl = abs_lines.nelem();                  // number of lines in the catalog
+  const Index nz = Z_DF.nelem();                       // number of lines affected by Zeeman effect
+  const Index nj = flag_partials.nelem();              // number of partial derivatives
+  const Index nt = abs_t_nlte.nrows();                 // number of energy levels in NLTE
+  
+  // Type of problem
+  const bool do_phase = nz;                  // phase return is requested only by Zeeman effect calculations
+  const bool do_nonlte = nt;                 // source return is requested only if there are energy levels in NLTE
+  DEBUG_ONLY(const bool do_jacobians = nj;)  // Jacobian return is requested only if there are partial derivatives
+  
+  // Test if the size of the problem is 0
+  if(not np*nf*nl)
+    return;
+  
+  // Standard variables that must always have correct size upon calling this function
+  assert(this_species < ns);
+  assert(abs_t.nelem() == np);
+  assert(all_vmrs.ncols() == np and all_vmrs.nrows() == ns);
+  assert(xsec.nrows() == nf and xsec.ncols() == np);
+  assert(dxsec_dx.nelem() == nj);
+  
+  // Non-LTE stuff must follow these rules if applied
+  assert((source.nrows() == nf and source.ncols() == np) or not do_nonlte);
+  assert(dsource_dx.nelem() == nj or not do_nonlte);
+  assert(np == abs_t_nlte.ncols() or not do_nonlte);
+  
+  // Phase-related only works for single layer
+  assert((np == 1 and nz == nl) or not do_phase);
+  assert((phase.nrows() == nf and phase.ncols() == 1) or not do_phase);
+  assert(dphase_dx.nelem() == nj or not do_phase);
+  assert(H_magntitude_Zeeman >= 0); // even when not using it...
+  
+  // Jacobian must be the correct size throughout
+  DEBUG_ONLY(for(auto& m : dxsec_dx) {assert((m.nrows() == nf and m.ncols() == np) or not do_jacobians);})
+  DEBUG_ONLY(for(auto& m : dphase_dx) {assert((m.nrows() == nf and m.ncols() == np) or not do_jacobians or not do_phase);})
+  DEBUG_ONLY(for(auto& m : dsource_dx) {assert((m.nrows() == nf and m.ncols() == np) or not do_jacobians or not do_nonlte);})
+  
+  // Algorithmic stuff to test that variables are as expected
+  //assert(not std::any_of(abs_t.begin(), abs_t.end(), [](Numeric n){return n <= 0.;}));
+  //assert(not std::any_of(abs_p.begin(), abs_p.end(), [](Numeric n){return n <= 0.;}));
+  
+  // Water index in VMRS is constant for all levels and lines
+  const Index h2o_index = find_first_species_tg(abs_species,
+                                                species_index_from_species_name("H2O"));
+  
+  // Broadening species locations in VMRS are constant for all levels and lines
+  ArrayOfIndex broad_spec_locations;
+  find_broad_spec_locations(broad_spec_locations, abs_species, this_species);
+  
+  // Results vectors are initialized first and then copied to the threads later
+  ComplexVector F(nf), N(do_nonlte?nf:0);
+  ArrayOfComplexVector dF(nj), dN(do_nonlte?nj:0);
+  for(auto& aocv : dF) aocv.resize(nf);
+
+  for(Index ip = 0; ip < np; ip++)
+  {
+    // Constants for this level
+    const Numeric& temperature = abs_t[ip];
+    const Numeric& pressure = abs_p[ip];
+    const Numeric partial_pressure = pressure * all_vmrs(this_species, ip);
+    
+    // Quasi-constants for this level, defined here to speed up later computations
+    Index this_iso = -1; // line isotopologue number
+    Numeric t0 = -1; // line temperature
+    Numeric dc, ddc_dT, qt, qt0, dqt_dT; // Doppler and partition functions
+    
+    for(Index il = 0; il < nl; il++)
+    {
+      const LineRecord& line = abs_lines[il];
+      
+      // Partition function depends on isotopologue and line temperatures.
+      // Both are commonly constant in a single catalog.  They are, however,
+      // allowed to change so we must check that they do not
+      if(line.Isotopologue() not_eq this_iso or line.Ti0() not_eq t0)
+      {
+        // set new line temperature
+        t0 = line.Ti0();
+        
+        // set new partition function
+        partition_function(qt0, qt,
+          t0, temperature,
+          partition_functions.getParamType(line.Species(), line.Isotopologue()),
+          partition_functions.getParam(line.Species(), line.Isotopologue()));
+        
+        // if needed, set the partition function derivative
+        if(flag_partials.do_temperature())
+          dpartition_function_dT(dqt_dT, qt,
+            temperature, flag_partials.Temperature_Perturbation(),
+            partition_functions.getParamType(line.Species(), line.Isotopologue()),
+            partition_functions.getParam(line.Species(), line.Isotopologue()));
+      }
+      
+      // Same rule as for partition function applies to the Doppler broadening.
+      // It is however more simple since it only depends on the mass of the species
+      // of the line, so only check for this
+      if(line.Isotopologue() not_eq this_iso)
+      {
+        // set new isotopologue number
+        this_iso = line.Isotopologue();
+        
+        // set the frequency-independent part of the line shape
+        dc = Linefunctions::DopplerConstant(temperature, line.IsotopologueData().Mass());
+        
+        // if needed, set the partial derivative of the frequency-independent part of the line shape
+        if(flag_partials.do_temperature())
+          ddc_dT = Linefunctions::dDopplerConstant_dT(temperature, line.IsotopologueData().Mass());
+      }
+      
+      // we now compute the line shape
+      Linefunctions::set_cross_section_for_single_line(F, dF, N, dN,
+        flag_partials, line, f_grid, all_vmrs(joker, ip), nt?abs_t_nlte(joker, ip):Vector(0),
+        pressure, temperature, dc, partial_pressure, 
+        isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
+        H_magntitude_Zeeman, ddc_dT, lm_p_lim, do_phase?Z_DF[il]:0.0, qt, dqt_dT, qt0,
+        broad_spec_locations, this_species, h2o_index, verbosity);
+      
+      // Add results to final output -- apply atomic operations to guard against parallelism
+      for(Index i = 0; i < nf; i++)
+      {
+        xsec(i, ip) += F[i].real();
+        
+        if(do_nonlte)
+        {
+          source(i, ip) += N[i].real();
+        }
+        
+        if(do_phase)
+        {
+          phase(i, ip) += F[i].imag();
+        }
+        
+        for(Index j = 0; j < nj; j++)
+        {
+          dxsec_dx[j](i, ip) += dF[j][i].real();
+          
+          if(do_nonlte)
+          {
+            dsource_dx[j](i, ip) += dN[j][i].real();
+          }
+          
+          if(do_phase)
+          {
+            dphase_dx[j](ip, i) += dF[j][i].imag();
+          }
+        }
+      }
+    }
+  }
 }

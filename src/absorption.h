@@ -843,4 +843,26 @@ void find_broad_spec_locations(ArrayOfIndex& broad_spec_locations,
                                const ArrayOfArrayOfSpeciesTag& abs_species,
                                const Index this_species);
 
+void xsec_species2(MatrixView xsec,
+                   MatrixView source,
+                   MatrixView phase,
+                   ArrayOfMatrix& dxsec_dx,
+                   ArrayOfMatrix& dsource_dx,
+                   ArrayOfMatrix& dphase_dx,
+                   const PropmatPartialsData& flag_partials,
+                   ConstVectorView f_grid,
+                   ConstVectorView abs_p,
+                   ConstVectorView abs_t,
+                   ConstMatrixView abs_t_nlte,
+                   ConstMatrixView all_vmrs,
+                   const ArrayOfArrayOfSpeciesTag& abs_species,
+                   const Index this_species,
+                   const ArrayOfLineRecord& abs_lines,
+                   const Vector& Z_DF,
+                   const Numeric H_magntitude_Zeeman,
+                   const Numeric lm_p_lim,
+                   const SpeciesAuxData& isotopologue_ratios,
+                   const SpeciesAuxData& partition_functions,
+                   const Verbosity& verbosity);
+
 #endif // absorption_h

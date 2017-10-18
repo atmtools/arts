@@ -55,8 +55,8 @@ public:
     const ArrayOfVector& Data() const {return mdata;}
     
     // Use these to return data in the format required by the line shape calculator
-    void GetLineMixingParams(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const;
-    void GetLineMixingParams_dT(Numeric& dY_dT, Numeric& dG_dG, Numeric& dDV_dT, const Numeric& Temperature, const Numeric& dt, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const;
+    void GetLineMixingParams(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order=1) const;
+    void GetLineMixingParams_dT(Numeric& dY_dT, Numeric& dG_dG, Numeric& dDV_dT, const Numeric& Temperature, const Numeric& dt, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order=1) const;
     void GetLineMixingParams_dZerothOrder(Numeric& dY0, Numeric& dG0, Numeric& dDV0, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
     void GetLineMixingParams_dFirstOrder(Numeric& dY1, Numeric& dG1, Numeric& dDV1, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;
     void GetLineMixingParams_dExponent(Numeric& dYexp, Numeric& dGexp, Numeric& dDVexp, const Numeric& Temperature, const Numeric& Pressure, const Numeric& Pressure_Limit) const;

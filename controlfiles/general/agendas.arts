@@ -340,7 +340,7 @@ AgendaCreate( propmat_clearsky_agenda__LookUpTable_Zeeman )
 AgendaSet( propmat_clearsky_agenda__LookUpTable_Zeeman ){
   propmat_clearskyInit
   propmat_clearskyAddFromLookup
-  propmat_clearskyAddZeeman
+  propmat_clearskyAddZeemanFromPreCalc
 }
 
 

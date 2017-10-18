@@ -1,3 +1,43 @@
+2017-10-18 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-843
+	
+	* controlfiles/general/agendas.arts:  Found bad Zeeman agenda
+	(much slower than it should be).  Might break some controlfiles
+	that rely on this...
+	
+	* src/absorption.{cc,h}:  Added  xsec_species2.
+	Need to add line-record information to replace normalization, 
+	cutoff, mirroring, and anything else special that we might wanna 
+	do.
+	
+	* src/linemixingdata.{cc,h}:  Just updating defaults
+	
+	* src/linescaling.cc:  minimal changes
+	
+	* src/lineshapedata.{cc,h}: Will be renamed linefunctions.{cc,h}
+	soon.  Added a full lineshape+linestrength calculator that should
+	take all present partial derivatives into account.  (Not remotely
+	near fully tested)
+	
+	* src/m_abs.cc: abs_xsec_per_speciesAddLines2. Passes most 
+	tests when  replacing abs_xsec_per_speciesAddLines but two 
+	tests that relies on cutoff fails.  The new method is 10% 
+	slower through 'make check', though it is not parallelized 
+	yet so this might go away.  Found a strange bug where our
+	Complex class is not compatible with openmp #pragma omp atomic
+	
+	It relies heavily on complex number multiplication so setting
+	fcx-fortran-rules helps compensate some speed loss in a Fortran-
+	compatible but IEEE-incompatible way
+	
+	* src/m_atmosphere.cc: Error comment change
+	
+	* src/m_checked.cc:  Accepts either normal or 2 for the line-
+	adding function.
+	
+	* src/ methods.cc:  Added name
+
 2017-10-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-842

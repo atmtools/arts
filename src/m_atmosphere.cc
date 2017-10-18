@@ -1372,10 +1372,10 @@ void GriddedFieldZToPRegrid(// WS Generic Output:
     {
         for(Index ii=0;ii<lat_grid.nelem();ii++)
             if(lat_grid[ii]!=lat_in[ii])
-                throw std::runtime_error("Gridding of field to regrid is bad.\n*GriddedFieldZToPRegrid* requires latitude and longitude to be the same as for *z_field*.");
+                throw std::runtime_error("Gridding of field to regrid is bad.\n*GriddedFieldZToPRegrid* requires latitude and longitude of the gridded field to be the same as for *z_field*.");
         for(Index ii=0;ii<lon_grid.nelem();ii++)
             if(lon_grid[ii]!=lon_in[ii])
-                throw std::runtime_error("Gridding of field to regrid is bad.\n*GriddedFieldZToPRegrid* requires latitude and longitude to be the same as for *z_field*.");
+                throw std::runtime_error("Gridding of field to regrid is bad.\n*GriddedFieldZToPRegrid* requires latitude and longitude of the gridded field to be the same as for *z_field*.");
     }
     
     // Pointer in case output is input variable (same memory allocated)

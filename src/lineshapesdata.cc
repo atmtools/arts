@@ -32,6 +32,7 @@
 
 #include "Faddeeva.hh"
 #include "lineshapesdata.h"
+#include "linescaling.h"
 
 // Basic constants 
 extern const Numeric PI;
@@ -724,8 +725,8 @@ void Linefunctions::apply_linemixing(ComplexVector& F,
 {
   const Index nf = F.nelem(), nppd = derivatives_data.nelem();
   
-  const Complex LM = Complex(1.0 + G, Y);
-  const Complex dLM_dT = Complex(dG_dT, dY_dT);
+  const Complex LM = Complex(1.0 + G, -Y);
+  const Complex dLM_dT = Complex(dG_dT, -dY_dT);
   
   for(Index iq = 0; iq < nppd; iq++)
   {
@@ -745,7 +746,7 @@ void Linefunctions::apply_linemixing(ComplexVector& F,
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
       {
         dF[iq] = F;
-        dF[iq] *= Complex(0.0, 1.0);
+        dF[iq] *= Complex(0.0, -1.0);
       }
     }
     else if(derivatives_data(iq) == JQT_line_mixing_G or
@@ -1300,3 +1301,228 @@ void Linefunctions::apply_nonlte(ComplexVector& F,
   F *= K3;
 }
 
+
+void Linefunctions::set_cross_section_for_single_line(ComplexVector& F,
+                                                      ArrayOfComplexVector& dF,
+                                                      ComplexVector& N,
+                                                      ArrayOfComplexVector& dN,
+                                                      const PropmatPartialsData& derivatives_data,
+                                                      const LineRecord& line,
+                                                      ConstVectorView f_grid,
+                                                      ConstVectorView volume_mixing_ratio_of_all_species,
+                                                      ConstVectorView nlte_temperatures,
+                                                      const Numeric& pressure,
+                                                      const Numeric& temperature,
+                                                      const Numeric& doppler_constant,
+                                                      const Numeric& partial_pressure,
+                                                      const Numeric& isotopologue_ratio,
+                                                      const Numeric& magnetic_magnitude,
+                                                      const Numeric& ddoppler_constant_dT,
+                                                      const Numeric& pressure_limit_for_linemixing,
+                                                      const Numeric& zeeman_frequency_shift_constant,
+                                                      const Numeric& partition_function_at_temperature,
+                                                      const Numeric& dpartition_function_at_temperature_dT,
+                                                      const Numeric& partition_function_at_line_temperature,
+                                                      const ArrayOfIndex& broad_spec_locations,
+                                                      const Index& this_species_location_in_tags,
+                                                      const Index& water_index_location_in_tags,
+                                                      const Verbosity& verbosity)
+{
+  // This call assumes the size of all variables are as 
+  // they should be and makes no tests in this is the case
+  
+  // The equation being solved here:
+  //   F = LM K1 K2 K3 QT/QT0 S0 f(...),
+  //   N = LM K1 K2 (K4/K3 - 1) QT/QT0 S0 f(...),
+  //   dF = d(F)/dx
+  //   dN = d(N)/dx
+  
+  // Extract the quantum identify of the line
+  const QuantumIdentifier QI = line.QuantumIdentity();
+  
+  // Line strength scaling that are line-dependent
+  const Numeric gamma = stimulated_emission(temperature, line.F());
+  const Numeric gamma_ref = stimulated_emission(line.Ti0(), line.F());
+  const Numeric K1 = boltzman_ratio(temperature, line.Ti0(), line.Elow());
+  const Numeric K2 = stimulated_relative_emission(gamma, gamma_ref);
+  
+  // Pressure broadening terms
+  Numeric G0, G2, e, L0, L2, FVC;
+  line.PressureBroadening().GetPressureBroadeningParams(G0, G2, e, L0, L2, FVC,
+    line.Ti0()/temperature, pressure, partial_pressure, 
+    this_species_location_in_tags, water_index_location_in_tags,
+    broad_spec_locations, volume_mixing_ratio_of_all_species,
+    verbosity);
+  
+  // Line mixing terms
+  Numeric Y=0, G=0, DV=0;
+  line.LineMixing().GetLineMixingParams(Y, G, DV, 
+                                        temperature, pressure, 
+                                        pressure_limit_for_linemixing);
+  
+  // Treat line mixing as a shift on first order of pressure shift
+  // Note that HTP-like line shapes might only use first order line 
+  // mixing because of this assumption, so if anything changes on
+  // this from this part has to be updated
+  L0 += DV;
+  
+  // Partial derivatives for temperature
+  Numeric dG0_dT, dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT, dY_dT, dG_dT, dDV_dT, dK1_dT, dK2_dT;
+  if(derivatives_data.do_temperature())
+  {
+    // NOTE:  This will change if and when we have a good temperature understanding of HTP,
+    // and uninitialized variables above will then be set...
+    // FIXME:  Change GetPressureBroadeningParams_dT to output all of above
+    line.PressureBroadening().GetPressureBroadeningParams_dT(dG0_dT, dL0_dT,
+      temperature, line.Ti0(), pressure, partial_pressure,
+      this_species_location_in_tags, water_index_location_in_tags,
+      broad_spec_locations, volume_mixing_ratio_of_all_species,
+      verbosity);
+    
+    // Line mixing partial derivatives
+    line.LineMixing().GetLineMixingParams_dT(dY_dT, dG_dT, dDV_dT, temperature, 
+                                              derivatives_data.Temperature_Perturbation(),
+                                              pressure, pressure_limit_for_linemixing);
+   
+    // See comment above L0 += DV;
+    dL0_dT += dDV_dT;
+  
+    // Line strength partial derivatives
+    dK1_dT = dboltzman_ratio_dT(K1, temperature, line.Elow());
+    dK2_dT = dstimulated_relative_emission_dT(gamma, gamma_ref, line.F());
+  }
+  
+  // Partial derivatives due to pressure
+  ComplexVector pressure_derivatives;
+  if(derivatives_data.get_first_pressure_term() > -1)
+    line.PressureBroadening().SetInternalDerivatives(pressure_derivatives, derivatives_data, QI, 
+                                                     line.Ti0()/temperature, pressure, partial_pressure, 
+                                                     this_species_location_in_tags, water_index_location_in_tags,
+                                                     volume_mixing_ratio_of_all_species, verbosity);
+  
+  // Partial derivatives due to central frequency of the stimulated emission
+  Numeric dK2_dF0;
+  if(derivatives_data.do_line_center())
+    dK2_dF0 = dstimulated_relative_emission_dF0(gamma, gamma_ref, temperature);
+  
+  // FIXME: INSERT CUTOFF COMPUTATIONS HERE TO GENERATE A NEW FREQUENCY GRID SPECIFIC FOR THIS LINE
+  // QUESTIONS: Should we allow smartness here and then use magic interpolation to return
+  // to proper grid later?
+  
+  // Set the line shape normalized to unity integration
+  // FIXME: MAKE THE BELOW REACT TO A FLAG STATING IF AND HOW MIRRORING SHOULD BE DEALT WITH
+  // QUESTION: Should this just use the mirror of the same lineshape or should we allow
+  // setting a flag for Lorentz-mirroring?
+  switch(line.PressureBroadening().Type())
+  {
+    case PressureBroadeningData::PB_SD_AIR_VOLUME:
+      // Above should be all methods of pressure broadening requiring HTP in ARTS to work
+      set_htp(F, dF, 
+              f_grid, zeeman_frequency_shift_constant, magnetic_magnitude, 
+              line.F(), doppler_constant, 
+              G0, L0, L2, G2, e, FVC,
+              derivatives_data, QI,
+              ddoppler_constant_dT, dG0_dT, dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT);
+      break;
+    case PressureBroadeningData::PB_AIR_AND_WATER_BROADENING:
+    case PressureBroadeningData::PB_PLANETARY_BROADENING:
+    case PressureBroadeningData::PB_AIR_BROADENING:
+      // Above should be all methods of pressure broadening requiring Voigt in ARTS
+      set_faddeeva_algorithm916(F, dF, f_grid, 
+                                zeeman_frequency_shift_constant, magnetic_magnitude, 
+                                line.F(), doppler_constant, 
+                                G0, L0, 
+                                derivatives_data, QI,
+                                ddoppler_constant_dT, dG0_dT, dL0_dT);
+      break;
+    default:
+      throw std::runtime_error("Developer has messed up and needs to add the key to the code above this error");
+  }
+  
+  // FIXME: INSERT LINE NORMALIZATION COMPUTATIONS HERE AFTER A FLAG HAS BEEN MADE FOR VVH, VVW, AND SO ON
+  apply_VVH(F, dF, f_grid, line.F(), temperature, derivatives_data, QI);
+  
+  // FIXME: REMOVE EXCESS ABSORPTION FROM THE LINE SHAPE HERE BY LISTENING TO THE CUTOFF
+  
+  // Apply line mixing if relevant
+  apply_linemixing(F, dF,
+                   Y, G, 
+                   derivatives_data, 
+                   QI, dY_dT, dG_dT);
+  
+  // Change the line integration value
+  apply_linestrength(F, dF, 
+                     line.I0(), isotopologue_ratio,
+                     partition_function_at_temperature, partition_function_at_line_temperature, K1, K2,
+                     derivatives_data, QI,
+                     dpartition_function_at_temperature_dT, dK1_dT, dK2_dT, dK2_dF0);
+  
+  // Apply pressure broadening vector if there are matching cases
+  if(derivatives_data.get_first_pressure_term() > -1)
+    apply_pressurebroadening_jacobian(dF, derivatives_data, QI, pressure_derivatives);
+  
+  // Non-local thermodynamic equilibrium terms
+  if(nlte_temperatures.nelem())
+  {
+    Numeric Tu, Tl, K4, r_low, dK3_dF0, dK3_dT, dK3_dTl, dK4_dT, dK3_dTu, dK4_dTu;
+    
+    // These four are set by user on controlfile level
+    const Index evlow_index = line.EvlowIndex();
+    const Index evupp_index = line.EvuppIndex();
+    const Numeric El = line.Evlow();
+    const Numeric Eu = line.Evupp();
+    
+    // If anything is said, the index is set and will match with the input vector
+    if(evupp_index > -1)
+    {
+      Tu = nlte_temperatures[evupp_index];
+      
+      // Additional emission is from upper state
+      K4 = boltzman_ratio(Tu, temperature, Eu);
+    }
+    else // vibrational temperature is atmospheric temperature and no additional numbers in upper state
+    {
+      Tu = temperature;
+      K4 = 1.0;
+    }
+    
+    // Same as upper state above
+    if(evlow_index > -1)
+    {
+      Tl = nlte_temperatures[evlow_index];
+      r_low = boltzman_ratio(Tl, temperature, El);
+    }
+    else // vibrational temperature is atmospheric temperature and no additional numbers in lower state
+    {
+      Tl = temperature;
+      r_low = 1.0;
+    }
+    
+    // The additional absorption requires the ratio between upper and lower state number distributions
+    const Numeric K3 = absorption_nlte_ratio(gamma, K4, r_low);
+    
+    if(derivatives_data.do_frequency())
+      dK3_dF0 = dabsorption_nlte_rate_dF0(gamma, temperature, K4, r_low);
+    
+    // NOTE:  Having NLTE active AT ALL will change the jacobian because of this part of the code,
+    // though this requires setting El and Eu for all lines, though this is not yet default...
+    // So if you see this part of the code after having a runtime_error, 
+    // you will need to write those functions yourself...
+    if(derivatives_data.do_temperature())
+      dK3_dT = dabsorption_nlte_rate_dT(gamma, temperature, line.F(), El, Eu, K4, r_low);
+    
+    if(El > 0)
+      dK3_dTl = dabsorption_nlte_rate_dTl(gamma, temperature, Tl, El, r_low);
+    
+    if(Eu > 0)
+    {
+      dK3_dTu = dabsorption_nlte_rate_dTu(gamma, temperature, Tu, Eu, K4);
+      dK4_dTu = dboltzman_ratio_dT(K4, Tu, Eu);
+    }
+    
+    apply_nonlte(F, dF, N, dN, 
+                 K3, K4, 
+                 derivatives_data, QI, 
+                 dK3_dT, dK4_dT, dK3_dF0, dK3_dTl, dK3_dTu, dK4_dTu);
+  }
+}

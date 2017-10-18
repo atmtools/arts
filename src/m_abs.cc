@@ -3283,6 +3283,144 @@ void WriteMolTau(//WS Input
   throw runtime_error("The workspace method WriteMolTau is not available"
                       "because ARTS was compiled without NetCDF support.");
 }
-                 
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_xsec_per_speciesAddLines2(// WS Output:
+                                   ArrayOfMatrix& abs_xsec_per_species,
+                                   ArrayOfMatrix& src_xsec_per_species,
+                                   ArrayOfArrayOfMatrix& dabs_xsec_per_species_dx,
+                                   ArrayOfArrayOfMatrix& dsrc_xsec_per_species_dx,
+                                   // WS Input:             
+                                   const ArrayOfArrayOfSpeciesTag& tgs,
+                                   const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                   const ArrayOfIndex& abs_species_active,
+                                   const Vector& f_grid,
+                                   const Vector& abs_p,
+                                   const Vector& abs_t,
+                                   const Matrix& abs_t_nlte,
+                                   const Numeric& lm_p_lim,
+                                   const Matrix& abs_vmrs,
+                                   const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                   const SpeciesAuxData& isotopologue_ratios,
+                                   const SpeciesAuxData& partition_functions,
+                                   const Verbosity& verbosity)
+{
+  CREATE_OUT3;
+  
+  // Check that correct isotopologue ratios are defined for the species
+  // we want to calculate
+  checkIsotopologueRatios(tgs, isotopologue_ratios);
+  
+  // Check that all temperatures are at least 0 K. (Negative Kelvin
+  // temperatures are unphysical.)  
+  if ( min(abs_t) < 0 )
+  {
+    ostringstream os;
+    os << "Temperature must be at least 0 K. But you request an absorption\n"
+    << "calculation at " << min(abs_t) << " K!"; 
+    throw std::runtime_error(os.str());
+  }
+  
+  // Check that all parameters that should have the number of tag
+  // groups as a dimension are consistent.
+  {
+    const Index n_tgs    = tgs.nelem();
+    const Index n_xsec   = abs_xsec_per_species.nelem();
+    const Index n_vmrs   = abs_vmrs.nrows();
+    const Index n_lines  = abs_lines_per_species.nelem();
+    
+    if ( n_tgs not_eq n_xsec or n_tgs not_eq n_vmrs or n_tgs not_eq n_lines)
+    {
+      ostringstream os;
+      os << "The following variables must all have the same dimension:\n"
+      << "tgs:          " << tgs.nelem() << "\n"
+      << "abs_xsec_per_species:  " << abs_xsec_per_species.nelem() << "\n"
+      << "abs_vmrs:         " << abs_vmrs.nrows() << "\n"
+      << "abs_lines_per_species: " << abs_lines_per_species.nelem() << "\n"
+      << "(As a special case, abs_lineshape is allowed to have only one element.)";
+      throw std::runtime_error(os.str());
+    }
+  }  
+  
+  // Take all jacobians into account through this variable
+  const PropmatPartialsData flag_partials(jacobian_quantities);
+  
+  // Skipping uninteresting data
+  static ArrayOfMatrix dummy(0);
+  
+  // Print information:
+  //
+  out3 << "  Calculating line spectra.\n";
+  
+  // Call xsec_species for each tag group.
+  for ( Index ii=0; ii<abs_species_active.nelem(); ++ii )
+  {
+    const Index i = abs_species_active[ii];
+    
+    // Get a pointer to the line list for the current species. This
+    // is just so that we don't have to type abs_lines_per_species[i] over
+    // and over again.
+    const ArrayOfLineRecord& ll = abs_lines_per_species[i];
+    
+    // We do the LBL calculation only if:
+    // - The line list is not empty, and
+    // - The species is not a Zeeman species.
+    if ( 0 < ll.nelem() and tgs[i].nelem() and not is_zeeman(tgs[i]) )
+    {
+      // As a safety check, check that the species of the first
+      // line matches the species we should have according to
+      // tgs. (This in case the order in tgs has been changed and
+      // abs_lines_per_species has not been changed consistently.)
+      if (ll[0].Species() != tgs[i][0].Species() )
+      {
+        ostringstream os;
+        os << "The species in the line list does not match the species\n"
+        << "for which you want to calculate absorption:\n"
+        << "abs_species:           " << get_tag_group_name(tgs[i]) << "\n"
+        << "abs_lines_per_species: " << ll[0].Name();
+        throw std::runtime_error(os.str());
+      }
+      
+      const bool do_jac = flag_partials.supportsPropmatClearsky(ll[0].Species());
+      const bool do_lte = abs_t_nlte.empty();
+      
+      xsec_species2(abs_xsec_per_species[i],
+                    src_xsec_per_species[i],
+                    Matrix(0, 0),
+                    do_jac?dabs_xsec_per_species_dx[i]:dummy,
+                    do_lte?dummy:dsrc_xsec_per_species_dx[i],
+                    dummy,
+                    flag_partials,
+                    f_grid,
+                    abs_p,
+                    abs_t,
+                    abs_t_nlte,
+                    abs_vmrs,
+                    tgs,
+                    i,
+                    ll,
+                    Vector(0),
+                    0.0,
+                    lm_p_lim,
+                    isotopologue_ratios,
+                    partition_functions,
+                    verbosity);
+      
+    }
+    
+    if (out3.sufficient_priority())
+    {
+      ostringstream os;
+      os << "  Tag group " << i
+      << " (" << get_tag_group_name(tgs[i]) << "): "
+      << ll.nelem() << " transitions\n";
+      out3 << os.str();
+    }
+    
+  } // End of species for loop.
+}
+
+
 #endif /* ENABLE_NETCDF */
 

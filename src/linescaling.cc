@@ -472,6 +472,8 @@ void CalculatePartitionFctFromVibrotCoeff_dT(Numeric& dQ_dT,
                                              ConstVectorView qvib_grid,
                                              ConstVectorView qrot_grid)
 {
+    throw std::runtime_error("Vibrot does not yet work with propmat partial derivatives.\n");
+    
     Numeric dQvibT   = 0.;
     Numeric dQrotT   = 0.;
     Numeric exponent_t_vib   = 1.;
@@ -482,12 +484,11 @@ void CalculatePartitionFctFromVibrotCoeff_dT(Numeric& dQ_dT,
         dQvibT   +=   qvib_grid[ii] * exponent_t_vib*(Numeric)ii;
         dQrotT   +=   qrot_grid[ii] * exponent_t_rot*(Numeric)ii;
         
-        exponent_t_rot   *= t_rot;
-        exponent_t_vib   *= t_vib;
+        exponent_t_rot *= t_rot;
+        exponent_t_vib *= t_vib;
     }
     //FIXME:  This is wrong...
-    dQ_dT   = dQvibT*dQrotT;
-    throw std::runtime_error("Vibrot does not yet work with propmat partial derivatives.\n");
+    dQ_dT = dQvibT * dQrotT;
 }
 
 
@@ -505,7 +506,7 @@ Numeric stimulated_emission(const Numeric& T,
 Numeric stimulated_relative_emission(const Numeric& gamma, 
                                      const Numeric& gamma_ref)
 {
-  return (1.-gamma)/(1.-gamma_ref);
+  return (1. - gamma) / (1. - gamma_ref);
 }
 
 
@@ -517,7 +518,7 @@ Numeric dstimulated_relative_emission_dT(const Numeric& gamma,
   extern const Numeric BOLTZMAN_CONST;
   static const Numeric c = - PLANCK_CONST / BOLTZMAN_CONST;
   
-  return (c * F0 * gamma)/(1.-gamma_ref);
+  return (c * F0 * gamma) / (1.-gamma_ref);
 }
 
 
@@ -529,7 +530,7 @@ Numeric dstimulated_relative_emission_dF0(const Numeric& gamma,
   extern const Numeric BOLTZMAN_CONST;
   static const Numeric c = - PLANCK_CONST / BOLTZMAN_CONST;
   
-  return (-c / T * gamma)/(1.-gamma_ref);
+  return (- c / T * gamma) / (1.-gamma_ref);
 }
 
 
@@ -539,9 +540,9 @@ Numeric boltzman_ratio(const Numeric& T,
                        const Numeric& E0)
 {
   extern const Numeric BOLTZMAN_CONST;
-  static const Numeric c = 1/BOLTZMAN_CONST;
+  static const Numeric c = 1 / BOLTZMAN_CONST;
   
-  return exp( E0 * c * (T-T0)/(T*T0) );
+  return exp(E0 * c * (T - T0) / (T * T0));
 }
 
 
@@ -575,7 +576,7 @@ Numeric dabsorption_nlte_rate_dT(const Numeric& gamma,
 {
   extern const Numeric PLANCK_CONST;
   extern const Numeric BOLTZMAN_CONST;
-  static const Numeric c = 1/BOLTZMAN_CONST;
+  static const Numeric c = 1 / BOLTZMAN_CONST;
   
   if(El < 0 or Eu < 0)
   {
@@ -586,11 +587,10 @@ Numeric dabsorption_nlte_rate_dT(const Numeric& gamma,
     throw std::runtime_error(os.str());
   }
   
-  const Numeric x = 1/(T * (gamma - 1));
-  const Numeric hf = F0*PLANCK_CONST;
+  const Numeric x = 1 / (T * (gamma - 1));
+  const Numeric hf = F0 * PLANCK_CONST;
   
-  return x * x * c * 
-  ((gamma - 1) * (El * r_low - Eu * gamma * r_upp) - hf * gamma * (r_low - r_upp));
+  return x * x * c * ((gamma - 1) * (El * r_low - Eu * gamma * r_upp) - hf * gamma * (r_low - r_upp));
 }
 
 
@@ -603,7 +603,7 @@ Numeric dabsorption_nlte_rate_dF0(const Numeric& gamma,
   extern const Numeric BOLTZMAN_CONST;
   static const Numeric c = - PLANCK_CONST / BOLTZMAN_CONST;
   
-  return c*gamma*(r_low - r_upp)/(T*(gamma*gamma - 2*gamma + 1));
+  return c * gamma * (r_low - r_upp) / (T * (gamma * gamma - 2 * gamma + 1));
 }
 
 
@@ -618,7 +618,7 @@ Numeric dabsorption_nlte_rate_dTl(const Numeric& gamma,
   const Numeric x = 1 / (BOLTZMAN_CONST * T);
   const Numeric y = 1 / Tl;
   
-  return El * x * y * y * T * r_low/(gamma - 1);
+  return El * x * y * y * T * r_low / (gamma - 1);
 }
 
 
@@ -630,8 +630,8 @@ Numeric dabsorption_nlte_rate_dTu(const Numeric& gamma,
 {
   extern const Numeric BOLTZMAN_CONST;
   
-  const Numeric x = 1/(BOLTZMAN_CONST * T);
-  const Numeric y = 1/Tu;
+  const Numeric x = 1 / (BOLTZMAN_CONST * T);
+  const Numeric y = 1 / Tu;
   
   return Eu * x * y * y * T * gamma * r_upp / (gamma - 1);
 }
