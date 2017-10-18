@@ -38,6 +38,8 @@ if (NOT ENABLE_ALLPATHS)
 endif()
 
 project (ARTS C CXX)
+enable_language(C)
+enable_language(CXX)
 
 enable_testing ()
 

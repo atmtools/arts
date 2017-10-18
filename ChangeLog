@@ -1,3 +1,12 @@
+2017-10-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-840
+
+	* CMakeLists.txt:
+
+	Explicitly call enable_language for C and CXX. Otherwise latest CLion
+	version doesn't search for C++ standard library header files.
+
 2017-10-16  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-839
@@ -5,7 +14,6 @@
 	* src/arts_api.cc (agenda_insert_set):
 	Fixed implementation so that values of type Numeric are handled
 	correctly. Thanks to Richard for reporting this bug.
-
 
 2017-10-16  Oliver Lemke  <olemke@core-dump.info>
 
