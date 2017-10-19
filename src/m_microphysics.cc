@@ -986,7 +986,7 @@ void psdF07 (
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdMgd (
+void psdMgd(
           Matrix&          psd_data,
           Tensor3&         dpsd_data_dx,
     const Vector&          psd_size_grid,
@@ -1001,52 +1001,53 @@ void psdMgd (
     const Numeric&         t_min, 
     const Numeric&         t_max, 
     const Index&           picky, 
-    const Verbosity&)
+    const Verbosity& )
 {
   // Standard checks
   START_OF_PSD_METHODS();
-
-  // Check and determine free parameters
+  
+  // Additional (basic) checks
+  if( nin > 4 )
+    throw runtime_error( "The number of columns in *pnd_agenda_input* must "
+                         "be 0, 1, 2, 3 or 4." );
+  
+  // Check fixed parameters
   //
-  if( isnan( n0 ) | isnan( mu ) | isnan( la ) | isnan( ga ) )
-    throw runtime_error( "None of n0, mu, la and ga is allowed to be NaN." );
+  const Index n0_fixed = (Index) !( isinf(n0) );
+  const Index mu_fixed = (Index) !( isinf(mu) );
+  const Index la_fixed = (Index) !( isinf(la) );
+  const Index ga_fixed = (Index) !( isinf(ga) );
   //
-  const Index n0_nonfixed = (Index) isinf( n0 );
-  const Index mu_nonfixed = (Index) isinf( mu );
-  const Index la_nonfixed = (Index) isinf( la );
-  const Index ga_nonfixed = (Index) isinf( ga );
-  //
-  if( nin + !n0_nonfixed + !mu_nonfixed + !la_nonfixed + !ga_nonfixed != 4 )
+  if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
     throw runtime_error( "This PSD has four free parameters. This means that "
                          "the number\nof columns in *pnd_agenda_input* and the "
-                         "number of non-Inf found\namong the GIN arguments n0, mu, "
-                         "la and ga must add up to four.\nAnd this was found "
-                         "not to be the case." );
+                         "number of numerics\n(i.e. not Inf or NaN) and among "
+                         "the GIN arguments n0, mu, la and\nga must add up to "
+                         "four. And this was found not to be the case." );
 
-  // Create variables to form vector to hold the four MGD parameters
+  // Create vectors to hold the four MGD and the "extra" parameters 
   Vector mgd_pars(4);
-  ArrayOfIndex in_pos = {-1,-1,-1,-1}; // Position in pnd_agenda_input
+  ArrayOfIndex mgd_i_pai = {-1,-1,-1,-1}; // Position in pnd_agenda_input
   {
-    Index nhit=0;
-    if( n0_nonfixed ) { in_pos[0]=nhit++; } else { mgd_pars[0]=n0; }
-    if( mu_nonfixed ) { in_pos[1]=nhit++; } else { mgd_pars[1]=mu; }
-    if( la_nonfixed ) { in_pos[2]=nhit++; } else { mgd_pars[2]=la; }
-    if( ga_nonfixed ) { in_pos[3]=nhit++; } else { mgd_pars[3]=ga; }
+    Index nhit = 0;
+    if( n0_fixed ) { mgd_pars[0]=n0; } else { mgd_i_pai[0]=nhit++; } 
+    if( mu_fixed ) { mgd_pars[1]=mu; } else { mgd_i_pai[1]=nhit++; } 
+    if( la_fixed ) { mgd_pars[2]=la; } else { mgd_i_pai[2]=nhit++; } 
+    if( ga_fixed ) { mgd_pars[3]=ga; } else { mgd_i_pai[3]=nhit++; } 
   }
 
-
-  
-  // Determine what derivatives to do and their position in dpsd_data_dx
-  ArrayOfIndex do_jac = {0,0,0,0};
-  ArrayOfIndex jac_i = {-1,-1,-1,-1};
+  // Determine what derivatives to do and their positions
+  ArrayOfIndex mgd_do_jac = {0,0,0,0,}; 
+  ArrayOfIndex mgd_i_jac = {-1,-1,-1,-1}; // Position among jacobian quants 
+  //
   for( Index i=0; i<ndx; i++ )
     {
       for( Index j=0; j<4; j++ )
         {
-          if( dx2in[i] == in_pos[j] )
+          if( dx2in[i] == mgd_i_pai[j] )
             {
-              do_jac[j] = 1;
-              jac_i[j] = i;
+              mgd_do_jac[j] = 1;
+              mgd_i_jac[j]  = i;
               break;
             }
         }
@@ -1055,14 +1056,14 @@ void psdMgd (
   // Loop input data and calculate PSDs
   for( Index ip=0; ip<np; ip++ )
     {
-      // Extract the input variables
+      // Extract MGD parameters
       for( Index i=0; i<4; i++ )
         {
-          if( in_pos[i] >= 0 )
-            { mgd_pars[i] = pnd_agenda_input(ip,in_pos[i]); }
+          if( mgd_i_pai[i] >= 0 )
+            { mgd_pars[i] = pnd_agenda_input(ip,mgd_i_pai[i]); }
         }
       Numeric t = pnd_agenda_input_t[ip];
-
+      
       // No calc needed if n0==0 and no jacobians requested.
       if( (mgd_pars[0]==0.) && (!ndx) )
         { continue; }   // If here, we are ready with this point!
@@ -1085,17 +1086,16 @@ void psdMgd (
       // Calculate PSD and derivatives
       //
       Matrix  jac_data(4,nsi);    
-      //
       mgd( psd_data(ip,joker), jac_data, psd_size_grid,
            mgd_pars[0], mgd_pars[1], mgd_pars[2], mgd_pars[3],
-           do_jac[0], do_jac[1], do_jac[2], do_jac[3] );
+           mgd_do_jac[0], mgd_do_jac[1], mgd_do_jac[2], mgd_do_jac[3] );
       //
       for( Index i=0; i<4; i++ )
         {
-          if( do_jac[i] )
-            { dpsd_data_dx(jac_i[i],ip,joker) = jac_data(i,joker); }
-        }
-    }
+          if( mgd_do_jac[i] )
+            { dpsd_data_dx(mgd_i_jac[i],ip,joker) = jac_data(i,joker); }
+        } 
+    }  
 }
 
 
@@ -1134,7 +1134,6 @@ void psdMgdMass(
   const Index mu_implied = (Index) mu == -999;
   const Index la_implied = (Index) la == -999;
   const Index ga_implied = (Index) ga == -999;  
-  cout<<"Implied: "<<n0_implied<<" "<<mu_implied<<" "<<la_implied<<" "<<ga_implied<<"\n";
   //
   if( n0_implied + mu_implied + la_implied + ga_implied != 1 )
     throw runtime_error( "One (but only one) of n0, mu, la and ga must be NaN, "
@@ -1145,7 +1144,6 @@ void psdMgdMass(
   const Index mu_fixed = (Index) !( mu_implied  ||  isinf(mu) );
   const Index la_fixed = (Index) !( la_implied  ||  isinf(la) );
   const Index ga_fixed = (Index) !( ga_implied  ||  isinf(ga) );
-  cout<<"Fixed: "<<n0_fixed<<" "<<mu_fixed<<" "<<la_fixed<<" "<<ga_fixed<<"\n";
   //
   if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
     throw runtime_error( "This PSD has four free parameters. This means that "
@@ -1159,7 +1157,7 @@ void psdMgdMass(
   ArrayOfIndex mgd_i_pai = {-1,-1,-1,-1}; // Position in pnd_agenda_input
   const ArrayOfIndex ext_i_pai = {0};     // Position in pnd_agenda_input
   {
-    Index nhit=1;
+    Index nhit = 1;  // As mass always occupies first position
     if( n0_fixed ) { mgd_pars[0]=n0; } else if( !n0_implied ) { mgd_i_pai[0]=nhit++; } 
     if( mu_fixed ) { mgd_pars[1]=mu; } else if( !mu_implied ) { mgd_i_pai[1]=nhit++; } 
     if( la_fixed ) { mgd_pars[2]=la; } else if( !la_implied ) { mgd_i_pai[2]=nhit++; } 
@@ -1192,14 +1190,6 @@ void psdMgdMass(
             }
         }
     }
-  cout << "mgd_pars\n" << mgd_pars << endl;
-  cout << "mgd_i_pai\n" << mgd_i_pai << endl;
-  cout << "mgd_do_jac\n" << mgd_do_jac << endl;
-  cout << "mgd_i_jac\n" << mgd_i_jac << endl;
-  cout << "ext_pars\n" << ext_pars << endl;
-  cout << "ext_i_pai\n" << ext_i_pai << endl;
-  cout << "ext_do_jac\n" << ext_do_jac << endl;
-  cout << "ext_i_jac\n" << ext_i_jac << endl;
 
   // Loop input data and calculate PSDs
   for( Index ip=0; ip<np; ip++ )
@@ -1213,7 +1203,7 @@ void psdMgdMass(
             { mgd_pars[i] = pnd_agenda_input(ip,mgd_i_pai[i]); }
         }
       Numeric t = pnd_agenda_input_t[ip];
-
+      
       // No calc needed if mass==0 and no jacobians requested.
       if( (ext_pars[0]==0.) && (!ndx) )
         { continue; }   // If here, we are ready with this point!
@@ -1249,15 +1239,16 @@ void psdMgdMass(
           eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
           scfac = scat_species_a * mgd_pars[0] * tgamma(eterm) /
             mgd_pars[3];
-          mgd_pars[2] = pow( scfac/ext_pars[0], 1/eterm );
-
+          scfac = pow( scfac, 1/eterm );
+          mgd_pars[2] = scfac * pow( ext_pars[0], -1/eterm );
         }
       
       else
         throw runtime_error( "Only n0 and la can be implied so far." );
-      
-      cout << "mgd_pars\n" << mgd_pars << endl;
-      cout << "ext_pars\n" << ext_pars << endl;
+
+      // For testing
+      //if( ip == 0 )  WriteXML( "ascii", mgd_pars, "mgd_pars.xml", 0,
+      //                         "mgd_pars", "", "", Verbosity() );
 
       // Calculate PSD and derivatives
       //
@@ -1278,6 +1269,12 @@ void psdMgdMass(
             {
               dpsd_data_dx(ext_i_jac[0],ip,joker) = jac_data(0,joker);
               dpsd_data_dx(ext_i_jac[0],ip,joker) /= scfac; 
+            }
+          else if( la_implied )
+            {
+              dpsd_data_dx(ext_i_jac[0],ip,joker) = jac_data(2,joker);
+              dpsd_data_dx(ext_i_jac[0],ip,joker) *= scfac * (-1/eterm) *
+                pow( ext_pars[0], -(1/eterm+1) ); 
             }
         }
       //

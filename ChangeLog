@@ -1,3 +1,13 @@
+2017-10-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-844
+
+	* src/m_microphysics.cc (psdMgd): Updated to be as similar to
+	psdMgdMass as possible.
+
+	(psdMgdMass): Seems to work, but so far only n0 and lambda can be
+	implied parameters..
+
 2017-10-18 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-843
