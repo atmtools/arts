@@ -9508,45 +9508,6 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "MassSizeParamsFromScatMeta" ),
-        DESCRIPTION
-        (
-        "Estimates mass-dimension relation parameters from *scat_meta*.\n"
-        "\n"
-        "Estimates alpha and beta of mass-dimension relationship\n"
-        "   m = alpha * Dmax^beta\n"
-        "using linear regression of the logarithm of m.\n"
-        "The size range over which the fit is performed can be limited by\n"
-        "*D_min* and *D_max*.\n"
-        "\n"
-        "The method is applied on one scattering species at a time, the one\n"
-        "of index *scat_index*.\n"
-        "If this method is used in side *pnd_agenda_array*, it is suitable to\n"
-        "set scat_index = agenda_array_index.\n"
-        "\n"
-        "In case the scattering species contains only one scattering element\n"
-        "(ie is a monodispersion), then beta is set from *beta_default* and\n"
-        "alpha matching the given m-Dmax relation is derived.\n"
-        ),
-        AUTHORS( "Manfred Brath, Jana Mendrok" ),
-        OUT(),
-        GOUT(      "alpha",   "beta" ),
-        GOUT_TYPE( "Numeric", "Numeric" ),
-        GOUT_DESC( "Mass-dimension relationship scaling factor [kg].",
-                   "Mass-dimension relationship exponent [-]." ),
-        IN( "scat_meta" ),
-        GIN(         "scat_index", "D_min",   "D_max",   "beta_default" ),
-        GIN_TYPE(    "Index",      "Numeric", "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF,        "-1",      "1",       "2" ),
-        GIN_DESC(  "Take data from scattering species of this index (0-based) in"
-                   " *scat_meta*.",
-                   "Smallest Dmax to consider in m-Dmax fit [m].",
-                   "Largest Dmax to consider in m-Dmax fit. [m]",
-                   "Value to set beta to in case of a monodispersion." )
-        ));
- 
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "MatrixAddScalar" ),
         DESCRIPTION
         (
@@ -11532,36 +11493,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "pnd_size_gridFromScatMeta" ),
-        DESCRIPTION
-        (
-         "Sets *pnd_size_grid* based on *scat_meta*.\n"
-         "\n"
-         "If this method is used in side *pnd_agenda_array*, it is suitable to\n"
-         "set scat_index = agenda_array_index.\n"
-         "\n"
-         "The size parameter to use is selected by *unit*. The options are:\n"
-         " \"dveq\" : The size grid is set to scat_meta.diameter_volume_equ\n"
-         " \"dmax\" : The size grid is set to scat_meta.diameter_max\n"
-         " \"mass\" : The size grid is set to scat_meta.mass\n"
-         " \"area\" : The size grid is set to scat_meta.diameter_area_equ_aerodynamical\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "pnd_size_grid" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "scat_meta" ),
-        GIN( "scat_index", "unit" ),
-        GIN_TYPE( "Index", "String"),
-        GIN_DEFAULT( NODEF, NODEF ),
-        GIN_DESC( "Take data from scattering species of this index (0-based) in"
-                  " *scat_meta*.",
-                  "Size parameter for size grid, allowed options listed above." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "ppathCalc" ),
         DESCRIPTION
         (
@@ -12353,7 +12284,7 @@ void define_md_data_raw()
          "is free but the same name must be used in *particle_bulkprop_names* and\n"
          "*dpnd_data_dx_names*.\n"
          "\n"
-         "*psd_size_grid* is considered to be in terms of maximum diameter.\n"
+         "*psd_size_grid* shall contain size in terms of maximum diameter.\n"
          "\n"
          "Derivatives are obtained by perturbation of 0.1%, but not less than\n"
          "0.1 mg/m3.\n"
@@ -12383,8 +12314,8 @@ void define_md_data_raw()
          "\n"
          "If picky, checks of the sanity of the mass-dimension relationship\n"
          "are performed. Errors are thrown if:\n"
-         "- Mass-dimension relation exponent *beta* is outside\n"
-         "  [*beta_min*, *beta_max*].\n"
+         "- Mass-dimension relation exponent *scat_species_b* is outside\n"
+         "  [*b_min*, *b_max*].\n"
          "\n"
          "Backward compatability note: reproducing F07 for IWC>=0 from\n"
          "*pnd_fieldCalcFromscat_speciesFields* can be ensured with\n"
@@ -12397,25 +12328,21 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
-            "pnd_agenda_input_names", "dpnd_data_dx_names" ),
-        GIN(         "regime", "alpha",   "beta",
-                     "t_min",   "t_max",   "t_min_psd", "t_max_psd",
+            "pnd_agenda_input_names", "dpnd_data_dx_names",
+            "scat_species_a", "scat_species_b" ),
+        GIN(         "regime", "t_min",   "t_max",   "t_min_psd", "t_max_psd",
                      "beta_min", "beta_max", "picky" ),
-        GIN_TYPE(    "String", "Numeric", "Numeric",
-                     "Numeric", "Numeric", "Numeric",   "Numeric",
+        GIN_TYPE(    "String", "Numeric", "Numeric", "Numeric",   "Numeric",
                      "Numeric",  "Numeric",  "Index" ),
-        GIN_DEFAULT( NODEF,    NODEF,     NODEF,
-                     "0",       "290.",    "200.",      "273.15",
-                     "0",        "4",        "0" ),
+        GIN_DEFAULT( NODEF,    "0",       "290.",    "200.",      "273.15",
+                     "1.01",        "4",        "0" ),
         GIN_DESC( "Parametrization regime (\"TR\"=tropical or \"ML\"=midlatitude).",
-                  "Mass-dimension relationship scaling factor [kg].",
-                  "Mass-dimension relationship exponent [-].",
                   "Low temperature limit to calculate a psd.",
                   "High temperature limit to calculate a psd.",
                   "Low temperature limit to use as paramtrization temperature.",
                   "High temperature limit to use as paramtrization temperature.",
-                  "Low *beta* limit (only if picky).",
-                  "High *beta* limit (only if picky).",
+                  "Low *b* limit (only if picky).",
+                  "High *b* limit (only if picky).",
                   "Flag whether to be strict with parametrization value checks." )
         ));
  
@@ -12424,8 +12351,7 @@ void define_md_data_raw()
       ( NAME( "psdMgd" ),
         DESCRIPTION
         (
-         "Modelling of particle size distribution by modified gamma distribution,\n"
-         "using n0, mu, la and ga as parameters.\n"
+         "Modified gamma distribution PSD using n0, mu, la and ga as parameters.\n"
          "\n"
          "The modified gamma distribution is a 4-parameter (n0, mu, la and ga)\n"
          "distribution [Petty & Huang, JAS, 2011)]:\n"
@@ -12487,7 +12413,57 @@ void define_md_data_raw()
       ( NAME( "psdMgdMass" ),
         DESCRIPTION
         (
-         ",\n"
+         "Modified gamma distribution PSD, with mass content as input.\n"
+         "\n"
+         "See *psdMgd* for a defintion of MGD parameters and how this PSD is\n"
+         "handled in ARTS. Only deviations with respect to *psdMgd* are\n"
+         "described here.\n"
+         "\n"
+         "This version of MGD PSD takes mass content as first input argument.\n"
+         "This means that the first column of *pnd_agenda_input* shall hold\n"
+         "mass content data.\n"
+         "\n"
+         "The mass content basically replaces one of the standard parameters\n"
+         "(n0, mu, la and ga). This parameter is denoted as the dependent one.\n"
+         "The dependent parameter is selected by setting the corresponding GIN\n"
+         "to -999. So far only n0 and la are allowed to be dependent.\n"
+         "\n"
+         "Regarding remaining columns in *pnd_agenda_input* and constant\n"
+         "parameter values (by GIN) follows the same principle as for *psdMgd*,\n"
+         "except that mass is always on column (as mentioned) and that there is\n"
+         "no position in *pnd_agenda_input* for the dependent parameter.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "psd_data", "dpsd_data_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
+            "pnd_agenda_input_names", "dpnd_data_dx_names",
+            "scat_species_a", "scat_species_b" ),
+        GIN( "n0", "mu", "la", "ga", "t_min", "t_max", "picky" ),
+        GIN_TYPE( "Numeric", "Numeric",  "Numeric", "Numeric",
+                  "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( "Inf", "Inf", "Inf", "Inf", NODEF, NODEF, "0" ),
+        GIN_DESC( "N0", "mu", "la", "ga",
+                  "Low temperature limit to calculate a psd.",
+                  "High temperature limit to calculate a psd.",
+                  "Flag whether to be strict with parametrization value checks." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "psdMgdMassDmedian" ),
+        DESCRIPTION
+        (
+         "Modified gamma distribution PSD, with mass content and median size\n"
+         "as inputs.\n"
+         "\n"
+         "This version of MGD PSD works as *psdMgdMass*, but takes mass content\n"
+         "and medan size as first two arguments. This means that the first and\n"
+         "second column of *pnd_agenda_input* shall hold mass content and median\n"
+         "size, respectively. Accordingly, the number of dependent parameters is\n"
+         "two.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "psd_data", "dpsd_data_dx" ),
@@ -12522,7 +12498,7 @@ void define_md_data_raw()
          "is free but the same name must be used in *particle_bulkprop_names* and\n"
          "*dpnd_data_dx_names*.\n"
          "\n"
-         "*psd_size_grid* is considered to be in terms of volume equivalent diameter.\n"
+         "*psd_size_grid* shall contain size in terms of volume equivalent diameter.\n"
          "\n"
          "Derivatives are obtained by perturbation of 0.1%, but not less than\n"
          "0.1 mg/m3.\n"
@@ -12574,6 +12550,81 @@ void define_md_data_raw()
                   "Distribution parameter perturbance flag" )
         ));
     
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "psdMono" ),
+        DESCRIPTION
+        (
+         "Mono-dispersive PSD, with number density given.\n"
+         "\n"
+         "This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one\n"
+         "column and *pnd_agenda_input_names* shall contain a single string.\n"
+         "The input data in *pnd_agenda_input* shall be number densities, in\n"
+         "unit of [#/m3]. The naming used is *pnd_agenda_input_names* is free\n"
+         "but the same name must be used in *particle_bulkprop_names* and\n"
+         "*dpnd_data_dx_names*.\n"
+         "\n"
+         "The method checks that the scattering species indicated (by\n"
+         "*species_index*) has a single element, and just inserts the provided\n"
+         "number density in *psd_data*.\n"
+         "\n"
+         "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+         "picky=0, or an error is thrown if picky=1.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "psd_data", "dpsd_data_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "pnd_agenda_input_t", "pnd_agenda_input", "pnd_agenda_input_names",
+            "dpnd_data_dx_names", "scat_meta" ),
+        GIN( "species_index", "t_min",   "t_max", "picky" ),
+        GIN_TYPE( "Index", "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "0" ),
+        GIN_DESC( "The index of the scattering species of concern (0-based).",
+                  "Low temperature limit to calculate a psd.",
+                  "High temperature limit to calculate a psd.",
+                  "Flag whether to be strict with parametrization value checks." )
+        ));
+ 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "psdMonoMass" ),
+        DESCRIPTION
+        (
+         "Mono-dispersive PSD, with mass content given.\n"
+         "\n"
+         "This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one\n"
+         "column and *pnd_agenda_input_names* shall contain a single string.\n"
+         "The input data in *pnd_agenda_input* shall be mass contents, in\n"
+         "unit of [#/m3]. The naming used is *pnd_agenda_input_names* is free\n"
+         "but the same name must be used in *particle_bulkprop_names* and\n"
+         "*dpnd_data_dx_names*.\n"
+         "\n"
+         "The method checks that the scattering species indicated (by\n"
+         "*species_index*) has a single element, and sets *psd_data* based\n"
+         "on the mass contents given and the particle mass (derived from\n"
+         "*scat_meta*).\n"
+         "\n"
+         "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+         "picky=0, or an error is thrown if picky=1.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "psd_data", "dpsd_data_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "pnd_agenda_input_t", "pnd_agenda_input", "pnd_agenda_input_names",
+            "dpnd_data_dx_names", "scat_meta" ),
+        GIN( "species_index", "t_min",   "t_max", "picky" ),
+        GIN_TYPE( "Index", "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "0" ),
+        GIN_DESC( "The index of the scattering species of concern (0-based).",
+                  "Low temperature limit to calculate a psd.",
+                  "High temperature limit to calculate a psd.",
+                  "Flag whether to be strict with parametrization value checks." )
+        ));
+ 
     md_data_raw.push_back
     ( MdRecord
      ( NAME( "psdMY05" ),
@@ -14954,20 +15005,23 @@ void define_md_data_raw()
          "the coverage of *scat_species_x*. There must be at least two sizes\n"
          "inside [x_fit_start,x_fit_end].\n"
          ),
-        AUTHORS( "Jana Mendrok", "Patrick Eriksson" ),
+        AUTHORS( "Manfred Brath", "Jana Mendrok", "Patrick Eriksson" ),
         OUT( "scat_species_x", "scat_species_a", "scat_species_b" ),
         GOUT( ),
         GOUT_TYPE( ),
         GOUT_DESC( ),
         IN( "scat_meta"),
-        GIN( "species_index", "x_unit", "x_fit_start", "x_fit_end"  ),
-        GIN_TYPE(  "Index", "String", "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF ),
+        GIN( "species_index", "x_unit", "x_fit_start", "x_fit_end", "do_only_x"  ),
+        GIN_TYPE(  "Index", "String", "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF, NODEF, "0", "1e9", "0" ),
         GIN_DESC( "Take data from scattering species of this index (0-based) in"
                   " *scat_meta*.",
                   "Unit for size grid, allowed options listed above.",
                   "Smallest size to consider in fit to determine a and b.",
-                  "Largest size to consider in fit to determine a and b." )
+                  "Largest size to consider in fit to determine a and b.",
+                  "A flag to deactivate calculation of a and b, to possibly "
+                  "save some time. The a and b parameters are then set to -1."
+                  "Default is to calculate a and b." )
         ));  
 
   md_data_raw.push_back

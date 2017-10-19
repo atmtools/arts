@@ -532,21 +532,6 @@ void mgd(
   assert( jac_data.nrows() == 4 );
   assert( jac_data.ncols() == nx );
 
-  // ensure numerical stability
-  if( (mu+1)/ga <= 0. )
-    {
-      ostringstream os;
-      os << "(mu+1) / gamma must be > 0.";
-      throw runtime_error( os.str() );
-    }
-
-  // skip calculation if n0 is 0.0
-  if ( n0 == 0.0 )
-    {
-      psd = 0.;
-      return;
-    }
-  
   if( ga == 1  &&  !do_ga_jac )
     {
       if( mu == 0  &&  !do_mu_jac )

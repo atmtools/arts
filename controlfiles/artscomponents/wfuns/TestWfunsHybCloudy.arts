@@ -100,8 +100,9 @@ ArrayOfStringSet( pnd_agenda_input_names, [ "IWC" ] ) # parameters of this PSD.
                                                       # anyways).
 Append( pnd_agenda_array_input_names, pnd_agenda_input_names )
 ArrayOfAgendaAppend( pnd_agenda_array ){
-  pnd_size_gridFromScatMeta( scat_index=agenda_array_index, unit="dveq" )
-  Copy( psd_size_grid, pnd_size_grid )
+  ScatSpeciesSizeMassInfo( species_index=agenda_array_index, x_unit="dveq", do_only_x=1 )
+  Copy( psd_size_grid, scat_species_x )
+  Copy( pnd_size_grid, scat_species_x )
   psdMH97 #( t_min=258 ) # t-limits modified for consistency with
                       # pnd_fieldCalcFromscat_speciesFields interface
   pndFromPsd( scat_index=agenda_array_index )
@@ -114,9 +115,10 @@ ArrayOfStringSet( pnd_agenda_input_names, [ "RWC" ] ) # parameters of this PSD.
                                                       # appear here; is passed
                                                       # anyways).
 Append( pnd_agenda_array_input_names, pnd_agenda_input_names )
-ArrayOfAgendaAppend( pnd_agenda_array ){
-  pnd_size_gridFromScatMeta( scat_index=agenda_array_index, unit="dveq" )
-  Copy( psd_size_grid, pnd_size_grid )
+ArrayOfAgendaAppend( pnd_agenda_array )
+  ScatSpeciesSizeMassInfo( species_index=agenda_array_index, x_unit="dveq", do_only_x=1 )
+  Copy( psd_size_grid, scat_species_x )
+  Copy( pnd_size_grid, scat_species_x )
   psdW16( t_min=258 ) # t-limits modified for consistency with
                       # pnd_fieldCalcFromscat_speciesFields interface
                       # to W16, which has no t-limits at all (but scat_data

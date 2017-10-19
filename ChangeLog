@@ -1,5 +1,30 @@
 2017-10-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-845
+
+	* src/m_microphysics.cc (psdMono, psdMonoMass): New WSMs, handling
+	mono-dispersive PSD cases.
+
+	* controlfiles/artscomponents/wfuns/TestWfunsHybCloudy.arts:
+	Updated to removal of pnd_size_gridFromScatMeta.
+
+	* src/m_microphysics.cc (psdMgdMass): Added checks that input
+	argument to gamma is > 0.
+	(psdMgdMassDmedian): More work, but not yet ready.
+
+	(psdF07): Now using scat_species_a and scat_species_b.
+
+	(ScatSpeciesSizeMassInfo): Introduced GIN do_only_x. Now also
+	default values for x_fit_start (0) and x_fit_end (1e9).
+
+	(pnd_size_gridFromScatMeta, MassSizeParamsFromScatMeta): Removed.
+	Use ScatSpeciesSizeMassInfo instead.
+
+	* src/math_funcs.cc (mgd): We can not just return with n0=0 as
+	derivatives could still be of interest.
+
+2017-10-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-844
 
 	* src/m_microphysics.cc (psdMgd): Updated to be as similar to

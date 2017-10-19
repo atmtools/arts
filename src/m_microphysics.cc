@@ -170,66 +170,6 @@ void pndFromdNdD (//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void pnd_size_gridFromScatMeta(
-          Vector&                             pnd_size_grid,
-    const ArrayOfArrayOfScatteringMetaData&   scat_meta,
-    const Index&                              scat_index,
-    const String&                             unit,
-    const Verbosity& )
-{
-  // Sizes
-  const Index nss = scat_meta.nelem();
-
-  // Checks
-  if( nss == 0 )
-    throw runtime_error( "*scat_meta* is empty!" );
-  if( nss < scat_index+1 )
-    {
-      ostringstream os;
-      os << "Selected scattering species index is " << scat_index << " but this "
-         << "is not allowed since *scat_meta* has only" << scat_meta.nelem()
-         << " elements.";
-      throw runtime_error(os.str());
-    }
-
-  // Create size grid
-  //
-  const Index nse = scat_meta[scat_index].nelem();
-  //
-  pnd_size_grid.resize( nse );
-  //
-  if( unit == "dveq" )
-    {
-      for ( Index i=0; i<nse; i++ )
-        { pnd_size_grid[i] = scat_meta[scat_index][i].diameter_volume_equ; }
-    }
-  else if( unit == "dmax" )
-    {
-      for ( Index i=0; i<nse; i++ )
-        { pnd_size_grid[i] = scat_meta[scat_index][i].diameter_max; }
-    }
-  else if( unit == "mass" )
-    {
-      for ( Index i=0; i<nse; i++ )
-        { pnd_size_grid[i] = scat_meta[scat_index][i].mass; }
-    }
-  else if( unit == "area" )
-    {
-      for ( Index i=0; i<nse; i++ )
-        { pnd_size_grid[i] = scat_meta[scat_index][i].diameter_area_equ_aerodynamical; }
-    }
-  else
-    {
-      ostringstream os;
-      os << "You have selected the unit: " << unit 
-         << "while accepted choices are: \"dveq\", \"dmax\", \"mass\" and \"area\"";
-      throw runtime_error(os.str());
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void pndFromPsdBasic(
          Matrix&    pnd_data,
          Tensor3&   dpnd_data_dx,
@@ -671,127 +611,6 @@ void pndAdjustFromScatMeta(
 
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void MassSizeParamsFromScatMeta(
-          Numeric&                            alpha,
-          Numeric&                            beta,
-    const ArrayOfArrayOfScatteringMetaData&   scat_meta,
-    const Index&                              scat_index,
-    const Numeric&                            D_min,
-    const Numeric&                            D_max,
-    const Numeric&                            beta_default,
-    const Verbosity& )
-{
-  // Sizes
-  const Index nss = scat_meta.nelem();
-
-  // Checks
-  if( nss == 0 )
-    throw runtime_error( "*scat_meta* is empty!" );
-  if( nss < scat_index+1 )
-    {
-      ostringstream os;
-      os << "Selected scattering species index is " << scat_index
-         << " but *scat_meta* contains only " << scat_meta.nelem()
-         << " species.";
-      throw runtime_error(os.str());
-    }
-
-  // Extract size and mass data from scat_meta
-  const Index nse = scat_meta[scat_index].nelem();
-
-  if( nse==0 )
-    {
-      ostringstream os;
-      os << "*scat_meta* of selected scattering species with index "
-         << scat_index << " contains has no scattering elements.";
-      throw runtime_error(os.str());
-    }
-
-  if( nse>1 )
-    {
-      ArrayOfIndex intarr_sort, intarr_unsort( 0 );
-      Vector dmax_unsorted( nse );
-      Vector q;
-      Index nsev=0;
-
-      for ( Index i=0; i<nse; i++ )
-      {
-        if ( isnan(scat_meta[scat_index][i].diameter_max) )
-        {
-            ostringstream os;
-            os << "No maximum diameter data available for scattering element #"
-               << i << " of scattering species with index " << scat_index
-               << ".";
-            throw runtime_error( os.str() );
-        }
-        if( scat_meta[scat_index][i].diameter_max>=D_min &&
-            scat_meta[scat_index][i].diameter_max<=D_max )
-          {
-            dmax_unsorted[nsev] = scat_meta[scat_index][i].diameter_max;
-            intarr_unsort.push_back( i );
-            nsev += 1;
-          }
-      }
-
-      get_sorted_indexes(intarr_sort, dmax_unsorted[Range(0,nsev)]);
-      Vector dmax( nsev ), log_D( nsev );
-      Vector mass( nsev ), log_m( nsev );
-    
-      // extract scattering meta data
-      for ( Index i=0; i<nsev; i++ )
-      {
-        dmax[i] = dmax_unsorted[intarr_sort[i]]; // [m]
-        
-        if ( isnan(scat_meta[scat_index][intarr_unsort[intarr_sort[i]]].mass) )
-        {
-            ostringstream os;
-            os << "No mass data available for scattering element #"
-               << intarr_unsort[intarr_sort[i]]
-               << " of scattering species with index " << scat_index << ".";
-            throw runtime_error( os.str() );
-        }
-        mass[i] = scat_meta[scat_index][intarr_unsort[intarr_sort[i]]].mass; // [kg]
-        
-        // logarithm of Dmax, needed for estimating mass-dimension-relationship
-        log_D[i] = log(dmax[i]);
-        
-        // logarithm of the mass, even though it is  little weird to have
-        // a logarithm of something with a unit...
-        log_m[i] = log(mass[i]);
-      }
-    
-      // estimate mass-dimension relationship from meta data by linear regression
-      // Assumption of a power law for the mass dimension relationship
-      // Approach: log(m) = log(alpha)+beta*log(dmax/D0)
-      linreg(q,log_D, log_m);
-      alpha = exp(q[0]);
-      beta = q[1];
-    }
-  else
-    {
-      // for a monodispersion we can't estimate the m-D relation (1 relation, 2
-      // unknowns), hence we fix one of the parameters and calculate the other
-      // such that we have them consistent. but shouldn't make any difference on
-      // the end result whatever we choose here (all ice has to end up with this
-      // scattering anyways)
-      beta = beta_default;
-      if ( isnan(scat_meta[scat_index][0].diameter_max) ||
-           isnan(scat_meta[scat_index][0].mass) )
-        {
-          ostringstream os;
-          os << "Maximum diameter or mass data missing for scattering element #"
-               << 0 << " of scattering species with index " << scat_index
-               << ".";
-          throw runtime_error( os.str() );
-        }
-      alpha = scat_meta[scat_index][0].mass / 
-              pow(scat_meta[scat_index][0].diameter_max,beta);
-    }
-}
-
-
-
 // ------------------------------------------------------
 // Macros to avoid duplication of code inside PSD methods
 // ------------------------------------------------------
@@ -849,38 +668,41 @@ void psdF07 (
     const Matrix&          pnd_agenda_input,
     const ArrayOfString&   pnd_agenda_input_names,
     const ArrayOfString&   dpnd_data_dx_names,
+    const Numeric&         scat_species_a, 
+    const Numeric&         scat_species_b, 
     const String&          regime,
-    const Numeric&         alpha,
-    const Numeric&         beta,
     const Numeric&         t_min,
     const Numeric&         t_max,
     const Numeric&         t_min_psd,
     const Numeric&         t_max_psd,
-    const Numeric&         beta_min, 
-    const Numeric&         beta_max, 
+    const Numeric&         b_min, 
+    const Numeric&         b_max, 
     const Index&           picky, 
     const Verbosity&)
 {
   // Standard checcks
-  if( pnd_agenda_input.ncols() != 1 ) \
-    throw runtime_error( "*pnd_agenda_input* must have one column." ); \
   START_OF_PSD_METHODS();
 
-  // Extra checks for this PSD
+  // Additional (basic) checks
+  if( pnd_agenda_input.ncols() != 1 ) 
+    throw runtime_error( "*pnd_agenda_input* must have one column." ); 
   if( regime!="TR" && regime!="ML" )
     throw runtime_error( "regime must either be \"TR\" or \"ML\"." );
-
+  
+  
   // Some sanity checks. If not picky, we just ignore the insanities.
   if( picky )
     {
+      if( scat_species_a <= 0 )
+        throw runtime_error( "*scat_species_a* should be > 0." );
       // Sane beta?
-      if( beta < beta_min  ||  beta > beta_max )
+      if( scat_species_b < b_min  ||  scat_species_b > b_max )
         {
           ostringstream os;
-          os << "Method called with a mass-dimension-relation exponent beta of "
-             << beta << ".\n"
+          os << "Method called with a mass-dimension-relation exponent b of "
+             << scat_species_b << ".\n"
              << "This is outside the specified allowed range: ["
-             << beta_min << "," << beta_max << "]";
+             << b_min << "," << b_max << "]";
           throw runtime_error(os.str());
         }
 
@@ -965,7 +787,8 @@ void psdF07 (
       Vector psd_1p(nsi);
       if( swc != 0 )
         {
-          psd_snow_F07 ( psd_1p, psd_size_grid, swc, t, alpha, beta, regime );
+          psd_snow_F07 ( psd_1p, psd_size_grid, swc, t, scat_species_a,
+                         scat_species_b, regime );
           for ( Index i=0; i<nsi; i++ )
             { psd_data(ip,i) = psd_weight * psd_1p[i]; }
         }
@@ -976,7 +799,8 @@ void psdF07 (
           //const Numeric dswc = max( 0.001*swc, 1e-7 );
           const Numeric dswc = 1e-9;
           const Numeric swcp = swc + dswc;
-          psd_snow_F07 ( psd_1p, psd_size_grid, swcp, t, alpha, beta, regime );
+          psd_snow_F07 ( psd_1p, psd_size_grid, swcp, t, scat_species_a,
+                         scat_species_b, regime );
           for ( Index i=0; i<nsi; i++ )
             { dpsd_data_dx(0,ip,i) = ( psd_1p[i] - psd_data(ip,i) ) / dswc; }
         }   
@@ -1127,6 +951,10 @@ void psdMgdMass(
   if( nin < 1 || nin > 4 )
     throw runtime_error( "The number of columns in *pnd_agenda_input* must "
                          "be 1, 2, 3 or 4." );
+  if( scat_species_a <= 0 )
+    throw runtime_error( "*scat_species_a* should be > 0." );
+  if( scat_species_b <= 0  ||  scat_species_b >= 5 )
+    throw runtime_error( "*scat_species_b* should be > 0 and < 5." );
   
   // Check and determine implied and fixed parameters
   //
@@ -1139,6 +967,9 @@ void psdMgdMass(
     throw runtime_error( "One (but only one) of n0, mu, la and ga must be NaN, "
                          "to flag that this parameter is the one implied by "
                          "mass content." );
+  if( mu_implied  ||  ga_implied )
+    throw runtime_error( "Sorry, mu and la are not yet allowed to be the "
+                         "implied parameter." );    
   //
   const Index n0_fixed = (Index) !( n0_implied  ||  isinf(n0) );
   const Index mu_fixed = (Index) !( mu_implied  ||  isinf(mu) );
@@ -1225,11 +1056,13 @@ void psdMgdMass(
 
       // Derive the implied parameter
       // The equation to solve is Eq 31 in Petty&Huang, JAS, 2011
-      // There should be some checks to avoid division with zero etc
       Numeric eterm = 0, scfac = 0;
       if( n0_implied )
         {
           eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
+          if( eterm <= 0 )
+            throw runtime_error( "Negativ argument to gamma function obtained. "
+                                 "This could happen for low values of mu and ga." );
           scfac = scat_species_a * tgamma(eterm) /
             ( mgd_pars[3] * pow( mgd_pars[2], eterm ) );
           mgd_pars[0] = ext_pars[0] / scfac;
@@ -1237,14 +1070,16 @@ void psdMgdMass(
       else if( la_implied )
         {
           eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
+          if( eterm <= 0 )
+            throw runtime_error( "Negativ argument to gamma function obtained. "
+                                 "This could happen for low values of mu and ga." );
           scfac = scat_species_a * mgd_pars[0] * tgamma(eterm) /
             mgd_pars[3];
           scfac = pow( scfac, 1/eterm );
           mgd_pars[2] = scfac * pow( ext_pars[0], -1/eterm );
         }
-      
-      else
-        throw runtime_error( "Only n0 and la can be implied so far." );
+      else 
+        { assert(0); }
 
       // For testing
       //if( ip == 0 )  WriteXML( "ascii", mgd_pars, "mgd_pars.xml", 0,
@@ -1276,6 +1111,230 @@ void psdMgdMass(
               dpsd_data_dx(ext_i_jac[0],ip,joker) *= scfac * (-1/eterm) *
                 pow( ext_pars[0], -(1/eterm+1) ); 
             }
+          else 
+            { assert(0); }
+        }
+      //
+      for( Index i=0; i<4; i++ )
+        {
+          if( mgd_do_jac[i] )
+            { dpsd_data_dx(mgd_i_jac[i],ip,joker) = jac_data(i,joker); }
+        } 
+    }  
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void psdMgdMassDmedian(
+          Matrix&          psd_data,
+          Tensor3&         dpsd_data_dx,
+    const Vector&          psd_size_grid,
+    const Vector&          pnd_agenda_input_t,
+    const Matrix&          pnd_agenda_input,
+    const ArrayOfString&   pnd_agenda_input_names,
+    const ArrayOfString&   dpnd_data_dx_names,
+    const Numeric&         scat_species_a, 
+    const Numeric&         scat_species_b, 
+    const Numeric&         n0, 
+    const Numeric&         mu, 
+    const Numeric&         la, 
+    const Numeric&         ga, 
+    const Numeric&         t_min, 
+    const Numeric&         t_max, 
+    const Index&           picky, 
+    const Verbosity&)
+{
+  throw runtime_error("This method is not yet working properly.");
+  
+  // Standard checks
+  START_OF_PSD_METHODS();
+  
+  // Additional (basic) checks
+  if( nin < 1 || nin > 4 )
+    throw runtime_error( "The number of columns in *pnd_agenda_input* must "
+                         "be 2, 3 or 4." );
+  if( scat_species_a <= 0 )
+    throw runtime_error( "*scat_species_a* should be > 0." );
+  if( scat_species_b <= 0  ||  scat_species_b >= 5 )
+    throw runtime_error( "*scat_species_b* should be > 0 and < 5." );
+  
+  // Check and determine implied and fixed parameters
+  //
+  const Index n0_implied = (Index) n0 == -999;
+  const Index mu_implied = (Index) mu == -999;
+  const Index la_implied = (Index) la == -999;
+  const Index ga_implied = (Index) ga == -999;  
+  //
+  if( n0_implied + mu_implied + la_implied + ga_implied != 2 )
+    throw runtime_error( "Two (but only one) of n0, mu, la and ga must be NaN, "
+                         "to flag that this parameter is the one implied by "
+                         "mass content." );
+  if( mu_implied  ||  ga_implied )
+    throw runtime_error( "Sorry, mu and la are not yet allowed to be the "
+                         "implied parameter." );    
+  //
+  const Index n0_fixed = (Index) !( n0_implied  ||  isinf(n0) );
+  const Index mu_fixed = (Index) !( mu_implied  ||  isinf(mu) );
+  const Index la_fixed = (Index) !( la_implied  ||  isinf(la) );
+  const Index ga_fixed = (Index) !( ga_implied  ||  isinf(ga) );
+  //
+  if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
+    throw runtime_error( "This PSD has four free parameters. This means that "
+                         "the number\nof columns in *pnd_agenda_input* and the "
+                         "number of numerics\n(i.e. not Inf or NaN) and among "
+                         "the GIN arguments n0, mu, la and\nga must add up to "
+                         "four. And this was found not to be the case." );
+
+  // Create vectors to hold the four MGD and the "extra" parameters 
+  Vector mgd_pars(4), ext_pars(2);
+  ArrayOfIndex mgd_i_pai = {-1,-1,-1,-1}; // Position in pnd_agenda_input
+  const ArrayOfIndex ext_i_pai = {0,1};   // Position in pnd_agenda_input
+  {
+    Index nhit = 2;  // As mass and Dm always occupy first position
+    if( n0_fixed ) { mgd_pars[0]=n0; } else if( !n0_implied ) { mgd_i_pai[0]=nhit++; } 
+    if( mu_fixed ) { mgd_pars[1]=mu; } else if( !mu_implied ) { mgd_i_pai[1]=nhit++; } 
+    if( la_fixed ) { mgd_pars[2]=la; } else if( !la_implied ) { mgd_i_pai[2]=nhit++; } 
+    if( ga_fixed ) { mgd_pars[3]=ga; } else if( !ga_implied ) { mgd_i_pai[3]=nhit++; } 
+  }
+
+  // Determine what derivatives to do and their positions
+  ArrayOfIndex mgd_do_jac = {0,0,0,0,}; 
+  ArrayOfIndex ext_do_jac = {0,0};        
+  ArrayOfIndex mgd_i_jac = {-1,-1,-1,-1}; // Position among jacobian quants 
+  ArrayOfIndex ext_i_jac = {-1,-1};       // Position among jacobian quants
+  //
+  for( Index i=0; i<ndx; i++ )
+    {
+      if( dx2in[i] == 0 )  // That is,  mass is a derivative
+        {
+          ext_do_jac[0] = 1;
+          ext_i_jac[0]  = i;
+        }
+      else if( dx2in[i] == 1 )  // That is, Dm is a derivative
+        {
+          ext_do_jac[1] = 1;
+          ext_i_jac[1]  = i;
+        }
+      else  // Otherwise, either n0, mu, la or ga
+        {
+          for( Index j=0; j<4; j++ )
+            {
+              if( dx2in[i] == mgd_i_pai[j] )
+                {
+                  mgd_do_jac[j] = 1;
+                  mgd_i_jac[j]  = i;
+                  break;
+                }
+            }
+        }
+    }
+
+  // Loop input data and calculate PSDs
+  for( Index ip=0; ip<np; ip++ )
+    {
+      // Extract mass
+      ext_pars[0] = pnd_agenda_input(ip,ext_i_pai[0]);
+      ext_pars[1] = pnd_agenda_input(ip,ext_i_pai[1]);
+      // Extract core MGD parameters
+      for( Index i=0; i<4; i++ )
+        {
+          if( mgd_i_pai[i] >= 0 )
+            { mgd_pars[i] = pnd_agenda_input(ip,mgd_i_pai[i]); }
+        }
+      Numeric t = pnd_agenda_input_t[ip];
+      
+      // No calc needed if mass==0 and no jacobians requested.
+      if( (ext_pars[0]==0.) && (!ndx) )
+        { continue; }   // If here, we are ready with this point!
+
+      // Outside of [t_min,tmax]?
+      if( t < t_min  ||  t > t_max )
+        {
+          if( picky )
+            {
+              ostringstream os;
+              os << "Method called with a temperature of " << t << " K.\n"
+                 << "This is outside the specified allowed range: [ max(0.,"
+                 << t_min << "), " << t_max << " ]";
+              throw runtime_error(os.str());
+            }
+          else  
+            { continue; }   // If here, we are ready with this point!
+        }
+
+      // Derive the implied parameters
+      // The equations to solve (in parallel) are Eq 31 and 33 in Petty&Huang, JAS, 2011
+      // There should be some checks to avoid division with zero etc
+      Numeric eterm = 0, gterm = 0, scfac1 = 0, scfac2 = 0;
+      if( n0_implied  &&  la_implied )
+        {
+          // Start by deriving la from Eq 31
+          scfac2 = ( mgd_pars[1] + 1 + scat_species_b - 0.327*mgd_pars[3] ) /
+                   mgd_pars[3];  
+          mgd_pars[2] = scfac2 * pow( ext_pars[1], -mgd_pars[3] );
+          // This version is from Mitchell 1991, assuninmg ga=1:
+          //scfac2 = scat_species_b + mgd_pars[1] +  0.67;
+          //mgd_pars[2] = scfac2 / ext_pars[1];
+          
+          // We can now derive n0 as is psdMgdMass
+          eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
+          if( eterm <= 0 )
+            throw runtime_error( "Negativ argument to gamma function obtained. "
+                                 "This could happen for low values of mu and ga." );
+          gterm = tgamma( eterm );
+          scfac1 = scat_species_a * gterm / ( mgd_pars[3] * pow( mgd_pars[2], eterm ) );
+          mgd_pars[0] = ext_pars[0] / scfac1;
+        }
+      else 
+        { assert(0); }
+
+      cout << mgd_pars << endl;
+      
+      // For testing
+      if( ip == 0 )  WriteXML( "ascii", mgd_pars, "mgd_pars.xml", 0,
+                               "mgd_pars", "", "", Verbosity() );
+
+      // Calculate PSD and derivatives
+      //
+      Matrix  jac_data(4,nsi);    
+      mgd( psd_data(ip,joker), jac_data, psd_size_grid,
+           mgd_pars[0], mgd_pars[1], mgd_pars[2], mgd_pars[3],
+           (bool)mgd_do_jac[0] || n0_implied,
+           (bool)mgd_do_jac[1] || mu_implied,
+           (bool)mgd_do_jac[2] || la_implied,
+           (bool)mgd_do_jac[3] || ga_implied );
+      //
+      if( ext_do_jac[0] )
+        {
+          // The derivative with respect to mass is handled by the chain rule.
+          // See psdMass for a small example.
+          if( n0_implied  &&  la_implied )
+            {
+              // Note that Dmedian sets la, and then also affects n0, while
+              // mass only affects n0 (for given Dmedian). So chain
+              // rule gives us two products to consider for Dmedian, but
+              // only one for mass.
+              // Derivative with respect to mass:
+              // Calculated as dpsd/dn0 * dn0/dmass
+              dpsd_data_dx(ext_i_jac[0],ip,joker) = jac_data(0,joker);
+              dpsd_data_dx(ext_i_jac[0],ip,joker) /= scfac1; 
+              // Derivative with respect to Dmedian:
+              // 1. Term associated with n0
+              // Calculated as dpsd/dn0 * dn0/dla * dla/dDm
+              dpsd_data_dx(ext_i_jac[1],ip,joker) = jac_data(0,joker);
+              dpsd_data_dx(ext_i_jac[1],ip,joker) *= ext_pars[0] *
+                mgd_pars[3] * eterm * pow(mgd_pars[2],eterm-1) /
+                ( scat_species_a * gterm );
+              // 2. Term associated with la
+              // Calculated as dpsd/dla * dla/dDm
+              dpsd_data_dx(ext_i_jac[1],ip,joker) = jac_data(2,joker);
+              // Apply dla/dDm to sum
+              dpsd_data_dx(ext_i_jac[1],ip,joker) *= -mgd_pars[3] * scfac2 *
+                pow( ext_pars[1], -(mgd_pars[3]+1) );
+            }
+          else 
+            { assert(0); }
         }
       //
       for( Index i=0; i<4; i++ )
@@ -1306,11 +1365,11 @@ void psdMH97 (
     const Verbosity&)
 {
   // Standard checcks
-  if( pnd_agenda_input.ncols() != 1 ) \
-    throw runtime_error( "*pnd_agenda_input* must have one column." ); \
   START_OF_PSD_METHODS();
 
   // Extra checks for this PSD
+  if( pnd_agenda_input.ncols() != 1 ) 
+    throw runtime_error( "*pnd_agenda_input* must have one column." ); 
   if( noisy  &&   ndx )
     throw runtime_error( "Jacobian calculations and \"noisy\" can not be "
                          "combined." );
@@ -1374,6 +1433,175 @@ void psdMH97 (
           for ( Index i=0; i<nsi; i++ )
             { dpsd_data_dx(0,ip,i) = ( psd_1p[i] - psd_data(ip,i) ) / diwc; }
         }   
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void psdMono (
+          Matrix&           psd_data,
+          Tensor3&          dpsd_data_dx,
+    const Vector&           pnd_agenda_input_t,
+    const Matrix&           pnd_agenda_input,
+    const ArrayOfString&    pnd_agenda_input_names,
+    const ArrayOfString&    dpnd_data_dx_names,
+    const ArrayOfArrayOfScatteringMetaData&   scat_meta,
+    const Index&            species_index,          
+    const Numeric&          t_min, 
+    const Numeric&          t_max, 
+    const Index&            picky, 
+    const Verbosity&)
+{
+  // Standard checcks
+  const Vector psd_size_grid(1,0);    // As thios WSV is not input for this WSM
+  START_OF_PSD_METHODS();
+
+  // Extra checks for this PSD
+  const Index nss = scat_meta.nelem();
+  if( nss == 0 )
+    throw runtime_error( "*scat_meta* is empty!" );
+  if( nss < species_index+1 )
+    {
+      ostringstream os;
+      os << "Selected scattering species index is " << species_index << " but this "
+         << "is not allowed since *scat_meta* has only " << nss << " elements.";
+      throw runtime_error(os.str());
+    }
+  if( scat_meta[species_index].nelem() != 1 )
+    {
+      ostringstream os;
+      os << "This method only works with scattering species consisting of a\n" 
+         << "single element, but your data do not match this demand.\n"
+         << "Selected scattering species index is " << species_index << ".\n"
+         << "This species has " << scat_meta[species_index].nelem() << " elements.";
+      throw runtime_error(os.str());
+    }
+  //
+  if( pnd_agenda_input.ncols() != 1 ) 
+    throw runtime_error( "*pnd_agenda_input* must have one column." ); 
+  if( nsi != 1 )
+    throw runtime_error( "This method demands that length of "
+                         "*psd_size_grid* is 1." );                     
+  
+  for( Index ip=0; ip<np; ip++ )
+    {
+      // Extract the input variables
+      Numeric   n = pnd_agenda_input(ip,0);
+      Numeric   t = pnd_agenda_input_t[ip];
+
+      // No calc needed if n==0 and no jacobians requested.
+      if( (n==0.) && (!ndx) )
+        { continue; }   // If here, we are ready with this point!
+
+      // Outside of [t_min,tmax]?
+      if( t < t_min  ||  t > t_max )
+        {
+          if( picky )
+            {
+              ostringstream os;
+              os << "Method called with a temperature of " << t << " K.\n"
+                 << "This is outside the specified allowed range: [ max(0.,"
+                 << t_min << "), " << t_max << " ]";
+              throw runtime_error(os.str());
+            }
+          else  
+            { continue; }   // If here, we are ready with this point!
+        }
+      
+      // Set PSD
+      //
+      psd_data(ip,0) = n;
+      //
+      if( ndx )
+        { dpsd_data_dx(0,ip,0) = 1; }   
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void psdMonoMass (
+          Matrix&           psd_data,
+          Tensor3&          dpsd_data_dx,
+    const Vector&           pnd_agenda_input_t,
+    const Matrix&           pnd_agenda_input,
+    const ArrayOfString&    pnd_agenda_input_names,
+    const ArrayOfString&    dpnd_data_dx_names,
+    const ArrayOfArrayOfScatteringMetaData&   scat_meta,
+    const Index&            species_index,          
+    const Numeric&          t_min, 
+    const Numeric&          t_max, 
+    const Index&            picky, 
+    const Verbosity&)
+{
+  // Standard checks
+  const Vector psd_size_grid(1,0);    // As thios WSV is not input for this WSM
+  START_OF_PSD_METHODS();
+
+  // Extra checks for this PSD
+  const Index nss = scat_meta.nelem();
+  if( nss == 0 )
+    throw runtime_error( "*scat_meta* is empty!" );
+  if( nss < species_index+1 )
+    {
+      ostringstream os;
+      os << "Selected scattering species index is " << species_index << " but this "
+         << "is not allowed since *scat_meta* has only " << nss << " elements.";
+      throw runtime_error(os.str());
+    }
+  if( scat_meta[species_index].nelem() != 1 )
+    {
+      ostringstream os;
+      os << "This method only works with scattering species consisting of a\n" 
+         << "single element, but your data do not match this demand.\n"
+         << "Selected scattering species index is " << species_index << ".\n"
+         << "This species has " << scat_meta[species_index].nelem() << " elements.";
+      throw runtime_error(os.str());
+    }
+  //
+  if( pnd_agenda_input.ncols() != 1 ) 
+    throw runtime_error( "*pnd_agenda_input* must have one column." ); 
+  if( nsi != 1 )
+    throw runtime_error( "This method demands that length of "
+                         "*psd_size_grid* is 1." );                     
+    
+  // Extract particle mass
+  const Numeric pmass = scat_meta[species_index][0].mass;
+
+  // Extract particle mass
+  
+  for( Index ip=0; ip<np; ip++ )
+    {
+      // Extract the input variables
+      Numeric iwc = pnd_agenda_input(ip,0);
+      Numeric   t = pnd_agenda_input_t[ip];
+
+      // No calc needed if n==0 and no jacobians requested.
+      if( (iwc==0.) && (!ndx) )
+        { continue; }   // If here, we are ready with this point!
+
+      // Outside of [t_min,tmax]?
+      if( t < t_min  ||  t > t_max )
+        {
+          if( picky )
+            {
+              ostringstream os;
+              os << "Method called with a temperature of " << t << " K.\n"
+                 << "This is outside the specified allowed range: [ max(0.,"
+                 << t_min << "), " << t_max << " ]";
+              throw runtime_error(os.str());
+            }
+          else  
+            { continue; }   // If here, we are ready with this point!
+        }
+      
+      // Set PSD
+      //
+      psd_data(ip,0) = iwc/pmass;
+      //
+      if( ndx )
+        { dpsd_data_dx(0,ip,0) = 1/pmass; }   
     }
 }
 
@@ -1727,9 +1955,11 @@ void psdW16 (
     const Verbosity&)
 {
   // Standard checcks
-  if( pnd_agenda_input.ncols() != 1 ) \
-    throw runtime_error( "*pnd_agenda_input* must have one column." ); \
   START_OF_PSD_METHODS();
+
+  // Extra checks for this PSD
+  if( pnd_agenda_input.ncols() != 1 )
+    throw runtime_error( "*pnd_agenda_input* must have one column." );
   
   for( Index ip=0; ip<np; ip++ )
     {
@@ -2612,6 +2842,7 @@ void ScatSpeciesSizeMassInfo(
     const String&                             x_unit,
     const Numeric&                            x_fit_start,
     const Numeric&                            x_fit_end,
+    const Index&                              do_only_x,           
     const Verbosity& )
 {
   // Checks
@@ -2622,8 +2853,7 @@ void ScatSpeciesSizeMassInfo(
     {
       ostringstream os;
       os << "Selected scattering species index is " << species_index << " but this "
-         << "is not allowed since *scat_meta* has only" << scat_meta.nelem()
-         << " elements.";
+         << "is not allowed since *scat_meta* has only " << nss << " elements.";
       throw runtime_error(os.str());
     }
   //
@@ -2648,8 +2878,11 @@ void ScatSpeciesSizeMassInfo(
       for ( Index i=0; i<nse; i++ )
         { scat_species_x[i] = scat_meta[species_index][i].diameter_volume_equ; }
       //
-      derive_scat_species_a_and_b( scat_species_a, scat_species_b,
-                                   scat_species_x, mass, x_fit_start, x_fit_end );
+      if( do_only_x )
+        { scat_species_a = -1; scat_species_b = -1; }
+      else
+        derive_scat_species_a_and_b( scat_species_a, scat_species_b,
+                                     scat_species_x, mass, x_fit_start, x_fit_end );
     }
   
   else if( x_unit == "dmax" )
@@ -2657,8 +2890,11 @@ void ScatSpeciesSizeMassInfo(
       for ( Index i=0; i<nse; i++ )
         { scat_species_x[i] = scat_meta[species_index][i].diameter_max; }
       //
-      derive_scat_species_a_and_b( scat_species_a, scat_species_b,
-                                   scat_species_x, mass, x_fit_start, x_fit_end );
+      if( do_only_x )
+        { scat_species_a = -1; scat_species_b = -1; }
+      else
+        derive_scat_species_a_and_b( scat_species_a, scat_species_b,
+                                     scat_species_x, mass, x_fit_start, x_fit_end );
     }
   
   else if( x_unit == "area" )
@@ -2667,8 +2903,11 @@ void ScatSpeciesSizeMassInfo(
         { scat_species_x[i] =
             scat_meta[species_index][i].diameter_area_equ_aerodynamical; }
       //
-      derive_scat_species_a_and_b( scat_species_a, scat_species_b,
-                                   scat_species_x, mass, x_fit_start, x_fit_end );
+      if( do_only_x )
+        { scat_species_a = -1; scat_species_b = -1; }
+      else
+        derive_scat_species_a_and_b( scat_species_a, scat_species_b,
+                                     scat_species_x, mass, x_fit_start, x_fit_end );
     }
 
   else if( x_unit == "mass" )
