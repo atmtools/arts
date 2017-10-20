@@ -2972,9 +2972,10 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     mpressurebroadeningdata.SetDataFromVectorWithKnownType(broadening);
                     icecream >> token;
                 }
-                // Read quantum numbers
                 else if (token == "QN")
                 {
+                    // Quantum numbers
+                  
                     icecream >> token;
                     if (token != "UP")
                     {
@@ -3009,9 +3010,10 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                         icecream >> token;
                     }
                 }
-                // Read quantum numbers
                 else if (token == "LM")
                 {
+                    // Line mixing
+                  
                     icecream >> token;
                     mlinemixingdata.StorageTag2SetType(token);
 
@@ -3033,6 +3035,8 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                 }
                 else if (token == "PF")
                 {
+                    // Partition functions (will not be used before we need rotational NLTE)
+                  
                     icecream >> token;
                     mpartitionfunctiondata.StorageTag2SetType(token);
 
@@ -3051,6 +3055,53 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     }
                     mpartitionfunctiondata.SetDataFromVectorWithKnownType(lmd);
                     icecream >> token;
+                }
+                else if (token == "LSM")
+                {
+                  // Line shape modifications
+                  
+                  // Starts with the number of modifications
+                  icecream >> nelem;
+                  for(Index lsm = 0; lsm < nelem; lsm++)
+                  {
+                    icecream >> token;
+                    
+                    if(token == "CUT")
+                    {
+                      Numeric value;
+                      icecream >> double_imanip() >> value;
+                      
+                      if(value > 0)
+                        mcutoff = value;
+                    }
+                    else if(token == "MTM")
+                    {
+                      Index value;
+                      icecream >> value;
+                      
+                      SetMirroringTypeFromIndex(value);
+                    }
+                    else if(token == "LNT")
+                    {
+                      Index value;
+                      icecream >> value;
+                      
+                      SetLineNormalizationTypeFromIndex(value);
+                    }
+                    else if(token == "LST")
+                    {
+                      Index value;
+                      icecream >> value;
+                      
+                      SetLineShapeTypeFromIndex(value);
+                    }
+                    else
+                    {
+                      ostringstream os;
+                      os << "Unknown line modifications given: " << token;
+                      throw std::runtime_error(os.str());
+                    }
+                  }
                 }
                 else
                 {
@@ -3254,6 +3305,35 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
               }
 
           }
+          
+          // Line shape modifications
+          {
+            const Numeric CUT = lr.CutOff();
+            const Index   MTM = (Index) lr.GetMirroringType();
+            const Index   LNT = (Index) lr.GetLineNormalizationType();
+            const Index   LST = (Index) lr.GetLineShapeType();
+            
+            const bool need_cut = CUT > 0, need_mtm = MTM, need_lnt = LNT, need_lst = LST;
+            
+            const Index nelem = (Index) need_cut +
+                                (Index) need_mtm +
+                                (Index) need_lnt +
+                                (Index) need_lst;
+            
+            if(nelem)
+            {
+              ls << " LSM " << nelem;
+              if(need_cut)
+                ls << " CUT " << CUT;
+              if(need_mtm)
+                ls << " MTM " << MTM;
+              if(need_lnt)
+                ls << " LNT " << LNT;
+              if(need_lst)
+                ls << " LST " << LST;
+            }
+            
+          }
 
           os << ls.str();
 
@@ -3387,4 +3467,25 @@ void match_lines_by_quantum_identifier(ArrayOfIndex& matches,
     {
         assert(0);
     }
+}
+
+void LineRecord::SetMirroringTypeFromIndex(const Index in)
+{
+  if(not (in < (Index) MirroringType::End))
+    throw std::runtime_error("Mirroring type to index conversion failure.  Did you add new mirroring type?");
+  mmirroring = (MirroringType) in;
+}
+
+void LineRecord::SetLineNormalizationTypeFromIndex(const Index in)
+{
+  if(not (in < (Index) LineNormalizationType::End))
+    throw std::runtime_error("Normalization type to index conversion failure.  Did you add new line normalization type?");
+  mlinenorm = (LineNormalizationType) in;
+}
+
+void LineRecord::SetLineShapeTypeFromIndex(const Index in)
+{
+  if(not (in < (Index) LineShapeType::End))
+    throw std::runtime_error("Shape type to index conversion failure.  Did you add new line shape type?");
+  mlineshape = (LineShapeType) in;
 }

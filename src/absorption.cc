@@ -2452,6 +2452,8 @@ void xsec_species2(MatrixView xsec,
   ComplexVector F(nf), N(do_nonlte?nf:0);
   ArrayOfComplexVector dF(nj), dN(do_nonlte?nj:0);
   for(auto& aocv : dF) aocv.resize(nf);
+  for(auto& aocv : dN) aocv.resize(nf);
+  ComplexRange this_xsec_range(joker);
 
   for(Index ip = 0; ip < np; ip++)
   {
@@ -2508,41 +2510,38 @@ void xsec_species2(MatrixView xsec,
       }
       
       // we now compute the line shape
-      Linefunctions::set_cross_section_for_single_line(F, dF, N, dN,
+      Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, this_xsec_range,
         flag_partials, line, f_grid, all_vmrs(joker, ip), nt?abs_t_nlte(joker, ip):Vector(0),
         pressure, temperature, dc, partial_pressure, 
         isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
         H_magntitude_Zeeman, ddc_dT, lm_p_lim, do_phase?Z_DF[il]:0.0, qt, dqt_dT, qt0,
         broad_spec_locations, this_species, h2o_index, verbosity);
       
-      // Add results to final output -- apply atomic operations to guard against parallelism
-      for(Index i = 0; i < nf; i++)
+      // range-based arguments that need be made to work for both complex and numeric
+      const Index range_start = this_xsec_range.get_start();
+      const Index range_stride = this_xsec_range.get_stride();
+      const Index range_end = (this_xsec_range.get_extent() not_eq -1)?this_xsec_range.get_extent():nf-range_start;
+      
+      // Add results to final output
+      for(Index i = range_start; i < range_end; i+=range_stride)
       {
         xsec(i, ip) += F[i].real();
         
         if(do_nonlte)
-        {
           source(i, ip) += N[i].real();
-        }
         
         if(do_phase)
-        {
           phase(i, ip) += F[i].imag();
-        }
         
         for(Index j = 0; j < nj; j++)
         {
           dxsec_dx[j](i, ip) += dF[j][i].real();
           
           if(do_nonlte)
-          {
             dsource_dx[j](i, ip) += dN[j][i].real();
-          }
           
           if(do_phase)
-          {
             dphase_dx[j](ip, i) += dF[j][i].imag();
-          }
         }
       }
     }

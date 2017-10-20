@@ -196,6 +196,40 @@ class IsotopologueRecord;
 
     \author Stefan Buehler 
 */
+
+enum class MirroringType : Index
+{
+  // Describes the type of mirroring line effects.
+  // Add new entries before End to keep safe with existing catalogs.
+  None=0,
+  Lorentz=1,
+  SameAsLineShape=2,
+  End
+};
+
+enum class LineNormalizationType : Index
+{
+  // Describes the type of normalization line effects.
+  // Add new entries before End to keep safe with existing catalogs.
+  None=0,
+  VVH=1,
+  VVW=2,
+  RosenkranzQuadratic=3,
+  End
+};
+
+enum class LineShapeType : Index
+{
+  // Describes the type of line shape.
+  // Add new entries before End to keep safe with existing catalogs.
+  ByPressureBroadeningData=0,
+  Doppler=1,
+  Lorentz=2,
+  Voigt=3,
+  HTP=4,
+  End
+};
+
 class LineRecord {
 public:
     
@@ -237,7 +271,11 @@ public:
       mlower_j (-1     ),
       mquantum_numbers_str(""),
       mquantum_numbers(),
-      mpressurebroadeningdata()
+      mpressurebroadeningdata(),
+      mcutoff(-1.0),
+      mmirroring(MirroringType::None),
+      mlinenorm(LineNormalizationType::None),
+      mlineshape(LineShapeType::ByPressureBroadeningData)
  { /* Nothing to do here. */ }
 
   /** Constructor that sets all data elements explicitly. If
@@ -297,7 +335,11 @@ public:
       mlower_n (-1     ),
       mlower_j (-1     ),
       mquantum_numbers_str(""),
-      mquantum_numbers()
+      mquantum_numbers(),
+      mcutoff(-1.0),
+      mmirroring(MirroringType::None),
+      mlinenorm(LineNormalizationType::None),
+      mlineshape(LineShapeType::ByPressureBroadeningData)
   {
     mpressurebroadeningdata.SetAirBroadeningFromCatalog( sgam,nself,agam,nair,psf,NAN,NAN,NAN,NAN,NAN);
     // Thanks to Matpack, initialization of misotopologue with isotopologue
@@ -593,6 +635,28 @@ public:
   /** Pressure Broadening Data */
   const PressureBroadeningData& PressureBroadening() const { return mpressurebroadeningdata; }
   void SetPressureBroadeningData(const PressureBroadeningData& input) { mpressurebroadeningdata=input; }
+  
+  /** Cutoff frequency */
+  const Numeric& CutOff() const {return mcutoff;}
+  void SetCutOff(const Numeric& cutoff) {mcutoff = cutoff;}
+  
+  /** Line shape mirroring factor */
+  const MirroringType& GetMirroringType() const {return mmirroring;}
+  void GetMirroringType(const MirroringType& in) {mmirroring = in;}
+  void SetMirroringTypeFromIndex(const Index in);
+  Index GetMirroringTypeIndex() const {return (Index) mmirroring;}
+  
+  /** Line shape normalization factor */
+  const LineNormalizationType& GetLineNormalizationType() const {return mlinenorm;}
+  void GetLineNormalizationType(const LineNormalizationType& in) {mlinenorm = in;}
+  void SetLineNormalizationTypeFromIndex(const Index in);
+  Index GetLineNormalizationTypeIndex() const {return (Index) mlinenorm;}
+  
+  /** Line shape type*/
+  const LineShapeType& GetLineShapeType() const {return mlineshape;}
+  void GetLineShapeType(const LineShapeType& in) {mlineshape = in;}
+  void SetLineShapeTypeFromIndex(const Index in);
+  Index GetLineShapeTypeIndex() const {return (Index) mlineshape;}
         
 
   /** Indices of different broadening species in Gamma_foreign, 
@@ -1179,6 +1243,18 @@ private:
   
   /** Pressure Broadening Data */
   PressureBroadeningData mpressurebroadeningdata;
+  
+  /** Cutoff frequency */
+  Numeric mcutoff;
+  
+  /** Line shape mirroring effect type */
+  MirroringType mmirroring;
+  
+  /** Line shape normalization type */
+  LineNormalizationType mlinenorm;
+  
+  /** Line shape type */
+  LineShapeType mlineshape;
 };
 
 /** Output operator for LineRecord. The result should look like a

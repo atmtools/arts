@@ -48,9 +48,29 @@ static const Numeric sqrtPI = sqrt(PI);
 static const Numeric C1 = - PLANCK_CONST / BOLTZMAN_CONST;
 static const Numeric doppler_const = sqrt(2.0 * BOLTZMAN_CONST * AVOGADROS_NUMB ) / SPEED_OF_LIGHT; 
 
-void Linefunctions::set_lorentz(ComplexVector& F, // Sets the full complex line shape without line mixing
+
+/*!
+ * Sets the line shape to Lorentz line shape. Normalization is unity.
+ * 
+ * \retval F Lineshape
+ * \retval dF Lineshape derivative
+ * 
+ * \param f_grid Frequency grid of computations
+ * \param zeeman_df Zeeman shift parameter for the line
+ * \param magnetic_magnitude Absolute strength of the magnetic field
+ * \param F0_noshift Central frequency without any shifts
+ * \param G0 Speed-independent pressure broadening term
+ * \param L0 Speed-independent pressure shift term plus second order line mixing shift
+ * \param derivatives_data Information about the derivatives in dF
+ * \param quantum_identity ID of the absorption line
+ * \param dG0_dT Temperature derivative of G0
+ * \param dL0_dT Temperature derivative of L0
+ * \param df_range Frequency range to use inside dF
+ * 
+ */
+void Linefunctions::set_lorentz(ComplexVectorView F, // Sets the full complex line shape without line mixing
                                 ArrayOfComplexVector& dF,
-                                const Vector& f_grid,
+                                ConstVectorView f_grid,
                                 const Numeric& zeeman_df,
                                 const Numeric& magnetic_magnitude,
                                 const Numeric& F0_noshift,
@@ -59,7 +79,8 @@ void Linefunctions::set_lorentz(ComplexVector& F, // Sets the full complex line 
                                 const PropmatPartialsData& derivatives_data,
                                 const QuantumIdentifier& quantum_identity,
                                 const Numeric& dG0_dT,
-                                const Numeric& dL0_dT)
+                                const Numeric& dL0_dT,
+                                const ComplexRange& df_range)
 { 
   const Index nf = f_grid.nelem(), nppd = derivatives_data.nelem();
   
@@ -69,11 +90,9 @@ void Linefunctions::set_lorentz(ComplexVector& F, // Sets the full complex line 
   // Sigma change of F and F0?
   const Complex denom0 = Complex(G0, F0);
   
-  F = invPI;
-  
   for(Index iv = 0; iv < nf; iv++)
   {
-    F[iv] /= (denom0 - Complex(0.0, f_grid[iv]));
+    F[iv] = invPI / (denom0 - Complex(0.0, f_grid[iv]));
   }
   
   // If there are partial derivatives, then the last 
@@ -82,9 +101,9 @@ void Linefunctions::set_lorentz(ComplexVector& F, // Sets the full complex line 
   // hopefully, C++ knows that A[i] = A[i] does nothing....
   if(nppd > 0)
   {
-    dF[nppd-1] = F;
-    dF[nppd-1] *= F;
-    dF[nppd-1] *= PI;
+    dF[nppd-1][df_range] = F;
+    dF[nppd-1][df_range] *= F;
+    dF[nppd-1][df_range] *= PI;
   }
   
   for(Index iq = 0; iq < nppd; iq++)
@@ -93,8 +112,8 @@ void Linefunctions::set_lorentz(ComplexVector& F, // Sets the full complex line 
     if(derivatives_data(iq) == JQT_temperature)
     {
       // Temperature derivative only depends on how pressure shift and broadening change
-      dF[iq] = dF[nppd-1];
-      dF[iq] *= Complex(dG0_dT, dL0_dT);
+      dF[iq][df_range] = dF[nppd-1][df_range];
+      dF[iq][df_range] *= Complex(dG0_dT, dL0_dT);
     }
     else if(derivatives_data(iq) == JQT_frequency or
       derivatives_data(iq) == JQT_wind_magnitude or
@@ -103,16 +122,16 @@ void Linefunctions::set_lorentz(ComplexVector& F, // Sets the full complex line 
       derivatives_data(iq) == JQT_wind_w)
     {
       // Frequency scale 1 to -1 linearly
-      dF[iq] = dF[nppd-1];
-      dF[iq] *= Complex(0.0, -1.0);
+      dF[iq][df_range] = dF[nppd-1][df_range];
+      dF[iq][df_range] *= Complex(0.0, -1.0);
     }
     else if(derivatives_data(iq) == JQT_line_center)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
       {
         // Line center scales 1 to 1 linearly
-        dF[iq] = dF[nppd-1];
-        dF[iq] *= Complex(0.0, 1.0);
+        dF[iq][df_range] = dF[nppd-1][df_range];
+        dF[iq][df_range] *= Complex(0.0, 1.0);
       }
     }
     else if(derivatives_data(iq) == JQT_line_gamma_self or 
@@ -129,32 +148,65 @@ void Linefunctions::set_lorentz(ComplexVector& F, // Sets the full complex line 
       {
         // Pressure broadening will be dealt with in another function, though the partial derivative
         // messes some things up (should this 1+1i be removed?)
-        dF[iq] = dF[nppd-1];
-        dF[iq] *= Complex(1.0, 1.0);
+        dF[iq][df_range] = dF[nppd-1][df_range];
+        dF[iq][df_range] *= Complex(1.0, 1.0);
       }
     }
     else if(derivatives_data(iq) == JQT_magnetic_magntitude)
     {
       // Magnetic magnitude changes like line center in part
       // FIXME: Add magnetic components here
-      dF[iq] = dF[nppd-1];
-      dF[iq] *= Complex(0.0, zeeman_df);
+      dF[iq][df_range] = dF[nppd-1][df_range];
+      dF[iq][df_range] *= Complex(0.0, zeeman_df);
     }
   }
 }
 
 
-void Linefunctions::set_htp(ComplexVector& F, // Sets the full complex line shape without line mixing
+/*!
+ * Sets the line shape to Hartmann-Tran line shape. Normalization is unity.
+ * 
+ * Note:  We are not experienced with this line shape and cannot tell what
+ * parameters depends on what input.  It is therefore likely that this function
+ * will have to be adapted in the future
+ * 
+ * \retval F Lineshape
+ * \retval dF Lineshape derivative
+ * 
+ * \param f_grid Frequency grid of computations
+ * \param zeeman_df Zeeman shift parameter for the line
+ * \param magnetic_magnitude Absolute strength of the magnetic field
+ * \param F0_noshift Central frequency without any shifts
+ * \param GD_div_F0 Frequency-independent part of the Doppler broadening
+ * \param G0 Speed-independent pressure broadening term
+ * \param L0 Speed-independent pressure shift term plus second order line mixing shift
+ * \param G2 Speed-dependent pressure broadening term
+ * \param L2 Speed-dependent pressure shift term
+ * \param eta Correlation between velocity and rotational changes due to collisions
+ * \param FVC Velocity--changing collisional parameter
+ * \param derivatives_data Information about the derivatives in dF
+ * \param quantum_identity ID of the absorption line
+ * \param dGD_div_F0_dT Temperature derivative of GD_div_F0
+ * \param dG0_dT Temperature derivative of G0
+ * \param dL0_dT Temperature derivative of L0
+ * \param dG2_dT Temperature derivative of G2
+ * \param dL2_dT Temperature derivative of L2
+ * \param deta_dT Temperature derivative of eta
+ * \param dFVC_dT Temperature derivative of FVC
+ * \param df_range Frequency range to use inside dF
+ * 
+ */
+void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line shape without line mixing
                             ArrayOfComplexVector& dF,
-                            const Vector& f_grid,
+                            ConstVectorView f_grid,
                             const Numeric& zeeman_df,
                             const Numeric& magnetic_magnitude,
                             const Numeric& F0_noshift,
                             const Numeric& GD_div_F0,
                             const Numeric& G0,
                             const Numeric& L0,
-                            const Numeric& L2,
                             const Numeric& G2,
+                            const Numeric& L2,
                             const Numeric& eta,
                             const Numeric& FVC,
                             const PropmatPartialsData& derivatives_data,
@@ -165,7 +217,8 @@ void Linefunctions::set_htp(ComplexVector& F, // Sets the full complex line shap
                             const Numeric& dG2_dT,
                             const Numeric& dL2_dT,
                             const Numeric& deta_dT,
-                            const Numeric& dFVC_dT)
+                            const Numeric& dFVC_dT,
+                            const ComplexRange& df_range)
 {
   //extern const Numeric PI;
   static const Complex i(0.0, 1.0), one_plus_one_i(1.0, 1.0);
@@ -275,11 +328,11 @@ void Linefunctions::set_htp(ComplexVector& F, // Sets the full complex line shap
             dg = - FVC * dA;
           }
           
-          dF[iq][iv] = invG * (invPI * dA - F[iv] * dg); 
+          dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dg); 
         }
         else  // copy for repeated occurences
         {
-          dF[iq][iv] = dF[first_frequency][iv]; 
+          dF[iq][df_range][iv] = dF[first_frequency][df_range][iv]; 
         }
       }
       else if(derivatives_data(iq) == JQT_temperature)
@@ -315,7 +368,7 @@ void Linefunctions::set_htp(ComplexVector& F, // Sets the full complex line shap
           dg = (dFVC_dT - deta_dT * C0_m1p5_C2) * A - FVC * dA + deta_dT * B;
         }
         
-        dF[iq][iv] = invG * (invPI * dA - F[iv] * dg); 
+        dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dg); 
       }
       else if(derivatives_data(iq) == JQT_line_center) // No //external inputs --- errors because of frequency shift when Zeeman is used?
       {
@@ -346,7 +399,7 @@ void Linefunctions::set_htp(ComplexVector& F, // Sets the full complex line shap
             dg = - FVC * dA;
           }
           
-          dF[iq][iv] = invG * (invPI * dA - F[iv] * dg); 
+          dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dg); 
         }
       }
       else if(derivatives_data(iq) == JQT_line_gamma_self or 
@@ -386,11 +439,11 @@ void Linefunctions::set_htp(ComplexVector& F, // Sets the full complex line shap
               dg = - FVC * dA;
             }
             
-            dF[iq][iv] = invG * (invPI * dA - F[iv] * dg); 
+            dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dg); 
           }
           else  // copy for repeated occurences
           {
-            dF[iq][iv] = dF[first_frequency][iv]; 
+            dF[iq][df_range][iv] = dF[first_frequency][df_range][iv]; 
           }
         }
       }
@@ -424,16 +477,37 @@ void Linefunctions::set_htp(ComplexVector& F, // Sets the full complex line shap
           dg = - FVC * dA;
         }
         
-        dF[iq][iv] = invG * (invPI * dA - F[iv] * dg); 
+        dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dg); 
       }
     }
   }
 }
 
 
-void Linefunctions::set_faddeeva_algorithm916(ComplexVector& F, 
+/*!
+ * Sets the line shape to Voigt line shape. Normalization is unity.
+ * 
+ * \retval F Lineshape
+ * \retval dF Lineshape derivative
+ * 
+ * \param f_grid Frequency grid of computations
+ * \param zeeman_df Zeeman shift parameter for the line
+ * \param magnetic_magnitude Absolute strength of the magnetic field
+ * \param F0_noshift Central frequency without any shifts
+ * \param GD_div_F0 Frequency-independent part of the Doppler broadening
+ * \param G0 Speed-independent pressure broadening term
+ * \param L0 Speed-independent pressure shift term plus second order line mixing shift
+ * \param derivatives_data Information about the derivatives in dF
+ * \param quantum_identity ID of the absorption line
+ * \param dGD_div_F0_dT Temperature derivative of GD_div_F0
+ * \param dG0_dT Temperature derivative of G0
+ * \param dL0_dT Temperature derivative of L0
+ * \param df_range Frequency range to use inside dF
+ * 
+ */
+void Linefunctions::set_faddeeva_algorithm916(ComplexVectorView F, 
                                               ArrayOfComplexVector& dF, 
-                                              const Vector& f_grid, 
+                                              ConstVectorView f_grid, 
                                               const Numeric& zeeman_df, 
                                               const Numeric& magnetic_magnitude,
                                               const Numeric& F0_noshift, 
@@ -444,7 +518,8 @@ void Linefunctions::set_faddeeva_algorithm916(ComplexVector& F,
                                               const QuantumIdentifier& quantum_identity,
                                               const Numeric& dGD_div_F0_dT,
                                               const Numeric& dG0_dT,
-                                              const Numeric& dL0_dT)
+                                              const Numeric& dL0_dT,
+                                              const ComplexRange& df_range)
 {
   // For calculations
   Numeric dx;
@@ -460,7 +535,6 @@ void Linefunctions::set_faddeeva_algorithm916(ComplexVector& F,
   
   // constant normalization factor for voigt
   const Numeric fac = sqrtInvPI * invGD;
-  F = fac;
   
   // Ratio of the Lorentz halfwidth to the Doppler halfwidth
   const Complex z0 = Complex(-F0, G0) * invGD;
@@ -475,7 +549,7 @@ void Linefunctions::set_faddeeva_algorithm916(ComplexVector& F,
     z = z0 + dx;
     w = Faddeeva::w(z);
     
-    F[iv] *= w;
+    F[iv] = fac * w;
     
     for(Index iq = 0; iq < nppd; iq++)
     {
@@ -493,20 +567,20 @@ void Linefunctions::set_faddeeva_algorithm916(ComplexVector& F,
         {
           //dz = Complex(invGD, 0.0);
           
-          dF[iq][iv] = fac * dw_over_dz * invGD; //dz; 
+          dF[iq][df_range][iv] = fac * dw_over_dz * invGD; //dz; 
         }
         else  // copy for repeated occurences
         {
-          dF[iq][iv] = dF[first_frequency][iv]; 
+          dF[iq][df_range][iv] = dF[first_frequency][df_range][iv]; 
         }
       }
       else if(derivatives_data(iq) == JQT_temperature)
       {
         dz = Complex(-dL0_dT, dG0_dT) - z * dGD_dT;
         
-        dF[iq][iv] = -F[iv] * dGD_dT;
-        dF[iq][iv] += fac * dw_over_dz * dz;
-        dF[iq][iv] *= invGD;
+        dF[iq][df_range][iv] = -F[iv] * dGD_dT;
+        dF[iq][df_range][iv] += fac * dw_over_dz * dz;
+        dF[iq][df_range][iv] *= invGD;
       }
       else if(derivatives_data(iq) == JQT_line_center) // No //external inputs --- errors because of frequency shift when Zeeman is used?
       {
@@ -514,9 +588,9 @@ void Linefunctions::set_faddeeva_algorithm916(ComplexVector& F,
         {
           dz = -z * GD_div_F0 - 1.0;
           
-          dF[iq][iv] = -F[iv] * GD_div_F0;
-          dF[iq][iv] += dw_over_dz * dz;
-          dF[iq][iv] *= fac * invGD;
+          dF[iq][df_range][iv] = -F[iv] * GD_div_F0;
+          dF[iq][df_range][iv] += dw_over_dz * dz;
+          dF[iq][df_range][iv] *= fac * invGD;
         }
       }
       else if(derivatives_data(iq) == JQT_line_gamma_self or 
@@ -535,11 +609,11 @@ void Linefunctions::set_faddeeva_algorithm916(ComplexVector& F,
           if(first_pressure_broadening == iq)
           {
             dz = Complex(-1.0, 1.0) * invGD;
-            dF[iq][iv] = fac * dw_over_dz * dz; 
+            dF[iq][df_range][iv] = fac * dw_over_dz * dz; 
           }
           else
           {
-            dF[iq][iv] = dF[first_frequency][iv]; 
+            dF[iq][df_range][iv] = dF[first_frequency][df_range][iv]; 
           }
         }
       }
@@ -547,7 +621,7 @@ void Linefunctions::set_faddeeva_algorithm916(ComplexVector& F,
       {
         // dz = Complex(- zeeman_df * invGD, 0.0);
         
-        dF[iq][iv] = fac * dw_over_dz * (- zeeman_df * invGD); //* dz; 
+        dF[iq][df_range][iv] = fac * dw_over_dz * (- zeeman_df * invGD); //* dz; 
       }
       else if(derivatives_data(iq) == JQT_line_mixing_DF or
         derivatives_data(iq) == JQT_line_mixing_DF0 or
@@ -557,7 +631,7 @@ void Linefunctions::set_faddeeva_algorithm916(ComplexVector& F,
         // dz = Complex(-invGD, 0.0);
         if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
         {
-          dF[iq][iv] = fac * dw_over_dz * (-invGD); //* dz;
+          dF[iq][df_range][iv] = fac * dw_over_dz * (-invGD); //* dz;
         }
       }
     }
@@ -565,16 +639,37 @@ void Linefunctions::set_faddeeva_algorithm916(ComplexVector& F,
 }
 
 
-void Linefunctions::set_doppler(ComplexVector& F, // Sets the full complex line shape without line mixing
+/*!
+ * Sets the line shape to Doppler line shape. Normalization is unity.
+ * 
+ * Note:  Uses the Voigt function with special parameters to get imaginary
+ * part of spectra.  This should be fixed to gain speed...
+ * 
+ * \retval F Lineshape
+ * \retval dF Lineshape derivative
+ * 
+ * \param f_grid Frequency grid of computations
+ * \param zeeman_df Zeeman shift parameter for the line
+ * \param magnetic_magnitude Absolute strength of the magnetic field
+ * \param F0_noshift Central frequency without any shifts
+ * \param GD_div_F0 Frequency-independent part of the Doppler broadening
+ * \param derivatives_data Information about the derivatives in dF
+ * \param quantum_identity ID of the absorption line
+ * \param dGD_div_F0_dT Temperature derivative of GD_div_F0
+ * \param df_range Frequency range to use inside dF
+ * 
+ */
+void Linefunctions::set_doppler(ComplexVectorView F, // Sets the full complex line shape without line mixing
                                 ArrayOfComplexVector& dF,
-                                const Vector& f_grid,
+                                ConstVectorView f_grid,
                                 const Numeric& zeeman_df,
                                 const Numeric& magnetic_magnitude,
                                 const Numeric& F0_noshift,
                                 const Numeric& GD_div_F0,
                                 const PropmatPartialsData& derivatives_data,
                                 const QuantumIdentifier& quantum_identity,
-                                const Numeric& dGD_div_F0_dT)
+                                const Numeric& dGD_div_F0_dT,
+                                const ComplexRange& df_range)
 {
   set_faddeeva_algorithm916(F,
                             dF, 
@@ -585,12 +680,32 @@ void Linefunctions::set_doppler(ComplexVector& F, // Sets the full complex line 
                             GD_div_F0, 0.0, 0.0,
                             derivatives_data,
                             quantum_identity,
-                            dGD_div_F0_dT);
+                            dGD_div_F0_dT, 0.0, 0.0,
+                            df_range);
 }
 
-void Linefunctions::set_faddeeva_from_full_linemixing(ComplexVector& F, 
+
+/*!
+ * Sets the line shape using eigenvalue decomposition for line mixing. Normalization is unity.
+ * 
+ * Note:  This is still under construction (until there is a publication, then this comment should be changed)
+ * 
+ * \retval F Lineshape
+ * \retval dF Lineshape derivative
+ * 
+ * \param f_grid Frequency grid of computations
+ * \param eigenvalue_no_shift Output from eigenvalue decomposition of band relaxation at some frequency
+ * \param GD_div_F0 Frequency-independent part of the Doppler broadening
+ * \param L0 Speed-independent pressure shift term plus second order line mixing shift
+ * \param derivatives_data Information about the derivatives in dF
+ * \param quantum_identity ID of the absorption line
+ * \param dGD_div_F0_dT Temperature derivative of GD_div_F0
+ * \param dL0_dT Temperature derivative of L0
+ * 
+ */
+void Linefunctions::set_faddeeva_from_full_linemixing(ComplexVectorView F, 
                                                       ArrayOfComplexVector& dF,
-                                                      const Vector& f_grid,
+                                                      ConstVectorView f_grid,
                                                       const Complex& eigenvalue_no_shift,
                                                       const Numeric& GD_div_F0,
                                                       const Numeric& L0,
@@ -615,7 +730,6 @@ void Linefunctions::set_faddeeva_from_full_linemixing(ComplexVector& F,
   
   // constant normalization factor for voigt
   const Numeric fac = sqrtInvPI * invGD;
-  F = fac;
   
   // Ratio of the Lorentz halfwidth to the Doppler halfwidth
   const Complex z0 = -eigenvalue * invGD;
@@ -630,7 +744,7 @@ void Linefunctions::set_faddeeva_from_full_linemixing(ComplexVector& F,
     z = z0 + dx;
     w = Faddeeva::w(z);
     
-    F[iv] *= w;
+    F[iv] = fac * w;
     
     for(Index iq = 0; iq < nppd; iq++)
     {
@@ -714,14 +828,30 @@ void Linefunctions::set_faddeeva_from_full_linemixing(ComplexVector& F,
 }
 
 
-void Linefunctions::apply_linemixing(ComplexVector& F,
+/*!
+ * Applies line mixing to already set lineshape
+ * 
+ * \retval F Lineshape
+ * \retval dF Lineshape derivative
+ * 
+ * \param Y First-order line-mixing coefficient
+ * \param G Second order line-mixing coefficient
+ * \param derivatives_data Information about the derivatives in dF
+ * \param quantum_identity ID of the absorption line
+ * \param dY_dT Temperature derivative of Y
+ * \param dG_dT Temperature derivative of G
+ * \param df_range Frequency range to use inside dF
+ * 
+ */
+void Linefunctions::apply_linemixing(ComplexVectorView F,
                                      ArrayOfComplexVector& dF,
                                      const Numeric& Y,
                                      const Numeric& G,
                                      const PropmatPartialsData& derivatives_data,
                                      const QuantumIdentifier& quantum_identity,
                                      const Numeric& dY_dT,
-                                     const Numeric& dG_dT)
+                                     const Numeric& dG_dT,
+                                     const ComplexRange& df_range)
 {
   const Index nf = F.nelem(), nppd = derivatives_data.nelem();
   
@@ -732,10 +862,10 @@ void Linefunctions::apply_linemixing(ComplexVector& F,
   {
     if(derivatives_data(iq) == JQT_temperature)
     {
-      dF[iq] *= LM;
+      dF[iq][df_range] *= LM;
       for(Index iv = 0; iv < nf; iv++)
       {
-        dF[iq][iv] += F[iv] * dLM_dT;
+        dF[iq][df_range][iv] += F[iv] * dLM_dT;
       }
     }
     else if(derivatives_data(iq) == JQT_line_mixing_Y or
@@ -745,8 +875,8 @@ void Linefunctions::apply_linemixing(ComplexVector& F,
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
       {
-        dF[iq] = F;
-        dF[iq] *= Complex(0.0, -1.0);
+        dF[iq][df_range] = F;
+        dF[iq][df_range] *= Complex(0.0, -1.0);
       }
     }
     else if(derivatives_data(iq) == JQT_line_mixing_G or
@@ -755,25 +885,39 @@ void Linefunctions::apply_linemixing(ComplexVector& F,
       derivatives_data(iq) == JQT_line_mixing_Gexp)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-        dF[iq] = F;
+        dF[iq][df_range] = F;
     }
     else
     {
-      dF[iq] *= LM;
+      dF[iq][df_range] *= LM;
     }
   }
   
   F *= LM;
 }
 
-
-void Linefunctions::apply_rosenkranz_quadratic(ComplexVector& F,
+/*!
+ * Applies Rosenkranz quadratic normalization to already set line shape
+ * 
+ * \retval F Lineshape
+ * \retval dF Lineshape derivative
+ * 
+ * \param f_grid Frequency grid of computations
+ * \param F0 Central frequency without any shifts
+ * \param T Atmospheric temperature at level
+ * \param derivatives_data Information about the derivatives in dF
+ * \param quantum_identity ID of the absorption line
+ * \param df_range Frequency range to use inside dF
+ * 
+ */
+void Linefunctions::apply_rosenkranz_quadratic(ComplexVectorView F,
                                                ArrayOfComplexVector& dF,
-                                               const Vector& f_grid,
+                                               ConstVectorView f_grid,
                                                const Numeric& F0,
                                                const Numeric& T,
                                                const PropmatPartialsData& derivatives_data,
-                                               const QuantumIdentifier& quantum_identity)
+                                               const QuantumIdentifier& quantum_identity,
+                                               const ComplexRange& df_range)
 {
   const Index nf = f_grid.nelem(), nppd = derivatives_data.nelem();
   
@@ -802,15 +946,15 @@ void Linefunctions::apply_rosenkranz_quadratic(ComplexVector& F,
     
     for(Index iq = 0; iq < nppd; iq++)
     {
-      dF[iq][iv] *= fun;
+      dF[iq][df_range][iv] *= fun;
       if(derivatives_data(iq) == JQT_temperature)
       {
-        dF[iq][iv] += dmafac_dT_div_fun * F[iv];
+        dF[iq][df_range][iv] += dmafac_dT_div_fun * F[iv];
       }
       else if(derivatives_data(iq) == JQT_line_center)
       {
         if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-          dF[iq][iv] += dmafac_dF0_div_fun * F[iv];
+          dF[iq][df_range][iv] += dmafac_dF0_div_fun * F[iv];
       }
       else if(derivatives_data(iq) == JQT_frequency or
         derivatives_data(iq) == JQT_wind_magnitude or
@@ -818,20 +962,35 @@ void Linefunctions::apply_rosenkranz_quadratic(ComplexVector& F,
         derivatives_data(iq) == JQT_wind_v or
         derivatives_data(iq) == JQT_wind_w)
       {
-        dF[iq][iv] += (2.0 / f_grid[iv]) * F[iv];
+        dF[iq][df_range][iv] += (2.0 / f_grid[iv]) * F[iv];
       }
     }
   }
 }
 
 
-void Linefunctions::apply_VVH(ComplexVector& F,
+/*!
+ * Applies Van Vleck and Huber normalization to already set line shape
+ * 
+ * \retval F Lineshape
+ * \retval dF Lineshape derivative
+ * 
+ * \param f_grid Frequency grid of computations
+ * \param F0 Central frequency without any shifts
+ * \param T Atmospheric temperature at level
+ * \param derivatives_data Information about the derivatives in dF
+ * \param quantum_identity ID of the absorption line
+ * \param df_range Frequency range to use inside dF
+ * 
+ */
+void Linefunctions::apply_VVH(ComplexVectorView F,
                               ArrayOfComplexVector& dF,
-                              const Vector& f_grid,
+                              ConstVectorView f_grid,
                               const Numeric& F0,
                               const Numeric& T,
                               const PropmatPartialsData& derivatives_data,
-                              const QuantumIdentifier& quantum_identity)
+                              const QuantumIdentifier& quantum_identity,
+                              const ComplexRange& df_range)
 { 
   const Index nf = f_grid.nelem(), nppd = derivatives_data.nelem();
   
@@ -839,13 +998,12 @@ void Linefunctions::apply_VVH(ComplexVector& F,
   const Numeric kT = 2.0 * BOLTZMAN_CONST * T;
   
   // denominator is constant for the loop
-  const Numeric absF0 = abs(F0);
-  const Numeric tanh_f0part = tanh(PLANCK_CONST * absF0 / kT);
-  const Numeric denom = absF0 * tanh_f0part;
+  const Numeric tanh_f0part = tanh(PLANCK_CONST * F0 / kT);
+  const Numeric denom = F0 * tanh_f0part;
   
   Numeric fac_df0 = 0; 
   if(derivatives_data.do_line_center())
-    fac_df0 = (-1.0/absF0 + PLANCK_CONST*tanh_f0part/(kT) - PLANCK_CONST/(kT*tanh_f0part)) * F0/absF0;
+    fac_df0 = (-1.0/F0 + PLANCK_CONST*tanh_f0part/(kT) - PLANCK_CONST/(kT*tanh_f0part)) * F0/F0;
   
   for(Index iv=0; iv < nf; iv++)
   {
@@ -855,16 +1013,16 @@ void Linefunctions::apply_VVH(ComplexVector& F,
     
     for(Index iq = 0; iq < nppd; iq++)
     {
-      dF[iq][iv] *= fun;
+      dF[iq][df_range][iv] *= fun;
       if(derivatives_data(iq) == JQT_temperature)
       {
-        dF[iq][iv] += (-PLANCK_CONST*(denom - absF0/tanh_f0part - 
+        dF[iq][df_range][iv] += (-PLANCK_CONST*(denom - F0/tanh_f0part - 
         f_grid[iv]*tanh_fpart + f_grid[iv]/tanh_fpart)/(kT*T)) * F[iv];
       }
       else if(derivatives_data(iq) == JQT_line_center)
       {
         if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-          dF[iq][iv] += fac_df0 * F[iv];
+          dF[iq][df_range][iv] += fac_df0 * F[iv];
       }
       else if(derivatives_data(iq) == JQT_frequency or
         derivatives_data(iq) == JQT_wind_magnitude or
@@ -872,19 +1030,33 @@ void Linefunctions::apply_VVH(ComplexVector& F,
         derivatives_data(iq) == JQT_wind_v or
         derivatives_data(iq) == JQT_wind_w)
       {
-        dF[iq][iv] += (1.0/f_grid[iv] -PLANCK_CONST*tanh_fpart/kT + PLANCK_CONST/(kT*tanh_fpart)) * F[iv];
+        dF[iq][df_range][iv] += (1.0/f_grid[iv] -PLANCK_CONST*tanh_fpart/kT + PLANCK_CONST/(kT*tanh_fpart)) * F[iv];
       }
     }
   }
 }
 
 
-void Linefunctions::apply_VVW(ComplexVector& F,
+/*!
+ * Applies Van Vleck and Weiskopf normalization to already set line shape
+ * 
+ * \retval F Lineshape
+ * \retval dF Lineshape derivative
+ * 
+ * \param f_grid Frequency grid of computations
+ * \param F0 Central frequency without any shifts
+ * \param derivatives_data Information about the derivatives in dF
+ * \param quantum_identity ID of the absorption line
+ * \param df_range Frequency range to use inside dF
+ * 
+ */
+void Linefunctions::apply_VVW(ComplexVectorView F,
                               ArrayOfComplexVector& dF,
-                              const Vector& f_grid,
+                              ConstVectorView f_grid,
                               const Numeric& F0,
                               const PropmatPartialsData& derivatives_data,
-                              const QuantumIdentifier& quantum_identity)
+                              const QuantumIdentifier& quantum_identity,
+                              const ComplexRange& df_range)
 {
   const Index nf = f_grid.nelem(), nppd = derivatives_data.nelem();
   
@@ -899,11 +1071,11 @@ void Linefunctions::apply_VVW(ComplexVector& F,
     
     for(Index iq = 0; iq < nppd; iq++)
     {
-      dF[iq][iv] *= fun;
+      dF[iq][df_range][iv] *= fun;
       if(derivatives_data(iq) == JQT_line_center)
       {
         if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-          dF[iq][iv] -= 2.0 * invF0 * F[iv];
+          dF[iq][df_range][iv] -= 2.0 * invF0 * F[iv];
       }
       else if(derivatives_data(iq) == JQT_frequency or
         derivatives_data(iq) == JQT_wind_magnitude or
@@ -911,14 +1083,35 @@ void Linefunctions::apply_VVW(ComplexVector& F,
         derivatives_data(iq) == JQT_wind_v or
         derivatives_data(iq) == JQT_wind_w)
       {
-        dF[iq][iv] += 2.0 * f_grid[iv] * F[iv];
+        dF[iq][df_range][iv] += 2.0 * f_grid[iv] * F[iv];
       }
     }
   }
 }
 
 
-void Linefunctions::apply_linestrength(ComplexVector& F,
+/*!
+ * Applies linestrength to already set line shape
+ * 
+ * \retval F Lineshape
+ * \retval dF Lineshape derivative
+ * 
+ * \param S0 Strength of line at reference temperature
+ * \param isotopic_ratio The ratio of the isotopologue in the atmosphere at this level
+ * \param QT Partition function at atmospheric temperature of level
+ * \param QT0 Partition function at reference temperature
+ * \param K1 Boltzmann ratio between reference and atmospheric temperatures
+ * \param K2 Stimulated emission ratio between reference and atmospheric temperatures
+ * \param derivatives_data Information about the derivatives in dF
+ * \param quantum_identity ID of the absorption line
+ * \param dQT_dT Temperature derivative of QT
+ * \param dK1_dT Temperature derivative of K1
+ * \param dK2_dT Temperature derivative of K2
+ * \param dK2_dF0 Central frequency derivative of K2
+ * \param df_range Frequency range to use inside dF
+ * 
+ */
+void Linefunctions::apply_linestrength(ComplexVectorView F,
                                        ArrayOfComplexVector& dF,
                                        const Numeric& S0,
                                        const Numeric& isotopic_ratio,
@@ -931,7 +1124,8 @@ void Linefunctions::apply_linestrength(ComplexVector& F,
                                        const Numeric& dQT_dT,
                                        const Numeric& dK1_dT,
                                        const Numeric& dK2_dT,
-                                       const Numeric& dK2_dF0)
+                                       const Numeric& dK2_dF0,
+                                       const ComplexRange& df_range)
 {
   const Index nppd = derivatives_data.nelem();
   
@@ -943,7 +1137,7 @@ void Linefunctions::apply_linestrength(ComplexVector& F,
   {
     if(derivatives_data(iq) == JQT_temperature)
     {
-      Eigen::VectorXcd eig_dF = MapToEigen(dF[iq]);
+      Eigen::VectorXcd eig_dF = MapToEigen(dF[iq][df_range]);
       
       eig_dF *= S;
       eig_dF += MapToEigen(F) * (S0 * isotopic_ratio * QT_ratio * 
@@ -955,8 +1149,8 @@ void Linefunctions::apply_linestrength(ComplexVector& F,
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
       {
-        dF[iq] = F;
-        dF[iq] *= isotopic_ratio;
+        dF[iq][df_range] = F;
+        dF[iq][df_range] *= isotopic_ratio;
       }
     }
     else if(derivatives_data(iq) == JQT_line_center)
@@ -964,7 +1158,7 @@ void Linefunctions::apply_linestrength(ComplexVector& F,
       
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
       {
-        Eigen::VectorXcd eig_dF = MapToEigen(dF[iq]);
+        Eigen::VectorXcd eig_dF = MapToEigen(dF[iq][df_range]);
         
         eig_dF *= S;
         eig_dF += MapToEigen(F) * (S0 * isotopic_ratio * QT_ratio * K1 * dK2_dF0);
@@ -972,26 +1166,31 @@ void Linefunctions::apply_linestrength(ComplexVector& F,
     }
     else
     {
-      dF[iq] *= S;
+      dF[iq][df_range] *= S;
     }
   }
   F *= S;
 }
 
 
-/*! Applies the line strength to the line shape using the complex line strenth of line mixing
+/*! Applies the line strength to the line shape using the complex line strength of line mixing.
+ * Lineshape is already set.
  * 
- * \param F                        Lineshape vector (already set)
- * \param dF                       Lineshape derivative vector (already set)
- * \param F0                       Line center frequency[Hz]
- * \param T                        Atmospheric temperature at level
- * \param S_LM                     Complex linestrength
- * \param isotopic_ratio           Ratio of isotopologue in atmosphere at level
- * \param derivatives_data         Information on the partial derivative
- * \param dS_LM_dT                 Derivative of S_LM with respect to T
+ * Note:  This is still under construction (until there is a publication, then this comment should be changed)
+ * 
+ * \retval F Lineshape
+ * \retval dF Lineshape derivative
+ * 
+ * \param F0 Central frequency without any shifts
+ * \param T Atmospheric temperature at level
+ * \param S_LM Complex linestrength
+ * \param isotopic_ratio The ratio of the isotopologue in the atmosphere at this level
+ * \param derivatives_data Information about the derivatives in dF
+ * \param quantum_identity ID of the absorption line
+ * \param dS_LM_dT Temperature derivative of S_LM
  * 
  */
-void Linefunctions::apply_linestrength_from_full_linemixing(ComplexVector& F,
+void Linefunctions::apply_linestrength_from_full_linemixing(ComplexVectorView F,
                                                             ArrayOfComplexVector& dF,
                                                             const Numeric& F0,
                                                             const Numeric& T,
@@ -1042,17 +1241,20 @@ void Linefunctions::apply_linestrength_from_full_linemixing(ComplexVector& F,
 
 /*! Applies the line strength to the line shape using the dipole information
  * 
- * \param F                        Lineshape vector (already set)
- * \param dF                       Lineshape derivative vector (already set)
- * \param F0                       Line center frequency[Hz]
- * \param T                        Atmospheric temperature at level
- * \param rho                      Density (of molecules at level)
- * \param isotopic_ratio           Ratio of isotopologue in atmosphere at level
- * \param derivatives_data         Information on the partial derivative
- * \param drho_dT                  Derivative of rho with respect to T
+ * \retval F Lineshape
+ * \retval dF Lineshape derivative
+ * 
+ * \param F0 Central frequency without any shifts
+ * \param T Atmospheric temperature at level
+ * \param d0 Dipole of the absorption line
+ * \param rho Density (of molecules at level
+ * \param isotopic_ratio The ratio of the isotopologue in the atmosphere at this level
+ * \param derivatives_data Information about the derivatives in dF
+ * \param quantum_identity ID of the absorption line
+ * \param drho_dT Temperature derivative of rho
  * 
  */
-void Linefunctions::apply_dipole(ComplexVector& F,
+void Linefunctions::apply_dipole(ComplexVectorView F,
                                  ArrayOfComplexVector& dF,
                                  const Numeric& F0,
                                  const Numeric& T,
@@ -1105,18 +1307,19 @@ void Linefunctions::apply_dipole(ComplexVector& F,
 
 /*! Applies the line-by-line pressure broadening jacobian for the matching lines
  * 
- * \param dF                       array of already applied lineshape jacobians that need 
- *                                 to have the derivatives data applied
- * \param derivatives_data         information on where the derivatives need to be applied
- * \param dgamma                   vector the length of the number of pressure broadening
- *                                 parameters that need to be applied sorted by their
- *                                 apprearance in derivatives_data
+ * \retval dF Lineshape derivative
+ * 
+ * \param derivatives_data Information about the derivatives in dF
+ * \param quantum_identity ID of the absorption line
+ * \param dgamma Derivatives in order as they appear that are related to pressure broadening coefficients
+ * \param df_range Frequency range to use inside dF
  * 
  */
 void Linefunctions::apply_pressurebroadening_jacobian(ArrayOfComplexVector& dF,
                                                       const PropmatPartialsData& derivatives_data,
                                                       const QuantumIdentifier& quantum_identity,
-                                                      const ComplexVector& dgamma)
+                                                      const ComplexVector& dgamma,
+                                                      const ComplexRange& df_range)
 {
   const Index nppd = derivatives_data.nelem(), ng = dgamma.nelem();
   
@@ -1130,63 +1333,63 @@ void Linefunctions::apply_pressurebroadening_jacobian(ArrayOfComplexVector& dF,
     if(derivatives_data(iq) == JQT_line_gamma_self)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-        dF[iq] *= dgamma[ipd];
+        dF[iq][df_range] *= dgamma[ipd];
       else
         continue;
     }
     else if(derivatives_data(iq) == JQT_line_gamma_foreign)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-        dF[iq] *= dgamma[ipd];
+        dF[iq][df_range] *= dgamma[ipd];
       else
         continue;
     }
     else if(derivatives_data(iq) == JQT_line_gamma_water)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-        dF[iq] *= dgamma[ipd];
+        dF[iq][df_range] *= dgamma[ipd];
       else
         continue;
     }
     else if(derivatives_data(iq) == JQT_line_pressureshift_self)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-        dF[iq] *= dgamma[ipd];
+        dF[iq][df_range] *= dgamma[ipd];
       else
         continue;
     }
     else if(derivatives_data(iq) == JQT_line_pressureshift_foreign)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-        dF[iq] *= dgamma[ipd];
+        dF[iq][df_range] *= dgamma[ipd];
       else
         continue;
     }
     else if(derivatives_data(iq) == JQT_line_pressureshift_water)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-        dF[iq] *= 0.0;
+        dF[iq][df_range] *= dgamma[ipd];
       else
         continue;
     }
     else if(derivatives_data(iq) == JQT_line_gamma_selfexponent)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-        dF[iq] *= dgamma[ipd];
+        dF[iq][df_range] *= dgamma[ipd];
       else
         continue;
     }
     else if(derivatives_data(iq) == JQT_line_gamma_foreignexponent)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-        dF[iq] *= dgamma[ipd];
+        dF[iq][df_range] *= dgamma[ipd];
       else
         continue;
     }
     else if(derivatives_data(iq) == JQT_line_gamma_waterexponent)
     {
       if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
-        dF[iq] *= dgamma[ipd];
+        dF[iq][df_range] *= dgamma[ipd];
       else
         continue;
     }
@@ -1199,21 +1402,54 @@ void Linefunctions::apply_pressurebroadening_jacobian(ArrayOfComplexVector& dF,
 }
 
 
+/*! Returns the frequency-independent part of the Doppler broadening
+ * 
+ * \param T Atmospheric temperature at level
+ * \param mass Mass of molecule under consideration
+ * 
+ */
 Numeric Linefunctions::DopplerConstant(const Numeric T, const Numeric mass)
 {
   return doppler_const * sqrt(T / mass);
 }
 
 
+/*! Returns the temperature derivative of the frequency-independent part of the Doppler broadening
+ * 
+ * \param T Atmospheric temperature at level
+ * \param mass Mass of molecule under consideration
+ * 
+ */
 Numeric Linefunctions::dDopplerConstant_dT(const Numeric T, const Numeric mass)
 {
   return doppler_const * 0.5 * sqrt(1.0 / mass / T);
 }
 
 
-void Linefunctions::apply_nonlte(ComplexVector& F, 
+/*!
+ * Applies non-lte linestrength to already set line shape
+ * 
+ * \retval F Lineshape
+ * \retval dF Lineshape derivative
+ * \retval N Non-lte lineshape
+ * \retval dN Non-lte lineshape derivative
+ * 
+ * \param K3 Ratio of absorption due to non-lte effects
+ * \param K4 Ratio of emission due to non-lte effects
+ * \param derivatives_data Information about the derivatives in dF
+ * \param quantum_identity ID of the absorption line
+ * \param dK3_dT Temperature derivative of K3
+ * \param dK4_dT Temperature derivative of K4
+ * \param dK3_dF0 Central frequency derivative of K3
+ * \param dK3_dTl Lower energy state equivalent non-lte temperature derivative of K3
+ * \param dK3_dTu Upper energy state equivalent non-lte temperature derivative of K3
+ * \param dK4_dTu Upper energy state equivalent non-lte temperature derivative of K4
+ * \param df_range Frequency range to use inside dF and dN
+ * 
+ */
+void Linefunctions::apply_nonlte(ComplexVectorView F, 
                                  ArrayOfComplexVector& dF, 
-                                 ComplexVector& N, 
+                                 ComplexVectorView N, 
                                  ArrayOfComplexVector& dN, 
                                  const Numeric& K3, 
                                  const Numeric& K4,
@@ -1224,7 +1460,8 @@ void Linefunctions::apply_nonlte(ComplexVector& F,
                                  const Numeric& dK3_dF0, 
                                  const Numeric& dK3_dTl, 
                                  const Numeric& dK3_dTu, 
-                                 const Numeric& dK4_dTu)
+                                 const Numeric& dK4_dTu,
+                                 const ComplexRange& df_range)
 {
   const Index nppd = derivatives_data.nelem(), nf = F.nelem();
   
@@ -1236,9 +1473,9 @@ void Linefunctions::apply_nonlte(ComplexVector& F,
   
   for(Index iq = 0; iq < nppd; iq++)
   {
-    dN[iq] = dF[iq];
-    dN[iq] *= scaled_ratio;
-    dF[iq] *= K3;
+    dN[iq][df_range] = dF[iq][df_range];
+    dN[iq][df_range] *= scaled_ratio;
+    dF[iq][df_range] *= K3;
     
     if(derivatives_data(iq) == JQT_temperature)
     {
@@ -1246,8 +1483,8 @@ void Linefunctions::apply_nonlte(ComplexVector& F,
       
       for(Index iv = 0; iv < nf; iv++)
       {
-        dF[iq][iv] += F[iv] * dK3_dT;
-        dN[iq][iv] += F[iv] * dscaled_ratio_dT;
+        dF[iq][df_range][iv] += F[iv] * dK3_dT;
+        dN[iq][df_range][iv] += F[iv] * dscaled_ratio_dT;
       }
     }
     else if(derivatives_data(iq) == JQT_line_center)
@@ -1258,8 +1495,8 @@ void Linefunctions::apply_nonlte(ComplexVector& F,
         
         for(Index iv = 0; iv < nf; iv++)
         {
-          dF[iq][iv] += F[iv] * dK3_dF0;
-          dN[iq][iv] += F[iv] * dscaled_ratio_dF0;
+          dF[iq][df_range][iv] += F[iv] * dK3_dF0;
+          dN[iq][df_range][iv] += F[iv] * dscaled_ratio_dF0;
         }
       }
     }
@@ -1277,8 +1514,8 @@ void Linefunctions::apply_nonlte(ComplexVector& F,
         
         for(Index iv = 0; iv < nf; iv++)
         {
-          dF[iq][iv] += F[iv] * dK3_dTl;
-          dN[iq][iv] += F[iv] * dscaled_ratio_dTl;
+          dF[iq][df_range][iv] += F[iv] * dK3_dTl;
+          dN[iq][df_range][iv] += F[iv] * dscaled_ratio_dTl;
         }
       }
       
@@ -1290,8 +1527,8 @@ void Linefunctions::apply_nonlte(ComplexVector& F,
         
         for(Index iv = 0; iv < nf; iv++)
         {
-          dF[iq][iv] += F[iv] * dK3_dTu;
-          dN[iq][iv] += F[iv] * dscaled_ratio_dTu;
+          dF[iq][df_range][iv] += F[iv] * dK3_dTu;
+          dN[iq][df_range][iv] += F[iv] * dscaled_ratio_dTu;
         }
       }
     }
@@ -1302,19 +1539,53 @@ void Linefunctions::apply_nonlte(ComplexVector& F,
 }
 
 
-void Linefunctions::set_cross_section_for_single_line(ComplexVector& F,
+/*!
+ * Combination function using standard setup to compute line strength and lineshape of a single line.
+ * Computes in order the lineshape, the linemirroring, the linenormalization, the linemixing, the 
+ * linestrength, the non-lte, and the cutoff frequency.
+ * 
+ * \retval F Lineshape
+ * \retval dF Lineshape derivative
+ * \retval N Non-lte lineshape
+ * \retval dN Non-lte lineshape derivative
+ * 
+ * \param derivatives_data Information about the derivatives in dF
+ * \param line line-record containing most line parameters
+ * \param volume_mixing_ratio_of_all_species As name suggests
+ * \param nlte_temperatures As name suggests
+ * \param pressure As name suggests
+ * \param temperature As name suggests
+ * \param doppler_constant Frequency-independent part of the Doppler broadening
+ * \param partial_pressure Pressure of species that line belongs to at this level
+ * \param isotopologue_ratio The ratio of the isotopologue in the atmosphere at this level
+ * \param magnetic_magnitude Absolute strength of the magnetic field
+ * \param ddoppler_constant_dT Temperature derivative of doppler_constant
+ * \param pressure_limit_for_linemixing As WSV lm_p_lim
+ * \param zeeman_frequency_shift_constant Zeeman shift parameter for the line
+ * \param partition_function_at_temperature As name suggests
+ * \param dpartition_function_at_temperature_dT Temeperature derivative of partition_function_at_temperature
+ * \param partition_function_at_line_temperature As name suggests
+ * \param broad_spec_locations Locations of broadening species using all-planetary broadening inside volume_mixing_ratio_of_all_species
+ * \param this_species_location_in_tags Location of species of line in volume_mixing_ratio_of_all_species
+ * \param water_index_location_in_tags Location of water in volume_mixing_ratio_of_all_species
+ * \param verbosity Verbosity level
+ * \param cutoff_call Flag to ignore some functions inside if this call is from the cutoff-computations
+ * 
+ */
+void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
                                                       ArrayOfComplexVector& dF,
-                                                      ComplexVector& N,
+                                                      ComplexVectorView N, 
                                                       ArrayOfComplexVector& dN,
-                                                      const PropmatPartialsData& derivatives_data,
-                                                      const LineRecord& line,
-                                                      ConstVectorView f_grid,
-                                                      ConstVectorView volume_mixing_ratio_of_all_species,
-                                                      ConstVectorView nlte_temperatures,
-                                                      const Numeric& pressure,
-                                                      const Numeric& temperature,
-                                                      const Numeric& doppler_constant,
-                                                      const Numeric& partial_pressure,
+                                                      ComplexRange& this_xsec_range,
+                                                      const PropmatPartialsData& derivatives_data, 
+                                                      const LineRecord& line, 
+                                                      ConstVectorView f_grid, 
+                                                      ConstVectorView volume_mixing_ratio_of_all_species, 
+                                                      ConstVectorView nlte_temperatures, 
+                                                      const Numeric& pressure, 
+                                                      const Numeric& temperature, 
+                                                      const Numeric& doppler_constant, 
+                                                      const Numeric& partial_pressure, 
                                                       const Numeric& isotopologue_ratio,
                                                       const Numeric& magnetic_magnitude,
                                                       const Numeric& ddoppler_constant_dT,
@@ -1326,7 +1597,8 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVector& F,
                                                       const ArrayOfIndex& broad_spec_locations,
                                                       const Index& this_species_location_in_tags,
                                                       const Index& water_index_location_in_tags,
-                                                      const Verbosity& verbosity)
+                                                      const Verbosity& verbosity,
+                                                      const bool cutoff_call)
 {
   // This call assumes the size of all variables are as 
   // they should be and makes no tests in this is the case
@@ -1336,6 +1608,42 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVector& F,
   //   N = LM K1 K2 (K4/K3 - 1) QT/QT0 S0 f(...),
   //   dF = d(F)/dx
   //   dN = d(N)/dx
+  
+  // Get the cutoff range if applicable
+  const Index nf = f_grid.nelem();
+  Range this_f_range(joker);
+  const Numeric cutoff = line.CutOff();
+  const bool need_cutoff = (cutoff > 0) and not cutoff_call;
+  
+  if(need_cutoff)
+  {
+    // Find range of simulations
+    Index i_f_min = 0;
+    Index i_f_max = nf-1;
+    
+    while(i_f_min < nf and (line.F() - cutoff) > f_grid[i_f_min])
+      ++i_f_min;
+    while(i_f_max >= i_f_min and (line.F() + cutoff) < f_grid[i_f_max])
+      --i_f_max;
+    ++i_f_max;
+    
+    const Index extent = i_f_max - i_f_min;
+    
+    this_f_range = Range(i_f_min, extent);
+    this_xsec_range = ComplexRange(i_f_min, extent);
+    
+    if(extent < 1)
+      return;
+  }
+  else
+  {
+    this_f_range = Range(joker);
+    this_xsec_range = ComplexRange(joker);
+  }
+  
+  // Calculation vectors
+  ComplexVectorView F_calc = F[this_xsec_range];
+  ConstVectorView f_grid_calc = f_grid[this_f_range];
   
   // Extract the quantum identify of the line
   const QuantumIdentifier QI = line.QuantumIdentity();
@@ -1356,15 +1664,15 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVector& F,
   
   // Line mixing terms
   Numeric Y=0, G=0, DV=0;
-  line.LineMixing().GetLineMixingParams(Y, G, DV, 
-                                        temperature, pressure, 
+  line.LineMixing().GetLineMixingParams(Y, G, DV, temperature, pressure, 
                                         pressure_limit_for_linemixing);
   
   // Treat line mixing as a shift on first order of pressure shift
   // Note that HTP-like line shapes might only use first order line 
   // mixing because of this assumption, so if anything changes on
   // this from this part has to be updated
-  L0 += DV;
+  if(DV not_eq 0)
+    L0 += DV;
   
   // Partial derivatives for temperature
   Numeric dG0_dT, dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT, dY_dT, dG_dT, dDV_dT, dK1_dT, dK2_dT;
@@ -1372,7 +1680,6 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVector& F,
   {
     // NOTE:  This will change if and when we have a good temperature understanding of HTP,
     // and uninitialized variables above will then be set...
-    // FIXME:  Change GetPressureBroadeningParams_dT to output all of above
     line.PressureBroadening().GetPressureBroadeningParams_dT(dG0_dT, dL0_dT,
       temperature, line.Ti0(), pressure, partial_pressure,
       this_species_location_in_tags, water_index_location_in_tags,
@@ -1385,7 +1692,8 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVector& F,
                                               pressure, pressure_limit_for_linemixing);
    
     // See comment above L0 += DV;
-    dL0_dT += dDV_dT;
+    if(dDV_dT not_eq 0)
+      dL0_dT += dDV_dT;
   
     // Line strength partial derivatives
     dK1_dT = dboltzman_ratio_dT(K1, temperature, line.Elow());
@@ -1405,57 +1713,167 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVector& F,
   if(derivatives_data.do_line_center())
     dK2_dF0 = dstimulated_relative_emission_dF0(gamma, gamma_ref, temperature);
   
-  // FIXME: INSERT CUTOFF COMPUTATIONS HERE TO GENERATE A NEW FREQUENCY GRID SPECIFIC FOR THIS LINE
-  // QUESTIONS: Should we allow smartness here and then use magic interpolation to return
-  // to proper grid later?
-  
   // Set the line shape normalized to unity integration
-  // FIXME: MAKE THE BELOW REACT TO A FLAG STATING IF AND HOW MIRRORING SHOULD BE DEALT WITH
-  // QUESTION: Should this just use the mirror of the same lineshape or should we allow
-  // setting a flag for Lorentz-mirroring?
-  switch(line.PressureBroadening().Type())
+  LineShapeType lst = LineShapeType::End;
+  switch(line.GetLineShapeType())
   {
-    case PressureBroadeningData::PB_SD_AIR_VOLUME:
-      // Above should be all methods of pressure broadening requiring HTP in ARTS to work
-      set_htp(F, dF, 
-              f_grid, zeeman_frequency_shift_constant, magnetic_magnitude, 
-              line.F(), doppler_constant, 
-              G0, L0, L2, G2, e, FVC,
-              derivatives_data, QI,
-              ddoppler_constant_dT, dG0_dT, dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT);
+    case LineShapeType::ByPressureBroadeningData:
+      switch(line.PressureBroadening().Type())
+      {
+        case PressureBroadeningData::PB_SD_AIR_VOLUME:
+          // Above should be all methods of pressure broadening requiring HTP in ARTS to work by default
+          lst = LineShapeType::HTP;
+          set_htp(F_calc, dF, 
+                  f_grid_calc, zeeman_frequency_shift_constant, magnetic_magnitude, 
+                  line.F(), doppler_constant, 
+                  G0, L0, G2, L2, e, FVC,
+                  derivatives_data, QI,
+                  ddoppler_constant_dT, 
+                  dG0_dT, dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT,
+                  this_xsec_range);
+          break;
+        case PressureBroadeningData::PB_AIR_AND_WATER_BROADENING:
+        case PressureBroadeningData::PB_PLANETARY_BROADENING:
+        case PressureBroadeningData::PB_AIR_BROADENING:
+          // Above should be all methods of pressure broadening requiring Voigt in ARTS by default
+          lst = LineShapeType::Voigt;
+          set_faddeeva_algorithm916(F_calc, dF, f_grid_calc, 
+                                    zeeman_frequency_shift_constant, magnetic_magnitude, 
+                                    line.F(), doppler_constant, 
+                                    G0, L0, derivatives_data, QI,
+                                    ddoppler_constant_dT, dG0_dT, dL0_dT,
+                                    this_xsec_range);
+          break;
+        default:
+          throw std::runtime_error("Developer has messed up and needs to add the key to the code above this error");
+      }
       break;
-    case PressureBroadeningData::PB_AIR_AND_WATER_BROADENING:
-    case PressureBroadeningData::PB_PLANETARY_BROADENING:
-    case PressureBroadeningData::PB_AIR_BROADENING:
-      // Above should be all methods of pressure broadening requiring Voigt in ARTS
-      set_faddeeva_algorithm916(F, dF, f_grid, 
+    case LineShapeType::Doppler:
+      lst = LineShapeType::Doppler;
+      set_doppler(F_calc, dF, f_grid_calc, zeeman_frequency_shift_constant, magnetic_magnitude, 
+                  line.F(), doppler_constant, derivatives_data, QI, ddoppler_constant_dT, this_xsec_range);
+      break;
+    case LineShapeType::HTP:
+      set_htp(F_calc, dF, 
+              f_grid_calc, zeeman_frequency_shift_constant, magnetic_magnitude, 
+              line.F(), doppler_constant, 
+              G0, L0, G2, L2, e, FVC,
+              derivatives_data, QI,
+              ddoppler_constant_dT, 
+              dG0_dT, dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT,
+              this_xsec_range);
+      lst = LineShapeType::HTP;
+      break;
+    case LineShapeType::Lorentz:
+      lst = LineShapeType::Lorentz;
+      set_lorentz(F_calc, dF, f_grid_calc, zeeman_frequency_shift_constant, magnetic_magnitude, 
+                  line.F(), G0, L0, derivatives_data, QI, dG0_dT, dL0_dT, this_xsec_range);
+      break;
+    case LineShapeType::Voigt:
+      lst = LineShapeType::Voigt;
+      set_faddeeva_algorithm916(F_calc, dF, f_grid_calc, 
                                 zeeman_frequency_shift_constant, magnetic_magnitude, 
                                 line.F(), doppler_constant, 
-                                G0, L0, 
-                                derivatives_data, QI,
-                                ddoppler_constant_dT, dG0_dT, dL0_dT);
+                                G0, L0, derivatives_data, QI,
+                                ddoppler_constant_dT, dG0_dT, dL0_dT,
+                                this_xsec_range);
       break;
+    case LineShapeType::End:
     default:
-      throw std::runtime_error("Developer has messed up and needs to add the key to the code above this error");
+      throw std::runtime_error("Cannot understand the requested line shape type.");
   }
   
-  // FIXME: INSERT LINE NORMALIZATION COMPUTATIONS HERE AFTER A FLAG HAS BEEN MADE FOR VVH, VVW, AND SO ON
-  apply_VVH(F, dF, f_grid, line.F(), temperature, derivatives_data, QI);
+  // Set the mirroring by repeating computations above using negative numbers for frequency of line related terms
+  switch(line.GetMirroringType())
+  {
+    case MirroringType::None:
+      break;
+    case MirroringType::Lorentz:
+    {
+      ComplexVector Fm(F_calc.nelem());
+      ArrayOfComplexVector dFm(dF.nelem());
+      for(auto& aocv : dFm) aocv.resize(F_calc.nelem());
+      set_lorentz(Fm, dFm, f_grid_calc, -zeeman_frequency_shift_constant, magnetic_magnitude, 
+                  -line.F(), G0, -L0, derivatives_data, QI, dG0_dT, -dL0_dT);
+      F_calc -= Fm;
+      for(Index i = 0; i < dF.nelem(); i++) dF[i][this_xsec_range] -= dFm[i];
+    }
+    break;
+    case MirroringType::SameAsLineShape:
+    {
+      ComplexVector Fm(F_calc.nelem());
+      ArrayOfComplexVector dFm(dF.nelem());
+      for(auto& aocv : dFm) aocv.resize(F_calc.nelem());
+      switch(lst)
+      {
+        case LineShapeType::Doppler:
+          set_doppler(Fm, dFm, f_grid_calc, -zeeman_frequency_shift_constant, magnetic_magnitude, 
+                      -line.F(), -doppler_constant, derivatives_data, QI, -ddoppler_constant_dT);
+          break;
+        case LineShapeType::Lorentz:
+          set_lorentz(Fm, dFm, f_grid_calc, -zeeman_frequency_shift_constant, magnetic_magnitude, 
+                      -line.F(), G0, -L0, derivatives_data, QI, dG0_dT, -dL0_dT);
+          break;
+        case LineShapeType::Voigt:
+          set_faddeeva_algorithm916(Fm, dFm, f_grid_calc, 
+                                    -zeeman_frequency_shift_constant, magnetic_magnitude, 
+                                    -line.F(), -doppler_constant, 
+                                    G0, -L0, derivatives_data, QI,
+                                    -ddoppler_constant_dT, dG0_dT, -dL0_dT);
+          break;
+        case LineShapeType::HTP:
+          // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
+          set_htp(Fm, dFm, f_grid_calc, 
+                  -zeeman_frequency_shift_constant, magnetic_magnitude, 
+                  -line.F(), -doppler_constant, 
+                  G0, -L0, G2, -L2, e, FVC,
+                  derivatives_data, QI,
+                  -ddoppler_constant_dT, 
+                  dG0_dT, -dL0_dT, dG2_dT, -dL2_dT, de_dT, dFVC_dT);
+          break;
+        case LineShapeType::ByPressureBroadeningData:
+        case LineShapeType::End:
+        default:
+          throw std::runtime_error("Cannot understand the requested line shape type for mirroring by same line shape.");
+      }
+      F_calc -= Fm;
+      for(Index i = 0; i < dF.nelem(); i++) dF[i][this_xsec_range] -= dFm[i];
+      break;
+    }
+    case MirroringType::End:
+    default:
+      throw std::runtime_error("Cannot understand the requested mirroring type for mirroring.");
+  }
   
-  // FIXME: REMOVE EXCESS ABSORPTION FROM THE LINE SHAPE HERE BY LISTENING TO THE CUTOFF
+  // Line normalization
+  switch(line.GetLineNormalizationType())
+  {
+    case LineNormalizationType::None:
+      break;
+    case LineNormalizationType::VVH:
+      apply_VVH(F_calc, dF, f_grid_calc, line.F(), temperature, derivatives_data, QI, this_xsec_range);
+      break;
+    case LineNormalizationType::VVW:
+      apply_VVW(F_calc, dF, f_grid_calc, line.F(), derivatives_data, QI, this_xsec_range);
+      break;
+    case LineNormalizationType::RosenkranzQuadratic:
+      apply_rosenkranz_quadratic(F_calc, dF, f_grid_calc, line.F(), temperature, derivatives_data, QI, this_xsec_range);
+      break;
+    case LineNormalizationType::End:
+    default:
+      throw std::runtime_error("Cannot understand the requested line normalization type.");
+  }
   
   // Apply line mixing if relevant
-  apply_linemixing(F, dF,
-                   Y, G, 
-                   derivatives_data, 
-                   QI, dY_dT, dG_dT);
+  if(Y not_eq 0 or G not_eq 0)
+    apply_linemixing(F_calc, dF, Y, G, 
+                    derivatives_data, 
+                    QI, dY_dT, dG_dT);
   
   // Change the line integration value
-  apply_linestrength(F, dF, 
-                     line.I0(), isotopologue_ratio,
+  apply_linestrength(F_calc, dF,  line.I0(), isotopologue_ratio,
                      partition_function_at_temperature, partition_function_at_line_temperature, K1, K2,
-                     derivatives_data, QI,
-                     dpartition_function_at_temperature_dT, dK1_dT, dK2_dT, dK2_dF0);
+                     derivatives_data, QI, dpartition_function_at_temperature_dT, dK1_dT, dK2_dT, dK2_dF0);
   
   // Apply pressure broadening vector if there are matching cases
   if(derivatives_data.get_first_pressure_term() > -1)
@@ -1520,9 +1938,138 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVector& F,
       dK4_dTu = dboltzman_ratio_dT(K4, Tu, Eu);
     }
     
-    apply_nonlte(F, dF, N, dN, 
-                 K3, K4, 
+    apply_nonlte(F_calc, dF, N[this_xsec_range], dN, K3, K4, 
                  derivatives_data, QI, 
-                 dK3_dT, dK4_dT, dK3_dF0, dK3_dTl, dK3_dTu, dK4_dTu);
+                 dK3_dT, dK4_dT, dK3_dF0, dK3_dTl, dK3_dTu, dK4_dTu, this_xsec_range);
   }
+  
+  // Cutoff frequency
+  if(need_cutoff)
+  {
+    if(nlte_temperatures.nelem())
+      apply_cutoff(F_calc, dF, N[this_xsec_range], dN,
+                  derivatives_data, line,
+                  volume_mixing_ratio_of_all_species,
+                  nlte_temperatures, pressure, temperature,
+                  doppler_constant, partial_pressure,
+                  isotopologue_ratio, magnetic_magnitude,
+                  ddoppler_constant_dT, pressure_limit_for_linemixing,
+                  zeeman_frequency_shift_constant,
+                  partition_function_at_temperature,
+                  dpartition_function_at_temperature_dT,
+                  partition_function_at_line_temperature,
+                  broad_spec_locations, this_species_location_in_tags,
+                  water_index_location_in_tags, this_xsec_range, verbosity);
+    else
+      apply_cutoff(F_calc, dF, N, dN,
+                  derivatives_data, line,
+                  volume_mixing_ratio_of_all_species,
+                  nlte_temperatures, pressure, temperature,
+                  doppler_constant, partial_pressure,
+                  isotopologue_ratio, magnetic_magnitude,
+                  ddoppler_constant_dT, pressure_limit_for_linemixing,
+                  zeeman_frequency_shift_constant,
+                  partition_function_at_temperature,
+                  dpartition_function_at_temperature_dT,
+                  partition_function_at_line_temperature,
+                  broad_spec_locations, this_species_location_in_tags,
+                  water_index_location_in_tags, this_xsec_range, verbosity);
+  }
+}
+
+
+/*!
+ * Combination function using standard setup to compute line strength and lineshape of a single line.
+ * Computes in order the lineshape, the linemirroring, the linenormalization, the linemixing, the 
+ * linestrength, the non-lte, and the cutoff frequency.
+ * 
+ * \retval F Lineshape
+ * \retval dF Lineshape derivative
+ * \retval N Non-lte lineshape
+ * \retval dN Non-lte lineshape derivative
+ * 
+ * \param derivatives_data Information about the derivatives in dF
+ * \param line line-record containing most line parameters
+ * \param volume_mixing_ratio_of_all_species As name suggests
+ * \param nlte_temperatures As name suggests
+ * \param pressure As name suggests
+ * \param temperature As name suggests
+ * \param doppler_constant Frequency-independent part of the Doppler broadening
+ * \param partial_pressure Pressure of species that line belongs to at this level
+ * \param isotopologue_ratio The ratio of the isotopologue in the atmosphere at this level
+ * \param magnetic_magnitude Absolute strength of the magnetic field
+ * \param ddoppler_constant_dT Temperature derivative of doppler_constant
+ * \param pressure_limit_for_linemixing As WSV lm_p_lim
+ * \param zeeman_frequency_shift_constant Zeeman shift parameter for the line
+ * \param partition_function_at_temperature As name suggests
+ * \param dpartition_function_at_temperature_dT Temeperature derivative of partition_function_at_temperature
+ * \param partition_function_at_line_temperature As name suggests
+ * \param broad_spec_locations Locations of broadening species using all-planetary broadening inside volume_mixing_ratio_of_all_species
+ * \param this_species_location_in_tags Location of species of line in volume_mixing_ratio_of_all_species
+ * \param water_index_location_in_tags Location of water in volume_mixing_ratio_of_all_species
+ * \param df_range Frequency range to use inside dF and dN
+ * \param verbosity Verbosity level
+ * 
+ */
+void Linefunctions::apply_cutoff(ComplexVectorView F,
+                                 ArrayOfComplexVector& dF,
+                                 ComplexVectorView N,
+                                 ArrayOfComplexVector& dN,
+                                 const PropmatPartialsData& derivatives_data,
+                                 const LineRecord& line,
+                                 ConstVectorView volume_mixing_ratio_of_all_species,
+                                 ConstVectorView nlte_temperatures,
+                                 const Numeric& pressure,
+                                 const Numeric& temperature,
+                                 const Numeric& doppler_constant,
+                                 const Numeric& partial_pressure,
+                                 const Numeric& isotopologue_ratio,
+                                 const Numeric& magnetic_magnitude,
+                                 const Numeric& ddoppler_constant_dT,
+                                 const Numeric& pressure_limit_for_linemixing,
+                                 const Numeric& zeeman_frequency_shift_constant,
+                                 const Numeric& partition_function_at_temperature,
+                                 const Numeric& dpartition_function_at_temperature_dT,
+                                 const Numeric& partition_function_at_line_temperature,
+                                 const ArrayOfIndex& broad_spec_locations,
+                                 const Index& this_species_location_in_tags,
+                                 const Index& water_index_location_in_tags,
+                                 const ComplexRange& df_range,
+                                 const Verbosity& verbosity)
+{ 
+  // Size of derivatives
+  const Index nj = dF.nelem(); 
+  const Index nn = dN.nelem(); 
+  
+  // Setup compute variables
+  Vector f_grid_cutoff(1, line.F() +line.CutOff());
+  ComplexVector Fc(1), Nc(1);
+  ArrayOfComplexVector dFc(nj), dNc(nn);
+  for(auto& aovc : dFc) aovc.resize(1);
+  for(auto& aovc : dNc) aovc.resize(1);
+  ComplexRange tmp(joker);
+  
+  // Recompute the line for a single frequency
+  set_cross_section_for_single_line(Fc, dFc, Nc, dNc, tmp,
+                                    derivatives_data, line, f_grid_cutoff,
+                                    volume_mixing_ratio_of_all_species,
+                                    nlte_temperatures, pressure, temperature,
+                                    doppler_constant, partial_pressure, isotopologue_ratio,
+                                    magnetic_magnitude, ddoppler_constant_dT,
+                                    pressure_limit_for_linemixing,
+                                    zeeman_frequency_shift_constant,
+                                    partition_function_at_temperature,
+                                    dpartition_function_at_temperature_dT,
+                                    partition_function_at_line_temperature,
+                                    broad_spec_locations, this_species_location_in_tags,
+                                    water_index_location_in_tags, verbosity, true);
+  
+  // Apply cutoff values
+  F -= Fc[0];
+  if(N.nelem())
+    N -= N[0];
+  for(Index i = 0; i < nj; i++)
+    dF[i][df_range] -= dFc[i][0];
+  for(Index i = 0; i < nn; i++)
+    dN[i][df_range] -= dNc[i][0];
 }

@@ -1,3 +1,27 @@
+2017-10-20 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-849
+	
+	The implementation of new lineshape routine
+	should essentially be working now but will 
+	need some more testing.  Radiation 
+	calculations can be made to fit with tests
+	but optical depths are not passing the same
+	tests.  I Also need to test that it is as easy
+	as I think to add new methods
+	
+	* src/absorption.cc:  Adopted for cutoff
+	
+	* src/linerecord.{cc,h}:  Test implementation of
+	method to input cutoff, line mirroring, specific
+	line shape, and line normalization via ARTSCAT-5.
+	
+	* src/ linehshapesdata.{cc,h}:  Adopted for the above.
+	Clears all y-tests while switching to *AddLines2 if changed
+	to the correct behavior manually (i.e., setting  VVH-
+	normalization or cutoff frequency).  Fails iy-aux optical
+	depth tests though for unknown reasons.
+	
 2017-10-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-848
