@@ -12402,7 +12402,7 @@ void define_md_data_raw()
         GIN_TYPE( "Numeric", "Numeric",  "Numeric", "Numeric",
                   "Numeric", "Numeric", "Index" ),
         GIN_DEFAULT( "Inf", "Inf", "Inf", "Inf", NODEF, NODEF, "0" ),
-        GIN_DESC( "N0", "mu", "la", "ga",
+        GIN_DESC( "n0", "mu", "la", "ga",
                   "Low temperature limit to calculate a psd.",
                   "High temperature limit to calculate a psd.",
                   "Flag whether to be strict with parametrization value checks." )
@@ -12445,7 +12445,7 @@ void define_md_data_raw()
         GIN_TYPE( "Numeric", "Numeric",  "Numeric", "Numeric",
                   "Numeric", "Numeric", "Index" ),
         GIN_DEFAULT( "Inf", "Inf", "Inf", "Inf", NODEF, NODEF, "0" ),
-        GIN_DESC( "N0", "mu", "la", "ga",
+        GIN_DESC( "n0", "mu", "la", "ga",
                   "Low temperature limit to calculate a psd.",
                   "High temperature limit to calculate a psd.",
                   "Flag whether to be strict with parametrization value checks." )
@@ -12453,14 +12453,50 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "psdMgdMassDmedian" ),
+      ( NAME( "psdMgdMassXmean" ),
+        DESCRIPTION
+        (
+         "Modified gamma distribution PSD, with mass content and mass size\n"
+         "as inputs.\n"
+         "\n"
+         "This version of MGD PSD works as *psdMgdMass*, but takes mass content\n"
+         "and mass size as first two arguments. This means that the first and\n"
+         "second column of *pnd_agenda_input* shall hold mass content and mass\n"
+         "size, respectively. Accordingly, the number of dependent parameters is\n"
+         "two.\n"
+         "\n"
+         "\"Mean size\" is here defined as mass weighted size. Remembering that\n"
+         "mass is a*x^b, this mean size can be expressed as M_b+1/M_b where M_b\n"
+         "is b:th moment of the PSD (see e.g. Eq. 17 in Petty&Huang, JAS, 2011).\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "psd_data", "dpsd_data_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
+            "pnd_agenda_input_names", "dpnd_data_dx_names",
+            "scat_species_a", "scat_species_b" ),
+        GIN( "n0", "mu", "la", "ga", "t_min", "t_max", "picky" ),
+        GIN_TYPE( "Numeric", "Numeric",  "Numeric", "Numeric",
+                  "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( "Inf", "Inf", "Inf", "Inf", NODEF, NODEF, "0" ),
+        GIN_DESC( "n0", "mu", "la", "ga",
+                  "Low temperature limit to calculate a psd.",
+                  "High temperature limit to calculate a psd.",
+                  "Flag whether to be strict with parametrization value checks." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "psdMgdMassXmedian" ),
         DESCRIPTION
         (
          "Modified gamma distribution PSD, with mass content and median size\n"
          "as inputs.\n"
          "\n"
          "This version of MGD PSD works as *psdMgdMass*, but takes mass content\n"
-         "and medan size as first two arguments. This means that the first and\n"
+         "and median size as first two arguments. This means that the first and\n"
          "second column of *pnd_agenda_input* shall hold mass content and median\n"
          "size, respectively. Accordingly, the number of dependent parameters is\n"
          "two.\n"
@@ -12477,7 +12513,7 @@ void define_md_data_raw()
         GIN_TYPE( "Numeric", "Numeric",  "Numeric", "Numeric",
                   "Numeric", "Numeric", "Index" ),
         GIN_DEFAULT( "Inf", "Inf", "Inf", "Inf", NODEF, NODEF, "0" ),
-        GIN_DESC( "N0", "mu", "la", "ga",
+        GIN_DESC( "n0", "mu", "la", "ga",
                   "Low temperature limit to calculate a psd.",
                   "High temperature limit to calculate a psd.",
                   "Flag whether to be strict with parametrization value checks." )

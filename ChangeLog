@@ -1,3 +1,16 @@
+2017-10-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-846
+
+	* src/m_microphysics.cc (psdMgdMassXmedian): A slight renaming.
+	Seems to work now. But only n0 and la allowed as dependent vars.
+
+	(psdMgdMassXmean): New. As psdMgdMassXmedian but takes mean size
+	as input instead of the median one.
+
+	(psdMgdMass, psdMgdMassXmedian): Changed internal nomenclature,
+	from implied to dependent parameter(s). Corrected error messages.
+
 2017-10-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-845
