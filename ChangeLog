@@ -1,3 +1,11 @@
+2017-10-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-848
+
+	* src/m_microphysics.cc (psdXXXXXX): Switched to use NaN instead
+	of Inf for flagging non-fixed parameters. Clarified that -999
+	identifies dependent parameters.
+
 2017-10-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-847

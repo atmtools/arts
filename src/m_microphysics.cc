@@ -837,10 +837,10 @@ void psdMgd(
   
   // Check fixed parameters
   //
-  const Index n0_fixed = (Index) !( isinf(n0) );
-  const Index mu_fixed = (Index) !( isinf(mu) );
-  const Index la_fixed = (Index) !( isinf(la) );
-  const Index ga_fixed = (Index) !( isinf(ga) );
+  const Index n0_fixed = (Index) !( isnan(n0) );
+  const Index mu_fixed = (Index) !( isnan(mu) );
+  const Index la_fixed = (Index) !( isnan(la) );
+  const Index ga_fixed = (Index) !( isnan(ga) );
   //
   if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
     throw runtime_error( "This PSD has four free parameters. This means that "
@@ -971,10 +971,10 @@ void psdMgdMass(
     throw runtime_error( "Sorry, mu and la are not yet allowed to be the "
                          "dependent parameter." );    
   //
-  const Index n0_fixed = (Index) !( n0_depend  ||  isinf(n0) );
-  const Index mu_fixed = (Index) !( mu_depend  ||  isinf(mu) );
-  const Index la_fixed = (Index) !( la_depend  ||  isinf(la) );
-  const Index ga_fixed = (Index) !( ga_depend  ||  isinf(ga) );
+  const Index n0_fixed = (Index) !( n0_depend  ||  isnan(n0) );
+  const Index mu_fixed = (Index) !( mu_depend  ||  isnan(mu) );
+  const Index la_fixed = (Index) !( la_depend  ||  isnan(la) );
+  const Index ga_fixed = (Index) !( ga_depend  ||  isnan(ga) );
   //
   if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
     throw runtime_error( "This PSD has four free parameters. This means that "
@@ -1173,10 +1173,10 @@ void psdMgdMassNtot(
     throw runtime_error( "Sorry, mu and la are not yet allowed to be a "
                          "dependent parameter." );    
   //
-  const Index n0_fixed = (Index) !( n0_depend  ||  isinf(n0) );
-  const Index mu_fixed = (Index) !( mu_depend  ||  isinf(mu) );
-  const Index la_fixed = (Index) !( la_depend  ||  isinf(la) );
-  const Index ga_fixed = (Index) !( ga_depend  ||  isinf(ga) );
+  const Index n0_fixed = (Index) !( n0_depend  ||  isnan(n0) );
+  const Index mu_fixed = (Index) !( mu_depend  ||  isnan(mu) );
+  const Index la_fixed = (Index) !( la_depend  ||  isnan(la) );
+  const Index ga_fixed = (Index) !( ga_depend  ||  isnan(ga) );
   //
   if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
     throw runtime_error( "This PSD has four free parameters. This means that "
@@ -1390,10 +1390,10 @@ void psdMgdMassXmean(
     throw runtime_error( "Sorry, mu and la are not yet allowed to be a "
                          "dependent parameter." );    
   //
-  const Index n0_fixed = (Index) !( n0_depend  ||  isinf(n0) );
-  const Index mu_fixed = (Index) !( mu_depend  ||  isinf(mu) );
-  const Index la_fixed = (Index) !( la_depend  ||  isinf(la) );
-  const Index ga_fixed = (Index) !( ga_depend  ||  isinf(ga) );
+  const Index n0_fixed = (Index) !( n0_depend  ||  isnan(n0) );
+  const Index mu_fixed = (Index) !( mu_depend  ||  isnan(mu) );
+  const Index la_fixed = (Index) !( la_depend  ||  isnan(la) );
+  const Index ga_fixed = (Index) !( ga_depend  ||  isnan(ga) );
   //
   if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
     throw runtime_error( "This PSD has four free parameters. This means that "
@@ -1607,10 +1607,10 @@ void psdMgdMassXmedian(
     throw runtime_error( "Sorry, mu and la are not yet allowed to be a "
                          "dependent parameter." );    
   //
-  const Index n0_fixed = (Index) !( n0_depend  ||  isinf(n0) );
-  const Index mu_fixed = (Index) !( mu_depend  ||  isinf(mu) );
-  const Index la_fixed = (Index) !( la_depend  ||  isinf(la) );
-  const Index ga_fixed = (Index) !( ga_depend  ||  isinf(ga) );
+  const Index n0_fixed = (Index) !( n0_depend  ||  isnan(n0) );
+  const Index mu_fixed = (Index) !( mu_depend  ||  isnan(mu) );
+  const Index la_fixed = (Index) !( la_depend  ||  isnan(la) );
+  const Index ga_fixed = (Index) !( ga_depend  ||  isnan(ga) );
   //
   if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
     throw runtime_error( "This PSD has four free parameters. This means that "

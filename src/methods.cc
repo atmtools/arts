@@ -12362,7 +12362,7 @@ void define_md_data_raw()
          "as GIN arguments. The first option allows the parameter to vary, while\n"
          "in the second case the parameter gets a constant value. If a parameter is\n"
          "part of *pnd_agenda_input*, the corresponding GIN argument must be set\n"
-         "to Inf (which is default). This means that the number of columns in\n"
+         "to NaN (which is default). This means that the number of columns in\n"
          "*pnd_agenda_input* and the number of non-Inf choices for n0, mu, la and\n"
          "ga must add up to four.\n"
          "\n"
@@ -12401,7 +12401,7 @@ void define_md_data_raw()
         GIN( "n0", "mu", "la", "ga", "t_min", "t_max", "picky" ),
         GIN_TYPE( "Numeric", "Numeric",  "Numeric", "Numeric",
                   "Numeric", "Numeric", "Index" ),
-        GIN_DEFAULT( "Inf", "Inf", "Inf", "Inf", NODEF, NODEF, "0" ),
+        GIN_DEFAULT( "NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0" ),
         GIN_DESC( "n0", "mu", "la", "ga",
                   "Low temperature limit to calculate a psd.",
                   "High temperature limit to calculate a psd.",
@@ -12444,7 +12444,7 @@ void define_md_data_raw()
         GIN( "n0", "mu", "la", "ga", "t_min", "t_max", "picky" ),
         GIN_TYPE( "Numeric", "Numeric",  "Numeric", "Numeric",
                   "Numeric", "Numeric", "Index" ),
-        GIN_DEFAULT( "Inf", "Inf", "Inf", "Inf", NODEF, NODEF, "0" ),
+        GIN_DEFAULT( "NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0" ),
         GIN_DESC( "n0", "mu", "la", "ga",
                   "Low temperature limit to calculate a psd.",
                   "High temperature limit to calculate a psd.",
@@ -12480,7 +12480,7 @@ void define_md_data_raw()
         GIN( "n0", "mu", "la", "ga", "t_min", "t_max", "picky" ),
         GIN_TYPE( "Numeric", "Numeric",  "Numeric", "Numeric",
                   "Numeric", "Numeric", "Index" ),
-        GIN_DEFAULT( "Inf", "Inf", "Inf", "Inf", NODEF, NODEF, "0" ),
+        GIN_DEFAULT( "NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0" ),
         GIN_DESC( "n0", "mu", "la", "ga",
                   "Low temperature limit to calculate a psd.",
                   "High temperature limit to calculate a psd.",
@@ -12512,7 +12512,7 @@ void define_md_data_raw()
         GIN( "n0", "mu", "la", "ga", "t_min", "t_max", "picky" ),
         GIN_TYPE( "Numeric", "Numeric",  "Numeric", "Numeric",
                   "Numeric", "Numeric", "Index" ),
-        GIN_DEFAULT( "Inf", "Inf", "Inf", "Inf", NODEF, NODEF, "0" ),
+        GIN_DEFAULT( "NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0" ),
         GIN_DESC( "n0", "mu", "la", "ga",
                   "Low temperature limit to calculate a psd.",
                   "High temperature limit to calculate a psd.",
