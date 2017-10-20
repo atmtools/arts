@@ -16649,6 +16649,30 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "telsem_atlasesReadAscii" ),
+        DESCRIPTION
+        (
+         "Reads TELSEM atlas files.\n"
+         "\n"
+         "'directory' needs to contain the original 12 Telsem atlas files\n"
+         "and the correlations file.\n"
+         "The whole data is combined into the WSV *telsem_atlases*\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT("telsem_atlases"),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN("directory", "filename_pattern"),
+        GIN_TYPE("String", "String"),
+        GIN_DEFAULT(NODEF, "ssmi_mean_emis_climato_@MM@_cov_interpol_M2"),
+        GIN_DESC("Directory with TELSEM 2 SSMI atlas files.",
+                 "Filename pattern (@MM@ gets replaced by month number)")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "Tensor3AddScalar" ),
         DESCRIPTION
         (

@@ -656,6 +656,7 @@ int main()
           << "#include \"covariance_matrix.h\"\n"
           << "#include \"linemixingrecord.h\"\n"
           << "#include \"propagationmatrix.h\"\n"
+          << "#include \"telsem.h\"\n"
           << "#include \"tessem.h\"\n"
           << "\n";
 

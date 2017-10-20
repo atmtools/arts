@@ -126,6 +126,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfSparse");
   wsv_group_names.push_back("ArrayOfStokesVector");
   wsv_group_names.push_back("ArrayOfString");
+  wsv_group_names.push_back("ArrayOfTelsemAtlas");
   wsv_group_names.push_back("ArrayOfTensor3");
   wsv_group_names.push_back("ArrayOfTensor4");
   wsv_group_names.push_back("ArrayOfTensor6");
@@ -154,6 +155,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("SpeciesAuxData");
   wsv_group_names.push_back("StokesVector");
   wsv_group_names.push_back("String");
+  wsv_group_names.push_back("TelsemAtlas");
   wsv_group_names.push_back("Tensor3");
   wsv_group_names.push_back("Tensor4");
   wsv_group_names.push_back("Tensor5");

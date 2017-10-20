@@ -53,6 +53,7 @@
 #include "optproperties.h"
 #include "ppath.h"
 #include "propagationmatrix.h"
+#include "telsem.h"
 #include "tessem.h"
 #include "xml_io_private.h"
 
@@ -108,6 +109,7 @@ TMPL_XML_READ_WRITE_STREAM(SingleScatteringData)
 TMPL_XML_READ_WRITE_STREAM(SpeciesAuxData)
 TMPL_XML_READ_WRITE_STREAM(SpeciesRecord)
 TMPL_XML_READ_WRITE_STREAM(SpeciesTag)
+TMPL_XML_READ_WRITE_STREAM(TelsemAtlas)
 TMPL_XML_READ_WRITE_STREAM(TessemNN)
 TMPL_XML_READ_WRITE_STREAM(Verbosity)
 
@@ -152,6 +154,7 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfScatteringMetaData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSingleScatteringData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSpeciesTag)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfString)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfTelsemAtlas)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor3)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor4)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor6)

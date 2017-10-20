@@ -3091,6 +3091,86 @@ void xml_write_to_stream(ostream& os_xml                    _U_,
 } 
 
 
+//=== ArrayOfTelsemAtlas =========================================================
+
+//! Reads ArrayOfTelsemAtlas from XML input stream
+/*!
+  \param is_xml      XML Input stream
+  \param arr_telsem  ArrayOfTelsemAtlas return value
+  \param pbifs       Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml,
+                          ArrayOfTelsemAtlas& arr_telsem,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "TelsemAtlas");
+
+  tag.get_attribute_value("nelem", nelem);
+  arr_telsem.resize(nelem);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        xml_read_from_stream(is_xml, arr_telsem[n], pbifs, verbosity);
+    }
+  catch (runtime_error e)
+    {
+      ostringstream os;
+      os << "Error reading ArrayOfTelsemAtlas: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+
+//! Writes ArrayOfTelsemAtlas to XML output stream
+/*!
+  \param os_xml    XML Output stream
+  \param atensor3  ArrayOfTelsemAtlas
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Optional name attribute
+*/
+void xml_write_to_stream(ostream& os_xml,
+                         const ArrayOfTelsemAtlas& arr_telsem,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("Array");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+
+  open_tag.add_attribute("type", "TelsemAtlas");
+  open_tag.add_attribute("nelem", arr_telsem.nelem());
+
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < arr_telsem.nelem(); n++)
+    xml_write_to_stream(os_xml, arr_telsem[n], pbofs, "", verbosity);
+
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+
+
 //=== ArrayOfTensor3=========================================================
 
 //! Reads ArrayOfTensor3 from XML input stream

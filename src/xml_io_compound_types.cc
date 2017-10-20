@@ -2190,6 +2190,81 @@ void xml_write_to_stream(ostream&                    os_xml,
 }
 
 
+//=== TelsemAtlas ======================================================
+
+//! Reads TelsemAtlas from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param pm         TelsemAtlas return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream&              is_xml,
+                          TelsemAtlas&          ta,
+                          bifstream*            pbifs,
+                          const Verbosity&      verbosity)
+{
+    ArtsXMLTag tag(verbosity);
+
+    tag.read_from_stream(is_xml);
+    tag.check_name("TelsemAtlas");
+
+    xml_read_from_stream(is_xml, ta.ndat, pbifs, verbosity);
+    xml_read_from_stream(is_xml, ta.nchan, pbifs, verbosity);
+    xml_read_from_stream(is_xml, ta.name, pbifs, verbosity);
+    xml_read_from_stream(is_xml, ta.month, pbifs, verbosity);
+    xml_read_from_stream(is_xml, ta.dlat, pbifs, verbosity);
+    xml_read_from_stream(is_xml, ta.emis, pbifs, verbosity);
+    xml_read_from_stream(is_xml, ta.correl, pbifs, verbosity);
+    xml_read_from_stream(is_xml, ta.emis_err, pbifs, verbosity);
+    xml_read_from_stream(is_xml, ta.class1, pbifs, verbosity);
+    xml_read_from_stream(is_xml, ta.class2, pbifs, verbosity);
+    xml_read_from_stream(is_xml, ta.cellnum, pbifs, verbosity);
+    telsem_calc_correspondence(ta);
+    tag.read_from_stream(is_xml);
+    tag.check_name("/TelsemAtlas");
+}
+
+
+//! Writes TelsemAtlas to XML output stream
+/*!
+ * \param os_xml     XML Output stream
+ * \param pm         TelsemAtlas
+ * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+ * \param name       Optional name attribute
+ */
+void xml_write_to_stream(ostream&                    os_xml,
+                         const TelsemAtlas&          ta,
+                         bofstream*                  pbofs,
+                         const String&               name,
+                         const Verbosity&            verbosity)
+{
+    ArtsXMLTag open_tag(verbosity);
+    ArtsXMLTag close_tag(verbosity);
+
+    open_tag.set_name("TelsemAtlas");
+    if (name.length())
+        open_tag.add_attribute("name", name);
+
+    open_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+    xml_write_to_stream(os_xml, ta.ndat, pbofs, "ndat", verbosity);
+    xml_write_to_stream(os_xml, ta.nchan, pbofs, "nchan", verbosity);
+    xml_write_to_stream(os_xml, ta.name, pbofs, "name", verbosity);
+    xml_write_to_stream(os_xml, ta.month, pbofs, "month", verbosity);
+    xml_write_to_stream(os_xml, ta.dlat, pbofs, "dlat", verbosity);
+    xml_write_to_stream(os_xml, ta.emis, pbofs, "emis", verbosity);
+    xml_write_to_stream(os_xml, ta.correl, pbofs, "correl", verbosity);
+    xml_write_to_stream(os_xml, ta.emis_err, pbofs, "emis_err", verbosity);
+    xml_write_to_stream(os_xml, ta.class1, pbofs, "class1", verbosity);
+    xml_write_to_stream(os_xml, ta.class2, pbofs, "class2", verbosity);
+    xml_write_to_stream(os_xml, ta.cellnum, pbofs, "cellnum", verbosity);
+    close_tag.set_name("/TelsemAtlas");
+    close_tag.write_to_stream(os_xml);
+
+    os_xml << '\n';
+}
+
+
 ////////////////////////////////////////////////////////////////////////////
 //   Dummy funtion for groups for which
 //   IO function have not yet been implemented

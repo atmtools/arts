@@ -5640,6 +5640,17 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "telsem_atlases" ),
+     DESCRIPTION
+     (
+      "TELSEM 2 emissivity atlases. Array should be filled with 12\n"
+      "atlases, one for each month. Index 0 is January, index 11 December.\n"
+      ""
+     ),
+     GROUP( "ArrayOfTelsemAtlas" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "tessem_neth" ),
      DESCRIPTION
      (
