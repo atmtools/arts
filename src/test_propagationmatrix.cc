@@ -278,6 +278,35 @@ void test_lineshape()
 }
 
 
+Complex test_faddeeva()
+{
+  Complex F;
+  
+  Vector frequencies; 
+  linspace(frequencies, 0, 50, 1);
+  
+  Vector gamma;
+  linspace(gamma, 0, 1000000, 1);
+  
+  // On tested architecture with normal mode
+  // About 76 nanoseconds per call to w(z)
+  // About 32 nanoseconds per call to lorentz(z)
+  for(Numeric& g : gamma)
+  {
+    for(Numeric& f : frequencies)
+    {
+//       const Complex zv = Complex(f, g);
+//       Faddeeva::w(zv); 
+      
+      const Complex zl = Complex(g, f);
+      0.3183098861837907 / zl;
+    }
+  }
+  
+  return F;
+}
+
+
 void test_the_class()
 {
   PropagationMatrix a(50, 4);
@@ -293,6 +322,113 @@ void test_the_class()
   compute_transmission_matrix(b, 1.0, a, a);
   
   std::cout << b(1, joker, joker) << "\n";
+}
+
+
+void test_matrix_buildup()
+{
+  const Numeric k11 = 1;
+  const Numeric k12 = -0.51;
+  const Numeric k13 = -0.21;
+  const Numeric k14 = 0.31;
+  const Numeric k23 = -0.1;
+  const Numeric k24 = -0.99;
+  const Numeric k34 = 2;
+  
+  const Numeric r=0.5;
+  
+  const Numeric a = - k11*r;
+  const Numeric b = - k12*r;
+  const Numeric c = - k13*r;
+  const Numeric d = - k14*r;
+  const Numeric u = - k23*r;
+  const Numeric v = - k24*r;
+  const Numeric w = - k34*r;
+  
+  const Numeric b2 = b * b, c2 = c * c,
+  d2 = d * d, u2 = u * u,
+  v2 = v * v, w2 = w * w;
+  
+  const Numeric Const2 = b2 + c2 + d2 - u2 - v2 - w2;
+  
+  Numeric Const1;
+  Const1  = b2 * (b2 * 0.5 + c2 + d2 - u2 - v2 + w2);
+  Const1 += c2 * (c2 * 0.5 + d2 - u2 + v2 - w2);
+  Const1 += d2 * (d2 * 0.5 + u2 - v2 - w2);
+  Const1 += u2 * (u2 * 0.5 + v2 + w2);
+  Const1 += v2 * (v2 * 0.5 + w2);
+  Const1 *= 2;
+  Const1 += 8 * (b * d * u * w - b * c * v * w - c * d * u * v);
+  Const1 += w2 * w2;
+  
+  if(Const1 > 0.0)
+    Const1 = sqrt(Const1);
+  else
+    Const1 = 0.0;
+  
+  const Complex sqrt_BpA = sqrt(Complex(Const2 + Const1, 0.0));
+  const Complex sqrt_BmA = sqrt(Complex(Const2 - Const1, 0.0));
+  const Numeric x = sqrt_BpA.real() * sqrt(0.5);
+  const Numeric y = sqrt_BmA.imag() * sqrt(0.5);
+  const Numeric x2 = x * x;
+  const Numeric y2 = y * y;
+  const Numeric cos_y = cos(y);
+  const Numeric sin_y = sin(y);
+  const Numeric cosh_x = cosh(x);
+  const Numeric sinh_x = sinh(x);
+  const Numeric x2y2 = x2 + y2;
+  const Numeric inv_x2y2 = 1.0 / x2y2;
+  
+  std::cout<<x<<" "<<y<<" "<<Const1<<" "<<Const2<<"\n";
+  
+  Numeric C0, C1, C2, C3;
+  Numeric inv_y = 0.0, inv_x = 0.0;  // Init'd to remove warnings
+  
+  // X and Y cannot both be zero
+  if(x == 0.0)
+  {
+    inv_y = 1.0 / y;
+    C0 = 1.0;
+    C1 = 1.0;
+    C2 = (1.0 - cos_y) * inv_x2y2;
+    C3 = (1.0 - sin_y*inv_y) * inv_x2y2;
+  }
+  else if(y == 0.0)
+  {
+    inv_x = 1.0 / x;
+    C0 = 1.0;
+    C1 = 1.0;
+    C2 = (cosh_x - 1.0) * inv_x2y2;
+    C3 = (sinh_x*inv_x - 1.0) * inv_x2y2;
+  }
+  else
+  {
+    inv_x = 1.0 / x;
+    inv_y = 1.0 / y;
+    
+    C0 = (cos_y*x2 + cosh_x*y2) * inv_x2y2;
+    C1 = (sin_y*x2*inv_y + sinh_x*y2*inv_x) * inv_x2y2;
+    C2 = (cosh_x - cos_y) * inv_x2y2;
+    C3 = (sinh_x*inv_x - sin_y*inv_y) * inv_x2y2;
+  }
+  
+  std::cout<<C0<<" "<<C1<<" "<<C2<<" "<<C3<<"\n";
+  
+  Matrix F(4,4,0), A(4,4,0);
+  
+  MatrixViewMap eigF = MapToEigen(F);
+  Eigen::Matrix4d eigA;
+  eigA << 0,  b,  c, d, 
+          b,  0,  u, v, 
+          c ,-u,  0, w, 
+          d, -v, -w, 0;
+  
+  
+  eigF = C1 * eigA + C2 * eigA*eigA + C3 * eigA*eigA*eigA;
+  eigF(0, 0) += C0; eigF(1, 1) += C0; eigF(2, 2) += C0; eigF(3, 3) += C0;
+  eigF *= exp(a);
+  
+  std::cout<<F<<"\n";
 }
 
 

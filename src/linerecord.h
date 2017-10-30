@@ -201,6 +201,7 @@ enum class MirroringType : Index
 {
   // Describes the type of mirroring line effects.
   // Add new entries before End to keep safe with existing catalogs.
+  // LineRecord effect:  Adds MTM (Index)MirroringType under line modifications when saving ARTSCAT5
   None=0,
   Lorentz=1,
   SameAsLineShape=2,
@@ -211,6 +212,7 @@ enum class LineNormalizationType : Index
 {
   // Describes the type of normalization line effects.
   // Add new entries before End to keep safe with existing catalogs.
+  // LineRecord effect:  Adds LNT (Index)LineNormalizationType under line modifications when saving ARTSCAT5
   None=0,
   VVH=1,
   VVW=2,
@@ -221,7 +223,7 @@ enum class LineNormalizationType : Index
 enum class LineShapeType : Index
 {
   // Describes the type of line shape.
-  // Add new entries before End to keep safe with existing catalogs.
+  // LineRecord effect:  Adds LST (Index)LineShapeType under line modifications when saving ARTSCAT5
   ByPressureBroadeningData=0,
   Doppler=1,
   Lorentz=2,
@@ -642,19 +644,19 @@ public:
   
   /** Line shape mirroring factor */
   const MirroringType& GetMirroringType() const {return mmirroring;}
-  void GetMirroringType(const MirroringType& in) {mmirroring = in;}
+  void GetMirroringType(const MirroringType in) {mmirroring = in;}
   void SetMirroringTypeFromIndex(const Index in);
   Index GetMirroringTypeIndex() const {return (Index) mmirroring;}
   
   /** Line shape normalization factor */
   const LineNormalizationType& GetLineNormalizationType() const {return mlinenorm;}
-  void GetLineNormalizationType(const LineNormalizationType& in) {mlinenorm = in;}
+  void SetLineNormalizationType(const LineNormalizationType in) {mlinenorm = in;}
   void SetLineNormalizationTypeFromIndex(const Index in);
   Index GetLineNormalizationTypeIndex() const {return (Index) mlinenorm;}
   
   /** Line shape type*/
   const LineShapeType& GetLineShapeType() const {return mlineshape;}
-  void GetLineShapeType(const LineShapeType& in) {mlineshape = in;}
+  void SetLineShapeType(const LineShapeType in) {mlineshape = in;}
   void SetLineShapeTypeFromIndex(const Index in);
   Index GetLineShapeTypeIndex() const {return (Index) mlineshape;}
         

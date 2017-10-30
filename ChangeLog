@@ -1,3 +1,30 @@
+2017-10-30 Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-850
+	
+	* src/absorption.cc: Added some comments and changed 
+	the range (it did not work when cutoff-range was inside
+	range)
+	
+	* src/linerecord.cc: Added some comments and fixed
+	reading routine error
+	
+	* src/lineshapesdata.{cc,h}:  Added lots of comments and
+	split frequency-shift by pressure and line mixing up.
+	Also added one of the limits of HTP and changed function
+	names to be more descriptive.
+	
+	* src/m_abs.cc:  'fixed' an error found using the C API
+	(nlteOff had to be called, but some variables have values
+	regardless.  It seems to me that we need to have all 
+	variables initialized at start for the C API assertions
+	to stop happening?)
+	
+	* src/m_linemixing.cc:  Updated with name change
+	
+	* src/test_propagationmatrix.cc:  A few more tests to
+	make sure the implementation is as intended...
+
 2017-10-20 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-849

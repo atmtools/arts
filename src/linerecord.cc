@@ -3066,6 +3066,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                   {
                     icecream >> token;
                     
+                    // cutoff frequency
                     if(token == "CUT")
                     {
                       Numeric value;
@@ -3074,6 +3075,8 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                       if(value > 0)
                         mcutoff = value;
                     }
+                    
+                    // mirroring
                     else if(token == "MTM")
                     {
                       Index value;
@@ -3081,6 +3084,8 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                       
                       SetMirroringTypeFromIndex(value);
                     }
+                    
+                    // line normalization
                     else if(token == "LNT")
                     {
                       Index value;
@@ -3088,6 +3093,8 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                       
                       SetLineNormalizationTypeFromIndex(value);
                     }
+                    
+                    // line shape
                     else if(token == "LST")
                     {
                       Index value;
@@ -3102,6 +3109,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                       throw std::runtime_error(os.str());
                     }
                   }
+                  icecream >> token;
                 }
                 else
                 {

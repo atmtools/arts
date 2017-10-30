@@ -1240,12 +1240,12 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
       Linefunctions::set_faddeeva_algorithm916(F, dF, f_grid,
                                                 0.0, 0.0, f0[iline],
                                                 doppler_const, pressure_broadening[iline], 
-                                                psf[iline] + DV[iline],
+                                                psf[iline], DV[iline],
                                                 ppd, QI,
                                                 ddoppler_const_dT, dpressure_broadening_dT[iline], 
                                                 dpsf_dT[iline] + dDV_dT[iline]);
       
-      Linefunctions::apply_linemixing(F, dF, Y[iline], G[iline], ppd, QI, dY_dT[iline], dG_dT[iline]);
+      Linefunctions::apply_linemixing_scaling(F, dF, Y[iline], G[iline], ppd, QI, dY_dT[iline], dG_dT[iline]);
       
       Linefunctions::apply_dipole(F, dF, f0[iline], T, d0[iline], rhoT[iline], isotopologue_ratio, 
                                   ppd, QI, drhoT_dT[iline]);
@@ -1255,9 +1255,9 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
       Linefunctions::set_faddeeva_algorithm916(F, dF, f_grid,
                                                0.0, 0.0, f0[iline],
                                                doppler_const, pressure_broadening[iline], 
-                                               psf[iline] + DV[iline], ppd, QI);
+                                               psf[iline], DV[iline], ppd, QI);
       
-      Linefunctions::apply_linemixing(F, dF, Y[iline], G[iline], ppd, QI);
+      Linefunctions::apply_linemixing_scaling(F, dF, Y[iline], G[iline], ppd, QI);
       
       Linefunctions::apply_dipole(F, dF, f0[iline], T, d0[iline], rhoT[iline], isotopologue_ratio, ppd, QI);
     }
@@ -1841,6 +1841,11 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             }
             else if(relmat_type_per_band[iband] == linear_type)
             {
+              for(Index i = 0; i < 4*nlines; i+=4)
+              {
+                std::cout<<lower[i]<<" "<<lower[i+1]<<" "<<lower[i+2]<<" "<<lower[i+3]<<"\n";//<<" "<<lower[i]<<" "<<lower[i+1]<<" "<<lower[i+2]<<" "<<lower[i+3]<<"\n";
+              }
+              std::cout<<std::endl;
               arts_relmat_interface__linear_type(
                 &nlines, &fmin, &fmax,
                 &M, &I, v0.get_c_array(), S.get_c_array(),
@@ -2075,8 +2080,9 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
               
               Linefunctions::set_faddeeva_algorithm916(F, dF, f_grid,
                 0.0, 0.0, abs_lines_per_band[iband][iline].F(),
-                GD_div_F0, W(iline, iline), psf[iline]); // Derivatives need to be added...
-              Linefunctions::apply_linestrength(F, dF, 
+                GD_div_F0, W(iline, iline), psf[iline], 0.0); // Derivatives need to be added...
+              
+              Linefunctions::apply_linestrength_scaling(F, dF, 
                 abs_lines_per_band[iband][iline].I0(), iso_ratio,
                 QT, QT0, K1, K2);
               

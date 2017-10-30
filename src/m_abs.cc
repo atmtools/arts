@@ -3395,7 +3395,7 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
                     f_grid,
                     abs_p,
                     abs_t,
-                    abs_t_nlte,
+                    do_lte?Matrix(0,0):abs_t_nlte,
                     abs_vmrs,
                     tgs,
                     i,

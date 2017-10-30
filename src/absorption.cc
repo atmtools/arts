@@ -2373,6 +2373,41 @@ firstprivate(attenuation, phase, fac, f_local, aux)
 }
 
 
+/*! cross-section replacement computer 
+ *  
+ * This will work as the interface for all line-by-line computations 
+ * lacking special demands
+ *  
+ *  \retval xsec                Cross section of one tag group. This is now the
+ *                              true attenuation cross section in units of m^2.
+ *  \retval source              Cross section of one tag group. This is now the
+ *                              true source cross section in units of m^2.
+ *  \retval phase               Cross section of one tag group. This is now the
+ *                              true phase cross section in units of m^2.
+ *  \retval dxsec               Partial derivatives of xsec.
+ *  \retval dsource             Partial derivatives of source.
+ *  \retval dphase              Partial derivatives of phase.
+ * 
+ *  \param flag_partials        Partial derivatives flags.
+ *  \param f_grid               Frequency grid.
+ *  \param abs_p                Pressure grid.
+ *  \param abs_t                Temperatures associated with abs_p.
+ *  \param abs_t_nlte           Non-lte temperatures for various energy levels.
+ *  \param all_vmrs             Gas volume mixing ratios [nspecies, np].
+ *  \param abs_species          Species tags for all species.
+ *  \param this_species         Index of the current species in abs_species.
+ *  \param abs_lines            The spectroscopic line list.
+ *  \param Z_DF                 The Zeeman line center shift over the magnitude of the magnetic field.
+ *  \param H_magntitude_Zeeman  The magnitude of the magnetic field required by Zeeman effect.
+ *  \param lm_p_lim             Line mixing pressure limit
+ *  \param isotopologue_ratios  Isotopologue ratios.
+ *  \param partition_functions  Partition functions.
+ *  \param verbosity            Verbosity level.
+ * 
+ *  \author Richard Larsson
+ *  \date   2013-04-24
+ * 
+ */
 void xsec_species2(MatrixView xsec,
                    MatrixView source,
                    MatrixView phase,
@@ -2429,7 +2464,7 @@ void xsec_species2(MatrixView xsec,
   assert((np == 1 and nz == nl) or not do_phase);
   assert((phase.nrows() == nf and phase.ncols() == 1) or not do_phase);
   assert(dphase_dx.nelem() == nj or not do_phase);
-  assert(H_magntitude_Zeeman >= 0); // even when not using it...
+  assert(H_magntitude_Zeeman >= 0); // When not using it it should be 0
   
   // Jacobian must be the correct size throughout
   DEBUG_ONLY(for(auto& m : dxsec_dx) {assert((m.nrows() == nf and m.ncols() == np) or not do_jacobians);})
@@ -2441,8 +2476,7 @@ void xsec_species2(MatrixView xsec,
   //assert(not std::any_of(abs_p.begin(), abs_p.end(), [](Numeric n){return n <= 0.;}));
   
   // Water index in VMRS is constant for all levels and lines
-  const Index h2o_index = find_first_species_tg(abs_species,
-                                                species_index_from_species_name("H2O"));
+  const Index h2o_index = find_first_species_tg(abs_species, species_index_from_species_name("H2O"));
   
   // Broadening species locations in VMRS are constant for all levels and lines
   ArrayOfIndex broad_spec_locations;
@@ -2518,30 +2552,30 @@ void xsec_species2(MatrixView xsec,
         broad_spec_locations, this_species, h2o_index, verbosity);
       
       // range-based arguments that need be made to work for both complex and numeric
-      const Index range_start = this_xsec_range.get_start();
-      const Index range_stride = this_xsec_range.get_stride();
-      const Index range_end = (this_xsec_range.get_extent() not_eq -1)?this_xsec_range.get_extent():nf-range_start;
-      
-      // Add results to final output
-      for(Index i = range_start; i < range_end; i+=range_stride)
-      {
-        xsec(i, ip) += F[i].real();
+      const Index extent = (this_xsec_range.get_extent()<0)     ?
+                (nf-this_xsec_range.get_start())                :
+                this_xsec_range.get_extent();
+      const Range this_out_range(this_xsec_range.get_start(), extent);
         
-        if(do_nonlte)
-          source(i, ip) += N[i].real();
+      for(Index i = 0; i < extent; i++)
+      {
+        xsec(this_out_range, ip)[i] += F[this_xsec_range][i].real();
         
         if(do_phase)
-          phase(i, ip) += F[i].imag();
+          phase(this_out_range, ip)[i] += F[this_xsec_range][i].imag();
+        
+        if(do_nonlte)
+          source(this_out_range, ip)[i] += N[this_xsec_range][i].real();
         
         for(Index j = 0; j < nj; j++)
         {
-          dxsec_dx[j](i, ip) += dF[j][i].real();
-          
-          if(do_nonlte)
-            dsource_dx[j](i, ip) += dN[j][i].real();
+          dxsec_dx[j](this_out_range, ip)[i] += dF[j][this_xsec_range][i].real();
           
           if(do_phase)
-            dphase_dx[j](ip, i) += dF[j][i].imag();
+            dphase_dx[j](this_out_range, ip)[i] += dF[j][this_xsec_range][i].imag();
+          
+          if(do_nonlte)
+            dsource_dx[j](this_out_range, ip)[i] += dN[j][this_xsec_range][i].real();
         }
       }
     }
