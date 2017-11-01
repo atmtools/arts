@@ -1,162 +1,341 @@
 %\graphicspath{{Figs/scattering/}}
 
-\chapter[Scattering: Particle ensembles]{Scattering: Representation of particle ensembles}
+\chapter{Particle size distributions}
  \label{sec:cloudtheory}
 
 \starthistory
+ 171101 & Restarted the chapter, to instead deal with PSDs (Patrick).\\
  161107 & Created by Jana Mendrok. Moved parts from AUG clouds chapter here.\\
 \stophistory
 
-Effects of single small particles interacting with radiation as well as the
-optical properties used to describe these effects have been discussed in
-Section~\ref{sec:rtetheory:theory_single_part}. Realistic media typically
-contain ensembles of particles of different material, sizes, shapes, etc.
-The particle size has an important impact on the scattering and
-absorption properties of particle ensembles, e.g. clouds, as shown for instance
-in \citep{emde04:_doit_jgr}.  Particle ensembles typically contain a whole range
-of different particle sizes, which can be described by a size
-distribution giving the number of particles per unit volume per unit
-radius interval as a function of radius.  It is most convenient to
-parameterize the size distribution by analytical functions, because in
-this case optical properties can be calculated much faster than for
-arbitrary size distributions. The T-matrix code for randomly oriented
-particles includes several types of analytical size distributions,
-e.g., the gamma distribution or the log-normal distribution.  This
-section presents some examples of size distribution parameterizations that can
-be used to describe particle ensembles. Some of them are applicable to general
-particle ensembles, others have been developed for specific ensembles types
-(e.g., cirrus clouds) and atmospheric conditions.
+% Effects of single small particles interacting with radiation as well as the
+% optical properties used to describe these effects have been discussed in
+% Section~\ref{sec:rtetheory:theory_single_part}. Realistic media typically
+% contain ensembles of particles of different material, sizes, shapes, etc.
+% The particle size has an important impact on the scattering and
+% absorption properties of particle ensembles, e.g. clouds, as shown for instance
+% in \citep{emde04:_doit_jgr}.  Particle ensembles typically contain a whole range
+% of different particle sizes, which can be described by a size
+% distribution giving the number of particles per unit volume per unit
+% radius interval as a function of radius.  It is most convenient to
+% parameterize the size distribution by analytical functions, because in
+% this case optical properties can be calculated much faster than for
+% arbitrary size distributions. The T-matrix code for randomly oriented
+% particles includes several types of analytical size distributions,
+% e.g., the gamma distribution or the log-normal distribution.  This
+% section presents some examples of size distribution parameterizations that can
+% be used to describe particle ensembles. Some of them are applicable to general
+% particle ensembles, others have been developed for specific ensembles types
+% (e.g., cirrus clouds) and atmospheric conditions.
 
-\subsection{Mono-disperse particle distribution}
+\def\no{N_0}
+\def\ntot{N_{\mathrm{tot}}}
+\def\la{\Lambda}
+\def\ga{\gamma}
+\def\dg{D_g}
+\def\xmed{x_\mathrm{med}}
+\def\xmea{x_\mathrm{mean}}
+\def\mmea{m_\mathrm{mean}}
+\def\eterm{e}
+\def\rterm{r}
 
-The most simple assumption is, that all particles in an ensemble have
-the same size.  In order to study scattering effects like polarization
-or the influence of particle shape, it makes sense to use this most
-simple assumption, because one can exclude effects resulting from the
-particle size distribution itself.  
 
-Along with the single scattering properties we need the particle
-number density field, which specifies the number of particles per
-unit volume at each grid point, for ARTS scattering simulations.  For
-a given mass content (\mc) and mono-disperse particles the particle number density
-$n^p$ is simply
+\section{Handling of different size descriptors}
+\label{sec:psd:size}
+%
+Various quantities can be selected as size ($x$), such as mass, maximum
+diameter and volume equivalent diameter. If size is selected to be some
+geometrical diameter, $\dg$, the mass of particles is normally assumed to
+follow a power-law (e.g.\ \citet{petty2011modified}, Eq.~29):
+\begin{displaymath}
+  m = a \dg^b.  
+\end{displaymath}
+However, this approach can in fact also be applied on all other standard size
+descriptors (including ones based on area). That is, the following expressions is
+applied generally:
 \begin{equation}
-\label{eq:pnd_mono}
-  n^p (\mc, r) =\frac{\mc}{m} = \frac{\mc}{V\rho}
-    =\frac{3}{4\pi}\frac{\mc}{\rho r^3},  
+  m = a x^b.  
 \end{equation}
-where $m$ is the mass of a particle, $r$ is its equal volume sphere
-radius, $\rho$ is its density, and $V$ is its volume.
-     
-\subsection{Gamma size distribution}
-\label{sec:clouds:gamma_distr}
+For example, if $x$ represents mass, both $a$ and $b$ are simply 1. If $x$ is
+volume equivalent diameter (and the density is constant with size), $b=3$. By
+this approach it can be avoided to have different equations for different size
+descriptors. For example, $a$ and $b$ are included generally in the expressions
+below for modified gamma distributions, and one set of equations suffices.
 
-A commonly used distribution for radiative transfer modeling in a range of
-media, e.g. cirrus clouds, is the \emph{gamma distribution}
+The workspace variables corresponding to $a$ and $b$ are
+\wsvindex{scat\_species\_a} and \wsvindex{scat\_species\_b}, respectively.
+These variables can be calculated with the \wsmindex{ScatSpeciesSizeMassInfo}
+workspace method.
+
+
+\section{Modified gamma particle size distributions}
+%
+This section lists the expressions needed to handle particle size distributions
+(PSDs) of type modified gamma distribution (MGD). Expressions are needed for
+various derivatives, as well as for mapping from bulk properties to the native
+parameters of MGD. The general properties of MGD PSDs are discussed in detail
+in \citet{petty2011modified}, below shortened to P\&H11. However, derivatives
+are not discussed by P\&H11 and to document those expressions is the main
+purpose of the section.
+
+\subsection{Native form}
+\label{sec:mgd_native}
+%
+The MGD function has four parameters ($\no$, $\mu$, $\la$ and $\ga$) and is
+here written as (P\&H, Eq.~6):
 \begin{equation}
-  n(r) = a  r^\alpha \exp(-br).
-\label{eq:gamma_distr}
+  n(\no,\mu,\la,\ga) = \no x^\mu exp(-\la x^\ga),
 \end{equation}
-The dimensionless parameter $\alpha$ describes the width of the
-distribution. The other two parameters can be linked to the effective
-radius \Reff\ and the mass content \mc\ as follows:
+where $x$ is ``size'' (Sec.~\ref{sec:psd:size}). The derivatives of $n$ with respect to
+the basic parameters are:
 \begin{eqnarray}
-  b &= \frac{\alpha+3}{\Reff},\\
-  a &= \frac{\mc}{4/3\pi\rho b^{-(\alpha+4)}\Gamma[\alpha+4]},
-\label{eq:gamma_coeff}
+  \frac{dn}{d\no} &=& x^\mu exp(-\la x^\ga) \label{eq:dndno} \\
+  \frac{dn}{d\mu} &=& \no \ln(x) x^\mu exp(-\la x^\ga) = \ln(x)n \label{eq:dndmu}\\
+  \frac{dn}{d\la} &=& \no x^\mu (-x^\ga) exp(-\la x^\ga) = -x^\ga n \label{eq:dndla}\\
+  \frac{dn}{d\ga} &=& \no x^\mu (-\la)\ln(x) x^\ga exp(-\la x^\ga) =
+                      -\la\ln(x) x^\ga n \label{eq:dndga}
 \end{eqnarray}
-where $\rho$ is the density of the scattering medium and $\Gamma$ is
-the gamma function. For cirrus clouds $\rho$ corresponds to the bulk
-density of ice, which is approximately 917 kg/m$^3$.
+The workspace method for the native form of MGD is \wsmindex{psdMgd}.
 
-Generally, the effective radius \Reff\ is defined as the average
-radius weighted by the particles' cross-sectional area
+
+\subsection{Moments and gamma function}
+%
+It is common to express various properties of PSDs as ``moments''. The k-th
+moment, $M_k$ is defined as
 \begin{equation}
-  \label{eq:Reff}
-  \Reff= \frac{1}{\EnsAvr{A}} \int_{r_{min}}^{r_{max}} {A(r) r n(r) \DiffD r},
+  M_k = \int_0^\infty x^k n(x)\, dx.
 \end{equation}
-where $A$ is the area of the geometric projection of a particle. The
-minimal and maximal particle sizes in the distribution are given by
-$r_{min}$ and $r_{max}$ respectively. In the case of spherical
-particles $A = \pi r^2$. The average area of the geometric projection
-per particle \EnsAvr{A} is given by
+For MGD, the moments can be expressed analytically (P\&H, Eq.~17):
 \begin{equation}
-  \EnsAvr{A} = \frac{\int_{r_{min}}^{r_{max}} {A(r) n(r) \DiffD r}}{\int_{r_{min}}^{r_{max}} {n(r) \DiffD r}}.
+  M_k = \frac{\no}{\ga}\frac{\Gamma(\frac{\mu+k+1}{\ga})}{\la^{(\mu+k+1)/\ga}},
+\end{equation}
+where $\Gamma$ is the gamma function. One property of the gamma function used
+below is that for $n\geq0$:
+\begin{equation}
+  \frac{\Gamma(n+1)}{\Gamma(n)} = n.
 \end{equation}
 
-The particle number density for size distributions is obtained by
-integration of the distribution function over all sizes:
+
+
+
+\subsection{Mass content}
+%
+The mass content, $w$ (i.e.\ kg/m$^3$), for given $\no$, $\mu$, $\la$, $\ga$,
+$a$ and $b$, is the size-integrated mass (P\&H, Eq.~22), that is proportional to
+the b-th moment:
+\begin{equation}
+  w = \int_0^\infty m(x) n(x)\, dx = \int_0^\infty ax^b n(x)\, dx = aM_b.
+\end{equation}
+If mass content is taken as an input to the PSD, one of the four MGD parameters
+must be selected as the dependent one. If $\no$ is selected as the dependent
+variable, i.e. $n(w,\mu,\la,\ga)$, the implied value of $\no$ is:
+\begin{equation}
+  \no = \frac{w\ga\la^{(\mu+b+1)/\ga}}{a\Gamma(\frac{\mu+b+1}{\ga})}.
+\end{equation}
+To simplify the expressions below, we define $\eterm$ as
+\begin{equation}
+  \eterm = \frac{\mu+b+1}{\ga}.
+\end{equation}
+That is
+\begin{equation}
+  w = \frac{a\no}{\ga}\frac{\Gamma(\eterm)}{\la^\eterm},
+  \label{eq:wfrommomb}
+\end{equation}
+and
+\begin{equation}
+  \no = \frac{w\ga\la^\eterm}{a\Gamma(\eterm)}.  
+  \label{eq:n0fromw}
+\end{equation}
+The derivative of the PSD with respect to mass content is most easily handled
+by the chain rule:
+\begin{equation}
+  \frac{dn}{dw} = \frac{dn}{d\no}\frac{d\no}{dw} = \frac{dn}{d\no} 
+   \frac{\ga\la^\eterm}{a\Gamma(\eterm)}.
+  \label{eq:dn0dw}
+\end{equation}
+The code in ARTS is organised in such way that the derivatives to the native
+parameters are calculated as soon as they can be used (such as $dn/d\no$ in the
+equation just above). Accordingly, further simplifications of expressions
+involving terms from the chain-rule are not of practical interest. 
+
+Regarding the derivatives for remaining three native parameters, they are
+unchanged from the expressions given on Section~\ref{sec:mgd_native}. For
+example, Eqs.~\ref{eq:dndmu} and \ref{eq:dndga} give the derivative with
+respect to $\mu$ and $\ga$ independently of if $\no$ or $\la$ is selected as
+dependent variable. The same is valid below, as long as $\mu$ and $\ga$ are not
+dependent variables.
+
+If instead $\la$ is the dependent parameter, $n(w,\no,\la,\ga)$, these expressions apply:
+\begin{equation}
+  \la = \left( \frac{w\ga}{a\no\Gamma(\eterm)} \right)^{-1/\eterm}
+\end{equation}
+and
+\begin{equation}
+  \frac{dn}{dw} = \frac{dn}{d\la}\frac{d\la}{dw} = \frac{dn}{d\la} 
+  \frac{(-1)}{\eterm}w^{-(1/\eterm+1)}\left( \frac{\ga}{a\no\Gamma(\eterm)} \right)^{-1/\eterm}.
+\end{equation}
+The choices of having $\mu$ and $\ga$ as dependent variables are not yet
+handled. 
+
+The workspace method for this form of MGD is \wsmindex{psdMgdMass}.
+
+
+
+\subsection{Mass content and mean size}
+%
+This section deals with the case when mass content and mean size replaces two
+of the native MGD parameters. There are six possible combinations of 
+dependent parameters, but so far just a single one is handled, that $\no$ and
+$\la$ are the dependent ones. 
+
+Many definitions of mean and effective size exist. The definition of mean size,
+$\xmea$, selected here is:
+\begin{equation}
+  \xmea =\frac{\int_0^\infty x m(x) n(x)\,dx}{\int_0^\infty m(x) n(x)\,dx}.
+\end{equation}
+That is, a mass-weighted mean size is considered. This definition is fully
+consistent with e.g.\ Eq. 3 of \citet{delanoe2014normalized}, just expressed
+in a more general manner. The equation above can rewritten in several ways:
+\begin{equation}
+  \xmea =\frac{\int_0^\infty x m(x) n(x)\,dx}{w}=\frac{M_{b+1}}{M_b}=
+  \frac{\mu+b+1}{\ga}\la^{-1/\ga}=\eterm\la^{-1/\ga}.
+  \label{eq:xmean2}
+\end{equation}
+As mentioned, so far only $\no$ and $\la$ are allowed to be the pair of
+dependent variables: $n(w,\xmea,\mu,\ga)$. The implied value of $\la$ can be
+obtained by Eq.~\ref{eq:xmean2}:
+\begin{equation}
+  \la = \left( \frac{\xmea}{e}\right)^{-\ga}.
+\end{equation}
+With $\la$ at hand, $\no$ can be determined as for the mass-only case
+(Eq.~\ref{eq:n0fromw}).
+
+As mass content only affects $\no$, Eq.~\ref{eq:dn0dw} is also valid here. The
+partial derivative with respect to $\xmea$ is more complicated as both $\no$
+and $\la$ are affected:
 \begin{eqnarray}
-  n^p(\mc, \Reff) &= \int_0^\infty {n(r)\DiffD r} \\
- &= \int_0^\infty {a  r^\alpha \exp(-br)
-    \DiffD r} = a \frac{\Gamma(\alpha+1)}{b^{\alpha+1}}.
+  \frac{dn}{d\xmea} &=& \left( \frac{dn}{d\no}\frac{d\no}{d\la} + 
+                        \frac{dn}{d\la} \right) \frac{d\la}{d\xmea} \nonumber\\
+ &=& \left( \frac{dn}{d\no} \frac{w\ga\eterm\la^{\eterm-1}}{a\Gamma(\eterm)} + 
+                        \frac{dn}{d\la} \right) (-\ga e^\ga \xmea^{-(\ga+1)}).
 \end{eqnarray}
+The workspace method for this form of MGD is \wsmindex{psdMgdMassXmean}.
 
-After setting $\alpha$ = 1, inserting Equation \ref{eq:gamma_coeff} and
-some simple algebra we obtain
+
+
+\subsection{Mass content and median size}
+%
+The median size, $\xmed$, is defined as (P\&H, Eq.~21)
 \begin{equation}
-  \label{eq:pnd_gamma}
-  n^p(\mc, \Reff) = \frac{2}{\pi} \frac{\mc}{\rho \Reff^3}.
+  \int_0^{\xmed} m(x) n(x)\, dx= \int_{\xmed}^\infty m(x) n(x)\, dx= \frac{W}{2}.
 \end{equation}
-Comparing Equation \ref{eq:pnd_mono} and \ref{eq:pnd_gamma}, we see
-that the particle number density for mono-disperse particles with a
-particle size of $R$ is smaller than the particle number density for
-gamma distributed particles with $\Reff=R$. The reason is that in the
-gamma distribution most particles are smaller than~\Reff.
-
-The question is how well a gamma distribution can represent the true
-particle size distribution in radiative transfer calculations. For cirrus
-clouds, this question has been investigated by \citet{evans:98}. The authors
-come to the
-conclusion that a gamma distribution represents the distribution of
-realistic clouds quite well, provided that the parameters \Reff, \imc\ 
-and $\alpha$ are chosen correctly. They show that setting $\alpha = 1$
-and calculating only \Reff\ gave an agreement within 15\% in 90\% of
-the considered measurements obtained during the First ISCCP Regional
-Experiment (FIRE).  Therefore, for all calculations including gamma
-size distributions for ice particles, $\alpha = 1$ was assumed.  
-
-\subsection[McFarquhar and Heymsfield parametrization]
-{Ice particle size parameterization by McFarquhar and Heymsfield}
-\label{sec:McFHey_distr}
-
-A more realistic parameterization of tropical cirrus ice crystal size
-distributions was derived by
-\citet{mcfarquar97:_param_tropic_cirrus_ice_cryst}, who derived the
-size distribution as a function of temperature and \imc. The
-parameterization was made based on observations during the Central
-Equatorial Pacific Experiment (CEPEX). Smaller ice crystals with an
-equal volume sphere radius of less than 50\,\mum\ are parametrized
-as a sum of first-order gamma functions:
+There is no exact analytic expression for $\xmed$ but an approximate one is (Eq.~33)
 \begin{equation}
-  \label{eq:MH_gamma}
-  n(r) = \frac{12\cdot \imc_{<50}\alpha^5_{<50} r}{\pi \rho
-    \Gamma(5)} \exp(-2 \alpha_{<50} r), 
+  \xmed = \left( \frac{\mu+1+b-0.327\ga}{\la\ga} \right)^{1/\ga}
+  \label{eq:xmed}
 \end{equation}
-where $\alpha_{<50}$ is a parameter of the distribution, and
-$\imc_{<50}$ is the mass of all crystals smaller than 50\,\mum\ in
-the observed size distribution.  Large ice crystals are represented
-better by a log-normal function
+As for mean size, so far only $\no$ and $\la$ are allowed to be the pair of
+dependent variables: $n(w,\xmed,\mu,\ga)$. The implied value of $\la$ can be
+obtained by Eq.~\ref{eq:xmed}:
+\begin{equation}
+  \la = \frac{\mu+1+b-0.327\ga}{\ga}\xmed^{-\ga}. 
+\end{equation}
+With $\la$ at hand, $\no$ can be determined as for the mass-only case
+(Eq.~\ref{eq:n0fromw}).
+
+As mass content only affects $\no$, Eq.~\ref{eq:dn0dw} is also valid here. The
+partial derivative with respect to $\xmed$ is more complicated as both $\no$
+and $\la$ are affected:
 \begin{eqnarray}
-  \label{eq:MH_lognorm}
-  n(r) = \frac{3\cdot\imc_{>50}}{\pi^{3/2}\rho \sqrt{2}
-    \exp(3\mu_{>50}+(9/2)\sigma^2_{>50}) r \sigma_{>50} r_0^3}
-  \nonumber \\
-  \cdot \exp\left[-\frac{1}{2}\left(\frac{\log\frac{2r}{r_0} -
-          \mu_{>50}}{\sigma_{>50}}\right)^2\right], 
+  \frac{dn}{d\xmed} &=& \left( \frac{dn}{d\no}\frac{d\no}{d\la} + 
+                        \frac{dn}{d\la} \right) \frac{d\la}{d\xmed} \nonumber\\
+ &=& \left( \frac{dn}{d\no} \frac{w\ga\eterm\la^{\eterm-1}}{a\Gamma(\eterm)} + 
+                        \frac{dn}{d\la} \right) (-1)(\mu+1+b-0.327\ga)\xmed^{-(\ga+1)} 
 \end{eqnarray}
-where $\imc_{>50}$ is the mass of all ice crystals greater than
-50\,\mum\ in the observed size distribution, $r_0$ = 1\,\mum\ is a
-parameter used to ensure that the equation does not depend on the
-choice of unit for r, $\sigma_{>50}$ is the geometric standard
-deviation of the distribution, and $\mu_{>50}$ is the location of the
-mode of the log-normal distribution.  The fitted parameters of the
-distribution can be looked up in the article by
-\citet{mcfarquar97:_param_tropic_cirrus_ice_cryst}.  The particle
-number density field is obtained by numerical integration over a
-discrete set of size bins. Implementations of this particle size distribution
-parameterization exist in the ATMLAB and PyARTS packages (NOTE: PyARTS is
-currently not maintained and functionality is not guaranteed!).
+The workspace method for this form of MGD is \wsmindex{psdMgdMassXmedian}.
+
+
+
+\subsection{Mass content and mean particle mass}
+%
+The mean particle mass is defined as
+\begin{equation}
+  \mmea = \frac{w}{\ntot}
+\end{equation}
+where $\ntot$ is the bulk number density, that equals the 0:th moment:
+\begin{equation}
+  \ntot = M_0.
+  \label{eq:ntot}
+\end{equation}
+That is
+\begin{equation}
+  \mmea = \frac{aM_b}{M_0} = \frac{a}{\la^{b/\ga}}\frac{\Gamma(\eterm)}{\Gamma(\rterm)},
+  \label{eq:mmean}
+\end{equation}
+where $\rterm$ is defined as
+\begin{equation}
+  \rterm = \frac{\mu+1}{\ga}.
+\end{equation}
+As for mean and median size, so far only $\no$ and $\la$ are allowed to be the
+pair of dependent variables: $n(w,\mmea,\mu,\ga)$. From
+Eq.~\ref{eq:mmean} we get
+\begin{equation}
+  \la = \left( \frac{a}{\mmea} \frac{\Gamma(\eterm)}{\Gamma(\rterm)}\right)^{\ga/b}.
+\end{equation}
+With $\la$ at hand, $\no$ can be determined as for the mass-only case
+(Eq.~\ref{eq:n0fromw}).
+
+As mass content only affects $\no$, Eq.~\ref{eq:dn0dw} is also valid here.
+The derivative with respect to mean particle mass is 
+\begin{eqnarray}
+  \frac{dn}{d\mmea} &=& \left( \frac{dn}{d\no}\frac{d\no}{d\la} + 
+                        \frac{dn}{d\la} \right) \frac{d\la}{d\mmea} \nonumber\\
+ &=& \left( \frac{dn}{d\no} \frac{w\ga\eterm\la^{\eterm-1}}{a\Gamma(\eterm)} + 
+                        \frac{dn}{d\la} \right) 
+   \left(a\frac{\Gamma(\eterm)}{\Gamma(\rterm)}\right)^{\ga/b} \frac{(-\ga)}{b}\mmea^{-(\ga/b+1)}.
+\end{eqnarray}
+The workspace method for this form of MGD is \wsmindex{psdMgdMassMeanParticleSize}.
+
+
+
+
+% \section[McFarquhar and Heymsfield parametrization]
+% {Ice particle size parameterization by McFarquhar and Heymsfield}
+% \label{sec:McFHey_distr}
+
+% A parameterization of tropical cirrus ice crystal size distributions was
+% derived by \citet{mcfarquar97:_param_tropic_cirrus_ice_cryst}. The
+% size distribution takes temperature and \imc\ as input. The parameterization
+% was made based on observations during the Central Equatorial Pacific Experiment
+% (CEPEX). Smaller ice crystals with an equal volume sphere radius of less than
+% 50\,\mum\ are parametrized as a sum of first-order gamma functions:
+% \begin{equation}
+%   \label{eq:MH_gamma}
+%   n(r) = \frac{12\cdot \imc_{<50}\alpha^5_{<50} r}{\pi \rho
+%     \Gamma(5)} \exp(-2 \alpha_{<50} r), 
+% \end{equation}
+% where $\alpha_{<50}$ is a parameter of the distribution, and
+% $\imc_{<50}$ is the mass of all crystals smaller than 50\,\mum\ in
+% the observed size distribution.  Large ice crystals are represented
+% better by a log-normal function
+% \begin{eqnarray}
+%   \label{eq:MH_lognorm}
+%   n(r) = \frac{3\cdot\imc_{>50}}{\pi^{3/2}\rho \sqrt{2}
+%     \exp(3\mu_{>50}+(9/2)\sigma^2_{>50}) r \sigma_{>50} r_0^3}
+%   \nonumber \\
+%   \cdot \exp\left[-\frac{1}{2}\left(\frac{\log\frac{2r}{r_0} -
+%           \mu_{>50}}{\sigma_{>50}}\right)^2\right], 
+% \end{eqnarray}
+% where $\imc_{>50}$ is the mass of all ice crystals greater than
+% 50\,\mum\ in the observed size distribution, $r_0$ = 1\,\mum\ is a
+% parameter used to ensure that the equation does not depend on the
+% choice of unit for r, $\sigma_{>50}$ is the geometric standard
+% deviation of the distribution, and $\mu_{>50}$ is the location of the
+% mode of the log-normal distribution.  The fitted parameters of the
+% distribution can be looked up in the article by
+% \citet{mcfarquar97:_param_tropic_cirrus_ice_cryst}.  The particle
+% number density field is obtained by numerical integration over a
+% discrete set of size bins. 
 
 
 

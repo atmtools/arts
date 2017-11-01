@@ -60,6 +60,7 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
                       "${CMAKE_CURRENT_SOURCE_DIR}/absorption_theory.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/rte_theory.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/polarization.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/clouds_theory.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/ppath_theory.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/doit.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/montecarlo.tex")

@@ -34,7 +34,7 @@
           distributions).
 
   These functions are listed in the doxygen documentation as entries of the
-  file auto_md.h.*/
+  file auto_md.h. */
 
 
 
@@ -688,64 +688,21 @@ void psdF07 (
     throw runtime_error( "*pnd_agenda_input* must have one column." ); 
   if( regime!="TR" && regime!="ML" )
     throw runtime_error( "regime must either be \"TR\" or \"ML\"." );
-  
-  
-  // Some sanity checks. If not picky, we just ignore the insanities.
-  if( picky )
+  if( scat_species_a <= 0 )
+    throw runtime_error( "*scat_species_a* should be > 0." );
+  if( scat_species_b < b_min  ||  scat_species_b > b_max )
     {
-      if( scat_species_a <= 0 )
-        throw runtime_error( "*scat_species_a* should be > 0." );
-      // Sane beta?
-      if( scat_species_b < b_min  ||  scat_species_b > b_max )
-        {
-          ostringstream os;
-          os << "Method called with a mass-dimension-relation exponent b of "
-             << scat_species_b << ".\n"
-             << "This is outside the specified allowed range: ["
-             << b_min << "," << b_max << "]";
-          throw runtime_error(os.str());
-        }
-
-      // Do alpha and beta result in sane mass for ice particles (i.e. density
-      // shouldn't be > DENSITY_ICE? we check the smallest and largest
-      // particles.
-
-      /* that seems unpractical. for beta<3., small particles will frequently
-         exceed ice density quite significantly. hence, don't apply this.
-
-      // first, find the smallest and largest particles D_small and D_large (as
-      // psd_size grid is not necessarily sorted).
-      Vector D_lims{1e3,-1.}; // 1km should be large enough to find
-                                         // one that is smaller...
-      for( Index iD=0; iD<nsi; iD++ )
-        {
-          if( D_lims[0] > psd_size_grid[iD] ) D_lims[0]=psd_size_grid[iD];
-          if( D_lims[1] < psd_size_grid[iD] ) D_lims[1]=psd_size_grid[iD];
-        }
-
-      // now calc resulting densities for solid spheres D_small and D_large
-      // diameters
-      for( Index iD=0; iD<2; iD++ )
-        {
-          Numeric rho = 6.*alpha/PI * pow(D_lims[iD],(beta-3.));
-          if( rho*(1.+density_deviation) > DENSITY_OF_ICE )
-            {
-              ostringstream os;
-              os << "Method called with a mass-dimension-relation parameters"
-                 << " alpha=" << alpha << " and beta=" << beta << "\n"
-                 << "results in minimum density of " << rho << ".\n"
-                 << "This is unphysical for ice particles and beyond the"
-                 << " allowed unphysicality threshold: "
-                 << rho*(1.+density_deviation) << ".";
-              throw runtime_error(os.str());
-            }
-        }
-      */
+      ostringstream os;
+      os << "Method called with a mass-dimension-relation exponent b of "
+         << scat_species_b << ".\n"
+         << "This is outside the specified allowed range: ["
+         << b_min << "," << b_max << "]";
+      throw runtime_error(os.str());
     }
 
+  
   for( Index ip=0; ip<np; ip++ )
     {
-      
       // Extract the input variables
       Numeric swc = pnd_agenda_input(ip,0);
       Numeric   t = pnd_agenda_input_t[ip];
@@ -1055,27 +1012,21 @@ void psdMgdMass(
         }
 
       // Derive the dependent parameter
-      // The equation to solve is Eq 31 in Petty&Huang, JAS, 2011
-      Numeric eterm = 0, scfac = 0;
+      Numeric eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
+      if( eterm <= 0 )
+        throw runtime_error( "Negativ argument to gamma function obtained. "
+                             "This could happen for low values of mu and ga." );
+      Numeric scfac = 0;
       if( n0_depend )
         {
-          eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
-          if( eterm <= 0 )
-            throw runtime_error( "Negativ argument to gamma function obtained. "
-                                 "This could happen for low values of mu and ga." );
-          scfac = scat_species_a * tgamma(eterm) /
-            ( mgd_pars[3] * pow( mgd_pars[2], eterm ) );
-          mgd_pars[0] = ext_pars[0] / scfac;
+          scfac = ( mgd_pars[3] * pow( mgd_pars[2], eterm ) ) /
+            ( scat_species_a * tgamma(eterm) );
+          mgd_pars[0] = scfac * ext_pars[0] ;
         }
       else if( la_depend )
         {
-          eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
-          if( eterm <= 0 )
-            throw runtime_error( "Negativ argument to gamma function obtained. "
-                                 "This could happen for low values of mu and ga." );
-          scfac = scat_species_a * mgd_pars[0] * tgamma(eterm) /
-            mgd_pars[3];
-          scfac = pow( scfac, 1/eterm );
+          scfac = mgd_pars[3] / ( scat_species_a * mgd_pars[0] * tgamma(eterm) );
+          scfac = pow( scfac, -1/eterm );
           mgd_pars[2] = scfac * pow( ext_pars[0], -1/eterm );
         }
       else 
@@ -1103,7 +1054,7 @@ void psdMgdMass(
           if( n0_depend )
             {
               dpsd_data_dx(ext_i_jac[0],ip,joker) = jac_data(0,joker);
-              dpsd_data_dx(ext_i_jac[0],ip,joker) /= scfac; 
+              dpsd_data_dx(ext_i_jac[0],ip,joker) *= scfac; 
             }
           else if( la_depend )
             {
@@ -1126,8 +1077,7 @@ void psdMgdMass(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-/*
-void psdMgdMassNtot(
+void psdMgdMassMeanParticleSize(
           Matrix&          psd_data,
           Tensor3&         dpsd_data_dx,
     const Vector&          psd_size_grid,
@@ -1168,7 +1118,7 @@ void psdMgdMassNtot(
   if( n0_depend + mu_depend + la_depend + ga_depend != 2 )
     throw runtime_error( "Two (but only two) of n0, mu, la and ga must be NaN, "
                          "to flag that these parameters are the ones dependent of "
-                         "mass content and total particle number." );
+                         "mass content and mean particle size." );
   if( mu_depend  ||  ga_depend )
     throw runtime_error( "Sorry, mu and la are not yet allowed to be a "
                          "dependent parameter." );    
@@ -1205,12 +1155,12 @@ void psdMgdMassNtot(
   //
   for( Index i=0; i<ndx; i++ )
     {
-      if( dx2in[i] == 0 )  // That is,  mass is a derivative
+      if( dx2in[i] == 0 )  // That is, mass is a derivative
         {
           ext_do_jac[0] = 1;
           ext_i_jac[0]  = i;
         }
-      else if( dx2in[i] == 1 )  // That is, Dm is a derivative
+      else if( dx2in[i] == 1 )  // That is, Mmean is a derivative
         {
           ext_do_jac[1] = 1;
           ext_i_jac[1]  = i;
@@ -1262,26 +1212,25 @@ void psdMgdMassNtot(
             { continue; }   // If here, we are ready with this point!
         }
 
-      // Derive the dependent parameters
-      // The equations to solve are Eq 18 and 33 in Petty&Huang, JAS, 2011
-      Numeric eterm = 0, gterm = 0, scfac1 = 0, scfac2 = 0;
+      // Derive the dependent parameters (see ATD)
+      Numeric eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
+      if( eterm <= 0 )
+        throw runtime_error( "Negativ argument to gamma function obtained. "
+                             "This could happen for low values of mu and ga." );
+      Numeric gterm = 0, scfac1 = 0, scfac2 = 0, gab = 0;
       if( n0_depend  &&  la_depend )
         {
-          // Start by deriving la from the fact that mass/ntot = M_3/M_0 =
-          // a*gamma((mu+b+1)/ga)/gamma((mu+1)/ga)*la^(-b/ga), where M_k is the
-          // k_th moment.
-          // Stopped here !!! The stuff below needs to be fixed.
-          scfac2 = pow( (mgd_pars[1]+scat_species_b+1) / mgd_pars[3], mgd_pars[3] ); 
-          mgd_pars[2] = scfac2 * pow( ext_pars[1], -mgd_pars[3] );
-          
-          // We can now derive n0 as is psdMgdMass
-          eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
-          if( eterm <= 0 )
-            throw runtime_error( "Negativ argument to gamma function obtained. "
-                                 "This could happen for low values of mu and ga." );
+          // Start by deriving la
+          gab = mgd_pars[3] / scat_species_b;
           gterm = tgamma( eterm );
-          scfac1 = scat_species_a * gterm / ( mgd_pars[3] * pow( mgd_pars[2], eterm ) );
-          mgd_pars[0] = ext_pars[0] / scfac1;
+          scfac2 = pow( scat_species_a * gterm /
+                        tgamma( (mgd_pars[1]+1)/mgd_pars[3] ), gab ); 
+          mgd_pars[2] = scfac2 * pow( ext_pars[1], -gab );
+
+          // We can now derive n0 
+          scfac1 = ( mgd_pars[3] * pow( mgd_pars[2], eterm ) ) /
+            ( scat_species_a * gterm );
+          mgd_pars[0] = scfac1 * ext_pars[0];
         }
       else 
         { assert(0); }
@@ -1303,18 +1252,17 @@ void psdMgdMassNtot(
       //
       if( ext_do_jac[0] )
         {
-          // The derivatives are handled by the chain rule.
-          // See psdMass for a small example.
+          // The derivatives are handled by the chain rule, see ATD.
           if( n0_depend  &&  la_depend )
             {
-              // Note that Xmean sets la, and then also affects n0, while
-              // mass only affects n0 (for given Xmean). So chain
-              // rule gives us two products to consider for Xmean, but
+              // Note that Mmean sets la, and then also affects n0, while
+              // mass only affects n0 (for given Mmean). So chain
+              // rule gives us two products to consider for Mmean, but
               // only one for mass.
               // Derivative with respect to mass:
               // Calculated as dpsd/dn0 * dn0/dmass
               dpsd_data_dx(ext_i_jac[0],ip,joker) = jac_data(0,joker);
-              dpsd_data_dx(ext_i_jac[0],ip,joker) /= scfac1; 
+              dpsd_data_dx(ext_i_jac[0],ip,joker) *= scfac1; 
               // Derivative with respect to Xmean:
               // 1. Term associated with n0
               // Calculated as dpsd/dn0 * dn0/dla * dla/dDm
@@ -1326,8 +1274,8 @@ void psdMgdMassNtot(
               // Calculated as dpsd/dla * dla/dDm
               dpsd_data_dx(ext_i_jac[1],ip,joker) += jac_data(2,joker);
               // Apply dla/dDm to sum
-              dpsd_data_dx(ext_i_jac[1],ip,joker) *= -mgd_pars[3] * scfac2 *
-                pow( ext_pars[1], -mgd_pars[3]-1 );
+              dpsd_data_dx(ext_i_jac[1],ip,joker) *= scfac2 *
+                ( -mgd_pars[3] / scat_species_b ) * pow( ext_pars[1], -(gab+1) );
             }
           else 
             { assert(0); }
@@ -1340,7 +1288,7 @@ void psdMgdMassNtot(
         } 
     }  
 }
-*/
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1479,24 +1427,23 @@ void psdMgdMassXmean(
             { continue; }   // If here, we are ready with this point!
         }
 
-      // Derive the dependent parameters
-      // The equations to solve are Eq 31 in Petty&Huang, JAS, 2011 and
-      // M_b+1/M_b, where M_b is b:th moment (see Eq 17 in P&H).
-      Numeric eterm = 0, gterm = 0, scfac1 = 0, scfac2 = 0;
+      // Derive the dependent parameters (see ATD)
+      Numeric eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
+      if( eterm <= 0 )
+        throw runtime_error( "Negativ argument to gamma function obtained. "
+                             "This could happen for low values of mu and ga." );
+      Numeric gterm = 0, scfac1 = 0, scfac2 = 0;
       if( n0_depend  &&  la_depend )
         {
-          // Start by deriving la from the fact that M_b+1/M_b = (mu+b+1)/(ga*la^1/ga) 
-          scfac2 = pow( (mgd_pars[1]+scat_species_b+1) / mgd_pars[3], mgd_pars[3] ); 
+          // Start by deriving la 
+          scfac2 = pow( eterm, mgd_pars[3] ); 
           mgd_pars[2] = scfac2 * pow( ext_pars[1], -mgd_pars[3] );
           
-          // We can now derive n0 as is psdMgdMass
-          eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
-          if( eterm <= 0 )
-            throw runtime_error( "Negativ argument to gamma function obtained. "
-                                 "This could happen for low values of mu and ga." );
+          // We can now derive n0 
           gterm = tgamma( eterm );
-          scfac1 = scat_species_a * gterm / ( mgd_pars[3] * pow( mgd_pars[2], eterm ) );
-          mgd_pars[0] = ext_pars[0] / scfac1;
+          scfac1 = ( mgd_pars[3] * pow( mgd_pars[2], eterm ) ) /
+            ( scat_species_a * gterm );
+          mgd_pars[0] = scfac1 * ext_pars[0];
         }
       else 
         { assert(0); }
@@ -1520,8 +1467,7 @@ void psdMgdMassXmean(
       //
       if( ext_do_jac[0] )
         {
-          // The derivatives are handled by the chain rule.
-          // See psdMass for a small example.
+          // The derivatives are handled by the chain rule, see ATD.
           if( n0_depend  &&  la_depend )
             {
               // Note that Xmean sets la, and then also affects n0, while
@@ -1531,7 +1477,7 @@ void psdMgdMassXmean(
               // Derivative with respect to mass:
               // Calculated as dpsd/dn0 * dn0/dmass
               dpsd_data_dx(ext_i_jac[0],ip,joker) = jac_data(0,joker);
-              dpsd_data_dx(ext_i_jac[0],ip,joker) /= scfac1; 
+              dpsd_data_dx(ext_i_jac[0],ip,joker) *= scfac1; 
               // Derivative with respect to Xmean:
               // 1. Term associated with n0
               // Calculated as dpsd/dn0 * dn0/dla * dla/dDm
@@ -1544,7 +1490,7 @@ void psdMgdMassXmean(
               dpsd_data_dx(ext_i_jac[1],ip,joker) += jac_data(2,joker);
               // Apply dla/dDm to sum
               dpsd_data_dx(ext_i_jac[1],ip,joker) *= -mgd_pars[3] * scfac2 *
-                pow( ext_pars[1], -mgd_pars[3]-1 );
+                pow( ext_pars[1], -(mgd_pars[3]+1) );
             }
           else 
             { assert(0); }
@@ -1696,30 +1642,28 @@ void psdMgdMassXmedian(
             { continue; }   // If here, we are ready with this point!
         }
 
-      // Derive the dependent parameters
-      // The equations to solve are Eq 31 and 33 in Petty&Huang, JAS, 2011
-      Numeric eterm = 0, gterm = 0, scfac1 = 0, scfac2 = 0;
+      // Derive the dependent parameters (see ATD)
+      Numeric eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
+      if( eterm <= 0 )
+        throw runtime_error( "Negativ argument to gamma function obtained. "
+                             "This could happen for low values of mu and ga." );
+      Numeric gterm = 0, scfac1 = 0, scfac2 = 0;
       if( n0_depend  &&  la_depend )
         {
-          // Start by deriving la from Eq 31
+          // Start by deriving la 
           scfac2 = ( mgd_pars[1] + 1 + scat_species_b - 0.327*mgd_pars[3] ) /
                    mgd_pars[3];  
           mgd_pars[2] = scfac2 * pow( ext_pars[1], -mgd_pars[3] );
           
-          // We can now derive n0 as is psdMgdMass
-          eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
-          if( eterm <= 0 )
-            throw runtime_error( "Negativ argument to gamma function obtained. "
-                                 "This could happen for low values of mu and ga." );
+          // We can now derive n0 
           gterm = tgamma( eterm );
-          scfac1 = scat_species_a * gterm / ( mgd_pars[3] * pow( mgd_pars[2], eterm ) );
-          mgd_pars[0] = ext_pars[0] / scfac1;
+          scfac1 = ( mgd_pars[3] * pow( mgd_pars[2], eterm ) ) /
+            ( scat_species_a * gterm );
+          mgd_pars[0] = scfac1 * ext_pars[0];
         }
       else 
         { assert(0); }
 
-      cout << mgd_pars << endl;
-      
       // For testing
       /*
       cout << mgd_pars << endl;
@@ -1739,8 +1683,7 @@ void psdMgdMassXmedian(
       //
       if( ext_do_jac[0] )
         {
-          // The derivatives are handled by the chain rule.
-          // See psdMass for a small example.
+          // The derivatives are handled by the chain rule, see ATD
           if( n0_depend  &&  la_depend )
             {
               // Note that Xmedian sets la, and then also affects n0, while
@@ -1750,7 +1693,7 @@ void psdMgdMassXmedian(
               // Derivative with respect to mass:
               // Calculated as dpsd/dn0 * dn0/dmass
               dpsd_data_dx(ext_i_jac[0],ip,joker) = jac_data(0,joker);
-              dpsd_data_dx(ext_i_jac[0],ip,joker) /= scfac1; 
+              dpsd_data_dx(ext_i_jac[0],ip,joker) *= scfac1; 
               // Derivative with respect to Xmedian:
               // 1. Term associated with n0
               // Calculated as dpsd/dn0 * dn0/dla * dla/dDm
@@ -1763,7 +1706,7 @@ void psdMgdMassXmedian(
               dpsd_data_dx(ext_i_jac[1],ip,joker) += jac_data(2,joker);
               // Apply dla/dDm to sum
               dpsd_data_dx(ext_i_jac[1],ip,joker) *= -mgd_pars[3] * scfac2 *
-                pow( ext_pars[1], -mgd_pars[3]-1 );
+                pow( ext_pars[1], -(mgd_pars[3]+1) );
             }
           else 
             { assert(0); }
@@ -1788,6 +1731,8 @@ void psdMH97 (
     const Matrix&           pnd_agenda_input,
     const ArrayOfString&    pnd_agenda_input_names,
     const ArrayOfString&    dpnd_data_dx_names,
+    const Numeric&          scat_species_a, 
+    const Numeric&          scat_species_b, 
     const Numeric&          t_min, 
     const Numeric&          t_max, 
     const Numeric&          t_min_psd, 
@@ -1805,10 +1750,24 @@ void psdMH97 (
   if( noisy  &&   ndx )
     throw runtime_error( "Jacobian calculations and \"noisy\" can not be "
                          "combined." );
+  if( scat_species_b < 2.9  ||  scat_species_b > 3.1 )
+    {
+      throw runtime_error( "This PSD treats pure ice, using Dveq as size grid.\n"
+                           "This means that b should be close to 3, but "
+                           "*scat_species_b* \nis outside of the tolerated range "
+                           "of [2.9,3.1]." );
+    }
+  if( scat_species_a < 460  ||  scat_species_a > 500 )
+    {
+      throw runtime_error( "This PSD treats pure ice, using Dveq as size grid.\n"
+                           "This means that a should be close to 480, but "
+                           "*scat_species_a* \nis outside of the tolerated range "
+                           "of [460,500]." );
+    }
 
+  
   for( Index ip=0; ip<np; ip++ )
     {
-      
       // Extract the input variables
       Numeric iwc = pnd_agenda_input(ip,0);
       Numeric   t = pnd_agenda_input_t[ip];
@@ -2381,6 +2340,8 @@ void psdW16 (
     const Matrix&           pnd_agenda_input,
     const ArrayOfString&    pnd_agenda_input_names,
     const ArrayOfString&    dpnd_data_dx_names,
+    const Numeric&          scat_species_a, 
+    const Numeric&          scat_species_b, 
     const Numeric&          t_min, 
     const Numeric&          t_max, 
     const Index&            picky, 
@@ -2392,6 +2353,21 @@ void psdW16 (
   // Extra checks for this PSD
   if( pnd_agenda_input.ncols() != 1 )
     throw runtime_error( "*pnd_agenda_input* must have one column." );
+  if( scat_species_b < 2.9  ||  scat_species_b > 3.1 )
+    {
+      throw runtime_error( "This PSD treats rain, using Dveq as size grid.\n"
+                           "This means that b should be close to 3, but "
+                           "*scat_species_b* \nis outside of the tolerated range "
+                           "of [2.9,3.1]." );
+    }
+  if( scat_species_a < 500  ||  scat_species_a > 540 )
+    {
+      throw runtime_error( "This PSD treats rain, using Dveq as size grid.\n"
+                           "This means that a should be close to 520, but "
+                           "*scat_species_a* \nis outside of the tolerated range "
+                           "of [500,540]." );
+    }
+
   
   for( Index ip=0; ip<np; ip++ )
     {

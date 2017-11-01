@@ -12287,40 +12287,31 @@ void define_md_data_raw()
          "*psd_size_grid* shall contain size in terms of maximum diameter.\n"
          "\n"
          "Derivatives are obtained by perturbation of 0.1%, but not less than\n"
-         "0.1 mg/m3.\n"
+         "1e-9 kg/m3.\n"
          "\n"
-         "Both, parametrization for tropics and midlatitudes are handled,\n"
+         "Both parametrization for tropics and midlatitudes are handled,\n"
          "governed by setting of *regime*, where \"TR\" selectes the tropical\n"
          "case, and \"ML\" the midlatitude one.\n"
          "\n"
          "The validity range of mass content is not limited. Negative mass\n"
-         "contents wil produce negative psd values following a distribution\n"
+         "contents will produce negative psd values following a distribution\n"
          "given by abs(IWC), ie. abs(psd)=f(abs(IWC)).\n"
          "\n"
          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
          "picky=0, or an error is thrown if picky=1.\n"
+         "\n"
          "For temperatures below *t_min_psd*, the size distribution is\n"
          "calculated for T = *t_min_psd*. Likewise, for temperatures above\n"
          "*t_max_psd*, the distribution is derived for T = *t_max_psd*.\n"
-         "That is, these temperature limits (can) create 5 different psd\n"
-         "calculation regions:\n"
-         "\n"
-         "<--0--|--f(*t_min_psd*)--|--f(T)--|--f(*t_max_psd*)--|--0-->\n"
-         "   *t_min*        *t_min_psd*  *t_max_psd*        *t_max*\n"
          "\n"
          "Defaults of *t_min_psd* and *t_max_psd* were set considering that\n"
          "the parametrization has been derived from measurements over\n"
          "temperatures of -60C to 0C."
          "\n"
-         "If picky, checks of the sanity of the mass-dimension relationship\n"
-         "are performed. Errors are thrown if:\n"
+         "Checks of the sanity of the mass-dimension relationship are performed\n"
+         "Errors are thrown if:\n"
          "- Mass-dimension relation exponent *scat_species_b* is outside\n"
          "  [*b_min*, *b_max*].\n"
-         "\n"
-         "Backward compatability note: reproducing F07 for IWC>=0 from\n"
-         "*pnd_fieldCalcFromscat_speciesFields* can be ensured with\n"
-         "practically switching off the temperature limits, e.g.\n"
-         "*t_min*=-999., *t_max*=999., *t_min_psd*=-999., *t_max_psd*=999.\n"
         ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "psd_data", "dpsd_data_dx" ),
@@ -12453,6 +12444,41 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "psdMgdMassMeanParticleSize" ),
+        DESCRIPTION
+        (
+         "Modified gamma distribution PSD, with mass content and mean particle\n"
+         "size as inputs.\n"
+         "\n"
+         "This version of MGD PSD works as *psdMgdMass*, but takes mass content\n"
+         "and mean particle size as first two arguments. This means that the first\n"
+         "and second column of *pnd_agenda_input* shall hold mass content and mmean\n"
+         "particle size, respectively. Accordingly, the number of dependent parameters\n"
+         "is two.\n"
+         "\n"
+         "\"Mean particle size\" is here defined as the mass content divided with\n"
+         "the total number density.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "psd_data", "dpsd_data_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
+            "pnd_agenda_input_names", "dpnd_data_dx_names",
+            "scat_species_a", "scat_species_b" ),
+        GIN( "n0", "mu", "la", "ga", "t_min", "t_max", "picky" ),
+        GIN_TYPE( "Numeric", "Numeric",  "Numeric", "Numeric",
+                  "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( "NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0" ),
+        GIN_DESC( "n0", "mu", "la", "ga",
+                  "Low temperature limit to calculate a psd.",
+                  "High temperature limit to calculate a psd.",
+                  "Flag whether to be strict with parametrization value checks." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "psdMgdMassXmean" ),
         DESCRIPTION
         (
@@ -12461,7 +12487,7 @@ void define_md_data_raw()
          "\n"
          "This version of MGD PSD works as *psdMgdMass*, but takes mass content\n"
          "and mass size as first two arguments. This means that the first and\n"
-         "second column of *pnd_agenda_input* shall hold mass content and mass\n"
+         "second column of *pnd_agenda_input* shall hold mass content and mean\n"
          "size, respectively. Accordingly, the number of dependent parameters is\n"
          "two.\n"
          "\n"
@@ -12537,7 +12563,7 @@ void define_md_data_raw()
          "*psd_size_grid* shall contain size in terms of volume equivalent diameter.\n"
          "\n"
          "Derivatives are obtained by perturbation of 0.1%, but not less than\n"
-         "0.1 mg/m3.\n"
+         "1e-9 kg/m3.\n"
          "\n"
          "The validity range of mass content is not limited. Negative mass\n"
          "contents wil produce negative psd values following a distribution\n"
@@ -12545,14 +12571,10 @@ void define_md_data_raw()
          "\n"
          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
          "picky=0, or an error is thrown if picky=1.\n"
+         "\n"
          "For temperatures below *t_min_psd*, the size distribution is\n"
          "calculated for T = *t_min_psd*. Likewise, for temperatures above\n"
          "*t_max_psd*, the distribution is derived for T = *t_max_psd*.\n"
-         "That is, these temperature limits (can) create 5 different psd\n"
-         "calculation regions:\n"
-         "\n"
-         "<--0--|--f(*t_min_psd*)--|--f(T)--|--f(*t_max_psd*)--|--0-->\n"
-         "   *t_min*        *t_min_psd*  *t_max_psd*        *t_max*\n"
          "\n"
          "Defaults of *t_min_psd* and *t_max_psd* were set considering that\n"
          "the parametrization has been derived from measurements over\n"
@@ -12560,10 +12582,6 @@ void define_md_data_raw()
          "\n"
          "The noisy option can not be used together with calculation of\n"
          "derivatives (ie. when *dpnd_data_dx_names* is not empty).\n"
-         "\n"
-         "Backward compatability note: reproducing MH97 for IWC>=0 from\n"
-         "*pnd_fieldCalcFromscat_speciesFields* can be ensured with\n"
-         "*t_min*=0., *t_max*=280., *t_min_psd*=0., *t_max_psd*=273.15.\n"
         ),
         AUTHORS( "Patrick Eriksson, Jana Mendrok" ),
         OUT( "psd_data", "dpsd_data_dx" ),
@@ -12571,7 +12589,8 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
-            "pnd_agenda_input_names", "dpnd_data_dx_names" ),
+            "pnd_agenda_input_names", "dpnd_data_dx_names",
+            "scat_species_a", "scat_species_b" ),
         GIN(         "t_min",   "t_max",   "t_min_psd", "t_max_psd",
                      "picky", "noisy" ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric",   "Numeric",
@@ -12806,7 +12825,7 @@ void define_md_data_raw()
          "maximum diameter.\n"
          "\n"
          "Derivatives are obtained by perturbation of 0.1%, but not less than\n"
-         "0.1 mg/m3.\n"
+         "1e-9 kg/m3.\n"
          "\n"
          "The validity range of mass content is not limited. Negative mass\n"
          "contents wil produce negative psd values following a distribution\n"
@@ -12821,7 +12840,8 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
-            "pnd_agenda_input_names", "dpnd_data_dx_names" ),
+            "pnd_agenda_input_names", "dpnd_data_dx_names",
+            "scat_species_a", "scat_species_b" ),
         GIN( "t_min",   "t_max", "picky" ),
         GIN_TYPE( "Numeric", "Numeric", "Index" ),
         GIN_DEFAULT( "273", "373", "0" ),

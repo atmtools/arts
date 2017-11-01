@@ -1,11 +1,34 @@
+2017-11-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-851
+
+	* doc/uguide/references.bib: Added two references, used in PSD chapter.
+
+	* doc/uguide/clouds_theory.tex: A restart of this chapter. It is
+	now dedicated to PSDs. So far containing the math behind the MGD PSDs.
+
+	* doc/uguide/CMakeLists.txt: clouds_theory.tex was missing.
+
+	* src/m_microphysics.cc (psdMgdMassMeanParticleSize): New WSM.
+
+	(psdMH97, psdW16): Now takes scat_species_a and scat_species_b as
+	input, and the values are checked to be reasonable. Corrected
+	header text.
+
+	(psdMgdMass,psdMgdMassXmean,psdMgdMassXmedian): Cosmetic changes,
+	to make the code more consistent with the documentation.
+
+	(psdF07): scat_species_a and scat_species_b now always checked.
+	Corrected header text.
+
 2017-10-30 Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-850
-	
-	* src/absorption.cc: Added some comments and changed 
+
+	* src/absorption.cc: Added some comments and changed
 	the range (it did not work when cutoff-range was inside
 	range)
-	
+
 	* src/linerecord.cc: Added some comments and fixed
 	reading routine error
 	
