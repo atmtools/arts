@@ -16182,6 +16182,32 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "surfaceTessem" ),
+        DESCRIPTION
+        (
+         "Tessem sea surface emissivity parametrization.\n"
+         "\n"
+         "This computes surface emissivity and reflectivity matrices for \n"
+         " ocean surfaces using the TESSEM emissivity model. The model itself\n"
+         " is represented by the neural networks in *tessem_neth* and \n"
+         " *tessem_netv*.\n"
+         ),
+        AUTHORS( "Simon Pfreundschuh" ),
+        OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "stokes_dim", "f_grid", "rtp_pos", "rtp_los",
+            "specular_los", "surface_skin_t", "tessem_neth", "tessem_netv" ),
+        GIN( "salinity", "wind_speed" ),
+        GIN_TYPE( "Numeric", "Numeric" ),
+        GIN_DEFAULT( "0.035", NODEF),
+        GIN_DESC( "Salinity, 0-1. That is, 3% is given as 0.03.",
+                  "Wind speed.")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "surfaceFlatRefractiveIndex" ),
         DESCRIPTION
         (

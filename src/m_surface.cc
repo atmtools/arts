@@ -47,6 +47,7 @@
 #include "check_input.h"
 #include "complex.h"          
 #include "fastem.h"
+#include "tessem.h"
 #include "geodetic.h"          
 #include "interpolation.h"
 #include "math_funcs.h"
@@ -881,10 +882,83 @@ void surfaceFastem(
           surface_rmatrix(0,i,1,0) = surface_rmatrix(0,i,0,1);
           surface_rmatrix(0,i,1,1) = surface_rmatrix(0,i,0,0);
         }
-    }  
+    }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surfaceTessem(
+    Matrix&           surface_los,
+    Tensor4&          surface_rmatrix,
+    Matrix&           surface_emission,
+    const Index&            atmosphere_dim,
+    const Index&            stokes_dim,
+    const Vector&           f_grid,
+    const Vector&           rtp_pos,
+    const Vector&           rtp_los,
+    const Vector&           specular_los,
+    const Numeric&          surface_skin_t,
+    const TessemNN&         net_h,
+    const TessemNN&         net_v,
+    const Numeric&          salinity,
+    const Numeric&          wind_speed,
+    const Verbosity&        /*verbosity*/ )
+{
+    // Input checks
+    chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+    chk_rte_pos( atmosphere_dim, rtp_pos );
+    chk_rte_los( atmosphere_dim, rtp_los );
 
+    const Index nf = f_grid.nelem();
+
+    // Set surface_los
+    surface_los.resize( 1, specular_los.nelem() );
+    surface_los(0,joker) = specular_los;
+
+    // Surface emission
+    //
+    Vector b(nf);
+    planck( b, f_grid, surface_skin_t );
+    //
+
+    Vector out(2);
+    VectorView e_h = out[Range(0, 1)];
+    VectorView e_v = out[Range(1, 1)];
+
+    Vector in(5);
+
+    in[1] = abs(180.0 - rtp_los[0]);
+    in[2] = wind_speed;
+    in[3] = surface_skin_t;
+    in[4] = salinity;
+
+    surface_emission.resize( nf, stokes_dim );
+    surface_emission = 0.0;
+    surface_rmatrix.resize( 1, nf, stokes_dim, stokes_dim );
+    surface_rmatrix = 0.0;
+
+    for( Index i=0; i<nf; ++i) {
+        in[0] = f_grid[i] * 1e-9;
+
+        tessem_prop_nn(e_h, net_h, in);
+        tessem_prop_nn(e_v, net_v, in);
+
+        // I
+        surface_emission(i,0) = b[i] * 0.5 * ( e_h[0] + e_v[0] );
+        // Q
+        if( stokes_dim >= 2 )
+        { surface_emission(i,1) = b[i] * 0.5 * ( e_h[0] - e_v[0] ); }
+
+        // R Matrix
+        surface_rmatrix(0,i,0,0) = 0.5 * ( (1.0 - e_h[0]) + (1.0 - e_v[0]) );
+        if( stokes_dim >= 2 )
+        {
+            surface_rmatrix(0,i,0,1) = 0.5 * ( (1.0 - e_h[0]) -
+                                               (1.0 - e_v[0]) ); ;
+            surface_rmatrix(0,i,1,0) = surface_rmatrix(0,i,0,1);
+            surface_rmatrix(0,i,1,1) = surface_rmatrix(0,i,0,0);
+        }
+    }
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceFlatRefractiveIndex(
