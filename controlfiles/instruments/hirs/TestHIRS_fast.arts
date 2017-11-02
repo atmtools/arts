@@ -14,7 +14,7 @@ INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
 # Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+Copy( abs_xsec_agenda, abs_xsec_agenda__noCIA )
 
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
@@ -37,16 +37,14 @@ Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
 
 jacobianOff
 
-StringCreate(satellite)
-ArrayOfIndexCreate(channels)
-ArrayOfIndexCreate(views)
-StringCreate(hitran_file)
-NumericCreate(f_grid_spacing)
+StringCreate( satellite )
+ArrayOfIndexCreate( channels )
+ArrayOfIndexCreate( views )
 
 
 # Select here which satellite you want
 # ---
-StringSet(satellite, "NOAA14")
+StringSet( satellite, "NOAA14" )
 
 
 # Select here which channels you want
@@ -56,47 +54,118 @@ StringSet(satellite, "NOAA14")
 # ARTS for thermal radiation only is pointless.
 #
 # WATCH OUT! We use the usual zero-based ARTS indexing here, so index
-# 11 is actually channel 12, etc. 
-#ArrayOfIndexSet(channels, [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18])
-ArrayOfIndexSet(channels, [0,1,2,3,4,5,6,7,8,9,10,11])
-#ArrayOfIndexSet(channels, [11])
+# 11 is actually channel 12, etc.
+#ArrayOfIndexSet( channels, [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18] )
+ArrayOfIndexSet( channels, [0,1,2,3,4,5,6,7,8,9,10,11] )
 
 # Select here which views you want
 # ---
-ArrayOfIndexSet(views, [0, 7, 14, 21, 27])
+ArrayOfIndexSet( views, [0, 7, 14, 21, 27] )
 
 
-# You have to give here the location of the HITRAN catalogue
-# ---
-# FIXME: This has to be replaced by a little piece of the catalog
-# explicitly included here, or?
-# We have to discuss with Oliver (and perhaps Patrick) how to handle
-# this.
-# We can also include a pre-calculated absorption table for HIRS with
-# ARTS. 
-StringSet(hitran_file,"/storage3/data/catalogue/hitran/hitran2004/HITRAN04.par")
-#StringSet(hitran_file,"/home/patrick/Data/HITRAN_2004/HITRAN04.par")
-
-
-# Set frequency grid spacing
-# (See comments in hirs_reference.arts concerning useful values here)
-# ---
-NumericSet(f_grid_spacing, 5e8)
-
-
-# Basic settings (already needed in sensor part)
+# Basic settings
 # ---
 # This example assumes 1D
 AtmosphereSet1D
-# scalar RT
+
+# Scalar RT
 IndexSet( stokes_dim, 1 )
 
-
-INCLUDE "instruments/hirs/hirs_fast.arts"
+# HIRS spectral response functions assume radiance.
+StringSet( iy_unit, "1" )
 
 
 # Set up absorption
-# =================
+# ---
+abs_speciesSet( species=[ "H2O, H2O-SelfContCKDMT100, H2O-ForeignContCKDMT100",
+	                  "O3",
+                          "CO2, CO2-CKDMT100",
+                          "N2O",
+                          "CO",
+                          "CH4",
+                          "O2, O2-CIAfunCKDMT100",
+                          "N2, N2-CIAfunCKDMT100, N2-CIArotCKDMT100" ] )
+
+abs_lineshapeDefine( abs_lineshape, "Voigt_Kuntz6", "VVH", 750e9 )
+
+# deriving abs_lines separate, because one might want to use a lookup table
+#
+# no use of HITRAN in test cases
+# (uncomment when you want to use HITRAN)
+#abs_linesReadFromHitran( abs_lines,
+#                         "HITRAN2012.par",
+#                         2.0022234e+12, 7.9855733e+14 )
+# instead we use a HITRAN-extract converted to ARTSCAT
+# (comment out when you want to use HITRAN)
+ReadXML( abs_lines, "testdata/abs_lines_IR.xml.gz" )
+
+abs_lines_per_speciesCreateFromLines
+
+
+# Sensor setup
+# ---
+
+# Definition of sensor position and LOS
+ReadXML( sensor_los, "hirs.sensor_los.xml" )
+
+# Select those views that are requested by the user
+Select( sensor_los, sensor_los, views )
+
+nrowsGet( nrows, sensor_los )
+ncolsGet( ncols, sensor_los )
+MatrixSetConstant( sensor_pos, nrows, ncols, 850e3 )
+
+
+# Start sensor response setup
+
+# Normalise the sensor response
+IndexSet( sensor_norm, 1 )
+
+AntennaOff
+
+# Construct names of sensor description files
+
+# Nominal channel frequencies
+StringCreate( f_backend_file)
+StringJoin( f_backend_file, satellite, "_HIRS.f_backend.xml" )
+
+# Fast frequency grid
+StringCreate( f_grid_file)
+StringJoin( f_grid_file, satellite, "_HIRS.f_grid_fast.xml" )
+
+# Weights associated with each frequency
+StringCreate( weights_file)
+StringJoin( weights_file, satellite, "_HIRS.W_fast.xml" )
+
+
+# Spectrometer
+ReadXML( f_backend, f_backend_file )
+
+# Read in optimized frequency grid
+ReadXML( f_grid, f_grid_file )
+
+# Read in and WMRF weights:
+ReadXML( wmrf_weights, weights_file )
+
+# Select only the active channels:
+Copy( wmrf_channels, channels )
+
+# The method acts on several variables:
+# f_grid, wmrf_weights, and f_backend
+WMRFSelectChannels
+
+# Initialize sensor variables.
+sensor_responseInit
+
+# Add WMRF weigths to sensor response:
+sensor_responseWMRF
+
+# End of sensor response setup
+
+# Compact line list, to kick out lines that are outside there
+# cutoff range for all frequencies.
+abs_lines_per_speciesCompact
+
 
 # Atmospheric profiles
 # ---
@@ -110,14 +179,16 @@ batch_atm_fields_compactAddConstant( name="abs_species-O2", value=0.2095 )
 batch_atm_fields_compactAddConstant( name="abs_species-N2", value=0.7808 )
 
 
-# Set parameters for lookup table
+# Set up lookup table
 # ---
+
+# Set parameters for lookup table
 # Arguments omitted for better maintainability of this test file.
 abs_lookupSetupBatch
 
 
 # Optional manual override of T and VMR perturbations
-# ---
+#
 # If your input data contains extreme outliers, the lookup table will
 # get unreasonably large. It is suggested that you instead set them
 # manually here. The Chevallier 91L data (humidity set) contains
@@ -130,15 +201,13 @@ abs_lookupSetupBatch
 
 
 # Create the lookup table
-# ---
 abs_xsec_agenda_checkedCalc
-
 abs_lookupCalc
 
-#WriteXML("binary", abs_lookup)
+#WriteXML( "binary", abs_lookup )
 
 # Test (and print) lookup table accuracy
-# ---
+#
 # This method is not necessary, it just tests and prints the lookup
 # table accuracy. Comment it out if you do not want this
 # information. The test should take approximately as much time as the
@@ -153,26 +222,24 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 # Set up RT calculation
 # =====================
 
-
 # Definition of sensor position and LOS
 # ---
 
 # Optionally set sensor_pos
-# ---
-# The sensor altitude is predefined in amsu.arts to 850 km above the geoid. 
+#
+# The sensor altitude is predefined in amsu.arts to 850 km above the geoid.
 # Comment out the next line if you want to set it to something else.
 #MatrixSetConstant( sensor_pos, 1, 1, 850e3 )
 
 
 # Set the agenda for batch calculations:
 # ---
-#
 AgendaSet( ybatch_calc_agenda ){
-  
+
   # Extract the atmospheric profiles for this case:
   Extract(
-    atm_fields_compact, 
-    batch_atm_fields_compact, 
+    atm_fields_compact,
+    batch_atm_fields_compact,
     ybatch_index
   )
 
@@ -190,7 +257,7 @@ AgendaSet( ybatch_calc_agenda ){
 #   jacobianInit
 #   jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
 #                          atmosphere_dim,
-#                          p_grid, lat_grid, lon_grid, 
+#                          p_grid, lat_grid, lon_grid,
 #                          p_grid, lat_grid, lon_grid,
 #                          "H2O, H2O-SelfContCKDMT100, H2O-ForeignContCKDMT100",
 #                          "analytical",
@@ -214,7 +281,7 @@ AgendaSet( ybatch_calc_agenda ){
   yCalc
 
   # Optionally write out jacobian:
-  #  WriteXMLIndexed( output_file_format, ybatch_index, jacobian, "" )
+  # WriteXMLIndexed( output_file_format, ybatch_index, jacobian, "" )
 
   # Convert the measurement from radiance units to Planck Tb:
   StringSet( iy_unit, "PlanckBT" )
@@ -224,7 +291,7 @@ AgendaSet( ybatch_calc_agenda ){
 
 # Set number of batch cases:
 nelemGet( ybatch_n, batch_atm_fields_compact )
-#IndexSet(ybatch_n, 1)
+#IndexSet( ybatch_n, 1 )
 
 # Execute the batch calculations:
 # ---

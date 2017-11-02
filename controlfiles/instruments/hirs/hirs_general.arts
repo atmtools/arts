@@ -1,8 +1,0 @@
-# Included by hirs_fast.arts and hirs_reference.arts
-Arts2{
-output_file_formatSetZippedAscii
-
-# HIRS spectral response functions assume radiance.
-# ---
-StringSet( iy_unit, "1" )
-}

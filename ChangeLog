@@ -1,3 +1,33 @@
+2017-11-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-852
+
+	* controlfiles/instruments/hirs/TestHIRS_fast.arts,
+	controlfiles/instruments/hirs/TestHIRS_reference.arts:
+
+	Merge HIRS test cases into two stand-alone files after discussion with
+	Stefan. The files were split up into too many, confusing small control
+	files.
+
+	The reference file currently fails in sensor_responseBackend (same
+	error as the original before merging). Needs further investigation.
+
+	* controlfiles/instruments/hirs/TestHIRS.arts,
+	controlfiles/instruments/hirs/hirs_fast.arts,
+	controlfiles/instruments/hirs/hirs_general.arts,
+	controlfiles/instruments/hirs/hirs_hitran.arts,
+	controlfiles/instruments/hirs/hirs_reference.arts,
+	controlfiles/instruments/hirs/hirs_sensor_common.arts,
+	controlfiles/instruments/hirs/hirs_sensor_fast.arts,
+	controlfiles/instruments/hirs/hirs_sensor_reference.arts,
+	controlfiles/instruments/hirs/hirs_spectroscopy.arts:
+
+	Removed.
+
+	* controlfiles/CMakeLists.txt:
+
+	Add TestHIRS_reference to nocheck category.
+
 2017-11-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-851

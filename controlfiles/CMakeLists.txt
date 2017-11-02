@@ -142,7 +142,8 @@ arts_test_run_ctlfile(fast instruments/ici/TestICI_fast.arts)
 arts_test_run_ctlfile(fast instruments/mhs/TestMHS_fast.arts)
 arts_test_run_ctlfile(slow instruments/mhs/TestMHS.arts)
 
-arts_test_run_ctlfile(slow instruments/hirs/TestHIRS.arts)
+arts_test_run_ctlfile(slow instruments/hirs/TestHIRS_fast.arts)
+arts_test_run_ctlfile(nocheck instruments/hirs/TestHIRS_reference.arts)
 
 arts_test_run_ctlfile(slow instruments/metmm/TestMetMM.arts)
 
