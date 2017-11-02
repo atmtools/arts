@@ -142,7 +142,8 @@ Numeric stimulated_relative_emission(const Numeric& gamma,
 
 Numeric dstimulated_relative_emission_dT(const Numeric& gamma,
                                          const Numeric& gamma_ref,
-                                         const Numeric& F0);
+                                         const Numeric& F0,
+                                         const Numeric& T);
 
 Numeric dstimulated_relative_emission_dF0(const Numeric& gamma,
                                           const Numeric& gamma_ref,

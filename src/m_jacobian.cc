@@ -3932,31 +3932,28 @@ void jacobianAddCatalogParameter(
     }
     
     // Check catalog_parameter here
-    if(!(//PRESSUREBROADENINGGAMMA_MODE==catalog_parameter ||  Pseudo-mode, not tested
-         LINESTRENGTH_MODE==catalog_parameter ||
-         LINECENTER_MODE==catalog_parameter ||
-         SELFBROADENING_MODE==catalog_parameter ||
-         FOREIGNBROADENING_MODE==catalog_parameter ||
-         WATERBROADENING_MODE==catalog_parameter ||
-         SELFPRESSURESHIFT_MODE==catalog_parameter ||
-         FOREIGNPRESSURESHIFT_MODE==catalog_parameter ||
-         WATERPRESSURESHIFT_MODE==catalog_parameter ||
-         SELFBROADENINGEXPONENT_MODE==catalog_parameter ||
-         FOREIGNBROADENINGEXPONENT_MODE==catalog_parameter ||
-         WATERBROADENINGEXPONENT_MODE==catalog_parameter ||
-         // LINEMIXINGY_MODE==catalog_parameter || Pseudo-mode, not tested
-         // LINEMIXINGG_MODE==catalog_parameter || Pseudo-mode, not tested
-         //LINEMIXINGDF_MODE==catalog_parameter || Pseudo-mode, not tested
-         LINEMIXINGY0_MODE==catalog_parameter ||
-         LINEMIXINGG0_MODE==catalog_parameter ||
-         LINEMIXINGDF0_MODE==catalog_parameter ||
-         LINEMIXINGY1_MODE==catalog_parameter ||
-         LINEMIXINGG1_MODE==catalog_parameter ||
-         LINEMIXINGDF1_MODE==catalog_parameter ||
-         LINEMIXINGYEXPONENT_MODE==catalog_parameter ||
-         LINEMIXINGGEXPONENT_MODE==catalog_parameter ||
-         LINEMIXINGDFEXPONENT_MODE==catalog_parameter ||
-         WATERBROADENINGEXPONENT_MODE==catalog_parameter))
+    if(!(
+         LINESTRENGTH_MODE              == catalog_parameter or
+         LINECENTER_MODE                == catalog_parameter or
+         SELFBROADENING_MODE            == catalog_parameter or
+         FOREIGNBROADENING_MODE         == catalog_parameter or
+         WATERBROADENING_MODE           == catalog_parameter or
+         SELFPRESSURESHIFT_MODE         == catalog_parameter or
+         FOREIGNPRESSURESHIFT_MODE      == catalog_parameter or
+         WATERPRESSURESHIFT_MODE        == catalog_parameter or
+         SELFBROADENINGEXPONENT_MODE    == catalog_parameter or
+         FOREIGNBROADENINGEXPONENT_MODE == catalog_parameter or
+         WATERBROADENINGEXPONENT_MODE   == catalog_parameter or
+         LINEMIXINGY0_MODE              == catalog_parameter or
+         LINEMIXINGG0_MODE              == catalog_parameter or
+         LINEMIXINGDF0_MODE             == catalog_parameter or
+         LINEMIXINGY1_MODE              == catalog_parameter or
+         LINEMIXINGG1_MODE              == catalog_parameter or
+         LINEMIXINGDF1_MODE             == catalog_parameter or
+         LINEMIXINGYEXPONENT_MODE       == catalog_parameter or
+         LINEMIXINGGEXPONENT_MODE       == catalog_parameter or
+         LINEMIXINGDFEXPONENT_MODE      == catalog_parameter or
+         WATERBROADENINGEXPONENT_MODE   == catalog_parameter))
     {
         ostringstream os;
         os << "You have selected:\n" << catalog_parameter << "\nas your catalog parameter. This is not supported.\n" 

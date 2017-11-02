@@ -70,6 +70,164 @@ void LineMixingData::GetLineMixingParams_dT(Numeric& dY_dT, Numeric& dG_dT, Nume
 }
 
 
+void LineMixingData::SetInternalDerivatives(ComplexVector& derivatives, 
+                                            const PropmatPartialsData& ppd, 
+                                            const QuantumIdentifier& QI, 
+                                            const Numeric& temperature, 
+                                            const Numeric& pressure, 
+                                            const Numeric& pressure_limit) const
+{
+  const Index nppd = ppd.nelem();
+  
+  Numeric dY0, dY1, dG0, dG1, dDV0, dDV1, dYe, dGe, dDVe;
+  bool zeroth=false, first=false, exponent=false;
+  
+  ComplexVector res(10);
+  
+  Index ipd = 0;
+  
+  for(Index iq = 0; iq < nppd; iq++)
+  {
+    if(ppd(iq) == JQT_line_mixing_Y0)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        if(not zeroth)
+        {
+          GetLineMixingParams_dZerothOrder(dY0, dG0, dDV0, temperature, pressure, pressure_limit);
+          zeroth = true;
+        }
+        res[ipd] = Complex(0, -dY0);
+      }
+      else 
+        continue;
+    }
+    else if(ppd(iq) == JQT_line_mixing_G0)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        if(not zeroth)
+        {
+          GetLineMixingParams_dZerothOrder(dY0, dG0, dDV0, temperature, pressure, pressure_limit);
+          zeroth = true;
+        }
+        res[ipd] = dG0;
+      }
+      else
+        continue;
+    }
+    else if(ppd(iq) == JQT_line_mixing_DF0)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        if(not zeroth)
+        {
+          GetLineMixingParams_dZerothOrder(dY0, dG0, dDV0, temperature, pressure, pressure_limit);
+          zeroth = true;
+        }
+        res[ipd] = dDV0;
+      }
+      else
+        continue;
+    }
+    else if(ppd(iq) == JQT_line_mixing_Y1)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        if(not first)
+        {
+          GetLineMixingParams_dFirstOrder(dY1, dG1, dDV1, temperature, pressure, pressure_limit);
+          first = true;
+        }
+        res[ipd] = Complex(0, -dY1);
+      }
+      else
+        continue;
+    }
+    else if(ppd(iq) == JQT_line_mixing_G1)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        if(not first)
+        {
+          GetLineMixingParams_dFirstOrder(dY1, dG1, dDV1, temperature, pressure, pressure_limit);
+          first = true;
+        }
+        res[ipd] = dG1;
+      }
+      else
+        continue;
+    }
+    else if(ppd(iq) == JQT_line_mixing_DF1)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        if(not first)
+        {
+          GetLineMixingParams_dFirstOrder(dY1, dG1, dDV1, temperature, pressure, pressure_limit);
+          first = true;
+        }
+        res[ipd] = dDV1;
+      }
+      else
+        continue;
+    }
+    else if(ppd(iq) == JQT_line_mixing_Yexp)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        if(not exponent)
+        {
+          GetLineMixingParams_dExponent(dYe, dGe, dDVe, temperature, pressure, pressure_limit);
+          exponent = true;
+        }
+        res[ipd] = Complex(0, -dYe);
+      }
+      else
+        continue;
+    }
+    else if(ppd(iq) == JQT_line_mixing_Gexp)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        if(not exponent)
+        {
+          GetLineMixingParams_dExponent(dYe, dGe, dDVe, temperature, pressure, pressure_limit);
+          exponent = true;
+        }
+        res[ipd] = dGe;
+      }
+      else
+        continue;
+    }
+    else if(ppd(iq) == JQT_line_mixing_DFexp)
+    {
+      if(QI > ppd.jac(iq).QuantumIdentity())
+      {
+        if(not exponent)
+        {
+          GetLineMixingParams_dExponent(dYe, dGe, dDVe, temperature, pressure, pressure_limit);
+          exponent = true;
+        }
+        res[ipd] = dDVe;
+      }
+      else
+        continue;
+    }
+    else
+      continue;
+    
+    // Only activate this when something hit the target
+    ++ipd;
+  }
+  
+  derivatives.resize(ipd);
+  for(Index iq = 0; iq < ipd; iq++)
+    derivatives[iq] = res[iq];
+}
+
+
+
 void LineMixingData::GetLineMixingParams_dZerothOrder(Numeric& dY0, Numeric& dG0, Numeric& dDV0, 
                                                       const Numeric& Temperature, const Numeric& Pressure, 
                                                       const Numeric& Pressure_Limit) const
@@ -469,7 +627,7 @@ void LineMixingData::Get1stOrder_dExponent(Numeric& dYexp, const Numeric& Temper
         dYexp  =  y * pow(T0/Temperature, x) * Pressure * log(T0/Temperature);
     }
     else
-        dYexp=0;
+        dYexp = 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

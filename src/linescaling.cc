@@ -512,13 +512,15 @@ Numeric stimulated_relative_emission(const Numeric& gamma,
 
 Numeric dstimulated_relative_emission_dT(const Numeric& gamma,
                                          const Numeric& gamma_ref,
-                                         const Numeric& F0)
+                                         const Numeric& F0,
+                                         const Numeric& T)
 {
   extern const Numeric PLANCK_CONST;
   extern const Numeric BOLTZMAN_CONST;
   static const Numeric c = - PLANCK_CONST / BOLTZMAN_CONST;
+  const Numeric invT = 1 / T;
   
-  return (c * F0 * gamma) / (1.-gamma_ref);
+  return (c * F0 * gamma * invT * invT) / (1.-gamma_ref);
 }
 
 

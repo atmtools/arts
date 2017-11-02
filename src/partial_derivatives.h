@@ -32,6 +32,7 @@ extern const String ABSSPECIES_MAINTAG;
 extern const String ELECTRONS_MAINTAG;
 extern const String PARTICULATES_MAINTAG;
 extern const String SCATSPECIES_MAINTAG;
+//extern const String PRESSURE_MAINTAG
 
 // Main tag for this type of Jacobian calculation
 extern const String PROPMAT_SUBSUBTAG;
@@ -42,10 +43,6 @@ extern const String CATALOGPARAMETER_MAINTAG;
 // Generic modes
 extern const String LINESTRENGTH_MODE;
 extern const String LINECENTER_MODE;
-//extern const String PRESSUREBROADENINGGAMMA_MODE;
-//extern const String LINEMIXINGY_MODE;
-//extern const String LINEMIXINGG_MODE;
-//extern const String LINEMIXINGDF_MODE;
 
 //  Pressure Broadening
 extern const String SELFBROADENING_MODE;
@@ -519,6 +516,20 @@ public:
         }
         set_first_frequency();
         set_first_pressure_term();
+    }
+    
+    void SetOnlyTemperatureTrue()
+    {
+      // Only meant for testing purposes
+      mreal_nelem = 1;
+      mqtype.resize(1);
+      mqtype[0] = JQT_temperature;
+      mjacobian_pos.resize(1);
+      mjacobian_pos[0] = 0;
+      mspecies.resize(1);
+      mspecies[0] = -9999;//Flag for not a species...
+      mcontains_temperature = true;
+      mtemp_perturbation = 0.1;
     }
     
     // Returns the length of Jacobians that are computed inside the propagation agenda

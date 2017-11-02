@@ -1,3 +1,33 @@
+2017-11-02  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-854
+	
+	* src/jacobian.cc:  Added an OK for having 1-long grids
+	and same vector as retrieval coordinates in the grid-tests.
+	
+	*  src/linemixingdata.{cc,h}: Added a SetInternalDerivatives
+	function to make it to set partial derivatives vector
+	
+	* src/linescaling{h,cc}:  Bug fix for 
+	dstimulated_relative_emission_dT.  Missed the actual temperature
+	dependency in my copy-paste creation of this prior...
+	
+	* src/lineshapesdata.{cc,h}:  Fixed so that Voigt, Doppler,
+	Lorentz, all types of mirroring, cutoff, all types of 
+	normalization, and line mixing partial derivatives works for
+	temperature, frequency/wind, all pressure broadening parameters,
+	all rescaling line mixing parameters.  Need to still test that
+	this all works in NLTE, in Zeeman, and for frequency-shifting
+	line mixing parameters.  Also need to work on HTP to get a good 
+	overview of how to make its derivatives work (main problem:
+	there exists 3 types of div-zero conditions that has to
+	be covered to compute the line shape depending on input.
+	One of those div-zero conditions is Voigt-like,
+	another is far-wing Lorentz-like, and the third is Doppler-like.
+	Forward simulations of these are easy but I find that
+	partial derivatives are difficult to implement cleanly because of 
+	this.)
+	
 2017-11-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-853

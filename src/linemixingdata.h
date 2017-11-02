@@ -33,6 +33,8 @@ USA. */
 #include "matpackI.h"
 #include "array.h"
 #include "mystring.h"
+#include "complex.h"
+#include "partial_derivatives.h"
 
 class LineMixingData
 {
@@ -113,6 +115,8 @@ public:
     String Type2StorageTag() const;
     void SecondOrderData2Vector(Vector& output) const;
     void FirstOrderData2Vector(Vector& output) const;
+    
+    void SetInternalDerivatives(ComplexVector& derivatives, const PropmatPartialsData& ppd, const QuantumIdentifier& QI, const Numeric& temperature, const Numeric& pressure, const Numeric& pressure_limit) const;
     
 private:
     // mtype identifies the type of line mixing and mdata should contain the required data

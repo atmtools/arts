@@ -223,9 +223,15 @@ namespace Linefunctions
   
   void apply_pressurebroadening_jacobian_scaling(ArrayOfComplexVector& dF,
                                                  const PropmatPartialsData& derivatives_data,
-                                                 const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                                                 const ComplexVector& dgamma=ComplexVector(0),
+                                                 const QuantumIdentifier& quantum_identity,
+                                                 const ComplexVector& dgamma,
                                                  const ComplexRange& df_range=ComplexRange(joker));
+  
+  void apply_linemixing_jacobian_scaling(ArrayOfComplexVector& dF,
+                                         const PropmatPartialsData& derivatives_data,
+                                         const QuantumIdentifier& quantum_identity,
+                                         const ComplexVector& dlm,
+                                         const ComplexRange& df_range=ComplexRange(joker));
   
   Numeric DopplerConstant(const Numeric T, const Numeric mass);
   

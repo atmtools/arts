@@ -634,6 +634,17 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
          << "strictly decreasing vector, which is required.";
       return false;      
     }
+  else if( p_grid.nelem() == 1 and p_grid.nelem() == p_retr.nelem())
+  {
+    if(p_grid[0] not_eq p_retr[0])
+    {
+      os << "Mismatching 1-long grids for " << p_retr_name;
+      return false;
+    }
+    
+    // Necessary repeat but grids are OK
+    grids[0] = p_retr; 
+  }
   else if ( log(p_retr[0])> 1.5*log(p_grid[0])-0.5*log(p_grid[1]) || 
             log(p_retr[p_retr.nelem()-1])<1.5*log(p_grid[p_grid.nelem()-1])-
                                           0.5*log(p_grid[p_grid.nelem()-2])) 
@@ -664,6 +675,17 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
          << "strictly increasing vector, which is required.";
       return false;      
     }
+    else if( lat_grid.nelem() == 1 and lat_grid.nelem() == lat_retr.nelem())
+    {
+      if(lat_grid[0] not_eq lat_retr[0])
+      {
+        os << "Mismatching 1-long grids for " << lat_retr_name;
+        return false;
+      }
+      
+      // Necessary repeat but grids are OK
+      grids[1] = lat_retr; 
+    }
     else if ( lat_retr[0]<1.5*lat_grid[0]-0.5*lat_grid[1] || 
               lat_retr[lat_retr.nelem()-1]>1.5*lat_grid[lat_grid.nelem()-1]-
                                            0.5*lat_grid[lat_grid.nelem()-2] )
@@ -692,6 +714,17 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
       os << "The longitude grid vector *" << lon_retr_name << "* is not a\n"
          << "strictly increasing vector, which is required.";
       return false;      
+      }
+      else if( lon_grid.nelem() == 1 and lon_grid.nelem() == lon_retr.nelem())
+      {
+        if(lon_grid[0] not_eq lon_retr[0])
+        {
+          os << "Mismatching 1-long grids for " << lon_retr_name;
+          return false;
+        }
+        
+        // Necessary repeat but grids are OK
+        grids[2] = lon_retr; 
       }
       else if ( lon_retr[0]<1.5*lon_grid[0]-0.5*lon_grid[1] || 
                 lon_retr[lon_retr.nelem()-1]>1.5*lon_grid[lon_grid.nelem()-1]-

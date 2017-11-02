@@ -30,6 +30,7 @@
 #include "lin_alg.h"
 #include "rte.h"
 #include "propagationmatrix.h"
+#include "lineshapesdata.h"
 
 void test_pressurebroadening()
 {
@@ -432,13 +433,106 @@ void test_matrix_buildup()
 }
 
 
+void test_new_lineshapes()
+{
+  const ArrayOfNumeric empty_aon;
+  
+  const LineRecord line(species_index_from_species_name("O2"),0,61150556350.7454,0.0,4.03935532732085e-19,
+                        296.0,2.5505950629926e-21,13255.072408981,13047.9619025907,0.8,0.8,
+                        0.0,empty_aon,0.0,0.0,0.0,0.0,0.0,0.0,0.0);
+  Vector part_data;
+  part_data = { 4.016432e-01,  7.315888e-01,  -3.313678e-05,  6.642877e-08 };//O2 66 partition function
+  
+  const QuantumIdentifier QI = line.QuantumIdentity();
+  
+  Vector f_grid(5);
+  f_grid[0]=line.F()-50.0e9;
+  f_grid[1]=line.F()-50.0e8;
+  f_grid[2]=line.F();
+  f_grid[3]=line.F()+50.0e8;
+  f_grid[4]=line.F()+500.0e9;
+  
+  ComplexVector F(5), F2(5);
+  ArrayOfComplexVector dF(1);
+  dF[0].resize(5);
+  
+  PropmatPartialsData ppd;
+  ppd.SetOnlyTemperatureTrue();
+  
+  const Numeric pressure = 1e5;
+  const Numeric vmr = 0.2;
+  Numeric G0, G2, eta, L0, L2, FVC, dG0, dL0, T, gd_div_f0, dgd_div_f0_dT, qt, qt0, dqt, K1, K2, dK1, dK2;
+  const Numeric dT = 1/10.;  
+  
+  T = 300;
+  gd_div_f0 = Linefunctions::DopplerConstant(T, 32.0);
+  dgd_div_f0_dT = Linefunctions::dDopplerConstant_dT(T, 32.0);
+  line.PressureBroadening().GetPressureBroadeningParams(G0, G2, eta, L0, L2, FVC, line.Ti0()/T, pressure,
+                                                   vmr*pressure, -1, -1, ArrayOfIndex(), 
+                                                   Vector(), Verbosity());
+  line.PressureBroadening().GetPressureBroadeningParams_dT(dG0, dL0, T, line.Ti0(), pressure,
+                                                      vmr*pressure, -1, -1, ArrayOfIndex(), 
+                                                      Vector(), Verbosity());
+  CalculatePartitionFctFromCoeff(qt0, qt, line.Ti0(), T, part_data);
+  CalculatePartitionFctFromCoeff_dT(dqt, T, part_data);
+  K1 = boltzman_ratio(T, line.Ti0(), line.Elow());
+  K2 = stimulated_relative_emission(stimulated_emission(T, line.F()), 
+                                    stimulated_emission(line.Ti0(), line.F()));
+  dK1 = dboltzman_ratio_dT(K1, T, line.Elow());
+  dK2 = dstimulated_relative_emission_dT(stimulated_emission(T, line.F()), 
+                                         stimulated_emission(line.Ti0(), line.F()),
+                                         line.F(), T);
+  
+  Linefunctions::set_faddeeva_algorithm916(F, dF, f_grid, 0, 0, line.F(), gd_div_f0, G0, L0, 0, ppd, QI, dgd_div_f0_dT, dG0, dL0, 0);
+  
+  Linefunctions::set_lorentz(F, dF,f_grid, 0., 0., line.F(), G0, L0, 0.0, ppd, QI, dG0, dL0, 0.0);
+  
+  std::cout<<dF[0].real()<<"\n";
+  
+  T += dT;
+  gd_div_f0 = Linefunctions::DopplerConstant(T, 32.0);
+  line.PressureBroadening().GetPressureBroadeningParams(G0, G2, eta, L0, L2, FVC, line.Ti0()/T, pressure,
+                                                        vmr*pressure, -1, -1, ArrayOfIndex(), 
+                                                        Vector(), Verbosity());
+  
+  Linefunctions::set_faddeeva_algorithm916(F2, dF, f_grid, 0, 0, line.F(), gd_div_f0, G0, L0, 0);
+  
+  Linefunctions::set_lorentz(F2, dF,f_grid, 0., 0., line.F(), G0, L0, 0.0);
+  
+  for(Index i = 0; i < F.nelem(); i++)
+    std::cout<<1/dT*(F2[i].real()-F[i].real())<<" ";
+  std::cout<<"\n";
+  for(Index i = 0; i < F.nelem(); i++)
+    std::cout<<1/dT*(F2[i].real()-F[i].real())/dF[0][i].real()<<" ";
+  std::cout<<"\n";
+  
+}
+
+
+void test_erfc()
+{
+  const Numeric xstart = -300;
+  const Numeric xend   =  300;
+  const Numeric dx     =  1;
+  Numeric x            =  xstart;
+  
+  while(x < xend)
+  {
+    std::cout<<x<<" "<<Faddeeva::w(Complex(x, 0))<<"\n";
+    x += dx;
+  }
+}
+
+
 int main()
 {
     std::cout<<"Testing Propmat Partials\n";
-    test_pressurebroadening();
-    test_partitionfunction();
-    test_K1_and_K2();
-    test_lineshape();
-    test_the_class();
+//     test_pressurebroadening();
+//     test_partitionfunction();
+//     test_K1_and_K2();
+//     test_lineshape();
+//     test_the_class();
+//    test_new_lineshapes();
+    test_erfc();
     return 0;
 }
