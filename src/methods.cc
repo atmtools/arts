@@ -12381,6 +12381,10 @@ void define_md_data_raw()
          "\n"
          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
          "picky=0, or an error is thrown if picky=1.\n"
+         "\n"
+         "These requirements apply to the MGD parameters:\n"
+         "  la > 0\n"
+         "  ga > 0\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "psd_data", "dpsd_data_dx" ),
@@ -12423,6 +12427,12 @@ void define_md_data_raw()
          "parameter values (by GIN) follows the same principle as for *psdMgd*,\n"
          "except that mass is always on column (as mentioned) and that there is\n"
          "no position in *pnd_agenda_input* for the dependent parameter.\n"
+         "\n"
+         "These requirements apply to the MGD parameters:\n"
+         "  mu + scat_species_b + 1 > 0\n"
+         "  la > 0\n"
+         "  ga > 0\n"
+         "  If la is the dependent parameter, mass content must be > 0.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "psd_data", "dpsd_data_dx" ),
@@ -12444,20 +12454,25 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "psdMgdMassMeanParticleSize" ),
+      ( NAME( "psdMgdMassMeanParticleMass" ),
         DESCRIPTION
         (
          "Modified gamma distribution PSD, with mass content and mean particle\n"
-         "size as inputs.\n"
+         "mass as inputs.\n"
          "\n"
          "This version of MGD PSD works as *psdMgdMass*, but takes mass content\n"
-         "and mean particle size as first two arguments. This means that the first\n"
-         "and second column of *pnd_agenda_input* shall hold mass content and mmean\n"
-         "particle size, respectively. Accordingly, the number of dependent parameters\n"
+         "and mean particle mass as first two arguments. This means that the first\n"
+         "and second column of *pnd_agenda_input* shall hold mass content and mean\n"
+         "particle mass, respectively. Accordingly, the number of dependent parameters\n"
          "is two.\n"
          "\n"
-         "\"Mean particle size\" is here defined as the mass content divided with\n"
+         "\"Mean particle mass\" is here defined as the mass content divided with\n"
          "the total number density.\n"
+         "\n"
+         "These requirements apply to the MGD parameters:\n"
+         "  mu + 1 > 0\n"
+         "  la > 0\n"
+         "  ga > 0\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "psd_data", "dpsd_data_dx" ),
@@ -12494,6 +12509,11 @@ void define_md_data_raw()
          "\"Mean size\" is here defined as mass weighted size. Remembering that\n"
          "mass is a*x^b, this mean size can be expressed as M_b+1/M_b where M_b\n"
          "is b:th moment of the PSD (see e.g. Eq. 17 in Petty&Huang, JAS, 2011).\n"
+         "\n"
+         "These requirements apply to the MGD parameters:\n"
+         "  mu + scat_species_b + 1 > 0\n"
+         "  la > 0\n"
+         "  ga > 0\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "psd_data", "dpsd_data_dx" ),
@@ -12526,6 +12546,11 @@ void define_md_data_raw()
          "second column of *pnd_agenda_input* shall hold mass content and median\n"
          "size, respectively. Accordingly, the number of dependent parameters is\n"
          "two.\n"
+         "\n"
+         "These requirements apply to the MGD parameters:\n"
+         "  mu + scat_species_b + 1 > 0\n"
+         "  la > 0\n"
+         "  ga > 0\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "psd_data", "dpsd_data_dx" ),

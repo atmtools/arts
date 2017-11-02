@@ -1,3 +1,15 @@
+2017-11-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-853
+
+	* doc/uguide/clouds_theory.tex: Comments on parameter limits added.
+
+	* src/m_microphysics.cc (psdMgdMassMeanParticleMass): The method
+	was wrongly name. It deals with mean mass, not mean size.
+
+	(psdMgdXxxx): Introduced parameter limits, to avoid numerical
+	issues. Limits specified in built-in doc.
+
 2017-11-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-852

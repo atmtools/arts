@@ -864,6 +864,12 @@ void psdMgd(
             { continue; }   // If here, we are ready with this point!
         }
 
+      // Check that MGD parameters are OK
+      if( mgd_pars[2] <= 0 )
+        throw runtime_error( "Bad MGD parameter detected: la <= 0" );
+      if( mgd_pars[3] <= 0 )
+        throw runtime_error( "Bad MGD parameter detected: ga <= 0" );
+      
       // Calculate PSD and derivatives
       //
       Matrix  jac_data(4,nsi);    
@@ -1011,20 +1017,26 @@ void psdMgdMass(
             { continue; }   // If here, we are ready with this point!
         }
 
+      
       // Derive the dependent parameter
-      Numeric eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
-      if( eterm <= 0 )
-        throw runtime_error( "Negativ argument to gamma function obtained. "
-                             "This could happen for low values of mu and ga." );
-      Numeric scfac = 0;
+      //
+      Numeric mub1 = 0, eterm = 0, scfac = 0;
+      //
       if( n0_depend )
         {
+          mub1  = mgd_pars[1] + scat_species_b + 1;
+          eterm = mub1 / mgd_pars[3];
           scfac = ( mgd_pars[3] * pow( mgd_pars[2], eterm ) ) /
             ( scat_species_a * tgamma(eterm) );
           mgd_pars[0] = scfac * ext_pars[0] ;
         }
       else if( la_depend )
         {
+          if( ext_pars[0] <= 0 )
+            throw runtime_error( "The mass content must be > 0 when la is "
+                                 "the dependent parameter." );
+          mub1  = mgd_pars[1] + scat_species_b + 1;
+          eterm = mub1 / mgd_pars[3];
           scfac = mgd_pars[3] / ( scat_species_a * mgd_pars[0] * tgamma(eterm) );
           scfac = pow( scfac, -1/eterm );
           mgd_pars[2] = scfac * pow( ext_pars[0], -1/eterm );
@@ -1032,10 +1044,15 @@ void psdMgdMass(
       else 
         { assert(0); }
 
-      // For testing
-      //if( ip == 0 )  WriteXML( "ascii", mgd_pars, "mgd_pars.xml", 0,
-      //                         "mgd_pars", "", "", Verbosity() );
-
+      // Now when all four MGD parameters are set, check that they were OK from
+      // start, or became OK if set
+      if( mub1 <= 0 )
+        throw runtime_error( "Bad MGD parameter detected: mu + b + 1 <= 0" );
+      if( mgd_pars[2] <= 0 )
+        throw runtime_error( "Bad MGD parameter detected: la <= 0" );
+      if( mgd_pars[3] <= 0 )
+        throw runtime_error( "Bad MGD parameter detected: ga <= 0" );
+      
       // Calculate PSD and derivatives
       //
       Matrix  jac_data(4,nsi);    
@@ -1077,7 +1094,7 @@ void psdMgdMass(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdMgdMassMeanParticleSize(
+void psdMgdMassMeanParticleMass(
           Matrix&          psd_data,
           Tensor3&         dpsd_data_dx,
     const Vector&          psd_size_grid,
@@ -1185,6 +1202,9 @@ void psdMgdMassMeanParticleSize(
       // Extract mass
       ext_pars[0] = pnd_agenda_input(ip,ext_i_pai[0]);
       ext_pars[1] = pnd_agenda_input(ip,ext_i_pai[1]);
+      if( ext_pars[1] <= 0 )
+        throw runtime_error( "Negative mean particle mass found. "
+                             "This is not allowed." );
       // Extract core MGD parameters
       for( Index i=0; i<4; i++ )
         {
@@ -1213,18 +1233,18 @@ void psdMgdMassMeanParticleSize(
         }
 
       // Derive the dependent parameters (see ATD)
-      Numeric eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
-      if( eterm <= 0 )
-        throw runtime_error( "Negativ argument to gamma function obtained. "
-                             "This could happen for low values of mu and ga." );
-      Numeric gterm = 0, scfac1 = 0, scfac2 = 0, gab = 0;
+      //
+      Numeric mu1 = 0, eterm = 0, gterm = 0, scfac1 = 0, scfac2 = 0, gab = 0;
+      //
       if( n0_depend  &&  la_depend )
         {
+          eterm  = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];          
           // Start by deriving la
-          gab = mgd_pars[3] / scat_species_b;
-          gterm = tgamma( eterm );
+          gab    = mgd_pars[3] / scat_species_b;
+          gterm  = tgamma( eterm );
+          mu1    = mgd_pars[1] + 1;
           scfac2 = pow( scat_species_a * gterm /
-                        tgamma( (mgd_pars[1]+1)/mgd_pars[3] ), gab ); 
+                        tgamma( mu1/mgd_pars[3] ), gab ); 
           mgd_pars[2] = scfac2 * pow( ext_pars[1], -gab );
 
           // We can now derive n0 
@@ -1235,10 +1255,14 @@ void psdMgdMassMeanParticleSize(
       else 
         { assert(0); }
 
-      // For testing
-      //cout << mgd_pars << endl;
-      //if( ip == 0 )  WriteXML( "ascii", mgd_pars, "mgd_pars.xml", 0,
-      //                         "mgd_pars", "", "", Verbosity() );
+      // Now when all four MGD parameters are set, check that they were OK from
+      // start, or became OK if set
+      if( mu1 <= 0 )
+        throw runtime_error( "Bad MGD parameter detected: mu + 1 <= 0" );
+      if( mgd_pars[2] <= 0 )
+        throw runtime_error( "Bad MGD parameter detected: la <= 0" );
+      if( mgd_pars[3] <= 0 )
+        throw runtime_error( "Bad MGD parameter detected: ga <= 0" );
       
       // Calculate PSD and derivatives
       //
@@ -1400,6 +1424,8 @@ void psdMgdMassXmean(
       // Extract mass
       ext_pars[0] = pnd_agenda_input(ip,ext_i_pai[0]);
       ext_pars[1] = pnd_agenda_input(ip,ext_i_pai[1]);
+      if( ext_pars[1] <= 0 )
+        throw runtime_error( "Negative mean size found. This is not allowed." );
       // Extract core MGD parameters
       for( Index i=0; i<4; i++ )
         {
@@ -1428,13 +1454,13 @@ void psdMgdMassXmean(
         }
 
       // Derive the dependent parameters (see ATD)
-      Numeric eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
-      if( eterm <= 0 )
-        throw runtime_error( "Negativ argument to gamma function obtained. "
-                             "This could happen for low values of mu and ga." );
-      Numeric gterm = 0, scfac1 = 0, scfac2 = 0;
+      //
+      Numeric mub1 = 0, eterm = 0, gterm = 0, scfac1 = 0, scfac2 = 0;
+      //
       if( n0_depend  &&  la_depend )
         {
+          mub1   = mgd_pars[1] + scat_species_b + 1;
+          eterm  = mub1 / mgd_pars[3];          
           // Start by deriving la 
           scfac2 = pow( eterm, mgd_pars[3] ); 
           mgd_pars[2] = scfac2 * pow( ext_pars[1], -mgd_pars[3] );
@@ -1448,12 +1474,14 @@ void psdMgdMassXmean(
       else 
         { assert(0); }
 
-      // For testing
-      /*
-      cout << mgd_pars << endl;
-      if( ip == 0 )  WriteXML( "ascii", mgd_pars, "mgd_pars.xml", 0,
-                               "mgd_pars", "", "", Verbosity() );
-      */
+      // Now when all four MGD parameters are set, check that they were OK from
+      // start, or became OK if set
+      if( mub1 <= 0 )
+        throw runtime_error( "Bad MGD parameter detected: mu + b + 1 <= 0" );
+      if( mgd_pars[2] <= 0 )
+        throw runtime_error( "Bad MGD parameter detected: la <= 0" );
+      if( mgd_pars[3] <= 0 )
+        throw runtime_error( "Bad MGD parameter detected: ga <= 0" );
       
       // Calculate PSD and derivatives
       //
@@ -1615,6 +1643,8 @@ void psdMgdMassXmedian(
       // Extract mass
       ext_pars[0] = pnd_agenda_input(ip,ext_i_pai[0]);
       ext_pars[1] = pnd_agenda_input(ip,ext_i_pai[1]);
+      if( ext_pars[1] <= 0 )
+        throw runtime_error( "Negative median size found. This is not allowed." );
       // Extract core MGD parameters
       for( Index i=0; i<4; i++ )
         {
@@ -1643,13 +1673,13 @@ void psdMgdMassXmedian(
         }
 
       // Derive the dependent parameters (see ATD)
-      Numeric eterm = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];
-      if( eterm <= 0 )
-        throw runtime_error( "Negativ argument to gamma function obtained. "
-                             "This could happen for low values of mu and ga." );
-      Numeric gterm = 0, scfac1 = 0, scfac2 = 0;
+      //
+      Numeric mub1 = 0, eterm = 0, gterm = 0, scfac1 = 0, scfac2 = 0;
+      //
       if( n0_depend  &&  la_depend )
         {
+          mub1   = mgd_pars[1] + scat_species_b + 1;
+          eterm  = mub1 / mgd_pars[3];          
           // Start by deriving la 
           scfac2 = ( mgd_pars[1] + 1 + scat_species_b - 0.327*mgd_pars[3] ) /
                    mgd_pars[3];  
@@ -1664,12 +1694,14 @@ void psdMgdMassXmedian(
       else 
         { assert(0); }
 
-      // For testing
-      /*
-      cout << mgd_pars << endl;
-      if( ip == 0 )  WriteXML( "ascii", mgd_pars, "mgd_pars.xml", 0,
-                               "mgd_pars", "", "", Verbosity() );
-      */
+      // Now when all four MGD parameters are set, check that they were OK from
+      // start, or became OK if set
+      if( mub1 <= 0 )
+        throw runtime_error( "Bad MGD parameter detected: mu + b + 1 <= 0" );
+      if( mgd_pars[2] <= 0 )
+        throw runtime_error( "Bad MGD parameter detected: la <= 0" );
+      if( mgd_pars[3] <= 0 )
+        throw runtime_error( "Bad MGD parameter detected: ga <= 0" );
 
       // Calculate PSD and derivatives
       //

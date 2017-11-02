@@ -108,6 +108,7 @@ moment, $M_k$ is defined as
 For MGD, the moments can be expressed analytically (P\&H, Eq.~17):
 \begin{equation}
   M_k = \frac{\no}{\ga}\frac{\Gamma(\frac{\mu+k+1}{\ga})}{\la^{(\mu+k+1)/\ga}},
+  \label{eq:mdg:mk}
 \end{equation}
 where $\Gamma$ is the gamma function. One property of the gamma function used
 below is that for $n\geq0$:
@@ -135,6 +136,7 @@ variable, i.e. $n(w,\mu,\la,\ga)$, the implied value of $\no$ is:
 To simplify the expressions below, we define $\eterm$ as
 \begin{equation}
   \eterm = \frac{\mu+b+1}{\ga}.
+  \label{eq:eterm}
 \end{equation}
 That is
 \begin{equation}
@@ -168,6 +170,7 @@ dependent variables.
 If instead $\la$ is the dependent parameter, $n(w,\no,\la,\ga)$, these expressions apply:
 \begin{equation}
   \la = \left( \frac{w\ga}{a\no\Gamma(\eterm)} \right)^{-1/\eterm}
+  \label{eq:mass:la}
 \end{equation}
 and
 \begin{equation}
@@ -275,6 +278,7 @@ That is
 where $\rterm$ is defined as
 \begin{equation}
   \rterm = \frac{\mu+1}{\ga}.
+  \label{eq:rterm}
 \end{equation}
 As for mean and median size, so far only $\no$ and $\la$ are allowed to be the
 pair of dependent variables: $n(w,\mmea,\mu,\ga)$. From
@@ -297,6 +301,24 @@ The derivative with respect to mean particle mass is
 The workspace method for this form of MGD is \wsmindex{psdMgdMassMeanParticleSize}.
 
 
+\subsection{Avoiding numerical problems}
+%
+For simplicity, all MGD methods demand that both $\la$ and $\ga$ are $>0$.
+First of all, this ensures that $\la x^\ga > 0$ as long as $x>0$. It further
+avoids a number of possible ``division with zero'' cases, such as Eq.~\ref{eq:mdg:mk}.
+It also demanded that $a$ and $b$ are $>0$. 
+
+The gamma function is infinite at 0, and it also further demanded that argument
+given to the gamma function is $>0$. When Eq.~\ref{eq:eterm} is of concern,
+then $\mu+b+1>0$ is demanded. If Eq.~\ref{eq:rterm} is of concern, the demand
+is harder: $\mu+1>0$.
+
+Negative mass in unphysical but it could still be beneficial to allow such
+values, to simplify performing. For this reason, negative mass contents are
+allowed as far as possible. It is possible as long as mass content sets $\no$
+(then giving negtive $\no$), but not when the mass content sets $\la$
+(Eq.~\ref{eq:mass:la}). On the other hand, all input mean or median sizes are
+required to be $>0$, both for physcial and numerical reasons.
 
 
 % \section[McFarquhar and Heymsfield parametrization]
