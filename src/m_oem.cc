@@ -247,13 +247,12 @@ void vmr_enforce_constraint(Tensor3View vmr, const String & constraint, Numeric 
 
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/* Should this be a WSM? */
 void Tensor4Clip(
          Tensor4&                    x,
    const Index&                      iq,
    const Numeric&                    limit_low,
-   const Numeric&                    limit_high,
-   const Verbosity&)
+   const Numeric&                    limit_high )
 {
   // Sizes
   const Index nq = x.nbooks();
@@ -296,6 +295,78 @@ void Tensor4Clip(
                     { if( x(i,p,r,c) > limit_high )
                         x(i,p,r,c) = limit_high;
     }   }   }   }   }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void particle_bulkprop_fieldClip(
+         Tensor4&                    particle_bulkprop_field,
+   const ArrayOfString&              particle_bulkprop_names,
+   const String&                     bulkprop_name,
+   const Numeric&                    limit_low,
+   const Numeric&                    limit_high,
+   const Verbosity&)
+{
+  Index iq = -1;
+  if( bulkprop_name == "ALL" )
+    { }
+
+  else
+    {
+      for( Index i=0; i<particle_bulkprop_names.nelem(); i++ )
+        {
+          if( particle_bulkprop_names[i] == bulkprop_name )
+            {
+              iq = i;
+              break;
+            }
+        }
+      if( iq < 0 )
+        {
+          ostringstream os;
+          os << "Could not find " << bulkprop_name << " in particle_bulkprop_names.\n";
+          throw std::runtime_error(os.str());
+        }
+    }
+  
+  Tensor4Clip( particle_bulkprop_field, iq, limit_low, limit_high );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void vmr_fieldClip(
+         Tensor4&                    vmr_field,
+   const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const String&                     species,
+   const Numeric&                    limit_low,
+   const Numeric&                    limit_high,
+   const Verbosity&)
+{
+  Index iq = -1;
+  if( species == "ALL" )
+    { }
+
+  else
+    {
+      for( Index i=0; i<abs_species.nelem(); i++ )
+        {
+          if( abs_species[i][0].Species() == SpeciesTag(species).Species() )
+            {
+              iq = i;
+              break;
+            }
+        }
+      if( iq < 0 )
+        {
+          ostringstream os;
+          os << "Could not find " << species << " in abs_species.\n";
+          throw std::runtime_error(os.str());
+        }
+    }
+  
+  Tensor4Clip( vmr_field, iq, limit_low, limit_high );
 }
 
 

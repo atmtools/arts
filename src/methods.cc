@@ -10929,6 +10929,37 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "particle_bulkprop_fieldClip" ),
+        DESCRIPTION
+        (
+         "Clipping of *particle_bulkprop_field*.\n"
+         "\n"
+         "The method allows you to apply hard limits the values of\n"
+         "*particle_bulkprop_field*. All values, of the property selected,\n"
+         "below *limit_low*, are simply set to *limit_low*. And the same\n"
+         "is performed with respect to *limit_high*. That is, the data in x\n"
+         "for the retrieval quantity are forced to be inside the range\n"
+         "[limit_low,limit_high].\n"
+         "\n"
+         "Setting species=\"ALL\", is a shortcut for applying the limits on all\n"
+         "properties.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "particle_bulkprop_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "particle_bulkprop_field", "particle_bulkprop_names" ),
+        GIN( "bulkprop_name", "limit_low", "limit_high" ),
+        GIN_TYPE( "String", "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF, "-Inf", "Inf" ),
+        GIN_DESC( "Name of bulk property to consider, or \"ALL\".",
+                  "Lower limit for clipping.",
+                  "Upper limit for clipping." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "particle_massesFromMetaDataSingleCategory" ),
         DESCRIPTION
         (
@@ -12479,16 +12510,53 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "psdMgdMassNtot" ),
+        DESCRIPTION
+        (
+         "Modified gamma distribution PSD, with mass content and total number\n"
+         "density (Ntot) as inputs.\n"
+         "\n"
+         "This version of MGD PSD works as *psdMgdMass*, but takes mass content\n"
+         "and total number density as first two arguments. This means that the first\n"
+         "and second column of *pnd_agenda_input* shall hold mass content and Ntot,\n"
+         "respectively. Accordingly, the number of dependent parameters is two.\n"
+         "\n"
+         "These requirements apply:\n"
+         "  mu + 1 > 0\n"
+         "  la > 0\n"
+         "  ga > 0\n"
+         "  Ntot must be > 0.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "psd_data", "dpsd_data_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
+            "pnd_agenda_input_names", "dpnd_data_dx_names",
+            "scat_species_a", "scat_species_b" ),
+        GIN( "n0", "mu", "la", "ga", "t_min", "t_max", "picky" ),
+        GIN_TYPE( "Numeric", "Numeric",  "Numeric", "Numeric",
+                  "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( "NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0" ),
+        GIN_DESC( "n0", "mu", "la", "ga",
+                  "Low temperature limit to calculate a psd.",
+                  "High temperature limit to calculate a psd.",
+                  "Flag whether to be strict with parametrization value checks." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "psdMgdMassMeanParticleMass" ),
         DESCRIPTION
         (
          "Modified gamma distribution PSD, with mass content and mean particle\n"
-         "mass as inputs.\n"
+         "mass (Mmean) as inputs.\n"
          "\n"
          "This version of MGD PSD works as *psdMgdMass*, but takes mass content\n"
          "and mean particle mass as first two arguments. This means that the first\n"
-         "and second column of *pnd_agenda_input* shall hold mass content and mean\n"
-         "particle mass, respectively. Accordingly, the number of dependent parameters\n"
+         "and second column of *pnd_agenda_input* shall hold mass content and\n"
+         "Mmean, respectively. Accordingly, the number of dependent parameters\n"
          "is two.\n"
          "\n"
          "\"Mean particle mass\" is here defined as the mass content divided with\n"
@@ -12498,6 +12566,7 @@ void define_md_data_raw()
          "  mu + 1 > 0\n"
          "  la > 0\n"
          "  ga > 0\n"
+         "  Mmean must be > 0.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "psd_data", "dpsd_data_dx" ),
@@ -12522,14 +12591,13 @@ void define_md_data_raw()
       ( NAME( "psdMgdMassXmean" ),
         DESCRIPTION
         (
-         "Modified gamma distribution PSD, with mass content and mass size\n"
-         "as inputs.\n"
+         "Modified gamma distribution PSD, with mass content and mean size\n"
+         "(Xmean) as inputs.\n"
          "\n"
          "This version of MGD PSD works as *psdMgdMass*, but takes mass content\n"
          "and mass size as first two arguments. This means that the first and\n"
-         "second column of *pnd_agenda_input* shall hold mass content and mean\n"
-         "size, respectively. Accordingly, the number of dependent parameters is\n"
-         "two.\n"
+         "second column of *pnd_agenda_input* shall hold mass content and Xmean,\n"
+         "respectively. Accordingly, the number of dependent parameters is two.\n"
          "\n"
          "\"Mean size\" is here defined as mass weighted size. Remembering that\n"
          "mass is a*x^b, this mean size can be expressed as M_b+1/M_b where M_b\n"
@@ -12539,6 +12607,7 @@ void define_md_data_raw()
          "  mu + scat_species_b + 1 > 0\n"
          "  la > 0\n"
          "  ga > 0\n"
+         "  Xmean must be > 0.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "psd_data", "dpsd_data_dx" ),
@@ -12564,18 +12633,18 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Modified gamma distribution PSD, with mass content and median size\n"
-         "as inputs.\n"
+         "(Xmedian) as inputs.\n"
          "\n"
          "This version of MGD PSD works as *psdMgdMass*, but takes mass content\n"
          "and median size as first two arguments. This means that the first and\n"
-         "second column of *pnd_agenda_input* shall hold mass content and median\n"
-         "size, respectively. Accordingly, the number of dependent parameters is\n"
-         "two.\n"
+         "second column of *pnd_agenda_input* shall hold mass content and Xmedian,\n"
+         "respectively. Accordingly, the number of dependent parameters is two.\n"
          "\n"
          "These requirements apply to the MGD parameters:\n"
          "  mu + scat_species_b + 1 > 0\n"
          "  la > 0\n"
          "  ga > 0\n"
+         "  Xmedian must be > 0.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "psd_data", "dpsd_data_dx" ),
@@ -17897,6 +17966,36 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "vmr_fieldClip" ),
+        DESCRIPTION
+        (
+         "Clipping of *vmr_field*.\n"
+         "\n"
+         "The method allows you to apply hard limits the values of *vmr_field*.\n"
+         "All values, of the species selected, below *limit_low*, are simply\n"
+         "set to *limit_low*. And the same is performed with respect to\n"
+         "*limit_high*. That is, the data in x for the retrieval quantity are\n"
+         "forced to be inside the range [limit_low,limit_high].\n"
+         "\n"
+         "Setting species=\"ALL\", is a shortcut for applying the limits on all\n"
+         "species.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "vmr_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "vmr_field", "abs_species" ),
+        GIN( "species", "limit_low", "limit_high" ),
+        GIN_TYPE( "String", "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF, "-Inf", "Inf" ),
+        GIN_DESC( "Name of species to consider, or \"ALL\".",
+                  "Lower limit for clipping.",
+                  "Upper limit for clipping." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "vmr_fieldSetAllConstant" ),
         DESCRIPTION
         (
@@ -17914,7 +18013,7 @@ void define_md_data_raw()
         GIN( "vmr_values" ),
         GIN_TYPE( "Vector" ),
         GIN_DEFAULT( NODEF),
-        GIN_DESC( "VMR values to apply for the abs_species.")
+        GIN_DESC( "VMR value to apply for each abs_species.")
         ));
 
   md_data_raw.push_back

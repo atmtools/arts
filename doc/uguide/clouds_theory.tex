@@ -264,8 +264,9 @@ The workspace method for this form of MGD is \wsmindex{psdMgdMassXmedian}.
 The mean particle mass is defined as
 \begin{equation}
   \mmea = \frac{w}{\ntot}
+  \label{eq:mmean}
 \end{equation}
-where $\ntot$ is the bulk number density, that equals the 0:th moment:
+where $\ntot$ is the total number density, that equals the 0:th moment:
 \begin{equation}
   \ntot = M_0.
   \label{eq:ntot}
@@ -284,7 +285,9 @@ As for mean and median size, so far only $\no$ and $\la$ are allowed to be the
 pair of dependent variables: $n(w,\mmea,\mu,\ga)$. From
 Eq.~\ref{eq:mmean} we get
 \begin{equation}
-  \la = \left( \frac{a}{\mmea} \frac{\Gamma(\eterm)}{\Gamma(\rterm)}\right)^{\ga/b}.
+  \la = \left( \frac{a}{\mmea}
+    \frac{\Gamma(\eterm)}{\Gamma(\rterm)}\right)^{\ga/b}.
+  \label{eq:la:wandmmean}
 \end{equation}
 With $\la$ at hand, $\no$ can be determined as for the mass-only case
 (Eq.~\ref{eq:n0fromw}).
@@ -299,6 +302,41 @@ The derivative with respect to mean particle mass is
    \left(a\frac{\Gamma(\eterm)}{\Gamma(\rterm)}\right)^{\ga/b} \frac{(-\ga)}{b}\mmea^{-(\ga/b+1)}.
 \end{eqnarray}
 The workspace method for this form of MGD is \wsmindex{psdMgdMassMeanParticleSize}.
+
+
+\subsection{Mass content and total number density}
+%
+The total number density is defined above by Eq.~\ref{eq:ntot}. As for the
+combinations of mass and size above, so far only $\no$ and $\la$ are allowed to
+be the pair of dependent variables: $n(w,\ntot,\mu,\ga)$. From
+Eqs.~\ref{eq:mmean} and \ref{eq:la:wandmmean} we get
+\begin{equation}
+  \la = \left( \frac{a\ntot}{w}
+    \frac{\Gamma(\eterm)}{\Gamma(\rterm)}\right)^{\ga/b}.
+  \label{eq:la:wandntot}
+\end{equation}
+With $\la$ at hand, $\no$ can be determined as for the mass-only case
+(Eq.~\ref{eq:n0fromw}).
+
+In contrast to above, mass conent is here affecting both $\no$ and $\la$ and
+the derivative expressions become more lengthy:
+\begin{eqnarray}
+  \frac{dn}{dw} &=& \left( \frac{dn}{d\no}\frac{d\no}{d\la} + 
+                        \frac{dn}{d\la} \right) \frac{d\la}{dw} \nonumber\\
+ &=& \left( \frac{dn}{d\no} \frac{w\ga\eterm\la^{\eterm-1}}{a\Gamma(\eterm)} + 
+                        \frac{dn}{d\la} \right) 
+   \left(a\ntot\frac{\Gamma(\eterm)}{\Gamma(\rterm)}\right)^{\ga/b} \frac{(-\ga)}{b}w^{-(\ga/b+1)}.
+\end{eqnarray}
+and
+\begin{eqnarray}
+  \frac{dn}{d\ntot} &=& \left( \frac{dn}{d\no}\frac{d\no}{d\la} + 
+                        \frac{dn}{d\la} \right) \frac{d\la}{d\ntot} \nonumber\\
+ &=& \left( \frac{dn}{d\no} \frac{w\ga\eterm\la^{\eterm-1}}{a\Gamma(\eterm)} + 
+                        \frac{dn}{d\la} \right) 
+   \left(\frac{a}{w}\frac{\Gamma(\eterm)}{\Gamma(\rterm)}\right)^{\ga/b} \frac{\ga}{b}\ntot^{\ga/b+1}.
+\end{eqnarray}
+The workspace method for this form of MGD is \wsmindex{psdMgdMassNtot}.
+
 
 
 \subsection{Avoiding numerical problems}

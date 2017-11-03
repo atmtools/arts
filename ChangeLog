@@ -1,5 +1,16 @@
 2017-11-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-859
+
+	* src/m_microphysics.cc (psdMgdMassNtot): New WSM. Derivative part
+	not yet ready. Left for another day.
+
+	* doc/uguide/clouds_theory.tex: Derived equations for psdMgdMassNtot.
+
+	* src/m_oem.cc (vmr_fieldClip, particle_bulkprop_fieldClip): New WSMs.
+
+2017-11-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-858
 
 	* src/m_basic_types.h (IndexSetToLast): New generic WSM. Very

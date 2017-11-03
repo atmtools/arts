@@ -1094,6 +1094,228 @@ void psdMgdMass(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void psdMgdMassNtot(
+          Matrix&          psd_data,
+          Tensor3&         dpsd_data_dx,
+    const Vector&          psd_size_grid,
+    const Vector&          pnd_agenda_input_t,
+    const Matrix&          pnd_agenda_input,
+    const ArrayOfString&   pnd_agenda_input_names,
+    const ArrayOfString&   dpnd_data_dx_names,
+    const Numeric&         scat_species_a, 
+    const Numeric&         scat_species_b, 
+    const Numeric&         n0, 
+    const Numeric&         mu, 
+    const Numeric&         la, 
+    const Numeric&         ga, 
+    const Numeric&         t_min, 
+    const Numeric&         t_max, 
+    const Index&           picky, 
+    const Verbosity&)
+{
+  // Standard checks
+  START_OF_PSD_METHODS();
+  
+  // Additional (basic) checks
+  if( nin < 1 || nin > 4 )
+    throw runtime_error( "The number of columns in *pnd_agenda_input* must "
+                         "be 2, 3 or 4." );
+  if( scat_species_a <= 0 )
+    throw runtime_error( "*scat_species_a* should be > 0." );
+  if( scat_species_b <= 0  ||  scat_species_b >= 5 )
+    throw runtime_error( "*scat_species_b* should be > 0 and < 5." );
+  
+  // Check and determine dependent and fixed parameters
+  //
+  const Index n0_depend = (Index) n0 == -999;
+  const Index mu_depend = (Index) mu == -999;
+  const Index la_depend = (Index) la == -999;
+  const Index ga_depend = (Index) ga == -999;  
+  //
+  if( n0_depend + mu_depend + la_depend + ga_depend != 2 )
+    throw runtime_error( "Two (but only two) of n0, mu, la and ga must be NaN, "
+                         "to flag that these parameters are the ones dependent of "
+                         "mass content and mean particle size." );
+  if( mu_depend  ||  ga_depend )
+    throw runtime_error( "Sorry, mu and la are not yet allowed to be a "
+                         "dependent parameter." );    
+  //
+  const Index n0_fixed = (Index) !( n0_depend  ||  isnan(n0) );
+  const Index mu_fixed = (Index) !( mu_depend  ||  isnan(mu) );
+  const Index la_fixed = (Index) !( la_depend  ||  isnan(la) );
+  const Index ga_fixed = (Index) !( ga_depend  ||  isnan(ga) );
+  //
+  if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
+    throw runtime_error( "This PSD has four free parameters. This means that "
+                         "the number\nof columns in *pnd_agenda_input* and the "
+                         "number of numerics\n(i.e. not -999 or NaN) and among "
+                         "the GIN arguments n0, mu, la and\nga must add up to "
+                         "four. And this was found not to be the case." );
+
+  // Create vectors to hold the four MGD and the "extra" parameters 
+  Vector mgd_pars(4), ext_pars(2);
+  ArrayOfIndex mgd_i_pai = {-1,-1,-1,-1}; // Position in pnd_agenda_input
+  const ArrayOfIndex ext_i_pai = {0,1};   // Position in pnd_agenda_input
+  {
+    Index nhit = 2;  // As mass and Dm always occupy first position
+    if( n0_fixed ) { mgd_pars[0]=n0; } else if( !n0_depend ) { mgd_i_pai[0]=nhit++; } 
+    if( mu_fixed ) { mgd_pars[1]=mu; } else if( !mu_depend ) { mgd_i_pai[1]=nhit++; } 
+    if( la_fixed ) { mgd_pars[2]=la; } else if( !la_depend ) { mgd_i_pai[2]=nhit++; } 
+    if( ga_fixed ) { mgd_pars[3]=ga; } else if( !ga_depend ) { mgd_i_pai[3]=nhit++; } 
+  }
+
+  // Determine what derivatives to do and their positions
+  ArrayOfIndex mgd_do_jac = {0,0,0,0,}; 
+  ArrayOfIndex ext_do_jac = {0,0};        
+  ArrayOfIndex mgd_i_jac = {-1,-1,-1,-1}; // Position among jacobian quants 
+  ArrayOfIndex ext_i_jac = {-1,-1};       // Position among jacobian quants
+  //
+  for( Index i=0; i<ndx; i++ )
+    {
+      if( dx2in[i] == 0 )  // That is, mass is a derivative
+        {
+          ext_do_jac[0] = 1;
+          ext_i_jac[0]  = i;
+        }
+      else if( dx2in[i] == 1 )  // That is, Ntot is a derivative
+        {
+          ext_do_jac[1] = 1;
+          ext_i_jac[1]  = i;
+        }
+      else  // Otherwise, either n0, mu, la or ga
+        {
+          for( Index j=0; j<4; j++ )
+            {
+              if( dx2in[i] == mgd_i_pai[j] )
+                {
+                  mgd_do_jac[j] = 1;
+                  mgd_i_jac[j]  = i;
+                  break;
+                }
+            }
+        }
+    }
+
+  // Loop input data and calculate PSDs
+  for( Index ip=0; ip<np; ip++ )
+    {
+      // Extract mass
+      ext_pars[0] = pnd_agenda_input(ip,ext_i_pai[0]);
+      ext_pars[1] = pnd_agenda_input(ip,ext_i_pai[1]);
+      if( ext_pars[1] <= 0 )
+        throw runtime_error( "Negative Ntot found. This is not allowed." );
+      // Extract core MGD parameters
+      for( Index i=0; i<4; i++ )
+        {
+          if( mgd_i_pai[i] >= 0 )
+            { mgd_pars[i] = pnd_agenda_input(ip,mgd_i_pai[i]); }
+        }
+      Numeric t = pnd_agenda_input_t[ip];
+      
+      // No calc needed if mass==0 and no jacobians requested.
+      if( (ext_pars[0]==0.) && (!ndx) )
+        { continue; }   // If here, we are ready with this point!
+
+      // Outside of [t_min,tmax]?
+      if( t < t_min  ||  t > t_max )
+        {
+          if( picky )
+            {
+              ostringstream os;
+              os << "Method called with a temperature of " << t << " K.\n"
+                 << "This is outside the specified allowed range: [ max(0.,"
+                 << t_min << "), " << t_max << " ]";
+              throw runtime_error(os.str());
+            }
+          else  
+            { continue; }   // If here, we are ready with this point!
+        }
+
+      // Derive the dependent parameters (see ATD)
+      //
+      Numeric mu1 = 0, eterm = 0, gterm = 0, scfac1 = 0, scfac2 = 0, gab = 0;
+      //
+      if( n0_depend  &&  la_depend )
+        {
+          eterm  = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];          
+          // Start by deriving la
+          gab    = mgd_pars[3] / scat_species_b;
+          gterm  = tgamma( eterm );
+          mu1    = mgd_pars[1] + 1;
+          scfac2 = pow( scat_species_a * gterm /
+                        tgamma( mu1/mgd_pars[3] ), gab ); 
+          mgd_pars[2] = scfac2 * pow( ext_pars[1]/ext_pars[0], gab );
+
+          // We can now derive n0 
+          scfac1 = ( mgd_pars[3] * pow( mgd_pars[2], eterm ) ) /
+            ( scat_species_a * gterm );
+          mgd_pars[0] = scfac1 * ext_pars[0];
+        }
+      else 
+        { assert(0); }
+
+      // Now when all four MGD parameters are set, check that they were OK from
+      // start, or became OK if set
+      if( mu1 <= 0 )
+        throw runtime_error( "Bad MGD parameter detected: mu + 1 <= 0" );
+      if( mgd_pars[2] <= 0 )
+        throw runtime_error( "Bad MGD parameter detected: la <= 0" );
+      if( mgd_pars[3] <= 0 )
+        throw runtime_error( "Bad MGD parameter detected: ga <= 0" );
+      
+      // Calculate PSD and derivatives
+      //
+      Matrix  jac_data(4,nsi);    
+      mgd( psd_data(ip,joker), jac_data, psd_size_grid,
+           mgd_pars[0], mgd_pars[1], mgd_pars[2], mgd_pars[3],
+           (bool)mgd_do_jac[0] || n0_depend,
+           (bool)mgd_do_jac[1] || mu_depend,
+           (bool)mgd_do_jac[2] || la_depend,
+           (bool)mgd_do_jac[3] || ga_depend );
+      //
+      if( ext_do_jac[0] )
+        {
+          throw runtime_error("Derivatives not ready.");
+          // The derivatives are handled by the chain rule, see ATD.
+          if( n0_depend  &&  la_depend )
+            {
+              // Note that Ntot sets la, and then also affects n0, while
+              // mass only affects n0 (for given Mmean). So chain
+              // rule gives us two products to consider for Mmean, but
+              // only one for mass.
+              // Derivative with respect to mass:
+              // Calculated as dpsd/dn0 * dn0/dmass
+              dpsd_data_dx(ext_i_jac[0],ip,joker) = jac_data(0,joker);
+              dpsd_data_dx(ext_i_jac[0],ip,joker) *= scfac1; 
+              // Derivative with respect to Xmean:
+              // 1. Term associated with n0
+              // Calculated as dpsd/dn0 * dn0/dla * dla/dDm
+              dpsd_data_dx(ext_i_jac[1],ip,joker) = jac_data(0,joker);
+              dpsd_data_dx(ext_i_jac[1],ip,joker) *= ext_pars[0] *
+                mgd_pars[3] * eterm * pow(mgd_pars[2],eterm-1) /
+                ( scat_species_a * gterm );
+              // 2. Term associated with la
+              // Calculated as dpsd/dla * dla/dDm
+              dpsd_data_dx(ext_i_jac[1],ip,joker) += jac_data(2,joker);
+              // Apply dla/dDm to sum
+              dpsd_data_dx(ext_i_jac[1],ip,joker) *= scfac2 *
+                ( -mgd_pars[3] / scat_species_b ) * pow( ext_pars[1], -(gab+1) );
+            }
+          else 
+            { assert(0); }
+        }
+      //
+      for( Index i=0; i<4; i++ )
+        {
+          if( mgd_do_jac[i] )
+            { dpsd_data_dx(mgd_i_jac[i],ip,joker) = jac_data(i,joker); }
+        } 
+    }  
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void psdMgdMassMeanParticleMass(
           Matrix&          psd_data,
           Tensor3&         dpsd_data_dx,
