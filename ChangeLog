@@ -1,3 +1,20 @@
+2017-11-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-858
+
+	* src/m_basic_types.h (IndexSetToLast): New generic WSM. Very
+	similar to nelemGet, but needed due to the very stupid idea of
+	some programming languages to use zero-based indexing!
+
+	The idea is to simplify the setting of index variables, to ensure
+	consistency between different parts of a cfile. A small example:
+
+	retrievalAddScatSpecies( species  = "IWC", ... )
+	IndexCreate( i_iwc )
+        IndexSetToLast( i_iwc, jacobian_quantities )
+	...
+	xClip( ijq = i_iwc, limit_low=1e-9 )
+
 2017-11-03  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-857

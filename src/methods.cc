@@ -6805,6 +6805,31 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME( "IndexSetToLast" ),
+        DESCRIPTION
+        (
+         "Set an Index to point towards last position of array-type variables.\n"
+         "\n"
+         "This method works as nelemGet, but gives the index number of the last\n"
+         "element (which equals nelem-1).\n"
+         ),
+        AUTHORS( "Patrick Eriksson", "Oliver Lemke" ),
+        OUT( "nelem" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(         "v"    ),
+        GIN_TYPE(    ARRAY_GROUPS + ", Vector" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC(    "The method is defined for these groups." ),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        USES_TEMPLATES( true  )
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME( "IndexStepDown" ),
         DESCRIPTION
         (
