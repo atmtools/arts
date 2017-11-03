@@ -245,6 +245,114 @@ void vmr_enforce_constraint(Tensor3View vmr, const String & constraint, Numeric 
     }
 }
 
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Tensor4Clip(
+         Tensor4&                    x,
+   const Index&                      iq,
+   const Numeric&                    limit_low,
+   const Numeric&                    limit_high,
+   const Verbosity&)
+{
+  // Sizes
+  const Index nq = x.nbooks();
+
+  if( iq < -1 )
+    throw runtime_error( "Argument *iq* must be >= -1." );
+  if( iq >= nq )
+    {
+      ostringstream os;
+      os << "Argument *iq* is too high.\n"
+         << "You have selected index: " << iq << "\n"
+         << "but the number of quantities is only: " << nq << "\n"
+         << "(Note that zero-based indexing is used)\n";
+      throw runtime_error( os.str() );
+    }
+
+  Index ifirst = 0, ilast = nq-1;
+  if( iq > -1 )
+    {
+      ifirst = iq;
+      ilast  = iq;      
+    }
+
+  if( !isinf( limit_low ) )
+    {
+      for( Index i=ifirst; i<=ilast; i++ )
+        { for( Index p=0; p<x.npages(); p++ )
+            { for( Index r=0; r<x.nrows(); r++ )
+                { for( Index c=0; c<x.ncols(); c++ )
+                    { if( x(i,p,r,c) < limit_low )
+                        x(i,p,r,c) = limit_low;
+    }   }   }   }   }
+
+  if( !isinf( limit_high ) )
+    {
+      for( Index i=ifirst; i<=ilast; i++ )
+        { for( Index p=0; p<x.npages(); p++ )
+            { for( Index r=0; r<x.nrows(); r++ )
+                { for( Index c=0; c<x.ncols(); c++ )
+                    { if( x(i,p,r,c) > limit_high )
+                        x(i,p,r,c) = limit_high;
+    }   }   }   }   }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void xClip(
+         Vector&                     x,
+   const ArrayOfRetrievalQuantity&   jq,
+   const ArrayOfArrayOfIndex&        ji,
+   const Index&                      ijq,
+   const Numeric&                    limit_low,
+   const Numeric&                    limit_high,
+   const Verbosity&)
+{
+  // Sizes
+  const Index nq = jq.nelem();
+
+  if( ijq < -1 )
+    throw runtime_error( "Argument *ijq* must be >= -1." );
+  if( ijq >= nq )
+    {
+      ostringstream os;
+      os << "Argument *ijq* is too high.\n"
+         << "You have selected index: " << ijq << "\n"
+         << "but the number of quantities is only: " << nq << "\n"
+         << "(Note that zero-based indexing is used)\n";
+      throw runtime_error( os.str() );
+    }
+
+  Index ifirst = 0, ilast = x.nelem()-1;
+  if( ijq > -1 )
+    {
+      ifirst = ji[ijq][0];
+      ilast  = ji[ijq][1];      
+    }
+  
+  if( !isinf( limit_low ) )
+    {
+      for( Index i=ifirst; i<=ilast; i++ )
+        {
+          if( x[i] < limit_low )
+            x[i] = limit_low;
+        }
+    }
+  if( !isinf( limit_high ) )
+    {
+      for( Index i=ifirst; i<=ilast; i++ )
+        {
+          if( x[i] > limit_high )
+            x[i] = limit_high;
+        }
+    }
+}
+
+
+
+
 /*===========================================================================
   === Workspace methods associated with OEM
   ===========================================================================*/

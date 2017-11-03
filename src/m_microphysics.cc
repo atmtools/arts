@@ -802,7 +802,7 @@ void psdMgd(
   if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
     throw runtime_error( "This PSD has four free parameters. This means that "
                          "the number\nof columns in *pnd_agenda_input* and the "
-                         "number of numerics\n(i.e. not Inf or NaN) and among "
+                         "number of numerics\n(i.e. non-NaN) and among "
                          "the GIN arguments n0, mu, la and\nga must add up to "
                          "four. And this was found not to be the case." );
 
@@ -942,7 +942,7 @@ void psdMgdMass(
   if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
     throw runtime_error( "This PSD has four free parameters. This means that "
                          "the number\nof columns in *pnd_agenda_input* and the "
-                         "number of numerics\n(i.e. not Inf or NaN) and among "
+                         "number of numerics\n(i.e. not -999 or NaN) and among "
                          "the GIN arguments n0, mu, la and\nga must add up to "
                          "four. And this was found not to be the case." );
 
@@ -1148,7 +1148,7 @@ void psdMgdMassMeanParticleMass(
   if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
     throw runtime_error( "This PSD has four free parameters. This means that "
                          "the number\nof columns in *pnd_agenda_input* and the "
-                         "number of numerics\n(i.e. not Inf or NaN) and among "
+                         "number of numerics\n(i.e. not -999 or NaN) and among "
                          "the GIN arguments n0, mu, la and\nga must add up to "
                          "four. And this was found not to be the case." );
 
@@ -1370,7 +1370,7 @@ void psdMgdMassXmean(
   if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
     throw runtime_error( "This PSD has four free parameters. This means that "
                          "the number\nof columns in *pnd_agenda_input* and the "
-                         "number of numerics\n(i.e. not Inf or NaN) and among "
+                         "number of numerics\n(i.e. not -999 or NaN) and among "
                          "the GIN arguments n0, mu, la and\nga must add up to "
                          "four. And this was found not to be the case." );
 
@@ -1589,7 +1589,7 @@ void psdMgdMassXmedian(
   if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
     throw runtime_error( "This PSD has four free parameters. This means that "
                          "the number\nof columns in *pnd_agenda_input* and the "
-                         "number of numerics\n(i.e. not Inf or NaN) and among "
+                         "number of numerics\n(i.e. not -999 or NaN) and among "
                          "the GIN arguments n0, mu, la and\nga must add up to "
                          "four. And this was found not to be the case." );
 

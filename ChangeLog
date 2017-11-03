@@ -1,3 +1,13 @@
+2017-11-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-856
+
+	* src/m_oem.cc (xClip): New WSM.
+
+	(Tensor4Clip): New, but not yet activated.
+
+	* src/m_microphysics.cc (psdXXX): Corrected error message.
+
 2017-11-02  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-855

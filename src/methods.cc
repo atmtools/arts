@@ -16831,7 +16831,41 @@ void define_md_data_raw()
         GIN_DESC( "Input tensor.",
                   "The value to be added to the tensor." )
         ));
-
+  /*
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "Tensor4Clip" ),
+        DESCRIPTION
+        (
+         "Clipping of e.g. *vmr_field* and *particle_bulkprop_field*.\n"
+         "\n"
+         "The method allows you to apply hard limits the values of a\n"
+         "Tensor4. The quantati (book dimension) is specified by *iq*.\n"
+         "*All values of the quantity below *limit_low*, are simply\n"
+         "set to *limit_low*. And the same is performed with respect to\n"
+         "*limit_high*. That is, the data in x for the quantity are\n"
+         "forced to be inside the range [limit_low,limit_high].\n"
+         "\n"
+         "Setting iq=-1, is a shortcut for applying the limits on all\n"
+         "quantities.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT( "x" ),
+        GOUT_TYPE( "Tensor4" ),
+        GOUT_DESC( "A Tensor4 holding data, with quantity as book-dimension,"
+                   "such as *vmr_field*." ),
+        IN(  ),
+        GIN( "x", "iq", "limit_low", "limit_high" ),
+        GIN_TYPE( "Tensor4", "Index", "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, "-Inf", "Inf" ),
+        GIN_DESC( "See GOUT for a defintion.",
+                  "Quantity index (zero-based)",
+                  "Lower limit for clipping.",
+                  "Upper limit for clipping." )
+        ));
+  */
+  
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "Tensor4Scale" ),
@@ -18223,6 +18257,39 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "xClip" ),
+        DESCRIPTION
+        (
+         "Clipping of the state vector.\n"
+         "\n"
+         "The method allows you to apply hard limits the values of a\n"
+         "retrieval quantity. The retrieval quantity is specified by\n"
+         "*ijq*. All values of the quantity below *limit_low*, are simply\n"
+         "set to *limit_low*. And the same is performed with respect to\n"
+         "*limit_high*. That is, the data in x for the retrieval quantity\n"
+         "are forced to be inside the range [limit_low,limit_high].\n"
+         "\n"
+         "Setting ijq=-1, is a shortcut for applying the limits on all\n"
+         "retrieval quantities.\n"
+         "\n"
+         "Notice that limits must be specified in the unit used in *x*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "x" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "x", "jacobian_quantities", "jacobian_indices" ),
+        GIN( "ijq", "limit_low", "limit_high" ),
+        GIN_TYPE( "Index", "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF, "-Inf", "Inf" ),
+        GIN_DESC( "Retrieval quantity index (zero-based)",
+                  "Lower limit for clipping.",
+                  "Upper limit for clipping." )
         ));
 
   md_data_raw.push_back
