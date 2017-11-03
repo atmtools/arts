@@ -946,14 +946,14 @@ void surfaceTessem(
         surface_emission(i,0) = b[i] * 0.5 * ( e_h[0] + e_v[0] );
         // Q
         if( stokes_dim >= 2 )
-        { surface_emission(i,1) = b[i] * 0.5 * ( e_h[0] - e_v[0] ); }
+        { surface_emission(i,1) = b[i] * 0.5 * ( e_v[0] - e_h[0] ); }
 
         // R Matrix
         surface_rmatrix(0,i,0,0) = 0.5 * ( (1.0 - e_h[0]) + (1.0 - e_v[0]) );
         if( stokes_dim >= 2 )
         {
-            surface_rmatrix(0,i,0,1) = 0.5 * ( (1.0 - e_h[0]) -
-                                               (1.0 - e_v[0]) ); ;
+            surface_rmatrix(0,i,0,1) = 0.5 * ( (1.0 - e_v[0]) -
+                                               (1.0 - e_h[0]) ); ;
             surface_rmatrix(0,i,1,0) = surface_rmatrix(0,i,0,1);
             surface_rmatrix(0,i,1,1) = surface_rmatrix(0,i,0,0);
         }
