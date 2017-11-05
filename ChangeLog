@@ -1,3 +1,42 @@
+2017-11-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-860
+
+	* src/m_psd.cc (psdA12): New WSM.
+
+	* src/psd.cc (psd_rain_A12): New function.
+
+	* src/math_funcs.cc (mgd_with_derivatives): Renamed the old mgd.
+	(mgd): A version with derivatives.
+
+	* src/psd.cc:
+	* src/psd.h: New files. And moved psd_cloudice_MH97, psd_rain_W16
+	and psd_snow_F07 to these files.
+
+	* src/m_psd.cc (psd_mono_common): Common code for mono-type PSDs.
+	(psdMono, psdMonoMass): Now using common function.
+
+	(psdW16): Now using commin code.
+	(psd_rwc_common): Common code for PSDs taking just RWC as input.
+
+	* src/CMakeLists.txt: Added m_psd.cc and psd.cc.
+
+	* src/m_psd.cc: Started this file, and put all new PSD WSMs here.
+
+	* src/m_psd.cc (psd_mgd_mass_and_something): A common
+	function, that handles all psdMgdMassSomething WSMs. Saved at least
+	500 lines of code, and should made it easier to add new
+	"Something".
+
+	(psdMgdMassNtot): Now finished and tested.
+
+	(psdMgdXxx): Repeated basic test of all these MGD PSDs. That is,
+	checked in matlab that PSD generated matches the input, and
+	checked derivatives by doing perturbations.
+
+	* doc/uguide/clouds_theory.tex: Had missed one term in chain rule
+	for mass derivative in Ntot-version. Some polishing of Ntot part.
+
 2017-11-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-859

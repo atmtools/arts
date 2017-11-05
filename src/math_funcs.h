@@ -81,6 +81,14 @@ Numeric sign( const Numeric& x );
 
 void mgd(
           VectorView  psd,
+    const Vector&     x,
+    const Numeric&    n0,
+    const Numeric&    mu,
+    const Numeric&    la,
+    const Numeric&    ga );
+
+void mgd_with_derivatives(
+          VectorView  psd,
           MatrixView  jac_data,
     const Vector&     x,
     const Numeric&    n0,

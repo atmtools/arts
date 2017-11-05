@@ -12327,6 +12327,54 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "psdA12" ),
+        DESCRIPTION
+        (
+         "Abel and Boutle [2012] (A12) particle size distribution for rain.\n"
+         "\n"
+         "Reference: Abel and Boutle, An improved representation of the \n"
+         "raindrop size distribution for single-moment microphysics schemes,\n"
+         "QJRMS, 2012.\n"
+         "\n"
+         "This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one\n"
+         "column and *pnd_agenda_input_names* shall contain a single string.\n"
+         "The input data in *pnd_agenda_input* shall be rain mass content in\n"
+         "unit of [kg/m3]. The naming used is *pnd_agenda_input_names* is free\n"
+         "but the same name must be used in *particle_bulkprop_names* and\n"
+         "*dpnd_data_dx_names*.\n"
+         "\n"
+         "Particles are assumed to be near-spherical, ie. *psd_size_grid* can\n"
+         "either be in terms of volume (or mass) equivalent diameter or\n"
+         "maximum diameter.\n"
+         "\n"
+         "Derivatives are obtained by perturbation of 0.1%, but not less than\n"
+         "1e-9 kg/m3.\n"
+         "\n"
+         "The validity range of mass content is not limited. Negative mass\n"
+         "contents wil produce negative psd values following a distribution\n"
+         "given by abs(IWC), ie. abs(psd)=f(abs(IWC)).\n"
+         "\n"
+         "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+         "picky=0, or an error is thrown if picky=1.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "psd_data", "dpsd_data_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
+            "pnd_agenda_input_names", "dpnd_data_dx_names",
+            "scat_species_a", "scat_species_b" ),
+        GIN( "t_min",   "t_max", "picky" ),
+        GIN_TYPE( "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( "273", "373", "0" ),
+        GIN_DESC( "Low temperature limit to calculate a psd.",
+                  "High temperature limit to calculate a psd.",
+                  "Flag whether to be strict with parametrization value checks." )
+        ));
+ 
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "psdF07" ),
         DESCRIPTION
         (
@@ -12932,6 +12980,10 @@ void define_md_data_raw()
         (
          "Wang et al. [2016] (W16) particle size distribution for rain.\n"
          "\n"
+         "Reference: Wang et al., Investigation of liquid cloud microphysical\n"
+         "properties of deep convective systems: 1. Parameterization raindrop\n"
+         "size distribution and its application ..., 2016.\n"
+         "\n"         
          "This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one\n"
          "column and *pnd_agenda_input_names* shall contain a single string.\n"
          "The input data in *pnd_agenda_input* shall be rain mass content in\n"

@@ -240,6 +240,7 @@ add_library (artscore STATIC
   m_physics.cc
   m_planets.cc
   m_ppath.cc
+  m_psd.cc
   m_radiation_field.cc
   m_refraction.cc
   m_rt4.cc
@@ -268,6 +269,7 @@ add_library (artscore STATIC
   ppath.cc
   pressurebroadeningdata.cc
   propagationmatrix.cc
+  psd.cc
   quantum.cc
   quantum_parser_hitran.cc
   rational.cc

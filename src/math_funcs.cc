@@ -483,16 +483,100 @@ Numeric sign( const Numeric& x )
 
 
 
-/*! Modified gamma distribution, and derivatives
+/*! Modified gamma distribution
  *  
  *  Uses all four free parameters (n0, mu, la, ga) to calculate
  *    psd(D) = n0 * D^mu * exp( -la * x^ga )
  *  
- *  The function cal also return the derivate of psd with respect to the four
- *  parameters.   
- * 
  *  Reference: Eq 1 of Petty & Huang, JAS, (2011).
- *  Ported from Atmlab.
+
+    \param psd       Particle number density per x-interval. Sizing of vector
+                     should be done before calling the function.
+    \param x       Mass or size.
+    \param n0      See above.
+    \param mu      See above.
+    \param la      See above.
+    \param ga      See above.
+  
+  \author Jana Mendrok, Patrick Eriksson
+  \date 2017-06-07
+
+*/
+void mgd(
+          VectorView  psd,
+    const Vector&     x,
+    const Numeric&    n0,
+    const Numeric&    mu,
+    const Numeric&    la,
+    const Numeric&    ga )
+{
+  const Index nx = x.nelem();
+
+  assert( psd.nelem() == nx );
+
+  if( ga == 1 )
+    {
+      if( mu == 0 )
+        {
+          // Exponential distribution
+          for( Index ix=0; ix<nx; ix++ )
+            {
+              const Numeric eterm = exp( -la*x[ix] );
+              psd[ix] = n0 * eterm;
+            }
+        }
+      else
+        {
+          if( mu > 10 )
+            {
+              ostringstream os;
+              os << "Given mu is " << mu << endl
+                 <<"Seems unreasonable. Have you mixed up the inputs?";
+              throw runtime_error(os.str());
+            }
+          // Gamma distribution
+          for( Index ix=0; ix<nx; ix++ )
+            {
+              const Numeric eterm = exp( -la*x[ix] );
+              const Numeric xterm = pow( x[ix], mu );
+              psd[ix] = n0 * xterm * eterm;
+              psd[ix] = n0 * pow( x[ix], mu ) * exp( -la*x[ix] );
+            }
+        }
+    }
+  else
+    {
+      // Complete MGD
+      if( mu > 10 )
+        {
+          ostringstream os;
+          os << "Given mu is " << mu << endl
+             <<"Seems unreasonable. Have you mixed up the inputs?";
+          throw runtime_error(os.str());
+        }
+      if( ga > 10 )
+        {
+          ostringstream os;
+          os << "Given gamma is " << ga << endl
+             <<"Seems unreasonable. Have you mixed up the inputs?";
+          throw runtime_error(os.str());
+        }
+      for( Index ix=0; ix<nx; ix++ )
+        {
+          const Numeric pterm = pow( x[ix], ga );
+          const Numeric eterm = exp( -la * pterm );
+          const Numeric xterm = pow( x[ix], mu );
+          psd[ix] = n0 * xterm * eterm;
+        }
+    }
+}
+
+
+
+/*! Modified gamma distribution, and derivatives
+ *  
+ *  As mgd, but this version can also return the derivate of psd with respect 
+ *  to the four parameters.   
 
     \param psd       Particle number density per x-interval. Sizing of vector
                      should be done before calling the function.
@@ -504,16 +588,16 @@ Numeric sign( const Numeric& x )
     \param mu      See above.
     \param la      See above.
     \param ga      See above.
-    \param do_n0_jac  Flag to actaully calculate d_psd/d_n0
-    \param do_mu_jac  Flag to actaully calculate d_psd/d_mu
-    \param do_la_jac  Flag to actaully calculate d_psd/d_la
-    \param do_ga_jac  Flag to actaully calculate d_psd/d_ga
+    \param do_n0_jac  Flag to actually calculate d_psd/d_n0
+    \param do_mu_jac  Flag to actually calculate d_psd/d_mu
+    \param do_la_jac  Flag to actually calculate d_psd/d_la
+    \param do_ga_jac  Flag to actually calculate d_psd/d_ga
   
-  \author Jana Mendrok, Patrick Eriksson
+  \author Patrick Eriksson
   \date 2017-06-07
 
 */
-void mgd(
+void mgd_with_derivatives(
           VectorView  psd,
           MatrixView  jac_data,
     const Vector&     x,

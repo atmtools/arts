@@ -57,6 +57,7 @@
 #include "math_funcs.h"
 #include "messages.h"
 #include "microphysics.h"
+#include "psd.h"
 #include "optproperties.h"
 #include "parameters.h"
 #include "physics_funcs.h"
@@ -606,2075 +607,6 @@ void pndAdjustFromScatMeta(
       chk_pndsum ( pnd, pnd_agenda_input(ip,fieldID), mass,
                    ip, -1, -1, pnd_agenda_input_tag, verbosity );
       pnd_data(ip,joker) = pnd;
-    }
-}
-
-
-
-// ------------------------------------------------------
-// Macros to avoid duplication of code inside PSD methods
-// ------------------------------------------------------
-
-#define START_OF_PSD_METHODS() \
-  const Index nin = pnd_agenda_input_names.nelem(); \
-  const Index ndx = dpnd_data_dx_names.nelem(); \
-  const Index np  = pnd_agenda_input.nrows(); \
-  const Index nsi = psd_size_grid.nelem(); \
-  ArrayOfIndex dx2in(ndx); \
-   \
-  if( pnd_agenda_input.ncols() != nin ) \
-    throw runtime_error( "Length of *pnd_agenda_input_names* and number of " \
-                         "columns in *pnd_agenda_input* must be equal." ); \
-  if( ndx ) \
-    { \
-      if( ndx > nin ) \
-        throw runtime_error( "The length of *dpnd_data_dx_names* can not " \
-                             "exceed the one of *pnd_agenda_input_names*." ); \
-      for( Index i=0; i<ndx; i++ ) \
-        { \
-          dx2in[i] = find_first( pnd_agenda_input_names, dpnd_data_dx_names[i] ); \
-          if( dx2in[i] < 0 ) \
-            { \
-              ostringstream os; \
-              os << "dpnd_data_dx_names[" << i << "] is " << dpnd_data_dx_names[i] \
-                 << "\nThis string could not be found in *pnd_agenda_input_names*.";\
-              throw std::runtime_error(os.str()); \
-            } \
-        } \
-    } \
-   \
-  psd_data.resize( np, nsi ); \
-  psd_data = 0.0; \
-  if( ndx ) \
-    { \
-      dpsd_data_dx.resize( ndx, np, nsi ); \
-      dpsd_data_dx = 0.0; \
-    } \
-  else \
-    { dpsd_data_dx.resize( 0, 0, 0  ); }  
-
-// ------------------------------------------------------
-// ------------------------------------------------------
-// ------------------------------------------------------
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void psdF07 (
-          Matrix&          psd_data,
-          Tensor3&         dpsd_data_dx,
-    const Vector&          psd_size_grid,
-    const Vector&          pnd_agenda_input_t,
-    const Matrix&          pnd_agenda_input,
-    const ArrayOfString&   pnd_agenda_input_names,
-    const ArrayOfString&   dpnd_data_dx_names,
-    const Numeric&         scat_species_a, 
-    const Numeric&         scat_species_b, 
-    const String&          regime,
-    const Numeric&         t_min,
-    const Numeric&         t_max,
-    const Numeric&         t_min_psd,
-    const Numeric&         t_max_psd,
-    const Numeric&         b_min, 
-    const Numeric&         b_max, 
-    const Index&           picky, 
-    const Verbosity&)
-{
-  // Standard checcks
-  START_OF_PSD_METHODS();
-
-  // Additional (basic) checks
-  if( pnd_agenda_input.ncols() != 1 ) 
-    throw runtime_error( "*pnd_agenda_input* must have one column." ); 
-  if( regime!="TR" && regime!="ML" )
-    throw runtime_error( "regime must either be \"TR\" or \"ML\"." );
-  if( scat_species_a <= 0 )
-    throw runtime_error( "*scat_species_a* should be > 0." );
-  if( scat_species_b < b_min  ||  scat_species_b > b_max )
-    {
-      ostringstream os;
-      os << "Method called with a mass-dimension-relation exponent b of "
-         << scat_species_b << ".\n"
-         << "This is outside the specified allowed range: ["
-         << b_min << "," << b_max << "]";
-      throw runtime_error(os.str());
-    }
-
-  
-  for( Index ip=0; ip<np; ip++ )
-    {
-      // Extract the input variables
-      Numeric swc = pnd_agenda_input(ip,0);
-      Numeric   t = pnd_agenda_input_t[ip];
-
-      // No calc needed if swc==0 and no jacobians requested.
-      if( (swc==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-
-      // Outside of [t_min,tmax]?
-      if( t < t_min  ||  t > t_max )
-        {
-          if( picky )
-            {
-              ostringstream os;
-              os << "Method called with a temperature of " << t << " K.\n"
-                 << "This is outside the specified allowed range: [ max(0.,"
-                 << t_min << "), " << t_max << " ]";
-              throw runtime_error(os.str());
-            }
-          else  
-            { continue; }   // If here, we are ready with this point!
-        }
-
-      // PSD assumed to be constant outside [*t_min_psd*,*t_max_psd*]
-      if( t < t_min_psd )
-        { t = t_min_psd; }
-      else if( t > t_max_psd )
-        { t = t_max_psd; }
-    
-      // Negative swc?
-      Numeric psd_weight = 1.0;
-      if( swc < 0 )
-        {
-          psd_weight = -1.0;
-          swc       *= -1.0;
-        }
-      
-      // Calculate PSD
-      Vector psd_1p(nsi);
-      if( swc != 0 )
-        {
-          psd_snow_F07 ( psd_1p, psd_size_grid, swc, t, scat_species_a,
-                         scat_species_b, regime );
-          for ( Index i=0; i<nsi; i++ )
-            { psd_data(ip,i) = psd_weight * psd_1p[i]; }
-        }
-
-      // Calculate derivative with respect to IWC
-      if( ndx )
-        {
-          //const Numeric dswc = max( 0.001*swc, 1e-7 );
-          const Numeric dswc = 1e-9;
-          const Numeric swcp = swc + dswc;
-          psd_snow_F07 ( psd_1p, psd_size_grid, swcp, t, scat_species_a,
-                         scat_species_b, regime );
-          for ( Index i=0; i<nsi; i++ )
-            { dpsd_data_dx(0,ip,i) = ( psd_1p[i] - psd_data(ip,i) ) / dswc; }
-        }   
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void psdMgd(
-          Matrix&          psd_data,
-          Tensor3&         dpsd_data_dx,
-    const Vector&          psd_size_grid,
-    const Vector&          pnd_agenda_input_t,
-    const Matrix&          pnd_agenda_input,
-    const ArrayOfString&   pnd_agenda_input_names,
-    const ArrayOfString&   dpnd_data_dx_names,
-    const Numeric&         n0, 
-    const Numeric&         mu, 
-    const Numeric&         la, 
-    const Numeric&         ga, 
-    const Numeric&         t_min, 
-    const Numeric&         t_max, 
-    const Index&           picky, 
-    const Verbosity& )
-{
-  // Standard checks
-  START_OF_PSD_METHODS();
-  
-  // Additional (basic) checks
-  if( nin > 4 )
-    throw runtime_error( "The number of columns in *pnd_agenda_input* must "
-                         "be 0, 1, 2, 3 or 4." );
-  
-  // Check fixed parameters
-  //
-  const Index n0_fixed = (Index) !( isnan(n0) );
-  const Index mu_fixed = (Index) !( isnan(mu) );
-  const Index la_fixed = (Index) !( isnan(la) );
-  const Index ga_fixed = (Index) !( isnan(ga) );
-  //
-  if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
-    throw runtime_error( "This PSD has four free parameters. This means that "
-                         "the number\nof columns in *pnd_agenda_input* and the "
-                         "number of numerics\n(i.e. non-NaN) and among "
-                         "the GIN arguments n0, mu, la and\nga must add up to "
-                         "four. And this was found not to be the case." );
-
-  // Create vectors to hold the four MGD and the "extra" parameters 
-  Vector mgd_pars(4);
-  ArrayOfIndex mgd_i_pai = {-1,-1,-1,-1}; // Position in pnd_agenda_input
-  {
-    Index nhit = 0;
-    if( n0_fixed ) { mgd_pars[0]=n0; } else { mgd_i_pai[0]=nhit++; } 
-    if( mu_fixed ) { mgd_pars[1]=mu; } else { mgd_i_pai[1]=nhit++; } 
-    if( la_fixed ) { mgd_pars[2]=la; } else { mgd_i_pai[2]=nhit++; } 
-    if( ga_fixed ) { mgd_pars[3]=ga; } else { mgd_i_pai[3]=nhit++; } 
-  }
-
-  // Determine what derivatives to do and their positions
-  ArrayOfIndex mgd_do_jac = {0,0,0,0,}; 
-  ArrayOfIndex mgd_i_jac = {-1,-1,-1,-1}; // Position among jacobian quants 
-  //
-  for( Index i=0; i<ndx; i++ )
-    {
-      for( Index j=0; j<4; j++ )
-        {
-          if( dx2in[i] == mgd_i_pai[j] )
-            {
-              mgd_do_jac[j] = 1;
-              mgd_i_jac[j]  = i;
-              break;
-            }
-        }
-    }
-
-  // Loop input data and calculate PSDs
-  for( Index ip=0; ip<np; ip++ )
-    {
-      // Extract MGD parameters
-      for( Index i=0; i<4; i++ )
-        {
-          if( mgd_i_pai[i] >= 0 )
-            { mgd_pars[i] = pnd_agenda_input(ip,mgd_i_pai[i]); }
-        }
-      Numeric t = pnd_agenda_input_t[ip];
-      
-      // No calc needed if n0==0 and no jacobians requested.
-      if( (mgd_pars[0]==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-
-      // Outside of [t_min,tmax]?
-      if( t < t_min  ||  t > t_max )
-        {
-          if( picky )
-            {
-              ostringstream os;
-              os << "Method called with a temperature of " << t << " K.\n"
-                 << "This is outside the specified allowed range: [ max(0.,"
-                 << t_min << "), " << t_max << " ]";
-              throw runtime_error(os.str());
-            }
-          else  
-            { continue; }   // If here, we are ready with this point!
-        }
-
-      // Check that MGD parameters are OK
-      if( mgd_pars[2] <= 0 )
-        throw runtime_error( "Bad MGD parameter detected: la <= 0" );
-      if( mgd_pars[3] <= 0 )
-        throw runtime_error( "Bad MGD parameter detected: ga <= 0" );
-      
-      // Calculate PSD and derivatives
-      //
-      Matrix  jac_data(4,nsi);    
-      mgd( psd_data(ip,joker), jac_data, psd_size_grid,
-           mgd_pars[0], mgd_pars[1], mgd_pars[2], mgd_pars[3],
-           mgd_do_jac[0], mgd_do_jac[1], mgd_do_jac[2], mgd_do_jac[3] );
-      //
-      for( Index i=0; i<4; i++ )
-        {
-          if( mgd_do_jac[i] )
-            { dpsd_data_dx(mgd_i_jac[i],ip,joker) = jac_data(i,joker); }
-        } 
-    }  
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void psdMgdMass(
-          Matrix&          psd_data,
-          Tensor3&         dpsd_data_dx,
-    const Vector&          psd_size_grid,
-    const Vector&          pnd_agenda_input_t,
-    const Matrix&          pnd_agenda_input,
-    const ArrayOfString&   pnd_agenda_input_names,
-    const ArrayOfString&   dpnd_data_dx_names,
-    const Numeric&         scat_species_a, 
-    const Numeric&         scat_species_b, 
-    const Numeric&         n0, 
-    const Numeric&         mu, 
-    const Numeric&         la, 
-    const Numeric&         ga, 
-    const Numeric&         t_min, 
-    const Numeric&         t_max, 
-    const Index&           picky, 
-    const Verbosity&)
-{
-  // Standard checks
-  START_OF_PSD_METHODS();
-  
-  // Additional (basic) checks
-  if( nin < 1 || nin > 4 )
-    throw runtime_error( "The number of columns in *pnd_agenda_input* must "
-                         "be 1, 2, 3 or 4." );
-  if( scat_species_a <= 0 )
-    throw runtime_error( "*scat_species_a* should be > 0." );
-  if( scat_species_b <= 0  ||  scat_species_b >= 5 )
-    throw runtime_error( "*scat_species_b* should be > 0 and < 5." );
-  
-  // Check and determine dependent and fixed parameters
-  //
-  const Index n0_depend = (Index) n0 == -999;
-  const Index mu_depend = (Index) mu == -999;
-  const Index la_depend = (Index) la == -999;
-  const Index ga_depend = (Index) ga == -999;  
-  //
-  if( n0_depend + mu_depend + la_depend + ga_depend != 1 )
-    throw runtime_error( "One (but only one) of n0, mu, la and ga must be NaN, "
-                         "to flag that this parameter is the one dependent of "
-                         "mass content." );
-  if( mu_depend  ||  ga_depend )
-    throw runtime_error( "Sorry, mu and la are not yet allowed to be the "
-                         "dependent parameter." );    
-  //
-  const Index n0_fixed = (Index) !( n0_depend  ||  isnan(n0) );
-  const Index mu_fixed = (Index) !( mu_depend  ||  isnan(mu) );
-  const Index la_fixed = (Index) !( la_depend  ||  isnan(la) );
-  const Index ga_fixed = (Index) !( ga_depend  ||  isnan(ga) );
-  //
-  if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
-    throw runtime_error( "This PSD has four free parameters. This means that "
-                         "the number\nof columns in *pnd_agenda_input* and the "
-                         "number of numerics\n(i.e. not -999 or NaN) and among "
-                         "the GIN arguments n0, mu, la and\nga must add up to "
-                         "four. And this was found not to be the case." );
-
-  // Create vectors to hold the four MGD and the "extra" parameters 
-  Vector mgd_pars(4), ext_pars(1);
-  ArrayOfIndex mgd_i_pai = {-1,-1,-1,-1}; // Position in pnd_agenda_input
-  const ArrayOfIndex ext_i_pai = {0};     // Position in pnd_agenda_input
-  {
-    Index nhit = 1;  // As mass always occupies first position
-    if( n0_fixed ) { mgd_pars[0]=n0; } else if( !n0_depend ) { mgd_i_pai[0]=nhit++; } 
-    if( mu_fixed ) { mgd_pars[1]=mu; } else if( !mu_depend ) { mgd_i_pai[1]=nhit++; } 
-    if( la_fixed ) { mgd_pars[2]=la; } else if( !la_depend ) { mgd_i_pai[2]=nhit++; } 
-    if( ga_fixed ) { mgd_pars[3]=ga; } else if( !ga_depend ) { mgd_i_pai[3]=nhit++; } 
-  }
-
-  // Determine what derivatives to do and their positions
-  ArrayOfIndex mgd_do_jac = {0,0,0,0,}; 
-  ArrayOfIndex ext_do_jac = {0};        
-  ArrayOfIndex mgd_i_jac = {-1,-1,-1,-1}; // Position among jacobian quants 
-  ArrayOfIndex ext_i_jac = {-1};          // Position among jacobian quants
-  //
-  for( Index i=0; i<ndx; i++ )
-    {
-      if( dx2in[i] == 0 )  // That is,  mass is a derivative
-        {
-          ext_do_jac[0] = 1;
-          ext_i_jac[0]  = i;
-        }
-      else  // Otherwise, either n0, mu, la or ga
-        {
-          for( Index j=0; j<4; j++ )
-            {
-              if( dx2in[i] == mgd_i_pai[j] )
-                {
-                  mgd_do_jac[j] = 1;
-                  mgd_i_jac[j]  = i;
-                  break;
-                }
-            }
-        }
-    }
-
-  // Loop input data and calculate PSDs
-  for( Index ip=0; ip<np; ip++ )
-    {
-      // Extract mass
-      ext_pars[0] = pnd_agenda_input(ip,ext_i_pai[0]);
-      // Extract core MGD parameters
-      for( Index i=0; i<4; i++ )
-        {
-          if( mgd_i_pai[i] >= 0 )
-            { mgd_pars[i] = pnd_agenda_input(ip,mgd_i_pai[i]); }
-        }
-      Numeric t = pnd_agenda_input_t[ip];
-      
-      // No calc needed if mass==0 and no jacobians requested.
-      if( (ext_pars[0]==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-
-      // Outside of [t_min,tmax]?
-      if( t < t_min  ||  t > t_max )
-        {
-          if( picky )
-            {
-              ostringstream os;
-              os << "Method called with a temperature of " << t << " K.\n"
-                 << "This is outside the specified allowed range: [ max(0.,"
-                 << t_min << "), " << t_max << " ]";
-              throw runtime_error(os.str());
-            }
-          else  
-            { continue; }   // If here, we are ready with this point!
-        }
-
-      
-      // Derive the dependent parameter
-      //
-      Numeric mub1 = 0, eterm = 0, scfac = 0;
-      //
-      if( n0_depend )
-        {
-          mub1  = mgd_pars[1] + scat_species_b + 1;
-          eterm = mub1 / mgd_pars[3];
-          scfac = ( mgd_pars[3] * pow( mgd_pars[2], eterm ) ) /
-            ( scat_species_a * tgamma(eterm) );
-          mgd_pars[0] = scfac * ext_pars[0] ;
-        }
-      else if( la_depend )
-        {
-          if( ext_pars[0] <= 0 )
-            throw runtime_error( "The mass content must be > 0 when la is "
-                                 "the dependent parameter." );
-          mub1  = mgd_pars[1] + scat_species_b + 1;
-          eterm = mub1 / mgd_pars[3];
-          scfac = mgd_pars[3] / ( scat_species_a * mgd_pars[0] * tgamma(eterm) );
-          scfac = pow( scfac, -1/eterm );
-          mgd_pars[2] = scfac * pow( ext_pars[0], -1/eterm );
-        }
-      else 
-        { assert(0); }
-
-      // Now when all four MGD parameters are set, check that they were OK from
-      // start, or became OK if set
-      if( mub1 <= 0 )
-        throw runtime_error( "Bad MGD parameter detected: mu + b + 1 <= 0" );
-      if( mgd_pars[2] <= 0 )
-        throw runtime_error( "Bad MGD parameter detected: la <= 0" );
-      if( mgd_pars[3] <= 0 )
-        throw runtime_error( "Bad MGD parameter detected: ga <= 0" );
-      
-      // Calculate PSD and derivatives
-      //
-      Matrix  jac_data(4,nsi);    
-      mgd( psd_data(ip,joker), jac_data, psd_size_grid,
-           mgd_pars[0], mgd_pars[1], mgd_pars[2], mgd_pars[3],
-           (bool)mgd_do_jac[0] || n0_depend,
-           (bool)mgd_do_jac[1] || mu_depend,
-           (bool)mgd_do_jac[2] || la_depend,
-           (bool)mgd_do_jac[3] || ga_depend );
-      //
-      if( ext_do_jac[0] )
-        {
-          // The derivative with respect to mass is handled by the chain rule.
-          // For example, for n0 we have that:
-          // d_psd(n0)/d_mass = d_psd/d_n0 * d_n0/d_mass
-          if( n0_depend )
-            {
-              dpsd_data_dx(ext_i_jac[0],ip,joker) = jac_data(0,joker);
-              dpsd_data_dx(ext_i_jac[0],ip,joker) *= scfac; 
-            }
-          else if( la_depend )
-            {
-              dpsd_data_dx(ext_i_jac[0],ip,joker) = jac_data(2,joker);
-              dpsd_data_dx(ext_i_jac[0],ip,joker) *= scfac * (-1/eterm) *
-                pow( ext_pars[0], -(1/eterm+1) ); 
-            }
-          else 
-            { assert(0); }
-        }
-      //
-      for( Index i=0; i<4; i++ )
-        {
-          if( mgd_do_jac[i] )
-            { dpsd_data_dx(mgd_i_jac[i],ip,joker) = jac_data(i,joker); }
-        } 
-    }  
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void psdMgdMassNtot(
-          Matrix&          psd_data,
-          Tensor3&         dpsd_data_dx,
-    const Vector&          psd_size_grid,
-    const Vector&          pnd_agenda_input_t,
-    const Matrix&          pnd_agenda_input,
-    const ArrayOfString&   pnd_agenda_input_names,
-    const ArrayOfString&   dpnd_data_dx_names,
-    const Numeric&         scat_species_a, 
-    const Numeric&         scat_species_b, 
-    const Numeric&         n0, 
-    const Numeric&         mu, 
-    const Numeric&         la, 
-    const Numeric&         ga, 
-    const Numeric&         t_min, 
-    const Numeric&         t_max, 
-    const Index&           picky, 
-    const Verbosity&)
-{
-  // Standard checks
-  START_OF_PSD_METHODS();
-  
-  // Additional (basic) checks
-  if( nin < 1 || nin > 4 )
-    throw runtime_error( "The number of columns in *pnd_agenda_input* must "
-                         "be 2, 3 or 4." );
-  if( scat_species_a <= 0 )
-    throw runtime_error( "*scat_species_a* should be > 0." );
-  if( scat_species_b <= 0  ||  scat_species_b >= 5 )
-    throw runtime_error( "*scat_species_b* should be > 0 and < 5." );
-  
-  // Check and determine dependent and fixed parameters
-  //
-  const Index n0_depend = (Index) n0 == -999;
-  const Index mu_depend = (Index) mu == -999;
-  const Index la_depend = (Index) la == -999;
-  const Index ga_depend = (Index) ga == -999;  
-  //
-  if( n0_depend + mu_depend + la_depend + ga_depend != 2 )
-    throw runtime_error( "Two (but only two) of n0, mu, la and ga must be NaN, "
-                         "to flag that these parameters are the ones dependent of "
-                         "mass content and mean particle size." );
-  if( mu_depend  ||  ga_depend )
-    throw runtime_error( "Sorry, mu and la are not yet allowed to be a "
-                         "dependent parameter." );    
-  //
-  const Index n0_fixed = (Index) !( n0_depend  ||  isnan(n0) );
-  const Index mu_fixed = (Index) !( mu_depend  ||  isnan(mu) );
-  const Index la_fixed = (Index) !( la_depend  ||  isnan(la) );
-  const Index ga_fixed = (Index) !( ga_depend  ||  isnan(ga) );
-  //
-  if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
-    throw runtime_error( "This PSD has four free parameters. This means that "
-                         "the number\nof columns in *pnd_agenda_input* and the "
-                         "number of numerics\n(i.e. not -999 or NaN) and among "
-                         "the GIN arguments n0, mu, la and\nga must add up to "
-                         "four. And this was found not to be the case." );
-
-  // Create vectors to hold the four MGD and the "extra" parameters 
-  Vector mgd_pars(4), ext_pars(2);
-  ArrayOfIndex mgd_i_pai = {-1,-1,-1,-1}; // Position in pnd_agenda_input
-  const ArrayOfIndex ext_i_pai = {0,1};   // Position in pnd_agenda_input
-  {
-    Index nhit = 2;  // As mass and Dm always occupy first position
-    if( n0_fixed ) { mgd_pars[0]=n0; } else if( !n0_depend ) { mgd_i_pai[0]=nhit++; } 
-    if( mu_fixed ) { mgd_pars[1]=mu; } else if( !mu_depend ) { mgd_i_pai[1]=nhit++; } 
-    if( la_fixed ) { mgd_pars[2]=la; } else if( !la_depend ) { mgd_i_pai[2]=nhit++; } 
-    if( ga_fixed ) { mgd_pars[3]=ga; } else if( !ga_depend ) { mgd_i_pai[3]=nhit++; } 
-  }
-
-  // Determine what derivatives to do and their positions
-  ArrayOfIndex mgd_do_jac = {0,0,0,0,}; 
-  ArrayOfIndex ext_do_jac = {0,0};        
-  ArrayOfIndex mgd_i_jac = {-1,-1,-1,-1}; // Position among jacobian quants 
-  ArrayOfIndex ext_i_jac = {-1,-1};       // Position among jacobian quants
-  //
-  for( Index i=0; i<ndx; i++ )
-    {
-      if( dx2in[i] == 0 )  // That is, mass is a derivative
-        {
-          ext_do_jac[0] = 1;
-          ext_i_jac[0]  = i;
-        }
-      else if( dx2in[i] == 1 )  // That is, Ntot is a derivative
-        {
-          ext_do_jac[1] = 1;
-          ext_i_jac[1]  = i;
-        }
-      else  // Otherwise, either n0, mu, la or ga
-        {
-          for( Index j=0; j<4; j++ )
-            {
-              if( dx2in[i] == mgd_i_pai[j] )
-                {
-                  mgd_do_jac[j] = 1;
-                  mgd_i_jac[j]  = i;
-                  break;
-                }
-            }
-        }
-    }
-
-  // Loop input data and calculate PSDs
-  for( Index ip=0; ip<np; ip++ )
-    {
-      // Extract mass
-      ext_pars[0] = pnd_agenda_input(ip,ext_i_pai[0]);
-      ext_pars[1] = pnd_agenda_input(ip,ext_i_pai[1]);
-      if( ext_pars[1] <= 0 )
-        throw runtime_error( "Negative Ntot found. This is not allowed." );
-      // Extract core MGD parameters
-      for( Index i=0; i<4; i++ )
-        {
-          if( mgd_i_pai[i] >= 0 )
-            { mgd_pars[i] = pnd_agenda_input(ip,mgd_i_pai[i]); }
-        }
-      Numeric t = pnd_agenda_input_t[ip];
-      
-      // No calc needed if mass==0 and no jacobians requested.
-      if( (ext_pars[0]==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-
-      // Outside of [t_min,tmax]?
-      if( t < t_min  ||  t > t_max )
-        {
-          if( picky )
-            {
-              ostringstream os;
-              os << "Method called with a temperature of " << t << " K.\n"
-                 << "This is outside the specified allowed range: [ max(0.,"
-                 << t_min << "), " << t_max << " ]";
-              throw runtime_error(os.str());
-            }
-          else  
-            { continue; }   // If here, we are ready with this point!
-        }
-
-      // Derive the dependent parameters (see ATD)
-      //
-      Numeric mu1 = 0, eterm = 0, gterm = 0, scfac1 = 0, scfac2 = 0, gab = 0;
-      //
-      if( n0_depend  &&  la_depend )
-        {
-          eterm  = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];          
-          // Start by deriving la
-          gab    = mgd_pars[3] / scat_species_b;
-          gterm  = tgamma( eterm );
-          mu1    = mgd_pars[1] + 1;
-          scfac2 = pow( scat_species_a * gterm /
-                        tgamma( mu1/mgd_pars[3] ), gab ); 
-          mgd_pars[2] = scfac2 * pow( ext_pars[1]/ext_pars[0], gab );
-
-          // We can now derive n0 
-          scfac1 = ( mgd_pars[3] * pow( mgd_pars[2], eterm ) ) /
-            ( scat_species_a * gterm );
-          mgd_pars[0] = scfac1 * ext_pars[0];
-        }
-      else 
-        { assert(0); }
-
-      // Now when all four MGD parameters are set, check that they were OK from
-      // start, or became OK if set
-      if( mu1 <= 0 )
-        throw runtime_error( "Bad MGD parameter detected: mu + 1 <= 0" );
-      if( mgd_pars[2] <= 0 )
-        throw runtime_error( "Bad MGD parameter detected: la <= 0" );
-      if( mgd_pars[3] <= 0 )
-        throw runtime_error( "Bad MGD parameter detected: ga <= 0" );
-      
-      // Calculate PSD and derivatives
-      //
-      Matrix  jac_data(4,nsi);    
-      mgd( psd_data(ip,joker), jac_data, psd_size_grid,
-           mgd_pars[0], mgd_pars[1], mgd_pars[2], mgd_pars[3],
-           (bool)mgd_do_jac[0] || n0_depend,
-           (bool)mgd_do_jac[1] || mu_depend,
-           (bool)mgd_do_jac[2] || la_depend,
-           (bool)mgd_do_jac[3] || ga_depend );
-      //
-      if( ext_do_jac[0] )
-        {
-          throw runtime_error("Derivatives not ready.");
-          // The derivatives are handled by the chain rule, see ATD.
-          if( n0_depend  &&  la_depend )
-            {
-              // Note that Ntot sets la, and then also affects n0, while
-              // mass only affects n0 (for given Mmean). So chain
-              // rule gives us two products to consider for Mmean, but
-              // only one for mass.
-              // Derivative with respect to mass:
-              // Calculated as dpsd/dn0 * dn0/dmass
-              dpsd_data_dx(ext_i_jac[0],ip,joker) = jac_data(0,joker);
-              dpsd_data_dx(ext_i_jac[0],ip,joker) *= scfac1; 
-              // Derivative with respect to Xmean:
-              // 1. Term associated with n0
-              // Calculated as dpsd/dn0 * dn0/dla * dla/dDm
-              dpsd_data_dx(ext_i_jac[1],ip,joker) = jac_data(0,joker);
-              dpsd_data_dx(ext_i_jac[1],ip,joker) *= ext_pars[0] *
-                mgd_pars[3] * eterm * pow(mgd_pars[2],eterm-1) /
-                ( scat_species_a * gterm );
-              // 2. Term associated with la
-              // Calculated as dpsd/dla * dla/dDm
-              dpsd_data_dx(ext_i_jac[1],ip,joker) += jac_data(2,joker);
-              // Apply dla/dDm to sum
-              dpsd_data_dx(ext_i_jac[1],ip,joker) *= scfac2 *
-                ( -mgd_pars[3] / scat_species_b ) * pow( ext_pars[1], -(gab+1) );
-            }
-          else 
-            { assert(0); }
-        }
-      //
-      for( Index i=0; i<4; i++ )
-        {
-          if( mgd_do_jac[i] )
-            { dpsd_data_dx(mgd_i_jac[i],ip,joker) = jac_data(i,joker); }
-        } 
-    }  
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void psdMgdMassMeanParticleMass(
-          Matrix&          psd_data,
-          Tensor3&         dpsd_data_dx,
-    const Vector&          psd_size_grid,
-    const Vector&          pnd_agenda_input_t,
-    const Matrix&          pnd_agenda_input,
-    const ArrayOfString&   pnd_agenda_input_names,
-    const ArrayOfString&   dpnd_data_dx_names,
-    const Numeric&         scat_species_a, 
-    const Numeric&         scat_species_b, 
-    const Numeric&         n0, 
-    const Numeric&         mu, 
-    const Numeric&         la, 
-    const Numeric&         ga, 
-    const Numeric&         t_min, 
-    const Numeric&         t_max, 
-    const Index&           picky, 
-    const Verbosity&)
-{
-  // Standard checks
-  START_OF_PSD_METHODS();
-  
-  // Additional (basic) checks
-  if( nin < 1 || nin > 4 )
-    throw runtime_error( "The number of columns in *pnd_agenda_input* must "
-                         "be 2, 3 or 4." );
-  if( scat_species_a <= 0 )
-    throw runtime_error( "*scat_species_a* should be > 0." );
-  if( scat_species_b <= 0  ||  scat_species_b >= 5 )
-    throw runtime_error( "*scat_species_b* should be > 0 and < 5." );
-  
-  // Check and determine dependent and fixed parameters
-  //
-  const Index n0_depend = (Index) n0 == -999;
-  const Index mu_depend = (Index) mu == -999;
-  const Index la_depend = (Index) la == -999;
-  const Index ga_depend = (Index) ga == -999;  
-  //
-  if( n0_depend + mu_depend + la_depend + ga_depend != 2 )
-    throw runtime_error( "Two (but only two) of n0, mu, la and ga must be NaN, "
-                         "to flag that these parameters are the ones dependent of "
-                         "mass content and mean particle size." );
-  if( mu_depend  ||  ga_depend )
-    throw runtime_error( "Sorry, mu and la are not yet allowed to be a "
-                         "dependent parameter." );    
-  //
-  const Index n0_fixed = (Index) !( n0_depend  ||  isnan(n0) );
-  const Index mu_fixed = (Index) !( mu_depend  ||  isnan(mu) );
-  const Index la_fixed = (Index) !( la_depend  ||  isnan(la) );
-  const Index ga_fixed = (Index) !( ga_depend  ||  isnan(ga) );
-  //
-  if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
-    throw runtime_error( "This PSD has four free parameters. This means that "
-                         "the number\nof columns in *pnd_agenda_input* and the "
-                         "number of numerics\n(i.e. not -999 or NaN) and among "
-                         "the GIN arguments n0, mu, la and\nga must add up to "
-                         "four. And this was found not to be the case." );
-
-  // Create vectors to hold the four MGD and the "extra" parameters 
-  Vector mgd_pars(4), ext_pars(2);
-  ArrayOfIndex mgd_i_pai = {-1,-1,-1,-1}; // Position in pnd_agenda_input
-  const ArrayOfIndex ext_i_pai = {0,1};   // Position in pnd_agenda_input
-  {
-    Index nhit = 2;  // As mass and Dm always occupy first position
-    if( n0_fixed ) { mgd_pars[0]=n0; } else if( !n0_depend ) { mgd_i_pai[0]=nhit++; } 
-    if( mu_fixed ) { mgd_pars[1]=mu; } else if( !mu_depend ) { mgd_i_pai[1]=nhit++; } 
-    if( la_fixed ) { mgd_pars[2]=la; } else if( !la_depend ) { mgd_i_pai[2]=nhit++; } 
-    if( ga_fixed ) { mgd_pars[3]=ga; } else if( !ga_depend ) { mgd_i_pai[3]=nhit++; } 
-  }
-
-  // Determine what derivatives to do and their positions
-  ArrayOfIndex mgd_do_jac = {0,0,0,0,}; 
-  ArrayOfIndex ext_do_jac = {0,0};        
-  ArrayOfIndex mgd_i_jac = {-1,-1,-1,-1}; // Position among jacobian quants 
-  ArrayOfIndex ext_i_jac = {-1,-1};       // Position among jacobian quants
-  //
-  for( Index i=0; i<ndx; i++ )
-    {
-      if( dx2in[i] == 0 )  // That is, mass is a derivative
-        {
-          ext_do_jac[0] = 1;
-          ext_i_jac[0]  = i;
-        }
-      else if( dx2in[i] == 1 )  // That is, Mmean is a derivative
-        {
-          ext_do_jac[1] = 1;
-          ext_i_jac[1]  = i;
-        }
-      else  // Otherwise, either n0, mu, la or ga
-        {
-          for( Index j=0; j<4; j++ )
-            {
-              if( dx2in[i] == mgd_i_pai[j] )
-                {
-                  mgd_do_jac[j] = 1;
-                  mgd_i_jac[j]  = i;
-                  break;
-                }
-            }
-        }
-    }
-
-  // Loop input data and calculate PSDs
-  for( Index ip=0; ip<np; ip++ )
-    {
-      // Extract mass
-      ext_pars[0] = pnd_agenda_input(ip,ext_i_pai[0]);
-      ext_pars[1] = pnd_agenda_input(ip,ext_i_pai[1]);
-      if( ext_pars[1] <= 0 )
-        throw runtime_error( "Negative mean particle mass found. "
-                             "This is not allowed." );
-      // Extract core MGD parameters
-      for( Index i=0; i<4; i++ )
-        {
-          if( mgd_i_pai[i] >= 0 )
-            { mgd_pars[i] = pnd_agenda_input(ip,mgd_i_pai[i]); }
-        }
-      Numeric t = pnd_agenda_input_t[ip];
-      
-      // No calc needed if mass==0 and no jacobians requested.
-      if( (ext_pars[0]==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-
-      // Outside of [t_min,tmax]?
-      if( t < t_min  ||  t > t_max )
-        {
-          if( picky )
-            {
-              ostringstream os;
-              os << "Method called with a temperature of " << t << " K.\n"
-                 << "This is outside the specified allowed range: [ max(0.,"
-                 << t_min << "), " << t_max << " ]";
-              throw runtime_error(os.str());
-            }
-          else  
-            { continue; }   // If here, we are ready with this point!
-        }
-
-      // Derive the dependent parameters (see ATD)
-      //
-      Numeric mu1 = 0, eterm = 0, gterm = 0, scfac1 = 0, scfac2 = 0, gab = 0;
-      //
-      if( n0_depend  &&  la_depend )
-        {
-          eterm  = ( mgd_pars[1] + scat_species_b + 1 ) / mgd_pars[3];          
-          // Start by deriving la
-          gab    = mgd_pars[3] / scat_species_b;
-          gterm  = tgamma( eterm );
-          mu1    = mgd_pars[1] + 1;
-          scfac2 = pow( scat_species_a * gterm /
-                        tgamma( mu1/mgd_pars[3] ), gab ); 
-          mgd_pars[2] = scfac2 * pow( ext_pars[1], -gab );
-
-          // We can now derive n0 
-          scfac1 = ( mgd_pars[3] * pow( mgd_pars[2], eterm ) ) /
-            ( scat_species_a * gterm );
-          mgd_pars[0] = scfac1 * ext_pars[0];
-        }
-      else 
-        { assert(0); }
-
-      // Now when all four MGD parameters are set, check that they were OK from
-      // start, or became OK if set
-      if( mu1 <= 0 )
-        throw runtime_error( "Bad MGD parameter detected: mu + 1 <= 0" );
-      if( mgd_pars[2] <= 0 )
-        throw runtime_error( "Bad MGD parameter detected: la <= 0" );
-      if( mgd_pars[3] <= 0 )
-        throw runtime_error( "Bad MGD parameter detected: ga <= 0" );
-      
-      // Calculate PSD and derivatives
-      //
-      Matrix  jac_data(4,nsi);    
-      mgd( psd_data(ip,joker), jac_data, psd_size_grid,
-           mgd_pars[0], mgd_pars[1], mgd_pars[2], mgd_pars[3],
-           (bool)mgd_do_jac[0] || n0_depend,
-           (bool)mgd_do_jac[1] || mu_depend,
-           (bool)mgd_do_jac[2] || la_depend,
-           (bool)mgd_do_jac[3] || ga_depend );
-      //
-      if( ext_do_jac[0] )
-        {
-          // The derivatives are handled by the chain rule, see ATD.
-          if( n0_depend  &&  la_depend )
-            {
-              // Note that Mmean sets la, and then also affects n0, while
-              // mass only affects n0 (for given Mmean). So chain
-              // rule gives us two products to consider for Mmean, but
-              // only one for mass.
-              // Derivative with respect to mass:
-              // Calculated as dpsd/dn0 * dn0/dmass
-              dpsd_data_dx(ext_i_jac[0],ip,joker) = jac_data(0,joker);
-              dpsd_data_dx(ext_i_jac[0],ip,joker) *= scfac1; 
-              // Derivative with respect to Xmean:
-              // 1. Term associated with n0
-              // Calculated as dpsd/dn0 * dn0/dla * dla/dDm
-              dpsd_data_dx(ext_i_jac[1],ip,joker) = jac_data(0,joker);
-              dpsd_data_dx(ext_i_jac[1],ip,joker) *= ext_pars[0] *
-                mgd_pars[3] * eterm * pow(mgd_pars[2],eterm-1) /
-                ( scat_species_a * gterm );
-              // 2. Term associated with la
-              // Calculated as dpsd/dla * dla/dDm
-              dpsd_data_dx(ext_i_jac[1],ip,joker) += jac_data(2,joker);
-              // Apply dla/dDm to sum
-              dpsd_data_dx(ext_i_jac[1],ip,joker) *= scfac2 *
-                ( -mgd_pars[3] / scat_species_b ) * pow( ext_pars[1], -(gab+1) );
-            }
-          else 
-            { assert(0); }
-        }
-      //
-      for( Index i=0; i<4; i++ )
-        {
-          if( mgd_do_jac[i] )
-            { dpsd_data_dx(mgd_i_jac[i],ip,joker) = jac_data(i,joker); }
-        } 
-    }  
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void psdMgdMassXmean(
-          Matrix&          psd_data,
-          Tensor3&         dpsd_data_dx,
-    const Vector&          psd_size_grid,
-    const Vector&          pnd_agenda_input_t,
-    const Matrix&          pnd_agenda_input,
-    const ArrayOfString&   pnd_agenda_input_names,
-    const ArrayOfString&   dpnd_data_dx_names,
-    const Numeric&         scat_species_a, 
-    const Numeric&         scat_species_b, 
-    const Numeric&         n0, 
-    const Numeric&         mu, 
-    const Numeric&         la, 
-    const Numeric&         ga, 
-    const Numeric&         t_min, 
-    const Numeric&         t_max, 
-    const Index&           picky, 
-    const Verbosity&)
-{
-  // Standard checks
-  START_OF_PSD_METHODS();
-  
-  // Additional (basic) checks
-  if( nin < 1 || nin > 4 )
-    throw runtime_error( "The number of columns in *pnd_agenda_input* must "
-                         "be 2, 3 or 4." );
-  if( scat_species_a <= 0 )
-    throw runtime_error( "*scat_species_a* should be > 0." );
-  if( scat_species_b <= 0  ||  scat_species_b >= 5 )
-    throw runtime_error( "*scat_species_b* should be > 0 and < 5." );
-  
-  // Check and determine dependent and fixed parameters
-  //
-  const Index n0_depend = (Index) n0 == -999;
-  const Index mu_depend = (Index) mu == -999;
-  const Index la_depend = (Index) la == -999;
-  const Index ga_depend = (Index) ga == -999;  
-  //
-  if( n0_depend + mu_depend + la_depend + ga_depend != 2 )
-    throw runtime_error( "Two (but only one) of n0, mu, la and ga must be NaN, "
-                         "to flag that these parameters are the ones dependent of "
-                         "mass content and mean size." );
-  if( mu_depend  ||  ga_depend )
-    throw runtime_error( "Sorry, mu and la are not yet allowed to be a "
-                         "dependent parameter." );    
-  //
-  const Index n0_fixed = (Index) !( n0_depend  ||  isnan(n0) );
-  const Index mu_fixed = (Index) !( mu_depend  ||  isnan(mu) );
-  const Index la_fixed = (Index) !( la_depend  ||  isnan(la) );
-  const Index ga_fixed = (Index) !( ga_depend  ||  isnan(ga) );
-  //
-  if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
-    throw runtime_error( "This PSD has four free parameters. This means that "
-                         "the number\nof columns in *pnd_agenda_input* and the "
-                         "number of numerics\n(i.e. not -999 or NaN) and among "
-                         "the GIN arguments n0, mu, la and\nga must add up to "
-                         "four. And this was found not to be the case." );
-
-  // Create vectors to hold the four MGD and the "extra" parameters 
-  Vector mgd_pars(4), ext_pars(2);
-  ArrayOfIndex mgd_i_pai = {-1,-1,-1,-1}; // Position in pnd_agenda_input
-  const ArrayOfIndex ext_i_pai = {0,1};   // Position in pnd_agenda_input
-  {
-    Index nhit = 2;  // As mass and Dm always occupy first position
-    if( n0_fixed ) { mgd_pars[0]=n0; } else if( !n0_depend ) { mgd_i_pai[0]=nhit++; } 
-    if( mu_fixed ) { mgd_pars[1]=mu; } else if( !mu_depend ) { mgd_i_pai[1]=nhit++; } 
-    if( la_fixed ) { mgd_pars[2]=la; } else if( !la_depend ) { mgd_i_pai[2]=nhit++; } 
-    if( ga_fixed ) { mgd_pars[3]=ga; } else if( !ga_depend ) { mgd_i_pai[3]=nhit++; } 
-  }
-
-  // Determine what derivatives to do and their positions
-  ArrayOfIndex mgd_do_jac = {0,0,0,0,}; 
-  ArrayOfIndex ext_do_jac = {0,0};        
-  ArrayOfIndex mgd_i_jac = {-1,-1,-1,-1}; // Position among jacobian quants 
-  ArrayOfIndex ext_i_jac = {-1,-1};       // Position among jacobian quants
-  //
-  for( Index i=0; i<ndx; i++ )
-    {
-      if( dx2in[i] == 0 )  // That is,  mass is a derivative
-        {
-          ext_do_jac[0] = 1;
-          ext_i_jac[0]  = i;
-        }
-      else if( dx2in[i] == 1 )  // That is, Dm is a derivative
-        {
-          ext_do_jac[1] = 1;
-          ext_i_jac[1]  = i;
-        }
-      else  // Otherwise, either n0, mu, la or ga
-        {
-          for( Index j=0; j<4; j++ )
-            {
-              if( dx2in[i] == mgd_i_pai[j] )
-                {
-                  mgd_do_jac[j] = 1;
-                  mgd_i_jac[j]  = i;
-                  break;
-                }
-            }
-        }
-    }
-
-  // Loop input data and calculate PSDs
-  for( Index ip=0; ip<np; ip++ )
-    {
-      // Extract mass
-      ext_pars[0] = pnd_agenda_input(ip,ext_i_pai[0]);
-      ext_pars[1] = pnd_agenda_input(ip,ext_i_pai[1]);
-      if( ext_pars[1] <= 0 )
-        throw runtime_error( "Negative mean size found. This is not allowed." );
-      // Extract core MGD parameters
-      for( Index i=0; i<4; i++ )
-        {
-          if( mgd_i_pai[i] >= 0 )
-            { mgd_pars[i] = pnd_agenda_input(ip,mgd_i_pai[i]); }
-        }
-      Numeric t = pnd_agenda_input_t[ip];
-      
-      // No calc needed if mass==0 and no jacobians requested.
-      if( (ext_pars[0]==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-
-      // Outside of [t_min,tmax]?
-      if( t < t_min  ||  t > t_max )
-        {
-          if( picky )
-            {
-              ostringstream os;
-              os << "Method called with a temperature of " << t << " K.\n"
-                 << "This is outside the specified allowed range: [ max(0.,"
-                 << t_min << "), " << t_max << " ]";
-              throw runtime_error(os.str());
-            }
-          else  
-            { continue; }   // If here, we are ready with this point!
-        }
-
-      // Derive the dependent parameters (see ATD)
-      //
-      Numeric mub1 = 0, eterm = 0, gterm = 0, scfac1 = 0, scfac2 = 0;
-      //
-      if( n0_depend  &&  la_depend )
-        {
-          mub1   = mgd_pars[1] + scat_species_b + 1;
-          eterm  = mub1 / mgd_pars[3];          
-          // Start by deriving la 
-          scfac2 = pow( eterm, mgd_pars[3] ); 
-          mgd_pars[2] = scfac2 * pow( ext_pars[1], -mgd_pars[3] );
-          
-          // We can now derive n0 
-          gterm = tgamma( eterm );
-          scfac1 = ( mgd_pars[3] * pow( mgd_pars[2], eterm ) ) /
-            ( scat_species_a * gterm );
-          mgd_pars[0] = scfac1 * ext_pars[0];
-        }
-      else 
-        { assert(0); }
-
-      // Now when all four MGD parameters are set, check that they were OK from
-      // start, or became OK if set
-      if( mub1 <= 0 )
-        throw runtime_error( "Bad MGD parameter detected: mu + b + 1 <= 0" );
-      if( mgd_pars[2] <= 0 )
-        throw runtime_error( "Bad MGD parameter detected: la <= 0" );
-      if( mgd_pars[3] <= 0 )
-        throw runtime_error( "Bad MGD parameter detected: ga <= 0" );
-      
-      // Calculate PSD and derivatives
-      //
-      Matrix  jac_data(4,nsi);    
-      mgd( psd_data(ip,joker), jac_data, psd_size_grid,
-           mgd_pars[0], mgd_pars[1], mgd_pars[2], mgd_pars[3],
-           (bool)mgd_do_jac[0] || n0_depend,
-           (bool)mgd_do_jac[1] || mu_depend,
-           (bool)mgd_do_jac[2] || la_depend,
-           (bool)mgd_do_jac[3] || ga_depend );
-      //
-      if( ext_do_jac[0] )
-        {
-          // The derivatives are handled by the chain rule, see ATD.
-          if( n0_depend  &&  la_depend )
-            {
-              // Note that Xmean sets la, and then also affects n0, while
-              // mass only affects n0 (for given Xmean). So chain
-              // rule gives us two products to consider for Xmean, but
-              // only one for mass.
-              // Derivative with respect to mass:
-              // Calculated as dpsd/dn0 * dn0/dmass
-              dpsd_data_dx(ext_i_jac[0],ip,joker) = jac_data(0,joker);
-              dpsd_data_dx(ext_i_jac[0],ip,joker) *= scfac1; 
-              // Derivative with respect to Xmean:
-              // 1. Term associated with n0
-              // Calculated as dpsd/dn0 * dn0/dla * dla/dDm
-              dpsd_data_dx(ext_i_jac[1],ip,joker) = jac_data(0,joker);
-              dpsd_data_dx(ext_i_jac[1],ip,joker) *= ext_pars[0] *
-                mgd_pars[3] * eterm * pow(mgd_pars[2],eterm-1) /
-                ( scat_species_a * gterm );
-              // 2. Term associated with la
-              // Calculated as dpsd/dla * dla/dDm
-              dpsd_data_dx(ext_i_jac[1],ip,joker) += jac_data(2,joker);
-              // Apply dla/dDm to sum
-              dpsd_data_dx(ext_i_jac[1],ip,joker) *= -mgd_pars[3] * scfac2 *
-                pow( ext_pars[1], -(mgd_pars[3]+1) );
-            }
-          else 
-            { assert(0); }
-        }
-      //
-      for( Index i=0; i<4; i++ )
-        {
-          if( mgd_do_jac[i] )
-            { dpsd_data_dx(mgd_i_jac[i],ip,joker) = jac_data(i,joker); }
-        } 
-    }  
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void psdMgdMassXmedian(
-          Matrix&          psd_data,
-          Tensor3&         dpsd_data_dx,
-    const Vector&          psd_size_grid,
-    const Vector&          pnd_agenda_input_t,
-    const Matrix&          pnd_agenda_input,
-    const ArrayOfString&   pnd_agenda_input_names,
-    const ArrayOfString&   dpnd_data_dx_names,
-    const Numeric&         scat_species_a, 
-    const Numeric&         scat_species_b, 
-    const Numeric&         n0, 
-    const Numeric&         mu, 
-    const Numeric&         la, 
-    const Numeric&         ga, 
-    const Numeric&         t_min, 
-    const Numeric&         t_max, 
-    const Index&           picky, 
-    const Verbosity&)
-{
-  // Standard checks
-  START_OF_PSD_METHODS();
-  
-  // Additional (basic) checks
-  if( nin < 1 || nin > 4 )
-    throw runtime_error( "The number of columns in *pnd_agenda_input* must "
-                         "be 2, 3 or 4." );
-  if( scat_species_a <= 0 )
-    throw runtime_error( "*scat_species_a* should be > 0." );
-  if( scat_species_b <= 0  ||  scat_species_b >= 5 )
-    throw runtime_error( "*scat_species_b* should be > 0 and < 5." );
-  
-  // Check and determine dependent and fixed parameters
-  //
-  const Index n0_depend = (Index) n0 == -999;
-  const Index mu_depend = (Index) mu == -999;
-  const Index la_depend = (Index) la == -999;
-  const Index ga_depend = (Index) ga == -999;  
-  //
-  if( n0_depend + mu_depend + la_depend + ga_depend != 2 )
-    throw runtime_error( "Two (but only two) of n0, mu, la and ga must be NaN, "
-                         "to flag that these parameters are the ones dependent of "
-                         "mass content and median size." );
-  if( mu_depend  ||  ga_depend )
-    throw runtime_error( "Sorry, mu and la are not yet allowed to be a "
-                         "dependent parameter." );    
-  //
-  const Index n0_fixed = (Index) !( n0_depend  ||  isnan(n0) );
-  const Index mu_fixed = (Index) !( mu_depend  ||  isnan(mu) );
-  const Index la_fixed = (Index) !( la_depend  ||  isnan(la) );
-  const Index ga_fixed = (Index) !( ga_depend  ||  isnan(ga) );
-  //
-  if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
-    throw runtime_error( "This PSD has four free parameters. This means that "
-                         "the number\nof columns in *pnd_agenda_input* and the "
-                         "number of numerics\n(i.e. not -999 or NaN) and among "
-                         "the GIN arguments n0, mu, la and\nga must add up to "
-                         "four. And this was found not to be the case." );
-
-  // Create vectors to hold the four MGD and the "extra" parameters 
-  Vector mgd_pars(4), ext_pars(2);
-  ArrayOfIndex mgd_i_pai = {-1,-1,-1,-1}; // Position in pnd_agenda_input
-  const ArrayOfIndex ext_i_pai = {0,1};   // Position in pnd_agenda_input
-  {
-    Index nhit = 2;  // As mass and Dm always occupy first position
-    if( n0_fixed ) { mgd_pars[0]=n0; } else if( !n0_depend ) { mgd_i_pai[0]=nhit++; } 
-    if( mu_fixed ) { mgd_pars[1]=mu; } else if( !mu_depend ) { mgd_i_pai[1]=nhit++; } 
-    if( la_fixed ) { mgd_pars[2]=la; } else if( !la_depend ) { mgd_i_pai[2]=nhit++; } 
-    if( ga_fixed ) { mgd_pars[3]=ga; } else if( !ga_depend ) { mgd_i_pai[3]=nhit++; } 
-  }
-
-  // Determine what derivatives to do and their positions
-  ArrayOfIndex mgd_do_jac = {0,0,0,0,}; 
-  ArrayOfIndex ext_do_jac = {0,0};        
-  ArrayOfIndex mgd_i_jac = {-1,-1,-1,-1}; // Position among jacobian quants 
-  ArrayOfIndex ext_i_jac = {-1,-1};       // Position among jacobian quants
-  //
-  for( Index i=0; i<ndx; i++ )
-    {
-      if( dx2in[i] == 0 )  // That is,  mass is a derivative
-        {
-          ext_do_jac[0] = 1;
-          ext_i_jac[0]  = i;
-        }
-      else if( dx2in[i] == 1 )  // That is, Dm is a derivative
-        {
-          ext_do_jac[1] = 1;
-          ext_i_jac[1]  = i;
-        }
-      else  // Otherwise, either n0, mu, la or ga
-        {
-          for( Index j=0; j<4; j++ )
-            {
-              if( dx2in[i] == mgd_i_pai[j] )
-                {
-                  mgd_do_jac[j] = 1;
-                  mgd_i_jac[j]  = i;
-                  break;
-                }
-            }
-        }
-    }
-
-  // Loop input data and calculate PSDs
-  for( Index ip=0; ip<np; ip++ )
-    {
-      // Extract mass
-      ext_pars[0] = pnd_agenda_input(ip,ext_i_pai[0]);
-      ext_pars[1] = pnd_agenda_input(ip,ext_i_pai[1]);
-      if( ext_pars[1] <= 0 )
-        throw runtime_error( "Negative median size found. This is not allowed." );
-      // Extract core MGD parameters
-      for( Index i=0; i<4; i++ )
-        {
-          if( mgd_i_pai[i] >= 0 )
-            { mgd_pars[i] = pnd_agenda_input(ip,mgd_i_pai[i]); }
-        }
-      Numeric t = pnd_agenda_input_t[ip];
-      
-      // No calc needed if mass==0 and no jacobians requested.
-      if( (ext_pars[0]==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-
-      // Outside of [t_min,tmax]?
-      if( t < t_min  ||  t > t_max )
-        {
-          if( picky )
-            {
-              ostringstream os;
-              os << "Method called with a temperature of " << t << " K.\n"
-                 << "This is outside the specified allowed range: [ max(0.,"
-                 << t_min << "), " << t_max << " ]";
-              throw runtime_error(os.str());
-            }
-          else  
-            { continue; }   // If here, we are ready with this point!
-        }
-
-      // Derive the dependent parameters (see ATD)
-      //
-      Numeric mub1 = 0, eterm = 0, gterm = 0, scfac1 = 0, scfac2 = 0;
-      //
-      if( n0_depend  &&  la_depend )
-        {
-          mub1   = mgd_pars[1] + scat_species_b + 1;
-          eterm  = mub1 / mgd_pars[3];          
-          // Start by deriving la 
-          scfac2 = ( mgd_pars[1] + 1 + scat_species_b - 0.327*mgd_pars[3] ) /
-                   mgd_pars[3];  
-          mgd_pars[2] = scfac2 * pow( ext_pars[1], -mgd_pars[3] );
-          
-          // We can now derive n0 
-          gterm = tgamma( eterm );
-          scfac1 = ( mgd_pars[3] * pow( mgd_pars[2], eterm ) ) /
-            ( scat_species_a * gterm );
-          mgd_pars[0] = scfac1 * ext_pars[0];
-        }
-      else 
-        { assert(0); }
-
-      // Now when all four MGD parameters are set, check that they were OK from
-      // start, or became OK if set
-      if( mub1 <= 0 )
-        throw runtime_error( "Bad MGD parameter detected: mu + b + 1 <= 0" );
-      if( mgd_pars[2] <= 0 )
-        throw runtime_error( "Bad MGD parameter detected: la <= 0" );
-      if( mgd_pars[3] <= 0 )
-        throw runtime_error( "Bad MGD parameter detected: ga <= 0" );
-
-      // Calculate PSD and derivatives
-      //
-      Matrix  jac_data(4,nsi);    
-      mgd( psd_data(ip,joker), jac_data, psd_size_grid,
-           mgd_pars[0], mgd_pars[1], mgd_pars[2], mgd_pars[3],
-           (bool)mgd_do_jac[0] || n0_depend,
-           (bool)mgd_do_jac[1] || mu_depend,
-           (bool)mgd_do_jac[2] || la_depend,
-           (bool)mgd_do_jac[3] || ga_depend );
-      //
-      if( ext_do_jac[0] )
-        {
-          // The derivatives are handled by the chain rule, see ATD
-          if( n0_depend  &&  la_depend )
-            {
-              // Note that Xmedian sets la, and then also affects n0, while
-              // mass only affects n0 (for given Xmedian). So chain
-              // rule gives us two products to consider for Xmedian, but
-              // only one for mass.
-              // Derivative with respect to mass:
-              // Calculated as dpsd/dn0 * dn0/dmass
-              dpsd_data_dx(ext_i_jac[0],ip,joker) = jac_data(0,joker);
-              dpsd_data_dx(ext_i_jac[0],ip,joker) *= scfac1; 
-              // Derivative with respect to Xmedian:
-              // 1. Term associated with n0
-              // Calculated as dpsd/dn0 * dn0/dla * dla/dDm
-              dpsd_data_dx(ext_i_jac[1],ip,joker) = jac_data(0,joker);
-              dpsd_data_dx(ext_i_jac[1],ip,joker) *= ext_pars[0] *
-                mgd_pars[3] * eterm * pow(mgd_pars[2],eterm-1) /
-                ( scat_species_a * gterm );
-              // 2. Term associated with la
-              // Calculated as dpsd/dla * dla/dDm
-              dpsd_data_dx(ext_i_jac[1],ip,joker) += jac_data(2,joker);
-              // Apply dla/dDm to sum
-              dpsd_data_dx(ext_i_jac[1],ip,joker) *= -mgd_pars[3] * scfac2 *
-                pow( ext_pars[1], -(mgd_pars[3]+1) );
-            }
-          else 
-            { assert(0); }
-        }
-      //
-      for( Index i=0; i<4; i++ )
-        {
-          if( mgd_do_jac[i] )
-            { dpsd_data_dx(mgd_i_jac[i],ip,joker) = jac_data(i,joker); }
-        } 
-    }  
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void psdMH97 (
-          Matrix&           psd_data,
-          Tensor3&          dpsd_data_dx,
-    const Vector&           psd_size_grid,
-    const Vector&           pnd_agenda_input_t,
-    const Matrix&           pnd_agenda_input,
-    const ArrayOfString&    pnd_agenda_input_names,
-    const ArrayOfString&    dpnd_data_dx_names,
-    const Numeric&          scat_species_a, 
-    const Numeric&          scat_species_b, 
-    const Numeric&          t_min, 
-    const Numeric&          t_max, 
-    const Numeric&          t_min_psd, 
-    const Numeric&          t_max_psd, 
-    const Index&            picky, 
-    const Index&            noisy,
-    const Verbosity&)
-{
-  // Standard checcks
-  START_OF_PSD_METHODS();
-
-  // Extra checks for this PSD
-  if( pnd_agenda_input.ncols() != 1 ) 
-    throw runtime_error( "*pnd_agenda_input* must have one column." ); 
-  if( noisy  &&   ndx )
-    throw runtime_error( "Jacobian calculations and \"noisy\" can not be "
-                         "combined." );
-  if( scat_species_b < 2.9  ||  scat_species_b > 3.1 )
-    {
-      throw runtime_error( "This PSD treats pure ice, using Dveq as size grid.\n"
-                           "This means that b should be close to 3, but "
-                           "*scat_species_b* \nis outside of the tolerated range "
-                           "of [2.9,3.1]." );
-    }
-  if( scat_species_a < 460  ||  scat_species_a > 500 )
-    {
-      throw runtime_error( "This PSD treats pure ice, using Dveq as size grid.\n"
-                           "This means that a should be close to 480, but "
-                           "*scat_species_a* \nis outside of the tolerated range "
-                           "of [460,500]." );
-    }
-
-  
-  for( Index ip=0; ip<np; ip++ )
-    {
-      // Extract the input variables
-      Numeric iwc = pnd_agenda_input(ip,0);
-      Numeric   t = pnd_agenda_input_t[ip];
-
-      // No calc needed if iwc==0 and no jacobians requested.
-      if( (iwc==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-
-      // Outside of [t_min,tmax]?
-      if( t < t_min  ||  t > t_max )
-        {
-          if( picky )
-            {
-              ostringstream os;
-              os << "Method called with a temperature of " << t << " K.\n"
-                 << "This is outside the specified allowed range: [ max(0.,"
-                 << t_min << "), " << t_max << " ]";
-              throw runtime_error(os.str());
-            }
-          else  
-            { continue; }   // If here, we are ready with this point!
-        }
-
-      // PSD assumed to be constant outside [*t_min_psd*,*t_max_psd*]
-      if( t < t_min_psd )
-        { t = t_min_psd; }
-      else if( t > t_max_psd )
-        { t = t_max_psd; }
-  
-      // Negative iwc?
-      Numeric psd_weight = 1.0;
-      if( iwc < 0 )
-        {
-          psd_weight = -1.0;
-          iwc       *= -1.0;
-        }
-      
-      // Calculate PSD
-      Vector psd_1p(nsi);
-      if( iwc != 0 )
-        {
-          psd_cloudice_MH97 ( psd_1p, psd_size_grid, iwc, t, noisy );
-          for ( Index i=0; i<nsi; i++ )
-            { psd_data(ip,i) = psd_weight * psd_1p[i]; }
-        }
-
-      // Calculate derivative with respect to IWC
-      if( ndx )
-        {
-          //const Numeric diwc = max( 0.001*iwc, 1e-9 );
-          const Numeric diwc = 1e-9;
-          const Numeric iwcp = iwc + diwc;
-          psd_cloudice_MH97 ( psd_1p, psd_size_grid, iwcp, t, noisy );
-          for ( Index i=0; i<nsi; i++ )
-            { dpsd_data_dx(0,ip,i) = ( psd_1p[i] - psd_data(ip,i) ) / diwc; }
-        }   
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void psdMono (
-          Matrix&           psd_data,
-          Tensor3&          dpsd_data_dx,
-    const Vector&           pnd_agenda_input_t,
-    const Matrix&           pnd_agenda_input,
-    const ArrayOfString&    pnd_agenda_input_names,
-    const ArrayOfString&    dpnd_data_dx_names,
-    const ArrayOfArrayOfScatteringMetaData&   scat_meta,
-    const Index&            species_index,          
-    const Numeric&          t_min, 
-    const Numeric&          t_max, 
-    const Index&            picky, 
-    const Verbosity&)
-{
-  // Standard checcks
-  const Vector psd_size_grid(1,0);    // As thios WSV is not input for this WSM
-  START_OF_PSD_METHODS();
-
-  // Extra checks for this PSD
-  const Index nss = scat_meta.nelem();
-  if( nss == 0 )
-    throw runtime_error( "*scat_meta* is empty!" );
-  if( nss < species_index+1 )
-    {
-      ostringstream os;
-      os << "Selected scattering species index is " << species_index << " but this "
-         << "is not allowed since *scat_meta* has only " << nss << " elements.";
-      throw runtime_error(os.str());
-    }
-  if( scat_meta[species_index].nelem() != 1 )
-    {
-      ostringstream os;
-      os << "This method only works with scattering species consisting of a\n" 
-         << "single element, but your data do not match this demand.\n"
-         << "Selected scattering species index is " << species_index << ".\n"
-         << "This species has " << scat_meta[species_index].nelem() << " elements.";
-      throw runtime_error(os.str());
-    }
-  //
-  if( pnd_agenda_input.ncols() != 1 ) 
-    throw runtime_error( "*pnd_agenda_input* must have one column." ); 
-  if( nsi != 1 )
-    throw runtime_error( "This method demands that length of "
-                         "*psd_size_grid* is 1." );                     
-  
-  for( Index ip=0; ip<np; ip++ )
-    {
-      // Extract the input variables
-      Numeric   n = pnd_agenda_input(ip,0);
-      Numeric   t = pnd_agenda_input_t[ip];
-
-      // No calc needed if n==0 and no jacobians requested.
-      if( (n==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-
-      // Outside of [t_min,tmax]?
-      if( t < t_min  ||  t > t_max )
-        {
-          if( picky )
-            {
-              ostringstream os;
-              os << "Method called with a temperature of " << t << " K.\n"
-                 << "This is outside the specified allowed range: [ max(0.,"
-                 << t_min << "), " << t_max << " ]";
-              throw runtime_error(os.str());
-            }
-          else  
-            { continue; }   // If here, we are ready with this point!
-        }
-      
-      // Set PSD
-      //
-      psd_data(ip,0) = n;
-      //
-      if( ndx )
-        { dpsd_data_dx(0,ip,0) = 1; }   
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void psdMonoMass (
-          Matrix&           psd_data,
-          Tensor3&          dpsd_data_dx,
-    const Vector&           pnd_agenda_input_t,
-    const Matrix&           pnd_agenda_input,
-    const ArrayOfString&    pnd_agenda_input_names,
-    const ArrayOfString&    dpnd_data_dx_names,
-    const ArrayOfArrayOfScatteringMetaData&   scat_meta,
-    const Index&            species_index,          
-    const Numeric&          t_min, 
-    const Numeric&          t_max, 
-    const Index&            picky, 
-    const Verbosity&)
-{
-  // Standard checks
-  const Vector psd_size_grid(1,0);    // As thios WSV is not input for this WSM
-  START_OF_PSD_METHODS();
-
-  // Extra checks for this PSD
-  const Index nss = scat_meta.nelem();
-  if( nss == 0 )
-    throw runtime_error( "*scat_meta* is empty!" );
-  if( nss < species_index+1 )
-    {
-      ostringstream os;
-      os << "Selected scattering species index is " << species_index << " but this "
-         << "is not allowed since *scat_meta* has only " << nss << " elements.";
-      throw runtime_error(os.str());
-    }
-  if( scat_meta[species_index].nelem() != 1 )
-    {
-      ostringstream os;
-      os << "This method only works with scattering species consisting of a\n" 
-         << "single element, but your data do not match this demand.\n"
-         << "Selected scattering species index is " << species_index << ".\n"
-         << "This species has " << scat_meta[species_index].nelem() << " elements.";
-      throw runtime_error(os.str());
-    }
-  //
-  if( pnd_agenda_input.ncols() != 1 ) 
-    throw runtime_error( "*pnd_agenda_input* must have one column." ); 
-  if( nsi != 1 )
-    throw runtime_error( "This method demands that length of "
-                         "*psd_size_grid* is 1." );                     
-    
-  // Extract particle mass
-  const Numeric pmass = scat_meta[species_index][0].mass;
-
-  // Extract particle mass
-  
-  for( Index ip=0; ip<np; ip++ )
-    {
-      // Extract the input variables
-      Numeric iwc = pnd_agenda_input(ip,0);
-      Numeric   t = pnd_agenda_input_t[ip];
-
-      // No calc needed if n==0 and no jacobians requested.
-      if( (iwc==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-
-      // Outside of [t_min,tmax]?
-      if( t < t_min  ||  t > t_max )
-        {
-          if( picky )
-            {
-              ostringstream os;
-              os << "Method called with a temperature of " << t << " K.\n"
-                 << "This is outside the specified allowed range: [ max(0.,"
-                 << t_min << "), " << t_max << " ]";
-              throw runtime_error(os.str());
-            }
-          else  
-            { continue; }   // If here, we are ready with this point!
-        }
-      
-      // Set PSD
-      //
-      psd_data(ip,0) = iwc/pmass;
-      //
-      if( ndx )
-        { dpsd_data_dx(0,ip,0) = 1/pmass; }   
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void psdSB06 (
-             Matrix&                             psd_data,
-             Tensor3&                            dpsd_data_dx,
-             const Vector&                             psd_size_grid,
-             const Vector&                             pnd_agenda_input_t,
-             const Matrix&                             pnd_agenda_input,
-             const ArrayOfString&                      pnd_agenda_input_names,
-             const ArrayOfString&                      dpnd_data_dx_names,
-             const String&                             hydrometeor_type,
-             const Numeric&                            t_min,
-             const Numeric&                            t_max,
-             const Index&                              picky,
-             const Verbosity&)
-{
-    // Some sizes
-    const Index nin = pnd_agenda_input_names.nelem();
-    const Index ndx = dpnd_data_dx_names.nelem();
-    const Index np  = pnd_agenda_input.nrows();
-    const Index nsi = psd_size_grid.nelem();
-    
-    // Checks
-    if( pnd_agenda_input.ncols() != nin )
-    {
-        throw runtime_error( "Length of *pnd_agenda_input_names* and number of "
-                            "columns in *pnd_agenda_input* must be equal." );
-    }
-    if( pnd_agenda_input.ncols() != 2 )
-    {
-        throw runtime_error( "*pnd_agenda_input* must have two columns"
-                            "(mass density and number density)." );
-    }
-    
-    if( ndx > 2 )
-    {
-        throw runtime_error( "*dpnd_data_dx_names* must have length <=2." );
-    }
-    
-    
-    // check name tags
-    ArrayOfIndex input_idx={-1,-1};
-    
-    for (Index i = 0; i<nin; i++)
-    {
-        if ((Index) pnd_agenda_input_names[i].find("mass_density")!=String::npos)
-        {
-            input_idx[0]=i; //mass density index
-        }
-        else if ((Index) pnd_agenda_input_names[i].find("number_density")!=String::npos)
-        {
-            input_idx[1]=i; //number density index
-        }
-    }
-    
-    
-    if (input_idx[0]==-1)
-    {
-        throw runtime_error( "mass_density-tag not found " );
-    }
-    if (input_idx[1]==-1)
-    {
-        throw runtime_error( "number_density-tag not found " );
-    }
-    
-    
-    // look after jacobian tags
-    ArrayOfIndex dpnd_data_dx_idx={-1,-1};
-    
-    for (Index i = 0; i<ndx; i++)
-    {
-        if ((Index) dpnd_data_dx_names[i].find("mass_density")!=String::npos)
-        {
-            dpnd_data_dx_idx[0]=i; //mass density index
-        }
-        else if ((Index) dpnd_data_dx_names[i].find("number_density")!=String::npos)
-        {
-            dpnd_data_dx_idx[1]=i; //number density index
-        }
-    }
-    
-    
-    
-    
-    
-    //        if( dpnd_data_dx_names[0] != "SWC" )
-    //            throw runtime_error( "With F07, the only valid option for "
-    //                                "*dpnd_data_dx_names* is: \"SWC\"." );
-    //    }
-    
-    // Init psd_data and dpsd_data_dx with zeros
-    psd_data.resize( np, nsi );
-    psd_data = 0.0;
-    if( ndx!=0 )
-    {
-        dpsd_data_dx.resize( ndx, np, nsi );
-        dpsd_data_dx = 0.0;
-    }
-    else
-    { dpsd_data_dx.resize( 0, 0, 0  ); }
-    
-    
-    for( Index ip=0; ip<np; ip++ )
-    {
-        
-        // Extract the input variables
-        Numeric WC = pnd_agenda_input(ip,input_idx[0]);
-        Numeric N_tot = pnd_agenda_input(ip,input_idx[1]);
-        Numeric   t = pnd_agenda_input_t[ip];
-        
-        // No calc needed if swc==0 and no jacobians requested.
-        if( (WC==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-        
-        // Outside of [t_min,tmax]?
-        if( t < t_min  ||  t > t_max )
-        {
-            if( picky )
-            {
-                ostringstream os;
-                os << "Method called with a temperature of " << t << " K.\n"
-                << "This is outside the specified allowed range: [ max(0.,"
-                << t_min << "), " << t_max << " ]";
-                throw runtime_error(os.str());
-            }
-            else
-            { continue; }   // If here, we are ready with this point!
-        }
-        
-        
-        // Negative swc?
-        Numeric psd_weight = 1.0;
-        if( WC < 0 )
-        {
-            psd_weight = -1.0;
-            WC       *= -1.0;
-        }
-        
-        // Calculate PSD and derivatives
-        Vector psd_1p(nsi);
-        Matrix dpsd_1p(nsi,2);
-        if( WC>0  )
-        {
-            psd_SB06 ( psd_1p,dpsd_1p, psd_size_grid, N_tot, WC, hydrometeor_type );
-            
-            for ( Index i=0; i<nsi; i++ )
-            {
-                psd_data(ip,i) = psd_weight * psd_1p[i];
-                
-                
-                for (Index idx=0; idx<dpnd_data_dx_idx.nelem(); idx++)
-                {
-                    // with respect to WC
-                    
-                    if (dpnd_data_dx_idx[idx]!=-1)
-                    {
-                        dpsd_data_dx(dpnd_data_dx_idx[idx],ip,i )=psd_weight *dpsd_1p(i,idx);
-                    }
-                    
-                }
-            }
-        }
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void psdMY05 (
-             Matrix&                             psd_data,
-             Tensor3&                            dpsd_data_dx,
-             const Vector&                             psd_size_grid,
-             const Vector&                             pnd_agenda_input_t,
-             const Matrix&                             pnd_agenda_input,
-             const ArrayOfString&                      pnd_agenda_input_names,
-             const ArrayOfString&                      dpnd_data_dx_names,
-             const String&                             hydrometeor_type,
-             const Numeric&                            t_min,
-             const Numeric&                            t_max,
-             const Index&                              picky,
-             const Verbosity&)
-{
-    // Some sizes
-    const Index nin = pnd_agenda_input_names.nelem();
-    const Index ndx = dpnd_data_dx_names.nelem();
-    const Index np  = pnd_agenda_input.nrows();
-    const Index nsi = psd_size_grid.nelem();
-    
-    // Checks
-    if( pnd_agenda_input.ncols() != nin )
-    {
-        throw runtime_error( "Length of *pnd_agenda_input_names* and number of "
-                            "columns in *pnd_agenda_input* must be equal." );
-    }
-    if( pnd_agenda_input.ncols() != 2 )
-    {
-        throw runtime_error( "*pnd_agenda_input* must have two columns"
-                            "(mass density and number density)." );
-    }
-    
-    if( ndx > 2 )
-    {
-        throw runtime_error( "*dpnd_data_dx_names* must have length <=2." );
-    }
-    
-    
-    // check name tags
-    ArrayOfIndex input_idx={-1,-1};
-    
-    for (Index i = 0; i<nin; i++)
-    {
-        if ((Index) pnd_agenda_input_names[i].find("mass_density")!=String::npos)
-        {
-            input_idx[0]=i; //mass density index
-        }
-        else if ((Index) pnd_agenda_input_names[i].find("number_density")!=String::npos)
-        {
-            input_idx[1]=i; //number density index
-        }
-    }
-    
-    
-    if (input_idx[0]==-1)
-    {
-        throw runtime_error( "mass_density-tag not found " );
-    }
-    if (input_idx[1]==-1)
-    {
-        throw runtime_error( "number_density-tag not found " );
-    }
-    
-    
-    // look after jacobian tags
-    ArrayOfIndex dpnd_data_dx_idx={-1,-1};
-    
-    for (Index i = 0; i<ndx; i++)
-    {
-        if ((Index) dpnd_data_dx_names[i].find("mass_density")!=String::npos)
-        {
-            dpnd_data_dx_idx[0]=i; //mass density index
-        }
-        else if ((Index) dpnd_data_dx_names[i].find("number_density")!=String::npos)
-        {
-            dpnd_data_dx_idx[1]=i; //number density index
-        }
-    }
-    
-    
-    
-    
-    
-    //        if( dpnd_data_dx_names[0] != "SWC" )
-    //            throw runtime_error( "With F07, the only valid option for "
-    //                                "*dpnd_data_dx_names* is: \"SWC\"." );
-    //    }
-    
-    // Init psd_data and dpsd_data_dx with zeros
-    psd_data.resize( np, nsi );
-    psd_data = 0.0;
-    if( ndx!=0 )
-    {
-        dpsd_data_dx.resize( ndx, np, nsi );
-        dpsd_data_dx = 0.0;
-    }
-    else
-    { dpsd_data_dx.resize( 0, 0, 0  ); }
-    
-    
-    for( Index ip=0; ip<np; ip++ )
-    {
-        
-        // Extract the input variables
-        Numeric WC = pnd_agenda_input(ip,input_idx[0]);
-        Numeric N_tot = pnd_agenda_input(ip,input_idx[1]);
-        Numeric   t = pnd_agenda_input_t[ip];
-        
-        // No calc needed if wc==0 and no jacobians requested.
-        if( (WC==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-        
-        // Outside of [t_min,tmax]?
-        if( t < t_min  ||  t > t_max )
-        {
-            if( picky )
-            {
-                ostringstream os;
-                os << "Method called with a temperature of " << t << " K.\n"
-                << "This is outside the specified allowed range: [ max(0.,"
-                << t_min << "), " << t_max << " ]";
-                throw runtime_error(os.str());
-            }
-            else
-            { continue; }   // If here, we are ready with this point!
-        }
-        
-        
-        // Negative wc?
-        Numeric psd_weight = 1.0;
-        if( WC < 0 )
-        {
-            psd_weight = -1.0;
-            WC       *= -1.0;
-        }
-        
-        
-        // Calculate PSD and derivatives
-        Vector psd_1p(nsi);
-        Matrix dpsd_1p(nsi,2);
-        if( WC>0  )
-        {
-            psd_MY05 ( psd_1p,dpsd_1p, psd_size_grid, N_tot, WC, hydrometeor_type );
-            
-            for ( Index i=0; i<nsi; i++ )
-            {
-                psd_data(ip,i) = psd_weight * psd_1p[i];
-                
-                
-                for (Index idx=0; idx<dpnd_data_dx_idx.nelem(); idx++)
-                {
-                    // with respect to WC
-                    
-                    if (dpnd_data_dx_idx[idx]!=-1)
-                    {
-                        dpsd_data_dx(dpnd_data_dx_idx[idx],ip,i )=psd_weight *dpsd_1p(i,idx);
-                    }
-                    
-                }
-            }
-        }
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void psdW16 (
-          Matrix&           psd_data,
-          Tensor3&          dpsd_data_dx,
-    const Vector&           psd_size_grid,
-    const Vector&           pnd_agenda_input_t,
-    const Matrix&           pnd_agenda_input,
-    const ArrayOfString&    pnd_agenda_input_names,
-    const ArrayOfString&    dpnd_data_dx_names,
-    const Numeric&          scat_species_a, 
-    const Numeric&          scat_species_b, 
-    const Numeric&          t_min, 
-    const Numeric&          t_max, 
-    const Index&            picky, 
-    const Verbosity&)
-{
-  // Standard checcks
-  START_OF_PSD_METHODS();
-
-  // Extra checks for this PSD
-  if( pnd_agenda_input.ncols() != 1 )
-    throw runtime_error( "*pnd_agenda_input* must have one column." );
-  if( scat_species_b < 2.9  ||  scat_species_b > 3.1 )
-    {
-      throw runtime_error( "This PSD treats rain, using Dveq as size grid.\n"
-                           "This means that b should be close to 3, but "
-                           "*scat_species_b* \nis outside of the tolerated range "
-                           "of [2.9,3.1]." );
-    }
-  if( scat_species_a < 500  ||  scat_species_a > 540 )
-    {
-      throw runtime_error( "This PSD treats rain, using Dveq as size grid.\n"
-                           "This means that a should be close to 520, but "
-                           "*scat_species_a* \nis outside of the tolerated range "
-                           "of [500,540]." );
-    }
-
-  
-  for( Index ip=0; ip<np; ip++ )
-    {
-      // Extract the input variables
-      Numeric rwc = pnd_agenda_input(ip,0);
-      Numeric   t = pnd_agenda_input_t[ip];
-
-      // No calc needed if swc==0 and no jacobians requested.
-      if( (rwc==0.) && (!ndx) )
-        { continue; }   // If here, we are ready with this point!
-
-      // Outside of [t_min,tmax]?
-      if( t < t_min  ||  t > t_max )
-        {
-          if( picky )
-            {
-              ostringstream os;
-              os << "Method called with a temperature of " << t << " K.\n"
-                 << "This is outside the specified allowed range: [ max(0.,"
-                 << t_min << "), " << t_max << " ]";
-              throw runtime_error(os.str());
-            }
-          else  
-            { continue; }   // If here, we are ready with this point!
-        }
-      
-      // Negative rwc?
-      Numeric psd_weight = 1.0;
-      if( rwc < 0 )
-        {
-          psd_weight = -1.0;
-          rwc       *= -1.0;
-        }
-
-      // Calculate PSD
-      Vector psd_1p(nsi);
-      if( rwc != 0 )
-        {
-          psd_rain_W16 ( psd_1p, psd_size_grid, rwc );
-          for ( Index i=0; i<nsi; i++ )
-            { psd_data(ip,i) = psd_weight * psd_1p[i]; }
-        }
-
-      // Calculate derivative with respect to IWC
-      if( ndx )
-        {
-          //const Numeric drwc = max( 0.001*rwc, 1e-7 );
-          const Numeric drwc = 1e-9;
-          const Numeric rwcp = rwc + drwc;
-          psd_rain_W16 ( psd_1p, psd_size_grid, rwcp );
-          for ( Index i=0; i<nsi; i++ )
-            { dpsd_data_dx(0,ip,i) = ( psd_1p[i] - psd_data(ip,i) ) / drwc; }
-        }   
     }
 }
 
@@ -3588,3 +1520,339 @@ void ScatSpeciesSizeMassInfo(
       throw runtime_error(os.str());
     }
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void psdSB06 (
+             Matrix&                             psd_data,
+             Tensor3&                            dpsd_data_dx,
+             const Vector&                             psd_size_grid,
+             const Vector&                             pnd_agenda_input_t,
+             const Matrix&                             pnd_agenda_input,
+             const ArrayOfString&                      pnd_agenda_input_names,
+             const ArrayOfString&                      dpnd_data_dx_names,
+             const String&                             hydrometeor_type,
+             const Numeric&                            t_min,
+             const Numeric&                            t_max,
+             const Index&                              picky,
+             const Verbosity&)
+{
+    // Some sizes
+    const Index nin = pnd_agenda_input_names.nelem();
+    const Index ndx = dpnd_data_dx_names.nelem();
+    const Index np  = pnd_agenda_input.nrows();
+    const Index nsi = psd_size_grid.nelem();
+    
+    // Checks
+    if( pnd_agenda_input.ncols() != nin )
+    {
+        throw runtime_error( "Length of *pnd_agenda_input_names* and number of "
+                            "columns in *pnd_agenda_input* must be equal." );
+    }
+    if( pnd_agenda_input.ncols() != 2 )
+    {
+        throw runtime_error( "*pnd_agenda_input* must have two columns"
+                            "(mass density and number density)." );
+    }
+    
+    if( ndx > 2 )
+    {
+        throw runtime_error( "*dpnd_data_dx_names* must have length <=2." );
+    }
+    
+    
+    // check name tags
+    ArrayOfIndex input_idx={-1,-1};
+    
+    for (Index i = 0; i<nin; i++)
+    {
+        if ((Index) pnd_agenda_input_names[i].find("mass_density")!=String::npos)
+        {
+            input_idx[0]=i; //mass density index
+        }
+        else if ((Index) pnd_agenda_input_names[i].find("number_density")!=String::npos)
+        {
+            input_idx[1]=i; //number density index
+        }
+    }
+    
+    
+    if (input_idx[0]==-1)
+    {
+        throw runtime_error( "mass_density-tag not found " );
+    }
+    if (input_idx[1]==-1)
+    {
+        throw runtime_error( "number_density-tag not found " );
+    }
+    
+    
+    // look after jacobian tags
+    ArrayOfIndex dpnd_data_dx_idx={-1,-1};
+    
+    for (Index i = 0; i<ndx; i++)
+    {
+        if ((Index) dpnd_data_dx_names[i].find("mass_density")!=String::npos)
+        {
+            dpnd_data_dx_idx[0]=i; //mass density index
+        }
+        else if ((Index) dpnd_data_dx_names[i].find("number_density")!=String::npos)
+        {
+            dpnd_data_dx_idx[1]=i; //number density index
+        }
+    }
+    
+    
+    
+    
+    
+    //        if( dpnd_data_dx_names[0] != "SWC" )
+    //            throw runtime_error( "With F07, the only valid option for "
+    //                                "*dpnd_data_dx_names* is: \"SWC\"." );
+    //    }
+    
+    // Init psd_data and dpsd_data_dx with zeros
+    psd_data.resize( np, nsi );
+    psd_data = 0.0;
+    if( ndx!=0 )
+    {
+        dpsd_data_dx.resize( ndx, np, nsi );
+        dpsd_data_dx = 0.0;
+    }
+    else
+    { dpsd_data_dx.resize( 0, 0, 0  ); }
+    
+    
+    for( Index ip=0; ip<np; ip++ )
+    {
+        
+        // Extract the input variables
+        Numeric WC = pnd_agenda_input(ip,input_idx[0]);
+        Numeric N_tot = pnd_agenda_input(ip,input_idx[1]);
+        Numeric   t = pnd_agenda_input_t[ip];
+        
+        // No calc needed if swc==0 and no jacobians requested.
+        if( (WC==0.) && (!ndx) )
+        { continue; }   // If here, we are ready with this point!
+        
+        // Outside of [t_min,tmax]?
+        if( t < t_min  ||  t > t_max )
+        {
+            if( picky )
+            {
+                ostringstream os;
+                os << "Method called with a temperature of " << t << " K.\n"
+                << "This is outside the specified allowed range: [ max(0.,"
+                << t_min << "), " << t_max << " ]";
+                throw runtime_error(os.str());
+            }
+            else
+            { continue; }   // If here, we are ready with this point!
+        }
+        
+        
+        // Negative swc?
+        Numeric psd_weight = 1.0;
+        if( WC < 0 )
+        {
+            psd_weight = -1.0;
+            WC       *= -1.0;
+        }
+        
+        // Calculate PSD and derivatives
+        Vector psd_1p(nsi);
+        Matrix dpsd_1p(nsi,2);
+        if( WC>0  )
+        {
+            psd_SB06 ( psd_1p,dpsd_1p, psd_size_grid, N_tot, WC, hydrometeor_type );
+            
+            for ( Index i=0; i<nsi; i++ )
+            {
+                psd_data(ip,i) = psd_weight * psd_1p[i];
+                
+                
+                for (Index idx=0; idx<dpnd_data_dx_idx.nelem(); idx++)
+                {
+                    // with respect to WC
+                    
+                    if (dpnd_data_dx_idx[idx]!=-1)
+                    {
+                        dpsd_data_dx(dpnd_data_dx_idx[idx],ip,i )=psd_weight *dpsd_1p(i,idx);
+                    }
+                    
+                }
+            }
+        }
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void psdMY05 (
+             Matrix&                             psd_data,
+             Tensor3&                            dpsd_data_dx,
+             const Vector&                             psd_size_grid,
+             const Vector&                             pnd_agenda_input_t,
+             const Matrix&                             pnd_agenda_input,
+             const ArrayOfString&                      pnd_agenda_input_names,
+             const ArrayOfString&                      dpnd_data_dx_names,
+             const String&                             hydrometeor_type,
+             const Numeric&                            t_min,
+             const Numeric&                            t_max,
+             const Index&                              picky,
+             const Verbosity&)
+{
+    // Some sizes
+    const Index nin = pnd_agenda_input_names.nelem();
+    const Index ndx = dpnd_data_dx_names.nelem();
+    const Index np  = pnd_agenda_input.nrows();
+    const Index nsi = psd_size_grid.nelem();
+    
+    // Checks
+    if( pnd_agenda_input.ncols() != nin )
+    {
+        throw runtime_error( "Length of *pnd_agenda_input_names* and number of "
+                            "columns in *pnd_agenda_input* must be equal." );
+    }
+    if( pnd_agenda_input.ncols() != 2 )
+    {
+        throw runtime_error( "*pnd_agenda_input* must have two columns"
+                            "(mass density and number density)." );
+    }
+    
+    if( ndx > 2 )
+    {
+        throw runtime_error( "*dpnd_data_dx_names* must have length <=2." );
+    }
+    
+    
+    // check name tags
+    ArrayOfIndex input_idx={-1,-1};
+    
+    for (Index i = 0; i<nin; i++)
+    {
+        if ((Index) pnd_agenda_input_names[i].find("mass_density")!=String::npos)
+        {
+            input_idx[0]=i; //mass density index
+        }
+        else if ((Index) pnd_agenda_input_names[i].find("number_density")!=String::npos)
+        {
+            input_idx[1]=i; //number density index
+        }
+    }
+    
+    
+    if (input_idx[0]==-1)
+    {
+        throw runtime_error( "mass_density-tag not found " );
+    }
+    if (input_idx[1]==-1)
+    {
+        throw runtime_error( "number_density-tag not found " );
+    }
+    
+    
+    // look after jacobian tags
+    ArrayOfIndex dpnd_data_dx_idx={-1,-1};
+    
+    for (Index i = 0; i<ndx; i++)
+    {
+        if ((Index) dpnd_data_dx_names[i].find("mass_density")!=String::npos)
+        {
+            dpnd_data_dx_idx[0]=i; //mass density index
+        }
+        else if ((Index) dpnd_data_dx_names[i].find("number_density")!=String::npos)
+        {
+            dpnd_data_dx_idx[1]=i; //number density index
+        }
+    }
+    
+    
+    
+    
+    
+    //        if( dpnd_data_dx_names[0] != "SWC" )
+    //            throw runtime_error( "With F07, the only valid option for "
+    //                                "*dpnd_data_dx_names* is: \"SWC\"." );
+    //    }
+    
+    // Init psd_data and dpsd_data_dx with zeros
+    psd_data.resize( np, nsi );
+    psd_data = 0.0;
+    if( ndx!=0 )
+    {
+        dpsd_data_dx.resize( ndx, np, nsi );
+        dpsd_data_dx = 0.0;
+    }
+    else
+    { dpsd_data_dx.resize( 0, 0, 0  ); }
+    
+    
+    for( Index ip=0; ip<np; ip++ )
+    {
+        
+        // Extract the input variables
+        Numeric WC = pnd_agenda_input(ip,input_idx[0]);
+        Numeric N_tot = pnd_agenda_input(ip,input_idx[1]);
+        Numeric   t = pnd_agenda_input_t[ip];
+        
+        // No calc needed if wc==0 and no jacobians requested.
+        if( (WC==0.) && (!ndx) )
+        { continue; }   // If here, we are ready with this point!
+        
+        // Outside of [t_min,tmax]?
+        if( t < t_min  ||  t > t_max )
+        {
+            if( picky )
+            {
+                ostringstream os;
+                os << "Method called with a temperature of " << t << " K.\n"
+                << "This is outside the specified allowed range: [ max(0.,"
+                << t_min << "), " << t_max << " ]";
+                throw runtime_error(os.str());
+            }
+            else
+            { continue; }   // If here, we are ready with this point!
+        }
+        
+        
+        // Negative wc?
+        Numeric psd_weight = 1.0;
+        if( WC < 0 )
+        {
+            psd_weight = -1.0;
+            WC       *= -1.0;
+        }
+        
+        
+        // Calculate PSD and derivatives
+        Vector psd_1p(nsi);
+        Matrix dpsd_1p(nsi,2);
+        if( WC>0  )
+        {
+            psd_MY05 ( psd_1p,dpsd_1p, psd_size_grid, N_tot, WC, hydrometeor_type );
+            
+            for ( Index i=0; i<nsi; i++ )
+            {
+                psd_data(ip,i) = psd_weight * psd_1p[i];
+                
+                
+                for (Index idx=0; idx<dpnd_data_dx_idx.nelem(); idx++)
+                {
+                    // with respect to WC
+                    
+                    if (dpnd_data_dx_idx[idx]!=-1)
+                    {
+                        dpsd_data_dx(dpnd_data_dx_idx[idx],ip,i )=psd_weight *dpsd_1p(i,idx);
+                    }
+                    
+                }
+            }
+        }
+    }
+}
+
+
+
