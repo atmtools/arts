@@ -374,7 +374,7 @@ void pndFromPsd(
   // FIXME: Shall a single freq or reduced freq-number option be implemented?
   // If so, the don't-apply-test criteria need to be checked again though (so it
   // does not happen that effectively all of the reduced-freq testing is skipped
-  // due to them.
+  // due to them).
   //
   // Technically, we also need to use identical temperatures (and preferably the
   // ones used for deriving psd). But all scat elements can be on different

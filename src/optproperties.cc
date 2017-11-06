@@ -260,16 +260,16 @@ void ext_matTransform(//Output and Input
       ext_mat_lab.SetZero();
       
       Kjj=interp(itw,ext_mat_data(Range(joker),0,0),gp);
-      ext_mat_lab.Kjj()[0] = Kjj;
+      ext_mat_lab.Kjj() = Kjj;
       
-      if( stokes_dim == 1 ){
+      if( stokes_dim < 2 ){
         break;
       }
       
       K12=interp(itw,ext_mat_data(Range(joker),0,1),gp);
       ext_mat_lab.K12()[0] = K12;
       
-      if( stokes_dim == 3 ){
+      if( stokes_dim < 4 ){
         break;
       }
       

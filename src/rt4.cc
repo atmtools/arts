@@ -1316,7 +1316,7 @@ void sca_optpropCalc( //Output
               //  element specific (might change between elements) and need to do
               //  this on actual grid instead of grid number since the grid can,
               //  at least theoretically be non-equidistant)
-              daa[0] = (aa_datagrid[0]-aa_datagrid[1])/360.;
+              daa[0] = (aa_datagrid[1]-aa_datagrid[0])/360.;
               for (Index saa=1; saa<naa_se-1; saa++)
                 daa[saa] = (aa_datagrid[saa+1]-aa_datagrid[saa-1])/360.;
               daa[naa_se-1] = (aa_datagrid[naa_se-1]-aa_datagrid[naa_se-2])/360.;
@@ -1331,7 +1331,7 @@ void sca_optpropCalc( //Output
                       {
                         for (Index ist1=0; ist1<stokes_dim; ist1++)
                           for (Index ist2=0; ist2<stokes_dim; ist2++)
-                            pha_mat_int(sza,iza,ist1,ist2) += daa *
+                            pha_mat_int(sza,iza,ist1,ist2) += daa[saa] *
                               ssd.pha_mat_data(this_f_index, i_pfct,
                                                sza, saa, iza, 0, ist1*4+ist2);
                       }
@@ -1442,8 +1442,8 @@ void sca_optpropCalc( //Output
               Numeric sca_mat_integ = 0.;
 
               // We need to calculate the nominal values for the fixed T, we
-              // used above in the pha_mat extraction. Only this tell us whether
-              // angular resulotion is sufficient.
+              // used above in the pha_mat extraction. Only this tells us whether
+              // angular resolution is sufficient.
               //
               //Numeric ext_nom = extinct_matrix(scat_p_index_local,ih,iza,0,0);
               //Numeric sca_nom = ext_nom-emis_vector(scat_p_index_local,ih,iza,0);

@@ -1,4 +1,17 @@
-2017-11-07  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+2017-11-06 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-863
+
+	* src/optproperties.cc (ext_matTransform):
+	Bug fix in PTYPE_AZIMUTH_RND higher stokes dim propmat handling.
+
+	* src/rt4.cc (sca_optpropCalc):
+	Bug fixes in azimuthal weight calculation and application.
+
+	* src/m_microphysics.cc, methods.cc:
+	Typos fixed.
+
+2017-11-06  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	API BREAKING! This may break your controlfiles if you are
 	using OEM.
@@ -507,7 +520,7 @@
 	* arts-2-3-833
 
 	* src/rte.cc (get_stepwise_scattersky_source):
-	Bugfix in setting up pnd input for pha_mat_sptFromScat_data. Fixes bugg
+	Bugfix in setting up pnd input for pha_mat_sptFromScat_data. Fixes bug
 	reported by Patrick (hopefully...).
 
 	* src/m_optproperties.cc ([opt_prop,pha_mat]_sptFrom*):
