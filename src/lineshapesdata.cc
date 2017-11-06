@@ -132,14 +132,14 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
           dF[iq][df_range][iv] = d * Complex(0.0, 1.0);
         }
       }
-      else if(derivatives_data(iq) == JQT_line_gamma_self or 
-        derivatives_data(iq) == JQT_line_gamma_selfexponent or
-        derivatives_data(iq) == JQT_line_pressureshift_self or
-        derivatives_data(iq) == JQT_line_gamma_foreign or
+      else if(derivatives_data(iq) == JQT_line_gamma_self      or 
+        derivatives_data(iq) == JQT_line_gamma_selfexponent    or
+        derivatives_data(iq) == JQT_line_pressureshift_self    or
+        derivatives_data(iq) == JQT_line_gamma_foreign         or
         derivatives_data(iq) == JQT_line_gamma_foreignexponent or
         derivatives_data(iq) == JQT_line_pressureshift_foreign or
-        derivatives_data(iq) == JQT_line_gamma_water or
-        derivatives_data(iq) == JQT_line_gamma_waterexponent or 
+        derivatives_data(iq) == JQT_line_gamma_water           or
+        derivatives_data(iq) == JQT_line_gamma_waterexponent   or 
         derivatives_data(iq) == JQT_line_pressureshift_water) 
       {
         if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
@@ -153,6 +153,16 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
         // Magnetic magnitude changes like line center in part
         // FIXME: Add magnetic components here
         dF[iq][df_range][iv] = d * Complex(0.0, zeeman_df);
+      }
+      else if(derivatives_data(iq) == JQT_line_mixing_DF or
+        derivatives_data(iq) == JQT_line_mixing_DF0      or
+        derivatives_data(iq) == JQT_line_mixing_DF1      or
+        derivatives_data(iq) == JQT_line_mixing_DFexp)
+      {
+        if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
+        {
+          dF[iq][df_range][iv] = d * Complex(0.0, -1.0);
+        }
       }
     }
   }
@@ -225,29 +235,29 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
   static const Complex i(0.0, 1.0), one_plus_one_i(1.0, 1.0);
   
   // Main lineshape parameters
-  Complex A, B, Zp, Zm, Zp2, Zm2, wiZp, wiZm, X, sqrtXY, invG;
+  Complex A, Zp, Zm, Zp2, Zm2, wiZp, wiZm, X, sqrtXY, G, invG;
   
   // Derivatives parameters
-  Complex dA, dB, dC0, dC0t, dC2, dC2t, dZp, dZm, dwiZp, dwiZm, dX, dY, dg;
+  Complex dA, dZp, dZm, dwiZp, dwiZm, dG;
+  
+  // Test parameters for deciding how to compute certain asymptotes
+  Numeric absX, ratioXY;
   
   // The line center
   const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude;
-  const Numeric F0_ratio = F0_noshift / F0;
   
   // Doppler terms
   const Numeric GD = GD_div_F0 * F0;
+  const Numeric invGD = 1 / GD;
   const Numeric dGD_dT = dGD_div_F0_dT * F0;
   
-  // Index of derivative for first occurence of similarly natured partial derivatives
+  // Index of derivative for first occurrence of similarly natured partial derivatives
   const Index first_frequency = derivatives_data.get_first_frequency(), 
   first_pressure_broadening = derivatives_data.get_first_pressure_term();
   
   // Pressure broadening terms
-  // WARNING:  This works when C2 is zero --- i.e., using Voigt data in this function.
-  //  By the papers of Tran etal, this is correct but by their erratum, this is wrong and the "-" should be "+".
-  // To me (richard), it makes more sense to have "-" since this 'adds' L0 to F0, which is the entire point of a shift
-  const Complex C0 = G0 - i*L0;
-  const Complex C2 = G2 - i*L2;
+  const Complex C0 = G0 + i*L0;
+  const Complex C2 = G2 + i*L2;
   
   // Correlation term
   const Numeric one_minus_eta = 1.0 - eta;
@@ -257,99 +267,156 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
   const Complex C0t = one_minus_eta * C0_m1p5_C2 + FVC;
   const Complex C2t = one_minus_eta * C2;
   
-  const bool asymptotic_limit_one = C2t == Complex(0, 0);
+  // Limits and computational tracks
+  const bool eta_zero_limit = eta == 0;
+  const bool eta_one_limit = eta == 1;
+  const bool C2t_zero_limit = C2t == Complex(0, 0) or eta_one_limit;
+  bool ratioXY_low_limit, ratioXY_high_limit;
   
   // Practical term
-  const Complex invC2t = asymptotic_limit_one ? Complex(0, 0) : (1.0 / C2t);
+  const Complex invC2t = C2t_zero_limit ? Complex(0., 0.) : (1.0 / C2t);
   
   // Relative pressure broadening terms to be used in the shape function
-  const Complex sqrtY = 0.5 * invC2t * GD;
-  const Complex Y = sqrtY * sqrtY;
+  const Complex sqrtY =  C2t_zero_limit ? -1 : (0.5 * invC2t * GD);
+  const Complex Y =      C2t_zero_limit ? -1 : (sqrtY * sqrtY);
+  const Numeric invAbsY =   C2t_zero_limit ? -1 : 1 / abs(Y);
   
-  // Scale factor
-  const Numeric fac = (( sqrtPI) / GD);
+  // Temperature derivatives precomputed
+  Complex dC0_dT, dC2_dT, dC0t_dT, dC2t_dT, dC0_m1p5_C2_dT, dY_dT;
+  if(derivatives_data.do_temperature())
+  {
+    dC0_dT = dG0_dT + i*dL0_dT;
+    dC2_dT = dG2_dT + i*dL2_dT;
+    dC0t_dT = one_minus_eta * (dC0_dT - 1.5 * dC2_dT) - deta_dT * C0_m1p5_C2 + dFVC_dT;
+    dC2t_dT = one_minus_eta * dC2_dT - deta_dT * C2;
+    dC0_m1p5_C2_dT = dC0_dT - 1.5 * dC2_dT;
+    dY_dT = C2t_zero_limit ? -1 : (GD / 2.0*invC2t*invC2t * (dGD_dT - GD * invC2t * dC2t_dT));
+  }
+  
+  // Scale factor (normalizes to PI)
+  const Numeric fac = sqrtPI * invGD;
   
   for(Index iv = 0; iv < nf; iv++)
   {
-    if(not asymptotic_limit_one)
+    // Relative frequency
+    X = (C0t + i*(F0 - f_grid[iv])) * invC2t;
+    absX = abs(X);
+    sqrtXY = sqrt(X + Y);
+    
+    // Limit tester.  Not valid if C2t_zero_limit is true;
+    ratioXY = absX * invAbsY;
+    
+    // Limits are hard-coded from original paper by Tran etal
+    ratioXY_high_limit = ratioXY >= 10e15;
+    ratioXY_low_limit  = ratioXY <= 3.0*10e-8;
+    
+    // Compute Zm
+    if(C2t_zero_limit or ratioXY_low_limit)
+      Zm = (C0t + i*(F0 - f_grid[iv])) * invGD;
+    else if(ratioXY_high_limit)
+      Zm = sqrt(X);
+    else
+      Zm = sqrtXY - sqrtY;
+    
+    // Compute Zp
+    if(C2t_zero_limit)
+    {/* Do nothing since Zp will be infinity large */}
+    else if(ratioXY_high_limit)
+      Zp = sqrtXY;
+    else
+      Zp = sqrtXY + sqrtY;
+      
+    //Helpers
+    if(C2t_zero_limit)
     {
-      // Relative frequency
-      X = (C0t + i*(f_grid[iv] - F0)) * invC2t;
-      
-      // Setting up the Z terms
-      sqrtXY = sqrt(X+Y);
-      Zm = Zp = sqrtXY;
-      Zm -= sqrtY;
-      Zp += sqrtY;
-      
-      // The shape functions
-      wiZm = Faddeeva::w(i*Zm);
-      wiZp = Faddeeva::w(i*Zp);
-      
-      // Main line shape is computed here
-      A = fac * (wiZm - wiZp);
-      
-      // If there are correlations or if there is a temperature dependency
-      if(eta not_eq 0.0 or deta_dT not_eq 0.0)
-      {
-        Zm2 = Zm * Zm;
-        Zp2 = Zp * Zp;
-        B = (1.0 / one_minus_eta) * (-1.0 + 0.5 * sqrtPI / sqrtY * ((1.0 - Zm2)*wiZm - (1.0 - Zp2)*wiZp));
-        invG = 1.0 / (1.0 - (FVC - eta * C0_m1p5_C2)*A + eta * B); 
-      }
-      else
-      {
-        invG = 1.0 / (1.0 - FVC*A);
-      }
-    }
-    else //asymptotic limit that C2 is 0
-    {
-      Zm = (C0t + i*(f_grid[iv] - F0)) / GD;
-      // Zp = inf;
-      wiZm = Faddeeva::w(i*Zm);
-      // wiZp = 0;
-      A = fac * wiZm;
-      
       Zm2 = Zm * Zm;
-      B = fac * GD_div_F0 * SPEED_OF_LIGHT * ((1.0-Zm2)*wiZm + Zm / sqrtPI);
-      invG = 1.0 / (1.0 - (FVC - eta * C0_m1p5_C2)*A + eta * B);
+    }
+    else if(not ratioXY_high_limit)
+    {
+      Zm2 = Zm * Zm;
+      Zp2 = Zp * Zp;
     }
     
+    // Compute W-minus
+    wiZm = Faddeeva::w(i*Zm);
+    
+    // Compute W-plus
+    if(C2t_zero_limit)
+      wiZp = Complex(0.0, 0.0);  // sqrtInvPI / Zp**2
+    else
+      wiZp = Faddeeva::w(i*Zp);
+    
+    // Compute A
+    if(ratioXY_high_limit)
+      A = fac * (sqrtInvPI - Zm * wiZm);
+    else
+      A = fac * (wiZm - wiZp);
+    
+    // Compute G
+    if(eta_zero_limit)
+      G = 1.0 - FVC * A;
+    else if(C2t_zero_limit)
+      G = 1.0 - (FVC - eta * C0_m1p5_C2) * A + C2 * fac * ((1.0 - Zm2)*wiZm + Zm * sqrtInvPI);
+    else if (ratioXY_high_limit)
+      G = 1.0 - (FVC - eta*C0_m1p5_C2) * A + eta / one_minus_eta * (-1.0 + 2.0 * sqrtPI * (1.0-X-2.0*Y) * (sqrtInvPI - Zm * wiZm) + 2.0*sqrtPI*Zp*wiZp);
+    else
+      G = 1.0 - (FVC - eta*C0_m1p5_C2) * A + eta / one_minus_eta * (-1.0 + sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*wiZm - (1.0-Zp2)*wiZp));
+   
+    // Compute denominator
+    invG = 1.0 / G;
+    
+    // Compute line shape
     F[iv] = A * invG * invPI;
     
     for(Index iq = 0; iq < nppd; iq++)
     {
-      if(derivatives_data(iq) == JQT_frequency or
-        derivatives_data(iq) == JQT_wind_magnitude or
-        derivatives_data(iq) == JQT_wind_u or
-        derivatives_data(iq) == JQT_wind_v or
-        derivatives_data(iq) == JQT_wind_w) // No //external inputs
-      { 
+      if(derivatives_data(iq) == JQT_frequency      or
+         derivatives_data(iq) == JQT_wind_magnitude or
+         derivatives_data(iq) == JQT_wind_u         or
+         derivatives_data(iq) == JQT_wind_v         or
+         derivatives_data(iq) == JQT_wind_w)
+      {
         // If this is the first time it is calculated this frequency bin, do the full calculation
         if(first_frequency == iq)
         {
-          dX = invC2t * i;
-          dZp = dZm = 0.5 * dX / sqrtXY;
-          
-          dwiZm = dwiZp = i * sqrtInvPI;
-          dwiZm -= Zm * wiZm;
-          dwiZp -= Zp * wiZp;
-          dwiZm *= 2.0 * dZm;
-          dwiZp *= 2.0 * dZp;
-          
-          dA = fac * (dwiZm - dwiZp);
-          
-          if(eta not_eq 0.0)
-          {
-            dB = 0.5 * sqrtPI / (sqrtY * one_minus_eta) * ((1.0 - Zm2) * dwiZm - 2.0 * Zm * dZm * wiZm + (1.0 - Zp2) * dwiZp + 2.0 * Zp * dZp * wiZp);
-            dg = eta * (C0_m1p5_C2 * dA - dB) - FVC * dA;
-          }
+          // Compute dZm
+          if(C2t_zero_limit or ratioXY_low_limit)
+            dZm = -invGD * i;
+          else if(ratioXY_high_limit)
+            dZm = -0.5 * invC2t * i / Zm;
           else
-          {
-            dg = - FVC * dA;
-          }
+            dZm = -0.5 * invC2t * i / sqrtXY;
           
-          dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dg); 
+          // Compute dZp
+          if(not C2t_zero_limit)
+            dZp = 0.5 * invC2t * i / sqrtXY;
+          
+          // Compute dW-minus 
+          dwiZm = 2.0 * (Zm * wiZm - sqrtInvPI) * dZm; // FIXME: test this for different asymptotes
+          
+          // Compute dW-plus
+          if(C2t_zero_limit)
+            dwiZp = Complex(0.0, 0.0);  // sqrtInvPI / Zp
+          else
+            dwiZp = 2.0 * (Zp * wiZp - sqrtInvPI) * dZp; // FIXME: test this for different asymptotes
+          
+          // Compute dA
+          if(ratioXY_high_limit)
+            dA = fac * (- dZm * wiZm - Zm * dwiZm);
+          else
+            dA = fac * (dwiZm - dwiZp);
+          
+          // Compute dG
+          if(eta_zero_limit)
+            dG = - FVC * dA;
+          else if(C2t_zero_limit)
+            dG = - (FVC - eta * C0_m1p5_C2) * dA + C2 * fac * ((1.0 - Zm2)*dwiZm + (-2.0*Zm)*wiZm + dZm * sqrtInvPI);
+          else if (ratioXY_high_limit)
+            dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (2.0 * sqrtPI * (-invC2t * i) * (sqrtInvPI - Zm * wiZm) + 2.0 * sqrtPI * (1.0-X-2.0*Y) * (- dZm * wiZm - Zm * dwiZm)+ 2.0*sqrtPI*(dZp*wiZp+Zp*dwiZp));
+          else
+            dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*dwiZm + (-2.0*Zm)*wiZm - (1.0-Zp2)*dwiZp)- (-2.0*Zp)*wiZp);
+          
+          dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dG); 
         }
         else  // copy for repeated occurrences
         {
@@ -358,147 +425,231 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
       }
       else if(derivatives_data(iq) == JQT_temperature)
       {
-        dC0 = dG0_dT + i*dL0_dT;
-        dC2 = dG2_dT + i*dL2_dT;
-        
-        dC0t = one_minus_eta * (dC0 - 1.5 * dC2) - deta_dT * C0_m1p5_C2 + dFVC_dT;
-        dC2t = one_minus_eta * dC2 - deta_dT * C2;
-        
-        dY = GD / (2.0) * invC2t*invC2t * (dGD_dT - GD * invC2t * dC2t);
-        dX = invC2t * (dC0t - X*dC2t);
-        
-        dZm = dZp = 0.5 * (dX + dY) / sqrtXY;
-        dZm -= 0.5 / sqrtY * dY;
-        dZp += 0.5 / sqrtY * dY;
-        
-        dwiZm = dwiZp = i * sqrtInvPI;
-        dwiZm -= Zm * wiZm;
-        dwiZp -= Zp * wiZp;
-        dwiZm *= 2.0 * dZm;
-        dwiZp *= 2.0 * dZp;
-        
-        dA = fac * (dwiZm - dwiZp - A * GD_div_F0);
-        
-        if(eta not_eq 0)
-        {
-          dB = 1.0 / one_minus_eta * (1.0 / one_minus_eta * deta_dT + 0.5 * sqrtPI / sqrtY * ( - 0.5 * ((1.0 - Zm2) * wiZm - (1.0 - Zp2) * wiZp) / Y * dY + (1.0 - Zm2) * dwiZm - 2.0 * Zm * dZm * wiZm + (1.0 - Zp2) * dwiZp + 2.0 * Zp * dZp * wiZp));
-          dg = (dFVC_dT - deta_dT * C0_m1p5_C2 - eta * (dC0 - 1.5 * dC2)) * A - (FVC - eta * C0_m1p5_C2) * dA + deta_dT * B + eta * dB;
-        }
+        // Compute dZm
+        if(C2t_zero_limit or ratioXY_low_limit)
+          dZm = (dC0t_dT - Zm * dGD_dT) * invGD;
+        else if(ratioXY_high_limit)
+          dZm = 0.5 / Zm  * (dC0t_dT - X * dC2t_dT) * invC2t;
         else
-        {
-          dg = (dFVC_dT - deta_dT * C0_m1p5_C2) * A - FVC * dA + deta_dT * B;
-        }
+          dZm = 0.5 / sqrtXY * ((dC0t_dT - X * dC2t_dT) * invC2t + dY_dT) - 0.5 / sqrtY * dY_dT;
         
-        dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dg); 
+        // Compute Zp
+        if(C2t_zero_limit)
+        {/* Do nothing since Zp will be infinity large */}
+        else if(ratioXY_high_limit)
+          dZp = 0.5 / sqrtXY * ((dC0t_dT - X * dC2t_dT) * invC2t + dY_dT);
+        else
+          dZp = 0.5 / sqrtXY * ((dC0t_dT - X * dC2t_dT) * invC2t + dY_dT) + 0.5 / sqrtY * dY_dT;
+          
+        // Compute dW-minus 
+        dwiZm = 2.0 * (Zm * wiZm - sqrtInvPI) * dZm; // FIXME: test this for different asymptotes
+        
+        // Compute dW-plus
+        if(C2t_zero_limit)
+          dwiZp = Complex(0.0, 0.0);  // sqrtInvPI / Zp
+        else
+          dwiZp = 2.0 * (Zp * wiZp - sqrtInvPI) * dZp; // FIXME: test this for different asymptotes
+          
+        // Compute dA
+        if(ratioXY_high_limit)
+          dA = fac * (- dZm * wiZm - Zm * dwiZm) - A * invGD * dGD_dT;
+        else
+          dA = fac * (dwiZm - dwiZp) - A * invGD * dGD_dT;
+        
+        // Compute dG
+        if(eta_zero_limit)
+          dG = - dFVC_dT * A - FVC * dA;
+        else if(C2t_zero_limit)
+          dG = - (dFVC_dT - deta_dT * C0_m1p5_C2 - eta * dC0_m1p5_C2_dT) * A - (FVC - eta*C0_m1p5_C2) * dA 
+          + dC2_dT * fac * ((1.0 - Zm2)*wiZm + Zm * sqrtInvPI)
+          + C2 * fac * ((1.0 - Zm2)*dwiZm - 2.0 * Zm * dwiZm + dZm * sqrtInvPI)
+          - C2 * fac * ((1.0 - Zm2)*wiZm + Zm * sqrtInvPI) * invGD * dGD_dT;
+        else if (ratioXY_high_limit)
+          dG = - (dFVC_dT - deta_dT * C0_m1p5_C2 - eta * dC0_m1p5_C2_dT) * A - (FVC - eta*C0_m1p5_C2) * dA 
+          +
+          deta_dT / one_minus_eta * (-1.0 + 2.0 * sqrtPI * (1.0-X-2.0*Y) * (sqrtInvPI - Zm * wiZm) + 2.0*sqrtPI*Zp*wiZp)
+          -
+          deta_dT * eta / (one_minus_eta*one_minus_eta) * (-1.0 + 2.0 * sqrtPI * (1.0-X-2.0*Y) * (sqrtInvPI - Zm * wiZm) + 2.0*sqrtPI*Zp*wiZp)
+          +
+          eta / one_minus_eta * (
+            2.0 * sqrtPI * (-((dC0t_dT - X * dC2t_dT) * invC2t)-2.0*dY_dT) * (sqrtInvPI - Zm * wiZm)  +
+            2.0 * sqrtPI * (1.0-X-2.0*Y) * (- dZm * wiZm - Zm * dwiZm) 
+          + 2.0*sqrtPI*(dZp*wiZp + Zp*dwiZp))
+          ;
+        else
+          dG = - (dFVC_dT - deta_dT * C0_m1p5_C2 - eta * dC0_m1p5_C2_dT) * A - (FVC - eta*C0_m1p5_C2) * dA 
+          + 
+          deta_dT / one_minus_eta * (-1.0 + sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*wiZm - (1.0-Zp2)*wiZp))
+          -
+          deta_dT * eta / (one_minus_eta*one_minus_eta) * (-1.0 + sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*wiZm - (1.0-Zp2)*wiZp))
+          +
+          eta / one_minus_eta * 
+          (
+            -0.5 * sqrtPI/(2.0*sqrtY)/sqrtY * dY_dT * ((1.0-Zm2)*wiZm - (1.0-Zp2)*wiZp)
+            +
+            (sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*dwiZm - (1.0-Zp2)*dwiZp)+ (-2.0*Zm)*wiZm - (-2.0*Zp)*wiZp)
+          );
+          
+          dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dG); 
       }
       else if(derivatives_data(iq) == JQT_line_center) // No //external inputs --- errors because of frequency shift when Zeeman is used?
       {
         if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
         {
-          dY = GD / (2.0) * invC2t*invC2t * GD_div_F0 * F0_ratio;
-          dX = - i * invC2t * F0_ratio;
-          
-          dZm = dZp = 0.5 * (dX + dY) / sqrtXY;
-          dZm -= 0.5 / sqrtY * dY;
-          dZp += 0.5 / sqrtY * dY;
-          
-          dwiZm = dwiZp = i * sqrtInvPI;
-          dwiZm -= Zm * wiZm;
-          dwiZp -= Zp * wiZp;
-          dwiZm *= 2.0 * dZm;
-          dwiZp *= 2.0 * dZp;
-          
-          dA = fac * (dwiZm - dwiZp - A * GD_div_F0);
-          
-          if(eta not_eq 0.0)
-          {
-            dB = 0.5 * sqrtPI / (sqrtY * one_minus_eta) * (- 0.5 * ((1.0 - Zm2) * wiZm - (1.0 - Zp2) * wiZp) / Y * dY + (1.0 - Zm2) * dwiZm - 2.0 * Zm * dZm * wiZm + (1.0 - Zp2) * dwiZp + 2.0 * Zp * dZp * wiZp);
-            dg = eta * (C0_m1p5_C2 * dA - dB) - FVC * dA;
-          }
+          // Compute dZm
+          if(C2t_zero_limit or ratioXY_low_limit)
+            dZm = (i - Zm) * invGD;
+          else if(ratioXY_high_limit)
+            dZm = 0.5/Zm * i * invC2t;
           else
-          {
-            dg = - FVC * dA;
-          }
+            dZm = 0.5/sqrtXY * i * invC2t;
           
-          dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dg); 
+          // Compute dZp
+          if(C2t_zero_limit)
+          {/* Do nothing since Zp will be infinity large */}
+          else if(ratioXY_high_limit or ratioXY_low_limit)
+            dZp = 0.5/sqrtXY * i * invC2t;
+          else
+            dZp = dZm;
+          
+          // Compute dW-minus 
+          dwiZm = 2.0 * (Zm * wiZm - sqrtInvPI) * dZm; // FIXME: test this for different asymptotes
+          
+          // Compute dW-plus
+          if(C2t_zero_limit)
+            dwiZp = Complex(0.0, 0.0);  // sqrtInvPI / Zp
+          else
+            dwiZp = 2.0 * (Zp * wiZp - sqrtInvPI) * dZp; // FIXME: test this for different asymptotes
+            
+          // Compute dA
+          if(ratioXY_high_limit)
+            dA = fac * (- dZm * wiZm - Zm * dwiZm) - A * invGD;
+          else
+            dA = fac * (dwiZm - dwiZp) - A * invGD;
+          
+          // Compute G
+          if(eta_zero_limit)
+            dG = - FVC * dA;
+          else if(C2t_zero_limit)
+            dG = - (FVC - eta * C0_m1p5_C2) * dA + C2 * fac * (((1.0 - Zm2)*dwiZm + dZm * sqrtInvPI - 2*Zm*dZm*wiZm) - ((1.0 - Zm2)*wiZm + Zm * sqrtInvPI) * invGD);
+          else if (ratioXY_high_limit)
+            dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (2.0 * sqrtPI * (-i*invC2t * (sqrtInvPI - Zm * wiZm) + (1.0-X-2.0*Y) * (- dZm * wiZm - Zm * dwiZm)) +             2.0*sqrtPI*(dZp*wiZp + Zp*dwiZp));
+          else
+            dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*dwiZm - (1.0-Zp2)*dwiZp - 2 * Zm * dZm * dwiZm + 2 * Zp * dZp * wiZp));
+          
+          dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dG); 
         }
       }
-      else if(derivatives_data(iq) == JQT_line_gamma_self or 
-        derivatives_data(iq) == JQT_line_gamma_selfexponent or
-        derivatives_data(iq) == JQT_line_pressureshift_self or
-        derivatives_data(iq) == JQT_line_gamma_foreign or
+      else if(derivatives_data(iq) == JQT_line_gamma_self      or 
+        derivatives_data(iq) == JQT_line_gamma_selfexponent    or
+        derivatives_data(iq) == JQT_line_pressureshift_self    or
+        derivatives_data(iq) == JQT_line_gamma_foreign         or
         derivatives_data(iq) == JQT_line_gamma_foreignexponent or
         derivatives_data(iq) == JQT_line_pressureshift_foreign or
-        derivatives_data(iq) == JQT_line_gamma_water or
-        derivatives_data(iq) == JQT_line_gamma_waterexponent or 
-        derivatives_data(iq) == JQT_line_pressureshift_water) // Only the zeroth order terms --- the derivative with respect to these have to happen later
+        derivatives_data(iq) == JQT_line_gamma_water           or
+        derivatives_data(iq) == JQT_line_gamma_waterexponent   or 
+        derivatives_data(iq) == JQT_line_pressureshift_water) 
       {
+        // NOTE:  These are first order Voigt-like.  
+        // The variables that are not Voigt-like must be dealt with separately
+        
         if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
         {
-          // Note that if the species vmr partial derivative is necessary here is where it goes
           if(first_pressure_broadening == iq)
           {
-            dC0t = one_minus_eta * one_plus_one_i;
-            dX = invC2t * dC0t;
-            dZm = dZp = 0.5 * dX / sqrtXY;
-            
-            dwiZm = dwiZp = i * sqrtInvPI;
-            dwiZm -= Zm * wiZm;
-            dwiZp -= Zp * wiZp;
-            dwiZm *= 2.0 * dZm;
-            dwiZp *= 2.0 * dZp;
-            
-            dA = fac * (dwiZm - dwiZp);
-            
-            if(eta not_eq 0.0)
-            {
-              dB = 0.5 * sqrtPI / (sqrtY * one_minus_eta) * ((1.0 - Zm2) * dwiZm - 2.0 * Zm * dZm * wiZm + (1.0 - Zp2) * dwiZp + 2.0 * Zp * dZp * wiZp);
-              dg = eta * (C0_m1p5_C2 * dA - dB - dC0 * A) - FVC * dA;
-            }
+            // Compute dZm
+            if(C2t_zero_limit or ratioXY_low_limit)
+              dZm = one_minus_eta * invGD;
+            else if(ratioXY_high_limit)
+              dZm = 0.5 / Zm * one_minus_eta * invC2t;
             else
-            {
-              dg = - FVC * dA;
-            }
+              dZm = 0.5 * sqrtXY * one_minus_eta * invC2t;
             
-            dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dg); 
+            // Compute dZp
+            if(C2t_zero_limit)
+            {/* Do nothing since Zp will be infinity large */}
+            else if(ratioXY_high_limit or ratioXY_low_limit)
+              dZp = 0.5 * sqrtXY * one_minus_eta * invC2t;
+            else
+              dZp = dZm;
+            
+            // Compute dW-minus 
+            dwiZm = 2.0 * (Zm * wiZm - sqrtInvPI) * dZm; // FIXME: test this for different asymptotes
+            
+            // Compute dW-plus
+            if(C2t_zero_limit)
+              dwiZp = Complex(0.0, 0.0);  // sqrtInvPI / Zp
+            else
+              dwiZp = 2.0 * (Zp * wiZp - sqrtInvPI) * dZp; // FIXME: test this for different asymptotes
+              
+            // Compute dA
+            if(ratioXY_high_limit)
+              dA = fac * (- dZm * wiZm - Zm * dwiZm);
+            else
+              dA = fac * (dwiZm - dwiZp);
+            
+            // Compute dG
+            if(eta_zero_limit)
+              dG = - FVC * dA;
+            else if(C2t_zero_limit)
+              dG = - (FVC - eta * C0_m1p5_C2) * dA + eta * A + C2 * fac * ((1.0 - Zm2)*dwiZm + dZm * sqrtInvPI - 2*Zm*dZm*wiZm);
+            else if (ratioXY_high_limit)
+              dG = - (FVC - eta*C0_m1p5_C2) * dA + eta * A + eta / one_minus_eta * (2.0 * sqrtPI * (1.0-X-2.0*Y) * (- dZm * wiZm - Zm * dwiZm) + 2.0 * sqrtPI * (-one_minus_eta * invC2t) * (sqrtInvPI - Zm * wiZm) + 2.0*sqrtPI*(dZp*wiZp+Zp*dwiZp));
+            else
+              dG = - (FVC - eta*C0_m1p5_C2) * dA + eta * A + eta / one_minus_eta * (sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*dwiZm - (1.0-Zp2)*dwiZp - 2.0*Zm*dZm*wiZm + 2.0*Zp*dZp*wiZp));
+            
+            dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dG); 
           }
           else  // copy for repeated occurrences
           {
-            dF[iq][df_range][iv] = dF[first_frequency][df_range][iv]; 
+            dF[iq][df_range][iv] = dF[first_pressure_broadening][df_range][iv]; 
           }
         }
       }
-      else if(derivatives_data(iq) == JQT_magnetic_magntitude)// No //external inputs --- errors because of frequency shift when Zeeman is used?
+      else if(derivatives_data(iq) == JQT_magnetic_magntitude)
       {
-        dY = GD / (2.0) * invC2t*invC2t * GD_div_F0 * (1.0 - F0_ratio) / magnetic_magnitude;
-        dX = - i * invC2t * (1.0 - F0_ratio) / magnetic_magnitude;
-        
-        dZm = dZp = 0.5 * (dX + dY) / sqrtXY;
-        dZm -= 0.5 / sqrtY * dY;
-        dZp += 0.5 / sqrtY * dY;
-        
-        dwiZm = dwiZp = i * sqrtInvPI;
-        dwiZm -= Zm * wiZm;
-        dwiZp -= Zp * wiZp;
-        dwiZm *= 2.0 * dZm;
-        dwiZp *= 2.0 * dZp;
-        
-        dA = fac * (dwiZm - dwiZp - A * GD_div_F0);
-        
-        if(eta not_eq 0.0)
-        {
-          dB = 0.5 * sqrtPI / (sqrtY * one_minus_eta) * 
-          (- 0.5 * ((1.0 - Zm2) * wiZm - (1.0 - Zp2) * wiZp) / Y * dY +
-          (1.0 - Zm2) * dwiZm - 2.0 * Zm * dZm * wiZm +
-          (1.0 - Zp2) * dwiZp + 2.0 * Zp * dZp * wiZp);
-          dg = eta * (C0_m1p5_C2 * dA - dB) - FVC * dA;
-        }
+        // Compute dZm
+        if(C2t_zero_limit or ratioXY_low_limit)
+          dZm = i * invGD;
+        else if(ratioXY_high_limit)
+          dZm = 0.5/Zm * i * invC2t;
         else
-        {
-          dg = - FVC * dA;
-        }
+          dZm = 0.5/sqrtXY * i * invC2t;
         
-        dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dg); 
+        // Compute dZp
+        if(C2t_zero_limit)
+        {/* Do nothing since Zp will be infinity large */}
+        else if(ratioXY_high_limit or ratioXY_low_limit)
+          dZp = 0.5/sqrtXY * i * invC2t;
+        else
+          dZp = dZm;
+        
+        // Compute dW-minus 
+        dwiZm = 2.0 * (Zm * wiZm - sqrtInvPI) * dZm; // FIXME: test this for different asymptotes
+        
+        // Compute dW-plus
+        if(C2t_zero_limit)
+          dwiZp = Complex(0.0, 0.0);  // sqrtInvPI / Zp
+        else
+          dwiZp = 2.0 * (Zp * wiZp - sqrtInvPI) * dZp; // FIXME: test this for different asymptotes
+          
+        // Compute dA
+        if(ratioXY_high_limit)
+          dA = fac * (- dZm * wiZm - Zm * dwiZm);
+        else
+          dA = fac * (dwiZm - dwiZp);
+        
+        // Compute G
+        if(eta_zero_limit)
+          dG = - FVC * dA;
+        else if(C2t_zero_limit)
+          dG = - (FVC - eta * C0_m1p5_C2) * dA + C2 * fac * ((1.0 - Zm2)*dwiZm + dZm * sqrtInvPI - 2*Zm*dZm*wiZm);
+        else if (ratioXY_high_limit)
+          dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (2.0 * sqrtPI * (-i*invC2t * (sqrtInvPI - Zm * wiZm) + (1.0-X-2.0*Y) * (- dZm * wiZm - Zm * dwiZm)) + 2.0*sqrtPI*(dZp*wiZp + Zp*dwiZp));
+        else
+          dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*dwiZm - (1.0-Zp2)*dwiZp - 2 * Zm * dZm * dwiZm + 2 * Zp * dZp * wiZp));
+        
+        dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dG); 
       }
     }
   }
@@ -1744,7 +1895,8 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
                                         pressure_limit_for_linemixing);
   
   // Partial derivatives for temperature
-  Numeric dG0_dT, dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT, dY_dT=0, dG_dT=0, dDV_dT=0, dK1_dT, dK2_dT;
+  Numeric dG0_dT, dL0_dT, dG2_dT=0.0, dL2_dT=0.0, de_dT=0.0, dFVC_dT=0.0, 
+          dY_dT=0, dG_dT=0, dDV_dT=0, dK1_dT, dK2_dT;
   if(derivatives_data.do_temperature())
   {
     // NOTE:  For now the only partial derivatives for temperatures available are for Voigt line shape.

@@ -1,3 +1,15 @@
+2017-11-06  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-861
+	
+	* src/lineshapesdata.cc:  Now the HTP function work as expected,
+	derivatives and all, for Voigt-like input.  The forward calculations
+	emulate the original paper with a lot of if-then-else-then statements,
+	making it a bit difficult to read the code without having the 
+	original paper to read. I will try to fix this but there
+	are many asymptotes so the multiple-choice pathing might be the 
+	only way to get this done.
+
 2017-11-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-860
