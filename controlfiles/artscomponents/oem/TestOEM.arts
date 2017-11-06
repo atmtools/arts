@@ -109,8 +109,9 @@ sensor_checkedCalc
 retrievalDefInit
 VectorCreate(vars)
 nelemGet( nelem, p_ret_grid )
-VectorSetConstant(vars, nelem, 1e-12)
-covmatDiagonal(vars = vars)
+
+
+
 retrievalAddAbsSpecies( 
     species = "O3",
     unit = "vmr",
@@ -119,9 +120,20 @@ retrievalAddAbsSpecies(
     g3 = lon_grid
 )
 
+SparseCreate(sparse_block)
+
+VectorSetConstant(vars, nelem, 1e-12)
+DiagonalMatrix(sparse_block, vars)
+covmat_sxAddBlock(block = sparse_block)
+
 VectorSetConstant(vars, nf, 1e-2)
-covmatDiagonal(vars = vars)
-covmat_seSet
+DiagonalMatrix(sparse_block, vars)
+covmat_seAddBlock(block = sparse_block)
+
+MatrixCreate(dense_block)
+VectorSetConstant(vars, nf, 1e+2)
+DiagonalMatrix(dense_block, vars)
+covmat_seAddInverseBlock(block = dense_block)
 
 retrievalDefClose
 

@@ -1,3 +1,35 @@
+2017-11-07  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	API BREAKING! This may break your controlfiles if you are
+	using OEM.
+
+	* arts-2-3-862
+
+	* src/covariance_matrix.[h,cc]:
+	- Refactored CovarianceMatrix class and updated documentation
+	to some extent.
+
+	* src/m_basic_types.cc:
+	- Added WSM to create dense and sparse diagonal matrices from
+	vectors.
+
+	* src/m_retrieval.cc:
+
+	- Made covmat_seSet, covmat_seAddBlock, covmatSeAddInverseBlock,
+	covmat_sxSet, covmat_sxAdd, covmat_sxAddInverseBlock
+	supergeneric.
+
+	- Made covmat1D, covmat1DMarkov and covmatDiagonal supergeneric.
+
+	- Removed covmat_se from arguments to retrievalDefClose
+
+	* src/test_covariance_matrix.cc:
+
+	- Extended tests to cover also workspace methods.
+
+	* controlfiles/artscomponents/oem/TestOEM.arts:
+	- Adapted controlfile
+
 2017-11-06  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-861

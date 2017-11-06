@@ -179,8 +179,41 @@ void PFromZSimple(Vector &p_grid,
 // Creation of Correlation Blocks
 ////////////////////////////////////////////////////////////////////////////////
 
-void covmatDiagonal(Sparse &covmat_block,
-                    Sparse &covmat_inv_block,
+template<typename MatrixType>
+void insert_elements(MatrixType &matrix,
+                     Index /*m*/,
+                     Index /*n*/,
+                     const ArrayOfIndex &row_indices,
+                     const ArrayOfIndex &column_indices,
+                     const Vector &elements)
+{
+    matrix.insert_elements(row_indices.nelem(),
+                           row_indices,
+                           column_indices,
+                           elements);
+}
+
+template<>
+void insert_elements(Matrix &matrix,
+                     Index m,
+                     Index n,
+                     const ArrayOfIndex &row_indices,
+                     const ArrayOfIndex &column_indices,
+                     const Vector &elements)
+{
+    assert(row_indices.nelem() == column_indices.nelem());
+    assert(column_indices.nelem() == elements.nelem());
+
+    matrix.resize(m, n);
+
+    for (Index i = 0; i < elements.nelem(); ++i) {
+        matrix(row_indices[i], column_indices[i]) = elements[i];
+    }
+}
+
+template <typename MatrixType>
+void covmatDiagonal(MatrixType &block,
+                    MatrixType &block_inv,
                     const Vector &vars,
                     const Verbosity &)
 {
@@ -188,8 +221,8 @@ void covmatDiagonal(Sparse &covmat_block,
         throw runtime_error("Cannot pass empty vector of variances to covmat_blockSetDiagonal");
     }
     Index n = vars.nelem();
-    covmat_block = Sparse(n, n);
-    covmat_inv_block = Sparse(n,n);
+    block = MatrixType(n, n);
+    block_inv = MatrixType(n,n);
 
     ArrayOfIndex indices(n);
     Vector       elements(n), elements_inv(n);
@@ -199,46 +232,16 @@ void covmatDiagonal(Sparse &covmat_block,
         elements_inv[i] = 1.0 / vars[i];
     }
 
-    covmat_block.insert_elements(n, indices, indices, elements);
-    covmat_inv_block.insert_elements(n, indices, indices, elements_inv);
+    insert_elements(block, n, n, indices, indices, elements);
+    insert_elements(block_inv, n, n, indices, indices, elements_inv);
 }
 
-void covmat_seSet(CovarianceMatrix &covmat_se,
-                  const Sparse &covmat_block,
-                  const Sparse &covmat_inv_block,
-                  const Verbosity &)
-{
+template void covmatDiagonal(Matrix &block, Matrix &block_inv, const Vector &vars, const Verbosity &);
+template void covmatDiagonal(Sparse &block, Sparse &block_inv, const Vector &vars, const Verbosity &);
 
-    Index n =     covmat_block.nrows();
-
-    if (n != covmat_block.ncols()) {
-        throw runtime_error("*covmat_block* is not a square matrix.");
-    }
-
-    Index i      = 0;
-    Index start  = 0;
-    Index extent = n;
-    Range range(start, extent);
-    std::shared_ptr<Sparse> mat = std::make_shared<Sparse>(covmat_block);
-    covmat_se.add_correlation(Block(range, range, std::make_pair(i,i), mat));
-
-
-    if (!covmat_inv_block.empty()) {
-        Index n_inv = covmat_inv_block.nrows();
-        if (n != n_inv) {
-            throw runtime_error("Sizes of *covmat_block* and *covmat_inv_block* don't agree.");
-        }
-
-        if (n != covmat_inv_block.ncols()) {
-            throw runtime_error("*covmat_inv_block* is not a square matrix.");
-        }
-        mat = std::make_shared<Sparse>(covmat_inv_block);
-        covmat_se.add_correlation_inverse(Block(range, range, std::make_pair(i,i), mat));
-    }
-}
-
-void covmat1DMarkov(Sparse& covmat_block,
-                    Sparse& covmat_inv_block,
+template<typename MatrixType>
+void covmat1DMarkov(MatrixType& block,
+                    MatrixType& block_inv,
                     const Vector& grid,
                     const Vector& sigma,
                     const Numeric& lc,
@@ -255,14 +258,15 @@ void covmat1DMarkov(Sparse& covmat_block,
 
     elements = Vector(row_indices.size());
     for (size_t i = 0; i < row_indices.size(); ++i) {
-        Numeric dz = abs(grid[row_indices[i]] - grid[column_indices[i]]);
-        Numeric e  = sigma[row_indices[i]] * sigma[column_indices[i]] * exp(-dz/lc);
+        Numeric dz = abs(grid[row_indices[i]] - grid[column_indices[i]]); Numeric e  = sigma[row_indices[i]] * sigma[column_indices[i]] * exp(-dz/lc);
         elements[i] = e;
     }
 
-    covmat_block = Sparse(n,n);
-    covmat_block.insert_elements(row_indices.size(), row_indices, column_indices, elements);
-
+    block = MatrixType(n,n);
+    insert_elements(block, n, n,
+                    row_indices,
+                    column_indices,
+                    elements);
     row_indices    = ArrayOfIndex{};
     column_indices = ArrayOfIndex{};
     elements       = Vector(3 * n - 2);
@@ -300,12 +304,33 @@ void covmat1DMarkov(Sparse& covmat_block,
             elements[i*3 + 1] /= (sigma[i] * sigma[i+1]);
         }
     }
-    covmat_inv_block = Sparse(n,n);
-    covmat_inv_block.insert_elements(row_indices.size(), row_indices, column_indices, elements);
+    block_inv = MatrixType(n,n);
+    insert_elements(block_inv, n, n,
+                    row_indices,
+                    column_indices,
+                    elements);
 }
 
-void covmat1D(Sparse& covmat_block,
-              Sparse& covmat_inv_block,
+template
+void covmat1DMarkov(Matrix& block,
+                    Matrix& block_inv,
+                    const Vector& grid,
+                    const Vector& sigma,
+                    const Numeric& lc,
+                    const Numeric& /*co*/,
+                    const Verbosity &);
+
+template
+void covmat1DMarkov(Sparse& block,
+                    Sparse& block_inv,
+                    const Vector& grid,
+                    const Vector& sigma,
+                    const Numeric& lc,
+                    const Numeric& /*co*/,
+                    const Verbosity &);
+
+template<typename MatrixType>
+void covmat1D(MatrixType& block,
               const Vector& grid1,
               const Vector& grid2,
               const Vector& sigma1,
@@ -388,45 +413,294 @@ void covmat1D(Sparse& covmat_block,
         elements[i] = sigma_view_1[ii] * sigma_view_2[jj] * f(ii,jj);
     }
 
-    covmat_block = Sparse(m,n);
-    covmat_block.insert_elements(column_indices.size(), row_indices, column_indices, elements);
-    covmat_inv_block = Sparse(0,0);
+    block = Sparse(m,n);
+    insert_elements(block, m, n,
+                    row_indices,
+                    column_indices,
+                    elements);
 }
 
+template
+void covmat1D(Matrix& block,
+              const Vector& grid1,
+              const Vector& grid2,
+              const Vector& sigma1,
+              const Vector& sigma2,
+              const Vector& lc1,
+              const Vector& lc2,
+              const Numeric& co,
+              const String& fname,
+              const Verbosity &);
+
+template
+void covmat1D(Sparse& block,
+              const Vector& grid1,
+              const Vector& grid2,
+              const Vector& sigma1,
+              const Vector& sigma2,
+              const Vector& lc1,
+              const Vector& lc2,
+              const Numeric& co,
+              const String& fname,
+              const Verbosity &);
+
+////////////////////////////////////////////////////////////////////////////////
+// Manipulation of covmat_se and covmat_sx
+////////////////////////////////////////////////////////////////////////////////
+
+template<typename MatrixType>
+void covmat_seAddBlock(CovarianceMatrix& covmat_se,
+                       const MatrixType& block,
+                       const Index& i,
+                       const Index& j,
+                       const Verbosity &)
+{
+    Index m = block.nrows();
+    Index n = block.ncols();
+
+    Index ii(i), jj(j);
+    if ((ii < 0) && (jj < 0)) {
+        ii = covmat_se.ndiagblocks();
+        jj = ii;
+    }
+
+    if (j < i) {
+        throw std::runtime_error("The block must be on or above the diagonal, "
+                                 " i.e. *i* <= *j*.");
+    }
+
+    Index ndiagblocks = covmat_se.ndiagblocks();
+
+    if ((ii >= ndiagblocks)) {
+        if (ii > ndiagblocks) {
+            if (jj > ii) {
+                throw std::runtime_error(
+                    "Off-diagonal block can only be added to rows that already "
+                    "have a block on the diagonal."
+                    );
+            } else {
+                throw std::runtime_error(
+                    "Diagonal block must be added row-by-row starting in the "
+                    " upper left of the matrix."
+                    );
+            }
+        }
+    }
+
+    if (covmat_se.has_block(ii, jj)) {
+        throw std::runtime_error("Block already present in covariance matrix.");
+    }
+
+    if (ii == jj) {
+
+        if (m != n) {
+            throw std::runtime_error("Diagonal blocks must be square.");
+        }
+        Index start  = covmat_se.nrows();
+        Range range(start, m);
+        std::shared_ptr<MatrixType> mat = std::make_shared<MatrixType>(block);
+        covmat_se.add_correlation(Block(range, range, std::make_pair(ii, ii), mat));
+
+    } else {
+
+        const Block *b = covmat_se.get_block(ii, ii);
+        if (!b) {
+            throw std::runtime_error("Trying to add an off-diagonal block that"
+                                     " lacks corresponding diagonal block in the "
+                                     " same row.");
+        }
+        Range row_range = b->get_row_range();
+
+        b = covmat_se.get_block(jj, jj);
+        if (!b) {
+            throw std::runtime_error("Trying to add an off-diagonal block that"
+                                     " lacks corresponding diagonal block in the "
+                                     " same column.");
+        }
+        Range column_range = b->get_column_range();
+
+        if ((row_range.get_extent() != m) || (column_range.get_extent() != n)) {
+            throw std::runtime_error("The off-diagonal block is inconsistent "
+                                     "with the corresponding diagonal blocks.");
+
+        }
+
+        std::shared_ptr<MatrixType> mat = std::make_shared<MatrixType>(block);
+        covmat_se.add_correlation(Block(row_range, column_range, std::make_pair(ii, jj), mat));
+    }
+}
+
+template void covmat_seAddBlock(CovarianceMatrix& covmat_se,
+                                const Matrix& block,
+                                const Index& i,
+                                const Index& j,
+                                const Verbosity&);
+
+template void covmat_seAddBlock(CovarianceMatrix& covmat_se,
+                                const Sparse& block,
+                                const Index& i,
+                                const Index& j,
+                                const Verbosity &);
+
+template<typename MatrixType>
+void covmat_seAddInverseBlock(CovarianceMatrix& covmat_se,
+                              const MatrixType& inv_block,
+                              const Index& i,
+                              const Index& j,
+                              const Verbosity &)
+{
+    Index ii(i), jj(j);
+    if ((ii < 0) && (jj < 0)) {
+        ii = covmat_se.ndiagblocks() - 1;
+        jj = ii;
+    }
+
+    Index m = inv_block.nrows();
+    Index n = inv_block.ncols();
+
+    const Block *block = covmat_se.get_block(ii, jj);
+
+    if (!block) {
+        throw std::runtime_error("Cannot add inverse  block to the covariance "
+                                 " without corresponding non-inverse block.");
+    }
+
+    if ((m != inv_block.nrows()) || (n != inv_block.ncols())) {
+        throw std::runtime_error("Dimensions of block are inconsistent with "
+                                 " non-inverse block.");
+    }
+
+    Range row_range    = block->get_row_range();
+    Range column_range = block->get_column_range();
+
+    std::shared_ptr<MatrixType> mat = std::make_shared<MatrixType>(inv_block);
+    covmat_se.add_correlation_inverse(Block(row_range, column_range, std::make_pair(ii, jj), mat));
+}
+
+template void covmat_seAddInverseBlock(CovarianceMatrix& covmat_se,
+                                       const Matrix& block,
+                                       const Index& i,
+                                       const Index& j,
+                                       const Verbosity&);
+
+template void covmat_seAddInverseBlock(CovarianceMatrix& covmat_se,
+                                       const Sparse& block,
+                                       const Index& i,
+                                       const Index& j,
+                                       const Verbosity &);
+
+template<typename MatrixType>
+void setCovarianceMatrix(
+        CovarianceMatrix& covmat,
+        const MatrixType& block)
+{
+    Index m = block.nrows();
+    Index n = block.ncols();
+
+    if (n != m) {
+        throw std::runtime_error("Covariance matrix must be sqare!");
+    }
+
+    covmat = CovarianceMatrix();
+    IndexPair indices = std::make_pair(0, 0);
+    Range range = Range(0, n);
+    std::shared_ptr<MatrixType> mat_ptr = std::make_shared<MatrixType>(block);
+    covmat.add_correlation(Block(range, range, indices, mat_ptr));
+}
+
+template<>
+void setCovarianceMatrix(
+        CovarianceMatrix& covmat,
+        const CovarianceMatrix& block)
+{
+    covmat = block;
+}
+
+template<typename MatrixType>
+void covmat_seSet(CovarianceMatrix& covmat,
+                  const MatrixType& block,
+                  const Verbosity& /*v*/)
+{
+    setCovarianceMatrix(covmat, block);
+}
+
+template
+void covmat_seSet(CovarianceMatrix& covmat,
+                  const CovarianceMatrix& block,
+                  const Verbosity& /*v*/);
+
+template
+void covmat_seSet(CovarianceMatrix& covmat,
+                  const Matrix& block,
+                  const Verbosity& /*v*/);
+         
+template
+void covmat_seSet(CovarianceMatrix& covmat,
+                  const Sparse& block,
+                  const Verbosity& /*v*/);
+
+template<typename MatrixType>
+void covmat_sxSet(CovarianceMatrix& covmat,
+                  const MatrixType& block,
+                  const Verbosity& /*v*/)
+{
+    setCovarianceMatrix(covmat, block);
+}
+
+template
+void covmat_sxSet(CovarianceMatrix& covmat,
+                  const CovarianceMatrix& block,
+                  const Verbosity& /*v*/);
+
+template
+void covmat_sxSet(CovarianceMatrix& covmat,
+                  const Matrix& block,
+                  const Verbosity& /*v*/);
+         
+template
+void covmat_sxSet(CovarianceMatrix &covmat,
+                  const Sparse& block,
+                  const Verbosity& /*v*/);
+
+
+template<typename MatrixType>
 void covmat_sxAddBlock(CovarianceMatrix&               covmat_sx,
                        const ArrayOfRetrievalQuantity& jq,
-                       const Sparse&                   block,
+                       const MatrixType&               block,
                        const Index&                    i,
                        const Index&                    j,
-                       const Index&                    inverse_flag,
                        const Verbosity&                /*v*/)
 {
     Index ii(i), jj(j);
     if ((ii < 0) && (jj < 0)) {
-        ii = jq.size() - 1;
-        jj = jq.size() - 1;
-    } else if (!((ii > 0) && (jj > 0) && (ii < jq.nelem()) && (jj < jq.nelem()))) {
-        throw runtime_error("The block indices must either be both -1 (default) or larger"
-                            "than zero and smaller than the number of retrieval"
+        ii = covmat_sx.ndiagblocks();
+        jj = ii;
+    } else if ((ii >= jq.nelem()) || (jj >= jq.nelem())) {
+        throw runtime_error("The block indices must either be both -1 (default) or\n"
+                            "non-negative and smaller than the number of retrieval \n"
                             "quantities.");
     } else if (ii > jj) {
-        throw runtime_error("*i* must be less than or equal to *j*.");
+        throw runtime_error("Only blocks above the diagonal can be set, hence"
+                            "*i* must be less than or equal to *j*.");
     }
 
-    Index m = jq[ii].nelem();
+    Index m = block.nrows();
+    Index n = block.ncols();
+
+    Index jq_m = jq[ii].nelem();
     if (jq[ii].HasTransformation()) {
-        m = jq[ii].TransformationMatrix().ncols();
+        jq_m = jq[ii].TransformationMatrix().ncols();
     }
-    Index n = jq[jj].nelem();
+    Index jq_n = jq[jj].nelem();
     if (jq[jj].HasTransformation()) {
-        n = jq[jj].TransformationMatrix().ncols();
+        jq_n = jq[jj].TransformationMatrix().ncols();
     }
 
-    if (!((block.nrows() == m) && (block.ncols() == n))) {
+    if ((m != jq_m) || (n != jq_n)) {
         ostringstream os;
         os << "The dimensions of the covariance block ( " << block.nrows();
-        os << " x " << block.ncols() << " )" << " with the dimensionality of ";
-        os << " retrieval quantity " << ii << " and " << jj << ", respectively.";
+        os << " x " << block.ncols() << " )" << " are inconsistent with respect";
+        os << " to retrieval quantities " << ii << " and " << jj << ", respectively.";
 
         throw runtime_error(os.str());
     }
@@ -440,48 +714,103 @@ void covmat_sxAddBlock(CovarianceMatrix&               covmat_sx,
     Index col_extent = ji[jj][1] - ji[jj][0] + 1;
     Range col_range(col_start, col_extent);
 
-    std::shared_ptr<Sparse> mat = make_shared<Sparse>(block);
-    if (inverse_flag == 0) {
-        covmat_sx.add_correlation(
-            Block(row_range, col_range, std::make_pair(ii, jj), mat)
-            );
-    } else {
-        covmat_sx.add_correlation_inverse(
-            Block(row_range, col_range, std::make_pair(ii, jj), mat)
-            );
-    }
+    std::shared_ptr<MatrixType> mat = make_shared<MatrixType>(block);
+    covmat_sx.add_correlation(
+        Block(row_range, col_range, std::make_pair(ii, jj), mat)
+        );
 }
 
-// void covmat_seAddDiagonalBlock(CovarianceMatrix &covmat_se,
-//                                const Sparse &covmat_block,
-//                                const Sparse &covmat_inv_block)
-// {
 
-//     Index n =     covmat_block.nrows();
-//     Index n_inv = covmat_inv_block.nrows();
+template void covmat_sxAddBlock(CovarianceMatrix&,
+                                const ArrayOfRetrievalQuantity&,
+                                const Matrix&,
+                                const Index&,
+                                const Index&,
+                                const Verbosity&);
 
-//     if (n != n_inv) {
-//         throw runtime_error("Sizes of *covmat_block* and *covmat_inv_block* don't agree.");
-//     }
+template void covmat_sxAddBlock(CovarianceMatrix&,
+                                const ArrayOfRetrievalQuantity&,
+                                const Sparse&,
+                                const Index&,
+                                const Index&,
+                                const Verbosity&);
 
-//     if (n != covmat_block.ncols()) {
-//         throw runtime_error("*covmat_block* is not a square matrix.");
-//     }
+template<typename MatrixType>
+void covmat_sxAddInverseBlock(CovarianceMatrix&               covmat_sx,
+                              const ArrayOfRetrievalQuantity& jq,
+                              const MatrixType&               block_inv,
+                              const Index&                    i,
+                              const Index&                    j,
+                              const Verbosity&                /*v*/)
+{
+    Index ii(i), jj(j);
+    if ((ii < 0) && (jj < 0)) {
+        ii = jq.size() - 1;
+        jj = jq.size() - 1;
+    } else if ((ii >= jq.nelem()) || (jj >= jq.nelem())) {
+        throw runtime_error("The block indices must either be both -1 (default) or\n"
+                            "non-negative and smaller than the number of retrieval \n"
+                            "quantities.");
+    } else if (ii > jj) {
+        throw runtime_error("Only blocks above the diagonal can be set, hence"
+                            "*i* must be less than or equal to *j*.");
+    }
 
-//     if (n != covmat_inv_block.ncols()) {
-//         throw runtime_error("*covmat_inv_block* is not a square matrix.");
-//     }
+    Index m = block_inv.nrows();
+    Index n = block_inv.ncols();
 
-//     Index i      = covmat.ndiagblocks();
-//     Index start  = covmat_se.nrows();
-//     Index extent = n;
-//     Range range(start, extent);
-//     std::shared_ptr<Sparse> mat = std::make_shared<Sparse>(covmat_block);
-//     covmat_se.add_block(Block(range, range, std::make_pair(i,i), mat));
+    Index jq_m = jq[ii].nelem();
+    if (jq[ii].HasTransformation()) {
+        jq_m = jq[ii].TransformationMatrix().ncols();
+    }
 
-//     mat = std::make_shared<Sparse>(covmat_inv_block);
-//     covmat_se.add_inverse_block(Block(range, range, std::make_pair(i,i), mat));
-// }
+    Index jq_n = jq[jj].nelem();
+    if (jq[jj].HasTransformation()) {
+        jq_n = jq[jj].TransformationMatrix().ncols();
+    }
+
+    if (!((m == jq_m) && (n == jq_n))) {
+        ostringstream os;
+        os << "The dimensions of the covariance block ( " << m;
+        os << " x " << n << " )" << " with the dimensionality of ";
+        os << " retrieval quantity " << ii << " and " << jj << ", respectively.";
+
+        throw runtime_error(os.str());
+    }
+
+    if (!covmat_sx.has_block(ii, jj)) {
+        throw runtime_error("To add the inverse of a block the non-inverse"
+                            " block must be added first.");
+    }
+
+    ArrayOfArrayOfIndex ji = get_jacobian_indices(jq);
+    Index row_start  = ji[ii][0];
+    Index row_extent = ji[ii][1] - ji[ii][0] + 1;
+    Range row_range(row_start, row_extent);
+
+    Index col_start  = ji[jj][0];
+    Index col_extent = ji[jj][1] - ji[jj][0] + 1;
+    Range col_range(col_start, col_extent);
+
+    std::shared_ptr<MatrixType> mat = make_shared<MatrixType>(block_inv);
+    covmat_sx.add_correlation_inverse(
+        Block(row_range, col_range, std::make_pair(ii, jj), mat)
+        );
+}
+
+template void covmat_sxAddInverseBlock(CovarianceMatrix&,
+                                       const ArrayOfRetrievalQuantity&,
+                                       const Matrix&,
+                                       const Index&,
+                                       const Index&,
+                                       const Verbosity&);
+
+template void covmat_sxAddInverseBlock(CovarianceMatrix&,
+                                       const ArrayOfRetrievalQuantity&,
+                                         const Sparse&,
+                                         const Index&,
+                                         const Index&,
+                                         const Verbosity&);
 
 ////////////////////////////////////////////////////////////////////////////////
 // retrievalAdd Functions
@@ -820,7 +1149,6 @@ void retrievalDefClose(Workspace& ws,
                        ArrayOfArrayOfIndex& jacobian_indices,
                        Agenda& jacobian_agenda,
                        Index& retrieval_checked,
-                       const CovarianceMatrix& covmat_se,
                        const CovarianceMatrix& covmat_sx,
                        const ArrayOfRetrievalQuantity& jacobian_quantities,
                        const Matrix& sensor_pos,

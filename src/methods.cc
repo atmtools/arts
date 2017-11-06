@@ -1900,6 +1900,7 @@ void define_md_data_raw()
     md_data_raw.push_back
     ( MdRecord
     ( NAME( "abs_xsec_per_speciesAddLines2" ),
+
       DESCRIPTION
       (
         "Calculates the line spectrum for both attenuation and phase\n"
@@ -4026,10 +4027,10 @@ void define_md_data_raw()
               "  \"gauss\": f(x) = exp(-x^2) \n"
               ),
           AUTHORS( "Simon Pfreundschuh" ),
-          OUT("covmat_block", "covmat_inv_block"),
-          GOUT(),
-          GOUT_TYPE(),
-          GOUT_DESC(),
+          OUT(),
+          GOUT("out"),
+          GOUT_TYPE("Matrix, Sparse"),
+          GOUT_DESC("The matrix in which to store the covariance matrix."),
           IN(),
           GIN("grid_1", "grid_2", "sigma_1", "sigma_2", "cls_1", "cls_2", "co", "fname"),
           GIN_TYPE("Vector", "Vector", "Vector", "Vector", "Vector", "Vector",
@@ -4046,7 +4047,10 @@ void define_md_data_raw()
                    "(If empty taken as cls_1)",
                    "The cutoff value for covariance matrix elements.",
                    "The name of the functional form to use.",
-              )
+              ),
+          PASSWORKSPACE( false  ),
+          SETMETHOD(     false ),
+          USES_TEMPLATES(true)
             ));
 
   md_data_raw.push_back
@@ -4067,10 +4071,11 @@ void define_md_data_raw()
               "that this requires the retrieval grid to be evenly spaced.\n"
               ),
           AUTHORS( "Simon Pfreundschuh" ),
-          OUT("covmat_block", "covmat_inv_block"),
-          GOUT(),
-          GOUT_TYPE(),
-          GOUT_DESC(),
+          OUT(),
+          GOUT("out", "out_inverse"),
+          GOUT_TYPE("Matrix, Sparse", "Matrix, Sparse"),
+          GOUT_DESC("The matrix in which to store the covariance matrix.",
+                    "The matrix in which to store the inverse of the covariance matrix."),
           IN(),
           GIN("grid", "sigma", "lc", "co"),
           GIN_TYPE("Vector", "Vector", "Numeric", "Numeric"),
@@ -4079,66 +4084,10 @@ void define_md_data_raw()
                    "The vairance for each grid point.",
                    "The correlation length of the Markov process.",
                    "The cutoff value below which elements will be set to 0.0"
-              )
-            ));
-
-  md_data_raw.push_back
-      ( MdRecord
-        ( NAME( "covmat_seSet" ),
-          DESCRIPTION
-          (
-              "Set covmat_se to the matrix in covmat_block.\n"
-              "\n"
-              "If covmat_inv_block is non-empty, it will be used as the inverse for the\n"
-              "covariance matrix.\n"
               ),
-          AUTHORS( "Simon Pfreundschuh" ),
-          OUT("covmat_se"),
-          GOUT(),
-          GOUT_TYPE(),
-          GOUT_DESC(),
-          IN("covmat_se", "covmat_block", "covmat_inv_block"),
-          GIN(),
-          GIN_TYPE(),
-          GIN_DEFAULT(),
-          GIN_DESC()
-            ));
-
-  md_data_raw.push_back
-      ( MdRecord
-        ( NAME( "covmat_sxAddBlock" ),
-          DESCRIPTION
-          (
-              "Add a block to the a priori covariance matrix *covmat_sx*\n"
-              "\n"
-              "This functions adds the given sparse matrix as a block in the covariance\n"
-              "matrix *covmatrix_sx*. The position of the block can be given by the generic\n"
-              "arguments *i* and *j*, which should give the index of the retrieval quantity in\n"
-              "*jacobian_quantities*, which is given just by the order the quantities have been\n"
-              "added to the retrieval.\n"
-              "\n"
-              "If arguments *i* and *j* are not given the block will be added as diagonal block\n"
-              "for the last added retrieval quantity.\n"
-              "\n"
-              "If provided, the index *i* must be less than or equal to *j*. Also the provided\n"
-              "block must be consistent with the corresponding retrieval quantities."
-              "\n"
-              "If the argument *inverse_flag* is non-zero, the block will be as a block of the\n"
-              "precision matrix, i.e.the inverse covariance matrix.\n"
-              ),
-          AUTHORS( "Simon Pfreundschuh" ),
-          OUT("covmat_sx"),
-          GOUT(),
-          GOUT_TYPE(),
-          GOUT_DESC(),
-          IN("covmat_sx", "jacobian_quantities"),
-          GIN("block", "i", "j", "inverse_flag"),
-          GIN_TYPE("Sparse", "Index", "Index", "Index"),
-          GIN_DEFAULT(NODEF, "-1", "-1", "0"),
-          GIN_DESC("The block to add to the covariance matrix",
-                   "Index of a retrieval quantity. Must satisfy *i* <= *j*.",
-                   "Index of a retrieval quantity. Must satisfy *i* <= *j*.",
-                   "Boolean flag indicating whether block should be used as inverse.")
+          PASSWORKSPACE( false  ),
+          SETMETHOD(     false ),
+          USES_TEMPLATES(true)
             ));
 
   md_data_raw.push_back
@@ -4153,15 +4102,217 @@ void define_md_data_raw()
               "computation of the inverse is avoided.\n"
               ),
           AUTHORS( "Simon Pfreundschuh" ),
-          OUT("covmat_block", "covmat_inv_block"),
-          GOUT(),
-          GOUT_TYPE(),
-          GOUT_DESC(),
+          OUT(),
+          GOUT("out", "out_inverse"),
+          GOUT_TYPE("Matrix, Sparse", "Matrix, Sparse"),
+          GOUT_DESC("The matrix in which to store the covariance matrix.",
+                    "The matrix in which to store the inverse of the covariance matrix."),
           IN(),
           GIN( "vars" ),
           GIN_TYPE( "Vector" ),
           GIN_DEFAULT( NODEF),
-          GIN_DESC( "Variances to be used as diagonal elements of covmat_block.")
+          GIN_DESC( "Variances to be used as diagonal elements of covmat_block."),
+          PASSWORKSPACE( false  ),
+          SETMETHOD(     false ),
+          USES_TEMPLATES(true)
+            ));
+
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "covmat_seAddBlock" ),
+          DESCRIPTION
+          (
+              "Add a block to the measurement covariance matrix *covmat_se*\n"
+              "\n"
+              "This functions adds a given dense or sparse matrix as block to the covariance\n"
+              "matrix *covmatrix_sx*. The position of the block can be given by the generic\n"
+              "arguments *i* and *j*. Note that diagonal blocks must be added in order starting from\n"
+             " in  the top left corner. If an off-diagonal block is added it must have corresponding\n"
+            " existing blocks on the diagonal and these must be consistent with the dimensions\n"
+           " of the block.  If *i* and *j*  are not provided, the blok will be added\n"
+           "at the first free spot on the diagonal.\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT(
+          "covmat_se"),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN("covmat_se"),
+          GIN("block", "i", "j"),
+          GIN_TYPE("Matrix, Sparse", "Index", "Index"),
+          GIN_DEFAULT(NODEF, "-1", "-1"),
+          GIN_DESC("The block to add to the covariance matrix",
+                   "Index of a retrieval quantity. Must satisfy *i* <= *j*.",
+                   "Index of a retrieval quantity. Must satisfy *i* <= *j*."),
+          PASSWORKSPACE( false  ),
+          SETMETHOD(     false ),
+          USES_TEMPLATES(true)
+            ));
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "covmat_seAddInverseBlock" ),
+          DESCRIPTION
+          (
+              "Add the inverse of a block to covariance matrix *covmat_se*\n"
+              "\n"
+              "This functions adds a given matrix as the inverse of a block in the covariance\n"
+              "matrix *covmatrix_se*. The purpose of this function is to allow the user to\n"
+              "to use a precomputed inverse for this block in the covariance matrix, that may\n"
+              "for example have been obtained analytically.\n"
+              "\n"
+              "This function requires the corresponding non-inverse block to already be present in *covmat_se*"
+              "\n"
+              "\n Note that for this to work this retrieval quantity must be independent from\n"
+              "other retrieval quantities that do not have an inverse. Otherwise the inverse\n"
+              "will be ignored and recomputed numerically.\n"
+              "\n"
+              "For the rest, the same requirements as for *covmat_seAddBlock* apply.\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT("covmat_se"),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN("covmat_se"),
+          GIN("block", "i", "j"),
+          GIN_TYPE("Matrix, Sparse", "Index", "Index"),
+          GIN_DEFAULT(NODEF, "-1", "-1"),
+          GIN_DESC("The inverse block to add to the covariance matrix",
+                   "Index of a retrieval quantity. Must satisfy *i* <= *j*.",
+                   "Index of a retrieval quantity. Must satisfy *i* <= *j*."),
+          PASSWORKSPACE( false  ),
+          SETMETHOD(      false ),
+          USES_TEMPLATES(true)
+            ));
+
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "covmat_seSet" ),
+          DESCRIPTION
+          (
+              "Set covmat_se to a given matrix.\n"
+              "\n"
+              "This sets the measurement covariance matrix *covmat_se* to\n"
+              "the matrix given by the generic input *covmat*. The covariance\n"
+              "matrix can be of type CovarianceMatrix, Matrix or Sparse.\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT("covmat_se"),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN(),
+          GIN("covmat"),
+          GIN_TYPE("CovarianceMatrix, Matrix, Sparse"),
+          GIN_DEFAULT(NODEF),
+          GIN_DESC("The matrix to set as the covariance matrix."),
+          PASSWORKSPACE( false  ),
+          SETMETHOD( false ),
+          USES_TEMPLATES( true )
+            ));
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "covmat_sxSet" ),
+          DESCRIPTION
+          (
+              "Set covmat_sx to a given matrix.\n"
+              "\n"
+              "This sets the measurement covariance matrix *covmat_se* to\n"
+              "the matrix given by the generic input *covmat*. The covariance\n"
+              "matrix can be of type CovarianceMatrix, Matrix or Sparse.\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT("covmat_se"),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN(),
+          GIN("covmat"),
+          GIN_TYPE("CovarianceMatrix, Matrix, Sparse"),
+          GIN_DEFAULT(NODEF),
+          GIN_DESC("The matrix to set as the covariance matrix."),
+          PASSWORKSPACE( false  ),
+          SETMETHOD( false ),
+          USES_TEMPLATES( true )
+            ));
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "covmat_sxAddBlock" ),
+          DESCRIPTION
+          (
+              "Add a block to the a priori covariance matrix *covmat_sx*\n"
+              "\n"
+              "This functions adds a given matrix as a block in the covariance\n"
+              "matrix *covmatrix_sx*. The position of the block can be given by the generic\n"
+              "arguments *i* and *j*, which should give the index of the retrieval quantity in\n"
+              "*jacobian_quantities*, which is given just by the order the quantities have been\n"
+              "added to the retrieval.\n"
+              "\n"
+              "If arguments *i* and *j* are omitted, the block will be added as diagonal block\n"
+              "for the last added retrieval quantity.\n"
+              "\n"
+              "If provided, the index *i* must be less than or equal to *j*. Also the provided\n"
+              "block must be consistent with the corresponding retrieval quantities.\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT(
+          "covmat_sx"),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN("covmat_sx", "jacobian_quantities"),
+          GIN("block", "i", "j"),
+          GIN_TYPE("Matrix, Sparse", "Index", "Index"),
+          GIN_DEFAULT(NODEF, "-1", "-1"),
+          GIN_DESC("The block to add to the covariance matrix",
+                   "Index of a retrieval quantity. Must satisfy *i* <= *j*.",
+                   "Index of a retrieval quantity. Must satisfy *i* <= *j*."),
+          PASSWORKSPACE( false  ),
+          SETMETHOD(      false ),
+          USES_TEMPLATES(true)
+            ));
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "covmat_sxAddInverseBlock" ),
+          DESCRIPTION
+          (
+              "Add the inverse of a block in covariance matrix *covmat_sx*\n"
+              "\n"
+              "This functions adds a given matrix as the inverse of a block in the covariance\n"
+              "matrix *covmatrix_sx*. The purpose of this function is to allow the user to\n"
+              "to use a precomputed inverse for this block in the covariance matrix, the may\n"
+              "for example by obtained analytically.\n"
+              "\n"
+              "This function requires the non-inverse block to already be present in *covmat_sx*"
+              "\n"
+              "\n Note that for this to work this retrieval quantity must be independent from\n"
+              "other retrieval quantities that do not have an inverse. Otherwise the inverse\n"
+              "will be ignored and recomputed numerically.\n"
+              "\n"
+              "For the rest, the same requirements as for *covmat_sxAddBlock* apply.\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT("covmat_sx"),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN("covmat_sx", "jacobian_quantities"),
+          GIN("block", "i", "j"),
+          GIN_TYPE("Matrix, Sparse", "Index", "Index"),
+          GIN_DEFAULT(NODEF, "-1", "-1"),
+          GIN_DESC("The inverse block to add to the covariance matrix",
+                   "Index of a retrieval quantity. Must satisfy *i* <= *j*.",
+                   "Index of a retrieval quantity. Must satisfy *i* <= *j*."),
+          PASSWORKSPACE( false  ),
+          SETMETHOD(      false ),
+          USES_TEMPLATES(true)
             ));
 
   md_data_raw.push_back
@@ -13715,7 +13866,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "covmat_se", "covmat_sx", "jacobian_agenda", "jacobian_quantities", "sensor_pos",
+        IN( "covmat_sx", "jacobian_agenda", "jacobian_quantities", "sensor_pos",
             "sensor_response" ),
         GIN(),
         GIN_TYPE(),
@@ -16153,6 +16304,31 @@ void define_md_data_raw()
         GIN_DESC( "Size of the matrix",
                   "The value along the diagonal." 
                   )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "DiagonalMatrix" ),
+        DESCRIPTION
+        (
+         "Create a diagonal matrix from a vector."
+         "\n"
+         "This creates a dense or sparse diagonal matrix with the elements of the given vector\n"
+         " on the diagonal.\n"
+         ),
+        AUTHORS( "Simon Pfreundschuh" ),
+        OUT(),
+        GOUT(      "out"   ),
+        GOUT_TYPE( "Matrix, Sparse" ),
+        GOUT_DESC( "The diagonal matrix" ),
+        IN(),
+        GIN(      "v" ),
+        GIN_TYPE( "Vector" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "The vector containing the diagonal elements." ),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        USES_TEMPLATES( true  )
         ));
 
   md_data_raw.push_back

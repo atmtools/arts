@@ -235,6 +235,42 @@ Index CovarianceMatrix::ndiagblocks() const
     return m;
 }
 
+Index CovarianceMatrix::nblocks() const
+{
+    return correlations_.size();
+}
+
+bool CovarianceMatrix::has_block(Index i, Index j) {
+
+    if (i > j) {
+        std::swap(i,j);
+    }
+
+    bool result = false;
+    for (const Block &b : correlations_) {
+        result |= b.get_indices() == std::make_pair(i, j);
+
+    }
+
+    return result;
+}
+
+const Block* CovarianceMatrix::get_block(Index i, Index j) {
+    if (i > j) {
+        std::swap(i,j);
+    }
+    Index bi, bj;
+    for (const Block &b : correlations_) {
+        std::tie(bi, bj) = b.get_indices();
+        if (((i == bi) && (j == bj)) ||
+            ((i == -1) && (j == bj)) ||
+            ((i == -1) && (j == -1))) {
+            return &b;
+        }
+    }
+    return nullptr;
+}
+
 bool CovarianceMatrix::has_diagonal_blocks(const ArrayOfArrayOfIndex &jis) const
 {
     for (Index i = 0; i < static_cast<Index>(jis.size()); ++i) {
@@ -283,7 +319,30 @@ bool CovarianceMatrix::is_consistent(const ArrayOfArrayOfIndex &jis) const {
     return true;
 }
 
-bool CovarianceMatrix::has_inverse(std::pair<Index, Index> indices) const
+bool CovarianceMatrix::is_consistent(const Block &b) const {
+    Index i,j;
+    std::tie(i, j) = b.get_indices();
+
+    for (const Block& c : correlations_) {
+        Index ii, jj;
+        std::tie(ii, jj) = c.get_indices();
+
+        if ((ii == i) && (c.nrows() != b.nrows())) {
+            return false;
+        }
+
+        if ((jj == j) && (c.ncols() != b.ncols())) {
+            return false;
+        }
+
+        if ((ii == i) && (jj == j)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool CovarianceMatrix::has_inverse(IndexPair indices) const
 {
     for (const Block &b : inverses_) {
         if (indices == b.get_indices()) {
@@ -467,94 +526,6 @@ void CovarianceMatrix::add_correlation_inverse(Block c)
     inverses_.push_back(c);
 }
 
-template <typename MatrixType>
-void CovarianceMatrix::add_correlation(Index i,
-                                       Index j,
-                                       std::shared_ptr<MatrixType> matrix)
-{
-    using CorrelationIterator = std::vector<Block>::const_iterator;
-    CorrelationIterator i_block = std::find_if(
-        correlations_.begin(),
-        correlations_.end(),
-        [i](const Block &b) {return b.get_indices() == std::make_pair(i,i);}
-        );
-    CorrelationIterator j_block = std::find_if(
-        correlations_.begin(),
-        correlations_.end(),
-        [j](const Block &b) {return b.get_indices() == std::make_pair(j,j);}
-        );
-
-    if ((i_block == correlations_.end()) || (j_block == correlations_.end())) {
-            runtime_error("Cannot add correlation between blocks that have not yet been added "
-                          "to the covariance matrix.");
-    }
-
-    Range row_range(i_block->get_row_range());
-    Range column_range(j_block->get_column_range());
-
-    correlations_.emplace_back(row_range, column_range, std::make_pair(i,j), matrix);
-}
-
-template <typename MatrixType>
-void CovarianceMatrix::add_correlation(Index i,
-                                       std::shared_ptr<MatrixType> matrix)
-{
-    if (i == 0) {
-        if (correlations_.size() > 0) {
-            runtime_error("Trying to add a correlation block with index 0 to a covariance "
-                          "matrix that already contains a correlation. This would lead to "
-                          " and inconsistent state and is not supported.");
-            }
-            Index start = 0;
-            Index extent = matrix->nrows();
-            Range range(start, extent);
-            correlations_.emplace_back(range, range, std::make_pair(i,i), matrix);
-    } else {
-        using CorrelationIterator = std::vector<Block>::const_iterator;
-        auto pred = [i](const Block &b) {return b.get_indices() == std::make_pair(i,i);};
-
-        CorrelationIterator i_block = std::find_if(correlations_.begin(),
-                                                   correlations_.end(),
-                                                   pred);
-        if ((i_block != correlations_.end())) {
-            runtime_error("Covariance matrix already contains a block with the same index.");
-        }
-        auto pred_prev = [i](const Block &b) {return b.get_indices() == std::make_pair(i-1,i-1);};
-        CorrelationIterator prev_block = std::find_if(correlations_.begin(),
-                                                      correlations_.end(),
-                                                      pred_prev);
-        if ((prev_block != correlations_.end())) {
-            runtime_error("Could not find block preceding the block that should be added.");
-        }
-
-
-        Index start = prev_block->get_row_range().get_start()
-                      + prev_block->get_row_range().get_extent();
-        Index extent = matrix->nrows();
-        Range range(start, extent);
-        correlations_.emplace_back(range, range, std::make_pair(i,i), matrix);
-    }
-}
-
-template <typename MatrixType>
-void CovarianceMatrix::add_correlation(Index i,
-                                       Index j,
-                                       const ArrayOfArrayOfIndex &jacobian_indices,
-                                       std::shared_ptr<MatrixType>    matrix)
-{
-    if (i > j) {
-        std::swap(i,j);
-    }
-
-    Index row_extent = jacobian_indices[i][1] - jacobian_indices[i][0];
-    Index col_extent = jacobian_indices[j][1] - jacobian_indices[j][0];
-
-    Range row_range(jacobian_indices[i][0], row_extent);
-    Range column_range(jacobian_indices[j][0], col_extent);
-
-
-    correlations_.emplace_back(row_range, column_range, std::make_pair(i,j), matrix);
-}
 
 void mult(MatrixView C, ConstMatrixView A, const CovarianceMatrix &B)
 {
@@ -652,16 +623,3 @@ std::ostream& operator<<(std::ostream &os, const CovarianceMatrix &covmat)
     }
     return os;
 }
-
-// Explicit instantiations.
-
-template void CovarianceMatrix::add_correlation<Matrix>(Index, std::shared_ptr<Matrix>);
-template void CovarianceMatrix::add_correlation<Sparse>(Index, std::shared_ptr<Sparse>);
-template void CovarianceMatrix::add_correlation<Matrix>(Index, Index, std::shared_ptr<Matrix>);
-template void CovarianceMatrix::add_correlation<Sparse>(Index, Index, std::shared_ptr<Sparse>);
-template void CovarianceMatrix::add_correlation<Matrix>(Index, Index,
-                                                        const ArrayOfArrayOfIndex &,
-                                                        std::shared_ptr<Matrix>);
-template void CovarianceMatrix::add_correlation<Sparse>(Index, Index,
-                                                        const ArrayOfArrayOfIndex &,
-                                                        std::shared_ptr<Sparse>);

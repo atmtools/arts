@@ -153,7 +153,7 @@ RetrievalData setup_retrieval_1D()
         for (auto & g : gs) {
             n_grid_points *= g.nelem();
         }
-        jis[i] = ArrayOfIndex{ji, ji + n_grid_points};
+        jis[i] = ArrayOfIndex{ji, ji + n_grid_points - 1};
         ji += n_grid_points;
     }
 
@@ -183,27 +183,33 @@ CovarianceMatrix random_covariance_matrix(
         if (x==y) return 0.1; else return 0.0;};
 
     for (size_t i = 0; i < rqs.size(); i++) {
+        Range range(jis[i][0], jis[i][1] - jis[i][0] + 1);
+        auto inds = std::make_pair(i, i);
+
         Numeric p = dis(gen);
         if (p < 0.0) {
             std::shared_ptr<Matrix> m = create_covariance_matrix_1D(i, i, rqs, g);
-            covmat.add_correlation(i, i, jis, m);
+            covmat.add_correlation(Block(range, range, inds, m));
         } else {
             std::shared_ptr<Sparse> m = create_sparse_covariance_matrix_1D(i, i, rqs, g);
-            covmat.add_correlation(i, i, jis, m);
+            covmat.add_correlation(Block(range, range, inds, m));
         }
     }
 
     for (size_t i = 0; i < rqs.size(); i++) {
         for (size_t j = i+1; j < rqs.size(); j++) {
+            Range row_range(jis[i][0], jis[i][1] - jis[i][0] + 1);
+            Range col_range(jis[j][0], jis[j][1] - jis[j][0] + 1);
+            auto inds = std::make_pair(i, j);
             Numeric p = dis(gen);
             if (p > 0.8) {
                 p = dis(gen);
                 if (p < 0.0) {
                     std::shared_ptr<Matrix> m = create_covariance_matrix_1D(i, j, rqs, g);
-                    covmat.add_correlation(i, j, jis, m);
+                    covmat.add_correlation(Block(row_range, col_range, inds, m));
                 } else {
                     std::shared_ptr<Sparse> m = create_sparse_covariance_matrix_1D(i, j, rqs, g2);
-                    covmat.add_correlation(i, j, jis, m);
+                    covmat.add_correlation(Block(row_range, col_range, inds, m));
                 }
             }
         }
@@ -374,6 +380,131 @@ Numeric test_io(Index n_tests)
     return 0.0;
 }
 
+template<typename MatrixType>
+void covmat_seSet(CovarianceMatrix& covmat,
+                  const MatrixType& block,
+                  const Verbosity& /*v*/);
+
+template<typename MatrixType>
+void covmat_sxSet(CovarianceMatrix& covmat,
+                  const MatrixType& block,
+                  const Verbosity& /*v*/);
+
+template<typename MatrixType>
+void covmat_seAddBlock(CovarianceMatrix& covmat_se,
+                       const MatrixType& block,
+                       const Index& i,
+                       const Index& j,
+                       const Verbosity &);
+
+template<typename MatrixType>
+void covmat_seAddInverseBlock(CovarianceMatrix& covmat_se,
+                       const MatrixType& block,
+                       const Index& i,
+                       const Index& j,
+                       const Verbosity &);
+
+
+template<typename MatrixType>
+void covmat_sxAddBlock(CovarianceMatrix& covmat_se,
+                       const ArrayOfRetrievalQuantity& jq,
+                       const MatrixType& block,
+                       const Index& i,
+                       const Index& j,
+                       const Verbosity &);
+
+template<typename MatrixType>
+void covmat_sxAddInverseBlock(CovarianceMatrix& covmat_se,
+                       const ArrayOfRetrievalQuantity& jq,
+                       const MatrixType& block,
+                       const Index& i,
+                       const Index& j,
+                       const Verbosity &);
+ 
+/**
+ * Test general functionality of CovarianceMatrix class.
+ */
+void test_workspace_methods()
+{
+    CovarianceMatrix covmat{};
+    Matrix A(10, 10);
+    Sparse A_sparse(10, 10);
+    Matrix B(20, 20);
+    Matrix C(10, 20);
+
+    // covmat_seSet
+
+    covmat_seSet(covmat, A, Verbosity());
+    assert(covmat.ncols() == 10);
+
+    // covmat_seAddBlock
+
+    covmat_seAddBlock(covmat, A_sparse, -1, -1, Verbosity());
+    assert(covmat.ncols() == 20);
+
+    try {
+        covmat_seAddBlock(covmat, A, 3, 3, Verbosity());
+        // This should fail.
+        assert(false);
+    } catch(std::runtime_error) {}
+
+    covmat_seAddBlock(covmat, A, 0, 1, Verbosity());
+
+    covmat_seAddBlock(covmat, A, 2, 2, Verbosity());
+
+    try {
+        covmat_seAddBlock(covmat, B, 1, 2, Verbosity());
+        // This should fail.
+        assert(false);
+    } catch(std::runtime_error) {}
+
+    covmat_seAddInverseBlock(covmat, A, 0, 1, Verbosity());
+
+    try {
+        covmat_seAddInverseBlock(covmat, B, 3, 3, Verbosity());
+        // This should fail.
+        assert(false);
+    } catch(std::runtime_error) {}
+
+
+    // covmat_sxSet
+    covmat_sxSet(covmat, A, Verbosity());
+    assert(covmat.ncols() == 10);
+
+    // covmat_sxAddBlock
+
+    A.resize(1000, 1000);
+    A_sparse.resize(8000, 8000);
+    C.resize(1000, 8000);
+
+    ArrayOfVector grids_1{Vector(10), Vector(10), Vector(10)};
+    ArrayOfVector grids_2{Vector(20), Vector(20), Vector(20)};
+
+    RetrievalQuantity rq_1("mt", "st", "sst", "m", 1, 0.1, grids_1);
+    RetrievalQuantity rq_2("mt", "st", "sst", "m", 1, 0.1, grids_2);
+
+    ArrayOfRetrievalQuantity rqs{};
+    rqs.push_back(rq_1);
+    rqs.push_back(rq_2);
+
+    covmat_sxAddBlock(covmat, rqs, A_sparse, -1, -1, Verbosity());
+
+    try {
+        covmat_sxAddBlock(covmat, rqs, A_sparse, 0, 1, Verbosity());
+        // This should fail.
+        assert(false);
+    } catch(std::runtime_error) {}
+
+    covmat_sxAddBlock(covmat, rqs, C, 0, 1, Verbosity());
+    covmat_sxAddInverseBlock(covmat, rqs, A, 0, 0, Verbosity());
+
+    try {
+        covmat_sxAddInverseBlock(covmat, rqs, C, 1, 1, Verbosity());
+        // This should fail.
+        assert(false);
+    } catch(std::runtime_error) {}
+}
+
 /**
  * Tests invlib wrapper for covariance matrices.
  *
@@ -446,48 +577,52 @@ Numeric test_invlib_wrapper(Index n_tests)
 int main() {
     Numeric e = 0.0, e_max = 0.0;
 
-    std::cout << "Testing covariance matrix:" << e << std::endl;
-    e = test_addition(100);
-    std::cout << "\tAddition:       " << e << std::endl;
+    std::cout << "Testing covariance matrix: " << std::endl;
+    e = test_addition(10);
+    std::cout << "\tAddition:                " << e << std::endl;
     e_max = std::max(e, e_max);
     if (e_max > 1e-5) {
         return -1;
     }
 
-    e = test_multiplication_by_vector(100);
-    std::cout << "\tMultiplication: " << e << std::endl;
+    e = test_multiplication_by_vector(10);
+    std::cout << "\tVector Multiplication:   " << e << std::endl;
     e_max = std::max(e, e_max);
     if (e_max > 1e-5) {
         return -1;
     }
 
-    e = test_multiplication_by_matrix(100);
-    std::cout << "Multiplication:                  " << e << std::endl;
+    e = test_multiplication_by_matrix(10);
+    std::cout << "\tMatrix Multiplication:   " << e << std::endl;
     e_max = std::max(e, e_max);
     if (e_max > 1e-5) {
         return -1;
     }
 
-    e = test_inverse(100);
-    std::cout << "Inverse of covariance matrix:    " << e << std::endl;
+    e = test_inverse(10);
+    std::cout << "\tInverse:                 " << e << std::endl;
     e_max = std::max(e, e_max);
     if (e_max > 1e-5) {
         return -1;
     }
 
-    e = test_io(100);
-    std::cout << "XML IO:                          " << e << std::endl;
+    e = test_io(10);
+    std::cout << "\tXML IO:                  " << e << std::endl;
     e_max = std::max(e, e_max);
     if (e_max > 1e-5) {
         return -1;
     }
 
-    e = test_invlib_wrapper(100);
-    std::cout << "invlib Wrapper:                   " << e << std::endl;
+    e = test_invlib_wrapper(10);
+    std::cout << "\tinvlib Wrapper:          " << e << std::endl;
     e_max = std::max(e, e_max);
     if (e_max > 1e-5) {
         return -1;
     }
+
+    std::cout << std::endl << "\tTesting workspace functions ... ";
+    test_workspace_methods();
+    std::cout << " DONE." << std::endl;
 
     return 0;
 }

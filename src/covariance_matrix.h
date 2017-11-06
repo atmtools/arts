@@ -54,10 +54,10 @@ using IndexPair = std::pair<Index, Index>;
  *
  * A block in a covariance matrix represents a correlation between two retrieval
  * quantities. Each block holds a pointer to either a dense matrix of type
- * Matrix or type Sparse. In addition to this it holds to two indices i and j
- * and two range objects that  describe the position of the block in the
- * covariance matrix. The indices i and j are the indices of the retrieval
- * quantities that this block relates.
+ * Matrix or type Sparse. In addition to this it holds to two block
+ * indices i and j and two range objects that  describe the position of the block
+ * in terms of the rows and columns of blocks in the matrix and the row and
+ * columns of elements, respectively.
 */
 class Block {
 public:
@@ -70,7 +70,13 @@ public:
 
     /*
      * Create a correlation block from given row_range, column_range and shared_ptr
-     * to matrix object.
+     * to a dense matrix.
+     *
+     * @param row_range The range of element-rows covered by the block
+     * @param column_range The range of element-column covered by the block
+     * @param indices The pair of block-indices that identifies the block in the
+     *        covariance matrix.
+     * @param dense A shared pointer to a den matrix of type Matrix
      */
     Block(Range row_range, Range column_range, IndexPair indices,
                 std::shared_ptr<Matrix> dense)
@@ -81,7 +87,14 @@ public:
     }
 
     /*
-     * Same as above but constructs a Block holding a matrix of type Sparse.
+     * Create a correlation block from given row_range, column_range and shared_ptr
+     * to a sparse matrix.
+     *
+     * @param row_range The range of element-rows covered by the block
+     * @param column_range The range of element-column covered by the block
+     * @param indices The pair of block-indices that identifies the block in the
+     *        covariance matrix.
+     * @param dense A shared pointer to a den matrix of type Sparse
      */
     Block(Range row_range, Range column_range, IndexPair indices,
                 std::shared_ptr<Sparse> sparse)
@@ -161,14 +174,19 @@ void add_inv(MatrixView A, const Block &);
  * of a covariance matrix. The covariance matrix is represented by a vector of
  * blocks that describe the correlations between the retrieval quantities.
  *
- * The covariance matrix class implements provides overloads for the common
+ * A block in a covariance matrix is identified by its block-row and
+ * block-column indices. The block-row i is defined by the row of blocks that
+ * contains the ith diagonal block. Similarly, the block-column j is defined
+ * as  the column of block  that contains the jth diagonal block.
+ *
+ * The covariance matrix class implements overloads for the common
  * ARTS operations for multiplication by matrices and vectors as well as
  * adding covariance matrices to other matrices.
  *
  * Computing inverses of covariance matrices is handled indirectly by providing
  * mult_inv methods that multiply the inverse of the covariance matrix by a given
  * vector or matrix. This, however, requires previously having computed the inverse
- * of the matrix using the comput_inverse method.
+ * of the matrix using the compute_inverse method.
  */
 class CovarianceMatrix {
 
@@ -187,22 +205,74 @@ public:
 
     Index nrows() const;
     Index ncols() const;
+
+    /**! The number of diagonal blocks in the matrix excluding inverses.*/
     Index ndiagblocks() const;
+
+    /**! The number of blocks in the matrix excluding inverses.*/
+    Index nblocks() const;
+
+    /**
+     * Check if the block with indices (i, j) is contained in the
+     * covariance matrix.
+     *
+     * @param i the block-row index
+     * @param j the block-column index
+     */
+    bool has_block(Index i, Index j);
+
+    /**
+     * Return a pointer to the block with indices (i,j). If any
+     * of i or j is less than zero, than the first block found in this
+     * row or column is returned. This is useful for obtaining the element range
+     * corresponding to a given block row or column range.
+     *
+     * @param i The block-row index of the block to return or -1.
+     * @param j The block-column index of the block to return or -1.
+     *
+     * @return A pointer to the block at (i,j) or nullptr if
+     *         this block doesn't exist.
+     */
+    const Block* get_block(Index i = -1, Index j = -1);
 
     /**
      * Checks that the covariance matrix contains one diagonal block per retrieval
      * quantity.
+     *
+     * TODO: This should be moved to m_retrieval
+     *
+     * @param jis The ArrayOfArrayOfIndex containing the first and last indices
+     *        of each retrieval quantity in the state vector.
+     * @return true if the covariance matrix contains a diagonal block for each
+     *         retrieval quantity
      */
     bool has_diagonal_blocks(const ArrayOfArrayOfIndex &jis) const;
 
     /**
-     * Checks if block positions and dimensions agree with the jacobian.
+     * Checks that the dimensions of the blocks in the covariance matrix are
+     * consistent with ranges occupied by the different retrieval quantities
+     * in the state vector.
+     *
+     * TODO: This should be moved to m_retrieval
+     *
+     * @param jis The ArrayOfArrayOfIndex containing the first and last indices
+     *        of each retrieval quantity in the state vector.
+     * @return true if the covariance matrix contains a diagonal block for each
+     *         retrieval quantity
      */
     bool is_consistent(const ArrayOfArrayOfIndex &jis) const;
 
     /**
-     * Checks if block positions and dimensions agree with the jacobian.
+     * This method checks whether a block is consistent with existing blocks
+     * in the covariance matrix, i.e. that there is no other block in the
+     * given row i (colum j) that has a different number of rows (columns)
+     * than the given block.
+     *
+     * @param block The block for which to check consistent
+     * @return true if the block is consistent with the other block
+     *         contained in the matrix
      */
+    bool is_consistent(const Block &block) const;
 
     /**
      * Compute the inverse of this correlation matrix. This function must be executed
@@ -211,48 +281,25 @@ public:
      */
     void compute_inverse() const;
 
-    /** Add correlation in form of given block to this matrix. */
+    /** Add block to covariance matrix.
+     *
+     * This function add a given block to the covariance matrix.
+     * If this block is not consistent with other blocks in the matrix
+     * an error will be thrown.
+     *
+     * @param c The block to add to the covariance matrix
+     */
     void add_correlation(Block c);
-    /** Add the inverse of a correlation block to this matrix. This
-     *  will only work if the original block is also contained in the
-     *  covariance matrix. */
+
+    /** Add block inverse to covariance matrix.
+     *
+     * This function adds the inverse of a given block to a covariance
+     * matrix. An error will be thrown if the corresponding non-inverse
+     * block is not already in the covariance matrix.
+     *
+     * @param c The inverse of a block already in the matrix.
+     */
     void add_correlation_inverse(Block c);
-    /** Add a diagonal block describing the internal correlations of retrieval quantity
-     * with index i to the matrix. A runtime error
-     * i and j given by a dense matrix of type Matrix. This function requires that
-     * that the diagonal blocks corresponding to both quantities i and j have been
-     * added to the covariance matrix previously otherwise a runtime error will
-     * be thrown
-     * @param i The index of the first retrieval quantity.
-     * @param j The index of the second retrieval quantity.
-     * @param matrix A shared pointer to the matrix holding the correlation coefficients.
-     */
-    template<typename MatrixType>
-    void add_correlation(Index i,
-                         std::shared_ptr<MatrixType> matrix);
-    /** Add a correlation between two retrieval quantities that have been previously
-     * added to the matrix.
-     * @param i The index of the first retrieval quantity.
-     * @param j The index of the second retrieval quantity.
-     * @param matrix A shared pointer to the matrix holding the correlation coefficients.
-     */
-    template<typename MatrixType>
-    void add_correlation(Index i,
-                         Index j,
-                         std::shared_ptr<MatrixType> matrix);
-    /** Add a correlation relation between the retrieval quantitites with indices
-     * i and j represented by a dense or a sparse matrix.
-     * @param i The index of the first retrieval quantity.
-     * @param j The index of the second retrieval quantity.
-     * @param jacobian_indices The ArrayOfArrayOfIndex containing the first and last
-     * indices of all retrieval quantities.
-     * @param matrix A shared pointer to the matrix holding the correlation coefficients.
-     */
-    template<typename MatrixType>
-    void add_correlation(Index i,
-                         Index j,
-                         const ArrayOfArrayOfIndex & jacobian_indices,
-                         std::shared_ptr<MatrixType> sparse);
 
     // Friend declarations.
     friend void mult(MatrixView, ConstMatrixView, const CovarianceMatrix &);
@@ -276,7 +323,7 @@ private:
     void generate_blocks(std::vector<std::vector<const Block *>> &) const;
     void invert_correlation_block(std::vector<Block> &inverses,
                                   std::vector<const Block *> &blocks) const;
-    bool has_inverse(std::pair<Index, Index> indices) const;
+    bool has_inverse(IndexPair indices) const;
 
     std::vector<Block> correlations_;
     mutable std::vector<Block> inverses_;

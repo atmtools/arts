@@ -593,6 +593,45 @@ void SparseMatrixIdentity( Sparse        &X,
       X *= value;
 }
 
+template<typename MatrixType>
+void DiagonalMatrix(MatrixType&           X,
+                    const Vector&     diag,
+                    const Verbosity& /*v*/);
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+template<>
+void DiagonalMatrix(Matrix&           X,
+                    const Vector&     diag,
+                    const Verbosity& /*v*/)
+{
+    Index n = diag.nelem();
+    X.resize(n,n);
+
+    for (Index i = 0; i < n; ++i) {
+        X(i, i) = diag[i];
+    }
+}
+template void DiagonalMatrix(Matrix&, const Vector&, const Verbosity&);
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+template<>
+void DiagonalMatrix(Sparse&           X,
+                    const Vector&     diag,
+                    const Verbosity& /*v*/)
+{
+    Index n = diag.nelem();
+    X.resize(n,n);
+
+    ArrayOfIndex indices(n);
+
+    for (Index i = 0; i < n; ++i) {
+        indices[i] = i;
+    }
+
+    X.insert_elements(n, indices, indices, diag);
+}
+template void DiagonalMatrix(Sparse&, const Vector&, const Verbosity&);
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void StringSet(String&  s, 
                const String&  s2,
