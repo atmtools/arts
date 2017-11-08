@@ -1,5 +1,11 @@
 2017-11-08  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-2-63
+
+	* doc/uguide/development.tex: Update arts-dev list address.
+
+2017-11-08  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-2-62
 	
 	* README: Updated ARTS URL. Reported by Jana.
