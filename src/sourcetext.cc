@@ -100,21 +100,6 @@ const String& SourceText::File()
 }
 
 
-Index SourceText::Line()
-{
-  Index i    = 0;
-  bool   stop = false;
-
-  while ( i<mSfLine.nelem()-1 && !stop )
-    {
-      if (mLine>=mSfLine[i+1]) ++i;
-      else                     stop = true;
-    }
-
-  return mLine - mSfLine[i] + 1; 
-}
-
-
 void SourceText::Init()
 {
   mLine   = 0;
@@ -146,6 +131,21 @@ void SourceText::Init()
             }
         }
     }
+}
+
+
+Index SourceText::GetSourceLine(const Index line)
+{
+  Index i    = 0;
+  bool   stop = false;
+
+  while ( i<mSfLine.nelem()-1 && !stop )
+    {
+      if (line>=mSfLine[i+1]) ++i;
+      else                     stop = true;
+    }
+
+  return line - mSfLine[i] + 1;
 }
 
 

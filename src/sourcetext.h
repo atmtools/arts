@@ -75,7 +75,11 @@ public:
 
   /** Return the line number, but for the file that is associated
       with the current position. */
-  Index Line();
+  Index Line() { return GetSourceLine(mLine); };
+
+  /** Return the marked line number, but for the file that is associated
+      with the current position. */
+  Index MarkedLine() { return GetSourceLine(mMarkedLine); };
 
   /** Return the line index. */
   Index LineRaw() { return mLine; }
@@ -86,11 +90,21 @@ public:
   /** Return the current column. */
   Index Column() { return mColumn+1; }
 
+  /** Return the current marked column. */
+  Index MarkedColumn() { return mMarkedColumn+1; }
+
   /** Set current position. */
   void SetPosition(Index line, Index column)
     {
         mLine = line;
         mColumn = column;
+    }
+
+  /** Mark current position. */
+  void SetMark()
+    {
+        mMarkedLine = mLine;
+        mMarkedColumn = mColumn;
     }
     
   /** This sets the pointer to the first existing character in the
@@ -110,6 +124,10 @@ public:
 
 private:
 
+  /** Return the line number, but for the file that is associated
+      with the given position. */
+  Index GetSourceLine(const Index line);
+
   /** The text. */
   ArrayOfString mText;
 
@@ -118,6 +136,12 @@ private:
 
   /** Column position in the text. (0 based!) */
   Index mColumn;
+
+  /** Marked line position in the text. (0 based!) */
+  Index mMarkedLine;
+
+  /** Marked column position in the text. (0 based!) */
+  Index mMarkedColumn;
 
   /** Remember where which source file starts. */
   ArrayOfIndex mSfLine;

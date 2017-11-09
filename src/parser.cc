@@ -590,6 +590,7 @@ void ArtsParser::parse_method(Index&         id,
     auto_vars_values.resize(  0 );
     include_file = "";
 
+    msource.SetMark();
     read_name(methodname);
 
     if (methodname == "INCLUDE")
@@ -902,8 +903,8 @@ void ArtsParser::parse_method_args(const MdRecord*& mdd,
     if ( md_raw_id == MdRawMap.end() )
         throw UnknownMethod(methodname,
                             msource.File(),
-                            msource.Line(),
-                            msource.Column());
+                            msource.MarkedLine(),
+                            msource.MarkedColumn());
 
     id = md_raw_id->second;
 
@@ -1022,8 +1023,8 @@ void ArtsParser::parse_method_args(const MdRecord*& mdd,
             << "You have to pass a variable!";
             throw ParseError(os.str(),
                              msource.File(),
-                             msource.Line(),
-                             msource.Column());
+                             msource.MarkedLine(),
+                             msource.MarkedColumn());
         }
 
         // If the parenthesis were omitted we still have to add the implicit
@@ -1067,8 +1068,8 @@ void ArtsParser::parse_method_args(const MdRecord*& mdd,
                         {
                             throw UnknownWsv( wsvname,
                                              msource.File(),
-                                             msource.Line(),
-                                             msource.Column() );
+                                             msource.MarkedLine(),
+                                             msource.MarkedColumn() );
                         }
 
                         wsvid = wsvit->second;
@@ -1080,12 +1081,12 @@ void ArtsParser::parse_method_args(const MdRecord*& mdd,
             if (!all_gin_have_defaults)
             {
                 ostringstream os;
-                os << "Not all generic inputs of this method have default "
-                << "values, you have to specify them!";
+                os << "Not all generic inputs of the method *" << methodname
+                << "* have default values, you have to specify them!";
                 throw ParseError( os.str(),
                                  msource.File(),
-                                 msource.Line(),
-                                 msource.Column() );
+                                 msource.MarkedLine(),
+                                 msource.MarkedColumn() );
             }
         }
     }

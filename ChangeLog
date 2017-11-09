@@ -1,3 +1,22 @@
+2017-11-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-866
+
+	* src/sourcetext.{h,cc} (SourceText):
+
+	Add ability to mark the current position in controlfile for later use.
+	This helps to output the correct line number in error messages for
+	certain cases.
+
+	* src/parser.cc (ArtsParser::parse_method):
+
+	Set mark before reading the method name.
+
+	* src/parser.cc (ArtsParser::parse_method_args):
+
+	Use the marked position in error reporting for method calls without
+	parenthesis. Fixes trac ticket #155 reported by Simon.
+
 2017-11-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-865
