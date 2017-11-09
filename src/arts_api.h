@@ -380,6 +380,18 @@ extern "C" {
                                           unsigned long n_args_in,
                                           const long * args_in);
 
+    //! Print method documentation.
+    /**
+     *
+     * This prints the documentation of the method as it is found for example
+     * in the HTML browser to the stream buffer and returns a pointer to
+     * it.
+     *
+     * \param id The id of the method.
+     */
+    DLL_PUBLIC
+    const char * method_print_doc(long id);
+
     ////////////////////////////////////////////////////////////////////////////
     // Accessing and Manipulating WSVs
     ////////////////////////////////////////////////////////////////////////////

@@ -1,16 +1,14 @@
 #include "interactive_workspace.h"
 #include "global_data.h"
 #include "auto_workspace.h"
-
 using global_data::md_data;
 
 extern Verbosity verbosity_at_launch;
 extern void (*getaways[])(Workspace&, const MRecord&);
 extern WorkspaceMemoryHandler wsmh;
+extern std::string string_buffer;
 
 Index get_wsv_id(const char*);
-
-std::string *error_buffer;
 
 size_t InteractiveWorkspace::n_anonymous_variables_ = 0;
 
@@ -43,8 +41,8 @@ const char * InteractiveWorkspace::execute_agenda(const Agenda *a)
     try {
         a->execute(*this);
     } catch(const std::runtime_error &e) {
-        *error_buffer = e.what();
-        return error_buffer->c_str();
+        string_buffer = e.what();
+        return string_buffer.c_str();
     }
     return nullptr;
 }
@@ -72,8 +70,8 @@ const char * InteractiveWorkspace::execute_workspace_method(long id,
         MRecord mr(id, output, input, t, a);
         getaways[id](*this, mr);
     } catch (const std::runtime_error &e) {
-        *error_buffer = e.what();
-        return error_buffer->c_str();
+        string_buffer = e.what();
+        return string_buffer.c_str();
     }
     return nullptr;
 }

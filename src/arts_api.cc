@@ -18,7 +18,7 @@ Index get_wsv_id(const char*);
 
 using global_data::MdMap;
 
-extern std::string *error_buffer;
+std::string string_buffer;
 
 //extern "C" {
 
@@ -59,18 +59,17 @@ void set_parameters(const char *includepath,
 
 void initialize()
 {
-    error_buffer = new std::string;
     InteractiveWorkspace::initialize();
 }
 
 void finalize()
 {
-    delete error_buffer;
+    // Nothing to do here.
 }
 
 const char * get_error()
 {
-    return error_buffer->c_str();
+    return string_buffer.c_str();
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -86,7 +85,7 @@ Agenda * parse_agenda(const char *filename)
         a->set_name(filename);
         a->set_main_agenda();
     } catch(const std::runtime_error &e) {
-        *error_buffer = std::string(e.what());
+        string_buffer = std::string(e.what());
         return nullptr;
     }
     return a;
@@ -275,6 +274,13 @@ const char * execute_workspace_method(InteractiveWorkspace *workspace,
     ArrayOfIndex output, input;
     copy_output_and_input(output, input, n_args_out, args_out, n_args_in, args_in);
     return workspace->execute_workspace_method(id, output, input);
+}
+
+const char * method_print_doc(long id) {
+    std::stringstream ss;;
+    ss << md_data[id];
+    string_buffer = ss.str();
+    return string_buffer.c_str();
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -493,9 +499,9 @@ const char * set_variable_value(InteractiveWorkspace *workspace,
                                       value.dimensions[3],
                                       ptr);
     } else {
-        *error_buffer = std::string("This variable can currently not be set through the C API."
+        string_buffer = std::string("This variable can currently not be set through the C API."
                                     " Signal your need to ARTS dev mailing list.");
-        return error_buffer->c_str();
+        return string_buffer.c_str();
     }
     return nullptr;
 }
