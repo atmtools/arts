@@ -1,3 +1,18 @@
+2017-11-12  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-869
+
+	* 3rdparty/invlib/src/invlib/*: invlib update
+
+	* src/m_oem.cc:
+
+	(OEM): Return right error code when maximum gamma is reached.
+
+	* src/methods.cc:
+
+	(OEM) Minimal fix for documentation.
+
+
 2017-11-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-868

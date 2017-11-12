@@ -236,7 +236,9 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STAN
     RealType conv = NAN;
     log.step(iterations, cost, cost_x, cost_y, conv, M);
 
-    while ((iterations < M.get_maximum_iterations()) && !converged)
+    while ((iterations < M.get_maximum_iterations())
+           && !M.stop_iteration()
+           && !converged)
     {
 
         // Compute next step.
@@ -337,7 +339,9 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFOR
     bool converged = false;
     iterations = 0;
 
-    while (iterations < M.get_maximum_iterations() && !converged)
+    while ((iterations < M.get_maximum_iterations())
+           && !M.stop_iteration()
+           && !converged)
     {
         auto tmp = transp(K) * inv(Se);
 
@@ -458,7 +462,9 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFOR
     bool converged = false;
     iterations = 0;
 
-    while (iterations < M.get_maximum_iterations() && !converged)
+    while ((iterations < M.get_maximum_iterations())
+           && !M.stop_iteration()
+           && !converged)
     {
         // Compute step.
         auto tmp = Sa * transp(K);

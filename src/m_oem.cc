@@ -1234,6 +1234,7 @@ void OEM(
                 return_code = oem.compute<GN, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
                     lm_ga_history, true);
+                oem_diagnostics[0] = static_cast<Index>(return_code);
             }
             else if (method == "li_m")
             {
@@ -1242,6 +1243,7 @@ void OEM(
                 return_code = oem_m.compute<GN, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
                     lm_ga_history, true);
+                oem_diagnostics[0] = static_cast<Index>(return_code);
             }
             else if (method == "li_cg")
             {
@@ -1250,6 +1252,7 @@ void OEM(
                 return_code = oem.compute<GN_CG, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
                     lm_ga_history, true);
+                oem_diagnostics[0] = static_cast<Index>(return_code);
             }
             else if (method == "li_cg_m")
             {
@@ -1258,6 +1261,7 @@ void OEM(
                 return_code = oem_m.compute<GN_CG, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
                     lm_ga_history, true);
+                oem_diagnostics[0] = static_cast<Index>(return_code);
             }
             else if (method == "gn")
             {
@@ -1266,6 +1270,7 @@ void OEM(
                     return_code = oem.compute<GN, ArtsLog>(
                         x_oem, y_oem, gn, oem_verbosity,
                         lm_ga_history);
+                oem_diagnostics[0] = static_cast<Index>(return_code);
             }
             else if (method == "gn_m")
             {
@@ -1274,6 +1279,7 @@ void OEM(
                 return_code = oem_m.compute<GN, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
                     lm_ga_history);
+                oem_diagnostics[0] = static_cast<Index>(return_code);
             }
             else if (method == "gn_cg")
             {
@@ -1282,6 +1288,7 @@ void OEM(
                 return_code = oem.compute<GN_CG, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
                     lm_ga_history);
+                oem_diagnostics[0] = static_cast<Index>(return_code);
             }
             else if (method == "gn_cg_m")
             {
@@ -1290,6 +1297,7 @@ void OEM(
                 return_code = oem_m.compute<GN_CG, ArtsLog>(
                     x_oem, y_oem, gn, oem_verbosity,
                     lm_ga_history);
+                oem_diagnostics[0] = static_cast<Index>(return_code);
             }
             else if ( (method == "lm") || (method == "ml") )
             {
@@ -1306,9 +1314,13 @@ void OEM(
                 lm.set_lambda_threshold(lm_ga_settings[4]);
                 lm.set_lambda_constraint(lm_ga_settings[5]);
 
-                return_code = oem.compute<LM_S, ArtsLog>(
+                return_code = oem.compute<LM_S&, ArtsLog>(
                     x_oem, y_oem, lm, oem_verbosity,
                     lm_ga_history);
+                oem_diagnostics[0] = static_cast<Index>(return_code);
+                if (lm.get_lambda() > lm.get_lambda_maximum()) {
+                    oem_diagnostics[0] = 2;
+                }
             }
             else if ( (method == "lm_cg") || (method == "ml_cg") )
             {
@@ -1323,19 +1335,22 @@ void OEM(
                 lm.set_lambda_threshold(lm_ga_settings[3]);
                 lm.set_lambda_maximum(lm_ga_settings[4]);
 
-                return_code = oem.compute<LM_CG_S, ArtsLog>(
+                return_code = oem.compute<LM_CG_S&, ArtsLog>(
                     x_oem, y_oem, lm, oem_verbosity,
                     lm_ga_history);
+                oem_diagnostics[0] = static_cast<Index>(return_code);
+                if (lm.get_lambda() > lm.get_lambda_maximum()) {
+                    oem_diagnostics[0] = 2;
+                }
             }
 
-            oem_diagnostics[0] = static_cast<Index>(return_code);
             oem_diagnostics[2] = oem.cost / static_cast<Numeric>(m);
             oem_diagnostics[3] = oem.cost_y / static_cast<Numeric>(m);
             oem_diagnostics[4] = static_cast<Numeric>(oem.iterations);
         }
         catch (const std::exception & e)
         {
-            oem_diagnostics[0]  = 99;
+            oem_diagnostics[0] = 9;
             oem_diagnostics[2] = oem.cost;
             oem_diagnostics[3] = oem.cost_y;
             oem_diagnostics[4] = static_cast<Numeric>(oem.iterations);

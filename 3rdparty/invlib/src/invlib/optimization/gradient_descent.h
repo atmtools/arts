@@ -102,6 +102,8 @@ public:
                     const MatrixType &B,
                     CostFunction & J);
 
+    bool stop_iteration() {return false;}
+
 private:
 
     RealType tolerance, step_length, scale, minimum_step_length, current_cost;

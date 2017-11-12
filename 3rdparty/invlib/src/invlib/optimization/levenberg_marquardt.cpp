@@ -15,7 +15,7 @@ LevenbergMarquardt<RealType, DampingMatrix, Solver>
     : current_cost(0.0), tolerance(1e-5), lambda(4.0), lambda_maximum(100.0),
       lambda_increase(2.0), lambda_decrease(3.0), lambda_threshold(1.0),
       lambda_constraint(std::numeric_limits<RealType>::min()), maximum_iterations(100),
-      step_count(0), D(D_), s(solver)
+      step_count(0), stop(false), D(D_), s(solver)
 {
     // Nothing to do here.
 }
@@ -301,6 +301,7 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
                 else
                 {
                     lambda = lambda_maximum + 1.0;
+                    stop = true;
                     break;
                 }
             }

@@ -121,6 +121,8 @@ public:
                     const MatrixType &B,
                     const CostFunction &);
 
+    bool stop_iteration() {return false;}
+
 private:
 
     RealType tolerance;

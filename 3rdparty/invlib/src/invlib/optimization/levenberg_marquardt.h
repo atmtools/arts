@@ -129,11 +129,14 @@ public:
                     const MatrixType &B,
                     CostFunction     &J);
 
+    bool stop_iteration() const {return stop;}
+
 private:
 
     RealType current_cost, tolerance, lambda, lambda_maximum, lambda_increase,
     lambda_decrease, lambda_threshold, lambda_constraint;
     unsigned int maximum_iterations, step_count;
+    bool stop;
 
     // Positive definite matrix defining the trust region sphere r < ||Mx||.
     const DampingMatrix &D;
