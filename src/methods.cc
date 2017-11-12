@@ -6049,10 +6049,9 @@ void define_md_data_raw()
          "I3TRGS, 2011. Note that emissivity and reflectivity do not add up\n"
          "to 1, which is the way FASTEM compensates for non-specular effects.\n"
          "\n"
-         "FASTEM is not giving complete information for reflectivity. The\n"
-         "reflectivity for U and V components is simply set to zero.\n"
-         "\n"
-         "If the skin temperature is below 270 K, it is adjusted to 270 K.\n"
+         "There is an error if any frequency is above 250 GHz, or if the skin\n"
+         "temperature is below 260 K. If the skin temperature is below 270 K,\n"
+         "it is adjusted to 270 K.\n"
          "\n"
          "FASTEM returns unphysical values for propagation close to the\n"
          "horizon, here emissivity and reflectivity can be outside [0,1].\n"
@@ -7978,8 +7977,8 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "diy_dx", "iy_transmission", "iy_id", "jacobian_do", "atmosphere_dim",
-            "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field", "z_surface",
-            "cloudbox_on", "stokes_dim", "f_grid", "refellipsoid",
+            "t_field", "z_field", "vmr_field",
+            "cloudbox_on", "stokes_dim", "f_grid",
             "rtp_pos", "rtp_los", "rte_pos2", "iy_unit", "iy_main_agenda", 
             "surface_skin_t" ),
         GIN( "salinity", "wind_speed", "wind_direction", "fastem_version" ),
@@ -16348,7 +16347,7 @@ void define_md_data_raw()
          "specular direction. That is, the variation of *z_surface* (as well as\n"
          "the geoid radius) is considered and the specular direction is calculated\n"
          "including the specified topography. This part can be deactivated by\n"
-         "setting *ignore_surface_slope* to 1. Ijn this case, the zenith angle of\n"
+         "setting *ignore_surface_slope* to 1. In this case, the zenith angle of\n"
          "the specular direction is simply 180-rtp_los[0]. *ignore_surface_slope*\n"
          "has only an effect for 2D and 3D, as 1D implies a constant radius of\n"
          "the surface (i.e. no topography).\n"
@@ -16364,6 +16363,32 @@ void define_md_data_raw()
         GIN_TYPE( "Index" ),
         GIN_DEFAULT( "0" ),
         GIN_DESC( "Flag to control if surface slope is consdered or not." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "specular_losCalcNoTopography" ),
+        DESCRIPTION
+        (
+         "Calculates the specular direction of surface reflections for horisontal\n"
+         "surfaces.\n"
+         "\n"
+         "In contrast to *specular_losCalc*, this method ignores the topography\n"
+         "implied by *z_surface*. That is, any slope of the surface is ignored.\n"
+         "\n"
+         "The typical application of this WSM should be water surfaces (lakes and\n"
+         "oceans).\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "specular_los", "surface_normal" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "rtp_pos", "rtp_los", "atmosphere_dim" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -16453,7 +16478,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "f_grid", "stokes_dim", "surface_skin_t" ),
+        IN( "atmosphere_dim", "f_grid", "stokes_dim", "rtp_pos", "rtp_los",
+            "surface_skin_t" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -16507,12 +16533,18 @@ void define_md_data_raw()
       ( NAME( "surfaceTessem" ),
         DESCRIPTION
         (
-         "Tessem sea surface emissivity parametrization.\n"
+         "Tessem sea surface microwave emissivity parametrization.\n"
          "\n"
-         "This computes surface emissivity and reflectivity matrices for \n"
-         " ocean surfaces using the TESSEM emissivity model. The model itself\n"
-         " is represented by the neural networks in *tessem_neth* and \n"
-         " *tessem_netv*.\n"
+         "This method computes surface emissivity and reflectivity matrices for\n"
+         "ocean surfaces using the TESSEM emissivity model: Prigent, C., et al.\n"
+         "Sea‐surface emissivity parametrization from microwaves to millimetre\n"
+         "waves, QJRMS, 2017, 143.702: 596-605.\n"
+         "\n"
+         "The validity range of the parametrization of is 10 to 700 GHz, but for\n"
+         "some extra flexibility frequencies between 5 and 900 GHz are accepted.\n"
+         "\n"
+         "The model itself\ is represented by the neural networks in\n"
+         "*tessem_neth* and *tessem_netv*.\n"
          ),
         AUTHORS( "Simon Pfreundschuh" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
@@ -16520,7 +16552,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "stokes_dim", "f_grid", "rtp_pos", "rtp_los",
-            "specular_los", "surface_skin_t", "tessem_neth", "tessem_netv" ),
+            "surface_skin_t", "tessem_neth", "tessem_netv" ),
         GIN( "salinity", "wind_speed" ),
         GIN_TYPE( "Numeric", "Numeric" ),
         GIN_DEFAULT( "0.035", NODEF),
@@ -16550,8 +16582,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rtp_los", "specular_los",
-            "surface_skin_t", "surface_complex_refr_index" ),
+        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rtp_pos", "rtp_los",
+            "specular_los", "surface_skin_t", "surface_complex_refr_index" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -16567,7 +16599,7 @@ void define_md_data_raw()
          "where *surface_reflectivity* is specified.\n"
          "\n"
          "Works basically as *surfaceFlatScalarReflectivity* but is more\n"
-         "general as also vector radiative transfer is handled. See\n"
+         "general as vector radiative transfer is more properly handled. See\n"
          "the ARTS theory document (ATD) for details around how\n"
          "*surface_emission* is determined. In the nomenclature of ATD,\n"
          "*surface_reflectivity* gives R.\n"
@@ -16577,8 +16609,38 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "f_grid", "stokes_dim", "atmosphere_dim", 
+        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rtp_pos", "rtp_los",
             "specular_los", "surface_skin_t", "surface_reflectivity" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "surfaceFlatRvRh" ),
+        DESCRIPTION
+        (
+         "Creates variables to mimic specular reflection by a (flat) surface\n"
+         "where *surface_rv_rh* is specified.\n"
+         "\n"
+         "This method assumes that the reflection at vertical and horizontal\n"
+         "polarisation differs. As power reflection coefficients are provided\n"
+         "there is no information at hand on phase shifts between polarisations,\n"
+         "and they are simply assumed to be zero. These assumptions result in\n"
+         "that *surface_emission* is set to zero for positions corresponding to\n"
+         "U and V, and that all diagonal elementsof  *surface_rmatrix* are equal\n"
+         "(the mean of rv and rh). Further, all off-diagonal elements of\n"
+         "*surface_rmatrix* are all zero except for (0,1) and (1,0).\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rtp_pos", "rtp_los",
+            "specular_los", "surface_skin_t", "surface_rv_rh" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -16593,18 +16655,19 @@ void define_md_data_raw()
          "Creates variables to mimic specular reflection by a (flat) surface\n"
          "where *surface_scalar_reflectivity* is specified.\n"
          "\n"
-         "The method is formerly only correct when *stokes_dim* is equal\n"
-         "to 1, but the method runs also for higher values of *stokes_dim*.\n"
-         "The Q, U and V Stokes elements for both emitted and reflected parts\n"
-         "are then zero. Local thermodynamic equilibrium is assumed, which\n"
-         "corresponds to that reflectivity and emissivity add up to 1.\n"
+         "This method assumes that the reflection at vertical and horizontal\n"
+         "polarisation is identical. This assumption includes that there is no\n"
+         "phase shift between polarisations. These assumptions result in that\n"
+         "*surface_emission* is set to zero for positions corresponding to Q,\n"
+         "U and V, and that *surface_rmatrix* becomes a diagonal matrix (with\n"
+         "all elements on the diagonal equal to the specified reflectivity).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "f_grid", "stokes_dim", "atmosphere_dim",
+        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rtp_pos", "rtp_los",
             "specular_los", "surface_skin_t", "surface_scalar_reflectivity" ),
         GIN(),
         GIN_TYPE(),
@@ -16653,8 +16716,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rtp_los", "surface_normal",
-            "surface_skin_t", "surface_scalar_reflectivity" ),
+        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rtp_pos", "rtp_los",
+            "surface_normal", "surface_skin_t", "surface_scalar_reflectivity" ),
         GIN(         "lambertian_nza", "za_pos"  ),
         GIN_TYPE(    "Index", "Numeric" ),
         GIN_DEFAULT( "9", "0.5" ),
@@ -16738,7 +16801,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "surface_los", "surface_rmatrix", "atmosphere_dim", "rtp_los" ),
+        IN( "surface_los", "surface_rmatrix", "atmosphere_dim", "rtp_pos", "rtp_los" ),
         GIN(         "specular_factor", "dza"  ),
         GIN_TYPE(    "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF ),

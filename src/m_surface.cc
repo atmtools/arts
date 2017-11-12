@@ -83,12 +83,12 @@ void FastemStandAlone(
 {
   const Index nf = f_grid.nelem();
 
-  chk_if_in_range("zenith angle", za, 90, 180);
-  chk_if_in_range_exclude("surface skin temperature", surface_skin_t, 200, 373);
-  chk_if_in_range_exclude_high("salinity", salinity, 0, 1);
-  chk_if_in_range_exclude_high("wind speed", wind_speed, 0, 100);
-  chk_if_in_range("azimuth angle", rel_aa, -180, 180);
-  chk_vector_length("transmittance", "f_grid", transmittance, f_grid);
+  chk_if_in_range( "zenith angle", za, 90, 180 );
+  chk_if_in_range_exclude( "surface skin temperature", surface_skin_t, 260, 373 );
+  chk_if_in_range_exclude_high( "salinity", salinity, 0, 1 );
+  chk_if_in_range_exclude_high( "wind speed", wind_speed, 0, 100 );
+  chk_if_in_range( "azimuth angle", rel_aa, -180, 180 );
+  chk_vector_length( "transmittance", "f_grid", transmittance, f_grid );
   if (fastem_version < 3 || fastem_version > 6)
     throw std::runtime_error("Invalid fastem version: 3 <= fastem_version <= 6");
 
@@ -99,17 +99,13 @@ void FastemStandAlone(
 
   for( Index i=0; i<nf; i++ )
     {
-      if (f_grid[i] >= 1000e9)
-        throw std::runtime_error("Only frequency < 1000 GHz are allowed");
+      if (f_grid[i] > 250e9)
+        throw std::runtime_error("Only frequency <= 250 GHz are allowed");
       chk_if_in_range("transmittance", transmittance[i], 0, 1);
 
       Vector e, r;
 
-      const Numeric flim = 350e9;
-      Numeric f = f_grid[i];
-      if( f > flim ) { f = flim; }
-
-      fastem( e, r, f, za, t, salinity, 
+      fastem( e, r, f_grid[i], za, t, salinity, 
               wind_speed, transmittance[i], rel_aa, fastem_version );
 
       emissivity(i,joker) = e;
@@ -308,16 +304,12 @@ void iySurfaceFastem(
     const Index&            iy_id,
     const Index&            jacobian_do,
     const Index&            atmosphere_dim,
-    const Vector&           lat_grid,
-    const Vector&           lon_grid,
     const Tensor3&          t_field,
     const Tensor3&          z_field,
     const Tensor4&          vmr_field,
-    const Matrix&           z_surface,
     const Index&            cloudbox_on,
     const Index&            stokes_dim,
     const Vector&           f_grid,
-    const Vector&           refellipsoid,
     const Vector&           rtp_pos,
     const Vector&           rtp_los,
     const Vector&           rte_pos2,
@@ -330,15 +322,14 @@ void iySurfaceFastem(
     const Index&            fastem_version,
     const Verbosity&        verbosity )
 {
-  // Most obvious input checks are performed in specular_losCalc and the Fastem WSM
+  // Most obvious input checks are performed in specular_losCalc and surfaceFastem
 
-  // Obtian radiance and transmission for specular direction
+  // Obtain radiance and transmission for specular direction
   
   // Determine specular direction
   Vector specular_los, surface_normal;  
-  specular_losCalc( specular_los, surface_normal, rtp_pos, rtp_los, 
-                    atmosphere_dim, lat_grid, lon_grid, refellipsoid, 
-                    z_surface, 0, verbosity );
+  specular_losCalcNoTopography( specular_los, surface_normal,
+                                rtp_pos, rtp_los, atmosphere_dim, verbosity );
     
   // Use iy_aux to get optical depth for downwelling radiation.
   ArrayOfString    iy_aux_vars(1); iy_aux_vars[0] = "Optical depth";
@@ -394,7 +385,7 @@ void iySurfaceFastem(
                 {
                   Vector x = diy_dx[q](p,i,joker);
                   mult( diy_dx[q](p,i,joker), surface_rmatrix(0,i,joker,joker),
-                                                                           x );
+                        x );
                 }
             }
         }
@@ -640,23 +631,17 @@ void iySurfaceRtpropCalc(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void specular_losCalc(
+void specular_losCalcNoTopography(
          Vector&   specular_los,
          Vector&   surface_normal,
    const Vector&   rtp_pos,
    const Vector&   rtp_los,
    const Index&    atmosphere_dim,
-   const Vector&   lat_grid,
-   const Vector&   lon_grid,
-   const Vector&   refellipsoid,
-   const Matrix&   z_surface,
-   const Index&    ignore_surface_slope,
    const Verbosity&)
 {
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_rte_pos( atmosphere_dim, rtp_pos );
   chk_rte_los( atmosphere_dim, rtp_los );
-  chk_if_in_range( "ignore_surface_slope", ignore_surface_slope, 0, 1 );
 
   surface_normal.resize( max( Index(1), atmosphere_dim-1 ) );
   specular_los.resize( max( Index(1), atmosphere_dim-1 ) );
@@ -672,84 +657,114 @@ void specular_losCalc(
 
   else if( atmosphere_dim == 2 )
     {
-      if( ignore_surface_slope )
-        {
-          specular_los[0]   = sign( rtp_los[0] ) * 180 - rtp_los[0];
-          surface_normal[0] = 0;
-        }
-      else
-        {
-          chk_interpolation_grids( "Latitude interpolation", lat_grid, rtp_pos[1] );
-          GridPos gp_lat;
-          gridpos( gp_lat, lat_grid, rtp_pos[1] );
-          Numeric c1;         // Radial slope of the surface
-          plevel_slope_2d( c1, lat_grid, refellipsoid, z_surface(joker,0), 
-                                                              gp_lat, rtp_los[0] );
-          Vector itw(2); interpweights( itw, gp_lat );
-          const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
-                                    + interp( itw, z_surface(joker,0), gp_lat );
-          surface_normal[0] = -plevel_angletilt( rv_surface, c1 );
-          if( abs(rtp_los[0]-surface_normal[0]) < 90 )
-            { throw runtime_error( "Invalid zenith angle. The zenith angle corresponds "
-                                   "to observe the surface from below." ); }
-          specular_los[0] = sign( rtp_los[0] ) * 180 - rtp_los[0] + 
-                                                               2*surface_normal[0];
-        }
+      specular_los[0]   = sign( rtp_los[0] ) * 180 - rtp_los[0];
+      surface_normal[0] = 0;
     }
 
   else if( atmosphere_dim == 3 )
     { 
-      if( ignore_surface_slope )
-        {
-          specular_los[0]   = 180 - rtp_los[0];
-          specular_los[1]   = rtp_los[1];
-          surface_normal[0] = 0;
-          surface_normal[1] = 0;
-        }
-      else
-        {
-          // Calculate surface normal in South-North direction
-          chk_interpolation_grids( "Latitude interpolation", lat_grid, rtp_pos[1] );
-          chk_interpolation_grids( "Longitude interpolation", lon_grid, rtp_pos[2]);
-          GridPos gp_lat, gp_lon;
-          gridpos( gp_lat, lat_grid, rtp_pos[1] );
-          gridpos( gp_lon, lon_grid, rtp_pos[2] );
-          Numeric c1, c2;
-          plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
-                           gp_lat, gp_lon, 0 );
-          Vector itw(4); interpweights( itw, gp_lat, gp_lon );
-          const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
-                                     + interp( itw, z_surface, gp_lat, gp_lon );
-          const Numeric zaSN = 90 - plevel_angletilt( rv_surface, c1 );
-          // The same for East-West
-          plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
-                           gp_lat, gp_lon, 90 );
-          const Numeric zaEW = 90 - plevel_angletilt( rv_surface, c1 );
-          // Convert to Cartesian, and determine normal by cross-product
-          Vector tangentSN(3), tangentEW(3), normal(3);
-          zaaa2cart( tangentSN[0], tangentSN[1], tangentSN[2], zaSN, 0 );
-          zaaa2cart( tangentEW[0], tangentEW[1], tangentEW[2], zaEW, 90 );
-          cross3( normal, tangentSN, tangentEW );
-          // Convert rtp_los to cartesian and flip direction
-          Vector di(3);
-          zaaa2cart( di[0], di[1], di[2], rtp_los[0], rtp_los[1] );
-          di *= -1;
-          // Set LOS normal vector 
-          cart2zaaa( surface_normal[0], surface_normal[1], normal[0], normal[1], 
-                                                                      normal[2] );
-          if( abs(rtp_los[0]-surface_normal[0]) < 90 )
-            { throw runtime_error( "Invalid zenith angle. The zenith angle corresponds "
-                                   "to observe the surface from below." ); }
-          // Specular direction is 2(dn*di)dn-di, where dn is the normal vector
-          Vector speccart(3);      
-          const Numeric fac = 2 * (normal * di);
-          for( Index i=0; i<3; i++ )
-            { speccart[i] = fac*normal[i] - di[i]; }
-          cart2zaaa( specular_los[0], specular_los[1], speccart[0], speccart[1], 
-                                                                    speccart[2] );
-        }
+      specular_los[0]   = 180 - rtp_los[0];
+      specular_los[1]   = rtp_los[1];
+      surface_normal[0] = 0;
+      surface_normal[1] = 0;
     }
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void specular_losCalc(
+         Vector&     specular_los,
+         Vector&     surface_normal,
+   const Vector&     rtp_pos,
+   const Vector&     rtp_los,
+   const Index&      atmosphere_dim,
+   const Vector&     lat_grid,
+   const Vector&     lon_grid,
+   const Vector&     refellipsoid,
+   const Matrix&     z_surface,
+   const Index&      ignore_surface_slope,
+   const Verbosity&  verbosity )
+{
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  chk_rte_los( atmosphere_dim, rtp_los );
+  chk_if_in_range( "ignore_surface_slope", ignore_surface_slope, 0, 1 );
+
+  // Use special function if there is no slope, or it is ignored
+  if( atmosphere_dim == 1 || ignore_surface_slope )
+    {
+      specular_losCalcNoTopography( specular_los, surface_normal, rtp_pos,
+                                    rtp_los, atmosphere_dim, verbosity ); 
+      return;
+    }
+  
+  surface_normal.resize( max( Index(1), atmosphere_dim-1 ) );
+  specular_los.resize( max( Index(1), atmosphere_dim-1 ) );
+
+  if( atmosphere_dim == 2 )
+    {
+      chk_interpolation_grids( "Latitude interpolation", lat_grid, rtp_pos[1] );
+      GridPos gp_lat;
+      gridpos( gp_lat, lat_grid, rtp_pos[1] );
+      Numeric c1;         // Radial slope of the surface
+      plevel_slope_2d( c1, lat_grid, refellipsoid, z_surface(joker,0), 
+                       gp_lat, rtp_los[0] );
+      Vector itw(2); interpweights( itw, gp_lat );
+      const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
+        + interp( itw, z_surface(joker,0), gp_lat );
+      surface_normal[0] = -plevel_angletilt( rv_surface, c1 );
+      if( abs(rtp_los[0]-surface_normal[0]) < 90 )
+        { throw runtime_error( "Invalid zenith angle. The zenith angle corresponds "
+                               "to observe the surface from below." ); }
+      specular_los[0] = sign( rtp_los[0] ) * 180 - rtp_los[0] + 
+        2*surface_normal[0];
+    }
+
+  else
+    { 
+      // Calculate surface normal in South-North direction
+      chk_interpolation_grids( "Latitude interpolation", lat_grid, rtp_pos[1] );
+      chk_interpolation_grids( "Longitude interpolation", lon_grid, rtp_pos[2]);
+      GridPos gp_lat, gp_lon;
+      gridpos( gp_lat, lat_grid, rtp_pos[1] );
+      gridpos( gp_lon, lon_grid, rtp_pos[2] );
+      Numeric c1, c2;
+      plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
+                       gp_lat, gp_lon, 0 );
+      Vector itw(4); interpweights( itw, gp_lat, gp_lon );
+      const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
+        + interp( itw, z_surface, gp_lat, gp_lon );
+      const Numeric zaSN = 90 - plevel_angletilt( rv_surface, c1 );
+      // The same for East-West
+      plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
+                       gp_lat, gp_lon, 90 );
+      const Numeric zaEW = 90 - plevel_angletilt( rv_surface, c1 );
+      // Convert to Cartesian, and determine normal by cross-product
+      Vector tangentSN(3), tangentEW(3), normal(3);
+      zaaa2cart( tangentSN[0], tangentSN[1], tangentSN[2], zaSN, 0 );
+      zaaa2cart( tangentEW[0], tangentEW[1], tangentEW[2], zaEW, 90 );
+      cross3( normal, tangentSN, tangentEW );
+      // Convert rtp_los to cartesian and flip direction
+      Vector di(3);
+      zaaa2cart( di[0], di[1], di[2], rtp_los[0], rtp_los[1] );
+      di *= -1;
+      // Set LOS normal vector 
+      cart2zaaa( surface_normal[0], surface_normal[1], normal[0], normal[1], 
+                 normal[2] );
+      if( abs(rtp_los[0]-surface_normal[0]) < 90 )
+        { throw runtime_error( "Invalid zenith angle. The zenith angle corresponds "
+                               "to observe the surface from below." ); }
+      // Specular direction is 2(dn*di)dn-di, where dn is the normal vector
+      Vector speccart(3);      
+      const Numeric fac = 2 * (normal * di);
+      for( Index i=0; i<3; i++ )
+        { speccart[i] = fac*normal[i] - di[i]; }
+      cart2zaaa( specular_los[0], specular_los[1], speccart[0], speccart[1], 
+                 speccart[2] );
+    }
+}
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -757,12 +772,17 @@ void surfaceBlackbody(
           Matrix&    surface_los,
           Tensor4&   surface_rmatrix,
           Matrix&    surface_emission,
+    const Index&     atmosphere_dim,
     const Vector&    f_grid,
     const Index&     stokes_dim,
+    const Vector&    rtp_pos,
+    const Vector&    rtp_los,
     const Numeric&   surface_skin_t,
     const Verbosity& verbosity)
 {  
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  chk_rte_los( atmosphere_dim, rtp_los );
   chk_not_negative( "surface_skin_t", surface_skin_t );
 
   CREATE_OUT2;
@@ -871,19 +891,24 @@ void surfaceFastem(
   //
   surface_rmatrix.resize( 1, nf, stokes_dim, stokes_dim );
   surface_rmatrix = 0.0;
-  for( Index i=0; i<nf; i++ )
+  for( Index iv=0; iv<nf; iv++ )
     {
-      surface_rmatrix(0,i,0,0) = 0.5 * ( reflectivity(i,0) +
-                                         reflectivity(i,1) ); 
+      surface_rmatrix(0,iv,0,0) = 0.5 * ( reflectivity(iv,0) +
+                                         reflectivity(iv,1) ); 
       if( stokes_dim >= 2 )
         {
-          surface_rmatrix(0,i,0,1) = 0.5 * ( reflectivity(i,0) -
-                                             reflectivity(i,1) ); ;
-          surface_rmatrix(0,i,1,0) = surface_rmatrix(0,i,0,1);
-          surface_rmatrix(0,i,1,1) = surface_rmatrix(0,i,0,0);
+          surface_rmatrix(0,iv,0,1) = 0.5 * ( reflectivity(iv,0) -
+                                              reflectivity(iv,1) ); ;
+          surface_rmatrix(0,iv,1,0) = surface_rmatrix(0,iv,0,1);
+          surface_rmatrix(0,iv,1,1) = surface_rmatrix(0,iv,0,0);
+
+          for( Index i=2; i<stokes_dim; i++ )
+            { surface_rmatrix(0,iv,i,i) = surface_rmatrix(0,iv,0,0); }
         }
     }
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceTessem(
@@ -895,70 +920,66 @@ void surfaceTessem(
     const Vector&           f_grid,
     const Vector&           rtp_pos,
     const Vector&           rtp_los,
-    const Vector&           specular_los,
     const Numeric&          surface_skin_t,
     const TessemNN&         net_h,
     const TessemNN&         net_v,
     const Numeric&          salinity,
     const Numeric&          wind_speed,
-    const Verbosity&        /*verbosity*/ )
+    const Verbosity&        verbosity )
 {
-    // Input checks
-    chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-    chk_rte_pos( atmosphere_dim, rtp_pos );
-    chk_rte_los( atmosphere_dim, rtp_los );
+  // Input checks
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  chk_rte_los( atmosphere_dim, rtp_los );
+  chk_if_in_range_exclude( "surface skin temperature", surface_skin_t, 260, 373 );
+  chk_if_in_range_exclude_high( "salinity", salinity, 0, 1 );
+  chk_if_in_range_exclude_high( "wind speed", wind_speed, 0, 100 );
 
-    const Index nf = f_grid.nelem();
 
-    // Set surface_los
-    surface_los.resize( 1, specular_los.nelem() );
-    surface_los(0,joker) = specular_los;
+  // Determine specular direction
+  Vector specular_los, surface_normal;  
+  specular_losCalcNoTopography( specular_los, surface_normal,
+                                rtp_pos, rtp_los, atmosphere_dim, verbosity );
+    
+  // TESSEM in and out
+  //
+  Vector out(2);
+  VectorView e_h = out[Range(0, 1)];
+  VectorView e_v = out[Range(1, 1)];
+  //
+  Vector in(5);
+  in[1] = 180.0 - abs(rtp_los[0]);
+  in[2] = wind_speed;
+  in[3] = surface_skin_t;
+  in[4] = salinity;    // Where is conversion to psu done?
 
-    // Surface emission
-    //
-    Vector b(nf);
-    planck( b, f_grid, surface_skin_t );
-    //
+  // Get Rv and Rh
+  //
+  const Index nf = f_grid.nelem();
+  Matrix surface_rv_rh( nf, 2 );
+  //
+  for( Index i=0; i<nf; ++i)
+    {
+      if (f_grid[i] < 5e9)
+        throw std::runtime_error("Only frequency >= 5 GHz are allowed");
+      if (f_grid[i] > 900e9)
+        throw std::runtime_error("Only frequency <= 900 GHz are allowed");
+      
+      in[0] = f_grid[i] * 1e-9;
 
-    Vector out(2);
-    VectorView e_h = out[Range(0, 1)];
-    VectorView e_v = out[Range(1, 1)];
+      tessem_prop_nn(e_h, net_h, in);
+      tessem_prop_nn(e_v, net_v, in);
 
-    Vector in(5);
-
-    in[1] = abs(180.0 - rtp_los[0]);
-    in[2] = wind_speed;
-    in[3] = surface_skin_t;
-    in[4] = salinity;
-
-    surface_emission.resize( nf, stokes_dim );
-    surface_emission = 0.0;
-    surface_rmatrix.resize( 1, nf, stokes_dim, stokes_dim );
-    surface_rmatrix = 0.0;
-
-    for( Index i=0; i<nf; ++i) {
-        in[0] = f_grid[i] * 1e-9;
-
-        tessem_prop_nn(e_h, net_h, in);
-        tessem_prop_nn(e_v, net_v, in);
-
-        // I
-        surface_emission(i,0) = b[i] * 0.5 * ( e_h[0] + e_v[0] );
-        // Q
-        if( stokes_dim >= 2 )
-        { surface_emission(i,1) = b[i] * 0.5 * ( e_v[0] - e_h[0] ); }
-
-        // R Matrix
-        surface_rmatrix(0,i,0,0) = 0.5 * ( (1.0 - e_h[0]) + (1.0 - e_v[0]) );
-        if( stokes_dim >= 2 )
-        {
-            surface_rmatrix(0,i,0,1) = 0.5 * ( (1.0 - e_v[0]) -
-                                               (1.0 - e_h[0]) ); ;
-            surface_rmatrix(0,i,1,0) = surface_rmatrix(0,i,0,1);
-            surface_rmatrix(0,i,1,1) = surface_rmatrix(0,i,0,0);
-        }
+      surface_rv_rh(i,0) = min( max( 1 - e_v[0], (Numeric)0 ), (Numeric)1 );
+      surface_rv_rh(i,1) = min( max( 1 - e_h[0], (Numeric)0 ), (Numeric)1 );
     }
+
+  surfaceFlatRvRh( surface_los, surface_rmatrix, surface_emission,
+                   f_grid, stokes_dim, atmosphere_dim,  rtp_pos, rtp_los,
+                   specular_los, surface_skin_t, surface_rv_rh, verbosity );
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceFlatRefractiveIndex(
@@ -968,6 +989,7 @@ void surfaceFlatRefractiveIndex(
     const Vector&        f_grid,
     const Index&         stokes_dim,
     const Index&         atmosphere_dim,
+    const Vector&        rtp_pos,
     const Vector&        rtp_los,
     const Vector&        specular_los,
     const Numeric&       surface_skin_t,
@@ -979,6 +1001,9 @@ void surfaceFlatRefractiveIndex(
   
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  chk_rte_los( atmosphere_dim, rtp_los );
+  chk_rte_los( atmosphere_dim, specular_los );
   chk_not_negative( "surface_skin_t", surface_skin_t );
 
   // Interpolate *surface_complex_refr_index*
@@ -1032,6 +1057,8 @@ void surfaceFlatReflectivity(
     const Vector&    f_grid,
     const Index&     stokes_dim,
     const Index&     atmosphere_dim,
+    const Vector&    rtp_pos,
+    const Vector&    rtp_los,
     const Vector&    specular_los,
     const Numeric&   surface_skin_t,
     const Tensor3&   surface_reflectivity,
@@ -1041,6 +1068,9 @@ void surfaceFlatReflectivity(
   
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  chk_rte_los( atmosphere_dim, rtp_los );
+  chk_rte_los( atmosphere_dim, specular_los );
   chk_not_negative( "surface_skin_t", surface_skin_t );
 
   const Index   nf = f_grid.nelem();
@@ -1097,7 +1127,7 @@ void surfaceFlatReflectivity(
             {
               for( Index j=0; j<stokes_dim; j++ )
                 {
-                  if( i== j )
+                  if( i == j )
                     { IR(i,j) = 1 - R(i,j); }
                   else
                     { IR(i,j) = -R(i,j); }
@@ -1115,6 +1145,98 @@ void surfaceFlatReflectivity(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void surfaceFlatRvRh(
+          Matrix&    surface_los,
+          Tensor4&   surface_rmatrix,
+          Matrix&    surface_emission,
+    const Vector&    f_grid,
+    const Index&     stokes_dim,
+    const Index&     atmosphere_dim,
+    const Vector&    rtp_pos,
+    const Vector&    rtp_los,
+    const Vector&    specular_los,
+    const Numeric&   surface_skin_t,
+    const Matrix&    surface_rv_rh,
+    const Verbosity& )
+{
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  chk_rte_los( atmosphere_dim, rtp_los );
+  chk_rte_los( atmosphere_dim, specular_los );
+  chk_not_negative( "surface_skin_t", surface_skin_t );
+
+  const Index   nf = f_grid.nelem();
+
+  if( surface_rv_rh.ncols() != 2 )
+    {
+      ostringstream os;
+      os << "The number of columns in *surface_rv_rh* must be two,\n"
+         << "but the actual number of columns is " 
+         << surface_rv_rh.ncols() << "\n";
+      throw runtime_error( os.str() );
+    }
+
+  if( surface_rv_rh.nrows() != nf  &&  
+      surface_rv_rh.nrows() != 1 )
+    {
+      ostringstream os;
+      os << "The number of rows in *surface_rv_rh* should\n"
+         << "match length of *f_grid* or be 1."
+         << "\n length of *f_grid* : " << nf 
+         << "\n rows in *surface_rv_rh* : " << surface_rv_rh.nrows() << "\n";
+      throw runtime_error( os.str() );
+    }
+
+  if( min(surface_rv_rh) < 0  ||  
+      max(surface_rv_rh) > 1 )
+    {
+      throw runtime_error( 
+         "All values in *surface_rv_rh* must be inside [0,1]." );
+    }
+
+  surface_los.resize( 1, specular_los.nelem() );
+  surface_los(0,joker) = specular_los;
+
+  surface_emission.resize( nf, stokes_dim );
+  surface_rmatrix.resize( 1, nf, stokes_dim, stokes_dim );
+
+  surface_emission = 0;
+  surface_rmatrix  = 0;
+
+  Vector b(nf);
+  planck( b, f_grid, surface_skin_t ); 
+
+  Numeric rmean = 0.0, rdiff = 0.0;
+
+  for( Index iv=0; iv<nf; iv++ )
+    { 
+      if( iv == 0  || surface_rv_rh.nrows() > 1 )
+        {
+          rmean = 0.5 * ( surface_rv_rh(iv,0) + surface_rv_rh(iv,1) );
+          rdiff = 0.5 * ( surface_rv_rh(iv,0) - surface_rv_rh(iv,1) );
+        }
+
+      surface_emission(iv,0) = (1.0-rmean) * b[iv];
+      surface_rmatrix(0,iv,0,0) = rmean;
+
+      if( stokes_dim > 1 )
+        {
+          surface_emission(iv,0) = rdiff * b[iv];
+          
+          surface_rmatrix(0,iv,0,1) = rdiff;
+          surface_rmatrix(0,iv,1,0) = rdiff; 
+          surface_rmatrix(0,iv,1,1) = rmean;
+      
+          for( Index i=2; i<stokes_dim; i++ )
+            { surface_rmatrix(0,iv,i,i) = rmean; }
+        }
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceFlatScalarReflectivity(
           Matrix&    surface_los,
           Tensor4&   surface_rmatrix,
@@ -1122,16 +1244,18 @@ void surfaceFlatScalarReflectivity(
     const Vector&    f_grid,
     const Index&     stokes_dim,
     const Index&     atmosphere_dim,
+    const Vector&    rtp_pos,
+    const Vector&    rtp_los,
     const Vector&    specular_los,
     const Numeric&   surface_skin_t,
     const Vector&    surface_scalar_reflectivity,
-    const Verbosity& verbosity)
+    const Verbosity& )
 {
-  CREATE_OUT2;
-  CREATE_OUT3;
-  
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  chk_rte_los( atmosphere_dim, rtp_los );
+  chk_rte_los( atmosphere_dim, specular_los );
   chk_not_negative( "surface_skin_t", surface_skin_t );
 
   const Index   nf = f_grid.nelem();
@@ -1156,9 +1280,6 @@ void surfaceFlatScalarReflectivity(
          "All values in *surface_scalar_reflectivity* must be inside [0,1]." );
     }
 
-  out2 << "  Sets variables to model a flat surface\n";
-  out3 << "     surface temperature: " << surface_skin_t << " K.\n";
-
   surface_los.resize( 1, specular_los.nelem() );
   surface_los(0,joker) = specular_los;
 
@@ -1180,6 +1301,8 @@ void surfaceFlatScalarReflectivity(
 
       surface_emission(iv,0) = (1.0-r) * b[iv];
       surface_rmatrix(0,iv,0,0) = r;
+      for( Index i=1; i<stokes_dim; i++ )
+        { surface_rmatrix(0,iv,i,i) = r; }
     }
 }
 
@@ -1193,6 +1316,7 @@ void surfaceLambertianSimple(
     const Vector&    f_grid,
     const Index&     stokes_dim,
     const Index&     atmosphere_dim,
+    const Vector&    rtp_pos,
     const Vector&    rtp_los,
     const Vector&    surface_normal,
     const Numeric&   surface_skin_t,
@@ -1205,6 +1329,8 @@ void surfaceLambertianSimple(
 
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  chk_rte_los( atmosphere_dim, rtp_los );
   chk_not_negative( "surface_skin_t", surface_skin_t );
   chk_if_in_range( "za_pos", za_pos, 0, 1 );
 
@@ -1308,6 +1434,9 @@ void surfaceSemiSpecularBy3beams(
     const Numeric&   dza,
     const Verbosity& )
 {
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  chk_rte_los( atmosphere_dim, rtp_los );
+
   // Checks of GIN variables
   if( specular_factor > 1  || specular_factor < 1.0/3.0 )
     throw runtime_error( "The valid range for *specular_factor* is [1/3,1]." );
@@ -1433,11 +1562,15 @@ void surfaceSplitSpecularTo3beams(
           Matrix&    surface_los,
           Tensor4&   surface_rmatrix,
     const Index&     atmosphere_dim,
+    const Vector&    rtp_pos,
     const Vector&    rtp_los,
     const Numeric&   specular_factor,
     const Numeric&   dza,
     const Verbosity&)
 {
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  chk_rte_los( atmosphere_dim, rtp_los );
+
   // Check that input surface data are of specular type
   if( surface_los.nrows() != 1 )
     throw runtime_error( "Input surface data must be of specular type. That is, "

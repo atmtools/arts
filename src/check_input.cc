@@ -2151,28 +2151,28 @@ void chk_rte_los(
   if( atmosphere_dim == 1 )
     {
       if( rte_los.nelem() != 1 )
-        { throw runtime_error( "For 1D, *rte_los* must have length 1." ); }
+        { throw runtime_error( "For 1D, los-vectors must have length 1." ); }
       if( rte_los[0] < 0  ||  rte_los[0] > 180 )
-        { throw runtime_error( "For 1D, the zenith angle of *rte_los* must "
+        { throw runtime_error( "For 1D, the zenith angle of a los-vector must "
                                "be in the range [0,180]." ); }
     }
   else if( atmosphere_dim == 2 )
     { 
       if( rte_los.nelem() != 1 )
-        { throw runtime_error( "For 2D, *rte_los* must have length 1." ); }
+        { throw runtime_error( "For 2D, los-vectors must have length 1." ); }
       if( rte_los[0] < -180  ||  rte_los[0] > 180 )
-        { throw runtime_error( "For 2D, the zenith angle of *rte_los* must "
+        { throw runtime_error( "For 2D, the zenith angle of a los-vector must "
                                "be in the range [-180,180]." ); }
     }
   else
     {
       if( rte_los.nelem() != 2 )
-        { throw runtime_error( "For 3D, *rte_los* must have length 2." ); }
+        { throw runtime_error( "For 3D, los-vectors must have length 2." ); }
       if( rte_los[0] < 0  ||  rte_los[0] > 180 )
-        { throw runtime_error( "For 3D, the zenith angle of *rte_los* must "
+        { throw runtime_error( "For 3D, the zenith angle of a los-vector must "
                                "be in the range [0,180]." ); }
       if( rte_los[1] < -180  ||  rte_los[1] > 180 )
-        { throw runtime_error( "For 3D, the azimuth angle of *rte_los* must "
+        { throw runtime_error( "For 3D, the azimuth angle of a los-vector must "
                                "be in the range [-180,180]." ); }
     }
 }

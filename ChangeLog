@@ -1,3 +1,61 @@
+2017-11-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-868
+
+	* doc/uguide/rte_theory.tex: A small extension of surface part, to
+	reflect new strategy on how to set R when r_v and r_h are given.
+
+	* doc/uguide/clouds_theory.tex: The name of WSM
+	psdMgdMassMeanParticleMass was incoorect.
+
+	* controlfiles/general/agendas_surface.arts: Removed
+	Ignore(rtp_los) from agendas dealing with rtp_los.
+
+	* src/workspace.cc: Introduced surface_rv_rh.
+
+	* src/m_surface.cc:
+
+	(surfaceTessem): Added some checks, including a limitation to 5 to
+	900 GHz (somewhat wider than the specified range of 10 to 700
+	GHz). Output arguments now created by making use of surfaceFlatRvRh.
+	Reflectivities now forced to be inside [0,1].
+
+	(FastemStandAlone): Now an error if frequency is above 250 GHz.
+	Now also an errror if surface_skin_t < 260. Before this limit was
+	200 K.
+
+	(iySurfaceFastem): Now using specular_losCalcNoTopography and a
+	number input arguments could be removed. Lower-right diagonal of
+	surface_rmatrix now filled.
+
+	(specular_losCalc): Now using specular_losCalcNoTopography if
+        atmosphere_dim == 1 || ignore_surface_slope.
+
+	(surfaceFlatRvRh): New WSM.
+
+	(specular_losCalcNoTopography): New WSM.
+
+	(surfaceBlackbody): Added rtp_pos and rtp_los as input, and added
+	checks of these variables.
+
+
+	(surfaceSemiSpecularBy3beams,surfaceSplitSpecularTo3beams): Added
+	check of rtp_pos and rtp_los.
+
+	(surfaceLambertianSimple): Added rtp_pos as input, and added check
+	of rtp_pos and rtp_los.
+
+	(surfaceFlatReflectivity,surfaceFlatScalarReflectivity): Added
+	rtp_pos and rtp_los as input, and added check of rtp_pos, rtp_los
+	and specular_los.
+
+	(surfaceFlatRefractiveIndex): Added rtp_pos as input, and added check
+	of rtp_pos, rtp_los and specular_los.
+
+	* src/check_input.cc (chk_rte_los): Changed the error message to
+	be more general. Before it was assume that rte_los was checked,
+	while the method can be used for any los-vector.
+
 2017-11-09  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-867

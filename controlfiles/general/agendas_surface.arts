@@ -28,7 +28,6 @@ Arts2 {
 #
 AgendaCreate( surface_rtprop_agenda__Blackbody_SurfTFromt_surface )
 AgendaSet( surface_rtprop_agenda__Blackbody_SurfTFromt_surface ){
-  Ignore( rtp_los )
   InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )
   surfaceBlackbody
 }
@@ -37,7 +36,6 @@ AgendaSet( surface_rtprop_agenda__Blackbody_SurfTFromt_surface ){
 #
 AgendaCreate( surface_rtprop_agenda__Blackbody_SurfTFromt_field )
 AgendaSet( surface_rtprop_agenda__Blackbody_SurfTFromt_field ){
-  Ignore( rtp_los )
   InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
   surfaceBlackbody
 }

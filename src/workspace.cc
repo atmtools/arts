@@ -5563,17 +5563,40 @@ void Workspace::define_wsv_data()
 
    wsv_data.push_back
    (WsvRecord
+    ( NAME( "surface_rv_rh" ),
+      DESCRIPTION
+      (
+       "Surface reflectivity, described by rv and rh (power) reflectivities.\n"
+       "\n"
+       "This variable describes the surface reflectivity at one position\n"
+       "and one incidence angle. For this position and angle, one or multiple\n"
+       "combinations of rv and rh are specified, where rv and rh are the\n"
+       "reflectivity for vertical and horizontal polarisation, respectively.\n"
+       "\n"
+       "This matrix shall always have two columns, where the first column\n"
+       "holds rv values, and the second column rh. It is up to the user to\n"
+       "make sure that data are put into the correct column, this can not\n"
+       "be checked bu the methods using this WSV.\n"
+       "\n"
+       "The number of rows shall either match *f_grid* or be 1. The later case\n"
+       "is interpreted as the reflectivities are the same for all frequencies.\n"
+       "\n"
+       "Usage:   Input to some surface properties methods.\n"
+       "\n"
+       "Dimensions: [ f_grid or 1, 2]\n"
+       ),
+      GROUP( "Matrix" )));
+
+   wsv_data.push_back
+   (WsvRecord
     ( NAME( "surface_scalar_reflectivity" ),
       DESCRIPTION
       (
        "Surface reflectivity, assuming it can be described as a scalar value.\n"
        "\n"
        "This variable describes the surface reflectivity at one position\n"
-       "and one incidence angle.\n"
-       "\n"
-       "The variable can only be used for scalar radiative transfer, that\n"
-       "is, *stokes_dim* equals 1. Use *surface_reflectivity* for vector\n"
-       "radiative transfer.\n"
+       "and one incidence angle. For this position and angle, one or multiple\n"
+       "scalar reflectivities are specified.\n"
        "\n"
        "The length of the vector shall either match *f_grid* or be 1. The \n"
        "later case is interpreted as the reflectivity is the same for all\n"

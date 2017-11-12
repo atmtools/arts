@@ -1163,8 +1163,28 @@ reflection is (compare to \citet[Sec.\ 5.4.3]{liou:02})
      \end{array}
      \right].
 \end{equation}
+In some cases just $r_v$ and $r_h$ are at hand (as assumed by
+\wsmindex{surfaceFlatRvRh}), the matrix \MtrStl{R}\ is then
+set as:
+\begin{equation}
+  \label{eq:surface:rvrh}
+  \MtrStl{R} =
+     \left[\begin{array}{cccc}
+       \frac{r_v+r_h}{2}&\frac{r_v-r_h}{2}&0&0\\
+       \frac{r_v-r_h}{2}&\frac{r_v+r_h}{2}&0&0\\
+    0&0&\frac{r_v+r_h}{2}&0\\
+    0&0&0&\frac{r_v+r_h}{2}\\
+     \end{array}
+     \right].
+\end{equation}
+For example, the sea surface parameterization TESSEM provides the emissivity
+for vertical and horizontal polarisation ($\epsilon_v$ and $\epsilon_h$). The
+reflectivities are then set as $r_v=1-\epsilon_v$ and $r_h=1-\epsilon_h$,
+respectively, and Eq.~\ref{eq:surface:rvrh} is applied to set \MtrStl{R}
+(WSM is \wsmindex{surfaceTessem}).
 
-For the case of $R_v=R_h$ the matrix in
+For the case of $R_v=R_h$ (as assumed by
+\wsmindex{surfaceFlatScalarReflectivity}) the matrix in
 Equation~\ref{eq:surface:specular_matrix} is strictly diagonal and all the
 diagonal elements have the same value, $(r_v+r_h)/2=r$.
 
