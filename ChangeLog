@@ -1,5 +1,25 @@
 2017-11-12  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
+	* arts-2-3-870
+
+	* src/tessem.cc:
+
+	(tessem_prop_nn): Changed frequency and salinity units to
+	SI units.
+
+	* src/m_surface.cc:
+
+	(surfaceTessem): Moved frequency conversion down to tessem_prop_nn
+
+	* controlfiles/artscomponents/tessem/TestTessem.arts:
+
+	Updated tests to new units. Also set salinity to non-zero value
+	to check unit.
+
+	Or were those fixed values from some external reference?
+
+2017-11-12  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
 	* arts-2-3-869
 
 	* 3rdparty/invlib/src/invlib/*: invlib update
@@ -11,7 +31,6 @@
 	* src/methods.cc:
 
 	(OEM) Minimal fix for documentation.
-
 
 2017-11-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 

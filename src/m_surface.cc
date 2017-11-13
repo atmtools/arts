@@ -951,7 +951,7 @@ void surfaceTessem(
   in[1] = 180.0 - abs(rtp_los[0]);
   in[2] = wind_speed;
   in[3] = surface_skin_t;
-  in[4] = salinity;    // Where is conversion to psu done?
+  in[4] = salinity;
 
   // Get Rv and Rh
   //
@@ -964,8 +964,8 @@ void surfaceTessem(
         throw std::runtime_error("Only frequency >= 5 GHz are allowed");
       if (f_grid[i] > 900e9)
         throw std::runtime_error("Only frequency <= 900 GHz are allowed");
-      
-      in[0] = f_grid[i] * 1e-9;
+
+      in[0] = f_grid[i];
 
       tessem_prop_nn(e_h, net_h, in);
       tessem_prop_nn(e_v, net_v, in);

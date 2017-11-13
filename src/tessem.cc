@@ -82,12 +82,12 @@ void tessem_read_ascii(ifstream& is, TessemNN& net)
   When using the default neural network parameter files
   from the Tessem 2 distribution, the input Vector should contain
   5 elements:
-    - Frequency (10-700) in GHz
+    - Frequency (10e9-700e9) in Hz
     - Theta (0-90) Incidence angle in degrees
     - Windspeed (0-25) at 10m in m/s.
       Higher wind speed can be used but without garantee
     - Surface skin temperature (270-310) in K
-    - Salinity (0-40) in psu (practical salinity units or g/kg)
+    - Salinity (0.0-0.04) in kg/kg
 
   \param[out] ny  Calculated emissivity.
   \param[in] net  Neural network parameters.
@@ -112,10 +112,12 @@ void tessem_prop_nn(VectorView& ny, const TessemNN& net, ConstVectorView nx)
     }
 
     // preprocessing
-    Vector new_x(net.nb_inputs);
+    Vector new_x(nx);
+    new_x[0] *= 1e-9;
+    new_x[4] *= 1e3;
     for (Index i = 0; i < net.nb_inputs; i++)
         new_x[i] = -1. +
-                   (nx[i] - net.x_min[i]) / (net.x_max[i] - net.x_min[i]) * 2;
+                   (new_x[i] - net.x_min[i]) / (net.x_max[i] - net.x_min[i]) * 2;
 
     // propagation
     Vector trans = net.b1;

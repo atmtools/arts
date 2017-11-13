@@ -9,15 +9,15 @@ VectorCreate(tessem_out)
 VectorCreate(tessem_ref)
 
 VectorSet(tessem_in,
-        [1.0000000e+01, 0.0000000e+00, 0.0000000e+00, 2.7314999e+02, 0.0000000e+00])
-VectorSet(tessem_ref, [3.9538400e-01])
+        [1.0000000e+10, 0.0000000e+00, 0.0000000e+00, 2.7314999e+02, 0.0030000e+00])
+VectorSet(tessem_ref, [3.95911e-01])
 
 TestTessem(tessem_out, tessem_neth, tessem_in)
 Compare(tessem_out, tessem_ref, 1e-6)
 
 VectorSet(tessem_in,
-        [1.0000000e+01, 0.0000000e+00, 0.0000000e+00, 2.7314999e+02, 0.0000000e+00])
-VectorSet(tessem_ref, [3.7307261e-01])
+        [1.0000000e+10, 0.0000000e+00, 0.0000000e+00, 2.7314999e+02, 0.0030000e+00])
+VectorSet(tessem_ref, [3.74513e-01])
 
 TestTessem(tessem_out, tessem_netv, tessem_in)
 Compare(tessem_out, tessem_ref, 1e-6)
