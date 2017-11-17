@@ -1,3 +1,45 @@
+2017-11-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-871
+
+	* src/m_fos.cc (iyHybrid2):
+
+	Fix runtime error when compiling with clang. If one of the 2nd and 3rd
+	operands of the ternary operator is a non-const View type, the other
+	one cannot be a temporary (which is an rvalue). Since both operands
+	need to be converted to the same type, the compiler then tries to
+	copy-construct a non-const View from an rvalue (const) object, which is
+	not allowed .
+
+	E.g.:
+	ppath_t_nlte.nrows()?ppath_t_nlte(joker, ip):Vector(0)
+
+	ppath_t_nlte returns a VectorView. Since VectorView is the first common
+	base class between VectorView and Vector, the compiler tries to
+	copy-construct a VectorView from Vector(0). Because Vector(0) is const
+	in this case as it is a temporary, conversion fails. This can be
+	avoided by explicitly converting the Vector(0) to a ConstVectorView:
+
+	ppath_t_nlte.nrows()?ppath_t_nlte(joker, ip):ConstVectorView(Vector(0))
+
+	Now the first common base class between the two operands is
+	ConstVectorView and thus the first operand is used to copy-construct a
+	ConstVectorView from a VectorView which is allowed.
+
+	For detailed information about the ternary operator's behaviour see the
+	"Conditional operator" section at
+	http://en.cppreference.com/w/cpp/language/operator_other
+	Especially 3): ... if E2 and E3 have different types, at least one of
+	which is a [...] class type, [...], then an attempt is made to form an
+	implicit conversion sequence ignoring member access, [...] from each of
+	the operands to the target type determined by the other operand, [...]
+
+	Can't really tell whether clang's implementation or gcc's decision to
+	copy-construct a ConstVectorView in both cases follows the C++ standard
+	more correctly.
+
+	* src/methods.cc (surfaceTessem): Remove spurious backslash.
+
 2017-11-12  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-870

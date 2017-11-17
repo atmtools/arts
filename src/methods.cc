@@ -16543,7 +16543,7 @@ void define_md_data_raw()
          "The validity range of the parametrization of is 10 to 700 GHz, but for\n"
          "some extra flexibility frequencies between 5 and 900 GHz are accepted.\n"
          "\n"
-         "The model itself\ is represented by the neural networks in\n"
+         "The model itself is represented by the neural networks in\n"
          "*tessem_neth* and *tessem_netv*.\n"
          ),
         AUTHORS( "Simon Pfreundschuh" ),

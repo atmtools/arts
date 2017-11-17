@@ -2007,7 +2007,7 @@ void iyHybrid2(
       get_stepwise_blackbody_radiation(B, dB_dT,
                                        ppath_f(joker, ip), ppath_t[ip],
                                        ppd.do_temperature());
-      
+
       get_stepwise_clearsky_propmat(ws,
                                     K_this,
                                     S,
@@ -2022,10 +2022,10 @@ void iyHybrid2(
                                     ppath.los(ip, joker),
                                     ppath_t_nlte.nrows()?
                                     ppath_t_nlte(joker, ip):
-                                    Vector(0),
+                                    ConstVectorView(Vector(0)),
                                     ppath_vmr.nrows()?
                                     ppath_vmr(joker, ip):
-                                    Vector(0),
+                                    ConstVectorView(Vector(0)),
                                     ppath_t[ip],
                                     ppath_p[ip],
                                     jac_species_i,
@@ -2039,7 +2039,7 @@ void iyHybrid2(
                                            ppath.los(ip, joker),
                                            ppath_vmr.nrows()?
                                            ppath_vmr(joker, ip):
-                                           Vector(0),
+                                           ConstVectorView(Vector(0)),
                                            ppath_t[ip],
                                            ppath_p[ip],
                                            jac_species_i,
