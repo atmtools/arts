@@ -29,6 +29,7 @@
 
 #include "arts.h"
 #include <map>
+#include <algorithm>
 #include "methods.h"
 #include "wsv_aux.h"
 #include "workspace_ng.h"
@@ -109,6 +110,53 @@ MdRecord::MdRecord(const char           name[],
   assert( mgin.nelem() == mgindefault.nelem() );
   assert( mgin.nelem() == gintype.nelem() );
   assert( mgin.nelem() == gindesc.nelem() );
+
+  // Check that GIN and GOUT don't contain duplicates
+  ArrayOfString gin_sorted = mgin;
+  std::sort(gin_sorted.begin(), gin_sorted.end());
+  ArrayOfString gout_sorted = mgout;
+  std::sort(gout_sorted.begin(), gout_sorted.end());
+
+  for (auto par = mgin.begin(); mgin.nelem() > 1 && par+1 != mgin.end(); par++)
+  {
+    if (*par == *(par+1))
+    {
+      std::ostringstream os;
+      os << "Two input parameters by the same name are not allowed: \n";
+      os << "Method: " << mname << ", Parameter: " << *par;
+      throw std::runtime_error(os.str());
+    }
+  }
+
+  for (auto par = mgout.begin(); mgout.nelem() > 1 && par+1 != mgout.end(); par++)
+  {
+    if (*par == *(par+1))
+    {
+      std::ostringstream os;
+      os << "Two output parameters by the same name are not allowed: \n";
+      os << "Method: " << mname << ", Parameter: " << *par;
+      throw std::runtime_error(os.str());
+    }
+  }
+
+  // Check that GIN and GOUT don't share parameter names
+  ArrayOfString gisect(gin_sorted.nelem());
+  auto it = std::set_intersection(gin_sorted.begin(), gin_sorted.end(),
+                                  gout_sorted.begin(), gout_sorted.end(),
+                                  gisect.begin());
+  gisect.resize(it - gisect.begin());
+
+  if (gisect.nelem() > 0)
+  {
+    std::ostringstream os;
+    os << "Using the same name for a generic input and generic output variable is not allowed: \n";
+    os << "Method: " << mname << ", Parameter: ";
+    for(auto & gname : gisect)
+    {
+      os << gname << " ";
+    }
+    throw std::runtime_error(os.str());
+  }
 
   // Map the WSV names to indexes
   moutput.resize(output.nelem());
