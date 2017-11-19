@@ -594,4 +594,27 @@ void get_stepwise_effective_source(MatrixView J,
                                    const ArrayOfRetrievalQuantity& jacobian_quantities,
                                    const bool& jacobian_do);
 
+void rtmethods_jacobian_finalisation(
+         ArrayOfTensor3&             diy_dx,
+   const Index&                      atmosphere_dim,
+   const Index&                      stokes_dim,
+   const Vector&                     f_grid,         
+   const Ppath&                      ppath,
+   const Vector&                     ppath_p,
+   const Index&                      iy_agenda_call1,         
+   const Tensor3&                    iy_transmission,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const ArrayOfIndex&               jac_to_integrate, 
+   const ArrayOfTensor3&             diy_dpath );
+
+void rtmethods_unit_conversion(
+         Matrix&                     iy,
+         ArrayOfTensor3&             diy_dx,
+   const Index&                      stokes_dim,
+   const Vector&                     f_grid,         
+   const Ppath&                      ppath,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const Index&                      j_analytical_do,
+   const String&                     iy_unit );
+
 #endif  // rte_h

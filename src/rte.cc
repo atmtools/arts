@@ -5208,3 +5208,117 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
       )
   } // freq loop
 }
+
+
+
+//! rtmethods_jacobian_finalisation
+/*!
+    This function fixes the last steps to made on the Jacobian in some
+    radiative transfer WSMs. The method applies iy_transmission and maps from
+    ppath to the retrieval grids.
+
+    See iyEmissonStandard for usage example.
+
+    \author Patrick Eriksson 
+    \date   2017-11-19
+*/
+void rtmethods_jacobian_finalisation(
+         ArrayOfTensor3&             diy_dx,
+   const Index&                      atmosphere_dim,
+   const Index&                      stokes_dim,
+   const Vector&                     f_grid,         
+   const Ppath&                      ppath,
+   const Vector&                     ppath_p,
+   const Index&                      iy_agenda_call1,         
+   const Tensor3&                    iy_transmission,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const ArrayOfIndex&               jac_to_integrate, 
+   const ArrayOfTensor3&             diy_dpath )  
+{
+  // Some basic sizes
+  const Index nf = f_grid.nelem();
+  const Index ns = stokes_dim;
+
+  // Weight with iy_transmission
+  if( !iy_agenda_call1 )
+    {
+      Matrix X, Y; 
+      //
+      FOR_ANALYTICAL_JACOBIANS_DO
+        ( 
+          Y.resize(ns,diy_dpath[iq].npages());
+          for( Index iv=0; iv<nf; iv++ )
+            { 
+              if( jac_to_integrate[iq] )
+                {
+                  X = transpose( diy_dpath[iq](joker,iv,joker) );
+                  mult( Y, iy_transmission(iv,joker,joker), X );
+                  diy_dpath[iq](joker,iv,joker) = transpose( Y );
+                }
+              else
+                {
+                  X = transpose( diy_dpath[iq](joker,iv,joker) );
+                  mult( Y, iy_transmission(iv,joker,joker), X );
+                  diy_dpath[iq](joker,iv,joker) = transpose( Y );
+                }
+            }
+        )
+    }
+    
+  // Map to retrieval grids
+  FOR_ANALYTICAL_JACOBIANS_DO
+    ( 
+      diy_from_path_to_rgrids( diy_dx[iq], jacobian_quantities[iq], 
+                               diy_dpath[iq], atmosphere_dim, ppath, ppath_p );
+    )
+}
+
+
+
+//! rtmethods_unit_conversion
+/*!
+    This function handles the unit conversion to be done at the end of some
+    radiative transfer WSMs. The method hanldes both *iy* and analytical parts
+    of the Jacobian.
+
+    See iyEmissonStandard for usage example.
+
+    \author Patrick Eriksson 
+    \date   2017-11-19
+*/
+void rtmethods_unit_conversion(
+         Matrix&                     iy,
+         ArrayOfTensor3&             diy_dx,
+   const Index&                      stokes_dim,
+   const Vector&                     f_grid,         
+   const Ppath&                      ppath,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const Index&                      j_analytical_do,
+   const String&                     iy_unit )  
+{
+  // Some basic sizes
+  const Index ns = stokes_dim;
+  const Index np = ppath.np;
+  
+  // Determine refractive index to use for the n2 radiance law
+  Numeric n = 1.0; // First guess is that sensor is in space
+  //
+  if( ppath.end_lstep == 0 ) // If true, sensor inside the atmosphere
+    { n = ppath.nreal[np-1]; }
+
+  // Polarisation index variable
+  ArrayOfIndex i_pol(ns);
+  for( Index is=0; is<ns; is++ )
+    { i_pol[is] = is + 1; }
+
+  // Jacobian part (must be converted to Tb before iy for PlanckBT)
+  // 
+  if( j_analytical_do )
+    {
+      FOR_ANALYTICAL_JACOBIANS_DO( apply_iy_unit2( diy_dx[iq], iy, iy_unit,
+                                                   f_grid, n, i_pol ); )
+    } 
+
+  // iy
+  apply_iy_unit( iy, iy_unit, f_grid, n, i_pol );
+}

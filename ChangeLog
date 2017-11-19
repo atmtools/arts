@@ -1,3 +1,12 @@
+2017-11-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-873
+
+	* src/m_rte.cc (iyEmissionStandard2): Started.
+
+	* src/rte.cc (rtmethods_jacobian_finalisation)
+	(rtmethods_unit_conversion): New.
+
 2017-11-17  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-872
