@@ -2229,6 +2229,23 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "iy_aux2" ),
+      DESCRIPTION
+      (
+       "Data auxiliary to *iy*.\n"
+       "\n"
+       "Different data beside the direct result of the radiative transfer\n"
+       "calculations (*iy*) can be obtained by this variable. These auxilary\n"
+       "data are selected by *iy_aux_vars*.\n"
+       "\n"
+       "Usage:      Provided by some radiative transfer methods.\n"
+       "\n"
+       "Dimensions: [quantity][ f_grid, stokes_dim ]\n"
+       ),
+      GROUP( "ArrayOfMatrix" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "iy_aux_vars" ),
       DESCRIPTION
       (

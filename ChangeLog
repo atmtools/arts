@@ -1,15 +1,26 @@
 2017-11-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-878
+
+	* src/m_rte.cc (iyEmissionStandard2): Now supports iy_aux_vars,
+	but there is now just two options: "Transmission" and
+	"Radiative background".
+
+	* src/workspace.cc: Introduced iy_aux2. Will replace iy_aux, that
+	will become an ArrayOfMatrix.
+
+2017-11-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-877
 
-	* src/m_rte.cc (iyEmissionStandard2): Work to avoid resizng of
+	* src/m_rte.cc (iyEmissionStandard2): Work to avoid resizing of
 	variables, and to make use of the new feature that joker works for
-	empty dimensions. 
+	empty dimensions.
 
 	* src/rte.cc:
 	(rtmethods_jacobian_init): Some restructuring to avoid resizing of variables.
 	(get_ppath_atmvars): Now always set to have size (nnlte,np).
-	Before if-statement and could be set to have size (0,0). 
+	Before if-statement and could be set to have size (0,0).
 
 2017-11-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 

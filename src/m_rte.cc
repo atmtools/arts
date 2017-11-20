@@ -182,7 +182,7 @@ void iyCalc(
 void iyEmissionStandard2(
          Workspace&                  ws,
          Matrix&                     iy,
-         ArrayOfTensor4&             iy_aux,
+         ArrayOfMatrix&              iy_aux,
          ArrayOfTensor3&             diy_dx,
          Vector&                     ppvar_p,
          Vector&                     ppvar_t,
@@ -242,7 +242,7 @@ void iyEmissionStandard2(
     throw runtime_error( "A secondary propagation path starting at the "
                          "surface and is going directly into the surface "
                          "is found. This is not allowed." );
-
+  // iy_aux_vars checked below
   
   //  Init Jacobian quantities
   Index   j_analytical_do = 0;
@@ -267,9 +267,28 @@ void iyEmissionStandard2(
                                iy_agenda_call1 );
     }
   
-  // iy_aux not yet handled
+  // Init iy_aux and fill where possible
   const Index naux = iy_aux_vars.nelem();
   iy_aux.resize( naux );
+  //
+  for( Index i=0; i<naux; i++ )
+    {
+      iy_aux[i].resize(nf,ns); 
+      
+      if( iy_aux_vars[i] == "Transmission" )
+        {} // Filled below
+      else if( iy_aux_vars[i] == "Radiative background" )
+        { iy_aux[i] = (Numeric)min( (Index)2, rbi-1 ); }
+      else
+        {
+          ostringstream os;
+          os << "The only allowed strings in *iy_aux_vars* are:\n"
+             << "  \"Radiative background\"\n"
+             << "  \"Optical depth\"\n"
+             << "but you have selected: \"" << iy_aux_vars[i] << "\"";
+          throw runtime_error( os.str() );      
+        }
+    }
 
   // Get atmospheric and radiative variables along the propagation path
   //
@@ -484,6 +503,19 @@ void iyEmissionStandard2(
         }
     }
 
+
+  // Remaining parts if iy_aux
+  for( Index i=0; i<naux; i++ )
+    {
+      if( iy_aux_vars[i] == "Transmission" )
+        {
+          for( Index iv=0; iv<nf; iv++ )
+            {
+              for( Index is=0; is<ns; is++ )
+                { iy_aux[i](iv,is) = iy_trans_new(iv,is,is); }
+            }
+        } 
+    }
   
   // Finalize analytical Jacobians
   if( j_analytical_do )
@@ -852,7 +884,7 @@ void iyEmissionStandard(
   else
     { iy_transmission_mult( iy_trans_new, iy_transmission, 
                             trans_cumulat(joker,joker,joker,np-1) ); }
-                            
+  
   // Radiative background
   //
   get_iy_of_background( ws, iy, diy_dx, 
