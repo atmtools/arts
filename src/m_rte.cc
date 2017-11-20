@@ -232,82 +232,39 @@ void iyEmissionStandard2(
   const Index np = ppath.np;
   const Index nq = jacobian_quantities.nelem();
 
+  // Radiative background index
+  const Index rbi = ppath_what_background( ppath );
+  
   // Checks of input
-  if( !iy_agenda_call1  &&  np == 1  &&  ppath_what_background( ppath ) == 2  )
+  if( rbi < 1  ||  rbi > 9 )
+    throw runtime_error( "ppath.background is invalid. Check your "
+                         "calculation of *ppath*?" );
+  if( !iy_agenda_call1  &&  np == 1  &&  rbi == 2  )
     throw runtime_error( "A secondary propagation path starting at the "
                          "surface and is going directly into the surface "
                          "is found. This is not allowed." );
 
   
-  //### Init of Jacobian quantities #############################################
+  //  Init Jacobian quantities
   Index           j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
   ArrayOfIndex    jac_species_i(0), jac_scat_i(0), jac_is_t(0), jac_wind_i(0);
-  ArrayOfIndex    jac_mag_i(0), jac_other(0), jac_to_integrate(0); 
+  ArrayOfIndex    jac_mag_i(0), jac_other(0), jac_to_integrate(0);
+  //
   // Flags for partial derivatives of propmat
   const PropmatPartialsData ppd(jacobian_quantities);
   //
-  if( jacobian_do ) 
-  { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
-  //
-  if( !j_analytical_do )
-  { diy_dx.resize(0); }
-  else 
-  {
-    diy_dpath.resize(nq); 
-    jac_species_i.resize(nq); 
-    jac_scat_i.resize(nq); 
-    jac_is_t.resize(nq); 
-    jac_wind_i.resize(nq); 
-    jac_mag_i.resize(nq); 
-    jac_other.resize(nq);
-    jac_to_integrate.resize(nq);
-    //
-    FOR_ANALYTICAL_JACOBIANS_DO( 
-    if( jacobian_quantities[iq].Integration() )
-    {
-      diy_dpath[iq].resize(1,nf,ns); 
-      diy_dpath[iq] = 0.0;
-    }
-    else
-    {
-      diy_dpath[iq].resize(np,nf,ns); 
-      diy_dpath[iq] = 0.0;
-    }
-    )
-
-    get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
-                                           jac_wind_i, jac_mag_i, jac_to_integrate, 
-                                           jacobian_quantities,
-                                           abs_species, scat_species );
-    FOR_ANALYTICAL_JACOBIANS_DO( 
-      jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
-      if( jac_to_integrate[iq] == JAC_IS_FLUX )
-        throw std::runtime_error("This method can not perform flux calculations.");
-      if( jac_scat_i[iq] >= 0 )
-        throw std::runtime_error("This method  does not handle scattering "
-                                 "species Jacobians.");
-    )
-    
-    if( iy_agenda_call1 )
-    {
-      diy_dx.resize(nq); 
-      //
-      FOR_ANALYTICAL_JACOBIANS_DO( 
-        diy_dx[iq].resize( jacobian_indices[iq][1]-jacobian_indices[iq][0]+1,
-                           nf, ns ); 
-        diy_dx[iq] = 0.0;
-      )
-    }
-  } 
-  //###########################################################################
-
+  rtmethods_jacobian_init( j_analytical_do, jac_species_i, jac_scat_i,
+                           jac_is_t, jac_wind_i, jac_mag_i, jac_other,
+                           jac_to_integrate, diy_dx, diy_dpath,         
+                           ns, nf, np, nq, abs_species, scat_species,
+                           ppd, jacobian_do, jacobian_quantities,
+                           jacobian_indices, iy_agenda_call1 );
   
   // iy_aux not yet handled
   const Index naux = iy_aux_vars.nelem();
   iy_aux.resize( naux );
 
-  
   // Get atmospheric and radiative variables along the propagation path
   //
   Tensor3 J(np,nf,stokes_dim);
@@ -317,9 +274,8 @@ void iyEmissionStandard2(
   Tensor5 dtrans_partial_dx_below(0,0,0,0,0);
   Tensor4 dJ_dx(0,0,0,0);
   //
-  if( np == 0 )
+  if( np == 1  &&  rbi == 1 )  // i.e. ppath is totally outside the atmosphere:
     {
-      // Ppath totally outside the atmosphere:
       ppvar_p.resize(0);
       ppvar_t.resize(0);
       ppvar_t_nlte.resize(0,0);
@@ -376,7 +332,7 @@ void iyEmissionStandard2(
         }
 
       // Loop ppath points and determine radiative properties
-      for(Index ip = 0; ip<np; ip++ )
+      for( Index ip=0; ip<np; ip++ )
         {
           get_stepwise_blackbody_radiation( B, dB_dT,
                                             ppvar_f(joker, ip), ppvar_t[ip],
@@ -450,7 +406,7 @@ void iyEmissionStandard2(
                                  K_this,
                                  dK_past_dx,
                                  dK_this_dx,
-                                 (ip >0)?
+                                 (ip>0)?
                                    ppath.lstep[ip-1]:
                                    Numeric(1.0),
                                  ip==0 );
@@ -478,10 +434,10 @@ void iyEmissionStandard2(
   // iy_transmission
   Tensor3 iy_trans_new;
   if( iy_agenda_call1 )
-    { iy_trans_new = trans_cumulat(np,joker,joker,joker); }
+    { iy_trans_new = trans_cumulat(np-1,joker,joker,joker); }
   else
     { iy_transmission_mult( iy_trans_new, iy_transmission, 
-                            trans_cumulat(np,joker,joker,joker) ); }
+                            trans_cumulat(np-1,joker,joker,joker) ); }
 
   // Radiative background
   get_iy_of_background( ws, iy, diy_dx, 
@@ -509,16 +465,16 @@ void iyEmissionStandard2(
               if( j_analytical_do )
                 {
                   if(stokes_dim>1)
-                    id_mat(one_minus_transmission);
+                    { id_mat(one_minus_transmission); }
                   else 
-                    one_minus_transmission = 1.;
+                    { one_minus_transmission = 1.; }
                   one_minus_transmission -= T;
                 }
 
-              from_level = J(ip, iv, joker);
-              from_level += J(ip+1, iv, joker);
+              from_level = J(ip,iv,joker);
+              from_level += J(ip+1,iv,joker);
               from_level *= 0.5;
-              through_level = iy(iv, joker);
+              through_level = iy(iv,joker);
               through_level -= from_level;
 
               if( j_analytical_do )
@@ -550,8 +506,8 @@ void iyEmissionStandard2(
   if( j_analytical_do )
     {
       rtmethods_jacobian_finalisation( diy_dx,
-                                       atmosphere_dim, stokes_dim, f_grid, ppath,
-                                       ppvar_p, iy_agenda_call1, iy_transmission,
+                                       ns, nf, atmosphere_dim, ppath, ppvar_p,
+                                       iy_agenda_call1, iy_transmission,
                                        jacobian_quantities, jac_to_integrate,
                                        diy_dpath );
     }
@@ -560,7 +516,7 @@ void iyEmissionStandard2(
   if( iy_agenda_call1 )
     {
       rtmethods_unit_conversion( iy, diy_dx,
-                                 stokes_dim, f_grid, ppath, jacobian_quantities,
+                                 ns, np, f_grid, ppath, jacobian_quantities,
                                  j_analytical_do, iy_unit );
     }
 }

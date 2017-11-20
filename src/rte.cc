@@ -5211,6 +5211,96 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
 
 
 
+//! rtmethods_jacobian_init
+/*!
+    This function fixes the intitial steps around Jacobian calculations, to be
+    done inside radiative transfer WSMs.
+
+    See iyEmissonStandard for usage example.
+
+    \author Patrick Eriksson 
+    \date   2017-11-20
+*/
+void rtmethods_jacobian_init(
+         Index&                      j_analytical_do,
+         ArrayOfIndex&               jac_species_i,
+         ArrayOfIndex&               jac_scat_i,
+         ArrayOfIndex&               jac_is_t,
+         ArrayOfIndex&               jac_wind_i,
+         ArrayOfIndex&               jac_mag_i,
+         ArrayOfIndex&               jac_other,
+         ArrayOfIndex&               jac_to_integrate,
+         ArrayOfTensor3&             diy_dx,
+         ArrayOfTensor3&             diy_dpath,         
+   const Index&                      ns,
+   const Index&                      nf,
+   const Index&                      np,
+   const Index&                      nq,
+   const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const ArrayOfString&              scat_species,         
+   const PropmatPartialsData&        ppd,
+   const Index&                      jacobian_do,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,   
+   const ArrayOfArrayOfIndex&        jacobian_indices, 
+   const Index&                      iy_agenda_call1 )
+{
+  if( jacobian_do ) 
+    { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
+  //
+  if( !j_analytical_do )
+    { diy_dx.resize(0); }
+  else 
+    {
+      diy_dpath.resize(nq); 
+      jac_species_i.resize(nq); 
+      jac_scat_i.resize(nq); 
+      jac_is_t.resize(nq); 
+      jac_wind_i.resize(nq); 
+      jac_mag_i.resize(nq); 
+      jac_other.resize(nq);
+      jac_to_integrate.resize(nq);
+      //
+      FOR_ANALYTICAL_JACOBIANS_DO( 
+        if( jacobian_quantities[iq].Integration() )
+          {
+            diy_dpath[iq].resize(1,nf,ns); 
+            diy_dpath[iq] = 0.0;
+          }
+        else
+          {
+            diy_dpath[iq].resize(np,nf,ns); 
+            diy_dpath[iq] = 0.0;
+          }
+      )
+
+      get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
+                                             jac_wind_i, jac_mag_i, jac_to_integrate, 
+                                             jacobian_quantities,
+                                             abs_species, scat_species );
+      FOR_ANALYTICAL_JACOBIANS_DO( 
+        jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
+        if( jac_to_integrate[iq] == JAC_IS_FLUX )
+          throw std::runtime_error("This method can not perform flux calculations.");
+        if( jac_scat_i[iq] >= 0 )
+          throw std::runtime_error("This method  does not handle scattering "
+                                   "species Jacobians.");
+      )
+    
+      if( iy_agenda_call1 )
+        {
+          diy_dx.resize(nq); 
+          //
+          FOR_ANALYTICAL_JACOBIANS_DO( 
+            diy_dx[iq].resize( jacobian_indices[iq][1]-jacobian_indices[iq][0]+1,
+                               nf, ns ); 
+            diy_dx[iq] = 0.0;
+          )
+        }
+    } 
+}
+
+
+
 //! rtmethods_jacobian_finalisation
 /*!
     This function fixes the last steps to made on the Jacobian in some
@@ -5224,9 +5314,9 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
 */
 void rtmethods_jacobian_finalisation(
          ArrayOfTensor3&             diy_dx,
+   const Index&                      ns,
+   const Index&                      nf,
    const Index&                      atmosphere_dim,
-   const Index&                      stokes_dim,
-   const Vector&                     f_grid,         
    const Ppath&                      ppath,
    const Vector&                     ppath_p,
    const Index&                      iy_agenda_call1,         
@@ -5235,10 +5325,6 @@ void rtmethods_jacobian_finalisation(
    const ArrayOfIndex&               jac_to_integrate, 
    const ArrayOfTensor3&             diy_dpath )  
 {
-  // Some basic sizes
-  const Index nf = f_grid.nelem();
-  const Index ns = stokes_dim;
-
   // Weight with iy_transmission
   if( !iy_agenda_call1 )
     {
@@ -5289,17 +5375,14 @@ void rtmethods_jacobian_finalisation(
 void rtmethods_unit_conversion(
          Matrix&                     iy,
          ArrayOfTensor3&             diy_dx,
-   const Index&                      stokes_dim,
+   const Index&                      ns,
+   const Index&                      np,
    const Vector&                     f_grid,         
    const Ppath&                      ppath,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const Index&                      j_analytical_do,
    const String&                     iy_unit )  
 {
-  // Some basic sizes
-  const Index ns = stokes_dim;
-  const Index np = ppath.np;
-  
   // Determine refractive index to use for the n2 radiance law
   Numeric n = 1.0; // First guess is that sensor is in space
   //
