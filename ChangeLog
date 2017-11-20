@@ -1,3 +1,14 @@
+2017-11-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-875
+
+	* src/matpackI.cc (Range::Range):
+
+	Slightly adapt assertion in Range constructor to allow selecting empty
+	dimensions with a joker.
+
+	* src/test_matpack.cc: Add test47 to verify the above change.
+
 2017-11-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-874

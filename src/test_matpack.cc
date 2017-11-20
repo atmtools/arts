@@ -1484,6 +1484,26 @@ void nlinspace(
   x[n-1] = stop;
 }
 
+void test47()
+{
+  // Selecting empty matpack dimensions with Joker shouldn't fail
+  Vector v;
+  Matrix m;
+
+  VectorView vv = v[joker];
+  MatrixView mv = m(joker, joker);
+
+  std::cout << "vv.nelem: " << vv.nelem() << std::endl;
+  std::cout << "mv.nrows: " << mv.nrows() << " ";
+  std::cout << "mv.ncols: " << mv.ncols() << std::endl;
+
+  Matrix m2(0, 5);
+  MatrixView mv2 = m2(joker, 3);
+  std::cout << "mv2.nrows: " << mv2.nrows() << " ";
+  std::cout << "mv2.ncols: " << mv2.ncols() << std::endl;
+}
+
+
 int main()
 {
 //   test1();
@@ -1532,7 +1552,8 @@ int main()
 //    test43();
 //    test44();
 //    test45();
-    test46();
+//    test46();
+  test47();
 
 //    const double tolerance = 1e-9;
 //    double error;

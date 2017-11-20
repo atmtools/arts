@@ -141,8 +141,8 @@ Range::Range(const Range& p, const Range& n) :
 
   // Resulting start must be >= previous start:
   assert( p.mstart<=mstart );
-  // and <= prev_fin:
-  assert( mstart<=prev_fin );
+  // and <= prev_fin, except for Joker:
+  assert( mstart<=prev_fin || mextent == -1 );
 
   // Resulting stride must be != 0:
   assert( 0!=mstride);
