@@ -7383,6 +7383,102 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iyEmissionStandard2" ),
+        DESCRIPTION
+        (
+         "Text below is not fully valid. Work in progress ...\n"
+         "\n"
+         "Standard method for radiative transfer calculations with emission.\n"
+         "\n"
+         "Designed to be part of *iy_main_agenda*. That is, only valid\n"
+         "outside the cloudbox (no scattering). Assumes local thermodynamic\n"
+         "equilibrium for emission. The basic calculation strategy is to take\n"
+         "the average of the absorption and the emission source function at\n"
+         "the end points of each step of the propagation path. For details\n"
+         "see the user guide.\n" 
+         "\n"
+         "The possible choices for *iy_unit* are\n"
+         " \"1\"             : No conversion, i.e. [W/(m^2 Hz sr)] (radiance per\n"
+         "                     frequency unit).\n"
+         " \"RJBT\"          : Conversion to Rayleigh-Jean brightness\n"
+         "                     temperature.\n"
+         " \"PlanckBT\"      : Conversion to Planck brightness temperature.\n"
+         " \"W/(m^2 m sr)\"  : Conversion to [W/(m^2 m sr)] (radiance per\n"
+         "                     wavelength unit).\n"
+         " \"W/(m^2 m-1 sr)\": Conversion to [W/(m^2 m-1 sr)] (radiance per\n"
+         "                     wavenumber unit).\n"
+         "Expressions applied and considerations for the unit conversion of\n"
+         "radiances are discussed in Sec. 5.7 of the ARTS-2 article.\n"
+         "\n"
+         "The following auxiliary data can be obtained:\n"
+         "  \"Pressure\": The pressure along the propagation path.\n"
+         "     Size: [1,1,1,np].\n"
+         "  \"Temperature\": The temperature along the propagation path.\n"
+         "     Size: [1,1,1,np].\n"
+         "  \"VMR, species X\": VMR of the species with index X (zero based).\n"
+         "     For example, adding the string \"VMR, species 0\" extracts the\n"
+         "     VMR of the first species. Size: [1,1,1,np].\n"
+         "  \"Absorption, summed\": The total absorption matrix along the\n"
+         "     path. Size: [nf,ns,ns,np].\n"
+         "  \"Absorption, species X\": The absorption matrix along the path\n"
+         "     for an individual species (X works as for VMR).\n"
+         "     Size: [nf,ns,ns,np].\n"
+         "* \"Radiative background\": Index value flagging the radiative\n"
+         "     background. The following coding is used: 0=space, 1=surface\n"
+         "     and 2=cloudbox. Size: [nf,1,1,1].\n"
+         "  \"iy\": The radiance at each point along the path (*iy_unit* is.\n"
+         "     considered). Size: [nf,ns,1,np].\n"
+         "  \"Transmission\": The transmission matrix from each propagation\n"
+         "     path point to the end of the path closest to the sensor. The\n"
+         "     Mueller transmission matrices are valid for the direction of\n"
+         "     the photons. Size: [nf,ns,ns,np].\n"
+         "* \"Optical depth\": The scalar optical depth between the\n"
+         "     observation point and the end of the primary propagation path\n"
+         "     (ie. the optical depth to the surface or space.). Calculated\n"
+         "     in a pure scalar manner, and not dependent on direction.\n"
+         "     Size: [nf,1,1,1].\n"
+         "where\n"
+         "  nf: Number of frequencies.\n"
+         "  ns: Number of Stokes elements.\n"
+         "  np: Number of propagation path points.\n"
+         "\n"
+         "The auxiliary data are returned in *iy_aux* with quantities\n"
+         "selected by *iy_aux_vars*. Most variables require that the method\n"
+         "is called directly or by *iyCalc*. For calculations using *yCalc*,\n"
+         "the selection is restricted to the variables marked with *.\n"
+         "\n"
+         "In addition, these choices are accepted but no calculations are\n"
+         "done:\n"
+         "  \"PND, type X\": Size: [0,0,0,0].\n"
+         "  \"Mass content, X\": Size: [0,0,0,0].\n"
+         "See e.g. *iyTransmissionStandard* for a definition of these\n"
+         "variables. To fill these elements of *iy_aux* (after calling\n"
+         "this WSM), use *iy_auxFillParticleVariables*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_t_nlte",
+             "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_f" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "diy_dx", "iy_id", "stokes_dim", "f_grid", "atmosphere_dim",
+            "p_grid", "z_field", "t_field", "t_nlte_field", "vmr_field",
+            "abs_species", "wind_u_field", "wind_v_field", "wind_w_field",
+            "mag_u_field", "mag_v_field", "mag_w_field", 
+            "cloudbox_on", "scat_species", "iy_unit", "iy_aux_vars",
+            "jacobian_do", "jacobian_quantities", "jacobian_indices", 
+            "ppath", "rte_pos2",
+            "propmat_clearsky_agenda", "iy_main_agenda", 
+            "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda", 
+            "iy_agenda_call1", "iy_transmission", "rte_alonglos_v" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "iyFOS" ),
         DESCRIPTION
         (

@@ -3823,6 +3823,113 @@ void Workspace::define_wsv_data()
       GROUP( "Agenda" )));
 
   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppvar_f" ),
+      DESCRIPTION
+      (
+       "Doppler adjusted frequenices along the propagation path.\n"
+       "\n"
+       "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
+       "\n"
+       "Dimension: [ 3. species, ppath.np ]\n"
+       "\n"
+       "Usage: Output of radiative transfer methods.\n"
+       ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppvar_mag" ),
+      DESCRIPTION
+      (
+       "Magnetic field along the propagation path.\n"
+       "\n"
+       "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
+       "\n"
+       "Dimension: [ 3. species, ppath.np ]\n"
+       "\n"
+       "Usage: Output of radiative transfer methods.\n"
+       ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppvar_p" ),
+      DESCRIPTION
+      (
+       "Pressure along the propagation path.\n"
+       "\n"
+       "ppvar stands for propagation path variable. The variables named in is\n"
+       "way describe the atmosphere and its properties at each point of the\n"
+       "propagation path\n"
+       "\n"
+       "Dimension: [ ppath.np ]\n"
+       "\n"
+       "Usage: Output of radiative transfer methods.\n"
+       ),
+      GROUP( "Vector" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppvar_t" ),
+      DESCRIPTION
+      (
+       "Temperature along the propagation path.\n"
+       "\n"
+       "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
+       "\n"
+       "Dimension: [ ppath.np ]\n"
+       "\n"
+       "Usage: Output of radiative transfer methods.\n"
+       ),
+      GROUP( "Vector" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppvar_t_nlte" ),
+      DESCRIPTION
+      (
+       "Non-LTE temperatures along the propagation path.\n"
+       "\n"
+       "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
+       "\n"
+       "Dimension: [ number of non-lte temperatures, ppath.np ]\n"
+       "\n"
+       "Usage: Output of radiative transfer methods.\n"
+       ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppvar_vmr" ),
+      DESCRIPTION
+      (
+       "VMR values along the propagation path.\n"
+       "\n"
+       "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
+       "\n"
+       "Dimension: [ number of abs. species, ppath.np ]\n"
+       "\n"
+       "Usage: Output of radiative transfer methods.\n"
+       ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppvar_wind" ),
+      DESCRIPTION
+      (
+       "Winds along the propagation path.\n"
+       "\n"
+       "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
+       "\n"
+       "Dimension: [ 3. species, ppath.np ]\n"
+       "\n"
+       "Usage: Output of radiative transfer methods.\n"
+       ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
     (WsvRecord
     ( NAME( "propmat_clearsky" ),
       DESCRIPTION

@@ -184,13 +184,13 @@ void iyEmissionStandard2(
          Matrix&                     iy,
          ArrayOfTensor4&             iy_aux,
          ArrayOfTensor3&             diy_dx,
-         Vector&                     ppath_p,
-         Vector&                     ppath_t,
-         Matrix&                     ppath_t_nlte,
-         Matrix&                     ppath_vmr,
-         Matrix&                     ppath_wind,
-         Matrix&                     ppath_mag,         
-         Matrix&                     ppath_f,  
+         Vector&                     ppvar_p,
+         Vector&                     ppvar_t,
+         Matrix&                     ppvar_t_nlte,
+         Matrix&                     ppvar_vmr,
+         Matrix&                     ppvar_wind,
+         Matrix&                     ppvar_mag,         
+         Matrix&                     ppvar_f,  
    const Index&                      iy_id,
    const Index&                      stokes_dim,
    const Vector&                     f_grid,
@@ -223,7 +223,7 @@ void iyEmissionStandard2(
    const Agenda&                     iy_cloudbox_agenda,
    const Index&                      iy_agenda_call1,
    const Tensor3&                    iy_transmission,
-   const Numeric&                    rte_alonglos_v,      
+   const Numeric&                    rte_alonglos_v,
    const Verbosity&                  verbosity )
 {
   // Some basic sizes
@@ -266,12 +266,12 @@ void iyEmissionStandard2(
     FOR_ANALYTICAL_JACOBIANS_DO( 
     if( jacobian_quantities[iq].Integration() )
     {
-      diy_dpath[iq].resize( 1, nf, ns ); 
+      diy_dpath[iq].resize(1,nf,ns); 
       diy_dpath[iq] = 0.0;
     }
     else
     {
-      diy_dpath[iq].resize( np, nf, ns ); 
+      diy_dpath[iq].resize(np,nf,ns); 
       diy_dpath[iq] = 0.0;
     }
     )
@@ -296,7 +296,7 @@ void iyEmissionStandard2(
       FOR_ANALYTICAL_JACOBIANS_DO( 
         diy_dx[iq].resize( jacobian_indices[iq][1]-jacobian_indices[iq][0]+1,
                            nf, ns ); 
-      diy_dx[iq] = 0.0;
+        diy_dx[iq] = 0.0;
       )
     }
   } 
@@ -310,44 +310,44 @@ void iyEmissionStandard2(
   
   // Get atmospheric and radiative variables along the propagation path
   //
-  Tensor4 trans_cumulat(np,nf,stokes_dim,stokes_dim);
   Tensor3 J(np,nf,stokes_dim);
+  Tensor4 trans_cumulat(np,nf,stokes_dim,stokes_dim);
+  Tensor4 trans_partial(np,nf,stokes_dim,stokes_dim);
+  Tensor5 dtrans_partial_dx_above(0,0,0,0,0);
+  Tensor5 dtrans_partial_dx_below(0,0,0,0,0);
+  Tensor4 dJ_dx(0,0,0,0);
   //
   if( np == 0 )
     {
       // Ppath totally outside the atmosphere:
-      ppath_p.resize( 0 );
-      ppath_t.resize( 0 );
-      ppath_t_nlte.resize( 0, 0 );
-      ppath_vmr.resize( 0, 0 );
-      ppath_wind.resize( 0, 0 );
-      ppath_mag.resize( 0, 0 );
-      ppath_f.resize( 0, 0 );
+      ppvar_p.resize(0);
+      ppvar_t.resize(0);
+      ppvar_t_nlte.resize(0,0);
+      ppvar_vmr.resize(0,0);
+      ppvar_wind.resize(0,0);
+      ppvar_mag.resize(0,0);
+      ppvar_f.resize(0,0);
     }
   else
     {
       // Basic atmospheric variables
-      get_ppath_atmvars( ppath_p, ppath_t, ppath_t_nlte, ppath_vmr,
-                         ppath_wind, ppath_mag, 
+      get_ppath_atmvars( ppvar_p, ppvar_t, ppvar_t_nlte, ppvar_vmr,
+                         ppvar_wind, ppvar_mag, 
                          ppath, atmosphere_dim, p_grid, t_field, t_nlte_field, 
                          vmr_field, wind_u_field, wind_v_field, wind_w_field,
                          mag_u_field, mag_v_field, mag_w_field );
       
-      get_ppath_f( ppath_f, ppath, f_grid,  atmosphere_dim, 
-                   rte_alonglos_v, ppath_wind );
+      get_ppath_f( ppvar_f, ppath, f_grid,  atmosphere_dim, 
+                   rte_alonglos_v, ppvar_wind );
 
       // Size radiative variables always used
       Vector B(nf);
-      Tensor4 trans_partial(np,nf,stokes_dim,stokes_dim);
       PropagationMatrix K_this(nf,stokes_dim), K_past(nf,stokes_dim), Kp(nf,stokes_dim);
       StokesVector a(nf,stokes_dim), S(nf,stokes_dim), Sp(nf,stokes_dim);
       ArrayOfIndex lte(np);
 
-      // Size variables only used if analytical jacobians done
+      // Init variables only used if analytical jacobians done
       Vector dB_dT(0);
-      Tensor4 dJ_dx(0,0,0,0);
-      Tensor5 dtrans_partial_dx_above(0,0,0,0,0);
-      Tensor5 dtrans_partial_dx_below(0,0,0,0,0);
       ArrayOfPropagationMatrix dK_this_dx(0), dK_past_dx(0), dKp_dx(0);
       ArrayOfStokesVector da_dx(0), dS_dx(0), dSp_dx(0);
       //
@@ -379,42 +379,44 @@ void iyEmissionStandard2(
       for(Index ip = 0; ip<np; ip++ )
         {
           get_stepwise_blackbody_radiation( B, dB_dT,
-                                            ppath_f(joker, ip), ppath_t[ip],
+                                            ppvar_f(joker, ip), ppvar_t[ip],
                                             ppd.do_temperature());
+
           get_stepwise_clearsky_propmat( ws,
                                          K_this,
                                          S,
                                          lte[ip],
                                          dK_this_dx,
                                          dS_dx,
-                                         propmat_clearsky_agenda, 
+                                         propmat_clearsky_agenda,
                                          jacobian_quantities,
                                          ppd,
-                                         ppath_f(joker,ip),
-                                         ppath_mag(joker,ip),
+                                         ppvar_f(joker,ip),
+                                         ppvar_mag(joker,ip),
                                          ppath.los(ip,joker),
-                                         ppath_t_nlte.nrows()?
-                                           ppath_t_nlte(joker,ip):
+                                         ppvar_t_nlte.nrows()?
+                                           ppvar_t_nlte(joker,ip):
                                            ConstVectorView(Vector(0)),
-                                         ppath_vmr.nrows()?
-                                           ppath_vmr(joker, ip):
+                                         ppvar_vmr.nrows()?
+                                           ppvar_vmr(joker,ip):
                                            ConstVectorView(Vector(0)),
-                                         ppath_t[ip],
-                                         ppath_p[ip],
+                                         ppvar_t[ip],
+                                         ppvar_p[ip],
                                          jac_species_i,
                                          jacobian_do );
+
           if(jacobian_do)
             {
               adapt_stepwise_partial_derivatives( dK_this_dx,
                                                   dS_dx,
                                                   jacobian_quantities,
-                                                  ppath_f(joker,ip),
+                                                  ppvar_f(joker,ip),
                                                   ppath.los(ip,joker),
-                                                  ppath_vmr.nrows()?
-                                                    ppath_vmr(joker, ip):
+                                                  ppvar_vmr.nrows()?
+                                                    ppvar_vmr(joker,ip):
                                                     ConstVectorView(Vector(0)),
-                                                  ppath_t[ip],
-                                                  ppath_p[ip],
+                                                  ppvar_t[ip],
+                                                  ppvar_p[ip],
                                                   jac_species_i,
                                                   jac_wind_i,
                                                   lte[ip],
@@ -453,21 +455,20 @@ void iyEmissionStandard2(
                                    Numeric(1.0),
                                  ip==0 );
 
-          get_stepwise_effective_source(
-                                 J(ip, joker, joker),
-                                 jacobian_do?
-                                   dJ_dx(ip,joker,joker,joker):
-                                   Tensor3(0,0,0),
-                                 K_this,
-                                 a,
-                                 S,
-                                 dK_this_dx,
-                                 da_dx,
-                                 dS_dx,
-                                 B,
-                                 dB_dT,
-                                 jacobian_quantities,
-                                 jacobian_do );
+          get_stepwise_effective_source( J(ip,joker,joker),
+                                         jacobian_do?
+                                           dJ_dx(ip,joker,joker,joker):
+                                           Tensor3(0,0,0),
+                                         K_this,
+                                         a,
+                                         S,
+                                         dK_this_dx,
+                                         da_dx,
+                                         dS_dx,
+                                         B,
+                                         dB_dT,
+                                         jacobian_quantities,
+                                         jacobian_do );
       
           swap(K_past, K_this);
           swap(dK_past_dx, dK_this_dx);
@@ -494,7 +495,54 @@ void iyEmissionStandard2(
   // Radiative transfer calculations
   if( np > 1 )
     {
+      for( Index iv=0; iv<nf; iv++ )
+        {
+          Vector through_level(stokes_dim), from_level(stokes_dim);
+          Vector dfrom_level_dx(stokes_dim);
+          Matrix one_minus_transmission(stokes_dim,stokes_dim);
       
+          for( Index ip=np-2; ip>=0; ip-- )
+            {
+        
+              ConstMatrixView T = trans_partial(ip+1,iv,joker,joker);
+        
+              if( j_analytical_do )
+                {
+                  if(stokes_dim>1)
+                    id_mat(one_minus_transmission);
+                  else 
+                    one_minus_transmission = 1.;
+                  one_minus_transmission -= T;
+                }
+
+              from_level = J(ip, iv, joker);
+              from_level += J(ip+1, iv, joker);
+              from_level *= 0.5;
+              through_level = iy(iv, joker);
+              through_level -= from_level;
+
+              if( j_analytical_do )
+                {
+                  FOR_ANALYTICAL_JACOBIANS_DO
+                    (
+                       get_diydx( diy_dpath[iq](ip,iv,joker), 
+                                  diy_dpath[iq](ip+1,iv,joker), 
+                                  one_minus_transmission,
+                                  trans_cumulat(ip,iv,joker, joker), 
+                                  dtrans_partial_dx_above(ip+1,iq,iv,joker,joker), 
+                                  dtrans_partial_dx_below(ip+1,iq,iv,joker,joker), 
+                                  through_level, 
+                                  dJ_dx(ip, iq, iv, joker), 
+                                  dJ_dx(ip+1, iq, iv, joker),
+                                  stokes_dim);
+                     )
+                }
+              
+              // Equation is I1 = T (I0 - 0.5(J_1+J_2)) + 0.5(J_1+J_2)
+              mult( iy(iv,joker), T, through_level );
+              iy(iv,joker) += from_level;
+            }
+        }
     }
 
   
@@ -503,7 +551,7 @@ void iyEmissionStandard2(
     {
       rtmethods_jacobian_finalisation( diy_dx,
                                        atmosphere_dim, stokes_dim, f_grid, ppath,
-                                       ppath_p, iy_agenda_call1, iy_transmission,
+                                       ppvar_p, iy_agenda_call1, iy_transmission,
                                        jacobian_quantities, jac_to_integrate,
                                        diy_dpath );
     }

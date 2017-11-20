@@ -1,3 +1,12 @@
+2017-11-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-874
+
+	* src/workspace.cc: Introduced ppvar_p, ppvar_t, ppvar_t_nlte,
+	ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f.
+
+	* src/m_rte.cc (iyEmissionStandard2): A bit more ...
+
 2017-11-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-873
