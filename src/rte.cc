@@ -1569,10 +1569,7 @@ void get_ppath_atmvars(
     
   // NLTE temperatures
   const Index nnlte = t_nlte_field.nbooks();
-  if( nnlte )
-    ppath_t_nlte.resize(nnlte, np);
-  else 
-    ppath_t_nlte.resize(0,0);
+  ppath_t_nlte.resize(nnlte,np);
   for( Index itnlte=0; itnlte<nnlte;itnlte++ )
   {
     interp_atmfield_by_itw( ppath_t_nlte(itnlte, joker),  atmosphere_dim, 
@@ -5222,7 +5219,6 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
     \date   2017-11-20
 */
 void rtmethods_jacobian_init(
-         Index&                      j_analytical_do,
          ArrayOfIndex&               jac_species_i,
          ArrayOfIndex&               jac_scat_i,
          ArrayOfIndex&               jac_is_t,
@@ -5239,64 +5235,47 @@ void rtmethods_jacobian_init(
    const ArrayOfArrayOfSpeciesTag&   abs_species,
    const ArrayOfString&              scat_species,         
    const PropmatPartialsData&        ppd,
-   const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,   
    const ArrayOfArrayOfIndex&        jacobian_indices, 
    const Index&                      iy_agenda_call1 )
 {
-  if( jacobian_do ) 
-    { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
-  //
-  if( !j_analytical_do )
-    { diy_dx.resize(0); }
-  else 
+  FOR_ANALYTICAL_JACOBIANS_DO( 
+    if( jacobian_quantities[iq].Integration() )
+      {
+        diy_dpath[iq].resize(1,nf,ns); 
+        diy_dpath[iq] = 0.0;
+      }
+    else
+      {
+        diy_dpath[iq].resize(np,nf,ns); 
+        diy_dpath[iq] = 0.0;
+      }
+  )
+
+  get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
+                                         jac_wind_i, jac_mag_i, jac_to_integrate, 
+                                         jacobian_quantities,
+                                         abs_species, scat_species );
+  
+  FOR_ANALYTICAL_JACOBIANS_DO( 
+    jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
+    if( jac_to_integrate[iq] == JAC_IS_FLUX )
+      throw std::runtime_error("This method can not perform flux calculations.");
+    if( jac_scat_i[iq] >= 0 )
+      throw std::runtime_error("This method  does not handle scattering "
+                               "species Jacobians.");
+  )
+
+  if( iy_agenda_call1 )
     {
-      diy_dpath.resize(nq); 
-      jac_species_i.resize(nq); 
-      jac_scat_i.resize(nq); 
-      jac_is_t.resize(nq); 
-      jac_wind_i.resize(nq); 
-      jac_mag_i.resize(nq); 
-      jac_other.resize(nq);
-      jac_to_integrate.resize(nq);
+      diy_dx.resize(nq); 
       //
       FOR_ANALYTICAL_JACOBIANS_DO( 
-        if( jacobian_quantities[iq].Integration() )
-          {
-            diy_dpath[iq].resize(1,nf,ns); 
-            diy_dpath[iq] = 0.0;
-          }
-        else
-          {
-            diy_dpath[iq].resize(np,nf,ns); 
-            diy_dpath[iq] = 0.0;
-          }
+        diy_dx[iq].resize( jacobian_indices[iq][1]-jacobian_indices[iq][0]+1,
+                           nf, ns ); 
+        diy_dx[iq] = 0.0;
       )
-
-      get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
-                                             jac_wind_i, jac_mag_i, jac_to_integrate, 
-                                             jacobian_quantities,
-                                             abs_species, scat_species );
-      FOR_ANALYTICAL_JACOBIANS_DO( 
-        jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
-        if( jac_to_integrate[iq] == JAC_IS_FLUX )
-          throw std::runtime_error("This method can not perform flux calculations.");
-        if( jac_scat_i[iq] >= 0 )
-          throw std::runtime_error("This method  does not handle scattering "
-                                   "species Jacobians.");
-      )
-    
-      if( iy_agenda_call1 )
-        {
-          diy_dx.resize(nq); 
-          //
-          FOR_ANALYTICAL_JACOBIANS_DO( 
-            diy_dx[iq].resize( jacobian_indices[iq][1]-jacobian_indices[iq][0]+1,
-                               nf, ns ); 
-            diy_dx[iq] = 0.0;
-          )
-        }
-    } 
+    }
 }
 
 

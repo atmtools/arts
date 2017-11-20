@@ -595,7 +595,6 @@ void get_stepwise_effective_source(MatrixView J,
                                    const bool& jacobian_do);
 
 void rtmethods_jacobian_init(
-         Index&                      j_analytical_do,
          ArrayOfIndex&               jac_species_i,
          ArrayOfIndex&               jac_scat_i,
          ArrayOfIndex&               jac_is_t,
@@ -612,7 +611,6 @@ void rtmethods_jacobian_init(
    const ArrayOfArrayOfSpeciesTag&   abs_species,
    const ArrayOfString&              scat_species,         
    const PropmatPartialsData&        ppd,
-   const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,   
    const ArrayOfArrayOfIndex&        jacobian_indices, 
    const Index&                      iy_agenda_call1 );

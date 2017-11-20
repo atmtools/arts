@@ -1,5 +1,18 @@
 2017-11-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-877
+
+	* src/m_rte.cc (iyEmissionStandard2): Work to avoid resizng of
+	variables, and to make use of the new feature that joker works for
+	empty dimensions. 
+
+	* src/rte.cc:
+	(rtmethods_jacobian_init): Some restructuring to avoid resizing of variables.
+	(get_ppath_atmvars): Now always set to have size (nnlte,np).
+	Before if-statement and could be set to have size (0,0). 
+
+2017-11-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-876
 
 	* src/m_rte.cc (iyEmissionStandard2): Seems to work for iy.
