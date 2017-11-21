@@ -1,3 +1,16 @@
+2017-11-21  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-879
+
+	* src/gas_abs_lookup.cc (find_new_grid_in_old_grid):
+
+	Replaced fixed tolerance of 1 Hz in comparison by a tolerance that uses
+	a DBL_EPSILON times the frequency value being compared. This should
+	prevent two neighboring frequencies being so close together in the old
+	grid that one of them is selected twice for the new grid (leading to a
+	not increasing assertion).
+	Assertion in abs_lookupAdapt reported by Jana.
+
 2017-11-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-878

@@ -24,6 +24,7 @@
 */
 
 #include <cmath>
+#include <cfloat>
 #include "gas_abs_lookup.h"
 #include "interpolation.h"
 #include "interpolation_poly.h"
@@ -37,7 +38,8 @@
   Throw a runtime error if the frequencies of the new grid are not
   found in the old grid. 
 
-  Comparison of Numerics is a bit tricky, we use a tolerance of 1Hz here.
+  Comparison of Numerics is a bit tricky, we use a multiple of DBL_EPSILON here
+  (scaled by the frequencies being compared).
 
   \retval pos      Positions of new grid points in old grid.
   \param  old_grid The old grid.
@@ -56,10 +58,6 @@ void find_new_grid_in_old_grid( ArrayOfIndex& pos,
   // Make sure that pos has the right size:
   assert( n_new_grid == pos.nelem() );
 
-  // The frequency difference in Hz that we are willing to tolerate. 1
-  // Hz seems to be on the safe side.
-  const Numeric tolerance = 1;
-
   // Old grid position:
   Index j = 0;
 
@@ -67,10 +65,11 @@ void find_new_grid_in_old_grid( ArrayOfIndex& pos,
   for ( Index i=0; i<n_new_grid; ++i )
     {
       // We have done runtime checks that both the new and the old
-      // frequency gris are sorted in GasAbsLookup::Adapt, so we can
+      // frequency grids are sorted in GasAbsLookup::Adapt, so we can
       // use the fact here.
 
-      while ( abs(new_grid[i]-old_grid[j]) > tolerance )
+      while ( abs(new_grid[i]-old_grid[j])
+              > max(abs(new_grid[i]), abs(old_grid[j])) * DBL_EPSILON )
         {
           ++j;
           if ( j>=n_old_grid )
