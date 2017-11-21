@@ -1268,17 +1268,21 @@ void psdMH97 (
                          "combined." );
   if( scat_species_b < 2.9  ||  scat_species_b > 3.1 )
     {
-      throw runtime_error( "This PSD treats pure ice, using Dveq as size grid.\n"
-                           "This means that b should be close to 3, but "
-                           "*scat_species_b* \nis outside of the tolerated range "
-                           "of [2.9,3.1]." );
+      ostringstream os;
+      os << "This PSD treats pure ice, using Dveq as size grid.\n"
+         << "This means that *scat_species_b* should be close to 3,\n"
+         << "but it is outside of the tolerated range of [2.9,3.1].\n"
+         << "Your value of *scat_species_b* is: " << scat_species_b;
+      throw runtime_error(os.str());
     }
   if( scat_species_a < 460  ||  scat_species_a > 500 )
     {
-      throw runtime_error( "This PSD treats pure ice, using Dveq as size grid.\n"
-                           "This means that a should be close to 480, but "
-                           "*scat_species_a* \nis outside of the tolerated range "
-                           "of [460,500]." );
+      ostringstream os;
+      os << "This PSD treats pure ice, using Dveq as size grid.\n"
+         << "This means that *scat_species_a* should be close to 480,\n"
+         << "but it is outside of the tolerated range of [460,500].\n"
+         << "Your value of *scat_species_a* is: " << scat_species_a;
+      throw runtime_error(os.str());
     }
 
   
@@ -1375,17 +1379,21 @@ void psd_rwc_common(
     throw runtime_error( "*pnd_agenda_input* must have one column." );
   if( scat_species_b < 2.9  ||  scat_species_b > 3.1 )
     {
-      throw runtime_error( "This PSD treats rain, using Dveq as size grid.\n"
-                           "This means that b should be close to 3, but "
-                           "*scat_species_b* \nis outside of the tolerated range "
-                           "of [2.9,3.1]." );
+      ostringstream os;
+      os << "This PSD treats pure ice, using Dveq as size grid.\n"
+         << "This means that *scat_species_b* should be close to 3,\n"
+         << "but it is outside of the tolerated range of [2.9,3.1].\n"
+         << "Your value of *scat_species_b* is: " << scat_species_b;
+      throw runtime_error(os.str());
     }
   if( scat_species_a < 500  ||  scat_species_a > 540 )
     {
-      throw runtime_error( "This PSD treats rain, using Dveq as size grid.\n"
-                           "This means that a should be close to 520, but "
-                           "*scat_species_a* \nis outside of the tolerated range "
-                           "of [500,540]." );
+      ostringstream os;
+      os << "This PSD treats pure ice, using Dveq as size grid.\n"
+         << "This means that *scat_species_a* should be close to 520,\n"
+         << "but it is outside of the tolerated range of [500,540].\n"
+         << "Your value of *scat_species_a* is: " << scat_species_a;
+      throw runtime_error(os.str());
     }
 
   
