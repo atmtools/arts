@@ -1,3 +1,15 @@
+2017-11-21 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-881
+
+	* src/rte.cc (get_stepwise_scattersky_source):
+	Initialize dSp_dx with 0 for non-pnd-affected Jac species. Fixes the
+	wrong-H2O-Jacs when number freqs is >3 (so, not a dimensioning but an
+	initialization bug).
+
+	* AUTHORS:
+	Moved myself up to "Authors of important components" and updated my email.
+
 2017-11-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-880

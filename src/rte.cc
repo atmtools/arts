@@ -5113,6 +5113,22 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
   }
   //cout << pndT4(joker, 0, 0, 0) << "\n";
 
+  // Preparing empty derivative container for non-pnd-affecting x.
+  // This here as we don't want to SetZero each freq entry separately.
+  // On the other hand, we want the freq loop as outer loop for pnd-affecting
+  // x since then we need to extract the scat_data_mono only once.
+  if( jacobian_do )
+    FOR_ANALYTICAL_JACOBIANS_DO
+    (
+    //for( Index iq = 0; iq < nq; iq++ )
+    //{
+      if( ppath_dpnd_dx[iq].empty() )
+      {
+        dSp_dx[iq].SetZero();
+      }
+    //}
+    )
+
   for( Index f_index = 0; f_index < nf; f_index++ )
   {
     Matrix inc_field(nza, stokes_dim, 0.);
@@ -5210,7 +5226,7 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
 
 //! rtmethods_jacobian_init
 /*!
-    This function fixes the intitial steps around Jacobian calculations, to be
+    This function fixes the initial steps around Jacobian calculations, to be
     done inside radiative transfer WSMs.
 
     See iyEmissonStandard for usage example.
