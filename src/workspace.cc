@@ -2161,9 +2161,7 @@ void Workspace::define_wsv_data()
        "\n"
        "The variable is used to represent spectra at all positions of the\n"
        "propagation path and can e.g. temporarily hold radiation entering\n"
-       "the atmpophere from space. The unit depends on if emission is \n"
-       "considered or not (no conversion to e.g. brightness temperature shall\n"
-       "be applied).\n"
+       "the atmpophere from space.\n"
        "\n"
        "Usage:      Used by radiative transfer methods.\n"
        "\n"
@@ -3848,11 +3846,26 @@ void Workspace::define_wsv_data()
        "\n"
        "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
        "\n"
-       "Dimension: [ 3. species, ppath.np ]\n"
+       "Dimension: [ number of frequencies, ppath.np ]\n"
        "\n"
        "Usage: Output of radiative transfer methods.\n"
        ),
       GROUP( "Matrix" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppvar_iy" ),
+      DESCRIPTION
+      (
+       "iy-values along the propagation path.\n"
+       "\n"
+       "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
+       "\n"
+       "Dimension: [ number of frequencies, stokes_dim, ppath.np ]\n"
+       "\n"
+       "Usage: Output of radiative transfer methods.\n"
+       ),
+      GROUP( "Tensor3" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3863,7 +3876,7 @@ void Workspace::define_wsv_data()
        "\n"
        "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
        "\n"
-       "Dimension: [ 3. species, ppath.np ]\n"
+       "Dimension: [ 3, ppath.np ]\n"
        "\n"
        "Usage: Output of radiative transfer methods.\n"
        ),
@@ -3885,6 +3898,21 @@ void Workspace::define_wsv_data()
        "Usage: Output of radiative transfer methods.\n"
        ),
       GROUP( "Vector" )));
+ 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppvar_pnd" ),
+      DESCRIPTION
+      (
+       "PND values along the propagation path.\n"
+       "\n"
+       "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
+       "\n"
+       "Dimension: [ number of scattering elements, ppath.np ]\n"
+       "\n"
+       "Usage: Output of radiative transfer methods.\n"
+       ),
+      GROUP( "Matrix" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3940,7 +3968,7 @@ void Workspace::define_wsv_data()
        "\n"
        "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
        "\n"
-       "Dimension: [ 3. species, ppath.np ]\n"
+       "Dimension: [ 3, ppath.np ]\n"
        "\n"
        "Usage: Output of radiative transfer methods.\n"
        ),

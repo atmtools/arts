@@ -191,6 +191,7 @@ void iyEmissionStandard2(
          Matrix&                     ppvar_wind,
          Matrix&                     ppvar_mag,         
          Matrix&                     ppvar_f,  
+         Tensor3&                    ppvar_iy,  
    const Index&                      iy_id,
    const Index&                      stokes_dim,
    const Vector&                     f_grid,
@@ -302,14 +303,17 @@ void iyEmissionStandard2(
     {
       ppvar_p.resize(0);
       ppvar_t.resize(0);
-      ppvar_t_nlte.resize(0,0);
       ppvar_vmr.resize(0,0);
+      ppvar_t_nlte.resize(0,0);
       ppvar_wind.resize(0,0);
       ppvar_mag.resize(0,0);
       ppvar_f.resize(0,0);
+      ppvar_iy.resize(0,0,0);
     }
   else
     {
+      ppvar_iy.resize(nf,ns,np);
+      
       // Basic atmospheric variables
       get_ppath_atmvars( ppvar_p, ppvar_t, ppvar_t_nlte, ppvar_vmr,
                          ppvar_wind, ppvar_mag, 
@@ -348,10 +352,12 @@ void iyEmissionStandard2(
       // Loop ppath points and determine radiative properties
       for( Index ip=0; ip<np; ip++ )
         {
-          get_stepwise_blackbody_radiation( B, dB_dT,
-                                            ppvar_f(joker,ip), ppvar_t[ip],
-                                            ppd.do_temperature());
-          // Richard: can you check how ppa
+          get_stepwise_blackbody_radiation( B,
+                                            dB_dT,
+                                            ppvar_f(joker,ip),
+                                            ppvar_t[ip],
+                                            ppd.do_temperature() );
+          
           get_stepwise_clearsky_propmat( ws,
                                          K_this,
                                          S,
@@ -428,8 +434,8 @@ void iyEmissionStandard2(
                                          jacobian_quantities,
                                          j_analytical_do );
       
-          swap(K_past, K_this);
-          swap(dK_past_dx, dK_this_dx);
+          swap( K_past, K_this );
+          swap( dK_past_dx, dK_this_dx );
         }
     }
 
@@ -448,6 +454,8 @@ void iyEmissionStandard2(
                         cloudbox_on, stokes_dim, f_grid, iy_unit,
                         iy_main_agenda, iy_space_agenda, iy_surface_agenda, 
                         iy_cloudbox_agenda, verbosity );
+  //
+  ppvar_iy(joker,joker,np-1) = iy;
 
   
   // Radiative transfer calculations
@@ -466,7 +474,7 @@ void iyEmissionStandard2(
         
               if( j_analytical_do )
                 {
-                  if(stokes_dim>1)
+                  if( stokes_dim > 1 )
                     { id_mat(one_minus_transmission); }
                   else 
                     { one_minus_transmission = 1.; }
@@ -486,19 +494,21 @@ void iyEmissionStandard2(
                        get_diydx( diy_dpath[iq](ip,iv,joker), 
                                   diy_dpath[iq](ip+1,iv,joker), 
                                   one_minus_transmission,
-                                  trans_cumulat(ip,iv,joker, joker), 
+                                  trans_cumulat(ip,iv,joker,joker), 
                                   dtrans_partial_dx_above(ip+1,iq,iv,joker,joker), 
                                   dtrans_partial_dx_below(ip+1,iq,iv,joker,joker), 
                                   through_level, 
-                                  dJ_dx(ip, iq, iv, joker), 
-                                  dJ_dx(ip+1, iq, iv, joker),
-                                  stokes_dim);
+                                  dJ_dx(ip,iq,iv,joker), 
+                                  dJ_dx(ip+1,iq,iv,joker),
+                                  stokes_dim );
                      )
                 }
               
               // Equation is I1 = T (I0 - 0.5(J_1+J_2)) + 0.5(J_1+J_2)
               mult( iy(iv,joker), T, through_level );
               iy(iv,joker) += from_level;
+
+              ppvar_iy(iv,joker,ip) = iy(iv,joker);
             }
         }
     }
@@ -532,6 +542,14 @@ void iyEmissionStandard2(
       rtmethods_unit_conversion( iy, diy_dx,
                                  ns, np, f_grid, ppath, jacobian_quantities,
                                  j_analytical_do, iy_unit );
+
+      // Handle ppvar_iy separately
+      ArrayOfIndex i_pol(ns);
+      for( Index is=0; is<ns; is++ )
+        { i_pol[is] = is + 1; }
+      for( Index ip=0; ip<np; ip++ )
+        { apply_iy_unit( ppvar_iy(joker,joker,ip), iy_unit, f_grid,
+                         ppath.nreal[ip], i_pol ); }
     }
 }
 

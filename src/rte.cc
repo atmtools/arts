@@ -5277,9 +5277,6 @@ void rtmethods_jacobian_init(
     jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
     if( jac_to_integrate[iq] == JAC_IS_FLUX )
       throw std::runtime_error("This method can not perform flux calculations.");
-    if( jac_scat_i[iq] >= 0 )
-      throw std::runtime_error("This method  does not handle scattering "
-                               "species Jacobians.");
   )
 
   if( iy_agenda_call1 )

@@ -7410,6 +7410,9 @@ void define_md_data_raw()
          "Expressions applied and considerations for the unit conversion of\n"
          "radiances are discussed in Sec. 5.7 of the ARTS-2 article.\n"
          "\n"
+         "*iy_unit* is only applied if *iy_agenda_call1* is 1. This means that\n"
+         "no unit ocnversion is applied for internal iterative calls.\n"
+         "\n"
          "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
          "quantities are selected by *iy_aux_vars* and returned by *iy_aux*. \n"
          "Valid choices for auxiliary data are:\n"
@@ -7423,7 +7426,7 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux2", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_t_nlte",
-             "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_f" ),
+             "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_f", "ppvar_iy" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -7530,37 +7533,26 @@ void define_md_data_raw()
       DESCRIPTION
       (
          "So far just for testing.\n"
-         "\n" 
-         "The keyword *pfct_method* allows to choose the method to extract the\n"
-         "scattering matrix. 'interpolate' considers temperature dependence,\n"
-         "others neglect it by chosing one specific temperature grid point\n"
-         "from the single scattering data: 'low' choses the lowest T-point,\n"
-         "'high' the highest T-point, and 'median' the median T-point. As\n"
-         "different scattering elements can have different temperature grids,\n"
-         "the actual temperature value used can differ between the scattering\n"
-         "elements.\n"
-         "Note that this keyword solely affects the scattering matrix;\n"
-         "extinction matrix and absorption vector are always interpolated to\n"
-         "the actual temperature.\n"
       ),
-      AUTHORS( "Patrick Eriksson" ),
-      OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
+      AUTHORS( "Patrick Eriksson", "Jana Mendrok", "Richard Larsson" ),
+        OUT( "iy", "iy_aux2", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_t_nlte",
+             "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_pnd",
+             "ppvar_f", "ppvar_iy" ),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN( "iy_id", "diy_dx", "stokes_dim", "f_grid", "atmosphere_dim", "p_grid",
-          "z_field", "t_field", "t_nlte_field", "vmr_field", "abs_species", 
-          "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
-          "mag_v_field", "mag_w_field", 
+      IN( "diy_dx", "iy_id", "stokes_dim", "f_grid", "atmosphere_dim", "p_grid",
+          "z_field", "t_field", "t_nlte_field", "vmr_field", "abs_species",
+          "wind_u_field", "wind_v_field", "wind_w_field",
+          "mag_u_field", "mag_v_field", "mag_w_field",
           "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
-          "scat_data", "scat_data_checked", "particle_masses",
-          "iy_unit", "iy_aux_vars", "jacobian_do", "jacobian_quantities", 
-          "jacobian_indices", "ppath_agenda", "propmat_clearsky_agenda",
-          "iy_main_agenda", "iy_space_agenda", "iy_surface_agenda",
-          "iy_cloudbox_agenda", "doit_i_field_agenda",
-          "iy_agenda_call1", "iy_transmission", 
-          "rte_pos", "rte_los", "rte_pos2", "rte_alonglos_v", "ppath_lmax",
-          "ppath_lraytrace" ),
+          "scat_species", "scat_data", "scat_data_checked",
+          "iy_unit", "iy_aux_vars",
+          "jacobian_do", "jacobian_quantities", "jacobian_indices",
+          "propmat_clearsky_agenda", "iy_main_agenda", "iy_space_agenda",
+          "iy_surface_agenda", "iy_cloudbox_agenda", "doit_i_field_agenda",
+          "iy_agenda_call1", "iy_transmission", "ppath", "rte_pos2",
+          "rte_alonglos_v" ),
       GIN(         "Naa_grid", "pfct_method" ),
       GIN_TYPE(    "Index",    "String" ),
       GIN_DEFAULT( "19",       "median" ),
@@ -7569,7 +7561,6 @@ void define_md_data_raw()
                 "Flag which method to apply for temperature adaptation of phase"
                 " matrix (for available options see above)." )
     ));
-    
     
     md_data_raw.push_back
     ( MdRecord
