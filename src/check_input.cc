@@ -1192,12 +1192,45 @@ void chk_interpolation_grids(const String&   which_interpolation,
                              ConstVectorView new_grid,
                              const Index     order,
                              const Numeric&  extpolfac,
-                             const bool      islog)
+                             const bool      islog,
+                             const bool      allow_single_oldgrid)
 {
   const Index n_old = old_grid.nelem();
 
   if (!new_grid.nelem()) throw runtime_error(
                                   "The new grid is not allowed to be empty." );
+
+  if ( !order )
+    {
+      ostringstream os;
+      os << "There is a problem with the grids for the following "
+         << "interpolation:\n" << which_interpolation << "\n"
+         << "Only interpolation orders larger 0 allowed (but your's is "
+         << order << ").";
+      throw runtime_error( os.str() );
+    }
+
+  // Check for the special case that both old_grid and new grid have only one
+  // element. If identical, that's  fine. If not, throw error.
+  if ( allow_single_oldgrid )
+  {
+    if (n_old==1 && new_grid.nelem()==1)
+    {
+      if ( !is_same_within_epsilon(old_grid[0],new_grid[0],2*DBL_EPSILON) )
+      {
+        ostringstream os;
+        os << "There is a problem with the grids for the following "
+           << "interpolation:\n" << which_interpolation << "\n"
+           << "If original grid has only 1 element, the new grid must also have\n"
+           << "only a single element and hold the same value as the original grid.";
+        throw runtime_error( os.str() );
+      }
+      else
+      {
+        return;
+      }
+    }
+  }
 
   // Old grid must have at least order+1 elements:
   if (n_old < order+1)
@@ -1205,7 +1238,9 @@ void chk_interpolation_grids(const String&   which_interpolation,
       ostringstream os;
       os << "There is a problem with the grids for the following "
          << "interpolation:\n" << which_interpolation << "\n"
-         << "The original grid must have at least " << order+1 << " elements.";
+         << "For interpolation order " << order
+         << ", the original grid must have at least\n"
+         << order+1 << " elements (but your's has only " << n_old << ").";
       throw runtime_error( os.str() );
     }
   

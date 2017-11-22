@@ -740,10 +740,22 @@ void scat_data_checkedCalc(
          Index&          scat_data_checked,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
    const Vector&         f_grid,
+   const Numeric&        dfrel_threshold,
    const Verbosity& )
 // FIXME: when we allow K, a, Z to be on different f and T grids, their use in
 // the scatt solvers needs to be reviewed again and adapted to this!
 {
+
+  // Prevent the user from producing nonsense by using too much freedom in
+  // setting the single freq validity threshold...
+  if( dfrel_threshold>0.5 )
+    {
+      ostringstream os;
+      os << "*dfrel_threshold* too large (max. allowed: 0.5, your's: "
+         << dfrel_threshold << ").";
+      throw runtime_error( os.str() );
+    }
+
   Index nf = f_grid.nelem();
   Index N_ss = scat_data.nelem();
   for( Index i_ss=0; i_ss<N_ss; i_ss++ )
@@ -751,8 +763,10 @@ void scat_data_checkedCalc(
     Index N_se = scat_data[i_ss].nelem();
     for( Index i_se=0; i_se<N_se; i_se++ )
     {
-      // check that f_grid of all scatt elements is either identical to
-      // f_grid or contains a single entry only (should it matter which?)
+      // For each scattering element (se) check that se's f_grid is either
+      // identical to f_grid or contains a single entry only. In the latter
+      // case, the f/f_grid-ratio (equv. to a size parameter ratio) not allowed
+      // to exceed the dfrel_threshold.
       Index nf_se = scat_data[i_ss][i_se].f_grid.nelem();
       if( nf_se != 1 )
       {
@@ -782,6 +796,23 @@ void scat_data_checkedCalc(
               throw runtime_error( os.str() );
             }
           }
+        }
+      }
+      else
+      {
+        if( (abs(1.-scat_data[i_ss][i_se].f_grid[0]/f_grid[0])
+             > dfrel_threshold) or
+            (abs(1.-scat_data[i_ss][i_se].f_grid[0]/f_grid[nf-1])
+             > dfrel_threshold) )
+        {
+          ostringstream os;
+          os << "Frequency entry (f=" << scat_data[i_ss][i_se].f_grid[0]
+             << "Hz) of scattering element #" << i_se << "\n"
+             << "in scattering species #" << i_ss
+             << " is too far (>" << dfrel_threshold*1e2
+             << "%) from at least one\n" << "of the f_grid limits (fmin="
+             << f_grid[0] << "Hz, fmax=" << f_grid[nf-1] << "Hz).";
+          throw runtime_error( os.str() );
         }
       }
 

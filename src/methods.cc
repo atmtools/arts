@@ -15232,12 +15232,15 @@ void define_md_data_raw()
          "Checks grids and dimensions of all scattering elements in *scat_data*.\n"
          "\n"
          "Requirements:\n"
-         "- The scattering elements f_grid is either identical to *f_grid* or\n"
+         "- The scattering element's f_grid is either identical to *f_grid* or\n"
          "  of dimension 1.\n"
+         "- In the latter case, the scattering element's f_grid value must\n"
+         "  not deviate from any of the *f_grid* values by more than a\n"
+         "  fraction of *dfrel_threshold*.\n"
          "- The frequency dimension of pha_mat_data, ext_mat_data, and abs_vec\n"
-         "  is either equal to this scattering element's f_grid or 1.\n"
+         "  is either equal to the scattering element's f_grid or 1.\n"
          "- The temperature dimension of pha_mat_data, ext_mat_data, and\n"
-         "  abs_vec_data is either equal to this scattering element's T_grid\n"
+         "  abs_vec_data is either equal to the scattering element's T_grid\n"
          "  or 1.\n"
          "- The temperature dimension of ext_mat_data, and abs_vec_data is\n"
          "  identical.\n"
@@ -15248,10 +15251,12 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_data", "f_grid" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "dfrel_threshold" ),
+        GIN_TYPE( "Numeric" ),
+        GIN_DEFAULT( "0.1" ),
+        GIN_DESC( "Maximum relative frequency deviation between (single entry)"
+                  " scattering element f_grid values and the RT calculation's"
+                  " *f_grid*." )
         ));
 
   md_data_raw.push_back

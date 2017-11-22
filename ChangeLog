@@ -1,3 +1,23 @@
+2017-11-22 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-886
+
+	* src/m_checked.cc, methods.cc (scat_data_checkedCalc):
+	Add check of scatt element single-value f_grid against WS f_grid
+	(shouldn't be too far off, e.g. we shouldn't be able to use a single
+	freq point for all ICI channels).
+
+	* src/check_input.[cc,h] (chk_interpolation_grids):
+	Added check that order>0. Added special case handling of n_old==n_new==1.
+
+	* src/m_optproperties.cc (scat_dataCalc):
+	Add ability to rerun scat_dataCalc on data that has already been
+	freq-reduced, i.e. skip freq interpolation if nf_old==nf_new==1 and
+	f_old==f_new.
+	Fix (so far irrelevant) bug in T-dimension looping.
+
+	* src/workspace.cc: Spell fix.
+
 2017-11-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-885
@@ -19,7 +39,7 @@
 	* arts-2-3-884
 
 	* controlfiles/artscomponents/wfuns/TestWfunsHybCloudy.arts:
-	Remove do_only_x=1 option from ScatSpeciesSizeMassInfo calls since we
+	Remove do_only_x=1 setting from ScatSpeciesSizeMassInfo calls since we
 	now use the scat_species_a/b in the psd* WSMs for checking correct
 	setup.
 

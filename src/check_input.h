@@ -345,7 +345,8 @@ void chk_interpolation_grids(const String&   which_interpolation,
                              ConstVectorView new_grid,
                              const Index     order=1,
                              const Numeric&  extpolfac=0.5,
-                             const bool      islog=false);
+                             const bool      islog=false,
+                             const bool      allow_single_oldgrid=false);
 
 void chk_interpolation_grids(const String&   which_interpolation,
                              ConstVectorView old_grid,

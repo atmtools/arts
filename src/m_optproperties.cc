@@ -1768,7 +1768,8 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
     {
       // check with extrapolation
       chk_interpolation_grids("scat_data_raw.f_grid to f_grid",
-                              scat_data_raw[i_ss][i_se].f_grid, f_grid, order);
+                              scat_data_raw[i_ss][i_se].f_grid, f_grid, order,
+                              0.5, false, true);
     }
   }
 
@@ -1786,14 +1787,6 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
     // Loop over the included scattering elements
     for (Index i_se = 0; i_se < N_se; i_se++)
     {
-      // Gridpositions:
-      ArrayOfGridPosPoly freq_gp( nf );;
-      gridpos_poly(freq_gp, scat_data_raw[i_ss][i_se].f_grid, f_grid, order);
-
-      // Interpolation weights:
-      Matrix itw(nf, order+1);
-      interpweights(itw, freq_gp);
-
       //Stuff that doesn't need interpolating
       PART_TYPE_NEW   = scat_data_raw[i_ss][i_se].ptype;
       F_DATAGRID_NEW  = f_grid;
@@ -1801,7 +1794,7 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
       ZA_DATAGRID_NEW = scat_data_raw[i_ss][i_se].za_grid;
       AA_DATAGRID_NEW = scat_data_raw[i_ss][i_se].aa_grid;
 
-      //Phase matrix data
+      //Sizing SSD data containers
       PHA_MAT_DATA_NEW.resize(nf,
                               scat_data_raw[i_ss][i_se].pha_mat_data.nvitrines(),
                               scat_data_raw[i_ss][i_se].pha_mat_data.nshelves(),
@@ -1809,27 +1802,50 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
                               scat_data_raw[i_ss][i_se].pha_mat_data.npages(),
                               scat_data_raw[i_ss][i_se].pha_mat_data.nrows(),
                               scat_data_raw[i_ss][i_se].pha_mat_data.ncols());
+      EXT_MAT_DATA_NEW.resize(nf,
+                              scat_data_raw[i_ss][i_se].ext_mat_data.nbooks(),
+                              scat_data_raw[i_ss][i_se].ext_mat_data.npages(),
+                              scat_data_raw[i_ss][i_se].ext_mat_data.nrows(),
+                              scat_data_raw[i_ss][i_se].ext_mat_data.ncols());
+      ABS_VEC_DATA_NEW.resize(nf,
+                              scat_data_raw[i_ss][i_se].abs_vec_data.nbooks(),
+                              scat_data_raw[i_ss][i_se].abs_vec_data.npages(),
+                              scat_data_raw[i_ss][i_se].abs_vec_data.nrows(),
+                              scat_data_raw[i_ss][i_se].abs_vec_data.ncols());
 
-      for (Index t_index = 0; t_index < scat_data_raw[i_ss][i_se].pha_mat_data.nvitrines(); t_index ++)
+      const bool single_se_fgrid=(scat_data_raw[i_ss][i_se].f_grid.nelem()==1);
+      if( !single_se_fgrid )
       {
-        for (Index i_za_sca = 0; i_za_sca < scat_data_raw[i_ss][i_se].pha_mat_data.nshelves(); i_za_sca++)
+        // Gridpositions:
+        ArrayOfGridPosPoly freq_gp( nf );;
+        gridpos_poly(freq_gp, scat_data_raw[i_ss][i_se].f_grid, f_grid, order);
+
+        // Interpolation weights:
+        Matrix itw(nf, order+1);
+        interpweights(itw, freq_gp);
+
+        //Phase matrix data
+        for (Index t_index = 0; t_index < scat_data_raw[i_ss][i_se].pha_mat_data.nvitrines(); t_index ++)
         {
-          for (Index i_aa_sca = 0; i_aa_sca < scat_data_raw[i_ss][i_se].pha_mat_data.nbooks(); i_aa_sca++)
+          for (Index i_za_sca = 0; i_za_sca < scat_data_raw[i_ss][i_se].pha_mat_data.nshelves(); i_za_sca++)
           {
-            for (Index i_za_inc = 0; i_za_inc < scat_data_raw[i_ss][i_se].pha_mat_data.npages(); i_za_inc++)
+            for (Index i_aa_sca = 0; i_aa_sca < scat_data_raw[i_ss][i_se].pha_mat_data.nbooks(); i_aa_sca++)
             {
-              for (Index i_aa_inc = 0; i_aa_inc < scat_data_raw[i_ss][i_se].pha_mat_data.nrows(); i_aa_inc++)
+              for (Index i_za_inc = 0; i_za_inc < scat_data_raw[i_ss][i_se].pha_mat_data.npages(); i_za_inc++)
               {
-                for (Index i = 0; i < scat_data_raw[i_ss][i_se].pha_mat_data.ncols(); i++)
+                for (Index i_aa_inc = 0; i_aa_inc < scat_data_raw[i_ss][i_se].pha_mat_data.nrows(); i_aa_inc++)
                 {
-                  interp(scat_data[i_ss][i_se].pha_mat_data(joker, t_index,
-                                                            i_za_sca, i_aa_sca,
-                                                            i_za_inc, i_aa_inc, i),
-                         itw,
-                         scat_data_raw[i_ss][i_se].pha_mat_data(joker, t_index,
-                                                                i_za_sca, i_aa_sca,
-                                                                i_za_inc, i_aa_inc, i),
-                         freq_gp);
+                  for (Index i = 0; i < scat_data_raw[i_ss][i_se].pha_mat_data.ncols(); i++)
+                  {
+                    interp(scat_data[i_ss][i_se].pha_mat_data(joker, t_index,
+                                                              i_za_sca, i_aa_sca,
+                                                              i_za_inc, i_aa_inc, i),
+                           itw,
+                           scat_data_raw[i_ss][i_se].pha_mat_data(joker, t_index,
+                                                                  i_za_sca, i_aa_sca,
+                                                                  i_za_inc, i_aa_inc, i),
+                           freq_gp);
+                  }
                 }
               }
             }
@@ -1837,48 +1853,53 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
         }
 
         //Extinction matrix data
-        EXT_MAT_DATA_NEW.resize(nf,
-                                scat_data_raw[i_ss][i_se].ext_mat_data.nbooks(),
-                                scat_data_raw[i_ss][i_se].ext_mat_data.npages(),
-                                scat_data_raw[i_ss][i_se].ext_mat_data.nrows(),
-                                scat_data_raw[i_ss][i_se].ext_mat_data.ncols());
-        for (Index i_za_sca = 0; i_za_sca < scat_data_raw[i_ss][i_se].ext_mat_data.npages(); i_za_sca++)
+        for (Index t_index = 0; t_index < scat_data_raw[i_ss][i_se].ext_mat_data.nbooks(); t_index ++)
         {
-          for (Index i_aa_sca = 0; i_aa_sca < scat_data_raw[i_ss][i_se].ext_mat_data.nrows(); i_aa_sca++)
+          for (Index i_za_sca = 0; i_za_sca < scat_data_raw[i_ss][i_se].ext_mat_data.npages(); i_za_sca++)
           {
-            for (Index i = 0; i < scat_data_raw[i_ss][i_se].ext_mat_data.ncols(); i++)
+            for (Index i_aa_sca = 0; i_aa_sca < scat_data_raw[i_ss][i_se].ext_mat_data.nrows(); i_aa_sca++)
             {
-              interp(scat_data[i_ss][i_se].ext_mat_data(joker, t_index,
-                                                        i_za_sca, i_aa_sca, i),
-                     itw,
-                     scat_data_raw[i_ss][i_se].ext_mat_data(joker, t_index,
-                                                            i_za_sca, i_aa_sca, i),
-                     freq_gp);
+              for (Index i = 0; i < scat_data_raw[i_ss][i_se].ext_mat_data.ncols(); i++)
+              {
+                interp(scat_data[i_ss][i_se].ext_mat_data(joker, t_index,
+                                                          i_za_sca, i_aa_sca, i),
+                       itw,
+                       scat_data_raw[i_ss][i_se].ext_mat_data(joker, t_index,
+                                                              i_za_sca, i_aa_sca, i),
+                       freq_gp);
+              }
             }
           }
         }
 
         //Absorption vector data
-        ABS_VEC_DATA_NEW.resize(nf,
-                                scat_data_raw[i_ss][i_se].abs_vec_data.nbooks(),
-                                scat_data_raw[i_ss][i_se].abs_vec_data.npages(),
-                                scat_data_raw[i_ss][i_se].abs_vec_data.nrows(),
-                                scat_data_raw[i_ss][i_se].abs_vec_data.ncols());
-        for (Index i_za_sca = 0; i_za_sca < scat_data_raw[i_ss][i_se].abs_vec_data.npages(); i_za_sca++)
+        for (Index t_index = 0; t_index < scat_data_raw[i_ss][i_se].abs_vec_data.nbooks(); t_index ++)
         {
-          for (Index i_aa_sca = 0; i_aa_sca < scat_data_raw[i_ss][i_se].abs_vec_data.nrows(); i_aa_sca++)
+          for (Index i_za_sca = 0; i_za_sca < scat_data_raw[i_ss][i_se].abs_vec_data.npages(); i_za_sca++)
           {
-            for (Index i = 0; i < scat_data_raw[i_ss][i_se].abs_vec_data.ncols(); i++)
+            for (Index i_aa_sca = 0; i_aa_sca < scat_data_raw[i_ss][i_se].abs_vec_data.nrows(); i_aa_sca++)
             {
-              interp(scat_data[i_ss][i_se].abs_vec_data(joker, t_index,
-                                                        i_za_sca, i_aa_sca, i),
-                     itw,
-                     scat_data_raw[i_ss][i_se].abs_vec_data(joker, t_index,
-                                                            i_za_sca, i_aa_sca, i),
-                     freq_gp);
+              for (Index i = 0; i < scat_data_raw[i_ss][i_se].abs_vec_data.ncols(); i++)
+              {
+                interp(scat_data[i_ss][i_se].abs_vec_data(joker, t_index,
+                                                          i_za_sca, i_aa_sca, i),
+                       itw,
+                       scat_data_raw[i_ss][i_se].abs_vec_data(joker, t_index,
+                                                              i_za_sca, i_aa_sca, i),
+                       freq_gp);
+              }
             }
           }
         }
+      }
+      else
+      {
+        assert( nf==1 );
+        // we do only have one f_grid value in old and new data, hence only need
+        // to copy over/reassign the data.
+        scat_data[i_ss][i_se].pha_mat_data = scat_data_raw[i_ss][i_se].pha_mat_data;
+        scat_data[i_ss][i_se].ext_mat_data = scat_data_raw[i_ss][i_se].ext_mat_data;
+        scat_data[i_ss][i_se].abs_vec_data = scat_data_raw[i_ss][i_se].abs_vec_data;
       }
     }
   }

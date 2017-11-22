@@ -2161,7 +2161,7 @@ void Workspace::define_wsv_data()
        "\n"
        "The variable is used to represent spectra at all positions of the\n"
        "propagation path and can e.g. temporarily hold radiation entering\n"
-       "the atmpophere from space.\n"
+       "the atmosphere from space.\n"
        "\n"
        "Usage:      Used by radiative transfer methods.\n"
        "\n"
