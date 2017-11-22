@@ -443,12 +443,12 @@ void iyEmissionStandard2(
 
   // Radiative background
   get_iy_of_background( ws, iy, diy_dx, 
-                        iy_trans_new, iy_id, j_analytical_do, ppath, rte_pos2, 
+                        iy_trans_new, iy_id, jacobian_do, ppath, rte_pos2, 
                         atmosphere_dim, t_field, z_field, vmr_field, 
                         cloudbox_on, stokes_dim, f_grid, iy_unit,
                         iy_main_agenda, iy_space_agenda, iy_surface_agenda, 
                         iy_cloudbox_agenda, verbosity );
-  
+
   
   // Radiative transfer calculations
   if( np > 1 )
@@ -520,11 +520,10 @@ void iyEmissionStandard2(
   // Finalize analytical Jacobians
   if( j_analytical_do )
     {
-      rtmethods_jacobian_finalisation( diy_dx,
+      rtmethods_jacobian_finalisation( diy_dx, diy_dpath,
                                        ns, nf, atmosphere_dim, ppath, ppvar_p,
                                        iy_agenda_call1, iy_transmission,
-                                       jacobian_quantities, jac_to_integrate,
-                                       diy_dpath );
+                                       jacobian_quantities, jac_to_integrate );
     }
 
   // Unit conversions
@@ -893,6 +892,7 @@ void iyEmissionStandard(
                         cloudbox_on, stokes_dim, f_grid, iy_unit,
                         iy_main_agenda, iy_space_agenda, iy_surface_agenda, 
                         iy_cloudbox_agenda, verbosity );
+
 
   //=== iy_aux part ===========================================================
   // Fill parts of iy_aux that are defined even for np=1.

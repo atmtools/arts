@@ -617,6 +617,7 @@ void rtmethods_jacobian_init(
 
 void rtmethods_jacobian_finalisation(
          ArrayOfTensor3&             diy_dx,
+         ArrayOfTensor3&             diy_dpath,  
    const Index&                      ns,
    const Index&                      nf,
    const Index&                      atmosphere_dim,
@@ -625,8 +626,7 @@ void rtmethods_jacobian_finalisation(
    const Index&                      iy_agenda_call1,         
    const Tensor3&                    iy_transmission,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
-   const ArrayOfIndex&               jac_to_integrate, 
-   const ArrayOfTensor3&             diy_dpath );
+   const ArrayOfIndex&               jac_to_integrate );
 
 void rtmethods_unit_conversion(
          Matrix&                     iy,
