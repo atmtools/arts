@@ -1,20 +1,21 @@
 Authors of ARTS. See also ChangeLog file.
 
 Main scientific authors:
-Stefan Buehler <sbuehler@ltu.se>
+Stefan Buehler <stefan.buehler@uni-hamburg.de>
 Patrick Eriksson <patrick.eriksson@chalmers.se>
 
 ARTS core:
-Oliver Lemke <olemke@ltu.se>
+Oliver Lemke <oliver.lemke@uni-hamburg.de>
 
 Authors of important components:
 Cory Davis  <cdavis@staffmail.ed.ac.uk>
 Claudia Emde <claudia.emde@dlr.de>
-Mattias Ekström <mattias.ekstrom@tdcmail.se>	
-Sreerekha T.R. <rekha@uni-bremen.de>	
+Mattias Ekström <mattias.ekstrom@tdcmail.se>
+Sreerekha T.R. <rekha@uni-bremen.de>
 Thomas Kuhn  <tkuhn@uni-bremen.de>
 Richard Larsson <ric.larsson@gmail.com>
 Jana Mendrok <jana.mendrok@gmail.com>
+Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 
 Other contributors:
@@ -33,4 +34,14 @@ Christian Melsheimer  <melsheimer@uni-bremen.de>
 Randall Skelton <rhskelto@atm.ox.ac.uk>
 Claas Teichmann  <claas@sat.physik.uni-bremen.de>
 Hermann Berg <h.berg@utoronto.ca>
+Bengt Rydberg <bengt.rydberg@molflow.com>
+Daniel Kreyling
+Oscar Isoz
+Mayuri Tatiya
+Johan Strandgren
+Gerrit Holl <g.holl@reading.ac.uk>
+Ian Adams <ian.s.adams@nasa.gov>
+Lukas Kluft <lukas.kluft@gmail.com>
+Jakob Dörr <jakobdoerr@googlemail.com>
+Manfred Brath <manfred.brath@uni-hamburg.de>
 
