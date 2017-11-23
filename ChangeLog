@@ -1,3 +1,29 @@
+2017-11-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-889
+
+	* src/matpackI.cc, src/matpackIII.cc, src/matpackIV.cc, src/matpackV.cc,
+	src/matpackVI.cc, src/matpackVII.cc:
+
+	Fix bug in move assignment operators. Against my previous assumption,
+	the Range objects of the rvalue reference need to be zeroed out.
+	There are cases when the rvalue object is reused after being moved.
+	For example when inserting into an array, the move assignment is used
+	to make space for the new element (but only if the Array has enough
+	reserved space, otherwise the copy constructor is used to copy every
+	element over to a newly allocated Array). The new element is then
+	assigned to the free spot. If the move assignment doesn't zero out the
+	Range object, this can lead to a NULL pointer access if the new element
+	happens to have the same size as the element that was previously in
+	this position. The moved elements data pointer got set to NULL by the
+	move constructor, but is not reallocated on assignment if the size of
+	the new element is the same (Range member). This bug caused a segfault
+	in TestDOITpressureoptimization when ARTS was compiled with Clang.
+
+	* src/m_doit.cc (OptimizeDoitPressureGrid):
+
+	Use std::move to add newLayer to scat_data_local.
+
 2017-11-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-888

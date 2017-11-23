@@ -2892,6 +2892,12 @@ Tensor6& Tensor6::operator=(Tensor6&& x) noexcept
     mpr = x.mpr;
     mrr = x.mrr;
     mcr = x.mcr;
+    x.mvr = Range(0, 0);
+    x.msr = Range(0, 0);
+    x.mbr = Range(0, 0);
+    x.mpr = Range(0, 0);
+    x.mrr = Range(0, 0);
+    x.mcr = Range(0, 0);
     x.mdata = nullptr;
   }
   return *this;

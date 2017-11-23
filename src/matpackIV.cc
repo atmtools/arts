@@ -1408,10 +1408,14 @@ Tensor4& Tensor4::operator=(Tensor4&& x) noexcept
   {
     delete[] mdata;
     mdata = x.mdata;
-    mbr = std::move(x.mbr);
-    mpr = std::move(x.mpr);
-    mrr = std::move(x.mrr);
-    mcr = std::move(x.mcr);
+    mbr = x.mbr;
+    mpr = x.mpr;
+    mrr = x.mrr;
+    mcr = x.mcr;
+    x.mbr = Range(0, 0);
+    x.mpr = Range(0, 0);
+    x.mrr = Range(0, 0);
+    x.mcr = Range(0, 0);
     x.mdata = nullptr;
   }
   return *this;

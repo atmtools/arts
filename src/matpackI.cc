@@ -783,6 +783,7 @@ Vector& Vector::operator=(Vector&& v) noexcept
     delete[] mdata;
     mdata = v.mdata;
     mrange = v.mrange;
+    v.mrange = Range(0, 0);
     v.mdata = nullptr;
   }
   return *this;
@@ -1618,6 +1619,8 @@ Matrix& Matrix::operator=(Matrix&& m) noexcept
     mdata = m.mdata;
     mrr = m.mrr;
     mcr = m.mcr;
+    m.mrr = Range(0, 0);
+    m.mcr = Range(0, 0);
     m.mdata = nullptr;
   }
   return *this;

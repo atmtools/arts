@@ -1900,8 +1900,8 @@ void OptimizeDoitPressureGrid(Workspace& ws,
                 
                 // Optimize scat_data
                 scat_data_local.insert(scat_data_local.begin()+cloudbox_index+scat_data_insert_offset+ 1,
-                                       newLayer);
-                
+                                       std::move(newLayer));
+
                 scat_data_insert_offset++;
             }
         }

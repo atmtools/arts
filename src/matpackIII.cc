@@ -870,6 +870,9 @@ Tensor3& Tensor3::operator=(Tensor3&& x) noexcept
     mpr = x.mpr;
     mrr = x.mrr;
     mcr = x.mcr;
+    x.mpr = Range(0,0);
+    x.mrr = Range(0,0);
+    x.mcr = Range(0,0);
     x.mdata = nullptr;
   }
   return *this;
