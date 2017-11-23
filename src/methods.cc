@@ -7550,9 +7550,9 @@ void define_md_data_raw()
           "iy_unit", "iy_aux_vars",
           "jacobian_do", "jacobian_quantities", "jacobian_indices",
           "propmat_clearsky_agenda", "iy_main_agenda", "iy_space_agenda",
-          "iy_surface_agenda", "iy_cloudbox_agenda", "doit_i_field_agenda",
+          "iy_surface_agenda", "iy_cloudbox_agenda",
           "iy_agenda_call1", "iy_transmission", "ppath", "rte_pos2",
-          "rte_alonglos_v" ),
+          "rte_alonglos_v", "doit_i_field", "scat_za_grid" ),
       GIN(         "Naa_grid", "pfct_method" ),
       GIN_TYPE(    "Index",    "String" ),
       GIN_DEFAULT( "19",       "median" ),
@@ -11775,10 +11775,11 @@ void define_md_data_raw()
             "atmgeom_checked", "t_field", "z_field", "vmr_field", "f_grid",
             "cloudbox_on", "cloudbox_checked", "ppath_inside_cloudbox_do", 
             "rte_pos", "rte_los", "rte_pos2" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "ignore_cloudbox" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "0" ),
+        GIN_DESC( "Flag to ignore cloudbox boundaries, even if *cloudbox_on* "
+                  "is true.")
         ));
 
   md_data_raw.push_back

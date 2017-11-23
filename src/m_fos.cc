@@ -1508,12 +1508,13 @@ void iyHybrid(
   const Agenda&                             iy_space_agenda,
   const Agenda&                             iy_surface_agenda,
   const Agenda&                             iy_cloudbox_agenda,
-  const Agenda&                             doit_i_field_agenda,
   const Index&                              iy_agenda_call1,
   const Tensor3&                            iy_transmission,
   const Ppath&                              ppath,
   const Vector&                             rte_pos2,
   const Numeric&                            rte_alonglos_v,      
+  const Tensor7&                            doit_i_field,
+  const Vector&                             scat_za_grid,
   const Index&                              Naa,   
   const String&                             pfct_method _U_,
   const Verbosity&                          verbosity)
@@ -1537,7 +1538,6 @@ void iyHybrid(
   }
   
   // Some basic sizes
-  //
   const Index nf = f_grid.nelem();
   const Index ns = stokes_dim;
   const Index np = ppath.np;
@@ -1578,47 +1578,32 @@ void iyHybrid(
     throw runtime_error( "ppath.background is invalid. Check your "
                          "calculation of *ppath*?" );
   // iy_aux_vars checked below
-
-  
-  // Obtain i_field
-  Tensor7 doit_i_field;
-  Vector  scat_za_grid;
-  Vector  scat_aa_grid;
-  //
-  {
-    //
-    doit_i_field_agendaExecute( ws, doit_i_field, scat_za_grid, scat_aa_grid,
-                                doit_i_field_agenda );
-    if( doit_i_field.ncols() != stokes_dim  )
-      throw runtime_error(
-        "Obtained *doit_i_field* number of Stokes elements inconsistent with"
-        " *stokes_dim*." );
-    if( doit_i_field.nrows() != 1  )
-      throw runtime_error(
-        "Obtained *doit_i_field* has wrong number of azimuth angles." );
-    if( doit_i_field.npages() != scat_za_grid.nelem()  )
-      throw runtime_error(
-        "Obtained *doit_i_field* number of zenith angles inconsistent with"
-        " *scat_za_grid*." );
-    if( doit_i_field.nbooks() != 1  )
-      throw runtime_error(
-        "Obtained *doit_i_field* has wrong number of longitude points." );
-    if( doit_i_field.nshelves() != 1  )
-      throw runtime_error(
-        "Obtained *doit_i_field* has wrong number of latitude points." );
-    if( doit_i_field.nvitrines() != cloudbox_limits[1]-cloudbox_limits[0]+1  )
-      throw runtime_error(
-        "Obtained *doit_i_field* number of pressure points inconsistent with"
-        " *cloudbox_limits*." );
-    if( doit_i_field.nlibraries() != nf  )
-      throw runtime_error(
-        "Obtained *doit_i_field* number of frequency points inconsistent with"
-        " *f_grid*." );
-  }
-
-  // Reset azimuth grid for scattering source calc later on
-  nlinspace(scat_aa_grid, 0, 360, Naa);
-  
+  // Checks of i_field  
+  if( doit_i_field.ncols() != stokes_dim  )
+    throw runtime_error(
+      "Obtained *doit_i_field* number of Stokes elements inconsistent with "
+      "*stokes_dim*." );
+  if( doit_i_field.nrows() != 1  )
+    throw runtime_error(
+      "Obtained *doit_i_field* has wrong number of azimuth angles." );
+  if( doit_i_field.npages() != scat_za_grid.nelem()  )
+    throw runtime_error(
+      "Obtained *doit_i_field* number of zenith angles inconsistent with "
+      "*scat_za_grid*." );
+  if( doit_i_field.nbooks() != 1  )
+    throw runtime_error(
+      "Obtained *doit_i_field* has wrong number of longitude points." );
+  if( doit_i_field.nshelves() != 1  )
+    throw runtime_error(
+      "Obtained *doit_i_field* has wrong number of latitude points." );
+  if( doit_i_field.nvitrines() != cloudbox_limits[1]-cloudbox_limits[0]+1  )
+    throw runtime_error(
+      "Obtained *doit_i_field* number of pressure points inconsistent with "
+      "*cloudbox_limits*." );
+  if( doit_i_field.nlibraries() != nf  )
+    throw runtime_error(
+      "Obtained *doit_i_field* number of frequency points inconsistent with "
+      "*f_grid*." );
 
   //  Init Jacobian quantities
   Index   j_analytical_do = 0;
@@ -1807,7 +1792,11 @@ void iyHybrid(
                       dK_this_dx[iq] += dKp_dx[iq];
                     )
                  }
-              
+
+
+              Vector scat_aa_grid;
+              nlinspace( scat_aa_grid, 0, 360, Naa );
+              //
               get_stepwise_scattersky_source( Sp,
                                               dSp_dx,
                                               jacobian_quantities,

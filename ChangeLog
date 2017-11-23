@@ -1,5 +1,19 @@
 2017-11-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-888
+
+	* controlfiles/artscomponents/hybridscat/TestHybrid.arts: Fixed so
+	there is no parser errors. Deactivated Compare-s, as things are
+	under development.
+
+	* src/m_ppath.cc (ppathCalc): Added GIN ignore_cloudbox, to
+	simplify things around usage of iyHybrid.
+
+	* src/m_fos.cc (iyHybrid): doit_i_field is now an input argument.
+	iy_aux and ppvar tested.
+
+2017-11-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-887
 
 	* src/m_fos.cc (iyHybrid): Added handling of iy_aux. Some smaller
