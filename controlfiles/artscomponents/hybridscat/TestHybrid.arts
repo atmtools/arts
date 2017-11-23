@@ -59,14 +59,17 @@ AgendaSet( doit_i_field_agenda ){
 AgendaSet( iy_main_agenda ){
   Ignore( t_nlte_field )
   Ignore( iy_id )
-  iyHybrid2
+  ppathCalc( ignore_cloudbox = 1 ) 
+  iyHybrid
+  # The line below is just temporary
+  Touch( iy_aux)  
 }
 
-#FlagOff( cloudbox_on )
 
 yCalc
 Print( y, 0 )
-#WriteXML( in=y )
+
+#WriteXML( in=y, filename="yREFERENCE.xml" )
 
 # Compare iyHybrid with RT4 as background solver to RT4-based "standard" yCalc
 Compare( y, yref_RT4, 2. )
@@ -74,19 +77,8 @@ Compare( y, yref_RT4, 2. )
 VectorCreate( yREFERENCE )
 ReadXML( yREFERENCE, "yREFERENCE.xml" )
 # Compare iyHybrid with RT4 as background solver to its own reference solution
-#Compare( y, yREFERENCE, 1e-2 )
+Compare( y, yREFERENCE, 1e-2 )
 
-AgendaSet( iy_main_agenda ){
-  Ignore( t_nlte_field )
-  Ignore( iy_id )
-  iyHybrid2
-}
-
-yCalc
-Print( y, 0 )
-
-# Compare iyHybrid2 to iyHybrid reference solution (both with RT4 as background solver)
-#Compare( y, yREFERENCE, 1e-1 )
 
 }
  
