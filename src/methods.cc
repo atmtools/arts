@@ -7420,7 +7420,7 @@ void define_md_data_raw()
          "    background. The following coding is used: 0=space, 1=surface\n"
          "    and 2=cloudbox.\n"
          " \"Transmission\": Scalar transmission between the observation point\n"
-         "    and the end of the primary propagation path. These transmissions\n"
+         "    and the end of the present propagation path. These transmissions\n"
          "    are the diagonal elements of the full transmission matrix. That\n"
          "    is, the transmission can vary between Stokes elements.\n"
          ),
@@ -7434,7 +7434,7 @@ void define_md_data_raw()
             "p_grid", "z_field", "t_field", "t_nlte_field", "vmr_field",
             "abs_species", "wind_u_field", "wind_v_field", "wind_w_field",
             "mag_u_field", "mag_v_field", "mag_w_field", 
-            "cloudbox_on", "scat_species", "iy_unit", "iy_aux_vars",
+            "cloudbox_on", "iy_unit", "iy_aux_vars",
             "jacobian_do", "jacobian_quantities", "jacobian_indices", 
             "ppath", "rte_pos2",
             "propmat_clearsky_agenda", "iy_main_agenda", 

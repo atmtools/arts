@@ -610,6 +610,7 @@ void rtmethods_jacobian_init(
    const Index&                      nq,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
    const ArrayOfString&              scat_species,         
+   const ArrayOfTensor4&             dpnd_field_dx,
    const PropmatPartialsData&        ppd,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,   
    const ArrayOfArrayOfIndex&        jacobian_indices, 

@@ -209,7 +209,6 @@ void iyEmissionStandard2(
    const Tensor3&                    mag_v_field,
    const Tensor3&                    mag_w_field,
    const Index&                      cloudbox_on,
-   const ArrayOfString&              scat_species,
    const String&                     iy_unit,
    const ArrayOfString&              iy_aux_vars,
    const Index&                      jacobian_do,
@@ -260,10 +259,14 @@ void iyEmissionStandard2(
   //
   if( j_analytical_do )
     {
+      const ArrayOfString  scat_species(0);
+      const ArrayOfTensor4 dpnd_field_dx(nq);
+      //
       rtmethods_jacobian_init( jac_species_i, jac_scat_i, jac_is_t, jac_wind_i,
                                jac_mag_i, jac_other, jac_to_integrate, diy_dx,
                                diy_dpath,
-                               ns, nf, np, nq, abs_species, scat_species,
+                               ns, nf, np, nq, abs_species,
+                               scat_species, dpnd_field_dx,
                                ppd, jacobian_quantities, jacobian_indices,
                                iy_agenda_call1 );
     }
@@ -447,6 +450,14 @@ void iyEmissionStandard2(
     { iy_transmission_mult( iy_trans_new, iy_transmission, 
                             trans_cumulat(np-1,joker,joker,joker) ); }
 
+  // Copy transmission to iy_aux 
+  for( Index i=0; i<naux; i++ )
+    { if( iy_aux_vars[i] == "Transmission" )
+        { for( Index iv=0; iv<nf; iv++ )
+            { for( Index is=0; is<ns; is++ )
+                { iy_aux[i](iv,is) = iy_trans_new(iv,is,is); }
+    }   }   }
+
   // Radiative background
   get_iy_of_background( ws, iy, diy_dx, 
                         iy_trans_new, iy_id, jacobian_do, ppath, rte_pos2, 
@@ -514,19 +525,6 @@ void iyEmissionStandard2(
     }
 
 
-  // Remaining parts if iy_aux
-  for( Index i=0; i<naux; i++ )
-    {
-      if( iy_aux_vars[i] == "Transmission" )
-        {
-          for( Index iv=0; iv<nf; iv++ )
-            {
-              for( Index is=0; is<ns; is++ )
-                { iy_aux[i](iv,is) = iy_trans_new(iv,is,is); }
-            }
-        } 
-    }
-  
   // Finalize analytical Jacobians
   if( j_analytical_do )
     {

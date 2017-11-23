@@ -1464,7 +1464,7 @@ void iyHybrid2(
 void iyHybrid(
         Workspace&                          ws,
         Matrix&                             iy,
-        ArrayOfMatrix&                      iy_aux2,
+        ArrayOfMatrix&                      iy_aux,
         ArrayOfTensor3&                     diy_dx,
         Vector&                             ppvar_p,
         Vector&                             ppvar_t,
@@ -1521,13 +1521,13 @@ void iyHybrid(
   // If cloudbox off, switch to use clearsky method
   if( !cloudbox_on )
   {
-    iyEmissionStandard2( ws, iy, iy_aux2, diy_dx, ppvar_p, ppvar_t, ppvar_t_nlte,
+    iyEmissionStandard2( ws, iy, iy_aux, diy_dx, ppvar_p, ppvar_t, ppvar_t_nlte,
                          ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f, ppvar_iy,  
                          iy_id, stokes_dim, f_grid, atmosphere_dim, p_grid,
                          z_field, t_field, t_nlte_field, vmr_field, abs_species,
                          wind_u_field, wind_v_field, wind_w_field,
                          mag_u_field, mag_v_field, mag_w_field,
-                         cloudbox_on, scat_species, iy_unit, iy_aux_vars,
+                         cloudbox_on, iy_unit, iy_aux_vars,
                          jacobian_do, jacobian_quantities, jacobian_indices,
                          ppath, rte_pos2,  propmat_clearsky_agenda,
                          iy_main_agenda, iy_space_agenda, iy_surface_agenda,
@@ -1577,6 +1577,7 @@ void iyHybrid(
   if( rbi < 1  ||  rbi > 9 )
     throw runtime_error( "ppath.background is invalid. Check your "
                          "calculation of *ppath*?" );
+  // iy_aux_vars checked below
 
   
   // Obtain i_field
@@ -1637,33 +1638,34 @@ void iyHybrid(
       rtmethods_jacobian_init( jac_species_i, jac_scat_i, jac_is_t, jac_wind_i,
                                jac_mag_i, jac_other, jac_to_integrate, diy_dx,
                                diy_dpath,
-                               ns, nf, np, nq, abs_species, scat_species,
+                               ns, nf, np, nq, abs_species,
+                               scat_species, dpnd_field_dx,
                                ppd, jacobian_quantities, jacobian_indices,
                                iy_agenda_call1 );
-      
-      FOR_ANALYTICAL_JACOBIANS_DO( 
-        if( jac_scat_i[iq]+1 )
-          {
-            if( dpnd_field_dx[iq].empty() )
-              throw std::runtime_error( "*dpnd_field_dx* not allowed to be empty for"
-                                        " scattering Jacobian species.\n");
-          }
-        // FIXME: should we indeed check for that? remove if it causes issues.
-        else
-          {
-            if( !dpnd_field_dx[iq].empty() )
-              throw std::runtime_error( "*dpnd_field_dx* must be empty for"
-                                        " non-scattering Jacobian species.\n");
-          }
-       )
     }
   
   // Init iy_aux and fill where possible
   const Index naux = iy_aux_vars.nelem();
-  iy_aux2.resize( naux );
+  iy_aux.resize( naux );
   //
-  // Finish iy_aox part later
-
+  for( Index i=0; i<naux; i++ )
+    {
+      iy_aux[i].resize(nf,ns); 
+      
+      if( iy_aux_vars[i] == "Transmission" )
+        {} // Filled below
+      else if( iy_aux_vars[i] == "Radiative background" )
+        { iy_aux[i] = (Numeric)min( (Index)2, rbi-1 ); }
+      else
+        {
+          ostringstream os;
+          os << "The only allowed strings in *iy_aux_vars* are:\n"
+             << "  \"Radiative background\"\n"
+             << "  \"Optical depth\"\n"
+             << "but you have selected: \"" << iy_aux_vars[i] << "\"";
+          throw runtime_error( os.str() );      
+        }
+    }
 
   // Get atmospheric and radiative variables along the propagation path
   //
@@ -1877,6 +1879,14 @@ void iyHybrid(
         }
     }
   
+  // Copy transmission to iy_aux 
+  for( Index i=0; i<naux; i++ )
+    { if( iy_aux_vars[i] == "Transmission" )
+        { for( Index iv=0; iv<nf; iv++ )
+            { for( Index is=0; is<ns; is++ )
+                { iy_aux[i](iv,is) = trans_cumulat(np-1,iv,is,is); }
+    }   }   }
+
   // Get *iy* at end ppath by interpolating doit_i_field
   {
     Tensor4 i_field = doit_i_field(joker,joker,0,0,joker,0,joker);

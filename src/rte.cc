@@ -5250,6 +5250,7 @@ void rtmethods_jacobian_init(
    const Index&                      nq,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
    const ArrayOfString&              scat_species,         
+   const ArrayOfTensor4&             dpnd_field_dx,
    const PropmatPartialsData&        ppd,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,   
    const ArrayOfArrayOfIndex&        jacobian_indices, 
@@ -5277,6 +5278,20 @@ void rtmethods_jacobian_init(
     jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
     if( jac_to_integrate[iq] == JAC_IS_FLUX )
       throw std::runtime_error("This method can not perform flux calculations.");
+      
+    if( jac_scat_i[iq]+1 )
+      {
+        if( dpnd_field_dx[iq].empty() )
+          throw runtime_error( "*dpnd_field_dx* not allowed to be empty for "
+                               "scattering Jacobian species." );
+      }
+    // FIXME: should we indeed check for that? remove if it causes issues.
+    else
+      {
+        if( !dpnd_field_dx[iq].empty() )
+          throw runtime_error( "*dpnd_field_dx* must be empty for "
+                               "non-scattering Jacobian species." );
+      }
   )
 
   if( iy_agenda_call1 )
