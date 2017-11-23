@@ -632,6 +632,7 @@ void rtmethods_jacobian_finalisation(
 void rtmethods_unit_conversion(
          Matrix&                     iy,
          ArrayOfTensor3&             diy_dx,
+         Tensor3&                    ppvar_iy,  
    const Index&                      ns,
    const Index&                      np,
    const Vector&                     f_grid,         

@@ -5382,6 +5382,7 @@ void rtmethods_jacobian_finalisation(
 void rtmethods_unit_conversion(
          Matrix&                     iy,
          ArrayOfTensor3&             diy_dx,
+         Tensor3&                    ppvar_iy,  
    const Index&                      ns,
    const Index&                      np,
    const Vector&                     f_grid,         
@@ -5411,4 +5412,9 @@ void rtmethods_unit_conversion(
 
   // iy
   apply_iy_unit( iy, iy_unit, f_grid, n, i_pol );
+
+  // ppvar_iy 
+  for( Index ip=0; ip<ppath.np; ip++ )
+    { apply_iy_unit( ppvar_iy(joker,joker,ip), iy_unit, f_grid,
+                     ppath.nreal[ip], i_pol ); }
 }

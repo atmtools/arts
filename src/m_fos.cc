@@ -1521,21 +1521,21 @@ void iyHybrid(
 {
   // If cloudbox off, switch to use clearsky method
   if( !cloudbox_on )
-  {
-    iyEmissionStandard2( ws, iy, iy_aux, diy_dx, ppvar_p, ppvar_t, ppvar_t_nlte,
-                         ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f, ppvar_iy,  
-                         iy_id, stokes_dim, f_grid, atmosphere_dim, p_grid,
-                         z_field, t_field, t_nlte_field, vmr_field, abs_species,
-                         wind_u_field, wind_v_field, wind_w_field,
-                         mag_u_field, mag_v_field, mag_w_field,
-                         cloudbox_on, iy_unit, iy_aux_vars,
-                         jacobian_do, jacobian_quantities, jacobian_indices,
-                         ppath, rte_pos2,  propmat_clearsky_agenda,
-                         iy_main_agenda, iy_space_agenda, iy_surface_agenda,
-                         iy_cloudbox_agenda, iy_agenda_call1, iy_transmission,
-                         rte_alonglos_v, verbosity );
-    return;
-  }
+    {
+      iyEmissionStandard2( ws, iy, iy_aux, diy_dx, ppvar_p, ppvar_t, ppvar_t_nlte,
+                           ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f, ppvar_iy,  
+                           iy_id, stokes_dim, f_grid, atmosphere_dim, p_grid,
+                           z_field, t_field, t_nlte_field, vmr_field, abs_species,
+                           wind_u_field, wind_v_field, wind_w_field,
+                           mag_u_field, mag_v_field, mag_w_field,
+                           cloudbox_on, iy_unit, iy_aux_vars,
+                           jacobian_do, jacobian_quantities, jacobian_indices,
+                           ppath, rte_pos2,  propmat_clearsky_agenda,
+                           iy_main_agenda, iy_space_agenda, iy_surface_agenda,
+                           iy_cloudbox_agenda, iy_agenda_call1, iy_transmission,
+                           rte_alonglos_v, verbosity );
+      return;
+    }
   
   // Some basic sizes
   const Index nf = f_grid.nelem();
@@ -1549,11 +1549,11 @@ void iyHybrid(
   if( atmosphere_dim != 1 )
     throw runtime_error(
       "With cloudbox on, this method handles only 1D calculations." );
-  if( !iy_agenda_call1 )
-    throw runtime_error( "With cloudbox on, recursive usage not possible "
-                         "(iy_agenda_call1 must be 1)." );
-  if( iy_transmission.ncols() )
-    throw runtime_error( "*iy_transmission* must be empty." );
+  //if( !iy_agenda_call1 )
+  //  throw runtime_error( "With cloudbox on, recursive usage not possible "
+  //                      "(iy_agenda_call1 must be 1)." );
+  //if( iy_transmission.ncols() )
+  //  throw runtime_error( "*iy_transmission* must be empty." );
   if( cloudbox_limits[0] != 0  ||  cloudbox_limits[1] != p_grid.nelem()-1 )
     throw runtime_error(
       "The cloudbox must be set to cover the complete atmosphere." );
@@ -1867,7 +1867,7 @@ void iyHybrid(
           swap( dK_past_dx, dK_this_dx );
         }
     }
-  
+
   // Copy transmission to iy_aux 
   for( Index i=0; i<naux; i++ )
     { if( iy_aux_vars[i] == "Transmission" )
@@ -1901,7 +1901,34 @@ void iyHybrid(
   }
   //
   ppvar_iy(joker,joker,np-1) = iy;
-  
+
+  /*
+  // iy_transmission
+  Tensor3 iy_trans_new;
+  if( iy_agenda_call1 )
+    { iy_trans_new = trans_cumulat(np-1,joker,joker,joker); }
+  else
+    { iy_transmission_mult( iy_trans_new, iy_transmission, 
+                            trans_cumulat(np-1,joker,joker,joker) ); }
+
+  // Copy transmission to iy_aux 
+  for( Index i=0; i<naux; i++ )
+    { if( iy_aux_vars[i] == "Transmission" )
+        { for( Index iv=0; iv<nf; iv++ )
+            { for( Index is=0; is<ns; is++ )
+                { iy_aux[i](iv,is) = iy_trans_new(iv,is,is); }
+    }   }   }
+
+  // Radiative background
+  get_iy_of_background( ws, iy, diy_dx, 
+                        iy_trans_new, iy_id, jacobian_do, ppath, rte_pos2, 
+                        atmosphere_dim, t_field, z_field, vmr_field, 
+                        cloudbox_on, stokes_dim, f_grid, iy_unit,
+                        iy_main_agenda, iy_space_agenda, iy_surface_agenda, 
+                        iy_cloudbox_agenda, verbosity );
+  //
+  ppvar_iy(joker,joker,np-1) = iy;
+  */
     
   // Radiative transfer calculations
   if( np > 1 )
@@ -1970,16 +1997,8 @@ void iyHybrid(
   // Unit conversions
   if( iy_agenda_call1 )
     {
-      rtmethods_unit_conversion( iy, diy_dx,
+      rtmethods_unit_conversion( iy, diy_dx, ppvar_iy,
                                  ns, np, f_grid, ppath, jacobian_quantities,
                                  j_analytical_do, iy_unit );
-
-      // Handle ppvar_iy separately
-      ArrayOfIndex i_pol(ns);
-      for( Index is=0; is<ns; is++ )
-        { i_pol[is] = is + 1; }
-      for( Index ip=0; ip<np; ip++ )
-        { apply_iy_unit( ppvar_iy(joker,joker,ip), iy_unit, f_grid,
-                         ppath.nreal[ip], i_pol ); }
     }
 }

@@ -537,17 +537,9 @@ void iyEmissionStandard2(
   // Unit conversions
   if( iy_agenda_call1 )
     {
-      rtmethods_unit_conversion( iy, diy_dx,
+      rtmethods_unit_conversion( iy, diy_dx, ppvar_iy,
                                  ns, np, f_grid, ppath, jacobian_quantities,
                                  j_analytical_do, iy_unit );
-
-      // Handle ppvar_iy separately
-      ArrayOfIndex i_pol(ns);
-      for( Index is=0; is<ns; is++ )
-        { i_pol[is] = is + 1; }
-      for( Index ip=0; ip<np; ip++ )
-        { apply_iy_unit( ppvar_iy(joker,joker,ip), iy_unit, f_grid,
-                         ppath.nreal[ip], i_pol ); }
     }
 }
 
