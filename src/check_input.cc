@@ -1192,45 +1192,22 @@ void chk_interpolation_grids(const String&   which_interpolation,
                              ConstVectorView new_grid,
                              const Index     order,
                              const Numeric&  extpolfac,
-                             const bool      islog,
-                             const bool      allow_single_oldgrid)
+                             const bool      islog)
 {
   const Index n_old = old_grid.nelem();
 
   if (!new_grid.nelem()) throw runtime_error(
                                   "The new grid is not allowed to be empty." );
 
-  if ( !order )
+  if ( order<0 )
     {
       ostringstream os;
       os << "There is a problem with the grids for the following "
          << "interpolation:\n" << which_interpolation << "\n"
-         << "Only interpolation orders larger 0 allowed (but your's is "
+         << "Interpolation order must be 0 or larger (but your's is "
          << order << ").";
       throw runtime_error( os.str() );
     }
-
-  // Check for the special case that both old_grid and new grid have only one
-  // element. If identical, that's  fine. If not, throw error.
-  if ( allow_single_oldgrid )
-  {
-    if (n_old==1 && new_grid.nelem()==1)
-    {
-      if ( !is_same_within_epsilon(old_grid[0],new_grid[0],2*DBL_EPSILON) )
-      {
-        ostringstream os;
-        os << "There is a problem with the grids for the following "
-           << "interpolation:\n" << which_interpolation << "\n"
-           << "If original grid has only 1 element, the new grid must also have\n"
-           << "only a single element and hold the same value as the original grid.";
-        throw runtime_error( os.str() );
-      }
-      else
-      {
-        return;
-      }
-    }
-  }
 
   // Old grid must have at least order+1 elements:
   if (n_old < order+1)
@@ -1245,11 +1222,11 @@ void chk_interpolation_grids(const String&   which_interpolation,
     }
   
   // Decide whether we have an ascending or descending grid:
-  const bool ascending = ( old_grid[0] <= old_grid[1] );
+  const bool ascending = ( (n_old>1) ? (old_grid[0] <= old_grid[1]) : true );
 
   // Minimum and maximum allowed value from old grid. (Will include
   // extrapolation tolerance.)
-  Numeric og_min, og_max;
+  Numeric og_min=old_grid[0], og_max=old_grid[0];
 
   if (ascending)  
     {
@@ -1265,11 +1242,14 @@ void chk_interpolation_grids(const String&   which_interpolation,
           throw runtime_error( os.str() );
         }
 
-      // Limits of extrapolation. 
-      og_min = old_grid[0] - 
-               extpolfac * ( old_grid[1] - old_grid[0] );
-      og_max = old_grid[n_old-1] + 
-               extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
+      // Limits of extrapolation.
+      if( n_old>1 )
+      {
+        og_min = old_grid[0] - 
+                 extpolfac * ( old_grid[1] - old_grid[0] );
+        og_max = old_grid[n_old-1] + 
+                 extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
+      }
     }
   else
     {
@@ -1287,10 +1267,13 @@ void chk_interpolation_grids(const String&   which_interpolation,
 
       // The max is now the first point, the min the last point!
       // I think the sign is right here...
-      og_max = old_grid[0] - 
-               extpolfac * ( old_grid[1] - old_grid[0] );
-      og_min = old_grid[n_old-1] + 
-               extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
+      if( n_old>1 )
+      {
+        og_max = old_grid[0] - 
+                 extpolfac * ( old_grid[1] - old_grid[0] );
+        og_min = old_grid[n_old-1] + 
+                 extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
+      }
     }
   
   // Min and max of new grid:
@@ -1300,7 +1283,9 @@ void chk_interpolation_grids(const String&   which_interpolation,
   // New grid must be inside old grid (plus extpolfac).
   // (Values right on the edge (ng_min==og_min) are still allowed.)
 
-  if (ng_min < og_min)
+  if( n_old>1 )
+  {
+    if (ng_min < og_min)
     {
       ostringstream os;
       os << "There is a problem with the grids for the "
@@ -1317,7 +1302,7 @@ void chk_interpolation_grids(const String&   which_interpolation,
       throw runtime_error( os.str() );
     }
 
-  if (ng_max > og_max)
+    if (ng_max > og_max)
     {
       ostringstream os;
       os << "There is a problem with the grids for the "
@@ -1333,6 +1318,7 @@ void chk_interpolation_grids(const String&   which_interpolation,
       if (islog) os << " (" << exp(ng_max) << ")";
       throw runtime_error( os.str() );
     }
+  }
 
   // If we get here, than everything should be fine.
 }

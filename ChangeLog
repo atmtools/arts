@@ -1,3 +1,23 @@
+2017-11-24 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-892
+
+	* src/m_optproperties.cc, methods.cc (scat_dataReduceT):
+	Added. Work in progress.
+
+	(scat_dataCalc):
+	Do check for single-entry, but identical f-grids directly here.
+
+	* src/check_input.[cc,h] (chk_interpolation_grids):
+	Allow order=0. Make work for case when old_grod.nelem==1 and order=0.
+	Moved check for single-entry, but identical grids grids out again.
+
+	* src/interpolation_poly.cc (interpweights,interp):
+	Fixed itw dimension documentation.
+
+	* src/m_psd.cc (psdW16), doc/uguide/interpolation.tex:
+	Typos fixed.
+
 2017-11-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-891

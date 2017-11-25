@@ -532,8 +532,8 @@ ostream& operator<<(ostream& os, const GridPosPoly& gp)
   "Red" interpolation returns just a scalar, so the weights are stored
   in a Vector.   
 
-  The length of itw must be consistent with the dimension of the
-  field to be interpolated (2^n).
+  The dimension of itw must be consistent with the interpolation order (o) and
+  the dimension (n) of the interpolation (i.e., (o+1)^n).
 
   \retval itw Interpolation weights.
   \param  tc  The grid position for the column dimension.
@@ -566,8 +566,8 @@ void interpweights( VectorView itw,
   "Red" interpolation returns just a scalar, so the weights are stored
   in a Vector.   
 
-  The length of itw must be consistent with the dimension of the
-  field to be interpolated (2^n).
+  The dimension of itw must be consistent with the interpolation order (o) and
+  the dimension (n) of the interpolation (i.e., (o+1)^n).
 
   \retval itw Interpolation weights.
   \param tr   The grid position for the row dimension.
@@ -600,8 +600,8 @@ void interpweights( VectorView itw,
   "Red" interpolation returns just a scalar, so the weights are stored
   in a Vector.   
 
-  The length of itw must be consistent with the dimension of the
-  field to be interpolated (2^n).
+  The dimension of itw must be consistent with the interpolation order (o) and
+  the dimension (n) of the interpolation (i.e., (o+1)^n).
 
   \retval itw Interpolation weights.
   \param tp   The grid position for the page    dimension.
@@ -640,8 +640,8 @@ void interpweights( VectorView itw,
   "Red" interpolation returns just a scalar, so the weights are stored
   in a Vector.   
 
-  The length of itw must be consistent with the dimension of the
-  field to be interpolated (2^n).
+  The dimension of itw must be consistent with the interpolation order (o) and
+  the dimension (n) of the interpolation (i.e., (o+1)^n).
 
   \retval itw Interpolation weights.
   \param tb   The grid position for the book    dimension.
@@ -685,8 +685,8 @@ void interpweights( VectorView itw,
   "Red" interpolation returns just a scalar, so the weights are stored
   in a Vector.   
 
-  The length of itw must be consistent with the dimension of the
-  field to be interpolated (2^n).
+  The dimension of itw must be consistent with the interpolation order (o) and
+  the dimension (n) of the interpolation (i.e., (o+1)^n).
 
   \retval itw Interpolation weights.
   \param ts   The grid position for the shelf   dimension.
@@ -735,8 +735,8 @@ void interpweights( VectorView itw,
   "Red" interpolation returns just a scalar, so the weights are stored
   in a Vector.   
 
-  The length of itw must be consistent with the dimension of the
-  field to be interpolated (2^n).
+  The dimension of itw must be consistent with the interpolation order (o) and
+  the dimension (n) of the interpolation (i.e., (o+1)^n).
 
   \retval itw Interpolation weights.
   \param  tv  The grid position for the vitrine dimension.
@@ -789,8 +789,8 @@ void interpweights( VectorView itw,
 /*! 
   "Red" interpolation returns just a scalar.
 
-  The dimension of itw must be consistent with the dimension of the
-  interpolation (2^n).
+  The dimension of itw must be consistent with the interpolation order (o) and
+  the dimension (n) of the interpolation (i.e., (o+1)^n).
 
   \param itw  Interpolation weights.
   \param a    The field to interpolate.
@@ -831,8 +831,8 @@ Numeric interp( ConstVectorView itw,
 /*! 
   "Red" interpolation returns just a scalar.
 
-  The dimension of itw must be consistent with the dimension of the
-  interpolation (2^n).
+  The dimension of itw must be consistent with the interpolation order (o) and
+  the dimension (n) of the interpolation (i.e., (o+1)^n).
 
   \param itw  Interpolation weights.
   \param a    The field to interpolate.
@@ -880,8 +880,8 @@ Numeric interp( ConstVectorView  itw,
 /*! 
   "Red" interpolation returns just a scalar.
 
-  The dimension of itw must be consistent with the dimension of the
-  interpolation (2^n).
+  The dimension of itw must be consistent with the interpolation order (o) and
+  the dimension (n) of the interpolation (i.e., (o+1)^n).
 
   \param itw  Interpolation weights.
   \param a    The field to interpolate.
@@ -935,8 +935,8 @@ Numeric interp( ConstVectorView  itw,
 /*! 
   "Red" interpolation returns just a scalar.
 
-  The dimension of itw must be consistent with the dimension of the
-  interpolation (2^n).
+  The dimension of itw must be consistent with the interpolation order (o) and
+  the dimension (n) of the interpolation (i.e., (o+1)^n).
 
   \param itw  Interpolation weights.
   \param a    The field to interpolate.
@@ -996,8 +996,8 @@ Numeric interp( ConstVectorView  itw,
 /*! 
   "Red" interpolation returns just a scalar.
 
-  The dimension of itw must be consistent with the dimension of the
-  interpolation (2^n).
+  The dimension of itw must be consistent with the interpolation order (o) and
+  the dimension (n) of the interpolation (i.e., (o+1)^n).
 
   \param itw  Interpolation weights.
   \param a    The field to interpolate.
@@ -1063,8 +1063,8 @@ Numeric interp( ConstVectorView  itw,
 /*! 
   "Red" interpolation returns just a scalar.
 
-  The dimension of itw must be consistent with the dimension of the
-  interpolation (2^n).
+  The dimension of itw must be consistent with the interpolation order (o) and
+  the dimension (n) of the interpolation (i.e., (o+1)^n).
 
   \param itw  Interpolation weights.
   \param a    The field to interpolate.

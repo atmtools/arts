@@ -15277,10 +15277,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_data_raw", "f_grid" ),
-        GIN( "order" ),
+        GIN( "interp_order" ),
         GIN_TYPE( "Index" ),
         GIN_DEFAULT( "1" ),
-        GIN_DESC( "Interpolation order (for frequency interpolation)." )
+        GIN_DESC( "Interpolation order." )
         ));
 
   md_data_raw.push_back
@@ -15319,6 +15319,35 @@ void define_md_data_raw()
         GIN_DEFAULT( "all",        "5e-2" ),
         GIN_DESC( "The level of checks to apply on scat_data (see above).",
                   "Threshold for allowed albedo deviation." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "scat_dataReduceT" ),
+        DESCRIPTION
+        (
+         "Reduces temperature dimension of single scattering to a single entry.\n"
+         "\n"
+         "FIXME...\n"
+         "Derives single scattering data for the frequencies given by\n"
+         "*f_grid* by interpolation from *scat_data_raw*. *f_grid* should be\n"
+         "the actual WSV *f_grid* or a single-element Vector.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "scat_data" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "scat_data" ),
+        GIN(      "scat_index", "temperature", "interp_order", "phamat_only" ),
+        GIN_TYPE( "Index",      "Numeric",     "Index",        "Index" ),
+        GIN_DEFAULT( NODEF,     NODEF,         "1",            "1" ),
+        GIN_DESC( "Apply on *scat_data* from scattering species of this index"
+                  " (0-based).",
+                  "Temperature to interpolate *scat_data* to.",
+                  "Interpolation order.",
+                  "Flag whether to apply temperture reduction on phase matrix"
+                  " data only (1) or on all single scattering properties (0)." )
         ));
 
 /*

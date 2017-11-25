@@ -36,6 +36,7 @@
   === External declarations
   ===========================================================================*/
 
+#include <cfloat>
 #include <cmath>
 #include "arts.h"
 #include "exceptions.h"
@@ -1579,7 +1580,7 @@ void scat_dataCheck( //Input:
         ostringstream os;
         os << "Invalid value for argument *check_type*: '" << check_type << "'.\n";
         os << "Valid values are 'all' or 'none'.";
-        throw std::runtime_error(os.str());
+        throw runtime_error( os.str() );
     }
 }
 
@@ -1749,7 +1750,7 @@ void DoitScatteringDataPrepare(Workspace& ws,//Output:
 void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
              const ArrayOfArrayOfSingleScatteringData& scat_data_raw,
              const Vector& f_grid,
-             const Index& order,
+             const Index& interp_order,
              const Verbosity&)
 // FIXME: when we allow K, a, Z to be on different f and T grids, their use in
 // the scatt solvers needs to be reviewed again and adaptedto this!
@@ -1762,14 +1763,28 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
   // Check, whether single scattering data contains the right frequencies:
   // The check was changed to allow extrapolation at the boundaries of the 
   // frequency grid.
+  const String which_interpolation="scat_data_raw.f_grid to f_grid";
   for (Index i_ss = 0; i_ss<scat_data_raw.nelem(); i_ss++)
   {
     for (Index i_se = 0; i_se<scat_data_raw[i_ss].nelem(); i_se++)
     {
+      // Check for the special case that ssd.f_grid f_grid have only one
+      // element. If identical, that's  fine. If not, throw error.
+      if (F_DATAGRID_RAW.nelem()==1 && nf==1)
+        if ( !is_same_within_epsilon(F_DATAGRID_RAW[0],f_grid[0],2*DBL_EPSILON) )
+        {
+          ostringstream os;
+          os << "There is a problem with the grids for the following "
+             << "interpolation:\n" << which_interpolation << "\n"
+             << "If original grid has only 1 element, the new grid must also have\n"
+             << "only a single element and hold the same value as the original grid.";
+          throw runtime_error( os.str() );
+        }
+
       // check with extrapolation
-      chk_interpolation_grids("scat_data_raw.f_grid to f_grid",
-                              scat_data_raw[i_ss][i_se].f_grid, f_grid, order,
-                              0.5, false, true);
+      chk_interpolation_grids(which_interpolation,
+                              scat_data_raw[i_ss][i_se].f_grid, f_grid,
+                              interp_order);
     }
   }
 
@@ -1818,10 +1833,10 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
       {
         // Gridpositions:
         ArrayOfGridPosPoly freq_gp( nf );;
-        gridpos_poly(freq_gp, scat_data_raw[i_ss][i_se].f_grid, f_grid, order);
+        gridpos_poly(freq_gp, scat_data_raw[i_ss][i_se].f_grid, f_grid, interp_order);
 
         // Interpolation weights:
-        Matrix itw(nf, order+1);
+        Matrix itw(nf, interp_order+1);
         interpweights(itw, freq_gp);
 
         //Phase matrix data
@@ -1895,11 +1910,158 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
       else
       {
         assert( nf==1 );
-        // we do only have one f_grid value in old and new data, hence only need
-        // to copy over/reassign the data.
+        // we do only have one f_grid value in old and new data (and they have
+        // been confirmed to be the same), hence only need to copy over/reassign
+        // the data.
         scat_data[i_ss][i_se].pha_mat_data = scat_data_raw[i_ss][i_se].pha_mat_data;
         scat_data[i_ss][i_se].ext_mat_data = scat_data_raw[i_ss][i_se].ext_mat_data;
         scat_data[i_ss][i_se].abs_vec_data = scat_data_raw[i_ss][i_se].abs_vec_data;
+      }
+    }
+  }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
+                const Index& i_ss,
+                const Numeric& T,
+                const Index& interp_order,
+                const Index& phamat_only,
+                const Verbosity&)
+{
+  // We are directly acting on the scat_data entries, modifying them
+  // individually. That is, we don't need to resize these Arrays. Only the
+  // pha_mat and probably ext_mat and abs_vec Tensors (in the latter case also
+  // T_grid!).
+
+  // Check that species i_ss exists at all in scat_data
+  //FIXME
+
+  // Loop over the included scattering elements
+  for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
+  {
+    // If ssd.T_grid already has only a single point, we do nothing.
+    // This is not necessarily expected behaviour. BUT, it is in line with
+    // previous use (that if nT==1, then assume ssd constant in T).
+    Index nT = T_DATAGRID_NEW.nelem();
+    if( nT>1 )
+    {
+      // Check that pha_mat, ext_mat, abs_vec still have the same temp
+      // dimensions
+      //FIXME
+      
+      // Check, that we not have data that has already been T-reduced (in
+      // pha_mat only. complete ssd T-reduce should have been sorted away
+      // already above).
+      if( PHA_MAT_DATA_NEW.nvitrines()!=nT )
+      {
+        ostringstream os;
+        os << "Single scattering data of scat element #" << i_se
+           << " of scat species #" << i_ss << "\n"
+           << "seems to have undergone some temperature grid manipulation in\n"
+           << "*pha_mat_data* already. That can not be done twice!";
+        throw runtime_error( os.str() );
+      }
+
+      // Check that T_grid is consistent with requested interpolation order
+      ostringstream os;
+      os << "Scattering data temperature interpolation for\n"
+         << "scat element #" << i_se << " of scat species #" << i_ss << ".";
+      chk_interpolation_grids( os.str(), T_DATAGRID_NEW, T, interp_order );
+
+      // Gridpositions:
+      GridPosPoly gp_T;
+      gridpos_poly( gp_T,  T_DATAGRID_NEW, T, interp_order );
+      Vector itw(interp_order+1);
+      interpweights(itw, gp_T);
+
+      //Sizing of temporary SSD data containers
+      Tensor7 phamat_tmp(PHA_MAT_DATA_NEW.nlibraries(),
+                         1,
+                         PHA_MAT_DATA_NEW.nshelves(),
+                         PHA_MAT_DATA_NEW.nbooks(),
+                         PHA_MAT_DATA_NEW.npages(),
+                         PHA_MAT_DATA_NEW.nrows(),
+                         PHA_MAT_DATA_NEW.ncols(),
+                         0.);
+      Tensor5 extmat_tmp(EXT_MAT_DATA_NEW.nshelves(),
+                         1,
+                         EXT_MAT_DATA_NEW.npages(),
+                         EXT_MAT_DATA_NEW.nrows(),
+                         EXT_MAT_DATA_NEW.ncols(),
+                         0.);
+      Tensor5 absvec_tmp(ABS_VEC_DATA_NEW.nshelves(),
+                         1,
+                         ABS_VEC_DATA_NEW.npages(),
+                         ABS_VEC_DATA_NEW.nrows(),
+                         ABS_VEC_DATA_NEW.ncols(),
+                         0.);
+
+      // a1) temp interpol of pha mat
+      //We have to apply the interpolation separately for each of the pha_mat
+      //entries, i.e. loop over all remaining size dimensions
+      //We don't apply any transformation here, but interpolate the actual
+      //stored ssd (i.e. not the 4x4matrices, but the 7-16 elements separately).
+      for( Index i_f=0; i_f<PHA_MAT_DATA_NEW.nlibraries(); i_f++ )
+        for( Index i_za1=0; i_za1<PHA_MAT_DATA_NEW.nshelves(); i_za1++ )
+          for( Index i_aa1=0; i_aa1<PHA_MAT_DATA_NEW.nbooks(); i_aa1++ )
+            for( Index i_za2=0; i_za2<PHA_MAT_DATA_NEW.npages(); i_za2++ )
+              for( Index i_aa2=0; i_aa2<PHA_MAT_DATA_NEW.nrows(); i_aa2++ )
+                for( Index i_st=0; i_st<PHA_MAT_DATA_NEW.ncols(); i_st++ )
+                  phamat_tmp(i_f,0,i_za1,i_aa1,i_za2,i_aa2,i_st) =
+                    interp(itw,
+                           PHA_MAT_DATA_NEW(i_f,joker,i_za1,i_aa1,i_za2,i_aa2,i_st),
+                           gp_T);
+
+      // a2) temp interpol of ext and abs. regardless of whether they should be
+      // reduced or not. as we need them also for norm checking / renorming.
+      for( Index i_f=0; i_f<EXT_MAT_DATA_NEW.nshelves(); i_f++ )
+        for( Index i_za=0; i_za<EXT_MAT_DATA_NEW.npages(); i_za++ )
+          for( Index i_aa=0; i_aa<EXT_MAT_DATA_NEW.nrows(); i_aa++ )
+          {
+            for( Index i_st=0; i_st<EXT_MAT_DATA_NEW.ncols(); i_st++ )
+              extmat_tmp(i_f,0,i_za,i_aa,i_st) =
+                interp(itw,
+                       EXT_MAT_DATA_NEW(i_f,joker,i_za,i_aa,i_st),
+                       gp_T);
+            for( Index i_st=0; i_st<ABS_VEC_DATA_NEW.ncols(); i_st++ )
+              absvec_tmp(i_f,0,i_za,i_aa,i_st) =
+                interp(itw,
+                       ABS_VEC_DATA_NEW(i_f,joker,i_za,i_aa,i_st),
+                       gp_T);
+          }
+
+
+
+// b) calculate pha mat norm
+//    separately for p20 and p30 (p30 needs to loop over scat_za_inc)
+
+// c) check pha mat norm vs. sca xs from ext-abs
+// c1) at T_interpol
+// c2) if not reduce ext and abs, then at all T_grid points (?)
+//     and throw error/disallow reduction if sca xs varying too much(?) (and,
+//     how much is ok?)
+//     Alternatively, we could make sure here that norm at T_interpol is good.
+//     And later on ignore any deviations between norm and ext-abs sca xs and
+//     instead blindly renorm to expected norm (would that be ok? correct norm
+//     here, doesn't imply correct norm at whatever scat angle grids the user is
+//     applying. for that, we could in place also calc the original-data norm.
+//     but that might be expensive (as we can't do that from ext-abd sca xs,
+//     because we don't know to which T that refers. that would go away if we'd
+//     actually store pha_mat normed to 1 or 4Pi. but that's prob not going to
+//     happen. is it? Another option would be to introduce an additional T_grid,
+//     eg T_grid_phamat.). which we actually want to avoid :-/
+
+      PHA_MAT_DATA_NEW = phamat_tmp;
+      //We don't need to reset the scat element's grids!
+      //Except for T_grid in the case that we reduce ALL three ssd variables.
+      if( !phamat_only )
+      {
+        T_DATAGRID_NEW.resize(1);
+        T_DATAGRID_NEW = T;
+        EXT_MAT_DATA_NEW = extmat_tmp;
+        ABS_VEC_DATA_NEW = absvec_tmp;
       }
     }
   }
@@ -2537,7 +2699,7 @@ void pha_mat_sptFromScat_data( // Output:
          << "inconsistent with size of pnd_field.";
       throw runtime_error(os.str());
     }
-  // as pha_mat_spt is typically initiallized from pnd_field, this theoretically
+  // as pha_mat_spt is typically initialized from pnd_field, this theoretically
   // checks the same as the runtime_error above. Still, we keep it to be on the
   // save side.
   assert( pha_mat_spt.nshelves() == N_se_total );
