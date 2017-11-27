@@ -961,9 +961,9 @@ void iyHybrid(
   if( atmosphere_dim != 1 )
     throw runtime_error(
       "With cloudbox on, this method handles only 1D calculations." );
-  if( cloudbox_limits[0] != 0  ||  cloudbox_limits[1] != p_grid.nelem()-1 )
-    throw runtime_error(
-      "The cloudbox must be set to cover the complete atmosphere." );
+  //if( cloudbox_limits[0] != 0  ||  cloudbox_limits[1] != p_grid.nelem()-1 )
+  //  throw runtime_error(
+  //    "The cloudbox must be set to cover the complete atmosphere." );
   if( Naa < 3 )
     throw runtime_error( "Naa must be > 2." );
   // for now have that here. when all iy* WSM using scat_data are fixed to new
@@ -1082,6 +1082,7 @@ void iyHybrid(
     }
   else
     {
+      // ppvar_iy
       ppvar_iy.resize(nf,ns,np);
 
       // Basic atmospheric variables
