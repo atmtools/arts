@@ -2216,10 +2216,10 @@ void xml_read_from_stream(istream&              is_xml,
     xml_read_from_stream(is_xml, ta.emis, pbifs, verbosity);
     xml_read_from_stream(is_xml, ta.correl, pbifs, verbosity);
     xml_read_from_stream(is_xml, ta.emis_err, pbifs, verbosity);
-    xml_read_from_stream(is_xml, ta.class1, pbifs, verbosity);
-    xml_read_from_stream(is_xml, ta.class2, pbifs, verbosity);
-    xml_read_from_stream(is_xml, ta.cellnum, pbifs, verbosity);
-    telsem_calc_correspondence(ta);
+    xml_read_from_stream(is_xml, ta.classes1, pbifs, verbosity);
+    xml_read_from_stream(is_xml, ta.classes2, pbifs, verbosity);
+    xml_read_from_stream(is_xml, ta.cellnums, pbifs, verbosity);
+    ta.telsem_calc_correspondence();
     tag.read_from_stream(is_xml);
     tag.check_name("/TelsemAtlas");
 }
@@ -2255,9 +2255,9 @@ void xml_write_to_stream(ostream&                    os_xml,
     xml_write_to_stream(os_xml, ta.emis, pbofs, "emis", verbosity);
     xml_write_to_stream(os_xml, ta.correl, pbofs, "correl", verbosity);
     xml_write_to_stream(os_xml, ta.emis_err, pbofs, "emis_err", verbosity);
-    xml_write_to_stream(os_xml, ta.class1, pbofs, "class1", verbosity);
-    xml_write_to_stream(os_xml, ta.class2, pbofs, "class2", verbosity);
-    xml_write_to_stream(os_xml, ta.cellnum, pbofs, "cellnum", verbosity);
+    xml_write_to_stream(os_xml, ta.classes1, pbofs, "class1", verbosity);
+    xml_write_to_stream(os_xml, ta.classes2, pbofs, "class2", verbosity);
+    xml_write_to_stream(os_xml, ta.cellnums, pbofs, "cellnum", verbosity);
     close_tag.set_name("/TelsemAtlas");
     close_tag.write_to_stream(os_xml);
 

@@ -1,0 +1,22 @@
+Arts2 {
+telsem_atlasesReadAscii(directory = "Atlas")
+TelsemAtlasCreate(telsem_atlas)
+Extract(telsem_atlas, telsem_atlases, 3)
+
+MatrixCreate(emis)
+
+MatrixCreate(REFemis)
+MatrixSet(REFemis, [0.954008758, 0.954008758])
+
+VectorCreate(fs)
+VectorSet(fs, [300e9])
+
+telsemStandalone(emis, -30.0, 302.0, 15.0, fs, telsem_atlas)
+
+Compare(REFemis,  emis, 1e-6)
+
+VectorCreate(emis_vector)
+telsemAtlasLookup(emis_vector, -88.625, 10.375, telsem_atlas)
+Print(emis_vector, 0)
+
+}

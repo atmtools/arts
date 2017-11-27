@@ -5910,7 +5910,8 @@ void define_md_data_raw()
                    "Tensor3, Tensor4, Tensor4,"
                    "GriddedField3, ArrayOfGriddedField3,"
                    "GriddedField4, String,"
-                   "SingleScatteringData, ArrayOfSingleScatteringData" ),
+                   "SingleScatteringData, ArrayOfSingleScatteringData,"
+                   "TelsemAtlas"),
         GOUT_DESC( "Extracted element." ),
         IN(),
         GIN( "haystack", "index" ),
@@ -5920,7 +5921,8 @@ void define_md_data_raw()
                   "ArrayOfGriddedField3, ArrayOfArrayOfGriddedField3,"
                   "ArrayOfGriddedField4, ArrayOfString,"
                   "ArrayOfSingleScatteringData,"
-                  "ArrayOfArrayOfSingleScatteringData",
+                  "ArrayOfArrayOfSingleScatteringData,"
+                  "ArrayOfTelsemAtlas",
                   "Index" ),
         GIN_DEFAULT( NODEF, NODEF ),
         GIN_DESC( "Variable to extract from.",
@@ -16253,7 +16255,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
             "sensor_response_dlos",
-            "sensor_response_f_grid", "sensor_response_pol_grid", 
+            "sensor_response_f_grid", "sensor_response_pol_grid",
             "sensor_response_dlos_grid",
             "wmrf_weights", "f_backend" ),
         GIN(),
@@ -16261,7 +16263,7 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-  
+
 
   md_data_raw.push_back
     ( MdRecord
@@ -16306,7 +16308,7 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-    
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "SparseSparseMultiply" ),
@@ -16557,7 +16559,7 @@ void define_md_data_raw()
          "representative value.\n"
          "\n"
          "See *iySurfaceFastem*, for further details on the special input\n"
-         "arguments.\n"         
+         "arguments.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
@@ -17152,6 +17154,60 @@ void define_md_data_raw()
         GIN_DEFAULT( "1" ),
         GIN_DESC( "Output level to use." )
         ));
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "telsemStandalone" ),
+          DESCRIPTION
+          (
+              "Stand-alone evaluation of the Telsem model.\n"
+              "\n"
+              "This evaluates the Telsem land surface emissivity\n"
+              "model using the data from the provided atlas.\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT(),
+          GOUT("emissivities"),
+          GOUT_TYPE("Matrix"),
+          GOUT_DESC("The computed h and v emissivites"),
+          IN(),
+          GIN("lat", "lon", "theta", "f", "ta"),
+          GIN_TYPE("Numeric", "Numeric", "Numeric", "Vector", "TelsemAtlas"),
+          GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF),
+          GIN_DESC("The latitude for which to compute the emissivities.",
+                   "The latitude for which to compute the emissivities.",
+                   "The incidence angle.",
+                   "The frequencies for which to compute the emissivities.",
+                   "The Telsem atlas to use.")
+            ));
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "telsemAtlasLookup" ),
+          DESCRIPTION
+          (
+              "Lookup SSMI emissivities from Telsem Atlas.\n"
+              "\n"
+              "This returns the emissivities (indices [0,..,6])\n"
+              " for the SSMI channels that are contained in\n"
+              "the Telsem atlas.\n"
+              "\n"
+              "If given latitude and longitude are not in the atlas an empty\n"
+              "vector is returned.\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT(),
+          GOUT("emissivities"),
+          GOUT_TYPE("Vector"),
+          GOUT_DESC("The SSMI emissivities from the atlas"),
+          IN(),
+          GIN("lat", "lon", "ta"),
+          GIN_TYPE("Numeric", "Numeric", "TelsemAtlas"),
+          GIN_DEFAULT(NODEF, NODEF, NODEF),
+          GIN_DESC("The latitude for which to compute the emissivities.",
+                   "The latitude for which to compute the emissivities.",
+                   "The Telsem atlas to use.")
+            ));
 
   md_data_raw.push_back
     ( MdRecord

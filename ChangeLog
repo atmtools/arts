@@ -1,3 +1,31 @@
+2017-11-27 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-894
+
+	* src/telsem.[cc, h]: (TelsemAtlas)
+
+	Made TelsemAtlas a class and added methods to perform
+	coordinate lookup as well as angular and frequency interpolation.
+
+	* src/m_telsem.cc (telsemStandalone, telsemAtlasLoopkup):
+
+	Added WSMs to evaluate Telsem emissivity model and lookup SSMI
+	emissivities from the atlas.
+
+	* src/methods.cc:
+
+	Added entries for new WSMs.
+
+	Added ArrayOfTelsemAtlas to supergeneric classes of extract method.
+
+	* src/xml_io_compound_types.cc
+
+	Adapted io routines for telsem atlases.
+
+	* controlfile/artscomponents/telsem/TestTelsem.arts
+
+	Added a simple test for lookup and interpolation.
+
 2017-11-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-893

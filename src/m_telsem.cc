@@ -28,6 +28,44 @@
 #include "file.h"
 #include "telsem.h"
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void telsemStandalone(Matrix &emis,
+                      const Numeric &lat,
+                      const Numeric &lon,
+                      const Numeric &theta,
+                      const Vector &f,
+                      const TelsemAtlas &ta,
+                      const Verbosity &)
+{
+    Index cellnumber = ta.calc_cellnum(lat, lon);
+    Index class1 = ta.get_class1(cellnumber);
+    Index class2 = ta.get_class1(cellnumber);
+    Vector emis_v  = ta.get_emis_v(cellnumber);
+    Vector emis_h  = ta.get_emis_h(cellnumber);
+
+    emis.resize(f.nelem(), 2);
+    for (Index i = 0; i < f.nelem(); ++i) {
+        std::tie(emis(i, 0), emis(i, 1)) = ta.emis_interp(theta, f[i] * 1e-9,
+                                                          class1, class2,
+                                                          emis_v, emis_h);
+    }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void telsemAtlasLookup(Vector &emis,
+                      const Numeric &lat,
+                      const Numeric &lon,
+                      const TelsemAtlas &ta,
+                      const Verbosity &)
+{
+    Index cellnumber = ta.calc_cellnum(lat, lon);
+    std::cout << cellnumber << std::endl;
+    if (ta.contains(cellnumber)) {
+        emis = ta[cellnumber];
+    } else {
+        emis.resize(0);
+    }
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void telsem_atlasesReadAscii(ArrayOfTelsemAtlas& telsem_atlases,
@@ -59,8 +97,8 @@ void telsem_atlasesReadAscii(ArrayOfTelsemAtlas& telsem_atlases,
 
         out2 << "Reading TELSEM atlas: " << this_filename << '\n';
         open_input_file(is, this_filename);
-        telsem_read_ascii(is, telsem_atlases[i - 1]);
-        telsem_atlases[i - 1].month = i;
+        telsem_atlases[i - 1].read(is);
+        telsem_atlases[i - 1].set_month(i);
     }
 
     std::ifstream is;
@@ -86,7 +124,7 @@ void telsem_atlasesReadAscii(ArrayOfTelsemAtlas& telsem_atlases,
 
     for (Index i = 0; i < 12; i++)
     {
-        telsem_atlases[i].correl = correlation;
+        telsem_atlases[i].set_correl(correlation);
     }
 }
 
