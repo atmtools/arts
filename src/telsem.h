@@ -26,6 +26,7 @@
 #ifndef telsem_h
 #define telsem_h
 
+#include <array>
 #include "array.h"
 #include "matpackIII.h"
 #include "mystring.h"
@@ -87,7 +88,7 @@ public:
     {
         Index ind = correspondence[cellnumber];
         if (ind < 0) {
-            std::runtime_error("The cell is not contained in the atlas.");
+            throw std::runtime_error("The cell is not contained in the atlas.");
         }
         return classes2[ind];
     }
@@ -106,7 +107,7 @@ public:
     {
         Index ind = correspondence[cellnumber];
         if (ind < 0) {
-            std::runtime_error("The cell is not contained in the atlas.");
+            throw std::runtime_error("The cell is not contained in the atlas.");
         }
         return classes1[ind];
     }
@@ -124,7 +125,7 @@ public:
         Index ind = correspondence[i];
         Vector e_v(3);
         if (ind < 0) {
-            std::runtime_error("The cell is not contained in the atlas.");
+            throw std::runtime_error("The cell is not contained in the atlas.");
         } else {
             e_v[0] = emis(ind, 0);
             e_v[1] = emis(ind, 3);
@@ -146,7 +147,7 @@ public:
         Index ind = correspondence[cellnum];
         Vector e_h(3);
         if (ind < 0) {
-            std::runtime_error("The cell is not contained in the atlas.");
+            throw std::runtime_error("The cell is not contained in the atlas.");
         } else {
             e_h[0] = emis(ind, 1);
             e_h[1] = emis(ind, 4);
@@ -169,7 +170,7 @@ public:
     ConstVectorView operator[](Index cellnumber) const {
         Index ind = correspondence[cellnumber];
         if (ind < 0) {
-            std::runtime_error("The cell is not contained in the atlas.");
+            throw std::runtime_error("The cell is not contained in the atlas.");
         } else {
             return emis(ind, joker);
         }
