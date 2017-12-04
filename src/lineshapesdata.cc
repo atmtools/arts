@@ -531,11 +531,11 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
           if(eta_zero_limit)
             dG = - FVC * dA;
           else if(C2t_zero_limit)
-            dG = - (FVC - eta * C0_m1p5_C2) * dA + C2 * fac * (((1.0 - Zm2)*dwiZm + dZm * sqrtInvPI - 2*Zm*dZm*wiZm) - ((1.0 - Zm2)*wiZm + Zm * sqrtInvPI) * invGD);
+            dG = - (FVC - eta * C0_m1p5_C2) * dA + C2 * fac * (((1.0 - Zm2)*dwiZm + dZm * sqrtInvPI - 2.0*Zm*dZm*wiZm) - ((1.0 - Zm2)*wiZm + Zm * sqrtInvPI) * invGD);
           else if (ratioXY_high_limit)
             dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (2.0 * sqrtPI * (-i*invC2t * (sqrtInvPI - Zm * wiZm) + (1.0-X-2.0*Y) * (- dZm * wiZm - Zm * dwiZm)) +             2.0*sqrtPI*(dZp*wiZp + Zp*dwiZp));
           else
-            dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*dwiZm - (1.0-Zp2)*dwiZp - 2 * Zm * dZm * dwiZm + 2 * Zp * dZp * wiZp));
+            dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*dwiZm - (1.0-Zp2)*dwiZp - 2.0 * Zm * dZm * dwiZm + 2.0 * Zp * dZp * wiZp));
           
           dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dG); 
         }
@@ -592,7 +592,7 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
             if(eta_zero_limit)
               dG = - FVC * dA;
             else if(C2t_zero_limit)
-              dG = - (FVC - eta * C0_m1p5_C2) * dA + eta * A + C2 * fac * ((1.0 - Zm2)*dwiZm + dZm * sqrtInvPI - 2*Zm*dZm*wiZm);
+              dG = - (FVC - eta * C0_m1p5_C2) * dA + eta * A + C2 * fac * ((1.0 - Zm2)*dwiZm + dZm * sqrtInvPI - 2.0*Zm*dZm*wiZm);
             else if (ratioXY_high_limit)
               dG = - (FVC - eta*C0_m1p5_C2) * dA + eta * A + eta / one_minus_eta * (2.0 * sqrtPI * (1.0-X-2.0*Y) * (- dZm * wiZm - Zm * dwiZm) + 2.0 * sqrtPI * (-one_minus_eta * invC2t) * (sqrtInvPI - Zm * wiZm) + 2.0*sqrtPI*(dZp*wiZp+Zp*dwiZp));
             else
@@ -643,11 +643,11 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
         if(eta_zero_limit)
           dG = - FVC * dA;
         else if(C2t_zero_limit)
-          dG = - (FVC - eta * C0_m1p5_C2) * dA + C2 * fac * ((1.0 - Zm2)*dwiZm + dZm * sqrtInvPI - 2*Zm*dZm*wiZm);
+          dG = - (FVC - eta * C0_m1p5_C2) * dA + C2 * fac * ((1.0 - Zm2)*dwiZm + dZm * sqrtInvPI - 2.0*Zm*dZm*wiZm);
         else if (ratioXY_high_limit)
           dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (2.0 * sqrtPI * (-i*invC2t * (sqrtInvPI - Zm * wiZm) + (1.0-X-2.0*Y) * (- dZm * wiZm - Zm * dwiZm)) + 2.0*sqrtPI*(dZp*wiZp + Zp*dwiZp));
         else
-          dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*dwiZm - (1.0-Zp2)*dwiZp - 2 * Zm * dZm * dwiZm + 2 * Zp * dZp * wiZp));
+          dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*dwiZm - (1.0-Zp2)*dwiZp - 2.0 * Zm * dZm * dwiZm + 2.0 * Zp * dZp * wiZp));
         
         dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dG); 
       }

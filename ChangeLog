@@ -1,3 +1,12 @@
+2017-12-04  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-896
+
+	* src/lineshapesdata.cc (Linefunctions::set_htp):
+
+	Replace several 2s with 2.0s to help the Intel compiler to make up its
+	mind which operator* to use (float or double) instead of failing.
+
 2017-12-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-895
