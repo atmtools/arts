@@ -3479,21 +3479,28 @@ void match_lines_by_quantum_identifier(ArrayOfIndex& matches,
 
 void LineRecord::SetMirroringTypeFromIndex(const Index in)
 {
-  if(not (in < (Index) MirroringType::End))
+  if(not (in < (Index) MirroringType::End) and in > -1)
     throw std::runtime_error("Mirroring type to index conversion failure.  Did you add new mirroring type?");
   mmirroring = (MirroringType) in;
 }
 
 void LineRecord::SetLineNormalizationTypeFromIndex(const Index in)
 {
-  if(not (in < (Index) LineNormalizationType::End))
+  if(not (in < (Index) LineNormalizationType::End) and in > -1)
     throw std::runtime_error("Normalization type to index conversion failure.  Did you add new line normalization type?");
   mlinenorm = (LineNormalizationType) in;
 }
 
 void LineRecord::SetLineShapeTypeFromIndex(const Index in)
 {
-  if(not (in < (Index) LineShapeType::End))
+  if(not (in < (Index) LineShapeType::End) and in > -1)
     throw std::runtime_error("Shape type to index conversion failure.  Did you add new line shape type?");
   mlineshape = (LineShapeType) in;
+}
+
+void LineRecord::SetLinePopulationTypeFromIndex(const Index in)
+{
+  if(not (in < (Index) LinePopulationType::End) and in > -1)
+    throw std::runtime_error("Population type to index conversion failure.  Did you add new line population type?");
+  mpopulation = (LinePopulationType) in;
 }

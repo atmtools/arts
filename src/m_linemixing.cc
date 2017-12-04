@@ -20,7 +20,7 @@
 #include "lin_alg.h"
 #include "global_data.h"
 #include "linescaling.h"
-#include "lineshapesdata.h"
+#include "linefunctions.h"
 #include <Eigen/Eigenvalues>
 
 
@@ -1638,7 +1638,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
         }
         
         // Pressure broadening at relmat temperatures
-        if(not this_line.PressureBroadening().isAirBroadening())
+        if(this_line.PressureBroadening().Type() != PressureBroadeningData::PB_AIR_BROADENING)
         {
           std::ostringstream os;
           os << "Line is not air broadening type but only air broadening types are suported.\n";

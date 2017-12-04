@@ -202,6 +202,7 @@ enum class MirroringType : Index
   // Describes the type of mirroring line effects.
   // Add new entries before End to keep safe with existing catalogs.
   // LineRecord effect:  Adds MTM (Index)MirroringType under line modifications when saving ARTSCAT5
+  // 0 is ignored on printing
   None=0,
   Lorentz=1,
   SameAsLineShape=2,
@@ -213,6 +214,7 @@ enum class LineNormalizationType : Index
   // Describes the type of normalization line effects.
   // Add new entries before End to keep safe with existing catalogs.
   // LineRecord effect:  Adds LNT (Index)LineNormalizationType under line modifications when saving ARTSCAT5
+  // 0 is ignored on printing
   None=0,
   VVH=1,
   VVW=2,
@@ -224,11 +226,23 @@ enum class LineShapeType : Index
 {
   // Describes the type of line shape.
   // LineRecord effect:  Adds LST (Index)LineShapeType under line modifications when saving ARTSCAT5
+  // 0 is ignored on printing
   ByPressureBroadeningData=0,
   Doppler=1,
   Lorentz=2,
   Voigt=3,
   HTP=4,
+  End
+};
+
+enum class LinePopulationType : Index
+{
+  // Describes the type of population level counter.
+  // LineRecord effect:  Adds POP (Index)LinePopulationType under line modifications when saving ARTSCAT5
+  // 0 is ignored on printing
+  ByLTE=0,
+  ByVibrationalTemperatures=1,
+  ByPopulationDistribution=2,
   End
 };
 
@@ -248,9 +262,9 @@ public:
       mti0     (0.     ),
       melow    (0.     ),
       mevlow(-1.0),
-      mevlow_index(-1),
+      mnlte_lower_index(-1),
       mevupp(-1.0),
-      mevupp_index(-1),
+      mnlte_upper_index(-1),
       //magam    (0.     ),
       //msgam    (0.     ),
       //mnair    (0.     ),
@@ -277,7 +291,8 @@ public:
       mcutoff(-1.0),
       mmirroring(MirroringType::None),
       mlinenorm(LineNormalizationType::None),
-      mlineshape(LineShapeType::ByPressureBroadeningData)
+      mlineshape(LineShapeType::ByPressureBroadeningData),
+      mpopulation(LinePopulationType::ByLTE)
  { /* Nothing to do here. */ }
 
   /** Constructor that sets all data elements explicitly. If
@@ -313,9 +328,9 @@ public:
       mti0     (ti0        ),
       melow    (elow       ),
       mevlow(-1.0),
-      mevlow_index(-1),
+      mnlte_lower_index(-1),
       mevupp(-1.0),
-      mevupp_index(-1),
+      mnlte_upper_index(-1),
       //magam    (agam       ),
       //msgam    (sgam       ),
       //mnair    (nair       ),
@@ -341,7 +356,8 @@ public:
       mcutoff(-1.0),
       mmirroring(MirroringType::None),
       mlinenorm(LineNormalizationType::None),
-      mlineshape(LineShapeType::ByPressureBroadeningData)
+      mlineshape(LineShapeType::ByPressureBroadeningData),
+      mpopulation(LinePopulationType::ByLTE)
   {
     mpressurebroadeningdata.SetAirBroadeningFromCatalog( sgam,nself,agam,nair,psf,NAN,NAN,NAN,NAN,NAN);
     // Thanks to Matpack, initialization of misotopologue with isotopologue
@@ -437,13 +453,13 @@ public:
   /** Lower state vibrational energy in <b> cm^-1</b>: */ //FIXME: really in cm-1 still?
   Numeric Evlow() const  { return mevlow; }
   void SetEvlow(Numeric evlow) {mevlow = evlow;}
-  Index EvlowIndex() const  { return mevlow_index; }
-  void SetEvlowIndex(Index evlow_index) {mevlow_index = evlow_index;}
+  Index NLTELowerIndex() const  { return mnlte_lower_index; }
+  void SetNLTELowerIndex(Index nlte_lower_index) {mnlte_lower_index = nlte_lower_index;}
   /** Upper state vibrational energy in <b> cm^-1</b>: */ //FIXME: really in cm-1 still?
   Numeric Evupp() const  { return mevupp; }
   void SetEvupp(Numeric evupp) {mevupp = evupp;}
-  Index EvuppIndex() const  { return mevupp_index; }
-  void SetEvuppIndex(Index evupp_index) {mevupp_index = evupp_index;}
+  Index NLTEUpperIndex() const  { return mnlte_upper_index; }
+  void SetNLTEUpperIndex(Index nlte_upper_index) {mnlte_upper_index = nlte_upper_index;}
   
   /** Air broadened width in <b> Hz/Pa</b>: */
   Numeric Agam() const  { return mpressurebroadeningdata.AirBroadeningAgam(); }
@@ -531,66 +547,6 @@ public:
     /** ARTSCAT-4 pressure shift parameters in <b> Hz/Pa </b>: */
     const Vector Delta_foreign() const { return mpressurebroadeningdata.PlanetaryDeltaForeign(); }
 
-//  /** Broadening parameter self in <b> Hz/Pa </b>: */
-//  Numeric Gamma_self() const { return mgamma_self; }
-//  
-//  /** Broadening parameter N2 in <b> Hz/Pa </b>: */
-//  Numeric Gamma_N2() const { return mgamma_n2; }
-//  
-//  /** Broadening parameter O2 in <b> Hz/Pa </b>: */
-//  Numeric Gamma_O2() const { return mgamma_o2; }
-//  
-//  /** Broadening parameter H2O in <b> Hz/Pa </b>: */
-//  Numeric Gamma_H2O() const { return mgamma_h2o; }
-//  
-//  /** Broadening parameter CO2 in <b> Hz/Pa </b>: */
-//  Numeric Gamma_CO2() const { return mgamma_co2; }
-//  
-//  /** Broadening parameter H2 in <b> Hz/Pa </b>: */
-//  Numeric Gamma_H2() const { return mgamma_h2; }
-//  
-//  /** Broadening parameter He in <b> Hz/Pa </b>: */
-//  Numeric Gamma_He() const { return mgamma_he; }
-//  
-//  /** GAM temp. exponent N self: */
-//  Numeric Gam_N_self() const { return mn_self; }
-//  
-//  /** GAM temp. exponent N N2: */
-//  Numeric Gam_N_N2() const { return mn_n2; }
-//  
-//  /** GAM temp. exponent N O2: */
-//  Numeric Gam_N_O2() const { return mn_o2; }
-//  
-//  /** GAM temp. exponent N H2O: */
-//  Numeric Gam_N_H2O() const { return mn_h2o; }
-//  
-//  /** GAM temp. exponent N CO2: */
-//  Numeric Gam_N_CO2() const { return mn_co2; }
-//  
-//  /** GAM temp. exponent N H2: */
-//  Numeric Gam_N_H2() const { return mn_h2; }
-//  
-//  /** GAM temp. exponent N He: */
-//  Numeric Gam_N_He() const { return mn_he; }
-//  
-//  /** F Pressure shift N2 in <b> Hz/Pa </b>: */
-//  Numeric Delta_N2() const { return mdelta_n2; }
-//  
-//  /** F Pressure shift O2 in <b> Hz/Pa </b>: */
-//  Numeric Delta_O2() const { return mdelta_o2; }
-//  
-//  /** F Pressure shift H2O in <b> Hz/Pa </b>: */
-//  Numeric Delta_H2O() const { return mdelta_h2o; }
-//  
-//  /** F Pressure shift CO2 in <b> Hz/Pa </b>: */
-//  Numeric Delta_CO2() const { return mdelta_co2; }
-//  
-//  /** F Pressure shift H2 in <b> Hz/Pa </b>: */
-//  Numeric Delta_H2() const { return mdelta_h2; }
-//  
-//  /** F Pressure shift He in <b> Hz/Pa </b>: */
-//  Numeric Delta_He() const { return mdelta_he; }
-
   /** Upper state global quanta */
   const String& Upper_GQuanta() const { return mupper_gquanta; }
 
@@ -659,6 +615,12 @@ public:
   void SetLineShapeType(const LineShapeType in) {mlineshape = in;}
   void SetLineShapeTypeFromIndex(const Index in);
   Index GetLineShapeTypeIndex() const {return (Index) mlineshape;}
+  
+  /** Line population type*/
+  const LinePopulationType& GetLinePopulationType() const {return mpopulation;}
+  void SetLinePopulationType(const LinePopulationType in) {mpopulation = in;}
+  void SetLinePopulationTypeFromIndex(const Index in);
+  Index GetLinePopulationTypeIndex() const {return (Index) mpopulation;}
         
 
   /** Indices of different broadening species in Gamma_foreign, 
@@ -1092,142 +1054,76 @@ public:
 private:
   // Version number:
   Index mversion;
+  
   // Molecular species index: 
   Index mspecies;
+  
   // Isotopologue species index:
   Index misotopologue;
+  
   // The line center frequency in Hz:
   Numeric mf;
-  // The pressure shift parameter in Hz/Pa:
-  //Numeric mpsf;
+  
   // The line intensity in m^2/Hz:
   Numeric mi0;
+  
   // Reference temperature for I0 in K:
   Numeric mti0;
-  // Lower state energy in cm^-1:
+  
+  // Lower state energy in Joules:
   Numeric melow;
   
-  // Lower state vibrational energy in cm^-1:
+  // Lower state vibrational energy in Joules:
   Numeric mevlow;
-  // Lower state vibrational energy index:
-  Index mevlow_index;
-  // Upper state vibrational energy in cm^-1:
-  Numeric mevupp;
-  // Upper state vibrational energy index:
-  Index mevupp_index;
   
-  // Air broadened width in Hz/Pa:
-  //Numeric magam;
-  // Self broadened width in Hz/Pa:
-  //Numeric msgam;
-  // AGAM temperature exponent (dimensionless):
-  //Numeric mnair;
-  // SGAM temperature exponent (dimensionless):
-  //Numeric mnself;
-  // Reference temperature for AGAM and SGAM in K:
-  //Numeric mtgam;
+  // Lower state vibrational energy index:
+  Index mnlte_lower_index; 
+  
+  // Upper state vibrational energy in Joules:
+  Numeric mevupp;
+  
+  // Upper state vibrational energy index:
+  Index mnlte_upper_index; 
+  
   // Array to hold auxiliary parameters:
-  ArrayOfNumeric maux;
-  //
-  // Fields for the spectroscopic parameters accuracies
-  //
+  ArrayOfNumeric maux; 
+  
   // Accuracy for line center frequency in Hz:
   Numeric mdf;
+  
   // Accuracy for line intensity in %:
   Numeric mdi0;
-  // Accuracy for air broadened width in %:
-  //Numeric mdagam;
-  // Accuracy for self broadened width in %:
-  //Numeric mdsgam;
-  // Accuracy for AGAM temperature exponent in %:
-  //Numeric mdnair;
-  //  Accuracy for SGAM temperature exponent in %:
-  //Numeric mdnself;
-  //  Accuracy for pressure shift in %:
-  //Numeric mdpsf;
-  
-  //// New fields in ARTSCAT-4
   
   // Einstein A-coefficient in 1/s:
   Numeric ma;
+  
   // Upper state stat. weight:
   Numeric mgupper;
+  
   // Lower state stat. weight:
   Numeric mglower;
-  
-  // Broadening parameter self in Hz/Pa:
-  //  Numeric mgamma_self;
-  // Already in artscat-3 as msgam
-    
-  // Array of foreign broadening parameters in Hz/Pa. Parameters for
-  // individual species can be found using the enum defined in this class.
-  //Vector mgamma_foreign;
-  
-//  // Broadening parameter N2 in Hz/Pa:
-//  Numeric mgamma_n2;
-//  // Broadening parameter O2 in Hz/Pa:
-//  Numeric mgamma_o2;
-//  // Broadening parameter H2O in Hz/Pa:
-//  Numeric mgamma_h2o;
-//  // Broadening parameter CO2 in Hz/Pa:
-//  Numeric mgamma_co2;
-//  // Broadening parameter H2 in Hz/Pa:
-//  Numeric mgamma_h2;
-//  // Broadening parameter He in Hz/Pa:
-//  Numeric mgamma_he;
-
-  // GAM temp. exponent self:
-  //  Numeric mn_self;
-  // Already in artscat-3 as msgam mnself
-
-  // Array of foreign temp. exponents (dimensionless). Parameters for
-  // individual species can be found using the enum defined in this class.
-  //Vector mn_foreign;
-
-//  // GAM temp. exponent N2:
-//  Numeric mn_n2;
-//  // GAM temp. exponent O2:
-//  Numeric mn_o2;
-//  // GAM temp. exponent H2O:
-//  Numeric mn_h2o;
-//  // GAM temp. exponent CO2:
-//  Numeric mn_co2;
-//  // GAM temp. exponent H2:
-//  Numeric mn_h2;
-//  // GAM temp. exponent He:
-//  Numeric mn_he;
-  
-  // Array of pressure shift parameters in Hz/Pa. Parameters for
-  // individual species can be found using the enum defined in this class.
-  //Vector mdelta_foreign;
-
-//  // F Pressure shift N2 in Hz/Pa:
-//  Numeric mdelta_n2;
-//  // F Pressure shift O2 in Hz/Pa:
-//  Numeric mdelta_o2;
-//  // F Pressure shift H2O in Hz/Pa:
-//  Numeric mdelta_h2o;
-//  // F Pressure shift CO2 in Hz/Pa:
-//  Numeric mdelta_co2;
-//  // F Pressure shift H2 in Hz/Pa:
-//  Numeric mdelta_h2;
-//  // F Pressure shift He in Hz/Pa:
-//  Numeric mdelta_he;
 
   /** Upper state global quanta */
   String mupper_gquanta;
+  
   /** Lower state global quanta */
   String mlower_gquanta;
+  
   /** Upper state local quanta */
   String mupper_lquanta;
+  
   /** Lower state local quanta */
   String mlower_lquanta;
+  
   /** Upper state local N quanta */
   Rational mupper_n;
+  
   /** Upper state local J quanta */
   Rational mupper_j;
+  
   /** Lower state local N quanta */
   Rational mlower_n;
+  
   /** Lower state local J quanta */
   Rational mlower_j;
 
@@ -1257,6 +1153,9 @@ private:
   
   /** Line shape type */
   LineShapeType mlineshape;
+  
+  /** Line shape type */
+  LinePopulationType mpopulation;
 };
 
 /** Output operator for LineRecord. The result should look like a

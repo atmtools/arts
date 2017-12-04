@@ -8343,32 +8343,6 @@ void define_md_data_raw()
       USES_TEMPLATES( false ),
       PASSWORKSPACE(  true  )
     ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "jacobianAddBeamFlux" ),
-      DESCRIPTION
-      (
-          "Includes beam flux in the Jacobian.\n"
-          "\n"
-          "The method follows the pattern of other Jacobian methods. The\n"
-          "calculations can only be performed by analytic expressions.\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT( "jacobian_quantities", "jacobian_agenda" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "jacobian_quantities", "jacobian_agenda", 
-          "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-      GIN( "g1", "g2", "g3" ),
-      GIN_TYPE( "Vector", "Vector", "Vector" ),
-      GIN_DEFAULT( NODEF, NODEF, NODEF ),
-      GIN_DESC( "Pressure retrieval grid.",
-                "Latitude retrieval grid.",
-                "Longitude retreival grid."
-      )
-    ));
 
     md_data_raw.push_back
     ( MdRecord
@@ -10686,6 +10660,10 @@ void define_md_data_raw()
          "\"v1\" is not part of the level of energy state of interest, so lines\n"
          "of different \"v1\" will be matched as the same state.  If a line is matched\n"
          "to more than one energy state, errors should be thrown, but be careful.\n"
+         "\n"
+         "Set type of population to change computations and expected input as:\n"
+         "   1:  Compute population by ratio found from vibrational temperatures\n"
+         "   2:  Input population levels manually\n"
          ),
         AUTHORS( "Richard Larsson" ),
         OUT( "nlte_do", "abs_lines_per_species" ),
@@ -10694,10 +10672,11 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "abs_lines_per_species", "nlte_quantum_identifiers", "abs_species", "t_nlte_field", "p_grid",
             "lat_grid", "lon_grid", "atmosphere_dim"),
-        GIN("vibrational_energies"),
-        GIN_TYPE("Vector"),
-        GIN_DEFAULT(NODEF),
-        GIN_DESC("Vector of vibrational energies.  If empty, assume known vibrational energies.")
+        GIN("vibrational_energies", "population_type"),
+        GIN_TYPE("Vector", "Index"),
+        GIN_DEFAULT(NODEF, "1"),
+        GIN_DESC("Vector of vibrational energies.  If empty, assume known vibrational energies.",
+                 "Index for setting the type of population.")
         ));
 
   md_data_raw.push_back
@@ -13495,7 +13474,28 @@ void define_md_data_raw()
         GIN_TYPE(    "String" ),
         GIN_DEFAULT( "Sphere" ),
         GIN_DESC( "Model ellipsoid to use. Options listed above." )
-        ));
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "refellipsoidGanymede" ),
+      DESCRIPTION
+      (
+        "Ganymede reference ellipsoids.\n"
+        "\n"
+        "From Wikipedia\n"
+      ),
+      AUTHORS( "Takayoshi Yamada" ),
+      OUT( "refellipsoid" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(  ),
+      GIN( "model" ),
+      GIN_TYPE(    "String" ),
+      GIN_DEFAULT( "Sphere" ),
+      GIN_DESC( "Model ellipsoid to use. Options listed above." )
+    ));
 
   md_data_raw.push_back
     ( MdRecord

@@ -1348,6 +1348,265 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
   }
 }
 
+/*
+void compute_transmission_matrix_distance_derivatives(Tensor3View dT_dr,
+                                                      const Numeric& r,
+                                                      const PropagationMatrix& upper_level,
+                                                      const PropagationMatrix& lower_level)
+{
+  const Index mstokes_dim = upper_level.StokesDimensions();
+  const Index mfreqs = upper_level.NumberOfFrequencies();
+  assert(r > 0.);
+  assert(dT_dx_upper_level.npages() == mfreqs);
+  assert(dT_dx_upper_level.nrows() == mstokes_dim);
+  assert(dT_dx_upper_level.ncols() == mstokes_dim);
+  assert(dT_dx_lower_level.npages() == mfreqs);
+  assert(dT_dx_lower_level.nrows() == mstokes_dim);
+  assert(dT_dx_lower_level.ncols() == mstokes_dim);
+  assert(lower_level.StokesDimensions() == mstokes_dim);
+  assert(lower_level.NumberOfFrequencies() == mfreqs);
+  
+  if(mstokes_dim == 1)
+  {
+    #pragma omp parallel for \
+    if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
+    for(Index i = 0; i < mfreqs; i++)
+    {
+      dT_dr(i, 0, 0) = exp(-0.5 * r * (upper_level.Kjj()[i] + lower_level.Kjj()[i])) *(-0.5 * (upper_level.Kjj()[i] + lower_level.Kjj()[i]));
+    }
+  }
+  else if(mstokes_dim == 2)
+  {
+    #pragma omp parallel for \
+    if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
+    for(Index i = 0; i < mfreqs; i++)
+    {
+      MatrixView dF = dT_dr(i, joker, joker);
+      
+      const Numeric da = -0.5 * (upper_level.Kjj()[i] + lower_level.Kjj()[i]),
+                    db = -0.5 * (upper_level.K12()[i] + lower_level.K12()[i]),
+                     a = da * r,
+                     b = db * r;
+                    
+      const Numeric exp_a = exp(a);
+      
+      if(b == 0.)
+      {
+        dF(0, 1) = dF(1, 0) = 0.;
+        dF(0, 0) = dF(1, 1) = exp_a * da;
+        continue;
+      }
+      
+      const Numeric C0 = (b*cosh(b) - a*sinh(b))/b;
+      const Numeric C1 = sinh(b)/b;
+      const Numeric dC0 = (db*cosh(b) - da*sinh(b))/b + (b*sinh(b) - a*cosh(b))/b - C0/b;
+      const Numeric dC1 = cosh(b)/b - C1/b;
+      
+      dF(0, 0) = dF(1, 1) = dC0 + C1 * da + dC1 * a + (C0 + C1 * a) * da;
+      dF(0, 1) = dF(1, 0) = C1 * db + dC1 * b + (C1 * b) * da;
+      dF *= exp_a;
+    }
+  }
+  else if(mstokes_dim == 3)
+  {
+    #pragma omp parallel for \
+    if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
+    for(Index i = 0; i < mfreqs; i++)
+    {
+      MatrixView dF = dT_dr(i, joker, joker);
+      
+      const Numeric da = -0.5 * (upper_level.Kjj()[i] + lower_level.Kjj()[i]), 
+                     a = da * r, 
+                    db = -0.5 * (upper_level.K12()[i] + lower_level.K12()[i]), 
+                     b = db * r,
+                    dc = -0.5 * (upper_level.K13()[i] + lower_level.K13()[i]), 
+                     c = dc * r,
+                    du = -0.5 * (upper_level.K23()[i] + lower_level.K23()[i]),
+                     u = du * r;
+                    
+      const Numeric exp_a = exp(a);
+      
+      if(b == 0. and c == 0. and u == 0.)
+      {
+        dF = 0.;
+        dF(0, 0) = dF(1, 1) = dF(2, 2) = exp_a * da;
+        continue;
+      }
+      
+      const Numeric a2 = a * a, b2 = b * b, c2 = c * c, u2 = u * u;
+      const Numeric da2 = 2 * a * da, db2 = 2 * b * db, dc2 = 2 * c * dc, du2 = 2 * u * du;
+      
+      const Numeric x = sqrt(b2 + c2 - u2), x2 = x * x, inv_x2 = 1.0/x2;
+      const Numeric dx = sqrt(db*db + dc*dc - du*du), dx2 = 2 * x * dx;
+      const Numeric sinh_x = sinh(x), cosh_x = cosh(x);
+      const Numeric dsinh_x = cosh_x * dx, dcosh_x = sinh_x * dx;
+      
+      const Numeric C0 = (a2 * (cosh_x - 1) - a * x * sinh_x + x2) * inv_x2;
+      const Numeric dC0 = (da2 * (cosh_x - 1) + 
+                            a2 * dcosh_x     - 
+                           da *  x *  sinh_x - 
+                            a * dx *  sinh_x -
+                            a *  x * dsinh_x + dx2) * inv_x2 - 2*C0/x;
+      const Numeric C1 = (2 * a * (1 - cosh_x) + x * sinh_x) * inv_x2;
+      const Numeric dC1 = (2 * da * (1 -  cosh_x)  + 
+                           2 *  a * (  - dcosh_x) + 
+                           dx *  sinh_x + 
+                            x * dsinh_x) * inv_x2 - 2*C1/x;
+      const Numeric C2 = (cosh_x - 1) * inv_x2;
+      const Numeric dC2 = dcosh_x * inv_x2 - 2*C2/x;
+      
+      dF(0, 0) = dF(1, 1) = dF(2, 2) = C0 + C1 * a + (dC0 + dC1 * a + C1 * da) * da;
+      dF(0, 0) += C2 * (a2 + b2 + c2) + (dC2 * (a2 + b2 + c2) + C2 * (da2 + db2 + dc2)) * da;
+      dF(1, 1) += C2 * (a2 + b2 - u2) + (dC2 * (a2 + b2 - u2) + C2 * (da2 + db2 - du2)) * da;
+      dF(2, 2) += C2 * (a2 + c2 - u2) + (dC2 * (a2 + c2 - u2) + C2 * (da2 + dc2 - du2)) * da;
+      
+      dF(0, 1) = dF(1, 0) = C1 * b + (dC1 * b + C1 * db) * da;
+      dF(0, 1) += C2 * (2*a*b - c*u) + (dC2 * (2*a*b - c*u) + C2 * (2*da*b - dc*u) + C2 * (2*a*db - c*du)) * da;
+      F(1, 0) += C2 * (2*a*b + c*u);
+      
+      F(0, 2) = F(2, 0) = C1 * c;
+      F(0, 2) += C2 * (2*a*c + b*u);
+      F(2, 0) += C2 * (2*a*c - b*u);
+      
+      F(1, 2) =  C1 * u + C2 * (2*a*u + b*c);
+      F(2, 1) = -C1 * u - C2 * (2*a*u - b*c);
+      
+      dF *= exp_a;
+    }
+  }
+  else if(mstokes_dim == 4)
+  {
+    static const Numeric sqrt_05 = sqrt(0.5);
+    #pragma omp parallel for \
+    if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
+    for(Index i = 0; i < mfreqs; i++)
+    {
+      MatrixView F = T(i, joker, joker);
+      
+      const Numeric a = -0.5 * r * (upper_level.Kjj()[i] + lower_level.Kjj()[i]), 
+                    b = -0.5 * r * (upper_level.K12()[i] + lower_level.K12()[i]), 
+                    c = -0.5 * r * (upper_level.K13()[i] + lower_level.K13()[i]), 
+                    d = -0.5 * r * (upper_level.K14()[i] + lower_level.K14()[i]), 
+                    u = -0.5 * r * (upper_level.K23()[i] + lower_level.K23()[i]), 
+                    v = -0.5 * r * (upper_level.K24()[i] + lower_level.K24()[i]), 
+                    w = -0.5 * r * (upper_level.K34()[i] + lower_level.K34()[i]);
+                    
+      const Numeric exp_a = exp(a);
+      
+      if(b == 0. and c == 0. and d == 0. and u == 0. and v == 0. and w == 0.)
+      {
+        F = 0.;
+        F(0, 0) = F(1, 1) = F(2, 2) = F(3, 3) = exp_a;
+        continue;
+      }
+      
+      const Numeric b2 = b * b, c2 = c * c,
+                    d2 = d * d, u2 = u * u,
+                    v2 = v * v, w2 = w * w;
+      
+      const Numeric Const2 = b2 + c2 + d2 - u2 - v2 - w2;
+      
+      Numeric Const1;
+      Const1  = b2 * (b2 * 0.5 + c2 + d2 - u2 - v2 + w2);
+      Const1 += c2 * (c2 * 0.5 + d2 - u2 + v2 - w2);
+      Const1 += d2 * (d2 * 0.5 + u2 - v2 - w2);
+      Const1 += u2 * (u2 * 0.5 + v2 + w2);
+      Const1 += v2 * (v2 * 0.5 + w2);
+      Const1 *= 2;
+      Const1 += 8 * (b * d * u * w - b * c * v * w - c * d * u * v);
+      Const1 += w2 * w2;
+      
+      if(Const1 > 0.0)
+        Const1 = sqrt(Const1);
+      else
+        Const1 = 0.0;
+      
+      const Complex sqrt_BpA = sqrt(Complex(Const2 + Const1, 0.0));
+      const Complex sqrt_BmA = sqrt(Complex(Const2 - Const1, 0.0));
+      const Numeric x = sqrt_BpA.real() * sqrt_05;
+      const Numeric y = sqrt_BmA.imag() * sqrt_05;
+      const Numeric x2 = x * x;
+      const Numeric y2 = y * y;
+      const Numeric cos_y = cos(y);
+      const Numeric sin_y = sin(y);
+      const Numeric cosh_x = cosh(x);
+      const Numeric sinh_x = sinh(x);
+      const Numeric x2y2 = x2 + y2;
+      const Numeric inv_x2y2 = 1.0 / x2y2;
+      
+      Numeric C0, C1, C2, C3;
+      Numeric inv_y = 0.0, inv_x = 0.0;  // Init'd to remove warnings
+      
+      // X and Y cannot both be zero
+      if(x == 0.0)
+      {
+        inv_y = 1.0 / y;
+        C0 = 1.0;
+        C1 = 1.0;
+        C2 = (1.0 - cos_y) * inv_x2y2;
+        C3 = (1.0 - sin_y*inv_y) * inv_x2y2;
+      }
+      else if(y == 0.0)
+      {
+        inv_x = 1.0 / x;
+        C0 = 1.0;
+        C1 = 1.0;
+        C2 = (cosh_x - 1.0) * inv_x2y2;
+        C3 = (sinh_x*inv_x - 1.0) * inv_x2y2;
+      }
+      else
+      {
+        inv_x = 1.0 / x;
+        inv_y = 1.0 / y;
+        
+        C0 = (cos_y*x2 + cosh_x*y2) * inv_x2y2;
+        C1 = (sin_y*x2*inv_y + sinh_x*y2*inv_x) * inv_x2y2;
+        C2 = (cosh_x - cos_y) * inv_x2y2;
+        C3 = (sinh_x*inv_x - sin_y*inv_y) * inv_x2y2;
+      }
+      
+      // Diagonal Elements
+      F(0, 0) = F(1, 1) = F(2, 2) = F(3, 3) = C0;
+      F(0, 0) += C2 * (b2 + c2 + d2);
+      F(1, 1) += C2 * (b2 - u2 - v2);
+      F(2, 2) += C2 * (c2 - u2 - w2);
+      F(3, 3) += C2 * (d2 - v2 - w2);
+      
+      // Linear main-axis polarization
+      F(0, 1) = F(1, 0) = C1 * b;
+      F(0, 1) += C2 * (-c *  u -  d *  v) + C3 * ( b * ( b2 + c2 + d2) - u * ( b *  u -  d *  w) - v * ( b *  v +  c *  w));
+      F(1, 0) += C2 * ( c * u + d * v) + C3 * (-b * (-b2 + u2 + v2) + c * (b * c - v * w) + d * (b * d + u * w));
+      
+      // Linear off-axis polarization
+      F(0, 2) = F(2, 0) = C1 * c;
+      F(0, 2) += C2 * ( b * u - d * w) + C3 * (c * (b2 + c2 + d2)  - u * (c * u + d * v) - w * (b * v + c * w));
+      F(2, 0) += C2 * (-b * u + d * w) + C3 * (b * (b * c - v * w) - c * (-c2 + u2 + w2) + d * (c * d - u * v));
+      
+      // Circular polarization
+      F(0, 3) = F(3, 0) = C1 * d;
+      F(0, 3) += C2 * ( b * v + c * w) + C3 * (d * (b2 + c2 + d2)  - v * (c * u + d * v) + w * (b * u - d * w));
+      F(3, 0) += C2 * (-b * v - c * w) + C3 * (b * (b * d + u * w) + c * (c * d - u * v) - d * (-d2 + v2 + w2));
+      
+      // Circular polarization rotation
+      F(1, 2) = F(2, 1) = C2 * (b * c - v * w);
+      F(1, 2) +=  C1 * u + C3 * ( c * (c * u + d * v) - u * (-b2 + u2 + v2) - w * (b * d + u * w));
+      F(2, 1) += -C1 * u + C3 * (-b * (b * u - d * w) + u * (-c2 + u2 + w2) - v * (c * d - u * v));
+      
+      // Linear off-axis polarization rotation
+      F(1, 3) = F(3, 1) = C2 * (b * d + u * w);
+      F(1, 3) +=  C1 * v + C3 * ( d * (c * u + d * v) - v * (-b2 + u2 + v2) + w * (b * c - v * w));
+      F(3, 1) += -C1 * v + C3 * (-b * (b * v + c * w) - u * (c * d - u * v) + v * (-d2 + v2 + w2));
+      
+      // Linear main-axis polarization rotation
+      F(2, 3) = F(3, 2) = C2 * (c * d - u * v);
+      F(2, 3) +=  C1 * w + C3 * (-d * (b * u - d * w) + v * (b * c - v * w) - w * (-c2 + u2 + w2));
+      F(3, 2) += -C1 * w + C3 * (-c * (b * v + c * w) + u * (b * d + u * w) + w * (-d2 + v2 + w2));
+      
+      F *= exp_a;
+    }
+  }
+}*/
+
 
 void PropagationMatrix::AddZeemanPiComponent(ConstVectorView attenuation, 
                                              ConstVectorView phase, 

@@ -2410,7 +2410,7 @@ void chk_nlte(const Tensor4&                   t_nlte_field,
             const LineRecord& lr = abs_lines_per_species[ii][jj];
 
             // This number indicates the NLTE position for the lower state
-            if(lr.EvlowIndex()!=-1)
+            if(lr.NLTELowerIndex()!=-1)
             {
                 if(lr.Evlow()<0.) // The vibrational energy must be above 0
                 {
@@ -2426,7 +2426,7 @@ void chk_nlte(const Tensor4&                   t_nlte_field,
             }
 
             // This number indicates the NLTE position for the upper state
-            if(lr.EvuppIndex()!=-1)
+            if(lr.NLTEUpperIndex()!=-1)
             {
                 if(lr.Evupp()<0.) // The vibrational energy must be above 0
                 {

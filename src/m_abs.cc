@@ -3389,13 +3389,13 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
                     src_xsec_per_species[i],
                     Matrix(0, 0),
                     do_jac?dabs_xsec_per_species_dx[i]:dummy,
-                    do_lte?dummy:dsrc_xsec_per_species_dx[i],
+                    (do_jac and not do_lte)?dsrc_xsec_per_species_dx[i]:dummy,
                     dummy,
                     flag_partials,
                     f_grid,
                     abs_p,
                     abs_t,
-                    do_lte?Matrix(0,0):abs_t_nlte,
+                    abs_t_nlte,
                     abs_vmrs,
                     tgs,
                     i,
@@ -3406,7 +3406,6 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
                     isotopologue_ratios,
                     partition_functions,
                     verbosity);
-      
     }
     
     if (out3.sufficient_priority())

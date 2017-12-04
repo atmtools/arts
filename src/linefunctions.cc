@@ -32,7 +32,7 @@
  */
 
 #include "Faddeeva.hh"
-#include "lineshapesdata.h"
+#include "linefunctions.h"
 #include "linescaling.h"
 
 // Basic constants 
@@ -270,16 +270,16 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
   // Limits and computational tracks
   const bool eta_zero_limit = eta == 0;
   const bool eta_one_limit = eta == 1;
-  const bool C2t_zero_limit = C2t == Complex(0, 0) or eta_one_limit;
+  const bool C2t_zero_limit = C2t == Complex(0.0, 0.0) or eta_one_limit;
   bool ratioXY_low_limit, ratioXY_high_limit;
   
   // Practical term
-  const Complex invC2t = C2t_zero_limit ? Complex(0., 0.) : (1.0 / C2t);
+  const Complex invC2t = C2t_zero_limit ? Complex(0.0, 0.0) : (1.0 / C2t);
   
   // Relative pressure broadening terms to be used in the shape function
   const Complex sqrtY =  C2t_zero_limit ? -1 : (0.5 * invC2t * GD);
   const Complex Y =      C2t_zero_limit ? -1 : (sqrtY * sqrtY);
-  const Numeric invAbsY =   C2t_zero_limit ? -1 : 1 / abs(Y);
+  const Numeric invAbsY =   C2t_zero_limit ? -1.0 : 1.0 / abs(Y);
   
   // Temperature derivatives precomputed
   Complex dC0_dT, dC2_dT, dC0t_dT, dC2t_dT, dC0_m1p5_C2_dT, dY_dT;
@@ -290,7 +290,7 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
     dC0t_dT = one_minus_eta * (dC0_dT - 1.5 * dC2_dT) - deta_dT * C0_m1p5_C2 + dFVC_dT;
     dC2t_dT = one_minus_eta * dC2_dT - deta_dT * C2;
     dC0_m1p5_C2_dT = dC0_dT - 1.5 * dC2_dT;
-    dY_dT = C2t_zero_limit ? -1 : (GD / 2.0*invC2t*invC2t * (dGD_dT - GD * invC2t * dC2t_dT));
+    dY_dT = C2t_zero_limit ? -1.0 : (GD / 2.0*invC2t*invC2t * (dGD_dT - GD * invC2t * dC2t_dT));
   }
   
   // Scale factor (normalizes to PI)
@@ -474,7 +474,7 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
           eta / one_minus_eta * (
             2.0 * sqrtPI * (-((dC0t_dT - X * dC2t_dT) * invC2t)-2.0*dY_dT) * (sqrtInvPI - Zm * wiZm)  +
             2.0 * sqrtPI * (1.0-X-2.0*Y) * (- dZm * wiZm - Zm * dwiZm) 
-          + 2.0*sqrtPI*(dZp*wiZp + Zp*dwiZp))
+          + 2.0 * sqrtPI*(dZp*wiZp + Zp*dwiZp))
           ;
         else
           dG = - (dFVC_dT - deta_dT * C0_m1p5_C2 - eta * dC0_m1p5_C2_dT) * A - (FVC - eta*C0_m1p5_C2) * dA 
@@ -870,8 +870,6 @@ void Linefunctions::set_doppler(ComplexVectorView F, // Sets the full complex li
   for(Index iv = 0; iv < nf; iv++)
   {
     x = (f_grid[iv] - F0) * invGD;
-    //w_im = Faddeeva::w_im(x);
-    //w_re = exp(-x*x);
     w = Faddeeva::w(x);
     
     F[iv] = fac * w;
@@ -1142,14 +1140,14 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling(ComplexVectorView F,
   const Index nf = f_grid.nelem(), nppd = derivatives_data.nelem();
   
   const Numeric invF0 = 1.0/F0;
-  const Numeric mafac = (PLANCK_CONST) / (2 * BOLTZMAN_CONST * T) /
-  sinh((PLANCK_CONST * F0) / (2 * BOLTZMAN_CONST * T)) * invF0;
+  const Numeric mafac = (PLANCK_CONST) / (2.0 * BOLTZMAN_CONST * T) /
+  sinh((PLANCK_CONST * F0) / (2.0 * BOLTZMAN_CONST * T)) * invF0;
   
   Numeric dmafac_dF0_div_fun = 0, dmafac_dT_div_fun = 0;
   if(derivatives_data.do_line_center())
   {
     dmafac_dF0_div_fun = -invF0 - 
-    PLANCK_CONST/(2*BOLTZMAN_CONST*T*tanh(F0*PLANCK_CONST/(2*BOLTZMAN_CONST*T)));
+    PLANCK_CONST/(2.0*BOLTZMAN_CONST*T*tanh(F0*PLANCK_CONST/(2.0*BOLTZMAN_CONST*T)));
   }
   if(derivatives_data.do_temperature())
   {
@@ -1654,9 +1652,11 @@ Numeric Linefunctions::dDopplerConstant_dT(const Numeric T, const Numeric mass)
 /*!
  * Applies non-lte linestrength to already set line shape
  * 
+ * Only works for scaling-problems (i.e., when total number density distribution is already known)
+ * 
  * \retval F Lineshape (absorption)
  * \retval dF Lineshape derivative (absorption)
- * \retval N Non-lte lineshape (sourc)
+ * \retval N Non-lte lineshape (source)
  * \retval dN Non-lte lineshape derivative (source)
  * 
  * \param K3 Ratio of absorption due to non-lte effects
@@ -1778,7 +1778,7 @@ void Linefunctions::set_nonlte_source_and_apply_absorption_scaling(ComplexVector
  * \param derivatives_data Information about the derivatives in dF
  * \param line line-record containing most line parameters
  * \param volume_mixing_ratio_of_all_species As name suggests
- * \param nlte_temperatures As name suggests
+ * \param nlte_distribution As name suggests
  * \param pressure As name suggests
  * \param temperature As name suggests
  * \param doppler_constant Frequency-independent part of the Doppler broadening
@@ -1807,7 +1807,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
                                                       const LineRecord& line, 
                                                       ConstVectorView f_grid, 
                                                       ConstVectorView volume_mixing_ratio_of_all_species, 
-                                                      ConstVectorView nlte_temperatures, 
+                                                      ConstVectorView nlte_distribution, 
                                                       const Numeric& pressure, 
                                                       const Numeric& temperature, 
                                                       const Numeric& doppler_constant, 
@@ -1834,6 +1834,11 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
      dF = d(F)/dx
      dN = d(N)/dx
      
+     or if using external population distribution calculations
+     
+     F = A f(...) - CUT(F)
+     N = r f(...) = CUT(N)
+     
      Where 
      LM:  Line mixing
      NORM: Normalization
@@ -1845,7 +1850,9 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
      QT0: Partition function at reference temperature
      S0: Line strength at reference temperature
      f(...): Line shape, including mirroring
-     CUT(X): Computation of F and N and some provided cutoff frequency
+     CUT(X): Computation of F and N at some provided cutoff frequency
+     A is the absorption from external level distributions
+     r is the emission ratio addition to Planck from external level distributions
   */ 
   
   /* Get the cutoff range if applicable
@@ -1872,18 +1879,12 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
   // Extract the quantum identify of the line to be used in-case there are derivatives
   const QuantumIdentifier QI = line.QuantumIdentity();
   
-  // Line strength scaling that are line-dependent ---
-  // partition functions are species dependent and computed at a higher level
-  const Numeric gamma = stimulated_emission(temperature, line.F());
-  const Numeric gamma_ref = stimulated_emission(line.Ti0(), line.F());
-  const Numeric K1 = boltzman_ratio(temperature, line.Ti0(), line.Elow());
-  const Numeric K2 = stimulated_relative_emission(gamma, gamma_ref);
-  
   /* Pressure broadening terms
    * These are set by the line catalog.  There are no defaults.
    */
   Numeric G0, G2, e, L0, L2, FVC;
-  line.PressureBroadening().GetPressureBroadeningParams(G0, G2, e, L0, L2, FVC,
+  line.PressureBroadening().GetPressureBroadeningParams(
+    G0, G2, e, L0, L2, FVC,
     line.Ti0()/temperature, pressure, partial_pressure, 
     this_species_location_in_tags, water_index_location_in_tags,
     broad_spec_locations, volume_mixing_ratio_of_all_species,
@@ -1899,23 +1900,19 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
           dY_dT=0, dG_dT=0, dDV_dT=0, dK1_dT, dK2_dT;
   if(derivatives_data.do_temperature())
   {
-    // NOTE:  For now the only partial derivatives for temperatures available are for Voigt line shape.
-    // This will change if and when we have a good temperature understanding of HTP,
-    // and uninitialized variables above will then be set...
-    line.PressureBroadening().GetPressureBroadeningParams_dT(dG0_dT, dL0_dT,
+    // Pressure broadening partial derivatives
+    line.PressureBroadening().GetPressureBroadeningParams_dT(
+      dG0_dT, dG2_dT, de_dT, dL0_dT, dL2_dT, dFVC_dT,
       temperature, line.Ti0(), pressure, partial_pressure,
       this_species_location_in_tags, water_index_location_in_tags,
       broad_spec_locations, volume_mixing_ratio_of_all_species,
       verbosity);
     
     // Line mixing partial derivatives
-    line.LineMixing().GetLineMixingParams_dT(dY_dT, dG_dT, dDV_dT, temperature, 
-                                              derivatives_data.Temperature_Perturbation(),
-                                              pressure, pressure_limit_for_linemixing);
-  
-    // Line strength partial derivatives
-    dK1_dT = dboltzman_ratio_dT(K1, temperature, line.Elow());
-    dK2_dT = dstimulated_relative_emission_dT(gamma, gamma_ref, line.F(), temperature);
+    line.LineMixing().GetLineMixingParams_dT(
+      dY_dT, dG_dT, dDV_dT, temperature, 
+      derivatives_data.Temperature_Perturbation(),
+      pressure, pressure_limit_for_linemixing);
   }
   
   /* Partial derivatives due to pressure
@@ -1936,11 +1933,6 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
   ComplexVector linemixing_derivatives;
   line.LineMixing().SetInternalDerivatives(linemixing_derivatives, derivatives_data, QI, 
                                             temperature, pressure, pressure_limit_for_linemixing);
-  
-  // Partial derivatives due to central frequency of the stimulated emission
-  Numeric dK2_dF0;
-  if(derivatives_data.do_line_center())
-    dK2_dF0 = dstimulated_relative_emission_dF0(gamma, gamma_ref, temperature);
   
   // Line shape usage remembering variable. 
   // Is only used if the user has set to use mirroring 
@@ -1964,6 +1956,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
       {
         // Use data as per speed dependent air
         case PressureBroadeningData::PB_SD_AIR_VOLUME:
+        case PressureBroadeningData::PB_PURELY_FOR_TESTING:
           lst = LineShapeType::HTP;
           set_htp(F_calc, dF, 
                   f_grid_calc, zeeman_frequency_shift_constant, magnetic_magnitude, 
@@ -2136,89 +2129,186 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
   if(Y not_eq 0 or G not_eq 0)
     apply_linemixing_scaling(F_calc, dF, Y, G, derivatives_data, QI, dY_dT, dG_dT, this_xsec_range);
   
-  // Multiply the line strength by the line shape
-  apply_linestrength_scaling(F_calc, dF,  line.I0(), isotopologue_ratio,
-                     partition_function_at_temperature, partition_function_at_line_temperature, K1, K2,
-                     derivatives_data, QI, dpartition_function_at_temperature_dT, dK1_dT, dK2_dT, dK2_dF0, this_xsec_range);
-  
   // Apply pressure broadening partial derivative vector if necessary
   if(pressure_derivatives.nelem()>0)
     apply_pressurebroadening_jacobian_scaling(dF, derivatives_data, QI, pressure_derivatives, this_xsec_range);
-
+  
   // Apply line mixing partial derivative vector if necessary
   if(linemixing_derivatives.nelem()>0)
     apply_linemixing_jacobian_scaling(dF, derivatives_data, QI, linemixing_derivatives, this_xsec_range);
   
-  // Non-local thermodynamic equilibrium terms
-  if(nlte_temperatures.nelem())
+  // Apply line strength by whatever method is necessary
+  switch(line.GetLinePopulationType())
   {
-    // Internal parameters
-    Numeric Tu, Tl, K4, r_low, dK3_dF0, dK3_dT, dK3_dTl, dK4_dT, dK3_dTu, dK4_dTu;
-    
-    // These four are set by user on controlfile level
-    // They are indexes to find the energy level in the nlte-temperature 
-    // vector and the energy level of the states
-    const Index evlow_index = line.EvlowIndex();
-    const Index evupp_index = line.EvuppIndex();
-    const Numeric El = line.Evlow();
-    const Numeric Eu = line.Evupp();
-    
-    // If the user set this parameters, another set of calculations are needed
-    if(evupp_index > -1)
+    case LinePopulationType::ByLTE:
+      {
+        // Line strength scaling that are line-dependent ---
+        // partition functions are species dependent and computed at a higher level
+        const Numeric gamma = stimulated_emission(temperature, line.F());
+        const Numeric gamma_ref = stimulated_emission(line.Ti0(), line.F());
+        const Numeric K1 = boltzman_ratio(temperature, line.Ti0(), line.Elow());
+        const Numeric K2 = stimulated_relative_emission(gamma, gamma_ref);
+        
+        // Line strength partial derivatives
+        
+        if(derivatives_data.do_temperature())
+        {
+          dK1_dT = dboltzman_ratio_dT(K1, temperature, line.Elow());
+          dK2_dT = dstimulated_relative_emission_dT(gamma, gamma_ref, line.F(), temperature);
+        }
+        
+        // Partial derivatives due to central frequency of the stimulated emission
+        Numeric dK2_dF0;
+        if(derivatives_data.do_line_center())
+          dK2_dF0 = dstimulated_relative_emission_dF0(gamma, gamma_ref, temperature);
+        
+        // Multiply the line strength by the line shape
+        apply_linestrength_scaling(F_calc, dF,  line.I0(), isotopologue_ratio,
+                                  partition_function_at_temperature, partition_function_at_line_temperature, K1, K2,
+                                  derivatives_data, QI, dpartition_function_at_temperature_dT, dK1_dT, dK2_dT, dK2_dF0, this_xsec_range);
+      }
+      break;
+    case LinePopulationType::ByVibrationalTemperatures:
+      {
+        /*
+        * ByLTE and ByVibrationalTemperatures shares much of the same characteristics
+        * and can therefore be mixed together under the same code 'flag'.  However,
+        * partial derivatives only works in ByVibrationalTemperatures if both levels
+        * are defined whereas forward calculations only require a single level.  Thus
+        * these two will be considered as separate tags and share a lot of code...
+        */
+        
+        // Line strength scaling that are line-dependent ---
+        // partition functions are species dependent and computed at a higher level
+        const Numeric gamma = stimulated_emission(temperature, line.F());
+        const Numeric gamma_ref = stimulated_emission(line.Ti0(), line.F());
+        const Numeric K1 = boltzman_ratio(temperature, line.Ti0(), line.Elow());
+        const Numeric K2 = stimulated_relative_emission(gamma, gamma_ref);
+        
+        // Line strength partial derivatives
+        
+        if(derivatives_data.do_temperature())
+        {
+          dK1_dT = dboltzman_ratio_dT(K1, temperature, line.Elow());
+          dK2_dT = dstimulated_relative_emission_dT(gamma, gamma_ref, line.F(), temperature);
+        }
+        
+        // Partial derivatives due to central frequency of the stimulated emission
+        Numeric dK2_dF0;
+        if(derivatives_data.do_line_center())
+          dK2_dF0 = dstimulated_relative_emission_dF0(gamma, gamma_ref, temperature);
+        
+        // Multiply the line strength by the line shape
+        apply_linestrength_scaling(F_calc, dF,  line.I0(), isotopologue_ratio,
+                          partition_function_at_temperature, partition_function_at_line_temperature, K1, K2,
+                          derivatives_data, QI, dpartition_function_at_temperature_dT, dK1_dT, dK2_dT, dK2_dF0, this_xsec_range);
+        
+        // Non-local thermodynamic equilibrium terms
+        if(nlte_distribution.nelem())
+        {
+          // Internal parameters
+          Numeric Tu, Tl, K4, r_low, dK3_dF0, dK3_dT, dK3_dTl, dK4_dT, dK3_dTu, dK4_dTu;
+          
+          // These four are set by user on controlfile level
+          // They are indexes to find the energy level in the nlte-temperature 
+          // vector and the energy level of the states
+          const Index evlow_index = line.NLTELowerIndex();
+          const Index evupp_index = line.NLTEUpperIndex();
+          const Numeric El = line.Evlow();
+          const Numeric Eu = line.Evupp();
+          
+          // If the user set this parameters, another set of calculations are needed
+          if(evupp_index > -1)
+          {
+            Tu = nlte_distribution[evupp_index];
+            
+            // Additional emission is from upper state
+            K4 = boltzman_ratio(Tu, temperature, Eu);
+          }
+          // Otherwise the ratios are unity and nothing needs be done
+          else
+          {
+            Tu = temperature;
+            K4 = 1.0;
+          }
+          
+          // The same as above but for the lower state level
+          if(evlow_index > -1)
+          {
+            Tl = nlte_distribution[evlow_index];
+            r_low = boltzman_ratio(Tl, temperature, El);
+          }
+          else
+          {
+            Tl = temperature;
+            r_low = 1.0;
+          }
+          
+          // Any additional absorption requires the ratio between upper and lower state number distributions
+          const Numeric K3 = absorption_nlte_ratio(gamma, K4, r_low);
+          
+          // Are we computing the line center derivatives?
+          if(derivatives_data.do_line_center())
+            dK3_dF0 = dabsorption_nlte_rate_dF0(gamma, temperature, K4, r_low);
+          
+          // Are we computing the temperature derivatives?
+          // NOTE:  Having NLTE active AT ALL will change the jacobian because of this part of the code,
+          // though this requires setting El and Eu for all lines, though this is not yet default...
+          // So if you see this part of the code after having a runtime_error, 
+          // you will need to write those functions yourself...
+          if(derivatives_data.do_temperature())
+            dK3_dT = dabsorption_nlte_rate_dT(gamma, temperature, line.F(), El, Eu, K4, r_low);
+          
+          // Does the lower state level energy exist?
+          if(El > 0)
+            dK3_dTl = dabsorption_nlte_rate_dTl(gamma, temperature, Tl, El, r_low);
+          
+          // Does the upper state level energy exist?
+          if(Eu > 0)
+          {
+            dK3_dTu = dabsorption_nlte_rate_dTu(gamma, temperature, Tu, Eu, K4);
+            dK4_dTu = dboltzman_ratio_dT(K4, Tu, Eu);
+          }
+          
+          // Apply this knowledge to set N and dN
+          set_nonlte_source_and_apply_absorption_scaling(F_calc, dF, N[this_xsec_range], dN, K3, K4, 
+                                                        derivatives_data, QI,  dK3_dT, dK4_dT, dK3_dF0, dK3_dTl, dK3_dTu, dK4_dTu, this_xsec_range);
+        }
+      }
+      break;
+    case LinePopulationType::ByPopulationDistribution:
     {
-      Tu = nlte_temperatures[evupp_index];
-      
-      // Additional emission is from upper state
-      K4 = boltzman_ratio(Tu, temperature, Eu);
-    }
-    // Otherwise the ratios are unity and nothing needs be done
-    else
-    {
-      Tu = temperature;
-      K4 = 1.0;
-    }
-    
-    // The same as above but for the lower state level
-    if(evlow_index > -1)
-    {
-      Tl = nlte_temperatures[evlow_index];
-      r_low = boltzman_ratio(Tl, temperature, El);
-    }
-    else
-    {
-      Tl = temperature;
-      r_low = 1.0;
-    }
-    
-    // Any additional absorption requires the ratio between upper and lower state number distributions
-    const Numeric K3 = absorption_nlte_ratio(gamma, K4, r_low);
-    
-    // Are we computing the line center derivatives?
-    if(derivatives_data.do_line_center())
-      dK3_dF0 = dabsorption_nlte_rate_dF0(gamma, temperature, K4, r_low);
-    
-    // Are we computing the temperature derivatives?
-    // NOTE:  Having NLTE active AT ALL will change the jacobian because of this part of the code,
-    // though this requires setting El and Eu for all lines, though this is not yet default...
-    // So if you see this part of the code after having a runtime_error, 
-    // you will need to write those functions yourself...
-    if(derivatives_data.do_temperature())
-      dK3_dT = dabsorption_nlte_rate_dT(gamma, temperature, line.F(), El, Eu, K4, r_low);
-    
-    // Does the lower state level energy exist?
-    if(El > 0)
-      dK3_dTl = dabsorption_nlte_rate_dTl(gamma, temperature, Tl, El, r_low);
-    
-    // Does the upper state level energy exist?
-    if(Eu > 0)
-    {
-      dK3_dTu = dabsorption_nlte_rate_dTu(gamma, temperature, Tu, Eu, K4);
-      dK4_dTu = dboltzman_ratio_dT(K4, Tu, Eu);
-    }
-    
-    // Apply this knowledge to set N and dN
-    set_nonlte_source_and_apply_absorption_scaling(F_calc, dF, N[this_xsec_range], dN, K3, K4, 
-                 derivatives_data, QI,  dK3_dT, dK4_dT, dK3_dF0, dK3_dTl, dK3_dTu, dK4_dTu, this_xsec_range);
+        if(derivatives_data.nelem())
+        {
+          ostringstream os;
+          os << "There will be no support for partial derivatives in population distribution\n" <<
+                "mode before we can compute our own distributions.\n" << 
+                "Use LTE if you know you have LTE distribution or ByVibrationalTemperatures if\n" <<
+                "you can define vibrational temperatures for your problem.\n";
+          throw std::runtime_error(os.str());
+        }
+        
+        const Index nlte_low_index = line.NLTELowerIndex();
+        const Index nlte_upp_index = line.NLTEUpperIndex();
+        
+        if(nlte_low_index < 0)
+          throw std::runtime_error("No lower level distribution number in population distribution mode");
+        if(nlte_upp_index < 0)
+          throw std::runtime_error("No upper level distribution number in population distribution mode");
+        
+        apply_linestrength_from_nlte_level_distributions(F_calc, 
+                                                         N[this_xsec_range], 
+                                                         nlte_distribution[nlte_low_index],
+                                                         nlte_distribution[nlte_upp_index],
+                                                         line.G_lower(),
+                                                         line.G_upper(),
+                                                         line.A(),
+                                                         line.F(),
+                                                         temperature);
+      }
+      break;
+    default:
+      throw std::runtime_error("Unknown population distribution type for this line");
   }
   
   // Cutoff frequency is applied at the end because 
@@ -2226,11 +2316,11 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
   // cutoff last means that the code is kept cleaner
   if(need_cutoff)
   {
-    if(nlte_temperatures.nelem())
+    if(nlte_distribution.nelem())
       apply_cutoff(F_calc, dF, N[this_xsec_range], dN,
                   derivatives_data, line,
                   volume_mixing_ratio_of_all_species,
-                  nlte_temperatures, pressure, temperature,
+                   nlte_distribution, pressure, temperature,
                   doppler_constant, partial_pressure,
                   isotopologue_ratio, magnetic_magnitude,
                   ddoppler_constant_dT, pressure_limit_for_linemixing,
@@ -2244,7 +2334,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
       apply_cutoff(F_calc, dF, N, dN,
                   derivatives_data, line,
                   volume_mixing_ratio_of_all_species,
-                  nlte_temperatures, pressure, temperature,
+                  nlte_distribution, pressure, temperature,
                   doppler_constant, partial_pressure,
                   isotopologue_ratio, magnetic_magnitude,
                   ddoppler_constant_dT, pressure_limit_for_linemixing,
@@ -2271,7 +2361,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
  * \param derivatives_data Information about the derivatives in dF
  * \param line line-record containing most line parameters
  * \param volume_mixing_ratio_of_all_species As name suggests
- * \param nlte_temperatures As name suggests
+ * \param nlte_distribution As name suggests
  * \param pressure As name suggests
  * \param temperature As name suggests
  * \param doppler_constant Frequency-independent part of the Doppler broadening
@@ -2298,7 +2388,7 @@ void Linefunctions::apply_cutoff(ComplexVectorView F,
                                  const PropmatPartialsData& derivatives_data,
                                  const LineRecord& line,
                                  ConstVectorView volume_mixing_ratio_of_all_species,
-                                 ConstVectorView nlte_temperatures,
+                                 ConstVectorView nlte_distribution,
                                  const Numeric& pressure,
                                  const Numeric& temperature,
                                  const Numeric& doppler_constant,
@@ -2333,7 +2423,7 @@ void Linefunctions::apply_cutoff(ComplexVectorView F,
   set_cross_section_for_single_line(Fc, dFc, Nc, dNc, tmp,
                                     derivatives_data, line, f_grid_cutoff,
                                     volume_mixing_ratio_of_all_species,
-                                    nlte_temperatures, pressure, temperature,
+                                    nlte_distribution, pressure, temperature,
                                     doppler_constant, partial_pressure, isotopologue_ratio,
                                     magnetic_magnitude, ddoppler_constant_dT,
                                     pressure_limit_for_linemixing,
@@ -2388,4 +2478,69 @@ bool Linefunctions::find_cutoff_ranges(Range& range,
     same_range_but_complex = ComplexRange(joker);
   } 
   return need_cutoff;
+}
+
+
+/*!
+ * Applies non-lte linestrength to already set line shape
+ * 
+ * Works on ratio-inputs, meaning that the total distribution does not have to be known
+ * 
+ * Cannot support partial derivatives at this point due to ARTS not possessing its own
+ * NLTE ratio calculation agenda
+ * 
+ * \retval F Lineshape (absorption)
+ * \retval N Non-lte lineshape (source)
+ * 
+ * \param r1 Ratio of molecules at energy level 1
+ * \param r2 Ratio of molecules at energy level 2 
+ * \param g1 Statistical weight of energy level 1
+ * \param g2 Statistical weight of energy level 2
+ * \param A21 Einstein coefficient for the transition from energy level 2 to energy level 1
+ * \param F0 Central frequency without any shifts
+ * \param T Atmospheric temperature at level
+ * 
+ */
+void Linefunctions::apply_linestrength_from_nlte_level_distributions(ComplexVectorView F, 
+                                                                     ComplexVectorView N, 
+                                                                     const Numeric& r1,
+                                                                     const Numeric& r2,
+                                                                     const Numeric& g1,
+                                                                     const Numeric& g2,
+                                                                     const Numeric& A21,
+                                                                     const Numeric& F0,
+                                                                     const Numeric& T)
+{
+  // Physical constants
+  const static Numeric c0 = 2.0 * PLANCK_CONST / SPEED_OF_LIGHT / SPEED_OF_LIGHT;
+  const static Numeric c1 = PLANCK_CONST / 4 / PI;
+  
+  // Constants
+  const Numeric c2 = c0 * F0 * F0 * F0;
+  const Numeric c3 = c1 * F0;
+  const Numeric x = g2 / g1;
+  
+  /*
+    Einstein 'active' coefficients are as follows:
+    const Numeric B21 =  A21 / c2;
+    const Numeric B12 = x * B21;
+    
+    Please keep these around for debugging purposes...
+  */
+  
+  // Planck function of this line
+  const Numeric b = c2/(exp(PLANCK_CONST * F0 / BOLTZMAN_CONST / T) - 1);
+  
+  // Absorption strength
+  const Numeric k = c3 * (r1*x - r2) * (A21 / c2);
+  
+  // Emission strength
+  const Numeric e = c3 * r2 * A21;
+  
+  // Set source function to be the relative amount emitted by the line divided by the Planck function
+  N = F;
+  N *= e/b - k;
+  
+  // Set absorption
+  F *= k;
 }

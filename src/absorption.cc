@@ -47,7 +47,7 @@
 #include "linescaling.h"
 
 #include "global_data.h"
-#include "lineshapesdata.h"
+#include "linefunctions.h"
 
 
 /** Mapping of species auxiliary type names to SpeciesAuxData::AuxType enum */
@@ -1120,8 +1120,8 @@ firstprivate(ls_attenuation, fac, f_local, aux, qt_cache, qref_cache, iso_cache,
                                            calc_src,
                                            l_l.Evlow(),
                                            l_l.Evupp(),
-                                           l_l.EvlowIndex(),
-                                           l_l.EvuppIndex(),
+                                           l_l.NLTELowerIndex(),
+                                           l_l.NLTEUpperIndex(),
                                            t_nlte_i);
                        
                         // Dopple broadening
@@ -2093,6 +2093,15 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                 continue;
             }
             
+            if(calc_src)
+            {
+              if(abs_lines[ii].GetLinePopulationType() not_eq LinePopulationType::ByLTE and
+                 abs_lines[ii].GetLinePopulationType() not_eq LinePopulationType::ByVibrationalTemperatures)
+              {
+                throw std::runtime_error("Bad data seen in xsec_species_line_mixing_wrapper.  Please use more modern function.");
+              }
+            }
+            
             // Pressure broadening parameters
             // Prepare pressure broadening parameters
             Numeric gamma_0,gamma_2,eta,df_0,df_2,f_VC;
@@ -2135,8 +2144,8 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                 calc_src,
                                 abs_lines[ii].Evlow(),
                                 abs_lines[ii].Evupp(),
-                                abs_lines[ii].EvlowIndex(),
-                                abs_lines[ii].EvuppIndex(),
+                                abs_lines[ii].NLTELowerIndex(),
+                                abs_lines[ii].NLTEUpperIndex(),
                                 t_nlte);
             
             // Doppler broadening
@@ -2207,6 +2216,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             {
                 // These needs to be calculated and returned when Temperature is in list
                 Numeric dgamma_0_dT, ddf_0_dT,
+                dgamma_2_dT, ddf_2_dT, deta_dT, df_VC_dT,
                 dY_dT=0.0,dG_dT=0.0,dDV_dT=0.0,
                 dQ_dT, dK2_dT, dabs_nlte_ratio_dT=0.0,
                 atm_tv_low, atm_tv_upp;
@@ -2214,7 +2224,9 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                 {
                     abs_lines[ii].LineMixing().GetLineMixingParams_dT(dY_dT, dG_dT, dDV_dT, t, flag_partials.Temperature_Perturbation(),
                                                                       p, lm_p_lim, 1);
-                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dT(dgamma_0_dT,ddf_0_dT, t, 
+                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dT(dgamma_0_dT,dgamma_2_dT,
+                                                                                      deta_dT, ddf_0_dT, 
+                                                                                      ddf_2_dT, df_VC_dT, t, 
                                                                                       abs_lines[ii].Ti0(),p,
                                                                                       p_partial,this_species,h2o_index,
                                                                                       broad_spec_locations,
@@ -2236,8 +2248,8 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                           calc_src,
                                           abs_lines[ii].Evlow(),
                                           abs_lines[ii].Evupp(),
-                                          abs_lines[ii].EvlowIndex(),
-                                          abs_lines[ii].EvuppIndex(),
+                                          abs_lines[ii].NLTELowerIndex(),
+                                          abs_lines[ii].NLTEUpperIndex(),
                                           t_nlte);
                 }
                 
@@ -2316,10 +2328,10 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                          abs_lines[ii].Elow(),
                                                          abs_lines[ii].Evlow(),
                                                          abs_lines[ii].Evupp(),
-                                                         abs_lines[ii].EvlowIndex() > -1?
-                                                         t_nlte[abs_lines[ii].EvlowIndex()]:-1.0,
-                                                         abs_lines[ii].EvuppIndex() > -1?
-                                                         t_nlte[abs_lines[ii].EvuppIndex()]:-1.0,
+                                                         abs_lines[ii].NLTELowerIndex() > -1?
+                                                         t_nlte[abs_lines[ii].NLTELowerIndex()]:-1.0,
+                                                         abs_lines[ii].NLTEUpperIndex() > -1?
+                                                         t_nlte[abs_lines[ii].NLTEUpperIndex()]:-1.0,
                                                          Y,
                                                          dY_dT,
                                                          dY0,

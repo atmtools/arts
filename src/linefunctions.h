@@ -246,7 +246,7 @@ namespace Linefunctions
                                          const LineRecord& line,
                                          ConstVectorView f_grid,
                                          ConstVectorView volume_mixing_ratio_of_all_species,
-                                         ConstVectorView nlte_temperatures,
+                                         ConstVectorView nlte_distribution,
                                          const Numeric& pressure,
                                          const Numeric& temperature,
                                          const Numeric& doppler_constant,
@@ -272,7 +272,7 @@ namespace Linefunctions
                     const PropmatPartialsData& derivatives_data,
                     const LineRecord& line,
                     ConstVectorView volume_mixing_ratio_of_all_species,
-                    ConstVectorView nlte_temperatures,
+                    ConstVectorView nlte_distribution,
                     const Numeric& pressure,
                     const Numeric& temperature,
                     const Numeric& doppler_constant,
@@ -296,6 +296,16 @@ namespace Linefunctions
                           ConstVectorView f_grid,
                           const Numeric& F0,
                           const Numeric& cutoff);
+  
+  void apply_linestrength_from_nlte_level_distributions(ComplexVectorView F, 
+                                                        ComplexVectorView N, 
+                                                        const Numeric& r1,
+                                                        const Numeric& r2,
+                                                        const Numeric& g1,
+                                                        const Numeric& g2,
+                                                        const Numeric& A21,
+                                                        const Numeric& F0,
+                                                        const Numeric& T);
 };
 
-#endif //lineshapedata_h
+#endif //linefunctions_h

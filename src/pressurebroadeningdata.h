@@ -52,7 +52,9 @@ public:
         PB_AIR_BROADENING,                // Air broadening and self broadening only
         PB_AIR_AND_WATER_BROADENING,      // Air, water, and self broadening
         PB_PLANETARY_BROADENING,          // Gas broadening as done for solar system planets
-        PB_SD_AIR_VOLUME                  // HTP in air for SD limit
+        PB_SD_AIR_VOLUME,                 // HTP in air for SD limit
+        PB_HTP_AIR_VOLUME,                // HTP in air
+        PB_PURELY_FOR_TESTING             // Testing tag for new input structures --- can be changed by anyone...
     };
     
     // Defining an object with no data and no broadening
@@ -138,7 +140,7 @@ public:
      The quantities are:
      TESTING
      */ 
-    void SetSDAIRFromCatalog(const Numeric& gamma0,
+    void SetSDAirFromCatalog(const Numeric& gamma0,
                              const Numeric& gamma0_exp,
                              const Numeric& gamma2,
                              const Numeric& gamma2_exp,
@@ -146,6 +148,47 @@ public:
                              const Numeric& delta0_exp,
                              const Numeric& delta2,
                              const Numeric& delta2_exp);
+    
+    /**
+     TESTING                                            *
+     
+     The quantities are:
+     TESTING
+     */ 
+    void SetHTPAirFromCatalog(const Numeric& gamma0,
+                              const Numeric& gamma0_exp,
+                              const Numeric& gamma2,
+                              const Numeric& gamma2_exp,
+                              const Numeric& delta0,
+                              const Numeric& delta0_exp,
+                              const Numeric& delta2,
+                              const Numeric& delta2_exp,
+                              const Numeric& fvc,
+                              const Numeric& fvc_exp,
+                              const Numeric& eta,
+                              const Numeric& eta_exp);
+    
+    /**
+     TESTING
+     
+     The quantities are:
+     TESTING
+     */ 
+    void SetTestFromCatalog(const Numeric& gamma0_air,
+                            const Numeric& gamma0_air_exp,
+                            const Numeric& gamma0_water,
+                            const Numeric& gamma0_water_exp,
+                            const Numeric& gamma2_air,
+                            const Numeric& gamma2_water,
+                            const Numeric& delta0_air,
+                            const Numeric& delta0_water);
+    void GetTestBroadening(Numeric& gamma0,
+                           Numeric& gamma2,
+                           Numeric& delta0,
+                           ConstVectorView vmrs,
+                           const Numeric& theta,
+                           const Numeric& pressure,
+                           const Index h2o_index) const;
     
     /**
       Sets a vector of derivatives that fits with the QuantumIdentifier 
@@ -165,31 +208,31 @@ public:
                                 const Verbosity& verbosity) const;
     
     // Get the Planetary foreign broadening data vector
-    ConstVectorView PlanetaryGammaForeign() const { assert(isPlanetaryBroadening()); return mdata[2]; }
+    ConstVectorView PlanetaryGammaForeign() const { assert(mtype == PB_PLANETARY_BROADENING); return mdata[2]; }
     
     // Get the Planetary foreign broadening exponent data vector
-    ConstVectorView PlanetaryNForeign() const { assert(isPlanetaryBroadening()); return mdata[3]; }
+    ConstVectorView PlanetaryNForeign() const { assert(mtype == PB_PLANETARY_BROADENING); return mdata[3]; }
     
     // Get the Planetary foreign shift data vector
-    ConstVectorView PlanetaryDeltaForeign() const { assert(isPlanetaryBroadening()); return mdata[4]; }
+    ConstVectorView PlanetaryDeltaForeign() const { assert(mtype == PB_PLANETARY_BROADENING); return mdata[4]; }
     
     // Get the Planetary foreign broadening data from one position
-    Numeric PlanetaryGammaForeign(Index ii) const { assert(isPlanetaryBroadening()); return mdata[2][ii]; }
+    Numeric PlanetaryGammaForeign(Index ii) const { assert(mtype == PB_PLANETARY_BROADENING); return mdata[2][ii]; }
     
     // Get the Planetary foreign broadening exponent data from one position
-    Numeric PlanetaryNForeign(Index ii) const { assert(isPlanetaryBroadening()); return mdata[3][ii]; }
+    Numeric PlanetaryNForeign(Index ii) const { assert(mtype == PB_PLANETARY_BROADENING); return mdata[3][ii]; }
     
     // Get the Planetary foreign shift data from one position
-    Numeric PlanetaryDeltaForeign(Index ii) const {  assert(isPlanetaryBroadening()); return mdata[4][ii]; }
+    Numeric PlanetaryDeltaForeign(Index ii) const {  assert(mtype == PB_PLANETARY_BROADENING); return mdata[4][ii]; }
     
     // Get the Air broadening air pressure broadening
-    Numeric AirBroadeningAgam() const { assert(isAirBroadening());  return mdata[2][0]; }
+    Numeric AirBroadeningAgam() const { assert(mtype == PB_AIR_BROADENING);  return mdata[2][0]; }
     
     // Get the Air broadening air pressure broadening exponent
-    Numeric AirBroadeningNair() const { assert(isAirBroadening());  return mdata[3][0]; }
+    Numeric AirBroadeningNair() const { assert(mtype == PB_AIR_BROADENING);  return mdata[3][0]; }
     
     // Get the Air broadening air pressure shift
-    Numeric AirBroadeningPsf()  const { assert(isAirBroadening());  return mdata[4][0]; }
+    Numeric AirBroadeningPsf()  const { assert(mtype == PB_AIR_BROADENING);  return mdata[4][0]; }
     
     // Get the self pressure broadening
     Numeric Sgam() const { assert(mdata.nelem() != 0); assert(mdata[0].nelem() != 0); return mdata[0][0]; }
@@ -198,19 +241,19 @@ public:
     Numeric Nself() const { assert(mdata.nelem() > 0); assert(mdata[1].nelem() != 0); return mdata[1][0]; }
     
     // Get the Air broadening air pressure broadening error
-    Numeric AirBroadeningDAgam() const { assert(isAirBroadening());  return mdataerror[2][0]; }
+    Numeric AirBroadeningDAgam() const { assert(mtype == PB_AIR_BROADENING);  return mdataerror[2][0]; }
     
     // Get the Air broadening air pressure broadening exponent error
-    Numeric AirBroadeningDNair() const { assert(isAirBroadening());  return mdataerror[3][0]; }
+    Numeric AirBroadeningDNair() const { assert(mtype == PB_AIR_BROADENING);  return mdataerror[3][0]; }
     
     // Get the Air broadening air pressure shift error
-    Numeric AirBroadeningDPsf()  const { assert(isAirBroadening());  return mdataerror[4][0]; }
+    Numeric AirBroadeningDPsf()  const { assert(mtype == PB_AIR_BROADENING);  return mdataerror[4][0]; }
     
     // Get the Air broadening self pressure broadening error
-    Numeric dSgam()  const { assert(isAirBroadening());  return mdataerror[0][0]; }
+    Numeric dSgam()  const { assert(mtype == PB_AIR_BROADENING);  return mdataerror[0][0]; }
     
     // Get the Air broadening self pressure broadening exponent error
-    Numeric dNself() const { assert(isAirBroadening());  return mdataerror[1][0]; }
+    Numeric dNself() const { assert(mtype == PB_AIR_BROADENING);  return mdataerror[1][0]; }
     
      /**
      Method for changing self-broadening if available
@@ -560,7 +603,11 @@ public:
                                       ConstVectorView vmrs,
                                       const Verbosity& verbosity) const;
     void GetPressureBroadeningParams_dT(Numeric& dgamma_0_dT,
+                                        Numeric& dgamma_2_dT,
+                                        Numeric& deta_dT,
                                         Numeric& ddf_0_dT,
+                                        Numeric& ddf_2_dT,
+                                        Numeric& df_VC_dT,
                                         const Numeric& T,
                                         const Numeric& T0,
                                         const Numeric& pressure,
@@ -639,12 +686,53 @@ public:
      \param theta  the scaled temperature (T0/T)
      \param pressure  All gasses, in Pa
      */
-    void GetSDAIRBroadening(Numeric& gamma0,
+    void GetSDAirBroadening(Numeric& gamma0,
                             Numeric& gamma2,
                             Numeric& delta0,
                             Numeric& delta2,
                             const Numeric& theta,
                             const Numeric& pressure) const;
+    void GetSDAirBroadening_dT(Numeric& dgamma0,
+                               Numeric& dgamma2,
+                               Numeric& ddelta0,
+                               Numeric& ddelta2,
+                               const Numeric& T,
+                               const Numeric& T0,
+                               const Numeric& pressure) const;
+
+    /**
+     Speed-dependent broadening calculations
+     
+     THIS IS EXPERIMENTAL AND MUST BE FIXED TO HAVE, e.g., SELF-PRESSURE
+     BEFORE IT IS READY FOR NORMAL USE.
+     
+     The quantities are:
+     \param gamma0 the pressure broadening
+     \param gamma2 the speed dependent term of the pressure broadening
+     \param delta0 the pressure shift
+     \param delta2 the speed dependent term of the pressure shift
+     \param fvc 
+     \param eta 
+     \param theta  the scaled temperature (T0/T)
+     \param pressure  All gasses, in Pa
+     */
+    void GetHTPAirBroadening(Numeric& gamma0,
+                             Numeric& gamma2,
+                             Numeric& delta0,
+                             Numeric& delta2,
+                             Numeric& fvc,
+                             Numeric& eta,
+                             const Numeric& theta,
+                             const Numeric& pressure) const;
+    void GetHTPAirBroadening_dT(Numeric& dgamma0,
+                                Numeric& dgamma2,
+                                Numeric& ddelta0,
+                                Numeric& ddelta2,
+                                Numeric& dfvc,
+                                Numeric& deta,
+                                const Numeric& T,
+                                const Numeric& T0,
+                                const Numeric& pressure) const;
     
    // Sets the pressure broadening PB_type from String input
    void StorageTag2SetType(const String& input);
@@ -660,21 +748,6 @@ public:
    
    // Returns the String tag for this PB_type
    String Type2StorageTag() const;
-   
-   // Checks if this is air broadening
-   bool isAirBroadening() const {return mtype == PB_AIR_BROADENING;};
-   
-   // Checks if this is air and water broadening
-   bool isAirAndWaterBroadening() const {return mtype == PB_AIR_AND_WATER_BROADENING;};
-
-   //  Checks if this is Planetaryg broadening
-   bool isPlanetaryBroadening() const {return mtype == PB_PLANETARY_BROADENING;};
-   
-   //  Checks if this is Speed-Dependent broadening
-   bool isSD_AirBroadening() const {return mtype == PB_SD_AIR_VOLUME;};
-   
-   // Checks if this is not a type
-   bool isNone() const {return mtype == PB_NONE;};
    
 private:
     // mtype identifies the type of of pressure broadening and the other variables

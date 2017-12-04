@@ -19,7 +19,7 @@
 
 #include "zeeman.h"
 #include "global_data.h"
-#include "lineshapesdata.h"
+#include "linefunctions.h"
 #include "linescaling.h"
 
 /*!

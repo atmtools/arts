@@ -1,3 +1,66 @@
+2017-12-04  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-897
+	
+	Many files changed because of a rename.  Some by minor updates.
+	
+	Main point of this update:  ARTS can now do rotational NLTE
+	using the new line-computer.  This is based on simply applying
+	an emission constant as C n2 A21 and absorption as 
+	c (n1 B12 - n2 B21) with a few devils in the details to fit with 
+	the older vibrational NLTE implementation
+	
+	Last note:  I had a version of this with updated numbers for
+	some of the constants in constants.cc, however it fails the 
+	tests.  Since these constants have been updated due to more accurate
+	measurements of the speed of light, it is a bit
+	funny that our tests require higher accuracies than is expected
+	for the Planck and Boltzmann constants...  I might commit an update
+	for this at some point in the future
+	
+	* src/linerecord.h:  Added population type tag to identify 
+	population level computations.  Needed to avoid inputting full
+	partition function for rotational spectra on a line-by-line
+	basis.  The old method ByLTE is standard.  The 
+	ByVibrationalTemperature method is for vibrational NLTE (like
+	Earth CO2) where you do not need to input the partition function
+	because you assume only higher energy levels are perturbed.
+	This was the status of NLTE in ARTS before the present commit.
+	The new thing is to input relative ratio distributions to directly
+	compute the NLTE effects. 
+	
+	* src/m_linerecord.cc: Changed nlteSetByQuantumIdentifiers to
+	set population type by GIN.  Defaults to old version.
+	
+	* src/linefunctions.cc:  Changed name from lineshapesdata.
+	Added function to compute line strength from level 
+	distribution and Einstein coefficient based on work by 
+	Takayoshi Yamada.  There will be typhon code made available 
+	to get the ratios necessary to use this code at some point 
+	in the future.  For now, the ARTS code outputs almost exactly 
+	the same as the python code for limited tests of viewing 
+	geometries.  We are presently writing a short paper detailing 
+	this implementation and some test cases with NLTE spectra.
+	
+	* src/propagationmatrix.cc:
+	Working on (compute_transmission_matrix_distance_derivatives)
+	as a way to get the distance derivatives needed for HSE.
+	
+	* src/pressurebroadeningdata.{cc,h}:  Added a test-case for HTP
+	that is extremely simplistic.  Also updated errors to clearly
+	show which function is failing (a failure at this level
+	is the programmer's fault so it is nice to see which function
+	you messed up...)  Also updated to use switch-statements
+	more consistently since this helps with warnings while compiling.
+	Also changed so temperature derivatives output all the HTP 
+	variables so that the HTP implementation can be used with 
+	jacobian (even though there is still only experimental support
+	for HTP while waiting for more data to be available from elsewhere,
+	the code is fairly close to working in the full ARTS-context now...)
+	
+	* src/methods.cc:  Removed unused method and added Ganymede 
+	ellipsoid (only the sphere)
+
 2017-12-04  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-896

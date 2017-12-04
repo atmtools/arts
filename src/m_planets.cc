@@ -245,6 +245,25 @@ void refellipsoidIo(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void refellipsoidGanymede(            
+Vector&    refellipsoid,
+const String&    model,
+const Verbosity& )
+{
+  refellipsoid.resize(2);
+  
+  if( model == "Sphere" )
+  { 
+    refellipsoid[0] = 2631e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
+    refellipsoid[1] = 0;
+  }
+  
+  else
+    throw std::runtime_error( "Unknown selection for input argument *model*." );
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidVenus(            
          Vector&    refellipsoid,
    const String&    model,

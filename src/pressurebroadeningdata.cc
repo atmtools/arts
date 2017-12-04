@@ -75,10 +75,16 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma_0,
             f_VC    = 0.;
             break;
         case PB_SD_AIR_VOLUME:
-            GetSDAIRBroadening(gamma_0,gamma_2,df_0,df_2,theta,pressure);
+            GetSDAirBroadening(gamma_0,gamma_2,df_0,df_2,theta,pressure);
             f_VC=0;
             eta=0;
             break;
+        case PB_PURELY_FOR_TESTING:
+          GetTestBroadening(gamma_0, gamma_2, df_0, vmrs, theta, pressure, h2o_species);
+          f_VC = 0;
+          eta = 0;
+          df_2 = 0;
+          break;
         default:
             throw std::runtime_error("You have defined an unknown broadening mechanism in normal calculations.\n");
     }
@@ -86,7 +92,11 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma_0,
 
 // Get temperature derivative of the broadening
 void PressureBroadeningData::GetPressureBroadeningParams_dT(Numeric& dgamma_0_dT,
+                                                            Numeric& dgamma_2_dT,
+                                                            Numeric& deta_dT,
                                                             Numeric& ddf_0_dT,
+                                                            Numeric& ddf_2_dT,
+                                                            Numeric& df_VC_dT,
                                                             const Numeric& T,
                                                             const Numeric& T0,
                                                             const Numeric& pressure,
@@ -97,25 +107,43 @@ void PressureBroadeningData::GetPressureBroadeningParams_dT(Numeric& dgamma_0_dT
                                                             ConstVectorView vmrs,
                                                             const Verbosity& verbosity) const
 {
-    switch(mtype)
-    {
-        case PB_NONE:
-            // Note that this is oftentimes not wanted, but a valid case at low pressures
-            break;
-        case PB_AIR_BROADENING:
-            GetAirBroadening_dT(dgamma_0_dT, ddf_0_dT, T, T0, pressure, self_pressure);
-            break;
-        case PB_AIR_AND_WATER_BROADENING:
-            GetAirAndWaterBroadening_dT(dgamma_0_dT, ddf_0_dT, T, T0, pressure, self_pressure, 
-                                    this_species, h2o_species, vmrs, verbosity);
-            break;
-        case PB_PLANETARY_BROADENING:
-            GetPlanetaryBroadening_dT(dgamma_0_dT, ddf_0_dT, T, T0, pressure, self_pressure,
-                                this_species, broad_spec_locations, vmrs, verbosity);
-            break;
-        default:
-            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
-    }
+  switch(mtype)
+  {
+    case PB_NONE:
+      // Note that this is oftentimes not wanted, but a valid case at low pressures
+      break;
+    case PB_AIR_BROADENING:
+      dgamma_2_dT = 0;
+      ddf_2_dT = 0;
+      df_VC_dT = 0;
+      deta_dT = 0;
+      GetAirBroadening_dT(dgamma_0_dT, ddf_0_dT, T, T0, pressure, self_pressure);
+      break;
+    case PB_AIR_AND_WATER_BROADENING:
+      dgamma_2_dT = 0;
+      ddf_2_dT = 0;
+      df_VC_dT = 0;
+      deta_dT = 0;
+      GetAirAndWaterBroadening_dT(dgamma_0_dT, ddf_0_dT, T, T0, pressure, self_pressure, this_species, h2o_species, vmrs, verbosity);
+      break;
+    case PB_PLANETARY_BROADENING:
+      dgamma_2_dT = 0;
+      ddf_2_dT = 0;
+      df_VC_dT = 0;
+      deta_dT = 0;
+      GetPlanetaryBroadening_dT(dgamma_0_dT, ddf_0_dT, T, T0, pressure, self_pressure, this_species, broad_spec_locations, vmrs, verbosity);
+      break;
+    case PB_SD_AIR_VOLUME:
+      df_VC_dT = 0;
+      deta_dT = 0;
+      GetSDAirBroadening_dT(dgamma_0_dT, dgamma_2_dT, ddf_0_dT, ddf_2_dT, T, T0, pressure);
+      break;
+    case PB_HTP_AIR_VOLUME:
+      GetHTPAirBroadening_dT(dgamma_0_dT, dgamma_2_dT, ddf_0_dT, ddf_2_dT, df_VC_dT, deta_dT, T, T0, pressure);
+      break;
+    default:
+      throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+  }
 }
 
 
@@ -674,22 +702,22 @@ void PressureBroadeningData::GetAirAndWaterBroadening_dT(Numeric& dgamma_dT,
     if(this_species==h2o_species)    
     {
         dgamma_dT   = - (
-        mdata[1][1] * mdata[1][0] * pow(theta,mdata[1][1]) * (pressure-self_pressure)
-        + mdata[0][1] *mdata[0][0] * pow(theta,mdata[0][1]) *          self_pressure ) / T;
+          mdata[1][1] * mdata[1][0] * pow(theta,mdata[1][1]) * (pressure-self_pressure)
+        + mdata[0][1] * mdata[0][0] * pow(theta,mdata[0][1]) *           self_pressure) / T;
         
         ddeltaf_dT  = - (
-        ((Numeric)0.25+(Numeric)1.5*mdata[1][1]) * mdata[1][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[1][1]) * (pressure-self_pressure)
-        + ((Numeric)0.25+(Numeric)1.5*mdata[0][1]) * mdata[0][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[0][1]) *         self_pressure ) /T;
+          ((Numeric)0.25+(Numeric)1.5*mdata[1][1]) * mdata[1][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[1][1]) * (pressure-self_pressure)
+        + ((Numeric)0.25+(Numeric)1.5*mdata[0][1]) * mdata[0][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[0][1]) *           self_pressure) /T;
     }
     else if(h2o_species==-1)
     {
         dgamma_dT   = - (
-        mdata[1][1] * mdata[1][0] * pow(theta,mdata[1][1]) * (pressure-self_pressure)
-        + mdata[0][1] * mdata[0][0] * pow(theta,mdata[0][1]) *         self_pressure ) /T;
+          mdata[1][1] * mdata[1][0] * pow(theta,mdata[1][1]) * (pressure-self_pressure)
+        + mdata[0][1] * mdata[0][0] * pow(theta,mdata[0][1]) *           self_pressure) /T;
         
         ddeltaf_dT  = - (
         ((Numeric)0.25+(Numeric)1.5*mdata[1][1]) * mdata[1][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[1][1]) * (pressure-self_pressure)
-        + ((Numeric)0.25+(Numeric)1.5*mdata[0][1]) * mdata[0][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[0][1]) *         self_pressure ) / T;
+        + ((Numeric)0.25+(Numeric)1.5*mdata[0][1]) * mdata[0][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[0][1]) *         self_pressure) / T;
         
         out2 << "You have no H2O in species but you use water-broadened line shape.\n";
     }
@@ -703,7 +731,7 @@ void PressureBroadeningData::GetAirAndWaterBroadening_dT(Numeric& dgamma_dT,
         ddeltaf_dT  = - (
         ((Numeric)0.25+(Numeric)1.5*mdata[1][1]) * mdata[1][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[1][1]) * (pressure-self_pressure-vmrs[h2o_species]*pressure)
         + ((Numeric)0.25+(Numeric)1.5*mdata[0][1]) * mdata[0][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[0][1]) * self_pressure
-        + ((Numeric)0.25+(Numeric)1.5*mdata[2][1]) * mdata[2][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[2][1]) * vmrs[h2o_species]*pressure ) / T;
+        + ((Numeric)0.25+(Numeric)1.5*mdata[2][1]) * mdata[2][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[2][1]) * vmrs[h2o_species]*pressure) / T;
     }
 }
 
@@ -869,14 +897,14 @@ void PressureBroadeningData::GetAirAndWaterBroadening_dWaterExponent(Numeric& ga
 
 // This is the broadening used by ARTSCAT-4; the "AP"-tag in ARTSCAT-5
 void PressureBroadeningData::GetPlanetaryBroadening(Numeric& gamma,
-                                                 Numeric& deltaf,
-                                                 const Numeric& theta,
-                                                 const Numeric& pressure,
-                                                 const Numeric& self_pressure,
-                                                 const Index    this_species,
-                                                 const ArrayOfIndex& broad_spec_locations,
-                                                 ConstVectorView vmrs,
-                                                 const Verbosity& verbosity) const
+                                                    Numeric& deltaf,
+                                                    const Numeric& theta,
+                                                    const Numeric& pressure,
+                                                    const Numeric& self_pressure,
+                                                    const Index    this_species,
+                                                    const ArrayOfIndex& broad_spec_locations,
+                                                    ConstVectorView vmrs,
+                                                    const Verbosity& verbosity) const
 {
     CREATE_OUT2;
     
@@ -1096,7 +1124,7 @@ void PressureBroadeningData::GetPlanetaryBroadening_dT(Numeric& dgamma_dT,
 ///////////////////////////////////////////////////////////////////////////////////////
 
 // This is the broadening used by the "SD-AIR"-tag in ARTSCAT-5
-void PressureBroadeningData::GetSDAIRBroadening(Numeric& gamma0,
+void PressureBroadeningData::GetSDAirBroadening(Numeric& gamma0,
                                                 Numeric& gamma2,
                                                 Numeric& delta0,
                                                 Numeric& delta2,
@@ -1110,6 +1138,115 @@ void PressureBroadeningData::GetSDAIRBroadening(Numeric& gamma0,
     delta0 = mdata[0][2] * pow(theta,mdata[1][2]) * pressure;
     
     delta2 = mdata[0][3] * pow(theta,mdata[1][3]) * pressure;
+}
+
+// This is the broadening used by the "SD-AIR"-tag in ARTSCAT-5
+void PressureBroadeningData::GetSDAirBroadening_dT(Numeric& dgamma0,
+                                                   Numeric& dgamma2,
+                                                   Numeric& ddelta0,
+                                                   Numeric& ddelta2,
+                                                   const Numeric& T,
+                                                   const Numeric& T0,
+                                                   const Numeric& pressure) const
+{
+  const Numeric theta = T0/T;
+  
+  dgamma0 = - (mdata[0][0] * pow(theta,mdata[1][0]) * pressure) / T * mdata[1][0];
+  
+  dgamma2 = - (mdata[0][1] * pow(theta,mdata[1][1]) * pressure) / T * mdata[1][1];
+  
+  ddelta0 = - (mdata[0][2] * pow(theta,mdata[1][2]) * pressure) / T * mdata[1][2];
+  
+  ddelta2 = - (mdata[0][3] * pow(theta,mdata[1][3]) * pressure) / T * mdata[1][3];
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Get HTP broadening for air
+///////////////////////////////////////////////////////////////////////////////////////
+
+// This is the broadening used by the "HTP-AIR"-tag in ARTSCAT-5
+void PressureBroadeningData::GetHTPAirBroadening(Numeric& gamma0,
+                                                 Numeric& gamma2,
+                                                 Numeric& delta0,
+                                                 Numeric& delta2,
+                                                 Numeric& fvc,
+                                                 Numeric& eta,
+                                                 const Numeric& theta,
+                                                 const Numeric& pressure) const
+{
+  gamma0 = mdata[0][0] * pow(theta,mdata[1][0]) * pressure;
+  
+  gamma2 = mdata[0][1] * pow(theta,mdata[1][1]) * pressure;
+  
+  delta0 = mdata[0][2] * pow(theta,mdata[1][2]) * pressure;
+  
+  delta2 = mdata[0][3] * pow(theta,mdata[1][3]) * pressure;
+  
+  fvc = mdata[0][4] * pow(theta,mdata[1][4]) * pressure;
+  
+  eta = mdata[0][5] * pow(theta,mdata[1][5]) * pressure;
+}
+
+
+// This is the broadening used by the "HTP-AIR"-tag in ARTSCAT-5
+void PressureBroadeningData::GetHTPAirBroadening_dT(Numeric& dgamma0,
+                                                    Numeric& dgamma2,
+                                                    Numeric& ddelta0,
+                                                    Numeric& ddelta2,
+                                                    Numeric& dfvc,
+                                                    Numeric& deta,
+                                                    const Numeric& T,
+                                                    const Numeric& T0,
+                                                    const Numeric& pressure) const
+{
+  const Numeric theta = T0/T;
+  
+  dgamma0 = - (mdata[0][0] * pow(theta,mdata[1][0]) * pressure) / T * mdata[1][0];
+  
+  dgamma2 = - (mdata[0][1] * pow(theta,mdata[1][1]) * pressure) / T * mdata[2][1];
+  
+  ddelta0 = - (mdata[0][2] * pow(theta,mdata[1][2]) * pressure) / T * mdata[1][2];
+  
+  ddelta2 = - (mdata[0][3] * pow(theta,mdata[1][3]) * pressure) / T * mdata[1][3];
+  
+  dfvc = - (mdata[0][4] * pow(theta,mdata[1][4]) * pressure) / T * mdata[1][4];
+  
+  deta = - (mdata[0][5] * pow(theta,mdata[1][5]) * pressure) / T * mdata[1][5];
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Get SD broadening for air
+///////////////////////////////////////////////////////////////////////////////////////
+
+// This is the broadening used by the "Testing"-tag in ARTSCAT-5
+void PressureBroadeningData::GetTestBroadening(Numeric& gamma0,
+                                               Numeric& gamma2,
+                                               Numeric& delta0,
+                                               ConstVectorView vmrs,
+                                               const Numeric& theta,
+                                               const Numeric& pressure,
+                                               const Index h2o_index) const
+{
+  if(h2o_index > -1)
+  {
+    gamma0 = (mdata[0][0] * pow(theta,mdata[1][0]) * (1 - vmrs[h2o_index]) + 
+              mdata[2][0] * pow(theta,mdata[3][0]) *      vmrs[h2o_index]) * pressure ;
+  
+    delta0 = (mdata[4][0] * (1 - vmrs[h2o_index]) + 
+              mdata[5][0] *      vmrs[h2o_index]) * pressure;
+              
+    gamma2 = (mdata[6][0] * (1 - vmrs[h2o_index]) + 
+              mdata[7][0] *      vmrs[h2o_index]) * pressure;
+  }
+  else
+  {
+    gamma0 = mdata[0][0] * pow(theta,mdata[1][0]) * pressure;
+    delta0 = mdata[4][0] * pressure;
+    gamma2 = mdata[6][0] * pressure;
+  }
+  
 }
 
 ///////////////////////////////////////////
@@ -1208,7 +1345,7 @@ void PressureBroadeningData::SetPlanetaryBroadeningFromCatalog(const Numeric& sg
 }
 
 // Use these to insert the data in the required format from catalog readings
-void PressureBroadeningData::SetSDAIRFromCatalog(const Numeric& gamma0,
+void PressureBroadeningData::SetSDAirFromCatalog(const Numeric& gamma0,
                                                  const Numeric& gamma0_exp,
                                                  const Numeric& gamma2,
                                                  const Numeric& gamma2_exp,
@@ -1236,6 +1373,79 @@ void PressureBroadeningData::SetSDAIRFromCatalog(const Numeric& gamma0,
     
     mdata[0][3] = delta2;
     mdata[1][3] = delta2_exp;
+}
+
+// Use these to insert the data in the required format from catalog readings
+void PressureBroadeningData::SetHTPAirFromCatalog(const Numeric& gamma0,
+                                                 const Numeric& gamma0_exp,
+                                                 const Numeric& gamma2,
+                                                 const Numeric& gamma2_exp,
+                                                 const Numeric& delta0,
+                                                 const Numeric& delta0_exp,
+                                                 const Numeric& delta2,
+                                                 const Numeric& delta2_exp,
+                                                 const Numeric& fvc,
+                                                 const Numeric& fvc_exp,
+                                                 const Numeric& eta,
+                                                 const Numeric& eta_exp)
+{
+  mtype = PB_HTP_AIR_VOLUME;
+  mdata.resize(2);
+  mdataerror.resize(0);
+  for(Index ii=0;ii<2;ii++)
+  {
+    mdata[ii].resize(4);
+  }
+  
+  mdata[0][0] = gamma0;
+  mdata[1][0] = gamma0_exp;
+  
+  mdata[0][1] = gamma2;
+  mdata[1][1] = gamma2_exp;
+  
+  mdata[0][2] = delta0;
+  mdata[1][2] = delta0_exp;
+  
+  mdata[0][3] = delta2;
+  mdata[1][3] = delta2_exp;
+  
+  mdata[0][4] = fvc;
+  mdata[1][4] = fvc_exp;
+  
+  mdata[0][5] = eta;
+  mdata[1][5] = eta_exp;
+}
+
+// Use these to insert the data in the required format from catalog readings
+void PressureBroadeningData::SetTestFromCatalog(const Numeric& gamma0_air, 
+                                                const Numeric& gamma0_air_exp,
+                                                const Numeric& gamma0_water,
+                                                const Numeric& gamma0_water_exp,
+                                                const Numeric& gamma2_air,
+                                                const Numeric& gamma2_water,
+                                                const Numeric& delta0_air,
+                                                const Numeric& delta0_water)
+{
+  mtype = PB_PURELY_FOR_TESTING;
+  mdata.resize(8);
+  mdataerror.resize(0);
+  for(Index ii=0;ii<8;ii++)
+  {
+    mdata[ii].resize(1);
+  }
+  
+  mdata[0][0] = gamma0_air;
+  mdata[1][0] = gamma0_air_exp;
+  
+  mdata[2][0] = gamma0_water;
+  mdata[3][0] = gamma0_water_exp;
+  
+  mdata[4][0] = delta0_air;
+  mdata[5][0] = delta0_water;
+  
+  mdata[6][0] = gamma2_air;
+  mdata[7][0] = gamma2_water;
+
 }
 
 ///////////////////////////////////////////
@@ -1267,7 +1477,7 @@ void PressureBroadeningData::ChangeSelf(const Numeric& change,
                     mdata[2][ii]+=change;
             break;
         default:
-            throw std::runtime_error("You have defined an unknown broadening mechanism or change.\n");
+          throw std::runtime_error("ChangeSelf: Cannot recognize type");
     }
 }
 void PressureBroadeningData::ChangeSelfExponent(const Numeric& change, 
@@ -1295,7 +1505,7 @@ void PressureBroadeningData::ChangeSelfExponent(const Numeric& change,
                     mdata[3][ii]+=change;
             break;
         default:
-            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+          throw std::runtime_error("ChangeSelfExponent: Cannot recognize type");
     }
 }
 void PressureBroadeningData::SetSelf(const Numeric& new_value, 
@@ -1323,7 +1533,7 @@ void PressureBroadeningData::SetSelf(const Numeric& new_value,
                     mdata[2][ii]=new_value;
             break;
         default:
-            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+          throw std::runtime_error("SetSelf: Cannot recognize type");
     }
 }
 void PressureBroadeningData::SetSelfExponent(const Numeric& new_value, 
@@ -1351,7 +1561,7 @@ void PressureBroadeningData::SetSelfExponent(const Numeric& new_value,
                     mdata[3][ii]=new_value;
             break;
         default:
-            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+          throw std::runtime_error("SetSelfExponent: Cannot recognize type");
     }
 }
 void PressureBroadeningData::ChangeSelfRelative(const Numeric& change, 
@@ -1379,7 +1589,7 @@ void PressureBroadeningData::ChangeSelfRelative(const Numeric& change,
                     mdata[2][ii]*=1.0e0+change;
             break;
         default:
-            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+          throw std::runtime_error("ChangeSelfRelative: Cannot recognize type");
     }
 }
 void PressureBroadeningData::ChangeSelfExponentRelative(const Numeric& change, 
@@ -1407,7 +1617,7 @@ void PressureBroadeningData::ChangeSelfExponentRelative(const Numeric& change,
                     mdata[3][ii]*=1.0e0+change;
             break;
         default:
-            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+          throw std::runtime_error("ChangeSelfExponentRelative: Cannot recognize type");
     }
 }
 void PressureBroadeningData::ChangeForeign(const Numeric& change, 
@@ -1430,7 +1640,7 @@ void PressureBroadeningData::ChangeForeign(const Numeric& change,
                     mdata[2][ii]+=change;
             break;
         default:
-            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+          throw std::runtime_error("ChangeForeign: Cannot recognize type");
     }
 }
 void PressureBroadeningData::ChangeForeignExponent(const Numeric& change, 
@@ -1453,7 +1663,7 @@ void PressureBroadeningData::ChangeForeignExponent(const Numeric& change,
                     mdata[3][ii]+=change;
             break;
         default:
-            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+          throw std::runtime_error("ChangeForeignExponent: Cannot recognize type");
     }
 }
 void PressureBroadeningData::SetForeign(const Numeric& new_value, 
@@ -1476,7 +1686,7 @@ void PressureBroadeningData::SetForeign(const Numeric& new_value,
                     mdata[2][ii]=new_value;
             break;
         default:
-            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+          throw std::runtime_error("SetForeign: Cannot recognize type");
     }
 }
 void PressureBroadeningData::SetForeignExponent(const Numeric& new_value, 
@@ -1499,7 +1709,7 @@ void PressureBroadeningData::SetForeignExponent(const Numeric& new_value,
                     mdata[3][ii]=new_value;
             break;
         default:
-            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+          throw std::runtime_error("SetForeignExponent: Cannot recognize type");
     }
 }
 void PressureBroadeningData::ChangeForeignRelative(const Numeric& change, 
@@ -1522,7 +1732,7 @@ void PressureBroadeningData::ChangeForeignRelative(const Numeric& change,
                     mdata[2][ii]*=1.0e0+change;
             break;
         default:
-            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+          throw std::runtime_error("ChangeForeignRelative: Cannot recognize type");
     }
 }
 void PressureBroadeningData::ChangeForeignExponentRelative(const Numeric& change, 
@@ -1546,7 +1756,7 @@ void PressureBroadeningData::ChangeForeignExponentRelative(const Numeric& change
                     mdata[3][ii]*=1.0e0+change;
             break;
         default:
-            throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+          throw std::runtime_error("ChangeForeignExponentRelative: Cannot recognize type");
     }
 }
 
@@ -1556,72 +1766,57 @@ void PressureBroadeningData::ChangeForeignExponentRelative(const Numeric& change
 
 Index PressureBroadeningData::ExpectedVectorLengthFromType() const
 {
-    if(mtype == PB_NONE) // The none case
-        return 0;
-    else if(isAirBroadening()) // 10 Numerics
-        return 10;
-    else if(isAirAndWaterBroadening()) // 9 Numerics
-        return 9;
-    else if(isPlanetaryBroadening()) // 2 Numerics and 3 Vectors of 6-length
-        return 20;
-    else if(isSD_AirBroadening())
-        return 8;
-    else
-        throw std::runtime_error("You are trying to store to a pressure broadening type that is unknown to ARTS.\n");
-    return 0;
+  switch(mtype)
+  {
+    case PB_NONE:
+      return 0;
+    case PB_AIR_BROADENING:
+      return 10;
+    case PB_AIR_AND_WATER_BROADENING:
+      return 9;
+    case PB_PLANETARY_BROADENING:
+      return 20;
+    case PB_PURELY_FOR_TESTING:
+    case PB_SD_AIR_VOLUME:
+      return 8;
+    case PB_HTP_AIR_VOLUME:
+      return 12;
+    default:
+      throw std::runtime_error("ExpectedVectorLengthFromType: Cannot recognize type");
+  }
 }
 
 void PressureBroadeningData::SetDataFromVectorWithKnownType(const Vector & input)
 {
-    if(input.nelem()!=ExpectedVectorLengthFromType())
-        throw std::runtime_error("Input pressure broadening is of wrong length.\n");
-    
-    if(mtype == PB_NONE) 
-    {
-        // The none case
-        mdata.resize(0);
-        mdataerror.resize(0);
-    } 
-    else if(mtype == PB_AIR_BROADENING) // 10 Numerics
-    {
-        SetAirBroadeningFromCatalog(input[0],
-                                    input[1],
-                                    input[2],
-                                    input[3],
-                                    input[4],
-                                    input[5],
-                                    input[6],
-                                    input[7],
-                                    input[8],
-                                    input[9]);
-    }
-    else if(mtype == PB_AIR_AND_WATER_BROADENING) // 9 Numerics
-    {
-        SetAirAndWaterBroadeningFromCatalog(input[0],
-                                            input[1],
-                                            input[2],
-                                            input[3],
-                                            input[4],
-                                            input[5],
-                                            input[6],
-                                            input[7],
-                                            input[8]);
-    }
-    else if(mtype == PB_PLANETARY_BROADENING) // 2 Numerics and 3 Vectors of 6-length
-        SetPlanetaryBroadeningFromCatalog(input[0],
-                                       input[7],
-                                       input[Range(1,6)],
-                                       input[Range(8,6)],
-                                       input[Range(14,6)]);
-    else if(mtype == PB_SD_AIR_VOLUME) // 8 Numerics
-        SetSDAIRFromCatalog(input[0],
-                            input[1],
-                            input[2],
-                            input[3],
-                            input[4],
-                            input[5],
-                            input[6],
-                            input[7]);
+  if(input.nelem()!=ExpectedVectorLengthFromType())
+      throw std::runtime_error("Input pressure broadening is of wrong length.\n");
+  
+  switch(mtype)
+  {
+    case PB_NONE:
+      // The none case
+      mdata.resize(0);
+      mdataerror.resize(0);
+      break;
+    case PB_AIR_BROADENING:
+      SetAirBroadeningFromCatalog(input[0], input[1], input[2], input[3], input[4], input[5], input[6], input[7], input[8], input[9]);
+      break;
+    case PB_AIR_AND_WATER_BROADENING:
+      SetAirAndWaterBroadeningFromCatalog(input[0], input[1], input[2], input[3], input[4], input[5], input[6], input[7], input[8]);
+      break;
+    case PB_PLANETARY_BROADENING:
+      SetPlanetaryBroadeningFromCatalog(input[0], input[7], input[Range(1,6)], input[Range(8,6)], input[Range(14,6)]);
+      break;
+    case PB_PURELY_FOR_TESTING:
+    case PB_SD_AIR_VOLUME:
+      SetSDAirFromCatalog(input[0], input[1], input[2], input[3], input[4], input[5], input[6], input[7]); 
+      break;
+    case PB_HTP_AIR_VOLUME:
+      SetHTPAirFromCatalog(input[0], input[1], input[2], input[3], input[4], input[5], input[6], input[7], input[8], input[9], input[10], input[11]);
+      break;
+    default:
+      throw std::runtime_error("SetDataFromVectorWithKnownType: Cannot recognize type");
+  }
 }
 
 void PressureBroadeningData::StorageTag2SetType(const String & input)
@@ -1635,52 +1830,71 @@ void PressureBroadeningData::StorageTag2SetType(const String & input)
     else if(input == "AP") // Planetary broadening
         mtype=PB_PLANETARY_BROADENING;
     else if(input == "SD-AIR") // Planetary broadening
-        mtype=PB_SD_AIR_VOLUME;
+      mtype=PB_SD_AIR_VOLUME;
+    else if(input == "HTP-AIR") // Planetary broadening
+      mtype=PB_HTP_AIR_VOLUME;
+    else if(input == "TESTING") // Planetary broadening
+      mtype=PB_PURELY_FOR_TESTING;
     else
-        throw std::runtime_error("You are trying to set pressure broadening type that is unknown to ARTS.\n");
+      throw std::runtime_error("StorageTag2SetType: Cannot recognize tag.\n");
 }
 
 void PressureBroadeningData::GetVectorFromData(Vector& output) const 
 {
-    output.resize(ExpectedVectorLengthFromType());
-    
-    if(mtype == PB_NONE) {} //Nothing
-    else if(mtype == PB_AIR_BROADENING) // 10 Numerics
-    {
-        output[0]=mdata[0][0];
-        output[1]=mdata[1][0];
-        output[2]=mdata[2][0];
-        output[3]=mdata[3][0];
-        output[4]=mdata[4][0];
-        output[5]=mdataerror[0][0];
-        output[6]=mdataerror[1][0];
-        output[7]=mdataerror[2][0];
-        output[8]=mdataerror[3][0];
-        output[9]=mdataerror[4][0];
-        
-    }
-    else if(mtype == PB_AIR_AND_WATER_BROADENING) // 9 Numerics
-    {
-        output[0]=mdata[0][0];
-        output[1]=mdata[0][1];
-        output[2]=mdata[0][2];
-        
-        output[3]=mdata[1][0];
-        output[4]=mdata[1][1];
-        output[5]=mdata[1][2];
-        
-        output[6]=mdata[2][0];
-        output[7]=mdata[2][1];
-        output[8]=mdata[2][2];
-    }
-    else if(mtype == PB_PLANETARY_BROADENING) // 2 Numerics and 3 Vectors of 6-length
-    {
-        output[0]=mdata[0][0];
-        output[7]=mdata[1][0];
-        output[Range(1,6)]=mdata[2];
-        output[Range(8,6)]=mdata[3];
-        output[Range(14,6)]=mdata[4];
-    }
+  const Index n = ExpectedVectorLengthFromType();
+  output.resize(n);
+  
+  switch(mtype)
+  {
+    case PB_NONE:
+      break;
+    case PB_AIR_BROADENING:
+      output[0]=mdata[0][0];
+      output[1]=mdata[1][0];
+      output[2]=mdata[2][0];
+      output[3]=mdata[3][0];
+      output[4]=mdata[4][0];
+      output[5]=mdataerror[0][0];
+      output[6]=mdataerror[1][0];
+      output[7]=mdataerror[2][0];
+      output[8]=mdataerror[3][0];
+      output[9]=mdataerror[4][0];
+      break;
+    case PB_AIR_AND_WATER_BROADENING:
+      output[0]=mdata[0][0];
+      output[1]=mdata[0][1];
+      output[2]=mdata[0][2];
+      output[3]=mdata[1][0];
+      output[4]=mdata[1][1];
+      output[5]=mdata[1][2];
+      output[6]=mdata[2][0];
+      output[7]=mdata[2][1];
+      output[8]=mdata[2][2];
+      break;
+    case PB_PLANETARY_BROADENING:
+      output[0]=mdata[0][0];
+      output[7]=mdata[1][0];
+      output[Range(1,6)]=mdata[2];
+      output[Range(8,6)]=mdata[3];
+      output[Range(14,6)]=mdata[4];
+      break;
+    case PB_SD_AIR_VOLUME:
+    case PB_HTP_AIR_VOLUME:
+      for(Index i = 0; i < n; i++)
+      {
+        if(i%2)
+          output[i] = mdata[1][i/2];
+        else
+          output[i] = mdata[0][i/2];
+      }
+      break;
+    case PB_PURELY_FOR_TESTING:
+      for(Index i = 0; i < n; i++)
+        output[i] = mdata[i][0];
+      break;
+    default:
+      throw std::runtime_error("GetVectorFromData: Cannot recognize type");
+  }
 }
 
 
@@ -1688,16 +1902,21 @@ String PressureBroadeningData::Type2StorageTag() const
 {
     String output;
 
-    if(mtype==PB_NONE) // The none case
-        output = "NA";
-    else if(mtype==PB_AIR_BROADENING) // Air Broadening is mostly N2 ...
-        output = "N2";
-    else if(mtype==PB_AIR_AND_WATER_BROADENING) // Water and Air Broadening
-        output = "WA";
-    else if(mtype==PB_PLANETARY_BROADENING) // Planetary broadening
-        output="AP";
-    else
-        throw std::runtime_error("You are trying to set pressure broadening type that is unknown to ARTS.\n");
-
-    return output;
+    switch(mtype)
+    {
+      case PB_NONE:
+        return "NA";
+      case PB_AIR_BROADENING:
+        return "N2";
+      case PB_AIR_AND_WATER_BROADENING:
+        return "WA";
+      case  PB_SD_AIR_VOLUME:
+        return "SD-AIR";
+      case  PB_HTP_AIR_VOLUME:
+        return "HTP-AIR";
+      case PB_PLANETARY_BROADENING:
+        return "AP";
+      default:
+        throw std::runtime_error("Type2StorageTag: Cannot recognize type");
+    }
 }

@@ -30,7 +30,7 @@
 #include "lin_alg.h"
 #include "rte.h"
 #include "propagationmatrix.h"
-#include "lineshapesdata.h"
+#include "linefunctions.h"
 
 void test_pressurebroadening()
 {
@@ -42,7 +42,7 @@ void test_pressurebroadening()
     
     const Numeric vmr=0.2, dT = 1e-1;
     
-    Numeric tmp1,tmp2,tmp3,tmp4, g_0, df_0, dg, ddf, g_1, df_1;
+    Numeric tmp1,tmp2,tmp3,tmp4, g_0, df_0, dg, dg2, de, ddf, ddf2, dfvc, g_1, df_1;
     ArrayOfIndex empty1;
     const Vector vmrs(1,vmr);
     Verbosity none;
@@ -58,7 +58,7 @@ void test_pressurebroadening()
             line.PressureBroadening().GetPressureBroadeningParams(g_1,tmp1,tmp2,df_1,tmp3,tmp4,
                                                                   line.Ti0()/(T+dT), P, vmr*P,0,-1,empty1,vmrs,none);
             
-            line.PressureBroadening().GetPressureBroadeningParams_dT(dg,ddf, T, 
+            line.PressureBroadening().GetPressureBroadeningParams_dT(dg, dg2, de, ddf, ddf2, dfvc, T, 
                                                                      line.Ti0(),P,
                                                                      vmr*P,0,-1,
                                                                      empty1,
@@ -171,7 +171,7 @@ void test_lineshape()
     
     const Numeric vmr=0.2, dT = 1e-1;
     
-    Numeric tmp1,tmp2,tmp3,tmp4, g, df, g_d, df_d, dg, ddf;
+    Numeric tmp1,tmp2,tmp3,tmp4, g, df, g_d, df_d, dg, dg2, de, ddf, ddf2, dfvc;
     ArrayOfIndex empty1;
     const Vector vmrs(1,vmr);
     Verbosity none;
@@ -198,7 +198,7 @@ void test_lineshape()
             line.PressureBroadening().GetPressureBroadeningParams(g_d,tmp1,tmp2,df_d,tmp3,tmp4,
                                                                   line.Ti0()/(T+dT), P, vmr*P,0,-1,empty1,vmrs,none);
             
-            line.PressureBroadening().GetPressureBroadeningParams_dT(dg,ddf, T, 
+            line.PressureBroadening().GetPressureBroadeningParams_dT(dg, dg2, de, ddf, ddf2, dfvc, T, 
                                                                      line.Ti0(),P,
                                                                      vmr*P,0,-1,
                                                                      empty1,
@@ -461,7 +461,7 @@ void test_new_lineshapes()
   
   const Numeric pressure = 1e5;
   const Numeric vmr = 0.2;
-  Numeric G0, G2, eta, L0, L2, FVC, dG0, dL0, T, gd_div_f0, dgd_div_f0_dT, qt, qt0, dqt, K1, K2, dK1, dK2;
+  Numeric G0, G2, eta, L0, L2, FVC, dG0, dG2, de, dL0, dL2, dFVC, T, gd_div_f0, dgd_div_f0_dT, qt, qt0, dqt, K1, K2, dK1, dK2;
   const Numeric dT = 1/10.;  
   
   T = 300;
@@ -470,7 +470,7 @@ void test_new_lineshapes()
   line.PressureBroadening().GetPressureBroadeningParams(G0, G2, eta, L0, L2, FVC, line.Ti0()/T, pressure,
                                                    vmr*pressure, -1, -1, ArrayOfIndex(), 
                                                    Vector(), Verbosity());
-  line.PressureBroadening().GetPressureBroadeningParams_dT(dG0, dL0, T, line.Ti0(), pressure,
+  line.PressureBroadening().GetPressureBroadeningParams_dT(dG0, dG2, de, dL0, dL2, dFVC, T, line.Ti0(), pressure,
                                                       vmr*pressure, -1, -1, ArrayOfIndex(), 
                                                       Vector(), Verbosity());
   CalculatePartitionFctFromCoeff(qt0, qt, line.Ti0(), T, part_data);

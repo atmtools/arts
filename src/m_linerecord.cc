@@ -528,16 +528,17 @@ void abs_linesSetParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void nlteSetByQuantumIdentifiers(Index& nlte_do,
-                                 ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                                 const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
-                                 const ArrayOfArrayOfSpeciesTag& abs_species,
+void nlteSetByQuantumIdentifiers(Index&                           nlte_do,
+                                 ArrayOfArrayOfLineRecord&        abs_lines_per_species,
+                                 const ArrayOfQuantumIdentifier&  nlte_quantum_identifiers,
+                                 const ArrayOfArrayOfSpeciesTag&  abs_species,
                                  const Tensor4&                   t_nlte_field,
                                  const Vector&                    p_grid,
                                  const Vector&                    lat_grid,
                                  const Vector&                    lon_grid,
                                  const Index&                     atmosphere_dim,
-                                 const Vector& vibrational_energies,
+                                 const Vector&                    vibrational_energies,
+                                 const Index&                     population_type,
                                  const Verbosity&)
 {
     nlte_do = 1;
@@ -554,6 +555,11 @@ void nlteSetByQuantumIdentifiers(Index& nlte_do,
             << "size and the content should match.\n";
             throw std::runtime_error(os.str());
         }
+    }
+    
+    if(not population_type < (Index) LinePopulationType::End and not population_type > 0)
+    {
+      throw std::runtime_error("Cannot understand given population type");
     }
     
     // All energies must be positive
@@ -597,11 +603,12 @@ void nlteSetByQuantumIdentifiers(Index& nlte_do,
                 {
                     case QMI_NONE:    break;
                     case QMI_FULL:
-                        if(lr.EvuppIndex()==-1)
+                        if(lr.NLTEUpperIndex()==-1)
                         {
-                            lr.SetEvuppIndex(qi);
+                            lr.SetNLTEUpperIndex(qi);
                             if(do_ev)
-                                lr.SetEvupp(vibrational_energies[qi]);
+                              lr.SetEvupp(vibrational_energies[qi]);
+                            lr.SetLinePopulationTypeFromIndex(population_type);
                         }
                         else
                         {
@@ -614,11 +621,12 @@ void nlteSetByQuantumIdentifiers(Index& nlte_do,
                         }
                         break;
                     case QMI_PARTIAL:
-                        if(lr.EvuppIndex()==-1)
+                        if(lr.NLTEUpperIndex()==-1)
                         {
-                            lr.SetEvuppIndex(qi);
+                            lr.SetNLTEUpperIndex(qi);
                             if(do_ev)
-                                lr.SetEvupp(vibrational_energies[qi]);
+                              lr.SetEvupp(vibrational_energies[qi]);
+                            lr.SetLinePopulationTypeFromIndex(population_type);
                         }
                         else
                         {
@@ -635,11 +643,12 @@ void nlteSetByQuantumIdentifiers(Index& nlte_do,
                 {
                     case QMI_NONE:    break;
                     case QMI_FULL:
-                        if(lr.EvlowIndex()==-1)
+                        if(lr.NLTELowerIndex()==-1)
                         {
-                            lr.SetEvlowIndex(qi);
+                            lr.SetNLTELowerIndex(qi);
                             if(do_ev)
-                                lr.SetEvlow(vibrational_energies[qi]);
+                              lr.SetEvlow(vibrational_energies[qi]);
+                            lr.SetLinePopulationTypeFromIndex(population_type);
                         }
                         else
                         {
@@ -652,11 +661,12 @@ void nlteSetByQuantumIdentifiers(Index& nlte_do,
                         }
                         break;
                     case QMI_PARTIAL:
-                        if(lr.EvlowIndex()==-1)
+                        if(lr.NLTELowerIndex()==-1)
                         {
-                            lr.SetEvlowIndex(qi);
+                            lr.SetNLTELowerIndex(qi);
                             if(do_ev)
-                                lr.SetEvlow(vibrational_energies[qi]);
+                              lr.SetEvlow(vibrational_energies[qi]);
+                            lr.SetLinePopulationTypeFromIndex(population_type);
                         }
                         else
                         {
