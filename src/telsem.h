@@ -71,7 +71,7 @@ public:
      */
     bool contains(Index cellnumber) const
     {
-        return correspondence[cellnumber] > 0;
+        return correspondence[cellnumber] >= 0;
     }
 
     /*! Class of a given cell.

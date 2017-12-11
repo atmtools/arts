@@ -59,7 +59,6 @@ void telsemAtlasLookup(Vector &emis,
                       const Verbosity &)
 {
     Index cellnumber = ta.calc_cellnum(lat, lon);
-    std::cout << cellnumber << std::endl;
     if (ta.contains(cellnumber)) {
         emis = ta[cellnumber];
     } else {

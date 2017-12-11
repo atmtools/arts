@@ -1,3 +1,14 @@
+2017-12-11  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-898
+
+	* src/arts_api.[h, cc]:
+
+	Added methods to push and pop paths to the include path
+	and data path vectors.
+
+	Removed set_parameters method.
+
 2017-12-04  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-897

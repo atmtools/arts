@@ -151,7 +151,6 @@ Index TelsemAtlas::calc_cellnum(Numeric lat,
     Index ilon = static_cast<Index>(
         floor(lon / 360.0 * static_cast<Numeric>(ncells[ilat]))
         ) + 1;
-    std::cout << ilat << " / " << ilon << std::endl;
     for (Index i = 0; i < ilat; ++i) {
         cellnum += ncells[i];
     }

@@ -14,5 +14,6 @@ ReadXML(REFemissivity, "TestFastem.emissivityREFERENCE.xml")
 ReadXML(REFreflectivity, "TestFastem.reflectivityREFERENCE.xml")
 Compare(emissivity, REFemissivity, 1e-6)
 Compare(reflectivity, REFreflectivity, 1e-6)
+
 }
 

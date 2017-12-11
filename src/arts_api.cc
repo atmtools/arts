@@ -46,15 +46,25 @@ void copy_output_and_input(ArrayOfIndex &output,
 ////////////////////////////////////////////////////////////////////////////
 // Setup and Finalization.
 ////////////////////////////////////////////////////////////////////////////
-void set_parameters(const char *includepath,
-                    const char *datapath)
+
+void include_path_push(const char *path)
 {
-    if (includepath) {
-        parameters.includepath.push_back(includepath);
-    }
-    if (datapath) {
-        parameters.datapath.push_back(datapath);
-    }
+    parameters.includepath.push_back(path);
+}
+
+void include_path_pop()
+{
+    parameters.includepath.pop_back();
+}
+
+void data_path_push(const char *path)
+{
+    parameters.datapath.push_back(path);
+}
+
+void data_path_pop()
+{
+    parameters.datapath.pop_back();
 }
 
 void initialize()

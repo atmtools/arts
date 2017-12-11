@@ -171,17 +171,41 @@ extern "C" {
     // Setup and Finalization.
     ////////////////////////////////////////////////////////////////////////////
 
-    //! Set ARTS runtime parameters
+    //! Add include path.
     /**
-     * Add paths to the include- and datapath of the ARTS runtime.
+     * Pushes a given path to the back of the include path.
      *
-     * \param includepath Pointer to cstring to be added to include path. Use NULL
-     *        if nothing should be added to the current path.
-     * \param datapath Pointer to cstring to be added to data path. Use NULL
-     *        if nothing should be added to the current path.
+     * \param path Pointer to cstring containing the path to
+     *        add to the include path.
      */
     DLL_PUBLIC
-    void set_parameters(const char *includepath, const char *datapath);
+    void include_path_push(const char *path);
+
+    //! Remove last include path.
+    /**
+     * Remove the most recently added include path. Will result
+     * in an exception if the include path is empty.
+     */
+    DLL_PUBLIC
+    void include_path_pop();
+
+    //! Add data path.
+    /**
+     * Adds a given path to the ARTS data path.
+     *
+     * \param path Pointer to cstring containing the path to
+     *        add to the data path.
+     */
+    DLL_PUBLIC
+    void data_path_push(const char *path);
+
+    //! Remove last data path.
+    /**
+     * Remove the most recently added data path. Will result
+     * in an exception if the data path is empty.
+     */
+    DLL_PUBLIC
+    void data_path_pop();
 
     //! Initalize ARTS runtime.
     /**
