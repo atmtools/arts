@@ -1430,7 +1430,6 @@ void surf_albedoCalc( Workspace& ws,
   \param pnd_field             as the WSV
   \param scat_data             as the WSV
   \param propmat_clearsky_agenda  as the WSA
-  \param iy_main_agenda        as the WSA
   \param cloudbox_limits       as the WSV 
   \param surface_skin_t        as the WSV
   \param surface_scalar_reflectivity  as the WSM
@@ -1454,44 +1453,17 @@ void run_disort( Workspace& ws,
               ConstTensor4View pnd_field,
               const ArrayOfArrayOfSingleScatteringData& scat_data,
               const Agenda& propmat_clearsky_agenda, 
-              const Agenda& iy_main_agenda,
               const ArrayOfIndex& cloudbox_limits,
               Numeric& surface_skin_t,
               Vector& surface_scalar_reflectivity,
               ConstVectorView scat_za_grid,
               const Index& nstreams,
-              const Index& non_iso_inc,
               const String& pfct_method,
               const Verbosity& verbosity )
 {
   // Input variables for DISORT
   Index nlyr;
-  bool do_non_iso;
-  if( p_grid.nelem() == pnd_field.npages() )
-    // cloudbox covers whole atmo anyways. no need for a calculation of
-    // non-iso incoming field at top-of-cloudbox. disort will be run over
-    // whole atmo.
-    {
-      do_non_iso = false;
-      nlyr = p_grid.nelem()-1;
-    }
-  else
-    {
-      if( non_iso_inc )
-        // cloudbox only covers part of atmo. disort will be initialized with
-        // non-isotropic incoming field and run over cloudbox only.
-        {
-          do_non_iso = true;
-          nlyr = pnd_field.npages()-1;
-        }
-      else
-        // cloudbox only covers part of atmo. disort will be run over whole
-        // atmo, though (but only in-cloudbox rad field passed to doit_i_field).
-        {
-          do_non_iso = false;
-          nlyr = p_grid.nelem()-1;
-        }
-    }
+  nlyr = p_grid.nelem()-1;
       
   // Optical depth of layers
   Vector dtauc(nlyr, 0.); 
@@ -1564,14 +1536,7 @@ void run_disort( Workspace& ws,
   Numeric ttemp = COSMIC_BG_TEMP;
   Numeric temis = 1.;
 
-  // Top of the atmosphere non-isotropic incoming radiation
-  Matrix cb_inc_field;
   Vector intang(scat_za_grid.nelem()+nstr/2, 0.);
-  if( do_non_iso )
-    get_cb_inc_field( ws, cb_inc_field,
-                      iy_main_agenda,
-                      z_field, t_field, vmr_field, cloudbox_limits,
-                      f_grid, scat_za_grid, nstreams );
 
   // we don't need delta-scaling in microwave region
   Index deltam = FALSE_; 
@@ -1632,30 +1597,7 @@ void run_disort( Workspace& ws,
   // Loop over frequencies
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index ++)
     {
-      // Top of the atmosphere non-isotropic incoming radiation
-      if( do_non_iso )
-        {
-          // extract monchromatic field from cloudbox_incoming_field
-          intang = cb_inc_field(f_index,joker);
-
-          // Moved this assert into DISORT.f. There we can test the actually
-          // applied intang values for validity (and skip upwelling angle values
-          // at the end of intang, which are deliberately set to NaN.).
-          //for( Index i_za=0; i_za<intang.nelem(); i_za++ )
-          //  assert( !(isnan(intang[i_za]) || intang[i_za]<0.) );
-
-          // convert ARTS units to DISORT units
-          // W/(m2 sr Hz) -> W/(m2 sr cm-1)
-          intang *= (100*SPEED_OF_LIGHT);
-          // we replace the isotropic TOA source by the non-isotropic incoming
-          // one, hence set TOA source (via source temperature) to 0
-          ttemp = 0.;
-        }
-      else
-        {
-          intang = 0.;
-          ttemp = COSMIC_BG_TEMP;
-        }
+      ttemp = COSMIC_BG_TEMP;
 
 //#pragma omp critical(fortran_disort)
 //      {
@@ -1835,12 +1777,10 @@ void run_disort( Workspace&,
               ConstTensor4View,
               const ArrayOfArrayOfSingleScatteringData&,
               const Agenda&,
-              const Agenda&,
               const ArrayOfIndex&,
               Numeric&,
               Vector&,
               ConstVectorView,
-              const Index&,
               const Index&,
               const String&,
               const Verbosity& )

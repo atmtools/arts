@@ -1350,10 +1350,10 @@ void scat_dataCheck( //Input:
       {
         for (Index f = 0; f < F_DATAGRID_NEW.nelem(); f++)
         {
-          for (Index t = 0; t < T_DATAGRID_NEW.nelem(); t++)
-          {
-            for (Index zai=0; zai<ABS_VEC_DATA_NEW.npages(); zai++)
-              for (Index aai=0; aai<ABS_VEC_DATA_NEW.nrows(); aai++)
+          for (Index zai=0; zai<ABS_VEC_DATA_NEW.npages(); zai++)
+            for (Index aai=0; aai<ABS_VEC_DATA_NEW.nrows(); aai++)
+            {
+              for (Index t = 0; t < T_DATAGRID_NEW.nelem(); t++)
               {
                 if( EXT_MAT_DATA_NEW(f,t,zai,aai,0)<0 ||
                     ABS_VEC_DATA_NEW(f,t,zai,aai,0)<0 )
@@ -1375,6 +1375,13 @@ void scat_dataCheck( //Input:
                        << "\n";
                     throw runtime_error( os.str() );
                   }
+              }
+              // Since allowing pha_mat to have a single T entry only (while
+              // T_grid, ext_mat, abs_vec have more), we need a separate T loop
+              // for pha_mat
+              Index nTpha = PHA_MAT_DATA_NEW.nvitrines();
+              for (Index t = 0; t < nTpha; t++)
+              {
                 for (Index zas=0; zas<PHA_MAT_DATA_NEW.nshelves(); zas++)
                   for (Index aas=0; aas<PHA_MAT_DATA_NEW.nbooks(); aas++)
                     if( PHA_MAT_DATA_NEW(f,t,zas,aas,zai,aai,0)<0 )
@@ -1382,13 +1389,13 @@ void scat_dataCheck( //Input:
                       ostringstream os;
                       os << "Scatt. species #" << i_ss << " element #" << i_se
                          << " contains negative Z11 at f#" << f
-                         << ", T#" << t << ", za_sca#" << zas << ", aa_sca#"
-                         << aas << ", za_inc#" << zai << ", aa_inc#" << aai
-                         << "\n";
+                         << ", T#" << t << " (of " << nTpha << "), za_sca#"
+                         << zas << ", aa_sca#" << aas << ", za_inc#" << zai
+                         << ", aa_inc#" << aai << "\n";
                       throw runtime_error( os.str() );
                     }
               }
-          }
+            }
         }
       }
     }
@@ -1404,10 +1411,10 @@ void scat_dataCheck( //Input:
       {
         for (Index f = 0; f < F_DATAGRID_NEW.nelem(); f++)
         {
-          for (Index t = 0; t < T_DATAGRID_NEW.nelem(); t++)
-          {
-            for (Index zai=0; zai<ABS_VEC_DATA_NEW.npages(); zai++)
-              for (Index aai=0; aai<ABS_VEC_DATA_NEW.nrows(); aai++)
+          for (Index zai=0; zai<ABS_VEC_DATA_NEW.npages(); zai++)
+            for (Index aai=0; aai<ABS_VEC_DATA_NEW.nrows(); aai++)
+            {
+              for (Index t = 0; t < T_DATAGRID_NEW.nelem(); t++)
               {
                 for (Index st=0; st<ABS_VEC_DATA_NEW.ncols(); st++)
                   if( isnan(ABS_VEC_DATA_NEW(f,t,zai,aai,st)) )
@@ -1429,6 +1436,10 @@ void scat_dataCheck( //Input:
                        << st << "\n";
                     throw runtime_error( os.str() );
                   }
+              }
+              Index nTpha = PHA_MAT_DATA_NEW.nvitrines();
+              for (Index t = 0; t < nTpha; t++)
+              {
                 for (Index zas=0; zas<PHA_MAT_DATA_NEW.nshelves(); zas++)
                   for (Index aas=0; aas<PHA_MAT_DATA_NEW.nbooks(); aas++)
                     for (Index st=0; st<PHA_MAT_DATA_NEW.ncols(); st++)
@@ -1437,13 +1448,13 @@ void scat_dataCheck( //Input:
                         ostringstream os;
                         os << "Scatt. species #" << i_ss << " element #" << i_se
                            << " contains NaN in pha_mat at f#" << f << ", T#"
-                           << t << ", za_sca#" << zas << ", aa_sca#" << aas
-                           << ", za_inc#" << zai << ", aa_inc#" << aai
-                           << ", stokes #" << "\n";
+                           << t << " (of " << nTpha << "), za_sca#" << zas
+                           << ", aa_sca#" << aas << ", za_inc#" << zai
+                           << ", aa_inc#" << aai << ", stokes #" << "\n";
                         throw runtime_error( os.str() );
                       }
               }
-          }
+            }
         }
       }
     }
@@ -1458,72 +1469,23 @@ void scat_dataCheck( //Input:
 
         // Loop over the included scattering elements
         for (Index i_se = 0; i_se < N_se; i_se++)
-        {
-          switch (PART_TYPE_NEW)
-          {
-            case PTYPE_TOTAL_RND:
+          if( T_DATAGRID_NEW.nelem() == PHA_MAT_DATA_NEW.nvitrines() )
+            switch (PART_TYPE_NEW)
             {
-              for (Index f = 0; f < F_DATAGRID_NEW.nelem(); f++)
+              case PTYPE_TOTAL_RND:
               {
-                for (Index t = 0; t < T_DATAGRID_NEW.nelem(); t++)
+                for (Index f = 0; f < F_DATAGRID_NEW.nelem(); f++)
                 {
-                  Numeric Csca = AngIntegrate_trapezoid(
-                                  PHA_MAT_DATA_NEW(f, t, joker, 0, 0, 0, 0),
-                                  ZA_DATAGRID_NEW);
-                  Numeric Cext_data = EXT_MAT_DATA_NEW(f,t,0,0,0);
-                  //Numeric Cabs = Cext_data - Csca;
-                  Numeric Cabs_data = ABS_VEC_DATA_NEW(f,t,0,0,0);
-                  Numeric Csca_data = Cext_data - Cabs_data;
-
-                  /*
-                  out3 << "  Coefficients in database: "
-                       << "Cext: " << Cext_data << " Cabs: " << Cabs_data
-                       << " Csca: " << Csca_data << "\n"
-                       << "  Calculated coefficients: "
-                       << "Cabs calc: " << Cabs
-                       << " Csca calc: " << Csca << "\n"
-                       << "  Deviations "
-                       << "Cabs: " << 1e2*Cabs/Cabs_data-1e2
-                       << "% Csca: " << 1e2*Csca/Csca_data-1e2
-                       << "% Alb: " << (Csca-Csca_data)/Cext_data << "\n";
-                  */
-                  
-                  //if (abs(Csca/Csca_data-1.)*Csca_data/Cext_data > threshold)
-                  // below equivalent to the above
-                  // (it's actually the (absolute) albedo deviation!)
-                  if (abs(Csca-Csca_data)/Cext_data > threshold)
+                  for (Index t = 0; t < T_DATAGRID_NEW.nelem(); t++)
                   {
-                    ostringstream os;
-                    os << "  Deviations in scat_data too large:\n"
-                       << "  scat dev [%] " << 1e2*Csca/Csca_data-1e2
-                       << " at nominal (actual) albedo of "
-                       << Csca_data/Cext_data << " ("
-                       << Csca/Cext_data << ").\n"
-                       << "  Check entry for scattering element " << i_se
-                       << " of scattering species " << i_ss << " at "
-                       << f << ".frequency and " << t << ".temperature!\n";
-                    throw runtime_error( os.str() );
-                  }
-                }
-              }
-              break;
-            }
-                    
-            case PTYPE_AZIMUTH_RND:
-            {
-              for (Index f = 0; f < F_DATAGRID_NEW.nelem(); f++)
-              {
-                for (Index t = 0; t < T_DATAGRID_NEW.nelem(); t++)
-                {
-                  for (Index iza = 0; iza < ABS_VEC_DATA_NEW.npages(); iza++)
-                  {
-                    Numeric Csca = 2 * AngIntegrate_trapezoid(
-                                    PHA_MAT_DATA_NEW(f, t, joker, joker, iza, 0, 0),
-                                    ZA_DATAGRID_NEW, AA_DATAGRID_NEW );
-                    Numeric Cext_data = EXT_MAT_DATA_NEW(f,t,iza,0,0);
+                    Numeric Csca = AngIntegrate_trapezoid(
+                                     PHA_MAT_DATA_NEW(f, t, joker, 0, 0, 0, 0),
+                                     ZA_DATAGRID_NEW);
+                    Numeric Cext_data = EXT_MAT_DATA_NEW(f,t,0,0,0);
                     //Numeric Cabs = Cext_data - Csca;
-                    Numeric Cabs_data = ABS_VEC_DATA_NEW(f,t,iza,0,0);
+                    Numeric Cabs_data = ABS_VEC_DATA_NEW(f,t,0,0,0);
                     Numeric Csca_data = Cext_data - Cabs_data;
+
                     /*
                     out3 << "  Coefficients in database: "
                          << "Cext: " << Cext_data << " Cabs: " << Cabs_data
@@ -1536,6 +1498,7 @@ void scat_dataCheck( //Input:
                          << "% Csca: " << 1e2*Csca/Csca_data-1e2
                          << "% Alb: " << (Csca-Csca_data)/Cext_data << "\n";
                     */
+                  
                     //if (abs(Csca/Csca_data-1.)*Csca_data/Cext_data > threshold)
                     // below equivalent to the above
                     // (it's actually the (absolute) albedo deviation!)
@@ -1549,31 +1512,86 @@ void scat_dataCheck( //Input:
                          << Csca/Cext_data << ").\n"
                          << "  Check entry for scattering element " << i_se
                          << " of scattering species " << i_ss << " at "
-                         << f << ". frequency, " << t << ". temperature, and "
-                         << iza << ". incident polar angle!\n";
+                         << f << ".frequency and " << t << ".temperature!\n";
                       throw runtime_error( os.str() );
                     }
                   }
                 }
+                break;
               }
-              break;
-            }
+                    
+              case PTYPE_AZIMUTH_RND:
+              {
+                for (Index f = 0; f < F_DATAGRID_NEW.nelem(); f++)
+                {
+                  for (Index t = 0; t < T_DATAGRID_NEW.nelem(); t++)
+                  {
+                    for (Index iza = 0; iza < ABS_VEC_DATA_NEW.npages(); iza++)
+                    {
+                      Numeric Csca = 2 * AngIntegrate_trapezoid(
+                                       PHA_MAT_DATA_NEW(f, t, joker, joker, iza, 0, 0),
+                                       ZA_DATAGRID_NEW, AA_DATAGRID_NEW );
+                      Numeric Cext_data = EXT_MAT_DATA_NEW(f,t,iza,0,0);
+                      //Numeric Cabs = Cext_data - Csca;
+                      Numeric Cabs_data = ABS_VEC_DATA_NEW(f,t,iza,0,0);
+                      Numeric Csca_data = Cext_data - Cabs_data;
 
-            default:
-            {
-              out0 << "  WARNING:\n"
-                   << "  scat_data consistency check not implemented (yet?!) for\n"
-                   << "  ptype " << PART_TYPE_NEW << "!\n";
+                      /*
+                      out3 << "  Coefficients in database: "
+                           << "Cext: " << Cext_data << " Cabs: " << Cabs_data
+                           << " Csca: " << Csca_data << "\n"
+                           << "  Calculated coefficients: "
+                           << "Cabs calc: " << Cabs
+                           << " Csca calc: " << Csca << "\n"
+                           << "  Deviations "
+                           << "Cabs: " << 1e2*Cabs/Cabs_data-1e2
+                           << "% Csca: " << 1e2*Csca/Csca_data-1e2
+                           << "% Alb: " << (Csca-Csca_data)/Cext_data << "\n";
+                      */
+
+                      //if (abs(Csca/Csca_data-1.)*Csca_data/Cext_data > threshold)
+                      // below equivalent to the above
+                      // (it's actually the (absolute) albedo deviation!)
+                      if (abs(Csca-Csca_data)/Cext_data > threshold)
+                      {
+                        ostringstream os;
+                        os << "  Deviations in scat_data too large:\n"
+                           << "  scat dev [%] " << 1e2*Csca/Csca_data-1e2
+                           << " at nominal (actual) albedo of "
+                           << Csca_data/Cext_data << " ("
+                           << Csca/Cext_data << ").\n"
+                           << "  Check entry for scattering element " << i_se
+                           << " of scattering species " << i_ss << " at "
+                           << f << ". frequency, " << t << ". temperature, and "
+                           << iza << ". incident polar angle!\n";
+                        throw runtime_error( os.str() );
+                      }
+                    }
+                  }
+                }
+                break;
+              }
+
+              default:
+              {
+                out0 << "  WARNING:\n"
+                     << "  scat_data consistency check not implemented (yet?!) for\n"
+                     << "  ptype " << PART_TYPE_NEW << "!\n";
+              }
             }
-          }
-        }
+          else
+            out2 << "  WARNING:\n"
+                 << "  scat_data norm check can not be performed for pha_mat-only"
+                 << " T-reduced scattering elements\n"
+                 << "  as found in scatt element #" << i_se
+                 << " of scatt species #" << i_ss << "!\n";
       }
     }
     else if (check_type.toupper() == "SANE")
     {
-        out1 << "  WARNING:\n"
-        << "  Normalization check on pha_mat switched off.\n"
-        << "  Scattering solution might be wrong.\n";
+      out1 << "  WARNING:\n"
+           << "  Normalization check on pha_mat switched off.\n"
+           << "  Scattering solution might be wrong.\n";
     }
     else
     {
@@ -1928,29 +1946,45 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
                 const Numeric& T,
                 const Index& interp_order,
                 const Index& phamat_only,
+                const Numeric& threshold,
                 const Verbosity&)
 {
   // We are directly acting on the scat_data entries, modifying them
-  // individually. That is, we don't need to resize these Arrays. Only the
+  // individually. That is, we don't need to resize these arrays. Only the
   // pha_mat and probably ext_mat and abs_vec Tensors (in the latter case also
   // T_grid!).
 
   // Check that species i_ss exists at all in scat_data
-  //FIXME
+  const Index nss=scat_data.nelem();
+  if( nss <= i_ss )
+  {
+    ostringstream os;
+    os << "Can not T-reduce scattering species #" << i_ss << ".\n"
+       << "*scat_data* contains only " << nss << " scattering species.";
+    throw runtime_error( os.str() );
+  }
 
   // Loop over the included scattering elements
   for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
   {
+    // At very first check validity of the scatt elements ptype (so far we only
+    // handle PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND).
+    if( PART_TYPE_NEW != PTYPE_TOTAL_RND and PART_TYPE_NEW != PTYPE_AZIMUTH_RND )
+    {
+      ostringstream os;
+      os << "Only ptypes " << PTYPE_TOTAL_RND << " and " << PTYPE_AZIMUTH_RND
+         << " can be handled.\n"
+         << "Scattering element #" << i_se << " has ptype " << PART_TYPE_NEW
+         << ".";
+      throw runtime_error( os.str() );
+    }
+
     // If ssd.T_grid already has only a single point, we do nothing.
     // This is not necessarily expected behaviour. BUT, it is in line with
     // previous use (that if nT==1, then assume ssd constant in T).
     Index nT = T_DATAGRID_NEW.nelem();
     if( nT>1 )
     {
-      // Check that pha_mat, ext_mat, abs_vec still have the same temp
-      // dimensions
-      //FIXME
-      
       // Check, that we not have data that has already been T-reduced (in
       // pha_mat only. complete ssd T-reduce should have been sorted away
       // already above).
@@ -1964,11 +1998,16 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
         throw runtime_error( os.str() );
       }
 
+      // Check that ext_mat and abs_vec have the same temp dimensions as T_grid.
+      // This should always be true, if not it's a bug not a user mistake, hence
+      // use assert.
+      assert( EXT_MAT_DATA_NEW.nbooks()==nT and ABS_VEC_DATA_NEW.nbooks()==nT );
+      
       // Check that T_grid is consistent with requested interpolation order
-      ostringstream os;
-      os << "Scattering data temperature interpolation for\n"
+      ostringstream ost;
+      ost << "Scattering data temperature interpolation for\n"
          << "scat element #" << i_se << " of scat species #" << i_ss << ".";
-      chk_interpolation_grids( os.str(), T_DATAGRID_NEW, T, interp_order );
+      chk_interpolation_grids( ost.str(), T_DATAGRID_NEW, T, interp_order );
 
       // Gridpositions:
       GridPosPoly gp_T;
@@ -2014,8 +2053,9 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
                            PHA_MAT_DATA_NEW(i_f,joker,i_za1,i_aa1,i_za2,i_aa2,i_st),
                            gp_T);
 
-      // a2) temp interpol of ext and abs. regardless of whether they should be
-      // reduced or not. as we need them also for norm checking / renorming.
+      // a2) temp interpol of ext and abs.
+      //We do that regardless of whether they should be reduced or not, because
+      //we need them also for norm checking / renorming.
       for( Index i_f=0; i_f<EXT_MAT_DATA_NEW.nshelves(); i_f++ )
         for( Index i_za=0; i_za<EXT_MAT_DATA_NEW.npages(); i_za++ )
           for( Index i_aa=0; i_aa<EXT_MAT_DATA_NEW.nrows(); i_aa++ )
@@ -2032,26 +2072,222 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
                        gp_T);
           }
 
+      // Norm & other consistency checks.
+      // All done separately for PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND (the
+      // latter needs to loop over scat_za_inc).
+      //
+      // b) calculate norm of T-reduced pha mat
+      // c) check pha mat norm vs. sca xs from ext-abs at T_interpol
+      // d) Ensure that T-reduced data is consistent/representative of all data.
+      //    and throw error/disallow reduction if sca xs varying too much.
+      // d1) in case of pha_mat only reduction, the scat xs (pha_mat norm) needs
+      // to be consistent with the sca xs from over the ext/abs T_grid. This is
+      // essentially an energy conservation issue. That is, we should be as
+      // strict here as with pha_mat norm deviations in general (however, should
+      // we allow the norm at T_grid to deviate by a threshold from the
+      // T_interpol norm (that should be a little looser) or from the ext-abs
+      // derived expected norm?).
+      // d2) in case of all-ssp reduction, the data should still be
+      // representative. b)&c) ensure data consistency in itself, making this
+      // rather an error on the SSP as such. Hence, we might be a little more
+      // loose here.
+      // d) the resulting check for d1) and d2) is the same (ext-abs sca xs at
+      // T_interpol vs ext-abs sca xs at T_grid), but we use different
+      // thresholds.
+      //
+      // FIXME? 
+      // Regarding b)&c) should we also calc norm of original-T pha mats? To get
+      // a measure how strong they already deviate from expected norm (As we can
+      // not be more exact here than what is already in the original data...).
+      // On the other hand, a certain accuracy should be guaranteed from
+      // scat_dataCheck already.
+      // Hence, for now we skip that (but maybe added later when proves
+      // necessary).
+      //
+      // FIXME?
+      // Regarding d1), we could alternatively make sure here that norm at
+      // T_interpol is good. And later on ignore any deviations between norm and
+      // ext-abs sca xs and instead blindly renorm to expected norm (would that
+      // be ok? correct norm here, doesn't imply correct norm at whatever scat
+      // angle grids the user is applying. for that, we could in place also calc
+      // the original-data norm. but that might be expensive (as we can't do
+      // that from ext-abs sca xs, because we don't know to which T that refers.
+      // that would go away if we'd actually store pha_mat normed to 1 or 4Pi.
+      // but that's prob not going to happen. is it? Another option would be to
+      // introduce an additional T_grid, eg T_grid_phamat.). which we actually
+      // want to avoid :-/
 
+      Numeric this_threshold;
+      String errmsg;
+      if( phamat_only )
+      {
+        this_threshold = threshold;
+        errmsg = "T-reduced *pha_mat_data* norm (=sca xs) deviates too "
+                 "much from non-reduced *ext_mat_data* and *abs_vec_data*:";
+      }
+      else
+      {
+        this_threshold = 2*threshold;
+        errmsg = "T-reduced *scat_data* deviates too much from original "
+                 "*scat_data*:";
+      }
 
-// b) calculate pha mat norm
-//    separately for p20 and p30 (p30 needs to loop over scat_za_inc)
+      // The norm-check code is copied and slightly adapted from scat_dataCheck.
+      // Might be better to make a functon out of this and use in both places
+      // for consistency.
+      //
+      // FIXME: no checks on higher Stokes elements are done. Should there?
+      // Which?
+      switch (PART_TYPE_NEW)
+      {
+        case PTYPE_TOTAL_RND:
+        {
+          for (Index f = 0; f < F_DATAGRID_NEW.nelem(); f++)
+          {
+            // b) calculate norm of T-reduced pha mat
+            Numeric Csca = AngIntegrate_trapezoid(
+                             phamat_tmp(f, 0, joker, 0, 0, 0, 0),
+                             ZA_DATAGRID_NEW);
+            Numeric Cext_data = extmat_tmp(f,0,0,0,0);
+            //Numeric Cabs = Cext_data - Csca;
+            Numeric Cabs_data = absvec_tmp(f,0,0,0,0);
+            Numeric Csca_data = Cext_data - Cabs_data;
 
-// c) check pha mat norm vs. sca xs from ext-abs
-// c1) at T_interpol
-// c2) if not reduce ext and abs, then at all T_grid points (?)
-//     and throw error/disallow reduction if sca xs varying too much(?) (and,
-//     how much is ok?)
-//     Alternatively, we could make sure here that norm at T_interpol is good.
-//     And later on ignore any deviations between norm and ext-abs sca xs and
-//     instead blindly renorm to expected norm (would that be ok? correct norm
-//     here, doesn't imply correct norm at whatever scat angle grids the user is
-//     applying. for that, we could in place also calc the original-data norm.
-//     but that might be expensive (as we can't do that from ext-abd sca xs,
-//     because we don't know to which T that refers. that would go away if we'd
-//     actually store pha_mat normed to 1 or 4Pi. but that's prob not going to
-//     happen. is it? Another option would be to introduce an additional T_grid,
-//     eg T_grid_phamat.). which we actually want to avoid :-/
+            /*
+            cout << "  Coefficients in data: "
+                 << "Cext: " << Cext_data << " Cabs: " << Cabs_data
+                 << " Csca: " << Csca_data << "\n"
+                 << "  Calculated coefficients: "
+                 << "Cabs calc: " << Cabs
+                 << " Csca calc: " << Csca << "\n"
+                 << "  Deviations "
+                 << "Cabs: " << 1e2*Cabs/Cabs_data-1e2
+                 << "% Csca: " << 1e2*Csca/Csca_data-1e2
+                 << "% Alb: " << (Csca-Csca_data)/Cext_data << "\n";
+            */
+                  
+            // c) check pha mat norm vs. sca xs from ext-abs at T_interpol (as
+            // albedo dev check)
+            if (abs(Csca-Csca_data)/Cext_data > threshold)
+            {
+              ostringstream os;
+              os << "  Deviations in T-reduced scat_data too large:\n"
+                 << "  scat dev [%] " << 1e2*Csca/Csca_data-1e2
+                 << " at nominal (actual) albedo of "
+                 << Csca_data/Cext_data << " ("
+                 << Csca/Cext_data << ").\n"
+                 << "  Problem occurs for scattering element #" << i_se
+                 << " at " << f << ".frequency!\n";
+              throw runtime_error( os.str() );
+            }
+            Numeric norm_dev = (Csca-Csca)/Cext_data;
+
+            // d) Ensure that T-reduced data is consistent/representative of all data.
+            // below use theoretical (ext-abs derived) sca xs as reference.
+            Csca = Csca_data;
+            for (Index t = 0; t < T_DATAGRID_NEW.nelem(); t++)
+            {
+              Cext_data = EXT_MAT_DATA_NEW(f,t,0,0,0);
+              Csca_data = Cext_data - ABS_VEC_DATA_NEW(f,t,0,0,0);
+              Numeric xs_dev = (Csca-Csca_data)/Cext_data;
+              if (abs(norm_dev+(Csca-Csca_data)/Cext_data) > this_threshold)
+                cout << "Accumulated deviation (abs(" << norm_dev << "+" << xs_dev
+                     << ")=" << abs(norm_dev+xs_dev) << " exceeding threshold ("
+                     << this_threshold << ").\n";
+              if (abs(Csca-Csca_data)/Cext_data > this_threshold)
+              {
+                ostringstream os;
+                os << "  " << errmsg << "\n"
+                   << "  scat dev [%] " << 1e2*Csca/Csca_data-1e2
+                   << " at nominal (actual) albedo of "
+                   << Csca_data/Cext_data << " ("
+                   << Csca/Cext_data << ").\n"
+                   << "  Problem occurs for scattering element #" << i_se
+                   << " at " << f << ".frequency and " << t << ".temperature!\n";
+                throw runtime_error( os.str() );
+              }
+            }
+          }
+          break;
+        }
+                    
+        case PTYPE_AZIMUTH_RND:
+        {
+          for (Index f = 0; f < F_DATAGRID_NEW.nelem(); f++)
+          {
+            for (Index iza = 0; iza < ABS_VEC_DATA_NEW.npages(); iza++)
+            {
+              // b) calculate norm of T-reduced pha mat
+              Numeric Csca = 2 * AngIntegrate_trapezoid(
+                               phamat_tmp(f, 0, joker, joker, iza, 0, 0),
+                               ZA_DATAGRID_NEW, AA_DATAGRID_NEW);
+              Numeric Cext_data = extmat_tmp(f,0,iza,0,0);
+              //Numeric Cabs = Cext_data - Csca;
+              Numeric Cabs_data = absvec_tmp(f,0,iza,0,0);
+              Numeric Csca_data = Cext_data - Cabs_data;
+
+              /*
+              cout << "  Coefficients in data: "
+                   << "Cext: " << Cext_data << " Cabs: " << Cabs_data
+                   << " Csca: " << Csca_data << "\n"
+                   << "  Calculated coefficients: "
+                   << "Cabs calc: " << Cabs
+                   << " Csca calc: " << Csca << "\n"
+                   << "  Deviations "
+                   << "Cabs: " << 1e2*Cabs/Cabs_data-1e2
+                   << "% Csca: " << 1e2*Csca/Csca_data-1e2
+                   << "% Alb: " << (Csca-Csca_data)/Cext_data << "\n";
+              */
+
+              // c) check pha mat norm vs. sca xs from ext-abs at T_interpol (as
+              // albedo dev check)
+              if (abs(Csca-Csca_data)/Cext_data > threshold)
+              {
+                ostringstream os;
+                os << "  Deviations in T-reduced scat_data too large:\n"
+                   << "  scat dev [%] " << 1e2*Csca/Csca_data-1e2
+                   << " at nominal (actual) albedo of "
+                   << Csca_data/Cext_data << " ("
+                   << Csca/Cext_data << ").\n"
+                   << "  Problem occurs for scattering element #" << i_se
+                   << " at " << f << ".frequency, and "
+                   << iza << ". incident polar angle!\n";
+                throw runtime_error( os.str() );
+              }
+
+              // d) Ensure that T-reduced data is consistent/representative of all data.
+              // below use theoretical (ext-abs derived) sca xs as reference.
+              Csca = Csca_data;
+              for (Index t = 0; t < T_DATAGRID_NEW.nelem(); t++)
+              {
+                Cext_data = EXT_MAT_DATA_NEW(f,t,0,0,0);
+                Csca_data = Cext_data - ABS_VEC_DATA_NEW(f,t,0,0,0);
+                if (abs(Csca-Csca_data)/Cext_data > this_threshold)
+                {
+                  ostringstream os;
+                  os << "  " << errmsg << "\n"
+                     << "  scat dev [%] " << 1e2*Csca/Csca_data-1e2
+                     << " at nominal (actual) albedo of "
+                     << Csca_data/Cext_data << " ("
+                     << Csca/Cext_data << ").\n"
+                     << "  Problem occurs for scattering element #" << i_se
+                     << " at " << f << ".frequency and " << t << ".temperature, and "
+                     << iza << ". incident polar angle!\n";
+                  throw runtime_error( os.str() );
+                }
+              }
+            }
+          }
+          break;
+        }
+
+        default:
+        {
+          // other ptype cases already excluded above. i.e. we shouldn't end up
+          // here. If we do, that's a bug.
+          assert(0);
+        }
+      }
 
       PHA_MAT_DATA_NEW = phamat_tmp;
       //We don't need to reset the scat element's grids!

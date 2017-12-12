@@ -77,13 +77,11 @@ void run_disort( Workspace& ws,
               ConstTensor4View pnd_field,
               const ArrayOfArrayOfSingleScatteringData& scat_data,
               const Agenda& propmat_clearsky_agenda, 
-              const Agenda& iy_main_agenda,
               const ArrayOfIndex& cloudbox_limits,
               Numeric& surface_skin_t,
               Vector& surface_scalar_reflectivity,
               ConstVectorView scat_za_grid,
               const Index& nstreams,
-              const Index& non_iso_inc,
               const String& pfct_method,
               const Verbosity& verbosity );
 

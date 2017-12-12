@@ -4498,17 +4498,15 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmfields_checked", "atmgeom_checked", "scat_data_checked",
             "cloudbox_checked", "cloudbox_on", "cloudbox_limits",
-            "propmat_clearsky_agenda", "iy_main_agenda",
+            "propmat_clearsky_agenda",
             "atmosphere_dim", "pnd_field", "t_field", "z_field", "vmr_field",
             "p_grid", "scat_data", "f_grid", "scat_za_grid", "stokes_dim",
             "surface_skin_t", "surface_scalar_reflectivity" ),
-        GIN(         "nstreams", "non_iso_inc", "pfct_method" ),
-        GIN_TYPE(    "Index",    "Index",       "String" ),
-        GIN_DEFAULT( "8",        "0",           "median" ),
+        GIN(         "nstreams", "pfct_method" ),
+        GIN_TYPE(    "Index",    "String" ),
+        GIN_DEFAULT( "8",        "median" ),
         GIN_DESC( "Number of polar angle directions (streams) in DISORT "
                   "solution (must be an even number).",
-                  "Flag whether to run DISORT initialized with non-isotropic "
-                  "TOA field. See above for more info.",
                   "Flag which method to apply to derive phase function." )
         ));
 
@@ -4543,17 +4541,15 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmfields_checked", "atmgeom_checked", "scat_data_checked",
             "cloudbox_checked", "cloudbox_on", "cloudbox_limits",
-            "propmat_clearsky_agenda", "iy_main_agenda",
+            "propmat_clearsky_agenda",
             "surface_rtprop_agenda", "atmosphere_dim", 
             "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
             "scat_data", "f_grid", "scat_za_grid", "stokes_dim" ),
-        GIN(         "nstreams", "non_iso_inc", "pfct_method" ),
-        GIN_TYPE(    "Index",    "Index",       "String" ),
-        GIN_DEFAULT( "8",        "0",           "median" ),
+        GIN(         "nstreams", "pfct_method" ),
+        GIN_TYPE(    "Index",    "String" ),
+        GIN_DEFAULT( "8",        "median" ),
         GIN_DESC( "Number of polar angle directions (streams) in DISORT "
                   "solution (must be an even number).",
-                  "Flag whether to run DISORT initialized with non-isotropic "
-                  "TOA field. See above for more info.",
                   "Flag which method to apply to derive phase function." )
         ));
 
@@ -14508,22 +14504,20 @@ void define_md_data_raw()
             "atmosphere_dim",
             "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
             "scat_data", "f_grid", "stokes_dim" ),
-        GIN(         "nstreams", "non_iso_inc", "pfct_method", "quad_type",
+        GIN(         "nstreams", "pfct_method", "quad_type",
                      "add_straight_angles", "pfct_aa_grid_size",
                      "auto_inc_nstreams", "robust",
                      "za_interp_order", "cos_za_interp", "max_delta_tau" ),
-        GIN_TYPE(    "Index",    "Index",       "String",      "String",
+        GIN_TYPE(    "Index",    "String",      "String",
                      "Index",               "Index",
                      "Index",             "Index",
                      "Index",           "Index",         "Numeric" ),
-        GIN_DEFAULT( "16",       "0",           "median",      "D",
+        GIN_DEFAULT( "16",       "median",      "D",
                      "1",                   "19",
                      "0",                 "0",
                      "1",               "0",             "1e-6" ),
         GIN_DESC( "Number of polar angle directions (streams) in RT4"
                   " solution (must be an even number).",
-                  "Flag whether to run RT4 initialized with non-isotropic"
-                  " TOA field. See above for more info.",
                   "Flag which method to apply to derive phase function (for"
                   " available options see above).",
                   "Flag which quadrature to apply in RT4 solution (for"
@@ -14582,25 +14576,23 @@ void define_md_data_raw()
             "scat_data", "f_grid", "stokes_dim",
             "surface_skin_t", "surface_scalar_reflectivity",
             "surface_reflectivity", "surface_complex_refr_index" ),
-        GIN(         "nstreams", "non_iso_inc", "pfct_method",
+        GIN(         "nstreams", "pfct_method",
                      "ground_type", "quad_type", "add_straight_angles",
                      "pfct_aa_grid_size",
                      "auto_inc_nstreams", "robust",
                      "za_interp_order", "cos_za_interp", "max_delta_tau" ),
-        GIN_TYPE(    "Index",    "Index",       "String",
+        GIN_TYPE(    "Index",    "String",
                      "String",      "String",    "Index",
                      "Index",
                      "Index",             "Index",
                      "Index",           "Index",         "Numeric" ),
-        GIN_DEFAULT( "16",       "0",           "median",
+        GIN_DEFAULT( "16",       "median",
                      "A",           "D",         "1",
                      "19",
                      "0",                 "0",
                      "1",               "0",             "1e-6" ),
         GIN_DESC( "Number of polar angle directions (streams) in RT4"
                   " solution (must be an even number).",
-                  "Flag whether to run RT4 initialized with non-isotropic"
-                  " TOA field. See above for more info.",
                   "Flag which method to apply to derive phase function (for"
                   " available options see above).",
                   "Flag which surface type/surface property method to use"
@@ -15341,15 +15333,19 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_data" ),
-        GIN(      "scat_index", "temperature", "interp_order", "phamat_only" ),
-        GIN_TYPE( "Index",      "Numeric",     "Index",        "Index" ),
-        GIN_DEFAULT( NODEF,     NODEF,         "1",            "1" ),
+        GIN(      "scat_index", "temperature", "interp_order", "phamat_only",
+                  "sca_mat_threshold" ),
+        GIN_TYPE( "Index",      "Numeric",     "Index",        "Index",
+                  "Numeric" ),
+        GIN_DEFAULT( NODEF,     NODEF,         "1",            "1",
+                  "5e-2" ),
         GIN_DESC( "Apply on *scat_data* from scattering species of this index"
                   " (0-based).",
                   "Temperature to interpolate *scat_data* to.",
                   "Interpolation order.",
                   "Flag whether to apply temperture reduction on phase matrix"
-                  " data only (1) or on all single scattering properties (0)." )
+                  " data only (1) or on all single scattering properties (0).",
+                  "Threshold for allowed albedo deviation." )
         ));
 
 /*

@@ -1,3 +1,25 @@
+2017-12-11 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-899
+
+	* src/m_optproperties.cc (scat_dataReduceT):
+	Consistency checks added.
+
+	(scat_dataCheck):
+	Adapt to work (or at least give proper error/warning) when applied on
+	T-reduced scat_data.
+
+	* src/m_checked.cc (scat_data_checkedCalc):
+	Mixed up error messages disentangled. Remove redundant check for
+	identical T-dimensions in ext and abs.
+
+	* src/m_disort.cc (DisortCalc*), src/disort.cc, src/disort.h,
+	src/m_rt4.cc (RT4Calc*):
+	Descoped non-isotropic incoming radiation option (in RT4 it was never
+	functional).
+
+	* src/methods.cc: Adapted to changes above.
+
 2017-12-11  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-898
@@ -1629,7 +1651,7 @@
 	* controlfiles/artscomponents/wfuns/TestWfuns.arts:
 	Some info print output. Some more xml output as ref for Hyb test case.
 
-	* controlfiles/artscomponents/wfuns/TestWfuns.arts:
+	* controlfiles/artscomponents/wfuns/TestWfunsHybridClear.arts:
 	More subcases switched on (remaining switched-off-ones not
 	working (yet?)). Use TestWfuns y & jacobian output as reference (output
 	not commited, though. Ie run TestWfuns first to create that).
