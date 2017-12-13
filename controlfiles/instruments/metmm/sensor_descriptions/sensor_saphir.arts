@@ -1,6 +1,6 @@
 #DEFINITIONS:  -*-sh-*-
 
-# ARTS sensor description for SAPHIR simulations
+# ARTS sensor description for SAPHIR L1A2 simulations
 #
 # This requires to run prepare_metmm.arts beforehand.
 #
@@ -19,6 +19,10 @@
 
 # Viewing angles
 # There are 65 different angles, corresponding to one side of the SAPHIR Scan.
+# Viewing angles definition from Table 3.2-2 Scan angle coverage. Distance
+# between pixels is always 0.66:
+# https://cnes.fr/fr/media/20130117level-1productdefed3rev4pdf
+
 Arts2{    
     MatrixSet(
     antenna_dlos,
@@ -129,7 +133,7 @@ MatrixSet(
     12  #5 (6)
     ] )
 
-    VectorSet( freq_spacing_tmp, [10e9, 1e9, 1e9, 1e9] )
+    VectorSet( freq_spacing_tmp, [1e9, 1e9, 1e9, 1e9, 1e9, 1e9] )
     
     Extract(current_spacing,    freq_spacing_tmp,            met_mm_accuracy)
     

@@ -1,3 +1,13 @@
+2017-12-13 Alex Bobryshev  <oleksandr.bobryshev@uni-hamburg.de>
+
+	* arts-2-3-900
+	        
+	* controlfiles/instruments/metmm/sensor_descriptions/sensor_saphir.arts,
+	sensor_hatpro.arts, sensor_mwhs2.arts: Added controlfile to simulate 
+	MWHS-2 instrument onboard chinese FY-3 satellite, also ground-based
+	radiometer HATPRO (Greenland Summit). These two files and SAPHIR-setup
+	now contain information where I got the viewing angles.
+
 2017-12-11 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-899
