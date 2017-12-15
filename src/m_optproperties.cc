@@ -981,167 +981,6 @@ void opt_prop_bulkCalc(// Output and Input:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ext_matAddPart(PropagationMatrix& ext_mat,
-                    const ArrayOfPropagationMatrix& ext_mat_spt,
-                    const Tensor4& pnd_field,
-                    const Index& atmosphere_dim,
-                    const Index& scat_p_index,
-                    const Index& scat_lat_index,
-                    const Index& scat_lon_index,
-                    const Verbosity&)
-                     
-{
-  Index N_se = ext_mat_spt.nelem();
-  Index stokes_dim = ext_mat.StokesDimensions();
-  
-  PropagationMatrix ext_mat_part(1, stokes_dim);
-  ext_mat_part.SetZero();
-  
-  if (stokes_dim > 4 or stokes_dim < 1){
-    throw runtime_error(
-                        "The dimension of stokes vector can be "
-                        "only 1,2,3, or 4");
-  }
-  
-  for(auto& pm : ext_mat_spt)
-  {
-    if ( pm.StokesDimensions() not_eq stokes_dim)
-    {
-      throw runtime_error("The shape of ext_mat_spt should agree to the shape of ext_mat");
-    }
-  }
-
-  if (atmosphere_dim == 1)
-    {
-      // this is a loop over the different scattering elements
-      for (Index l = 0; l < N_se; l++)
-        { 
-          
-          // now the last two loops over the stokes dimension.
-          //for (Index m = 0; m < stokes_dim; m++)
-            //{
-              //for (Index n = 0; n < stokes_dim; n++)
-                //summation of the product of pnd_field and 
-                //ext_mat_spt.
-              ext_mat_part.MultiplyAndAdd( pnd_field(l, scat_p_index, 0, 0), ext_mat_spt[l]);
-            //}
-        }
-
-      //Add extinction matrix due single scattering element to *ext_mat*.
-      ext_mat += ext_mat_part;
-    }
- 
-  if (atmosphere_dim == 3)
-    {
-      
-      // this is a loop over the different scattering elements
-      for (Index l = 0; l < N_se; l++)
-        { 
-          
-          // now the last two loops over the stokes dimension.
-          //for (Index m = 0; m < stokes_dim; m++)
-            //{
-              //for (Index n = 0; n < stokes_dim; n++)
-                //summation of the product of pnd_field and 
-                //ext_mat_spt.
-                ext_mat_part.MultiplyAndAdd( pnd_field(l, scat_p_index, scat_lat_index, scat_lon_index), ext_mat_spt[l]);
-              
-            //} 
-        }
-
-      //Add extinction matrix due single scattering element to *ext_mat*.
-      ext_mat += ext_mat_part;
-
-    }
-
-} 
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_vecAddPart(StokesVector& abs_vec,
-                    const ArrayOfStokesVector& abs_vec_spt,
-                    const Tensor4& pnd_field,
-                    const Index& atmosphere_dim,
-                    const Index& scat_p_index,
-                    const Index& scat_lat_index,
-                    const Index& scat_lon_index,
-                    const Verbosity&)
-                    
-{
-  Index N_se = abs_vec_spt.nelem();
-  Index stokes_dim = abs_vec.StokesDimensions();
-
-  StokesVector abs_vec_part(1, stokes_dim);
-  abs_vec_part.SetZero();
-
-  if ((stokes_dim > 4) || (stokes_dim <1)){
-    throw runtime_error("The dimension of stokes vector "
-                        "can be only 1,2,3, or 4");
-  } 
- 
-  if (atmosphere_dim == 1)
-    {
-      // this is a loop over the different scattering elements
-      for (Index l = 0; l < N_se ; ++l)
-        {
-          // now the loop over the stokes dimension.
-          //(CE:) in the middle was l instead of m
-          //for (Index m = 0; m < stokes_dim; ++m)
-             //summation of the product of pnd_field and 
-            //abs_vec_spt.
-          abs_vec_part.MultiplyAndAdd(pnd_field(l, scat_p_index, 0, 0), abs_vec_spt[l]);
-          
-        }
-      //Add absorption due single scattering element.
-      abs_vec += abs_vec_part;
-    }
-  
-  else if (atmosphere_dim == 3)
-    {
-      // this is a loop over the different scattering elements
-      for (Index l = 0; l < N_se ; ++l)
-        {
-          
-          // now the loop over the stokes dimension.
-          //for (Index m = 0; m < stokes_dim; ++m)
-             //summation of the product of pnd_field and 
-            //abs_vec_spt.
-            abs_vec_part.MultiplyAndAdd(pnd_field(l, scat_p_index, scat_lat_index,  scat_lon_index), abs_vec_spt[l]);
-          
-        }
-      //Add absorption due single scattering element.
-      abs_vec += abs_vec_part;
-    }
-} 
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ext_matInit(PropagationMatrix&         ext_mat,
-                 const Vector&    f_grid,
-                 const Index&     stokes_dim,
-                 const Index&     f_index,
-                 const Verbosity& verbosity)
-{
-  CREATE_OUT2;
-  
-  Index freq_dim;
-
-  if( f_index < 0 )
-    freq_dim = f_grid.nelem();
-  else
-    freq_dim = 1;
- 
-  ext_mat = PropagationMatrix( freq_dim, stokes_dim);
-  ext_mat.SetZero();
-
-  out2 << "Set dimensions of ext_mat as ["
-       << freq_dim << ","
-       << stokes_dim << ","
-       << stokes_dim << "] and initialized to 0.\n";
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void ext_matAddGas(PropagationMatrix& ext_mat,
                    const ArrayOfPropagationMatrix& propmat_clearsky,
                    const Verbosity&)
@@ -1167,31 +1006,6 @@ void ext_matAddGas(PropagationMatrix& ext_mat,
   for(auto& pm : propmat_clearsky)
     ext_mat += pm;
       
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_vecInit(StokesVector& abs_vec,
-                 const Vector& f_grid,
-                 const Index&  stokes_dim,
-                 const Index&  f_index,
-                 const Verbosity& verbosity)
-{
-  CREATE_OUT2;
-  
-  Index freq_dim;
-
-  if( f_index < 0 )
-    freq_dim = f_grid.nelem();
-  else
-    freq_dim = 1;
- 
-  abs_vec = StokesVector(freq_dim, stokes_dim);
-  abs_vec.SetZero();
-
-  out2 << "Set dimensions of abs_vec as ["
-       << freq_dim << ","
-       << stokes_dim << "] and initialized to 0.\n";
 }
 
 
@@ -3709,11 +3523,9 @@ void TestScatDataInterp(Workspace& ws,
                             scat_za_index, scat_aa_index, rtp_temperature,
                             pnd, 0, 0, 0, verbosity );
 
-  //opt_prop_part_agenda
-  ext_matInit( ext_mat_doit, f_grid, stokes_dim, f_index, verbosity );
-  abs_vecInit( abs_vec_doit, f_grid, stokes_dim, f_index, verbosity );
-  ext_matAddPart( ext_mat_doit, ext_mat_spt, pnd, 3, 0, 0, 0, verbosity );
-  abs_vecAddPart( abs_vec_doit, abs_vec_spt, pnd, 3, 0, 0, 0, verbosity );
+  opt_prop_bulkCalc(ext_mat_doit, abs_vec_doit,
+                    ext_mat_spt, abs_vec_spt,
+                    pnd, 3, 0, 0, 0, verbosity );
 
   if (printinfo)
     {
@@ -3759,11 +3571,9 @@ void TestScatDataInterp(Workspace& ws,
                             0, 0, rtp_temperature,
                             pnd, 0, 0, 0, verbosity );
 
-  //opt_prop_part_agenda
-  ext_matInit( ext_mat_rt4, f_grid, stokes_dim, f_index, verbosity );
-  abs_vecInit( abs_vec_rt4, f_grid, stokes_dim, f_index, verbosity );
-  ext_matAddPart( ext_mat_rt4, ext_mat_spt, pnd, 3, 0, 0, 0, verbosity );
-  abs_vecAddPart( abs_vec_rt4, abs_vec_spt, pnd, 3, 0, 0, 0, verbosity );
+  opt_prop_bulkCalc(ext_mat_rt4, abs_vec_rt4, 
+                    ext_mat_spt, abs_vec_spt,
+                    pnd, 3, 0, 0, 0, verbosity );
 
   // RT4-like Z-extraction (note: not exactly the same, as RT4 does not
   // require the explicit aa_grid value of Z(za_sca,aa_sca=delta_aa,za_inc), but

@@ -1218,6 +1218,8 @@ void sca_optpropCalc( //Output
 
   // Check that total number of scattering elements in scat_data and pnd_field
   // agree.
+  // FIXME: this should be done earlier. in calling method. outside freq- and
+  // other possible loops. rather assert than runtime error.
   if( TotalNumberOfElements(scat_data) != N_se )
   {
       ostringstream os;
@@ -1469,21 +1471,21 @@ void sca_optpropCalc( //Output
 //            SUM1 = EMIS_VECTOR(1,J1,L,TSL)-EXTINCT_MATRIX(1,1,J1,L,TSL)
               Numeric w0_act = 2.*PI*sca_mat_integ / ext_nom;
               Numeric pfct_norm = 2.*PI*sca_mat_integ / sca_nom;
-              //cout << "sca_mat norm deviates " << 1e2*abs(1.-pfct_norm) << "%"
-              //     << " (" << abs(w0_act-w0_nom) << " in albedo).\n";
+              cout << "sca_mat norm deviates " << 1e2*abs(1.-pfct_norm) << "%"
+                   << " (" << abs(w0_act-w0_nom) << " in albedo).\n";
 
               Numeric sca_nom_paropt =
                 extinct_matrix(scat_p_index_local,ih,iza,0,0) -
                 emis_vector(scat_p_index_local,ih,iza,0);
-              //Numeric w0_nom_paropt = sca_nom_paropt /
-              //  extinct_matrix(scat_p_index_local,ih,iza,0,0);
-              //cout << "scat_p=" << scat_p_index_local
-              //     << ", iza=" << iza << ", hem=" << ih << "\n";
-              //cout << "  scaopt (paropt) w0_act= " << w0_act
-              //     << ", w0_nom = " << w0_nom
-              //     << " (" << w0_nom_paropt
-              //     << "), diff=" << w0_act-w0_nom
-              //     << " (" << w0_nom-w0_nom_paropt << ").\n";
+              Numeric w0_nom_paropt = sca_nom_paropt /
+                extinct_matrix(scat_p_index_local,ih,iza,0,0);
+              cout << "scat_p=" << scat_p_index_local
+                   << ", iza=" << iza << ", hem=" << ih << "\n";
+              cout << "  scaopt (paropt) w0_act= " << w0_act
+                   << ", w0_nom = " << w0_nom
+                   << " (" << w0_nom_paropt
+                   << "), diff=" << w0_act-w0_nom
+                   << " (" << w0_nom-w0_nom_paropt << ").\n";
 
               if (abs(w0_act-w0_nom) > pfct_threshold)
               {
@@ -1534,6 +1536,8 @@ void sca_optpropCalc( //Output
               // FIXME: not fully clear whether applying the same rescaling
               // factor to all stokes elements is the correct way to do. check
               // out, e.g., Vasilieva (JQSRT 2006) for better approaches.
+              // FIXME: rather rescale Z(0,0) only as we should have less issues
+              // for other Z elements as they are less peaked/featured.
               scatter_matrix(scat_p_index_local,ih,iza,joker,joker,joker) /=
                 pfct_norm;
               scatter_matrix(scat_p_index_local,ih+2,iza,joker,joker,joker) /=

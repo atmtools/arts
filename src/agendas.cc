@@ -532,48 +532,6 @@ void define_agenda_data()
 
  agenda_data.push_back
     (AgRecord
-     ( NAME( "opt_prop_part_agenda" ),
-       DESCRIPTION
-       (
-        "Calculate the optical properties (absorption vector and extinction.\n"
-        "matrix) for scattering elements at a given atmospheric grid point.\n"
-        "\n"
-        "This agenda, for example, can be defined in the following manner:\n"
-        "\n"
-        "*ext_matAddPart* : This method calculates the extinction \n"
-        "                   matrix for scattering elements and adds it to the \n"
-        "                   workspace variable *ext_mat*.\n"
-        "*abs_vecAddPart* : This method calculates the absorption\n"
-        "                   vector for scattering elements and adds it to the\n"
-        "                   workspace variables abs_vec.\n"     
-        " \n"
-        "Note that the initialization of *ext_mat* is not done inside the\n"
-        "agenda, so *ext_mat* has to be initialize before executing the \n"
-        "agenda.\n"
-        "\n"
-        "Output :\n"
-        "   ext_mat     : Extinction matrix.\n"
-        "   abs_vec     : Absorption vector. \n"
-        "\n"
-        "Input:\n"
-        "   ext_mat     : Total extinction matrix. \n"
-        "   ext_mat_spt : Extinction matrix for individual scattering elements. \n"
-        "   abs_vec     : Total absorption vector. \n"
-        "   abs_vec_spt : Absorption vector for individual scattering elements. \n"
-        "   pnd_field   : Particle number density field. \n"
-        "   atmosphere_dim: Atmospheric dimension. \n"
-        "   scat_p_index : Position. \n"
-        "   scat_lat_index : Position. \n"
-        "   scat_lon_index : Position. \n"
-        ),
-       OUTPUT( "ext_mat", "abs_vec" ),
-       INPUT( "ext_mat", "abs_vec", 
-              "ext_mat_spt", "abs_vec_spt",
-              "scat_p_index", "scat_lat_index",
-              "scat_lon_index" )));
-
- agenda_data.push_back
-    (AgRecord
      ( NAME( "pha_mat_spt_agenda" ),
        DESCRIPTION
        (

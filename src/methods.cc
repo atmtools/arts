@@ -1744,61 +1744,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_vecAddPart" ),
-        DESCRIPTION
-        (
-         "Absorption by scattering elements is added to *abs_vec*\n"
-         "\n"
-         "This function sums up the monochromatic absorption vectors of all\n"
-         "scattering elements *abs_vec_spt* weighted with their respective\n"
-         "particle number density, given by *pnd_field* for a single location\n"
-         "within the cloudbox, given by *scat_p_index*, *scat_lat_index*, and\n"
-         "*scat_lon_index*.\n"
-         "The resulting absorption vector is added to the workspace variable\n"
-         "*abs_vec*.\n"
-         ),
-        AUTHORS( "Sreerekha T.R." ),
-        OUT( "abs_vec" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_vec", "abs_vec_spt", "pnd_field", "atmosphere_dim",
-            "scat_p_index",  "scat_lat_index", "scat_lon_index" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "abs_vecInit" ),
-        DESCRIPTION
-        (
-         "Initialize absorption vector *abs_vec*.\n"
-         "\n"
-         "This method is necessary, because all other absorption methods just\n"
-         "add to the existing absorption vector.\n"
-         "\n"
-         "So, here we have to make it the right size and fill it with 0.\n"
-         "\n"
-         "Note, that the vector is not really a vector, because it has a\n"
-         "leading frequency dimension.\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_vec" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "f_grid", "stokes_dim", "f_index" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "abs_xsec_agenda_checkedCalc" ),
         DESCRIPTION
         (
@@ -5550,7 +5495,7 @@ void define_md_data_raw()
             "doit_scat_field", "cloudbox_limits",
             "propmat_clearsky_agenda",
             "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 
-            "opt_prop_part_agenda", "ppath_step_agenda", "ppath_lmax", "ppath_lraytrace", 
+            "ppath_step_agenda", "ppath_lmax", "ppath_lraytrace", 
             "p_grid", "z_field", "refellipsoid", 
             "t_field", "f_grid", "f_index", 
             "surface_rtprop_agenda", "doit_za_interp" ),
@@ -5581,7 +5526,7 @@ void define_md_data_raw()
         IN( "doit_i_field_mono", "doit_scat_field", "cloudbox_limits",
             "propmat_clearsky_agenda",
             "vmr_field", "spt_calc_agenda", "scat_za_grid", "scat_aa_grid", 
-            "pnd_field", "opt_prop_part_agenda", "ppath_step_agenda", 
+            "pnd_field", "ppath_step_agenda", 
             "ppath_lmax", "ppath_lraytrace", "p_grid", "z_field", "refellipsoid", 
             "t_field", "f_grid", "f_index", 
             "surface_rtprop_agenda", "doit_za_interp" ),
@@ -5614,11 +5559,9 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_i_field_mono",
-            "doit_scat_field", "cloudbox_limits",
-            "propmat_clearsky_agenda",
-            "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 
-            "opt_prop_part_agenda",
+        IN( "doit_i_field_mono", "doit_scat_field", "cloudbox_limits",
+            "propmat_clearsky_agenda", "vmr_field",
+            "spt_calc_agenda", "scat_za_grid", "pnd_field", 
             "p_grid", "z_field", "t_field", "f_grid", "f_index" ),
         GIN(),
         GIN_TYPE(),
@@ -5649,7 +5592,7 @@ void define_md_data_raw()
         IN( "doit_i_field_mono", "doit_scat_field", "cloudbox_limits",
             "propmat_clearsky_agenda",
             "vmr_field", "spt_calc_agenda", "scat_za_grid", "scat_aa_grid",
-            "pnd_field", "opt_prop_part_agenda", "ppath_step_agenda", 
+            "pnd_field", "ppath_step_agenda", 
             "ppath_lmax", "ppath_lraytrace", "p_grid", "lat_grid", "lon_grid", "z_field",
             "refellipsoid", "t_field",
             "f_grid", "f_index", "doit_za_interp" ),
@@ -5967,61 +5910,6 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "ext_mat", "propmat_clearsky" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ext_matAddPart" ),
-        DESCRIPTION
-        (
-         "Extinction by scattering elements is added to *ext_mat*\n"
-         "\n"
-         "This function sums up the monochromatic extinction matrices of all\n"
-         "scattering elements *ext_mat_spt* weighted with their respective\n"
-         "particle number density, given by *pnd_field*, for a single location\n"
-         "within the cloudbox, given by *scat_p_index*, *scat_lat_index*, and\n"
-         "*scat_lon_index*.\n"
-         "The resulting  extinction matrix is added to the workspace variable\n"
-         "*ext_mat*.\n"
-         ),
-        AUTHORS( "Sreerekha T.R." ),
-        OUT( "ext_mat" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "ext_mat", "ext_mat_spt", "pnd_field", "atmosphere_dim", 
-            "scat_p_index", "scat_lat_index", "scat_lon_index" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
- 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ext_matInit" ),
-        DESCRIPTION
-        (
-         "Initialize extinction matrix.\n"
-         "\n"
-         "This method is necessary, because all other extinction methods just\n"
-         "add to the existing extinction matrix.\n"
-         "\n"
-         "So, here we have to make it the right size and fill it with 0.\n"
-         "\n"
-         "Note, that the matrix is not really a matrix, because it has a\n"
-         "leading frequency dimension.\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT( "ext_mat" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "f_grid", "stokes_dim", "f_index" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -10903,15 +10791,6 @@ void define_md_data_raw()
          "*scat_lon_index*.\n"
          "The resulting  extinction matrix is added to the workspace variable\n"
          "*ext_mat*.\n"
-         "\n"
-         "The WSM can be used in *opt_prop_part_agenda*, instead of the\n"
-         "following setup using a chain of WSM:\n"
-         "  AgendaSet( opt_prop_part_agenda ){\n"
-         "  ext_matInit\n"
-         "  abs_vecInit\n"
-         "  ext_matAddPart\n"
-         "  abs_vecAddPart\n"
-         "  }\n"
          ),
         AUTHORS( "Jana Mendrok, Sreerekha T.R." ),
         OUT( "ext_mat", "abs_vec" ),
@@ -10919,8 +10798,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "ext_mat", "abs_vec", "ext_mat_spt", "abs_vec_spt",
-            "pnd_field", 
-            "scat_p_index", "scat_lat_index", "scat_lon_index" ),
+            "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -15194,8 +15072,9 @@ void define_md_data_raw()
          "- In the latter case, the scattering element's f_grid value must\n"
          "  not deviate from any of the *f_grid* values by more than a\n"
          "  fraction of *dfrel_threshold*.\n"
-         "- The frequency dimension of pha_mat_data, ext_mat_data, and abs_vec\n"
-         "  is either equal to the scattering element's f_grid or 1.\n"
+         "- The frequency dimension of pha_mat_data, ext_mat_data, and\n"
+         "  abs_vec_data is either equal to the scattering element's f_grid\n"
+         "  or 1.\n"
          "- The temperature dimension of pha_mat_data, ext_mat_data, and\n"
          "  abs_vec_data is either equal to the scattering element's T_grid\n"
          "  or 1.\n"

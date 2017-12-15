@@ -1,3 +1,36 @@
+2017-12-15 Jana Mendrok  <jana.mendrok@chalmers.se>
+
+	* arts-2-3-900
+
+	Descoped opt_prop_part_agenda and replaced by WSM opt_prop_bulkCalc.
+	BREAKS controlfiles defining opt_prop_part_agenda.
+
+	* src/doit.[cc,h] (doit_fieldsCalc):
+	Removed opt_prop_part_agenda call and from parameter list.
+	
+	* src/m_doit.cc (doit_i_fieldUpdate*),
+	src/doit.[cc,h] (doit_scat_fieldNormalize):
+	Removed opt_prop_part_agenda from parameter list, adapted
+	cloud_fieldsCalc calls.
+
+	* src/m_optproperties.cc (TestScatDataInterp):
+	Replaced ext_matInit, abs_vecInit, ext_matAddPart, abs_vecAddPart with
+	opt_prop_bulkCalc.
+
+	(ext_matInit, abs_vecInit, ext_matAddPart, abs_vecAddPart):
+	Removed.
+	
+	* src/methods.cc: Adapted to parameter list changes above.
+
+	* src/agendas.cc, src/workspace.cc:
+	Remove definition and mentions of opt_prop_part_agenda.
+
+	* controlfiles/artscomponents/doit/doit_setup.arts,
+	doit_setup_accelerated.arts, doit_setup_newscatdata.arts,
+	doit_setup_pressureoptimization.arts,
+	controlfiles/general/agendasDOIT.arts:
+	Remove use of opt_prop_part_agenda.
+
 2017-12-13 Alex Bobryshev  <oleksandr.bobryshev@uni-hamburg.de>
 
 	* arts-2-3-900

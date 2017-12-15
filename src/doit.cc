@@ -353,7 +353,6 @@ void rte_step_doit_replacement(//Output and Input:
   \param abs_vec_field absorption vector field
   // Input
   \param spt_calc_agenda Agenda for calculation of single scattering properties
-  \param opt_prop_part_agenda Agenda for summing over all scattering elements
   \param scat_za_index Indices for
   \param scat_aa_index    propagation direction
   \param cloudbox_limits Cloudbox limits.
@@ -369,7 +368,6 @@ void cloud_fieldsCalc(Workspace& ws,
                       Tensor4View abs_vec_field,
                       // Input:
                       const Agenda& spt_calc_agenda,
-                      const Agenda& opt_prop_part_agenda,
                       const Index& scat_za_index, 
                       const Index& scat_aa_index,
                       const ArrayOfIndex& cloudbox_limits,
@@ -465,22 +463,42 @@ void cloud_fieldsCalc(Workspace& ws,
                                      scat_za_index,
                                      scat_aa_index,
                                      spt_calc_agenda);
+/*
+// so far missing here (accessed through workspace within agenda):
+// - scat_data
+// - scat_za_grid, scat_aa_grid
+// - f_index
+              opt_prop_sptFromScat_data(ext_mat_spt_local, abs_vec_spt_local,
+                                        scat_data, 1,
+                                        scat_za_grid, scat_aa_grid,
+                                        scat_za_index, scat_aa_index,
+                                        f_index,
+                                        rtp_temperature_local,
+                                        pnd_field, 
+                                        scat_p_index_local,
+                                        scat_lat_index_local,
+                                        scat_lon_index_local,
+                                        verbosity);
+*/
 
-              opt_prop_part_agendaExecute(ws, ext_mat_local, abs_vec_local, 
-                                          ext_mat_spt_local, 
-                                          abs_vec_spt_local,
-                                          scat_p_index_local,
-                                          scat_lat_index_local,
-                                          scat_lon_index_local,
-                                          opt_prop_part_agenda);
-           
+              opt_prop_bulkCalc(ext_mat_local, abs_vec_local, 
+                                ext_mat_spt_local, abs_vec_spt_local,
+                                pnd_field,
+                                scat_p_index_local,
+                                scat_lat_index_local,
+                                scat_lon_index_local,
+                                verbosity);
+
               // Store coefficients in arrays for the whole cloudbox.
-              abs_vec_field(scat_p_index_local, scat_lat_index_local, scat_lon_index_local, joker) = abs_vec_local.VectorAtFrequency(0);
-              
-              
+              abs_vec_field(scat_p_index_local,
+                            scat_lat_index_local,
+                            scat_lon_index_local,
+                            joker) = abs_vec_local.VectorAtFrequency(0);
                             
-              ext_mat_local.MatrixAtFrequency(ext_mat_field(scat_p_index_local, scat_lat_index_local,
-                                              scat_lon_index_local, joker, joker), 0);
+              ext_mat_local.MatrixAtFrequency(ext_mat_field(scat_p_index_local,
+                                                            scat_lat_index_local,
+                                                            scat_lon_index_local,
+                                                            joker, joker), 0);
             } 
         }
     }
@@ -2723,7 +2741,6 @@ void iy_interp_cloudbox_field(Matrix&               iy,
  \param[in]     scat_za_grid WS Input
  \param[in]     scat_aa_grid WS Input
  \param[in]     pnd_field WS Input
- \param[in]     opt_prop_part_agenda WS Input
  \param[in]     t_field WS Input
  \param[in]     norm_error_threshold  Normalization error threshold
  \param[in]     verbosity Verbosity
@@ -2741,7 +2758,6 @@ doit_scat_fieldNormalize(Workspace& ws,
                          const Vector& scat_za_grid,
                          const Vector& scat_aa_grid,
                          const Tensor4& pnd_field,
-                         const Agenda& opt_prop_part_agenda,
                          const Tensor3& t_field,
                          const Numeric& norm_error_threshold,
                          const Index& norm_debug,
@@ -2794,12 +2810,11 @@ doit_scat_fieldNormalize(Workspace& ws,
         // This function has to be called inside the angular loop, as
         // spt_calc_agenda takes *scat_za_index* and *scat_aa_index*
         // from the workspace.
-        // *scat_p_index* is needed for communication with agenda
-        // *opt_prop_part_agenda*.
         cloud_fieldsCalc(ws, ext_mat_field, abs_vec_field,
-                         spt_calc_agenda, opt_prop_part_agenda,
+                         spt_calc_agenda,
                          scat_za_index_local, scat_aa_index_local,
-                         cloudbox_limits, t_field, pnd_field, verbosity);
+                         cloudbox_limits,
+                         t_field, pnd_field, verbosity);
 
         for(Index p_index = 0;
             p_index <= (cloudbox_limits[1] - cloudbox_limits[0]);

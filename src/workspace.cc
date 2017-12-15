@@ -657,14 +657,14 @@ void Workspace::define_wsv_data()
        "is used in the RTE calculation. It is the physical absorption which\n"
        "includes particle absorption for all considered scattering elements as\n"
        "well as gaseous absorption for all selected gaseous species.\n" 
-       "The vector is calculated by the agenda *opt_prop_part_agenda*\n"
+       "The vector is calculated by *opt_prop_bulkCalc*\n"
        "The dimension of the variable adapts to *stokes_dim*.\n"
        "\n"
        "See ARTS user guide (AUG) for further information. Use the index to find\n"
        "where this variable is discussed. The variable is listed as a subentry\n"
        "to \"workspace variables\".\n"
        "\n"
-       "Usage:      Output of the agenda *opt_prop_part_agenda* \n"
+       "Usage:      Output of *opt_prop_bulkCalc* \n"
        "\n"
        "Unit:       m^2\n" //FIXME: really m2? not 1/m?
        "\n"
@@ -1866,7 +1866,7 @@ void Workspace::define_wsv_data()
        "find where this variable is discussed. The variable is listed as a\n"
        "subentry to \"workspace variables\".\n"
        "\n"
-       "Usage:      Output of *opt_prop_part_agenda* \n" 
+       "Usage:      Output of *opt_prop_bulkCalc* \n"
        "\n"
        "Unit:       m^2\n" //FIXME: really m2? not 1/m?
        "\n"
@@ -3344,16 +3344,6 @@ void Workspace::define_wsv_data()
           "Errors encountered during OEM execution \n"
        ),
       GROUP( "ArrayOfString" )));
-
-   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "opt_prop_part_agenda" ),
-      DESCRIPTION
-      (
-        "Agenda calculating the optical properties of scattering elements at\n"
-        "a given atmospheric grid point.\n"
-       ),
-      GROUP( "Agenda" )));
 
   wsv_data.push_back
     (WsvRecord

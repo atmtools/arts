@@ -662,8 +662,6 @@ doit_i_fieldUpdate1D(Workspace& ws,
                      const Agenda& spt_calc_agenda,
                      const Vector& scat_za_grid,
                      const Tensor4& pnd_field,
-                     // Optical properties for gases and particles:
-                     const Agenda& opt_prop_part_agenda,
                      // Propagation path calculation:
                      const Agenda& ppath_step_agenda,
                      const Numeric& ppath_lmax,
@@ -690,7 +688,6 @@ doit_i_fieldUpdate1D(Workspace& ws,
   
   // Agendas
   chk_not_empty( "spt_calc_agenda", spt_calc_agenda);
-  chk_not_empty( "opt_prop_part_agenda", opt_prop_part_agenda);
   chk_not_empty( "ppath_step_agenda", ppath_step_agenda);
   
   if (cloudbox_limits.nelem() != 2)
@@ -777,13 +774,11 @@ doit_i_fieldUpdate1D(Workspace& ws,
       // This function has to be called inside the angular loop, as
       // spt_calc_agenda takes *scat_za_index_local* and *scat_aa_index* 
       // from the workspace.
-      // *scat_p_index* is needed for communication with agenda 
-      // *opt_prop_part_agenda*.
       cloud_fieldsCalc(ws, ext_mat_field, abs_vec_field,
-                       spt_calc_agenda, 
-                       opt_prop_part_agenda, scat_za_index_local, 
-                       scat_aa_index_local,
-                       cloudbox_limits, t_field, pnd_field, verbosity);
+                       spt_calc_agenda,
+                       scat_za_index_local, scat_aa_index_local,
+                       cloudbox_limits,
+                       t_field, pnd_field, verbosity);
       
       //======================================================================
       // Radiative transfer inside the cloudbox
@@ -828,8 +823,6 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                         const Vector& scat_za_grid,
                         const Vector& scat_aa_grid,
                         const Tensor4& pnd_field,
-                        // Optical properties for gases and particles:
-                        const Agenda& opt_prop_part_agenda,
                         // Propagation path calculation:
                         const Agenda& ppath_step_agenda,
                         const Numeric& ppath_lmax,
@@ -859,7 +852,6 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
   // Agendas
   chk_not_empty( "propmat_clearsky_agenda", propmat_clearsky_agenda);
   chk_not_empty( "spt_calc_agenda", spt_calc_agenda);
-  chk_not_empty( "opt_prop_part_agenda", opt_prop_part_agenda);
   chk_not_empty( "ppath_step_agenda", ppath_step_agenda);
   
   if (cloudbox_limits.nelem() != 2)
@@ -965,7 +957,6 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                                1,
                                scat_za_grid, scat_aa_grid,
                                pnd_field,
-                               opt_prop_part_agenda,
                                t_field,
                                norm_error_threshold,
                                norm_debug,
@@ -979,12 +970,10 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
       // This function has to be called inside the angular loop, as
       // spt_calc_agenda takes *scat_za_index* and *scat_aa_index* 
       // from the workspace.
-      // *scat_p_index* is needed for communication with agenda 
-      // *opt_prop_part_agenda*.
       cloud_fieldsCalc(ws, ext_mat_field, abs_vec_field, 
-                       spt_calc_agenda, opt_prop_part_agenda, 
-                       scat_za_index_local, scat_aa_index_local,
-                       cloudbox_limits, t_field, pnd_field, verbosity);
+                       spt_calc_agenda,
+                       scat_za_index_local, scat_aa_index_local, cloudbox_limits,
+                       t_field, pnd_field, verbosity);
 
 
       //======================================================================
@@ -1121,8 +1110,6 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                         const Vector& scat_za_grid,
                         const Vector& scat_aa_grid,
                         const Tensor4& pnd_field,
-                        // Optical properties for gases and particles:
-                        const Agenda& opt_prop_part_agenda,
                         // Propagation path calculation:
                         const Agenda& ppath_step_agenda,
                         const Numeric& ppath_lmax,
@@ -1150,7 +1137,6 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
    // Agendas
   chk_not_empty( "propmat_clearsky_agenda",propmat_clearsky_agenda);
   chk_not_empty( "spt_calc_agenda", spt_calc_agenda);
-  chk_not_empty( "opt_prop_part_agenda", opt_prop_part_agenda);
   chk_not_empty( "ppath_step_agenda", ppath_step_agenda);
   
   if (cloudbox_limits.nelem() != 6)
@@ -1264,10 +1250,9 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
           // it spt_calc_agenda takes *scat_za_index* and *scat_aa_index* 
           // from the workspace.
           cloud_fieldsCalc(ws, ext_mat_field, abs_vec_field, 
-                           spt_calc_agenda, 
-                           opt_prop_part_agenda, scat_za_index, 
-                           scat_aa_index, cloudbox_limits, t_field, 
-                           pnd_field, verbosity);
+                           spt_calc_agenda,
+                           scat_za_index, scat_aa_index, cloudbox_limits,
+                           t_field, pnd_field, verbosity);
           
 
           Vector stokes_vec(stokes_dim,0.);
@@ -1419,8 +1404,6 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
                           const Agenda& spt_calc_agenda,
                           const Vector& scat_za_grid,
                           const Tensor4& pnd_field,
-                          // Optical properties for gases and particles:
-                          const Agenda& opt_prop_part_agenda,
                           // Propagation path calculation:
                           const Vector& p_grid,
                           const Tensor3& z_field,
@@ -1477,7 +1460,7 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
   //=======================================================================
   // Calculate scattering coefficients for all positions in the cloudbox 
   //=======================================================================
-  out3 << "Calculate optical properties of individual scttering elements\n";
+  out3 << "Calculate optical properties of individual scattering elements\n";
 
   // At this place only the particle properties are calculated. Gaseous
   // absorption is calculated inside the radiative transfer part. Inter-
@@ -1501,10 +1484,9 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
       Index scat_aa_index = 0;
       
       cloud_fieldsCalc(ws, ext_mat_field, abs_vec_field, 
-                       spt_calc_agenda, 
-                       opt_prop_part_agenda, scat_za_index, scat_aa_index, 
-                       cloudbox_limits, t_field, 
-                       pnd_field, verbosity);
+                       spt_calc_agenda,
+                       scat_za_index, scat_aa_index, cloudbox_limits,
+                       t_field, pnd_field, verbosity);
 
       //======================================================================
       // Radiative transfer inside the cloudbox
