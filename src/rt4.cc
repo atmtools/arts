@@ -1114,8 +1114,8 @@ void par_optpropCalc( Tensor4View emis_vector,
                             pnd_field,
                             scat_p_index_local, 0, 0, verbosity);
 
-          ext_mat_local.MatrixAtFrequency(ext_vector(scat_p_index_local,iza,joker,joker), 0);
-          abs_vec_local.VectorAtFrequency(abs_vector(scat_p_index_local,iza,joker), 0);
+          ext_mat_local.MatrixAtPosition(ext_vector(scat_p_index_local,iza,joker,joker));
+          abs_vec_local.VectorAtPosition(abs_vector(scat_p_index_local,iza,joker));
         }
     }
 

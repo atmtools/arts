@@ -1,5 +1,14 @@
 2017-12-18  Richard Larsson  <ric.larsson@gmail.com>
 
+	* arts-2-3-903
+	
+	Bug reported by Oliver and now fixed:  *AtFrequency
+	functions renamed to *AtPosition.  Still a potential
+	error with switched indexing in code protected by
+	fortran-flags... (not enough ram here to activate these...)
+
+2017-12-18  Richard Larsson  <ric.larsson@gmail.com>
+
 	* arts-2-3-902
 	
 	* src/propagationmatrix.{cc,h}:

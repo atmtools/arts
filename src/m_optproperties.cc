@@ -3530,9 +3530,9 @@ void TestScatDataInterp(Workspace& ws,
   if (printinfo)
     {
       Matrix tmp1(stokes_dim, stokes_dim);
-      ext_mat_doit.MatrixAtFrequency(tmp1, 0);
+      ext_mat_doit.MatrixAtPosition(tmp1, 0);
       Vector tmp2(stokes_dim);
-      abs_vec_doit.VectorAtFrequency(tmp2, 0);
+      abs_vec_doit.VectorAtPosition(tmp2, 0);
       cout << "----- DOIT -----" << endl;
       cout << "absorption vector:\n" << tmp2 << endl;
       cout << "extinction matrix:\n" << tmp1 << endl;
@@ -3677,9 +3677,9 @@ void TestScatDataInterp(Workspace& ws,
   if (printinfo)
     {
       Matrix tmp1(stokes_dim, stokes_dim);
-      ext_mat_rt4.MatrixAtFrequency(tmp1, 0);
+      ext_mat_rt4.MatrixAtPosition(tmp1, 0);
       Vector tmp2(stokes_dim);
-      abs_vec_rt4.VectorAtFrequency(tmp2, 0);
+      abs_vec_rt4.VectorAtPosition(tmp2, 0);
       cout << "----- RT4 -----" << endl;
       cout << "absorption vector:\n" << tmp2 << endl;
       cout << "extinction matrix:\n" << tmp1 << endl;
@@ -3743,9 +3743,9 @@ void TestScatDataInterp(Workspace& ws,
   if (compare==1 || compare>2)
   {
     Matrix tmp1(stokes_dim, stokes_dim, 0.0);
-    ext_mat_doit.MatrixAtFrequency(tmp1, 0);
+    ext_mat_doit.MatrixAtPosition(tmp1, 0);
     Vector tmp2(stokes_dim);
-    abs_vec_doit.VectorAtFrequency(tmp2, 0);
+    abs_vec_doit.VectorAtPosition(tmp2, 0);
       Numeric dmax;
       dmax = 0.5e-6*(abs_vec_doit(0,0)+abs_vec_mc[0]);
       Compare(tmp2, abs_vec_mc, dmax, "Deviation in abs_vec",
@@ -3767,9 +3767,9 @@ void TestScatDataInterp(Workspace& ws,
   if (compare>1)
   {
     Matrix tmp1(stokes_dim, stokes_dim);
-    ext_mat_rt4.MatrixAtFrequency(tmp1, 0);
+    ext_mat_rt4.MatrixAtPosition(tmp1, 0);
     Vector tmp2(stokes_dim);
-    abs_vec_rt4.VectorAtFrequency(tmp2, 0);
+    abs_vec_rt4.VectorAtPosition(tmp2, 0);
     
       Numeric dmax;
       dmax = 0.5e-6*(abs_vec_rt4(0,0)+abs_vec_mc[0]);
