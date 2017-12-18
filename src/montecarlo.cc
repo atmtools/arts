@@ -342,8 +342,8 @@ void clear_rt_vars_at_gp(Workspace&          ws,
 
   opt_prop_sum_propmat_clearsky(local_ext_mat, local_abs_vec, local_propmat_clearsky);
   
-  local_ext_mat.MatrixAtFrequency(ext_mat_mono, 0);
-  local_abs_vec.VectorAtFrequency(abs_vec_mono, 0);
+  local_ext_mat.MatrixAtPosition(ext_mat_mono);
+  local_abs_vec.VectorAtPosition(abs_vec_mono);
 }
 
 
@@ -429,8 +429,8 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   opt_prop_sum_propmat_clearsky(local_ext_mat, local_abs_vec, local_propmat_clearsky);
 
   
-  local_ext_mat.MatrixAtFrequency(ext_mat_mono, 0);
-  local_abs_vec.VectorAtFrequency(abs_vec_mono, 0);
+  local_ext_mat.MatrixAtPosition(ext_mat_mono);
+  local_abs_vec.VectorAtPosition(abs_vec_mono);
   ext_mat_part=0.0;
   abs_vec_part=0.0;
 

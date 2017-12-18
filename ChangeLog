@@ -1,3 +1,41 @@
+2017-12-18  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-902
+	
+	* src/propagationmatrix.{cc,h}:
+	Update of PropagationMatrix and StokesVector so that their
+	internal dimensions is Tensor4.  Should always default to
+	0th element whenever an Index is not given.  Updated
+	names of functions to reflect this change (resulting in
+	some other files being touched as well.)
+	
+	Other files touched:
+	src/doit.cc
+	src/m_abs.cc
+	src/m_abs_lookup.cc
+	src/m_linerecord.cc
+	src/m_rte.cc
+	src/montecarlo.cc
+	src/rte.cc
+	src/test_propagationmatrix.cc
+	src/xml_io_compound_types.cc
+	
+	Also removed the function begining on the HSE partial derivatives 
+	since it would not work in that form.  If we assume T := exp(-K(x)r(x))
+	we need the full derivative: -K(x)dr(x) - dK(x)r(x) as input.
+	So we must know how the path changes alread when we are doing
+	the propagation matrix computations.  If instead we assume ---
+	as the present code does --- that T := exp(-K(x)r(x')),
+	then we can perform the derivatives, though this will undoubtedly
+	introduce errors in the temperature derivatives being computed...
+	(though only for polarized radiation)
+	
+	I think HSE needs to be part of ppath computations instead.  Then
+	we no longer have to square our circles.  One big problem here though
+	is that there are fields that do not depend on pressure (e.g., the 
+	magnetic field), so ppath will have to also offer a way to adopt such
+	fields to the newely computed z_field...
+
 2017-12-15 Jana Mendrok  <jana.mendrok@chalmers.se>
 
 	* arts-2-3-900

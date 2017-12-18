@@ -313,16 +313,18 @@ void test_the_class()
   PropagationMatrix a(50, 4);
   Matrix tmp(4, 4, 0.);
   
-  a.AddToDiagonalAttenuation(Vector(50, 1.2));
-  a.AddToMainAxisLinearPolarizationPhaseDelay(Vector(50, .2));
+  a.Kjj() += Vector(50, 1.2);
+  a.K12() += Vector(50, 1.7);
+  a.K13() += Vector(50, 1.1);
+  a.K23() += Vector(50, 1.3);
   
-  a.MatrixAtFrequency(tmp, 1);
+  a.MatrixAtPosition(tmp, 1);
   std::cout << tmp << "\n";
   
   Tensor3 b(50, 4, 4);
   compute_transmission_matrix(b, 1.0, a, a);
   
-  std::cout << b(1, joker, joker) << "\n";
+  std::cout << b(0, joker, joker) << "\n";
 }
 
 

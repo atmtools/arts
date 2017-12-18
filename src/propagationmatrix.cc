@@ -35,7 +35,9 @@
 void compute_transmission_matrix(Tensor3View T,
                                  const Numeric& r,
                                  const PropagationMatrix& upper_level,
-                                 const PropagationMatrix& lower_level)
+                                 const PropagationMatrix& lower_level,
+                                 const Index iz,
+                                 const Index ia)
 {
   const Index mstokes_dim = upper_level.StokesDimensions();
   const Index mfreqs = upper_level.NumberOfFrequencies();
@@ -52,7 +54,7 @@ void compute_transmission_matrix(Tensor3View T,
     if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
     for(Index i = 0; i < mfreqs; i++)
     {
-      T(i, 0, 0) = exp(-0.5 * r * (upper_level.Kjj()[i] + lower_level.Kjj()[i]));
+      T(i, 0, 0) = exp(-0.5 * r * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]));
     }
   }
   else if(mstokes_dim == 2)
@@ -63,8 +65,8 @@ void compute_transmission_matrix(Tensor3View T,
     {
       MatrixView F = T(i, joker, joker);
       
-      const Numeric a = -0.5 * r * (upper_level.Kjj()[i] + lower_level.Kjj()[i]), 
-                    b = -0.5 * r * (upper_level.K12()[i] + lower_level.K12()[i]);
+      const Numeric a = -0.5 * r * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]), 
+                    b = -0.5 * r * (upper_level.K12(iz, ia)[i] + lower_level.K12(iz, ia)[i]);
                     
       const Numeric exp_a = exp(a);
       
@@ -92,10 +94,10 @@ void compute_transmission_matrix(Tensor3View T,
     {
       MatrixView F = T(i, joker, joker);
       
-      const Numeric a = -0.5 * r * (upper_level.Kjj()[i] + lower_level.Kjj()[i]), 
-                    b = -0.5 * r * (upper_level.K12()[i] + lower_level.K12()[i]), 
-                    c = -0.5 * r * (upper_level.K13()[i] + lower_level.K13()[i]), 
-                    u = -0.5 * r * (upper_level.K23()[i] + lower_level.K23()[i]);
+      const Numeric a = -0.5 * r * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]), 
+                    b = -0.5 * r * (upper_level.K12(iz, ia)[i] + lower_level.K12(iz, ia)[i]), 
+                    c = -0.5 * r * (upper_level.K13(iz, ia)[i] + lower_level.K13(iz, ia)[i]), 
+                    u = -0.5 * r * (upper_level.K23(iz, ia)[i] + lower_level.K23(iz, ia)[i]);
                     
       const Numeric exp_a = exp(a);
       
@@ -143,13 +145,13 @@ void compute_transmission_matrix(Tensor3View T,
     {
       MatrixView F = T(i, joker, joker);
       
-      const Numeric a = -0.5 * r * (upper_level.Kjj()[i] + lower_level.Kjj()[i]), 
-                    b = -0.5 * r * (upper_level.K12()[i] + lower_level.K12()[i]), 
-                    c = -0.5 * r * (upper_level.K13()[i] + lower_level.K13()[i]), 
-                    d = -0.5 * r * (upper_level.K14()[i] + lower_level.K14()[i]), 
-                    u = -0.5 * r * (upper_level.K23()[i] + lower_level.K23()[i]), 
-                    v = -0.5 * r * (upper_level.K24()[i] + lower_level.K24()[i]), 
-                    w = -0.5 * r * (upper_level.K34()[i] + lower_level.K34()[i]);
+      const Numeric a = -0.5 * r * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]), 
+                    b = -0.5 * r * (upper_level.K12(iz, ia)[i] + lower_level.K12(iz, ia)[i]), 
+                    c = -0.5 * r * (upper_level.K13(iz, ia)[i] + lower_level.K13(iz, ia)[i]), 
+                    d = -0.5 * r * (upper_level.K14(iz, ia)[i] + lower_level.K14(iz, ia)[i]), 
+                    u = -0.5 * r * (upper_level.K23(iz, ia)[i] + lower_level.K23(iz, ia)[i]), 
+                    v = -0.5 * r * (upper_level.K24(iz, ia)[i] + lower_level.K24(iz, ia)[i]), 
+                    w = -0.5 * r * (upper_level.K34(iz, ia)[i] + lower_level.K34(iz, ia)[i]);
                     
       const Numeric exp_a = exp(a);
       
@@ -271,23 +273,25 @@ void compute_transmission_matrix(Tensor3View T,
 void compute_transmission_matrix_from_averaged_matrix_at_frequency(MatrixView T, 
                                                                    const Numeric& r, 
                                                                    const PropagationMatrix& averaged_propagation_matrix,
-                                                                   const Index ifreq)
+                                                                   const Index iv,
+                                                                   const Index iz,
+                                                                   const Index ia)
 {
   static const Numeric sqrt_05 = sqrt(0.5);
   const Index mstokes_dim = averaged_propagation_matrix.StokesDimensions();
   assert(r > 0.);
   assert(T.nrows() == mstokes_dim);
   assert(T.ncols() == mstokes_dim);
-  assert(ifreq < averaged_propagation_matrix.NumberOfFrequencies());
+  assert(iv < averaged_propagation_matrix.NumberOfFrequencies());
   
   if(mstokes_dim == 1)
   {
-    T(0, 0) = exp(-r * averaged_propagation_matrix.Kjj()[ifreq]);
+    T(0, 0) = exp(-r * averaged_propagation_matrix.Kjj(iz, ia)[iv]);
   }
   else if(mstokes_dim == 2)
   { 
-    const Numeric a = -r * averaged_propagation_matrix.Kjj()[ifreq], 
-                  b = -r * averaged_propagation_matrix.K12()[ifreq];
+    const Numeric a = -r * averaged_propagation_matrix.Kjj(iz, ia)[iv], 
+                  b = -r * averaged_propagation_matrix.K12(iz, ia)[iv];
                   
     const Numeric exp_a = exp(a);
     
@@ -309,10 +313,10 @@ void compute_transmission_matrix_from_averaged_matrix_at_frequency(MatrixView T,
   }
   else if(mstokes_dim == 3)
   {
-    const Numeric a = -r * averaged_propagation_matrix.Kjj()[ifreq], 
-                  b = -r * averaged_propagation_matrix.K12()[ifreq], 
-                  c = -r * averaged_propagation_matrix.K13()[ifreq], 
-                  u = -r * averaged_propagation_matrix.K23()[ifreq];
+    const Numeric a = -r * averaged_propagation_matrix.Kjj(iz, ia)[iv], 
+                  b = -r * averaged_propagation_matrix.K12(iz, ia)[iv], 
+                  c = -r * averaged_propagation_matrix.K13(iz, ia)[iv], 
+                  u = -r * averaged_propagation_matrix.K23(iz, ia)[iv];
                   
     const Numeric exp_a = exp(a);
     
@@ -353,13 +357,13 @@ void compute_transmission_matrix_from_averaged_matrix_at_frequency(MatrixView T,
   }
   else if(mstokes_dim == 4)
   {
-    const Numeric a = -r * averaged_propagation_matrix.Kjj()[ifreq], 
-                  b = -r * averaged_propagation_matrix.K12()[ifreq], 
-                  c = -r * averaged_propagation_matrix.K13()[ifreq], 
-                  d = -r * averaged_propagation_matrix.K14()[ifreq], 
-                  u = -r * averaged_propagation_matrix.K23()[ifreq], 
-                  v = -r * averaged_propagation_matrix.K24()[ifreq], 
-                  w = -r * averaged_propagation_matrix.K34()[ifreq];
+    const Numeric a = -r * averaged_propagation_matrix.Kjj(iz, ia)[iv], 
+                  b = -r * averaged_propagation_matrix.K12(iz, ia)[iv], 
+                  c = -r * averaged_propagation_matrix.K13(iz, ia)[iv], 
+                  d = -r * averaged_propagation_matrix.K14(iz, ia)[iv], 
+                  u = -r * averaged_propagation_matrix.K23(iz, ia)[iv], 
+                  v = -r * averaged_propagation_matrix.K24(iz, ia)[iv], 
+                  w = -r * averaged_propagation_matrix.K34(iz, ia)[iv];
                   
     const Numeric exp_a = exp(a);
     
@@ -485,7 +489,9 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
                                                 const PropagationMatrix& upper_level,
                                                 const PropagationMatrix& lower_level,
                                                 const ArrayOfPropagationMatrix& dupper_level_dx, 
-                                                const ArrayOfPropagationMatrix& dlower_level_dx)
+                                                const ArrayOfPropagationMatrix& dlower_level_dx,
+                                                const Index iz,
+                                                const Index ia)
 {
   
   const Index mstokes_dim = upper_level.StokesDimensions();
@@ -533,14 +539,14 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
     if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
     for(Index i = 0; i < mfreqs; i++)
     {
-      T(i, 0, 0) = exp(-0.5 * r * (upper_level.Kjj()[i] + lower_level.Kjj()[i]));
+      T(i, 0, 0) = exp(-0.5 * r * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]));
       for(Index j = 0; j < nppd; j++)
       {
         if(dupper_level_dx[j].NumberOfFrequencies())
-          dT_dx_upper_level(j, i, 0, 0) = -0.5 * r * T(i, 0, 0) * dupper_level_dx[j].Kjj()[i];
+          dT_dx_upper_level(j, i, 0, 0) = -0.5 * r * T(i, 0, 0) * dupper_level_dx[j].Kjj(iz, ia)[i];
         
         if(dlower_level_dx[j].NumberOfFrequencies())
-          dT_dx_lower_level(j, i, 0, 0) = -0.5 * r * T(i, 0, 0) * dlower_level_dx[j].Kjj()[i];
+          dT_dx_lower_level(j, i, 0, 0) = -0.5 * r * T(i, 0, 0) * dlower_level_dx[j].Kjj(iz, ia)[i];
       }
     }
   }
@@ -552,8 +558,8 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
     {
       MatrixView F = T(i, joker, joker);
       
-      const Numeric a = -0.5 * r * (upper_level.Kjj()[i] + lower_level.Kjj()[i]), 
-                    b = -0.5 * r * (upper_level.K12()[i] + lower_level.K12()[i]);
+      const Numeric a = -0.5 * r * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]), 
+                    b = -0.5 * r * (upper_level.K12(iz, ia)[i] + lower_level.K12(iz, ia)[i]);
                     
       const Numeric exp_a = exp(a);
       
@@ -565,13 +571,13 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
         {
           if(dupper_level_dx[j].NumberOfFrequencies())
           {
-            dupper_level_dx[j].RightMultiplyAtFrequency(i, dT_dx_upper_level(j, i, joker, joker), F);
+            dupper_level_dx[j].RightMultiplyAtPosition(dT_dx_upper_level(j, i, joker, joker), F, i, iz, ia);
             dT_dx_upper_level(j, i, joker, joker) *= -0.5 * r;
           }
           
           if(dlower_level_dx[j].NumberOfFrequencies())
           {
-            dlower_level_dx[j].RightMultiplyAtFrequency(i, dT_dx_lower_level(j, i, joker, joker), F);
+            dlower_level_dx[j].RightMultiplyAtPosition(dT_dx_lower_level(j, i, joker, joker), F, i ,iz, ia);
             dT_dx_lower_level(j, i, joker, joker) *= -0.5 * r;
           }
         }
@@ -609,8 +615,8 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
         
         MatrixView dF = dT_dx_upper_level(j, i, joker, joker);
         
-        const Numeric da = -0.5 * r * dupper_level_dx[j].Kjj()[i],
-                      db = -0.5 * r * dupper_level_dx[j].K12()[i];
+        const Numeric da = -0.5 * r * dupper_level_dx[j].Kjj(iz, ia)[i],
+                      db = -0.5 * r * dupper_level_dx[j].K12(iz, ia)[i];
         
         const Numeric dC0 = -a*cosh(b)*db/b + a*sinh(b)*db/b/b + sinh(b)*db - sinh(b)*da/b;
         const Numeric dC1 = (cosh(b) - C1)*db/b;
@@ -628,10 +634,10 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
     {
       MatrixView F = T(i, joker, joker);
       
-      const Numeric a = -0.5 * r * (upper_level.Kjj()[i] + lower_level.Kjj()[i]), 
-                    b = -0.5 * r * (upper_level.K12()[i] + lower_level.K12()[i]), 
-                    c = -0.5 * r * (upper_level.K13()[i] + lower_level.K13()[i]), 
-                    u = -0.5 * r * (upper_level.K23()[i] + lower_level.K23()[i]);
+      const Numeric a = -0.5 * r * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]), 
+                    b = -0.5 * r * (upper_level.K12(iz, ia)[i] + lower_level.K12(iz, ia)[i]), 
+                    c = -0.5 * r * (upper_level.K13(iz, ia)[i] + lower_level.K13(iz, ia)[i]), 
+                    u = -0.5 * r * (upper_level.K23(iz, ia)[i] + lower_level.K23(iz, ia)[i]);
                     
       const Numeric exp_a = exp(a);
       
@@ -643,13 +649,13 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
         {
           if(dupper_level_dx[j].NumberOfFrequencies())
           {
-            dupper_level_dx[j].RightMultiplyAtFrequency(i, dT_dx_upper_level(j, i, joker, joker), F);
+            dupper_level_dx[j].RightMultiplyAtPosition(dT_dx_upper_level(j, i, joker, joker), F, i, iz, ia);
             dT_dx_upper_level(j, i, joker, joker) *= -0.5 * r;
           }
           
           if(dlower_level_dx[j].NumberOfFrequencies())
           {
-            dlower_level_dx[j].RightMultiplyAtFrequency(i, dT_dx_lower_level(j, i, joker, joker), F);
+            dlower_level_dx[j].RightMultiplyAtPosition(dT_dx_lower_level(j, i, joker, joker), F, i, iz, ia);
             dT_dx_lower_level(j, i, joker, joker) *= -0.5 * r;
           }
         }
@@ -690,10 +696,10 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
         
         MatrixView dF = dT_dx_lower_level(j, i, joker, joker);
         
-        const Numeric da = -0.5 * r * dlower_level_dx[j].Kjj()[i],
-                      db = -0.5 * r * dlower_level_dx[j].K12()[i],
-                      dc = -0.5 * r * dlower_level_dx[j].K13()[i],
-                      du = -0.5 * r * dlower_level_dx[j].K23()[i];
+        const Numeric da = -0.5 * r * dlower_level_dx[j].Kjj(iz, ia)[i],
+                      db = -0.5 * r * dlower_level_dx[j].K12(iz, ia)[i],
+                      dc = -0.5 * r * dlower_level_dx[j].K13(iz, ia)[i],
+                      du = -0.5 * r * dlower_level_dx[j].K23(iz, ia)[i];
         
         const Numeric da2 = 2 * a * da, db2 = 2 * b * db, dc2 = 2 * c * dc, du2 = 2 * u * du;
         
@@ -727,10 +733,10 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
         
         MatrixView dF = dT_dx_upper_level(j, i, joker, joker);
         
-        const Numeric da = -0.5 * r * dupper_level_dx[j].Kjj()[i],
-                      db = -0.5 * r * dupper_level_dx[j].K12()[i],
-                      dc = -0.5 * r * dupper_level_dx[j].K13()[i],
-                      du = -0.5 * r * dupper_level_dx[j].K23()[i];
+        const Numeric da = -0.5 * r * dupper_level_dx[j].Kjj(iz, ia)[i],
+                      db = -0.5 * r * dupper_level_dx[j].K12(iz, ia)[i],
+                      dc = -0.5 * r * dupper_level_dx[j].K13(iz, ia)[i],
+                      du = -0.5 * r * dupper_level_dx[j].K23(iz, ia)[i];
         
         const Numeric da2 = 2 * a * da, db2 = 2 * b * db, dc2 = 2 * c * dc, du2 = 2 * u * du;
         
@@ -769,13 +775,13 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
       MatrixView F = T(i, joker, joker);
       
       
-      const Numeric a = -0.5 * r * (upper_level.Kjj()[i] + lower_level.Kjj()[i]), 
-                    b = -0.5 * r * (upper_level.K12()[i] + lower_level.K12()[i]), 
-                    c = -0.5 * r * (upper_level.K13()[i] + lower_level.K13()[i]), 
-                    d = -0.5 * r * (upper_level.K14()[i] + lower_level.K14()[i]), 
-                    u = -0.5 * r * (upper_level.K23()[i] + lower_level.K23()[i]), 
-                    v = -0.5 * r * (upper_level.K24()[i] + lower_level.K24()[i]), 
-                    w = -0.5 * r * (upper_level.K34()[i] + lower_level.K34()[i]);
+      const Numeric a = -0.5 * r * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]), 
+                    b = -0.5 * r * (upper_level.K12(iz, ia)[i] + lower_level.K12(iz, ia)[i]), 
+                    c = -0.5 * r * (upper_level.K13(iz, ia)[i] + lower_level.K13(iz, ia)[i]), 
+                    d = -0.5 * r * (upper_level.K14(iz, ia)[i] + lower_level.K14(iz, ia)[i]), 
+                    u = -0.5 * r * (upper_level.K23(iz, ia)[i] + lower_level.K23(iz, ia)[i]), 
+                    v = -0.5 * r * (upper_level.K24(iz, ia)[i] + lower_level.K24(iz, ia)[i]), 
+                    w = -0.5 * r * (upper_level.K34(iz, ia)[i] + lower_level.K34(iz, ia)[i]);
       
       const Numeric exp_a = exp(a);
 
@@ -787,13 +793,13 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
         {
           if(dupper_level_dx[j].NumberOfFrequencies())
           {
-            dupper_level_dx[j].RightMultiplyAtFrequency(i, dT_dx_upper_level(j, i, joker, joker), F);
+            dupper_level_dx[j].RightMultiplyAtPosition(dT_dx_upper_level(j, i, joker, joker), F, i, iz, ia);
             dT_dx_upper_level(j, i, joker, joker) *= -0.5 * r;
           }
           
           if(dlower_level_dx[j].NumberOfFrequencies())
           {
-            dlower_level_dx[j].RightMultiplyAtFrequency(i, dT_dx_lower_level(j, i, joker, joker), F);
+            dlower_level_dx[j].RightMultiplyAtPosition(dT_dx_lower_level(j, i, joker, joker), F, i, iz, ia);
             dT_dx_lower_level(j, i, joker, joker) *= -0.5 * r;
           }
         }
@@ -915,13 +921,13 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
           
           MatrixView dF = dT_dx_upper_level(j, i, joker, joker);
           
-          const Numeric da = -0.5 * r * dupper_level_dx[j].Kjj()[i],
-                        db = -0.5 * r * dupper_level_dx[j].K12()[i],
-                        dc = -0.5 * r * dupper_level_dx[j].K13()[i],
-                        dd = -0.5 * r * dupper_level_dx[j].K14()[i],
-                        du = -0.5 * r * dupper_level_dx[j].K23()[i],
-                        dv = -0.5 * r * dupper_level_dx[j].K24()[i],
-                        dw = -0.5 * r * dupper_level_dx[j].K34()[i];
+          const Numeric da = -0.5 * r * dupper_level_dx[j].Kjj(iz, ia)[i],
+                        db = -0.5 * r * dupper_level_dx[j].K12(iz, ia)[i],
+                        dc = -0.5 * r * dupper_level_dx[j].K13(iz, ia)[i],
+                        dd = -0.5 * r * dupper_level_dx[j].K14(iz, ia)[i],
+                        du = -0.5 * r * dupper_level_dx[j].K23(iz, ia)[i],
+                        dv = -0.5 * r * dupper_level_dx[j].K24(iz, ia)[i],
+                        dw = -0.5 * r * dupper_level_dx[j].K34(iz, ia)[i];
           
           const Numeric db2 = 2 * db * b, dc2 = 2 * dc * c,
                         dd2 = 2 * dd * d, du2 = 2 * du * u,
@@ -1133,13 +1139,13 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
           
           MatrixView dF = dT_dx_lower_level(j, i, joker, joker);
           
-          const Numeric da = -0.5 * r * dlower_level_dx[j].Kjj()[i],
-                        db = -0.5 * r * dlower_level_dx[j].K12()[i],
-                        dc = -0.5 * r * dlower_level_dx[j].K13()[i],
-                        dd = -0.5 * r * dlower_level_dx[j].K14()[i],
-                        du = -0.5 * r * dlower_level_dx[j].K23()[i],
-                        dv = -0.5 * r * dlower_level_dx[j].K24()[i],
-                        dw = -0.5 * r * dlower_level_dx[j].K34()[i];
+          const Numeric da = -0.5 * r * dlower_level_dx[j].Kjj(iz, ia)[i],
+                        db = -0.5 * r * dlower_level_dx[j].K12(iz, ia)[i],
+                        dc = -0.5 * r * dlower_level_dx[j].K13(iz, ia)[i],
+                        dd = -0.5 * r * dlower_level_dx[j].K14(iz, ia)[i],
+                        du = -0.5 * r * dlower_level_dx[j].K23(iz, ia)[i],
+                        dv = -0.5 * r * dlower_level_dx[j].K24(iz, ia)[i],
+                        dw = -0.5 * r * dlower_level_dx[j].K34(iz, ia)[i];
           
           const Numeric db2 = 2 * db * b, dc2 = 2 * dc * c,
                         dd2 = 2 * dd * d, du2 = 2 * du * u,
@@ -1348,265 +1354,6 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
   }
 }
 
-/*
-void compute_transmission_matrix_distance_derivatives(Tensor3View dT_dr,
-                                                      const Numeric& r,
-                                                      const PropagationMatrix& upper_level,
-                                                      const PropagationMatrix& lower_level)
-{
-  const Index mstokes_dim = upper_level.StokesDimensions();
-  const Index mfreqs = upper_level.NumberOfFrequencies();
-  assert(r > 0.);
-  assert(dT_dx_upper_level.npages() == mfreqs);
-  assert(dT_dx_upper_level.nrows() == mstokes_dim);
-  assert(dT_dx_upper_level.ncols() == mstokes_dim);
-  assert(dT_dx_lower_level.npages() == mfreqs);
-  assert(dT_dx_lower_level.nrows() == mstokes_dim);
-  assert(dT_dx_lower_level.ncols() == mstokes_dim);
-  assert(lower_level.StokesDimensions() == mstokes_dim);
-  assert(lower_level.NumberOfFrequencies() == mfreqs);
-  
-  if(mstokes_dim == 1)
-  {
-    #pragma omp parallel for \
-    if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
-    for(Index i = 0; i < mfreqs; i++)
-    {
-      dT_dr(i, 0, 0) = exp(-0.5 * r * (upper_level.Kjj()[i] + lower_level.Kjj()[i])) *(-0.5 * (upper_level.Kjj()[i] + lower_level.Kjj()[i]));
-    }
-  }
-  else if(mstokes_dim == 2)
-  {
-    #pragma omp parallel for \
-    if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
-    for(Index i = 0; i < mfreqs; i++)
-    {
-      MatrixView dF = dT_dr(i, joker, joker);
-      
-      const Numeric da = -0.5 * (upper_level.Kjj()[i] + lower_level.Kjj()[i]),
-                    db = -0.5 * (upper_level.K12()[i] + lower_level.K12()[i]),
-                     a = da * r,
-                     b = db * r;
-                    
-      const Numeric exp_a = exp(a);
-      
-      if(b == 0.)
-      {
-        dF(0, 1) = dF(1, 0) = 0.;
-        dF(0, 0) = dF(1, 1) = exp_a * da;
-        continue;
-      }
-      
-      const Numeric C0 = (b*cosh(b) - a*sinh(b))/b;
-      const Numeric C1 = sinh(b)/b;
-      const Numeric dC0 = (db*cosh(b) - da*sinh(b))/b + (b*sinh(b) - a*cosh(b))/b - C0/b;
-      const Numeric dC1 = cosh(b)/b - C1/b;
-      
-      dF(0, 0) = dF(1, 1) = dC0 + C1 * da + dC1 * a + (C0 + C1 * a) * da;
-      dF(0, 1) = dF(1, 0) = C1 * db + dC1 * b + (C1 * b) * da;
-      dF *= exp_a;
-    }
-  }
-  else if(mstokes_dim == 3)
-  {
-    #pragma omp parallel for \
-    if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
-    for(Index i = 0; i < mfreqs; i++)
-    {
-      MatrixView dF = dT_dr(i, joker, joker);
-      
-      const Numeric da = -0.5 * (upper_level.Kjj()[i] + lower_level.Kjj()[i]), 
-                     a = da * r, 
-                    db = -0.5 * (upper_level.K12()[i] + lower_level.K12()[i]), 
-                     b = db * r,
-                    dc = -0.5 * (upper_level.K13()[i] + lower_level.K13()[i]), 
-                     c = dc * r,
-                    du = -0.5 * (upper_level.K23()[i] + lower_level.K23()[i]),
-                     u = du * r;
-                    
-      const Numeric exp_a = exp(a);
-      
-      if(b == 0. and c == 0. and u == 0.)
-      {
-        dF = 0.;
-        dF(0, 0) = dF(1, 1) = dF(2, 2) = exp_a * da;
-        continue;
-      }
-      
-      const Numeric a2 = a * a, b2 = b * b, c2 = c * c, u2 = u * u;
-      const Numeric da2 = 2 * a * da, db2 = 2 * b * db, dc2 = 2 * c * dc, du2 = 2 * u * du;
-      
-      const Numeric x = sqrt(b2 + c2 - u2), x2 = x * x, inv_x2 = 1.0/x2;
-      const Numeric dx = sqrt(db*db + dc*dc - du*du), dx2 = 2 * x * dx;
-      const Numeric sinh_x = sinh(x), cosh_x = cosh(x);
-      const Numeric dsinh_x = cosh_x * dx, dcosh_x = sinh_x * dx;
-      
-      const Numeric C0 = (a2 * (cosh_x - 1) - a * x * sinh_x + x2) * inv_x2;
-      const Numeric dC0 = (da2 * (cosh_x - 1) + 
-                            a2 * dcosh_x     - 
-                           da *  x *  sinh_x - 
-                            a * dx *  sinh_x -
-                            a *  x * dsinh_x + dx2) * inv_x2 - 2*C0/x;
-      const Numeric C1 = (2 * a * (1 - cosh_x) + x * sinh_x) * inv_x2;
-      const Numeric dC1 = (2 * da * (1 -  cosh_x)  + 
-                           2 *  a * (  - dcosh_x) + 
-                           dx *  sinh_x + 
-                            x * dsinh_x) * inv_x2 - 2*C1/x;
-      const Numeric C2 = (cosh_x - 1) * inv_x2;
-      const Numeric dC2 = dcosh_x * inv_x2 - 2*C2/x;
-      
-      dF(0, 0) = dF(1, 1) = dF(2, 2) = C0 + C1 * a + (dC0 + dC1 * a + C1 * da) * da;
-      dF(0, 0) += C2 * (a2 + b2 + c2) + (dC2 * (a2 + b2 + c2) + C2 * (da2 + db2 + dc2)) * da;
-      dF(1, 1) += C2 * (a2 + b2 - u2) + (dC2 * (a2 + b2 - u2) + C2 * (da2 + db2 - du2)) * da;
-      dF(2, 2) += C2 * (a2 + c2 - u2) + (dC2 * (a2 + c2 - u2) + C2 * (da2 + dc2 - du2)) * da;
-      
-      dF(0, 1) = dF(1, 0) = C1 * b + (dC1 * b + C1 * db) * da;
-      dF(0, 1) += C2 * (2*a*b - c*u) + (dC2 * (2*a*b - c*u) + C2 * (2*da*b - dc*u) + C2 * (2*a*db - c*du)) * da;
-      F(1, 0) += C2 * (2*a*b + c*u);
-      
-      F(0, 2) = F(2, 0) = C1 * c;
-      F(0, 2) += C2 * (2*a*c + b*u);
-      F(2, 0) += C2 * (2*a*c - b*u);
-      
-      F(1, 2) =  C1 * u + C2 * (2*a*u + b*c);
-      F(2, 1) = -C1 * u - C2 * (2*a*u - b*c);
-      
-      dF *= exp_a;
-    }
-  }
-  else if(mstokes_dim == 4)
-  {
-    static const Numeric sqrt_05 = sqrt(0.5);
-    #pragma omp parallel for \
-    if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
-    for(Index i = 0; i < mfreqs; i++)
-    {
-      MatrixView F = T(i, joker, joker);
-      
-      const Numeric a = -0.5 * r * (upper_level.Kjj()[i] + lower_level.Kjj()[i]), 
-                    b = -0.5 * r * (upper_level.K12()[i] + lower_level.K12()[i]), 
-                    c = -0.5 * r * (upper_level.K13()[i] + lower_level.K13()[i]), 
-                    d = -0.5 * r * (upper_level.K14()[i] + lower_level.K14()[i]), 
-                    u = -0.5 * r * (upper_level.K23()[i] + lower_level.K23()[i]), 
-                    v = -0.5 * r * (upper_level.K24()[i] + lower_level.K24()[i]), 
-                    w = -0.5 * r * (upper_level.K34()[i] + lower_level.K34()[i]);
-                    
-      const Numeric exp_a = exp(a);
-      
-      if(b == 0. and c == 0. and d == 0. and u == 0. and v == 0. and w == 0.)
-      {
-        F = 0.;
-        F(0, 0) = F(1, 1) = F(2, 2) = F(3, 3) = exp_a;
-        continue;
-      }
-      
-      const Numeric b2 = b * b, c2 = c * c,
-                    d2 = d * d, u2 = u * u,
-                    v2 = v * v, w2 = w * w;
-      
-      const Numeric Const2 = b2 + c2 + d2 - u2 - v2 - w2;
-      
-      Numeric Const1;
-      Const1  = b2 * (b2 * 0.5 + c2 + d2 - u2 - v2 + w2);
-      Const1 += c2 * (c2 * 0.5 + d2 - u2 + v2 - w2);
-      Const1 += d2 * (d2 * 0.5 + u2 - v2 - w2);
-      Const1 += u2 * (u2 * 0.5 + v2 + w2);
-      Const1 += v2 * (v2 * 0.5 + w2);
-      Const1 *= 2;
-      Const1 += 8 * (b * d * u * w - b * c * v * w - c * d * u * v);
-      Const1 += w2 * w2;
-      
-      if(Const1 > 0.0)
-        Const1 = sqrt(Const1);
-      else
-        Const1 = 0.0;
-      
-      const Complex sqrt_BpA = sqrt(Complex(Const2 + Const1, 0.0));
-      const Complex sqrt_BmA = sqrt(Complex(Const2 - Const1, 0.0));
-      const Numeric x = sqrt_BpA.real() * sqrt_05;
-      const Numeric y = sqrt_BmA.imag() * sqrt_05;
-      const Numeric x2 = x * x;
-      const Numeric y2 = y * y;
-      const Numeric cos_y = cos(y);
-      const Numeric sin_y = sin(y);
-      const Numeric cosh_x = cosh(x);
-      const Numeric sinh_x = sinh(x);
-      const Numeric x2y2 = x2 + y2;
-      const Numeric inv_x2y2 = 1.0 / x2y2;
-      
-      Numeric C0, C1, C2, C3;
-      Numeric inv_y = 0.0, inv_x = 0.0;  // Init'd to remove warnings
-      
-      // X and Y cannot both be zero
-      if(x == 0.0)
-      {
-        inv_y = 1.0 / y;
-        C0 = 1.0;
-        C1 = 1.0;
-        C2 = (1.0 - cos_y) * inv_x2y2;
-        C3 = (1.0 - sin_y*inv_y) * inv_x2y2;
-      }
-      else if(y == 0.0)
-      {
-        inv_x = 1.0 / x;
-        C0 = 1.0;
-        C1 = 1.0;
-        C2 = (cosh_x - 1.0) * inv_x2y2;
-        C3 = (sinh_x*inv_x - 1.0) * inv_x2y2;
-      }
-      else
-      {
-        inv_x = 1.0 / x;
-        inv_y = 1.0 / y;
-        
-        C0 = (cos_y*x2 + cosh_x*y2) * inv_x2y2;
-        C1 = (sin_y*x2*inv_y + sinh_x*y2*inv_x) * inv_x2y2;
-        C2 = (cosh_x - cos_y) * inv_x2y2;
-        C3 = (sinh_x*inv_x - sin_y*inv_y) * inv_x2y2;
-      }
-      
-      // Diagonal Elements
-      F(0, 0) = F(1, 1) = F(2, 2) = F(3, 3) = C0;
-      F(0, 0) += C2 * (b2 + c2 + d2);
-      F(1, 1) += C2 * (b2 - u2 - v2);
-      F(2, 2) += C2 * (c2 - u2 - w2);
-      F(3, 3) += C2 * (d2 - v2 - w2);
-      
-      // Linear main-axis polarization
-      F(0, 1) = F(1, 0) = C1 * b;
-      F(0, 1) += C2 * (-c *  u -  d *  v) + C3 * ( b * ( b2 + c2 + d2) - u * ( b *  u -  d *  w) - v * ( b *  v +  c *  w));
-      F(1, 0) += C2 * ( c * u + d * v) + C3 * (-b * (-b2 + u2 + v2) + c * (b * c - v * w) + d * (b * d + u * w));
-      
-      // Linear off-axis polarization
-      F(0, 2) = F(2, 0) = C1 * c;
-      F(0, 2) += C2 * ( b * u - d * w) + C3 * (c * (b2 + c2 + d2)  - u * (c * u + d * v) - w * (b * v + c * w));
-      F(2, 0) += C2 * (-b * u + d * w) + C3 * (b * (b * c - v * w) - c * (-c2 + u2 + w2) + d * (c * d - u * v));
-      
-      // Circular polarization
-      F(0, 3) = F(3, 0) = C1 * d;
-      F(0, 3) += C2 * ( b * v + c * w) + C3 * (d * (b2 + c2 + d2)  - v * (c * u + d * v) + w * (b * u - d * w));
-      F(3, 0) += C2 * (-b * v - c * w) + C3 * (b * (b * d + u * w) + c * (c * d - u * v) - d * (-d2 + v2 + w2));
-      
-      // Circular polarization rotation
-      F(1, 2) = F(2, 1) = C2 * (b * c - v * w);
-      F(1, 2) +=  C1 * u + C3 * ( c * (c * u + d * v) - u * (-b2 + u2 + v2) - w * (b * d + u * w));
-      F(2, 1) += -C1 * u + C3 * (-b * (b * u - d * w) + u * (-c2 + u2 + w2) - v * (c * d - u * v));
-      
-      // Linear off-axis polarization rotation
-      F(1, 3) = F(3, 1) = C2 * (b * d + u * w);
-      F(1, 3) +=  C1 * v + C3 * ( d * (c * u + d * v) - v * (-b2 + u2 + v2) + w * (b * c - v * w));
-      F(3, 1) += -C1 * v + C3 * (-b * (b * v + c * w) - u * (c * d - u * v) + v * (-d2 + v2 + w2));
-      
-      // Linear main-axis polarization rotation
-      F(2, 3) = F(3, 2) = C2 * (c * d - u * v);
-      F(2, 3) +=  C1 * w + C3 * (-d * (b * u - d * w) + v * (b * c - v * w) - w * (-c2 + u2 + w2));
-      F(3, 2) += -C1 * w + C3 * (-c * (b * v + c * w) + u * (b * d + u * w) + w * (-d2 + v2 + w2));
-      
-      F *= exp_a;
-    }
-  }
-}*/
-
 
 void PropagationMatrix::AddZeemanPiComponent(ConstVectorView attenuation, 
                                              ConstVectorView phase, 
@@ -1616,6 +1363,8 @@ void PropagationMatrix::AddZeemanPiComponent(ConstVectorView attenuation,
                                              ConstVectorView extra)
 {
   assert(mstokes_dim == 4);
+  assert(mza == 1);
+  assert(maa == 1);
   assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
   assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
   
@@ -1799,6 +1548,8 @@ void PropagationMatrix::AddZeemanSigmaMinusComponent(ConstVectorView attenuation
                                                      ConstVectorView extra)
 {
   assert(mstokes_dim == 4);
+  assert(mza == 1);
+  assert(maa == 1);
   assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
   assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
   
@@ -1847,6 +1598,8 @@ void PropagationMatrix::AddZeemanSigmaMinusComponentEtaDerivative(ConstVectorVie
                                                                   ConstVectorView extra)
 {
   assert(mstokes_dim == 4);
+  assert(mza == 1);
+  assert(maa == 1);
   assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
   assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
   
@@ -1889,6 +1642,8 @@ void PropagationMatrix::AddZeemanSigmaMinusComponentThetaDerivative(ConstVectorV
                                                                     ConstVectorView extra)
 {
   assert(mstokes_dim == 4);
+  assert(mza == 1);
+  assert(maa == 1);
   assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
   assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
   
@@ -1942,6 +1697,8 @@ void PropagationMatrix::AddZeemanSigmaMinusComponentDerivative(ConstVectorView a
                                                                ConstVectorView extra)
 {
   assert(mstokes_dim == 4);
+  assert(mza == 1);
+  assert(maa == 1);
   assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
   assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
   
@@ -1992,6 +1749,8 @@ void PropagationMatrix::AddZeemanSigmaPlusComponent(ConstVectorView attenuation,
                                                     ConstVectorView extra)
 {
   assert(mstokes_dim == 4);
+  assert(mza == 1);
+  assert(maa == 1);
   assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
   assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
   
@@ -2040,6 +1799,8 @@ void PropagationMatrix::AddZeemanSigmaPlusComponentThetaDerivative(ConstVectorVi
                                                                    ConstVectorView extra)
 {
   assert(mstokes_dim == 4);
+  assert(mza == 1);
+  assert(maa == 1);
   assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
   assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
   
@@ -2089,6 +1850,8 @@ void PropagationMatrix::AddZeemanSigmaPlusComponentEtaDerivative(ConstVectorView
                                                                  ConstVectorView extra)
 {
   assert(mstokes_dim == 4);
+  assert(mza == 1);
+  assert(maa == 1);
   assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
   assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
   
@@ -2135,6 +1898,8 @@ void PropagationMatrix::AddZeemanSigmaPlusComponentDerivative(ConstVectorView at
                                                               ConstVectorView extra)
 {
   assert(mstokes_dim == 4);
+  assert(mza == 1);
+  assert(maa == 1);
   assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
   assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
   
@@ -2178,20 +1943,22 @@ void PropagationMatrix::AddZeemanSigmaPlusComponentDerivative(ConstVectorView at
 }
 
 
-void PropagationMatrix::MatrixInverseAtFrequency(MatrixView ret, const Index ifreq) const
+void PropagationMatrix::MatrixInverseAtPosition(MatrixView ret, const Index iv, const Index iz, const Index ia) const
 {
   assert(ret.ncols() == mstokes_dim and ret.nrows() == mstokes_dim);
-  assert(ifreq < mfreqs);
+  assert(iv < mfreqs);
+  assert(iz < mza);
+  assert(ia < maa);
   
   switch(mstokes_dim)
   {
     case 1: 
-      assert(Kjj()[ifreq] not_eq 0); 
-      ret(0,0) = 1/Kjj()[ifreq]; 
+      assert(Kjj(iz, ia)[iv] not_eq 0); 
+      ret(0,0) = 1/Kjj()[iv]; 
       break;
     case 2: 
     {
-      const Numeric a2 = Kjj()[ifreq]*Kjj()[ifreq], b2 = K12()[ifreq]*K12()[ifreq];
+      const Numeric a2 = Kjj(iz, ia)[iv]*Kjj(iz, ia)[iv], b2 = K12(iz, ia)[iv]*K12(iz, ia)[iv];
       
       const Numeric f = a2 - b2;
       
@@ -2200,16 +1967,16 @@ void PropagationMatrix::MatrixInverseAtFrequency(MatrixView ret, const Index ifr
       
       const Numeric div = 1.0/f;
       
-      ret(1, 1) = ret(0, 0) =  Kjj()[ifreq]*div; 
-      ret(1, 0) = ret(0, 1) = -K12()[ifreq]*div;
+      ret(1, 1) = ret(0, 0) =  Kjj(iz, ia)[iv]*div; 
+      ret(1, 0) = ret(0, 1) = -K12(iz, ia)[iv]*div;
     }
       break;
     case 3:
     {
-      const Numeric a = Kjj()[ifreq], a2 = a*a, 
-                    b = K12()[ifreq], b2 = b*b,
-                    c = K13()[ifreq], c2 = c*c,
-                    u = K23()[ifreq], u2 = u*u;
+      const Numeric a = Kjj(iz, ia)[iv], a2 = a*a, 
+                    b = K12(iz, ia)[iv], b2 = b*b,
+                    c = K13(iz, ia)[iv], c2 = c*c,
+                    u = K23(iz, ia)[iv], u2 = u*u;
       
       const Numeric f = a*(a2 - b2 - c2 + u2);
       
@@ -2233,13 +2000,13 @@ void PropagationMatrix::MatrixInverseAtFrequency(MatrixView ret, const Index ifr
       break;
     case 4:
     {
-      const Numeric a = Kjj()[ifreq], a2 = a*a, 
-                    b = K12()[ifreq], b2 = b*b, 
-                    c = K13()[ifreq], c2 = c*c,
-                    u = K23()[ifreq], u2 = u*u,
-                    d = K14()[ifreq], d2 = d*d, 
-                    v = K24()[ifreq], v2 = v*v, 
-                    w = K34()[ifreq], w2 = w*w;
+      const Numeric a = Kjj(iz, ia)[iv], a2 = a*a, 
+                    b = K12(iz, ia)[iv], b2 = b*b, 
+                    c = K13(iz, ia)[iv], c2 = c*c,
+                    u = K23(iz, ia)[iv], u2 = u*u,
+                    d = K14(iz, ia)[iv], d2 = d*d, 
+                    v = K24(iz, ia)[iv], v2 = v*v, 
+                    w = K34(iz, ia)[iv], w2 = w*w;
       
       const Numeric f = a2*a2 - a2*b2 - a2*c2 - a2*d2 + a2*u2 + a2*v2 + a2*w2 - b2*w2 + 2*b*c*v*w - 2*b*d*u*w - c2*v2 + 2*c*d*u*v - d2*u2;
       
@@ -2277,14 +2044,14 @@ void PropagationMatrix::MatrixInverseAtFrequency(MatrixView ret, const Index ifr
 }
 
 
-void PropagationMatrix::AddAverageAtFrequency(const Index ifreq, ConstMatrixView mat1, ConstMatrixView mat2)
+void PropagationMatrix::AddAverageAtPosition(ConstMatrixView mat1, ConstMatrixView mat2, const Index iv, const Index iz, const Index ia)
 {
   switch(mstokes_dim)
   {
-    case 4: mdata(ifreq, 3) += (mat1(3, 0) + mat2(3, 0)) * 0.5; mdata(ifreq, 5) += (mat1(1, 3) + mat2(1, 3)) * 0.5; mdata(ifreq, 6) += (mat1(2, 3) + mat2(2, 3)) * 0.5;
-    case 3: mdata(ifreq, 2) += (mat1(2, 0) + mat2(2, 0)) * 0.5; mdata(ifreq, mstokes_dim) += (mat1(1, 2) + mat2(1, 2)) * 0.5;
-    case 2: mdata(ifreq, 1) += (mat1(1, 0) + mat2(1, 0)) * 0.5;
-    case 1: mdata(ifreq, 0) += (mat1(0, 0) + mat2(0, 0)) * 0.5; 
+    case 4: mdata(ia ,iz, iv, 3) += (mat1(3, 0) + mat2(3, 0)) * 0.5; mdata(ia ,iz, iv, 5) += (mat1(1, 3) + mat2(1, 3)) * 0.5; mdata(ia ,iz, iv, 6) += (mat1(2, 3) + mat2(2, 3)) * 0.5;
+    case 3: mdata(ia ,iz, iv, 2) += (mat1(2, 0) + mat2(2, 0)) * 0.5; mdata(ia ,iz, iv, mstokes_dim) += (mat1(1, 2) + mat2(1, 2)) * 0.5;
+    case 2: mdata(ia ,iz, iv, 1) += (mat1(1, 0) + mat2(1, 0)) * 0.5;
+    case 1: mdata(ia ,iz, iv, 0) += (mat1(0, 0) + mat2(0, 0)) * 0.5; 
   }
 }
 
@@ -2294,13 +2061,11 @@ void PropagationMatrix::MultiplyAndAdd(const Numeric x, const PropagationMatrix&
   assert(mstokes_dim == y.mstokes_dim);
   assert(mfreqs == y.mfreqs);
   
-  for(Index i = 0; i < mfreqs; i++)
-  {
-    for(Index j = 0; j < NumberOfNeededVectors(); j++)
-    {
-      mdata(i, j) += x * y.mdata(i, j);
-    }
-  }
+  for(Index i = 0; i < maa; i++)
+    for(Index j = 0; j < mza; j++)
+      for(Index k = 0; k < mfreqs; k++)
+        for(Index l = 0; l < NumberOfNeededVectors(); l++)
+          mdata(i, j, k, l) += x * y.mdata(i, j, k, l);
 }
 
 
@@ -2325,22 +2090,22 @@ bool PropagationMatrix::FittingShape(ConstMatrixView x) const
 }
 
 
-void PropagationMatrix::GetTensor3(Tensor3View tensor3)
+void PropagationMatrix::GetTensor3(Tensor3View tensor3, Index iz, Index ia)
 {
   assert(not mvectortype);
   switch(mstokes_dim)
   {
-    case 4: tensor3(joker, 3, 3) = mdata(joker, 0); tensor3(joker, 3, 2) = mdata(joker, 6); 
-    tensor3(joker, 3, 1) = mdata(joker, 5); tensor3(joker, 0, 3) = mdata(joker, 3); 
-    tensor3(joker, 3, 0) = mdata(joker, 3); tensor3(joker, 2, 3) = mdata(joker, 6); 
-    tensor3(joker, 1, 3) = mdata(joker, 5); 
-    tensor3(joker, 3, 2) *= -1; tensor3(joker, 3, 1) *= -1; 
-    case 3: tensor3(joker, 2, 2) = mdata(joker, 0); tensor3(joker, 2, 1) = mdata(joker, mstokes_dim); 
-    tensor3(joker, 2, 0) = mdata(joker, 2); tensor3(joker, 0, 2) = mdata(joker, 2); 
-    tensor3(joker, 1, 2) = mdata(joker, mstokes_dim); tensor3(joker, 2, 1) *= -1;
-    case 2: tensor3(joker, 1, 1) = mdata(joker, 0); 
-    tensor3(joker, 1, 0) = mdata(joker, 1); tensor3(joker, 0, 1) = mdata(joker, 1);
-    case 1: tensor3(joker, 0, 0) = mdata(joker, 0); break;
+    case 4: tensor3(joker, 3, 3) = mdata(ia, iz, joker, 0); tensor3(joker, 3, 2) = mdata(ia, iz, joker, 6); 
+            tensor3(joker, 3, 1) = mdata(ia, iz, joker, 5); tensor3(joker, 0, 3) = mdata(ia, iz, joker, 3); 
+            tensor3(joker, 3, 0) = mdata(ia, iz, joker, 3); tensor3(joker, 2, 3) = mdata(ia, iz, joker, 6); 
+            tensor3(joker, 1, 3) = mdata(ia, iz, joker, 5); 
+            tensor3(joker, 3, 2) *= -1; tensor3(joker, 3, 1) *= -1; 
+    case 3: tensor3(joker, 2, 2) = mdata(ia, iz, joker, 0); tensor3(joker, 2, 1) = mdata(ia, iz, joker, mstokes_dim); 
+            tensor3(joker, 2, 0) = mdata(ia, iz, joker, 2); tensor3(joker, 0, 2) = mdata(ia, iz, joker, 2); 
+            tensor3(joker, 1, 2) = mdata(ia, iz, joker, mstokes_dim); tensor3(joker, 2, 1) *= -1;
+    case 2: tensor3(joker, 1, 1) = mdata(ia, iz, joker, 0); 
+            tensor3(joker, 1, 0) = mdata(ia, iz, joker, 1); tensor3(joker, 0, 1) = mdata(ia, iz, joker, 1);
+    case 1: tensor3(joker, 0, 0) = mdata(ia, iz, joker, 0); break;
     default: throw std::runtime_error("Stokes dimension does not agree with accepted values"); break;
   }
 }
@@ -2349,12 +2114,14 @@ void PropagationMatrix::GetTensor3(Tensor3View tensor3)
 void PropagationMatrix::CalculationCase(ArrayOfCaseOfPropagationMatrix& cases) const
 {
   assert(mfreqs == cases.nelem());
-  for(Index i = 0; i < mfreqs; i++)
+  for(Index i = 0; i < maa; i++)
+  for(Index j = 0; j < mza; j++)
+  for(Index k = 0; k < mfreqs; k++)
   {
-    if(mdata(i, joker).sum() == mdata(i, 0))
-      cases[i] = CaseOfPropagationMatrix::Diagonal;
+    if(mdata(i,j,k, joker).sum() == mdata(i,j,k, 0))
+      cases[k] = CaseOfPropagationMatrix::Diagonal;
     else
-      cases[i] = CaseOfPropagationMatrix::FullDimensional;
+      cases[k] = CaseOfPropagationMatrix::FullDimensional;
   }
 }
 
@@ -2362,15 +2129,17 @@ void PropagationMatrix::CalculationCase(ArrayOfCaseOfPropagationMatrix& cases) c
 void PropagationMatrix::CalculationCaseMaximize(ArrayOfCaseOfPropagationMatrix& cases) const
 {
   assert(mfreqs == cases.nelem());
-  for(Index i = 0; i < mfreqs; i++)
+  for(Index i = 0; i < maa; i++)
+  for(Index j = 0; j < mza; j++)
+  for(Index k = 0; k < mfreqs; k++)
   {
-    if(mdata(i, joker).sum() not_eq mdata(i, 0) and cases[i] == CaseOfPropagationMatrix::Diagonal)
-      cases[i] = CaseOfPropagationMatrix::FullDimensional;
+    if(mdata(i,j,k, joker).sum() not_eq mdata(i,j,k, 0) and cases[k] == CaseOfPropagationMatrix::Diagonal)
+      cases[k] = CaseOfPropagationMatrix::FullDimensional;
   }
 }
 
 
-void PropagationMatrix::LeftMultiplyAtFrequency(const Index ifreq, MatrixView out, ConstMatrixView in) const
+void PropagationMatrix::LeftMultiplyAtPosition(MatrixView out, ConstMatrixView in, const Index iv, const Index iz, const Index ia) const
 {
   assert(not mvectortype);
   assert(out.ncols() == mstokes_dim and out.nrows() == mstokes_dim);
@@ -2378,11 +2147,11 @@ void PropagationMatrix::LeftMultiplyAtFrequency(const Index ifreq, MatrixView ou
   switch(mstokes_dim)
   {
     case 1: 
-      out(0, 0) = Kjj()[ifreq] * in(0, 0); 
+      out(0, 0) = Kjj(iz, ia)[iv] * in(0, 0); 
       break;
     case 2:
     {
-      const Numeric a = Kjj()[ifreq], b = K12()[ifreq], 
+      const Numeric a = Kjj(iz, ia)[iv], b = K12(iz, ia)[iv], 
       m11 = in(0, 0), m12 = in(0, 1),
       m21 = in(1, 0), m22 = in(1, 1);
       out(0, 0) = a*m11 + b*m21;
@@ -2393,8 +2162,8 @@ void PropagationMatrix::LeftMultiplyAtFrequency(const Index ifreq, MatrixView ou
     break;
     case 3:
     {
-      const Numeric a = Kjj()[ifreq], b = K12()[ifreq],
-      c = K13()[ifreq], u = K23()[ifreq], 
+      const Numeric a = Kjj(iz, ia)[iv], b = K12(iz, ia)[iv],
+      c = K13(iz, ia)[iv], u = K23(iz, ia)[iv], 
       m11 = in(0, 0), m12 = in(0, 1), m13 = in(0, 2),
       m21 = in(1, 0), m22 = in(1, 1), m23 = in(1, 2),
       m31 = in(2, 0), m32 = in(2, 1), m33 = in(2, 2);
@@ -2411,9 +2180,9 @@ void PropagationMatrix::LeftMultiplyAtFrequency(const Index ifreq, MatrixView ou
     break;
     case 4:
     {
-      const Numeric a = Kjj()[ifreq], b = K12()[ifreq],
-      c = K13()[ifreq], u = K23()[ifreq], 
-      d = K14()[ifreq], v = K24()[ifreq], w = K34()[ifreq],
+      const Numeric a = Kjj(iz, ia)[iv], b = K12(iz, ia)[iv],
+      c = K13(iz, ia)[iv], u = K23(iz, ia)[iv], 
+      d = K14(iz, ia)[iv], v = K24(iz, ia)[iv], w = K34(iz, ia)[iv],
       m11 = in(0, 0), m12 = in(0, 1), m13 = in(0, 2), m14 = in(0, 3),
       m21 = in(1, 0), m22 = in(1, 1), m23 = in(1, 2), m24 = in(1, 3),
       m31 = in(2, 0), m32 = in(2, 1), m33 = in(2, 2), m34 = in(2, 3),
@@ -2439,7 +2208,7 @@ void PropagationMatrix::LeftMultiplyAtFrequency(const Index ifreq, MatrixView ou
 }
 
 
-void PropagationMatrix::RightMultiplyAtFrequency(const Index ifreq, MatrixView out, ConstMatrixView in) const
+void PropagationMatrix::RightMultiplyAtPosition(MatrixView out, ConstMatrixView in, const Index iv, const Index iz, const Index ia) const
 {
   assert(not mvectortype);
   assert(out.ncols() == mstokes_dim and out.nrows() == mstokes_dim);
@@ -2448,11 +2217,11 @@ void PropagationMatrix::RightMultiplyAtFrequency(const Index ifreq, MatrixView o
   switch(mstokes_dim)
   {
     case 1: 
-      out(0, 0) = in(0, 0) * Kjj()[ifreq];
+      out(0, 0) = in(0, 0) * Kjj(iz, ia)[iv];
       break;
     case 2:
     {
-      const Numeric a = Kjj()[ifreq], b = K12()[ifreq], 
+      const Numeric a = Kjj(iz, ia)[iv], b = K12(iz, ia)[iv], 
       m11 = in(0, 0), m12 = in(0, 1),
       m21 = in(1, 0), m22 = in(1, 1);
       out(0, 0) = a*m11 + b*m12;
@@ -2463,8 +2232,8 @@ void PropagationMatrix::RightMultiplyAtFrequency(const Index ifreq, MatrixView o
     break;
     case 3:
     {
-      const Numeric a = Kjj()[ifreq], b = K12()[ifreq],
-      c = K13()[ifreq], u = K23()[ifreq], 
+      const Numeric a = Kjj(iz, ia)[iv], b = K12(iz, ia)[iv],
+      c = K13(iz, ia)[iv], u = K23(iz, ia)[iv], 
       m11 = in(0, 0), m12 = in(0, 1), m13 = in(0, 2),
       m21 = in(1, 0), m22 = in(1, 1), m23 = in(1, 2),
       m31 = in(2, 0), m32 = in(2, 1), m33 = in(2, 2);
@@ -2481,9 +2250,9 @@ void PropagationMatrix::RightMultiplyAtFrequency(const Index ifreq, MatrixView o
     break;
     case 4:
     {
-      const Numeric a = Kjj()[ifreq], b = K12()[ifreq],
-      c = K13()[ifreq], u = K23()[ifreq], 
-      d = K14()[ifreq], v = K24()[ifreq], w = K34()[ifreq],
+      const Numeric a = Kjj(iz, ia)[iv], b = K12(iz, ia)[iv],
+      c = K13(iz, ia)[iv], u = K23(iz, ia)[iv], 
+      d = K14(iz, ia)[iv], v = K24(iz, ia)[iv], w = K34(iz, ia)[iv],
       m11 = in(0, 0), m12 = in(0, 1), m13 = in(0, 2), m14 = in(0, 3),
       m21 = in(1, 0), m22 = in(1, 1), m23 = in(1, 2), m24 = in(1, 3),
       m31 = in(2, 0), m32 = in(2, 1), m33 = in(2, 2), m34 = in(2, 3),
@@ -2509,92 +2278,94 @@ void PropagationMatrix::RightMultiplyAtFrequency(const Index ifreq, MatrixView o
 }
 
 
-void PropagationMatrix::RemoveAtFrequency(const Index ifreq, ConstMatrixView x)
+void PropagationMatrix::RemoveAtPosition(ConstMatrixView x, const Index iv, const Index iz, const Index ia)
 { 
   switch(mstokes_dim) 
   { 
-    case 4: mdata(ifreq, 5) -= x(1, 3); mdata(ifreq, 6) -= x(2, 3); mdata(ifreq, 3) -= x(0, 3);
-    case 3: mdata(ifreq, 2) -= x(0, 2); mdata(ifreq, mstokes_dim) -= x(1, 2);
-    case 2: mdata(ifreq, 1) -= x(0, 1);
-    case 1: mdata(ifreq, 0) -= x(0, 0);
+    case 4: mdata(ia, iz, iv, 5) -= x(1, 3); mdata(ia, iz, iv, 6) -= x(2, 3); mdata(ia, iz, iv, 3) -= x(0, 3);
+    case 3: mdata(ia, iz, iv, 2) -= x(0, 2); mdata(ia, iz, iv, mstokes_dim) -= x(1, 2);
+    case 2: mdata(ia, iz, iv, 1) -= x(0, 1);
+    case 1: mdata(ia, iz, iv, 0) -= x(0, 0);
   }
 }
 
 
-void PropagationMatrix::AddAtFrequency(const Index ifreq, ConstMatrixView x)
+void PropagationMatrix::AddAtPosition(ConstMatrixView x, const Index iv, const Index iz, const Index ia)
 { 
   switch(mstokes_dim) 
   { 
-    case 4: mdata(ifreq, 5) += x(1, 3); mdata(ifreq, 6) += x(2, 3); mdata(ifreq, 3) += x(0, 3);
-    case 3: mdata(ifreq, 2) += x(0, 2); mdata(ifreq, mstokes_dim) += x(1, 2);
-    case 2: mdata(ifreq, 1) += x(0, 1);
-    case 1: mdata(ifreq, 0) += x(0, 0);
+    case 4: mdata(ia, iz, iv, 5) += x(1, 3); mdata(ia, iz, iv, 6) += x(2, 3); mdata(ia, iz, iv, 3) += x(0, 3);
+    case 3: mdata(ia, iz, iv, 2) += x(0, 2); mdata(ia, iz, iv, mstokes_dim) += x(1, 2);
+    case 2: mdata(ia, iz, iv, 1) += x(0, 1);
+    case 1: mdata(ia, iz, iv, 0) += x(0, 0);
   }
 }
 
 
-void PropagationMatrix::MultiplyAtFrequency(const Index ifreq, ConstMatrixView x)
+void PropagationMatrix::MultiplyAtPosition(ConstMatrixView x, const Index iv, const Index iz, const Index ia)
 { 
   switch(mstokes_dim) 
   { 
-    case 4: mdata(ifreq, 5) *= x(1, 3); mdata(ifreq, 6) *= x(2, 3); mdata(ifreq, 3) *= x(0, 3);
-    case 3: mdata(ifreq, 2) *= x(0, 2); mdata(ifreq, mstokes_dim) *= x(1, 2);
-    case 2: mdata(ifreq, 1) *= x(0, 1);
-    case 1: mdata(ifreq, 0) *= x(0, 0);
+    case 4: mdata(ia, iz, iv, 5) *= x(1, 3); mdata(ia, iz, iv, 6) *= x(2, 3); mdata(ia, iz, iv, 3) *= x(0, 3);
+    case 3: mdata(ia, iz, iv, 2) *= x(0, 2); mdata(ia, iz, iv, mstokes_dim) *= x(1, 2);
+    case 2: mdata(ia, iz, iv, 1) *= x(0, 1);
+    case 1: mdata(ia, iz, iv, 0) *= x(0, 0);
   }
 }
 
 
-void PropagationMatrix::DivideAtFrequency(const Index ifreq, ConstMatrixView x)
+void PropagationMatrix::DivideAtPosition(ConstMatrixView x, const Index iv, const Index iz, const Index ia)
 { 
   switch(mstokes_dim) 
   { 
-    case 4: mdata(ifreq, 5) /= x(1, 3); mdata(ifreq, 6) /= x(2, 3); mdata(ifreq, 3) /= x(0, 3);
-    case 3: mdata(ifreq, 2) /= x(0, 2); mdata(ifreq, mstokes_dim) /= x(1, 2);
-    case 2: mdata(ifreq, 1) /= x(0, 1);
-    case 1: mdata(ifreq, 0) /= x(0, 0);
+    case 4: mdata(ia, iz, iv, 5) /= x(1, 3); mdata(ia, iz, iv, 6) /= x(2, 3); mdata(ia, iz, iv, 3) /= x(0, 3);
+    case 3: mdata(ia, iz, iv, 2) /= x(0, 2); mdata(ia, iz, iv, mstokes_dim) /= x(1, 2);
+    case 2: mdata(ia, iz, iv, 1) /= x(0, 1);
+    case 1: mdata(ia, iz, iv, 0) /= x(0, 0);
   }
 }
 
 
-void PropagationMatrix::SetAtFrequency(const Index ifreq, ConstMatrixView x)
+void PropagationMatrix::SetAtPosition(ConstMatrixView x, const Index iv, const Index iz, const Index ia)
 { 
   switch(mstokes_dim) 
   { 
-    case 4: mdata(ifreq, 5)  = x(1, 3); mdata(ifreq, 6)  = x(2, 3); mdata(ifreq, 3)  = x(0, 3);
-    case 3: mdata(ifreq, 2)  = x(0, 2); mdata(ifreq, mstokes_dim)  = x(1, 2);
-    case 2: mdata(ifreq, 1)  = x(0, 1);
-    case 1: mdata(ifreq, 0)  = x(0, 0);
+    case 4: mdata(ia, iz, iv, 5)  = x(1, 3); mdata(ia, iz, iv, 6)  = x(2, 3); mdata(ia, iz, iv, 3)  = x(0, 3);
+    case 3: mdata(ia, iz, iv, 2)  = x(0, 2); mdata(ia, iz, iv, mstokes_dim)  = x(1, 2);
+    case 2: mdata(ia, iz, iv, 1)  = x(0, 1);
+    case 1: mdata(ia, iz, iv, 0)  = x(0, 0);
   }
 }
 
 
-void PropagationMatrix::MatrixAtFrequency(MatrixView ret, const Index ifreq) const
+void PropagationMatrix::MatrixAtPosition(MatrixView ret, const Index iv, const Index iz, const Index ia) const
 {
   switch(mstokes_dim)
   {
-    case 4: ret(3, 3) = mdata(ifreq, 0); ret(3, 1) = -mdata(ifreq, 5); ret(1, 3) = mdata(ifreq, 5); ret(3, 2) = -mdata(ifreq, 6); ret(2, 3) = mdata(ifreq, 6); ret(0, 3) = ret(3, 0) = mdata(ifreq, 3);
-    case 3: ret(2, 2) = mdata(ifreq, 0); ret(2, 1) = -mdata(ifreq, 3); ret(1, 2) = mdata(ifreq, 3); ret(2, 0) = ret(0, 2) = mdata(ifreq, 2);
-    case 2: ret(1, 1) = mdata(ifreq, 0); ret(1, 0) = ret(0, 1) = mdata(ifreq, 1);
-    case 1: ret(0, 0) = mdata(ifreq, 0);
+    case 4: ret(3, 3) = mdata(ia, iz, iv, 0); ret(3, 1) = -mdata(ia, iz, iv, 5); ret(1, 3) = mdata(ia, iz, iv, 5); ret(3, 2) = -mdata(ia, iz, iv, 6); ret(2, 3) = mdata(ia, iz, iv, 6); ret(0, 3) = ret(3, 0) = mdata(ia, iz, iv, 3);
+    case 3: ret(2, 2) = mdata(ia, iz, iv, 0); ret(2, 1) = -mdata(ia, iz, iv, 3); ret(1, 2) = mdata(ia, iz, iv, 3); ret(2, 0) = ret(0, 2) = mdata(ia, iz, iv, 2);
+    case 2: ret(1, 1) = mdata(ia, iz, iv, 0); ret(1, 0) = ret(0, 1) = mdata(ia, iz, iv, 1);
+    case 1: ret(0, 0) = mdata(ia, iz, iv, 0);
   }
 }
 
 
-Numeric PropagationMatrix::operator()(const Index iv, const Index is1, const Index is2) const
+Numeric PropagationMatrix::operator()(const Index iv, const Index is1, const Index is2, const Index iz, const Index ia) const
 {
   assert(is1 < mstokes_dim and is2 < mstokes_dim);
   assert(iv < mfreqs);
+  assert(iz < mza);
+  assert(ia < maa);
   
   switch(is1)
   {
     case 0:
       switch(is2)
       {
-        case 0: return  mdata(iv, 0); break;
-        case 1: return  mdata(iv, 1); break;
-        case 2: return  mdata(iv, 2); break;
-        case 3: return  mdata(iv, 3); break;
+        case 0: return  mdata(ia, iz, iv, 0); break;
+        case 1: return  mdata(ia, iz, iv, 1); break;
+        case 2: return  mdata(ia, iz, iv, 2); break;
+        case 3: return  mdata(ia, iz, iv, 3); break;
         default: throw std::runtime_error("out of bounds");
       }
       break;
@@ -2602,20 +2373,20 @@ Numeric PropagationMatrix::operator()(const Index iv, const Index is1, const Ind
       assert(not mvectortype);
       switch(is2)
       {
-        case 0: return  mdata(iv, 1); break;
-        case 1: return  mdata(iv, 0); break;
-        case 2: return  mdata(iv, mstokes_dim); break;
-        case 3: return  mdata(iv, 5); break;
+        case 0: return  mdata(ia, iz, iv, 1); break;
+        case 1: return  mdata(ia, iz, iv, 0); break;
+        case 2: return  mdata(ia, iz, iv, mstokes_dim); break;
+        case 3: return  mdata(ia, iz, iv, 5); break;
         default: throw std::runtime_error("out of bounds");
       }
     case 2:
       assert(not mvectortype);
       switch(is2)
       {
-        case 0: return  mdata(iv, 2); break;
-        case 1: return -mdata(iv, mstokes_dim); break; 
-        case 2: return  mdata(iv, 0); break;
-        case 3: return  mdata(iv, 6); break;
+        case 0: return  mdata(ia, iz, iv, 2); break;
+        case 1: return -mdata(ia, iz, iv, mstokes_dim); break; 
+        case 2: return  mdata(ia, iz, iv, 0); break;
+        case 3: return  mdata(ia, iz, iv, 6); break;
         default: throw std::runtime_error("out of bounds");
       }
       break;
@@ -2623,10 +2394,10 @@ Numeric PropagationMatrix::operator()(const Index iv, const Index is1, const Ind
       assert(not mvectortype);
       switch(is2)
       {
-        case 0: return  mdata(iv, 3); break;
-        case 1: return -mdata(iv, 5); break;
-        case 2: return -mdata(iv, 6); break;
-        case 3: return  mdata(iv, 0); break;
+        case 0: return  mdata(ia, iz, iv, 3); break;
+        case 1: return -mdata(ia, iz, iv, 5); break;
+        case 2: return -mdata(ia, iz, iv, 6); break;
+        case 3: return  mdata(ia, iz, iv, 0); break;
         default: throw std::runtime_error("out of bounds");
       }
       break;
@@ -2637,7 +2408,7 @@ Numeric PropagationMatrix::operator()(const Index iv, const Index is1, const Ind
 // Needs to be implemented in this file!!!
 std::ostream& operator<<(std::ostream& os, const PropagationMatrix& pm)
 {
-  os << pm.GetMatrix() << "\n";
+  os << pm.GetData() << "\n";
   return os;
 }
 
@@ -2660,7 +2431,7 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfPropagationMatrix
 // Needs to be implemented in this file!!!
 std::ostream& operator<<(std::ostream& os, const StokesVector& sv)
 {
-  os << sv.GetMatrix() << "\n";
+  os << sv.GetData() << "\n";
   return os;
 }
 
@@ -2881,11 +2652,11 @@ void get_diydx_replacement(MatrixView diydx_this,
           OneMinusTransmission(is, is) += 1;
         
         // For this
-        K_this.MatrixInverseAtFrequency(invK, i);
-        dKdx_this.LeftMultiplyAtFrequency(i, mat1, invK);
+        K_this.MatrixInverseAtPosition(invK, i);
+        dKdx_this.LeftMultiplyAtPosition(mat1, invK, i);
         
-        mult(vec1, mat1, nlte_this.VectorAtFrequency(i));
-        vec1 -= dnltedx_this.VectorAtFrequency(i);
+        mult(vec1, mat1, nlte_this.VectorAtPosition(i));
+        vec1 -= dnltedx_this.VectorAtPosition(i);
         vec1*=-0.5;
         
         mult(vec2, OneMinusTransmission, vec1);
@@ -2894,11 +2665,11 @@ void get_diydx_replacement(MatrixView diydx_this,
         diydx_this(i, joker) += vec1;
         
         // For next
-        K_next.MatrixInverseAtFrequency(invK, i);
-        dKdx_next.LeftMultiplyAtFrequency(i, mat1, invK);
+        K_next.MatrixInverseAtPosition(invK, i);
+        dKdx_next.LeftMultiplyAtPosition(mat1, invK, i);
         
-        mult(vec1, mat1, nlte_next.VectorAtFrequency(i));
-        vec1 -= dnltedx_next.VectorAtFrequency(i);
+        mult(vec1, mat1, nlte_next.VectorAtPosition(i));
+        vec1 -= dnltedx_next.VectorAtPosition(i);
         vec1 *= -0.5;
         
         mult(vec2, OneMinusTransmission, vec1);

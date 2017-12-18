@@ -52,25 +52,27 @@ class PropagationMatrix
 public:
   
   //! Initialize variable sizes
-  PropagationMatrix(const Index nr_frequencies=0, const Index stokes_dim=1) :
-  mfreqs(nr_frequencies), mstokes_dim(stokes_dim),  mvectortype(false) 
+  PropagationMatrix(const Index nr_frequencies=0, const Index stokes_dim=1, const Index nr_za=1, const Index nr_aa=1) :
+  mfreqs(nr_frequencies), mstokes_dim(stokes_dim), mza(nr_za), maa(nr_aa), mvectortype(false) 
   {
     assert(mstokes_dim < 5 and mstokes_dim > 0);
-    mdata.resize(nr_frequencies, NumberOfNeededVectors());
+    mdata.resize(maa, mza, mfreqs, NumberOfNeededVectors());
   }
     
   //! Initialize from a constant other
   PropagationMatrix(const PropagationMatrix& pm) :
   mfreqs(pm.mfreqs), mstokes_dim(pm.mstokes_dim), 
+  mza(pm.mza), maa(pm.maa), 
   mdata(pm.mdata), mvectortype(pm.mvectortype) {}
     
   PropagationMatrix(PropagationMatrix&& pm) :
   mfreqs(std::move(pm.mfreqs)), mstokes_dim(std::move(pm.mstokes_dim)),
+  mza(std::move(pm.mza)), maa(std::move(pm.maa)),
   mdata(), mvectortype(std::move(pm.mvectortype))
   { swap(mdata, pm.mdata); }
 
   //! Initialize from matrix
-  explicit PropagationMatrix(ConstMatrixView x, const bool& assume_fit=false) : mfreqs(1), mstokes_dim(x.ncols())
+  explicit PropagationMatrix(ConstMatrixView x, const bool& assume_fit=false) : mfreqs(1), mstokes_dim(x.ncols()), mza(1), maa(1)
   {
     assert(mstokes_dim < 5 and mstokes_dim > 0);
     mvectortype = false;
@@ -83,38 +85,42 @@ public:
       }
     }
     
-    mdata.resize(1, NumberOfNeededVectors());
+    mdata.resize(1, 1, 1, NumberOfNeededVectors());
     
     switch(mstokes_dim)
     {
-      case 4: mdata(0, 5) = x(1, 3); mdata(0, 5) = x(2, 3); mdata(0, 3) = x(0, 3);
-      case 3: mdata(0, mstokes_dim) = x(1, 2); mdata(0, 2) = x(0, 2);
-      case 2: mdata(0, 1) = x(0, 1);
-      case 1: mdata(0, 0) = x(0, 0);
+      case 4: mdata(0, 0, 0, 5) = x(1, 3); mdata(0, 0, 0, 5) = x(2, 3); mdata(0, 0, 0, 3) = x(0, 3);
+      case 3: mdata(0, 0, 0, mstokes_dim) = x(1, 2); mdata(0, 0, 0, 2) = x(0, 2);
+      case 2: mdata(0, 0, 0, 1) = x(0, 1);
+      case 1: mdata(0, 0, 0, 0) = x(0, 0);
     }
   };
   
   PropagationMatrix(const PropagationMatrix& a, const PropagationMatrix& b, const Numeric& scale = 0.5) : 
   mfreqs(a.mfreqs),
   mstokes_dim(a.mstokes_dim),
-  mdata(mfreqs, mstokes_dim),
+  mza(a.mza),
+  maa(a.maa),
+  mdata(maa, mza, mfreqs, mstokes_dim),
   mvectortype(false)
   {
-    for(Index i = 0; i < mfreqs; i++)
+    for(Index i = 0; i < maa; i++)
+    for(Index j = 0; j < mza; j++)
+    for(Index k = 0; k < mfreqs; k++)
     {
       switch(mstokes_dim)
       {
         case 4: 
-          mdata(i, 3) = (a.mdata(i, 3) + b.mdata(i, 3)) * scale;
-          mdata(i, 5) = (a.mdata(i, 5) + b.mdata(i, 5)) * scale;
-          mdata(i, 6) = (a.mdata(i, 6) + b.mdata(i, 6)) * scale;
+          mdata(i, j, k, 3) = (a.mdata(i, j, k, 3) + b.mdata(i, j, k, 3)) * scale;
+          mdata(i, j, k, 5) = (a.mdata(i, j, k, 5) + b.mdata(i, j, k, 5)) * scale;
+          mdata(i, j, k, 6) = (a.mdata(i, j, k, 6) + b.mdata(i, j, k, 6)) * scale;
         case 3: 
-          mdata(i, 2) = (a.mdata(i, 2) + b.mdata(i, 2)) * scale;
-          mdata(i, mstokes_dim) = (a.mdata(i, mstokes_dim) + b.mdata(i, mstokes_dim)) * scale;
+          mdata(i, j, k, 2) = (a.mdata(i, j, k, 2) + b.mdata(i, j, k, 2)) * scale;
+          mdata(i, j, k, mstokes_dim) = (a.mdata(i, j, k, mstokes_dim) + b.mdata(i, j, k, mstokes_dim)) * scale;
         case 2: 
-          mdata(i, 1) = (a.mdata(i, 1) + b.mdata(i, 1)) * scale;
+          mdata(i, j, k, 1) = (a.mdata(i, j, k, 1) + b.mdata(i, j, k, 1)) * scale;
         case 1: 
-          mdata(i, 0) = (a.mdata(i, 0) + b.mdata(i, 0)) * scale;
+          mdata(i, j, k, 0) = (a.mdata(i, j, k, 0) + b.mdata(i, j, k, 0)) * scale;
       }
     }
   };
@@ -126,9 +132,15 @@ public:
   /*! The number of frequencies of the propagation matrix */
   Index NumberOfFrequencies() const {return mfreqs;};
   
+  /*! The number of frequencies of the propagation matrix */
+  Index NumberOfZenithAngles() const {return mza;};
+  
+  /*! The number of frequencies of the propagation matrix */
+  Index NumberOfAzimuthAngles() const {return maa;};
+  
   void SetVectorType(bool vectortype) {mvectortype = vectortype;}
   
-  bool IsEmpty() const {return not ((bool) mfreqs);};
+  bool IsEmpty() const {return not ((bool) mfreqs*mza*maa);};
   
   /* The number of required vectors to fill this PropagationMatrix --- designed for GetVector(i) */
   Index NumberOfNeededVectors() const
@@ -151,23 +163,7 @@ public:
   }
   
   /*! access operator.  Please refrain from using this if possible */
-  Numeric operator()(const Index iv, const Index is1, const Index is2=0) const ;
-  
-  void AddToDiagonalAttenuation(                  ConstVectorView add) { mdata(joker, 0) += add; }
-  void AddToMainAxisLinearPolarizationAttenuation(ConstVectorView add) { mdata(joker, 1) += add; }
-  void AddToOffAxisLinearPolarizationAttenuation( ConstVectorView add) { mdata(joker, 2) += add; }
-  void AddToCircularPolarizationAttenuation(      ConstVectorView add) { mdata(joker, 3) += add; }
-  void AddToCircularPolarizationPhaseDelay(       ConstVectorView add) { mdata(joker, mstokes_dim) += add; } 
-  void AddToOffAxisLinearPolarizationPhaseDelay(  ConstVectorView add) { mdata(joker, 5) += add; }
-  void AddToMainAxisLinearPolarizationPhaseDelay( ConstVectorView add) { mdata(joker, 6) += add; }
-  
-  void AddToSinglePointOnDiagonalAttenuation(                  const Numeric& add, const Index ifreq) { mdata(ifreq, 0) += add; }
-  void AddToSinglePointOnMainAxisLinearPolarizationAttenuation(const Numeric& add, const Index ifreq) { mdata(ifreq, 1) += add; }
-  void AddToSinglePointOnOffAxisLinearPolarizationAttenuation( const Numeric& add, const Index ifreq) { mdata(ifreq, 2) += add; }
-  void AddToSinglePointOnCircularPolarizationAttenuation(      const Numeric& add, const Index ifreq) { mdata(ifreq, 3) += add; }
-  void AddToSinglePointOnCircularPolarizationPhaseDelay(       const Numeric& add, const Index ifreq) { mdata(ifreq, mstokes_dim) += add; }
-  void AddToSinglePointOnOffAxisLinearPolarizationPhaseDelay(  const Numeric& add, const Index ifreq) { mdata(ifreq, 5) += add; }
-  void AddToSinglePointOnMainAxisLinearPolarizationPhaseDelay( const Numeric& add, const Index ifreq) { mdata(ifreq, 6) += add; }
+  Numeric operator()(const Index iv=0, const Index is1=0, const Index is2=0, const Index iz=0, const Index ia=0) const ;
   
   /*! Adds the Faraday rotation to the PropagationMatrix at required ifreq
    * 
@@ -176,8 +172,8 @@ public:
    * \param rot: rotation
    * \param ifreq: frequency index
    */
-  void AddFaraday(const Numeric& rot, const Index ifreq) {mdata(ifreq, mstokes_dim) += rot;}
-  void SetFaraday(const Numeric& rot, const Index ifreq) {mdata(ifreq, mstokes_dim)  = rot;}
+  void AddFaraday(const Numeric& rot, const Index iv=0, const Index iz=0, const Index ia=0) {mdata(ia, iz, iv, mstokes_dim) += rot;}
+  void SetFaraday(const Numeric& rot, const Index iv=0, const Index iz=0, const Index ia=0) {mdata(ia, iz, iv, mstokes_dim)  = rot;}
   
   /*! Adds the Zeeman effect to the PropagationMatrix
    * 
@@ -300,7 +296,7 @@ public:
                                               ConstVectorView extra=Vector(0));
   
   /*! Sets the dense matrix.  Aboid using if possible. */
-  void MatrixAtFrequency(MatrixView ret, const Index ifreq) const;
+  void MatrixAtPosition(MatrixView ret, const Index iv=0, const Index iz=0, const Index ia=0) const;
   
   PropagationMatrix& operator=(PropagationMatrix&& pm)
   {
@@ -308,84 +304,121 @@ public:
     {
       mfreqs = std::move(pm.mfreqs);
       mstokes_dim = std::move(pm.mstokes_dim);
+      mza = std::move(pm.mza);
+      maa = std::move(pm.maa);
       swap(mdata, pm.mdata);
       mvectortype = std::move(pm.mvectortype);
     }
     return *this;
   }
 
-  PropagationMatrix&  operator=(const PropagationMatrix& other) { mvectortype = other.mvectortype; mstokes_dim = other.mstokes_dim; mfreqs = other.mfreqs; mdata = other.mdata; return *this; }
-  PropagationMatrix&  operator=(ConstVectorView x) { for(Index i = 0; i < NumberOfNeededVectors(); i++){for(Index j = 0; j < mfreqs; j++) {mdata(j, i) = x[j];}} return *this; }
-  PropagationMatrix&  operator=(const Numeric& x) { mdata  = x; return *this; }
+  PropagationMatrix&  operator=(const PropagationMatrix& other) { mvectortype = other.mvectortype; mstokes_dim = other.mstokes_dim; mfreqs = other.mfreqs; mza = other.mza; maa = other.maa; mdata = other.mdata; return *this; }
+  PropagationMatrix&  operator=(ConstVectorView x) 
+  { 
+    for(Index i = 0; i < NumberOfNeededVectors(); i++){
+      for(Index j = 0; j < mza; j++){
+        for(Index k = 0; k < maa; k++){
+          mdata(k, j, joker, i) = x;}}}
+    return *this; 
+  }
+  PropagationMatrix&  operator=(const Numeric& x) { mdata = x; return *this; }
   
-  void SetAtFrequency(const Index ifreq, const PropagationMatrix& x)      { mdata(ifreq, joker)  = x.mdata(ifreq, joker); }
-  void SetAtFrequency(const Index ifreq, ConstMatrixView x);
-  void SetAtFrequency(const Index ifreq, const Numeric& x)      { mdata(ifreq, joker)  = x; }
+  void SetAtPosition(const PropagationMatrix& x, const Index iv=0, const Index iz=0, const Index ia=0) { mdata(ia, iz, iv, joker)  = x.mdata(ia, iz, iv, joker); }
+  void SetAtPosition(ConstMatrixView x, const Index iv=0, const Index iz=0, const Index ia=0);
+  void SetAtPosition(const Numeric& x, const Index iv=0, const Index iz=0, const Index ia=0)      { mdata(ia, iz, iv, joker)  = x; }
   
   PropagationMatrix& operator/=(const PropagationMatrix& other) { mdata /= other.mdata; return *this; }
-  PropagationMatrix& operator/=(ConstVectorView x) { for(Index i = 0; i < NumberOfNeededVectors(); i++){mdata(joker, i) /= x;} return *this; }
+  PropagationMatrix& operator/=(ConstVectorView x)
+  { 
+    for(Index i = 0; i < NumberOfNeededVectors(); i++){
+      for(Index j = 0; j < mza; j++){
+        for(Index k = 0; k < maa; k++){
+          mdata(k, j, joker, i) /= x;}}}
+          return *this; 
+  }
   PropagationMatrix& operator/=(const Numeric& x) { mdata /= x; return *this; }
   
-  void DivideAtFrequency(const Index ifreq, const PropagationMatrix& x)   { mdata(ifreq, joker) /= x.mdata(ifreq, joker); }
-  void DivideAtFrequency(const Index ifreq, ConstMatrixView x);
-  void DivideAtFrequency(const Index ifreq, const Numeric& x)   { mdata(ifreq, joker) /= x; }
+  void DivideAtPosition(const PropagationMatrix& x, const Index iv=0, const Index iz=0, const Index ia=0) { mdata(ia, iz, iv, joker) /= x.mdata(ia, iz, iv, joker); }
+  void DivideAtPosition(ConstMatrixView x, const Index iv=0, const Index iz=0, const Index ia=0);
+  void DivideAtPosition(const Numeric& x, const Index iv=0, const Index iz=0, const Index ia=0)   { mdata(ia, iz, iv, joker) /= x; }
   
   PropagationMatrix& operator*=(const PropagationMatrix& other) { mdata *= other.mdata; return *this; }
-  PropagationMatrix& operator*=(ConstVectorView x) { for(Index i = 0; i < NumberOfNeededVectors(); i++){mdata(joker, i) *= x;} return *this; }
+  PropagationMatrix& operator*=(ConstVectorView x) 
+  { 
+    for(Index i = 0; i < NumberOfNeededVectors(); i++){
+      for(Index j = 0; j < mza; j++){
+        for(Index k = 0; k < maa; k++){
+          mdata(k, j, joker, i) *= x;}}}
+          return *this; 
+  }
   PropagationMatrix& operator*=(const Numeric& x) { mdata *= x; return *this; }
   
-  void MultiplyAtFrequency(const Index ifreq, const PropagationMatrix& x) { mdata(ifreq, joker) *= x.mdata(ifreq, joker); }
-  void MultiplyAtFrequency(const Index ifreq, ConstMatrixView x);
-  void MultiplyAtFrequency(const Index ifreq, const Numeric& x) { mdata(ifreq, joker) *= x; }
+  void MultiplyAtPosition(const PropagationMatrix& x, const Index iv=0, const Index iz=0, const Index ia=0) { mdata(ia, iz, iv, joker) *= x.mdata(ia, iz, iv, joker); }
+  void MultiplyAtPosition(ConstMatrixView x, const Index iv=0, const Index iz=0, const Index ia=0);
+  void MultiplyAtPosition(const Numeric& x, const Index iv=0, const Index iz=0, const Index ia=0)   { mdata(ia, iz, iv, joker) *= x; }
   
   PropagationMatrix& operator+=(const PropagationMatrix& other) { mdata += other.mdata; return *this; }
-  PropagationMatrix& operator+=(ConstVectorView x) { for(Index i = 0; i < NumberOfNeededVectors(); i++){mdata(joker, i) += x;} return *this; }
+  PropagationMatrix& operator+=(ConstVectorView x) 
+  { 
+    for(Index i = 0; i < NumberOfNeededVectors(); i++){
+      for(Index j = 0; j < mza; j++){
+        for(Index k = 0; k < maa; k++){
+          mdata(k, j, joker, i) += x;}}}
+          return *this; 
+  }
   PropagationMatrix& operator+=(const Numeric& x) { mdata += x; return *this; }
   
-  void AddAtFrequency(const Index ifreq, const PropagationMatrix& x)      { mdata(ifreq, joker) += x.mdata(ifreq, joker); }
-  void AddAtFrequency(const Index ifreq, ConstMatrixView x);
-  void AddAtFrequency(const Index ifreq, const Numeric& x)      { mdata(ifreq, joker) += x; }
+  void AddAtPosition(const PropagationMatrix& x, const Index iv=0, const Index iz=0, const Index ia=0) { mdata(ia, iz, iv, joker) += x.mdata(ia, iz, iv, joker); }
+  void AddAtPosition(ConstMatrixView x, const Index iv=0, const Index iz=0, const Index ia=0);
+  void AddAtPosition(const Numeric& x, const Index iv=0, const Index iz=0, const Index ia=0)   { mdata(ia, iz, iv, joker) += x; }
   
   PropagationMatrix& operator-=(const PropagationMatrix& other) { mdata -= other.mdata; return *this; }
-  PropagationMatrix& operator-=(ConstVectorView x) { for(Index i = 0; i < NumberOfNeededVectors(); i++){mdata(joker, i) -= x;} return *this; }
+  PropagationMatrix& operator-=(ConstVectorView x) 
+  { 
+    for(Index i = 0; i < NumberOfNeededVectors(); i++){
+      for(Index j = 0; j < mza; j++){
+        for(Index k = 0; k < maa; k++){
+          mdata(k, j, joker, i) -= x;}}}
+          return *this; 
+  }
   PropagationMatrix& operator-=(const Numeric& x) { mdata -= x; return *this; }
   
-  void RemoveAtFrequency(const Index ifreq, const PropagationMatrix& x)   { mdata(ifreq, joker) -= x.mdata(ifreq, joker); }
-  void RemoveAtFrequency(const Index ifreq, ConstMatrixView x);
-  void RemoveAtFrequency(const Index ifreq, const Numeric& x)   { mdata(ifreq, joker) -= x; }
+  void RemoveAtPosition(const PropagationMatrix& x, const Index iv=0, const Index iz=0, const Index ia=0) { mdata(ia, iz, iv, joker) -= x.mdata(ia, iz, iv, joker); }
+  void RemoveAtPosition(ConstMatrixView x, const Index iv=0, const Index iz=0, const Index ia=0);
+  void RemoveAtPosition(const Numeric& x, const Index iv=0, const Index iz=0, const Index ia=0)   { mdata(ia, iz, iv, joker) -= x; }
   
-  void AddAbsorptionVectorAtFrequency(const Index ifreq, ConstVectorView x) { for(Index i = 0; i < mstokes_dim; i++) mdata(ifreq, i) += x[i]; }
+  void AddAbsorptionVectorAtPosition(ConstVectorView x, const Index iv=0, const Index iz=0, const Index ia=0) { for(Index i = 0; i < mstokes_dim; i++) mdata(ia, iz, iv, i) += x[i]; }
   
-  void AddAverageAtFrequency(const Index ifreq, ConstMatrixView mat1, ConstMatrixView mat2);
+  void AddAverageAtPosition(ConstMatrixView mat1, ConstMatrixView mat2, const Index iv=0, const Index iz=0, const Index ia=0);
   
   void MultiplyAndAdd(const Numeric x, const PropagationMatrix& y);
   
-  void MatrixInverseAtFrequency(MatrixView ret, const Index j) const;
+  void MatrixInverseAtPosition(MatrixView ret, const Index iv=0, const Index iz=0, const Index ia=0) const;
   
   bool FittingShape(ConstMatrixView x) const;
   
-  void GetTensor3(Tensor3View tensor3);
+  void GetTensor3(Tensor3View tensor3, const Index iz=0, const Index ia=0);
   
-  VectorView Kjj(){return mdata(joker, 0);}
-  VectorView K12(){return mdata(joker, 1);}
-  VectorView K13(){return mdata(joker, 2);}
-  VectorView K14(){return mdata(joker, 3);}
-  VectorView K23(){return mdata(joker, mstokes_dim);}
-  VectorView K24(){return mdata(joker, 5);}
-  VectorView K34(){return mdata(joker, 6);}
+  VectorView Kjj(const Index iz=0, const Index ia=0){return mdata(ia, iz, joker, 0);}
+  VectorView K12(const Index iz=0, const Index ia=0){return mdata(ia, iz, joker, 1);}
+  VectorView K13(const Index iz=0, const Index ia=0){return mdata(ia, iz, joker, 2);}
+  VectorView K14(const Index iz=0, const Index ia=0){return mdata(ia, iz, joker, 3);}
+  VectorView K23(const Index iz=0, const Index ia=0){return mdata(ia, iz, joker, mstokes_dim);}
+  VectorView K24(const Index iz=0, const Index ia=0){return mdata(ia, iz, joker, 5);}
+  VectorView K34(const Index iz=0, const Index ia=0){return mdata(ia, iz, joker, 6);}
   
-  ConstVectorView Kjj()const{return mdata(joker, 0);}
-  ConstVectorView K12()const{return mdata(joker, 1);}
-  ConstVectorView K13()const{return mdata(joker, 2);}
-  ConstVectorView K14()const{return mdata(joker, 3);}
-  ConstVectorView K23()const{return mdata(joker, mstokes_dim);}
-  ConstVectorView K24()const{return mdata(joker, 5);}
-  ConstVectorView K34()const{return mdata(joker, 6);}
+  ConstVectorView Kjj(const Index iz=0, const Index ia=0)const{return mdata(ia, iz, joker, 0);}
+  ConstVectorView K12(const Index iz=0, const Index ia=0)const{return mdata(ia, iz, joker, 1);}
+  ConstVectorView K13(const Index iz=0, const Index ia=0)const{return mdata(ia, iz, joker, 2);}
+  ConstVectorView K14(const Index iz=0, const Index ia=0)const{return mdata(ia, iz, joker, 3);}
+  ConstVectorView K23(const Index iz=0, const Index ia=0)const{return mdata(ia, iz, joker, mstokes_dim);}
+  ConstVectorView K24(const Index iz=0, const Index ia=0)const{return mdata(ia, iz, joker, 5);}
+  ConstVectorView K34(const Index iz=0, const Index ia=0)const{return mdata(ia, iz, joker, 6);}
   
   void SetZero() {mdata = 0.0;}
   
-  MatrixView GetMatrix() { return mdata; }
-  ConstMatrixView GetMatrix() const { return mdata; }
+  Tensor4View GetData() { return mdata; }
+  ConstTensor4View GetData() const { return mdata; }
   
   // Set level of case of calculations
   void CalculationCase(ArrayOfCaseOfPropagationMatrix& cases) const;
@@ -393,13 +426,14 @@ public:
   // Increases level of case if too low
   void CalculationCaseMaximize(ArrayOfCaseOfPropagationMatrix& cases) const;
   
-  void LeftMultiplyAtFrequency(const Index ifreq, MatrixView out, ConstMatrixView in) const;
+  void LeftMultiplyAtPosition(MatrixView out, ConstMatrixView in, const Index iv=0, const Index iz=0, const Index ia=0) const;
   
-  void RightMultiplyAtFrequency(const Index ifreq, MatrixView out, ConstMatrixView in) const;
+  void RightMultiplyAtPosition(MatrixView out, ConstMatrixView in, const Index iv=0, const Index iz=0, const Index ia=0) const;
     
 protected:
   Index mfreqs, mstokes_dim;
-  Matrix mdata;
+  Index mza, maa;
+  Tensor4 mdata;
   bool mvectortype;
 };
 
@@ -422,13 +456,17 @@ typedef Array<ArrayOfPropagationMatrix> ArrayOfArrayOfPropagationMatrix;
 void compute_transmission_matrix(Tensor3View T, 
                                  const Numeric& r, 
                                  const PropagationMatrix& upper_level, 
-                                 const PropagationMatrix& lower_level);
+                                 const PropagationMatrix& lower_level,
+                                 const Index iz=0,
+                                 const Index ia=0);
 
 
 void compute_transmission_matrix_from_averaged_matrix_at_frequency(MatrixView T, 
                                                                    const Numeric& r, 
                                                                    const PropagationMatrix& averaged_propagation_matrix,
-                                                                   const Index ifreq);
+                                                                   const Index iv,
+                                                                   const Index iz=0,
+                                                                   const Index ia=0);
 
 /*! Compute the matrix exponent as the transmission matrix of this propagation matrix
  * 
@@ -453,7 +491,9 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
                                                 const PropagationMatrix& upper_level, 
                                                 const PropagationMatrix& lower_level, 
                                                 const Array<PropagationMatrix>& dprop_mat_upper_level, 
-                                                const Array<PropagationMatrix>& dprop_mat_lower_level);
+                                                const Array<PropagationMatrix>& dprop_mat_lower_level,
+                                                const Index iz=0,
+                                                const Index ia=0);
 
 std::ostream& operator<<(std::ostream& os, const PropagationMatrix& pm);
 std::ostream& operator<<(std::ostream& os, const ArrayOfPropagationMatrix& apm);
@@ -464,48 +504,56 @@ class StokesVector: public PropagationMatrix
 public:
   
   // Initialize variable size depending on requirements...
-  StokesVector(const Index nr_frequencies=0, const Index stokes_dim=1)
+  StokesVector(const Index nr_frequencies=0, const Index stokes_dim=1, const Index nr_za=1, const Index nr_aa=1)
   {
     mvectortype = true;
     mfreqs = nr_frequencies;
     mstokes_dim = stokes_dim;
+    mza = nr_za;
+    maa = nr_aa;
     assert(mstokes_dim < 5 and mstokes_dim > 0);
-    mdata.resize(mfreqs, mstokes_dim);
+    mdata.resize(maa, mza, mfreqs, mstokes_dim);
   };
   
   explicit StokesVector(ConstVectorView x)
   {
     mfreqs = 1;
     mstokes_dim = x.nelem();
+    mza = 1;
+    maa = 1;
     assert(mstokes_dim < 5 and mstokes_dim > 0);
     mvectortype = true;
-    mdata.resize(1, mstokes_dim);
+    mdata.resize(1, 1, 1, mstokes_dim);
     for(Index i = 0; i < mstokes_dim; i++)
-      mdata(0, i) = x[i];
+      mdata(0, 0, 0, i) = x[i];
   };
   
   StokesVector(const StokesVector& a, const StokesVector& b, const Numeric& scale = 0.5)
   {
     mfreqs = a.NumberOfFrequencies();
     mstokes_dim = a.StokesDimensions();
-    mdata.resize(mfreqs, mstokes_dim);
+    mza = a.NumberOfZenithAngles();
+    maa = a.NumberOfAzimuthAngles();
+    mdata.resize(maa, mza, mfreqs, mstokes_dim);
     mvectortype = true;
     
-    for(Index i = 0; i < mfreqs; i++)
+    for(Index i = 0; i < maa; i++)
+    for(Index j = 0; j < mza; j++)
+    for(Index k = 0; k < mfreqs; k++)
     {
       switch(mstokes_dim)
       {
-        case 4:  mdata(i, 3) = (a.mdata(i, 3) + b.mdata(i, 3)) * scale;
-        case 3:  mdata(i, 2) = (a.mdata(i, 2) + b.mdata(i, 2)) * scale;
-        case 2:  mdata(i, 1) = (a.mdata(i, 1) + b.mdata(i, 1)) * scale;
-        case 1:  mdata(i, 0) = (a.mdata(i, 0) + b.mdata(i, 0)) * scale;
+        case 4:  mdata(i,j,k, 3) = (a.mdata(i,j,k, 3) + b.mdata(i,j,k, 3)) * scale;
+        case 3:  mdata(i,j,k, 2) = (a.mdata(i,j,k, 2) + b.mdata(i,j,k, 2)) * scale;
+        case 2:  mdata(i,j,k, 1) = (a.mdata(i,j,k, 1) + b.mdata(i,j,k, 1)) * scale;
+        case 1:  mdata(i,j,k, 0) = (a.mdata(i,j,k, 0) + b.mdata(i,j,k, 0)) * scale;
       }
     }
   };
   
   StokesVector& operator+=(const PropagationMatrix& x)
   {
-    mdata += x.GetMatrix()(joker, Range(0, mstokes_dim, 1));
+    mdata += x.GetData()(joker, joker, joker, Range(0, mstokes_dim, 1));
     return *this;
   }
   
@@ -513,7 +561,7 @@ public:
   {
     mstokes_dim = x.StokesDimensions();
     mfreqs = x.NumberOfFrequencies();
-    mdata = x.GetMatrix()(joker, Range(0, mstokes_dim, 1));
+    mdata = x.GetData()(joker, joker, joker, Range(0, mstokes_dim, 1));
     return *this;
   }
   
@@ -528,52 +576,54 @@ public:
     assert(mstokes_dim == y.mstokes_dim);
     assert(mfreqs == y.mfreqs);
     
-    for(Index i = 0; i < mfreqs; i++)
+    for(Index i = 0; i < maa; i++)
+    for(Index j = 0; j < mza; j++)
+    for(Index k = 0; k < mfreqs; k++)
     {
       switch(mstokes_dim)
       {
-        case 4: mdata(i, 3) += x * y.mdata(i, 3);
-        case 3: mdata(i, 2) += x * y.mdata(i, 2);
-        case 2: mdata(i, 1) += x * y.mdata(i, 1);
-        case 1: mdata(i, 0) += x * y.mdata(i, 0);
+        case 4: mdata(i,j,k, 3) += x * y.mdata(i,j,k, 3);
+        case 3: mdata(i,j,k, 2) += x * y.mdata(i,j,k, 2);
+        case 2: mdata(i,j,k, 1) += x * y.mdata(i,j,k, 1);
+        case 1: mdata(i,j,k, 0) += x * y.mdata(i,j,k, 0);
       }
     }
   }
   
-  VectorView VectorAtFrequency(const Index ifreq) { return mdata(ifreq, joker); }
-  ConstVectorView VectorAtFrequency(const Index ifreq) const { return mdata(ifreq, joker); }
+  VectorView VectorAtPosition(const Index iv=0, const Index iz=0, const Index ia=0) { return mdata(ia, iz, iv, joker); }
+  ConstVectorView VectorAtPosition(const Index iv=0, const Index iz=0, const Index ia=0) const { return mdata(ia, iz, iv, joker); }
   
-  void VectorAtFrequency(VectorView ret, const Index ifreq) { ret = mdata(ifreq, joker); }
+  void VectorAtPosition(VectorView ret, const Index iv=0, const Index iz=0, const Index ia=0) { ret = mdata(ia, iz, iv, joker); }
   
-  void VectorAtFrequency(VectorView ret, const Index ifreq) const { ret = mdata(ifreq, joker); }
+  void VectorAtPosition(VectorView ret, const Index iv=0, const Index iz=0, const Index ia=0) const { ret = mdata(ia, iz, iv, joker); }
   
-  void SetAtFrequency(const Index ifreq, ConstVectorView x)  { mdata(ifreq, joker) = x; }
+  void SetAtPosition(ConstVectorView x, const Index iv=0, const Index iz=0, const Index ia=0)  { mdata(ia, iz, iv, joker) = x; }
   
-  void AddAverageAtFrequency(const Index ifreq, ConstVectorView vec1, ConstVectorView vec2)
+  void AddAverageAtPosition(ConstVectorView vec1, ConstVectorView vec2, const Index iv=0, const Index iz=0, const Index ia=0)
   {
     switch(mstokes_dim)
     {
-      case 4: mdata(ifreq, 3) += (vec1[3] + vec2[3]) * 0.5;
-      case 3: mdata(ifreq, 2) += (vec1[2] + vec2[2]) * 0.5;
-      case 2: mdata(ifreq, 1) += (vec1[1] + vec2[1]) * 0.5;
-      case 1: mdata(ifreq, 0) += (vec1[0] + vec2[0]) * 0.5; 
+      case 4: mdata(ia, iz , iv, 3) += (vec1[3] + vec2[3]) * 0.5;
+      case 3: mdata(ia, iz , iv, 2) += (vec1[2] + vec2[2]) * 0.5;
+      case 2: mdata(ia, iz , iv, 1) += (vec1[1] + vec2[1]) * 0.5;
+      case 1: mdata(ia, iz , iv, 0) += (vec1[0] + vec2[0]) * 0.5; 
     }
   }
   
-  bool IsPolarized(Index ifreq) const
+  bool IsPolarized(const Index iv=0, const Index iz=0, const Index ia=0) const
   {
     switch(mstokes_dim)
     {
-      case 4: if(K14()[ifreq] not_eq 0.0) return true;
-      case 3: if(K13()[ifreq] not_eq 0.0) return true;
-      case 2: if(K12()[ifreq] not_eq 0.0) return true;
+      case 4: if(K14(iz, ia)[iv] not_eq 0.0) return true;
+      case 3: if(K13(iz, ia)[iv] not_eq 0.0) return true;
+      case 2: if(K12(iz, ia)[iv] not_eq 0.0) return true;
     }
     return false;
   }
   
-  bool IsUnpolarized(Index ifreq) const
+  bool IsUnpolarized(const Index iv=0, const Index iz=0, const Index ia=0) const
   {
-    return not IsPolarized(ifreq);
+    return not IsPolarized(iv, iz, ia);
   }
 };
 

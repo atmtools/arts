@@ -557,7 +557,7 @@ void nlteSetByQuantumIdentifiers(Index&                           nlte_do,
         }
     }
     
-    if(not population_type < (Index) LinePopulationType::End and not population_type > 0)
+    if(not population_type < ((Index) LinePopulationType::End) and not population_type > 0)
     {
       throw std::runtime_error("Cannot understand given population type");
     }

@@ -2521,7 +2521,7 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(// WS Output:
   
   // Loop species and stokes dimensions, and add to propmat_clearsky:
   for ( Index si=0; si<n_species; ++si )
-      propmat_clearsky[si].AddToDiagonalAttenuation(abs_coef_per_species[si](joker,0));
+      propmat_clearsky[si].Kjj() += abs_coef_per_species[si](joker,0);
   
   for(Index iqn=0; iqn<dabs_coef_dx.nelem();iqn++)
   {
@@ -2529,7 +2529,7 @@ void propmat_clearskyAddFromAbsCoefPerSpecies(// WS Output:
     {
       if(dabs_coef_dx[iqn].ncols()==1)
       {
-        dpropmat_clearsky_dx[iqn].AddToDiagonalAttenuation(dabs_coef_dx[iqn](joker,0));
+        dpropmat_clearsky_dx[iqn].Kjj() += dabs_coef_dx[iqn](joker,0);
       }
       else throw std::runtime_error( "Must have exactly one pressure.");
     }
@@ -2926,11 +2926,11 @@ void propmat_clearskyAddParticles(
             
             if (use_abs_as_ext)
             {
-              propmat_clearsky[sp].AddAbsorptionVectorAtFrequency(iv, pnd_abs_vec);
+              propmat_clearsky[sp].AddAbsorptionVectorAtPosition(pnd_abs_vec, iv);
             }
             else
             {
-              propmat_clearsky[sp].SetAtFrequency(iv, pnd_ext_mat);
+              propmat_clearsky[sp].SetAtPosition(pnd_ext_mat, iv);
               
             }
             
@@ -2946,10 +2946,10 @@ void propmat_clearskyAddParticles(
                 else
                   tmp = pnd_ext_mat_df;
                 
-                propmat_clearsky[sp].MatrixAtFrequency(tmp2, iv);
+                propmat_clearsky[sp].MatrixAtPosition(tmp2, iv);
                 tmp -= tmp2;
                 tmp /= ppd.Frequency_Perturbation();
-                dpropmat_clearsky_dx[iq].AddAtFrequency(iv, tmp);
+                dpropmat_clearsky_dx[iq].AddAtPosition(tmp, iv);
               }
               else if(ppd(iq) == JQT_temperature)
               {
@@ -2959,14 +2959,14 @@ void propmat_clearskyAddParticles(
                 }
                 else
                   tmp = pnd_ext_mat_dt;
-                propmat_clearsky[sp].MatrixAtFrequency(tmp2, iv);
+                propmat_clearsky[sp].MatrixAtPosition(tmp2, iv);
                 tmp -= tmp2;
                 tmp /= ppd.Temperature_Perturbation();
-                dpropmat_clearsky_dx[iq].AddAtFrequency(iv, tmp);
+                dpropmat_clearsky_dx[iq].AddAtPosition(tmp, iv);
               }
               else if(ppd(iq) == JQT_particulates)
               {
-                dpropmat_clearsky_dx[iq].AddAtFrequency(iv, propmat_clearsky[sp]);
+                dpropmat_clearsky_dx[iq].AddAtPosition(propmat_clearsky[sp], iv);
               }
             }
           }
@@ -3111,7 +3111,7 @@ void propmat_clearskyForceNegativeToZero(
     for(auto& pm : propmat_clearsky)
       for(Index i = 0; i < pm.NumberOfFrequencies(); i++)
         if(pm.Kjj()[i] < 0.0)
-          pm.SetAtFrequency(i, 0.0);
+          pm.SetAtPosition(0.0, i);
           
 }
 

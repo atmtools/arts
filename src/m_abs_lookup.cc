@@ -2229,14 +2229,14 @@ void propmat_clearskyAddFromLookup( ArrayOfPropagationMatrix& propmat_clearsky,
     {
       for(Index ii = 0; ii < propmat_clearsky.nelem(); ii++)
       {
-        propmat_clearsky[ii].AddToDiagonalAttenuation(abs_scalar_gas(ii, joker));
+        propmat_clearsky[ii].Kjj() += abs_scalar_gas(ii, joker);
       }
     }
     else
     {
       for(Index isp = 0; isp<propmat_clearsky.nelem();isp++)
       {
-        propmat_clearsky[isp].AddToDiagonalAttenuation(abs_scalar_gas(isp, joker));
+        propmat_clearsky[isp].Kjj() += abs_scalar_gas(isp, joker);
         
         for(Index iv = 0; iv<propmat_clearsky[isp].NumberOfFrequencies();iv++)
         {  
@@ -2244,18 +2244,18 @@ void propmat_clearskyAddFromLookup( ArrayOfPropagationMatrix& propmat_clearsky,
           {
             if(ppd(iq)==JQT_temperature)
             {
-              dpropmat_clearsky_dx[iq].AddToSinglePointOnDiagonalAttenuation((dabs_scalar_gas_dt(isp,iv)-abs_scalar_gas(isp,iv))/dt, iv);
+              dpropmat_clearsky_dx[iq].Kjj()[iv] += (dabs_scalar_gas_dt(isp,iv)-abs_scalar_gas(isp,iv))/dt;
             }
             else if(ppd(iq)==JQT_frequency || ppd(iq)==JQT_wind_magnitude || ppd(iq)==JQT_wind_u || ppd(iq)==JQT_wind_v || ppd(iq)==JQT_wind_w)
             {
-              dpropmat_clearsky_dx[iq].AddToSinglePointOnDiagonalAttenuation((dabs_scalar_gas_df(isp,iv)-abs_scalar_gas(isp,iv))/df, iv);
+              dpropmat_clearsky_dx[iq].Kjj()[iv] += (dabs_scalar_gas_df(isp,iv)-abs_scalar_gas(isp,iv))/df;
             }
             else if(ppd(iq)==JQT_VMR)
             {
               if(ppd.species(iq)!=abs_lookup.GetSpeciesIndex(isp)) continue;
               
               // WARNING:  If CIA in list, this scales wrong by factor 2
-              dpropmat_clearsky_dx[iq].AddToSinglePointOnDiagonalAttenuation(abs_scalar_gas(isp,iv) / a_vmr_list[isp], iv); 
+              dpropmat_clearsky_dx[iq].Kjj()[iv] += abs_scalar_gas(isp,iv) / a_vmr_list[isp]; 
             }
           }
         }
@@ -2513,7 +2513,7 @@ private(abs, nlte, partial_abs, partial_nlte_source, nlte_partial_source, a_vmr_
                           if(not t_nlte_field.empty())
                           {
                             //If some are NLTE and others not, this might be bad...
-                            nlte_source_field(i, joker, joker, ipr, ila, ilo) = nlte[i].GetMatrix();
+                            nlte_source_field(i, joker, joker, ipr, ila, ilo) = nlte[i].GetData()(0, 0, joker, joker);
                           }
                         }
                     }

@@ -1164,9 +1164,9 @@ void xml_read_from_stream(istream&              is_xml,
   {
      for (n = 0; n < nelem; n++)
      {
-       Vector v;
+       Tensor3 v;
        xml_read_from_stream(is_xml, v, pbifs, verbosity);
-       pm.GetMatrix()(joker, n) = v;
+       pm.GetData()(joker, joker, joker, n) = v;
      }
   }
   catch (runtime_error e)
@@ -1212,7 +1212,7 @@ void xml_write_to_stream(ostream&                    os_xml,
   os_xml << '\n';
 
   for (Index n = 0; n < pm.NumberOfNeededVectors(); n++)
-    xml_write_to_stream(os_xml, pm.GetMatrix()(joker, n), pbofs, "", verbosity);
+    xml_write_to_stream(os_xml, pm.GetData()(joker, joker, joker, n), pbofs, "", verbosity);
 
   close_tag.set_name("/PropagationMatrix");
   close_tag.write_to_stream(os_xml);
@@ -2133,9 +2133,9 @@ void xml_read_from_stream(istream&              is_xml,
   {
      for (n = 0; n < nelem; n++)
      {
-       Vector v;
+       Tensor3 v;
        xml_read_from_stream(is_xml, v, pbifs, verbosity);
-       sv.GetMatrix()(joker, n) = v;
+       sv.GetData()(joker, joker, joker, n) = v;
      }
   }
   catch (runtime_error e)
@@ -2172,16 +2172,18 @@ void xml_write_to_stream(ostream&                    os_xml,
   if (name.length())
     open_tag.add_attribute("name", name);
 
-  open_tag.add_attribute("type", "ArrayOfVector");
+  open_tag.add_attribute("type", "ArrayOfTensor3");
   open_tag.add_attribute("nelem", sv.NumberOfNeededVectors());
   open_tag.add_attribute("stokes_dim", sv.StokesDimensions());
   open_tag.add_attribute("nr_frequencies", sv.NumberOfFrequencies());
+  open_tag.add_attribute("nr_zenith_angles", sv.NumberOfZenithAngles());
+  open_tag.add_attribute("nr_azimuth_angles", sv.NumberOfAzimuthAngles());
 
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
    for (Index n = 0; n < sv.NumberOfNeededVectors(); n++)
-     xml_write_to_stream(os_xml, sv.GetMatrix()(joker, n), pbofs, "", verbosity);
+     xml_write_to_stream(os_xml, sv.GetData()(joker, joker, joker, n), pbofs, "", verbosity);
 
   close_tag.set_name("/StokesVector");
   close_tag.write_to_stream(os_xml);

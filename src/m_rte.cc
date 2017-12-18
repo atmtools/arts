@@ -1051,8 +1051,8 @@ void iyEmissionStandard(
         {
           if(nonlte) // Then sibi is difference between local Stokes and local Source
           {
-            extbar.MatrixInverseAtFrequency(nlte_inv, iv);
-            mult(nlte_sibi, nlte_inv, sourcebar.VectorAtFrequency(iv));
+            extbar.MatrixInverseAtPosition(nlte_inv, iv);
+            mult(nlte_sibi, nlte_inv, sourcebar.VectorAtPosition(iv));
           }
           
           sibi(iv,0) = iy(iv,0) - bbar[iv] - nlte_sibi[0];

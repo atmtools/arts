@@ -306,9 +306,9 @@ void rte_step_doit_replacement(//Output and Input:
   else
     {
       Matrix invK(stokes_dim, stokes_dim);
-      ext_mat_av.MatrixInverseAtFrequency(invK, 0);
+      ext_mat_av.MatrixInverseAtPosition(invK);
 
-      Vector source = abs_vec_av.VectorAtFrequency(0);
+      Vector source = abs_vec_av.VectorAtPosition();
       source *= rtp_planck_value;
       
       for (Index i=0; i<stokes_dim; i++)
@@ -493,12 +493,12 @@ void cloud_fieldsCalc(Workspace& ws,
               abs_vec_field(scat_p_index_local,
                             scat_lat_index_local,
                             scat_lon_index_local,
-                            joker) = abs_vec_local.VectorAtFrequency(0);
+                            joker) = abs_vec_local.VectorAtPosition();
                             
-              ext_mat_local.MatrixAtFrequency(ext_mat_field(scat_p_index_local,
-                                                            scat_lat_index_local,
-                                                            scat_lon_index_local,
-                                                            joker, joker), 0);
+              ext_mat_local.MatrixAtPosition(ext_mat_field(scat_p_index_local,
+                                                           scat_lat_index_local,
+                                                           scat_lon_index_local,
+                                                           joker, joker));
             } 
         }
     }
@@ -1254,12 +1254,12 @@ void cloud_RT_no_background(Workspace& ws,
       //
       // Add average particle absorption to abs_vec.
       //
-      abs_vec_local.AddAverageAtFrequency(0, abs_vec_int(joker, k), abs_vec_int(joker, k+1));
+      abs_vec_local.AddAverageAtPosition(abs_vec_int(joker, k), abs_vec_int(joker, k+1));
       
       //
       // Add average particle extinction to ext_mat. 
       //
-      ext_mat_local.AddAverageAtFrequency(0, ext_mat_int(joker, joker, k), ext_mat_int(joker, joker, k+1));
+      ext_mat_local.AddAverageAtPosition(ext_mat_int(joker, joker, k), ext_mat_int(joker, joker, k+1));
       
       // Frequency
       Numeric f = f_grid[f_index];
@@ -1274,8 +1274,8 @@ void cloud_RT_no_background(Workspace& ws,
       // Some messages:
       if(out3.sufficient_priority())
       {
-        abs_vec_local.VectorAtFrequency(vector_tmp, 0);
-        ext_mat_local.MatrixAtFrequency(matrix_tmp, 0);
+        abs_vec_local.VectorAtPosition(vector_tmp);
+        ext_mat_local.MatrixAtPosition(matrix_tmp);
         out3 << "-----------------------------------------\n";
         out3 << "Input for radiative transfer step \n"
             << "calculation inside"
@@ -1798,11 +1798,11 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               //
               // Add average particle absorption to abs_vec.
               //
-              abs_vec.AddAverageAtFrequency(0, abs_vec_field(p_index- cloudbox_limits[0],0,0,joker), abs_vec_field(p_index - cloudbox_limits[0]+ 1,0,0,joker));
+              abs_vec.AddAverageAtPosition(abs_vec_field(p_index- cloudbox_limits[0],0,0,joker), abs_vec_field(p_index - cloudbox_limits[0]+ 1,0,0,joker));
               
               //
               // Add average particle extinction to ext_mat. 
-              ext_mat.AddAverageAtFrequency(0, ext_mat_field(p_index - cloudbox_limits[0],0,0, joker, joker), ext_mat_field(p_index - cloudbox_limits[0]+ 1,0,0, joker, joker));
+              ext_mat.AddAverageAtPosition(ext_mat_field(p_index - cloudbox_limits[0],0,0, joker, joker), ext_mat_field(p_index - cloudbox_limits[0]+ 1,0,0, joker, joker));
               
               // Frequency
               Numeric f = f_grid[f_index];
@@ -1814,8 +1814,8 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               // Some messages:
               if(out3.sufficient_priority())
               {
-                abs_vec.VectorAtFrequency(vector_tmp, 0);
-                ext_mat.MatrixAtFrequency(matrix_tmp, 0);
+                abs_vec.VectorAtPosition(vector_tmp);
+                ext_mat.MatrixAtPosition(matrix_tmp);
                 out3 << "-----------------------------------------\n";
                 out3 << "Input for radiative transfer step \n"
                     << "calculation inside"
@@ -1925,11 +1925,11 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               //
               // Add average particle absorption to abs_vec.
               //
-              abs_vec.AddAverageAtFrequency(0, abs_vec_field(p_index - cloudbox_limits[0],0,0,joker), abs_vec_field(p_index  - cloudbox_limits[0]- 1,0,0,joker));
+              abs_vec.AddAverageAtPosition(abs_vec_field(p_index - cloudbox_limits[0],0,0,joker), abs_vec_field(p_index  - cloudbox_limits[0]- 1,0,0,joker));
               
               //
               // Add average particle extinction to ext_mat. 
-              ext_mat.AddAverageAtFrequency(0, ext_mat_field(p_index - cloudbox_limits[0],0,0, joker, joker), ext_mat_field(p_index - cloudbox_limits[0]+ 1,0,0, joker, joker));
+              ext_mat.AddAverageAtPosition(ext_mat_field(p_index - cloudbox_limits[0],0,0, joker, joker), ext_mat_field(p_index - cloudbox_limits[0]+ 1,0,0, joker, joker));
               
               // Frequency
               Numeric f = f_grid[f_index];
@@ -1941,8 +1941,8 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               // Some messages:
               if(out3.sufficient_priority()) 
               {
-                abs_vec.VectorAtFrequency(vector_tmp, 0);
-                ext_mat.MatrixAtFrequency(matrix_tmp, 0);
+                abs_vec.VectorAtPosition(vector_tmp);
+                ext_mat.MatrixAtPosition(matrix_tmp);
                 out3 << "-----------------------------------------\n";
                 out3 << "Input for radiative transfer step \n"
                     << "calculation inside"

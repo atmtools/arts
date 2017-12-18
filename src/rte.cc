@@ -2878,7 +2878,7 @@ void get_ppath_partopt(
                             ppath_t[ip], verbosity);
               for( Index iv=0; iv<nf; iv++ )
                 { 
-                  pnd_ext_mat[i].SetAtFrequency(iv, ext_mat);
+                  pnd_ext_mat[i].SetAtPosition(ext_mat, iv);
                   pnd_abs_vec(iv,joker,i)       = abs_vec;
                 }
             }
@@ -2891,7 +2891,7 @@ void get_ppath_partopt(
                                 pnd_abs_vec(iv,joker,i), rtp_los2[0], 
                                 rtp_los2[1], scat_data_single[iv], stokes_dim,
                                 ppath_pnd(joker,ip), ppath_t[ip], verbosity );
-                  pnd_ext_mat[i].SetAtFrequency(iv, ext_mat);
+                  pnd_ext_mat[i].SetAtPosition(ext_mat, iv);
                 }
             }
         }
@@ -3453,8 +3453,8 @@ void get_ppath_trans2(
       {
         Matrix mat1(stokes_dim, stokes_dim), mat2(stokes_dim, stokes_dim);
         
-        extsum_this.MatrixAtFrequency(mat1, iv);
-        extsum_old.MatrixAtFrequency(mat2, iv);
+        extsum_this.MatrixAtPosition(mat1, iv);
+        extsum_old.MatrixAtPosition(mat2, iv);
         mat1 += mat2; // only true in shape
         
         scalar_tau[iv] += mat1(0, 0) * ppath.lstep[ip-1] * 0.5; 
@@ -3579,8 +3579,8 @@ void get_ppath_trans2_and_dppath_trans_dx(  Tensor4&               trans_partial
         // Transmission due to absorption and scattering
         Matrix ext_mat1(stokes_dim,stokes_dim);  // -1*tau
         Matrix ext_mat2(stokes_dim,stokes_dim);
-        extsum_old.MatrixAtFrequency(ext_mat1, iv);
-        extsum_this.MatrixAtFrequency(ext_mat2, iv);
+        extsum_old.MatrixAtPosition(ext_mat1, iv);
+        extsum_this.MatrixAtPosition(ext_mat2, iv);
         ext_mat1 += ext_mat2;
         
         scalar_tau[iv] += ppath.lstep[ip-1] * ext_mat1(0,0) * 0.5; 
@@ -4290,8 +4290,8 @@ void emission_rtstep_replacement( MatrixView iy,
           // Source term  (full matrix multiplications since it can be polarized)
           Matrix tmp(stokes_dim,stokes_dim);
           Vector J_n(stokes_dim), J_bar(stokes_dim);
-          propagation_matrix.MatrixInverseAtFrequency(tmp, iv); // tmp   =  1/K
-          mult( J_n, tmp, source_vector.VectorAtFrequency(iv)); // J_n   =  1/K * j_other
+          propagation_matrix.MatrixInverseAtPosition(tmp, iv); // tmp   =  1/K
+          mult( J_n, tmp, source_vector.VectorAtPosition(iv)); // J_n   =  1/K * j_other
           J_n[0] += planck_emission[iv];                        // J_n   =  1/K * j_other + B... Source function!
           id_mat(tmp);                                          // tmp   =  I
           tmp -= transmission(iv, joker, joker);                // tmp   =  I-T
@@ -4687,15 +4687,15 @@ void get_stepwise_effective_source(MatrixView J,
     Vector j(ns);
     
     // Get the Matrix inverse --- FIXME: K == 0 will not work here
-    K.MatrixInverseAtFrequency(invK, i1);
+    K.MatrixInverseAtPosition(invK, i1);
     
     // Set a B to j
-    j = a.VectorAtFrequency(i1);;
+    j = a.VectorAtPosition(i1);;
     j *= B[i1];
     
     // Add S to j
     if(not S.IsEmpty())
-      j += S.VectorAtFrequency(i1);;
+      j += S.VectorAtPosition(i1);;
     
     // Compute J = K^-1 (a B + S)
     mult(J(i1, joker), invK, j);
@@ -4719,10 +4719,10 @@ void get_stepwise_effective_source(MatrixView J,
           // Sets the -K^-1 dK/dx K^-1 (a B + S) term
           //if(has_dk)
           //{
-            dK_dx[iq].MatrixAtFrequency(dk, i1);
+            dK_dx[iq].MatrixAtPosition(dk, i1);
             mult(tmp, dk, J(i1, joker));
         
-            dj = da_dx[iq].VectorAtFrequency(i1);
+            dj = da_dx[iq].VectorAtPosition(i1);
             dj *= B[i1];
         
             dj -= tmp;
@@ -4730,14 +4730,14 @@ void get_stepwise_effective_source(MatrixView J,
             // Adds a dB to dj
             if(has_dt)
             {
-              tmp = a.VectorAtFrequency(i1);
+              tmp = a.VectorAtPosition(i1);
               tmp *= dB_dT[i1];
               dj += tmp;
             }
         
             // Adds dS to dj
             //if(has_ds)
-              dj += dS_dx[iq].VectorAtFrequency(i1);
+              dj += dS_dx[iq].VectorAtPosition(i1);
         
             mult(dJ_dx(iq, i1, joker), invK, dj);
           //}
@@ -4959,8 +4959,8 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
     opt_propCalc(ext_mat, abs_vec, rtp_los2[0], 
                  rtp_los2[1], scat_data_mono, stokes_dim,
                  ppath_1p_pnd, ppath_temperature, verbosity);
-    ap.SetAtFrequency(iv, abs_vec);
-    Kp.SetAtFrequency(iv, ext_mat);
+    ap.SetAtPosition(abs_vec, iv);
+    Kp.SetAtPosition(ext_mat, iv);
 
     if( jacobian_do )
       FOR_ANALYTICAL_JACOBIANS_DO
@@ -4981,10 +4981,10 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
                        rtp_los2[1], scat_data_mono, stokes_dim,
                        ppath_dpnd_dx[iq](joker,ppath_1p_id),
                        ppath_temperature, verbosity);
-          dap_dx[iq].SetAtFrequency(iv, abs_vec);
-          dKp_dx[iq].SetAtFrequency(iv, ext_mat);
-          //da_aux.SetAtFrequency(iv, abs_vec);
-          //dK_aux.SetAtFrequency(iv, ext_mat);
+          dap_dx[iq].SetAtPosition(abs_vec, iv);
+          dKp_dx[iq].SetAtPosition(ext_mat, iv);
+          //da_aux.SetAtPosition(iv, abs_vec);
+          //dK_aux.SetAtPosition(iv, ext_mat);
           //dap_dx[iq] = da_aux;;
           //dKp_dx[iq] = dK_aux;
         }
@@ -5195,7 +5195,7 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
       scat_source += scat_source_1se(joker, ise_flat) *
                      ppath_1p_pnd[ise_flat];
     }
-    Sp.SetAtFrequency(f_index, scat_source);
+    Sp.SetAtPosition(scat_source, f_index);
 
     if( jacobian_do )
       FOR_ANALYTICAL_JACOBIANS_DO
@@ -5213,8 +5213,8 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
             scat_source += scat_source_1se(joker, ise_flat) *
                            ppath_dpnd_dx[iq](ise_flat, ppath_1p_id);
           }
-          dSp_dx[iq].SetAtFrequency(f_index, scat_source);
-          //dS_aux.SetAtFrequency(f_index, scat_source);
+          dSp_dx[iq].SetAtPosition(scat_source, f_index);
+          //dS_aux.SetAtPosition(f_index, scat_source);
           //dSp_dx[iq] = dS_aux;
         }
       //}
