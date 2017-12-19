@@ -1,5 +1,15 @@
 2017-12-19  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-905
+	
+	* src/complex.{cc,h}, src/absorption.cc, src/linefunctions.{cc,h},
+	src/matpackI.h, src/test_complex.cc:
+
+	Remove ComplexRange class and replace all occurrences with the matpack
+	Range class. Reduces code duplication.
+
+2017-12-19  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-904
 	
 	* CMakeLists.txt, src/CMakeLists.txt, config.h.cmake, src/gui/*,

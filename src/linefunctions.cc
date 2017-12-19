@@ -85,7 +85,7 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
                                 const Numeric& dG0_dT,
                                 const Numeric& dL0_dT,
                                 const Numeric& ddF0_dT,
-                                const ComplexRange& df_range)
+                                const Range& df_range)
 { 
   // Size of the problem
   const Index nf = f_grid.nelem();
@@ -226,7 +226,7 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
                             const Numeric& dL2_dT,
                             const Numeric& deta_dT,
                             const Numeric& dFVC_dT,
-                            const ComplexRange& df_range)
+                            const Range& df_range)
 {
   // Size of the problem
   const Index nf = f_grid.nelem();
@@ -695,7 +695,7 @@ void Linefunctions::set_faddeeva_algorithm916(ComplexVectorView F,
                                               const Numeric& dG0_dT,
                                               const Numeric& dL0_dT,
                                               const Numeric& dF0_dT,
-                                              const ComplexRange& df_range)
+                                              const Range& df_range)
 {
   // Size of problem
   const Index nf = f_grid.nelem();
@@ -846,7 +846,7 @@ void Linefunctions::set_doppler(ComplexVectorView F, // Sets the full complex li
                                 const PropmatPartialsData& derivatives_data,
                                 const QuantumIdentifier& quantum_identity,
                                 const Numeric& dGD_div_F0_dT,
-                                const ComplexRange& df_range)
+                                const Range& df_range)
 {
   const Index nf = f_grid.nelem();
   const Index nppd = dF.nelem();
@@ -1080,7 +1080,7 @@ void Linefunctions::apply_linemixing_scaling(ComplexVectorView F,
                                              const QuantumIdentifier& quantum_identity,
                                              const Numeric& dY_dT,
                                              const Numeric& dG_dT,
-                                             const ComplexRange& df_range)
+                                             const Range& df_range)
 {
   const Index nf = F.nelem(), nppd = derivatives_data.nelem();
   
@@ -1135,7 +1135,7 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling(ComplexVectorView F,
                                                        const Numeric& T,
                                                        const PropmatPartialsData& derivatives_data,
                                                        const QuantumIdentifier& quantum_identity,
-                                                       const ComplexRange& df_range)
+                                                       const Range& df_range)
 {
   const Index nf = f_grid.nelem(), nppd = derivatives_data.nelem();
   
@@ -1208,7 +1208,7 @@ void Linefunctions::apply_VVH_scaling(ComplexVectorView F,
                                       const Numeric& T,
                                       const PropmatPartialsData& derivatives_data,
                                       const QuantumIdentifier& quantum_identity,
-                                      const ComplexRange& df_range)
+                                      const Range& df_range)
 { 
   const Index nf = f_grid.nelem(), nppd = derivatives_data.nelem();
   
@@ -1274,7 +1274,7 @@ void Linefunctions::apply_VVW_scaling(ComplexVectorView F,
                                       const Numeric& F0,
                                       const PropmatPartialsData& derivatives_data,
                                       const QuantumIdentifier& quantum_identity,
-                                      const ComplexRange& df_range)
+                                      const Range& df_range)
 {
   const Index nf = f_grid.nelem(), nppd = derivatives_data.nelem();
   
@@ -1349,7 +1349,7 @@ void Linefunctions::apply_linestrength_scaling(ComplexVectorView F,
                                                const Numeric& dK1_dT,
                                                const Numeric& dK2_dT,
                                                const Numeric& dK2_dF0,
-                                               const ComplexRange& df_range)
+                                               const Range& df_range)
 {
   const Index nf = F.nelem();
   const Index nppd = derivatives_data.nelem();
@@ -1549,7 +1549,7 @@ void Linefunctions::apply_pressurebroadening_jacobian_scaling(ArrayOfComplexVect
                                                               const PropmatPartialsData& derivatives_data,
                                                               const QuantumIdentifier& quantum_identity,
                                                               const ComplexVector& dgamma,
-                                                              const ComplexRange& df_range)
+                                                              const Range& df_range)
 {
   const Index nppd = derivatives_data.nelem(), ng = dgamma.nelem();
   
@@ -1594,7 +1594,7 @@ void Linefunctions::apply_linemixing_jacobian_scaling(ArrayOfComplexVector& dF,
                                                       const PropmatPartialsData& derivatives_data,
                                                       const QuantumIdentifier& quantum_identity,
                                                       const ComplexVector& dlm,
-                                                      const ComplexRange& df_range)
+                                                      const Range& df_range)
 {
   const Index nppd = derivatives_data.nelem(), ng = dlm.nelem();
   
@@ -1686,7 +1686,7 @@ void Linefunctions::set_nonlte_source_and_apply_absorption_scaling(ComplexVector
                                                                    const Numeric& dK3_dTl, 
                                                                    const Numeric& dK3_dTu, 
                                                                    const Numeric& dK4_dTu,
-                                                                   const ComplexRange& df_range)
+                                                                   const Range& df_range)
 {
   const Index nppd = derivatives_data.nelem(), nf = F.nelem();
   
@@ -1802,7 +1802,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
                                                       ArrayOfComplexVector& dF,
                                                       ComplexVectorView N, 
                                                       ArrayOfComplexVector& dN,
-                                                      ComplexRange& this_xsec_range,
+                                                      Range& this_xsec_range,
                                                       const PropmatPartialsData& derivatives_data, 
                                                       const LineRecord& line, 
                                                       ConstVectorView f_grid, 
@@ -2404,7 +2404,7 @@ void Linefunctions::apply_cutoff(ComplexVectorView F,
                                  const ArrayOfIndex& broad_spec_locations,
                                  const Index& this_species_location_in_tags,
                                  const Index& water_index_location_in_tags,
-                                 const ComplexRange& df_range,
+                                 const Range& df_range,
                                  const Verbosity& verbosity)
 { 
   // Size of derivatives
@@ -2417,7 +2417,7 @@ void Linefunctions::apply_cutoff(ComplexVectorView F,
   ArrayOfComplexVector dFc(nj), dNc(nn);
   for(auto& aovc : dFc) aovc.resize(1);
   for(auto& aovc : dNc) aovc.resize(1);
-  ComplexRange tmp(joker);
+  Range tmp(joker);
   
   // Recompute the line for a single frequency
   set_cross_section_for_single_line(Fc, dFc, Nc, dNc, tmp,
@@ -2446,7 +2446,7 @@ void Linefunctions::apply_cutoff(ComplexVectorView F,
 
 
 bool Linefunctions::find_cutoff_ranges(Range& range,
-                                       ComplexRange& same_range_but_complex,
+                                       Range& same_range_but_complex,
                                        ConstVectorView f_grid,
                                        const Numeric& F0,
                                        const Numeric& cutoff)
@@ -2470,12 +2470,12 @@ bool Linefunctions::find_cutoff_ranges(Range& range,
     const Index extent = i_f_max - i_f_min + 1; // min is 0, max is nf
     
     range = Range(i_f_min, extent);
-    same_range_but_complex = ComplexRange(i_f_min, extent);
+    same_range_but_complex = Range(i_f_min, extent);
   }
   else
   {
     range = Range(joker);
-    same_range_but_complex = ComplexRange(joker);
+    same_range_but_complex = Range(joker);
   } 
   return need_cutoff;
 }

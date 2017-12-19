@@ -2499,7 +2499,7 @@ void xsec_species2(MatrixView xsec,
   ArrayOfComplexVector dF(nj), dN(do_nonlte?nj:0);
   for(auto& aocv : dF) aocv.resize(nf);
   for(auto& aocv : dN) aocv.resize(nf);
-  ComplexRange this_xsec_range(joker);
+  Range this_xsec_range(joker);
 
   for(Index ip = 0; ip < np; ip++)
   {

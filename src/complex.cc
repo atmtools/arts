@@ -81,136 +81,6 @@ extern const Joker joker;
 
 static const Numeric RAD2DEG = 57.295779513082323;
 
-// Functions for ComplexRange:
-// --------------------
-
-/* Explicit constructor. 
- * 
- * \param Start must be >= 0.
- * 
- * \param Extent also. Although internally negative extent means "to the end",
- * this can not be created this way, only with the joker. Zero
- * extent is allowed, though, which corresponds to an empty range.
- * 
- * \param Stride can be anything. It can be omitted, in which case the
- * default value is 1. */
-ComplexRange::ComplexRange(Index start, Index extent, Index stride) :
-mstart(start), mextent(extent), mstride(stride)
-{
-    // Start must be >= 0:
-    assert( 0<=mstart );
-    // Extent also. Although internally negative extent means "to the end",
-    // this can not be created this way, only with the joker. Zero
-    // extent is allowed, though, which corresponds to an empty range.
-    assert( 0<=mextent );
-    // Stride can be anything except 0.
-    // SAB 2001-09-21: Allow 0 stride.
-    //  assert( 0!=mstride);
-}
-
-/** Constructor with joker extent. Depending on the sign of stride,
- *   this means "to the end", or "to the beginning". */
-ComplexRange::ComplexRange(Index start, Joker, Index stride) :
-mstart(start), mextent(-1), mstride(stride)
-{
-    // Start must be >= 0:
-    assert( 0<=mstart );
-}
-
-/** Constructor with just a joker. This means, take everything. You
- *   can still optionally give a stride, though. This constructor is
- *   just shorter notation for Range(0,joker) */
-ComplexRange::ComplexRange(Joker, Index stride) :
-mstart(0), mextent(-1), mstride(stride)
-{
-    // Nothing to do here.
-}
-
-/** Constructor which converts a range with joker to an explicit
- *   range.
- * 
- *   \param max_size The maximum allowed size of the vector. 
- *   \param r The new range, with joker. */
-ComplexRange::ComplexRange(Index max_size, const ComplexRange& r) :
-mstart(r.mstart),
-mextent(r.mextent),
-mstride(r.mstride)
-{
-    // Start must be >= 0:
-    assert( 0<=mstart );
-    // ... and < max_size:
-    assert( mstart<max_size );
-    
-    // Stride must be != 0:
-    assert( 0!=mstride);
-    
-    // Convert negative extent (joker) to explicit extent
-    if ( mextent<0 )
-    {
-        if ( 0<mstride )
-            mextent = 1 + (max_size-1-mstart)/mstride;
-        else
-            mextent = 1 + (0-mstart)/mstride;
-    }
-    else
-    {
-        #ifndef NDEBUG
-        // Check that extent is ok:
-        Index fin = mstart+(mextent-1)*mstride;
-        assert( 0   <= fin );
-        assert( fin <  max_size );
-        #endif
-    }
-}
-
-
-/** Constructor of a new range relative to an old range. The new range
- *   may contain -1 for the stride, which acts as a joker.
- * 
- *   \param p Previous range.
- *   \param n New range. */
-ComplexRange::ComplexRange(const ComplexRange& p, const ComplexRange& n) :
-mstart(p.mstart + n.mstart*p.mstride),
-mextent(n.mextent),
-mstride(p.mstride*n.mstride)
-{
-    // We have to juggle here a bit with previous, new, and resulting
-    // quantities. I.e.;
-    // p.mstride: Previous stride
-    // n.mstride: New stride (as specified)
-    // mstride:   Resulting stride (old*new)
-    
-    // Get the previous final element:
-    Index prev_fin = p.mstart+(p.mextent-1)*p.mstride;
-    
-    // Resulting start must be >= previous start:
-    assert( p.mstart<=mstart );
-    // and <= prev_fin:
-    assert( mstart<=prev_fin );
-    
-    // Resulting stride must be != 0:
-    assert( 0!=mstride);
-    
-    // Convert negative extent (joker) to explicit extent
-    if ( mextent<0 )
-    {
-        if ( 0<mstride )
-            mextent = 1 + (prev_fin-mstart)/mstride;
-        else
-            mextent = 1 + (p.mstart-mstart)/mstride;
-    }
-    else
-    {
-        #ifndef NDEBUG
-        // Check that extent is ok:
-        Index fin = mstart+(mextent-1)*mstride;
-        assert( p.mstart <= fin      );
-        assert( fin      <= prev_fin );
-        #endif
-    }
-    
-}
-
 // Functions for ConstComplexVectorView:
 // ------------------------------
 
@@ -250,7 +120,7 @@ Complex ConstComplexVectorView::sum() const
 /** Const index operator for subrange. We have to also account for the
     case, that *this is already a subrange of a Vector. This allows
     correct recursive behavior.  */
-ConstComplexVectorView ConstComplexVectorView::operator[](const ComplexRange& r) const
+ConstComplexVectorView ConstComplexVectorView::operator[](const Range& r) const
 {
     return ConstComplexVectorView(mdata, mrange, r);
 }
@@ -273,7 +143,7 @@ ConstComplexIterator1D ConstComplexVectorView::end() const
 /** Conversion to const 1 column matrix. */
 ConstComplexVectorView::operator ConstComplexMatrixView() const
 {
-    return ConstComplexMatrixView(mdata,mrange,ComplexRange(0,1));
+    return ConstComplexMatrixView(mdata,mrange,Range(0,1));
 }
 
 /** A special constructor, which allows to make a ConstComplexVectorView from
@@ -300,7 +170,7 @@ ConstComplexVectorView::ConstComplexVectorView() :
 /** Explicit constructor. This one is used by Vector to initialize its
     own VectorView part. */
 ConstComplexVectorView::ConstComplexVectorView( Complex *data,
-                                         const ComplexRange& range) :
+                                         const Range& range) :
   mrange(range),
   mdata(data)
 {
@@ -318,8 +188,8 @@ ConstComplexVectorView::ConstComplexVectorView( Complex *data,
     \param p Previous range.
     \param n New Range.  */
 ConstComplexVectorView::ConstComplexVectorView( Complex *data,
-                                                const ComplexRange& p,
-                                                const ComplexRange& n) :
+                                                const Range& p,
+                                                const Range& n) :
   mrange(p,n),
   mdata(data)
 {
@@ -375,7 +245,7 @@ ComplexVectorView::ComplexVectorView (ComplexVector& v)
     that *this is already a subrange of a Vector. This allows correct
     recursive behavior.  Has to be redifined here, because the
     one from ConstComplexVectorView is hidden. */
-ConstComplexVectorView ComplexVectorView::operator[](const ComplexRange& r) const
+ConstComplexVectorView ComplexVectorView::operator[](const Range& r) const
 {
     return ConstComplexVectorView::operator[](r);
 }
@@ -383,7 +253,7 @@ ConstComplexVectorView ComplexVectorView::operator[](const ComplexRange& r) cons
 /** Index operator for subrange. We have to also account for the case,
     that *this is already a subrange of a Vector. This allows correct
     recursive behavior.  */
-ComplexVectorView ComplexVectorView::operator[](const ComplexRange& r)
+ComplexVectorView ComplexVectorView::operator[](const Range& r)
 {
     return ComplexVectorView(mdata, mrange, r);
 }
@@ -674,7 +544,7 @@ ComplexVectorView::operator ComplexMatrixView()
     // Bus this was a bug! The problem is that the matrix index operator adds
     // the mstart from both row and columm range object to mdata
 
-    return ComplexMatrixView(mdata,mrange,ComplexRange(0,1));
+    return ComplexMatrixView(mdata,mrange,Range(0,1));
 }
 
 /** Conversion to plain C-array.
@@ -725,7 +595,7 @@ ConstComplexVectorView()
 /** Explicit constructor. This one is used by Vector to initialize its
     own VectorView part. */
 ComplexVectorView::ComplexVectorView(Complex *data,
-                       const ComplexRange& range) :
+                       const Range& range) :
                        ConstComplexVectorView(data,range)
 {
   // Nothing to do here.
@@ -742,8 +612,8 @@ ComplexVectorView::ComplexVectorView(Complex *data,
     \param p Previous range.
     \param n New Range.  */
 ComplexVectorView::ComplexVectorView(Complex *data,
-                                     const ComplexRange& p,
-                                     const ComplexRange& n) :
+                                     const Range& p,
+                                     const Range& n) :
                                      ConstComplexVectorView(data,p,n)
 {
   // Nothing to do here.
@@ -787,7 +657,7 @@ ComplexVector::ComplexVector()
 /** Constructor setting size. */
 ComplexVector::ComplexVector(Index n) :
 ComplexVectorView( new Complex[n],
-                   ComplexRange(0,n))
+                   Range(0,n))
 {
     // Nothing to do here.
 }
@@ -795,7 +665,7 @@ ComplexVectorView( new Complex[n],
 /** Constructor setting size and filling with constant value. */
 ComplexVector::ComplexVector(Index n, Complex fill) :
 ComplexVectorView( new Complex[n],
-                   ComplexRange(0,n))
+                   Range(0,n))
 {
     // Here we can access the raw memory directly, for slightly
     // increased efficiency:
@@ -807,7 +677,7 @@ ComplexVectorView( new Complex[n],
 /** Constructor setting size and filling with constant value. */
 ComplexVector::ComplexVector(Index n, Numeric fill) :
 ComplexVectorView( new Complex[n],
-                   ComplexRange(0,n))
+                   Range(0,n))
 {
     // Here we can access the raw memory directly, for slightly
     // increased efficiency:
@@ -826,7 +696,7 @@ ComplexVectorView( new Complex[n],
  */
 ComplexVector::ComplexVector(Complex start, Index extent, Complex stride) :
 ComplexVectorView( new Complex[extent],
-                   ComplexRange(0,extent))
+                   Range(0,extent))
 {
     // Fill with values:
     Complex x = start;
@@ -849,7 +719,7 @@ ComplexVectorView( new Complex[extent],
 */
 ComplexVector::ComplexVector(Numeric start, Index extent, Complex stride) :
 ComplexVectorView( new Complex[extent],
-                   ComplexRange(0,extent))
+                   Range(0,extent))
 {
     // Fill with values:
     Complex x = start;
@@ -872,7 +742,7 @@ ComplexVectorView( new Complex[extent],
  */
 ComplexVector::ComplexVector(Complex start, Index extent, Numeric stride) :
 ComplexVectorView( new Complex[extent],
-                   ComplexRange(0,extent))
+                   Range(0,extent))
 {
     // Fill with values:
     Complex x = start;
@@ -895,7 +765,7 @@ ComplexVectorView( new Complex[extent],
  */
 ComplexVector::ComplexVector(Numeric start, Index extent, Numeric stride) :
 ComplexVectorView( new Complex[extent],
-                   ComplexRange(0,extent))
+                   Range(0,extent))
 {
     // Fill with values:
     Complex x = start;
@@ -915,7 +785,7 @@ ComplexVectorView( new Complex[extent],
  *   of the selection. */
 ComplexVector::ComplexVector(const ConstComplexVectorView& v) :
 ComplexVectorView( new Complex[v.nelem()],
-                   ComplexRange(0,v.nelem()))
+                   Range(0,v.nelem()))
 {
     copy(v.begin(),v.end(),begin());
 }
@@ -924,7 +794,7 @@ ComplexVectorView( new Complex[v.nelem()],
  *   automatically generated shallow constructor. We want deep copies!  */
 ComplexVector::ComplexVector(const ComplexVector& v) :
 ComplexVectorView( new Complex[v.nelem()],
-                   ComplexRange(0,v.nelem()))
+                   Range(0,v.nelem()))
 {
     copy(v.begin(),v.end(),begin());
 }
@@ -932,7 +802,7 @@ ComplexVectorView( new Complex[v.nelem()],
 /** Converting constructor from std::vector. */
 ComplexVector::ComplexVector(const std::vector<Complex>& v) :
 ComplexVectorView( new Complex[v.size()],
-                   ComplexRange(0,v.size()))
+                   Range(0,v.size()))
 {
     std::vector<Complex>::const_iterator vec_it_end = v.end();
     ComplexIterator1D this_it = this->begin();
@@ -945,7 +815,7 @@ ComplexVectorView( new Complex[v.size()],
 /** Converting constructor from std::vector. */
 ComplexVector::ComplexVector(const std::vector<Numeric>& v) :
 ComplexVectorView( new Complex[v.size()],
-                   ComplexRange(0,v.size()))
+                   Range(0,v.size()))
 {
     std::vector<Numeric>::const_iterator vec_it_end = v.end();
     ComplexIterator1D this_it = this->begin();
@@ -1085,8 +955,8 @@ Index ConstComplexMatrixView::ncols() const
 /** Const index operator for subrange. We have to also account for the
     case, that *this is already a subrange of a Matrix. This allows
     correct recursive behavior.  */
-ConstComplexMatrixView ConstComplexMatrixView::operator()(const ComplexRange& r,
-                                                          const ComplexRange& c) const
+ConstComplexMatrixView ConstComplexMatrixView::operator()(const Range& r,
+                                                          const Range& c) const
 {
     return ConstComplexMatrixView(mdata, mrr, mcr, r, c);
 }
@@ -1096,7 +966,7 @@ ConstComplexMatrixView ConstComplexMatrixView::operator()(const ComplexRange& r,
 
     \param r A range of rows.
     \param c Index of selected column */
-ConstComplexVectorView ConstComplexMatrixView::operator()(const ComplexRange& r, Index c) const
+ConstComplexVectorView ConstComplexMatrixView::operator()(const Range& r, Index c) const
 {
   // Check that c is valid:
   assert( 0 <= c );
@@ -1111,7 +981,7 @@ ConstComplexVectorView ConstComplexMatrixView::operator()(const ComplexRange& r,
 
     \param r Index of selected row.
     \param c Range of columns */
-ConstComplexVectorView ConstComplexMatrixView::operator()(Index r, const ComplexRange& c) const
+ConstComplexVectorView ConstComplexMatrixView::operator()(Index r, const Range& c) const
 {
   // Check that r is valid:
   assert( 0 <= r );
@@ -1150,7 +1020,7 @@ ConstComplexVectorView ConstComplexMatrixView::diagonal() const
 {
     Index n = std::min( mrr.mextent, mcr.mextent );
     return ConstComplexVectorView( mdata + mrr.mstart + mcr.mstart,
-                                   ComplexRange( 0, n, mrr.mstride + mcr.mstride ) );
+                                   Range( 0, n, mrr.mstride + mcr.mstride ) );
 }
 
 
@@ -1166,8 +1036,8 @@ ConstComplexMatrixView::ConstComplexMatrixView() :
     own MatrixView part. The row range rr must have a
     stride to account for the length of one row. */
 ConstComplexMatrixView::ConstComplexMatrixView( Complex *data,
-                                                const ComplexRange& rr,
-                                                const ComplexRange& cr) :
+                                                const Range& rr,
+                                                const Range& cr) :
   mrr(rr),
   mcr(cr),
   mdata(data)
@@ -1190,8 +1060,8 @@ ConstComplexMatrixView::ConstComplexMatrixView( Complex *data,
     \param nc New Range.
   */
 ConstComplexMatrixView::ConstComplexMatrixView( Complex *data,
-                                                const ComplexRange& pr, const ComplexRange& pc,
-                                                const ComplexRange& nr, const ComplexRange& nc) :
+                                                const Range& pr, const Range& pc,
+                                                const Range& nr, const Range& nc) :
   mrr(pr,nr),
   mcr(pc,nc),
   mdata(data)
@@ -1256,7 +1126,7 @@ std::ostream& operator<<(std::ostream& os, const ConstComplexMatrixView& v)
     case, that *this is already a subrange of a ComplexMatrix. This allows
     correct recursive behavior. Has to be redefined here, since it is
     hiden by the non-const operator of the derived class. */
-ConstComplexMatrixView ComplexMatrixView::operator()(const ComplexRange& r, const ComplexRange& c) const
+ConstComplexMatrixView ComplexMatrixView::operator()(const Range& r, const Range& c) const
 {
     return ConstComplexMatrixView::operator()(r,c);  
 }
@@ -1267,7 +1137,7 @@ ConstComplexMatrixView ComplexMatrixView::operator()(const ComplexRange& r, cons
 
     \param r A range of rows.
     \param c Index of selected column */
-ConstComplexVectorView ComplexMatrixView::operator()(const ComplexRange& r, Index c) const
+ConstComplexVectorView ComplexMatrixView::operator()(const Range& r, Index c) const
 {
     return ConstComplexMatrixView::operator()(r,c);
 }
@@ -1278,7 +1148,7 @@ ConstComplexVectorView ComplexMatrixView::operator()(const ComplexRange& r, Inde
 
     \param r Index of selected row.
     \param c Range of columns */
-ConstComplexVectorView ComplexMatrixView::operator()(Index r, const ComplexRange& c) const
+ConstComplexVectorView ComplexMatrixView::operator()(Index r, const Range& c) const
 {
     return ConstComplexMatrixView::operator()(r,c);
 }
@@ -1286,7 +1156,7 @@ ConstComplexVectorView ComplexMatrixView::operator()(Index r, const ComplexRange
 /** Index operator for subrange. We have to also account for the case,
  t hat *this is already a subrange of a Complex*Matrix. This allows correct
     recursive behavior.  */
-ComplexMatrixView ComplexMatrixView::operator()(const ComplexRange& r, const ComplexRange& c)
+ComplexMatrixView ComplexMatrixView::operator()(const Range& r, const Range& c)
 {
     return ComplexMatrixView(mdata, mrr, mcr, r, c);
 }
@@ -1295,7 +1165,7 @@ ComplexMatrixView ComplexMatrixView::operator()(const ComplexRange& r, const Com
 
     \param r A range of rows.
     \param c Index of selected column */
-ComplexVectorView ComplexMatrixView::operator()(const ComplexRange& r, Index c)
+ComplexVectorView ComplexMatrixView::operator()(const Range& r, Index c)
 {
   // Check that c is valid:
   assert( 0 <= c );
@@ -1309,7 +1179,7 @@ ComplexVectorView ComplexMatrixView::operator()(const ComplexRange& r, Index c)
 
     \param r Index of selected row.
     \param c Range of columns */
-ComplexVectorView ComplexMatrixView::operator()(Index r, const ComplexRange& c)
+ComplexVectorView ComplexMatrixView::operator()(Index r, const Range& c)
 {
   // Check that r is valid:
   assert( 0 <= r );
@@ -1710,8 +1580,8 @@ ConstComplexMatrixView()
     own ComplexMatrixView part. The row range rr must have a
     stride to account for the length of one row. */
 ComplexMatrixView::ComplexMatrixView(Complex *data,
-                                     const ComplexRange& rr,
-                                     const ComplexRange& cr) :
+                                     const Range& rr,
+                                     const Range& cr) :
                                      ConstComplexMatrixView(data, rr, cr)
 {
   // Nothing to do here.
@@ -1732,8 +1602,8 @@ ComplexMatrixView::ComplexMatrixView(Complex *data,
     \param nc New Range.
   */
 ComplexMatrixView::ComplexMatrixView(Complex *data,
-                                     const ComplexRange& pr, const ComplexRange& pc,
-                                     const ComplexRange& nr, const ComplexRange& nc) :
+                                     const Range& pr, const Range& pc,
+                                     const Range& nr, const Range& nc) :
                                      ConstComplexMatrixView(data,pr,pc,nr,nc)
 {
   // Nothing to do here.
@@ -1808,8 +1678,8 @@ ComplexMatrixView::ComplexMatrixView()
     in the row range correctly! */
 ComplexMatrix::ComplexMatrix(Index r, Index c) :
 ComplexMatrixView( new Complex[r*c],
-                   ComplexRange(0,r,c),
-                   ComplexRange(0,c))
+                   Range(0,r,c),
+                   Range(0,c))
 {
   // Nothing to do here.
 }
@@ -1817,8 +1687,8 @@ ComplexMatrixView( new Complex[r*c],
 /** Constructor setting size and filling with constant value. */
 ComplexMatrix::ComplexMatrix(Index r, Index c, Complex fill) :
 ComplexMatrixView( new Complex[r*c],
-                   ComplexRange(0,r,c),
-                   ComplexRange(0,c))
+                   Range(0,r,c),
+                   Range(0,c))
 {
     // Here we can access the raw memory directly, for slightly
     // increased efficiency:
@@ -1830,8 +1700,8 @@ ComplexMatrixView( new Complex[r*c],
 /** Constructor setting size and filling with constant value. */
 ComplexMatrix::ComplexMatrix(Index r, Index c, Numeric fill) :
 ComplexMatrixView( new Complex[r*c],
-              ComplexRange(0,r,c),
-            ComplexRange(0,c))
+              Range(0,r,c),
+            Range(0,c))
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
@@ -1844,8 +1714,8 @@ ComplexMatrixView( new Complex[r*c],
     and copies the data. */
 ComplexMatrix::ComplexMatrix(const ConstComplexMatrixView& m) :
 ComplexMatrixView( new Complex[m.nrows()*m.ncols()],
-                   ComplexRange( 0, m.nrows(), m.ncols() ),
-                   ComplexRange( 0, m.ncols() ) )
+                   Range( 0, m.nrows(), m.ncols() ),
+                   Range( 0, m.ncols() ) )
 {
   copy(m.begin(),m.end(),begin());
 }
@@ -1854,8 +1724,8 @@ ComplexMatrixView( new Complex[m.nrows()*m.ncols()],
     and copies the data. */
 ComplexMatrix::ComplexMatrix(const ComplexMatrix& m) :
 ComplexMatrixView( new Complex[m.nrows()*m.ncols()],
-            ComplexRange( 0, m.nrows(), m.ncols() ),
-            ComplexRange( 0, m.ncols() ) )
+            Range( 0, m.nrows(), m.ncols() ),
+            Range( 0, m.ncols() ) )
 {
   // There is a catch here: If m is an empty matrix, then it will have
   // 0 colunns. But this is used to initialize the stride of the row

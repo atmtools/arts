@@ -100,9 +100,9 @@ void test01()
    mult(C(joker, 1), A, X2);
    std::cout<<MapToEigen(A) <<"\nx\n"
    <<MapToEigen(X2)<<"\n=\n"<<MapToEigen(C(joker, 1))<<"\n\n";
-   mult(C(ComplexRange(1,3), ComplexRange(0,3)), A(ComplexRange(1,3), ComplexRange(1,2)), B(ComplexRange(1,2), ComplexRange(1,3)));
-   std::cout<<MapToEigen(A(ComplexRange(1,3), ComplexRange(1,2))) <<"\nx\n"
-            <<MapToEigen(B(ComplexRange(1,2), ComplexRange(1,3)))<<"\n=\n"<<MapToEigen(C(ComplexRange(1,3), ComplexRange(0,3)))<<"\n\n";
+   mult(C(Range(1,3), Range(0,3)), A(Range(1,3), Range(1,2)), B(Range(1,2), Range(1,3)));
+   std::cout<<MapToEigen(A(Range(1,3), Range(1,2))) <<"\nx\n"
+            <<MapToEigen(B(Range(1,2), Range(1,3)))<<"\n=\n"<<MapToEigen(C(Range(1,3), Range(0,3)))<<"\n\n";
 }
 
 int main()

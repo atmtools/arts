@@ -199,6 +199,15 @@ public:
   friend class Tensor7View;
   friend class Tensor7;
   friend class Sparse;
+  friend class ConstComplexVectorView;
+  friend class ComplexVectorView;
+  friend class ComplexVector;
+  friend class ConstComplexMatrixView;
+  friend class ComplexMatrixView;
+  friend class ComplexMatrix;
+  friend class ComplexIterator2D;
+  friend class ConstComplexIterator2D;
+
   friend void mult_general( VectorView, const ConstMatrixView&,
                             const ConstVectorView&);
 

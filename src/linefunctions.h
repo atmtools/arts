@@ -64,7 +64,7 @@ namespace Linefunctions
                    const Numeric& dG0_dT=0.0, 
                    const Numeric& dL0_dT=0.0,
                    const Numeric& ddF0_dT=0.0,
-                   const ComplexRange& df_range=ComplexRange(joker));
+                   const Range& df_range=Range(joker));
   
   void set_htp(ComplexVectorView F,
                ArrayOfComplexVector& dF,
@@ -88,7 +88,7 @@ namespace Linefunctions
                const Numeric& dL2_dT=0.0,
                const Numeric& deta_dT=0.0,
                const Numeric& dFVC_dT=0.0,
-               const ComplexRange& df_range=ComplexRange(joker));
+               const Range& df_range=Range(joker));
   
   void set_faddeeva_algorithm916(ComplexVectorView F,
                                  ArrayOfComplexVector& dF,
@@ -106,7 +106,7 @@ namespace Linefunctions
                                  const Numeric& dG0_dT=0.0,
                                  const Numeric& dL0_dT=0.0,
                                  const Numeric& ddF0_dT=0.0,
-                                 const ComplexRange& df_range=ComplexRange(joker));
+                                 const Range& df_range=Range(joker));
   
   void set_doppler(ComplexVectorView F,
                    ArrayOfComplexVector& dF,
@@ -118,7 +118,7 @@ namespace Linefunctions
                    const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
                    const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                    const Numeric& dGD_div_F0_dT=0.0,
-                   const ComplexRange& df_range=ComplexRange(joker));
+                   const Range& df_range=Range(joker));
   
   void set_faddeeva_from_full_linemixing(ComplexVectorView F,
                                          ArrayOfComplexVector& dF,
@@ -140,7 +140,7 @@ namespace Linefunctions
                                 const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                                 const Numeric& dY_dT=0.0,
                                 const Numeric& dG_dT=0.0,
-                                const ComplexRange& df_range=ComplexRange(joker));
+                                const Range& df_range=Range(joker));
   
   void apply_rosenkranz_quadratic_scaling(ComplexVectorView F,
                                           ArrayOfComplexVector& dF,
@@ -149,7 +149,7 @@ namespace Linefunctions
                                           const Numeric& T,
                                           const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
                                           const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                                          const ComplexRange& df_range=ComplexRange(joker));
+                                          const Range& df_range=Range(joker));
   
   void apply_VVH_scaling(ComplexVectorView F,
                          ArrayOfComplexVector& dF,
@@ -158,7 +158,7 @@ namespace Linefunctions
                          const Numeric& T,
                          const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
                          const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                         const ComplexRange& df_range=ComplexRange(joker));
+                         const Range& df_range=Range(joker));
   
   void apply_VVW_scaling(ComplexVectorView F,
                          ArrayOfComplexVector& dF,
@@ -166,7 +166,7 @@ namespace Linefunctions
                          const Numeric& F0,
                          const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
                          const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                         const ComplexRange& df_range=ComplexRange(joker));
+                         const Range& df_range=Range(joker));
   
   void apply_linestrength_scaling(ComplexVectorView F,
                                   ArrayOfComplexVector& dF,
@@ -182,7 +182,7 @@ namespace Linefunctions
                                   const Numeric& dK1_dT=0.0,
                                   const Numeric& dK2_dT=0.0,
                                   const Numeric& dK2_dF0=0.0,
-                                  const ComplexRange& df_range=ComplexRange(joker));
+                                  const Range& df_range=Range(joker));
   
   void set_nonlte_source_and_apply_absorption_scaling(ComplexVectorView F,
                                                       ArrayOfComplexVector& dF,
@@ -198,7 +198,7 @@ namespace Linefunctions
                                                       const Numeric& dK3_dTl=0.0, 
                                                       const Numeric& dK3_dTu=0.0, 
                                                       const Numeric& dK4_dTu=0.0,
-                                                      const ComplexRange& df_range=ComplexRange(joker));
+                                                      const Range& df_range=Range(joker));
   
   void apply_linestrength_from_full_linemixing(ComplexVectorView F,
                                                ArrayOfComplexVector& dF,
@@ -225,13 +225,13 @@ namespace Linefunctions
                                                  const PropmatPartialsData& derivatives_data,
                                                  const QuantumIdentifier& quantum_identity,
                                                  const ComplexVector& dgamma,
-                                                 const ComplexRange& df_range=ComplexRange(joker));
+                                                 const Range& df_range=Range(joker));
   
   void apply_linemixing_jacobian_scaling(ArrayOfComplexVector& dF,
                                          const PropmatPartialsData& derivatives_data,
                                          const QuantumIdentifier& quantum_identity,
                                          const ComplexVector& dlm,
-                                         const ComplexRange& df_range=ComplexRange(joker));
+                                         const Range& df_range=Range(joker));
   
   Numeric DopplerConstant(const Numeric T, const Numeric mass);
   
@@ -241,7 +241,7 @@ namespace Linefunctions
                                          ArrayOfComplexVector& dF,
                                          ComplexVectorView N,
                                          ArrayOfComplexVector& dN,
-                                         ComplexRange& this_xsec_range,
+                                         Range& this_xsec_range,
                                          const PropmatPartialsData& derivatives_data,
                                          const LineRecord& line,
                                          ConstVectorView f_grid,
@@ -288,11 +288,11 @@ namespace Linefunctions
                     const ArrayOfIndex& broad_spec_locations,
                     const Index& this_species_location_in_tags,
                     const Index& water_index_location_in_tags,
-                    const ComplexRange& df_range,
+                    const Range& df_range,
                     const Verbosity& verbosity);
   
   bool find_cutoff_ranges(Range& range,
-                          ComplexRange& same_range_but_complex,
+                          Range& same_range_but_complex,
                           ConstVectorView f_grid,
                           const Numeric& F0,
                           const Numeric& cutoff);

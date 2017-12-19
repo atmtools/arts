@@ -65,57 +65,6 @@ typedef Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> ComplexStrideType;
 typedef Eigen::Map<ComplexMatrixType, 0, ComplexStrideType> ComplexMatrixViewMap;
 typedef Eigen::Map<const ComplexMatrixType, 0, ComplexStrideType> ComplexConstMatrixViewMap;
 
-/** The complex range class.
- * 
- *  This is used to specifiy a range of a vector. In general, a range is
- *  given by a start index, an extent, and a stride. The entire vector
- *  would be:
- *  start = 0, range = # elements, stride = 1
- * 
- *  Stride specifies the stepsize of the vector. A stride of 2 means
- *  only every second element. This is particularly important in
- *  connection with matrices.
- * 
- *  There are a number of special constructors for this class, of
- *  particular interest should be those using jokers, which provide a
- *  Matlab-like functionality.
- */
-class ComplexRange{
-public:
-    // Constructors:
-    ComplexRange(Index start, Index extent, Index stride=1);
-    ComplexRange(Index start, Joker      j, Index stride=1);
-    ComplexRange(Joker     j, Index stride=1);
-    ComplexRange(Index max_size, const ComplexRange& r);
-    ComplexRange(const ComplexRange& p, const ComplexRange& n);
-    
-    // Friends:
-    friend class ConstComplexVectorView;
-    friend class ComplexVectorView;
-    friend class ComplexVector;
-    friend class ConstComplexMatrixView;
-    friend class ComplexMatrixView;
-    friend class ComplexMatrix;
-    friend class ComplexIterator2D;
-    friend class ConstComplexIterator2D;
-    
-    /** Returns the start index of the range. */
-    Index get_start () const { return mstart; }
-    /** Returns the extent of the range. */
-    Index get_extent () const { return mextent; }
-    /** Returns the stride of the range. */
-    Index get_stride () const { return mstride; }
-    
-private:
-    /** The start index. */
-    Index mstart;
-    /** The number of elements. -1 means extent to the end of the
-     *    vector. */
-    Index mextent;
-    /** The stride. Can be positive or negative. */
-    Index mstride;
-};
-
 /** The iterator class for sub vectors. This takes into account the
  *  defined stride. */
 class ComplexIterator1D {
@@ -223,7 +172,7 @@ public:
         n*mrange.mstride );
     }
     
-    ConstComplexVectorView operator[](const ComplexRange& r) const;
+    ConstComplexVectorView operator[](const Range& r) const;
     friend Complex operator*(const ConstComplexVectorView& a, const ConstComplexVectorView& b);
     
     // Functions returning iterators:
@@ -259,13 +208,13 @@ public:
 protected:
     // Constructors:
     ConstComplexVectorView();
-    ConstComplexVectorView(Complex *data, const ComplexRange& range);
-    ConstComplexVectorView(Complex *data, const ComplexRange& p, const ComplexRange& n);
+    ConstComplexVectorView(Complex *data, const Range& range);
+    ConstComplexVectorView(Complex *data, const Range& p, const Range& n);
     
     // Data members:
     // -------------
     /** The range of mdata that is actually used. */
-    ComplexRange mrange;
+    Range mrange;
     /** Pointer to the plain C array that holds the data */
     Complex *mdata;
 };
@@ -299,7 +248,7 @@ public:
      Complex get(Index n) const
      { return ConstComplexVectorView::get(n); }
      
-     ConstComplexVectorView operator[](const ComplexRange& r) const;
+     ConstComplexVectorView operator[](const Range& r) const;
      
      /** Plain Index operator. */
      Complex& operator[](Index n)
@@ -317,7 +266,7 @@ public:
          n*mrange.mstride );
      }
      
-     ComplexVectorView operator[](const ComplexRange& r);
+     ComplexVectorView operator[](const Range& r);
      
      // Constant iterators:
      ConstComplexIterator1D begin() const;
@@ -394,8 +343,8 @@ public:
 protected:
     // Constructors:
     ComplexVectorView();
-    ComplexVectorView(Complex *data, const ComplexRange& range);
-    ComplexVectorView(Complex *data, const ComplexRange& p, const ComplexRange& n);
+    ComplexVectorView(Complex *data, const Range& range);
+    ComplexVectorView(Complex *data, const Range& p, const Range& n);
 };
 
 /** The row iterator class for sub matrices. This takes into account the
@@ -567,9 +516,9 @@ public:
         c*mcr.mstride );
     }
     
-    ConstComplexMatrixView operator()(const ComplexRange& r, const ComplexRange& c) const;
-    ConstComplexVectorView operator()(const ComplexRange& r, Index c) const;
-    ConstComplexVectorView operator()(Index r, const ComplexRange& c) const;
+    ConstComplexMatrixView operator()(const Range& r, const Range& c) const;
+    ConstComplexVectorView operator()(const Range& r, Index c) const;
+    ConstComplexVectorView operator()(Index r, const Range& c) const;
     
     // Functions returning iterators:
     ConstComplexIterator2D begin() const;
@@ -610,17 +559,17 @@ public:
 protected:
     // Constructors:
     ConstComplexMatrixView();
-    ConstComplexMatrixView(Complex *data, const ComplexRange& r, const ComplexRange& c);
+    ConstComplexMatrixView(Complex *data, const Range& r, const Range& c);
     ConstComplexMatrixView(Complex *data,
-                    const ComplexRange& pr, const ComplexRange& pc,
-                    const ComplexRange& nr, const ComplexRange& nc);
+                    const Range& pr, const Range& pc,
+                    const Range& nr, const Range& nc);
     
     // Data members:
     // -------------
     /** The row range of mdata that is actually used. */
-    ComplexRange mrr;
+    Range mrr;
     /** The column range of mdata that is actually used. */
-    ComplexRange mcr;
+    Range mcr;
     /** Pointer to the plain C array that holds the data */
     Complex *mdata;
 };
@@ -649,9 +598,9 @@ public:
      Complex get(Index r, Index c) const
      { return ConstComplexMatrixView::get(r,c); }
      
-     ConstComplexMatrixView operator()(const ComplexRange& r, const ComplexRange& c) const;
-     ConstComplexVectorView operator()(const ComplexRange& r, Index c) const;
-     ConstComplexVectorView operator()(Index r, const ComplexRange& c) const;
+     ConstComplexMatrixView operator()(const Range& r, const Range& c) const;
+     ConstComplexVectorView operator()(const Range& r, Index c) const;
+     ConstComplexVectorView operator()(Index r, const Range& c) const;
      // Index Operators:
      /** Plain index operator. */
      Complex& operator()(Index r, Index c)
@@ -674,9 +623,9 @@ public:
          c*mcr.mstride );
      }
      
-     ComplexMatrixView operator()(const ComplexRange& r, const ComplexRange& c);
-     ComplexVectorView operator()(const ComplexRange& r, Index c);
-     ComplexVectorView operator()(Index r, const ComplexRange& c);
+     ComplexMatrixView operator()(const Range& r, const Range& c);
+     ComplexVectorView operator()(const Range& r, Index c);
+     ComplexVectorView operator()(Index r, const Range& c);
      
      // Functions returning const iterators:
      ConstComplexIterator2D begin() const;
@@ -750,10 +699,10 @@ public:
 protected:
     // Constructors:
     ComplexMatrixView();
-    ComplexMatrixView(Complex *data, const ComplexRange& r, const ComplexRange& c);
+    ComplexMatrixView(Complex *data, const Range& r, const Range& c);
     ComplexMatrixView(Complex *data,
-               const ComplexRange& pr, const ComplexRange& pc,
-               const ComplexRange& nr, const ComplexRange& nc);
+               const Range& pr, const Range& pc,
+               const Range& nr, const Range& nc);
 };
 
 /** The ComplexMatrix class. This is a ComplexMatrixView that also allocates storage
