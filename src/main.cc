@@ -30,10 +30,6 @@
 
 #include "arts.h"
 
-#ifdef ENABLE_GUI
-#include "ag_main.h"
-#endif
-
 #ifdef TIME_SUPPORT
 #include <sys/types.h>
 #include <unistd.h>
@@ -1009,15 +1005,6 @@ int main (int argc, char **argv)
     }
 #endif
 
-  if (parameters.gui)
-  {
-#ifdef ENABLE_GUI
-    ag_main(argc, argv);
-#endif
-
-    arts_exit();
-  }
-  
   // Ok, we are past all the special options. This means the user
   // wants to get serious and really do a calculation. Check if we
   // have at least one control file:

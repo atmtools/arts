@@ -28,14 +28,6 @@ set (ALL_ARTS_LIBRARIES
 file (GLOB HEADERFILES "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 add_custom_target(UtilityHeadersArts SOURCES ${HEADERFILES})
 
-if (ENABLE_GUI)
-  include (${QT_USE_FILE})
-  add_definitions (${QT_DEFINITIONS})
-
-  list (APPEND ALL_ARTS_LIBRARIES artsgui ${QT_LIBRARIES})
-  include_directories ("gui")
-endif (ENABLE_GUI)
-
 if (ENABLE_DISORT)
   list (APPEND ALL_ARTS_LIBRARIES disort)
 endif (ENABLE_DISORT)
@@ -510,10 +502,6 @@ target_link_libraries(test_covariance_matrix test_utils covariance_matrix ${ALL_
 ########### subdirs ###############
 
 add_subdirectory (libmicrohttpd)
-
-if (WITH_GUI)
-  add_subdirectory (gui)
-endif (WITH_GUI)
 
 ########### tests ###############
 

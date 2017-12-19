@@ -335,13 +335,6 @@ endif (APPLE)
 
 set (ARTS_DEFAULT_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/controlfiles")
 
-if (WITH_GUI)
-  find_package (Qt4)
-  if (QT4_FOUND)
-    set (ENABLE_GUI true)
-  endif (QT4_FOUND)
-endif (WITH_GUI)
-
 if (WITH_HITRAN2008)
   set (USE_HITRAN2008 true)
 endif (WITH_HITRAN2008)

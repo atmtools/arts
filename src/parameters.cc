@@ -125,9 +125,6 @@ bool get_parameters(int argc, char **argv)
     { "basename",           required_argument, NULL, 'b' },
     { "describe",           required_argument, NULL, 'd' },
     { "groups",             no_argument,       NULL, 'g' },
-#ifdef ENABLE_GUI
-    { "gui",                no_argument,       NULL, 'G' },
-#endif
     { "help",               no_argument,       NULL, 'h' },
     { "includepath",        required_argument, NULL, 'I' },
     { "datapath",           required_argument, NULL, 'D' },
@@ -152,9 +149,6 @@ bool get_parameters(int argc, char **argv)
     "       [--basename <name>]\n"
     "       [--describe <method or variable>]\n"
     "       [--groups]\n"
-#ifdef ENABLE_GUI
-    "       [--gui]\n"
-#endif
     "       [--help]\n"
     "       [--includepath <path>]\n"
     "       [--datapath <path>]\n"
@@ -178,9 +172,6 @@ bool get_parameters(int argc, char **argv)
     "-d, --describe      Print the description String of the given\n"
     "                    workspace variable or method.\n"
     "-g  --groups        List all workspace variable groups.\n"
-#ifdef ENABLE_GUI
-    "-G  --gui           Start with graphical user interface.\n"
-#endif
     "-h, --help          Print this message.\n"
     "-i, --input         This is complementary to the --methods switch.\n"
     "                    It must be given the name of a variable (or group).\n"

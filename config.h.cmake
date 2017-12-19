@@ -45,9 +45,6 @@
 /* Define to compile with documentation server support */
 #cmakedefine ENABLE_DOCSERVER
 
-/* Define to compile with graphical user interface */
-#cmakedefine ENABLE_GUI
-
 /* Define to compile with NetCDF support */
 #cmakedefine ENABLE_NETCDF ${NETCDF_FOUND}
 
