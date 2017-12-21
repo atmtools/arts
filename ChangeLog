@@ -1,5 +1,14 @@
 2017-12-21  Richard Larsson  <ric.larsson@gmail.com>
 
+	* arts-2-3-907
+	
+	* src/linefunctions.{cc,h}:  Updated to remove duplicate ranges
+	after Oliver merged Range and ComplexRange.  Also moved some 
+	code around to prepare for tries at speeding up the lbl 
+	calculations
+
+2017-12-21  Richard Larsson  <ric.larsson@gmail.com>
+
 	* arts-2-3-906
 	
 	* src/m_linerecord.cc:  Fixed bug reported by Oliver about

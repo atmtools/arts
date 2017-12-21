@@ -292,7 +292,6 @@ namespace Linefunctions
                     const Verbosity& verbosity);
   
   bool find_cutoff_ranges(Range& range,
-                          Range& same_range_but_complex,
                           ConstVectorView f_grid,
                           const Numeric& F0,
                           const Numeric& cutoff);

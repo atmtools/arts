@@ -1802,7 +1802,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
                                                       ArrayOfComplexVector& dF,
                                                       ComplexVectorView N, 
                                                       ArrayOfComplexVector& dN,
-                                                      Range& this_xsec_range,
+                                                      Range& this_f_range,
                                                       const PropmatPartialsData& derivatives_data, 
                                                       const LineRecord& line, 
                                                       ConstVectorView f_grid, 
@@ -1862,19 +1862,14 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
    * a non-negative number in the frequency range.
    */
   
-  Range this_f_range(joker);
   const Numeric& cutoff = line.CutOff();
   const bool need_cutoff = cutoff_call ? 
                            false       :
-                           find_cutoff_ranges(this_f_range, this_xsec_range, f_grid, line.F(), cutoff);
+                           find_cutoff_ranges(this_f_range, f_grid, line.F(), cutoff);
                            
   // Leave this function if there is nothing to compute
   if(this_f_range.get_extent() == 0)
     return;
-  
-  // Calculation vectors from the ranges
-  ComplexVectorView F_calc = F[this_xsec_range];
-  ConstVectorView f_grid_calc = f_grid[this_f_range];
   
   // Extract the quantum identify of the line to be used in-case there are derivatives
   const QuantumIdentifier QI = line.QuantumIdentity();
@@ -1958,14 +1953,14 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
         case PressureBroadeningData::PB_SD_AIR_VOLUME:
         case PressureBroadeningData::PB_PURELY_FOR_TESTING:
           lst = LineShapeType::HTP;
-          set_htp(F_calc, dF, 
-                  f_grid_calc, zeeman_frequency_shift_constant, magnetic_magnitude, 
+          set_htp(F[this_f_range], dF, 
+                  f_grid[this_f_range], zeeman_frequency_shift_constant, magnetic_magnitude, 
                   line.F(), doppler_constant, 
                   G0, L0, G2, L2, e, FVC,
                   derivatives_data, QI,
                   ddoppler_constant_dT, 
                   dG0_dT, dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT,
-                  this_xsec_range);
+                  this_f_range);
           break;
         // Use for data that requires air and water Voigt broadening
         case PressureBroadeningData::PB_AIR_AND_WATER_BROADENING:
@@ -1975,12 +1970,12 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
         case PressureBroadeningData::PB_AIR_BROADENING:
           // Above should be all methods of pressure broadening requiring Voigt in ARTS by default
           lst = LineShapeType::Voigt;
-          set_faddeeva_algorithm916(F_calc, dF, f_grid_calc, 
+          set_faddeeva_algorithm916(F[this_f_range], dF, f_grid[this_f_range], 
                                     zeeman_frequency_shift_constant, magnetic_magnitude, 
                                     line.F(), doppler_constant, 
                                     G0, L0, DV, derivatives_data, QI,
                                     ddoppler_constant_dT, dG0_dT, dL0_dT, dDV_dT,
-                                    this_xsec_range);
+                                    this_f_range);
           break;
         default:
           throw std::runtime_error("Developer has messed up and needs to add the key to the code above this error");
@@ -1989,36 +1984,36 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
     // This line only needs the Doppler effect
     case LineShapeType::Doppler:
       lst = LineShapeType::Doppler;
-      set_doppler(F_calc, dF, f_grid_calc, zeeman_frequency_shift_constant, magnetic_magnitude, 
-                  line.F(), doppler_constant, derivatives_data, QI, ddoppler_constant_dT, this_xsec_range);
+      set_doppler(F[this_f_range], dF, f_grid[this_f_range], zeeman_frequency_shift_constant, magnetic_magnitude, 
+                  line.F(), doppler_constant, derivatives_data, QI, ddoppler_constant_dT, this_f_range);
       break;
     // This line only needs Hartmann-Tran
     case LineShapeType::HTP:
-      set_htp(F_calc, dF, 
-              f_grid_calc, zeeman_frequency_shift_constant, magnetic_magnitude, 
+      set_htp(F[this_f_range], dF, 
+              f_grid[this_f_range], zeeman_frequency_shift_constant, magnetic_magnitude, 
               line.F(), doppler_constant, 
               G0, L0, G2, L2, e, FVC,
               derivatives_data, QI,
               ddoppler_constant_dT, 
               dG0_dT, dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT,
-              this_xsec_range);
+              this_f_range);
       lst = LineShapeType::HTP;
       break;
     // This line only needs Lorentz
     case LineShapeType::Lorentz:
       lst = LineShapeType::Lorentz;
-      set_lorentz(F_calc, dF, f_grid_calc, zeeman_frequency_shift_constant, magnetic_magnitude, 
-                  line.F(), G0, L0, DV, derivatives_data, QI, dG0_dT, dL0_dT, dDV_dT, this_xsec_range);
+      set_lorentz(F[this_f_range], dF, f_grid[this_f_range], zeeman_frequency_shift_constant, magnetic_magnitude, 
+                  line.F(), G0, L0, DV, derivatives_data, QI, dG0_dT, dL0_dT, dDV_dT, this_f_range);
       break;
     // This line only needs Voigt
     case LineShapeType::Voigt:
       lst = LineShapeType::Voigt;
-      set_faddeeva_algorithm916(F_calc, dF, f_grid_calc, 
+      set_faddeeva_algorithm916(F[this_f_range], dF, f_grid[this_f_range], 
                                 zeeman_frequency_shift_constant, magnetic_magnitude, 
                                 line.F(), doppler_constant, 
                                 G0, L0, DV, derivatives_data, QI,
                                 ddoppler_constant_dT, dG0_dT, dL0_dT, dDV_dT,
-                                this_xsec_range);
+                                this_f_range);
       break;
     case LineShapeType::End:
     default:
@@ -2039,60 +2034,60 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
     case MirroringType::Lorentz:
       {
         // Set the mirroring computational vectors and size them as needed
-        ComplexVector Fm(F_calc.nelem());
+        ComplexVector Fm(F[this_f_range].nelem());
         ArrayOfComplexVector dFm(dF.nelem());
-        for(auto& aocv : dFm) aocv.resize(F_calc.nelem());
+        for(auto& aocv : dFm) aocv.resize(F[this_f_range].nelem());
         
-        set_lorentz(Fm, dFm, f_grid_calc, -zeeman_frequency_shift_constant, magnetic_magnitude, 
-                    -line.F(), G0, -L0, -DV, derivatives_data, QI, dG0_dT, -dL0_dT, -dDV_dT, this_xsec_range);
+        set_lorentz(Fm, dFm, f_grid[this_f_range], -zeeman_frequency_shift_constant, magnetic_magnitude, 
+                    -line.F(), G0, -L0, -DV, derivatives_data, QI, dG0_dT, -dL0_dT, -dDV_dT, this_f_range);
         
         // Apply mirroring
-        F_calc -= Fm;
-        for(Index i = 0; i < dF.nelem(); i++) dF[i][this_xsec_range] -= dFm[i];
+        F[this_f_range] -= Fm;
+        for(Index i = 0; i < dF.nelem(); i++) dF[i][this_f_range] -= dFm[i];
       }
       break;
     // Same type of mirroring as before
     case MirroringType::SameAsLineShape:
     {
       // Set the mirroring computational vectors and size them as needed
-      ComplexVector Fm(F_calc.nelem());
+      ComplexVector Fm(F[this_f_range].nelem());
       ArrayOfComplexVector dFm(dF.nelem());
-      for(auto& aocv : dFm) aocv.resize(F_calc.nelem());
+      for(auto& aocv : dFm) aocv.resize(F[this_f_range].nelem());
       
       switch(lst)
       {
         case LineShapeType::Doppler:
-          set_doppler(Fm, dFm, f_grid_calc, -zeeman_frequency_shift_constant, magnetic_magnitude, 
-                      -line.F(), -doppler_constant, derivatives_data, QI, -ddoppler_constant_dT, this_xsec_range);
+          set_doppler(Fm, dFm, f_grid[this_f_range], -zeeman_frequency_shift_constant, magnetic_magnitude, 
+                      -line.F(), -doppler_constant, derivatives_data, QI, -ddoppler_constant_dT, this_f_range);
           break;
         case LineShapeType::Lorentz:
-          set_lorentz(Fm, dFm, f_grid_calc, -zeeman_frequency_shift_constant, magnetic_magnitude, 
-                      -line.F(), G0, -L0, -DV, derivatives_data, QI, dG0_dT, -dL0_dT, -dDV_dT, this_xsec_range);
+          set_lorentz(Fm, dFm, f_grid[this_f_range], -zeeman_frequency_shift_constant, magnetic_magnitude, 
+                      -line.F(), G0, -L0, -DV, derivatives_data, QI, dG0_dT, -dL0_dT, -dDV_dT, this_f_range);
           break;
         case LineShapeType::Voigt:
-          set_faddeeva_algorithm916(Fm, dFm, f_grid_calc, 
+          set_faddeeva_algorithm916(Fm, dFm, f_grid[this_f_range], 
                                     -zeeman_frequency_shift_constant, magnetic_magnitude, 
                                     -line.F(), -doppler_constant, 
                                     G0, -L0, -DV, derivatives_data, QI,
-                                    -ddoppler_constant_dT, dG0_dT, -dL0_dT, -dDV_dT, this_xsec_range);
+                                    -ddoppler_constant_dT, dG0_dT, -dL0_dT, -dDV_dT, this_f_range);
           break;
         case LineShapeType::HTP:
           // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
-          set_htp(Fm, dFm, f_grid_calc, 
+          set_htp(Fm, dFm, f_grid[this_f_range], 
                   -zeeman_frequency_shift_constant, magnetic_magnitude, 
                   -line.F(), -doppler_constant, 
                   G0, -L0, G2, -L2, e, FVC,
                   derivatives_data, QI,
                   -ddoppler_constant_dT, 
-                  dG0_dT, -dL0_dT, dG2_dT, -dL2_dT, de_dT, dFVC_dT, this_xsec_range);
+                  dG0_dT, -dL0_dT, dG2_dT, -dL2_dT, de_dT, dFVC_dT, this_f_range);
           break;
         case LineShapeType::ByPressureBroadeningData:
         case LineShapeType::End:
         default:
           throw std::runtime_error("Cannot understand the requested line shape type for mirroring.");
       }
-      F_calc -= Fm;
-      for(Index i = 0; i < dF.nelem(); i++) dF[i][this_xsec_range] -= dFm[i];
+      F[this_f_range] -= Fm;
+      for(Index i = 0; i < dF.nelem(); i++) dF[i][this_f_range] -= dFm[i];
       break;
     }
     case MirroringType::End:
@@ -2110,15 +2105,15 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
       break;
       // van Vleck and Huber normalization
     case LineNormalizationType::VVH:
-      apply_VVH_scaling(F_calc, dF, f_grid_calc, line.F(), temperature, derivatives_data, QI, this_xsec_range);
+      apply_VVH_scaling(F[this_f_range], dF, f_grid[this_f_range], line.F(), temperature, derivatives_data, QI, this_f_range);
       break;
       // van Vleck and Weiskopf normalization
     case LineNormalizationType::VVW:
-      apply_VVW_scaling(F_calc, dF, f_grid_calc, line.F(), derivatives_data, QI, this_xsec_range);
+      apply_VVW_scaling(F[this_f_range], dF, f_grid[this_f_range], line.F(), derivatives_data, QI, this_f_range);
       break;
       // Rosenkranz's Quadratic normalization
     case LineNormalizationType::RosenkranzQuadratic:
-      apply_rosenkranz_quadratic_scaling(F_calc, dF, f_grid_calc, line.F(), temperature, derivatives_data, QI, this_xsec_range);
+      apply_rosenkranz_quadratic_scaling(F[this_f_range], dF, f_grid[this_f_range], line.F(), temperature, derivatives_data, QI, this_f_range);
       break;
     case LineNormalizationType::End:
     default:
@@ -2127,15 +2122,15 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
   
   // Apply line mixing if relevant
   if(Y not_eq 0 or G not_eq 0)
-    apply_linemixing_scaling(F_calc, dF, Y, G, derivatives_data, QI, dY_dT, dG_dT, this_xsec_range);
+    apply_linemixing_scaling(F[this_f_range], dF, Y, G, derivatives_data, QI, dY_dT, dG_dT, this_f_range);
   
   // Apply pressure broadening partial derivative vector if necessary
   if(pressure_derivatives.nelem()>0)
-    apply_pressurebroadening_jacobian_scaling(dF, derivatives_data, QI, pressure_derivatives, this_xsec_range);
+    apply_pressurebroadening_jacobian_scaling(dF, derivatives_data, QI, pressure_derivatives, this_f_range);
   
   // Apply line mixing partial derivative vector if necessary
   if(linemixing_derivatives.nelem()>0)
-    apply_linemixing_jacobian_scaling(dF, derivatives_data, QI, linemixing_derivatives, this_xsec_range);
+    apply_linemixing_jacobian_scaling(dF, derivatives_data, QI, linemixing_derivatives, this_f_range);
   
   // Apply line strength by whatever method is necessary
   switch(line.GetLinePopulationType())
@@ -2163,9 +2158,9 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
           dK2_dF0 = dstimulated_relative_emission_dF0(gamma, gamma_ref, temperature);
         
         // Multiply the line strength by the line shape
-        apply_linestrength_scaling(F_calc, dF,  line.I0(), isotopologue_ratio,
-                                  partition_function_at_temperature, partition_function_at_line_temperature, K1, K2,
-                                  derivatives_data, QI, dpartition_function_at_temperature_dT, dK1_dT, dK2_dT, dK2_dF0, this_xsec_range);
+        apply_linestrength_scaling(F[this_f_range], dF,  line.I0(), isotopologue_ratio,
+                                   partition_function_at_temperature, partition_function_at_line_temperature, K1, K2,
+                                   derivatives_data, QI, dpartition_function_at_temperature_dT, dK1_dT, dK2_dT, dK2_dF0, this_f_range);
       }
       break;
     case LinePopulationType::ByVibrationalTemperatures:
@@ -2199,9 +2194,9 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
           dK2_dF0 = dstimulated_relative_emission_dF0(gamma, gamma_ref, temperature);
         
         // Multiply the line strength by the line shape
-        apply_linestrength_scaling(F_calc, dF,  line.I0(), isotopologue_ratio,
+        apply_linestrength_scaling(F[this_f_range], dF,  line.I0(), isotopologue_ratio,
                           partition_function_at_temperature, partition_function_at_line_temperature, K1, K2,
-                          derivatives_data, QI, dpartition_function_at_temperature_dT, dK1_dT, dK2_dT, dK2_dF0, this_xsec_range);
+                          derivatives_data, QI, dpartition_function_at_temperature_dT, dK1_dT, dK2_dT, dK2_dF0, this_f_range);
         
         // Non-local thermodynamic equilibrium terms
         if(nlte_distribution.nelem())
@@ -2271,8 +2266,8 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
           }
           
           // Apply this knowledge to set N and dN
-          set_nonlte_source_and_apply_absorption_scaling(F_calc, dF, N[this_xsec_range], dN, K3, K4, 
-                                                        derivatives_data, QI,  dK3_dT, dK4_dT, dK3_dF0, dK3_dTl, dK3_dTu, dK4_dTu, this_xsec_range);
+          set_nonlte_source_and_apply_absorption_scaling(F[this_f_range], dF, N[this_f_range], dN, K3, K4, 
+                                                         derivatives_data, QI,  dK3_dT, dK4_dT, dK3_dF0, dK3_dTl, dK3_dTu, dK4_dTu, this_f_range);
         }
       }
       break;
@@ -2296,8 +2291,8 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
         if(nlte_upp_index < 0)
           throw std::runtime_error("No upper level distribution number in population distribution mode");
         
-        apply_linestrength_from_nlte_level_distributions(F_calc, 
-                                                         N[this_xsec_range], 
+        apply_linestrength_from_nlte_level_distributions(F[this_f_range], 
+                                                         N[this_f_range], 
                                                          nlte_distribution[nlte_low_index],
                                                          nlte_distribution[nlte_upp_index],
                                                          line.G_lower(),
@@ -2316,34 +2311,20 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
   // cutoff last means that the code is kept cleaner
   if(need_cutoff)
   {
-    if(nlte_distribution.nelem())
-      apply_cutoff(F_calc, dF, N[this_xsec_range], dN,
-                  derivatives_data, line,
-                  volume_mixing_ratio_of_all_species,
-                   nlte_distribution, pressure, temperature,
-                  doppler_constant, partial_pressure,
-                  isotopologue_ratio, magnetic_magnitude,
-                  ddoppler_constant_dT, pressure_limit_for_linemixing,
-                  zeeman_frequency_shift_constant,
-                  partition_function_at_temperature,
-                  dpartition_function_at_temperature_dT,
-                  partition_function_at_line_temperature,
-                  broad_spec_locations, this_species_location_in_tags,
-                  water_index_location_in_tags, this_xsec_range, verbosity);
-    else
-      apply_cutoff(F_calc, dF, N, dN,
-                  derivatives_data, line,
-                  volume_mixing_ratio_of_all_species,
-                  nlte_distribution, pressure, temperature,
-                  doppler_constant, partial_pressure,
-                  isotopologue_ratio, magnetic_magnitude,
-                  ddoppler_constant_dT, pressure_limit_for_linemixing,
-                  zeeman_frequency_shift_constant,
-                  partition_function_at_temperature,
-                  dpartition_function_at_temperature_dT,
-                  partition_function_at_line_temperature,
-                  broad_spec_locations, this_species_location_in_tags,
-                  water_index_location_in_tags, this_xsec_range, verbosity);
+    apply_cutoff(F[this_f_range], dF,
+                 nlte_distribution.nelem()?N[this_f_range]:N, dN,
+                 derivatives_data, line,
+                 volume_mixing_ratio_of_all_species,
+                 nlte_distribution, pressure, temperature,
+                 doppler_constant, partial_pressure,
+                 isotopologue_ratio, magnetic_magnitude,
+                 ddoppler_constant_dT, pressure_limit_for_linemixing,
+                 zeeman_frequency_shift_constant,
+                 partition_function_at_temperature,
+                 dpartition_function_at_temperature_dT,
+                 partition_function_at_line_temperature,
+                 broad_spec_locations, this_species_location_in_tags,
+                 water_index_location_in_tags, this_f_range, verbosity);
   }
 }
 
@@ -2446,7 +2427,6 @@ void Linefunctions::apply_cutoff(ComplexVectorView F,
 
 
 bool Linefunctions::find_cutoff_ranges(Range& range,
-                                       Range& same_range_but_complex,
                                        ConstVectorView f_grid,
                                        const Numeric& F0,
                                        const Numeric& cutoff)
@@ -2470,12 +2450,10 @@ bool Linefunctions::find_cutoff_ranges(Range& range,
     const Index extent = i_f_max - i_f_min + 1; // min is 0, max is nf
     
     range = Range(i_f_min, extent);
-    same_range_but_complex = Range(i_f_min, extent);
   }
   else
   {
     range = Range(joker);
-    same_range_but_complex = Range(joker);
   } 
   return need_cutoff;
 }
