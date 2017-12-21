@@ -1,3 +1,10 @@
+2017-12-21  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-906
+	
+	* src/m_linerecord.cc:  Fixed bug reported by Oliver about
+	precedence of operators. "not X < 0" is not "not (X < 0)"
+
 2017-12-19  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-905
