@@ -50,6 +50,7 @@
 #include "math_funcs.h"
 #include "physics_funcs.h"
 #include "jacobian.h"
+#include "rte.h"
 
 extern const String ABSSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
@@ -503,49 +504,74 @@ void xaStandard(
               // This one is simple, just a vector of ones
               xa[ind] = 1;
             }
-          else if( jq[q].Mode() == "logrel" )
-            {
-              // Also simple, just a vector of zeros
-              xa[ind] = 0;
-            }
-          else if( jq[q].Mode() == "vmr" )
-            {
-              // Here we need to interpolate *vmr_field*
-              ArrayOfGridPos gp_p, gp_lat, gp_lon;
-              get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
-                                     p_grid, lat_grid, lon_grid );
-              Tensor3 vmr_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
-              regrid_atmfield_by_gp( vmr_x, atmosphere_dim,
-                                     vmr_field(isp,joker,joker,joker),
-                                     gp_p, gp_lat, gp_lon );
-              flat( xa[ind], vmr_x );
-            }
-          else if( jq[q].Mode() == "nd" )
-            {
-              // Here we need to interpolate both *vmr_field* and *t_field*
-              ArrayOfGridPos gp_p, gp_lat, gp_lon;
-              get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
-                                     p_grid, lat_grid, lon_grid );
-              Tensor3 vmr_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
-              Tensor3 t_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
-              regrid_atmfield_by_gp( vmr_x, atmosphere_dim,
-                                     vmr_field(isp,joker,joker,joker),
-                                     gp_p, gp_lat, gp_lon );
-              regrid_atmfield_by_gp( t_x, atmosphere_dim,  t_field,
-                                     gp_p, gp_lat, gp_lon );
-              // Calculate number density for species (vmr*nd_tot)
-              Index i = 0;
-              for( Index i3=0; i3<=vmr_x.ncols(); i3++ )
-                { for( Index i2=0; i2<=vmr_x.nrows(); i2++ )
-                    { for( Index i1=0; i1<=vmr_x.npages(); i1++ )
-                        {
-                          xa[ji[q][0]+i] = vmr_x(i1,i2,i3) *
-                            number_density( jq[q].Grids()[0][i1], t_x(i1,i2,i3) );
-                          i += 1;
-                }   }   }
-            }
           else
-            { assert(0); }
+            {
+              // For all remaining options we need to interpolate *vmr_field*
+              ArrayOfGridPos gp_p, gp_lat, gp_lon;
+              get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
+                                     p_grid, lat_grid, lon_grid );
+              Tensor3 vmr_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
+              regrid_atmfield_by_gp( vmr_x, atmosphere_dim,
+                                     vmr_field(isp,joker,joker,joker),
+                                     gp_p, gp_lat, gp_lon );
+              
+              if( jq[q].Mode() == "vmr" )
+                {
+                  flat( xa[ind], vmr_x );
+                }
+              else if( jq[q].Mode() == "nd" )
+                {
+                  // Here we need to also interpolate *t_field*
+                  Tensor3 t_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
+                  regrid_atmfield_by_gp( t_x, atmosphere_dim,  t_field,
+                                         gp_p, gp_lat, gp_lon );
+                  // Calculate number density for species (vmr*nd_tot)
+                  Index i = 0;
+                  for( Index i3=0; i3<=vmr_x.ncols(); i3++ )
+                    { for( Index i2=0; i2<=vmr_x.nrows(); i2++ )
+                        { for( Index i1=0; i1<=vmr_x.npages(); i1++ )
+                            {
+                              xa[ji[q][0]+i] = vmr_x(i1,i2,i3) *
+                                number_density( jq[q].Grids()[0][i1], t_x(i1,i2,i3) );
+                              i += 1;
+                    }   }   }
+                }
+              else if( jq[q].Mode() == "rh" )
+                {
+                  // Here we need to also interpolate *t_field*
+                  Tensor3 t_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
+                  regrid_atmfield_by_gp( t_x, atmosphere_dim,  t_field,
+                                         gp_p, gp_lat, gp_lon );
+                  // Calculate relative humidity (vmr*p/p_sat)
+                  Index i = 0;
+                  for( Index i3=0; i3<=vmr_x.ncols(); i3++ )
+                    { for( Index i2=0; i2<=vmr_x.nrows(); i2++ )
+                        { for( Index i1=0; i1<=vmr_x.npages(); i1++ )
+                            {
+                              xa[ji[q][0]+i] = vmr_x(i1,i2,i3) *
+                                jq[q].Grids()[0][i1] / psat_water(t_x(i1,i2,i3));
+                              i += 1;
+                    }   }   }
+                }
+              else if( jq[q].Mode() == "q" )
+                {
+                  // Calculate specific humidity q, from mixing ratio r and
+                  // vapour pressure e, as
+                  // q = r(1+r); r = 0.622e/(p-e); e = vmr*p;
+                  Index i = 0;
+                  for( Index i3=0; i3<=vmr_x.ncols(); i3++ )
+                    { for( Index i2=0; i2<=vmr_x.nrows(); i2++ )
+                        { for( Index i1=0; i1<=vmr_x.npages(); i1++ )
+                            {
+                              const Numeric e = vmr_x(i1,i2,i3) * jq[q].Grids()[0][i1];
+                              const Numeric r = 0.622*e / ( jq[q].Grids()[0][i1] - e );
+                              xa[ji[q][0]+i] = r / ( 1 + r );
+                              i += 1;
+                    }   }   }
+                }
+              else
+                { assert(0); }
+            }
         }
 
 
@@ -734,58 +760,67 @@ void x2artsStandard(
           array_species_tag_from_string( atag, jq[q].Subtag() );
           const Index isp = chk_contains( "abs_species", abs_species, atag );
 
-          // Determine grid positions for interpolation from retrieval grids back
-          // to atmospheric grids
-          ArrayOfGridPos gp_p, gp_lat, gp_lon;
-          Index          n_p, n_lat, n_lon;
-          get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
-                                 jq[q], atmosphere_dim, p_grid, lat_grid, lon_grid );
+          // Map part of x to a full atmospheric field
+          Tensor3 x_field( vmr_field.npages(), vmr_field.nrows(),
+                                               vmr_field.ncols() );
+          {
+            ArrayOfGridPos gp_p, gp_lat, gp_lon;
+            Index          n_p, n_lat, n_lon;
+            get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
+                                   jq[q], atmosphere_dim, p_grid, lat_grid, lon_grid );
+            //
+            Tensor3 t3_x( n_p, n_lat, n_lon );
+            reshape( t3_x, x_t[ind] );
+            regrid_atmfield_by_gp( x_field, atmosphere_dim, t3_x,
+                                   gp_p, gp_lat, gp_lon );
+          }
           //
-          if( jq[q].Mode() == "rel"  ||  jq[q].Mode() == "logrel" )
+          if( jq[q].Mode() == "rel" )
             {
-              // Find multiplicate factor for elements in vmr_field
-              Tensor3 fac_x( n_p, n_lat, n_lon );
-              reshape( fac_x, x_t[ind] );
-              // Take exp(x) if logrel
-              if( jq[q].Mode() == "logrel" )
-                { transform( fac_x, exp, fac_x ); }
-              Tensor3 factor( vmr_field.npages(), vmr_field.nrows(),
-                                                  vmr_field.ncols() );
-              regrid_atmfield_by_gp( factor, atmosphere_dim, fac_x,
-                                     gp_p, gp_lat, gp_lon );
-              for( Index i3=0; i3<vmr_field.ncols(); i3++ )
-                { for( Index i2=0; i2<vmr_field.nrows(); i2++ )
-                    { for( Index i1=0; i1<vmr_field.npages(); i1++ )
-                        {
-                            vmr_field(isp,i1,i2,i3) *= factor(i1,i2,i3);
-                }   }   }
+              // vmr = vmr0 * x
+              vmr_field(isp,joker,joker,joker) *= x_field;
             }
           else if( jq[q].Mode() == "vmr" )
             {
-              // Here we just need to map back state x
-              Tensor3 vmr_x( n_p, n_lat, n_lon );
-              reshape( vmr_x, x_t[ind] );
-              Tensor3 vmr( vmr_field.npages(), vmr_field.nrows(),
-                                               vmr_field.ncols() );
-              regrid_atmfield_by_gp( vmr, atmosphere_dim, vmr_x,
-                                     gp_p, gp_lat, gp_lon );
-              vmr_field(isp,joker,joker,joker) = vmr;
+              // vmr = x
+              vmr_field(isp,joker,joker,joker) = x_field;
             }
           else if( jq[q].Mode() == "nd" )
             {
-              Tensor3 nd_x( n_p, n_lat, n_lon );
-              reshape( nd_x, x_t[ind] );
-              Tensor3 nd( vmr_field.npages(), vmr_field.nrows(),
-                                              vmr_field.ncols() );
-              regrid_atmfield_by_gp( nd, atmosphere_dim, nd_x,
-                                     gp_p, gp_lat, gp_lon );
-              // Calculate vmr for species (=nd/nd_tot)
+              // vmr = nd / nd_tot
               for( Index i3=0; i3<vmr_field.ncols(); i3++ )
                 { for( Index i2=0; i2<vmr_field.nrows(); i2++ )
                     { for( Index i1=0; i1<vmr_field.npages(); i1++ )
                         {
-                          vmr_field(isp,i1,i2,i3) = nd(i1,i2,i3) /
+                          vmr_field(isp,i1,i2,i3) = x_field(i1,i2,i3) /
                             number_density( p_grid[i1], t_field(i1,i2,i3) );
+                }   }   }
+            }
+          else if( jq[q].Mode() == "rh" )
+            {
+              // vmr = x * p_sat / p
+              for( Index i3=0; i3<vmr_field.ncols(); i3++ )
+                { for( Index i2=0; i2<vmr_field.nrows(); i2++ )
+                    { for( Index i1=0; i1<vmr_field.npages(); i1++ )
+                        {
+                          vmr_field(isp,i1,i2,i3) = x_field(i1,i2,i3) *
+                            psat_water(t_field(i1,i2,i3)) / p_grid[i1];
+                }   }   }
+            }
+          else if( jq[q].Mode() == "q" )
+            {
+              // We have that specific humidity q, mixing ratio r and
+              // vapour pressure e, are related as
+              // q = r(1+r); r = 0.622e/(p-e); e = vmr*p;
+              // That is: vmr=e/p; e = rp/(0.622+r); r = q/(1-q)
+              for( Index i3=0; i3<vmr_field.ncols(); i3++ )
+                { for( Index i2=0; i2<vmr_field.nrows(); i2++ )
+                    { for( Index i1=0; i1<vmr_field.npages(); i1++ )
+                        {
+                          const Numeric r = x_field(i1,i2,i3) /
+                                                 ( 1 - x_field(i1,i2,i3) );
+                          const Numeric e = r * p_grid[i1] / ( 0.622 + r );
+                          vmr_field(isp,i1,i2,i3) = e / p_grid[i1];
                 }   }   }
             }
           else

@@ -8138,8 +8138,6 @@ void define_md_data_raw()
       (
         "Includes an absorption species in the Jacobian.\n"
         "\n"
-        "Details are given in the user guide.\n"
-        "\n"         
         "For 1D or 2D calculations the latitude and/or longitude grid of\n"
         "the retrieval field should set to have zero length.\n"
         "\n"
@@ -8147,12 +8145,14 @@ void define_md_data_raw()
         "   \"analytical\"   : (semi-)analytical expressions are used\n"
         "   \"perturbation\" : pure numerical perturbations are used\n"
         "\n"
-        "The retrieval unit can be:\n"
+        "These retrieval units are at hand for all gas species:\n"
         "   \"vmr\"    : Volume mixing ratio.\n"
         "   \"nd\"     : Number density.\n"
         "   \"rel\"    : Relative unit (e.g. 1.1 means 10% more of the gas).\n"
-        "   \"logrel\" : This unit is allowed only to support Qpack. This\n"
-        "                gives exactly the same result as \"rel\".\n"
+        "\n"
+        "For water vapour, also these units are at hand:\n"
+        "   \"rh\"     : Relative humidity.\n"
+        "   \"q\"      : Specific humidity.\n"
         "\n"
         "For perturbation calculations the size of the perturbation is set\n"
         "by the user. The unit for the perturbation is the same as for the\n"
@@ -8162,7 +8162,7 @@ void define_md_data_raw()
         "rather than atmospheric gas VMR is calculated. Set it to 0 and we\n"
         "calculate the atmospheric gas VMR, but this only works for \"analytical\".\n"
         "\n"
-        "Note that the Jacobian is set to zero where path VMR is equal to zero.\n"
+        "Note that the Jacobian is set to zero where volume mixing ratio equals zero.\n"
       ),
       AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
       OUT( "jacobian_quantities", "jacobian_agenda" ),

@@ -33,7 +33,9 @@ AgendaCreate( iy_main_agenda__Hybrid )
 AgendaSet( iy_main_agenda__Hybrid ){
   Ignore( t_nlte_field )
   Ignore( iy_id )
-  iyHybrid2
+  ppathCalc( ignore_cloudbox = 1 ) 
+  iyHybrid
+  Touch(iy_aux)
 }
 AgendaSet( doit_i_field_agenda ){
   RT4Calc #( pfct_aa_grid_size=28, nstreams=36 ) # sufficient to make Z-norm accurate

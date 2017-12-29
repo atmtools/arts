@@ -1,7 +1,52 @@
+2017-12-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-908
+
+	* Summary: Work on abs species retrieval units. Internal
+	conversion of Jacobian now done outside of core code. Added units
+	"rh" and "q" (only allowed for H2O), but "logrel" is now not
+	supported. Restriction for T-jacobian removed.
+
+	* Warning: Not much testing done. Jacobians look reasonable.
+	Extension in OEM not tested at all.
+
+	* src/m_oem.cc (xaStandard,x2artsStandard): Added handling of "rh"
+	and "q". Also cleaned up code, particularly removed duplication of
+	code parts. Conversion expressions now more clealry explained by
+	comments.
+
+	* src/rte.cc (rtmethods_jacobian_finalisation): Added handling of
+	abs species retrieval unit conversion, including rh and q.
+
+	For "rh", saturation pressure is so far hard-coded to be
+	calculated with the internal functions WVSatPressureLiquidWater
+	and WVSatPressureIce, called for >=0C and <0C, respectively. If we
+	start to use RH as retrieval unit, we should introduce an agenda
+	for calculating the saturation pressure.
+
+	Added also associated correction of T-jacobian. This is needed as
+	the temperature Jacobian with fixed VMR is not the same as the one
+	with fixed RH. Temperature Jacobian can now be mixed with all abs
+	species units.
+
+	(adapt_stepwise_partial_derivatives): Hard-coded unit to "vmr"
+	here, as a temporarily solution.
+
+	* src/m_jacobian.cc (jacobianAddAbsSpecies): Mode can now also be
+	"rh" and "q" if species starts with H2O. Option "logrel" removed.
+	Built-in doc updated.
+
+	(jacobianAddTemperature): Removed constrain that no abs species
+	with "nd" had been added.
+
+	* controlfiles/artscomponents/wfuns/TestWfunsHybClear.arts:
+	* controlfiles/artscomponents/wfuns/TestWfunsHybCloudy.arts:
+	Updated agenda definitions including iyHybrid.
+
 2017-12-21  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-907
-	
+
 	* src/linefunctions.{cc,h}:  Updated to remove duplicate ranges
 	after Oliver merged Range and ComplexRange.  Also moved some 
 	code around to prepare for tries at speeding up the lbl 

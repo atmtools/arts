@@ -621,12 +621,17 @@ void rtmethods_jacobian_finalisation(
          ArrayOfTensor3&             diy_dpath,  
    const Index&                      ns,
    const Index&                      nf,
+   const Index&                      np,
    const Index&                      atmosphere_dim,
    const Ppath&                      ppath,
-   const Vector&                     ppath_p,
+   const Vector&                     ppvar_p,
+   const Vector&                     ppvar_t,
+   const Matrix&                     ppvar_vmr,
    const Index&                      iy_agenda_call1,         
    const Tensor3&                    iy_transmission,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const ArrayOfIndex                jac_species_i,
+   const ArrayOfIndex                jac_is_t,
    const ArrayOfIndex&               jac_to_integrate );
 
 void rtmethods_unit_conversion(
@@ -640,5 +645,7 @@ void rtmethods_unit_conversion(
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const Index&                      j_analytical_do,
    const String&                     iy_unit );
+
+Numeric psat_water(const Numeric t);
 
 #endif  // rte_h

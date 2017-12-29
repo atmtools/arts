@@ -530,12 +530,14 @@ void iyEmissionStandard2(
   if( j_analytical_do )
     {
       rtmethods_jacobian_finalisation( diy_dx, diy_dpath,
-                                       ns, nf, atmosphere_dim, ppath, ppvar_p,
+                                       ns, nf, np, atmosphere_dim, ppath,
+                                       ppvar_p, ppvar_t, ppvar_vmr,
                                        iy_agenda_call1, iy_transmission,
-                                       jacobian_quantities, jac_to_integrate );
+                                       jacobian_quantities, jac_species_i,
+                                       jac_is_t, jac_to_integrate );
     }
 
-  // Unit conversions
+  // Radiance unit conversions
   if( iy_agenda_call1 )
     {
       rtmethods_unit_conversion( iy, diy_dx, ppvar_iy,

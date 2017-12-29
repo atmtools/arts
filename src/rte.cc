@@ -41,6 +41,7 @@
 #include <stdexcept>
 #include "auto_md.h"
 #include "check_input.h"
+#include "continua.h"
 #include "geodetic.h"
 #include "lin_alg.h"
 #include "logic.h"
@@ -52,6 +53,7 @@
 #include "special_interp.h"
 
 extern const Numeric SPEED_OF_LIGHT;
+extern const Numeric TEMP_0_C;
 
 
 
@@ -4527,17 +4529,18 @@ void adapt_stepwise_partial_derivatives(ArrayOfPropagationMatrix& dK_dx,
       // Scaling factors to handle retrieval unit
       if(not from_propmat)
       {
-        vmrunitscf(factor, jacobian_quantities[i].Mode(), 
+        //vmrunitscf(factor, jacobian_quantities[i].Mode(), 
+        vmrunitscf(factor, "vmr", 
                    ppath_vmrs[isp], ppath_pressure, 
                    ppath_temperature);
       }
       else 
       {
-        dxdvmrscf(factor, jacobian_quantities[i].Mode(), 
+        //dxdvmrscf(factor, jacobian_quantities[i].Mode(), 
+        dxdvmrscf(factor, "vmr", 
                   ppath_vmrs[isp], ppath_pressure, 
                   ppath_temperature);
       }
-      
       // Apply conversion to K-matrix partial derivative
       dK_dx[i] *= factor;
       
@@ -5307,6 +5310,14 @@ void rtmethods_jacobian_init(
 }
 
 
+// A small help funtion. Should be replaced with an agenda for RH!?
+Numeric psat_water(const Numeric t)
+{
+  if( t >= TEMP_0_C )
+    { return WVSatPressureLiquidWater( t ); }
+  else
+    { return WVSatPressureIce( t ); }
+}
 
 //! rtmethods_jacobian_finalisation
 /*!
@@ -5324,12 +5335,17 @@ void rtmethods_jacobian_finalisation(
          ArrayOfTensor3&             diy_dpath,  
    const Index&                      ns,
    const Index&                      nf,
+   const Index&                      np,
    const Index&                      atmosphere_dim,
    const Ppath&                      ppath,
-   const Vector&                     ppath_p,
+   const Vector&                     ppvar_p,
+   const Vector&                     ppvar_t,
+   const Matrix&                     ppvar_vmr,
    const Index&                      iy_agenda_call1,         
    const Tensor3&                    iy_transmission,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const ArrayOfIndex                jac_species_i,
+   const ArrayOfIndex                jac_is_t,
    const ArrayOfIndex&               jac_to_integrate )
 {
   // Weight with iy_transmission
@@ -5357,12 +5373,112 @@ void rtmethods_jacobian_finalisation(
             }
         )
     }
-    
+
+  
+  // Handle abs species retrieval units, both internally and impact on T-jacobian
+  //
+  // Conversion for abs species itself
+  for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ )
+    {
+      // Let x be VMR, and z the selected retrieval unit.
+      // We have then that diy/dz = diy/dx * dx/dz
+      //
+      if( jac_species_i[iq] >= 0 )
+        {
+          if( jacobian_quantities[iq].Mode() == "vmr" )
+            {}
+          
+          else if( jacobian_quantities[iq].Mode() == "rel" )
+            {
+              // Here x = vmr*z
+              for( Index ip=0; ip<np; ip++ )
+                {
+                  diy_dpath[iq](ip,joker,joker) *=
+                    ppvar_vmr(jac_species_i[iq],ip);
+                }
+            }
+          
+          else if( jacobian_quantities[iq].Mode() == "nd" )
+            {
+              // Here x = z/nd_tot
+              for( Index ip=0; ip<np; ip++ )
+                {
+                  diy_dpath[iq](ip,joker,joker) /=
+                    number_density( ppvar_p[ip], ppvar_t[ip] );
+                }
+            }
+
+          else if( jacobian_quantities[iq].Mode() == "rh" )
+            {
+              // Here x = (p_sat/p) * z              
+              for( Index ip=0; ip<np; ip++ )
+                {
+                  diy_dpath[iq](ip,joker,joker) *=
+                    psat_water(ppvar_t[ip]) / ppvar_p[ip];
+                }
+            }
+
+          else if( jacobian_quantities[iq].Mode() == "q" )
+            {
+              // Here we use the approximation of x = z/0.622              
+              diy_dpath[iq](joker,joker,joker) /= 0.622;
+            }
+          
+          else
+            { assert(0); }
+        }
+    }
+  
+  // Correction of temperature Jacobian
+  for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ )
+    {
+      // Let a be unit for abs species, and iy = f(T,a(T))
+      // We have then that diy/dT = df/dT + df/da*da/dT
+      // diy_dpath holds already df/dT. Remains is to add
+      // df/da*da/dT for which abs species having da/dT != 0
+      // This is only true for "nd" and "rh"
+      //
+      if( jac_is_t[iq] != JAC_IS_NONE )
+        {
+          // Loop abs species, again
+          for( Index ia=0; ia<jacobian_quantities.nelem(); ia++ )
+            {
+              if( jac_species_i[ia] >= 0 )
+                {
+                  if( jacobian_quantities[ia].Mode() == "nd" )
+                    {
+                      for( Index ip=0; ip<np; ip++ )
+                        {
+                          Matrix ddterm = diy_dpath[ia](ip,joker,joker);
+                          ddterm *= ppvar_vmr(jac_species_i[ia],ip) * (
+                             number_density(ppvar_p[ip],ppvar_t[ip]+1) -
+                             number_density(ppvar_p[ip],ppvar_t[ip]) );
+                          diy_dpath[iq](ip,joker,joker) += ddterm;
+                        }
+                    }
+                  else if( jacobian_quantities[ia].Mode() == "rh" )
+                    {
+                      for( Index ip=0; ip<np; ip++ )
+                        {
+                          Numeric psat = psat_water(ppvar_t[ip]);
+                          Matrix ddterm = diy_dpath[ia](ip,joker,joker);
+                          ddterm *= ppvar_vmr(jac_species_i[ia],ip) *
+                            (ppvar_p[ip] / pow(psat,2.0) ) *
+                            ( psat_water(ppvar_t[ip]+1) - psat );
+                          diy_dpath[iq](ip,joker,joker) += ddterm;
+                        }
+                    }
+                }
+            }
+        }
+    } 
+
+  
   // Map to retrieval grids
   FOR_ANALYTICAL_JACOBIANS_DO
     ( 
       diy_from_path_to_rgrids( diy_dx[iq], jacobian_quantities[iq], 
-                               diy_dpath[iq], atmosphere_dim, ppath, ppath_p );
+                               diy_dpath[iq], atmosphere_dim, ppath, ppvar_p );
     )
 }
 

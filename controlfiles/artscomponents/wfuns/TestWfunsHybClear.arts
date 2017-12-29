@@ -43,7 +43,9 @@ Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
 AgendaSet( iy_main_agenda ){
   Ignore( t_nlte_field )
   Ignore( iy_id )
-  iyHybrid2
+  ppathCalc( ignore_cloudbox = 1 ) 
+  iyHybrid
+  Touch(iy_aux)
 }
 
 # cosmic background radiation

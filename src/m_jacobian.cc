@@ -110,37 +110,8 @@ extern const String LINEMIXINGDFEXPONENT_MODE;
 
 
 //----------------------------------------------------------------------------
-// General methods:
+// BAsic methods:
 //----------------------------------------------------------------------------
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAdjustAfterIteration(
-        Matrix&                    jacobian,
-  const ArrayOfRetrievalQuantity&  jacobian_quantities,
-  const ArrayOfArrayOfIndex&       jacobian_indices,
-  const Vector&                    x,
-  const Verbosity& )
-{
-  // So far only one adjustemtn to be done. Resscale for abs species+"rel"
-
-    if ((jacobian.ncols() > 0) && (jacobian.nrows() > 0))
-    {
-    for( Index q=0; q<jacobian_quantities.nelem(); q++ )
-        {
-            if( jacobian_quantities[q].MainTag() == ABSSPECIES_MAINTAG  &&
-                jacobian_quantities[q].Mode()    == "rel")
-            {
-                for( Index r=jacobian_indices[q][0]; r<=jacobian_indices[q][1]; r++ )
-                {
-                    if( x[r] != 1 )
-                    { jacobian(r,joker) /= x[r]; }
-                }
-            }
-        }
-    }
-}
-
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -331,11 +302,16 @@ void jacobianAddAbsSpecies(
       throw runtime_error(os.str());
     }
   
-  // Check that mode is either "vmr", "nd" or "rel" 
-  if( mode != "vmr" && mode != "nd" && mode != "rel" && mode != "logrel" )
+  // Check that mode is correct
+  if( mode != "vmr" && mode != "nd" && mode != "rel" && mode != "rh" && mode != "q" )
     {
-        throw runtime_error( "The retrieval mode can only be \"vmr\", \"nd\", "
-                            "\"rel\" or \"logrel\"." );
+      throw runtime_error( "The retrieval mode can only be \"vmr\", \"nd\", "
+                           "\"rel\", \"rh\" or \"q\"." );
+    }
+  if( ( mode == "rh" || mode == "q" ) && species.substr(0,3) != "H2O" )
+    {
+      throw runtime_error( "Retrieval modes \"rh\" and \"q\" can only be applied "
+                           "on species starting with H2O." );
     }
 
   // Create the new retrieval quantity
@@ -1968,19 +1944,6 @@ void jacobianAddTemperature(
         {
           ostringstream os;
           os << "Temperature is already included in *jacobian_quantities*.";
-          throw runtime_error(os.str());
-        }
-    }
-
-  // Check that no number density retrieval has been added
-  for (Index it=0; it<jq.nelem(); it++)
-    {
-      if( jq[it].MainTag() == ABSSPECIES_MAINTAG  &&  jq[it].Mode() == "nd"  )
-        {
-          ostringstream os;
-          os << "If you want to retrieve number density (\"nd\") for some\n"
-                "species, you need to include temperature as retrieval\n"
-                "quantity before that species.";
           throw runtime_error(os.str());
         }
     }
@@ -4220,8 +4183,11 @@ void jacobianAddSpecialSpecies(
   
 }                    
 
+
+
+
 //----------------------------------------------------------------------------
-// Transformations
+// Adjustments and transformations
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -4234,22 +4200,53 @@ void transformationAdd(
 {
 
     if (jqs.empty()) {
-        runtime_error("Jacobian quantities is empty, so there is nothing to add the"
-                      "transformation to.");
+      runtime_error("Jacobian quantities is empty, so there is nothing to add the"
+                    "transformation to.");
     }
 
     Index nelem = jqs.back().Grids().nelem();
 
     if (!(nelem == transformation_matrix.nrows())) {
-        runtime_error("Dimension of transformation matrix incompatible with retrieval grids.");
+      runtime_error("Dimension of transformation matrix incompatible with retrieval grids.");
     }
     if (!(nelem == offset_vector.nelem())) {
-        runtime_error("Dimension of offset vector incompatible with retrieval grids.");
+      runtime_error("Dimension of offset vector incompatible with retrieval grids.");
     }
 
     jqs.back().SetTransformationMatrix(transformation_matrix);
     jqs.back().SetOffsetVector(offset_vector);
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianAdjustAfterIteration(
+        Matrix&                    jacobian,
+  const ArrayOfRetrievalQuantity&  jacobian_quantities,
+  const ArrayOfArrayOfIndex&       jacobian_indices,
+  const Vector&                    x,
+  const Verbosity& )
+{
+  // So far only one adjustment to be done. Resscale for abs species+"rel"
+
+  if ((jacobian.ncols() > 0) && (jacobian.nrows() > 0))
+    {
+      for( Index q=0; q<jacobian_quantities.nelem(); q++ )
+        {
+          if( jacobian_quantities[q].MainTag() == ABSSPECIES_MAINTAG  &&
+              jacobian_quantities[q].Mode()    == "rel")
+            {
+              for( Index r=jacobian_indices[q][0]; r<=jacobian_indices[q][1]; r++ )
+                {
+                  if( x[r] != 1 )
+                    { jacobian(r,joker) /= x[r]; }
+                }
+            }
+        }
+    }
+}
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianTransform(
@@ -4261,3 +4258,4 @@ void jacobianTransform(
 {
     transform_jacobian(jacobian, jqs, jis);
 }
+
