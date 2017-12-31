@@ -163,7 +163,7 @@ AgendaSet( inversion_iterate_agenda ){
 
   # This method takes cares of some "fixes" that are needed to get the Jacobian
   # right for iterative solutions. No need to call this WSM for linear inversions.
-  jacobianAdjustAfterIteration
+  jacobianAdjustAndTransform
 }
 
 
