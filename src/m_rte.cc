@@ -1828,22 +1828,22 @@ void yCalc_mblock_loop_body(
         // (that is, analytical jacobian part)
         //
         if( j_analytical_do )
-        {
-          FOR_ANALYTICAL_JACOBIANS_DO(
-            mult(jacobian(rowind,
-                          Range(jacobian_indices[iq][0],
+          {
+            FOR_ANALYTICAL_JACOBIANS_DO(
+              mult(jacobian(rowind,
+                            Range(jacobian_indices[iq][0],
                                 jacobian_indices[iq][1]-jacobian_indices[iq][0]+1)),
                                 sensor_response, diyb_dx[iq] );
-          )
-        }
+            )
+          }
 
-        // Rest of *jacobian*
+        // Calculate remaining parts of *jacobian*
         //
         if( jacobian_do )
-        {
+          {
             jacobian_agendaExecute( ws, jacobian, mblock_index, iyb, yb,
                                     jacobian_agenda );
-        }
+          }
 
 
         // Handle geo-positioning

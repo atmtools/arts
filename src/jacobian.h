@@ -120,9 +120,11 @@ public:
   const bool& Integration() const { return mintegration_flag; }
 
   /** Transformation **/
+  void SetTransformationFunc(const String& s)   {transformation_func = s;}
   void SetTransformationMatrix(const Matrix& A) {transformation_matrix = A;}
   void SetOffsetVector(const Vector& b)         {offset_vector = b;}
-  bool HasTransformation()            const     {return !transformation_matrix.empty();}
+  bool HasAffine()                     const    {return !transformation_matrix.empty();}
+  const String& TransformationFunc()   const    {return transformation_func;}
   const Matrix& TransformationMatrix() const    {return transformation_matrix;}
   const Vector& OffsetVector()         const    {return offset_vector;}
 
@@ -149,6 +151,8 @@ private:
   QuantumIdentifier mquantumidentifier;
   bool mintegration_flag;
 
+  String transformation_func;
+  
   Matrix transformation_matrix;
   Vector offset_vector;
 
@@ -156,6 +160,8 @@ private:
   ArrayOfNumeric boundaries;
 
 };
+
+
 
 /** Output operator for RetrievalQuantity.
 
@@ -174,72 +180,32 @@ typedef Array<RetrievalQuantity> ArrayOfRetrievalQuantity;
         { what_to_do } \
     } 
 
-//! Compute jacobian indices from retrieval quantities.
-/**
- * This functions computes the array holding the index of the first and the last element of
- * each retrieval quantity in the jacobian taking into account transformations.
- *
- *  \param jqs The retrieval quantities.
- *  \return ArrayOfArrayOfIndex Holding for each RQ in jqs the index of the first and last
- *  grid point of this retrieval quantity.
- */
-ArrayOfArrayOfIndex get_jacobian_indices(
-    const ArrayOfRetrievalQuantity& jqs);
 
-//! Transform jacobian indices according to linear transformations of RQs.
-/**
- * This transforms the array of jacobian indices according to the
- * linear transformations given for each retrieval quantity.
- *
- *  \param jis The untransformed array of jacobian indices.
- *  \param jqs The retrieval quantities.
- */
-ArrayOfArrayOfIndex transform_jacobian_indices(
-    const ArrayOfArrayOfIndex&      jis,
-    const ArrayOfRetrievalQuantity& jqs);
+//======================================================================
+//             Index ranges and transformation functions
+//======================================================================
 
-//! Transform jacobian matrix according to linear transformations of RQs.
-/**
- * This transforms a Jacobian that has been computed over given retrieval grids to the
- * coordinates defined by the linear transformations given for each retrieval quantity.
- *
- *  \param jacobian The jacobian matrix.
- *  \param jqs The retrieval quantities for which the Jacobiana has been computed.
- *  \param jis The indices of the retrieval quantities in the Jacobian.
- */
+void jac_ranges_indices(
+          ArrayOfArrayOfIndex&      jis,  
+          bool&                     any_affine,
+    const ArrayOfRetrievalQuantity& jqs,
+    const bool&                     before_affine = false );
+
 void transform_jacobian(
-    Matrix&                     jacobian,
-    const ArrayOfRetrievalQuantity&   jqs,
-    const ArrayOfArrayOfIndex&        jis);
+    Matrix&                           jacobian,
+    const Vector                      x,
+    const ArrayOfRetrievalQuantity&   jqs );
 
-//! Transform x.
-/**
- * This applies all transformations given for retrieval quantities to the x vector and thus
- * cooresponds to a coordinate transform from the retrieval grid coordinates to the
- * coordinates given by the affine transformation for each retrieval quantity.
- *
- *  \param jacobian The x vector.
- *  \param jqs The retrieval quantities for which the Jacobiana has been computed.
- *  \param jis The indices of the retrieval quantities in the Jacobian.
- */
 void transform_x(
-    Vector&                     x,
-    const ArrayOfRetrievalQuantity&   jqs,
-    const ArrayOfArrayOfIndex&        jis);
+    Vector&                           x,
+    const ArrayOfRetrievalQuantity&   jqs );
 
-//! Transform x back to ARTS model space.
-/**
- * This transforms a transformed x vector back into retrieval coordinates, i.e. the coordinates
- * which are given as retrieval grids for each retrieval quantity.
- *
- *  \param jacobian The x vector.
- *  \param jqs The retrieval quantities for which the Jacobiana has been computed.
- *  \param jis The indices of the retrieval quantities in the Jacobian.
- */
 void transform_x_back(
-    Vector&                     x,
-    const ArrayOfRetrievalQuantity&   jqs,
-    const ArrayOfArrayOfIndex&        jis);
+    Vector&                           x_t,
+    const ArrayOfRetrievalQuantity&   jqs );
+
+
+
 
 //======================================================================
 //             Functions related to calculation of Jacobian
@@ -330,6 +296,7 @@ void polynomial_basis_func(
         Vector&   b,
   const Vector&   x,
   const Index&    poly_coeff );
+
 
 //! Calculate baseline fit
 /**

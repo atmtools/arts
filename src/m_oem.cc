@@ -655,8 +655,12 @@ void xaStandard(
           throw runtime_error(os.str());
         }
     }
-  transform_x(xa, jq, ji);
+
+  // Apply transformations
+  transform_x( xa, jq );
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void x2artsStandard(
@@ -700,16 +704,10 @@ void x2artsStandard(
     throw runtime_error( "The cloudbox must be flagged to have "
                          "passed a consistency check (cloudbox_checked=1)." );
 
-  // Transform x back to retrieval grid space.
-  bool has_transform = false;
-  for (Index i = 0; i < jq.nelem(); ++i) {
-      has_transform |= jq[i].HasTransformation();
-  }
-
+  
+  // Revert transformation
   Vector x_t(x);
-  if (has_transform) {
-      transform_x_back(x_t, jq, ji);
-  }
+  transform_x_back( x_t, jq );
 
   // Main sizes
   const Index nq = jq.nelem();
@@ -1064,9 +1062,10 @@ void OEM_checks(
     throw runtime_error( "The number of rows of the jacobian must be either the number of elements in *y* or 0." );
   if((jacobian.ncols() != n) && (!jacobian.empty()))
       throw runtime_error( "The number of cols of the jacobian must be either the number of elements in *xa* or 0." );
-  // Compute jacobian indices from jacobian quantities. Here we need to take into account
-  // transformations, so we cannot use the standard jacobian_indices.
-  ArrayOfArrayOfIndex jacobian_indices = get_jacobian_indices(jacobian_quantities);
+
+  ArrayOfArrayOfIndex jacobian_indices;
+  bool any_affine;
+  jac_ranges_indices( jacobian_indices, any_affine, jacobian_quantities );
   if( jacobian_indices.nelem() != nq )
     throw runtime_error( "Different number of elements in *jacobian_quantities* "
                           "and *jacobian_indices*." );

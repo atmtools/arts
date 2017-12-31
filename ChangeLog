@@ -1,3 +1,56 @@
+2017-12-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-909
+
+	* Summary: Functional transformations (log and log10)
+	added as a general feature. Revised the treatment of affine
+	transformations, to handle both transformation types in parallel.
+	Started work to remove jacobian_indices as WSV. See
+  	   arts -d jacobianSetFuncTransformation
+	for an overview of retrieval units and transformations.
+
+	* Warning: Basically no testing done, and if you use OEM probably
+	best to not update right now.
+
+	* src/rt4.cc (sca_optpropCalc): Commented out very verbose cout statement
+
+	* src/m_oem.cc:
+	* src/m_retrieval.cc: Various adoptions to changes below.
+
+	* src/m_jacobian.cc (jacobianSetAffineTransformation): Renamed
+	transformationAdd.
+
+	(jacobianSetFuncTransformation): New WSM.
+
+	(jacobianClose): Now not adding jacobianTransform
+
+	(jacobianAdjustAndTransform): Replacing jacobianTransform and
+	jacobianAdjustAfterIteration.
+
+	(jacobianAdjustAfterIteration): Bug fix, rows and columns in
+	jacobian were mixed up when applying adjustment. Renamed.
+
+	(jacobianTransform): Merged with method above.
+
+	* src/methods.cc: Set "vmr" as default for unit in abs_speciesAdd2
+	and jacobianAddAbsSpecies. Note that, for some unknown reason,
+	"rel" was set as default for jacobianAddAbsSpecies. Changed to
+	"vmr", as ARTS native unit should throughout be the default.
+
+	* src/workspace.cc: Some extension of description of *diy_dx*.
+
+	* src/jacobian.h (RetrievalQuantity): Added functionality for
+	transformation functions. Some smaller changes for affine
+	transformations.
+
+	* src/jacobian.cc (jac_ranges_indices): New function.
+
+	(transform_jacobian, transform_x,transform_x_back): Adopted, and
+	extended to also handle function transformations.
+
+	(get_jacobian_indices, transform_jacobian_indices): Removed,
+	replaced with jac_ranges_indices.
+
 2017-12-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-908

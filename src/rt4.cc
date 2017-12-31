@@ -1471,14 +1471,16 @@ void sca_optpropCalc( //Output
 //            SUM1 = EMIS_VECTOR(1,J1,L,TSL)-EXTINCT_MATRIX(1,1,J1,L,TSL)
               Numeric w0_act = 2.*PI*sca_mat_integ / ext_nom;
               Numeric pfct_norm = 2.*PI*sca_mat_integ / sca_nom;
+              /*
               cout << "sca_mat norm deviates " << 1e2*abs(1.-pfct_norm) << "%"
                    << " (" << abs(w0_act-w0_nom) << " in albedo).\n";
-
+              */
               Numeric sca_nom_paropt =
                 extinct_matrix(scat_p_index_local,ih,iza,0,0) -
                 emis_vector(scat_p_index_local,ih,iza,0);
-              Numeric w0_nom_paropt = sca_nom_paropt /
-                extinct_matrix(scat_p_index_local,ih,iza,0,0);
+              //Numeric w0_nom_paropt = sca_nom_paropt /
+              //  extinct_matrix(scat_p_index_local,ih,iza,0,0);
+              /*
               cout << "scat_p=" << scat_p_index_local
                    << ", iza=" << iza << ", hem=" << ih << "\n";
               cout << "  scaopt (paropt) w0_act= " << w0_act
@@ -1486,7 +1488,8 @@ void sca_optpropCalc( //Output
                    << " (" << w0_nom_paropt
                    << "), diff=" << w0_act-w0_nom
                    << " (" << w0_nom-w0_nom_paropt << ").\n";
-
+              */
+              
               if (abs(w0_act-w0_nom) > pfct_threshold)
               {
                 if (pfct_failed>=0)

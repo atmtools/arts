@@ -1576,7 +1576,7 @@ void define_md_data_raw()
         GIN_TYPE(    "Vector", "Vector", "Vector",
                      "String", "String", "String", "Numeric" ),
         GIN_DEFAULT( NODEF   , NODEF   , NODEF   ,
-                     NODEF,     NODEF,    NODEF,  NODEF ),
+                     NODEF   , NODEF   , "vmr",  NODEF ),
         GIN_DESC( "Pressure retrieval grid.",
                   "Latitude retrieval grid.",
                   "Longitude retreival grid.",
@@ -8174,7 +8174,7 @@ void define_md_data_raw()
       GIN( "g1", "g2", "g3", "species", "method", "unit","for_species_tag","dx"),
       GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "String", "Index",
                 "Numeric"),
-      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "analytical", "rel", "1", "0.001"),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "analytical", "vmr", "1", "0.001"),
       GIN_DESC( "Pressure retrieval grid.",
                 "Latitude retrieval grid.",
                 "Longitude retreival grid.",
@@ -8705,25 +8705,31 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianAdjustAfterIteration" ),
+      ( NAME( "jacobianAdjustAndTransform" ),
         DESCRIPTION
         (
-         "Applies adjustments of *jacobian* needed for iterative inversions.\n"
+         "Applies adjustments and transformations on *jacobian*.\n"
          "\n"
-         "So far there is only one adjustment to be done. If any absorption\n"
-         "species uses the \"rel\" unit, this method must be part of\n"
-         "*inversion_iterate_agenda*. \n"
+         "The method handles two tasks:\n"
+         "1. The retrieval transformations set by the user can not be applied\n"
+         "onthe  Jacobian inside *yCalc*. Transformations are instead applied\n" 
+         "by calling this method.\n"
+         "2. It applies required adjustments of the Jacoboan. So far there is\n"
+         "only one possible adjustment. If any absorption species uses the \"rel\"\n"
+         "unit, an adjustment is needed for later iterations of the inversion.\n"
          "\n"
-         "For linear inversions or retrieval set-ups not involving the case above,\n"
-         "there is no need to include this method (but you can still include it\n"
+         "If no tranformations are selected and the \"rel\" option is not used at\n"
+         "all, there is no need to call this method(, but you can still include it\n"
          "without causing any error, the calculations will just be a bit slower).\n"
+         "Otherwise, this method should be called, typically as part of\n"
+         "*inversion_iteration_agenda*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian", "jacobian_quantities", "jacobian_indices", "x" ),
+        IN( "jacobian", "jacobian_quantities", "x" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9348,35 +9354,28 @@ void define_md_data_raw()
 
   md_data_raw.push_back
       ( MdRecord
-        ( NAME( "jacobianTransform" ),
+        ( NAME( "jacobianSetAffineTransformation" ),
           DESCRIPTION
           (
-              "Transforms Jacobian according to transformation given for each retrieval\n"
-              "quantity."
-              "\n"
-              ),
-          AUTHORS( "Simon Pfreundschuh" ),
-          OUT( "jacobian" ),
-          GOUT(),
-          GOUT_TYPE(),
-          GOUT_DESC(),
-          IN( "jacobian", "jacobian_quantities", "jacobian_indices" ),
-          GIN(),
-          GIN_TYPE(),
-          GIN_DEFAULT(),
-          GIN_DESC()
-            ));
-
-  md_data_raw.push_back
-      ( MdRecord
-        ( NAME( "transformationAdd" ),
-          DESCRIPTION
-          (
-              "Adds an affine transformation to the last element of *jacobian_quantities*. The \n"
-              " affine transformation is given by the matrix A and an offset vector b and \n"
-              " and transforms the retrieval space according to\n"
-              " x_t = A * (x - b)\n"
-              ),
+           "Sets the affine transformation of the last element of\n"
+           "*jacobian_quantities*.\n"
+           "\n"
+           "For a general description of how retrieval transformations are applied,\n"
+           "see *jacobianSetFuncTransformation*.\n"
+           "\n"
+           "The affine transformation is specified by a transformation matrix, A,\n"
+           "and an offset vector, b, applied as described in\n"
+           "*jacobianSetFuncTransformation*.\n"
+           "\n"
+           "Writing the affinity transformations as\n"
+           "   x = A * ( z - b )\n"
+           "the following must be true\n"
+           "   z = A'*z + b )\n"
+           "for valid transformations.\n"
+           "\n"
+           "This method must only be called if an affine transformation is wanted.\n"
+           "Default is to make no such tranformation at all.\n"
+           ),
           AUTHORS( "Simon Pfreundschuh" ),
           OUT( "jacobian_quantities" ),
           GOUT(),
@@ -9389,6 +9388,61 @@ void define_md_data_raw()
           GIN_DESC( "The transformation matrix A", "The offset vector b")
             ));
 
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "jacobianSetFuncTransformation" ),
+          DESCRIPTION
+          (
+           "Sets the functional transformation of the last element of\n"
+           "*jacobian_quantities*.\n"
+           "\n"
+           "For a general description of how retrieval transformations are\n"
+           "applied, see below.\n"
+           "\n"
+           "The following transformations can be selected:\n"
+           "   log   : The natural logarithm\n"
+           "   log10 : The base-10 logarithm\n"
+           "\n"
+           "This method needs only to be called if a functional transformation\n"
+           "is wanted. Default is to make no such tranformation at all.\n"
+           "\n"
+           "\n"
+           "General handling of retrieval units and transformations:\n"
+           "---\n"
+           "Default is that quantities are retrieved as defined in ARTS, but\n"
+           "both some unit conversion and transformations are provided. These\n"
+           "operations are applied as:\n"
+           "   x = A * ( f(u(z)) - b ) \n"
+           "where\n"
+           "   z is the quantity as defined ARTS\n"
+           "   u represents the change of unit\n"
+           "   f is the transformation function\n"
+           "   A and b define together an affine transformation\n"
+           "   x is the retrieved quantity\n"
+           "For example, this systen allows to retrive a principal component\n"
+           "representation (A and b) of the log (f) of relative humidity (u).\n"
+           "\n"
+           "Change of unit is selected by the quantity specific jacobian-add\n"
+           "methods (so far only at hand for gas species). \n"
+           "\n"
+           "Activating a transformation function is done by this method. Note\n"
+           "that the functions are defined as the transformation from z to x.\n"
+           "\n"
+           "For more details on affine transformations, see\n"
+           "*jacobiaSetAffineTransformation*.\n"
+              ),
+          AUTHORS( "Patrick Eriksson", "Simon Pfreundschuh" ),
+          OUT( "jacobian_quantities" ),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN( "jacobian_quantities" ),
+          GIN( "transformation_func" ),
+          GIN_TYPE( "String" ),
+          GIN_DEFAULT( NODEF ),
+          GIN_DESC( "The transformation function." )
+            ));
+  
   md_data_raw.push_back     
     ( MdRecord
       ( NAME( "lat_gridFromRawField" ),

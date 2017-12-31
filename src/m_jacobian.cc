@@ -148,7 +148,6 @@ void jacobianClose(
 
   // Loop over retrieval quantities, set JacobianIndices
   Index ncols = 0;
-  bool has_transformation = false;
   //
   for( Index it=0; it<jacobian_quantities.nelem(); it++ )
     {
@@ -167,13 +166,7 @@ void jacobianClose(
       jacobian_indices.push_back( indices );
 
       ncols += cols;
-
-      has_transformation |= jacobian_quantities[it].HasTransformation();
     }
-
-  if (has_transformation) {
-      jacobian_agenda.append("jacobianTransform", TokVal());
-  }
 
   jacobian_agenda.check(ws, verbosity);
   jacobian_do = 1;
@@ -4191,16 +4184,60 @@ void jacobianAddSpecialSpecies(
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void transformationAdd(
+void jacobianAdjustAndTransform(
+        Matrix&                    jacobian,
+  const ArrayOfRetrievalQuantity&  jacobian_quantities,
+  const Vector&                    x,
+  const Verbosity& )
+{
+  // Adjustments
+  //
+  // Unfortunately the adjustment requires both range indices and the
+  // untransformed x, which makes things a bit messy
+  if ((jacobian.ncols() > 0) && (jacobian.nrows() > 0))
+    {
+      bool vars_init = false;
+      ArrayOfArrayOfIndex jis0;
+      Vector x0;
+      //
+      for( Index q=0; q<jacobian_quantities.nelem(); q++ )
+        {
+          if( jacobian_quantities[q].MainTag() == ABSSPECIES_MAINTAG  &&
+              jacobian_quantities[q].Mode()    == "rel")
+            {
+              if( !vars_init )
+                {
+                  bool any_affine;
+                  jac_ranges_indices( jis0, any_affine, jacobian_quantities, true );
+                  x0 = x;
+                  transform_x_back( x0, jacobian_quantities );
+                  vars_init = true;
+                }
+              for( Index i=jis0[q][0]; i<=jis0[q][1]; i++ )
+                {
+                  if( x[i] != 1 )
+                    { jacobian(joker,i) /= x[i]; }
+                }
+            }
+        }
+    }
+
+  // Transformations
+  transform_jacobian( jacobian, x, jacobian_quantities );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianSetAffineTransformation(
     ArrayOfRetrievalQuantity& jqs,
     const Matrix& transformation_matrix,
     const Vector& offset_vector,
     const Verbosity& /*v*/
     )
 {
-
     if (jqs.empty()) {
-      runtime_error("Jacobian quantities is empty, so there is nothing to add the"
+      runtime_error("Jacobian quantities is empty, so there is nothing to add the "
                     "transformation to.");
     }
 
@@ -4220,42 +4257,22 @@ void transformationAdd(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAdjustAfterIteration(
-        Matrix&                    jacobian,
-  const ArrayOfRetrievalQuantity&  jacobian_quantities,
-  const ArrayOfArrayOfIndex&       jacobian_indices,
-  const Vector&                    x,
-  const Verbosity& )
-{
-  // So far only one adjustment to be done. Resscale for abs species+"rel"
-
-  if ((jacobian.ncols() > 0) && (jacobian.nrows() > 0))
-    {
-      for( Index q=0; q<jacobian_quantities.nelem(); q++ )
-        {
-          if( jacobian_quantities[q].MainTag() == ABSSPECIES_MAINTAG  &&
-              jacobian_quantities[q].Mode()    == "rel")
-            {
-              for( Index r=jacobian_indices[q][0]; r<=jacobian_indices[q][1]; r++ )
-                {
-                  if( x[r] != 1 )
-                    { jacobian(r,joker) /= x[r]; }
-                }
-            }
-        }
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianTransform(
-  Matrix&                     jacobian,
-  const ArrayOfRetrievalQuantity&   jqs,
-  const ArrayOfArrayOfIndex&        jis,
-  const Verbosity & /*v*/
+void jacobianSetFuncTransformation(
+    ArrayOfRetrievalQuantity& jqs,
+    const String& transformation_func,
+    const Verbosity& /*v*/
     )
 {
-    transform_jacobian(jacobian, jqs, jis);
+  if( jqs.empty() )
+    runtime_error("Jacobian quantities is empty, so there is nothing to add the "
+                  "transformation to.");
+
+  if( transformation_func != "log"  &&  transformation_func != "log10" )
+    runtime_error("Valid options for *transformation_func* are: "
+                    "\"log\" and \"log10\".");
+    
+  jqs.back().SetTransformationFunc( transformation_func );
 }
+
+
 

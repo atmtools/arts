@@ -32,6 +32,8 @@
 #include "lin_alg.h"
 #include "rte.h"
 
+extern const Numeric NAT_LOG_TEN;
+
 extern const String  ABSSPECIES_MAINTAG;
 extern const String  SCATSPECIES_MAINTAG;
 extern const String  TEMPERATURE_MAINTAG;
@@ -49,55 +51,132 @@ ostream& operator << (ostream& os, const RetrievalQuantity& ot)
             << "\n     Analytical = " << ot.Analytical();
 }
 
-ArrayOfArrayOfIndex get_jacobian_indices(
-    const ArrayOfRetrievalQuantity& jqs)
+
+//! jac_ranges_indices
+/*!
+    Determines the index range inside x and the Jacobian for each retrieval quantity
+
+    The ranges are given as an ArrayOfArrayOfIndex, where outermots dimension
+    corresponds to retrieval quantity. The inner dimension has throughout size
+    2, where element 0 is the first index and element 1 is the last index of
+    the range.
+
+    \param   jis             Out: Indices, as described above
+    \param   any_affine      Out: True if at least one  quantity has affine
+                             transformation. 
+    \param   jqs             The WSV jacobian_quantities
+    \param   before_affine   Set to true to get indices without any affine
+                             transformation. Default is false.
+
+    \author Simon Pfreundschuh and Patrick Eriksson 
+    \date   2017-12-30
+*/
+void jac_ranges_indices(
+          ArrayOfArrayOfIndex&      jis,
+          bool&                     any_affine,
+    const ArrayOfRetrievalQuantity& jqs,
+    const bool&                     before_affine )
 {
-    ArrayOfArrayOfIndex jis(jqs.nelem());
-    for (Index i = 0; i < jqs.nelem(); ++i) {
-        jis[i] = ArrayOfIndex(2);
-        if (i > 0) {
+  jis.resize( jqs.nelem() );
+
+  any_affine = false;
+  
+  // Indices before affine transformation
+  if( before_affine )
+    {
+      for( Index i = 0; i < jqs.nelem(); ++i )
+        {
+          jis[i] = ArrayOfIndex(2);
+          if (i > 0) {
             jis[i][0] = jis[i-1][1] + 1;
-        } else {
+          } else {
             jis[i][0] = 0;
+          }
+          const RetrievalQuantity &jq = jqs[i];
+          jis[i][1] = jis[i][0] + jq.nelem() - 1;
+          if (jq.HasAffine()) {
+            any_affine = true;
+          }          
         }
-        const RetrievalQuantity &jq = jqs[i];
-        if (jq.HasTransformation()) {
+    }
+  
+  // After affine transformation
+  else
+    {
+      for( Index i = 0; i < jqs.nelem(); ++i )
+        {
+          jis[i] = ArrayOfIndex(2);
+          if (i > 0) {
+            jis[i][0] = jis[i-1][1] + 1;
+          } else {
+            jis[i][0] = 0;
+          }
+          const RetrievalQuantity &jq = jqs[i];
+          if (jq.HasAffine()) {
             jis[i][1] = jis[i][0] + jq.TransformationMatrix().ncols() - 1;
-        } else {
+            any_affine = true;
+          } else {
             jis[i][1] = jis[i][0] + jq.nelem() - 1;
+          }
         }
     }
-    return jis;
 }
 
-ArrayOfArrayOfIndex transform_jacobian_indices(
-    const ArrayOfArrayOfIndex&      jis,
-    const ArrayOfRetrievalQuantity& jqs)
-{
-    ArrayOfArrayOfIndex jis_t(jis);
-    for (Index i = 0; i < jqs.nelem(); ++i) {
-        if (i > 0) {
-            jis_t[i][0] = jis_t[i-1][1] + 1;
-        }
-        const RetrievalQuantity &jq = jqs[i];
-        if (jq.HasTransformation()) {
-            jis_t[i][1] = jis_t[i][0] + jq.TransformationMatrix().ncols() - 1;
-        } else {
-            jis_t[i][1] = jis_t[i][0] + jis[i][1] - jis[i][0];
-        }
-    }
-    return jis_t;
-}
 
+
+//! Handles transformations of the Jacobian
+/**
+ * Applies both functional and affine transformations.
+ *
+ *  \param jacobian As the WSV jacobian
+ *  \param jqs As the WSV jacobian_quantities
+ *
+ *  \author Simon Pfreundschuh and Patrick Eriksson 
+ *  \date   2017-12-30
+ */
 void transform_jacobian(
-    Matrix&                     jacobian,
-    const ArrayOfRetrievalQuantity&   jqs,
-    const ArrayOfArrayOfIndex&        jis)
+    Matrix&                           jacobian,
+    const Vector                      x,
+    const ArrayOfRetrievalQuantity&   jqs )
 {
-    ArrayOfArrayOfIndex jis_t = transform_jacobian_indices(jis, jqs);
-    Matrix jacobian_t(jacobian.nrows(), jis_t.back()[1] + 1);
+  // Range indices without affine trans
+  ArrayOfArrayOfIndex jis;
+  bool any_affine;
+  //
+  jac_ranges_indices( jis, any_affine, jqs, true );
+  
+  // Apply functional transformations
+  for (Index i = 0; i < jqs.nelem(); ++i) {
+    const RetrievalQuantity &jq = jqs[i];
+    const String tfun = jq.TransformationFunc();
+    // Remember to add new functions also to transform_jacobian and transform_x_back
+    if (tfun == "") {
+      // Nothing to do
+    }
+    else if (tfun == "log") {
+      for (Index c = jis[i][0]; c <= jis[i][1]; ++c) {
+        jacobian(joker,c) *= x[c];
+      }
+    }
+    else if (tfun == "log10") {
+      for (Index c = jis[i][0]; c <= jis[i][1]; ++c) {
+        jacobian(joker,c) *= NAT_LOG_TEN * x[c];
+      }
+    }
+    else{
+      assert(0);
+    }
+  }
+  
+  // Apply affine transformations
+  if( any_affine )
+    {
+      ArrayOfArrayOfIndex jis_t;
+      jac_ranges_indices( jis_t, any_affine, jqs );
 
-    for (Index i = 0; i < jqs.nelem(); ++i) {
+      Matrix jacobian_t(jacobian.nrows(), jis_t.back()[1] + 1);
+
+      for (Index i = 0; i < jqs.nelem(); ++i) {
         const RetrievalQuantity &jq = jqs[i];
         Index col_start  = jis[i][0];
         Index col_extent = jis[i][1] - jis[i][0] + 1;
@@ -105,26 +184,71 @@ void transform_jacobian(
         Index col_start_t  = jis_t[i][0];
         Index col_extent_t = jis_t[i][1] - jis_t[i][0] + 1;
         Range col_range_t(col_start_t, col_extent_t);
-        if (jq.HasTransformation()) {
+        if (jq.HasAffine()) {
             mult(jacobian_t(joker, col_range_t),
                  jacobian(joker, col_range),
                  jq.TransformationMatrix());
         } else {
             jacobian_t(joker, col_range_t) = jacobian(joker, col_range);
         }
+      }
+      swap(jacobian_t, jacobian);
     }
-    swap(jacobian_t, jacobian);
 }
 
-void transform_x(
-    Vector&                     x,
-    const ArrayOfRetrievalQuantity&   jqs,
-    const ArrayOfArrayOfIndex&        jis)
-{
-    ArrayOfArrayOfIndex jis_t = transform_jacobian_indices(jis, jqs);
-    Vector x_t(jis_t.back()[1] + 1);
 
-    for (Index i = 0; i < jqs.nelem(); ++i) {
+//! Handles transformations of the state vector
+/**
+ * Applies both functional and affine transformations.
+ *
+ *  \param x As the WSV x
+ *  \param jqs As the WSV jacobian_quantities
+ *
+ *  \author Simon Pfreundschuh and Patrick Eriksson 
+ *  \date   2017-12-30
+ */
+void transform_x(
+    Vector&                           x,
+    const ArrayOfRetrievalQuantity&   jqs )
+{
+  // Range indices without affine trans
+  ArrayOfArrayOfIndex jis;
+  bool any_affine;
+  //
+  jac_ranges_indices( jis, any_affine, jqs, true );
+  
+  // Apply functional transformations
+  for (Index i = 0; i < jqs.nelem(); ++i) {
+    const RetrievalQuantity &jq = jqs[i];
+    const String tfun = jq.TransformationFunc();
+    // Remember to add new functions also to transform_jacobian and transform_x_back
+    if (tfun == "") {
+      // Nothing to do
+    }
+    else if (tfun == "log") {
+      for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+        x[r] = log( x[r] );
+      }
+    }
+    else if (tfun == "log10") {
+      for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+        x[r] = log10( x[r] );
+      }
+    }
+    else{
+      assert(0);
+    }
+  }
+  
+  // Apply affine transformations
+  if( any_affine )
+    {
+      ArrayOfArrayOfIndex jis_t;
+      jac_ranges_indices( jis_t, any_affine, jqs );
+
+      Vector x_t(jis_t.back()[1] + 1);
+
+      for (Index i = 0; i < jqs.nelem(); ++i) {
         const RetrievalQuantity &jq = jqs[i];
         Index col_start  = jis[i][0];
         Index col_extent = jis[i][1] - jis[i][0] + 1;
@@ -132,26 +256,49 @@ void transform_x(
         Index col_start_t  = jis_t[i][0];
         Index col_extent_t = jis_t[i][1] - jis_t[i][0] + 1;
         Range col_range_t(col_start_t, col_extent_t);
-        if (jq.HasTransformation()) {
+        if (jq.HasAffine()) {
             Vector t(x[col_range]);
             t -= jq.OffsetVector();
             mult(x_t[col_range_t], transpose(jq.TransformationMatrix()), t);
         } else {
             x_t[col_range_t] = x[col_range];
         }
+      }
+      swap(x, x_t);
     }
-    swap(x, x_t);
 }
 
-void transform_x_back(
-    Vector&                     x_t,
-    const ArrayOfRetrievalQuantity&   jqs,
-    const ArrayOfArrayOfIndex&        jis)
-{
-    ArrayOfArrayOfIndex jis_t = transform_jacobian_indices(jis, jqs);
-    Vector x(jis.back()[1] + 1);
 
-    for (Index i = 0; i < jqs.nelem(); ++i) {
+//! Handles back-transformations of the state vector
+/**
+ * Applies both functional and affine transformations.
+ *
+ *  \param x As the WSV x
+ *  \param jqs As the WSV jacobian_quantities
+ *
+ *  \author Simon Pfreundschuh and Patrick Eriksson 
+ *  \date   2017-12-30
+ */
+void transform_x_back(
+    Vector&                           x_t,
+    const ArrayOfRetrievalQuantity&   jqs )
+{
+  // Range indices without affine trans
+  ArrayOfArrayOfIndex jis;
+  bool any_affine;
+  //
+  jac_ranges_indices( jis, any_affine, jqs, true );
+
+  // Revert affine transformations
+  // Apply affine transformations
+  if( any_affine )
+    {
+      ArrayOfArrayOfIndex jis_t;
+      jac_ranges_indices( jis_t, any_affine, jqs );
+
+      Vector x(jis.back()[1] + 1);
+
+      for (Index i = 0; i < jqs.nelem(); ++i) {
         const RetrievalQuantity &jq = jqs[i];
         Index col_start  = jis[i][0];
         Index col_extent = jis[i][1] - jis[i][0] + 1;
@@ -159,15 +306,40 @@ void transform_x_back(
         Index col_start_t  = jis_t[i][0];
         Index col_extent_t = jis_t[i][1] - jis_t[i][0] + 1;
         Range col_range_t(col_start_t, col_extent_t);
-        if (jq.HasTransformation()) {
+        if (jq.HasAffine()) {
             mult(x[col_range], jq.TransformationMatrix(), x_t[col_range_t]);
             x[col_range] += jq.OffsetVector();
         } else {
             x[col_range] = x_t[col_range_t];
         }
+      }
+      swap(x_t, x);
     }
-    swap(x_t, x);
+
+  // Revert functional transformations
+  for (Index i = 0; i < jqs.nelem(); ++i) {
+    const RetrievalQuantity &jq = jqs[i];
+    const String tfun = jq.TransformationFunc();
+    // Remember to add new functions also to transform_jacobian and transform_x_back
+    if (tfun == "") {
+      // Nothing to do
+    }
+    else if (tfun == "log") {
+      for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+        x_t[r] = exp( x_t[r] );
+      }
+    }
+    else if (tfun == "log10") {
+      for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+        x_t[r] = pow( 10.0, x_t[r] );
+      }
+    }
+    else{
+      assert(0);
+    }
+  }  
 }
+
 
 /*===========================================================================
   === Help sub-functions to handle analytical jacobians (in alphabetical order)

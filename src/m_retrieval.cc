@@ -688,11 +688,11 @@ void covmat_sxAddBlock(CovarianceMatrix&               covmat_sx,
     Index n = block.ncols();
 
     Index jq_m = jq[ii].nelem();
-    if (jq[ii].HasTransformation()) {
+    if (jq[ii].HasAffine()) {
         jq_m = jq[ii].TransformationMatrix().ncols();
     }
     Index jq_n = jq[jj].nelem();
-    if (jq[jj].HasTransformation()) {
+    if (jq[jj].HasAffine()) {
         jq_n = jq[jj].TransformationMatrix().ncols();
     }
 
@@ -705,7 +705,9 @@ void covmat_sxAddBlock(CovarianceMatrix&               covmat_sx,
         throw runtime_error(os.str());
     }
 
-    ArrayOfArrayOfIndex ji = get_jacobian_indices(jq);
+    ArrayOfArrayOfIndex ji;
+    bool any_affine;
+    jac_ranges_indices( ji, any_affine, jq );
     Index row_start  = ji[ii][0];
     Index row_extent = ji[ii][1] - ji[ii][0] + 1;
     Range row_range(row_start, row_extent);
@@ -760,12 +762,12 @@ void covmat_sxAddInverseBlock(CovarianceMatrix&               covmat_sx,
     Index n = block_inv.ncols();
 
     Index jq_m = jq[ii].nelem();
-    if (jq[ii].HasTransformation()) {
+    if (jq[ii].HasAffine()) {
         jq_m = jq[ii].TransformationMatrix().ncols();
     }
 
     Index jq_n = jq[jj].nelem();
-    if (jq[jj].HasTransformation()) {
+    if (jq[jj].HasAffine()) {
         jq_n = jq[jj].TransformationMatrix().ncols();
     }
 
@@ -783,7 +785,9 @@ void covmat_sxAddInverseBlock(CovarianceMatrix&               covmat_sx,
                             " block must be added first.");
     }
 
-    ArrayOfArrayOfIndex ji = get_jacobian_indices(jq);
+    ArrayOfArrayOfIndex ji;
+    bool any_affine;
+    jac_ranges_indices( ji, any_affine, jq );
     Index row_start  = ji[ii][0];
     Index row_extent = ji[ii][1] - ji[ii][0] + 1;
     Range row_range(row_start, row_extent);
@@ -1158,8 +1162,9 @@ void retrievalDefClose(Workspace& ws,
     jacobianClose(ws, jacobian_do, jacobian_indices, jacobian_agenda, jacobian_quantities,
                   sensor_pos, sensor_response, verbosity);
 
-    ArrayOfArrayOfIndex ji_t = transform_jacobian_indices(jacobian_indices,
-                                                          jacobian_quantities);
+    ArrayOfArrayOfIndex ji_t;
+    bool any_affine;
+    jac_ranges_indices( ji_t, any_affine, jacobian_quantities );
 
     if (!covmat_sx.has_diagonal_blocks(ji_t)) {
         throw runtime_error("*covmat_sx* does not contain a diagonal block for each retrieval"
