@@ -118,7 +118,6 @@ extern const String LINEMIXINGDFEXPONENT_MODE;
 void jacobianClose(
         Workspace&                 ws,
         Index&                     jacobian_do,
-        ArrayOfArrayOfIndex&       jacobian_indices,
         Agenda&                    jacobian_agenda,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
   const Matrix&                    sensor_pos,
@@ -146,29 +145,8 @@ void jacobianClose(
       throw runtime_error(os.str());
     }
 
-  // Loop over retrieval quantities, set JacobianIndices
-  Index ncols = 0;
-  //
-  for( Index it=0; it<jacobian_quantities.nelem(); it++ )
-    {
-      // Store start jacobian index
-      ArrayOfIndex indices(2);
-      indices[0] = ncols;
-
-      // Count total number of field points, i.e. product of grid lengths
-      Index cols = 1;
-      ArrayOfVector grids = jacobian_quantities[it].Grids();
-      for( Index jt=0; jt<grids.nelem(); jt++ )
-        { cols *= grids[jt].nelem(); }
-
-      // Store stop index
-      indices[1] = ncols + cols - 1;
-      jacobian_indices.push_back( indices );
-
-      ncols += cols;
-    }
-
-  jacobian_agenda.check(ws, verbosity);
+  jacobian_agenda.check( ws, verbosity );
+  
   jacobian_do = 1;
 }
 
@@ -177,12 +155,10 @@ void jacobianClose(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianInit(
         ArrayOfRetrievalQuantity&  jacobian_quantities,
-        ArrayOfArrayOfIndex&       jacobian_indices,
         Agenda&                    jacobian_agenda,
   const Verbosity& )
 {
   jacobian_quantities.resize(0);
-  jacobian_indices.resize(0);
   jacobian_agenda = Agenda();
   jacobian_agenda.set_name( "jacobian_agenda" );
 }
@@ -195,12 +171,11 @@ void jacobianOff(
         Index&                     jacobianDoit_do,
         Agenda&                    jacobian_agenda,
         ArrayOfRetrievalQuantity&  jacobian_quantities, 
-        ArrayOfArrayOfIndex&       jacobian_indices,
-  const Verbosity&                 verbosity )
+   const Verbosity&                 verbosity )
 {
   jacobian_do = 0;
   jacobianDoit_do = 0;
-  jacobianInit( jacobian_quantities, jacobian_indices,
+  jacobianInit( jacobian_quantities,
                 jacobian_agenda, verbosity );
 }
 
@@ -459,11 +434,10 @@ void jacobianCalcAbsSpeciesPerturbations(
   const Agenda&                     iy_main_agenda,
   const Agenda&                     geo_pos_agenda,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
-  const ArrayOfArrayOfIndex&        jacobian_indices,
   const String&                     species,
   const Verbosity&                  verbosity)
 {
-  // Set some useful variables. 
+  // Some useful variables. 
   RetrievalQuantity rq;
   ArrayOfIndex      ji;
   Index             it, pertmode;
@@ -476,6 +450,11 @@ void jacobianCalcAbsSpeciesPerturbations(
       if( jacobian_quantities[n].MainTag() == ABSSPECIES_MAINTAG  &&  
           jacobian_quantities[n].Subtag()  == species )
         {
+          bool any_affine;
+          ArrayOfArrayOfIndex jacobian_indices;
+          jac_ranges_indices( jacobian_indices, any_affine,
+                              jacobian_quantities, true );
+          //
           found = true;
           rq    = jacobian_quantities[n];
           ji    = jacobian_indices[n];
@@ -768,7 +747,6 @@ void jacobianCalcFreqShift(
   const Sparse&                    sensor_response,
   const Vector&                    sensor_time,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
-  const ArrayOfArrayOfIndex&       jacobian_indices,
   const Verbosity& )
 {
   // Set some useful (and needed) variables.  
@@ -783,6 +761,11 @@ void jacobianCalcFreqShift(
       if( jacobian_quantities[n].MainTag() == FREQUENCY_MAINTAG   && 
           jacobian_quantities[n].Subtag()  == FREQUENCY_SUBTAG_0 )
         {
+          bool any_affine;
+          ArrayOfArrayOfIndex jacobian_indices;
+          jac_ranges_indices( jacobian_indices, any_affine,
+                              jacobian_quantities, true );
+          //
           found = true;
           rq = jacobian_quantities[n];
           ji = jacobian_indices[n];
@@ -989,7 +972,6 @@ void jacobianCalcFreqStretch(
   const Matrix&                    sensor_response_dlos_grid,
   const Vector&                    sensor_time,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
-  const ArrayOfArrayOfIndex&       jacobian_indices,
   const Verbosity& )
 {
   // The code here is close to identical to the one for Shift. The main
@@ -1007,6 +989,11 @@ void jacobianCalcFreqStretch(
       if( jacobian_quantities[n].MainTag() == FREQUENCY_MAINTAG   && 
           jacobian_quantities[n].Subtag()  == FREQUENCY_SUBTAG_1 )
         {
+          bool any_affine;
+          ArrayOfArrayOfIndex jacobian_indices;
+          jac_ranges_indices( jacobian_indices, any_affine,
+                              jacobian_quantities, true );
+          //
           found = true;
           rq = jacobian_quantities[n];
           ji = jacobian_indices[n];
@@ -1230,7 +1217,6 @@ void jacobianCalcPointingZaInterp(
   const Sparse&                    sensor_response,
   const Vector&                    sensor_time,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
-  const ArrayOfArrayOfIndex&       jacobian_indices,
   const Verbosity& )
 {
   if( mblock_dlos_grid.nrows() < 2 )
@@ -1255,6 +1241,11 @@ void jacobianCalcPointingZaInterp(
           jacobian_quantities[n].Subtag()  == POINTING_SUBTAG_A   &&
           jacobian_quantities[n].Mode()    == POINTING_CALCMODE_B )
         {
+          bool any_affine;
+          ArrayOfArrayOfIndex jacobian_indices;
+          jac_ranges_indices( jacobian_indices, any_affine,
+                              jacobian_quantities, true );
+          //
           found = true;
           rq = jacobian_quantities[n];
           ji = jacobian_indices[n];
@@ -1371,7 +1362,6 @@ void jacobianCalcPointingZaRecalc(
   const Agenda&                    iy_main_agenda,
   const Agenda&                    geo_pos_agenda,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
-  const ArrayOfArrayOfIndex&       jacobian_indices,
   const Verbosity&                 verbosity )
 {
   // Set some useful variables.  
@@ -1387,6 +1377,11 @@ void jacobianCalcPointingZaRecalc(
           jacobian_quantities[n].Subtag()  == POINTING_SUBTAG_A   &&
           jacobian_quantities[n].Mode()    == POINTING_CALCMODE_A )
         {
+          bool any_affine;
+          ArrayOfArrayOfIndex jacobian_indices;
+          jac_ranges_indices( jacobian_indices, any_affine,
+                              jacobian_quantities, true );
+          //
           found = true;
           rq = jacobian_quantities[n];
           ji = jacobian_indices[n];
@@ -1558,7 +1553,6 @@ void jacobianCalcPolyfit(
   const Vector&                    sensor_response_f_grid,
   const Matrix&                    sensor_response_dlos_grid,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
-  const ArrayOfArrayOfIndex&       jacobian_indices,
   const Index&                     poly_coeff,
   const Verbosity& )
 {  
@@ -1588,7 +1582,7 @@ void jacobianCalcPolyfit(
   //
   const Index nf     = sensor_response_f_grid.nelem();
   const Index npol   = sensor_response_pol_grid.nelem();
-  const Index nlos    = sensor_response_dlos_grid.nrows();
+  const Index nlos   = sensor_response_dlos_grid.nrows();
 
   // Make a vector with values to distribute over *jacobian*
   //
@@ -1597,6 +1591,13 @@ void jacobianCalcPolyfit(
   polynomial_basis_func( w, sensor_response_f_grid, poly_coeff );
   
   // Fill J
+  //
+  ArrayOfArrayOfIndex jacobian_indices;
+  {
+    bool any_affine;
+    jac_ranges_indices( jacobian_indices, any_affine,
+                        jacobian_quantities, true );
+  }
   //
   ArrayOfVector jg   = jacobian_quantities[iq].Grids();
   const Index n1     = jg[1].nelem();
@@ -1820,7 +1821,6 @@ void jacobianCalcSinefit(
   const Vector&                    sensor_response_f_grid,
   const Matrix&                    sensor_response_dlos_grid,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
-  const ArrayOfArrayOfIndex&       jacobian_indices,
   const Index&                     period_index,
   const Verbosity& )
 {  
@@ -1870,6 +1870,13 @@ void jacobianCalcSinefit(
   
   // Fill J
   //
+  ArrayOfArrayOfIndex jacobian_indices;
+  {
+    bool any_affine;
+    jac_ranges_indices( jacobian_indices, any_affine,
+                        jacobian_quantities, true );
+  }
+  //  
   const Index n1     = jg[1].nelem();
   const Index n2     = jg[2].nelem();
   const Index n3     = jg[3].nelem();
@@ -2062,7 +2069,6 @@ void jacobianCalcTemperaturePerturbations(
   const Numeric&                    p_hse,
   const Numeric&                    z_hse_accuracy,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
-  const ArrayOfArrayOfIndex&        jacobian_indices,
   const Verbosity&                  verbosity )
 {
   // Set some useful variables. 
@@ -2077,6 +2083,11 @@ void jacobianCalcTemperaturePerturbations(
     {
       if( jacobian_quantities[n].MainTag() == TEMPERATURE_MAINTAG )
         {
+          bool any_affine;
+          ArrayOfArrayOfIndex jacobian_indices;
+          jac_ranges_indices( jacobian_indices, any_affine,
+                              jacobian_quantities, true );
+          //
           found = true;
           rq = jacobian_quantities[n];
           ji = jacobian_indices[n];
@@ -2439,7 +2450,6 @@ void jacobianDoit(//WS Output:
                   ArrayOfString& scat_species,
                   // WS Input:
                   const ArrayOfRetrievalQuantity& jacobian_quantities,
-                  const ArrayOfArrayOfIndex& jacobian_indices,
                   const ArrayOfArrayOfSpeciesTag& abs_species,
                   const Index& atmosphere_dim,
                   const ArrayOfIndex& cloudbox_limits,
@@ -2631,7 +2641,7 @@ void jacobianDoit(//WS Output:
          sensor_pos, sensor_los, transmitter_pos, mblock_dlos_grid,
          sensor_response, sensor_response_f, sensor_response_pol,
          sensor_response_dlos, iy_unit, iy_main_agenda, geo_pos_agenda,
-         jacobian_agenda, 0, jacobian_quantities, jacobian_indices,
+         jacobian_agenda, 0, jacobian_quantities,
          iy_aux_vars, verbosity );
 
 
@@ -2699,6 +2709,14 @@ void jacobianDoit(//WS Output:
 
   // Initialize jacobian matrix
   //jacobian.resize(y0.nelem(), jacobian_quantities.nelem()*np);
+  //
+  ArrayOfArrayOfIndex jacobian_indices;
+  {
+    bool any_affine;
+    jac_ranges_indices( jacobian_indices, any_affine,
+                        jacobian_quantities, true );
+  }
+  //
   jacobian.resize(y0.nelem(),
                   jacobian_indices[jacobian_indices.nelem()-1][1]+1);
   jacobian = NAN;
@@ -3084,7 +3102,7 @@ void jacobianDoit(//WS Output:
                      sensor_pos, sensor_los, transmitter_pos, mblock_dlos_grid,
                      sensor_response, sensor_response_f, sensor_response_pol,
                      sensor_response_dlos, iy_unit, iy_main_agenda, geo_pos_agenda,
-                     jacobian_agenda, 0, jacobian_quantities, jacobian_indices,
+                     jacobian_agenda, 0, jacobian_quantities, 
                      iy_aux_vars, verbosity );
 
               if( debug )
@@ -3194,7 +3212,6 @@ void jacobianDoit(//WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianDoitClose(
         Index&                     jacobianDoit_do,
-        ArrayOfArrayOfIndex&       jacobian_indices,
   const Index&                     jacobian_do,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
   const Verbosity&                 /* verbosity */ )
@@ -3209,28 +3226,6 @@ void jacobianDoitClose(
     throw runtime_error(
           "No retrieval quantities has been added to *jacobian_quantities*." );
 
-  // Loop over retrieval quantities, set JacobianIndices
-  Index ncols = 0;
-  //
-  for( Index it=0; it<jacobian_quantities.nelem(); it++ )
-    {
-      // Store start jacobian index
-      ArrayOfIndex indices(2);
-      indices[0] = ncols;
-
-      // Count total number of field points, i.e. product of grid lengths
-      Index cols = 1;
-      ArrayOfVector grids = jacobian_quantities[it].Grids();
-      for( Index jt=0; jt<grids.nelem(); jt++ )
-        { cols *= grids[jt].nelem(); }
-
-      // Store stop index
-      indices[1] = ncols + cols - 1;
-      jacobian_indices.push_back( indices );
-
-      ncols += cols;
-    }
-  
   jacobianDoit_do = 1;
 }
 

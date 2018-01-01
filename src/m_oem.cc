@@ -326,7 +326,8 @@ void particle_bulkprop_fieldClip(
       if( iq < 0 )
         {
           ostringstream os;
-          os << "Could not find " << bulkprop_name << " in particle_bulkprop_names.\n";
+          os << "Could not find " << bulkprop_name
+             << " in particle_bulkprop_names.\n";
           throw std::runtime_error(os.str());
         }
     }
@@ -375,15 +376,14 @@ void vmr_fieldClip(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void xClip(
          Vector&                     x,
-   const ArrayOfRetrievalQuantity&   jq,
-   const ArrayOfArrayOfIndex&        ji,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const Index&                      ijq,
    const Numeric&                    limit_low,
    const Numeric&                    limit_high,
    const Verbosity&)
 {
   // Sizes
-  const Index nq = jq.nelem();
+  const Index nq = jacobian_quantities.nelem();
 
   if( ijq < -1 )
     throw runtime_error( "Argument *ijq* must be >= -1." );
@@ -397,6 +397,13 @@ void xClip(
       throw runtime_error( os.str() );
     }
 
+  // Jacobian indices
+  ArrayOfArrayOfIndex ji;
+  {
+    bool any_affine;
+    jac_ranges_indices( ji, any_affine,  jacobian_quantities );
+  }
+  
   Index ifirst = 0, ilast = x.nelem()-1;
   if( ijq > -1 )
     {
@@ -434,8 +441,7 @@ void xaStandard(
          Vector&                     xa,
    const Index&                      atmfields_checked,
    const Index&                      atmgeom_checked,
-   const ArrayOfRetrievalQuantity&   jq,
-   const ArrayOfArrayOfIndex&        ji,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const Index&                      atmosphere_dim,
    const Vector&                     p_grid,
    const Vector&                     lat_grid,
@@ -464,13 +470,20 @@ void xaStandard(
     throw runtime_error( "The cloudbox must be flagged to have "
                          "passed a consistency check (cloudbox_checked=1)." );
 
+  // Jacobian indices
+  ArrayOfArrayOfIndex ji;
+  {
+    bool any_affine;
+    jac_ranges_indices( ji, any_affine,  jacobian_quantities );
+  }
+  
   // Sizes
-  const Index nq = jq.nelem();
+  const Index nq = jacobian_quantities.nelem();
   //
   xa.resize( ji[nq-1][1]+1 );
 
   // Loop retrieval quantities and fill *xa*
-  for( Index q=0; q<jq.nelem(); q++ )
+  for( Index q=0; q<jacobian_quantities.nelem(); q++ )
     {
       // Index range of this retrieval quantity
       const Index np = ji[q][1] - ji[q][0] + 1;
@@ -478,12 +491,12 @@ void xaStandard(
 
 
       // Atmospheric temperatures
-      if( jq[q].MainTag() == TEMPERATURE_MAINTAG )
+      if( jacobian_quantities[q].MainTag() == TEMPERATURE_MAINTAG )
         {
           // Here we need to interpolate *t_field*
           ArrayOfGridPos gp_p, gp_lat, gp_lon;
-          get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
-                                 p_grid, lat_grid, lon_grid );
+          get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon, jacobian_quantities [q],
+                                 atmosphere_dim, p_grid, lat_grid, lon_grid );
           Tensor3 t_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
           regrid_atmfield_by_gp( t_x, atmosphere_dim, t_field,
                                  gp_p, gp_lat, gp_lon );
@@ -492,14 +505,14 @@ void xaStandard(
 
 
       // Abs species
-      else if( jq[q].MainTag() == ABSSPECIES_MAINTAG )
+      else if( jacobian_quantities [q].MainTag() == ABSSPECIES_MAINTAG )
         {
           // Index position of species
           ArrayOfSpeciesTag  atag;
-          array_species_tag_from_string( atag, jq[q].Subtag() );
+          array_species_tag_from_string( atag, jacobian_quantities[q].Subtag() );
           const Index isp = chk_contains( "abs_species", abs_species, atag );
 
-          if( jq[q].Mode() == "rel" )
+          if( jacobian_quantities[q].Mode() == "rel" )
             {
               // This one is simple, just a vector of ones
               xa[ind] = 1;
@@ -508,18 +521,20 @@ void xaStandard(
             {
               // For all remaining options we need to interpolate *vmr_field*
               ArrayOfGridPos gp_p, gp_lat, gp_lon;
-              get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
+              get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon,
+                                     jacobian_quantities[q],
+                                     atmosphere_dim,
                                      p_grid, lat_grid, lon_grid );
               Tensor3 vmr_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
               regrid_atmfield_by_gp( vmr_x, atmosphere_dim,
                                      vmr_field(isp,joker,joker,joker),
                                      gp_p, gp_lat, gp_lon );
               
-              if( jq[q].Mode() == "vmr" )
+              if( jacobian_quantities[q].Mode() == "vmr" )
                 {
                   flat( xa[ind], vmr_x );
                 }
-              else if( jq[q].Mode() == "nd" )
+              else if( jacobian_quantities[q].Mode() == "nd" )
                 {
                   // Here we need to also interpolate *t_field*
                   Tensor3 t_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
@@ -532,11 +547,13 @@ void xaStandard(
                         { for( Index i1=0; i1<=vmr_x.npages(); i1++ )
                             {
                               xa[ji[q][0]+i] = vmr_x(i1,i2,i3) *
-                                number_density( jq[q].Grids()[0][i1], t_x(i1,i2,i3) );
+                                number_density(
+                                  jacobian_quantities[q].Grids()[0][i1],
+                                  t_x(i1,i2,i3) );
                               i += 1;
                     }   }   }
                 }
-              else if( jq[q].Mode() == "rh" )
+              else if( jacobian_quantities[q].Mode() == "rh" )
                 {
                   // Here we need to also interpolate *t_field*
                   Tensor3 t_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
@@ -549,11 +566,12 @@ void xaStandard(
                         { for( Index i1=0; i1<=vmr_x.npages(); i1++ )
                             {
                               xa[ji[q][0]+i] = vmr_x(i1,i2,i3) *
-                                jq[q].Grids()[0][i1] / psat_water(t_x(i1,i2,i3));
+                                jacobian_quantities[q].Grids()[0][i1] /
+                                psat_water(t_x(i1,i2,i3));
                               i += 1;
                     }   }   }
                 }
-              else if( jq[q].Mode() == "q" )
+              else if( jacobian_quantities[q].Mode() == "q" )
                 {
                   // Calculate specific humidity q, from mixing ratio r and
                   // vapour pressure e, as
@@ -563,8 +581,10 @@ void xaStandard(
                     { for( Index i2=0; i2<=vmr_x.nrows(); i2++ )
                         { for( Index i1=0; i1<=vmr_x.npages(); i1++ )
                             {
-                              const Numeric e = vmr_x(i1,i2,i3) * jq[q].Grids()[0][i1];
-                              const Numeric r = 0.622*e / ( jq[q].Grids()[0][i1] - e );
+                              const Numeric e = vmr_x(i1,i2,i3) *
+                                jacobian_quantities[q].Grids()[0][i1];
+                              const Numeric r = 0.622*e /
+                                ( jacobian_quantities[q].Grids()[0][i1] - e );
                               xa[ji[q][0]+i] = r / ( 1 + r );
                               i += 1;
                     }   }   }
@@ -576,7 +596,7 @@ void xaStandard(
 
 
       // Scattering species
-      else if( jq[q].MainTag() == SCATSPECIES_MAINTAG )
+      else if( jacobian_quantities[q].MainTag() == SCATSPECIES_MAINTAG )
         {
           if( cloudbox_on )
             {
@@ -593,20 +613,20 @@ void xaStandard(
                 }
 
               const Index isp = find_first( particle_bulkprop_names,
-                                        jq[q].SubSubtag() );
+                                        jacobian_quantities[q].SubSubtag() );
               if( isp < 0 )
                 {
                   ostringstream os;
                   os << "Jacobian quantity with index " << q << " covers a "
                      << "scattering species, and the field quantity is set to \""
-                     << jq[q].SubSubtag() << "\", but this quantity "
+                     << jacobian_quantities[q].SubSubtag() << "\", but this quantity "
                      << "could not found in *particle_bulkprop_names*.";
                   throw runtime_error(os.str());
                 }
 
               ArrayOfGridPos gp_p, gp_lat, gp_lon;
-              get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
-                                     p_grid, lat_grid, lon_grid );
+              get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon,jacobian_quantities[q],
+                                     atmosphere_dim, p_grid, lat_grid, lon_grid );
               Tensor3 pbp_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
               regrid_atmfield_by_gp( pbp_x, atmosphere_dim,
                                      particle_bulkprop_field(isp,joker,joker,joker),
@@ -618,20 +638,20 @@ void xaStandard(
         }
 
       // Wind
-      else if( jq[q].MainTag() == WIND_MAINTAG)
+      else if( jacobian_quantities[q].MainTag() == WIND_MAINTAG)
       {
           ConstTensor3View source_field(wind_u_field);
-          if (jq[q].Subtag() == "v") {
+          if (jacobian_quantities[q].Subtag() == "v") {
               source_field = wind_v_field;
-          } else if (jq[q].Subtag() == "w") {
+          } else if (jacobian_quantities[q].Subtag() == "w") {
               source_field = wind_w_field;
           }
 
           // Determine grid positions for interpolation from retrieval grids back
           // to atmospheric grids
           ArrayOfGridPos gp_p, gp_lat, gp_lon;
-          get_gp_atmgrids_to_rq(gp_p, gp_lat, gp_lon, jq[q], atmosphere_dim,
-                                p_grid, lat_grid, lon_grid);
+          get_gp_atmgrids_to_rq(gp_p, gp_lat, gp_lon, jacobian_quantities[q],
+                                atmosphere_dim, p_grid, lat_grid, lon_grid);
 
           Tensor3 wind_x(gp_p.nelem(), gp_lat.nelem(), gp_lon.nelem());
           regrid_atmfield_by_gp(wind_x, atmosphere_dim, source_field,
@@ -640,9 +660,9 @@ void xaStandard(
       }
       // All variables having zero as a priori
       // ----------------------------------------------------------------------------
-      else if( jq[q].MainTag() == POINTING_MAINTAG ||
-               jq[q].MainTag() == POLYFIT_MAINTAG  ||
-               jq[q].MainTag() == SINEFIT_MAINTAG )
+      else if( jacobian_quantities[q].MainTag() == POINTING_MAINTAG ||
+               jacobian_quantities[q].MainTag() == POLYFIT_MAINTAG  ||
+               jacobian_quantities[q].MainTag() == SINEFIT_MAINTAG )
         {
           xa[ind] = 0;
         }
@@ -651,13 +671,13 @@ void xaStandard(
         {
           ostringstream os;
           os << "Found a retrieval quantity that is not yet handled by\n"
-             << "internal retrievals: " << jq[q].MainTag() << endl;
+             << "internal retrievals: " << jacobian_quantities[q].MainTag() << endl;
           throw runtime_error(os.str());
         }
     }
 
   // Apply transformations
-  transform_x( xa, jq );
+  transform_x( xa, jacobian_quantities );
 }
 
 
@@ -674,8 +694,7 @@ void x2artsStandard(
          Tensor3&                    wind_w_field,
    const Index&                      atmfields_checked,
    const Index&                      atmgeom_checked,
-   const ArrayOfRetrievalQuantity&   jq,
-   const ArrayOfArrayOfIndex&        ji,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const Vector&                     x,
    const Index&                      atmosphere_dim,
    const Vector&                     p_grid,
@@ -707,14 +726,21 @@ void x2artsStandard(
   
   // Revert transformation
   Vector x_t(x);
-  transform_x_back( x_t, jq );
+  transform_x_back( x_t, jacobian_quantities );
 
   // Main sizes
-  const Index nq = jq.nelem();
+  const Index nq = jacobian_quantities.nelem();
 
+  // Jacobian indices
+  ArrayOfArrayOfIndex ji;
+  {
+    bool any_affine;
+    jac_ranges_indices( ji, any_affine, jacobian_quantities );
+  }
+  
   // Check input
   if( x_t.nelem() != ji[nq-1][1]+1 )
-    throw runtime_error( "Length of *x* does not match information in "
+    throw runtime_error( "Length of *x* does not match length implied by "
                          "*jacobian_quantities*.");
 
   // Note that when this method is called, vmr_field and other output variables
@@ -732,14 +758,15 @@ void x2artsStandard(
 
       // Atmospheric temperatures
       // ----------------------------------------------------------------------------
-      if( jq[q].MainTag() == TEMPERATURE_MAINTAG )
+      if( jacobian_quantities[q].MainTag() == TEMPERATURE_MAINTAG )
         {
           // Determine grid positions for interpolation from retrieval grids back
           // to atmospheric grids
           ArrayOfGridPos gp_p, gp_lat, gp_lon;
           Index          n_p, n_lat, n_lon;
           get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
-                                 jq[q], atmosphere_dim, p_grid, lat_grid, lon_grid );
+                                 jacobian_quantities[q], atmosphere_dim,
+                                 p_grid, lat_grid, lon_grid );
 
           // Map values in x back to t_field
           Tensor3 t_x( n_p, n_lat, n_lon );
@@ -751,11 +778,11 @@ void x2artsStandard(
 
       // Abs species
       // ----------------------------------------------------------------------------
-      else if( jq[q].MainTag() == ABSSPECIES_MAINTAG )
+      else if( jacobian_quantities[q].MainTag() == ABSSPECIES_MAINTAG )
         {
           // Index position of species
           ArrayOfSpeciesTag  atag;
-          array_species_tag_from_string( atag, jq[q].Subtag() );
+          array_species_tag_from_string( atag, jacobian_quantities[q].Subtag() );
           const Index isp = chk_contains( "abs_species", abs_species, atag );
 
           // Map part of x to a full atmospheric field
@@ -765,7 +792,8 @@ void x2artsStandard(
             ArrayOfGridPos gp_p, gp_lat, gp_lon;
             Index          n_p, n_lat, n_lon;
             get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
-                                   jq[q], atmosphere_dim, p_grid, lat_grid, lon_grid );
+                                   jacobian_quantities[q], atmosphere_dim,
+                                   p_grid, lat_grid, lon_grid );
             //
             Tensor3 t3_x( n_p, n_lat, n_lon );
             reshape( t3_x, x_t[ind] );
@@ -773,17 +801,17 @@ void x2artsStandard(
                                    gp_p, gp_lat, gp_lon );
           }
           //
-          if( jq[q].Mode() == "rel" )
+          if( jacobian_quantities[q].Mode() == "rel" )
             {
               // vmr = vmr0 * x
               vmr_field(isp,joker,joker,joker) *= x_field;
             }
-          else if( jq[q].Mode() == "vmr" )
+          else if( jacobian_quantities[q].Mode() == "vmr" )
             {
               // vmr = x
               vmr_field(isp,joker,joker,joker) = x_field;
             }
-          else if( jq[q].Mode() == "nd" )
+          else if( jacobian_quantities[q].Mode() == "nd" )
             {
               // vmr = nd / nd_tot
               for( Index i3=0; i3<vmr_field.ncols(); i3++ )
@@ -794,7 +822,7 @@ void x2artsStandard(
                             number_density( p_grid[i1], t_field(i1,i2,i3) );
                 }   }   }
             }
-          else if( jq[q].Mode() == "rh" )
+          else if( jacobian_quantities[q].Mode() == "rh" )
             {
               // vmr = x * p_sat / p
               for( Index i3=0; i3<vmr_field.ncols(); i3++ )
@@ -805,7 +833,7 @@ void x2artsStandard(
                             psat_water(t_field(i1,i2,i3)) / p_grid[i1];
                 }   }   }
             }
-          else if( jq[q].Mode() == "q" )
+          else if( jacobian_quantities[q].Mode() == "q" )
             {
               // We have that specific humidity q, mixing ratio r and
               // vapour pressure e, are related as
@@ -824,11 +852,11 @@ void x2artsStandard(
           else
             { assert(0); }
 
-          if (jq[q].HasConstraints()) {
-              for (Index i = 0; i < jq[q].GetConstraints().nelem(); ++i) {
+          if (jacobian_quantities[q].HasConstraints()) {
+              for (Index i = 0; i < jacobian_quantities[q].GetConstraints().nelem(); ++i) {
                   vmr_enforce_constraint(vmr_field(isp, joker, joker, joker),
-                                         jq[q].GetConstraints()[i],
-                                         jq[q].GetBoundaries()[i]);
+                                         jacobian_quantities[q].GetConstraints()[i],
+                                         jacobian_quantities[q].GetBoundaries()[i]);
               }
 
           }
@@ -837,7 +865,7 @@ void x2artsStandard(
 
       // Scattering species
       // ----------------------------------------------------------------------------
-      else if( jq[q].MainTag() == SCATSPECIES_MAINTAG )
+      else if( jacobian_quantities[q].MainTag() == SCATSPECIES_MAINTAG )
         {
           // If no cloudbox, we assume that there is nothing to do
           if( cloudbox_on )
@@ -855,13 +883,13 @@ void x2artsStandard(
                 }
 
               const Index isp = find_first( particle_bulkprop_names,
-                                        jq[q].SubSubtag() );
+                                        jacobian_quantities[q].SubSubtag() );
               if( isp < 0 )
                 {
                   ostringstream os;
                   os << "Jacobian quantity with index " << q << " covers a "
                      << "scattering species, and the field quantity is set to \""
-                     << jq[q].SubSubtag() << "\", but this quantity "
+                     << jacobian_quantities[q].SubSubtag() << "\", but this quantity "
                      << "could not found in *particle_bulkprop_names*.";
                   throw runtime_error(os.str());
                 }
@@ -871,7 +899,8 @@ void x2artsStandard(
               ArrayOfGridPos gp_p, gp_lat, gp_lon;
               Index          n_p, n_lat, n_lon;
               get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
-                                     jq[q], atmosphere_dim, p_grid, lat_grid, lon_grid );
+                                     jacobian_quantities[q], atmosphere_dim,
+                                     p_grid, lat_grid, lon_grid );
               // Map x to particle_bulkprop_field
               Tensor3 pbfield_x( n_p, n_lat, n_lon );
               reshape( pbfield_x, x_t[ind] );
@@ -887,9 +916,9 @@ void x2artsStandard(
 
       // Pointing off-set
       // ----------------------------------------------------------------------------
-      else if( jq[q].MainTag() == POINTING_MAINTAG )
+      else if( jacobian_quantities[q].MainTag() == POINTING_MAINTAG )
         {
-          if( jq[q].Subtag() != POINTING_SUBTAG_A )
+          if( jacobian_quantities[q].Subtag() != POINTING_SUBTAG_A )
             {
               ostringstream os;
               os << "Only pointing off-sets treated by *jacobianAddPointingZa* "
@@ -897,7 +926,7 @@ void x2artsStandard(
               throw runtime_error(os.str());
             }
           // Handle pointing "jitter" seperately
-          if( jq[q].Grids()[0][0] == -1 )
+          if( jacobian_quantities[q].Grids()[0][0] == -1 )
             {
               if( sensor_los.nrows() != np )
                 throw runtime_error(
@@ -925,8 +954,8 @@ void x2artsStandard(
 
       // Baseline fit: polynomial or sinusoidal
       // ----------------------------------------------------------------------------
-      else if( jq[q].MainTag() == POLYFIT_MAINTAG  ||
-               jq[q].MainTag() == SINEFIT_MAINTAG )
+      else if( jacobian_quantities[q].MainTag() == POLYFIT_MAINTAG  ||
+               jacobian_quantities[q].MainTag() == SINEFIT_MAINTAG )
       {
           if(! yb_set ) {
               yb_set = true;
@@ -941,19 +970,20 @@ void x2artsStandard(
           for (Index mb = 0; mb < sensor_los.nrows(); ++mb) {
               calcBaselineFit(y_baseline, x, mb, sensor_response,
                               sensor_response_pol_grid, sensor_response_f_grid,
-                              sensor_response_dlos_grid, jq[q], q, ji);
+                              sensor_response_dlos_grid, jacobian_quantities[q], q, ji);
           }
       }
       // Wind
       // ----------------------------------------------------------------------------
-      else if( jq[q].MainTag() == WIND_MAINTAG)
+      else if( jacobian_quantities[q].MainTag() == WIND_MAINTAG)
       {
           // Determine grid positions for interpolation from retrieval grids back
           // to atmospheric grids
           ArrayOfGridPos gp_p, gp_lat, gp_lon;
           Index          n_p, n_lat, n_lon;
           get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
-                                 jq[q], atmosphere_dim, p_grid, lat_grid, lon_grid );
+                                 jacobian_quantities[q], atmosphere_dim,
+                                 p_grid, lat_grid, lon_grid );
 
           // TODO Could be done without copying.
           Tensor3 wind_x(n_p, n_lat, n_lon);
@@ -967,11 +997,11 @@ void x2artsStandard(
                                  gp_p, gp_lat, gp_lon);
 
 
-          if (jq[q].Subtag() == "u") {
+          if (jacobian_quantities[q].Subtag() == "u") {
               wind_u_field = wind_field;
-          } else if (jq[q].Subtag() == "v") {
+          } else if (jacobian_quantities[q].Subtag() == "v") {
               wind_v_field = wind_field;
-          } else if (jq[q].Subtag() == "w") {
+          } else if (jacobian_quantities[q].Subtag() == "w") {
               wind_w_field = wind_field;
           }
       }
@@ -981,7 +1011,7 @@ void x2artsStandard(
         {
           ostringstream os;
           os << "Found a retrieval quantity that is not yet handled by\n"
-             << "ARTS internal retrievals: " << jq[q].MainTag() << endl;
+             << "ARTS internal retrievals: " << jacobian_quantities[q].MainTag() << endl;
           throw runtime_error(os.str());
         }
     }
@@ -1633,6 +1663,8 @@ void MPI_Initialize(Matrix&    sensor_los,
 
 }
 
+
+
 void OEM_MPI(
     Workspace&                  ws,
     Vector&                     x,
@@ -1650,7 +1682,6 @@ void OEM_MPI(
     const Vector&                     y,
     const Index&                      jacobian_do,
     const ArrayOfRetrievalQuantity&   jacobian_quantities,
-    const ArrayOfArrayOfIndex&        jacobian_indices,
     const Agenda&                     inversion_iterate_agenda,
     const String&                     method,
     const Numeric&                    max_start_cost,
@@ -1816,7 +1847,6 @@ void OEM_MPI(
     const Vector&,
     const Index&,
     const ArrayOfRetrievalQuantity&,
-    const ArrayOfArrayOfIndex&,
     const Agenda&,
     const String&,
     const Numeric&,

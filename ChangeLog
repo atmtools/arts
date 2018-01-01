@@ -1,3 +1,30 @@
+2018-01-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-911
+
+	* jacobian_indices no longer exists as a WSM. Removed it, as after
+	the introduction of affine tranformations, the Jacobian can have
+	two sizes. Instead of introducing a seocnd WSM, it seemed easier
+	and less confusing to remove the WSV and instead calculate the
+	indices where needed.
+
+	* controlfiles/artscomponents/ycalcappend/TestYCalcAppend.arts:
+	* src/m_retrieval.cc (retrievalDefInit, retrievalDefClose):
+	* src/m_jacobian.cc (jacobianCalcAbsSpeciesPerturbations)
+	(jacobianCalcFreqShift, jacobianCalcFreqStretch)
+	(jacobianCalcPointingZaInterp, jacobianCalcPointingZaRecalc)
+	(jacobianCalcPolyfit, jacobianInit, jacobianOff, jacobianClose):
+	* src/m_oem.cc (x2artsStandard, xClip, xaStandard, OEM_MPI):
+	* src/m_cloudradar.cc (iyActiveSingleScat, yActive):
+	* controlfiles/artscomponents/ycalcappend/TestYCalcAppend.arts:
+	* src/m_transmitter.cc (iyTransmissionStandard,iyTransmissionStandard2):
+	* src/m_rte.cc (iyEmissionStandard,iyEmissionStandard2, yCalc)
+	(yCalcAppend):
+	* src/m_fos.cc (iyHybrid):
+	* src/rte.cc (rtmethods_jacobian_init): Adoptionsin various ways.
+
+	* src/workspace.cc: Removed jacobian_indices.
+
 2017-12-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-910

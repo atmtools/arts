@@ -694,7 +694,6 @@ void iyTransmissionStandard(
    const ArrayOfString&               iy_aux_vars,
    const Index&                       jacobian_do,
    const ArrayOfRetrievalQuantity&    jacobian_quantities,
-   const ArrayOfArrayOfIndex&         jacobian_indices,
    const Agenda&                      ppath_agenda,
    const Agenda&                      propmat_clearsky_agenda,
    const Agenda&                      iy_transmitter_agenda,
@@ -805,6 +804,11 @@ void iyTransmissionStandard(
       if( iy_agenda_call1 )
         {
           diy_dx.resize( nq ); 
+          //
+          bool any_affine;
+          ArrayOfArrayOfIndex jacobian_indices;
+          jac_ranges_indices( jacobian_indices, any_affine,
+                              jacobian_quantities, true );
           //
           FOR_ANALYTICAL_JACOBIANS_DO( diy_dx[iq].resize( 
             jacobian_indices[iq][1]-jacobian_indices[iq][0]+1, nf, ns ); 
@@ -1354,7 +1358,6 @@ void iyTransmissionStandard2(
   const ArrayOfString&                      iy_aux_vars,
   const Index&                              jacobian_do,
   const ArrayOfRetrievalQuantity&           jacobian_quantities,
-  const ArrayOfArrayOfIndex&                jacobian_indices,
   const Ppath&                              ppath,
   const Agenda&                             propmat_clearsky_agenda,
   const Agenda&                             iy_transmitter_agenda,
@@ -1431,9 +1434,8 @@ void iyTransmissionStandard2(
                                jac_mag_i, jac_other, jac_to_integrate, diy_dx,
                                diy_dpath,
                                ns, nf, np, nq, abs_species,
-                               scat_species, dpnd_field_dx,
-                               ppd, jacobian_quantities, jacobian_indices,
-                               iy_agenda_call1 );
+                               scat_species, dpnd_field_dx, ppd,
+                               jacobian_quantities, iy_agenda_call1 );
     }
   
   // Init iy_aux and fill where possible

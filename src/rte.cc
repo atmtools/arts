@@ -5256,7 +5256,6 @@ void rtmethods_jacobian_init(
    const ArrayOfTensor4&             dpnd_field_dx,
    const PropmatPartialsData&        ppd,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,   
-   const ArrayOfArrayOfIndex&        jacobian_indices, 
    const Index&                      iy_agenda_call1 )
 {
   FOR_ANALYTICAL_JACOBIANS_DO( 
@@ -5300,6 +5299,11 @@ void rtmethods_jacobian_init(
   if( iy_agenda_call1 )
     {
       diy_dx.resize(nq); 
+      //
+      bool any_affine;
+      ArrayOfArrayOfIndex jacobian_indices;
+      jac_ranges_indices( jacobian_indices, any_affine,
+                          jacobian_quantities, true );
       //
       FOR_ANALYTICAL_JACOBIANS_DO( 
         diy_dx[iq].resize( jacobian_indices[iq][1]-jacobian_indices[iq][0]+1,

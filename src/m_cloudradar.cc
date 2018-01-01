@@ -91,7 +91,6 @@ void iyActiveSingleScat(
    const ArrayOfString&               iy_aux_vars,
    const Index&                       jacobian_do,
    const ArrayOfRetrievalQuantity&    jacobian_quantities,
-   const ArrayOfArrayOfIndex&         jacobian_indices,
    const Agenda&                      ppath_agenda,
    const Agenda&                      propmat_clearsky_agenda,
    const Agenda&                      iy_transmitter_agenda,
@@ -196,6 +195,11 @@ void iyActiveSingleScat(
       if( iy_agenda_call1 )
         {
           diy_dx.resize( nq ); 
+          //
+          bool any_affine;
+          ArrayOfArrayOfIndex jacobian_indices;
+          jac_ranges_indices( jacobian_indices, any_affine,
+                              jacobian_quantities, true );
           //
           FOR_ANALYTICAL_JACOBIANS_DO( diy_dx[iq].resize( 
             jacobian_indices[iq][1]-jacobian_indices[iq][0]+1, nf*np, ns ); 
@@ -675,7 +679,6 @@ void yActive(
    const Index&                    sensor_checked,
    const Index&                    jacobian_do,     
    const ArrayOfRetrievalQuantity& jacobian_quantities,
-   const ArrayOfArrayOfIndex&      jacobian_indices,
    const Agenda&                   iy_main_agenda,
    const Agenda&                   geo_pos_agenda,
    const ArrayOfArrayOfIndex&      instrument_pol_array,
@@ -773,9 +776,14 @@ void yActive(
   //
   Index j_analytical_do = 0;
   Index njq             = 0;
+  ArrayOfArrayOfIndex jacobian_indices;
   //
   if( jacobian_do )
     {
+      bool any_affine;
+      jac_ranges_indices( jacobian_indices, any_affine,
+                          jacobian_quantities, true );
+      
       jacobian.resize( ntot, 
                        jacobian_indices[jacobian_indices.nelem()-1][1]+1 );
       jacobian = 0;

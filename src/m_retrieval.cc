@@ -3,6 +3,8 @@
 #include "covariance_matrix.h"
 #include "jacobian.h"
 
+extern const String ABSSPECIES_MAINTAG;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Forward declarations of WSVs defined in m_jacobian.cc
 ////////////////////////////////////////////////////////////////////////////////
@@ -14,11 +16,11 @@ void jacobianAddAbsSpecies(
     const Verbosity&
     );
 void jacobianClose(
-    Workspace&, Index&, ArrayOfArrayOfIndex&, Agenda&, const ArrayOfRetrievalQuantity&,
+    Workspace&, Index&, Agenda&, const ArrayOfRetrievalQuantity&,
     const Matrix&, const Sparse&, const Verbosity&
     );
 void jacobianInit(
-    ArrayOfRetrievalQuantity&, ArrayOfArrayOfIndex&, Agenda&, const Verbosity&
+    ArrayOfRetrievalQuantity&, Agenda&, const Verbosity&
     );
 void jacobianAddConstantVMRAbsSpecies(
     Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const String&, const String&, const Index&,
@@ -81,6 +83,8 @@ void jacobianAddTemperature(
     const Vector&, const Vector&, const Vector&, const Vector&, const Vector&,
     const String&, const String&, const Numeric&,  const Verbosity&
     );
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Helper Functions
@@ -1148,9 +1152,11 @@ void retrievalAddTemperature(Workspace& ws,
                         covmat_inv_block);
 }
 
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void retrievalDefClose(Workspace& ws,
                        Index& jacobian_do,
-                       ArrayOfArrayOfIndex& jacobian_indices,
                        Agenda& jacobian_agenda,
                        Index& retrieval_checked,
                        const CovarianceMatrix& covmat_sx,
@@ -1159,7 +1165,7 @@ void retrievalDefClose(Workspace& ws,
                        const Sparse& sensor_response,
                        const Verbosity& verbosity)
 {
-    jacobianClose(ws, jacobian_do, jacobian_indices, jacobian_agenda, jacobian_quantities,
+    jacobianClose(ws, jacobian_do, jacobian_agenda, jacobian_quantities,
                   sensor_pos, sensor_response, verbosity);
 
     ArrayOfArrayOfIndex ji_t;
@@ -1177,23 +1183,26 @@ void retrievalDefClose(Workspace& ws,
     retrieval_checked = true;
 }
 
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void retrievalDefInit(CovarianceMatrix& covmat_se,
                       CovarianceMatrix& covmat_sx,
                       Sparse&           covmat_block,
                       Sparse&           covmat_inv_block,
                       ArrayOfRetrievalQuantity& jacobian_quantities,
-                      ArrayOfArrayOfIndex& jacobian_indices,
                       Agenda& jacobian_agenda,
                       const Verbosity& verbosity)
 {
-    jacobianInit(jacobian_quantities, jacobian_indices, jacobian_agenda, verbosity);
+    jacobianInit(jacobian_quantities, jacobian_agenda, verbosity);
+
     covmat_block = Sparse();
     covmat_inv_block = Sparse();
     covmat_sx = CovarianceMatrix();
     covmat_se = CovarianceMatrix();
 }
 
-extern const String ABSSPECIES_MAINTAG;
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void retrievalConstraintAdd(

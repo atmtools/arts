@@ -2459,20 +2459,6 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
    (WsvRecord
-    ( NAME( "jacobian_indices" ),
-      DESCRIPTION
-      (
-       "First and last column index in *jacobian* for each retrieval quantity.\n"
-       "\n"
-       "This variable tells which part of *jacobian* that corresponds to \n"
-       "each jacobian quantity.\n"
-       "\n"
-       "Usage:      Set by *jacobianClose*.\n"
-      ),
-      GROUP( "ArrayOfArrayOfIndex" )));
-
- wsv_data.push_back
-   (WsvRecord
     ( NAME( "jacobian_quantities" ),
       DESCRIPTION
       (

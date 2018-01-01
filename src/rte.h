@@ -613,7 +613,6 @@ void rtmethods_jacobian_init(
    const ArrayOfTensor4&             dpnd_field_dx,
    const PropmatPartialsData&        ppd,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,   
-   const ArrayOfArrayOfIndex&        jacobian_indices, 
    const Index&                      iy_agenda_call1 );
 
 void rtmethods_jacobian_finalisation(

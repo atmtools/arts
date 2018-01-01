@@ -7162,7 +7162,7 @@ void define_md_data_raw()
             "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
             "scat_species", "scat_data", "scat_data_checked", "particle_masses",
             "iy_unit", "iy_aux_vars",
-            "jacobian_do", "jacobian_quantities", "jacobian_indices",
+            "jacobian_do", "jacobian_quantities",
             "ppath_agenda", "propmat_clearsky_agenda", "iy_transmitter_agenda",
             "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los",
             "rte_alonglos_v", "ppath_lmax", "ppath_lraytrace" ),
@@ -7256,7 +7256,7 @@ void define_md_data_raw()
             "wind_u_field", "wind_v_field", "wind_w_field",
             "mag_u_field", "mag_v_field", "mag_w_field", 
             "cloudbox_on", "iy_unit", "iy_aux_vars", "jacobian_do", 
-            "jacobian_quantities", "jacobian_indices", 
+            "jacobian_quantities", 
             "ppath_agenda", "propmat_clearsky_agenda", "iy_main_agenda", 
             "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda", 
             "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los", 
@@ -7321,8 +7321,7 @@ void define_md_data_raw()
             "abs_species", "wind_u_field", "wind_v_field", "wind_w_field",
             "mag_u_field", "mag_v_field", "mag_w_field", 
             "cloudbox_on", "iy_unit", "iy_aux_vars",
-            "jacobian_do", "jacobian_quantities", "jacobian_indices", 
-            "ppath", "rte_pos2",
+            "jacobian_do", "jacobian_quantities", "ppath", "rte_pos2",
             "propmat_clearsky_agenda", "iy_main_agenda", 
             "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda", 
             "iy_agenda_call1", "iy_transmission", "rte_alonglos_v" ),
@@ -7434,7 +7433,7 @@ void define_md_data_raw()
           "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
           "scat_species", "scat_data", "scat_data_checked",
           "iy_unit", "iy_aux_vars",
-          "jacobian_do", "jacobian_quantities", "jacobian_indices",
+          "jacobian_do", "jacobian_quantities",
           "propmat_clearsky_agenda", "iy_main_agenda", "iy_space_agenda",
           "iy_surface_agenda", "iy_cloudbox_agenda",
           "iy_agenda_call1", "iy_transmission", "ppath", "rte_pos2",
@@ -8031,7 +8030,7 @@ void define_md_data_raw()
           "cloudbox_on", "cloudbox_limits", "pnd_field", 
           "use_mean_scat_data", "scat_data", "scat_data_checked", "particle_masses",
           "iy_aux_vars", "jacobian_do", "jacobian_quantities", 
-          "jacobian_indices", "ppath_agenda", "propmat_clearsky_agenda",
+          "ppath_agenda", "propmat_clearsky_agenda",
           "iy_transmitter_agenda", "iy_agenda_call1", "iy_transmission", 
           "rte_pos", "rte_los", "rte_pos2", "rte_alonglos_v", "ppath_lmax",
           "ppath_lraytrace" ),
@@ -8781,7 +8780,7 @@ void define_md_data_raw()
             "abs_species", "cloudbox_on", "stokes_dim", "f_grid", 
             "sensor_pos", "sensor_los", "transmitter_pos", "mblock_dlos_grid", 
             "sensor_response", "iy_unit", "iy_main_agenda", "geo_pos_agenda", 
-            "jacobian_quantities", "jacobian_indices" ),
+            "jacobian_quantities" ),
         GIN( "species" ),
         GIN_TYPE(    "String" ),
         GIN_DEFAULT( NODEF ),
@@ -8807,7 +8806,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "jacobian", "mblock_index", "iyb", "yb", "stokes_dim", "f_grid",
             "sensor_los", "mblock_dlos_grid", "sensor_response", "sensor_time", 
-            "jacobian_quantities", "jacobian_indices" ),
+            "jacobian_quantities" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8834,8 +8833,7 @@ void define_md_data_raw()
             "sensor_los", "mblock_dlos_grid", 
             "sensor_response", "sensor_response_pol_grid",
             "sensor_response_f_grid", "sensor_response_dlos_grid",
-            "sensor_time", "jacobian_quantities", 
-            "jacobian_indices" ),
+            "sensor_time", "jacobian_quantities" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8910,7 +8908,7 @@ void define_md_data_raw()
         IN( "jacobian", "mblock_index", "iyb", "yb", "stokes_dim", "f_grid", 
             "sensor_los", "mblock_dlos_grid",
             "sensor_response", "sensor_time", 
-            "jacobian_quantities", "jacobian_indices" ),
+            "jacobian_quantities" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8940,7 +8938,7 @@ void define_md_data_raw()
             "mblock_dlos_grid", 
             "sensor_response", "sensor_time", "iy_unit",
             "iy_main_agenda", "geo_pos_agenda",
-            "jacobian_quantities", "jacobian_indices" ),
+            "jacobian_quantities" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8965,7 +8963,7 @@ void define_md_data_raw()
         IN( "jacobian", "mblock_index", "iyb", "yb",
             "sensor_response", "sensor_response_pol_grid",
             "sensor_response_f_grid", "sensor_response_dlos_grid", 
-            "jacobian_quantities", "jacobian_indices" ),
+            "jacobian_quantities" ),
         GIN( "poly_coeff" ),
         GIN_TYPE( "Index" ),
         GIN_DEFAULT( NODEF ),
@@ -9015,7 +9013,7 @@ void define_md_data_raw()
         IN( "jacobian", "mblock_index", "iyb", "yb", "sensor_response",
             "sensor_response_pol_grid", "sensor_response_f_grid", 
             "sensor_response_dlos_grid", 
-            "jacobian_quantities", "jacobian_indices" ),
+            "jacobian_quantities" ),
         GIN( "period_index" ),
         GIN_TYPE( "Index" ),
         GIN_DEFAULT( NODEF ),
@@ -9071,7 +9069,7 @@ void define_md_data_raw()
             "transmitter_pos", "mblock_dlos_grid",
             "sensor_response", "iy_unit", "iy_main_agenda", "geo_pos_agenda",
             "g0_agenda", "molarmass_dry_air", "p_hse", "z_hse_accuracy", 
-            "jacobian_quantities", "jacobian_indices" ),
+            "jacobian_quantities" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9117,7 +9115,7 @@ void define_md_data_raw()
          "No calculations are performed here.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUT( "jacobian_do", "jacobian_indices", "jacobian_agenda" ),
+        OUT( "jacobian_do", "jacobian_agenda" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -9184,7 +9182,7 @@ void define_md_data_raw()
             "scat_species_number_density_field", "scat_species_mean_mass_field",
             "pnd_field", "vmr_field", "t_field", "scat_data_raw", "scat_meta",
             "scat_species",
-            "jacobian_quantities", "jacobian_indices",
+            "jacobian_quantities",
             "abs_species", "atmosphere_dim", "cloudbox_limits",
             "z_surface", "p_grid",
             "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
@@ -9281,14 +9279,14 @@ void define_md_data_raw()
         (
          "Cloudy-sky (Doit) Jacobian equivalent to *jacobianClose*.\n"
          "\n"
-         "Derives *jacobian_indices*, sets *jacobianDoit_do* to 1 and checks\n"
+         "Sets *jacobianDoit_do* to 1 and checks\n"
          "that clearsky Jacobians are off (*jacobian_do*=0).\n"
          "\n"
          "Retrieval quantities should not be added after a call to this WSM.\n"
          "No calculations are performed here.\n"
          ),
         AUTHORS( "Mattias Ekstrom, Jana Mendrok" ),
-        OUT( "jacobianDoit_do", "jacobian_indices" ),
+        OUT( "jacobianDoit_do" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -9314,7 +9312,7 @@ void define_md_data_raw()
          "The Jacobian quantities are initialised to be empty.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUT( "jacobian_quantities", "jacobian_indices", "jacobian_agenda" ),
+        OUT( "jacobian_quantities", "jacobian_agenda" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -9341,7 +9339,7 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_do", "jacobianDoit_do", "jacobian_agenda",
-             "jacobian_quantities", "jacobian_indices" ),
+             "jacobian_quantities" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -10742,7 +10740,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "sensor_los", "sensor_pos", "sensor_time", "covmat_sx",
             "covmat_se", "xa", "y", "jacobian_do", "jacobian_quantities",
-            "jacobian_indices", "inversion_iterate_agenda" ),
+            "inversion_iterate_agenda" ),
         GIN( "method", "max_start_cost", "x_norm", "max_iter", "stop_dx", 
              "lm_ga_settings", "clear_matrices", "display_progress" ),
         GIN_TYPE( "String", "Numeric", "Vector", "Index", "Numeric", 
@@ -13807,11 +13805,11 @@ void define_md_data_raw()
             "are consistent with the Jacobian.\n"
             ),
         AUTHORS( "Simon Pfreundschuh" ),
-        OUT( "jacobian_do", "jacobian_indices", "jacobian_agenda", "retrieval_checked"),
+        OUT( "jacobian_do", "jacobian_agenda", "retrieval_checked" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "covmat_sx", "jacobian_agenda", "jacobian_quantities", "sensor_pos",
+        IN( "jacobian_agenda", "covmat_sx", "jacobian_quantities", "sensor_pos",
             "sensor_response" ),
         GIN(),
         GIN_TYPE(),
@@ -13922,8 +13920,8 @@ void define_md_data_raw()
           "Must be called before any other retrieval definition WSM.\n"
           ),
       AUTHORS( "Simon Pfreundschuh" ),
-      OUT( "covmat_se", "covmat_sx", "covmat_block", "covmat_inv_block", "jacobian_quantities",
-           "jacobian_indices", "jacobian_agenda" ),
+      OUT( "covmat_se", "covmat_sx", "covmat_block", "covmat_inv_block",
+           "jacobian_quantities", "jacobian_agenda" ),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -18698,7 +18696,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmfields_checked", "atmgeom_checked",
-            "jacobian_quantities", "jacobian_indices", "atmosphere_dim",
+            "jacobian_quantities", "atmosphere_dim",
             "p_grid", "lat_grid", "lon_grid", "t_field", "vmr_field",
             "abs_species", "cloudbox_on", "cloudbox_checked",
             "particle_bulkprop_field", "particle_bulkprop_names", "wind_u_field",
@@ -18733,7 +18731,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "x", "jacobian_quantities", "jacobian_indices" ),
+        IN( "x", "jacobian_quantities" ),
         GIN( "ijq", "limit_low", "limit_high" ),
         GIN_TYPE( "Index", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF, "-Inf", "Inf" ),
@@ -18769,7 +18767,7 @@ void define_md_data_raw()
         IN( "vmr_field", "t_field", "particle_bulkprop_field", "sensor_los",
             "wind_u_field", "wind_v_field", "wind_w_field",
             "atmfields_checked", "atmgeom_checked",
-            "jacobian_quantities", "jacobian_indices", "x",
+            "jacobian_quantities", "x",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species",
             "cloudbox_on", "cloudbox_checked", "particle_bulkprop_names",
             "sensor_time", "sensor_response", "sensor_response_dlos_grid",
@@ -19027,6 +19025,10 @@ void define_md_data_raw()
          "See the method selected for *iy_main_agenda* for quantities\n"
          "that can be obtained by *y_aux*. However, in no case data of\n"
          "along-the-path type can be extracted.\n"
+         "\n"
+         "The Jacobian provided (*jacobian*) is adopted to selected retrieval\n"
+         "units, but no transformations are applied. Transformations are\n"
+         "included by calling *jacobianAdjustAndTranform*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian" ),
@@ -19042,7 +19044,7 @@ void define_md_data_raw()
             "sensor_response_pol", "sensor_response_dlos",
             "iy_unit", "iy_main_agenda", "geo_pos_agenda",
             "jacobian_agenda", "jacobian_do", 
-            "jacobian_quantities", "jacobian_indices", "iy_aux_vars" ),
+            "jacobian_quantities", "iy_aux_vars" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -19082,17 +19084,21 @@ void define_md_data_raw()
          "The treatment of instrument related Jacobians (baseline fits,\n"
          "pointing ...) follows the *append_instrument_wfs* argument.\n"
          "\n"
-         "A difference to *yCalc* is that *jacobian_quantities* and\n"
-         "*jacobian_indices* are both in- and output variables. The input\n"
-         "version shall match the measurement to be calculated, while the\n"
-         "version matches the output *y*, the combined, measurements. Copies\n"
-         "of *jacobian_quantities* and * jacobian_indices* of the first\n"
-         "measurement must be made and shall be provided to the method as\n"
-         "*jacobian_quantities_copy* and *jacobian_indices_copy*.\n"
+         "A difference to *yCalc* is that *jacobian_quantities* is both in-\n"
+         "and output variable. The input version shall match the measurement\n"
+         "to be calculated, while the output version matches the output *y*,\n"
+         "the combined, measurements. A copies of *jacobian_quantities* of the\n"
+         "first measurement must be made and shall be provided to the method\n"
+         "as *jacobian_quantities_copy*.\n"
+         "\n"
+         "As for *yCalc* Jacobian transformations are not handled, and the\n"
+         "the input Jacobian shall not contain transformations. That is\n"
+         "*jacobainAdjustAndTranform* shall be called after this method,\n" 
+         "when the complete Jacobian is at hand.\n" 
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo",
-             "jacobian", "jacobian_quantities", "jacobian_indices" ),
+             "jacobian", "jacobian_quantities" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -19106,13 +19112,11 @@ void define_md_data_raw()
             "sensor_response_pol", "sensor_response_dlos",
             "iy_unit", "iy_main_agenda", "geo_pos_agenda",
             "jacobian_agenda", "jacobian_do", 
-            "jacobian_quantities", "jacobian_indices", "iy_aux_vars" ),
-        GIN( "jacobian_quantities_copy", "jacobian_indices_copy", 
-             "append_instrument_wfs" ),
-        GIN_TYPE( "ArrayOfRetrievalQuantity", "ArrayOfArrayOfIndex", "Index" ),
-        GIN_DEFAULT( NODEF, NODEF, "0" ),
+            "jacobian_quantities", "iy_aux_vars" ),
+        GIN( "jacobian_quantities_copy", "append_instrument_wfs" ),
+        GIN_TYPE( "ArrayOfRetrievalQuantity", "Index" ),
+        GIN_DEFAULT( NODEF, "0" ),
         GIN_DESC( "Copy of *jacobian_quantities* of first measurement.",
-                  "Copy of *jacobian_indices* of first measurement.",
                   "Flag controlling if instrumental weighting functions are "
                   "appended or treated as different retrieval quantities." )
         ));
@@ -19154,7 +19158,7 @@ void define_md_data_raw()
             "stokes_dim", "f_grid", "atmosphere_dim", "t_field", "z_field",
             "vmr_field", "cloudbox_on", "cloudbox_checked",
             "sensor_pos", "sensor_los", "sensor_checked",
-            "jacobian_do", "jacobian_quantities", "jacobian_indices",
+            "jacobian_do", "jacobian_quantities",
             "iy_main_agenda", "geo_pos_agenda", "instrument_pol_array", "range_bins" ),
         GIN(),
         GIN_TYPE(),

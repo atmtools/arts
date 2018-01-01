@@ -213,7 +213,6 @@ void iyEmissionStandard2(
   const ArrayOfString&              iy_aux_vars,
   const Index&                      jacobian_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
-  const ArrayOfArrayOfIndex&        jacobian_indices,
   const Ppath&                      ppath,
   const Vector&                     rte_pos2, 
   const Agenda&                     propmat_clearsky_agenda,
@@ -266,9 +265,8 @@ void iyEmissionStandard2(
                                jac_mag_i, jac_other, jac_to_integrate, diy_dx,
                                diy_dpath,
                                ns, nf, np, nq, abs_species,
-                               scat_species, dpnd_field_dx,
-                               ppd, jacobian_quantities, jacobian_indices,
-                               iy_agenda_call1 );
+                               scat_species, dpnd_field_dx, ppd,
+                               jacobian_quantities, iy_agenda_call1 );
     }
   
   // Init iy_aux and fill where possible
@@ -577,7 +575,6 @@ void iyEmissionStandard(
    const ArrayOfString&              iy_aux_vars,
    const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
-   const ArrayOfArrayOfIndex&        jacobian_indices,
    const Agenda&                     ppath_agenda,
    const Agenda&                     propmat_clearsky_agenda,
    const Agenda&                     iy_main_agenda,
@@ -719,6 +716,11 @@ void iyEmissionStandard(
       if( iy_agenda_call1 )
         {
           diy_dx.resize( nq ); 
+          //
+          bool any_affine;
+          ArrayOfArrayOfIndex jacobian_indices;
+          jac_ranges_indices( jacobian_indices, any_affine,
+                              jacobian_quantities, true );
           //
           FOR_ANALYTICAL_JACOBIANS_DO( diy_dx[iq].resize( 
             jacobian_indices[iq][1]-jacobian_indices[iq][0]+1, nf, ns ); 
@@ -1922,7 +1924,6 @@ void yCalc(
    const Agenda&                     jacobian_agenda,
    const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
-   const ArrayOfArrayOfIndex&        jacobian_indices,
    const ArrayOfString&              iy_aux_vars,
    const Verbosity&                  verbosity )
 {
@@ -1980,10 +1981,14 @@ void yCalc(
 
   // Jacobian variables
   //
-  Index  j_analytical_do = 0;
+  Index               j_analytical_do = 0;
+  ArrayOfArrayOfIndex jacobian_indices;
   //
   if( jacobian_do )
     {
+      bool any_affine;
+      jac_ranges_indices( jacobian_indices, any_affine,
+                          jacobian_quantities, true );
       jacobian.resize( nmblock*n1y, 
                        jacobian_indices[jacobian_indices.nelem()-1][1]+1 );
       jacobian = 0;
@@ -2117,7 +2122,6 @@ void yCalcAppend(
          Matrix&                     y_geo,
          Matrix&                     jacobian,
          ArrayOfRetrievalQuantity&   jacobian_quantities,
-         ArrayOfArrayOfIndex&        jacobian_indices,
    const Index&                      atmfields_checked,
    const Index&                      atmgeom_checked,
    const Index&                      atmosphere_dim,
@@ -2143,11 +2147,20 @@ void yCalcAppend(
    const Agenda&                     jacobian_agenda,
    const Index&                      jacobian_do,
    const ArrayOfString&              iy_aux_vars,
-   const ArrayOfRetrievalQuantity&   jacobian_quantities1,
-   const ArrayOfArrayOfIndex&        jacobian_indices1,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities_copy,
    const Index&                      append_instrument_wfs,
    const Verbosity&                  verbosity )
 {
+  // The jacobian indices of old and new part (without transformations)
+  ArrayOfArrayOfIndex jacobian_indices, jacobian_indices_copy;
+  {
+    bool any_affine; 
+    jac_ranges_indices( jacobian_indices_copy, any_affine,
+                        jacobian_quantities_copy, true );
+    jac_ranges_indices( jacobian_indices, any_affine,
+                        jacobian_quantities, true );
+  }
+
   // Check consistency of data representing first measurement
   const Index n1   = y.nelem();
         Index nrq1 = 0; 
@@ -2165,15 +2178,12 @@ void yCalcAppend(
     throw runtime_error( "Sizes of input *y* and *y_geo* are inconsistent." );
   if( jacobian_do )
     {
-      nrq1 = jacobian_quantities1.nelem();
+      nrq1 = jacobian_quantities_copy.nelem();
       if( jacobian.nrows() != n1 )
         throw runtime_error( "Sizes of *y* and *jacobian* are inconsistent." );
-      if( jacobian_indices1.nelem() != nrq1 )
-        throw runtime_error( "Lengths of *jacobian_quantities_copy* and "
-                             "*jacobian_indices_copy* are inconsistent." );
-      if( jacobian.ncols() != jacobian_indices1[nrq1-1][1]+1 )
-        throw runtime_error( "Size of input *jacobian* and max value in " 
-                             "*jacobian_indices_copy* are inconsistent." );
+      if( jacobian.ncols() != jacobian_indices_copy[nrq1-1][1]+1 )
+        throw runtime_error( "Size of input *jacobian* and size implied " 
+                             "*jacobian_quantities_copy* are inconsistent." );
     }
 
   // Calculate new measurement
@@ -2190,7 +2200,7 @@ void yCalcAppend(
          mblock_dlos_grid, sensor_response,
          sensor_response_f, sensor_response_pol, sensor_response_dlos, 
          iy_unit, iy_main_agenda, geo_pos_agenda, 
-         jacobian_agenda, jacobian_do, jacobian_quantities, jacobian_indices, 
+         jacobian_agenda, jacobian_do, jacobian_quantities,
          iy_aux_vars, verbosity );
 
   // Consistency checks
@@ -2263,8 +2273,8 @@ void yCalcAppend(
       ArrayOfRetrievalQuantity  jacobian_quantities2 = jacobian_quantities;
       ArrayOfArrayOfIndex       jacobian_indices2    = jacobian_indices;
       //
-      jacobian_quantities = jacobian_quantities1;
-      jacobian_indices    = jacobian_indices1;
+      jacobian_quantities = jacobian_quantities_copy;
+      jacobian_indices    = jacobian_indices_copy;
 
       // Loop new jacobian_quantities to determine how new jacobian data shall
       // be inserted
@@ -2287,17 +2297,17 @@ void yCalcAppend(
               for( Index q1=0; q1<nrq1; q1++ && pos < 0 )
                 {
                   if( jacobian_quantities2[q2].MainTag() ==
-                      jacobian_quantities1[q1].MainTag() )
+                      jacobian_quantities_copy[q1].MainTag() )
                     {
                       // Absorption species
                       if( jacobian_quantities2[q2].MainTag() == 
                                                            ABSSPECIES_MAINTAG )
                         {
                           if( jacobian_quantities2[q2].Subtag() ==
-                              jacobian_quantities1[q1].Subtag() )
+                              jacobian_quantities_copy[q1].Subtag() )
                             {
                               if( jacobian_quantities2[q2].Mode() ==
-                                  jacobian_quantities1[q1].Mode() )
+                                  jacobian_quantities_copy[q1].Mode() )
                                 { pos = q1; }
                               else
                                 {
@@ -2318,7 +2328,7 @@ void yCalcAppend(
                                                           TEMPERATURE_MAINTAG )
                         {
                           if( jacobian_quantities2[q2].Subtag() ==
-                              jacobian_quantities1[q1].Subtag() )
+                              jacobian_quantities_copy[q1].Subtag() )
                             { pos = q1; }
                           else
                             {
@@ -2335,7 +2345,7 @@ void yCalcAppend(
                         }
                       // Other
                       else if( jacobian_quantities2[q2].Subtag() ==
-                               jacobian_quantities1[q1].Subtag() )
+                               jacobian_quantities_copy[q1].Subtag() )
                         { pos = q1; }
                     }
                 }
@@ -2358,7 +2368,7 @@ void yCalcAppend(
             {
               map_table[q2] = pos;
               // Check if grids are equal
-              ArrayOfVector grids1 = jacobian_quantities1[pos].Grids();
+              ArrayOfVector grids1 = jacobian_quantities_copy[pos].Grids();
               ArrayOfVector grids2 = jacobian_quantities2[q2].Grids();
               bool any_wrong = false;
               if( grids1.nelem() != grids2.nelem() )
@@ -2405,7 +2415,7 @@ void yCalcAppend(
       jacobian = 0;
       //
       // Put in old part in top-left corner
-      jacobian(Range(0,n1),Range(0,jacobian_indices1[nrq1-1][1]+1)) = jacobian1;
+      jacobian(Range(0,n1),Range(0,jacobian_indices_copy[nrq1-1][1]+1)) = jacobian1;
       // New parts
       for( Index q2=0; q2<nrq2; q2++ )
         {
