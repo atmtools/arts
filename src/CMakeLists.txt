@@ -497,11 +497,6 @@ target_link_libraries (test_propagationmatrix ${ALL_ARTS_LIBRARIES})
 add_executable (test_covariance_matrix test_covariance_matrix.cc)
 target_link_libraries(test_covariance_matrix test_utils ${ALL_ARTS_LIBRARIES})
 
-########### next testcase ###############
-
-add_executable (test_telsem test_telsem.cc)
-target_link_libraries(test_telsem ${ALL_ARTS_LIBRARIES})
-
 ########### subdirs ###############
 
 add_subdirectory (libmicrohttpd)

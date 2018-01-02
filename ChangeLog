@@ -1,5 +1,13 @@
 2018-01-02  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
+	* arts-2-3-915
+
+	* CMakeLists.txt: Removed test_telsem.cc which was
+	not yet commited.
+
+
+2018-01-02  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
 	* arts-2-3-914
 
 	Added covariance_matrix.cc to artscore to avoid compilation
