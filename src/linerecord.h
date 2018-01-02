@@ -289,6 +289,7 @@ public:
       mquantum_numbers(),
       mpressurebroadeningdata(),
       mcutoff(-1.0),
+      mspeedup(-1.0),
       mmirroring(MirroringType::None),
       mlinenorm(LineNormalizationType::None),
       mlineshape(LineShapeType::ByPressureBroadeningData),
@@ -354,6 +355,7 @@ public:
       mquantum_numbers_str(""),
       mquantum_numbers(),
       mcutoff(-1.0),
+      mspeedup(-1.0),
       mmirroring(MirroringType::None),
       mlinenorm(LineNormalizationType::None),
       mlineshape(LineShapeType::ByPressureBroadeningData),
@@ -597,6 +599,10 @@ public:
   /** Cutoff frequency */
   const Numeric& CutOff() const {return mcutoff;}
   void SetCutOff(const Numeric& cutoff) {mcutoff = cutoff;}
+  
+  /** Speedup coefficient*/
+  const Numeric& SpeedUpCoeff() const {return mspeedup;}
+  void SetSpeedUpCoeff(const Numeric& speedup) {mspeedup = speedup;}
   
   /** Line shape mirroring factor */
   const MirroringType& GetMirroringType() const {return mmirroring;}
@@ -1144,6 +1150,9 @@ private:
   
   /** Cutoff frequency */
   Numeric mcutoff;
+  
+  /** Speedup Coefficient */
+  Numeric mspeedup;
   
   /** Line shape mirroring effect type */
   MirroringType mmirroring;

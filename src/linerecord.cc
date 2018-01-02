@@ -3076,6 +3076,16 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                         mcutoff = value;
                     }
                     
+                    // cutoff frequency
+                    if(token == "SPD")
+                    {
+                      Numeric value;
+                      icecream >> double_imanip() >> value;
+                      
+                      if(value > 0)
+                        mspeedup = value;
+                    }
+                    
                     // mirroring
                     else if(token == "MTM")
                     {
@@ -3317,13 +3327,15 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
           // Line shape modifications
           {
             const Numeric CUT = lr.CutOff();
+            const Numeric SPD = lr.SpeedUpCoeff();
             const Index   MTM = (Index) lr.GetMirroringType();
             const Index   LNT = (Index) lr.GetLineNormalizationType();
             const Index   LST = (Index) lr.GetLineShapeType();
             
-            const bool need_cut = CUT > 0, need_mtm = MTM, need_lnt = LNT, need_lst = LST;
+            const bool need_cut = CUT > 0, need_spd = SPD > 0, need_mtm = MTM, need_lnt = LNT, need_lst = LST;
             
             const Index nelem = (Index) need_cut +
+                                (Index) need_spd +
                                 (Index) need_mtm +
                                 (Index) need_lnt +
                                 (Index) need_lst;
@@ -3333,6 +3345,8 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
               ls << " LSM " << nelem;
               if(need_cut)
                 ls << " CUT " << CUT;
+              if(need_spd)
+                ls << " SPD " << SPD;
               if(need_mtm)
                 ls << " MTM " << MTM;
               if(need_lnt)

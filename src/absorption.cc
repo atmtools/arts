@@ -2457,7 +2457,7 @@ void xsec_species2(MatrixView xsec,
   DEBUG_ONLY(const bool do_jacobians = nj;)  // Jacobian return is requested only if there are partial derivatives
   
   // Test if the size of the problem is 0
-  if(not np*nf*nl)
+  if(not np or not nf or not nl)
     return;
   
   // Standard variables that must always have correct size upon calling this function
@@ -2592,4 +2592,95 @@ void xsec_species2(MatrixView xsec,
       }
     }
   }
+}
+
+
+Range partial_binary_range(const ConstVectorView f, const Index& i)
+{
+  // Size of problem
+  const Index n = f.nelem();
+  
+  // The first range is always complete and contains end-points
+  if(not i)
+    return Range(0, 2, n-1);
+
+  // The full range is 2^i + 1, the partial range is half minus 1 long
+  const Index d = (1 << (i-1));
+  
+  // The true stepsize is thus simply
+  const Index s = (n - 1) / d;
+  
+  // And we now have the partial range as simply
+  return Range(s, d, s);
+}
+
+
+Range full_binary_range(const ConstVectorView f, const Index& i)
+{
+  // Size of problem
+  const Index n = f.nelem();
+  
+  // The first range is always complete and contains end-points
+  if(not i)
+    return Range(0, 2, n-1);
+  
+  // The full range is 2^i + 1, the partial range is half minus 1 long
+  const Index d = 1 << i;
+  
+  // The true stepsize is thus simply
+  const Index s = (n - 1) / d;
+  
+  // And we now have the full range as simply
+  return Range(0, d + 1, s);
+}
+
+
+Range speedup_binary_range(const ConstVectorView f, 
+                           const Numeric& u, 
+                           const Numeric& l)
+{
+  // Size of problem
+  const Index n = f.nelem();
+  
+  // Treat the special cases first. There is no distance or speedup involved here
+  if(not n)
+    return Range(0, 0);
+  else if(n == 1)
+  {
+    if(f[0] < u and f[0] > l)
+      return Range(0, 1);
+    else
+      return Range(0, 0);
+  }
+  else if(n == 2)
+    return Range(0, 2);
+  
+  // Equidistance in f required
+  const Numeric d = f[1] - f[0];
+  
+  Index nl = (Index)((l-f[0])/d) + 1;
+  Index nu = (Index)((u-f[0])/d) + 1;
+  
+  // Lower start-position adjustments
+  if(nl < 0)
+    nl = 0;
+  else if(nl > n)
+    nl = n;
+  
+  // Upper end-position adjustment
+  if(nu < 0)
+    nu = 0;
+  else if(nu > n)
+    nu = n;
+    
+  return Range(nl, nu - nl);
+}
+
+
+void interp_up_binary_range(VectorView u, const ConstVectorView l)
+{
+  const Index n = l.nelem() - 1;
+  
+  for(Index i = 0; i < n; i++)
+    u[2*i + 1] = 0.5 * (l[i] + l[i + 1]);
 }

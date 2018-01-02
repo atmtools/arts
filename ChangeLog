@@ -1,3 +1,32 @@
+2018-01-02  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-913
+	
+	Preparing for allowing sparsening grids for 
+	line-by-line absorption.  Only useful part of
+	this commit is range of ranges, which is probably
+	incredibly inefficient so it should only be used
+	sparsely (pun unavoidable?).  This comes from discussions
+	with Oliver and Stefan (where I think we went wrong
+	in wanting 2^N instead of 2^N + 1 grid-points, so the
+	present idea I am working on implements the latter --- 
+	otherwise there is no central point and the ranging 
+	becomes by ignoring the right-hand.  With 2^N + 1 you
+	avoid this and can still perfectly predict the computation
+	sizes)
+
+	* src/absorption.cc:  Added temporarily named functions for
+	the sparsening grids.
+
+	* src/linerecord.{h,cc}:  Added SPD and mspeedup as variables
+	to be used as coefficients in the speedup-calculations.
+	
+	* src/matpackI_h:  Added what is probably a poor implementation
+	of range of range.  I need this feature in my working python
+	version and I cannot go away from this idea without adding a lot
+	of complexity to the code.  I hope the implementation can be 
+	improved some.
+
 2018-01-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-912

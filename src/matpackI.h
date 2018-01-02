@@ -217,6 +217,10 @@ public:
   Index get_extent () const { return mextent; }
   /** Returns the stride of the range. */
   Index get_stride () const { return mstride; }
+  
+  /** Range of range. */
+  Range operator()(const Range r) const {return Range(mstart + r.mstart*mstride, r.mextent, r.mstride*mstride);};
+  Index operator()(const Index i) const {return mstart + i*mstride;};
 
 private:
   /** The start index. */

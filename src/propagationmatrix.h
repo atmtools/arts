@@ -140,7 +140,7 @@ public:
   
   void SetVectorType(bool vectortype) {mvectortype = vectortype;}
   
-  bool IsEmpty() const {return not ((bool) mfreqs*mza*maa);};
+  bool IsEmpty() const {return not mfreqs or not mza or not maa;};
   
   /* The number of required vectors to fill this PropagationMatrix --- designed for GetVector(i) */
   Index NumberOfNeededVectors() const
@@ -594,7 +594,6 @@ public:
   ConstVectorView VectorAtPosition(const Index iv=0, const Index iz=0, const Index ia=0) const { return mdata(ia, iz, iv, joker); }
   
   void VectorAtPosition(VectorView ret, const Index iv=0, const Index iz=0, const Index ia=0) { ret = mdata(ia, iz, iv, joker); }
-  
   void VectorAtPosition(VectorView ret, const Index iv=0, const Index iz=0, const Index ia=0) const { ret = mdata(ia, iz, iv, joker); }
   
   void SetAtPosition(ConstVectorView x, const Index iv=0, const Index iz=0, const Index ia=0)  { mdata(ia, iz, iv, joker) = x; }

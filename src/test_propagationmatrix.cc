@@ -526,6 +526,15 @@ void test_erfc()
 }
 
 
+void test_funs_compression()
+{
+  Index n = 32;
+  Vector v;
+  nlinspace(v, 0, 2*n, n+1);
+  std::cout<<v[Range(joker)(Range(joker)(Range(0, 5)))(Range(0, 2, 2))]<<"\n";
+}
+
+
 int main()
 {
     std::cout<<"Testing Propmat Partials\n";
@@ -535,6 +544,7 @@ int main()
 //     test_lineshape();
 //     test_the_class();
 //    test_new_lineshapes();
-    test_erfc();
+//    test_erfc();
+    test_funs_compression();
     return 0;
 }
