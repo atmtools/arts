@@ -184,6 +184,7 @@ add_library (artscore STATIC
   cloudbox.cc
   constants.cc
   continua.cc
+  covariance_matrix.cc
   disort.cc
   docserver.cc
   doit.cc
@@ -235,8 +236,10 @@ add_library (artscore STATIC
   m_psd.cc
   m_radiation_field.cc
   m_refraction.cc
+  m_retrieval.cc
   m_rt4.cc
   m_rte.cc
+  m_retrieval.cc
   m_sensor.cc
   m_surface.cc
   m_telsem.cc
@@ -290,7 +293,7 @@ add_library (artscore STATIC
   )
 add_dependencies (artscore auto_version_h)
 
-target_link_libraries (artscore ${ZLIB_LIBRARIES} covariance_matrix)
+target_link_libraries (artscore ${ZLIB_LIBRARIES})
 
 if (NETCDF_FOUND)
   target_link_libraries (artscore ${NETCDF_LIBRARIES})
@@ -303,11 +306,6 @@ endif (ENABLE_MPI)
 if (ENABLE_DOCSERVER)
   target_link_libraries (artscore microhttpd ${CMAKE_THREAD_LIBS_INIT})
 endif (ENABLE_DOCSERVER)
-
-########### next target ###############
-
-add_library (covariance_matrix STATIC covariance_matrix.cc m_retrieval.cc)
-target_link_libraries (covariance_matrix matpack)
 
 ########### next target ###############
 
@@ -497,7 +495,12 @@ target_link_libraries (test_propagationmatrix ${ALL_ARTS_LIBRARIES})
 ########### next testcase ###############
 
 add_executable (test_covariance_matrix test_covariance_matrix.cc)
-target_link_libraries(test_covariance_matrix test_utils covariance_matrix ${ALL_ARTS_LIBRARIES})
+target_link_libraries(test_covariance_matrix test_utils ${ALL_ARTS_LIBRARIES})
+
+########### next testcase ###############
+
+add_executable (test_telsem test_telsem.cc)
+target_link_libraries(test_telsem ${ALL_ARTS_LIBRARIES})
 
 ########### subdirs ###############
 

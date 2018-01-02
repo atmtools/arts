@@ -1,3 +1,10 @@
+2018-01-02  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-914
+
+	Added covariance_matrix.cc to artscore to avoid compilation
+	of m_retrieval outside of artscore.
+
 2018-01-02  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-913
