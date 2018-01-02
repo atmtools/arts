@@ -1,5 +1,19 @@
 2018-01-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-912
+
+	* src/m_jacobian.cc (jacobianAdjustAndTransform): Empty jacobian
+	was not fully handled correctly (the method must accept this,
+	otherwise can not be part of inversion_iteration_agenda).
+
+	* src/jacobian.cc (transform_jacobian): Bug fix regarding
+	scaling associated with log and log10.
+
+	* src/m_jacobian.cc (jacobianSetFuncTransformation): Added option
+	"none".
+
+2018-01-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-911
 
 	* jacobian_indices no longer exists as a WSM. Removed it, as after

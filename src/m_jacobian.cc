@@ -4185,34 +4185,36 @@ void jacobianAdjustAndTransform(
   const Vector&                    x,
   const Verbosity& )
 {
+  // For flexibility inside inversion_iteration_agenda, we should accept empty
+  // Jacobian
+  if( jacobian.empty() )
+    { return; }
+
   // Adjustments
   //
   // Unfortunately the adjustment requires both range indices and the
   // untransformed x, which makes things a bit messy
-  if ((jacobian.ncols() > 0) && (jacobian.nrows() > 0))
+  bool vars_init = false;
+  ArrayOfArrayOfIndex jis0;
+  Vector x0;
+  //
+  for( Index q=0; q<jacobian_quantities.nelem(); q++ )
     {
-      bool vars_init = false;
-      ArrayOfArrayOfIndex jis0;
-      Vector x0;
-      //
-      for( Index q=0; q<jacobian_quantities.nelem(); q++ )
+      if( jacobian_quantities[q].MainTag() == ABSSPECIES_MAINTAG  &&
+          jacobian_quantities[q].Mode()    == "rel")
         {
-          if( jacobian_quantities[q].MainTag() == ABSSPECIES_MAINTAG  &&
-              jacobian_quantities[q].Mode()    == "rel")
+          if( !vars_init )
             {
-              if( !vars_init )
-                {
-                  bool any_affine;
-                  jac_ranges_indices( jis0, any_affine, jacobian_quantities, true );
-                  x0 = x;
-                  transform_x_back( x0, jacobian_quantities );
-                  vars_init = true;
-                }
-              for( Index i=jis0[q][0]; i<=jis0[q][1]; i++ )
-                {
-                  if( x[i] != 1 )
-                    { jacobian(joker,i) /= x[i]; }
-                }
+              bool any_affine;
+              jac_ranges_indices( jis0, any_affine, jacobian_quantities, true );
+              x0 = x;
+              transform_x_back( x0, jacobian_quantities );
+              vars_init = true;
+            }
+          for( Index i=jis0[q][0]; i<=jis0[q][1]; i++ )
+            {
+              if( x[i] != 1 )
+                { jacobian(joker,i) /= x[i]; }
             }
         }
     }
@@ -4259,13 +4261,19 @@ void jacobianSetFuncTransformation(
     )
 {
   if( jqs.empty() )
-    runtime_error("Jacobian quantities is empty, so there is nothing to add the "
-                  "transformation to.");
+    runtime_error( "Jacobian quantities is empty, so there is nothing to add the "
+                   "transformation to." );
+
+  if( transformation_func == "none" )
+    {
+      jqs.back().SetTransformationFunc( "" );
+      return;
+    }
 
   if( transformation_func != "log"  &&  transformation_func != "log10" )
-    runtime_error("Valid options for *transformation_func* are: "
-                    "\"log\" and \"log10\".");
-    
+    runtime_error( "Valid options for *transformation_func* are: "
+                   "\"none\", \"log\" and \"log10\".");
+  
   jqs.back().SetTransformationFunc( transformation_func );
 }
 

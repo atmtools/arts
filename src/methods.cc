@@ -8722,6 +8722,8 @@ void define_md_data_raw()
          "without causing any error, the calculations will just be a bit slower).\n"
          "Otherwise, this method should be called, typically as part of\n"
          "*inversion_iteration_agenda*.\n"
+         "\n"
+         "The method accepts if *jacobian* is empty, and then does, nothing.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian" ),
@@ -9397,13 +9399,14 @@ void define_md_data_raw()
            "For a general description of how retrieval transformations are\n"
            "applied, see below.\n"
            "\n"
-           "The following transformations can be selected:\n"
+           "The following transformations can be selected (by *transformation_func*):\n"
            "   log   : The natural logarithm\n"
            "   log10 : The base-10 logarithm\n"
+           "   none  : No transformation at all\n"
            "\n"
            "This method needs only to be called if a functional transformation\n"
-           "is wanted. Default is to make no such tranformation at all.\n"
-           "\n"
+           "is wanted. Default is to make no such tranformation at all (i.e.\n"
+           "the option \"none\" exists only for reasons of flexibility).\n"
            "\n"
            "General handling of retrieval units and transformations:\n"
            "---\n"

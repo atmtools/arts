@@ -144,7 +144,7 @@ void transform_jacobian(
   bool any_affine;
   //
   jac_ranges_indices( jis, any_affine, jqs, true );
-  
+
   // Apply functional transformations
   for (Index i = 0; i < jqs.nelem(); ++i) {
     const RetrievalQuantity &jq = jqs[i];
@@ -155,12 +155,12 @@ void transform_jacobian(
     }
     else if (tfun == "log") {
       for (Index c = jis[i][0]; c <= jis[i][1]; ++c) {
-        jacobian(joker,c) *= x[c];
+        jacobian(joker,c) *= exp( x[c] );
       }
     }
     else if (tfun == "log10") {
       for (Index c = jis[i][0]; c <= jis[i][1]; ++c) {
-        jacobian(joker,c) *= NAT_LOG_TEN * x[c];
+        jacobian(joker,c) *= NAT_LOG_TEN * pow(10.0,x[c]);
       }
     }
     else{
