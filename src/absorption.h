@@ -863,6 +863,7 @@ void xsec_species2(MatrixView xsec,
                    const Numeric lm_p_lim,
                    const SpeciesAuxData& isotopologue_ratios,
                    const SpeciesAuxData& partition_functions,
+                   const Index& binary_speedup,
                    const Verbosity& verbosity);
 
 #endif // absorption_h

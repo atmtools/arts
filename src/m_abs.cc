@@ -3300,6 +3300,7 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
                                    const Vector& abs_t,
                                    const Matrix& abs_t_nlte,
                                    const Numeric& lm_p_lim,
+                                   const Index& xsec_speedup_switch,
                                    const Matrix& abs_vmrs,
                                    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
                                    const SpeciesAuxData& isotopologue_ratios,
@@ -3341,7 +3342,23 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
       << "(As a special case, abs_lineshape is allowed to have only one element.)";
       throw std::runtime_error(os.str());
     }
-  }  
+  }
+  
+  // If xsec_speedup_switch is true the length of f_grid is 2^N+1, find N:
+  Index binary_speedup = 0;
+  if(xsec_speedup_switch)
+  {
+    Index n = f_grid.nelem() - 1;
+    if(n < 4)
+      throw std::runtime_error("Requesting speedup requires atleast 5 frequency points in total.");
+    do
+    {
+      if(n & 0x01)
+        throw std::runtime_error("Requesting speedup requires 2^N+1 frequency points");
+      n = n >> 1;
+      binary_speedup += 1;
+    } while(n not_eq 1);
+  }
   
   // Take all jacobians into account through this variable
   const PropmatPartialsData flag_partials(jacobian_quantities);
@@ -3405,6 +3422,7 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
                     lm_p_lim,
                     isotopologue_ratios,
                     partition_functions,
+                    binary_speedup, 
                     verbosity);
     }
     

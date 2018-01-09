@@ -263,7 +263,8 @@ namespace Linefunctions
                                          const Index& this_species_location_in_tags,
                                          const Index& water_index_location_in_tags,
                                          const Verbosity& verbosity,
-                                         const bool cutoff_call=false);
+                                         const bool cutoff_call=false,
+                                         const Index binary_speedup=false);
   
   void apply_cutoff(ComplexVectorView F,
                     ArrayOfComplexVector& dF,
@@ -305,6 +306,20 @@ namespace Linefunctions
                                                         const Numeric& A21,
                                                         const Numeric& F0,
                                                         const Numeric& T);
+  
+  Range binary_range(const ConstVectorView f, const Index& i, const bool full=false);
+  
+  Range speedup_binary_range(const ConstVectorView f, const Numeric& u, const Numeric& l);
+  
+  void interp_up_inside_binary_range(ComplexVectorView f, const Range& l);
+  
+  void interp_to_boundary_of_binary_range(ComplexVectorView f, const Index upper_boundary, const Index lower_boundary);
+  
+  Numeric speedup_distance_binary_range(const Index, const Numeric, const Numeric, const Numeric, const Numeric);
+  
+  void find_boundary_of_binary_range(Index& u, Index& l, ConstVectorView f, const Numeric C, 
+                                     const Numeric G0, const Numeric F0, const Numeric GD_div_F0,
+                                     const Index binary_speedup);
 };
 
 #endif //linefunctions_h

@@ -1,3 +1,71 @@
+2018-01-09  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-916
+	
+	Speedup is now working via xsec_species2 but only shaves, e.g.,
+	30% of the time despite computing only perhaps 500 out of 
+	524289 points c.f. computing on all points...  much time can be
+	saved by having a better interpolator implemented.  In particular,
+	a lot of points are being touched more than once which is not as
+	intented.  Not tested for multiple lines yet. So still much work 
+	to do...
+	
+	* src/absorption.{cc,h}:  Removed named functions and moved 
+	these to linefunctions.cc.  xsec_species2 now just passes 
+	the speedup constant along to the inner-most function.
+
+	* src/linefunctions.{h,cc}: Now contains the speedup framework.
+	I am not allowing cutoff and speedup at the same time because 
+	the setup relies on having 2^N+1 data point in f_grid, which
+	means the cutoff cannot be handled very well...
+	
+	The speedup happens inside a do-while call testing that the 
+	speedup should be performed and computing the temporary size
+	of the problem.  There are a few key calls happening in order:
+	
+	find_boundary_of_binary_range(...): finds the lower and higher
+	boundary of the problem from where there is full interpolation.
+	
+	binary_range(..., false):  Finds the partial range that covers
+	the range.  In a 9-long f_grid, this would be in order:
+	[0, 8]; [4]; [2, 6]; [1, 3, 5, 7];
+	
+	speedup_distance_binary_range(...): Finds the distance in Hz
+	that should define if a range is used there or not.
+	
+	speedup_binary_range(...):  Reduces the previous ranges to
+	the parts of interest for the particular problem.  Say
+	Index 2 and 6 are too close for range [2, 6] above, then
+	these values are only interpolated up (and so will [1, 7]
+	of the next range also be per automatics).  Presently 
+	using 2^s * C * sqrt(G0^2 + GD^2), where s is an index,
+	C is a constant that has to be set for the line using the
+	"LSM 1 SPD C" logic in the artscat-5 call, G0 is the
+	pressure broadening nad GD the doppler broadening.
+	This is just a first guess and alternatives should perhaps 
+	be found.
+	
+	binary_range(..., true):  Returns the full range so that the
+	9-long example returns:
+	[0, 8]; [0, 4, 8]; [0, 2, 4, 8];
+	
+	interp_up_inside_binary_range(...):  Interpolates to a grid 
+	denser by a factor 2 than the passed in range.
+	
+	interp_to_boundary_of_binary_range(...):  Interpolates from
+	the boundary of the problem all the way to the edges, which
+	are always computed.
+	
+	* src/matpackI_h: Fixed new call based on mextent = -1 
+	representing a joker.  This function might be causing quite
+	a lot of slowdown because it is called very often...
+	
+	* src/{workspace,methods}.cc:  Added xsec_speedup_switch
+	which activates the code if possible.
+	
+	* src/test_propagationmatrix.cc: A small test of the range
+	functions...
+
 2018-01-02  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-915

@@ -490,7 +490,7 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
             (sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*dwiZm - (1.0-Zp2)*dwiZp)+ (-2.0*Zm)*wiZm - (-2.0*Zp)*wiZp)
           );
           
-          dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dG); 
+        dF[iq][df_range][iv] = invG * (invPI * dA - F[iv] * dG); 
       }
       else if(derivatives_data(iq) == JQT_line_center) // No //external inputs --- errors because of frequency shift when Zeeman is used?
       {
@@ -1824,7 +1824,8 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
                                                       const Index& this_species_location_in_tags,
                                                       const Index& water_index_location_in_tags,
                                                       const Verbosity& verbosity,
-                                                      const bool cutoff_call)
+                                                      const bool cutoff_call,
+                                                      const Index binary_speedup)
 {  
   /* Single line shape solver
      
@@ -1862,10 +1863,12 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
    * a non-negative number in the frequency range.
    */
   
+  // Size and type of problem
   const Numeric& cutoff = line.CutOff();
-  const bool need_cutoff = cutoff_call ? 
-                           false       :
-                           find_cutoff_ranges(this_f_range, f_grid, line.F(), cutoff);
+  const bool need_cutoff = cutoff_call ? false : find_cutoff_ranges(this_f_range, f_grid, line.F(), cutoff);
+  const bool need_binary_speedup = binary_speedup and line.SpeedUpCoeff() > 0.0;
+  if(need_cutoff and need_binary_speedup)
+    throw std::runtime_error("Cannot have booth cutoff and binary speedup at same time...");
                            
   // Leave this function if there is nothing to compute
   if(this_f_range.get_extent() == 0)
@@ -1934,191 +1937,250 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
   // type to the same line shape as the main line.
   LineShapeType lst = LineShapeType::End;
   
-  /*! Set the line shape normalized to unity integration
-   * The user can set this by LSM LST followed by an index that 
-   * is interpreted internally as a line shape.
-   * The main point is not that the user should use such functions 
-   * but that support functions can set the catalog, and that once
-   * stored the catalog will use that line shape.  If no line shape 
-   * tag is given, the line shape will be set by the type of pressure
-   * broadening data that has been provided.
-   */
-  switch(line.GetLineShapeType())
-  {
-    // Use data as provided by the pressure broadening scheme
-    case LineShapeType::ByPressureBroadeningData:
-      switch(line.PressureBroadening().Type())
+  // Speedup variables
+  Index speedup_index=0, computational_points=0, lower_boundary, upper_boundary;
+  Range speedup_range(joker);
+  
+  if(need_binary_speedup)
+    find_boundary_of_binary_range(upper_boundary, lower_boundary, f_grid, line.SpeedUpCoeff(),
+                                  G0, line.F(), doppler_constant, binary_speedup);
+    
+  do
+  { 
+    // Setup the speedup range if necessary
+    if(need_binary_speedup)
+    {
+      // binary_range sets the grids to [1, n-1], [(n-1)/2], [(n-1)/4, 3*(n-1)/4], [n/8, 3*n/8, 5*n/8, 7*n/8], ...
+      speedup_range = binary_range(f_grid, speedup_index, false);
+      
+      // Distance from the line center where the range is computed
+      const Numeric d = speedup_distance_binary_range(binary_speedup-speedup_index, line.SpeedUpCoeff(), G0, line.F(), doppler_constant);
+      
+      // Only select a part of the range
+      if(speedup_index)
+        speedup_range = speedup_range(speedup_binary_range(f_grid[speedup_range], line.F() + d, line.F() - d));
+      
+      /* 
+       * If the first range to be computed after the boundary stretches far outside
+       * the range of the speedup-region, the interpolation to an upper level will
+       * contain zeroes.  To combat this, the first range to be computed is computed
+       * fully, so that the interpolation to a denser range is made easy.
+       * 
+       * These cases are either the first time a speedup-range has an extent or if the 
+       * middle point has beed computed
+       */
+      if((computational_points == 2 and speedup_range.get_extent()) or computational_points == 3)
+        speedup_range = Range(speedup_range.get_start(), 2*speedup_range.get_extent(), speedup_range.get_stride()/2);
+      
+      // Add up the number of points being computed
+      computational_points += speedup_range.get_extent();
+    }
+    
+    if(speedup_range.get_extent())
+    {
+      /*! Set the line shape normalized to unity integration
+      * The user can set this by LSM LST followed by an index that 
+      * is interpreted internally as a line shape.
+      * The main point is not that the user should use such functions 
+      * but that support functions can set the catalog, and that once
+      * stored the catalog will use that line shape.  If no line shape 
+      * tag is given, the line shape will be set by the type of pressure
+      * broadening data that has been provided.
+      */
+      switch(line.GetLineShapeType())
       {
-        // Use data as per speed dependent air
-        case PressureBroadeningData::PB_SD_AIR_VOLUME:
-        case PressureBroadeningData::PB_PURELY_FOR_TESTING:
-          lst = LineShapeType::HTP;
-          set_htp(F[this_f_range], dF, 
-                  f_grid[this_f_range], zeeman_frequency_shift_constant, magnetic_magnitude, 
+        // Use data as provided by the pressure broadening scheme
+        case LineShapeType::ByPressureBroadeningData:
+          switch(line.PressureBroadening().Type())
+          {
+            // Use data as per speed dependent air
+            case PressureBroadeningData::PB_SD_AIR_VOLUME:
+            case PressureBroadeningData::PB_PURELY_FOR_TESTING:
+              lst = LineShapeType::HTP;
+              set_htp(F[this_f_range(speedup_range)], dF, 
+                      f_grid[this_f_range(speedup_range)], zeeman_frequency_shift_constant, magnetic_magnitude, 
+                      line.F(), doppler_constant, 
+                      G0, L0, G2, L2, e, FVC,
+                      derivatives_data, QI,
+                      ddoppler_constant_dT, 
+                      dG0_dT, dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT,
+                      this_f_range(speedup_range));
+              break;
+            // Use for data that requires air and water Voigt broadening
+            case PressureBroadeningData::PB_AIR_AND_WATER_BROADENING:
+            // Use for data that requires planetary Voigt broadening
+            case PressureBroadeningData::PB_PLANETARY_BROADENING:
+              // Use for data that requires air Voigt broadening
+            case PressureBroadeningData::PB_AIR_BROADENING:
+              // Above should be all methods of pressure broadening requiring Voigt in ARTS by default
+              lst = LineShapeType::Voigt;
+              set_faddeeva_algorithm916(F[this_f_range(speedup_range)], dF, f_grid[this_f_range(speedup_range)], 
+                                        zeeman_frequency_shift_constant, magnetic_magnitude, 
+                                        line.F(), doppler_constant, 
+                                        G0, L0, DV, derivatives_data, QI,
+                                        ddoppler_constant_dT, dG0_dT, dL0_dT, dDV_dT,
+                                        this_f_range(speedup_range));
+              break;
+            default:
+              throw std::runtime_error("Developer has messed up and needs to add the key to the code above this error");
+          }
+          break;
+        // This line only needs the Doppler effect
+        case LineShapeType::Doppler:
+          lst = LineShapeType::Doppler;
+          set_doppler(F[this_f_range(speedup_range)], dF, f_grid[this_f_range(speedup_range)], zeeman_frequency_shift_constant, magnetic_magnitude, 
+                      line.F(), doppler_constant, derivatives_data, QI, ddoppler_constant_dT, this_f_range(speedup_range));
+          break;
+        // This line only needs Hartmann-Tran
+        case LineShapeType::HTP:
+          set_htp(F[this_f_range(speedup_range)], dF, 
+                  f_grid[this_f_range(speedup_range)], zeeman_frequency_shift_constant, magnetic_magnitude, 
                   line.F(), doppler_constant, 
                   G0, L0, G2, L2, e, FVC,
                   derivatives_data, QI,
                   ddoppler_constant_dT, 
                   dG0_dT, dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT,
-                  this_f_range);
+                  this_f_range(speedup_range));
+          lst = LineShapeType::HTP;
           break;
-        // Use for data that requires air and water Voigt broadening
-        case PressureBroadeningData::PB_AIR_AND_WATER_BROADENING:
-        // Use for data that requires planetary Voigt broadening
-        case PressureBroadeningData::PB_PLANETARY_BROADENING:
-          // Use for data that requires air Voigt broadening
-        case PressureBroadeningData::PB_AIR_BROADENING:
-          // Above should be all methods of pressure broadening requiring Voigt in ARTS by default
+        // This line only needs Lorentz
+        case LineShapeType::Lorentz:
+          lst = LineShapeType::Lorentz;
+          set_lorentz(F[this_f_range(speedup_range)], dF, f_grid[this_f_range(speedup_range)], zeeman_frequency_shift_constant, magnetic_magnitude, 
+                      line.F(), G0, L0, DV, derivatives_data, QI, dG0_dT, dL0_dT, dDV_dT, this_f_range(speedup_range));
+          break;
+        // This line only needs Voigt
+        case LineShapeType::Voigt:
           lst = LineShapeType::Voigt;
-          set_faddeeva_algorithm916(F[this_f_range], dF, f_grid[this_f_range], 
+          set_faddeeva_algorithm916(F[this_f_range(speedup_range)], dF, f_grid[this_f_range(speedup_range)], 
                                     zeeman_frequency_shift_constant, magnetic_magnitude, 
                                     line.F(), doppler_constant, 
                                     G0, L0, DV, derivatives_data, QI,
                                     ddoppler_constant_dT, dG0_dT, dL0_dT, dDV_dT,
-                                    this_f_range);
+                                    this_f_range(speedup_range));
           break;
-        default:
-          throw std::runtime_error("Developer has messed up and needs to add the key to the code above this error");
-      }
-      break;
-    // This line only needs the Doppler effect
-    case LineShapeType::Doppler:
-      lst = LineShapeType::Doppler;
-      set_doppler(F[this_f_range], dF, f_grid[this_f_range], zeeman_frequency_shift_constant, magnetic_magnitude, 
-                  line.F(), doppler_constant, derivatives_data, QI, ddoppler_constant_dT, this_f_range);
-      break;
-    // This line only needs Hartmann-Tran
-    case LineShapeType::HTP:
-      set_htp(F[this_f_range], dF, 
-              f_grid[this_f_range], zeeman_frequency_shift_constant, magnetic_magnitude, 
-              line.F(), doppler_constant, 
-              G0, L0, G2, L2, e, FVC,
-              derivatives_data, QI,
-              ddoppler_constant_dT, 
-              dG0_dT, dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT,
-              this_f_range);
-      lst = LineShapeType::HTP;
-      break;
-    // This line only needs Lorentz
-    case LineShapeType::Lorentz:
-      lst = LineShapeType::Lorentz;
-      set_lorentz(F[this_f_range], dF, f_grid[this_f_range], zeeman_frequency_shift_constant, magnetic_magnitude, 
-                  line.F(), G0, L0, DV, derivatives_data, QI, dG0_dT, dL0_dT, dDV_dT, this_f_range);
-      break;
-    // This line only needs Voigt
-    case LineShapeType::Voigt:
-      lst = LineShapeType::Voigt;
-      set_faddeeva_algorithm916(F[this_f_range], dF, f_grid[this_f_range], 
-                                zeeman_frequency_shift_constant, magnetic_magnitude, 
-                                line.F(), doppler_constant, 
-                                G0, L0, DV, derivatives_data, QI,
-                                ddoppler_constant_dT, dG0_dT, dL0_dT, dDV_dT,
-                                this_f_range);
-      break;
-    case LineShapeType::End:
-    default:
-      throw std::runtime_error("Cannot understand the requested line shape type.");
-  }
-  
-  // Set the mirroring by repeating computations above using 
-  // negative numbers for frequency of line related terms
-  // The user sets if they want mirroring by LSM MTM followed by an index
-  // that is interpreted as either mirroring by the same line shape or as 
-  // mirroring by Lorentz lineshape
-  switch(line.GetMirroringType())
-  {
-    // No mirroring
-    case MirroringType::None:
-      break;
-    // Lorentz mirroring
-    case MirroringType::Lorentz:
-      {
-        // Set the mirroring computational vectors and size them as needed
-        ComplexVector Fm(F[this_f_range].nelem());
-        ArrayOfComplexVector dFm(dF.nelem());
-        for(auto& aocv : dFm) aocv.resize(F[this_f_range].nelem());
-        
-        set_lorentz(Fm, dFm, f_grid[this_f_range], -zeeman_frequency_shift_constant, magnetic_magnitude, 
-                    -line.F(), G0, -L0, -DV, derivatives_data, QI, dG0_dT, -dL0_dT, -dDV_dT, this_f_range);
-        
-        // Apply mirroring
-        F[this_f_range] -= Fm;
-        for(Index i = 0; i < dF.nelem(); i++) dF[i][this_f_range] -= dFm[i];
-      }
-      break;
-    // Same type of mirroring as before
-    case MirroringType::SameAsLineShape:
-    {
-      // Set the mirroring computational vectors and size them as needed
-      ComplexVector Fm(F[this_f_range].nelem());
-      ArrayOfComplexVector dFm(dF.nelem());
-      for(auto& aocv : dFm) aocv.resize(F[this_f_range].nelem());
-      
-      switch(lst)
-      {
-        case LineShapeType::Doppler:
-          set_doppler(Fm, dFm, f_grid[this_f_range], -zeeman_frequency_shift_constant, magnetic_magnitude, 
-                      -line.F(), -doppler_constant, derivatives_data, QI, -ddoppler_constant_dT, this_f_range);
-          break;
-        case LineShapeType::Lorentz:
-          set_lorentz(Fm, dFm, f_grid[this_f_range], -zeeman_frequency_shift_constant, magnetic_magnitude, 
-                      -line.F(), G0, -L0, -DV, derivatives_data, QI, dG0_dT, -dL0_dT, -dDV_dT, this_f_range);
-          break;
-        case LineShapeType::Voigt:
-          set_faddeeva_algorithm916(Fm, dFm, f_grid[this_f_range], 
-                                    -zeeman_frequency_shift_constant, magnetic_magnitude, 
-                                    -line.F(), -doppler_constant, 
-                                    G0, -L0, -DV, derivatives_data, QI,
-                                    -ddoppler_constant_dT, dG0_dT, -dL0_dT, -dDV_dT, this_f_range);
-          break;
-        case LineShapeType::HTP:
-          // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
-          set_htp(Fm, dFm, f_grid[this_f_range], 
-                  -zeeman_frequency_shift_constant, magnetic_magnitude, 
-                  -line.F(), -doppler_constant, 
-                  G0, -L0, G2, -L2, e, FVC,
-                  derivatives_data, QI,
-                  -ddoppler_constant_dT, 
-                  dG0_dT, -dL0_dT, dG2_dT, -dL2_dT, de_dT, dFVC_dT, this_f_range);
-          break;
-        case LineShapeType::ByPressureBroadeningData:
         case LineShapeType::End:
         default:
-          throw std::runtime_error("Cannot understand the requested line shape type for mirroring.");
+          throw std::runtime_error("Cannot understand the requested line shape type.");
       }
-      F[this_f_range] -= Fm;
-      for(Index i = 0; i < dF.nelem(); i++) dF[i][this_f_range] -= dFm[i];
-      break;
+      
+      // Set the mirroring by repeating computations above using 
+      // negative numbers for frequency of line related terms
+      // The user sets if they want mirroring by LSM MTM followed by an index
+      // that is interpreted as either mirroring by the same line shape or as 
+      // mirroring by Lorentz lineshape
+      switch(line.GetMirroringType())
+      {
+        // No mirroring
+        case MirroringType::None:
+          break;
+        // Lorentz mirroring
+        case MirroringType::Lorentz:
+          {
+            // Set the mirroring computational vectors and size them as needed
+            ComplexVector Fm(F[this_f_range(speedup_range)].nelem());
+            ArrayOfComplexVector dFm(dF.nelem());
+            for(auto& aocv : dFm) aocv.resize(F[this_f_range(speedup_range)].nelem());
+            
+            set_lorentz(Fm, dFm, f_grid[this_f_range(speedup_range)], -zeeman_frequency_shift_constant, magnetic_magnitude, 
+                        -line.F(), G0, -L0, -DV, derivatives_data, QI, dG0_dT, -dL0_dT, -dDV_dT, this_f_range(speedup_range));
+            
+            // Apply mirroring
+            F[this_f_range(speedup_range)] -= Fm;
+            for(Index i = 0; i < dF.nelem(); i++) dF[i][this_f_range(speedup_range)] -= dFm[i];
+          }
+          break;
+        // Same type of mirroring as before
+        case MirroringType::SameAsLineShape:
+        {
+          // Set the mirroring computational vectors and size them as needed
+          ComplexVector Fm(F[this_f_range(speedup_range)].nelem());
+          ArrayOfComplexVector dFm(dF.nelem());
+          for(auto& aocv : dFm) aocv.resize(F[this_f_range(speedup_range)].nelem());
+          
+          switch(lst)
+          {
+            case LineShapeType::Doppler:
+              set_doppler(Fm, dFm, f_grid[this_f_range(speedup_range)], -zeeman_frequency_shift_constant, magnetic_magnitude, 
+                          -line.F(), -doppler_constant, derivatives_data, QI, -ddoppler_constant_dT, this_f_range(speedup_range));
+              break;
+            case LineShapeType::Lorentz:
+              set_lorentz(Fm, dFm, f_grid[this_f_range(speedup_range)], -zeeman_frequency_shift_constant, magnetic_magnitude, 
+                          -line.F(), G0, -L0, -DV, derivatives_data, QI, dG0_dT, -dL0_dT, -dDV_dT, this_f_range(speedup_range));
+              break;
+            case LineShapeType::Voigt:
+              set_faddeeva_algorithm916(Fm, dFm, f_grid[this_f_range(speedup_range)], 
+                                        -zeeman_frequency_shift_constant, magnetic_magnitude, 
+                                        -line.F(), -doppler_constant, 
+                                        G0, -L0, -DV, derivatives_data, QI,
+                                        -ddoppler_constant_dT, dG0_dT, -dL0_dT, -dDV_dT, this_f_range(speedup_range));
+              break;
+            case LineShapeType::HTP:
+              // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
+              set_htp(Fm, dFm, f_grid[this_f_range(speedup_range)], 
+                      -zeeman_frequency_shift_constant, magnetic_magnitude, 
+                      -line.F(), -doppler_constant, 
+                      G0, -L0, G2, -L2, e, FVC,
+                      derivatives_data, QI,
+                      -ddoppler_constant_dT, 
+                      dG0_dT, -dL0_dT, dG2_dT, -dL2_dT, de_dT, dFVC_dT, this_f_range(speedup_range));
+              break;
+            case LineShapeType::ByPressureBroadeningData:
+            case LineShapeType::End:
+            default:
+              throw std::runtime_error("Cannot understand the requested line shape type for mirroring.");
+          }
+          F[this_f_range(speedup_range)] -= Fm;
+          for(Index i = 0; i < dF.nelem(); i++) dF[i][this_f_range(speedup_range)] -= dFm[i];
+          break;
+        }
+        case MirroringType::End:
+        default:
+          throw std::runtime_error("Cannot understand the requested mirroring type for mirroring.");
+      }
+      
+      // Line normalization if necessary
+      // The user sets this by setting LSM LNT followed by and index
+      // that is internally interpreted to mean some kind of lineshape normalization
+      switch(line.GetLineNormalizationType())
+      {
+        // No normalization
+        case LineNormalizationType::None:
+          break;
+          // van Vleck and Huber normalization
+        case LineNormalizationType::VVH:
+          apply_VVH_scaling(F[this_f_range(speedup_range)], dF, f_grid[this_f_range(speedup_range)], line.F(), temperature, derivatives_data, QI, this_f_range(speedup_range));
+          break;
+          // van Vleck and Weiskopf normalization
+        case LineNormalizationType::VVW:
+          apply_VVW_scaling(F[this_f_range(speedup_range)], dF, f_grid[this_f_range(speedup_range)], line.F(), derivatives_data, QI, this_f_range(speedup_range));
+          break;
+          // Rosenkranz's Quadratic normalization
+        case LineNormalizationType::RosenkranzQuadratic:
+          apply_rosenkranz_quadratic_scaling(F[this_f_range(speedup_range)], dF, f_grid[this_f_range(speedup_range)], line.F(), temperature, derivatives_data, QI, this_f_range(speedup_range));
+          break;
+        case LineNormalizationType::End:
+        default:
+          throw std::runtime_error("Cannot understand the requested line normalization type.");
+      }
     }
-    case MirroringType::End:
-    default:
-      throw std::runtime_error("Cannot understand the requested mirroring type for mirroring.");
-  }
-  
-  // Line normalization if necessary
-  // The user sets this by setting LSM LNT followed by and index
-  // that is internally interpreted to mean some kind of lineshape normalization
-  switch(line.GetLineNormalizationType())
-  {
-    // No normalization
-    case LineNormalizationType::None:
-      break;
-      // van Vleck and Huber normalization
-    case LineNormalizationType::VVH:
-      apply_VVH_scaling(F[this_f_range], dF, f_grid[this_f_range], line.F(), temperature, derivatives_data, QI, this_f_range);
-      break;
-      // van Vleck and Weiskopf normalization
-    case LineNormalizationType::VVW:
-      apply_VVW_scaling(F[this_f_range], dF, f_grid[this_f_range], line.F(), derivatives_data, QI, this_f_range);
-      break;
-      // Rosenkranz's Quadratic normalization
-    case LineNormalizationType::RosenkranzQuadratic:
-      apply_rosenkranz_quadratic_scaling(F[this_f_range], dF, f_grid[this_f_range], line.F(), temperature, derivatives_data, QI, this_f_range);
-      break;
-    case LineNormalizationType::End:
-    default:
-      throw std::runtime_error("Cannot understand the requested line normalization type.");
-  }
+    
+    // Interpolate to a higher level if using speedup
+    if(need_binary_speedup)
+    {
+      // Interpolation up needs to happen if we are at a stage of having more than 2 points
+      if((speedup_index != binary_speedup and computational_points > 2) or computational_points == 3)
+        interp_up_inside_binary_range(F, binary_range(f_grid, speedup_index, true));
+      else if(speedup_index == binary_speedup)
+      {
+        if(upper_boundary > lower_boundary) {
+          interp_to_boundary_of_binary_range(F, upper_boundary, lower_boundary); 
+        } else {
+          interp_to_boundary_of_binary_range(F, 0, 0); }
+      }
+      speedup_index++;
+    }
+  } while(speedup_index <= binary_speedup and need_binary_speedup); // End of frequency loop
   
   // Apply line mixing if relevant
   if(Y not_eq 0 or G not_eq 0)
@@ -2267,7 +2329,8 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
           
           // Apply this knowledge to set N and dN
           set_nonlte_source_and_apply_absorption_scaling(F[this_f_range], dF, N[this_f_range], dN, K3, K4, 
-                                                         derivatives_data, QI,  dK3_dT, dK4_dT, dK3_dF0, dK3_dTl, dK3_dTu, dK4_dTu, this_f_range);
+                                                         derivatives_data, QI,  dK3_dT, dK4_dT, dK3_dF0, dK3_dTl, 
+                                                         dK3_dTu, dK4_dTu, this_f_range);
         }
       }
       break;
@@ -2413,7 +2476,7 @@ void Linefunctions::apply_cutoff(ComplexVectorView F,
                                     dpartition_function_at_temperature_dT,
                                     partition_function_at_line_temperature,
                                     broad_spec_locations, this_species_location_in_tags,
-                                    water_index_location_in_tags, verbosity, true);
+                                    water_index_location_in_tags, verbosity, true, false);
   
   // Apply cutoff values
   F -= Fc[0];
@@ -2521,4 +2584,231 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(ComplexVect
   
   // Set absorption
   F *= k;
+}
+
+
+/*!
+ * Returns a range on a binary scale
+ * 
+ * \param f A vector that has the length 2^N + 1
+ * \param i An index less or equal to N
+ * \param full_range If false, output range does not contain values of lower i
+ * 
+ */
+Range Linefunctions::binary_range(const ConstVectorView f, const Index& i, const bool full_range)
+{
+  // Size of problem
+  const Index n = f.nelem();
+  
+  // The first range is always complete and contains end-points
+  if(not i)
+    return Range(0, 2, n-1);
+  
+  // The full range is 2^i + 1, the partial range is half minus 1 long
+  const Index d = 1 << i;
+  
+  // The full range stepsize is thus simply
+  const Index s = (n - 1) / d;
+  
+  // And we now have the range, either the full or the partial range...
+  if(full_range)
+    return Range(0, d + 1, s);
+  else
+    return Range(s, d >> 1, s << 1);
+}
+
+
+/*!
+ * Returns the range of f where l < f[i] < = u
+ * 
+ * Assumes f is evenly spaced
+ * 
+ * \param f A vector that has the length 2^N + 1
+ * \param u An upper boundary
+ * \param l A lower boundary
+ * 
+ */
+Range Linefunctions::speedup_binary_range(const ConstVectorView f, 
+                                          const Numeric& u, 
+                                          const Numeric& l)
+{
+  // Size of problem
+  const Index n = f.nelem();
+  
+  // Treat the special cases first
+  if(not n)
+    return Range(0, 0);
+  else if(n == 1)
+  {
+    if(f[0] < u and f[0] > l)
+      return Range(0, 1);
+    else
+      return Range(0, 0);
+  }
+  else if(n == 2)
+  {
+    if((f[0] > u) or (f[1] < l) or (f[0] < l and f[1] > u))
+      return Range(0, 0);
+    else if(f[1] < u and f[0] > l)
+      return Range(0, 2);
+    else if(f[1] < u)
+      return Range(1, 1);
+    else
+      return Range(0, 1);
+  }
+  
+  // Equidistance in f required
+  const Numeric d = f[1] - f[0];
+  
+  Index nl = (Index)((l-f[0])/d);
+  Index nu = (Index)((u-f[0])/d)+2;
+  
+  // Lower start-position adjustments
+  if(nl < 0)
+    nl = 0;
+  else if(nl > n)
+    nl = n;
+  
+  // Upper end-position adjustment
+  if(nu < 0)
+    nu = 0;
+  else if(nu > n)
+    nu = n;
+  
+  return Range(nl, nu - nl);
+}
+
+
+/*!
+ * Interpolates to a denser grid 
+ * 
+ * \param f A vector that is to become denser by linear interpolation
+ * \param l A range of the vector representing a lower density grid by a factor 2
+ * 
+ */
+void Linefunctions::interp_up_inside_binary_range(ComplexVectorView f, const Range& l)
+{
+  Index II = l.get_start();
+  const Index dII = l.get_stride();
+  const Index dII2 = dII / 2;
+  
+  for(Index i = 0; i < (l.get_extent()-1); i++)
+  {
+    f[II + dII2] = 0.5 * (f[II] + f[II + dII]);
+    II += dII;
+  }
+}
+
+
+/*!
+ * Interpolates to the boundary
+ * 
+ * \param f A vector that has values at f[0], f[l], f[u], and f[n], 
+ * where 0 < l < u < n, and n is the length of f minus one
+ * \param u Upper boundary index
+ * \param l Lower boundary index
+ * 
+ */
+void Linefunctions::interp_to_boundary_of_binary_range(ComplexVectorView f, const Index u, const Index l)
+{
+  const Index n = f.nelem();
+  Index i;
+  Complex cl, cu, df;
+  
+  if(l > 1)
+  {
+    cl = f[0];
+    cu = f[l];
+    df = (cu - cl) / Numeric(l);
+    i = 1;
+    while(i < l)
+    {
+      f[i] = cl + df * Numeric(i);
+      i++;
+    }
+  }
+  
+  if(u < n-2)
+  {
+    cl = f[u];
+    cu = f[n-1];
+    const Index N = n - u - 1;
+    df = (cu - cl) / Numeric(N);
+    i = 1;
+    while(i < N)
+    {
+      f[u + i] = cl + df * Numeric(i);
+      i++;
+    }
+  }
+}
+
+
+/*!
+ * The distance of the speedup
+ * 
+ * \param s An index of the speedup so that s>0 and s less than the speedup order
+ * \param C A constant describing a scaling factor for the distance and the line
+ * \param G0 Speed-independent pressure broadening term
+ * \param F0 Central frequency
+ * \param GD_div_F0 Frequency-independent part of the Doppler broadening
+ * 
+ */
+Numeric Linefunctions::speedup_distance_binary_range(const Index s, 
+                                                     const Numeric C, 
+                                                     const Numeric G0, 
+                                                     const Numeric F0,
+                                                     const Numeric GD_div_F0)
+{
+  const Numeric GD = GD_div_F0*F0;
+  
+  // 2^(s+1) * C * L
+  return Numeric(2 << s) * C * sqrt(G0*G0 + GD*GD);
+}
+
+
+/*!
+ * Find out what the lower and upper boundary of the binary range will be...
+ * 
+ * \param l An index indicating the lower boundary
+ * \param u An index indicating the upper boundary
+ * \param f A vector that has the length 2^N + 1
+ * \param C A constant describing a scaling factor for the distance and the line
+ * \param G0 Speed-independent pressure broadening term
+ * \param F0 Central frequency
+ * \param GD_div_F0 Frequency-independent part of the Doppler broadening
+ * \param binary_speedup N in the description of f...
+ */
+void Linefunctions::find_boundary_of_binary_range(Index& u, 
+                                                  Index& l,
+                                                  ConstVectorView f, 
+                                                  const Numeric C, 
+                                                  const Numeric G0,
+                                                  const Numeric F0,
+                                                  const Numeric GD_div_F0,
+                                                  const Index binary_speedup)
+{
+  const Index nf = f.nelem();
+  Index t;
+  u = 0;
+  l = nf - 1;
+  
+  for(Index i = 1; i <= binary_speedup; i++)
+  {
+    const Numeric d = speedup_distance_binary_range(binary_speedup - i, C, G0, F0, GD_div_F0);
+    
+    Range r = binary_range(f, i, false);
+    r = r(speedup_binary_range(f[r], F0 + d, F0 - d));
+    
+    if(r.get_extent())
+    {
+      t = r.get_start();
+      if(t < l)
+        l = t;
+      
+      t = (r.get_extent() - 1) * r.get_stride() + r.get_start();
+      if(t > u)
+        u = t;
+    }
+  }
 }

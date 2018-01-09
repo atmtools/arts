@@ -219,7 +219,14 @@ public:
   Index get_stride () const { return mstride; }
   
   /** Range of range. */
-  Range operator()(const Range r) const {return Range(mstart + r.mstart*mstride, r.mextent, r.mstride*mstride);};
+  Range operator()(const Range r) const 
+  {
+    return (r.mextent < 0) ? 
+           (mextent < 0)   ? Range(mstart + r.mstart*mstride, joker, r.mstride*mstride)   :
+                             Range(mstart + r.mstart*mstride, mextent, r.mstride*mstride) :
+                             Range(mstart + r.mstart*mstride, r.mextent, r.mstride*mstride);
+  }
+    
   Index operator()(const Index i) const {return mstart + i*mstride;};
 
 private:
