@@ -128,16 +128,6 @@ public:
   const Matrix& TransformationMatrix() const    {return transformation_matrix;}
   const Vector& OffsetVector()         const    {return offset_vector;}
 
-  /** Constraints **/
-  bool HasConstraints() const {return constraints.nelem() > 0;}
-  void AddConstraint(const String& s, Numeric b)
-  {
-      constraints.push_back(s);
-      boundaries.push_back(b);
-  }
-  const ArrayOfString&  GetConstraints() const {return constraints;}
-  const ArrayOfNumeric& GetBoundaries()  const {return boundaries;}
-
 
 private:
 
@@ -155,10 +145,6 @@ private:
   
   Matrix transformation_matrix;
   Vector offset_vector;
-
-  ArrayOfString  constraints;
-  ArrayOfNumeric boundaries;
-
 };
 
 

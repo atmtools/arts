@@ -1,7 +1,24 @@
+2018-01-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-917
+
+	* src/m_oem.cc:
+	* src/jacobian.h: Removed everyting around constraints.
+
+	* src/m_retrieval.cc: Removed forward declarations of Jacobian
+	WSMs. Should not be needed after Simon's last commit (as far as I
+	understand). Added instead include of auto_md.h.
+
+	(retrievalConstraintAdd): Removed.
+	(retrievalAddBeamFlux): Removed.
+
+	* src/methods.cc: Polished descritiption of
+	jacobianSetAffineTransformation.
+
 2018-01-09  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-916
-	
+
 	Speedup is now working via xsec_species2 but only shaves, e.g.,
 	30% of the time despite computing only perhaps 500 out of 
 	524289 points c.f. computing on all points...  much time can be

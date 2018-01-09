@@ -4029,6 +4029,7 @@ void jacobianAddNLTETemperature(
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+/* Seems not to be used anymore, PE 2018-01-09
 void jacobianAddBeamFlux(
     Workspace&,
     ArrayOfRetrievalQuantity&   jq,
@@ -4082,13 +4083,13 @@ void jacobianAddBeamFlux(
     jacobian_agenda.append( "jacobianCalcBeamFlux", TokVal() );
 } 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcBeamFlux(
     Matrix&,const Index&, const Vector&, const Vector&, const Verbosity& )
 {
-    /* Nothing to do here for the analytical case, this function just exists
-     *  to satisfy the required inputs and outputs of the jacobian_agenda */
 }
+*/
+
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */

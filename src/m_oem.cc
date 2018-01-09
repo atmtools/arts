@@ -210,42 +210,6 @@ void get_gp_rq_to_atmgrids(
     }
 }
 
-/*===========================================================================
-  === Methods enforcing constraints
-  ===========================================================================*/
-
-void vmr_enforce_lt(Tensor3View vmr, Numeric b)
-{
-    for (Index i = 0; i < vmr.npages(); ++i) {
-        for (Index j = 0; j < vmr.nrows(); ++j) {
-            for (Index k = 0; k < vmr.ncols(); ++k) {
-                vmr(i,j,k) = vmr(i,j,k) > b ? b : vmr(i,j,k);
-            }
-        }
-    }
-}
-
-void vmr_enforce_gt(Tensor3View vmr, Numeric b)
-{
-    for (Index i = 0; i < vmr.npages(); ++i) {
-        for (Index j = 0; j < vmr.nrows(); ++j) {
-            for (Index k = 0; k < vmr.ncols(); ++k) {
-                vmr(i,j,k) = vmr(i,j,k) < b ? b : vmr(i,j,k);
-            }
-        }
-    }
-}
-
-
-void vmr_enforce_constraint(Tensor3View vmr, const String & constraint, Numeric b)
-{
-    if (constraint == "lt") {
-        vmr_enforce_lt(vmr, b);
-    } else if (constraint == "gt") {
-        vmr_enforce_gt(vmr, b);
-    }
-}
-
 
 
 /* Should this be a WSM? */
@@ -852,14 +816,6 @@ void x2artsStandard(
           else
             { assert(0); }
 
-          if (jacobian_quantities[q].HasConstraints()) {
-              for (Index i = 0; i < jacobian_quantities[q].GetConstraints().nelem(); ++i) {
-                  vmr_enforce_constraint(vmr_field(isp, joker, joker, joker),
-                                         jacobian_quantities[q].GetConstraints()[i],
-                                         jacobian_quantities[q].GetBoundaries()[i]);
-              }
-
-          }
         }
 
 

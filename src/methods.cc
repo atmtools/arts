@@ -8871,30 +8871,6 @@ void define_md_data_raw()
         ));
  
   md_data_raw.push_back
-  ( MdRecord
-  ( NAME( "jacobianCalcBeamFlux" ),
-    DESCRIPTION
-    (
-        "This function doesn't do anything. It just exists to satisfy\n"
-        "the input and output requirement of the *jacobian_agenda*.\n"
-        "\n"
-        "This function is added to *jacobian_agenda* by\n"
-        "jacobianAddAbsSpecies and should normally not be called\n"
-        "by the user.\n"
-    ),
-    AUTHORS( "Oliver Lemke" ),
-    OUT( "jacobian" ),
-    GOUT(),
-    GOUT_TYPE(),
-    GOUT_DESC(),
-    IN( "jacobian", "mblock_index", "iyb", "yb" ),
-    GIN(),
-    GIN_TYPE(),
-    GIN_DEFAULT(),
-    GIN_DESC()
-  ));
- 
-  md_data_raw.push_back
     ( MdRecord
       ( NAME( "jacobianCalcPointingZaInterp" ),
         DESCRIPTION
@@ -9361,21 +9337,24 @@ void define_md_data_raw()
         ( NAME( "jacobianSetAffineTransformation" ),
           DESCRIPTION
           (
-           "Sets the affine transformation of the last element of\n"
+           "Adds an affine transformation of the last element of\n"
            "*jacobian_quantities*.\n"
            "\n"
            "For a general description of how retrieval transformations are applied,\n"
            "see *jacobianSetFuncTransformation*.\n"
            "\n"
            "The affine transformation is specified by a transformation matrix, A,\n"
-           "and an offset vector, b, applied as described in\n"
+           "and an offset vector, b. These two are applied as described in\n"
            "*jacobianSetFuncTransformation*.\n"
            "\n"
-           "Writing the affinity transformations as\n"
+           "The transformations is applied as\n"
            "   x = A * ( z - b )\n"
-           "the following must be true\n"
-           "   z = A'*z + b )\n"
-           "for valid transformations.\n"
+           "where z is the retrieval quantity on the standard retrieval grids\n"
+           "and x is the final state vector.\n"
+           "\n"
+           "So far, the following must be true for valid A-matrices\n"
+           "   z = A'*x + b\n"
+           "That is, the reversed transformation is given by A transposed.\n"
            "\n"
            "This method must only be called if an affine transformation is wanted.\n"
            "Default is to make no such tranformation at all.\n"
@@ -13972,32 +13951,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-    ( NAME( "retrievalAddBeamFlux" ),
-      DESCRIPTION
-      (
-          "Same as jacobianAddBeamFlux but also adds the covariance block contained \n"
-          "in *covmat_sx* to the covariance matrix."
-          "\n"
-          ),
-      AUTHORS( "Simon Pfreundschuh" ),
-      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "covmat_sx", "jacobian_quantities", "jacobian_agenda",
-          "atmosphere_dim", "covmat_block", "covmat_inv_block", "p_grid",
-          "lat_grid", "lon_grid" ),
-      GIN( "g1", "g2", "g3" ),
-      GIN_TYPE( "Vector", "Vector", "Vector" ),
-      GIN_DEFAULT( NODEF, NODEF, NODEF ),
-      GIN_DESC( "Pressure retrieval grid.",
-                "Latitude retrieval grid.",
-                "Longitude retrieval grid."
-          )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
     ( NAME( "retrievalAddCatalogParameter" ),
       DESCRIPTION
       (
@@ -14292,39 +14245,6 @@ void define_md_data_raw()
                 "Calculation method. See above.",
                 "Size of perturbation [K]." 
           )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "retrievalConstraintAdd" ),
-      DESCRIPTION
-        (
-            "Constrain a retrieval quantity.\n"
-            "\n"
-            "Adds a constraint to a given retrieval quantity. This can be used to force the\n"
-            "values of the retrieval quantity to always be greater than (\"gt\") or less\n"
-            "than (\"lt\"). Constraints are enforced by replacing all values that don't\n"
-            "satisfy the constraint by the given limit."
-            "\n"
-            "The argument *i* should be the index of the retrieval quantity, which is given\n"
-            "by the order in which the quantities have been defined in the retrieval. If it\n"
-            "is -1 (default), the constraint will be added to retrieval quantity the was added\n"
-            "last."
-            "\n"
-            "Currently only works for vmr quantities.\n"
-        ),
-      AUTHORS( "Simon Pfreundschuh"),
-      OUT( "jacobian_quantities"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "jacobian_quantities" ),
-      GIN( "type", "limit", "i"),
-      GIN_TYPE( "String", "Numeric", "Index"),
-      GIN_DEFAULT( NODEF, NODEF, "-1"),
-      GIN_DESC( "The type of the constraint, i.e. \"lt\" or \"gt\"",
-                "The limit of the constraint.",
-                "The index of the retrieval quantity to which to add the constraint.")
         ));
 
   md_data_raw.push_back

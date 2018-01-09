@@ -1,89 +1,8 @@
 #include <algorithm>
 
+#include "auto_md.h"
 #include "covariance_matrix.h"
 #include "jacobian.h"
-
-extern const String ABSSPECIES_MAINTAG;
-
-////////////////////////////////////////////////////////////////////////////////
-// Forward declarations of WSVs defined in m_jacobian.cc
-////////////////////////////////////////////////////////////////////////////////
-
-void jacobianAddAbsSpecies(
-    Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const Index&, const Vector&,
-    const Vector&, const Vector&, const Vector&, const Vector&, const Vector&,
-    const String&, const String&, const String&, const Index&, const Numeric&,
-    const Verbosity&
-    );
-void jacobianClose(
-    Workspace&, Index&, Agenda&, const ArrayOfRetrievalQuantity&,
-    const Matrix&, const Sparse&, const Verbosity&
-    );
-void jacobianInit(
-    ArrayOfRetrievalQuantity&, Agenda&, const Verbosity&
-    );
-void jacobianAddConstantVMRAbsSpecies(
-    Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const String&, const String&, const Index&,
-    const Numeric&, const Verbosity&
-    );
-void jacobianAddBeamFlux(
-    Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const Index&, const Vector&,
-    const Vector&, const Vector&, const Vector&, const Vector&, const Vector&,
-    const Verbosity&
-    );
-void jacobianAddFreqShift(
-    Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const Vector&, const Matrix&,
-    const Vector&, const Index&, const Numeric&, const Verbosity&
-    );
-void jacobianAddFreqStretch(
-    Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const Vector&, const Matrix&,
-    const Vector&, const Index&, const Numeric&, const Verbosity&
-    );
-void jacobianAddCatalogParameter(
-    Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const QuantumIdentifier&,
-    const String&, const Verbosity&
-    );
-void jacobianAddCatalogParameters(
-    Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const ArrayOfQuantumIdentifier&,
-    const ArrayOfString&, const Verbosity&
-    );
-void jacobianAddMagField(
-    Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const Index&, const Vector&,
-    const Vector&, const Vector&, const Vector&, const Vector&, const Vector&,
-    const String&, const Numeric&, const Verbosity&
-    );
-void jacobianAddPointingZa(
-    Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const Matrix&, const Vector&,
-    const Index&, const String&, const Numeric&, const Verbosity&
-    );
-void jacobianAddPolyfit(
-    Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const ArrayOfIndex&, const Matrix&,
-    const Matrix&, const Index&, const Index&, const Index&, const Index&, const Verbosity&
-    );
-void jacobianAddScatSpecies(
-    Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const Index&, const Vector&,
-    const Vector&, const Vector&, const Vector&, const Vector&, const Vector&,
-    const String&, const String&, const Verbosity&
-    );
-void jacobianAddSinefit(
-    Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const ArrayOfIndex&, const Matrix&,
-    const Matrix&, const Vector&, const Index&, const Index&, const Index&, const Verbosity&
-    );
-void jacobianAddSpecialSpecies(
-    Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const Index&, const Vector&,
-    const Vector&, const Vector&, const Vector&, const Vector&, const Vector&,
-    const String&, const Verbosity&);
-void jacobianAddWind(
-    Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const Index&, const Vector&, const Vector&,
-    const Vector&, const Vector&, const Vector&, const Vector&, const String&, const Numeric&,
-    const Verbosity&
-    );
-void jacobianAddTemperature(
-    Workspace&, ArrayOfRetrievalQuantity&, Agenda&, const Index&, const Vector&,
-    const Vector&, const Vector&, const Vector&, const Vector&, const Vector&,
-    const String&, const String&, const Numeric&,  const Verbosity&
-    );
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -907,29 +826,6 @@ void retrievalAddFreqStretch(Workspace& ws,
                         1, covmat_block, covmat_inv_block);
 }
 
-void retrievalAddBeamFlux(
-    Workspace&                  ws,
-    CovarianceMatrix&           covmat_sx,
-    ArrayOfRetrievalQuantity&   jacobian_quantities,
-    Agenda&                     jacobian_agenda,
-    const Index&                atmosphere_dim,
-    const Sparse&               covmat_block,
-    const Sparse&               covmat_inv_block,
-    const Vector&               p_grid,
-    const Vector&               lat_grid,
-    const Vector&               lon_grid,
-    const Vector&               rq_p_grid,
-    const Vector&               rq_lat_grid,
-    const Vector&               rq_lon_grid,
-    const Verbosity&            verbosity )
-{
-    jacobianAddBeamFlux(ws, jacobian_quantities, jacobian_agenda, atmosphere_dim, p_grid,
-                        lat_grid, lon_grid, rq_p_grid, rq_lat_grid, rq_lon_grid, verbosity);
-    check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
-                        atmosphere_dim, covmat_block, covmat_inv_block);
-}
-
-
 void retrievalAddCatalogParameter(
     Workspace&                  ws,
     CovarianceMatrix&           covmat_sx,
@@ -1203,34 +1099,6 @@ void retrievalDefInit(CovarianceMatrix& covmat_se,
 }
 
 
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void retrievalConstraintAdd(
-    ArrayOfRetrievalQuantity& jqs,
-    const String& constraint,
-    const Numeric& boundary,
-    const Index& i,
-    const Verbosity& /*v*/
-    )
-{
-    Index ii(i);
-    if (ii < 0) {
-        ii = jqs.nelem() - 1;
-    }
-
-    if (!((ii >= 0) && (ii < jqs.nelem()))) {
-        runtime_error("Index of retrieval quantity is invalid.");
-    }
-
-    if (!(jqs[ii].MainTag() == ABSSPECIES_MAINTAG)) {
-        runtime_error("Constraints are currently only supported for absorption species.");
-    }
-
-    if (!((constraint == "lt") || (constraint == "gt"))) {
-        runtime_error("Invalid constraint. Must be either \"lt\" or \"gt\".");
-    }
-    jqs[ii].AddConstraint(constraint, boundary);
-}
 
 void retrievalErrorsExtract(
     Vector& retrieval_eo,
