@@ -1,4 +1,23 @@
-2018-01-09  Richard Larsson <ric.larsson@gmail.com>
+2018-01-10  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-919
+	
+	Small exercise to remove a few enums that did not make sense
+	
+	* src/{rte,jacobian,m_{cloudradar,rte,transmitter}}.{cc,h}:
+	Removed all mentions of cases which has semi-analytic in their
+	solutions.  That code was no longer possible to activate for
+	over a year.  Changed enum to a class to make it easier to read
+	(adding that it made the error throwing clean, and that I even
+	found a bug where some code was working for random reasons...)
+	
+	* src/test_{linalg,propagationmatrix}.cc:  Added some code so
+	that the warnings were reduced.  Later updated to gcc 7.2.0
+	and I can no longer find if these codes still throws warnings
+	because things like implicit conversions and implicit 
+	fallthroughs creates a lot of junk in the build-log...
+
+2018-01-10  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-918
 	

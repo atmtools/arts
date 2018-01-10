@@ -330,24 +330,18 @@ void dxdvmrscf(
 
 
 // Enum for knowing what Jacobian scheme is in-play in the m_rte.cc methods.
-enum {
-    JAC_IS_NONE=0,             // Setting to nil means that (bool)0 and (bool)N still works.
-    JAC_IS_T_SEMI_ANALYTIC,
-    JAC_IS_T_FROM_PROPMAT,
-    JAC_IS_WIND_U_SEMI_ANALYTIC,
-    JAC_IS_WIND_V_SEMI_ANALYTIC,
-    JAC_IS_WIND_W_SEMI_ANALYTIC,
-    JAC_IS_WIND_U_FROM_PROPMAT,
-    JAC_IS_WIND_V_FROM_PROPMAT,
-    JAC_IS_WIND_W_FROM_PROPMAT,
-    JAC_IS_WIND_ABS_FROM_PROPMAT,
-    JAC_IS_MAG_U_SEMI_ANALYTIC,
-    JAC_IS_MAG_V_SEMI_ANALYTIC,
-    JAC_IS_MAG_W_SEMI_ANALYTIC,
-    JAC_IS_MAG_V_FROM_PROPMAT,
-    JAC_IS_MAG_U_FROM_PROPMAT,
-    JAC_IS_MAG_W_FROM_PROPMAT,
-    JAC_IS_OTHER
+enum class JacobianType : Index {
+    None=0,             // Setting to nil means that (bool)0 and (bool)N still works.
+    Temperature,
+    WindFieldU,
+    WindFieldV,
+    WindFieldW,
+    AbsWind,
+    MagFieldU,
+    MagFieldV,
+    MagFieldW,
+    AbsMag,
+    Other
 };
 
 void get_diydx( VectorView diydx_this,

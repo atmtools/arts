@@ -2035,13 +2035,13 @@ void get_ppath_pmat_and_tmat(
         // Perhaps put all in a function "adapt_dppath_ext_dx"?
         for(Index iq=0;(iq<nq)&&jacobian_do;iq++)
         {
-          if(jac_wind_i[iq] == JAC_IS_WIND_ABS_FROM_PROPMAT)
+          if(jac_wind_i[iq] == Index(JacobianType::AbsWind))
             get_ppath_f_partials(AO_dWdx[0], 0, ppath, f_grid,  atmosphere_dim);
-          else if(jac_wind_i[iq] == JAC_IS_WIND_U_FROM_PROPMAT)
+          else if(jac_wind_i[iq] == Index(JacobianType::WindFieldU))
             get_ppath_f_partials(AO_dWdx[1], 1, ppath, f_grid,  atmosphere_dim);
-          else if(jac_wind_i[iq] == JAC_IS_WIND_V_FROM_PROPMAT)
+          else if(jac_wind_i[iq] == Index(JacobianType::WindFieldV))
             get_ppath_f_partials(AO_dWdx[2], 2, ppath, f_grid,  atmosphere_dim);
-          else if(jac_wind_i[iq] == JAC_IS_WIND_W_FROM_PROPMAT)
+          else if(jac_wind_i[iq] == Index(JacobianType::WindFieldW))
             get_ppath_f_partials(AO_dWdx[3], 3, ppath, f_grid,  atmosphere_dim);
         }
         
@@ -2173,10 +2173,10 @@ void get_ppath_pmat_and_tmat(
                       }
                     }
                   }
-                  else if(jac_is_t[iq] not_eq JAC_IS_NONE or 
-                          jac_wind_i[iq] not_eq JAC_IS_NONE or 
-                          jac_mag_i[iq] not_eq JAC_IS_NONE or 
-                          jac_other[iq] not_eq JAC_IS_NONE)
+                  else if(jac_is_t[iq] not_eq Index(JacobianType::None) or 
+                    jac_wind_i[iq] not_eq Index(JacobianType::None) or 
+                    jac_mag_i[iq] not_eq Index(JacobianType::None) or 
+                    jac_other[iq] not_eq Index(JacobianType::None))
                   {
                     // the d_var_dx arrays work on ppd grid rather than on jacobian_quantities grid, so first find ppd location for iq
                     const Index this_ppd_iq = ppd.this_jq_index(iq);
@@ -2187,13 +2187,13 @@ void get_ppath_pmat_and_tmat(
                       dppath_nlte_source_dx[ip][iq] =  dnlte_dx_source[this_ppd_iq];
                       dppath_nlte_source_dx[ip][iq] += nlte_dx_dsource_dx[this_ppd_iq];
                     
-                      if(jac_wind_i[iq] == JAC_IS_WIND_ABS_FROM_PROPMAT)
+                      if(jac_wind_i[iq] == Index(JacobianType::AbsWind))
                         dppath_nlte_source_dx[ip][iq] *= AO_dWdx[0](joker,ip);
-                      else if(jac_wind_i[iq] == JAC_IS_WIND_U_FROM_PROPMAT)
+                      else if(jac_wind_i[iq] == Index(JacobianType::WindFieldU))
                         dppath_nlte_source_dx[ip][iq] *= AO_dWdx[1](joker,ip);
-                      else if(jac_wind_i[iq] == JAC_IS_WIND_V_FROM_PROPMAT)
+                      else if(jac_wind_i[iq] == Index(JacobianType::WindFieldV))
                         dppath_nlte_source_dx[ip][iq] *= AO_dWdx[2](joker,ip);
-                      else if(jac_wind_i[iq] == JAC_IS_WIND_W_FROM_PROPMAT)
+                      else if(jac_wind_i[iq] == Index(JacobianType::WindFieldW))
                         dppath_nlte_source_dx[ip][iq] *= AO_dWdx[3](joker,ip);
                     }
                       
@@ -2210,16 +2210,16 @@ void get_ppath_pmat_and_tmat(
     // Perhaps put all in a function "adapt_dppath_ext_dx"?
     for(Index iq=0;(iq<nq)&&jacobian_do;iq++)
     {
-        if(jac_wind_i[iq] == JAC_IS_WIND_ABS_FROM_PROPMAT)
+      if(jac_wind_i[iq] == Index(JacobianType::AbsWind))
           for(Index ip = 0; ip < np; ip ++)
             dppath_ext_dx[ip][iq] *= AO_dWdx[0](joker, ip);
-        else if(jac_wind_i[iq] == JAC_IS_WIND_U_FROM_PROPMAT)
+          else if(jac_wind_i[iq] == Index(JacobianType::WindFieldU))
           for(Index ip = 0; ip < np; ip ++)
             dppath_ext_dx[ip][iq] *= AO_dWdx[1](joker, ip);
-        else if(jac_wind_i[iq] == JAC_IS_WIND_V_FROM_PROPMAT)
+          else if(jac_wind_i[iq] == Index(JacobianType::WindFieldV))
           for(Index ip = 0; ip < np; ip ++)
             dppath_ext_dx[ip][iq] *= AO_dWdx[2](joker, ip);
-        else if(jac_wind_i[iq] == JAC_IS_WIND_W_FROM_PROPMAT)
+          else if(jac_wind_i[iq] == Index(JacobianType::WindFieldW))
           for(Index ip = 0; ip < np; ip ++)
             dppath_ext_dx[ip][iq] *= AO_dWdx[3](joker, ip);
     }
@@ -4477,16 +4477,16 @@ void adapt_stepwise_partial_derivatives(ArrayOfPropagationMatrix& dK_dx,
     
     switch(jacobian_wind[i])
     {
-      case JAC_IS_WIND_ABS_FROM_PROPMAT:
+      case Index(JacobianType::AbsWind):
         component = 0;
         break;
-      case JAC_IS_WIND_U_FROM_PROPMAT:
+      case Index(JacobianType::WindFieldU):
         component = 1;
         break;
-      case JAC_IS_WIND_V_FROM_PROPMAT:
+      case Index(JacobianType::WindFieldV):
         component = 2;
         break;
-      case JAC_IS_WIND_W_FROM_PROPMAT:
+      case Index(JacobianType::WindFieldW):
         component = 3;
         break;
       default:
@@ -5255,7 +5255,7 @@ void rtmethods_jacobian_init(
                                          abs_species, scat_species );
   
   FOR_ANALYTICAL_JACOBIANS_DO( 
-    jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
+  jac_other[iq] = ppd.is_this_propmattype(iq)?Index(JacobianType::Other):Index(JacobianType::None); 
       
     if( jac_scat_i[iq]+1 )
       {
@@ -5408,7 +5408,7 @@ void rtmethods_jacobian_finalisation(
       // df/da*da/dT for which abs species having da/dT != 0
       // This is only true for "nd" and "rh"
       //
-      if( jac_is_t[iq] != JAC_IS_NONE )
+      if( jac_is_t[iq] != Index(JacobianType::None) )
         {
           // Loop abs species, again
           for( Index ia=0; ia<jacobian_quantities.nelem(); ia++ )

@@ -787,7 +787,7 @@ void iyTransmissionStandard(
                                              abs_species, scat_species );
 
       FOR_ANALYTICAL_JACOBIANS_DO( 
-        jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
+      jac_other[iq] = ppd.is_this_propmattype(iq)?Index(JacobianType::Other):Index(JacobianType::None); 
       )
 
       if( iy_agenda_call1 )

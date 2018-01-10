@@ -636,19 +636,19 @@ void iyEmissionStandard(
   //   out.
   // iaps
   //   The index of species for which abs_per_species shall be filled. 
-  // jac_mag_i: Works as jac_species_i, but uses JAC_IS_MAG... and JAC_IS_NONE
+  // jac_mag_i: Works as jac_species_i, but uses JacobianType::MagField... and JacobianType::None
   //    for coding of each element.
   // jac_other
-  //    Works as jac_species_i, but uses JAC_IS_OTHER... and JAC_IS_NONE
+  //    Works as jac_species_i, but uses JacobianType::Other... and JacobianType::None
   //    for "other" propmat derivatives
   // jac_is_t
-  //    Works as jac_species_i, but uses JAC_IS_T... and JAC_IS_NONE
+  //    Works as jac_species_i, but uses JacobianType::Temperature... and JacobianType::None
   //    for coding of each element.
   // jac_species_i
   //   An array of length nq. Elements are the species index where a retrieval 
   //   quantity is a species otherwise set to -1.  
   // jac_wind_i 
-  //    Works as jac_species_i, but uses JAC_IS_WIND... and JAC_IS_NONE
+  //    Works as jac_species_i, but uses JacobianType::WindField... and JacobianType::None
   //    for coding of each element.
   // jac_to_integrate 
   //    Track keeping of integration variable
@@ -701,7 +701,7 @@ void iyEmissionStandard(
                                              abs_species, scat_species );
 
       FOR_ANALYTICAL_JACOBIANS_DO(
-        jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE;
+        jac_other[iq] = ppd.is_this_propmattype(iq)?Index(JacobianType::Other):Index(JacobianType::None);
       )
       
       if( iy_agenda_call1 )

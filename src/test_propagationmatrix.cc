@@ -490,6 +490,7 @@ void test_new_lineshapes()
   Linefunctions::set_lorentz(F, dF,f_grid, 0., 0., line.F(), G0, L0, 0.0, ppd, QI, dG0, dL0, 0.0);
   
   std::cout<<dF[0].real()<<"\n";
+  std::cout<< K2 << " " << dK1 << " " << dK2<<"\n";
   
   T += dT;
   gd_div_f0 = Linefunctions::DopplerConstant(T, 32.0);
@@ -530,7 +531,7 @@ void test_funs_compression()
 {
   Index n = 1 << 5;
   Vector v;
-  nlinspace(v, 0, n, n+1);
+  nlinspace(v, 0, Numeric(n), n+1);
   Index i = 0;
   Range r(joker);
   
