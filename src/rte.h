@@ -307,7 +307,6 @@ void get_ppath_trans_and_dppath_trans_dx(
   const ArrayOfArrayOfPropagationMatrix& dppath_ext_dx,
   const ArrayOfRetrievalQuantity& jacobian_quantities,
   ConstVectorView              f_grid, 
-  const ArrayOfIndex&          for_distance_integration,
   const Index&                 stokes_dim );
 
 void get_ppath_trans2( 
@@ -381,7 +380,6 @@ void get_ppath_pmat_and_tmat(
                             const ArrayOfIndex&   jac_is_t,
                             const ArrayOfIndex&   jac_wind_i,
                             const ArrayOfIndex&   jac_mag_i,
-                            const ArrayOfIndex&   for_flux,
                             const ArrayOfIndex&   jac_other,
                             const ArrayOfIndex&   ispecies,
                             const ArrayOfArrayOfSingleScatteringData scat_data,
@@ -601,7 +599,6 @@ void rtmethods_jacobian_init(
          ArrayOfIndex&               jac_wind_i,
          ArrayOfIndex&               jac_mag_i,
          ArrayOfIndex&               jac_other,
-         ArrayOfIndex&               jac_to_integrate,
          ArrayOfTensor3&             diy_dx,
          ArrayOfTensor3&             diy_dpath,         
    const Index&                      ns,
@@ -630,8 +627,7 @@ void rtmethods_jacobian_finalisation(
    const Tensor3&                    iy_transmission,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfIndex                jac_species_i,
-   const ArrayOfIndex                jac_is_t,
-   const ArrayOfIndex&               jac_to_integrate );
+   const ArrayOfIndex                jac_is_t);
 
 void rtmethods_unit_conversion(
          Matrix&                     iy,

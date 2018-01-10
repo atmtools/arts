@@ -241,7 +241,6 @@ void get_pointers_for_analytical_jacobians(
          ArrayOfIndex&               is_t,
          ArrayOfIndex&               wind_i,
          ArrayOfIndex&               magfield_i,
-         ArrayOfIndex&               integrate_i,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
    const ArrayOfString&              scat_species );
@@ -348,8 +347,6 @@ enum {
     JAC_IS_MAG_V_FROM_PROPMAT,
     JAC_IS_MAG_U_FROM_PROPMAT,
     JAC_IS_MAG_W_FROM_PROPMAT,
-    JAC_IS_FLUX,
-    JAC_IS_INTEGRATION,
     JAC_IS_OTHER
 };
 
@@ -391,7 +388,8 @@ void get_diydx(VectorView diy1,
                ConstVectorView iYmJ,
                ConstVectorView dJ1,
                ConstVectorView dJ2,
-               const Index stokes_dim);
+               const Index stokes_dim,
+               const bool transmission_only=false);
 
 #endif // jacobian_h
 

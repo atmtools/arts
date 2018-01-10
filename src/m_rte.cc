@@ -251,7 +251,7 @@ void iyEmissionStandard2(
   const Index     nq = j_analytical_do ? jacobian_quantities.nelem() : 0;
   ArrayOfTensor3  diy_dpath(nq); 
   ArrayOfIndex    jac_species_i(nq), jac_scat_i(nq), jac_is_t(nq), jac_wind_i(nq);
-  ArrayOfIndex    jac_mag_i(nq), jac_other(nq), jac_to_integrate(nq);
+  ArrayOfIndex    jac_mag_i(nq), jac_other(nq);
   //
   // Flags for partial derivatives of propmat
   const PropmatPartialsData ppd(jacobian_quantities);
@@ -262,7 +262,7 @@ void iyEmissionStandard2(
       const ArrayOfTensor4 dpnd_field_dx(nq);
       //
       rtmethods_jacobian_init( jac_species_i, jac_scat_i, jac_is_t, jac_wind_i,
-                               jac_mag_i, jac_other, jac_to_integrate, diy_dx,
+                               jac_mag_i, jac_other, diy_dx,
                                diy_dpath,
                                ns, nf, np, nq, abs_species,
                                scat_species, dpnd_field_dx, ppd,
@@ -532,7 +532,7 @@ void iyEmissionStandard2(
                                        ppvar_p, ppvar_t, ppvar_vmr,
                                        iy_agenda_call1, iy_transmission,
                                        jacobian_quantities, jac_species_i,
-                                       jac_is_t, jac_to_integrate );
+                                       jac_is_t );
     }
 
   // Radiance unit conversions
@@ -669,7 +669,7 @@ void iyEmissionStandard(
   Index           j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
   ArrayOfIndex    jac_species_i(0), jac_scat_i(0), jac_is_t(0), jac_wind_i(0);
-  ArrayOfIndex    jac_mag_i(0), jac_other(0), jac_to_integrate(0); 
+  ArrayOfIndex    jac_mag_i(0), jac_other(0); 
   // Flags for partial derivatives of propmat
   const PropmatPartialsData ppd(jacobian_quantities);
   //
@@ -687,25 +687,16 @@ void iyEmissionStandard(
       jac_wind_i.resize( nq );  
       jac_mag_i.resize( nq ); 
       jac_other.resize(nq);
-      jac_to_integrate.resize(nq);
       //
       FOR_ANALYTICAL_JACOBIANS_DO( 
-        if( jacobian_quantities[iq].Integration() )
-        {
-            diy_dpath[iq].resize( 1, nf, ns ); 
-            diy_dpath[iq] = 0.0;
-        }
-        else
-        {
             diy_dpath[iq].resize( np, nf, ns ); 
             diy_dpath[iq] = 0.0;
-        }
       )
 
       const ArrayOfString scat_species(0);
       
       get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
-                                             jac_wind_i, jac_mag_i, jac_to_integrate, 
+                                             jac_wind_i, jac_mag_i, 
                                              jacobian_quantities,
                                              abs_species, scat_species );
 
@@ -866,7 +857,7 @@ void iyEmissionStandard(
                                ppd, ppath, ppath_p,  ppath_t, ppath_t_nlte, ppath_vmr, 
                                ppath_mag, ppath_f, f_grid, 
                                jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,
-                               jac_to_integrate, jac_other, iaps,
+                               jac_other, iaps,
                                scat_data_dummy, 1,
                                pnd_field_dummy, dummy_dpnd_field_dx,
                                cloudbox_limits_dummy, use_mean_scat_data_dummy,
@@ -1072,7 +1063,7 @@ void iyEmissionStandard(
           if( jacobian_quantities[iq].Analytical() )
           {
             if( jac_species_i[iq] >= 0 || jac_wind_i[iq] ||
-              jac_mag_i[iq] || jac_other[iq] || jac_is_t[iq] || jac_to_integrate[iq])
+              jac_mag_i[iq] || jac_other[iq] || jac_is_t[iq])
             {
               /* 
                 *   We need to do blackbody derivation for temperature.
@@ -1081,68 +1072,35 @@ void iyEmissionStandard(
                 *   dppath_blackrad_dt into a Tensor3 of size [nq,nf,np].
                 */
               
-              const bool this_is_t = jac_is_t[iq], this_is_flux = jac_to_integrate[iq]==JAC_IS_FLUX,
+              const bool this_is_t = jac_is_t[iq], 
               this_is_hse = this_is_t ? jacobian_quantities[iq].Subtag() == "HSE on" : false;
-              const Numeric distance = (this_is_flux?1.0:ppath.lstep[ip]);
               
-              if(jac_to_integrate[iq])
-              {
-                get_diydx_replacement(diy_dpath[iq](0, joker, joker),
-                                      diy_dpath[iq](0, joker, joker),
-                                      iy,
-                                      sibi,
-                                      ppath_nlte_source[ip],
-                                      ppath_nlte_source[ip+1],
-                                      dppath_nlte_source_dx[ip][iq],
-                                      dppath_nlte_source_dx[ip+1][iq],
-                                      ppath_ext[ip],
-                                      ppath_ext[ip+1],
-                                      dppath_ext_dx[ip][iq],
-                                      dppath_ext_dx[ip+1][iq],
-                                      trans_partial(joker,joker,joker,ip),
-                                      dtrans_partial_dx_below(iq,joker,joker,joker,ip),
-                                      dtrans_partial_dx_above(iq,joker,joker,joker,ip),
-                                      trans_cumulat(joker,joker,joker,ip  ),
-                                      trans_cumulat(joker,joker,joker,ip+1),
-                                      ppath_t[ip  ],
-                                      ppath_t[ip+1],
-                                      dt,
-                                      dppath_blackrad_dt(joker,ip  ),
-                                      dppath_blackrad_dt(joker,ip+1),
-                                      distance,
-                                      this_is_t,
-                                      this_is_hse,
-                                      nonlte);
-              }
-              else
-              {
-                get_diydx_replacement(diy_dpath[iq](ip  ,joker, joker),
-                                      diy_dpath[iq](ip+1,joker, joker),
-                                      iy,
-                                      sibi,
-                                      ppath_nlte_source[ip],
-                                      ppath_nlte_source[ip+1],
-                                      dppath_nlte_source_dx[ip][iq],
-                                      dppath_nlte_source_dx[ip+1][iq],
-                                      ppath_ext[ip],
-                                      ppath_ext[ip+1],
-                                      dppath_ext_dx[ip][iq],
-                                      dppath_ext_dx[ip+1][iq],
-                                      trans_partial(joker,joker,joker,ip),
-                                      dtrans_partial_dx_below(iq,joker,joker,joker,ip),
-                                      dtrans_partial_dx_above(iq,joker,joker,joker,ip),
-                                      trans_cumulat(joker,joker,joker,ip  ),
-                                      trans_cumulat(joker,joker,joker,ip+1),
-                                      ppath_t[ip  ],
-                                      ppath_t[ip+1],
-                                      dt,
-                                      dppath_blackrad_dt(joker,ip  ),
-                                      dppath_blackrad_dt(joker,ip+1),
-                                      distance,
-                                      this_is_t,
-                                      this_is_hse,
-                                      nonlte);
-              }
+              get_diydx_replacement(diy_dpath[iq](ip, joker, joker),
+                                    diy_dpath[iq](ip+1, joker, joker),
+                                    iy,
+                                    sibi,
+                                    ppath_nlte_source[ip],
+                                    ppath_nlte_source[ip+1],
+                                    dppath_nlte_source_dx[ip][iq],
+                                    dppath_nlte_source_dx[ip+1][iq],
+                                    ppath_ext[ip],
+                                    ppath_ext[ip+1],
+                                    dppath_ext_dx[ip][iq],
+                                    dppath_ext_dx[ip+1][iq],
+                                    trans_partial(joker,joker,joker,ip),
+                                    dtrans_partial_dx_below(iq,joker,joker,joker,ip),
+                                    dtrans_partial_dx_above(iq,joker,joker,joker,ip),
+                                    trans_cumulat(joker,joker,joker,ip  ),
+                                    trans_cumulat(joker,joker,joker,ip+1),
+                                    ppath_t[ip  ],
+                                    ppath_t[ip+1],
+                                    dt,
+                                    dppath_blackrad_dt(joker,ip  ),
+                                    dppath_blackrad_dt(joker,ip+1),
+                                    ppath.lstep[ip],
+                                    this_is_t,
+                                    this_is_hse,
+                                    nonlte);
             } // if this iq is analytical
           } // if this analytical
         } // for iq
@@ -1240,18 +1198,9 @@ void iyEmissionStandard(
           Y.resize(ns,diy_dpath[iq].npages());
           for( Index iv=0; iv<nf; iv++ )
           { 
-              if( jac_to_integrate[iq] )
-              {
                 X = transpose( diy_dpath[iq](joker,iv,joker) );
                 mult( Y, iy_transmission(iv,joker,joker), X );
                 diy_dpath[iq](joker,iv,joker) = transpose( Y );
-              }
-              else
-              {
-                X = transpose( diy_dpath[iq](joker,iv,joker) );
-                mult( Y, iy_transmission(iv,joker,joker), X );
-                diy_dpath[iq](joker,iv,joker) = transpose( Y );
-              }
           }
         )
       }

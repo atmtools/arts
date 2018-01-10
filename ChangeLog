@@ -1,3 +1,44 @@
+2018-01-09  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-918
+	
+	Removes integration as a separate entity from the standard iy-
+	functions.  The feature remains and is now a bit more heavy on
+	memory, but the code simplification is nice to have
+	
+	* src/rte.{cc,h}: (get_ppath_trans_and_dppath_trans_dx),
+	(get_ppath_pmat_and_tmat), (rtmethods_jacobian_init), and
+	(rtmethods_jacobian_finalisation) had their explicit flags
+	for integration removed (as well as related code)
+	
+	* src/m_transmitter.cc: (iyTransmissionStandard) had 
+	the flags and code removed. (iyTransmissionStandard2)
+	was changed to allow for derivatives --- though this is not
+	fully tested yet
+	
+	* src/m_rte.cc: (iyEmissionStandard{,2}) had their integration
+	flags and code removed
+	
+	* src/m_jacobian.cc:  removed outcommented code related to 
+	integration
+	
+	* src/m_fox.cc: (iyHybrid) had integration code removed
+	
+	* src/m_cloudradar.cc: (iyActiveSingleScat) had integration 
+	code removed
+	
+	* src/linefunctions.cc:  Added forgotten jacobians speedup
+	code by copying xsec code for each derivative
+	
+	* ChangeLog:  Added text about m_abs.cc change
+	in previous commit
+	
+	* src/jacobian.{cc,h}:  (get_diydx) now takes a transmission
+	flag to indicate it can ignore source terms.  Removed enum
+	names that are no longer relevant.  
+	(get_pointers_for_analytical_jacobians) no longer finds 
+	integration targets
+	
 2018-01-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-917
@@ -82,6 +123,10 @@
 	
 	* src/test_propagationmatrix.cc: A small test of the range
 	functions...
+	
+	* src/m_abs.cc:  Added speedup code in 
+	(abs_xsec_per_speciesAddLines2) to compute N in 2^N+1 to pass
+	onto later functions
 
 2018-01-02  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 

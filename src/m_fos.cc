@@ -1019,7 +1019,7 @@ void iyHybrid(
   const Index     nq = j_analytical_do ? jacobian_quantities.nelem() : 0;
   ArrayOfTensor3  diy_dpath(nq); 
   ArrayOfIndex    jac_species_i(nq), jac_scat_i(nq), jac_is_t(nq), jac_wind_i(nq);
-  ArrayOfIndex    jac_mag_i(nq), jac_other(nq), jac_to_integrate(nq);
+  ArrayOfIndex    jac_mag_i(nq), jac_other(nq);
   //
   // Flags for partial derivatives of propmat
   const PropmatPartialsData ppd(jacobian_quantities);
@@ -1027,7 +1027,7 @@ void iyHybrid(
   if( j_analytical_do )
     {
       rtmethods_jacobian_init( jac_species_i, jac_scat_i, jac_is_t, jac_wind_i,
-                               jac_mag_i, jac_other, jac_to_integrate, diy_dx,
+                               jac_mag_i, jac_other, diy_dx,
                                diy_dpath,
                                ns, nf, np, nq, abs_species,
                                scat_species, dpnd_field_dx, ppd,
@@ -1364,7 +1364,7 @@ void iyHybrid(
                                        ppvar_p, ppvar_t, ppvar_vmr,
                                        iy_agenda_call1, iy_transmission,
                                        jacobian_quantities, jac_species_i,
-                                       jac_is_t, jac_to_integrate );
+                                       jac_is_t );
     }
 
   // Unit conversions

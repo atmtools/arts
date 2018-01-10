@@ -381,10 +381,13 @@ void diy_from_path_to_rgrids(
    const Ppath&               ppath,
    ConstVectorView            ppath_p )
 {
+  // If this is an integration target then diy_dx is just the sum of all in diy_dpath
    if( jacobian_quantity.Integration() )
    {
-       diy_dx = diy_dpath;
-       return;
+     diy_dx(0, joker, joker) = diy_dpath(0, joker, joker);
+     for(Index i = 1; i < diy_dpath.npages(); i++)
+       diy_dx(0, joker, joker) += diy_dpath(i, joker, joker);
+     return;
    }
     
   // We want here an extrapolation to infinity -> 
@@ -568,7 +571,6 @@ void get_pointers_for_analytical_jacobians(
          ArrayOfIndex&               is_t,
          ArrayOfIndex&               wind_i,
          ArrayOfIndex&               magfield_i,
-         ArrayOfIndex&               integrate_i,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
    const ArrayOfString&              scat_species )
@@ -695,19 +697,7 @@ void get_pointers_for_analytical_jacobians(
       }
     else
       { magfield_i[iq] = JAC_IS_NONE; }
-    //
-    if( jacobian_quantities[iq].MainTag() == FLUX_MAINTAG ) 
-      { 
-        integrate_i[iq] = JAC_IS_FLUX; 
-      }
-    else if(jacobian_quantities[iq].Integration()) 
-      { 
-        integrate_i[iq] = JAC_IS_INTEGRATION;   
-      }
-    else  
-      { 
-        integrate_i[iq] = JAC_IS_NONE;   
-      }
+      
    )
 }
 
@@ -1801,7 +1791,8 @@ void get_diydx( VectorView diydx_this,
  *   \param   iYmJ                      In: incoming radiation to layer minus source of layer
  *   \param   dJ1                       In: derivative of source term emitted for the first time
  *   \param   dJ2                       In: derivative of source term emitted for the second time
- * 
+ *   \param   stokes_dim                In: essentially the size of the problem
+ *   \param   transmission_only         In: remove all computations on source terms, making iYmJ pure incoming radiation
  * 
  *   \author Richard Larsson
  *   \date   2017-09-20
@@ -1815,7 +1806,8 @@ void get_diydx(VectorView diy1,
                ConstVectorView iYmJ,
                ConstVectorView dJ1,
                ConstVectorView dJ2,
-               const Index stokes_dim)
+               const Index stokes_dim,
+               const bool transmission_only)
 {
   /*
    * Solves 
@@ -1836,14 +1828,20 @@ void get_diydx(VectorView diy1,
   
   // The first time a level is involved in a layer
   mult(a, dT1, iYmJ);
-  mult(b, ImT, dJ1);
-  a += b;
+  if(not transmission_only)
+  {
+    mult(b, ImT, dJ1);
+    a += b;
+  }
   mult(diy1, cumulative_transmission, a);
   
   // The second time a level is involved in a layer
   mult(a, dT2, iYmJ);
-  mult(b, ImT, dJ2);
-  a += b;
+  if(not transmission_only)
+  {
+    mult(b, ImT, dJ2);
+    a += b;
+  }
   mult(b, cumulative_transmission, a);
   diy2 += b; 
 }

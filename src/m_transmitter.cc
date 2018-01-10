@@ -755,7 +755,7 @@ void iyTransmissionStandard(
   Index           j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
   ArrayOfIndex    jac_species_i(0), jac_scat_i(0), jac_is_t(0), jac_wind_i(0);
-  ArrayOfIndex    jac_mag_i(0), jac_other(0), jac_to_integrate(0); 
+  ArrayOfIndex    jac_mag_i(0), jac_other(0); 
   // Flags for partial derivatives of propmat
   const PropmatPartialsData ppd(jacobian_quantities);
   //
@@ -773,32 +773,21 @@ void iyTransmissionStandard(
       jac_wind_i.resize( nq ); 
       jac_mag_i.resize( nq ); 
       jac_other.resize(nq);
-      jac_to_integrate.resize(nq);
       //
       FOR_ANALYTICAL_JACOBIANS_DO( 
-        if( jacobian_quantities[iq].Integration() )
-        {
-            diy_dpath[iq].resize( 1, nf, ns ); 
-            diy_dpath[iq] = 0.0;
-        }
-        else
-        {
             diy_dpath[iq].resize( np, nf, ns ); 
             diy_dpath[iq] = 0.0;
-        }
       )
         
       const ArrayOfString scat_species(0);
 
       get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
-                                             jac_wind_i, jac_mag_i, jac_to_integrate, 
+                                             jac_wind_i, jac_mag_i, 
                                              jacobian_quantities,
                                              abs_species, scat_species );
 
       FOR_ANALYTICAL_JACOBIANS_DO( 
         jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
-        if( jac_to_integrate[iq] == JAC_IS_FLUX )
-          throw std::runtime_error("This method can not perform flux calculations.\n");
       )
 
       if( iy_agenda_call1 )
@@ -1020,7 +1009,7 @@ void iyTransmissionStandard(
                                ppd, ppath, ppath_p, ppath_t, ppath_t_nlte,
                                ppath_vmr, ppath_mag, ppath_f, f_grid, 
                                jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,
-                               jac_to_integrate, jac_other, iaps,
+                               jac_other, iaps,
                                scat_data, scat_data_checked,
                                pnd_field, dummy_dpnd_field_dx,
                                cloudbox_limits, use_mean_scat_data,
@@ -1147,65 +1136,32 @@ void iyTransmissionStandard(
                   {   
                     const bool this_is_t = jac_is_t[iq],
                     this_is_hse = this_is_t ? jacobian_quantities[iq].Subtag() == "HSE on" : false;
-                    
-                    if(jac_to_integrate[iq])
-                    {
-                      get_diydx_replacement(diy_dpath[iq](0, joker, joker),
-                                            diy_dpath[iq](0, joker, joker),
-                                            iy,
-                                            iy,
-                                            zerovec,
-                                            zerovec,
-                                            zerovec,
-                                            zerovec,
-                                            ppath_ext[ip],
-                                            ppath_ext[ip+1],
-                                            dppath_ext_dx[ip][iq],
-                                            dppath_ext_dx[ip+1][iq],
-                                            trans_partial(joker,joker,joker,ip),
-                                            dtrans_partial_dx_below(iq,joker,joker,joker,ip),
-                                            dtrans_partial_dx_above(iq,joker,joker,joker,ip),
-                                            trans_cumulat(joker,joker,joker,ip  ),
-                                            trans_cumulat(joker,joker,joker,ip+1),
-                                            ppath_t[ip  ],
-                                            ppath_t[ip+1],
-                                            dt,
-                                            0,
-                                            0,
-                                            ppath.lstep[ip],
-                                            false,
-                                            this_is_hse,
-                                            false );
-                    }
-                    else
-                    {
-                      get_diydx_replacement(diy_dpath[iq](ip  ,joker,joker),
-                                            diy_dpath[iq](ip+1,joker,joker),
-                                            iy,
-                                            iy,
-                                            zerovec,
-                                            zerovec,
-                                            zerovec,
-                                            zerovec,
-                                            ppath_ext[ip],
-                                            ppath_ext[ip+1],
-                                            dppath_ext_dx[ip][iq],
-                                            dppath_ext_dx[ip+1][iq],
-                                            trans_partial(joker,joker,joker,ip),
-                                            dtrans_partial_dx_below(iq,joker,joker,joker,ip),
-                                            dtrans_partial_dx_above(iq,joker,joker,joker,ip),
-                                            trans_cumulat(joker,joker,joker,ip  ),
-                                            trans_cumulat(joker,joker,joker,ip+1),
-                                            ppath_t[ip  ],
-                                            ppath_t[ip+1],
-                                            dt,
-                                            0,
-                                            0,
-                                            ppath.lstep[ip],
-                                            false,
-                                            this_is_hse,
-                                            false );
-                    }
+                    get_diydx_replacement(diy_dpath[iq](ip  ,joker,joker),
+                                          diy_dpath[iq](ip+1,joker,joker),
+                                          iy,
+                                          iy,
+                                          zerovec,
+                                          zerovec,
+                                          zerovec,
+                                          zerovec,
+                                          ppath_ext[ip],
+                                          ppath_ext[ip+1],
+                                          dppath_ext_dx[ip][iq],
+                                          dppath_ext_dx[ip+1][iq],
+                                          trans_partial(joker,joker,joker,ip),
+                                          dtrans_partial_dx_below(iq,joker,joker,joker,ip),
+                                          dtrans_partial_dx_above(iq,joker,joker,joker,ip),
+                                          trans_cumulat(joker,joker,joker,ip  ),
+                                          trans_cumulat(joker,joker,joker,ip+1),
+                                          ppath_t[ip  ],
+                                          ppath_t[ip+1],
+                                          dt,
+                                          0,
+                                          0,
+                                          ppath.lstep[ip],
+                                          false,
+                                          this_is_hse,
+                                          false );
                   } // if this iq is analytical
                 } // if this analytical
               } // for iq
@@ -1423,7 +1379,7 @@ void iyTransmissionStandard2(
   const Index     nq = j_analytical_do ? jacobian_quantities.nelem() : 0;
   ArrayOfTensor3  diy_dpath(nq); 
   ArrayOfIndex    jac_species_i(nq), jac_scat_i(nq), jac_is_t(nq), jac_wind_i(nq);
-  ArrayOfIndex    jac_mag_i(nq), jac_other(nq), jac_to_integrate(nq);
+  ArrayOfIndex    jac_mag_i(nq), jac_other(nq);
   //
   // Flags for partial derivatives of propmat
   const PropmatPartialsData ppd(jacobian_quantities);
@@ -1431,8 +1387,7 @@ void iyTransmissionStandard2(
   if( j_analytical_do )
     {
       rtmethods_jacobian_init( jac_species_i, jac_scat_i, jac_is_t, jac_wind_i,
-                               jac_mag_i, jac_other, jac_to_integrate, diy_dx,
-                               diy_dpath,
+                               jac_mag_i, jac_other, diy_dx, diy_dpath,
                                ns, nf, np, nq, abs_species,
                                scat_species, dpnd_field_dx, ppd,
                                jacobian_quantities, iy_agenda_call1 );
@@ -1464,7 +1419,6 @@ void iyTransmissionStandard2(
   Tensor4 trans_cumulat(np,nf,ns,ns), trans_partial(np,nf,ns,ns);
   Tensor5 dtrans_partial_dx_above(np,nq,nf,ns,ns);
   Tensor5 dtrans_partial_dx_below(np,nq,nf,ns,ns);
-  Tensor4 dJ_dx(np,nq,nf,ns);
   ArrayOfIndex clear2cloudy;
   //
   if( np == 1  &&  rbi == 1 )  // i.e. ppath is totally outside the atmosphere:
@@ -1512,7 +1466,6 @@ void iyTransmissionStandard2(
         }
       
       // Size radiative variables always used
-      Vector B(nf);
       PropagationMatrix K_this(nf,ns), K_past(nf,ns), Kp(nf,ns);
       StokesVector a(nf,ns), S(nf,ns), Sp(nf,ns);
       ArrayOfIndex lte(np);
@@ -1530,7 +1483,6 @@ void iyTransmissionStandard2(
               dK_this_dx[iq] = PropagationMatrix(nf,ns);
               dK_past_dx[iq] = PropagationMatrix(nf,ns);
               dKp_dx[iq]     = PropagationMatrix(nf,ns);
-              da_dx[iq]      = StokesVector(nf,ns);
               dS_dx[iq]      = StokesVector(nf,ns);
               dSp_dx[iq]     = StokesVector(nf,ns);
             )
@@ -1538,13 +1490,7 @@ void iyTransmissionStandard2(
 
       // Loop ppath points and determine radiative properties
       for( Index ip=0; ip<np; ip++ )
-        {
-          get_stepwise_blackbody_radiation( B,
-                                            dB_dT,
-                                            ppvar_f(joker,ip),
-                                            ppvar_t[ip],
-                                            ppd.do_temperature() );
-          
+        { 
           get_stepwise_clearsky_propmat( ws,
                                          K_this,
                                          S,
@@ -1597,27 +1543,16 @@ void iyTransmissionStandard2(
                                                atmosphere_dim,
                                                jacobian_do,
                                                verbosity );
-              a += K_this; 
+              
               K_this += Kp;
               
               if( j_analytical_do )
                 {
                   FOR_ANALYTICAL_JACOBIANS_DO
                     (
-                      da_dx[iq] += dK_this_dx[iq];
                       dK_this_dx[iq] += dKp_dx[iq];
                     )
                  }
-            }
-          
-          else // no particles present at this level
-            {
-              a = K_this;
-              if( j_analytical_do )
-                {
-                  FOR_ANALYTICAL_JACOBIANS_DO      
-                    ( da_dx[iq] = dK_this_dx[iq]; )                              
-                }
             }
       
           get_stepwise_transmission_matrix(
@@ -1636,19 +1571,6 @@ void iyTransmissionStandard2(
                                    ppath.lstep[ip-1]:
                                    Numeric(1.0),
                                  ip==0 );
-
-          get_stepwise_effective_source( J(ip,joker,joker),
-                                         dJ_dx(ip,joker,joker,joker),
-                                         K_this,
-                                         a,
-                                         S,
-                                         dK_this_dx,
-                                         da_dx,
-                                         dS_dx,
-                                         B,
-                                         dB_dT,
-                                         jacobian_quantities,
-                                         j_analytical_do );
       
           swap( K_past, K_this );
           swap( dK_past_dx, dK_this_dx );
@@ -1657,32 +1579,16 @@ void iyTransmissionStandard2(
   
   // Radiative transfer calculations
   if( np > 1 )
-    {
+  {
+      Matrix empty_matrix;
+      Vector empty_vector;
       for( Index iv=0; iv<nf; iv++ )
-        {
-          Vector through_level(ns), from_level(ns);
-          Vector dfrom_level_dx(ns);
-          Matrix one_minus_transmission(ns,ns);
-      
+      {
           for( Index ip=np-2; ip>=0; ip-- )
             {
         
               ConstMatrixView T = trans_partial(ip+1,iv,joker,joker);
-        
-              if( j_analytical_do )
-                {
-                  if( stokes_dim > 1 )
-                    { id_mat(one_minus_transmission); }
-                  else 
-                    { one_minus_transmission = 1.; }
-                  one_minus_transmission -= T;
-                }
-
-              from_level = J(ip,iv,joker);
-              from_level += J(ip+1,iv,joker);
-              from_level *= 0.5;
-              through_level = iy(iv,joker);
-              through_level -= from_level;
+              Vector iY = iy(iv,joker);
 
               if( j_analytical_do )
                 {
@@ -1690,20 +1596,20 @@ void iyTransmissionStandard2(
                     (
                        get_diydx( diy_dpath[iq](ip,iv,joker), 
                                   diy_dpath[iq](ip+1,iv,joker), 
-                                  one_minus_transmission,
+                                  empty_matrix,
                                   trans_cumulat(ip,iv,joker,joker), 
                                   dtrans_partial_dx_above(ip+1,iq,iv,joker,joker), 
                                   dtrans_partial_dx_below(ip+1,iq,iv,joker,joker), 
-                                  through_level, 
-                                  dJ_dx(ip,iq,iv,joker), 
-                                  dJ_dx(ip+1,iq,iv,joker),
-                                  stokes_dim );
+                                  iY, 
+                                  empty_vector, 
+                                  empty_vector,
+                                  stokes_dim,
+                                  true );
                      )
                 }
               
-              // Equation is I1 = T (I0 - 0.5(J_1+J_2)) + 0.5(J_1+J_2)
-              mult( iy(iv,joker), T, through_level );
-              iy(iv,joker) += from_level;
+              // Equation is I1 = T I0
+              mult( iy(iv,joker), T, iY );
 
               ppvar_iy(iv,joker,ip) = iy(iv,joker);
             }

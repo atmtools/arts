@@ -1949,7 +1949,6 @@ void get_ppath_pmat_and_tmat(
                             const ArrayOfIndex&   jac_is_t,
                             const ArrayOfIndex&   jac_wind_i,
                             const ArrayOfIndex&   jac_mag_i,
-                            const ArrayOfIndex&   jac_to_integrate,
                             const ArrayOfIndex&   jac_other,
                             const ArrayOfIndex&   ispecies,
                             const ArrayOfArrayOfSingleScatteringData scat_data,
@@ -2199,16 +2198,6 @@ void get_ppath_pmat_and_tmat(
                     }
                       
                   }
-                  else if(jac_to_integrate[iq] == JAC_IS_FLUX)
-                  {
-                    
-                    dppath_ext_dx[ip][iq] = ppath_ext[ip];
-                    dppath_ext_dx[ip][iq] *= -1;
-                    if(!nlte_source.empty())
-                    {
-                        dppath_nlte_source_dx[ip][iq] = 0.0;
-                    }
-                  }
               }
             }
         }
@@ -2246,7 +2235,7 @@ void get_ppath_pmat_and_tmat(
             get_ppath_trans_and_dppath_trans_dx(
                 trans_partial, dtrans_partial_dx_above, dtrans_partial_dx_below, 
                 extmat_case, trans_cumulat, scalar_tau, ppath, ppath_ext, 
-                dppath_ext_dx, jacobian_quantities, f_grid, jac_to_integrate, stokes_dim );
+                dppath_ext_dx, jacobian_quantities, f_grid, stokes_dim );
             
     }
     else
@@ -3278,7 +3267,6 @@ void get_ppath_trans(
  *   \param   dppath_ext_dx                     In:  See get_ppath_ext_and_dppath_ext_dx.
  *   \param   jacobian_quantities               In:  As the WSV.    
  *   \param   f_grid                            In:  As the WSV.    
- *   \param   for_distance_integration          In:  Indicates integration along r.
  *   \param   stokes_dim                        In:  As the WSV.
  * 
  *   \author Patrick Eriksson 
@@ -3300,7 +3288,6 @@ void get_ppath_trans_and_dppath_trans_dx(
   const ArrayOfArrayOfPropagationMatrix& dppath_ext_dx,
   const ArrayOfRetrievalQuantity& jacobian_quantities,
   ConstVectorView              f_grid, 
-  const ArrayOfIndex&          for_distance_integration _U_,  // Need to add this again before committing final code...
   const Index&                 stokes_dim )
 {
   // Sizes
@@ -5244,7 +5231,6 @@ void rtmethods_jacobian_init(
          ArrayOfIndex&               jac_wind_i,
          ArrayOfIndex&               jac_mag_i,
          ArrayOfIndex&               jac_other,
-         ArrayOfIndex&               jac_to_integrate,
          ArrayOfTensor3&             diy_dx,
          ArrayOfTensor3&             diy_dpath,         
    const Index&                      ns,
@@ -5259,27 +5245,17 @@ void rtmethods_jacobian_init(
    const Index&                      iy_agenda_call1 )
 {
   FOR_ANALYTICAL_JACOBIANS_DO( 
-    if( jacobian_quantities[iq].Integration() )
-      {
-        diy_dpath[iq].resize(1,nf,ns); 
-        diy_dpath[iq] = 0.0;
-      }
-    else
-      {
         diy_dpath[iq].resize(np,nf,ns); 
         diy_dpath[iq] = 0.0;
-      }
   )
 
   get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
-                                         jac_wind_i, jac_mag_i, jac_to_integrate, 
+                                         jac_wind_i, jac_mag_i, 
                                          jacobian_quantities,
                                          abs_species, scat_species );
   
   FOR_ANALYTICAL_JACOBIANS_DO( 
     jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
-    if( jac_to_integrate[iq] == JAC_IS_FLUX )
-      throw std::runtime_error("This method can not perform flux calculations.");
       
     if( jac_scat_i[iq]+1 )
       {
@@ -5349,8 +5325,7 @@ void rtmethods_jacobian_finalisation(
    const Tensor3&                    iy_transmission,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfIndex                jac_species_i,
-   const ArrayOfIndex                jac_is_t,
-   const ArrayOfIndex&               jac_to_integrate )
+   const ArrayOfIndex                jac_is_t)
 {
   // Weight with iy_transmission
   if( !iy_agenda_call1 )
@@ -5362,18 +5337,9 @@ void rtmethods_jacobian_finalisation(
           Y.resize(ns,diy_dpath[iq].npages());
           for( Index iv=0; iv<nf; iv++ )
             { 
-              if( jac_to_integrate[iq] )
-                {
                   X = transpose( diy_dpath[iq](joker,iv,joker) );
                   mult( Y, iy_transmission(iv,joker,joker), X );
                   diy_dpath[iq](joker,iv,joker) = transpose( Y );
-                }
-              else
-                {
-                  X = transpose( diy_dpath[iq](joker,iv,joker) );
-                  mult( Y, iy_transmission(iv,joker,joker), X );
-                  diy_dpath[iq](joker,iv,joker) = transpose( Y );
-                }
             }
         )
     }

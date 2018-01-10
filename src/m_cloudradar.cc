@@ -134,7 +134,7 @@ void iyActiveSingleScat(
   Index           j_analytical_do = 0;
   ArrayOfTensor3  diy_dpath; 
   ArrayOfIndex    jac_species_i(0), jac_scat_i(0), jac_is_t(0), jac_wind_i(0);
-  ArrayOfIndex    jac_mag_i(0), jac_other(0), jac_to_integrate(0); 
+  ArrayOfIndex    jac_mag_i(0), jac_other(0); 
   // Flags for partial derivatives of propmat
   const PropmatPartialsData ppd(jacobian_quantities);
   //
@@ -152,7 +152,6 @@ void iyActiveSingleScat(
       jac_wind_i.resize( nq );  
       jac_mag_i.resize( nq ); 
       jac_other.resize(nq);
-      jac_to_integrate.resize(nq);
       //
       FOR_ANALYTICAL_JACOBIANS_DO( 
         if( jacobian_quantities[iq].Integration() )
@@ -168,15 +167,12 @@ void iyActiveSingleScat(
       )
         
       get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
-                                             jac_wind_i, jac_mag_i, jac_to_integrate, 
+                                             jac_wind_i, jac_mag_i, 
                                              jacobian_quantities,
                                              abs_species, scat_species );
       
       FOR_ANALYTICAL_JACOBIANS_DO( 
         jac_other[iq] = ppd.is_this_propmattype(iq)?JAC_IS_OTHER:JAC_IS_NONE; 
-        if( jac_to_integrate[iq] == JAC_IS_FLUX )
-          throw std::runtime_error("This method can not perform flux"
-                                   " calculations.\n");
         if( jac_scat_i[iq]+1 )
         {
           if( dpnd_field_dx[iq].empty() )
@@ -348,7 +344,7 @@ void iyActiveSingleScat(
                                ppd, ppath, ppath_p, ppath_t, ppath_t_nlte,
                                ppath_vmr, ppath_mag, ppath_f, f_grid, 
                                jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,
-                               jac_to_integrate, jac_other, iaps,
+                               jac_other, iaps,
                                scat_data, scat_data_checked,
                                pnd_field, dpnd_field_dx,
                                cloudbox_limits, 0,

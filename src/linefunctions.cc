@@ -2170,13 +2170,25 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
     {
       // Interpolation up needs to happen if we are at a stage of having more than 2 points
       if((speedup_index != binary_speedup and computational_points > 2) or computational_points == 3)
+      {
         interp_up_inside_binary_range(F, binary_range(f_grid, speedup_index, true));
+        for(auto& cv : dF)
+          interp_up_inside_binary_range(cv, binary_range(f_grid, speedup_index, true));
+      }
       else if(speedup_index == binary_speedup)
       {
-        if(upper_boundary > lower_boundary) {
+        if(upper_boundary > lower_boundary) 
+        {
           interp_to_boundary_of_binary_range(F, upper_boundary, lower_boundary); 
-        } else {
-          interp_to_boundary_of_binary_range(F, 0, 0); }
+          for(auto& cv : dF)
+            interp_to_boundary_of_binary_range(cv, upper_boundary, lower_boundary); 
+        } 
+        else 
+        {
+          interp_to_boundary_of_binary_range(F, 0, 0); 
+          for(auto& cv : dF)
+            interp_to_boundary_of_binary_range(cv, 0, 0); 
+        }
       }
       speedup_index++;
     }
