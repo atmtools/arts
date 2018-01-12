@@ -637,7 +637,7 @@ void LineMixingData::Get1stOrder_dExponent(Numeric& dYexp, const Numeric& Temper
 
 
 // This will parse any Vector by the own mtype to the right settings for mdata
-void LineMixingData::SetDataFromVectorWithKnownType(const Vector& input)
+void LineMixingData::SetDataFromVectorWithKnownType(ConstVectorView input)
 {
   if(mtype == LM_NONE) // The standard case
     Vector2NoneData(input);
@@ -658,7 +658,7 @@ void LineMixingData::SetDataFromVectorWithKnownType(const Vector& input)
 
 
 // This will be used to know how many parameters must be read from the catalog
-Index LineMixingData::ExpectedVectorLengthFromType()
+Index LineMixingData::ExpectedVectorLengthFromType() const
 {
   if(mtype == LM_NONE) // The standard case
     return 0;

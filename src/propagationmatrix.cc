@@ -2048,10 +2048,10 @@ void PropagationMatrix::AddAverageAtPosition(ConstMatrixView mat1, ConstMatrixVi
 {
   switch(mstokes_dim)
   {
-    case 4: mdata(ia ,iz, iv, 3) += (mat1(3, 0) + mat2(3, 0)) * 0.5; mdata(ia ,iz, iv, 5) += (mat1(1, 3) + mat2(1, 3)) * 0.5; mdata(ia ,iz, iv, 6) += (mat1(2, 3) + mat2(2, 3)) * 0.5;
-    case 3: mdata(ia ,iz, iv, 2) += (mat1(2, 0) + mat2(2, 0)) * 0.5; mdata(ia ,iz, iv, mstokes_dim) += (mat1(1, 2) + mat2(1, 2)) * 0.5;
-    case 2: mdata(ia ,iz, iv, 1) += (mat1(1, 0) + mat2(1, 0)) * 0.5;
-    case 1: mdata(ia ,iz, iv, 0) += (mat1(0, 0) + mat2(0, 0)) * 0.5; 
+    case 4: mdata(ia ,iz, iv, 3) += (mat1(3, 0) + mat2(3, 0)) * 0.5; mdata(ia ,iz, iv, 5) += (mat1(1, 3) + mat2(1, 3)) * 0.5; mdata(ia ,iz, iv, 6) += (mat1(2, 3) + mat2(2, 3)) * 0.5; /* FALLTHROUGH */
+    case 3: mdata(ia ,iz, iv, 2) += (mat1(2, 0) + mat2(2, 0)) * 0.5; mdata(ia ,iz, iv, mstokes_dim) += (mat1(1, 2) + mat2(1, 2)) * 0.5; /* FALLTHROUGH */
+    case 2: mdata(ia ,iz, iv, 1) += (mat1(1, 0) + mat2(1, 0)) * 0.5; /* FALLTHROUGH */
+    case 1: mdata(ia ,iz, iv, 0) += (mat1(0, 0) + mat2(0, 0)) * 0.5; /* FALLTHROUGH */
   }
 }
 
@@ -2099,12 +2099,12 @@ void PropagationMatrix::GetTensor3(Tensor3View tensor3, Index iz, Index ia)
             tensor3(joker, 3, 1) = mdata(ia, iz, joker, 5); tensor3(joker, 0, 3) = mdata(ia, iz, joker, 3); 
             tensor3(joker, 3, 0) = mdata(ia, iz, joker, 3); tensor3(joker, 2, 3) = mdata(ia, iz, joker, 6); 
             tensor3(joker, 1, 3) = mdata(ia, iz, joker, 5); 
-            tensor3(joker, 3, 2) *= -1; tensor3(joker, 3, 1) *= -1; 
+            tensor3(joker, 3, 2) *= -1; tensor3(joker, 3, 1) *= -1; /* FALLTHROUGH */
     case 3: tensor3(joker, 2, 2) = mdata(ia, iz, joker, 0); tensor3(joker, 2, 1) = mdata(ia, iz, joker, mstokes_dim); 
             tensor3(joker, 2, 0) = mdata(ia, iz, joker, 2); tensor3(joker, 0, 2) = mdata(ia, iz, joker, 2); 
-            tensor3(joker, 1, 2) = mdata(ia, iz, joker, mstokes_dim); tensor3(joker, 2, 1) *= -1;
+            tensor3(joker, 1, 2) = mdata(ia, iz, joker, mstokes_dim); tensor3(joker, 2, 1) *= -1; /* FALLTHROUGH */
     case 2: tensor3(joker, 1, 1) = mdata(ia, iz, joker, 0); 
-            tensor3(joker, 1, 0) = mdata(ia, iz, joker, 1); tensor3(joker, 0, 1) = mdata(ia, iz, joker, 1);
+            tensor3(joker, 1, 0) = mdata(ia, iz, joker, 1); tensor3(joker, 0, 1) = mdata(ia, iz, joker, 1); /* FALLTHROUGH */
     case 1: tensor3(joker, 0, 0) = mdata(ia, iz, joker, 0); break;
     default: throw std::runtime_error("Stokes dimension does not agree with accepted values"); break;
   }
@@ -2282,10 +2282,10 @@ void PropagationMatrix::RemoveAtPosition(ConstMatrixView x, const Index iv, cons
 { 
   switch(mstokes_dim) 
   { 
-    case 4: mdata(ia, iz, iv, 5) -= x(1, 3); mdata(ia, iz, iv, 6) -= x(2, 3); mdata(ia, iz, iv, 3) -= x(0, 3);
-    case 3: mdata(ia, iz, iv, 2) -= x(0, 2); mdata(ia, iz, iv, mstokes_dim) -= x(1, 2);
-    case 2: mdata(ia, iz, iv, 1) -= x(0, 1);
-    case 1: mdata(ia, iz, iv, 0) -= x(0, 0);
+    case 4: mdata(ia, iz, iv, 5) -= x(1, 3); mdata(ia, iz, iv, 6) -= x(2, 3); mdata(ia, iz, iv, 3) -= x(0, 3); /* FALLTHROUGH */
+    case 3: mdata(ia, iz, iv, 2) -= x(0, 2); mdata(ia, iz, iv, mstokes_dim) -= x(1, 2); /* FALLTHROUGH */
+    case 2: mdata(ia, iz, iv, 1) -= x(0, 1); /* FALLTHROUGH */
+    case 1: mdata(ia, iz, iv, 0) -= x(0, 0); /* FALLTHROUGH */
   }
 }
 
@@ -2294,10 +2294,10 @@ void PropagationMatrix::AddAtPosition(ConstMatrixView x, const Index iv, const I
 { 
   switch(mstokes_dim) 
   { 
-    case 4: mdata(ia, iz, iv, 5) += x(1, 3); mdata(ia, iz, iv, 6) += x(2, 3); mdata(ia, iz, iv, 3) += x(0, 3);
-    case 3: mdata(ia, iz, iv, 2) += x(0, 2); mdata(ia, iz, iv, mstokes_dim) += x(1, 2);
-    case 2: mdata(ia, iz, iv, 1) += x(0, 1);
-    case 1: mdata(ia, iz, iv, 0) += x(0, 0);
+    case 4: mdata(ia, iz, iv, 5) += x(1, 3); mdata(ia, iz, iv, 6) += x(2, 3); mdata(ia, iz, iv, 3) += x(0, 3); /* FALLTHROUGH */
+    case 3: mdata(ia, iz, iv, 2) += x(0, 2); mdata(ia, iz, iv, mstokes_dim) += x(1, 2); /* FALLTHROUGH */
+    case 2: mdata(ia, iz, iv, 1) += x(0, 1); /* FALLTHROUGH */
+    case 1: mdata(ia, iz, iv, 0) += x(0, 0); /* FALLTHROUGH */
   }
 }
 
@@ -2306,10 +2306,10 @@ void PropagationMatrix::MultiplyAtPosition(ConstMatrixView x, const Index iv, co
 { 
   switch(mstokes_dim) 
   { 
-    case 4: mdata(ia, iz, iv, 5) *= x(1, 3); mdata(ia, iz, iv, 6) *= x(2, 3); mdata(ia, iz, iv, 3) *= x(0, 3);
-    case 3: mdata(ia, iz, iv, 2) *= x(0, 2); mdata(ia, iz, iv, mstokes_dim) *= x(1, 2);
-    case 2: mdata(ia, iz, iv, 1) *= x(0, 1);
-    case 1: mdata(ia, iz, iv, 0) *= x(0, 0);
+    case 4: mdata(ia, iz, iv, 5) *= x(1, 3); mdata(ia, iz, iv, 6) *= x(2, 3); mdata(ia, iz, iv, 3) *= x(0, 3); /* FALLTHROUGH */
+    case 3: mdata(ia, iz, iv, 2) *= x(0, 2); mdata(ia, iz, iv, mstokes_dim) *= x(1, 2); /* FALLTHROUGH */
+    case 2: mdata(ia, iz, iv, 1) *= x(0, 1); /* FALLTHROUGH */
+    case 1: mdata(ia, iz, iv, 0) *= x(0, 0); /* FALLTHROUGH */
   }
 }
 
@@ -2318,10 +2318,10 @@ void PropagationMatrix::DivideAtPosition(ConstMatrixView x, const Index iv, cons
 { 
   switch(mstokes_dim) 
   { 
-    case 4: mdata(ia, iz, iv, 5) /= x(1, 3); mdata(ia, iz, iv, 6) /= x(2, 3); mdata(ia, iz, iv, 3) /= x(0, 3);
-    case 3: mdata(ia, iz, iv, 2) /= x(0, 2); mdata(ia, iz, iv, mstokes_dim) /= x(1, 2);
-    case 2: mdata(ia, iz, iv, 1) /= x(0, 1);
-    case 1: mdata(ia, iz, iv, 0) /= x(0, 0);
+    case 4: mdata(ia, iz, iv, 5) /= x(1, 3); mdata(ia, iz, iv, 6) /= x(2, 3); mdata(ia, iz, iv, 3) /= x(0, 3); /* FALLTHROUGH */
+    case 3: mdata(ia, iz, iv, 2) /= x(0, 2); mdata(ia, iz, iv, mstokes_dim) /= x(1, 2); /* FALLTHROUGH */
+    case 2: mdata(ia, iz, iv, 1) /= x(0, 1); /* FALLTHROUGH */
+    case 1: mdata(ia, iz, iv, 0) /= x(0, 0); /* FALLTHROUGH */
   }
 }
 
@@ -2330,10 +2330,10 @@ void PropagationMatrix::SetAtPosition(ConstMatrixView x, const Index iv, const I
 { 
   switch(mstokes_dim) 
   { 
-    case 4: mdata(ia, iz, iv, 5)  = x(1, 3); mdata(ia, iz, iv, 6)  = x(2, 3); mdata(ia, iz, iv, 3)  = x(0, 3);
-    case 3: mdata(ia, iz, iv, 2)  = x(0, 2); mdata(ia, iz, iv, mstokes_dim)  = x(1, 2);
-    case 2: mdata(ia, iz, iv, 1)  = x(0, 1);
-    case 1: mdata(ia, iz, iv, 0)  = x(0, 0);
+    case 4: mdata(ia, iz, iv, 5)  = x(1, 3); mdata(ia, iz, iv, 6)  = x(2, 3); mdata(ia, iz, iv, 3)  = x(0, 3); /* FALLTHROUGH */
+    case 3: mdata(ia, iz, iv, 2)  = x(0, 2); mdata(ia, iz, iv, mstokes_dim)  = x(1, 2); /* FALLTHROUGH */
+    case 2: mdata(ia, iz, iv, 1)  = x(0, 1); /* FALLTHROUGH */
+    case 1: mdata(ia, iz, iv, 0)  = x(0, 0); /* FALLTHROUGH */
   }
 }
 
@@ -2342,10 +2342,10 @@ void PropagationMatrix::MatrixAtPosition(MatrixView ret, const Index iv, const I
 {
   switch(mstokes_dim)
   {
-    case 4: ret(3, 3) = mdata(ia, iz, iv, 0); ret(3, 1) = -mdata(ia, iz, iv, 5); ret(1, 3) = mdata(ia, iz, iv, 5); ret(3, 2) = -mdata(ia, iz, iv, 6); ret(2, 3) = mdata(ia, iz, iv, 6); ret(0, 3) = ret(3, 0) = mdata(ia, iz, iv, 3);
-    case 3: ret(2, 2) = mdata(ia, iz, iv, 0); ret(2, 1) = -mdata(ia, iz, iv, 3); ret(1, 2) = mdata(ia, iz, iv, 3); ret(2, 0) = ret(0, 2) = mdata(ia, iz, iv, 2);
-    case 2: ret(1, 1) = mdata(ia, iz, iv, 0); ret(1, 0) = ret(0, 1) = mdata(ia, iz, iv, 1);
-    case 1: ret(0, 0) = mdata(ia, iz, iv, 0);
+    case 4: ret(3, 3) = mdata(ia, iz, iv, 0); ret(3, 1) = -mdata(ia, iz, iv, 5); ret(1, 3) = mdata(ia, iz, iv, 5); ret(3, 2) = -mdata(ia, iz, iv, 6); ret(2, 3) = mdata(ia, iz, iv, 6); ret(0, 3) = ret(3, 0) = mdata(ia, iz, iv, 3); /* FALLTHROUGH */
+    case 3: ret(2, 2) = mdata(ia, iz, iv, 0); ret(2, 1) = -mdata(ia, iz, iv, 3); ret(1, 2) = mdata(ia, iz, iv, 3); ret(2, 0) = ret(0, 2) = mdata(ia, iz, iv, 2); /* FALLTHROUGH */
+    case 2: ret(1, 1) = mdata(ia, iz, iv, 0); ret(1, 0) = ret(0, 1) = mdata(ia, iz, iv, 1); /* FALLTHROUGH */
+    case 1: ret(0, 0) = mdata(ia, iz, iv, 0); /* FALLTHROUGH */
   }
 }
 

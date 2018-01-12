@@ -2210,6 +2210,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
   switch(line.GetLinePopulationType())
   {
     case LinePopulationType::ByLTE:
+    case LinePopulationType::ByVibrationalTemperatures:
       {
         // Line strength scaling that are line-dependent ---
         // partition functions are species dependent and computed at a higher level
@@ -2235,45 +2236,10 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
         apply_linestrength_scaling(F[this_f_range], dF,  line.I0(), isotopologue_ratio,
                                    partition_function_at_temperature, partition_function_at_line_temperature, K1, K2,
                                    derivatives_data, QI, dpartition_function_at_temperature_dT, dK1_dT, dK2_dT, dK2_dF0, this_f_range);
-      }
-      break;
-    case LinePopulationType::ByVibrationalTemperatures:
-      {
-        /*
-        * ByLTE and ByVibrationalTemperatures shares much of the same characteristics
-        * and can therefore be mixed together under the same code 'flag'.  However,
-        * partial derivatives only works in ByVibrationalTemperatures if both levels
-        * are defined whereas forward calculations only require a single level.  Thus
-        * these two will be considered as separate tags and share a lot of code...
-        */
         
-        // Line strength scaling that are line-dependent ---
-        // partition functions are species dependent and computed at a higher level
-        const Numeric gamma = stimulated_emission(temperature, line.F());
-        const Numeric gamma_ref = stimulated_emission(line.Ti0(), line.F());
-        const Numeric K1 = boltzman_ratio(temperature, line.Ti0(), line.Elow());
-        const Numeric K2 = stimulated_relative_emission(gamma, gamma_ref);
-        
-        // Line strength partial derivatives
-        
-        if(derivatives_data.do_temperature())
-        {
-          dK1_dT = dboltzman_ratio_dT(K1, temperature, line.Elow());
-          dK2_dT = dstimulated_relative_emission_dT(gamma, gamma_ref, line.F(), temperature);
-        }
-        
-        // Partial derivatives due to central frequency of the stimulated emission
-        Numeric dK2_dF0;
-        if(derivatives_data.do_line_center())
-          dK2_dF0 = dstimulated_relative_emission_dF0(gamma, gamma_ref, temperature);
-        
-        // Multiply the line strength by the line shape
-        apply_linestrength_scaling(F[this_f_range], dF,  line.I0(), isotopologue_ratio,
-                          partition_function_at_temperature, partition_function_at_line_temperature, K1, K2,
-                          derivatives_data, QI, dpartition_function_at_temperature_dT, dK1_dT, dK2_dT, dK2_dF0, this_f_range);
-        
-        // Non-local thermodynamic equilibrium terms
-        if(nlte_distribution.nelem())
+        if(line.GetLinePopulationType() == LinePopulationType::ByLTE)
+          break;
+        else if(nlte_distribution.nelem())
         {
           // Internal parameters
           Numeric Tu, Tl, K4, r_low, dK3_dF0, dK3_dT, dK3_dTl, dK4_dT, dK3_dTu, dK4_dTu;

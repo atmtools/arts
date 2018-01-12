@@ -47,7 +47,7 @@ class PressureBroadeningData
 {
 public:
     
-    enum PB_Type {
+    enum PB_Type : Index {
         PB_NONE,                          // No pressure broadening
         PB_AIR_BROADENING,                // Air broadening and self broadening only
         PB_AIR_AND_WATER_BROADENING,      // Air, water, and self broadening
@@ -737,11 +737,14 @@ public:
    // Sets the pressure broadening PB_type from String input
    void StorageTag2SetType(const String& input);
    
+   // Sets the pressure broadening PB_type from String input
+   void SetTypeFromIndex(const Index& type) {mtype = PB_Type(type);};
+   
    // Returns length of the vector that is supposed to be input
    Index ExpectedVectorLengthFromType() const;
    
    // Sets the data of the class from vector input
-   void SetDataFromVectorWithKnownType(const Vector& input);
+   void SetDataFromVectorWithKnownType(ConstVectorView input);
    
    // Gets the vector from the data of the class
    void GetVectorFromData(Vector& output) const;

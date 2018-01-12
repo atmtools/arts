@@ -41,7 +41,7 @@
  operator>>(istream&, QuantumNumbers&)
  to handle the added numbers.
  */
-typedef enum {
+typedef enum : Index {
     QN_J=0,         // Total angular momentum
     QN_dJ,          // Delta total angular momentum
     QN_M,           // Projection of J along magnetic field

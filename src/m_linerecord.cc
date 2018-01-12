@@ -781,3 +781,73 @@ void f_gridFromabs_lines_per_speciesSetFromSpeciesTag(Vector& f_grid,
     
     throw std::runtime_error("No frequency set for the given species_tag.\n");
 }
+
+
+void WriteARTSCAT5(const ArrayOfLineRecord& abs_lines,
+                   const String& filename,
+                   const Verbosity& verbosity)
+{
+  std::ofstream f;
+  f.open(filename, ios::binary | ios::out);
+  for(auto& l : abs_lines)
+    l.WriteBinaryArtscat5(f);
+  f.close();
+  
+  CREATE_OUT3;
+  out3 << "Wrote " << abs_lines.nelem() << " lines to file: " << filename << "\n";
+}
+
+
+bool compare_frequency(const LineRecord& a, const LineRecord& b) {return a.F() < b.F();}
+void ReadARTSCAT5(ArrayOfLineRecord& abs_lines,
+                  const String& filename,
+                  const Verbosity& verbosity)
+{
+  char* buf;
+  Index i = 0;
+  std::vector<char*> bufs;
+  std::ifstream f;
+  
+  // Read the file
+  f.open(filename, ios::binary | ios::in);
+  while(f.peek() not_eq EOF)
+  {
+    // Allocate new memory to the buffer
+    buf = new char[sizeof(linerecord_binary_data_size)];
+    
+    // Read from the file to the new memory
+    f.read(buf, sizeof(linerecord_binary_data_size));
+    
+    // Push a pointer of the new memory to file
+    bufs.push_back(buf);
+    
+    // Calculate how many lines we have got
+    i++;
+  }
+  f.close();
+  
+  // Size abs_lines by how many lines we have got
+  abs_lines.resize(i);
+  
+  // Create the LineRecords in parallel
+  #pragma omp parallel for
+  for(Index j = 0; j < i; j++)
+  {
+    LineRecord l;
+    
+    // The buffer is converted to a LineRecord
+    l.ReadBinaryArtscat5(bufs[j]);
+    
+    // Set to the catalog
+    abs_lines[j] = l;
+    
+    // And the memory is freed
+    std::free(bufs[j]);
+  }
+  
+  // The parallel loop can leave us with a catalog in disarray... sort this out
+  std::sort(abs_lines.begin(), abs_lines.end(), compare_frequency);
+  
+  CREATE_OUT3;
+  out3 << "Read " << abs_lines.nelem() << " lines from file: " << filename << "\n";
+}

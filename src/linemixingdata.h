@@ -40,7 +40,7 @@ class LineMixingData
 {
 public:
     
-    enum LM_Type {
+    enum LM_Type : Index {
       LM_NONE,                          // Reserved for no line mixing
       LM_LBLRTM,                        // Reserved for LBLRTM line mixing
       LM_LBLRTM_O2NonResonant,          // Reserved for the non-resonant O2 line in LBLRTM
@@ -98,8 +98,9 @@ public:
     
     // Use these to read data from XML-formats
     void StorageTag2SetType(const String& input);
-    Index ExpectedVectorLengthFromType();
-    void SetDataFromVectorWithKnownType(const Vector& input);
+    void SetTypeFromIndex(const Index& type) {mtype = LM_Type(type);};
+    Index ExpectedVectorLengthFromType() const;
+    void SetDataFromVectorWithKnownType(ConstVectorView);
     
     // Use these to read data from ARTS catalog
     void Vector2LBLRTMData(const Vector& input);

@@ -3033,29 +3033,6 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     mlinemixingdata.SetDataFromVectorWithKnownType(lmd);
                     icecream >> token;
                 }
-                else if (token == "PF")
-                {
-                    // Partition functions (will not be used before we need rotational NLTE)
-                  
-                    icecream >> token;
-                    mpartitionfunctiondata.StorageTag2SetType(token);
-
-                    icecream >> nelem;
-                    mpartitionfunctiondata.SetNelem(nelem);
-                    Vector lmd(nelem);
-                    for (Index l = 0; l < nelem; l++)
-                    {
-                        icecream >> double_imanip() >> lmd[l];
-                        if (!icecream)
-                        {
-                            ostringstream os;
-                            os << "Error parsing partition function data element " << l+1;
-                            throw std::runtime_error(os.str());
-                        }
-                    }
-                    mpartitionfunctiondata.SetDataFromVectorWithKnownType(lmd);
-                    icecream >> token;
-                }
                 else if (token == "LSM")
                 {
                   // Line shape modifications
@@ -3307,23 +3284,6 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
 
           }
           
-          // Write Partition Function Data
-          {
-              const PartitionFunctionData& pf = lr.PartitionFunction();
-              if (pf.Type() != PartitionFunctionData::PF_NONE)
-              {
-                  Vector partingdata;
-                  pf.GetVectorFromData(partingdata);
-                  if (partingdata.nelem() > 0)
-                  {
-                      ls << " PF " << pf.Type2StorageTag();
-					  ls << " " << pf.GetNelem();
-                      ls << " " << partingdata;
-                  }
-              }
-
-          }
-          
           // Line shape modifications
           {
             const Numeric CUT = lr.CutOff();
@@ -3517,4 +3477,154 @@ void LineRecord::SetLinePopulationTypeFromIndex(const Index in)
   if(not (in < (Index) LinePopulationType::End) and in > -1)
     throw std::runtime_error("Population type to index conversion failure.  Did you add new line population type?");
   mpopulation = (LinePopulationType) in;
+}
+
+
+void LineRecord::WriteBinaryArtscat5(std::ostream& stream) const
+{
+  Vector v;
+  Rational r;
+  Index d, qns, s;
+  
+  stream.write((char*)&mspecies, sizeof(Index));
+  stream.write((char*)&misotopologue, sizeof(Index));
+  stream.write((char*)&mf, sizeof(Numeric));
+  stream.write((char*)&mi0, sizeof(Numeric));
+  stream.write((char*)&mti0, sizeof(Numeric));
+  stream.write((char*)&melow, sizeof(Numeric));
+  stream.write((char*)&ma, sizeof(Numeric));
+  stream.write((char*)&mgupper, sizeof(Numeric));
+  stream.write((char*)&mglower, sizeof(Numeric));
+  stream.write((char*)&mcutoff, sizeof(Numeric));
+  stream.write((char*)&mspeedup, sizeof(Numeric));
+  
+  qns = Index(QN_FINAL_ENTRY);
+  stream.write((char*)&qns, sizeof(Index));
+  
+  d = Index(mpressurebroadeningdata.Type());
+  stream.write((char*)&d, sizeof(Index));
+  
+  d = Index(mlinemixingdata.Type());
+  stream.write((char*)&d, sizeof(Index));
+  
+  d = GetMirroringTypeIndex();
+  stream.write((char*)&d, sizeof(Index));
+  
+  d = GetLineNormalizationTypeIndex();
+  stream.write((char*)&d, sizeof(Index));
+  
+  d = GetLineShapeTypeIndex();
+  stream.write((char*)&d, sizeof(Index));
+  
+  d = GetLinePopulationTypeIndex();
+  stream.write((char*)&d, sizeof(Index));
+  
+  // Quantum numbers
+  for(Index i = 0; i < qns; i++)
+  {
+    r = mquantum_numbers.Upper()[i];
+    stream.write((char*)&r, sizeof(Rational));
+  }
+  
+  for(Index i = 0; i < qns; i++)
+  {
+    r = mquantum_numbers.Lower()[i];
+    stream.write((char*)&r, sizeof(Rational));
+  }
+  
+  // Pressure broadening
+  mpressurebroadeningdata.GetVectorFromData(v);
+  stream.write((char*)v.get_c_array(), mpressurebroadeningdata.ExpectedVectorLengthFromType() * sizeof(Numeric));
+  
+  s = 20 - v.nelem();
+  
+  // Line mixing
+  mlinemixingdata.GetVectorFromData(v);
+  stream.write((char*)v.get_c_array(), mlinemixingdata.ExpectedVectorLengthFromType() * sizeof(Numeric));
+  
+  s += 12 - v.nelem();
+  
+  // Append zeroes
+  s *= sizeof(Numeric);
+  while(s--)
+    stream.put(0x00);
+}
+
+// 9 * Index, 2*30 * Rational, (9+20+12) * Numeric
+void LineRecord::ReadBinaryArtscat5(char* buf)
+{
+  Vector v;
+  Rational r;
+  Index qns, d;
+  
+  // Constants
+  mversion = 5;
+  mevupp = -1.0;
+  mevlow = -1.0;
+  mnlte_lower_index = -1;
+  mnlte_upper_index = -1;
+  
+  memcpy(&mspecies, buf, sizeof(Index)); buf += sizeof(Index);
+  memcpy(&misotopologue, buf, sizeof(Index)); buf += sizeof(Index);
+  memcpy(&mf, buf, sizeof(Numeric)); buf += sizeof(Numeric);
+  memcpy(&mi0, buf, sizeof(Numeric)); buf += sizeof(Numeric);
+  memcpy(&mti0, buf, sizeof(Numeric)); buf += sizeof(Numeric);
+  memcpy(&melow, buf, sizeof(Numeric)); buf += sizeof(Numeric);
+  memcpy(&ma, buf, sizeof(Numeric)); buf += sizeof(Numeric);
+  memcpy(&mgupper, buf, sizeof(Numeric)); buf += sizeof(Numeric);
+  memcpy(&mglower, buf, sizeof(Numeric)); buf += sizeof(Numeric);
+  memcpy(&mcutoff, buf, sizeof(Numeric)); buf += sizeof(Numeric);
+  memcpy(&mspeedup, buf, sizeof(Numeric)); buf += sizeof(Numeric);
+
+  memcpy(&qns, buf, sizeof(Index)); buf += sizeof(Index);
+  
+  // Pressure broadening
+  memcpy(&d, buf, sizeof(Index)); buf += sizeof(Index);
+  mpressurebroadeningdata.SetTypeFromIndex(d);
+  
+  // Line mixing type
+  memcpy(&d, buf, sizeof(Index)); buf += sizeof(Index);
+  mlinemixingdata.SetTypeFromIndex(d);
+  
+  // Mirroring type
+  memcpy(&d, buf, sizeof(Index)); buf += sizeof(Index);
+  SetMirroringTypeFromIndex(d);
+  
+  // Normalization type
+  memcpy(&d, buf, sizeof(Index)); buf += sizeof(Index);
+  SetLineNormalizationTypeFromIndex(d);
+  
+  // Line shape type
+  memcpy(&d, buf, sizeof(Index)); buf += sizeof(Index);
+  SetLineShapeTypeFromIndex(d);
+  
+  // Line population type
+  memcpy(&d, buf, sizeof(Index)); buf += sizeof(Index);
+  SetLinePopulationTypeFromIndex(d);
+  
+  // Quantum numbers Upper
+  for(Index i = 0; i < qns; i++)
+  {
+    memcpy(&r, buf, sizeof(Rational)); buf += sizeof(Rational);
+    mquantum_numbers.SetUpper(i, r);
+  }
+  
+  // Quantum numbers Lower
+  for(Index i = 0; i < qns; i++)
+  {
+    memcpy(&r, buf, sizeof(Rational)); buf += sizeof(Rational);
+    mquantum_numbers.SetLower(i, r);
+  }
+  
+  // Pressure broadening
+  v.resize(mpressurebroadeningdata.ExpectedVectorLengthFromType());
+  memcpy(v.get_c_array(), buf, v.nelem() * sizeof(Numeric)); 
+  buf += v.nelem() * sizeof(Numeric);
+  mpressurebroadeningdata.SetDataFromVectorWithKnownType(v);
+  
+  // Line mixing
+  v.resize(mlinemixingdata.ExpectedVectorLengthFromType());
+  memcpy(v.get_c_array(), buf, v.nelem() * sizeof(Numeric)); 
+  buf += v.nelem() * sizeof(Numeric);
+  mlinemixingdata.SetDataFromVectorWithKnownType(v);
 }

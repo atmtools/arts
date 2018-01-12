@@ -1786,7 +1786,7 @@ Index PressureBroadeningData::ExpectedVectorLengthFromType() const
   }
 }
 
-void PressureBroadeningData::SetDataFromVectorWithKnownType(const Vector & input)
+void PressureBroadeningData::SetDataFromVectorWithKnownType(ConstVectorView input)
 {
   if(input.nelem()!=ExpectedVectorLengthFromType())
       throw std::runtime_error("Input pressure broadening is of wrong length.\n");

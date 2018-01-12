@@ -1,3 +1,33 @@
+2018-01-12  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-920
+	
+	* src/linefunctions.cc:  Cleaned up some repetitive code
+	
+	* src/{linemixingdata,pressurebroadeningdata,quantum}.{h,cc}: 
+	Changed so enums inherit from Index and added way to set type 
+	by Index
+	
+	* src/{m_,}linerecord.{cc,h}:  Added a binary writing routine
+	of ARTSCAT5.  Reduces time of reading 4.5 million HITRAN2012
+	lines from 1 minute 40 seconds to 14 seconds on my machine.
+	This is not meant to be a do all solve all routine but a first
+	iteration.  It will not be guaranteed to be compatible as 
+	ARTSCAT5 evolves so keep those ascii files around when it 
+	becomes necessary to regenreate the binary.  Also removed a
+	lot of commented away code...
+	
+	* src/propagationmatrix.{cc,h}:  Added a lot of 
+	'/* FALLTHROUGH */'s to the switch statements to make them complain
+	less in the build log.  Still enourmous amount of warnings from
+	invlib and c-api about conversions.  Also, someone more
+	familiar with it should check line line 679 in m_jacobian.cc 
+	and lines around 590 in montecarlo.cc because it seems to me
+	that they are not doing what they are meant to be doing
+	(strange runtime_error in the former and a lot of ignored
+	but nevertheless executed code in the latter since the output
+	should anyways just be the default of that switch without breaks)
+
 2018-01-10  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-919

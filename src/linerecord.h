@@ -257,7 +257,6 @@ public:
       mspecies (1000000),
       misotopologue (1000000),
       mf       (0.     ),
-      //mpsf     (0.     ),
       mi0      (0.     ),
       mti0     (0.     ),
       melow    (0.     ),
@@ -265,19 +264,9 @@ public:
       mnlte_lower_index(-1),
       mevupp(-1.0),
       mnlte_upper_index(-1),
-      //magam    (0.     ),
-      //msgam    (0.     ),
-      //mnair    (0.     ),
-      //mnself   (0.     ),
-      //mtgam    (0.     ),
       maux     (       ),
       mdf      (-1.    ),
       mdi0     (-1.    ),
-      //mdagam   (-1.    ),
-      //mdsgam   (-1.    ),
-      //mdnair   (-1.    ),
-      //mdnself  (-1.    ),
-      //mdpsf    (-1.    ),
       ma( NAN ),
       mgupper( NAN ),
       mglower( NAN ),
@@ -324,7 +313,6 @@ public:
       mspecies (species    ),
       misotopologue (isotopologue    ),
       mf       (f          ),
-      //mpsf     (psf        ),
       mi0      (i0         ),
       mti0     (ti0        ),
       melow    (elow       ),
@@ -332,19 +320,9 @@ public:
       mnlte_lower_index(-1),
       mevupp(-1.0),
       mnlte_upper_index(-1),
-      //magam    (agam       ),
-      //msgam    (sgam       ),
-      //mnair    (nair       ),
-      //mnself   (nself      ),
-      //mtgam    (tgam       ), 
       maux     (aux        ),
       mdf      (-1.    ),
       mdi0     (-1.    ),
-      //mdagam   (-1.    ),
-      //mdsgam   (-1.    ),
-      //mdnair   (-1.    ),
-      //mdnself  (-1.    ),
-      //mdpsf    (-1.    ),
       ma( NAN ),
       mgupper( NAN ),
       mglower( NAN ),
@@ -362,14 +340,6 @@ public:
       mpopulation(LinePopulationType::ByLTE)
   {
     mpressurebroadeningdata.SetAirBroadeningFromCatalog( sgam,nself,agam,nair,psf,NAN,NAN,NAN,NAN,NAN);
-    // Thanks to Matpack, initialization of misotopologue with isotopologue
-    // should now work correctly.  
-
-    // Check if this species is legal, i.e., if species and isotopologue
-    // data exists.
-    ////    extern Array<SpeciesRecord> species_data;
-    //assert( mspecies < species_data.nelem() );
-    //assert( misotopologue < species_data[mspecies].Isotopologue().nelem() );
   }
 
   /** Return the version String. */
@@ -425,9 +395,6 @@ public:
   /** The pressure shift parameter in <b> Hz/Pa</b>. */
   Numeric Psf() const   { return mpressurebroadeningdata.AirBroadeningPsf(); }
 
-  /** Set the pressure shift parameter in <b> Hz/Pa</b>. */
-  //void setPsf( Numeric new_mpsf ) { mpsf = new_mpsf; }
-
   /** The line intensity in <b> m^2*Hz</b> at the reference temperature \c Ti0. 
 
    The line intensity \f$I_0\f$ is defined by:
@@ -457,6 +424,7 @@ public:
   void SetEvlow(Numeric evlow) {mevlow = evlow;}
   Index NLTELowerIndex() const  { return mnlte_lower_index; }
   void SetNLTELowerIndex(Index nlte_lower_index) {mnlte_lower_index = nlte_lower_index;}
+  
   /** Upper state vibrational energy in <b> cm^-1</b>: */ //FIXME: really in cm-1 still?
   Numeric Evupp() const  { return mevupp; }
   void SetEvupp(Numeric evupp) {mevupp = evupp;}
@@ -466,29 +434,14 @@ public:
   /** Air broadened width in <b> Hz/Pa</b>: */
   Numeric Agam() const  { return mpressurebroadeningdata.AirBroadeningAgam(); }
 
-  /** Set Air broadened width in <b> Hz/Pa</b>: */
-  //void setAgam( Numeric new_agam ) { magam = new_agam; }
-
   /** Self broadened width in <b> Hz/Pa</b>: */
   Numeric Sgam() const  { return mpressurebroadeningdata.Sgam(); }
-
-  /** Set Self  broadened width in <b> Hz/Pa</b>: */
-  //void setSgam( Numeric new_sgam ) { msgam = new_sgam; }
 
   /** AGAM temperature exponent (dimensionless): */
   Numeric Nair() const  { return mpressurebroadeningdata.AirBroadeningNair(); }
 
-  /** Set AGAM temperature exponent (dimensionless): */
-  //void setNair( Numeric new_mnair ) { mnair = new_mnair; }
-
   /** SGAM temperature exponent (dimensionless): */
   Numeric Nself() const { return mpressurebroadeningdata.Nself(); }
-
- /** Set SGAM temperature exponent (dimensionless): */
-  //void setNself( Numeric new_mnself ) { mnself = new_mnself; }
-
-  /** Reference temperature for AGAM and SGAM in <b> K</b>: */
-  //Numeric Tgam() const  { return mtgam; }
 
   /** Number of auxiliary parameters. This function is actually
       redundant, since the number of auxiliary parameters can also be
@@ -522,31 +475,31 @@ public:
   /** Accuracy for pressure shift in <b> relative value </b>: */
   Numeric dPsf() const { return mpressurebroadeningdata.AirBroadeningDPsf(); }
 
-  /** ARTSCAT-4 Einstein A-coefficient in <b> 1/s </b>: */
+  /** ARTSCAT-4/5 Einstein A-coefficient in <b> 1/s </b>: */
   Numeric A() const { return ma; }
   
-  /** ARTSCAT-4 Upper state stat. weight: */
+  /** ARTSCAT-4/5 Upper state stat. weight: */
   Numeric G_upper() const { return mgupper; }
   
-  /** ARTSCAT-4 Lower state stat. weight: */
+  /** ARTSCAT-4/5 Lower state stat. weight: */
   Numeric G_lower() const { return mglower; }
   
-  /** ARTSCAT-4 foreign broadening parameters in <b> Hz/Pa </b>: */
+  /** ARTSCAT-4/5 foreign broadening parameters in <b> Hz/Pa </b>: */
   Numeric Gamma_foreign(const Index i) const { return mpressurebroadeningdata.PlanetaryGammaForeign(i); }
 
-    /** ARTSCAT-4 foreign broadening parameters in <b> Hz/Pa </b>: */
+    /** ARTSCAT-4/5 foreign broadening parameters in <b> Hz/Pa </b>: */
     const Vector Gamma_foreign() const { return mpressurebroadeningdata.PlanetaryGammaForeign(); }
     
-   /** ARTSCAT-4 foreign temperature exponents (dimensionless): */
+   /** ARTSCAT-4/5 foreign temperature exponents (dimensionless): */
    Numeric N_foreign(const Index i) const { return mpressurebroadeningdata.PlanetaryNForeign(i); }
     
-    /** ARTSCAT-4 foreign temperature exponents (dimensionless): */
+    /** ARTSCAT-4/5 foreign temperature exponents (dimensionless): */
     const Vector N_foreign() const { return mpressurebroadeningdata.PlanetaryNForeign(); }
     
-   /** ARTSCAT-4 pressure shift parameters in <b> Hz/Pa </b>: */
+   /** ARTSCAT-4/5 pressure shift parameters in <b> Hz/Pa </b>: */
    Numeric Delta_foreign(const Index i) const { return mpressurebroadeningdata.PlanetaryDeltaForeign(i); }
     
-    /** ARTSCAT-4 pressure shift parameters in <b> Hz/Pa </b>: */
+    /** ARTSCAT-4/5 pressure shift parameters in <b> Hz/Pa </b>: */
     const Vector Delta_foreign() const { return mpressurebroadeningdata.PlanetaryDeltaForeign(); }
 
   /** Upper state global quanta */
@@ -587,10 +540,6 @@ public:
   /** Line Mixing data */
   const LineMixingData& LineMixing() const { return mlinemixingdata; }
   void SetLineMixingData(const LineMixingData& input) { mlinemixingdata=input; }
-  
-  /** Partition Function Data */
-  const PartitionFunctionData& PartitionFunction() const { return mpartitionfunctiondata; }
-  void SetPartitionFunctionData(const PartitionFunctionData& input) { mpartitionfunctiondata=input; }
   
   /** Pressure Broadening Data */
   const PressureBroadeningData& PressureBroadening() const { return mpressurebroadeningdata; }
@@ -699,8 +648,8 @@ public:
    */
   void ARTSCAT4FromARTSCAT3();
 
+  // Convert to ARTSCAT 5.  This is presently (2018-01-11) the standard internal format
   void ARTSCAT5FromARTSCAT3();
-  
   void ARTSCAT5FromARTSCAT4();
 
  /** Set to NaN all parameters that are not in ARTSCAT-4. */
@@ -710,18 +659,8 @@ public:
       maux.resize(0);
       
       // Set other parameters to NAN:
-      //magam    = NAN;
-      //mnair    = NAN;
-      //mpsf     = NAN;
-      //mtgam    = NAN;
-      
       mdf      = NAN;
       mdi0     = NAN;
-      //mdagam   = NAN;
-      //mdsgam   = NAN;
-      //mdnair   = NAN;
-      //mdnself  = NAN;
-      //mdpsf    = NAN;
     }
   
   /** Read one line from a stream associated with a HITRAN 1986-2001 file. The
@@ -1055,7 +994,18 @@ public:
    \author Oliver Lemke
    */
   bool ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity);
-
+  
+  /*! Binary read-write
+   * 
+   * Read and write function for binary storing of ARTSCAT5 data.
+   * 
+   * Will never guarantee that it is backwards compatible, so be
+   * able to regenerate your catalog from other formats
+   * 
+   * \param s  Data stream to write/read from
+   */
+  void WriteBinaryArtscat5(std::ostream& s) const;
+  void ReadBinaryArtscat5(char* buf);
 
 private:
   // Version number:
@@ -1080,25 +1030,25 @@ private:
   Numeric melow;
   
   // Lower state vibrational energy in Joules:
-  Numeric mevlow;
+  Numeric mevlow;  // NOTE: Not stored in binary data
   
   // Lower state vibrational energy index:
-  Index mnlte_lower_index; 
+  Index mnlte_lower_index;  // NOTE: Not stored in binary data
   
   // Upper state vibrational energy in Joules:
-  Numeric mevupp;
+  Numeric mevupp;  // NOTE: Not stored in binary data
   
   // Upper state vibrational energy index:
-  Index mnlte_upper_index; 
+  Index mnlte_upper_index;  // NOTE: Not stored in binary data
   
   // Array to hold auxiliary parameters:
-  ArrayOfNumeric maux; 
+  ArrayOfNumeric maux;  // NOTE: Not stored in binary data
   
   // Accuracy for line center frequency in Hz:
-  Numeric mdf;
+  Numeric mdf;  // NOTE: Not stored in binary data
   
   // Accuracy for line intensity in %:
-  Numeric mdi0;
+  Numeric mdi0;  // NOTE: Not stored in binary data
   
   // Einstein A-coefficient in 1/s:
   Numeric ma;
@@ -1110,40 +1060,37 @@ private:
   Numeric mglower;
 
   /** Upper state global quanta */
-  String mupper_gquanta;
+  String mupper_gquanta;  // NOTE: Not stored in binary data
   
   /** Lower state global quanta */
-  String mlower_gquanta;
+  String mlower_gquanta;  // NOTE: Not stored in binary data
   
   /** Upper state local quanta */
-  String mupper_lquanta;
+  String mupper_lquanta;  // NOTE: Not stored in binary data
   
   /** Lower state local quanta */
-  String mlower_lquanta;
+  String mlower_lquanta;  // NOTE: Not stored in binary data
   
   /** Upper state local N quanta */
-  Rational mupper_n;
+  Rational mupper_n;  // NOTE: Not stored in binary data
   
   /** Upper state local J quanta */
-  Rational mupper_j;
+  Rational mupper_j;  // NOTE: Not stored in binary data
   
   /** Lower state local N quanta */
-  Rational mlower_n;
+  Rational mlower_n;  // NOTE: Not stored in binary data
   
   /** Lower state local J quanta */
-  Rational mlower_j;
+  Rational mlower_j;  // NOTE: Not stored in binary data
 
   /** String with quantum numbers for ARTSCAT-4 */
-  String mquantum_numbers_str;
+  String mquantum_numbers_str;  // NOTE: Not stored in binary data
 
   /** Quantum numbers */
   QuantumNumberRecord mquantum_numbers;
   
   /** Line Mixing Data */
   LineMixingData mlinemixingdata;
-  
-  /** Partition Function Data */
-  PartitionFunctionData mpartitionfunctiondata;
   
   /** Pressure Broadening Data */
   PressureBroadeningData mpressurebroadeningdata;
@@ -1221,5 +1168,13 @@ void match_lines_by_quantum_identifier(ArrayOfIndex& matches,
                                        ArrayOfQuantumMatchInfo& match_info,
                                        const QuantumIdentifier& qi,
                                        const ArrayOfLineRecord& abs_lines);
+
+
+struct linerecord_binary_data_size
+{
+  Index I[9];
+  Numeric N[9+20+12]; // 9 normal, 20 pressurebroadening max, 12 linemixing mx
+  Rational R[2*30]; // 30 quantum numbers max, 2 per level
+};
 
 #endif // linerecord_h

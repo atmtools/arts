@@ -89,10 +89,10 @@ public:
     
     switch(mstokes_dim)
     {
-      case 4: mdata(0, 0, 0, 5) = x(1, 3); mdata(0, 0, 0, 5) = x(2, 3); mdata(0, 0, 0, 3) = x(0, 3);
-      case 3: mdata(0, 0, 0, mstokes_dim) = x(1, 2); mdata(0, 0, 0, 2) = x(0, 2);
-      case 2: mdata(0, 0, 0, 1) = x(0, 1);
-      case 1: mdata(0, 0, 0, 0) = x(0, 0);
+      case 4: mdata(0, 0, 0, 5) = x(1, 3); mdata(0, 0, 0, 5) = x(2, 3); mdata(0, 0, 0, 3) = x(0, 3); /* FALLTHROUGH */
+      case 3: mdata(0, 0, 0, mstokes_dim) = x(1, 2); mdata(0, 0, 0, 2) = x(0, 2); /* FALLTHROUGH */
+      case 2: mdata(0, 0, 0, 1) = x(0, 1); /* FALLTHROUGH */
+      case 1: mdata(0, 0, 0, 0) = x(0, 0); /* FALLTHROUGH */
     }
   };
   
@@ -113,14 +113,14 @@ public:
         case 4: 
           mdata(i, j, k, 3) = (a.mdata(i, j, k, 3) + b.mdata(i, j, k, 3)) * scale;
           mdata(i, j, k, 5) = (a.mdata(i, j, k, 5) + b.mdata(i, j, k, 5)) * scale;
-          mdata(i, j, k, 6) = (a.mdata(i, j, k, 6) + b.mdata(i, j, k, 6)) * scale;
+          mdata(i, j, k, 6) = (a.mdata(i, j, k, 6) + b.mdata(i, j, k, 6)) * scale; /* FALLTHROUGH */
         case 3: 
           mdata(i, j, k, 2) = (a.mdata(i, j, k, 2) + b.mdata(i, j, k, 2)) * scale;
-          mdata(i, j, k, mstokes_dim) = (a.mdata(i, j, k, mstokes_dim) + b.mdata(i, j, k, mstokes_dim)) * scale;
+          mdata(i, j, k, mstokes_dim) = (a.mdata(i, j, k, mstokes_dim) + b.mdata(i, j, k, mstokes_dim)) * scale; /* FALLTHROUGH */
         case 2: 
-          mdata(i, j, k, 1) = (a.mdata(i, j, k, 1) + b.mdata(i, j, k, 1)) * scale;
+          mdata(i, j, k, 1) = (a.mdata(i, j, k, 1) + b.mdata(i, j, k, 1)) * scale; /* FALLTHROUGH */
         case 1: 
-          mdata(i, j, k, 0) = (a.mdata(i, j, k, 0) + b.mdata(i, j, k, 0)) * scale;
+          mdata(i, j, k, 0) = (a.mdata(i, j, k, 0) + b.mdata(i, j, k, 0)) * scale; /* FALLTHROUGH */
       }
     }
   };
@@ -543,10 +543,10 @@ public:
     {
       switch(mstokes_dim)
       {
-        case 4:  mdata(i,j,k, 3) = (a.mdata(i,j,k, 3) + b.mdata(i,j,k, 3)) * scale;
-        case 3:  mdata(i,j,k, 2) = (a.mdata(i,j,k, 2) + b.mdata(i,j,k, 2)) * scale;
-        case 2:  mdata(i,j,k, 1) = (a.mdata(i,j,k, 1) + b.mdata(i,j,k, 1)) * scale;
-        case 1:  mdata(i,j,k, 0) = (a.mdata(i,j,k, 0) + b.mdata(i,j,k, 0)) * scale;
+        case 4:  mdata(i,j,k, 3) = (a.mdata(i,j,k, 3) + b.mdata(i,j,k, 3)) * scale; /* FALLTHROUGH */
+        case 3:  mdata(i,j,k, 2) = (a.mdata(i,j,k, 2) + b.mdata(i,j,k, 2)) * scale; /* FALLTHROUGH */
+        case 2:  mdata(i,j,k, 1) = (a.mdata(i,j,k, 1) + b.mdata(i,j,k, 1)) * scale; /* FALLTHROUGH */
+        case 1:  mdata(i,j,k, 0) = (a.mdata(i,j,k, 0) + b.mdata(i,j,k, 0)) * scale; /* FALLTHROUGH */
       }
     }
   };
@@ -582,10 +582,10 @@ public:
     {
       switch(mstokes_dim)
       {
-        case 4: mdata(i,j,k, 3) += x * y.mdata(i,j,k, 3);
-        case 3: mdata(i,j,k, 2) += x * y.mdata(i,j,k, 2);
-        case 2: mdata(i,j,k, 1) += x * y.mdata(i,j,k, 1);
-        case 1: mdata(i,j,k, 0) += x * y.mdata(i,j,k, 0);
+        case 4: mdata(i,j,k, 3) += x * y.mdata(i,j,k, 3); /* FALLTHROUGH */
+        case 3: mdata(i,j,k, 2) += x * y.mdata(i,j,k, 2); /* FALLTHROUGH */
+        case 2: mdata(i,j,k, 1) += x * y.mdata(i,j,k, 1); /* FALLTHROUGH */
+        case 1: mdata(i,j,k, 0) += x * y.mdata(i,j,k, 0); /* FALLTHROUGH */
       }
     }
   }
@@ -602,10 +602,10 @@ public:
   {
     switch(mstokes_dim)
     {
-      case 4: mdata(ia, iz , iv, 3) += (vec1[3] + vec2[3]) * 0.5;
-      case 3: mdata(ia, iz , iv, 2) += (vec1[2] + vec2[2]) * 0.5;
-      case 2: mdata(ia, iz , iv, 1) += (vec1[1] + vec2[1]) * 0.5;
-      case 1: mdata(ia, iz , iv, 0) += (vec1[0] + vec2[0]) * 0.5; 
+      case 4: mdata(ia, iz , iv, 3) += (vec1[3] + vec2[3]) * 0.5; /* FALLTHROUGH */
+      case 3: mdata(ia, iz , iv, 2) += (vec1[2] + vec2[2]) * 0.5; /* FALLTHROUGH */
+      case 2: mdata(ia, iz , iv, 1) += (vec1[1] + vec2[1]) * 0.5; /* FALLTHROUGH */
+      case 1: mdata(ia, iz , iv, 0) += (vec1[0] + vec2[0]) * 0.5; /* FALLTHROUGH */
     }
   }
   
@@ -613,9 +613,9 @@ public:
   {
     switch(mstokes_dim)
     {
-      case 4: if(K14(iz, ia)[iv] not_eq 0.0) return true;
-      case 3: if(K13(iz, ia)[iv] not_eq 0.0) return true;
-      case 2: if(K12(iz, ia)[iv] not_eq 0.0) return true;
+      case 4: if(K14(iz, ia)[iv] not_eq 0.0) return true; /* FALLTHROUGH */
+      case 3: if(K13(iz, ia)[iv] not_eq 0.0) return true; /* FALLTHROUGH */
+      case 2: if(K12(iz, ia)[iv] not_eq 0.0) return true; /* FALLTHROUGH */
     }
     return false;
   }
