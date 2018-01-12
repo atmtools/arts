@@ -113,6 +113,14 @@ module module_error
             double precision, intent (in   ) :: b1, b2, b3
             type (dta_ERR)  , intent (inout) :: econ
         end subroutine LLS_error
+        
+        subroutine LLS_DGELSYSD_error(b1, b2, b3, info, econ)
+            use module_common_var
+            implicit none
+            integer*8       , intent (in   ) :: info
+            double precision, intent (in   ) :: b1, b2, b3
+            type (dta_ERR)  , intent (inout) :: econ
+        end subroutine LLS_DGELSYSD_error
 
         subroutine errorBubble(econ)
             use module_common_var
@@ -494,6 +502,36 @@ subroutine LLS_error(b1, b2, b3, info, econ)
 1014    Format(1x,">> Solution: A1=",e12.2,", A2=",e12.2,", A3=",e12.2)
 
 end subroutine LLS_error
+!--------------------------------------------------------------------------------------------------------------------
+subroutine LLS_DGELSYSD_error(b1, b2, b3, info, econ)
+!--------------------------------------------------------------------------------------------------------------------
+! It displays an error message if an error occured at
+! the Linear-Least Square method (Lapack) and its Solution is not valid.
+!
+    use module_common_var
+    implicit none
+    integer*8       , intent (in   ) :: info
+    double precision, intent (in   ) :: b1, b2, b3
+    type (dta_ERR)  , intent (inout) :: econ
+
+    if (econ % e(1) .ge. 1) then
+        write (*,1012) 
+        write (*,*) "Lapack internal info:", info
+        write (*,*), "= 0:  successful exit"
+        write (*,*), "< 0:  if INFO = -i, the i-th argument had an illegal value."
+        write (*,*), "> 0:  the algorithm for computing the SVD failed to converge;"
+        write (*,*), "      if INFO = i, i off-diagonal elements of an intermediate"
+        write (*,*), "      bidiagonal form did not converge to zero."
+        write (*,1014) b1,b2,b3
+    endif
+    econ % e(2) = econ % e(2) + 1
+    
+1012    Format(1x,"****************** calc_QParam: Lapack internal error",&
+        1x,"The Least squares solution could not be computed." &
+        1x,"Please check the input matrix element in the code, calculations are not valid.")
+1014    Format(1x,">> Solution: A1=",e12.2,", A2=",e12.2,", A3=",e12.2)
+
+end subroutine LLS_DGELSYSD_error
 !--------------------------------------------------------------------------------------------------------------------
 subroutine errorBranch(pos, econ)
 !--------------------------------------------------------------------------------------------------------------------

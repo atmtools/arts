@@ -81,6 +81,45 @@ MODULE module_linemixing
             type (dta_ERR)         , intent(inout) :: econ
         end subroutine calc_QParam_AF
 
+        subroutine calc_QPar_DGELSY(nLines, dta1, molP, PerM, econ)
+            use module_common_var
+            use module_error
+            use module_maths
+            use module_LLS
+            Implicit None
+            integer*8              , intent(in   ) :: nLines
+            type (dta_SDF), pointer, intent(in   ) :: dta1
+            type (dta_MOL)         , intent(inout) :: molP
+            type (dta_MOL)         , intent(in   ) :: PerM
+            type (dta_ERR)         , intent(inout) :: econ
+        end subroutine calc_QPar_DGELSY
+
+        subroutine calc_QPar_DGELSS(nLines, dta1, molP, PerM, econ)
+            use module_common_var
+            use module_error
+            use module_maths
+            use module_LLS
+            Implicit None
+            integer*8              , intent(in   ) :: nLines
+            type (dta_SDF), pointer, intent(in   ) :: dta1
+            type (dta_MOL)         , intent(inout) :: molP
+            type (dta_MOL)         , intent(in   ) :: PerM
+            type (dta_ERR)         , intent(inout) :: econ
+        end subroutine calc_QPar_DGELSS
+
+        subroutine calc_QPar_DGELSD(nLines, dta1, molP, PerM, econ)
+            use module_common_var
+            use module_error
+            use module_maths
+            use module_LLS
+            Implicit None
+            integer*8              , intent(in   ) :: nLines
+            type (dta_SDF), pointer, intent(in   ) :: dta1
+            type (dta_MOL)         , intent(inout) :: molP
+            type (dta_MOL)         , intent(in   ) :: PerM
+            type (dta_ERR)         , intent(inout) :: econ
+        end subroutine calc_QPar_DGELSD
+
         subroutine W2dta2(nLines, dta1, dta2, W_rnO)
             use module_common_var
             use module_maths
@@ -162,7 +201,7 @@ END module module_linemixing
     integer*8                       :: indexI(nLines)
     Double Precision                :: r_kj, pn, pk
     Double Precision                :: auxW, auxHW
-    !Double Precision                :: Wtest(nLines,nLines)
+    Double Precision                :: Wtest(nLines,nLines)
     !Auxiliar Constants
     integer*8                       :: count1, count2
     double Precision                :: Kaux, HWT, faH
@@ -237,7 +276,7 @@ END module module_linemixing
               ! O2
                 W_jk(jBIG,jSMALL) = K_jkO2(jBIG,jSMALL,dta1,nLines,molP,PerM,econ) 
           else 
-                W_jk(jBIG,jSMALL) = K_jkCalc(jBIG,jSMALL,dta1,nLines,molP,PerM,econ)  
+                W_jk(jBIG,jSMALL) = K_jkCalc(j,jBIG,jSMALL,dta1,nLines,molP,PerM,econ)  
           endif
           !                                
           ! Downwards transition is (k->j)
@@ -279,8 +318,8 @@ END module module_linemixing
     !    Wtest(i,j) = W_jk(i,j)
     !  enddo
     !enddo
-    !CALL sumRule(nLines,indexI,dta1%D0(1:nLines),Wtest,0.5,econ,tOK)
-    
+    !CALL sumRule(nLines,indexI,dta1%D0(1:nLines),Wtest,0.5,econ)
+    !econ % e(2) = econ % e(2) - 1
     Return
   END SUBROUTINE WelCAL
 !--------------------------------------------------------------------------------------------------------------------
@@ -356,13 +395,15 @@ END module module_linemixing
       ! Here we perform the 'pullback' of indexS. 
       call ibubble_index(nLines,indexS,indexI,'a',econ)
       !
+      !
       do i=1,nLines
           do j=1,nLines
             if (i.eq.j) then
               W_rn(i,i)=Wmat(indexS(i), indexS(i))
             else
-              !W_rn(i,j)=-abs(Wmat(indexS(i), indexS(j)))
-              W_rn(i,j)=Wmat(indexS(i), indexS(j))
+              W_rn(i,j)=-abs(Wmat(indexS(i), indexS(j)))
+!              W_rn(i,j)=abs(Wmat(indexS(i), indexS(j)))
+!              W_rn(i,j)=Wmat(indexS(i), indexS(j))
             endif
           enddo
       enddo
@@ -626,6 +667,14 @@ END module module_linemixing
     Y2=Y2*Pto2
     Y3=Y3*Pto2
   END SUBROUTINE LM_2ord  
+!
+!--------------------------------------------------------------------------------------------------------------------
+! LINEAR LEAST SQUARES Problems
+! -----------------------------
+! In the most usual case m>=n and {rank}(A) = n, and in this case the solution to min||Ax-B|| is 
+! unique, and the problem is also referred to as finding a least squares solution to an overdetermined system 
+! of linear equations.
+!
 !--------------------------------------------------------------------------------------------------------------------
   SUBROUTINE calc_QParam(nLines, dta1, molP, PerM, econ)
 !--------------------------------------------------------------------------------------------------------------------
@@ -649,6 +698,7 @@ END module module_linemixing
     integer*8        :: jBIG, jSMALL
     integer*8        :: indexI(nLines)
     Double Precision :: r_kj, rD0_kj
+    Double Precision :: K1,K2, sumK2,sumK1
     !Auxiliar Constants
     double Precision :: Kaux, HWT, faH
     double precision :: T, Ptot, RT
@@ -719,7 +769,7 @@ END module module_linemixing
             jSMALL = j
             r_kj = dta1%PopuT(jBIG)/dta1%PopuT(jSMALL) !pjBIG/pjSMALL
           endif
-          call LLS_Matrix(jBIG,jSMALL,dta1,molP,PerM,Aux_4M, econ)
+          call LLS_Matrix(jBIG,jSMALL,dta1,molP,PerM,Aux_4M, econ, K1,K2)
           !
           rD0_kj = dta1%D0(k)/dta1%D0(j) 
           do i =1,4
@@ -877,6 +927,7 @@ END module module_linemixing
       CALL DGELS( 'No transpose', M, N, NRHS, A, LDA, B, LDB, WORK,&
                  LWORK, info1 )
       LWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
+      write(*,*),"LWORK = ", LWORK, "LWMAX = ", LWMAX, "WORK = ", INT( WORK( 1 ) ) 
 !
 !   Solve the equations A*X = B.
 !
@@ -900,6 +951,10 @@ END module module_linemixing
           molP%a3 = -B(3,NRHS)
           if (info2 .ne. 0) then
             call LLS_error(B(1,NRHS),B(2,NRHS),B(3,NRHS), info2, econ)
+          endif
+
+          if ((abs(molP%a1) .le. TOL).or.(abs(molP%a2) .le. TOL).or.(abs(molP%a3) .le. TOL)) then
+            write(*,*),"LWORK = ", LWORK,";info1= ", info1,";info2= ", info2
           endif
 
   END SUBROUTINE calc_QParam
@@ -1334,3 +1389,961 @@ print*, "Generate the Matrix for LLS"
     RETURN
   end function rule2
 !--------------------------------------------------------------------------------------------------------------------
+! OTHER METHODS: RANK DEFICIENT PROBLEMS
+! -------------
+! In the general case when we may have {rank}(A) < min(m,n) -- in other words, A may be rank-deficient -- we seek 
+! the minimum norm least squares solution x which minimizes both |x|2 and || b - Ax ||_2
+!--------------------------------------------------------------------------------------------------------------------
+  SUBROUTINE calc_QPar_DGELSY(nLines, dta1, molP, PerM, econ)
+!--------------------------------------------------------------------------------------------------------------------
+! "calc_QPar_DGELSY": gives the values of a1, a2, a3 
+! assumed A could be rank deficient so it seeks for the minimum norm least squares solution x
+! which minimizes both |x|2 and || b - Ax ||_2
+! using a complete orthogonal factorization of A
+!
+!------------------------------------------ 
+    use module_common_var
+    use module_error
+    use module_maths
+    use module_LLS
+    Implicit None
+    integer*8              , intent(in   ) :: nLines
+    type (dta_SDF), pointer, intent(in   ) :: dta1
+    type (dta_MOL)         , intent(inout) :: molP
+    type (dta_MOL)         , intent(in   ) :: PerM
+    type (dta_ERR)         , intent(inout) :: econ
+    double Precision :: Mlls(nLines,4)
+    double Precision :: Aux_4M(4)
+    integer*8        :: i, j, k
+    integer*8        :: jBIG, jSMALL
+    integer*8        :: indexI(nLines)
+    Double Precision :: r_kj, rD0_kj
+    Double Precision :: K1,K2, sumK2,sumK1
+    !Auxiliar Constants
+    double Precision :: Kaux, HWT, faH
+    double precision :: T, Ptot, RT
+    !Auxiliar for LAPACK
+    !
+    ! Parameters:
+      ! Local Scalars:
+      integer*8, Parameter   :: N = 3
+      integer*8, Parameter   :: NB = 64
+      integer*8, Parameter   :: NRHS = 1
+      integer*8, Parameter   :: LWMAX = 250
+      integer*8              :: M
+      integer*8              :: LDA, LDB
+      integer*8              :: LWORK, RANK
+      integer*8              :: info1, info2
+      Double Precision       :: RCOND
+      ! Local Arrays:
+      integer*8,ALLOCATABLE,DIMENSION(:):: JPVT(:)
+      Double Precision,ALLOCATABLE,DIMENSION(:):: WORK( : )
+      Double Precision,ALLOCATABLE,DIMENSION(:,:) :: A( :, : ), B( :, : )
+!-----------------------------------------
+      T    = molP % Temp
+      Ptot = molP % Ptot
+      RT   = T0/T
+!-----------------------------------------
+      M = nLines
+      LDA = M
+      LDB = M
+      LWORK = 3*N + NB*( M+N )
+      allocate ( JPVT( N ) )
+      !allocate ( WORK( LWORK ) )
+      allocate ( WORK( LWMAX ) )
+      allocate ( A( LDA, N ), B( LDB, NRHS ))
+      info1 = 0
+!
+! LAPACK is used (installation command for mac):
+! sudo port install lapack
+! 
+! * Compilation for "Free PGI compiler" for MAC:
+! pgf90 myprog.f90 -llapack -lblas
+!
+! * Compilation "gfortran"
+! gfortran myprog.f90 -llapack
+!
+!---------
+! FIRST: create a zero matrix for 
+    do j=1, nLines
+      do k=1,4
+        Mlls(j,k) = 0.0_dp
+      enddo  
+    enddo  
+!
+!
+! Generate the Matrix for LLS:
+    do j=1, nLines
+      do k=1, nLines
+        ! 
+        if (j .eq. k) then
+          faH = 1.0_dp
+          if(T.ne.T0)faH = (RT**dta1%BHW(j)) 
+          B(j,NRHS) = 2*molP%Ptot*dta1%HWT0(j)*faH
+        else              
+          if (isJb(dta1,j,k)) then
+          ! CASE:  J(j) > J(k) (downwards transition j->k)
+          ! or
+          ! CASE: J(j) = J(k)
+            jBIG   = j
+            jSMALL = k
+            r_kj = 1.0_dp 
+          else
+          ! CASE: J(j) < J(k)
+          ! so downwards transition is (k->j)
+          ! pj·<<k|W|j>> = pk·<<j|W|k>>; pk = dta1%PopuT(k); pj = dta1%PopuT(j)
+            jBIG   = k
+            jSMALL = j
+            r_kj = dta1%PopuT(jBIG)/dta1%PopuT(jSMALL) !pjBIG/pjSMALL
+          endif
+          call LLS_Matrix(jBIG,jSMALL,dta1,molP,PerM,Aux_4M, econ, K1,K2)
+          !
+          rD0_kj = dta1%D0(k)/dta1%D0(j) 
+          do i =1,4
+            Mlls(j,i) = Mlls(j,i) + rD0_kj*r_kj*Aux_4M(i)
+          enddo  
+        endif    
+      enddo
+      !
+    enddo
+!
+! **********************************************************************************
+! LAPACK routine:
+! ---------------
+! DGELSY computes the minimum-norm solution to a real linear least
+! squares problem:
+!    minimize || A * X - B ||
+! DGELSY solves real linear systems involving an M-by-N matrix A using a complete 
+! orthogonal factorization of A. 
+! allowing for the possibility that A is rank-deficient.
+!===================================================================================
+!
+!
+! Definition of A, B:
+! A:
+    A = -Mlls(1:nLines,1:3)
+! B:
+    do i = 1,nLines
+      B(i,NRHS) = B(i,NRHS) + Mlls(i,4)
+    enddo    
+!
+!  Purpose
+!  =======
+!
+! DGELSY computes the minimum-norm solution to a real linear least
+! squares problem:
+!    minimize || A * X - B ||
+! using a complete orthogonal factorization of A.  A is an M-by-N
+! matrix which may be rank-deficient.
+!
+! Several right hand side vectors b and solution vectors x can be
+! handled in a single call; they are stored as the columns of the
+! M-by-NRHS right hand side matrix B and the N-by-NRHS solution
+! matrix X.
+!
+! The routine first computes a QR factorization with column pivoting:
+!    A * P = Q * [ R11 R12 ]
+!                [  0  R22 ]
+! with R11 defined as the largest leading submatrix whose estimated
+! condition number is less than 1/RCOND.  The order of R11, RANK,
+! is the effective rank of A.
+!
+! Then, R22 is considered to be negligible, and R12 is annihilated
+! by orthogonal transformations from the right, arriving at the
+! complete orthogonal factorization:
+!   A * P = Q * [ T11 0 ] * Z
+!               [  0  0 ]
+! The minimum-norm solution is then
+!   X = P * Z' [ inv(T11)*Q1'*B ]
+!              [        0       ]
+! where Q1 consists of the first RANK columns of Q.
+!
+! This routine is basically identical to the original xGELSX except
+! three differences:
+!  o The call to the subroutine xGEQPF has been substituted by the
+!    the call to the subroutine xGEQP3. This subroutine is a Blas-3
+!    version of the QR factorization with column pivoting.
+!  o Matrix B (the right hand side) is updated with Blas-3.
+!  o The permutation of matrix B (the right hand side) is faster and
+!    more simple.
+!
+! Arguments
+! =========
+!
+!M       (input) INTEGER
+!        The number of rows of the matrix A.  M >= 0.
+!
+!N       (input) INTEGER
+!        The number of columns of the matrix A.  N >= 0.
+!
+!NRHS    (input) INTEGER
+!        The number of right hand sides, i.e., the number of
+!        columns of matrices B and X. NRHS >= 0.
+!
+!A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+!        On entry, the M-by-N matrix A.
+!        On exit, A has been overwritten by details of its
+!        complete orthogonal factorization.
+!
+!LDA     (input) INTEGER
+!        The leading dimension of the array A.  LDA >= max(1,M).
+!
+!B       (input/output) DOUBLE PRECISION array, dimension (LDB,NRHS)
+!        On entry, the M-by-NRHS right hand side matrix B.
+!        On exit, the N-by-NRHS solution matrix X.
+!
+!LDB     (input) INTEGER
+!        The leading dimension of the array B. LDB >= max(1,M,N).
+!
+!JPVT    (input/output) INTEGER array, dimension (N)
+!        On entry, if JPVT(i) .ne. 0, the i-th column of A is permuted
+!        to the front of AP, otherwise column i is a free column.
+!        On exit, if JPVT(i) = k, then the i-th column of AP
+!        was the k-th column of A.
+!
+!RCOND   (input) DOUBLE PRECISION
+!        RCOND is used to determine the effective rank of A, which
+!        is defined as the order of the largest leading triangular
+!        submatrix R11 in the QR factorization with pivoting of A,
+!        whose estimated condition number < 1/RCOND.
+!
+!RANK    (output) INTEGER
+!        The effective rank of A, i.e., the order of the submatrix
+!        R11.  This is the same as the order of the submatrix T11
+!        in the complete orthogonal factorization of A.
+!
+!WORK    (workspace/output) DOUBLE PRECISION array, dimension (MAX(1,LWORK))
+!        On exit, if INFO = 0, WORK(1) returns the optimal LWORK.
+!
+!LWORK   (input) INTEGER
+!        The dimension of the array WORK.
+!        The unblocked strategy requires that:
+!           LWORK >= MAX( MN+3*N+1, 2*MN+NRHS ),
+!        where MN = min( M, N ).
+!        The block algorithm requires that:
+!           LWORK >= MAX( MN+2*N+NB*(N+1), 2*MN+NB*NRHS ),
+!        where NB is an upper bound on the blocksize returned
+!        by ILAENV for the routines DGEQP3, DTZRZF, STZRQF, DORMQR,
+!        and DORMRZ.
+!
+!        If LWORK = -1, then a workspace query is assumed; the routine
+!        only calculates the optimal size of the WORK array, returns
+!        this value as the first entry of the WORK array, and no error
+!        message related to LWORK is issued by XERBLA.
+!
+!INFO    (output) INTEGER
+!        = 0: successful exit
+!        < 0: If INFO = -i, the i-th argument had an illegal value.
+!
+! Further Details
+! ===============
+!
+!Based on contributions by
+!  A. Petitet, Computer Science Dept., Univ. of Tenn., Knoxville, USA
+!  E. Quintana-Orti, Depto. de Informatica, Universidad Jaime I, Spain
+!  G. Quintana-Orti, Depto. de Informatica, Universidad Jaime I, Spain
+!
+!  =====================================================================
+!
+!  Command sentence:
+!  CALL DGELSY( M , N, NRHS, A, LDA, B, M, JPVT, RCOND, RANK, WORK, LWORK, INFO)
+!
+!  =====================================================================
+!  Step0: Query the optimal workspace.
+    if (econ % e(1) .ge. 1)  print*, 'prior-Lwork', LWORK
+    LWORK = -1
+    info1=0
+    CALL DGELSY(M,N,NRHS,A,LDA,B,M,JPVT,RCOND,RANK,WORK,LWORK,info1)
+    LWORK = INT( WORK( 1 ) )
+    !LWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
+    if (LWORK .lt. LWMAX) then
+      deallocate ( WORK )
+      allocate ( WORK( LWORK ) )
+    endif
+    if (econ % e(1) .ge. 1)  print*, 'post-Lwork', LWORK
+!  Step1: Initialize JPVT to be zero so that all columns are free
+!
+!         CALL F06DBF(N,0,JPVT,1) ! <== Done while allocating the variable
+!
+!  Step2: Choose RCOND to reflect the relative accuracy of the input data
+    !RCOND = 0.01D0 !<== These would be hard-imposed accuracy
+    RCOND = -1.0D0  !<== < 0, machine precision is used instead.
+!
+!  Step3: Solve the least squares problem min( norm2(b - Ax) ) for the x
+!         of minimum norm.
+    info2 = 0
+    CALL DGELSY(M,N,NRHS,A,LDA,B,M,JPVT,RCOND,RANK,WORK,LWORK,info2)
+!         
+! <---------------------------------------------
+! NOTE: for further information about this subroutine 
+! http://www.netlib.no/netlib/lapack/double/dgelsy.f
+!
+! For examples:
+! https://www.nag.com/lapack-ex/examples/source/dgelsy-ex.f
+!
+! For information about LAPACK solving linear methods in general visit:
+! http://www.netlib.org/lapack/lug/node26.html
+!**********************************************************************************
+          molP%a1 = -B(1,NRHS)
+          molP%a2 = -B(2,NRHS)
+          molP%a3 = -B(3,NRHS)
+          if (info2 .eq. 0) then
+            write(*,*) 'Orthogonal algorithm succeded! :) '
+!
+!           Print the effective rank of A
+!
+            if (econ % e(1) .ge. 1) write(*,*) 'Tolerance used to estimate the rank of A', RCOND
+            if (econ % e(1) .ge. 1) write(*,*) 'Estimated rank of A', RANK
+!
+!           Print singular values of A
+!
+!            write(*,*)
+!            write(*,*) 'Singular values of A'
+!            write(*,*) (S(I),I=1,N)
+!
+!           Compute and print estimate of the square root of the
+!           residual sum of squares
+!
+!            IF (RANK.EQ.N) THEN
+!               RNORM = DNRM2(M-N,B(N+1,NRHS),1)
+!               write(*,*) 'Square root of the residual sum of squares'
+!               write(*,*) RNORM
+!            END IF
+          else
+            call LLS_error(B(1,NRHS),B(2,NRHS),B(3,NRHS), info1, econ)
+            if (econ % e(1) .ge. 1) write(*,*) ':( orthogonal'
+          endif
+
+          if ((abs(molP%a1) .le. TOL).or.(abs(molP%a2) .le. TOL).or.(abs(molP%a3) .le. TOL)) then
+            write(*,*),"LWORK = ", LWORK,";info1= ", info1,";info2= ", info2
+            do i=1, M
+              write(*,'(1X,4F11.4)') (A(i,j),j=1,N)
+            enddo
+          endif
+
+  END SUBROUTINE calc_QPar_DGELSY
+!--------------------------------------------------------------------------------------------------------------------
+  SUBROUTINE calc_QPar_DGELSS(nLines, dta1, molP, PerM, econ)
+!--------------------------------------------------------------------------------------------------------------------
+! "calc_QPar_DGELSS": gives the values of a1, a2, a3 
+! after solving linear system using the Lapack's DGELSS routine.
+!
+!---------------------------------------------------------------
+    use module_common_var
+    use module_error
+    use module_maths
+    use module_LLS
+    Implicit None
+    integer*8              , intent(in   ) :: nLines
+    type (dta_SDF), pointer, intent(in   ) :: dta1
+    type (dta_MOL)         , intent(inout) :: molP
+    type (dta_MOL)         , intent(in   ) :: PerM
+    type (dta_ERR)         , intent(inout) :: econ
+    double Precision :: Mlls(nLines,4)
+    double Precision :: Aux_4M(4)
+    integer*8        :: i, j, k
+    integer*8        :: jBIG, jSMALL
+    integer*8        :: indexI(nLines)
+    Double Precision :: r_kj, rD0_kj
+    Double Precision :: K1,K2, sumK2,sumK1
+    !Auxiliar Constants
+    double Precision :: Kaux, HWT, faH
+    double precision :: T, Ptot, RT
+    !Auxiliar for LAPACK
+    !
+    ! Parameters:
+      integer*8, Parameter   :: N = 3
+      integer*8, Parameter   :: NB = 10
+      integer*8, Parameter   :: NRHS = 1
+      integer*8, Parameter   :: LWMAX = 250
+      integer*8              :: M
+      integer*8              :: LDA, LDB
+    ! Local Scalars:
+      integer*8              :: LWORK, RANK
+      integer*8              :: info1, info2
+    ! Local Arrays:
+      Double Precision       :: RCOND, RNORM, DNRM2
+      Double Precision       :: SVal(N)
+      Double Precision,ALLOCATABLE,DIMENSION(:)   :: WORK( : )
+      Double Precision,ALLOCATABLE,DIMENSION(:,:) :: A( :, : ), B( :, : )
+!-----------------------------------------
+      T    = molP % Temp
+      Ptot = molP % Ptot
+      RT   = T0/T
+!-----------------------------------------
+      M = nLines
+      LDA = M
+      LDB = M
+      ! LWORK >= 3*min(M,N) + max( 2*min(M,N), max(M,N), NRHS )
+      ! LWORK >= 3*N + max( 2*N, M, NRHS )
+      LWORK = 3*N + NB*( M+N )
+      allocate ( WORK( LWMAX ) )
+      allocate ( A( LDA, N ), B( LDB, NRHS ))
+!
+! LAPACK is used (installation command for mac):
+! sudo port install lapack
+! 
+! * Compilation for "Free PGI compiler" for MAC:
+! pgf90 myprog.f90 -llapack -lblas
+!
+! * Compilation "gfortran"
+! gfortran myprog.f90 -llapack
+!
+!---------
+! FIRST: create a zero matrix for 
+    do j=1, nLines
+      do k=1,4
+        Mlls(j,k) = 0.0_dp
+      enddo  
+    enddo  
+!
+!
+! Generate the Matrix for LLS:
+    do j=1, nLines
+      do k=1, nLines
+        ! 
+        if (j .eq. k) then
+          faH = 1.0_dp
+          if(T.ne.T0)faH = (RT**dta1%BHW(j)) 
+          B(j,NRHS) = 2*molP%Ptot*dta1%HWT0(j)*faH
+        else              
+          if (isJb(dta1,j,k)) then
+          ! CASE:  J(j) > J(k) (downwards transition j->k)
+          ! or
+          ! CASE: J(j) = J(k)
+            jBIG   = j
+            jSMALL = k
+            r_kj = 1.0_dp 
+          else
+          ! CASE: J(j) < J(k)
+          ! so downwards transition is (k->j)
+          ! pj·<<k|W|j>> = pk·<<j|W|k>>; pk = dta1%PopuT(k); pj = dta1%PopuT(j)
+            jBIG   = k
+            jSMALL = j
+            r_kj = dta1%PopuT(jBIG)/dta1%PopuT(jSMALL) !pjBIG/pjSMALL
+          endif
+          call LLS_Matrix(jBIG,jSMALL,dta1,molP,PerM,Aux_4M, econ, K1,K2)
+          !
+          rD0_kj = dta1%D0(k)/dta1%D0(j) 
+          do i =1,4
+            Mlls(j,i) = Mlls(j,i) + rD0_kj*r_kj*Aux_4M(i)
+          enddo  
+        endif    
+      enddo
+      !
+    enddo
+!
+! **********************************************************************************
+! LAPACK routine:
+! ---------------
+! DGELSS computes the minimum norm solution to a real linear least
+! squares problem:
+!
+! Minimize 2-norm(| b - A*x |).
+!
+! Definition of A, B:
+! A:
+    A = -Mlls(1:nLines,1:3)
+! B:
+    do i = 1,nLines
+      B(i,NRHS) = B(i,NRHS) + Mlls(i,4)
+    enddo    
+!
+!  -- LAPACK driver routine (version 3.7.0) --
+!  -- LAPACK is a software package provided by Univ. of Tennessee,    --
+!  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
+!     December 2016
+!
+!  Purpose
+!  =======
+!
+! DGELSS uses the singular value decomposition (SVD) of A. A is an M-by-N
+! matrix which may be rank-deficient.
+!
+!  Several right hand side vectors b and solution vectors x can be
+! handled in a single call; they are stored as the columns of the
+! M-by-NRHS right hand side matrix B and the N-by-NRHS solution matrix
+! X.
+!
+! The effective rank of A is determined by treating as zero those
+! singular values which are less than RCOND times the largest singular
+! value.
+!
+!  Arguments
+!  =========
+!
+![in]  M 
+!          M is INTEGER
+!          The number of rows of the matrix A. M >= 0.
+![in]  N 
+!          N is INTEGER
+!          The number of columns of the matrix A. N >= 0.
+![in]  NRHS  
+!          NRHS is INTEGER
+!          The number of right hand sides, i.e., the number of columns
+!          of the matrices B and X. NRHS >= 0.
+![in]  A 
+![out]     A is DOUBLE PRECISION array, dimension (LDA,N)
+!          On entry, the M-by-N matrix A.
+!          On exit, the first min(m,n) rows of A are overwritten with
+!          its right singular vectors, stored rowwise.
+![in]  LDA 
+!          LDA is INTEGER
+!          The leading dimension of the array A.  LDA >= max(1,M).
+![in]  B 
+![out]     B is DOUBLE PRECISION array, dimension (LDB,NRHS)
+!          On entry, the M-by-NRHS right hand side matrix B.
+!          On exit, B is overwritten by the N-by-NRHS solution
+!          matrix X.  If m >= n and RANK = n, the residual
+!          sum-of-squares for the solution in the i-th column is given
+!          by the sum of squares of elements n+1:m in that column.
+![in]  LDB 
+!          LDB is INTEGER
+!          The leading dimension of the array B. LDB >= max(1,max(M,N)).
+![out] SVal 
+!          SVal is DOUBLE PRECISION array, dimension (min(M,N))
+!          The singular values of A in decreasing order.
+!          The condition number of A in the 2-norm = S(1)/S(min(m,n)).
+![in]  RCOND 
+!          RCOND is DOUBLE PRECISION
+!          RCOND is used to determine the effective rank of A.
+!          Singular values S(i) <= RCOND*S(1) are treated as zero.
+!          If RCOND < 0, machine precision is used instead.
+![out] RANK  
+!          RANK is INTEGER
+!          The effective rank of A, i.e., the number of singular values
+!          which are greater than RCOND*S(1).
+![out] WORK  
+!          WORK is DOUBLE PRECISION array, dimension (MAX(1,LWORK))
+!          On exit, if INFO = 0, WORK(1) returns the optimal LWORK.
+![in]  LWORK 
+!          LWORK is INTEGER
+!          The dimension of the array WORK. LWORK >= 1, and also:
+!          LWORK >= 3*min(M,N) + max( 2*min(M,N), max(M,N), NRHS )
+!          For good performance, LWORK should generally be larger.
+!
+!          If LWORK = -1, then a workspace query is assumed; the routine
+!          only calculates the optimal size of the WORK array, returns
+!          this value as the first entry of the WORK array, and no error
+!          message related to LWORK is issued by XERBLA.
+![out] INFO  
+!          INFO is INTEGER
+!          = 0:  successful exit
+!          < 0:  if INFO = -i, the i-th argument had an illegal value.
+!          > 0:  the algorithm for computing the SVD failed to converge;
+!                if INFO = i, i off-diagonal elements of an intermediate
+!                bidiagonal form did not converge to zero.
+!
+!  =====================================================================
+!
+!  Command sentence:
+!  CALL DGELSS(M,N,1,A,LDA,B,M,S,RCOND,RANK,WORK,LWORK,INFO)
+!
+!  =====================================================================
+!  Step0: Query the optimal workspace.
+    if (econ % e(1) .ge. 1)  print*, 'prior-Lwork', LWORK
+    LWORK = -1
+    info1 = 0
+    CALL DGELSS(M,N,NRHS,A,LDA,B,M,SVal,RCOND,RANK,WORK,LWORK,info1)
+    LWORK = INT( WORK(1) ) 
+    !LWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
+    if (LWORK .gt. LWMAX) then
+      deallocate ( WORK )
+      allocate ( WORK( LWORK ) )
+    endif
+    if (econ % e(1) .ge. 1)  print*, 'post-Lwork', LWORK, INT( WORK( 1 ) )
+!  Step1: Choose RCOND to reflect the relative accuracy of the input data
+    !RCOND = 0.01D0 !<== These would be hard-imposed accuracy
+    RCOND = -1.0D0  !<== < 0, machine precision is used instead.
+!
+!  Step2: Solve the least squares problem min( norm2(b - Ax) ) for the x
+!         of minimum norm.
+    info2 = 0
+    CALL DGELSS(M,N,NRHS,A,LDA,B,M,SVal,RCOND,RANK,WORK,LWORK,info2)
+!
+! <---------------------------------------------
+! NOTE: for further information about this subroutine 
+! http://www.netlib.no/netlib/lapack/double/dgelss.f
+!
+! For examples:
+! https://www.nag.com/lapack-ex/examples/source/dgelss-ex.f
+!
+! For information about LAPACK solving linear methods in general visit:
+! http://www.netlib.org/lapack/lug/node26.html
+!**********************************************************************************
+!         Least squares solution:
+          molP%a1 = -B(1,NRHS)
+          molP%a2 = -B(2,NRHS)
+          molP%a3 = -B(3,NRHS)
+          if (info2 .eq. 0) then
+            write(*,*) 'SVD algorithm converge! :) '
+!
+!           Print the effective rank of A
+!
+            if (econ % e(1) .ge. 1) write(*,*) 'Tolerance used to estimate the rank of A', RCOND
+            if (econ % e(1) .ge. 1) write(*,*) 'Estimated rank of A', RANK
+          else
+            call LLS_error(B(1,NRHS),B(2,NRHS),B(3,NRHS), info1, econ)
+            if (econ % e(1) .ge. 1) write(*,*) 'The SVD algorithm failed to converge'
+          endif
+
+          if ((abs(molP%a1) .le. TOL).or.(abs(molP%a2) .le. TOL).or.(abs(molP%a3) .le. TOL)) then
+            if (econ % e(1) .ge. 1) write(*,*),"LWORK = ", LWORK,";info1= ", info1,";info2= ", info2
+            do i=1, M
+              write(*,'(1X,4F11.4)') (A(i,j),j=1,N)
+            enddo
+          endif
+
+  END SUBROUTINE calc_QPar_DGELSS
+!--------------------------------------------------------------------------------------------------------------------
+  SUBROUTINE calc_QPar_DGELSD(nLines, dta1, molP, PerM, econ)
+!--------------------------------------------------------------------------------------------------------------------
+! "calc_QPar_DGELSD": gives the values of a1, a2, a3 
+! after solving linear system using the Lapack's DGELSD routine.
+!
+!---------------------------------------------------------------
+    use module_common_var
+    use module_error
+    use module_maths
+    use module_LLS
+    Implicit None
+    integer*8              , intent(in   ) :: nLines
+    type (dta_SDF), pointer, intent(in   ) :: dta1
+    type (dta_MOL)         , intent(inout) :: molP
+    type (dta_MOL)         , intent(in   ) :: PerM
+    type (dta_ERR)         , intent(inout) :: econ
+    double Precision :: Mlls(nLines,4)
+    double Precision :: Aux_4M(4)
+    integer*8        :: i, j, k
+    integer*8        :: jBIG, jSMALL
+    integer*8        :: indexI(nLines)
+    Double Precision :: r_kj, rD0_kj
+    Double Precision :: K1,K2, sumK2,sumK1
+    !Auxiliar Constants
+    double Precision :: Kaux, HWT, faH
+    double precision :: T, Ptot, RT
+    !Auxiliar for LAPACK
+    !
+    ! Parameters:
+      integer*8, Parameter   :: N = 3
+      integer*8, Parameter   :: NB = 64
+      integer*8, Parameter   :: NRHS = 1
+      integer*8, Parameter   :: NLVL = 10
+      integer*8, Parameter   :: LWMAX = 1000
+      integer*8              :: M
+      integer*8              :: LDA, LDB
+    ! Local Scalars:
+      integer*8              :: LWORK, LIWORK, RANK
+      integer*8              :: info1, INFO
+      integer*8,ALLOCATABLE,DIMENSION(:):: IWORK( : )
+    ! Local Arrays:
+      Double Precision       :: RCOND, RNORM, DNRM2
+      Double Precision       :: SVal(N), sumD0, sumrjk
+      Double Precision,ALLOCATABLE,DIMENSION(:)   :: WORK( : )
+      Double Precision,ALLOCATABLE,DIMENSION(:,:) :: A( :, : ), B( :, : )
+!-----------------------------------------
+      T    = molP % Temp
+      Ptot = molP % Ptot
+      RT   = T0/T
+!-----------------------------------------
+      M = nLines
+      LDA = M
+      LDB = M
+      LWORK = NB*( 2*M + N )
+      LIWORK= 3*N*NLVL + 11*N +1
+      allocate ( IWORK( LIWORK ) )
+      allocate ( WORK( LWORK ) )
+      allocate ( A( LDA, N ), B( LDB, NRHS ) )
+!
+! LAPACK is used (installation command for mac):
+! sudo port install lapack
+! 
+! * Compilation for "Free PGI compiler" for MAC:
+! pgf90 myprog.f90 -llapack -lblas
+!
+! * Compilation "gfortran"
+! gfortran myprog.f90 -llapack
+!
+!---------
+! FIRST: create a zero matrix for 
+    do j=1, nLines
+      do k=1,4
+        Mlls(j,k) = 0.0_dp
+      enddo  
+    enddo  
+!
+!
+! Generate the Matrix for LLS:
+    do j=1, nLines
+      sumrjk = 0.d0
+      sumD0  = 0.d0
+      sumK1  = 0.d0
+      sumK2  = 0.d0
+      do k=1, nLines
+        ! 
+        if (j .eq. k) then
+          faH = 1.0_dp
+          if(T.ne.T0)faH = (RT**dta1%BHW(j)) 
+          B(j,NRHS) = 2*molP%Ptot*dta1%HWT0(j)*faH
+        else              
+          if (isJb(dta1,j,k)) then
+          ! CASE:  J(j) > J(k) (downwards transition j->k)
+          ! or
+          ! CASE: J(j) = J(k)
+            jBIG   = j
+            jSMALL = k
+            r_kj = 1.0_dp 
+          else
+          ! CASE: J(j) < J(k)
+          ! so downwards transition is (k->j)
+          ! pj·<<k|W|j>> = pk·<<j|W|k>>; pk = dta1%PopuT(k); pj = dta1%PopuT(j)
+            jBIG   = k
+            jSMALL = j
+            r_kj = dta1%PopuT(jBIG)/dta1%PopuT(jSMALL) !pjBIG/pjSMALL
+          endif
+          call LLS_Matrix(jBIG,jSMALL,dta1,molP,PerM,Aux_4M, econ, K1, K2)
+          !
+          rD0_kj = dta1%D0(k)/dta1%D0(j) 
+          do i =1,4
+            Mlls(j,i) = Mlls(j,i) + rD0_kj*r_kj*Aux_4M(i)
+          enddo 
+          !ERASE ---->
+          sumrjk = sumrjk + r_kj
+          sumD0 = sumD0 + rD0_kj
+          sumK1 = sumK1 + K1
+          sumK2 = sumK2 + K2
+          !<----- these lines
+        endif    
+      enddo
+      !ERASE ---->
+          if (abs(sum(Mlls(j,:))) .lt. TOL) then
+            print*, "Dipole rate", sumD0
+            print*, "Popu rate", sumrjk
+            print*, "K1", sumK1
+            print*, "K2", sumK2
+          endif 
+      !<----- these lines
+      !
+    enddo
+!
+! **********************************************************************************
+! LAPACK routine:
+! ---------------
+! DGELSD computes the minimum-norm solution to a real linear least
+! squares problem:
+!     minimize 2-norm(| b - A*x |)
+!
+! Definition of A, B:
+    !
+    A = -Mlls(1:nLines,1:3)
+    !
+    do i = 1,nLines
+      B(i,NRHS) = B(i,NRHS) + Mlls(i,4)
+    enddo    
+!
+!  -- LAPACK driver routine (version 3.7.1) --
+!  -- LAPACK is a software package provided by Univ. of Tennessee,    --
+!  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
+!     June 2017
+!
+!  Purpose
+!  =======
+!
+! DGELSD computes the minimum-norm solution to a real linear least
+! squares problem:
+!     minimize 2-norm(| b - A*x |)
+! using the singular value decomposition (SVD) of A with an algorithm 
+! based on divide and conquer.
+! A is an M-by-N matrix which may be rank-deficient.
+!
+! Note that The subroutine dGELSD is significantly faster than its 
+! older counterpart dGELSS, especially for large problems, but may 
+! require somewhat more workspace depending on the matrix dimensions.
+!
+! Several right hand side vectors b and solution vectors x can be
+! handled in a single call; they are stored as the columns of the
+! M-by-NRHS right hand side matrix B and the N-by-NRHS solution
+! matrix X.
+!
+! The problem is solved in three steps:
+! (1) Reduce the coefficient matrix A to bidiagonal form with
+!     Householder transformations, reducing the original problem
+!     into a "bidiagonal least squares problem" (BLS)
+! (2) Solve the BLS using a divide and conquer approach.
+! (3) Apply back all the Householder transformations to solve
+!     the original least squares problem.
+!
+! The effective rank of A is determined by treating as zero those
+! singular values which are less than RCOND times the largest singular
+! value.
+!
+! The divide and conquer algorithm makes very mild assumptions about
+! floating point arithmetic. It will work on machines with a guard
+! digit in add/subtract, or on those binary machines without guard
+! digits which subtract like the Cray X-MP, Cray Y-MP, Cray C-90, or
+! Cray-2. It could conceivably fail on hexadecimal or decimal machines
+! without guard digits, but we know of none.
+!
+!  Arguments
+!  =========
+!
+![in]  M 
+!          M is INTEGER
+!          The number of rows of A. M >= 0.
+![in]  N 
+!          N is INTEGER
+!          The number of columns of A. N >= 0.
+![in]  NRHS  
+!          NRHS is INTEGER
+!          The number of right hand sides, i.e., the number of columns
+!          of the matrices B and X. NRHS >= 0.
+![in,out]  A 
+!          A is DOUBLE PRECISION array, dimension (LDA,N)
+!          On entry, the M-by-N matrix A.
+!          On exit, A has been destroyed.
+![in]  LDA 
+!          LDA is INTEGER
+!          The leading dimension of the array A.  LDA >= max(1,M).
+![in,out]  B 
+!          B is DOUBLE PRECISION array, dimension (LDB,NRHS)
+!          On entry, the M-by-NRHS right hand side matrix B.
+!          On exit, B is overwritten by the N-by-NRHS solution
+!          matrix X.  If m >= n and RANK = n, the residual
+!          sum-of-squares for the solution in the i-th column is given
+!          by the sum of squares of elements n+1:m in that column.
+![in]  LDB 
+!          LDB is INTEGER
+!          The leading dimension of the array B. LDB >= max(1,max(M,N)).
+![out] S 
+!          S is DOUBLE PRECISION array, dimension (min(M,N))
+!          The singular values of A in decreasing order.
+!          The condition number of A in the 2-norm = S(1)/S(min(m,n)).
+![in]  RCOND 
+!          RCOND is DOUBLE PRECISION
+!          RCOND is used to determine the effective rank of A.
+!          Singular values S(i) <= RCOND*S(1) are treated as zero.
+!          If RCOND < 0, machine precision is used instead.
+![out] RANK  
+!          RANK is INTEGER
+!          The effective rank of A, i.e., the number of singular values
+!          which are greater than RCOND*S(1).
+![out] WORK  
+!          WORK is DOUBLE PRECISION array, dimension (MAX(1,LWORK))
+!          On exit, if INFO = 0, WORK(1) returns the optimal LWORK.
+![in]  LWORK 
+!          LWORK is INTEGER
+!          The dimension of the array WORK. LWORK must be at least 1.
+!          The exact minimum amount of workspace needed depends on M,
+!          N and NRHS. As long as LWORK is at least
+!              12*N + 2*N*SMLSIZ + 8*N*NLVL + N*NRHS + (SMLSIZ+1)**2,
+!          if M is greater than or equal to N or
+!              12*M + 2*M*SMLSIZ + 8*M*NLVL + M*NRHS + (SMLSIZ+1)**2,
+!          if M is less than N, the code will execute correctly.
+!          SMLSIZ is returned by ILAENV and is equal to the maximum
+!          size of the subproblems at the bottom of the computation
+!          tree (usually about 25), and
+!             NLVL = MAX( 0, INT( LOG_2( MIN( M,N )/(SMLSIZ+1) ) ) + 1 )
+!          For good performance, LWORK should generally be larger.
+!
+!          If LWORK = -1, then a workspace query is assumed; the routine
+!          only calculates the optimal size of the WORK array, returns
+!          this value as the first entry of the WORK array, and no error
+!          message related to LWORK is issued by XERBLA.
+![out] IWORK 
+!          IWORK is INTEGER array, dimension (MAX(1,LIWORK))
+!          LIWORK >= max(1, 3 * MINMN * NLVL + 11 * MINMN),
+!          where MINMN = MIN( M,N ).
+!          On exit, if INFO = 0, IWORK(1) returns the minimum LIWORK.
+![out] INFO  
+!          INFO is INTEGER
+!          = 0:  successful exit
+!          < 0:  if INFO = -i, the i-th argument had an illegal value.
+!          > 0:  the algorithm for computing the SVD failed to converge;
+!                if INFO = i, i off-diagonal elements of an intermediate
+!                bidiagonal form did not converge to zero.
+!
+!
+!  =====================================================================
+!
+!  Command sentence:
+!  CALL DGELSD(M , N , 1 , A , LDA , B , N , S , RCOND , RANK , WORK , LWORK , IWORK , INFO )
+!
+!  =====================================================================
+!  Step0: Query the optimal workspace.
+      !LWORK = -1
+      !info1 = 0
+      !CALL DGELSD(M,N,NRHS,A,LDA,B,M,Sval,RCOND,RANK,WORK,LWORK,IWORK,info1)
+      !LWORK = INT( WORK(1) ) 
+      !LWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
+      !if (LWORK .gt. LWMAX) then
+      !  deallocate ( WORK )
+      !  allocate ( WORK( LWORK ) )
+      !endif
+      !IF (info1.eq.0) LIWORK = INT(IWORK(1))
+      !if (econ % e(1) .ge. 1)  print*, 'post-Lwork and Ilwork', LWORK, LIWORK
+      !if (econ % e(1) .ge. 1)  print*, 'RANK', RANK, 'info1', info1
+  
+!  Step1: Choose RCOND to reflect the relative accuracy of the input data
+         !RCOND = 0.01D0 !<== These would be hard-imposed accuracy
+         RCOND = -1.0D0  !<== < 0, machine precision is used instead.
+!
+!  Step2: Solve the least squares problem min( norm2(b - Ax) ) for the x
+!         of minimum norm.
+      !if (econ % e(1) .ge. 1)  print*, 'INFO', INFO
+      INFO = 0
+      RANK = 0
+      CALL DGELSD(M,N,NRHS,A,LDA,B,LDB,Sval,RCOND,RANK,WORK,LWORK,IWORK,INFO)
+      !LWORK = INT( WORK(1) ) 
+      !if (econ % e(1) .ge. 1)  print*, 'post-Lwork', LWORK
+      !if (econ % e(1) .ge. 1)  print*, 'RANK', RANK, 'INFO', INFO
+!
+! <---------------------------------------------
+! NOTE: for further information about this subroutine 
+! http://www.netlib.no/netlib/lapack/double/dgelsd.f
+! http://www.netlib.org/lapack/explore-html/d7/d3b/group__double_g_esolve_ga94bd4a63a6dacf523e25ff617719f752.html#ga94bd4a63a6dacf523e25ff617719f752
+!
+! For examples:
+! https://www.nag.com/lapack-ex/examples/source/dgelsd-ex.f
+!
+! For information about LAPACK solving linear methods in general visit:
+! http://www.netlib.org/lapack/lug/node26.html
+!**********************************************************************************
+          molP%a1 = -B(1,NRHS)
+          molP%a2 = -B(2,NRHS)
+          molP%a3 = -B(3,NRHS)
+          if (INFO .eq. 0) then
+            if (econ % e(1) .ge. 1) write(*,*) 'SVD algorithm converge! :) '
+!
+!           Print the effective rank of A
+!
+            if (econ % e(1) .ge. 1) write(*,*) 'Tolerance used to estimate the rank of A', RCOND
+            if (econ % e(1) .ge. 1) write(*,*) 'Estimated RANK of A', RANK
+!
+!           Print singular values of A
+!
+!            write(*,*)
+!            write(*,*) 'Singular values of A'
+!            write(*,*) (S(I),I=1,N)
+!
+!           Compute and print estimate of the square root of the
+!           residual sum of squares
+!
+!            IF (RANK.EQ.N) THEN
+!               RNORM = DNRM2(M-N,B(N+1,NRHS),1)
+!               write(*,*) 'Square root of the residual sum of squares'
+!               write(*,*) RNORM
+!            END IF
+          else
+            call LLS_DGELSYSD_error(B(1,NRHS),B(2,NRHS),B(3,NRHS), INFO, econ)
+            if (econ % e(1) .ge. 1) write(*,*) 'The SVD algorithm failed to converge'
+          endif
+
+          if ((abs(molP%a1) .le. TOL).or.(abs(molP%a2) .le. TOL).or.(abs(molP%a3) .le. TOL)) then
+            if (econ % e(1) .ge. 1) write(*,*),"LWORK = ", LWORK,";info1= ", info1,";INFO= ", INFO
+            do i=1, M
+              write(*,'(1X,4F11.4)') (A(i,j),j=1,N)
+            enddo
+          endif
+
+  END SUBROUTINE calc_QPar_DGELSD
+  !--------------------------------------------------------------------------------------------------------------------

@@ -71,13 +71,13 @@ module module_phsub
             type (dta_ERR), intent(inout):: econ
         end function Kpart2_O2
         
-        double precision function K_jkCalc(j,k,h,nLines,molP,PerM,econ) 
+        double precision function K_jkCalc(nt,j,k,h,nLines,molP,PerM,econ) 
             use module_common_var
             use module_error
             use module_molecSp
             use module_maths
             implicit none
-            integer*8               , intent(in   ) :: j,k,nLines
+            integer*8               , intent(in   ) :: nt,j,k,nLines
             type (dta_SDF), pointer , intent(in   ) :: h
             type (dta_MOL)          , intent(in   ) :: molP, PerM
             type (dta_ERR)          , intent(inout) :: econ
@@ -520,7 +520,7 @@ END module module_phsub
       else 
         cte2 = -1.d0
       endif 
-      Kpart1 =  cte1*cte2*AF1
+      Kpart1 = cte1*cte2*AF1
                
       RETURN
   END function Kpart1
@@ -588,11 +588,14 @@ END module module_phsub
       type (dta_ERR), intent(inout):: econ
       double precision             :: w3j1,w3j2,w6j
       !
-      !
       !wigner 3j-Symbol 1:
       ! ( Ji  L  Ji' )
       ! ( li  0  -li )
       w3j1 = wigner3j( Ji_p, real(L, dp), Ji , real(li, dp), 0.0_dp, real(-li, dp) )
+      if (abs(w3j1) .lt. TOL) w3j1 = 0.0D0
+      !print*, "w3j1(",Ji_p, real(L, dp), Ji,")"
+      !print*, "____(",real(li, dp), 0.0_dp, real(-li, dp),")"
+      !print*,"=",w3j1
       ! CASE wig3j0(M,J1,J2,J)
       !                       m (j1 j2 j)  
       !                    (-)  (m  -m 0)  
@@ -601,11 +604,20 @@ END module module_phsub
       ! ( Jf  L  Jf' )
       ! ( lf  0  -lf )
       w3j2  = wigner3j( Jf_p, real(L, dp), Jf, real(-lf, dp), 0.0_dp, real(lf, dp) )
+      if (abs(w3j2) .lt. TOL) w3j2 = 0.0D0
+      !print*, "w3j1(",Jf_p, real(L, dp), Jf,")"
+      !print*, "____(",real(-lf, dp), 0.0_dp, real(lf, dp),")"
+      !print*,"=",w3j2
       !
       !wigner 6j-Symbol:
       ! { Ji   Jf   1 }
       ! { Jf'  Ji'  L }
       w6j   = wigner6j( Ji, Jf, real(K_t,dp), Jf_p, Ji_p, real(L, dp))
+      if (abs(w6j) .lt. TOL) w6j = 0.0D0
+      !print*, "w6j{",Ji, Jf, real(K_t,dp),"}"
+      !print*, "___{",Jf_p, Ji_p, real(L, dp),"}"
+      !print*,"=",w6j
+      !
       !
       if ( .not.( isnan(w3j1  ) .or. isinf(w3j1  )) .and. &
            .not.( isnan(w3j2  ) .or. isinf(w3j2  )) .and. &
@@ -759,7 +771,7 @@ END module module_phsub
       RETURN
   END function Kpart2_O2
 !--------------------------------------------------------------------------------------------------------------------
-  double precision function K_jkCalc(j,k,h,nLines,molP,PerM,econ)
+  double precision function K_jkCalc(nt,j,k,h,nLines,molP,PerM,econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! "K_jkCalc": OFF-diagonal matrix elements (Wk'k ∞ Q_k'k)
 !
@@ -793,7 +805,7 @@ END module module_phsub
       use module_error
       use module_maths
       IMPLICIT none
-      integer*8              , intent(in   ) :: j,k,nLines
+      integer*8              , intent(in   ) :: nt,j,k,nLines
       type (dta_SDF), pointer, intent(in   ) :: h
       type (dta_MOL)         , intent(in   ) :: molP, PerM
       type (dta_ERR)         , intent(inout) :: econ
@@ -873,6 +885,9 @@ END module module_phsub
           else
             Qaux = Ql_mol_X(molP,L)
           endif
+        ! ERASE NEXT LINE
+        h%Qlt(nt,L) = Qaux
+
         if ( abs(Qaux) .gt. TOL ) then
           !
           ! Adiabatic factor 2:
@@ -895,6 +910,9 @@ END module module_phsub
       enddo
       !
       K_jkCalc = K1*suma 
+      ! ERASE NEXT LINE
+      ! h%Qlt(nt,L) = K_jkCalc
+
       if ( isnan( K_jkCalc ) .or. isinf( K_jkCalc  ) ) then
         call offdiagEL_ERROR(K1, AF1, suma,econ)
       endif
@@ -998,7 +1016,7 @@ END module module_phsub
         ! dominated by EVEN rank contributions, then STEP = 2
         !
         ! Calculation of the basis rates "Q_mol-X":
-          if (molP % QTy .eq. "TMC") then
+        if (molP % QTy .eq. "TMC") then
             if (molP % LLSty .eq. "Li--AF") then
                 !Qaux = Ql_mol_AF_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,PerM,L)
                 Qaux = Ql_mol_AF_LLS(real(Ni,dp),real(Ni_p,dp),h%Sig(j),h%Sig(k),molP,PerM,L)
@@ -1006,9 +1024,9 @@ END module module_phsub
                 !Qaux = Ql_mol_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,L)
                 Qaux = Ql_mol_LLS(real(Ni,dp),real(Ni_p,dp),h%Sig(j),h%Sig(k),molP,L)
             endif
-          else
+        else
             Qaux = Ql_mol_X(molP,L)
-          endif
+        endif
         !
         if ( abs(Qaux) .gt. TOL ) then
           !
@@ -1389,7 +1407,6 @@ END module module_phsub
 !--------------------------------------------------------------------
         testOK = .true.
         DO i = 1, nLines
-            !if (i .eq. 48) print*, "row", i
             Saux = 0.0D0
             DO j = 1, nLines
                 if (j .ne. i) then
@@ -1407,11 +1424,11 @@ END module module_phsub
             ENDDO
             if ( (abs(Wii+Saux) .gt. TOLe2) .and. (i .ne. nLines) ) then
                 testOK = .false.
-                !if (econ % e(1) .ge. 1) then
-                !    write(*,'(a4,i3,a30)'), "row#",i,"NOT meet SUM-RULE"
-                !    write(*,*), "half-Width", Wii , "?= SUMij{Wmat}", -Saux
-                !    !if (i .eq. 48)stop
-                !endif
+                if (econ % e(1) .ge. 1) then
+                    write(*,'(a4,i3,a30)'), "row#",i,"NOT meet SUM-RULE"
+                    write(*,*), "half-Width", Wii , "?= SUMij{Wmat}", -Saux
+                    !if (i .eq. 48)stop
+                endif
             else
             ! Uncomment if you would also like to see 
             ! the lines that meet the requirement
@@ -1426,10 +1443,12 @@ END module module_phsub
         !print*, "SUM-RULE TEST FINISHED"
         if ( .not.(testOK) ) then
             call SumRuleError(econ)
+            econ % solu = 0
         else
             if (econ % e(1) .ge. 1) then
                 print*, "sumRule: The calculation correctly verifies the sum rule!"
             endif
+            econ % solu = 1
         endif
 
   end subroutine sumRule

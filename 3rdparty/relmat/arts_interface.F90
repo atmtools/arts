@@ -1,7 +1,8 @@
 !--------------------------------------------------------------------------------------------------------------------
 module arts_interface
 !--------------------------------------------------------------------------------------------------------------------
-! This module contains subroutines to interact with ARTS 
+! This module contains the "RM_LM_tmc_arts" and "RM_LM_LLS_tmc_arts" subroutines which interface with ARTS. 
+! It also contains subroutines to do internal checks on models' outputs. 
 !
     interface
 
@@ -15,43 +16,50 @@ module arts_interface
                           runE_deb,ordered,&
                           W_rn, dipo, rho, &
                           Y1,Y2,Y3) 
+        !   MODEL:
+        !   -----
+        !   This subroutine contains a version of the HARTMANN-NIRO Linemixing model.
         !
         !   INPUT VARIABLES
         !   ----------------------
-        !   nLines   : These are the number of lines identified as belonging to the band.
-        !   sgmin    : The minimum frequency in cm-1 [defaults to the first value of artsWNO]
-        !   sgmax    : The maximum frequency in cm-1 [defaults to the last value of artsWNO]
-        !   artsM    : The HITRAN molecule number (e.g., 7 is O2)
-        !   artsI    : The HITRAN isotope number
+        !   nLines   : This is the number of lines identified as belonging to the band (INTEGER).
+        !   sgmin    : The minimum frequency in cm-1 [defaults to the first value of artsWNO; REAL*8]
+        !   sgmax    : The maximum frequency in cm-1 [defaults to the last value of artsWNO; REAL*8]
+        !   artsM    : The HITRAN molecule number (e.g., 7 is O2). (INTEGER).
+        !   artsI    : The HITRAN isotope number (INTEGER).
         !   artsWNO  : frequency in cm-1 in vacuum of the lines.  Sorted by lowest first
-        !   artsS    : Intensity of the line at the same temperature as QT0 but abundance has already been considered
-        !   artsGA   : Air pressure broadening in cm-1/atm halfwidth
-        !   arts E00 : Lower state energy in cm-1
-        !   artsNA   : Pressure broadening constant in cm-1
-        !   artsUpp  : Upper state quantum numbers. First is L2, then is J, then is N, then is S.  
-        !              If the quantum number is not applicable, the position contains the number -1.
-        !   artsLow  : Same as artsUpp but for lower state numbers.
-        !   artsg0   : Upper state g-constant
-        !   artsg00  : Lower state g-constant
-        !   T        : Temperature of the system in Kelvin.
-        !   Ptot     : Total pressure in Pascal.
-        !   QT       : Partition function at Temperature T.
-        !   QT0      : Partition function at same temperature as line intensity.
-        !   mass     : Mass of the molecule.
-        !   npert    :  Number of perturbers/colliders.  Initially assume this is 2 for N2 and O2.
-        !   pert     : Array containing HitranID of the system perturber (colliders). Index of perturbing molecule in HITRAN. Same as artsM. 
-        !              Assumed position 0 is O2-66 and position 1 is N2-44.
-        !   i_pert   : Array of the colliders's isotopes. Index of isotope in HITRAN.  Same as artsI.  
-        !              Assumed position 0 is O2-66 and position 1 is N2-44.
-        !   p_mass   : mass array of length npert of perturbing gases.  
-        !              Assumed position 0 is for O2-66 and position 1 is for N2-44.
-        !   p_vmr    : volume mixing ratio (VMR) of perturbing gases.  
-        !              Assumed position 0 is for O2-66 and position 1 is for N2-44.
-        !   runE_deb : integer that allows to print on screen (1) or not (0). It is used on debugging.
-        !   ordered  : integer which includes the selection in output:
+        !   artsS    : Intensity of the line at the same temperature as QT0 but abundance has already been considered.
+        !              (REAL*8 Array of length NLINES).
+        !   artsGA   : Air pressure broadening in cm-1/atm halfwidth (REAL*8 Array of length NLINES).
+        !   artsE00  : Lower state energy in cm-1 (REAL*8 Array of length NLINES).
+        !   artsNA   : Pressure broadening constant in cm-1 (REAL*8 Array of length NLINES).
+        !   artsUpp  : REAL*8 Array containing the UPPER STATE quantum numbers (length=NLINES). 
+        !              First is L2, then is J, then is N, then is S.  
+        !              If a quantum number is not applicable, the position contains the number -1.
+        !   artsLow  : Same as artsUpp but for LOWER STATE numbers (REAL*8 Array of length NLINES).
+        !   artsg0   : REAL*8 Array of the Upper state g-constant per band-line (length NLINES).
+        !   artsg00  : REAL*8 Array of the Lower state g-constant per band-line (length NLINES).
+        !   T        : REAL*8 Temperature of the system in Kelvin.
+        !   Ptot     : REAL*8 Total pressure in Pascal.
+        !   QT       : REAL*8 Partition function at Temperature T.
+        !   QT0      : REAL*8 Partition function at same temperature as line intensity.
+        !   mass     : REAL*8 Mass of the molecule.
+        !   npert    : INTEGER Number of perturbers/colliders.  Initially assume this is 2 for N2 and O2.
+        !   pert     : INTEGER Array (length= NPERT) containing HitranID of the system perturber (colliders). 
+        !              Index of perturbing molecule in HITRAN. Same as artsM. 
+        !              *Default case*: Assumed position 0 is O2-66 and position 1 is N2-44.
+        !   i_pert   : INTEGER Array of the colliders's isotopes (length= NPERT). Index of isotope in HITRAN.  
+        !              Same as artsI.  
+        !              *Default case*: Assumed position 0 is O2-66 and position 1 is N2-44.
+        !   p_mass   : REAL*8 mass array of perturbing gases (length=NPERT).  
+        !              *Default case*: Assumed position 0 is for O2-66 and position 1 is for N2-44.
+        !   p_vmr    : REAL*8 volume mixing ratio (VMR) of perturbing gases (length=NPERT).  
+        !              *Default case*: Assumed position 0 is for O2-66 and position 1 is for N2-44.
+        !   runE_deb : INTEGER that allows to print on screen (1) or not (0). It is used on debugging.
+        !   ordered  : INTEGER which includes the selection in output:
         !              -1 -> Returns W, but no Y_Ro is returned.
         !               0 -> W Diagonal, and no Y_Ro is returned.
-        !               1 -> Returns W, and just the first column of the Y1 = 1st order linemixing.
+        !               1 -> Returns W, and just the first order coefficient Y1 is returned = 1st order linemixing.
         !               2 -> Returns W, and all Y1,Y2,Y3 arrays = 2nd order linemixing.
         !                    1st column = Rosenkranz parameter/line
         !                    2nd column = g (2nd ord-parameter)/line
@@ -60,14 +68,14 @@ module arts_interface
         !
         !   OUTPUT VARIABLES
         !   -----------------
-        !   W_rn     : The relaxation matrix.  For output. 
-        !   Y1       : 1st order linemixing parameter. For output.
-        !   Y2       : 2nd order linemixing parameter. For output.
-        !   Y3       : 3rd order linemixing parameter. For output.
-        !   dipo     : The dipole moments.  For output.
-        !   rho      : Populations.  For output.
+        !   W_rn     : The relaxation matrix.  
+        !   Y1       : 1st order linemixing parameter. 
+        !   Y2       : 2nd order linemixing parameter. 
+        !   Y3       : 3rd order linemixing parameter. 
+        !   dipo     : The dipole moments.  
+        !   rho      : Populations.  
         ! 
-        !!!!! MODULES IN USE:
+        !---MODULES IN USE:
             use module_common_var
             use module_error
                 use module_maths
@@ -107,6 +115,12 @@ module arts_interface
                           runE_deb,ordered,&
                           W_rn, dipo, rho, &
                           Y1,Y2,Y3) 
+        !   MODEL:
+        !   -----
+        !   This subroutine contains the MENDAZA's Linemixing model which computes 
+        !   the Relaxation Matrix, Rosenkranz parameter and 2nd order linemixing 
+        !   parameters within the ECS approach for a given linear molecule 
+        !   in a system of colliders.
         !
         !   INPUT VARIABLES
         !   ----------------------
@@ -114,11 +128,9 @@ module arts_interface
         !
         !   OUTPUT VARIABLES
         !   -----------------
-        !   W_rn     : The relaxation matrix. Output. 
-        !   dipo     : The dipole moments. Output.
-        !   rho      : Populations. Output.
+        !   Same as in "RM_LM_tmc_arts"
         ! 
-        !!!!! MODULES IN USE:
+        !---MODULES IN USE:
             use module_common_var
             use module_error
                 use module_maths
@@ -152,15 +164,15 @@ module arts_interface
         subroutine alloSDF(n,dta1)
             use module_common_var
             implicit none
-            integer*8, intent(in )             :: n 
-            type (dta_SDF),intent(out)         :: dta1
+            integer*8, intent(in )        :: n 
+            type (dta_SDF),intent(out)    :: dta1
         end subroutine alloSDF
 
         subroutine alloRMF(n,dta2)
             use module_common_var
             implicit none
-            integer*8     , intent(in )        :: n 
-            type (dta_RMF), intent(out)        :: dta2
+            integer*8     , intent(in )   :: n 
+            type (dta_RMF), intent(out)   :: dta2
         end subroutine alloRMF
 
         subroutine VarInit(molP,econ,runE)
@@ -174,7 +186,7 @@ module arts_interface
         subroutine mol_Init(molP)
             use module_common_var
             implicit none
-            type (dta_MOL), intent(inout)    :: molP
+            type (dta_MOL), intent(inout) :: molP
         end subroutine mol_Init
 
         subroutine InitM(n,m,W)
@@ -185,11 +197,11 @@ module arts_interface
 
         subroutine includeW(n,indx,W_rn, NA, GA, rTT0, P, n0, Wrno) 
             implicit none
-            integer*8, intent(in)        :: n, n0 
-            integer*8, intent(in)        :: indx(n) 
-            Double Precision, intent(in ):: NA(n), GA(n), rTT0, P
-            Double Precision, intent(in ):: Wrno(n0,n0)
-            Double Precision, intent(out):: W_rn(n,n)
+            integer*8, intent(in)         :: n, n0 
+            integer*8, intent(in)         :: indx(n) 
+            Double Precision, intent(in ) :: NA(n), GA(n), rTT0, P
+            Double Precision, intent(in ) :: Wrno(n0,n0)
+            Double Precision, intent(out) :: W_rn(n,n)
         end subroutine includeW
 
         subroutine includeY(n,indx,Yf, n0, Yc)
@@ -203,31 +215,31 @@ module arts_interface
 
         subroutine just_fill_DiagWRn(n, NA, GA, rTT0, P, Wrn) 
             implicit none
-            integer*8, intent(in )          :: n 
-            Double Precision, intent(in)    :: NA(n), GA(n), rTT0, P
-            Double Precision, intent(out)   :: Wrn(n,n)
+            integer*8, intent(in )        :: n 
+            Double Precision, intent(in)  :: NA(n), GA(n), rTT0, P
+            Double Precision, intent(out) :: Wrn(n,n)
         end subroutine just_fill_DiagWRn
 
         subroutine add2Wfinal(n,Wfinal,Wadd,xMol)
             implicit none
-            integer*8, intent (in)   :: n 
-            Double Precision, intent (in)   :: xMOL
-            Double Precision, intent (in)   :: Wadd(n,n)
-            Double Precision, intent(inout) :: Wfinal(n,n)
+            integer*8, intent (in)        :: n 
+            Double Precision,intent (in)  :: xMOL
+            Double Precision,intent (in)  :: Wadd(n,n)
+            Double Precision,intent(inout):: Wfinal(n,n)
         end subroutine add2Wfinal
         
         subroutine show_W(n,Wfinal)
             use module_common_var
             implicit none
-            integer*8, intent (in)   :: n 
-            Double Precision, intent (in)   :: Wfinal(n,n)
+            integer*8, intent (in)        :: n 
+            Double Precision, intent (in) :: Wfinal(n,n)
         end subroutine show_W
 
         subroutine show_PD(n,wno,p,d)
             use module_common_var
             implicit none
-            integer*8, intent (in)   :: n 
-            Double Precision, intent (in)   :: wno(n), p(n), d(n)
+            integer*8, intent (in)        :: n 
+            Double Precision, intent (in) :: wno(n), p(n), d(n)
         end subroutine show_PD
 
         subroutine save_W2plot(n, dta1, dta2 ,molP, npert, pert, econ, model)
@@ -235,24 +247,24 @@ module arts_interface
             use module_molecSP
             use module_error
             implicit none
-            integer*8, intent (in)                  :: n, npert !n=dta_size1
-            type (dta_MOL), intent (in)             :: molP
-            type (dta_SDF), intent (in)             :: dta1
-            type (dta_RMF), intent (in)             :: dta2
-            type (dta_ERR), intent (in)             :: econ
-            character (6) , intent (in)             :: pert(npert)
-            character (3) , intent (in)             :: model
+            integer*8, intent (in)        :: n, npert !n=dta_size1
+            type (dta_MOL), intent (in)   :: molP
+            type (dta_SDF), intent (in)   :: dta1
+            type (dta_RMF), intent (in)   :: dta2
+            type (dta_ERR), intent (in)   :: econ
+            character (6) , intent (in)   :: pert(npert)
+            character (3) , intent (in)   :: model
         end subroutine save_W2plot
 
         subroutine save_Yrp(dta1, n, molP, Y_RosenP, model)
             use module_common_var
 
             implicit none
-            integer*8  , intent (in)                :: n
-            double precision, intent (in)           :: Y_RosenP(n)
-            type (dta_SDF) , intent (in)            :: dta1
-            type (dta_MOL), intent (in)             :: molP
-            character(3) , intent (in)              :: model
+            integer*8  , intent (in)      :: n
+            double precision, intent (in) :: Y_RosenP(n)
+            type (dta_SDF)  , intent (in) :: dta1
+            type (dta_MOL)  , intent (in) :: molP
+            character(3)    , intent (in) :: model
         end subroutine save_Yrp
 
 
@@ -274,51 +286,17 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
                           Y1,Y2,Y3) bind(C, name='arts_relmat_interface__hartmann_and_niro_type')
 !--------------------------------------------------------------------------------------------------------------------
 !
-! This SUBROUTINE is used for computing the following variables:
-!	Dipole and e-level population	(Spectroscopy Data)
-!   Relaxation Matrix for a given T	(Relaxation Matrix)
-! LINEAR MOLECULES.
+! This SUBROUTINE is used to compute the following variables:
+!	*Dipole and e-level population	    (Spectroscopy Data)
+!   *Relaxation Matrix for a given T	(Relaxation Matrix)
+!   *Rosenkranz parameter for a 
+!              given pair (P,T)         (Rosenkranz's Para)
+!   *Second order linemixing P. 
+!              on given (P,T)           (2nd order Linemix)
+!   on LINEAR MOLECULES.
 !
-!
-!   INPUT VARIABLES
-!   ----------------------
-!   nLines   : These are the number of lines identified as belonging to the band.
-!   sgmin    : The minimum frequency in cm-1 [defaults to the first value of artsWNO]
-!   sgmax    : The maximum frequency in cm-1 [defaults to the last value of artsWNO]
-!   artsM    : The HITRAN molecule number (e.g., 7 is O2)
-!   artsI    : The HITRAN isotope number
-!   artsWNO  : frequency in cm-1 in vacuum of the lines.  Sorted by lowest first
-!   artsS    : Intensity of the line at the same temperature as QT0 but abundance has already been considered
-!   artsGA   : Air pressure broadening in cm-1/atm halfwidth
-!   arts E00 : Lower state energy in cm-1
-!   artsNA   : Pressure broadening constant in cm-1
-!   artsUpp  : Upper state quantum numbers. First is L2, then is J, then is N, then is S.  
-!              If the quantum number is not applicable, the position contains the number -1.
-!   artsLow  : Same as artsUpp but for lower state numbers.
-!   artsg0   : Upper state g-constant
-!   artsg00  : Lower state g-constant
-!   T        : Temperature of the system in Kelvin.
-!   Ptot     : Total pressure in atm.
-!   QT       : Partition function at Temperature T.
-!   QT0      : Partition function at same temperature as line intensity.
-!   mass     : Mass of the molecule.
-!   npert    : Number of perturbers/colliders.  Initially assume this is 2 for N2 and O2.
-!   pert     : Array containing HitranID of the system perturber (colliders). Index of perturbing molecule in HITRAN. Same as artsM. 
-!              Assumed position 0 is O2-66 and position 1 is N2-44.
-!   i_pert   : Array of the colliders's isotopes. Index of isotope in HITRAN.  Same as artsI.  
-!              Assumed position 0 is O2-66 and position 1 is N2-44.
-!   p_vmr    : volume mixing ratio (VMR) of perturbing gases.  
-!              Assumed position 0 is for O2-66 and position 1 is for N2-44.
-!   p_mass   : mass array of length npert of perturbing gases.  
-!              Assumed position 0 is for O2-66 and position 1 is for N2-44.
-!
-!   OUTPUT VARIABLES
-!   -----------------
-!   W_rn     : Renormalized Relaxation Matrix acording to the renormalization procedure described in
-!              Niro et al. (2004). 
-!   dipo     : Dipole transition Moments of the Lines.
-!   rho      : Populations of the Lower Levels of the Lines at 296 K.  
-! 
+!   NOTE: Check variables up in the interface.
+!   ----
 !
 !	Accessed Files:	 'none'
 !	---------------
@@ -338,7 +316,6 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 ! MODULES IN USE:
     use module_common_var
     use module_error
-    !use module_OC_files
         use module_maths
         use module_molecSp
         use module_read
@@ -382,34 +359,38 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
     type (dta_MOL)         :: molP
     type (dta_MOL)         :: PerM
     type (dta_ERR)         :: econtrol
-    integer*8              :: sys(2), lM, lP
+    integer*8              :: sys(2), lM, lP,aupp,alow
     character*6            :: perturber(2)
     character*2            :: fmt1, fmt2
     logical                :: enough_Lines, my_print
-!    
-    rT = T/T0
-    my_print = .false.
+!   
+! ROUTINE:
 !
-    if (runE_deb .eq. 1) then 
+!----------
+! Inital common temperature-dependent constants
+    rT = T/T0
+!
+    if (runE_deb .ge. 1) then 
         write(*,*), "RELMAT RUN-TYPE = Verbose."
         write(*,*), "Type: Hartmann and Niro"
         write(*,2016), T, Ptot
     endif
 2016 Format("Starting Linemixing Relaxation Matrix software. T=",f5.0,"K; P=",f7.2," atm")
+!
 !----------
-! Allocation
-    if (runE_deb .eq. 1) write(*,'(a33,i4,a1)'), 'Allocate SDF and RMF variables to arrays (', nLines,')'
+! Variable Allocation
+    if (runE_deb .ge. 1) write(*,'(a33,i4,a1)'), 'Allocate SDF and RMF variables to arrays (', nLines,')'
     CALL alloSDF(nLines, dta1)
     pd1 => dta1
 !
 !----------
 ! Band quantities specification
-    if (runE_deb .eq. 1) print*, 'Init. Variables...'
+    if (runE_deb .ge. 1) print*, 'Init. Variables...'
     CALL VarInit(molP,econtrol,runE_deb)
     molP % Temp = T !Kelvin
     molP % Ptot = Ptot!atm
     molP % QTy  = "REG"
-    !my_print = .true.
+    my_print = .false.
 !
 !----------
 ! Obtainig the molecule ID from the Formula specified in "module_common_var"
@@ -419,11 +400,10 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
     !
     CALL moleculeID(artsM, artsI, mass, QT, QT0, .true., molP, econtrol)
     dta1%M = molP%M
+!
 !---------
 ! Call for reading HITRAN spectroscopy data.
-!
     if (econtrol % e(1) .ge. 1) print*, 'Locating Band information...'
-!
     CALL Hit2DTA(pd1, dta_size1, nLines, vLines_Indx, &
                                             artsWNO, &
                                             artsS, &
@@ -435,11 +415,10 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
                                             sgmin  , sgmax, &
                                             econtrol)
 !
-    if (runE_deb .eq. 1) write(*,2020), dta_size1, nLines
-2020 Format("Allowed lines: ",I8,"/",I8)
 !---------
 ! Compute the relative population of the lower state
 ! at Temperature T0
+    if (econtrol % e(1) .ge. 1) print*, 'Counting band-lines population'
     call PopuCAL(pd1,dta_size1, molP, econtrol)
     !
     do j = 1, nLines
@@ -458,13 +437,14 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
             endif
         endif 
     enddo
-! NOTE: we use 'tra' mode (see 'PopuT0') because we are producing 
-! Input files to Ha Tran Line-mixing code.
+! NOTE: the code uses 'tra' mode as a default option (see 'PopuT0'). 
+!       One can change this mode in "module_common_var" (check options there)
 !---------
 ! Calculate Dipole element for each line.
-!
     if (econtrol % e(1) .ge. 1) print*, 'Calculating Dipole moment'
     CALL DipCAL(pd1,dta_size1,molP,econtrol)
+!
+! To save an ASCII file and shop the program Uncomment the following line: 
     !call show_PD(nLines, dta1%Sig(1:dta_size1), dta1 % PopuT0(1:dta_size1), pd1 % D0(1:dta_size1))
 !
     do j = 1, nLines
@@ -475,15 +455,18 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
         else 
             dipo(j) = dta1%DipoT(vLines_Indx(j)) 
         endif 
-    enddo
+    enddo    
 !
-! Uncomment the following command to print POPULATION & DIPOLE to the screen:
-!
+! Uncomment the next two lines to print POPULATION & DIPOLE to the screen:
     !call show_PD(nLines, artsWNO, rho, dipo)
     !call show_PD(dta_size1, dta1%sig, dta1%PopuT, dta1%D0)
 !---------
-! Write SDF file
-!  
+! RELAXATION MATRIX CALCULATION STARS!
+! 1) if the no. of lines of the Band meet "rule1" 
+! 2) and the user has not selected returning a diagonal W (ordered==0) 
+! then the process starts
+    if (econtrol % e(1) .ge. 1) print*, 'Relaxation Matrix calculation...'
+! 
     if (rule1(dta_size1) .and. .not.(ordered .eq. 0)) then
         if (econtrol % e(1) .ge. 1) then
             print*,"Looping over system of perturbers..."
@@ -620,6 +603,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
         
         else
             if (econtrol % e(1) .ge. 1) print*, "Rule 2 failed, RM(diagonal matrix) no OFF-diagonal elements are returned."
+            econtrol%solu = 0
             CALL just_fill_DiagWRn(nLines,artsNA, artsGA, rT, Ptot,W_rn)
             CALL InitM(nLines,1, Y1)
             CALL InitM(nLines,1, Y2)
@@ -631,6 +615,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
             print*, "Rule 1: Not enough Lines to calculate Relaxation Matrix"
             print*, "        Diagonal matrix sent back in return."
         endif
+        econtrol%solu=0
         !
         CALL just_fill_DiagWRn(nLines,artsNA, artsGA, rT, Ptot,W_rn)
         CALL InitM(nLines,1, Y1)
@@ -638,10 +623,16 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
         CALL InitM(nLines,1, Y3)
         !
         ! Uncomment the following command to print RELAXAION MATRIX ELEMENTS to the screen:
-        !
         !CALL show_W(nLines,W_rn,int(dta1%J(:,1),8))
         !---------
     endif
+    !
+    !
+    ! Uncomment the next 3lines to save the Q-basis rates in an ASCII file:
+    !aupp=artsUpp(1,1)
+    !alow=artsLow(1,1)
+    !call save_Q(dta1, dta_size1, molP, 'htm', aupp, alow)
+    !
     NULLIFY( pd1 )
 !
     if (econtrol % e(1) .ge. 1) PRINT *, "END OF RELMAT SUBROUTINE"
@@ -668,51 +659,17 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
                           Y1,Y2,Y3) bind(C, name='arts_relmat_interface__linear_type')
 !--------------------------------------------------------------------------------------------------------------------
 !
-! This SUBROUTINE is used for computing the following variables:
-!   Dipole and e-level population   (Spectroscopy Data)
-!   Relaxation Matrix for a given T (Relaxation Matrix)
-! LINEAR MOLECULES.
+! This SUBROUTINE is used to compute the following variables:
+!   *Dipole and e-level population      (Spectroscopy Data)
+!   *Relaxation Matrix for a given T    (Relaxation Matrix)
+!   *Rosenkranz parameter for a 
+!              given pair (P,T)         (Rosenkranz's Para)
+!   *Second order linemixing P. 
+!              on given (P,T)           (2nd order Linemix)
+!   on LINEAR MOLECULES.
 !
-!
-!   INPUT VARIABLES
-!   ----------------------
-!   nLines   : These are the number of lines identified as belonging to the band.
-!   sgmin    : The minimum frequency in cm-1 [defaults to the first value of artsWNO]
-!   sgmax    : The maximum frequency in cm-1 [defaults to the last value of artsWNO]
-!   artsM    : The HITRAN molecule number (e.g., 7 is O2)
-!   artsI    : The HITRAN isotope number
-!   artsWNO  : frequency in cm-1 in vacuum of the lines.  Sorted by lowest first
-!   artsS    : Intensity of the line at the same temperature as QT0 but abundance has already been considered
-!   artsGA   : Air pressure broadening in cm-1/atm halfwidth
-!   arts E00 : Lower state energy in cm-1
-!   artsNA   : Pressure broadening constant in cm-1
-!   artsUpp  : Upper state quantum numbers. First is L2, then is J, then is N, then is S.  
-!              If the quantum number is not applicable, the position contains the number -1.
-!   artsLow  : Same as artsUpp but for lower state numbers.
-!   artsg0   : Upper state g-constant
-!   artsg00  : Lower state g-constant
-!   T        : Temperature of the system in Kelvin.
-!   Ptot     : Total pressure in atm.
-!   QT       : Partition function at Temperature T.
-!   QT0      : Partition function at same temperature as line intensity.
-!   mass     : Mass of the molecule.
-!   npert    : Number of perturbers/colliders.  Initially assume this is 2 for N2 and O2.
-!   pert     : Array containing HitranID of the system perturber (colliders). Index of perturbing molecule in HITRAN. Same as artsM. 
-!              Assumed position 0 is O2-66 and position 1 is N2-44.
-!   i_pert   : Array of the colliders's isotopes. Index of isotope in HITRAN.  Same as artsI.  
-!              Assumed position 0 is O2-66 and position 1 is N2-44.
-!   p_vmr    : volume mixing ratio (VMR) of perturbing gases.  
-!              Assumed position 0 is for O2-66 and position 1 is for N2-44.
-!   p_mass   : mass array of length npert of perturbing gases.  
-!              Assumed position 0 is for O2-66 and position 1 is for N2-44.
-!
-!   OUTPUT VARIABLES
-!   -----------------
-!   W_rn     : Renormalized Relaxation Matrix acording to the renormalization procedure described in
-!              Mendaza et al. (2017). Optimistic... :)
-!   dipo     : Dipole transition Moments of the Lines.
-!   rho      : Populations of the Lower Levels of the Lines at 296 K.  
-! 
+!   NOTE: Check variables up in the interface.
+!   ----
 !
 !   Accessed Files:  'none'
 !   ---------------
@@ -760,7 +717,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     Double Precision, intent(out) :: rho(nLines), dipo(nLines)
     Double Precision, intent(out) :: Y1(nLines),Y2(nLines),Y3(nLines)  
     Double Precision, intent(out) :: W_rn(nLines,nLines)
-!OTHER VARIABLES
+!   OTHER VARIABLES
     integer*8              :: dta_size1, IERR1, IERR2, IERR3, IERR4
     integer*8              :: iLine, i, j, k
     integer*8              :: vLines_Indx(nLines) 
@@ -769,7 +726,8 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
                                      Wrno(:,:)
     Double Precision, ALLOCATABLE :: Y_RosT(:),Y_G(:),Y_DV(:)
     Double Precision       :: xMOLp(npert)
-    Double Precision       :: faH, rT
+    Double Precision       :: faH, rT, deltaV
+    Double Precision       :: maxInten, maxGA, maxE00, maxNA
     type (dta_SDF), target :: dta1
     type (dta_SDF), pointer:: pd1
     type (dta_RMF), target :: dta2
@@ -777,15 +735,18 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     type (dta_MOL)         :: molP
     type (dta_MOL)         :: PerM
     type (dta_ERR)         :: econtrol
-    integer*8              :: sys(2), lM, lP
+    integer*8              :: sys(2), lM, lP, np,nq,nr, aupp,alow
     character*6            :: perturber(2)
     character*2            :: fmt1, fmt2
     logical                :: enough_Lines, my_print
+!   
+! ROUTINE:
 !
+!----------
+! Inital common temperature-dependent constants
     rT = T/T0
-    my_print = .false.
 !
-    if (runE_deb .eq. 1) then 
+    if (runE_deb .ge. 1) then 
         write(*,*), "RELMAT RUN-TYPE = Verbose."
         write(*,*), "Type: Mendaza"
         write(*,2016), T, Ptot
@@ -793,13 +754,13 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 2016 Format("Starting Linemixing Relaxation Matrix software. T=",f5.0,"K; P=",f7.2," atm")
 !----------
 ! Allocation
-    if (runE_deb .eq. 1) write(*,'(a33,i4,a1)'), 'Allocate SDF and RMF variables to arrays (', nLines,')'
+    if (runE_deb .ge. 1) write(*,'(a33,i4,a1)'), 'Allocate SDF and RMF variables to arrays (', nLines,')'
     CALL alloSDF(nLines, dta1)
     pd1 => dta1
 !
 !----------
 ! Band quantities specification
-    if (runE_deb .eq. 1) print*, 'Init. Variables...'
+    if (runE_deb .ge. 1) print*, 'Init. Variables...'
     CALL VarInit(molP,econtrol,runE_deb)
     molP % Temp = T !Kelvin
     molP % Ptot = Ptot!atm
@@ -815,7 +776,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     !
     !Disable the Adiabatic factor option because it requires from external inputs
     molP % AF_ON= .false.
-    !my_print = .true. 
+    my_print = .false. 
 !
 !----------
 ! Obtainig the molecule ID from the Formula specified in "module_common_var"
@@ -936,7 +897,10 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
                         if (econtrol % e(1) .ge. 1) write(*,*),"A4 = ", molP%a4,";A5= ", molP%a5,";A6= ", molP%a6
                         if (econtrol % e(1) .ge. 1) write(*,*),"A7 = ", molP%a7,";A8= ", molP%a8,";A9= ", molP%a9
                     else !if "Linear" or "Model1/2/3/4"
-                        CALL calc_QParam(dta_size1, pd1, molP, PerM, econtrol)
+                        !CALL calc_QParam(dta_size1, pd1, molP, PerM, econtrol)
+                        !CALL calc_QPar_DGELSY(dta_size1, pd1, molP, PerM, econtrol)
+                        !CALL calc_QPar_DGELSS(dta_size1, pd1, molP, PerM, econtrol)
+                        CALL calc_QPar_DGELSD(dta_size1, pd1, molP, PerM, econtrol)
                         if (econtrol % e(1) .ge. 1) write(*,*),"A1 = ", molP%a1,";A2= ", molP%a2,";A3= ", molP%a3
                     endif
                 endif
@@ -971,7 +935,6 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
         CALL includeW(nLines,vLines_Indx,W_rn, &
                           artsNA, artsGA, rT, Ptot,&
                           dta_size1, Wrno)       
-        
     ! ---------
     ! Allocate and Copy RM-data to final struct and file
     !
@@ -1024,7 +987,10 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
             !
             if (my_print) then
                 if (econtrol % e(1) .ge. 1) print*, 'Saving Rosenkranz parameter Y...'
-                CALL save_Yrp(pd1, dta_size1, molP, Y_RosT,'tmc')
+                !CALL save_Yrp(pd1, dta_size1, molP, Y_RosT,'tmc')
+                ! ERASE --->
+                CALL save_Yrp(pd1, dta_size1, molP, Y_RosT,'tm2')
+                !<--- this line and change my_print!!!
             endif
         !
         endif
@@ -1032,10 +998,11 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
         if (econtrol % e(1) .ge. 1) then
             print*, "Rule 1: Not enough Lines to calculate Relaxation Matrix"
             print*, "        Diagonal matrix sent back in return."
+            econtrol%solu = 0
         endif
         !
         !
-        CALL just_fill_DiagWRn(nLines,artsNA, artsGA, rT, Ptot,W_rn)
+        CALL just_fill_DiagWRn(nLines,artsNA, artsGA, rT, Ptot, W_rn)
         CALL InitM(nLines,1, Y1)
         CALL InitM(nLines,1, Y2)
         CALL InitM(nLines,1, Y3)
@@ -1045,6 +1012,31 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
         !CALL show_W(nLines,W_rn,int(dta1%J(:,1),8))
         !---------
     endif
+    !
+    np = 0
+    nq = 0
+    nr = 0
+    do j = 1, nLines
+        if (dta1%br(j) .eq. "p") then
+            np = np+1
+        else if (dta1%br(j) .eq. "q") then
+            nq = nq+1 
+        else if (dta1%br(j) .eq. "r") then
+            nr = nr+1
+        endif 
+    enddo
+    !
+    !
+    !    maxInten = maxf(nLines, artsS)
+    !    deltaV = dabs(maxf(nLines, artsWNO) - minf(nLines, artsWNO))
+    !    maxGA = maxf(nLines,artsGA) 
+    !    maxE00 = maxf(nLines,artsE00)
+    !    maxNA = maxf(nLines,artsNA)
+    !    aupp=artsUpp(1,1)
+    !    alow=artsLow(1,1)     
+    !    call save_Q(dta1, dta_size1, molP, 'tmc', aupp, alow)
+    !
+    !
     NULLIFY( pd1 )
 !
 !
@@ -1083,6 +1075,8 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
       ALLOCATE(dta1%D0(n),dta1%DipoT(n))
       !ALLOCATE(dta1%Drigrotor(n),dta1%DipoT0(n))
       ALLOCATE(dta1%F(n,2),dta1%br(n),dta1%br_N(n))
+      !ALLOCATE XXXXXX
+      ALLOCATE(dta1%Qlt(n,500))
 
   END SUBROUTINE alloSDF
 !--------------------------------------------------------------------------------------------------------------------
@@ -1147,6 +1141,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 ! ERROR CONTROL:
             econ % e(1) = runE
             econ % e(2) = 0
+            econ % solu = 1
       Return
   END SUBROUTINE VarInit
 !--------------------------------------------------------------------------------------------------------------------
@@ -1182,7 +1177,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
       molP%iso_m = 0
       molP%Aco   = 0 
       !Double precision
-      molP%mms    = 0.0_dp
+      molP % mms  = 0.0_dp
       molP % Temp = 0.0_dp
       molP % Ptot = 0.0_dp
       molP % Nmcon= 0.0_dp
@@ -1340,8 +1335,8 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 ! 
     DO i = 1, n
         DO j = 1,n 
-            write(*,1000), "W(",i,",",j,")=",Wfinal(i,j),";Ji =",Ji(i),";Jip=",Ji(j) 
-1000 Format(a2,i3,a1,i3,a3,E12.3,a5,i3,a5,i3)
+            write(*,1002), "W(",i,",",j,")=",Wfinal(i,j),";Ji =",Ji(i),";Jip=",Ji(j) 
+1002 Format(a2,i3,a1,i3,a3,E12.3,a5,i3,a5,i3)
         ENDDO
     ENDDO
 
@@ -1362,8 +1357,8 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 !----------
     write (*, *) "Sig,         PopuT0,    DipoT "
     DO j = 1, n
-        write (*, 1004) wno(j), p(j), d(j)
-1004 format(f12.6,2x,e9.3,2x,e9.3,2x,a7,2x,a7)
+        write (*, 1003) wno(j), p(j), d(j)
+1003 format(f12.6,2x,e9.3,2x,e9.3,2x,a7,2x,a7)
     ENDDO
     stop
   END SUBROUTINE show_PD
@@ -1501,7 +1496,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 ! INIT. VAR.
     write(cTemp,'(f5.1)'),molP%Temp
     !path = trim(out_file_path)//trim(out_fil2_RMF)
-    path ="Y_Test1_"//trim(molP%chmol)//"_"//model//"_"//trim(cTemp(1:3))//"K.dat"
+    path ="Y_Test_"//trim(molP%chmol)//"_"//model//"_"//trim(cTemp(1:3))//"K.dat"
     call idate(today)   ! today(1)=day, (2)=month, (3)=year
     open (UNIT = u, FILE = trim(path), STATUS = 'REPLACE', ACTION = 'WRITE')
 ! HEADER
@@ -1509,20 +1504,67 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 !    write (u, *) "HITRAN Band:", trim(dta1 % hitBand)
     write (u, *) "Based on HITRAN 2012 database"
     write (u, *) "Author: Teresa Mendaza  "
-    write (u, 1005) today(3), today(2), today(1)
+    write (u, 1008) today(3), today(2), today(1)
     write (u, *) "|WaveNumber(cm-1) |Intensity cm-1/(molecules·cm-2) | Y Parameter  | Jlow | Jup"
    !
     ! DATA
     do i = 1, n   ! do1
-        write (u, 1006) dta1%sig(i),dta1%Str(i),&
+        write (u, 1009) dta1%sig(i),dta1%Str(i),&
                        Y_RosenP(i),&
                        int(dta1%J(i,1)),int(dta1%J(i,2))
     end do    ! do1
     
     close (u)
     
-1005 format ( ' Last update: ', i4.4, '/', i2.2, '/', i2.2 )
-1006 format (F12.6,8x,E10.3,14x,F20.4,4x,i3,4x,i3)
+1008 format ( ' Last update: ', i4.4, '/', i2.2, '/', i2.2 )
+1009 format (F12.6,8x,E10.3,14x,F20.4,4x,i3,4x,i3)
 
 end subroutine save_Yrp
+!--------------------------------------------------------------------------------------------------------------------
+  subroutine save_Q(dta1, n, molP, model, aUpp, aLow)
+!--------------------------------------------------------------------------------------------------------------------
+!  ! ERASE THIS FUNCTION
+!  ---------
+!  (a(i,j), j=1,numcols)
+!  Raw:
+!   a11 a12 a13 ... a21 a22 a23 ... a31 a32 a33 ...
+!
+!  where each element represents the rotational state-to-state cross sections 
+!  within a single vibrational state.
+!------> T. Mendaza; last change 30 January 2017
+!
+    use module_common_var
+
+    implicit none
+    integer*8  , intent (in)                :: n, aUpp, aLow
+    type (dta_SDF) , intent (in)            :: dta1
+    type (dta_MOL), intent (in)             :: molP
+    character(3), intent (in)               :: model
+    !subroutine Variables
+    integer*8, parameter                    :: u=14 !file unit
+    character*100                           :: path
+    character*6                             :: cTemp
+    character*2                             :: band
+    integer*8                               :: i, j, k
+    integer*8                               :: today(3)
+
+! INIT. VAR.
+    band=''
+    write(cTemp,'(f5.1)'),molP%Temp
+    write(band,1000),aUpp,aLow
+    path ="Q000_"//trim(molP%chmol)//"_"//model//"_"//trim(cTemp(1:3))//"K_"//band//".dat"
+    call idate(today)   ! today(1)=day, (2)=month, (3)=year
+    open (UNIT = u, FILE = trim(path), STATUS = 'REPLACE', ACTION = 'WRITE')
+! HEADER
+   !
+    ! DATA
+    do i = 1, n   ! do1 over transitions
+        write (u, *) (dta1%Qlt(i,j), j=1,500)
+    end do    ! do1
+    
+    close (u)
+1000 format (2(i1))
+1001 format ( ' Last update: ', i4.4, '/', i2.2, '/', i2.2 )
+
+end subroutine save_Q
 !--------------------------------------------------------------------------------------------------------------------

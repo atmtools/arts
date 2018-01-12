@@ -407,6 +407,8 @@ MODULE module_common_var
     double precision,allocatable :: nspin(:,:), espin(:,:)
     character,allocatable        :: br(:), br_N(:)
 
+    double precision,allocatable :: Qlt(:,:)
+
 
     end type dta_SDF
     ! --------------
@@ -535,6 +537,7 @@ MODULE module_common_var
     !                                                   then the error flag will be send back as 1. 
     !
     integer*8, dimension(2) :: e
+    integer*8               :: solu
 
     end type dta_ERR
     ! --------------

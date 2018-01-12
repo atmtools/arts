@@ -5,7 +5,7 @@ module module_LLS
 !
     interface  
 
-        subroutine LLS_Matrix(j,k,h,molP,PerM,M, econ)
+        subroutine LLS_Matrix(j,k,h,molP,PerM,M, econ, K1,K2)
             use module_common_var
             use module_maths
             use module_phsub
@@ -15,6 +15,7 @@ module module_LLS
             type (dta_MOL)         , intent(in   ) :: molP, PerM
             type (dta_ERR)         , intent(inout) :: econ
             double precision       , intent(  out) :: M(4)
+            double precision      :: K1, K2
         end subroutine LLS_Matrix 
 
         subroutine LLS_AF_Matrix(j,k,h,molP,PerM,M, econ)
@@ -35,7 +36,7 @@ END module module_LLS
 !--------------------------------------------------------------------------------------------------------------------
 ! MATHEMATIC FUNCTIONS AND SUBROUTINES ------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE LLS_Matrix(j,k,h,molP,PerM,M,econ)
+  SUBROUTINE LLS_Matrix(j,k,h,molP,PerM,M,econ, K1,K2)
 !--------------------------------------------------------------------------------------------------------------------
 ! "LLS_Matrix": Subroutine that fills up the matrix to be included in the LLS                   
 !------------------------------------------ 
@@ -62,9 +63,10 @@ END module module_LLS
     integer*8             :: i, iniL,endL
     integer*8             :: Ni, Ni_p, Nf, Nf_p
     double precision      :: Ji, Ji_p, Jf, Jf_p 
-    double precision      :: Si, Sf
+    double precision      :: Si, Sf, sumK1, sumK2
     double precision      :: dE,Jaux, delta
-    double precision      :: K1, K2, AF1, AF2, m_4
+    double precision      :: K1, K2
+    double precision      :: AF1, AF2, m_4
     double precision      :: T, Ptot, RT
     !-----------------------------------------
       T    = molP % Temp
@@ -72,6 +74,8 @@ END module module_LLS
       RT   = T0/T
       AF1  = 1.0_dp
       AF2  = 1.0_dp
+      sumK2= 0.d0
+      sumK1= 0.d0
     !-----------------------------------------
 ! molP%a1 - (molP%a2)*(E_l) - molP%a3*c2*molP%B0*E_l/T + 1.0_dp
       step = 2 ! -> Because the quadrupole-quadrupole energy potential is dominant
@@ -90,19 +94,21 @@ END module module_LLS
        li = h%lv2(1)
        lf = h%lv2(2) 
 ! 
-      iniL=int(max(abs(Ji-Ji_p),abs(Jf-Jf_p)))
+      iniL=max(iabs(int(Ji)-int(Ji_p)),abs(int(Jf)-int(Jf_p)))
+      endL=min(iabs(int(Ji)+int(Ji_p)),abs(int(Jf)+int(Jf_p)))
       If( mod(iniL,step) .ne. 0 )iniL=iniL+1
-      endL=int(min((Ji+Ji_p),(Jf+Jf_p)))
 !
       M(1)=0.0_dp;M(2)=0.0_dp;M(3)=0.0_dp;M(4)=0.0_dp
+!
+  ! Adiabatic factor 1:
       if (molP%M .eq. 7) then
-          if (molP%AF_ON) then ! Adiabatic factor 1:
+          if (molP%AF_ON) then 
             AF1 = AFmol_X(molP, PerM, real(Ni,dp), step)
           endif
           K1 = Kpart1_O2(Ji, Ji_p, Jf, Jf_p, &
                          Ni, Ni_p, Nf, Nf_p, AF1,econ)
       else
-          if (molP%AF_ON) then ! Adiabatic factor 1:
+          if (molP%AF_ON) then 
             AF1 = AFmol_X(molP, PerM, Ji, step)
           endif
           K1 = Kpart1(Ji_p, Jf, Jf_p, li, lf, AF1 )
@@ -115,6 +121,7 @@ END module module_LLS
         ! dominated by EVEN rank contributions. 
         !
         dE = abs( real(L*(L+1),dp) )
+  ! Adiabatic factor 2:
         if (molP%AF_ON) then
           AF2 = AFmol_X(molP, PerM, real(L,dp), step)
         endif
@@ -122,7 +129,7 @@ END module module_LLS
           K2 = Kpart2_O2(L, Ji, Ji_p, Jf, Jf_p, &
                          Ni, Ni_p, Nf, Nf_p, Si, Sf, AF2, econ)
         else
-          K2 = Kpart2( L, Ji, Jf, Ji_p, Jf_p, li, lf, AF2, econ)
+          K2 = Kpart2(L, Ji, Ji_p, Jf, Jf_p, li, lf, AF2,econ)
         endif
         !
         M(1) = K2 + M(1)
@@ -158,6 +165,7 @@ END module module_LLS
       M(3) = K1 * (c2/T) * M(3)
       !M(4) = K1 * M(4)
       M(4) = M(1)
+
 
   END SUBROUTINE LLS_Matrix
 !--------------------------------------------------------------------------------------------------------------------
@@ -237,7 +245,7 @@ END module module_LLS
           K2 = Kpart2_O2(L, Ji, Ji_p, Jf, Jf_p, &
                          Ni, Ni_p, Nf, Nf_p, Si, Sf, AF2, econ)
         else
-          K2 = Kpart2( L, Ji, Jf, Ji_p, Jf_p, li, lf, AF2, econ)
+          K2 = Kpart2( L, Ji, Ji_p, Jf, Jf_p, li, lf, AF2,econ)
         endif
         !
         M(1) = K2 + M(1)
