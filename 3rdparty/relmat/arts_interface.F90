@@ -1335,7 +1335,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 ! 
     DO i = 1, n
         DO j = 1,n 
-            write(*,1002), "W(",i,",",j,")=",Wfinal(i,j),";Ji =",Ji(i),";Jip=",Ji(j) 
+            write(*,1002) "W(",i,",",j,")=",Wfinal(i,j),";Ji =",Ji(i),";Jip=",Ji(j) 
 1002 Format(a2,i3,a1,i3,a3,E12.3,a5,i3,a5,i3)
         ENDDO
     ENDDO
@@ -1394,7 +1394,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 !------> T. Mendaza; last change 30 January 2017
 !
 ! INIT. VAR.
-    write(cTemp,'(f5.1)'),molP%Temp
+    write(cTemp,'(f5.1)') molP%Temp
 !   NO-Renormalized Matrix
     !path = "RMF2plot_"//trim(cTemp(1:3))//"K.dat"
 !   ReNormalized Matrix

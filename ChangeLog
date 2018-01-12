@@ -1,3 +1,9 @@
+2018-01-12  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-923
+
+	* src/m_linemixing.cc: Removed std::cout expression...
+
 2018-01-12  Teresa Mendaza <t.mendaza.cal@gmail.com>
 
         * arts-2-3-922

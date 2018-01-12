@@ -1831,31 +1831,26 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
               arts_relmat_interface__hartmann_and_niro_type(
                 &nlines, &fmin, &fmax,
                 &M, &I, v0.get_c_array(), S.get_c_array(),
-                                                            gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
-                                                            upper, lower,
-                                                            g_prime, g_double_prime,
-                                                            &t, &p, &QT, &QT0, &mass,
-                                                            &number_of_perturbers, molecule_code_perturber, 
-                                                            iso_code_perturber, perturber_mass, vmr.get_c_array(), &error_handling_type, &order_of_linemixing_type,
-                                                            W.get_c_array(), dipole.get_c_array(), rhoT.get_c_array(), Y.get_c_array(), G.get_c_array(), DV.get_c_array() );
+                gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
+                upper, lower,
+                g_prime, g_double_prime,
+                &t, &p, &QT, &QT0, &mass,
+                &number_of_perturbers, molecule_code_perturber, 
+                iso_code_perturber, perturber_mass, vmr.get_c_array(), &error_handling_type, &order_of_linemixing_type,
+                W.get_c_array(), dipole.get_c_array(), rhoT.get_c_array(), Y.get_c_array(), G.get_c_array(), DV.get_c_array() );
             }
             else if(relmat_type_per_band[iband] == linear_type)
             {
-              for(Index i = 0; i < 4*nlines; i+=4)
-              {
-                std::cout<<lower[i]<<" "<<lower[i+1]<<" "<<lower[i+2]<<" "<<lower[i+3]<<"\n";//<<" "<<lower[i]<<" "<<lower[i+1]<<" "<<lower[i+2]<<" "<<lower[i+3]<<"\n";
-              }
-              std::cout<<std::endl;
               arts_relmat_interface__linear_type(
                 &nlines, &fmin, &fmax,
                 &M, &I, v0.get_c_array(), S.get_c_array(),
-                                                  gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
-                                                  upper, lower,
-                                                  g_prime, g_double_prime,
-                                                  &t, &p, &QT, &QT0, &mass,
-                                                  &number_of_perturbers, molecule_code_perturber, 
-                                                  iso_code_perturber, perturber_mass, vmr.get_c_array(), &error_handling_type, &order_of_linemixing_type,
-                                                  W.get_c_array(), dipole.get_c_array(), rhoT.get_c_array(), Y.get_c_array(), G.get_c_array(), DV.get_c_array() );
+                gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
+                upper, lower,
+                g_prime, g_double_prime,
+                &t, &p, &QT, &QT0, &mass,
+                &number_of_perturbers, molecule_code_perturber, 
+                iso_code_perturber, perturber_mass, vmr.get_c_array(), &error_handling_type, &order_of_linemixing_type,
+                W.get_c_array(), dipole.get_c_array(), rhoT.get_c_array(), Y.get_c_array(), G.get_c_array(), DV.get_c_array() );
             }
             else 
             {
