@@ -371,21 +371,21 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
     rT = T/T0
 !
     if (runE_deb .ge. 1) then 
-        write(*,*), "RELMAT RUN-TYPE = Verbose."
-        write(*,*), "Type: Hartmann and Niro"
-        write(*,2016), T, Ptot
+        write(*,*)  "RELMAT RUN-TYPE = Verbose."
+        write(*,*)  "Type: Hartmann and Niro"
+        write(*,2016) T, Ptot
     endif
 2016 Format("Starting Linemixing Relaxation Matrix software. T=",f5.0,"K; P=",f7.2," atm")
 !
 !----------
 ! Variable Allocation
-    if (runE_deb .ge. 1) write(*,'(a33,i4,a1)'), 'Allocate SDF and RMF variables to arrays (', nLines,')'
+    if (runE_deb .ge. 1) write(*,'(a33,i4,a1)') 'Allocate SDF and RMF variables to arrays (', nLines,')'
     CALL alloSDF(nLines, dta1)
     pd1 => dta1
 !
 !----------
 ! Band quantities specification
-    if (runE_deb .ge. 1) print*, 'Init. Variables...'
+    if (runE_deb .ge. 1) write(*,*) 'Init. Variables...'
     CALL VarInit(molP,econtrol,runE_deb)
     molP % Temp = T !Kelvin
     molP % Ptot = Ptot!atm
@@ -395,7 +395,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 !----------
 ! Obtainig the molecule ID from the Formula specified in "module_common_var"
     if (econtrol % e(1) .ge. 1) then
-        print*, 'Identifying molecule and loading its parameters...'
+        write(*,*) 'Identifying molecule and loading its parameters...'
     endif
     !
     CALL moleculeID(artsM, artsI, mass, QT, QT0, .true., molP, econtrol)
@@ -403,7 +403,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 !
 !---------
 ! Call for reading HITRAN spectroscopy data.
-    if (econtrol % e(1) .ge. 1) print*, 'Locating Band information...'
+    if (econtrol % e(1) .ge. 1) write(*,*) 'Locating Band information...'
     CALL Hit2DTA(pd1, dta_size1, nLines, vLines_Indx, &
                                             artsWNO, &
                                             artsS, &
@@ -418,7 +418,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 !---------
 ! Compute the relative population of the lower state
 ! at Temperature T0
-    if (econtrol % e(1) .ge. 1) print*, 'Counting band-lines population'
+    if (econtrol % e(1) .ge. 1) write(*,*) 'Counting band-lines population'
     call PopuCAL(pd1,dta_size1, molP, econtrol)
     !
     do j = 1, nLines
@@ -441,7 +441,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 !       One can change this mode in "module_common_var" (check options there)
 !---------
 ! Calculate Dipole element for each line.
-    if (econtrol % e(1) .ge. 1) print*, 'Calculating Dipole moment'
+    if (econtrol % e(1) .ge. 1) write(*,*) 'Calculating Dipole moment'
     CALL DipCAL(pd1,dta_size1,molP,econtrol)
 !
 ! To save an ASCII file and shop the program Uncomment the following line: 
@@ -465,12 +465,12 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 ! 1) if the no. of lines of the Band meet "rule1" 
 ! 2) and the user has not selected returning a diagonal W (ordered==0) 
 ! then the process starts
-    if (econtrol % e(1) .ge. 1) print*, 'Relaxation Matrix calculation...'
+    if (econtrol % e(1) .ge. 1) write(*,*) 'Relaxation Matrix calculation...'
 ! 
     if (rule1(dta_size1) .and. .not.(ordered .eq. 0)) then
         if (econtrol % e(1) .ge. 1) then
-            print*,"Looping over system of perturbers..."
-            print*,"----------------------------------->"
+            write(*,*)"Looping over system of perturbers..."
+            write(*,*)"----------------------------------->"
         endif
     !
     ! Allocate variables according to the valid number of lines:
@@ -494,14 +494,14 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
         !
         ! Perturber Molecule: This molecule has to be 
         ! significatively faster than the molecule in study.
-            if (econtrol % e(1) .ge. 1) print*, '>Identifying perturber molecule...'
+            if (econtrol % e(1) .ge. 1) write(*,*) '>Identifying perturber molecule...'
             CALL moleculeID(pert(i), i_pert(i), p_mass(i), 0.0_dp, 0.0_dp, .false., &
                             PerM, econtrol)
         !----------
         ! let's take th proper a1, a2, a3, dc adjust parameters for the
         ! system:
             if (econtrol % e(1) .ge. 1) then
-                write(*,*), ">>System: {",trim(molP%chmol)," - ",trim(PerM%chmol),"}"
+                write(*,*)  ">>System: {",trim(molP%chmol)," - ",trim(PerM%chmol),"}"
             endif
         ! sys = "CO2-N2"
         ! or
@@ -514,7 +514,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
         !---------
         ! Obtain Relaxation matrix elements for each line.
         !
-            if (econtrol % e(1) .ge. 1) print*, '>Building Relaxation Matrix...'
+            if (econtrol % e(1) .ge. 1) write(*,*) '>Building Relaxation Matrix...'
             CALL WelCAL(pd1, dta_size1, molP, PerM, Wper, econtrol)
         !---------
         ! Adding the corresponding perturber-molecule 
@@ -523,7 +523,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
             call add2Wfinal(dta_size1,Wmat,Wper,xMolp(i))
         ENDDO
     !---------
-        if (econtrol % e(1) .ge. 1) print*,"<----------------------Finished loop"
+        if (econtrol % e(1) .ge. 1) write(*,*)"<----------------------Finished loop"
         !
         ! Uncomment the following command to print RELAXAION MATRIX ELEMENTS to the screen:
         !
@@ -532,7 +532,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
         ! Renormalization of the Relaxation matrix.
         !
         !
-        if (econtrol % e(1) .ge. 1) print*, 'Renormalization procedure of the RM...'
+        if (econtrol % e(1) .ge. 1) write(*,*) 'Renormalization procedure of the RM...'
         if (rule2(Ptot,dta_size1,Wmat,dta1%Sig(1:nLines)) .or. (molP%M .eq. 7) ) then
             allocate(Wrno(dta_size1,dta_size1),STAT = IERR3)
             if (IERR3 .ne. 0) call memoError(" Wrno ",econtrol)
@@ -548,13 +548,13 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
                 CALL alloRMF(nLines, dta2)
                 pd2 => dta2
             !
-                if (econtrol % e(1) .ge. 1) print*, 'Copying data to final struct...'
+                if (econtrol % e(1) .ge. 1) write(*,*) 'Copying data to final struct...'
                 !!CALL W2dta2(nLines, pd1, pd2, W_rn) 
                 CALL W2dta2(dta_size1, pd1, pd2, Wrno) 
             !--------
             ! Write RMF file
             ! 
-                if (econtrol % e(1) .ge. 1) print*, 'Saving Relaxation Matrix File'
+                if (econtrol % e(1) .ge. 1) write(*,*) 'Saving Relaxation Matrix File'
                 call save_W2plot(nLines, pd1, pd2, molP, npert, perturber, econtrol, 'htm')
             !
                 NULLIFY( pd2 )
@@ -571,7 +571,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
                 allocate(Y_RosT(dta_size1),STAT = IERR4)
                 if (IERR4 .ne. 0) call memoError("Y_RosT",econtrol)
                 !
-                if (econtrol % e(1) .ge. 1) print*, 'Linemixing first order coeff...'
+                if (econtrol % e(1) .ge. 1) write(*,*) 'Linemixing first order coeff...'
                 call LM_Rosen(molP,dta_size1,pd1,Wrno,Y_RosT)
                 call includeY(nLines,vLines_Indx,Y1,dta_size1,Y_RosT)
 
@@ -584,7 +584,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
                     allocate(Y_DV(dta_size1),STAT = IERR4)
                     if (IERR4 .ne. 0) call memoError("Y3   :",econtrol)
                     !
-                    if (econtrol % e(1) .ge. 1) print*, 'Linemixing second order coeffs...'
+                    if (econtrol % e(1) .ge. 1) write(*,*) 'Linemixing second order coeffs...'
                     call LM_2ord(molP,dta_size1,pd1,Wrno,Y_G,Y_DV)
                     !call show_PD(nLines,dta1%sig,Y_G,Y_DV)
                     CALL includeY(nLines,vLines_Indx,Y2,dta_size1,Y_G)
@@ -595,14 +595,14 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
                 ! Write Y parameter file
                 !
                 if (my_print) then
-                    if (econtrol % e(1) .ge. 1) print*, 'Saving Rosenkranz parameter Y...'
+                    if (econtrol % e(1) .ge. 1) write(*,*) 'Saving Rosenkranz parameter Y...'
                     CALL save_Yrp(pd1, dta_size1, molP, Y_RosT,'htm')
                 endif
             !
             endif
         
         else
-            if (econtrol % e(1) .ge. 1) print*, "Rule 2 failed, RM(diagonal matrix) no OFF-diagonal elements are returned."
+            if (econtrol % e(1) .ge. 1) write(*,*) "Rule 2 failed, RM(diagonal matrix) no OFF-diagonal elements are returned."
             econtrol%solu = 0
             CALL just_fill_DiagWRn(nLines,artsNA, artsGA, rT, Ptot,W_rn)
             CALL InitM(nLines,1, Y1)
@@ -612,8 +612,8 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
         
     else
         if (econtrol % e(1) .ge. 1) then
-            print*, "Rule 1: Not enough Lines to calculate Relaxation Matrix"
-            print*, "        Diagonal matrix sent back in return."
+            write(*,*) "Rule 1: Not enough Lines to calculate Relaxation Matrix"
+            write(*,*) "        Diagonal matrix sent back in return."
         endif
         econtrol%solu=0
         !
@@ -747,20 +747,20 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     rT = T/T0
 !
     if (runE_deb .ge. 1) then 
-        write(*,*), "RELMAT RUN-TYPE = Verbose."
-        write(*,*), "Type: Mendaza"
-        write(*,2016), T, Ptot
+        write(*,*)  "RELMAT RUN-TYPE = Verbose."
+        write(*,*)  "Type: Mendaza"
+        write(*,2016) T, Ptot
     endif
 2016 Format("Starting Linemixing Relaxation Matrix software. T=",f5.0,"K; P=",f7.2," atm")
 !----------
 ! Allocation
-    if (runE_deb .ge. 1) write(*,'(a33,i4,a1)'), 'Allocate SDF and RMF variables to arrays (', nLines,')'
+    if (runE_deb .ge. 1) write(*,'(a33,i4,a1)') 'Allocate SDF and RMF variables to arrays (', nLines,')'
     CALL alloSDF(nLines, dta1)
     pd1 => dta1
 !
 !----------
 ! Band quantities specification
-    if (runE_deb .ge. 1) print*, 'Init. Variables...'
+    if (runE_deb .ge. 1) write(*,*) 'Init. Variables...'
     CALL VarInit(molP,econtrol,runE_deb)
     molP % Temp = T !Kelvin
     molP % Ptot = Ptot!atm
@@ -780,7 +780,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 !
 !----------
 ! Obtainig the molecule ID from the Formula specified in "module_common_var"
-    if (econtrol % e(1) .ge. 1) print*, 'Identifying molecule and loading its parameters...'
+    if (econtrol % e(1) .ge. 1) write(*,*) 'Identifying molecule and loading its parameters...'
     !
     CALL moleculeID(artsM, artsI, mass, QT, QT0, .true., molP,&
                     econtrol)
@@ -788,7 +788,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 !---------
 ! Call for reading HITRAN spectroscopy data.
 !
-    if (econtrol % e(1) .ge. 1) print*, 'Locating Band information...'
+    if (econtrol % e(1) .ge. 1) write(*,*) 'Locating Band information...'
     !
     CALL Hit2DTA(pd1, dta_size1, nLines, vLines_Indx, &
                  artsWNO, artsS  , artsGA , artsE00, &
@@ -821,7 +821,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 !---------
 ! Calculate Dipole element for each line.
 !
-    if (econtrol % e(1) .ge. 1) print*, 'Calculating Dipole moment'
+    if (econtrol % e(1) .ge. 1) write(*,*) 'Calculating Dipole moment'
     CALL DipCAL(pd1,dta_size1,molP,econtrol)
 !
     do j = 1, nLines
@@ -843,8 +843,8 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 !
     if (rule1(dta_size1) .and. .not.(ordered .eq. 0)) then
         if (econtrol % e(1) .ge. 1) then
-            print*,"Looping over system of perturbers..."
-            print*,"----------------------------------->"
+            write(*,*)"Looping over system of perturbers..."
+            write(*,*)"----------------------------------->"
         endif
     !
     ! Allocate variables according to the valid number of lines:
@@ -874,7 +874,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
             !
             ! Perturber Molecule: This molecule has to be 
             ! significatively faster than the molecule in study.
-                if (econtrol % e(1) .ge. 1) print*, '>Identifying perturber molecule...'
+                if (econtrol % e(1) .ge. 1) write(*,*) '>Identifying perturber molecule...'
                 CALL moleculeID(pert(i), i_pert(i), p_mass(i), &
                                 0.0_dp, 0.0_dp, .false., &
                                 PerM, econtrol)
@@ -882,7 +882,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
             ! let's take th proper a1, a2, a3, dc adjust parameters for the
             ! system:
                 if ( molP%AF_ON .and. (econtrol % e(1) .ge. 1)) then
-                    write(*,*), ">>System: {",trim(molP%chmol)," - ",trim(PerM%chmol),"}"
+                    write(*,*)  ">>System: {",trim(molP%chmol)," - ",trim(PerM%chmol),"}"
                     ! sys = "CO2-N2" or "CO2-O2"
                 endif
             !
@@ -893,15 +893,15 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
                 if (.not.(molP%availableParam)) then
                     if (molP % LLSty .eq. "Li--AF") then
                         CALL calc_QParam_AF(dta_size1, pd1, molP, PerM, econtrol)
-                        if (econtrol % e(1) .ge. 1) write(*,*),"A1 = ", molP%a1,";A2= ", molP%a2,";A3= ", molP%a3
-                        if (econtrol % e(1) .ge. 1) write(*,*),"A4 = ", molP%a4,";A5= ", molP%a5,";A6= ", molP%a6
-                        if (econtrol % e(1) .ge. 1) write(*,*),"A7 = ", molP%a7,";A8= ", molP%a8,";A9= ", molP%a9
+                        if (econtrol % e(1) .ge. 1) write(*,*) "A1 = ", molP%a1,";A2= ", molP%a2,";A3= ", molP%a3
+                        if (econtrol % e(1) .ge. 1) write(*,*) "A4 = ", molP%a4,";A5= ", molP%a5,";A6= ", molP%a6
+                        if (econtrol % e(1) .ge. 1) write(*,*) "A7 = ", molP%a7,";A8= ", molP%a8,";A9= ", molP%a9
                     else !if "Linear" or "Model1/2/3/4"
                         !CALL calc_QParam(dta_size1, pd1, molP, PerM, econtrol)
                         !CALL calc_QPar_DGELSY(dta_size1, pd1, molP, PerM, econtrol)
                         !CALL calc_QPar_DGELSS(dta_size1, pd1, molP, PerM, econtrol)
                         CALL calc_QPar_DGELSD(dta_size1, pd1, molP, PerM, econtrol)
-                        if (econtrol % e(1) .ge. 1) write(*,*),"A1 = ", molP%a1,";A2= ", molP%a2,";A3= ", molP%a3
+                        if (econtrol % e(1) .ge. 1) write(*,*) "A1 = ", molP%a1,";A2= ", molP%a2,";A3= ", molP%a3
                     endif
                 endif
             !
@@ -909,7 +909,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
             !---------
             ! Obtain Relaxation matrix elements for each line.
             !
-                if (econtrol % e(1) .ge. 1) print*, '>Building Relaxation Matrix...'
+                if (econtrol % e(1) .ge. 1) write(*,*) '>Building Relaxation Matrix...'
                 CALL WelCAL(pd1, dta_size1, molP, PerM, Wper, econtrol)
             !---------
             ! Adding the corresponding perturber-molecule 
@@ -919,7 +919,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
             endif
         ENDDO
     !---------
-        if (econtrol % e(1) .ge. 1) print*,"<----------------------------Finished loop"
+        if (econtrol % e(1) .ge. 1) write(*,*)"<----------------------------Finished loop"
     !
     ! Uncomment the following command to print RELAXAION MATRIX ELEMENTS to the screen:
     !
@@ -927,7 +927,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     !---------
     ! Renormalization of the Relaxation matrix.
     !
-        if (econtrol % e(1) .ge. 1) print*, 'Renormalization procedure of the RM...'
+        if (econtrol % e(1) .ge. 1) write(*,*) 'Renormalization procedure of the RM...'
         allocate(Wrno(dta_size1,dta_size1),STAT = IERR3)
         if (IERR3 .ne. 0) call memoError(" Wrno ",econtrol)
         CALL RN_Wmat(dta_size1, pd1, Wmat, Wrno, T, Ptot, econtrol)
@@ -942,13 +942,13 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
             CALL alloRMF(nLines, dta2)
             pd2 => dta2
     !
-            if (econtrol % e(1) .ge. 1) print*, 'Copying data to final struct...'
+            if (econtrol % e(1) .ge. 1) write(*,*) 'Copying data to final struct...'
             !!CALL W2dta2(nLines, pd1, pd2, W_rn) 
             CALL W2dta2(dta_size1, pd1, pd2, Wmat) 
     !--------
     ! Write RMF file
     ! 
-            if (econtrol % e(1) .ge. 1) print*, 'Saving Relaxation Matrix File'
+            if (econtrol % e(1) .ge. 1) write(*,*) 'Saving Relaxation Matrix File'
             call save_W2plot(nLines, pd1, pd2, molP, npert, perturber, econtrol, 'tmc')
     !
             NULLIFY( pd2 )
@@ -964,7 +964,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
             allocate(Y_RosT(dta_size1),STAT = IERR4)
             if (IERR4 .ne. 0) call memoError("Y_RosT",econtrol)
             !
-            if (econtrol % e(1) .ge. 1) print*, 'Linemixing first order coeff...'
+            if (econtrol % e(1) .ge. 1) write(*,*) 'Linemixing first order coeff...'
             call LM_Rosen(molP,dta_size1,pd1,Wrno,Y_RosT)
             CALL includeY(nLines,vLines_Indx,Y1,dta_size1,Y_RosT)
 
@@ -977,7 +977,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
                 allocate(Y_DV(dta_size1),STAT = IERR4)
                 if (IERR4 .ne. 0) call memoError("Y3   :",econtrol)
             !
-                if (econtrol % e(1) .ge. 1) print*, 'Linemixing second order coeffs...'
+                if (econtrol % e(1) .ge. 1) write(*,*) 'Linemixing second order coeffs...'
                 call LM_2ord(molP,dta_size1,pd1,Wrno,Y_G,Y_DV)
                 CALL includeY(nLines,vLines_Indx,Y2,dta_size1,Y_G)
                 CALL includeY(nLines,vLines_Indx,Y3,dta_size1,Y_DV)
@@ -986,7 +986,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
             ! Write Y parameter file
             !
             if (my_print) then
-                if (econtrol % e(1) .ge. 1) print*, 'Saving Rosenkranz parameter Y...'
+                if (econtrol % e(1) .ge. 1) write(*,*) 'Saving Rosenkranz parameter Y...'
                 !CALL save_Yrp(pd1, dta_size1, molP, Y_RosT,'tmc')
                 ! ERASE --->
                 CALL save_Yrp(pd1, dta_size1, molP, Y_RosT,'tm2')
@@ -996,8 +996,8 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
         endif
     else
         if (econtrol % e(1) .ge. 1) then
-            print*, "Rule 1: Not enough Lines to calculate Relaxation Matrix"
-            print*, "        Diagonal matrix sent back in return."
+            write(*,*) "Rule 1: Not enough Lines to calculate Relaxation Matrix"
+            write(*,*) "        Diagonal matrix sent back in return."
             econtrol%solu = 0
         endif
         !
@@ -1494,7 +1494,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     integer*8                               :: today(3)
 
 ! INIT. VAR.
-    write(cTemp,'(f5.1)'),molP%Temp
+    write(cTemp,'(f5.1)') molP%Temp
     !path = trim(out_file_path)//trim(out_fil2_RMF)
     path ="Y_Test_"//trim(molP%chmol)//"_"//model//"_"//trim(cTemp(1:3))//"K.dat"
     call idate(today)   ! today(1)=day, (2)=month, (3)=year
@@ -1550,8 +1550,8 @@ end subroutine save_Yrp
 
 ! INIT. VAR.
     band=''
-    write(cTemp,'(f5.1)'),molP%Temp
-    write(band,1000),aUpp,aLow
+    write(cTemp,'(f5.1)') molP%Temp
+    write(band,1000) aUpp,aLow
     path ="Q000_"//trim(molP%chmol)//"_"//model//"_"//trim(cTemp(1:3))//"K_"//band//".dat"
     call idate(today)   ! today(1)=day, (2)=month, (3)=year
     open (UNIT = u, FILE = trim(path), STATUS = 'REPLACE', ACTION = 'WRITE')

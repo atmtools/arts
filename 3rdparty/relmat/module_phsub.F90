@@ -105,14 +105,15 @@ module module_phsub
             type(dta_MOL), intent(in) :: molP
         end function Ql_mol_X
 
-        double precision function Ql_mol_LLS(J1,J2,v1,v2,molP,L)
+        double precision function Ql_mol_LLS(J1,J2,v1,v2,molP,L,econ)
             use module_common_var
             use module_molecSp
             use module_maths
             implicit none
-            integer*8    , intent(in) :: L
-            type(dta_MOL), intent(in) :: molP
-            real*8       , intent(in) :: J1,J2,v1,v2
+            integer*8    , intent(in   ) :: L
+            real*8       , intent(in   ) :: J1,J2,v1,v2
+            type(dta_MOL), intent(in   ) :: molP
+            type(dta_ERR), intent(inout) :: econ
         end function Ql_mol_LLS
 
         double precision function Ql_mol_AF_LLS(J1,J2,v1,v2,molP,PerM,L)
@@ -343,7 +344,6 @@ END module module_phsub
 ! INIT. VAR:
 !-----------
     DO k = 1, nLines
-      !print*, k, nLines
       !
       ! DIPOLE MOMENT 
       !
@@ -466,10 +466,10 @@ END module module_phsub
       double precision             :: cte1
 ! -----------------
     if (caseHund .eq. 'a') then
-        !write(*,'(a10)'), 'Case (a)'
+        !Case (a)
         pureHund = 1.0_dp
     else if (caseHund .eq. 'b') then
-        !write(*,'(a10)'), 'Case (b)'
+        !Case (b)
         if ( (N_f .eq. N_i+1 ) .and. ( J_f .eq. J_i+1.0_dp ) ) then
          cte1 = dsqrt(J_i)
       else if ( (N_f .eq. N_i+1 ) .and. ( J_f .eq. J_i ) ) then
@@ -483,13 +483,13 @@ END module module_phsub
       endif
       pureHund = dsqrt(1.0_dp/(2.0_dp*J_i +1.0_dp)) * cte1
     else if (caseHund .eq. 'c') then
-        !write(*,'(a10)'), 'Case (c)'
+        !Case (c)
       pureHund = 1.0_dp
     else if (caseHund .eq. 'd') then
-        !write(*,'(a10)'), 'Case (d)'
+        !Case (d)
       pureHund = 1.0_dp
     else if (caseHund .eq. 'e') then
-        !write(*,'(a10)'), 'Case (e)'
+        !Case (e)
       pureHund = 1.0_dp
     else
         pureHund = 1.0_dp
@@ -564,7 +564,7 @@ END module module_phsub
       !
       
     else
-        if(econ%e(1) .eq. 1) print*, "Kpart1_O2:not valid mode:", mode
+        call errorMode(mode,econ)
     endif
       
         Kpart1_O2 = cte1*cte2*AF1
@@ -593,9 +593,6 @@ END module module_phsub
       ! ( li  0  -li )
       w3j1 = wigner3j( Ji_p, real(L, dp), Ji , real(li, dp), 0.0_dp, real(-li, dp) )
       if (abs(w3j1) .lt. TOL) w3j1 = 0.0D0
-      !print*, "w3j1(",Ji_p, real(L, dp), Ji,")"
-      !print*, "____(",real(li, dp), 0.0_dp, real(-li, dp),")"
-      !print*,"=",w3j1
       ! CASE wig3j0(M,J1,J2,J)
       !                       m (j1 j2 j)  
       !                    (-)  (m  -m 0)  
@@ -605,18 +602,12 @@ END module module_phsub
       ! ( lf  0  -lf )
       w3j2  = wigner3j( Jf_p, real(L, dp), Jf, real(-lf, dp), 0.0_dp, real(lf, dp) )
       if (abs(w3j2) .lt. TOL) w3j2 = 0.0D0
-      !print*, "w3j1(",Jf_p, real(L, dp), Jf,")"
-      !print*, "____(",real(-lf, dp), 0.0_dp, real(lf, dp),")"
-      !print*,"=",w3j2
       !
       !wigner 6j-Symbol:
       ! { Ji   Jf   1 }
       ! { Jf'  Ji'  L }
       w6j   = wigner6j( Ji, Jf, real(K_t,dp), Jf_p, Ji_p, real(L, dp))
       if (abs(w6j) .lt. TOL) w6j = 0.0D0
-      !print*, "w6j{",Ji, Jf, real(K_t,dp),"}"
-      !print*, "___{",Jf_p, Ji_p, real(L, dp),"}"
-      !print*,"=",w6j
       !
       !
       if ( .not.( isnan(w3j1  ) .or. isinf(w3j1  )) .and. &
@@ -748,7 +739,7 @@ END module module_phsub
       ! { Jf  Ji  L }  = sixj(jip,jfp,ji,jf,ll)
       w6j3 = wigner6j(Ji_p, Jf_p, real(K_t,dp), Jf, Ji, real(L, dp))
     else
-        if(econ%e(1) .eq. 1) print*, "Kpart2_O2:not valid mode"
+        call errorMode(mode,econ)
     endif
 
     sK = sK*(2.d0*L + 1.d0)
@@ -762,10 +753,6 @@ END module module_phsub
                         sK/AF2 
       else
             call wignerS_ERROR(w3j1, w3j2, w6j1, w6j2, w6j3,econ)
-            !print*,L,Ji, Ni_p, Si, Ji_p, Ni
-            !print*,L,Jf, Jf_p, Sf, Nf_p, Nf
-            !print*,L,Ji, Ji_p, K_t,Jf_p, Jf
-            !stop
       endif
       
       RETURN
@@ -880,7 +867,7 @@ END module module_phsub
             if (molP % LLSty .eq. "Li--AF") then
                 Qaux = Ql_mol_AF_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,PerM,L)
             else !if molP % LLSty = "Linear" or "Model1/2/3/4"
-                Qaux = Ql_mol_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,L)
+                Qaux = Ql_mol_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,L,econ)
             endif
           else
             Qaux = Ql_mol_X(molP,L)
@@ -1022,7 +1009,7 @@ END module module_phsub
                 Qaux = Ql_mol_AF_LLS(real(Ni,dp),real(Ni_p,dp),h%Sig(j),h%Sig(k),molP,PerM,L)
             else !if molP % LLSty = "Linear" or "Model1/2/3/4"
                 !Qaux = Ql_mol_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,L)
-                Qaux = Ql_mol_LLS(real(Ni,dp),real(Ni_p,dp),h%Sig(j),h%Sig(k),molP,L)
+                Qaux = Ql_mol_LLS(real(Ni,dp),real(Ni_p,dp),h%Sig(j),h%Sig(k),molP,L,econ)
             endif
         else
             Qaux = Ql_mol_X(molP,L)
@@ -1104,7 +1091,7 @@ END module module_phsub
     RETURN
   END function Ql_mol_X
 !--------------------------------------------------------------------------------------------------------------------
-  double precision function Ql_mol_LLS(J1,J2,v1,v2,molP,L)
+  double precision function Ql_mol_LLS(J1,J2,v1,v2,molP,L,econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! " Ql_mol_LLS": Basis rate
 ! 
@@ -1119,6 +1106,7 @@ END module module_phsub
       !Inputs
       integer*8        :: L
       type(dta_MOL)    :: molP
+      type(dta_ERR)    :: econ
       real*8           :: J1,J2,v1,v2
       !internal
       real*8           :: E_l, T,Jaux, delta, coeffC
@@ -1186,8 +1174,7 @@ END module module_phsub
                 ( (molP%a2)*log(E_l) ) - &
                 ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp 
         else
-            print*, "LLS_Matrix/Ql_mol_LLS:LLSty selection not valid... try: Linear, Model1,Model2,Model3,Model4"
-            stop
+            call errorLLStyType(molP % LLSty,econ)
         endif
         !
       endif
@@ -1315,11 +1302,11 @@ END module module_phsub
             ! vm = cte1·sqrt(T/N2_M) ~ 473 m/s
             ! 
               v_mol_X  = 1.0_dp/T*mu ! ----> squared and inverted velocity term 
-            !print*, "v=", v_mol_X
+            !write(*,*) "v=", v_mol_X
             !
             ! Frequency spacing:
               w_j_jstep  = (molP%B0*( L + L + 1 - step )*step)**2 ! ---> squared freq. spacing
-            !print*, "w_j_j-2=", w_j_jstep
+            !write(*,*) "w_j_j-2=", w_j_jstep
             ! Since we have to give this quantity in (s-1) then
             ! we need to multiply the: 
             ! |Erot(J) - Erot(J-step)| = step*B0[2J+1 - step]
@@ -1412,12 +1399,9 @@ END module module_phsub
                 if (j .ne. i) then
                     DipAux = dipole( indexS(j) )/dipole( indexS(i) )
                     Wij = Wmat(i,j)
-                    if ( isnan(   Wij) .or. isinf(   Wij) ) stop!Wij = 0.0D0
-                    if ( isnan(DipAux) .or. isinf(DipAux) ) stop!DipAux = 0.0D0
+                    if ( isnan(   Wij) .or. isinf(   Wij) ) stop
+                    if ( isnan(DipAux) .or. isinf(DipAux) ) stop
                     Saux = Saux + DipAux*Wij
-                    !if (i .eq. 48)print*, dipole( indexS(j) ), dipole( indexS(i) )
-                    !if (i .eq. 48)print*, DipAux, Wij
-                    !if (i .eq. 48)print*, Saux
                 else
                     Wii = Wmat(i,i)*dfact ! dfact = diagonal factor
                 endif
@@ -1425,28 +1409,27 @@ END module module_phsub
             if ( (abs(Wii+Saux) .gt. TOLe2) .and. (i .ne. nLines) ) then
                 testOK = .false.
                 if (econ % e(1) .ge. 1) then
-                    write(*,'(a4,i3,a30)'), "row#",i,"NOT meet SUM-RULE"
-                    write(*,*), "half-Width", Wii , "?= SUMij{Wmat}", -Saux
-                    !if (i .eq. 48)stop
+                    write(*,'(a4,i3,a30)') "row#",i,"NOT meet SUM-RULE"
+                    write(*,*) "half-Width", Wii , "?= SUMij{Wmat}", -Saux
                 endif
             else
             ! Uncomment if you would also like to see 
             ! the lines that meet the requirement
             !
             !   if (econ % e(1) .ge. 1) then
-            !       write(*,'(a4,i3,a30)'), "row#",i,"meet SUM-RULE"
-            !       write(*,*), "half-Width", Wii , "?= SUMij{Wmat}", -Saux
+            !       write(*,'(a4,i3,a30)') "row#",i,"meet SUM-RULE"
+            !       write(*,*) "half-Width" Wii , "?= SUMij{Wmat}", -Saux
             !   endif
             endif
         ENDDO
       
-        !print*, "SUM-RULE TEST FINISHED"
+        !write(*,*) "SUM-RULE TEST FINISHED"
         if ( .not.(testOK) ) then
             call SumRuleError(econ)
             econ % solu = 0
         else
             if (econ % e(1) .ge. 1) then
-                print*, "sumRule: The calculation correctly verifies the sum rule!"
+                write(*,*) "sumRule: The calculation correctly verifies the sum rule!"
             endif
             econ % solu = 1
         endif

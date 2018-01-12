@@ -5,7 +5,7 @@ module module_LLS
 !
     interface  
 
-        subroutine LLS_Matrix(j,k,h,molP,PerM,M, econ, K1,K2)
+        subroutine LLS_Matrix(j,k,h,molP,PerM,M, econ)
             use module_common_var
             use module_maths
             use module_phsub
@@ -15,7 +15,6 @@ module module_LLS
             type (dta_MOL)         , intent(in   ) :: molP, PerM
             type (dta_ERR)         , intent(inout) :: econ
             double precision       , intent(  out) :: M(4)
-            double precision      :: K1, K2
         end subroutine LLS_Matrix 
 
         subroutine LLS_AF_Matrix(j,k,h,molP,PerM,M, econ)
@@ -36,7 +35,7 @@ END module module_LLS
 !--------------------------------------------------------------------------------------------------------------------
 ! MATHEMATIC FUNCTIONS AND SUBROUTINES ------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE LLS_Matrix(j,k,h,molP,PerM,M,econ, K1,K2)
+  SUBROUTINE LLS_Matrix(j,k,h,molP,PerM,M,econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! "LLS_Matrix": Subroutine that fills up the matrix to be included in the LLS                   
 !------------------------------------------ 
@@ -158,8 +157,7 @@ END module module_LLS
         if (delta .lt. TOL) delta = 0.5
         M(1) = K1 * M(1)/exp(-molP%B0/(dabs(delta)**(1/Jaux))) 
       else
-            print*, "LLS_Matrix:LLSty selection not valid... try: Linear, Model1,Model2,Model3,Model4"
-            stop
+            call errorLLStyType(molP%LLSty,econ)
       endif
       M(2) = K1 * M(2)
       M(3) = K1 * (c2/T) * M(3)

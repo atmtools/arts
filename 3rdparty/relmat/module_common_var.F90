@@ -21,7 +21,7 @@ MODULE module_common_var
     !           in other words:
     !           ('hit') Acording to HITRAN96 
     !           ('tra') Acording to Hartmann et. al 2006 
-    character*3, parameter :: ptype = 'tra'
+    character(3), parameter :: ptype = 'tra'
     !
     !*************************
     ! Dipole moment Transition
@@ -31,15 +31,15 @@ MODULE module_common_var
     !integer, parameter :: K_t = 2 !Raman-spectroscopy
     ! Diatomic-molecule (or linear):
     ! HUND's CASE
-    character, parameter   :: caseHund = 'b'
+    character(1), parameter   :: caseHund = 'b'
     ! Type of Dipole Calculation
-    character, parameter   :: tdcal = 'S' 
+    character(1), parameter   :: tdcal = 'S' 
     ! Transition Moment Type
-    character*3, parameter :: tmt = 'edt' 
+    character(3), parameter :: tmt = 'edt' 
     !     1) Electric dipole transition (edt)
     !     2) magnetic dipole transition (mdt)
     !     3) electric-quadrupole transitions (eqt)
-    character*4, parameter :: mode =  'mak1'
+    character(4), parameter :: mode =  'mak1'
     !     1) [Tran et al. 2006] ECS matrix element           = 'tran'
     !     2) [Makarov et al. 2013] ECS matrix element        = 'mak1'
     !     3) [Makarov et al. 2013]'s CODE ECS matrix element = 'mak2'

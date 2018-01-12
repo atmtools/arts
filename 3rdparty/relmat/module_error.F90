@@ -135,6 +135,20 @@ module module_error
             type (dta_ERR), intent (inout)   :: econ
         end subroutine errorPType
 
+        subroutine errorLLStyType(LLSty,econ)
+            use module_common_var
+            implicit none
+            character(6)  , intent (in   )   :: LLSty
+            type (dta_ERR), intent (inout)   :: econ
+        end subroutine errorLLStyType
+
+        subroutine errorMode(ecsmode,econ)
+            use module_common_var
+            implicit none
+            character(4), intent (in   )   :: ecsmode
+            type (dta_ERR), intent (inout)   :: econ
+        end subroutine errorMode
+
     end interface
 
 
@@ -150,7 +164,7 @@ subroutine memoError(chvar, econ)
     type (dta_ERR), intent (inout)   :: econ
 
     if (econ % e(1) .ge. 1) then
-      print*, "Not enough memory to allocate var:" // trim(chvar) // "."
+      write(*,*) "Not enough memory to allocate var:" // trim(chvar) // "."
     endif
     econ % e(2) = econ % e(2) + 1
 end subroutine memoError
@@ -165,7 +179,7 @@ subroutine openError(path, econ)
     type (dta_ERR), intent (inout)   :: econ
 
     if (econ % e(1) .ge. 1) then
-      print*, "Open file Error: " // trim(path) // " does not exit."
+      write(*,*) "Open file Error: " // trim(path) // " does not exit."
     endif
     econ % e(2) = econ % e(2) + 1
 end subroutine openError
@@ -179,7 +193,7 @@ subroutine errorSPIN(econ)
     type (dta_ERR), intent (inout)   :: econ
 
     if (econ % e(1) .ge. 1) then
-      print*, "Not SPIN-data available for O2"
+      write(*,*) "Not SPIN-data available for O2"
     endif
     econ % e(2) = econ % e(2) + 1
 end subroutine errorSPIN
@@ -391,7 +405,7 @@ subroutine offdiagEL_ERROR(var1, var2, var3, econ)
     type (dta_ERR), intent (inout)   :: econ
 
     if (econ % e(1) .ge. 1) then
-      write (*,*) "****************** K_jkCalc/K_jkO2: variable overflow "
+      write (*, *) "****************** K_jkCalc/K_jkO2: variable overflow "
       write (*, *) "Any of the following variable:"
       write (*, *) "C1=(-1)^(Ji'+Ji+n)[Ni][Ni'][Nf+][Nf']*"
       write (*, *) "[Jf][Jf'][Ji']^2 = ",var1
@@ -485,10 +499,10 @@ subroutine LLS_error(b1, b2, b3, info, econ)
     if (econ % e(1) .ge. 1) then
         write (*,1012) 
         write (*,1013) info
-        write (*,*), "< 0:  if INFO = -i, the i-th argument had an illegal value."
-        write (*,*), "> 0:  if INFO =  i, the i-th diagonal element of the"
-        write (*,*), "      triangular factor of A is zero, so that A does not have"
-        write (*,*), "      full rank; the least squares solution could not be computed."
+        write (*,*) "< 0:  if INFO = -i, the i-th argument had an illegal value."
+        write (*,*) "> 0:  if INFO =  i, the i-th diagonal element of the"
+        write (*,*) "      triangular factor of A is zero, so that A does not have"
+        write (*,*) "      full rank; the least squares solution could not be computed."
         write (*,1014) b1,b2,b3
     endif
     econ % e(2) = econ % e(2) + 1
@@ -517,11 +531,11 @@ subroutine LLS_DGELSYSD_error(b1, b2, b3, info, econ)
     if (econ % e(1) .ge. 1) then
         write (*,1012) 
         write (*,*) "Lapack internal info:", info
-        write (*,*), "= 0:  successful exit"
-        write (*,*), "< 0:  if INFO = -i, the i-th argument had an illegal value."
-        write (*,*), "> 0:  the algorithm for computing the SVD failed to converge;"
-        write (*,*), "      if INFO = i, i off-diagonal elements of an intermediate"
-        write (*,*), "      bidiagonal form did not converge to zero."
+        write (*,*) "= 0:  successful exit"
+        write (*,*) "< 0:  if INFO = -i, the i-th argument had an illegal value."
+        write (*,*) "> 0:  the algorithm for computing the SVD failed to converge;"
+        write (*,*) "      if INFO = i, i off-diagonal elements of an intermediate"
+        write (*,*) "      bidiagonal form did not converge to zero."
         write (*,1014) b1,b2,b3
     endif
     econ % e(2) = econ % e(2) + 1
@@ -547,11 +561,11 @@ subroutine errorBranch(pos, econ)
     type (dta_ERR), intent (inout)    :: econ
 
     if (econ % e(1) .ge. 1) then
-        write(*,*), "****************** delta2branch/branch2delta:"
-        write(*,*), "Transition in position", pos,"does not follows selection rules."
-        write(*,*), "NOTE: HITRAN is an empirical DB it should not contain any line"
-        write(*,*), "that does not follow the selection rules:"
-        write(*,*), "∆J=0, +-1, +-2"
+        write(*,*) "****************** delta2branch/branch2delta:"
+        write(*,*) "Transition in position", pos,"does not follows selection rules."
+        write(*,*) "NOTE: HITRAN is an empirical DB it should not contain any line"
+        write(*,*) "that does not follow the selection rules:"
+        write(*,*) "∆J=0, +-1, +-2"
     endif
     econ % e(2) = econ % e(2) + 1          
 
@@ -566,8 +580,8 @@ subroutine errorBubble(econ)
     type (dta_ERR), intent (inout)   :: econ
 
     if (econ % e(1) .ge. 1) then
-        write(*,*), "****************** bubble_index:"
-        write(*,*), 'Not supported kind of the order option, use (a) or (d) instead.'
+        write(*,*) "****************** bubble_index:"
+        write(*,*) 'Not supported kind of the order option, use (a) or (d) instead.'
     endif
     econ % e(2) = econ % e(2) + 1
 end subroutine errorBubble
@@ -580,9 +594,47 @@ subroutine errorPType(pty,econ)
     type (dta_ERR), intent (inout)   :: econ
 
     if (econ % e(1) .ge. 1) then
-        write(*,*), "****************** PopuCAL:"
-        write(*,*), "Non-Valid Population calculation type:", pty
+        write(*,*) "****************** PopuCAL:"
+        write(*,*) "Non-Valid Population calculation type:", pty
     endif
     econ % e(2) = econ % e(2) + 1
 end subroutine errorPType
+!--------------------------------------------------------------------------------------------------------------------
+subroutine errorLLStyType(LLSty,econ)
+!--------------------------------------------------------------------------------------------------------------------
+    use module_common_var
+    implicit none
+    character(6)  , intent (in   )   :: LLSty
+    type (dta_ERR), intent (inout)   :: econ
+
+    if (econ % e(1) .ge. 1) then
+        write(*,*) "****************** LLS_Matrix/Ql_mol_LLS:"
+        write(*,*) "Non-Valid LLS-Model type:", LLSty
+        write(*,*) "'LLSty' selection is not valid. Please try any of the following options: "
+        write(*,*) "(0)Linear"
+        write(*,*) "(1)Model1"
+        write(*,*) "(2)Model2"
+        write(*,*) "(3)Model3"
+        write(*,*) "(4)Model4"
+    endif
+    econ % e(2) = econ % e(2) + 1
+end subroutine errorLLStyType
+!--------------------------------------------------------------------------------------------------------------------
+subroutine errorMode(ecsmode,econ)
+!--------------------------------------------------------------------------------------------------------------------
+    use module_common_var
+    implicit none
+    character(4)  , intent (in   )   :: ecsmode
+    type (dta_ERR), intent (inout)   :: econ
+
+    if (econ % e(1) .ge. 1) then
+        write(*,*) "****************** Kpart1_O2:"
+        write(*,*) "Non-Valid ECS matrix element type:", ecsmode
+        write(*,*) "Please try any of the following options (as listed in module_common_var): "
+        write(*,*) "(0)tran"
+        write(*,*) "(1)mak1"
+        write(*,*) "(2)mak2"
+    endif
+    econ % e(2) = econ % e(2) + 1
+end subroutine errorMode
 !--------------------------------------------------------------------------------------------------------------------

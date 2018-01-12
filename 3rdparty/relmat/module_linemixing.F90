@@ -218,7 +218,7 @@ END module module_linemixing
 !
     do j=1, nLines
       do k=1, j
-        !write(*,'(a3,i5,a3,i5,a1)'),'(j=',j,';k=',k,')'         
+        !write(*,'(a3,i5,a3,i5,a1)') '(j=',j,';k=',k,')'         
         if ( j .eq. k ) then ! Qlow(j) == Qlow(k)
         ! Diagonal levels of the Matrix (Wjj)
         ! They are defined as 
@@ -309,7 +309,7 @@ END module module_linemixing
     ! under the linewidth (== 2*HalfWidth which is the value 
     ! provided by HITRAN).
     !
-    !print*, "sum rule?"
+    !write(*,*) "sum rule?"
     !do i = 1, nLines
     !  indexI(i) = i
     !enddo
@@ -472,16 +472,16 @@ END module module_linemixing
         econ % e(2) = econ % e(2) - 1
         CALL just_fill_DiagWRn(nLines,dta1 % BHW, dta1 % HWT0, T/T0, P,W_rnO)
         !do i = 1, nLines
-        !  print*,'wno', dta1 % sig(i) 
-        !  print*,'Str', dta1 % Str(i)
-        !  print*,'HWT', dta1 % HWT0(i)
-        !  print*,'BHW', dta1 % BHW(i) 
-        !  print*,'E  ', dta1 % E(i)
-        !  print*,'g0 ', dta1 % swei0(i) 
-        !  print*,'g00', dta1 % swei00(i)
-        !  print*,'UP ', dta1%J(i,1),dta1%N(i,1),dta1%espin(i,1)
-        !  print*,'LO ', dta1%J(i,2),dta1%N(i,2),dta1%espin(i,2)
-        !  print*,'bra', dta1%br(i)
+        !  write(*,*)'wno', dta1 % sig(i) 
+        !  write(*,*)'Str', dta1 % Str(i)
+        !  write(*,*)'HWT', dta1 % HWT0(i)
+        !  write(*,*)'BHW', dta1 % BHW(i) 
+        !  write(*,*)'E  ', dta1 % E(i)
+        !  write(*,*)'g0 ', dta1 % swei0(i) 
+        !  write(*,*)'g00', dta1 % swei00(i)
+        !  write(*,*)'UP ', dta1%J(i,1),dta1%N(i,1),dta1%espin(i,1)
+        !  write(*,*)'LO ', dta1%J(i,2),dta1%N(i,2),dta1%espin(i,2)
+        !  write(*,*)'bra', dta1%br(i)
         !enddo
       else 
         do i=1,nLines
@@ -769,7 +769,7 @@ END module module_linemixing
             jSMALL = j
             r_kj = dta1%PopuT(jBIG)/dta1%PopuT(jSMALL) !pjBIG/pjSMALL
           endif
-          call LLS_Matrix(jBIG,jSMALL,dta1,molP,PerM,Aux_4M, econ, K1,K2)
+          call LLS_Matrix(jBIG,jSMALL,dta1,molP,PerM,Aux_4M, econ)
           !
           rD0_kj = dta1%D0(k)/dta1%D0(j) 
           do i =1,4
@@ -927,7 +927,6 @@ END module module_linemixing
       CALL DGELS( 'No transpose', M, N, NRHS, A, LDA, B, LDB, WORK,&
                  LWORK, info1 )
       LWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
-      write(*,*),"LWORK = ", LWORK, "LWMAX = ", LWMAX, "WORK = ", INT( WORK( 1 ) ) 
 !
 !   Solve the equations A*X = B.
 !
@@ -951,10 +950,6 @@ END module module_linemixing
           molP%a3 = -B(3,NRHS)
           if (info2 .ne. 0) then
             call LLS_error(B(1,NRHS),B(2,NRHS),B(3,NRHS), info2, econ)
-          endif
-
-          if ((abs(molP%a1) .le. TOL).or.(abs(molP%a2) .le. TOL).or.(abs(molP%a3) .le. TOL)) then
-            write(*,*),"LWORK = ", LWORK,";info1= ", info1,";info2= ", info2
           endif
 
   END SUBROUTINE calc_QParam
@@ -1028,7 +1023,7 @@ END module module_linemixing
 !
 !
 ! Generate the Matrix for LLS:
-print*, "Generate the Matrix for LLS"
+write(*,*) "Generate the Matrix for LLS"
     do j=1, nLines
       do k=1, nLines
         ! 
@@ -1062,7 +1057,7 @@ print*, "Generate the Matrix for LLS"
       enddo
       !
     enddo
-    print*, "LLS_AF_Matrix done"
+    write(*,*) "LLS_AF_Matrix done"
 !
 ! **********************************************************************************
 ! LAPACK routine:
@@ -1380,7 +1375,6 @@ print*, "Generate the Matrix for LLS"
           aux = P*abs(W(l,k))/abs(v(l)-v(k))
           if (aux .gt. TOL_rule2) then
             rule2 = .false.
-            !print*, v(l),v(k),W(l,k)
           endif
         endif
       ENDDO
@@ -1496,7 +1490,7 @@ print*, "Generate the Matrix for LLS"
             jSMALL = j
             r_kj = dta1%PopuT(jBIG)/dta1%PopuT(jSMALL) !pjBIG/pjSMALL
           endif
-          call LLS_Matrix(jBIG,jSMALL,dta1,molP,PerM,Aux_4M, econ, K1,K2)
+          call LLS_Matrix(jBIG,jSMALL,dta1,molP,PerM,Aux_4M, econ)
           !
           rD0_kj = dta1%D0(k)/dta1%D0(j) 
           do i =1,4
@@ -1650,7 +1644,7 @@ print*, "Generate the Matrix for LLS"
 !
 !  =====================================================================
 !  Step0: Query the optimal workspace.
-    if (econ % e(1) .ge. 1)  print*, 'prior-Lwork', LWORK
+    if (econ % e(1) .ge. 1)  write(*,*) 'prior-Lwork', LWORK
     LWORK = -1
     info1=0
     CALL DGELSY(M,N,NRHS,A,LDA,B,M,JPVT,RCOND,RANK,WORK,LWORK,info1)
@@ -1660,7 +1654,7 @@ print*, "Generate the Matrix for LLS"
       deallocate ( WORK )
       allocate ( WORK( LWORK ) )
     endif
-    if (econ % e(1) .ge. 1)  print*, 'post-Lwork', LWORK
+    if (econ % e(1) .ge. 1)  write(*,*) 'post-Lwork', LWORK
 !  Step1: Initialize JPVT to be zero so that all columns are free
 !
 !         CALL F06DBF(N,0,JPVT,1) ! <== Done while allocating the variable
@@ -1688,38 +1682,24 @@ print*, "Generate the Matrix for LLS"
           molP%a2 = -B(2,NRHS)
           molP%a3 = -B(3,NRHS)
           if (info2 .eq. 0) then
-            write(*,*) 'Orthogonal algorithm succeded! :) '
+            write(*,*) 'Complete Orthogonal Factorization algorithm succeded!'
 !
 !           Print the effective rank of A
 !
             if (econ % e(1) .ge. 1) write(*,*) 'Tolerance used to estimate the rank of A', RCOND
             if (econ % e(1) .ge. 1) write(*,*) 'Estimated rank of A', RANK
 !
-!           Print singular values of A
-!
-!            write(*,*)
-!            write(*,*) 'Singular values of A'
-!            write(*,*) (S(I),I=1,N)
-!
-!           Compute and print estimate of the square root of the
-!           residual sum of squares
-!
-!            IF (RANK.EQ.N) THEN
-!               RNORM = DNRM2(M-N,B(N+1,NRHS),1)
-!               write(*,*) 'Square root of the residual sum of squares'
-!               write(*,*) RNORM
-!            END IF
           else
-            call LLS_error(B(1,NRHS),B(2,NRHS),B(3,NRHS), info1, econ)
-            if (econ % e(1) .ge. 1) write(*,*) ':( orthogonal'
+            call LLS_DGELSYSD_error(B(1,NRHS),B(2,NRHS),B(3,NRHS), info1, econ)
+            if (econ % e(1) .ge. 1) write(*,*) 'Complete Orthogonal Factorization of A failed.'
           endif
 
-          if ((abs(molP%a1) .le. TOL).or.(abs(molP%a2) .le. TOL).or.(abs(molP%a3) .le. TOL)) then
-            write(*,*),"LWORK = ", LWORK,";info1= ", info1,";info2= ", info2
-            do i=1, M
-              write(*,'(1X,4F11.4)') (A(i,j),j=1,N)
-            enddo
-          endif
+!          if ((abs(molP%a1) .le. TOL).or.(abs(molP%a2) .le. TOL).or.(abs(molP%a3) .le. TOL)) then
+!            write(*,*) "LWORK = ", LWORK,";info1= ", info1,";info2= ", info2
+!            do i=1, M
+!              write(*,'(1X,4F11.4)') (A(i,j),j=1,N)
+!            enddo
+!          endif
 
   END SUBROUTINE calc_QPar_DGELSY
 !--------------------------------------------------------------------------------------------------------------------
@@ -1822,7 +1802,7 @@ print*, "Generate the Matrix for LLS"
             jSMALL = j
             r_kj = dta1%PopuT(jBIG)/dta1%PopuT(jSMALL) !pjBIG/pjSMALL
           endif
-          call LLS_Matrix(jBIG,jSMALL,dta1,molP,PerM,Aux_4M, econ, K1,K2)
+          call LLS_Matrix(jBIG,jSMALL,dta1,molP,PerM,Aux_4M, econ)
           !
           rD0_kj = dta1%D0(k)/dta1%D0(j) 
           do i =1,4
@@ -1941,7 +1921,7 @@ print*, "Generate the Matrix for LLS"
 !
 !  =====================================================================
 !  Step0: Query the optimal workspace.
-    if (econ % e(1) .ge. 1)  print*, 'prior-Lwork', LWORK
+    if (econ % e(1) .ge. 1)  write(*,*) 'prior-Lwork', LWORK
     LWORK = -1
     info1 = 0
     CALL DGELSS(M,N,NRHS,A,LDA,B,M,SVal,RCOND,RANK,WORK,LWORK,info1)
@@ -1951,7 +1931,7 @@ print*, "Generate the Matrix for LLS"
       deallocate ( WORK )
       allocate ( WORK( LWORK ) )
     endif
-    if (econ % e(1) .ge. 1)  print*, 'post-Lwork', LWORK, INT( WORK( 1 ) )
+    if (econ % e(1) .ge. 1)  write(*,*) 'post-Lwork', LWORK, INT( WORK( 1 ) )
 !  Step1: Choose RCOND to reflect the relative accuracy of the input data
     !RCOND = 0.01D0 !<== These would be hard-imposed accuracy
     RCOND = -1.0D0  !<== < 0, machine precision is used instead.
@@ -1976,22 +1956,15 @@ print*, "Generate the Matrix for LLS"
           molP%a2 = -B(2,NRHS)
           molP%a3 = -B(3,NRHS)
           if (info2 .eq. 0) then
-            write(*,*) 'SVD algorithm converge! :) '
+            if (econ % e(1) .ge. 1) write(*,*) 'SVD algorithm converged'
 !
 !           Print the effective rank of A
 !
             if (econ % e(1) .ge. 1) write(*,*) 'Tolerance used to estimate the rank of A', RCOND
             if (econ % e(1) .ge. 1) write(*,*) 'Estimated rank of A', RANK
           else
-            call LLS_error(B(1,NRHS),B(2,NRHS),B(3,NRHS), info1, econ)
+            call LLS_DGELSYSD_error(B(1,NRHS),B(2,NRHS),B(3,NRHS), info1, econ)
             if (econ % e(1) .ge. 1) write(*,*) 'The SVD algorithm failed to converge'
-          endif
-
-          if ((abs(molP%a1) .le. TOL).or.(abs(molP%a2) .le. TOL).or.(abs(molP%a3) .le. TOL)) then
-            if (econ % e(1) .ge. 1) write(*,*),"LWORK = ", LWORK,";info1= ", info1,";info2= ", info2
-            do i=1, M
-              write(*,'(1X,4F11.4)') (A(i,j),j=1,N)
-            enddo
           endif
 
   END SUBROUTINE calc_QPar_DGELSS
@@ -2101,7 +2074,7 @@ print*, "Generate the Matrix for LLS"
             jSMALL = j
             r_kj = dta1%PopuT(jBIG)/dta1%PopuT(jSMALL) !pjBIG/pjSMALL
           endif
-          call LLS_Matrix(jBIG,jSMALL,dta1,molP,PerM,Aux_4M, econ, K1, K2)
+          call LLS_Matrix(jBIG,jSMALL,dta1,molP,PerM,Aux_4M, econ)
           !
           rD0_kj = dta1%D0(k)/dta1%D0(j) 
           do i =1,4
@@ -2115,14 +2088,6 @@ print*, "Generate the Matrix for LLS"
           !<----- these lines
         endif    
       enddo
-      !ERASE ---->
-          if (abs(sum(Mlls(j,:))) .lt. TOL) then
-            print*, "Dipole rate", sumD0
-            print*, "Popu rate", sumrjk
-            print*, "K1", sumK1
-            print*, "K2", sumK2
-          endif 
-      !<----- these lines
       !
     enddo
 !
@@ -2280,8 +2245,8 @@ print*, "Generate the Matrix for LLS"
       !  allocate ( WORK( LWORK ) )
       !endif
       !IF (info1.eq.0) LIWORK = INT(IWORK(1))
-      !if (econ % e(1) .ge. 1)  print*, 'post-Lwork and Ilwork', LWORK, LIWORK
-      !if (econ % e(1) .ge. 1)  print*, 'RANK', RANK, 'info1', info1
+      !if (econ % e(1) .ge. 1)  write(*,*) 'post-Lwork and Ilwork', LWORK, LIWORK
+      !if (econ % e(1) .ge. 1)  write(*,*) 'RANK', RANK, 'info1', info1
   
 !  Step1: Choose RCOND to reflect the relative accuracy of the input data
          !RCOND = 0.01D0 !<== These would be hard-imposed accuracy
@@ -2289,13 +2254,9 @@ print*, "Generate the Matrix for LLS"
 !
 !  Step2: Solve the least squares problem min( norm2(b - Ax) ) for the x
 !         of minimum norm.
-      !if (econ % e(1) .ge. 1)  print*, 'INFO', INFO
       INFO = 0
       RANK = 0
       CALL DGELSD(M,N,NRHS,A,LDA,B,LDB,Sval,RCOND,RANK,WORK,LWORK,IWORK,INFO)
-      !LWORK = INT( WORK(1) ) 
-      !if (econ % e(1) .ge. 1)  print*, 'post-Lwork', LWORK
-      !if (econ % e(1) .ge. 1)  print*, 'RANK', RANK, 'INFO', INFO
 !
 ! <---------------------------------------------
 ! NOTE: for further information about this subroutine 
@@ -2312,38 +2273,24 @@ print*, "Generate the Matrix for LLS"
           molP%a2 = -B(2,NRHS)
           molP%a3 = -B(3,NRHS)
           if (INFO .eq. 0) then
-            if (econ % e(1) .ge. 1) write(*,*) 'SVD algorithm converge! :) '
+            if (econ % e(1) .ge. 1) write(*,*) 'SVD algorithm converged.'
 !
 !           Print the effective rank of A
 !
             if (econ % e(1) .ge. 1) write(*,*) 'Tolerance used to estimate the rank of A', RCOND
             if (econ % e(1) .ge. 1) write(*,*) 'Estimated RANK of A', RANK
 !
-!           Print singular values of A
-!
-!            write(*,*)
-!            write(*,*) 'Singular values of A'
-!            write(*,*) (S(I),I=1,N)
-!
-!           Compute and print estimate of the square root of the
-!           residual sum of squares
-!
-!            IF (RANK.EQ.N) THEN
-!               RNORM = DNRM2(M-N,B(N+1,NRHS),1)
-!               write(*,*) 'Square root of the residual sum of squares'
-!               write(*,*) RNORM
-!            END IF
           else
             call LLS_DGELSYSD_error(B(1,NRHS),B(2,NRHS),B(3,NRHS), INFO, econ)
             if (econ % e(1) .ge. 1) write(*,*) 'The SVD algorithm failed to converge'
           endif
 
-          if ((abs(molP%a1) .le. TOL).or.(abs(molP%a2) .le. TOL).or.(abs(molP%a3) .le. TOL)) then
-            if (econ % e(1) .ge. 1) write(*,*),"LWORK = ", LWORK,";info1= ", info1,";INFO= ", INFO
-            do i=1, M
-              write(*,'(1X,4F11.4)') (A(i,j),j=1,N)
-            enddo
-          endif
+!          if ((abs(molP%a1) .le. TOL).or.(abs(molP%a2) .le. TOL).or.(abs(molP%a3) .le. TOL)) then
+!            if (econ % e(1) .ge. 1) write(*,*) "LWORK = ", LWORK,";info1= ", info1,";INFO= ", INFO
+!            do i=1, M
+!              write(*,'(1X,4F11.4)') (A(i,j),j=1,N)
+!            enddo
+!          endif
 
   END SUBROUTINE calc_QPar_DGELSD
   !--------------------------------------------------------------------------------------------------------------------

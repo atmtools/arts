@@ -168,8 +168,8 @@ END module module_molecSp
         pos = pos + iaux
         ELSE
             if (econ % e(1) .ge. 1) then
-                print*, " No vibrational band information or not speficied Format "
-                print*, " your selected molecule (HITRANid):", my_mol  
+                write(*,*) " No vibrational band information or not speficied Format "
+                write(*,*) " of your selected molecule (HITRANid):", my_mol  
             endif
         ENDIF
 

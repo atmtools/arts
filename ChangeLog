@@ -1,4 +1,13 @@
 2018-01-12  Teresa Mendaza <t.mendaza.cal@gmail.com>
+
+        * arts-2-3-922
+
+        Some symbols of the FORTRAN 77 grammar have been
+	changed to their FORTRAN 90 counterparts to avoid compilation 
+	warnings in relmat.
+
+
+2018-01-12  Teresa Mendaza <t.mendaza.cal@gmail.com>
 	
 	* arts-2-3-921
 
