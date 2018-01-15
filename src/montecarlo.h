@@ -89,9 +89,6 @@ void cloud_atm_vars_by_gp (VectorView pressure,
                            ConstTensor4View   vmr_field_cloud,
                            ConstTensor4View   pnd_field);
 
-void findZ11max (Vector& Z11maxvector,
-                 const ArrayOfArrayOfSingleScatteringData& scat_data_mono);
-
 void get_ppath_transmat (Workspace&      ws,
                          MatrixView&     trans_mat,
                    const Ppath&          ppath,
@@ -237,7 +234,6 @@ void Sample_los (VectorView       new_rte_los,
                  const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                  const Index      stokes_dim,
                  ConstVectorView  pnd_vec,
-                 const bool       anyptype30,
                  ConstVectorView  Z11maxvector,
                  const Numeric    Csca,
                  const Numeric    rtp_temperature,

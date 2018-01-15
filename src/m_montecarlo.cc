@@ -247,10 +247,20 @@ void MCGeneral(Workspace&            ws,
   time_t start_time=time(NULL);
   Index  N_se = pnd_field.nbooks();//Number of scattering elements
   Vector pnd_vec(N_se); //Vector of particle number densities used at each point
-  Vector Z11maxvector;//Vector holding the maximum phase function for each 
-  bool  anyptype30 = is_anyptype30(scat_data_mono);
-  if (anyptype30)
-    { findZ11max(Z11maxvector,scat_data_mono); }
+  Vector Z11maxvector(N_se);//Vector holding the maximum phase function for each 
+
+  // finding maximum phase function for each scatt element
+  Index i_total = -1;
+  for (Index i_ss = 0; i_ss<scat_data_mono.nelem(); i_ss++)
+  {
+    for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
+    {
+      i_total++;
+      Z11maxvector[i_total]=
+        max(scat_data_mono[i_ss][i_se].pha_mat_data(0,joker,joker,joker,joker,joker,0));
+    }
+  }
+
   rng.seed(mc_seed, verbosity);
   Numeric g,temperature,albedo,g_los_csc_theta;
   Matrix  A(stokes_dim,stokes_dim), Q(stokes_dim,stokes_dim);
@@ -472,7 +482,7 @@ void MCGeneral(Workspace&            ws,
                     //we have a scattering event
                     Sample_los( new_rte_los, g_los_csc_theta, Z, rng, 
                                 local_rte_los, scat_data_mono, stokes_dim,
-                                pnd_vec, anyptype30, Z11maxvector, 
+                                pnd_vec, Z11maxvector, 
                                 ext_mat_mono(0,0)-abs_vec_mono[0], temperature,
                                 verbosity );
                                              

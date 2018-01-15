@@ -1,3 +1,16 @@
+2018-01-15 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-924
+
+	* src/m_montecarlo.cc (MCGeneral), src/montecarlo.cc (findZ11max,
+	Sample_los):
+	Simplified code for Z11max finding. This is called just once per LOS,
+	hence efficiency is not crucial. Hence, removed ptype-dependent
+	handling, moved the little remaining code directly into MCGeneral and
+	removed findZ11max function.
+
+	* CHANGES-2.3: Leftover uncommited change from arts-2-3-900.
+
 2018-01-12  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-923
@@ -6,9 +19,9 @@
 
 2018-01-12  Teresa Mendaza <t.mendaza.cal@gmail.com>
 
-        * arts-2-3-922
+	* arts-2-3-922
 
-        Some symbols of the FORTRAN 77 grammar have been
+	Some symbols of the FORTRAN 77 grammar have been
 	changed to their FORTRAN 90 counterparts to avoid compilation 
 	warnings in relmat.
 

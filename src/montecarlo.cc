@@ -553,58 +553,6 @@ void cloud_atm_vars_by_gp(
 }
 
 
-
-//! findZ11max
-/*! 
-  The direction sampling method requires a bounding value for Z11.
-  This returns a vector with the maximum value of Z11 for each scattering
-  element.
-
-  \param[out] Z11maxvector Maximum value of Z11 for each scattering element
-  \param[in]  scat_data_mono
-
-  \author Cory Davis
-  \date   2004-31-1
-*/
-void findZ11max(Vector& Z11maxvector,
-                const ArrayOfArrayOfSingleScatteringData& scat_data_mono)
-{
-  Z11maxvector.resize(TotalNumberOfElements(scat_data_mono));
-
-  Index i_total = -1;
-  // Loop over the included scattering species
-  for (Index i_ss = 0; i_ss<scat_data_mono.nelem(); i_ss++)
-  {
-      // Loop over the included scattering elements
-      for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
-      {
-          i_total++;
-          switch(scat_data_mono[i_ss][i_se].ptype){
-              case PTYPE_TOTAL_RND:
-              {
-                  Z11maxvector[i_total]=
-                    max(scat_data_mono[i_ss][i_se].pha_mat_data(0,joker,joker,0,0,0,0));
-              }
-              case PTYPE_AZIMUTH_RND:
-              {
-                //JM170207: I think, we need to check all azimuths here, too.
-                //Az=0 gives the smallest scatt angle, but smallest scatt angle
-                //does not always correspond to largest Z11 value (think, eg
-                //backscattering: Z11 is generally larger at scatt ang 180deg
-                //than at 90deg). IF we want/need to be smart (eg for
-                //performance reasons), than we need to pick out the forward
-                //direction and check that one.
-                Z11maxvector[i_total]=
-                    max(scat_data_mono[i_ss][i_se].pha_mat_data(0,joker,joker,joker,joker,0,0));
-              }
-              default:
-                  Z11maxvector[i_total]=
-                    max(scat_data_mono[i_ss][i_se].pha_mat_data(0,joker,joker,joker,joker,joker,0));
-          }
-      }
-  }
-}
-
 //! get_ppath_transmat
 /*!
   
@@ -2140,7 +2088,6 @@ void pha_mat_singleExtract(
    \param[in]     scat_data_mono
    \param[in]     stokes_dim
    \param[in]     pnd_vec
-   \param[in]     anyptype30
    \param[in]     Z11maxvector
    \param[in]     Csca
    \param[in]     rtp_temperature
@@ -2158,7 +2105,6 @@ void Sample_los (
                  const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                  const Index      stokes_dim,
                  ConstVectorView  pnd_vec,
-                 const bool       anyptype30,
                  ConstVectorView  Z11maxvector,
                  const Numeric    Csca,
                  const Numeric    rtp_temperature,
@@ -2172,25 +2118,13 @@ void Sample_los (
   mirror_los( sca_dir, rte_los, 3 );
       
   // Rejection method http://en.wikipedia.org/wiki/Rejection_sampling
-  if(anyptype30)
+  Index np=pnd_vec.nelem();
+  assert(TotalNumberOfElements(scat_data_mono)==np);
+  for(Index i=0;i<np;i++)
     {
-      Index np=pnd_vec.nelem();
-      assert(TotalNumberOfElements(scat_data_mono)==np);
-      for(Index i=0;i<np;i++)
-        {
-          Z11max+=Z11maxvector[i]*pnd_vec[i];
-        }
+      Z11max+=Z11maxvector[i]*pnd_vec[i];
     }
-  else
-    {
-      Matrix dummyZ(stokes_dim,stokes_dim);
-      //The following is based on the assumption that the maximum value of the 
-      //phase matrix for a given scattered direction is for forward scattering
-      pha_mat_singleCalc( dummyZ, sca_dir[0], sca_dir[1], sca_dir[0], sca_dir[1],
-                          scat_data_mono, stokes_dim, pnd_vec, rtp_temperature,
-                          verbosity);
-      Z11max=dummyZ(0,0);
-    }  
+
   ///////////////////////////////////////////////////////////////////////  
   while(tryagain)
     {
