@@ -1,5 +1,14 @@
 2018-01-16 Jana Mendrok  <jana.mendrok@gmail.com>
 
+	* arts-2-3-928
+
+	More optical property handling related work in progress.
+
+	* src/optproperties.cc (opt_prop_1ScatElem):
+	Completed this method.
+
+2018-01-16 Jana Mendrok  <jana.mendrok@gmail.com>
+
 	* arts-2-3-927
 
 	Work in progress. Implementing functions for consistent oprical property

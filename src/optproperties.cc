@@ -124,20 +124,20 @@ void opt_prop_1ScatElem(//Output
 
   ptype = ssd.ptype;
 
-  Index f_start, f_end, nf;
+  Index f_start, nf;
   if( f_index>0 )
     {
       assert( ext_mat.nshelves() == ssd.f_grid.nelem() );
       f_start = 0;
       nf = ext_mat.nshelves();
-      f_end = f_start+nf;
+      //f_end = f_start+nf;
     }
   else
     {
       assert( ext_mat.nshelves() == 1 );
       f_start = f_index;
       nf = 1;
-      f_end = f_start+nf;
+      //f_end = f_start+nf;
     }
 
   // Determine T-interpol order as well as interpol positions and weights (they
@@ -232,7 +232,8 @@ void opt_prop_1ScatElem(//Output
     // with za, not with aa. Hence, we could be smart here and calc data only
     // for unique za (and copy the rest). however, this smartness might cost as
     // well. so for now, we leave that and blindly loop over the given direction
-    // array.
+    // array, and leave smartness in setting up directional array to the calling
+    // methods.
 
     // derive the direction interpolation weights.
     ArrayOfGridPos dir_gp(nDir);
@@ -240,15 +241,18 @@ void opt_prop_1ScatElem(//Output
     Matrix dir_itw(nDir, 4);
     interpweights(dir_itw, dir_gp);
 
+    Index next = ssd.ext_mat_data.ncols();
+    Index nabs = ssd.abs_vec_data.ncols();
+
     if( this_T_interp_order<0 ) // T only needs to be extracted.
     {
+      Matrix ext_mat_tmp_ssd(nDir,next);
+      Matrix abs_vec_tmp_ssd(nDir,nabs);
       Tensor4 ext_mat_tmp(nf,nDir,stokes_dim,stokes_dim);
       Tensor3 abs_vec_tmp(nf,nDir,stokes_dim);
-      Matrix ext_mat_tmp_ssd(nDir,ssd.ext_mat_data.ncols());
-      Matrix abs_vec_tmp_ssd(nDir,ssd.abs_vec_data.ncols());
       for( Index find=0; find<nf; find++ )
       {
-        for( Index nst=0; nst<ext_mat_tmp_ssd.ncols(); nst++ )
+        for( Index nst=0; nst<next; nst++ )
           interp(ext_mat_tmp_ssd(joker,nst), dir_itw,
                  ssd.ext_mat_data(find+f_start,0,joker,0,nst), dir_gp);
         for( Index Dind=0; Dind<nDir; Dind++ )
@@ -256,7 +260,7 @@ void opt_prop_1ScatElem(//Output
                              ext_mat_tmp_ssd(Dind,joker),
                              stokes_dim, ptype);
 
-        for( Index nst=0; nst<abs_vec_tmp_ssd.ncols(); nst++ )
+        for( Index nst=0; nst<nabs; nst++ )
           interp(abs_vec_tmp_ssd(joker,nst), dir_itw,
                  ssd.abs_vec_data(find+f_start,0,joker,0,nst), dir_gp);
         for( Index Dind=0; Dind<nDir; Dind++ )
@@ -274,7 +278,42 @@ void opt_prop_1ScatElem(//Output
     else // T- and dir-interpolation required. To be done on the compact ssd
          // format.
     {
-      cout << "not yet done.\n";
+      Tensor3 ext_mat_tmp_ssd(nTin,nDir,next);
+      Tensor3 abs_vec_tmp_ssd(nTin,nDir,nabs);
+      Matrix ext_mat_tmp(nTout,next);
+      Matrix abs_vec_tmp(nTout,next);
+
+      for( Index find=0; find<nf; find++ )
+      {
+        for( Index Tind=0; Tind<nTin; Tind++ )
+        {
+          for( Index nst=0; nst<next; nst++ )
+            interp(ext_mat_tmp_ssd(Tind,joker,nst), dir_itw,
+                   ssd.ext_mat_data(find+f_start,Tind,joker,0,nst), dir_gp);
+          for( Index nst=0; nst<nabs; nst++ )
+            interp(abs_vec_tmp_ssd(Tind,joker,nst), dir_itw,
+                   ssd.abs_vec_data(find+f_start,Tind,joker,0,nst), dir_gp);
+        }
+
+        for( Index Dind=0; Dind<nDir; Dind++ )
+        {
+          for( Index nst=0; nst<next; nst++ )
+            interp(ext_mat_tmp(joker,nst), T_itw,
+                   ext_mat_tmp_ssd(joker,Dind,nst), T_gp);
+          for( Index Tind=0; Tind<nTout; Tind++ )
+            ext_mat_SSD2Stokes(ext_mat(find,Tind,Dind,joker,joker),
+                               ext_mat_tmp(Tind,joker),
+                               stokes_dim, ptype);
+
+          for( Index nst=0; nst<nabs; nst++ )
+            interp(abs_vec_tmp(joker,nst), T_itw,
+                   abs_vec_tmp_ssd(joker,Dind,nst), T_gp);
+          for( Index Tind=0; Tind<nTout; Tind++ )
+            abs_vec_SSD2Stokes(abs_vec(find,Tind,Dind,joker),
+                               abs_vec_tmp(Tind,joker),
+                               stokes_dim, ptype);
+        }
+      }
     }
   }
 }
