@@ -1,8 +1,29 @@
+2018-01-16 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-927
+
+	Work in progress. Implementing functions for consistent oprical property
+	handling over the scattering solvers.
+
+	* src/optproperties.h: Redefined enums associated with ptypes such that
+	they increase with complexity.
+
+	* src/optproperties.[cc,h] (opt_prop_1ScatElem, ext_mat_SSD2Stokes,
+	abs_vec_SSD2Stokes):
+	New methods for extmat/absvec extraction from single scat elements. To
+	replace opt_propExtract and opt_prop_sptFrom*/ext_matTransform/
+	abs_vecTransform.
+
+	* src/montecarlo.cc (opt_propExtract):
+	Spurious comment cleanup.
+
+	* doc/uguide/clouds.tex: Crucial typo fix.
+
 2018-01-16  Teresa Mendaza <t.mendaza.cal@gmail.com>
 
-        * arts-2-3-926
+	* arts-2-3-926
 
-        * 3rdparty/relmat/arts_interface.F90: Added a rule tolerance 
+	* 3rdparty/relmat/arts_interface.F90: Added a rule tolerance 
 	limitation to both LM-methods (Hartmann&Niro and 'the linearization') 
 	so the user can control whether his/her calculations meets 
 	the perturbation theory condition. 

@@ -54,9 +54,9 @@
 
 */
 enum PType {
-  PTYPE_GENERAL = 10,
-  PTYPE_TOTAL_RND = 20,
-  PTYPE_AZIMUTH_RND = 30
+  PTYPE_GENERAL     = 300,
+  PTYPE_AZIMUTH_RND = 200,
+  PTYPE_TOTAL_RND   = 100,
 };
 
 
@@ -133,6 +133,31 @@ ostream& operator<< (ostream& os, const ArrayOfScatteringMetaData& assd);
 
 // General functions:
 // =============================================================
+
+void opt_prop_1ScatElem(//Output
+                        Tensor5View& ext_mat,
+                        Tensor4View& abs_vec,
+                        Index& ptype,
+                        //Input
+                        const SingleScatteringData& ssd,
+                        const Vector& T_array,
+                        const Matrix& dir_array,
+                        const Index& f_index,
+                        const Index& t_interp_order);
+
+void ext_mat_SSD2Stokes(//Output
+                        MatrixView ext_mat_stokes,
+                        //Input
+                        ConstVectorView ext_mat_ssd,
+                        const Index& stokes_dim,
+                        const Index& ptype);
+
+void abs_vec_SSD2Stokes(//Output
+                        VectorView abs_vec_stokes,
+                        //Input
+                        ConstVectorView abs_vec_ssd,
+                        const Index& stokes_dim,
+                        const Index& ptype);
 
 void abs_vecTransform(//Output and Input
                       StokesVector& abs_vec_lab,

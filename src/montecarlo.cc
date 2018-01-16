@@ -1495,9 +1495,6 @@ void opt_propExtract(
          but will be a problem for PTYPE_GENERAL, ie needs to be fixed BEFORE
          adding PTYPE_GENERAL support (see AUG appendix for more info).
       */
-
-      // This is only included to remove warnings about unused variables 
-      // during compilation
       CREATE_OUT0;
       out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
       break;

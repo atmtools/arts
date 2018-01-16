@@ -64,6 +64,313 @@ extern const Numeric PI;
 #define F44 pha_mat_int[5]
 
 
+//! one-line descript
+/*! 
+  Descript/Doc
+
+  \param[out] name  desc.
+  \param[in]  name  desc.
+
+  \author Jana Mendrok
+  \date   2018-01-15
+*/
+/*
+void methodname(//Output
+                type& name,
+                //Input
+                const type& name)
+{
+}
+*/
+
+//! one-line descript
+/*! 
+  Descript/Doc
+
+  \param[out] name  desc.
+  \param[in]  name  desc.
+
+  \author Jana Mendrok
+  \date   2018-01-15
+*/
+void opt_prop_1ScatElem(//Output
+                        Tensor5View& ext_mat, // nf, nT, ndir, nst, nst
+                        Tensor4View& abs_vec, // nf, nT, ndir, nst
+                        Index& ptype,
+                        //Input
+                        const SingleScatteringData& ssd,
+                        const Vector& T_array,
+                        const Matrix& dir_array,
+                        const Index& f_index,
+                        const Index& t_interp_order)
+{
+  // FIXME: this is prob best to be done in scat_data_checkedCalc (or
+  // cloudbox_checkedCalc) to have it done once and for all. Here at max assert.
+
+  // At very first check validity of the scatt elements ptype (so far we only
+  // handle PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND).
+  if( ssd.ptype != PTYPE_TOTAL_RND and ssd.ptype != PTYPE_AZIMUTH_RND )
+  {
+    ostringstream os;
+    os << "Only ptypes " << PTYPE_TOTAL_RND << " and " << PTYPE_AZIMUTH_RND
+       << " can be handled.\n"
+       << "Encountered scattering element with ptype " << ssd.ptype
+       << ", though.";
+    throw runtime_error( os.str() );
+  }
+
+  assert( ssd.ptype == PTYPE_TOTAL_RND or ssd.ptype == PTYPE_AZIMUTH_RND );
+  assert( ext_mat.nshelves() == abs_vec.nbooks() );
+
+  ptype = ssd.ptype;
+
+  Index f_start, f_end, nf;
+  if( f_index>0 )
+    {
+      assert( ext_mat.nshelves() == ssd.f_grid.nelem() );
+      f_start = 0;
+      nf = ext_mat.nshelves();
+      f_end = f_start+nf;
+    }
+  else
+    {
+      assert( ext_mat.nshelves() == 1 );
+      f_start = f_index;
+      nf = 1;
+      f_end = f_start+nf;
+    }
+
+  // Determine T-interpol order as well as interpol positions and weights (they
+  // are the same for all directions (and freqs), ie it is sufficient to
+  // calculate them once).
+  Index nTin = ssd.T_grid.nelem();
+  Index nTout = T_array.nelem();
+  Index this_T_interp_order = -1;
+  ArrayOfGridPosPoly T_gp(nTout);
+  Matrix T_itw(nTout, this_T_interp_order+1);
+
+  if( nTin>1 )
+  {
+    this_T_interp_order = min(t_interp_order, nTin);
+
+    ostringstream os;
+    os << "In opt_prop_1ScatElem.\n"
+       << "Scattering data not covering at least one of the requested"
+       << " temperatures:\n"
+       << T_array;
+    chk_interpolation_grids(os.str(), ssd.T_grid, T_array, this_T_interp_order);
+
+    gridpos_poly(T_gp, ssd.T_grid, T_array, this_T_interp_order);
+    interpweights(T_itw, T_gp);
+  }
+
+  Index nDir = dir_array.nrows();
+  Index stokes_dim = ext_mat.ncols();
+
+  // Now loop over requested directions (and apply simultaneously for all freqs):
+  // 1) extract/interpolate direction (but not for tot.random)
+  // 2) apply T-interpol
+  if( ptype==PTYPE_TOTAL_RND )
+    if( this_T_interp_order<0 ) // just extract (and unpack) ext and abs data
+                                // for the fs, the Tin, and the dirin and sort
+                                // (copy) into the output fs, Ts, and dirs.
+    {
+      Tensor3 ext_mat_tmp(nf,stokes_dim,stokes_dim);
+      Matrix abs_vec_tmp(nf,stokes_dim);
+      for( Index find=0; find<nf; find++ )
+      {
+        ext_mat_SSD2Stokes(ext_mat_tmp(find,joker,joker),
+                           ssd.ext_mat_data(find+f_start,0,0,0,joker),
+                           stokes_dim, ptype);
+        abs_vec_SSD2Stokes(abs_vec_tmp(find,joker),
+                           ssd.abs_vec_data(find+f_start,0,0,0,joker),
+                           stokes_dim, ptype);
+      }
+      for( Index Tind=0; Tind<nTout; Tind++ )
+        for( Index dind=0; dind<nDir; dind++ )
+        {
+          ext_mat(joker,Tind,dind,joker,joker) = ext_mat_tmp;
+          abs_vec(joker,Tind,dind,joker) = abs_vec_tmp;
+        }
+    }
+    else // T-interpolation required (but not dir). To be done on the compact
+         // ssd format.
+    {
+      Tensor4 ext_mat_tmp(nf,nTout,stokes_dim,stokes_dim);
+      Tensor3 abs_vec_tmp(nf,nTout,stokes_dim);
+      Matrix ext_mat_tmp_ssd(nTout,ssd.ext_mat_data.ncols());
+      Matrix abs_vec_tmp_ssd(nTout,ssd.abs_vec_data.ncols());
+      for( Index find=0; find<nf; find++ )
+      {
+        for( Index nst=0; nst<ext_mat_tmp_ssd.ncols(); nst++ )
+          interp(ext_mat_tmp_ssd(joker,nst), T_itw,
+                 ssd.ext_mat_data(find+f_start,joker,0,0,nst), T_gp);
+        for( Index Tind=0; Tind<nTout; Tind++ )
+          ext_mat_SSD2Stokes(ext_mat_tmp(find,Tind,joker,joker),
+                             ext_mat_tmp_ssd(Tind,joker),
+                             stokes_dim, ptype);
+
+        for( Index nst=0; nst<abs_vec_tmp_ssd.ncols(); nst++ )
+          interp(abs_vec_tmp_ssd(joker,nst), T_itw,
+                 ssd.abs_vec_data(find+f_start,joker,0,0,nst), T_gp);
+        for( Index Tind=0; Tind<nTout; Tind++ )
+          abs_vec_SSD2Stokes(abs_vec_tmp(find,Tind,joker),
+                             abs_vec_tmp_ssd(Tind,joker),
+                             stokes_dim, ptype);
+      }
+
+      for( Index dind=0; dind<nDir; dind++ )
+      {
+        ext_mat(joker,joker,dind,joker,joker) = ext_mat_tmp;
+        abs_vec(joker,joker,dind,joker) = abs_vec_tmp;
+      }
+    }
+
+  else // dir-interpolation for non-tot-random particles
+  {
+    // as we don't allow other than az.random here, ext and abs will only vary
+    // with za, not with aa. Hence, we could be smart here and calc data only
+    // for unique za (and copy the rest). however, this smartness might cost as
+    // well. so for now, we leave that and blindly loop over the given direction
+    // array.
+
+    // derive the direction interpolation weights.
+    ArrayOfGridPos dir_gp(nDir);
+    gridpos(dir_gp, ssd.za_grid, dir_array(joker,0));
+    Matrix dir_itw(nDir, 4);
+    interpweights(dir_itw, dir_gp);
+
+    if( this_T_interp_order<0 ) // T only needs to be extracted.
+    {
+      Tensor4 ext_mat_tmp(nf,nDir,stokes_dim,stokes_dim);
+      Tensor3 abs_vec_tmp(nf,nDir,stokes_dim);
+      Matrix ext_mat_tmp_ssd(nDir,ssd.ext_mat_data.ncols());
+      Matrix abs_vec_tmp_ssd(nDir,ssd.abs_vec_data.ncols());
+      for( Index find=0; find<nf; find++ )
+      {
+        for( Index nst=0; nst<ext_mat_tmp_ssd.ncols(); nst++ )
+          interp(ext_mat_tmp_ssd(joker,nst), dir_itw,
+                 ssd.ext_mat_data(find+f_start,0,joker,0,nst), dir_gp);
+        for( Index Dind=0; Dind<nDir; Dind++ )
+          ext_mat_SSD2Stokes(ext_mat_tmp(find,Dind,joker,joker),
+                             ext_mat_tmp_ssd(Dind,joker),
+                             stokes_dim, ptype);
+
+        for( Index nst=0; nst<abs_vec_tmp_ssd.ncols(); nst++ )
+          interp(abs_vec_tmp_ssd(joker,nst), dir_itw,
+                 ssd.abs_vec_data(find+f_start,0,joker,0,nst), dir_gp);
+        for( Index Dind=0; Dind<nDir; Dind++ )
+          abs_vec_SSD2Stokes(abs_vec_tmp(find,Dind,joker),
+                             abs_vec_tmp_ssd(Dind,joker),
+                             stokes_dim, ptype);
+      }
+
+      for( Index Tind=0; Tind<nTout; Tind++ )
+      {
+        ext_mat(joker,Tind,joker,joker,joker) = ext_mat_tmp;
+        abs_vec(joker,Tind,joker,joker) = abs_vec_tmp;
+      }
+    }
+    else // T- and dir-interpolation required. To be done on the compact ssd
+         // format.
+    {
+      cout << "not yet done.\n";
+    }
+  }
+}
+
+
+//! Extinction matrix scat_data to stokes format conversion.
+/*! 
+  Converts extinction matrix from scat_data ptype-dependent compact format to
+  Stokes-notation matrix.
+
+  \param[out] ext_mat_stokes  extmat in stokes notation (stokes_dim,stokes_dim).
+  \param[in]  ext_mat_ssd     extmat at 1f, 1T, 1dir in scat_data compact
+                                (vector) format.
+  \param[in]  stokes_dim      as the WSM.
+  \param[in]  ptype           as scat_data[i_ss][i_se].ptype.
+
+  \author Jana Mendrok
+  \date   2018-01-15
+*/
+void ext_mat_SSD2Stokes(//Output
+                        MatrixView ext_mat_stokes,
+                        //Input
+                        ConstVectorView ext_mat_ssd,
+                        const Index& stokes_dim,
+                        const Index& ptype)
+{
+  // for now, no handling of PTYPE_GENERAL. should be ensured somewhere in the
+  // calling methods, though.
+  assert( ptype<=PTYPE_AZIMUTH_RND );
+
+  ext_mat_stokes = 0.;
+
+  for( Index ist=0; ist<stokes_dim; ist++ )
+  {
+    ext_mat_stokes(ist,ist) = ext_mat_ssd[0];
+  }
+
+  if( ptype>PTYPE_TOTAL_RND )
+  {
+    switch( stokes_dim )
+    {
+      case 4:
+      {
+        ext_mat_stokes(2,3) = ext_mat_ssd[2];
+        ext_mat_stokes(3,2) = -ext_mat_ssd[2];
+      }
+      case 3:
+      {
+        // nothing to be done here. but we need this for executing the below
+        // also in case of stokes_dim==3.
+      }
+      case 2:
+      {
+        ext_mat_stokes(0,1) = ext_mat_ssd[1];
+        ext_mat_stokes(1,0) = ext_mat_ssd[1];
+      }
+    }
+  }
+}
+
+//! Absorption vector scat_data to stokes format conversion.
+/*! 
+  Converts absorption vector from scat_data ptype-dependent compact format to
+  Stokes-notation matrix.
+
+  \param[out] abs_vec_stokes  absvec in stokes notation (stokes_dim).
+  \param[in]  abs_vec_ssd     absvec at 1f, 1T, 1dir in scat_data compact
+                                (vector) format.
+  \param[in]  stokes_dim      as the WSM.
+  \param[in]  ptype           as scat_data[i_ss][i_se].ptype.
+
+  \author Jana Mendrok
+  \date   2018-01-15
+*/
+void abs_vec_SSD2Stokes(//Output
+                        VectorView abs_vec_stokes,
+                        //Input
+                        ConstVectorView abs_vec_ssd,
+                        const Index& stokes_dim,
+                        const Index& ptype)
+{
+  // for now, no handling of PTYPE_GENERAL. should be ensured somewhere in the
+  // calling methods, though.
+  assert( ptype<=PTYPE_AZIMUTH_RND );
+
+  abs_vec_stokes = 0.;
+
+  abs_vec_stokes[0] = abs_vec_ssd[0];
+
+  if( ptype>PTYPE_TOTAL_RND and stokes_dim>0 )
+  {
+    abs_vec_stokes[1] = abs_vec_ssd[1];
+  }
+}
+
+
 //! Transformation of absorption vector.
 /*! 
   In the single scattering database the data of the absorption vector is 
@@ -509,7 +816,7 @@ void pha_matTransform(//Output
 //! Derive extinction matrix from absorption vector.
 /*! 
   In case, when only absorption of a scattering element shall be considered, and
-  the scattering is negelected, the extinction matrix is set from the absorption
+  the scattering is neglected, the extinction matrix is set from the absorption
   vector only.
 
   Extinction matrix is set the following way:
