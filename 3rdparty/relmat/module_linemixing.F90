@@ -1339,7 +1339,7 @@ write(*,*) "Generate the Matrix for LLS"
 !
 ! Detailed description:
 ! ---------------------
-! To invert the MAtrix expresion, th eperturbation theory is appropriate under the condition
+! To invert the MAtrix expresion, the perturbation theory is appropriate under the condition
 !
 ! |  P * W_lk |
 ! | --------- | << 1
@@ -1352,9 +1352,9 @@ write(*,*) "Generate the Matrix for LLS"
 ! vk   = central frequency(cm-1) of line k
 !
 ! NOTE: The Tolerance used in this function (TOL_rule2)
-!       is an arbitrary selection
+!       is an arbitrary selection made by the user
 !     
-! T. Mendaza last change 20 Feb 2017
+! T. Mendaza last update 16 Jan 2018
 ! --------------------------------------------------------
     use module_common_var
     implicit none

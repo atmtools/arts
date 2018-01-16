@@ -1,3 +1,12 @@
+2018-01-16  Teresa Mendaza <t.mendaza.cal@gmail.com>
+
+        * arts-2-3-926
+
+        * 3rdparty/relmat/arts_interface.F90: Added a rule tolerance 
+	limitation to both LM-methods (Hartmann&Niro and 'the linearization') 
+	so the user can control whether his/her calculations meets 
+	the perturbation theory condition. 
+
 2018-01-16  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-925

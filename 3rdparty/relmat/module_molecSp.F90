@@ -298,6 +298,9 @@ END module module_molecSp
             double precision              :: T
             !-----------------------------------------
             T = molP % Temp
+            ! NOTE: T0 needs to be considered as the 
+            ! reference temperature to use this parameters
+            ! T0 = 296 K
             !-----------------------------------------
             if ((sys(1) .eq. 2) .and. (sys(2) .eq. 22)) then
             ! CO2(2)-N2(4)
@@ -310,9 +313,9 @@ END module module_molecSp
                 molP%ex1 = 0.85   
                 molP%ex2 = 0.0152
             
-                if (T .ne. T0) then
-                    molP%a1 = molP%a1*(T0/T)**molP%ex1 
-                    molP%a2 = molP%a2*(T0/T)**molP%ex2
+                if (T .ne. 296d0) then
+                    molP%a1 = molP%a1*(296d0/T)**molP%ex1 
+                    molP%a2 = molP%a2*(296d0/T)**molP%ex2
                 endif
             ! -------------------------------
             else if ((sys(1) .eq. 2) .and. (sys(2) .eq. 7)) then
@@ -325,9 +328,9 @@ END module module_molecSp
                 molP%dc = 2.4      !Å (amstrong)
                 molP%ex1 = 0.50   
                 molP%ex2 = -0.091
-                if (T .ne. T0) then
-                    molP%a1 = molP%a1*(T0/T)**molP%ex1 
-                    molP%a2 = molP%a2*(T0/T)**molP%ex2
+                if (T .ne. 296d0) then
+                    molP%a1 = molP%a1*(296d0/T)**molP%ex1 
+                    molP%a2 = molP%a2*(296d0/T)**molP%ex2
                 endif
             ! -------------------------------
             else if ((sys(1) .eq. 7) .and. (sys(2) .eq. 7)) then
@@ -338,9 +341,9 @@ END module module_molecSp
                 molP%dc = 1.05     !Å (amstrong)
                 molP%ex1 = 1.0  
                 molP%ex2 = 1.0
-                if (T .ne. T0) then
-                    molP%a1 = molP%a1*(T0/T)**molP%ex1 
-                    molP%a2 = molP%a2*(T0/T)**molP%ex2
+                if (T .ne. 296d0) then
+                    molP%a1 = molP%a1*(296d0/T)**molP%ex1 
+                    molP%a2 = molP%a2*(296d0/T)**molP%ex2
                 endif
             else if ((sys(1) .eq. 7) .and. (sys(2) .eq. 22)) then
             ! Tran et al. 2006; O2 - N2
@@ -350,9 +353,9 @@ END module module_molecSp
                 molP%dc = 1.0      !Å (amstrong)
                 molP%ex1 = 1.0  
                 molP%ex2 = 1.0
-                if (T .ne. T0) then
-                    molP%a1 = molP%a1*(T0/T)**molP%ex1 
-                    molP%a2 = molP%a2*(T0/T)**molP%ex2
+                if (T .ne. 296d0) then
+                    molP%a1 = molP%a1*(296d0/T)**molP%ex1 
+                    molP%a2 = molP%a2*(296d0/T)**molP%ex2
                 endif
             else if ((sys(1) .eq. 4) .and. (sys(2) .eq. 7)) then
             ! Hartmann et al. 1999; N2O - O2
@@ -362,9 +365,9 @@ END module module_molecSp
                 molP%dc = 2.9      !Å (amstrong)
                 molP%ex1 = 0.85   
                 molP%ex2 = 1.0
-                if (T .ne. T0) then
-                    molP%a1 = molP%a1*(T0/T)**molP%ex1 
-                    molP%a2 = molP%a2*(T0/T)**molP%ex2
+                if (T .ne. 296d0) then
+                    molP%a1 = molP%a1*(296d0/T)**molP%ex1 
+                    molP%a2 = molP%a2*(296d0/T)**molP%ex2
                 endif
             else if ((sys(1) .eq. 4) .and. (sys(2) .eq. 22)) then
             ! Hartmann et al. 1999; N2O - N2
@@ -374,9 +377,9 @@ END module module_molecSp
                 molP%dc = 2.9      !Å (amstrong)
                 molP%ex1 = 0.85   
                 molP%ex2 = 1.0
-                if (T .ne. T0) then
-                    molP%a1 = molP%a1*(T0/T)**molP%ex1 
-                    molP%a2 = molP%a2*(T0/T)**molP%ex2
+                if (T .ne. 296d0) then
+                    molP%a1 = molP%a1*(296d0/T)**molP%ex1 
+                    molP%a2 = molP%a2*(296d0/T)**molP%ex2
                 endif
             else
                 call Qparam_error(econ)
