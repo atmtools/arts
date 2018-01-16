@@ -13,7 +13,8 @@ module arts_interface
                           artsg0 , artsg00, &
                           T, Ptot, QT, QT0, mass, &
                           npert, pert, i_pert, p_mass, p_vmr,&
-                          runE_deb,ordered,&
+                          runE_deb,ordered, & 
+                          tol_rule2,use_adiab, &
                           W_rn, dipo, rho, &
                           Y1,Y2,Y3) 
         !   MODEL:
@@ -64,6 +65,8 @@ module arts_interface
         !                    1st column = Rosenkranz parameter/line
         !                    2nd column = g (2nd ord-parameter)/line
         !                    3rd column = dv(2nd ord-shift)/line
+        !   tol_rule2 : REAL*8 Tolerance level for rule 2
+        !   use_adiab : BOOL Flag to use the adiabatic factors.  Requires molecule to be defined
         !
         !
         !   OUTPUT VARIABLES
@@ -94,11 +97,12 @@ module arts_interface
             integer*8         :: ordered
             integer*8         :: runE_deb
             Double Precision  :: sgmin, sgmax, T, Ptot
-            Double Precision  :: QT, QT0, mass
+            Double Precision  :: QT, QT0, mass, tol_rule2
             Double Precision  :: p_vmr(npert), p_mass(npert)
             Double Precision  :: artsWNO(nLines),artsS(nLines), &
                                  artsGA(nLines), artsE00(nLines), &
                                  artsNA(nLines)
+            Logical           :: use_adiab
             !   OUTPUT variables
             Double Precision  :: rho(nLines), dipo(nLines)
             Double Precision  :: Y1(nLines),Y2(nLines),Y3(nLines) 
@@ -113,6 +117,7 @@ module arts_interface
                           T, Ptot, QT, QT0, mass, &
                           npert, pert, i_pert, p_mass, p_vmr,&
                           runE_deb,ordered,&
+                          tol_rule2,use_adiab,&
                           W_rn, dipo, rho, &
                           Y1,Y2,Y3) 
         !   MODEL:
@@ -150,11 +155,12 @@ module arts_interface
             integer*8, intent (in) :: ordered
             integer*8, intent (inout) :: runE_deb
             Double Precision, intent (in) :: sgmin, sgmax, T, Ptot
-            Double Precision, intent (in) :: QT, QT0, mass
+            Double Precision, intent (in) :: QT, QT0, mass, tol_rule2
             Double Precision, intent (in) :: p_vmr(npert), p_mass(npert)
             Double Precision, intent (in) :: artsWNO(nLines),artsS(nLines), &
                                              artsGA(nLines), artsE00(nLines), &
                                              artsNA(nLines)
+            Logical, intent (in)          :: use_adiab
             !   OUTPUT variables
             Double Precision, intent (out):: rho(nLines), dipo(nLines)
             Double Precision, intent (out):: Y1(nLines),Y2(nLines),Y3(nLines)
@@ -282,6 +288,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
                           T, Ptot, QT, QT0, mass, &
                           npert, pert, i_pert, p_mass, p_vmr,&
                           runE_deb,ordered,&
+                          tol_rule2,use_adiab,&
                           W_rn, dipo, rho, &
                           Y1,Y2,Y3) bind(C, name='arts_relmat_interface__hartmann_and_niro_type')
 !--------------------------------------------------------------------------------------------------------------------
@@ -332,11 +339,12 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
     integer*8, intent(in) :: ordered
     integer*8, intent(inout) :: runE_deb
     Double Precision, intent(in)  :: sgmin, sgmax, T, Ptot
-    Double Precision, intent(in)  :: QT, QT0, mass
+    Double Precision, intent(in)  :: QT, QT0, mass, tol_rule2
     Double Precision, intent(in)  :: p_vmr(npert), p_mass(npert)
     Double Precision, intent(in)  :: artsWNO(nLines),artsS(nLines), &
                                      artsGA(nLines), artsE00(nLines), &
                                      artsNA(nLines)
+    Logical, intent(in)           :: use_adiab
 !
 !   OUTPUT variables
     Double Precision, intent(out) :: rho(nLines), dipo(nLines)
@@ -533,7 +541,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
         !
         !
         if (econtrol % e(1) .ge. 1) write(*,*) 'Renormalization procedure of the RM...'
-        if (rule2(Ptot,dta_size1,Wmat,dta1%Sig(1:nLines)) .or. (molP%M .eq. 7) ) then
+        if (rule2(Ptot,dta_size1,Wmat,dta1%Sig(1:nLines),tol_rule2) .or. (molP%M .eq. 7)) then
             allocate(Wrno(dta_size1,dta_size1),STAT = IERR3)
             if (IERR3 .ne. 0) call memoError(" Wrno ",econtrol)
             CALL RN_Wmat(dta_size1, pd1, Wmat, Wrno, T, Ptot, econtrol)
@@ -655,6 +663,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
                           T, Ptot, QT, QT0, mass, &
                           npert, pert, i_pert, p_mass, p_vmr,&
                           runE_deb,ordered,&
+                          tol_rule2, use_adiab,&
                           W_rn, dipo, rho, &
                           Y1,Y2,Y3) bind(C, name='arts_relmat_interface__linear_type')
 !--------------------------------------------------------------------------------------------------------------------
@@ -707,11 +716,12 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     integer*8, intent(in) :: ordered
     integer*8, intent(inout) :: runE_deb
     Double Precision, intent(in)  :: sgmin, sgmax, T, Ptot
-    Double Precision, intent(in)  :: QT, QT0, mass
+    Double Precision, intent(in)  :: QT, QT0, mass, tol_rule2
     Double Precision, intent(in)  :: p_vmr(npert), p_mass(npert)
     Double Precision, intent(in)  :: artsWNO(nLines),artsS(nLines), &
                                      artsGA(nLines), artsE00(nLines), &
                                      artsNA(nLines)
+    Logical, intent(in)           :: use_adiab
 !
 !   OUTPUT variables
     Double Precision, intent(out) :: rho(nLines), dipo(nLines)
@@ -775,7 +785,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     molP % v0   = meanV0(nLines,artsWNO)
     !
     !Disable the Adiabatic factor option because it requires from external inputs
-    molP % AF_ON= .false.
+    molP % AF_ON = use_adiab
     my_print = .false. 
 !
 !----------
@@ -897,10 +907,10 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
                         if (econtrol % e(1) .ge. 1) write(*,*) "A4 = ", molP%a4,";A5= ", molP%a5,";A6= ", molP%a6
                         if (econtrol % e(1) .ge. 1) write(*,*) "A7 = ", molP%a7,";A8= ", molP%a8,";A9= ", molP%a9
                     else !if "Linear" or "Model1/2/3/4"
-                        !CALL calc_QParam(dta_size1, pd1, molP, PerM, econtrol)
+                        CALL calc_QParam(dta_size1, pd1, molP, PerM, econtrol)
                         !CALL calc_QPar_DGELSY(dta_size1, pd1, molP, PerM, econtrol)
                         !CALL calc_QPar_DGELSS(dta_size1, pd1, molP, PerM, econtrol)
-                        CALL calc_QPar_DGELSD(dta_size1, pd1, molP, PerM, econtrol)
+                        !CALL calc_QPar_DGELSD(dta_size1, pd1, molP, PerM, econtrol)
                         if (econtrol % e(1) .ge. 1) write(*,*) "A1 = ", molP%a1,";A2= ", molP%a2,";A3= ", molP%a3
                     endif
                 endif

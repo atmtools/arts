@@ -137,11 +137,11 @@ MODULE module_linemixing
             integer*8, intent(in) :: nLines
         end function rule1
 
-        logical function rule2(P,nLines,W,v)
+        logical function rule2(P,nLines,W,v,TOL_rule2)
             use module_common_var
             implicit none
             integer*8       , intent(in) :: nLines
-            double precision, intent(in) :: P
+            double precision, intent(in) :: P, TOL_rule2
             double precision, intent(in) :: W(nLines,nLines)
             double precision, intent(in) :: v(nLines) 
         end function rule2
@@ -1333,7 +1333,7 @@ write(*,*) "Generate the Matrix for LLS"
     RETURN
   end function rule1
 !--------------------------------------------------------------------------------------------------------------------
-  logical function rule2(P,nLines,W,v)
+  logical function rule2(P,nLines,W,v,TOL_rule2)
 !--------------------------------------------------------------------------------------------------------------------
 ! rule2: Perturbation Theory limitation.
 !
@@ -1359,11 +1359,10 @@ write(*,*) "Generate the Matrix for LLS"
     use module_common_var
     implicit none
     integer*8       , intent(in) :: nLines
-    double precision, intent(in) :: P
+    double precision, intent(in) :: P, TOL_rule2
     double precision, intent(in) :: W(nLines,nLines)
     double precision, intent(in) :: v(nLines) 
     integer                      :: l,k,pos(2)
-    double precision,parameter   :: TOL_rule2 = 0.1_dp
     double precision             :: aux,minWlk
     !
     rule2=.true.

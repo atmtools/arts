@@ -1367,6 +1367,8 @@ extern "C"
         //output+input
         long   *debug_in__error_out,
         long   *ordered,
+        double *tolerance_in_rule_nr2,
+        bool   *use_adiabatic_factor,
         //outputs
         double *W,
         double *dipole,
@@ -1404,6 +1406,8 @@ extern "C"
       //output+input
       long   *debug_in__error_out,
       long   *ordered,
+      double *tolerance_in_rule_nr2,
+      bool   *use_adiabatic_factor,
       //outputs
       double *W,
       double *dipole,
@@ -1435,8 +1439,9 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                             const Index&                     write_relmat_per_band,
                                             const Index&                     error_handling,
                                             const Index&                     order_of_linemixing, // -1 is full relaxation matrix, 0 is LBL, 1 is first order, 2 is second order ... limited implementations so far
-                                            const Verbosity&)
+                                            const Verbosity& verbosity)
 {
+  CREATE_OUT0;
   using global_data::species_data;
   using global_data::SpeciesMap;
   
@@ -1491,618 +1496,631 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
   {
     throw std::runtime_error("Mismatch between band_identifiers and bands\n");
   }
-    
-    PropmatPartialsData ppd(jacobian_quantities);
-    ppd.supportsRelaxationMatrix();
-    // It should support temperature and wind, and maybe even the line mixing parameters as an error vector
-    
-    const Index nbands = abs_lines_per_band.nelem(), nppd = ppd.nelem();
-    
-    if(write_relmat_per_band)
-    { 
-      relmat_per_band.resize(nps);
-      for(Index ip=0; ip<nps; ip++)
-      {
-        relmat_per_band[ip].resize(nbands);
-      }
-    }
-    
-    if(nbands not_eq abs_species_per_band.nelem())
-      throw std::runtime_error("Error in definition of the bands.  Mismatching length of *_per_band arrays.");
-    
-    // Make constant input not constant and convert to wavenumber
-    Vector v(nf);
-    for(Index ifs=0; ifs<nf; ifs++)
-      v[ifs] = f_grid[ifs] / w2Hz; 
-    
-    // Setting up thermal bath:  only in simplistic air for now
-    // This means: 21% O2 and 79% N2
-    //
-    long    number_of_perturbers = 2;
-    long   *molecule_code_perturber = new long[number_of_perturbers];
-    long   *iso_code_perturber = new long[number_of_perturbers];
-    double *perturber_mass = new double[number_of_perturbers];
-    Vector  vmr(number_of_perturbers);
-    
-    // Setup air as background gas for now...
-    { 
-      vmr[0] = 0.2095;
-      const SpeciesRecord& O2 = species_data[SpeciesMap.find("O2")->second];
-      const IsotopologueRecord& O2_66 = O2.Isotopologue()[0];
-      const Index O2_66_hitran_tag = O2_66.HitranTag();
-      iso_code_perturber[0] = O2_66_hitran_tag%10;
-      molecule_code_perturber[0] = (O2_66_hitran_tag)/10;
-      perturber_mass[0] = O2_66.Mass();
-      
-      vmr[1] = 1.0-0.2095;
-      const SpeciesRecord& N2 = species_data[SpeciesMap.find("N2")->second];
-      const IsotopologueRecord& N2_44 = N2.Isotopologue()[0];
-      const Index N2_44_hitran_tag = N2_44.HitranTag();
-      iso_code_perturber[1] = N2_44_hitran_tag%10;
-      molecule_code_perturber[1] = (N2_44_hitran_tag)/10;
-      perturber_mass[1] = N2_44.Mass();
-    }
-    
-    #pragma omp parallel for                    \
-    if (!arts_omp_in_parallel() && nbands not_eq 1)
-    for(Index iband=0;iband<nbands;iband++)
+  
+  PropmatPartialsData ppd(jacobian_quantities);
+  ppd.supportsRelaxationMatrix();
+  // It should support temperature and wind, and maybe even the line mixing parameters as an error vector
+  
+  const Index nbands = abs_lines_per_band.nelem(), nppd = ppd.nelem();
+  
+  if(write_relmat_per_band)
+  { 
+    relmat_per_band.resize(nps);
+    for(Index ip=0; ip<nps; ip++)
     {
-      // band pointer
-      const ArrayOfLineRecord& this_band = abs_lines_per_band[iband];
+      relmat_per_band[ip].resize(nbands);
+    }
+  }
+  
+  if(nbands not_eq abs_species_per_band.nelem())
+    throw std::runtime_error("Error in definition of the bands.  Mismatching length of *_per_band arrays.");
+  
+  // Make constant input not constant and convert to wavenumber
+  Vector v(nf);
+  for(Index ifs=0; ifs<nf; ifs++)
+    v[ifs] = f_grid[ifs] / w2Hz; 
+  
+  // Setting up thermal bath:  only in simplistic air for now
+  // This means: 21% O2 and 79% N2
+  //
+  long    number_of_perturbers = 2;
+  long   *molecule_code_perturber = new long[number_of_perturbers];
+  long   *iso_code_perturber = new long[number_of_perturbers];
+  double *perturber_mass = new double[number_of_perturbers];
+  Vector  vmr(number_of_perturbers);
+  
+  // Setup air as background gas for now...
+  { 
+    vmr[0] = 0.2095;
+    const SpeciesRecord& O2 = species_data[SpeciesMap.find("O2")->second];
+    const IsotopologueRecord& O2_66 = O2.Isotopologue()[0];
+    const Index O2_66_hitran_tag = O2_66.HitranTag();
+    iso_code_perturber[0] = O2_66_hitran_tag%10;
+    molecule_code_perturber[0] = (O2_66_hitran_tag)/10;
+    perturber_mass[0] = O2_66.Mass();
+    
+    vmr[1] = 1.0-0.2095;
+    const SpeciesRecord& N2 = species_data[SpeciesMap.find("N2")->second];
+    const IsotopologueRecord& N2_44 = N2.Isotopologue()[0];
+    const Index N2_44_hitran_tag = N2_44.HitranTag();
+    iso_code_perturber[1] = N2_44_hitran_tag%10;
+    molecule_code_perturber[1] = (N2_44_hitran_tag)/10;
+    perturber_mass[1] = N2_44.Mass();
+  }
+  
+  // Flags and rules
+  double tolerance_in_rule_nr2 = 0.1;
+  bool   use_adiabatic_factor = true;
+  
+  #pragma omp parallel for                    \
+  if (!arts_omp_in_parallel() && nbands not_eq 1)
+  for(Index iband=0;iband<nbands;iband++)
+  {
+    if(error_handling > 0)
+    {
+      #pragma omp critical
+      std::cout<<"Computing Band ID: "<<band_identifiers[iband]<<std::endl;
+    }
+    
+    // band pointer
+    const ArrayOfLineRecord& this_band = abs_lines_per_band[iband];
+    
+    long nlines = (long) this_band.nelem();
+    
+    // Worth doing anything?
+    if(nlines==0) { continue; }
+    
+    // Send in frequency range
+    Numeric fmin, fmax;
+    
+    // To store the xsec matrix we need to know where
+    Index this_species=-1;
+    
+    // Allocation of band specific inputs (types: to be used as fortran input)
+    long   M = (this_band[0].IsotopologueData().HitranTag())/10;
+    long   I = (this_band[0].IsotopologueData().HitranTag())%10;
+    long   *upper          = new long[4*nlines];
+    long   *lower          = new long[4*nlines];
+    long   *g_prime        = new long[nlines];
+    long   *g_double_prime = new long[nlines];
+    Vector v0(nlines);
+    Vector S(nlines);
+    Vector gamma_air(nlines);
+    Vector delta_air(nlines);
+    Vector E_double_prime(nlines);
+    Vector n_air(nlines);
+    Numeric mass, iso_ratio;
+    
+    for( long iline=0; iline<nlines; iline++ )
+    {
+      // Line data
+      const LineRecord& this_line = this_band[iline];
+      const IsotopologueRecord& this_iso = this_line.IsotopologueData();
       
-      long nlines = (long) this_band.nelem();
-      
-      // Worth doing anything?
-      if(nlines==0) { continue; }
-      
-      // Send in frequency range
-      Numeric fmin, fmax;
-      
-      // To store the xsec matrix we need to know where
-      Index this_species=-1;
-      
-      // Allocation of band specific inputs (types: to be used as fortran input)
-      long   M = (this_band[0].IsotopologueData().HitranTag())/10;
-      long   I = (this_band[0].IsotopologueData().HitranTag())%10;
-      long   *upper          = new long[4*nlines];
-      long   *lower          = new long[4*nlines];
-      long   *g_prime        = new long[nlines];
-      long   *g_double_prime = new long[nlines];
-      Vector v0(nlines);
-      Vector S(nlines);
-      Vector gamma_air(nlines);
-      Vector delta_air(nlines);
-      Vector E_double_prime(nlines);
-      Vector n_air(nlines);
-      Numeric mass, iso_ratio;
-      
-      for( long iline=0; iline<nlines; iline++ )
+      // For first line do something special with mass and name and such
+      if( iline==0 )
       {
-        // Line data
-        const LineRecord& this_line = this_band[iline];
-        const IsotopologueRecord& this_iso = this_line.IsotopologueData();
+        // Isotopologue values
+        mass  = this_iso.Mass();
+        String iso_name = this_iso.Name();
+        int isona;
+        extract(isona,iso_name,iso_name.nelem());
         
-        // For first line do something special with mass and name and such
-        if( iline==0 )
+        const ArrayOfSpeciesTag& band_tags=abs_species_per_band[iband];
+        
+        // Finds the first species in abs_species_per_band that matches abs_species
+        bool this_one=false;
+        for(Index ispecies=0; ispecies<nspecies; ispecies++)
         {
-          // Isotopologue values
-          mass  = this_iso.Mass();
-          String iso_name = this_iso.Name();
-          int isona;
-          extract(isona,iso_name,iso_name.nelem());
+          const ArrayOfSpeciesTag& species_tags=abs_species[ispecies];
+          const Index nbandtags = band_tags.nelem();
+          const Index nspeciestags = species_tags.nelem();
           
-          const ArrayOfSpeciesTag& band_tags=abs_species_per_band[iband];
-          
-          // Finds the first species in abs_species_per_band that matches abs_species
-          bool this_one=false;
-          for(Index ispecies=0; ispecies<nspecies; ispecies++)
+          // Test if there is
+          if(nbandtags not_eq nspeciestags) { break; }
+          for(Index itags=0; itags<nspeciestags; itags++)
           {
-            const ArrayOfSpeciesTag& species_tags=abs_species[ispecies];
-            const Index nbandtags = band_tags.nelem();
-            const Index nspeciestags = species_tags.nelem();
-            
-            // Test if there is
-            if(nbandtags not_eq nspeciestags) { break; }
-            for(Index itags=0; itags<nspeciestags; itags++)
+            if(band_tags[itags]==species_tags[itags])
             {
-              if(band_tags[itags]==species_tags[itags])
-              {
-                this_one = true;
-                break;
-              }
-            }
-            
-            if(this_one)
-            {
-              this_species = ispecies;
+              this_one = true;
               break;
             }
-            
           }
           
-          if(!this_one)
-            throw std::runtime_error("abs_species and abs_species_per_band disagrees"
-            " on absorption species");
-          
-          iso_ratio =  isotopologue_ratios.getParam(abs_lines_per_band[iband][iline].Species(),
-                                                    abs_lines_per_band[iband][iline].Isotopologue())[0].data[0];
-                                                    
-        }
-        else 
-        {
-          if( mass not_eq this_iso.Mass() )
+          if(this_one)
           {
-            throw std::runtime_error("There are lines of different Isotopologues"
-            " in abs_lines_per_band,");
+            this_species = ispecies;
+            break;
           }
+          
         }
         
-        // Pressure broadening at relmat temperatures
-        if(this_line.PressureBroadening().Type() != PressureBroadeningData::PB_AIR_BROADENING)
+        if(!this_one)
+          throw std::runtime_error("abs_species and abs_species_per_band disagrees"
+          " on absorption species");
+        
+        iso_ratio =  isotopologue_ratios.getParam(abs_lines_per_band[iband][iline].Species(),
+                                                  abs_lines_per_band[iband][iline].Isotopologue())[0].data[0];
+                                                  
+      }
+      else 
+      {
+        if( mass not_eq this_iso.Mass() )
         {
-          std::ostringstream os;
-          os << "Line is not air broadening type but only air broadening types are suported.\n";
-          os << "Its type is " << this_line.PressureBroadening().Type2StorageTag();
-          throw std::runtime_error(os.str());
+          throw std::runtime_error("There are lines of different Isotopologues"
+          " in abs_lines_per_band,");
         }
-        
-        // Ensure that temperatures are sufficiently close
-        if( 1e-4 < abs(this_line.Ti0()-relmat_T0))
-        {
-          std::ostringstream os;
-          os << "Line is not of same standard temperature as relmat is expecting.\n";
-          os << "Expecting: " << relmat_T0 <<" K.  Getting: " << this_line.Ti0() << " K.";
-          throw std::runtime_error(os.str());
-        }
-        
-        gamma_air[iline] = this_line.PressureBroadening().AirBroadeningAgam() / gamma_hi2arts;
-        delta_air[iline] = this_line.PressureBroadening().AirBroadeningPsf();
-        n_air[iline] = this_line.Nair();
-        
-        // Line information converted to relmat format --- i.e. to HITRAN format
-        v0[iline]             = this_line.F()/w2Hz; 
-        S[iline]              = this_line.I0()/I0_hi2arts;
-        E_double_prime[iline] = this_line.Elow()/lower_energy_const;
-        g_prime[iline]        = (long) this_line.G_upper(); // NB:  Numeric to long... why?
-        g_double_prime[iline] = (long) this_line.G_lower(); // NB:  Numeric to long... why?
-        
-        // Quantum numbers converted to relmat format, again Numeric/Rational to long... why?
-        Rational a;
-        
-        // l2 is for molecules like CO2
-        {
-          a = this_line.QuantumNumbers().Lower()[QN_l2];
-          a.Simplify();
-          if(a.isUndefined())
-            lower[0+4*iline] = -1;
-          else  if(a.Denom()==1)
-            lower[0+4*iline] = (long) a.toIndex();
-          else 
-            throw std::runtime_error("Half quantum numbers not supported in l2.");
-          a = this_line.QuantumNumbers().Upper()[QN_l2];
-          a.Simplify();
-          if(a.isUndefined())
-            upper[0+4*iline] = -1;
-          else  if(a.Denom()==1)
-            upper[0+4*iline] = (long) a.toIndex();
-          else 
-            throw std::runtime_error("Half quantum numbers not supported in l2.");
-        }
-        
-        // J is universally important for linear molecules
-        {
-          a = this_line.QuantumNumbers().Lower()[QN_J];
-          a.Simplify();
-          if(a.isUndefined())
-            lower[1+4*iline] = -1;
-          else  if(a.Denom()==1)
-            lower[1+4*iline] = (long) a.toIndex();
-          else 
-            throw std::runtime_error("Half quantum numbers not supported in J.");
-          a = this_line.QuantumNumbers().Upper()[QN_J];
-          a.Simplify();
-          if(a.isUndefined())
-            upper[1+4*iline] = -1;
-          else  if(a.Denom()==1)
-            upper[1+4*iline] = (long) a.toIndex();
-          else 
-            throw std::runtime_error("Half quantum numbers not supported in J.");
-        }
-        
-        // N is important for molecules with magnetic dipoles
-        {
-          a = this_line.QuantumNumbers().Lower()[QN_N];
-          a.Simplify();
-          if(a.isUndefined())
-            lower[2+4*iline] = -1;
-          else  if(a.Denom()==1)
-            lower[2+4*iline] = (long) a.toIndex();
-          else 
-            throw std::runtime_error("Half quantum numbers not supported in N.");
-          a = this_line.QuantumNumbers().Upper()[QN_N];
-          a.Simplify();
-          if(a.isUndefined())
-            upper[2+4*iline] = -1;
-          else  if(a.Denom()==1)
-            upper[2+4*iline] = (long) a.toIndex();
-          else 
-            throw std::runtime_error("Half quantum numbers not supported in N.");
-        }
-        
-        // S is important for molecules with magnetic dipoles
-        {
-          a = this_line.QuantumNumbers().Lower()[QN_S];
-          a.Simplify();
-          if(a.isUndefined())
-            lower[3+4*iline] = -1;
-          else  if(a.Denom()==1)
-            lower[3+4*iline] = (long) a.toIndex();
-          else 
-            throw std::runtime_error("Half quantum numbers not supported in S.");
-          a = this_line.QuantumNumbers().Upper()[QN_S];
-          a.Simplify();
-          if(a.isUndefined())
-            upper[3+4*iline] = -1;
-          else  if(a.Denom()==1)
-            upper[3+4*iline] = (long) a.toIndex();
-          else 
-            throw std::runtime_error("Half quantum numbers not supported in S.");
-        }
-        
-        // Set fmax and fmin.  Why do I need this again?
-        if(iline==0)
-        {
-          fmin = v0[0]-1.0;
-          fmax = v0[0]+1.0;
-        }
-        else 
-        {
-          if(fmin > v0[iline])
-            fmin = v0[iline]-1.0;
-          if(fmax < v0[iline])
-            fmax = v0[iline]+1.0;
-        }
-        
       }
       
-      Vector f0 = v0;
-      f0 *= w2Hz;
+      // Pressure broadening at relmat temperatures
+      if(this_line.PressureBroadening().Type() != PressureBroadeningData::PB_AIR_BROADENING)
+      {
+        std::ostringstream os;
+        os << "Line is not air broadening type but only air broadening types are suported.\n";
+        os << "Its type is " << this_line.PressureBroadening().Type2StorageTag();
+        throw std::runtime_error(os.str());
+      }
       
-      #pragma omp parallel for                    \
-      if (!arts_omp_in_parallel() && nps not_eq 1)
-        for(Index ip=0; ip<nps; ip++)
-        {
-          
-          // Information on the lines will be here after relmat is done
-          Matrix W(nlines,nlines);
-          Vector dipole(nlines);
-          Vector rhoT(nlines);
-          Vector Y(nlines), G(nlines), DV(nlines);
-          
-          Matrix W_dt;
-          Vector Y_dt, G_dt, DV_dt;
-          Vector dipole_dt;
-          Vector rhoT_dt;
-          if(ppd.do_temperature())
-          {
-            W_dt.resize(nlines,nlines);
-            dipole_dt.resize(nlines);
-            rhoT_dt.resize(nlines);
-            Y_dt.resize(nlines);
-            G_dt.resize(nlines);
-            DV_dt.resize(nlines);
-          }
-          
-          Vector psf(nlines), psf_dt;
-          if(ppd.do_temperature())
-            psf_dt.resize(nlines);
-          
-          if(abs_p[ip] > lm_p_lim)
-          {
-            
-            // Find the partition function
-            Numeric QT0;
-            Numeric QT;
-            
-            // Get partition function information
-            partition_function( QT0,
-                                QT,
-                                abs_lines_per_band[iband][0].Ti0(),
-                                abs_t[ip],
-                                partition_functions.getParamType(abs_lines_per_band[iband][0].Species(), 
-                                                                  abs_lines_per_band[iband][0].Isotopologue()),
-                                partition_functions.getParam(abs_lines_per_band[iband][0].Species(), 
+      // Ensure that temperatures are sufficiently close
+      if( 1e-4 < abs(this_line.Ti0()-relmat_T0))
+      {
+        std::ostringstream os;
+        os << "Line is not of same standard temperature as relmat is expecting.\n";
+        os << "Expecting: " << relmat_T0 <<" K.  Getting: " << this_line.Ti0() << " K.";
+        throw std::runtime_error(os.str());
+      }
+      
+      gamma_air[iline] = this_line.PressureBroadening().AirBroadeningAgam() / gamma_hi2arts;
+      delta_air[iline] = this_line.PressureBroadening().AirBroadeningPsf();
+      n_air[iline] = this_line.Nair();
+      
+      // Line information converted to relmat format --- i.e. to HITRAN format
+      v0[iline]             = this_line.F()/w2Hz; 
+      S[iline]              = this_line.I0()/I0_hi2arts;
+      E_double_prime[iline] = this_line.Elow()/lower_energy_const;
+      g_prime[iline]        = (long) this_line.G_upper(); // NB:  Numeric to long... why?
+      g_double_prime[iline] = (long) this_line.G_lower(); // NB:  Numeric to long... why?
+      
+      // Quantum numbers converted to relmat format, again Numeric/Rational to long... why?
+      Rational a;
+      
+      // l2 is for molecules like CO2
+      {
+        a = this_line.QuantumNumbers().Lower()[QN_l2];
+        a.Simplify();
+        if(a.isUndefined())
+          lower[0+4*iline] = -1;
+        else  if(a.Denom()==1)
+          lower[0+4*iline] = (long) a.toIndex();
+        else 
+          throw std::runtime_error("Half quantum numbers not supported in l2.");
+        a = this_line.QuantumNumbers().Upper()[QN_l2];
+        a.Simplify();
+        if(a.isUndefined())
+          upper[0+4*iline] = -1;
+        else  if(a.Denom()==1)
+          upper[0+4*iline] = (long) a.toIndex();
+        else 
+          throw std::runtime_error("Half quantum numbers not supported in l2.");
+      }
+      
+      // J is universally important for linear molecules
+      {
+        a = this_line.QuantumNumbers().Lower()[QN_J];
+        a.Simplify();
+        if(a.isUndefined())
+          lower[1+4*iline] = -1;
+        else  if(a.Denom()==1)
+          lower[1+4*iline] = (long) a.toIndex();
+        else 
+          throw std::runtime_error("Half quantum numbers not supported in J.");
+        a = this_line.QuantumNumbers().Upper()[QN_J];
+        a.Simplify();
+        if(a.isUndefined())
+          upper[1+4*iline] = -1;
+        else  if(a.Denom()==1)
+          upper[1+4*iline] = (long) a.toIndex();
+        else 
+          throw std::runtime_error("Half quantum numbers not supported in J.");
+      }
+      
+      // N is important for molecules with magnetic dipoles
+      {
+        a = this_line.QuantumNumbers().Lower()[QN_N];
+        a.Simplify();
+        if(a.isUndefined())
+          lower[2+4*iline] = -1;
+        else  if(a.Denom()==1)
+          lower[2+4*iline] = (long) a.toIndex();
+        else 
+          throw std::runtime_error("Half quantum numbers not supported in N.");
+        a = this_line.QuantumNumbers().Upper()[QN_N];
+        a.Simplify();
+        if(a.isUndefined())
+          upper[2+4*iline] = -1;
+        else  if(a.Denom()==1)
+          upper[2+4*iline] = (long) a.toIndex();
+        else 
+          throw std::runtime_error("Half quantum numbers not supported in N.");
+      }
+      
+      // S is important for molecules with magnetic dipoles
+      {
+        a = this_line.QuantumNumbers().Lower()[QN_S];
+        a.Simplify();
+        if(a.isUndefined())
+          lower[3+4*iline] = -1;
+        else  if(a.Denom()==1)
+          lower[3+4*iline] = (long) a.toIndex();
+        else 
+          throw std::runtime_error("Half quantum numbers not supported in S.");
+        a = this_line.QuantumNumbers().Upper()[QN_S];
+        a.Simplify();
+        if(a.isUndefined())
+          upper[3+4*iline] = -1;
+        else  if(a.Denom()==1)
+          upper[3+4*iline] = (long) a.toIndex();
+        else 
+          throw std::runtime_error("Half quantum numbers not supported in S.");
+      }
+      
+      // Set fmax and fmin.  Why do I need this again?
+      if(iline==0)
+      {
+        fmin = v0[0]-1.0;
+        fmax = v0[0]+1.0;
+      }
+      else 
+      {
+        if(fmin > v0[iline])
+          fmin = v0[iline]-1.0;
+        if(fmax < v0[iline])
+          fmax = v0[iline]+1.0;
+      }
+      
+    }
+    
+    Vector f0 = v0;
+    f0 *= w2Hz;
+    
+    #pragma omp parallel for                    \
+    if (!arts_omp_in_parallel() && nps not_eq 1)
+    for(Index ip=0; ip<nps; ip++)
+    {
+      
+      // Information on the lines will be here after relmat is done
+      Matrix W(nlines,nlines);
+      Vector dipole(nlines);
+      Vector rhoT(nlines);
+      Vector Y(nlines), G(nlines), DV(nlines);
+      
+      Matrix W_dt;
+      Vector Y_dt, G_dt, DV_dt;
+      Vector dipole_dt;
+      Vector rhoT_dt;
+      if(ppd.do_temperature())
+      {
+        W_dt.resize(nlines,nlines);
+        dipole_dt.resize(nlines);
+        rhoT_dt.resize(nlines);
+        Y_dt.resize(nlines);
+        G_dt.resize(nlines);
+        DV_dt.resize(nlines);
+      }
+      
+      Vector psf(nlines), psf_dt;
+      if(ppd.do_temperature())
+        psf_dt.resize(nlines);
+      
+      if(abs_p[ip] > lm_p_lim)
+      {
+        
+        // Find the partition function
+        Numeric QT0;
+        Numeric QT;
+        
+        // Get partition function information
+        partition_function( QT0,
+                            QT,
+                            abs_lines_per_band[iband][0].Ti0(),
+                            abs_t[ip],
+                            partition_functions.getParamType(abs_lines_per_band[iband][0].Species(), 
                                                               abs_lines_per_band[iband][0].Isotopologue()),
-                                false);
-            
-            // Cannot be constants for Fortran's sake
-            Numeric t;
-            t = abs_t[ip];
-            Numeric p;
-            p = abs_p[ip]/ATM2PA; // HITRAN pressure unit is in atmospheres
-            
-            // Error handling variable is one or zero initially.  If 
-            Index error_handling_type = error_handling;
-            Index order_of_linemixing_type = order_of_linemixing;
-            
-            // Calling Teresa's code
-            if(relmat_type_per_band[iband] == hartman_tran_type)
-            {
-              arts_relmat_interface__hartmann_and_niro_type(
-                &nlines, &fmin, &fmax,
-                &M, &I, v0.get_c_array(), S.get_c_array(),
-                gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
-                upper, lower,
-                g_prime, g_double_prime,
-                &t, &p, &QT, &QT0, &mass,
-                &number_of_perturbers, molecule_code_perturber, 
-                iso_code_perturber, perturber_mass, vmr.get_c_array(), &error_handling_type, &order_of_linemixing_type,
-                W.get_c_array(), dipole.get_c_array(), rhoT.get_c_array(), Y.get_c_array(), G.get_c_array(), DV.get_c_array() );
-            }
-            else if(relmat_type_per_band[iband] == linear_type)
-            {
-              arts_relmat_interface__linear_type(
-                &nlines, &fmin, &fmax,
-                &M, &I, v0.get_c_array(), S.get_c_array(),
-                gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
-                upper, lower,
-                g_prime, g_double_prime,
-                &t, &p, &QT, &QT0, &mass,
-                &number_of_perturbers, molecule_code_perturber, 
-                iso_code_perturber, perturber_mass, vmr.get_c_array(), &error_handling_type, &order_of_linemixing_type,
-                W.get_c_array(), dipole.get_c_array(), rhoT.get_c_array(), Y.get_c_array(), G.get_c_array(), DV.get_c_array() );
-            }
-            else 
-            {
-              #pragma omp critical
-              throw std::runtime_error("Unsupported relaxation matrix type encountered.\n");
-            }
-            
-            if(error_handling_type == 1) // If it is still one here, then the program has found some error
-            {
-              std::ostringstream os;
-              os << "Fatal error encountered in relmat calculations.  Check your input for sanity.\n" <<
-              "\tTo check what relmat is doing, activate the debug flag of this code." <<
-              "\tIdentity: " << band_identifiers[iband] << std::endl;
-              #pragma omp critical
-              throw std:: runtime_error(os.str());
-            }
-            
-            // Convert to SI-units
-            W *= w2Hz * 0.5;
-            dipole /= 100.0; // sqrt(I0_hi2arts / w2Hz) = 1/100;
-            DV *= w2Hz;
-            
-            // The temperature derivatives are for now only possible to do with perturbations
-            if(ppd.do_temperature())
-            {
-              // Do not write debug information in this section... do not crash
-              Index e_tmp = -1;
-              
-              // Perturbed temperature
-              Numeric t_dt = t + ppd.Temperature_Perturbation();
-              
-              Numeric QT_dt;
-              
-              // Perturbed partition functions
-              partition_function( QT0,
-                                  QT_dt,
-                                  abs_lines_per_band[iband][0].Ti0(),
-                                  t_dt,
-                                  partition_functions.getParamType(abs_lines_per_band[iband][0].Species(), 
-                                                                    abs_lines_per_band[iband][0].Isotopologue()),
-                                  partition_functions.getParam(abs_lines_per_band[iband][0].Species(), 
+                            partition_functions.getParam(abs_lines_per_band[iband][0].Species(), 
+                                                          abs_lines_per_band[iband][0].Isotopologue()),
+                            false);
+        
+        // Cannot be constants for Fortran's sake
+        Numeric t;
+        t = abs_t[ip];
+        Numeric p;
+        p = abs_p[ip]/ATM2PA; // HITRAN pressure unit is in atmospheres
+        
+        // Error handling variable is one or zero initially.  If 
+        Index error_handling_type = error_handling;
+        Index order_of_linemixing_type = order_of_linemixing;
+        
+        // Calling Teresa's code
+        if(relmat_type_per_band[iband] == hartman_tran_type)
+        {
+          arts_relmat_interface__hartmann_and_niro_type(
+            &nlines, &fmin, &fmax,
+            &M, &I, v0.get_c_array(), S.get_c_array(),
+            gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
+            upper, lower,
+            g_prime, g_double_prime,
+            &t, &p, &QT, &QT0, &mass,
+            &number_of_perturbers, molecule_code_perturber, 
+            iso_code_perturber, perturber_mass, vmr.get_c_array(), &error_handling_type, &order_of_linemixing_type,
+            &tolerance_in_rule_nr2, &use_adiabatic_factor,
+            W.get_c_array(), dipole.get_c_array(), rhoT.get_c_array(), Y.get_c_array(), G.get_c_array(), DV.get_c_array() );
+        }
+        else if(relmat_type_per_band[iband] == linear_type)
+        {
+          arts_relmat_interface__linear_type(
+            &nlines, &fmin, &fmax,
+            &M, &I, v0.get_c_array(), S.get_c_array(),
+            gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
+            upper, lower,
+            g_prime, g_double_prime,
+            &t, &p, &QT, &QT0, &mass,
+            &number_of_perturbers, molecule_code_perturber, 
+            iso_code_perturber, perturber_mass, vmr.get_c_array(), &error_handling_type, &order_of_linemixing_type,
+            &tolerance_in_rule_nr2, &use_adiabatic_factor,
+            W.get_c_array(), dipole.get_c_array(), rhoT.get_c_array(), Y.get_c_array(), G.get_c_array(), DV.get_c_array() );
+        }
+        else 
+        {
+          #pragma omp critical
+          throw std::runtime_error("Unsupported relaxation matrix type encountered.\n");
+        }
+        
+        if(error_handling_type == 1) // If it is still one here, then the program has found some error
+        {
+          std::ostringstream os;
+          os << "Fatal error encountered in relmat calculations.  Check your input for sanity.\n" <<
+          "\tTo check what relmat is doing, activate the debug flag of this code." <<
+          "\tIdentity: " << band_identifiers[iband] << std::endl;
+          #pragma omp critical
+          throw std:: runtime_error(os.str());
+        }
+        
+        // Convert to SI-units
+        W *= w2Hz * 0.5;
+        dipole /= 100.0; // sqrt(I0_hi2arts / w2Hz) = 1/100;
+        DV *= w2Hz;
+        
+        // The temperature derivatives are for now only possible to do with perturbations
+        if(ppd.do_temperature())
+        {
+          // Do not write debug information in this section... do not crash
+          Index e_tmp = -1;
+          
+          // Perturbed temperature
+          Numeric t_dt = t + ppd.Temperature_Perturbation();
+          
+          Numeric QT_dt;
+          
+          // Perturbed partition functions
+          partition_function( QT0,
+                              QT_dt,
+                              abs_lines_per_band[iband][0].Ti0(),
+                              t_dt,
+                              partition_functions.getParamType(abs_lines_per_band[iband][0].Species(), 
                                                                 abs_lines_per_band[iband][0].Isotopologue()),
-                                  false);
-              
-              if(relmat_type_per_band[iband] == hartman_tran_type)
-              {
-                arts_relmat_interface__hartmann_and_niro_type(
-                  &nlines, &fmin, &fmax,
-                  &M, &I, v0.get_c_array(), S.get_c_array(),
-                                                              gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
-                                                              upper, lower,
-                                                              g_prime, g_double_prime,
-                                                              &t_dt, &p, &QT_dt, &QT0, &mass,
-                                                              &number_of_perturbers, molecule_code_perturber, 
-                                                              iso_code_perturber, perturber_mass, vmr.get_c_array(), &e_tmp, &order_of_linemixing_type,
-                                                              W_dt.get_c_array(), dipole_dt.get_c_array(), rhoT_dt.get_c_array(), Y_dt.get_c_array(), G_dt.get_c_array(), DV_dt.get_c_array() );
-              }
-              else if(relmat_type_per_band[iband] == linear_type)
-              {
-                arts_relmat_interface__linear_type(
-                  &nlines, &fmin, &fmax,
-                  &M, &I, v0.get_c_array(), S.get_c_array(),
-                                                    gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
-                                                    upper, lower,
-                                                    g_prime, g_double_prime,
-                                                    &t_dt, &p, &QT_dt, &QT0, &mass,
-                                                    &number_of_perturbers, molecule_code_perturber, 
-                                                    iso_code_perturber, perturber_mass, vmr.get_c_array(), &e_tmp, &order_of_linemixing_type,
-                                                    W_dt.get_c_array(), dipole_dt.get_c_array(), rhoT_dt.get_c_array(), Y_dt.get_c_array(), G_dt.get_c_array(), DV_dt.get_c_array() );
-              }
-              
-              #pragma omp critical
-              if(e_tmp == 1) // If it is still one here, then the program has found some error
-              {
-                std::ostringstream os;
-                os << "Fatal error encountered in relmat calculations.  Check your input for sanity.\n" <<
-                "\tTo check what relmat is doing, activate the debug flag of this code.\n" <<
-                "\tYou passed normal calculations but failed in the calculations of the partial derivatives...\n" <<
-                "\tIdentity (first line): " << 
-                M << " " << I <<
-                " " <<  upper[0] << " " << upper[1] << " " << upper[2] << " " << upper[3] <<
-                " " <<  lower[0] << " " << lower[1] << " " << lower[2] << " " << lower[3];
-                throw std:: runtime_error(os.str());
-              }
-              
-              // Convert to SI-units
-              W_dt *=  w2Hz / 2.0;
-              dipole_dt /= 100.0;
-            }
-            
-            // Use the provided pressure shift  NOTE: this might be a bad idea
-            if(ppd.do_temperature())
-            {
-              const Numeric t_dt = abs_t[ip] + ppd.Temperature_Perturbation();
-              for(Index ii = 0; ii < nlines; ii++)
-              {
-                psf[ii] = delta_air[ii] * abs_p[ip] * pow ((relmat_T0/abs_t[ip]),(Numeric)0.25+(Numeric)1.5*n_air[ii]);
-                psf_dt[ii] = delta_air[ii] * abs_p[ip] * pow ((relmat_T0/t_dt),(Numeric)0.25+(Numeric)1.5*n_air[ii]);
-              }
-              
-            }
-            else
-            {
-              for(Index ii = 0; ii < nlines; ii++)
-              {
-                psf[ii] = delta_air[ii] * abs_p[ip] * pow ((relmat_T0/abs_t[ip]),(Numeric)0.25+(Numeric)1.5*n_air[ii]);
-              }
-            }
-            
-            // NOTE: For now, _dt means that the values at a different temperature are sent into the function for numeric
-            //       partial derivation at a later stage.
-            
-            // Using Rodrigues etal method
-            if(order_of_linemixing == -1)
-            {
-              calculate_xsec_from_relmat( abs_xsec_per_species,
-                                          dabs_xsec_per_species_dx,
-                                          ppd,
-                                          W,
-                                          W_dt,
-                                          f0,
-                                          f_grid,
-                                          dipole,
-                                          rhoT,
-                                          rhoT_dt,
-                                          psf,
-                                          psf_dt,
-                                          abs_t[ip],
-                                          mass,
-                                          iso_ratio,
-                                          this_species,
-                                          ip,
-                                          nlines);
-              
-              if(write_relmat_per_band not_eq 0)
-              {
-                relmat_per_band[ip][iband] = W;
-              }
-            }
-            else
-            {
-              ConstVectorView pressure_broadening = W.diagonal();
-              ConstVectorView pressure_broadening_dt = ppd.do_temperature()?W_dt.diagonal():Vector(0);
-              
-              calculate_xsec_from_relmat_coefficients(abs_xsec_per_species,
-                                                      dabs_xsec_per_species_dx,
-                                                      ppd,
-                                                      pressure_broadening,
-                                                      pressure_broadening_dt,
-                                                      f0,
-                                                      f_grid,
-                                                      dipole,
-                                                      rhoT,
-                                                      rhoT_dt,
-                                                      psf,
-                                                      psf_dt,
-                                                      Y,
-                                                      Y_dt,
-                                                      G,
-                                                      G_dt,
-                                                      DV,
-                                                      DV_dt,
-                                                      abs_t[ip],
-                                                      mass,
-                                                      iso_ratio,
-                                                      this_species,
-                                                      ip,
-                                                      nlines);
-              
-              
-              if(write_relmat_per_band not_eq 0)
-              {
-                if(order_of_linemixing==0)
-                { /* do nothing here */ }
-                else if(order_of_linemixing==1)
-                {
-                  relmat_per_band[ip][iband].resize(1, nlines);
-                  relmat_per_band[ip][iband](0, joker) = Y;
-                }
-                else if(order_of_linemixing==2)
-                {
-                  relmat_per_band[ip][iband].resize(3, nlines);
-                  relmat_per_band[ip][iband](0, joker) = Y;
-                  relmat_per_band[ip][iband](1, joker) = G;
-                  relmat_per_band[ip][iband](2, joker) = DV;
-                }
-              }
-            }
-          }
-          else 
+                              partition_functions.getParam(abs_lines_per_band[iband][0].Species(), 
+                                                            abs_lines_per_band[iband][0].Isotopologue()),
+                              false);
+          
+          if(relmat_type_per_band[iband] == hartman_tran_type)
           {
-            Numeric QT = -1, QT0 = -1, part_ratio;
-            ComplexVector F(nf);
-            ArrayOfComplexVector dF(ppd.nelem());
-            const Numeric GD_div_F0 = doppler_const * sqrt(abs_t[ip] / mass);
-            
-            for(auto& df : dF) 
-              df.resize(nf);
-              
-            for( long iline=0; iline<nlines; iline++ )
-            {
-              
-              Numeric K1, K2, tmp1;
-              static const Vector v_tmp(0);
-              
-              GetLineScalingData(QT, QT0, part_ratio, K1, K2, tmp1, tmp1, 
-                                  partition_functions.getParamType(abs_lines_per_band[iband][0].Species(), 
-                                                                  abs_lines_per_band[iband][0].Isotopologue()),
-                                  partition_functions.getParam(abs_lines_per_band[iband][0].Species(), 
-                                                              abs_lines_per_band[iband][0].Isotopologue()), 
-                                  abs_t[ip],
-                                  abs_lines_per_band[iband][iline].Ti0(), 
-                                  abs_lines_per_band[iband][iline].F(),
-                                  abs_lines_per_band[iband][iline].Elow(),
-                                  false, -1.0, -1.0, -1, -1, v_tmp);
-              
-              abs_lines_per_band[iband][iline].PressureBroadening().GetAirBroadening(W(iline, iline),  psf[iline],
-                                                                                      abs_lines_per_band[iband][iline].Ti0()/abs_t[ip],
-                                                                                      abs_p[ip], 0.0);
-              
-              // TODO: Add derivatives here
-              
-              Linefunctions::set_faddeeva_algorithm916(F, dF, f_grid,
-                0.0, 0.0, abs_lines_per_band[iband][iline].F(),
-                GD_div_F0, W(iline, iline), psf[iline], 0.0); // Derivatives need to be added...
-              
-              Linefunctions::apply_linestrength_scaling(F, dF, 
-                abs_lines_per_band[iband][iline].I0(), iso_ratio,
-                QT, QT0, K1, K2);
-              
-              for(Index ii = 0; ii < nf; ii++)
-              {
-                const Numeric& y = F[ii].real();
-                #pragma omp atomic
-                abs_xsec_per_species[this_species](ii, ip) += y;
-                
-                for(Index jj = 0; jj < nppd; jj++)
-                {
-                  const Numeric& dy_dx = dF[jj][ii].real();
-                  #pragma omp atomic
-                  dabs_xsec_per_species_dx[this_species][jj](ii, ip) += dy_dx;
-                }
-              }
-            }
+            arts_relmat_interface__hartmann_and_niro_type(
+              &nlines, &fmin, &fmax,
+              &M, &I, v0.get_c_array(), S.get_c_array(),
+              gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
+              upper, lower,
+              g_prime, g_double_prime,
+              &t_dt, &p, &QT_dt, &QT0, &mass,
+              &number_of_perturbers, molecule_code_perturber, 
+              iso_code_perturber, perturber_mass, vmr.get_c_array(), &e_tmp, &order_of_linemixing_type,
+              &tolerance_in_rule_nr2, &use_adiabatic_factor,
+              W_dt.get_c_array(), dipole_dt.get_c_array(), rhoT_dt.get_c_array(), Y_dt.get_c_array(), G_dt.get_c_array(), DV_dt.get_c_array() );
           }
-          delete[] g_prime;
-          delete[] g_double_prime;
-          delete[] upper;
-          delete[] lower;
+          else if(relmat_type_per_band[iband] == linear_type)
+          {
+            arts_relmat_interface__linear_type(
+              &nlines, &fmin, &fmax,
+              &M, &I, v0.get_c_array(), S.get_c_array(),
+              gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
+              upper, lower,
+              g_prime, g_double_prime,
+              &t_dt, &p, &QT_dt, &QT0, &mass,
+              &number_of_perturbers, molecule_code_perturber, 
+              iso_code_perturber, perturber_mass, vmr.get_c_array(), &e_tmp, &order_of_linemixing_type,
+              &tolerance_in_rule_nr2, &use_adiabatic_factor,
+              W_dt.get_c_array(), dipole_dt.get_c_array(), rhoT_dt.get_c_array(), Y_dt.get_c_array(), G_dt.get_c_array(), DV_dt.get_c_array() );
+          }
+          
+          #pragma omp critical
+          if(e_tmp == 1) // If it is still one here, then the program has found some error
+          {
+            std::ostringstream os;
+            os << "Fatal error encountered in relmat calculations.  Check your input for sanity.\n" <<
+            "\tTo check what relmat is doing, activate the debug flag of this code.\n" <<
+            "\tYou passed normal calculations but failed in the calculations of the partial derivatives...\n" <<
+            "\tIdentity (first line): " << 
+            M << " " << I <<
+            " " <<  upper[0] << " " << upper[1] << " " << upper[2] << " " << upper[3] <<
+            " " <<  lower[0] << " " << lower[1] << " " << lower[2] << " " << lower[3];
+            throw std:: runtime_error(os.str());
+          }
+          
+          // Convert to SI-units
+          W_dt *=  w2Hz / 2.0;
+          dipole_dt /= 100.0;
+        }
+        
+        // Use the provided pressure shift  NOTE: this might be a bad idea
+        if(ppd.do_temperature())
+        {
+          const Numeric t_dt = abs_t[ip] + ppd.Temperature_Perturbation();
+          for(Index ii = 0; ii < nlines; ii++)
+          {
+            psf[ii] = delta_air[ii] * abs_p[ip] * pow ((relmat_T0/abs_t[ip]),(Numeric)0.25+(Numeric)1.5*n_air[ii]);
+            psf_dt[ii] = delta_air[ii] * abs_p[ip] * pow ((relmat_T0/t_dt),(Numeric)0.25+(Numeric)1.5*n_air[ii]);
+          }
           
         }
+        else
+        {
+          for(Index ii = 0; ii < nlines; ii++)
+          {
+            psf[ii] = delta_air[ii] * abs_p[ip] * pow ((relmat_T0/abs_t[ip]),(Numeric)0.25+(Numeric)1.5*n_air[ii]);
+          }
+        }
+        
+        // NOTE: For now, _dt means that the values at a different temperature are sent into the function for numeric
+        //       partial derivation at a later stage.
+        
+        // Using Rodrigues etal method
+        if(order_of_linemixing == -1)
+        {
+          calculate_xsec_from_relmat( abs_xsec_per_species,
+                                      dabs_xsec_per_species_dx,
+                                      ppd,
+                                      W,
+                                      W_dt,
+                                      f0,
+                                      f_grid,
+                                      dipole,
+                                      rhoT,
+                                      rhoT_dt,
+                                      psf,
+                                      psf_dt,
+                                      abs_t[ip],
+                                      mass,
+                                      iso_ratio,
+                                      this_species,
+                                      ip,
+                                      nlines);
+          
+          if(write_relmat_per_band not_eq 0)
+          {
+            relmat_per_band[ip][iband] = W;
+          }
+        }
+        else
+        {
+          ConstVectorView pressure_broadening = W.diagonal();
+          ConstVectorView pressure_broadening_dt = ppd.do_temperature()?W_dt.diagonal():Vector(0);
+          
+          calculate_xsec_from_relmat_coefficients(abs_xsec_per_species,
+                                                  dabs_xsec_per_species_dx,
+                                                  ppd,
+                                                  pressure_broadening,
+                                                  pressure_broadening_dt,
+                                                  f0,
+                                                  f_grid,
+                                                  dipole,
+                                                  rhoT,
+                                                  rhoT_dt,
+                                                  psf,
+                                                  psf_dt,
+                                                  Y,
+                                                  Y_dt,
+                                                  G,
+                                                  G_dt,
+                                                  DV,
+                                                  DV_dt,
+                                                  abs_t[ip],
+                                                  mass,
+                                                  iso_ratio,
+                                                  this_species,
+                                                  ip,
+                                                  nlines);
+          
+          
+          if(write_relmat_per_band not_eq 0)
+          {
+            if(order_of_linemixing==0)
+            { /* do nothing here */ }
+            else if(order_of_linemixing==1)
+            {
+              relmat_per_band[ip][iband].resize(1, nlines);
+              relmat_per_band[ip][iband](0, joker) = Y;
+            }
+            else if(order_of_linemixing==2)
+            {
+              relmat_per_band[ip][iband].resize(3, nlines);
+              relmat_per_band[ip][iband](0, joker) = Y;
+              relmat_per_band[ip][iband](1, joker) = G;
+              relmat_per_band[ip][iband](2, joker) = DV;
+            }
+          }
+        }
+      }
+      else 
+      {
+        Numeric QT = -1, QT0 = -1, part_ratio;
+        ComplexVector F(nf);
+        ArrayOfComplexVector dF(ppd.nelem());
+        const Numeric GD_div_F0 = doppler_const * sqrt(abs_t[ip] / mass);
+        
+        for(auto& df : dF) 
+          df.resize(nf);
+        
+        for( long iline=0; iline<nlines; iline++ )
+        {
+          
+          Numeric K1, K2, tmp1;
+          static const Vector v_tmp(0);
+          
+          GetLineScalingData(QT, QT0, part_ratio, K1, K2, tmp1, tmp1, 
+                              partition_functions.getParamType(abs_lines_per_band[iband][0].Species(), 
+                                                              abs_lines_per_band[iband][0].Isotopologue()),
+                              partition_functions.getParam(abs_lines_per_band[iband][0].Species(), 
+                                                          abs_lines_per_band[iband][0].Isotopologue()), 
+                              abs_t[ip],
+                              abs_lines_per_band[iband][iline].Ti0(), 
+                              abs_lines_per_band[iband][iline].F(),
+                              abs_lines_per_band[iband][iline].Elow(),
+                              false, -1.0, -1.0, -1, -1, v_tmp);
+          
+          abs_lines_per_band[iband][iline].PressureBroadening().GetAirBroadening(W(iline, iline),  psf[iline],
+                                                                                  abs_lines_per_band[iband][iline].Ti0()/abs_t[ip],
+                                                                                  abs_p[ip], 0.0);
+          
+          // TODO: Add derivatives here
+          
+          Linefunctions::set_faddeeva_algorithm916(F, dF, f_grid,
+                                                    0.0, 0.0, abs_lines_per_band[iband][iline].F(),
+                                                    GD_div_F0, W(iline, iline), psf[iline], 0.0); // Derivatives need to be added...
+          
+          Linefunctions::apply_linestrength_scaling(F, dF, 
+                                                    abs_lines_per_band[iband][iline].I0(), iso_ratio,
+                                                    QT, QT0, K1, K2);
+          
+          for(Index ii = 0; ii < nf; ii++)
+          {
+            const Numeric& y = F[ii].real();
+            #pragma omp atomic
+            abs_xsec_per_species[this_species](ii, ip) += y;
+            
+            for(Index jj = 0; jj < nppd; jj++)
+            {
+              const Numeric& dy_dx = dF[jj][ii].real();
+              #pragma omp atomic
+              dabs_xsec_per_species_dx[this_species][jj](ii, ip) += dy_dx;
+            }
+          }
+        }
+      }
     }
+    delete[] g_prime;
+    delete[] g_double_prime;
+    delete[] upper;
+    delete[] lower;
+  }
     delete[] iso_code_perturber;
     delete[] molecule_code_perturber;
 }
