@@ -83,25 +83,245 @@ void methodname(//Output
 }
 */
 
-//! one-line descript
+//! Scattering species bulk extinction and absorption.
 /*! 
-  Descript/Doc
+  Derives bulk properties from per-scat-species bulk properties.
 
-  \param[out] name  desc.
-  \param[in]  name  desc.
+  Ptype is defined by the most complex ptype of the individual scattering
+  elements.
+
+  \param[out] ext_mat     Bulk extinction matrix (over freq, temp/location,
+                            propagation direction).
+  \param[out] abs_vec     Bulk absorption vector (over freq, temp/location,
+                            propagation direction).
+  \param[out] ptype       Bulk ptype.
+  \param[in]  ext_mat_ss  Bulk extinction matrix per scattering species (over
+                            freq, temp/location, propagation direction).
+  \param[in]  abs_vec_ss  Bulk absorption vector per scattering species (over
+                            freq, temp/location, propagation direction).
+  \param[in]  ptypes_ss   Scattering species ptypes.
+
+  \author Jana Mendrok
+  \date   2018-01-16
+*/
+void opt_prop_Bulk(//Output
+                   Tensor5& ext_mat, // (nf,nT,ndir,nst,nst)
+                   Tensor4& abs_vec, // (nf,nT,ndir,nst)
+                   Index& ptype,
+                   //Input
+                   const ArrayOfTensor5& ext_mat_ss, // [nss](nf,nT,ndir,nst,nst)
+                   const ArrayOfTensor4& abs_vec_ss, // [nss](nf,nT,ndir,nst)
+                   const ArrayOfIndex& ptypes_ss)
+{
+  assert( ext_mat_ss.nelem() == abs_vec_ss.nelem() );
+
+  ext_mat = ext_mat_ss[0];
+  abs_vec = abs_vec_ss[0];
+
+  for( Index i_ss=1; i_ss<ext_mat_ss.nelem(); i_ss++ )
+  {
+    ext_mat += ext_mat_ss[i_ss];
+    abs_vec += abs_vec_ss[i_ss];
+  }
+  ptype = max(ptypes_ss);
+}
+
+//! Scattering species bulk extinction and absorption.
+/*! 
+  Derives bulk properties separately per scattering species from (input)
+  per-scattering-elements extinction and absorption given over frequency,
+  temperature and propagation direction.
+
+  Temperature dimension in in per-scattering-element properties is assumed to
+  correspond to column dimension of pnds (leading dimension, i.e. row,
+  corresponds to scattering elements).
+
+  Ptype of each scattering species is defined by the most complex ptype of the
+  individual scattering elements within this species.
+
+  \param[out] ext_mat     Bulk extinction matrix per scattering species (over
+                            freq, temp/location, propagation direction).
+  \param[out] abs_vec     Bulk absorption vector per scattering species (over
+                            freq, temp/location, propagation direction).
+  \param[out] ptype       Scattering species ptypes.
+  \param[in]  ext_mat_se  Extinction matrix per scattering element.
+  \param[in]  abs_vec_se  Absorption vector per scattering element.
+  \param[in]  ptypes_se   Scattering element types.
+  \param[in]  pnds        Particle number density vectors (multiple locations).
+
+  \author Jana Mendrok
+  \date   2018-01-16
+*/
+void opt_prop_ScatSpecBulk(//Output
+                           ArrayOfTensor5& ext_mat, // [nss](nf,nT,ndir,nst,nst)
+                           ArrayOfTensor4& abs_vec, // [nss](nf,nT,ndir,nst)
+                           ArrayOfIndex& ptype,
+                           //Input
+                           const ArrayOfArrayOfTensor5& ext_mat_se, // [nss][nse](nf,nT,ndir,nst,nst)
+                           const ArrayOfArrayOfTensor4& abs_vec_se, // [nss][nse](nf,nT,ndir,nst)
+                           const ArrayOfArrayOfIndex& ptypes_se,
+                           const MatrixView& pnds)
+{
+  assert( TotalNumberOfElements(ext_mat_se) == pnds.nrows() );
+  assert( TotalNumberOfElements(abs_vec_se) == pnds.nrows() );
+  assert( ext_mat_se.nelem() == abs_vec_se.nelem() );
+
+  Index nT = pnds.ncols();
+  Index nss = ext_mat_se.nelem();
+  ext_mat.resize(nss);
+  abs_vec.resize(nss);
+  Tensor4 ext_tmp;
+  Tensor3 abs_tmp;
+
+  Index i_se_flat = 0;
+
+  for( Index i_ss=0; i_ss<nss; i_ss++ )
+  {
+    assert( ext_mat_se[i_ss].nelem() == abs_vec_se[i_ss].nelem() );
+
+    assert( nT == ext_mat_se[i_ss][0].nbooks() );
+    assert( nT == abs_vec_se[i_ss][0].npages() );
+    ext_mat[i_ss] = ext_mat_se[i_ss][0];
+    abs_vec[i_ss] = abs_vec_se[i_ss][0];
+    for( Index Tind=0; Tind<nT; Tind++ )
+    {
+      ext_mat[i_ss](joker,Tind,joker,joker,joker) *= pnds(i_se_flat,Tind);
+      abs_vec[i_ss](joker,Tind,joker,joker) *= pnds(i_se_flat,Tind);
+    }
+
+    i_se_flat++;
+
+    for( Index i_se=1; i_se< ext_mat_se[i_ss].nelem(); i_se++ )
+    {
+      assert( nT == ext_mat_se[i_ss][i_se].nbooks() );
+      assert( nT == abs_vec_se[i_ss][i_se].npages() );
+
+      for( Index Tind=0; Tind<nT; Tind++ )
+      {
+        ext_tmp = ext_mat_se[i_ss][i_se](joker,Tind,joker,joker,joker);
+        ext_tmp *= pnds(i_se_flat,Tind);
+        ext_mat[i_ss](joker,Tind,joker,joker,joker) += ext_tmp;
+
+        abs_tmp = abs_vec_se[i_ss][i_se](joker,Tind,joker,joker);
+        abs_tmp *= pnds(i_se_flat,Tind);
+        abs_vec[i_ss](joker,Tind,joker,joker) += abs_tmp;
+      }
+      i_se_flat++;
+
+    }
+    ptype[i_ss] = max(ptypes_se[i_ss]);
+  }
+}
+
+//! Extinction and absorption from all scattering elements.
+/*! 
+  Derives temperature and direction interpolated extinction matrices and
+  absorption vectors for all scattering elements present in scat_data.
+
+  Loops over opt_prop_1ScatElem and packs its output into all-scat-elements
+  containers.
+
+  \param[out] ext_mat    Extinction matrix (over scat elements, freq, temp,
+                           propagation direction).
+  \param[out] abs_vec    Absorption vector (over scat elements, freq, temp,
+                           propagation direction).
+  \param[out] ptype      Scattering element types.
+  \param[in]  scat_data  as the WSV..
+  \param[in]  T_array    Temperatures to extract ext/abs for.
+  \param[in]  dir_array  Propagation directions to extract ext/abs for (as
+                           pairs of zenith and azimuth angle per direction).
+  \param[in]  f_index    Index of frequency to extract. -1 extracts data for all
+                           freqs available in ssd.
+  \param[in]  t_interp_order  Temperature interpolation order.
+
+  \author Jana Mendrok
+  \date   2018-01-16
+*/
+void opt_prop_NScatElems(//Output
+                         ArrayOfArrayOfTensor5& ext_mat, // [nss][nse](nf,nT,ndir,nst,nst)
+                         ArrayOfArrayOfTensor4& abs_vec, // [nss][nse](nf,nT,ndir,nst)
+                         ArrayOfArrayOfIndex& ptypes,
+                         //Input
+                         const ArrayOfArrayOfSingleScatteringData& scat_data,
+                         const Index& stokes_dim,
+                         const Vector& T_array,
+                         const Matrix& dir_array,
+                         const Index& f_index,
+                         const Index& t_interp_order)
+{
+  Index f_start, nf;
+  if( f_index<0 )
+    {
+      nf = scat_data[0][0].ext_mat_data.nshelves();
+      f_start = 0;
+      //f_end = f_start+nf;
+    }
+  else
+    {
+      nf = 1;
+      f_start = f_index;
+      //f_end = f_start+nf;
+    }
+
+  Index nT = T_array.nelem();
+  Index nDir = dir_array.nrows();
+
+  Index nss = scat_data.nelem();
+  ext_mat.resize(nss);
+  abs_vec.resize(nss);
+
+  for( Index i_ss=0; i_ss<nss; i_ss++ )
+  {
+    Index nse = scat_data[i_ss].nelem();
+    ext_mat[i_ss].resize(nse);
+    abs_vec[i_ss].resize(nse);
+
+    for( Index i_se=0; i_se<nse; i_se++ )
+      {
+        ext_mat[i_ss][i_se].resize(nf, nT, nDir, stokes_dim, stokes_dim);
+        abs_vec[i_ss][i_se].resize(nf, nT, nDir, stokes_dim);
+
+        opt_prop_1ScatElem(ext_mat[i_ss][i_se],
+                           abs_vec[i_ss][i_se],
+                           ptypes[i_ss][i_se],
+                           scat_data[i_ss][i_se],
+                           T_array, dir_array, f_start, t_interp_order);
+      }
+  }
+}
+
+//! Preparing extinction and absorption from one scattering element.
+/*! 
+  Extracts and prepares extinction matrix and absorption vector data for one
+  scattering element for one or all frequencies from the single scattering data.
+  Includes interpolation in temperature and to propagation direction. Handles
+  multiple output temperatures and propagation directions at a time. Temperature
+  interpolation order can be chosen.
+
+  \param[out] ext_mat    1-scattering element extinction matrix (over freq,
+                           temp, propagation direction).
+  \param[out] abs_vec    1-scattering element absorption vector (over freq,
+                           temp, propagation direction).
+  \param[out] ptype      Type of scattering element.
+  \param[in]  ssd        Single scattering data of one scattering element.
+  \param[in]  T_array    Temperatures to extract ext/abs for.
+  \param[in]  dir_array  Propagation directions to extract ext/abs for (as
+                           pairs of zenith and azimuth angle per direction).
+  \param[in]  f_start    Start index of frequency/ies to extract.
+  \param[in]  t_interp_order  Temperature interpolation order.
 
   \author Jana Mendrok
   \date   2018-01-15
 */
 void opt_prop_1ScatElem(//Output
-                        Tensor5View& ext_mat, // nf, nT, ndir, nst, nst
-                        Tensor4View& abs_vec, // nf, nT, ndir, nst
+                        Tensor5View ext_mat, // nf, nT, ndir, nst, nst
+                        Tensor4View abs_vec, // nf, nT, ndir, nst
                         Index& ptype,
                         //Input
                         const SingleScatteringData& ssd,
                         const Vector& T_array,
                         const Matrix& dir_array,
-                        const Index& f_index,
+                        const Index& f_start,
                         const Index& t_interp_order)
 {
   // FIXME: this is prob best to be done in scat_data_checkedCalc (or
@@ -109,6 +329,7 @@ void opt_prop_1ScatElem(//Output
 
   // At very first check validity of the scatt elements ptype (so far we only
   // handle PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND).
+  /*
   if( ssd.ptype != PTYPE_TOTAL_RND and ssd.ptype != PTYPE_AZIMUTH_RND )
   {
     ostringstream os;
@@ -118,33 +339,33 @@ void opt_prop_1ScatElem(//Output
        << ", though.";
     throw runtime_error( os.str() );
   }
+  */
 
   assert( ssd.ptype == PTYPE_TOTAL_RND or ssd.ptype == PTYPE_AZIMUTH_RND );
-  assert( ext_mat.nshelves() == abs_vec.nbooks() );
+
+  Index nf = ext_mat.nshelves();
+  assert( abs_vec.nbooks() == nf );
+  if( nf>1 )
+    { assert( nf == ssd.f_grid.nelem() ); }
+
+  Index nTout = T_array.nelem();
+  assert( ext_mat.nbooks() == nTout );
+  assert( abs_vec.npages() == nTout );
+
+  Index nDir = dir_array.nrows();
+  assert( ext_mat.npages() == nDir );
+  assert( abs_vec.nrows() == nDir );
+
+  Index stokes_dim = abs_vec.ncols();
+  assert( ext_mat.nrows() == stokes_dim );
+  assert( ext_mat.ncols() == stokes_dim );
 
   ptype = ssd.ptype;
-
-  Index f_start, nf;
-  if( f_index>0 )
-    {
-      assert( ext_mat.nshelves() == ssd.f_grid.nelem() );
-      f_start = 0;
-      nf = ext_mat.nshelves();
-      //f_end = f_start+nf;
-    }
-  else
-    {
-      assert( ext_mat.nshelves() == 1 );
-      f_start = f_index;
-      nf = 1;
-      //f_end = f_start+nf;
-    }
 
   // Determine T-interpol order as well as interpol positions and weights (they
   // are the same for all directions (and freqs), ie it is sufficient to
   // calculate them once).
   Index nTin = ssd.T_grid.nelem();
-  Index nTout = T_array.nelem();
   Index this_T_interp_order = -1;
   ArrayOfGridPosPoly T_gp(nTout);
   Matrix T_itw(nTout, this_T_interp_order+1);
@@ -163,9 +384,6 @@ void opt_prop_1ScatElem(//Output
     gridpos_poly(T_gp, ssd.T_grid, T_array, this_T_interp_order);
     interpweights(T_itw, T_gp);
   }
-
-  Index nDir = dir_array.nrows();
-  Index stokes_dim = ext_mat.ncols();
 
   // Now loop over requested directions (and apply simultaneously for all freqs):
   // 1) extract/interpolate direction (but not for tot.random)
@@ -328,7 +546,7 @@ void opt_prop_1ScatElem(//Output
   \param[in]  ext_mat_ssd     extmat at 1f, 1T, 1dir in scat_data compact
                                 (vector) format.
   \param[in]  stokes_dim      as the WSM.
-  \param[in]  ptype           as scat_data[i_ss][i_se].ptype.
+  \param[in]  ptype           type of scattering element.
 
   \author Jana Mendrok
   \date   2018-01-15
@@ -383,7 +601,7 @@ void ext_mat_SSD2Stokes(//Output
   \param[in]  abs_vec_ssd     absvec at 1f, 1T, 1dir in scat_data compact
                                 (vector) format.
   \param[in]  stokes_dim      as the WSM.
-  \param[in]  ptype           as scat_data[i_ss][i_se].ptype.
+  \param[in]  ptype           Type of scattering element.
 
   \author Jana Mendrok
   \date   2018-01-15

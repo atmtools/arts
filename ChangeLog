@@ -1,5 +1,18 @@
 2018-01-16 Jana Mendrok  <jana.mendrok@gmail.com>
 
+	* arts-2-3-929
+
+	More optical property handling related work in progress.
+
+	* src/optproperties.[cc,h] (opt_prop_Bulk, opt_prop_ScatSpecBulk,
+	opt_prop_NScatElems):
+	Added. Methods to derove ext/mat over all scattering elements and for
+	bulks.
+
+	* src/array.h: Added typedefs for ArrayOfArrayOfTensor5 and 7.
+
+2018-01-16 Jana Mendrok  <jana.mendrok@gmail.com>
+
 	* arts-2-3-928
 
 	More optical property handling related work in progress.

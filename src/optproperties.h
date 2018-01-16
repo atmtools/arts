@@ -134,9 +134,40 @@ ostream& operator<< (ostream& os, const ArrayOfScatteringMetaData& assd);
 // General functions:
 // =============================================================
 
+void opt_prop_Bulk(//Output
+                   Tensor5& ext_mat,
+                   Tensor4& abs_vec,
+                   Index& ptype,
+                   //Input
+                   const ArrayOfTensor5& ext_mat_ss,
+                   const ArrayOfTensor4& abs_vec_ss,
+                   const ArrayOfIndex& ptypes_ss);
+
+void opt_prop_ScatSpecBulk(//Output
+                           ArrayOfTensor5& ext_mat,
+                           ArrayOfTensor4& abs_vec,
+                           ArrayOfIndex& ptype,
+                           //Input
+                           const ArrayOfArrayOfTensor5& ext_mat_se,
+                           const ArrayOfArrayOfTensor4& abs_vec_se,
+                           const ArrayOfArrayOfIndex& ptypes_se,
+                           const MatrixView& pnds);
+
+void opt_prop_NScatElems(//Output
+                         ArrayOfArrayOfTensor5& ext_mat,
+                         ArrayOfArrayOfTensor4& abs_vec,
+                         ArrayOfArrayOfIndex& ptypes,
+                         //Input
+                         const ArrayOfArrayOfSingleScatteringData& scat_data,
+                         const Index& stokes_dim,
+                         const Vector& T_array,
+                         const Matrix& dir_array,
+                         const Index& f_index,
+                         const Index& t_interp_order);
+
 void opt_prop_1ScatElem(//Output
-                        Tensor5View& ext_mat,
-                        Tensor4View& abs_vec,
+                        Tensor5View ext_mat,
+                        Tensor4View abs_vec,
                         Index& ptype,
                         //Input
                         const SingleScatteringData& ssd,
