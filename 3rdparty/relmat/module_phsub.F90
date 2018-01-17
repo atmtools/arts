@@ -1426,12 +1426,12 @@ END module module_phsub
         !write(*,*) "SUM-RULE TEST FINISHED"
         if ( .not.(testOK) ) then
             call SumRuleError(econ)
-            econ % solu = 0
+            econ % e(3) = 4
         else
             if (econ % e(1) .ge. 1) then
                 write(*,*) "sumRule: The calculation correctly verifies the sum rule!"
             endif
-            econ % solu = 1
+            econ % e(3) = 0
         endif
 
   end subroutine sumRule

@@ -1,3 +1,17 @@
+2018-01-17  Teresa Mendaza <t.mendaza.cal@gmail.com>
+	
+	* arts-2-3-930
+
+	Functionalities of the variable -runE_deb- (an INTEGER used on 
+	RELMAT-debugging) were updated.
+	Thus, the following modules: 
+	3rdparty/relmat/arts_interface.F90
+	3rdparty/relmat/module_common_var.F90
+	3rdparty/relmat/module_linemixing.F90
+	3rdparty/relmat/module_molecSp.F90
+	3rdparty/relmat/module_phsub.F90 
+	are modified.
+
 2018-01-16 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-929

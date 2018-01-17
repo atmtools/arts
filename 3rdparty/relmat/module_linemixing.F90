@@ -468,7 +468,7 @@ END module module_linemixing
       ! 
       ! Reordered by wno
       !
-      if (( econ % e(2) .gt. e20 ) .and. ((econ % e(1) .eq. -1).or.(econ % e(1) .eq. 2) )) then
+      if ( econ % e(2) .gt. e20 ) then
         econ % e(2) = econ % e(2) - 1
         CALL just_fill_DiagWRn(nLines,dta1 % BHW, dta1 % HWT0, T/T0, P,W_rnO)
         !do i = 1, nLines

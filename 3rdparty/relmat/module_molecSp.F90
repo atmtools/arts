@@ -217,9 +217,7 @@ END module module_molecSp
             ! that does not follow the selection rules:
             ! \delta(J)=0, +-1, +-2
             ! \delta(l)= +-1
-            if (econ % e(1) .ge. 1) then
-                call errorBranch(pos, econ)
-            endif
+            call errorBranch(pos, econ)
         endif
   end function delta2branch
 !--------------------------------------------------------------------------------------------------------------------
@@ -269,9 +267,7 @@ END module module_molecSp
             ! *q = Q-branch (when ∆J =  0)
             branch2delta = 0
         else
-            if (econ % e(1) .ge. 1) then
-                call errorBranch(pos, econ)
-            endif
+            call errorBranch(pos, econ)
         endif
   end function branch2delta
 !--------------------------------------------------------------------------------------------------------------------

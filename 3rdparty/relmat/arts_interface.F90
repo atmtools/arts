@@ -56,7 +56,21 @@ module arts_interface
         !              *Default case*: Assumed position 0 is for O2-66 and position 1 is for N2-44.
         !   p_vmr    : REAL*8 volume mixing ratio (VMR) of perturbing gases (length=NPERT).  
         !              *Default case*: Assumed position 0 is for O2-66 and position 1 is for N2-44.
-        !   runE_deb : INTEGER that allows to print on screen (1) or not (0). It is used on debugging.
+        !   runE_deb : INTEGER used on debugging, which includes the selection:
+        !              As INPUT:
+        !              -1 -> DO NOT PRINT but allows the code RUN through (NOT PRINT + NOT ERRORS) 
+        !                    regardless of the no. of errors.
+        !               0 -> DO NOT PRINT and returns errors after RUN.   (NOT PRINT +     ERRORS)
+        !               1 -> DO PRINT and returns errors after RUN.       (    PRINT +     ERRORS)
+        !               2 -> DO PRINT and but allows the code RUN through (    PRINT + NOT ERRORS)
+        !                    regardless of the no. of errors.
+        !              As OUTPUT:
+        !               0 -> There was no errors while running the program and a full-W is returned.
+        !               1 -> There was errors while running the program and the W returned should not 
+        !                    be used.
+        !               2 -> RULE1 failed while running the program and a diagonal-W is returned.
+        !               3 -> RULE2 failed while running the program and a diagonal-W is returned.
+        !               4 -> SUMRULE failed while running the program and a diagonal-W is returned.
         !   ordered  : INTEGER which includes the selection in output:
         !              -1 -> Returns W, but no Y_Ro is returned.
         !               0 -> W Diagonal, and no Y_Ro is returned.
@@ -619,11 +633,11 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
         
         else
             if (econtrol % e(1) .ge. 1) write(*,*) "Rule 2 failed, RM(diagonal matrix) no OFF-diagonal elements are returned."
-            econtrol%solu = 0
             CALL just_fill_DiagWRn(nLines,artsNA, artsGA, rT, Ptot,W_rn)
             CALL InitM(nLines,1, Y1)
             CALL InitM(nLines,1, Y2)
             CALL InitM(nLines,1, Y3)
+            econtrol%e(3) = 3
         endif
         
     else
@@ -631,7 +645,9 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
             write(*,*) "Rule 1: Not enough Lines to calculate Relaxation Matrix"
             write(*,*) "        Diagonal matrix sent back in return."
         endif
-        econtrol%solu=0
+        if (ordered .ne. 0) then
+            econtrol%e(3)=2
+        endif
         !
         CALL just_fill_DiagWRn(nLines,artsNA, artsGA, rT, Ptot,W_rn)
         CALL InitM(nLines,1, Y1)
@@ -653,10 +669,14 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 !
     if (econtrol % e(1) .ge. 1) PRINT *, "END OF RELMAT SUBROUTINE"
 !
-    if (econtrol % e(2) .ge. 1) then
-        runE_deb = 1
+    if ( econtrol % e(2) .ge. 1 ) then
+        if ((econtrol % e(1) .eq. -1).or.(econtrol % e(1) .eq. 2)) then
+            runE_deb = 0
+        else
+            runE_deb = 1
+        endif
     else
-        runE_deb = 0
+        runE_deb = 0 + econtrol % e(3)
     endif
 !   
 !    STOP
@@ -793,8 +813,8 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     molP % v0   = meanV0(nLines,artsWNO)
     !
     !Disable the Adiabatic factor option because it requires from external inputs
-    !molP % AF_ON = use_adiab
-    molP % AF_ON = .false.
+    molP % AF_ON = use_adiab
+    !molP % AF_ON = .false.
     my_print = .false. 
 !
 !----------
@@ -1016,17 +1036,20 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
             endif
         else
             if (econtrol % e(1) .ge. 1) write(*,*) "Rule 2 failed, RM(diagonal matrix) no OFF-diagonal elements are returned."
-            econtrol%solu = 0
             CALL just_fill_DiagWRn(nLines,artsNA, artsGA, rT, Ptot,W_rn)
             CALL InitM(nLines,1, Y1)
             CALL InitM(nLines,1, Y2)
             CALL InitM(nLines,1, Y3)
+            econtrol%e(3) = 3
         endif
     else
         if (econtrol % e(1) .ge. 1) then
             write(*,*) "Rule 1: Not enough Lines to calculate Relaxation Matrix"
             write(*,*) "        Diagonal matrix sent back in return."
-            econtrol%solu = 0
+        endif
+
+        if (ordered .ne. 0) then
+            econtrol%e(3)=2
         endif
         !
         !
@@ -1054,14 +1077,6 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
         endif 
     enddo
     !
-    !
-    !    maxInten = maxf(nLines, artsS)
-    !    deltaV = dabs(maxf(nLines, artsWNO) - minf(nLines, artsWNO))
-    !    maxGA = maxf(nLines,artsGA) 
-    !    maxE00 = maxf(nLines,artsE00)
-    !    maxNA = maxf(nLines,artsNA)
-    !    aupp=artsUpp(1,1)
-    !    alow=artsLow(1,1)     
     !    call save_Q(dta1, dta_size1, molP, 'tmc', aupp, alow)
     !
     !
@@ -1070,10 +1085,14 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 !
     if (econtrol % e(1) .ge. 1) PRINT *, "END OF RELMAT SUBROUTINE"
 !
-    if (econtrol % e(2) .ge. 1) then
-        runE_deb = 1
+    if ( econtrol % e(2) .ge. 1 ) then
+        if ((econtrol % e(1) .eq. -1).or.(econtrol % e(1) .eq. 2)) then
+            runE_deb = 0
+        else
+            runE_deb = 1
+        endif
     else
-        runE_deb = 0
+        runE_deb = 0 + econtrol % e(3)
     endif
     !STOP
 !
@@ -1169,7 +1188,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 ! ERROR CONTROL:
             econ % e(1) = runE
             econ % e(2) = 0
-            econ % solu = 1
+            econ % e(3) = 0
       Return
   END SUBROUTINE VarInit
 !--------------------------------------------------------------------------------------------------------------------

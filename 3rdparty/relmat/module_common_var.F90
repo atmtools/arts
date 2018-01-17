@@ -535,10 +535,14 @@ MODULE module_common_var
     !
     ! e(2)      = error counter                 I1      It counts the number of errors, if e(2)>=1, 
     !                                                   then the error flag will be send back as 1. 
+    ! e(3)      = intended solution             I1      It tells whether or not the code returns a 
+    !                                                   diagonal-RM due to:
+    !                                                   (1) e(3) = 2 -> rule1   failed 
+    !                                                   (2) e(3) = 3 -> rule2   failed 
+    !                                                   (3) e(3) = 4 -> sumRule failed 
     !
-    integer*8, dimension(2) :: e
-    integer*8               :: solu
-
+    integer*8, dimension(3) :: e
+    !
     end type dta_ERR
     ! --------------
 END MODULE module_common_var
