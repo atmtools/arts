@@ -16,9 +16,21 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
  * USA. */
 
+// #include "wigxjpf/inc/wigxjpf.h"
 #include "wigner_functions.h"
 #include <stdexcept>
 #include <sstream>
+#include <algorithm>
+
+/*
+extern "C"
+{
+  void wig_table_init(int, int);
+  void wig_temp_init(int);
+  void wig_temp_free();
+  void wig_table_free();
+  double wig3jj(int, int, int, int, int, int);
+}*/
 
 /*!
   Equation 34.2.4 in http://dlmf.nist.gov/34.2
@@ -28,8 +40,26 @@
 Numeric wigner3j(const Rational j1,const Rational j2,const Rational j3,
                  const Rational m1,const Rational m2,const Rational m3)
 {
-    //std::cout<<std::endl<<"Wigner3j (" << j1 <<" "<<j2 <<" "<<j3<<"; " << m1 <<" " << m2 << " "<<m3<<")"<<std::endl;
-    
+/*
+  const int a = int((j1.Denom() == 2)? j1.Nom() : 2 * j1.Nom()),
+            b = int((j2.Denom() == 2)? j2.Nom() : 2 * j2.Nom()), 
+            c = int((j3.Denom() == 2)? j3.Nom() : 2 * j3.Nom()),
+            d = int((m1.Denom() == 2)? m1.Nom() : 2 * m1.Nom()),
+            e = int((m2.Denom() == 2)? m2.Nom() : 2 * m2.Nom()),
+            f = int((m3.Denom() == 2)? m3.Nom() : 2 * m3.Nom());
+  const int g = std::max(std::max(std::max(std::max(std::max(a, b), c), d), e), f);
+  double h;
+  
+  wig_table_init(g, 3);
+  wig_temp_init(g);
+            
+  h = wig3jj(a, b, c, d, e, f);
+  
+  wig_temp_free();
+  wig_table_free();
+  
+  return Numeric(h);*/
+
     Rational J = j1 + j2 + j3;
     J.Simplify();
     

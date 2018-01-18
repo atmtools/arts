@@ -1,3 +1,19 @@
+2018-01-18  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-932
+	
+	* src/m_linemixing.cc:  Added error-coding that prints errors to
+	screen at out1-level.  Relmat reports type of error.
+	
+	* 3rdparty/wigxjpf:  Attempt to add this library to ARTS because
+	we could use a faster wigner-calculator in relmat.  It presently
+	builds and the names are in the library but I am not sure how to
+	access the functions from within ARTS CC files or from within
+	relmat F90 files...
+	
+	* src/wigner_functions.cc:  Contains a copy of the example from
+	wigxjpf homepage for wigner 3j symbol but it is not working...
+
 2018-01-18  Teresa Mendaza <t.mendaza.cal@gmail.com>
 	
 	* arts-2-3-931

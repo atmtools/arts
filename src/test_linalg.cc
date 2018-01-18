@@ -655,13 +655,13 @@ void test_matrix_exp_propmat(Index nruns, Index ndiffs)
     cayley_hamilton_fitted_method_4x4_propmat_to_transmat__explicit(F1, dF1, dF2, A, dA1, dA2);
     cayley_hamilton_fitted_method_4x4_propmat_to_transmat__eigen(F2, dF3, dF4, A, dA1, dA2);
     
-     matrix_exp(F0, A);
-     cayley_hamilton_fitted_method_4x4_propmat_to_transmat__eigen(F1, A);
-     cayley_hamilton_fitted_method_4x4_propmat_to_transmat__explicit(F2, A);
-    
-     std::cout<<MapToEigen(F1)<<"\n\n";
-     std::cout<<MapToEigen(F2)<<"\n\n";
-     std::cout<<MapToEigen(F1)-MapToEigen(F2)<<"\n\n";
+    matrix_exp(F0, A);
+    cayley_hamilton_fitted_method_4x4_propmat_to_transmat__eigen(F1, A);
+    cayley_hamilton_fitted_method_4x4_propmat_to_transmat__explicit(F2, A);
+
+    std::cout<<MapToEigen(F1)<<"\n\n";
+    std::cout<<MapToEigen(F2)<<"\n\n";
+    std::cout<<MapToEigen(F1)-MapToEigen(F2)<<"\n\n";
     std::cout<<MapToEigen(dF1(0, joker, joker))<<"\n\n";
     std::cout<<MapToEigen(dF3(0, joker, joker))<<"\n\n";
     std::cout<<MapToEigen(dF3(0, joker, joker))-MapToEigen(dF1(0, joker, joker))<<"\n\n";

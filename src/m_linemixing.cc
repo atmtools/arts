@@ -1441,7 +1441,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                             const Index&                     order_of_linemixing, // -1 is full relaxation matrix, 0 is LBL, 1 is first order, 2 is second order ... limited implementations so far
                                             const Verbosity& verbosity)
 {
-  CREATE_OUT0;
+  CREATE_OUT1;
   using global_data::species_data;
   using global_data::SpeciesMap;
   
@@ -1478,24 +1478,16 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
     for(Index i=0; i < nspecies; i++)
     {
       if(abs_xsec_per_species[i].ncols() not_eq nts)
-      {
         throw std::runtime_error("Unexpected size of xsec matrix not matching abs_t and abs_p length.");
-      }
       else if(abs_xsec_per_species[i].nrows() not_eq nf)
-      {
         throw std::runtime_error("Unexpected size of xsec matrix not matching f_grid length.");
-      }
       if(relmat_type_per_band.nelem() not_eq abs_lines_per_band.nelem())
-      {
         throw std::runtime_error("Mismatching relmat_type_per_band and abs_lines_per_band.\n");
-      }
     }
   }
   
   if(abs_lines_per_band.nelem() not_eq band_identifiers.nelem())
-  {
     throw std::runtime_error("Mismatch between band_identifiers and bands\n");
-  }
   
   PropmatPartialsData ppd(jacobian_quantities);
   ppd.supportsRelaxationMatrix();
@@ -1507,9 +1499,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
   { 
     relmat_per_band.resize(nps);
     for(Index ip=0; ip<nps; ip++)
-    {
       relmat_per_band[ip].resize(nbands);
-    }
   }
   
   if(nbands not_eq abs_species_per_band.nelem())
@@ -1522,7 +1512,6 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
   
   // Setting up thermal bath:  only in simplistic air for now
   // This means: 21% O2 and 79% N2
-  //
   long    number_of_perturbers = 2;
   long   *molecule_code_perturber = new long[number_of_perturbers];
   long   *iso_code_perturber = new long[number_of_perturbers];
@@ -1556,12 +1545,6 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
   if (!arts_omp_in_parallel() && nbands not_eq 1)
   for(Index iband=0;iband<nbands;iband++)
   {
-    if(error_handling > 0)
-    {
-      #pragma omp critical
-      std::cout<<"Computing Band ID: "<<band_identifiers[iband]<<std::endl;
-    }
-    
     // band pointer
     const ArrayOfLineRecord& this_band = abs_lines_per_band[iband];
     
@@ -1875,7 +1858,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           throw std::runtime_error("Unsupported relaxation matrix type encountered.\n");
         }
         
-        if(error_handling_type == 1) // If it is still one here, then the program has found some error
+        if(error_handling_type == 1) 
         {
           std::ostringstream os;
           os << "Fatal error encountered in relmat calculations.  Check your input for sanity.\n" <<
@@ -1883,6 +1866,38 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           "\tIdentity: " << band_identifiers[iband] << std::endl;
           #pragma omp critical
           throw std:: runtime_error(os.str());
+        }
+        else if(error_handling_type == 2) 
+        {
+          std::ostringstream os;
+          os <<  "Band: " << band_identifiers[iband] << std::endl 
+          <<  "Did not pass rule 1: you need more lines in this band. "
+          <<  "LBL without Line Mixing is performed\n"
+          <<  "Pressure: " << p << " atm. Temperature: " << t << " K";
+          #pragma omp critical
+          out1 << os.str() << "\n";
+        }
+        else if(error_handling_type == 3) 
+        {
+          std::ostringstream os;
+          os <<  "Band: " << band_identifiers[iband] << std::endl 
+          <<  "Did not pass rule 2: the pressure check failed. "
+          <<  "LBL without Line Mixing is performed\n"
+          <<  "Pressure: " << p << " atm. Temperature: " << t << " K";
+          
+          #pragma omp critical
+          out1 << os.str() << "\n";
+        }
+        else if(error_handling_type == 4) 
+        {
+          std::ostringstream os;
+          os <<  "Band: " << band_identifiers[iband] << std::endl 
+          <<  "Did not pass the sum rule: the band cannot be renormalized. "
+          <<  "LBL without Line Mixing is performed\n"
+          <<  "Pressure: " << p << " atm. Temperature: " << t << " K";
+          
+          #pragma omp critical
+          out1 << os.str() << "\n";
         }
         
         // Convert to SI-units
@@ -1958,6 +1973,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           // Convert to SI-units
           W_dt *=  w2Hz / 2.0;
           dipole_dt /= 100.0;
+          DV_dt *= w2Hz;
         }
         
         // Use the provided pressure shift  NOTE: this might be a bad idea
@@ -1979,66 +1995,27 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           }
         }
         
-        // NOTE: For now, _dt means that the values at a different temperature are sent into the function for numeric
-        //       partial derivation at a later stage.
-        
         // Using Rodrigues etal method
         if(order_of_linemixing == -1)
         {
-          calculate_xsec_from_relmat( abs_xsec_per_species,
-                                      dabs_xsec_per_species_dx,
-                                      ppd,
-                                      W,
-                                      W_dt,
-                                      f0,
-                                      f_grid,
-                                      dipole,
-                                      rhoT,
-                                      rhoT_dt,
-                                      psf,
-                                      psf_dt,
-                                      abs_t[ip],
-                                      mass,
-                                      iso_ratio,
-                                      this_species,
-                                      ip,
-                                      nlines);
+          calculate_xsec_from_relmat( abs_xsec_per_species, dabs_xsec_per_species_dx,
+                                      ppd, W, W_dt, f0, f_grid, dipole,
+                                      rhoT, rhoT_dt, psf, psf_dt, abs_t[ip],
+                                      mass, iso_ratio, this_species, ip, nlines);
           
           if(write_relmat_per_band not_eq 0)
-          {
             relmat_per_band[ip][iband] = W;
-          }
         }
         else
         {
           ConstVectorView pressure_broadening = W.diagonal();
           ConstVectorView pressure_broadening_dt = ppd.do_temperature()?W_dt.diagonal():Vector(0);
           
-          calculate_xsec_from_relmat_coefficients(abs_xsec_per_species,
-                                                  dabs_xsec_per_species_dx,
-                                                  ppd,
-                                                  pressure_broadening,
-                                                  pressure_broadening_dt,
-                                                  f0,
-                                                  f_grid,
-                                                  dipole,
-                                                  rhoT,
-                                                  rhoT_dt,
-                                                  psf,
-                                                  psf_dt,
-                                                  Y,
-                                                  Y_dt,
-                                                  G,
-                                                  G_dt,
-                                                  DV,
-                                                  DV_dt,
-                                                  abs_t[ip],
-                                                  mass,
-                                                  iso_ratio,
-                                                  this_species,
-                                                  ip,
-                                                  nlines);
-          
+          calculate_xsec_from_relmat_coefficients(abs_xsec_per_species, dabs_xsec_per_species_dx,
+                                                  ppd, pressure_broadening, pressure_broadening_dt,
+                                                  f0, f_grid, dipole, rhoT, rhoT_dt, psf, psf_dt,
+                                                  Y, Y_dt, G, G_dt, DV, DV_dt, abs_t[ip], mass,
+                                                  iso_ratio, this_species, ip, nlines);
           
           if(write_relmat_per_band not_eq 0)
           {
@@ -2071,20 +2048,16 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
         
         for( long iline=0; iline<nlines; iline++ )
         {
-          
           Numeric K1, K2, tmp1;
           static const Vector v_tmp(0);
           
           GetLineScalingData(QT, QT0, part_ratio, K1, K2, tmp1, tmp1, 
                               partition_functions.getParamType(abs_lines_per_band[iband][0].Species(), 
-                                                              abs_lines_per_band[iband][0].Isotopologue()),
+                                                               abs_lines_per_band[iband][0].Isotopologue()),
                               partition_functions.getParam(abs_lines_per_band[iband][0].Species(), 
-                                                          abs_lines_per_band[iband][0].Isotopologue()), 
-                              abs_t[ip],
-                              abs_lines_per_band[iband][iline].Ti0(), 
-                              abs_lines_per_band[iband][iline].F(),
-                              abs_lines_per_band[iband][iline].Elow(),
-                              false, -1.0, -1.0, -1, -1, v_tmp);
+                                                           abs_lines_per_band[iband][0].Isotopologue()), 
+                              abs_t[ip], abs_lines_per_band[iband][iline].Ti0(),  abs_lines_per_band[iband][iline].F(),
+                              abs_lines_per_band[iband][iline].Elow(), false, -1.0, -1.0, -1, -1, v_tmp);
           
           abs_lines_per_band[iband][iline].PressureBroadening().GetAirBroadening(W(iline, iline),  psf[iline],
                                                                                   abs_lines_per_band[iband][iline].Ti0()/abs_t[ip],
@@ -2093,8 +2066,8 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           // TODO: Add derivatives here
           
           Linefunctions::set_faddeeva_algorithm916(F, dF, f_grid,
-                                                    0.0, 0.0, abs_lines_per_band[iband][iline].F(),
-                                                    GD_div_F0, W(iline, iline), psf[iline], 0.0); // Derivatives need to be added...
+                                                   0.0, 0.0, abs_lines_per_band[iband][iline].F(),
+                                                   GD_div_F0, W(iline, iline), psf[iline], 0.0); // Derivatives need to be added...
           
           Linefunctions::apply_linestrength_scaling(F, dF, 
                                                     abs_lines_per_band[iband][iline].I0(), iso_ratio,
@@ -2121,8 +2094,8 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
     delete[] upper;
     delete[] lower;
   }
-    delete[] iso_code_perturber;
-    delete[] molecule_code_perturber;
+  delete[] iso_code_perturber;
+  delete[] molecule_code_perturber;
 }
 
 #else

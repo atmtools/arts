@@ -1,0 +1,48 @@
+1.6   2017-03-12
+
+        Add wigxjpf: to more error messages.
+        Check against temp array in use (when not compiled multi-threaded).
+
+1.5   2016-06-16
+
+	Fixed quadmath test, library last linker argument.  (K. Wendt)
+
+1.4   2016-03-23
+
+	Update README with SIAM J. Sci. Comput. reference.
+	Do not mark max_factorial as prime.
+	 Fortunately, no effect on results.
+
+1.3   2015-09-16
+
+	From K. Wendt:
+	 Shared library for OS X.
+	 setup.py to install python module.
+
+
+1.2   2015-08-25
+
+	FORTRAN interface declarations in a module.
+
+1.1   2015-08-15
+
+	Expose native functions to produce float128 results.
+	Simplified interface for float128 results.
+	A few clarifying comments.
+
+1.0   2015-05-01
+
+	First public release.
+
+0.11  2015-04-26
+
+	Lots of changes all over the place (suggestions from B. Carlsson).
+	Since we are still in beta, not detailing them all.
+
+0.10  2015-04-17
+
+	Separate quadmath functions to own library.
+
+0.9   2015-04-15
+
+	First test-pilot release.

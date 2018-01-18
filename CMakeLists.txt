@@ -429,6 +429,10 @@ get_directory_property(ENABLE_RELMAT DIRECTORY
                        3rdparty/relmat
                        DEFINITION ENABLE_RELMAT)
 
+get_directory_property(ENABLE_WIGNER DIRECTORY
+                       3rdparty/wigxjpf
+                       DEFINITION ENABLE_WIGNER)
+
 if (OEM_SUPPORT)
   message (STATUS "OEM enabled")
 else()

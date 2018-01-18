@@ -52,6 +52,8 @@ if (ENABLE_RELMAT)
   list (APPEND ALL_ARTS_LIBRARIES relmat)
 endif (ENABLE_RELMAT)
 
+list (APPEND ALL_ARTS_LIBRARIES wigner)
+
 
 ########### target to extract version number from ChangeLog ###############
 
