@@ -60,6 +60,15 @@ END module module_molecSp
 !--------------------------------------------------------------------------------------------------------------------
   SUBROUTINE r_arts_LocalQ(dta1,pos,Q0,Q00,econ) 
 !--------------------------------------------------------------------------------------------------------------------
+! r_arts_LocalQ : identifies localQ from ARTS' input.
+!
+! Detailed info:
+! --------------
+! This subroutine indentifies the upper and lower state local quanta for linear molecules 
+! (definitions would be found in HITRAN04).
+!
+! Last Update: Teresa Mendaza 18/01/2018
+!--------------------------------------------------------------------------------------------------------------------
         use module_common_var
         use module_error
         use module_maths
@@ -84,12 +93,14 @@ END module module_molecSp
             (my_mol .eq. 8).or.(my_mol .eq.13).or.(my_mol .eq.14).or.(my_mol .eq.15).or. &
             (my_mol .eq.16).or.(my_mol .eq.17).or.(my_mol .eq.18).or.(my_mol .eq.19).or. &
             (my_mol .eq.22).or.(my_mol .eq.23)) then
+        !
         ! Diatomic: 
         ! CO(5), HF(14), HCl(15), HBr(16), HI(17), N2(22), NO(8), OH(13)
         ! ClO(18), O2(7)
+        !
         ! Linear Triatomic: 
         ! N2O(4), OCS(19), HCN(23), CO2(2)
-        ! ------------------------------
+        ! --------------------------------------------------------------
         ! Variables in use:
         !            J: Resultant total angular momentum quantum number, 
         !               excluding nuclear spins.(initial/lower level)
@@ -104,7 +115,7 @@ END module module_molecSp
         !               l2 J N S          l2 J N S     
         !
         ! LOWER LEVEL:
-        !
+        ! -----------
         ! J:
             if (Q00(2) .eq. -1) then
                 dta1%J(pos,1)     = 0.0d0
@@ -122,11 +133,11 @@ END module module_molecSp
         !
         ! S:
             if (Q00(4) .eq. -1) then
-                dta1%espin(pos,1) = 1.0d0 !CHANGE!!!!
-                !if (my_mol .eq. 7) then
-                !!! IF O2 and no SPIN then ERROR!!!!
-                !    call errorSPIN(econ)
-                !endif
+                dta1%espin(pos,1) = 1.0d0
+                if (my_mol .eq. 7) then
+                !IF O2 and no SPIN then ERROR!!!!
+                    call errorSPIN(econ)
+                endif
             else
                 dta1%espin(pos,1) = real(Q00(4),dp)
             endif
@@ -149,13 +160,12 @@ END module module_molecSp
             endif
         !
         ! S:
-            ! CAREFUL WITH THE SPIN!!! if it is integer that means something ASK RICHARD!
             if (Q0(4) .eq. -1) then
                 dta1%espin(pos,2) = 1.0d0
-                !if (my_mol .eq. 7) then
-                !!! IF O2 and no SPIN then ERROR!!!!
-                !    call errorSPIN(econ)
-                !endif
+                if (my_mol .eq. 7) then
+                !! IF O2 and no SPIN then ERROR!!!!
+                    call errorSPIN(econ)
+                endif
             else
                 dta1%espin(pos,2) = real(Q0(4),dp)
             endif
@@ -168,9 +178,11 @@ END module module_molecSp
         pos = pos + iaux
         ELSE
             if (econ % e(1) .ge. 1) then
+                write(*,*) "****************** r_arts_LocalQ:"
                 write(*,*) " No vibrational band information or not speficied Format "
                 write(*,*) " of your selected molecule (HITRANid):", my_mol  
             endif
+            econ % e(2) = econ % e(2) + 1
         ENDIF
 
   END SUBROUTINE r_arts_LocalQ
@@ -217,6 +229,7 @@ END module module_molecSp
             ! that does not follow the selection rules:
             ! \delta(J)=0, +-1, +-2
             ! \delta(l)= +-1
+            ! However... the code checks
             call errorBranch(pos, econ)
         endif
   end function delta2branch
@@ -235,7 +248,7 @@ END module module_molecSp
 ! -2, -1, 0, +1, +2
 !
 ! NOTE! User has to watch out SELECTION RULES 
-!       (foe example: not every molecule has O- or S- branches)
+!       (for example: not every molecule has O- or S- branches)
 !
 ! Author: Teresa Mendaza 02/03/2016
 !--------------------------------------------------------------------------------------------------------------------
@@ -277,7 +290,7 @@ END module module_molecSp
 !
 ! Detailed info:
 ! --------------
-! This subroutine acts as a "dataBase" of the adjusted a1, a2, a3, dc
+! This subroutine acts as a "look-up table" of the adjusted a1, a2, a3, dc
 ! parameters that are requeried for the Basis Rates (function 'Q_Mol_X').
 ! 
 ! Parameters written here come either from previous literature in the field or
@@ -409,26 +422,12 @@ END module module_molecSp
             ! -------------------------------
             ! Rodriguez et al. 1999; CO2 - N2
                 molP%dc = 2.2      !Å (amstrong)
-            ! Teresa Mendaza:
-            ! with adiabatic factor:
-            ! if ((T .eq. 300.dp) .and. (molP%AF_ON)) then
-            !    molP%a1 = 1.0051114072633629      !cm-1/atm
-            !    molP%a2 = 6.7658218605552072E-004 !cm-1
-            !    molP%a3 =-6.4430735822959561E-005 !cm-1
-            ! endif
             ! -------------------------------
             else if ((sys(1) .eq. 2) .and. (sys(2) .eq. 7)) then
             ! CO2(2)-O2(7)
             ! -------------------------------
             ! Rodriguez et al. 1999; CO2 - O2
                 molP%dc = 2.4      !Å (amstrong)
-            ! Teresa Mendaza:
-            ! with adiabatic factor:
-            ! if ((T .eq. 300.dp) .and. (molP%AF_ON)) then
-            !    molP%a1 = 1.0038726990151170      !cm-1/atm
-            !    molP%a2 = 5.1627718836145826E-004 !cm-1
-            !    molP%a3 =-4.2994041637169111E-005 !cm-1
-            ! endif
             ! -------------------------------
             else if ((sys(1) .eq. 7) .and. (sys(2) .eq. 7)) then
             ! Tran et al. 2006; O2 - O2

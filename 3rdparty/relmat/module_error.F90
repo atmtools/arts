@@ -25,14 +25,6 @@ module module_error
             type (dta_ERR), intent (inout)   :: econ
         end subroutine errorSPIN
 
-        subroutine sizeError(flagE, svar, smax, econ)
-            use module_common_var
-            implicit none
-            integer (kind=8), intent(in):: svar, smax
-            character*4, intent(in)          :: flagE
-            type (dta_ERR), intent (inout)   :: econ
-        end subroutine sizeError
-
         subroutine molnameError(molN,econ)
             use module_common_var
             implicit none
@@ -142,10 +134,18 @@ module module_error
             type (dta_ERR), intent (inout)   :: econ
         end subroutine errorLLStyType
 
+        subroutine errorLines(delta,j,k,econ)
+            use module_common_var
+            implicit none
+            integer*8       , intent (in   ) :: j,k
+            double precision, intent (in   ) :: delta
+            type (dta_ERR)  , intent (inout) :: econ
+        end subroutine errorLines
+
         subroutine errorMode(ecsmode,econ)
             use module_common_var
             implicit none
-            character(4), intent (in   )   :: ecsmode
+            character(4), intent (in   )     :: ecsmode
             type (dta_ERR), intent (inout)   :: econ
         end subroutine errorMode
 
@@ -197,37 +197,6 @@ subroutine errorSPIN(econ)
     endif
     econ % e(2) = econ % e(2) + 1
 end subroutine errorSPIN
-!--------------------------------------------------------------------------------------------------------------------
-subroutine sizeError(flagE, svar, smax, econ)
-!--------------------------------------------------------------------------------------------------------------------
-! It displays an error message whenever an error occurs while the program is saving
-! records from a file into a variable.
-!
-    use module_common_var
-    implicit none
-    integer (kind=8), intent(in) 	   :: svar, smax
-    character(4)    , intent(in)     :: flagE
-    type (dta_ERR), intent (inout)   :: econ
-
-    if (econ % e(1) .ge. 1) then
-      if (flagE .eq. "1000") then
-        write (*,1000) svar, smax
-      else if (flagE .eq. "1001") then
-        write (*,1001) 
-      endif
-    endif
-    econ % e(2) = econ % e(2) + 1
-    
-1000    Format(1x,"****************** Hit2DTA: memory access violation.",&
-        1x,"The Number of points to compute (",I6,")",&
-        1x,"is TOO large regarding the fortran code implementation.",&
-        1x,"Raise the value of -nLmx- to at least ",I6)
-	     
-1001    Format(1x,"****************** DipCal: memory access violation.",&
-        1x,'Arrays in for Line data storage are too small', &
-        1x,'raise the value of nLmx in the "module_common_var". ')
-
-end subroutine sizeError
 !--------------------------------------------------------------------------------------------------------------------
 subroutine molnameError(molN, econ)
 !--------------------------------------------------------------------------------------------------------------------
@@ -344,7 +313,7 @@ end subroutine sumRuleERROR
 subroutine wignerS_ERROR(v3, v4, v5, v6, v7, econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! It displays an error message whenever an element of series generating off-diagonal elements of the relaxation 
-! matrix overflows.
+! matrix overflows due to its wigner symbol.
 ! 
     use module_common_var
     implicit none
@@ -359,8 +328,6 @@ subroutine wignerS_ERROR(v3, v4, v5, v6, v7, econ)
       write (*, *) "w6j1=",v5
       write (*, *) "w6j2=",v6
       write (*, *) "w6j3=",v7
-      !write (*, *) "2nd Adiabatic Factor: v1=",v1
-      !write (*, *) "Or the basis-rate function: Q(L)=",v2
       write (*, *) "overflows."
       write (*, *) "Typically this error occurs when an arithmetic operation attempts"
       write (*, *) "to create a numeric value that is too large to be represented "
@@ -373,7 +340,7 @@ end subroutine wignerS_ERROR
 subroutine offdiagEL_IN_ERROR(v0, v1, v2, econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! It displays an error message whenever an element of series generating off-diagonal elements of the relaxation 
-! matrix overflows.
+! matrix overflows due to the adiabatic factor, basis rate or the sum over lines.
 ! 
     use module_common_var
     implicit none
@@ -397,7 +364,7 @@ end subroutine offdiagEL_IN_ERROR
 subroutine offdiagEL_ERROR(var1, var2, var3, econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! It displays an error message if one of the resulting off-diagonal element of the relaxation 
-! matrix overflows.
+! matrix overflows, in this particular case, when the AF, or other factors multiplying the basis rate do so.
 ! 
     use module_common_var
     implicit none
@@ -520,7 +487,7 @@ end subroutine LLS_error
 subroutine LLS_DGELSYSD_error(b1, b2, b3, info, econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! It displays an error message if an error occured at
-! the Linear-Least Square method (Lapack) and its Solution is not valid.
+! any minimum norm least squares methods (Lapack) and its Solution is not valid.
 !
     use module_common_var
     implicit none
@@ -588,6 +555,8 @@ end subroutine errorBubble
 !--------------------------------------------------------------------------------------------------------------------
 subroutine errorPType(pty,econ)
 !--------------------------------------------------------------------------------------------------------------------
+! It displays an error message when the type of population-calculation is not within the available posibilities. 
+!
     use module_common_var
     implicit none
     character(3)  , intent (in   )   :: pty
@@ -602,6 +571,8 @@ end subroutine errorPType
 !--------------------------------------------------------------------------------------------------------------------
 subroutine errorLLStyType(LLSty,econ)
 !--------------------------------------------------------------------------------------------------------------------
+! It displays an error message when the type of LLS-calculation is not within the available posibilities. 
+!
     use module_common_var
     implicit none
     character(6)  , intent (in   )   :: LLSty
@@ -613,15 +584,38 @@ subroutine errorLLStyType(LLSty,econ)
         write(*,*) "'LLSty' selection is not valid. Please try any of the following options: "
         write(*,*) "(0)Linear"
         write(*,*) "(1)Model1"
-        write(*,*) "(2)Model2"
-        write(*,*) "(3)Model3"
-        write(*,*) "(4)Model4"
+        write(*,*) "(2)Li--AF"
     endif
     econ % e(2) = econ % e(2) + 1
 end subroutine errorLLStyType
 !--------------------------------------------------------------------------------------------------------------------
+subroutine errorLines(delta,j,k,econ)
+!--------------------------------------------------------------------------------------------------------------------
+! It displays an error message when two line-frequencies are equal or the diference is not significant enough.
+!
+    use module_common_var
+    implicit none
+    integer*8       , intent (in   ) :: j,k
+    double precision, intent (in   ) :: delta
+    type (dta_ERR)  , intent (inout) :: econ
+
+    if (econ % e(1) .ge. 1) then
+        write(*,*) "****************** LLS_Matrix:"
+        write(*,*) "|wno(j) - wno(k)|=", delta
+        write(*,*) "line-frequencies of two different levels:"
+        write(*,*) "line position in the band#",j
+        write(*,*) "line position in the band#",k
+        write(*,*) "are equal or the diference is not significant enough."
+        write(*,*) "NOTE: line position in the band# consideres the order of appereance in the line catalogue used"
+
+    endif
+    econ % e(2) = econ % e(2) + 1
+end subroutine errorLines
+!--------------------------------------------------------------------------------------------------------------------
 subroutine errorMode(ecsmode,econ)
 !--------------------------------------------------------------------------------------------------------------------
+! It displays an error message when the type of a ECS matrix element is not within the available posibilities. 
+!
     use module_common_var
     implicit none
     character(4)  , intent (in   )   :: ecsmode

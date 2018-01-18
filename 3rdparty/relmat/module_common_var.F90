@@ -44,7 +44,7 @@ MODULE module_common_var
     !     2) [Makarov et al. 2013] ECS matrix element        = 'mak1'
     !     3) [Makarov et al. 2013]'s CODE ECS matrix element = 'mak2'
     !
-    double precision, parameter :: TOL= 1.0000000E-90! tolerance level
+    double precision, parameter :: TOL= 1.0000000E-40! tolerance level
     !***********
     ! Constants
     !***********
@@ -84,10 +84,6 @@ MODULE module_common_var
     ! IN/OUT Files
     !**************
     !
-    ! Paths
-    ! -----
-    character (64) , parameter :: out_file_path   = "Output_files/"
-    !
     ! Units of IN/OUT files
     ! ---------------------
     integer*8, parameter  :: u1 = 10 ! Unit input file#1  
@@ -99,12 +95,6 @@ MODULE module_common_var
     integer*8, parameter  :: u7 = 15
     integer*8, parameter  :: u8 = 16
     integer*8, parameter  :: u9 = 17
-    !
-    !********************************************
-    ! Max Number of Lines and of matrix elements
-    !********************************************
-    integer*8, parameter  :: nLmx  = 500 
-    integer*8, parameter  :: nMmx  = nLmx*nLmx
     !
     !**************************
     ! Program Type: STRUCTURES 
@@ -262,7 +252,7 @@ MODULE module_common_var
     !       are there to avoid its duplicity.
     !------------------------------------------------------------
     integer*8       :: lv2(2) ! lower = 1 or 'low'
-                                           ! upper = 2 or 'upp'
+                              ! upper = 2 or 'upp'
     !------------------------------------------------------------
     ! LOCAL QUANTA:// Rotational
     ! -------------
@@ -401,11 +391,11 @@ MODULE module_common_var
     !          Sym: takes values (d,q) for magnetic-dipole or
     !               electric-quadrupole transitions (ONLY FOR: O2, N2).
     !
-    integer*8,allocatable        :: N(:,:)
+    integer*8       ,allocatable :: N(:,:)
     double precision,allocatable :: J(:,:)
     double precision,allocatable :: F(:,:)
     double precision,allocatable :: nspin(:,:), espin(:,:)
-    character,allocatable        :: br(:), br_N(:)
+    character(1)    ,allocatable :: br(:), br_N(:)
 
     double precision,allocatable :: Qlt(:,:)
 
@@ -455,7 +445,7 @@ MODULE module_common_var
        Double Precision       :: E00, nair, shift_air
        Double Precision       :: g0, g00
        character*15           :: V0, V00, Q0, Q00
-       character              :: flag
+       character(1)           :: flag
 
     end type HITRAN
     ! --------------
@@ -495,9 +485,6 @@ MODULE module_common_var
     ! LLSty      = "Linear" to "Li--AF"         a6      depends on the LLS method:
     !                                                   "Linear" = LLS_Matrix + Li
     !                                                   "Model1" = LLS_Matrix + M1
-    !                                                   "Model2" = LLS_Matrix + M2
-    !                                                   "Model3" = LLS_Matrix + M3
-    !                                                   "Model4" = LLS_Matrix + M4
     !                                                   "Li--AF" = LLS_AF_Matrix
     !
     !
@@ -519,7 +506,6 @@ MODULE module_common_var
 
     end type dta_MOL
     ! --------------
-    ! --------------
     type dta_ERR
     ! MOLECULAR STRUCTURE:-------------
     ! PARAMETER   MEANING               FORTRAN Type    Comments or units 
@@ -530,14 +516,13 @@ MODULE module_common_var
     !                                                    1 ->     Printing allowed + returning errors.
     !                                                    2 ->     Printing allowed + passepartout*. 
     ! *NOTE:'Passepartout'= no errors on the configuration of W will be signaled, 
-    !                       W will be return as diagonal if anything happends during 
-    !                       W-calculation and checkings.
+    !                       W will be return regardless its content.
     !
     ! e(2)      = error counter                 I1      It counts the number of errors, if e(2)>=1, 
     !                                                   then the error flag will be send back as 1. 
-    ! e(3)      = intended solution             I1      It tells whether or not the code returns a 
-    !                                                   diagonal-RM due to:
-    !                                                   (1) e(3) = 2 -> rule1   failed 
+    ! e(3)      = variable which states         I1      It tells whether or not the code returns a 
+    !             the status of the solution            diagonal-RM due to:
+    !             at exiting the interface              (1) e(3) = 2 -> rule1   failed 
     !                                                   (2) e(3) = 3 -> rule2   failed 
     !                                                   (3) e(3) = 4 -> sumRule failed 
     !

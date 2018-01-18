@@ -68,30 +68,28 @@ subroutine Hit2DTA(dta1, dta_size, nLines, vLines_Indx, &
                                             econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! "Hit2DTA": READ LINEs data
-! .....................................................
-! . Subroutine to read HITRAN data from its ASCII file.
-! .....................................................
+! 
+! Detailed description:
+! ---------------------
+! Subroutine to read Spectroscopic parameters from input variables.
 !
-! Input/Output Parameters of Routine (Arguments or Common)
+! Input/Output Parameters of Routine 
 ! ----------------------------------
-! nLines   : Integer Array of the number of lines (Output).
+! nLines : Integer Array of the number of lines (Output).
 !
 ! Other important Output Quantities (through Common Statements)
 ! ---------------------------------
 ! Sig    : WaveNumbers of the Lines (Cm-1) 
-! E    : Energies of the Lower levels of the lines (Cm-1)
+! E      : Energies of the Lower levels of the lines (Cm-1)
 ! HWT0   : Air-broadened (or H2-broadened) Half-Widths (at 296 K) of the 
 !           Lines (Cm-1/Atm)
 ! BHW    : Temperature Dependence Coefficients of HWT0
 !
-! Accessed Files:
+! Accessed Files: None
 ! --------------
-!   'CH4_2nu3_F2iso1_HIT12.dat' Spectroscopic data file of the CH4 2·nu3 band.
 !
-! Called By: Main Program     
+! Called By: 'RM_LM_LLS_tmc_arts', 'RM_LM_tmc_arts'
 ! ---------
-!
-! Double Precision Version
 !     
 ! T. Mendaza last change 17 February 2017
 !--------------------------------------------------------------------------------------------------------------------
@@ -153,10 +151,6 @@ subroutine Hit2DTA(dta1, dta_size, nLines, vLines_Indx, &
             vLines_Indx(j) = i
           endif
           i=i+1
-          ! Check how many lines has read the subrutine...
-          if ( i.gt.nLmx ) then
-           call sizeError("1001",i,nLmx,econ)
-          endif 
         endif       
         
     end do
@@ -187,7 +181,7 @@ end subroutine Hit2DTA
 ! Called Routines: None
 ! ---------------  
 !
-! Called By: Main Program
+! Called By: 'RM_LM_LLS_tmc_arts', 'RM_LM_tmc_arts'
 ! ---------
 !
 !
@@ -233,13 +227,13 @@ end subroutine Hit2DTA
 ! ----------------------------------
 ! molP  : Molecule's basic information.
 !
-! Accessed Files:  'self-database'
+! Accessed Files:  None
 ! --------------
 !
 ! Called Routines: None
 ! ---------------  
 !
-! Called By: moleculeID
+! Called By: 'moleculeID'
 ! ---------
 !
 !
@@ -617,7 +611,6 @@ end subroutine Hit2DTA
 !
 ! Called By: Main Program
 ! ---------
-!
 !
 ! T.Mendaza, last change 17 February 2017
 !--------------------------------------------------------------------------------------------------------------------

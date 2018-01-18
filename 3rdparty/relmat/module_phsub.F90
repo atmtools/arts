@@ -177,9 +177,9 @@ END module module_phsub
 !   k       : marks the transition in study (Input).
 !   E       : lower state energy (cm-1).
 !   SWeig00 : State Statistical Weight (also called g00 in HITRAN). UNITLESS.
-! molN    : = Na·Nmcon; molecular number density (molecules·cm-3)
-! PFmol   : internal partition function. UNITLESS.
-! ptype   : this parameter marks the result Population calculation 
+!   molN    : = Na·Nmcon; molecular number density (molecules·cm-3)
+!   PFmol   : internal partition function. UNITLESS.
+!   ptype   : this parameter marks the result Population calculation 
 !           in other words:
 !           ('hit') Acording to HITRAN96 
 !           ('tra') Acording to Hartmann et. al 2006 
@@ -193,7 +193,7 @@ END module module_phsub
 ! -----------------
 !   PopuL0  : Populations of the Lower state of the Lines
 !             at Temperature T0                 (Output)
-!           NOTE: 
+!             NOTE: 
 !             1) with Ha Tran Code, the Population is UNITLESS.
 !             2) HITRAN definition:
 !                PopuT0(k) = molN*g00(k)*dexp(-c2*E(k)/T0)/(PFmol(iso,T0))
@@ -205,7 +205,7 @@ END module module_phsub
 ! Called Routines: 'none'
 ! ---------------  
 !
-! Called By: 'DipCAL' (Dipole of the lower state CALculation)
+! Called By: 'RM_LM_LLS_tmc_arts', 'RM_LM_tmc_arts'
 ! ---------
 !
 !   Double Precision Version
@@ -267,6 +267,9 @@ END module module_phsub
             dta1%PopuT0(k) = molN*dta1%PopuT0(k)
             dta1%PopuT(k)  = molN*dta1%PopuT(k)
         ENDDO
+        ! NOTE:
+        ! When changing ptype, be carefull with the units introduced by 'hit'. 
+        ! It might affect the final results. 
     ELSE
         call errorPType(ptype, econ)
     ENDIF
@@ -280,10 +283,7 @@ END module module_phsub
 ! 
 ! Detailed Description:
 ! ---------------------
-! This subroutine computes the dipole element d_k for a certain level 
-! obtaining parameters from Subroutine "Readline". 
-!
-! Variables:
+! This subroutine computes the dipole element d_k of the line for linear molecules.
 !
 ! Input/Output Parameters of Routine (Arguments or Common)
 ! ----------------------------------
@@ -296,7 +296,7 @@ END module module_phsub
 ! ------------------------------
 !	T0	      : Reference Temperature in Kelvin, 296K (Input).
 !	c2        : second radiation constant = hc/k = 1.4388 cm·K
-!pure_b_case: --
+!  pure_b_case: --
 !
 ! Output Quantities (through DTA structure)
 ! -----------------
@@ -312,7 +312,7 @@ END module module_phsub
 ! Called Routines: None
 ! ---------------  
 !
-! Called By: Main interface
+! Called By: 'RM_LM_LLS_tmc_arts', 'RM_LM_tmc_arts'
 ! ---------
 !
 !	Double Precision Version
@@ -337,27 +337,30 @@ END module module_phsub
     double precision            :: purehund, d0
     double precision            :: signDIP, Ia_hit
 !
-!----------
-! Compute the Dipole moment at every line 
-! (Diatomic approximation... 
-!
+!-----------
 ! INIT. VAR:
 !-----------
     DO k = 1, nLines
       !
       ! DIPOLE MOMENT 
       !
-       ! Hartmann's style (Using LINE-INTENSITY):
+        ! Hartmann's style (Using LINE-INTENSITY):
         fA  = -c2*dta1%Sig(k)/T0
         fB  = 1.D0 - dexp(fA)
         !dta1%DipoT(k)= dsqrt( dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT0(k)*fB) )
         dta1%DipoT(k)= dsqrt( dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT(k)*fB) )
-            !cm/molecules**0.5
-    !
-    ! REDUCE DIPOLE MOMENT, D0
-    !
+        !cm/molecules**0.5
+        ! -----------
+        !
+        ! REDUCE DIPOLE MOMENT, D0
+        !
         if ( molP%M .eq. 7 ) then
-        ! O2 possible Dipole'scalculation:
+        ! O2 possible Dipole's calculation:
+        ! In theory Molecules such as O2, N2, Br2, 
+        ! do not have a changing dipole moment (amplitude nor orientation) 
+        ! when they undergo rotational and vibrational motions. In practice,
+        ! they do, but their nature is different form the other linear (and asymetric) mol.
+        ! That is the reason why their formula needs to be addapted. 
         !
         ! a) Makarov et al. (2013):
         ! DATA:
@@ -418,7 +421,7 @@ END module module_phsub
 !        w3j = wigner3j( dta1%J(k,1), real(K_t,dp), dta1%J(k,2), &
 !                        0.0_dp, 0.0_dp, 0.0_dp)
 !        dta1%Drigrotor(k) = j*dsqrt(2.d0*dta1%J(k,2) + 1.)*w3j
-       !
+!
     ENDDO
 ! 
   END SUBROUTINE DipCAL
@@ -457,6 +460,7 @@ END module module_phsub
 ! (d)		    intermediate	weak		         strong
 ! (e)		    weak		      intermediate	   strong
 !				    strong		    intermediate
+!--------------------------------------------------------------------------------------------------------------------
 !
       IMPLICIT NONE
       integer*8, parameter         :: dp = kind(1.0D0) !double precission
@@ -500,11 +504,13 @@ END module module_phsub
   double precision function Kpart1(Ji_p, Jf, Jf_p, li, lf, AF1)
 !--------------------------------------------------------------------------------------------------------------------
 ! "Kpart1": First part of the OFF-diagonal elements <<k'|W|k>>
-        ! where:
-        ! <<k'|W|k>> := transition k->k'
+! where:
+! <<k'|W|k>> := transition k->k'
+!
 ! NOTE:
-! -----
+! 
 ! c1 = (2*Ji_p+1)*sqrt((2*Jf+1)*(2*Jf_p+1))*(-1)^(li+lf+K_t+1)
+!--------------------------------------------------------------------------------------------------------------------
 !
       use module_common_var
       IMPLICIT NONE
@@ -527,11 +533,13 @@ END module module_phsub
 !--------------------------------------------------------------------------------------------------------------------
   double precision function Kpart1_O2(Ji, Ji_p, Jf, Jf_p, Ni, Ni_p, Nf, Nf_p, AF1, econ)
 !--------------------------------------------------------------------------------------------------------------------
-! "Kpart1_O2": First part of the OFF-diagonal elements <<k'|W|k>> 
+! "Kpart1_O2": First part of the OFF-diagonal elements <<k'|W|k>> for O2
 ! where:
 ! <<k'|W|k>> := transition k->k'
+!
 ! NOTE: mode mark the version of the calculation: tran/mak1/mak2
-! -----
+! 
+!--------------------------------------------------------------------------------------------------------------------
 !
     use module_common_var
     IMPLICIT NONE
@@ -569,15 +577,17 @@ END module module_phsub
       
         Kpart1_O2 = cte1*cte2*AF1
                     
-      RETURN
+    RETURN
   END function Kpart1_O2
 !--------------------------------------------------------------------------------------------------------------------
   double precision function Kpart2(L, Ji, Ji_p, Jf, Jf_p, li, lf, AF2,econ)
 !--------------------------------------------------------------------------------------------------------------------
 ! "Kpart2": Calculates triangle coefficients for angular momenta.
+!
 ! NOTE:
 ! -----
 ! This version returns 0 if the triangle inequalities are violated.  (RAH)
+!--------------------------------------------------------------------------------------------------------------------
 !
       use module_common_var
       use module_error
@@ -625,10 +635,12 @@ END module module_phsub
                                       Ni, Ni_p, Nf, Nf_p, Si, Sf, &
                                       AF2, econ)
 !--------------------------------------------------------------------------------------------------------------------
-! "Kpart2_O2": Calculates triangle coefficients for angular momenta.
+! "Kpart2_O2": Calculates triangle coefficients for angular momenta (O2 version).
+! 
 ! NOTE:
 ! -----
 ! This version returns 0 if the triangle inequalities are violated.  (RAH)
+!--------------------------------------------------------------------------------------------------------------------
 !
     use module_common_var
     use module_error
@@ -866,7 +878,7 @@ END module module_phsub
           if (molP % QTy .eq. "TMC") then
             if (molP % LLSty .eq. "Li--AF") then
                 Qaux = Ql_mol_AF_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,PerM,L)
-            else !if molP % LLSty = "Linear" or "Model1/2/3/4"
+            else !if molP % LLSty = "Linear" or "Model1"
                 Qaux = Ql_mol_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,L,econ)
             endif
           else
@@ -897,8 +909,8 @@ END module module_phsub
       enddo
       !
       K_jkCalc = K1*suma 
-      ! ERASE NEXT LINE
-      ! h%Qlt(nt,L) = K_jkCalc
+      ! 
+      h%Qlt(nt,L) = K_jkCalc
 
       if ( isnan( K_jkCalc ) .or. isinf( K_jkCalc  ) ) then
         call offdiagEL_ERROR(K1, AF1, suma,econ)
@@ -1005,10 +1017,8 @@ END module module_phsub
         ! Calculation of the basis rates "Q_mol-X":
         if (molP % QTy .eq. "TMC") then
             if (molP % LLSty .eq. "Li--AF") then
-                !Qaux = Ql_mol_AF_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,PerM,L)
                 Qaux = Ql_mol_AF_LLS(real(Ni,dp),real(Ni_p,dp),h%Sig(j),h%Sig(k),molP,PerM,L)
-            else !if molP % LLSty = "Linear" or "Model1/2/3/4"
-                !Qaux = Ql_mol_LLS(Ji,Ji_p,h%Sig(j),h%Sig(k),molP,L)
+            else !if molP % LLSty = "Linear" or "Model1"
                 Qaux = Ql_mol_LLS(real(Ni,dp),real(Ni_p,dp),h%Sig(j),h%Sig(k),molP,L,econ)
             endif
         else
@@ -1047,11 +1057,15 @@ END module module_phsub
 !--------------------------------------------------------------------------------------------------------------------
   double precision function Ql_mol_X(molP,L)
 !--------------------------------------------------------------------------------------------------------------------
-! " Ql_mol_X": Basis rate.
+! " Ql_mol_X": Basis rates
 ! 
 ! Detailed description:
 ! ---------------------
-! Basis rates: semi-empirical function.
+! The basis rate is associated to the collisional transfer from rotational level J=0 o J=L, in other words,
+! QL are the basis state-to-state cross sections (see eq.4-6 of [Bonamy&Emond, 1994]).
+!
+! It is common to take a semi-empirical function to model its behavoir.
+!--------------------------------------------------------------------------------------------------------------------
 !
       use module_common_var
       use module_molecSp
@@ -1073,19 +1087,26 @@ END module module_phsub
     !reduce rotational energy from the level L * 1/B0
         E_l = real((L*L + L), dp) 
     !
+    if (molP%M .eq. 7) then! mol == O2
         ! O2: [Tran et al., 2006]
-        !      DOES NOT WORK!
+        !      uncertain values... I need to explore this possibility
         !Ql_mol_X = molP%a1* &
         !       ( (  E_l )**(-molP%a2) )* &
         !       ( ( T/T0 )**(-molP%a3) )
-        ! 
         !
-        !CO2: [Niro et al., 2004]
         ! O2: [Makarov et al., 2013]      
-        !Ql_mol_X = a1*( ( E_l )**(-a2) )*( dexp(-a3*c*hplank*molP%B0*E_l/(T*kb))  )
         Ql_mol_X = molP%a1* &
                ( ( E_l )**(-molP%a2) )* &
                ( dexp(-molP%a3*c2*molP%B0*E_l/T)  )
+        ! 
+        !
+    else
+        !CO2: [Niro et al., 2004]
+        Ql_mol_X = molP%a1* &
+               ( ( E_l )**(-molP%a2) )* &
+               ( dexp(-molP%a3*c2*molP%B0*E_l/T)  )
+        !
+    endif
         !
     endif
     RETURN
@@ -1093,11 +1114,15 @@ END module module_phsub
 !--------------------------------------------------------------------------------------------------------------------
   double precision function Ql_mol_LLS(J1,J2,v1,v2,molP,L,econ)
 !--------------------------------------------------------------------------------------------------------------------
-! " Ql_mol_LLS": Basis rate
+! " Ql_mol_LLS": linearized Basis rate function (3 adjusted parameters)
 ! 
 ! Detailed description:
 ! ---------------------
-! Basis rates: semi-empirical function.
+! The basis rate is associated to the collisional transfer from rotational level J=0 o J=L, in other words,
+! QL are the basis state-to-state cross sections (see eq.4-6 of [Bonamy&Emond, 1994]).
+!
+! It is common to take a semi-empirical function to model its behavoir.
+!--------------------------------------------------------------------------------------------------------------------
 !
       use module_common_var
       use module_molecSp
@@ -1142,10 +1167,8 @@ END module module_phsub
                 ( (molP%a2)*log(E_l) ) - &
                 ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
       else
-        ! Bsed in [Niro et al. 2004]
-        !Ql_mol_LLS = A1 - A2*Ln( E_l ) - A3*( c*hplank*B0*E_l/(T*kb) ) 
         !
-        ![Mendaza et al., 2017]
+        ![Mendaza et al.,]
         if (molP % LLSty .eq. "Linear") then
         ! 1) Linear
             Ql_mol_LLS = (molP%a1) - &
@@ -1156,23 +1179,6 @@ END module module_phsub
             Ql_mol_LLS = (molP%a1)/((dabs(v1-v2)/molP%B0)**(J2/Jaux)) - &
                 ( (molP%a2)*log(E_l) ) - &
                 ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
-        else if (molP % LLSty .eq. "Model2") then
-        ! 2) correction 2
-            Ql_mol_LLS = (molP%a1)*T/(c2*(dabs(v1-v2)**(J2/Jaux))) - &
-                ( (molP%a2)*log(E_l) ) - &
-                ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp
-        else if (molP % LLSty .eq. "Model3") then
-        ! 2) correction 3
-            Ql_mol_LLS = (exp(-(c2/Jaux)*dabs(molP%v0-v1)/T))*(molP%a1) - &
-                ( (molP%a2)*log(E_l) ) - &
-                ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp  
-        else if (molP % LLSty .eq. "Model4") then
-        ! 2) Correction 4
-            delta = molP%v0-v1
-            if (delta .lt. TOL) delta = 0.5
-            Ql_mol_LLS = (molP%a1)/(exp(-molP%B0/(dabs(delta)**(1/Jaux)))) - &
-                ( (molP%a2)*log(E_l) ) - &
-                ( molP%a3*c2*molP%B0*E_l/T ) + 1.0_dp 
         else
             call errorLLStyType(molP % LLSty,econ)
         endif
@@ -1186,11 +1192,12 @@ END module module_phsub
 !--------------------------------------------------------------------------------------------------------------------
   double precision function Ql_mol_AF_LLS(J1,J2,v1,v2,molP,PerM,L)
 !--------------------------------------------------------------------------------------------------------------------
-! " Ql_mol_AF_LLS": Basis rate
+! " Ql_mol_AF_LLS": linearized Basis rate function (11 adjusted parameters)
 ! 
 ! Detailed description:
 ! ---------------------
 ! Basis rates: semi-empirical function.
+!--------------------------------------------------------------------------------------------------------------------
 !
       use module_common_var
       use module_molecSp
@@ -1202,10 +1209,10 @@ END module module_phsub
       real*8           :: J1,J2,v1,v2
       !internal
       real*8           :: E_l, T,c_AF, coeffC
+!----------------------------------------------------------------
 !
 ! This expresion is used for "downward" transitions (k->k') only.
 !
-  !
     T = molP % Temp
     !
     if (L .lt. TOL) then
@@ -1213,10 +1220,9 @@ END module module_phsub
     else
     !reduce rotational energy from the level L * 1/B0
       E_l = real((L*L + L), dp) 
-    !
     ! 
-    ![Mendaza et al., 2017]
-    ! Correction 5: ---> 5
+    ![Mendaza et al.,]
+    !
         coeffC = c_AF(molP, PerM, J1, real(L,dp), 2)
         Ql_mol_AF_LLS = (molP%a1) + &
                 ( (molP%a2)*log(E_l) ) + &
@@ -1237,7 +1243,7 @@ END module module_phsub
 !--------------------------------------------------------------------------------------------------------------------
   double precision function AFmol_X(molP, PerM, L, step)
 !--------------------------------------------------------------------------------------------------------------------
-! "AFmol_X": Adiabaticity-Factor for the chemical reaction CH4-X 
+! "AFmol_X": Adiabaticity-Factor for ECS-linear molecules.
 !
 ! Description:
 ! The original expresion for this correction factor (a.k.a. Adiabaticity-Factor) 
@@ -1257,6 +1263,7 @@ END module module_phsub
 !             <v> = ( (8*kb*T*mu)/pi)^1/2
 !             where: kb is the Boltzmann cte. and mu is the reduced mass
 !                    given by: mu = (1/m1 + 1/m2)
+!--------------------------------------------------------------------------------------------------------------------
 !
       use module_common_var
       IMPLICIT none
@@ -1325,8 +1332,13 @@ END module module_phsub
 !--------------------------------------------------------------------------------------------------------------------
   double precision function c_AF(molP, PerM, J, L, step)
 !--------------------------------------------------------------------------------------------------------------------
-! "c_AF": LLS factor
+! "c_AF": LLS-version of the adiabatic factor (AF).
 !
+! Description:
+! The original expresion for this correction factor (a.k.a. Adiabaticity-Factor) 
+! is given by Rodriguez et al. 1999. This is a version of it to be included in the 'Li--AF' model.
+! It is UNITLESS
+!--------------------------------------------------------------------------------------------------------------------
 !
       use module_common_var
       IMPLICIT none
@@ -1355,7 +1367,6 @@ END module module_phsub
             T = molP % Temp
       !-----------------------------------------
       !
-      !
             if (L .lt. TOL) then
               c_AF = 1.0_dp
             else
@@ -1375,6 +1386,41 @@ END module module_phsub
 !--------------------------------------------------------------------------------------------------------------------
   subroutine sumRule(nLines,indexS,dipole,Wmat,dfact,econ)
 !--------------------------------------------------------------------------------------------------------------------
+! "sumRule": a subroutine that checks whether transitions between energy levels meets the 
+!            1st law of thermodynamics (energy conservation law). 
+! 
+! Detailed description:
+! ---------------------
+! "In quantum mechanics, a sum rule is a formula for transitions between energy levels, 
+! in which the sum of the transition strengths is expressed in a simple form. Sum rules 
+! are used to describe the properties of many physical systems, including solids, atoms, 
+! atomic nuclei, and nuclear constituents such as protons and neutrons.
+!
+! The sum rules are derived from general principles, and are useful in situations where 
+! the behavior of individual energy levels is too complex to be described by a precise 
+! quantum-mechanical theory. In general, sum rules are derived by using Heisenberg's 
+! quantum-mechanical algebra to construct operator equalities, which are then applied to 
+! the particles or energy levels of a system."
+!
+! In this case, the sum rule is used to check if the OFF-diagonal elements of the matrix 
+! (i.e. trans. between levels, dyadic cross sections) meets eq. 8 [Niro et al. 2004] 
+! (or eq.6 in Bonamy&Emond, 1994]). 
+!
+! Input/Output Parameters of Routine (Arguments or Common)
+! ----------------------------------
+!   Wmat      : Relaxation matrix element (Input)
+!   dipole    : rigid rotor dipole matrix element (input)
+!   econ      : the error check is crucial in this subroutine.
+!               If the RM does not pass the sumRule test, RM should be
+!               rejected and a diagonal will be Returned instead.
+!
+! Called By: 'RN_Wmat'
+! ---------
+!
+! Double Precision Version
+!
+! T.Mendaza, last change 18 Jan 2018
+!--------------------------------------------------------------------------------------------------------------------
         use module_common_var
         use module_error
         implicit none
@@ -1387,10 +1433,9 @@ END module module_phsub
         !local variables
         integer (kind=8)                :: i,j
         Double Precision                :: Saux, DipAux, Wij, Wii
-        Double Precision, Parameter     :: TOLe2 = 1.0E-02!
+        Double Precision, Parameter     :: TOLe2 = 1.0E-02! accuracy should be better than 1%
         logical                         :: isinf, isnan
         logical                         :: testOK
-
 !--------------------------------------------------------------------
         testOK = .true.
         DO i = 1, nLines
@@ -1409,7 +1454,7 @@ END module module_phsub
             if ( (abs(Wii+Saux) .gt. TOLe2) .and. (i .ne. nLines) ) then
                 testOK = .false.
                 if (econ % e(1) .ge. 1) then
-                    write(*,'(a4,i3,a30)') "row#",i,"NOT meet SUM-RULE"
+                    write(*,'(a4,i3,a30)') "row#",i,"DOES NOT meet SUM-RULE"
                     write(*,*) "half-Width", Wii , "?= SUMij{Wmat}", -Saux
                 endif
             else
@@ -1417,12 +1462,12 @@ END module module_phsub
             ! the lines that meet the requirement
             !
             !   if (econ % e(1) .ge. 1) then
-            !       write(*,'(a4,i3,a30)') "row#",i,"meet SUM-RULE"
+            !       write(*,'(a4,i3,a30)') "row#",i,"meets SUM-RULE"
             !       write(*,*) "half-Width" Wii , "?= SUMij{Wmat}", -Saux
             !   endif
             endif
         ENDDO
-      
+        !
         !write(*,*) "SUM-RULE TEST FINISHED"
         if ( .not.(testOK) ) then
             call SumRuleError(econ)

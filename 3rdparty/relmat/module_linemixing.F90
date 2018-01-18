@@ -156,7 +156,10 @@ END module module_linemixing
 !
 ! Detailed description:
 ! ---------------------
-! Subroutine to obtain the relaxation matrix elements.
+! The matrix stored is the real part of of the relaxation operator, based on the 
+! ECS approximation and properly accounts for the coupling and relaxation of rotational angular momenta
+! (i.e. where each element represents the rotational state-to-state cross sections 
+! within a single vibrational state). 
 ! 
 ! Variables:
 !
@@ -164,12 +167,10 @@ END module module_linemixing
 ! --------------------------------------------------------
 ! nLines  : Number of lines of A band (Input).
 ! HWT0    : Air (or H2) Broadened HalfWidths of the Lines for
-!           T0 and P0 (Cm-1)
+!           T0 and P0 (Cm-1). (Input).
 ! PopuT0  : Populations of the Lower Levels of the Lines
-!           at Temperature T0
-!
-! Other important Output Quantities (through "module_common_var")
-! ---------------------------------
+!           at Temperature T0. (Input).
+! W:jk    : Relaxation matrix (Output) 
 !
 ! Accessed Files:  None
 ! --------------
@@ -254,7 +255,6 @@ END module module_linemixing
         ! <<k|W|j>> := transition j->k
         ! and "j" > "k" (downwards transition)
         !
-        !
         ! It is assumed that the relaxation matrix elements have
         ! the same functional form as the rotational state-to-state 
         ! cross sections within a single vibrational state W_j,k := W_jk
@@ -280,11 +280,11 @@ END module module_linemixing
           endif
           !                                
           ! Downwards transition is (k->j)
-            ! == downwards transition:(jBIG -> jSMALL)
-              ! pjSMALL·<<jBIG|W|jSMALL>> = pjBIG·<<jSMALL|W|jBIG>>; 
-              ! where:
-              ! pjBIG = dta1%PopuT(jBIG); pjSMALL = dta1%PopuT(jSMALL)
-              !
+          ! == downwards transition:(jBIG -> jSMALL)
+          ! pjSMALL·<<jBIG|W|jSMALL>> = pjBIG·<<jSMALL|W|jBIG>>; 
+          ! where:
+          ! pjBIG = dta1%PopuT(jBIG); pjSMALL = dta1%PopuT(jSMALL)
+          !
           r_kj = dta1%PopuT(jBIG)/dta1%PopuT(jSMALL) !pjBIG/pjSMALL
           W_jk(jSMALL,jBIG) = r_kj*W_jk(jBIG,jSMALL)  
               !
@@ -292,34 +292,13 @@ END module module_linemixing
               call W_error("1010", jBIG, jSMALL, W_jk(jBIG,jSMALL), econ)
               call W_error("1011", jSMALL, jBIG, W_jk(jSMALL,jBIG), econ)
           endif
-          
-        endif    
+        ! 
+        endif
+      !    
       enddo
-
+    !
     enddo
     !
-    ! Sum Rule TEST
-    !
-    ! The Relaxation matrix must follow the SUM-RULE
-    ! However, that is acomplish regarding that 
-    ! every relaxation betwen every theoretical transition
-    ! (not just empirically observed) is taken into the sum.
-    ! Since we are doing the matching with HITRAN from the very 
-    ! begining the test will fail, but every sum value has to be
-    ! under the linewidth (== 2*HalfWidth which is the value 
-    ! provided by HITRAN).
-    !
-    !write(*,*) "sum rule?"
-    !do i = 1, nLines
-    !  indexI(i) = i
-    !enddo
-    !do i= 1, nLines
-    !  do j = 1,nLines
-    !    Wtest(i,j) = W_jk(i,j)
-    !  enddo
-    !enddo
-    !CALL sumRule(nLines,indexI,dta1%D0(1:nLines),Wtest,0.5,econ)
-    !econ % e(2) = econ % e(2) - 1
     Return
   END SUBROUTINE WelCAL
 !--------------------------------------------------------------------------------------------------------------------
@@ -330,19 +309,23 @@ END module module_linemixing
 ! Detailed description:
 ! ---------------------
 ! Subroutine to renormalize the relaxation matrix to the number of transitions.
+! Niro et al. (2006) writes that renormalization is crucial to built a relaxation matrix that simultaneously:
+! (1) respects the detailed balance. 
+! (2) exactly verifies the sum rule. <---- Here is where renormalization becomes essential!
+! (3) has precise diagonal elements in order to correctly model the isolated lines.
+!
+! The first (1) and (2) are essential to obtain the correct behavior in the wings. 
+! (1) and (2) can be obtained simultaneously through a renormalization of our previous ECS model.
 ! 
 ! Variables:
 !
 ! Input/Output Parameters of Routine (Arguments or Common)
 ! --------------------------------------------------------
 ! nLines  : Number of lines of A band (Input).
-! HWT0    : Air (or H2) Broadened HalfWidths of the Lines for
-!           T0 and P0 (Cm-1)
+! Wmat    : initial Relaxation Matrix (Input).
 ! PopuT   : Populations of the Lower Levels of the Lines
-!           at Temperature T
-!
-! Other important Output Quantities (through "module_common_var")
-! ---------------------------------
+!           at Temperature T (Input).
+! W_rnO   : renormalized Relaxation Matrix (Output).
 !
 ! Accessed Files:  None
 ! --------------
@@ -357,7 +340,7 @@ END module module_linemixing
 !     
 !     Double Precision Version
 !     
-! T. Mendaza last change 01 Abr 2016
+! T. Mendaza last change 17 Jan 2018
 !--------------------------------------------------------------------------------------------------------------------
 !
     use module_common_var
@@ -373,28 +356,48 @@ END module module_linemixing
     !Local variables
     integer*8                     :: i, j, k, n, e20
     integer*8                     :: indexS(nLines),indexI(nLines)
-    double Precision              :: str(nLines)
+    double Precision              :: sortV(nLines)
     Double Precision              :: Sup, Slow, S_UL_rate
     Double Precision              :: pn, pk
     Double Precision              :: W_rn(nLines,nLines)
 !---------
-! Reordering by line strength
+! Reordering process
 !
       do k=1,nLines
-         !str(k) = dta1%STR(k)
-         !str(k) = dta1%sig(k)*dta1%popuT(k)*dta1%D0(k)**2 
-         !str(k) = dta1%sig(k)*dta1%popuT(k)*dta1%DipoT(k)**2
-         str(k) = dta1%popuT(k) 
+        ! The rule to sort out the matrix can be any of the followings:
+        ! 1) The spectral line intensity [cm-1/(moleculecm-1)] at "296 K
+        !    (similar to HITRAN's intensity, however at that variable-HITRAN-  
+        !    the natural terrestrial isotopic abundance is included)
+        !
+         !sortV(k) = dta1%STR(k)
+        !
+        ! 2) Reduced line intensity (or "strenght") that uses the rigid rotor
+        !
+         !sortV(k) = dta1%sig(k)*dta1%popuT(k)*dta1%D0(k)**2 
+        !
+        ! 3) Reduced line intensity (or "strenght") that uses the dipole (depends on temperature) 
+        !
+         !sortV(k) = dta1%sig(k)*dta1%popuT(k)*dta1%DipoT(k)**2
+        !
+        ! 4) using the population of the lines (at the given temperature) as the leading factor to
+        !    measure the importance of the line.
+        !
+         sortV(k) = dta1%popuT(k) 
       enddo
-      ! The rotational components are sorted according to their intensities in decreasing order
-      ! (the first one is the most intense). Hence, << 1 | W | 1 >> is the broadening of the most 
-      ! intense line, and << 2 | W | 1 >> (or << 1 | W | 2 >>) are the terms coupling this transition
-      ! to the second most intense one.
-      ! SORTENING by intensity.
-      call bubble_index(nLines,str,indexS,'d',econ)
+      ! The rotational components are sorted according to their "importance" 
+      ! (intensity according to [Niro et al. 2004] but this code will use the one selected above) 
+      ! in decreasing order (the first one is the most "intense"). Hence, << 1 | W | 1 >> is the 
+      ! broadening of the most intense line, and << 2 | W | 1 >> (or << 1 | W | 2 >>) are the terms 
+      ! coupling this transition to the second most intense one.
+      !
+      ! SORT by intensity/Populations:
+      call bubble_index(nLines,sortV,indexS,'d',econ)
       ! Here we perform the 'pullback' of indexS. 
       call ibubble_index(nLines,indexS,indexI,'a',econ)
-      !
+      !NOTE: the sorting algorithm used is the classic Bubble sort
+      !      Although the algorithm is simple, it is too slow and 
+      !      impractical for most problems even when compared to INSERTION SORT. 
+      !      This part should be improved in the future.
       !
       do i=1,nLines
           do j=1,nLines
@@ -402,8 +405,6 @@ END module module_linemixing
               W_rn(i,i)=Wmat(indexS(i), indexS(i))
             else
               W_rn(i,j)=-abs(Wmat(indexS(i), indexS(j)))
-!              W_rn(i,j)=abs(Wmat(indexS(i), indexS(j)))
-!              W_rn(i,j)=Wmat(indexS(i), indexS(j))
             endif
           enddo
       enddo
@@ -461,34 +462,36 @@ END module module_linemixing
         !
       ENDDO
       !
+      ! Sum Rule TEST
+      !
+      ! The Relaxation matrix must follow the SUM-RULE
+      ! However, that is acomplish regarding that 
+      ! every relaxation between every theoretical transition
+      ! (not just empirically observed) is taken into the sum.
+      ! Since the calc. is performed using lines from a database the  
+      ! will not be significant before a renormalization.
+      !
+      ! NOTE:
       ! use '1.0' if Wii = line-width 
       ! use '2.0' if Wii = half-width 
       e20 = econ % e(2)
       CALL sumRule(nLines,indexS,dta1%D0(1:nLines),W_rn,1.0,econ)
-      ! 
-      ! Reordered by wno
       !
       if ( econ % e(2) .gt. e20 ) then
+        ! if the test fails, return a diagonal matrix.
+        !
         econ % e(2) = econ % e(2) - 1
         CALL just_fill_DiagWRn(nLines,dta1 % BHW, dta1 % HWT0, T/T0, P,W_rnO)
-        !do i = 1, nLines
-        !  write(*,*)'wno', dta1 % sig(i) 
-        !  write(*,*)'Str', dta1 % Str(i)
-        !  write(*,*)'HWT', dta1 % HWT0(i)
-        !  write(*,*)'BHW', dta1 % BHW(i) 
-        !  write(*,*)'E  ', dta1 % E(i)
-        !  write(*,*)'g0 ', dta1 % swei0(i) 
-        !  write(*,*)'g00', dta1 % swei00(i)
-        !  write(*,*)'UP ', dta1%J(i,1),dta1%N(i,1),dta1%espin(i,1)
-        !  write(*,*)'LO ', dta1%J(i,2),dta1%N(i,2),dta1%espin(i,2)
-        !  write(*,*)'bra', dta1%br(i)
-        !enddo
       else 
+        ! if the matrix passes the sumRule test, the matrix will be returned
+        ! in its original order.
+        !
         do i=1,nLines
           do j=1,nLines
             W_rnO(i,j)  =  W_rn( indexI(i) , indexI(j) )
           enddo
         enddo
+        !
       endif
   END SUBROUTINE RN_Wmat
 !--------------------------------------------------------------------------------------------------------------------
@@ -504,12 +507,15 @@ END module module_linemixing
 !
 ! Input/Output Parameters of Routine 
 ! ----------------------------------
-!
-! Accessed Files: 
-! --------------
-!
-! Called Routines: 
-! ---------------  
+! nLines  : Number of lines of A band (Input).
+! Wmat    : renormalized Relaxation Matrix  (Input).
+! PopuT   : Populations of the Lower Levels of the Lines
+!           at Temperature T (Input).
+! DipoT   : Dipole moment of the the Line
+!           at Temperature T (Input).
+! sig     : line wavenumber  (Input).
+! Str     : line intensity as in equation (5) [Simeckova et al. 2006]  (Input).
+! Y_RosT  : 1st order LM-parameter of the line (Output).
 !
 ! Called By: "RM_LM_LLS_tmc_arts" or "RM_LM_tmc_arts"
 ! ---------
@@ -536,7 +542,7 @@ END module module_linemixing
     Ptot = molP % Ptot
 !-----------------------------------------
 !
-!     Build the Ym from the W
+!   Build Ym from W elements
 !     
     DO i=1,nLines
          sumY=0.d0
@@ -578,16 +584,20 @@ END module module_linemixing
 !
 ! Input/Output Parameters of Routine 
 ! ----------------------------------
-! Y2 : g_k, second coeffcient from the second order linemixing approx [Smith, 1981]. 
-! Y3 :dv_k, is the second order shift [Smith, 1981].
+! nLines  : Number of lines of A band (Input).
+! Wmat    : renormalized Relaxation Matrix  (Input).
+! PopuT   : Populations of the Lower Levels of the Lines
+!           at Temperature T (Input).
+! DipoT   : Dipole moment of the the Line
+!           at Temperature T (Input).
+! sig     : line wavenumber  (Input).
+! Str     : line intensity as in equation (5) [Simeckova et al. 2006]  (Input).
+! Y2      : g_k, second coeffcient from the second order linemixing approx [Smith, 1981]. (Output).
+! Y3      :dv_k, is the second order shift [Smith, 1981]. (Output).
+!
 ! NOTE: on the calculation of these coeff (as well the 1st order one), 
 ! the first order pressure shift has been neglected, as it was done by Smith (1981).
-!
-! Accessed Files: 
-! --------------
-!
-! Called Routines: 
-! ---------------  
+! 
 !
 ! Called By: "RM_LM_LLS_tmc_arts" or "RM_LM_tmc_arts"
 ! ---------
@@ -744,7 +754,7 @@ END module module_linemixing
       enddo  
     enddo  
 !
-!
+!---------
 ! Generate the Matrix for LLS:
     do j=1, nLines
       do k=1, nLines
@@ -790,7 +800,7 @@ END module module_linemixing
 ! i.e., solve the least squares problem minimize || B - A*X ||
 !  A * X = B,
 !
-!
+!---------
 ! Definition of A, B:
     !
     A = -Mlls(1:nLines,1:3)
@@ -917,8 +927,8 @@ END module module_linemixing
 !
 !  Command sentence:
 !  CALL dgels( TRANS, M , N, NRHS, A, LDA, B, LDB, WORK, LWORK, INFO )
-!  CALL dgelsd(TRANS, M , N, NRHS, A, LDA, B, LDB, S, RCOND, RANK, WORK, LWORK, IWORK, INFO ) 
 !
+!  =====================================================================
 !
 !   Query the optimal workspace.
 !
@@ -928,6 +938,7 @@ END module module_linemixing
                  LWORK, info1 )
       LWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
 !
+!---------
 !   Solve the equations A*X = B.
 !
       info2 = 0
@@ -1021,9 +1032,8 @@ END module module_linemixing
       enddo  
     enddo  
 !
-!
+!---------
 ! Generate the Matrix for LLS:
-write(*,*) "Generate the Matrix for LLS"
     do j=1, nLines
       do k=1, nLines
         ! 
@@ -1057,7 +1067,6 @@ write(*,*) "Generate the Matrix for LLS"
       enddo
       !
     enddo
-    write(*,*) "LLS_AF_Matrix done"
 !
 ! **********************************************************************************
 ! LAPACK routine:
@@ -1069,7 +1078,7 @@ write(*,*) "Generate the Matrix for LLS"
 ! i.e., solve the least squares problem minimize || B - A*X ||
 !  A * X = B,
 !
-!
+!---------
 ! Definition of A, B:
     !
     A = Mlls(1:nLines,1:N)
@@ -1077,7 +1086,6 @@ write(*,*) "Generate the Matrix for LLS"
     do i = 1,nLines
       B(i,NRHS) = B(i,NRHS) - Mlls(i,N+1)
     enddo    
-!
 !
 !  -- LAPACK driver routine (version 3.1) --
 !     Univ. of Tennessee, Univ. of California Berkeley and NAG Ltd..
@@ -1196,8 +1204,8 @@ write(*,*) "Generate the Matrix for LLS"
 !
 !  Command sentence:
 !  CALL dgels( TRANS, M , N, NRHS, A, LDA, B, LDB, WORK, LWORK, INFO )
-!  CALL dgelsd(TRANS, M , N, NRHS, A, LDA, B, LDB, S, RCOND, RANK, WORK, LWORK, IWORK, INFO ) 
 !
+!  =====================================================================
 !
 !   Query the optimal workspace.
 !
@@ -1244,18 +1252,6 @@ write(*,*) "Generate the Matrix for LLS"
   SUBROUTINE W2dta2(nLines, dta1, dta2, W_rn)
 !--------------------------------------------------------------------------------------------------------------------
 ! W2dta2: Copy the Relaxation Matrix to the struct dta2.
-!
-! Detailed description:
-! ---------------------
-! 
-! Variables:
-!
-! Input/Output Parameters of Routine (Arguments or Common)
-! --------------------------------------------------------
-! --      : .
-!
-! Other important Output Quantities 
-! ---------------------------------
 !
 ! Accessed Files:  None
 ! --------------
@@ -1318,7 +1314,6 @@ write(*,*) "Generate the Matrix for LLS"
 !--------------------------------------------------------------------------------------------------------------------
 ! rule1: if the number of lines of a band is not enough, 
 !        then calcualting its Relaxation Matrix makes no sense.
-!
 !     
 ! T. Mendaza last change 20 Feb 2017
 ! --------------------------------------------------------
@@ -1464,7 +1459,7 @@ write(*,*) "Generate the Matrix for LLS"
       enddo  
     enddo  
 !
-!
+!---------
 ! Generate the Matrix for LLS:
     do j=1, nLines
       do k=1, nLines
@@ -1511,8 +1506,8 @@ write(*,*) "Generate the Matrix for LLS"
 ! allowing for the possibility that A is rank-deficient.
 !===================================================================================
 !
-!
 ! Definition of A, B:
+!
 ! A:
     A = -Mlls(1:nLines,1:3)
 ! B:
@@ -1520,8 +1515,8 @@ write(*,*) "Generate the Matrix for LLS"
       B(i,NRHS) = B(i,NRHS) + Mlls(i,4)
     enddo    
 !
-!  Purpose
-!  =======
+! Purpose
+! =======
 !
 ! DGELSY computes the minimum-norm solution to a real linear least
 ! squares problem:
@@ -1563,75 +1558,74 @@ write(*,*) "Generate the Matrix for LLS"
 ! Arguments
 ! =========
 !
-!M       (input) INTEGER
-!        The number of rows of the matrix A.  M >= 0.
+! M       (input) INTEGER
+!         The number of rows of the matrix A.  M >= 0.
 !
-!N       (input) INTEGER
-!        The number of columns of the matrix A.  N >= 0.
+! N       (input) INTEGER
+!         The number of columns of the matrix A.  N >= 0.
 !
-!NRHS    (input) INTEGER
-!        The number of right hand sides, i.e., the number of
-!        columns of matrices B and X. NRHS >= 0.
+! NRHS    (input) INTEGER
+!         The number of right hand sides, i.e., the number of
+!         columns of matrices B and X. NRHS >= 0.
 !
-!A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
-!        On entry, the M-by-N matrix A.
-!        On exit, A has been overwritten by details of its
-!        complete orthogonal factorization.
+! A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+!         On entry, the M-by-N matrix A.
+!         On exit, A has been overwritten by details of its
+!         complete orthogonal factorization.
 !
-!LDA     (input) INTEGER
-!        The leading dimension of the array A.  LDA >= max(1,M).
+! LDA     (input) INTEGER
+!         The leading dimension of the array A.  LDA >= max(1,M).
 !
-!B       (input/output) DOUBLE PRECISION array, dimension (LDB,NRHS)
-!        On entry, the M-by-NRHS right hand side matrix B.
-!        On exit, the N-by-NRHS solution matrix X.
+! B       (input/output) DOUBLE PRECISION array, dimension (LDB,NRHS)
+!         On entry, the M-by-NRHS right hand side matrix B.
+!         On exit, the N-by-NRHS solution matrix X.
 !
-!LDB     (input) INTEGER
-!        The leading dimension of the array B. LDB >= max(1,M,N).
+! LDB     (input) INTEGER
+!         The leading dimension of the array B. LDB >= max(1,M,N).
 !
-!JPVT    (input/output) INTEGER array, dimension (N)
-!        On entry, if JPVT(i) .ne. 0, the i-th column of A is permuted
-!        to the front of AP, otherwise column i is a free column.
-!        On exit, if JPVT(i) = k, then the i-th column of AP
-!        was the k-th column of A.
+! JPVT    (input/output) INTEGER array, dimension (N)
+!         On entry, if JPVT(i) .ne. 0, the i-th column of A is permuted
+!         to the front of AP, otherwise column i is a free column.
+!         On exit, if JPVT(i) = k, then the i-th column of AP
+!         was the k-th column of A.
 !
-!RCOND   (input) DOUBLE PRECISION
-!        RCOND is used to determine the effective rank of A, which
-!        is defined as the order of the largest leading triangular
-!        submatrix R11 in the QR factorization with pivoting of A,
-!        whose estimated condition number < 1/RCOND.
+! RCOND   (input) DOUBLE PRECISION
+!         RCOND is used to determine the effective rank of A, which
+!         is defined as the order of the largest leading triangular
+!         submatrix R11 in the QR factorization with pivoting of A,
+!         whose estimated condition number < 1/RCOND.
 !
-!RANK    (output) INTEGER
-!        The effective rank of A, i.e., the order of the submatrix
-!        R11.  This is the same as the order of the submatrix T11
-!        in the complete orthogonal factorization of A.
+! RANK    (output) INTEGER
+!         The effective rank of A, i.e., the order of the submatrix
+!         R11.  This is the same as the order of the submatrix T11
+!         in the complete orthogonal factorization of A.
 !
-!WORK    (workspace/output) DOUBLE PRECISION array, dimension (MAX(1,LWORK))
-!        On exit, if INFO = 0, WORK(1) returns the optimal LWORK.
+! WORK    (workspace/output) DOUBLE PRECISION array, dimension (MAX(1,LWORK))
+!         On exit, if INFO = 0, WORK(1) returns the optimal LWORK.
 !
-!LWORK   (input) INTEGER
-!        The dimension of the array WORK.
-!        The unblocked strategy requires that:
-!           LWORK >= MAX( MN+3*N+1, 2*MN+NRHS ),
-!        where MN = min( M, N ).
-!        The block algorithm requires that:
-!           LWORK >= MAX( MN+2*N+NB*(N+1), 2*MN+NB*NRHS ),
-!        where NB is an upper bound on the blocksize returned
-!        by ILAENV for the routines DGEQP3, DTZRZF, STZRQF, DORMQR,
-!        and DORMRZ.
+! LWORK   (input) INTEGER
+!         The dimension of the array WORK.
+!         The unblocked strategy requires that:
+!            LWORK >= MAX( MN+3*N+1, 2*MN+NRHS ),
+!         where MN = min( M, N ).
+!         The block algorithm requires that:
+!            LWORK >= MAX( MN+2*N+NB*(N+1), 2*MN+NB*NRHS ),
+!         where NB is an upper bound on the blocksize returned
+!         by ILAENV for the routines DGEQP3, DTZRZF, STZRQF, DORMQR,
+!         and DORMRZ.
 !
-!        If LWORK = -1, then a workspace query is assumed; the routine
-!        only calculates the optimal size of the WORK array, returns
-!        this value as the first entry of the WORK array, and no error
-!        message related to LWORK is issued by XERBLA.
+!         If LWORK = -1, then a workspace query is assumed; the routine
+!         only calculates the optimal size of the WORK array, returns
+!         this value as the first entry of the WORK array, and no error
+!         message related to LWORK is issued by XERBLA.
 !
-!INFO    (output) INTEGER
-!        = 0: successful exit
-!        < 0: If INFO = -i, the i-th argument had an illegal value.
+! INFO    (output) INTEGER
+!         = 0: successful exit
+!         < 0: If INFO = -i, the i-th argument had an illegal value.
 !
 ! Further Details
 ! ===============
-!
-!Based on contributions by
+!  Based on contributions by
 !  A. Petitet, Computer Science Dept., Univ. of Tenn., Knoxville, USA
 !  E. Quintana-Orti, Depto. de Informatica, Universidad Jaime I, Spain
 !  G. Quintana-Orti, Depto. de Informatica, Universidad Jaime I, Spain
@@ -1655,8 +1649,7 @@ write(*,*) "Generate the Matrix for LLS"
     endif
     if (econ % e(1) .ge. 1)  write(*,*) 'post-Lwork', LWORK
 !  Step1: Initialize JPVT to be zero so that all columns are free
-!
-!         CALL F06DBF(N,0,JPVT,1) ! <== Done while allocating the variable
+!         <== Done while allocating the variable
 !
 !  Step2: Choose RCOND to reflect the relative accuracy of the input data
     !RCOND = 0.01D0 !<== These would be hard-imposed accuracy
@@ -1677,28 +1670,21 @@ write(*,*) "Generate the Matrix for LLS"
 ! For information about LAPACK solving linear methods in general visit:
 ! http://www.netlib.org/lapack/lug/node26.html
 !**********************************************************************************
-          molP%a1 = -B(1,NRHS)
-          molP%a2 = -B(2,NRHS)
-          molP%a3 = -B(3,NRHS)
-          if (info2 .eq. 0) then
-            write(*,*) 'Complete Orthogonal Factorization algorithm succeded!'
-!
-!           Print the effective rank of A
-!
-            if (econ % e(1) .ge. 1) write(*,*) 'Tolerance used to estimate the rank of A', RCOND
-            if (econ % e(1) .ge. 1) write(*,*) 'Estimated rank of A', RANK
-!
-          else
-            call LLS_DGELSYSD_error(B(1,NRHS),B(2,NRHS),B(3,NRHS), info1, econ)
-            if (econ % e(1) .ge. 1) write(*,*) 'Complete Orthogonal Factorization of A failed.'
-          endif
-
-!          if ((abs(molP%a1) .le. TOL).or.(abs(molP%a2) .le. TOL).or.(abs(molP%a3) .le. TOL)) then
-!            write(*,*) "LWORK = ", LWORK,";info1= ", info1,";info2= ", info2
-!            do i=1, M
-!              write(*,'(1X,4F11.4)') (A(i,j),j=1,N)
-!            enddo
-!          endif
+    molP%a1 = -B(1,NRHS)
+    molP%a2 = -B(2,NRHS)
+    molP%a3 = -B(3,NRHS)
+    if (info2 .eq. 0) then
+        if (econ % e(1) .ge. 1) write(*,*) 'Complete Orthogonal Factorization algorithm succeded!'
+        !
+        ! Print the effective rank of A
+        !
+        if (econ % e(1) .ge. 1) write(*,*) 'Tolerance used to estimate the rank of A', RCOND
+        if (econ % e(1) .ge. 1) write(*,*) 'Estimated rank of A', RANK
+        !
+    else
+        call LLS_DGELSYSD_error(B(1,NRHS),B(2,NRHS),B(3,NRHS), info1, econ)
+        if (econ % e(1) .ge. 1) write(*,*) 'Complete Orthogonal Factorization of A failed.'
+    endif
 
   END SUBROUTINE calc_QPar_DGELSY
 !--------------------------------------------------------------------------------------------------------------------
@@ -1776,7 +1762,7 @@ write(*,*) "Generate the Matrix for LLS"
       enddo  
     enddo  
 !
-!
+!---------
 ! Generate the Matrix for LLS:
     do j=1, nLines
       do k=1, nLines
@@ -1820,6 +1806,7 @@ write(*,*) "Generate the Matrix for LLS"
 !
 ! Minimize 2-norm(| b - A*x |).
 !
+!===================================================================================
 ! Definition of A, B:
 ! A:
     A = -Mlls(1:nLines,1:3)
@@ -1833,8 +1820,8 @@ write(*,*) "Generate the Matrix for LLS"
 !  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
 !     December 2016
 !
-!  Purpose
-!  =======
+! Purpose
+! =======
 !
 ! DGELSS uses the singular value decomposition (SVD) of A. A is an M-by-N
 ! matrix which may be rank-deficient.
@@ -1925,12 +1912,11 @@ write(*,*) "Generate the Matrix for LLS"
     info1 = 0
     CALL DGELSS(M,N,NRHS,A,LDA,B,M,SVal,RCOND,RANK,WORK,LWORK,info1)
     LWORK = INT( WORK(1) ) 
-    !LWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
     if (LWORK .gt. LWMAX) then
       deallocate ( WORK )
       allocate ( WORK( LWORK ) )
     endif
-    if (econ % e(1) .ge. 1)  write(*,*) 'post-Lwork', LWORK, INT( WORK( 1 ) )
+!
 !  Step1: Choose RCOND to reflect the relative accuracy of the input data
     !RCOND = 0.01D0 !<== These would be hard-imposed accuracy
     RCOND = -1.0D0  !<== < 0, machine precision is used instead.
@@ -1950,21 +1936,21 @@ write(*,*) "Generate the Matrix for LLS"
 ! For information about LAPACK solving linear methods in general visit:
 ! http://www.netlib.org/lapack/lug/node26.html
 !**********************************************************************************
-!         Least squares solution:
-          molP%a1 = -B(1,NRHS)
-          molP%a2 = -B(2,NRHS)
-          molP%a3 = -B(3,NRHS)
-          if (info2 .eq. 0) then
-            if (econ % e(1) .ge. 1) write(*,*) 'SVD algorithm converged'
-!
-!           Print the effective rank of A
-!
-            if (econ % e(1) .ge. 1) write(*,*) 'Tolerance used to estimate the rank of A', RCOND
-            if (econ % e(1) .ge. 1) write(*,*) 'Estimated rank of A', RANK
-          else
-            call LLS_DGELSYSD_error(B(1,NRHS),B(2,NRHS),B(3,NRHS), info1, econ)
-            if (econ % e(1) .ge. 1) write(*,*) 'The SVD algorithm failed to converge'
-          endif
+! Least squares solution:
+    molP%a1 = -B(1,NRHS)
+    molP%a2 = -B(2,NRHS)
+    molP%a3 = -B(3,NRHS)
+    if (info2 .eq. 0) then
+        if (econ % e(1) .ge. 1) write(*,*) 'SVD algorithm converged'
+        !
+        ! Print the effective rank of A
+        !
+        if (econ % e(1) .ge. 1) write(*,*) 'Tolerance used to estimate the rank of A', RCOND
+        if (econ % e(1) .ge. 1) write(*,*) 'Estimated rank of A', RANK
+    else
+        call LLS_DGELSYSD_error(B(1,NRHS),B(2,NRHS),B(3,NRHS), info1, econ)
+        if (econ % e(1) .ge. 1) write(*,*) 'The SVD algorithm failed to converge'
+    endif
 
   END SUBROUTINE calc_QPar_DGELSS
 !--------------------------------------------------------------------------------------------------------------------
@@ -2044,7 +2030,7 @@ write(*,*) "Generate the Matrix for LLS"
       enddo  
     enddo  
 !
-!
+!---------
 ! Generate the Matrix for LLS:
     do j=1, nLines
       sumrjk = 0.d0
@@ -2234,19 +2220,16 @@ write(*,*) "Generate the Matrix for LLS"
 !
 !  =====================================================================
 !  Step0: Query the optimal workspace.
-      !LWORK = -1
-      !info1 = 0
-      !CALL DGELSD(M,N,NRHS,A,LDA,B,M,Sval,RCOND,RANK,WORK,LWORK,IWORK,info1)
-      !LWORK = INT( WORK(1) ) 
-      !LWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
-      !if (LWORK .gt. LWMAX) then
-      !  deallocate ( WORK )
-      !  allocate ( WORK( LWORK ) )
-      !endif
-      !IF (info1.eq.0) LIWORK = INT(IWORK(1))
-      !if (econ % e(1) .ge. 1)  write(*,*) 'post-Lwork and Ilwork', LWORK, LIWORK
-      !if (econ % e(1) .ge. 1)  write(*,*) 'RANK', RANK, 'info1', info1
-  
+      LWORK = -1
+      info1 = 0
+      CALL DGELSD(M,N,NRHS,A,LDA,B,M,Sval,RCOND,RANK,WORK,LWORK,IWORK,info1)
+      LWORK = INT( WORK(1) ) 
+      if (LWORK .gt. LWMAX) then
+        deallocate ( WORK )
+        allocate ( WORK( LWORK ) )
+      endif
+      IF (info1.eq.0) LIWORK = INT(IWORK(1))
+!  
 !  Step1: Choose RCOND to reflect the relative accuracy of the input data
          !RCOND = 0.01D0 !<== These would be hard-imposed accuracy
          RCOND = -1.0D0  !<== < 0, machine precision is used instead.
@@ -2268,28 +2251,21 @@ write(*,*) "Generate the Matrix for LLS"
 ! For information about LAPACK solving linear methods in general visit:
 ! http://www.netlib.org/lapack/lug/node26.html
 !**********************************************************************************
-          molP%a1 = -B(1,NRHS)
-          molP%a2 = -B(2,NRHS)
-          molP%a3 = -B(3,NRHS)
-          if (INFO .eq. 0) then
-            if (econ % e(1) .ge. 1) write(*,*) 'SVD algorithm converged.'
-!
-!           Print the effective rank of A
-!
-            if (econ % e(1) .ge. 1) write(*,*) 'Tolerance used to estimate the rank of A', RCOND
-            if (econ % e(1) .ge. 1) write(*,*) 'Estimated RANK of A', RANK
-!
-          else
-            call LLS_DGELSYSD_error(B(1,NRHS),B(2,NRHS),B(3,NRHS), INFO, econ)
-            if (econ % e(1) .ge. 1) write(*,*) 'The SVD algorithm failed to converge'
-          endif
-
-!          if ((abs(molP%a1) .le. TOL).or.(abs(molP%a2) .le. TOL).or.(abs(molP%a3) .le. TOL)) then
-!            if (econ % e(1) .ge. 1) write(*,*) "LWORK = ", LWORK,";info1= ", info1,";INFO= ", INFO
-!            do i=1, M
-!              write(*,'(1X,4F11.4)') (A(i,j),j=1,N)
-!            enddo
-!          endif
+    molP%a1 = -B(1,NRHS)
+    molP%a2 = -B(2,NRHS)
+    molP%a3 = -B(3,NRHS)
+    if (INFO .eq. 0) then
+        if (econ % e(1) .ge. 1) write(*,*) 'SVD algorithm converged.'
+        !
+        ! Print the effective rank of A
+        !
+        if (econ % e(1) .ge. 1) write(*,*) 'Tolerance used to estimate the rank of A', RCOND
+        if (econ % e(1) .ge. 1) write(*,*) 'Estimated RANK of A', RANK
+    !
+    else
+        call LLS_DGELSYSD_error(B(1,NRHS),B(2,NRHS),B(3,NRHS), INFO, econ)
+        if (econ % e(1) .ge. 1) write(*,*) 'The SVD algorithm failed to converge'
+    endif
 
   END SUBROUTINE calc_QPar_DGELSD
-  !--------------------------------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------------------------------
