@@ -1,5 +1,15 @@
 2018-01-19 Jana Mendrok  <jana.mendrok@gmail.com>
 
+	* arts-2-3-934
+
+	Ooops. Parts of ChangeLog missed.
+
+	* src/m_optproperties.cc, methods.cc (TestScatDataInterp):
+	Deactivated DOIT testing (needs proper adaptation to changes of
+	DoitScatteringDataPrepare in arts-2-3-658).
+
+2018-01-19 Jana Mendrok  <jana.mendrok@gmail.com>
+
 	* arts-2-3-933
 
 	* src/optproperties.cc (opt_prop_ScatSpecBulk, opt_prop_NScatElems,
