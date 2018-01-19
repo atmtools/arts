@@ -163,7 +163,7 @@ void opt_prop_NScatElems(//Output
                          const Vector& T_array,
                          const Matrix& dir_array,
                          const Index& f_index,
-                         const Index& t_interp_order);
+                         const Index& t_interp_order=1);
 
 void opt_prop_1ScatElem(//Output
                         Tensor5View ext_mat,
@@ -174,7 +174,7 @@ void opt_prop_1ScatElem(//Output
                         const Vector& T_array,
                         const Matrix& dir_array,
                         const Index& f_index,
-                        const Index& t_interp_order);
+                        const Index& t_interp_order=1);
 
 void ext_mat_SSD2Stokes(//Output
                         MatrixView ext_mat_stokes,

@@ -1,3 +1,21 @@
+2018-01-19 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-933
+
+	* src/optproperties.cc (opt_prop_ScatSpecBulk, opt_prop_NScatElems,
+	opt_prop_1ScatElem):
+	Bugfixes.
+
+	* src/optproperties.h (opt_prop_NScatElems, opt_prop_1ScatElem):
+	Set defaults for temperature interpolation order (linear).
+
+	* src/m_optproperties.cc, methods.cc (TestScatDataInterp):
+	Revive this WSM as I need it to test the new system.
+	Fixed bugs and incomplete revision, removed counterproductive input
+	parameters introduced in arts-2-3-658 and arts-2-3-757 (guys... >:-/
+	bad style!).
+	Added section testing ext/abs extraction using new unified system.
+
 2018-01-18  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-932
@@ -20,7 +38,7 @@
 	
 	Detailed internal comments have been added to all subroutines and
 	functions within relmat-folder.
-	
+
 2018-01-17  Teresa Mendaza <t.mendaza.cal@gmail.com>
 	
 	* arts-2-3-930

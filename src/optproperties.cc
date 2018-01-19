@@ -170,6 +170,7 @@ void opt_prop_ScatSpecBulk(//Output
   Index nss = ext_mat_se.nelem();
   ext_mat.resize(nss);
   abs_vec.resize(nss);
+  ptype.resize(nss);
   Tensor4 ext_tmp;
   Tensor3 abs_tmp;
 
@@ -269,12 +270,14 @@ void opt_prop_NScatElems(//Output
   Index nss = scat_data.nelem();
   ext_mat.resize(nss);
   abs_vec.resize(nss);
+  ptypes.resize(nss);
 
   for( Index i_ss=0; i_ss<nss; i_ss++ )
   {
     Index nse = scat_data[i_ss].nelem();
     ext_mat[i_ss].resize(nse);
     abs_vec[i_ss].resize(nse);
+    ptypes[i_ss].resize(nse);
 
     for( Index i_se=0; i_se<nse; i_se++ )
       {
@@ -368,11 +371,12 @@ void opt_prop_1ScatElem(//Output
   Index nTin = ssd.T_grid.nelem();
   Index this_T_interp_order = -1;
   ArrayOfGridPosPoly T_gp(nTout);
-  Matrix T_itw(nTout, this_T_interp_order+1);
+  Matrix T_itw;
 
   if( nTin>1 )
   {
     this_T_interp_order = min(t_interp_order, nTin);
+    T_itw.resize(nTout, this_T_interp_order+1);
 
     ostringstream os;
     os << "In opt_prop_1ScatElem.\n"
@@ -456,7 +460,7 @@ void opt_prop_1ScatElem(//Output
     // derive the direction interpolation weights.
     ArrayOfGridPos dir_gp(nDir);
     gridpos(dir_gp, ssd.za_grid, dir_array(joker,0));
-    Matrix dir_itw(nDir, 4);
+    Matrix dir_itw(nDir, 2); // only interpolating in za, ie 1D linear interpol
     interpweights(dir_itw, dir_gp);
 
     Index next = ssd.ext_mat_data.ncols();

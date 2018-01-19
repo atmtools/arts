@@ -17479,7 +17479,6 @@ void define_md_data_raw()
         GIN_DESC("")
         ));
 
-/*
   md_data_raw.push_back
     ( MdRecord
     ( NAME( "TestScatDataInterp" ),
@@ -17498,9 +17497,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-     IN( "scat_data", "stokes_dim", "f_grid", "rtp_los", "rtp_temperature", "t_field",
-        "cloudbox_limits","pnd_field","pha_mat_spt_agenda"
-        ),
+        IN( "scat_data", "stokes_dim", "f_grid", "rtp_los", "rtp_temperature" ),
         GIN( "scat_elem_index", "compare", "za_printout_index",
              "aa_printout_index", "mirror" ),
         GIN_TYPE( "Index", "Index", "Index", "Index", "Index" ),
@@ -17518,7 +17515,6 @@ void define_md_data_raw()
                   " should generally be 1, but might be set to 0 for assumption"
                   " testing purposes." )
         ));
-*/
 
   md_data_raw.push_back
     ( MdRecord
