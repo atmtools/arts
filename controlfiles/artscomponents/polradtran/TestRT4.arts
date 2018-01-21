@@ -90,7 +90,13 @@ RT4Calc #( nstreams=32 )
 # alternatively, the old way using one of RT4's own surface methods:
 #RT4CalcWithRT4Surface( ground_type=ground_type ) #( nstreams=32 )
 #WriteXML( output_file_format, doit_i_field )
-   
+
+Tensor7Create( ifield_old_optprop )
+Copy( ifield_old_optprop, doit_i_field )
+RT4Calc( new_optprop=1 )
+CompareRelative( ifield_old_optprop, doit_i_field, 1e-6 )
+Compare( ifield_old_optprop, doit_i_field, 1e-30 )
+
 # Calculate RT from cloudbox boundary to the sensor
 yCalc
 

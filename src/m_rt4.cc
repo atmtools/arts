@@ -79,6 +79,7 @@ void RT4Calc( Workspace& ws,
                 const Index& za_interp_order,
                 const Index& cos_za_interp,
                 const Numeric& max_delta_tau,
+                const Index& new_optprop,
                 const Verbosity& verbosity )
 {
   if (!cloudbox_on)
@@ -155,7 +156,7 @@ void RT4Calc( Workspace& ws,
            quad_type, mu_values, quad_weights,
            auto_inc_nstreams, robust, za_interp_order, cos_za_interp,
            pfct_method, pfct_aa_grid_size, pfct_threshold,
-           max_delta_tau,
+           max_delta_tau, new_optprop,
            verbosity );
 
   scat_za_grid_adjust( scat_za_grid, mu_values, nummu );
@@ -275,7 +276,7 @@ void RT4CalcWithRT4Surface(
            quad_type, mu_values, quad_weights,
            auto_inc_nstreams, robust, za_interp_order, cos_za_interp,
            pfct_method, pfct_aa_grid_size, pfct_threshold,
-           max_delta_tau,
+           max_delta_tau, 0,
            verbosity );
 
   scat_za_grid_adjust( scat_za_grid, mu_values, nummu );
@@ -319,6 +320,7 @@ void RT4Calc( Workspace&,
                 const Index&,
                 const Index&,
                 const Numeric&,
+                const Index&,
                 const Verbosity& )
 {
     throw runtime_error ("This version of ARTS was compiled without RT4 support.");

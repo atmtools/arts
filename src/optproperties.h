@@ -151,7 +151,7 @@ void opt_prop_ScatSpecBulk(//Output
                            const ArrayOfArrayOfTensor5& ext_mat_se,
                            const ArrayOfArrayOfTensor4& abs_vec_se,
                            const ArrayOfArrayOfIndex& ptypes_se,
-                           const MatrixView& pnds);
+                           ConstMatrixView pnds);
 
 void opt_prop_NScatElems(//Output
                          ArrayOfArrayOfTensor5& ext_mat,

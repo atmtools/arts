@@ -1,3 +1,23 @@
+2018-01-21 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-935
+
+	* src/m_rt4.cc, methods.cc (RT4Calc),
+	src/rt4.[cc,h] (run_rt4, par_optpropCalc2):
+	Start applying new scattering particle optical property calculation
+	scheme. So far as option to RT4Calc. So far separately per freq point.
+
+	* src/optproperties.[cc,h] (opt_prop_ScatSpecBulk):
+	Changed pnds type from const MatrixView& to ConstMatrixView due to
+	complaints by par_optpropCalc2.
+
+	* src/m_basic_types.cc, methods.cc (CompareRelative):
+	Introduced Tensor7 flavour for doit_i_field comparison.
+
+	* controlfiles/artscomponents/polradtran/TestRT4.arts:
+	Added a RT4Calc using new optprop scheme. Compare to old one. Results
+	are practically identical, new marginally faster.
+
 2018-01-19 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-934

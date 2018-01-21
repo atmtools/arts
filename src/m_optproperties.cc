@@ -3603,6 +3603,8 @@ void TestScatDataInterp(
     
   ////// RT4 //////
   //
+  // FIXME: shouldn't we use (somehow; smartly setup) par_opt_propCalc and
+  // sca_opt_propCalc?
   StokesVector abs_vec_rt4(n_f, stokes_dim);
   abs_vec_rt4.SetZero();
   

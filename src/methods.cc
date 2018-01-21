@@ -3731,8 +3731,8 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN(),
         GIN( "var1", "var2", "maxabsreldiff", "error_message" ),
-        GIN_TYPE( "Vector",
-                  "Vector",
+        GIN_TYPE( "Vector, Tensor7",
+                  "Vector, Tensor7",
                   "Numeric", "String" ),
         GIN_DEFAULT( NODEF, NODEF, NODEF, "" ),
         GIN_DESC( "A first variable", "A second variable", 
@@ -14364,15 +14364,18 @@ void define_md_data_raw()
         GIN(         "nstreams", "pfct_method", "quad_type",
                      "add_straight_angles", "pfct_aa_grid_size",
                      "auto_inc_nstreams", "robust",
-                     "za_interp_order", "cos_za_interp", "max_delta_tau" ),
+                     "za_interp_order", "cos_za_interp", "max_delta_tau",
+                     "new_optprop" ),
         GIN_TYPE(    "Index",    "String",      "String",
                      "Index",               "Index",
                      "Index",             "Index",
-                     "Index",           "Index",         "Numeric" ),
+                     "Index",           "Index",         "Numeric",
+                     "Index" ),
         GIN_DEFAULT( "16",       "median",      "D",
                      "1",                   "19",
                      "0",                 "0",
-                     "1",               "0",             "1e-6" ),
+                     "1",               "0",             "1e-6",
+                     "0" ),
         GIN_DESC( "Number of polar angle directions (streams) in RT4"
                   " solution (must be an even number).",
                   "Flag which method to apply to derive phase function (for"
@@ -14399,7 +14402,9 @@ void define_md_data_raw()
                   "For *auto_inc_nstreams*>0, flag whether to do polar angle"
                   " interpolation in cosine (='mu') space.",
                   "Maximum optical depth of infinitesimal layer (where single"
-                  " scattering approximation is assumed to apply)." )
+                  " scattering approximation is assumed to apply).",
+                  "Flag whether to use old (0) or new(1) optical property"
+                  " extraction scheme." )
         ));
 
   md_data_raw.push_back

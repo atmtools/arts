@@ -512,6 +512,7 @@ void run_rt4( Workspace& ws,
               const Index& pfct_aa_grid_size,
               const Numeric& pfct_threshold,
               const Numeric& max_delta_tau,
+              const Index& new_optprop,
               const Verbosity& verbosity )
 {
   // Input variables for RT4
@@ -548,6 +549,12 @@ void run_rt4( Workspace& ws,
   // Top of the atmosphere temperature
   //  FIXME: so far hard-coded to cosmic background. However, change that to set
   //  according to/from space_agenda.
+  // to do so, we need to hand over sky_radiance instead of sky_temp as
+  // Tensor3(2,stokes_dim,nummu) per frequency. That is, for properly using
+  // iy_space_agenda, we need to recall the agenda over the stream angles (not
+  // sure what to do with the upwelling ones. according to the RT¤-internal
+  // sizing, sky_radiance contains even those. but they might not be used
+  // (check!) and hence be set arbitrary.
   const Numeric sky_temp = COSMIC_BG_TEMP;
 
   // Data fields
@@ -564,6 +571,7 @@ void run_rt4( Workspace& ws,
   // individual non-cloudy layers), one should consider non-cloudy layers within
   // cloudbox. That requires some kind of recognition and index setting based on
   // pnd_field or (derived) cloud layer extinction or scattering.
+  // we use something similar with iyHybrid. have a look there...
   const Index num_scatlayers=pnd_field.npages()-1;
   Vector scatlayers(num_layers, 0.);
   Vector gas_extinct(num_layers, 0.);
@@ -621,13 +629,21 @@ void run_rt4( Workspace& ws,
       {
         if( nummu_new<nummu )
         {
-          par_optpropCalc( emis_vector, extinct_matrix,
-                           //scatlayers,
-                           scat_data, scat_za_grid, f_index,
-                           pnd_field,
-                           t_field(Range(0,num_layers+1),joker,joker),
-                           cloudbox_limits, stokes_dim, nummu,
-                           verbosity );
+          if( new_optprop )
+            par_optpropCalc2( emis_vector, extinct_matrix,
+                             //scatlayers,
+                             scat_data, scat_za_grid, f_index,
+                             pnd_field,
+                             t_field(Range(0,num_layers+1),joker,joker),
+                             cloudbox_limits, stokes_dim );
+          else
+            par_optpropCalc( emis_vector, extinct_matrix,
+                             //scatlayers,
+                             scat_data, scat_za_grid, f_index,
+                             pnd_field,
+                             t_field(Range(0,num_layers+1),joker,joker),
+                             cloudbox_limits, stokes_dim, nummu,
+                             verbosity );
           sca_optpropCalc( scatter_matrix, pfct_failed,
                            emis_vector, extinct_matrix,
                            f_index, scat_data, pnd_field, stokes_dim,
@@ -716,13 +732,21 @@ void run_rt4( Workspace& ws,
           extinct_matrix_new = 0.;
           emis_vector_new.resize(num_scatlayers,2,nummu_new,stokes_dim);
           emis_vector_new = 0.;
-          par_optpropCalc( emis_vector_new, extinct_matrix_new,
-                           //scatlayers,
-                           scat_data, scat_za_grid, f_index,
-                           pnd_field,
-                           t_field(Range(0,num_layers+1),joker,joker),
-                           cloudbox_limits, stokes_dim, nummu_new,
-                           verbosity );
+          if( new_optprop )
+            par_optpropCalc( emis_vector_new, extinct_matrix_new,
+                             //scatlayers,
+                             scat_data, scat_za_grid, f_index,
+                             pnd_field,
+                             t_field(Range(0,num_layers+1),joker,joker),
+                             cloudbox_limits, stokes_dim, nummu_new,
+                             verbosity );
+          else
+            par_optpropCalc2( emis_vector_new, extinct_matrix_new,
+                             //scatlayers,
+                             scat_data, scat_za_grid, f_index,
+                             pnd_field,
+                             t_field(Range(0,num_layers+1),joker,joker),
+                             cloudbox_limits, stokes_dim );
         //   - resize & recalc scatter_matrix
           scatter_matrix_new.resize(num_scatlayers,4,nummu_new,stokes_dim,nummu_new,stokes_dim);
           scatter_matrix_new = 0.;
@@ -1149,6 +1173,106 @@ void par_optpropCalc( Tensor4View emis_vector,
                 emis_vector(scat_p_index_local,1,imu,ist1) = .5 *
                   ( abs_vector(scat_p_index_local,nummu+imu,ist1) +
                     abs_vector(scat_p_index_local+1,nummu+imu,ist1) );
+              }
+//        }
+    }
+}
+
+
+//! par_optpropCalc
+/*!
+  Calculates layer averaged particle extinction and absorption (extinct_matrix
+  and emis_vector)). These variables are required as input for the RT4 subroutine.
+
+  \param emis_vector           Layer averaged particle absorption for all particle layers
+  \param extinct_matrix        Layer averaged particle extinction for all particle layers
+  \param scat_data             as the WSV
+  \param scat_za_grid          as the WSV
+  \param f_index               index of frequency grid point handeled
+  \param pnd_field             as the WSV
+  \param t_field               as the WSV
+  \param cloudbox_limits       as the WSV 
+  \param stokes_dim            as the WSV
+  \param nummu                 Number of single hemisphere polar angles.
+  
+  \author Jana Mendrok
+  \date   2016-08-08
+*/
+void par_optpropCalc2( Tensor4View emis_vector,
+                      Tensor5View extinct_matrix,
+                      //VectorView scatlayers,
+                      const ArrayOfArrayOfSingleScatteringData& scat_data,
+                      const Vector& scat_za_grid,
+                      const Index& f_index,
+                      ConstTensor4View pnd_field,
+                      ConstTensor3View t_field,
+                      const ArrayOfIndex& cloudbox_limits,
+                      const Index& stokes_dim )
+{
+  // Initialization
+  extinct_matrix=0.;
+  emis_vector=0.;
+  
+  const Index Np_cloud = pnd_field.npages();
+  const Index nummu = scat_za_grid.nelem()/2;
+
+  assert( emis_vector.nbooks() == Np_cloud-1 );
+  assert( extinct_matrix.nshelves() == Np_cloud-1 );
+  
+  // preparing input data
+  Vector T_array =  t_field(Range(cloudbox_limits[0],Np_cloud), 0, 0);
+  Matrix dir_array(scat_za_grid.nelem(), 2, 0.);
+  dir_array(joker,0) = scat_za_grid;
+
+  // making output containers
+  ArrayOfArrayOfTensor5 ext_mat_Nse;
+  ArrayOfArrayOfTensor4 abs_vec_Nse;
+  ArrayOfArrayOfIndex ptypes_Nse;
+  ArrayOfTensor5 ext_mat_ssbulk;
+  ArrayOfTensor4 abs_vec_ssbulk;
+  ArrayOfIndex ptype_ssbulk;
+  Tensor5 ext_mat_bulk;
+  Tensor4 abs_vec_bulk;
+  Index ptype_bulk;
+
+  opt_prop_NScatElems( ext_mat_Nse, abs_vec_Nse, ptypes_Nse,
+                       scat_data, stokes_dim, T_array, dir_array, f_index );
+  opt_prop_ScatSpecBulk( ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk,
+                         ext_mat_Nse, abs_vec_Nse, ptypes_Nse,
+                         pnd_field(joker, joker, 0, 0) );
+  opt_prop_Bulk( ext_mat_bulk, abs_vec_bulk, ptype_bulk,
+                 ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk );
+  
+
+  // Calculate layer averaged extinction and absorption and sort into RT4-format
+  // data tensors
+  for (Index ipc = 0; ipc < Np_cloud-1; ipc++)
+    {
+/*
+      if ( (ext_mat_bulk(0,ipc,0,0,0)+
+            ext_mat_bulk(0,ipc+1,0,0,0)) > 0. )
+        {
+          scatlayers[Np_cloud-2-cloudbox_limits[0]-ipc] =
+            float(ipc);
+*/
+          for (Index imu=0; imu<nummu; imu++)
+            for (Index ist1=0; ist1<stokes_dim; ist1++)
+              {
+                for (Index ist2=0; ist2<stokes_dim; ist2++)
+                  {
+                    extinct_matrix(ipc,0,imu,ist2,ist1) = .5 *
+                      ( ext_mat_bulk(0,ipc,imu,ist1,ist2) +
+                        ext_mat_bulk(0,ipc+1,imu,ist1,ist2) );
+                    extinct_matrix(ipc,1,imu,ist2,ist1) = .5 *
+                      ( ext_mat_bulk(0,ipc,nummu+imu,ist1,ist2) +
+                        ext_mat_bulk(0,ipc+1,nummu+imu,ist1,ist2) );
+                  }
+                emis_vector(ipc,0,imu,ist1) = .5 *
+                  ( abs_vec_bulk(0,ipc,imu,ist1) +
+                    abs_vec_bulk(0,ipc+1,imu,ist1) );
+                emis_vector(ipc,1,imu,ist1) = .5 *
+                  ( abs_vec_bulk(0,ipc,nummu+imu,ist1) +
+                    abs_vec_bulk(0,ipc+1,nummu+imu,ist1) );
               }
 //        }
     }

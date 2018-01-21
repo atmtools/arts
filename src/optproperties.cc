@@ -160,7 +160,7 @@ void opt_prop_ScatSpecBulk(//Output
                            const ArrayOfArrayOfTensor5& ext_mat_se, // [nss][nse](nf,nT,ndir,nst,nst)
                            const ArrayOfArrayOfTensor4& abs_vec_se, // [nss][nse](nf,nT,ndir,nst)
                            const ArrayOfArrayOfIndex& ptypes_se,
-                           const MatrixView& pnds)
+                           ConstMatrixView pnds)
 {
   assert( TotalNumberOfElements(ext_mat_se) == pnds.nrows() );
   assert( TotalNumberOfElements(abs_vec_se) == pnds.nrows() );

@@ -2351,3 +2351,96 @@ void CompareRelative(const Vector&    var1,
   out2 << "   " << var1name << "-" << var2name
        << " OK (maximum difference = " << maxreldiff*100.0 << "%" << ").\n";
 }
+
+void CompareRelative(const Tensor7&   var1,
+                     const Tensor7&   var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+    const Index ncols = var1.ncols();
+    const Index nrows = var1.nrows();
+    const Index npages = var1.npages();
+    const Index nbooks = var1.nbooks();
+    const Index nshelves = var1.nshelves();
+    const Index nvitrines = var1.nvitrines();
+    const Index nlibraries = var1.nlibraries();
+    
+    if(var2.ncols() != ncols   ||
+       var2.nrows() != nrows  ||
+       var2.npages() != npages   ||
+       var2.nbooks() != nbooks   ||
+       var2.nshelves() != nshelves   ||
+       var2.nvitrines() != nvitrines   ||
+       var2.nlibraries() != nlibraries       )
+    {
+      ostringstream os;
+      os << var1name << " and " << var2name << " do not have the same size.";
+      throw runtime_error(os.str());
+    }
+    
+    Numeric maxreldiff = 0.0;
+    
+    for( Index c=0; c<ncols; c++ )
+        for( Index r=0; r<nrows; r++ )
+            for( Index p=0; p<npages; p++ )
+                for( Index b=0; b<nbooks; b++ )
+                    for( Index s=0; s<nshelves; s++ )
+                        for( Index v=0; v<nvitrines; v++ )
+                            for( Index l=0; l<nlibraries; l++ )
+            {
+              Numeric diff = var1(l,v,s,b,p,r,c) - var2(l,v,s,b,p,r,c);
+
+              if( isnan(var1(l,v,s,b,p,r,c))  ||  isnan(var2(l,v,s,b,p,r,c)) )
+                {
+                  if( isnan(var1(l,v,s,b,p,r,c))  &&  isnan(var2(l,v,s,b,p,r,c)) )
+                    { diff = 0; }
+                  else if( isnan(var1(l,v,s,b,p,r,c)) )
+                    {
+                      ostringstream os;
+                      os << "Nan found in " << var1name << ", but there is no "
+                         << "NaN at same position in " << var2name << ".\nThis "
+                         << "is not allowed.";
+                      throw runtime_error(os.str());
+                    }
+                  else 
+                    {
+                      ostringstream os;
+                      os << "Nan found in " << var2name << ", but there is no "
+                         << "NaN at same position in " << var1name << ".\nThis "
+                         << "is not allowed.";
+                      throw runtime_error(os.str());
+                    }
+                }      
+
+              else if(diff!=0.0)
+              {
+                if(var1(l,v,s,b,p,r,c) == 0.0)
+                  diff = 1.0;
+                else 
+                  diff /= var1(l,v,s,b,p,r,c);
+              }
+
+              if( abs(diff) > abs(maxreldiff) )
+                { maxreldiff = diff; }
+            }
+
+    if(isnan(maxreldiff)  ||  abs(maxreldiff) > maxabsreldiff)
+      {
+        ostringstream os;
+        os << var1name << "-" << var2name << " FAILED!\n";
+        if (error_message.length()) os << error_message << "\n";
+        os << "Max allowed deviation set to: " << maxabsreldiff*100.0 << "%" << endl
+          << "but the tensors deviate with: " << maxreldiff*100.0 << "%" << endl;
+        throw runtime_error(os.str());
+      }
+
+    CREATE_OUT2;
+    out2 << "   " << var1name << "-" << var2name
+         << " OK (maximum difference = " << maxreldiff << ").\n";
+}
+

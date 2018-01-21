@@ -112,6 +112,7 @@ void run_rt4( Workspace& ws,
               const Index& pfct_aa_grid_size,
               const Numeric& pfct_threshold,
               const Numeric& max_delta_tau,
+              const Index& new_optprop,
               const Verbosity& verbosity );
 
 void scat_za_grid_adjust( // Output
@@ -144,6 +145,19 @@ void par_optpropCalc( //Output
                       const Index& stokes_dim,
                       const Index& nummu,
                       const Verbosity& verbosity );
+
+void par_optpropCalc2( //Output
+                      Tensor4View emis_vector,
+                      Tensor5View extinct_matrix,
+                      //VectorView scatlayers,
+                      //Input
+                      const ArrayOfArrayOfSingleScatteringData& scat_data,
+                      const Vector& scat_za_grid,
+                      const Index& f_index,
+                      ConstTensor4View pnd_field,
+                      ConstTensor3View t_field,
+                      const ArrayOfIndex& cloudbox_limits,
+                      const Index& stokes_dim );
 
 void sca_optpropCalc( //Output
                       Tensor6View scatter_matrix,
