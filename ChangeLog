@@ -1,3 +1,11 @@
+2018-01-22  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-936
+
+	* src/wigner_functions.{cc,h}:  Linked to wigxjpf and changed to use
+	their functions.  Also added these to the compiled files and moved
+	linking the wigner-library from artscore to matpack...
+
 2018-01-21 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-935

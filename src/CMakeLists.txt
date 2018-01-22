@@ -52,9 +52,6 @@ if (ENABLE_RELMAT)
   list (APPEND ALL_ARTS_LIBRARIES relmat)
 endif (ENABLE_RELMAT)
 
-list (APPEND ALL_ARTS_LIBRARIES wigner)
-
-
 ########### target to extract version number from ChangeLog ###############
 
 add_custom_target (auto_version_h DEPENDS auto_version.h)
@@ -284,6 +281,7 @@ add_library (artscore STATIC
   timings.cc
   tmatrix.cc
   token.cc
+  wigner_functions.cc
   workspace.cc
   workspace_ng.cc
   xml_io.cc
@@ -326,7 +324,7 @@ add_library (matpack STATIC
         )
 
 include_directories ( SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty )
-target_link_libraries( matpack ${LAPACK_LIBRARIES} )
+target_link_libraries( matpack ${LAPACK_LIBRARIES} wigner )
 
 ########### next target ###############
 
