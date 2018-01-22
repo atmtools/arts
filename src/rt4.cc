@@ -576,8 +576,8 @@ void run_rt4( Workspace& ws,
   Vector scatlayers(num_layers, 0.);
   Vector gas_extinct(num_layers, 0.);
   Tensor6 scatter_matrix(num_scatlayers,4,nummu,stokes_dim,nummu,stokes_dim, 0.);
-  Tensor5 extinct_matrix(num_scatlayers,2,nummu,stokes_dim,stokes_dim, 0.);
-  Tensor4 emis_vector(num_scatlayers,2,nummu,stokes_dim, 0.);
+  Tensor6 extinct_matrix(1,num_scatlayers,2,nummu,stokes_dim,stokes_dim, 0.);
+  Tensor5 emis_vector(1,num_scatlayers,2,nummu,stokes_dim, 0.);
 
   // if there is no scatt particle at all, we don't need to calculate the
   // scat properties (FIXME: that should rather be done by a proper setting
@@ -595,6 +595,33 @@ void run_rt4( Workspace& ws,
   // Output variables
   Tensor3 up_rad(num_layers+1,nummu,stokes_dim, 0.);
   Tensor3 down_rad(num_layers+1,nummu,stokes_dim, 0.);
+
+  Tensor6 extinct_matrix_allf;
+  Tensor5 emis_vector_allf;
+  if( new_optprop && !auto_inc_nstreams )
+  {
+    extinct_matrix_allf.resize(f_grid.nelem(), num_scatlayers, 2, nummu,
+                               stokes_dim, stokes_dim);
+    emis_vector_allf.resize(f_grid.nelem(), num_scatlayers, 2, nummu,
+                            stokes_dim);
+    par_optpropCalc2( emis_vector_allf, extinct_matrix_allf,
+                     //scatlayers,
+                     scat_data, scat_za_grid, -1,
+                     pnd_field,
+                     t_field(Range(0,num_layers+1),joker,joker),
+                     cloudbox_limits, stokes_dim );
+  }
+
+  // FIXME: once, all old optprop scheme incl. the applied agendas is removed,
+  // we can remove this as well.
+  Vector scat_za_grid_orig;
+  if( auto_inc_nstreams )
+    // For the WSV scat_za_grid, we need to reset these grids instead of
+    // creating a new container. this because further down some agendas are
+    // used that access scat_za/aa_grid through the workspace.
+    // Later on, we need to reconstruct the original setting, hence backup
+    // that here.
+    scat_za_grid_orig = scat_za_grid;
 
 
   Index nummu_new = 0;
@@ -630,22 +657,38 @@ void run_rt4( Workspace& ws,
         if( nummu_new<nummu )
         {
           if( new_optprop )
-            par_optpropCalc2( emis_vector, extinct_matrix,
-                             //scatlayers,
-                             scat_data, scat_za_grid, f_index,
-                             pnd_field,
-                             t_field(Range(0,num_layers+1),joker,joker),
-                             cloudbox_limits, stokes_dim );
+          {
+            if( !auto_inc_nstreams )
+            {
+              emis_vector = emis_vector_allf(Range(f_index,1),
+                                             joker,joker,joker,joker);
+              extinct_matrix = extinct_matrix_allf(Range(f_index,1),
+                                                   joker,joker,joker,joker,joker);
+            }
+            else
+            {
+              par_optpropCalc2( emis_vector, extinct_matrix,
+                               //scatlayers,
+                               scat_data, scat_za_grid, f_index,
+                               pnd_field,
+                               t_field(Range(0,num_layers+1),joker,joker),
+                               cloudbox_limits, stokes_dim );
+            }
+          }
           else
-            par_optpropCalc( emis_vector, extinct_matrix,
-                             //scatlayers,
-                             scat_data, scat_za_grid, f_index,
-                             pnd_field,
-                             t_field(Range(0,num_layers+1),joker,joker),
-                             cloudbox_limits, stokes_dim, nummu,
-                             verbosity );
+          {
+              par_optpropCalc( emis_vector(0,joker,joker,joker,joker),
+                               extinct_matrix(0,joker,joker,joker,joker,joker),
+                               //scatlayers,
+                               scat_data, scat_za_grid, f_index,
+                               pnd_field,
+                               t_field(Range(0,num_layers+1),joker,joker),
+                               cloudbox_limits, stokes_dim, nummu,
+                               verbosity );
+          }
           sca_optpropCalc( scatter_matrix, pfct_failed,
-                           emis_vector, extinct_matrix,
+                           emis_vector(0,joker,joker,joker,joker),
+                           extinct_matrix(0,joker,joker,joker,joker,joker),
                            f_index, scat_data, pnd_field, stokes_dim,
                            scat_za_grid, quad_weights,
                            pfct_method, pfct_aa_grid_size, pfct_threshold,
@@ -703,17 +746,10 @@ void run_rt4( Workspace& ws,
         Index nhstreams_new;
         Vector mu_values_new, quad_weights_new, scat_aa_grid_new;
         Tensor6 scatter_matrix_new;
-        Tensor5 extinct_matrix_new;
-        Tensor4 emis_vector_new;
+        Tensor6 extinct_matrix_new;
+        Tensor5 emis_vector_new;
         Tensor4 surfreflmat_new;
         Matrix surfemisvec_new;
-
-        // for the WSV scat_za_grid we need to reset these grids instead of
-        // creating a new container. this because further down some agendas are
-        // used that access scat_za/aa_grid through the workspace.
-        // later on, we need to reconstruct the original setting, hence backup
-        // that here.
-        Vector scat_za_grid_orig = scat_za_grid;
 
         while (pfct_failed && (2*nummu_new)<=auto_inc_nstreams)
         {
@@ -728,31 +764,41 @@ void run_rt4( Workspace& ws,
                            scat_za_grid, scat_aa_grid_new,
                            quad_type, nhstreams_new, nhza, nummu_new );
         //   - resize & recalculate emis_vector, extinct_matrix (as input to scatter_matrix calc)
-          extinct_matrix_new.resize(num_scatlayers,2,nummu_new,stokes_dim,stokes_dim);
+          extinct_matrix_new.resize(1,num_scatlayers,2,nummu_new,stokes_dim,stokes_dim);
           extinct_matrix_new = 0.;
-          emis_vector_new.resize(num_scatlayers,2,nummu_new,stokes_dim);
+          emis_vector_new.resize(1,num_scatlayers,2,nummu_new,stokes_dim);
           emis_vector_new = 0.;
+          // FIXME: So far, outside-of-freq-loop calculated optprops will fall
+          // back to in-loop-calculated ones in case of auto-increasing stream
+          // numbers. There might be better options, but I (JM) couldn't come up
+          // with or decide for one so far (we could recalc over all freqs. but
+          // that would unnecessarily recalc lower-freq optprops, too, which are
+          // not needed anymore. which could likely take more time than we
+          // potentially safe through all-at-once temperature and direction
+          // interpolations.
           if( new_optprop )
-            par_optpropCalc( emis_vector_new, extinct_matrix_new,
-                             //scatlayers,
-                             scat_data, scat_za_grid, f_index,
-                             pnd_field,
-                             t_field(Range(0,num_layers+1),joker,joker),
-                             cloudbox_limits, stokes_dim, nummu_new,
-                             verbosity );
-          else
             par_optpropCalc2( emis_vector_new, extinct_matrix_new,
                              //scatlayers,
                              scat_data, scat_za_grid, f_index,
                              pnd_field,
                              t_field(Range(0,num_layers+1),joker,joker),
                              cloudbox_limits, stokes_dim );
+          else
+            par_optpropCalc( emis_vector(0,joker,joker,joker,joker),
+                             extinct_matrix(0,joker,joker,joker,joker,joker),
+                             //scatlayers,
+                             scat_data, scat_za_grid, f_index,
+                             pnd_field,
+                             t_field(Range(0,num_layers+1),joker,joker),
+                             cloudbox_limits, stokes_dim, nummu_new,
+                             verbosity );
         //   - resize & recalc scatter_matrix
           scatter_matrix_new.resize(num_scatlayers,4,nummu_new,stokes_dim,nummu_new,stokes_dim);
           scatter_matrix_new = 0.;
           pfct_failed = 0;
           sca_optpropCalc( scatter_matrix_new, pfct_failed,
-                           emis_vector_new, extinct_matrix_new,
+                           emis_vector_new(0,joker,joker,joker,joker),
+                           extinct_matrix_new(0,joker,joker,joker,joker,joker),
                            f_index, scat_data, pnd_field, stokes_dim,
                            scat_za_grid, quad_weights_new,
                            pfct_method, pfct_aa_grid_size, pfct_threshold,
@@ -788,7 +834,8 @@ void run_rt4( Workspace& ws,
             out1 << os.str();
             pfct_failed = -1;
             sca_optpropCalc( scatter_matrix_new, pfct_failed,
-                             emis_vector_new, extinct_matrix_new,
+                             emis_vector_new(0,joker,joker,joker,joker),
+                             extinct_matrix_new(0,joker,joker,joker,joker,joker),
                              f_index, scat_data, pnd_field, stokes_dim,
                              scat_za_grid, quad_weights_new,
                              pfct_method, pfct_aa_grid_size, pfct_threshold,
@@ -841,8 +888,8 @@ void run_rt4( Workspace& ws,
                gas_extinct.get_c_array(),
                num_scatlayers,
                scatlayers.get_c_array(),
-               extinct_matrix_new.get_c_array(),
-               emis_vector_new.get_c_array(),
+               extinct_matrix_new(0,joker,joker,joker,joker,joker).get_c_array(),
+               emis_vector_new(0,joker,joker,joker,joker).get_c_array(),
                scatter_matrix_new.get_c_array(),
                //noutlevels,
                //outlevels.get_c_array(),
@@ -1198,8 +1245,8 @@ void par_optpropCalc( Tensor4View emis_vector,
   \author Jana Mendrok
   \date   2016-08-08
 */
-void par_optpropCalc2( Tensor4View emis_vector,
-                      Tensor5View extinct_matrix,
+void par_optpropCalc2(Tensor5View emis_vector,
+                      Tensor6View extinct_matrix,
                       //VectorView scatlayers,
                       const ArrayOfArrayOfSingleScatteringData& scat_data,
                       const Vector& scat_za_grid,
@@ -1247,35 +1294,35 @@ void par_optpropCalc2( Tensor4View emis_vector,
   // Calculate layer averaged extinction and absorption and sort into RT4-format
   // data tensors
   for (Index ipc = 0; ipc < Np_cloud-1; ipc++)
-    {
+  {
 /*
-      if ( (ext_mat_bulk(0,ipc,0,0,0)+
-            ext_mat_bulk(0,ipc+1,0,0,0)) > 0. )
-        {
-          scatlayers[Np_cloud-2-cloudbox_limits[0]-ipc] =
-            float(ipc);
+    if ( (ext_mat_bulk(0,ipc,0,0,0)+
+          ext_mat_bulk(0,ipc+1,0,0,0)) > 0. )
+    {
+      scatlayers[Np_cloud-2-cloudbox_limits[0]-ipc] = float(ipc);
 */
-          for (Index imu=0; imu<nummu; imu++)
-            for (Index ist1=0; ist1<stokes_dim; ist1++)
-              {
-                for (Index ist2=0; ist2<stokes_dim; ist2++)
-                  {
-                    extinct_matrix(ipc,0,imu,ist2,ist1) = .5 *
-                      ( ext_mat_bulk(0,ipc,imu,ist1,ist2) +
-                        ext_mat_bulk(0,ipc+1,imu,ist1,ist2) );
-                    extinct_matrix(ipc,1,imu,ist2,ist1) = .5 *
-                      ( ext_mat_bulk(0,ipc,nummu+imu,ist1,ist2) +
-                        ext_mat_bulk(0,ipc+1,nummu+imu,ist1,ist2) );
-                  }
-                emis_vector(ipc,0,imu,ist1) = .5 *
-                  ( abs_vec_bulk(0,ipc,imu,ist1) +
-                    abs_vec_bulk(0,ipc+1,imu,ist1) );
-                emis_vector(ipc,1,imu,ist1) = .5 *
-                  ( abs_vec_bulk(0,ipc,nummu+imu,ist1) +
-                    abs_vec_bulk(0,ipc+1,nummu+imu,ist1) );
-              }
-//        }
-    }
+      for(Index fi=0; fi<abs_vec_bulk.nbooks(); fi++)
+        for (Index imu=0; imu<nummu; imu++)
+          for (Index ist1=0; ist1<stokes_dim; ist1++)
+          {
+            for (Index ist2=0; ist2<stokes_dim; ist2++)
+            {
+              extinct_matrix(fi,ipc,0,imu,ist2,ist1) = .5 *
+                ( ext_mat_bulk(fi,ipc,imu,ist1,ist2) +
+                  ext_mat_bulk(fi,ipc+1,imu,ist1,ist2) );
+              extinct_matrix(fi,ipc,1,imu,ist2,ist1) = .5 *
+                ( ext_mat_bulk(fi,ipc,nummu+imu,ist1,ist2) +
+                  ext_mat_bulk(fi,ipc+1,nummu+imu,ist1,ist2) );
+            }
+            emis_vector(fi,ipc,0,imu,ist1) = .5 *
+              ( abs_vec_bulk(fi,ipc,imu,ist1) +
+                abs_vec_bulk(fi,ipc+1,imu,ist1) );
+            emis_vector(fi,ipc,1,imu,ist1) = .5 *
+              ( abs_vec_bulk(fi,ipc,nummu+imu,ist1) +
+                abs_vec_bulk(fi,ipc+1,nummu+imu,ist1) );
+          }
+//    }
+  }
 }
 
 

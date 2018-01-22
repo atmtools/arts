@@ -86,14 +86,14 @@ sensor_checkedCalc
 scat_data_checkedCalc
 
 # Perform scattering calculation
-RT4Calc #( nstreams=32 )
+RT4Calc #( nstreams=64 )
 # alternatively, the old way using one of RT4's own surface methods:
 #RT4CalcWithRT4Surface( ground_type=ground_type ) #( nstreams=32 )
 #WriteXML( output_file_format, doit_i_field )
 
 Tensor7Create( ifield_old_optprop )
 Copy( ifield_old_optprop, doit_i_field )
-RT4Calc( new_optprop=1 )
+RT4Calc( new_optprop=1 ) #, nstreams=64 )
 CompareRelative( ifield_old_optprop, doit_i_field, 1e-6 )
 Compare( ifield_old_optprop, doit_i_field, 1e-30 )
 

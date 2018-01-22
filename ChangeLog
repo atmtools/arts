@@ -1,3 +1,19 @@
+2018-01-22 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-937
+
+	* src/rt4.cc (run_rt4):
+	Calculate ext/abs for all freqs before the freq-loop, except if
+	auto_inc_nstreams (then fall back to in-loop, singe freq calc).
+	Store orig scat_za_grid once, outside any loop.
+
+	(par_optpropCalc2):
+	Adapt such that multi-freq data can be returned.
+
+	* src/methods.cc (RT4Calc):
+	Revise doc. Add cautionary notes that output field will only have
+	*nstreams* polar angles, even when run with *auto_inc_nstreams*!=0.
+
 2018-01-22  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-936

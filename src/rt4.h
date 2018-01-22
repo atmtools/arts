@@ -147,8 +147,8 @@ void par_optpropCalc( //Output
                       const Verbosity& verbosity );
 
 void par_optpropCalc2( //Output
-                      Tensor4View emis_vector,
-                      Tensor5View extinct_matrix,
+                      Tensor5View emis_vector,
+                      Tensor6View extinct_matrix,
                       //VectorView scatlayers,
                       //Input
                       const ArrayOfArrayOfSingleScatteringData& scat_data,
