@@ -1564,7 +1564,6 @@ void DoitInit(//WS Output
               const Index& doit_za_grid_size,
               const Index& cloudbox_on,
               const ArrayOfIndex& cloudbox_limits,
-              const ArrayOfArrayOfSingleScatteringData& scat_data_raw,
               const Verbosity& verbosity)
 {
   if (!cloudbox_on)
@@ -1641,12 +1640,14 @@ void DoitInit(//WS Output
                         "atmospheric dimensions. So its dimension must"
                         "be 2 x *atmosphere_dim*");
 
+  /* this shouldn't be Doit's, even less DoitInit's concern.
   if ( scat_data_raw.empty() )
     throw runtime_error(
                          "No single scattering data present.\n"
                          "See documentation of WSV *scat_data_raw* for options to "
                          "make single scattering data available.\n"
                          );
+  */
 
   //------------- end of checks ---------------------------------------
   

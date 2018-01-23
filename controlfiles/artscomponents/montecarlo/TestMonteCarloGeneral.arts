@@ -58,7 +58,8 @@ ReadXML( cloudbox_limits, "TestMonteCarloDataPrepare.cloudbox_limits.xml" )
 
 ReadXML( pnd_field, "TestMonteCarloDataPrepare.pnd_field.xml" )
 
-ReadXML( scat_data_mono, "TestMonteCarloDataPrepare.scat_data_mono.xml" )
+ReadXML( scat_data, "TestMonteCarloDataPrepare.scat_data.xml" )
+scat_data_checkedCalc
 
 
 #### Define Agendas #################################################
@@ -100,7 +101,7 @@ mc_antennaSetPencilBeam
 
 atmfields_checkedCalc
 atmgeom_checkedCalc
-cloudbox_checkedCalc( scat_data=scat_data_mono )
+cloudbox_checkedCalc
 
 
 #### Perform Monte Carlo RT Calculation #################################

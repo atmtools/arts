@@ -219,6 +219,11 @@ void opt_prop_ScatSpecBulk(//Output
   Derives temperature and direction interpolated extinction matrices and
   absorption vectors for all scattering elements present in scat_data.
 
+  ATTENTION:
+  If scat_data has only one freq point, f_index=-1 (i.e. all) extracts only this
+  one freq point. To duplicate that as needed if f_grid has more freqs is TASK
+  of the CALLING METHOD!
+
   Loops over opt_prop_1ScatElem and packs its output into all-scat-elements
   containers.
 
@@ -260,7 +265,10 @@ void opt_prop_NScatElems(//Output
   else
     {
       nf = 1;
-      f_start = f_index;
+      if( scat_data[0][0].ext_mat_data.nshelves()==1 )
+        f_start = 0;
+      else
+        f_start = f_index;
       //f_end = f_start+nf;
     }
 
@@ -327,7 +335,7 @@ void opt_prop_1ScatElem(//Output
                         const Index& f_start,
                         const Index& t_interp_order)
 {
-  // FIXME: this is prob best to be done in scat_data_checkedCalc (or
+  // FIXME: this is prob best done in scat_data_checkedCalc (or
   // cloudbox_checkedCalc) to have it done once and for all. Here at max assert.
 
   // At very first check validity of the scatt elements ptype (so far we only

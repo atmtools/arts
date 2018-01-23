@@ -1373,7 +1373,8 @@ void iyMC(
    const ArrayOfIndex&               cloudbox_limits,
    const Index&                      stokes_dim,
    const Vector&                     f_grid,
-   const ArrayOfArrayOfSingleScatteringData&   scat_data_raw,
+   const ArrayOfArrayOfSingleScatteringData&   scat_data,
+   const Index&                      scat_data_checked,
    const Agenda&                     iy_space_agenda,
    const Agenda&                     surface_rtprop_agenda,
    const Agenda&                     propmat_clearsky_agenda, 
@@ -1396,6 +1397,9 @@ void iyMC(
   if( !cloudbox_on )
     throw runtime_error( 
                     "The cloudbox must be activated (cloudbox_on must be 1)" );
+  if( scat_data_checked != 1 )
+    throw runtime_error( "The scat_data must be flagged to have "
+                         "passed a consistency check (scat_data_checked=1)." );
   if( jacobian_do )
     throw runtime_error( 
         "This method does not provide any jacobians (jacobian_do must be 0)" );
@@ -1464,11 +1468,6 @@ void iyMC(
       if (failed) continue;
 
       try {
-        ArrayOfArrayOfSingleScatteringData   scat_data_mono;
-
-        scat_data_monoCalc( scat_data_mono, scat_data_raw,
-                            f_grid, f_index, verbosity );
-
         // Seed reset for each loop. If not done, the errors
         // appear to be highly correlated.
         Index    mc_seed;
@@ -1487,7 +1486,7 @@ void iyMC(
                    p_grid, lat_grid, lon_grid, z_field, 
                    refellipsoid, z_surface, t_field, vmr_field,
                    cloudbox_on, cloudbox_limits,
-                   pnd_field, scat_data_mono, 1, 1, 1, iy_unit,
+                   pnd_field, scat_data, 1, 1, 1, 1, iy_unit,
                    mc_seed, mc_std_err, mc_max_time, mc_max_iter,
                    mc_min_iter, mc_taustep_limit, 1, verbosity);
           //cout << "Error: "      << mc_error << endl;

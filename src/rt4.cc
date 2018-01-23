@@ -610,6 +610,13 @@ void run_rt4( Workspace& ws,
                      pnd_field,
                      t_field(Range(0,num_layers+1),joker,joker),
                      cloudbox_limits, stokes_dim );
+    if( emis_vector_allf.nshelves()==1 ) // scat_data had just a single freq
+                                         // point. copy into emis/ext here and
+                                         // don't touch anymore later on.
+    {
+      emis_vector = emis_vector_allf(Range(0,1),joker,joker,joker,joker);
+      extinct_matrix = extinct_matrix_allf(Range(0,1),joker,joker,joker,joker,joker);
+    }
   }
 
   // FIXME: once, all old optprop scheme incl. the applied agendas is removed,
@@ -658,12 +665,16 @@ void run_rt4( Workspace& ws,
         {
           if( new_optprop )
           {
-            if( !auto_inc_nstreams )
+            if( !auto_inc_nstreams ) // all freq calculated before. just copy
+                                     // here. but only if needed.
             {
-              emis_vector = emis_vector_allf(Range(f_index,1),
-                                             joker,joker,joker,joker);
-              extinct_matrix = extinct_matrix_allf(Range(f_index,1),
-                                                   joker,joker,joker,joker,joker);
+              if( emis_vector_allf.nshelves()!=1 )
+              {
+                emis_vector = emis_vector_allf(Range(f_index,1),
+                                               joker,joker,joker,joker);
+                extinct_matrix = extinct_matrix_allf(Range(f_index,1),
+                                                     joker,joker,joker,joker,joker);
+              }
             }
             else
             {

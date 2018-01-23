@@ -68,20 +68,7 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 AgendaSet( iy_cloudbox_agenda ){
   iyInterpCloudboxField
 }
-# we only need a dummy background field here since the cloudbox is empty, ie
-# scattering contribution is anyways 0. Therefore, we don't do a RT4 calc here,
-# but explicitly set the doit_i_field.
-# However, also the surface and space (as the obs cases here are limb, it's
-# space that matters for them!) contributions are taken from the background
-# field, hence we have to massage them a little to get the radiances correct.
-MatrixCreate( iyspace )
-AgendaSet( doit_i_field_agenda ){
-  DOAngularGridsSet( N_za_grid=19, N_aa_grid=6 )
-  DoitInit( scat_data_raw=scat_data )
-  MatrixCBR( out=iyspace, f=f_grid )
-  doit_i_fieldSetConstPerFreq( value=iyspace )
-  #RT4Calc
-}
+
 Copy( surface_rtprop_agenda,
       surface_rtprop_agenda__Blackbody_SurfTFromt_surface )
 
@@ -108,6 +95,18 @@ Extract( t_surface, t_field, 0 )
 # instead (else it's falling back to the standard emission solver).
 cloudboxSetFullAtm
 Touch( scat_data )
+
+# we only need a dummy background field here since the cloudbox is empty, ie
+# scattering contribution is anyways 0. Therefore, we don't do a RT4 calc here,
+# but explicitly set the doit_i_field.
+# However, also the surface and space (as the obs cases here are limb, it's
+# space that matters for them!) contributions are taken from the background
+# field, hence we have to massage them a little to get the radiances correct.
+MatrixCreate( iyspace )
+DOAngularGridsSet( N_za_grid=19, N_aa_grid=6 )
+DoitInit
+MatrixCBR( out=iyspace, f=f_grid )
+doit_i_fieldSetConstPerFreq( value=iyspace )
 
 
 

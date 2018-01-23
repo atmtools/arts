@@ -1,3 +1,59 @@
+2018-01-23 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-938
+
+	Apply new new scattering particle optical property calculation
+	scheme to MC-related methods.
+
+	* src/montecarlo.[cc,h] (cloudy_rt_vars_at_gp):
+	Replace old optprop calc scheme (opt_propCalc) by new one. Use scat_data
+	instead of scat_data_mono. For that, pass f_grid and f_index instead of
+	f_mono.
+
+	(mcPathTraceGeneral, mcPathTraceRadar, get_ppath_transmat):
+	Adapt to changes in cloudy_rt_vars_at_gp, particularly pass through
+	scat_data, f_grid, f_index in place of scat_data_mono and f_mono.
+
+	(is_anyptype_notTotRan):
+	Renamed due change in ptype internal numbering. Rename applied scat data
+	instance from scat_data_mono to scat_data. And changed to look for
+	AzRand to look for more-complex-than-TotRand
+
+	* src/m_montecarlo.cc, methods.cc (MCGeneral, MCRadar):
+	Pass scat_data and scat_data_checked instead of scat_data_mono. For now,
+	scat_data_mono is still derived internally as we still need it for the
+	pha_mat calculation routines, which aren't revised yet.
+
+	* src/m_rte.cc, methods.cc (iyMC):
+	Pass scat_data and scat_data_checked instead of scat_data_raw. Removed
+	scat_data_mono calculation.
+
+	* src/rt4.cc (run_rt4):
+	Refinements on all-freq-ext/abs-from-outside-freq-loop usage.
+
+	* src/optproperties.cc (opt_prop_NScatElems):
+	Catch case of single-freq scat_data for multi-freq calc for single-freq
+	extraction. Can't do that for multi-freq extraction (as we don't know
+	about f_grid here). This has to be caught by calling methods (and is
+	also the most efficient (computational and memory wise) way. Added a
+	respective developer-caution note.
+
+	* src/m_doit.cc, methods.cc (DoitInit):
+	Remove passing and checking of scat_data_raw. Makes no sense here,
+	shouldn't be DoitInit's business.
+
+	* controlfiles/artscomponents/montecarlo/*.arts:
+	Adapted to changes above.
+
+	* controlfiles/artscomponents/wfuns/TestWfunsHybClear.arts:
+	Repaired.
+
+	* controlfiles/artscomponents/hybridscat/TestHybrid.arts:
+	Remove definition of doit_i_field_agenda. Not needed anymore.
+
+	* doc/uguide/scattering.tex:
+	Added references to removed optprop-related WSMs.
+
 2018-01-22 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-937

@@ -365,7 +365,8 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
                           Numeric&             temperature,
                           const Agenda&        propmat_clearsky_agenda,
                           const Index          stokes_dim,
-                          const Numeric&       f_mono,
+                          const Index          f_index,
+                          const Vector&        f_grid,
                           const GridPos&       gp_p,
                           const GridPos&       gp_lat,
                           const GridPos&       gp_lon,
@@ -373,11 +374,9 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
                           ConstTensor3View     t_field_cloud,
                           ConstTensor4View     vmr_field_cloud,
                           const Tensor4&       pnd_field,
-                          const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                          const ArrayOfArrayOfSingleScatteringData& scat_data,
                           const ArrayOfIndex&  cloudbox_limits,
-                          const Vector&        rte_los,
-                          const Verbosity&     verbosity
-                          )
+                          const Vector&        rte_los)
 
 {
   const Index   ns = vmr_field_cloud.nbooks();
@@ -389,8 +388,6 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   Matrix itw_p(1,2);
   ArrayOfGridPos ao_gp_p(1),ao_gp_lat(1),ao_gp_lon(1);
   Matrix   vmr_ppath(ns,1), itw_field;
-  Matrix ext_mat_part(stokes_dim, stokes_dim, 0.0);
-  Vector abs_vec_part(stokes_dim, 0.0);
 
   //local versions of workspace variables
   ArrayOfPropagationMatrix local_partial_dummy; // This is right since there should be only clearsky partials
@@ -409,9 +406,9 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   cloud_atm_vars_by_gp(p_ppath,t_ppath,vmr_ppath,pnd_ppath,ao_gp_p,
                        ao_gp_lat,ao_gp_lon,cloudbox_limits,p_grid_cloud,
                        t_field_cloud, vmr_field_cloud,pnd_field);
-   
+  pnd_vec = pnd_ppath(joker, 0);
   temperature = t_ppath[0];
-
+   
   const Vector rtp_mag_dummy(3,0);
   const Vector ppath_los_dummy;
   
@@ -420,7 +417,7 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
                                  local_nlte_source_dummy,local_partial_dummy,
                                  local_dnlte_dx_source_dummy,local_nlte_dsource_dx_dummy,
                                  ArrayOfRetrievalQuantity(0),
-                                 Vector(1, f_mono), rtp_mag_dummy,
+                                 f_grid[Range(f_index,1)], rtp_mag_dummy,
                                  ppath_los_dummy,p_ppath[0],
                                  temperature, temperature_nlte_dummy,
                                  vmr_ppath(joker, 0),
@@ -431,18 +428,33 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   
   local_ext_mat.MatrixAtPosition(ext_mat_mono);
   local_abs_vec.VectorAtPosition(abs_vec_mono);
-  ext_mat_part=0.0;
-  abs_vec_part=0.0;
+
+  ArrayOfArrayOfTensor5 ext_mat_Nse;
+  ArrayOfArrayOfTensor4 abs_vec_Nse;
+  ArrayOfArrayOfIndex ptypes_Nse;
+  ArrayOfTensor5 ext_mat_ssbulk;
+  ArrayOfTensor4 abs_vec_ssbulk;
+  ArrayOfIndex ptype_ssbulk;
+  Tensor5 ext_mat_bulk;
+  Tensor4 abs_vec_bulk;
+  Index ptype_bulk;
 
   Vector sca_dir;
   mirror_los( sca_dir, rte_los, 3 );
+  Matrix dir_array(1,2,0.);
+  dir_array(0,joker) = sca_dir;
   //
-  pnd_vec = pnd_ppath(joker, 0);
-  opt_propCalc(ext_mat_part,abs_vec_part,sca_dir[0],sca_dir[1],scat_data_mono,
-               stokes_dim, pnd_vec, temperature,verbosity);
-  
-  ext_mat_mono += ext_mat_part;
-  abs_vec_mono += abs_vec_part;
+  opt_prop_NScatElems( ext_mat_Nse, abs_vec_Nse, ptypes_Nse,
+                       scat_data, stokes_dim, t_ppath, dir_array, f_index );
+  //
+  opt_prop_ScatSpecBulk( ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk,
+                         ext_mat_Nse, abs_vec_Nse, ptypes_Nse,
+                         pnd_ppath );
+  opt_prop_Bulk( ext_mat_bulk, abs_vec_bulk, ptype_bulk,
+                 ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk );
+
+  ext_mat_mono += ext_mat_bulk(0,0,0,joker,joker);
+  abs_vec_mono += abs_vec_bulk(0,0,0,joker);
 
 }
 
@@ -567,13 +579,14 @@ void cloud_atm_vars_by_gp(
    \param[in]     ppath           propagation path over which transmission matrix is desired
    \param[in]     propmat_clearsky_agenda 
    \param[in]     stokes_dim
-   \param[in]     f_mono          monochromatic rt frequency
+   \param[in]     f_index
+   \param[in]     f_grid
    \param[in]     p_grid
    \param[in]     t_field
    \param[in]     vmr_field
    \param[in]     cloudbox_limits
    \param[in]     pnd_field
-   \param[in]     scat_data_mono
+   \param[in]     scat_data
    \param[in]     verbosity
 
    \author Ian S. Adams
@@ -586,13 +599,14 @@ void get_ppath_transmat(
    const Ppath&          ppath,
    const Agenda&         propmat_clearsky_agenda,
    const Index           stokes_dim,
-   const Numeric&        f_mono,
+   const Index           f_index,
+   const Vector&         f_grid,
    const Vector&         p_grid,
    const Tensor3&        t_field,
    const Tensor4&        vmr_field,
    const ArrayOfIndex&   cloudbox_limits,
    const Tensor4&        pnd_field,
-   const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+   const ArrayOfArrayOfSingleScatteringData& scat_data,
    const Verbosity&      verbosity )
 { 
 
@@ -606,7 +620,6 @@ void get_ppath_transmat(
   Matrix ext_mat(stokes_dim,stokes_dim);
   Matrix ext_mat_mono(stokes_dim,stokes_dim);
   Matrix incT(stokes_dim,stokes_dim,0.0);
-  Vector f_grid(1,f_mono);     // Vector version of f_mono
   Numeric temperature;
   Numeric dl=-999;
 
@@ -627,18 +640,18 @@ void get_ppath_transmat(
       {
         cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec,
                               temperature, propmat_clearsky_agenda, 
-                              stokes_dim, f_mono, ppath.gp_p[np-1],
+                              stokes_dim, f_index, f_grid, ppath.gp_p[np-1],
                               ppath.gp_lat[np-1], ppath.gp_lon[np-1],
                               p_grid[p_range], 
                               t_field(p_range,lat_range,lon_range), 
                               vmr_field(joker,p_range,lat_range,lon_range),
-                              pnd_field, scat_data_mono, cloudbox_limits,
-                              ppath.los(np-1,joker), verbosity );
+                              pnd_field, scat_data, cloudbox_limits,
+                              ppath.los(np-1,joker) );
       }
     else
       {
         clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
-                             propmat_clearsky_agenda, f_mono,
+                             propmat_clearsky_agenda, f_grid[f_index],
                              ppath.gp_p[np-1], ppath.gp_lat[np-1],
                              ppath.gp_lon[np-1], p_grid, t_field, 
                              vmr_field );
@@ -663,18 +676,18 @@ void get_ppath_transmat(
           {
             cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec,
                                   temperature, propmat_clearsky_agenda, 
-                                  stokes_dim, f_mono, ppath.gp_p[ip],
+                                  stokes_dim, f_index, f_grid, ppath.gp_p[ip],
                                   ppath.gp_lat[ip], ppath.gp_lon[ip],
                                   p_grid[p_range], 
                                   t_field(p_range,lat_range,lon_range), 
                                   vmr_field(joker,p_range,lat_range,lon_range),
-                                  pnd_field, scat_data_mono, cloudbox_limits,
-                                  ppath.los(ip,joker), verbosity );
+                                  pnd_field, scat_data, cloudbox_limits,
+                                  ppath.los(ip,joker) );
           }
         else
           {
             clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
-                                 propmat_clearsky_agenda, f_mono,
+                                 propmat_clearsky_agenda, f_grid[f_index],
                                  ppath.gp_p[ip], ppath.gp_lat[ip],
                                  ppath.gp_lon[ip], p_grid, t_field, 
                                  vmr_field );
@@ -698,31 +711,34 @@ void get_ppath_transmat(
 
 }
 
-//! is_anyptype30
+//! is_anyptype_nonTotRan
 /*!
 Some operations in Monte Carlo simulations are different depending on the 
-ptype of the scattering elements. This function searches scat_data_mono
+ptype of the scattering elements. This function searches scat_data
 to determine if any of the scattering elements have ptype=30.
 
 \author Cory Davis
 \date 2004-1-31
 
 */
-bool is_anyptype30(const ArrayOfArrayOfSingleScatteringData& scat_data_mono)
+bool is_anyptype_nonTotRan(const ArrayOfArrayOfSingleScatteringData& scat_data)
 {
-    bool anyptype30=false;
-    for (Index i_ss = 0; anyptype30 == false && i_ss<scat_data_mono.nelem(); i_ss++)
+    bool is_anyptype_nonTotRan=false;
+    for (Index i_ss = 0;
+         is_anyptype_nonTotRan==false && i_ss<scat_data.nelem();
+         i_ss++)
     {
-        for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
+      for (Index i_se = 0;
+           is_anyptype_nonTotRan==false && i_se < scat_data[i_ss].nelem();
+           i_se++)
+      {
+        if(scat_data[i_ss][i_se].ptype>PTYPE_TOTAL_RND)
         {
-            if(scat_data_mono[i_ss][i_se].ptype==PTYPE_AZIMUTH_RND)
-            {
-                anyptype30=true;
-            }
+          is_anyptype_nonTotRan=true;
         }
+      }
     }
-
-    return anyptype30;
+    return is_anyptype_nonTotRan;
 }
 
 
@@ -770,7 +786,8 @@ void mcPathTraceGeneral(
    const Numeric&        taustep_limit,
    const Agenda&         propmat_clearsky_agenda,
    const Index           stokes_dim,
-   const Numeric&        f_mono,
+   const Index           f_index,
+   const Vector&         f_grid,
    const Vector&         p_grid,
    const Vector&         lat_grid,
    const Vector&         lon_grid,
@@ -781,7 +798,7 @@ void mcPathTraceGeneral(
    const Tensor4&        vmr_field,
    const ArrayOfIndex&   cloudbox_limits,
    const Tensor4&        pnd_field,
-   const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+   const ArrayOfArrayOfSingleScatteringData& scat_data,
    const Verbosity&      verbosity )
 { 
   ArrayOfMatrix evol_opArray(2); 
@@ -791,7 +808,6 @@ void mcPathTraceGeneral(
   Matrix        ext_mat(stokes_dim,stokes_dim);
   Matrix        incT(stokes_dim,stokes_dim,0.0);
   Vector        tArray(2);
-  Vector        f_grid(1,f_mono);     // Vector version of f_mono
   Matrix        T(stokes_dim,stokes_dim);
   Numeric       k;
   Numeric       ds, dl=-999;
@@ -840,18 +856,18 @@ void mcPathTraceGeneral(
     {
       cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec, 
                             temperature, propmat_clearsky_agenda, 
-                            stokes_dim, f_mono, ppath_step.gp_p[0], 
+                            stokes_dim, f_index, f_grid, ppath_step.gp_p[0],
                             ppath_step.gp_lat[0], ppath_step.gp_lon[0],
                             p_grid[p_range], 
                             t_field(p_range,lat_range,lon_range), 
                             vmr_field(joker,p_range,lat_range,lon_range),
-                            pnd_field, scat_data_mono, cloudbox_limits,
-                            ppath_step.los(0,joker), verbosity );
+                            pnd_field, scat_data, cloudbox_limits,
+                            ppath_step.los(0,joker) );
     }
   else
     {
       clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
-                           propmat_clearsky_agenda, f_mono,
+                           propmat_clearsky_agenda, f_grid[f_index],
                            ppath_step.gp_p[0], ppath_step.gp_lat[0], 
                            ppath_step.gp_lon[0], p_grid, t_field, vmr_field );
       pnd_vec = 0.0;
@@ -912,7 +928,8 @@ void mcPathTraceGeneral(
               //Print( ppath_step, 0, verbosity );
 
               ppath_step_agendaExecute( ws, ppath_step, lmax, ppath_lraytrace,
-                                        t_field, z_field, vmr_field, f_grid, 
+                                        t_field, z_field, vmr_field,
+                                        f_grid[Range(f_index,1)], 
                                         ppath_step_agenda );
               ip = 1;
 
@@ -928,18 +945,19 @@ void mcPathTraceGeneral(
             {
               cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec,
                                     temperature, propmat_clearsky_agenda, 
-                                    stokes_dim, f_mono, ppath_step.gp_p[ip],
+                                    stokes_dim, f_index, f_grid,
+                                    ppath_step.gp_p[ip],
                                     ppath_step.gp_lat[ip], ppath_step.gp_lon[ip],
                                     p_grid[p_range], 
                                     t_field(p_range,lat_range,lon_range), 
                                     vmr_field(joker,p_range,lat_range,lon_range),
-                                    pnd_field, scat_data_mono, cloudbox_limits,
-                                    ppath_step.los(ip,joker), verbosity );
+                                    pnd_field, scat_data, cloudbox_limits,
+                                    ppath_step.los(ip,joker) );
             }
           else
             {
               clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
-                                   propmat_clearsky_agenda, f_mono,
+                                   propmat_clearsky_agenda, f_grid[f_index],
                                    ppath_step.gp_p[ip], ppath_step.gp_lat[ip],
                                    ppath_step.gp_lon[ip], p_grid, t_field, 
                                    vmr_field );
@@ -1095,9 +1113,10 @@ void mcPathTraceRadar(
    const Numeric&        ppath_lmax,
    const Numeric&        ppath_lraytrace,
    const Agenda&         propmat_clearsky_agenda,
-   const bool&           anyptype30,
+   const bool&           anyptype_nonTotRan,
    const Index           stokes_dim,
-   const Numeric&        f_mono,
+   const Index           f_index,
+   const Vector&         f_grid,
    const Vector&         Iprop,
    const Vector&         p_grid,
    const Vector&         lat_grid,
@@ -1109,7 +1128,7 @@ void mcPathTraceRadar(
    const Tensor4&        vmr_field,
    const ArrayOfIndex&   cloudbox_limits,
    const Tensor4&        pnd_field,
-   const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+   const ArrayOfArrayOfSingleScatteringData& scat_data,
    const Verbosity&      verbosity )
 { 
   ArrayOfMatrix evol_opArray(2);
@@ -1124,7 +1143,6 @@ void mcPathTraceRadar(
   Numeric       ds, dt=-999, dl=-999;
   Index         istep = 0;  // Counter for number of steps
   Matrix        old_evol_op(stokes_dim,stokes_dim);
-  Vector f_grid(1,f_mono);     // Vector version of f_mono
   Vector local_rte_los(2);
   Numeric evop0, I1, Q1;
 
@@ -1168,18 +1186,18 @@ void mcPathTraceRadar(
       local_rte_los[1] = ppath_step.los(0,1) - 180;
       cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec, 
                             temperature, propmat_clearsky_agenda, 
-                            stokes_dim, f_mono, ppath_step.gp_p[0], 
+                            stokes_dim, f_index, f_grid, ppath_step.gp_p[0], 
                             ppath_step.gp_lat[0], ppath_step.gp_lon[0],
                             p_grid[p_range], 
                             t_field(p_range,lat_range,lon_range), 
                             vmr_field(joker,p_range,lat_range,lon_range),
-                            pnd_field, scat_data_mono, cloudbox_limits,
-                            local_rte_los, verbosity );
+                            pnd_field, scat_data, cloudbox_limits,
+                            local_rte_los );
     }
   else
     {
       clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
-                           propmat_clearsky_agenda, f_mono,
+                           propmat_clearsky_agenda, f_grid[f_index],
                            ppath_step.gp_p[0], ppath_step.gp_lat[0], 
                            ppath_step.gp_lon[0], p_grid, t_field, vmr_field );
       pnd_vec = 0.0;
@@ -1223,7 +1241,8 @@ void mcPathTraceRadar(
         {
           ip = 1;
           ppath_step_agendaExecute( ws, ppath_step, ppath_lmax, ppath_lraytrace, 
-                                    t_field, z_field, vmr_field, f_grid, 
+                                    t_field, z_field, vmr_field,
+                                    f_grid[Range(f_index,1)], 
                                     ppath_step_agenda );
                                     
           inside_cloud = is_gp_inside_cloudbox( ppath_step.gp_p[ip], 
@@ -1247,18 +1266,18 @@ void mcPathTraceRadar(
           local_rte_los[1] = ppath_step.los(ip,1) - 180;
           cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec,
                                 temperature, propmat_clearsky_agenda, 
-                                stokes_dim, f_mono, ppath_step.gp_p[ip],
+                                stokes_dim, f_index, f_grid, ppath_step.gp_p[ip],
                                 ppath_step.gp_lat[ip], ppath_step.gp_lon[ip],
                                 p_grid[p_range], 
                                 t_field(p_range,lat_range,lon_range), 
                                 vmr_field(joker,p_range,lat_range,lon_range),
-                                pnd_field, scat_data_mono, cloudbox_limits,
-                                local_rte_los, verbosity );
+                                pnd_field, scat_data, cloudbox_limits,
+                                local_rte_los );
         }
       else
         {
           clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
-                               propmat_clearsky_agenda, f_mono,
+                               propmat_clearsky_agenda, f_grid[f_index],
                                ppath_step.gp_p[ip], ppath_step.gp_lat[ip],
                                ppath_step.gp_lon[ip], p_grid, t_field, 
                                vmr_field );
@@ -1283,7 +1302,7 @@ void mcPathTraceRadar(
       evop0 = evol_op(0,0);
 
       // Handle cross-talk for ptype==30
-      if( stokes_dim > 1 && anyptype30 ) 
+      if( stokes_dim > 1 && anyptype_nonTotRan ) 
         {
           Q1 = evol_op(0,1) * Iprop[1] / Iprop[0];
           evop0 += Q1;
@@ -1319,7 +1338,7 @@ void mcPathTraceRadar(
       ttot -= dt; // Take out last step because we are between stepping points
       kI = ext_mat(0,0) / 2;   // Factor 2 as sum of end point values
       kQ = ext_mat(0,1) / 2;   // Factor 2 as sum of end point values
-      if( anyptype30 )
+      if( anyptype_nonTotRan )
         {
           I1 = evol_opArray[0](0,0);
           Q1 = evol_opArray[0](0,1) * Iprop[1] / Iprop[0];

@@ -32,6 +32,8 @@ sensor_checkedCalc
 scat_data_checkedCalc
 
 
+RT4Calc 
+
 # Pure RT4
 
 AgendaSet( iy_cloudbox_agenda ){
@@ -42,7 +44,6 @@ AgendaSet( iy_main_agenda ){
   iyEmissionStandard
 }
 
-RT4Calc 
 yCalc
 Print( y, 0 )
 
@@ -51,10 +52,6 @@ Copy( yref_RT4, y )
 
 
 # Hybrid calculations
-
-AgendaSet( doit_i_field_agenda ){
-  RT4Calc
-}
 
 AgendaSet( iy_main_agenda ){
   Ignore( t_nlte_field )

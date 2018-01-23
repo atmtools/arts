@@ -132,9 +132,10 @@ void MCGeneral(Workspace&            ws,
                const Index&          cloudbox_on,
                const ArrayOfIndex&   cloudbox_limits, 
                const Tensor4&        pnd_field,
-               const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+               const ArrayOfArrayOfSingleScatteringData& scat_data,
                const Index&          atmfields_checked,
                const Index&          atmgeom_checked,
+               const Index&          scat_data_checked,
                const Index&          cloudbox_checked,
                const String&         iy_unit,
                const Index&          mc_seed,
@@ -155,6 +156,9 @@ void MCGeneral(Workspace&            ws,
   if( atmgeom_checked != 1 )
     throw runtime_error( "The atmospheric geometry must be flagged to have "
                          "passed a consistency check (atmgeom_checked=1)." );
+  if( scat_data_checked != 1 )
+    throw runtime_error( "The scat_data must be flagged to have "
+                         "passed a consistency check (scat_data_checked=1)." );
   if( cloudbox_checked != 1 )
     throw runtime_error( "The cloudbox must be flagged to have "
                          "passed a consistency check (cloudbox_checked=1)." );
@@ -210,38 +214,7 @@ void MCGeneral(Workspace&            ws,
       throw runtime_error(os.str());
     }
 
-  for( Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss ++ )
-    {
-      for( Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se ++ )
-        {
-          if( scat_data_mono[i_ss][i_ss].f_grid.nelem() > 1 )
-            {
-              ostringstream os;
-              os << "Input scattering data shall be monochromatic, but at least\n"
-                 << "one element of scat_data_mono contains data for several\n"
-                 << "frequencies.\n"
-                 << "Found incorrect element is [" << i_ss << "][" << i_se 
-                 << "] (zero based indexing).";
-              throw runtime_error( os.str() );
-            }   
-          if( abs( ( scat_data_mono[i_ss][i_ss].f_grid[0] - f_grid[f_index] ) /
-                   f_grid[f_index] ) > 1e-4 )
-            {
-              ostringstream os;
-              os << "Incorrect frequency in at least one element of scat_data_mono.\n" 
-                 << "Scattering data have frequency : " << 
-                           scat_data_mono[i_ss][i_ss].f_grid[0]/1e9 << " GHz\n"
-                 << "Radiative transfer frequency is: " << 
-                           f_grid[f_index]/1e9 << " GHz\n"
-                 << "Found incorrect element is [" << i_ss << "][" << i_se 
-                 << "] (zero based indexing).\n"
-                 << "Maximum allowed relative frequency is 1e-4.";
-              throw runtime_error( os.str() );
-            }   
-        }   
-    }
-
-
+  
   Ppath  ppath_step;
   Rng    rng;                      //Random Number generator
   time_t start_time=time(NULL);
@@ -249,17 +222,24 @@ void MCGeneral(Workspace&            ws,
   Vector pnd_vec(N_se); //Vector of particle number densities used at each point
   Vector Z11maxvector(N_se);//Vector holding the maximum phase function for each 
 
-  // finding maximum phase function for each scatt element
+  // finding maximum phase function for each scat element
   Index i_total = -1;
-  for (Index i_ss = 0; i_ss<scat_data_mono.nelem(); i_ss++)
+  Index this_f_index = min( f_index,scat_data[0][0].f_grid.nelem() );
+  for (Index i_ss = 0; i_ss<scat_data.nelem(); i_ss++)
   {
-    for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++)
+    for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
     {
       i_total++;
       Z11maxvector[i_total]=
-        max(scat_data_mono[i_ss][i_se].pha_mat_data(0,joker,joker,joker,joker,joker,0));
+        max(scat_data[i_ss][i_se].pha_mat_data(this_f_index,joker,
+                                               joker,joker,joker,joker,0));
     }
   }
+  // for pha_mat handling, at the moment we still need scat_data_mono. Hence,
+  // extract that here (but in its local container, not into the WSV
+  // scat_data_mono).
+  ArrayOfArrayOfSingleScatteringData this_scat_data_mono;
+  scat_data_monoExtract( this_scat_data_mono, scat_data, f_index, verbosity );
 
   rng.seed(mc_seed, verbosity);
   Numeric g,temperature,albedo,g_los_csc_theta;
@@ -360,10 +340,11 @@ void MCGeneral(Workspace&            ws,
                                 pnd_vec, g, ppath_step, termination_flag, 
                                 inside_cloud, ppath_step_agenda,
                                 ppath_lmax, ppath_lraytrace, taustep_limit,
-                                propmat_clearsky_agenda, stokes_dim, f_mono, 
+                                propmat_clearsky_agenda, stokes_dim,
+                                f_index, f_grid,
                                 p_grid, lat_grid, lon_grid, z_field, refellipsoid,
                                 z_surface, t_field, vmr_field, 
-                                cloudbox_limits, pnd_field, scat_data_mono, 
+                                cloudbox_limits, pnd_field, scat_data, 
                                 verbosity ); 
              
 
@@ -481,7 +462,7 @@ void MCGeneral(Workspace&            ws,
                   {
                     //we have a scattering event
                     Sample_los( new_rte_los, g_los_csc_theta, Z, rng, 
-                                local_rte_los, scat_data_mono, stokes_dim,
+                                local_rte_los, this_scat_data_mono, stokes_dim,
                                 pnd_vec, Z11maxvector, 
                                 ext_mat_mono(0,0)-abs_vec_mono[0], temperature,
                                 verbosity );
@@ -603,11 +584,12 @@ void MCRadar(// Workspace reference:
              const Index& cloudbox_on,
              const ArrayOfIndex& cloudbox_limits,
              const Tensor4& pnd_field,
-             const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+             const ArrayOfArrayOfSingleScatteringData& scat_data,
              const Vector& mc_y_tx,
              const Vector& range_bins,
              const Index& atmfields_checked,
              const Index& atmgeom_checked,
+             const Index& scat_data_checked,
              const Index& cloudbox_checked,
              const String& iy_unit,
              const Index& mc_max_scatorder,
@@ -634,6 +616,9 @@ void MCRadar(// Workspace reference:
   if( atmgeom_checked != 1 )
     throw runtime_error( "The atmospheric geometry must be flagged to have "
                          "passed a consistency check (atmgeom_checked=1)." );
+  if( scat_data_checked != 1 )
+    throw runtime_error( "The scat_data must be flagged to have "
+                         "passed a consistency check (scat_data_checked=1)." );
   if( cloudbox_checked != 1 )
     throw runtime_error( "The cloudbox must be flagged to have "
                          "passed a consistency check (cloudbox_checked=1)." );
@@ -690,7 +675,7 @@ void MCRadar(// Workspace reference:
   Rng    rng;                      //Random Number generator
   Index  N_se = pnd_field.nbooks();//Number of scattering elements
   Vector pnd_vec(N_se); //Vector of particle number densities used at each point
-  bool  anyptype30 = is_anyptype30(scat_data_mono);
+  bool  anyptype_nonTotRan = is_anyptype_nonTotRan(scat_data);
   bool  is_dist = max(range_bins) > 1; // Is it round trip time or distance
   rng.seed(mc_seed, verbosity);
   Numeric ppath_lraytrace_var;
@@ -708,6 +693,12 @@ void MCRadar(// Workspace reference:
   Vector range_bin_count(nbins);
   Index mc_iter;
   Index scat_order;
+
+  // for pha_mat handling, at the moment we still need scat_data_mono. Hence,
+  // extract that here (but in its local container, not into the WSV
+  // scat_data_mono).
+  ArrayOfArrayOfSingleScatteringData this_scat_data_mono;
+  scat_data_monoExtract( this_scat_data_mono, scat_data, f_index, verbosity );
 
   const Numeric f_mono = f_grid[f_index];
   const Numeric tx_dir = 1.0;
@@ -821,10 +812,11 @@ void MCRadar(// Workspace reference:
                             pnd_vec, s_path, t_path, ppath_step, 
                             termination_flag, inside_cloud, ppath_step_agenda, 
                             ppath_lmax, ppath_lraytrace, 
-                            propmat_clearsky_agenda, anyptype30, stokes_dim, 
-                            f_mono, Ihold, p_grid, lat_grid, lon_grid, z_field, 
+                            propmat_clearsky_agenda, anyptype_nonTotRan, stokes_dim, 
+                            f_index, f_grid, Ihold,
+                            p_grid, lat_grid, lon_grid, z_field,
                             refellipsoid,z_surface, t_field, vmr_field, 
-                            cloudbox_limits, pnd_field, scat_data_mono, 
+                            cloudbox_limits, pnd_field, scat_data, 
                             verbosity ); 
           s_tot += s_path; 
           t_tot += t_path; 
@@ -832,7 +824,7 @@ void MCRadar(// Workspace reference:
           // 
           Csca = ext_mat_mono(0,0) - abs_vec_mono[0];
           Cext = ext_mat_mono(0,0);
-          if( anyptype30 )
+          if( anyptype_nonTotRan )
             {
               const Numeric Irat = Ihold[1] / Ihold[0];
               Csca += Irat * (ext_mat_mono(1,0) - abs_vec_mono[1]);
@@ -930,15 +922,15 @@ void MCRadar(// Workspace reference:
                   // Compute path extinction as with radio link
                   get_ppath_transmat( ws, trans_mat, ppath, 
                                       propmat_clearsky_agenda, stokes_dim, 
-                                      f_mono, p_grid, t_field, vmr_field, 
+                                      f_index, f_grid, p_grid, t_field, vmr_field, 
                                       cloudbox_limits, pnd_field, 
-                                      scat_data_mono, verbosity );
+                                      scat_data, verbosity );
 
                   // Obtain scattering matrix given incident and scattered angles
                   Matrix P(stokes_dim,stokes_dim);
                   pha_mat_singleCalc( P, rte_los_geom[0], rte_los_geom[1], 
                                       local_rte_los[0], local_rte_los[1], 
-                                      scat_data_mono, stokes_dim, 
+                                      this_scat_data_mono, stokes_dim, 
                                       pnd_vec, temperature, verbosity );
                   P *= 4 * PI;
                   P /= Csca;
@@ -991,7 +983,7 @@ void MCRadar(// Workspace reference:
                   Sample_los_uniform( new_rte_los, rng );
                   pha_mat_singleCalc( Z, new_rte_los[0], new_rte_los[1], 
                                       local_rte_los[0], local_rte_los[1], 
-                                      scat_data_mono, stokes_dim, 
+                                      this_scat_data_mono, stokes_dim, 
                                       pnd_vec, temperature, verbosity );
 
                   Z *= 4 * PI;
