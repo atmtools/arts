@@ -122,5 +122,5 @@ std::istream& operator>>(std::istream& is, Rational& a)
 
 Rational abs(const Rational& a)
 {
-    return a<Rational(0)?-a:a;
+    return a.Nom()<0?-a:a;
 }

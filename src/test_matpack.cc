@@ -885,71 +885,44 @@ void test44()
 
 void test45()
 {
-    //Rational j1=1,j2=1,j3=1,m1=0,m2=0,m3=0;
-    //std::cout << "My function " << wigner3j(j1,j2,j3,m1,m2,m3)  << std::endl;
-/*
-    ArrayOfIndex a{1,4,5};
-    ArrayOfIndex b{20,10,10};
-    std::cout << "My factorials for nominators ["<<a<<" ] and denominators ["<<b<<" ]: " << factorials(a,b)  <<"." << std::endl;*/
-
-/*
-    for(Rational L(1);L<3;L++)
-    {
-        std::cout << "L="<<L<<std::endl;
-        for(Rational ii=1;ii<11;ii++)
-        {
-            for(Rational jj=1;jj<11;jj++)
-            {
-                std::cout << " "<< wigner3j(ii,jj,L,0,0,0);
-            }
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
-    }*/
-std::cout<<pow(0,0.3)<<std::endl;
-ArrayOfIndex N{1, 1, 3, 3, 5, 5, 7, 7, 9,  9, 11, 11, 13, 13, 15, 15, 17, 17, 19, 19, 21, 21, 23, 23, 25, 25, 27, 27, 29, 29,
-               31, 31, 33, 33, 35, 35, 37, 37};
-ArrayOfIndex J{0, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14, 14, 16, 16, 18, 18, 20, 20, 22, 22, 24, 24, 26, 26, 28, 28, 30,
-               30, 32, 32, 34, 34, 36, 36, 38};
-
-    for(Index II = 0; II<N.nelem(); II++)
-    {
-        for(Index JJ = 0; JJ<N.nelem(); JJ++)
-        {
-            const Rational Nl(N[II]),Nk(N[JJ]);
-            Numeric A=0;
-            for(Index L(0);L<=10*max(J);L++)
-            {
-                //if(l<k)
-                {
-                    A+=
-                    sqrt(2*Nk.toNumeric()+1)*
-                    sqrt(2*Nl.toNumeric()+1)*
-                    sqrt(sqrt(2*Nk.toNumeric()+1)*
-                    sqrt(2*Nl.toNumeric()+1)*
-                    sqrt(2*J[II]+1)*
-                    sqrt(2*J[JJ]+1))*
-                    ECS_wigner(L,Nl,Nk,Nk,Nl,J[II],J[JJ])*
-                    pow(-1., (Nk+Nl+L+1).toNumeric());
-                }
-            }
-            std::cout << " " << A;
-        }
-        std::cout << std::endl;
-    }
-
-    Vector d; d.resize(38);
-
-    for(Index II = 0; II<N.nelem(); II++)
-        d[II] = wigner6j(1, 1, 1, J[II], N[II], N[II]) * pow(-1.,2.*(Numeric)N[II]) * sqrt(6*(2*N[II]+1)*(2*J[II]+1));
-
-    std::cout<<d<<std::endl;
-
-//     for(Index a = 1; a<6; a++)
-//         for(Index b = 1; b<6; b++)
-//             for(Index c = 1; c<6; c++)
-//                     std::cout << wigner3j(a,b,c,0,0,0)<<std::endl;
-
+  const Rational a(124, 1), b(2, 1), c(122, 1), d(0, 1), e(0, 1), f(0, 1);
+  Numeric x = wigner3j(a,b,c,d,e,f);
+  std::cout<<x<<std::endl<<std::endl;
+  
+  ArrayOfRational jl={112, 110, 108, 106, 104, 102, 100, 98, 
+    96, 94, 92, 90, 88, 86, 84, 82, 80, 78, 76, 74, 72, 70, 
+    68, 66, 64, 62, 60, 58, 56, 54, 52, 50, 48, 46, 44, 42, 
+    40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 
+    12, 10, 8, 6, 4, 2, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 
+    22, 24, 0, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 2, 
+    46, 48, 50, 52, 54, 56, 4, 58, 60, 62, 64, 66, 6, 68, 
+    70, 72, 74, 76, 8, 78, 80, 82, 84, 10, 86, 88, 90, 12, 
+    92, 94, 96, 14, 98, 100, 102, 16, 104, 18, 20, 22, 24, 
+    26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 
+    54, 56, 58, 60, 62, 64, 66, 68, 70, 72, 74, 76, 78, 80, 
+    82, 84, 86, 88, 90, 92, 94, 96, 98, 100, 102, 104, 106, 
+    108, 110};
+  ArrayOfRational ju = {111, 109, 107, 105, 103, 101, 99, 97, 
+    95, 93, 91, 89, 87, 85, 83, 81, 79, 77, 75, 73, 71, 69, 
+    67, 65, 63, 61, 59, 57, 55, 53, 51, 49, 47, 45, 43, 41, 
+    39, 37, 35, 33, 31, 29, 27, 25, 23, 21, 19, 17, 15, 13, 
+    11, 9, 7, 5, 3, 1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 
+    24, 1, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 3, 46, 48, 
+    50, 52, 54, 56, 5, 58, 60, 62, 64, 66, 7, 68, 70, 72, 74, 
+    76, 9, 78, 80, 82, 84, 11, 86, 88, 90, 13, 92, 94, 96, 15, 
+    98, 100, 102, 17, 104, 19, 21, 23, 25, 27, 29, 31, 33, 35, 
+    37, 39, 41, 43, 45, 47, 49, 51, 53, 55, 57, 59, 61, 63, 
+    65, 67, 69, 71, 73, 75, 77, 79, 81, 83, 85, 87, 89, 91, 
+    93, 95, 97, 99, 101, 103, 105, 107, 109, 111};
+  
+  Vector v1(jl.nelem(), 1.0), v2(jl.nelem(), 1.0);
+  Matrix W;
+  ECS_wigner_CO2(W, jl, ju, 0, 1, v1, v2);
+  Index testi = 5;
+  std::cout << "Transition: " << jl[testi] << "-->" << ju[testi] << std::endl;
+  for(Index i=0; i<jl.nelem(); i++)
+    std::cout << "Matrix value for " << jl[i] << "-->" << ju[i] 
+              << ": " << MapToEigen(W(i, testi)).transpose() << std::endl;
 }
 
 
@@ -1551,9 +1524,9 @@ int main()
 //    test42();
 //    test43();
 //    test44();
-//    test45();
+    test45();
 //    test46();
-  test47();
+//  test47();
 
 //    const double tolerance = 1e-9;
 //    double error;

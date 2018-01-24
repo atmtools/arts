@@ -22,12 +22,15 @@
 extern "C"
 {
   void wig_table_init(int, int);
-  void wig_temp_init(int);
+  void wig_thread_temp_init(int);
   void wig_temp_free();
   void wig_table_free();
   double wig3jj(int, int, int, int, int, int);
   double wig6jj(int, int, int, int, int, int);
   double wig9jj(int, int, int, int, int, int, int, int, int);
+  bool trivial_zero_3j(int, int, int, int, int, int);
+  bool trivial_zero_6j(int, int, int, int, int, int);
+  bool trivial_zero_9j(int, int, int, int, int, int, int, int, int);
 }
 
 Numeric wigner3j(const Rational j1, const Rational j2, const Rational j3,
@@ -40,14 +43,10 @@ Numeric wigner9j(const Rational j11,const Rational j12,const Rational j13,
                  const Rational j21,const Rational j22,const Rational j23,
                  const Rational j31,const Rational j32,const Rational j33);
 
-Numeric ECS_wigner(Rational L, Rational Nl, Rational Nk, 
-                   Rational Jk_lower, Rational Jl_lower, 
-                   Rational Jk_upper, Rational Jl_upper);
-
-Numeric factorials(const ArrayOfIndex& NomFac, const ArrayOfIndex& DenomFac);
-
-void primes(ArrayOfIndex& output, const Index input);
-void powers(ArrayOfIndex& output, const ArrayOfIndex primes, const Index input);
-
-Numeric triangle_coefficient(const Rational a, const Rational b, const Rational c);
-bool triangular_inequality(const Rational x, const Rational y, const Rational z);
+void ECS_wigner_CO2(Matrix& M, 
+                    const ArrayOfRational& Jl, 
+                    const ArrayOfRational& Ju, 
+                    const Rational& ll, 
+                    const Rational& lu, 
+                    ConstVectorView G0, 
+                    ConstVectorView population);

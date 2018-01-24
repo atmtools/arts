@@ -1,3 +1,27 @@
+2018-01-25  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-939
+	
+	* 3rdpart/relmat/CMakeLists.txt:  Added wigner library to relmat
+	so that we can use it as a faster computer of the Wigner symbols
+	
+	* CMakeLists.txt:  Added a Native build option that patches both
+	ARTS and Fortran with -march=native and a few other things to make
+	them compile more optimized codes.  Not really tested, and it should 
+	remain that way.  (I.e., not fully supported but it works if it works
+	and then it is faster than not using it...)
+	
+	* src/rational.{cc,h}:  Added some logicals and modulus operations
+	
+	* src/test_*:  Added and moved and changed some Wigner tests.
+	
+	* src/wigner_functions.{cc,h}:  Added a simple ECS relaxation matrix
+	calculator (that only takes the Wigner-bits into account) to the 
+	file in order to test how much faster the wigxjpf library is compared
+	to relmat wigner function.  Results:  12 seconds versus an estimated 50
+	seconds.  So quite some time can be saved here if we manage to make a
+	proper implementation link to relmat.
+
 2018-01-23 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-938

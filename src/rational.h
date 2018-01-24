@@ -70,6 +70,9 @@ public:
     Rational& operator++()    {mnom += mdenom; return *this;}
     Rational& operator--()    {mnom -= mdenom; return *this;}
     
+    // Boolean
+    explicit operator bool() const {return bool(mnom);}
+    
 private:
     // Rational is supposed to be used rationally ( mnom / mdenom )
     Index mnom;
@@ -94,6 +97,7 @@ inline Rational operator*(const Rational& a, const Rational& b) {return Rational
 inline Rational operator*(const Rational& a, const Index& b) {return Rational(a.Nom()*b,a.Denom());}
 inline Rational operator*(const Index& b, const Rational& a) {return Rational(a.Nom()*b,a.Denom());}
 inline Rational operator%(const Rational& a, const Rational& b) {return Rational((a.Nom()*b.Denom())%(a.Denom()*b.Nom()),a.Denom()*b.Denom());}
+inline Rational operator%(const Rational& a, const Index& b) {return Rational(a.Nom()%b,a.Denom());}
 
 // Boolean operations
 inline bool operator==(const Rational& a, const Rational& b) {return a.Denom()!=0 && b.Denom()!=0 && a.Nom()*b.Denom()==a.Denom()*b.Nom();}
@@ -102,6 +106,7 @@ inline bool operator<(const Rational& a, const Rational& b)  {return a.Denom()!=
 inline bool operator>(const Rational& a, const Rational& b)  {return operator<(b, a);}
 inline bool operator<=(const Rational& a, const Rational& b) {return !operator>(a, b);}
 inline bool operator>=(const Rational& a, const Rational& b) {return !operator<(a, b);}
+inline bool operator!(const Rational& a) {return a.Nom()==0 && a.Denom()!=0;}
 
 inline Numeric fac(const Rational& r) { return (::fac(r.toIndex())); }
 

@@ -2096,6 +2096,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
   }
   delete[] iso_code_perturber;
   delete[] molecule_code_perturber;
+  delete[] perturber_mass;
 }
 
 #else
