@@ -70,6 +70,19 @@ make
 This is also the default configuration if you run cmake without
 options in an empty build directory.
 
+NATIVE BUILD (EXPERIMENTAL)
+===========================
+
+Finally, an experimental build type for Native infrastructures exists on GCC:
+
+cmake -DCMAKE_BUILD_TYPE=Native ..
+make clean
+make
+
+This option should make the executable slightly faster, more so on better systems,
+but not portable.  Note that since this build-mode is meant for fast-but-accurate
+computations, some IEEE rules will be ignored.  For now only complex computations
+are IEEE incompatible running this mode of build.
 
 TESTS
 =====

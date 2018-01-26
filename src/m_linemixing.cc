@@ -1441,7 +1441,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                             const Index&                     order_of_linemixing, // -1 is full relaxation matrix, 0 is LBL, 1 is first order, 2 is second order ... limited implementations so far
                                             const Verbosity& verbosity)
 {
-  CREATE_OUT1;
+  CREATE_OUT3;
   using global_data::species_data;
   using global_data::SpeciesMap;
   
@@ -1875,7 +1875,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           <<  "LBL without Line Mixing is performed\n"
           <<  "Pressure: " << p << " atm. Temperature: " << t << " K";
           #pragma omp critical
-          out1 << os.str() << "\n";
+          out3 << os.str() << "\n";
         }
         else if(error_handling_type == 3) 
         {
@@ -1886,7 +1886,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           <<  "Pressure: " << p << " atm. Temperature: " << t << " K";
           
           #pragma omp critical
-          out1 << os.str() << "\n";
+          out3 << os.str() << "\n";
         }
         else if(error_handling_type == 4) 
         {
@@ -1897,7 +1897,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           <<  "Pressure: " << p << " atm. Temperature: " << t << " K";
           
           #pragma omp critical
-          out1 << os.str() << "\n";
+          out3 << os.str() << "\n";
         }
         
         // Convert to SI-units

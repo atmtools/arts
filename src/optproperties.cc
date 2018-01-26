@@ -589,7 +589,7 @@ void ext_mat_SSD2Stokes(//Output
       {
         ext_mat_stokes(2,3) = ext_mat_ssd[2];
         ext_mat_stokes(3,2) = -ext_mat_ssd[2];
-      }
+      } /* FALLTHROUGH */
       case 3:
       {
         // nothing to be done here. but we need this for executing the below

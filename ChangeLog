@@ -1,3 +1,31 @@
+2018-01-26  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-940
+	
+	* src/wigner_functions.{cc,h}:  Changed to directly include the 
+	header-file than to declare the functions again.  Also changed 
+	ECS calcs to be parallell.
+	
+	* src/propagationmatrix.{h,cc}:  Fixed bug that would occur if
+	people were using this MatrixInverse on zenith and azimuth
+	size-other-than-one PropagationMatrices.  Spotted by luck...
+	Also added IsZero() to check if a Matrix is zero or not.
+	
+	* README:  Added comment about Native build.
+	
+	Sidenote:  I was trying to get flto option to compile the code.
+	It does not work.  For some small cases it does work (e.g., matpack,
+	artscore) it produces executable tests that are about 15% faster in 
+	the  small test case I have got. It fails at linking the entire thing
+	together though, warning that some variables are maybe left 
+	uninitialized but throwing an error about even the existence
+	of things like griddedfields and tensorviews.  It would be nice if 
+	this can be fixed because these compiler options really helps the
+	code.  (Already using native shaves about 1/4 of the time of something
+	as simple as the "make check" case.)
+	
+	* src/m_linemixing.cc:  Changed level of output to 3.
+
 2018-01-25  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-939

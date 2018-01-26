@@ -1954,11 +1954,12 @@ void PropagationMatrix::MatrixInverseAtPosition(MatrixView ret, const Index iv, 
   {
     case 1: 
       assert(Kjj(iz, ia)[iv] not_eq 0); 
-      ret(0,0) = 1/Kjj()[iv]; 
+      ret(0, 0) = 1.0/Kjj(iz, ia)[iv]; 
       break;
     case 2: 
     {
-      const Numeric a2 = Kjj(iz, ia)[iv]*Kjj(iz, ia)[iv], b2 = K12(iz, ia)[iv]*K12(iz, ia)[iv];
+      const Numeric a = Kjj(iz, ia)[iv], a2 = a*a, 
+                    b = K12(iz, ia)[iv], b2 = b*b;
       
       const Numeric f = a2 - b2;
       

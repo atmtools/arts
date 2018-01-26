@@ -17,21 +17,7 @@
  * USA. */
 
 #include "rational.h"
-#include <cmath>
-
-extern "C"
-{
-  void wig_table_init(int, int);
-  void wig_thread_temp_init(int);
-  void wig_temp_free();
-  void wig_table_free();
-  double wig3jj(int, int, int, int, int, int);
-  double wig6jj(int, int, int, int, int, int);
-  double wig9jj(int, int, int, int, int, int, int, int, int);
-  bool trivial_zero_3j(int, int, int, int, int, int);
-  bool trivial_zero_6j(int, int, int, int, int, int);
-  bool trivial_zero_9j(int, int, int, int, int, int, int, int, int);
-}
+#include "../3rdparty/wigxjpf/inc/wigxjpf.h"
 
 Numeric wigner3j(const Rational j1, const Rational j2, const Rational j3,
                  const Rational m1, const Rational m2, const Rational m3);

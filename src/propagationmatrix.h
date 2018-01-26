@@ -142,6 +142,14 @@ public:
   
   bool IsEmpty() const {return not mfreqs or not mza or not maa;};
   
+  bool IsZero(const Index iv=0, const Index iz=0, const Index ia=0) const 
+  {
+    for(auto& n : mdata(ia, iz, iv, joker))
+      if(n not_eq 0)
+        return false;
+    return true;
+  };
+  
   /* The number of required vectors to fill this PropagationMatrix --- designed for GetVector(i) */
   Index NumberOfNeededVectors() const
   {

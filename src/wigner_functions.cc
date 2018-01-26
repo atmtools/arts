@@ -150,7 +150,7 @@ Numeric wigner9j(const Rational j11,const Rational j12,const Rational j13,
  I: model and laboratory measurements. F. Niro, C. Boulet, J.-M. Hartmann. 
  JQSRT 88 (2004) 483 – 498. Equation 4 page 488.
  
- Note: Ignore their typos, the above is tested in relmat
+ Note: Ignore typos, the above is tested in relmat
 */
 inline Numeric co2_ecs_wigner_symbol(int Ji, int Jf, int Ji_p, int Jf_p, int L, int li, int lf)
 {
@@ -190,11 +190,12 @@ void ECS_wigner_CO2(Matrix& M,
   
   // Initialize the tables required (must maybe move this init to a higher level)
   wig_table_init(int(size), 6);
-  wig_thread_temp_init(int(size));
   
   // Main loop over all the lines
+  #pragma omp parallel for
   for(Index j=0; j<nj; j++) // For all lines
   {
+    wig_thread_temp_init(int(size));
     // Set thread memory
     
     for(Index k=0; k<=j; k++) // For all lines up til now
@@ -241,9 +242,9 @@ void ECS_wigner_CO2(Matrix& M,
         M(small, big) = rk * M(big, small);
       }
     }
+    wig_temp_free();
   }
   
   // Free memory
-  wig_temp_free();
   wig_table_free();
 }
