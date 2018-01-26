@@ -1,11 +1,18 @@
+2018-01-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-941
+
+	* src/m_jacobian.cc (jacobianAddFreqShift): Check of length of
+	f_grid was totally crazy. Pointed out by Richard.
+
 2018-01-26  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-940
-	
-	* src/wigner_functions.{cc,h}:  Changed to directly include the 
-	header-file than to declare the functions again.  Also changed 
+
+	* src/wigner_functions.{cc,h}:  Changed to directly include the
+	header-file than to declare the functions again.  Also changed
 	ECS calcs to be parallell.
-	
+
 	* src/propagationmatrix.{h,cc}:  Fixed bug that would occur if
 	people were using this MatrixInverse on zenith and azimuth
 	size-other-than-one PropagationMatrices.  Spotted by luck...

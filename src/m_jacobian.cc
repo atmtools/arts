@@ -675,9 +675,9 @@ void jacobianAddFreqShift(
     throw runtime_error( "The argument *df* must be > 0." );
   if( df > 1e6 )
     throw runtime_error( "The argument *df* is not allowed to exceed 1 MHz." );
-  const Index   nf    = f_grid.nelem();
-  if( nf > 1e6 )
-    throw runtime_error( "Frequency shifts and *f_grid* pf length 1 can "
+  const Index nf    = f_grid.nelem();
+  if( nf < 2 )
+    throw runtime_error( "Frequency shifts and *f_grid* of length 1 can "
                          "not be combined."  );
   const Numeric maxdf = f_grid[nf-1] - f_grid[nf-2]; 
   if( df > maxdf )
