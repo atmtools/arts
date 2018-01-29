@@ -7333,7 +7333,7 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-
+  /*
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "iyFOS" ),
@@ -7414,7 +7414,8 @@ void define_md_data_raw()
         GIN_DESC( "Polynomial order for zenith angle interpolation.",
                   "Max scattering order to consider." )
         ));
-
+  */
+  
     md_data_raw.push_back
     ( MdRecord
     ( NAME( "iyHybrid" ),
@@ -7680,6 +7681,7 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+  /*
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "iyRadioLink" ),
@@ -7687,7 +7689,7 @@ void define_md_data_raw()
         (
          "Radiative transfer for (active) radio links.\n"
          "\n"
-         "The method assumes that *ppath*agenda* is set up to return the\n"
+         "The method assumes that *ppath_agenda* is set up to return the\n"
          "propagation path between the transmitter and the receiver. The\n" 
          "position of the transmitter is given as *rte_pos*, and the\n"
          "\"sensor\" is taken as the receiver.\n"
@@ -7795,7 +7797,8 @@ void define_md_data_raw()
         GIN_DESC( "Selection of defocusing calculation method. See above.",
                   "Angular shift to apply in defocusing estimates." )
         ));
-
+  */
+  
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "iyReplaceFromAux" ),
@@ -8039,6 +8042,96 @@ void define_md_data_raw()
           "iy_transmitter_agenda", "iy_agenda_call1", "iy_transmission", 
           "rte_pos", "rte_los", "rte_pos2", "rte_alonglos_v", "ppath_lmax",
           "ppath_lraytrace" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "iyTransmissionStandard2" ),
+      DESCRIPTION
+      (
+          "Text below is not fully valid. Work in progress ...\n"
+          "\n"
+          "Standard method for handling (direct) transmission measurements.\n"
+          "\n"
+          "Designed to be part of *iy_main_agenda*. Treatment of the cloudbox\n"
+          "is incorporated (that is, no need to define *iy_cloudbox_agenda*).\n"
+          "\n"
+          "In short, the propagation path is followed until the surface or\n"
+          "space is reached. At this point *iy_transmitter_agenda* is called\n"
+          "and the radiative transfer calculations start. That is, the result\n"
+          "of the method (*iy*) is the output of *iy_transmitter_agenda*\n"
+          "multiplied with the transmission from the sensor to either the\n"
+          "surface or space.\n"
+          "\n"
+          "The following auxiliary data can be obtained:\n"
+          "  \"Pressure\": The pressure along the propagation path.\n"
+          "     Size: [1,1,1,np].\n"
+          "  \"Temperature\": The temperature along the propagation path.\n"
+          "     Size: [1,1,1,np].\n"
+          "  \"VMR, species X\": VMR of the species with index X (zero based).\n"
+          "     For example, adding the string \"VMR, species 0\" extracts the\n"
+          "     VMR of the first species. Size: [1,1,1,np].\n"
+          "  \"Absorption, summed\": The total absorption matrix along the\n"
+          "     path. Size: [nf,ns,ns,np].\n"
+          "  \"Absorption, species X\": The absorption matrix along the path\n"
+          "     for an individual species (X works as for VMR).\n"
+          "     Size: [nf,ns,ns,np].\n"
+          "  \"Particle extinction, summed\": The total extinction matrix over\n"
+          "       all scattering elements along the path. Size: [nf,ns,ns,np].\n"
+          "  \"PND, type X\": The particle number density for scattering element\n"
+          "       type X (ie. corresponds to book X in pnd_field).\n"
+          "       Size: [1,1,1,np].\n"
+          "  \"Mass content, X\": The mass content for scattering element X.\n"
+          "       This corresponds to column X in *particle_masses* (zero-\n"
+          "       based indexing). Size: [1,1,1,np].\n"
+          "* \"Radiative background\": Index value flagging the radiative\n"
+          "     background. The following coding is used: 0=space, 1=surface\n"
+          "     and 2=cloudbox. Size: [nf,1,1,1].\n"
+          "  \"iy\": The radiance at each point along the path.\n"
+          "     Size: [nf,ns,1,np].\n"
+          "  \"Transmission\": The transmission matrix from each propagation\n"
+          "     path point to the end of the path closest to the sensor. The\n"
+          "     Mueller transmission matrices are valid for the direction of\n"
+          "     the photons. Size: [nf,ns,ns,np].\n"
+          "* \"Optical depth\": The scalar optical depth between the\n"
+          "     observation point and the end of the primary propagation path\n"
+          "     (ie. the optical depth to the surface or space.). Calculated\n"
+          "     in a pure scalar manner, and not dependent on direction.\n"
+          "     Size: [nf,1,1,1].\n"
+          "* \"Faraday rotation\": Total rotation [deg] along the path, for\n"
+          "     each frequency. Size: [nf,1,1,1].\n"
+          "* \"Faraday speed\": The rotation per length unit [deg/m], at each\n"
+          "     path point and each frequency. Size: [nf,1,1,np].\n"
+          "where\n"
+          "  nf: Number of frequencies.\n"
+          "  ns: Number of Stokes elements.\n"
+          "  np: Number of propagation path points.\n"
+          "\n"
+          "The auxiliary data are returned in *iy_aux* with quantities\n"
+          "selected by *iy_aux_vars*. Most variables require that the method\n"
+          "is called directly or by *iyCalc*. For calculations using *yCalc*,\n"
+          "the selection is restricted to the variables marked with *.\n"
+      ),
+      AUTHORS( "Patrick Eriksson" ),
+      OUT( "iy", "iy_aux2", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_t_nlte",
+           "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_pnd", "ppvar_f",
+           "ppvar_iy" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "diy_dx", "stokes_dim", "f_grid", "atmosphere_dim", "p_grid",
+          "t_field", "t_nlte_field", "vmr_field", "abs_species",
+          "wind_u_field", "wind_v_field", "wind_w_field",
+          "mag_u_field", "mag_v_field", "mag_w_field",
+          "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
+          "scat_species", "scat_data", "scat_data_checked",
+          "iy_aux_vars", "jacobian_do", "jacobian_quantities",
+          "ppath", "propmat_clearsky_agenda", "iy_transmitter_agenda",
+          "iy_agenda_call1", "iy_transmission", "rte_alonglos_v" ),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),

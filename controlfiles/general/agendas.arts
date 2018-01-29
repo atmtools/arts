@@ -25,7 +25,6 @@ Arts2 {
 ###
 AgendaCreate( iy_main_agenda__Emission )
 AgendaSet( iy_main_agenda__Emission ){
-  Ignore( iy_id )
   iyEmissionStandard
 }
 
@@ -33,21 +32,20 @@ AgendaSet( iy_main_agenda__Emission ){
 AgendaCreate( iy_main_agenda__Transmission )
 AgendaSet( iy_main_agenda__Transmission ){
   Ignore( iy_unit )
-  Ignore( t_nlte_field )
   Ignore( iy_id )
   iyTransmissionStandard
 }
 
 ###
-AgendaCreate( iy_main_agenda__Radiolink )
-AgendaSet( iy_main_agenda__Radiolink ){
-  Ignore( iy_unit )
-  Ignore( rte_los )
-  Ignore( t_nlte_field )
-  Ignore( diy_dx )
-  Ignore( iy_id )
-  iyRadioLink
-}
+#AgendaCreate( iy_main_agenda__Radiolink )
+#AgendaSet( iy_main_agenda__Radiolink ){
+#  Ignore( iy_unit )
+#  Ignore( rte_los )
+#  Ignore( t_nlte_field )
+#  Ignore( diy_dx )
+#  Ignore( iy_id )
+#  iyRadioLink
+#}
 
 ###
 AgendaCreate( iy_main_agenda__Freqloop )
@@ -70,12 +68,12 @@ AgendaSet( iy_main_agenda__ScattMC ){
 }
 
 ###
-AgendaCreate( iy_main_agenda__FOSN0 )
-AgendaSet( iy_main_agenda__FOSN0 ){
-    Ignore(t_nlte_field)
-    Ignore(iy_id)
-    iyFOS(fos_n=0)
-}
+#AgendaCreate( iy_main_agenda__FOSN0 )
+#AgendaSet( iy_main_agenda__FOSN0 ){
+#    Ignore(t_nlte_field)
+#    Ignore(iy_id)
+#    iyFOS(fos_n=0)
+#}
 
 
 
@@ -111,17 +109,17 @@ AgendaSet( iy_sub_agenda__Transmission ){
 }
 
 ###
-AgendaCreate( iy_sub_agenda__Radiolink )
-AgendaSet( iy_sub_agenda__Radiolink ){
-  Ignore( lat_true )
-  Ignore( lon_true )
-  Ignore( iy_unit )
-  Ignore( rte_los )
-  Ignore( t_nlte_field )
-  Ignore( diy_dx )
-  Ignore( iy_id )
-  iyRadioLink
-}
+#AgendaCreate( iy_sub_agenda__Radiolink )
+#AgendaSet( iy_sub_agenda__Radiolink ){
+#  Ignore( lat_true )
+#  Ignore( lon_true )
+#  Ignore( iy_unit )
+#  Ignore( rte_los )
+#  Ignore( t_nlte_field )
+#  Ignore( diy_dx )
+#  Ignore( iy_id )
+#  iyRadioLink
+#}
 
 
 

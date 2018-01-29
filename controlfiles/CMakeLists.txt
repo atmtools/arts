@@ -70,9 +70,9 @@ arts_test_run_ctlfile(fast artscomponents/faraday/TestFaradayRotation.arts)
 
 arts_test_run_ctlfile(slow artscomponents/nlte/TestNLTE.arts)
 
-arts_test_run_ctlfile(slow artscomponents/radiolink/TestRadioLink.arts)
-arts_test_run_ctlfile(fast artscomponents/radiolink/TestRadioLink2.arts)
-arts_test_run_ctlfile(slow artscomponents/radiolink/TestRadioOccultation.arts)
+#arts_test_run_ctlfile(slow artscomponents/radiolink/TestRadioLink.arts)
+#arts_test_run_ctlfile(fast artscomponents/radiolink/TestRadioLink2.arts)
+#arts_test_run_ctlfile(slow artscomponents/radiolink/TestRadioOccultation.arts)
 
 arts_test_run_ctlfile(fast artscomponents/doit/TestDOIT.arts)
 arts_test_run_ctlfile(slow artscomponents/doit/TestDOITaccelerated.arts)
@@ -167,8 +167,8 @@ if (ARTS_XML_DATA_DIR)
 
   arts_test_run_ctlfile(xmldata artscomponents/clearsky/TestClearSkyTips.arts)
 
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestClouds_Mars.arts)
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestClouds_Venus.arts)
+#  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestClouds_Mars.arts)
+#  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestClouds_Venus.arts)
 
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestSurf_Earth.arts)
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestSurf_Mars.arts)
@@ -202,12 +202,12 @@ if (ARTS_XML_DATA_DIR)
 
   ##################################
   ### planet toolbox demos cases ###
-  arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/active/DemoLinkBudget.arts)
+#  arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/active/DemoLinkBudget.arts)
 
   #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoJupiter_fullRT_1D_clearsky.arts)
   #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoMars_fullRT_1D_clearsky.arts)
   #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoMars_fullRT_3D_clearsky.arts)
-  arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoMars_fullRT_1D_cloudy.arts)
+#  arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoMars_fullRT_1D_cloudy.arts)
   arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoVenus_fullRT_1D_clearsky.arts)
   #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoVenus_fullRT_1D_cloudy.arts)
 

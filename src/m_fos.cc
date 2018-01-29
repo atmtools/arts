@@ -56,6 +56,7 @@ extern const Numeric PI;
 
 
 // FOS implemented as an internal function, to allow an recursive algorithm
+/*
 void fos(
          Workspace&                     ws,
          Matrix&                        iy,
@@ -759,7 +760,7 @@ void fos(
         }
     }
 }
-
+*/
 
 
 
@@ -769,6 +770,7 @@ void fos(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+/*
 void iyFOS(
          Workspace&                   ws,
          Matrix&                      iy,
@@ -865,7 +867,7 @@ void iyFOS(
        ppath_lmax, ppath_lraytrace, fos_scatint_angles, fos_iyin_za_angles, 
        fos_za_interporder, n, 0, verbosity );
 }
-
+*/
 
 
 

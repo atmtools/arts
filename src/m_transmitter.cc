@@ -63,6 +63,7 @@ extern const Numeric SPEED_OF_LIGHT;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+/*
 void iyRadioLink(
          Workspace&                   ws,
          Matrix&                      iy,
@@ -660,6 +661,7 @@ void iyRadioLink(
         }
     }
 }
+*/
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */

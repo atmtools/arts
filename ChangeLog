@@ -1,3 +1,25 @@
+2018-01-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-942
+
+	* src/m_transmitter.cc (iyRadioLink):
+	* src/m_fos.cc (iyFOS): Both these WSMs are commented out. That
+	is, they are for the moment not active parts of ARTS. There is
+	just not time for the moment to update these methods to new
+	RT scheme.
+
+	* controlfiles/general/agendas.arts:
+	* controlfiles/CMakeLists.txt: Commented out things now not
+	working with FOS and RadioLink deactivated.
+
+	* src/m_transmitter.cc (iyTransmissionStandard2): Now exists as a
+	WSM. Jacobian part not yet OK.
+
+	* controlfiles/general/agendas.arts: Removed Ignore( iy_id )
+	from iy_main_agenda__Emission. Removed Ignore( t_nlte_field )
+	from iy_main_agenda__Transmission.
+	Not needed.
+
 2018-01-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-941
