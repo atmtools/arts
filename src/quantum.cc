@@ -156,6 +156,9 @@ bool QuantumIdentifier::operator>(const QuantumIdentifier& other) const
     case QuantumIdentifier::ALL:
       return true;
       break;
+    case QuantumIdentifier::NONE:
+      return false;
+      break;
     default:
       throw std::runtime_error("This is a developer error");
   }
@@ -225,6 +228,9 @@ bool QuantumIdentifier::operator<(const QuantumIdentifier& other) const
       break;
     case QuantumIdentifier::ALL:
       return true;
+      break;
+    case QuantumIdentifier::NONE:
+      return false;
       break;
     default:
       throw std::runtime_error("This is a developer error");
@@ -445,6 +451,9 @@ String QuantumIdentifier::TypeStr() const {
         case QuantumIdentifier::ALL:
           t = "ALL";
           break;
+        case QuantumIdentifier::NONE:
+          t = "NONE";
+          break;
         default:
             assert(0);
             break;
@@ -582,6 +591,10 @@ void QuantumIdentifier::SetFromString(String str)
     {
       SetType(QuantumIdentifier::ALL);
     }
+    else if (token == "NONE")
+    {
+      SetType(QuantumIdentifier::NONE);
+    }
     else
     {
         std::ostringstream os;
@@ -639,6 +652,10 @@ std::ostream& operator<<(std::ostream& os, const QuantumIdentifier& qi)
     else if (qi.Type() == QuantumIdentifier::ALL)
     {
       os << "ALL";
+    }
+    else if (qi.Type() == QuantumIdentifier::NONE)
+    {
+      os << "NONE";
     }
     else
     {

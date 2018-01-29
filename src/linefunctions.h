@@ -298,14 +298,19 @@ namespace Linefunctions
                           const Numeric& cutoff);
   
   void apply_linestrength_from_nlte_level_distributions(ComplexVectorView F, 
+                                                        ArrayOfComplexVector& dF, 
                                                         ComplexVectorView N, 
+                                                        ArrayOfComplexVector& dN, 
                                                         const Numeric& r1,
                                                         const Numeric& r2,
                                                         const Numeric& g1,
                                                         const Numeric& g2,
                                                         const Numeric& A21,
                                                         const Numeric& F0,
-                                                        const Numeric& T);
+                                                        const Numeric& T,
+                                                        const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                                                        const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
+                                                        const Range& df_range=Range(joker));
   
   Range binary_range(const ConstVectorView f, const Index& i, const bool full=false);
   

@@ -1,3 +1,20 @@
+2018-01-29  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-944
+	
+	* src/linefunctions.{cc,h}:  Updated 
+	(apply_linestrength_from_nlte_level_distributions) to take into 
+	account partial derivatives with respect to central frequency, 
+	ratio of upper and lower state levels, and kinetic temperatures.
+	Not tested yet.
+	
+	* src/quantum.{h,cc}:  Added None-case, added method to 
+	quickly set energy state identifier, and added methods
+	to create energy state identifier from known transition
+	identifier
+	
+	* src/partial_derivatives.h:  Added JQT_population_level_ratio
+
 2018-01-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-943

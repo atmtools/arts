@@ -109,6 +109,7 @@ typedef enum
     JQT_line_mixing_Gexp,
     JQT_line_mixing_DFexp,
     JQT_nlte_temperature,
+    JQT_population_level_ratio,
     JQT_NOT_JQT
 } JacobianQuantityType;
 

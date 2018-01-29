@@ -2333,14 +2333,19 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
           throw std::runtime_error("No upper level distribution number in population distribution mode");
         
         apply_linestrength_from_nlte_level_distributions(F[this_f_range], 
+                                                         dF,
                                                          N[this_f_range], 
+                                                         dN,
                                                          nlte_distribution[nlte_low_index],
                                                          nlte_distribution[nlte_upp_index],
                                                          line.G_lower(),
                                                          line.G_upper(),
                                                          line.A(),
                                                          line.F(),
-                                                         temperature);
+                                                         temperature, 
+                                                         derivatives_data, 
+                                                         QI,
+                                                         this_f_range);
       }
       break;
     default:
@@ -2521,20 +2526,29 @@ bool Linefunctions::find_cutoff_ranges(Range& range,
  * 
  */
 void Linefunctions::apply_linestrength_from_nlte_level_distributions(ComplexVectorView F, 
+                                                                     ArrayOfComplexVector& dF, 
                                                                      ComplexVectorView N, 
+                                                                     ArrayOfComplexVector& dN, 
                                                                      const Numeric& r1,
                                                                      const Numeric& r2,
                                                                      const Numeric& g1,
                                                                      const Numeric& g2,
                                                                      const Numeric& A21,
                                                                      const Numeric& F0,
-                                                                     const Numeric& T)
+                                                                     const Numeric& T,
+                                                                     const PropmatPartialsData& derivatives_data,
+                                                                     const QuantumIdentifier& quantum_identity,
+                                                                     const Range& df_range)
 {
+  // Size of the problem
+  const Index nf = F.nelem();
+  const Index nppd = derivatives_data.nelem();
+  
   // Physical constants
   const static Numeric c0 = 2.0 * PLANCK_CONST / SPEED_OF_LIGHT / SPEED_OF_LIGHT;
   const static Numeric c1 = PLANCK_CONST / 4 / PI;
   
-  // Constants
+  // Constants based on input
   const Numeric c2 = c0 * F0 * F0 * F0;
   const Numeric c3 = c1 * F0;
   const Numeric x = g2 / g1;
@@ -2543,12 +2557,10 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(ComplexVect
     Einstein 'active' coefficients are as follows:
     const Numeric B21 =  A21 / c2;
     const Numeric B12 = x * B21;
-    
-    Please keep these around for debugging purposes...
   */
   
   // Planck function of this line
-  const Numeric b = c2/(exp(PLANCK_CONST * F0 / BOLTZMAN_CONST / T) - 1);
+  const Numeric exp_T = exp(PLANCK_CONST * F0 / BOLTZMAN_CONST / T),  b = c2/(exp_T - 1);
   
   // Absorption strength
   const Numeric k = c3 * (r1*x - r2) * (A21 / c2);
@@ -2556,9 +2568,62 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(ComplexVect
   // Emission strength
   const Numeric e = c3 * r2 * A21;
   
+  const Numeric ratio = (e/b-k);
+  
+  // Partial derivatives
+  for(Index iq=0; iq<nppd; iq++)
+  {
+    if(derivatives_data(iq) == JQT_temperature)  // nb.  Only here tou counter-act the latter on in 
+    { 
+      Numeric done_over_b_dT = PLANCK_CONST*F0*exp_T/(c2*BOLTZMAN_CONST*T*T);
+      
+      // dN is unset so far.  It should return to just be lineshape later...
+      for(Index iv=0; iv<nf; iv++)
+        dN[iq][df_range][iv] = F[iv]*e*done_over_b_dT + dF[iq][df_range][iv]*ratio;
+      
+      // dk_dT = 0...
+      dF[iq][df_range] *= k;
+    }
+    else if(derivatives_data(iq) == JQT_line_center)
+    {
+      if(quantum_identity > derivatives_data.jac(iq).QuantumIdentity())
+      {
+        Numeric done_over_b_df0 = PLANCK_CONST*exp_T/(c2*BOLTZMAN_CONST*T) - 3.0*b/F0;
+        Numeric de_df0 = c1 * r2 * A21;
+        Numeric dk_df0 = c1 * (r1*x - r2) * (A21 / c2) - 3.0*k/F0;
+        
+        for(Index iv=0; iv<nf; iv++)
+        {
+          dN[iq][df_range][iv] = F[iv]*(e*done_over_b_df0 + de_df0/b - dk_df0) + dF[iq][df_range][iv]*ratio;
+          dF[iq][df_range][iv] = dF[iq][df_range][iv]*k + F[iv]*dk_df0;
+        }
+      }
+    }
+    else if(derivatives_data(iq) == JQT_population_level_ratio)
+    {
+      if(quantum_identity.Lower() > derivatives_data.jac(iq).QuantumIdentity())
+      {
+        const Numeric dk_dr2 = - c3 * A21 / c2, de_dr2 = c3 * A21, dratio_dr2 = de_dr2/b - dk_dr2;
+        
+        for(Index iv=0; iv<nf; iv++)
+        {
+          dN[iq][df_range][iv] = F[iv]*dratio_dr2;
+          dF[iq][df_range][iv] = F[iv]*dk_dr2 + dF[iq][df_range][iv]*k;
+        } 
+      }
+      else if(quantum_identity.Upper() > derivatives_data.jac(iq).QuantumIdentity())
+      {
+        const Numeric dk_dr1 = c3 * x * A21 / c2;
+        
+        for(Index iv=0; iv<nf; iv++)
+          dF[iq][df_range][iv] = F[iv]*dk_dr1 + dF[iq][df_range][iv]*k;
+      }
+    }
+  }
+  
   // Set source function to be the relative amount emitted by the line divided by the Planck function
   N = F;
-  N *= e/b - k;
+  N *= ratio;
   
   // Set absorption
   F *= k;

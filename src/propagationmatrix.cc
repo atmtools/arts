@@ -169,13 +169,13 @@ void compute_transmission_matrix(Tensor3View T,
       const Numeric Const2 = b2 + c2 + d2 - u2 - v2 - w2;
       
       Numeric Const1;
-      Const1  = b2 * (b2 * 0.5 + c2 + d2 - u2 - v2 + w2);
-      Const1 += c2 * (c2 * 0.5 + d2 - u2 + v2 - w2);
-      Const1 += d2 * (d2 * 0.5 + u2 - v2 - w2);
-      Const1 += u2 * (u2 * 0.5 + v2 + w2);
-      Const1 += v2 * (v2 * 0.5 + w2);
+      Const1  = b2 * (b2 * 0.5 + c2 + d2 - u2 - v2 + w2)
+              + c2 * (c2 * 0.5 +      d2 - u2 + v2 - w2)
+              + d2 * (d2 * 0.5 +           u2 - v2 - w2)
+              + u2 * (u2 * 0.5 +                v2 + w2)
+              + v2 * (v2 * 0.5 +                     w2)
+              + 4 * (b * d * u * w - b * c * v * w - c * d * u * v);
       Const1 *= 2;
-      Const1 += 8 * (b * d * u * w - b * c * v * w - c * d * u * v);
       Const1 += w2 * w2;
       
       if(Const1 > 0.0)

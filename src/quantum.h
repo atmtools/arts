@@ -279,15 +279,22 @@ public:
     typedef enum {
         TRANSITION,
         ENERGY_LEVEL,
-        ALL
+        ALL,
+        NONE 
     } QType;
     
-    QuantumIdentifier() : mspecies(-1), miso(-1) {}
+    QuantumIdentifier() : mqtype(NONE), mspecies(-1), miso(-1), mqm(0) {}
 
     QuantumIdentifier(const Index spec, const Index isot, const QuantumNumberRecord& qnr)
     : mspecies(spec), miso(isot)
     {
       SetTransition(qnr.Upper(), qnr.Lower());
+    }
+    
+    QuantumIdentifier(const Index spec, const Index isot, const QuantumNumbers& qnr)
+    : mspecies(spec), miso(isot)
+    {
+      SetEnergyLevel(qnr);
     }
     
     typedef Array<QuantumNumbers> QuantumMatchCriteria;
@@ -307,6 +314,7 @@ public:
                 mqm.resize(1);
                 break;
             case QuantumIdentifier::ALL:
+            case QuantumIdentifier::NONE:
               mqm.resize(0);
               break;
             default:
@@ -328,6 +336,9 @@ public:
     Index Isotopologue() const { return miso; }
     const QuantumMatchCriteria& QuantumMatch() const { return mqm; }
     QuantumMatchCriteria& QuantumMatch() { return mqm; }
+    
+    QuantumIdentifier Lower() const {QuantumIdentifier qi(mspecies, miso, mqm[TRANSITION_LOWER_INDEX]); return qi;};
+    QuantumIdentifier Upper() const {QuantumIdentifier qi(mspecies, miso, mqm[TRANSITION_UPPER_INDEX]); return qi;};
     
     // Tests that all of other is in this
     bool operator>(const QuantumIdentifier& other) const;
@@ -355,6 +366,8 @@ inline bool operator==(const QuantumIdentifier a,const QuantumIdentifier b){
         a.QuantumMatch()[a.TRANSITION_UPPER_INDEX].Compare(b.QuantumMatch()[ b.TRANSITION_UPPER_INDEX ]) ;
     else if(a.Type()==QuantumIdentifier::ALL)
       return true;
+    else if(a.Type()==QuantumIdentifier::NONE)
+      return false;
     else
       throw std::runtime_error("Programmer error --- added type is missing");
 }
