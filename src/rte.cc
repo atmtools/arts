@@ -5302,8 +5302,8 @@ Numeric psat_water(const Numeric t)
 //! rtmethods_jacobian_finalisation
 /*!
     This function fixes the last steps to made on the Jacobian in some
-    radiative transfer WSMs. The method applies iy_transmission and maps from
-    ppath to the retrieval grids.
+    radiative transfer WSMs. The method applies iy_transmission, maps from
+    ppath to the retrieval grids and applies non-standard Jacobian units.
 
     See iyEmissonStandard for usage example.
 

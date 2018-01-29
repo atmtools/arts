@@ -1618,13 +1618,16 @@ void iyTransmissionStandard2(
         }
     }
 
-  // Map jacobians from ppath to retrieval grids
+  
+  // Finalize analytical Jacobians
   if( j_analytical_do )
-    { 
-      FOR_ANALYTICAL_JACOBIANS_DO( 
-        diy_from_path_to_rgrids( diy_dx[iq], jacobian_quantities[iq], 
-                                 diy_dpath[iq], atmosphere_dim, ppath, ppvar_p );
-      )
+    {
+      rtmethods_jacobian_finalisation( diy_dx, diy_dpath,
+                                       ns, nf, np, atmosphere_dim, ppath,
+                                       ppvar_p, ppvar_t, ppvar_vmr,
+                                       iy_agenda_call1, iy_transmission,
+                                       jacobian_quantities, jac_species_i,
+                                       jac_is_t );
     }
 }
 
