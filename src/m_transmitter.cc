@@ -1322,7 +1322,7 @@ void iyTransmissionStandard2(
   const Index&                              iy_agenda_call1,
   const Tensor3&                            iy_transmission,
   const Numeric&                            rte_alonglos_v,
-  const Verbosity&                          verbosity )
+  const Verbosity& )
 {
   // Some basic sizes
   const Index nf = f_grid.nelem();
@@ -1536,16 +1536,14 @@ void iyTransmissionStandard2(
                                                da_dx,
                                                dKp_dx,
                                                jacobian_quantities,
-                                               ppvar_pnd(joker,ip),
+                                               ppvar_pnd(joker,Range(ip,1)),
                                                ppvar_dpnd_dx,
                                                ip,
                                                scat_data,
                                                ppath.los(ip,joker),
-                                               ppvar_t[ip],
+                                               ppvar_t[Range(ip,1)],
                                                atmosphere_dim,
-                                               jacobian_do,
-                                               verbosity );
-              
+                                               jacobian_do );
               K_this += Kp;
               
               if( j_analytical_do )

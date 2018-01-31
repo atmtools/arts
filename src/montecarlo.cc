@@ -432,6 +432,7 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   ArrayOfArrayOfTensor5 ext_mat_Nse;
   ArrayOfArrayOfTensor4 abs_vec_Nse;
   ArrayOfArrayOfIndex ptypes_Nse;
+  Matrix t_ok;
   ArrayOfTensor5 ext_mat_ssbulk;
   ArrayOfTensor4 abs_vec_ssbulk;
   ArrayOfIndex ptype_ssbulk;
@@ -444,12 +445,12 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   Matrix dir_array(1,2,0.);
   dir_array(0,joker) = sca_dir;
   //
-  opt_prop_NScatElems( ext_mat_Nse, abs_vec_Nse, ptypes_Nse,
+  opt_prop_NScatElems( ext_mat_Nse, abs_vec_Nse, ptypes_Nse, t_ok,
                        scat_data, stokes_dim, t_ppath, dir_array, f_index );
   //
   opt_prop_ScatSpecBulk( ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk,
                          ext_mat_Nse, abs_vec_Nse, ptypes_Nse,
-                         pnd_ppath );
+                         pnd_ppath, t_ok );
   opt_prop_Bulk( ext_mat_bulk, abs_vec_bulk, ptype_bulk,
                  ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk );
 
@@ -1445,7 +1446,7 @@ void opt_propCalc(
       {
           i_se_flat += 1;
         
-          if (pnd_vec[i_se_flat]>0)
+          if (pnd_vec[i_se_flat]!=0)
           {
               Index nT=scat_data_mono[i_ss][i_se].T_grid.nelem();
               if( nT > 1 )

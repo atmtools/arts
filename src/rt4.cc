@@ -1286,6 +1286,7 @@ void par_optpropCalc2(Tensor5View emis_vector,
   ArrayOfArrayOfTensor5 ext_mat_Nse;
   ArrayOfArrayOfTensor4 abs_vec_Nse;
   ArrayOfArrayOfIndex ptypes_Nse;
+  Matrix t_ok;
   ArrayOfTensor5 ext_mat_ssbulk;
   ArrayOfTensor4 abs_vec_ssbulk;
   ArrayOfIndex ptype_ssbulk;
@@ -1293,11 +1294,11 @@ void par_optpropCalc2(Tensor5View emis_vector,
   Tensor4 abs_vec_bulk;
   Index ptype_bulk;
 
-  opt_prop_NScatElems( ext_mat_Nse, abs_vec_Nse, ptypes_Nse,
+  opt_prop_NScatElems( ext_mat_Nse, abs_vec_Nse, ptypes_Nse, t_ok,
                        scat_data, stokes_dim, T_array, dir_array, f_index );
   opt_prop_ScatSpecBulk( ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk,
                          ext_mat_Nse, abs_vec_Nse, ptypes_Nse,
-                         pnd_field(joker, joker, 0, 0) );
+                         pnd_field(joker, joker, 0, 0), t_ok );
   opt_prop_Bulk( ext_mat_bulk, abs_vec_bulk, ptype_bulk,
                  ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk );
   

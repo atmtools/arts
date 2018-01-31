@@ -7442,13 +7442,11 @@ void define_md_data_raw()
           "iy_surface_agenda", "iy_cloudbox_agenda",
           "iy_agenda_call1", "iy_transmission", "ppath", "rte_pos2",
           "rte_alonglos_v", "doit_i_field", "scat_za_grid" ),
-      GIN(         "Naa_grid", "pfct_method" ),
-      GIN_TYPE(    "Index",    "String" ),
-      GIN_DEFAULT( "19",       "median" ),
+      GIN(         "Naa_grid" ),
+      GIN_TYPE(    "Index" ),
+      GIN_DEFAULT( "19" ),
       GIN_DESC( "Number of azimuth angles to consider in scattering source term"
-                " integral.",
-                "Flag which method to apply for temperature adaptation of phase"
-                " matrix (for available options see above)." )
+                " integral." )
     ));
     
   md_data_raw.push_back

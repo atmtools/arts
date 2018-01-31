@@ -150,8 +150,7 @@ The iteration is performed in the method
 and \wsaindex{doit\_scat\_field\_agenda}),
 \item the radiative transfer calculations in the cloudbox with fixed scattering
 integral (requires agendas \wsaindex{spt\_calc\_agenda},
-\wsaindex{opt\_prop\_part\_agenda}, \wsaindex{ppath\_step\_agenda}, and
-\wsaindex{doit\_rte\_agenda}), and
+\wsaindex{ppath\_step\_agenda}, and \wsaindex{doit\_rte\_agenda}), and
 \item the convergence test (requires agenda
 \wsaindex{doit\_conv\_test\_agenda}).
 \end{itemize}
@@ -246,16 +245,17 @@ already interpolated on the frequency of the monochromatic
 calculation. This requirement is fulfilled when
 \wsmindex{DoitScatteringDataPrepare} or \wsmindex{scat\_data\_monoCalc}
 is executed before \wsmindex{doit\_i\_field\_monoIterate} (see
-Section \ref{sec:scattering:doit_main_agenda}). The work space method
-\wsmindex{ext\_matAddPart} and \wsmindex{abs\_vecAddPart} are used to
-extract the absorption vector \wsvindex{abs\_vec} and extinction
-matrix \wsvindex{ext\_mat} from the workspace variable
-\wsvindex{ext\_mat\_spt}. The gas absorption is added internally. 
+Section \ref{sec:scattering:doit_main_agenda}).
 \begin{code}
 AgendaSet( spt_calc_agenda ){
    opt_prop_sptFromMonoData
 }
 \end{code}
+The work space method
+\wsmindex{opt\_prop\_bulkCalc} is then used internally to derived the
+bulk absorption vector \wsvindex{abs\_vec} and extinction
+matrix \wsvindex{ext\_mat} from the workspace variable
+\wsvindex{ext\_mat\_spt}. The gas absorption is added internally.
 
 \subsubsection{Convergence test:}
 After the radiative transfer calculations with a fixed scattering

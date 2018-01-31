@@ -303,8 +303,10 @@ public:
                                               const Numeric& deta, 
                                               ConstVectorView extra=Vector(0));
   
-  /*! Sets the dense matrix.  Aboid using if possible. */
-  void MatrixAtPosition(MatrixView ret, const Index iv=0, const Index iz=0, const Index ia=0) const;
+  /*! Sets the dense matrix.  Avoid using if possible. */
+  void MatrixAtPosition(MatrixView ret,
+                        const Index iv=0, const Index iz=0, const Index ia=0)
+    const;
   
   PropagationMatrix& operator=(PropagationMatrix&& pm)
   {
@@ -320,7 +322,15 @@ public:
     return *this;
   }
 
-  PropagationMatrix&  operator=(const PropagationMatrix& other) { mvectortype = other.mvectortype; mstokes_dim = other.mstokes_dim; mfreqs = other.mfreqs; mza = other.mza; maa = other.maa; mdata = other.mdata; return *this; }
+  PropagationMatrix&  operator=(const PropagationMatrix& other)
+  { mvectortype = other.mvectortype;
+    mstokes_dim = other.mstokes_dim;
+    mfreqs = other.mfreqs;
+    mza = other.mza;
+    maa = other.maa;
+    mdata = other.mdata;
+    return *this;
+  }
   PropagationMatrix&  operator=(ConstVectorView x) 
   { 
     for(Index i = 0; i < NumberOfNeededVectors(); i++){
@@ -329,13 +339,20 @@ public:
           mdata(k, j, joker, i) = x;}}}
     return *this; 
   }
-  PropagationMatrix&  operator=(const Numeric& x) { mdata = x; return *this; }
+  PropagationMatrix&  operator=(const Numeric& x)
+    { mdata = x; return *this; }
   
-  void SetAtPosition(const PropagationMatrix& x, const Index iv=0, const Index iz=0, const Index ia=0) { mdata(ia, iz, iv, joker)  = x.mdata(ia, iz, iv, joker); }
-  void SetAtPosition(ConstMatrixView x, const Index iv=0, const Index iz=0, const Index ia=0);
-  void SetAtPosition(const Numeric& x, const Index iv=0, const Index iz=0, const Index ia=0)      { mdata(ia, iz, iv, joker)  = x; }
+  void SetAtPosition(const PropagationMatrix& x,
+                     const Index iv=0, const Index iz=0, const Index ia=0)
+    { mdata(ia, iz, iv, joker)  = x.mdata(ia, iz, iv, joker); }
+  void SetAtPosition(ConstMatrixView x,
+                     const Index iv=0, const Index iz=0, const Index ia=0);
+  void SetAtPosition(const Numeric& x,
+                     const Index iv=0, const Index iz=0, const Index ia=0)
+    { mdata(ia, iz, iv, joker)  = x; }
   
-  PropagationMatrix& operator/=(const PropagationMatrix& other) { mdata /= other.mdata; return *this; }
+  PropagationMatrix& operator/=(const PropagationMatrix& other)
+    { mdata /= other.mdata; return *this; }
   PropagationMatrix& operator/=(ConstVectorView x)
   { 
     for(Index i = 0; i < NumberOfNeededVectors(); i++){
@@ -344,13 +361,20 @@ public:
           mdata(k, j, joker, i) /= x;}}}
           return *this; 
   }
-  PropagationMatrix& operator/=(const Numeric& x) { mdata /= x; return *this; }
+  PropagationMatrix& operator/=(const Numeric& x)
+    { mdata /= x; return *this; }
   
-  void DivideAtPosition(const PropagationMatrix& x, const Index iv=0, const Index iz=0, const Index ia=0) { mdata(ia, iz, iv, joker) /= x.mdata(ia, iz, iv, joker); }
-  void DivideAtPosition(ConstMatrixView x, const Index iv=0, const Index iz=0, const Index ia=0);
-  void DivideAtPosition(const Numeric& x, const Index iv=0, const Index iz=0, const Index ia=0)   { mdata(ia, iz, iv, joker) /= x; }
+  void DivideAtPosition(const PropagationMatrix& x,
+                        const Index iv=0, const Index iz=0, const Index ia=0)
+    { mdata(ia, iz, iv, joker) /= x.mdata(ia, iz, iv, joker); }
+  void DivideAtPosition(ConstMatrixView x,
+                        const Index iv=0, const Index iz=0, const Index ia=0);
+  void DivideAtPosition(const Numeric& x,
+                        const Index iv=0, const Index iz=0, const Index ia=0)
+    { mdata(ia, iz, iv, joker) /= x; }
   
-  PropagationMatrix& operator*=(const PropagationMatrix& other) { mdata *= other.mdata; return *this; }
+  PropagationMatrix& operator*=(const PropagationMatrix& other)
+    { mdata *= other.mdata; return *this; }
   PropagationMatrix& operator*=(ConstVectorView x) 
   { 
     for(Index i = 0; i < NumberOfNeededVectors(); i++){
@@ -359,13 +383,20 @@ public:
           mdata(k, j, joker, i) *= x;}}}
           return *this; 
   }
-  PropagationMatrix& operator*=(const Numeric& x) { mdata *= x; return *this; }
+  PropagationMatrix& operator*=(const Numeric& x)
+    { mdata *= x; return *this; }
   
-  void MultiplyAtPosition(const PropagationMatrix& x, const Index iv=0, const Index iz=0, const Index ia=0) { mdata(ia, iz, iv, joker) *= x.mdata(ia, iz, iv, joker); }
-  void MultiplyAtPosition(ConstMatrixView x, const Index iv=0, const Index iz=0, const Index ia=0);
-  void MultiplyAtPosition(const Numeric& x, const Index iv=0, const Index iz=0, const Index ia=0)   { mdata(ia, iz, iv, joker) *= x; }
+  void MultiplyAtPosition(const PropagationMatrix& x,
+                          const Index iv=0, const Index iz=0, const Index ia=0)
+    { mdata(ia, iz, iv, joker) *= x.mdata(ia, iz, iv, joker); }
+  void MultiplyAtPosition(ConstMatrixView x,
+                          const Index iv=0, const Index iz=0, const Index ia=0);
+  void MultiplyAtPosition(const Numeric& x,
+                          const Index iv=0, const Index iz=0, const Index ia=0)
+    { mdata(ia, iz, iv, joker) *= x; }
   
-  PropagationMatrix& operator+=(const PropagationMatrix& other) { mdata += other.mdata; return *this; }
+  PropagationMatrix& operator+=(const PropagationMatrix& other)
+    { mdata += other.mdata; return *this; }
   PropagationMatrix& operator+=(ConstVectorView x) 
   { 
     for(Index i = 0; i < NumberOfNeededVectors(); i++){
@@ -374,13 +405,20 @@ public:
           mdata(k, j, joker, i) += x;}}}
           return *this; 
   }
-  PropagationMatrix& operator+=(const Numeric& x) { mdata += x; return *this; }
+  PropagationMatrix& operator+=(const Numeric& x)
+    { mdata += x; return *this; }
   
-  void AddAtPosition(const PropagationMatrix& x, const Index iv=0, const Index iz=0, const Index ia=0) { mdata(ia, iz, iv, joker) += x.mdata(ia, iz, iv, joker); }
-  void AddAtPosition(ConstMatrixView x, const Index iv=0, const Index iz=0, const Index ia=0);
-  void AddAtPosition(const Numeric& x, const Index iv=0, const Index iz=0, const Index ia=0)   { mdata(ia, iz, iv, joker) += x; }
+  void AddAtPosition(const PropagationMatrix& x,
+                     const Index iv=0, const Index iz=0, const Index ia=0)
+    { mdata(ia, iz, iv, joker) += x.mdata(ia, iz, iv, joker); }
+  void AddAtPosition(ConstMatrixView x,
+                     const Index iv=0, const Index iz=0, const Index ia=0);
+  void AddAtPosition(const Numeric& x,
+                     const Index iv=0, const Index iz=0, const Index ia=0)
+    { mdata(ia, iz, iv, joker) += x; }
   
-  PropagationMatrix& operator-=(const PropagationMatrix& other) { mdata -= other.mdata; return *this; }
+  PropagationMatrix& operator-=(const PropagationMatrix& other)
+    { mdata -= other.mdata; return *this; }
   PropagationMatrix& operator-=(ConstVectorView x) 
   { 
     for(Index i = 0; i < NumberOfNeededVectors(); i++){
@@ -389,19 +427,30 @@ public:
           mdata(k, j, joker, i) -= x;}}}
           return *this; 
   }
-  PropagationMatrix& operator-=(const Numeric& x) { mdata -= x; return *this; }
+  PropagationMatrix& operator-=(const Numeric& x)
+    { mdata -= x; return *this; }
   
-  void RemoveAtPosition(const PropagationMatrix& x, const Index iv=0, const Index iz=0, const Index ia=0) { mdata(ia, iz, iv, joker) -= x.mdata(ia, iz, iv, joker); }
-  void RemoveAtPosition(ConstMatrixView x, const Index iv=0, const Index iz=0, const Index ia=0);
-  void RemoveAtPosition(const Numeric& x, const Index iv=0, const Index iz=0, const Index ia=0)   { mdata(ia, iz, iv, joker) -= x; }
+  void RemoveAtPosition(const PropagationMatrix& x,
+                        const Index iv=0, const Index iz=0, const Index ia=0)
+    { mdata(ia, iz, iv, joker) -= x.mdata(ia, iz, iv, joker); }
+  void RemoveAtPosition(ConstMatrixView x,
+                        const Index iv=0, const Index iz=0, const Index ia=0);
+  void RemoveAtPosition(const Numeric& x,
+                        const Index iv=0, const Index iz=0, const Index ia=0)
+    { mdata(ia, iz, iv, joker) -= x; }
   
-  void AddAbsorptionVectorAtPosition(ConstVectorView x, const Index iv=0, const Index iz=0, const Index ia=0) { for(Index i = 0; i < mstokes_dim; i++) mdata(ia, iz, iv, i) += x[i]; }
+  void AddAbsorptionVectorAtPosition(ConstVectorView x,
+                                     const Index iv=0, const Index iz=0, const Index ia=0)
+    { for(Index i = 0; i < mstokes_dim; i++) mdata(ia, iz, iv, i) += x[i]; }
   
-  void AddAverageAtPosition(ConstMatrixView mat1, ConstMatrixView mat2, const Index iv=0, const Index iz=0, const Index ia=0);
+  void AddAverageAtPosition(ConstMatrixView mat1, ConstMatrixView mat2,
+                            const Index iv=0, const Index iz=0, const Index ia=0);
   
   void MultiplyAndAdd(const Numeric x, const PropagationMatrix& y);
   
-  void MatrixInverseAtPosition(MatrixView ret, const Index iv=0, const Index iz=0, const Index ia=0) const;
+  void MatrixInverseAtPosition(MatrixView ret,
+                               const Index iv=0, const Index iz=0, const Index ia=0)
+    const;
   
   bool FittingShape(ConstMatrixView x) const;
   
@@ -434,9 +483,13 @@ public:
   // Increases level of case if too low
   void CalculationCaseMaximize(ArrayOfCaseOfPropagationMatrix& cases) const;
   
-  void LeftMultiplyAtPosition(MatrixView out, ConstMatrixView in, const Index iv=0, const Index iz=0, const Index ia=0) const;
+  void LeftMultiplyAtPosition(MatrixView out, ConstMatrixView in,
+                              const Index iv=0, const Index iz=0, const Index ia=0)
+    const;
   
-  void RightMultiplyAtPosition(MatrixView out, ConstMatrixView in, const Index iv=0, const Index iz=0, const Index ia=0) const;
+  void RightMultiplyAtPosition(MatrixView out, ConstMatrixView in,
+                               const Index iv=0, const Index iz=0, const Index ia=0)
+    const;
     
 protected:
   Index mfreqs, mstokes_dim;

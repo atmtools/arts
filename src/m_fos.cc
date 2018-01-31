@@ -929,7 +929,6 @@ void iyHybrid(
   const Tensor7&                            doit_i_field,
   const Vector&                             scat_za_grid,
   const Index&                              Naa,   
-  const String&                             pfct_method _U_,
   const Verbosity&                          verbosity)
 {
   // If cloudbox off, switch to use clearsky method
@@ -1180,15 +1179,14 @@ void iyHybrid(
                                                da_dx,
                                                dKp_dx,
                                                jacobian_quantities,
-                                               ppvar_pnd(joker,ip),
+                                               ppvar_pnd(joker,Range(ip,1)),
                                                ppvar_dpnd_dx,
                                                ip,
                                                scat_data,
                                                ppath.los(ip,joker),
-                                               ppvar_t[ip],
+                                               ppvar_t[Range(ip,1)],
                                                atmosphere_dim,
-                                               jacobian_do,
-                                               verbosity );
+                                               jacobian_do );
               a += K_this; 
               K_this += Kp;
               

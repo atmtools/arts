@@ -1,3 +1,45 @@
+2018-01-31 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-945
+
+	Continue replacement of particle optical property calculation schemes.
+
+	* src/m_fos.cc (iyHybrid), m_transmitter.cc (iyTransmissionStandard2),
+	rte.[cc,h] (get_stepwise_scattersky_propmat):
+	Revise to use new optprop scheme.
+	
+	* src/optproperties.[cc,h] (opt_prop_1ScatElem, opt_prop_NScatElems,
+	opt_prop_ScatSpecBulk):
+	Introduce t-interpolation tracker. The opt_prop_*ScatElem* extract data
+	over temperature arrays, where individual entries might be invalid for
+	interpolation (e.g. when extracting data over whole cloudbox or even
+	atmosphere at once). At the same time they do not know about pnd, ie
+	whether these T-extracts will actually be used (and that should remain
+	nicely separated like this). Therefore introducing a tracker parameter
+	with one entry per T and scat element indicating whether t-interpol was
+	ok or not. opt_prop_ScatSpecBulk then takes care to check for invalid
+	T-interpols and handles them appropriately.
+
+	* src/rt4.cc (par_optpropCalc2), montecarlo.cc (cloudy_rt_vars_at_gp),
+	src/m_optproperties.cc (TestScatDataInterp):
+	Update with t-interpolation tracking parameter.
+
+	* src/montecarlo.cc (opt_propCalc):
+	Bugfix. Don't skip calc for pnd<0 (was needed for jacobians), only for =0.
+
+	* src/propagationmatrix.h, m_montecarlo.cc: Cosmetics.
+
+	* controlfiles/artscomponents/wfuns/TestWfunsHybCloudy.arts:
+	A bit of clean up.
+
+	* controlfiles/CMakeLists.txt,
+	controlfiles/artscomponents/wfuns/ybatch*REFERNCE_iyHybrid.xml:
+	Added TestWfunsHybCloudy as slow test case and added (new) reference
+	results to compare to in order to avoid getting broken too often.
+
+	* doc/uguide/scattering.tex, wfuns.tex:
+	More removal of outdated WSM references.
+
 2018-01-29  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-944

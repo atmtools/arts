@@ -310,7 +310,7 @@ void MCGeneral(Workspace&            ws,
   while( true )
     {
       // Complete content of while inside try/catch to handle occasional
-      // failuers in the ppath calculations
+      // failures in the ppath calculations
       try{
         
         bool inside_cloud;

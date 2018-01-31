@@ -4898,15 +4898,14 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
                                      ArrayOfStokesVector& dap_dx,
                                      ArrayOfPropagationMatrix& dKp_dx,
                                      const ArrayOfRetrievalQuantity& jacobian_quantities,
-                                     ConstVectorView ppath_1p_pnd,       // the ppath_pnd at this ppath point
+                                     ConstMatrixView ppath_1p_pnd,       // the ppath_pnd at this ppath point
                                      const ArrayOfMatrix& ppath_dpnd_dx, // the full ppath_dpnd_dx, ie all ppath points
                                      const Index ppath_1p_id,
                                      const ArrayOfArrayOfSingleScatteringData& scat_data,
                                      ConstVectorView ppath_line_of_sight,
-                                     const Numeric& ppath_temperature,
+                                     ConstVectorView ppath_temperature,
                                      const Index& atmosphere_dim,
-                                     const bool& jacobian_do,
-                                     const Verbosity& verbosity)
+                                     const bool& jacobian_do)
 {
   const Index nf = Kp.NumberOfFrequencies(),
               stokes_dim = Kp.StokesDimensions();
@@ -4917,70 +4916,86 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
   ArrayOfArrayOfSingleScatteringData scat_data_mono;
 
   // Direction of outgoing scattered radiation (which is reversed to
-  // LOS). Note that rtp_los2 is only used for extracting scattering
-  // properties.
-  Vector rtp_los2;
-  mirror_los(rtp_los2, ppath_line_of_sight, atmosphere_dim);
+  // LOS). Only used for extracting scattering properties.
+  Vector dir;
+  mirror_los(dir, ppath_line_of_sight, atmosphere_dim);
+  Matrix dir_array(1,2,0.);
+  dir_array(0,joker) = dir;
 
-  // Preparing empty derivative containers for non-pnd-affecting x.
-  // This here as we don't want to SetZero each freq entry separately.
-  // On the other hand, we want the freq loop as outer loop for pnd-affecting
-  // x since then we need to extract the scat_data_mono only once.
+  ArrayOfArrayOfTensor5 ext_mat_Nse;
+  ArrayOfArrayOfTensor4 abs_vec_Nse;
+  ArrayOfArrayOfIndex ptypes_Nse;
+  Matrix t_ok;
+  ArrayOfTensor5 ext_mat_ssbulk;
+  ArrayOfTensor4 abs_vec_ssbulk;
+  ArrayOfIndex ptype_ssbulk;
+  Tensor5 ext_mat_bulk;
+  Tensor4 abs_vec_bulk;
+  Index ptype_bulk;
+
+  // get per-scat-elem data here. and fold with pnd.
+  // keep per-scat-elem data to fold with dpnd_dx further down in
+  // analyt-jac-loop.
+  opt_prop_NScatElems( ext_mat_Nse, abs_vec_Nse, ptypes_Nse, t_ok,
+                       scat_data, stokes_dim, ppath_temperature, dir_array, -1 );
+
+  opt_prop_ScatSpecBulk( ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk,
+                         ext_mat_Nse, abs_vec_Nse, ptypes_Nse,
+                         ppath_1p_pnd, t_ok );
+  opt_prop_Bulk( ext_mat_bulk, abs_vec_bulk, ptype_bulk,
+                 ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk );
+
+  const Index nf_ssd = abs_vec_bulk.nbooks(); // number of freqs in extracted
+                                              // optprops. if 1, we need to
+                                              // duplicate the ext/abs output.
+
+  for( Index iv = 0; iv < nf; iv++ )
+  {
+    if( nf_ssd>1 )
+    {
+      ap.SetAtPosition(abs_vec_bulk(iv,0,0,joker), iv);
+      Kp.SetAtPosition(ext_mat_bulk(iv,0,0,joker,joker), iv);
+    }
+    else
+    {
+      ap.SetAtPosition(abs_vec_bulk(0,0,0,joker), iv);
+      Kp.SetAtPosition(ext_mat_bulk(0,0,0,joker,joker), iv);
+    }
+  }
+
   if( jacobian_do )
     FOR_ANALYTICAL_JACOBIANS_DO
     (
-    //for( Index iq = 0; iq < nq; iq++ )
-    //{
       if( ppath_dpnd_dx[iq].empty() )
       {
         dap_dx[iq].SetZero();
         dKp_dx[iq].SetZero();
       }
-    //}
-    )
-
-  for( Index iv = 0; iv < nf; iv++ )
-  {
-    scat_data_monoExtract(scat_data_mono, scat_data, iv, verbosity);
-
-    Matrix ext_mat(stokes_dim, stokes_dim);
-    Vector abs_vec(stokes_dim);
-
-    opt_propCalc(ext_mat, abs_vec, rtp_los2[0], 
-                 rtp_los2[1], scat_data_mono, stokes_dim,
-                 ppath_1p_pnd, ppath_temperature, verbosity);
-    ap.SetAtPosition(abs_vec, iv);
-    Kp.SetAtPosition(ext_mat, iv);
-
-    if( jacobian_do )
-      FOR_ANALYTICAL_JACOBIANS_DO
-      (
-      //for( Index iq = 0; iq < ppath_dpnd_dx.nelem(); iq++ )
-      //{
-        // check first, whether we have any non-zero ppath_dpnd_dx in this
-        // pnd-affecting x? might speed up things. specifically when we have
-        // more than one scat species.
-        //
-        // also, calling opt_propCalc several times seems disadvantagoues.
-        // better would be to call a routine that returns ext and abs per scat
-        // element (opt_propExtract?), then multiple&sum up separately per x
-        // (and for the ap and Kp). 
-        if( !ppath_dpnd_dx[iq].empty() )
+      else
+      {
+        // check, whether we have any non-zero ppath_dpnd_dx in this
+        // pnd-affecting x? might speed up things a little bit.
+        opt_prop_ScatSpecBulk( ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk,
+                               ext_mat_Nse, abs_vec_Nse, ptypes_Nse,
+                               ppath_dpnd_dx[iq](joker,Range(ppath_1p_id,1)),
+                               t_ok );
+        opt_prop_Bulk( ext_mat_bulk, abs_vec_bulk, ptype_bulk,
+                       ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk );
+        for( Index iv = 0; iv < nf; iv++ )
         {
-          opt_propCalc(ext_mat, abs_vec, rtp_los2[0], 
-                       rtp_los2[1], scat_data_mono, stokes_dim,
-                       ppath_dpnd_dx[iq](joker,ppath_1p_id),
-                       ppath_temperature, verbosity);
-          dap_dx[iq].SetAtPosition(abs_vec, iv);
-          dKp_dx[iq].SetAtPosition(ext_mat, iv);
-          //da_aux.SetAtPosition(iv, abs_vec);
-          //dK_aux.SetAtPosition(iv, ext_mat);
-          //dap_dx[iq] = da_aux;;
-          //dKp_dx[iq] = dK_aux;
+          if( nf_ssd>1 )
+          {
+            dap_dx[iq].SetAtPosition(abs_vec_bulk(iv,0,0,joker), iv);
+            dKp_dx[iq].SetAtPosition(ext_mat_bulk(iv,0,0,joker,joker), iv);
+          }
+          else
+          {
+            dap_dx[iq].SetAtPosition(abs_vec_bulk(0,0,0,joker), iv);
+            dKp_dx[iq].SetAtPosition(ext_mat_bulk(0,0,0,joker,joker), iv);
+          }
         }
-      //}
-      )
-  }
+      }
+    )
 }
 
 
@@ -5014,8 +5029,6 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
                                     const bool& jacobian_do,
                                     const Verbosity& verbosity)
 {
-  //cout << "In get_stepwise_scattersky_source\n";
-  //cout << ppath_1p_pnd << "\n";
   const Index nf = Sp.NumberOfFrequencies(),
               stokes_dim = Sp.StokesDimensions();
   const Index ne = ppath_1p_pnd.nelem();
@@ -5101,7 +5114,6 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
       }
     }
   }
-  //cout << pndT4(joker, 0, 0, 0) << "\n";
 
   // Preparing empty derivative container for non-pnd-affecting x.
   // This here as we don't want to SetZero each freq entry separately.

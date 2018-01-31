@@ -160,13 +160,20 @@ void opt_prop_ScatSpecBulk(//Output
                            const ArrayOfArrayOfTensor5& ext_mat_se, // [nss][nse](nf,nT,ndir,nst,nst)
                            const ArrayOfArrayOfTensor4& abs_vec_se, // [nss][nse](nf,nT,ndir,nst)
                            const ArrayOfArrayOfIndex& ptypes_se,
-                           ConstMatrixView pnds)
+                           ConstMatrixView pnds,
+                           ConstMatrixView t_ok)
 {
-  assert( TotalNumberOfElements(ext_mat_se) == pnds.nrows() );
+  assert( t_ok.nrows() == pnds.nrows() );
+  assert( t_ok.ncols() == pnds.ncols() );
+  assert( TotalNumberOfElements(abs_vec_se) == pnds.nrows() );
   assert( TotalNumberOfElements(abs_vec_se) == pnds.nrows() );
   assert( ext_mat_se.nelem() == abs_vec_se.nelem() );
 
   Index nT = pnds.ncols();
+  Index nf = abs_vec_se[0][0].nbooks();
+  Index nDir = abs_vec_se[0][0].nrows();
+  Index stokes_dim = abs_vec_se[0][0].ncols();
+
   Index nss = ext_mat_se.nelem();
   ext_mat.resize(nss);
   abs_vec.resize(nss);
@@ -179,33 +186,42 @@ void opt_prop_ScatSpecBulk(//Output
   for( Index i_ss=0; i_ss<nss; i_ss++ )
   {
     assert( ext_mat_se[i_ss].nelem() == abs_vec_se[i_ss].nelem() );
-
     assert( nT == ext_mat_se[i_ss][0].nbooks() );
     assert( nT == abs_vec_se[i_ss][0].npages() );
-    ext_mat[i_ss] = ext_mat_se[i_ss][0];
-    abs_vec[i_ss] = abs_vec_se[i_ss][0];
-    for( Index Tind=0; Tind<nT; Tind++ )
-    {
-      ext_mat[i_ss](joker,Tind,joker,joker,joker) *= pnds(i_se_flat,Tind);
-      abs_vec[i_ss](joker,Tind,joker,joker) *= pnds(i_se_flat,Tind);
-    }
 
-    i_se_flat++;
+    ext_mat[i_ss].resize(nf,nT,nDir,stokes_dim,stokes_dim);
+    ext_mat[i_ss] = 0.;
+    abs_vec[i_ss].resize(nf,nT,nDir,stokes_dim);
+    abs_vec[i_ss] = 0.;
 
-    for( Index i_se=1; i_se< ext_mat_se[i_ss].nelem(); i_se++ )
+    for( Index i_se=0; i_se< ext_mat_se[i_ss].nelem(); i_se++ )
     {
       assert( nT == ext_mat_se[i_ss][i_se].nbooks() );
       assert( nT == abs_vec_se[i_ss][i_se].npages() );
 
       for( Index Tind=0; Tind<nT; Tind++ )
       {
-        ext_tmp = ext_mat_se[i_ss][i_se](joker,Tind,joker,joker,joker);
-        ext_tmp *= pnds(i_se_flat,Tind);
-        ext_mat[i_ss](joker,Tind,joker,joker,joker) += ext_tmp;
+        if( pnds(i_se_flat,Tind)!=0. )
+        {
+          if (t_ok(i_se_flat,Tind)>0. || pnds(i_se_flat,Tind)==0. )
+          {
+            ext_tmp = ext_mat_se[i_ss][i_se](joker,Tind,joker,joker,joker);
+            ext_tmp *= pnds(i_se_flat,Tind);
+            ext_mat[i_ss](joker,Tind,joker,joker,joker) += ext_tmp;
 
-        abs_tmp = abs_vec_se[i_ss][i_se](joker,Tind,joker,joker);
-        abs_tmp *= pnds(i_se_flat,Tind);
-        abs_vec[i_ss](joker,Tind,joker,joker) += abs_tmp;
+            abs_tmp = abs_vec_se[i_ss][i_se](joker,Tind,joker,joker);
+            abs_tmp *= pnds(i_se_flat,Tind);
+            abs_vec[i_ss](joker,Tind,joker,joker) += abs_tmp;
+          }
+          else
+          {
+            ostringstream os;
+            os << "Interpolation error for (flat-array) scattering element #"
+               << i_se_flat << "\n"
+               << "at location/temperature point #" << Tind << "\n";
+            throw runtime_error( os.str() );
+          }
+        }
       }
       i_se_flat++;
 
@@ -247,6 +263,7 @@ void opt_prop_NScatElems(//Output
                          ArrayOfArrayOfTensor5& ext_mat, // [nss][nse](nf,nT,ndir,nst,nst)
                          ArrayOfArrayOfTensor4& abs_vec, // [nss][nse](nf,nT,ndir,nst)
                          ArrayOfArrayOfIndex& ptypes,
+                         Matrix& t_ok,
                          //Input
                          const ArrayOfArrayOfSingleScatteringData& scat_data,
                          const Index& stokes_dim,
@@ -280,6 +297,10 @@ void opt_prop_NScatElems(//Output
   abs_vec.resize(nss);
   ptypes.resize(nss);
 
+  const Index Nse_all = TotalNumberOfElements(scat_data);
+  t_ok.resize(Nse_all,nT);
+  Index i_se_flat = 0;
+
   for( Index i_ss=0; i_ss<nss; i_ss++ )
   {
     Index nse = scat_data[i_ss].nelem();
@@ -292,13 +313,14 @@ void opt_prop_NScatElems(//Output
         ext_mat[i_ss][i_se].resize(nf, nT, nDir, stokes_dim, stokes_dim);
         abs_vec[i_ss][i_se].resize(nf, nT, nDir, stokes_dim);
 
-        opt_prop_1ScatElem(ext_mat[i_ss][i_se],
-                           abs_vec[i_ss][i_se],
-                           ptypes[i_ss][i_se],
+        opt_prop_1ScatElem(ext_mat[i_ss][i_se], abs_vec[i_ss][i_se],
+                           ptypes[i_ss][i_se], t_ok(i_se_flat,joker),
                            scat_data[i_ss][i_se],
                            T_array, dir_array, f_start, t_interp_order);
+        i_se_flat++;
       }
   }
+  assert( i_se_flat == Nse_all );
 }
 
 //! Preparing extinction and absorption from one scattering element.
@@ -328,6 +350,7 @@ void opt_prop_1ScatElem(//Output
                         Tensor5View ext_mat, // nf, nT, ndir, nst, nst
                         Tensor4View abs_vec, // nf, nT, ndir, nst
                         Index& ptype,
+                        VectorView t_ok,
                         //Input
                         const SingleScatteringData& ssd,
                         const Vector& T_array,
@@ -362,6 +385,7 @@ void opt_prop_1ScatElem(//Output
   Index nTout = T_array.nelem();
   assert( ext_mat.nbooks() == nTout );
   assert( abs_vec.npages() == nTout );
+  assert( t_ok.nelem() == nTout );
 
   Index nDir = dir_array.nrows();
   assert( ext_mat.npages() == nDir );
@@ -386,15 +410,67 @@ void opt_prop_1ScatElem(//Output
     this_T_interp_order = min(t_interp_order, nTin);
     T_itw.resize(nTout, this_T_interp_order+1);
 
-    ostringstream os;
-    os << "In opt_prop_1ScatElem.\n"
-       << "Scattering data not covering at least one of the requested"
-       << " temperatures:\n"
-       << T_array;
-    chk_interpolation_grids(os.str(), ssd.T_grid, T_array, this_T_interp_order);
+    // we need to check T-grid exceedance. and catch these cases (because T
+    // is assumed to correspond to a location and T-exceedance is ok when pnd=0
+    // there. however, here we do not know pnd.) and report them to have the
+    // calling method dealing with it.
+    
+    // we set the extrapolfax explicitly and use it here as well as in
+    // gridpos_poly below.
+    const Numeric extrapolfac=0.5;
+    const Numeric lowlim = ssd.T_grid[0] -
+                           extrapolfac * (ssd.T_grid[1]-ssd.T_grid[0]);
+    const Numeric uplim = ssd.T_grid[nTin-1] +
+                          extrapolfac * (ssd.T_grid[nTin-1]-ssd.T_grid[nTin-2]);
 
-    gridpos_poly(T_gp, ssd.T_grid, T_array, this_T_interp_order);
+    bool any_T_exceed = false;
+    for( Index Tind=0; Tind<nTout; Tind++ )
+    {
+      if( T_array[Tind]<lowlim || T_array[Tind]>uplim )
+      {
+        t_ok[Tind] = -1.;
+        any_T_exceed = true;
+      }
+      else
+        t_ok[Tind] = 1.;
+    }
+
+    if( any_T_exceed )
+    {
+      GridPosPoly dummy_gp;
+      dummy_gp.idx.resize(this_T_interp_order+1);
+      dummy_gp.w.resize(this_T_interp_order+1);
+      for (Index i=0; i<=this_T_interp_order; ++i)
+        dummy_gp.idx[i] = i;
+      dummy_gp.w[0] = 1.;
+      bool grid_unchecked = true;
+
+      for( Index iT=0; iT<nTout; iT++ )
+      {
+        if( t_ok[iT]<0 )
+          // setup T-exceed points with dummy grid positions
+          T_gp[iT] = dummy_gp;
+        else
+        {
+          if( grid_unchecked )
+          {
+            chk_interpolation_grids(
+              "Temperature interpolation in opt_prop_1ScatElem",
+              ssd.T_grid, T_array[Range(iT,1)], this_T_interp_order);
+            grid_unchecked = false;
+          }
+          gridpos_poly(T_gp[iT], ssd.T_grid, T_array[iT], this_T_interp_order,
+                       extrapolfac);
+        }
+      }
+    }
+    else
+      gridpos_poly(T_gp, ssd.T_grid, T_array, this_T_interp_order, extrapolfac);
     interpweights(T_itw, T_gp);
+  }
+  else
+  {
+    t_ok = 1.;
   }
 
   // Now loop over requested directions (and apply simultaneously for all freqs):
@@ -436,17 +512,23 @@ void opt_prop_1ScatElem(//Output
           interp(ext_mat_tmp_ssd(joker,nst), T_itw,
                  ssd.ext_mat_data(find+f_start,joker,0,0,nst), T_gp);
         for( Index Tind=0; Tind<nTout; Tind++ )
-          ext_mat_SSD2Stokes(ext_mat_tmp(find,Tind,joker,joker),
-                             ext_mat_tmp_ssd(Tind,joker),
-                             stokes_dim, ptype);
+          if( t_ok[Tind]>0. )
+            ext_mat_SSD2Stokes(ext_mat_tmp(find,Tind,joker,joker),
+                               ext_mat_tmp_ssd(Tind,joker),
+                               stokes_dim, ptype);
+          else
+            ext_mat_tmp(find,Tind,joker,joker) = 0.;
 
         for( Index nst=0; nst<abs_vec_tmp_ssd.ncols(); nst++ )
           interp(abs_vec_tmp_ssd(joker,nst), T_itw,
                  ssd.abs_vec_data(find+f_start,joker,0,0,nst), T_gp);
         for( Index Tind=0; Tind<nTout; Tind++ )
-          abs_vec_SSD2Stokes(abs_vec_tmp(find,Tind,joker),
-                             abs_vec_tmp_ssd(Tind,joker),
-                             stokes_dim, ptype);
+          if( t_ok[Tind]>0. )
+            abs_vec_SSD2Stokes(abs_vec_tmp(find,Tind,joker),
+                               abs_vec_tmp_ssd(Tind,joker),
+                               stokes_dim, ptype);
+          else
+            abs_vec_tmp(find,Tind,joker) = 0.;
       }
 
       for( Index dind=0; dind<nDir; dind++ )

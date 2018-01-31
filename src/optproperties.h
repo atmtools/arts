@@ -151,12 +151,14 @@ void opt_prop_ScatSpecBulk(//Output
                            const ArrayOfArrayOfTensor5& ext_mat_se,
                            const ArrayOfArrayOfTensor4& abs_vec_se,
                            const ArrayOfArrayOfIndex& ptypes_se,
-                           ConstMatrixView pnds);
+                           ConstMatrixView pnds,
+                           ConstMatrixView t_ok);
 
 void opt_prop_NScatElems(//Output
                          ArrayOfArrayOfTensor5& ext_mat,
                          ArrayOfArrayOfTensor4& abs_vec,
                          ArrayOfArrayOfIndex& ptypes,
+                         Matrix& t_ok,
                          //Input
                          const ArrayOfArrayOfSingleScatteringData& scat_data,
                          const Index& stokes_dim,
@@ -169,6 +171,7 @@ void opt_prop_1ScatElem(//Output
                         Tensor5View ext_mat,
                         Tensor4View abs_vec,
                         Index& ptype,
+                        VectorView t_ok,
                         //Input
                         const SingleScatteringData& ssd,
                         const Vector& T_array,
