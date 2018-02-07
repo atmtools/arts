@@ -152,7 +152,7 @@ VectorSet(fos_iyin_za_angles,[0,30,50,80,90,91,92,93,94,95,105,110,130,150,180])
 #####
 AgendaSet(iy_main_agenda)
 {
-  Ignore(t_nlte_field)
+  Ignore(nlte_field)
   Ignore(iy_id)
   iyFOS(fos_n=scatorder)
 }

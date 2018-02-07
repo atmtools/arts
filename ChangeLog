@@ -1,3 +1,49 @@
+2018-02-07  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-946
+	
+	!!WARNING!!  Name-change breaking controlfile  !!WARNING!!
+	
+	This update changes the workspace variables related to NLTE to
+	remove or append the reference to NLTE temperatures.  The reason
+	for this update is that ARTS now supports line strength computations
+	directly from population level distributions.  This update became 
+	necessary after it became apparent it is impossible to use the 
+	vibrational temperature approach to rotational spectra.
+	
+	Since Takayoshi Yamada's code is now in typhon, it is now possible for
+	others to access this code-path knowingly, so updating the naming
+	seems important
+	
+	* controlfiles/*,src/{worspace,methods,agendas}.cc:  Changed name
+	
+	* src/m_atmosphere.cc:  Changed required name of file to remove "t_"
+	for nlte.  Old files called basename+t_nlte.xml should be called
+	basename+nlte.xml in the future.
+	
+	* src/propagationmatrix.{cc,h}:  Can now send derivative of
+	distance into function and it should produce transmission derivatives.
+	Supports one Index (implied to be temperature for HSE)
+	
+	* src/test_proagationmatrix.cc:  Short test that exists for a simple
+	class I have been looking at for using Eigen more in the transmission
+	calculations.  This simple test indicates speed-up of quite a lot,
+	though I am unsure if this is because of Eigen optimizing away a lot
+	of things... more about this in the future if I discover what it 
+	really does...
+	
+	Ps.  Three controlfiles fail the slow test currently:
+	8 - arts.slow.doc.uguide.refs 
+	76 - arts.ctlfile.xmldata.artscomponents.doit.TestDOITpressureoptimization 
+	87 - arts.ctlfile.slow.artscomponents.wfuns.TestDoitJacobians 
+	These fail because:
+	8) Many unknown WSM
+	76) Ptype value (20) is wrong.It must be (... 20 is in the list ...)
+	87) Ptype value (20) is wrong.It must be (... 20 is in the list ...)
+	Since this is unrelated to my change, I will ignore this but someone
+	should investigate...
+
+
 2018-01-31 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-945

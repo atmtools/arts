@@ -214,11 +214,11 @@ void define_md_data_raw()
          "parameters to *propmat_clearsky_agenda*.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_p", "abs_t", "abs_t_nlte", "abs_vmrs" ),
+        OUT( "abs_p", "abs_t", "abs_nlte", "abs_vmrs" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "rtp_pressure", "rtp_temperature", "rtp_temperature_nlte", "rtp_vmr" ),
+        IN( "rtp_pressure", "rtp_temperature", "rtp_nlte", "rtp_vmr" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -1833,7 +1833,7 @@ void define_md_data_raw()
         IN( "abs_xsec_per_species", "src_xsec_per_species", 
             "dabs_xsec_per_species_dx", "dsrc_xsec_per_species_dx",
             "abs_species", "jacobian_quantities", "abs_species_active",
-            "f_grid", "abs_p", "abs_t", "abs_t_nlte", "lm_p_lim",
+            "f_grid", "abs_p", "abs_t", "abs_nlte", "lm_p_lim",
             "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
             "isotopologue_ratios", "partition_functions"),
         GIN(),
@@ -1864,7 +1864,7 @@ void define_md_data_raw()
       IN( "abs_xsec_per_species", "src_xsec_per_species", 
           "dabs_xsec_per_species_dx", "dsrc_xsec_per_species_dx",
           "abs_species", "jacobian_quantities", "abs_species_active",
-          "f_grid", "abs_p", "abs_t", "abs_t_nlte", "lm_p_lim",
+          "f_grid", "abs_p", "abs_t", "abs_nlte", "lm_p_lim",
           "xsec_speedup_switch", "abs_vmrs", "abs_lines_per_species",
           "isotopologue_ratios", "partition_functions"),
       GIN(),
@@ -2585,7 +2585,7 @@ void define_md_data_raw()
       ( NAME( "AtmFieldsCalc" ),
         DESCRIPTION
         (
-         "Interpolation of raw atmospheric T, z, VMR, and NLTE T fields to\n"
+         "Interpolation of raw atmospheric T, z, VMR, and NLTE T/r fields to\n"
          "calculation grids.\n"
          "\n"
          "An atmospheric scenario includes the following data for each\n"
@@ -2596,8 +2596,8 @@ void define_md_data_raw()
          "This method interpolates the fields of raw data (*t_field_raw*,\n"
          "*z_field_raw*, *vmr_field_raw*) which can be stored on arbitrary\n"
          "grids to the calculation grids (*p_grid*, *lat_grid*, *lon_grid*).\n"
-         "If *t_nlte_field_raw* is empty, it is assumed to be so because LTE is\n"
-         "assumed by the user and *t_nlte_field* will be empty.\n"
+         "If *nlte_field_raw* is empty, it is assumed to be so because LTE is\n"
+         "assumed by the user and *nlte_field* will be empty.\n"
          "\n"
          "Internally, *AtmFieldsCalc* applies *GriddedFieldPRegrid* and\n"
          "*GriddedFieldLatLonRegrid*. Generally, 'half-grid-step' extrapolation\n"
@@ -2612,12 +2612,12 @@ void define_md_data_raw()
          "above 1.\n"
          ),
         AUTHORS( "Claudia Emde", "Stefan Buehler" ),
-        OUT( "t_field", "z_field", "vmr_field", "t_nlte_field" ),
+        OUT( "t_field", "z_field", "vmr_field", "nlte_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
-            "vmr_field_raw", "t_nlte_field_raw", "atmosphere_dim" ),
+            "vmr_field_raw", "nlte_field_raw", "atmosphere_dim" ),
         GIN( "interp_order", "vmr_zeropadding", "vmr_nonegative", "nlte_when_negative" ),
         GIN_TYPE( "Index", "Index", "Index", "Index" ),
         GIN_DEFAULT( "1", "0", "0", "0" ),
@@ -2645,12 +2645,12 @@ void define_md_data_raw()
          "ellipsoid is set to be a sphere.\n"
          ),
         AUTHORS( "Patrick Eriksson", "Claudia Emde", "Stefan Buehler" ),
-        OUT( "t_field", "z_field", "vmr_field", "t_nlte_field" ),
+        OUT( "t_field", "z_field", "vmr_field", "nlte_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
-            "vmr_field_raw", "t_nlte_field_raw", "atmosphere_dim" ),
+            "vmr_field_raw", "nlte_field_raw", "atmosphere_dim" ),
         GIN( "interp_order", "vmr_zeropadding", "vmr_nonegative", "nlte_when_negative" ),
         GIN_TYPE( "Index", "Index", "Index", "Index" ),
         GIN_DEFAULT( "1", "0", "0", "0" ),
@@ -2993,7 +2993,7 @@ void define_md_data_raw()
          "\n"
          "The data is stored in different files. This methods reads all\n"
          "files and creates the variables *t_field_raw*, *z_field_raw* and\n"
-         "*vmr_field_raw*.  *t_nlte_field_raw* is set to empty.\n"
+         "*vmr_field_raw*.  *nlte_field_raw* is set to empty.\n"
          "\n"
          "Files in a scenarios should be named matching the pattern of:\n"
          "basename.speciesname.xml\n (for temperature and altitude the\n"
@@ -3006,7 +3006,7 @@ void define_md_data_raw()
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", 
-             "t_nlte_field_raw", "nlte_quantum_identifiers" ),
+             "nlte_field_raw", "nlte_quantum_identifiers" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -3034,7 +3034,7 @@ void define_md_data_raw()
          "   4. Non-LTE temperature fields and matching identifiers\n"
          "The data is stored in different files. This method reads all\n"
          "files and creates the variables *t_field_raw*, *z_field_raw*,\n"
-         "*vmr_field_raw*, *t_nlte_field_raw*, and *nlte_quantum_identifiers*.\n"
+         "*vmr_field_raw*, *nlte_field_raw*, and *nlte_quantum_identifiers*.\n"
          "\n"
          "Files in a scenarios should be named matching the pattern of:\n"
          "tropical.H2O.xml\n"
@@ -3045,7 +3045,7 @@ void define_md_data_raw()
          "species, the same profile will be used.\n"
          ),
         AUTHORS( "Claudia Emde", "Richard Larsson" ),
-        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", "t_nlte_field_raw", "nlte_quantum_identifiers" ),
+        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", "nlte_field_raw", "nlte_quantum_identifiers" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -7255,7 +7255,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "diy_dx", "iy_id", "stokes_dim", "f_grid", "atmosphere_dim",
             "p_grid", "z_field",
-            "t_field", "t_nlte_field", "vmr_field", "abs_species", 
+            "t_field", "nlte_field", "vmr_field", "abs_species", 
             "wind_u_field", "wind_v_field", "wind_w_field",
             "mag_u_field", "mag_v_field", "mag_w_field", 
             "cloudbox_on", "iy_unit", "iy_aux_vars", "jacobian_do", 
@@ -7314,13 +7314,13 @@ void define_md_data_raw()
          "    is, the transmission can vary between Stokes elements.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux2", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_t_nlte",
+        OUT( "iy", "iy_aux2", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
              "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_f", "ppvar_iy" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "diy_dx", "iy_id", "stokes_dim", "f_grid", "atmosphere_dim",
-            "p_grid", "z_field", "t_field", "t_nlte_field", "vmr_field",
+            "p_grid", "z_field", "t_field", "nlte_field", "vmr_field",
             "abs_species", "wind_u_field", "wind_v_field", "wind_w_field",
             "mag_u_field", "mag_v_field", "mag_w_field", 
             "cloudbox_on", "iy_unit", "iy_aux_vars",
@@ -7424,14 +7424,14 @@ void define_md_data_raw()
          "So far just for testing.\n"
       ),
       AUTHORS( "Patrick Eriksson", "Jana Mendrok", "Richard Larsson" ),
-        OUT( "iy", "iy_aux2", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_t_nlte",
+        OUT( "iy", "iy_aux2", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
              "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_pnd",
              "ppvar_f", "ppvar_iy" ),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN( "diy_dx", "iy_id", "stokes_dim", "f_grid", "atmosphere_dim", "p_grid",
-          "z_field", "t_field", "t_nlte_field", "vmr_field", "abs_species",
+          "z_field", "t_field", "nlte_field", "vmr_field", "abs_species",
           "wind_u_field", "wind_v_field", "wind_w_field",
           "mag_u_field", "mag_v_field", "mag_w_field",
           "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
@@ -7465,7 +7465,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "diy_dx", "iy_id", "f_grid", "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "lat_true", "lon_true", "t_field", "z_field",
-            "vmr_field", "t_nlte_field", "wind_u_field", "wind_v_field",
+            "vmr_field", "nlte_field", "wind_u_field", "wind_v_field",
             "wind_w_field", "mag_u_field", "mag_v_field", "mag_w_field",
             "cloudbox_on", "cloudbox_limits", "pnd_field",
             "particle_masses", "ppath_agenda", "ppath_lmax", "ppath_lraytrace",
@@ -8030,7 +8030,7 @@ void define_md_data_raw()
       GOUT_TYPE(),
       GOUT_DESC(),
       IN( "diy_dx", "stokes_dim", "f_grid", "atmosphere_dim", "p_grid",
-          "z_field", "t_field", "t_nlte_field", "vmr_field", "abs_species", 
+          "z_field", "t_field", "nlte_field", "vmr_field", "abs_species", 
           "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
           "mag_v_field", "mag_w_field", 
           "cloudbox_on", "cloudbox_limits", "pnd_field", 
@@ -8115,14 +8115,14 @@ void define_md_data_raw()
           "the selection is restricted to the variables marked with *.\n"
       ),
       AUTHORS( "Patrick Eriksson" ),
-      OUT( "iy", "iy_aux2", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_t_nlte",
+      OUT( "iy", "iy_aux2", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
            "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_pnd", "ppvar_f",
            "ppvar_iy" ),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN( "diy_dx", "stokes_dim", "f_grid", "atmosphere_dim", "p_grid",
-          "t_field", "t_nlte_field", "vmr_field", "abs_species",
+          "t_field", "nlte_field", "vmr_field", "abs_species",
           "wind_u_field", "wind_v_field", "wind_w_field",
           "mag_u_field", "mag_v_field", "mag_w_field",
           "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
@@ -10631,11 +10631,11 @@ void define_md_data_raw()
          "Disable Non-LTE calculations.\n"
          "\n"
          "The variables are set as follows:\n"
-         "   t_nlte_field             : Empty.\n"
+         "   nlte_field             : Empty.\n"
          "   nlte_quantum_identifiers : Empty.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
-        OUT( "nlte_do", "t_nlte_field", "nlte_quantum_identifiers" ),
+        OUT( "nlte_do", "nlte_field", "nlte_quantum_identifiers" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -10684,7 +10684,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_lines_per_species", "nlte_quantum_identifiers", "abs_species", "t_nlte_field", "p_grid",
+        IN( "abs_lines_per_species", "nlte_quantum_identifiers", "abs_species", "nlte_field", "p_grid",
             "lat_grid", "lon_grid", "atmosphere_dim"),
         GIN("vibrational_energies", "population_type"),
         GIN_TYPE("Vector", "Index"),
@@ -12160,7 +12160,7 @@ void define_md_data_raw()
             "dpropmat_clearsky_dx", "dnlte_dx_source","nlte_dsource_dx",
             "f_grid",
             "abs_species","jacobian_quantities",
-            "rtp_pressure", "rtp_temperature", "rtp_temperature_nlte", "rtp_vmr",
+            "rtp_pressure", "rtp_temperature", "rtp_nlte", "rtp_vmr",
             "abs_xsec_agenda"
            ),
         GIN(),
@@ -12286,7 +12286,7 @@ void define_md_data_raw()
            "isotopologue_ratios",
            "isotopologue_quantum",
            "partition_functions",
-           "rtp_pressure", "rtp_temperature", "lm_p_lim", "rtp_temperature_nlte", "rtp_vmr",
+           "rtp_pressure", "rtp_temperature", "lm_p_lim", "rtp_nlte", "rtp_vmr",
            "rtp_mag", "rtp_los", "atmosphere_dim"),
         GIN("manual_zeeman_tag","manual_zeeman_magnetic_field_strength",
             "manual_zeeman_theta","manual_zeeman_eta"),
@@ -12327,7 +12327,7 @@ void define_md_data_raw()
            "abs_lineshape",
            "isotopologue_ratios",
            "partition_functions",
-           "rtp_pressure", "rtp_temperature", "lm_p_lim", "rtp_temperature_nlte", "rtp_vmr",
+           "rtp_pressure", "rtp_temperature", "lm_p_lim", "rtp_nlte", "rtp_vmr",
            "rtp_mag", "rtp_los", "atmosphere_dim"),
         GIN("manual_zeeman_tag","manual_zeeman_magnetic_field_strength",
             "manual_zeeman_theta","manual_zeeman_eta"),
@@ -12464,7 +12464,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmfields_checked", "f_grid", "stokes_dim",
             "p_grid", "lat_grid", "lon_grid",
-            "t_field", "vmr_field", "t_nlte_field",
+            "t_field", "vmr_field", "nlte_field",
             "mag_u_field", "mag_v_field", "mag_w_field",
             "propmat_clearsky_agenda" ),
         GIN("doppler", "los"),

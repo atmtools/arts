@@ -56,9 +56,9 @@ AtmosphereSet1D
 # 
 AtmRawRead( basename = "testdata/tropical" )
 #
-AtmFieldsCalc( t_field, z_field, vmr_field, t_nlte_field, p_grid, 
+AtmFieldsCalc( t_field, z_field, vmr_field, nlte_field, p_grid, 
                lat_grid, lon_grid, t_field_raw, z_field_raw, 
-               vmr_field_raw, t_nlte_field_raw, atmosphere_dim, 3 )
+               vmr_field_raw, t_field_raw, atmosphere_dim, 3 )
 
 
 # Surface altitude

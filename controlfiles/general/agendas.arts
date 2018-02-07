@@ -41,7 +41,7 @@ AgendaSet( iy_main_agenda__Transmission ){
 #AgendaSet( iy_main_agenda__Radiolink ){
 #  Ignore( iy_unit )
 #  Ignore( rte_los )
-#  Ignore( t_nlte_field )
+#  Ignore( nlte_field )
 #  Ignore( diy_dx )
 #  Ignore( iy_id )
 #  iyRadioLink
@@ -50,7 +50,7 @@ AgendaSet( iy_main_agenda__Transmission ){
 ###
 AgendaCreate( iy_main_agenda__Freqloop )
 AgendaSet( iy_main_agenda__Freqloop ){
-  Ignore( t_nlte_field )
+  Ignore( nlte_field )
   Ignore( diy_dx )
   Ignore( iy_id )
   iyLoopFrequencies
@@ -60,7 +60,7 @@ AgendaSet( iy_main_agenda__Freqloop ){
 AgendaCreate( iy_main_agenda__ScattMC )
 AgendaSet( iy_main_agenda__ScattMC ){
   Ignore( rte_pos2 )
-  Ignore( t_nlte_field )
+  Ignore( nlte_field )
   Ignore( diy_dx )
   Ignore( iy_id )
   iyMC
@@ -70,7 +70,7 @@ AgendaSet( iy_main_agenda__ScattMC ){
 ###
 #AgendaCreate( iy_main_agenda__FOSN0 )
 #AgendaSet( iy_main_agenda__FOSN0 ){
-#    Ignore(t_nlte_field)
+#    Ignore(nlte_field)
 #    Ignore(iy_id)
 #    iyFOS(fos_n=0)
 #}
@@ -103,7 +103,7 @@ AgendaSet( iy_sub_agenda__Transmission ){
   Ignore( lon_true )
   Ignore( z_surface )
   Ignore( iy_unit )
-  Ignore( t_nlte_field )
+  Ignore( nlte_field )
   Ignore( iy_id )
   iyTransmissionStandard
 }
@@ -115,7 +115,7 @@ AgendaSet( iy_sub_agenda__Transmission ){
 #  Ignore( lon_true )
 #  Ignore( iy_unit )
 #  Ignore( rte_los )
-#  Ignore( t_nlte_field )
+#  Ignore( nlte_field )
 #  Ignore( diy_dx )
 #  Ignore( iy_id )
 #  iyRadioLink
@@ -325,7 +325,7 @@ AgendaCreate( propmat_clearsky_agenda__LookUpTable )
 AgendaSet( propmat_clearsky_agenda__LookUpTable ){
   Ignore(rtp_mag)
   Ignore(rtp_los)
-  Ignore(rtp_temperature_nlte)
+  Ignore(rtp_nlte)
   propmat_clearskyInit
   propmat_clearskyAddFromLookup
 }

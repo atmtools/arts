@@ -29,7 +29,7 @@
 Arts2 {
 
 # here, we do LTE only so far, but need to initialize NLTE t-field accordingly
-Touch( t_nlte_field_raw )
+Touch( nlte_field_raw )
 
 # this brings z_, t_, and vmr_field_raw to p/lat/lon_grid for 2D or 3D atmosphere 
 AtmFieldsCalcExpand1D( interp_order=interp_order, vmr_zeropadding=vmr_zeropad )

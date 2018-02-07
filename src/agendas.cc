@@ -73,7 +73,7 @@ void define_agenda_data()
         ),
        OUTPUT( "propmat_clearsky", "nlte_source", "dpropmat_clearsky_dx", "dnlte_dx_source", "nlte_dsource_dx" ),
        INPUT(  "jacobian_quantities", "f_grid", "rtp_mag", "rtp_los", "rtp_pressure", 
-               "rtp_temperature", "rtp_temperature_nlte", "rtp_vmr" )));
+               "rtp_temperature", "rtp_nlte", "rtp_vmr" )));
   
   agenda_data.push_back
     (AgRecord
@@ -103,7 +103,7 @@ void define_agenda_data()
        OUTPUT( "abs_xsec_per_species", "src_xsec_per_species", 
                "dabs_xsec_per_species_dx", "dsrc_xsec_per_species_dx" ),
       INPUT(  "abs_species", "jacobian_quantities", "abs_species_active",
-              "f_grid", "abs_p", "abs_t", "abs_t_nlte", "abs_vmrs" )));
+              "f_grid", "abs_p", "abs_t", "abs_nlte", "abs_vmrs" )));
 
  agenda_data.push_back
     (AgRecord

@@ -192,7 +192,7 @@ void ECS_wigner_CO2(Matrix& M,
   wig_table_init(int(size), 6);
   
   // Main loop over all the lines
-  #pragma omp parallel for
+  #pragma omp parallel for schedule(guided)
   for(Index j=0; j<nj; j++) // For all lines
   {
     wig_thread_temp_init(int(size));

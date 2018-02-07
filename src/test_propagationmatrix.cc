@@ -564,6 +564,43 @@ void test_funs_compression()
   std::cout << std::endl << f1 << std::endl << f2 << std::endl;
 }
 
+/*
+void test_transmission(int i)
+{
+  Vector v4(4), o4(4);
+  v4 = 1;
+  Eigen::Vector4d ev4, eo4;
+  ev4 << 1,1,1,1;
+  std::cout<<v4<<"\n"<<ev4<<"\n";
+  Tensor3 t3(i, 4, 4);
+  for(int j=0; j<i; j++) for(int m=0; m<4; m++) for(int n=0; n<4; n++) t3(j, m, n) = (1.0 + j*m + j*n + j + m + n)/i/i;
+  
+  TransmissionMatrix et3(t3);
+  ArrayOfMatrix4f aom4f = et3.GetData4();
+  Index count = 0;
+  
+  for(int j=0; j<i; j++){
+    count++;
+    if(i%2)
+      mult(v4, t3(j, joker, joker), o4);
+    else
+      mult(o4, t3(j, joker, joker), v4);
+  }
+  
+  for(int j=0; j<i; j++){
+    count++;
+    if(i%2)
+      ev4.noalias() = aom4f[j] * eo4;
+    else
+      eo4.noalias() = aom4f[j] * ev4;
+  }
+  
+  std::cout<<t3(i-1,joker,joker)<<"\n";
+  std::cout<<aom4f[i-1]<<"\n";
+  std::cout<<o4<<"\n"<<eo4<<"\n";
+  std::cout<<count<<"\n";
+}*/
+
 
 int main()
 {

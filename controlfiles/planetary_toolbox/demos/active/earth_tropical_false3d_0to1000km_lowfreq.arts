@@ -54,7 +54,7 @@ Append( vmr_field_raw, raw3 )
 
 
 # here, we do LTE only so far, but need to initialize NLTE t-field accordingly
-Touch( t_nlte_field_raw )
+Touch( nlte_field_raw )
 
 # Interpolate to p_grid (VMR is "zero padded")
 AtmFieldsCalcExpand1D( vmr_zeropadding=1 )

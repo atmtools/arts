@@ -3493,7 +3493,7 @@ void AtmWithNLTERawRead(//WS Output:
                         GriddedField3&        t_field_raw,
                         GriddedField3&        z_field_raw,
                         ArrayOfGriddedField3& vmr_field_raw,
-                        ArrayOfGriddedField3& t_nlte_field_raw,
+                        ArrayOfGriddedField3& nlte_field_raw,
                         ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
                         //WS Input:
                         const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -3545,8 +3545,8 @@ void AtmWithNLTERawRead(//WS Output:
     }
 
   // Read each nlte temperature field:
-  file_name = tmp_basename + "t_nlte.xml";
-  xml_read_from_file( file_name, t_nlte_field_raw, verbosity);
+  file_name = tmp_basename + "nlte.xml";
+  xml_read_from_file( file_name, nlte_field_raw, verbosity);
   
   out3 << "NLTE temperature fieldarray read from file: " << file_name << "\n";  
   
@@ -3556,7 +3556,7 @@ void AtmWithNLTERawRead(//WS Output:
   
   out3 << "NLTE identifier array read from file: " << file_name << "\n";
   
-  if(t_nlte_field_raw.nelem()!=nlte_quantum_identifiers.nelem())
+  if(nlte_field_raw.nelem()!=nlte_quantum_identifiers.nelem())
   {
     ostringstream os;
     os << "The quantum identifers and the NLTE temperature fields\n"

@@ -630,17 +630,17 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-    ( NAME( "abs_t_nlte" ),
+    ( NAME( "abs_nlte" ),
       DESCRIPTION
       (
-       "List of NLTE temperatures to be used for the calculation of absorption\n"
-       "coefficients.\n"
+       "List of NLTE temperatures or ratios to be used for the calculation of\n"
+       "absorption coefficients.\n"
        "\n"
-       "In contrast to the global *t_nlte_field*, this is just a matrix. Any\n"
+       "In contrast to the global *nlte_field*, this is just a matrix. Any\n"
        "absorption method should check that the columns of this vector is the\n"
        "same as that of *abs_p*\n"
        "\n"
-       "Dimension: [nlte_temperatures, p_grid] or [ 0, 0 ]\n"
+       "Dimension: [nltes, p_grid] or [ 0, 0 ]\n"
        "\n"
        "Unit: K\n"
        ),
@@ -3910,10 +3910,10 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "ppvar_t_nlte" ),
+    ( NAME( "ppvar_nlte" ),
       DESCRIPTION
       (
-       "Non-LTE temperatures along the propagation path.\n"
+       "Non-LTE temperatures/ratios along the propagation path.\n"
        "\n"
        "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
        "\n"
@@ -4479,12 +4479,12 @@ void Workspace::define_wsv_data()
    
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "rtp_temperature_nlte" ),
+    ( NAME( "rtp_nlte" ),
       DESCRIPTION
       (
-       "NLTE Temperature at a radiative transfer point.\n"
+       "NLTE temperature/ratio at a radiative transfer point.\n"
        "\n"
-       "This vector variable can hold the NLTE temperature. It is intended\n"
+       "This vector variable can hold the NLTE temperature/ratio. It is intended\n"
        "mainly for communication with various methods and agendas, such as\n"
        "methods and agendas calculating absorption coefficients.\n"
        "The WSV is used as input to methods and agendas calculating radiative\n"
@@ -5906,16 +5906,16 @@ void Workspace::define_wsv_data()
    
    wsv_data.push_back
    (WsvRecord
-    ( NAME( "t_nlte_field" ),
+    ( NAME( "nlte_field" ),
       DESCRIPTION
       (
-       "The field of NLTE temperatures.\n"
+       "The field of NLTE temperatures and/or ratios.\n"
        "\n"
-       "This variable gives the NLTE temperature at each crossing of\n"
+       "This variable gives the NLTE temperature/ratio at each crossing of\n"
        "the pressure, latitude and longitude grids.  The size of the\n"
        "array is the number of NLTE levels in all molecules.\n"
        "\n"
-       "The temperature for a point between the grid crossings is obtained \n"
+       "The temperature/ratio for a point between the grid crossings is obtained \n"
        "by (multi-)linear interpolation of the *t_field*.\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
@@ -5958,11 +5958,11 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
    (WsvRecord
-    ( NAME( "t_nlte_field_raw" ),
+    ( NAME( "nlte_field_raw" ),
       (
-       "Raw data for NLTE temperatures.\n"
+       "Raw data for NLTE temperatures and/or ratios.\n"
        "\n"
-       "This variable gives the NLTE temperature as stored in the \n"
+       "This variable gives the NLTE temperature/ratio as stored in the \n"
        "database for the atmospheric scenarios.\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
