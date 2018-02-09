@@ -1201,7 +1201,7 @@ void par_optpropCalc( Tensor4View emis_vector,
         }
     }
 
-  // Calculate layer averaged extnction and absorption
+  // Calculate layer averaged extinction and absorption
   for (Index scat_p_index_local = 0;
              scat_p_index_local < Np_cloud-1; 
              scat_p_index_local ++)

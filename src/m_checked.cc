@@ -957,8 +957,9 @@ void propmat_clearsky_agenda_checkedCalc(
                             "does not contain *propmat_clearskyAddFaraday*.");
     }
 */
-    if (needs_particles
-        && !propmat_clearsky_agenda.has_method("propmat_clearskyAddParticles"))
+    if (needs_particles &&
+        !( propmat_clearsky_agenda.has_method("propmat_clearskyAddParticles") ||
+           propmat_clearsky_agenda.has_method("propmat_clearskyAddParticles2") ))
     {
         throw runtime_error("*abs_species* contains particles but *propmat_clearsky_agenda*\n"
                             "does not contain *propmat_clearskyAddParticles*.");

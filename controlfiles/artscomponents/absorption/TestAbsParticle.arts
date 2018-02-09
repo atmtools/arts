@@ -99,7 +99,7 @@ AgendaSet( propmat_clearsky_agenda )
   Ignore(rtp_nlte)
   propmat_clearskyInit
   propmat_clearskyAddFromLookup
-  propmat_clearskyAddParticles
+  propmat_clearskyAddParticles2
 }
 
 AtmFieldsCalc

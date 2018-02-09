@@ -12242,6 +12242,38 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "propmat_clearskyAddParticles2" ),
+        DESCRIPTION
+        (
+         "As *propmat_clearskyAddParticles*, but using new unified particle\n"
+         "optical properties extraction scheme.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "propmat_clearsky", "dpropmat_clearsky_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "propmat_clearsky", "dpropmat_clearsky_dx", "stokes_dim", "atmosphere_dim",
+            "f_grid", "abs_species", "jacobian_quantities",
+            "rtp_vmr", "rtp_los", "rtp_temperature",
+            "scat_data", "scat_data_checked" ),
+        GIN(         "use_abs_as_ext" ),
+        GIN_TYPE(    "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC(
+                 "A flag with value 1 or 0. If set to one, particle absorption\n"
+                 "is used in extinction and emission parts of the RT equation,\n"
+                 "and scattering out of LOS as well as into LOS is neglected.\n"
+                 "Otherwise, particle extinction (absorption+scattering) is\n"
+                 "applied in both the extinction as well as the emission part\n"
+                 "of the RT equation. That is, true extinction is applied, but\n"
+                 "emission also includes a pseudo-emission contribution from\n"
+                 "the scattering coefficient.\n"
+                 )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "propmat_clearskyAddZeeman" ),
         DESCRIPTION
         (

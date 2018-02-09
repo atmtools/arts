@@ -169,12 +169,12 @@ void opt_prop_ScatSpecBulk(//Output
   assert( TotalNumberOfElements(abs_vec_se) == pnds.nrows() );
   assert( ext_mat_se.nelem() == abs_vec_se.nelem() );
 
-  Index nT = pnds.ncols();
-  Index nf = abs_vec_se[0][0].nbooks();
-  Index nDir = abs_vec_se[0][0].nrows();
-  Index stokes_dim = abs_vec_se[0][0].ncols();
+  const Index nT = pnds.ncols();
+  const Index nf = abs_vec_se[0][0].nbooks();
+  const Index nDir = abs_vec_se[0][0].nrows();
+  const Index stokes_dim = abs_vec_se[0][0].ncols();
 
-  Index nss = ext_mat_se.nelem();
+  const Index nss = ext_mat_se.nelem();
   ext_mat.resize(nss);
   abs_vec.resize(nss);
   ptype.resize(nss);
@@ -203,7 +203,7 @@ void opt_prop_ScatSpecBulk(//Output
       {
         if( pnds(i_se_flat,Tind)!=0. )
         {
-          if (t_ok(i_se_flat,Tind)>0. || pnds(i_se_flat,Tind)==0. )
+          if( t_ok(i_se_flat,Tind)>0. )
           {
             ext_tmp = ext_mat_se[i_ss][i_se](joker,Tind,joker,joker,joker);
             ext_tmp *= pnds(i_se_flat,Tind);
@@ -248,6 +248,7 @@ void opt_prop_ScatSpecBulk(//Output
   \param[out] abs_vec    Absorption vector (over scat elements, freq, temp,
                            propagation direction).
   \param[out] ptype      Scattering element types.
+  \param[out] t_ok       Flag whether T-interpol valid (over scat elements, temp).
   \param[in]  scat_data  as the WSV..
   \param[in]  T_array    Temperatures to extract ext/abs for.
   \param[in]  dir_array  Propagation directions to extract ext/abs for (as
@@ -289,10 +290,10 @@ void opt_prop_NScatElems(//Output
       //f_end = f_start+nf;
     }
 
-  Index nT = T_array.nelem();
-  Index nDir = dir_array.nrows();
+  const Index nT = T_array.nelem();
+  const Index nDir = dir_array.nrows();
 
-  Index nss = scat_data.nelem();
+  const Index nss = scat_data.nelem();
   ext_mat.resize(nss);
   abs_vec.resize(nss);
   ptypes.resize(nss);
@@ -336,6 +337,7 @@ void opt_prop_NScatElems(//Output
   \param[out] abs_vec    1-scattering element absorption vector (over freq,
                            temp, propagation direction).
   \param[out] ptype      Type of scattering element.
+  \param[out] t_ok       Flag whether T-interpol valid (length of T_array).
   \param[in]  ssd        Single scattering data of one scattering element.
   \param[in]  T_array    Temperatures to extract ext/abs for.
   \param[in]  dir_array  Propagation directions to extract ext/abs for (as
@@ -377,21 +379,21 @@ void opt_prop_1ScatElem(//Output
 
   assert( ssd.ptype == PTYPE_TOTAL_RND or ssd.ptype == PTYPE_AZIMUTH_RND );
 
-  Index nf = ext_mat.nshelves();
+  const Index nf = ext_mat.nshelves();
   assert( abs_vec.nbooks() == nf );
   if( nf>1 )
     { assert( nf == ssd.f_grid.nelem() ); }
 
-  Index nTout = T_array.nelem();
+  const Index nTout = T_array.nelem();
   assert( ext_mat.nbooks() == nTout );
   assert( abs_vec.npages() == nTout );
   assert( t_ok.nelem() == nTout );
 
-  Index nDir = dir_array.nrows();
+  const Index nDir = dir_array.nrows();
   assert( ext_mat.npages() == nDir );
   assert( abs_vec.nrows() == nDir );
 
-  Index stokes_dim = abs_vec.ncols();
+  const Index stokes_dim = abs_vec.ncols();
   assert( ext_mat.nrows() == stokes_dim );
   assert( ext_mat.ncols() == stokes_dim );
 
@@ -400,7 +402,7 @@ void opt_prop_1ScatElem(//Output
   // Determine T-interpol order as well as interpol positions and weights (they
   // are the same for all directions (and freqs), ie it is sufficient to
   // calculate them once).
-  Index nTin = ssd.T_grid.nelem();
+  const Index nTin = ssd.T_grid.nelem();
   Index this_T_interp_order = -1;
   ArrayOfGridPosPoly T_gp(nTout);
   Matrix T_itw;
@@ -442,6 +444,7 @@ void opt_prop_1ScatElem(//Output
       dummy_gp.w.resize(this_T_interp_order+1);
       for (Index i=0; i<=this_T_interp_order; ++i)
         dummy_gp.idx[i] = i;
+      dummy_gp.w = 0.;
       dummy_gp.w[0] = 1.;
       bool grid_unchecked = true;
 
@@ -553,8 +556,8 @@ void opt_prop_1ScatElem(//Output
     Matrix dir_itw(nDir, 2); // only interpolating in za, ie 1D linear interpol
     interpweights(dir_itw, dir_gp);
 
-    Index next = ssd.ext_mat_data.ncols();
-    Index nabs = ssd.abs_vec_data.ncols();
+    const Index next = ssd.ext_mat_data.ncols();
+    const Index nabs = ssd.abs_vec_data.ncols();
 
     if( this_T_interp_order<0 ) // T only needs to be extracted.
     {

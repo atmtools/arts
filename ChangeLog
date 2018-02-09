@@ -1,3 +1,21 @@
+2018-02-09 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-947
+
+	Continue replacement of particle optical property calculation schemes.
+
+	* src/m_abs.cc, methods.cc (propmat_clearskyAddParticles2):
+	Added. New-optprop-scheme version of propmat_clearskyAddParticles.
+
+	* src/m_checked.cc (propmat_clearsky_agenda_checkedCalc):
+	Added propmat_clearskyAddParticles2 in AddParticles validity check.
+
+	* controlfiles/artscomponents/absorption/TestAbsParticle.arts:
+	Use propmat_clearskyAddParticles2 instead of propmat_clearskyAddParticles.
+
+	* src/optproperties.cc (opt_prop_ScatSpecBulk, opt_prop_NScatElems,
+	opt_prop_1ScatElem): Cosmetics.
+
 2018-02-07  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-946

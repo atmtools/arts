@@ -3000,6 +3000,323 @@ void propmat_clearskyAddParticles(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void propmat_clearskyAddParticles2(
+                                    // WS Output:
+                                    ArrayOfPropagationMatrix& propmat_clearsky,
+                                    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+                                    // WS Input:
+                                    const Index& stokes_dim,
+                                    const Index& atmosphere_dim,
+                                    const Vector& f_grid,
+                                    const ArrayOfArrayOfSpeciesTag& abs_species,
+                                    const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                    const Vector& rtp_vmr,
+                                    const Vector& rtp_los,
+                                    const Numeric& rtp_temperature,
+                                    const ArrayOfArrayOfSingleScatteringData& scat_data,
+                                    const Index& scat_data_checked,
+                                    const Index& use_abs_as_ext,
+                                    // Verbosity object:
+                                    const Verbosity& verbosity)
+{
+  CREATE_OUT1;
+
+  if( scat_data_checked != 1 )
+    throw runtime_error( "The scat_data must be flagged to have "
+                         "passed a consistency check (scat_data_checked=1)." );
+
+  const Index ns = TotalNumberOfElements(scat_data);
+  Index np = 0;
+  for( Index sp = 0; sp < abs_species.nelem(); sp++ )
+    {
+      if (abs_species[sp][0].Type() == SpeciesTag::TYPE_PARTICLES)
+        {
+          np++;
+        }
+    }
+
+  if( np == 0 )
+    {
+       ostringstream os; 
+       os << "For applying propmat_clearskyAddParticles, *abs_species* needs to"
+          << "contain species 'particles', but it does not.\n";
+       throw runtime_error( os.str() );
+    }
+
+  if ( ns != np )
+    {
+      ostringstream os; 
+      os << "Number of 'particles' entries in abs_species and of elements in\n"
+         << "*scat_data* needs to be identical. But you have " << np
+         << " 'particles' entries\n"
+         << "and " << ns << " *scat_data* elements.\n";
+      throw runtime_error( os.str() );
+    }
+
+  if( atmosphere_dim==1 && rtp_los.nelem() < 1 )
+    {
+       ostringstream os; 
+       os << "For applying *propmat_clearskyAddParticles*, *rtp_los* needs to be specified\n"
+          << "(at least zenith angle component for atmosphere_dim==1),\n"
+          << "but it is not.\n";
+       throw runtime_error( os.str() );
+    }
+  else if(  atmosphere_dim>1 && rtp_los.nelem() < 2 )
+    {
+       ostringstream os; 
+       os << "For applying *propmat_clearskyAddParticles*, *rtp_los* needs to be specified\n"
+          << "(both zenith and azimuth angle components for atmosphere_dim>1),\n"
+          << "but it is not.\n";
+       throw runtime_error( os.str() );
+    }
+    
+    
+  // Use for rescaling vmr of particulates
+  Numeric rtp_vmr_sum = 0.0;
+  
+  // Tests and setup partial derivatives
+  const PropmatPartialsData ppd(jacobian_quantities);
+  const bool do_jac = ppd.supportsParticles();
+      
+  const Index na = abs_species.nelem();
+  Vector rtp_los_back;
+  mirror_los( rtp_los_back, rtp_los, atmosphere_dim );
+  
+  // 170918 JM: along with transition to use of new-type (aka
+  // pre-f_grid-interpolated) scat_data, freq perturbation switched off. Typical
+  // clear-sky freq perturbations yield insignificant effects in particle
+  // properties. Hence, this feature is neglected here.
+  if(ppd.do_frequency())
+  {
+    out1 << "WARNING:\n"
+         << "Frequency perturbation not available for absorbing particles.\n";
+  }
+  
+  // creating temporary output containers
+  ArrayOfArrayOfTensor5 ext_mat_Nse;
+  ArrayOfArrayOfTensor4 abs_vec_Nse;
+  ArrayOfArrayOfIndex ptypes_Nse;
+  Matrix t_ok;
+
+  // preparing input in format needed
+  Vector T_array;
+  if( ppd.do_temperature() )
+  {
+    T_array.resize(2);
+    T_array = rtp_temperature;
+    T_array[1] += ppd.Temperature_Perturbation();
+  }
+  else
+  {
+    T_array.resize(1);
+    T_array = rtp_temperature;
+  }
+  Matrix dir_array(1,2);
+  dir_array(0,joker) = rtp_los_back;
+
+  // ext/abs per scat element for all freqs at once
+  opt_prop_NScatElems( ext_mat_Nse, abs_vec_Nse, ptypes_Nse, t_ok,
+                       scat_data, stokes_dim, T_array, dir_array, -1 );
+
+  const Index nf = abs_vec_Nse[0][0].nbooks();
+  Tensor3 tmp(nf,stokes_dim,stokes_dim);
+
+  // loop over the scat_data and link them with correct vmr_field entry according
+ // to the position of the particle type entries in abs_species.
+ Index sp = 0;
+ Index i_se_flat = 0;
+ for( Index i_ss=0; i_ss<scat_data.nelem(); i_ss++ )
+ {
+  for( Index i_se=0; i_se<scat_data[i_ss].nelem(); i_se++ )
+  {
+    // forward to next particle entry in abs_species
+    while ( sp < na && 
+            abs_species[sp][0].Type() != SpeciesTag::TYPE_PARTICLES )
+      sp++;
+          
+    // running beyond number of abs_species entries when looking for next
+    // particle entry. shouldn't happen, though.
+    assert ( sp < na );
+    if ( rtp_vmr[sp] < 0. )
+    {
+      ostringstream os;
+      os << "Negative absorbing particle 'vmr' (aka number density)"
+         << " encountered:\n"
+         << "scat species #" << i_ss << ", scat elem #" << i_se
+         << " (vmr_field entry #" << sp << ")\n";
+      throw runtime_error( os.str() );
+    }
+    else if ( rtp_vmr[sp] > 0. )
+    {
+      if( t_ok(i_se_flat,0) < 0. )
+      {
+        ostringstream os;
+        os << "Temperature interpolation error:\n"
+           << "scat species #" << i_ss << ", scat elem #" << i_se << "\n";
+        throw runtime_error( os.str() );
+      }
+      else
+      {        
+        if( use_abs_as_ext )
+        {
+          if( nf > 1 )
+            for( Index iv=0; iv<f_grid.nelem(); iv++ )
+              propmat_clearsky[sp].AddAbsorptionVectorAtPosition(
+                abs_vec_Nse[i_ss][i_se](iv,0,0,joker), iv);
+          else
+            for( Index iv=0; iv<f_grid.nelem(); iv++ )
+              propmat_clearsky[sp].AddAbsorptionVectorAtPosition(
+                abs_vec_Nse[i_ss][i_se](0,0,0,joker), iv);
+        }
+        else
+        {
+          if( nf > 1 )
+            for( Index iv=0; iv<f_grid.nelem(); iv++ )
+              propmat_clearsky[sp].SetAtPosition(
+                ext_mat_Nse[i_ss][i_se](iv,0,0,joker,joker), iv);
+          else
+            for( Index iv=0; iv<f_grid.nelem(); iv++ )
+              propmat_clearsky[sp].SetAtPosition(
+                ext_mat_Nse[i_ss][i_se](0,0,0,joker,joker), iv);
+        }
+        propmat_clearsky[sp] *= rtp_vmr[sp];
+      }
+
+      // For temperature derivatives (so we don't need to check it in jac loop)
+      if( ppd.do_temperature() )
+      {
+        if( t_ok(i_se_flat,1) < 0. )
+        {
+          ostringstream os;
+          os << "Temperature interpolation error (in perturbation):\n"
+             << "scat species #" << i_ss << ", scat elem #" << i_se << "\n";
+          throw runtime_error( os.str() );
+        }
+      }
+
+      // For number density derivatives
+      if( do_jac )
+        rtp_vmr_sum += rtp_vmr[sp];
+            
+      for( Index iq=0; iq<ppd.nelem(); iq++ )
+      {
+        // we don't do freq perturbations here, i.e. nothing to do.
+        /*
+        if( ppd(iq)==JQT_frequency || ppd(iq)==JQT_wind_magnitude || 
+            ppd(iq)==JQT_wind_u || ppd(iq)==JQT_wind_v || ppd(iq)==JQT_wind_w )
+        {
+          dpropmat_clearsky_dx[iq] = 0.;
+        }
+
+        else if( ppd(iq) == JQT_temperature )
+        */
+        if( ppd(iq) == JQT_temperature )
+        {
+          if( use_abs_as_ext )
+          {
+            tmp(joker,joker,0) = abs_vec_Nse[i_ss][i_se](joker,1,0,joker);
+            tmp(joker,joker,0) -= abs_vec_Nse[i_ss][i_se](joker,0,0,joker);
+          }
+          else
+          {
+            tmp = ext_mat_Nse[i_ss][i_se](joker,1,0,joker,joker);
+            tmp -= ext_mat_Nse[i_ss][i_se](joker,0,0,joker,joker);
+          }
+
+          tmp *= rtp_vmr[sp];
+          tmp /= ppd.Temperature_Perturbation();
+
+          if( nf > 1 )
+            for( Index iv=0; iv<f_grid.nelem(); iv++ )
+              if ( use_abs_as_ext )
+                dpropmat_clearsky_dx[iq].AddAbsorptionVectorAtPosition(
+                  tmp(iv,joker,0), iv);
+              else
+                dpropmat_clearsky_dx[iq].AddAtPosition(
+                  tmp(iv,joker,joker), iv);
+          else
+            for( Index iv=0; iv<f_grid.nelem(); iv++ )
+              if ( use_abs_as_ext )
+                dpropmat_clearsky_dx[iq].AddAbsorptionVectorAtPosition(
+                  tmp(0,joker,0), iv);
+              else
+                dpropmat_clearsky_dx[iq].AddAtPosition(
+                  tmp(0,joker,joker), iv);
+        }
+        /* // alternative version
+        else if( ppd(iq) == JQT_temperature )
+        {
+          if( nf > 1 )
+            for( Index iv=0; iv<f_grid.nelem(); iv++ )
+              if( use_abs_as_ext )
+              {
+                atmp = abs_vec_Nse[i_ss][i_se](iv,1,0,joker);
+                atmp -= abs_vec_Nse[i_ss][i_se](iv,0,0,joker);
+                atmp *= (rtp_vmr[sp] / ppd.Temperature_Perturbation());
+                dpropmat_clearsky_dx[iq].AddAbsorptionVectorAtPosition(atmp, iv);
+              }
+              else
+              {
+                etmp = ext_mat_Nse[i_ss][i_se](iv,1,0,joker,joker) -
+                      ext_mat_Nse[i_ss][i_se](iv,0,0,joker,joker);
+                etmp *= (rtp_vmr[sp] / ppd.Temperature_Perturbation());
+                dpropmat_clearsky_dx[iq].AddAtPosition(etmp, iv);
+              }
+          else
+            if( use_abs_as_ext )
+            {
+              atmp = (abs_vec_Nse[i_ss][i_se](0,1,0,joker) -
+                      abs_vec_Nse[i_ss][i_se](0,0,0,joker));
+              atmp *= (rtp_vmr[sp] / ppd.Temperature_Perturbation());
+              for( Index iv=0; iv<f_grid.nelem(); iv++ )
+                dpropmat_clearsky_dx[iq].AddAbsorptionVectorAtPosition(atmp, iv);
+            }
+            else
+            {
+              etmp = ext_mat_Nse[i_ss][i_se](0,1,0,joker,joker) -
+                    ext_mat_Nse[i_ss][i_se](0,0,0,joker,joker);
+              etmp *= (rtp_vmr[sp] / ppd.Temperature_Perturbation());
+              for( Index iv=0; iv<f_grid.nelem(); iv++ )
+                dpropmat_clearsky_dx[iq].AddAtPosition(etmp, iv);
+            }
+        }
+        */
+
+        else if( ppd(iq) == JQT_particulates )
+        {
+          for( Index iv=0; iv<f_grid.nelem(); iv++ )
+            dpropmat_clearsky_dx[iq].AddAtPosition(propmat_clearsky[sp], iv);
+        }
+      }
+    }
+    sp++;
+    i_se_flat++;
+  }
+ }
+
+ //checking that no further 'particle' entry left after all scat_data entries
+ //are processes. this is basically not necessary. but checking it anyway to
+ //really be safe. remove later, when more extensively tested.
+ while (sp < na)
+ {
+    assert ( abs_species[sp][0].Type() != SpeciesTag::TYPE_PARTICLES );
+    sp++;
+ }
+
+ if(rtp_vmr_sum != 0.0)
+ {
+    for(Index iq=0; iq<ppd.nelem(); iq++)
+    {
+      if(ppd(iq) == JQT_particulates)
+      {
+        dpropmat_clearsky_dx[iq] /= rtp_vmr_sum;
+      }
+    }
+ }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddOnTheFly(// Workspace reference:
                                     Workspace& ws,
                                     // WS Output:
