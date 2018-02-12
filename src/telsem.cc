@@ -36,6 +36,12 @@ extern Numeric PI;
 // TelsemAtlas Class
 ////////////////////////////////////////////////////////////////////////////////
 
+TelsemAtlas::TelsemAtlas(String filename)
+{
+    std::ifstream ifs(filename, std::ifstream::in);
+    read(ifs);
+}
+
 void TelsemAtlas::read(std::istream& is)
 {
     name = "ssmi_mean_emis_climato";
@@ -93,7 +99,7 @@ void TelsemAtlas::read(std::istream& is)
 
 void TelsemAtlas::equare()
 {
-    Index maxlat = static_cast<Index>(floor(180.0 / dlat));
+    Index maxlat = static_cast<Index>(180.0 / dlat);
 
     ncells.resize(maxlat);
     firstcells.resize(maxlat);
@@ -117,7 +123,7 @@ void TelsemAtlas::equare()
         Numeric htzone = hte - htb;
         Numeric azone  = 2.0 * PI * EARTH_RADIUS * htzone;
         Numeric rcells = azone / aecell;
-        Index icellr = static_cast<Index>(floor(rcells + 0.5));
+        Index icellr = static_cast<Index>(rcells + 0.5);
 
         totcel += 2 * icellr;
 
@@ -147,10 +153,8 @@ Index TelsemAtlas::calc_cellnum(Numeric lat,
                                 Numeric lon) const
 {
     Index cellnum = 0;
-    Index ilat = static_cast<Index>(floor((lat + 90.0) / dlat));
-    Index ilon = static_cast<Index>(
-        floor(lon / 360.0 * static_cast<Numeric>(ncells[ilat]))
-        ) + 1;
+    Index ilat = static_cast<Index>((lat + 90.0) / dlat);
+    Index ilon = static_cast<Index>(lon / (360.0 / ncells[ilat])) + 1;
     for (Index i = 0; i < ilat; ++i) {
         cellnum += ncells[i];
     }
@@ -161,7 +165,7 @@ Index TelsemAtlas::calc_cellnum(Numeric lat,
 std::pair<Numeric, Numeric> TelsemAtlas::get_coordinates(Index cellnum)
 {
 
-    Index index_lat_max = static_cast<Index>(std::floor(180.0 / dlat));
+    Index index_lat_max = static_cast<Index>(180.0 / dlat);
     Index index_lat = -1;
     Index index_lon = -1;
     if (cellnum >= firstcells[index_lat_max-1]) {
@@ -245,18 +249,18 @@ std::pair<Numeric, Numeric> TelsemAtlas::emis_interp(Numeric theta,
     Vector emiss_scal_v(3);
 
     for (Index i = 0; i < 3; ++i) {
-        Numeric e0 = a0_k0[i + (class1 - 1)]
-                   + a0_k1[i + (class1 - 1)] * ev[i]
-                   + a0_k2[i + (class1 - 1)] * eh[i];
+        Numeric e0 = a0_k0[i + (class1 - 1) * 3]
+                   + a0_k1[i + (class1 - 1) * 3] * ev[i]
+                   + a0_k2[i + (class1 - 1) * 3] * eh[i];
 
-        Numeric a0 = a0_eveh[i+ (class1 - 1) * 3];
-        Numeric a1 = a1_eveh[i+ (class1 - 1) * 3];
-        Numeric a2 = a2_eveh[i+ (class1 - 1) * 3];
-        Numeric a3 = a3_eveh[i+ (class1 - 1) * 3];
-        Numeric b0 = b0_eveh[i+ (class1 - 1) * 3];
-        Numeric b1 = b1_eveh[i+ (class1 - 1) * 3];
-        Numeric b2 = b2_eveh[i+ (class1 - 1) * 3];
-        Numeric b3 = b3_eveh[i+ (class1 - 1) * 3];
+        Numeric a0 = a0_eveh[i + (class1 - 1) * 3];
+        Numeric a1 = a1_eveh[i + (class1 - 1) * 3];
+        Numeric a2 = a2_eveh[i + (class1 - 1) * 3];
+        Numeric a3 = a3_eveh[i + (class1 - 1) * 3];
+        Numeric b0 = b0_eveh[i + (class1 - 1) * 3];
+        Numeric b1 = b1_eveh[i + (class1 - 1) * 3];
+        Numeric b2 = b2_eveh[i + (class1 - 1) * 3];
+        Numeric b3 = b3_eveh[i + (class1 - 1) * 3];
 
         Numeric s1_v = (theta - 53.0) / -53.0 * (e0 - a0) / a0;
         Numeric em53_v = a3 * pow(53.0, 3.0) + a2 * pow(53.0, 2.0) + a1 * 53.0 + a0;
@@ -291,13 +295,12 @@ std::pair<Numeric, Numeric> TelsemAtlas::emis_interp(Numeric theta,
         emiss_v = 0.5 * (emiss_v + emiss_h);
         emiss_h = emiss_v;
     }
-    return std::make_pair(emiss_h, emiss_v);
+    return std::make_pair(emiss_v, emiss_h);
 }
 
 std::ostream& operator<<(std::ostream& os, const TelsemAtlas& ta)
 {
     os << ta.name << std::endl;
-
     return os;
 }
 

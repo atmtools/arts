@@ -58,6 +58,12 @@ public:
     TelsemAtlas &operator=(      TelsemAtlas &&) = default;
     ~TelsemAtlas() = default;
 
+    /*! Create and read atlas from file.
+     *
+     * @param filename The path of the file from which to read the atlas
+     */
+    TelsemAtlas(String filename);
+
     void  set_month(Index m) {month = m;}
     Index get_month() const {return month;}
 
@@ -76,7 +82,7 @@ public:
 
     /*! Class of a given cell.
      * Return the class1 value of the given cell. Indexed by cellnumber
-     * obtained from calc_cellnumber(...).
+     * obtained from calc_cellnum(...).
      *
      * Throws a runtime error if cellnumber is not contained in the atlas,
      * i.e. is not over land.
@@ -90,12 +96,12 @@ public:
         if (ind < 0) {
             throw std::runtime_error("The cell is not contained in the atlas.");
         }
-        return classes2[ind];
+        return classes1[ind];
     }
 
     /*! Class of a given cell.
      * Return the class2 value of the given cell. Indexed by cellnumber
-     * obtained from calc_cellnumber(...).
+     * obtained from calc_cellnum(...).
      *
      * Throws a runtime error if cellnumber is not contained in the atlas,
      * i.e. is not over land.
@@ -109,7 +115,7 @@ public:
         if (ind < 0) {
             throw std::runtime_error("The cell is not contained in the atlas.");
         }
-        return classes1[ind];
+        return classes2[ind];
     }
 
     /*! Verically polarized emissivities at 19, 37 and 85 GHz.

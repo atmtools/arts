@@ -1,3 +1,18 @@
+2018-02-12 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-948
+
+	Testing of TELSEM interface.
+
+	* src/test_telsem.cc:
+	Test file for in depth comparison to results from FORTRAN module.
+
+	* src/CMakeLists.txt:
+	Added test executable.
+
+	* src/telsem.[h, cc]:
+	Some fixes for bugs discovered during testing.
+
 2018-02-09 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-947
