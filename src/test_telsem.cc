@@ -64,8 +64,8 @@ Numeric test_telsem_interpolate(std::string atlas_file,
         filename_h += "/emisH_IND_MULT" + std::to_string(i + 1) + ".txt";
         filename_v += "/emisV_IND_MULT" + std::to_string(i + 1) + ".txt";
 
-        results_h.emplace_back(std::ifstream(filename_h, std::ifstream::in));
-        results_v.emplace_back(std::ifstream(filename_v, std::ifstream::in));
+        results_h.emplace_back(filename_h, std::ifstream::in);
+        results_v.emplace_back(filename_v, std::ifstream::in);
     }
 
     Index n_lat = static_cast<Index>(180.0 / resolution);
@@ -152,8 +152,8 @@ Numeric test_telsem_read(String atlas_file,
         filename_h += "/emisH" + std::to_string(i + 1) + ".txt";
         filename_v += "/emisV" + std::to_string(i + 1) + ".txt";
 
-        results_h.emplace_back(std::ifstream(filename_h, std::ifstream::in));
-        results_v.emplace_back(std::ifstream(filename_v, std::ifstream::in));
+        results_h.emplace_back(filename_h, std::ifstream::in);
+        results_v.emplace_back(filename_v, std::ifstream::in);
     }
 
     Index n_lat = static_cast<Index>(180.0 / resolution);
