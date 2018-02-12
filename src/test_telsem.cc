@@ -54,7 +54,9 @@ Numeric test_telsem_interpolate(std::string atlas_file,
     TelsemAtlas atlas(atlas_file);
 
     Index n_freqs = frequencies.nelem();
-    std::vector<std::ifstream> results_h(n_freqs), results_v(n_freqs);
+    std::vector<std::ifstream> results_h, results_v;
+    results_h.reserve(n_freqs);
+    results_v.reserve(n_freqs);
 
     for (Index i = 0; i < n_freqs; ++i) {
         std::string filename_h = result_path;
@@ -62,8 +64,8 @@ Numeric test_telsem_interpolate(std::string atlas_file,
         filename_h += "/emisH_IND_MULT" + std::to_string(i + 1) + ".txt";
         filename_v += "/emisV_IND_MULT" + std::to_string(i + 1) + ".txt";
 
-        results_h[i] = std::ifstream(filename_h, std::ifstream::in);
-        results_v[i] = std::ifstream(filename_v, std::ifstream::in);
+        results_h.emplace_back(std::ifstream(filename_h, std::ifstream::in));
+        results_v.emplace_back(std::ifstream(filename_v, std::ifstream::in));
     }
 
     Index n_lat = static_cast<Index>(180.0 / resolution);
@@ -140,7 +142,9 @@ Numeric test_telsem_read(String atlas_file,
 {
     TelsemAtlas atlas(atlas_file);
 
-    std::vector<std::ifstream> results_h(3), results_v(3);
+    std::vector<std::ifstream> results_h, results_v;
+    results_h.reserve(3);
+    results_v.reserve(3);
 
     for (Index i = 0; i < 3; ++i) {
         std::string filename_h = result_path;
@@ -148,8 +152,8 @@ Numeric test_telsem_read(String atlas_file,
         filename_h += "/emisH" + std::to_string(i + 1) + ".txt";
         filename_v += "/emisV" + std::to_string(i + 1) + ".txt";
 
-        results_h[i] = std::ifstream(filename_h, std::ifstream::in);
-        results_v[i] = std::ifstream(filename_v, std::ifstream::in);
+        results_h.emplace_back(std::ifstream(filename_h, std::ifstream::in));
+        results_v.emplace_back(std::ifstream(filename_v, std::ifstream::in));
     }
 
     Index n_lat = static_cast<Index>(180.0 / resolution);
@@ -218,14 +222,14 @@ int main(int argc, const char ** argv) {
 
     // Reading of emissivities.
 
-    Numeric error = test_telsem_read(atlas_file, result_path, 2.0);
+    Numeric error = test_telsem_read(atlas_file, result_path, resolution);
     std::cout << "Maximum error reading emissivities:       " << error << std::endl;
 
     // Interpolation of emissivities.
 
     Vector frequencies = {6.0, 25.0, 31.4, 60.0, 190.0};
     Numeric theta      = 15.0; // Incidence angle
-    error = test_telsem_interpolate(atlas_file, result_path, 2.0, theta, frequencies);
+    error = test_telsem_interpolate(atlas_file, result_path, resolution, theta, frequencies);
     std::cout << "Maximum error interpolating emissivities: " << error << std::endl;
     return 0;
 }

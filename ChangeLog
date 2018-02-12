@@ -1,5 +1,13 @@
 2018-02-12 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
+	* arts-2-3-949
+
+	* src/test_telsem.cc:
+	Explicit in place construction of vector elements of type
+	std::ifstream.
+
+2018-02-12 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
 	* arts-2-3-948
 
 	Testing of TELSEM interface.
