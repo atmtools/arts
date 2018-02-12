@@ -25,8 +25,9 @@
 */
 
 #include <iostream>
-#include <string>
 #include <fstream>
+#include <memory>
+#include <string>
 
 #include "arts.h"
 #include "telsem.h"
@@ -54,7 +55,7 @@ Numeric test_telsem_interpolate(std::string atlas_file,
     TelsemAtlas atlas(atlas_file);
 
     Index n_freqs = frequencies.nelem();
-    std::vector<std::ifstream> results_h, results_v;
+    std::vector<std::unique_ptr<std::ifstream>> results_h, results_v;
     results_h.reserve(n_freqs);
     results_v.reserve(n_freqs);
 
@@ -64,8 +65,8 @@ Numeric test_telsem_interpolate(std::string atlas_file,
         filename_h += "/emisH_IND_MULT" + std::to_string(i + 1) + ".txt";
         filename_v += "/emisV_IND_MULT" + std::to_string(i + 1) + ".txt";
 
-        results_h.emplace_back(filename_h, std::ifstream::in);
-        results_v.emplace_back(filename_v, std::ifstream::in);
+        results_h.push_back(std::unique_ptr<std::ifstream>(new std::ifstream(filename_h, std::ifstream::in)));
+        results_v.push_back(std::unique_ptr<std::ifstream>(new std::ifstream(filename_v, std::ifstream::in)));
     }
 
     Index n_lat = static_cast<Index>(180.0 / resolution);
@@ -89,8 +90,8 @@ Numeric test_telsem_interpolate(std::string atlas_file,
 
             // Read reference emissivities.
             for (Index k = 0; k < n_freqs; ++k) {
-                results_h[k] >> emis_h_interp_ref[k];
-                results_v[k] >> emis_v_interp_ref[k];
+                (*results_h[k]) >> emis_h_interp_ref[k];
+                (*results_v[k]) >> emis_v_interp_ref[k];
             }
 
             emis_h_interp = 0.0;
@@ -142,7 +143,7 @@ Numeric test_telsem_read(String atlas_file,
 {
     TelsemAtlas atlas(atlas_file);
 
-    std::vector<std::ifstream> results_h, results_v;
+    std::vector<std::unique_ptr<std::ifstream>> results_h, results_v;
     results_h.reserve(3);
     results_v.reserve(3);
 
@@ -152,8 +153,8 @@ Numeric test_telsem_read(String atlas_file,
         filename_h += "/emisH" + std::to_string(i + 1) + ".txt";
         filename_v += "/emisV" + std::to_string(i + 1) + ".txt";
 
-        results_h.emplace_back(filename_h, std::ifstream::in);
-        results_v.emplace_back(filename_v, std::ifstream::in);
+        results_h.push_back(std::unique_ptr<std::ifstream>(new std::ifstream(filename_h, std::ifstream::in)));
+        results_v.push_back(std::unique_ptr<std::ifstream>(new std::ifstream(filename_v, std::ifstream::in)));
     }
 
     Index n_lat = static_cast<Index>(180.0 / resolution);
@@ -176,8 +177,8 @@ Numeric test_telsem_read(String atlas_file,
 
             // Read reference emissivities.
             for (Index k = 0; k < 3; ++k) {
-                results_h[k] >> emis_h_ref[k];
-                results_v[k] >> emis_v_ref[k];
+                (*results_h[k]) >> emis_h_ref[k];
+                (*results_v[k]) >> emis_v_ref[k];
             }
 
             emis_h = 0.0;
