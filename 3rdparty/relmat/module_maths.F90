@@ -14,6 +14,9 @@ module module_maths
 
         double precision function wigner3j( dJ1,dJ2,dJ3, dM1,dM2,dM3 )
             use module_common_var
+#if USE_EXTERNAL_WIGNER
+            use ffastwigxj
+#endif
             implicit none
             double precision, intent(in)    :: dJ1,dJ2,dJ3
             double precision, intent(in)    :: dM1,dM2,dM3
@@ -33,6 +36,9 @@ module module_maths
         
         double precision function wigner6j( A,B,uJ3, D,C6,F )
             use module_common_var
+#if USE_EXTERNAL_WIGNER
+            use ffastwigxj
+#endif
             implicit none
             double precision, intent(in)    :: A,B ,uJ3
             double precision, intent(in)    :: D,C6,F
@@ -167,8 +173,14 @@ END module module_maths
 ! Implementation by: Niro et al. 2004
 !
       use module_common_var  
+#if USE_EXTERNAL_WIGNER
+      use ffastwigxj
+#endif
       implicit none
       double precision, intent(in) :: dJ1,dJ2,dJ3,dM1,dM2,dM3
+#if USE_EXTERNAL_WIGNER
+      integer*4                    :: J1, J2, J3, M1, M2, M3
+#else
       !function var.
       integer*8, parameter         :: iMaxi=100
       integer*8                    :: J0, J1, J2, J3, JS, JM, JJ(4)
@@ -181,9 +193,16 @@ END module module_maths
       double precision             :: C1, C3, Cs2
       double precision             :: CC(0:iMaxi,0:iMaxi)
       double precision             :: UN, UNM, wig3j0
+#endif
 !
 ! Init.
 !
+#if USE_EXTERNAL_WIGNER
+      J1 = 2*int(dJ1,4) ; J2 = 2*int(dJ2,4) ; J3 = 2*int(dJ3,4) 
+      M1 = 2*int(dM1,4) ; M2 = 2*int(dM2,4) ; M3 = 2*int(dM3,4) 
+      wigner3j = ffw3jja6(J1, J2, J3, M1, M2, M3)
+    return
+#else
       J1 = int(dJ1,8) ; J2 = int(dJ2,8) ; J3 = int(dJ3,8) 
       M1 = int(dM1,8) ; M2 = int(dM2,8) ; M3 = int(dM3,8) 
 
@@ -273,6 +292,7 @@ END module module_maths
 20      CC(M,mp)=-(C1*CC(M+1,mp+1)+Cs2*CC(M+1,mp))/C3
       wigner3j=CC(0,0)*UNM
     return        
+#endif
   END function wigner3j
 !--------------------------------------------------------------------------------------------------------------------
   double precision function wig3j0(M,J1,J2,J)
@@ -369,10 +389,24 @@ END module module_maths
 !WHERE THE RACAH COEFFICIENTS ARE TAKEN FROM THE BOOK OF ROSE (P.227)                    
 !  
       use module_common_var
+#if USE_EXTERNAL_WIGNER
+      use ffastwigxj
+#endif
       implicit none
       double precision :: A,B,uJ3,D,C6,F
+#if USE_EXTERNAL_WIGNER
+      integer (kind=4) :: J1, J2, J3, M1, M2, M3
+#else
       integer (kind=8) :: E                                                 
       double precision :: term
+#endif
+
+#if USE_EXTERNAL_WIGNER
+      J1 = 2*int(A,4) ; J2 = 2*int(B,4) ; J3 = 2*int(uJ3,4) 
+      M1 = 2*int(D,4) ; M2 = 2*int(C6,4) ; M3 = 2*int(F,4) 
+      wigner6j = ffw6jja(J1, J2, J3, M1, M2, M3)
+      return
+#else
 !
 !
       E = int(uJ3,8)
@@ -452,7 +486,8 @@ END module module_maths
 !                                                                       
 ! CASE DES 6J NULS                                                       
 1000  wigner6j=0.0_dp                                                           
-      RETURN                                                            
+      RETURN        
+#endif                                                    
   END function wigner6j
 !--------------------------------------------------------------------------------------------------------------------
   SUBROUTINE bubble_index(N, array, indxo, ad, econ)

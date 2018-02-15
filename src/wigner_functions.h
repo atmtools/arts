@@ -17,7 +17,13 @@
  * USA. */
 
 #include "rational.h"
-#include "../3rdparty/wigxjpf/inc/wigxjpf.h"
+#include "../3rdparty/wigner/wigxjpf/inc/wigxjpf.h"
+#ifdef FAST_WIGNER_PATH_3J
+#define DO_FAST_WIGNER 1
+#include "../3rdparty/wigner/fastwigxj/inc/fastwigxj.h"
+#else
+#define DO_FAST_WIGNER 0
+#endif
 
 Numeric wigner3j(const Rational j1, const Rational j2, const Rational j3,
                  const Rational m1, const Rational m2, const Rational m3);

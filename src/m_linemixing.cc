@@ -21,6 +21,7 @@
 #include "global_data.h"
 #include "linescaling.h"
 #include "linefunctions.h"
+#include "wigner_functions.h"
 #include <Eigen/Eigenvalues>
 
 
@@ -1441,6 +1442,15 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                             const Index&                     order_of_linemixing, // -1 is full relaxation matrix, 0 is LBL, 1 is first order, 2 is second order ... limited implementations so far
                                             const Verbosity& verbosity)
 {
+#if DO_FAST_WIGNER
+  fastwigxj_load(FAST_WIGNER_PATH_3J, 3, NULL);
+  fastwigxj_load(FAST_WIGNER_PATH_6J, 6, NULL);
+  fastwigxj_dyn_init(3, 1000000);
+  fastwigxj_dyn_init(6, 1000000);
+  wig_table_init(500, 6);
+  wig_thread_temp_init(500);
+#endif
+  
   CREATE_OUT3;
   using global_data::species_data;
   using global_data::SpeciesMap;
@@ -2097,6 +2107,14 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
   delete[] iso_code_perturber;
   delete[] molecule_code_perturber;
   delete[] perturber_mass;
+  
+#if DO_FAST_WIGNER
+  wig_temp_free();
+  wig_table_free();
+  fastwigxj_print_stats();
+  fastwigxj_unload(3);
+  fastwigxj_unload(6);
+#endif
 }
 
 #else

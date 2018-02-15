@@ -154,10 +154,17 @@ Numeric wigner9j(const Rational j11,const Rational j12,const Rational j13,
 */
 inline Numeric co2_ecs_wigner_symbol(int Ji, int Jf, int Ji_p, int Jf_p, int L, int li, int lf)
 {
+#if DO_FAST_WIGNER
+  return fw3jja6(Ji_p, L,  Ji,
+                 li,   0, -li) * fw3jja6( Jf_p, L, Jf,
+                                         -lf,   0, lf) * fw6jja(Ji,   Jf,   2,
+                                                                Jf_p, Ji_p, L) * Numeric(L + 1);
+#else
   return wig3jj(Ji_p, L,  Ji,
                 li,   0, -li) * wig3jj( Jf_p, L, Jf,
                                        -lf,   0, lf) * wig6jj(Ji,   Jf,   2,
                                                               Jf_p, Ji_p, L) * Numeric(L + 1);
+#endif
 }
 
 
@@ -169,6 +176,13 @@ void ECS_wigner_CO2(Matrix& M,
                     ConstVectorView G0, 
                     ConstVectorView population)
 {
+#if DO_FAST_WIGNER
+  fastwigxj_load(FAST_WIGNER_PATH_3J, 3, NULL);
+  fastwigxj_load(FAST_WIGNER_PATH_6J, 6, NULL);
+  fastwigxj_dyn_init(3, 1000000);
+  fastwigxj_dyn_init(6, 1000000);
+#endif
+  
   // Size of the problem
   const Index nj = Jl.nelem();
   M.resize(nj, nj);
@@ -192,7 +206,6 @@ void ECS_wigner_CO2(Matrix& M,
   wig_table_init(int(size), 6);
   
   // Main loop over all the lines
-  #pragma omp parallel for schedule(guided)
   for(Index j=0; j<nj; j++) // For all lines
   {
     wig_thread_temp_init(int(size));
@@ -247,4 +260,9 @@ void ECS_wigner_CO2(Matrix& M,
   
   // Free memory
   wig_table_free();
+#if DO_FAST_WIGNER
+  fastwigxj_print_stats();
+  fastwigxj_unload(3);
+  fastwigxj_unload(6);
+#endif
 }

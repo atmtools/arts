@@ -440,8 +440,13 @@ get_directory_property(ENABLE_RELMAT DIRECTORY
                        DEFINITION ENABLE_RELMAT)
 
 get_directory_property(ENABLE_WIGNER DIRECTORY
-                       3rdparty/wigxjpf
+                       3rdparty/wigner
                        DEFINITION ENABLE_WIGNER)
+
+if(FASTWIGNER)
+  add_definitions( "-DFAST_WIGNER_PATH_3J=\"${ARTS_BINARY_DIR}/3rdparty/wigner/fastwigxj/fasttable.3j\"")
+  add_definitions( "-DFAST_WIGNER_PATH_6J=\"${ARTS_BINARY_DIR}/3rdparty/wigner/fastwigxj/fasttable.6j\"")
+endif()
 
 if (OEM_SUPPORT)
   message (STATUS "OEM enabled")

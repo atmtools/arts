@@ -1,3 +1,70 @@
+2018-02-15  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-950
+	
+	* 3rdparty/wigxjpf:  Moved to 3rdparty/wigner/wigxjpf. Also
+	commented out Makefile reference to QUADMATH as the only difference
+	from original as found at:  http://fy.chalmers.se/subatom/wigxjpf/
+	
+	* 3rdparty/wigner/fastwigxj:  Added. Also	commented out Makefile 
+	reference to QUADMATH from original as found at:
+	http://fy.chalmers.se/subatom/fastwigxj/
+	
+	After work by Håkan T. Johansson of Chalmers, using fastwigxj to
+	compute line mixing speeds up relmat by orders of magnitude.
+	What used to take 40 minutes at 20 cores now takes 4 minutes at
+	a single core.  Tha activation of this code-path is still a bit
+	clumsy.
+	
+	To activate it, type "cmake -DFASTWIGNER=X .." in your build with 
+	X as a positive integer.  X is used internally to generate the 
+	two files: 3rparty/wigner/fastwigxj/fasttable.3j and 
+	3rparty/wigner/fastwigxj/fasttable.6j.
+	It also sets a define while building ARTS so that these files
+	are found.  Do not make X large as this takes up loads of 
+	disk space.  The files contain pre-computed hash-maps that finds
+	wigner symbol values.  We do not need all wigner symbol values in
+	line mixing because the geometry of the possible transitions is
+	known.  Instead, a dynamic map is generated inside ARTS that finds
+	the symbols that have already been computed and use them.  If a symbol
+	is not already computed, it returns to use wigxjpf to compute this
+	symbol.  Read README in respective wigner/* folder to understant better.
+	
+	Problems:  
+	1)  It might only be possible to build this with GCC because
+	native instructions are used.  If the code is not built it returns
+	to use wigxjpf with some defines in the code.  Can someone with 
+	a clang/icc system confirm if it works or not on other compilers?
+	
+	2)  The defines way to select files is not the best but it is much 
+	less cumbersome than having the user first personally generate files
+	that are always constant and then finding them.  Any suggestion to 
+	fix this without adding needless overhead?
+	
+	3)  It does not work with multithreading at this point.  I am not
+	sure how to fix this because it needs a smart read-write scheme to
+	the dynamic table inside fastwigxj.
+	
+	4)  Documentation is still lacking as I do not wish to add guides 
+	until the setup is deemed to be working.
+	
+	* 3rdparty/relmat/module_maths.F90:  Activate the use of fastwigxj 
+	if available for both wigner3j and wigner6j.  NOTE:  the wigner6j 
+	old solution is faster but less general.  This indicates to me 
+	that we should be specific which version to use and perhaps move
+	the wigner6j code to a separate file for specialized cases.  The
+	difference in speed is not large, though.  wigner3j is incomparably
+	much faster in the present version than in the older code.
+	
+	* src/wigner_functions.{cc,h}:  Interface and test code for
+	the faster wigner library.
+	
+	* src/m_linemixing.cc:  Also added an interface.  I will make
+	the constants inputs with decent defaults at some point in
+	the future.  The present numbers works for most singular 
+	bands but might need to be increased for fast computations
+	with more bands.
+
 2018-02-12 Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-949

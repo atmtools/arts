@@ -1,0 +1,84 @@
+3j: 18 -> 33650 
+Hash file:     ./test_table_18.3j
+Version:       6
+Entries:       1 (0.0 %)
+Type:          3j
+c14n:          0
+Hashentries:   33650
+Hash function: 
+Hash func prm: 0 0 0 0 0 0 0 0 0 0
+Max 2j:        36
+Max abs err:   1.11022e-16
+Max rel err:   1.11022e-16 (|val| >  1e-10)
+Max small val: 0.00000e+00 (|val| <= 1e-10)
+Checksums:     0x0079df3f12cc4bc0, 0x0079df3912ccc894
+
+FASTWIGXJ statistics:          3j             6j             9j        6j-f128
+
+Trivial 0.......:            5376              0              0              0
+Hits............:           30877              0              0              0
+Hits non-triv-0.:           25501              0              0              0
+Dynamic hits....:               0              0              0              0
+Dynamic trip....:               0              0              0              0
+Full calc.......:               0              0              0              0
+Total lookups...:           30877              0              0              0
+
+Dyn table reduce:               0              0              0              0
+Table entries...:           33650              0              0              0
+Dyn. table entr.:               0              0              0              0
+
+FASTWIGXJ statistics:          3j             6j             9j        6j-f128
+
+Trivial 0.......:           34551              0              0              0
+Hits............:          193978              0              0              0
+Hits non-triv-0.:          159427              0              0              0
+Dynamic hits....:               0              0              0              0
+Dynamic trip....:               0              0              0              0
+Full calc.......:               0              0              0              0
+Total lookups...:          193978              0              0              0
+
+Dyn table reduce:               0              0              0              0
+Table entries...:           33650              0              0              0
+Dyn. table entr.:               0              0              0              0
+
+FASTWIGXJ statistics:          3j             6j             9j        6j-f128
+
+Trivial 0.......:           88374              0              0              0
+Hits............:          442548              0              0              0
+Hits non-triv-0.:          354174              0              0              0
+Dynamic hits....:               0              0              0              0
+Dynamic trip....:               0              0              0              0
+Full calc.......:           50418              0              0              0
+Total lookups...:          492966              0              0              0
+
+Dyn table reduce:               0              0              0              0
+Table entries...:           33650              0              0              0
+Dyn. table entr.:               0              0              0              0
+
+FASTWIGXJ statistics:          3j             6j             9j        6j-f128
+
+Trivial 0.......:           88374              0              0              0
+Hits............:          442548              0              0              0
+Hits non-triv-0.:          354174              0              0              0
+Dynamic hits....:           38695              0              0              0
+Dynamic trip....:               0              0              0              0
+Full calc.......:           11723              0              0              0
+Total lookups...:          492966              0              0              0
+
+Dyn table reduce:             114              0              0              0
+Table entries...:           33650              0              0              0
+Dyn. table entr.:            1024              0              0              0
+
+FASTWIGXJ statistics:          3j             6j             9j        6j-f128
+
+Trivial 0.......:           88374              0              0              0
+Hits............:          442548              0              0              0
+Hits non-triv-0.:          354174              0              0              0
+Dynamic hits....:           47605              0              0              0
+Dynamic trip....:               0              0              0              0
+Full calc.......:            2813              0              0              0
+Total lookups...:          492966              0              0              0
+
+Dyn table reduce:               0              0              0              0
+Table entries...:           33650              0              0              0
+Dyn. table entr.:           16384              0              0              0

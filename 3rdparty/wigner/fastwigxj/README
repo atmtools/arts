@@ -1,0 +1,504 @@
+Contents
+========
+
+1. Overview
+2. License
+3a. Prerequisite library
+3b. Compilation
+4. Creation of precalculated tables
+5. Library interfaces
+5a. Simple C interface
+5b. Alternative (more efficient) C interface
+5c. Dynamic hash tables
+5d. Simple FORTRAN interface
+6. Look-up statistics
+7. Acknowledgements (referencing)
+8. Contact
+
+
+1. Overview
+===========
+
+FASTWIGXJ evaluates Wigner 3j, 6j and 9j symbols quickly by lookup in
+precalculated tables.  When a symbol does not exist in the table, it
+is evaluated directly using WIGXJPF [1], which also is used to produce
+the tables.
+
+For 3j and 6j symbols, the lookup table is organised by direct
+indexing as described in [2] using Regge symmetries.  For 9j symbols
+the precalculated symbols are stored in a hash table, and
+canonicalised before lookup using permutation and reflection
+symmetries.  9j symbols can also be evaluated by fallback to summing
+6j symbols.
+
+In general, for reasonably-sized precalculated tables, the time spent
+for symmetry calculations are smaller than the (unavoidable) actual
+memory lookup (around 100 ns).
+
+FASTWIGXJ can also keep dynamic hash tables of symbols, which is
+useful when only a subset of larger symbols than can be stored in the
+fixed tables are used many times.  The hash tables are filled when
+symbols are calculated on demand.  If too many symbols are touched,
+the tables are gradually cleared using a least-recently-used scheme.
+NOTE: currently, the implementation of the dynamic hash tables does
+not work with multi-threaded operation (due to the on-the-fly
+modification of the tables).
+
+
+2. License
+==========
+
+FASTWIGXJ is free software: you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+FASTWIGXJ is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with FASTWIGXJ.  If not, see <http://www.gnu.org/licenses/>.
+
+For details, see the files COPYING.LESSER and COPYING.
+
+
+3a. Prerequisite library
+========================
+
+FASTWIGXJ depends on the WIGXJPF library to evaluate the Wigner
+symbols accurately.  See:
+
+http://fy.chalmers.se/subatom/wigxjpf/
+
+To build, it need to be placed alongside fastwigxj in the directory
+structure.  Short build instructions:
+
+cd ..
+wget http://fy.chalmers.se/subatom/wigxjpf/wigxjpf-1.7.tar.gz
+tar -zxvf wigxjpf-1.7.tar.gz
+cd wigxjpf-1.7
+make
+cd ../fastwigxj-1.2
+
+The build of FASTWIGXJ will automatically use the version of
+WIGXJPF found with the highest version number (searching ../wigxjpf*/).
+(Currently, at least version 1.2 is required for compilation to work.)
+
+
+3b. Compilation
+===============
+
+All necessary configuration is performed during build.  The library is
+compiled by issuing:
+
+make
+
+Test evaluation of some small symbols (< 1 s runtime) can be performed
+by:
+
+make test
+
+The fortran interface is pure C code and compiled with the library above.
+Testing it requires a fortran compiler, e.g. gfortran:
+
+make flookup.test FC=gfortran
+
+It also requires that the fortran test of WIGXJPF was performed.
+
+It is recommended to compile the library itself using gcc (the GNU
+Compiler Collection).  clang (LLVM) does not have support for
+float128, thus cannot do 9j-by-6j fallback.  Currently, icc (the Intel
+Compiler) cannot compile the library itself, but can be used to
+compile and link a using program.
+
+
+4. Creation of precalculated tables
+===================================
+
+To create a precalculated table of 3j symbols, using Regge symmetries,
+valid for all symbols with max j <= 25 (and quite a few larger ones;
+the limit for E is effectively 2*j), do:
+
+bin/hash_js --max-E-3j=50 /dev/null ./table_50.3j
+
+Similarly for a table of 6j symbols, using Regge symmetries, valid for
+all symbols with max j <= 20 (and quite a few larger ones; the limit
+for E is effectively 2*j), do:
+
+bin/hash_js --max-E-6j=40 /dev/null ./table_40.6j
+
+To produce a table of 6j symbols suitable for fallback use during
+evaluation of 9j symbols:
+
+bin/hash_js --max-E-6j=40 --float128 /dev/null ./table_40_float128.6j
+
+For 9j symbols, the symbols to store must first be enumerated (here for
+all symbols with max j <= 8; the limit given is for 2*j):
+
+bin/gen_9j --flat-lim=16 | bin/combine_js | bin/unique_js ./comb_16.9j
+
+And then calculated and hashed:
+
+bin/hash_js ./comb_16.9j ./hashed_16.9j
+
+It may be advantageous to enumerate an 'assymmetric' symbol
+distribution, where j3,j6,j7,j8 are twice as large and j9 four times
+as large as the maximum of j1,j2,j4,j5 (the limit given is 2*j for
+j1,j2,j4,j5):
+
+bin/gen_9j --lim=10 | bin/combine_js | bin/unique_js ./comb_10_assym.9j
+
+bin/hash_js ./comb_10_assym.9j ./hashed_10_assym.9j
+
+Some typical table sizes (GB):
+
+kind:   limit:   max j:
+                    10     20     30     40     50     60     70
+3j      E: 2*j  0.0005  0.009  0.066   0.26   0.77   1.88   3.99
+6j      E: 2*j   0.002   0.07   0.72    3.7   13.6   39.4   97.0
+
+kind:   limit:   max j:
+                     4      5      6      7      8     10     12     16
+9j      flat    0.0005  0.004  0.016  0.033   0.13   1.07    4.3   34.3
+9j      assym    0.016  0.067   0.26    1.1    4.3   17.2    137
+
+
+5. Library interfaces
+=====================
+
+FASTWIGXJ is intended for use as a library within other programs.
+Several interfaces are provided and described below.  All lookup
+functions are multi-thread safe.  They all follow the same scheme:
+
+0) Setup of precalculated tables.  When large symbols will be
+   requested, it is suggested to make them as large as possible, given
+   the memory available.  The tables are shared between multiple
+   threads in the using programs.  The tables are loaded using mmap,
+   such that they also will be shared between multiple processes
+   running on the same machine.
+
+Within the using program:
+
+1) Loading of the precalculated tables.
+
+2) Setup of WIGXJPF, in case the tables does not hold all symbols
+   that will be requested.
+
+3) Lookup symbols.
+   Repeat...
+
+4) (Optional) print statistics.
+
+5) Free the memory used by the tables.
+
+6) Also free memory used by WIGXJPF.
+
+Interfaces:
+
+For each kind of symbol, there are interfaces with different call
+sequences.  This is to accomodate both easy change from other means of
+evaluating Wigner 3j, 6j and 9j symbols, and to also allow to maximise
+the performance.
+
+- Direct interface with individual arguments.
+
+- Direct interface with a pointer to list of arguments.
+
+- Split interface with a pointer to list of arguments.  The split
+  allows to separate the canonicalisation by symmetry and prefetch the
+  memory before issuing the actual memory lookup.  This way,
+  canonicalisation and lookup of several symbols can be interleaved.
+
+Independent of interface, error handling is brutal: if a symbol that
+exceeds the tables cannot be found, it will be evaluated by fallback
+to WIGXJPF.  If the requested symbol exceeds the setup or temporary
+storage of WIGXJPF, that library will print an error message and
+terminate the program.
+
+
+5a. Simple C interface
+======================
+
+See function prototypes in inc/fastwigxj.h.
+
+0) #include "fastwigxj.h"
+
+1) size_t fastwigxj_load("test_table_18.3j", 3, NULL);
+
+   For a table with 6j or 9j symbols, change 3 to 6 or 9.  To load
+   a 6j table with 128-bit floating point values for 9j-by-6j fallback
+   calculations, use 7.
+
+   The storage space allocated is returned.
+
+2) Call the initialisation routines of WIGXJPF in case the tables are
+   not large enough to handle all symbols that will be requested.
+
+3) double fw3jja(int two_j1, int two_j2, int two_j3,
+                 int two_m1, int two_m2, int two_m3);
+
+   And similar for 6j and 9j symbols.
+
+   Note that the arguments are to be given as integers, with twice the
+   numeric value (this is what jj tries to indicate).
+   I.e. half-integer arguments will be passed as odd integers.
+
+   Also note the alternative call sequences described in the next
+   section below.
+
+4) fastwigxj_print_stats();
+ 
+5) fastwigxj_unload(3);
+
+   And similar for other loaded tables.
+
+6) Release WIGXJPF memory.
+
+Example use can be found in example/clookup.c.
+
+To compile and link with FASTWIGXJ:
+
+CFLAGS += -Ipath-to-fastwigxj/inc/
+LDFLAGS += -Lpath-to-fastwigxj/lib/
+LDLIBS += -lfastwigxj -lm
+
+Linking with WIGXJPF is also required, to provide the fallback
+routines.  Note that for the time being, it is necessary to also link
+with the quadmath (__float128) parts of WIGXJPF (see section 5d of the
+WIGXJPF instructions).
+
+
+5b. Alternative (more efficient) C interface
+============================================
+   
+For the different call sequences, there are several functions with
+different names, see inc/fastwigxj.h.  The naming scheme:
+
+fwXjj[|s|s4][a|l|_canon|_prefetch|_get][_nz][_float128]
+
+where X is 3, 6 or 9.
+
+The postfix nz means no-trivial-0-check, i.e. the c14n routine will
+not guard against invalid arguments, or arguments that correspond to
+symbols that are trivially 0.  Note that if such symbols are
+requested, WRONG values WILL be returned.  (This interface is not
+exposed to the user yet).
+
+s: struct:   use structure as arguments
+
+s4: struct4: use structure with 4 symbols as arguments, to do
+    	     c14n calculation in parallel
+
+a: args:  do a full c14n and retrieval of one symbol, using a call
+          sequence with 5, 6 or 9 arguments.
+
+l: list:  do a full c14n and retrieval of one symbol, using a call
+          sequence with a pointer to a list holding 5, 6, or 9 arguments.
+
+_canon:   do the c14n of one symbol, using a pointer to a list.
+
+_prefetch: do the memory prefetch, given the the prepared c14n information.
+
+_get:     get the actual value of one symbol, the pointer to the original
+       	  list of arguments is needed, in case the symbol is not within
+          the table and a fallback calculation is required.
+
+_nz:      do not do trivial-0-check, i.e. triangle and integer sum
+          relationships of arguments.  WARNING: if symbol not fulfilling
+	  these checks is requested with _nz, *wrong* results will be
+	  returned (crashes / segmentation faults could also happen).
+
+_float128: retrieve float128 results (requires such table, only for 6j
+	   currently.)
+
+
+5c. Dynamic hash tables
+=======================
+
+The dynamic hash tables are (currently) kept per kind of symbol,
+i.e. 3, 6j and 9j.  They are created by requesting storage space for a
+certain number of symbols.  Note that the hash tables handle
+collisions within the table, and as a consequence, only allow to be
+3/4 filled.  When more symbols are calculated on-the-fly,
+approximately 1/16 of the symbols are removed from the dynamic hash
+tables.  The removed symbols are the ones which have been accessed the
+longest time ago.
+
+It is a good idea to still load some precalculated tables when using
+the dynamic hash tables.  This is particularly the case if trivially-0
+symbols are evaluated, since they are served by a fixed entry in the
+precalculated tables.
+
+*** NOTE: The dynamic hash tables do currently NOT support
+    multi-threaded operation!
+
+Initialise a dynamic hash table by calling:
+
+1) size_t fastwigxj_load(3 /*or 6, or 9 */, entries);
+
+   entries will be rounded up to a power of two.  A total of 17 bytes
+   (in two different arrays, 16+1) will be allocated per entry.
+
+   The storage space allocated is returned.
+
+The dynamic tables can be free'd by calling:
+
+2) void fastwigxj_dyn_free(3 /*or 6, or 9 */);
+
+*** NOTE: The dynamic hash tables do currently NOT support
+    multi-threaded operation!
+
+
+5d. Simple FORTRAN interface
+============================
+
+The fortran interface is analog to the C interface described above.  A
+'f' is prepended to each function name.  All arguments except rx and x
+are of type 'integer*4' and return values of type 'real*8'.  The
+intermediate arguments rx and x are of type 'integer*8'.
+
+A small example program can be found in example/flookup.f.
+
+The interface specifications are in a module ffastwigxj, which is placed
+in the mod/ directory during compilation of the FORTRAN test program
+(which also selects the FORTRAN compiler to use).  Compilation of
+FORTRAN programs thus need to include also that directory:
+
+FCFLAGS += -I path-to-wigxjpf/mod/
+
+Note that the module fwigxjpf of WIGXJPF also is needed initialising
+the use of fallback routines.
+
+
+6. Look-up statistics
+=====================
+
+To help investigate the efficiency (coverage) of the precalculated
+tables, the library counts every look-up, and whether it was serviced
+by the tables, or had to be fully calculated.  The overhead of this
+accounting is small compared to the actual look-up.  Currently, the
+accounting is not multi-thread-aware, so may in such cases miss some
+counts.
+
+The statistics is given for 3j, 6j and 9j symbols separately.
+For each symbol, the following items are counted:
+
+- Trivial 0
+
+  Number of symbols that are trivially 0.  Trivially 0 symbols are
+  detected early in the canonicalisation routines, and will do a quick
+  retrieval of a zero value in the tables.  Still, they are not for
+  free:
+
+  If your code has a large (even dominating) fraction of trivial-0
+  symbols being looked up, it is strongly recommended to review the
+  loops surrounding the symbol calculations.  Most often, it is
+  possible to use more careful (stringent) limits on the j and m
+  values that are being traversed such that trivially 0 symbol are
+  avoided.  This is especially important when the values of several
+  symbols are multiplied, as some trivially 0-valued symbol might make
+  the more expensive evaluation of other factors useless.
+
+  The reason in the first place to use FASTWIGXJ is to speed up
+  calculations that use many Wigner symbols.  The fastest way is to
+  not call it at all...
+
+- Hits
+
+  Total number of retrievals that were serviced by the loaded tables.
+  (Note that this for technical reasons include trivially 0 symbols.)
+
+- Hits non-trivially-0
+
+  The difference between the two above measured values.
+
+- Dynamic hits
+
+  Number of evaluations satisfied by the dynamic hash tables.
+
+- Calculated
+
+  Number of symbols that had to be evaluated directly.
+
+- Total lookups
+
+  The sum of hits and calculated above.
+
+- Dynamic table reductions
+
+  Number of times the dynamic table was about to use > 3/4 items,
+  and thus free'd 1/16 of the oldest items.
+
+  If this happens often, and the number of calculated symbols are
+  comparable to the number of dynamic hits, then the tables are too
+  small to be effective.
+
+- Table entries
+
+  Number of entries in the precalculated tables (currently loaded).
+
+- Dynamic table entries
+
+  Number of entries in the dynamic hash tables (currently allocated).
+
+
+7. Acknowledgements (referencing)
+=================================
+
+A paper describing FASTWIGXJ is in preparation.  Please check for the
+latest information:
+
+http://fy.chalmers.se/subatom/fastwigxj/
+
+
+As the library WIGXJPF is used to evaluate symbols, when FASTWIGXJ is used
+for computations that are published in a research article, it is
+recommended to to cite the following paper:
+
+H. T. Johansson and C. Forssén, Fast and accurate evaluation of Wigner 3j,
+6j, and 9j symbols using prime factorisation and multi-word integer
+arithmetic, (2015), eprint arXiv:1504.08329
+
+@ARTICLE{2015arXiv1504.08329,
+   author = {{Johansson}, H.~T. and {Forss\’en}, C.},
+    title = "{Fast and accurate evaluation of {W}igner 3j, 6j, and 9j
+symbols using prime factorisation and multi-word integer arithmetic}",
+  journal = {ArXiv e-prints},
+archivePrefix = "arXiv",
+   eprint = {1504.08329},
+ primaryClass = "physics.comp-ph",
+     year = 2015,
+    month = apr
+}
+
+When FASTWIGXJ is used for fast lookup of 3j or 6j symbols, it is
+also suggested to cite the paper describing the mathematical
+background of the implemented methods:
+
+J. Rasch and A. C. H. Yu, Efficient storage scheme for precalculated
+Wigner 3 j, 6 j and Gaunt coefficients, SIAM J. Sci. Comput., 25 (2003),
+pp. 1416-1428
+
+@ARTICLE{Rasch:2003dr,
+   author = {Rasch, J. and Yu, A. C. H.},
+    title = {{Efficient storage scheme for precalculated
+Wigner 3 j, 6 j and Gaunt coefficients}},
+  journal = {SIAM J.\ Sci.\ Comput.},
+     year = {2003},
+   volume = {25},
+   number = {4},
+    pages = {1416--1428}
+}
+
+
+8. Contact
+==========
+
+Håkan T. Johansson                  e-mail: f96hajo@chalmers.se
+Subatomic physics
+Department of Fundamental physics
+Chalmers University of Technology
+412 96 Göteborg
+Sweden

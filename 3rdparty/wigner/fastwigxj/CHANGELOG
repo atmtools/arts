@@ -1,0 +1,56 @@
+1.2    2018-02-14
+
+	Dynamic hash tables, when only a subset of large symbols are used.
+	 (Only single-threaded operation with these.)
+
+1.1    2018-02-12
+
+	Enabled compiler some warnings, many warning fixes.
+	Hit and fallback statistics.  Only accurate single-threaded.
+
+1.0    2017-03-12
+
+	Code has been public for more than a year - bump to version 1.0.
+
+0.9.1  2016-07-22
+
+	Fix some gcc 6 warnings.  (K. Wendt)
+	Change two intrinsics, to work with newer clang (> 3.7.0).  (K. Wendt)
+
+0.9    2016-06-16
+
+	Fixed quadmath test, library last linker argument.  (K. Wendt)
+
+0.8    2015-10-10
+
+        First public release.
+
+0.7.1  2015-09-23
+
+	Updates in README.
+        Array dimension fixes.
+
+0.7    2015-08-25
+
+	FORTRAN interface declarations in a module.
+
+0.6.3  2015-08-24
+
+	Compile fixes.
+
+0.6.2  2015-08-22
+
+	Now compiles with clang (LLVM 3.5.0).
+	clang has no float128 support, so gcc recommended.
+
+0.6.1  2015-08-21
+
+	Compile fixes.
+
+0.6    2015-08-20
+
+        First test-pilot release.
+
+0.5    2015-08-02
+
+        First package.
