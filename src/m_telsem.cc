@@ -135,22 +135,22 @@ void telsem_atlasReadAscii(TelsemAtlas& atlas,
 
     String corr_filename = directory + '/' + "correlations";
     out2 << "Reading correlations: " << corr_filename << '\n';
-    is = std::ifstream{};
-    open_input_file(is, corr_filename);
+    std::ifstream corr_is;
+    open_input_file(corr_is, corr_filename);
     Tensor3 correlation(10, 7, 7);
     String s;
     for (Index i = 0; i < 10; i++)
     {
-        std::getline(is, s);
+        std::getline(corr_is, s);
         for (Index j = 0; j < 7; j++)
         {
             for (Index k = 0; k < 7; k++)
             {
-                is >> correlation(i, j, k);
-                if (is.fail())
+                corr_is >> correlation(i, j, k);
+                if (corr_is.fail())
                     throw std::runtime_error("Error reading correlation.");
             }
-            std::getline(is, s);
+            std::getline(corr_is, s);
         }
     }
     atlas.set_correl(correlation);
