@@ -16584,6 +16584,7 @@ void define_md_data_raw()
          "\n"
          "The validity range of the parametrization of is 10 to 700 GHz, but for\n"
          "some extra flexibility frequencies between 5 and 900 GHz are accepted.\n"
+         "The accepted temperaute range for *surface_skin_t* is [260.0 K, 373.0 K]\n"
          "\n"
          "The model itself is represented by the neural networks in\n"
          "*tessem_neth* and *tessem_netv*.\n"
@@ -16600,6 +16601,41 @@ void define_md_data_raw()
         GIN_DEFAULT( "0.035", NODEF),
         GIN_DESC( "Salinity, 0-1. That is, 3% is given as 0.03.",
                   "Wind speed.")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "surfaceTelsem" ),
+        DESCRIPTION
+        (
+         "Compute surface emissivities using the TELSEM 2 model.\n"
+         "\n"
+         "This method uses second version of the TELSEM model for calculating\n"
+         "land surface emissivities (F. Aires et al, \"A Tool to Estimate \n"
+         " Land‐Surface Emissivities at Microwave frequencies (TELSEM) for use\n"
+         " in numerical weather prediction\" Quarterly Journal of the Royal\n"
+         "Meteorological Society, vol. 137, (656), pp. 690-699, 2011.)\n"
+         "This methods computes land surface emissivities for a given pencil beam\n"
+         "using a given TELSEM2 atlas.\n"
+         "The input must satisfy the following conditions, otherwise an error is thrown:\n"
+         " - The input frequencies (*f_grid*) must be within the range [5 GHz, 900 GHz]\n"
+         " - The skin temperature (*surface_skin_t*) must be within the range\n"
+         "   [180 K, 360 K]\n"
+         "Moreover, the pencil beam must hit the surface at a location that is classified\n"
+         "as a land surface in the TELSEM atlas. To classify a location as ocean or land\n"
+         "surface according to the TELSEM atlas, see the *telsemSurfaceTypeLandSea* WSM.\n"
+         ),
+        AUTHORS( "Simon Pfreundschuh" ),
+        OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "stokes_dim", "f_grid", "lat_grid", "lat_true",
+            "lon_true", "rtp_pos", "rtp_los", "surface_skin_t"),
+        GIN("atlas"),
+        GIN_TYPE("TelsemAtlas"),
+        GIN_DEFAULT(NODEF),
+        GIN_DESC("The Telsem atlas to use for the emissivity calculation.")
         ));
 
   md_data_raw.push_back
@@ -17191,12 +17227,63 @@ void define_md_data_raw()
           GOUT_TYPE("Vector"),
           GOUT_DESC("The SSMI emissivities from the atlas"),
           IN(),
-          GIN("lat", "lon", "ta"),
+          GIN("lat", "lon", "atlas"),
           GIN_TYPE("Numeric", "Numeric", "TelsemAtlas"),
           GIN_DEFAULT(NODEF, NODEF, NODEF),
           GIN_DESC("The latitude for which to compute the emissivities.",
                    "The latitude for which to compute the emissivities.",
                    "The Telsem atlas to use.")
+            ));
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "telsemSurfaceTypeLandSea" ),
+          DESCRIPTION
+          (
+              "TELSEM based land sea mask.\n"
+              "\n"
+              "This method determines whether the position in *rtp_pos* is\n"
+              "of type ocean or land depending on whether a corresponding\n"
+              "cell is contained in the provided TELSEM atlas.\n"
+              "In combination with the WSM *surface_rtpropCallAgendaX* this\n"
+              "can be used to used different methods to compute surface radiative\n"
+              "properties.\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT("surface_type"),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN("atmosphere_dim", "lat_grid", "lat_true", "lon_true", "rtp_pos"),
+          GIN("atlas"),
+          GIN_TYPE("TelsemAtlas"),
+          GIN_DEFAULT(NODEF),
+          GIN_DESC("The telsem atlas from which to lookup the surface type.")
+            ));
+
+  md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "telsem_atlasReadAscii" ),
+          DESCRIPTION
+          (
+              "Reads single TELSEM atlas.\n"
+              "\n"
+              "'directory' needs to contain the original 12 Telsem atlas files\n"
+              "and the correlations file. This WSM reads the atlas for the specified\n"
+              "month and stores the result in the provided output atlas.\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT(),
+          GOUT("atlas"),
+          GOUT_TYPE("TelsemAtlas"),
+          GOUT_DESC("The atlas into which to store the loaded atlas."),
+          IN(),
+          GIN("directory", "month", "filename_pattern"),
+          GIN_TYPE("String", "Index", "String"),
+          GIN_DEFAULT(NODEF, NODEF, "ssmi_mean_emis_climato_@MM@_cov_interpol_M2"),
+          GIN_DESC("Directory with TELSEM 2 SSMI atlas files.",
+                   "The month for which the atlas should be read.",
+                   "Filename pattern (@MM@ gets replaced by month number)")
             ));
 
   md_data_raw.push_back

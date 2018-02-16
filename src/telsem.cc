@@ -27,6 +27,7 @@
 #include <cmath>
 #include <utility>
 #include "telsem.h"
+#include "check_input.h"
 
 extern Numeric EARTH_RADIUS;
 extern Numeric DEG2RAD;
@@ -152,9 +153,26 @@ void TelsemAtlas::telsem_calc_correspondence()
 Index TelsemAtlas::calc_cellnum(Numeric lat,
                                 Numeric lon) const
 {
+    if ((lat < -90.0) || (lat > 90.0)) {
+        throw std::runtime_error("Latitude input must be within the range [-90.0, 90.0].");
+    }
+
+    if ((lon < 0.0) || (lon > 360.0)) {
+        throw std::runtime_error("Longitude input must be within the range [0.0, 360.0].");
+    }
+
+    // Avoid corner cases that hit the outermost edge of the atlas cells.
+    if (lat == 90.0) {
+        lat -= 0.125;
+    }
+
+    if (lon == 360.0) {
+        lat -= 0.125;
+    }
+
     Index cellnum = 0;
     Index ilat = static_cast<Index>((lat + 90.0) / dlat);
-    Index ilon = static_cast<Index>(lon / (360.0 / ncells[ilat])) + 1;
+    Index ilon = static_cast<Index>(lon / (360.0 / static_cast<Numeric>(ncells[ilat]))) + 1;
     for (Index i = 0; i < ilat; ++i) {
         cellnum += ncells[i];
     }
@@ -211,9 +229,6 @@ Numeric TelsemAtlas::interp_freq2(Numeric emiss19,
         c = (f - 37.0) / (85.5 - 37.0);
         emiss = b * emiss37 + c * emiss85;
     } else if (85.5 <= f) {
-        a = 0;
-        b = 0;
-        c = 1.0;
         emiss = emiss85;
         if ((class2 > 9) && (class2 < 14) && (emiss85 > emiss37)) {
             if (f <= 150.0) {

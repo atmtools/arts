@@ -27,6 +27,7 @@
 #include "mystring.h"
 #include "file.h"
 #include "telsem.h"
+#include "rte.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void telsemStandalone(Matrix &emis,
@@ -37,6 +38,9 @@ void telsemStandalone(Matrix &emis,
                       const TelsemAtlas &ta,
                       const Verbosity &)
 {
+    chk_if_in_range("Latitude input to TELSEM2", lat, -90.0, 90.0);
+    chk_if_in_range("Longitude input to TELSEM2", lon,  0.0, 360.0);
+
     Index cellnumber = ta.calc_cellnum(lat, lon);
     Index class1 = ta.get_class1(cellnumber);
     Index class2 = ta.get_class1(cellnumber);
@@ -52,18 +56,104 @@ void telsemStandalone(Matrix &emis,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void telsemSurfaceTypeLandSea(Index   &surface_type,
+                              const Index &atmosphere_dim,
+                              const Vector &lat_grid,
+                              const Vector &lat_true,
+                              const Vector &lon_true,
+                              const Vector &rtp_pos,
+                              const TelsemAtlas &atlas,
+                              const Verbosity &)
+{
+
+    // Checks
+    chk_latlon_true(atmosphere_dim, lat_grid, lat_true, lon_true);
+
+    Numeric lat, lon;
+    pos2true_latlon(lat, lon, atmosphere_dim, lat_grid, lat_true, lon_true, rtp_pos);
+    chk_if_in_range("Latitude input to TELSEM2", lat, -90.0, 90.0);
+    chk_if_in_range("Longitude input to TELSEM2", lon,  0.0, 360.0);
+
+    Index cellnumber = atlas.calc_cellnum(lat, lon);
+    if (atlas.contains(cellnumber)) {
+        surface_type = 1;
+    } else {
+        surface_type = 0;
+    }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void telsemAtlasLookup(Vector &emis,
                       const Numeric &lat,
                       const Numeric &lon,
-                      const TelsemAtlas &ta,
+                      const TelsemAtlas &atlas,
                       const Verbosity &)
 {
-    Index cellnumber = ta.calc_cellnum(lat, lon);
-    if (ta.contains(cellnumber)) {
-        emis = ta[cellnumber];
+    chk_if_in_range("Latitude input to TELSEM2", lat, -90.0, 90.0);
+    chk_if_in_range("Longitude input to TELSEM2", lon,  0.0, 360.0);
+
+    Index cellnumber = atlas.calc_cellnum(lat, lon);
+    if (atlas.contains(cellnumber)) {
+        emis = atlas[cellnumber];
     } else {
         emis.resize(0);
     }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void telsem_atlasReadAscii(TelsemAtlas& atlas,
+                           const String& directory,
+                           const Index& month,
+                           const String& filename_pattern,
+                           const Verbosity& verbosity)
+{
+    CREATE_OUT2;
+    const Index imonth = filename_pattern.find("@MM@");
+    if (imonth < 0) {
+        ostringstream os;
+        os << "Substring '@MM@' not found in filename_pattern for" << std::endl
+           << "month number replacement: "
+           << filename_pattern;
+    }
+
+    std::ifstream is;
+
+    ostringstream month_ss;
+    if (month < 10) {
+        month_ss << 0;
+    }
+    month_ss << month;
+
+    String this_filename = filename_pattern;
+    this_filename.replace(imonth, 4, month_ss.str());
+    this_filename = directory + '/' + this_filename;
+
+    out2 << "Reading TELSEM atlas: " << this_filename << '\n';
+    open_input_file(is, this_filename);
+    atlas.read(is);
+    atlas.set_month(month);
+
+    String corr_filename = directory + '/' + "correlations";
+    out2 << "Reading correlations: " << corr_filename << '\n';
+    is = std::ifstream{};
+    open_input_file(is, corr_filename);
+    Tensor3 correlation(10, 7, 7);
+    String s;
+    for (Index i = 0; i < 10; i++)
+    {
+        std::getline(is, s);
+        for (Index j = 0; j < 7; j++)
+        {
+            for (Index k = 0; k < 7; k++)
+            {
+                is >> correlation(i, j, k);
+                if (is.fail())
+                    throw std::runtime_error("Error reading correlation.");
+            }
+            std::getline(is, s);
+        }
+    }
+    atlas.set_correl(correlation);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

@@ -21,6 +21,15 @@
   \file   telsem.h
 
   \brief  This file contains the definition of the TELSEM atlas format.
+
+  This file implements an interface to the TELSEM model for land surface
+  microwave emissivities:
+
+  F. Aires et al, "A Tool to Estimate Land‐Surface Emissivities at
+  Microwave frequencies (TELSEM) for use in numerical weather
+  prediction," Quarterly Journal of the Royal Meteorological
+  Society, vol. 137, (656), pp. 690-699, 2011.
+
 */
 
 #ifndef telsem_h
@@ -77,6 +86,9 @@ public:
      */
     bool contains(Index cellnumber) const
     {
+        if (cellnumber >= correspondence.nelem()) {
+            return false;
+        }
         return correspondence[cellnumber] >= 0;
     }
 
