@@ -610,6 +610,8 @@ void MCRadar(// Workspace reference:
   // Basics
   //
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  if( stokes_dim < 2 )
+    throw runtime_error( "This method requires that stokes_dim >= 2" );
   if( atmfields_checked != 1 )
     throw runtime_error( "The atmospheric fields must be flagged to have "
                          "passed a consistency check (atmfields_checked=1)." );
@@ -941,8 +943,9 @@ void MCRadar(// Workspace reference:
                   mult( Ihold, P, Ipath );
                   mult( I_i, trans_mat, Ihold );
                   Ihold = Ipath;
-                  if( isnan(Ihold[0]) || isnan(Ihold[1]) || 
-                      isnan(Ihold[2]) || Ihold[0] < 1e-40 )
+                  if( Ihold[0] < 1e-40 || isnan(Ihold[0]) || isnan(Ihold[1]) || 
+                      ( stokes_dim > 2  &&  isnan(Ihold[2]) )  ||
+                      ( stokes_dim > 3  &&  isnan(Ihold[3]) ) )
                      {
                         integrity = false;
                      }
@@ -1029,6 +1032,9 @@ void MCRadar(// Workspace reference:
   y *= fac;
   mc_error *= fac;
 } // end MCRadar
+
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void MCSetSeedFromTime(Index& mc_seed,
