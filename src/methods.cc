@@ -8126,7 +8126,7 @@ void define_md_data_raw()
           "wind_u_field", "wind_v_field", "wind_w_field",
           "mag_u_field", "mag_v_field", "mag_w_field",
           "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
-          "scat_species", "scat_data", "scat_data_checked",
+          "scat_species", "scat_data",
           "iy_aux_vars", "jacobian_do", "jacobian_quantities",
           "ppath", "propmat_clearsky_agenda", "iy_transmitter_agenda",
           "iy_agenda_call1", "iy_transmission", "rte_alonglos_v" ),

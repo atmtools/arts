@@ -1312,7 +1312,6 @@ void iyTransmissionStandard2(
   const ArrayOfTensor4&                     dpnd_field_dx,
   const ArrayOfString&                      scat_species,
   const ArrayOfArrayOfSingleScatteringData& scat_data,
-  const Index&                              scat_data_checked,
   const ArrayOfString&                      iy_aux_vars,
   const Index&                              jacobian_do,
   const ArrayOfRetrievalQuantity&           jacobian_quantities,
@@ -1342,12 +1341,6 @@ void iyTransmissionStandard2(
   if( rbi < 1  ||  rbi > 9 )
     throw runtime_error( "ppath.background is invalid. Check your "
                          "calculation of *ppath*?" );
-  // for now have that here. when all iy* WSM using scat_data are fixed to new
-  // type scat_data, then put check in (i)yCalc and remove here.
-  if( scat_data_checked != 1 )
-    throw runtime_error(
-      "The scat_data must be flagged to have passed a consistency check"
-      " (scat_data_checked=1)." );
   if( jacobian_do )
     {
       if( dpnd_field_dx.nelem() != jacobian_quantities.nelem() )

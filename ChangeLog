@@ -1,3 +1,14 @@
+2018-02-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-954
+
+	* src/m_cloudradar.cc (iyActiveSingleScat2): Started. Work in progress.
+
+	* src/m_transmitter.cc (iyTransmissionStandard2): Removed
+	scat_data_checked as input WSM.
+
+	* src/rte.cc (get_ppath_cloudvars): Spelling in a comment
+
 2018-02-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-953

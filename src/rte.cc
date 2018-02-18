@@ -2936,9 +2936,8 @@ void get_ppath_cloudvars(
         }
     }
 
-  // A variable that can map frpm ppath to particle containers.
+  // A variable that can map from ppath to particle containers.
   // If outside cloudbox or all (d)pnd=0, this variable holds -1.
-  // Otherwise it gives the index in pnd_ext_mat etc.
   clear2cloudy.resize( np );
 
   // Determine ppath_pnd and ppath_dpnd_dx
