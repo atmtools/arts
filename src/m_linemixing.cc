@@ -22,6 +22,7 @@
 #include "linescaling.h"
 #include "linefunctions.h"
 #include "wigner_functions.h"
+#include "auto_md.h"
 #include <Eigen/Eigenvalues>
 
 
@@ -986,7 +987,7 @@ void abs_lines_per_bandFromband_identifiers( ArrayOfArrayOfLineRecord&       abs
   
   // This is a preallocated finding of a band
   LineMixingData lmd_byband;
-  lmd_byband.SetByBand(); 
+  lmd_byband.SetByBandType(); 
   
   #pragma omp parallel for        \
   if (!arts_omp_in_parallel())    
@@ -1417,6 +1418,9 @@ extern "C"
       double *G,
       double *DV
     );
+    
+    extern double* wigner3j_(double*, double*, double*, double*, double*, double*);
+    extern double* wigner6j_(double*, double*, double*, double*, double*, double*);
 }
 
 
@@ -1515,11 +1519,6 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
   if(nbands not_eq abs_species_per_band.nelem())
     throw std::runtime_error("Error in definition of the bands.  Mismatching length of *_per_band arrays.");
   
-  // Make constant input not constant and convert to wavenumber
-  Vector v(nf);
-  for(Index ifs=0; ifs<nf; ifs++)
-    v[ifs] = f_grid[ifs] / w2Hz; 
-  
   // Setting up thermal bath:  only in simplistic air for now
   // This means: 21% O2 and 79% N2
   long    number_of_perturbers = 2;
@@ -1551,8 +1550,6 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
   double tolerance_in_rule_nr2 = 0.1;
   bool   use_adiabatic_factor = true;
   
-  #pragma omp parallel for                    \
-  if (!arts_omp_in_parallel() && nbands not_eq 1)
   for(Index iband=0;iband<nbands;iband++)
   {
     // band pointer
@@ -1776,8 +1773,6 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
     Vector f0 = v0;
     f0 *= w2Hz;
     
-    #pragma omp parallel for                    \
-    if (!arts_omp_in_parallel() && nps not_eq 1)
     for(Index ip=0; ip<nps; ip++)
     {
       
@@ -2111,7 +2106,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
 #if DO_FAST_WIGNER
   wig_temp_free();
   wig_table_free();
-  fastwigxj_print_stats();
+//   fastwigxj_print_stats();
   fastwigxj_unload(3);
   fastwigxj_unload(6);
 #endif
@@ -2144,3 +2139,165 @@ const Verbosity&)
 }
 
 #endif //ENABLE_RELMAT
+
+
+void SetLineMixingCoefficinetsFromRelmat( // WS Input And Output:
+                                          ArrayOfArrayOfLineRecord&        abs_lines_per_band,
+                                          ArrayOfArrayOfMatrix&            relmat_per_band,
+                                          // WS Input:                     
+                                          const ArrayOfArrayOfSpeciesTag&  abs_species_per_band,
+                                          const ArrayOfQuantumIdentifier&  band_identifiers,
+                                          const ArrayOfArrayOfSpeciesTag&  abs_species,
+                                          const SpeciesAuxData&            isotopologue_ratios,
+                                          const SpeciesAuxData&            partition_functions,
+                                          const Numeric&                   rtp_pressure,
+                                          const Vector&                    abs_t,
+                                          const ArrayOfIndex&              relmat_type_per_band,
+                                          const Index&                     error_handling,
+                                          const Index&                     order_of_linemixing,
+                                          const Verbosity&                 verbosity)
+{
+  const Index nband = abs_lines_per_band.nelem();
+  const Index nlevl = abs_t.nelem();
+  
+  // Other numbers are accepted by abs_xsec_per_speciesAddLineMixedBands
+  if(order_of_linemixing < 1)
+    throw std::runtime_error("Need at least first order linemixing");
+  
+  const static Vector f_grid(1, 1.0);
+  const static ArrayOfRetrievalQuantity jacobian_quantities(0);
+  const Vector abs_p(nlevl, rtp_pressure);
+  ArrayOfMatrix _tmp1, _tmp2;
+  ArrayOfArrayOfMatrix _tmp3, _tmp4;
+  ArrayOfIndex abs_species_active(abs_species.nelem()); 
+  for(Index i=0; i<abs_species.nelem(); i++)
+    abs_species_active[i] = i;
+  
+  // Initialize dummy variables
+  abs_xsec_per_speciesInit(_tmp1, _tmp2, _tmp3, _tmp4, 
+                           abs_species_per_band, jacobian_quantities, abs_species_active, 
+                           f_grid, abs_p, 1, 0, verbosity);
+  
+  // Main variable --- its size will be [pressure][band] after next function call
+  // Largest write:  relmat_per_band[ip][iband](0, joker) = Y;
+  // Largest write:  relmat_per_band[ip][iband](1, joker) = G;
+  // Largest write:  relmat_per_band[ip][iband](2, joker) = DV;
+  
+  abs_xsec_per_speciesAddLineMixedBands( _tmp1, _tmp3, relmat_per_band,
+                                         abs_lines_per_band, abs_species_per_band, band_identifiers,
+                                         abs_species, isotopologue_ratios, partition_functions,
+                                         jacobian_quantities, f_grid, abs_p, abs_t, 0.0, relmat_type_per_band,
+                                         1, error_handling, order_of_linemixing, verbosity);
+  
+  for(Index iband = 0; iband < nband; iband++)
+  {
+    // Compute vectors (copying dayta to make life easier)
+    ArrayOfVector data(3);
+    for(auto& v : data) 
+      v = Vector(nlevl, 0);
+    Vector delta(nlevl);
+    
+    const Index nline = abs_lines_per_band[iband].nelem();
+    
+    for(Index iline = 0; iline < nline; iline++)
+    {
+      for(Index ilevl = 0; ilevl < nlevl; ilevl++) 
+        for(Index idata=0; idata < ((order_of_linemixing == 2)?3:1); idata++)
+          data[idata][ilevl] = relmat_per_band[ilevl][iband](idata, iline);
+      
+      // data vector for holding the results before setting the line
+      Vector dvec(10, 0);
+      
+      /* dvec structure:
+       * 0 :  y0
+       * 1 :  y1
+       * 2 :  g0
+       * 3 :  g1
+       * 4 :  d0
+       * 5 :  d1
+       * 6 :  T0
+       * 7 :  n
+       * 8 :  2*n
+       * 9 :  2*n
+       * 
+       * Note that while all n and T0 are known from the line catalog, for legacy purpose this methods needs to set them
+       * These legacy reasons are bad to have here because they might create the confusion that you can change these and
+       * still be OK with the calculations...  regardless though, the method using these numbers is worse than direct 
+       * line mixing so some errors should be expected
+       * 
+       * Inteded computations:
+       * 
+       * Fit data to 
+       * 
+       * X  =  (F0 + F1 (T0/T - 1)) ((T0 / T)^n  * P)^k,
+       * 
+       * where F is any of y, g, d above, and T is temperature, and P is the pressure.  k is 1 for y but 2 for the 
+       * others.  n is the air pressure broadening parameter  (FIXME:  generalize to other planets)
+       */
+      
+      const Numeric T0 = abs_lines_per_band[iband][iline].Ti0();
+      const Numeric n = abs_lines_per_band[iband][iline].PressureBroadening().AirBroadeningNair();
+      
+      dvec[6] = T0;
+      dvec[7] = n;
+      dvec[8] = 2*n;
+      dvec[9] = 2*n;
+      
+      // Fitting parameters for computations solving A(T, P) dC = data(P, T)-f(C, P, T); C += dC;
+      Vector C(2), dC(2);
+      Matrix A(nlevl, 2);
+      
+      const static Index max_loop_count = 10;
+      const static Numeric res_limit = 1e-30;
+      Index pos = 0;
+      bool squared = false;
+      
+      // Do similar fitting for all data vectors
+      for(auto& v : data)
+      {
+        // Take a value from the center of the data and use it as a starting point for the fitting
+        if(squared)
+        {
+          C[0] = v[nlevl/2] / rtp_pressure / rtp_pressure;
+          C[1] = v[nlevl/2] / rtp_pressure / rtp_pressure;
+        }
+        else
+        {
+          C[0] = v[nlevl/2] / rtp_pressure;
+          C[1] = v[nlevl/2] / rtp_pressure;
+        }
+        
+        Numeric res;
+        Index loop_count=0;
+        do
+        {
+          for(Index ilevl = 0; ilevl < nlevl; ilevl++)
+          {
+            const Numeric theta = T0 / abs_t[ilevl];
+            const Numeric theta_n = pow(theta, n);
+            Numeric TP = theta_n * rtp_pressure;
+            if(squared) 
+              TP = pow(TP, 2.0);
+            A(ilevl, 0) = TP;
+            A(ilevl, 1) = (theta - 1.0) * TP;
+            const Numeric f = C[0] * TP + C[1] * (theta - 1.0) * TP;
+            delta[ilevl] = v[ilevl] - f;
+          }
+          res = lsf(dC, A, delta);
+          C += dC;
+          loop_count++;
+        } while(res > res_limit and loop_count < max_loop_count);
+        
+        dvec[pos] = C[0]; pos++;
+        dvec[pos] = C[1]; pos++;
+        
+        // Only the first loop is not squared
+        squared = true;
+      }
+      
+      // Overwrite the linemixing data
+      abs_lines_per_band[iband][iline].LineMixing().Set2ndOrderType();
+      abs_lines_per_band[iband][iline].LineMixing().Vector2SecondOrderData(dvec);
+    }
+  }
+}

@@ -3731,8 +3731,8 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN(),
         GIN( "var1", "var2", "maxabsreldiff", "error_message" ),
-        GIN_TYPE( "Vector, Tensor7",
-                  "Vector, Tensor7",
+        GIN_TYPE( "Vector, Tensor7, ArrayOfMatrix, ArrayOfArrayOfMatrix",
+                  "Vector, Tensor7, ArrayOfMatrix, ArrayOfArrayOfMatrix",
                   "Numeric", "String" ),
         GIN_DEFAULT( NODEF, NODEF, NODEF, "" ),
         GIN_DESC( "A first variable", "A second variable", 
@@ -16243,7 +16243,31 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-        ));
+      ));
+    
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "SetLineMixingCoefficinetsFromRelmat" ),
+      DESCRIPTION
+      (
+        "Sets Rosenkranz coefficients for the line by non-linear\n"
+        "regression from values computed by relmat\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines_per_band", "relmat_per_band"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines_per_band", "abs_species_per_band", "band_identifiers", 
+          "abs_species", "isotopologue_ratios", "partition_functions", 
+          "rtp_pressure", "abs_t", "relmat_type_per_band"),
+      GIN("debug", "order_of_linemixing"),
+      GIN_TYPE("Index", "Index"),
+      GIN_DEFAULT("0", "1"),
+      GIN_DESC("Lets relmat know it is to print debug information if true.",
+               "Choice of order of linemixing")
+    ));
 
 
   md_data_raw.push_back

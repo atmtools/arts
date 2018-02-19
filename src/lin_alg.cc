@@ -2489,3 +2489,39 @@ void linreg(
   p[1] = s1 / s4;
   p[0] = s3/Numeric(n) - p[1]*xm;
 }
+
+
+/*!
+ *    Least squares fitting by solving x for known A and y
+ * 
+ *    (A^T A)x = A^T y
+ * 
+ *    Returns the squared residual, i.e., <(A^T A)x-A^T y|(A^T A)x-A^T y>.
+ * 
+ *    \param  x   Out: As equation
+ *    \param  A   In: As equation
+ *    \param  y   In: As equation
+ */
+Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y)
+{
+  // Size of the problem
+  const Index n = x.nelem();
+  Matrix AT, ATA(n, n);
+  Vector ATy(n), r(n);
+  
+  // Is the size good?
+  assert(A.nrows() == y.nelem());
+  assert(A.ncols() == n);
+  
+  // Solver
+  AT = transpose(A);
+  mult(ATA, AT, A);
+  mult(ATy, AT, y);
+  solve(x, ATA, ATy);
+  
+  // Residual
+  mult(r, ATA, x);
+  r -= ATy;
+  return r*r;
+}
+

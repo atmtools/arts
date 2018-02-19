@@ -2352,6 +2352,130 @@ void CompareRelative(const Vector&    var1,
        << " OK (maximum difference = " << maxreldiff*100.0 << "%" << ").\n";
 }
 
+void CompareRelative(const Matrix&    var1,
+                     const Matrix&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+    const Index ncols = var1.ncols();
+    const Index nrows = var1.nrows();
+    
+    if(var2.ncols() != ncols   ||
+       var2.nrows() != nrows    )
+    {
+      ostringstream os;
+      os << var1name << " and " << var2name << " do not have the same size.";
+      throw runtime_error(os.str());
+    }
+    
+    Numeric maxreldiff = 0.0;
+    
+    for( Index c=0; c<ncols; c++ )
+        for( Index r=0; r<nrows; r++ )
+            {
+              Numeric diff = var1(r,c) - var2(r,c);
+
+              if( isnan(var1(r,c))  ||  isnan(var2(r,c)) )
+                {
+                  if( isnan(var1(r,c))  &&  isnan(var2(r,c)) )
+                    { diff = 0; }
+                  else if( isnan(var1(r,c)) )
+                    {
+                      ostringstream os;
+                      os << "Nan found in " << var1name << ", but there is no "
+                         << "NaN at same position in " << var2name << ".\nThis "
+                         << "is not allowed.";
+                      throw runtime_error(os.str());
+                    }
+                  else 
+                    {
+                      ostringstream os;
+                      os << "Nan found in " << var2name << ", but there is no "
+                         << "NaN at same position in " << var1name << ".\nThis "
+                         << "is not allowed.";
+                      throw runtime_error(os.str());
+                    }
+                }      
+
+              else if(diff!=0.0)
+              {
+                if(var1(r,c) == 0.0)
+                  diff = 1.0;
+                else 
+                  diff /= var1(r,c);
+              }
+
+              if( abs(diff) > abs(maxreldiff) )
+                { maxreldiff = diff; }
+            }
+
+    if(isnan(maxreldiff)  ||  abs(maxreldiff) > maxabsreldiff)
+      {
+        ostringstream os;
+        os << var1name << "-" << var2name << " FAILED!\n";
+        if (error_message.length()) os << error_message << "\n";
+        os << "Max allowed deviation set to: " << maxabsreldiff*100.0 << "%" << endl
+          << "but the matrices deviate with: " << maxreldiff*100.0 << "%" << endl;
+        throw runtime_error(os.str());
+      }
+
+    CREATE_OUT2;
+    out2 << "   " << var1name << "-" << var2name
+         << " OK (maximum difference = " << maxreldiff << ").\n";
+}
+
+
+void CompareRelative(const ArrayOfMatrix&    var1,
+                     const ArrayOfMatrix&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  const Index n = var1.nelem();
+  if(n != var2.nelem())
+  {
+    ostringstream os;
+    os << var1name << " and " << var2name << " do not have the same size.";
+    throw runtime_error(os.str());
+  }
+  
+  for(Index i=0; i<n; i++)
+    CompareRelative(var1[i], var2[i], maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+
+
+void CompareRelative(const ArrayOfArrayOfMatrix&    var1,
+                     const ArrayOfArrayOfMatrix&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  const Index n = var1.nelem();
+  if(n != var2.nelem())
+  {
+    ostringstream os;
+    os << var1name << " and " << var2name << " do not have the same size.";
+    throw runtime_error(os.str());
+  }
+  
+  for(Index i=0; i<n; i++)
+    CompareRelative(var1[i], var2[i], maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+
+
 void CompareRelative(const Tensor7&   var1,
                      const Tensor7&   var2,
                      const Numeric&   maxabsreldiff,

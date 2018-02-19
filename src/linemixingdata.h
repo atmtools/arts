@@ -94,7 +94,8 @@ public:
       mdata[2] = gamma2;
     }
     
-    void SetByBand() { mtype = LM_BYBAND; }
+    void SetByBandType() { mtype = LM_BYBAND; }
+    void Set2ndOrderType() { mtype = LM_2NDORDER; }
     
     // Use these to read data from XML-formats
     void StorageTag2SetType(const String& input);

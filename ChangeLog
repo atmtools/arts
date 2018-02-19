@@ -1,3 +1,29 @@
+2018-02-19  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-956
+	
+	* src/ling_alg.{h,cc}:  Added a simple least square fitting routine.
+	This probably exists somewhere but I needed one for now so please
+	feel free to change this...
+	
+	* src/linemixingdata.h:  Made way to set 2ndorder type easier
+	
+	* src/m{_linemixing,ethods}.cc:  Added SetLineMixingCoefficinetsFromRelmat.
+	This takes the existing abs_lines_per_band, computes the relaxation matrices,
+	and then sets the coefficients to those in 2nd-order linemixing paradigm.
+	Works reasoanbly well for simple cases (and can showcase why not using 
+	full line mixing is such a problematic endeavor for less simple cases).
+	
+	Also removed parallelization attempts in m_linemixing.  We need a fix to
+	this to make it work...  for now it must be run on a single core.
+	
+	* controlfiles/*:  Added simple test for Relmat.  Takes
+	about 20 seconds on my maching with -DFASTWIGNER=1 and about
+	1000 seconds without.  So if FASTWIGNER is active, the test
+	is in fast, otherwise it is in slow.  Since the error using 
+	the slow method is larger than the error with the fast method,
+	the reference file is from running the fast method
+
 2018-02-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-955

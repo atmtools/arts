@@ -165,4 +165,6 @@ void linreg(
   ConstVectorView x, 
   ConstVectorView y );
 
+Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y);
+
 #endif    // linalg_h

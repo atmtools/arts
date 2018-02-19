@@ -1,0 +1,22 @@
+Arts2{
+partition_functionsInitFromBuiltin
+isotopologue_ratiosInitFromBuiltin
+
+abs_speciesSet(species = ["CO2-LM-626"])
+
+NumericSet(rtp_pressure, 10.0)
+
+VectorNLinSpace(abs_t, 50, 200, 350)
+
+ReadXML(abs_lines_per_species, "testdata/abs_lines_per_band_relmat.xml")
+ReadXML(band_identifiers, "testdata/co2band_relmat.xml")
+abs_lines_per_bandFromband_identifiers
+
+SetRelaxationMatrixCalcType(type=[0])
+SetLineMixingCoefficinetsFromRelmat(order_of_linemixing=2)
+
+# ReadXML(relmat_per_band, "test_relmat_per_band.xml")  # The reference test
+ArrayOfArrayOfMatrixCreate(test)
+ReadXML(test, "relmat_per_bandREFERENCE.xml")
+CompareRelative(test, relmat_per_band, 1e-6)
+}

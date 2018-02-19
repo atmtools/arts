@@ -538,6 +538,7 @@ public:
   QuantumIdentifier QuantumIdentity() const {return QuantumIdentifier(mspecies, misotopologue, mquantum_numbers);}
   
   /** Line Mixing data */
+  LineMixingData& LineMixing() { return mlinemixingdata; }
   const LineMixingData& LineMixing() const { return mlinemixingdata; }
   void SetLineMixingData(const LineMixingData& input) { mlinemixingdata=input; }
   
