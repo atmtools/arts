@@ -110,6 +110,7 @@ scat_data_checkedCalc
 
 # Perform scattering calculation 
 DisortCalc #( nstreams=64 ) #( non_iso_inc=1 )
+#DisortCalc( new_optprop=1 )
 #WriteXML( output_file_format, doit_i_field )
    
 # Calculate RT from cloudbox boundary to the sensor
@@ -123,7 +124,7 @@ ReadXML( yREFERENCE, "yREFERENCEfromDOIT.y.xml" )
 Compare( y, yREFERENCE, 1. )
 
 ReadXML( yREFERENCE, "yREFERENCE.y.xml" )
-Compare( y, yREFERENCE, 1e-2 )
+Compare( y, yREFERENCE, 1e-6 )
 
 } # End of Main
  

@@ -1,3 +1,34 @@
+2018-02-19 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-957
+
+	Continue replacement of particle optical property calculation schemes.
+
+	* src/disort.[cc,h] (dtauc_ssalbCalc2, run_disort2):
+	Added. Methods for preparing input data and running disort from it using
+	the new optprop extraction scheme. As soon as all the replacements are
+	done (and some more testing), these will replace the old (non-numbered)
+	versions.
+
+	(dtauc_ssablbCalc):
+	Changed clearsky abs/ext calc to per-layer calc of propmatrix, then
+	average that over layer (instead calc from averaged T,p,vmr). This is
+	more in line with what we do in other solver (e.g. the new
+	path-integration scheme). Resulting BT differences in test case are up
+	to 0.05K.
+
+	* src/m_disort.cc, methods.cc (DisortCalc):
+	Temporarily added parameter to control which optprop extraction scheme
+	is used (for testing purposes. old scheme branch to be removed, see
+	above, but so far still the default).
+
+	* controlfiles/artscomponents/disort/yREFERENCE.y.xml:
+	Replaced with new calc reflecting clearsky abs/ext calc changes above.
+
+	* controlfiles/artscomponents/disort/TestDISORT.arts:
+	Raise compare-to-ref requirement somewhat. Outcommented example call
+	with new optprop extraction scheme.
+
 2018-02-19  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-956

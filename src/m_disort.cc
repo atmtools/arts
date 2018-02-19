@@ -76,6 +76,7 @@ void DisortCalc(Workspace& ws,
                 const Vector& surface_scalar_reflectivity,
                 const Index& nstreams,
                 const String& pfct_method,
+                const Index& new_optprop,
                 const Verbosity& verbosity )
 {
   // Don't do anything if there's no cloudbox defined.
@@ -108,7 +109,19 @@ void DisortCalc(Workspace& ws,
   get_disortsurf_props( albedo, btemp,
                         f_grid, surface_skin_t, surface_scalar_reflectivity );
 
-  run_disort( ws, doit_i_field,
+  if( new_optprop )
+    run_disort2( ws, doit_i_field,
+              f_grid,
+              p_grid, z_field, t_field, vmr_field, pnd_field,
+              scat_data,
+              propmat_clearsky_agenda,
+              cloudbox_limits,
+              btemp, albedo,
+              scat_za_grid, nstreams,
+              pfct_method,
+              verbosity );
+  else
+    run_disort( ws, doit_i_field,
               f_grid,
               p_grid, z_field, t_field, vmr_field, pnd_field,
               scat_data,
@@ -223,6 +236,7 @@ void DisortCalc(Workspace&,
                 const Vector&,
                 const Index&,
                 const String&,
+                const Index&,
                 const Verbosity&)
 {
   throw runtime_error ("This version of ARTS was compiled without DISORT support.");

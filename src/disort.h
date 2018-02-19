@@ -85,6 +85,26 @@ void run_disort( Workspace& ws,
               const String& pfct_method,
               const Verbosity& verbosity );
 
+void run_disort2( Workspace& ws,
+              // Output
+              Tensor7& doit_i_field,
+              // Input
+              ConstVectorView f_grid,
+              ConstVectorView p_grid,
+              ConstTensor3View z_field,
+              ConstTensor3View t_field,
+              ConstTensor4View vmr_field,
+              ConstTensor4View pnd_field,
+              const ArrayOfArrayOfSingleScatteringData& scat_data,
+              const Agenda& propmat_clearsky_agenda, 
+              const ArrayOfIndex& cloudbox_limits,
+              Numeric& surface_skin_t,
+              Vector& surface_scalar_reflectivity,
+              ConstVectorView scat_za_grid,
+              const Index& nstreams,
+              const String& pfct_method,
+              const Verbosity& verbosity );
+
 void dtauc_ssalbCalc( Workspace &ws,
                       VectorView dtauc,
                       VectorView ssalb,
@@ -99,6 +119,19 @@ void dtauc_ssalbCalc( Workspace &ws,
                       const ArrayOfIndex& cloudbox_limits,
                       ConstVectorView f_mono,
                       const Verbosity& verbosity );
+
+void dtauc_ssalbCalc2( Workspace &ws,
+                      MatrixView dtauc,
+                      MatrixView ssalb,
+                      const Agenda& propmat_clearsky_agenda,
+                      const ArrayOfArrayOfSingleScatteringData& scat_data,
+                      ConstMatrixView pnd_field,
+                      ConstVectorView t_field,
+                      ConstVectorView z_field, 
+                      ConstMatrixView vmr_field,
+                      ConstVectorView p_grid,
+                      const ArrayOfIndex& cloudbox_limits,
+                      ConstVectorView f_grid );
 
 void phase_functionCalc2( //Output
                           MatrixView phase_function,

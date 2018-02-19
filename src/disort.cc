@@ -457,14 +457,51 @@ void dtauc_ssalbCalc( Workspace &ws,
     pm.SetZero();
   }
   
+  Vector gas_vector(Np,0.);
+
+  for (Index i = 0; i < Np; i++)
+    {
+      rtp_pressure_local = p_grid[i];
+      rtp_temperature_local = t_field(i,0,0);
+      rtp_vmr_local = vmr_field(joker, i, 0, 0);
+   
+      const Vector rtp_mag_dummy(3,0);
+      const Vector ppath_los_dummy;
+      ArrayOfStokesVector nlte_dummy;
+      ArrayOfPropagationMatrix partial_dummy;
+      ArrayOfStokesVector partial_source_dummy,partial_nlte_dummy;
+
+      propmat_clearsky_agendaExecute(ws,
+                                     propmat_clearsky_local,
+                                     nlte_dummy,
+                                     partial_dummy,
+                                     partial_source_dummy,
+                                     partial_nlte_dummy,
+                                     ArrayOfRetrievalQuantity(0),
+                                     f_mono,  // monochromatic calculation
+                                     rtp_mag_dummy,ppath_los_dummy,
+                                     rtp_pressure_local, 
+                                     rtp_temperature_local, 
+                                     rtp_temperature_nlte_local_dummy,
+                                     rtp_vmr_local,
+                                     propmat_clearsky_agenda);  
+
+      //Assuming non-polarized light and only one frequency
+      for(auto& pm : propmat_clearsky_local)
+        gas_vector[i] += pm.Kjj()[0];
+    }
+
   for (Index i = 0; i < Np-1; i++)
     {
       Numeric ext_part = 0.;
       Numeric abs_part = 0.;
+      Numeric abs_gas = 0.;
  
       ext_part=.5*(ext_vector[i]+ext_vector[i+1]);
       abs_part=.5*(abs_vector[i]+abs_vector[i+1]);
+      abs_gas=.5*(gas_vector[i]+gas_vector[i+1]);
 
+/*
       rtp_pressure_local = 0.5 * (p_grid[i] + p_grid[i+1]);
       rtp_temperature_local = 0.5 * (t_field(i,0,0) + t_field(i+1,0,0));
      
@@ -500,6 +537,7 @@ void dtauc_ssalbCalc( Workspace &ws,
       Numeric abs_gas = 0.;
       for(auto& pm : propmat_clearsky_local)
         abs_gas += pm.Kjj()[0];
+*/
 
       if (ext_part!=0)
         ssalb[Np-2-i]=(ext_part-abs_part) / (ext_part+abs_gas);
@@ -508,6 +546,146 @@ void dtauc_ssalbCalc( Workspace &ws,
         (z_field(i+1, 0, 0)-z_field(i, 0, 0));
     }  
 }
+
+//! dtauc_ssalbCalc2
+/*!
+  Calculates layer averaged cloud optical depth (dtauc) and 
+  single scattering albedo (ssalb). These variables are required as
+  input for the DISORT subroutine
+
+  \param dtauc                 optical depths for all layers
+  \param ssalb                 single scattering albedos for all layers
+  \param scat_data             as the WSV
+  \param propmat_clearsky_agenda as the WSA
+  \param pnd_field             as the WSV 
+  \param t_field               as the WSV 
+  \param z_field               as the WSV 
+  \param vmr_field             as the WSV 
+  \param p_grid                as the WSV 
+  \param cloudbox_limits       as the WSV 
+  \param f_grid                as the WSV
+  
+  \author Jana Mendrok
+  \date   2018-02-18
+*/
+void dtauc_ssalbCalc2( Workspace &ws,
+                      MatrixView dtauc,
+                      MatrixView ssalb,
+                      const Agenda& propmat_clearsky_agenda,
+                      const ArrayOfArrayOfSingleScatteringData& scat_data,
+                      ConstMatrixView pnd_field,
+                      ConstVectorView t_field,
+                      ConstVectorView z_field, 
+                      ConstMatrixView vmr_field,
+                      ConstVectorView p_grid,
+                      const ArrayOfIndex& cloudbox_limits,
+                      ConstVectorView f_grid )
+{
+  // Initialization
+  dtauc=0.;
+  ssalb=0.;
+  
+  const Index Np_cloud = pnd_field.ncols();
+  const Index Np = p_grid.nelem();
+  const Index nf = f_grid.nelem();
+
+  assert( dtauc.nrows() == nf);
+  assert( ssalb.nrows() == nf);
+  assert( dtauc.ncols() == Np-1);
+  assert( ssalb.ncols() == Np-1);
+
+  const Index stokes_dim = 1; 
+
+  // preparing input data
+  Vector T_array =  t_field[Range(cloudbox_limits[0],Np_cloud)];
+  Matrix dir_array(1, 2, 0.); // just a dummy. only tot_random allowed, ie.
+                              // optprop are independent of direction.
+
+  // making particle property output containers
+  ArrayOfArrayOfTensor5 ext_mat_Nse;
+  ArrayOfArrayOfTensor4 abs_vec_Nse;
+  ArrayOfArrayOfIndex ptypes_Nse;
+  Matrix t_ok;
+  ArrayOfTensor5 ext_mat_ssbulk;
+  ArrayOfTensor4 abs_vec_ssbulk;
+  ArrayOfIndex ptype_ssbulk;
+  Tensor5 ext_mat_bulk; //nf,nT,ndir,nst,nst
+  Tensor4 abs_vec_bulk;
+  Index ptype_bulk;
+
+  // calculate particle optical properties
+  opt_prop_NScatElems( ext_mat_Nse, abs_vec_Nse, ptypes_Nse, t_ok,
+                       scat_data, stokes_dim, T_array, dir_array, -1 );
+  opt_prop_ScatSpecBulk( ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk,
+                         ext_mat_Nse, abs_vec_Nse, ptypes_Nse,
+                         pnd_field, t_ok );
+  opt_prop_Bulk( ext_mat_bulk, abs_vec_bulk, ptype_bulk,
+                 ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk );
+
+  Index f_this = 0;
+  bool pf = (abs_vec_bulk.nbooks()!=1);
+  Matrix ext_bulk(nf,Np,0.), abs_bulk(nf,Np,0.);
+  for( Index ip=0; ip<Np_cloud; ip++ )
+    for( Index f_index = 0; f_index < nf; f_index++ )
+    {
+      if( pf )
+        f_this = f_index;
+      ext_bulk(f_index,ip+cloudbox_limits[0]) = ext_mat_bulk(f_this,ip,0,0,0);
+      abs_bulk(f_index,ip+cloudbox_limits[0]) = abs_vec_bulk(f_this,ip,0,0);
+    }
+
+  // making gas property output containers and input dummies
+  const Vector rtp_temperature_nlte_dummy(0);
+  const Vector rtp_mag_dummy(3,0);
+  const Vector ppath_los_dummy;
+  ArrayOfStokesVector nlte_dummy, partial_source_dummy, partial_nlte_dummy;
+  ArrayOfPropagationMatrix partial_dummy;
+
+  ArrayOfPropagationMatrix propmat_clearsky_local;
+
+  for( Index ip = 0; ip < Np; ip++ )
+  {
+
+    // is that needed? if so, then it should be in here, shouldn't it? not
+    // outside the Np-loop as was before.
+    for(auto& pm : propmat_clearsky_local)
+    {
+      pm.SetZero();
+    }
+    propmat_clearsky_agendaExecute(ws,
+                                   propmat_clearsky_local,
+                                   nlte_dummy, partial_dummy,
+                                   partial_source_dummy, partial_nlte_dummy,
+                                   ArrayOfRetrievalQuantity(0),
+                                   f_grid,
+                                   rtp_mag_dummy, ppath_los_dummy,
+                                   p_grid[ip], t_field[ip],
+                                   rtp_temperature_nlte_dummy,
+                                   vmr_field(joker,ip),
+                                   propmat_clearsky_agenda);
+
+    PropagationMatrix propmat_bulk = propmat_clearsky_local[0];
+    for(Index ias = 1; ias < propmat_clearsky_local.nelem(); ias++)
+      propmat_bulk += propmat_clearsky_local[ias];
+    ext_bulk(joker,ip) += propmat_bulk.Kjj();
+    abs_bulk(joker,ip) += propmat_bulk.Kjj();
+  }
+
+  for( Index ip = 0; ip < Np-1; ip++ )
+    // Do layer averaging and derive single scattering albedo & optical depth
+    for( Index f_index = 0; f_index < nf; f_index++ )
+    {
+      Numeric ext = 0.5 * (ext_bulk(f_index,ip)+ext_bulk(f_index,ip+1));
+      if( ext!=0 )
+      {
+        Numeric abs = 0.5 * (abs_bulk(f_index,ip)+abs_bulk(f_index,ip+1));
+        ssalb(f_index,Np-2-ip) = (ext-abs) / ext;
+      }
+     
+      dtauc(f_index,Np-2-ip) = ext * (z_field[ip+1] - z_field[ip] );
+    }
+}
+
 
 //! phase_functionCalc2
 /*!
@@ -1697,6 +1875,288 @@ void run_disort( Workspace& ws,
   delete [] prnt;
 }
 
+//! run_disort2
+/*!
+  Prepares actual input variables for Disort, runs it, and sorts the output into
+  doit_i_field.
+  This version using unified optprop extraction scheme. supposed to replace
+  run_disort
+
+  \param ws                    Current workspace
+  \param doit_i_field          as the WSV
+  \param f_grid                as the WSV
+  \param p_grid                as the WSV
+  \param z_field               as the WSV
+  \param t_field               as the WSV
+  \param vmr_field             as the WSV
+  \param pnd_field             as the WSV
+  \param scat_data             as the WSV
+  \param propmat_clearsky_agenda  as the WSA
+  \param cloudbox_limits       as the WSV 
+  \param surface_skin_t        as the WSV
+  \param surface_scalar_reflectivity  as the WSM
+  \param scat_za_grid          as the WSV
+  \param nstreams              Number of quadrature angles (both hemispheres).
+  \param non_iso_inc           see DisortCalc doc.
+  \param pfct_method           see DisortCalc doc.
+
+  \author Jana Mendrok
+  \date   2017-02-23
+*/
+void run_disort2( Workspace& ws,
+              // Output
+              Tensor7& doit_i_field,
+              // Input
+              ConstVectorView f_grid,
+              ConstVectorView p_grid,
+              ConstTensor3View z_field,
+              ConstTensor3View t_field,
+              ConstTensor4View vmr_field,
+              ConstTensor4View pnd_field,
+              const ArrayOfArrayOfSingleScatteringData& scat_data,
+              const Agenda& propmat_clearsky_agenda, 
+              const ArrayOfIndex& cloudbox_limits,
+              Numeric& surface_skin_t,
+              Vector& surface_scalar_reflectivity,
+              ConstVectorView scat_za_grid,
+              const Index& nstreams,
+              const String& pfct_method,
+              const Verbosity& verbosity )
+{
+  const Index nf = f_grid.nelem();
+  Index nlyr = p_grid.nelem()-1; // don't make this const, else disort_ complains
+      
+  // Optical depth of layers
+  Matrix dtauc(nf, nlyr, 0.); 
+  // Single scattering albedo of layers
+  Matrix ssalb(nf, nlyr, 0.);
+  
+  // Phase function
+  Vector scat_angle_grid;
+  Index pfct_za_grid_size;
+  if( pfct_method=="interpolate" )
+  {
+    pfct_za_grid_size=181;
+    nlinspace(scat_angle_grid, 0, 180, pfct_za_grid_size);
+  }
+  else
+    // Scattering angle grid, assumed here that it is the same for
+    // all scattering elements
+    scat_angle_grid = scat_data[0][0].za_grid;
+  Matrix phase_function(nlyr,scat_angle_grid.nelem(), 0.);
+  
+  Index nstr=nstreams;
+  Index n_legendre=nstreams+1;
+  
+  // Legendre polynomials of phase function
+  Matrix pmom(nlyr, n_legendre, 0.); 
+
+  // Intensities to be computed for user defined polar (zenith angles)
+  Index usrang = TRUE_;
+  Index numu = scat_za_grid.nelem();
+  Vector umu(numu); 
+  // Transform to mu, starting with negative values
+  for (Index i = 0; i<numu; i++)
+    umu[i] = -cos(scat_za_grid[i]*PI/180);
+
+  
+  // Since we have no solar source there is no angular dependance
+  Index nphi = 1; 
+  Vector phi(nphi, 0.);
+  
+  Index ibcnd=0;
+  
+  // Properties of solar beam, set to zero as they are not needed
+  Numeric fbeam =0.;
+  Numeric umu0=0.;
+  Numeric phi0=0.; 
+
+  // surface, Lambertian if set to TRUE_ 
+  Index lamber = TRUE_;
+  // only needed for bidirectional reflecting surface
+  Vector hl(1,0.); 
+  
+  //upper boundary conditions:
+  // DISORT offers isotropic incoming radiance or emissivity-scaled planck
+  // emission. Both are applied additively.
+  // We want to have cosmic background radiation, for which ttemp=COSMIC_BG_TEMP
+  // and temis=1 should give identical results to fisot(COSMIC_BG_TEMP). As they
+  // are additive we should use either the one or the other.
+  // Note: previous setup (using fisot) setting temis=0 should be avoided.
+  // Generally, temis!=1 should be avoided since that technically implies a
+  // reflective upper boundary (though it seems that this is not exploited in
+  // DISORT1.2, which we so far use).
+
+  // Cosmic background
+  // we use temis*ttemp as upper boundary specification, hence CBR set to 0.
+  Numeric fisot = 0;
+
+  // Top of the atmosphere temperature and emissivity
+  //Numeric ttemp = t_field(cloudbox_limits[1], 0, 0); 
+  //Numeric temis = 0.;
+  Numeric ttemp = COSMIC_BG_TEMP;
+  Numeric temis = 1.;
+
+  Vector intang(scat_za_grid.nelem()+nstr/2, 0.);
+
+  // we don't need delta-scaling in microwave region
+  Index deltam = FALSE_; 
+      
+  // include thermal emission (very important)
+  Index plank = TRUE_; 
+      
+  // calculate also intensities, not only fluxes
+  Index onlyfl = FALSE_; 
+      
+  // Convergence criterium
+  Numeric accur = 0.005;
+      
+  // Specify what to be printed --> normally nothing
+  Index *prnt = new Index[7]; 
+  prnt[0]=FALSE_; // Input variables
+  prnt[1]=FALSE_; // fluxes
+  prnt[2]=FALSE_; // azimuthally averaged intensities at user 
+  //and comp. angles
+  prnt[3]=FALSE_; // azimuthally averaged intensities at user levels
+  //and angles
+  prnt[4]=FALSE_; // intensities at user levels and angles
+  prnt[5]=FALSE_; // planar transmissivity and albedo 
+  prnt[6]=FALSE_; // phase function moments
+  
+  char header[127];
+  memset (header, 0, 127);
+  
+  Index maxcly = nlyr; // Maximum number of layers
+  Index maxulv = nlyr+1; // Maximum number of user defined tau
+  Index maxumu = scat_za_grid.nelem(); // maximum number of zenith angles
+  Index maxcmu = n_legendre-1; // maximum number of Legendre polynomials 
+  if( nstr<4 )
+    maxcmu = 4; // reset for low nstr since DISORT selftest uses 4 streams,
+                // hence requires at least 4 Legendre polynomials
+  Index maxphi = 1;  //no azimuthal dependance
+  
+  // Declaration of Output variables
+  Vector rfldir(maxulv); 
+  Vector rfldn(maxulv);
+  Vector flup(maxulv);
+  Vector dfdt(maxulv);
+  Vector uavg(maxulv);
+  Tensor3 uu(maxphi, maxulv, scat_za_grid.nelem(), 0.); // Intensity 
+  Matrix u0u(maxulv, scat_za_grid.nelem()); // Azimuthally averaged intensity 
+  Vector albmed(scat_za_grid.nelem()); // Albedo of cloudbox
+  Vector trnmed(scat_za_grid.nelem()); // Transmissivity 
+      
+  Vector t(nlyr+1);
+ 
+  for (Index i = 0; i < t.nelem(); i++)
+      t[i] = t_field(nlyr-i,0,0);
+  
+  //dummies
+  Index ntau = 0; 
+  Vector utau(maxulv,0.);
+  
+  dtauc_ssalbCalc2(ws, dtauc, ssalb,
+                  propmat_clearsky_agenda,
+                  scat_data,
+                  pnd_field(joker,joker,0,0),
+                  t_field(joker,0,0), z_field(joker,0,0),
+                  vmr_field(joker,joker,0,0), p_grid,
+                  cloudbox_limits, f_grid);
+
+  // Loop over frequencies
+  for (Index f_index = 0; f_index < f_grid.nelem(); f_index ++)
+    {
+      ttemp = COSMIC_BG_TEMP;
+
+      if( pfct_method=="interpolate" )
+      {
+        phase_functionCalc2(phase_function,
+                            scat_data, f_index,
+                            pnd_field, t_field, cloudbox_limits,
+                            pfct_za_grid_size, verbosity);
+        for( Index l=0; l<nlyr; l++ )
+          if( phase_function(l,0)==0. )
+            assert( ssalb(f_index,l)==0. );
+
+        //cout << "entering pmomCalc for f_index=" << f_index << " (f="
+        //     << f_grid[f_index]*1e-9 << "GHz).\n";
+        pmomCalc2(pmom, phase_function, scat_angle_grid, n_legendre, verbosity);
+      }
+      else
+      {
+        phase_functionCalc(phase_function, scat_data, f_index, pnd_field,
+                           cloudbox_limits, pfct_method );
+        for( Index l=0; l<nlyr; l++ )
+          if( phase_function(l,0)==0. )
+            assert( ssalb(f_index,l)==0. );
+
+        //cout << "entering pmomCalc for f_index=" << f_index << " (f="
+        //     << f_grid[f_index]*1e-9 << "GHz).\n";
+        pmomCalc(pmom, phase_function, scat_angle_grid, n_legendre, verbosity);
+      }
+
+      // Wavenumber in [1/cm]
+      Numeric wvnmlo = f_grid[f_index]/(100*SPEED_OF_LIGHT);
+      Numeric wvnmhi = wvnmlo;
+      
+      // calculate radiant quantities at boundary of computational layers. 
+      Index usrtau = FALSE_; 
+      
+      //DEBUG_VAR(dtauc)
+      
+      //cout << "entering Disort calc at freq[" << f_index << "]="
+      //     << f_grid[f_index]*1e-9 << " GHz\n"
+      //     << "  with surftemp=" << surface_skin_t
+      //     << " K and albedo=" << surface_scalar_reflectivity[f_index]
+      //     << "\n";
+      
+// JM: once (2-3-454), I extended the critical region due to
+// modified-variable-issues inside Disort. However, later on I couldn't
+// reproduce the problems anymore. Since the extension created problems in catching
+// errors thrown inside methods called within the critical region, the region is
+// reduced to its original extend (2-3-486), covering only the Disort call
+// itself. If any kind of fishy behaviour is observed, we have to reconsider
+// extending (and proper error handling) again.
+#pragma omp critical(fortran_disort)
+      {
+          // Call disort
+          disort_(&nlyr,
+                  dtauc(f_index,joker).get_c_array(),
+                  ssalb(f_index,joker).get_c_array(),
+                  pmom.get_c_array(),
+                  t.get_c_array(), &wvnmlo, &wvnmhi,
+                  &usrtau, &ntau, utau.get_c_array(),
+                  &nstr, &usrang, &numu,
+                  umu.get_c_array(), &nphi,
+                  phi.get_c_array(),
+                  &ibcnd, &fbeam,
+                  &umu0, &phi0, &fisot,
+                  intang.get_c_array(),
+                  &lamber,
+                  &surface_scalar_reflectivity[f_index], hl.get_c_array(),
+                  &surface_skin_t, &ttemp, &temis,
+                  &deltam,
+                  &plank, &onlyfl, &accur,
+                  prnt, header,
+                  &maxcly, &maxulv,
+                  &maxumu, &maxcmu,
+                  &maxphi, rfldir.get_c_array(),
+                  rfldn.get_c_array(),
+                  flup.get_c_array(), dfdt.get_c_array(),
+                  uavg.get_c_array(),
+                  uu.get_c_array(), u0u.get_c_array(),
+                  albmed.get_c_array(),
+                  trnmed.get_c_array());
+      }
+
+      for(Index j = 0; j<numu; j++)
+          for(Index k = 0; k<(cloudbox_limits[1]-cloudbox_limits[0]+1); k++)
+            doit_i_field(f_index, k, 0, 0, j, 0, 0) =
+              uu(0,nlyr-k-cloudbox_limits[0],j) / (100*SPEED_OF_LIGHT);
+    }
+  delete [] prnt;
+}
+
 
 void get_cb_inc_field(Workspace&      ws,
                       Matrix&         cb_inc_field,
@@ -1768,6 +2228,27 @@ void get_cb_inc_field(Workspace&      ws,
 #else /* ENABLE_DISORT */
 
 void run_disort( Workspace&,
+              Tensor7&,
+              ConstVectorView,
+              ConstVectorView,
+              ConstTensor3View,
+              ConstTensor3View,
+              ConstTensor4View,
+              ConstTensor4View,
+              const ArrayOfArrayOfSingleScatteringData&,
+              const Agenda&,
+              const ArrayOfIndex&,
+              Numeric&,
+              Vector&,
+              ConstVectorView,
+              const Index&,
+              const String&,
+              const Verbosity& )
+{
+  throw runtime_error ("This version of ARTS was compiled without DISORT support.");
+}
+
+void run_disort2( Workspace&,
               Tensor7&,
               ConstVectorView,
               ConstVectorView,
