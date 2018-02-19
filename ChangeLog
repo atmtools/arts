@@ -1,3 +1,11 @@
+2018-02-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-955
+
+	* src/methods.cc: Documentation of MCGeneral and MCRadar said that
+	mc_seed<0 will result in random initialisation. This was removed
+	2005 (according to archaeology done by Oliver).
+
 2018-02-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-954
