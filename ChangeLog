@@ -1,3 +1,24 @@
+2018-02-20  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-958
+	
+	Adding a silly radiation-field computer in waiting for a better solution.
+	I need a weighted mean intensity value for Taka's NLTE computations.
+	
+	* src/src/m_radiation_field.cc:  Now contains the 
+	radiation_fieldCalcForRotationalNLTE function.  Basically just computes
+	the radiation for a 1D-like atmosphere without storing any information
+	about previous calculations.  Quick-and-dirty way to perform the 
+	computations.  What I need in the end is a normalized line shape
+	multiplied with the radiation field and then summed over frequency
+	so as to get the effective source function for the line.
+	
+	Do not use this function.  It will be replaced as soon as there exists
+	a better way to compute the radiation field (on, pressure, zenith,
+	azimuth, frequency).
+	
+	The other changes are merely minor fix-em-ups.
+	
 2018-02-19 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-957

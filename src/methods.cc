@@ -13337,7 +13337,28 @@ void define_md_data_raw()
         GIN_TYPE("Vector", "Vector"),
         GIN_DEFAULT(NODEF, NODEF),
         GIN_DESC("Zenith angle coordinates [0,180]", "Azimuth angle coordinates [-180,180]")
-        ));
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "radiation_fieldCalcForRotationalNLTE" ),
+      DESCRIPTION
+      (
+        "Exists only as a temporary method... do not use\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "y" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_species", "abs_lines_per_species",  "isotopologue_ratios", 
+          "partition_functions", "iy_main_agenda", "nlte_field",  "vmr_field", 
+          "t_field", "z_field", "wind_u_field", "wind_v_field", "wind_w_field", "p_grid"),
+      GIN("df", "nz", "na", "nf"),
+      GIN_TYPE("Numeric", "Index", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF),
+      GIN_DESC("frequency half-width", "number of zeniths", "number of azimuths", "number of frequencies per line")
+    ));
 
   md_data_raw.push_back
     ( MdRecord

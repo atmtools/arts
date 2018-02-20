@@ -2159,9 +2159,10 @@ void SetLineMixingCoefficinetsFromRelmat( // WS Input And Output:
 {
   const Index nband = abs_lines_per_band.nelem();
   const Index nlevl = abs_t.nelem();
+  const Index ndata = (order_of_linemixing == 2) ? 3 : 1;
   
   // Other numbers are accepted by abs_xsec_per_speciesAddLineMixedBands
-  if(order_of_linemixing < 1)
+  if(order_of_linemixing not_eq 1 and order_of_linemixing not_eq 2)
     throw std::runtime_error("Need at least first order linemixing");
   
   const static Vector f_grid(1, 1.0);
@@ -2192,7 +2193,7 @@ void SetLineMixingCoefficinetsFromRelmat( // WS Input And Output:
   for(Index iband = 0; iband < nband; iband++)
   {
     // Compute vectors (copying dayta to make life easier)
-    ArrayOfVector data(3);
+    ArrayOfVector data(ndata);
     for(auto& v : data) 
       v = Vector(nlevl, 0);
     Vector delta(nlevl);
@@ -2202,7 +2203,7 @@ void SetLineMixingCoefficinetsFromRelmat( // WS Input And Output:
     for(Index iline = 0; iline < nline; iline++)
     {
       for(Index ilevl = 0; ilevl < nlevl; ilevl++) 
-        for(Index idata=0; idata < ((order_of_linemixing == 2)?3:1); idata++)
+        for(Index idata = 0; idata < ndata; idata++)
           data[idata][ilevl] = relmat_per_band[ilevl][iband](idata, iline);
       
       // data vector for holding the results before setting the line
@@ -2256,16 +2257,8 @@ void SetLineMixingCoefficinetsFromRelmat( // WS Input And Output:
       for(auto& v : data)
       {
         // Take a value from the center of the data and use it as a starting point for the fitting
-        if(squared)
-        {
-          C[0] = v[nlevl/2] / rtp_pressure / rtp_pressure;
-          C[1] = v[nlevl/2] / rtp_pressure / rtp_pressure;
-        }
-        else
-        {
-          C[0] = v[nlevl/2] / rtp_pressure;
-          C[1] = v[nlevl/2] / rtp_pressure;
-        }
+        C[0] = v[nlevl/2] / rtp_pressure / (squared ? rtp_pressure : 1.0);
+        C[1] = v[nlevl/2] / rtp_pressure / (squared ? rtp_pressure : 1.0);
         
         Numeric res;
         Index loop_count=0;
@@ -2275,9 +2268,7 @@ void SetLineMixingCoefficinetsFromRelmat( // WS Input And Output:
           {
             const Numeric theta = T0 / abs_t[ilevl];
             const Numeric theta_n = pow(theta, n);
-            Numeric TP = theta_n * rtp_pressure;
-            if(squared) 
-              TP = pow(TP, 2.0);
+            const Numeric TP = theta_n * rtp_pressure * (squared ? theta_n * rtp_pressure : 1.0);
             A(ilevl, 0) = TP;
             A(ilevl, 1) = (theta - 1.0) * TP;
             const Numeric f = C[0] * TP + C[1] * (theta - 1.0) * TP;

@@ -59,6 +59,12 @@ void nlinspace(
               const Numeric     stop,        
               const Index       n );
 
+void nlinspace(         
+              VectorView        x, 
+              const Numeric     start,     
+              const Numeric     stop,        
+              const Index       n );
+
 void nlogspace(         
                Vector&     x, 
                const Numeric     start,     

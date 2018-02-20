@@ -52,11 +52,11 @@ class PropagationMatrix
 public:
   
   //! Initialize variable sizes
-  PropagationMatrix(const Index nr_frequencies=0, const Index stokes_dim=1, const Index nr_za=1, const Index nr_aa=1) :
+  PropagationMatrix(const Index nr_frequencies=0, const Index stokes_dim=1, const Index nr_za=1, const Index nr_aa=1, const Numeric v=0.0) :
   mfreqs(nr_frequencies), mstokes_dim(stokes_dim), mza(nr_za), maa(nr_aa), mvectortype(false) 
   {
     assert(mstokes_dim < 5 and mstokes_dim > 0);
-    mdata.resize(maa, mza, mfreqs, NumberOfNeededVectors());
+    mdata = Tensor4(maa, mza, mfreqs, NumberOfNeededVectors(), v);
   }
     
   //! Initialize from a constant other

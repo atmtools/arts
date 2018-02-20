@@ -2565,27 +2565,12 @@ void propmat_clearskyInit(   //WS Output
     {
       if(stokes_dim > 0)
       {
-        propmat_clearsky.resize(abs_species.nelem());
-        
-        for(auto& pm : propmat_clearsky)
-        {
-          pm = PropagationMatrix(nf, stokes_dim);
-          pm.SetZero();
-        }
+        propmat_clearsky = ArrayOfPropagationMatrix(abs_species.nelem(), PropagationMatrix(nf, stokes_dim)); 
         
         if (nlte_do)
-        {
-          nlte_source.resize(abs_species.nelem());
-          for(auto& av : nlte_source)
-          {
-            av = StokesVector(nf, stokes_dim);
-            av.SetZero();
-          }
-        }
+          nlte_source = ArrayOfStokesVector(abs_species.nelem(), StokesVector(nf, stokes_dim));
         else
-        {
           nlte_source.resize(0);
-        }
       }
       else throw  runtime_error("stokes_dim = 0");
     }
@@ -2597,27 +2582,16 @@ void propmat_clearskyInit(   //WS Output
   
   if(ppd.supportsPropmatClearsky(-1))
   {
-    dpropmat_clearsky_dx.resize(ppd.nelem());
+    dpropmat_clearsky_dx = ArrayOfPropagationMatrix(ppd.nelem(), PropagationMatrix(nf, stokes_dim));
     if(nlte_do)
     {
-      dnlte_dx_source.resize(ppd.nelem());
-      nlte_dsource_dx.resize(ppd.nelem());
+      dnlte_dx_source = ArrayOfStokesVector(ppd.nelem(), StokesVector(nf, stokes_dim));
+      nlte_dsource_dx = ArrayOfStokesVector(ppd.nelem(), StokesVector(nf, stokes_dim));
     }
-    for(Index iq=0;iq<ppd.nelem();iq++)
+    else
     {
-      if(ppd(iq) not_eq JQT_NOT_JQT)
-      {
-        dpropmat_clearsky_dx[iq] = PropagationMatrix(nf, stokes_dim); //No reason to have species here, since that should be caught elsewhere
-        dpropmat_clearsky_dx[iq].SetZero();
-        if(nlte_do)
-        {
-          dnlte_dx_source[iq] = StokesVector(nf, stokes_dim);
-          dnlte_dx_source[iq].SetZero();
-          
-          nlte_dsource_dx[iq] = StokesVector(nf, stokes_dim);
-          nlte_dsource_dx[iq].SetZero();
-        }
-      }
+      dnlte_dx_source.resize(0);
+      nlte_dsource_dx.resize(0);
     }
   }
 }

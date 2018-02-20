@@ -272,6 +272,17 @@ void nlinspace(
     x[i] = start + (double)i*step;
   x[n-1] = stop;
 }
+void nlinspace(
+               VectorView        x,
+               const Numeric     start,     
+               const Numeric     stop,        
+               const Index       n )
+{
+  Numeric step = (stop-start)/((double)n-1) ;
+  for ( Index i=0; i<n-1; i++ )
+    x[i] = start + (double)i*step;
+  x[n-1] = stop;
+}
 
 
 
