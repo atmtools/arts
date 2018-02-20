@@ -137,6 +137,7 @@ void iyCalc(
    const Tensor4&          vmr_field,
    const Index&            cloudbox_on,
    const Index&            cloudbox_checked,
+   const Index&            scat_data_checked,
    const Vector&           rte_pos,
    const Vector&           rte_los,
    const Vector&           rte_pos2,
@@ -155,6 +156,10 @@ void iyCalc(
   if( cloudbox_checked != 1 )
     throw runtime_error( "The cloudbox must be flagged to have "
                          "passed a consistency check (cloudbox_checked=1)." );
+  if( cloudbox_on )
+    if( scat_data_checked != 1 )
+      throw runtime_error( "The scattering data must be flagged to have "
+                           "passed a consistency check (scat_data_checked=1)." );
 
 
   // iy_transmission is just input and can be left empty for first call
@@ -858,7 +863,7 @@ void iyEmissionStandard(
                                ppath_mag, ppath_f, f_grid, 
                                jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,
                                jac_other, iaps,
-                               scat_data_dummy, 1,
+                               scat_data_dummy,
                                pnd_field_dummy, dummy_dpnd_field_dx,
                                cloudbox_limits_dummy, use_mean_scat_data_dummy,
                                atmosphere_dim, stokes_dim,
@@ -1374,7 +1379,6 @@ void iyMC(
    const Index&                      stokes_dim,
    const Vector&                     f_grid,
    const ArrayOfArrayOfSingleScatteringData&   scat_data,
-   const Index&                      scat_data_checked,
    const Agenda&                     iy_space_agenda,
    const Agenda&                     surface_rtprop_agenda,
    const Agenda&                     propmat_clearsky_agenda, 
@@ -1397,9 +1401,6 @@ void iyMC(
   if( !cloudbox_on )
     throw runtime_error( 
                     "The cloudbox must be activated (cloudbox_on must be 1)" );
-  if( scat_data_checked != 1 )
-    throw runtime_error( "The scat_data must be flagged to have "
-                         "passed a consistency check (scat_data_checked=1)." );
   if( jacobian_do )
     throw runtime_error( 
         "This method does not provide any jacobians (jacobian_do must be 0)" );
@@ -1855,6 +1856,7 @@ void yCalc(
    const Tensor4&                    vmr_field,
    const Index&                      cloudbox_on,
    const Index&                      cloudbox_checked,
+   const Index&                      scat_data_checked,
    const Index&                      sensor_checked,
    const Index&                      stokes_dim,
    const Vector&                     f_grid,
@@ -1896,6 +1898,10 @@ void yCalc(
   if( cloudbox_checked != 1 )
     throw runtime_error( "The cloudbox must be flagged to have "
                          "passed a consistency check (cloudbox_checked=1)." );
+  if( cloudbox_on )
+    if( scat_data_checked != 1 )
+      throw runtime_error( "The scattering data must be flagged to have "
+                           "passed a consistency check (scat_data_checked=1)." );
   if( sensor_checked != 1 )
     throw runtime_error( "The sensor variables must be flagged to have "
                          "passed a consistency check (sensor_checked=1)." );
@@ -2078,6 +2084,7 @@ void yCalcAppend(
    const Tensor4&                    vmr_field,
    const Index&                      cloudbox_on,
    const Index&                      cloudbox_checked,
+   const Index&                      scat_data_checked,
    const Index&                      sensor_checked,
    const Index&                      stokes_dim,
    const Vector&                     f_grid,
@@ -2143,7 +2150,8 @@ void yCalcAppend(
   //
   yCalc( ws, y2, y_f2, y_pol2, y_pos2, y_los2, y_aux2, y_geo2, jacobian2,
          atmfields_checked, atmgeom_checked, atmosphere_dim, t_field,
-         z_field, vmr_field, cloudbox_on, cloudbox_checked, sensor_checked,
+         z_field, vmr_field, cloudbox_on,
+         cloudbox_checked, scat_data_checked, sensor_checked,
          stokes_dim, f_grid, sensor_pos, sensor_los, transmitter_pos,
          mblock_dlos_grid, sensor_response,
          sensor_response_f, sensor_response_pol, sensor_response_dlos, 

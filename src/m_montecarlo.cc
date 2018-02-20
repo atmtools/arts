@@ -156,14 +156,15 @@ void MCGeneral(Workspace&            ws,
   if( atmgeom_checked != 1 )
     throw runtime_error( "The atmospheric geometry must be flagged to have "
                          "passed a consistency check (atmgeom_checked=1)." );
-  if( scat_data_checked != 1 )
-    throw runtime_error( "The scat_data must be flagged to have "
-                         "passed a consistency check (scat_data_checked=1)." );
+
+  if( !cloudbox_on )
+    throw runtime_error( "The cloudbox  must be activated (cloudbox_on=1)." );
   if( cloudbox_checked != 1 )
     throw runtime_error( "The cloudbox must be flagged to have "
                          "passed a consistency check (cloudbox_checked=1)." );
-  if( !cloudbox_on )
-    throw runtime_error( "The cloudbox  must be activated (cloudbox_on=1)." );
+  if( scat_data_checked != 1 )
+    throw runtime_error( "The scat_data must be flagged to have "
+                         "passed a consistency check (scat_data_checked=1)." );
 
   if( min_iter < 100 )
     throw runtime_error( "*mc_min_iter* must be >= 100." );
@@ -618,14 +619,15 @@ void MCRadar(// Workspace reference:
   if( atmgeom_checked != 1 )
     throw runtime_error( "The atmospheric geometry must be flagged to have "
                          "passed a consistency check (atmgeom_checked=1)." );
-  if( scat_data_checked != 1 )
-    throw runtime_error( "The scat_data must be flagged to have "
-                         "passed a consistency check (scat_data_checked=1)." );
+
+  if( !cloudbox_on )
+    throw runtime_error( "The cloudbox  must be activated (cloudbox_on=1)." );
   if( cloudbox_checked != 1 )
     throw runtime_error( "The cloudbox must be flagged to have "
                          "passed a consistency check (cloudbox_checked=1)." );
-  if( !cloudbox_on )
-    throw runtime_error( "The cloudbox  must be activated (cloudbox_on=1)." );
+  if( scat_data_checked != 1 )
+    throw runtime_error( "The scat_data must be flagged to have "
+                         "passed a consistency check (scat_data_checked=1)." );
 
   if( f_index < 0 )
     throw runtime_error( "The option of f_index < 0 is not handled by this "

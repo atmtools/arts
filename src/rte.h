@@ -257,7 +257,6 @@ void get_ppath_partopt(
   const Index&                         atmosphere_dim,
   const Index&                         use_mean_scat_data,
   const ArrayOfArrayOfSingleScatteringData&   scat_data,
-  const Index&                         scat_data_checked,
   const Verbosity&                     verbosity );
 
 void get_ppath_cloudvars( 
@@ -383,7 +382,6 @@ void get_ppath_pmat_and_tmat(
                             const ArrayOfIndex&   jac_other,
                             const ArrayOfIndex&   ispecies,
                             const ArrayOfArrayOfSingleScatteringData scat_data,
-                            const Index&          scat_data_checked,
                             const Tensor4&        pnd_field,
                             const ArrayOfTensor4& dpnd_field_dx,
                             const ArrayOfIndex&   cloudbox_limits,
@@ -397,7 +395,6 @@ void get_ppath_pmat_and_tmat(
 void get_ppath_scat_source(
                            Tensor4&         ppath_scat_source,
                            const ArrayOfArrayOfSingleScatteringData scat_data,
-                           const Index&     scat_data_checked,
                            ConstTensor7View doit_i_field,
                            ConstVectorView  scat_za_grid,
                            ConstVectorView  f_grid, 
@@ -412,7 +409,6 @@ void get_ppath_scat_source(
 void get_ppath_scat_source_fixT(
                            Tensor4&         ppath_scat_source,
                            const ArrayOfArrayOfSingleScatteringData scat_data,
-                           const Index&     scat_data_checked,
                            ConstTensor7View doit_i_field,
                            ConstVectorView  scat_za_grid,
                            ConstVectorView  f_grid, 
@@ -567,7 +563,6 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
                                     const ArrayOfMatrix& ppath_dpnd_dx, // the full ppath_dpnd_dx, ie all ppath points
                                     const Index ppath_1p_id,
                                     const ArrayOfArrayOfSingleScatteringData& scat_data,
-                                    const Index& scat_data_checked,
                                     ConstTensor7View doit_i_field,
                                     ConstVectorView scat_za_grid,
                                     ConstVectorView scat_aa_grid,

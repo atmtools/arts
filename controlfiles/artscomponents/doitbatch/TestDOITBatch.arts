@@ -176,6 +176,8 @@ ScatElementsSelect( scat_data=scat_data_raw, species="IWC",
 ScatSpeciesExtendTemperature( species="IWC", T_high=350. )
 
 scat_dataCheck( scat_data=scat_data_raw )
+scat_dataCalc
+scat_dataCheck
 
 # 7.AGENDAS--------------------------------------------------------------
 #------------------------------------------------------------------------
@@ -269,7 +271,8 @@ AgendaSet( ybatch_calc_agenda ){
   # Consistency checks
   atmfields_checkedCalc( bad_partition_functions_ok = 1 )
   atmgeom_checkedCalc
-  cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
+  cloudbox_checkedCalc
+  scat_data_checkedCalc
   sensor_checkedCalc
 
   # Initialize Doit variables

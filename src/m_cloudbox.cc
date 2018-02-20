@@ -90,6 +90,7 @@ void cloudboxOff (
          ArrayOfTensor4&              dpnd_field_dx,
          ArrayOfArrayOfSingleScatteringData& scat_data,
          ArrayOfArrayOfSingleScatteringData& scat_data_raw,
+         Index&                       scat_data_checked,
          Matrix&                      particle_masses,
          const ArrayOfRetrievalQuantity& jacobian_quantities,
    const Verbosity&)
@@ -105,6 +106,7 @@ void cloudboxOff (
   // remove scat_data_raw resizing once all scat solvers have been convert to
   // use of (new-type) scat_data
   scat_data_raw.resize(0);
+  scat_data_checked = 0;
   particle_masses.resize(0,0);
 }
 

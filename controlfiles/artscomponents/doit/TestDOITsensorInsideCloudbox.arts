@@ -10,6 +10,7 @@
 
 Arts2 {
 
+IndexSet( stokes_dim, 4 )
 INCLUDE "artscomponents/doit/doit_setup.arts"
 
 # Sensor altitude from earth surface

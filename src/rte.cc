@@ -1952,7 +1952,6 @@ void get_ppath_pmat_and_tmat(
                             const ArrayOfIndex&   jac_other,
                             const ArrayOfIndex&   ispecies,
                             const ArrayOfArrayOfSingleScatteringData scat_data,
-                            const Index&          scat_data_checked,
                             const Tensor4&        pnd_field,
                             const ArrayOfTensor4& dpnd_field_dx,
                             const ArrayOfIndex&   cloudbox_limits,
@@ -2247,7 +2246,7 @@ void get_ppath_pmat_and_tmat(
           get_ppath_partopt( pnd_abs_vec, pnd_ext_mat, scat_data_single,
                              clear2cloudy, ppath_pnd,
                              ppath, ppath_t, stokes_dim, ppath_f, atmosphere_dim,
-                             use_mean_scat_data, scat_data, scat_data_checked,
+                             use_mean_scat_data, scat_data,
                              verbosity );
         
         if(not jacobian_do)
@@ -2290,7 +2289,6 @@ void get_ppath_pmat_and_tmat(
 void get_ppath_scat_source(
                            Tensor4&         ppath_scat_source,
                            const ArrayOfArrayOfSingleScatteringData scat_data,
-                           const Index&     scat_data_checked,
                            ConstTensor7View doit_i_field,
                            ConstVectorView  scat_za_grid,
                            ConstVectorView  f_grid, 
@@ -2391,7 +2389,7 @@ void get_ppath_scat_source(
         for( Index iza=0; iza<2; iza++ )
         {
           pha_mat_sptFromScat_data(pha_mat_spt,
-                              scat_data, scat_data_checked,
+                              scat_data, 1,
                               scat_za_grid, aa_grid, iza+gp_za.idx, 0,
                               f_index, ppath_t[ip],
                               pndT4, 0, 0, 0, verbosity );
@@ -2487,7 +2485,6 @@ void get_ppath_scat_source(
 void get_ppath_scat_source_fixT(
                            Tensor4&         ppath_scat_source,
                            const ArrayOfArrayOfSingleScatteringData scat_data,
-                           const Index&     scat_data_checked,
                            ConstTensor7View doit_i_field,
                            ConstVectorView  scat_za_grid,
                            ConstVectorView  f_grid, 
@@ -2556,7 +2553,7 @@ void get_ppath_scat_source_fixT(
     for( Index iza=0; iza<niza; iza++ )
       {
         pha_mat_sptFromScat_data(pha_mat_spt,
-                              scat_data, scat_data_checked,
+                              scat_data, 1,
                               scat_za_grid, aa_grid,
                               iza+isza, 0,       // offset starting point in scat_za_grid
                               f_index, rtp_temp, // identified for fixed temperature point
@@ -2799,9 +2796,8 @@ void get_ppath_partopt(
   const Index&                         stokes_dim,
   ConstMatrixView                      ppath_f, 
   const Index&                         atmosphere_dim,
-  const Index&                         use_mean_scat_data,
+  const Index&                         use_mean_scat_data_,
   const ArrayOfArrayOfSingleScatteringData&   scat_data,
-  const Index&                         scat_data_checked,
   const Verbosity&                     verbosity )
 {
   const Index nf = ppath_f.nrows();
@@ -2809,14 +2805,15 @@ void get_ppath_partopt(
 
   // Particle single scattering properties (are independent of position)
   //
-  if( scat_data_checked )
-    {
+  //if( scat_data_checked )
+  //  {
       scat_data_single.resize( nf );
       for( Index iv=0; iv<nf; iv++ )
         { 
           scat_data_monoExtract( scat_data_single[iv], scat_data, iv,
                                  verbosity );
         }
+  /*
     }
   else if( use_mean_scat_data )
     {
@@ -2835,6 +2832,7 @@ void get_ppath_partopt(
                               verbosity ); 
         }
     }
+  */
 
   // Resize absorption and extension tensors
   Index nin = max(clear2cloudy)+1;
@@ -2860,7 +2858,7 @@ void get_ppath_partopt(
           mirror_los( rtp_los2, ppath.los(ip,joker), atmosphere_dim );
 
           // Extinction and absorption
-          if( use_mean_scat_data )
+          /*if( use_mean_scat_data )
             {
               Vector   abs_vec( stokes_dim );
               Matrix   ext_mat( stokes_dim, stokes_dim );
@@ -2873,7 +2871,7 @@ void get_ppath_partopt(
                   pnd_abs_vec(iv,joker,i)       = abs_vec;
                 }
             }
-          else
+          else*/
             {
               for( Index iv=0; iv<nf; iv++ )
                 { 
@@ -5017,7 +5015,6 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
                                     const ArrayOfMatrix& ppath_dpnd_dx, // the full ppath_dpnd_dx, ie all ppath points
                                     const Index ppath_1p_id,
                                     const ArrayOfArrayOfSingleScatteringData& scat_data,
-                                    const Index& scat_data_checked,
                                     ConstTensor7View doit_i_field,
                                     ConstVectorView scat_za_grid,
                                     ConstVectorView scat_aa_grid,
@@ -5151,7 +5148,7 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
     for( Index iza = 0; iza < 2; iza++ )
     {
       pha_mat_sptFromScat_data(pha_mat_spt,
-                               scat_data, scat_data_checked,
+                               scat_data, 1,
                                scat_za_grid, scat_aa_grid, iza+gp_za.idx, 0,
                                f_index, ppath_temperature,
                                pndT4, 0, 0, 0, verbosity );

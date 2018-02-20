@@ -237,7 +237,10 @@ ScatElementsSelect( scat_data=scat_data_raw, species="LWC",
                     sizeparam="diameter_volume_equ", sizemin=0.1e-6, sizemax=2000e-6 )
 ScatElementsSelect( scat_data=scat_data_raw, species="IWC",
                     sizeparam="diameter_volume_equ", sizemin=0.1e-6, sizemax=2000e-6 )
-scat_dataCheck( scat_data = scat_data_raw )
+
+#scat_dataCheck( scat_data = scat_data_raw )
+scat_dataCalc
+scat_dataCheck
 
 
 } # End of Main

@@ -9,6 +9,8 @@
 
 Arts2 {
 
+IndexSet( stokes_dim, 1 )
+INCLUDE "artscomponents/doit/doit_setup.arts"
 INCLUDE "artscomponents/doit/doit_setup_pressureoptimization.arts"
 
 INCLUDE "artscomponents/doit/doit_calc.arts"

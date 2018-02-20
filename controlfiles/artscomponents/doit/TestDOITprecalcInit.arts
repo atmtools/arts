@@ -13,6 +13,7 @@ Arts2 {
 
 Tensor7Create( doit_i_field_ref )
 
+IndexSet( stokes_dim, 4 )
 INCLUDE "artscomponents/doit/doit_setup.arts"
 
 # Perturbing the pnd_field by 1%
@@ -41,7 +42,8 @@ AgendaSet( doit_mono_agenda ){
 propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
-cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
+cloudbox_checkedCalc
+scat_data_checkedCalc
 sensor_checkedCalc
 
 # Initialize Doit variables

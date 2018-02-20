@@ -82,7 +82,6 @@ void fos(
    const Tensor4&                       pnd_field,
    const Index&                         use_mean_scat_data,
    const ArrayOfArrayOfSingleScatteringData&   scat_data,
-   const Index&                         scat_data_checked,
    const Matrix&                        particle_masses,
    const String&                        iy_unit,
    const ArrayOfString&                 iy_aux_vars,
@@ -315,7 +314,7 @@ void fos(
           get_ppath_partopt( pnd_abs_vec, pnd_ext_mat, scat_data_single,
                              clear2cloudy, ppath_pnd,
                              ppath, ppath_t, stokes_dim, ppath_f, atmosphere_dim,
-                             use_mean_scat_data, scat_data, scat_data_checked,
+                             use_mean_scat_data, scat_data,
                              verbosity );
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
                             scalar_tau, ppath, ppath_ext, f_grid, stokes_dim, 
@@ -556,7 +555,7 @@ void fos(
                                  wind_w_field, mag_u_field, mag_v_field, 
                                  mag_w_field, cloudbox_on, cloudbox_limits, 
                                  pnd_field, use_mean_scat_data,
-                                 scat_data, scat_data_checked, 
+                                 scat_data, 
                                  particle_masses, iy_unit, iy_aux_vars, 
                                  jacobian_do, ppath_agenda, 
                                  propmat_clearsky_agenda, iy_main_agenda, 
@@ -796,7 +795,6 @@ void iyFOS(
    const Tensor4&                     pnd_field,
    const Index&                       use_mean_scat_data,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
-   const Index&                       scat_data_checked,
    const Matrix&                      particle_masses,
    const String&                      iy_unit,
    const ArrayOfString&               iy_aux_vars,
@@ -860,7 +858,7 @@ void iyFOS(
        p_grid, z_field, t_field, vmr_field, abs_species, wind_u_field, 
        wind_v_field, wind_w_field, mag_u_field, mag_v_field, mag_w_field,
        cloudbox_on, cloudbox_limits, pnd_field, use_mean_scat_data,
-       scat_data, scat_data_checked, particle_masses, iy_unit, iy_aux_vars, jacobian_do, 
+       scat_data, particle_masses, iy_unit, iy_aux_vars, jacobian_do, 
        ppath_agenda, propmat_clearsky_agenda,
        iy_main_agenda, iy_space_agenda, iy_surface_agenda, iy_agenda_call1,
        iy_transmission, rte_pos, rte_los, rte_pos2, rte_alonglos_v, 
@@ -911,7 +909,6 @@ void iyHybrid(
   const ArrayOfTensor4&                     dpnd_field_dx,
   const ArrayOfString&                      scat_species,
   const ArrayOfArrayOfSingleScatteringData& scat_data,
-  const Index&                              scat_data_checked,
   const String&                             iy_unit,
   const ArrayOfString&                      iy_aux_vars,
   const Index&                              jacobian_do,
@@ -966,12 +963,6 @@ void iyHybrid(
   //    "The cloudbox must be set to cover the complete atmosphere." );
   if( Naa < 3 )
     throw runtime_error( "Naa must be > 2." );
-  // for now have that here. when all iy* WSM using scat_data are fixed to new
-  // type scat_data, then put check in (i)yCalc and remove here.
-  if( scat_data_checked != 1 )
-    throw runtime_error(
-      "The scat_data must be flagged to have passed a consistency check"
-      " (scat_data_checked=1)." );
   if( jacobian_do )
     {
       if( dpnd_field_dx.nelem() != jacobian_quantities.nelem() )
@@ -1210,7 +1201,6 @@ void iyHybrid(
                                               ppvar_dpnd_dx,
                                               ip,
                                               scat_data,
-                                              scat_data_checked,
                                               doit_i_field,
                                               scat_za_grid,
                                               scat_aa_grid,

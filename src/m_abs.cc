@@ -2747,6 +2747,13 @@ void propmat_clearskyAddParticles(
 {
   CREATE_OUT2;
 
+  // (i)yCalc only checks scat_data_checked if cloudbox is on. It is off here,
+  // though, i.e. we need to check it here explicitly. (Also, cloudboxOff sets
+  // scat_data_checked=0 as it does not check it and as we ususally don't need
+  // scat_data for clearsky cases, hence don't want to check them by
+  // scat_data_checkedCalc in that case. This approach seems to be the more
+  // handy compared to cloudboxOff setting scat_data_checked=1 without checking
+  // it assuming we won't use it anyways.)
   if( scat_data_checked != 1 )
     throw runtime_error( "The scat_data must be flagged to have "
                          "passed a consistency check (scat_data_checked=1)." );
@@ -2995,6 +3002,13 @@ void propmat_clearskyAddParticles2(
 {
   CREATE_OUT1;
 
+  // (i)yCalc only checks scat_data_checked if cloudbox is on. It is off here,
+  // though, i.e. we need to check it here explicitly. (Also, cloudboxOff sets
+  // scat_data_checked=0 as it does not check it and as we ususally don't need
+  // scat_data for clearsky cases, hence don't want to check them by
+  // scat_data_checkedCalc in that case. This approach seems to be the more
+  // handy compared to cloudboxOff setting scat_data_checked=1 without checking
+  // it assuming we won't use it anyways.)
   if( scat_data_checked != 1 )
     throw runtime_error( "The scat_data must be flagged to have "
                          "passed a consistency check (scat_data_checked=1)." );

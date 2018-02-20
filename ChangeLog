@@ -1,3 +1,47 @@
+2018-02-20 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-959
+
+	* src/m_rte.cc (iyCalc, yCalc):
+	scat_data_checked added as input and check (only if cloudbox on).
+
+	* src/m_cloudradar.cc (iyActiveSingleScat), m_fos.cc (iyHybrid),
+	m_rte.cc (iyMC), m_transmitter.cc (iyTransmissionStandard):
+	Remove scat_data_checked as input parameter that is now checked by
+	calling WSMs (i)yCalc instead.
+
+	* src/m_cloudbox.cc (cloudboxOff):
+	Add scat_data_checked as output parameter.
+
+	* src/rte.[cc,h] (get_ppath_pmat_and_tmat, get_ppath_partopt,
+	get_ppath_scat_source, get_ppath_scat_source_fixT,
+	get_stepwise_scattersky_source):
+	Remove scat_data_checked as input parameter, now generally assuming
+	f-grid prepared scat_data.
+
+	* src/m_jacobian.cc (jacobianDoit), m_rte.cc (yCalcAppend),
+	m_radiation_field.cc (radiation_fieldCalcFromiyCalc):
+	Added scat_data_checked as input parameter, now required by (i)yCalc
+	calls. (i)yCalc calls adapted accordingly.
+
+	* src/m_abs.cc (propmat_clearskyAddParticles[2]),
+	m_montecarlo.cc (MCGeneral, MCRadar): Cosmetics.
+
+	* src/methods.cc: Adapted to WSM interface changes above.
+
+	* controlfiles/artscomponents/doit/TestDOIT.arts,
+	TestDOITFromIndividualFields.arts, TestDOITaccelerated.arts,
+	TestDOITprecalcInit.arts, TestDOITpressureoptimization.arts,
+	TestDOITsensorInsideCloudbox.arts, doit_calc.arts, doit_setup.arts,
+	doit_setup_accelerated.arts, doit_setup_pressureoptimization.arts,
+	indivfieldsatmo_setup.arts, 
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts:
+	Change to use of scat_data (instead of raw; at least for the test setups
+	this works. might fail for 1-freq-only cases.)
+	Use basic doit_setup for the different Doit-optimnization test cases,
+	just make the additional settings/modifications in their specific setup
+	files.
+
 2018-02-20  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-958

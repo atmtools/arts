@@ -85,7 +85,6 @@ void iyActiveSingleScat(
    const ArrayOfTensor4&              dpnd_field_dx,
    const ArrayOfString&               scat_species,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
-   const Index&                       scat_data_checked,
    const Matrix&                      particle_masses,
    const String&                      iy_unit,
    const ArrayOfString&               iy_aux_vars,
@@ -345,7 +344,7 @@ void iyActiveSingleScat(
                                ppath_vmr, ppath_mag, ppath_f, f_grid, 
                                jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,
                                jac_other, iaps,
-                               scat_data, scat_data_checked,
+                               scat_data,
                                pnd_field, dpnd_field_dx,
                                cloudbox_limits, 0,
                                atmosphere_dim, stokes_dim,
@@ -367,7 +366,7 @@ void iyActiveSingleScat(
           get_ppath_partopt( pnd_abs_vec, pnd_ext_mat, scat_data_single,
                              clear2cloudy, ppath_pnd,
                              ppath, ppath_t, stokes_dim, ppath_f, atmosphere_dim,
-                             0, scat_data, scat_data_checked,
+                             0, scat_data,
                              verbosity );
 
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, scalar_tau, 

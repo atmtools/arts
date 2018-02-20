@@ -93,7 +93,6 @@ void iyRadioLink(
    const Tensor4&                     pnd_field,
    const Index&                       use_mean_scat_data,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
-   const Index&                       scat_data_checked,
    const Matrix&                      particle_masses,
    const ArrayOfString&               iy_aux_vars,
    const Index&                       jacobian_do,
@@ -406,7 +405,7 @@ void iyRadioLink(
           get_ppath_partopt( pnd_abs_vec, pnd_ext_mat, scat_data_single,
                              clear2cloudy, ppath_pnd,
                              ppath, ppath_t, stokes_dim, ppath_f, atmosphere_dim,
-                             use_mean_scat_data, scat_data, scat_data_checked,
+                             use_mean_scat_data, scat_data,
                              verbosity );
 
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
@@ -691,7 +690,6 @@ void iyTransmissionStandard(
    const Tensor4&                     pnd_field,
    const Index&                       use_mean_scat_data,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
-   const Index&                       scat_data_checked,
    const Matrix&                      particle_masses,
    const ArrayOfString&               iy_aux_vars,
    const Index&                       jacobian_do,
@@ -1012,7 +1010,7 @@ void iyTransmissionStandard(
                                ppath_vmr, ppath_mag, ppath_f, f_grid, 
                                jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,
                                jac_other, iaps,
-                               scat_data, scat_data_checked,
+                               scat_data,
                                pnd_field, dummy_dpnd_field_dx,
                                cloudbox_limits, use_mean_scat_data,
                                atmosphere_dim, stokes_dim,
