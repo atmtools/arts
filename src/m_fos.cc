@@ -80,7 +80,6 @@ void fos(
    const Index&                         cloudbox_on,
    const ArrayOfIndex&                  cloudbox_limits,
    const Tensor4&                       pnd_field,
-   const Index&                         use_mean_scat_data,
    const ArrayOfArrayOfSingleScatteringData&   scat_data,
    const Matrix&                        particle_masses,
    const String&                        iy_unit,
@@ -312,9 +311,8 @@ void fos(
                                ppath, atmosphere_dim, cloudbox_limits,
                                pnd_field, dummy_dpnd_field_dx );
           get_ppath_partopt( pnd_abs_vec, pnd_ext_mat, scat_data_single,
-                             clear2cloudy, ppath_pnd,
-                             ppath, ppath_t, stokes_dim, ppath_f, atmosphere_dim,
-                             use_mean_scat_data, scat_data,
+                             clear2cloudy, ppath_pnd, ppath, ppath_t,
+                             stokes_dim, ppath_f, atmosphere_dim, scat_data,
                              verbosity );
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
                             scalar_tau, ppath, ppath_ext, f_grid, stokes_dim, 
@@ -417,11 +415,6 @@ void fos(
       // (If any particles at ip=np-1, this is ignored. Could happen if
       // particles at surface level.)
       Matrix ssource0(nf,ns,0), ssource1(nf,ns);
-
-      // Help variables for handling of *use_mean_scat_data*
-      Index   nfs=nf, ivf=1;
-      if( use_mean_scat_data )
-        { nfs = 1;  ivf = 0; }
 
       // Dummy variables for non-LTE
       const bool nonlte = false;
@@ -554,7 +547,7 @@ void fos(
                                  abs_species, wind_u_field, wind_v_field, 
                                  wind_w_field, mag_u_field, mag_v_field, 
                                  mag_w_field, cloudbox_on, cloudbox_limits, 
-                                 pnd_field, use_mean_scat_data,
+                                 pnd_field,
                                  scat_data, 
                                  particle_masses, iy_unit, iy_aux_vars, 
                                  jacobian_do, ppath_agenda, 
@@ -594,12 +587,12 @@ void fos(
                       mirror_los( outlos, ppath.los(ip,joker), atmosphere_dim );
 
                       // Determine phase matrix 
-                      Tensor4  P( nin, nfs, stokes_dim, stokes_dim );
+                      Tensor4  P( nin, nf, stokes_dim, stokes_dim );
                       Matrix   P1( stokes_dim, stokes_dim );
                       //
                       for( Index ii=0; ii<nin; ii++ )
                         {
-                          for( Index iv=0; iv<nfs; iv++ )
+                          for( Index iv=0; iv<nf; iv++ )
                             {
                               pha_mat_singleCalc( P1, outlos[0], outlos[1], 
                                                   fos_scatint_angles(ii,0), 
@@ -619,7 +612,7 @@ void fos(
                           Vector sp(stokes_dim);
                           for( Index ii=0; ii<nin; ii++ )
                             { 
-                              mult( sp, P(ii,iv*ivf,joker,joker), 
+                              mult( sp, P(ii,iv,joker,joker), 
                                         Y(ii,iv,joker) );
                               ssource0(iv,joker) += sp;
                             }
@@ -793,7 +786,6 @@ void iyFOS(
    const Index&                       cloudbox_on,
    const ArrayOfIndex&                cloudbox_limits,
    const Tensor4&                     pnd_field,
-   const Index&                       use_mean_scat_data,
    const ArrayOfArrayOfSingleScatteringData& scat_data,
    const Matrix&                      particle_masses,
    const String&                      iy_unit,
@@ -857,7 +849,7 @@ void iyFOS(
   fos( ws, iy, iy_aux, ppath, diy_dx, stokes_dim, f_grid, atmosphere_dim,
        p_grid, z_field, t_field, vmr_field, abs_species, wind_u_field, 
        wind_v_field, wind_w_field, mag_u_field, mag_v_field, mag_w_field,
-       cloudbox_on, cloudbox_limits, pnd_field, use_mean_scat_data,
+       cloudbox_on, cloudbox_limits, pnd_field,
        scat_data, particle_masses, iy_unit, iy_aux_vars, jacobian_do, 
        ppath_agenda, propmat_clearsky_agenda,
        iy_main_agenda, iy_space_agenda, iy_surface_agenda, iy_agenda_call1,

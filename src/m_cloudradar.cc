@@ -346,7 +346,7 @@ void iyActiveSingleScat(
                                jac_other, iaps,
                                scat_data,
                                pnd_field, dpnd_field_dx,
-                               cloudbox_limits, 0,
+                               cloudbox_limits,
                                atmosphere_dim, stokes_dim,
                                jacobian_do, cloudbox_on, verbosity );
         }
@@ -364,9 +364,8 @@ void iyActiveSingleScat(
                        ppath, atmosphere_dim, cloudbox_limits,
                        pnd_field, dpnd_field_dx );
           get_ppath_partopt( pnd_abs_vec, pnd_ext_mat, scat_data_single,
-                             clear2cloudy, ppath_pnd,
-                             ppath, ppath_t, stokes_dim, ppath_f, atmosphere_dim,
-                             0, scat_data,
+                             clear2cloudy, ppath_pnd, ppath, ppath_t,
+                             stokes_dim, ppath_f, atmosphere_dim, scat_data,
                              verbosity );
 
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, scalar_tau, 

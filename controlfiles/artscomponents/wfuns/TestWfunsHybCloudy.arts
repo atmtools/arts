@@ -185,6 +185,7 @@ AgendaSet( doit_conv_test_agenda_perturb ){
 # --------------------
 AgendaSet( doit_mono_agenda ){
   DoitScatteringDataPrepare
+  Ignore( f_grid )
   doit_i_field_monoIterate
 }
 
@@ -313,7 +314,7 @@ AgendaSet( ybatch_calc_agenda ){
   #WriteXML( in=dpnd_field_dx, filename="BulkProp.dpnd_field_dx.xml" )
   atmgeom_checkedCalc
   atmfields_checkedCalc( bad_partition_functions_ok = 1 )
-  cloudbox_checkedCalc( scat_data=scat_data_raw, scat_data_type="raw" )
+  cloudbox_checkedCalc
   sensor_checkedCalc
   propmat_clearsky_agenda_checkedCalc
   StringSet( info, "RT4Calc" )

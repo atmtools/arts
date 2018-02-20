@@ -839,7 +839,6 @@ void iyEmissionStandard(
   const ArrayOfArrayOfSingleScatteringData scat_data_dummy;
   const Tensor4 pnd_field_dummy;
   const ArrayOfIndex cloudbox_limits_dummy;
-  const Index use_mean_scat_data_dummy=0;
   //
   if( np > 1 )
     {
@@ -865,7 +864,7 @@ void iyEmissionStandard(
                                jac_other, iaps,
                                scat_data_dummy,
                                pnd_field_dummy, dummy_dpnd_field_dx,
-                               cloudbox_limits_dummy, use_mean_scat_data_dummy,
+                               cloudbox_limits_dummy,
                                atmosphere_dim, stokes_dim,
                                jacobian_do, false, verbosity);
       

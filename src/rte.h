@@ -255,7 +255,6 @@ void get_ppath_partopt(
   const Index&                         stokes_dim,
   ConstMatrixView                      ppath_f, 
   const Index&                         atmosphere_dim,
-  const Index&                         use_mean_scat_data,
   const ArrayOfArrayOfSingleScatteringData&   scat_data,
   const Verbosity&                     verbosity );
 
@@ -385,7 +384,6 @@ void get_ppath_pmat_and_tmat(
                             const Tensor4&        pnd_field,
                             const ArrayOfTensor4& dpnd_field_dx,
                             const ArrayOfIndex&   cloudbox_limits,
-                            const Index&          use_mean_scat_data,
                             const Index&          atmosphere_dim,
                             const Index&          stokes_dim,
                             const bool&           jacobian_do,

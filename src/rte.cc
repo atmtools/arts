@@ -1955,7 +1955,6 @@ void get_ppath_pmat_and_tmat(
                             const Tensor4&        pnd_field,
                             const ArrayOfTensor4& dpnd_field_dx,
                             const ArrayOfIndex&   cloudbox_limits,
-                            const Index&          use_mean_scat_data,
                             const Index&          atmosphere_dim,
                             const Index&          stokes_dim,
                             const bool&           jacobian_do,
@@ -2244,9 +2243,8 @@ void get_ppath_pmat_and_tmat(
                        ppath, atmosphere_dim, cloudbox_limits,
                        pnd_field, dpnd_field_dx );
           get_ppath_partopt( pnd_abs_vec, pnd_ext_mat, scat_data_single,
-                             clear2cloudy, ppath_pnd,
-                             ppath, ppath_t, stokes_dim, ppath_f, atmosphere_dim,
-                             use_mean_scat_data, scat_data,
+                             clear2cloudy, ppath_pnd, ppath, ppath_t,
+                             stokes_dim, ppath_f, atmosphere_dim, scat_data,
                              verbosity );
         
         if(not jacobian_do)
@@ -2771,14 +2769,12 @@ void get_dppath_blackrad_dt(
                                       (defined only where particles are found)
     \param   pnd_ext_vec         Out: Particle extinction matrix
                                       (defined only where particles are found)
-    \param   scat_data_single    Out: Extracted scattering data. Length of
-                                      array affected by *use_mean_scat_data*.
+    \param   scat_data_single    Out: Extracted scattering data.
     \param   clear2cloudy      Mapping index. See get_ppath_cloudvars for details. 
     \param   ppath               As the WSV.    
     \param   ppath_t             Temperature for each ppath point.
     \param   stokes_dim          As the WSV.    
     \param   f_grid              As the WSV.    
-    \param   use_mean_scat_data  As the WSV.    
     \param   scat_data           As the WSV.    
 
     \author Patrick Eriksson, Jana Mendrok
@@ -2796,43 +2792,19 @@ void get_ppath_partopt(
   const Index&                         stokes_dim,
   ConstMatrixView                      ppath_f, 
   const Index&                         atmosphere_dim,
-  const Index&                         use_mean_scat_data_,
-  const ArrayOfArrayOfSingleScatteringData&   scat_data,
+  const ArrayOfArrayOfSingleScatteringData& scat_data,
   const Verbosity&                     verbosity )
 {
   const Index nf = ppath_f.nrows();
   const Index np = ppath.np;
 
   // Particle single scattering properties (are independent of position)
-  //
-  //if( scat_data_checked )
-  //  {
-      scat_data_single.resize( nf );
-      for( Index iv=0; iv<nf; iv++ )
-        { 
-          scat_data_monoExtract( scat_data_single[iv], scat_data, iv,
-                                 verbosity );
-        }
-  /*
-    }
-  else if( use_mean_scat_data )
-    {
-      const Numeric f = (mean(ppath_f(0,joker))+mean(ppath_f(nf-1,joker)))/2.0;
-      scat_data_single.resize( 1 );
-      scat_data_monoCalc( scat_data_single[0], scat_data, Vector(1,f), 0,
-                          verbosity );
-    }
-  else
-    {
-      scat_data_single.resize( nf );
-      for( Index iv=0; iv<nf; iv++ )
-        { 
-          const Numeric f = mean(ppath_f(iv,joker));
-          scat_data_monoCalc( scat_data_single[iv], scat_data, Vector(1,f), 0, 
-                              verbosity ); 
-        }
-    }
-  */
+  scat_data_single.resize( nf );
+  for( Index iv=0; iv<nf; iv++ )
+  { 
+    scat_data_monoExtract( scat_data_single[iv], scat_data, iv,
+                           verbosity );
+  }
 
   // Resize absorption and extension tensors
   Index nin = max(clear2cloudy)+1;
@@ -2843,6 +2815,18 @@ void get_ppath_partopt(
     pm = PropagationMatrix(nf, stokes_dim);
     pm.SetZero();
   }
+
+  // make optprop extraction output containers
+  ArrayOfArrayOfTensor5 ext_mat_Nse;
+  ArrayOfArrayOfTensor4 abs_vec_Nse;
+  ArrayOfArrayOfIndex ptypes_Nse;
+  Matrix t_ok;
+  ArrayOfTensor5 ext_mat_ssbulk;
+  ArrayOfTensor4 abs_vec_ssbulk;
+  ArrayOfIndex ptype_ssbulk;
+  Tensor5 ext_mat_bulk;
+  Tensor4 abs_vec_bulk; //nf,nT,ndir,nstokes
+  Index ptype_bulk;
 
   // Loop ppath points
   //
@@ -2856,32 +2840,31 @@ void get_ppath_partopt(
           // properties.
           Vector rtp_los2;
           mirror_los( rtp_los2, ppath.los(ip,joker), atmosphere_dim );
+          Matrix dir_array(1,2,0.);
+          dir_array(0,joker) = rtp_los2;
 
-          // Extinction and absorption
-          /*if( use_mean_scat_data )
+          opt_prop_NScatElems( ext_mat_Nse, abs_vec_Nse, ptypes_Nse, t_ok,
+                               scat_data, stokes_dim,
+                               ppath_t[Range(ip,1)], dir_array, -1 );
+          opt_prop_ScatSpecBulk( ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk,
+                                 ext_mat_Nse, abs_vec_Nse, ptypes_Nse,
+                                 ppath_pnd(joker,Range(ip,1)), t_ok );
+          opt_prop_Bulk( ext_mat_bulk, abs_vec_bulk, ptype_bulk,
+                         ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk );
+
+          const Index nf_op = abs_vec_bulk.nbooks();
+          if( nf_op > 1 )
+          {
+            assert( nf_op == nf );
+            pnd_abs_vec(joker,joker,i) = abs_vec_bulk(joker,0,0,joker);
+            for( Index iv=0; iv<nf; iv++ )
+              pnd_ext_mat[i].SetAtPosition(ext_mat_bulk(iv,0,0,joker,joker), iv);
+          }
+          else
+            for( Index iv=0; iv<nf; iv++ )
             {
-              Vector   abs_vec( stokes_dim );
-              Matrix   ext_mat( stokes_dim, stokes_dim );
-              opt_propCalc( ext_mat, abs_vec, rtp_los2[0], rtp_los2[1], 
-                            scat_data_single[0], stokes_dim, ppath_pnd(joker,ip), 
-                            ppath_t[ip], verbosity);
-              for( Index iv=0; iv<nf; iv++ )
-                { 
-                  pnd_ext_mat[i].SetAtPosition(ext_mat, iv);
-                  pnd_abs_vec(iv,joker,i)       = abs_vec;
-                }
-            }
-          else*/
-            {
-              for( Index iv=0; iv<nf; iv++ )
-                { 
-                  Matrix   ext_mat( stokes_dim, stokes_dim );
-                  opt_propCalc( ext_mat, 
-                                pnd_abs_vec(iv,joker,i), rtp_los2[0], 
-                                rtp_los2[1], scat_data_single[iv], stokes_dim,
-                                ppath_pnd(joker,ip), ppath_t[ip], verbosity );
-                  pnd_ext_mat[i].SetAtPosition(ext_mat, iv);
-                }
+              pnd_abs_vec(iv,joker,i) = abs_vec_bulk(0,0,0,joker);
+              pnd_ext_mat[i].SetAtPosition(ext_mat_bulk(0,0,0,joker,joker), iv);
             }
         }
     }

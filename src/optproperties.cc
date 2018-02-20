@@ -596,7 +596,7 @@ void opt_prop_1ScatElem(//Output
       Tensor3 ext_mat_tmp_ssd(nTin,nDir,next);
       Tensor3 abs_vec_tmp_ssd(nTin,nDir,nabs);
       Matrix ext_mat_tmp(nTout,next);
-      Matrix abs_vec_tmp(nTout,next);
+      Matrix abs_vec_tmp(nTout,nabs);
 
       for( Index find=0; find<nf; find++ )
       {
@@ -718,7 +718,7 @@ void abs_vec_SSD2Stokes(//Output
 
   abs_vec_stokes[0] = abs_vec_ssd[0];
 
-  if( ptype>PTYPE_TOTAL_RND and stokes_dim>0 )
+  if( ptype>PTYPE_TOTAL_RND and stokes_dim>1 )
   {
     abs_vec_stokes[1] = abs_vec_ssd[1];
   }

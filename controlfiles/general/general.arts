@@ -41,12 +41,6 @@ Touch( dpnd_field_dx )
 
 
 #
-# Some methods can use simplified scatteirng data, but deactivated as default
-#
-FlagOff( use_mean_scat_data )
-
-
-#
 # Default is that no transmitter is involved
 #
 MatrixSet( transmitter_pos, [] )

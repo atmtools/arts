@@ -6011,30 +6011,6 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "use_mean_scat_data" ),
-      DESCRIPTION
-      (
-       "Flag to use same scattering properties for all frequencies.\n"
-       "\n"
-       "This flag is not considered y all scattering methods, but (at least)\n"
-       "by *iyFOS* and *iyBeerLambertStandardCloudbox*.\n"
-       "\n"
-       "If set to 1, the scattering properties are extracted for a single\n"
-       "frequency, and these properties are applied for all frequncies when\n"
-       "performing the actual radiative transfer calculations. This can save\n"
-       "considerable time. The option can be when the width of the band is\n"
-       "small comapred to the mean frequency. The properties are extracted\n"
-       "for the mean of min and max of *f_grid*.\n"
-       "\n"
-       "If set to 0, standard calculations are made (scattering properties\n"
-       "extracted for each frequency).\n"
-       "\n"
-       "Usage:      Set by user.\n"
-       ),
-      GROUP( "Index" )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "verbosity" ),
       DESCRIPTION
       (
