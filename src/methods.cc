@@ -3664,17 +3664,7 @@ void define_md_data_raw()
          "and that the scattering element variables *pnd_field* and\n"
          "*scat_data* match in size.\n"
          "\n"
-         "Furthermore, by default it is checked that *scat_data* does not\n"
-         "contain any invalid values and that the scattering matrix is\n"
-         "properly normalized. Proper normalization is defined by the maximum\n"
-         "allowed albedo deviation *sca_mat_threshold* (for details see\n"
-         "*scat_dataCheck*).\n"
-         "The *scat_data* tests can be skipped entirely (setting\n"
-         "*scat_data_check_level* to 'none') or the normalization check alone\n"
-         "(setting *scat_data_check_level* to 'sane').\n"
-         "NOTE: These test shall only be skipped when one is confident that\n"
-         "the data is correct, e.g. by having run *scat_dataCheck* on the set\n"
-         "of data before in a separate ARTS run.\n"
+         "Further checks on *scat_data* are performed in *scat_data_checkedCalc*\n"
          "\n"
          "*scat_species* and *particle_masses* must either be empty or have a\n"
          "size that matches the other data. If non-empty, some check of these\n"
@@ -3688,24 +3678,17 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmfields_checked", "f_grid",
-            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid",
+        IN( "atmfields_checked", "atmosphere_dim",
+            "p_grid", "lat_grid", "lon_grid",
             "z_field", "z_surface",
             "wind_u_field", "wind_v_field", "wind_w_field", 
             "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
             "jacobian_quantities", "scat_data", "scat_species",
             "particle_masses", "abs_species" ),
-        GIN(         "negative_pnd_ok", "scat_data_type",
-                     "scat_data_check_level", "sca_mat_threshold" ),
-        GIN_TYPE(    "Index",           "String",
-                     "String",               "Numeric" ),
-        GIN_DEFAULT( "0",               "prepared",
-                     "all",                  "5e-2" ),
-        GIN_DESC( "Flag whether to accept pnd_field < 0.",
-                  "Flag whether *scat_data* is *scat_data_raw* ('raw') or"
-                  " *scat_data* (any other value).",
-                  "The level of checks to apply on scat_data (see above).",
-                  "Threshold for allowed albedo deviation." )
+        GIN( "negative_pnd_ok" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "0" ),
+        GIN_DESC( "Flag whether to accept pnd_field < 0." )
         ));
     
   md_data_raw.push_back
@@ -5012,9 +4995,6 @@ void define_md_data_raw()
          "This method executes *doit_mono_agenda* for each frequency\n"
          "in *f_grid*. The output is the radiation field inside the cloudbox\n"
          "(*doit_i_field*).\n"
-         "\n"
-         "Note: The common *doit_mono_agenda* methods currently operate on\n"
-         "*scat_data_raw*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "doit_i_field" ),
@@ -5023,7 +5003,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "doit_i_field",
             "atmfields_checked", "atmgeom_checked",
-            "cloudbox_checked", "cloudbox_on", "f_grid", 
+            "cloudbox_checked", "scat_data_checked", "cloudbox_on", "f_grid",
             "doit_mono_agenda", "doit_is_initialized" ),
         GIN(),
         GIN_TYPE(),
@@ -5146,9 +5126,10 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_za_grid_size", "scat_aa_grid", "scat_data_raw", "f_grid", 
-            "f_index", "atmosphere_dim", "stokes_dim", "t_field", "cloudbox_limits",
-            "pnd_field", "pha_mat_spt_agenda"),
+        IN( "doit_za_grid_size", "scat_aa_grid",
+            "scat_data", "scat_data_checked", "f_index",
+            "atmosphere_dim", "stokes_dim", "t_field",
+            "cloudbox_limits", "pnd_field", "pha_mat_spt_agenda"),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9249,7 +9230,7 @@ void define_md_data_raw()
              "doit_i_field",
              "scat_species_mass_density_field", "scat_species_mass_flux_field",
              "scat_species_number_density_field", "scat_species_mean_mass_field",
-             "pnd_field", "vmr_field", "t_field", "scat_data_raw", "scat_meta",
+             "pnd_field", "vmr_field", "t_field", "scat_data", "scat_meta",
              "scat_species" ),
         GOUT(),
         GOUT_TYPE(),
@@ -9257,7 +9238,7 @@ void define_md_data_raw()
         IN( "doit_i_field",
             "scat_species_mass_density_field", "scat_species_mass_flux_field",
             "scat_species_number_density_field", "scat_species_mean_mass_field",
-            "pnd_field", "vmr_field", "t_field", "scat_data_raw", "scat_meta",
+            "pnd_field", "vmr_field", "t_field", "scat_data", "scat_meta",
             "scat_species",
             "jacobian_quantities",
             "abs_species", "atmosphere_dim", "cloudbox_limits",
@@ -9272,14 +9253,11 @@ void define_md_data_raw()
             "iy_unit", "iy_main_agenda", "geo_pos_agenda",
             "jacobian_agenda", "jacobianDoit_do", "iy_aux_vars" ),
         GIN(         "robust", "ScatSpeciesMerge_do", "debug",
-                     "scat_species_delim", "scat_data_check_type",
-                     "sca_mat_threshold" ),
+                     "scat_species_delim" ),
         GIN_TYPE(    "Index",  "Index",               "Index",
-                     "String",             "String",
-                     "Numeric" ),
+                     "String" ),
         GIN_DEFAULT( "1",      "0",                   "0",
-                     "-",                  "sane",
-                     "5e-2" ),
+                     "-" ),
         GIN_DESC( "Flag (0=no,1=yes) whether to continue perturbation"
                   " calculations, even if individual calculations fail. When"
                   " set robust, respective entries in *jacobian* are set to"
@@ -9287,10 +9265,7 @@ void define_md_data_raw()
                   "Flag (0=no,1=yes) whether to execute *ScatSpeciesMerge* on"
                   " perturbed *pnd_field*",
                   "Debug flag (dumps some additional output to files)",
-                  "*scat_species* delimiter string",
-                  "Only used in case of *ScatSpeciesMerge_do*=1. See"
-                  " cloudbox_checkedCalc for meaning.",
-                  "As *scat_data_check_type*."
+                  "*scat_species* delimiter string"
                   )
         ));
          
@@ -10953,7 +10928,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "ext_mat_spt", "abs_vec_spt", "scat_data_raw", "scat_za_grid", 
+        IN( "ext_mat_spt", "abs_vec_spt", "scat_data", "scat_za_grid", 
             "scat_aa_grid", "scat_za_index", "scat_aa_index", 
             "f_index", "f_grid", "rtp_temperature",
             "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
@@ -11245,7 +11220,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "pha_mat_spt", "scat_data_raw", "scat_za_grid", "scat_aa_grid", 
+        IN( "pha_mat_spt", "scat_data", "scat_za_grid", "scat_aa_grid", 
             "scat_za_index", "scat_aa_index", "f_index", "f_grid",
             "rtp_temperature", "pnd_field", "scat_p_index", "scat_lat_index",
             "scat_lon_index" ),
@@ -14790,7 +14765,7 @@ void define_md_data_raw()
          "Allows to limit considered scattering elements according to size.\n"
          "\n"
          "Scattering elements of a specified scattering species are removed\n"
-         "from *scat_data* and *scat_meta*, i.e. removed from further\n"
+         "from *scat_data_raw* and *scat_meta*, i.e. removed from further\n"
          "calculations, if their particle size exceeds the specified limits.\n"
          "Specification of the scattering species is done by name matching the\n"
          "scattering species name part of *scat_species* tag.\n"
@@ -14799,11 +14774,11 @@ void define_md_data_raw()
          "their naming).\n"
          ),
         AUTHORS( "Daniel Kreyling, Oliver Lemke, Jana Mendrok" ),
-        OUT( "scat_data", "scat_meta" ),
+        OUT( "scat_data_raw", "scat_meta" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_data", "scat_meta", "scat_species" ),
+        IN( "scat_data_raw", "scat_meta", "scat_species" ),
         GIN(         "species", "sizeparam", "sizemin", "sizemax", "tolerance",
              "delim" ),
         GIN_TYPE(    "String",  "String",    "Numeric", "Numeric", "Numeric",
@@ -15199,9 +15174,10 @@ void define_md_data_raw()
       ( NAME( "scat_data_checkedCalc" ),
         DESCRIPTION
         (
-         "Checks grids and dimensions of all scattering elements in *scat_data*.\n"
+         "Checks dimensions, grids and single scattering properties of all\n"
+         "scattering elements in *scat_data*.\n"
          "\n"
-         "Requirements:\n"
+         "Dimension and grid equirements:\n"
          "- The scattering element's f_grid is either identical to *f_grid* or\n"
          "  of dimension 1.\n"
          "- In the latter case, the scattering element's f_grid value must\n"
@@ -15215,6 +15191,15 @@ void define_md_data_raw()
          "  or 1.\n"
          "- The temperature dimension of ext_mat_data, and abs_vec_data is\n"
          "  identical.\n"
+         "\n"
+         "The single scattering property contents are checked using\n"
+         "*scat_dataCheck*. For details, see there. The depth of these checks\n"
+         "and their rigour can adapted (see description of parameters\n"
+         "*check_level* and *sca_mat_threshold* in *scat_dataCheck*) or can\n"
+         "be skipped entirely (setting *check_level* to 'none').\n"
+         "NOTE: These test shall only be skipped when one is confident that\n"
+         "the data is correct, e.g. by having run *scat_dataCheck* on the set\n"
+         "of data before, e.g. in a separate ARTS run.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "scat_data_checked" ),
@@ -15222,12 +15207,14 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_data", "f_grid" ),
-        GIN( "dfrel_threshold" ),
-        GIN_TYPE( "Numeric" ),
-        GIN_DEFAULT( "0.1" ),
+        GIN(         "dfrel_threshold", "check_level", "sca_mat_threshold" ),
+        GIN_TYPE(    "Numeric",         "String",      "Numeric" ),
+        GIN_DEFAULT( "0.1",             "all",         "5e-2" ),
         GIN_DESC( "Maximum relative frequency deviation between (single entry)"
                   " scattering element f_grid values and the RT calculation's"
-                  " *f_grid*." )
+                  " *f_grid*.",
+                  "See *check_level* in *scat_dataCheck*.",
+                  "See *sca_mat_threshold* in *scat_dataCheck*." )
         ));
 
   md_data_raw.push_back
@@ -15235,14 +15222,14 @@ void define_md_data_raw()
       ( NAME( "scat_data_monoCalc" ),
         DESCRIPTION
         (
-         "Interpolates *scat_data_raw* by frequency to give *scat_data_mono*.\n"
+         "Interpolates *scat_data* by frequency to give *scat_data_mono*.\n"
          ),
         AUTHORS( "Cory Davis" ),
         OUT( "scat_data_mono" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_data_raw", "f_grid", "f_index" ),
+        IN( "scat_data", "f_grid", "f_index" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -15296,6 +15283,12 @@ void define_md_data_raw()
       ( NAME( "scat_dataCheck" ),
         DESCRIPTION
         (
+         "Furthermore, by default it is checked that *scat_data* does not\n"
+         "contain any invalid values and that the scattering matrix is\n"
+         "properly normalized. Proper normalization is defined by the maximum\n"
+         "allowed albedo deviation *sca_mat_threshold* (for details see\n"
+         "*scat_dataCheck*).\n"
+
          "Method for checking the validity and consistency of the single\n"
          "scattering properties in *scat_data*.\n"
          "\n"
@@ -15310,11 +15303,9 @@ void define_md_data_raw()
          "int_z11 ~ C_sca = K11-a1.\n"
          "The check is skipped if *check_type* is 'sane'.\n"
          "\n"
-         "Sufficient consistency is determined by *sca_mat_threshold*\n"
-         "testing that\n"
+         "Sufficient consistency is defined by the maximum allowed deviation\n"
+         "in single scattering albedo, *sca_mat_threshold*, testing for\n"
          "  ( <int_Z11>/<C_sca>-1. ) * ( <C_sca>/<K11> ) <= sca_mat_threshold.\n"
-         "Note that in this case *sca_mat_threshold* is equivalent to the\n"
-         "absolute scattering albedo deviation.\n"
          ),
         AUTHORS( "Claudia Emde", "Jana Mendrok" ),
         OUT(),
@@ -15326,7 +15317,7 @@ void define_md_data_raw()
         GIN_TYPE(    "String",     "Numeric" ),
         GIN_DEFAULT( "all",        "5e-2" ),
         GIN_DESC( "The level of checks to apply on scat_data (see above).",
-                  "Threshold for allowed albedo deviation." )
+                  "Threshold for allowed albedo deviation (see above)." )
         ));
 
   md_data_raw.push_back
@@ -15338,7 +15329,7 @@ void define_md_data_raw()
          "\n"
          "FIXME...\n"
          "Derives single scattering data for the frequencies given by\n"
-         "*f_grid* by interpolation from *scat_data_raw*. *f_grid* should be\n"
+         "*f_grid* by interpolation from *scat_data*. *f_grid* should be\n"
          "the actual WSV *f_grid* or a single-element Vector.\n"
          ),
         AUTHORS( "Jana Mendrok" ),

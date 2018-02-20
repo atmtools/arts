@@ -193,6 +193,7 @@ DOAngularGridsSet( N_za_grid=19, N_aa_grid=37,
 AgendaSet( doit_mono_agenda ){
   # Prepare scattering data for DOIT calculation (Optimized method):
   DoitScatteringDataPrepare
+  Ignore( f_grid )
   # Alternative method (needs less memory):
   #scat_data_monoCalc
   # Perform iterations: 1. scattering integral. 2. RT calculations with 

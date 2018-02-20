@@ -854,9 +854,9 @@ void ScatElementsToabs_speciesAdd( //WS Output:
                          verbosity);
 
       out2 << "  Check single scattering properties\n";
-      chk_scat_data_fgrid(scat_data_raw[last_species][scat_data_raw[last_species].nelem()-1],
-                          f_grid, "scat_data_single.f_grid to f_grid");
-
+      chk_interpolation_grids( "scat_data_single.f_grid to f_grid",
+                               scat_data_raw[last_species][scat_data_raw[last_species].nelem()-1].f_grid,
+                               f_grid);
   
       out2 << "  Read particle number density field\n";
       if (pnd_field_files[i].nelem() < 1)
@@ -1070,7 +1070,7 @@ shared(out3, scat_data_files, arr_ssd, arr_smd)
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ScatElementsSelect (//WS Output:
-                         ArrayOfArrayOfSingleScatteringData& scat_data,
+                         ArrayOfArrayOfSingleScatteringData& scat_data_raw,
                          ArrayOfArrayOfScatteringMetaData& scat_meta,
                          // WS Input:
                          const ArrayOfString& scat_species,
@@ -1082,22 +1082,22 @@ void ScatElementsSelect (//WS Output:
                          const String& delim,
                          const Verbosity& )
 { 
-  // first check that sizes of scat_species and scat_data/scat_meta agree
+  // first check that sizes of scat_species and scat_data_raw/scat_meta agree
   Index nspecies = scat_species.nelem();
-  if ( nspecies != scat_data.nelem() || nspecies != scat_meta.nelem() )
+  if ( nspecies != scat_data_raw.nelem() || nspecies != scat_meta.nelem() )
     {
       ostringstream os;
       os << "Number of scattering species specified by scat_species does\n"
          << "not agree with number of scattering species in\n"
-         << "scat_data or scat_meta:\n"
-         << "scat_species has " << nspecies << " entries, while scat_data has "
-         << scat_data.nelem() << " and scat_meta has " << scat_meta.nelem()
+         << "scat_data_raw or scat_meta:\n"
+         << "scat_species has " << nspecies << " entries, while scat_data_raw has "
+         << scat_data_raw.nelem() << " and scat_meta has " << scat_meta.nelem()
          << ".";
       throw runtime_error ( os.str() );
     }
 
   // create temporary containers for selected elements
-  ArrayOfSingleScatteringData scat_data_tmp;
+  ArrayOfSingleScatteringData scat_data_raw_tmp;
   ArrayOfScatteringMetaData scat_meta_tmp;
 
   String partfield_name;
@@ -1130,7 +1130,7 @@ void ScatElementsSelect (//WS Output:
              sizemax < 0. ) )
         {
           // copy selected scattering element to temp arrays
-          scat_data_tmp.push_back(scat_data[i_ss][i_se]);
+          scat_data_raw_tmp.push_back(scat_data_raw[i_ss][i_se]);
           scat_meta_tmp.push_back(scat_meta[i_ss][i_se]);
         }
     }
@@ -1144,7 +1144,7 @@ void ScatElementsSelect (//WS Output:
              sizemax < 0. ) )
         {
           // copy selected scattering element to temp arrays
-          scat_data_tmp.push_back(scat_data[i_ss][i_se]);
+          scat_data_raw_tmp.push_back(scat_data_raw[i_ss][i_se]);
           scat_meta_tmp.push_back(scat_meta[i_ss][i_se]);
         }
     }
@@ -1158,7 +1158,7 @@ void ScatElementsSelect (//WS Output:
              sizemax < 0. ) )
         {
           // copy selected scattering element to temp arrays
-          scat_data_tmp.push_back(scat_data[i_ss][i_se]);
+          scat_data_raw_tmp.push_back(scat_data_raw[i_ss][i_se]);
           scat_meta_tmp.push_back(scat_meta[i_ss][i_se]);
         }
     }
@@ -1177,13 +1177,13 @@ void ScatElementsSelect (//WS Output:
       ostringstream os;
       os << "For scattering species " << species << " no scattering "
          << "element matching the requested size range found.\n"
-         << "Check *scat_data* and *scat_meta* input as well as your size limit "
+         << "Check *scat_data_raw* and *scat_meta* input as well as your size limit "
          << "selection!";
       throw runtime_error ( os.str() );
       }
 
   scat_meta[i_ss] = std::move(scat_meta_tmp);
-  scat_data[i_ss] = std::move(scat_data_tmp);
+  scat_data_raw[i_ss] = std::move(scat_data_raw_tmp);
 
   // check if array is empty. should never apply (since we checked the re-worked
   // data before and that error should also catch cases that are empty from the

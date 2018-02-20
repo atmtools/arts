@@ -1640,15 +1640,6 @@ void DoitInit(//WS Output
                         "atmospheric dimensions. So its dimension must"
                         "be 2 x *atmosphere_dim*");
 
-  /* this shouldn't be Doit's, even less DoitInit's concern.
-  if ( scat_data_raw.empty() )
-    throw runtime_error(
-                         "No single scattering data present.\n"
-                         "See documentation of WSV *scat_data_raw* for options to "
-                         "make single scattering data available.\n"
-                         );
-  */
-
   //------------- end of checks ---------------------------------------
   
   const Index Nf = f_grid.nelem();
@@ -2786,6 +2777,7 @@ void DoitCalc(
    const Index&     atmfields_checked,
    const Index&     atmgeom_checked,
    const Index&     cloudbox_checked,
+   const Index&     scat_data_checked,
    const Index&     cloudbox_on,
    const Vector&    f_grid,
    const Agenda&    doit_mono_agenda,
@@ -2819,6 +2811,10 @@ void DoitCalc(
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
   
+  if( scat_data_checked != 1 )
+    throw runtime_error( "The scattering data must be flagged to have "
+                         "passed a consistency check (scat_data_checked=1)." );
+
   chk_not_empty( "doit_mono_agenda", doit_mono_agenda );
 
   // Frequency grid

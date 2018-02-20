@@ -27,6 +27,7 @@ Tensor4Scale( out=pnd_field, in=pnd_field, value=1.01 )
 AgendaSet( doit_mono_agenda ){
   # Prepare scattering data for DOIT calculation (Optimized method):
   DoitScatteringDataPrepare
+  Ignore( f_grid )
   # Alternative method (needs less memory):
   #scat_data_monoCalc
   #WriteXMLIndexed( in=doit_i_field_mono, file_index=f_index )

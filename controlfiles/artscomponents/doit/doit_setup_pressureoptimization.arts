@@ -10,10 +10,9 @@ ScatElementsPndAndScatAdd(
   scat_data_files=["scattering/H2O_ice/MieSphere_R8.00000e+02um.xml"],
   pnd_field_files=["testdata/testdoit_pnd_field_1D.xml"])
 
-# at the moment, there seems to be some bug in ScatSpeciesMerge (or some inconsistency with scat_data handling in pha_mat_sptFromDataDOITOpt). pre-merge scat_dataCalc causes a runtime error in pha_mat_sptFromDataDOITOpt, while post-merge scat_dataCalc works fine).
-#scat_dataCheck( scat_data = scat_data_raw )
-#scat_dataCalc
-#scat_dataCheck
+scat_dataCheck( scat_data = scat_data_raw )
+scat_dataCalc
+scat_dataCheck
 
 pnd_fieldCalcFrompnd_field_raw
 
@@ -23,19 +22,18 @@ Tensor4Scale( out=pnd_field, in=pnd_field, value=0.01 )
 # Consistency checks needed for running merge
 atmfields_checkedCalc( bad_partition_functions_ok = 1 )
 atmgeom_checkedCalc
-cloudbox_checkedCalc( sca_mat_threshold = 10, scat_data=scat_data_raw )
-sensor_checkedCalc
-ScatSpeciesMerge( scat_data=scat_data_raw )
-scat_dataCheck( scat_data = scat_data_raw )
-scat_dataCalc
-scat_dataCheck
 cloudbox_checkedCalc
+sensor_checkedCalc
+ScatSpeciesMerge
+cloudbox_checkedCalc
+scat_data_checkedCalc
 
 # Main agenda for DOIT calculation
 # --------------------------------
 AgendaSet( doit_mono_agenda ){
   # Prepare scattering data for DOIT calculation (Optimized method):
   DoitScatteringDataPrepare
+  Ignore( f_grid )
   # Switch on pressure grid optimization
   OptimizeDoitPressureGrid
   # Alternative method (needs less memory):

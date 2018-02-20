@@ -233,9 +233,9 @@ ScatSpeciesScatAndMetaRead ( scat_data_files=scat_data_files )
 
 # Selection/filtering of particles according to *scat_species*
 #-------------------------------------------------------------
-ScatElementsSelect( scat_data=scat_data_raw, species="LWC",
+ScatElementsSelect( species="LWC",
                     sizeparam="diameter_volume_equ", sizemin=0.1e-6, sizemax=2000e-6 )
-ScatElementsSelect( scat_data=scat_data_raw, species="IWC",
+ScatElementsSelect( species="IWC",
                     sizeparam="diameter_volume_equ", sizemin=0.1e-6, sizemax=2000e-6 )
 
 #scat_dataCheck( scat_data = scat_data_raw )

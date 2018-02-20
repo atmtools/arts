@@ -482,37 +482,6 @@ void chk_scattering_meta_data(const ScatteringMetaData& scat_meta_single _U_,
 }
 
 
-
-//! Check single scattering data
-/*!
-  This function checks, whether the single scattering 
-  properties of a scattering element includes the required frequencies.
-
-  \param scat_data_single[in]  Single scattering data of a single scattering element
-  \param f_grid[in]            Frequency grid
-  
-  \author Claudia Emde
-  \date   2005-04-04
-*/
-void chk_scat_data_fgrid(const SingleScatteringData& scat_data_single,
-                         ConstVectorView f_grid,
-                         const String& infostring)
-{
-  chk_interpolation_grids( infostring, scat_data_single.f_grid, f_grid);
-  
-/*  if (!(scat_data_single.f_grid[0] <= f_grid[0] &&
-        last(f_grid) <= 
-        last(scat_data_single.f_grid) ))
-    {
-      ostringstream os;
-      os << "The range of frequency grid in the single scattering"
-         << " properties data does not contain all values of"
-         << "*f_grid*.";
-      throw runtime_error( os.str() );
-    }*/
-}
-
-
 //! Check single scattering data
 /*!
   This function checks the self consistency of the data by checking the

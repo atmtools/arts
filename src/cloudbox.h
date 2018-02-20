@@ -80,10 +80,6 @@ void chk_scattering_meta_data (const ScatteringMetaData& scat_meta_single,
                                const String& scat_meta_file,
                                const Verbosity& verbosity);
 
-void chk_scat_data_fgrid (const SingleScatteringData& scat_data,
-                          ConstVectorView f_grid,
-                          const String& infostring);
-
 void chk_scat_data (const SingleScatteringData& scat_data,
                     const Verbosity& verbosity);
 

@@ -1,5 +1,66 @@
 2018-02-20 Jana Mendrok  <jana.mendrok@gmail.com>
 
+	* arts-2-3-960
+
+	* src/m_checked.cc (cloudbox_checkedCalc, scat_data_checkedCalc):
+	Move all scat_data grid and content checks from cloudbox_checkedCalc to
+	scat_data_checkedCalc.
+
+	* src/m_doit.cc (DoitCalc):
+	Added scat_data_checked as input and check this flag.
+
+	* src/m_optproperties.cc:
+	Removed *_RAW definitions. Removed _NEW from definitions acting on
+	scat_data.
+
+	(pha_mat_sptFromData, opt_prop_sptFromData, scat_data_monoCalc):
+	Reverted to act on scat_data, not scat_data_raw.
+
+	(DoitScatteringDataPrepare):
+	Changed to assume (and check for) scat_data. Accordingly, replaced
+	scat_data_monoCalc by scat_data_monoExtract.
+
+	* src/m_jacobian.cc (jacobianDoit):
+	Reverted to act on scat_data, not scat_data_raw. Adapted to DoitCalc
+	and cloudbox_checkedCalc changes.
+
+	* src/m_cloudbox.cc (ScatElementsSelect):
+	Act on scat_data_raw, not scat_data, consistenly with more common use.
+
+	(ScatElementsToabs_speciesAdd):
+	Use chk_interpolation_grids directly instead via chk_scat_data_fgrid.
+
+	* src/cloudbox.[cc,h] (chk_scat_data_fgrid):
+	Removed. Was anyway just calling chk_interpolation_grids nowadays.
+
+	* src/methods.cc:
+	Adapted to WSM changes above.
+
+	* controlfiles/artscomponents/doit/doit_setup_pressureoptimization.arts:
+	Adapted to changes above, fixing issues when using scat_dataCalc before
+	ScatSpeciesMerge.
+
+	* controlfiles/general/agendasDOIT.arts,
+	controlfiles/artscomponents/doit/doit_setup.arts,
+	controlfiles/artscomponents/doit/doit_setup_accelerated.arts,
+	controlfiles/artscomponents/doit/TestDOITprecalcInit.arts:
+	Touch f_grid when using DoitScatteringDataPrepare in doit_mono_agenda.
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/artscomponents/doit/indivfieldsatmo_setup.arts,
+	controlfiles/artscomponents/wfuns/TestDoitJacobians.arts,
+	controlfiles/artscomponents/wfuns/TestWfunsHybCloudy.arts:
+	Adapted to WSM now using scat_data as default instead of scat_data_raw
+	(and vice versa).
+
+	* controlfiles/artscomponents/disort/indivfieldsatmo_setup.arts:
+	Cosmetics.
+
+	* controlfiles/CMakeLists.txt:
+	Revert accidential change from last commit.
+
+2018-02-20 Jana Mendrok  <jana.mendrok@gmail.com>
+
 	* arts-2-3-959
 
 	* src/m_rte.cc (iyCalc, yCalc):

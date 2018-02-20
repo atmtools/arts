@@ -430,7 +430,6 @@ void atmgeom_checkedCalc(
 void cloudbox_checkedCalc(      
          Index&          cloudbox_checked,
    const Index&          atmfields_checked,
-   const Vector&         f_grid,
    const Index&          atmosphere_dim,
    const Vector&         p_grid,
    const Vector&         lat_grid,
@@ -450,10 +449,7 @@ void cloudbox_checkedCalc(
    const Matrix&         particle_masses,
    const ArrayOfArrayOfSpeciesTag& abs_species,
    const Index&          negative_pnd_ok,
-   const String&         scat_data_type,
-   const String&         scat_data_check_level,
-   const Numeric&        sca_mat_threshold,
-   const Verbosity&      verbosity )
+   const Verbosity&      )
 {
   if( atmfields_checked != 1 )
     throw runtime_error( "The atmospheric fields must be flagged to have "
@@ -668,47 +664,12 @@ void cloudbox_checkedCalc(
                              "of *jacobian_quantities*." );
 
 
-      // Check scat_data
-      const Index nss = scat_data.nelem();
-
-      // freq range of calc covered?
-      if( f_grid.empty() )
-        throw runtime_error ( "The frequency grid is empty." );
-      chk_if_increasing ( "f_grid", f_grid );
-
-      if( scat_data_type.toupper() == "RAW" )
-      {
-        for( Index i_ss=0; i_ss<nss; i_ss++ )
-        {
-          Index nse = scat_data[i_ss].nelem();
-          for( Index i_se=0; i_se<nse; i_se++ )
-            {
-              ostringstream os;
-              os << "scat_data[" << i_ss << "][" << i_se << "].f_grid to f_grid";
-              chk_scat_data_fgrid ( scat_data[i_ss][i_se], f_grid, os.str() );
-            }
-        }
-      }
-      
-      if( scat_data_check_level.toupper() != "NONE" )
-        {
-          // handing over to scat_dataCheck which checks whether
-          // 1) scat_data containing any NaN?
-          // 2) any negative values in Z11, K11, or a1?
-          // 3) sca_mat norm sufficiently good (int(Z11)~=K11-a1?)
-          // 1) & 2) always done
-          // 3) only done if scat_data_check_level is "all"
-          scat_dataCheck( scat_data, scat_data_check_level, sca_mat_threshold,
-                          verbosity );
-        }
-
-
       // Check semi-mandatory variables, that are allowed to be empty
       //
 
       // scat_species:
       if( scat_species.nelem()>0 )
-        if( scat_species.nelem() != nss )
+        if( scat_species.nelem() != scat_data.nelem() )
           {
             ostringstream os;
             os << "Number of scattering species specified by scat_species does\n"
@@ -741,11 +702,12 @@ void scat_data_checkedCalc(
    const ArrayOfArrayOfSingleScatteringData& scat_data,
    const Vector&         f_grid,
    const Numeric&        dfrel_threshold,
-   const Verbosity& )
+   const String&         check_level,
+   const Numeric&        sca_mat_threshold,
+   const Verbosity&      verbosity )
 // FIXME: when we allow K, a, Z to be on different f and T grids, their use in
 // the scatt solvers needs to be reviewed again and adapted to this!
 {
-
   // Prevent the user from producing nonsense by using too much freedom in
   // setting the single freq validity threshold...
   if( dfrel_threshold>0.5 )
@@ -755,6 +717,12 @@ void scat_data_checkedCalc(
          << dfrel_threshold << ").";
       throw runtime_error( os.str() );
     }
+
+  // freq range of calc covered?
+  if( f_grid.empty() )
+    throw runtime_error ( "The frequency grid is empty." );
+  if( f_grid.nelem()>1 )
+    chk_if_increasing ( "f_grid", f_grid );
 
   Index nf = f_grid.nelem();
   Index N_ss = scat_data.nelem();
@@ -821,69 +789,81 @@ void scat_data_checkedCalc(
       // ssd.f_grid.nelem() switched off, as usage in scatt solvers so far
       // doesn't allow this. see FIXME at start.).
       {
-      ostringstream bs1, bs2;
-      bs1 << "Frequency dimension of ";
-      //bs2 << " must be either one or ssd.f_grid.nelem() (=" << nf_se << "),\n"
-      bs2 << " must be ssd.f_grid.nelem() (=" << nf_se << "),\n"
-          << "but scattering element #" << i_se
-          << " in scattering species #" << i_ss << " is ";
-      Index nf_sd = scat_data[i_ss][i_se].pha_mat_data.nlibraries();
-      if( nf_sd != nf_se ) //&& nf_sd != 1)
-      {
-        ostringstream os;
-        os << bs1.str() << "pha_mat_data" << bs2.str() << nf_se << ".";
-        throw runtime_error( os.str() );
-      }
-      nf_sd = scat_data[i_ss][i_se].ext_mat_data.nshelves();
-      if( nf_sd != nf_se ) //&& nf_sd != 1)
-      {
-        ostringstream os;
-        os << bs1.str() << "ext_mat_data" << bs2.str() << nf_se << ".";
-        throw runtime_error( os.str() );
-      }
-      nf_sd = scat_data[i_ss][i_se].abs_vec_data.nshelves();
-      if( nf_sd != nf_se ) //&& nf_sd != 1)
-      {
-        ostringstream os;
-        os << bs1.str() << "abs_vec_data" << bs2.str() << nf_se << ".";
-        throw runtime_error( os.str() );
-      }
+        ostringstream bs1, bs2;
+        bs1 << "Frequency dimension of ";
+        //bs2 << " must be either one or ssd.f_grid.nelem() (=" << nf_se << "),\n"
+        bs2 << " must be ssd.f_grid.nelem() (=" << nf_se << "),\n"
+            << "but scattering element #" << i_se
+            << " in scattering species #" << i_ss << " is ";
+        Index nf_sd = scat_data[i_ss][i_se].pha_mat_data.nlibraries();
+        if( nf_sd != nf_se ) //&& nf_sd != 1)
+        {
+          ostringstream os;
+          os << bs1.str() << "pha_mat_data" << bs2.str() << nf_se << ".";
+          throw runtime_error( os.str() );
+        }
+        nf_sd = scat_data[i_ss][i_se].ext_mat_data.nshelves();
+        if( nf_sd != nf_se ) //&& nf_sd != 1)
+        {
+          ostringstream os;
+          os << bs1.str() << "ext_mat_data" << bs2.str() << nf_se << ".";
+          throw runtime_error( os.str() );
+        }
+        nf_sd = scat_data[i_ss][i_se].abs_vec_data.nshelves();
+        if( nf_sd != nf_se ) //&& nf_sd != 1)
+        {
+          ostringstream os;
+          os << bs1.str() << "abs_vec_data" << bs2.str() << nf_se << ".";
+          throw runtime_error( os.str() );
+        }
       }
 
       // check that the temp dimension of K and a is ssd.T_grid.nelem(). For Z
       // it might be ssd.T_grid.nelem() or 1.
       {
-      ostringstream bs1, bs2;
-      Index nt_se = scat_data[i_ss][i_se].T_grid.nelem();
-      bs1 << "Temperature dimension of ";
-      //bs2 << " must be either one or ssd.T_grid.nelem(),\n"
-      bs2 << " must be ssd.T_grid.nelem() (=" << nt_se << "),\n"
-          << "but for scattering element #" << i_se
-          << " in scattering species #" << i_ss << " it is ";
-      Index nt_sd = scat_data[i_ss][i_se].pha_mat_data.nvitrines();
-      if( nt_sd != nt_se and nt_sd != 1 )
-      {
-        ostringstream os;
-        os << bs1.str() << "pha_mat_data" << bs2.str() << nt_sd << ".";
-        throw runtime_error( os.str() );
-      }
-      nt_sd = scat_data[i_ss][i_se].ext_mat_data.nbooks();
-      if( nt_sd != nt_se )  // no need to check for 1 here. since if it is 1,
-                            // also T_grid.nelem need to be 1
-      {
-        ostringstream os;
-        os << bs1.str() << "ext_mat_data" << bs2.str() << nt_se << ".";
-        throw runtime_error( os.str() );
-      }
-      nt_sd = scat_data[i_ss][i_se].abs_vec_data.nbooks();
-      if( nt_sd != nt_se )
-      {
-        ostringstream os;
-        os << bs1.str() << "abs_vec_data" << bs2.str() << nt_se << ".";
-        throw runtime_error( os.str() );
-      }
+        ostringstream bs1, bs2;
+        Index nt_se = scat_data[i_ss][i_se].T_grid.nelem();
+        bs1 << "Temperature dimension of ";
+        //bs2 << " must be either one or ssd.T_grid.nelem(),\n"
+        bs2 << " must be ssd.T_grid.nelem() (=" << nt_se << "),\n"
+            << "but for scattering element #" << i_se
+            << " in scattering species #" << i_ss << " it is ";
+        Index nt_sd = scat_data[i_ss][i_se].pha_mat_data.nvitrines();
+        if( nt_sd != nt_se and nt_sd != 1 )
+        {
+          ostringstream os;
+          os << bs1.str() << "pha_mat_data" << bs2.str() << nt_sd << ".";
+          throw runtime_error( os.str() );
+        }
+        nt_sd = scat_data[i_ss][i_se].ext_mat_data.nbooks();
+        if( nt_sd != nt_se )  // no need to check for 1 here. since if it is 1,
+                              // also T_grid.nelem need to be 1
+        {
+          ostringstream os;
+          os << bs1.str() << "ext_mat_data" << bs2.str() << nt_se << ".";
+          throw runtime_error( os.str() );
+        }
+        nt_sd = scat_data[i_ss][i_se].abs_vec_data.nbooks();
+        if( nt_sd != nt_se )
+        {
+          ostringstream os;
+          os << bs1.str() << "abs_vec_data" << bs2.str() << nt_se << ".";
+          throw runtime_error( os.str() );
+        }
       }
     }
+  }
+
+  if( check_level.toupper() != "NONE" )
+  {
+    // handing over to scat_dataCheck which checks whether
+    // 1) scat_data containing any NaN?
+    // 2) any negative values in Z11, K11, or a1?
+    // 3) sca_mat norm sufficiently good (int(Z11)~=K11-a1?)
+    // 1) & 2) always done
+    // 3) only done if scat_data_check_level is "all"
+    scat_dataCheck( scat_data, check_level, sca_mat_threshold,
+                    verbosity );
   }
 
   // If here, all OK

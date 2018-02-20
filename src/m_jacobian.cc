@@ -2445,7 +2445,7 @@ void jacobianDoit(//WS Output:
                   Tensor4& pnd_field,
                   Tensor4& vmr_field,
                   Tensor3& t_field,
-                  ArrayOfArrayOfSingleScatteringData& scat_data_raw,
+                  ArrayOfArrayOfSingleScatteringData& scat_data,
                   ArrayOfArrayOfScatteringMetaData& scat_meta,
                   ArrayOfString& scat_species,
                   // WS Input:
@@ -2489,8 +2489,6 @@ void jacobianDoit(//WS Output:
                   const Index& ScatSpeciesMerge_do,
                   const Index& debug,
                   const String& delim,
-                  const String& scat_data_check_type,
-                  const Numeric& sca_mat_threshold,
                   const Verbosity& verbosity)
 {
 /*
@@ -2537,28 +2535,28 @@ void jacobianDoit(//WS Output:
   // field in a container to pas it back as first guess for each DoitCalc
   Tensor7 doit_i_field_ref = doit_i_field;
 
-  // for pnd_field recalculations, we need the original scat_data_raw, not the
+  // for pnd_field recalculations, we need the original scat_data, not the
   // possibly merged one!
-  // let's first check, whether scat_data_raw is the original by comparing extend to
+  // let's first check, whether scat_data is the original by comparing extend to
   // scat_meta extend (or likely. we can't be 100% sure).
-  if( scat_data_raw.nelem()!=scat_meta.nelem() ||
-      scat_data_raw[0].nelem()!=scat_meta[0].nelem() ||
-      TotalNumberOfElements(scat_data_raw)!=TotalNumberOfElements(scat_meta)  )
+  if( scat_data.nelem()!=scat_meta.nelem() ||
+      scat_data[0].nelem()!=scat_meta[0].nelem() ||
+      TotalNumberOfElements(scat_data)!=TotalNumberOfElements(scat_meta)  )
     {
       ostringstream os;
-      os << "Size of scat_data_raw and scat_meta not consistent.\n"
-         << "Pass unmerged scat_data_raw into JacobianDoit!";
+      os << "Size of scat_data and scat_meta not consistent.\n"
+         << "Pass unmerged scat_data into JacobianDoit!";
       throw runtime_error(os.str());
     }
-  // but, we need the pnd_fields corresponding to scat_data_raw (i.e., if scat_data_raw
+  // but, we need the pnd_fields corresponding to scat_data (i.e., if scat_data
   // is unmerged, we also need unmerged pnd_field for proper DoitCalc.
   // alternatively, we could calculate the original pnd_field again. that would
   // maybe be the better, because safer option...).
   // check, that we have that.
-  if( TotalNumberOfElements(scat_data_raw)!=pnd_field.nbooks() )
+  if( TotalNumberOfElements(scat_data)!=pnd_field.nbooks() )
     {
       ostringstream os;
-      os << "Size of scat_data_raw and pnd_field not consistent.\n"
+      os << "Size of scat_data and pnd_field not consistent.\n"
          << "Pass unmerged pnd_field into JacobianDoit!";
       throw runtime_error(os.str());
     }
@@ -2567,7 +2565,7 @@ void jacobianDoit(//WS Output:
     {
       WriteXML( "ascii", pnd_field, "pnd_field_ref", 0, "pnd_field", "",
                 "", verbosity );
-      WriteXML( "ascii", scat_data_raw, "scat_data_ref", 0, "scat_data_raw", "",
+      WriteXML( "ascii", scat_data, "scat_data_ref", 0, "scat_data", "",
                 "", verbosity );
       WriteXML( "ascii", scat_meta, "scat_meta_ref", 0, "scat_meta", "",
                 "", verbosity );
@@ -2580,7 +2578,7 @@ void jacobianDoit(//WS Output:
   // We do a fixed number of iterations on top of the first-guess field from
   // outside to be consistent with the perturbation calculations.
 
-  // if we are going to merge (i.e. to modify the scat_data_raw), we need to keep
+  // if we are going to merge (i.e. to modify the scat_data), we need to keep
   // the original one. also, if we merge in the perturbation calculations, then
   // we merge here as well.
   ArrayOfArrayOfSingleScatteringData scat_data_ref;
@@ -2590,33 +2588,32 @@ void jacobianDoit(//WS Output:
   if( ScatSpeciesMerge_do )
     {
       Index cb_chk_internal=cloudbox_checked;
-      scat_data_ref=scat_data_raw;
+      scat_data_ref=scat_data;
       scat_meta_ref=scat_meta;
       scat_species_ref=scat_species;
       Vector latlon_dummy(0);
       Matrix part_mass_dummy(0,0);
       Tensor3 wind_dummy(0,0,0);
-      ScatSpeciesMerge(	pnd_field, scat_data_raw, scat_meta, scat_species,
+      ScatSpeciesMerge(	pnd_field, scat_data, scat_meta, scat_species,
                         cb_chk_internal,
                         atmosphere_dim, cloudbox_on, cloudbox_limits,
                         t_field, z_field,
                         z_surface, verbosity );
-      // check that the merged scat_data_raw still fulfills the requirements
-      cloudbox_checkedCalc( cb_chk_internal, atmfields_checked, f_grid,
+      // check that the merged scat_data still fulfills the requirements
+      cloudbox_checkedCalc( cb_chk_internal, atmfields_checked,
                             atmosphere_dim, p_grid, latlon_dummy, latlon_dummy,
                             z_field, z_surface,
                             wind_dummy, wind_dummy, wind_dummy,
                             cloudbox_on, cloudbox_limits,
                             pnd_field, dummy_dpnd_field_dx, jacobian_quantities,
-                            scat_data_raw, scat_species, part_mass_dummy,
+                            scat_data, scat_species, part_mass_dummy,
                             abs_species,
-                            0, "raw", scat_data_check_type,
-                            sca_mat_threshold, verbosity );
+                            0, verbosity );
       if( debug )
         {
           WriteXML( "ascii", pnd_field, "pnd_field_refmerged", 0, "pnd_field",
                     "", "", verbosity );
-          WriteXML( "ascii", scat_data_raw, "scat_data_refmerged", 0, "scat_data_raw",
+          WriteXML( "ascii", scat_data, "scat_data_refmerged", 0, "scat_data",
                     "", "", verbosity );
           WriteXML( "ascii", scat_meta, "scat_meta_refmerged", 0, "scat_meta",
                     "", "", verbosity );
@@ -2625,7 +2622,8 @@ void jacobianDoit(//WS Output:
         }
     }
   DoitCalc( ws, doit_i_field,
-            atmfields_checked, atmgeom_checked, cloudbox_checked,
+            atmfields_checked, atmgeom_checked,
+            cloudbox_checked, scat_data_checked,
             cloudbox_on, f_grid, doit_mono_agenda, doit_is_initialized,
             verbosity );
 
@@ -2834,7 +2832,7 @@ void jacobianDoit(//WS Output:
           // back in place.
           if( ScatSpeciesMerge_do )
             {
-              scat_data_raw=scat_data_ref;
+              scat_data=scat_data_ref;
               scat_meta=scat_meta_ref;
               scat_species=scat_species_ref;
             }
@@ -3023,7 +3021,7 @@ void jacobianDoit(//WS Output:
                     }
                   if( ScatSpeciesMerge_do )
                     {
-                      //scat_data_raw=scat_data_ref;
+                      //scat_data=scat_data_ref;
                       //scat_meta=scat_meta_ref;
                       //scat_species=scat_species_ref;
                       Index cb_chk_internal=cloudbox_checked;
@@ -3031,28 +3029,27 @@ void jacobianDoit(//WS Output:
                       Matrix part_mass_dummy(0,0);
                       Tensor3 wind_dummy(0,0,0);
                       ScatSpeciesMerge( pnd_field,
-                                        scat_data_raw, scat_meta, scat_species,
+                                        scat_data, scat_meta, scat_species,
                                         cb_chk_internal,
                                         atmosphere_dim,
                                         cloudbox_on, cloudbox_limits,
                                         t_field, z_field,
                                         z_surface, verbosity );
                       cloudbox_checkedCalc( cb_chk_internal,
-                                            atmfields_checked, f_grid, atmosphere_dim,
+                                            atmfields_checked, atmosphere_dim,
                                             p_grid, latlon_dummy, latlon_dummy,
                                             z_field, z_surface,
                                             wind_dummy, wind_dummy, wind_dummy,
                                             cloudbox_on, cloudbox_limits,
                                             pnd_field, dummy_dpnd_field_dx,
                                             jacobian_quantities,
-                                            scat_data_raw, scat_species, 
+                                            scat_data, scat_species, 
                                             part_mass_dummy, abs_species,
-                                            0, "raw", scat_data_check_type,
-                                            sca_mat_threshold, verbosity );
+                                            0, verbosity );
                       if( debug )
                         {
-                          WriteXMLIndexed( "ascii", iq*np+il, scat_data_raw,
-                                           "scat_data_mergeperturbed", 0, "scat_data_raw", "", "",
+                          WriteXMLIndexed( "ascii", iq*np+il, scat_data,
+                                           "scat_data_mergeperturbed", 0, "scat_data", "", "",
                                            verbosity );
                           WriteXMLIndexed( "ascii", iq*np+il, scat_meta,
                                            "scat_meta_mergeperturbed", 0, "scat_meta", "", "",
@@ -3069,8 +3066,8 @@ void jacobianDoit(//WS Output:
 
               if( debug )
                 {
-                  WriteXMLIndexed( "ascii", iq*np+il, scat_data_raw,
-                                   "scat_data_final", 0, "scat_data_raw", "", "",
+                  WriteXMLIndexed( "ascii", iq*np+il, scat_data,
+                                   "scat_data_final", 0, "scat_data", "", "",
                                     verbosity );
                   WriteXMLIndexed( "ascii", iq*np+il, scat_meta,
                                    "scat_meta_final", 0, "scat_meta", "", "",
@@ -3084,7 +3081,8 @@ void jacobianDoit(//WS Output:
                 }
               doit_i_field = doit_i_field_ref;
               DoitCalc( ws, doit_i_field,
-                        atmfields_checked, atmgeom_checked, cloudbox_checked,
+                        atmfields_checked, atmgeom_checked,
+                        cloudbox_checked, scat_data_checked,
                         cloudbox_on, f_grid, doit_mono_agenda, doit_is_initialized,
                         verbosity );
               if( debug )
