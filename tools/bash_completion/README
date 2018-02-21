@@ -17,16 +17,15 @@ arts. The completion also works if you specify the full/relative path to arts:
 
 The completion does not only work for command line options, but also for
 additional arguments to this options, e.g. you're looking for the description
-of a method or variable and only know that the name starts with abs. So you
+of a method or variable and only know that the name starts with Doit. So you
 type:
 
 arts -d Doit<TAB><TAB>
 
 And you end up with a list of matching names:
 
-DoitAngularGridsSet        DoitInit                   DoitWriteIterationFields
-DoitCloudboxFieldPut       DoitScatteringDataPrepare  
-
+DoitCalc                   DoitGetIncoming1DAtm       DoitScatteringDataPrepare
+DoitGetIncoming            DoitInit                   DoitWriteIterationFields
 
 Author: Oliver Lemke
 

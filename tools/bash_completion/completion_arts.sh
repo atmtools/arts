@@ -2,8 +2,6 @@
 #
 # Completion for arts
 #
-# 2010-04-09 OLE Updated for new ARTS commandline options
-#
 # Author: Oliver Lemke  <olemke (at) core-dump.info>
 
 shopt -s extglob progcomp
@@ -11,7 +9,7 @@ shopt -s extglob progcomp
 _artsexpand()
 {
 	[ "$cur" != "${cur%\\}" ] && cur="$cur"'\'
-	
+
 	# expand ~username type directory specifications
 	if [[ "$cur" == \~*/* ]]; then
 		eval cur=$cur
@@ -40,7 +38,7 @@ _artsfiledir()
 
 _artsmethods()
 {
-	COMPREPLY=( ${COMPREPLY[@]} $( compgen -W '$( $1 -m all | tail -n +5 | \
+    COMPREPLY=( ${COMPREPLY[@]} $( compgen -W '$( $1 -m all | tail -n +5 | \
 		sed 's/^-//' | sed 's/^.-*.$//'  )' -- $cur ) )
 }
 
@@ -79,31 +77,32 @@ _arts()
 	    return 0
 	    ;;
 	esac
-	
+
+    eval arts=$1
 	case "$prev" in
 	-@(w|-workspacevariables))
-		_artsmethods $1
+		_artsmethods $arts
 		COMPREPLY=( ${COMPREPLY[@]} $( compgen -W 'all'  -- $cur ) )
 		return 0
 		;;
 	-@(i|-input))
-		_artsvariables $1
-		_artsgroups $1
+		_artsvariables $arts
+		_artsgroups $arts
 		return 0
 		;;
-	-@(I|-includepath))
-                COMPREPLY=( ${COMPREPLY[@]} $( compgen -d -- $cur ) )
-                return 0
-                ;;
+	-@(I|-includepath|D|-datapath))
+        COMPREPLY=( ${COMPREPLY[@]} $( compgen -d -- $cur ) )
+        return 0
+        ;;
 	-@(m|-methods))
-		_artsvariables $1
-		_artsgroups $1
+		_artsvariables $arts
+		_artsgroups $arts
 		COMPREPLY=( ${COMPREPLY[@]} $( compgen -W 'all' -- $cur ) )
 		return 0
 		;;
 	-@(d|-describe))
-		_artsvariables $1
-		_artsmethods $1
+		_artsvariables $arts
+		_artsmethods $arts
 		return 0
 		;;
 	-@(r|-reporting))
@@ -127,30 +126,30 @@ _arts()
 	esac
 
 
-	if [ "`echo $cur | sed \"s/^\(.\).*$/\1/\"`" = "-" ]
+    if [ "$(echo $cur | sed 's/^\(.\).*$/\1/')" = "-" ]
 	then
 	# complete using basic options
-	COMPREPLY=( $( compgen -W '--basename --describe --groups --help --input \
-                                   --includepath --methods --numthreads --plain \
-                                   --reporting --version --workspacevariables \
-                                   ' -- $cur ) )
+	COMPREPLY=( $( compgen -W '--basename --datapath --describe --docdaemon \
+                               --docserver --groups --help --input \
+                               --includepath --methods --numthreads --plain \
+                               --reporting --version --workspacevariables \
+                               ' -- $cur ) )
 
 	# this removes any options from the list of completions that have
 	# already been specified somewhere on the command line.
 	COMPREPLY=( $( echo "${COMP_WORDS[@]}" | \
 	    (while read -d ' ' i; do
-		[ "$i" == "" ] && continue
-		# flatten array with spaces on either side,
-		# otherwise we cannot grep on word boundaries of
-		# first and last word
-		COMPREPLY=" ${COMPREPLY[@]} "
-		# remove word from list of completions
-		COMPREPLY=( ${COMPREPLY/ ${i%% *} / } )
-			    
+            [ "$i" == "" ] && continue
+            # flatten array with spaces on either side,
+            # otherwise we cannot grep on word boundaries of
+            # first and last word
+            COMPREPLY=" ${COMPREPLY[@]} "
+            # remove word from list of completions
+            COMPREPLY=( ${COMPREPLY/ ${i%% *} / } )
 		done
 		echo ${COMPREPLY[@]})
 	    ) )
-	fi	  
+	fi
 
 	_artsfiledir 'arts'
 	return 0

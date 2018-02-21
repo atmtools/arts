@@ -1,3 +1,17 @@
+2018-02-21  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-962
+
+	* tools/bash_completion/completion_arts.sh:
+
+	Fix expansion of ~ or $HOME in arts exe path.
+
+	Add new commandline options datapath, docserver, docdaemon.
+
+	* tools/bash_completion/README:
+
+	Match text with example.
+
 2018-02-20 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-961
