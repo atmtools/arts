@@ -120,6 +120,7 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
                                    const Tensor3&          t_field,
                                    const Tensor3&          z_field,
                                    const Tensor4&          vmr_field,
+                                   const Tensor4&          nlte_field,
                                    const Index&            cloudbox_on,
                                    const Index&            cloudbox_checked,
                                    const Index&            scat_data_checked,
@@ -205,7 +206,7 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
             // Calculate iy for a particular rte_los.
             iyCalc(ws, iy, iy_aux_dummy, ppath_dummy,
                    atmfields_checked, atmgeom_checked, iy_aux_vars, 0,
-                   f_grid, t_field, z_field, vmr_field,
+                   f_grid, t_field, z_field, vmr_field, nlte_field,
                    cloudbox_on, cloudbox_checked, scat_data_checked,
                    rte_pos, rte_los, rte_pos,
                    iy_unit, iy_main_agenda, verbosity);
@@ -371,7 +372,7 @@ void radiation_fieldCalcForRotationalNLTE(Workspace&                      ws,
     if(ip == np - 1  or ip == 0)
       rte_pos[0] += 0.1;
     Matrix iy;
-    radiation_fieldCalcFromiyCalc(ws, iy, data[ip], 1, 1, f_grid, t_field, z_field, vmr_field,
+    radiation_fieldCalcFromiyCalc(ws, iy, data[ip], 1, 1, f_grid, t_field, z_field, vmr_field, nlte_field,
                                   0, 1, 0, 1, rte_pos, "1", iy_main_agenda, za, aa, verbosity);
   }
   

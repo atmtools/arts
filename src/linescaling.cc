@@ -74,14 +74,11 @@ void GetLineScalingData(Numeric& q_t,
     extern const Numeric PLANCK_CONST;
     extern const Numeric BOLTZMAN_CONST;
     
-    // This is for a future update possibility
-    const bool do_rotational = false;
-    
     if(q_t<0 || q_ref<0)
     {
       partition_function( q_ref, q_t,
                           line_t, atm_t,
-                          partition_type, partition_data, do_rotational);
+                          partition_type, partition_data);
       
       partition_ratio = q_ref/q_t;
     }
@@ -149,8 +146,6 @@ void GetLineScalingData_dT(Numeric& dq_t_dT,
     extern const Numeric PLANCK_CONST;
     extern const Numeric BOLTZMAN_CONST;
     
-    const bool do_rotational = false;
-    
     // Test the NLTE of the line and find if we should use atmospheric temperatures or not
     atm_tv_low = line_evlow_index<0?-1.0:atm_t_nlte[line_evlow_index];
     atm_tv_upp = line_evupp_index<0?-1.0:atm_t_nlte[line_evupp_index];
@@ -162,14 +157,6 @@ void GetLineScalingData_dT(Numeric& dq_t_dT,
             case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
                 CalculatePartitionFctFromCoeff_dT(dq_t_dT, atm_t,
                                                partition_data[0].data);
-                break;
-            case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF_VIBROT:
-                if(!do_rotational)
-                    CalculatePartitionFctFromVibrotCoeff_dT(dq_t_dT, atm_t, atm_t,
-                                                         partition_data[0].data,partition_data[1].data);
-                else
-                    CalculatePartitionFctFromVibrotCoeff_dT(dq_t_dT, atm_t, /*t_rot*/ atm_t, //This must be implemented!  How...???
-                                                            partition_data[0].data,partition_data[1].data);
                 break;
             case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
                 CalculatePartitionFctFromData_perturbed(dq_t_dT, atm_t, dt, q_t,
@@ -288,22 +275,13 @@ void partition_function( Numeric& q_ref,
                          const Numeric& line_t,
                          const Numeric& atm_t,
                          const SpeciesAuxData::AuxType& partition_type,
-                         const ArrayOfGriddedField1& partition_data,
-                         const bool& do_rotational)
+                         const ArrayOfGriddedField1& partition_data)
 {
   switch(partition_type)
   {
     case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
       CalculatePartitionFctFromCoeff(q_ref, q_t, line_t, atm_t,
                                     partition_data[0].data);
-      break;
-    case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF_VIBROT:
-      if(!do_rotational)
-        CalculatePartitionFctFromVibrotCoeff(q_ref, q_t, line_t, atm_t, atm_t,
-                                            partition_data[0].data,partition_data[1].data);
-        else
-          CalculatePartitionFctFromVibrotCoeff(q_ref, q_t, line_t, atm_t, /*t_rot*/ atm_t, //This must be implemented!
-                                              partition_data[0].data,partition_data[1].data);
       break;
     case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
       CalculatePartitionFctFromData(q_ref, q_t, line_t, atm_t,
@@ -312,33 +290,23 @@ void partition_function( Numeric& q_ref,
                                     1);
       break;
     default:
-      throw std::runtime_error("Unknown partition type requested.\n");
+      throw std::runtime_error("Unknown or deprecated partition type requested.\n");
       break;
   }
 }
-
 
 void dpartition_function_dT( Numeric& dq_t_dT,
                              const Numeric& q_t,
                              const Numeric& atm_t,
                              const Numeric& dT,
                              const SpeciesAuxData::AuxType& partition_type,
-                             const ArrayOfGriddedField1& partition_data,
-                             const bool& do_rotational)
+                             const ArrayOfGriddedField1& partition_data)
 {
   switch(partition_type)
   {
     case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
       CalculatePartitionFctFromCoeff_dT(dq_t_dT, atm_t,
                                         partition_data[0].data);
-      break;
-    case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF_VIBROT:
-      if(!do_rotational)
-        CalculatePartitionFctFromVibrotCoeff_dT(dq_t_dT, atm_t, atm_t,
-                                                partition_data[0].data,partition_data[1].data);
-      else
-        CalculatePartitionFctFromVibrotCoeff_dT(dq_t_dT, atm_t, /*t_rot*/ atm_t, //This must be implemented!  How...???
-                                                partition_data[0].data,partition_data[1].data);
       break;
     case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
       CalculatePartitionFctFromData_perturbed(dq_t_dT, atm_t, dT, q_t,
@@ -415,37 +383,6 @@ void CalculatePartitionFctFromCoeff(Numeric& q_ref,
   q_ref = result_ref;
 }
 
-void CalculatePartitionFctFromVibrotCoeff(Numeric& q_ref, 
-                                          Numeric& q_t, 
-                                          const Numeric& ref, 
-                                          const Numeric& t_vib,
-                                          const Numeric& t_rot,
-                                          ConstVectorView qvib_grid,
-                                          ConstVectorView qrot_grid)
-{
-    Numeric QvibT   = 0.;
-    Numeric QvibT_ref = 0.;
-    Numeric QrotT   = 0.;
-    Numeric QrotT_ref = 0.;
-    Numeric exponent_t_vib   = 1.;
-    Numeric exponent_ref = 1.;
-    Numeric exponent_t_rot   = 1.;
-    
-    for (Index ii = 0; ii<qvib_grid.nelem();ii++)
-    {
-        QvibT   +=   qvib_grid[ii] * exponent_t_vib;
-        QrotT   +=   qrot_grid[ii] * exponent_t_rot;
-        QvibT_ref += qvib_grid[ii] * exponent_ref;
-        QrotT_ref += qrot_grid[ii] * exponent_ref;
-        
-        exponent_t_rot   *= t_rot;
-        exponent_t_vib   *= t_vib;
-        exponent_ref *= ref;
-    }
-    
-    q_t   = QvibT*QrotT;
-    q_ref = QvibT_ref*QrotT_ref;
-}
 
 void CalculatePartitionFctFromCoeff_dT(Numeric& dQ_dT, 
                                        const Numeric& t,
@@ -489,6 +426,44 @@ void CalculatePartitionFctFromVibrotCoeff_dT(Numeric& dQ_dT,
     }
     //FIXME:  This is wrong...
     dQ_dT = dQvibT * dQrotT;
+}
+
+Numeric SingleCalculatePartitionFctFromCoeff(const Numeric& T, ConstVectorView q_grid)
+{
+  Numeric result = 0.;
+  Numeric TN = 1;
+  
+  Vector::const_iterator it;
+  
+  for (it=q_grid.begin(); it != q_grid.end(); ++it)
+  {
+    result += *it * TN;
+    TN *= T;
+  }
+  
+  return result;
+}
+
+Numeric SingleCalculatePartitionFctFromData(const Numeric& T, ConstVectorView t_grid, ConstVectorView q_grid, const Index& interp_order)
+{
+  GridPosPoly gp;
+  gridpos_poly(gp, t_grid, T, interp_order);
+  Vector itw(gp.idx.nelem());
+  interpweights(itw, gp);
+  return interp(itw, q_grid, gp);
+}
+
+Numeric single_partition_function(const Numeric& T, const SpeciesAuxData::AuxType& partition_type, const ArrayOfGriddedField1& partition_data)
+{
+  switch(partition_type)
+  {
+    case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
+      return SingleCalculatePartitionFctFromCoeff(T, partition_data[0].data);
+    case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
+      return SingleCalculatePartitionFctFromData(T,  partition_data[0].get_numeric_grid(0), partition_data[0].data, 1);
+    default:
+      throw std::runtime_error("Unknown or deprecated partition type requested.\n");
+  }
 }
 
 
@@ -557,6 +532,17 @@ Numeric dboltzman_ratio_dT(const Numeric& boltzmann_ratio,
   const Numeric x = 1/T;
   
   return E0 * c * boltzmann_ratio * x * x;
+}
+
+
+// Boltzmann factor at T
+Numeric boltzman_factor(const Numeric& T,
+                        const Numeric& E0)
+{
+  extern const Numeric BOLTZMAN_CONST;
+  static const Numeric c = 1 / BOLTZMAN_CONST;
+  
+  return exp(E0 * c / T);
 }
 
 

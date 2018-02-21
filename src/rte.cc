@@ -1328,6 +1328,7 @@ void get_iy(
    ConstTensor3View   t_field,
    ConstTensor3View   z_field,
    ConstTensor4View   vmr_field,
+   ConstTensor4View   nlte_field,
    const Index&       cloudbox_on,
    ConstVectorView    f_grid,
    ConstVectorView    rte_pos,
@@ -1348,7 +1349,7 @@ void get_iy(
   iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
                          iy_agenda_call1, iy_unit, iy_transmission, iy_aux_vars,
                          iy_id, cloudbox_on, jacobian_do, t_field, z_field,
-                         vmr_field, f_grid, rte_pos, rte_los, rte_pos2,
+                         vmr_field, nlte_field, f_grid, rte_pos, rte_los, rte_pos2,
                          iy_main_agenda );
 }
 
@@ -3601,6 +3602,7 @@ void iyb_calc_body(
   ConstTensor3View                  t_field,
   ConstTensor3View                  z_field,
   ConstTensor4View                  vmr_field,
+  ConstTensor4View                  nlte_field,
   const Index&                      cloudbox_on,
   const Index&                      stokes_dim,
   ConstVectorView                   f_grid,
@@ -3651,7 +3653,7 @@ void iyb_calc_body(
       iy_main_agendaExecute(ws, iy, iy_aux_array[ilos], ppath, diy_dx, 
                             iy_agenda_call1, iy_unit, iy_transmission, iy_aux_vars,
                             iy_id, cloudbox_on, j_analytical_do, t_field, z_field,
-                            vmr_field, f_grid, rtp_pos, los,
+                            vmr_field, nlte_field, f_grid, rtp_pos, los,
                             rtp_pos2, iy_main_agenda );
 
       // Check that aux data can be handled and has correct size
@@ -3727,6 +3729,7 @@ void iyb_calc(
   ConstTensor3View                  t_field,
   ConstTensor3View                  z_field,
   ConstTensor4View                  vmr_field,
+  ConstTensor4View                  nlte_field,
   const Index&                      cloudbox_on,
   const Index&                      stokes_dim,
   ConstVectorView                   f_grid,
@@ -3797,7 +3800,7 @@ firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
           iyb_calc_body( failed, fail_msg, iy_aux_array, l_ws,
                          ppath, iyb, diyb_dx,
                          mblock_index, atmosphere_dim, t_field, z_field,
-                         vmr_field, cloudbox_on, stokes_dim, f_grid,
+                         vmr_field, nlte_field, cloudbox_on, stokes_dim, f_grid,
                          sensor_pos, sensor_los, transmitter_pos,
                          mblock_dlos_grid, iy_unit, 
                          l_iy_main_agenda, j_analytical_do, 
@@ -3843,7 +3846,7 @@ firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
           iyb_calc_body( failed, fail_msg, iy_aux_array, l_ws, 
                          ppath, iyb, diyb_dx,
                          mblock_index, atmosphere_dim, t_field, z_field,
-                         vmr_field, cloudbox_on, stokes_dim, f_grid,
+                         vmr_field, nlte_field, cloudbox_on, stokes_dim, f_grid,
                          sensor_pos, sensor_los, transmitter_pos,
                          mblock_dlos_grid, iy_unit, 
                          l_iy_main_agenda, j_analytical_do, 

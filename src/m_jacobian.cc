@@ -421,6 +421,7 @@ void jacobianCalcAbsSpeciesPerturbations(
   const Tensor3&                    t_field,
   const Tensor3&                    z_field,
   const Tensor4&                    vmr_field,
+  const Tensor4&                    nlte_field, 
   const ArrayOfArrayOfSpeciesTag&   abs_species,
   const Index&                      cloudbox_on,
   const Index&                      stokes_dim,
@@ -609,7 +610,7 @@ void jacobianCalcAbsSpeciesPerturbations(
               //
               iyb_calc( ws, iybp, dummy3, dummy4, dummy5, mblock_index, 
                         atmosphere_dim, t_field, z_field,
-                        vmr_p, cloudbox_on, 
+                        vmr_p, nlte_field, cloudbox_on, 
                         stokes_dim, f_grid, sensor_pos, sensor_los, 
                         transmitter_pos, mblock_dlos_grid, 
                         iy_unit, iy_main_agenda, geo_pos_agenda,
@@ -1349,6 +1350,7 @@ void jacobianCalcPointingZaRecalc(
   const Tensor3&                   t_field,
   const Tensor3&                   z_field,
   const Tensor4&                   vmr_field,
+  const Tensor4&                   nlte_field, 
   const Index&                     cloudbox_on,
   const Index&                     stokes_dim,
   const Vector&                    f_grid,
@@ -1407,7 +1409,7 @@ void jacobianCalcPointingZaRecalc(
 
     iyb_calc( ws, iyb2, iyb_aux, diyb_dx, geo_pos, 
               mblock_index, atmosphere_dim, 
-              t_field, z_field, vmr_field, cloudbox_on, stokes_dim, 
+              t_field, z_field, vmr_field, nlte_field,  cloudbox_on, stokes_dim, 
               f_grid, sensor_pos, los, transmitter_pos, mblock_dlos_grid, 
               iy_unit, iy_main_agenda, geo_pos_agenda,
               0, ArrayOfRetrievalQuantity(), ArrayOfArrayOfIndex(),
@@ -2050,6 +2052,7 @@ void jacobianCalcTemperaturePerturbations(
   const Tensor3&                    t_field,
   const Tensor3&                    z_field,
   const Tensor4&                    vmr_field,
+  const Tensor4&                    nlte_field, 
   const ArrayOfArrayOfSpeciesTag&   abs_species,
   const Vector&                     refellipsoid,
   const Matrix&                     z_surface,
@@ -2222,7 +2225,7 @@ void jacobianCalcTemperaturePerturbations(
               //
               iyb_calc( ws, iybp, dummy3, dummy4, dummy5, mblock_index, 
                         atmosphere_dim, t_p, z,
-                        vmr_field, cloudbox_on, 
+                        vmr_field, nlte_field, cloudbox_on, 
                         stokes_dim, f_grid, sensor_pos, sensor_los, 
                         transmitter_pos, mblock_dlos_grid, 
                         iy_unit, iy_main_agenda, geo_pos_agenda,
@@ -2631,11 +2634,12 @@ void jacobianDoit(//WS Output:
   ArrayOfIndex aoi_dummy;
   Matrix mat_dummy1, mat_dummy2, mat_dummy3, mat_dummy4;
   ArrayOfVector aov_dummy;
+  Tensor4 nlte_field(0,0,0,0);
   yCalc( ws, y0,
          vec_dummy, aoi_dummy, mat_dummy1, mat_dummy2, aov_dummy,
          mat_dummy3, mat_dummy4,
          atmgeom_checked, atmfields_checked, atmosphere_dim,
-         t_field, z_field, vmr_field, cloudbox_on,
+         t_field, z_field, vmr_field, nlte_field, cloudbox_on,
          cloudbox_checked, scat_data_checked, sensor_checked,
          stokes_dim, f_grid,
          sensor_pos, sensor_los, transmitter_pos, mblock_dlos_grid,
@@ -3097,7 +3101,7 @@ void jacobianDoit(//WS Output:
                      vec_dummy, aoi_dummy, mat_dummy1, mat_dummy2, aov_dummy,
                      mat_dummy3, mat_dummy4,
                      atmgeom_checked, atmfields_checked, atmosphere_dim,
-                     t_field, z_field, vmr_field, cloudbox_on,
+                     t_field, z_field, vmr_field, nlte_field, cloudbox_on,
                      cloudbox_checked, scat_data_checked, sensor_checked,
                      stokes_dim, f_grid,
                      sensor_pos, sensor_los, transmitter_pos, mblock_dlos_grid,

@@ -60,6 +60,7 @@
 #include "rte.h"
 #include "special_interp.h"
 #include "xml_io.h"
+#include "linescaling.h"
 
 extern const Index GFIELD3_P_GRID;
 extern const Index GFIELD3_LAT_GRID;
@@ -4152,4 +4153,76 @@ void vmr_fieldSetAllConstant(
   }
 }
 
+
+void nlte_fieldSetLTE(Index& nlte_do,
+                        Tensor4& nlte_field,
+                        ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                        const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
+                        const SpeciesAuxData& partition_functions,
+                        const Tensor3& t_field,
+                        const Verbosity& verbosity)
+{
+  CREATE_OUT2;
+  const Index nn=nlte_quantum_identifiers.nelem(), np=t_field.npages(), nlat=t_field.nrows(), nlon=t_field.ncols();
+  
+  nlte_field = Tensor4(nn, np, nlat, nlon, 0.0);
+  nlte_do = 1;
+  ArrayOfIndex checked(nn, 0);
+  
+  #pragma omp parallel for
+  for(Index in = 0; in < nn; in++)
+  {
+    const QuantumIdentifier& qi = nlte_quantum_identifiers[in];
+    Tensor3View lte = nlte_field(in, joker, joker, joker);
+    
+    for(auto& abs_lines : abs_lines_per_species)
+    {
+      for(auto& line : abs_lines)
+      {
+        const QuantumIdentifier line_id = line.QuantumIdentity();
+        
+        if(line_id.Lower() > qi)
+        {
+          line.SetNLTELowerIndex(in);
+          line.SetLinePopulationType(LinePopulationType::ByPopulationDistribution);
+          
+          bool compute_level = false;
+          
+          #pragma omp critical
+          if(not checked[in]) {checked[in] = 1; compute_level=true;}
+          
+          if(compute_level) 
+            for(Index ip = 0; ip < np; ip++)
+              for(Index ilat = 0; ilat < nlat; ilat++)
+                for(Index ilon = 0; ilon < nlon; ilon++)
+                  lte(ip, ilat, ilon) = boltzman_factor(t_field(ip, ilat, ilon), line.Elow()) * line.G_lower() /
+                  single_partition_function(t_field(ip, ilat, ilon), partition_functions.getParamType(line.Species(), line.Isotopologue()), 
+                                                                     partition_functions.getParam(line.Species(), line.Isotopologue()));
+        }
+        if(line_id.Upper() > qi)
+        {
+          line.SetNLTEUpperIndex(in);
+          line.SetLinePopulationType(LinePopulationType::ByPopulationDistribution);
+          
+          bool compute_level = false;
+          
+          #pragma omp critical
+          if(not checked[in]) {checked[in] = 1; compute_level=true;}
+          
+          if(compute_level) 
+            for(Index ip = 0; ip < np; ip++)
+              for(Index ilat = 0; ilat < nlat; ilat++)
+                for(Index ilon = 0; ilon < nlon; ilon++)
+                  lte(ip, ilat, ilon) = boltzman_factor(t_field(ip, ilat, ilon), line.Elow()) * line.G_upper() /
+                  single_partition_function(t_field(ip, ilat, ilon), partition_functions.getParamType(line.Species(), line.Isotopologue()), 
+                                                                     partition_functions.getParam(line.Species(), line.Isotopologue()));
+        }
+      }
+    }
+  }
+  
+  for(Index in = 0; in < nn; in++)
+    if(not checked[in])
+      out2 << "Did not find match among lines for: " << nlte_quantum_identifiers[in] << "\n";
+}
 

@@ -307,6 +307,7 @@ void iySurfaceFastem(
     const Tensor3&          t_field,
     const Tensor3&          z_field,
     const Tensor4&          vmr_field,
+    const Tensor4&          nlte_field,
     const Index&            cloudbox_on,
     const Index&            stokes_dim,
     const Vector&           f_grid,
@@ -345,7 +346,7 @@ void iySurfaceFastem(
   iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, iy_unit,
                          iy_transmission, iy_aux_vars, iy_id,
                          cloudbox_on, jacobian_do, t_field,
-                         z_field, vmr_field, f_grid, rtp_pos,
+                         z_field, vmr_field, nlte_field, f_grid, rtp_pos,
                          specular_los, rte_pos2, iy_main_agenda );
 
   // Convert tau to transmissions
@@ -406,6 +407,7 @@ void iySurfaceRtpropAgenda(
     const Tensor3&          t_field,
     const Tensor3&          z_field,
     const Tensor4&          vmr_field,
+    const Tensor4&          nlte_field,
     const Index&            cloudbox_on,
     const Index&            stokes_dim,
     const Vector&           f_grid,
@@ -490,7 +492,7 @@ void iySurfaceRtpropAgenda(
             iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, iy_unit,
                                    iy_trans_new, ArrayOfString(0), iy_id_new,
                                    cloudbox_on, jacobian_do, t_field,
-                                   z_field, vmr_field, f_grid, rtp_pos,
+                                   z_field, vmr_field, nlte_field, f_grid, rtp_pos,
                                    los, rte_pos2, iy_main_agenda );
           }
 
@@ -531,6 +533,7 @@ void iySurfaceRtpropCalc(
     const Tensor3&          t_field,
     const Tensor3&          z_field,
     const Tensor4&          vmr_field,
+    const Tensor4&          nlte_field,
     const Index&            cloudbox_on,
     const Index&            stokes_dim,
     const Vector&           f_grid,
@@ -603,7 +606,7 @@ void iySurfaceRtpropCalc(
             iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, iy_unit,
                                    iy_trans_new, ArrayOfString(0), iy_id,
                                    cloudbox_on, jacobian_do, t_field,
-                                   z_field, vmr_field, f_grid, rtp_pos,
+                                   z_field, vmr_field, nlte_field, f_grid, rtp_pos,
                                    los, rte_pos2, iy_main_agenda );
           }
 

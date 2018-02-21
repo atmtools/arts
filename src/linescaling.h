@@ -75,17 +75,14 @@ void partition_function( Numeric& q_ref,
                          const Numeric& line_t,
                          const Numeric& atm_t,
                          const SpeciesAuxData::AuxType& partition_type,
-                         const ArrayOfGriddedField1& partition_data,
-                         const bool& do_rotational=false);
+                         const ArrayOfGriddedField1& partition_data);
 
 void dpartition_function_dT( Numeric& dq_t_dT,
                              const Numeric& q_t,
                              const Numeric& atm_t,
                              const Numeric& dt,
                              const SpeciesAuxData::AuxType& partition_type,
-                             const ArrayOfGriddedField1& partition_data,
-                             const bool& do_rotational=false);
-
+                             const ArrayOfGriddedField1& partition_data);
 
 void GetChangeInPartitionRatio(Numeric& dQ_dT, 
                                const Numeric& q_t,
@@ -120,19 +117,7 @@ void CalculatePartitionFctFromCoeff_dT(Numeric& dQ_dT,
                                        const Numeric& t,
                                        ConstVectorView q_grid);
 
-void CalculatePartitionFctFromVibrotCoeff(Numeric& q_ref, 
-                                          Numeric& q_t, 
-                                          const Numeric& ref, 
-                                          const Numeric& t_vib,
-                                          const Numeric& t_rot,
-                                          ConstVectorView qvib_grid,
-                                          ConstVectorView qrot_grid);
-
-void CalculatePartitionFctFromVibrotCoeff_dT(Numeric& dQ_dT, 
-                                             const Numeric& t_vib,
-                                             const Numeric& t_rot,
-                                             ConstVectorView qvib_grid,
-                                             ConstVectorView qrot_grid);
+Numeric single_partition_function(const Numeric& T, const SpeciesAuxData::AuxType& partition_type, const ArrayOfGriddedField1& partition_data);
 
 Numeric stimulated_emission(const Numeric& T,
                             const Numeric& F0);
@@ -156,6 +141,8 @@ Numeric boltzman_ratio(const Numeric& T,
 Numeric dboltzman_ratio_dT(const Numeric& boltzmann_ratio,
                            const Numeric& T,
                            const Numeric& E0);
+
+Numeric boltzman_factor(const Numeric& T, const Numeric& E0);
 
 Numeric absorption_nlte_ratio(const Numeric& gamma,
                               const Numeric& r_upp=1.0,

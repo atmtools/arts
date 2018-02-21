@@ -1107,6 +1107,7 @@ void yActive(
    const Tensor3&                  t_field,
    const Tensor3&                  z_field,
    const Tensor4&                  vmr_field,
+   const Tensor4&                  nlte_field,
    const Index&                    cloudbox_on,
    const Index&                    cloudbox_checked,
    const Matrix&                   sensor_pos,
@@ -1251,7 +1252,7 @@ void yActive(
       iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
                              1, iy_unit, iy_transmission, iy_aux_vars,
                              iy_id, cloudbox_on, jacobian_do, t_field,
-                             z_field, vmr_field, f_grid, 
+                             z_field, vmr_field, nlte_field, f_grid, 
                              sensor_pos(p,joker), sensor_los(p,joker), 
                              rte_pos2, iy_main_agenda );
 

@@ -1,3 +1,20 @@
+2018-02-21  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-964
+	
+	Adding nlte_field to iy_main_agenda.  Necessary for NLTE computations
+	iterating the field.
+	
+	Also, DISORT test failed before this commit with exactly the same error
+	as before.  This is therefore unrelated.
+	
+	* src/m_atmospheres.cc:  Created nlte_fieldSetLTE to get the ratios
+	for nlte_field to LTE ratios.  This still needs some more checking.
+	
+	* src/the-rest:  Changes so that iy-calls knows of nlte_field.
+	Only exception is the jacobians for doit, which assume there is
+	LTE.
+
 2018-02-21  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-963

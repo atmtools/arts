@@ -2164,6 +2164,7 @@ void get_cb_inc_field(Workspace&      ws,
                       const Tensor3&  z_field,
                       const Tensor3&  t_field,
                       const Tensor4&  vmr_field,
+                      const Tensor4&  nlte_field,
                       const ArrayOfIndex&   cloudbox_limits,
                       const Vector&   f_grid,
                       const Vector&   scat_za_grid,
@@ -2217,7 +2218,7 @@ void get_cb_inc_field(Workspace&      ws,
       los[0] =  za_grid[za_index];
       if( los[0] <=90. )
         {
-          get_iy( ws, iy, t_field, z_field, vmr_field, 0, f_grid, pos, los, 
+          get_iy( ws, iy, t_field, z_field, vmr_field, nlte_field, 0, f_grid, pos, los, 
                   Vector(0), iy_unit, iy_main_agenda );
 
           cb_inc_field(joker,za_index) = iy(joker,0);

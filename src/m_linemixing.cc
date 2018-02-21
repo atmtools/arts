@@ -1815,8 +1815,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                             partition_functions.getParamType(abs_lines_per_band[iband][0].Species(), 
                                                               abs_lines_per_band[iband][0].Isotopologue()),
                             partition_functions.getParam(abs_lines_per_band[iband][0].Species(), 
-                                                          abs_lines_per_band[iband][0].Isotopologue()),
-                            false);
+                                                          abs_lines_per_band[iband][0].Isotopologue()));
         
         // Cannot be constants for Fortran's sake
         Numeric t;
@@ -1929,8 +1928,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                               partition_functions.getParamType(abs_lines_per_band[iband][0].Species(), 
                                                                 abs_lines_per_band[iband][0].Isotopologue()),
                               partition_functions.getParam(abs_lines_per_band[iband][0].Species(), 
-                                                            abs_lines_per_band[iband][0].Isotopologue()),
-                              false);
+                                                            abs_lines_per_band[iband][0].Isotopologue()));
           
           if(relmat_type_per_band[iband] == hartman_tran_type)
           {

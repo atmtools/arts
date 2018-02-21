@@ -5041,7 +5041,7 @@ void define_md_data_raw()
             "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
             "doit_is_initialized", "iy_main_agenda",
             "atmosphere_dim", "lat_grid", "lon_grid", "z_field", "t_field", 
-            "vmr_field", "cloudbox_on", "cloudbox_limits", "f_grid",
+            "vmr_field", "nlte_field", "cloudbox_on", "cloudbox_limits", "f_grid",
             "stokes_dim", "scat_za_grid", "scat_aa_grid" ),
         GIN( "rigorous", "maxratio" ),
         GIN_TYPE( "Index", "Numeric" ),
@@ -5072,7 +5072,7 @@ void define_md_data_raw()
         IN( "doit_i_field",
             "atmfields_checked", "atmgeom_checked", "cloudbox_checked",
             "doit_is_initialized", "iy_main_agenda", "atmosphere_dim", 
-            "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
+            "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", "nlte_field",
             "cloudbox_on", "cloudbox_limits",
             "f_grid", "stokes_dim", "scat_za_grid", "scat_aa_grid" ),
         GIN(),
@@ -7056,7 +7056,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmgeom_checked", "atmfields_checked", 
-            "iy_aux_vars", "iy_id", "f_grid", "t_field", "z_field", "vmr_field",
+            "iy_aux_vars", "iy_id", "f_grid", "t_field", "z_field", "vmr_field", "nlte_field",
             "cloudbox_on", "cloudbox_checked", "scat_data_checked",
             "rte_pos", "rte_los", "rte_pos2", "iy_unit", "iy_main_agenda" ),
         GIN(),
@@ -7867,7 +7867,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "diy_dx", "iy_transmission", "iy_id", "jacobian_do", "atmosphere_dim",
-            "t_field", "z_field", "vmr_field",
+            "t_field", "z_field", "vmr_field", "nlte_field",
             "cloudbox_on", "stokes_dim", "f_grid",
             "rtp_pos", "rtp_los", "rte_pos2", "iy_unit", "iy_main_agenda", 
             "surface_skin_t" ),
@@ -7900,7 +7900,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "diy_dx", "iy_transmission", "iy_id", "jacobian_do", "atmosphere_dim",
-            "t_field", "z_field", "vmr_field", "cloudbox_on", "stokes_dim", "f_grid", 
+            "t_field", "z_field", "vmr_field", "nlte_field", "cloudbox_on", "stokes_dim", "f_grid", 
             "rtp_pos", "rtp_los", "rte_pos2", "iy_unit", "iy_main_agenda", 
             "surface_rtprop_agenda"
           ),
@@ -7933,7 +7933,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "diy_dx", "surface_los", "surface_rmatrix", "surface_emission",
             "iy_transmission", "iy_id", "jacobian_do", "atmosphere_dim", "t_field", 
-            "z_field", "vmr_field", "cloudbox_on", "stokes_dim", "f_grid", 
+            "z_field", "vmr_field", "nlte_field", "cloudbox_on", "stokes_dim", "f_grid", 
             "rtp_pos", "rtp_los", "rte_pos2", "iy_unit", "iy_main_agenda"
           ),
         GIN(),
@@ -8858,7 +8858,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "jacobian", "mblock_index", "iyb", "yb", "atmosphere_dim",
-            "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field",
+            "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field", "nlte_field",
             "abs_species", "cloudbox_on", "stokes_dim", "f_grid", 
             "sensor_pos", "sensor_los", "transmitter_pos", "mblock_dlos_grid", 
             "sensor_response", "iy_unit", "iy_main_agenda", "geo_pos_agenda", 
@@ -8991,7 +8991,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "jacobian", "mblock_index", "iyb", "yb", "atmosphere_dim",
-            "t_field", "z_field", "vmr_field", "cloudbox_on", "stokes_dim", 
+            "t_field", "z_field", "vmr_field", "nlte_field", "cloudbox_on", "stokes_dim", 
             "f_grid", "sensor_pos", "sensor_los", "transmitter_pos", 
             "mblock_dlos_grid", 
             "sensor_response", "sensor_time", "iy_unit",
@@ -9122,7 +9122,7 @@ void define_md_data_raw()
         IN( "jacobian",
             "mblock_index", "iyb", "yb", "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "lat_true", "lon_true", "t_field", "z_field", 
-            "vmr_field", "abs_species", "refellipsoid", "z_surface", 
+            "vmr_field", "nlte_field", "abs_species", "refellipsoid", "z_surface", 
             "cloudbox_on", "stokes_dim", "f_grid", "sensor_pos", "sensor_los", 
             "transmitter_pos", "mblock_dlos_grid",
             "sensor_response", "iy_unit", "iy_main_agenda", "geo_pos_agenda",
@@ -10661,6 +10661,28 @@ void define_md_data_raw()
         GIN_DEFAULT(NODEF, "1"),
         GIN_DESC("Vector of vibrational energies.  If empty, assume known vibrational energies.",
                  "Index for setting the type of population.")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "nlte_fieldSetLTE" ),
+        DESCRIPTION
+        (
+         "Turns on NTLE calculations.\n"
+         "\n"
+         "Sets NLTE ratios to those expected for LTE calculations\n"
+         "Useful when computing the actual NLTE state later on\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "nlte_do", "nlte_field", "abs_lines_per_species" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_lines_per_species", "nlte_quantum_identifiers", "partition_functions", "t_field"),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -13307,7 +13329,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmgeom_checked", "atmfields_checked", 
-            "f_grid", "t_field", "z_field", "vmr_field", 
+            "f_grid", "t_field", "z_field", "vmr_field", "nlte_field",
             "cloudbox_on", "cloudbox_checked", "scat_data_checked",
             "stokes_dim", "rte_pos", "iy_unit", "iy_main_agenda" ),
         GIN("za_coords", "aa_coords"),
@@ -19258,7 +19280,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmgeom_checked", "atmfields_checked", 
             "atmosphere_dim", "t_field", "z_field",
-            "vmr_field", "cloudbox_on",
+            "vmr_field", "nlte_field", "cloudbox_on",
             "cloudbox_checked", "scat_data_checked", "sensor_checked", 
             "stokes_dim", "f_grid", "sensor_pos", "sensor_los",
             "transmitter_pos", "mblock_dlos_grid",
@@ -19327,7 +19349,7 @@ void define_md_data_raw()
         IN( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian",
             "atmgeom_checked", "atmfields_checked", 
             "atmosphere_dim", "t_field", "z_field",
-            "vmr_field", "cloudbox_on",
+            "vmr_field", "nlte_field", "cloudbox_on",
             "cloudbox_checked", "scat_data_checked", "sensor_checked", 
             "stokes_dim", "f_grid", "sensor_pos", "sensor_los",
             "transmitter_pos", "mblock_dlos_grid",
@@ -19379,7 +19401,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmgeom_checked", "atmfields_checked", "iy_unit", "iy_aux_vars",
             "stokes_dim", "f_grid", "atmosphere_dim", "t_field", "z_field",
-            "vmr_field", "cloudbox_on", "cloudbox_checked",
+            "vmr_field", "nlte_field", "cloudbox_on", "cloudbox_checked",
             "sensor_pos", "sensor_los", "sensor_checked",
             "jacobian_do", "jacobian_quantities",
             "iy_main_agenda", "geo_pos_agenda", "instrument_pol_array", "range_bins" ),
