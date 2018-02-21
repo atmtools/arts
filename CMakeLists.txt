@@ -389,17 +389,12 @@ if (CMAKE_GENERATOR STREQUAL "Xcode")
 endif (CMAKE_GENERATOR STREQUAL "Xcode")
 
 add_custom_target(check
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '\(.nocheck.|.slow.|.xmldata.|.classroom.|.planettoolbox.\)' DEPENDS arts)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '\(.nocheck.|.slow.|.xmldata.|.planettoolbox.\)' DEPENDS arts)
 
 add_custom_target(check-xmldata
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(.xmldata.|.classroom.\)' DEPENDS arts)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(.xmldata.\)' DEPENDS arts)
 
 add_dependencies(check-xmldata mkdir-arts-results)
-
-add_custom_target(check-classroom
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(.classroom.\)' DEPENDS arts)
-
-add_dependencies(check-classroom mkdir-arts-results)
 
 add_custom_target(check-planettoolbox
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(.planettoolbox.\)' DEPENDS arts)

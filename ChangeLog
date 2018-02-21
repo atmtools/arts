@@ -1,5 +1,15 @@
 2018-02-21  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-963
+
+	* CMakeLists.txt, controlfiles/CMakeLists.txt, doc/CMakeLists.txt,
+	controlfiles/classroom_exercises/, doc/classroom_excercises_solutions/:
+
+	Remove classroom exercises. They are available in a separate package:
+	https://arts.mi.uni-hamburg.de/svn/rt/arts-lectures/trunk/
+
+2018-02-21  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-962
 
 	* tools/bash_completion/completion_arts.sh:
