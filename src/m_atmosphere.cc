@@ -4162,6 +4162,8 @@ void nlte_fieldSetLTE(Index& nlte_do,
                         const Tensor3& t_field,
                         const Verbosity& verbosity)
 {
+  extern const Numeric PLANCK_CONST;
+  
   CREATE_OUT2;
   const Index nn=nlte_quantum_identifiers.nelem(), np=t_field.npages(), nlat=t_field.nrows(), nlon=t_field.ncols();
   
@@ -4213,7 +4215,7 @@ void nlte_fieldSetLTE(Index& nlte_do,
             for(Index ip = 0; ip < np; ip++)
               for(Index ilat = 0; ilat < nlat; ilat++)
                 for(Index ilon = 0; ilon < nlon; ilon++)
-                  lte(ip, ilat, ilon) = boltzman_factor(t_field(ip, ilat, ilon), line.Elow()) * line.G_upper() /
+                  lte(ip, ilat, ilon) = boltzman_factor(t_field(ip, ilat, ilon), line.Elow() + PLANCK_CONST * line.F()) * line.G_upper() /
                   single_partition_function(t_field(ip, ilat, ilon), partition_functions.getParamType(line.Species(), line.Isotopologue()), 
                                                                      partition_functions.getParam(line.Species(), line.Isotopologue()));
         }

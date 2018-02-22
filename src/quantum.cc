@@ -105,7 +105,6 @@ bool QuantumIdentifier::operator>(const QuantumIdentifier& other) const
   switch(mqtype)
   {
     case QuantumIdentifier::TRANSITION:
-      assert(other.Type() == QuantumIdentifier::TRANSITION);
       while (qnri != QN_FINAL_ENTRY)
       {
         if(mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined())
@@ -116,9 +115,7 @@ bool QuantumIdentifier::operator>(const QuantumIdentifier& other) const
         else 
         {
           if(other.mqm[TRANSITION_LOWER_INDEX][qnri] not_eq mqm[TRANSITION_LOWER_INDEX][qnri])
-          {
             return false;
-          }
         }
         if(mqm[TRANSITION_LOWER_INDEX][qnri].isUndefined())
         {
@@ -128,29 +125,27 @@ bool QuantumIdentifier::operator>(const QuantumIdentifier& other) const
         else 
         {
           if(other.mqm[TRANSITION_LOWER_INDEX][qnri] not_eq mqm[TRANSITION_LOWER_INDEX][qnri])
-          {
             return false;
-          }
         }
         qnri++;
       }
       return true;
       break;
     case QuantumIdentifier::ENERGY_LEVEL:
-      assert(other.Type() == QuantumIdentifier::ENERGY_LEVEL);
-      if(mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
+      while (qnri != QN_FINAL_ENTRY)
       {
-        if(not other.mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
-          return false;
-      }
-      else 
-      {
-        if(other.mqm[ENERGY_LEVEL_INDEX][qnri] not_eq mqm[ENERGY_LEVEL_INDEX][qnri])
+        if(mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
         {
-          return false;
+          if(not other.mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
+            return false;
         }
+        else 
+        {
+          if(other.mqm[ENERGY_LEVEL_INDEX][qnri] not_eq mqm[ENERGY_LEVEL_INDEX][qnri])
+            return false;
+        }
+        qnri++;
       }
-      qnri++;
       return true;
       break;
     case QuantumIdentifier::ALL:
@@ -190,9 +185,7 @@ bool QuantumIdentifier::operator<(const QuantumIdentifier& other) const
         else 
         {
           if(other.mqm[TRANSITION_LOWER_INDEX][qnri] not_eq mqm[TRANSITION_LOWER_INDEX][qnri])
-          {
             return false;
-          }
         }
         if(other.mqm[TRANSITION_LOWER_INDEX][qnri].isUndefined())
         {
@@ -202,28 +195,27 @@ bool QuantumIdentifier::operator<(const QuantumIdentifier& other) const
         else 
         {
           if(other.mqm[TRANSITION_LOWER_INDEX][qnri] not_eq mqm[TRANSITION_LOWER_INDEX][qnri])
-          {
             return false;
-          }
         }
         qnri++;
       }
       return true;
       break;
     case QuantumIdentifier::ENERGY_LEVEL:
-      if(other.mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
+      while (qnri != QN_FINAL_ENTRY)
       {
-        if(not mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
-          return false;
-      }
-      else 
-      {
-        if(other.mqm[ENERGY_LEVEL_INDEX][qnri] not_eq mqm[ENERGY_LEVEL_INDEX][qnri])
+        if(other.mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
         {
-          return false;
+          if(not mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
+            return false;
         }
+        else 
+        {
+          if(other.mqm[ENERGY_LEVEL_INDEX][qnri] not_eq mqm[ENERGY_LEVEL_INDEX][qnri])
+            return false;
+        }
+        qnri++;
       }
-      qnri++;
       return true;
       break;
     case QuantumIdentifier::ALL:

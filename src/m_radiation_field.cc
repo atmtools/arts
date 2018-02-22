@@ -23,6 +23,7 @@
 #include "physics_funcs.h"
 
 
+// Integrates over the unit-area sphere for a za length over one, but only for evenly spaced aa
 void integrate_over_the_sphere(MatrixView iy, const GriddedField4& radiation_field, 
                                ConstVectorView za, ConstVectorView aa, 
                                ConstTensor3View weights=Tensor3(0, 0, 0)) noexcept
@@ -34,77 +35,27 @@ void integrate_over_the_sphere(MatrixView iy, const GriddedField4& radiation_fie
   const bool use_weights = nwnf or nwnz or nwna;
   
   // Area elements of the spherical observation geometry
-  Matrix dA(nz - 1, na);
+  Vector dA(nz - 1);
   for(Index iz = 0; iz < nz-1; iz++)
-  {
-    for(Index ia = 0; ia<na-1; ia++)
-    {
-      dA(iz, ia) = DEG2RAD * (za[iz+1]-za[iz]) * 
-               sin(DEG2RAD * (za[iz] + (za[iz+1] - za[iz])/2.)) * 
-                   DEG2RAD * (aa[ia+1]-aa[ia]);
-    }
-    if(na == 1)
-    {
-      dA(iz, 0) = DEG2RAD * (za[iz+1]-za[iz]) *
-              sin(DEG2RAD * (za[iz] + (za[iz+1] - za[iz])/2.)) *
-                  DEG2RAD * (360.);
-    }
-  }
+      dA[iz] = DEG2RAD * (za[iz+1]-za[iz]) *  sin(DEG2RAD * (za[iz] + 0.5*(za[iz+1] - za[iz])));
   
+  // Normalize over the zenith and azimuth angles and the sphere
+  dA /= dA.sum() * Numeric(na) * 4.0 * PI;
   
-  
-  // Sum the contributions by relative area of the sphere
-  for(Index iz = 0; iz < nz - 1; iz++)
-  {
-    if(na > 1)
-    {
-      for(Index ia = 0; ia < na-1; ia++)
-      {
-        Matrix iy_tmp(nf, ns);
-        if(use_weights)
-        {
-          for(Index iv = 0; iv < nf; iv++)
-          {
-            iy_tmp(iv, joker)  = radiation_field.data(iz,   ia,   iv, joker) * weights(iz,   ia,   iv);
-            iy_tmp(iv, joker) += radiation_field.data(iz+1, ia,   iv, joker) * weights(iz+1, ia,   iv);
-            iy_tmp(iv, joker) += radiation_field.data(iz,   ia+1, iv, joker) * weights(iz,   ia+1, iv);
-            iy_tmp(iv, joker) += radiation_field.data(iz+1, ia+1, iv, joker) * weights(iz+1, ia+1, iv);
-          }
-        }
-        else
-        {
-          iy_tmp  = radiation_field.data(iz,   ia,   joker, joker);
-          iy_tmp += radiation_field.data(iz+1, ia,   joker, joker);
-          iy_tmp += radiation_field.data(iz,   ia+1, joker, joker);
-          iy_tmp += radiation_field.data(iz+1, ia+1, joker, joker);
-        }
-        iy_tmp *= dA(iz, ia) / 4.0 ;
-        iy += iy_tmp;
-      }
-    }
-    else
-    {
-      Matrix iy_tmp(nf, ns);
-      if(use_weights)
-      {
+  if(use_weights)
+    for(Index iz = 0; iz < nz-1; iz++)
+      for(Index ia = 0; ia < na; ia++)
         for(Index iv = 0; iv < nf; iv++)
-        {
-          iy_tmp(iv, joker)  = radiation_field.data(iz,   0, iv, joker) * weights(iz,   0, iv);
-          iy_tmp(iv, joker) += radiation_field.data(iz+1, 0, iv, joker) * weights(iz+1, 0, iv);
-        }
-      }
-      else
-      {
-        iy_tmp  = radiation_field.data(iz,   0, joker, joker);
-        iy_tmp += radiation_field.data(iz+1, 0, joker, joker);
-      }
-      iy_tmp *= dA(iz,0) / 2.0 ;
-      iy+=iy_tmp;
-    }
-  }
-  
-  // Normalize for surface area of the sphere
-  iy /= 4*PI;
+          for(Index is = 0; is < ns; is++)
+            iy(iv, is) += dA[iz] * (radiation_field.data(iz,   ia, iv, is) * weights(iz,   ia, iv) + 
+                                    radiation_field.data(iz+1, ia, iv, is) * weights(iz+1, ia, iv)) * 0.5;
+  else
+    for(Index iz = 0; iz < nz-1; iz++)
+      for(Index ia = 0; ia < na; ia++)
+          for(Index iv = 0; iv < nf; iv++)
+            for(Index is = 0; is < ns; is++)
+              iy(iv, is) += dA[iz] * (radiation_field.data(iz,   ia, iv, is) + 
+                                      radiation_field.data(iz+1, ia, iv, is)) * 0.5;
 }
 
 
@@ -188,12 +139,9 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
 
     // Loop over coords
     for(Index ii=0; ii<za_coords.nelem();ii++)
+    {
         for(Index jj=0; jj<aa_coords.nelem();jj++)
         {
-            // Special case of unpolarized zenith angles 0 and 180.  Only need one azimuth angle.
-            if(jj>0&&(ii==0||ii==za_coords.nelem()-1)&&stokes_dim==1)
-                break;
-
             // Necessary output dummys
             ArrayOfTensor4   iy_aux_dummy;
             Ppath            ppath_dummy;
@@ -208,18 +156,13 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
                    atmfields_checked, atmgeom_checked, iy_aux_vars, 0,
                    f_grid, t_field, z_field, vmr_field, nlte_field,
                    cloudbox_on, cloudbox_checked, scat_data_checked,
-                   rte_pos, rte_los, rte_pos,
+                   rte_pos, rte_los, Vector(0),
                    iy_unit, iy_main_agenda, verbosity);
 
             // Add to radiation field
             radiation_field.data(ii,jj,joker,joker) = iy;
-
-            // Special case of unpolarized zenith angles 0 and 180.  Only need one azimuth angle.
-            if(jj>0&&(ii==0||ii==za_coords.nelem()-1)&&stokes_dim==1)
-                for(Index kk=1; kk<aa_coords.nelem();kk++)
-                    radiation_field.data(ii,kk,joker,joker) = iy;
-
         }
+    }
 
     // Get iy from radiation_field
     iy.resize(f_grid.nelem(),stokes_dim);
@@ -368,12 +311,13 @@ void radiation_fieldCalcForRotationalNLTE(Workspace&                      ws,
   for(Index ip = 0; ip < np; ip++)
   {
     Vector rte_pos(3, 0.); 
-    rte_pos[0] = z_field(ip, 0, 0);
-    if(ip == np - 1  or ip == 0)
-      rte_pos[0] += 0.1;
+    rte_pos[0] = z_field(ip, 0, 0) + 0.01;  // The value at 1 cm above because of bug in ppath calculation
     Matrix iy;
+    std::cout<<"DATA AT IP "<<ip<<"\n";
     radiation_fieldCalcFromiyCalc(ws, iy, data[ip], 1, 1, f_grid, t_field, z_field, vmr_field, nlte_field,
                                   0, 1, 0, 1, rte_pos, "1", iy_main_agenda, za, aa, verbosity);
+    
+     std::cout<<"\n"<<iy(joker,0)<<"\n"<<data[ip].data(joker,0,0,0)<<"\nDATA AT IP "<<ip<<"\n";
   }
   
   // Generate a weighting tensor 

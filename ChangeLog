@@ -1,3 +1,15 @@
+2018-02-22  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-965
+	
+	* src/m_atmospheres.cc:  Fix for upper levels energy is different...
+	
+	* src/quantum.cc:  The 'belongs to' operator< did not work
+	for energy levels before this fix...
+	
+	* src/m_radiation_field.cc:  Removed buggy attempt at speeding 
+	things up
+
 2018-02-21  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-964
