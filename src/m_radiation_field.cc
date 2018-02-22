@@ -313,11 +313,8 @@ void radiation_fieldCalcForRotationalNLTE(Workspace&                      ws,
     Vector rte_pos(3, 0.); 
     rte_pos[0] = z_field(ip, 0, 0) + 0.01;  // The value at 1 cm above because of bug in ppath calculation
     Matrix iy;
-    std::cout<<"DATA AT IP "<<ip<<"\n";
     radiation_fieldCalcFromiyCalc(ws, iy, data[ip], 1, 1, f_grid, t_field, z_field, vmr_field, nlte_field,
                                   0, 1, 0, 1, rte_pos, "1", iy_main_agenda, za, aa, verbosity);
-    
-     std::cout<<"\n"<<iy(joker,0)<<"\n"<<data[ip].data(joker,0,0,0)<<"\nDATA AT IP "<<ip<<"\n";
   }
   
   // Generate a weighting tensor 
