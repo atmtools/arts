@@ -1,5 +1,13 @@
 2018-02-23  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-967
+
+	* src/m_basic_types.cc, src/methods.cc:
+
+	Add convenience method Tensor3ExtractFromTensor4.
+
+2018-02-23  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-966
 
 	* Preliminary implementation of support for Hitran cross section

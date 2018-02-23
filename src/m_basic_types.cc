@@ -1125,6 +1125,84 @@ void VectorExtractFromMatrix(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void Tensor3ExtractFromTensor4(
+      // WS Generic Output:
+      Tensor3&         t3,
+      // WS Input:
+      // WS Generic Input:
+      const Tensor4&   t4,
+      const Index&     index,
+      // Control Parameters:
+      const String& direction,
+      const Verbosity&)
+{
+  if (direction=="book")
+    {
+      if( index >= t4.nbooks() )
+        {
+          ostringstream os;
+          os << "The index " << index
+             << " is outside the book range of the Tensor4.";
+          throw runtime_error( os.str() );
+
+        }
+
+      t3.resize( t4.npages(), t4.nrows(), t4.ncols() );
+      t3 = t4( index, joker, joker, joker );
+    }
+  else if (direction=="page")
+    {
+      if( index >= t4.npages() )
+        {
+          ostringstream os;
+          os << "The index " << index
+             << " is outside the pages range of the Tensor4.";
+          throw runtime_error( os.str() );
+
+        }
+
+      t3.resize( t4.nbooks(), t4.nrows(), t4.ncols() );
+      t3 = t4( joker, index, joker, joker );
+    }
+   else if (direction=="row")
+    {
+      if( index >= t4.nrows() )
+        {
+          ostringstream os;
+          os << "The index " << index
+             << " is outside the row range of the Tensor4.";
+          throw runtime_error( os.str() );
+
+        }
+
+      t3.resize( t4.npages(), t4.nbooks(), t4.ncols() );
+      t3 = t4( joker, joker, index, joker );
+    }
+  else if (direction=="column")
+    {
+      if( index >= t4.ncols() )
+        {
+          ostringstream os;
+          os << "The index " << index
+             << " is outside the column range of the Tensor4.";
+          throw runtime_error( os.str() );
+
+        }
+
+      t3.resize( t4.npages(), t4.nbooks(), t4.nrows() );
+      t3 = t4( joker, joker, joker, index );
+    }
+  else
+    {
+      ostringstream os;
+      os << "Keyword *direction* must be either *page*, *book*, *row* or *column*,"
+         << "but you gave: " << direction << ".";
+      throw runtime_error( os.str() );
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorFlip(Vector&   out,
                 const Vector&   in,
                 const Verbosity&)

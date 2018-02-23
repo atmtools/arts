@@ -17422,6 +17422,32 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "Tensor3ExtractFromTensor4" ),
+        DESCRIPTION
+        (
+         "Extracts a Tensor3 from a Tensor4.\n"
+         "\n"
+         "Copies book, page, row or column with given Index from input Tensor4\n"
+         "variable to output Tensor3.\n"
+         "Higher order equivalent of *VectorExtractFromMatrix*.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(      "out"      ),
+        GOUT_TYPE( "Tensor3" ),
+        GOUT_DESC( "Extracted tensor." ),
+        IN(),
+        GIN(          "in"     , "i"    , "direction" ),
+        GIN_TYPE(     "Tensor4", "Index", "String"    ),
+        GIN_DEFAULT(  NODEF   , NODEF  , NODEF       ),
+        GIN_DESC( "Input Tensor4.",
+                  "Index of book, page, row or column to extract.",
+                  "Direction. \"book\" or \"page\" or \"row\" or \"column\"."
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "Tensor3Scale" ),
         DESCRIPTION
         (
