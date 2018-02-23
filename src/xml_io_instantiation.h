@@ -89,6 +89,7 @@ TMPL_XML_READ_WRITE(SpeciesRecord)
 TMPL_XML_READ_WRITE(SpeciesTag)
 TMPL_XML_READ_WRITE(TelsemAtlas)
 TMPL_XML_READ_WRITE(TessemNN)
+TMPL_XML_READ_WRITE(XsecRecord)
 TMPL_XML_READ_WRITE(Verbosity)
 
 //=== Array Types ==========================================================
@@ -143,6 +144,7 @@ TMPL_XML_READ_WRITE(ArrayOfArrayOfPropagationMatrix)
 TMPL_XML_READ_WRITE(StokesVector)
 TMPL_XML_READ_WRITE(ArrayOfStokesVector)
 TMPL_XML_READ_WRITE(ArrayOfArrayOfStokesVector)
+TMPL_XML_READ_WRITE(ArrayOfXsecRecord)
 
 //==========================================================================
 

@@ -832,6 +832,12 @@ int main (int argc, char **argv)
 #else
         << "disabled" << endl
 #endif
+        << "   Hitran Xsec support:  "
+#ifdef ENABLE_FFTW
+        << "enabled" << endl
+#else
+        << "disabled" << endl
+#endif
         << "";
 
       osfeatures  << "Include search paths: " << endl;

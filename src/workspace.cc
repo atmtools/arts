@@ -2058,6 +2058,15 @@ void Workspace::define_wsv_data()
       GROUP( "Agenda" )));
 
   wsv_data.push_back
+    (WsvRecord
+     ( NAME( "hitran_xsec_data" ),
+       DESCRIPTION
+       (
+        "Data for Hitran cross section species.\n"
+        ),
+      GROUP( "ArrayOfXsecRecord" )));
+
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "instrument_pol" ),
       DESCRIPTION

@@ -195,6 +195,7 @@ add_library (artscore STATIC
   geodetic.cc
   gridded_fields.cc
   gzstream.cc
+  hitran_xsec.cc
   interpolation.cc
   interpolation_poly.cc
   jacobian.cc
@@ -222,6 +223,7 @@ add_library (artscore STATIC
   m_fos.cc
   m_general.cc
   m_geodetic.cc
+  m_hitran_xsec.cc
   m_jacobian.cc
   m_linemixing.cc
   m_linerecord.cc
@@ -294,6 +296,11 @@ add_library (artscore STATIC
 add_dependencies (artscore auto_version_h)
 
 target_link_libraries (artscore ${ZLIB_LIBRARIES})
+
+if (FFTW_FOUND)
+  include_directories (${FFTW_INCLUDE_DIR})
+  target_link_libraries (artscore ${FFTW_LIBRARIES})
+endif()
 
 if (NETCDF_FOUND)
   target_link_libraries (artscore ${NETCDF_LIBRARIES})

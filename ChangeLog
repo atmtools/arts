@@ -1,3 +1,71 @@
+2018-02-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-966
+
+	* Preliminary implementation of support for Hitran cross section
+	species. http://hitran.org/xsc/
+	Since available measurements of cross section data are very sparse (few
+	temperatures/pressures) depending on species, the calculations in ARTS
+	are based on one reference cross section at low pressure for each
+	species. The cross section data is then broadened for the desired
+	pressure by convolution with a Lorentz function.  The FWHM of the
+	Lorentz function is determined by an approximation.  The coefficients
+	for this approximation are part of the input data and calculated
+	outside ARTS.  The code for this will be made available in a separate
+	package.  The data for cross section species will be added to
+	arts-xml-data in due time.
+
+	* CMakeLists.txt, cmake/modules/FindFFTW.cmake, config.h.cmake,
+	src/main.cc:
+
+	Add FFTW library support.
+
+	* controlfiles/CMakeLists.txt,
+	controlfiles/artscomponents/hitran-xsec/CFC11.xml.gz,
+	controlfiles/artscomponents/hitran-xsec/TestHitranXsec.arts,
+	controlfiles/artscomponents/hitran-xsec/yREFERENCE.xml,
+	controlfiles/testdata/tropical.CFC11.xml:
+
+	Add simple cross section species test case.
+
+	* src/CMakeLists.txt
+
+	* src/abs_species_tags.{cc,h},
+	src/m_checked.cc (abs_xsec_agenda_checkedCalc):
+
+	Add tag TYPE_HITRAN_XSEC.
+
+	* src/hitran_xsec.{cc,h}:
+
+	Implementation of class XsecRecord. XsecRecord::Extract does the heavy
+	lifting by using the FFTW library to convolve the cross section data
+	with a Lorentz function to apply the pressure broadening.
+
+	* src/m_hitran_xsec.cc, src/methods.cc:
+
+	New WSM abs_xsec_per_speciesAddHitranXsec.
+
+	Add doc for HXSEC tag type to abs_speciesSet.
+
+	* src/make_auto_md_h.{cc,h}, src/make_auto_workspace_h.cc
+
+	* src/species_data.cc, src/partition_function_data.cc:
+
+	Add HXSEC species CFC11, CFC12, HCFC22, HFC134a.
+
+	* src/partial_derivatives.h (PropmatPartialsData):
+
+	Add supportHitranXsec method.
+
+	* src/workspace.cc: Add WSM hitran_xsec_data.
+
+	* src/groups.cc: Add ArrayOfXsecRecord.
+
+	* src/xml_io_array_types.cc, src/xml_io_compound_types.cc,
+	src/xml_io_instantiation.h, src/xml_io_types.h:
+
+	Add support for new XsecRecord and ArrayOfXsecRecord data types.
+
 2018-02-22  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-965

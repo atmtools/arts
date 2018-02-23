@@ -102,6 +102,10 @@ arts_test_run_ctlfile(slow artscomponents/wfuns/TestWfunsHybCloudy.arts)
 
 arts_test_run_ctlfile(fast artscomponents/ycalcappend/TestYCalcAppend.arts)
 
+if (ENABLE_FFTW)
+  arts_test_run_ctlfile(fast artscomponents/hitran-xsec/TestHitranXsec.arts)
+endif ()
+
 if (ENABLE_DISORT)
   arts_test_run_ctlfile(fast artscomponents/disort/TestDISORT.arts)
 endif ()

@@ -1,0 +1,135 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# Simple test for HITRAN cross-section species
+#
+# Author: Oliver Lemke
+
+
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+ReadXML(hitran_xsec_data, "CFC11.xml.gz")
+
+# Agenda for scalar gas absorption calculation
+AgendaSet( abs_xsec_agenda ){
+  Ignore(abs_nlte)
+  Ignore(abs_vmrs)
+  abs_xsec_per_speciesInit
+  abs_xsec_per_speciesAddHitranXsec
+}
+
+# (standard) emission calculation
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+
+# cosmic background radiation
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# standard surface agenda (i.e., make use of surface_rtprop_agenda)
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+
+# on-the-fly absorption
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+
+# no refraction
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+
+# Number of Stokes components to be computed
+#
+IndexSet( stokes_dim, 1 )
+
+# No jacobian calculation
+#
+jacobianOff
+
+# Clearsky = No scattering
+#
+cloudboxOff
+
+
+VectorNLinSpace( f_grid, 1000, 2.42e13, 3.35e13 )
+
+WriteXML( "ascii", f_grid )
+
+
+VectorNLogSpace( p_grid, 100, 1000e2, 1 )
+
+
+# Definition of species
+# ---
+abs_speciesSet(species=["CFC11-HXSEC"])
+
+# set the extrapolation level, if lm_p_lim is <0
+NumericSet( lm_p_lim,   -3 )
+Print(lm_p_lim,0)
+
+# Atmospheric scenario
+# ---
+AtmRawRead( basename = "testdata/tropical" )
+
+
+# Weakly reflecting surface
+# ---
+VectorSetConstant( surface_scalar_reflectivity, 1, 0 )
+Copy( surface_rtprop_agenda,
+      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
+
+# No sensor properties
+# ---
+sensorOff
+
+
+StringSet( iy_unit, "1" )
+#StringSet( iy_unit, "PlanckBT" )
+
+
+#########################################################################
+# 1D
+#########################################################################
+
+# Atmosphere and surface
+# ---
+AtmosphereSet1D
+AtmFieldsCalc
+Extract( z_surface, z_field, 0 )
+Extract( t_surface, t_field, 0 )
+
+# Definition of sensor position and LOS
+# ---
+#MatrixSetConstant( sensor_pos, 3, 1, 600e3 )
+#MatrixSet( sensor_los, [ 95; 113; 135] )
+MatrixSetConstant( sensor_pos, 1, 1, 600e3 )
+MatrixSet( sensor_los, [135] )
+
+# Perform RT calculations
+# ---
+abs_xsec_agenda_checkedCalc
+atmfields_checkedCalc
+
+propmat_clearsky_agenda_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+sensor_checkedCalc
+timerStart
+yCalc
+timerStop
+Print(timer, 1)
+
+# OK?
+# ---
+WriteXML( in=y )
+WriteXML( in=f_grid )
+#WriteXML( "ascii", y, "yREFERENCE.xml" )
+VectorCreate( yREFERENCE )
+ReadXML( yREFERENCE, "yREFERENCE.xml" )
+Compare( y, yREFERENCE, 1e-2 )
+} # End of Main
+

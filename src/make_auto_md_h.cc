@@ -658,6 +658,7 @@ int main()
           << "#include \"propagationmatrix.h\"\n"
           << "#include \"telsem.h\"\n"
           << "#include \"tessem.h\"\n"
+          << "#include \"hitran_xsec.h\"\n"
           << "\n";
 
       ofs << "// This is only used for a consistency check. You can get the\n"

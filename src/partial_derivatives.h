@@ -549,13 +549,33 @@ public:
     Index species(Index iq) const { return mspecies[iq]; }
     
     // Run this check in CIA calculations to find if there is anything wrong with it
-    bool supportsCIA() const 
+    bool supportsCIA() const
+    {
+        bool testvar = false;
+
+        for(Index iq=0; iq<nelem(); iq++)
+        {
+            if( mqtype[iq]==JQT_temperature             || //Supported types by CIA
+                mqtype[iq]==JQT_frequency               ||
+                mqtype[iq]==JQT_wind_magnitude          ||
+                mqtype[iq]==JQT_wind_u                  ||
+                mqtype[iq]==JQT_wind_v                  ||
+                mqtype[iq]==JQT_wind_w                  ||
+                mqtype[iq]==JQT_VMR)
+                testvar=true;
+            //else if(false) //There are no unsupported CIA variables.  Thus no runtime_error to throw
+        }
+        return testvar;
+    };
+
+    // Run this check in HITRAN xsec calculations to find if there is anything wrong with it
+    bool supportsHitranXsec() const
     {
         bool testvar = false;
         
         for(Index iq=0; iq<nelem(); iq++)
         {
-            if( mqtype[iq]==JQT_temperature             || //Supported types by CIA
+            if( mqtype[iq]==JQT_temperature             || //Supported types by HITRAN Xsec
                 mqtype[iq]==JQT_frequency               || 
                 mqtype[iq]==JQT_wind_magnitude          || 
                 mqtype[iq]==JQT_wind_u                  || 
@@ -563,7 +583,7 @@ public:
                 mqtype[iq]==JQT_wind_w                  || 
                 mqtype[iq]==JQT_VMR)
                 testvar=true;
-            //else if(false) //There are no unsupported CIA variables.  Thus no runtime_error to throw
+            //else if(false) //There are no unsupported HITRAN Xsec variables.  Thus no runtime_error to throw
         }
         return testvar;
     };

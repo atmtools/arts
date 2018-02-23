@@ -56,6 +56,7 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
     bool needs_lines = false;
     bool needs_continua = false;
     bool needs_cia = false;
+    bool needs_hxsec = false;
 
     for (Index sp = 0; sp < abs_species.nelem(); sp++)
     {
@@ -69,6 +70,7 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
                 case SpeciesTag::TYPE_CIA: needs_cia = true; break;
                 case SpeciesTag::TYPE_FREE_ELECTRONS: break;
                 case SpeciesTag::TYPE_PARTICLES: break;
+                case SpeciesTag::TYPE_HITRAN_XSEC: needs_hxsec = true; break;
                 default:
                     ostringstream os;
                     os << "Unknown species type: " << 
@@ -104,6 +106,14 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
         throw runtime_error(
                 "*abs_species* contains CIA species but *abs_xsec_agenda*\n"
                             "does not contain *abs_xsec_per_speciesAddCIA*.");
+    }
+
+    if (needs_hxsec
+        && !abs_xsec_agenda.has_method("abs_xsec_per_speciesAddHitranXsec"))
+    {
+        throw runtime_error(
+                "*abs_species* contains HITRAN xsec species but *abs_xsec_agenda*\n"
+                            "does not contain *abs_xsec_per_speciesAddHitranXsec*.");
     }
 
     // If here, all OK
@@ -888,6 +898,7 @@ void propmat_clearsky_agenda_checkedCalc(
     bool needs_cia = false;
     //bool needs_free_electrons = false;
     bool needs_particles = false;
+    bool needs_hxsec = false;
 
     for (Index sp = 0; sp < abs_species.nelem(); sp++)
     {
@@ -901,6 +912,7 @@ void propmat_clearsky_agenda_checkedCalc(
                 case SpeciesTag::TYPE_CIA: needs_cia = true; break;
                 case SpeciesTag::TYPE_FREE_ELECTRONS: break;
                 case SpeciesTag::TYPE_PARTICLES: needs_particles = true; break;
+                case SpeciesTag::TYPE_HITRAN_XSEC: needs_hxsec = true; break;
                 default:
                     ostringstream os;
                     os << "Unknown species type: " << 
@@ -911,12 +923,12 @@ void propmat_clearsky_agenda_checkedCalc(
         }
     }
 
-    if ((needs_lines || needs_continua || needs_cia)
+    if ((needs_lines || needs_continua || needs_cia || needs_hxsec)
         && !(propmat_clearsky_agenda.has_method("propmat_clearskyAddOnTheFly")
              || propmat_clearsky_agenda.has_method("propmat_clearskyAddFromLookup")))
     {
-        throw runtime_error("*abs_species* contains line species, CIA species, or continua but "
-                            "*propmat_clearsky_agenda*\n"
+        throw runtime_error("*abs_species* contains line species, CIA species, "
+                            "hitran xsec species or continua but *propmat_clearsky_agenda*\n"
                             "does not contain *propmat_clearskyAddOnTheFly* nor "
                             "*propmat_clearskyAddFromLookup*.");
     }

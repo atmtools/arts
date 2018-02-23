@@ -2267,6 +2267,99 @@ void xml_write_to_stream(ostream&                    os_xml,
 }
 
 
+//=== XsecRecord ======================================================
+
+//! Reads XsecData from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param xd         XsecData return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          XsecRecord& xd,
+                          bifstream *pbifs,
+                          const Verbosity& verbosity)
+{
+    ArtsXMLTag tag(verbosity);
+
+    tag.read_from_stream(is_xml);
+    tag.check_name("XsecRecord");
+
+    String species_name;
+    xml_read_from_stream(is_xml, species_name, pbifs, verbosity);
+
+    const Index species = species_index_from_species_name(species_name);
+    if (species == -1)
+    {
+        ostringstream os;
+        os << "Unknown species in XsecRecord: " << species_name;
+        throw std::runtime_error(os.str());
+    }
+    xd.mspecies = species;
+
+    Vector fmin, fmax;
+    xml_read_from_stream(is_xml, xd.mcoeffs, pbifs, verbosity);
+    xml_read_from_stream(is_xml, fmin, pbifs, verbosity);
+    xml_read_from_stream(is_xml, fmax, pbifs, verbosity);
+    xml_read_from_stream(is_xml, xd.mrefpressure, pbifs, verbosity);
+    xml_read_from_stream(is_xml, xd.mreftemperature, pbifs, verbosity);
+    xml_read_from_stream(is_xml, xd.mxsecs, pbifs, verbosity);
+    tag.read_from_stream(is_xml);
+
+    const Index ndatasets = xd.mxsecs.nelem();
+    xd.mfgrids.resize(ndatasets);
+    for (Index i = 0; i < ndatasets; i++)
+    {
+        nlinspace(xd.mfgrids[i], fmin[i], fmax[i], xd.mxsecs[i].nelem());
+    }
+    tag.check_name("/XsecRecord");
+}
+
+
+//! Writes XsecData to XML output stream
+/*!
+ * \param os_xml     XML Output stream
+ * \param xd         XsecData
+ * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+ * \param name       Optional name attribute
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const XsecRecord& xd,
+                         bofstream *pbofs,
+                         const String& name,
+                         const Verbosity& verbosity)
+{
+    ArtsXMLTag open_tag(verbosity);
+    ArtsXMLTag close_tag(verbosity);
+
+    open_tag.set_name("XsecRecord");
+    if (name.length())
+        open_tag.add_attribute("name", name);
+
+    open_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+    const Index ndatasets = xd.Coeffs().nelem();
+    Vector fmin(ndatasets), fmax(ndatasets);
+    for (Index i = 0; i < ndatasets; i++)
+    {
+        fmin[i] = xd.Fgrids()[i][0];
+        fmax[i] = xd.Fgrids()[i][xd.Fgrids()[i].nelem() - 1];
+    }
+
+    xml_write_to_stream(os_xml, xd.SpeciesName(), pbofs, "species", verbosity);
+    xml_write_to_stream(os_xml, xd.Coeffs(), pbofs, "coefs", verbosity);
+    xml_write_to_stream(os_xml, fmin, pbofs, "fmin", verbosity);
+    xml_write_to_stream(os_xml, fmax, pbofs, "fmax", verbosity);
+    xml_write_to_stream(os_xml, xd.RefPressure(), pbofs, "refpressure", verbosity);
+    xml_write_to_stream(os_xml, xd.RefTemperature(), pbofs, "reftemperature", verbosity);
+    xml_write_to_stream(os_xml, xd.Xsecs(), pbofs, "xsec", verbosity);
+    close_tag.set_name("/XsecRecord");
+    close_tag.write_to_stream(os_xml);
+
+    os_xml << '\n';
+}
+
+
 ////////////////////////////////////////////////////////////////////////////
 //   Dummy funtion for groups for which
 //   IO function have not yet been implemented

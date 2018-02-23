@@ -165,6 +165,26 @@ SpeciesTag::SpeciesTag(String def)
             }
         }
 
+      if ("HXSEC" == isoname)
+        {
+          mtype = TYPE_HITRAN_XSEC;
+          // Hitran Xsec flag was present, now extract the isotopologue name:
+          n    = def.find('-');    // find the '-'
+          if (n != def.npos )
+            {
+              isoname = def.substr(0,n);    // Extract before '-'
+              def.erase(0,n+1);             // Remove from def
+            }
+          else
+            {
+              // n==def.npos means that def does not contain a '-'. In that
+              // case we assume that it contains just the isotopologue name and
+              // nothing else.
+              isoname = def;
+              def  = "";
+            }
+        }
+
         if ("LM" == isoname)
         {
             mline_mixing = LINE_MIXING_ON;
@@ -201,13 +221,21 @@ SpeciesTag::SpeciesTag(String def)
           misotopologue = spr.Isotopologue().nelem();
           return;
         }
-        if ("LM" == isoname)
+      if ("LM" == isoname)
         {
-            mline_mixing = LINE_MIXING_ON;
-            // This means that there is nothing else to parse. Apparently
-            // the user wants all isotopologues and no frequency limits.
-            misotopologue = spr.Isotopologue().nelem();
-            return;
+          mline_mixing = LINE_MIXING_ON;
+          // This means that there is nothing else to parse. Apparently
+          // the user wants all isotopologues and no frequency limits.
+          misotopologue = spr.Isotopologue().nelem();
+          return;
+        }
+      if ("HXSEC" == isoname)
+        {
+          mtype = TYPE_HITRAN_XSEC;
+          // This means that there is nothing else to parse. Apparently
+          // the user wants all isotopologues and no frequency limits.
+          misotopologue = spr.Isotopologue().nelem();
+          return;
         }
     }
 
@@ -422,13 +450,18 @@ String SpeciesTag::Name() const
       {
         os << spr.Name();
       }
+        // Hitran Xsec flag.
+    else if (mtype == TYPE_HITRAN_XSEC)
+      {
+        os << "HXSEC";
+      }
     else
       {
         // Zeeman flag.
         if (mtype == TYPE_ZEEMAN) os << "Z-";
-        
-        // Line Mixing Type
 
+
+        // Line Mixing Type
         if (mline_mixing != LINE_MIXING_OFF)
         {
             os << "LM-";
@@ -719,6 +752,7 @@ void check_abs_species( const ArrayOfArrayOfSpeciesTag& abs_species )
     {
         bool has_free_electrons = false;
         bool has_particles = false;
+        bool has_hitran_xsec = false;
         for ( Index s=0; s<abs_species[i].nelem(); ++s )
         {
             if (abs_species[i][s].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)
@@ -729,7 +763,12 @@ void check_abs_species( const ArrayOfArrayOfSpeciesTag& abs_species )
 
             if (abs_species[i][s].Type() == SpeciesTag::TYPE_PARTICLES)
             {
-                has_particles = true;
+              has_particles = true;
+            }
+
+            if (abs_species[i][s].Type() == SpeciesTag::TYPE_HITRAN_XSEC)
+            {
+                has_hitran_xsec = true;
             }
         }
 
@@ -742,7 +781,11 @@ void check_abs_species( const ArrayOfArrayOfSpeciesTag& abs_species )
 
         if (abs_species[i].nelem() > 1 && has_particles)
             throw std::runtime_error("'particles' must not be combined "
-                                "with other tags in the same group.");
+                                     "with other tags in the same group.");
+
+        if (abs_species[i].nelem() > 1 && has_hitran_xsec)
+          throw std::runtime_error("'hitran_xsec' must not be combined "
+                                   "with other tags in the same group.");
     }
 }
 

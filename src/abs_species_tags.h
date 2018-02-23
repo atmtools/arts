@@ -118,7 +118,8 @@ public:
        TYPE_PREDEF,
        TYPE_CIA,
        TYPE_FREE_ELECTRONS,
-       TYPE_PARTICLES
+       TYPE_PARTICLES,
+       TYPE_HITRAN_XSEC
    };
 
 
@@ -173,6 +174,7 @@ private:
    TYPE_CIA:            A HITRAN collision induces absorption (CIA) tag
    TYPE_FREE_ELECTRONS: A free electrons tag
    TYPE_PARTICLES:      A particle tag
+   TYPE_HITRAN_XSEC:    A HITRAN absorption cross section tag
    </PRE>
    */
   Index mtype;

@@ -72,6 +72,7 @@ int main()
           << "#include \"linemixingrecord.h\"\n"
           << "#include \"telsem.h\"\n"
           << "#include \"tessem.h\"\n"
+          << "#include \"hitran_xsec.h\"\n"
           << "\n";
 
       ////////////////////////////////////////////////////////////////////

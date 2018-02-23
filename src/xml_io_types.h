@@ -43,6 +43,7 @@
 #include "covariance_matrix.h"
 #include "gas_abs_lookup.h"
 #include "gridded_fields.h"
+#include "hitran_xsec.h"
 #include "jacobian.h"
 #include "m_general.h"
 #include "mc_antenna.h"
@@ -111,6 +112,7 @@ TMPL_XML_READ_WRITE_STREAM(SpeciesRecord)
 TMPL_XML_READ_WRITE_STREAM(SpeciesTag)
 TMPL_XML_READ_WRITE_STREAM(TelsemAtlas)
 TMPL_XML_READ_WRITE_STREAM(TessemNN)
+TMPL_XML_READ_WRITE_STREAM(XsecRecord)
 TMPL_XML_READ_WRITE_STREAM(Verbosity)
 
 //=== Array Types ==========================================================
@@ -166,6 +168,7 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfPropagationMatrix)
 TMPL_XML_READ_WRITE_STREAM(StokesVector)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfStokesVector)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfStokesVector)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfXsecRecord)
 
 //==========================================================================
 

@@ -1700,6 +1700,10 @@ void define_md_data_raw()
          "\n"
          "species = [ \"N2-CIA-N2-0, N2-CIA-N2-1\" ]\n"
          "\n"
+         "For Hitran cross section species the tag consists of the species and\n"
+         "the tagtype HXSEC, e.g. CFC11-HXSEC. The data for the species must be\n"
+         "available in the *hitran_xsec_data* variable."
+         "\n"
          "*abs_xsec_agenda_checked* and *propmat_clearsky_agenda_checked*\n"
          "are set to be false.\n"
          ),
@@ -1791,6 +1795,32 @@ void define_md_data_raw()
       GIN_DEFAULT( "0.5",           "0" ),
       GIN_DESC( "Temperature extrapolation factor (relative to grid spacing).",
                 "Set to 1 to suppress runtime errors (and return NAN values instead).")
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
+     ( NAME( "abs_xsec_per_speciesAddHitranXsec" ),
+      DESCRIPTION
+      (
+       "Calculate absorption cross sections per tag group for HITRAN xsec species.\n"
+       "\n"
+       "This broadens the cross section data from *hitran_xsec_data* and\n"
+       "interpolates it onto the current f_grid.\n"
+       "\n"
+       "This method depends on the FFTW-3 library.\n"
+       ),
+      AUTHORS( "Oliver Lemke" ),
+      OUT( "abs_xsec_per_species", "dabs_xsec_per_species_dx" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_xsec_per_species", "dabs_xsec_per_species_dx",
+          "abs_species", "jacobian_quantities", "abs_species_active",
+          "f_grid", "abs_p", "abs_t", "hitran_xsec_data" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
       ));
     
   md_data_raw.push_back

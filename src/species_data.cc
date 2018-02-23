@@ -1184,8 +1184,6 @@ void define_basic_species_data()
          ) ) );
 
 
-// You also have to change the entry in the file
-  // partition_function_data.cc consistently! 
   species_data.push_back
     ( SpeciesRecord
       ( NAME("liquidcloud"),
@@ -1197,8 +1195,6 @@ void define_basic_species_data()
          REC( "ELL07"   ,NAN                ,NAN          ,-1     ,-1     ,TAGS())
          ) ) );
 
-  // You also have to change the entry in the file
-  // partition_function_data.cc consistently! 
   species_data.push_back
     ( SpeciesRecord
       ( NAME("icecloud"),
@@ -1209,8 +1205,6 @@ void define_basic_species_data()
          REC( "MPM93"   ,NAN                ,NAN          ,-1     ,-1     ,TAGS()      )
          ) ) );
 
-  // You also have to change the entry in the file
-  // partition_function_data.cc consistently! 
   species_data.push_back
     ( SpeciesRecord
       ( NAME("rain"),
@@ -1221,8 +1215,6 @@ void define_basic_species_data()
          REC( "MPM93"   ,NAN                ,NAN          ,-1     ,-1     ,TAGS()      )
          ) ) );
 
-  // You also have to change the entry in the file
-  // partition_function_data.cc consistently! 
   species_data.push_back
     ( SpeciesRecord
       ( NAME("free_electrons"),
@@ -1230,8 +1222,6 @@ void define_basic_species_data()
         ISOTOPOLOGUES
         () ) );
 
-  // You also have to change the entry in the file
-  // partition_function_data.cc consistently! 
   species_data.push_back
     ( SpeciesRecord
       ( NAME("particles"),
@@ -1239,7 +1229,36 @@ void define_basic_species_data()
         ISOTOPOLOGUES
         () ) );
 
-  //cout << species_data;
+  species_data.push_back
+    ( SpeciesRecord
+      ( NAME("CFC11"),
+        DEGFR(0),
+        ISOTOPOLOGUES
+        () ) );
+
+  species_data.push_back
+    ( SpeciesRecord
+      ( NAME("CFC12"),
+        DEGFR(0),
+        ISOTOPOLOGUES
+        () ) );
+
+  species_data.push_back
+    ( SpeciesRecord
+      ( NAME("HCFC22"),
+        DEGFR(0),
+        ISOTOPOLOGUES
+        () ) );
+
+  species_data.push_back
+    ( SpeciesRecord
+      ( NAME("HFC134a"),
+        DEGFR(0),
+        ISOTOPOLOGUES
+        () ) );
+
+  // You also have to change the entry in the file
+  // partition_function_data.cc consistently!
 }
 
 
