@@ -21,49 +21,108 @@
 #include "auto_md.h"
 #include "rte.h"
 #include "physics_funcs.h"
+#include "absorption.h"
+#include "linefunctions.h"
 
 
 // Integrates over the unit-area sphere for a za length over one, but only for evenly spaced aa
-void integrate_over_the_sphere(MatrixView iy, const GriddedField4& radiation_field, 
-                               ConstVectorView za, ConstVectorView aa, 
-                               ConstTensor3View weights=Tensor3(0, 0, 0)) noexcept
+void integrate_over_the_sphere(MatrixView iy, ConstTensor4View radiation_field, 
+                               ConstVectorView za, ConstVectorView aa) noexcept
 {
   extern const Numeric DEG2RAD, PI;
   const Index nf = iy.nrows(), ns = iy.ncols(), nz = za.nelem(), na = aa.nelem();
-  const Index nwnz = weights.npages(), nwna = weights.nrows(), nwnf = weights.ncols();
-  
-  const bool use_weights = nwnf or nwnz or nwna;
+  iy = 0.0;
   
   // Area elements of the spherical observation geometry
   Vector dA(nz - 1);
   for(Index iz = 0; iz < nz-1; iz++)
       dA[iz] = DEG2RAD * (za[iz+1]-za[iz]) *  sin(DEG2RAD * (za[iz] + 0.5*(za[iz+1] - za[iz])));
   
-  // Normalize over the zenith and azimuth angles and the sphere
-  dA /= dA.sum() * Numeric(na) * 4.0 * PI;
+  // Normalize over the zenith, azimuth, unit sphere, and averaging of two points
+  dA /= dA.sum() * Numeric(na) * 4.0 * PI * 2.0;
   
-  if(use_weights)
-    for(Index iz = 0; iz < nz-1; iz++)
-      for(Index ia = 0; ia < na; ia++)
+  for(Index iz = 0; iz < nz-1; iz++)
+    for(Index ia = 0; ia < na; ia++)
         for(Index iv = 0; iv < nf; iv++)
           for(Index is = 0; is < ns; is++)
-            iy(iv, is) += dA[iz] * (radiation_field.data(iz,   ia, iv, is) * weights(iz,   ia, iv) + 
-                                    radiation_field.data(iz+1, ia, iv, is) * weights(iz+1, ia, iv)) * 0.5;
-  else
-    for(Index iz = 0; iz < nz-1; iz++)
-      for(Index ia = 0; ia < na; ia++)
-          for(Index iv = 0; iv < nf; iv++)
-            for(Index is = 0; is < ns; is++)
-              iy(iv, is) += dA[iz] * (radiation_field.data(iz,   ia, iv, is) + 
-                                      radiation_field.data(iz+1, ia, iv, is)) * 0.5;
+            iy(iv, is) += dA[iz] * (radiation_field(iz, ia, iv, is) + radiation_field(iz+1, ia, iv, is));
 }
 
+
+void total_line_source_and_transmission(Vector& J, 
+                                        Vector& T, 
+                                        const GriddedField4& radiation_field, 
+                                        const GriddedField5& transmission_field, 
+                                        const ArrayOfArrayOfLineRecord& lines, 
+                                        const ArrayOfArrayOfSpeciesTag& abs_species,
+                                        const ConstVectorView frequency,
+                                        const ConstVectorView vmrs,
+                                        const ConstVectorView wind,
+                                        const ConstVectorView za,
+                                        const ConstVectorView aa,
+                                        const Numeric pressure, 
+                                        const Numeric temperature, 
+                                        const Verbosity& verbosity)
+{
+  extern const Numeric SPEED_OF_LIGHT;
+  
+  const Index nl = lines.nelem(), nf = frequency.nelem(), nz = za.nelem(), na = aa.nelem(), nw = wind.nelem();
+  J = Vector(nl, 0.0);
+  T = Vector(nl, 0.0);
+  
+  for(Index il = 0; il < nl; il++)
+  {
+    ArrayOfIndex bsl;
+    Matrix iy(1, 1, 0.0);
+    Matrix it(1, 1, 0.0);
+    Tensor4 rad_data(nz, na, 1, 1, 0.0), tra_data(nz, na, 1, 1, 0.0);
+    find_broad_spec_locations(bsl, abs_species, il);
+    
+    ComplexVector F(nf);
+    Linefunctions::set_lineshape(F, lines[il][0], frequency, vmrs, temperature, pressure, 0.0, 0.0, 0.0, bsl, il, -1, verbosity);
+    const Vector X = F.real();
+    Vector x = X;
+    
+    for(Index iz = 0; iz < nz; iz++)
+    {
+      for(Index ia = 0; ia < na; ia++)
+      {
+        if(nw)
+        {
+          Vector f = frequency;
+          Vector los(2); los[0] = za[iz]; los[1] = aa[ia];
+          const Numeric vd = 1. - dotprod_with_los(los, wind[0], wind[1], wind[2], 3)/SPEED_OF_LIGHT;
+          f *= vd;
+          ArrayOfGridPos gp(nf);
+          Matrix itw(2, nf);
+          gridpos(gp, frequency, f, 0.5); // WARNING:  This part might fail...
+          interpweights(itw, gp);
+          interp(x, itw, X, gp);
+        }
+        
+        for(Index iv = 0; iv < nf-1; iv++)
+        {
+          rad_data(iz, ia, 0, 0) += (frequency[iv+1]-frequency[iv]) * (x[iv+1] * radiation_field.data(iz, ia, iv+1, 0) + x[iv]  * radiation_field.data(iz, ia, iv, 0)) * 0.5;
+          
+          // FIXME:  How to compute factor r?
+          tra_data(iz, ia, 0, 0) += (frequency[iv+1]-frequency[iv]) *  (x[iv+1] * transmission_field.data(iz, ia, iv+1, 0, 0) + x[iv] * transmission_field.data(iz, ia, iv, 0, 0)) * 0.5;
+        }
+      }
+    }
+    
+    integrate_over_the_sphere(iy, rad_data, za, aa);
+    J[il] = iy(0, 0);
+    integrate_over_the_sphere(it, tra_data, za, aa);
+    T[il] = it(0, 0);
+  }
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void radiation_fieldCalcFromiyCalc(Workspace&              ws,
                                    //OUT:
                                    Matrix&                 iy,
                                    GriddedField4&          radiation_field,
+                                   GriddedField5&          transmission_field,
                                    //IN:
                                    const Index&            atmfields_checked,
                                    const Index&            atmgeom_checked,
@@ -82,6 +141,7 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
                                    //GIN:
                                    const Vector&           za_coords,
                                    const Vector&           aa_coords,
+                                   const Index&            for_nlte,
                                    const Verbosity&        verbosity)
 {
     // Test input
@@ -116,7 +176,7 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
         throw std::runtime_error("f_grid must contain at least one value.\n");
 
     // Necessary input dummy
-    const ArrayOfString    iy_aux_vars;
+    ArrayOfString    iy_aux_vars(0);
 
     // Prepare a stokes vector so grid setting is possible
     Vector stokes_dim_vector(stokes_dim);
@@ -136,6 +196,26 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
                                 f_grid.nelem(),stokes_dim);
     radiation_field.set_name("Radiation Field");
     radiation_field.checksize_strict();
+    
+    if(for_nlte)
+    {
+      iy_aux_vars.resize(1);
+      iy_aux_vars[0] = "Transmission";
+      transmission_field.set_grid(0, za_coords);
+      transmission_field.set_grid_name(0, "Zenith Angle");
+      transmission_field.set_grid(1, aa_coords);
+      transmission_field.set_grid_name(1, "Azimuth Angle");
+      transmission_field.set_grid(2, f_grid);
+      transmission_field.set_grid_name(2, "Frequency");
+      transmission_field.set_grid(3, stokes_dim_vector);
+      transmission_field.set_grid_name(3, "Stokes Component");
+      transmission_field.set_grid(4, stokes_dim_vector);
+      transmission_field.set_grid_name(4, "Stokes Component");
+      transmission_field.data.resize(za_coords.nelem(),aa_coords.nelem(),
+                                     f_grid.nelem(),stokes_dim,stokes_dim);
+      transmission_field.set_name("Transmission Field");
+      transmission_field.checksize_strict();
+    }
 
     // Loop over coords
     for(Index ii=0; ii<za_coords.nelem();ii++)
@@ -143,7 +223,7 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
         for(Index jj=0; jj<aa_coords.nelem();jj++)
         {
             // Necessary output dummys
-            ArrayOfTensor4   iy_aux_dummy;
+            ArrayOfTensor4   iy_aux;
             Ppath            ppath_dummy;
 
             // Setup of local los vector from za_coords.
@@ -152,7 +232,7 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
             rte_los[1]=aa_coords[jj];
 
             // Calculate iy for a particular rte_los.
-            iyCalc(ws, iy, iy_aux_dummy, ppath_dummy,
+            iyCalc(ws, iy, iy_aux, ppath_dummy,
                    atmfields_checked, atmgeom_checked, iy_aux_vars, 0,
                    f_grid, t_field, z_field, vmr_field, nlte_field,
                    cloudbox_on, cloudbox_checked, scat_data_checked,
@@ -161,13 +241,19 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
 
             // Add to radiation field
             radiation_field.data(ii,jj,joker,joker) = iy;
+            
+            if(for_nlte)
+              transmission_field.data(ii, jj, joker, joker, joker) = iy_aux[0](joker, joker, joker, iy_aux[0].ncols()-1);
         }
     }
 
     // Get iy from radiation_field
-    iy.resize(f_grid.nelem(),stokes_dim);
-    iy=0;
-    integrate_over_the_sphere(iy, radiation_field, za_coords, aa_coords);
+    if(not for_nlte)
+    {
+      iy.resize(f_grid.nelem(),stokes_dim);
+      iy=0;
+      integrate_over_the_sphere(iy, radiation_field.data, za_coords, aa_coords);
+    }
 }
 
 
@@ -218,8 +304,6 @@ void radiation_fieldCalcForRotationalNLTE(Workspace&                      ws,
                                           Vector&                         y,
                                           const ArrayOfArrayOfSpeciesTag& abs_species,
                                           const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                                          const SpeciesAuxData&           isotopologue_ratios,
-                                          const SpeciesAuxData&           partition_functions,
                                           const Agenda&                   iy_main_agenda,
                                           const Tensor4&                  nlte_field,
                                           const Tensor4&                  vmr_field,
@@ -235,7 +319,6 @@ void radiation_fieldCalcForRotationalNLTE(Workspace&                      ws,
                                           const Index&                    nf,
                                           const Verbosity&                verbosity)
 {
-  extern const Numeric SPEED_OF_LIGHT;
   bool use_wind=false;
   
   // Number of zenith angles and a zheck that there is enough to make simple integrations
@@ -294,78 +377,43 @@ void radiation_fieldCalcForRotationalNLTE(Workspace&                      ws,
   
   VectorSort(f_grid);
   
-  // Set dummy variables 
-  ArrayOfArrayOfMatrix dxsec(0), dxsrc(0);
-  const static ArrayOfRetrievalQuantity jacs(0);
-  const static Numeric lm = 0.;
-  const static Index xsp = 0;
+  Matrix ppath_wind;
+  if(use_wind)
+  {
+    ppath_wind.resize(3, np);
+    for(Index ip = 0; ip < np; ip++)
+    {
+      ppath_wind(0, ip) = wind_u_field(ip, 0, 0);
+      ppath_wind(1, ip) = wind_v_field(ip, 0, 0);
+      ppath_wind(2, ip) = wind_w_field(ip, 0, 0);
+    }
+  }
   
-  Matrix ppath_wind, ppath_f;
-  
-  // Perform computations of cross-section and normalized source function...  Note that this is without wind at this point
-  abs_xsec_per_speciesAddLines2(pconst_xsec, pconst_xsrc, dxsec, dxsrc, aoaost, jacs, aoi, f_grid, p_grid, abs_t, abs_nlte, 
-                                lm, xsp, abs_vmrs, aoaolr, isotopologue_ratios, partition_functions, verbosity);
+  Vector t = Vector(nl*np);
+  y = Vector(nl*np);
+  Index i = 0;
   
   // Compute the field with the slow method
-  ArrayOfGriddedField4 data(np);
+  GriddedField4 rady;
+  GriddedField5 tran;
   for(Index ip = 0; ip < np; ip++)
   {
     Vector rte_pos(3, 0.); 
     rte_pos[0] = z_field(ip, 0, 0) + 0.01;  // The value at 1 cm above because of bug in ppath calculation
     Matrix iy;
-    radiation_fieldCalcFromiyCalc(ws, iy, data[ip], 1, 1, f_grid, t_field, z_field, vmr_field, nlte_field,
-                                  0, 1, 0, 1, rte_pos, "1", iy_main_agenda, za, aa, verbosity);
-  }
-  
-  // Generate a weighting tensor 
-  Tensor5 weights(nl, np, nz, na, nf*nl);
-  for(Index iz = 0; iz < nz; iz++) 
-  {
-    for(Index ia = 0; ia < na; ia++)
-    {
-      Vector los(2); los[0] = za[iz]; los[1] = aa[ia];
-      for(Index ip = 0; ip < np; ip++)
-      {
-        if(use_wind)
-        {
-          const Numeric vd = 1. - dotprod_with_los(los, wind_u_field(ip, 0, 0), wind_v_field(ip, 0, 0), 
-                                                  wind_w_field(ip, 0, 0), 3)/SPEED_OF_LIGHT;
-          Vector tmp(f_grid);
-          tmp *= vd;
-          ArrayOfGridPos gp(nf*nl);
-          Matrix itw(2, nf*nl);
-          ArrayOfMatrix xsec(nl, Matrix(nl*nf, np));
-          gridpos(gp, f_grid, tmp, 0.5); // WARNING:  This part might fail...
-          interpweights(itw, gp);
-          for(Index il = 0; il < nl; il++)
-          {
-            interp(xsec[il](joker, ip), itw, pconst_xsec[il](joker, ip), gp);
-            xsec[il](joker, ip) /= xsec[il](joker, ip).sum();
-            weights(il, ip, iz, ia, joker) = xsec[il](joker, ip);
-          }
-        }
-        else
-        {
-          for(Index il = 0; il < nl; il++)
-          {
-            weights(il, ip, iz, ia, joker) = pconst_xsec[il](joker, ip);
-            weights(il, ip, iz, ia, joker) /= pconst_xsec[il](joker, ip).sum();
-          }
-        }
-      }
-    }
-  }
-  
-  Matrix iy(nf*nl, 1);
-  y = Vector(np*nl, 0.0);
-  Index i = 0;
-  for(Index ip = 0; ip < np; ip++)
-  {
+    radiation_fieldCalcFromiyCalc(ws, iy, rady, tran, 1, 1, f_grid, t_field, z_field, vmr_field, nlte_field,
+                                  0, 1, 0, 1, rte_pos, "1", iy_main_agenda, za, aa, 1, verbosity);
+    
+    Vector J, T;
+    
+    total_line_source_and_transmission(J, T, rady, tran, 
+                                       aoaolr, abs_species, f_grid, abs_vmrs(joker, ip),
+                                       use_wind?ppath_wind(joker, ip):Vector(0), za, aa, 
+                                       p_grid[ip], abs_t[ip], verbosity);
     for(Index il = 0; il < nl; il++)
     {
-      integrate_over_the_sphere(iy, data[ip],  za, aa, weights(il, ip, joker, joker, joker));
-      for(Index iv = 0; iv < nl*nf; iv++)
-        y[i] += iy(iv, 0);
+      y[i] = J[il];
+      t[i] = T[il];
       i++;
     }
   }

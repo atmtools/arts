@@ -13354,7 +13354,7 @@ void define_md_data_raw()
          "Output *iy* is defined as the integration of those angles divided by 4PI.\n"
          ),
         AUTHORS( "Richard Larsson" ),
-        OUT( "iy", "radiation_field" ),
+        OUT( "iy", "radiation_field", "transmission_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -13362,11 +13362,12 @@ void define_md_data_raw()
             "f_grid", "t_field", "z_field", "vmr_field", "nlte_field",
             "cloudbox_on", "cloudbox_checked", "scat_data_checked",
             "stokes_dim", "rte_pos", "iy_unit", "iy_main_agenda" ),
-        GIN("za_coords", "aa_coords"),
-        GIN_TYPE("Vector", "Vector"),
-        GIN_DEFAULT(NODEF, NODEF),
+        GIN("za_coords", "aa_coords", "do_transmission_field"),
+        GIN_TYPE("Vector", "Vector", "Index"),
+        GIN_DEFAULT(NODEF, NODEF, NODEF),
         GIN_DESC("Zenith angle coordinates [0,180]",
-                 "Azimuth angle coordinates [-180,180]")
+                 "Azimuth angle coordinates [-180,180]",
+                 "Index to also return *transmission_field*")
       ));
     
     md_data_raw.push_back
@@ -13381,8 +13382,7 @@ void define_md_data_raw()
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN( "abs_species", "abs_lines_per_species",  "isotopologue_ratios", 
-          "partition_functions", "iy_main_agenda", "nlte_field",  "vmr_field", 
+      IN( "abs_species", "abs_lines_per_species",  "iy_main_agenda", "nlte_field",  "vmr_field", 
           "t_field", "z_field", "wind_u_field", "wind_v_field", "wind_w_field", "p_grid"),
       GIN(     "df",      "nz",    "na",    "nf"),
       GIN_TYPE("Numeric", "Index", "Index", "Index"),

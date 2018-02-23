@@ -1,6 +1,31 @@
+2018-02-23  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-969
+	
+	* src/gridded_fields.{cc,h}: End of line added to 
+	higher order fields when printing.
+	
+	* src/linefunctions.cc:  Added Linefunctions::set_lineshape 
+	to compute the line shape
+	
+	* src/linescaling.cc:  Forgot a minus sign...
+	
+	* src/m_radiation_field.cc:  Now also deals with the transmission
+	field required by NLTE computations.  Also changed how the integration
+	happens to a separate function, removing some of the optional
+	arguments I introduced before.  Again, no one should be using these
+	functions yet as they just serve to prototype necessary input/output
+	for the full nlte-approach
+	
+	* src/{methods,workspace}.cc:  Added transmission_field
+	and changed input/output of some of the silly field-computers.
+	
+	There should be just one parameter missing at this point before
+	the output becomes nlte_field instead of these temporaries
+
 2018-02-23  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-2-3-967
+	* arts-2-3-968
 
 	* src/m_basic_types.cc, src/methods.cc:
 
@@ -8,7 +33,7 @@
 
 2018-02-23  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-2-3-966
+	* arts-2-3-967
 
 	* Preliminary implementation of support for Hitran cross section
 	species. http://hitran.org/xsc/
@@ -76,7 +101,7 @@
 
 2018-02-22  Richard Larsson <ric.larsson@gmail.com>
 
-	* arts-2-3-965
+	* arts-2-3-966
 	
 	* src/m_radiation_field.cc:  Removed lingering debug information...
 

@@ -50,6 +50,20 @@
 
 namespace Linefunctions
 {
+  void set_lineshape(ComplexVectorView F, 
+                     const LineRecord& line, 
+                     ConstVectorView f_grid, 
+                     ConstVectorView vmrs, 
+                     const Numeric& temperature, 
+                     const Numeric& pressure, 
+                     const Numeric& pressure_limit_for_linemixing, 
+                     const Numeric& zeeman_df, 
+                     const Numeric& magnetic_magnitude,
+                     const ArrayOfIndex& broad_spec_locations,
+                     const Index& this_species,
+                     const Index& water_species,
+                     const Verbosity& verbosity);
+  
   void set_lorentz(ComplexVectorView F, 
                    ArrayOfComplexVector& dF, 
                    ConstVectorView f_grid, 

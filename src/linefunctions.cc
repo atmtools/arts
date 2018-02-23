@@ -50,6 +50,167 @@ static const Numeric C1 = - PLANCK_CONST / BOLTZMAN_CONST;
 static const Numeric doppler_const = sqrt(2.0 * BOLTZMAN_CONST * AVOGADROS_NUMB ) / SPEED_OF_LIGHT; 
 
 
+void Linefunctions::set_lineshape(ComplexVectorView F, 
+                                  const LineRecord& line, 
+                                  ConstVectorView f_grid, 
+                                  ConstVectorView vmrs, 
+                                  const Numeric& temperature, 
+                                  const Numeric& pressure, 
+                                  const Numeric& pressure_limit_for_linemixing, 
+                                  const Numeric& zeeman_df, 
+                                  const Numeric& magnetic_magnitude,
+                                  const ArrayOfIndex& broad_spec_locations,
+                                  const Index& this_species,
+                                  const Index& water_species,
+                                  const Verbosity& verbosity)
+{
+  // Pressure broadening terms
+  const Numeric partial_pressure = pressure * vmrs[this_species];
+  Numeric G0, G2, e, L0, L2, FVC;
+  line.PressureBroadening().GetPressureBroadeningParams(
+    G0, G2, e, L0, L2, FVC, line.Ti0()/temperature, pressure, partial_pressure, 
+    this_species, water_species, broad_spec_locations, vmrs, verbosity);
+  
+  // Line mixing terms
+  Numeric Y=0, G=0, DV=0;
+  line.LineMixing().GetLineMixingParams(Y, G, DV, temperature, pressure,  pressure_limit_for_linemixing);
+  
+  // Line shape usage remembering variable
+  LineShapeType lst = LineShapeType::End;
+  
+  ArrayOfComplexVector dF(0);
+  const Numeric doppler_constant = DopplerConstant(temperature, line.IsotopologueData().Mass());
+  
+  switch(line.GetLineShapeType())
+  {
+    case LineShapeType::ByPressureBroadeningData:
+      switch(line.PressureBroadening().Type())
+      {
+        // Use data as per speed dependent air
+        case PressureBroadeningData::PB_SD_AIR_VOLUME:
+        case PressureBroadeningData::PB_PURELY_FOR_TESTING:
+          lst = LineShapeType::HTP;
+          set_htp(F, dF, f_grid, zeeman_df, magnetic_magnitude, line.F(), doppler_constant, G0, L0, G2, L2, e, FVC);
+          break;
+          // Use for data that requires air and water Voigt broadening
+        case PressureBroadeningData::PB_AIR_AND_WATER_BROADENING:
+          // Use for data that requires planetary Voigt broadening
+        case PressureBroadeningData::PB_PLANETARY_BROADENING:
+          // Use for data that requires air Voigt broadening
+        case PressureBroadeningData::PB_AIR_BROADENING:
+          // Above should be all methods of pressure broadening requiring Voigt in ARTS by default
+          lst = LineShapeType::Voigt;
+          set_faddeeva_algorithm916(F, dF, f_grid, zeeman_df, magnetic_magnitude, line.F(), doppler_constant, G0, L0, DV);
+          break;
+        default:
+          throw std::runtime_error("Developer has messed up and needs to add the key to the code above this error");
+      }
+      break;
+        case LineShapeType::Doppler:
+          lst = LineShapeType::Doppler;
+          set_doppler(F, dF, f_grid, zeeman_df, magnetic_magnitude, line.F(), doppler_constant);
+          break;
+          // This line only needs Hartmann-Tran
+        case LineShapeType::HTP:
+          set_htp(F, dF, f_grid, zeeman_df, magnetic_magnitude, line.F(), doppler_constant, G0, L0, G2, L2, e, FVC);
+          lst = LineShapeType::HTP;
+          break;
+          // This line only needs Lorentz
+        case LineShapeType::Lorentz:
+          lst = LineShapeType::Lorentz;
+          set_lorentz(F, dF, f_grid, zeeman_df, magnetic_magnitude, line.F(), G0, L0, DV);
+          break;
+          // This line only needs Voigt
+        case LineShapeType::Voigt:
+          lst = LineShapeType::Voigt;
+          set_faddeeva_algorithm916(F, dF, f_grid, zeeman_df, magnetic_magnitude, line.F(), doppler_constant, G0, L0, DV);
+          break;
+        case LineShapeType::End:
+        default:
+          throw std::runtime_error("Cannot understand the requested line shape type.");
+  }
+  
+  switch(line.GetMirroringType())
+  {
+    // No mirroring
+    case MirroringType::None:
+      break;
+      // Lorentz mirroring
+    case MirroringType::Lorentz:
+    {
+      // Set the mirroring computational vectors and size them as needed
+      ComplexVector Fm(F.nelem());
+      ArrayOfComplexVector dFm(0);
+      
+      set_lorentz(Fm, dFm, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), G0, -L0, -DV);
+      
+      // Apply mirroring
+      F -= Fm;
+    }
+    break;
+    // Same type of mirroring as before
+    case MirroringType::SameAsLineShape:
+    {
+      // Set the mirroring computational vectors and size them as needed
+      ComplexVector Fm(F.nelem());
+      ArrayOfComplexVector dFm(0);
+      
+      switch(lst)
+      {
+        case LineShapeType::Doppler:
+          set_doppler(Fm, dFm, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), -doppler_constant);
+          break;
+        case LineShapeType::Lorentz:
+          set_lorentz(Fm, dFm, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), G0, -L0, -DV);
+          break;
+        case LineShapeType::Voigt:
+          set_faddeeva_algorithm916(Fm, dFm, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), -doppler_constant, G0, -L0, -DV);
+          break;
+        case LineShapeType::HTP:
+          // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
+          set_htp(Fm, dFm, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), -doppler_constant, G0, -L0, G2, -L2, e, FVC);
+          break;
+        case LineShapeType::ByPressureBroadeningData:
+        case LineShapeType::End:
+        default:
+          throw std::runtime_error("Cannot understand the requested line shape type for mirroring.");
+      }
+      F -= Fm;
+      break;
+    }
+        case MirroringType::End:
+        default:
+          throw std::runtime_error("Cannot understand the requested mirroring type for mirroring.");
+  }
+  
+  // Line normalization if necessary
+  // The user sets this by setting LSM LNT followed by and index
+  // that is internally interpreted to mean some kind of lineshape normalization
+  switch(line.GetLineNormalizationType())
+  {
+    // No normalization
+    case LineNormalizationType::None:
+      break;
+      // van Vleck and Huber normalization
+    case LineNormalizationType::VVH:
+      apply_VVH_scaling(F, dF, f_grid, line.F(), temperature);
+      break;
+      // van Vleck and Weiskopf normalization
+    case LineNormalizationType::VVW:
+      apply_VVW_scaling(F, dF, f_grid, line.F());
+      break;
+      // Rosenkranz's Quadratic normalization
+    case LineNormalizationType::RosenkranzQuadratic:
+      apply_rosenkranz_quadratic_scaling(F, dF, f_grid, line.F(), temperature);
+      break;
+    case LineNormalizationType::End:
+    default:
+      throw std::runtime_error("Cannot understand the requested line normalization type.");
+  }
+}
+
+
+
 /*!
  * Sets the line shape to Lorentz line shape. Normalization is unity.
  * 

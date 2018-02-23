@@ -4123,6 +4123,17 @@ void Workspace::define_wsv_data()
        "Grids: [Zenith angle, Azimuth Angle, *f_grid*, *stokes_dim*]\n"
        ),
       GROUP( "GriddedField4" )));
+    
+    wsv_data.push_back
+    (WsvRecord
+    ( NAME( "transmission_field" ),
+      DESCRIPTION
+      (
+        "The spherical transmission field at a single position.\n"
+        "\n"
+        "Grids: [Zenith angle, Azimuth Angle, *f_grid*, *stokes_dim*, *stokes_dim*]\n"
+      ),
+      GROUP( "GriddedField5" )));
 
   wsv_data.push_back
     (WsvRecord

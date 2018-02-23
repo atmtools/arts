@@ -589,6 +589,7 @@ typedef Array<GriddedField1> ArrayOfGriddedField1;
 typedef Array<GriddedField2> ArrayOfGriddedField2;
 typedef Array<GriddedField3> ArrayOfGriddedField3;
 typedef Array<GriddedField4> ArrayOfGriddedField4;
+typedef Array<GriddedField5> ArrayOfGriddedField5;
 typedef Array< Array<GriddedField1> > ArrayOfArrayOfGriddedField1;
 typedef Array< Array<GriddedField2> > ArrayOfArrayOfGriddedField2;
 typedef Array< Array<GriddedField3> > ArrayOfArrayOfGriddedField3;

@@ -289,39 +289,33 @@ ostream& operator<<(ostream& os, const GriddedField1& gf)
 //! See GriddedField::operator<<
 ostream& operator<<(ostream& os, const GriddedField2& gf)
 {
-  return os << *((GriddedField*)&gf) << "Data:" << endl << gf.data;
+  return os << *((GriddedField*)&gf) << "Data:" << endl << gf.data << endl;
 }
 
 
 //! See GriddedField::operator<<
 ostream& operator<<(ostream& os, const GriddedField3& gf)
 {
-  return os << *((GriddedField*)&gf) << "Data:" << endl << gf.data;
+  return os << *((GriddedField*)&gf) << "Data:" << endl << gf.data << endl;
 }
 
 
 //! See GriddedField::operator<<
 ostream& operator<<(ostream& os, const GriddedField4& gf)
 {
-  return os << *((GriddedField*)&gf) << "Data:" << endl << gf.data;
+  return os << *((GriddedField*)&gf) << "Data:" << endl << gf.data << endl;
 }
 
 
 //! See GriddedField::operator<<
 ostream& operator<<(ostream& os, const GriddedField5& gf)
 {
-  return os << *((GriddedField*)&gf) << "Data:" << endl << gf.data;
+  return os << *((GriddedField*)&gf) << "Data:" << endl << gf.data << endl;
 }
 
 
 //! See GriddedField::operator<<
 ostream& operator<<(ostream& os, const GriddedField6& gf)
 {
-  return os << *((GriddedField*)&gf) << "Data:" << endl << gf.data;
+  return os << *((GriddedField*)&gf) << "Data:" << endl << gf.data << endl;
 }
-
-
-
-
-
-

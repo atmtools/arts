@@ -542,7 +542,7 @@ Numeric boltzman_factor(const Numeric& T,
   extern const Numeric BOLTZMAN_CONST;
   static const Numeric c = 1 / BOLTZMAN_CONST;
   
-  return exp(E0 * c / T);
+  return exp(-E0 * c / T);
 }
 
 
