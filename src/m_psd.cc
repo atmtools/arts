@@ -1180,6 +1180,11 @@ void psdF07 (
       Numeric swc = pnd_agenda_input(ip,0);
       Numeric   t = pnd_agenda_input_t[ip];
 
+      // NaN can be generated for extremly small SWC (such as 1e-78)
+      // As a solution set a limit, and consider all below as zero
+      if( abs(swc) < 1e-15 )
+        { swc = 0.0; }
+      
       // No calc needed if swc==0 and no jacobians requested.
       if( (swc==0.) && (!ndx) )
         { continue; }   // If here, we are ready with this point!

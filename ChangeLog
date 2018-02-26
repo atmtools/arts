@@ -1,5 +1,13 @@
 2018-02-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-972
+
+	* src/m_psd.cc (psdF07): NaNs in PSD were obtained for extremly
+	small values, such as 1e-96. Now all SWC below 1e-15 is considered
+	to be zero.
+
+2018-02-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-971
 
 	* src/m_ppath.cc (ppathPlaneParallel): Managed to commit with a
