@@ -1196,7 +1196,7 @@ void ppathPlaneParallel(
       
       // Calculate end_lstep, if > 0
       if( z_sensor >= z_toa )
-        { ppath_end_lstep = dz2dl * ( z_sensor - z_toa ); }
+        { ppath.end_lstep = dz2dl * ( z_sensor - z_toa ); }
 
       // ...
       
