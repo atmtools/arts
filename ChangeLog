@@ -1,15 +1,21 @@
+2018-02-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-970
+
+	* src/m_ppath.cc (ppathPlaneParallel): Just started.
+
 2018-02-23  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-969
-	
-	* src/gridded_fields.{cc,h}: End of line added to 
+
+	* src/gridded_fields.{cc,h}: End of line added to
 	higher order fields when printing.
-	
-	* src/linefunctions.cc:  Added Linefunctions::set_lineshape 
+
+	* src/linefunctions.cc:  Added Linefunctions::set_lineshape
 	to compute the line shape
-	
+
 	* src/linescaling.cc:  Forgot a minus sign...
-	
+
 	* src/m_radiation_field.cc:  Now also deals with the transmission
 	field required by NLTE computations.  Also changed how the integration
 	happens to a separate function, removing some of the optional

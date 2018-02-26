@@ -11797,6 +11797,27 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ppathPlaneParallel" ),
+        DESCRIPTION
+        (
+         "Work in progress ...\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "ppath" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "z_field", "z_surface",
+            "cloudbox_on", "cloudbox_limits", "ppath_inside_cloudbox_do",
+            "rte_pos", "rte_los", "ppath_lmax" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ppathStepByStep" ),
         DESCRIPTION
         (

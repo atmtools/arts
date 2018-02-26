@@ -1051,6 +1051,7 @@ void VectorZtanToZa1D(
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppathWriteXMLPartial (//WS Input:
                            const String& file_format,
@@ -1082,3 +1083,140 @@ void ppathWriteXMLPartial (//WS Input:
 }
 
 
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppathPlaneParallel(
+          Ppath&          ppath,
+    const Index&          atmosphere_dim,
+    const Tensor3&        z_field,
+    const Matrix&         z_surface,
+    const Index&          cloudbox_on, 
+    const ArrayOfIndex&   cloudbox_limits,          
+    const Index&          ppath_inside_cloudbox_do,
+    const Vector&         rte_pos,
+    const Vector&         rte_los,
+    const Numeric&        ppath_lmax,          
+    const Verbosity& )
+{
+  // This function is a WSM but it is normally only called from yCalc. 
+  // For that reason, this function does not repeat input checks that are
+  // performed in yCalc, it only performs checks regarding the sensor 
+  // position and LOS.
+
+  const Numeric z_sensor  = rte_pos[0];
+  const Numeric za_sensor = rte_los[0];
+  const Index nz = z_field.npages();
+  const Numeric z_toa  = z_field(nz-1,0,0);
+  
+  // Basics checks of input
+  if( atmosphere_dim != 1 )
+    throw runtime_error( "The function can only be used for 1D atmospheres." );
+  chk_rte_pos( atmosphere_dim, rte_pos );
+  chk_rte_los( atmosphere_dim, rte_los );
+  if( ppath_inside_cloudbox_do  &&  !cloudbox_on )
+    throw runtime_error( "The WSV *ppath_inside_cloudbox_do* can only be set "
+                         "to 1 if also *cloudbox_on* is 1." );
+  if( z_sensor < z_surface(0,0) )
+    {
+      ostringstream os;
+      os << "The sensor is below the surface." 
+         << "   altitude of sensor  : " << z_sensor << endl
+         << "   altitude of surface : " << z_surface(0,0);
+      throw runtime_error( os.str() );
+    }
+  if( abs( za_sensor - 90 ) < 1 )
+    {
+      ostringstream os;
+      os << "The zenith angle is " << za_sensor << endl
+         << "The method does not allow this. The zenith angle must deviate\n"
+         << "from 90 deg with at least 1 deg. That is, to be outside [89,91].";
+      throw runtime_error( os.str() );
+    }
+
+  // Find end grid position
+  GridPos gp_end;
+  if( z_sensor >= z_toa )
+    { gp_end.idx = nz-2; gp_end.fd[0] = 1; gp_end.fd[1] = 0; }
+  else
+    {
+      for( Index i=nz-2; i>=0; i-- )
+        {
+          if( z_sensor >= z_field(i,0,0) )
+            {
+              gp_end.idx   = i;
+              gp_end.fd[0] = (         z_sensor - z_field(i,0,0) ) /
+                             ( z_field(i+1,0,0) - z_field(i,0,0) );
+              gp_end.fd[1] = 1 - gp_end.fd[0];
+              break;
+            }
+        }
+    }
+      
+  // Catch cases resulting in a ppath with 1 point
+  bool ready = false;
+  if( z_sensor >= z_toa  &&  za_sensor < 90 ) 
+    {
+      // Path fully in space
+      ppath_init_structure(  ppath, atmosphere_dim, 1 );
+      ppath_set_background( ppath, 1 );  
+      ready = true;
+    }
+  if( z_sensor == z_surface(0,0)  &&  za_sensor > 90 ) 
+    {
+      // On ground, looking down
+      ppath_init_structure(  ppath, atmosphere_dim, 1 );
+      ppath_set_background( ppath, 2 );  
+      ready = true;
+    }
+  if( cloudbox_on  &&  !ppath_inside_cloudbox_do )
+    {
+      if( z_sensor > z_field(cloudbox_limits[0],0,0)   &&
+          z_sensor < z_field(cloudbox_limits[1],0,0) )
+        {
+          // Inside cloud box
+          ppath_init_structure(  ppath, atmosphere_dim, 1 );
+          ppath_set_background( ppath, 4 );  
+          ready = true;
+        }
+      else if( ( z_sensor==z_field(cloudbox_limits[0],0,0) && za_sensor>90 ) ||
+               ( z_sensor==z_field(cloudbox_limits[1],0,0) && za_sensor<90 ) )
+        {
+          // Cloud box boundary
+          ppath_init_structure(  ppath, atmosphere_dim, 1 );
+          ppath_set_background( ppath, 2 );  
+          ready = true;
+        }
+    }
+
+  // Determine ppath
+  if( !ready )
+    {
+      const Numeric dz2dl = abs( 1 / cos(DEG2RAD*za_sensor) );
+      
+      // Calculate end_lstep, if > 0
+      if( z_sensor >= z_toa )
+        { ppath_end_lstep = dz2dl * ( z_sensor - z_toa ); }
+
+      // ...
+      
+      ppath_init_structure(  ppath, atmosphere_dim, 1 );
+    }
+
+  
+  // Remaining data
+  ppath.constant   = INFINITY;  // Not defined here as r = Inf
+  ppath.r          = INFINITY;
+  if( ppath.np == 1 )
+    {
+      ppath.pos(0,0)   = z_sensor;
+      ppath.pos(0,1)   = 0; 
+      ppath.los(0,0)   = za_sensor;
+    }
+  ppath.gp_p[0]    = gp_end;
+  ppath.end_pos[0] = z_sensor;
+  ppath.end_pos[1] = 0; 
+  ppath.end_los[0] = za_sensor;
+  ppath.nreal      = 1;
+  ppath.ngroup     = 1;
+}

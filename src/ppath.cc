@@ -1710,9 +1710,8 @@ void r_crossing_3d(
 /*!
    Initiates a Ppath structure to hold the given number of points.
 
-   All fields releated with the surface, symmetry and tangent point are set
-   to 0 or empty. The background field is set to background case 0. The
-   constant field is set to -1. The refraction field is set to 0.
+   The background field is set to background case 0. The constant field is set
+   to -1. The refraction field is set to 0.
 
    The length of the lstep field is set to np-1.
 
