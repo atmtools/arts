@@ -822,28 +822,34 @@ void MCRadar(// Workspace reference:
                             refellipsoid,z_surface, t_field, vmr_field, 
                             cloudbox_limits, pnd_field, scat_data, 
                             verbosity ); 
-          s_tot += s_path; 
-          t_tot += t_path; 
-
-          // 
-          Csca = ext_mat_mono(0,0) - abs_vec_mono[0];
-          Cext = ext_mat_mono(0,0);
-          if( anyptype_nonTotRan )
-            {
-              const Numeric Irat = Ihold[1] / Ihold[0];
-              Csca += Irat * (ext_mat_mono(1,0) - abs_vec_mono[1]);
-              Cext += Irat * ext_mat_mono(0,1);
-            }
-          albedo = Csca / Cext;
-
-          // Terminate if absorption event, outside cloud, or surface
-          Numeric rn = rng.draw();
-          if( rn > albedo || !inside_cloud || termination_flag != 0 )
+          if( !inside_cloud || termination_flag != 0 )
             {
               keepgoing = false;
             }
           else
             {
+
+              s_tot += s_path; 
+              t_tot += t_path; 
+
+              // 
+              Csca = ext_mat_mono(0,0) - abs_vec_mono[0];
+              Cext = ext_mat_mono(0,0);
+              if( anyptype_nonTotRan )
+                {
+                  const Numeric Irat = Ihold[1] / Ihold[0];
+                  Csca += Irat * (ext_mat_mono(1,0) - abs_vec_mono[1]);
+                  Cext += Irat * ext_mat_mono(0,1);
+                }
+              albedo = Csca / Cext;
+
+              // Terminate if absorption event, outside cloud, or surface
+              Numeric rn = rng.draw();
+              if( rn > albedo )
+                {
+                  keepgoing = false; // Redundant?
+                  break; // Best way to control logic?
+                }
 
               Vector rte_los_geom(2);
 
@@ -942,6 +948,7 @@ void MCRadar(// Workspace reference:
                   // Compute reflectivity contribution here
                   mult( Ipath, evol_op, Ihold);
                   Ipath /= Ipath[0];
+                  Ipath *= Ihold[0];
                   mult( Ihold, P, Ipath );
                   mult( I_i, trans_mat, Ihold );
                   Ihold = Ipath;
@@ -952,16 +959,17 @@ void MCRadar(// Workspace reference:
                         integrity = false;
                      }
 
-                  if( r_trav >= r_min && integrity )
+                  if( r_trav > r_min && integrity )
                     {
                       // Add reflectivity to proper range bin
-                      Index ibin = -1;
+                      Index ibin = 0;
                       r_bin = 0.0;
-                      while( r_bin<r_trav && ibin<nbins-1 )
+                      while( r_bin < r_trav && ibin <= nbins+1 )
                         {
                           ibin++;
                           r_bin = range_bins[ibin];
                         }
+                      ibin -= 1;
 
                       // Calculate rx antenna weight and polarization rotation
                       Matrix R_rx(3,3);
@@ -996,10 +1004,10 @@ void MCRadar(// Workspace reference:
                   mult( Ipath, Z, Ihold );
                   Ihold = Ipath;
                   local_rte_los = new_rte_los;
+                  
                 }
               else
                 {
-
                   // Past farthest range
                   keepgoing = false;
                 }

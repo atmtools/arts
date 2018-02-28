@@ -1171,6 +1171,12 @@ void mcPathTraceRadar(
                         0, cloudbox_limits, false, 
                         rte_pos, rte_los, verbosity );
 
+  if( ppath_step.np == 0 )
+    {
+      termination_flag = 1;
+      return;
+    }
+
   // Index in ppath_step of end point considered presently
   Index ip = 0;
 
@@ -1220,7 +1226,14 @@ void mcPathTraceRadar(
 
   evop0 = 1;
   I1 = Iprop[0];
-  Q1 = Iprop[1];
+  if( stokes_dim > 1 )
+    {
+      Q1 = Iprop[1];
+    }
+  else
+    {
+      Q1 = 0.0;
+    }
   while( (evop0>r) && (!termination_flag) )
     {
       istep++;
@@ -1238,7 +1251,7 @@ void mcPathTraceRadar(
       pnd_vecArray[0] = pnd_vecArray[1];
 
       // Shall new ppath_step be calculated?
-      if( ip == ppath_step.np-1 ) 
+      if( ip >= ppath_step.np-1 ) 
         {
           ip = 1;
           ppath_step_agendaExecute( ws, ppath_step, ppath_lmax, ppath_lraytrace, 
@@ -1246,6 +1259,11 @@ void mcPathTraceRadar(
                                     f_grid[Range(f_index,1)], 
                                     ppath_step_agenda );
                                     
+          if( ppath_step.np <= 1 )
+            {
+              termination_flag = 1;
+              break;
+            }
           inside_cloud = is_gp_inside_cloudbox( ppath_step.gp_p[ip], 
                                                 ppath_step.gp_lat[ip], 
                                                 ppath_step.gp_lon[ip], 
@@ -1314,7 +1332,7 @@ void mcPathTraceRadar(
           // path_step_agenda just detects surface intersections, and
           // if TOA is reached requires a special check.
           // But we are already ready if evol_op<=r
-          if( ip == ppath_step.np - 1 )
+          if( ip >= ppath_step.np - 1 )
             {
               if( ppath_what_background(ppath_step) )
                 { termination_flag = 2; }   //we have hit the surface
@@ -1325,10 +1343,16 @@ void mcPathTraceRadar(
         }
     } // while
 
-  if( termination_flag ) 
+  if( termination_flag != 0 )
     { //we must have reached the cloudbox boundary
-      rte_pos = ppath_step.pos(ip,joker);
-      rte_los = ppath_step.los(ip,joker);
+      if( ip < ppath_step.np )
+        {
+          // This is not used if termination flag set,
+          // so not an issue of ip is too large.
+          // Need to think about this. 
+          rte_pos = ppath_step.pos(ip,joker); 
+          rte_los = ppath_step.los(ip,joker);
+        }
     }
   else
     {
