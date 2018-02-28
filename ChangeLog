@@ -1,3 +1,14 @@
+2018-02-28  Ian Adams
+
+	* arts-2-3-974
+
+	* ChangeLog entry added on behalf of Ian.
+
+	* src/m_montecarlo.cc, src/montecarlo.cc:
+
+	Enhancements to MCRadar: Fixes range bin displacement.
+	Adjusts photon scaling.
+
 2018-02-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-973
