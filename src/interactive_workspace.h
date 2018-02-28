@@ -36,7 +36,8 @@
 class InteractiveWorkspace : private Workspace {
 public:
 
-    InteractiveWorkspace();
+    InteractiveWorkspace(const Index verbosity= 1,
+                         const Index agenda_verbosity = 0);
 
     using Workspace::is_initialized;
     using Workspace::operator[];
@@ -95,7 +96,6 @@ public:
 
 private:
 
-    Verbosity  verbosity_;
     static size_t     n_anonymous_variables_;
 };
 

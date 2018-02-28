@@ -1,3 +1,27 @@
+2018-02-28  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-973
+
+	* src/interactive_workspace.{cc,h} (InteractiveWorkspace):
+
+	Add verbosity parameters to constructor.
+
+	Remove member verbosity_ as it was only used in the constructor.
+
+	* src/arts_api.{cc,h} (create_workspace):
+
+	Add verbosity parameters.
+
+	* src/messages.h (Verbosity):
+
+	Change type of Verbosity member to constant reference. Avoids lots of
+	copying of Verbosity objects.
+
+	* src/doit.cc (doit_scat_fieldNormalize):
+
+	Adapt out level switching since ArtsOut objects cannot be copied
+	anymore due to change in messages.h.
+
 2018-02-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-972

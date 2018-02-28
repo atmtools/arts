@@ -12,10 +12,15 @@ Index get_wsv_id(const char*);
 
 size_t InteractiveWorkspace::n_anonymous_variables_ = 0;
 
-InteractiveWorkspace::InteractiveWorkspace() : Workspace(), verbosity_(1, 1, 1)
+InteractiveWorkspace::InteractiveWorkspace(const Index verbosity,
+                                           const Index agenda_verbosity)
+        : Workspace()
 {
     Workspace::initialize();
-    verbosity_at_launch = verbosity_;
+    verbosity_at_launch.set_screen_verbosity(verbosity);
+    verbosity_at_launch.set_agenda_verbosity(agenda_verbosity);
+    // No report file is used for the C interface
+    verbosity_at_launch.set_file_verbosity(0);
 }
 
 void InteractiveWorkspace::initialize() {

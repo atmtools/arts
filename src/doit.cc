@@ -2836,9 +2836,6 @@ doit_scat_fieldNormalize(Workspace& ws,
     Numeric corr_max = .0;
     Index corr_max_p_index = -1;
 
-    ArtsOut& norm_out = out2;
-    if (norm_debug) norm_out = out0;
-
     for (Index p_index = 0; p_index < Np; p_index++)
     {
         // Calculate scattering integrals
@@ -2865,7 +2862,7 @@ doit_scat_fieldNormalize(Workspace& ws,
             }
             if (norm_debug)
             {
-                norm_out << "  DOIT corr_factor: " << 1.-corr_factor
+                out0 << "  DOIT corr_factor: " << 1.-corr_factor
                 << " ( scat_ext_int: " << scat_ext_int << ", scat_int: " << scat_int << ")"
                 << " at p_index " << p_index << "\n";
             }
@@ -2889,7 +2886,7 @@ doit_scat_fieldNormalize(Workspace& ws,
         }
         else if (norm_debug)
         {
-            norm_out << "  DOIT corr_factor ignored: " << 1.-corr_factor
+            out0 << "  DOIT corr_factor ignored: " << 1.-corr_factor
             << " ( scat_ext_int: " << scat_ext_int << ", scat_int: " << scat_int << ")"
             << " at p_index " << p_index << "\n";
         }
@@ -2897,15 +2894,22 @@ doit_scat_fieldNormalize(Workspace& ws,
     }
 
 
+    ostringstream os;
     if (corr_max_p_index != -1)
     {
-        norm_out << "  Max. DOIT correction factor in this iteration: " << 1.-corr_max
-        << " at p_index " << corr_max_p_index << "\n";
+        os << "  Max. DOIT correction factor in this iteration: "
+           << 1. - corr_max
+           << " at p_index " << corr_max_p_index << "\n";
     }
     else
     {
-        norm_out << "  No DOIT correction performed in this iteration.\n";
+        os << "  No DOIT correction performed in this iteration.\n";
     }
+
+    if (norm_debug)
+        out0 << os.str();
+    else
+        out2 << os.str();
 }
 
 

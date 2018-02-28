@@ -133,7 +133,7 @@ public:
   }
   
 private:
-  Verbosity verbosity;
+  const Verbosity& verbosity;
   int priority;
 };
 

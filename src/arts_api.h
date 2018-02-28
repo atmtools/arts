@@ -326,7 +326,8 @@ extern "C" {
      * \return Pointer to a newly created InteractiveWorkspace object.
      */
     DLL_PUBLIC
-    InteractiveWorkspace* create_workspace();
+    InteractiveWorkspace* create_workspace(const Index verbosity = 1,
+                                           const Index agenda_verbosity = 0);
 
     //! Destroy given workspace.
     DLL_PUBLIC

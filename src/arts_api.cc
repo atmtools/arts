@@ -190,9 +190,10 @@ void destroy_agenda(Agenda *a)
 ////////////////////////////////////////////////////////////////////////////
 // Creating Workspaces
 ////////////////////////////////////////////////////////////////////////////
-InteractiveWorkspace* create_workspace()
+InteractiveWorkspace *create_workspace(const Index verbosity,
+                                       const Index agenda_verbosity)
 {
-    return new InteractiveWorkspace();
+    return new InteractiveWorkspace(verbosity, agenda_verbosity);
 }
 
 void destroy_workspace(InteractiveWorkspace* workspace)
