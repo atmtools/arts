@@ -11800,7 +11800,20 @@ void define_md_data_raw()
       ( NAME( "ppathPlaneParallel" ),
         DESCRIPTION
         (
-         "Work in progress ...\n"
+         "Propagation path calculations for a plane parallel atmosphere.\n"
+         "\n"
+         "This method basically assumes that the planet's radius is infinite,\n"
+         "i.e. the planet surface has no curvature. Some consequences of this\n"
+         "assumption:\n"
+         "   - the mathod can only be used for 1D\n"
+         "   - zenith angles between 89 and 91 deg are not allowed\n"
+         "   - refraction is always neglected\n"
+         "   - radii in ppath are set to Inf\n"
+         "\n"
+         "Notice that the method provides full propagation paths. This means\n"
+         "that *ppath_step_agenda* is ignored (and thus also refraction).\n"
+         "On the other hand, the method considers the cloudbox exactly as\n"
+         "the standard path calculations.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "ppath" ),

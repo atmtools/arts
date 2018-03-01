@@ -2610,13 +2610,19 @@ void iyIndependentBeamApproximation(
   ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace,
                        rte_pos, rte_los, rte_pos2, 0, 0, t_field,
                        z_field, vmr_field, f_grid, ppath_agenda );
-  // This check could be improved: 
-  bool ppath_is_down = is_decreasing( ppath.r );
-  if( !ppath_is_down  &&  !is_increasing( ppath.r ) )
-    throw runtime_error( "A propagation path of limb character found. Such "
-                         "viewing geometries are not supported by ICA. Propagation "
-                         "paths must result in strictly increasing or decreasing "
-                         "altitudes." );
+  //
+  if( ppath.np > 2 )
+    {
+      Numeric signfac = sign( ppath.pos(1,0) - ppath.pos(0,0) );
+      for( Index i=2; i<ppath.np; i++ )
+        {
+          if( signfac*(ppath.pos(i,0) - ppath.pos(i-1,0)) < 0 )
+            throw runtime_error( "A propagation path of limb character found. Such "
+                                 "viewing geometries are not supported by ICA. "
+                                 "Propagation  paths must result in strictly "
+                                 "increasing or decreasing altitudes." );
+        }
+    }
 
   // If scattering and sensor inside atmosphere, we need a pseudo-ppath that
   // samples altitudes not covered by main ppath. We make this second path
@@ -2642,8 +2648,8 @@ void iyIndependentBeamApproximation(
   // Grid positions, sorted correctly
   const Index     np = ppath.np + ppath2.np - 1;
   ArrayOfGridPos  gp_p(np), gp_lat(np), gp_lon(np);
-  if( ppath_is_down )
-    {
+  if( ppath.np>1 && ppath.pos(0,0)>ppath.pos(1,0) )
+    {                         // Ppath is sorted in downward direction
       // Copy ppath in reversed order
       for( Index i=0; i<ppath.np; i++ )
         {

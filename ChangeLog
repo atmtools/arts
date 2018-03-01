@@ -1,3 +1,14 @@
+2018-03-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-975
+
+	* src/m_rte.cc (iyIndependentBeamApproximation): The function made
+	use of ppath.r. Changed as ppath.r is Inf is method below is used.
+	Warning: change not tested.
+
+	* src/m_ppath.cc (ppathPlaneParallel): A complete version. A fair
+	amount of testing done, but loopholes cold still exist.
+
 2018-02-28  Ian Adams
 
 	* arts-2-3-974

@@ -365,18 +365,11 @@ void ppathFromRtePos2(
           it++;
           t_za[it]  = rte_los[0];
           t_dza[it] = dza; 
-          /*
-            cout << "[\n";
-            for( Index k=0; k<=it; k++ )
-              { cout << fixed << setprecision(7) << t_za[k] << " " 
-                     << t_dza[k] << endl; } cout << "];\n";
-          */
           //
           if( dza > 0  &&  rte_los[0] < za_upp_limit )
             { za_upp_limit = rte_los[0]; }
           else if( dza < 0  &&  rte_los[0] > za_low_limit )
             { za_low_limit = rte_los[0]; }
-          //cout << za_low_limit << " - " << za_upp_limit << endl;
 
           // Ready ?
           if( abs(dza) <= za_accuracy )
@@ -1108,6 +1101,10 @@ void ppathPlaneParallel(
   const Numeric za_sensor = rte_los[0];
   const Index nz = z_field.npages();
   const Numeric z_toa  = z_field(nz-1,0,0);
+  const bool above_toa = z_sensor > z_toa ? true : false;
+  const Numeric z_end  = above_toa ? z_toa : z_sensor;
+  const Numeric dz2dl  = abs( 1 / cos(DEG2RAD*za_sensor) );
+        Index background = -99;
   
   // Basics checks of input
   if( atmosphere_dim != 1 )
@@ -1134,15 +1131,15 @@ void ppathPlaneParallel(
       throw runtime_error( os.str() );
     }
 
-  // Find end grid position
+  // Find end grid position 
   GridPos gp_end;
-  if( z_sensor >= z_toa )
-    { gp_end.idx = nz-2; gp_end.fd[0] = 1; gp_end.fd[1] = 0; }
-  else
+  // To avoid compiler warnings, start to assuming above_toa
+  gp_end.idx = nz-2; gp_end.fd[0] = 1; gp_end.fd[1] = 0;
+  if( !above_toa )
     {
-      for( Index i=nz-2; i>=0; i-- )
+      for( Index i=0; i<nz-1; i++ )
         {
-          if( z_sensor >= z_field(i,0,0) )
+          if( z_sensor < z_field(i+1,0,0) )
             {
               gp_end.idx   = i;
               gp_end.fd[0] = (         z_sensor - z_field(i,0,0) ) /
@@ -1154,20 +1151,20 @@ void ppathPlaneParallel(
     }
       
   // Catch cases resulting in a ppath with 1 point
-  bool ready = false;
-  if( z_sensor >= z_toa  &&  za_sensor < 90 ) 
+  bool path_to_follow = true;
+  if( above_toa  &&  za_sensor < 90 ) 
     {
       // Path fully in space
       ppath_init_structure(  ppath, atmosphere_dim, 1 );
-      ppath_set_background( ppath, 1 );  
-      ready = true;
+      background = 1;  
+      path_to_follow = false;
     }
   if( z_sensor == z_surface(0,0)  &&  za_sensor > 90 ) 
     {
       // On ground, looking down
       ppath_init_structure(  ppath, atmosphere_dim, 1 );
-      ppath_set_background( ppath, 2 );  
-      ready = true;
+      background = 2;  
+      path_to_follow = false;
     }
   if( cloudbox_on  &&  !ppath_inside_cloudbox_do )
     {
@@ -1176,47 +1173,216 @@ void ppathPlaneParallel(
         {
           // Inside cloud box
           ppath_init_structure(  ppath, atmosphere_dim, 1 );
-          ppath_set_background( ppath, 4 );  
-          ready = true;
+          background = 4;  
+          path_to_follow = false;
         }
       else if( ( z_sensor==z_field(cloudbox_limits[0],0,0) && za_sensor>90 ) ||
                ( z_sensor==z_field(cloudbox_limits[1],0,0) && za_sensor<90 ) )
         {
           // Cloud box boundary
           ppath_init_structure(  ppath, atmosphere_dim, 1 );
-          ppath_set_background( ppath, 2 );  
-          ready = true;
+          background = 3;  
+          path_to_follow = false;
         }
     }
 
   // Determine ppath
-  if( !ready )
+  if( path_to_follow )
     {
-      const Numeric dz2dl = abs( 1 / cos(DEG2RAD*za_sensor) );
-      
-      // Calculate end_lstep, if > 0
-      if( z_sensor >= z_toa )
-        { ppath.end_lstep = dz2dl * ( z_sensor - z_toa ); }
+      const Numeric max_dz = ppath_lmax > 0 ? ppath_lmax / dz2dl : 9e99;
 
-      // ...
+      // Variables to describe each "break-point" of ppath. Point 0 is the end
+      // point. Not all nz points are necessarily passed.
+      ArrayOfIndex l_idx(nz);
+      ArrayOfVector l_fd0(nz);
+      ArrayOfVector l_z(nz);  
+      Index nptot = 0;
+
+      // Determine number of ppath points in each layer
+      {
+        Numeric z = z_end;
+        Index iout = -1;
+
+        // Code similar, but for simplicity, we handle down- and
+        // up-ward separately:
+        if( za_sensor > 90 )     // Downward-looking
+          {
+            // Here we go down to next pressure level (or the surface) in each
+            // step. That is, if above surface, last point of step has fd[0]=0.
+
+            // Put in end point
+            iout++;
+            nptot++;
+            l_fd0[0].resize(1);
+            l_z[0].resize(1);
+            l_idx[0]    = gp_end.idx;
+            l_fd0[0][0] = gp_end.fd[0];
+            l_z[0][0]   = z_end;
+
+            for( Index i=gp_end.idx; i>=0 && background<0; i-- )
+              {
+                // Surface inside layer?
+                Numeric dz_step;
+                if( z_field(i,0,0) > z_surface(0,0) )
+                  { dz_step = z - z_field(i,0,0); }
+                else
+                  {
+                    dz_step = z - z_surface(0,0);
+                    background = 2;
+                  }
+                
+                const Index np = dz_step <= max_dz ? 1 : Index( ceil( dz_step/max_dz ) );
+                const Numeric dz = dz_step / Numeric(np);
+                const Numeric dz_layer = z_field(i+1,0,0) - z_field(i,0,0);
+
+                // Update counters and resize
+                iout++;
+                nptot += np;
+                l_fd0[iout].resize(np);
+                l_z[iout].resize(np);
+                
+                // Intermediate points
+                for( Index j=0; j<np-1; j++ )
+                  {
+                    l_z[iout][j]   = z - (Numeric(j)+1)*dz;
+                    l_fd0[iout][j] = ( l_z[iout][j] - z_field(i,0,0) ) / dz_layer;
+                  }
+
+                // End points handled seperately to avoid numerical problems
+                l_idx[iout] = i;
+                if( background == 2 )   // Surface is reached 
+                  {
+                    l_z[iout][np-1]   = z_surface(0,0);
+                    l_fd0[iout][np-1] = ( l_z[iout][np-1] - z_field(i,0,0) ) / dz_layer;
+                  }
+                else   
+                  {
+                    l_z[iout][np-1]   = z_field(i,0,0);
+                    l_fd0[iout][np-1] = 0;
+                    //
+                    if( cloudbox_on  && ( i == cloudbox_limits[1] ||
+                                          i == cloudbox_limits[0] ) )
+                      { background = 3; }
+                  }
+
+                // Update z
+                z = z_field(i,0,0);
+              }
+          }
+        else   // Upward-looking
+          {
+            // Here we have that first point of step has fd[0]=0, if not at
+            // sensor
+            for( Index i=gp_end.idx; i<nz && background<0; i++ )
+              {
+                Numeric dz_layer;
+                Numeric dz_step;
+                if( cloudbox_on  &&  i!=gp_end.idx  &&
+                    ( i == cloudbox_limits[0] || i == cloudbox_limits[1] ) )
+                  {                   // At an active cloudbox boundary
+                    dz_step  = 0;
+                    dz_layer = 1;   
+                    background = 3;
+                  }
+                else if( i == nz - 1 )  
+                  {                   // At TOA
+                    dz_step  = 0;
+                    dz_layer = 1;   
+                    background = 1;
+                  }
+                else
+                  {
+                    dz_step  = z_field(i+1,0,0) - z;
+                    dz_layer = z_field(i+1,0,0) - z_field(i,0,0);
+                  }
+
+                const Index np = dz_step <= max_dz ? 1 : Index( ceil( dz_step/max_dz ) );
+                const Numeric dz = dz_step / Numeric(np);
+
+                // Update counters and resize
+                iout++;
+                nptot += np;
+                l_fd0[iout].resize(np);
+                l_z[iout].resize(np);
+                
+                // Start points handled seperately to avoid numerical problems
+                if( i == gp_end.idx )
+                  {                              // At sensor
+                    l_idx[iout]    = i;
+                    l_z[iout][0]   = z_sensor;
+                    l_fd0[iout][0] = gp_end.fd[0];
+                  }
+                else if( i == nz - 1 )
+                  {                              // At TOA
+                    l_idx[iout]    = i-1;
+                    l_z[iout][0]   = z_field(i,0,0);
+                    l_fd0[iout][0] = 1;
+                  }
+                else
+                  {
+                    l_idx[iout]    = i;
+                    l_z[iout][0]   = z_field(i,0,0);
+                    l_fd0[iout][0] = 0;
+                  }
+
+                // Intermediate points
+                for( Index j=1; j<np; j++ )
+                  {
+                    l_z[iout][j]   = z + Numeric(j)*dz;
+                    l_fd0[iout][j] = ( l_z[iout][j] - z_field(i,0,0) ) / dz_layer;
+                  }
+
+                // Update z
+                if( background < 0 )
+                  { z = z_field(i+1,0,0); }
+              }            
+          }
+      }
       
-      ppath_init_structure(  ppath, atmosphere_dim, 1 );
+      ppath_init_structure(  ppath, atmosphere_dim, nptot );
+
+      // Fill ppath.pos(joker,0), ppath.gp_p and ppath.lstep
+      Index iout = -1;
+      Numeric z_last=-999;
+      for( Index i=0; i<nz; i++ )
+        {
+          for( Index j=0; j<l_z[i].nelem(); j++ )
+            {
+              iout++;
+              ppath.pos(iout,0) = l_z[i][j];
+              ppath.gp_p[iout].idx = l_idx[i];
+              ppath.gp_p[iout].fd[0] = l_fd0[i][j];
+              ppath.gp_p[iout].fd[1] = 1 - l_fd0[i][j];
+              if( iout == 0 )
+                { z_last = ppath.pos(iout,0); }
+              else
+                {
+                  ppath.lstep[iout-1] = dz2dl * abs( z_last - l_z[i][j] );
+                  z_last = l_z[i][j];
+                }
+            }
+        }
     }
 
-  
   // Remaining data
-  ppath.constant   = INFINITY;  // Not defined here as r = Inf
-  ppath.r          = INFINITY;
+  ppath_set_background( ppath, background );
   if( ppath.np == 1 )
     {
-      ppath.pos(0,0)   = z_sensor;
-      ppath.pos(0,1)   = 0; 
-      ppath.los(0,0)   = za_sensor;
+      ppath.pos(0,0) = z_end;
+      ppath.gp_p[0]  = gp_end;
     }
-  ppath.gp_p[0]    = gp_end;
-  ppath.end_pos[0] = z_sensor;
-  ppath.end_pos[1] = 0; 
-  ppath.end_los[0] = za_sensor;
-  ppath.nreal      = 1;
-  ppath.ngroup     = 1;
+  ppath.pos(joker,1) = 0; 
+  ppath.los(joker,0) = za_sensor;
+  ppath.constant     = INFINITY;  // Not defined here as r = Inf
+  ppath.r            = INFINITY;
+  ppath.start_pos[0] = ppath.pos(ppath.np-1,0);
+  ppath.start_pos[1] = 0; 
+  ppath.start_los[0] = za_sensor;
+  ppath.end_pos[0]   = z_sensor;
+  ppath.end_pos[1]   = 0; 
+  ppath.end_los[0]   = za_sensor;
+  if( above_toa )
+    { ppath.end_lstep = dz2dl * ( z_sensor - z_toa ); }
+  ppath.nreal        = 1;
+  ppath.ngroup       = 1;
 }
