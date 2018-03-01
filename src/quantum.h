@@ -41,39 +41,39 @@
  operator>>(istream&, QuantumNumbers&)
  to handle the added numbers.
  */
-typedef enum : Index {
-    QN_J=0,         // Total angular momentum
-    QN_dJ,          // Delta total angular momentum
-    QN_M,           // Projection of J along magnetic field
-    QN_N,           // J minus spin
-    QN_dN,          // Delta J minus spin
-    QN_S,           // Spin angular momentum (from electrons) NOTE: S_global for HITRAN S
-    QN_F,           // J + nuclear spin
-    QN_K,           //(This is a projection of J along one axis)
-    QN_Ka,          //(This is a projection of J along one axis)
-    QN_Kc,          //(This is a projection of J along another axis)
-    QN_Omega,       // This is an absolute projection of J and S
-    QN_i,           //(Is related to Omega)
-    QN_Lambda,      // This is Sigma or Pi or Lambda states (as seen in literature)
-    QN_alpha,       // Alpha from HITRAN // FIXME richard
-    QN_Sym,         // Symmetry expression
-    QN_v1,          // Vibrational mode 1
-    QN_v2,          // Vibrational mode 2
-    QN_l2,          // Vibrational angular momentum associated with v2
-    QN_v3,          // Vibrational mode 3
-    QN_v4,          // Vibrational mode 4
-    QN_v5,          // Vibrational mode 5
-    QN_v6,          // Vibrational mode 6
-    QN_l,           // The absolute sum of l_j for v_j
-    QN_pm,          // Symmetry type for l=0
-    QN_r,           // Rank of the level within a set of the same vibrational symmetry
-    QN_S_global,    // Symmetry of the level
-    QN_X,           // Electronic state
-    QN_n_global,    // Torosional quanta
-    QN_C,           // Another symmetry expression
-    QN_Hund,        // Flag for Hund case type.  This flag lets Zeeman know what to expect
-    QN_FINAL_ENTRY  // We need this to determine the number of elements in this enum
-} QuantumIds;
+enum class QuantumNumberType : Index {
+    J=0,         // Total angular momentum
+    dJ,          // Delta total angular momentum
+    M,           // Projection of J along magnetic field
+    N,           // J minus spin
+    dN,          // Delta J minus spin
+    S,           // Spin angular momentum (from electrons) NOTE: S_global for HITRAN S
+    F,           // J + nuclear spin
+    K,           //(This is a projection of J along one axis)
+    Ka,          //(This is a projection of J along one axis)
+    Kc,          //(This is a projection of J along another axis)
+    Omega,       // This is an absolute projection of J and S
+    i,           //(Is related to Omega)
+    Lambda,      // This is Sigma or Pi or Lambda states (as seen in literature)
+    alpha,       // Alpha from HITRAN // FIXME richard
+    Sym,         // Symmetry expression
+    v1,          // Vibrational mode 1
+    v2,          // Vibrational mode 2
+    l2,          // Vibrational angular momentum associated with v2
+    v3,          // Vibrational mode 3
+    v4,          // Vibrational mode 4
+    v5,          // Vibrational mode 5
+    v6,          // Vibrational mode 6
+    l,           // The absolute sum of l_j for v_j
+    pm,          // Symmetry type for l=0
+    r,           // Rank of the level within a set of the same vibrational symmetry
+    S_global,    // Symmetry of the level
+    X,           // Electronic state
+    n_global,    // Torosional quanta
+    C,           // Another symmetry expression
+    Hund,        // Flag for Hund case type.  This flag lets Zeeman know what to expect
+    FINAL_ENTRY  // We need this to determine the number of elements in this enum
+};
 
 
 //! Enum for details about matched quantum numbers.
@@ -83,9 +83,9 @@ typedef enum {
     QMI_PARTIAL = 2,
 } QuantumMatchInfoEnum;
 
-enum Hund {
-    Hund_Case_A=0,
-    Hund_Case_B=1
+enum class Hund : Index {
+    CaseA=0,
+    CaseB=1
 };
 
 //! Class that holds details for matching info on upper and lower quantum numbers.
@@ -117,7 +117,7 @@ public:
 
     QuantumNumbers()
     {
-        mqnumbers.resize(QN_FINAL_ENTRY);
+        mqnumbers.resize(Index(QuantumNumberType::FINAL_ENTRY));
         for (Index i = 0; i < mqnumbers.nelem(); i++)
             mqnumbers[i] = RATIONAL_UNDEFINED;
     }
@@ -125,15 +125,29 @@ public:
     //! Return copy of quantum number
     const Rational operator[](const Index qn) const
     {
-        assert(qn < QN_FINAL_ENTRY);
+        assert(qn < Index(QuantumNumberType::FINAL_ENTRY));
         return mqnumbers[qn];
+    }
+    
+    //! Return copy of quantum number
+    const Rational operator[](const QuantumNumberType qn) const
+    {
+      assert(qn != QuantumNumberType::FINAL_ENTRY);
+      return mqnumbers[Index(qn)];
     }
 
     //! Set quantum number
     void Set(Index qn, Rational r)
     {
-        assert(qn < QN_FINAL_ENTRY);
+        assert(qn < Index(QuantumNumberType::FINAL_ENTRY));
         mqnumbers[qn] = r;
+    }
+    
+    //! Set quantum number
+    void Set(QuantumNumberType qn, Rational r)
+    {
+      assert(qn != QuantumNumberType::FINAL_ENTRY);
+      mqnumbers[Index(qn)] = r;
     }
 
     //! Set quantum number
@@ -141,7 +155,7 @@ public:
     {
         // Define a helper macro to save some typing.
 #define INPUT_QUANTUM(ID) \
-if (name == #ID) this->Set(QN_ ## ID, r)
+if (name == #ID) this->Set(QuantumNumberType::ID, r)
 
         INPUT_QUANTUM(J);
         else INPUT_QUANTUM(dJ);
@@ -222,15 +236,21 @@ class QuantumNumberRecord
 public:
     //! Set lower quantum number
     void SetLower(const Index i, const Rational r) { mqn_lower.Set(i, r); }
+    void SetLower(const QuantumNumberType i, const Rational r) { mqn_lower.Set(i, r); }
+    void SetLower(const String i, const Rational r) { mqn_lower.Set(i, r); }
 
     //! Set upper quantum number
     void SetUpper(const Index i, const Rational r) { mqn_upper.Set(i, r); }
+    void SetUpper(const QuantumNumberType i, const Rational r) { mqn_upper.Set(i, r); }
+    void SetUpper(const String i, const Rational r) { mqn_upper.Set(i, r); }
 
     //! Get lower quantum number
     Rational Lower(Index i) const { return mqn_lower[i]; }
+    Rational Lower(QuantumNumberType i) const { return mqn_lower[Index(i)]; }
 
     //! Get upper quantum number
     Rational Upper(Index i) const { return mqn_upper[i]; }
+    Rational Upper(QuantumNumberType i) const { return mqn_upper[Index(i)]; }
 
     //! Get lower quantum numbers
     QuantumNumbers& Lower() { return mqn_lower; }

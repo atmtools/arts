@@ -851,3 +851,26 @@ void ReadARTSCAT5(ArrayOfLineRecord& abs_lines,
   CREATE_OUT3;
   out3 << "Read " << abs_lines.nelem() << " lines from file: " << filename << "\n";
 }
+
+
+void abs_linesSetQuantumNumberForAll(ArrayOfLineRecord& abs_lines,
+                                     const Index& where,
+                                     const String& quantum_number_name,
+                                     const Rational& quantum_number_value,
+                                     const Verbosity& verbosity)
+{
+  CREATE_OUT3;
+  const bool for_lower = where <  1;
+  const bool for_upper = where > -1;
+  for(auto& line : abs_lines)
+  {
+    if(for_lower)
+      line.SetQuantumNumberLower(quantum_number_name, quantum_number_value);
+    if(for_upper)
+      line.SetQuantumNumberUpper(quantum_number_name, quantum_number_value);
+  }
+  
+  out3 << "Set " << quantum_number_name << " to " << quantum_number_value << " at "
+       << ((for_lower and for_upper)?"both levels":for_lower?"the lower level":"the upper level")  << " of all " 
+       << abs_lines.nelem() << " line(s)\n";
+}

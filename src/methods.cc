@@ -884,6 +884,32 @@ void define_md_data_raw()
       )
     ));
     
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_linesSetQuantumNumberForAll" ),
+      DESCRIPTION
+      (
+          "Sets a quantum number of all lines in abs_lines\n"
+          "Useful when a catalog misses a number that is required in ARTS\n"
+          "\n"
+          "Warning: the only test performed inside is if the name of the\n"
+          "provided quantum number is valid.  It is up to the user to provide\n"
+          "a valid quantum number.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines" ),
+      GIN( "where", "quantum_number_name", "quantum_number_value"),
+      GIN_TYPE( "Index", "String", "Rational" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF ),
+      GIN_DESC( "Set to zero for both, negative for only lower, or positive for only upper levels.",
+                "Name of the quantum number",
+                "Value of the quantum number")
+    ));
+    
   md_data_raw.push_back
     ( MdRecord
     ( NAME( "abs_linesShiftFrequency" ),
@@ -10416,7 +10442,104 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "The value." ),
         SETMETHOD( true )
-        ));
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "RationalAdd" ),
+      DESCRIPTION
+      (
+        "Adds a Rational and a value (out = in+value).\n"
+        "\n"
+        "The result can either be stored in the same or another Rational.\n"
+        "(in and out can be the same varible, but not out and value)\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT(),
+      GOUT(      "out"       ),
+      GOUT_TYPE( "Rational" ),
+      GOUT_DESC( "Output Rational." ),
+      IN(),
+      GIN(      "in"      ,
+                "value" ),
+      GIN_TYPE(    "Rational",
+                   "Rational" ),
+      GIN_DEFAULT( NODEF   ,
+                   NODEF ),
+      GIN_DESC( "Input Rational.",
+                "Value to add." )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "RationalInvScale" ),
+      DESCRIPTION
+      (
+        "Inversely scales/divides a Rational with a value (out = in/value).\n"
+        "\n"
+        "The result can either be stored in the same or another Rational.\n"
+        "(in and out can be the same varible, but not out and value)\n" 
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT(),
+      GOUT(      "out"       ),
+      GOUT_TYPE( "Rational" ),
+      GOUT_DESC( "Output Rational." ),
+      IN(),
+      GIN(      "in"      ,
+                "value" ),
+      GIN_TYPE(    "Rational",
+                   "Rational" ),
+      GIN_DEFAULT( NODEF   ,
+                   NODEF ),
+      GIN_DESC( "Input Rational.",
+                "Scaling Rational." )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "RationalScale" ),
+      DESCRIPTION
+      (
+        "Scales/multiplies a Rational with a value (out = in*value).\n"
+        "\n"
+        "The result can either be stored in the same or another Rational.\n"
+        "(in and out can be the same varible, but not out and value)\n" 
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT(),
+      GOUT(      "out"       ),
+      GOUT_TYPE( "Rational" ),
+      GOUT_DESC( "Output Rational." ),
+      IN(),
+      GIN(      "in"      ,
+                "value" ),
+      GIN_TYPE(    "Rational",
+                   "Rational" ),
+      GIN_DEFAULT( NODEF   ,
+                   NODEF ),
+      GIN_DESC( "Input Rational.",
+                "Scaling value." )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "RationalSet" ),
+      DESCRIPTION
+      (
+        "Sets a Rational workspace variable to the given value.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT(),
+      GOUT(      "out"        ),
+      GOUT_TYPE( "Rational" ),
+      GOUT_DESC( "Variable to initialize." ),
+      IN(),
+      GIN("numerator", "denominator"   ),
+      GIN_TYPE("Index", "Index" ),
+      GIN_DEFAULT( NODEF, "1" ),
+      GIN_DESC( "The numerator.", "The denominator." )
+    ));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -12372,7 +12495,6 @@ void define_md_data_raw()
            "abs_lines_per_species",
            "abs_lineshape",
            "isotopologue_ratios",
-           "isotopologue_quantum",
            "partition_functions",
            "rtp_pressure", "rtp_temperature", "lm_p_lim", "rtp_nlte", "rtp_vmr",
            "rtp_mag", "rtp_los", "atmosphere_dim"),
@@ -19585,7 +19707,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_species", "abs_lines_per_species", "isotopologue_quantum"  ),
+        IN( "abs_species", "abs_lines_per_species"  ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

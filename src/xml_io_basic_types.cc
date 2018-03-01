@@ -300,6 +300,79 @@ void xml_write_to_stream(ostream&         os_xml,
 }
 
 
+//=== Rational =========================================================
+
+//! Reads Rational from XML input stream
+/*!
+ * \param is_xml   XML Input stream
+ * \param rational  Rational return value
+ * \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream&         is_xml,
+                          Rational&        rational,
+                          bifstream*       pbifs,
+                          const Verbosity& verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("Rational");
+  
+  if (pbifs)
+  {
+    *pbifs >> rational;
+    if (pbifs->fail())
+    {
+      xml_data_parse_error(tag, "");
+    }
+  }
+  else
+  {
+    is_xml >> rational;
+    if (is_xml.fail())
+    {
+      xml_data_parse_error(tag, "");
+    }
+  }
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Rational");
+}
+
+
+//! Writes Rational to XML output stream
+/*!
+ * \param os_xml   XML Output stream
+ * \param rational Rational value
+ * \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+ * \param name     Optional name attribute
+ */
+void xml_write_to_stream(ostream&         os_xml,
+                         const Rational&  rational,
+                         bofstream*       pbofs,
+                         const String&    name,
+                         const Verbosity& verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+  
+  open_tag.set_name("Rational");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  
+  open_tag.write_to_stream(os_xml);
+  
+  if (pbofs)
+    *pbofs << rational;
+  else
+    os_xml << rational;
+  
+  close_tag.set_name("/Rational");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
+
 //=== Sparse ====================================================
 
 //! Reads Sparse from XML input stream

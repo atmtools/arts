@@ -106,4 +106,15 @@ private:
     Array<QuantumClassGroup> mspecies;
 };
 
+
+enum class QuantumNumberTypeLabelsHitran : Index { // Note these are from comparing HITRAN par-format with new labeled format...
+  O2_X_is_X,  // Lambda in state 0, spin is 1
+  O2_X_is_a,  // Lambda in state 2, spin is 0
+  O2_X_is_b,  // Lambda in state 0, spin is 0
+  NO_X_is_X,  // Lambda in state 1, spin is 0.5, Omega is Omega
+  OH_X_is_X,  // Lambda in state 1, spin is 0.5, Omega is Omega
+  OH_X_is_A,  // Lambda in state 0, spin is 0.5, if value at Omega is 2 then N = J + S, if value at Omega is 1 then N = J - S,  Omega is itself undefined.  This is a poorly documented HITRAN feature...
+  ClO_X_is_X, // Lambda in state 1, spin is 0.5, Omega is Omega
+};
+
 #endif /* quantum_parser_hitran_h */

@@ -2134,22 +2134,6 @@ void Workspace::define_wsv_data()
         "Agenda recalculating spectra and Jacobian for iterative inversion methods.\n"
         ),
        GROUP( "Agenda" )));
-
-    wsv_data.push_back
-    (WsvRecord
-    ( NAME( "isotopologue_quantum" ),
-      DESCRIPTION
-      (
-          "Quantum physical values for the Zeeman effect to work not easily available in other databases.\n"
-          "\n"
-          "Example:\n"
-          "This variable should contain total spin [denoted S, with units in angular momentum],\n"
-          "the molecular Landé g-factor [denoted g_s, with, to the author, unknown units],\n"
-          "the Hund case [0 is a, 1 is b], and the state Lambda.\n"
-          "\n"
-          "The variable can, e.g., be loaded from a file formated as '@ isotopologue g_s Lambda S HundCase'\n"
-      ),
-      GROUP( "SpeciesAuxData" )));
     
     wsv_data.push_back
     (WsvRecord

@@ -37,7 +37,7 @@ class QuantumFieldDescription
 public:
     QuantumFieldDescription() { }
 
-    QuantumFieldDescription(QuantumIds quantum_id, QuantumParseFunction qpfunc) :
+    QuantumFieldDescription(QuantumNumberType quantum_id, QuantumParseFunction qpfunc) :
     mquantum_id(quantum_id), mqpfunc(qpfunc) {}
 
     void Parse(QuantumNumbers& qnr, String& s, const Index species) const {
@@ -48,7 +48,7 @@ public:
     }
 
 private:
-    QuantumIds mquantum_id;
+    QuantumNumberType mquantum_id;
     QuantumParseFunction mqpfunc;
 };
 

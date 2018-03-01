@@ -1,3 +1,58 @@
+2018-03-01  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-977
+	
+	* controlfiles/*:  Removed variable no longer used by Zeeman code
+	from workspace entirerly so had to update controlfiles...
+	
+	* src/groups.cc, src/m_basic_types.cc:
+	* src/xml_io_basic_types.{h,cc},src/xml_io_types.h: 
+	Added Rational with some basic interaction
+	
+	* src/linerecord.{cc,h}, src/quantum.{cc,h}:
+	* src/m_linemixing.cc, :  I wanted to review 
+	the quantum number handling in ARTS so I changed the enum to 
+	an enum class so I had to look at all the code.  Found some bugs...
+	
+	* src/m_linerecord.cc:  (abs_linesSetQuantumNumberForAll) helper
+	function for setting constant quantum numbers
+	
+	* src/m_zeeman.cc:  Removed isotopologue_quantum
+	
+	* src/zeeman.{cc,h}:  Reviewing some paper I found my implementation
+	was lacking.  Two bugs were included:  1) Hund case a had switched
+	argument calls to a key-function such that the output would be wrong,
+	and 2) Hund case b would not have worked for Lambda not_eq 0.  I
+	changed both these things.  Since this meant having to change 
+	isotopologue_quantum, I decided instead it was time to remove the
+	file because modern HITRAN provides almost all that is needed from it.
+	The key difference is the Lande relativistic factor, which a small
+	helper function to provide these constants have been added to take 
+	care of.
+	
+	So presently the order of arguments in (frequency_change) for
+	Hund::CaseA was fixed to fit with the definition of gs_casea.
+	Their order was rong in previous version introduced a 20% error
+	in the return value...
+	
+	The other thing is having a fuller expression for Hund::CaseB.
+	Unfortunately, this means that the old isotopologue_quantum was
+	bad and that it either had to have an updated format, or the 
+	user would have to be able to add the data themselves.  So
+	HITRAN reading has been updated.  And so has arts-xml-data
+	for O2.  Other data is in (get_lande_spin_constant) in these files
+	
+	* src/quantum_parser.h, src/quantum_parser_hitran.{h,cc}:  Added
+	more detailed reading/writing of the quantum numbers for O2, ClO,
+	NO, and OH.  These functions now sets all variables required for
+	Zeeman effect.  The Zeeman effect should therefore be computable 
+	for all these though we are working on testing this.  Note:
+	I believe HITRAN has bad numbers for some of the isotopologues.
+	Especially, even modern HITRAN provides S=1 for O2-67, which
+	is an impossible number to have for this species.  So while
+	the reading works, the actual physics is probably completely
+	wrong...
+
 2018-03-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-976

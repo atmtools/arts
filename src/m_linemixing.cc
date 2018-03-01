@@ -170,12 +170,12 @@ void ArrayOfLineMixingRecordReadAscii(// Generic Output:
             LineMixingRecord lmr(line_species.Species(), line_species.Isotopologue());
 
             Rational r;
-            is >> r; lmr.Quantum().SetLower(QN_v1, r);
-            lmr.Quantum().SetUpper(QN_v1, r);
-            is >> r; lmr.Quantum().SetUpper(QN_N,  r);
-            is >> r; lmr.Quantum().SetLower(QN_N,  r);
-            is >> r; lmr.Quantum().SetUpper(QN_J,  r);
-            is >> r; lmr.Quantum().SetLower(QN_J,  r);
+            is >> r; lmr.Quantum().SetLower(QuantumNumberType::v1, r);
+            lmr.Quantum().SetUpper(QuantumNumberType::v1, r);
+            is >> r; lmr.Quantum().SetUpper(QuantumNumberType::N,  r);
+            is >> r; lmr.Quantum().SetLower(QuantumNumberType::N,  r);
+            is >> r; lmr.Quantum().SetUpper(QuantumNumberType::J,  r);
+            is >> r; lmr.Quantum().SetLower(QuantumNumberType::J,  r);
 
             vector<Numeric> temp_mixing_data;
             String s;
@@ -1676,7 +1676,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       
       // l2 is for molecules like CO2
       {
-        a = this_line.QuantumNumbers().Lower()[QN_l2];
+        a = this_line.QuantumNumbers().Lower()[QuantumNumberType::l2];
         a.Simplify();
         if(a.isUndefined())
           lower[0+4*iline] = -1;
@@ -1684,7 +1684,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           lower[0+4*iline] = (long) a.toIndex();
         else 
           throw std::runtime_error("Half quantum numbers not supported in l2.");
-        a = this_line.QuantumNumbers().Upper()[QN_l2];
+        a = this_line.QuantumNumbers().Upper()[QuantumNumberType::l2];
         a.Simplify();
         if(a.isUndefined())
           upper[0+4*iline] = -1;
@@ -1696,7 +1696,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       
       // J is universally important for linear molecules
       {
-        a = this_line.QuantumNumbers().Lower()[QN_J];
+        a = this_line.QuantumNumbers().Lower()[QuantumNumberType::J];
         a.Simplify();
         if(a.isUndefined())
           lower[1+4*iline] = -1;
@@ -1704,7 +1704,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           lower[1+4*iline] = (long) a.toIndex();
         else 
           throw std::runtime_error("Half quantum numbers not supported in J.");
-        a = this_line.QuantumNumbers().Upper()[QN_J];
+        a = this_line.QuantumNumbers().Upper()[QuantumNumberType::J];
         a.Simplify();
         if(a.isUndefined())
           upper[1+4*iline] = -1;
@@ -1716,7 +1716,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       
       // N is important for molecules with magnetic dipoles
       {
-        a = this_line.QuantumNumbers().Lower()[QN_N];
+        a = this_line.QuantumNumbers().Lower()[QuantumNumberType::N];
         a.Simplify();
         if(a.isUndefined())
           lower[2+4*iline] = -1;
@@ -1724,7 +1724,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           lower[2+4*iline] = (long) a.toIndex();
         else 
           throw std::runtime_error("Half quantum numbers not supported in N.");
-        a = this_line.QuantumNumbers().Upper()[QN_N];
+        a = this_line.QuantumNumbers().Upper()[QuantumNumberType::N];
         a.Simplify();
         if(a.isUndefined())
           upper[2+4*iline] = -1;
@@ -1736,7 +1736,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       
       // S is important for molecules with magnetic dipoles
       {
-        a = this_line.QuantumNumbers().Lower()[QN_S];
+        a = this_line.QuantumNumbers().Lower()[QuantumNumberType::S];
         a.Simplify();
         if(a.isUndefined())
           lower[3+4*iline] = -1;
@@ -1744,7 +1744,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           lower[3+4*iline] = (long) a.toIndex();
         else 
           throw std::runtime_error("Half quantum numbers not supported in S.");
-        a = this_line.QuantumNumbers().Upper()[QN_S];
+        a = this_line.QuantumNumbers().Upper()[QuantumNumberType::S];
         a.Simplify();
         if(a.isUndefined())
           upper[3+4*iline] = -1;

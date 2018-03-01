@@ -515,16 +515,16 @@ public:
   const String& Lower_LQuanta() const { return mlower_lquanta; }
 
   /** Upper state local quanta N */
-  Rational Upper_N() const { return mquantum_numbers.Upper(QN_N); }
+  Rational Upper_N() const { return mquantum_numbers.Upper(QuantumNumberType::N); }
 
   /** Upper state local quanta J */
-  Rational Upper_J() const { return mquantum_numbers.Upper(QN_J); }
+  Rational Upper_J() const { return mquantum_numbers.Upper(QuantumNumberType::J); }
 
   /** Lower state local quanta N */
-  Rational Lower_N() const { return mquantum_numbers.Lower(QN_N); }
+  Rational Lower_N() const { return mquantum_numbers.Lower(QuantumNumberType::N); }
 
   /** Lower state local quanta J */
-  Rational Lower_J() const { return mquantum_numbers.Lower(QN_J); }
+  Rational Lower_J() const { return mquantum_numbers.Lower(QuantumNumberType::J); }
 
   /** String with quantum numbers */
   const String& QuantumNumbersString() const { return mquantum_numbers_str; }
@@ -532,6 +532,10 @@ public:
   /** Quantum numbers */
   const QuantumNumberRecord& QuantumNumbers() const { return mquantum_numbers; }
   void SetQuantumNumberLower(const Index i, const Rational r) { mquantum_numbers.SetLower(i,r); }
+  void SetQuantumNumberLower(const String i, const Rational r) { mquantum_numbers.SetLower(i,r); }
+  void SetQuantumNumberLower(const QuantumNumberType i, const Rational r) { mquantum_numbers.SetLower(i,r); }
+  void SetQuantumNumberUpper(const QuantumNumberType i, const Rational r) { mquantum_numbers.SetUpper(i,r); }
+  void SetQuantumNumberUpper(const String i, const Rational r) { mquantum_numbers.SetUpper(i,r); }
   void SetQuantumNumberUpper(const Index i, const Rational r) { mquantum_numbers.SetUpper(i,r); }
   
   /** Quantum identifier */

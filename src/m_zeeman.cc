@@ -32,7 +32,6 @@ void propmat_clearskyAddZeeman( ArrayOfPropagationMatrix& propmat_clearsky,
                                 const ArrayOfArrayOfLineRecord& abs_lines_per_species,
                                 const ArrayOfLineshapeSpec& abs_lineshape,
                                 const SpeciesAuxData& isotopologue_ratios,
-                                const SpeciesAuxData& isotopologue_quantum,
                                 const SpeciesAuxData& partition_functions,
                                 const Numeric& rtp_pressure,
                                 const Numeric& rtp_temperature,
@@ -50,39 +49,16 @@ void propmat_clearskyAddZeeman( ArrayOfPropagationMatrix& propmat_clearsky,
 {
     ArrayOfArrayOfLineRecord zeeman_linerecord_precalc;
     ArrayOfVector zeeman_frequencyshiftconstant_precalc;
-    zeeman_linerecord_precalcCreateFromLines( zeeman_linerecord_precalc,
-                                              zeeman_frequencyshiftconstant_precalc,
-                                              abs_species,
-                                              abs_lines_per_species,
-                                              isotopologue_quantum,
-                                              verbosity);
+    zeeman_linerecord_precalcCreateFromLines(zeeman_linerecord_precalc, zeeman_frequencyshiftconstant_precalc,
+                                             abs_species, abs_lines_per_species, verbosity);
     
-    propmat_clearskyAddZeemanFromPreCalc(propmat_clearsky,
-                                         nlte_source,
-                                         dpropmat_clearsky_dx,
-                                         dnlte_dx_source,
-                                         nlte_dsource_dx,
-                                         zeeman_linerecord_precalc,
-                                         zeeman_frequencyshiftconstant_precalc,
-                                         f_grid,
-                                         abs_species,
-                                         jacobian_quantities,
-                                         abs_lineshape,
-                                         isotopologue_ratios,
-                                         partition_functions,
-                                         rtp_pressure,
-                                         rtp_temperature,
-                                         lm_p_lim,
-                                         rtp_temperature_nlte,
-                                         rtp_vmr,
-                                         rtp_mag,
-                                         ppath_los,
-                                         atmosphere_dim,
-                                         manual_zeeman_tag,
-                                         manual_zeeman_magnetic_field_strength,
-                                         manual_zeeman_theta,
-                                         manual_zeeman_eta,
-                                         verbosity);
+    propmat_clearskyAddZeemanFromPreCalc(propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx,
+                                         zeeman_linerecord_precalc, zeeman_frequencyshiftconstant_precalc, f_grid,
+                                         abs_species, jacobian_quantities, abs_lineshape, isotopologue_ratios,
+                                         partition_functions, rtp_pressure, rtp_temperature, lm_p_lim,
+                                         rtp_temperature_nlte, rtp_vmr, rtp_mag, ppath_los, atmosphere_dim,
+                                         manual_zeeman_tag, manual_zeeman_magnetic_field_strength,
+                                         manual_zeeman_theta, manual_zeeman_eta, verbosity);
 }
 
 
@@ -91,7 +67,6 @@ void zeeman_linerecord_precalcCreateFromLines( ArrayOfArrayOfLineRecord& zeeman_
                                                ArrayOfVector& zeeman_frequencyshiftconstant_precalc,
                                                const ArrayOfArrayOfSpeciesTag& abs_species,
                                                const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                                               const SpeciesAuxData& isotopologue_quantum,
                                                const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -107,12 +82,8 @@ void zeeman_linerecord_precalcCreateFromLines( ArrayOfArrayOfLineRecord& zeeman_
   }// End   TEST(s)
   
   // creating the ArrayOfArrayOfLineRecord
-  create_Zeeman_linerecordarrays(zeeman_linerecord_precalc,
-                                 zeeman_frequencyshiftconstant_precalc,
-                                 abs_species,
-                                 abs_lines_per_species,
-                                 isotopologue_quantum,
-                                 verbosity);
+  create_Zeeman_linerecordarrays(zeeman_linerecord_precalc, zeeman_frequencyshiftconstant_precalc,
+                                 abs_species, abs_lines_per_species, verbosity);
 }
 
 

@@ -18,7 +18,6 @@
 
 
 #include "zeeman.h"
-#include "global_data.h"
 #include "linefunctions.h"
 #include "linescaling.h"
 
@@ -41,12 +40,7 @@ void phase_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, const 
     assert(K.nrows() == 4 );
     assert(K.ncols() == 4 );
     
-    const Numeric
-    S2T = sin(theta)*sin(theta),  
-    CT  = cos(theta), 
-    CE2 = cos(2*eta), 
-    SE2 = sin(2*eta);
-    
+    const Numeric S2T = sin(theta)*sin(theta), CT = cos(theta), CE2 = cos(2*eta), SE2 = sin(2*eta);
     
     switch( DM )
     {
@@ -70,7 +64,6 @@ void phase_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, const 
             break;
         default:
             throw std::runtime_error("Impossible Delta M to phase matrix");
-            break;
     };
 };
 
@@ -94,12 +87,7 @@ void attenuation_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, 
     assert(K.nrows() == 4 );
     assert(K.ncols() == 4 );
     
-    const Numeric 
-    S2T  = sin(theta)*sin(theta),  
-    C2T  = cos(theta)*cos(theta),  
-    CT   = cos(theta), 
-    CE2  = cos(2*eta), 
-    SE2  = sin(2*eta);
+    const Numeric S2T = sin(theta)*sin(theta), CT = cos(theta), C2T = CT*CT, CE2 = cos(2*eta), SE2 = sin(2*eta);
     
     switch( DM )
     {
@@ -123,7 +111,6 @@ void attenuation_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, 
             break;
         default:
             throw std::runtime_error("Impossible Delta M to attenuation matrix");
-            break;
     };
 };
 
@@ -146,12 +133,7 @@ void dphase_matrix_dtheta(MatrixView dK, const Numeric& theta, const Numeric& et
     assert(dK.nrows() == 4 );
     assert(dK.ncols() == 4 );
     
-    const Numeric 
-    ST   = sin(theta),
-    CTST = sin(theta)*cos(theta), 
-    CE2  = cos(2*eta), 
-    SE2  = sin(2*eta);
-    
+    const Numeric ST = sin(theta), CTST = sin(theta)*cos(theta), CE2 = cos(2*eta), SE2 = sin(2*eta);
     
     switch( DM )
     {
@@ -175,7 +157,6 @@ void dphase_matrix_dtheta(MatrixView dK, const Numeric& theta, const Numeric& et
             break;
         default:
             throw std::runtime_error("Impossible Delta M to phase matrix");
-            break;
     };
 };
 
@@ -198,11 +179,7 @@ void dphase_matrix_deta(MatrixView dK, const Numeric& theta, const Numeric& eta,
     assert(dK.nrows() == 4 );
     assert(dK.ncols() == 4 );
     
-    const Numeric 
-    S2T = sin(theta)*sin(theta),  
-    CE2 = cos(2*eta),
-    SE2 = sin(2*eta);
-    
+    const Numeric S2T = sin(theta)*sin(theta), CE2 = cos(2*eta), SE2 = sin(2*eta);
     
     switch( DM )
     {
@@ -226,7 +203,6 @@ void dphase_matrix_deta(MatrixView dK, const Numeric& theta, const Numeric& eta,
             break;
         default:
             throw std::runtime_error("Impossible Delta M to phase matrix");
-            break;
     };
 };
 
@@ -249,11 +225,7 @@ void dattenuation_matrix_dtheta(MatrixView dK, const Numeric& theta, const Numer
     assert(dK.nrows() == 4 );
     assert(dK.ncols() == 4 );
     
-    const Numeric 
-    CTST = cos(theta)*sin(theta), 
-    ST   = sin(theta),
-    CE2  = cos(2*eta), 
-    SE2  = sin(2*eta);
+    const Numeric CTST = cos(theta)*sin(theta), ST = sin(theta), CE2 = cos(2*eta),  SE2 = sin(2*eta);
     
     switch( DM )
     {
@@ -277,7 +249,6 @@ void dattenuation_matrix_dtheta(MatrixView dK, const Numeric& theta, const Numer
             break;
         default:
             throw std::runtime_error("Impossible Delta M to attenuation matrix");
-            break;
     };
 };
 
@@ -300,10 +271,7 @@ void dattenuation_matrix_deta(MatrixView dK, const Numeric& theta, const Numeric
     assert(dK.nrows() == 4 );
     assert(dK.ncols() == 4 );
     
-    const Numeric
-    SE2 = sin(2*eta),
-    CE2 = cos(2*eta),
-    ST2 = sin(theta)*sin(theta);
+    const Numeric SE2 = sin(2*eta), CE2 = cos(2*eta), ST2 = sin(theta)*sin(theta);
     
     switch( DM )
     {
@@ -327,13 +295,19 @@ void dattenuation_matrix_deta(MatrixView dK, const Numeric& theta, const Numeric
             break;
         default:
             throw std::runtime_error("Impossible Delta M to attenuation matrix");
-            break;
     };
 };
 
+// Note that there might be a part of the Lambda-expression missing below... it is possible a constant like GS is needed...
+Numeric gs_caseb(const Rational& N, const Rational& J, const Rational& Lambda, const Rational& S, const Numeric& GS) {
+  return (    GS*         ((J*(J+1) + S*(S+1) - N*(N+1))).toNumeric() + 
+  (Lambda*Lambda/(N/(N+1))*(J*(J+1) - S*(S+1) + N*(N+1))).toNumeric()) / ((J*(J+1))).toNumeric() * 0.5; 
+}
 
-Numeric gs_caseb(const Rational& N, const Rational& J, const Rational& S, const Numeric& GS) { return (GS*((J*(J+1)+S*(S+1)-N*(N+1))/(J*(J+1))/2).toNumeric()); }
-Numeric gs_casea(const Rational& Omega, const Rational& J, const Rational& Lambda, const Rational& Sigma, const Numeric& GS) { return GS*(Omega/2/J/(J+1)*(Lambda+2*Sigma)).toNumeric(); }
+
+Numeric gs_casea(const Rational& Omega, const Rational& J, const Rational& Lambda, const Rational& Sigma, const Numeric& GS) {
+  return GS*(Omega/2/J/(J+1)*(Lambda+2*Sigma)).toNumeric(); 
+}
 
 
 /*!
@@ -350,73 +324,28 @@ Numeric gs_casea(const Rational& Omega, const Rational& J, const Rational& Lambd
  * \author Richard Larsson
  * \date   2012-10-26
  */
-Numeric relative_strength(const Rational& M, const Rational& J, const Index& dj, const Index& dm)
-{
-    
-    // Variable to be returned.
-    Rational ret_val;
-    
-    static const Rational three_fourths(3,4),one_and_a_half(3,2);
-    
-    switch ( dj )
-    {
-        case -1:
-            switch ( dm )
-            {
-                case -1: // Transitions anti-parallel to the magnetic field
-                    ret_val = three_fourths*(J+M)*(J-1+M)/(2*J*(2*J-1)*(2*J+1));
-                    break;
-                case  0: // Transitions perpendicular to the magnetic field
-                    ret_val = one_and_a_half*(J*J-M*M)/(J*(2*J-1)*(2*J+1));
-                    break;
-                case +1: // Transitions parallel to the magnetic field
-                    ret_val = three_fourths*(J-M)*(J-1-M)/(2*J*(2*J-1)*(2*J+1));
-                    break;
-                default:
-                    throw std::runtime_error("Something is extremely wrong.");
-                    break;
-            }
-            break;
-        case  0:
-            switch ( dm )
-            {
-                case -1: // Transitions anti-parallel to the magnetic field
-                    ret_val = three_fourths*(J+M)*(J+1-M)/(2*J*(J+1)*(2*J+1));
-                    break;
-                case  0: // Transitions perpendicular to the magnetic field
-                    ret_val = one_and_a_half*M*M/(J*(J+1)*(2*J+1));
-                    break;
-                case +1: // Transitions parallel to the magnetic field
-                    ret_val = three_fourths*(J-M)*(J+1+M)/(2*J*(J+1)*(2*J+1));
-                    break;
-                default:
-                    throw std::runtime_error("Something is extremely wrong.");
-                    break;
-            }
-            break;
-        case +1:
-            switch ( dm )
-            {
-                case -1: // Transitions anti-parallel to the magnetic field
-                    ret_val = three_fourths*(J+1-M)*(J+2-M)/(2*(J+1)*(2*J+1)*(2*J+3));
-                    break;
-                case  0: // Transitions perpendicular to the magnetic field
-                    ret_val = one_and_a_half*((J+1)*(J+1)-M*M)/((J+1)*(2*J+1)*(2*J+3));
-                    break;
-                case +1: // Transitions parallel to the magnetic field
-                    ret_val = three_fourths*(J+1+M)*(J+2+M)/(2*(J+1)*(2*J+1)*(2*J+3));
-                    break;
-                default:
-                    throw std::runtime_error("Something is extremely wrong.");
-                    break;
-            }
-            break;
-        default:
-            throw std::runtime_error("Something is extremely wrong.");
-            break;
-    }
-
-    return ret_val.toNumeric();
+Rational relative_strength(const Rational& M, const Rational& J, const Index& dj, const Index& dm) {
+  switch ( dj ) {
+    case -1:
+      switch ( dm ) {
+        case -1: return (Rational(3, 8)*(J+M)*(J-1+M) / (J*(2*J-1)*(2*J+1))); // Transitions anti-parallel to the magnetic field
+        case  0: return (Rational(3, 2)*(J*J-M*M)     / (J*(2*J-1)*(2*J+1))); // Transitions perpendicular to the magnetic field
+        case +1: return (Rational(3, 8)*(J-M)*(J-1-M) / (J*(2*J-1)*(2*J+1))); // Transitions parallel to the magnetic field
+      }
+    case  0:
+      switch ( dm ) {
+        case -1: return (Rational(3, 8)*(J+M)*(J+1-M) / (J*(J+1)*(2*J+1))); // Transitions anti-parallel to the magnetic field
+        case  0: return (Rational(3, 2)*M*M           / (J*(J+1)*(2*J+1))); // Transitions perpendicular to the magnetic field
+        case +1: return (Rational(3, 8)*(J-M)*(J+1+M) / (J*(J+1)*(2*J+1))); // Transitions parallel to the magnetic field
+      }
+    case +1:
+      switch ( dm ) {
+        case -1: return (Rational(3, 8)*(J+1-M)*(J+2-M)   / ((J+1)*(2*J+1)*(2*J+3))); // Transitions anti-parallel to the magnetic field
+        case  0: return (Rational(3, 2)*((J+1)*(J+1)-M*M) / ((J+1)*(2*J+1)*(2*J+3))); // Transitions perpendicular to the magnetic field
+        case +1: return (Rational(3, 8)*(J+1+M)*(J+2+M)   / ((J+1)*(2*J+1)*(2*J+3))); // Transitions parallel to the magnetic field
+      }
+    default: throw std::runtime_error("Something is extremely wrong.");
+  }
 }
 
 
@@ -438,58 +367,51 @@ Numeric frequency_change(const LineRecord& lr,
     Numeric Upper_E_part, Lower_E_part;
     
     // Lower:
-    assert(abs(lr.QuantumNumbers().Lower()[QN_M])<=lr.QuantumNumbers().Lower()[QN_J]);
-    switch(lr.QuantumNumbers().Lower()[QN_Hund].toIndex())
+    assert(abs(lr.QuantumNumbers().Lower()[QuantumNumberType::M])<=lr.QuantumNumbers().Lower()[QuantumNumberType::J]);
+    switch(lr.QuantumNumbers().Lower()[QuantumNumberType::Hund].toIndex())
     {
-        case Hund_Case_A:
+      case Index(Hund::CaseA):
             // This follows Berdyugina and Solnaki
-            Lower_E_part = lr.QuantumNumbers().Lower()[QN_M].toNumeric() * 
-            gs_casea(lr.QuantumNumbers().Lower()[QN_Omega],
-                     lr.QuantumNumbers().Lower()[QN_J],
-                     lr.QuantumNumbers().Lower()[QN_S],
-                     lr.QuantumNumbers().Lower()[QN_Lambda],
-                     GS);
+            Lower_E_part = lr.QuantumNumbers().Lower()[QuantumNumberType::M].toNumeric() * 
+            gs_casea(lr.QuantumNumbers().Lower()[QuantumNumberType::Omega], 
+                     lr.QuantumNumbers().Lower()[QuantumNumberType::J],
+                     lr.QuantumNumbers().Lower()[QuantumNumberType::Lambda],
+                     lr.QuantumNumbers().Lower()[QuantumNumberType::S], GS);
             break;
-        case Hund_Case_B:
+      case Index(Hund::CaseB):
             // This follows Lenoir
-            if( lr.QuantumNumbers().Lower()[QN_J] == 0 )
-            {
+            if( lr.QuantumNumbers().Lower()[QuantumNumberType::J] == 0 )
                 Lower_E_part = 0;
-            }
             else
-            {
-                Lower_E_part = lr.QuantumNumbers().Lower()[QN_M].toNumeric() * 
-                gs_caseb(lr.QuantumNumbers().Lower()[QN_N],
-                         lr.QuantumNumbers().Lower()[QN_J],
-                         lr.QuantumNumbers().Lower()[QN_S],
-                         GS);
-            }
+                Lower_E_part = lr.QuantumNumbers().Lower()[QuantumNumberType::M].toNumeric() * 
+                gs_caseb(lr.QuantumNumbers().Lower()[QuantumNumberType::N], 
+                         lr.QuantumNumbers().Lower()[QuantumNumberType::J],
+                         lr.QuantumNumbers().Lower()[QuantumNumberType::Lambda],
+                         lr.QuantumNumbers().Lower()[QuantumNumberType::S], GS);
             break;
         default:
             throw std::runtime_error("Does not recognize Hund case.\n");
-            break;
     }
     
     // Upper:
-    assert(abs(lr.QuantumNumbers().Upper()[QN_M])<=lr.QuantumNumbers().Upper()[QN_J]);
-    switch(lr.QuantumNumbers().Upper()[QN_Hund].toIndex())
+    assert(abs(lr.QuantumNumbers().Upper()[QuantumNumberType::M])<=lr.QuantumNumbers().Upper()[QuantumNumberType::J]);
+    switch(lr.QuantumNumbers().Upper()[QuantumNumberType::Hund].toIndex())
     {
-        case Hund_Case_A:
+        case Index(Hund::CaseA):
             // This follows Berdyugina and Solnaki
-            Upper_E_part = lr.QuantumNumbers().Upper()[QN_M].toNumeric() * 
-            gs_casea(lr.QuantumNumbers().Upper()[QN_Omega],
-                     lr.QuantumNumbers().Upper()[QN_J],
-                     lr.QuantumNumbers().Upper()[QN_S],
-                     lr.QuantumNumbers().Upper()[QN_Lambda],
-                     GS);
+            Upper_E_part = lr.QuantumNumbers().Upper()[QuantumNumberType::M].toNumeric() * 
+            gs_casea(lr.QuantumNumbers().Upper()[QuantumNumberType::Omega], 
+                     lr.QuantumNumbers().Upper()[QuantumNumberType::J],
+                     lr.QuantumNumbers().Upper()[QuantumNumberType::Lambda],
+                     lr.QuantumNumbers().Upper()[QuantumNumberType::S], GS);
             break;
-        case Hund_Case_B:
+        case Index(Hund::CaseB):
             // This follows Lenoir
-            Upper_E_part = lr.QuantumNumbers().Upper()[QN_M].toNumeric() * 
-            gs_caseb(lr.QuantumNumbers().Upper()[QN_N],
-                     lr.QuantumNumbers().Upper()[QN_J],
-                     lr.QuantumNumbers().Upper()[QN_S],
-                     GS);
+            Upper_E_part = lr.QuantumNumbers().Upper()[QuantumNumberType::M].toNumeric() * 
+            gs_caseb(lr.QuantumNumbers().Upper()[QuantumNumberType::N], 
+                     lr.QuantumNumbers().Upper()[QuantumNumberType::J],
+                     lr.QuantumNumbers().Upper()[QuantumNumberType::Lambda],
+                     lr.QuantumNumbers().Upper()[QuantumNumberType::S], GS);
             break;
         default:
             throw std::runtime_error("Does not recognize Hund case.\n");
@@ -1582,39 +1504,13 @@ void set_magnetic_parameters_derivative(
 }
 
 
-
-
-void set_quantumnumbers( LineRecord& this_LR,
-                         const Rational& hund,
-                         const SpeciesAuxData& isotopologue_quantum)
-{
-  Rational Lambda, S;
-  
-  S = Rational((Index) (2*isotopologue_quantum.getParam(this_LR.Species(), 
-                                                        this_LR.Isotopologue())[0].data[AuxIndex_S]),2);
-  S.Simplify();
-  
-  Lambda = (Index) isotopologue_quantum.getParam(this_LR.Species(), 
-                                         this_LR.Isotopologue())[0].data[AuxIndex_Lambda];
-  
-  this_LR.SetQuantumNumberLower(QN_S, S);
-  this_LR.SetQuantumNumberUpper(QN_S, S);
-  
-  this_LR.SetQuantumNumberLower(QN_Lambda, Lambda);
-  this_LR.SetQuantumNumberUpper(QN_Lambda, Lambda);
-  
-  // Flag quantum number
-  this_LR.SetQuantumNumberLower(QN_Hund, hund);
-  this_LR.SetQuantumNumberUpper(QN_Hund, hund);
-}
-
-void alter_linerecord( LineRecord& new_LR,
-                       Numeric& Test_RS,
-                       const Numeric& old_LS,
-                       const Rational& J_up,
-                       const Rational& J_lo,
-                       const Rational& M_up,
-                       const Rational& M_lo)
+void alter_linerecord(LineRecord& new_LR,
+                      Numeric& Test_RS,
+                      const Numeric& old_LS,
+                      const Rational& J_up,
+                      const Rational& J_lo,
+                      const Rational& M_up,
+                      const Rational& M_lo)
 {
     
     // Test that we did not mess up somewhere
@@ -1622,17 +1518,95 @@ void alter_linerecord( LineRecord& new_LR,
     assert(abs(M_up)<=J_up);
     
     // Find the relative strength
-    const Numeric RS = relative_strength(M_lo, J_lo, (J_up-J_lo).toIndex(), (M_up-M_lo).toIndex());
+    const Rational RS = relative_strength(M_lo, J_lo, (J_up-J_lo).toIndex(), (M_up-M_lo).toIndex());
     
     // Setup a test that the relative strength is reasonable
-    Test_RS += RS;
-    new_LR.setI0( old_LS * RS );
+    Test_RS += RS.toNumeric();
+    new_LR.setI0( old_LS * RS.toNumeric() );
     
     // Set quantum numbers
-    new_LR.SetQuantumNumberLower(QN_M, M_lo);
-    new_LR.SetQuantumNumberUpper(QN_M, M_up);
+    new_LR.SetQuantumNumberLower(QuantumNumberType::M, M_lo);
+    new_LR.SetQuantumNumberUpper(QuantumNumberType::M, M_up);
 }
 
+
+bool the_line_is_zeeman_ready(const LineRecord& line, const Verbosity& verbosity) noexcept
+{
+  CREATE_OUT3;
+  bool test = true;
+  
+  // LOWER STATE
+  if(line.QuantumNumbers().Lower(QuantumNumberType::Hund) == Index(Hund::CaseA))
+  {
+    if(line.QuantumNumbers().Lower()[QuantumNumberType::Omega].isUndefined() or
+      line.QuantumNumbers().Lower()[QuantumNumberType::J].isUndefined() or
+      line.QuantumNumbers().Lower()[QuantumNumberType::Lambda].isUndefined() or
+      line.QuantumNumbers().Lower()[QuantumNumberType::S].isUndefined())
+    {
+      test = false;
+      out3 << "Warning!  The provided quantum numbers are not Hund Case A: " << line.QuantumNumbers().Lower() << "\n";
+      out3 << "These needs to be defined Omega, J, Lambda, S\n";
+    }
+  }
+  else if(line.QuantumNumbers().Lower(QuantumNumberType::Hund) == Index(Hund::CaseB))
+  {
+    if(line.QuantumNumbers().Lower()[QuantumNumberType::N].isUndefined() or
+      line.QuantumNumbers().Lower()[QuantumNumberType::J].isUndefined() or
+      line.QuantumNumbers().Lower()[QuantumNumberType::Lambda].isUndefined() or
+      line.QuantumNumbers().Lower()[QuantumNumberType::S].isUndefined())
+    {
+      test = false;
+      out3 << "Warning!  The provided quantum numbers are not Hund Case B: " << line.QuantumNumbers().Lower() << "\n";
+      out3 << "These needs to be defined N, J, Lambda, S\n";
+    }
+  }
+  else
+  {
+    test = false;
+    out3 << "Warning!  No Hund case provided.  Cannot compute Zeeman effect without defining Hund for: " 
+    << line.QuantumNumbers().Upper() << "\n Valid Hund cases are\n\tHund Case A: " << Index(Hund::CaseA) 
+    << "\n\tHund Case B: " << Index(Hund::CaseB);
+  }
+  
+  // UPPER STATE
+  if(line.QuantumNumbers().Upper(QuantumNumberType::Hund) == Index(Hund::CaseA))
+  {
+    if(line.QuantumNumbers().Upper()[QuantumNumberType::Omega].isUndefined() or
+      line.QuantumNumbers().Upper()[QuantumNumberType::J].isUndefined() or
+      line.QuantumNumbers().Upper()[QuantumNumberType::Lambda].isUndefined() or
+      line.QuantumNumbers().Upper()[QuantumNumberType::S].isUndefined())
+    {
+      test = false;
+      out3 << "Warning!  The provided quantum numbers are not Hund Case A: " << line.QuantumNumbers().Upper() << "\n";
+      out3 << "These needs to be defined Omega, J, Lambda, S\n";
+    }
+  }
+  else if(line.QuantumNumbers().Upper(QuantumNumberType::Hund) == Index(Hund::CaseB))
+  {
+    if(line.QuantumNumbers().Upper()[QuantumNumberType::N].isUndefined() or
+      line.QuantumNumbers().Upper()[QuantumNumberType::J].isUndefined() or
+      line.QuantumNumbers().Upper()[QuantumNumberType::Lambda].isUndefined() or
+      line.QuantumNumbers().Upper()[QuantumNumberType::S].isUndefined())
+    {
+      test = false;
+      out3 << "Warning!  The provided quantum numbers are not Hund Case B: " << line.QuantumNumbers().Upper() << "\n";
+      out3 << "These needs to be defined N, J, Lambda, S\n";
+    }
+  }
+  else
+  {
+    test = false;
+    out3 << "Warning!  No Hund case provided.  Cannot compute Zeeman effect without defining Hund for: " 
+    << line.QuantumNumbers().Upper() << "\n Valid Hund cases are\n\tHund Case A: " << Index(Hund::CaseA) 
+    << "\n\tHund Case B: " << Index(Hund::CaseB);
+  }
+  
+  if(not test)
+    out3 << "The following line failed the tests of being Zeeman compatible: " << line << "\n";
+  else
+    out3 << "The following line is Zeeman compatibleand will be computed as such: " << line << "\n";
+  return test;
+}
 
 
 void create_Zeeman_linerecordarrays(
@@ -1640,249 +1614,137 @@ void create_Zeeman_linerecordarrays(
         ArrayOfVector& z1_frequencyshift,
         const ArrayOfArrayOfSpeciesTag& abs_species,
         const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-        const SpeciesAuxData& isotopologue_quantum,
         const Verbosity& verbosity)
 {
-    CREATE_OUT3;
-    // Note that this function assumes that all tests that are not line specifice are done elsewhere
+  CREATE_OUT3;
+  
+  const static Numeric margin = 1e-4;
+  
+  // For all species
+  for(Index II = 0; II<abs_species.nelem(); II++)
+  {
+    // If the species isn't Zeeman, look at the next species
+    if(!is_zeeman(abs_species[II])) continue;
     
-    using global_data::species_data;
+    // If there are no lines give up on this species
+    if(!abs_lines_per_species[II].nelem()) continue;
     
-    // This margin is for relative strength and can perhaps be lowered by returning RS as Rational?
-    const Numeric margin    = 1e-4; 
-
-      // For all species
-      for(Index II = 0; II<abs_species.nelem(); II++)
-      {
-          // If the species isn't Zeeman, look at the next species
-          if(!is_zeeman(abs_species[II])) continue;
-          
-          // If there are no lines give up on this species
-          if(!abs_lines_per_species[II].nelem()) continue;
-          
-          const Index nis = isotopologue_quantum.nisotopologues(abs_lines_per_species[II][0].Species());
-          
-          const SpeciesRecord& sr = species_data[abs_lines_per_species[II][0].Species()];
-          
-          for(Index is=0;is<nis;is++)
-          {
-              const IsotopologueRecord& ir = sr.Isotopologue()[is];
-              
-              if(ir.isContinuum())
-                  continue;
-              
-              const ArrayOfGriddedField1& aogf1 =
-              isotopologue_quantum.getParam(abs_lines_per_species[II][0].Species(),is);
-              if(!aogf1.nelem())
-              {
-                  std::ostringstream os;
-                  os<<"No data in isotopologue_quantum for species "<< sr.Name();
-              }
-              
-              const GriddedField1& gf1 = aogf1[0];
-              if(gf1.data.nelem()!=AuxIndex_TotalCount)
-              {
-                  std::ostringstream os;
-                  os << "There are undefined isotopologues in *isotopologue_quantum* for species " <<sr.Name() <<"\n";
-                  os << "All isotopologues must be defined for a species.\n";
-                  throw std::runtime_error(os.str());
-              }
-          }
-                  
-          // One line record array per type of polarizer is created
-          aoaol.push_back(ArrayOfLineRecord()); // First is negative
-          aoaol.push_back(ArrayOfLineRecord()); // Second is 0
-          aoaol.push_back(ArrayOfLineRecord()); // Third is positive
-
-          ArrayOfLineRecord& temp_abs_lines_sm = aoaol[aoaol.nelem()-3]; // sigma minus
-          ArrayOfLineRecord& temp_abs_lines_pi = aoaol[aoaol.nelem()-2]; // pi
-          ArrayOfLineRecord& temp_abs_lines_sp = aoaol[aoaol.nelem()-1]; // sigma plus
-
-          temp_abs_lines_sm.resize(0);
-          temp_abs_lines_sp.resize(0);
-          temp_abs_lines_pi.resize(0);
-
-          temp_abs_lines_sm.reserve(25000);
-          temp_abs_lines_sp.reserve(25000);
-          temp_abs_lines_pi.reserve(25000);
-
-          // Else loop over all the lines in the species.
-          for (Index ii = 0; ii< abs_lines_per_species[II].nelem(); ii++)
-          {
-              // local LineRecord
-              LineRecord temp_LR = abs_lines_per_species[II][ii];
-              const Numeric this_linestrength = temp_LR.I0();
-              Rational hund;
-                
-              set_hund_case(hund, isotopologue_quantum, temp_LR);
-              Numeric RS_sum     = 0; //Sum relative strength (which ought be close to one by the end)
-              // Only look at lines which have no change in the main rotational number
-              
-              bool test=true;
-              
-              // Test that hund cases are properly defined
-              if(hund==0)
-              {
-                  if(    temp_LR.QuantumNumbers().Upper()[QN_Omega].isUndefined() 
-                      || temp_LR.QuantumNumbers().Lower()[QN_Omega].isUndefined())
-                      test=false;
-              }
-              else if(hund==1)
-              {
-                  if(    temp_LR.QuantumNumbers().Upper()[QN_N].isUndefined() 
-                      || temp_LR.QuantumNumbers().Lower()[QN_N].isUndefined())
-                      test=false;
-              }
-              else //Case a is 0, case b is 1
-              {
-                  std::ostringstream os;
-                  os << "There are undefined Hund cases for\n" << temp_LR;
-                  throw std::runtime_error(os.str());
-              }
-              
-              if(!test)
-              {
-                  std::ostringstream os;
-                  os<<"Need to define the main quantum numbers for\n"<<
-                  temp_LR;
-                  throw std::runtime_error(os.str());
-              }
-              
-              // Quantum numbers
-              set_quantumnumbers(temp_LR, hund, isotopologue_quantum);
-              const Rational J_up = temp_LR.QuantumNumbers().Upper()[QN_J], 
-              J_lo = temp_LR.QuantumNumbers().Lower()[QN_J];
-            
-              test = J_up.isUndefined()||J_lo.isUndefined();
-              if(test)
-              {
-                  std::ostringstream os;
-                  os<<"Need to define J for\n"<<
-                  temp_LR;
-                  throw std::runtime_error(os.str());
-              }
-              
-              test      = J_lo>J_up;
-              const bool same = J_lo==J_up;
-              const Rational  J    = (test?J_up:J_lo);
-              
-              for ( Rational M = -J; M<=J; M++ )
-              {
-                  /*
-                   *                              Note that:
-                   *                              sp := sigma plus,  which means DM =  1
-                   *                              sm := sigma minus, which means DM = -1
-                   *                              pi := planar,      which means DM =  0
-                   */
-                  if(test&&!same)
-                  {
-                      alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M-1  );
-                      temp_abs_lines_sm.push_back(temp_LR);
-                      
-                      alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M    );
-                      temp_abs_lines_pi.push_back(temp_LR);
-                      
-                      alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M+1  );
-                      temp_abs_lines_sp.push_back(temp_LR);
-                  }
-                  else if(same)
-                  {
-                      alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M    );
-                      temp_abs_lines_pi.push_back(temp_LR);
-                      
-                      if(M==-J)
-                      {
-                          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M+1  );
-                          temp_abs_lines_sp.push_back(temp_LR);
-                      }
-                      else if(M==J)
-                      {
-                          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M-1  );
-                          temp_abs_lines_sm.push_back(temp_LR);
-                      }
-                      else
-                      {
-                          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M-1  );
-                          temp_abs_lines_sm.push_back(temp_LR);                          
-                          
-                          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M+1  );
-                          temp_abs_lines_sp.push_back(temp_LR);
-                      }
-                  }
-                  else
-                  {
-                      alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M+1, M  );
-                      temp_abs_lines_sm.push_back(temp_LR);
-                      
-                      alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M  , M  );
-                      temp_abs_lines_pi.push_back(temp_LR);
-                      
-                      alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M-1, M  );
-                      temp_abs_lines_sp.push_back(temp_LR);
-                  }
-              }
-              
-              if (abs(RS_sum-1.)>margin) //Reasonable confidence?
-              {
-                  std::ostringstream os;
-                  os << "The sum of relative strengths is not close to one. This is problematic and "
-                  "you should look into why this happens.\nIt is currently " << RS_sum 
-                  << " with J_lo: "<<J_lo<<", J_up: "<<J_up<<" for line: "<<
-                  temp_LR <<"\n";
-                  throw std::runtime_error(os.str());
-              }
-          }
-      }
-      
-      const Index nzeeman = aoaol.nelem();
-      z1_frequencyshift.resize(nzeeman);
-      for(Index I=0;I<nzeeman;I++)
-      {
-          const Index nlines = aoaol[I].nelem();
-          z1_frequencyshift[I].resize(nlines);
-          for(Index J=0;J<nlines;J++)
-          {
-              Numeric GS;
-              
-              // Set necessary parameters from isotopologue_quantum
-              set_GS(GS, isotopologue_quantum, aoaol[I][J]);
-              
-              // Store the frequency shift
-              z1_frequencyshift[I][J] = frequency_change(aoaol[I][J], 1, GS);
-          }
-              
-      }
-      
-}
-
-
-
-void set_hund_case(Rational& hund, const SpeciesAuxData& isotopologue_quantum,const LineRecord& temp_LR)
-{
-  hund = (Index) isotopologue_quantum.getParam(temp_LR.Species(), 
-                                               temp_LR.Isotopologue())[0].data[AuxIndex_Hund];
-}
-
-void set_GS(Numeric& GS, const SpeciesAuxData& isotopologue_quantum,const LineRecord& temp_LR)
-{
-    GS = isotopologue_quantum.getParam(temp_LR.Species(), 
-                                       temp_LR.Isotopologue())[0].data[AuxIndex_GS];
-}
-
-
-void set_strength_partial_derivative_matrix(ArrayOfMatrix& A, ArrayOfMatrix& B, const ArrayOfRetrievalQuantity flag_partials, const Vector& f_grid)
-{
-    for(Index ii=0; ii<flag_partials.nelem(); ii++)
+    // One line record array per type of polarizer is created
+    aoaol.push_back(ArrayOfLineRecord()); // First is negative
+    aoaol.push_back(ArrayOfLineRecord()); // Second is 0
+    aoaol.push_back(ArrayOfLineRecord()); // Third is positive
+    
+    ArrayOfLineRecord& temp_abs_lines_sm = aoaol[aoaol.nelem()-3]; // sigma minus
+    ArrayOfLineRecord& temp_abs_lines_pi = aoaol[aoaol.nelem()-2]; // pi
+    ArrayOfLineRecord& temp_abs_lines_sp = aoaol[aoaol.nelem()-1]; // sigma plus
+    
+    temp_abs_lines_sm.resize(0);
+    temp_abs_lines_sp.resize(0);
+    temp_abs_lines_pi.resize(0);
+    
+    temp_abs_lines_sm.reserve(250);
+    temp_abs_lines_sp.reserve(250);
+    temp_abs_lines_pi.reserve(250);
+    
+    // Else loop over all the lines in the species.
+    for (Index ii = 0; ii < abs_lines_per_species[II].nelem(); ii++)
     {
-        if(flag_partials[ii].MainTag() == "Zeeman" &&  flag_partials[ii].Subtag() == "Magnetic Strength" && flag_partials[ii].SubSubtag() == "From Propagation")
+      // local LineRecord
+      LineRecord temp_LR = abs_lines_per_species[II][ii];
+      const Numeric this_linestrength = temp_LR.I0();
+      Numeric RS_sum = 0.0; //Sum relative strength (which ought be close to one by the end)
+      
+      if(not the_line_is_zeeman_ready(temp_LR, verbosity))
+        throw std::runtime_error("At least one line is not Zeeman-ready.  Activate out3 for more details\n");
+      
+      // Quantum numbers
+      const Rational J_up = temp_LR.QuantumNumbers().Upper()[QuantumNumberType::J], 
+      J_lo = temp_LR.QuantumNumbers().Lower()[QuantumNumberType::J];
+      
+      const bool upwards = J_lo > J_up;
+      const bool same = J_lo == J_up;
+      const Rational  J    = (upwards ? J_up : J_lo);
+      
+      for ( Rational M = -J; M<=J; M++ )
+      {
+        /*
+         *                              Note that:
+         *                              sp := sigma plus,  which means DM =  1
+         *                              sm := sigma minus, which means DM = -1
+         *                              pi := planar,      which means DM =  0
+         */
+        if(upwards)
         {
-            A[ii].resize(f_grid.nelem(),1);
-            B[ii].resize(f_grid.nelem(),1);
-            A[ii]=0;
-            B[ii]=0;
-            return;
+          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M-1  );
+          temp_abs_lines_sm.push_back(temp_LR);
+          
+          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M    );
+          temp_abs_lines_pi.push_back(temp_LR);
+          
+          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M+1  );
+          temp_abs_lines_sp.push_back(temp_LR);
         }
+        else if(same)
+        {
+          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M    );
+          temp_abs_lines_pi.push_back(temp_LR);
+          
+          if(M==-J)
+          {
+            alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M+1  );
+            temp_abs_lines_sp.push_back(temp_LR);
+          }
+          else if(M==J)
+          {
+            alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M-1  );
+            temp_abs_lines_sm.push_back(temp_LR);
+          }
+          else
+          {
+            alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M-1  );
+            temp_abs_lines_sm.push_back(temp_LR);                          
+            
+            alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M+1  );
+            temp_abs_lines_sp.push_back(temp_LR);
+          }
+        }
+        else /*if(downwards)*/
+        {
+          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M+1, M  );
+          temp_abs_lines_sm.push_back(temp_LR);
+          
+          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M  , M  );
+          temp_abs_lines_pi.push_back(temp_LR);
+          
+          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M-1, M  );
+          temp_abs_lines_sp.push_back(temp_LR);
+        }
+      }
+      
+      if (abs(RS_sum - 1.0) > margin)
+      {
+        std::ostringstream os;
+        os << "The sum of relative strengths is not unity. This is problematic and "
+        "you should look into why this happens.\nIt is currently " << RS_sum 
+        << " with J_lo: "<<J_lo<<", J_up: "<<J_up<<" for line: "<< temp_LR <<"\n";
+        throw std::runtime_error(os.str());
+      }
     }
+  }
+  
+  const Index nzeeman = aoaol.nelem();
+  z1_frequencyshift.resize(nzeeman);
+  for(Index I=0;I<nzeeman;I++)
+  {
+    const Index nlines = aoaol[I].nelem();
+    z1_frequencyshift[I].resize(nlines);
+    for(Index J=0;J<nlines;J++)
+    {
+      const Numeric GS = get_lande_spin_constant(aoaol[I][J]);
+      z1_frequencyshift[I][J] = frequency_change(aoaol[I][J], 1, GS);
+    }
+    
+  }
 }
 
 Index part_mag_strength(const ArrayOfRetrievalQuantity& flag_partials)
@@ -1899,4 +1761,30 @@ Index part_mag_theta(const ArrayOfRetrievalQuantity& flag_partials)
         if(flag_partials[ii].MainTag() == "Zeeman" &&  flag_partials[ii].Subtag() == "Magnetic Theta" && flag_partials[ii].SubSubtag() == "From Propagation")
             return ii;
     return -1;
+}
+
+
+/*! Returns the lande spin constant
+  
+  Data is from these
+  
+  H. Christensen, and L. Veseth, On the High-Precision Zeeman Effect in 02 and SO.
+  Journal of Molecular Spectroscopy 72, 438-444, 1978.
+  
+  L. Veseth, Relativistic Corrections to the Zeeman Effect in Diatomic Molecules.
+  Journal of Molecular Spectroscopy 66, 259-271, 1977.
+  
+  The final return is an averaged number that you get from 2*(1 + 0.5*alpha/PI + 
+  X*(alpha/PI)**2 + ...), where alpha approx 1/137 is the fine-structure constant.
+  
+  The default return of this function is from the NIST database
+  */
+Numeric get_lande_spin_constant(const LineRecord& line) noexcept
+{ 
+  if     (species_index_from_species_name("O2" ) == line.Species()) return 2.002064; 
+  else if(species_index_from_species_name("NO" ) == line.Species()) return 2.00071;  
+  else if(species_index_from_species_name("OH" ) == line.Species()) return 2.00089;
+  else if(species_index_from_species_name("ClO") == line.Species()) return 2.00072;
+  else if(species_index_from_species_name("SO" ) == line.Species()) return 2.002106;
+  else return 2.00231930436182;
 }

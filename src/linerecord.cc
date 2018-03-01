@@ -995,10 +995,10 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
       Index N = atoi(helper.substr(1,2).c_str());
       Index J = atoi(helper.substr(4,2).c_str());
       
-      mquantum_numbers.SetLower(QN_N, N);
-      mquantum_numbers.SetLower(QN_J, J);
-      mquantum_numbers.SetUpper(QN_N, N - DN);
-      mquantum_numbers.SetUpper(QN_J, J - DJ);
+      mquantum_numbers.SetLower(QuantumNumberType::N, N);
+      mquantum_numbers.SetLower(QuantumNumberType::J, J);
+      mquantum_numbers.SetUpper(QuantumNumberType::N, N - DN);
+      mquantum_numbers.SetUpper(QuantumNumberType::J, J - DJ);
     }
       
     extract(ell,line,9);
@@ -2746,10 +2746,10 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
       if (species_data[mspecies].Name() == "SO")
       {
           // Note that atoi converts *** to 0.
-          mquantum_numbers.SetUpper(QN_N, mupper_n = atoi(mquantum_numbers_str.substr(0,3).c_str()));
-          mquantum_numbers.SetLower(QN_N, mlower_n = atoi(mquantum_numbers_str.substr(6,3).c_str()));
-          mquantum_numbers.SetUpper(QN_J, mupper_j = atoi(mquantum_numbers_str.substr(3,3).c_str()));
-          mquantum_numbers.SetLower(QN_J, mlower_j = atoi(mquantum_numbers_str.substr(9,3).c_str()));
+          mquantum_numbers.SetUpper(QuantumNumberType::N, mupper_n = atoi(mquantum_numbers_str.substr(0,3).c_str()));
+          mquantum_numbers.SetLower(QuantumNumberType::N, mlower_n = atoi(mquantum_numbers_str.substr(6,3).c_str()));
+          mquantum_numbers.SetUpper(QuantumNumberType::J, mupper_j = atoi(mquantum_numbers_str.substr(3,3).c_str()));
+          mquantum_numbers.SetLower(QuantumNumberType::J, mlower_j = atoi(mquantum_numbers_str.substr(9,3).c_str()));
       }
       
       if (mquantum_numbers_str.nelem() >= 25)
@@ -2768,8 +2768,8 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
               
               if (v[2] > -1)
               {
-                  mquantum_numbers.SetUpper(QN_v1, v[2]);
-                  mquantum_numbers.SetLower(QN_v1, v[2]);
+                  mquantum_numbers.SetUpper(QuantumNumberType::v1, v[2]);
+                  mquantum_numbers.SetLower(QuantumNumberType::v1, v[2]);
               }
 
               String qstr1 = mquantum_numbers_str.substr(4,      12);
@@ -2790,12 +2790,12 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
                       q[qi] = -1;
               }
 
-              if (q[0] > -1) mquantum_numbers.SetUpper(QN_N, mupper_n = q[0]);
-              if (q[1] > -1) mquantum_numbers.SetUpper(QN_J, mupper_j = q[1]);
-              if (q[2] > -1) mquantum_numbers.SetUpper(QN_F, q[2] - Rational(1, 2));
-              if (q[3] > -1) mquantum_numbers.SetLower(QN_N, mlower_n = q[3]);
-              if (q[4] > -1) mquantum_numbers.SetLower(QN_J, mlower_j = q[4]);
-              if (q[5] > -1) mquantum_numbers.SetLower(QN_F, q[5] - Rational(1, 2));
+              if (q[0] > -1) mquantum_numbers.SetUpper(QuantumNumberType::N, mupper_n = q[0]);
+              if (q[1] > -1) mquantum_numbers.SetUpper(QuantumNumberType::J, mupper_j = q[1]);
+              if (q[2] > -1) mquantum_numbers.SetUpper(QuantumNumberType::F, q[2] - Rational(1, 2));
+              if (q[3] > -1) mquantum_numbers.SetLower(QuantumNumberType::N, mlower_n = q[3]);
+              if (q[4] > -1) mquantum_numbers.SetLower(QuantumNumberType::J, mlower_j = q[4]);
+              if (q[5] > -1) mquantum_numbers.SetLower(QuantumNumberType::F, q[5] - Rational(1, 2));
           }
       }
       LineRecord::ARTSCAT4UnusedToNaN();
@@ -3498,7 +3498,7 @@ void LineRecord::WriteBinaryArtscat5(std::ostream& stream) const
   stream.write((char*)&mcutoff, sizeof(Numeric));
   stream.write((char*)&mspeedup, sizeof(Numeric));
   
-  qns = Index(QN_FINAL_ENTRY);
+  qns = Index(QuantumNumberType::FINAL_ENTRY);
   stream.write((char*)&qns, sizeof(Index));
   
   d = Index(mpressurebroadeningdata.Type());

@@ -48,10 +48,7 @@ void dphase_matrix_deta(  MatrixView dK, const Numeric& theta, const Numeric& et
 void dattenuation_matrix_dtheta(MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM);
 void dattenuation_matrix_deta(  MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM);
 
-Numeric gs_caseb(const Rational& N, const Rational& J, const Rational& S, const Numeric& GS);
-Numeric gs_casea(const Rational& Omega, const Rational& J, const Rational& Lambda, const Rational& Sigma, const Numeric& GS);
-
-Numeric relative_strength(const Rational& m, const Rational& j, const Index& dj, const Index& dm);
+Rational relative_strength(const Rational& m, const Rational& j, const Index& dj, const Index& dm);
 
 Numeric frequency_change(const LineRecord& lr, const Numeric& H_mag, const Numeric& GS);
 
@@ -108,10 +105,6 @@ void set_magnetic_parameters_derivative(Numeric& dH_du,
                                         ConstVectorView rtp_mag,
                                         ConstVectorView r_path_los);
 
-void set_quantumnumbers( LineRecord& this_LR,
-                         const Rational& hund,
-                         const SpeciesAuxData& isotopologue_quantum);
-
 void alter_linerecord( LineRecord& new_LR,
                        Numeric& Test_RS,
                        const Numeric& old_LS,
@@ -125,13 +118,9 @@ void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
                                     ArrayOfVector& z1_frequencyshift,
                                     const ArrayOfArrayOfSpeciesTag& abs_species,
                                     const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                                    const SpeciesAuxData& isotopologue_quantum,
                                     const Verbosity& verbosity);
-
-void set_hund_case(Rational& hund, const SpeciesAuxData& isotopologue_quantum, const LineRecord& temp_LR);
-void set_GS(Numeric& GS, const SpeciesAuxData& isotopologue_quantum, const LineRecord& temp_LR);
-
-void set_strength_partial_derivative_matrix(ArrayOfMatrix& A, ArrayOfMatrix& B, const ArrayOfRetrievalQuantity jq, const Vector& f_grid);
 
 Index part_mag_strength(const ArrayOfRetrievalQuantity& flag_partials);
 Index part_mag_theta(const ArrayOfRetrievalQuantity& flag_partials);
+
+Numeric get_lande_spin_constant(const LineRecord& line) noexcept;

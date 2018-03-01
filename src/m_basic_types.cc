@@ -65,6 +65,7 @@
 #include "sorting.h"
 #include "gridded_fields.h"
 #include "optproperties.h"
+#include "rational.h"
 
 
 /*===========================================================================
@@ -550,6 +551,46 @@ void NumericSet(Numeric&   x,
                 const Verbosity&)
 {
   x = value;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void RationalAdd(Rational&   out,
+                 const Rational&   in,
+                 const Rational&   value,
+                 const Verbosity&)
+{
+  out = value + in;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void RationalInvScale(Rational&   out,
+                      const Rational&   in,
+                      const Rational&   value,
+                      const Verbosity&)
+{
+  out = in / value;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void RationalScale(Rational&   out,
+                   const Rational&   in,
+                   const Rational&   value,
+                   const Verbosity&)
+{
+  out = value * in;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void RationalSet(Rational&   x,
+                 const Index& numerator,
+                 const Index& denominator,
+                 const Verbosity&)
+{
+  x = Rational(numerator, denominator);
 }
 
 

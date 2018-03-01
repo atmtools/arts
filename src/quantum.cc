@@ -37,7 +37,7 @@ bool QuantumNumbers::Compare(const QuantumNumbers& qn) const
     Index qnri = 0;
 
     // Compare all quantum numbers in mqnumbers and qnumbers2
-    while (match && qnri != QN_FINAL_ENTRY)
+    while (match && qnri != Index(QuantumNumberType::FINAL_ENTRY))
     {
         // If one of the two numbers is undefined, it is considered as
         // a match.
@@ -64,7 +64,7 @@ bool QuantumNumbers::CompareDetailed(QuantumMatchInfoEnum& imatch, const Quantum
     imatch = QMI_FULL;
 
     // Compare all quantum numbers in mqnumbers and qnumbers2
-    while (match && qnri != QN_FINAL_ENTRY)
+    while (match && qnri != Index(QuantumNumberType::FINAL_ENTRY))
     {
         // If one of the two numbers is undefined, it is considered as
         // a match.
@@ -105,7 +105,7 @@ bool QuantumIdentifier::operator>(const QuantumIdentifier& other) const
   switch(mqtype)
   {
     case QuantumIdentifier::TRANSITION:
-      while (qnri != QN_FINAL_ENTRY)
+      while (qnri != Index(QuantumNumberType::FINAL_ENTRY))
       {
         if(mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined())
         {
@@ -132,7 +132,7 @@ bool QuantumIdentifier::operator>(const QuantumIdentifier& other) const
       return true;
       break;
     case QuantumIdentifier::ENERGY_LEVEL:
-      while (qnri != QN_FINAL_ENTRY)
+      while (qnri != Index(QuantumNumberType::FINAL_ENTRY))
       {
         if(mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
         {
@@ -175,7 +175,7 @@ bool QuantumIdentifier::operator<(const QuantumIdentifier& other) const
   switch(mqtype)
   {
     case QuantumIdentifier::TRANSITION:
-      while (qnri != QN_FINAL_ENTRY)
+      while (qnri != Index(QuantumNumberType::FINAL_ENTRY))
       {
         if(other.mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined())
         {
@@ -202,7 +202,7 @@ bool QuantumIdentifier::operator<(const QuantumIdentifier& other) const
       return true;
       break;
     case QuantumIdentifier::ENERGY_LEVEL:
-      while (qnri != QN_FINAL_ENTRY)
+      while (qnri != Index(QuantumNumberType::FINAL_ENTRY))
       {
         if(other.mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
         {
@@ -235,7 +235,7 @@ bool QuantumNumbers::operator<(const QuantumNumbers& other) const
 {
   Index qnri = 0;
   
-  while (qnri != QN_FINAL_ENTRY)
+  while (qnri != Index(QuantumNumberType::FINAL_ENTRY))
   {
     if(other.mqnumbers[qnri].isUndefined())
     {
@@ -260,7 +260,7 @@ bool QuantumNumbers::operator>(const QuantumNumbers& other) const
 {
   Index qnri = 0;
   
-  while (qnri != QN_FINAL_ENTRY)
+  while (qnri != Index(QuantumNumberType::FINAL_ENTRY))
   {
     if(mqnumbers[qnri].isUndefined())
     {
@@ -341,7 +341,7 @@ std::istream& operator>>(std::istream& is, QuantumNumbers& qn)
 
     // Define a helper macro to save some typing.
 #define INPUT_QUANTUM(ID) \
-    if (name == #ID) qn.Set(QN_ ## ID, r)
+    if (name == #ID) qn.Set(QuantumNumberType::ID, r)
 
         INPUT_QUANTUM(J);
         else INPUT_QUANTUM(dJ);
@@ -391,8 +391,8 @@ std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn)
     bool first = true;
     // Define a helper macro to save some typing.
 #define OUTPUT_QUANTUM(ID) \
-    if (!qn[QN_ ## ID].isUndefined()) \
-      { if (!first) os << " "; first = false; os << #ID << " " << qn[QN_ ## ID]; }
+    if (!qn[Index(QuantumNumberType::ID)].isUndefined()) \
+      { if (!first) os << " "; first = false; os << #ID << " " << qn[QuantumNumberType::ID]; }
 
         OUTPUT_QUANTUM(J);
         OUTPUT_QUANTUM(dJ);

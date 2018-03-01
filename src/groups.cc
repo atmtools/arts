@@ -150,6 +150,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("Ppath");
   wsv_group_names.push_back("PropagationMatrix");
   wsv_group_names.push_back("QuantumIdentifier");
+  wsv_group_names.push_back("Rational");
   wsv_group_names.push_back("ScatteringMetaData");
   wsv_group_names.push_back("SingleScatteringData");
   wsv_group_names.push_back("Sparse");

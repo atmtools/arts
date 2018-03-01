@@ -31,12 +31,12 @@ main (int /*argc*/, char * /*argv*/ [])
         QuantumNumbers q1;
         QuantumNumbers q2;
 
-        q1.Set(QN_J, Rational(1,2));
-        q1.Set(QN_S, Rational(1,2));
+        q1.Set(QuantumNumberType::J, Rational(1,2));
+        q1.Set(QuantumNumberType::S, Rational(1,2));
 
-        q2.Set(QN_J, Rational(1,2));
-        q2.Set(QN_N, Rational(1,3));
-        q2.Set(QN_S, Rational(1,2));
+        q2.Set(QuantumNumberType::J, Rational(1,2));
+        q2.Set(QuantumNumberType::N, Rational(1,3));
+        q2.Set(QuantumNumberType::S, Rational(1,2));
 
         cout << "Compare q1==q2: " << q1.Compare(q2) << endl;
         cout << "Compare q2==q1: " << q2.Compare(q1) << endl;
@@ -76,8 +76,8 @@ main (int /*argc*/, char * /*argv*/ [])
 
         SpeciesTag stag("O2-66");
         QuantumNumberRecord qnr;
-        qnr.SetUpper(QN_J, Rational(1, 1));
-        qnr.SetLower(QN_J, Rational(1, 1));
+        qnr.SetUpper(QuantumNumberType::J, Rational(1, 1));
+        qnr.SetLower(QuantumNumberType::J, Rational(1, 1));
 
         cout << "qnr:  " << qnr << endl;
 

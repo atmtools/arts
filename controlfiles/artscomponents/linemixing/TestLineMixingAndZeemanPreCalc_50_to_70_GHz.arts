@@ -50,9 +50,6 @@ abs_linesReadFromSplitArtscat(abs_lines, abs_species,
 # Sort the line file according to species
 abs_lines_per_speciesCreateFromLines
 
-# Get the quantum Landau constant and molecule electron spin
-ReadXML( isotopologue_quantum, "spectroscopy/QuantumConstants/zeeman_constants.xml" )
-
 ArrayOfLineMixingRecordCreate(lm_o2)
 
 ReadXML(lm_o2,"spectroscopy/LineMixing/2nd_order/o2_v1_0_band_40-120_GHz.xml.gz")
