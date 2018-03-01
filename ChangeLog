@@ -1,5 +1,12 @@
 2018-03-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-976
+
+	* controlfiles/general/agendas.arts: Added definition of
+	ppath_agenda__PlaneParallel.
+
+2018-03-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-975
 
 	* src/m_rte.cc (iyIndependentBeamApproximation): The function made

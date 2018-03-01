@@ -233,6 +233,19 @@ AgendaSet( ppath_agenda__FollowSensorLosPath ){
 }
 
 ###
+# plane parellel version
+#
+AgendaCreate( ppath_agenda__PlaneParallel )
+AgendaSet( ppath_agenda__PlaneParallel ){
+  Ignore( ppath_lraytrace )
+  Ignore( rte_pos2 )
+  Ignore( t_field )
+  Ignore( vmr_field )
+  Ignore( f_grid )
+  ppathPlaneParallel
+}
+
+###
 # transmitter-receiver (link) path
 #
 AgendaCreate( ppath_agenda__TransmitterReceiverPath )
