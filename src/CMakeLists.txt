@@ -229,6 +229,7 @@ add_library (artscore STATIC
   m_linerecord.cc
   m_microphysics.cc
   m_montecarlo.cc
+  m_nlte.cc
   m_oem.cc
   m_optproperties.cc
   m_physics.cc
@@ -255,6 +256,7 @@ add_library (artscore STATIC
   messages.cc
   microphysics.cc
   montecarlo.cc
+  nlte.cc
   optproperties.cc
   parameters.cc
   parser.cc

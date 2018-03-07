@@ -4117,7 +4117,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Grids: [Zenith angle, Azimuth Angle, *f_grid*, *stokes_dim*, *stokes_dim*]\n"
       ),
-      GROUP( "GriddedField5" )));
+      GROUP( "GriddedField4" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -5920,15 +5920,15 @@ void Workspace::define_wsv_data()
        "array is the number of NLTE levels in all molecules.\n"
        "\n"
        "The temperature/ratio for a point between the grid crossings is obtained \n"
-       "by (multi-)linear interpolation of the *t_field*.\n"
+       "by (multi-)linear interpolation of the *nlte_field*.\n"
        "\n"
-       "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
-       "\"workspace variables\".\n"
+       "There are two types of NLTE computations available in ARTS.  One from\n"
+       "giving excitiation temperatures that makes the absorption/emission diverge\n"
+       "from LTE.  The other is to use the absolute ratios of upper-to-lower states at\n"
+       "the levels of interest.\n"
+       ""
        "\n"
-       "Usage:      Output of *AtmFieldsCalc*.\n"
-       "\n"
-       "Unit:       K\n"
+       "Units:       [ K or \% ]]\n"
        "\n"
        "Dimensions: [ NLTE levels, p_grid, lat_grid, lon_grid ] or [ 0, 0, 0, 0 ]\n"
        ),

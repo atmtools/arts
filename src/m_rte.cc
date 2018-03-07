@@ -315,11 +315,12 @@ void iyEmissionStandard2(
       ppvar_wind.resize(0,0);
       ppvar_mag.resize(0,0);
       ppvar_f.resize(0,0);
-      ppvar_iy.resize(0,0,0);
+      ppvar_iy.resize(nf,ns,np);
+      trans_cumulat = 1;
     }
   else
     {
-      // ppvar_iy      
+      // ppvar_iy
       ppvar_iy.resize(nf,ns,np);
       
       // Basic atmospheric variables

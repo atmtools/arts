@@ -4155,12 +4155,12 @@ void vmr_fieldSetAllConstant(
 
 
 void nlte_fieldSetLTE(Index& nlte_do,
-                        Tensor4& nlte_field,
-                        ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                        const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
-                        const SpeciesAuxData& partition_functions,
-                        const Tensor3& t_field,
-                        const Verbosity& verbosity)
+                      Tensor4& nlte_field,
+                      ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                      const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
+                      const SpeciesAuxData& partition_functions,
+                      const Tensor3& t_field,
+                      const Verbosity& verbosity)
 {
   extern const Numeric PLANCK_CONST;
   

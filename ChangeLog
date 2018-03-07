@@ -1,3 +1,27 @@
+2018-03-07  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-978
+	
+	Added simple nlte_field-computer.   Still a work in progress
+	as there seems to be a large bug with some code that cannot
+	be made to run in parallel, making the code painfully slow.
+	
+	* src/m_radiation_field.cc:  Changed main function to directly
+	call iyEmissionStandard2.  Also changed transmission_field to 
+	fit with iyEmissionStandard2 changed definition.  Finally, 
+	made it so that the lines are forced to overlap and line
+	shapes are renormalized before integrations.
+	
+	* src/nlte{cc,h},m_nlte.cc:  Contains simple function for computing
+	the NLTE-field using lambda iterator (modified approximate or not)
+	based on Taka's formulations.  Still not tested because it must be 
+	run on single core now due to some bug in the iy-calculations that
+	I cannot find.
+	
+	* src/m_rte.cc: (iyEmissionStandard2) Changed to return background
+	radiation when there is only a single level, and to set the
+	transmission of the undefined layer to unity.
+
 2018-03-01  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-977

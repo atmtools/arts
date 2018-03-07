@@ -10346,6 +10346,32 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+    md_data_raw.push_back     
+    ( MdRecord
+    ( NAME( "nlte_fieldForSingleSpeciesNonOverlappingLines" ),
+      DESCRIPTION
+      ( "Test function to solve NLTE\n"
+        "Use at own risk... will be changed continously and\n"
+        "expect its user to debug it...\n"),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "nlte_field" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("nlte_field", "abs_species", "abs_lines_per_species", "nlte_quantum_identifiers", 
+         "ppath_agenda", "iy_main_agenda", "iy_space_agenda", "iy_surface_agenda", 
+         "iy_cloudbox_agenda", "propmat_clearsky_agenda", "vmr_field", "t_field", "z_field",
+         "wind_u_field", "wind_v_field", "wind_w_field", "p_grid", "atmosphere_dim", "nlte_do"),
+      GIN("df", "nz", "na", "nf", "dampened"),
+      GIN_TYPE("Numeric", "Index", "Index", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF),
+      GIN_DESC("Max frequency diff from every line center",
+               "number of zenith angles", 
+               "number of azimuth angles", 
+               "number of frequency grid-points per line", 
+               "use transmission dampening or not" )
+    ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "NumericAdd" ),
@@ -13514,10 +13540,13 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmgeom_checked", "atmfields_checked", 
-            "f_grid", "t_field", "z_field", "vmr_field", "nlte_field",
-            "cloudbox_on", "cloudbox_checked", "scat_data_checked",
-            "stokes_dim", "rte_pos", "iy_unit", "iy_main_agenda" ),
+        IN( "atmosphere_dim", "cloudbox_on", 
+            "stokes_dim", "ppath_lmax", "ppath_lraytrace", "f_grid", "p_grid",
+            "rte_pos", "t_field", "z_field", "wind_u_field", "wind_v_field", "wind_w_field",
+            "mag_u_field", "mag_v_field", "mag_w_field",
+            "vmr_field", "nlte_field", "abs_species", "iy_unit",
+            "ppath_agenda", "iy_main_agenda", "iy_space_agenda", "iy_surface_agenda", 
+            "iy_cloudbox_agenda", "propmat_clearsky_agenda"),
         GIN("za_coords", "aa_coords", "do_transmission_field"),
         GIN_TYPE("Vector", "Vector", "Index"),
         GIN_DEFAULT(NODEF, NODEF, NODEF),
@@ -13534,12 +13563,15 @@ void define_md_data_raw()
         "Exists only as a temporary method... do not use\n"
       ),
       AUTHORS( "Richard Larsson" ),
-      OUT( "y" ),
+      OUT( "iy", "iy_transmission" ),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN( "abs_species", "abs_lines_per_species",  "iy_main_agenda", "nlte_field",  "vmr_field", 
-          "t_field", "z_field", "wind_u_field", "wind_v_field", "wind_w_field", "p_grid"),
+      IN( "abs_species", "abs_lines_per_species", "nlte_field",  "vmr_field", 
+          "t_field", "z_field", "wind_u_field", "wind_v_field", "wind_w_field", "p_grid",
+          "atmosphere_dim", "ppath_agenda", "iy_main_agenda", "iy_space_agenda", "iy_surface_agenda", 
+          "iy_cloudbox_agenda", "propmat_clearsky_agenda"
+        ),
       GIN(     "df",      "nz",    "na",    "nf"),
       GIN_TYPE("Numeric", "Index", "Index", "Index"),
       GIN_DEFAULT(NODEF,  NODEF,   NODEF,   NODEF),
