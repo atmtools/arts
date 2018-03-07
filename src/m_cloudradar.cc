@@ -44,17 +44,16 @@
 #include <stdexcept>
 #include "arts.h"
 #include "auto_md.h"
-#include "complex.h"
 #include "logic.h"
 #include "messages.h"
 #include "montecarlo.h"
-#include "refraction.h"
 #include "rte.h"
 #include "sensor.h"
 
 extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
 extern const String SCATSPECIES_MAINTAG;
+
 
 
 
@@ -590,47 +589,24 @@ void iyActiveSingleScat(
     {}
   else if( iy_unit == "Ze" )
     {
+      Vector cfac(nf);
+      ze_cfac( cfac, f_grid, ze_tref, k2 );
       
-      // Refractive index for water (if needed)
-      Matrix complex_n(0,0);
-      if( k2 <= 0 )
-        { complex_n_water_liebe93( complex_n, f_grid, ze_tref ); }
-          
-      // Common conversion factor
-      const Numeric a = 4e18/(PI*PI*PI*PI);
-
       for( Index iv=0; iv<nf; iv++ )
         {
-          // Reference dielectric factor.
-          Numeric K2;
-          if( k2 > 0 )
-            { K2 = k2; }
-          else
-            {
-              Complex n( complex_n(iv,0), complex_n(iv,1) );
-              Complex n2 = n*n;
-              Complex K  = ( n2 - Numeric(1.0) ) / ( n2 + Numeric(2.0) );
-              Numeric absK = abs( K );
-              K2 = absK * absK;
-            }
-
-          // Conversion factor
-          Numeric la = SPEED_OF_LIGHT / f_grid[iv];
-          Numeric fac = a*la*la*la*la / K2; 
-      
-          iy(Range(iv*np,np),joker) *= fac;
+          iy(Range(iv*np,np),joker) *= cfac[iv];
 
           // Jacobian part
           // 
           if( j_analytical_do )
             {
-              FOR_ANALYTICAL_JACOBIANS_DO( diy_dx[iq] *= fac; )
+              FOR_ANALYTICAL_JACOBIANS_DO( diy_dx[iq] *= cfac[iv]; )
             }
           
           //=== iy_aux part ===========================================
           // Backscattering
           if( auxBackScat >= 0 ) {
-            iy_aux[auxBackScat](iv,joker,joker,joker) *= fac; }
+            iy_aux[auxBackScat](iv,joker,joker,joker) *= cfac[iv]; }
 
         }
     }
@@ -653,19 +629,18 @@ void iyActiveSingleScat2(
         ArrayOfTensor3&                     diy_dx,
         Vector&                             ppvar_p,
         Vector&                             ppvar_t,
-        Matrix&                             ppvar_t_nlte,
+        Matrix&                             ppvar_nlte,
         Matrix&                             ppvar_vmr,
         Matrix&                             ppvar_wind,
         Matrix&                             ppvar_mag,         
         Matrix&                             ppvar_pnd,
         Matrix&                             ppvar_f,  
-        Tensor3&                            ppvar_iy,  
   const Index&                              stokes_dim,
   const Vector&                             f_grid,
   const Index&                              atmosphere_dim,
   const Vector&                             p_grid,
   const Tensor3&                            t_field,
-  const Tensor4&                            t_nlte_field,
+  const Tensor4&                            nlte_field,
   const Tensor4&                            vmr_field,
   const ArrayOfArrayOfSpeciesTag&           abs_species,
   const Tensor3&                            wind_u_field,
@@ -689,7 +664,7 @@ void iyActiveSingleScat2(
   const Index&                              iy_agenda_call1,
   const Tensor3&                            iy_transmission,
   const Numeric&                            rte_alonglos_v,
-  const Verbosity& )
+  const Verbosity&                          verbosity )
 {
   // Some basic sizes
   const Index nf = f_grid.nelem();
@@ -710,6 +685,10 @@ void iyActiveSingleScat2(
   if( rbi < 1  ||  rbi > 9 )
     throw runtime_error( "ppath.background is invalid. Check your "
                          "calculation of *ppath*?" );
+  if( rbi == 3  ||  rbi == 4 )
+    throw runtime_error( "The propagation path ends inside or at boundary of "
+                         "the cloudbox.\nFor this method, *ppath* must be "
+                         "calculated in this way:\n   ppathCalc( cloudbox_on = 0 )." );
   if( jacobian_do )
     {
       if( dpnd_field_dx.nelem() != jacobian_quantities.nelem() )
@@ -802,23 +781,18 @@ void iyActiveSingleScat2(
       ppvar_p.resize(0);
       ppvar_t.resize(0);
       ppvar_vmr.resize(0,0);
-      ppvar_t_nlte.resize(0,0);
+      ppvar_nlte.resize(0,0);
       ppvar_wind.resize(0,0);
       ppvar_mag.resize(0,0);
       ppvar_pnd.resize(0,0);
       ppvar_f.resize(0,0);
-      ppvar_iy.resize(0,0,0);
     }
   else
     {
-      // ppvar_iy
-      ppvar_iy.resize(nf,ns,np);
-      ppvar_iy(joker,joker,np-1) = iy;
-      
       // Basic atmospheric variables
-      get_ppath_atmvars( ppvar_p, ppvar_t, ppvar_t_nlte, ppvar_vmr,
+      get_ppath_atmvars( ppvar_p, ppvar_t, ppvar_nlte, ppvar_vmr,
                          ppvar_wind, ppvar_mag, 
-                         ppath, atmosphere_dim, p_grid, t_field, t_nlte_field, 
+                         ppath, atmosphere_dim, p_grid, t_field, nlte_field, 
                          vmr_field, wind_u_field, wind_v_field, wind_w_field,
                          mag_u_field, mag_v_field, mag_w_field );
       
@@ -862,6 +836,16 @@ void iyActiveSingleScat2(
             )
         }
 
+      // Temporary part:
+      Array<ArrayOfArrayOfSingleScatteringData>  scat_data_single;
+      scat_data_single.resize( nf );
+      for( Index iv=0; iv<nf; iv++ )
+        { 
+          scat_data_monoExtract( scat_data_single[iv], scat_data, iv,
+                                 verbosity );
+        }
+
+      
       // Loop ppath points and determine radiative properties
       for( Index ip=0; ip<np; ip++ )
         { 
@@ -877,7 +861,7 @@ void iyActiveSingleScat2(
                                          ppvar_f(joker,ip),
                                          ppvar_mag(joker,ip),
                                          ppath.los(ip,joker),
-                                         ppvar_t_nlte(joker,ip),
+                                         ppvar_nlte(joker,ip),
                                          ppvar_vmr(joker,ip),
                                          ppvar_t[ip],
                                          ppvar_p[ip],
@@ -962,15 +946,17 @@ void iyActiveSingleScat2(
                   }
 
                 // Exctract back-scattering
-                /*
-                pha_mat_singleCalcScatElement( Pe, los_sca[0], los_sca[1],
-                                               los_inc[0], los_inc[1],
-                                               scat_data_single[iv],
-                                               stokes_dim, pnd_probe,
-                                               ppath_t[ip], verbosity );
-                */
-              }
-              
+                // (remove calculation above of scat_data_single when this is updated)
+                for( Index iv=0; iv<nf; iv++ )
+                  { 
+                    pha_mat_singleCalcScatElement( Pe(joker,ip,iv,joker,joker),
+                                                   los_sca[0], los_sca[1],
+                                                   los_inc[0], los_inc[1],
+                                                   scat_data_single[iv],
+                                                   stokes_dim, pnd_unit,
+                                                   ppvar_t[ip], verbosity );
+                  }
+              } // local scope
             }  // clear2cloudy
       
           get_stepwise_transmission_matrix(
@@ -999,6 +985,14 @@ void iyActiveSingleScat2(
   Tensor3 tr_rev( nf, ns, ns );
   for( Index iv=0; iv<nf; iv++ ) 
     { id_mat( tr_rev(iv,joker,joker) ); }
+
+  // Size iy and set to zero
+  iy.resize( nf*np, ns );
+  iy = 0;
+
+  // If neither cloudbox or aux variables, nothing more to do
+  if( !cloudbox_on  &&  !naux )
+    { return; }
   
   // Radiative transfer calculations
   for( Index ip=0; ip<np; ip++ )
@@ -1261,12 +1255,7 @@ void yActive(
       if( np == 1 )
         throw runtime_error( "A path consisting of a single point found. "
                              "This is not allowed." );
-      const bool isupward = ppath.pos(1,0) > ppath.pos(0,0);
-      if( !( ( isupward & is_increasing( ppath.pos(joker,0) ) ) ||
-             ( !isupward & is_decreasing( ppath.pos(joker,0) ) ) ) )
-        throw runtime_error( "A path with strictly increasing or decreasing "
-                             "altitudes must be obtained (e.g. limb "
-                             "measurements are not allowed)." );
+      error_if_limb_ppath( ppath );
       if( iy.nrows() != nf*np )
         throw runtime_error( "The size of *iy* returned from *iy_main_agenda* "
                              "is not correct (for this method)." );
@@ -1355,6 +1344,367 @@ void yActive(
                       Index iout = nbins * ( p*npolcum[nf] + 
                                              npolcum[iv] + ip ) + b;
                       y[iout] = hbin * refl;
+                      //
+                      if( j_analytical_do )
+                        {
+                          FOR_ANALYTICAL_JACOBIANS_DO(
+                            for( Index k=0; k<drefl[iq].nrows(); k++ )
+                              { jacobian(iout,jacobian_indices[iq][0]+k) =
+                                                   hbin * drefl[iq](k,joker); }
+                          )
+                        }
+                      
+                      // Same for aux variables
+                      for( Index a=0; a<naux; a++ )
+                        {
+                          if( iy_aux_vars[a] == "Backscattering" )
+                            {
+                              // I2 matches I, but is transposed
+                              Matrix I2 = iy_aux[a](iv,joker,0,joker);
+                              refl = 0;
+                              for( Index i=0; i<w.nelem(); i++ )
+                                { for( Index j=0; j<np; j++ )
+                                    { refl[j] += I2(i,j) * w[i]; } }
+                              y_aux[a][iout] = hbin * refl;
+                            }                          
+                          else if( iy_aux[a].nbooks()==1 && iy_aux[a].npages()==1 &&
+                              iy_aux[a].nrows() ==1 && iy_aux[a].ncols() ==np )
+                            {
+                              y_aux[a][iout] = hbin * iy_aux[a](0,0,0,joker);
+                            }
+                          else
+                            {
+                              ostringstream os;
+                              os << "The auxiliary variable " << iy_aux_vars[a]
+                                 << "is not handled by this WSM (but OK when "
+                                 << "using *iyCalc*).";
+                              throw runtime_error( os.str() );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+      // Other aux variables
+      //
+      Vector geo_pos;
+      geo_pos_agendaExecute( ws, geo_pos, ppath, geo_pos_agenda );
+      if( geo_pos.nelem() &&  geo_pos.nelem() != atmosphere_dim )
+        {
+          throw runtime_error( "Wrong size of *geo_pos* obtained from "
+                               "*geo_pos_agenda*.\nThe length of *geo_pos* must "
+                               "be zero or equal to *atmosphere_dim*." );
+        }
+      //
+      for( Index b=0; b<nbins; b++ )
+        {
+          for( Index iv=0; iv<nf; iv++ )
+            {
+              for( Index ip=0; ip<instrument_pol_array[iv].nelem(); ip++ )
+                {
+                  const Index iout = nbins * ( p*npolcum[nf] + 
+                                               npolcum[iv] + ip ) + b;
+                  y_f[iout]         = f_grid[iv];
+                  y_pol[iout]       = instrument_pol_array[iv][ip];
+                  y_pos(iout,joker) = sensor_pos(p,joker);
+                  y_los(iout,joker) = sensor_los(p,joker);
+                  if( geo_pos.nelem() )
+                    { y_geo(iout,joker) = geo_pos; }
+                }
+            }
+        }
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void yActive2(
+         Workspace&                ws,
+         Vector&                   y,
+         Vector&                   y_f,
+         ArrayOfIndex&             y_pol,
+         Matrix&                   y_pos,
+         Matrix&                   y_los,
+         ArrayOfVector&            y_aux,
+         Matrix&                   y_geo,
+         Matrix&                   jacobian,
+   const Index&                    atmgeom_checked,
+   const Index&                    atmfields_checked,
+   const String&                   iy_unit,   
+   const ArrayOfString&            iy_aux_vars,
+   const Index&                    stokes_dim,
+   const Vector&                   f_grid,
+   const Index&                    atmosphere_dim,
+   const Tensor3&                  t_field,
+   const Tensor3&                  z_field,
+   const Tensor4&                  vmr_field,
+   const Tensor4&                  nlte_field,
+   const Index&                    cloudbox_on,
+   const Index&                    cloudbox_checked,
+   const Matrix&                   sensor_pos,
+   const Matrix&                   sensor_los,
+   const Index&                    sensor_checked,
+   const Index&                    jacobian_do,     
+   const ArrayOfRetrievalQuantity& jacobian_quantities,
+   const Agenda&                   iy_main_agenda,
+   const Agenda&                   geo_pos_agenda,
+   const ArrayOfArrayOfIndex&      instrument_pol_array,
+   const Vector&                   range_bins,
+   const Numeric&                  ze_tref,
+   const Numeric&                  k2,
+   const Numeric&                  dbze_min,
+   const Verbosity& )
+{
+  // Important sizes
+  const Index npos  = sensor_pos.nrows();
+  const Index nbins = range_bins.nelem() - 1;
+  const Index nf    = f_grid.nelem();
+  const Index ns    = stokes_dim;
+  const Index naux  = iy_aux_vars.nelem();
+
+  //---------------------------------------------------------------------------
+  // Input checks
+  //---------------------------------------------------------------------------
+
+  // Basics
+  //
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  //
+  if ( f_grid.empty() )
+    { throw runtime_error ( "The frequency grid is empty." ); }
+  chk_if_increasing ( "f_grid", f_grid );
+  if( f_grid[0] <= 0) 
+    { throw runtime_error( "All frequencies in *f_grid* must be > 0." ); }
+  //
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  if( atmfields_checked != 1 )
+    throw runtime_error( "The atmospheric fields must be flagged to have "
+                         "passed a consistency check (atmfields_checked=1)." );
+  if( atmgeom_checked != 1 )
+    throw runtime_error( "The atmospheric geometry must be flagged to have "
+                         "passed a consistency check (atmgeom_checked=1)." );
+  if( cloudbox_checked != 1 )
+    throw runtime_error( "The cloudbox must be flagged to have "
+                         "passed a consistency check (cloudbox_checked=1)." );
+  if( sensor_checked != 1 )
+    throw runtime_error( "The sensor variables must be flagged to have "
+                         "passed a consistency check (sensor_checked=1)." );
+
+  // Method specific variables
+  bool is_z = max(range_bins) > 1;
+  if( !is_increasing( range_bins ) )
+    throw runtime_error( "The vector *range_bins* must contain strictly "
+                         "increasing values." );
+  if( !is_z && min(range_bins) < 0 )
+    throw runtime_error( "The vector *range_bins* is not allowed to contain "
+                         "negative times." );
+  if( instrument_pol_array.nelem() != nf )
+    throw runtime_error( "The main length of *instrument_pol_array* must match "
+                         "the number of frequencies." );
+
+  // iy_unit and variables to handle conversion to Ze and dBZe
+  Vector cfac( nf, 1.0 );
+  Numeric ze_min=0;
+  if( iy_unit == "1" )
+    {}
+  else if( iy_unit == "Ze" )
+    { ze_cfac( cfac, f_grid, ze_tref, k2 ); }
+  else if( iy_unit == "dBZe" )
+    {
+      ze_cfac( cfac, f_grid, ze_tref, k2 );
+      ze_min = pow( 10.0, dbze_min/10 );
+    }
+    else
+    { throw runtime_error( "For this method, *iy_unit* must be set to \"1\", "
+                           "\"Ze\" or \"dBZe\"." ); }
+    
+  
+  //---------------------------------------------------------------------------
+  // Various  initializations
+  //---------------------------------------------------------------------------
+
+  // Conversion from Stokes to instrument_pol
+  ArrayOfVector   s2p;
+  stokes2pol( s2p, 0.5 );
+  ArrayOfIndex npolcum(nf+1); npolcum[0]=0;
+  for( Index i=0; i<nf; i++ )
+    { 
+      npolcum[i+1] = npolcum[i] + instrument_pol_array[i].nelem(); 
+      for( Index j=0; j<instrument_pol_array[i].nelem(); j++ )
+        {
+          if( s2p[instrument_pol_array[i][j]-1].nelem() > stokes_dim )
+            throw runtime_error( "Your definition of *instrument_pol_array* " 
+                                 "requires a higher value for *stokes_dim*." );
+        }
+    }
+
+  // Resize and init *y* and *y_XXX*
+  //
+  const Index ntot = npos * npolcum[nf] * nbins;
+  y.resize( ntot );
+  y = NAN;
+  y_f.resize( ntot );
+  y_pol.resize( ntot );
+  y_pos.resize( ntot, sensor_pos.ncols() );
+  y_los.resize( ntot, sensor_los.ncols() );
+  y_geo.resize( ntot, atmosphere_dim );
+  y_geo = NAN;   // Will be replaced if relavant data are provided (*geo_pos*)
+
+  // y_aux
+  y_aux.resize( naux );
+  for( Index i=0; i<naux; i++ )
+    { 
+      y_aux[i].resize( ntot ); 
+      y_aux[i] = NAN; 
+    }
+
+  // Jacobian variables
+  //
+  Index j_analytical_do = 0;
+  Index njq             = 0;
+  ArrayOfArrayOfIndex jacobian_indices;
+  //
+  if( jacobian_do )
+    {
+      bool any_affine;
+      jac_ranges_indices( jacobian_indices, any_affine,
+                          jacobian_quantities, true );
+      
+      jacobian.resize( ntot, 
+                       jacobian_indices[jacobian_indices.nelem()-1][1]+1 );
+      jacobian = 0;
+      njq      = jacobian_quantities.nelem();
+      //
+      FOR_ANALYTICAL_JACOBIANS_DO(
+        j_analytical_do  = 1; 
+      )
+    }
+  else
+    { jacobian.resize( 0, 0 ); }
+  
+
+  //---------------------------------------------------------------------------
+  // The calculations
+  //---------------------------------------------------------------------------
+
+  // Loop positions
+  for( Index p=0; p<npos; p++ )
+    {
+      // RT part
+      Tensor3        iy_transmission(0,0,0);
+      ArrayOfTensor3 diy_dx;
+      Vector         rte_pos2(0);
+      Matrix         iy;
+      Ppath          ppath;
+      ArrayOfTensor4 iy_aux;
+      const Index    iy_id = (Index)1e6*p;
+      //
+      iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
+                             1, iy_unit, iy_transmission, iy_aux_vars,
+                             iy_id, cloudbox_on, jacobian_do, t_field,
+                             z_field, vmr_field, nlte_field, f_grid, 
+                             sensor_pos(p,joker), sensor_los(p,joker), 
+                             rte_pos2, iy_main_agenda );
+
+      // Check if path and size OK
+      const Index np = ppath.np;
+      if( np == 1 )
+        throw runtime_error( "A path consisting of a single point found. "
+                             "This is not allowed." );
+      error_if_limb_ppath( ppath );
+      if( iy.nrows() != nf*np )
+        throw runtime_error( "The size of *iy* returned from *iy_main_agenda* "
+                             "is not correct (for this method)." );
+
+      // Range of ppath, in altitude or time
+      Vector range(np);
+      if( is_z )
+        { range = ppath.pos(joker,0); }
+      else
+        { // Calculate round-trip time
+          range[0] = 2 * ppath.end_lstep / SPEED_OF_LIGHT;
+          for( Index i=1; i<np; i++ )
+            { range[i] = range[i-1] + ppath.lstep[i-1] * 
+                      ( ppath.ngroup[i-1]+ppath.ngroup[i] ) / SPEED_OF_LIGHT; }
+        }
+      const Numeric range_end1 = min( range[0], range[np-1] );
+      const Numeric range_end2 = max( range[0], range[np-1] );
+
+      // Help variables to calculate jacobians
+      ArrayOfTensor3 dI(njq);
+      ArrayOfMatrix drefl(njq);
+      if( j_analytical_do )
+        {
+          FOR_ANALYTICAL_JACOBIANS_DO(
+            dI[iq].resize( jacobian_indices[iq][1]-jacobian_indices[iq][0]+1, np, ns ); 
+            drefl[iq].resize( dI[iq].npages(), np ); 
+          )
+        }
+      
+      // Loop radar bins
+      for( Index b=0; b<nbins; b++ )
+        {
+          if( ! ( range_bins[b] >= range_end2  ||     // Otherwise bin totally outside
+                  range_bins[b+1] <= range_end1 ) )   // range of ppath
+            {
+              // Bin limits
+              Numeric blim1 = max( range_bins[b], range_end1 );
+              Numeric blim2 = min( range_bins[b+1], range_end2 );
+
+              // Determine weight vector to obtain mean inside bin
+              Vector hbin(np);
+              integration_bin_by_vecmult( hbin, range, blim1, blim2 );
+              // The function above handles integration over the bin, while we
+              // want the average, so divide weights with bin width
+              hbin /= (blim2-blim1);
+
+              for( Index iv=0; iv<nf; iv++ )
+                {
+                  // Pick out part of iy for frequency
+                  //
+                  Matrix I = iy( Range(iv*np,np), joker );
+                  //
+                  if( j_analytical_do )
+                    {
+                      FOR_ANALYTICAL_JACOBIANS_DO(
+                        dI[iq] = diy_dx[iq]( joker, Range(iv*np,np), joker );
+                      )
+                    }
+
+                  
+                  for( Index ip=0; ip<instrument_pol_array[iv].nelem(); ip++ )
+                    {
+                      // Extract reflectivity for received polarisation
+                      Vector refl( np, 0.0 );
+                      if( j_analytical_do )
+                        { FOR_ANALYTICAL_JACOBIANS_DO( drefl[iq] = 0.0; ) }
+                      Vector w = s2p[instrument_pol_array[iv][ip]-1];
+                      for( Index i=0; i<w.nelem(); i++ )     // Note that w can
+                        {                                    // be shorter than
+                          for( Index j=0; j<np; j++ )        // stokes_dim (and
+                            {                                // dot product can 
+                              refl[j] += I(j,i) * w[i];      // not be used)
+                              if( j_analytical_do )
+                                {
+                                  FOR_ANALYTICAL_JACOBIANS_DO(
+                                    for( Index k=0; k<drefl[iq].nrows(); k++ )
+                                      { drefl[iq](k,j) += dI[iq](k,j,i) * w[i]; }
+                                  )
+                                }
+                            }
+                        }  
+                                                             
+                                                             
+                      // Apply weight vector to get final value
+                      //
+                      Index iout = nbins * ( p*npolcum[nf] + 
+                                             npolcum[iv] + ip ) + b;
+                      y[iout] = cfac[iv] * ( hbin * refl );
+                      if( iy_unit == "dBZe" )
+                        { y[iout] = y[iout] <= ze_min ? dbze_min :
+                                                        10*log10(y[iout]); }
                       //
                       if( j_analytical_do )
                         {

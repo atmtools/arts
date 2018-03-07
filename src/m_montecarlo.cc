@@ -556,6 +556,8 @@ void MCGeneral(Workspace&            ws,
     }
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void MCRadar(// Workspace reference:
              Workspace& ws,
@@ -596,6 +598,8 @@ void MCRadar(// Workspace reference:
              const Index& mc_max_scatorder,
              const Index& mc_seed,
              const Index& mc_max_iter,
+             const Numeric& ze_tref,
+             const Numeric& k2,
              // Verbosity object:
              const Verbosity& verbosity)
 
@@ -742,34 +746,14 @@ void MCRadar(// Workspace reference:
 
   Numeric fac;
   if( iy_unit == "1" )
-    {
-      fac = 1.0;
-    }
-  
+    { fac = 1.0; }
   // Conversion from intensity to reflectivity
   else if( iy_unit == "Ze" )
     {
-
-      const Numeric ze_tref = 283;
-      const Numeric pito5 = PI * PI * PI * PI * PI;
-      const Numeric lam = SPEED_OF_LIGHT / f_mono;
-      const Numeric lamsqrsqr = lam * lam * lam * lam;
-
-      Matrix complex_n;
-      Complex n, nsqr, K;
-      Numeric absK, absKsqr;
-
-      // Compute dielectric factor (should change this to input variable)
-      Vector ff{f_mono};
-      complex_n_water_liebe93( complex_n, ff, ze_tref );
-      n = Complex( complex_n(0,0), complex_n(0,1) );
-      nsqr = n * n;
-      K = ( nsqr - Numeric(1.0) ) / ( nsqr + Numeric(2.0) );
-      absK = abs( K );
-      absKsqr = absK * absK;
-
-      // Conversion factor
-      fac = 2e18 * lamsqrsqr / absKsqr / pito5;
+      Vector cfac(1);
+      ze_cfac( cfac, Vector(1,f_mono), ze_tref, k2 );
+      // Due to different definitions, the factor shall here be scaled with 1/(2pi)
+      fac = cfac[0]/(2*PI);
     }
   else
     {

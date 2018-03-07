@@ -192,7 +192,7 @@ void iyEmissionStandard2(
         ArrayOfTensor3&             diy_dx,
         Vector&                     ppvar_p,
         Vector&                     ppvar_t,
-        Matrix&                     ppvar_t_nlte,
+        Matrix&                     ppvar_nlte,
         Matrix&                     ppvar_vmr,
         Matrix&                     ppvar_wind,
         Matrix&                     ppvar_mag,         
@@ -205,7 +205,7 @@ void iyEmissionStandard2(
   const Vector&                     p_grid,
   const Tensor3&                    z_field,
   const Tensor3&                    t_field,
-  const Tensor4&                    t_nlte_field,
+  const Tensor4&                    nlte_field,
   const Tensor4&                    vmr_field,
   const ArrayOfArrayOfSpeciesTag&   abs_species,
   const Tensor3&                    wind_u_field,
@@ -311,7 +311,7 @@ void iyEmissionStandard2(
       ppvar_p.resize(0);
       ppvar_t.resize(0);
       ppvar_vmr.resize(0,0);
-      ppvar_t_nlte.resize(0,0);
+      ppvar_nlte.resize(0,0);
       ppvar_wind.resize(0,0);
       ppvar_mag.resize(0,0);
       ppvar_f.resize(0,0);
@@ -324,9 +324,9 @@ void iyEmissionStandard2(
       ppvar_iy.resize(nf,ns,np);
       
       // Basic atmospheric variables
-      get_ppath_atmvars( ppvar_p, ppvar_t, ppvar_t_nlte, ppvar_vmr,
+      get_ppath_atmvars( ppvar_p, ppvar_t, ppvar_nlte, ppvar_vmr,
                          ppvar_wind, ppvar_mag, 
-                         ppath, atmosphere_dim, p_grid, t_field, t_nlte_field, 
+                         ppath, atmosphere_dim, p_grid, t_field, nlte_field, 
                          vmr_field, wind_u_field, wind_v_field, wind_w_field,
                          mag_u_field, mag_v_field, mag_w_field );
       
@@ -379,7 +379,7 @@ void iyEmissionStandard2(
                                          ppvar_f(joker,ip),
                                          ppvar_mag(joker,ip),
                                          ppath.los(ip,joker),
-                                         ppvar_t_nlte(joker,ip),
+                                         ppvar_nlte(joker,ip),
                                          ppvar_vmr(joker,ip),
                                          ppvar_t[ip],
                                          ppvar_p[ip],
@@ -2612,18 +2612,7 @@ void iyIndependentBeamApproximation(
                        rte_pos, rte_los, rte_pos2, 0, 0, t_field,
                        z_field, vmr_field, f_grid, ppath_agenda );
   //
-  if( ppath.np > 2 )
-    {
-      Numeric signfac = sign( ppath.pos(1,0) - ppath.pos(0,0) );
-      for( Index i=2; i<ppath.np; i++ )
-        {
-          if( signfac*(ppath.pos(i,0) - ppath.pos(i-1,0)) < 0 )
-            throw runtime_error( "A propagation path of limb character found. Such "
-                                 "viewing geometries are not supported by ICA. "
-                                 "Propagation  paths must result in strictly "
-                                 "increasing or decreasing altitudes." );
-        }
-    }
+  error_if_limb_ppath( ppath );
 
   // If scattering and sensor inside atmosphere, we need a pseudo-ppath that
   // samples altitudes not covered by main ppath. We make this second path

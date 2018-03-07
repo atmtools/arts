@@ -150,6 +150,8 @@ void find_tanpoint(
          Index&   it,
    const Ppath    ppath );
 
+void error_if_limb_ppath( const Ppath    ppath );
+
 void plevel_slope_2d(
                Numeric&   c1,
         ConstVectorView   lat_grid,           

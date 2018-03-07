@@ -1,3 +1,23 @@
+2018-03-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-979
+
+	* src/m_montecarlo.cc (MCRadar): Now using ze_tref and k2, to
+	mimic iyActive.
+
+	* src/m_cloudradar.cc (yActive):
+	* src/m_rte.cc (iyIndependentBeamApproximation): Now using
+	error_if_limb_ppath.
+
+	* src/ppath.cc (error_if_limb_ppath): New function.
+
+	* src/rte.cc (ze_cfac): New function.
+
+	* src/m_rte.cc (iyEmissionStandard2): t_nlte change to nlte in
+	variable names.
+
+	* src/m_cloudradar.cc (yActive2): Started.
+
 2018-03-07  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-978

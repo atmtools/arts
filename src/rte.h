@@ -637,4 +637,10 @@ void rtmethods_unit_conversion(
 
 Numeric psat_water(const Numeric t);
 
+void ze_cfac(
+         Vector&    fac,
+   const Vector&    f_grid,
+   const Numeric&   ze_tref,
+   const Numeric&   k2 );
+
 #endif  // rte_h

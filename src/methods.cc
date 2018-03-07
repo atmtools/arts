@@ -7218,6 +7218,99 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iyActiveSingleScat2" ),
+        DESCRIPTION
+        (
+         "Simulation of radar/lidar, restricted to single scattering.\n"
+         "\n"
+         "The WSM treats e.g. radar measurements of cloud and precipitation,\n"
+         "on the condition that multiple scattering can be ignored. Beside\n"
+         "the direct backsacttering, the two-way attenuation by gases and\n"
+         "particles is considered. Surface scattering is ignored. Further\n"
+         "details are given in AUG.\n"
+         "\n"
+         "The method could potentially be used for lidars, but multiple\n"
+         "scattering poses here a must stronger constrain for the range of\n"
+         "applications.\n"
+         "\n"
+         "The method can be used with *iyCalc*, but not with *yCalc*. In the\n" 
+         "later case, use instead *yActive*.\n"
+         "\n"
+         "The method returns the backscattering for each point of *ppath*.\n"
+         "Several frequencies can be treated in parallel. The size of *iy*\n"
+         "is [ nf*np, stokes_dim ], where nf is the length of *f_grid* and\n"
+         "np is the number of path points. The data are stored in blocks\n"
+         "of [ np, stokes_dim ]. That is, all the results for the first\n"
+         "frequency occupy the np first rows of *iy* etc.\n"
+         "\n"
+         "The polarisation state of the transmitted pulse is taken from\n"
+         "*iy_transmitter_agenda*. If the radar transmits several polarisations\n"
+         "at the same frequency, you need to handle this by using two frequencies\n" 
+         "in *f_grid*, but these can be almost identical.\n"
+         "\n"
+         "The options for *iy_unit* are:\n"
+         " \"1\"  : Backscatter coefficient. Unit is 1/(m*sr). At zero\n"
+         "          attenuation, this equals the scattering matrix value for\n"
+         "          the backward direction. See further AUG.\n"
+         " \"Ze\" : Equivalent reflectivity. Unit is mm^6/m^3. Conversion\n"
+         "          formula is given below.\n"
+         "\n"
+         "The conversion from backscatter coefficient to Ze is:\n"
+         "   Ze = 1e18 * lambda^4 / (k2 * pi^5) * sum(sigma),\n"
+         "where sum(sigma) = 4*pi*b, and b is the backscatter coefficient.\n"
+         "\n"
+         "The reference dielectric factor can either specified directly by\n"
+         "the argument *k2*. For example, to mimic the CloudSat data, *k2*\n"
+         "shall be set to 0.75 (citaion needed). If *k2* is set to be \n"
+         "negative (which is defualt), k2 is calculated as:\n"
+         "   k2 = abs( (n^2-1)/(n^2+2) )^2,\n"
+         "where n is the refractive index of liquid water at temperature\n"
+         "*ze_tref* and the frequency of the radar, calculated by the MPM93\n"
+         "parameterization.\n"
+         "\n"
+         "The following auxiliary data can be obtained:\n"
+         "  \"Pressure\": The pressure along the propagation path.\n"
+         "     Size: [1,1,1,np].\n"
+         "  \"Temperature\": The temperature along the propagation path.\n"
+         "     Size: [1,1,1,np].\n"
+         "  \"Backscattering\": The un-attenuated backscattering. Unit\n"
+         "     follows *iy_unit*. Size: [nf,ns,1,np].\n"
+         "  \"Transmission\": The single-way transmission matrix from the\n"
+         "     transmitter to each propagation path point. The matrix is\n"
+         "     valid for the photon direction. Size: [nf,ns,ns,np].\n"
+         "  \"Round-trip time\": The time for the pulse to propagate. For a \n"
+         "     totally correct result, refraction must be considered (in\n"
+         "     *pppath_agenda*). Size: [1,1,1,np].\n"
+         "  \"PND, type X\": The particle number density for scattering element\n"
+         "       type X (ie. corresponds to book X in pnd_field).\n"
+         "       Size: [1,1,1,np].\n"
+         "  \"Mass content, X\": The mass content for scattering element X.\n"
+         "       This corresponds to column X in *particle_masses* (zero-\n"
+         "       based indexing). Size: [1,1,1,np].\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "iy_aux2", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
+             "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_pnd", "ppvar_f" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "diy_dx", "stokes_dim", "f_grid", "atmosphere_dim", "p_grid",
+            "t_field", "nlte_field", "vmr_field", "abs_species",
+            "wind_u_field", "wind_v_field", "wind_w_field",
+            "mag_u_field", "mag_v_field", "mag_w_field",
+            "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
+            "scat_species", "scat_data", "iy_aux_vars",
+            "jacobian_do", "jacobian_quantities", "ppath",
+            "propmat_clearsky_agenda", "iy_transmitter_agenda", "iy_agenda_call1",
+            "iy_transmission", "rte_alonglos_v" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "iyEmissionStandard" ),
         DESCRIPTION
         (
@@ -10321,10 +10414,11 @@ void define_md_data_raw()
             "atmfields_checked", "atmgeom_checked", "scat_data_checked",
             "cloudbox_checked", "iy_unit", "mc_max_scatorder", "mc_seed", 
             "mc_max_iter" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN(      "ze_tref", "k2" ),
+        GIN_TYPE( "Numeric", "Numeric" ),
+        GIN_DEFAULT( "273.15", "-1" ),
+        GIN_DESC( "Reference temperature for conversion to Ze.",
+                  "Reference dielectric factor." )
         ));
 
 
@@ -19655,6 +19749,53 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "yActive2" ),
+        DESCRIPTION
+        (
+         "Replaces *yCalc* for radar/lidar calculations.\n"
+         "\n"
+         "The output format for *iy* when silumting radars and lidars differs\n"
+         "from the standard one, and *yCalc* can not be used for cloud radar\n"
+         "simulations. This method works largely as *yCalc*, but is tailored\n"
+         "to handle the output from *iyActiveSingleScattering*.\n"
+         "\n"
+         "The method requires additional information about the sensor,\n"
+         "regarding its recieving properties. First of all, recieved\n"
+         "polarisation states are taken from *instrument_pol_array*. Note\n"
+         "that this WSV allows to define several measured polarisations\n"
+         "for each transmitted siggnal. For example, it is possible to\n"
+         "simulate transmission of V and measuring backsacttered V and H.\n"
+         "\n"
+         "Secondly, the range averaging is described by *range_bins*. These\n"
+         "bins can either be specified in altitude or two-way travel time.\n"
+         "In both case, the edges of the range bins shall be specified.\n"
+         "All data (including auxiliary variables) are returned as the\n"
+         "average inside the bins. If a bin is totally outside the model\n"
+         "atmosphere, NaN is returned.\n"
+         "\n"
+         "All auxiliary data from *iyActiveSingleScattering* are handled.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmgeom_checked", "atmfields_checked", "iy_unit", "iy_aux_vars",
+            "stokes_dim", "f_grid", "atmosphere_dim", "t_field", "z_field",
+            "vmr_field", "nlte_field", "cloudbox_on", "cloudbox_checked",
+            "sensor_pos", "sensor_los", "sensor_checked",
+            "jacobian_do", "jacobian_quantities",
+            "iy_main_agenda", "geo_pos_agenda", "instrument_pol_array", "range_bins" ),
+        GIN(      "ze_tref", "k2", "dbze_min" ),
+        GIN_TYPE( "Numeric", "Numeric", "Numeric" ),
+        GIN_DEFAULT( "273.15", "-1", "-99"  ),
+        GIN_DESC( "Reference temperature for conversion to Ze.",
+                  "Reference dielectric factor.",
+                  "Clip value for dBZe." )
+        ));
+  
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "ySimpleSpectrometer" ),

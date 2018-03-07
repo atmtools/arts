@@ -49,6 +49,7 @@
 #include "montecarlo.h"
 #include "physics_funcs.h"
 #include "ppath.h"
+#include "refraction.h"
 #include "rte.h"
 #include "special_interp.h"
 
@@ -5498,3 +5499,66 @@ void rtmethods_unit_conversion(
     { apply_iy_unit( ppvar_iy(joker,joker,ip), iy_unit, f_grid,
                      ppath.nreal[ip], i_pol ); }
 }
+
+
+
+
+//! ze_cfac
+/*!
+   Calculates factor to convert back-scattering to Ze
+
+   The vector *fac* shall be sized to match f_grid, before calling the
+   function.
+
+   If k2 <= 0, the K" factor is calculated. Otherwise the input k2 is applied
+   as "hard-coded".
+
+   \param   fac      Vector with factors.
+   \param   f_grid   As the WSV.
+   \param   z_tref   Reference temperature for conversion to Ze.
+   \param   k2       Reference dielectric factor.
+
+   \author Patrick Eriksson
+   \date   2002-05-20
+*/
+void ze_cfac(
+         Vector&    fac,
+   const Vector&    f_grid,
+   const Numeric&   ze_tref,
+   const Numeric&   k2 )
+{
+  const Index nf = f_grid.nelem();
+  
+  assert( fac.nelem() == nf );
+  
+  // Refractive index for water (if needed)
+  Matrix complex_n(0,0);
+  if( k2 <= 0 )
+    { complex_n_water_liebe93( complex_n, f_grid, ze_tref ); }
+          
+  // Common conversion factor
+  const Numeric a = 4e18/(PI*PI*PI*PI);
+
+  for( Index iv=0; iv<nf; iv++ )
+    {
+      // Reference dielectric factor.
+      Numeric K2;
+      if( k2 >= 0 )
+        { K2 = k2; }
+      else
+        {
+          Complex n( complex_n(iv,0), complex_n(iv,1) );
+          Complex n2 = n*n;
+          Complex K  = ( n2 - Numeric(1.0) ) / ( n2 + Numeric(2.0) );
+          Numeric absK = abs( K );
+          K2 = absK * absK;
+        }
+      
+      // Wavelength
+      Numeric la = SPEED_OF_LIGHT / f_grid[iv];
+
+      fac[iv] = a*la*la*la*la / K2; 
+    }
+}
+
+

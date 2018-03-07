@@ -719,6 +719,33 @@ void find_tanpoint(
 
 
 
+//! error_if_limb_ppath
+/*! 
+   Throws an error if ppath altitudes not are strictly increasing or decreasing.
+
+   \param   ppath   Propagation path structure.
+
+   \author Patrick Eriksson
+   \date   2018-03-07
+*/
+void error_if_limb_ppath( 
+   const Ppath    ppath )
+{
+  if( ppath.np > 2 )
+    {
+      Numeric signfac = sign( ppath.pos(1,0) - ppath.pos(0,0) );
+      for( Index i=2; i<ppath.np; i++ )
+        {
+          if( signfac*(ppath.pos(i,0) - ppath.pos(i-1,0)) < 0 )
+            throw runtime_error( "A propagation path of limb character found. Such "
+                                 "viewing geometries are not supported by this method. "
+                                 "Propagation paths must result in strictly "
+                                 "increasing or decreasing altitudes." );
+        }
+    }
+}
+
+
 
 
 /*===========================================================================
