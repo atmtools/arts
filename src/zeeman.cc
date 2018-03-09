@@ -299,14 +299,14 @@ void dattenuation_matrix_deta(MatrixView dK, const Numeric& theta, const Numeric
 };
 
 // Note that there might be a part of the Lambda-expression missing below... it is possible a constant like GS is needed...
-Numeric gs_caseb(const Rational& N, const Rational& J, const Rational& Lambda, const Rational& S, const Numeric& GS) {
-  return (    GS*         ((J*(J+1) + S*(S+1) - N*(N+1))).toNumeric() + 
-  (Lambda*Lambda/(N/(N+1))*(J*(J+1) - S*(S+1) + N*(N+1))).toNumeric()) / ((J*(J+1))).toNumeric() * 0.5; 
+Numeric g_caseb(const Rational& N, const Rational& J, const Rational& Lambda, const Rational& S, const Numeric& GS, const Numeric& GL) {
+  return (GS*((J*(J+1) + S*(S+1) - N*(N+1))).toNumeric() + 
+          GL*((J*(J+1) - S*(S+1) + N*(N+1)) * Lambda*Lambda/(N/(N+1))).toNumeric()) / ((J*(J+1))).toNumeric() * 0.5; 
 }
 
 
-Numeric gs_casea(const Rational& Omega, const Rational& J, const Rational& Lambda, const Rational& Sigma, const Numeric& GS) {
-  return GS*(Omega/2/J/(J+1)*(Lambda+2*Sigma)).toNumeric(); 
+Numeric g_casea(const Rational& Omega, const Rational& J, const Rational& Lambda, const Rational& Sigma, const Numeric& GS, const Numeric& GL) {
+  return (Omega/J/(J+1)).toNumeric()*(GL*Lambda.toNumeric()+GS*Sigma.toNumeric()); 
 }
 
 
@@ -366,6 +366,8 @@ Numeric frequency_change(const LineRecord& lr,
 {
     Numeric Upper_E_part, Lower_E_part;
     
+    const static Numeric GL = 1.0;  // Modify this when more data is available --- we need a lookup as for GS...
+    
     // Lower:
     assert(abs(lr.QuantumNumbers().Lower()[QuantumNumberType::M])<=lr.QuantumNumbers().Lower()[QuantumNumberType::J]);
     switch(lr.QuantumNumbers().Lower()[QuantumNumberType::Hund].toIndex())
@@ -373,10 +375,10 @@ Numeric frequency_change(const LineRecord& lr,
       case Index(Hund::CaseA):
             // This follows Berdyugina and Solnaki
             Lower_E_part = lr.QuantumNumbers().Lower()[QuantumNumberType::M].toNumeric() * 
-            gs_casea(lr.QuantumNumbers().Lower()[QuantumNumberType::Omega], 
-                     lr.QuantumNumbers().Lower()[QuantumNumberType::J],
-                     lr.QuantumNumbers().Lower()[QuantumNumberType::Lambda],
-                     lr.QuantumNumbers().Lower()[QuantumNumberType::S], GS);
+            g_casea(lr.QuantumNumbers().Lower()[QuantumNumberType::Omega], 
+                    lr.QuantumNumbers().Lower()[QuantumNumberType::J],
+                    lr.QuantumNumbers().Lower()[QuantumNumberType::Lambda],
+                    lr.QuantumNumbers().Lower()[QuantumNumberType::S], GS, GL);
             break;
       case Index(Hund::CaseB):
             // This follows Lenoir
@@ -384,10 +386,10 @@ Numeric frequency_change(const LineRecord& lr,
                 Lower_E_part = 0;
             else
                 Lower_E_part = lr.QuantumNumbers().Lower()[QuantumNumberType::M].toNumeric() * 
-                gs_caseb(lr.QuantumNumbers().Lower()[QuantumNumberType::N], 
-                         lr.QuantumNumbers().Lower()[QuantumNumberType::J],
-                         lr.QuantumNumbers().Lower()[QuantumNumberType::Lambda],
-                         lr.QuantumNumbers().Lower()[QuantumNumberType::S], GS);
+                g_caseb(lr.QuantumNumbers().Lower()[QuantumNumberType::N], 
+                        lr.QuantumNumbers().Lower()[QuantumNumberType::J],
+                        lr.QuantumNumbers().Lower()[QuantumNumberType::Lambda],
+                        lr.QuantumNumbers().Lower()[QuantumNumberType::S], GS, GL);
             break;
         default:
             throw std::runtime_error("Does not recognize Hund case.\n");
@@ -400,18 +402,18 @@ Numeric frequency_change(const LineRecord& lr,
         case Index(Hund::CaseA):
             // This follows Berdyugina and Solnaki
             Upper_E_part = lr.QuantumNumbers().Upper()[QuantumNumberType::M].toNumeric() * 
-            gs_casea(lr.QuantumNumbers().Upper()[QuantumNumberType::Omega], 
-                     lr.QuantumNumbers().Upper()[QuantumNumberType::J],
-                     lr.QuantumNumbers().Upper()[QuantumNumberType::Lambda],
-                     lr.QuantumNumbers().Upper()[QuantumNumberType::S], GS);
+            g_casea(lr.QuantumNumbers().Upper()[QuantumNumberType::Omega], 
+                    lr.QuantumNumbers().Upper()[QuantumNumberType::J],
+                    lr.QuantumNumbers().Upper()[QuantumNumberType::Lambda],
+                    lr.QuantumNumbers().Upper()[QuantumNumberType::S], GS, GL);
             break;
         case Index(Hund::CaseB):
             // This follows Lenoir
             Upper_E_part = lr.QuantumNumbers().Upper()[QuantumNumberType::M].toNumeric() * 
-            gs_caseb(lr.QuantumNumbers().Upper()[QuantumNumberType::N], 
-                     lr.QuantumNumbers().Upper()[QuantumNumberType::J],
-                     lr.QuantumNumbers().Upper()[QuantumNumberType::Lambda],
-                     lr.QuantumNumbers().Upper()[QuantumNumberType::S], GS);
+            g_caseb(lr.QuantumNumbers().Upper()[QuantumNumberType::N], 
+                    lr.QuantumNumbers().Upper()[QuantumNumberType::J],
+                    lr.QuantumNumbers().Upper()[QuantumNumberType::Lambda],
+                    lr.QuantumNumbers().Upper()[QuantumNumberType::S], GS, GL);
             break;
         default:
             throw std::runtime_error("Does not recognize Hund case.\n");
