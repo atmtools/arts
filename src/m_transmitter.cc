@@ -1473,6 +1473,7 @@ void iyTransmissionStandard2(
               dK_this_dx[iq] = PropagationMatrix(nf,ns);
               dK_past_dx[iq] = PropagationMatrix(nf,ns);
               dKp_dx[iq]     = PropagationMatrix(nf,ns);
+              da_dx[iq]      = StokesVector(nf,ns);
               dS_dx[iq]      = StokesVector(nf,ns);
               dSp_dx[iq]     = StokesVector(nf,ns);
             )

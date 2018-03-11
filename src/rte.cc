@@ -5237,11 +5237,14 @@ void rtmethods_jacobian_init(
    const ArrayOfTensor4&             dpnd_field_dx,
    const PropmatPartialsData&        ppd,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,   
-   const Index&                      iy_agenda_call1 )
+   const Index&                      iy_agenda_call1,
+   const bool                        is_active )
 {
+  const Index nn = is_active ? nf*np : nf;
+  
   FOR_ANALYTICAL_JACOBIANS_DO( 
-        diy_dpath[iq].resize(np,nf,ns); 
-        diy_dpath[iq] = 0.0;
+    diy_dpath[iq].resize( np, nn, ns ); 
+    diy_dpath[iq] = 0.0;
   )
 
   get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
@@ -5250,7 +5253,8 @@ void rtmethods_jacobian_init(
                                          abs_species, scat_species );
   
   FOR_ANALYTICAL_JACOBIANS_DO( 
-  jac_other[iq] = ppd.is_this_propmattype(iq)?Index(JacobianType::Other):Index(JacobianType::None); 
+    jac_other[iq] = ppd.is_this_propmattype(iq) ? Index(JacobianType::Other) :
+                                                  Index(JacobianType::None); 
       
     if( jac_scat_i[iq]+1 )
       {
@@ -5278,7 +5282,7 @@ void rtmethods_jacobian_init(
       //
       FOR_ANALYTICAL_JACOBIANS_DO( 
         diy_dx[iq].resize( jacobian_indices[iq][1]-jacobian_indices[iq][0]+1,
-                           nf, ns ); 
+                           nn, ns ); 
         diy_dx[iq] = 0.0;
       )
     }

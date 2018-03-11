@@ -743,24 +743,29 @@ void iyActiveSingleScat2(
                                jac_mag_i, jac_other, diy_dx, diy_dpath,
                                ns, nf, np, nq, abs_species,
                                scat_species, dpnd_field_dx, ppd,
-                               jacobian_quantities, iy_agenda_call1 );
+                               jacobian_quantities, iy_agenda_call1, true );
     }
   
-  // Init iy_aux and fill where possible
+  // Init iy_aux 
   const Index naux = iy_aux_vars.nelem();
   iy_aux.resize( naux );
+  Index aux_bscat=-1;
   //
   for( Index i=0; i<naux; i++ )
     {
-      iy_aux[i].resize(nf,ns); 
+      iy_aux[i].resize(nf*np,ns); 
       
-      if( iy_aux_vars[i] == "Radiative background" )
-        { iy_aux[i] = (Numeric)min( (Index)2, rbi-1 ); }
+      if( iy_aux_vars[i] == "Backscattering" )
+        {
+          iy_aux[i] = 0;
+          aux_bscat = i;
+        }
       else
         {
           ostringstream os;
           os << "The only allowed strings in *iy_aux_vars* are:\n"
-             << "  \"Radiative background\"\n"
+             << "  \"Backscattering\"\n"
+             << "  \"Transmission\"\n"
              << "but you have selected: \"" << iy_aux_vars[i] << "\"";
           throw runtime_error( os.str() );      
         }
@@ -831,6 +836,7 @@ void iyActiveSingleScat2(
               dK_this_dx[iq] = PropagationMatrix(nf,ns);
               dK_past_dx[iq] = PropagationMatrix(nf,ns);
               dKp_dx[iq]     = PropagationMatrix(nf,ns);
+              da_dx[iq]      = StokesVector(nf,ns);
               dS_dx[iq]      = StokesVector(nf,ns);
               dSp_dx[iq]     = StokesVector(nf,ns);
             )
@@ -1018,6 +1024,9 @@ void iyActiveSingleScat2(
               mult( iy2, P, iy1 );
               mult( iy(iout,joker), trans_cumulat(ip,iv,joker,joker), iy2 );
 
+              if( aux_bscat >= 0)
+                { mult( iy_aux[aux_bscat](iout,joker), P, iy0(iv,joker) ); }
+              
               // Jacobians
               if( j_analytical_do )
                 {
@@ -1063,7 +1072,7 @@ void iyActiveSingleScat2(
         }
     } // for ip
 
-  
+
   // Finalize analytical Jacobians
   if( j_analytical_do )
     {
@@ -1507,6 +1516,7 @@ void yActive2(
   // iy_unit and variables to handle conversion to Ze and dBZe
   Vector cfac( nf, 1.0 );
   Numeric ze_min=0;
+  const Numeric jfac = 10 * log10( exp(1.0) );
   if( iy_unit == "1" )
     {}
   else if( iy_unit == "Ze" )
@@ -1697,23 +1707,30 @@ void yActive2(
                         }  
                                                              
                                                              
-                      // Apply weight vector to get final value
-                      //
+                      // Apply weight vector to get final values.
+                      // 
                       Index iout = nbins * ( p*npolcum[nf] + 
                                              npolcum[iv] + ip ) + b;
                       y[iout] = cfac[iv] * ( hbin * refl );
-                      if( iy_unit == "dBZe" )
-                        { y[iout] = y[iout] <= ze_min ? dbze_min :
-                                                        10*log10(y[iout]); }
                       //
                       if( j_analytical_do )
                         {
                           FOR_ANALYTICAL_JACOBIANS_DO(
                             for( Index k=0; k<drefl[iq].nrows(); k++ )
-                              { jacobian(iout,jacobian_indices[iq][0]+k) =
-                                                   hbin * drefl[iq](k,joker); }
+                              {
+                                jacobian(iout,jacobian_indices[iq][0]+k) =
+                                  cfac[iv] * ( hbin * drefl[iq](k,joker) );
+                                if( iy_unit == "dBZe" )
+                                  {
+                                    jacobian(iout,jacobian_indices[iq][0]+k) *=
+                                      jfac / max(y[iout],ze_min); }
+                              }
                           )
                         }
+                      
+                      if( iy_unit == "dBZe" )
+                        { y[iout] = y[iout] <= ze_min ? dbze_min :
+                                                        10*log10(y[iout]); }
                       
                       // Same for aux variables
                       for( Index a=0; a<naux; a++ )

@@ -603,8 +603,9 @@ void rtmethods_jacobian_init(
    const ArrayOfString&              scat_species,         
    const ArrayOfTensor4&             dpnd_field_dx,
    const PropmatPartialsData&        ppd,
-   const ArrayOfRetrievalQuantity&   jacobian_quantities,   
-   const Index&                      iy_agenda_call1 );
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const Index&                      iy_agenda_call1,
+   const bool                        is_active = false );
 
 void rtmethods_jacobian_finalisation(
          ArrayOfTensor3&             diy_dx,

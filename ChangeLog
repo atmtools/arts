@@ -1,7 +1,23 @@
+2018-03-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-981
+
+	* src/m_cloudradar.cc (yActive2): Now also handling dBZe.
+
+	(iyActiveSingleScat2): Work on Jacobian part.
+
+	* src/rte.cc (rtmethods_jacobian_init): Added input argument
+	is_active, with false as default, to handle a small difference
+	when called from yActive.
+
+	* src/m_cloudradar.cc (iyActiveSingleScat2):
+	* src/m_transmitter.cc (iyTransmissionStandard2): da_dx[iq] was
+	not sized properly. Added da_dx[iq] = StokesVector(nf,ns);
+
 2018-03-09  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-980
-	
+
 	* src/zeeman.cc:  Update to Zeeman calculations after review
 	Mostly adds a new constant, GL, to the central equations
 	that is presently set to 1 wihle waiting for data input.
