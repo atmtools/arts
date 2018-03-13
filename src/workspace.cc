@@ -2216,24 +2216,6 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:      Provided by some radiative transfer methods.\n"
        "\n"
-       "Dimensions: [quantity][ 1 or f_grid, 1 or stokes_dim, 1 or stokes_dim,\n"
-       "                        1 or propgation path point ]\n"
-       ),
-      GROUP( "ArrayOfTensor4" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "iy_aux2" ),
-      DESCRIPTION
-      (
-       "Data auxiliary to *iy*.\n"
-       "\n"
-       "Different data beside the direct result of the radiative transfer\n"
-       "calculations (*iy*) can be obtained by this variable. These auxilary\n"
-       "data are selected by *iy_aux_vars*.\n"
-       "\n"
-       "Usage:      Provided by some radiative transfer methods.\n"
-       "\n"
        "Dimensions: [quantity][ f_grid, stokes_dim ]\n"
        ),
       GROUP( "ArrayOfMatrix" )));

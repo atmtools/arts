@@ -923,18 +923,18 @@ void iyHybrid(
   // If cloudbox off, switch to use clearsky method
   if( !cloudbox_on )
     {
-      iyEmissionStandard2( ws, iy, iy_aux, diy_dx, ppvar_p, ppvar_t, ppvar_t_nlte,
-                           ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f, ppvar_iy,  
-                           iy_id, stokes_dim, f_grid, atmosphere_dim, p_grid,
-                           z_field, t_field, t_nlte_field, vmr_field, abs_species,
-                           wind_u_field, wind_v_field, wind_w_field,
-                           mag_u_field, mag_v_field, mag_w_field,
-                           cloudbox_on, iy_unit, iy_aux_vars,
-                           jacobian_do, jacobian_quantities,
-                           ppath, rte_pos2,  propmat_clearsky_agenda,
-                           iy_main_agenda, iy_space_agenda, iy_surface_agenda,
-                           iy_cloudbox_agenda, iy_agenda_call1, iy_transmission,
-                           rte_alonglos_v, verbosity );
+      iyEmissionStandard( ws, iy, iy_aux, diy_dx, ppvar_p, ppvar_t, ppvar_t_nlte,
+                          ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f, ppvar_iy,  
+                          iy_id, stokes_dim, f_grid, atmosphere_dim, p_grid,
+                          z_field, t_field, t_nlte_field, vmr_field, abs_species,
+                          wind_u_field, wind_v_field, wind_w_field,
+                          mag_u_field, mag_v_field, mag_w_field,
+                          cloudbox_on, iy_unit, iy_aux_vars,
+                          jacobian_do, jacobian_quantities,
+                          ppath, rte_pos2,  propmat_clearsky_agenda,
+                          iy_main_agenda, iy_space_agenda, iy_surface_agenda,
+                          iy_cloudbox_agenda, iy_agenda_call1, iy_transmission,
+                          rte_alonglos_v, verbosity );
       return;
     }
   

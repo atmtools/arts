@@ -69,14 +69,6 @@ AtmFieldsCalc
 # Get ground altitude (z_surface) from z_field
 Extract( z_surface, z_field, 0 )
 
-# No scattering
-#
-cloudboxOff
-
-atmfields_checkedCalc
-atmgeom_checkedCalc
-cloudbox_checkedCalc
-
 
 
 # ---- Create absorption table -----------------------------------------------
@@ -144,6 +136,17 @@ jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
     "O3", "analytical", "rel", 1, 0.01 )
 jacobianClose
 #WriteXML( in=jacobian_quantities, filename="Jq_O3_analytical.xml" )
+
+
+# No scattering
+#
+cloudboxOff
+#
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+
+
 yCalc
 WriteXML( in=y, filename="y_O3_analytical.xml" )
 WriteXML( in=jacobian, filename="J_O3_analytical.xml" )
@@ -359,6 +362,7 @@ jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
     retrieval_grid, lat_grid, lon_grid, 
     "off", "perturbation", 0.1 )
 jacobianClose
+
 yCalc
 Copy( Jp, jacobian )
 

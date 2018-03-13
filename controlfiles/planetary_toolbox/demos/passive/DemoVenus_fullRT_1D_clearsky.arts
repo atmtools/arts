@@ -259,31 +259,7 @@ INCLUDE "planetary_toolbox/demos/common/DemoVenusSurface1D.arts"
 
 ArrayOfStringSet( iy_aux_vars,
      [
-      "Pressure", 
-      "Temperature", 
-      "Absorption, summed", 
-#      "Absorption, species 0",
-#      "Absorption, species 1",
-#      "Absorption, species 2",
-#      "Absorption, species 3",
-#      "Absorption, species 4",
-#      "Absorption, species 5",
-#      "Absorption, species 6",
-#      "Absorption, species 7",
-#      "Absorption, species 8",
-#      "Absorption, species 9",
-#      "Absorption, species 10",
-#      "Absorption, species 11",
-#      "Absorption, species 12",
-#      "Absorption, species 13",
-#      "Absorption, species 14",
-#      "Absorption, species 15",
-#      "Absorption, species 16",
-#      "Absorption, species 17",
-#      "Absorption, species 18",
       "Radiative background",
-      "iy", 
-#      "Transmission",
       "Optical depth"
      ] )
 

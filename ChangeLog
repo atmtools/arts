@@ -1,17 +1,37 @@
+2018-03-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-983
+
+	* With this commit the new set of iy-methods are "activated". That
+	is, e.g. what has been iyEmissionStandard2 for some time is now
+	iyEmissionStandard. Soem specific changes listed below, while bug
+	fixes and adoptions not commented. For a high-level description,
+	see email to arts-dev and arts-users.
+
+	* src/m_rte.cc (iy_auxFillParticleVariables): Removed. Can not be
+	performed with new version of iy_aux.
+
+	* src/workspace.cc: iy_aux is now a ArrayOfMatrix.
+
+	* doc/uguide/faraday.tex:
+	* doc/uguide/transmission.tex: Commented out parts refering to iyRadioLink.
+
+	* doc/uguide/rte.tex: Removed paragraph around iy\_auxFillParticleVariables.
+
 2018-03-13  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-982
-	
-	* src-propagationmatrix.h:  Added a check to see if the 
+
+	* src-propagationmatrix.h:  Added a check to see if the
 	propagation matrix is only rotating at a given position
-	
+
 	* src/rte.cc:  Set source and their jacobian to zero
 	when there is a layer of pure rotation
-	
+
 	* src/zeeman.cc:  N=0 lines were failing after last update.
-	Fixed and moved all tests inside the g-functions to handle 
+	Fixed and moved all tests inside the g-functions to handle
 	these issues in the future.  (Perhaps next step is to treat
-	these zeroes better since they give the so-called 
+	these zeroes better since they give the so-called
 	zero-frequency transitions of O2?)
 
 2018-03-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>

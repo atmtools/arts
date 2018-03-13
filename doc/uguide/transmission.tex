@@ -93,469 +93,415 @@ the propagation path can be extracted, and also the transmission matrix
 
 
 
+% \wsmindex changed to \wsmindexXXX below, and the same for \builtindoc,
+% to avoid errors in make check-all
 
-\section{Radio link calculations}
-%===================
-\label{sec:rlinks}
+% \section{Radio link calculations}
+% %===================
+% \label{sec:rlinks}
 
-\subsection{Practical usage}
-%
-This type of calculations is handled by \wsmindex{iyRadioLink}. A sensor
-position must be specified, as usual. The ``sensor'' takes the place as the
-receiver of the radio link. The observation angles of the receiver are not user
-input (if any given they are just ignored), they are determined by the position
-of the transmitter. This position is given as \wsvindex{transmitter\_pos} or
-\wsvindex{rte\_pos2}, dependent on if \builtindoc{yCalc} or \builtindoc{iyCalc}
-is used. Specification of receiver and transmitter properties, beside their
-positions, is discussed in Section~\ref{sec:rlinks:oview}. The quantities
-returned by \builtindoc{iyRadioLink} are also described in
-Section~\ref{sec:rlinks:oview}.
+% \subsection{Practical usage}
+% %
+% This type of calculations is handled by \wsmindexXXX{iyRadioLink}. A sensor
+% position must be specified, as usual. The ``sensor'' takes the place as the
+% receiver of the radio link. The observation angles of the receiver are not user
+% input (if any given they are just ignored), they are determined by the position
+% of the transmitter. This position is given as \wsvindex{transmitter\_pos} or
+% \wsvindex{rte\_pos2}, dependent on if \builtindocXXX{yCalc} or \builtindocXXX{iyCalc}
+% is used. Specification of receiver and transmitter properties, beside their
+% positions, is discussed in Section~\ref{sec:rlinks:oview}. The quantities
+% returned by \builtindocXXX{iyRadioLink} are also described in
+% Section~\ref{sec:rlinks:oview}.
 
-It is allowed to use \builtindoc{iyRadioLink} together with pure geometrical
-propagation paths, but this option does not give realistic results as the this
-set-up misses the impact of ``defocusing'' (Sec.~\ref{sec:rlink:defoc}). With
-refraction, the propagation path can not be determined in a strict analytical
-manner and some search algorithm is required, as discussed in
-Section~\ref{sec:rlinks:ppath}.
+% It is allowed to use \builtindocXXX{iyRadioLink} together with pure geometrical
+% propagation paths, but this option does not give realistic results as the this
+% set-up misses the impact of ``defocusing'' (Sec.~\ref{sec:rlink:defoc}). With
+% refraction, the propagation path can not be determined in a strict analytical
+% manner and some search algorithm is required, as discussed in
+% Section~\ref{sec:rlinks:ppath}.
 
 
 
-\subsection{Determination of the radio link path}
-%===================
-\label{sec:rlinks:ppath}
+% \subsection{Determination of the radio link path}
+% %===================
+% \label{sec:rlinks:ppath}
 
-ARTS contains so far just a quite simple algorithm for this purpose, activated
-by applying \wsmindex{ppathFromRtePos2} in \wsaindex{ppath\_agenda}. The input
-\builtindoc{rte\_los} is taken as the first guess for the observation angles of
-the receiver. One way to set this initial value use
-\wsmindex{rte\_losGeometricFromRtePosToRtePos2}, that sets \builtindoc{rte\_los}
-to the angles for the geometrical path. For satellite-to-satellite links with
-tangent points in the lower troposphere, the geometrical zenith angle can give
-an intersection with the surface and it is recommended to use a lower start
-value for the zenith angle. For 1D cases this is simply achieved:
-\begin{code}
-  rte_losGeometricFromRtePosToRtePos2
-  VectorAddScalar(rte_los,rte_los,-2.5)
-\end{code}
-Another option is to use the angle from the last link, but this requires that
-the links of an occultation is treated in a specified order, which is not
-guaranteed when running with multi-threading.
+% ARTS contains so far just a quite simple algorithm for this purpose, activated
+% by applying \wsmindexXXX{ppathFromRtePos2} in \wsaindex{ppath\_agenda}. The input
+% \builtindocXXX{rte\_los} is taken as the first guess for the observation angles of
+% the receiver. One way to set this initial value use
+% \wsmindexXXX{rte\_losGeometricFromRtePosToRtePos2}, that sets \builtindocXXX{rte\_los}
+% to the angles for the geometrical path. For satellite-to-satellite links with
+% tangent points in the lower troposphere, the geometrical zenith angle can give
+% an intersection with the surface and it is recommended to use a lower start
+% value for the zenith angle. For 1D cases this is simply achieved:
+% \begin{code}
+%   rte_losGeometricFromRtePosToRtePos2
+%   VectorAddScalar(rte_los,rte_los,-2.5)
+% \end{code}
+% Another option is to use the angle from the last link, but this requires that
+% the links of an occultation is treated in a specified order, which is not
+% guaranteed when running with multi-threading.
 
-New propagation path are calculated (from the receiver backwards towards the
-transmitter) until a path is found that passes the transmitter sufficiently
-close. The search and stop criterion is based on the smallest distance between
-the transmitter and the path. However, this distance is evaluated as an
-``angular miss''. The miss term is taken as the difference in zenith angle
-between the geometrical path to transmitter and path point derived. If the
-transmitter is placed inside the model atmosphere, the closest point is found
-by an interpolation between the points defining the path. If the transmitter is
-above the top-of-the-atmosphere (TOA), the closest point is derived by
-geometrically extend the path (from its end point at TOA).
+% New propagation path are calculated (from the receiver backwards towards the
+% transmitter) until a path is found that passes the transmitter sufficiently
+% close. The search and stop criterion is based on the smallest distance between
+% the transmitter and the path. However, this distance is evaluated as an
+% ``angular miss''. The miss term is taken as the difference in zenith angle
+% between the geometrical path to transmitter and path point derived. If the
+% transmitter is placed inside the model atmosphere, the closest point is found
+% by an interpolation between the points defining the path. If the transmitter is
+% above the top-of-the-atmosphere (TOA), the closest point is derived by
+% geometrically extend the path (from its end point at TOA).
 
-For each iteration of the search, the zenith angle is updated. The first choice
-is to determine the new zenith angle by a least squares fit, using data from
-the three last ``test paths''. On the same time, the zenith angles giving the
-smallest positive and negative angular miss are kept in memory, giving the end
-points for new range of new zenith angles to consider. If the least squares fit
-gives an angle outside this range, bi-section between the end points of the
-search range is used for updating the angle. A special consideration to ground
-intersections must be given (see the code for details). If it is determined
-that the ground makes a link impossible, a dummy propagation path (of length 1)
-having ``surface'' as radiative background is returned. The radiative
-background is otherwise set to ``transmitter''.
+% For each iteration of the search, the zenith angle is updated. The first choice
+% is to determine the new zenith angle by a least squares fit, using data from
+% the three last ``test paths''. On the same time, the zenith angles giving the
+% smallest positive and negative angular miss are kept in memory, giving the end
+% points for new range of new zenith angles to consider. If the least squares fit
+% gives an angle outside this range, bi-section between the end points of the
+% search range is used for updating the angle. A special consideration to ground
+% intersections must be given (see the code for details). If it is determined
+% that the ground makes a link impossible, a dummy propagation path (of length 1)
+% having ``surface'' as radiative background is returned. The radiative
+% background is otherwise set to ``transmitter''.
 
-The above is repeated until the miss term is smaller than the given accuracy
-criterion, defined by the argument \texttt{za\_accuracy}. For a receiver in a
-low Earth orbit, a tangent altitude accuracy of 1\,m corresponds roughly to 
-2\topowerten{-5} for \texttt{za\_accuracy}.
+% The above is repeated until the miss term is smaller than the given accuracy
+% criterion, defined by the argument \texttt{za\_accuracy}. For a receiver in a
+% low Earth orbit, a tangent altitude accuracy of 1\,m corresponds roughly to 
+% 2\topowerten{-5} for \texttt{za\_accuracy}.
 
-If the selected criterion is not met, the calculations are re-started with a
-smaller ray tracing step length (\builtindoc{ppath\_lraytrace}), and with last
-value of \builtindoc{rte\_los} as ``first guess''. The decrease of the ray
-tracing step length follows the argument \texttt{pplrt\_factor}. If the ray
-tracing length is smaller than \texttt{pplrt\_lowest}, the calculations are
-halted and a dummy propagation path (of length 1) flagged as ``undefined'' is
-returned. The method returns \builtindoc{ppath\_lraytrace} set to the value
-used for the final calculation.
+% If the selected criterion is not met, the calculations are re-started with a
+% smaller ray tracing step length (\builtindocXXX{ppath\_lraytrace}), and with last
+% value of \builtindocXXX{rte\_los} as ``first guess''. The decrease of the ray
+% tracing step length follows the argument \texttt{pplrt\_factor}. If the ray
+% tracing length is smaller than \texttt{pplrt\_lowest}, the calculations are
+% halted and a dummy propagation path (of length 1) flagged as ``undefined'' is
+% returned. The method returns \builtindocXXX{ppath\_lraytrace} set to the value
+% used for the final calculation.
 
-A suitable start value for \wsvindex{ppath\_lraytrace} depends on the size of
-refractive index. For satellite-to-satellite links close to the
-Earth's surface a suitable value can be as low as 100\,m.
+% A suitable start value for \wsvindex{ppath\_lraytrace} depends on the size of
+% refractive index. For satellite-to-satellite links close to the
+% Earth's surface a suitable value can be as low as 100\,m.
 
 
    
-\subsection{Definition of attenuation and loss terms}
-%===================
-\label{sec:rlinks:oview}
+% \subsection{Definition of attenuation and loss terms}
+% %===================
+% \label{sec:rlinks:oview}
 
-The radiance law is not applicable for the signal from a point source.
-The power received, $p_r$, by an antenna with an effective aperture size
-$A_e$, located a distance $l$ from a transmitter, with power
-$p_t$ and gain $g_t$, can be expressed as \citep[e.g.][]{ippolito:satco:08}
-\begin{equation}
-  \label{eq:rlink:start}
-  p_r(l) = t_a\frac{p_tg_t}{4\pi l^2}A_e,
-\end{equation}
-where $t_a$ is the transmission due to losses caused by the atmosphere. This
-total atmospheric loss is the product between losses due to defocusing,
-$t_d$ (Sec.~\ref{sec:rlink:defoc}) and gaseous and particle extinction, $t_e$
-(Sec.~\ref{sec:rlink:atmext}):
-\begin{equation}
-  t_a = t_d t_e.
-\end{equation}
-The factor
-\begin{equation}
-  \label{eq:rlink:fspl}
-  t_f = \frac{1}{4\pi l^2}
-\end{equation}
-represents the pure geometrical dilution of the power, following the inverse
-square law. This effect is encountered also for propagation in free space, and,
-accordingly, it is denoted as the free space loss. Please note that
-other definitions of this quantity exists, see Section~\ref{sec:rlinks:free}.
+% The radiance law is not applicable for the signal from a point source.
+% The power received, $p_r$, by an antenna with an effective aperture size
+% $A_e$, located a distance $l$ from a transmitter, with power
+% $p_t$ and gain $g_t$, can be expressed as \citep[e.g.][]{ippolito:satco:08}
+% \begin{equation}
+%   \label{eq:rlink:start}
+%   p_r(l) = t_a\frac{p_tg_t}{4\pi l^2}A_e,
+% \end{equation}
+% where $t_a$ is the transmission due to losses caused by the atmosphere. This
+% total atmospheric loss is the product between losses due to defocusing,
+% $t_d$ (Sec.~\ref{sec:rlink:defoc}) and gaseous and particle extinction, $t_e$
+% (Sec.~\ref{sec:rlink:atmext}):
+% \begin{equation}
+%   t_a = t_d t_e.
+% \end{equation}
+% The factor
+% \begin{equation}
+%   \label{eq:rlink:fspl}
+%   t_f = \frac{1}{4\pi l^2}
+% \end{equation}
+% represents the pure geometrical dilution of the power, following the inverse
+% square law. This effect is encountered also for propagation in free space, and,
+% accordingly, it is denoted as the free space loss. Please note that
+% other definitions of this quantity exists, see Section~\ref{sec:rlinks:free}.
 
-With these definitions, Equation~\ref{eq:rlink:start} can be written as
-\begin{equation}
-  \label{eq:rlink:pr}
-  p_r(l) = t_d t_e t_f p_t',
-\end{equation}
-where $p_t'=p_tg_tA_e$, a term discussed further in
-Section~\ref{sec:rlinks:free}.
+% With these definitions, Equation~\ref{eq:rlink:start} can be written as
+% \begin{equation}
+%   \label{eq:rlink:pr}
+%   p_r(l) = t_d t_e t_f p_t',
+% \end{equation}
+% where $p_t'=p_tg_tA_e$, a term discussed further in
+% Section~\ref{sec:rlinks:free}.
 
-The method \wsmindex{iyRadioLink} reports $p_r$ as \builtindoc{iy}, i.e.\ $p_r$
-is treated as the main quantity. All loss terms ($t_d$, $t_e$ and $t_f$) can
-be obtained as auxiliary data (\builtindoc{iy\_aux}). The auxiliary variables
-include also extra path delay, bending angle and Faraday rotation. Some of
-these terms can be obtained as attenuation/rotation/delay (per length) along the
-propagation path.
+% The method \wsmindexXXX{iyRadioLink} reports $p_r$ as \builtindocXXX{iy}, i.e.\ $p_r$
+% is treated as the main quantity. All loss terms ($t_d$, $t_e$ and $t_f$) can
+% be obtained as auxiliary data (\builtindocXXX{iy\_aux}). The auxiliary variables
+% include also extra path delay, bending angle and Faraday rotation. Some of
+% these terms can be obtained as attenuation/rotation/delay (per length) along the
+% propagation path.
 
-Note the distinction between ``loss'' and ``attenuation''. The first term
-refers here to path-integrated transmission factors, while the second term
-refers to local attenuation coefficients. That is, losses are dimensionless
-values, between 0 and 1, while the unit of attenuation is $1/m$. See the
-following sections for details.
+% Note the distinction between ``loss'' and ``attenuation''. The first term
+% refers here to path-integrated transmission factors, while the second term
+% refers to local attenuation coefficients. That is, losses are dimensionless
+% values, between 0 and 1, while the unit of attenuation is $1/m$. See the
+% following sections for details.
 
-The quantity returned in \builtindoc{iy} is also what ends up in
-\builtindoc{y}, outputted by \builtindoc{yCalc}. For increased flexibility, the
-method \wsmindex{iyReplaceFromAux} allows the user to replace the content
-of \builtindoc{iy} with some of the auxiliary variables. For example, for radio
-link calculations bending angle can frequently be seen as the primary
-observation, and this case can be handled by \builtindoc{iyReplaceFromAux}.
-The constrain for allowing this swap of variables is that the auxiliary
-variable to replace $p_r$ must have the same data dimensions. In practice, this
-means that the auxiliary variable is a function of frequency, possibly being a
-Stokes vector for each frequency. Variables fulfilling this constrain are:
-defocusing loss ($t_d$), atmospheric extinction loss ($t_e$), free space loss
-($t_f$), bending angle, extra path delay, and (total) Faraday rotation.
-
-
-\subsection{Free space loss and sensor characteristics}
-%===================
-\label{sec:rlinks:free}
-
-It is repeated that (total) free space loss is in ARTS defined as given
-above in Equation~\ref{eq:rlink:fspl}:
-\begin{displaymath}
-  t_f = \frac{1}{4\pi l^2}.
-\end{displaymath}
-\underline{It is stressed} that this deviates from what
-appears to be a more common (even standard?) definition of free space loss:
-$\left(\Wvl/(4 \pi l)\right)^2$, where \Wvl\ is the wavelength of the
-signal. This expression encompasses the relationship between the receiver's
-effective antenna area and its gain ($A_e=g_r\Wvl^2/(4\pi)$). This later
-definition was avoided to keep atmospheric and sensor effects clearly separated
-in ARTS,
-
-Hence, the definition of free space loss has consequences for how to specify
-sensor characteristics. A possible choice is to treat pure multiplicative
-factors such as $p_t$, $g_t$ and $A_e$ separately, and let ARTS handle the pure
-radiative propagation effects. In this case, $p_t'$ (Eq.~\ref{eq:rlink:pr})
-shall be set to unity (\wsmindex{MatrixUnitIntensity} handles this case). If
-e.g. Faraday rotation or particle scattering is of concern,
-\builtindoc{stokes\_dim} must be $>1$ and also the polarisation of the
-transmitted signal is of concern, and must be included in the specification of
-$p_t'$ (e.g.\ $p_t'=[1,\pm1,0,0]$ when V or H is transmitted). The next step
-towards a more complete treatment of the transmitter should be to include $p_t$
-and $g_t$ in $p_t'$. In any case, \builtindoc{iyRadioLink} expects
-\wsaindex{iy\_transmitter\_agenda} to return $p_t'$, for each frequency in
-\builtindoc{f\_grid}.
-
-So far ARTS has no dedicated support to handle characteristics of receivers in
-radio link configurations. The first step here should be to consider $A_e$, but
-the simplest way to achieve this is to include $A_e$ in $p_t'$ (and it is here
-where the definition of free space loss comes into play, as with the standard
-definition $p_t'$ should instead include $g_r$). Some functionality developed
-for passive sensors could also be of use for radio links, but this has not yet
-been tested practically (even less validated) and these options are not
-commented further.
-
-Setting $\Mpi=p_r$ (to be consistent in the nomenclature used elsewhere) and
-taking the derivative of \(\Mpi(s)\) gives
-\begin{equation}
-\label{eq:fsplarts}
- \frac{\DiffD\Mpi(s)}{\DiffD s}=-\frac{2}{s}I(s).
-\end{equation}
-This equals the Beer-Lambert law with an attenuation coefficient of $2/s$. With
-other words, the free space loss can be also treated as an ordinary extinction
-term, and when ``free space attenuation'', $k_f$, is requested as an auxiliary
-variable it is calculated as
-\begin{equation}
- k_f=\frac{2}{s}.
-\end{equation}
-This extinction coefficient can be seen as non-linear, as it varies with the
-distance from the transmitter. If the transmitter is placed inside the
-atmosphere, $k_f$ becomes infinity for the path point corresponding to $l=0$.
-The $k_f$-coefficient is not dependent on the definition differences of (total)
-free space loss discussed above.
+% The quantity returned in \builtindocXXX{iy} is also what ends up in
+% \builtindocXXX{y}, outputted by \builtindocXXX{yCalc}. For increased flexibility, the
+% method \wsmindexXXX{iyReplaceFromAux} allows the user to replace the content
+% of \builtindocXXX{iy} with some of the auxiliary variables. For example, for radio
+% link calculations bending angle can frequently be seen as the primary
+% observation, and this case can be handled by \builtindocXXX{iyReplaceFromAux}.
+% The constrain for allowing this swap of variables is that the auxiliary
+% variable to replace $p_r$ must have the same data dimensions. In practice, this
+% means that the auxiliary variable is a function of frequency, possibly being a
+% Stokes vector for each frequency. Variables fulfilling this constrain are:
+% defocusing loss ($t_d$), atmospheric extinction loss ($t_e$), free space loss
+% ($t_f$), bending angle, extra path delay, and (total) Faraday rotation.
 
 
-\subsection{Extra path delay}
-%
-In the absence of an atmosphere a signal sent from a transmitter in the
-direction towards a receiver would follow a straight line, i.e. the shortest
-geometric distance between the two instruments. Moreover, the signal would
-propagate with the speed of light. The geometric distance, $l_g$, between the
-transmitter and receiver is
-\begin{equation}
-l_g\equiv\int_{\mathrm{geometric}}1\DiffD s
-\end{equation}
-In the presence of an atmosphere, two changes follow,
-the speed of the signal is retarded and the ray path gets 
-bent. The optical path length is defined as
-\begin{equation}
-l_o\equiv\int_{\mathrm{ray}}\Rfr(s)\DiffD s.
-\end{equation}
-The geometrical length of the bent ray path is
-\begin{equation}
-l_r\equiv\int_{\mathrm{ray}}1\DiffD s.
-\label{eq:rlink:lr}
-\end{equation}
-To recall what you probably heard during our physics lessons, some quotes from
-the Wikipedia entry on optical path length: \emph{Fermat's principle states
-  that the path light takes between two points is the path that has the minimum
-  optical path length. An electromagnetic wave that travels a path of given
-  optical path length arrives with the same phase shift as if it had travelled
-  a path of that physical length in a vacuum.}
+% \subsection{Free space loss and sensor characteristics}
+% %===================
+% \label{sec:rlinks:free}
 
-The total delay, compared if there would be vacuum between transmitter and
-receiver, expressed in units of length, is
-\begin{equation}
-d \equiv l_o-l_g \ge 0,
-\end{equation}
-which can be expressed also as
-\begin{equation} 
-d = (l_o-l_r) + (l_r-l_g) = d_{n}+d_{g},
-\end{equation}
-where $d_{n}$ is the along-path delay due to decreased propagation velocity,
-and $d_{g}$ is delay due to deviation from geometric propagation (refraction).
+% It is repeated that (total) free space loss is in ARTS defined as given
+% above in Equation~\ref{eq:rlink:fspl}:
+% \begin{displaymath}
+%   t_f = \frac{1}{4\pi l^2}.
+% \end{displaymath}
+% \underline{It is stressed} that this deviates from what
+% appears to be a more common (even standard?) definition of free space loss:
+% $\left(\Wvl/(4 \pi l)\right)^2$, where \Wvl\ is the wavelength of the
+% signal. This expression encompasses the relationship between the receiver's
+% effective antenna area and its gain ($A_e=g_r\Wvl^2/(4\pi)$). This later
+% definition was avoided to keep atmospheric and sensor effects clearly separated
+% in ARTS,
 
-The (total) extra path delay, in units of seconds, is
-\begin{equation} 
-\Delta t = \frac{d}{c},
-\end{equation}
-and is provided by \builtindoc{iyRadioLink} as an auxiliary variable. 
+% Hence, the definition of free space loss has consequences for how to specify
+% sensor characteristics. A possible choice is to treat pure multiplicative
+% factors such as $p_t$, $g_t$ and $A_e$ separately, and let ARTS handle the pure
+% radiative propagation effects. In this case, $p_t'$ (Eq.~\ref{eq:rlink:pr})
+% shall be set to unity (\wsmindexXXX{MatrixUnitIntensity} handles this case). If
+% e.g. Faraday rotation or particle scattering is of concern,
+% \builtindocXXX{stokes\_dim} must be $>1$ and also the polarisation of the
+% transmitted signal is of concern, and must be included in the specification of
+% $p_t'$ (e.g.\ $p_t'=[1,\pm1,0,0]$ when V or H is transmitted). The next step
+% towards a more complete treatment of the transmitter should be to include $p_t$
+% and $g_t$ in $p_t'$. In any case, \builtindocXXX{iyRadioLink} expects
+% \wsaindex{iy\_transmitter\_agenda} to return $p_t'$, for each frequency in
+% \builtindocXXX{f\_grid}.
 
+% So far ARTS has no dedicated support to handle characteristics of receivers in
+% radio link configurations. The first step here should be to consider $A_e$, but
+% the simplest way to achieve this is to include $A_e$ in $p_t'$ (and it is here
+% where the definition of free space loss comes into play, as with the standard
+% definition $p_t'$ should instead include $g_r$). Some functionality developed
+% for passive sensors could also be of use for radio links, but this has not yet
+% been tested practically (even less validated) and these options are not
+% commented further.
 
-\subsection{Bending angle}
-%
-The bending angle is a measure on the deviation from geometric propagation.
-Using the nomenclature defined in Figure~\ref{fig:rlink:bangle}, the bending
-angle, $\alpha$, can be calculated as \citep[e.g.][Eq.~6]{schreiner:99}
-\begin{displaymath}
-  \alpha = \phi_{\mathrm{GPS}} + \phi_{\mathrm{LEO}} + \theta - \pi.
-\end{displaymath}
-This equation is derived assuming what in ARTS is denoted as a 1D atmosphere.
-ARTS operates with zenith angles and the equation above becomes
-\begin{figure*}[!tb]
- \begin{center}
-  \includegraphics*[width=0.7\hsize]{bangle.png}\\
-  \caption{Illustration of the bending angle of a satellite-to-satellite radio
-    occultation \citep[copied from][Fig.~2]{schreiner:99}.}
- \end{center}
- \label{fig:rlink:bangle}
-\end{figure*}
-\begin{equation} 
-  \alpha = \aZntAng{t} - \aZntAng{r} + \theta,
-  \label{eq:rlink:bangle}
-\end{equation}
-where \aZntAng{t} and \aZntAng{r} is the zenith angle of propagation path, at
-the transmitter and the receiver, respectively. This equation is applied for
-all atmospheric dimensionalities, hence, any bending in the horizontal plane,
-that can occur for 3D, is neglected.
-
-A remark here is that the ARTS' zenith angles for the path are the ones to
-observe the propagating radiation, and e.g.\
-$\aZntAng{r}=\pi-\phi_{\mathrm{LEO}}$. Equation~\ref{T-eq:ppath:dlat} in
-\theory shows that that without refraction $\theta=\aZntAng{t} - \aZntAng{r}$
-(note the difference in notation), and Equation~\ref{eq:rlink:bangle} is
-consistent with a zero bending angle for propagation in vacuum. Consequently,
-ARTS should theoretically return a bending angle of zero if geometrical path
-calculations are selected, but due to limited calculation precision a small
-deviation from zero can be found.
-
-%The bending along the path is expressed as
-%\begin{equation} 
-%  \frac{\DiffD \alpha}{\DiffD s} = \frac{\DiffD \ZntAng}{\DiffD s} - 
-%                                   \frac{\DiffD \theta }{\DiffD s},
-%  \label{eq:rlink:dbangleds}
-%\end{equation}
-%where $\DiffD\ZntAng/\DiffD s$ is the change in zenith angle along the path,
-%and $\DiffD\theta/\DiffD s$ is the same for the angular distance to the
-%transmitter, both calculated by local approximations of the change of the
-%angles.
+% Setting $\Mpi=p_r$ (to be consistent in the nomenclature used elsewhere) and
+% taking the derivative of \(\Mpi(s)\) gives
+% \begin{equation}
+% \label{eq:fsplarts}
+%  \frac{\DiffD\Mpi(s)}{\DiffD s}=-\frac{2}{s}I(s).
+% \end{equation}
+% This equals the Beer-Lambert law with an attenuation coefficient of $2/s$. With
+% other words, the free space loss can be also treated as an ordinary extinction
+% term, and when ``free space attenuation'', $k_f$, is requested as an auxiliary
+% variable it is calculated as
+% \begin{equation}
+%  k_f=\frac{2}{s}.
+% \end{equation}
+% This extinction coefficient can be seen as non-linear, as it varies with the
+% distance from the transmitter. If the transmitter is placed inside the
+% atmosphere, $k_f$ becomes infinity for the path point corresponding to $l=0$.
+% The $k_f$-coefficient is not dependent on the definition differences of (total)
+% free space loss discussed above.
 
 
-
-\subsection{Defocusing}
-\label{sec:rlink:defoc}
-%
-A special effect for radio links is defocusing. This effect is caused by the
-fact that refraction varies over the wavefront. In short, defocusing occurs if
-neighbouring ray-paths diverge more quickly than for free space propagation.
-This is the typical situation for limb sounding due to the vertical variation
-of the refractive index, causing an additional divergence of the transmitted
-power. The opposite, focusing, is also possible. In fact, already for an ideal
-spherically symmetric atmosphere a focusing effect takes place in the
-horizontal dimension, caused by the curvature of the planet. In this case, the
-middle point of the beam experiences the highest refractive index and has then
-the lowest propagation speed. This, in addition to symmetry around the middle
-point, counteracts partly the free space divergence of the power.
-
-Defocusing can be estimated by two different algorithms, simple denoted as
-method 1 and 2. The user selects the method to apply by the argument
-\texttt{defocus\_method}.
-
-\subsubsection{Defocusing, method 1}
-\label{sec:rlink:defocm1}
-
-This method is intended to be general, using a very simple calculation
-approach. The optical path length between the transmitter and the receiver is
-determined, here denoted as $l_o$. This is followed by that two propagation
-paths are calculated, with slight shifts in the zenith angle. The size of the
-angular shift is an user input (\texttt{defocus\_shift}).
-
-The spatial position where each of the two shifted paths have an optical path
-length of $l_o$ is determined. The distance between these two points are
-compared to what is expected for free space propagation. If, for example, the
-distance is double as high compared to the free space case, this is taken as a
-defocusing ``transmission'' of 0.5. The factor can be higher than 1, which
-corresponds to conditions of focusing. Only the zenith angle dimension is
-considered, any defocusing/focusing in the horizontal plane is neglected (which
-in general should be a good approximation). 
-
-The method can be applied for all possible links, e.g. links inside the
-atmosphere, for ground-to-satellite links and satellite-to-satellite links. In
-the last case, if the path with the highest zenith angle intersects with the
-ground, the defocusing is calculated using the nominal path and the low zenith
-angle path.
-
-
-\subsubsection{Defocusing, method 2}
-\label{sec:rlink:defocm2}
-
-This method is restricted to satellite-to-satellite links. The defocusing
-effect in this case, of a transmitted signal with intensity \(I_{0}\), can be
-described as \citep{haugstad:78:turbu,kursinski:00:thegp}
-\begin{equation}
-\label{eq:foc1}
-I=I_{0}M_{\alpha}M_{\beta},
-\end{equation}
-where \(M_{\alpha}\) and \(M_{\beta}\) is the vertical and horizontal
-defocusing factors, respectively. In general, the defocusing effect is fairly
-complex in a modelling perspective, although for special cases the defocusing
-factors can be calculated analytically. Such analytic expressions can be used
-for "test cases" of more general solutions. For a signal transmitted in a limb
-geometry through a spherical symmetric atmosphere (i.e.\ 1D), with an
-exponential scale height \(H\), \citep{haugstad:78:turbu}
-\begin{eqnarray}
- M_{\alpha} &=& \left[1+\frac{\alpha L_{r}}{H} \right]^{-1}, \nonumber \\
- M_{\beta}  &=& \left[1-\frac{\alpha L_{r}}{R} \right]^{-1}, \nonumber
-\end{eqnarray}
-where \(\alpha\) is the bending angle (Eq.~\ref{eq:rlink:bangle}), \(L_{r}\) is
-the distance from the tangent point to the receiver, and \(R\) is the planet
-radius. An alternative form of the equations above, also
-also valid for an atmosphere with a non-exponential scale height is
-\citep{kursinski:00:thegp}
-\begin{eqnarray}
- \label{eq:kur1}
- M_{\alpha} &=& \left[1+\frac{\DiffD \alpha}{\DiffD a} 
-               \frac{{L_{t}L_{r}}}{L_{r}+L_{t}} \right]^{-1}, \\
-\label{eq:kur2}
- M_{\beta} &=& \left[1-\frac{\alpha}{R}
-              \frac{{L_{t}L_{r}}}{L_{r}+L_{t}} \right]^{-1},
-\end{eqnarray}
-where $L_{t}$ and $L_{r}$ is the distance between the tangent point and the
-transmitter and receiver, respectively, and \(a\)=\(\Rfr\Rds\sin(\ZntAng)\) is
-denoted as the impact parameter (and is equal to the ``propagation path
-constant'' defined in Eq.~\ref{T-eq:ppath:snellspherical} of \theory).
-
-The bending angle ($a$) is given by the derived path between the transmitter and
-receiver. The term $\DiffD \alpha/\DiffD a$ is estimated using calculations
-with shifted zenith angles, with a shift set by the user
-(\texttt{defocus\_shift}). Hence, this term is calculated in a manner similar
-to the approach used in method 1.
-
-
-\subsection{Atmospheric extinction}
-\label{sec:rlink:atmext}
-%
-Atmospheric absorption and scattering are handled exactly as for
-\builtindoc{iyTransmissionStandard}. Accordingly, only scattering
-out-of-the propagation path is considered.
-
-
-
-% \subsection{Some additional defocusing theory}
-% \label{sec:rlink:defoc2}
+% \subsection{Extra path delay}
 % %
-% The derivations of, for example, \citet{haugstad:78:turbu} were made using the
-% framework of geometrical optics. In this framework, the equation describing the
-% propagation direction of a ray can be written as
+% In the absence of an atmosphere a signal sent from a transmitter in the
+% direction towards a receiver would follow a straight line, i.e. the shortest
+% geometric distance between the two instruments. Moreover, the signal would
+% propagate with the speed of light. The geometric distance, $l_g$, between the
+% transmitter and receiver is
 % \begin{equation}
-% \label{eq:eik}
-% \Rfr\frac{\DiffD \bf{\Rds}}{\DiffD s}=\nabla S,
+% l_g\equiv\int_{\mathrm{geometric}}1\DiffD s
 % \end{equation}
-% where \(S\) (often called eikonal) is a function describing the wavefront
-% (\(S(\bf{\Rds})\)=constant represents a wave front). According to
-% \cite{born:80} the intensity ratio of any two points along a ray can be
-% expressed as
+% In the presence of an atmosphere, two changes follow,
+% the speed of the signal is retarded and the ray path gets 
+% bent. The optical path length is defined as
 % \begin{equation}
-% \frac{I_{2}}{I_{1}}=\frac{\Rfr_{2}}{\Rfr_{1}}
-% \exp \left(-\int_{s_{1}}^{s_{2}}\frac{\nabla^{2}S}{n}ds\right),
+% l_o\equiv\int_{\mathrm{ray}}\Rfr(s)\DiffD s.
 % \end{equation}
-% where the integrand 
-% or the along path contribution to the intensity variation is
+% The geometrical length of the bent ray path is
+% \begin{equation}
+% l_r\equiv\int_{\mathrm{ray}}1\DiffD s.
+% \label{eq:rlink:lr}
+% \end{equation}
+% To recall what you probably heard during our physics lessons, some quotes from
+% the Wikipedia entry on optical path length: \emph{Fermat's principle states
+%   that the path light takes between two points is the path that has the minimum
+%   optical path length. An electromagnetic wave that travels a path of given
+%   optical path length arrives with the same phase shift as if it had travelled
+%   a path of that physical length in a vacuum.}
+
+% The total delay, compared if there would be vacuum between transmitter and
+% receiver, expressed in units of length, is
+% \begin{equation}
+% d \equiv l_o-l_g \ge 0,
+% \end{equation}
+% which can be expressed also as
+% \begin{equation} 
+% d = (l_o-l_r) + (l_r-l_g) = d_{n}+d_{g},
+% \end{equation}
+% where $d_{n}$ is the along-path delay due to decreased propagation velocity,
+% and $d_{g}$ is delay due to deviation from geometric propagation (refraction).
+
+% The (total) extra path delay, in units of seconds, is
+% \begin{equation} 
+% \Delta t = \frac{d}{c},
+% \end{equation}
+% and is provided by \builtindocXXX{iyRadioLink} as an auxiliary variable. 
+
+
+% \subsection{Bending angle}
+% %
+% The bending angle is a measure on the deviation from geometric propagation.
+% Using the nomenclature defined in Figure~\ref{fig:rlink:bangle}, the bending
+% angle, $\alpha$, can be calculated as \citep[e.g.][Eq.~6]{schreiner:99}
+% \begin{displaymath}
+%   \alpha = \phi_{\mathrm{GPS}} + \phi_{\mathrm{LEO}} + \theta - \pi.
+% \end{displaymath}
+% This equation is derived assuming what in ARTS is denoted as a 1D atmosphere.
+% ARTS operates with zenith angles and the equation above becomes
+% \begin{figure*}[!tb]
+%  \begin{center}
+%   \includegraphics*[width=0.7\hsize]{bangle.png}\\
+%   \caption{Illustration of the bending angle of a satellite-to-satellite radio
+%     occultation \citep[copied from][Fig.~2]{schreiner:99}.}
+%  \end{center}
+%  \label{fig:rlink:bangle}
+% \end{figure*}
+% \begin{equation} 
+%   \alpha = \aZntAng{t} - \aZntAng{r} + \theta,
+%   \label{eq:rlink:bangle}
+% \end{equation}
+% where \aZntAng{t} and \aZntAng{r} is the zenith angle of propagation path, at
+% the transmitter and the receiver, respectively. This equation is applied for
+% all atmospheric dimensionalities, hence, any bending in the horizontal plane,
+% that can occur for 3D, is neglected.
+
+% A remark here is that the ARTS' zenith angles for the path are the ones to
+% observe the propagating radiation, and e.g.\
+% $\aZntAng{r}=\pi-\phi_{\mathrm{LEO}}$. Equation~\ref{T-eq:ppath:dlat} in
+% \theory shows that that without refraction $\theta=\aZntAng{t} - \aZntAng{r}$
+% (note the difference in notation), and Equation~\ref{eq:rlink:bangle} is
+% consistent with a zero bending angle for propagation in vacuum. Consequently,
+% ARTS should theoretically return a bending angle of zero if geometrical path
+% calculations are selected, but due to limited calculation precision a small
+% deviation from zero can be found.
+
+% %The bending along the path is expressed as
+% %\begin{equation} 
+% %  \frac{\DiffD \alpha}{\DiffD s} = \frac{\DiffD \ZntAng}{\DiffD s} - 
+% %                                   \frac{\DiffD \theta }{\DiffD s},
+% %  \label{eq:rlink:dbangleds}
+% %\end{equation}
+% %where $\DiffD\ZntAng/\DiffD s$ is the change in zenith angle along the path,
+% %and $\DiffD\theta/\DiffD s$ is the same for the angular distance to the
+% %transmitter, both calculated by local approximations of the change of the
+% %angles.
+
+
+
+% \subsection{Defocusing}
+% \label{sec:rlink:defoc}
+% %
+% A special effect for radio links is defocusing. This effect is caused by the
+% fact that refraction varies over the wavefront. In short, defocusing occurs if
+% neighbouring ray-paths diverge more quickly than for free space propagation.
+% This is the typical situation for limb sounding due to the vertical variation
+% of the refractive index, causing an additional divergence of the transmitted
+% power. The opposite, focusing, is also possible. In fact, already for an ideal
+% spherically symmetric atmosphere a focusing effect takes place in the
+% horizontal dimension, caused by the curvature of the planet. In this case, the
+% middle point of the beam experiences the highest refractive index and has then
+% the lowest propagation speed. This, in addition to symmetry around the middle
+% point, counteracts partly the free space divergence of the power.
+
+% Defocusing can be estimated by two different algorithms, simple denoted as
+% method 1 and 2. The user selects the method to apply by the argument
+% \texttt{defocus\_method}.
+
+% \subsubsection{Defocusing, method 1}
+% \label{sec:rlink:defocm1}
+
+% This method is intended to be general, using a very simple calculation
+% approach. The optical path length between the transmitter and the receiver is
+% determined, here denoted as $l_o$. This is followed by that two propagation
+% paths are calculated, with slight shifts in the zenith angle. The size of the
+% angular shift is an user input (\texttt{defocus\_shift}).
+
+% The spatial position where each of the two shifted paths have an optical path
+% length of $l_o$ is determined. The distance between these two points are
+% compared to what is expected for free space propagation. If, for example, the
+% distance is double as high compared to the free space case, this is taken as a
+% defocusing ``transmission'' of 0.5. The factor can be higher than 1, which
+% corresponds to conditions of focusing. Only the zenith angle dimension is
+% considered, any defocusing/focusing in the horizontal plane is neglected (which
+% in general should be a good approximation). 
+
+% The method can be applied for all possible links, e.g. links inside the
+% atmosphere, for ground-to-satellite links and satellite-to-satellite links. In
+% the last case, if the path with the highest zenith angle intersects with the
+% ground, the defocusing is calculated using the nominal path and the low zenith
+% angle path.
+
+
+% \subsubsection{Defocusing, method 2}
+% \label{sec:rlink:defocm2}
+
+% This method is restricted to satellite-to-satellite links. The defocusing
+% effect in this case, of a transmitted signal with intensity \(I_{0}\), can be
+% described as \citep{haugstad:78:turbu,kursinski:00:thegp}
+% \begin{equation}
+% \label{eq:foc1}
+% I=I_{0}M_{\alpha}M_{\beta},
+% \end{equation}
+% where \(M_{\alpha}\) and \(M_{\beta}\) is the vertical and horizontal
+% defocusing factors, respectively. In general, the defocusing effect is fairly
+% complex in a modelling perspective, although for special cases the defocusing
+% factors can be calculated analytically. Such analytic expressions can be used
+% for "test cases" of more general solutions. For a signal transmitted in a limb
+% geometry through a spherical symmetric atmosphere (i.e.\ 1D), with an
+% exponential scale height \(H\), \citep{haugstad:78:turbu}
 % \begin{eqnarray}
-% \label{eq:def4}
-% \frac{\nabla^{2}S}{n} &=& \frac{\nabla \cdot \nabla S}{n}
-% =\frac{\nabla \cdot \left(\Rfr\frac{\DiffD \bf{\Rds}}{\DiffD s}\right)}{\Rfr} \nonumber \\
-% & = & 
-% \frac{\nabla \Rfr}{\Rfr} \cdot \frac{\DiffD \bf{\Rds}}{\DiffD s}
-% +\nabla \cdot \frac{\DiffD \bf{\Rds}}{\DiffD s}=
-% \frac{1}{\Rfr}\frac{\DiffD \Rfr}{\DiffD s}+\nabla \cdot \frac{\DiffD \bf{\Rds}}{\DiffD s}. 
+%  M_{\alpha} &=& \left[1+\frac{\alpha L_{r}}{H} \right]^{-1}, \nonumber \\
+%  M_{\beta}  &=& \left[1-\frac{\alpha L_{r}}{R} \right]^{-1}, \nonumber
 % \end{eqnarray}
-% The first term on the right hand side of Equation~\ref{eq:def4}
-% is related to the along path variation of refractive index and it is 
-% an unproblematic term in a modelling perspective.
-% The second term on the right hand side of Equation~\ref{eq:def4}
-% is the divergence of the vector pointing in the direction 
-% of the ray.  If the signal initially is travelling in the \(x\)-direction,
-% we have for small bending angles \citep{haugstad:78:turbu}
-% \begin{equation}
-% \label{eq:raydiv}
-% \nabla \cdot \frac{\DiffD \bf{\Rds}}{\DiffD s}\approx
-% \frac{\DiffD \alpha}{\DiffD z}+\frac{\DiffD \beta}{\DiffD y}
-% \end{equation}
-% where \(\alpha\) and \(\beta\) is the bending angle in the \(xz\)-plane and
-% \(xy\)-plane, respectively (\(\alpha\) and \(\beta\) can in this case be seen
-% as the \(z\) and \(y\) component of the propagation direction vector). The
-% bending angle is an integrated measure of the refractive index in the
-% atmosphere traversed by the ray. That is, at a given point along the
-% propagation path, the bending angle depends on the history of the path. This
-% has the consequence, that if we only perform calculations along the propagation
-% path and do not consider the history of the path, it will be problematic to
-% approximate the \(\alpha\) term in Equation \ref{eq:raydiv}. A solution to the
-% problem for a spherically symmetric atmosphere (and for small bending angles)
-% is given in \citet{haugstad:78:turbu}. No suitable solution of analytical
-% character for the general case has been found, and instead a pure numerical
-% approach was implemented (Section~\ref{sec:rlink:defoc2}).
+% where \(\alpha\) is the bending angle (Eq.~\ref{eq:rlink:bangle}), \(L_{r}\) is
+% the distance from the tangent point to the receiver, and \(R\) is the planet
+% radius. An alternative form of the equations above, also
+% also valid for an atmosphere with a non-exponential scale height is
+% \citep{kursinski:00:thegp}
+% \begin{eqnarray}
+%  \label{eq:kur1}
+%  M_{\alpha} &=& \left[1+\frac{\DiffD \alpha}{\DiffD a} 
+%                \frac{{L_{t}L_{r}}}{L_{r}+L_{t}} \right]^{-1}, \\
+% \label{eq:kur2}
+%  M_{\beta} &=& \left[1-\frac{\alpha}{R}
+%               \frac{{L_{t}L_{r}}}{L_{r}+L_{t}} \right]^{-1},
+% \end{eqnarray}
+% where $L_{t}$ and $L_{r}$ is the distance between the tangent point and the
+% transmitter and receiver, respectively, and \(a\)=\(\Rfr\Rds\sin(\ZntAng)\) is
+% denoted as the impact parameter (and is equal to the ``propagation path
+% constant'' defined in Eq.~\ref{T-eq:ppath:snellspherical} of \theory).
+
+% The bending angle ($a$) is given by the derived path between the transmitter and
+% receiver. The term $\DiffD \alpha/\DiffD a$ is estimated using calculations
+% with shifted zenith angles, with a shift set by the user
+% (\texttt{defocus\_shift}). Hence, this term is calculated in a manner similar
+% to the approach used in method 1.
+
+
+% \subsection{Atmospheric extinction}
+% \label{sec:rlink:atmext}
+% %
+% Atmospheric absorption and scattering are handled exactly as for
+% \builtindocXXX{iyTransmissionStandard}. Accordingly, only scattering
+% out-of-the propagation path is considered.
+
 

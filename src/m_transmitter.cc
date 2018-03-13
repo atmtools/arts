@@ -662,7 +662,7 @@ void iyRadioLink(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyTransmissionStandard(
+void iyTransmissionStandardOld(
          Workspace&                   ws,
          Matrix&                      iy,
          ArrayOfTensor4&              iy_aux,
@@ -1273,7 +1273,7 @@ void iyTransmissionStandard(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyTransmissionStandard2(
+void iyTransmissionStandard(
         Workspace&                          ws,
         Matrix&                             iy,
         ArrayOfMatrix&                      iy_aux,
@@ -1387,17 +1387,22 @@ void iyTransmissionStandard2(
   const Index naux = iy_aux_vars.nelem();
   iy_aux.resize( naux );
   //
+  Index auxOptDepth = -1;
+  //
   for( Index i=0; i<naux; i++ )
     {
       iy_aux[i].resize(nf,ns); 
       
       if( iy_aux_vars[i] == "Radiative background" )
         { iy_aux[i] = (Numeric)min( (Index)2, rbi-1 ); }
+      else if( iy_aux_vars[i] == "Optical depth" )
+        { auxOptDepth = i; } 
       else
         {
           ostringstream os;
           os << "The only allowed strings in *iy_aux_vars* are:\n"
              << "  \"Radiative background\"\n"
+             << "  \"Optical depth\"\n"
              << "but you have selected: \"" << iy_aux_vars[i] << "\"";
           throw runtime_error( os.str() );      
         }
@@ -1422,6 +1427,8 @@ void iyTransmissionStandard2(
       ppvar_pnd.resize(0,0);
       ppvar_f.resize(0,0);
       ppvar_iy.resize(0,0,0);
+      //
+      iy_aux[auxOptDepth] = 0.0;
     }
   else
     {
@@ -1564,15 +1571,22 @@ void iyTransmissionStandard2(
           swap( K_past, K_this );
           swap( dK_past_dx, dK_this_dx );
         }
+
+      // iy_aux: Optical depth
+      if( auxOptDepth >= 0 )
+        {
+          for( Index iv=0; iv<nf; iv++ )
+            { iy_aux[auxOptDepth](iv,joker) = -log( trans_cumulat(np-1,iv,0,0) ); }
+        }   
     }
   
   // Radiative transfer calculations
   if( np > 1 )
-  {
+    {
       Matrix empty_matrix;
       Vector empty_vector;
       for( Index iv=0; iv<nf; iv++ )
-      {
+        {
           for( Index ip=np-2; ip>=0; ip-- )
             {
         
@@ -1600,6 +1614,8 @@ void iyTransmissionStandard2(
               // Equation is I1 = T I0
               mult( iy(iv,joker), T, iY );
 
+              // Ppvar and iy_aux stuff:
+              //
               ppvar_iy(iv,joker,ip) = iy(iv,joker);
             }
         }

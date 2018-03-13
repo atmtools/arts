@@ -7053,6 +7053,63 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iyActiveSingleScat" ),
+        DESCRIPTION
+        (
+         "Simulation of radar/lidar, restricted to single scattering.\n"
+         "\n"
+         "The WSM treats e.g. radar measurements of cloud and precipitation,\n"
+         "on the condition that multiple scattering can be ignored. Beside\n"
+         "the direct backsacttering, the two-way attenuation by gases and\n"
+         "particles is considered. Surface scattering is ignored.\n"
+         "\n"
+         "The method could potentially be used for lidars, but multiple\n"
+         "scattering poses here a must stronger constrain for the range of\n"
+         "applications.\n"
+         "\n"
+         "The method can be used with *iyCalc*, but not with *yCalc*. In the\n" 
+         "later case, use instead *yActive*.\n"
+         "\n"
+         "The method returns the backscattering for each point of *ppath*.\n"
+         "Several frequencies can be treated in parallel. The size of *iy*\n"
+         "is [ nf*np, stokes_dim ], where nf is the length of *f_grid* and\n"
+         "np is the number of path points. The data are stored in blocks\n"
+         "of [ np, stokes_dim ]. That is, all the results for the first\n"
+         "frequency occupy the np first rows of *iy* etc.\n"
+         "\n"
+         "The polarisation state of the transmitted pulse is taken from\n"
+         "*iy_transmitter_agenda*. If the radar transmits several polarisations\n"
+         "at the same frequency, you need to handle this by using two frequencies\n" 
+         "in *f_grid*, but these can be almost identical.\n"
+         "\n"
+         "This method does not consider *iy_unit*. Unit changes are insted applied\n"
+         "in *yActive. The output of this method matches the option \"1\".\n" 
+         "\n"
+         "Describe iy_aux ...\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
+             "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_pnd", "ppvar_f" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "diy_dx", "stokes_dim", "f_grid", "atmosphere_dim", "p_grid",
+            "t_field", "nlte_field", "vmr_field", "abs_species",
+            "wind_u_field", "wind_v_field", "wind_w_field",
+            "mag_u_field", "mag_v_field", "mag_w_field",
+            "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
+            "scat_species", "scat_data", "iy_aux_vars",
+            "jacobian_do", "jacobian_quantities", "ppath",
+            "propmat_clearsky_agenda", "iy_transmitter_agenda", "iy_agenda_call1",
+            "iy_transmission", "rte_alonglos_v" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "iyApplyUnit" ),
         DESCRIPTION
         (
@@ -7123,301 +7180,13 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "iyActiveSingleScat" ),
-        DESCRIPTION
-        (
-         "Simulation of radar/lidar, restricted to single scattering.\n"
-         "\n"
-         "The WSM treats e.g. radar measurements of cloud and precipitation,\n"
-         "on the condition that multiple scattering can be ignored. Beside\n"
-         "the direct backsacttering, the two-way attenuation by gases and\n"
-         "particles is considered. Surface scattering is ignored. Further\n"
-         "details are given in AUG.\n"
-         "\n"
-         "The method could potentially be used for lidars, but multiple\n"
-         "scattering poses here a must stronger constrain for the range of\n"
-         "applications.\n"
-         "\n"
-         "The method can be used with *iyCalc*, but not with *yCalc*. In the\n" 
-         "later case, use instead *yActive*.\n"
-         "\n"
-         "The method returns the backscattering for each point of *ppath*.\n"
-         "Several frequencies can be treated in parallel. The size of *iy*\n"
-         "is [ nf*np, stokes_dim ], where nf is the length of *f_grid* and\n"
-         "np is the number of path points. The data are stored in blocks\n"
-         "of [ np, stokes_dim ]. That is, all the results for the first\n"
-         "frequency occupy the np first rows of *iy* etc.\n"
-         "\n"
-         "The polarisation state of the transmitted pulse is taken from\n"
-         "*iy_transmitter_agenda*. If the radar transmits several polarisations\n"
-         "at the same frequency, you need to handle this by using two frequencies\n" 
-         "in *f_grid*, but these can be almost identical.\n"
-         "\n"
-         "The options for *iy_unit* are:\n"
-         " \"1\"  : Backscatter coefficient. Unit is 1/(m*sr). At zero\n"
-         "          attenuation, this equals the scattering matrix value for\n"
-         "          the backward direction. See further AUG.\n"
-         " \"Ze\" : Equivalent reflectivity. Unit is mm^6/m^3. Conversion\n"
-         "          formula is given below.\n"
-         "\n"
-         "The conversion from backscatter coefficient to Ze is:\n"
-         "   Ze = 1e18 * lambda^4 / (k2 * pi^5) * sum(sigma),\n"
-         "where sum(sigma) = 4*pi*b, and b is the backscatter coefficient.\n"
-         "\n"
-         "The reference dielectric factor can either specified directly by\n"
-         "the argument *k2*. For example, to mimic the CloudSat data, *k2*\n"
-         "shall be set to 0.75 (citaion needed). If *k2* is set to be \n"
-         "negative (which is defualt), k2 is calculated as:\n"
-         "   k2 = abs( (n^2-1)/(n^2+2) )^2,\n"
-         "where n is the refractive index of liquid water at temperature\n"
-         "*ze_tref* and the frequency of the radar, calculated by the MPM93\n"
-         "parameterization.\n"
-         "\n"
-         "The following auxiliary data can be obtained:\n"
-         "  \"Pressure\": The pressure along the propagation path.\n"
-         "     Size: [1,1,1,np].\n"
-         "  \"Temperature\": The temperature along the propagation path.\n"
-         "     Size: [1,1,1,np].\n"
-         "  \"Backscattering\": The un-attenuated backscattering. Unit\n"
-         "     follows *iy_unit*. Size: [nf,ns,1,np].\n"
-         "  \"Transmission\": The single-way transmission matrix from the\n"
-         "     transmitter to each propagation path point. The matrix is\n"
-         "     valid for the photon direction. Size: [nf,ns,ns,np].\n"
-         "  \"Round-trip time\": The time for the pulse to propagate. For a \n"
-         "     totally correct result, refraction must be considered (in\n"
-         "     *pppath_agenda*). Size: [1,1,1,np].\n"
-         "  \"PND, type X\": The particle number density for scattering element\n"
-         "       type X (ie. corresponds to book X in pnd_field).\n"
-         "       Size: [1,1,1,np].\n"
-         "  \"Mass content, X\": The mass content for scattering element X.\n"
-         "       This corresponds to column X in *particle_masses* (zero-\n"
-         "       based indexing). Size: [1,1,1,np].\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "diy_dx", "stokes_dim", "f_grid", "atmosphere_dim",
-            "p_grid", "z_field", "t_field", "vmr_field", "abs_species", 
-            "wind_u_field", "wind_v_field", "wind_w_field",
-            "mag_u_field", "mag_v_field", "mag_w_field",
-            "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
-            "scat_species", "scat_data", "particle_masses",
-            "iy_unit", "iy_aux_vars",
-            "jacobian_do", "jacobian_quantities",
-            "ppath_agenda", "propmat_clearsky_agenda", "iy_transmitter_agenda",
-            "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los",
-            "rte_alonglos_v", "ppath_lmax", "ppath_lraytrace" ),
-        GIN(      "ze_tref", "k2" ),
-        GIN_TYPE( "Numeric", "Numeric" ),
-        GIN_DEFAULT( "273.15", "-1"  ),
-        GIN_DESC( "Reference temperature for conversion to Ze.",
-                  "Reference dielectric factor." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "iyActiveSingleScat2" ),
-        DESCRIPTION
-        (
-         "Simulation of radar/lidar, restricted to single scattering.\n"
-         "\n"
-         "The WSM treats e.g. radar measurements of cloud and precipitation,\n"
-         "on the condition that multiple scattering can be ignored. Beside\n"
-         "the direct backsacttering, the two-way attenuation by gases and\n"
-         "particles is considered. Surface scattering is ignored. Further\n"
-         "details are given in AUG.\n"
-         "\n"
-         "The method could potentially be used for lidars, but multiple\n"
-         "scattering poses here a must stronger constrain for the range of\n"
-         "applications.\n"
-         "\n"
-         "The method can be used with *iyCalc*, but not with *yCalc*. In the\n" 
-         "later case, use instead *yActive*.\n"
-         "\n"
-         "The method returns the backscattering for each point of *ppath*.\n"
-         "Several frequencies can be treated in parallel. The size of *iy*\n"
-         "is [ nf*np, stokes_dim ], where nf is the length of *f_grid* and\n"
-         "np is the number of path points. The data are stored in blocks\n"
-         "of [ np, stokes_dim ]. That is, all the results for the first\n"
-         "frequency occupy the np first rows of *iy* etc.\n"
-         "\n"
-         "The polarisation state of the transmitted pulse is taken from\n"
-         "*iy_transmitter_agenda*. If the radar transmits several polarisations\n"
-         "at the same frequency, you need to handle this by using two frequencies\n" 
-         "in *f_grid*, but these can be almost identical.\n"
-         "\n"
-         "The options for *iy_unit* are:\n"
-         " \"1\"  : Backscatter coefficient. Unit is 1/(m*sr). At zero\n"
-         "          attenuation, this equals the scattering matrix value for\n"
-         "          the backward direction. See further AUG.\n"
-         " \"Ze\" : Equivalent reflectivity. Unit is mm^6/m^3. Conversion\n"
-         "          formula is given below.\n"
-         "\n"
-         "The conversion from backscatter coefficient to Ze is:\n"
-         "   Ze = 1e18 * lambda^4 / (k2 * pi^5) * sum(sigma),\n"
-         "where sum(sigma) = 4*pi*b, and b is the backscatter coefficient.\n"
-         "\n"
-         "The reference dielectric factor can either specified directly by\n"
-         "the argument *k2*. For example, to mimic the CloudSat data, *k2*\n"
-         "shall be set to 0.75 (citaion needed). If *k2* is set to be \n"
-         "negative (which is defualt), k2 is calculated as:\n"
-         "   k2 = abs( (n^2-1)/(n^2+2) )^2,\n"
-         "where n is the refractive index of liquid water at temperature\n"
-         "*ze_tref* and the frequency of the radar, calculated by the MPM93\n"
-         "parameterization.\n"
-         "\n"
-         "The following auxiliary data can be obtained:\n"
-         "  \"Pressure\": The pressure along the propagation path.\n"
-         "     Size: [1,1,1,np].\n"
-         "  \"Temperature\": The temperature along the propagation path.\n"
-         "     Size: [1,1,1,np].\n"
-         "  \"Backscattering\": The un-attenuated backscattering. Unit\n"
-         "     follows *iy_unit*. Size: [nf,ns,1,np].\n"
-         "  \"Transmission\": The single-way transmission matrix from the\n"
-         "     transmitter to each propagation path point. The matrix is\n"
-         "     valid for the photon direction. Size: [nf,ns,ns,np].\n"
-         "  \"Round-trip time\": The time for the pulse to propagate. For a \n"
-         "     totally correct result, refraction must be considered (in\n"
-         "     *pppath_agenda*). Size: [1,1,1,np].\n"
-         "  \"PND, type X\": The particle number density for scattering element\n"
-         "       type X (ie. corresponds to book X in pnd_field).\n"
-         "       Size: [1,1,1,np].\n"
-         "  \"Mass content, X\": The mass content for scattering element X.\n"
-         "       This corresponds to column X in *particle_masses* (zero-\n"
-         "       based indexing). Size: [1,1,1,np].\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux2", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
-             "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_pnd", "ppvar_f" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "diy_dx", "stokes_dim", "f_grid", "atmosphere_dim", "p_grid",
-            "t_field", "nlte_field", "vmr_field", "abs_species",
-            "wind_u_field", "wind_v_field", "wind_w_field",
-            "mag_u_field", "mag_v_field", "mag_w_field",
-            "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
-            "scat_species", "scat_data", "iy_aux_vars",
-            "jacobian_do", "jacobian_quantities", "ppath",
-            "propmat_clearsky_agenda", "iy_transmitter_agenda", "iy_agenda_call1",
-            "iy_transmission", "rte_alonglos_v" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "iyEmissionStandard" ),
         DESCRIPTION
         (
          "Standard method for radiative transfer calculations with emission.\n"
          "\n"
          "Designed to be part of *iy_main_agenda*. That is, only valid\n"
-         "outside the cloudbox (no scattering). Assumes local thermodynamic\n"
-         "equilibrium for emission. The basic calculation strategy is to take\n"
-         "the average of the absorption and the emission source function at\n"
-         "the end points of each step of the propagation path. For details\n"
-         "see the user guide.\n" 
-         "\n"
-         "The possible choices for *iy_unit* are\n"
-         " \"1\"             : No conversion, i.e. [W/(m^2 Hz sr)] (radiance per\n"
-         "                     frequency unit).\n"
-         " \"RJBT\"          : Conversion to Rayleigh-Jean brightness\n"
-         "                     temperature.\n"
-         " \"PlanckBT\"      : Conversion to Planck brightness temperature.\n"
-         " \"W/(m^2 m sr)\"  : Conversion to [W/(m^2 m sr)] (radiance per\n"
-         "                     wavelength unit).\n"
-         " \"W/(m^2 m-1 sr)\": Conversion to [W/(m^2 m-1 sr)] (radiance per\n"
-         "                     wavenumber unit).\n"
-         "Expressions applied and considerations for the unit conversion of\n"
-         "radiances are discussed in Sec. 5.7 of the ARTS-2 article.\n"
-         "\n"
-         "The following auxiliary data can be obtained:\n"
-         "  \"Pressure\": The pressure along the propagation path.\n"
-         "     Size: [1,1,1,np].\n"
-         "  \"Temperature\": The temperature along the propagation path.\n"
-         "     Size: [1,1,1,np].\n"
-         "  \"VMR, species X\": VMR of the species with index X (zero based).\n"
-         "     For example, adding the string \"VMR, species 0\" extracts the\n"
-         "     VMR of the first species. Size: [1,1,1,np].\n"
-         "  \"Absorption, summed\": The total absorption matrix along the\n"
-         "     path. Size: [nf,ns,ns,np].\n"
-         "  \"Absorption, species X\": The absorption matrix along the path\n"
-         "     for an individual species (X works as for VMR).\n"
-         "     Size: [nf,ns,ns,np].\n"
-         "* \"Radiative background\": Index value flagging the radiative\n"
-         "     background. The following coding is used: 0=space, 1=surface\n"
-         "     and 2=cloudbox. Size: [nf,1,1,1].\n"
-         "  \"iy\": The radiance at each point along the path (*iy_unit* is.\n"
-         "     considered). Size: [nf,ns,1,np].\n"
-         "  \"Transmission\": The transmission matrix from each propagation\n"
-         "     path point to the end of the path closest to the sensor. The\n"
-         "     Mueller transmission matrices are valid for the direction of\n"
-         "     the photons. Size: [nf,ns,ns,np].\n"
-         "* \"Optical depth\": The scalar optical depth between the\n"
-         "     observation point and the end of the primary propagation path\n"
-         "     (ie. the optical depth to the surface or space.). Calculated\n"
-         "     in a pure scalar manner, and not dependent on direction.\n"
-         "     Size: [nf,1,1,1].\n"
-         "where\n"
-         "  nf: Number of frequencies.\n"
-         "  ns: Number of Stokes elements.\n"
-         "  np: Number of propagation path points.\n"
-         "\n"
-         "The auxiliary data are returned in *iy_aux* with quantities\n"
-         "selected by *iy_aux_vars*. Most variables require that the method\n"
-         "is called directly or by *iyCalc*. For calculations using *yCalc*,\n"
-         "the selection is restricted to the variables marked with *.\n"
-         "\n"
-         "In addition, these choices are accepted but no calculations are\n"
-         "done:\n"
-         "  \"PND, type X\": Size: [0,0,0,0].\n"
-         "  \"Mass content, X\": Size: [0,0,0,0].\n"
-         "See e.g. *iyTransmissionStandard* for a definition of these\n"
-         "variables. To fill these elements of *iy_aux* (after calling\n"
-         "this WSM), use *iy_auxFillParticleVariables*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "diy_dx", "iy_id", "stokes_dim", "f_grid", "atmosphere_dim",
-            "p_grid", "z_field",
-            "t_field", "nlte_field", "vmr_field", "abs_species", 
-            "wind_u_field", "wind_v_field", "wind_w_field",
-            "mag_u_field", "mag_v_field", "mag_w_field", 
-            "cloudbox_on", "iy_unit", "iy_aux_vars", "jacobian_do", 
-            "jacobian_quantities", 
-            "ppath_agenda", "propmat_clearsky_agenda", "iy_main_agenda", 
-            "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda", 
-            "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los", 
-            "rte_pos2", "rte_alonglos_v", "ppath_lmax", "ppath_lraytrace" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "iyEmissionStandard2" ),
-        DESCRIPTION
-        (
-         "Text below is not fully valid. Work in progress ...\n"
-         "\n"
-         "Standard method for radiative transfer calculations with emission.\n"
-         "\n"
-         "Designed to be part of *iy_main_agenda*. That is, only valid\n"
-         "outside the cloudbox (no scattering). Assumes local thermodynamic\n"
-         "equilibrium for emission. The basic calculation strategy is to take\n"
-         "the average of the absorption and the emission source function at\n"
-         "the end points of each step of the propagation path. For details\n"
-         "see the user guide.\n" 
+         "outside the cloudbox (no scattering). For details se the user guide.\n"
          "\n"
          "The possible choices for *iy_unit* are\n"
          " \"1\"             : No conversion, i.e. [W/(m^2 Hz sr)] (radiance per\n"
@@ -7436,18 +7205,19 @@ void define_md_data_raw()
          "no unit ocnversion is applied for internal iterative calls.\n"
          "\n"
          "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
-         "quantities are selected by *iy_aux_vars* and returned by *iy_aux*. \n"
+         "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
          "Valid choices for auxiliary data are:\n"
          " \"Radiative background\": Index value flagging the radiative\n"
          "    background. The following coding is used: 0=space, 1=surface\n"
          "    and 2=cloudbox.\n"
-         " \"Transmission\": Scalar transmission between the observation point\n"
-         "    and the end of the present propagation path. These transmissions\n"
-         "    are the diagonal elements of the full transmission matrix. That\n"
-         "    is, the transmission can vary between Stokes elements.\n"
+         " \"Optical depth\": Scalar optical depth between the observation point\n"
+         "    and the end of the present propagation path. Calculated based on\n"
+         "    the (1,1)-element of the transmission matrix (1-based indexing),\n"
+         "    i.e. only fully valid for scalar RT. The found value is added to\n"
+         "    to each column of the matrix.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux2", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
+        OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
              "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_f", "ppvar_iy" ),
         GOUT(),
         GOUT_TYPE(),
@@ -7557,7 +7327,7 @@ void define_md_data_raw()
          "So far just for testing.\n"
       ),
       AUTHORS( "Patrick Eriksson", "Jana Mendrok", "Richard Larsson" ),
-        OUT( "iy", "iy_aux2", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
+        OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
              "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_pnd",
              "ppvar_f", "ppvar_iy" ),
       GOUT(),
@@ -8096,159 +7866,41 @@ void define_md_data_raw()
     ( NAME( "iyTransmissionStandard" ),
       DESCRIPTION
       (
-          "Standard method for handling (direct) transmission measurements.\n"
-          "\n"
-          "Designed to be part of *iy_main_agenda*. Treatment of the cloudbox\n"
-          "is incorporated (that is, no need to define *iy_cloudbox_agenda*).\n"
-          "\n"
-          "In short, the propagation path is followed until the surface or\n"
-          "space is reached. At this point *iy_transmitter_agenda* is called\n"
-          "and the radiative transfer calculations start. That is, the result\n"
-          "of the method (*iy*) is the output of *iy_transmitter_agenda*\n"
-          "multiplied with the transmission from the sensor to either the\n"
-          "surface or space.\n"
-          "\n"
-          "The following auxiliary data can be obtained:\n"
-          "  \"Pressure\": The pressure along the propagation path.\n"
-          "     Size: [1,1,1,np].\n"
-          "  \"Temperature\": The temperature along the propagation path.\n"
-          "     Size: [1,1,1,np].\n"
-          "  \"VMR, species X\": VMR of the species with index X (zero based).\n"
-          "     For example, adding the string \"VMR, species 0\" extracts the\n"
-          "     VMR of the first species. Size: [1,1,1,np].\n"
-          "  \"Absorption, summed\": The total absorption matrix along the\n"
-          "     path. Size: [nf,ns,ns,np].\n"
-          "  \"Absorption, species X\": The absorption matrix along the path\n"
-          "     for an individual species (X works as for VMR).\n"
-          "     Size: [nf,ns,ns,np].\n"
-          "  \"Particle extinction, summed\": The total extinction matrix over\n"
-          "       all scattering elements along the path. Size: [nf,ns,ns,np].\n"
-          "  \"PND, type X\": The particle number density for scattering element\n"
-          "       type X (ie. corresponds to book X in pnd_field).\n"
-          "       Size: [1,1,1,np].\n"
-          "  \"Mass content, X\": The mass content for scattering element X.\n"
-          "       This corresponds to column X in *particle_masses* (zero-\n"
-          "       based indexing). Size: [1,1,1,np].\n"
-          "* \"Radiative background\": Index value flagging the radiative\n"
-          "     background. The following coding is used: 0=space, 1=surface\n"
-          "     and 2=cloudbox. Size: [nf,1,1,1].\n"
-          "  \"iy\": The radiance at each point along the path.\n"
-          "     Size: [nf,ns,1,np].\n"
-          "  \"Transmission\": The transmission matrix from each propagation\n"
-          "     path point to the end of the path closest to the sensor. The\n"
-          "     Mueller transmission matrices are valid for the direction of\n"
-          "     the photons. Size: [nf,ns,ns,np].\n"
-          "* \"Optical depth\": The scalar optical depth between the\n"
-          "     observation point and the end of the primary propagation path\n"
-          "     (ie. the optical depth to the surface or space.). Calculated\n"
-          "     in a pure scalar manner, and not dependent on direction.\n"
-          "     Size: [nf,1,1,1].\n"
-          "* \"Faraday rotation\": Total rotation [deg] along the path, for\n"
-          "     each frequency. Size: [nf,1,1,1].\n"
-          "* \"Faraday speed\": The rotation per length unit [deg/m], at each\n"
-          "     path point and each frequency. Size: [nf,1,1,np].\n"
-          "where\n"
-          "  nf: Number of frequencies.\n"
-          "  ns: Number of Stokes elements.\n"
-          "  np: Number of propagation path points.\n"
-          "\n"
-          "The auxiliary data are returned in *iy_aux* with quantities\n"
-          "selected by *iy_aux_vars*. Most variables require that the method\n"
-          "is called directly or by *iyCalc*. For calculations using *yCalc*,\n"
-          "the selection is restricted to the variables marked with *.\n"
+         "Standard method for handling transmission measurements.\n"
+         "\n"
+         "Designed to be part of *iy_main_agenda*. Treatment of the cloudbox\n"
+         "is incorporated (that is, no need to define *iy_cloudbox_agenda*).\n"
+         "\n"
+         "The transmitter is assumed to be placed at the end of provided *ppath*.\n"
+         "The transmitted signal is taken from *iy_transmitter_agenda*. This\n"
+         "signal is propagated along the path, considering attenuation alone.\n"
+         "That is, the result of the method (*iy*) is the output of\n"
+         "*iy_transmitter_agenda* multiplied with the transmission along the\n"
+         "propagation path.\n"
+         "\n"
+         "As mentioned, the given *ppath* determines the position of the\n"
+         "transmitter. For clear-sky and no modification of *ppath*, this\n"
+         "means that the transitter will either be found at the surface or\n"
+         "at the top-of-the-atmosphere. If you want to maintain this even with\n"
+         "an active cloudbox, calculate *ppath* as\n"
+         "     ppathCalc( cloudbox_on=0 )\n"
+         "Without setting cloudbox_on=0, the transmitter will end up inside or\n"
+         "at the boundary of the cloudbox.\n"
+         "\n"
+         "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
+         "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
+         "Valid choices for auxiliary data are:\n"
+         " \"Radiative background\": Index value flagging the radiative\n"
+         "    background. The following coding is used: 0=space, 1=surface\n"
+         "    and 2=cloudbox.\n"
+         " \"Optical depth\": Scalar optical depth between the observation point\n"
+         "    and the end of the present propagation path. Calculated based on\n"
+         "    the (1,1)-element of the transmission matrix (1-based indexing),\n"
+         "    i.e. only fully valid for scalar RT. The found value is added to\n"
+         "    to each column of the matrix.\n"
       ),
       AUTHORS( "Patrick Eriksson" ),
-      OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "diy_dx", "stokes_dim", "f_grid", "atmosphere_dim", "p_grid",
-          "z_field", "t_field", "nlte_field", "vmr_field", "abs_species", 
-          "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
-          "mag_v_field", "mag_w_field", 
-          "cloudbox_on", "cloudbox_limits", "pnd_field", 
-          "scat_data", "particle_masses",
-          "iy_aux_vars", "jacobian_do", "jacobian_quantities", 
-          "ppath_agenda", "propmat_clearsky_agenda",
-          "iy_transmitter_agenda", "iy_agenda_call1", "iy_transmission", 
-          "rte_pos", "rte_los", "rte_pos2", "rte_alonglos_v", "ppath_lmax",
-          "ppath_lraytrace" ),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()
-    ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "iyTransmissionStandard2" ),
-      DESCRIPTION
-      (
-          "Text below is not fully valid. Work in progress ...\n"
-          "\n"
-          "Standard method for handling (direct) transmission measurements.\n"
-          "\n"
-          "Designed to be part of *iy_main_agenda*. Treatment of the cloudbox\n"
-          "is incorporated (that is, no need to define *iy_cloudbox_agenda*).\n"
-          "\n"
-          "In short, the propagation path is followed until the surface or\n"
-          "space is reached. At this point *iy_transmitter_agenda* is called\n"
-          "and the radiative transfer calculations start. That is, the result\n"
-          "of the method (*iy*) is the output of *iy_transmitter_agenda*\n"
-          "multiplied with the transmission from the sensor to either the\n"
-          "surface or space.\n"
-          "\n"
-          "The following auxiliary data can be obtained:\n"
-          "  \"Pressure\": The pressure along the propagation path.\n"
-          "     Size: [1,1,1,np].\n"
-          "  \"Temperature\": The temperature along the propagation path.\n"
-          "     Size: [1,1,1,np].\n"
-          "  \"VMR, species X\": VMR of the species with index X (zero based).\n"
-          "     For example, adding the string \"VMR, species 0\" extracts the\n"
-          "     VMR of the first species. Size: [1,1,1,np].\n"
-          "  \"Absorption, summed\": The total absorption matrix along the\n"
-          "     path. Size: [nf,ns,ns,np].\n"
-          "  \"Absorption, species X\": The absorption matrix along the path\n"
-          "     for an individual species (X works as for VMR).\n"
-          "     Size: [nf,ns,ns,np].\n"
-          "  \"Particle extinction, summed\": The total extinction matrix over\n"
-          "       all scattering elements along the path. Size: [nf,ns,ns,np].\n"
-          "  \"PND, type X\": The particle number density for scattering element\n"
-          "       type X (ie. corresponds to book X in pnd_field).\n"
-          "       Size: [1,1,1,np].\n"
-          "  \"Mass content, X\": The mass content for scattering element X.\n"
-          "       This corresponds to column X in *particle_masses* (zero-\n"
-          "       based indexing). Size: [1,1,1,np].\n"
-          "* \"Radiative background\": Index value flagging the radiative\n"
-          "     background. The following coding is used: 0=space, 1=surface\n"
-          "     and 2=cloudbox. Size: [nf,1,1,1].\n"
-          "  \"iy\": The radiance at each point along the path.\n"
-          "     Size: [nf,ns,1,np].\n"
-          "  \"Transmission\": The transmission matrix from each propagation\n"
-          "     path point to the end of the path closest to the sensor. The\n"
-          "     Mueller transmission matrices are valid for the direction of\n"
-          "     the photons. Size: [nf,ns,ns,np].\n"
-          "* \"Optical depth\": The scalar optical depth between the\n"
-          "     observation point and the end of the primary propagation path\n"
-          "     (ie. the optical depth to the surface or space.). Calculated\n"
-          "     in a pure scalar manner, and not dependent on direction.\n"
-          "     Size: [nf,1,1,1].\n"
-          "* \"Faraday rotation\": Total rotation [deg] along the path, for\n"
-          "     each frequency. Size: [nf,1,1,1].\n"
-          "* \"Faraday speed\": The rotation per length unit [deg/m], at each\n"
-          "     path point and each frequency. Size: [nf,1,1,np].\n"
-          "where\n"
-          "  nf: Number of frequencies.\n"
-          "  ns: Number of Stokes elements.\n"
-          "  np: Number of propagation path points.\n"
-          "\n"
-          "The auxiliary data are returned in *iy_aux* with quantities\n"
-          "selected by *iy_aux_vars*. Most variables require that the method\n"
-          "is called directly or by *iyCalc*. For calculations using *yCalc*,\n"
-          "the selection is restricted to the variables marked with *.\n"
-      ),
-      AUTHORS( "Patrick Eriksson" ),
-      OUT( "iy", "iy_aux2", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
+      OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
            "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_pnd", "ppvar_f",
            "ppvar_iy" ),
       GOUT(),
@@ -8269,45 +7921,6 @@ void define_md_data_raw()
       GIN_DESC()
     ));
     
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "iy_auxFillParticleVariables" ),
-        DESCRIPTION
-        (
-         "Additional treatment of some particle auxiliary variables.\n"
-         "\n"
-         "This WSM is intended to complement main radiative transfer methods\n"
-         "that do not handle scattering, and thus can not provide auxiliary\n"
-         "data for particle properties. The following auxiliary variables\n"
-         "are covered:\n"
-         "  \"PND, type X\": The particle number density for scattering element\n"
-         "       type X (ie. corresponds to book X in pnd_field).\n"
-         "       Size: [1,1,1,np].\n"
-         "  \"Mass content, X\": The mass content for scattering element X.\n"
-         "       This corresponds to column X in *particle_masses* (zero-\n"
-         "       based indexing). Size: [1,1,1,np].\n"
-         "\n"
-         "To complement *iyEmissionStandard* should be the main application.\n"
-         "As a preparatory step you need to set up all cloud variables in\n"
-         "standard manner. After this you need to set *cloudbox_on* to zero,\n"
-         "and in *iy_main_agenda* add these lines (after iyEmissionStandard):\n"
-         "   FlagOn(cloudbox_on)\n"
-         "   iy_auxFillParticleVariables\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy_aux" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "iy_aux", "atmfields_checked", "cloudbox_checked", 
-            "atmosphere_dim", "cloudbox_on", "cloudbox_limits", "pnd_field", 
-            "particle_masses", "ppath", "iy_aux_vars" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "iy_transmitterMultiplePol" ),
@@ -19603,9 +19216,8 @@ void define_md_data_raw()
          "The frequency, polarisation etc. for each measurement value is\n" 
          "given by *y_f*, *y_pol*, *y_pos* and *y_los*.\n"
          "\n"
-         "See the method selected for *iy_main_agenda* for quantities\n"
-         "that can be obtained by *y_aux*. However, in no case data of\n"
-         "along-the-path type can be extracted.\n"
+         "The content of *y_aux* follows *iy_aux_vars. See the method selected\n"
+         "for *iy_main_agenda* for allowed choices.\n"
          "\n"
          "The Jacobian provided (*jacobian*) is adopted to selected retrieval\n"
          "units, but no transformations are applied. Transformations are\n"
@@ -19711,16 +19323,16 @@ void define_md_data_raw()
         (
          "Replaces *yCalc* for radar/lidar calculations.\n"
          "\n"
-         "The output format for *iy* when silumting radars and lidars differs\n"
-         "from the standard one, and *yCalc* can not be used for cloud radar\n"
-         "simulations. This method works largely as *yCalc*, but is tailored\n"
-         "to handle the output from *iyActiveSingleScattering*.\n"
+         "The output format for *iy* when simulating radars and lidars differs\n"
+         "from the standard one, and *yCalc* can not be used for such simulations.\n"
+         "This method works largely as *yCalc*, but is tailored to handle the\n"
+         "output from *iyActiveSingleScattering*.\n"
          "\n"
          "The method requires additional information about the sensor,\n"
          "regarding its recieving properties. First of all, recieved\n"
          "polarisation states are taken from *instrument_pol_array*. Note\n"
          "that this WSV allows to define several measured polarisations\n"
-         "for each transmitted siggnal. For example, it is possible to\n"
+         "for each transmitted signal. For example, it is possible to\n"
          "simulate transmission of V and measuring backsacttered V and H.\n"
          "\n"
          "Secondly, the range averaging is described by *range_bins*. These\n"
@@ -19730,52 +19342,30 @@ void define_md_data_raw()
          "average inside the bins. If a bin is totally outside the model\n"
          "atmosphere, NaN is returned.\n"
          "\n"
-         "All auxiliary data from *iyActiveSingleScattering* are handled.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "atmgeom_checked", "atmfields_checked", "iy_unit", "iy_aux_vars",
-            "stokes_dim", "f_grid", "atmosphere_dim", "t_field", "z_field",
-            "vmr_field", "nlte_field", "cloudbox_on", "cloudbox_checked",
-            "sensor_pos", "sensor_los", "sensor_checked",
-            "jacobian_do", "jacobian_quantities",
-            "iy_main_agenda", "geo_pos_agenda", "instrument_pol_array", "range_bins" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "yActive2" ),
-        DESCRIPTION
-        (
-         "Replaces *yCalc* for radar/lidar calculations.\n"
+         "The options for *iy_unit* are:\n"
+         " \"1\"   : Backscatter coefficient. Unit is 1/(m*sr). At zero\n"
+         "           attenuation, this equals the scattering matrix value for\n"
+         "           the backward direction. See further AUG.\n"
+         " \"Ze\"  : Equivalent reflectivity. Unit is mm^6/m^3. Conversion\n"
+         "           formula is given below.\n"
+         " \"dBZe\": 10*log10(Ze/Z0), where Z0 is 1 mm^6/m^3.\n"
          "\n"
-         "The output format for *iy* when silumting radars and lidars differs\n"
-         "from the standard one, and *yCalc* can not be used for cloud radar\n"
-         "simulations. This method works largely as *yCalc*, but is tailored\n"
-         "to handle the output from *iyActiveSingleScattering*.\n"
+         "The conversion from backscatter coefficient to Ze is:\n"
+         "   Ze = 1e18 * lambda^4 / (k2 * pi^5) * sum(sigma),\n"
+         "where sum(sigma) = 4*pi*b, and b is the backscatter coefficient.\n"
          "\n"
-         "The method requires additional information about the sensor,\n"
-         "regarding its recieving properties. First of all, recieved\n"
-         "polarisation states are taken from *instrument_pol_array*. Note\n"
-         "that this WSV allows to define several measured polarisations\n"
-         "for each transmitted siggnal. For example, it is possible to\n"
-         "simulate transmission of V and measuring backsacttered V and H.\n"
+         "The reference dielectric factor can either specified directly by\n"
+         "the argument *k2*. For example, to mimic the CloudSat data, *k2*\n"
+         "shall be set to 0.75 (citaion needed). If *k2* is set to be \n"
+         "negative (which is defualt), k2 is calculated as:\n"
+         "   k2 = abs( (n^2-1)/(n^2+2) )^2,\n"
+         "where n is the refractive index of liquid water at temperature\n"
+         "*ze_tref* and the frequency of the radar, calculated by the MPM93\n"
+         "parameterization.\n"
          "\n"
-         "Secondly, the range averaging is described by *range_bins*. These\n"
-         "bins can either be specified in altitude or two-way travel time.\n"
-         "In both case, the edges of the range bins shall be specified.\n"
-         "All data (including auxiliary variables) are returned as the\n"
-         "average inside the bins. If a bin is totally outside the model\n"
-         "atmosphere, NaN is returned.\n"
-         "\n"
-         "All auxiliary data from *iyActiveSingleScattering* are handled.\n"
+         "A lower limit for dBZe is applied (*dbze_min*). The main reason is to\n" 
+         "handle the fact dBZe is not defined for Ze=0, and dBZe is set to the\n"
+         "clip value when Ze < 10^(dbze_min/10).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian" ),

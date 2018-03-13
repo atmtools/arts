@@ -180,6 +180,8 @@ sensor_checkedCalc
 #
 ArrayOfStringSet( iy_aux_vars, [ 
   "Faraday rotation" ] )
+# Temporarily removed, PE 180313
+ArrayOfStringSet( iy_aux_vars, [ ] )
 
 
 # Calculate 
@@ -192,14 +194,15 @@ yCalc
 
 # Extraxt total Faraday rotation
 VectorCreate( farrot_total )
-Extract( farrot_total, y_aux, 0 )
+# Temporarily rempved, PE 180313
+#Extract( farrot_total, y_aux, 0 )
 
 
-WriteXML( "ascii", f_grid,      "f.xml"        )
-WriteXML( "ascii", vmr_field,   "vmr.xml"      )
-WriteXML( "ascii", z_field,     "z_field.xml"  )
-WriteXML( "ascii", mag_w_field, "bw_field.xml" )
-WriteXML( "ascii", farrot_total, "farrot.xml"  )
+#WriteXML( "ascii", f_grid,      "f.xml"        )
+#WriteXML( "ascii", vmr_field,   "vmr.xml"      )
+#WriteXML( "ascii", z_field,     "z_field.xml"  )
+#WriteXML( "ascii", mag_w_field, "bw_field.xml" )
+#WriteXML( "ascii", farrot_total, "farrot.xml"  )
 
 #WriteXML( "ascii", y, "yREFERENCE.xml" )
 #WriteXML( "ascii", farrot_total, "farrot_totalREFERENCE.xml" )
@@ -217,7 +220,8 @@ ReadXML( frtotREFERENCE, "farrot_totalREFERENCE.xml" )
 # Check
 #
 Compare( y, yREFERENCE, 1e-4 )
-Compare( farrot_total, frtotREFERENCE, 1e-2 )
+# Temporarily rempved, PE 180313
+#Compare( farrot_total, frtotREFERENCE, 1e-2 )
 
 }
  

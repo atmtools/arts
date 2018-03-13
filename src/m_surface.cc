@@ -340,7 +340,7 @@ void iySurfaceFastem(
   //
   const Index            nf = f_grid.nelem();
         Vector           transmittance( nf );
-        ArrayOfTensor4   iy_aux;
+        ArrayOfMatrix    iy_aux;
         Ppath            ppath;
   //
   iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, iy_unit,
@@ -351,7 +351,7 @@ void iySurfaceFastem(
 
   // Convert tau to transmissions
   for( Index i=0; i<nf; i++ )
-    { transmittance[i] = exp( -iy_aux[0](i,0,0,0) ); }
+    { transmittance[i] = exp( -iy_aux[0](i,0) ); }
 
   // Call Fastem by surface_RTprop version
   //
@@ -486,7 +486,7 @@ void iySurfaceRtpropAgenda(
           // Calculate downwelling radiation for LOS ilos
           //
           {
-            ArrayOfTensor4   iy_aux;
+            ArrayOfMatrix    iy_aux;
             Ppath            ppath;
             Index iy_id_new = iy_id + ilos + 1;
             iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, iy_unit,
@@ -601,7 +601,7 @@ void iySurfaceRtpropCalc(
           // Calculate downwelling radiation for LOS ilos
           //
           {
-            ArrayOfTensor4   iy_aux;
+            ArrayOfMatrix    iy_aux;
             Ppath            ppath;
             iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, iy_unit,
                                    iy_trans_new, ArrayOfString(0), iy_id,

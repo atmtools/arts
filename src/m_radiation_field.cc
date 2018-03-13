@@ -246,14 +246,14 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
       Matrix ppvar_nlte, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f;
       Tensor3 ppvar_iy;
       
-      iyEmissionStandard2(ws, iy, iy_aux, diy_dx, ppvar_p, ppvar_t,
-                          ppvar_nlte, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f, ppvar_iy,  
-                          0, stokes_dim, f_grid, atmosphere_dim, p_grid,
-                          z_field, t_field, nlte_field, vmr_field, abs_species,
-                          wind_u_field, wind_v_field, wind_w_field, mag_u_field, mag_v_field, mag_w_field,
-                          cloudbox_on, iy_unit, iy_aux_vars, 0, ArrayOfRetrievalQuantity(0),
-                          ppath, Vector(0),  propmat_clearsky_agenda, iy_main_agenda, iy_space_agenda,
-                          iy_surface_agenda, iy_cloudbox_agenda, 0, _tmp_transmission, 0.0, verbosity);
+      iyEmissionStandard(ws, iy, iy_aux, diy_dx, ppvar_p, ppvar_t,
+                         ppvar_nlte, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f, ppvar_iy,  
+                         0, stokes_dim, f_grid, atmosphere_dim, p_grid,
+                         z_field, t_field, nlte_field, vmr_field, abs_species,
+                         wind_u_field, wind_v_field, wind_w_field, mag_u_field, mag_v_field, mag_w_field,
+                         cloudbox_on, iy_unit, iy_aux_vars, 0, ArrayOfRetrievalQuantity(0),
+                         ppath, Vector(0),  propmat_clearsky_agenda, iy_main_agenda, iy_space_agenda,
+                         iy_surface_agenda, iy_cloudbox_agenda, 0, _tmp_transmission, 0.0, verbosity);
       
       // Add to radiation field
       radiation_field.data(iz, ia, joker, joker) = iy;

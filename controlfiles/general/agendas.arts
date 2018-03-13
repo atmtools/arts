@@ -25,6 +25,7 @@ Arts2 {
 ###
 AgendaCreate( iy_main_agenda__Emission )
 AgendaSet( iy_main_agenda__Emission ){
+  ppathCalc
   iyEmissionStandard
 }
 
@@ -33,6 +34,7 @@ AgendaCreate( iy_main_agenda__Transmission )
 AgendaSet( iy_main_agenda__Transmission ){
   Ignore( iy_unit )
   Ignore( iy_id )
+  ppathCalc( cloudbox_on=0 )
   iyTransmissionStandard
 }
 
@@ -54,6 +56,7 @@ AgendaSet( iy_main_agenda__Freqloop ){
   Ignore( diy_dx )
   Ignore( iy_id )
   iyLoopFrequencies
+  Touch( ppath )
 }
 
 ###
@@ -91,6 +94,7 @@ AgendaSet( iy_sub_agenda__Emission ){
   Ignore( z_surface )
   Ignore( cloudbox_limits )
   Ignore( pnd_field )
+  ppathCalc
   iyEmissionStandard
 }
 
@@ -105,6 +109,7 @@ AgendaSet( iy_sub_agenda__Transmission ){
   Ignore( iy_unit )
   Ignore( nlte_field )
   Ignore( iy_id )
+  ppathCalc
   iyTransmissionStandard
 }
 

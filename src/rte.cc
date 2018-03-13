@@ -1339,7 +1339,7 @@ void get_iy(
    const Agenda&      iy_main_agenda )
 {
   ArrayOfTensor3    diy_dx;
-  ArrayOfTensor4    iy_aux;
+  ArrayOfMatrix     iy_aux;
   Ppath             ppath;
   Tensor3           iy_transmission(0,0,0);
   const Index       iy_agenda_call1 = 1;
@@ -3593,7 +3593,7 @@ Range get_rowindex_for_mblock(
 void iyb_calc_body(
         bool&                       failed,
         String&                     fail_msg,
-        ArrayOfArrayOfTensor4&      iy_aux_array,
+        ArrayOfArrayOfMatrix&       iy_aux_array,
         Workspace&                  ws,
         Ppath&                      ppath,
         Vector&                     iyb,
@@ -3656,22 +3656,6 @@ void iyb_calc_body(
                             iy_id, cloudbox_on, j_analytical_do, t_field, z_field,
                             vmr_field, nlte_field, f_grid, rtp_pos, los,
                             rtp_pos2, iy_main_agenda );
-
-      // Check that aux data can be handled and has correct size
-      for( Index q=0; q<iy_aux_array[ilos].nelem(); q++ )
-        {
-          if( iy_aux_array[ilos][q].ncols() != 1  ||
-              iy_aux_array[ilos][q].nrows() != 1 )
-            {
-              throw runtime_error( "For calculations using yCalc, "
-                                   "*iy_aux_vars* can not include\nvariables of "
-                                   "along-the-path or extinction matrix type.");
-            }
-          assert( iy_aux_array[ilos][q].npages() == 1  ||
-                  iy_aux_array[ilos][q].npages() == stokes_dim );
-          assert( iy_aux_array[ilos][q].nbooks() == 1  ||
-                  iy_aux_array[ilos][q].nbooks() == nf  );
-        }
 
       // Start row in iyb etc. for present LOS
       //
@@ -3773,7 +3757,7 @@ void iyb_calc(
 
   // For iy_aux we don't know the number of quantities, and we have to store
   // all outout
-  ArrayOfArrayOfTensor4  iy_aux_array( nlos );
+  ArrayOfArrayOfMatrix  iy_aux_array( nlos );
 
   // We have to make a local copy of the Workspace and the agendas because
   // only non-reference types can be declared firstprivate in OpenMP
@@ -3898,11 +3882,11 @@ firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
           for( Index iv=0; iv<nf; iv++ )
             { 
               const Index row1 = row0 + iv*stokes_dim;
-              const Index i1 = min( iv, iy_aux_array[ilos][q].nbooks()-1 );
+              const Index i1 = min( iv, iy_aux_array[ilos][q].nrows()-1 );
               for( Index is=0; is<stokes_dim; is++ )
                 { 
-                  Index i2 = min( is, iy_aux_array[ilos][q].npages()-1 );
-                  iyb_aux[q][row1+is] = iy_aux_array[ilos][q](i1,i2,0,0);
+                  Index i2 = min( is, iy_aux_array[ilos][q].ncols()-1 );
+                  iyb_aux[q][row1+is] = iy_aux_array[ilos][q](i1,i2);
                 }
             }
         }
@@ -5357,7 +5341,7 @@ void rtmethods_jacobian_finalisation(
       // Let x be VMR, and z the selected retrieval unit.
       // We have then that diy/dz = diy/dx * dx/dz
       //
-      if( jac_species_i[iq] >= 0 )
+      if( jacobian_quantities[iq].Analytical()  &&  jac_species_i[iq] >= 0 )
         {
           if( jacobian_quantities[iq].Mode() == "vmr" )
             {}
@@ -5417,7 +5401,7 @@ void rtmethods_jacobian_finalisation(
           // Loop abs species, again
           for( Index ia=0; ia<jacobian_quantities.nelem(); ia++ )
             {
-              if( jac_species_i[ia] >= 0 )
+              if( jacobian_quantities[iq].Analytical() && jac_species_i[ia] >= 0 )
                 {
                   if( jacobian_quantities[ia].Mode() == "nd" )
                     {

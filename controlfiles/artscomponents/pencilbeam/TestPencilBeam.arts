@@ -89,15 +89,7 @@ VectorSet( rte_pos2, [] )                  # No transmitter involved
 # Define auxiliary data (the order between the quantities is free)
 #
 ArrayOfStringSet( iy_aux_vars,  
-    [ "Pressure", 
-      "Temperature", 
-      "VMR, species 0",
-      "Absorption, summed", 
-      "Absorption, species 0",
-      "Absorption, species 1",
-      "Absorption, species 2",
-      "Radiative background", 
-      "iy", 
+    [ "Radiative background", 
       "Optical depth" ] )
 
 

@@ -58,7 +58,7 @@ extern const String SCATSPECIES_MAINTAG;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyActiveSingleScat(
+void iyActiveSingleScatOld(
          Workspace&                   ws,
          Matrix&                      iy,
          ArrayOfTensor4&              iy_aux,
@@ -622,7 +622,7 @@ void iyActiveSingleScat(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyActiveSingleScat2(
+void iyActiveSingleScat(
         Workspace&                          ws,
         Matrix&                             iy,
         ArrayOfMatrix&                      iy_aux,
@@ -1090,7 +1090,7 @@ void iyActiveSingleScat2(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void yActive(
+void yActiveOld(
          Workspace&                ws,
          Vector&                   y,
          Vector&                   y_f,
@@ -1249,7 +1249,8 @@ void yActive(
       Vector         rte_pos2(0);
       Matrix         iy;
       Ppath          ppath;
-      ArrayOfTensor4 iy_aux;
+      //ArrayOfTensor4 iy_aux;
+      ArrayOfMatrix  iy_aux;
       const Index    iy_id = (Index)1e6*p;
       //
       iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
@@ -1362,7 +1363,7 @@ void yActive(
                                                    hbin * drefl[iq](k,joker); }
                           )
                         }
-                      
+                      /*
                       // Same for aux variables
                       for( Index a=0; a<naux; a++ )
                         {
@@ -1390,6 +1391,7 @@ void yActive(
                               throw runtime_error( os.str() );
                             }
                         }
+                      */
                     }
                 }
             }
@@ -1429,7 +1431,7 @@ void yActive(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void yActive2(
+void yActive(
          Workspace&                ws,
          Vector&                   y,
          Vector&                   y_f,
@@ -1608,7 +1610,7 @@ void yActive2(
       Vector         rte_pos2(0);
       Matrix         iy;
       Ppath          ppath;
-      ArrayOfTensor4 iy_aux;
+      ArrayOfMatrix  iy_aux;
       const Index    iy_id = (Index)1e6*p;
       //
       iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 
@@ -1735,29 +1737,6 @@ void yActive2(
                       // Same for aux variables
                       for( Index a=0; a<naux; a++ )
                         {
-                          if( iy_aux_vars[a] == "Backscattering" )
-                            {
-                              // I2 matches I, but is transposed
-                              Matrix I2 = iy_aux[a](iv,joker,0,joker);
-                              refl = 0;
-                              for( Index i=0; i<w.nelem(); i++ )
-                                { for( Index j=0; j<np; j++ )
-                                    { refl[j] += I2(i,j) * w[i]; } }
-                              y_aux[a][iout] = hbin * refl;
-                            }                          
-                          else if( iy_aux[a].nbooks()==1 && iy_aux[a].npages()==1 &&
-                              iy_aux[a].nrows() ==1 && iy_aux[a].ncols() ==np )
-                            {
-                              y_aux[a][iout] = hbin * iy_aux[a](0,0,0,joker);
-                            }
-                          else
-                            {
-                              ostringstream os;
-                              os << "The auxiliary variable " << iy_aux_vars[a]
-                                 << "is not handled by this WSM (but OK when "
-                                 << "using *iyCalc*).";
-                              throw runtime_error( os.str() );
-                            }
                         }
                     }
                 }

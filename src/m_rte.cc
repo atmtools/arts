@@ -76,7 +76,7 @@ extern const Index GFIELD4_LON_GRID;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyApplyUnit(
          Matrix&         iy,
-   ArrayOfTensor4&       iy_aux,
+         ArrayOfMatrix&  iy_aux,
    const Index&          stokes_dim,
    const Vector&         f_grid,
    const ArrayOfString&  iy_aux_vars,
@@ -107,12 +107,7 @@ void iyApplyUnit(
       if( iy_aux_vars[i] == "iy"  ||  iy_aux_vars[i] == "Error"  || 
           iy_aux_vars[i] == "Error (uncorrelated)" )
         {
-          if( iy_aux[i].nrows() > 1 )
-            throw runtime_error( "Data marked as \"iy\" or \"Error\" "
-                                 "have incorrect size." );
-          for( Index j=0; j<iy_aux[i].ncols(); j++ )
-            { apply_iy_unit( iy_aux[i](joker,joker,0,j), iy_unit, f_grid, 1, 
-                                                                      i_pol ); }
+          apply_iy_unit( iy_aux[i], iy_unit, f_grid, 1, i_pol );
         }
     }
 }
@@ -125,7 +120,7 @@ void iyApplyUnit(
 void iyCalc(
          Workspace&        ws,
          Matrix&           iy,
-         ArrayOfTensor4&   iy_aux,
+         ArrayOfMatrix&    iy_aux,
          Ppath&            ppath,
    const Index&            atmfields_checked,
    const Index&            atmgeom_checked,
@@ -185,7 +180,7 @@ void iyCalc(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyEmissionStandard2(
+void iyEmissionStandard(
         Workspace&                  ws,
         Matrix&                     iy,
         ArrayOfMatrix&              iy_aux,
@@ -279,14 +274,16 @@ void iyEmissionStandard2(
   const Index naux = iy_aux_vars.nelem();
   iy_aux.resize( naux );
   //
+  Index auxOptDepth = -1;
+  //
   for( Index i=0; i<naux; i++ )
     {
-      iy_aux[i].resize(nf,ns); 
+      iy_aux[i].resize(nf,ns);
       
-      if( iy_aux_vars[i] == "Transmission" )
-        {} // Filled below
-      else if( iy_aux_vars[i] == "Radiative background" )
+      if( iy_aux_vars[i] == "Radiative background" )
         { iy_aux[i] = (Numeric)min( (Index)2, rbi-1 ); }
+      else if( iy_aux_vars[i] == "Optical depth" )
+        { auxOptDepth = i; } 
       else
         {
           ostringstream os;
@@ -456,13 +453,12 @@ void iyEmissionStandard2(
     { iy_transmission_mult( iy_trans_new, iy_transmission, 
                             trans_cumulat(np-1,joker,joker,joker) ); }
 
-  // Copy transmission to iy_aux 
-  for( Index i=0; i<naux; i++ )
-    { if( iy_aux_vars[i] == "Transmission" )
-        { for( Index iv=0; iv<nf; iv++ )
-            { for( Index is=0; is<ns; is++ )
-                { iy_aux[i](iv,is) = iy_trans_new(iv,is,is); }
-    }   }   }
+  // iy_aux: Optical depth
+  if( auxOptDepth >= 0 )
+    {
+      for( Index iv=0; iv<nf; iv++ )
+        { iy_aux[auxOptDepth](iv,joker) = -log( trans_cumulat(np-1,iv,0,0) ); }
+    }   
 
   // Radiative background
   get_iy_of_background( ws, iy, diy_dx, 
@@ -474,7 +470,7 @@ void iyEmissionStandard2(
   //
   ppvar_iy(joker,joker,np-1) = iy;
 
-  
+
   // Radiative transfer calculations
   if( np > 1 )
     {
@@ -555,7 +551,7 @@ void iyEmissionStandard2(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyEmissionStandard(
+void iyEmissionStandardOld(
          Workspace&                  ws,
          Matrix&                     iy,
          ArrayOfTensor4&             iy_aux,
@@ -1267,7 +1263,7 @@ void iyEmissionStandard(
 void iyLoopFrequencies(
          Workspace&        ws,
          Matrix&           iy,
-         ArrayOfTensor4&   iy_aux,
+         ArrayOfMatrix&    iy_aux,
          Ppath&            ppath,
          ArrayOfTensor3&   diy_dx,
    const ArrayOfString&    iy_aux_vars,
@@ -1310,7 +1306,7 @@ void iyLoopFrequencies(
     {
       // Variables for 1 frequency
       Matrix         iy1;
-      ArrayOfTensor4 iy_aux1; 
+      ArrayOfMatrix  iy_aux1; 
       ArrayOfTensor3 diy_dx1;
       
       iy_sub_agendaExecute( ws, iy1, iy_aux1, ppath, diy_dx1, iy_agenda_call1,
@@ -1329,12 +1325,7 @@ void iyLoopFrequencies(
           //
           iy_aux.resize( iy_aux1.nelem() );
           for( Index q=0; q<iy_aux1.nelem(); q++ )
-            {
-              if( iy_aux1[q].ncols() > 1 )
-                throw runtime_error( "When using this method, *iy_aux_vars* "
-                        "is not allowed to include along-the-path variables." );
-              iy_aux[q].resize(nf,iy_aux1[q].npages(),iy_aux1[q].nrows(),1);
-            }
+            { iy_aux[q].resize( nf, stokes_dim); }
           //
           diy_dx.resize( diy_dx1.nelem() );
           for( Index q=0; q<diy_dx1.nelem(); q++ )
@@ -1344,7 +1335,7 @@ void iyLoopFrequencies(
       // Copy to output variables
       iy(i,joker) = iy1(0,joker);
       for( Index q=0; q<iy_aux1.nelem(); q++ )
-        { iy_aux[q](i,joker,joker,0) = iy_aux1[q](0,joker,joker,0); }
+        { iy_aux[q](i,joker) = iy_aux1[q](0,joker); }
       for( Index q=0; q<diy_dx1.nelem(); q++ )
         { diy_dx[q](joker,i,joker) = diy_dx1[q](joker,0,joker); }
     }
@@ -1358,7 +1349,7 @@ void iyLoopFrequencies(
 void iyMC(
          Workspace&                  ws,
          Matrix&                     iy,
-         ArrayOfTensor4&             iy_aux,
+         ArrayOfMatrix&              iy_aux,
          ArrayOfTensor3&             diy_dx,
    const Index&                      iy_agenda_call1,
    const Tensor3&                    iy_transmission,
@@ -1428,7 +1419,7 @@ void iyMC(
     for( Index i=0; i<naux; i++ )
       {
         if( iy_aux_vars[i] == "Error (uncorrelated)" )
-          { auxError = i;      iy_aux[i].resize( nf, stokes_dim, 1, 1 ); }
+          { auxError = i;      iy_aux[i].resize( nf, stokes_dim ); }
         else
           {
             ostringstream os;
@@ -1498,7 +1489,7 @@ void iyMC(
         iy(f_index,joker) = y;
           
         if( auxError >= 0 ) 
-          { iy_aux[auxError](f_index,joker,0,0) = mc_error; }
+          { iy_aux[auxError](f_index,joker) = mc_error; }
       } catch (runtime_error e) {
         ostringstream os;
         os << "Error for f_index = " << f_index << " (" << f_grid[f_index] 
@@ -1520,7 +1511,7 @@ void iyMC(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyReplaceFromAux(
          Matrix&            iy,
-   const ArrayOfTensor4&    iy_aux,
+   const ArrayOfMatrix&     iy_aux,
    const ArrayOfString&     iy_aux_vars,
    const Index&             jacobian_do,
    const String&            aux_var,
@@ -1540,28 +1531,7 @@ void iyReplaceFromAux(
     {
       if( iy_aux_vars[i] == aux_var )
         {
-          if( iy_aux[i].nrows() > 1  ||  iy_aux[i].ncols() > 1 )
-            {
-              throw runtime_error( "If an auxiliary variable shall be inserted "
-                     "in *iy*, its row and page dimensions must have size 1." );
-            }
-          if( iy_aux[i].nbooks() != iy.nrows() )
-            {
-              throw runtime_error( "If an auxiliary variable shall be inserted "
-                                   "in *iy*, its frequency dimension must match"
-                                   "the length of existing *iy*." );
-            }
-
-          iy = 0;
-          
-          for( Index iv=0; iv<iy.nrows(); iv++ ) 
-            {
-              for( Index is=0; is<iy_aux[i].npages(); is++ )
-                {
-                  iy(iv,is) = iy_aux[i](iv,is,0,0);
-                }
-            }
-          
+          iy = iy_aux[i];
           ready = true;
         }
     }
@@ -1569,129 +1539,10 @@ void iyReplaceFromAux(
   if( !ready )
     throw runtime_error( "The selected auxiliary variable to insert in *iy* "
                          "is either not defined at all or is not set." );
-
 }
 
 
 
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void iy_auxFillParticleVariables(
-         ArrayOfTensor4&       iy_aux,
-   const Index&                atmfields_checked,
-   const Index&                cloudbox_checked,
-   const Index&                atmosphere_dim,
-   const Index&                cloudbox_on,
-   const ArrayOfIndex&         cloudbox_limits,
-   const Tensor4&              pnd_field,
-   const Matrix&               particle_masses,
-   const Ppath&                ppath,
-   const ArrayOfString&        iy_aux_vars,
-   const Verbosity& )
-{
-  // Some sizes
-  const Index np = ppath.np; 
-  const Index naux = iy_aux_vars.nelem();
-
-  // Input checks
-  if( atmfields_checked != 1 )
-    throw runtime_error( "The atmospheric fields must be flagged to have "
-                         "passed a consistency check (atmfields_checked=1)." );
-  if( cloudbox_checked != 1 )
-    throw runtime_error( "The cloudbox must be flagged to have "
-                         "passed a consistency check (cloudbox_checked=1)." );
-  if( !cloudbox_on )
-    throw runtime_error( 
-                    "The cloudbox must be activated (cloudbox_on must be 1)" );
-  if( iy_aux.nelem() != naux )
-    throw runtime_error( "*iy_aux_vars* and *iy_aux* must have the same array "
-                         "length. (You can not call this WSM before the main "
-                         "iy-WSM.)" );
-
-  // Analayse iy_aux_vars
-  ArrayOfIndex auxPartCont(0), auxPartContI(0);
-  ArrayOfIndex auxPartField(0), auxPartFieldI(0);
-  //
-  for( Index i=0; i<naux; i++ )
-    {
-      if( iy_aux_vars[i].substr(0,14) == "Mass content, " )
-        { 
-          Index icont;
-          istringstream is(iy_aux_vars[i].substr(14,2));
-          is >> icont;
-          if( icont < 0  ||  icont>=particle_masses.ncols() )
-            {
-              ostringstream os;
-              os << "You have selected particle mass content category with "
-                 << "index " << icont << ".\nThis category is not defined!";
-              throw runtime_error( os.str() );
-            }
-          auxPartCont.push_back(i);
-          auxPartContI.push_back(icont);
-          iy_aux[i].resize( 1, 1, 1, np );
-        }
-      else if( iy_aux_vars[i].substr(0,10) == "PND, type " )
-        { 
-          Index ip;
-          istringstream is(iy_aux_vars[i].substr(10,2));
-          is >> ip;
-          if( ip < 0  ||  ip>=pnd_field.nbooks() )
-            {
-              ostringstream os;
-              os << "You have selected particle number density field with "
-                 << "index " << ip << ".\nThis field is not defined!";
-              throw runtime_error( os.str() );
-            }
-          auxPartField.push_back(i);
-          auxPartFieldI.push_back(ip);
-          iy_aux[i].resize( 1, 1, 1, np );
-        }
-    }
-
-  if( auxPartCont.nelem() + auxPartField.nelem() > 0 )
-    {
-      // PND along the ppath
-      Matrix ppath_pnd( pnd_field.nbooks(), np, 0 );
-      //
-      for( Index ip=0; ip<np; ip++ )
-        {
-          Matrix itw( 1, Index(pow(2.0,Numeric(atmosphere_dim))) );
-
-          ArrayOfGridPos gpc_p(1), gpc_lat(1), gpc_lon(1);
-          GridPos gp_lat, gp_lon;
-          if( atmosphere_dim >= 2 ) { gridpos_copy( gp_lat, ppath.gp_lat[ip] );}
-          if( atmosphere_dim == 3 ) { gridpos_copy( gp_lon, ppath.gp_lon[ip] );}
-          if( is_gp_inside_cloudbox( ppath.gp_p[ip], gp_lat, gp_lon, 
-                                     cloudbox_limits, true, atmosphere_dim ) )
-            { 
-              interp_cloudfield_gp2itw( itw(0,joker), 
-                                        gpc_p[0], gpc_lat[0], gpc_lon[0], 
-                                        ppath.gp_p[ip], gp_lat, gp_lon,
-                                        atmosphere_dim, cloudbox_limits );
-              for( Index i=0; i<pnd_field.nbooks(); i++ )
-                {
-                  interp_atmfield_by_itw( ppath_pnd(i,ip), atmosphere_dim,
-                                          pnd_field(i,joker,joker,joker), 
-                                          gpc_p, gpc_lat, gpc_lon, itw );
-                }
-            }
-        }
-      
-      // Loop ppath steps
-      for( Index ip=0; ip<np; ip++ )
-        {
-          // Particle mass content
-          for( Index j=0; j<auxPartCont.nelem(); j++ )
-            { iy_aux[auxPartCont[j]](0,0,0,ip) = ppath_pnd(joker,ip) *
-                                      particle_masses(joker,auxPartContI[j]); }
-          // Particle number density
-          for( Index j=0; j<auxPartField.nelem(); j++ )
-            { iy_aux[auxPartField[j]](0,0,0,ip) = 
-                                              ppath_pnd(auxPartFieldI[j],ip); }
-        }  
-    }
-}
 
 
 void yCalc_mblock_loop_body(
@@ -2530,7 +2381,7 @@ void yApplyUnit(
 void iyIndependentBeamApproximation(
          Workspace&        ws,
          Matrix&           iy,
-         ArrayOfTensor4&   iy_aux,
+         ArrayOfMatrix&    iy_aux,
          Ppath&            ppath,
          ArrayOfTensor3&   diy_dx,
          GriddedField4&    atm_fields_compact,
