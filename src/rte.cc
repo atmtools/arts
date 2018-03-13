@@ -251,7 +251,7 @@ void apply_iy_unit2(
   assert( J.ncols() == ns );
   assert( f_grid.nelem() == nf );
   assert( i_pol.nelem() == ns );
-
+  
   if( iy_unit == "1" )
     {
       if( n != 1 )
@@ -4660,7 +4660,12 @@ void get_stepwise_effective_source(MatrixView J,
     Matrix invK(ns, ns);
     Vector j(ns);
     
-    // Get the Matrix inverse --- FIXME: K == 0 will not work here
+    if(K.IsRotational(i1)) {
+      dJ_dx(joker, i1, joker) = 0;
+      J(i1, joker) = 0;
+      continue;
+    }
+    
     K.MatrixInverseAtPosition(invK, i1);
     
     // Set a B to j

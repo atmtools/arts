@@ -150,6 +150,14 @@ public:
     return true;
   };
   
+  bool IsRotational(const Index iv=0, const Index iz=0, const Index ia=0) const 
+  {
+    if(mdata(ia, iz, iv, 0) == 0.0) 
+      return true;
+    else 
+      return false;
+  };
+  
   /* The number of required vectors to fill this PropagationMatrix --- designed for GetVector(i) */
   Index NumberOfNeededVectors() const
   {

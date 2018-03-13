@@ -298,17 +298,6 @@ void dattenuation_matrix_deta(MatrixView dK, const Numeric& theta, const Numeric
     };
 };
 
-// Note that there might be a part of the Lambda-expression missing below... it is possible a constant like GS is needed...
-Numeric g_caseb(const Rational& N, const Rational& J, const Rational& Lambda, const Rational& S, const Numeric& GS, const Numeric& GL) {
-  return (GS*((J*(J+1) + S*(S+1) - N*(N+1))).toNumeric() + 
-          GL*((J*(J+1) - S*(S+1) + N*(N+1)) * Lambda*Lambda/(N/(N+1))).toNumeric()) / ((J*(J+1))).toNumeric() * 0.5; 
-}
-
-
-Numeric g_casea(const Rational& Omega, const Rational& J, const Rational& Lambda, const Rational& Sigma, const Numeric& GS, const Numeric& GL) {
-  return (Omega/J/(J+1)).toNumeric()*(GL*Lambda.toNumeric()+GS*Sigma.toNumeric()); 
-}
-
 
 /*!
  * Return the relative strength of the split Zeeman line parts as found in
@@ -349,6 +338,42 @@ Rational relative_strength(const Rational& M, const Rational& J, const Index& dj
 }
 
 
+Numeric g_caseb(const Rational& N, const Rational& J, const Rational& Lambda, const Rational& S, const Numeric& GS, const Numeric& GL) 
+{
+  const Rational JJ = J*(J+1);
+  const Rational NN = N*(N+1);
+  const Rational SS = S*(S+1);
+  const Rational LL = Lambda*Lambda;
+  const Rational T1 = (JJ + SS - NN)           / JJ / 2;
+  const Rational T2 = (JJ - SS + NN) * LL / NN / JJ / 2;
+  
+  Numeric g;
+  if(JJ == 0)
+    g = 0.0;
+  else if(NN not_eq 0)
+    g = GS * T1.toNumeric() + GL * T2.toNumeric();
+  else
+    g = GS * T1.toNumeric();
+  return g;
+}
+
+
+Numeric g_casea(const Rational& Omega, const Rational& J, const Rational& Lambda, const Rational& Sigma, const Numeric& GS, const Numeric& GL)
+{  
+  const Rational JJ = J*(J+1);
+  const Rational DIV = Omega / JJ;
+  const Rational T1 = Sigma  * DIV;
+  const Rational T2 = Lambda * DIV;
+  
+  Numeric g;
+  if(JJ == 0)
+    g = 0.0;
+  else
+    g = GS * T1.toNumeric() + GL * T2.toNumeric();
+  return g; 
+}
+
+
 /*!
  * Return the frequency change of the split Zeeman lines following
  * Berdyugina and Solnaki (2002) and Lenoir (1967).
@@ -364,7 +389,7 @@ Numeric frequency_change(const LineRecord& lr,
                          const Numeric& H_mag, 
                          const Numeric& GS)
 {
-    Numeric Upper_E_part, Lower_E_part;
+    Numeric gMl, gMu;
     
     const static Numeric GL = 1.0;  // Modify this when more data is available --- we need a lookup as for GS...
     
@@ -374,18 +399,14 @@ Numeric frequency_change(const LineRecord& lr,
     {
       case Index(Hund::CaseA):
             // This follows Berdyugina and Solnaki
-            Lower_E_part = lr.QuantumNumbers().Lower()[QuantumNumberType::M].toNumeric() * 
+            gMl = lr.QuantumNumbers().Lower()[QuantumNumberType::M].toNumeric() * 
             g_casea(lr.QuantumNumbers().Lower()[QuantumNumberType::Omega], 
                     lr.QuantumNumbers().Lower()[QuantumNumberType::J],
                     lr.QuantumNumbers().Lower()[QuantumNumberType::Lambda],
                     lr.QuantumNumbers().Lower()[QuantumNumberType::S], GS, GL);
             break;
       case Index(Hund::CaseB):
-            // This follows Lenoir
-            if( lr.QuantumNumbers().Lower()[QuantumNumberType::J] == 0 )
-                Lower_E_part = 0;
-            else
-                Lower_E_part = lr.QuantumNumbers().Lower()[QuantumNumberType::M].toNumeric() * 
+                gMl = lr.QuantumNumbers().Lower()[QuantumNumberType::M].toNumeric() * 
                 g_caseb(lr.QuantumNumbers().Lower()[QuantumNumberType::N], 
                         lr.QuantumNumbers().Lower()[QuantumNumberType::J],
                         lr.QuantumNumbers().Lower()[QuantumNumberType::Lambda],
@@ -401,7 +422,7 @@ Numeric frequency_change(const LineRecord& lr,
     {
         case Index(Hund::CaseA):
             // This follows Berdyugina and Solnaki
-            Upper_E_part = lr.QuantumNumbers().Upper()[QuantumNumberType::M].toNumeric() * 
+            gMu = lr.QuantumNumbers().Upper()[QuantumNumberType::M].toNumeric() * 
             g_casea(lr.QuantumNumbers().Upper()[QuantumNumberType::Omega], 
                     lr.QuantumNumbers().Upper()[QuantumNumberType::J],
                     lr.QuantumNumbers().Upper()[QuantumNumberType::Lambda],
@@ -409,7 +430,7 @@ Numeric frequency_change(const LineRecord& lr,
             break;
         case Index(Hund::CaseB):
             // This follows Lenoir
-            Upper_E_part = lr.QuantumNumbers().Upper()[QuantumNumberType::M].toNumeric() * 
+            gMu = lr.QuantumNumbers().Upper()[QuantumNumberType::M].toNumeric() * 
             g_caseb(lr.QuantumNumbers().Upper()[QuantumNumberType::N], 
                     lr.QuantumNumbers().Upper()[QuantumNumberType::J],
                     lr.QuantumNumbers().Upper()[QuantumNumberType::Lambda],
@@ -421,7 +442,7 @@ Numeric frequency_change(const LineRecord& lr,
     }
     
     // convert from energy state to frequency and be done with it
-    return H_mag * (Lower_E_part-Upper_E_part) / PLANCK_CONST * BOHR_MAGNETON;
+    return H_mag * (gMl - gMu) / PLANCK_CONST * BOHR_MAGNETON;
     
 }
 
