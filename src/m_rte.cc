@@ -179,6 +179,8 @@ void iyCalc(
 
 
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyEmissionStandard(
         Workspace&                  ws,
@@ -550,711 +552,399 @@ void iyEmissionStandard(
 
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyEmissionStandardOld(
-         Workspace&                  ws,
-         Matrix&                     iy,
-         ArrayOfTensor4&             iy_aux,
-         Ppath&                      ppath,
-         ArrayOfTensor3&             diy_dx,
-   const Index&                      iy_id,
-   const Index&                      stokes_dim,
-   const Vector&                     f_grid,
-   const Index&                      atmosphere_dim,
-   const Vector&                     p_grid,
-   const Tensor3&                    z_field,
-   const Tensor3&                    t_field,
-   const Tensor4&                    t_nlte_field,
-   const Tensor4&                    vmr_field,
-   const ArrayOfArrayOfSpeciesTag&   abs_species,
-   const Tensor3&                    wind_u_field,
-   const Tensor3&                    wind_v_field,
-   const Tensor3&                    wind_w_field,
-   const Tensor3&                    mag_u_field,
-   const Tensor3&                    mag_v_field,
-   const Tensor3&                    mag_w_field,
-   const Index&                      cloudbox_on,
-   const String&                     iy_unit,
-   const ArrayOfString&              iy_aux_vars,
-   const Index&                      jacobian_do,
-   const ArrayOfRetrievalQuantity&   jacobian_quantities,
-   const Agenda&                     ppath_agenda,
-   const Agenda&                     propmat_clearsky_agenda,
-   const Agenda&                     iy_main_agenda,
-   const Agenda&                     iy_space_agenda,
-   const Agenda&                     iy_surface_agenda,
-   const Agenda&                     iy_cloudbox_agenda,
-   const Index&                      iy_agenda_call1,
-   const Tensor3&                    iy_transmission,
-   const Vector&                     rte_pos,      
-   const Vector&                     rte_los,      
-   const Vector&                     rte_pos2, 
-   const Numeric&                    rte_alonglos_v,      
-   const Numeric&                    ppath_lmax,
-   const Numeric&                    ppath_lraytrace,
-   const Verbosity&                  verbosity )
+void iyIndependentBeamApproximation(
+         Workspace&        ws,
+         Matrix&           iy,
+         ArrayOfMatrix&    iy_aux,
+         Ppath&            ppath,
+         ArrayOfTensor3&   diy_dx,
+         GriddedField4&    atm_fields_compact,
+   const Index&            iy_id,
+   const Vector&           f_grid,
+   const Index&            atmosphere_dim,
+   const Vector&           p_grid,
+   const Vector&           lat_grid,
+   const Vector&           lon_grid,
+   const Vector&           lat_true,
+   const Vector&           lon_true,
+   const Tensor3&          t_field,
+   const Tensor3&          z_field,
+   const Tensor4&          vmr_field,
+   const Tensor4&          t_nlte_field,
+   const Tensor3&          wind_u_field,
+   const Tensor3&          wind_v_field,
+   const Tensor3&          wind_w_field,
+   const Tensor3&          mag_u_field,
+   const Tensor3&          mag_v_field,
+   const Tensor3&          mag_w_field,
+   const Index&            cloudbox_on,
+   const ArrayOfIndex&     cloudbox_limits, 
+   const Tensor4&          pnd_field,
+   const Matrix&           particle_masses,
+   const Agenda&           ppath_agenda,
+   const Numeric&          ppath_lmax,
+   const Numeric&          ppath_lraytrace,
+   const Index&            iy_agenda_call1,
+   const String&           iy_unit,  
+   const Tensor3&          iy_transmission,
+   const Vector&           rte_pos,
+   const Vector&           rte_los,
+   const Vector&           rte_pos2,
+   const Index&            jacobian_do,
+   const ArrayOfString&    iy_aux_vars,
+   const Agenda&           iy_sub_agenda,
+   const Index&            return_atm1d,
+   const Index&            skip_vmr,
+   const Index&            skip_pnd,
+   const Index&            return_masses,
+   const Verbosity& )
 {
-  // Determine propagation path
+  // Throw error if unsupported features are requested
+  if( jacobian_do )
+    throw runtime_error( "Jacobians not provided by the method, *jacobian_do* "
+                         "must be 0." );
+  if( !t_nlte_field.empty() )
+    throw runtime_error( "This method does not yet support non-empty *t_nlte_field*." );
+  if( !wind_u_field.empty() )
+    throw runtime_error( "This method does not yet support non-empty *wind_u_field*." );
+  if( !wind_v_field.empty() )
+    throw runtime_error( "This method does not yet support non-empty *wind_v_field*." );
+  if( !wind_w_field.empty() )
+    throw runtime_error( "This method does not yet support non-empty *wind_w_field*." );
+  if( !mag_u_field.empty() )
+    throw runtime_error( "This method does not yet support non-empty *mag_u_field*." );
+  if( !mag_v_field.empty() )
+    throw runtime_error( "This method does not yet support non-empty *mag_v_field*." );
+  if( !mag_w_field.empty() )
+    throw runtime_error( "This method does not yet support non-empty *mag_w_field*." );
+  //
+  if( return_masses )
+    {
+      if( pnd_field.nbooks() != particle_masses.nrows() )
+        throw runtime_error( "Sizes of *pnd_field* and *particle_masses* "
+                               "are inconsistent." );
+    }
+  
+
+  // Note that input 1D atmospheres are handled exactly as 2D and 3D, to make
+  // the function totally general. And 1D must be handled for iterative calls.
+
+  
+  // Determine propagation path (with cloudbox deactivated) and check
+  // that is OK for ICA
   //
   ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace,
-                       rte_pos, rte_los, rte_pos2, 
-                       cloudbox_on, 0, t_field, z_field, vmr_field, f_grid, 
-                       ppath_agenda );
+                       rte_pos, rte_los, rte_pos2, 0, 0, t_field,
+                       z_field, vmr_field, f_grid, ppath_agenda );
   //
-  if( !iy_agenda_call1  &&  ppath.np == 1  &&  ppath_what_background( ppath ) == 2  )
-    throw runtime_error( "A secondary propagation path starting at the "
-                         "surface and is going directly into the surface "
-                         "is found. This is not allowed." );
+  error_if_limb_ppath( ppath );
 
-  // Some basic sizes
+  // If scattering and sensor inside atmosphere, we need a pseudo-ppath that
+  // samples altitudes not covered by main ppath. We make this second path
+  // strictly vertical.
   //
-  const Index nf = f_grid.nelem();
-  const Index ns = stokes_dim;
-  const Index np = ppath.np;
-  const Index nq = jacobian_quantities.nelem();
-
-  
-  // Brief definition of some of the internal variables (and to a start also questions)
+  Ppath   ppath2;
   //
-  // abs_per_species
-  //   The absorption for individual species. Used to fill iy_aux.
-  // auxAbsSpecies,  auxAbsIsp, auxVmrSpecies, auxVmrIsp
-  //   Coding of which iy_aux elements that cover particle absorption resp.
-  //   VMR, and the corresponding index among abs_species. Left empty if iy_aux
-  //   does not contain any quantity of concern.
-  // auxAbsSum, absPressure ...
-  //   Set to -1 if the variable of concern not is requested to be part of
-  //   iy_aux. Otherwise set to the position inside iy_aux.
-  // diy_dpath
-  //   The derivate of iy with respect to changes at the ppath points.
-  // dppath_ext_dx
-  //   The derivatives of the extinction matrix at the ppath points.
-  // dppath_nlte_source_dx
-  //   The derivatives of the NLTE source term at the ppath points.
-  // dtrans_partial_dx_above/below
-  //   The derivatives of the transmission matrix at the ppath points.
-  //   Below means the derivatives are from the path point itself and above
-  //   means the derivatives are from the neighboring ppath point.  Together,
-  //   Above and Below makes the layer through which the transfer is carried
-  //   out.
-  // iaps
-  //   The index of species for which abs_per_species shall be filled. 
-  // jac_mag_i: Works as jac_species_i, but uses JacobianType::MagField... and JacobianType::None
-  //    for coding of each element.
-  // jac_other
-  //    Works as jac_species_i, but uses JacobianType::Other... and JacobianType::None
-  //    for "other" propmat derivatives
-  // jac_is_t
-  //    Works as jac_species_i, but uses JacobianType::Temperature... and JacobianType::None
-  //    for coding of each element.
-  // jac_species_i
-  //   An array of length nq. Elements are the species index where a retrieval 
-  //   quantity is a species otherwise set to -1.  
-  // jac_wind_i 
-  //    Works as jac_species_i, but uses JacobianType::WindField... and JacobianType::None
-  //    for coding of each element.
-  // jac_to_integrate 
-  //    Track keeping of integration variable
-  // ppath_p, ppath_vmr, ppath_ext ...
-  //    Holds the pressure, vmr, extinction matrix etc. at each point of ppath.
-  // ppd
-  //   Flags and indexing for the jacobian_quantities that works in propmat clearsky
-  // scalar_tau
-  //   The total optical thickness of the ppath (a scalar value).
-  // trans_cumulat, trans_partial
-  //   The transmission (as Mueller matrices) for each ppath step resp. from
-  //   the end to each point. See further *get_ppath_trans*.
-
-  
-  //###### jacobian part #######################################################
-  // Initialise analytical jacobians (diy_dx and help variables)
-  //
-  Index           j_analytical_do = 0;
-  ArrayOfTensor3  diy_dpath; 
-  ArrayOfIndex    jac_species_i(0), jac_scat_i(0), jac_is_t(0), jac_wind_i(0);
-  ArrayOfIndex    jac_mag_i(0), jac_other(0); 
-  // Flags for partial derivatives of propmat
-  const PropmatPartialsData ppd(jacobian_quantities);
-  //
-  if( jacobian_do ) 
-    { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
-  //
-  if( !j_analytical_do )
-    { diy_dx.resize( 0 ); }
-  else 
+  if( cloudbox_on  &&  ppath.end_lstep == 0 )
     {
-      diy_dpath.resize( nq ); 
-      jac_species_i.resize( nq ); 
-      jac_scat_i.resize( nq ); 
-      jac_is_t.resize( nq ); 
-      jac_wind_i.resize( nq );  
-      jac_mag_i.resize( nq ); 
-      jac_other.resize(nq);
-      //
-      FOR_ANALYTICAL_JACOBIANS_DO( 
-            diy_dpath[iq].resize( np, nf, ns ); 
-            diy_dpath[iq] = 0.0;
-      )
-
-      const ArrayOfString scat_species(0);
-      
-      get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
-                                             jac_wind_i, jac_mag_i, 
-                                             jacobian_quantities,
-                                             abs_species, scat_species );
-
-      FOR_ANALYTICAL_JACOBIANS_DO(
-        jac_other[iq] = ppd.is_this_propmattype(iq)?Index(JacobianType::Other):Index(JacobianType::None);
-      )
-      
-      if( iy_agenda_call1 )
-        {
-          diy_dx.resize( nq ); 
-          //
-          bool any_affine;
-          ArrayOfArrayOfIndex jacobian_indices;
-          jac_ranges_indices( jacobian_indices, any_affine,
-                              jacobian_quantities, true );
-          //
-          FOR_ANALYTICAL_JACOBIANS_DO( diy_dx[iq].resize( 
-            jacobian_indices[iq][1]-jacobian_indices[iq][0]+1, nf, ns ); 
-            diy_dx[iq] = 0.0;
-          )
-        }
-    } 
-  //###########################################################################
-  
-  
-  //=== iy_aux part ===========================================================
-  Index auxPressure    = -1,
-        auxTemperature = -1,
-        auxAbsSum      = -1,
-        auxBackground  = -1,
-        auxIy          = -1,
-        auxTrans       = -1,
-        auxOptDepth    = -1;
-  ArrayOfIndex iaps(0);
-  ArrayOfIndex auxAbsSpecies(0), auxAbsIsp(0);
-  ArrayOfIndex auxVmrSpecies(0), auxVmrIsp(0);
-  //
-  {
-    const Index naux = iy_aux_vars.nelem();
-    iy_aux.resize( naux );
-    //
-    for( Index i=0; i<naux; i++ )
-      {
-        if( iy_aux_vars[i] == "Pressure" )
-          { auxPressure = i;      iy_aux[i].resize( 1, 1, 1, np ); }
-        else if( iy_aux_vars[i] == "Temperature" )
-          { auxTemperature = i;   iy_aux[i].resize( 1, 1, 1, np ); }
-        else if( iy_aux_vars[i].substr(0,13) == "VMR, species " )
-          { 
-            Index ispecies;
-            istringstream is(iy_aux_vars[i].substr(13,2));
-            is >> ispecies;
-            if( ispecies < 0  ||  ispecies>=abs_species.nelem() )
-              {
-                ostringstream os;
-                os << "You have selected VMR of species with index "
-                   << ispecies << ".\nThis species does not exist!";
-                throw runtime_error( os.str() );
-              }
-            auxVmrSpecies.push_back(i);
-            auxVmrIsp.push_back(ispecies);
-            iy_aux[i].resize( 1, 1, 1, np );               
-          }
-        else if( iy_aux_vars[i] == "Absorption, summed" )
-          { auxAbsSum = i;   iy_aux[i].resize( nf, ns, ns, np ); }
-        else if( iy_aux_vars[i].substr(0,20) == "Absorption, species " )
-          { 
-            Index ispecies;
-            istringstream is(iy_aux_vars[i].substr(20,2));
-            is >> ispecies;
-            if( ispecies < 0  ||  ispecies>=abs_species.nelem() )
-              {
-                ostringstream os;
-                os << "You have selected absorption species with index "
-                   << ispecies << ".\nThis species does not exist!";
-                throw runtime_error( os.str() );
-              }
-            auxAbsSpecies.push_back(i);
-            const Index ihit = find_first( iaps, ispecies );
-            if( ihit >= 0 )
-              { auxAbsIsp.push_back( ihit ); }
-            else
-              { 
-                iaps.push_back(ispecies); 
-                auxAbsIsp.push_back( iaps.nelem()-1 ); 
-              }
-            iy_aux[i].resize( nf, ns, ns, np );               
-          }
-        else if( iy_aux_vars[i] == "Radiative background" )
-          { auxBackground = i;   iy_aux[i].resize( nf, 1, 1, 1 ); }
-        else if( iy_aux_vars[i] == "iy"   &&  auxIy < 0 )
-          { auxIy = i;           iy_aux[i].resize( nf, ns, 1, np ); }
-        else if( iy_aux_vars[i] == "Transmission"   &&  auxTrans < 0 )
-          { auxTrans = i;        iy_aux[i].resize( nf, ns, ns, np ); }
-        else if( iy_aux_vars[i] == "Optical depth" )
-          { auxOptDepth = i;     iy_aux[i].resize( nf, 1, 1, 1 ); }
-        else if( iy_aux_vars[i].substr(0,14) == "Mass content, " )
-          { iy_aux[i].resize( 0, 0, 0, 0 ); }
-        else if( iy_aux_vars[i].substr(0,10) == "PND, type " )
-          { iy_aux[i].resize( 0, 0, 0, 0 ); }
-        else
-          {
-            ostringstream os;
-            os << "In *iy_aux_vars* you have included: \"" << iy_aux_vars[i]
-               << "\"\nThis choice is not recognised.";
-            throw runtime_error( os.str() );
-          }
-      }
-  }
-  //===========================================================================
-
-
-  // Get atmospheric and attenuation quantities for each ppath point/step
-  //
-  // "atmvars"
-  Vector    ppath_p, ppath_t;
-  Matrix    ppath_vmr, ppath_wind, ppath_mag, ppath_f, ppath_t_nlte, ppath_pnd_dummy;
-  // Attenuation vars
-  ArrayOfPropagationMatrix ppath_ext;
-  ArrayOfPropagationMatrix pnd_ext_mat_dummy;
-  Tensor3                  pnd_abs_vec;
-  ArrayOfArrayOfPropagationMatrix dppath_ext_dx;
-  ArrayOfArrayOfPropagationMatrix abs_per_species;
-  Tensor5   dtrans_partial_dx_above, dtrans_partial_dx_below;
-  Tensor4   trans_partial, trans_cumulat;
-  ArrayOfArrayOfStokesVector dppath_nlte_source_dx;
-  ArrayOfStokesVector   ppath_nlte_source;
-  Matrix    ppath_blackrad, dppath_blackrad_dt;
-  Vector    scalar_tau;
-  ArrayOfIndex         lte, clear2cloudy_dummy;
-  ArrayOfArrayOfIndex  extmat_case;
-  ArrayOfMatrix        dummy_ppath_dpnd_dx;
-  ArrayOfTensor4       dummy_dpnd_field_dx;
-  Array<ArrayOfArrayOfSingleScatteringData> scat_data_single_dummy;
-  const ArrayOfArrayOfSingleScatteringData scat_data_dummy;
-  const Tensor4 pnd_field_dummy;
-  const ArrayOfIndex cloudbox_limits_dummy;
-  //
-  if( np > 1 )
-    {
-      get_ppath_atmvars( ppath_p, ppath_t, ppath_t_nlte, ppath_vmr,
-                         ppath_wind, ppath_mag, 
-                         ppath, atmosphere_dim, p_grid, t_field, t_nlte_field, 
-                         vmr_field, wind_u_field, wind_v_field, wind_w_field,
-                         mag_u_field, mag_v_field, mag_w_field );      
-
-      get_ppath_f( ppath_f, ppath, f_grid,  atmosphere_dim, 
-                   rte_alonglos_v, ppath_wind );
-
-      get_ppath_pmat_and_tmat( ws, ppath_ext, ppath_nlte_source, lte, abs_per_species,
-                               dppath_ext_dx, dppath_nlte_source_dx, trans_partial,
-                               dtrans_partial_dx_above, dtrans_partial_dx_below,
-                               extmat_case, clear2cloudy_dummy, trans_cumulat,
-                               scalar_tau, pnd_ext_mat_dummy, pnd_abs_vec, ppath_pnd_dummy,
-                               dummy_ppath_dpnd_dx, scat_data_single_dummy,
-                               propmat_clearsky_agenda, jacobian_quantities,
-                               ppd, ppath, ppath_p,  ppath_t, ppath_t_nlte, ppath_vmr, 
-                               ppath_mag, ppath_f, f_grid, 
-                               jac_species_i, jac_is_t, jac_wind_i, jac_mag_i,
-                               jac_other, iaps,
-                               scat_data_dummy,
-                               pnd_field_dummy, dummy_dpnd_field_dx,
-                               cloudbox_limits_dummy,
-                               atmosphere_dim, stokes_dim,
-                               jacobian_do, false, verbosity);
-      
-      get_ppath_blackrad( ppath_blackrad, ppath, ppath_t, ppath_f );
-
-      get_dppath_blackrad_dt( dppath_blackrad_dt, ppath_t, ppath_f, jac_is_t, 
-                              j_analytical_do );
-    }
-  else // For cases inside the cloudbox, or totally outside the atmosphere,
-    {  // set zero optical thickness and unit transmission
-      scalar_tau.resize( nf );
-      scalar_tau = 0;
-      trans_cumulat.resize( nf, ns, ns, np );
-      for( Index iv=0; iv<nf; iv++ )
-        { id_mat( trans_cumulat(iv,joker,joker,np-1) ); }
-    }
-
-  // iy_transmission
-  //
-  Tensor3 iy_trans_new;
-  //
-  if( iy_agenda_call1 )
-    { iy_trans_new = trans_cumulat(joker,joker,joker,np-1); }
-  else
-    { iy_transmission_mult( iy_trans_new, iy_transmission, 
-                            trans_cumulat(joker,joker,joker,np-1) ); }
-  
-  // Radiative background
-  //
-  get_iy_of_background( ws, iy, diy_dx, 
-                        iy_trans_new, iy_id, jacobian_do, ppath, rte_pos2, 
-                        atmosphere_dim, t_field, z_field, vmr_field, 
-                        cloudbox_on, stokes_dim, f_grid, iy_unit,
-                        iy_main_agenda, iy_space_agenda, iy_surface_agenda, 
-                        iy_cloudbox_agenda, verbosity );
-
-
-  //=== iy_aux part ===========================================================
-  // Fill parts of iy_aux that are defined even for np=1.
-  // Radiative background
-  if( auxBackground >= 0 ) 
-    { iy_aux[auxBackground](joker,0,0,0) = (Numeric)min( (Index)2,
-                                              ppath_what_background(ppath)-1); }
-  // Radiance 
-  if( auxIy >= 0 ) 
-    { iy_aux[auxIy](joker,joker,0,np-1) = iy; }
-  // Transmission variables
-  if( auxTrans >= 0 ) 
-    { 
-      if( np == 1 )
-        { for( Index iv=0; iv<nf; iv++ ) {
-            id_mat( iy_aux[auxTrans](iv,joker,joker,0) ); } }
+      Vector los_tmp = rte_los;
+      if( abs(rte_los[0]) < 90 )
+        { los_tmp[0] = 180; }
       else
-        { iy_aux[auxTrans] = trans_cumulat; }
+        { los_tmp[0] = 0; }
+      //
+      ppath_agendaExecute( ws, ppath2, ppath_lmax, ppath_lraytrace,
+                           rte_pos, los_tmp, rte_pos2, 0, 0, t_field,
+                           z_field, vmr_field, f_grid, ppath_agenda );
     }
-  if( auxOptDepth >= 0 ) 
-    { iy_aux[auxOptDepth](joker,0,0,0) = scalar_tau; }
-  //===========================================================================
+  else
+    { ppath2.np = 1; }
+
+  // Grid positions, sorted correctly
+  const Index     np = ppath.np + ppath2.np - 1;
+  ArrayOfGridPos  gp_p(np), gp_lat(np), gp_lon(np);
+  if( ppath.np>1 && ppath.pos(0,0)>ppath.pos(1,0) )
+    {                         // Ppath is sorted in downward direction
+      // Copy ppath in reversed order
+      for( Index i=0; i<ppath.np; i++ )
+        {
+          const Index ip = ppath.np - i - 1;
+          gp_p[i]   = ppath.gp_p[ip];
+          if( atmosphere_dim > 1 )
+            {
+              gp_lat[i] = ppath.gp_lat[ip];
+              if( atmosphere_dim == 3 )
+                { gp_lon[i] = ppath.gp_lon[ip]; }
+            }
+        }
+      // Append ppath2, but skipping element [0]
+      for( Index i=ppath.np; i<np; i++ )
+        {
+          const Index ip = i - ppath.np + 1;
+          gp_p[i]   = ppath2.gp_p[ip];
+          if( atmosphere_dim > 1 )
+            {
+              gp_lat[i] = ppath2.gp_lat[ip];
+              if( atmosphere_dim == 3 )
+                { gp_lon[i] = ppath2.gp_lon[ip]; }
+            }
+        }
+    }
+  else
+    {
+      // Copy ppath2 in reversed order, but skipping element [0]
+      for( Index i=0; i<ppath2.np-1; i++ )
+        {
+          const Index ip = ppath2.np - i - 1;
+          gp_p[i]   = ppath2.gp_p[ip];
+          if( atmosphere_dim > 1 )
+            {
+              gp_lat[i] = ppath2.gp_lat[ip];
+              if( atmosphere_dim == 3 )
+                { gp_lon[i] = ppath2.gp_lon[ip]; }
+            }
+        }
+      // Append ppath
+      for( Index i=ppath2.np-1; i<np; i++ )
+        {
+          const Index ip = i - ppath2.np + 1;
+          gp_p[i]   = ppath.gp_p[ip];
+          if( atmosphere_dim > 1 )
+            {
+              gp_lat[i] = ppath.gp_lat[ip];
+              if( atmosphere_dim == 3 )
+                { gp_lon[i] = ppath.gp_lon[ip]; }
+            }
+        }
+    }
+  
+
+  // 1D version of p_grid 
+  Matrix         itw;
+  Vector         p1( np );
+  ArrayOfGridPos gp0(0), gp1(1);
+  interp_atmfield_gp2itw( itw, 1, gp_p, gp0, gp0 );
+  itw2p( p1, p_grid, gp_p, itw );
+
+  // 1D version of lat and lon variables
+  Vector lat1(0), lon1(0);
+  Vector lat_true1(1), lon_true1(1);
+  if( atmosphere_dim == 3 )
+    {
+      gp1[0] = gp_lat[0];
+      interp_atmfield_gp2itw( itw, 1, gp1, gp0, gp0 );
+      interp( lat_true1, itw, lat_grid, gp1 ); 
+      gp1[0] = gp_lon[0];
+      interp_atmfield_gp2itw( itw, 1, gp1, gp0, gp0 );
+      interp( lon_true1, itw, lon_grid, gp1 );
+    }
+  else if( atmosphere_dim == 2 )
+    {
+      gp1[0] = gp_lat[0];
+      interp_atmfield_gp2itw( itw, 1, gp1, gp0, gp0 );
+      interp( lat_true1, itw, lat_true, gp1 ); 
+      interp( lon_true1, itw, lon_true, gp1 );
+    }
+  else
+    {
+      lat_true1[0] = lat_true[0];
+      lon_true1[0] = lon_true[0];
+    }
+  
+  
+  // 2D/3D interpolation weights
+  interp_atmfield_gp2itw( itw, atmosphere_dim, gp_p, gp_lat, gp_lon );  
+  
+  // 1D temperature field
+  Tensor3 t1( np, 1, 1 );  
+  interp_atmfield_by_itw( t1(joker,0,0), atmosphere_dim, t_field,
+                          gp_p, gp_lat, gp_lon, itw )  ;
+
+  // 1D altitude field
+  Tensor3 z1( np, 1, 1 );  
+  interp_atmfield_by_itw( z1(joker,0,0), atmosphere_dim, z_field,
+                          gp_p, gp_lat, gp_lon, itw )  ;
+  
+  // 1D VMR field
+  Tensor4 vmr1( vmr_field.nbooks(), np, 1, 1 );  
+  for( Index is=0; is<vmr_field.nbooks(); is++ )
+    { interp_atmfield_by_itw( vmr1(is,joker,0,0), atmosphere_dim,
+                              vmr_field( is, joker, joker, joker ), 
+                              gp_p, gp_lat, gp_lon, itw ); }
+
+  // 1D surface altitude
+  Matrix zsurf1(1,1);
+  zsurf1(0,0) = z1(0,0,0);
+  
+  // 1D version of rte_pos/los
+  Vector pos1(1); pos1[0] = rte_pos[0]; 
+  Vector los1(1); los1[0] = abs( rte_los[0] );
+  Vector pos2(0); if( rte_pos2.nelem() ) { pos2 = rte_pos2[Range(0,rte_pos2.nelem())]; } 
+
 
   
-  // Do RT calculations
+  // Cloudbox variables
   //
-  if( np > 1 )
-  {
-    // Temperature disturbance, K   
-    //
-    // (This variable is used in some parts of the T-jacobian)
-    //
-    const Numeric   dt = 0.1;     
-
-
-    //=== iy_aux part =======================================================
-    // iy_aux for point np-1:
-    
-    // Pressure
-    if( auxPressure >= 0 )  { iy_aux[auxPressure](0,0,0,np-1) = ppath_p[np-1]; }
-    
-    // Temperature
-    if( auxTemperature >= 0 )  { iy_aux[auxTemperature](0,0,0,np-1) = ppath_t[np-1]; }
-      
-    // VMR
-    for( Index j=0; j<auxVmrSpecies.nelem(); j++ ) { iy_aux[auxVmrSpecies[j]](0,0,0,np-1) = ppath_vmr(auxVmrIsp[j],np-1); }
-    
-    // Absorption
-    if( auxAbsSum >= 0 ) 
-    { 
-      for( Index is1=0; is1<ns; is1++ )
-      {
-        iy_aux[auxAbsSum](joker,is1,is1,np-1) = ppath_ext[np-1].Kjj();
-        if(is1 == 1)
-        {
-          iy_aux[auxAbsSum](joker,is1,is1-1,np-1) = iy_aux[auxAbsSum](joker,is1-1,is1,np-1) = ppath_ext[np-1].K12();
-        }
-        else if(is1 == 2)
-        {
-          iy_aux[auxAbsSum](joker,is1,is1-2,np-1) = iy_aux[auxAbsSum](joker,is1-2,is1,np-1) = ppath_ext[np-1].K13();
-          iy_aux[auxAbsSum](joker,is1,is1-1,np-1) = iy_aux[auxAbsSum](joker,is1-1,is1,np-1) = ppath_ext[np-1].K23();
-          iy_aux[auxAbsSum](joker,is1,is1-1,np-1) *= -1;
-        }
-        else if(is1 == 3)
-        {
-          iy_aux[auxAbsSum](joker,is1,is1-3,np-1) = iy_aux[auxAbsSum](joker,is1-3,is1,np-1) = ppath_ext[np-1].K14();
-          iy_aux[auxAbsSum](joker,is1,is1-2,np-1) = iy_aux[auxAbsSum](joker,is1-2,is1,np-1) = ppath_ext[np-1].K24();
-          iy_aux[auxAbsSum](joker,is1,is1-1,np-1) = iy_aux[auxAbsSum](joker,is1-1,is1,np-1) = ppath_ext[np-1].K34();
-          iy_aux[auxAbsSum](joker,is1,is1-1,np-1) *= -1;
-          iy_aux[auxAbsSum](joker,is1,is1-2,np-1) *= -1;
-        }
-      }
-    }
-    
-    // Absorption by species
-    for( Index j=0; j<auxAbsSpecies.nelem(); j++ )
+  Index cbox_on1 = cloudbox_on;
+  ArrayOfIndex cbox_lims1(0);
+  Tensor4 pnd1(0,0,0,0);
+  //
+  if( cloudbox_on )
     {
-      for( Index is1=0; is1<ns; is1++ )
-      {
-        iy_aux[auxAbsSum](joker,is1,is1,np-1) = abs_per_species[np-1][auxAbsIsp[j]].Kjj();
-        if(is1 == 1)
+      // Determine what p1-levels that are inside cloudbox
+      Index ifirst = np;
+      Index ilast  = -1;
+      for( Index i=0; i<np; i++ )
         {
-          iy_aux[auxAbsSum](joker,is1,is1-1,np-1) = iy_aux[auxAbsSum](joker,is1-1,is1,np-1) = abs_per_species[np-1][auxAbsIsp[j]].K12();
-        }
-        else if(is1 == 2)
-        {
-          iy_aux[auxAbsSum](joker,is1,is1-2,np-1) = iy_aux[auxAbsSum](joker,is1-2,is1,np-1) = abs_per_species[np-1][auxAbsIsp[j]].K13();
-          iy_aux[auxAbsSum](joker,is1,is1-1,np-1) = iy_aux[auxAbsSum](joker,is1-1,is1,np-1) = abs_per_species[np-1][auxAbsIsp[j]].K23();
-          iy_aux[auxAbsSum](joker,is1,is1-1,np-1) *= -1;
-        }
-        else if(is1 == 3)
-        {
-          iy_aux[auxAbsSum](joker,is1,is1-3,np-1) = iy_aux[auxAbsSum](joker,is1-3,is1,np-1) = abs_per_species[np-1][auxAbsIsp[j]].K14();
-          iy_aux[auxAbsSum](joker,is1,is1-2,np-1) = iy_aux[auxAbsSum](joker,is1-2,is1,np-1) = abs_per_species[np-1][auxAbsIsp[j]].K24();
-          iy_aux[auxAbsSum](joker,is1,is1-1,np-1) = iy_aux[auxAbsSum](joker,is1-1,is1,np-1) = abs_per_species[np-1][auxAbsIsp[j]].K34();
-          iy_aux[auxAbsSum](joker,is1,is1-1,np-1) *= -1;
-          iy_aux[auxAbsSum](joker,is1,is1-2,np-1) *= -1;
-        }
-      }
-    }
-    
-    // Radiance for this point is handled above
-    //=======================================================================
-
-
-    //=======================================================================
-    // Loop ppath steps
-    for( Index ip=np-2; ip>=0; ip-- )
-    {
-      // Path step average of B: Bbar
-      //
-      Vector bbar(nf);
-      //
-      for( Index iv=0; iv<nf; iv++ )  
-        { bbar[iv] = 0.5 * ( ppath_blackrad(iv,ip) +
-                              ppath_blackrad(iv,ip+1) ); }
-
-      // Extra variables for non-LTE
-      //
-      const bool nonlte = lte[ip] == 0 or lte[ip+1] == 0; 
-      //
-      StokesVector sourcebar;
-      PropagationMatrix extbar;
-      //
-      if( nonlte )
-      { 
-        sourcebar = StokesVector(ppath_nlte_source[ip], ppath_nlte_source[ip+1], 0.5);
-        extbar    = PropagationMatrix(ppath_ext[ip], ppath_ext[ip+1], 0.5);
-      }
-
-      
-      //### jacobian part #################################################
-      if( j_analytical_do )
-      { 
-        // The variable names used below refer largely to the
-        // nomenclature used in the "Clear-sky Jacobians" chapter in AUG.
-        // For example, si is the Stokes vector for position i.
-        
-        // Difference between local stokes and Planck (si-bi)
-        Matrix sibi(nf,ns);
-        
-        // nlte terms
-        Matrix nlte_inv(ns,ns);
-        Vector nlte_sibi(ns,0.0);
-        
-        for( Index iv=0; iv<nf; iv++ )
-        {
-          if(nonlte) // Then sibi is difference between local Stokes and local Source
-          {
-            extbar.MatrixInverseAtPosition(nlte_inv, iv);
-            mult(nlte_sibi, nlte_inv, sourcebar.VectorAtPosition(iv));
-          }
-          
-          sibi(iv,0) = iy(iv,0) - bbar[iv] - nlte_sibi[0];
-          for( Index is=1; is<ns; is++ )
-          { 
-              sibi(iv,is) = iy(iv,is) - nlte_sibi[is];
-          }
-        }
-
-          
-        for( Index iq=0; iq<nq; iq++ ) 
-        {
-          if( jacobian_quantities[iq].Analytical() )
-          {
-            if( jac_species_i[iq] >= 0 || jac_wind_i[iq] ||
-              jac_mag_i[iq] || jac_other[iq] || jac_is_t[iq])
+          if( is_gp_inside_cloudbox( gp_p[i], gp_lat[i], gp_lon[i], 
+                                     cloudbox_limits, true, atmosphere_dim ) )
             {
-              /* 
-                *   We need to do blackbody derivation for temperature.
-                *   Should we do this for wind (frequency) as well, then 
-                *   add or statement here for jac_wind_i[iq] and turn
-                *   dppath_blackrad_dt into a Tensor3 of size [nq,nf,np].
-                */
-              
-              const bool this_is_t = jac_is_t[iq], 
-              this_is_hse = this_is_t ? jacobian_quantities[iq].Subtag() == "HSE on" : false;
-              
-              get_diydx_replacement(diy_dpath[iq](ip, joker, joker),
-                                    diy_dpath[iq](ip+1, joker, joker),
-                                    iy,
-                                    sibi,
-                                    ppath_nlte_source[ip],
-                                    ppath_nlte_source[ip+1],
-                                    dppath_nlte_source_dx[ip][iq],
-                                    dppath_nlte_source_dx[ip+1][iq],
-                                    ppath_ext[ip],
-                                    ppath_ext[ip+1],
-                                    dppath_ext_dx[ip][iq],
-                                    dppath_ext_dx[ip+1][iq],
-                                    trans_partial(joker,joker,joker,ip),
-                                    dtrans_partial_dx_below(iq,joker,joker,joker,ip),
-                                    dtrans_partial_dx_above(iq,joker,joker,joker,ip),
-                                    trans_cumulat(joker,joker,joker,ip  ),
-                                    trans_cumulat(joker,joker,joker,ip+1),
-                                    ppath_t[ip  ],
-                                    ppath_t[ip+1],
-                                    dt,
-                                    dppath_blackrad_dt(joker,ip  ),
-                                    dppath_blackrad_dt(joker,ip+1),
-                                    ppath.lstep[ip],
-                                    this_is_t,
-                                    this_is_hse,
-                                    nonlte);
-            } // if this iq is analytical
-          } // if this analytical
-        } // for iq
-      } // if any analytical
-      //###################################################################
-
-
-      // Spectrum at end of ppath step
-      emission_rtstep_replacement(iy, stokes_dim, bbar, extmat_case[ip],
-                                  trans_partial(joker,joker,joker,ip),
-                                  nonlte, extbar, sourcebar );
-
-      //=== iy_aux part ===================================================
-      // Pressure
-      if( auxPressure >= 0 )  { iy_aux[auxPressure](0,0,0,ip) = ppath_p[ip]; }
-      
-      // Temperature
-      if( auxTemperature >= 0 )  { iy_aux[auxTemperature](0,0,0,ip) = ppath_t[ip]; }
-      
-      // VMR
-      for( Index j=0; j<auxVmrSpecies.nelem(); j++ ) { iy_aux[auxVmrSpecies[j]](0,0,0,ip) = ppath_vmr(auxVmrIsp[j],ip); }
-      
-      // Absorption
-      if( auxAbsSum >= 0 ) 
-      { 
-        for( Index is1=0; is1<ns; is1++ )
-        {
-          iy_aux[auxAbsSum](joker,is1,is1,ip) = ppath_ext[ip].Kjj();
-          if(is1 == 1)
-          {
-            iy_aux[auxAbsSum](joker,is1,is1-1,ip) = iy_aux[auxAbsSum](joker,is1-1,is1,ip) = ppath_ext[ip].K12();
-          }
-          else if(is1 == 2)
-          {
-            iy_aux[auxAbsSum](joker,is1,is1-2,ip) = iy_aux[auxAbsSum](joker,is1-2,is1,ip) = ppath_ext[ip].K13();
-            iy_aux[auxAbsSum](joker,is1,is1-1,ip) = iy_aux[auxAbsSum](joker,is1-1,is1,ip) = ppath_ext[ip].K23();
-            iy_aux[auxAbsSum](joker,is1,is1-1,ip) *= -1;
-          }
-          else if(is1 == 3)
-          {
-            iy_aux[auxAbsSum](joker,is1,is1-3,ip) = iy_aux[auxAbsSum](joker,is1-3,is1,ip) = ppath_ext[ip].K14();
-            iy_aux[auxAbsSum](joker,is1,is1-2,ip) = iy_aux[auxAbsSum](joker,is1-2,is1,ip) = ppath_ext[ip].K24();
-            iy_aux[auxAbsSum](joker,is1,is1-1,ip) = iy_aux[auxAbsSum](joker,is1-1,is1,ip) = ppath_ext[ip].K34();
-            iy_aux[auxAbsSum](joker,is1,is1-1,ip) *= -1;
-            iy_aux[auxAbsSum](joker,is1,is1-2,ip) *= -1;
-          }
+              if( i < ifirst ) { ifirst = i; }
+              ilast = i;
+            }
         }
-      }
-      
-      // Absorption by species
-      for( Index j=0; j<auxAbsSpecies.nelem(); j++ )
-      {
-        for( Index is1=0; is1<ns; is1++ )
+
+      // If no hit, deactive cloudbox
+      if( ifirst == np )
+        { cbox_on1 = 0; }
+
+      // Otherwise set 1D cloud variables      
+      else
         {
-          iy_aux[auxAbsSum](joker,is1,is1,ip) = abs_per_species[ip][auxAbsIsp[j]].Kjj();
-          if(is1 == 1)
-          {
-            iy_aux[auxAbsSum](joker,is1,is1-1,ip) = iy_aux[auxAbsSum](joker,is1-1,is1,ip) = abs_per_species[ip][auxAbsIsp[j]].K12();
-          }
-          else if(is1 == 2)
-          {
-            iy_aux[auxAbsSum](joker,is1,is1-2,ip) = iy_aux[auxAbsSum](joker,is1-2,is1,ip) = abs_per_species[ip][auxAbsIsp[j]].K13();
-            iy_aux[auxAbsSum](joker,is1,is1-1,ip) = iy_aux[auxAbsSum](joker,is1-1,is1,ip) = abs_per_species[ip][auxAbsIsp[j]].K23();
-            iy_aux[auxAbsSum](joker,is1,is1-1,ip) *= -1;
-          }
-          else if(is1 == 3)
-          {
-            iy_aux[auxAbsSum](joker,is1,is1-3,ip) = iy_aux[auxAbsSum](joker,is1-3,is1,ip) = abs_per_species[ip][auxAbsIsp[j]].K14();
-            iy_aux[auxAbsSum](joker,is1,is1-2,ip) = iy_aux[auxAbsSum](joker,is1-2,is1,ip) = abs_per_species[ip][auxAbsIsp[j]].K24();
-            iy_aux[auxAbsSum](joker,is1,is1-1,ip) = iy_aux[auxAbsSum](joker,is1-1,is1,ip) = abs_per_species[ip][auxAbsIsp[j]].K34();
-            iy_aux[auxAbsSum](joker,is1,is1-1,ip) *= -1;
-            iy_aux[auxAbsSum](joker,is1,is1-2,ip) *= -1;
-          }
-        }
-      }
-      // Radiance 
-      if( auxIy >= 0 ) 
-        { iy_aux[auxIy](joker,joker,0,ip) = iy; }
-    } // path point loop
-    //=======================================================================
-
-
-    //### jacobian part #####################################################
-    // Map jacobians from ppath to retrieval grids
-    // (this operation corresponds to the term Dx_i/Dx)
-    if( j_analytical_do )
-    { 
-      // Weight with iy_transmission
-      if( !iy_agenda_call1 )
-      {
-        Matrix X, Y; 
-        //
-        FOR_ANALYTICAL_JACOBIANS_DO
-        ( 
-          Y.resize(ns,diy_dpath[iq].npages());
-          for( Index iv=0; iv<nf; iv++ )
-          { 
-                X = transpose( diy_dpath[iq](joker,iv,joker) );
-                mult( Y, iy_transmission(iv,joker,joker), X );
-                diy_dpath[iq](joker,iv,joker) = transpose( Y );
-          }
-        )
-      }
-
-      // Map to retrieval grids
-      FOR_ANALYTICAL_JACOBIANS_DO( 
-        diy_from_path_to_rgrids( diy_dx[iq], jacobian_quantities[iq], 
-                            diy_dpath[iq], atmosphere_dim, ppath, ppath_p );
-      )
+          // We can enter the cloudbox from the side, and we need to add 1
+          // level on each side to be safe
+          //
+          const Index extra_bot = ifirst == 0 ? 0 : 1;
+          const Index extra_top = ilast == np-1 ? 0 : 1;
+          //
+          cbox_lims1.resize(2);
+          cbox_lims1[0] = ifirst - extra_bot;
+          cbox_lims1[1] = ilast + extra_top;
+          
+          // pnd_field
+          //
+          pnd1.resize( pnd_field.nbooks(), cbox_lims1[1]-cbox_lims1[0]+1, 1, 1 );
+          //
+          itw.resize( 1, Index(pow(2.0,Numeric(atmosphere_dim))) );
+          //
+          for( Index i=extra_bot; i<pnd1.npages()-extra_top; i++ )
+            {
+              const Index i0 = cbox_lims1[0] + i;
+              ArrayOfGridPos gpc_p(1), gpc_lat(1), gpc_lon(1);
+              interp_cloudfield_gp2itw( itw(0,joker), 
+                                            gpc_p[0], gpc_lat[0], gpc_lon[0], 
+                                            gp_p[i0], gp_lat[i0], gp_lon[i0],
+                                            atmosphere_dim, cloudbox_limits );
+              for( Index p=0; p<pnd_field.nbooks(); p++ )
+                {
+                  interp_atmfield_by_itw( pnd1(p,i,0,0), atmosphere_dim,
+                                          pnd_field(p,joker,joker,joker), 
+                                          gpc_p, gpc_lat, gpc_lon, itw );
+                }
+            }
+        }      
     }
-    //#######################################################################
-  } // if np>1
+  
+  // Call sub agenda
+  //
+  {
+    const Index adim1 = 1;
+    const Numeric lmax1 = -1;
+    Ppath ppath1d;   
+    //
+    iy_sub_agendaExecute( ws, iy, iy_aux, ppath1d, diy_dx, iy_agenda_call1,
+                          iy_unit, iy_transmission, iy_aux_vars, iy_id,
+                          f_grid, adim1, p1, lat1, lon1, lat_true1, lon_true1,
+                          t1, z1, vmr1, zsurf1, lmax1, ppath_lraytrace,
+                          cbox_on1, cbox_lims1, pnd1,
+                          jacobian_do, pos1, los1, pos2, iy_sub_agenda );
+  }
 
 
-  // Unit conversions
-  if( iy_agenda_call1 )
+  // Fill *atm_fields_compact*?
+  if( return_atm1d )
     {
-      // Determine refractive index to use for the n2 radiance law
-      Numeric n = 1.0; // First guess is that sensor is in space
-      //
-      if( ppath.end_lstep == 0 ) // If true, sensor inside the atmosphere
-        { n = ppath.nreal[np-1]; }
+      // Sizes and allocate memory
+      const Index nvmr  = skip_vmr ? 0 : vmr1.nbooks();
+      const Index npnd  = skip_pnd ? 0 : pnd1.nbooks();
+      const Index nmass = return_masses ? particle_masses.ncols() : 0;
+      const Index ntot  = 2 + nvmr + npnd + nmass;
+      ArrayOfString field_names( ntot );
+      atm_fields_compact.resize( ntot, np, 1, 1 );
 
-      // Polarisation index variable
-      ArrayOfIndex i_pol(ns);
-      for( Index is=0; is<ns; is++ )
-        { i_pol[is] = is + 1; }
+      // Altitudes
+      field_names[0] = "Geometric altitudes";
+      atm_fields_compact.data(0,joker,0,0) = z1(joker,0,0);
 
-      // Jacobian part (must be converted to Tb before iy for PlanckBT)
-      // 
-      if( j_analytical_do )
+      // Temperature
+      field_names[1] = "Temperature";
+      atm_fields_compact.data(1,joker,0,0) = t1(joker,0,0);
+
+      // VMRs
+      if( nvmr )
         {
-          FOR_ANALYTICAL_JACOBIANS_DO( apply_iy_unit2( diy_dx[iq], iy, iy_unit,
-                                                       f_grid, n, i_pol ); )
-        } 
-
-      // iy
-      apply_iy_unit( iy, iy_unit, f_grid, n, i_pol );
-
-      // iy_aux
-      for( Index q=0; q<iy_aux.nelem(); q++ )
-      {
-        if( iy_aux_vars[q] == "iy")
-        { 
-          for( Index ip=0; ip<ppath.np; ip++ )
-          { apply_iy_unit( iy_aux[q](joker,joker,0,ip), iy_unit, f_grid, 
-            ppath.nreal[ip], i_pol ); }
+          for( Index i=0; i<nvmr; i++ )
+            {
+              const Index iout = 2 + i;
+              ostringstream sstr;
+              sstr << "VMR species " << i;
+              field_names[iout] = sstr.str();
+              atm_fields_compact.data(iout,joker,0,0) = vmr1(i,joker,0,0);
+            }
         }
-      }
+
+      // PNDs
+      if( npnd )
+        {
+          for( Index i=0; i<npnd; i++ )
+            {
+              const Index iout = 2 + nvmr + i;
+              ostringstream sstr;
+              sstr << "Scattering element " << i;
+              field_names[iout] = sstr.str();
+              atm_fields_compact.data(iout,joker,0,0) = 0;
+              atm_fields_compact.data(iout,Range(cbox_lims1[0],pnd1.npages()),0,0) =
+                pnd1(i,joker,0,0);
+            }
+        }
+
+      // Masses
+      if( nmass )
+        {
+          for( Index i=0; i<nmass; i++ )
+            {
+              const Index iout = 2 + nvmr + npnd + i;
+              ostringstream sstr;
+              sstr << "Mass category " << i;
+              field_names[iout] = sstr.str();
+              atm_fields_compact.data(iout,joker,0,0) = 0;
+              for( Index ip=cbox_lims1[0]; ip<pnd1.npages(); ip++ )
+                {
+                  for( Index is=0; is<pnd1.nbooks(); is++ )
+                    {
+                      atm_fields_compact.data(iout,ip,0,0) +=
+                        particle_masses(is,i) * pnd1(is,ip,0,0);
+                    }
+                }
+            }
+        }
+
+      // Finally, set grids and names
+      //
+      atm_fields_compact.set_name( "Data created by *iyIndependentBeamApproximation*" );
+      //
+      atm_fields_compact.set_grid_name( GFIELD4_FIELD_NAMES, "Atmospheric quantity" );
+      atm_fields_compact.set_grid( GFIELD4_FIELD_NAMES, field_names );  
+      atm_fields_compact.set_grid_name( GFIELD4_P_GRID, "Pressure" );
+      atm_fields_compact.set_grid( GFIELD4_P_GRID, p1 );
+      atm_fields_compact.set_grid_name( GFIELD4_LAT_GRID, "Latitude" );
+      atm_fields_compact.set_grid( GFIELD4_LAT_GRID, lat_true1 );
+      atm_fields_compact.set_grid_name( GFIELD4_LON_GRID, "Longitude" );
+      atm_fields_compact.set_grid( GFIELD4_LON_GRID, lon_true1 );
     }
 }
-
 
 
 
@@ -1690,6 +1380,8 @@ void yCalc_mblock_loop_body(
 
 
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void yCalc(
          Workspace&                  ws,
@@ -1915,6 +1607,8 @@ void yCalc(
         }
     }
 }
+
+
 
 
 
@@ -2242,6 +1936,8 @@ void yCalcAppend(
 
 
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void yApplyUnit(
          Vector&         y,
@@ -2372,400 +2068,5 @@ void yApplyUnit(
           apply_iy_unit( yv, iy_unit, y_f[i], 1, i_pol );
           y[i] = yv(0,0);
         }
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void iyIndependentBeamApproximation(
-         Workspace&        ws,
-         Matrix&           iy,
-         ArrayOfMatrix&    iy_aux,
-         Ppath&            ppath,
-         ArrayOfTensor3&   diy_dx,
-         GriddedField4&    atm_fields_compact,
-   const Index&            iy_id,
-   const Vector&           f_grid,
-   const Index&            atmosphere_dim,
-   const Vector&           p_grid,
-   const Vector&           lat_grid,
-   const Vector&           lon_grid,
-   const Vector&           lat_true,
-   const Vector&           lon_true,
-   const Tensor3&          t_field,
-   const Tensor3&          z_field,
-   const Tensor4&          vmr_field,
-   const Tensor4&          t_nlte_field,
-   const Tensor3&          wind_u_field,
-   const Tensor3&          wind_v_field,
-   const Tensor3&          wind_w_field,
-   const Tensor3&          mag_u_field,
-   const Tensor3&          mag_v_field,
-   const Tensor3&          mag_w_field,
-   const Index&            cloudbox_on,
-   const ArrayOfIndex&     cloudbox_limits, 
-   const Tensor4&          pnd_field,
-   const Matrix&           particle_masses,
-   const Agenda&           ppath_agenda,
-   const Numeric&          ppath_lmax,
-   const Numeric&          ppath_lraytrace,
-   const Index&            iy_agenda_call1,
-   const String&           iy_unit,  
-   const Tensor3&          iy_transmission,
-   const Vector&           rte_pos,
-   const Vector&           rte_los,
-   const Vector&           rte_pos2,
-   const Index&            jacobian_do,
-   const ArrayOfString&    iy_aux_vars,
-   const Agenda&           iy_sub_agenda,
-   const Index&            return_atm1d,
-   const Index&            skip_vmr,
-   const Index&            skip_pnd,
-   const Index&            return_masses,
-   const Verbosity& )
-{
-  // Throw error if unsupported features are requested
-  if( jacobian_do )
-    throw runtime_error( "Jacobians not provided by the method, *jacobian_do* "
-                         "must be 0." );
-  if( !t_nlte_field.empty() )
-    throw runtime_error( "This method does not yet support non-empty *t_nlte_field*." );
-  if( !wind_u_field.empty() )
-    throw runtime_error( "This method does not yet support non-empty *wind_u_field*." );
-  if( !wind_v_field.empty() )
-    throw runtime_error( "This method does not yet support non-empty *wind_v_field*." );
-  if( !wind_w_field.empty() )
-    throw runtime_error( "This method does not yet support non-empty *wind_w_field*." );
-  if( !mag_u_field.empty() )
-    throw runtime_error( "This method does not yet support non-empty *mag_u_field*." );
-  if( !mag_v_field.empty() )
-    throw runtime_error( "This method does not yet support non-empty *mag_v_field*." );
-  if( !mag_w_field.empty() )
-    throw runtime_error( "This method does not yet support non-empty *mag_w_field*." );
-  //
-  if( return_masses )
-    {
-      if( pnd_field.nbooks() != particle_masses.nrows() )
-        throw runtime_error( "Sizes of *pnd_field* and *particle_masses* "
-                               "are inconsistent." );
-    }
-  
-
-  // Note that input 1D atmospheres are handled exactly as 2D and 3D, to make
-  // the function totally general. And 1D must be handled for iterative calls.
-
-  
-  // Determine propagation path (with cloudbox deactivated) and check
-  // that is OK for ICA
-  //
-  ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace,
-                       rte_pos, rte_los, rte_pos2, 0, 0, t_field,
-                       z_field, vmr_field, f_grid, ppath_agenda );
-  //
-  error_if_limb_ppath( ppath );
-
-  // If scattering and sensor inside atmosphere, we need a pseudo-ppath that
-  // samples altitudes not covered by main ppath. We make this second path
-  // strictly vertical.
-  //
-  Ppath   ppath2;
-  //
-  if( cloudbox_on  &&  ppath.end_lstep == 0 )
-    {
-      Vector los_tmp = rte_los;
-      if( abs(rte_los[0]) < 90 )
-        { los_tmp[0] = 180; }
-      else
-        { los_tmp[0] = 0; }
-      //
-      ppath_agendaExecute( ws, ppath2, ppath_lmax, ppath_lraytrace,
-                           rte_pos, los_tmp, rte_pos2, 0, 0, t_field,
-                           z_field, vmr_field, f_grid, ppath_agenda );
-    }
-  else
-    { ppath2.np = 1; }
-
-  // Grid positions, sorted correctly
-  const Index     np = ppath.np + ppath2.np - 1;
-  ArrayOfGridPos  gp_p(np), gp_lat(np), gp_lon(np);
-  if( ppath.np>1 && ppath.pos(0,0)>ppath.pos(1,0) )
-    {                         // Ppath is sorted in downward direction
-      // Copy ppath in reversed order
-      for( Index i=0; i<ppath.np; i++ )
-        {
-          const Index ip = ppath.np - i - 1;
-          gp_p[i]   = ppath.gp_p[ip];
-          if( atmosphere_dim > 1 )
-            {
-              gp_lat[i] = ppath.gp_lat[ip];
-              if( atmosphere_dim == 3 )
-                { gp_lon[i] = ppath.gp_lon[ip]; }
-            }
-        }
-      // Append ppath2, but skipping element [0]
-      for( Index i=ppath.np; i<np; i++ )
-        {
-          const Index ip = i - ppath.np + 1;
-          gp_p[i]   = ppath2.gp_p[ip];
-          if( atmosphere_dim > 1 )
-            {
-              gp_lat[i] = ppath2.gp_lat[ip];
-              if( atmosphere_dim == 3 )
-                { gp_lon[i] = ppath2.gp_lon[ip]; }
-            }
-        }
-    }
-  else
-    {
-      // Copy ppath2 in reversed order, but skipping element [0]
-      for( Index i=0; i<ppath2.np-1; i++ )
-        {
-          const Index ip = ppath2.np - i - 1;
-          gp_p[i]   = ppath2.gp_p[ip];
-          if( atmosphere_dim > 1 )
-            {
-              gp_lat[i] = ppath2.gp_lat[ip];
-              if( atmosphere_dim == 3 )
-                { gp_lon[i] = ppath2.gp_lon[ip]; }
-            }
-        }
-      // Append ppath
-      for( Index i=ppath2.np-1; i<np; i++ )
-        {
-          const Index ip = i - ppath2.np + 1;
-          gp_p[i]   = ppath.gp_p[ip];
-          if( atmosphere_dim > 1 )
-            {
-              gp_lat[i] = ppath.gp_lat[ip];
-              if( atmosphere_dim == 3 )
-                { gp_lon[i] = ppath.gp_lon[ip]; }
-            }
-        }
-    }
-  
-
-  // 1D version of p_grid 
-  Matrix         itw;
-  Vector         p1( np );
-  ArrayOfGridPos gp0(0), gp1(1);
-  interp_atmfield_gp2itw( itw, 1, gp_p, gp0, gp0 );
-  itw2p( p1, p_grid, gp_p, itw );
-
-  // 1D version of lat and lon variables
-  Vector lat1(0), lon1(0);
-  Vector lat_true1(1), lon_true1(1);
-  if( atmosphere_dim == 3 )
-    {
-      gp1[0] = gp_lat[0];
-      interp_atmfield_gp2itw( itw, 1, gp1, gp0, gp0 );
-      interp( lat_true1, itw, lat_grid, gp1 ); 
-      gp1[0] = gp_lon[0];
-      interp_atmfield_gp2itw( itw, 1, gp1, gp0, gp0 );
-      interp( lon_true1, itw, lon_grid, gp1 );
-    }
-  else if( atmosphere_dim == 2 )
-    {
-      gp1[0] = gp_lat[0];
-      interp_atmfield_gp2itw( itw, 1, gp1, gp0, gp0 );
-      interp( lat_true1, itw, lat_true, gp1 ); 
-      interp( lon_true1, itw, lon_true, gp1 );
-    }
-  else
-    {
-      lat_true1[0] = lat_true[0];
-      lon_true1[0] = lon_true[0];
-    }
-  
-  
-  // 2D/3D interpolation weights
-  interp_atmfield_gp2itw( itw, atmosphere_dim, gp_p, gp_lat, gp_lon );  
-  
-  // 1D temperature field
-  Tensor3 t1( np, 1, 1 );  
-  interp_atmfield_by_itw( t1(joker,0,0), atmosphere_dim, t_field,
-                          gp_p, gp_lat, gp_lon, itw )  ;
-
-  // 1D altitude field
-  Tensor3 z1( np, 1, 1 );  
-  interp_atmfield_by_itw( z1(joker,0,0), atmosphere_dim, z_field,
-                          gp_p, gp_lat, gp_lon, itw )  ;
-  
-  // 1D VMR field
-  Tensor4 vmr1( vmr_field.nbooks(), np, 1, 1 );  
-  for( Index is=0; is<vmr_field.nbooks(); is++ )
-    { interp_atmfield_by_itw( vmr1(is,joker,0,0), atmosphere_dim,
-                              vmr_field( is, joker, joker, joker ), 
-                              gp_p, gp_lat, gp_lon, itw ); }
-
-  // 1D surface altitude
-  Matrix zsurf1(1,1);
-  zsurf1(0,0) = z1(0,0,0);
-  
-  // 1D version of rte_pos/los
-  Vector pos1(1); pos1[0] = rte_pos[0]; 
-  Vector los1(1); los1[0] = abs( rte_los[0] );
-  Vector pos2(0); if( rte_pos2.nelem() ) { pos2 = rte_pos2[Range(0,rte_pos2.nelem())]; } 
-
-
-  
-  // Cloudbox variables
-  //
-  Index cbox_on1 = cloudbox_on;
-  ArrayOfIndex cbox_lims1(0);
-  Tensor4 pnd1(0,0,0,0);
-  //
-  if( cloudbox_on )
-    {
-      // Determine what p1-levels that are inside cloudbox
-      Index ifirst = np;
-      Index ilast  = -1;
-      for( Index i=0; i<np; i++ )
-        {
-          if( is_gp_inside_cloudbox( gp_p[i], gp_lat[i], gp_lon[i], 
-                                     cloudbox_limits, true, atmosphere_dim ) )
-            {
-              if( i < ifirst ) { ifirst = i; }
-              ilast = i;
-            }
-        }
-
-      // If no hit, deactive cloudbox
-      if( ifirst == np )
-        { cbox_on1 = 0; }
-
-      // Otherwise set 1D cloud variables      
-      else
-        {
-          // We can enter the cloudbox from the side, and we need to add 1
-          // level on each side to be safe
-          //
-          const Index extra_bot = ifirst == 0 ? 0 : 1;
-          const Index extra_top = ilast == np-1 ? 0 : 1;
-          //
-          cbox_lims1.resize(2);
-          cbox_lims1[0] = ifirst - extra_bot;
-          cbox_lims1[1] = ilast + extra_top;
-          
-          // pnd_field
-          //
-          pnd1.resize( pnd_field.nbooks(), cbox_lims1[1]-cbox_lims1[0]+1, 1, 1 );
-          //
-          itw.resize( 1, Index(pow(2.0,Numeric(atmosphere_dim))) );
-          //
-          for( Index i=extra_bot; i<pnd1.npages()-extra_top; i++ )
-            {
-              const Index i0 = cbox_lims1[0] + i;
-              ArrayOfGridPos gpc_p(1), gpc_lat(1), gpc_lon(1);
-              interp_cloudfield_gp2itw( itw(0,joker), 
-                                            gpc_p[0], gpc_lat[0], gpc_lon[0], 
-                                            gp_p[i0], gp_lat[i0], gp_lon[i0],
-                                            atmosphere_dim, cloudbox_limits );
-              for( Index p=0; p<pnd_field.nbooks(); p++ )
-                {
-                  interp_atmfield_by_itw( pnd1(p,i,0,0), atmosphere_dim,
-                                          pnd_field(p,joker,joker,joker), 
-                                          gpc_p, gpc_lat, gpc_lon, itw );
-                }
-            }
-        }      
-    }
-  
-  // Call sub agenda
-  //
-  {
-    const Index adim1 = 1;
-    const Numeric lmax1 = -1;
-    Ppath ppath1d;   
-    //
-    iy_sub_agendaExecute( ws, iy, iy_aux, ppath1d, diy_dx, iy_agenda_call1,
-                          iy_unit, iy_transmission, iy_aux_vars, iy_id,
-                          f_grid, adim1, p1, lat1, lon1, lat_true1, lon_true1,
-                          t1, z1, vmr1, zsurf1, lmax1, ppath_lraytrace,
-                          cbox_on1, cbox_lims1, pnd1,
-                          jacobian_do, pos1, los1, pos2, iy_sub_agenda );
-  }
-
-
-  // Fill *atm_fields_compact*?
-  if( return_atm1d )
-    {
-      // Sizes and allocate memory
-      const Index nvmr  = skip_vmr ? 0 : vmr1.nbooks();
-      const Index npnd  = skip_pnd ? 0 : pnd1.nbooks();
-      const Index nmass = return_masses ? particle_masses.ncols() : 0;
-      const Index ntot  = 2 + nvmr + npnd + nmass;
-      ArrayOfString field_names( ntot );
-      atm_fields_compact.resize( ntot, np, 1, 1 );
-
-      // Altitudes
-      field_names[0] = "Geometric altitudes";
-      atm_fields_compact.data(0,joker,0,0) = z1(joker,0,0);
-
-      // Temperature
-      field_names[1] = "Temperature";
-      atm_fields_compact.data(1,joker,0,0) = t1(joker,0,0);
-
-      // VMRs
-      if( nvmr )
-        {
-          for( Index i=0; i<nvmr; i++ )
-            {
-              const Index iout = 2 + i;
-              ostringstream sstr;
-              sstr << "VMR species " << i;
-              field_names[iout] = sstr.str();
-              atm_fields_compact.data(iout,joker,0,0) = vmr1(i,joker,0,0);
-            }
-        }
-
-      // PNDs
-      if( npnd )
-        {
-          for( Index i=0; i<npnd; i++ )
-            {
-              const Index iout = 2 + nvmr + i;
-              ostringstream sstr;
-              sstr << "Scattering element " << i;
-              field_names[iout] = sstr.str();
-              atm_fields_compact.data(iout,joker,0,0) = 0;
-              atm_fields_compact.data(iout,Range(cbox_lims1[0],pnd1.npages()),0,0) =
-                pnd1(i,joker,0,0);
-            }
-        }
-
-      // Masses
-      if( nmass )
-        {
-          for( Index i=0; i<nmass; i++ )
-            {
-              const Index iout = 2 + nvmr + npnd + i;
-              ostringstream sstr;
-              sstr << "Mass category " << i;
-              field_names[iout] = sstr.str();
-              atm_fields_compact.data(iout,joker,0,0) = 0;
-              for( Index ip=cbox_lims1[0]; ip<pnd1.npages(); ip++ )
-                {
-                  for( Index is=0; is<pnd1.nbooks(); is++ )
-                    {
-                      atm_fields_compact.data(iout,ip,0,0) +=
-                        particle_masses(is,i) * pnd1(is,ip,0,0);
-                    }
-                }
-            }
-        }
-
-      // Finally, set grids and names
-      //
-      atm_fields_compact.set_name( "Data created by *iyIndependentBeamApproximation*" );
-      //
-      atm_fields_compact.set_grid_name( GFIELD4_FIELD_NAMES, "Atmospheric quantity" );
-      atm_fields_compact.set_grid( GFIELD4_FIELD_NAMES, field_names );  
-      atm_fields_compact.set_grid_name( GFIELD4_P_GRID, "Pressure" );
-      atm_fields_compact.set_grid( GFIELD4_P_GRID, p1 );
-      atm_fields_compact.set_grid_name( GFIELD4_LAT_GRID, "Latitude" );
-      atm_fields_compact.set_grid( GFIELD4_LAT_GRID, lat_true1 );
-      atm_fields_compact.set_grid_name( GFIELD4_LON_GRID, "Longitude" );
-      atm_fields_compact.set_grid( GFIELD4_LON_GRID, lon_true1 );
     }
 }

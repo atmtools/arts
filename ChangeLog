@@ -1,5 +1,21 @@
 2018-03-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-984
+
+	* Cleaning! Compared to last commit, hopefully no impact at all.
+	Just removed code that is inactive, mainly since last commit but
+	found some very old stuff as well.
+
+	* src/rte.cc: About 10 functions removed.
+
+	* src/jacobian.cc:
+	* src/m_jacobian.cc:
+	* src/m_cloudradar.cc:
+	* src/m_rte.cc:
+	* src/m_transmitter.cc: 1-2 functions removed.
+
+2018-03-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-983
 
 	* With this commit the new set of iy-methods are "activated". That

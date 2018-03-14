@@ -76,6 +76,12 @@ void apply_iy_unit2(
    const Numeric&        n,
    const ArrayOfIndex&   i_pol );
 
+void ze_cfac(
+         Vector&    fac,
+   const Vector&    f_grid,
+   const Numeric&   ze_tref,
+   const Numeric&   k2 );
+
 void bending_angle1d( 
         Numeric&   alpha,
   const Ppath&     ppath );
@@ -127,31 +133,11 @@ Numeric dotprod_with_los(
   const Numeric&    w,
   const Index&      atmosphere_dim );
 
-void emission_rtstep(
-          Matrix&         iy,
-    const Index&          stokes_dim,
-    ConstVectorView       bbar,
-    const ArrayOfIndex&   extmat_case,
-    ConstTensor3View      t,
-    const bool&           nonlte,
-    ConstTensor3View      extbar,
-    ConstMatrixView       sourcebar );
-
 void ext2trans(
          MatrixView   trans_mat,
          Index&       icase,
    ConstMatrixView    ext_mat_av,
    const Numeric&     l_step );
-
-void ext2trans_and_ext2dtrans_dx(
-    MatrixView   trans_mat,
-    Tensor3View  dtrans_mat_dx_upp,
-    Tensor3View  dtrans_mat_dx_low,
-    Index&       icase,
-    ConstMatrixView    ext_mat,
-    ConstTensor3View   dext_mat_dx_upp,
-    ConstTensor3View   dext_mat_dx_low,
-    const Numeric&     lstep );
 
 void get_iy(
          Workspace&   ws,
@@ -211,54 +197,6 @@ void get_ppath_atmvars(
   ConstTensor3View   mag_v_field,
   ConstTensor3View   mag_w_field );
 
-void get_ppath_pmat( 
-        Workspace&      ws,
-        ArrayOfPropagationMatrix&        ppath_ext,
-        ArrayOfStokesVector&        ppath_nlte_source,
-        ArrayOfIndex&   lte,
-        ArrayOfArrayOfPropagationMatrix&        abs_per_species,
-        ArrayOfArrayOfPropagationMatrix&        dppath_ext_dx,
-        ArrayOfArrayOfStokesVector&        dppath_nlte_source_dx,
-  const Agenda&         propmat_clearsky_agenda,
-  const ArrayOfRetrievalQuantity& jacobian_quantities,
-  const Ppath&          ppath,
-  ConstVectorView       ppath_p, 
-  ConstVectorView       ppath_t, 
-  ConstMatrixView       ppath_t_nlte, 
-  ConstMatrixView       ppath_vmr, 
-  ConstMatrixView       ppath_f, 
-  ConstMatrixView       ppath_mag,
-  ConstVectorView       f_grid, 
-  const Index&          stokes_dim,
-  const ArrayOfIndex&   ispecies );
-
-void get_ppath_blackrad( 
-        Matrix&      ppath_blackrad,
-  const Ppath&       ppath,
-  ConstVectorView    ppath_t, 
-  ConstMatrixView    ppath_f );
-
-void get_dppath_blackrad_dt( 
-        Matrix&             dppath_blackrad_dt,
-        ConstVectorView     ppath_t, 
-        ConstMatrixView     ppath_f,
-        const ArrayOfIndex& jac_is_t,
-        const bool&         j_analytical_do);
-
-void get_ppath_partopt( 
-        Tensor3&                       pnd_abs_vec, 
-        ArrayOfPropagationMatrix&      pnd_ext_mat, 
-  Array<ArrayOfArrayOfSingleScatteringData>&  scat_data_single,
-  const ArrayOfIndex&                  clear2cloudy,
-  const Matrix&                        ppath_pnd,
-  const Ppath&                         ppath,
-  ConstVectorView                      ppath_t, 
-  const Index&                         stokes_dim,
-  ConstMatrixView                      ppath_f, 
-  const Index&                         atmosphere_dim,
-  const ArrayOfArrayOfSingleScatteringData&   scat_data,
-  const Verbosity&                     verbosity );
-
 void get_ppath_cloudvars( 
         ArrayOfIndex&                  clear2cloudy,
         Matrix&                        ppath_pnd,
@@ -277,64 +215,6 @@ void get_ppath_f(
   const Numeric&   rte_alonglos_v,
   ConstMatrixView  ppath_wind );
 
-void get_ppath_f_partials( 
-Matrix&    ppath_f_partials,
-const Index& component,
-const Ppath&     ppath,
-ConstVectorView  f_grid, 
-const Index&     atmosphere_dim);
-
-void get_ppath_trans( 
-        Tensor4&               trans_partial,
-        ArrayOfArrayOfIndex&   extmat_case,
-        Tensor4&               trans_cumulat,
-        Vector&                scalar_tau,
-  const Ppath&                 ppath,
-  const ArrayOfPropagationMatrix& ppath_ext,
-  ConstVectorView              f_grid, 
-  const Index&                 stokes_dim );
-
-void get_ppath_trans_and_dppath_trans_dx( 
-        Tensor4&               trans_partial,
-        Tensor5&               dtrans_partial_dx_from_above,
-        Tensor5&               dtrans_partial_dx_from_below,
-        ArrayOfArrayOfIndex&   extmat_case,
-        Tensor4&               trans_cumulat,
-        Vector&                scalar_tau,
-  const Ppath&                 ppath,
-  const ArrayOfPropagationMatrix& ppath_ext,
-  const ArrayOfArrayOfPropagationMatrix& dppath_ext_dx,
-  const ArrayOfRetrievalQuantity& jacobian_quantities,
-  ConstVectorView              f_grid, 
-  const Index&                 stokes_dim );
-
-void get_ppath_trans2( 
-        Tensor4&               trans_partial,
-        ArrayOfArrayOfIndex&   extmat_case,
-        Tensor4&               trans_cumulat,
-        Vector&                scalar_tau,
-  const Ppath&                 ppath,
-  const ArrayOfPropagationMatrix& ppath_ext,
-  ConstVectorView              f_grid, 
-  const Index&                 stokes_dim,
-  const ArrayOfIndex&          clear2cloudy,
-  const ArrayOfPropagationMatrix& pnd_ext_mat );
-
-void get_ppath_trans2_and_dppath_trans_dx(  Tensor4&               trans_partial,
-                                            Tensor5&               dtrans_partial_dx_from_above,
-                                            Tensor5&               dtrans_partial_dx_from_below,
-                                            ArrayOfArrayOfIndex&   extmat_case,
-                                            Tensor4&               trans_cumulat,
-                                            Vector&                scalar_tau,
-                                            const Ppath&                 ppath,
-                                            const ArrayOfPropagationMatrix& ppath_ext,
-                                            const ArrayOfArrayOfPropagationMatrix& dppath_ext_dx,
-                                            const ArrayOfRetrievalQuantity& jacobian_quantities,
-                                            ConstVectorView              f_grid, 
-                                            const Index&                 stokes_dim,
-                                            const ArrayOfIndex&          clear2cloudy,
-                                            const ArrayOfPropagationMatrix& pnd_ext_mat );
-
 Range get_rowindex_for_mblock( 
   const Sparse&   sensor_response, 
   const Index&    imblock );
@@ -343,81 +223,6 @@ void iy_transmission_mult(
        Tensor3&      iy_trans_total,
   ConstTensor3View   iy_trans_old,
   ConstTensor3View   iy_trans_new );
-
-void get_ppath_pmat_and_tmat( 
-                            Workspace&      ws,
-                            ArrayOfPropagationMatrix&        ppath_ext,
-                            ArrayOfStokesVector&        ppath_nlte_source,
-                            ArrayOfIndex&   lte,
-                            ArrayOfArrayOfPropagationMatrix&        abs_per_species,
-                            ArrayOfArrayOfPropagationMatrix&        dppath_ext_dx,
-                            ArrayOfArrayOfStokesVector&        dppath_nlte_source_dx,
-                            Tensor4&               trans_partial,
-                            Tensor5&               dtrans_partial_dx_above,
-                            Tensor5&               dtrans_partial_dx_below,
-                            ArrayOfArrayOfIndex&   extmat_case,
-                            ArrayOfIndex&   clear2cloudy,
-                            Tensor4&               trans_cumulat,
-                            Vector&                scalar_tau,
-                            ArrayOfPropagationMatrix&               pnd_ext_mat,
-                            Tensor3&               pnd_abs_vec,
-                            Matrix&                ppath_pnd,
-                            ArrayOfMatrix&         ppath_dpnd_dx,
-                            Array<ArrayOfArrayOfSingleScatteringData>& scat_data_single,
-                            const Agenda&         propmat_clearsky_agenda,
-                            const ArrayOfRetrievalQuantity& jacobian_quantities,
-                            const PropmatPartialsData&      ppd,
-                            const Ppath&          ppath,
-                            ConstVectorView       ppath_p, 
-                            ConstVectorView       ppath_t, 
-                            ConstMatrixView       ppath_t_nlte, 
-                            ConstMatrixView       ppath_vmr, 
-                            ConstMatrixView       ppath_mag,
-                            ConstMatrixView       ppath_f, 
-                            ConstVectorView       f_grid, 
-                            const ArrayOfIndex&   jac_species_i,
-                            const ArrayOfIndex&   jac_is_t,
-                            const ArrayOfIndex&   jac_wind_i,
-                            const ArrayOfIndex&   jac_mag_i,
-                            const ArrayOfIndex&   jac_other,
-                            const ArrayOfIndex&   ispecies,
-                            const ArrayOfArrayOfSingleScatteringData scat_data,
-                            const Tensor4&        pnd_field,
-                            const ArrayOfTensor4& dpnd_field_dx,
-                            const ArrayOfIndex&   cloudbox_limits,
-                            const Index&          atmosphere_dim,
-                            const Index&          stokes_dim,
-                            const bool&           jacobian_do,
-                            const bool&           cloudbox_on,
-                            const Verbosity&      verbosity);
-
-void get_ppath_scat_source(
-                           Tensor4&         ppath_scat_source,
-                           const ArrayOfArrayOfSingleScatteringData scat_data,
-                           ConstTensor7View doit_i_field,
-                           ConstVectorView  scat_za_grid,
-                           ConstVectorView  f_grid, 
-                           const Index&     stokes_dim,
-                           const Ppath&     ppath,
-                           ConstVectorView  ppath_t, 
-                           ConstMatrixView  ppath_pnd,
-                           const Index&     j_analytical_do,
-                           const Index&     Naa,
-                           const Verbosity& verbosity );
-
-void get_ppath_scat_source_fixT(
-                           Tensor4&         ppath_scat_source,
-                           const ArrayOfArrayOfSingleScatteringData scat_data,
-                           ConstTensor7View doit_i_field,
-                           ConstVectorView  scat_za_grid,
-                           ConstVectorView  f_grid, 
-                           const Index&     stokes_dim,
-                           const Ppath&     ppath,
-                           ConstMatrixView  ppath_pnd,
-                           const Index&     j_analytical_do,
-                           const Index&     Naa,
-                           const Numeric&   rtp_temp,
-                           const Verbosity& verbosity );
 
 void iyb_calc(
         Workspace&                  ws,
@@ -462,15 +267,6 @@ void pos2true_latlon(
     ConstVectorView    pos );
 
 void ext_mat_case(Index& icase, ConstMatrixView ext_mat, const Index stokes_dim);
-
-void emission_rtstep_replacement( MatrixView iy,
-                                  const Index stokes_dim,
-                                  ConstVectorView planck_emission,
-                                  const ArrayOfIndex&   extmat_case,
-                                  ConstTensor3View transmission,
-                                  const bool nonlte,
-                                  const PropagationMatrix& propagation_matrix,
-                                  const StokesVector& source_vector);
 
 void get_stepwise_frequency_grid(VectorView ppath_f_grid,
                                  ConstVectorView  f_grid,
@@ -637,11 +433,5 @@ void rtmethods_unit_conversion(
    const String&                     iy_unit );
 
 Numeric psat_water(const Numeric t);
-
-void ze_cfac(
-         Vector&    fac,
-   const Vector&    f_grid,
-   const Numeric&   ze_tref,
-   const Numeric&   k2 );
 
 #endif  // rte_h
