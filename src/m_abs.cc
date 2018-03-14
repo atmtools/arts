@@ -3589,6 +3589,7 @@ void WriteMolTau(//WS Input
                       "because ARTS was compiled without NetCDF support.");
 }
 
+#endif /* ENABLE_NETCDF */
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddLines2(// WS Output:
@@ -3742,7 +3743,4 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
     
   } // End of species for loop.
 }
-
-
-#endif /* ENABLE_NETCDF */
 
