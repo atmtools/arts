@@ -114,6 +114,12 @@ void stokes2pol(
             ArrayOfVector&  s2p,
       const Numeric&        w );
 
+void stokes2pol(
+        Vector&   w,
+  const Index&    stokes_dim,
+  const Index&    ipol_1based,
+  const Numeric   nv = 1 );
+
 void find_effective_channel_boundaries(// Output:
                                        Vector& fmin,
                                        Vector& fmax,

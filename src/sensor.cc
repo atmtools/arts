@@ -1028,6 +1028,75 @@ void stokes2pol(
 }
 
 
+//! stokes2pol
+/*!
+   Sets up an array of vectors to convert the Stokes vector to different
+   polarsiations.
+
+   The measured value is the sum of the element product of the conversion
+   vector and the Stokes vector. Schematically:
+
+   y[iout] = sum( s2p[i].*iy(iin,joker)
+
+   The order of the vectors follow the coding described for instrument_pol, but
+   zero-based indexing is used here. That is, the first vector (s2p[0])
+   corresponds to I.
+
+   Trailing zeros are not stored, to indicate the required value of
+   *stokes_dim*.
+
+   Vectors for I, Q, U and V are always normalised to have unit length (one
+   value is 1, the remaining ones zero). The first element of remaining vectors
+   is set to nv (and other values normalised accordingly), to allow that
+   calibartion and other normalisation effects can be incorporated.
+
+   \param   s2p           Array of conversion vectors.
+   \param   nv            Norm value for polarisations beside I, Q, U and V.
+
+   \author Patrick Eriksson
+   \date   2011-11-01
+*/
+void stokes2pol(
+        Vector&   w,
+  const Index&    stokes_dim,
+  const Index&    ipol_1based,
+  const Numeric   nv )
+{
+  assert( w.nelem() == stokes_dim );
+
+  if( ipol_1based < 1  ||  ipol_1based > 10 )
+    throw runtime_error( "Valid polarization indices are 1 to 10 (1-based)." );
+  
+  ArrayOfVector s2p(10);
+  //
+  s2p[0] = {1};               // I
+  s2p[1] = {0, 1};            // Q
+  s2p[2] = {0, 0, 1};         // U
+  s2p[3] = {0, 0, 0, 1};      // V
+  s2p[4] = {nv, nv};          // Iv
+  s2p[5] = {nv, -nv};         // Ih
+  s2p[6] = {nv, 0, nv};       // I+45
+  s2p[7] = {nv, 0, -nv};      // I-45
+  s2p[8] = {nv, 0, 0, nv};    // Ilhc
+  s2p[9] = {nv, 0, 0, -nv};   // Irhc
+
+  const Index l = s2p[ipol_1based-1].nelem();
+  if( l > stokes_dim )
+    {
+      ostringstream os;
+      os << "You have selected polarization with 1-based index: "
+         << ipol_1based << endl
+         << "but this polarization demands stokes_dim >= " << l << endl
+         << "while the actual values of stokes_dim is " << stokes_dim; 
+      throw std::runtime_error(os.str());
+    }
+
+  w[Range(0,l)] = s2p[ipol_1based-1];
+  if( l < stokes_dim )
+    { w[Range(l,stokes_dim-l)] = 0; }
+}
+
+
 
 
 // Functions by Stefan, needed for HIRS:

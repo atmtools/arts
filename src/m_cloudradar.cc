@@ -491,7 +491,7 @@ void iyActiveSingleScat(
               if( auxBackScat >= 0)
                 { mult( iy_aux[auxBackScat](iout,joker), P, iy0(iv,joker) ); }
               if( auxPartAtte >= 0  &&  ip > 0 )
-                { iy_aux[auxPartAtte](iout,0) = iy_aux[auxPartAtte](iout-nf,0)
+                { iy_aux[auxPartAtte](iout,0) = iy_aux[auxPartAtte](iout-1,0)
                     + ppath.lstep[ip-1] *
                     (scalar_ext(ip-1,iv)+scalar_ext(ip-1,iv));
                   for( Index is=1; is<ns; is++ )
@@ -688,18 +688,18 @@ void yActive(
   // Various  initializations
   //---------------------------------------------------------------------------
 
-  // Conversion from Stokes to instrument_pol
-  ArrayOfVector   s2p;
-  stokes2pol( s2p, 0.5 );
+  // Variables to handle conversion from Stokes to instrument_pol
   ArrayOfIndex npolcum(nf+1); npolcum[0]=0;
+  ArrayOfArrayOfVector W(nf);  
   for( Index i=0; i<nf; i++ )
-    { 
-      npolcum[i+1] = npolcum[i] + instrument_pol_array[i].nelem(); 
-      for( Index j=0; j<instrument_pol_array[i].nelem(); j++ )
+    {
+      const Index ni = instrument_pol_array[i].nelem();
+      npolcum[i+1] = npolcum[i] + ni;
+      W[i].resize( ni );
+      for( Index j=0; j<ni; j++ )
         {
-          if( s2p[instrument_pol_array[i][j]-1].nelem() > stokes_dim )
-            throw runtime_error( "Your definition of *instrument_pol_array* " 
-                                 "requires a higher value for *stokes_dim*." );
+          W[i][j].resize( stokes_dim );
+          stokes2pol( W[i][j], stokes_dim, instrument_pol_array[i][j], 0.5 );
         }
     }
 
@@ -713,7 +713,7 @@ void yActive(
   y_pos.resize( ntot, sensor_pos.ncols() );
   y_los.resize( ntot, sensor_los.ncols() );
   y_geo.resize( ntot, atmosphere_dim );
-  y_geo = NAN;   // Will be replaced if relavant data are provided (*geo_pos*)
+  y_geo = NAN;   // Will be replaced if relavant data are provided 
 
   // y_aux
   y_aux.resize( naux );
@@ -795,19 +795,6 @@ void yActive(
       const Numeric range_end1 = min( range[0], range[np-1] );
       const Numeric range_end2 = max( range[0], range[np-1] );
 
-      // Help variables to calculate jacobians
-      /*
-      ArrayOfTensor3 dI(njq);
-      ArrayOfMatrix drefl(njq);
-      if( j_analytical_do )
-        {
-          FOR_ANALYTICAL_JACOBIANS_DO(
-            dI[iq].resize( jacobian_indices[iq][1]-jacobian_indices[iq][0]+1, np, ns ); 
-            drefl[iq].resize( dI[iq].npages(), np ); 
-          )
-        }
-      */
-      
       // Loop radar bins
       for( Index b=0; b<nbins; b++ )
         {
@@ -840,49 +827,42 @@ void yActive(
                   for( Index a=0; a<naux; a++ )
                     { A[a] = iy_aux[a]( Range(iv*np,np), joker ); }
 
+                  // Variables to hold data for one freq and one pol
+                  Vector refl( np );
+                  ArrayOfMatrix drefl(njq);
+                  if( j_analytical_do )
+                    {
+                      FOR_ANALYTICAL_JACOBIANS_DO(
+                        drefl[iq].resize( dI[iq].npages(), np ); )
+                    }
+                  ArrayOfVector auxvar(naux);
+                  for( Index a=0; a<naux; a++ )
+                    { auxvar[a].resize(np); }
                   
                   for( Index ip=0; ip<instrument_pol_array[iv].nelem(); ip++ )
                     {
-                      // Extract reflectivity for received polarisation
-                      Vector refl( np, 0.0 );
-                      ArrayOfMatrix drefl(njq);
+                      // Apply weights on each Stokes element
+                      mult( refl, I, W[iv][ip] );
                       if( j_analytical_do )
                         {
                           FOR_ANALYTICAL_JACOBIANS_DO(
-                            drefl[iq].resize( dI[iq].npages(), np ); 
-                            drefl[iq] = 0.0;
+                            for( Index k=0; k<drefl[iq].nrows(); k++ )
+                              { mult( drefl[iq](k,joker),
+                                      dI[iq](k,joker,joker), W[iv][ip] ); }
                           )
                         }
-                      ArrayOfVector auxvar(naux);
-                      for( Index a=0; a<naux; a++ )
-                        { auxvar[a].resize(np); auxvar[a] = 0.0; }
-                      
-                      Vector w = s2p[instrument_pol_array[iv][ip]-1];
-                      for( Index i=0; i<w.nelem(); i++ )     // Note that w can
-                        {                                    // be shorter than
-                          for( Index j=0; j<np; j++ )        // stokes_dim (and
-                            {                                // dot product can 
-                              refl[j] += I(j,i) * w[i];      // not be used)
-                              if( j_analytical_do )
-                                {
-                                  FOR_ANALYTICAL_JACOBIANS_DO(
-                                    for( Index k=0; k<drefl[iq].nrows(); k++ )
-                                      { drefl[iq](k,j) += dI[iq](k,j,i) * w[i]; }
-                                  )
-                                }
-                              for( Index a=0; a<naux; a++ )
-                                {
-                                  if( iy_aux_vars[a] == "Backscattering" )
-                                    { auxvar[a][j] += A[a](j,i) * w[i]; }
-                                  else
-                                    { auxvar[a][j] = A[a](j,0); }
-                                }
-                            }
-                        }  
-                                                             
+                       for( Index a=0; a<naux; a++ )
+                         {
+                           if( iy_aux_vars[a] == "Backscattering" )
+                             { mult( auxvar[a], A[a], W[iv][ip] ); }
+                           else
+                             {
+                               for( Index j=0; j<np; j++ ) 
+                                 { auxvar[a][j] = A[a](j,0); }
+                             }
+                         }
                                                              
                       // Apply bin weight vector to get final values.
-                      // 
                       Index iout = nbins * ( p*npolcum[nf] + 
                                              npolcum[iv] + ip ) + b;
                       y[iout] = cfac[iv] * ( hbin * refl );

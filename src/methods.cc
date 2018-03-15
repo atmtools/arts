@@ -7942,13 +7942,13 @@ void define_md_data_raw()
       ( NAME( "iy_transmitterMultiplePol" ),
         DESCRIPTION
         (
-         "Transmitter definition handling multiple polarisations.\n"
+         "Transmitted signal having multiple polarisations.\n"
          "\n"
          "The method is intended to be part of *iy_transmitter_agenda*. It\n"
-         "sets *iy* to describe the transmitted pulses. The polarisation\n"
+         "sets *iy* to describe the transmitted signal/pulses. The polarisation\n"
          "state is taken from *instrument_pol*, where *instrument_pol* must\n"
          "contain an element for each frequency in *f_grid*. The transmitted\n"
-         "pulses are set to be of unit magnitude, such as [1,1,0,0].\n"
+         "signal/pulses are set to be of unit magnitude, such as [1,1,0,0].\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy" ),
@@ -7967,13 +7967,13 @@ void define_md_data_raw()
       ( NAME( "iy_transmitterSinglePol" ),
         DESCRIPTION
         (
-         "Transmitter definition involving a single polarisation.\n"
+         "Transmitted signal having a single polarisations.\n"
          "\n"
          "The method is intended to be part of *iy_transmitter_agenda*. It\n"
-         "sets *iy* to describe the transmitted pulses. The polarisation\n"
+         "sets *iy* to describe the transmitted pulses/signal. The polarisation\n"
          "state is taken from *instrument_pol*, where *instrument_pol* must contain\n"
          "a single value. This polarisation state is applied for all\n"
-         "frequencies. The transmitted pulses are set to be of unit\n"
+         "frequencies. The transmitted pulses/signals are set to be of unit\n"
          "magnitude, such as [1,1,0,0].\n"
          ),
         AUTHORS( "Patrick Eriksson" ),

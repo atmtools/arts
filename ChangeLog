@@ -1,5 +1,24 @@
 2018-03-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-988
+
+	* src/m_cloudradar.cc (iyActiveSingleScat): Fixed a bug for iy_aux
+	when f_grid had more than element.
+
+	(yActive): Now using new version of stokes_pol. This allowed to
+	replace some loops with matrix-vector multiplication.
+
+	* src/sensor.cc (stokes2pol): A new version of this function. This
+	version has a proper checking that stokes_dim is sufficient for
+	selected polarization.
+
+	* src/methods.cc: Fixes in description of
+	iy_transmitterSinglePol and iy_transmitterMultiplePol.
+
+	* src/workspace.cc: Improved text for instrument_pol.
+
+2018-03-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-987
 
 	* src/m_cloudradar.cc (iyActiveSingleScat): Added the option
