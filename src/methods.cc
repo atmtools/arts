@@ -7085,7 +7085,21 @@ void define_md_data_raw()
          "This method does not consider *iy_unit*. Unit changes are insted applied\n"
          "in *yActive. The output of this method matches the option \"1\".\n" 
          "\n"
-         "Describe iy_aux ...\n"
+         "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
+         "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
+         "Valid choices for auxiliary data are:\n"
+         " \"Radiative background\": Index value flagging the radiative\n"
+         "    background. The following coding is used: 0=space, 1=surface\n"
+         "    and 2=cloudbox. The value is added to each column.\n"
+         " \"Backscattering\": The unattenuated backscattering. That is, as\n"
+         "    *iy* but with no attenuated applied.\n"
+         " \"Optical depth\": Scalar, total and two-way, optical depth between\n"
+         "    sensor and each point of the propagation path. Calculated based on\n"
+         "    the (1,1)-element of the transmission matrix (1-based indexing),\n"
+         "    i.e. only fully valid for scalar RT. The value is added to each\n"
+         "    column.\n"
+         " \"Particle extinction\": As \"Optical depth\", but only with particle\n"
+         "    attenuation included. That is, gas absorption is ignored.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
@@ -7102,10 +7116,12 @@ void define_md_data_raw()
             "jacobian_do", "jacobian_quantities", "ppath",
             "propmat_clearsky_agenda", "iy_transmitter_agenda", "iy_agenda_call1",
             "iy_transmission", "rte_alonglos_v" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "pext_scaling" ),
+        GIN_TYPE( "Numeric" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC( "Particle extinction is scaled with this value. A value "
+                  "inside [0,2]. Set it to 0 if you want to remove particle "
+                  "extinction totally." )
         ));
 
   md_data_raw.push_back
@@ -7209,12 +7225,12 @@ void define_md_data_raw()
          "Valid choices for auxiliary data are:\n"
          " \"Radiative background\": Index value flagging the radiative\n"
          "    background. The following coding is used: 0=space, 1=surface\n"
-         "    and 2=cloudbox.\n"
+         "    and 2=cloudbox. The value is added to each column.\n"
          " \"Optical depth\": Scalar optical depth between the observation point\n"
          "    and the end of the present propagation path. Calculated based on\n"
          "    the (1,1)-element of the transmission matrix (1-based indexing),\n"
-         "    i.e. only fully valid for scalar RT. The found value is added to\n"
-         "    to each column of the matrix.\n"
+         "    i.e. only fully valid for scalar RT. The value is added to each\n"
+         "    column.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
@@ -7892,12 +7908,12 @@ void define_md_data_raw()
          "Valid choices for auxiliary data are:\n"
          " \"Radiative background\": Index value flagging the radiative\n"
          "    background. The following coding is used: 0=space, 1=surface\n"
-         "    and 2=cloudbox.\n"
+         "    and 2=cloudbox. The value is added to each column.\n"
          " \"Optical depth\": Scalar optical depth between the observation point\n"
          "    and the end of the present propagation path. Calculated based on\n"
          "    the (1,1)-element of the transmission matrix (1-based indexing),\n"
-         "    i.e. only fully valid for scalar RT. The found value is added to\n"
-         "    to each column of the matrix.\n"
+         "    i.e. only fully valid for scalar RT. The value is added to each\n"
+         "    column.\n"
       ),
       AUTHORS( "Patrick Eriksson" ),
       OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",

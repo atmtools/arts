@@ -45,6 +45,7 @@
 #include "arts.h"
 #include "auto_md.h"
 #include "logic.h"
+#include "propagationmatrix.h"
 #include "messages.h"
 #include "montecarlo.h"
 #include "rte.h"
@@ -100,6 +101,7 @@ void iyActiveSingleScat(
   const Index&                              iy_agenda_call1,
   const Tensor3&                            iy_transmission,
   const Numeric&                            rte_alonglos_v,
+  const Numeric&                            pext_scaling, 
   const Verbosity&                          verbosity )
 {
   // Some basic sizes
@@ -135,7 +137,8 @@ void iyActiveSingleScat(
           " is calculated/set." );
     }
   // iy_aux_vars checked below
-
+  chk_if_in_range( "pext_scaling", pext_scaling, 0, 2 );
+  
   // Transmitted signal
   //
   Matrix iy0;
@@ -185,23 +188,36 @@ void iyActiveSingleScat(
   // Init iy_aux 
   const Index naux = iy_aux_vars.nelem();
   iy_aux.resize( naux );
-  Index aux_bscat=-1;
+  Index auxBackScat = -1;
+  Index auxOptDepth = -1;
+  Index auxPartAtte = -1;
   //
   for( Index i=0; i<naux; i++ )
     {
       iy_aux[i].resize(nf*np,ns); 
-      
-      if( iy_aux_vars[i] == "Backscattering" )
+
+      if( iy_aux_vars[i] == "Radiative background" )
+        { iy_aux[i] = (Numeric)min( (Index)2, rbi-1 ); }
+      else if( iy_aux_vars[i] == "Backscattering" )
         {
-          iy_aux[i] = 0;
-          aux_bscat = i;
+          iy_aux[i]   = 0;
+          auxBackScat = i;
+        }
+      else if( iy_aux_vars[i] == "Optical depth" )
+        { auxOptDepth = i; }
+      else if( iy_aux_vars[i] == "Particle extinction" )
+        {
+          iy_aux[i](Range(0,np,nf),joker) = 0;          
+          auxPartAtte = i;
         }
       else
         {
           ostringstream os;
           os << "The only allowed strings in *iy_aux_vars* are:\n"
+             << "  \"Radiative background\"\n"
              << "  \"Backscattering\"\n"
-             << "  \"Transmission\"\n"
+             << "  \"Optical depth\"\n"
+             << "  \"Particle extinction\"\n"
              << "but you have selected: \"" << iy_aux_vars[i] << "\"";
           throw runtime_error( os.str() );      
         }
@@ -216,6 +232,7 @@ void iyActiveSingleScat(
   Tensor5 Pe( ne, np, nf, ns, ns, 0 ); 
   ArrayOfMatrix ppvar_dpnd_dx(0);
   ArrayOfIndex clear2cloudy;
+  Matrix scalar_ext(np,nf,0);  // Only used for iy_aux
   //
   if( np == 1  &&  rbi == 1 )  // i.e. ppath is totally outside the atmosphere:
     {
@@ -342,8 +359,19 @@ void iyActiveSingleScat(
                                                ppvar_t[Range(ip,1)],
                                                atmosphere_dim,
                                                jacobian_do );
+
+              if( abs( pext_scaling-1 ) > 1e-3 )
+                {
+                  Kp *= pext_scaling;
+                  if( j_analytical_do )
+                    { FOR_ANALYTICAL_JACOBIANS_DO( dKp_dx[iq] *= pext_scaling; ) }
+                }
+
               K_this += Kp;
               
+              if( auxPartAtte >= 0 )
+                { scalar_ext(ip,joker) = Kp.Kjj(); }                 
+
               if( j_analytical_do )
                 {
                   FOR_ANALYTICAL_JACOBIANS_DO
@@ -417,7 +445,7 @@ void iyActiveSingleScat(
                                    ppath.lstep[ip-1]:
                                    Numeric(1.0),
                                  ip==0 );
-      
+
           swap( K_past, K_this );
           swap( dK_past_dx, dK_this_dx );
         }
@@ -460,8 +488,15 @@ void iyActiveSingleScat(
               mult( iy2, P, iy1 );
               mult( iy(iout,joker), trans_cumulat(ip,iv,joker,joker), iy2 );
 
-              if( aux_bscat >= 0)
-                { mult( iy_aux[aux_bscat](iout,joker), P, iy0(iv,joker) ); }
+              if( auxBackScat >= 0)
+                { mult( iy_aux[auxBackScat](iout,joker), P, iy0(iv,joker) ); }
+              if( auxPartAtte >= 0  &&  ip > 0 )
+                { iy_aux[auxPartAtte](iout,0) = iy_aux[auxPartAtte](iout-nf,0)
+                    + ppath.lstep[ip-1] *
+                    (scalar_ext(ip-1,iv)+scalar_ext(ip-1,iv));
+                  for( Index is=1; is<ns; is++ )
+                    { iy_aux[auxPartAtte](iout,is) = iy_aux[auxPartAtte](iout,0); } 
+                } 
               
               // Jacobians
               if( j_analytical_do )
@@ -495,7 +530,29 @@ void iyActiveSingleScat(
                 }  // j_analytical_do
             } // for iv
         } // if cloudy
-
+      else
+        {
+          if( auxPartAtte >= 0  &&  ip > 0 )
+            {
+              for( Index iv=0; iv<nf; iv++ )
+                {
+                  const Index iout = iv*np + ip;
+                  iy_aux[auxPartAtte](iout,joker) = iy_aux[auxPartAtte](iout-nf,joker);
+                } 
+            }
+        }
+      
+      if( auxOptDepth >= 0 )
+        {
+          for( Index iv=0; iv<nf; iv++ )
+            {
+              const Index iout = iv*np + ip;
+              iy_aux[auxOptDepth](iout,0) = -2*log( trans_cumulat(ip,iv,0,0) );
+              for( Index is=1; is<ns; is++ )
+                { iy_aux[auxOptDepth](iout,is) = iy_aux[auxOptDepth](iout,0); }
+            }
+        }
+      
       // Update tr_rev
       if( ip<np-1 )
         {
@@ -567,7 +624,6 @@ void yActive(
   const Index npos  = sensor_pos.nrows();
   const Index nbins = range_bins.nelem() - 1;
   const Index nf    = f_grid.nelem();
-  const Index ns    = stokes_dim;
   const Index naux  = iy_aux_vars.nelem();
 
   //---------------------------------------------------------------------------
@@ -740,6 +796,7 @@ void yActive(
       const Numeric range_end2 = max( range[0], range[np-1] );
 
       // Help variables to calculate jacobians
+      /*
       ArrayOfTensor3 dI(njq);
       ArrayOfMatrix drefl(njq);
       if( j_analytical_do )
@@ -749,6 +806,7 @@ void yActive(
             drefl[iq].resize( dI[iq].npages(), np ); 
           )
         }
+      */
       
       // Loop radar bins
       for( Index b=0; b<nbins; b++ )
@@ -770,23 +828,35 @@ void yActive(
               for( Index iv=0; iv<nf; iv++ )
                 {
                   // Pick out part of iy for frequency
-                  //
                   Matrix I = iy( Range(iv*np,np), joker );
-                  //
+                  ArrayOfTensor3 dI(njq);
                   if( j_analytical_do )
                     {
                       FOR_ANALYTICAL_JACOBIANS_DO(
                         dI[iq] = diy_dx[iq]( joker, Range(iv*np,np), joker );
                       )
                     }
+                  ArrayOfMatrix A(naux);
+                  for( Index a=0; a<naux; a++ )
+                    { A[a] = iy_aux[a]( Range(iv*np,np), joker ); }
 
                   
                   for( Index ip=0; ip<instrument_pol_array[iv].nelem(); ip++ )
                     {
                       // Extract reflectivity for received polarisation
                       Vector refl( np, 0.0 );
+                      ArrayOfMatrix drefl(njq);
                       if( j_analytical_do )
-                        { FOR_ANALYTICAL_JACOBIANS_DO( drefl[iq] = 0.0; ) }
+                        {
+                          FOR_ANALYTICAL_JACOBIANS_DO(
+                            drefl[iq].resize( dI[iq].npages(), np ); 
+                            drefl[iq] = 0.0;
+                          )
+                        }
+                      ArrayOfVector auxvar(naux);
+                      for( Index a=0; a<naux; a++ )
+                        { auxvar[a].resize(np); auxvar[a] = 0.0; }
+                      
                       Vector w = s2p[instrument_pol_array[iv][ip]-1];
                       for( Index i=0; i<w.nelem(); i++ )     // Note that w can
                         {                                    // be shorter than
@@ -800,11 +870,18 @@ void yActive(
                                       { drefl[iq](k,j) += dI[iq](k,j,i) * w[i]; }
                                   )
                                 }
+                              for( Index a=0; a<naux; a++ )
+                                {
+                                  if( iy_aux_vars[a] == "Backscattering" )
+                                    { auxvar[a][j] += A[a](j,i) * w[i]; }
+                                  else
+                                    { auxvar[a][j] = A[a](j,0); }
+                                }
                             }
                         }  
                                                              
                                                              
-                      // Apply weight vector to get final values.
+                      // Apply bin weight vector to get final values.
                       // 
                       Index iout = nbins * ( p*npolcum[nf] + 
                                              npolcum[iv] + ip ) + b;
@@ -832,9 +909,18 @@ void yActive(
                       // Same for aux variables
                       for( Index a=0; a<naux; a++ )
                         {
+                          if( iy_aux_vars[a] == "Backscattering" )
+                            { 
+                              y_aux[a][iout] = cfac[iv] * ( hbin * auxvar[a] );
+                              if( iy_unit == "dBZe" )
+                                { y_aux[a][iout] = y_aux[a][iout] <= ze_min ? dbze_min :
+                                    10*log10(y_aux[a][iout]); }
+                            }
+                          else
+                            { y_aux[a][iout] = hbin * auxvar[a]; }
                         }
                     }
-                }
+                } // Frequency 
             }
         }
 

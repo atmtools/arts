@@ -1,3 +1,13 @@
+2018-03-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-987
+
+	* src/m_cloudradar.cc (iyActiveSingleScat): Added the option
+	pext_scaling. Implemented handling of these iy_aux_vars: Radiative
+	background, Backscattering, Optical depth and Particle extinction.
+
+	(yActive): Added mapping of iy_ayx to y_aux.
+
 2018-03-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-986
