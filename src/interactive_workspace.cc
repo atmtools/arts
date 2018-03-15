@@ -73,6 +73,12 @@ const char * InteractiveWorkspace::execute_workspace_method(long id,
     Agenda a{};
     try {
         MRecord mr(id, output, input, t, a);
+        if (mr.isInternal()) {
+            out3 << "- " + m.Name() + "\n";
+        }
+        else {
+            out1 << "- " + m.Name() + "\n";
+        }
         getaways[id](*this, mr);
     } catch (const std::runtime_error &e) {
         string_buffer = e.what();

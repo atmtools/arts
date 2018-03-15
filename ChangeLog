@@ -1,3 +1,12 @@
+2018-03-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-986
+
+	* src/interactive_workspace.cc
+	(InteractiveWorkspace::execute_workspace_method):
+
+	Output method name in the API the same way the ARTS executable does.
+
 2018-03-14  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-985
