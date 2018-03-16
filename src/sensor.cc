@@ -734,14 +734,17 @@ void met_mm_polarisation_hmatrix(Sparse& H,
     }
 
     // Vectors representing standard cases of sensor polarisation response
+    /*
     ArrayOfVector pv;
     stokes2pol( pv, w );
-
+    */
+    
     // Complete H, for all channels
     H = Sparse( nch, nch*stokes_dim );
 
     for( Index i=0; i<nch; i++ )
     {
+      /*
         // See stokes2pol for index order used in pv
         Index ipv = -1;
         if( pol[i] == "V" )
@@ -754,7 +757,21 @@ void met_mm_polarisation_hmatrix(Sparse& H,
         { ipv = 9; }
         else
         { assert( 0 ); }
-
+      */
+        // See instrument_pol for index order
+        Index ipol = -1;
+        if( pol[i] == "V" )
+        { ipol = 5; }
+        else if( pol[i] == "H" )
+        { ipol = 6; }
+        else if( pol[i] == "LHC" )  // Left hand circular
+        { ipol = 9; }
+        else if( pol[i] == "RHC" )  // Right hand circular
+        { ipol = 10; }
+        else
+        { assert( 0 ); }
+        
+        /*
         // Maybe this error messages should be mofified
         if( pv[ipv].nelem() > stokes_dim )
         {
@@ -763,14 +780,17 @@ void met_mm_polarisation_hmatrix(Sparse& H,
             << "covered by present value of *stokes_dim* (the later has to be "
             << "increased).";
             throw runtime_error(os.str());
-        }
+            }*/
 
         // No rotation, just plane polarisation response
         if( rot[i] == "none" )
         {
           // Here we just need to fill the row H
           Vector hrow( nch*stokes_dim, 0.0 );
+          /* Old code, matching older version of stokes2pol:
           hrow[Range(i*stokes_dim,pv[ipv].nelem())] = pv[ipv];
+          */
+          stokes2pol( hrow[Range(i*stokes_dim,stokes_dim)], stokes_dim, ipol, w );
           H.insert_row( i, hrow );      
         }
         
@@ -806,11 +826,14 @@ void met_mm_polarisation_hmatrix(Sparse& H,
             assert(0);
           }
         
-          // H-matrix matching pv[ipv] (can this made in more compact way?)
+          // H-matrix matching polarization
           Sparse Hpol( 1, stokes_dim );
-          {
+          { /* Old code, matching older version of stokes2pol
             Vector hrow( stokes_dim, 0.0 );
             hrow[Range(0,pv[ipv].nelem())] = pv[ipv];
+            */
+            Vector hrow( stokes_dim );
+            stokes2pol( hrow, stokes_dim, ipol, w );
             Hpol.insert_row( 0, hrow );
           }
 
@@ -983,20 +1006,12 @@ void spectrometer_matrix(
 
 //! stokes2pol
 /*!
-   Sets up an array of vectors to convert the Stokes vector to different
-   polarsiations.
+   Sets up a vector to convert the Stokes vector to different polarsiations.
 
    The measured value is the sum of the element product of the conversion
    vector and the Stokes vector. Schematically:
 
-   y[iout] = sum( s2p[i].*iy(iin,joker)
-
-   The order of the vectors follow the coding described for instrument_pol, but
-   zero-based indexing is used here. That is, the first vector (s2p[0])
-   corresponds to I.
-
-   Trailing zeros are not stored, to indicate the required value of
-   *stokes_dim*.
+   y[iout] = sum( w.*iy(iin,joker)
 
    Vectors for I, Q, U and V are always normalised to have unit length (one
    value is 1, the remaining ones zero). The first element of remaining vectors
@@ -1007,60 +1022,13 @@ void spectrometer_matrix(
    \param   nv            Norm value for polarisations beside I, Q, U and V.
 
    \author Patrick Eriksson
-   \date   2011-11-01
-*/
-void stokes2pol( 
-            ArrayOfVector&  s2p,
-      const Numeric&        nv )
-{
-  s2p.resize(10);
-
-  s2p[0] = {1};               // I
-  s2p[1] = {0, 1};            // Q
-  s2p[2] = {0, 0, 1};         // U
-  s2p[3] = {0, 0, 0, 1};      // V
-  s2p[4] = {nv, nv};          // Iv
-  s2p[5] = {nv, -nv};         // Ih
-  s2p[6] = {nv, 0, nv};       // I+45
-  s2p[7] = {nv, 0, -nv};      // I-45
-  s2p[8] = {nv, 0, 0, nv};    // Ilhc
-  s2p[9] = {nv, 0, 0, -nv};   // Irhc
-}
-
-
-//! stokes2pol
-/*!
-   Sets up an array of vectors to convert the Stokes vector to different
-   polarsiations.
-
-   The measured value is the sum of the element product of the conversion
-   vector and the Stokes vector. Schematically:
-
-   y[iout] = sum( s2p[i].*iy(iin,joker)
-
-   The order of the vectors follow the coding described for instrument_pol, but
-   zero-based indexing is used here. That is, the first vector (s2p[0])
-   corresponds to I.
-
-   Trailing zeros are not stored, to indicate the required value of
-   *stokes_dim*.
-
-   Vectors for I, Q, U and V are always normalised to have unit length (one
-   value is 1, the remaining ones zero). The first element of remaining vectors
-   is set to nv (and other values normalised accordingly), to allow that
-   calibartion and other normalisation effects can be incorporated.
-
-   \param   s2p           Array of conversion vectors.
-   \param   nv            Norm value for polarisations beside I, Q, U and V.
-
-   \author Patrick Eriksson
-   \date   2011-11-01
+   \date   2011-11-01 and 2018-03-16
 */
 void stokes2pol(
-        Vector&   w,
-  const Index&    stokes_dim,
-  const Index&    ipol_1based,
-  const Numeric   nv )
+        VectorView   w,
+  const Index&       stokes_dim,
+  const Index&       ipol_1based,
+  const Numeric      nv )
 {
   assert( w.nelem() == stokes_dim );
 

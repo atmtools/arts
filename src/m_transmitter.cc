@@ -1045,17 +1045,10 @@ void iy_transmitterMultiplePol(
                          "in *instrument_pol* must be equal." );
 
   iy.resize( nf, stokes_dim );
-  iy = 0;
-
-  ArrayOfVector   s2p;
-  stokes2pol( s2p, 1 );
 
   for( Index i=0; i<nf; i++ )
     {
-      for( Index j=0; j<s2p[instrument_pol[i]-1].nelem(); j++ )
-        {
-          iy(i,j) = s2p[instrument_pol[i]-1][j];
-        }
+      stokes2pol( iy(i,joker), stokes_dim, instrument_pol[i], 1 );
     }
 }
 
@@ -1077,19 +1070,11 @@ void iy_transmitterSinglePol(
     throw runtime_error( "The number of elements in *instrument_pol* must be 1." );
 
   iy.resize( nf, stokes_dim );
-  iy = 0;
 
-  ArrayOfVector   s2p;
-  stokes2pol( s2p, 1 );
+  stokes2pol( iy(0,joker), stokes_dim, instrument_pol[0], 1 );
 
-  for( Index j=0; j<s2p[instrument_pol[0]-1].nelem(); j++ )
-    {
-      iy(0,j) = s2p[instrument_pol[0]-1][j];
-      for( Index i=1; i<nf; i++ )
-        {
-          iy(i,j) = iy(0,j);
-        }
-    }
+  for( Index i=1; i<nf; i++ )
+    { iy(i,joker) = iy(0,joker); }
 }
 
 

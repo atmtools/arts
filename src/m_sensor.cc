@@ -2512,15 +2512,6 @@ void sensor_responsePolarisation(
     const ArrayOfIndex&   instrument_pol,
     const Verbosity& )
 {
-  // Vectors for extracting polarisation components
-  //
-  Numeric w = 0.5;
-  if( iy_unit == "PlanckBT"  ||  iy_unit == "RJBT"  )
-    { w = 1.0; }
-  //
-  ArrayOfVector pv;
-  stokes2pol( pv, w );
-
   // Some sizes
   const Index nnew = instrument_pol.nelem();
   const Index nf   = sensor_response_f_grid.nelem();
@@ -2588,27 +2579,21 @@ void sensor_responsePolarisation(
   // message (before it gets too long)
   if( error_found )
     throw runtime_error(os.str());
-
-  for( Index i=0; i<nnew && !error_found; i++ )
-    {
-      if( pv[instrument_pol[i]-1].nelem() > stokes_dim )
-        {
-          os << "You have selected an output polarisation that is not covered "
-             << "by present value of *stokes_dim* (the later has to be "
-             << "increased).";
-          error_found = true;
-        }
-    }  
-
+  
   // If errors where found throw runtime_error with the collected error
   // message 
   if( error_found )
     throw runtime_error(os.str());
 
+  // Normalisation weight to apply
+  Numeric w = 0.5;
+  if( iy_unit == "PlanckBT"  ||  iy_unit == "RJBT"  )
+    { w = 1.0; }
+  
   // Form H matrix representing polarisation response
   //
   Sparse Hpol( nfz*nnew, nin );
-  Vector hrow( nin, 0.0 );
+  Vector hrow( nin, 0 );
   Index row = 0;
   //
   for( Index i=0; i<nfz; i++ )
@@ -2616,10 +2601,13 @@ void sensor_responsePolarisation(
       Index col = i*npol;
       for( Index in=0; in<nnew; in++ )
         {
+          /* Old code, matching older version of stokes2pol
           Index p = instrument_pol[in] - 1;
           //
           for( Index iv=0; iv<pv[p].nelem(); iv++ )
             { hrow[col+iv] = pv[p][iv]; }
+          */
+          stokes2pol( hrow[Range(col,stokes_dim)], stokes_dim, instrument_pol[in], w );
           //
           Hpol.insert_row( row, hrow );
           //

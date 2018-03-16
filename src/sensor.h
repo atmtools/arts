@@ -110,12 +110,8 @@ void spectrometer_matrix(
       const Index&         n_sp,
       const Index&         do_norm );
 
-void stokes2pol( 
-            ArrayOfVector&  s2p,
-      const Numeric&        w );
-
 void stokes2pol(
-        Vector&   w,
+        VectorView   w,
   const Index&    stokes_dim,
   const Index&    ipol_1based,
   const Numeric   nv = 1 );

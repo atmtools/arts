@@ -207,7 +207,7 @@ void iyActiveSingleScat(
         { auxOptDepth = i; }
       else if( iy_aux_vars[i] == "Particle extinction" )
         {
-          iy_aux[i](Range(0,np,nf),joker) = 0;          
+          iy_aux[i](Range(0,nf,np),joker) = 0;          
           auxPartAtte = i;
         }
       else
@@ -450,6 +450,7 @@ void iyActiveSingleScat(
           swap( dK_past_dx, dK_this_dx );
         }
     }
+  
 
   // Transmission for reversed direction
   Tensor3 tr_rev( nf, ns, ns );
@@ -492,8 +493,7 @@ void iyActiveSingleScat(
                 { mult( iy_aux[auxBackScat](iout,joker), P, iy0(iv,joker) ); }
               if( auxPartAtte >= 0  &&  ip > 0 )
                 { iy_aux[auxPartAtte](iout,0) = iy_aux[auxPartAtte](iout-1,0)
-                    + ppath.lstep[ip-1] *
-                    (scalar_ext(ip-1,iv)+scalar_ext(ip-1,iv));
+                    + ppath.lstep[ip-1] * (scalar_ext(ip-1,iv)+scalar_ext(ip-1,iv));
                   for( Index is=1; is<ns; is++ )
                     { iy_aux[auxPartAtte](iout,is) = iy_aux[auxPartAtte](iout,0); } 
                 } 

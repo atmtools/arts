@@ -1,3 +1,18 @@
+2018-03-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-989
+
+	* src/sensor.cc (stokes2pol): Old version now completely removed.
+	New version gives short and more clear code in calling function.
+
+	* src/sensor.cc (met_mm_polarisation_hmatrix, stokes2pol):
+	* src/m_sensor.cc (sensor_responsePolarisation):
+	* src/m_transmitter.cc (iy_transmitterMultiplePol)
+	(iy_transmitterSinglePol):  Now using the new version of stokes2pol.
+
+	* src/m_cloudradar.cc (iyActiveSingleScat): Another bug for
+	particle extinction as aux variable.
+
 2018-03-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-988
