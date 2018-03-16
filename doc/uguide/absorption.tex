@@ -675,39 +675,17 @@ tag. That is, \verb|O2-Z-66| will be counted as Zeeman splitting on the
 O$^{16}$O$^{16}$ molecule.
 
 The physics and internal workings of the Zeeman calculations follow the scheme
-presented in \citet{larsson14:_treatment_jqsrt}.
+presented in \citet{larsson14:_treatment_jqsrt}.  However, \citet{larsson14:_treatment_jqsrt}
+only presents the correct solution for ground-state $^3\Sigma$ (e.g., molecular oxygen in millimeter).  
+For other states, more appropriate expressions should be used.  Also note that there is one
+additional error in \citet{larsson14:_treatment_jqsrt}, where the table representing the relative line strengths is
+incorrectly normalized to 2 rather than 1 for $\Delta J = 0$.
 
-In order to calculate Zeeman splitting, additional line parameters that are not
-readily available in, e.g., HITRAN are necessary. These include $g_s$, the
-relative Land\'{e} factor, the Lambda-state ($\Sigma:=0$, $\Pi:=1$, ...), the molecular total spin $S$,
-and the Hund case (case a is 0 and case b is 1). These
-variables must therefore be read to the WSV \wsvindex{isotopologue\_quantum}.
-This variable is of type \builtindoc{SpeciesAuxData}, and a file providing
-that kind of data would, e.g., look like:
-\begin{code}
-<arts format="ascii" version="1">
-  <SpeciesAuxData version="1" nelem="1" nparam="4">
-    @ O2-66 2.002064 0 1 1
-  </SpeciesAuxData>
-</arts>
-\end{code}
-In this example, \verb|@| indicates the beginning of a new data record, \verb|O2-66|
-specifies what isotopologue is associated with the data, the number
-\verb|2.002064| is the relative Land\'{e} factor, and the molecule got $S=1$.
-The last value indicates what Hund case is used in the calculations. For oxygen,
-Hund case b is used, indicated b the number "1". Presently, Hund case a, indicated
-by number "0" also works for some molecules. It is up to the user to assure the
-correct quantum numbers for each case are set properly.
-The supported molecules in ARTS so far for Zeeman calculations are
-\begin{itemize}
-\item O$_2$, case b
-\item NO, case a/b
-\item OH, case a
-\item ClO, case a
-\item HO$_2$, case b
-\item NO$_2$, case b
-\end{itemize}
-but only O$_2$ is tested beyond initial modeling results.
+In order to calculate Zeeman splitting, additional line parameters are necessary. 
+These include $g_s$ and $g_l$, the relative Land\'{e} factors, and their values must be provided in code for particular species.
+It is also necessary that the line defines its Hund-case state simplification, and that it provides the relevant quantum numbers
+for the provided Hund case.  To set the HUnd-case, use ARTSCAT-5 and set ``Hund'' for each level.  The code will report what 
+quantum numbers it expects for these cases if you allow output on 3rd-level (e.g., by using the command ``-r333'' when calling ARTS).
 
 Beside the additional line parameters, it is also necessary to input the magnetic
 field into the model. This can be done following:

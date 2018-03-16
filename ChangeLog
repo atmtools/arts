@@ -1,3 +1,19 @@
+2018-03-16  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-990
+	
+	Still missing: update to NLTE computations required...
+	
+	* controlfiles/artscomponents/linemixing/TestLineMixingAndZeeman_50_to_70_GHz.arts:
+	removed unused variable so the test now succeeds.
+	
+	* doc/uguide/absorption.tex:  Removed reference to removed 
+	variable and slightly updated the text, adding some errata
+	that has been pointed out in the Zeeman paper.  This part will
+	likely be updated in the future again as an ongoing review
+	at Chalmers shows whether the changes give reliable results or 
+	not...
+
 2018-03-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-989
