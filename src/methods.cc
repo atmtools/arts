@@ -7085,6 +7085,19 @@ void define_md_data_raw()
          "This method does not consider *iy_unit*. Unit changes are insted applied\n"
          "in *yActive. The output of this method matches the option \"1\".\n" 
          "\n"
+         "Transmission is handled in a slightly simplified manner for efficiency\n"
+         "reasons. First of all, the transmission matrix is assumed to be the same\n"
+         "in both directions between the sensor and the point of back-scattering.\n"
+         "This should in general be true, but exceptions could exist. The extinction\n"
+         "due to particles can also be scaled, which could be of interest when e.g.\n"
+         "characterising inversions.\n"
+         "\n"
+         "Further, for Jacobian calculations the default is to assume that the\n"
+         "transmission is unaffected by the retrieval quantities. This is done\n"
+         "to save computational time, and should be a valid approximation for the\n"
+         "single-scattering conditions. Set *trans_in_jacobian* to 1 to obtain\n"
+         "the more accurate Jacobian.\n"
+         "\n"
          "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
          "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
          "Valid choices for auxiliary data are:\n"
@@ -7116,10 +7129,12 @@ void define_md_data_raw()
             "jacobian_do", "jacobian_quantities", "ppath",
             "propmat_clearsky_agenda", "iy_transmitter_agenda", "iy_agenda_call1",
             "iy_transmission", "rte_alonglos_v" ),
-        GIN( "pext_scaling" ),
-        GIN_TYPE( "Numeric" ),
-        GIN_DEFAULT( "1" ),
-        GIN_DESC( "Particle extinction is scaled with this value. A value "
+        GIN( "trans_in_jacobian", "pext_scaling" ),
+        GIN_TYPE( "Index", "Numeric" ),
+        GIN_DEFAULT( "0", "1" ),
+        GIN_DESC( "Flag determining if change in transmission is considered "
+                  "in calculation of the Jacobian or not.",
+                  "Particle extinction is scaled with this value. A value "
                   "inside [0,2]. Set it to 0 if you want to remove particle "
                   "extinction totally." )
         ));

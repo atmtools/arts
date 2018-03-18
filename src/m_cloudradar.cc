@@ -101,6 +101,7 @@ void iyActiveSingleScat(
   const Index&                              iy_agenda_call1,
   const Tensor3&                            iy_transmission,
   const Numeric&                            rte_alonglos_v,
+  const Index&                              trans_in_jacobian, 
   const Numeric&                            pext_scaling, 
   const Verbosity&                          verbosity )
 {
@@ -227,8 +228,8 @@ void iyActiveSingleScat(
   //
   Tensor3 J(np,nf,ns);
   Tensor4 trans_cumulat(np,nf,ns,ns), trans_partial(np,nf,ns,ns);
-  Tensor5 dtrans_partial_dx_above(np,nq,nf,ns,ns);
-  Tensor5 dtrans_partial_dx_below(np,nq,nf,ns,ns);
+  Tensor5 dtrans_partial_dx_above(0,0,0,0,0);
+  Tensor5 dtrans_partial_dx_below(0,0,0,0,0);
   Tensor5 Pe( ne, np, nf, ns, ns, 0 ); 
   ArrayOfMatrix ppvar_dpnd_dx(0);
   ArrayOfIndex clear2cloudy;
@@ -276,13 +277,23 @@ void iyActiveSingleScat(
       StokesVector a(nf,ns), S(nf,ns), Sp(nf,ns);
       ArrayOfIndex lte(np);
 
-      // Init variables only used if analytical jacobians done
+      // Init variables only used if transmission part of jacobian
       Vector dB_dT(0);
-      ArrayOfPropagationMatrix dK_this_dx(nq), dK_past_dx(nq), dKp_dx(nq);
-      ArrayOfStokesVector da_dx(nq), dS_dx(nq), dSp_dx(nq);
+      ArrayOfPropagationMatrix dK_this_dx(0), dK_past_dx(0), dKp_dx(0);
+      ArrayOfStokesVector da_dx(0), dS_dx(0), dSp_dx(0);
       //
-      if( j_analytical_do )
+      if( trans_in_jacobian && j_analytical_do )
         {
+          dtrans_partial_dx_above.resize(np,nq,nf,ns,ns);
+          dtrans_partial_dx_below.resize(np,nq,nf,ns,ns);
+          dtrans_partial_dx_above = 0;   // Here all values are set to zero, to
+          dtrans_partial_dx_below = 0;   // allow looping over non-defined values
+          dK_this_dx.resize(nq);
+          dK_past_dx.resize(nq);
+          dKp_dx.resize(nq);
+          da_dx.resize(nq);
+          dS_dx.resize(nq);
+          dSp_dx.resize(nq);
           dB_dT.resize(nf);
           FOR_ANALYTICAL_JACOBIANS_DO
             (
@@ -325,9 +336,9 @@ void iyActiveSingleScat(
                                          ppvar_t[ip],
                                          ppvar_p[ip],
                                          jac_species_i,
-                                         j_analytical_do );
+                                         trans_in_jacobian && j_analytical_do );
 
-          if( j_analytical_do )
+          if( trans_in_jacobian &&  j_analytical_do )
             {
               adapt_stepwise_partial_derivatives( dK_this_dx,
                                                   dS_dx,
@@ -341,7 +352,7 @@ void iyActiveSingleScat(
                                                   jac_wind_i,
                                                   lte[ip],
                                                   atmosphere_dim,
-                                                  j_analytical_do );
+                                                  trans_in_jacobian && j_analytical_do );
             }
 
           if( clear2cloudy[ip]+1 )
@@ -358,12 +369,12 @@ void iyActiveSingleScat(
                                                ppath.los(ip,joker),
                                                ppvar_t[Range(ip,1)],
                                                atmosphere_dim,
-                                               jacobian_do );
+                                               trans_in_jacobian && jacobian_do );
 
-              if( abs( pext_scaling-1 ) > 1e-3 )
+              if( abs( pext_scaling-1 ) > 1e-6 )
                 {
                   Kp *= pext_scaling;
-                  if( j_analytical_do )
+                  if( trans_in_jacobian && j_analytical_do )
                     { FOR_ANALYTICAL_JACOBIANS_DO( dKp_dx[iq] *= pext_scaling; ) }
                 }
 
@@ -372,7 +383,7 @@ void iyActiveSingleScat(
               if( auxPartAtte >= 0 )
                 { scalar_ext(ip,joker) = Kp.Kjj(); }                 
 
-              if( j_analytical_do )
+              if( trans_in_jacobian && j_analytical_do )
                 {
                   FOR_ANALYTICAL_JACOBIANS_DO
                     (
@@ -429,7 +440,9 @@ void iyActiveSingleScat(
               } // local scope
             }  // clear2cloudy
       
-          get_stepwise_transmission_matrix(
+          if( trans_in_jacobian &&  j_analytical_do )
+            {
+              get_stepwise_transmission_matrix(
                                  trans_cumulat(ip,joker,joker,joker),
                                  trans_partial(ip,joker,joker,joker),
                                  dtrans_partial_dx_above(ip,joker,joker,joker,joker),
@@ -445,6 +458,26 @@ void iyActiveSingleScat(
                                    ppath.lstep[ip-1]:
                                    Numeric(1.0),
                                  ip==0 );
+            }
+          else
+            {
+              get_stepwise_transmission_matrix(
+                                 trans_cumulat(ip,joker,joker,joker),
+                                 trans_partial(ip,joker,joker,joker),
+                                 Tensor4(0,0,0,0),
+                                 Tensor4(0,0,0,0),
+                                 (ip>0)?
+                                   trans_cumulat(ip-1,joker,joker,joker):
+                                   Tensor3(0,0,0),
+                                 K_past,
+                                 K_this,
+                                 dK_past_dx,
+                                 dK_this_dx,
+                                 (ip>0)?
+                                   ppath.lstep[ip-1]:
+                                   Numeric(1.0),
+                                 ip==0 );
+            }
 
           swap( K_past, K_this );
           swap( dK_past_dx, dK_this_dx );
@@ -453,9 +486,9 @@ void iyActiveSingleScat(
   
 
   // Transmission for reversed direction
-  Tensor3 tr_rev( nf, ns, ns );
-  for( Index iv=0; iv<nf; iv++ ) 
-    { id_mat( tr_rev(iv,joker,joker) ); }
+  //Tensor3 tr_rev( nf, ns, ns );
+  //for( Index iv=0; iv<nf; iv++ ) 
+  //  { id_mat( tr_rev(iv,joker,joker) ); }
 
   // Size iy and set to zero
   iy.resize( nf*np, ns );
@@ -485,7 +518,8 @@ void iyActiveSingleScat(
               // Combine iy0, double transmission and scattering matrix
               Vector iy1(ns), iy2(ns);
               const Index iout = iv*np + ip;
-              mult( iy1, tr_rev(iv,joker,joker), iy0(iv,joker) );
+              //mult( iy1, tr_rev(iv,joker,joker), iy0(iv,joker) );
+              mult( iy1, trans_cumulat(ip,iv,joker,joker), iy0(iv,joker) );
               mult( iy2, P, iy1 );
               mult( iy(iout,joker), trans_cumulat(ip,iv,joker,joker), iy2 );
 
@@ -554,6 +588,7 @@ void iyActiveSingleScat(
         }
       
       // Update tr_rev
+      /*
       if( ip<np-1 )
         {
           for( Index iv=0; iv<nf; iv++ )
@@ -563,12 +598,45 @@ void iyActiveSingleScat(
                     tmp );
             }
         }
+      */
     } // for ip
 
 
-  // Finalize analytical Jacobians
+  // Finalize analytical Jacobian
   if( j_analytical_do )
     {
+      // Add impact on transmission, if selected to be included
+      if( trans_in_jacobian )
+        {
+          Vector jterm( stokes_dim );
+          FOR_ANALYTICAL_JACOBIANS_DO
+            ( 
+              for( Index iv=0; iv<nf; iv++ )
+                {
+                  for( Index ip=1; ip<np-1; ip++ )
+                    {
+                      for( Index j=ip; j<np; j++ )
+                        {
+                          const Index iout = iv*np + j;
+                          if( j > ip )
+                            {
+                              mult( jterm,
+                                    dtrans_partial_dx_below(ip,iq,iv,joker,joker),
+                                    iy(iout,joker) );
+                              jterm *= 2;
+                              diy_dpath[iq](ip,iout,joker) += jterm;
+                            }
+                          mult( jterm,
+                                dtrans_partial_dx_above(ip,iq,iv,joker,joker),
+                                iy(iout,joker) );
+                          jterm *= 2;
+                          diy_dpath[iq](ip,iout,joker) += jterm;
+                        }
+                    }
+                }
+            )
+        }
+      
       rtmethods_jacobian_finalisation( diy_dx, diy_dpath,
                                        ns, nf, np, atmosphere_dim, ppath,
                                        ppvar_p, ppvar_t, ppvar_vmr,

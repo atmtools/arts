@@ -1,12 +1,22 @@
+2018-03-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-991
+
+	* src/m_cloudradar.cc (iyActiveSingleScat): Added GIN to ignore
+	transmission in Jacobian calculations. Saves about 30% in
+	calculation time. Also added code to actually include the
+	transmission in the Jacobian. Obtain good fit with perturbations
+	but there could still be some smaller indexing issues.
+
 2018-03-16  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-990
-	
+
 	Still missing: update to NLTE computations required...
-	
+
 	* controlfiles/artscomponents/linemixing/TestLineMixingAndZeeman_50_to_70_GHz.arts:
 	removed unused variable so the test now succeeds.
-	
+
 	* doc/uguide/absorption.tex:  Removed reference to removed 
 	variable and slightly updated the text, adding some errata
 	that has been pointed out in the Zeeman paper.  This part will
