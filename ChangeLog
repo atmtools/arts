@@ -1,3 +1,12 @@
+2018-03-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-992
+
+	* src/methods.cc: Extended description of
+	jacobianSetAffineTransformation and jacobianSetFuncTransformation,
+	to clarify that transformations are applied by
+	jacobianAdjustAndTransform.
+
 2018-03-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-991
