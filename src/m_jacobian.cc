@@ -481,7 +481,7 @@ void jacobianCalcAbsSpeciesPerturbations(
   it = ji[0];
   ArrayOfVector jg = rq.Grids();
 
-  // Check if a relative pertubation is used or not, this information is needed
+  // Check if a relative perturbation is used or not, this information is needed
   // by the methods 'perturbation_field_?d'.
   // Note: both 'vmr' and 'nd' are absolute perturbations
   if( rq.Mode()=="rel" )
@@ -2743,7 +2743,7 @@ void jacobianDoit(//WS Output:
       // species
       //assert( it == jacobian_indices[iq][0] );
 
-      // Check if a relative pertubation is used or not, this information is needed
+      // Check if a relative perturbation is used or not, this information is needed
       //by the methods 'perturbation_field_?d'.
       //if( jq.Mode()=="rel" )
       //  pertmode = 0;

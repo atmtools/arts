@@ -21,9 +21,9 @@
 </Matrix>
 <Vector name="ReferenceTemperatureProfile" nelem="202">
 </Vector>
-<Vector name="TemperaturePertubations" nelem="0">
+<Vector name="TemperaturePerturbations" nelem="0">
 </Vector>
-<Vector name="NonlinearSpeciesVmrPertubations" nelem="0">
+<Vector name="NonlinearSpeciesVmrPerturbations" nelem="0">
 </Vector>
 <Tensor4 name="AbsorptionCrossSections" nbooks="1" npages="3" nrows="2" ncols="202">
 </Tensor4>

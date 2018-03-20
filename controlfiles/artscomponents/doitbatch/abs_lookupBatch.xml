@@ -236,7 +236,7 @@
 188.368126404926
 188.368126404926
 </Vector>
-<Vector name="TemperaturePertubations" nelem="8">
+<Vector name="TemperaturePerturbations" nelem="8">
 -54.1926085844573
 -39.3289926790363
 -24.4653767736153
@@ -246,7 +246,7 @@
 34.9890868480685
 49.8527027534895
 </Vector>
-<Vector name="NonlinearSpeciesVmrPertubations" nelem="6">
+<Vector name="NonlinearSpeciesVmrPerturbations" nelem="6">
 0
 8.79883344659903
 17.5976668931981

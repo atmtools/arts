@@ -27,9 +27,9 @@
 </Matrix>
 <Vector name="ReferenceTemperatureProfile" nelem="100">
 </Vector>
-<Vector name="TemperaturePertubations" nelem="10">
+<Vector name="TemperaturePerturbations" nelem="10">
 </Vector>
-<Vector name="NonLinearSpeciesVmrPertubations" nelem="0">
+<Vector name="NonLinearSpeciesVmrPerturbations" nelem="0">
 </Vector>
 <Tensor4 name="AbsorptionCrossSections" nbooks="10" npages="5" nrows="221" ncols="100">
 </Tensor4>

@@ -339,9 +339,9 @@ void xml_write_to_stream(ostream& os_xml,
   xml_write_to_stream(os_xml, gal.p_grid, pbofs, "PressureGrid", verbosity);
   xml_write_to_stream(os_xml, gal.vmrs_ref, pbofs, "ReferenceVmrProfiles", verbosity);
   xml_write_to_stream(os_xml, gal.t_ref, pbofs, "ReferenceTemperatureProfile", verbosity);
-  xml_write_to_stream(os_xml, gal.t_pert, pbofs, "TemperaturePertubations", verbosity);
+  xml_write_to_stream(os_xml, gal.t_pert, pbofs, "TemperaturePerturbations", verbosity);
   xml_write_to_stream(os_xml, gal.nls_pert, pbofs,
-                      "NonlinearSpeciesVmrPertubations", verbosity);
+                      "NonlinearSpeciesVmrPerturbations", verbosity);
   xml_write_to_stream(os_xml, gal.xsec, pbofs, "AbsorptionCrossSections", verbosity);
 
   close_tag.set_name("/GasAbsLookup");
