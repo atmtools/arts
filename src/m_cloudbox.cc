@@ -84,6 +84,7 @@ extern const Numeric DENSITY_OF_ICE;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudboxOff (
          Index&                       cloudbox_on,
+         Index&                       ppath_inside_cloudbox_do,
          ArrayOfIndex&                cloudbox_limits,
          Agenda&                      iy_cloudbox_agenda,
          Tensor4&                     pnd_field,
@@ -96,6 +97,7 @@ void cloudboxOff (
    const Verbosity&)
 {
   cloudbox_on = 0;
+  ppath_inside_cloudbox_do = 0;
   cloudbox_limits.resize ( 0 );
   iy_cloudbox_agenda = Agenda();
   iy_cloudbox_agenda.set_name ( "iy_cloudbox_agenda" );

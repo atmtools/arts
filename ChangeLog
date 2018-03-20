@@ -1,3 +1,10 @@
+2018-03-20  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-994
+	
+	* src/{m_cloudbox,methods}.cc:  
+	(cloudboxOff) Added ppath_inside_cloudbox_do and sset it to 0
+
 2018-03-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-993

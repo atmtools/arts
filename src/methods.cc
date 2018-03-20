@@ -3521,7 +3521,7 @@ void define_md_data_raw()
          "consitent with *jacobian_quantities*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "cloudbox_on", "cloudbox_limits", "iy_cloudbox_agenda", 
+        OUT( "cloudbox_on", "ppath_inside_cloudbox_do", "cloudbox_limits", "iy_cloudbox_agenda", 
              "pnd_field", "dpnd_field_dx",
              "scat_data", "scat_data_raw", "scat_data_checked",
              "particle_masses"
