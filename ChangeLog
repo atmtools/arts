@@ -1,3 +1,16 @@
+2018-03-21  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-995
+	
+	* 3rdparty/wigner/fastwigxj/CMakeLists.txt,
+	3rdparty/wigner/wigxjpf/CMakeLists.txt:
+
+	Don't call 'make' directly, use cmake's '$(MAKE)' instead. Fixes the
+	warning that has shown up in builds lately:
+
+	make[4]: warning: jobserver unavailable: using -j1.  Add '+' to parent
+	make rule.
+
 2018-03-20  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-994

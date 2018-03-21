@@ -1,5 +1,5 @@
 add_custom_target(automatic_wigxjpf
-    COMMAND make gen/wigxjpf_auto_config.h
+    COMMAND $(MAKE) gen/wigxjpf_auto_config.h
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(NOT FASTWIGNER)
