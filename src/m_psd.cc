@@ -1124,9 +1124,204 @@ void psdMgdMassXmedian(
                               n0, mu, la, ga, t_min, t_max, picky, verbosity );
 }
 
+extern const Numeric PI;
+
+Numeric dm_from_iwc_n0(Numeric iwc, Numeric n0, Numeric rho) {
+    return pow(256.0 * iwc / PI / rho / n0, 0.25);
+}
+
+Numeric n0_from_iwc_dm(Numeric iwc, Numeric dm, Numeric rho) {
+    return 256.0 * iwc / PI / rho / pow(dm, 4.0);
+}
+
+Numeric n0_from_t(Numeric t) {
+    return exp(-0.076586 * (t - 273.15) + 17.948);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void psdD14(
+    Matrix&                psd_data,
+    Tensor3&               dpsd_data_dx,
+    const Vector&          psd_size_grid,
+    const Vector&          pnd_agenda_input_t,
+    const Matrix&          pnd_agenda_input,
+    const ArrayOfString&   pnd_agenda_input_names,
+    const ArrayOfString&   dpnd_data_dx_names,
+    const Numeric&         iwc,
+    const Numeric&         n0,
+    const Numeric&         dm,
+    const Numeric&         rho,
+    const Numeric&         alpha,
+    const Numeric&         beta,
+    const Numeric&         t_min,
+    const Numeric&         t_max,
+    const Index&           picky,
+    const Verbosity& )
+{
+    // Standard checks
+    START_OF_PSD_METHODS();
+
+    // Additional (basic) checks
+    if( nin > 2 )
+        throw runtime_error( "The number of columns in *pnd_agenda_input* must "
+                             "be 0, 1 or 2" );
 
 
+    // Check and determine dependent and fixed parameters
+    const bool n0_depend = (Index) n0 == -999;
+    const bool dm_depend = (Index) dm == -999;
 
+    // Check fixed parameters
+    const bool iwc_fixed = !(isnan(iwc));
+    const bool n0_fixed  = !(isnan(n0)) && !n0_depend;
+    const bool dm_fixed  = !(isnan(dm)) && !dm_depend;
+
+    if (!((nin + iwc_fixed + n0_fixed + dm_fixed == 2)
+          || (nin + iwc_fixed + n0_fixed + dm_fixed == 1))) {
+        throw runtime_error("This PSD can have one or two independent parameters, that is \n"
+                            "the sum of the number of rows in pnd_agenda_input and\n"
+                            "non-NAN, non-dependent values in iwc, n0, dm must be equal to\n"
+                            "one or two.");
+    }
+
+    ArrayOfIndex i_pai = {-1,-1,-1}; // Position in pnd_agenda_input
+
+    Index nhit = 0;
+
+    if ((n0_depend || dm_depend) && (!iwc_fixed)) {
+        i_pai[0] = nhit++;
+    }
+
+    if ((!n0_depend) && (!n0_fixed)) {
+        i_pai[1] = nhit++;
+    }
+
+    if ((!dm_depend) && (!dm_fixed)) {
+        i_pai[2] = nhit++;
+    }
+
+    // Determine what derivatives to do and their positions
+    ArrayOfIndex do_jac = {0, 0, 0};
+    ArrayOfIndex i_jac  = {-1, -1, -1}; // Position among jacobian quantities
+
+    for (Index i=0; i < ndx; ++i) {
+        for (Index j = 0; j < 3; ++j) {
+            if (dx2in[i] == i_pai[j] ) {
+                do_jac[j] = 1;
+                i_jac[j]  = i;
+                break;
+            }
+        }
+    }
+
+    if (psd_size_grid[0] < std::numeric_limits<Numeric>::epsilon()) {
+        if (psd_size_grid.nelem() < 2) {
+            throw std::runtime_error("psd_size_grid has only one element which is 0. This is not allowed.");
+        }
+    }
+
+    Numeric iwc_p(0.0), n0_p(0.0), dm_p(0.0);
+    // Loop input data and calculate PSDs
+    for(Index ip=0; ip<np; ip++) {
+
+        Numeric t = pnd_agenda_input_t[ip];
+
+        // Extract MGD parameters
+        if (i_pai[0] >= 0) {
+            iwc_p = pnd_agenda_input(ip, i_pai[0]);
+        }
+        if (i_pai[1] >= 0) {
+            n0_p = pnd_agenda_input(ip, i_pai[1]);
+        }
+        if (i_pai[2] >= 0) {
+            dm_p = pnd_agenda_input(ip, i_pai[2]);
+        }
+
+        if (n0_depend && dm_depend) {
+            n0_p = n0_from_t(t);
+            dm_p = dm_from_iwc_n0(iwc_p, n0_p, rho);
+        } else if (n0_depend) {
+            n0_p = n0_from_iwc_dm(iwc_p, dm_p, rho);
+        } else if (dm_depend) {
+            dm_p = dm_from_iwc_n0(iwc_p, n0_p, rho);
+        }
+
+        // Outside of [t_min,tmax]?
+        if ((t < t_min)  ||  (t > t_max)) {
+            if(picky) {
+                ostringstream os;
+                os << "Method called with a temperature of " << t << " K.\n"
+                   << "This is outside the specified allowed range: [ max(0.,"
+                   << t_min << "), " << t_max << " ]";
+                throw runtime_error(os.str());
+            } else {
+                continue;
+            }
+        }
+
+        // Calculate PSD and derivatives
+        Matrix  jac_data(1, nsi);
+        Vector  x_grid(psd_size_grid);
+        x_grid *= 1.0 / dm_p;
+
+        if (x_grid[0] < std::numeric_limits<Numeric>::epsilon()) {
+            x_grid[0] = 0.1 * psd_size_grid[1];
+        }
+
+        delanoe_shape_with_derivative(psd_data(ip,joker), jac_data,
+                                      x_grid, alpha, beta);
+        psd_data(ip, joker) *= n0_p;
+        jac_data(0, joker)  *= n0_p;
+
+        Vector dndx  = jac_data(0, joker);
+        Vector dndn0 = psd_data(ip, joker);
+        dndn0 *= (1.0 / n0_p);
+
+        Vector dxddm = x_grid;
+        dxddm *= (-1.0 / dm_p);
+        Numeric dn0diwc = n0_p / iwc_p;
+
+        if( do_jac[0] ) {
+
+            dpsd_data_dx(i_jac[0], ip, joker) = 0.0;
+
+            if (dm_depend) {
+
+                Numeric ddmdiwc  = 0.25 * dm_p / iwc_p;
+                Vector dndiwc = dxddm;
+                dndiwc *= dndx;
+                dndiwc *= ddmdiwc;
+                dpsd_data_dx(i_jac[0],ip,joker) += dndiwc;
+            } else if (n0_depend) {
+                Vector dndiwc = dndn0;
+                dndiwc *= dn0diwc;
+                dpsd_data_dx(i_jac[0],ip,joker) += dndiwc;
+            }
+        }
+
+        if( do_jac[1] ) {
+            dpsd_data_dx(i_jac[1], ip, joker) = dndn0;
+            if (dm_depend) {
+                Vector dndn02 = dndx;
+                dndn02 *= dxddm;
+                Numeric ddmdn0 = - 0.25 / n0_p * dm_p;
+                dndn02 *= ddmdn0;
+                dpsd_data_dx(i_jac[1], ip, joker) += dndn02;
+            }
+        }
+
+        if (do_jac[2]) {
+            dpsd_data_dx(i_jac[2], ip, joker) = dxddm;
+            dpsd_data_dx(i_jac[2], ip, joker) *= dndx;
+            if (n0_depend) {
+                Vector dndn02 = dndn0;
+                Numeric dn0ddm = - 4.0 * n0_p / dm_p;
+                dndn02 *= dn0ddm;
+                dpsd_data_dx(i_jac[2], ip, joker) += dndn02;
+            }
+        }
+    }
+}
 
 /*===========================================================================
   === Input: IWC and T

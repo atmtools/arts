@@ -106,6 +106,28 @@ void mgd_with_derivatives(
     const bool&       do_la_jac,
     const bool&       do_ga_jac );
 
+/**! Shape functions for normalized PSD.
+ *
+ * This function implements the shape function F(X, alpha, beta) from
+ * as proposed by Delanoe et al. in "Normalized particle size distribution
+ * for remote sensing application".
+ *
+ * @param[OUT] psd On return contains the values of F corresponding to
+ *                 the values in x.
+ * @param[OUT] jac_data On return contains the first derivative of F w.r.t
+ *                      x evaluated at the values in x.
+ * @param[IN] x The values at which to evaluate the shape functions and
+ *              and derivatives.
+ * @param[IN] alpha The alpha parameter of the shape function.
+ * @param[IN] beta  The beta parameter of the shape function.
+ */
+void delanoe_shape_with_derivative(
+    VectorView  psd,
+    MatrixView  jac_data,
+    const Vector&     x,
+    const Numeric&    alpha,
+    const Numeric&    beta);
+
 Numeric mod_gamma_dist(Numeric x,
                        Numeric N0,
                        Numeric Lambda,

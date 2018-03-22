@@ -12842,6 +12842,46 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "psdD14" ),
+        DESCRIPTION
+        (
+            "Normalized PSD as proposed in Delanoë et al. (2014),\n"
+            "'Normalized particle size distribution for remote sensing\n"
+            "application', J. Geophys. Res. Atmos., 119, 4204–422.\n"
+            "\n"
+            "The PSD has two independent parameters *N0star*, the intercept\n"
+            " parameter, and *Dm*, the volume-weighted diameter.\n"
+            "This implementation expects as input two out of the following\n"
+            "three quantities: *iwc*, *N0star*, *Dm*. In this case one of\n"
+            "the input parameters *iwc*, *N0start*, *Dm* must be set to -999.\n*"
+            "It is also possible to provide only *iwc*, in which case an a\n"
+            "priori assumption will be used to deduce *N0star* from *temperature*.\n"
+            "In this case both *N0star* and *Dm* must be set to -999.0.\n"
+        ),
+        AUTHORS( "Simon Pfreundschuh" ),
+        OUT( "psd_data", "dpsd_data_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
+            "pnd_agenda_input_names", "dpnd_data_dx_names" ),
+        GIN( "iwc", "n0Star", "Dm", "rho", "alpha", "beta", "t_min", "t_max", "picky" ),
+        GIN_TYPE( "Numeric", "Numeric",  "Numeric", "Numeric", "Numeric", "Numeric",
+                  "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( "NaN", "NaN", "NaN", "917.6", "-0.237", "1.839", NODEF, NODEF, "0" ),
+        GIN_DESC( "Ice water content",
+                  "Intercept parameter",
+                  "Volume weighted diameter",
+                  "Density of ice",
+                  "*alpha* parameter of the shape function",
+                  "*beta* paramter of the shape function",
+                  "Low temperature limit to calculate a psd.",
+                  "High temperature limit to calculate a psd.",
+                  "Flag whether to be strict with parametrization value checks." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "psdMH97" ),
         DESCRIPTION
         (
