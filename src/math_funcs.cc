@@ -702,7 +702,26 @@ void mgd_with_derivatives(
     }
 }
 
+void delanoe_shape_with_derivative(
+    VectorView  psd,
+    MatrixView  jac_data,
+    const Vector&     x,
+    const Numeric&    alpha,
+    const Numeric&    beta)
+{
+    Numeric f_c = tgamma(4.0) / 256.0;
+    f_c *= pow(tgamma((alpha + 5.0) / beta), 4 + alpha);
+    f_c /= pow(tgamma((alpha + 4.0) / beta), 5 + alpha);
 
+    Numeric f_d = tgamma((alpha + 5.0) / beta);
+    f_d /= tgamma((alpha + 4.0) / beta);
+
+    for (Index i = 0; i < x.nelem(); ++i) {
+        Numeric xi = x[i];
+        psd[i] = beta * f_c * pow(xi, alpha) * exp(-pow(f_d * xi, beta));
+        jac_data(0, i) = psd[i] * (alpha / xi - beta * f_d * pow(f_d * xi, beta - 1.0));
+    }
+}
 
 //! Generalized Modified Gamma Distribution
 /*! Returns number density per unit of 'x' as function of 'x'.
