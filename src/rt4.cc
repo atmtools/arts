@@ -199,13 +199,13 @@ void check_rt4_input( // Output
   nummu=nhstreams+nhza;
 
   // RT4 can only completely or azimuthally randomly oriented particles.
-  bool no_p10=true;
+  bool no_arb_ori=true;
   for( Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++ )
     for( Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++ )
       if( scat_data[i_ss][i_se].ptype != PTYPE_TOTAL_RND &&
           scat_data[i_ss][i_se].ptype != PTYPE_AZIMUTH_RND )
-        no_p10=false;
-  if( !no_p10 )
+        no_arb_ori=false;
+  if( !no_arb_ori )
     {
       ostringstream os;
       os << "RT4 can only handle scattering elements of type "
@@ -1182,7 +1182,7 @@ void par_optpropCalc( Tensor4View emis_vector,
           //
           // FIXME: this might be better done PER scatt element
           // why?
-          //   - for p20, we only need to extract for 1 angle
+          //   - for totally random, we only need to extract for 1 angle
           //   - if T-dimension is 1, we only need to do once for all p-levels
           opt_prop_sptFromScat_data(ext_mat_spt_local, abs_vec_spt_local,
                                     scat_data, 1,
@@ -1429,14 +1429,14 @@ void sca_optpropCalc( //Output
 
   // Precalculate azimuth integration weights for totally randomly oriented
   // (they are only determined by pfct_aa_grid_size)
-  Numeric daap20 = 1. / float(pfct_aa_grid_size-1); // 2*180./360./(pfct_aa_grid_size-1)
+  Numeric daa_totrand = 1. / float(pfct_aa_grid_size-1); // 2*180./360./(pfct_aa_grid_size-1)
 
   // first we extract Z at one T, integrate the azimuth data at each
   // za_inc/za_sca combi (to get the Fourier series 0.th mode), then interpolate
   // to the mu/mu' combis we need in RT.
   //
-  // FIXME: are the stokes component assignments correct? for p20? and p30? (as
-  // they are done differently...)
+  // FIXME: are the stokes component assignments correct? for totally random?
+  // and azimuthally random? (as they are done differently...)
   for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++)
     {
       for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
@@ -1471,9 +1471,9 @@ void sca_optpropCalc( //Output
                                           verbosity );
 
                         if (saa==0 || saa==pfct_aa_grid_size-1)
-                          pha_mat *= (daap20/2.);
+                          pha_mat *= (daa_totrand/2.);
                         else
-                          pha_mat *= daap20;
+                          pha_mat *= daa_totrand;
                         pha_mat_int += pha_mat;
                       }
                     sca_mat(i_se_flat,iza,sza,joker,joker) = pha_mat_int;
@@ -1571,9 +1571,10 @@ void sca_optpropCalc( //Output
   // now we sum up the Z(mu,mu') over the scattering elements weighted by the
   // pnd_field data, deriving Z(z,mu,mu') and sorting this into
   // scatter_matrix
-  // FIXME: it seems that at least for p20, corresponding upward and downward
-  // directions have exactly the same (0,0) elements. Can we use this to reduce
-  // calc efforts (for sca and its normalization as well as for ext and abs?)
+  // FIXME: it seems that at least for totally random, corresponding upward and
+  // downward directions have exactly the same (0,0) elements. Can we use this
+  // to reduce calc efforts (for sca and its normalization as well as for ext
+  // and abs?)
   Index nummu = nza_rt/2;
   for (Index scat_p_index_local = 0;
              scat_p_index_local < Np_cloud-1; 

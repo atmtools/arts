@@ -1,3 +1,24 @@
+2018-03-24 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-995
+
+	* src/optproperties.[cc,h] (pha_matBulk, pha_matScatSpecBulk,
+	pha_matNScatElems, pha_mat1ScatElem):
+	Implemented suite of new/replacement methods for consistent phamat
+	extraction over the scattering solvers.
+
+	(scat_angle, interpolate_scat_angle, pha_matTransform):
+	Moved scattering angle calculation out of interpolate_scat_angle into
+	separate function for re-usability.
+
+	* src/xml_io_compound_types.cc (xml_read_from_stream for SingleScatteringData),
+	src/disort.cc (check_disort_input), src/rt4.cc (check_rt4_input,
+	par_optpropCalc, sca_optpropCalc):
+	Removed some leftover references to old ptype enums (p10/20/30) in
+	error messages, variable names and comments.
+
+	* doc/uguide/clouds.tex: Minor fixes.
+
 2018-03-22  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-994
@@ -563,7 +584,7 @@
 	* controlfiles/artscomponents/wfuns/TestDoitJacobians.arts,
 	controlfiles/artscomponents/wfuns/TestWfunsHybCloudy.arts:
 	Fixed missed instances of Touch f_grid when using
-	DoitScatteringDataPrepare in doit_mono_agenda and of geneally using
+	DoitScatteringDataPrepare in doit_mono_agenda and of generally using
 	scat_data in solvers.
 
 2018-02-20 Jana Mendrok  <jana.mendrok@gmail.com>
@@ -1304,7 +1325,7 @@
 
 	* arts-2-3-927
 
-	Work in progress. Implementing functions for consistent oprical property
+	Work in progress. Implementing functions for consistent optical property
 	handling over the scattering solvers.
 
 	* src/optproperties.h: Redefined enums associated with ptypes such that

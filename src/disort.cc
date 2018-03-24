@@ -204,12 +204,12 @@ void check_disort_input( // Input
     }
 
   // DISORT can only handle randomly oriented particles.
-  bool all_p20=true;
+  bool all_totrand=true;
   for( Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++ )
     for( Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++ )
       if( scat_data[i_ss][i_se].ptype != PTYPE_TOTAL_RND )
-        all_p20=false;
-  if( !all_p20 )
+        all_totrand=false;
+  if( !all_totrand )
     {
       ostringstream os;
       os << "DISORT can only handle scattering elements of type "

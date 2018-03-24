@@ -1567,9 +1567,9 @@ void xml_read_from_stream(istream& is_xml,
             ostringstream os;
             os << "Ptype value (" << ptype << ") is wrong."
             << "It must be \n"
-            << "10 - arbitrary oriented particles \n"
-            << "20 - totally randomly oriented particles or \n"
-            << "30 - azimuthally randomly oriented particles.\n";
+            << PTYPE_TOTAL_RND << " - totally randomly oriented particles,\n"
+            << PTYPE_AZIMUTH_RND << " - azimuthally randomly oriented particles, or\n"
+            << PTYPE_GENERAL << " - arbitrary oriented particles.\n";
             throw runtime_error( os.str() );
       }
       ssdata.ptype = PType(ptype);

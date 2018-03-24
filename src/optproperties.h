@@ -193,6 +193,47 @@ void abs_vec_SSD2Stokes(//Output
                         const Index& stokes_dim,
                         const Index& ptype);
 
+void pha_mat_Bulk(//Output
+                  Tensor6& pha_mat,
+                  Index& ptype,
+                  //Input
+                  const ArrayOfTensor6& pha_mat_ss,
+                  const ArrayOfIndex& ptypes_ss);
+
+void pha_mat_ScatSpecBulk(//Output
+                          ArrayOfTensor6& pha_mat,
+                          ArrayOfIndex& ptype,
+                          //Input
+                          const ArrayOfArrayOfTensor6& pha_mat_se,
+                          const ArrayOfArrayOfIndex& ptypes_se,
+                          ConstMatrixView pnds,
+                          ConstMatrixView t_ok);
+
+void pha_mat_NScatElems(//Output
+                        ArrayOfArrayOfTensor6& pha_mat,
+                        ArrayOfArrayOfIndex& ptypes,
+                        Matrix& t_ok,
+                        //Input
+                        const ArrayOfArrayOfSingleScatteringData& scat_data,
+                        const Index& stokes_dim,
+                        const Vector& T_array,
+                        const Matrix& pdir_array,
+                        const Matrix& idir_array,
+                        const Index& f_index,
+                        const Index& t_interp_order);
+
+void pha_mat_1ScatElem(//Output
+                       Tensor6View pha_mat,
+                       Index& ptype,
+                       VectorView t_ok,
+                       //Input
+                       const SingleScatteringData& ssd,
+                       const Vector& T_array,
+                       const Matrix& pdir_array,
+                       const Matrix& idir_array,
+                       const Index& f_start,
+                       const Index& t_interp_order);
+
 void abs_vecTransform(//Output and Input
                       StokesVector& abs_vec_lab,
                       //Input
@@ -242,17 +283,17 @@ void ext_matFromabs_vec(//Output:
 // Functions for the case: Randomly oriented particles: 
 // ========================================================
 
+Numeric scat_angle(const Numeric& za_sca,
+                   const Numeric& aa_sca,
+                   const Numeric& za_inc,
+                   const Numeric& aa_inc);
+
 void interpolate_scat_angle(//Output:
                             VectorView pha_mat_int,
-                            Numeric& theta_rad,
                             //Input:
                             ConstTensor5View pha_mat_data,
                             ConstVectorView za_datagrid,
-                            const Numeric& za_sca,
-                            const Numeric& aa_sca,
-                            const Numeric& za_inc,
-                            const Numeric& aa_inc);
-
+                            const Numeric theta);
 
 void pha_mat_labCalc(//Output:
                       MatrixView pha_mat_lab,
