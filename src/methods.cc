@@ -17803,14 +17803,18 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_data", "stokes_dim", "f_grid", "rtp_los", "rtp_temperature" ),
-        GIN( "scat_elem_index", "compare", "za_printout_index",
-             "aa_printout_index", "mirror" ),
-        GIN_TYPE( "Index", "Index", "Index", "Index", "Index" ),
-        GIN_DEFAULT( NODEF, "1", "-1", "-1", "1" ),
+        GIN(         "scat_elem_index", "compare",      "tolerance",
+                     "za_printout_index", "aa_printout_index", "mirror" ),
+        GIN_TYPE(    "Index",           "ArrayOfIndex", "Numeric",
+                     "Index",             "Index",             "Index" ),
+        GIN_DEFAULT( NODEF,             "[]",           "1e-6",
+                     "-1",                "-1",                "1" ),
         GIN_DESC( "(Flat) Index of scattering element to test.",
-                  "Flag whether to perform *Compare* on the extracted single"
-                  " scattering data. Compare is run on DOIT data if =1, on RT4"
-                  " if =2 and on both if =3. No *Compare* is done if <1.",
+                  "Flags to perform *Compare* on which of the extracted single"
+                  " scattering data. Compare can be run between unified system"
+                  " and MC (1) or RT4 (2) or between MC and RT4 (3)."
+                  " No *Compare* is done if *compare* is empty (default).",
+                  "Maximum allowed (relative) deviation in Compare.",
                   "Index of (incidence) zenith angle for which to print out"
                   " specific info (none if index<0). Grid is internally"
                   " hardcoded (0 to 180deg in 5deg steps).",

@@ -220,7 +220,7 @@ void pha_mat_NScatElems(//Output
                         const Matrix& pdir_array,
                         const Matrix& idir_array,
                         const Index& f_index,
-                        const Index& t_interp_order);
+                        const Index& t_interp_order=1);
 
 void pha_mat_1ScatElem(//Output
                        Tensor6View pha_mat,
@@ -232,7 +232,7 @@ void pha_mat_1ScatElem(//Output
                        const Matrix& pdir_array,
                        const Matrix& idir_array,
                        const Index& f_start,
-                       const Index& t_interp_order);
+                       const Index& t_interp_order=1);
 
 void abs_vecTransform(//Output and Input
                       StokesVector& abs_vec_lab,

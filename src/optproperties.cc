@@ -410,7 +410,7 @@ void opt_prop_1ScatElem(//Output
 
   if( nTin>1 )
   {
-    this_T_interp_order = min(t_interp_order, nTin);
+    this_T_interp_order = min(t_interp_order, nTin-1);
     T_itw.resize(nTout, this_T_interp_order+1);
 
     // we need to check T-grid exceedance. and catch these cases (because T
@@ -992,7 +992,7 @@ void pha_mat_1ScatElem(//Output
   const Index npDir = pdir_array.nrows();
   assert( pha_mat.nbooks() == npDir );
 
-  const Index niDir = pdir_array.nrows();
+  const Index niDir = idir_array.nrows();
   assert( pha_mat.npages() == niDir );
 
   const Index stokes_dim = pha_mat.ncols();
@@ -1015,7 +1015,7 @@ void pha_mat_1ScatElem(//Output
 
   if( nTin>1 )
   {
-    this_T_interp_order = min(t_interp_order, nTin);
+    this_T_interp_order = min(t_interp_order, nTin-1);
     T_itw.resize(nTout, this_T_interp_order+1);
 
     // we need to check T-grid exceedance. and catch these cases (because T
@@ -1207,8 +1207,8 @@ void pha_mat_1ScatElem(//Output
     gridpos(daa_gp,ssd.aa_grid,adelta_aa);
 
     Matrix dir_itw(nDir, 8);
-    interpweights(dir_itw,pza_gp,iza_gp,daa_gp);
-      
+    interpweights(dir_itw,pza_gp,daa_gp,iza_gp);
+
     // determine how many (and which) of the compact stokes elements we will need.
     // restrict interpolations to those.
     const Index npha = stokes_dim * stokes_dim;
@@ -1238,74 +1238,62 @@ void pha_mat_1ScatElem(//Output
           interp(pha_mat_int(joker,nst),
                  dir_itw,
                  ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,pha_ind[nst]),
-                 pza_gp,iza_gp,daa_gp);
+                 pza_gp,daa_gp,iza_gp);
         */
-        Index nst = 0;
-        switch( stokes_dim )
+
+        interp(pha_mat_int(joker,0),
+               dir_itw,
+               ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,0),
+               pza_gp,daa_gp,iza_gp);
+
+        if( stokes_dim>1 )
         {
-          case 1:
-          {
-            interp(pha_mat_int(joker,nst),
+          interp(pha_mat_int(joker,1),
+                 dir_itw,
+                 ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,1),
+                 pza_gp,daa_gp,iza_gp);
+          interp(pha_mat_int(joker,2),
+                 dir_itw,
+                 ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,4),
+                 pza_gp,daa_gp,iza_gp);
+          interp(pha_mat_int(joker,3),
+                 dir_itw,
+                 ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,5),
+                 pza_gp,daa_gp,iza_gp);
+        }
+
+        if( stokes_dim>2 )
+        {
+          interp(pha_mat_int(joker,4),
+                 dir_itw,
+                 ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,2),
+                 pza_gp,daa_gp,iza_gp);
+          interp(pha_mat_int(joker,5),
+                 dir_itw,
+                 ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,6),
+                 pza_gp,daa_gp,iza_gp);
+          for (Index i=0; i<3; i++)
+            interp(pha_mat_int(joker,6+i),
                    dir_itw,
-                   ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,0),
-                   pza_gp,iza_gp,daa_gp);
-            nst++;
-          }
-          case 2:
-          {
-            interp(pha_mat_int(joker,nst),
+                   ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,8+i),
+                   pza_gp,daa_gp,iza_gp);
+        }
+
+        if( stokes_dim>3 )
+        {
+          interp(pha_mat_int(joker,9),
+                 dir_itw,
+                 ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,3),
+                 pza_gp,daa_gp,iza_gp);
+          interp(pha_mat_int(joker,10),
+                 dir_itw,
+                 ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,7),
+                 pza_gp,daa_gp,iza_gp);
+          for (Index i=0; i<5; i++)
+            interp(pha_mat_int(joker,11+i),
                    dir_itw,
-                   ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,1),
-                   pza_gp,iza_gp,daa_gp);
-            nst++;
-            interp(pha_mat_int(joker,nst),
-                   dir_itw,
-                   ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,4),
-                   pza_gp,iza_gp,daa_gp);
-            nst++;
-            interp(pha_mat_int(joker,nst),
-                   dir_itw,
-                   ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,5),
-                   pza_gp,iza_gp,daa_gp);
-            nst++;
-          }
-          case 3:
-          {
-            interp(pha_mat_int(joker,nst),
-                   dir_itw,
-                   ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,2),
-                   pza_gp,iza_gp,daa_gp);
-            nst++;
-            interp(pha_mat_int(joker,nst),
-                   dir_itw,
-                   ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,6),
-                   pza_gp,iza_gp,daa_gp);
-            nst++;
-            for (Index i=0; nst<3; i++)
-              interp(pha_mat_int(joker,nst+i),
-                     dir_itw,
-                     ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,8+i),
-                     pza_gp,iza_gp,daa_gp);
-            nst+=3;
-          }
-          case 4:
-          {
-            interp(pha_mat_int(joker,nst),
-                   dir_itw,
-                   ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,3),
-                   pza_gp,iza_gp,daa_gp);
-            nst++;
-            interp(pha_mat_int(joker,nst),
-                   dir_itw,
-                   ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,7),
-                   pza_gp,iza_gp,daa_gp);
-            nst++;
-            for (Index i=0; nst<5; i++)
-              interp(pha_mat_int(joker,nst+i),
-                     dir_itw,
-                     ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,11+i),
-                     pza_gp,iza_gp,daa_gp);
-          }
+                   ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,11+i),
+                   pza_gp,daa_gp,iza_gp);
         }
 
         // sort direction-combined 1D-array back into prop and incident
@@ -1331,54 +1319,52 @@ void pha_mat_1ScatElem(//Output
           pha_mat_tmp(joker,joker,st1,st2) = pha_mat_tmp_ssd(joker,joker,nst);
         }
        */
-        switch( stokes_dim )
+
+        pha_mat_tmp(joker,joker,0,0) = pha_mat_tmp_ssd(joker,joker,0);
+
+        if( stokes_dim>1 )
         {
-          case 1:
-          {
-            pha_mat_tmp(joker,joker,0,0) = pha_mat_tmp_ssd(joker,joker,0);
-          }
-          case 2:
-          {
-            pha_mat_tmp(joker,joker,0,1) = pha_mat_tmp_ssd(joker,joker,1);
-            pha_mat_tmp(joker,joker,1,0) = pha_mat_tmp_ssd(joker,joker,4);
-            pha_mat_tmp(joker,joker,1,1) = pha_mat_tmp_ssd(joker,joker,5);
-          }
-          case 3:
-          {
-            pha_mat_tmp(joker,joker,0,2) = pha_mat_tmp_ssd(joker,joker,2);
-            pha_mat_tmp(joker,joker,1,2) = pha_mat_tmp_ssd(joker,joker,6);
-            pha_mat_tmp(joker,joker,2,0) = pha_mat_tmp_ssd(joker,joker,8);
-            pha_mat_tmp(joker,joker,2,1) = pha_mat_tmp_ssd(joker,joker,9);
-            pha_mat_tmp(joker,joker,2,2) = pha_mat_tmp_ssd(joker,joker,10);
-            for( Index pdir=0; pdir<npDir; pdir++ )
-              for( Index idir=0; idir<niDir; idir++ )
-                if( delta_aa(pdir,idir)<0. )
-                {
-                  pha_mat_tmp(pdir,idir,0,2) *= -1;
-                  pha_mat_tmp(pdir,idir,1,2) *= -1;
-                  pha_mat_tmp(pdir,idir,2,0) *= -1;
-                  pha_mat_tmp(pdir,idir,2,1) *= -1;
-                }
-          }
-          case 4:
-          {
-            pha_mat_tmp(joker,joker,0,3) = pha_mat_tmp_ssd(joker,joker,3);
-            pha_mat_tmp(joker,joker,1,3) = pha_mat_tmp_ssd(joker,joker,7);
-            pha_mat_tmp(joker,joker,2,3) = pha_mat_tmp_ssd(joker,joker,11);
-            pha_mat_tmp(joker,joker,3,0) = pha_mat_tmp_ssd(joker,joker,12);
-            pha_mat_tmp(joker,joker,3,1) = pha_mat_tmp_ssd(joker,joker,13);
-            pha_mat_tmp(joker,joker,3,2) = pha_mat_tmp_ssd(joker,joker,14);
-            pha_mat_tmp(joker,joker,3,3) = pha_mat_tmp_ssd(joker,joker,15);
-            for( Index pdir=0; pdir<npDir; pdir++ )
-              for( Index idir=0; idir<niDir; idir++ )
-                if( delta_aa(pdir,idir)<0. )
-                {
-                  pha_mat_tmp(pdir,idir,0,3) *= -1;
-                  pha_mat_tmp(pdir,idir,1,3) *= -1;
-                  pha_mat_tmp(pdir,idir,3,0) *= -1;
-                  pha_mat_tmp(pdir,idir,3,1) *= -1;
-                }
-          }
+          pha_mat_tmp(joker,joker,0,1) = pha_mat_tmp_ssd(joker,joker,1);
+          pha_mat_tmp(joker,joker,1,0) = pha_mat_tmp_ssd(joker,joker,2);
+          pha_mat_tmp(joker,joker,1,1) = pha_mat_tmp_ssd(joker,joker,3);
+        }
+
+        if( stokes_dim>2 )
+        {
+          pha_mat_tmp(joker,joker,0,2) = pha_mat_tmp_ssd(joker,joker,4);
+          pha_mat_tmp(joker,joker,1,2) = pha_mat_tmp_ssd(joker,joker,5);
+          pha_mat_tmp(joker,joker,2,0) = pha_mat_tmp_ssd(joker,joker,6);
+          pha_mat_tmp(joker,joker,2,1) = pha_mat_tmp_ssd(joker,joker,7);
+          pha_mat_tmp(joker,joker,2,2) = pha_mat_tmp_ssd(joker,joker,8);
+          for( Index pdir=0; pdir<npDir; pdir++ )
+            for( Index idir=0; idir<niDir; idir++ )
+              if( delta_aa(pdir,idir)<0. )
+              {
+                pha_mat_tmp(pdir,idir,0,2) *= -1;
+                pha_mat_tmp(pdir,idir,1,2) *= -1;
+                pha_mat_tmp(pdir,idir,2,0) *= -1;
+                pha_mat_tmp(pdir,idir,2,1) *= -1;
+              }
+        }
+
+        if( stokes_dim>3 )
+        {
+          pha_mat_tmp(joker,joker,0,3) = pha_mat_tmp_ssd(joker,joker,9);
+          pha_mat_tmp(joker,joker,1,3) = pha_mat_tmp_ssd(joker,joker,10);
+          pha_mat_tmp(joker,joker,2,3) = pha_mat_tmp_ssd(joker,joker,11);
+          pha_mat_tmp(joker,joker,3,0) = pha_mat_tmp_ssd(joker,joker,12);
+          pha_mat_tmp(joker,joker,3,1) = pha_mat_tmp_ssd(joker,joker,13);
+          pha_mat_tmp(joker,joker,3,2) = pha_mat_tmp_ssd(joker,joker,14);
+          pha_mat_tmp(joker,joker,3,3) = pha_mat_tmp_ssd(joker,joker,15);
+          for( Index pdir=0; pdir<npDir; pdir++ )
+            for( Index idir=0; idir<niDir; idir++ )
+              if( delta_aa(pdir,idir)<0. )
+              {
+                pha_mat_tmp(pdir,idir,0,3) *= -1;
+                pha_mat_tmp(pdir,idir,1,3) *= -1;
+                pha_mat_tmp(pdir,idir,3,0) *= -1;
+                pha_mat_tmp(pdir,idir,3,1) *= -1;
+              }
         }
 
         // this cleaner version unfortunately doesn't work so far as i fail
@@ -1415,73 +1401,66 @@ void pha_mat_1ScatElem(//Output
       {
         // perform the (tri-linear) angle interpolation. but only for the
         // pha_mat elements that we actually need.
-        switch( stokes_dim )
+        for( Index Tind=0; Tind<nTin; Tind++ )
         {
-          case 1:
-          {
-            for( Index Tind=0; Tind<nTin; Tind++ )
-              interp(pha_mat_int(Tind,joker,0),
-                     dir_itw,
-                     ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,0),
-                     pza_gp,iza_gp,daa_gp);
-          }
-          case 2:
-          {
-            for( Index Tind=0; Tind<nTin; Tind++ )
-            {
-              interp(pha_mat_int(Tind,joker,1),
-                     dir_itw,
-                     ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,1),
-                     pza_gp,iza_gp,daa_gp);
-              interp(pha_mat_int(Tind,joker,2),
-                     dir_itw,
-                     ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,4),
-                     pza_gp,iza_gp,daa_gp);
-              interp(pha_mat_int(Tind,joker,3),
-                     dir_itw,
-                     ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,5),
-                     pza_gp,iza_gp,daa_gp);
-            }
-          }
-          case 3:
-          {
-            for( Index Tind=0; Tind<nTin; Tind++ )
-            {
-              interp(pha_mat_int(Tind,joker,4),
-                     dir_itw,
-                     ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,2),
-                     pza_gp,iza_gp,daa_gp);
-              interp(pha_mat_int(Tind,joker,5),
-                     dir_itw,
-                     ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,6),
-                     pza_gp,iza_gp,daa_gp);
-              for (Index i=0; i<3; i++)
-                interp(pha_mat_int(Tind,joker,6+i),
-                       dir_itw,
-                       ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,8+i),
-                       pza_gp,iza_gp,daa_gp);
-            }
-          }
-          case 4:
-          {
-            for( Index Tind=0; Tind<nTin; Tind++ )
-            {
-              interp(pha_mat_int(Tind,joker,9),
-                     dir_itw,
-                     ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,3),
-                     pza_gp,iza_gp,daa_gp);
-              interp(pha_mat_int(Tind,joker,10),
-                     dir_itw,
-                     ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,7),
-                     pza_gp,iza_gp,daa_gp);
-              for (Index i=0; i<5; i++)
-                interp(pha_mat_int(Tind,joker,11+i),
-                       dir_itw,
-                       ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,11+i),
-                       pza_gp,iza_gp,daa_gp);
-            }
-          }
+          interp(pha_mat_int(Tind,joker,0),
+                 dir_itw,
+                 ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,0),
+                 pza_gp,daa_gp,iza_gp);
         }
+    
+        if( stokes_dim>1 )
+          for( Index Tind=0; Tind<nTin; Tind++ )
+          {
+            interp(pha_mat_int(Tind,joker,1),
+                   dir_itw,
+                   ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,1),
+                   pza_gp,daa_gp,iza_gp);
+            interp(pha_mat_int(Tind,joker,2),
+                   dir_itw,
+                   ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,4),
+                   pza_gp,daa_gp,iza_gp);
+            interp(pha_mat_int(Tind,joker,3),
+                   dir_itw,
+                   ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,5),
+                   pza_gp,daa_gp,iza_gp);
+          }
+
+        if( stokes_dim>2 )
+          for( Index Tind=0; Tind<nTin; Tind++ )
+          {
+            interp(pha_mat_int(Tind,joker,4),
+                   dir_itw,
+                   ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,2),
+                   pza_gp,daa_gp,iza_gp);
+            interp(pha_mat_int(Tind,joker,5),
+                   dir_itw,
+                   ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,6),
+                   pza_gp,daa_gp,iza_gp);
+            for (Index i=0; i<3; i++)
+              interp(pha_mat_int(Tind,joker,6+i),
+                     dir_itw,
+                     ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,8+i),
+                     pza_gp,daa_gp,iza_gp);
+          }
+
+        if( stokes_dim>3 )
+          for( Index Tind=0; Tind<nTin; Tind++ )
+          {
+            interp(pha_mat_int(Tind,joker,9),
+                   dir_itw,
+                   ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,3),
+                   pza_gp,daa_gp,iza_gp);
+            interp(pha_mat_int(Tind,joker,10),
+                   dir_itw,
+                   ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,7),
+                   pza_gp,daa_gp,iza_gp);
+            for (Index i=0; i<5; i++)
+              interp(pha_mat_int(Tind,joker,11+i),
+                     dir_itw,
+                     ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,11+i),
+                     pza_gp,daa_gp,iza_gp);
+          }
 
         // perform the T-interpolation and simultaneously sort
         // direction-combined 1D-array back into prop and incident direction
@@ -1497,64 +1476,59 @@ void pha_mat_1ScatElem(//Output
           }
 
         // convert ssd matrix element format into stokes format
-        switch( stokes_dim )
+        for( Index Tind=0; Tind<nTout; Tind++ )
+          pha_mat(find,Tind,joker,joker,0,0) = pha_mat_tmp_ssd(Tind,joker,joker,0);
+
+        if( stokes_dim>1 )
+          for( Index Tind=0; Tind<nTout; Tind++ )
+          {
+            pha_mat(find,Tind,joker,joker,0,1) = pha_mat_tmp_ssd(Tind,joker,joker,1);
+            pha_mat(find,Tind,joker,joker,1,0) = pha_mat_tmp_ssd(Tind,joker,joker,2);
+            pha_mat(find,Tind,joker,joker,1,1) = pha_mat_tmp_ssd(Tind,joker,joker,3);
+          }
+
+        if( stokes_dim>2 )
         {
-          case 1:
+          for( Index Tind=0; Tind<nTout; Tind++ )
           {
-            for( Index Tind=0; Tind<nTout; Tind++ )
-              pha_mat(find,Tind,joker,joker,0,0) = pha_mat_tmp_ssd(Tind,joker,joker,0);
+            pha_mat(find,Tind,joker,joker,0,2) = pha_mat_tmp_ssd(Tind,joker,joker,4);
+            pha_mat(find,Tind,joker,joker,1,2) = pha_mat_tmp_ssd(Tind,joker,joker,5);
+            pha_mat(find,Tind,joker,joker,2,0) = pha_mat_tmp_ssd(Tind,joker,joker,6);
+            pha_mat(find,Tind,joker,joker,2,1) = pha_mat_tmp_ssd(Tind,joker,joker,7);
+            pha_mat(find,Tind,joker,joker,2,2) = pha_mat_tmp_ssd(Tind,joker,joker,8);
           }
-          case 2:
+          for( Index pdir=0; pdir<npDir; pdir++ )
+            for( Index idir=0; idir<niDir; idir++ )
+              if( delta_aa(pdir,idir)<0. )
+              {
+                pha_mat(find,joker,pdir,idir,0,2) *= -1;
+                pha_mat(find,joker,pdir,idir,1,2) *= -1;
+                pha_mat(find,joker,pdir,idir,2,0) *= -1;
+                pha_mat(find,joker,pdir,idir,2,1) *= -1;
+              }
+        }
+
+        if( stokes_dim>2 )
+        {
+          for( Index Tind=0; Tind<nTout; Tind++ )
           {
-            for( Index Tind=0; Tind<nTout; Tind++ )
-            {
-              pha_mat(find,Tind,joker,joker,0,1) = pha_mat_tmp_ssd(Tind,joker,joker,1);
-              pha_mat(find,Tind,joker,joker,1,0) = pha_mat_tmp_ssd(Tind,joker,joker,4);
-              pha_mat(find,Tind,joker,joker,1,1) = pha_mat_tmp_ssd(Tind,joker,joker,5);
-            }
+            pha_mat(find,Tind,joker,joker,0,3) = pha_mat_tmp_ssd(Tind,joker,joker,9);
+            pha_mat(find,Tind,joker,joker,1,3) = pha_mat_tmp_ssd(Tind,joker,joker,10);
+            pha_mat(find,Tind,joker,joker,2,3) = pha_mat_tmp_ssd(Tind,joker,joker,11);
+            pha_mat(find,Tind,joker,joker,3,0) = pha_mat_tmp_ssd(Tind,joker,joker,12);
+            pha_mat(find,Tind,joker,joker,3,1) = pha_mat_tmp_ssd(Tind,joker,joker,13);
+            pha_mat(find,Tind,joker,joker,3,2) = pha_mat_tmp_ssd(Tind,joker,joker,14);
+            pha_mat(find,Tind,joker,joker,3,3) = pha_mat_tmp_ssd(Tind,joker,joker,15);
           }
-          case 3:
-          {
-            for( Index Tind=0; Tind<nTout; Tind++ )
-            {
-              pha_mat(find,Tind,joker,joker,0,2) = pha_mat_tmp_ssd(Tind,joker,joker,2);
-              pha_mat(find,Tind,joker,joker,1,2) = pha_mat_tmp_ssd(Tind,joker,joker,6);
-              pha_mat(find,Tind,joker,joker,2,0) = pha_mat_tmp_ssd(Tind,joker,joker,8);
-              pha_mat(find,Tind,joker,joker,2,1) = pha_mat_tmp_ssd(Tind,joker,joker,9);
-              pha_mat(find,Tind,joker,joker,2,2) = pha_mat_tmp_ssd(Tind,joker,joker,10);
-            }
-            for( Index pdir=0; pdir<npDir; pdir++ )
-              for( Index idir=0; idir<niDir; idir++ )
-                if( delta_aa(pdir,idir)<0. )
-                {
-                  pha_mat(find,joker,pdir,idir,0,2) *= -1;
-                  pha_mat(find,joker,pdir,idir,1,2) *= -1;
-                  pha_mat(find,joker,pdir,idir,2,0) *= -1;
-                  pha_mat(find,joker,pdir,idir,2,1) *= -1;
-                }
-          }
-          case 4:
-          {
-            for( Index Tind=0; Tind<nTout; Tind++ )
-            {
-              pha_mat(find,Tind,joker,joker,0,3) = pha_mat_tmp_ssd(Tind,joker,joker,3);
-              pha_mat(find,Tind,joker,joker,1,3) = pha_mat_tmp_ssd(Tind,joker,joker,7);
-              pha_mat(find,Tind,joker,joker,2,3) = pha_mat_tmp_ssd(Tind,joker,joker,11);
-              pha_mat(find,Tind,joker,joker,3,0) = pha_mat_tmp_ssd(Tind,joker,joker,12);
-              pha_mat(find,Tind,joker,joker,3,1) = pha_mat_tmp_ssd(Tind,joker,joker,13);
-              pha_mat(find,Tind,joker,joker,3,2) = pha_mat_tmp_ssd(Tind,joker,joker,14);
-              pha_mat(find,Tind,joker,joker,3,3) = pha_mat_tmp_ssd(Tind,joker,joker,15);
-            }
-            for( Index pdir=0; pdir<npDir; pdir++ )
-              for( Index idir=0; idir<niDir; idir++ )
-                if( delta_aa(pdir,idir)<0. )
-                {
-                  pha_mat(find,joker,pdir,idir,0,3) *= -1;
-                  pha_mat(find,joker,pdir,idir,1,3) *= -1;
-                  pha_mat(find,joker,pdir,idir,3,0) *= -1;
-                  pha_mat(find,joker,pdir,idir,3,1) *= -1;
-                }
-          }
+          for( Index pdir=0; pdir<npDir; pdir++ )
+            for( Index idir=0; idir<niDir; idir++ )
+              if( delta_aa(pdir,idir)<0. )
+              {
+                pha_mat(find,joker,pdir,idir,0,3) *= -1;
+                pha_mat(find,joker,pdir,idir,1,3) *= -1;
+                pha_mat(find,joker,pdir,idir,3,0) *= -1;
+                pha_mat(find,joker,pdir,idir,3,1) *= -1;
+              }
         }
       }
     }

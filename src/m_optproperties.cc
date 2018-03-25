@@ -3295,7 +3295,8 @@ void TestScatDataInterp(
 //                        const ArrayOfIndex& cloudbox_limits,
 //                        const Agenda&      pha_mat_spt_agenda,
                         const Index&       scat_elem_index,
-                        const Index&       compare,
+                        const ArrayOfIndex&  compare,
+                        const Numeric&     tolerance,
                         const Index&       za_printinfo_index,
                         const Index&       aa_printinfo_index,
                         const Index&       mirror,
@@ -3306,13 +3307,14 @@ void TestScatDataInterp(
   cout << "========== START ==========" << endl;
   cout << endl;
   cout << "LOS direction: " << rtp_los << endl;
+  cout << endl;
 
   if ( (rtp_los[0] > 180. ) || (rtp_los[0] < 0.) )
     throw runtime_error( "LOS zenith angle must be between 0 and 180deg." );
   if ( (rtp_los[1] > 180. ) || (rtp_los[1] < -180.) )
     throw runtime_error( "LOS azimuth angle must be between -180 and 180deg." );
   
-  // Hard-coded grids
+  // Hard-coded grids for phase matrix incidence directions
   const Vector pha_mat_za( 0.0, 37, 5.0 );
   const Vector pha_mat_aa( -180.0, 37, 10.0 );
 
@@ -3361,13 +3363,16 @@ void TestScatDataInterp(
   //
 
   // making containers
+  ArrayOfArrayOfTensor6 pha_mat_Nse;
   ArrayOfArrayOfTensor5 ext_mat_Nse;
   ArrayOfArrayOfTensor4 abs_vec_Nse;
   ArrayOfArrayOfIndex ptypes_Nse;
   Matrix t_ok;
+  ArrayOfTensor6 pha_mat_ssbulk;
   ArrayOfTensor5 ext_mat_ssbulk;
   ArrayOfTensor4 abs_vec_ssbulk;
   ArrayOfIndex ptype_ssbulk;
+  Tensor6 pha_mat_bulk;
   Tensor5 ext_mat_bulk;
   Tensor4 abs_vec_bulk;
   Index ptype_bulk;
@@ -3385,17 +3390,42 @@ void TestScatDataInterp(
   opt_prop_Bulk( ext_mat_bulk, abs_vec_bulk, ptype_bulk,
                  ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk );
 
+  Matrix idir_array(pha_mat_za.nelem()*pha_mat_aa.nelem(),2);
+  ArrayOfArrayOfIndex printinfo_index;
+  printinfo_index.resize(pha_mat_za.nelem());
+  Index j=0;
+  for( Index iz=0; iz<n_za; iz++ )
+  {
+    printinfo_index[iz].resize(pha_mat_za.nelem());
+    for( Index ia=0; ia<n_aa; ia++ )
+    {
+      idir_array(j,0) = pha_mat_za[iz];
+      idir_array(j,1) = pha_mat_aa[ia];
+      printinfo_index[iz][ia] = j;
+      j++;
+    }
+  }
+
+  pha_mat_NScatElems( pha_mat_Nse, ptypes_Nse, t_ok,
+                      scat_data_mono, stokes_dim, T_array, dir_array,
+                      idir_array, f_index );
+  pha_mat_ScatSpecBulk( pha_mat_ssbulk, ptype_ssbulk,
+                        pha_mat_Nse, ptypes_Nse,
+                        pnd(joker,joker,0,0), t_ok );
+  pha_mat_Bulk( pha_mat_bulk, ptype_bulk,
+                pha_mat_ssbulk, ptype_ssbulk );
+
   if (printinfo)
     {
       cout << "----- unified system -----" << endl;
       cout << "absorption vector:\n" << abs_vec_bulk(f_index,0,0,joker) << endl;
       cout << "extinction matrix:\n" << ext_mat_bulk(f_index,0,0,joker,joker) << endl;
-/*
       cout << "phase matrix (" << za_printinfo_index
            << "," << aa_printinfo_index << "):\n"
-           << pha_mat_rt4(za_printinfo_index,aa_printinfo_index,joker,joker)
+           << pha_mat_bulk(f_index,0,
+                           0,printinfo_index[za_printinfo_index][aa_printinfo_index],
+                           joker,joker)
            << endl;
-*/
       cout << endl;
     }
 
@@ -3517,7 +3547,7 @@ void TestScatDataInterp(
   // below. but we can't pass that into DoitScatteringDataPrepare that way. That
   // is, we'd have to find another replacement. Or we indeed use
   // pha_mat_spt_agenda from the user. but than have to adapt the code below
-  // accordingly (to also use this user-set aganeda).
+  // accordingly (to also use this user-set agenda).
   DoitScatteringDataPrepare( ws, pha_mat_sptDOITOpt, scat_data_mono_optdoit,
                              dummy, n_za, pha_mat_aa,
                              scat_data, f_grid, f_index, 3, stokes_dim,
@@ -3760,22 +3790,45 @@ void TestScatDataInterp(
         for (Index ist2=0; ist2<stokes_dim; ist2++)
           dext_mat(ist1,ist2) =
             ext_mat_mc(ist1,ist2)-ext_mat_bulk(f_index,0,0,ist1,ist2);
-/*
+
       for (Index ist1=0; ist1<stokes_dim; ist1++)
         for (Index ist2=0; ist2<stokes_dim; ist2++)
           dpha_mat(ist1,ist2) = 
-              pha_mat_rt4(za_printinfo_index,aa_printinfo_index,ist1,ist2)
-            - pha_mat_mc(za_printinfo_index,aa_printinfo_index,ist1,ist2);
-*/
+              pha_mat_mc(za_printinfo_index,aa_printinfo_index,ist1,ist2)
+            - pha_mat_bulk(f_index,0,
+                           0,printinfo_index[za_printinfo_index][aa_printinfo_index],
+                           ist1,ist2);
 
       cout << "----- differences (MC-US) -----" << endl;
       cout << "absorption vector:\n" << dabs_vec << endl;
       cout << "extinction matrix:\n" << dext_mat << endl;
-/*
       cout << "phase matrix (" << za_printinfo_index
            << "," << aa_printinfo_index << "):\n"
            << dpha_mat << endl;
-*/
+      cout << endl;
+
+
+      ext_mat_rt4.MatrixAtPosition(tmp1, 0);
+      abs_vec_rt4.VectorAtPosition(tmp2, 0);
+      for (Index ist=0; ist<stokes_dim; ist++)
+        dabs_vec[ist] = tmp2[ist]-abs_vec_bulk(f_index,0,0,ist);
+      for (Index ist1=0; ist1<stokes_dim; ist1++)
+        for (Index ist2=0; ist2<stokes_dim; ist2++)
+          dext_mat(ist1,ist2) = tmp1(ist1,ist2)-ext_mat_bulk(f_index,0,0,ist1,ist2);
+      for (Index ist1=0; ist1<stokes_dim; ist1++)
+        for (Index ist2=0; ist2<stokes_dim; ist2++)
+          dpha_mat(ist1,ist2) = 
+              pha_mat_rt4(za_printinfo_index,aa_printinfo_index,ist1,ist2)
+            - pha_mat_bulk(f_index,0,
+                           0,printinfo_index[za_printinfo_index][aa_printinfo_index],
+                           ist1,ist2);
+
+      cout << "----- differences (RT4-US) -----" << endl;
+      cout << "absorption vector:\n" << dabs_vec << endl;
+      cout << "extinction matrix:\n" << dext_mat << endl;
+      cout << "phase matrix (" << za_printinfo_index
+           << "," << aa_printinfo_index << "):\n"
+           << dpha_mat << endl;
       cout << endl;
 
 /*
@@ -3830,56 +3883,60 @@ void TestScatDataInterp(
 
   ////// Compare //////
   //
-  if (compare>0)
+  for( Index ic=0; ic<compare.nelem(); ic++ )
+  {
+    if (compare[ic]==1)
     {
       Numeric dmax;
-      dmax = 0.5e-6*(abs_vec_bulk(f_index,0,0,0)+abs_vec_mc[0]);
+      dmax = 0.5*tolerance*(abs_vec_bulk(f_index,0,0,0)+abs_vec_mc[0]);
       Compare(abs_vec_bulk(f_index,0,0,joker), abs_vec_mc, dmax, "Deviation in abs_vec",
               "US", "MC", "", "", verbosity);
-      dmax = 0.5e-6*(ext_mat_bulk(f_index,0,0,0,0)+ext_mat_mc(0,0));
+      dmax = 0.5*tolerance*(ext_mat_bulk(f_index,0,0,0,0)+ext_mat_mc(0,0));
       Compare(ext_mat_bulk(f_index,0,0,joker,joker), ext_mat_mc, dmax, "Deviation in ext_mat",
               "US", "MC", "", "", verbosity);
-/*
       for (Index iza=0; iza<n_za; iza++)
         for (Index iaa=0; iaa<n_aa; iaa++)
         {
           ostringstream os;
           os << "Deviation in pha_mat at za[" << iza << "]=" << pha_mat_za[iza]
              << "deg and aa[" << iaa << "]=" << pha_mat_aa[iaa] << "deg.";
-          dmax = 0.5e-6*(pha_mat_rt4(iza,iaa,0,0)+pha_mat_mc(iza,iaa,0,0));
-          Compare(pha_mat_rt4(iza,iaa,joker,joker), pha_mat_mc(iza,iaa,joker,joker),
+          dmax = 0.5*tolerance*(pha_mat_bulk(f_index,0,0,printinfo_index[iza][iaa],0,0)+
+                         pha_mat_mc(iza,iaa,0,0));
+          Compare(pha_mat_bulk(f_index,0,0,printinfo_index[iza][iaa],joker,joker),
+                  pha_mat_mc(iza,iaa,joker,joker),
                   dmax, os.str(), "US", "MC", "", "", verbosity);
         }
-*/
     }
-  /*
-  if (compare==1 || compare>2)
+
+    if (compare[ic]==2)
     {
-      Matrix tmp1(stokes_dim, stokes_dim, 0.0);
-      ext_mat_doit.MatrixAtPosition(tmp1, 0);
+      Matrix tmp1(stokes_dim, stokes_dim);
+      ext_mat_rt4.MatrixAtPosition(tmp1, 0);
       Vector tmp2(stokes_dim);
-      abs_vec_doit.VectorAtPosition(tmp2, 0);
+      abs_vec_rt4.VectorAtPosition(tmp2, 0);
 
       Numeric dmax;
-      dmax = 0.5e-6*(tmp2[0]+abs_vec_mc[0]);
-      Compare(tmp2, abs_vec_mc, dmax, "Deviation in abs_vec",
-              "DOIT", "MC", "", "", verbosity);
-      dmax = 0.5e-6*(tmp1(0,0)+ext_mat_mc(0,0));
-      Compare(tmp1, ext_mat_mc, dmax, "Deviation in ext_mat",
-              "DOIT", "MC", "", "", verbosity);
+      dmax = 0.5*tolerance*(abs_vec_bulk(f_index,0,0,0)+tmp2[0]);
+      Compare(abs_vec_bulk(f_index,0,0,joker), tmp2, dmax, "Deviation in abs_vec",
+              "US", "RT4", "", "", verbosity);
+      dmax = 0.5*tolerance*(ext_mat_bulk(f_index,0,0,0,0)+tmp1(0,0));
+      Compare(ext_mat_bulk(f_index,0,0,joker,joker), tmp1, dmax, "Deviation in ext_mat",
+              "US", "RT4", "", "", verbosity);
       for (Index iza=0; iza<n_za; iza++)
         for (Index iaa=0; iaa<n_aa; iaa++)
         {
           ostringstream os;
           os << "Deviation in pha_mat at za[" << iza << "]=" << pha_mat_za[iza]
              << "deg and aa[" << iaa << "]=" << pha_mat_aa[iaa] << "deg.";
-          dmax = 0.5e-6*(pha_mat_doit(iza,iaa,0,0)+pha_mat_mc(iza,iaa,0,0));
-          Compare(pha_mat_doit(iza,iaa,joker,joker), pha_mat_mc(iza,iaa,joker,joker),
-                  dmax, os.str(), "DOIT", "MC", "", "", verbosity);
+          dmax = 0.5*tolerance*(pha_mat_bulk(f_index,0,0,printinfo_index[iza][iaa],0,0)+
+                         pha_mat_rt4(iza,iaa,0,0));
+          Compare(pha_mat_bulk(f_index,0,0,printinfo_index[iza][iaa],joker,joker),
+                  pha_mat_rt4(iza,iaa,joker,joker),
+                  dmax, os.str(), "US", "RT4", "", "", verbosity);
         }
     }
-  */
-  if (compare>1)
+
+    if (compare[ic]==3)
     {
       Matrix tmp1(stokes_dim, stokes_dim);
       ext_mat_rt4.MatrixAtPosition(tmp1, 0);
@@ -3887,10 +3944,10 @@ void TestScatDataInterp(
       abs_vec_rt4.VectorAtPosition(tmp2, 0);
     
       Numeric dmax;
-      dmax = 0.5e-6*(tmp2[0]+abs_vec_mc[0]);
+      dmax = 0.5*tolerance*(tmp2[0]+abs_vec_mc[0]);
       Compare(tmp2, abs_vec_mc, dmax, "Deviation in abs_vec",
               "RT4", "MC", "", "", verbosity);
-      dmax = 0.5e-6*(tmp1(0,0)+ext_mat_mc(0,0));
+      dmax = 0.5*tolerance*(tmp1(0,0)+ext_mat_mc(0,0));
       Compare(tmp1, ext_mat_mc, dmax, "Deviation in ext_mat",
               "RT4", "MC", "", "", verbosity);
       for (Index iza=0; iza<n_za; iza++)
@@ -3899,11 +3956,39 @@ void TestScatDataInterp(
           ostringstream os;
           os << "Deviation in pha_mat at za[" << iza << "]=" << pha_mat_za[iza]
              << "deg and aa[" << iaa << "]=" << pha_mat_aa[iaa] << "deg.";
-          dmax = 0.5e-6*(pha_mat_rt4(iza,iaa,0,0)+pha_mat_mc(iza,iaa,0,0));
+          dmax = 0.5*tolerance*(pha_mat_rt4(iza,iaa,0,0)+pha_mat_mc(iza,iaa,0,0));
           Compare(pha_mat_rt4(iza,iaa,joker,joker), pha_mat_mc(iza,iaa,joker,joker),
                   dmax, os.str(), "RT4", "MC", "", "", verbosity);
         }
     }
 
+  /*
+  if (compare[ic]==...)
+    {
+      Matrix tmp1(stokes_dim, stokes_dim, 0.0);
+      ext_mat_doit.MatrixAtPosition(tmp1, 0);
+      Vector tmp2(stokes_dim);
+      abs_vec_doit.VectorAtPosition(tmp2, 0);
+
+      Numeric dmax;
+      dmax = 0.5*tolerance*(tmp2[0]+abs_vec_mc[0]);
+      Compare(tmp2, abs_vec_mc, dmax, "Deviation in abs_vec",
+              "DOIT", "MC", "", "", verbosity);
+      dmax = 0.5*tolerance*(tmp1(0,0)+ext_mat_mc(0,0));
+      Compare(tmp1, ext_mat_mc, dmax, "Deviation in ext_mat",
+              "DOIT", "MC", "", "", verbosity);
+      for (Index iza=0; iza<n_za; iza++)
+        for (Index iaa=0; iaa<n_aa; iaa++)
+        {
+          ostringstream os;
+          os << "Deviation in pha_mat at za[" << iza << "]=" << pha_mat_za[iza]
+             << "deg and aa[" << iaa << "]=" << pha_mat_aa[iaa] << "deg.";
+          dmax = 0.5*tolerance*(pha_mat_doit(iza,iaa,0,0)+pha_mat_mc(iza,iaa,0,0));
+          Compare(pha_mat_doit(iza,iaa,joker,joker), pha_mat_mc(iza,iaa,joker,joker),
+                  dmax, os.str(), "DOIT", "MC", "", "", verbosity);
+        }
+    }
+  */
+  }
 }
 

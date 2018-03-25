@@ -1,3 +1,18 @@
+2018-03-25 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-996
+
+	* src/m_optproperties.cc, methods.cc (TestScatDataInterp):
+	Added section testing pha_mat extraction using new unified system.
+	Made compare capability better selectable and updated doc. Added diff
+	threshold of compare as user parameter.
+
+	* src/optproperties.cc (pha_mat1ScatElem):
+	Bugfixes in az-rand branch triggered by TestScatDataInterp.
+
+	* src/optproperties.h (pha_mat_1ScatElem, pha_matNScatElems):
+	Added missed default for t_interp_order.
+
 2018-03-24 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-995
