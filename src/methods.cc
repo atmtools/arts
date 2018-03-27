@@ -5372,7 +5372,7 @@ void define_md_data_raw()
          "Clear-sky radiation field of a plane parallel atmosphere.\n"
          "\n"
          "The method assumes a 1D flat planet. Radiances along each direction\n"
-         "specified by *scat_za_grid* are calculated using *ppathPlaneParallel*\n"
+         "given by *scat_za_grid* are calculated using *ppathPlaneParallel*\n"
          "and *iyEmissionStandard*.\n"
          "\n"
          "Surface properties are defined by *iy_surface_agenda*, i.e. there is no\n"
@@ -5380,14 +5380,20 @@ void define_md_data_raw()
          "that the surface is placed exactly at the first pressure level.\n"
          "\n"
          "Note that the variable *ppath_lmax* is considered, and that it can be\n"
-         "crucial for the accuracy for zenith anngles close to 90 degress. That\n"
-         "is, ppath_lmax=-1 is not recommended for this function.\n"
+         "crucial for the accuracy for zenith angles close to 90 degrees. That\n"
+         "is, using ppath_lmax=-1 is not recommended for this function.\n"
+         "\n"
+         "Information on transmission is also provided by the GOUT *trans_field*.\n"
+         "For up-welling radiation (scat_za > 90), this variable holds the\n"
+         "transmission to space, for considered position and propagation direction.\n"
+         "For down-welling radiation, *trans_field* holds instead the transmission\n"
+         "down to the surface.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "doit_i_field" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
+        GOUT( "trans_field" ),
+        GOUT_TYPE( "Tensor3" ),
+        GOUT_DESC( "Dimensions: [f_grid,p_grid,scat_za_grid]. See further above." ),
         IN( "propmat_clearsky_agenda", "iy_main_agenda", "iy_space_agenda",
             "iy_surface_agenda", "iy_cloudbox_agenda",
             "stokes_dim", "f_grid", "atmosphere_dim",

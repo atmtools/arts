@@ -117,6 +117,8 @@ void total_line_source_and_transmission(Vector& J,
   }
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void radiation_fieldCalcFromiyCalc(Workspace&              ws,
                                    //OUT:
@@ -423,11 +425,11 @@ void radiation_fieldCalcForRotationalNLTE(Workspace&                      ws,
 
 
 
-
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void doit_i_fieldClearskyPlaneParallel(
         Workspace&                  ws,
         Tensor7&                    doit_i_field,
+        Tensor3&                    trans_field,
   const Agenda&                     propmat_clearsky_agenda,
   const Agenda&                     iy_main_agenda,
   const Agenda&                     iy_space_agenda,
@@ -467,9 +469,9 @@ void doit_i_fieldClearskyPlaneParallel(
   const Index nf  = f_grid.nelem();
   const Index nza = scat_za_grid.nelem();
   
-  // Init doit_i_field
+  // Init doit_i_field and trans_field
   doit_i_field.resize( nf, nl, 1, 1, nza, 1, stokes_dim );
-  doit_i_field = NAN;   // If some part is below the surface
+  trans_field.resize( nf, nl, nza );
   
   // De-activate cloudbox 
   const Index cloudbox_on = 0, ppath_inside_cloudbox_do = 0;
@@ -532,11 +534,15 @@ void doit_i_fieldClearskyPlaneParallel(
         {
           doit_i_field(joker,0,0,0,i,0,joker)    = ppvar_iy(joker,joker,0);
           doit_i_field(joker,nl-1,0,0,i,0,joker) = ppvar_iy(joker,joker,ppath.np-1);
+          trans_field(joker,0,i)    = ppvar_trans_cumulat(0,joker,0,0);
+          trans_field(joker,nl-1,i) = ppvar_trans_cumulat(ppath.np-1,joker,0,0);
         }
       else
         {
           doit_i_field(joker,nl-1,0,0,i,0,joker) = ppvar_iy(joker,joker,0);
           doit_i_field(joker,0,0,0,i,0,joker)    = ppvar_iy(joker,joker,ppath.np-1);
+          trans_field(joker,nl-1,i) = ppvar_trans_cumulat(0,joker,0,0);
+          trans_field(joker,0,i)    = ppvar_trans_cumulat(ppath.np-1,joker,0,0);
         }
 
       // Remaining points
@@ -547,8 +553,8 @@ void doit_i_fieldClearskyPlaneParallel(
             {
               doit_i_field(joker,ppath.gp_p[p].idx,0,0,i,0,joker) =
                 ppvar_iy(joker,joker,p);
+              trans_field(joker,ppath.gp_p[p].idx,i) = ppvar_trans_cumulat(p,joker,0,0);
             }
         }
-      // Point at TOA don't have fd[0] = 0 and must be handled seperately
     }
 }
