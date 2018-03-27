@@ -1122,12 +1122,12 @@ void ppathPlaneParallel(
          << "   altitude of surface : " << z_surface(0,0);
       throw runtime_error( os.str() );
     }
-  if( abs( za_sensor - 90 ) < 1 )
+  if( abs( za_sensor - 90 ) < 0.1 )
     {
       ostringstream os;
       os << "The zenith angle is " << za_sensor << endl
          << "The method does not allow this. The zenith angle must deviate\n"
-         << "from 90 deg with at least 1 deg. That is, to be outside [89,91].";
+         << "from 90 deg with at least 1 deg. That is, to be outside [89.9,90.1].";
       throw runtime_error( os.str() );
     }
 

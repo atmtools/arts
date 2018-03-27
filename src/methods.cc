@@ -5366,6 +5366,44 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "doit_i_fieldClearskyPlaneParallel" ),
+        DESCRIPTION
+        (
+         "Clear-sky radiation field of a plane parallel atmosphere.\n"
+         "\n"
+         "The method assumes a 1D flat planet. Radiances along each direction\n"
+         "specified by *scat_za_grid* are calculated using *ppathPlaneParallel*\n"
+         "and *iyEmissionStandard*.\n"
+         "\n"
+         "Surface properties are defined by *iy_surface_agenda*, i.e. there is no\n"
+         "restriction e.g. specular surfaces. On the other hand, the method demands\n"
+         "that the surface is placed exactly at the first pressure level.\n"
+         "\n"
+         "Note that the variable *ppath_lmax* is considered, and that it can be\n"
+         "crucial for the accuracy for zenith anngles close to 90 degress. That\n"
+         "is, ppath_lmax=-1 is not recommended for this function.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "doit_i_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "propmat_clearsky_agenda", "iy_main_agenda", "iy_space_agenda",
+            "iy_surface_agenda", "iy_cloudbox_agenda",
+            "stokes_dim", "f_grid", "atmosphere_dim",
+            "p_grid", "z_field", "t_field", "nlte_field", "vmr_field", "abs_species",
+            "wind_u_field", "wind_v_field", "wind_w_field",
+            "mag_u_field", "mag_v_field", "mag_w_field",
+            "z_surface", "ppath_lmax", "rte_alonglos_v", "scat_za_grid" 
+            ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "doit_i_fieldSetFromPrecalc" ),
         DESCRIPTION
         (
@@ -7116,7 +7154,8 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
-             "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_pnd", "ppvar_f" ),
+             "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_pnd", "ppvar_f",
+             "ppvar_trans_cumulat" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -7249,7 +7288,8 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
-             "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_f", "ppvar_iy" ),
+             "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_f", "ppvar_iy",
+             "ppvar_trans_cumulat" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -7360,7 +7400,7 @@ void define_md_data_raw()
       AUTHORS( "Patrick Eriksson", "Jana Mendrok", "Richard Larsson" ),
         OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
              "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_pnd",
-             "ppvar_f", "ppvar_iy" ),
+             "ppvar_f", "ppvar_iy", "ppvar_trans_cumulat" ),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -7933,7 +7973,7 @@ void define_md_data_raw()
       AUTHORS( "Patrick Eriksson" ),
       OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
            "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_pnd", "ppvar_f",
-           "ppvar_iy" ),
+           "ppvar_iy", "ppvar_trans_cumulat" ),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -11696,7 +11736,7 @@ void define_md_data_raw()
          "i.e. the planet surface has no curvature. Some consequences of this\n"
          "assumption:\n"
          "   - the mathod can only be used for 1D\n"
-         "   - zenith angles between 89 and 91 deg are not allowed\n"
+         "   - zenith angles between 89.9 and 90.1 deg are not allowed\n"
          "   - refraction is always neglected\n"
          "   - radii in ppath are set to Inf\n"
          "\n"
@@ -11850,6 +11890,28 @@ void define_md_data_raw()
             "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", 
             "refellipsoid", "z_surface", "f_grid",
             "ppath_lmax", "ppath_lraytrace" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ppvar_optical_depthFromPpvar_trans_cumulat" ),
+        DESCRIPTION
+        (
+         "Sets *ppvar_optical_depth* according to provided transmission data.\n"
+         "\n"
+         "The values in ppvar_optical_depth are set to\n"
+         "-log( ppvar_trans_cumulat(joker,joker,0,0) ).\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "ppvar_optical_depth" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ppvar_trans_cumulat" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

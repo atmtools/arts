@@ -679,6 +679,7 @@ void iyTransmissionStandard(
         Matrix&                             ppvar_pnd,
         Matrix&                             ppvar_f,  
         Tensor3&                            ppvar_iy,  
+        Tensor4&                            ppvar_trans_cumulat,
   const Index&                              stokes_dim,
   const Vector&                             f_grid,
   const Index&                              atmosphere_dim,
@@ -802,8 +803,9 @@ void iyTransmissionStandard(
 
   // Get atmospheric and radiative variables along the propagation path
   //
+  ppvar_trans_cumulat.resize(np,nf,ns,ns);
   Tensor3 J(np,nf,ns);
-  Tensor4 trans_cumulat(np,nf,ns,ns), trans_partial(np,nf,ns,ns);
+  Tensor4 trans_partial(np,nf,ns,ns);
   Tensor5 dtrans_partial_dx_above(np,nq,nf,ns,ns);
   Tensor5 dtrans_partial_dx_below(np,nq,nf,ns,ns);
   ArrayOfIndex clear2cloudy;
@@ -944,12 +946,12 @@ void iyTransmissionStandard(
             }
       
           get_stepwise_transmission_matrix(
-                                 trans_cumulat(ip,joker,joker,joker),
+                                 ppvar_trans_cumulat(ip,joker,joker,joker),
                                  trans_partial(ip,joker,joker,joker),
                                  dtrans_partial_dx_above(ip,joker,joker,joker,joker),
                                  dtrans_partial_dx_below(ip,joker,joker,joker,joker),
                                  (ip>0)?
-                                   trans_cumulat(ip-1,joker,joker,joker):
+                                   ppvar_trans_cumulat(ip-1,joker,joker,joker):
                                    Tensor3(0,0,0),
                                  K_past,
                                  K_this,
@@ -968,7 +970,7 @@ void iyTransmissionStandard(
       if( auxOptDepth >= 0 )
         {
           for( Index iv=0; iv<nf; iv++ )
-            { iy_aux[auxOptDepth](iv,joker) = -log( trans_cumulat(np-1,iv,0,0) ); }
+            { iy_aux[auxOptDepth](iv,joker) = -log( ppvar_trans_cumulat(np-1,iv,0,0) ); }
         }   
     }
   
@@ -992,7 +994,7 @@ void iyTransmissionStandard(
                        get_diydx( diy_dpath[iq](ip,iv,joker), 
                                   diy_dpath[iq](ip+1,iv,joker), 
                                   empty_matrix,
-                                  trans_cumulat(ip,iv,joker,joker), 
+                                  ppvar_trans_cumulat(ip,iv,joker,joker), 
                                   dtrans_partial_dx_above(ip+1,iq,iv,joker,joker), 
                                   dtrans_partial_dx_below(ip+1,iq,iv,joker,joker), 
                                   iY, 

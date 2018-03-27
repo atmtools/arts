@@ -1,3 +1,28 @@
+2018-03-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-997
+
+	* src/m_radiation_field.cc (doit_i_fieldClearskyPlaneParallel):
+	New method. Seems to work, but some details should be fixed.
+
+	* src/m_ppath.cc (ppathPlaneParallel): Decreased forbiiden
+	za-range to 89.9-90.1.
+
+	* src/m_rte.cc (ppvar_optical_depthFromPpvar_trans_cumulat): New WSM.
+
+	* src/m_fos.cc (iyHybrid):
+	* src/m_radiation_field.cc (radiation_fieldCalcFromiyCalc):
+	Adopted call of iyEmissionStandard.
+
+	* src/m_cloudradar.cc (iyActiveSingleScat):
+	* src/m_fos.cc (iyHybrid):
+	* src/m_transmitter.cc (iyTransmissionStandard):
+	* src/m_rte.cc (iyEmissionStandard): ppvar_trans_cumulat is now an
+	output variable.
+
+	* src/workspace.cc Added ppvar_trans_cumulat and
+	ppvar_optical_depth.
+
 2018-03-25 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-996
@@ -34,6 +59,7 @@
 
 	* doc/uguide/clouds.tex: Minor fixes.
 
+>>>>>>> .r10929
 2018-03-22  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-994

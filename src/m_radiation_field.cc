@@ -245,9 +245,11 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
       Vector ppvar_t, ppvar_p;
       Matrix ppvar_nlte, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f;
       Tensor3 ppvar_iy;
+      Tensor4 ppvar_trans_cumulat;
       
       iyEmissionStandard(ws, iy, iy_aux, diy_dx, ppvar_p, ppvar_t,
-                         ppvar_nlte, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f, ppvar_iy,  
+                         ppvar_nlte, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f,
+                         ppvar_iy, ppvar_trans_cumulat,  
                          0, stokes_dim, f_grid, atmosphere_dim, p_grid,
                          z_field, t_field, nlte_field, vmr_field, abs_species,
                          wind_u_field, wind_v_field, wind_w_field, mag_u_field, mag_v_field, mag_w_field,
@@ -416,4 +418,137 @@ void radiation_fieldCalcForRotationalNLTE(Workspace&                      ws,
     iy(joker, ip) = J;
     iy_transmission(0, joker, ip) = G;
   }
+}
+
+
+
+
+
+
+void doit_i_fieldClearskyPlaneParallel(
+        Workspace&                  ws,
+        Tensor7&                    doit_i_field,
+  const Agenda&                     propmat_clearsky_agenda,
+  const Agenda&                     iy_main_agenda,
+  const Agenda&                     iy_space_agenda,
+  const Agenda&                     iy_surface_agenda, 
+  const Agenda&                     iy_cloudbox_agenda,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Tensor3&                    z_field,
+  const Tensor3&                    t_field,
+  const Tensor4&                    nlte_field,
+  const Tensor4&                    vmr_field,
+  const ArrayOfArrayOfSpeciesTag&   abs_species,
+  const Tensor3&                    wind_u_field,
+  const Tensor3&                    wind_v_field,
+  const Tensor3&                    wind_w_field,
+  const Tensor3&                    mag_u_field,
+  const Tensor3&                    mag_v_field,
+  const Tensor3&                    mag_w_field,
+  const Matrix&                     z_surface,
+  const Numeric&                    ppath_lmax,
+  const Numeric&                    rte_alonglos_v,
+  const Vector&                     scat_za_grid, 
+  const Verbosity&                  verbosity )
+{
+  // Check input
+  if( atmosphere_dim != 1 )
+    throw runtime_error( "This method only works for atmosphere_dim = 1." );
+  chk_if_increasing ( "scat_za_grid", scat_za_grid );
+  if( abs( z_surface(0,0) - z_field(0,0,0) ) > 1e-3 )
+    throw runtime_error(
+        "The surface must be placed exactly at the first pressure level." );
+  
+  // Sizes
+  const Index nl  = p_grid.nelem();
+  const Index nf  = f_grid.nelem();
+  const Index nza = scat_za_grid.nelem();
+  
+  // Init doit_i_field
+  doit_i_field.resize( nf, nl, 1, 1, nza, 1, stokes_dim );
+  doit_i_field = NAN;   // If some part is below the surface
+  
+  // De-activate cloudbox 
+  const Index cloudbox_on = 0, ppath_inside_cloudbox_do = 0;
+  const ArrayOfIndex cloudbox_limits( 0 );
+
+  // Various input variables
+  const String                     iy_unit = "1";
+  const ArrayOfString              iy_aux_vars(0);
+  const Vector                     rte_pos2(0);
+  const Index                      iy_agenda_call1 = 1;
+  const Tensor3                    iy_transmission(0,0,0);
+  const Index                      jacobian_do = 0;
+  const ArrayOfRetrievalQuantity   jacobian_quantities(0);
+  // Create one altitde just above TOA
+  const Numeric z_space = z_field(nl-1,0,0) + 10;
+
+  // Define output variables
+  Ppath          ppath;
+  Vector         ppvar_p, ppvar_t;
+  Matrix         iy, ppvar_nlte, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f;
+  Tensor3        ppvar_iy;
+  Tensor4        ppvar_trans_cumulat;
+  ArrayOfMatrix  iy_aux;
+  ArrayOfTensor3 diy_dx;
+
+  //Agenda iy_localmain_agenda;
+  //iy_localmain_agenda.append( "ppathPlaneParallel", TokVal() );
+  //iy_localmain_agenda.append( "iyEmissionStandard", TokVal() );
+
+  
+  // Loop zenith angles
+  //
+  for( Index i=0; i<nza; i++ )
+    {
+      Index  iy_id = i;
+      Vector rte_los( 1, scat_za_grid[i] );
+      Vector rte_pos( 1, scat_za_grid[i] < 90 ? z_surface(0,0) : z_space );
+      
+      ppathPlaneParallel( ppath, atmosphere_dim, z_field, z_surface,cloudbox_on,
+                          cloudbox_limits, ppath_inside_cloudbox_do,
+                          rte_pos, rte_los, ppath_lmax, verbosity );
+    
+      iyEmissionStandard( ws, iy, iy_aux, diy_dx, ppvar_p, ppvar_t,ppvar_nlte,
+                          ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f, ppvar_iy,
+                          ppvar_trans_cumulat,iy_id, stokes_dim, f_grid,
+                          atmosphere_dim,p_grid, z_field, t_field, nlte_field,
+                          vmr_field, abs_species,wind_u_field, wind_v_field,
+                          wind_w_field, mag_u_field, mag_v_field, mag_w_field,
+                          cloudbox_on, iy_unit, iy_aux_vars, jacobian_do,
+                          jacobian_quantities, ppath, rte_pos2, 
+                          propmat_clearsky_agenda, iy_main_agenda, iy_space_agenda,
+                          iy_surface_agenda, iy_cloudbox_agenda,
+                          iy_agenda_call1, iy_transmission, rte_alonglos_v,
+                          verbosity );
+      assert( iy.nrows() == nf );
+      assert( iy.ncols() == stokes_dim );
+
+      // First and last points are most easily handled separately
+      if( scat_za_grid[i] < 90 )
+        {
+          doit_i_field(joker,0,0,0,i,0,joker)    = ppvar_iy(joker,joker,0);
+          doit_i_field(joker,nl-1,0,0,i,0,joker) = ppvar_iy(joker,joker,ppath.np-1);
+        }
+      else
+        {
+          doit_i_field(joker,nl-1,0,0,i,0,joker) = ppvar_iy(joker,joker,0);
+          doit_i_field(joker,0,0,0,i,0,joker)    = ppvar_iy(joker,joker,ppath.np-1);
+        }
+
+      // Remaining points
+      for( Index p=1; p<ppath.np-1; p++ )
+        {
+          // We just store values at pressure levels
+          if( ppath.gp_p[p].fd[0] < 1e-2 )
+            {
+              doit_i_field(joker,ppath.gp_p[p].idx,0,0,i,0,joker) =
+                ppvar_iy(joker,joker,p);
+            }
+        }
+      // Point at TOA don't have fd[0] = 0 and must be handled seperately
+    }
 }

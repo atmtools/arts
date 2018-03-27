@@ -3835,6 +3835,21 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "ppvar_nlte" ),
+      DESCRIPTION
+      (
+       "Non-LTE temperatures/ratios along the propagation path.\n"
+       "\n"
+       "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
+       "\n"
+       "Dimension: [ number of non-lte temperatures, ppath.np ]\n"
+       "\n"
+       "Usage: Output of radiative transfer methods.\n"
+       ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "ppvar_p" ),
       DESCRIPTION
       (
@@ -3867,6 +3882,25 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "ppvar_optical_depth" ),
+      DESCRIPTION
+      (
+       "The optical depth between the sensor and each point of the propagation path.\n"
+       "\n"
+       "Returned as the one-way optical depth even in the case of radar\n"
+       "simulations. Just a scalar value, i.e. no polarisation information is\n"
+       "provided.\n"
+       "\n"
+       "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
+       "\n"
+       "Dimension: [ ppath.np, f_grid]\n"
+       "\n"
+       "Usage: Output of radiative transfer methods.\n"
+       ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "ppvar_t" ),
       DESCRIPTION
       (
@@ -3882,18 +3916,21 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "ppvar_nlte" ),
+    ( NAME( "ppvar_trans_cumulat" ),
       DESCRIPTION
       (
-       "Non-LTE temperatures/ratios along the propagation path.\n"
+       "The transmission between the sensor and each point of the propagation path.\n"
+       "\n"
+       "Returned as the one-way transmission even in the case of radar\n"
+       "simulations.\n"
        "\n"
        "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
        "\n"
-       "Dimension: [ number of non-lte temperatures, ppath.np ]\n"
+       "Dimension: [ ppath.np, f_grid, stokes_dim, stokes_dim ]\n"
        "\n"
        "Usage: Output of radiative transfer methods.\n"
        ),
-      GROUP( "Matrix" )));
+      GROUP( "Tensor4" )));
 
   wsv_data.push_back
    (WsvRecord

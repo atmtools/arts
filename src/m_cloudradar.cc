@@ -72,6 +72,7 @@ void iyActiveSingleScat(
         Matrix&                             ppvar_mag,         
         Matrix&                             ppvar_pnd,
         Matrix&                             ppvar_f,  
+        Tensor4&                            ppvar_trans_cumulat,
   const Index&                              stokes_dim,
   const Vector&                             f_grid,
   const Index&                              atmosphere_dim,
@@ -226,8 +227,9 @@ void iyActiveSingleScat(
 
   // Get atmospheric and radiative variables along the propagation path
   //
+  ppvar_trans_cumulat.resize(np,nf,ns,ns);
   Tensor3 J(np,nf,ns);
-  Tensor4 trans_cumulat(np,nf,ns,ns), trans_partial(np,nf,ns,ns);
+  Tensor4 trans_partial(np,nf,ns,ns);
   Tensor5 dtrans_partial_dx_above(0,0,0,0,0);
   Tensor5 dtrans_partial_dx_below(0,0,0,0,0);
   Tensor5 Pe( ne, np, nf, ns, ns, 0 ); 
@@ -443,12 +445,12 @@ void iyActiveSingleScat(
           if( trans_in_jacobian &&  j_analytical_do )
             {
               get_stepwise_transmission_matrix(
-                                 trans_cumulat(ip,joker,joker,joker),
+                                 ppvar_trans_cumulat(ip,joker,joker,joker),
                                  trans_partial(ip,joker,joker,joker),
                                  dtrans_partial_dx_above(ip,joker,joker,joker,joker),
                                  dtrans_partial_dx_below(ip,joker,joker,joker,joker),
                                  (ip>0)?
-                                   trans_cumulat(ip-1,joker,joker,joker):
+                                   ppvar_trans_cumulat(ip-1,joker,joker,joker):
                                    Tensor3(0,0,0),
                                  K_past,
                                  K_this,
@@ -462,12 +464,12 @@ void iyActiveSingleScat(
           else
             {
               get_stepwise_transmission_matrix(
-                                 trans_cumulat(ip,joker,joker,joker),
+                                 ppvar_trans_cumulat(ip,joker,joker,joker),
                                  trans_partial(ip,joker,joker,joker),
                                  Tensor4(0,0,0,0),
                                  Tensor4(0,0,0,0),
                                  (ip>0)?
-                                   trans_cumulat(ip-1,joker,joker,joker):
+                                   ppvar_trans_cumulat(ip-1,joker,joker,joker):
                                    Tensor3(0,0,0),
                                  K_past,
                                  K_this,
@@ -519,9 +521,9 @@ void iyActiveSingleScat(
               Vector iy1(ns), iy2(ns);
               const Index iout = iv*np + ip;
               //mult( iy1, tr_rev(iv,joker,joker), iy0(iv,joker) );
-              mult( iy1, trans_cumulat(ip,iv,joker,joker), iy0(iv,joker) );
+              mult( iy1, ppvar_trans_cumulat(ip,iv,joker,joker), iy0(iv,joker) );
               mult( iy2, P, iy1 );
-              mult( iy(iout,joker), trans_cumulat(ip,iv,joker,joker), iy2 );
+              mult( iy(iout,joker), ppvar_trans_cumulat(ip,iv,joker,joker), iy2 );
 
               if( auxBackScat >= 0)
                 { mult( iy_aux[auxBackScat](iout,joker), P, iy0(iv,joker) ); }
@@ -557,7 +559,7 @@ void iyActiveSingleScat(
                               Vector iy_tmp(ns);
                               mult( iy_tmp, P, iy1 );
                               mult( diy_dpath[iq](ip,iout,joker),
-                                    trans_cumulat(ip,iv,joker,joker), iy_tmp );
+                                    ppvar_trans_cumulat(ip,iv,joker,joker), iy_tmp );
                             }
                         }
                     }
@@ -581,7 +583,7 @@ void iyActiveSingleScat(
           for( Index iv=0; iv<nf; iv++ )
             {
               const Index iout = iv*np + ip;
-              iy_aux[auxOptDepth](iout,0) = -2*log( trans_cumulat(ip,iv,0,0) );
+              iy_aux[auxOptDepth](iout,0) = -2*log( ppvar_trans_cumulat(ip,iv,0,0) );
               for( Index is=1; is<ns; is++ )
                 { iy_aux[auxOptDepth](iout,is) = iy_aux[auxOptDepth](iout,0); }
             }

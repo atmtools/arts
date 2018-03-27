@@ -195,6 +195,7 @@ void iyEmissionStandard(
         Matrix&                     ppvar_mag,         
         Matrix&                     ppvar_f,  
         Tensor3&                    ppvar_iy,  
+        Tensor4&                    ppvar_trans_cumulat,
   const Index&                      iy_id,
   const Index&                      stokes_dim,
   const Vector&                     f_grid,
@@ -299,8 +300,9 @@ void iyEmissionStandard(
 
   // Get atmospheric and radiative variables along the propagation path
   //
+  ppvar_trans_cumulat.resize(np,nf,ns,ns);
   Tensor3 J(np,nf,ns);
-  Tensor4 trans_cumulat(np,nf,ns,ns), trans_partial(np,nf,ns,ns);
+  Tensor4 trans_partial(np,nf,ns,ns);
   Tensor5 dtrans_partial_dx_above(np,nq,nf,ns,ns);
   Tensor5 dtrans_partial_dx_below(np,nq,nf,ns,ns);
   Tensor4 dJ_dx(np,nq,nf,ns);
@@ -315,7 +317,7 @@ void iyEmissionStandard(
       ppvar_mag.resize(0,0);
       ppvar_f.resize(0,0);
       ppvar_iy.resize(nf,ns,np);
-      trans_cumulat = 1;
+      ppvar_trans_cumulat = 1;
     }
   else
     {
@@ -413,12 +415,12 @@ void iyEmissionStandard(
             }
 
           get_stepwise_transmission_matrix(
-                                 trans_cumulat(ip,joker,joker,joker),
+                                 ppvar_trans_cumulat(ip,joker,joker,joker),
                                  trans_partial(ip,joker,joker,joker),
                                  dtrans_partial_dx_above(ip,joker,joker,joker,joker),
                                  dtrans_partial_dx_below(ip,joker,joker,joker,joker),
                                  (ip>0)?
-                                   trans_cumulat(ip-1,joker,joker,joker):
+                                   ppvar_trans_cumulat(ip-1,joker,joker,joker):
                                    Tensor3(0,0,0),
                                  K_past,
                                  K_this,
@@ -450,16 +452,16 @@ void iyEmissionStandard(
   // iy_transmission
   Tensor3 iy_trans_new;
   if( iy_agenda_call1 )
-    { iy_trans_new = trans_cumulat(np-1,joker,joker,joker); }
+    { iy_trans_new = ppvar_trans_cumulat(np-1,joker,joker,joker); }
   else
     { iy_transmission_mult( iy_trans_new, iy_transmission, 
-                            trans_cumulat(np-1,joker,joker,joker) ); }
+                            ppvar_trans_cumulat(np-1,joker,joker,joker) ); }
 
   // iy_aux: Optical depth
   if( auxOptDepth >= 0 )
     {
       for( Index iv=0; iv<nf; iv++ )
-        { iy_aux[auxOptDepth](iv,joker) = -log( trans_cumulat(np-1,iv,0,0) ); }
+        { iy_aux[auxOptDepth](iv,joker) = -log( ppvar_trans_cumulat(np-1,iv,0,0) ); }
     }   
 
   // Radiative background
@@ -509,7 +511,7 @@ void iyEmissionStandard(
                        get_diydx( diy_dpath[iq](ip,iv,joker), 
                                   diy_dpath[iq](ip+1,iv,joker), 
                                   one_minus_transmission,
-                                  trans_cumulat(ip,iv,joker,joker), 
+                                  ppvar_trans_cumulat(ip,iv,joker,joker), 
                                   dtrans_partial_dx_above(ip+1,iq,iv,joker,joker), 
                                   dtrans_partial_dx_below(ip+1,iq,iv,joker,joker), 
                                   through_level, 
@@ -1231,6 +1233,19 @@ void iyReplaceFromAux(
                          "is either not defined at all or is not set." );
 }
 
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppvar_optical_depthFromPpvar_trans_cumulat(
+         Matrix&            ppvar_optical_depth,
+   const Tensor4&           ppvar_trans_cumulat,
+   const Verbosity& )
+{
+  ppvar_optical_depth = ppvar_trans_cumulat(joker,joker,0,0);
+  transform( ppvar_optical_depth, log, ppvar_optical_depth );
+  ppvar_optical_depth *= -1;
+}
 
 
 
