@@ -7173,14 +7173,17 @@ void define_md_data_raw()
             "jacobian_do", "jacobian_quantities", "ppath",
             "propmat_clearsky_agenda", "iy_transmitter_agenda", "iy_agenda_call1",
             "iy_transmission", "rte_alonglos_v" ),
-        GIN( "trans_in_jacobian", "pext_scaling" ),
-        GIN_TYPE( "Index", "Numeric" ),
-        GIN_DEFAULT( "0", "1" ),
-        GIN_DESC( "Flag determining if change in transmission is considered "
-                  "in calculation of the Jacobian or not.",
-                  "Particle extinction is scaled with this value. A value "
-                  "inside [0,2]. Set it to 0 if you want to remove particle "
-                  "extinction totally." )
+        GIN( "trans_in_jacobian", "pext_scaling", "t_interp_order" ),
+        GIN_TYPE( "Index", "Numeric", "Index" ),
+        GIN_DEFAULT( "0", "1", "1" ),
+        GIN_DESC( "Flag determining if change in transmission is considered"
+                  " in calculation of the Jacobian or not.",
+                  "Particle extinction is scaled with this value. A value"
+                  " inside [0,2]. Set it to 0 if you want to remove particle"
+                  " extinction totally.",
+                  "Interpolation order of temperature for scattering data (so"
+                  " far only applied in phase matrix, not in extinction and"
+                  " absorption." )
         ));
 
   md_data_raw.push_back
@@ -10106,11 +10109,14 @@ void define_md_data_raw()
             "atmfields_checked", "atmgeom_checked", "scat_data_checked",
             "cloudbox_checked", "iy_unit", "mc_max_scatorder", "mc_seed", 
             "mc_max_iter" ),
-        GIN(      "ze_tref", "k2" ),
-        GIN_TYPE( "Numeric", "Numeric" ),
-        GIN_DEFAULT( "273.15", "-1" ),
+        GIN(      "ze_tref", "k2", "t_interp_order" ),
+        GIN_TYPE( "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( "273.15", "-1", "1" ),
         GIN_DESC( "Reference temperature for conversion to Ze.",
-                  "Reference dielectric factor." )
+                  "Reference dielectric factor.",
+                  "Interpolation order of temperature for scattering data (so"
+                  " far only applied in phase matrix, not in extinction and"
+                  " absorption." )
         ));
 
 

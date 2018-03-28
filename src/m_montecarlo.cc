@@ -600,11 +600,10 @@ void MCRadar(// Workspace reference:
              const Index& mc_max_iter,
              const Numeric& ze_tref,
              const Numeric& k2,
+             const Index& t_interp_order,
              // Verbosity object:
              const Verbosity& verbosity)
-
 {
-
   CREATE_OUT0;
 
   // Important constants
@@ -687,7 +686,8 @@ void MCRadar(// Workspace reference:
   bool  is_dist = max(range_bins) > 1; // Is it round trip time or distance
   rng.seed(mc_seed, verbosity);
   Numeric ppath_lraytrace_var;
-  Numeric temperature, albedo;
+  //Numeric temperature, albedo;
+  Numeric albedo;
   Numeric Csca, Cext;
   Numeric antenna_wgt;
   Matrix evol_op(stokes_dim,stokes_dim), ext_mat_mono(stokes_dim,stokes_dim);
@@ -702,11 +702,24 @@ void MCRadar(// Workspace reference:
   Index mc_iter;
   Index scat_order;
 
+  // allocating variables needed for pha_mat extraction (don't want to do this
+  // in every loop step again).
+  ArrayOfArrayOfTensor6 pha_mat_Nse;
+  ArrayOfArrayOfIndex ptypes_Nse;
+  Matrix t_ok;
+  ArrayOfTensor6 pha_mat_ssbulk;
+  ArrayOfIndex ptype_ssbulk;
+  Tensor6 pha_mat_bulk;
+  Index ptype_bulk;
+  Matrix pdir_array(1,2), idir_array(1,2);
+  Vector t_array(1);
+  Matrix pnds(N_se,1);
+
   // for pha_mat handling, at the moment we still need scat_data_mono. Hence,
   // extract that here (but in its local container, not into the WSV
   // scat_data_mono).
-  ArrayOfArrayOfSingleScatteringData this_scat_data_mono;
-  scat_data_monoExtract( this_scat_data_mono, scat_data, f_index, verbosity );
+  //ArrayOfArrayOfSingleScatteringData this_scat_data_mono;
+  //scat_data_monoExtract( this_scat_data_mono, scat_data, f_index, verbosity );
 
   const Numeric f_mono = f_grid[f_index];
   const Numeric tx_dir = 1.0;
@@ -795,9 +808,21 @@ void MCRadar(// Workspace reference:
         {
           Numeric s_path, t_path;
 
-          mcPathTraceRadar( ws, evol_op, abs_vec_mono, temperature, 
+//          mcPathTraceRadar( ws, evol_op, abs_vec_mono, temperature, 
+//                            ext_mat_mono, rng, local_rte_pos, local_rte_los, 
+//                            pnd_vec, s_path, t_path, ppath_step, 
+//                            termination_flag, inside_cloud, ppath_step_agenda, 
+//                            ppath_lmax, ppath_lraytrace, 
+//                            propmat_clearsky_agenda, anyptype_nonTotRan, stokes_dim, 
+//                            f_index, f_grid, Ihold,
+//                            p_grid, lat_grid, lon_grid, z_field,
+//                            refellipsoid,z_surface, t_field, vmr_field, 
+//                            cloudbox_limits, pnd_field, scat_data, 
+//                            verbosity ); 
+          mcPathTraceRadar( ws, evol_op, abs_vec_mono, t_array[0], 
                             ext_mat_mono, rng, local_rte_pos, local_rte_los, 
-                            pnd_vec, s_path, t_path, ppath_step, 
+                            pnd_vec, //pnds(joker,0),
+                            s_path, t_path, ppath_step, 
                             termination_flag, inside_cloud, ppath_step_agenda, 
                             ppath_lmax, ppath_lraytrace, 
                             propmat_clearsky_agenda, anyptype_nonTotRan, stokes_dim, 
@@ -805,7 +830,8 @@ void MCRadar(// Workspace reference:
                             p_grid, lat_grid, lon_grid, z_field,
                             refellipsoid,z_surface, t_field, vmr_field, 
                             cloudbox_limits, pnd_field, scat_data, 
-                            verbosity ); 
+                            verbosity );
+          pnds(joker,0) = pnd_vec;
           if( !inside_cloud || termination_flag != 0 )
             {
               keepgoing = false;
@@ -922,10 +948,23 @@ void MCRadar(// Workspace reference:
 
                   // Obtain scattering matrix given incident and scattered angles
                   Matrix P(stokes_dim,stokes_dim);
-                  pha_mat_singleCalc( P, rte_los_geom[0], rte_los_geom[1], 
-                                      local_rte_los[0], local_rte_los[1], 
-                                      this_scat_data_mono, stokes_dim, 
-                                      pnd_vec, temperature, verbosity );
+                  //pha_mat_singleCalc( P, rte_los_geom[0], rte_los_geom[1], 
+                  //                    local_rte_los[0], local_rte_los[1], 
+                  //                    this_scat_data_mono, stokes_dim, 
+                  //                    pnd_vec, temperature, verbosity );
+
+                  pdir_array(0,joker) = rte_los_geom;
+                  idir_array(0,joker) = local_rte_los;
+                  pha_mat_NScatElems( pha_mat_Nse, ptypes_Nse, t_ok,
+                                      scat_data, stokes_dim, t_array,
+                                      pdir_array, idir_array, f_index,
+                                      t_interp_order );
+                  pha_mat_ScatSpecBulk( pha_mat_ssbulk, ptype_ssbulk,
+                                        pha_mat_Nse, ptypes_Nse, pnds, t_ok );
+                  pha_mat_Bulk( pha_mat_bulk, ptype_bulk,
+                                pha_mat_ssbulk, ptype_ssbulk );
+                  P = pha_mat_bulk(0,0,0,0,joker,joker);
+
                   P *= 4 * PI;
                   P /= Csca;
 
@@ -977,18 +1016,36 @@ void MCRadar(// Workspace reference:
 
                   scat_order++;
 
-                  Sample_los_uniform( new_rte_los, rng );
-                  pha_mat_singleCalc( Z, new_rte_los[0], new_rte_los[1], 
-                                      local_rte_los[0], local_rte_los[1], 
-                                      this_scat_data_mono, stokes_dim, 
-                                      pnd_vec, temperature, verbosity );
+                  //Sample_los_uniform(  new_rte_los, rng );
+                  //pha_mat_singleCalc( Z, new_rte_los[0], new_rte_los[1], 
+                  //                    local_rte_los[0], local_rte_los[1], 
+                  //                    this_scat_data_mono, stokes_dim, 
+                  //                    pnd_vec, temperature, verbosity );
+
+                  Sample_los_uniform(  new_rte_los, rng );
+                  pdir_array(0,joker) = new_rte_los;
+                  // alt:
+                  // Sample_los_uniform( pdir_array(0,joker), rng );
+                  pha_mat_NScatElems( pha_mat_Nse, ptypes_Nse, t_ok,
+                                      scat_data, stokes_dim, t_array,
+                                      pdir_array, idir_array, f_index,
+                                      t_interp_order );
+                  pha_mat_ScatSpecBulk( pha_mat_ssbulk, ptype_ssbulk,
+                                        pha_mat_Nse, ptypes_Nse, pnds, t_ok );
+                  pha_mat_Bulk( pha_mat_bulk, ptype_bulk,
+                                pha_mat_ssbulk, ptype_ssbulk );
+                  Z = pha_mat_bulk(0,0,0,0,joker,joker);
 
                   Z *= 4 * PI;
                   Z /= Csca;
                   mult( Ipath, Z, Ihold );
                   Ihold = Ipath;
-                  local_rte_los = new_rte_los;
-                  
+                  local_rte_los = new_rte_los;                  
+                  // alt:
+                  //local_rte_los = pdir_array(0,joker);
+                  // or even (but also requires replacements of local_rte_los
+                  // with idir_array throughout the whole loop):
+                  //idir_array = pdir_array;
                 }
               else
                 {

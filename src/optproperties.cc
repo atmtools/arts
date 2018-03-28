@@ -943,7 +943,7 @@ void pha_mat_NScatElems(//Output
 }
 
 
-//! Preparing phase mtrix from one scattering element.
+//! Preparing phase matrix from one scattering element.
 /*! 
   Extracts and prepares phase matrix data for one scattering element for one or
   all frequencies from the single scattering data. Includes interpolation in

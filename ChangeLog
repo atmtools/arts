@@ -1,3 +1,14 @@
+2018-03-28 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-1001
+
+	* src/m_cloudradar.cc (iyActiveSingleScat),
+	src/m_montecarlo.cc (MCRadar), methods.cc:
+	Replaced phase matrix extraction with new system. Allow user to select
+	temperature interpolation order.
+
+	* src/optproperties.cc: Minor spell fix.
+
 2018-03-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1000

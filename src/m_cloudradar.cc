@@ -103,8 +103,9 @@ void iyActiveSingleScat(
   const Tensor3&                            iy_transmission,
   const Numeric&                            rte_alonglos_v,
   const Index&                              trans_in_jacobian, 
-  const Numeric&                            pext_scaling, 
-  const Verbosity&                          verbosity )
+  const Numeric&                            pext_scaling,
+  const Index&                              t_interp_order,
+  const Verbosity&                          verbosity _U_ )
 {
   // Some basic sizes
   const Index nf = f_grid.nelem();
@@ -129,6 +130,11 @@ void iyActiveSingleScat(
     throw runtime_error( "The propagation path ends inside or at boundary of "
                          "the cloudbox.\nFor this method, *ppath* must be "
                          "calculated in this way:\n   ppathCalc( cloudbox_on = 0 )." );
+  if( cloudbox_on )
+    if( ne!=TotalNumberOfElements(scat_data) )
+        throw runtime_error(
+          "*pnd_field* and *scat_data* inconsistent regarding total number of"
+          " scattering elements." );
   if( jacobian_do )
     {
       if( dpnd_field_dx.nelem() != jacobian_quantities.nelem() )
@@ -236,6 +242,11 @@ void iyActiveSingleScat(
   ArrayOfMatrix ppvar_dpnd_dx(0);
   ArrayOfIndex clear2cloudy;
   Matrix scalar_ext(np,nf,0);  // Only used for iy_aux
+  Tensor6 pha_mat_1se(nf,1,1,1,ns,ns);
+  Vector t_ok(1), t_array(1);
+  Matrix pdir(1,2), idir(1,2);
+  Index ptype;
+
   //
   if( np == 1  &&  rbi == 1 )  // i.e. ppath is totally outside the atmosphere:
     {
@@ -308,16 +319,6 @@ void iyActiveSingleScat(
             )
         }
 
-      // Temporary part:
-      Array<ArrayOfArrayOfSingleScatteringData>  scat_data_single;
-      scat_data_single.resize( nf );
-      for( Index iv=0; iv<nf; iv++ )
-        { 
-          scat_data_monoExtract( scat_data_single[iv], scat_data, iv,
-                                 verbosity );
-        }
-
-      
       // Loop ppath points and determine radiative properties
       for( Index ip=0; ip<np; ip++ )
         { 
@@ -398,6 +399,7 @@ void iyActiveSingleScat(
                 // Direction of outgoing scattered radiation (which is reverse to LOS).
                 Vector los_sca;
                 mirror_los( los_sca, ppath.los(ip,joker), atmosphere_dim );
+                pdir(0,joker) = los_sca;
 
                 // Obtain a length-2 vector for incoming direction
                 Vector los_inc;
@@ -405,40 +407,46 @@ void iyActiveSingleScat(
                   { los_inc = ppath.los(ip,joker); }
                 else // Mirror back to get a correct 3D LOS
                   { mirror_los( los_inc, los_sca, 3 ); }
+                idir(0,joker) = los_inc;
 
-                // Fill vector with ones where we need back-scattering
-                Vector pnd_unit(ne,0);
-                for( Index i=0; i<ne; i++ )
+                Index i_se_flat = 0;
+                for (Index i_ss = 0; i_ss<scat_data.nelem(); i_ss++)
+                  for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
                   {
-                    if( ppvar_pnd(i,ip) != 0 )
-                        { pnd_unit[i] = 1; }
+                    // determine whether we have some valid pnd for this
+                    // scatelem (in pnd or dpnd)
+                    Index val_pnd = 0;
+                    if( ppvar_pnd(i_se_flat,ip) != 0 )
+                      val_pnd = 1; 
                     else if( j_analytical_do )
-                      {
-                        for( Index iq=0; iq<nq && !pnd_unit[i]; iq++ ) 
+                      for( Index iq=0; iq<nq && !val_pnd; iq++ ) 
+                        if( jac_scat_i[iq] >= 0 )
+                          if( ppvar_dpnd_dx[iq](i_se_flat,ip) != 0 )
                           {
-                            if( jac_scat_i[iq] >= 0 )
-                              {
-                                if( ppvar_dpnd_dx[iq](i,ip) != 0 )
-                                  {
-                                    pnd_unit[i] = 1;
-                                    break;
-                                  }
-                              }
+                            val_pnd = 1;
+                            break;
                           }
+                    if( val_pnd )
+                    {
+                      pha_mat_1ScatElem( pha_mat_1se, ptype, t_ok,
+                                         scat_data[i_ss][i_se],
+                                         ppvar_t[Range(ip,1)], pdir, idir,
+                                         0, t_interp_order );
+                      if( t_ok[0] )
+                        Pe(i_se_flat,ip,joker,joker,joker) =
+                          pha_mat_1se(joker,0,0,0,joker,joker);
+                      else
+                      {
+                        ostringstream os;
+                        os << "Interpolation error for (flat-array) scattering"
+                           << " element #" << i_se_flat << "\n"
+                           << "at location/temperature point #" << ip << "\n";
+                        throw runtime_error( os.str() );
                       }
+                    }
+                    i_se_flat++;
                   }
 
-                // Exctract back-scattering
-                // (remove calculation above of scat_data_single when this is updated)
-                for( Index iv=0; iv<nf; iv++ )
-                  { 
-                    pha_mat_singleCalcScatElement( Pe(joker,ip,iv,joker,joker),
-                                                   los_sca[0], los_sca[1],
-                                                   los_inc[0], los_inc[1],
-                                                   scat_data_single[iv],
-                                                   stokes_dim, pnd_unit,
-                                                   ppvar_t[ip], verbosity );
-                  }
               } // local scope
             }  // clear2cloudy
       
