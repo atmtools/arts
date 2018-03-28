@@ -432,7 +432,6 @@ void doit_i_fieldClearskyPlaneParallel(
         Tensor7&                    doit_i_field,
         Tensor3&                    trans_field,
   const Agenda&                     propmat_clearsky_agenda,
-  const Agenda&                     iy_main_agenda,
   const Agenda&                     iy_space_agenda,
   const Agenda&                     iy_surface_agenda, 
   const Agenda&                     iy_cloudbox_agenda,
@@ -493,10 +492,14 @@ void doit_i_fieldClearskyPlaneParallel(
   ArrayOfString fail_msg;
   bool failed = false;
 
-  //Agenda iy_localmain_agenda;
-  //iy_localmain_agenda.append( "ppathPlaneParallel", TokVal() );
-  //iy_localmain_agenda.append( "iyEmissionStandard", TokVal() );
-
+  // Define iy_main_agenda to be consistent with the methods applied inside
+  // this method. This definition of iy_main_agenda will be used to when
+  // calculating the the radiation reflected by the surface
+  Agenda iy_main_agenda;
+  iy_main_agenda.append("ppathPlaneParallel", TokVal());
+  iy_main_agenda.append("iyEmissionStandard", TokVal());
+  iy_main_agenda.set_name("iy_main_agenda");
+  iy_main_agenda.check(ws, verbosity);
   
   // Loop zenith angles
   //
