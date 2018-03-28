@@ -1,3 +1,11 @@
+2018-03-28  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-999
+
+	* src/m_radiation_field.cc (doit_i_fieldClearskyPlaneParallel):
+
+	Parallelize zenith angle loop.
+
 2018-03-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-998

@@ -23,6 +23,7 @@
 #include "physics_funcs.h"
 #include "absorption.h"
 #include "linefunctions.h"
+#include "ppath.h"
 
 
 // Integrates over the unit-area sphere for a za length over one, but only for evenly spaced aa
@@ -488,14 +489,9 @@ void doit_i_fieldClearskyPlaneParallel(
   // Create one altitde just above TOA
   const Numeric z_space = z_field(nl-1,0,0) + 10;
 
-  // Define output variables
-  Ppath          ppath;
-  Vector         ppvar_p, ppvar_t;
-  Matrix         iy, ppvar_nlte, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f;
-  Tensor3        ppvar_iy;
-  Tensor4        ppvar_trans_cumulat;
-  ArrayOfMatrix  iy_aux;
-  ArrayOfTensor3 diy_dx;
+  Workspace l_ws(ws);
+  ArrayOfString fail_msg;
+  bool failed = false;
 
   //Agenda iy_localmain_agenda;
   //iy_localmain_agenda.append( "ppathPlaneParallel", TokVal() );
@@ -504,57 +500,94 @@ void doit_i_fieldClearskyPlaneParallel(
   
   // Loop zenith angles
   //
+  if (nza)
+#pragma omp parallel for       \
+  if (!arts_omp_in_parallel()  \
+      && nza > 1)         \
+  firstprivate(l_ws)
   for( Index i=0; i<nza; i++ )
     {
-      Index  iy_id = i;
-      Vector rte_los( 1, scat_za_grid[i] );
-      Vector rte_pos( 1, scat_za_grid[i] < 90 ? z_surface(0,0) : z_space );
-      
-      ppathPlaneParallel( ppath, atmosphere_dim, z_field, z_surface,cloudbox_on,
-                          cloudbox_limits, ppath_inside_cloudbox_do,
-                          rte_pos, rte_los, ppath_lmax, verbosity );
-    
-      iyEmissionStandard( ws, iy, iy_aux, diy_dx, ppvar_p, ppvar_t,ppvar_nlte,
-                          ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f, ppvar_iy,
-                          ppvar_trans_cumulat,iy_id, stokes_dim, f_grid,
-                          atmosphere_dim,p_grid, z_field, t_field, nlte_field,
-                          vmr_field, abs_species,wind_u_field, wind_v_field,
-                          wind_w_field, mag_u_field, mag_v_field, mag_w_field,
-                          cloudbox_on, iy_unit, iy_aux_vars, jacobian_do,
-                          jacobian_quantities, ppath, rte_pos2, 
-                          propmat_clearsky_agenda, iy_main_agenda, iy_space_agenda,
-                          iy_surface_agenda, iy_cloudbox_agenda,
-                          iy_agenda_call1, iy_transmission, rte_alonglos_v,
-                          verbosity );
-      assert( iy.nrows() == nf );
-      assert( iy.ncols() == stokes_dim );
+      if (failed)
+        continue;
+      try
+        {
+          // Define output variables
+          Ppath          ppath;
+          Vector         ppvar_p, ppvar_t;
+          Matrix         iy, ppvar_nlte, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f;
+          Tensor3        ppvar_iy;
+          Tensor4        ppvar_trans_cumulat;
+          ArrayOfMatrix  iy_aux;
+          ArrayOfTensor3 diy_dx;
 
-      // First and last points are most easily handled separately
-      if( scat_za_grid[i] < 90 )
-        {
-          doit_i_field(joker,0,0,0,i,0,joker)    = ppvar_iy(joker,joker,0);
-          doit_i_field(joker,nl-1,0,0,i,0,joker) = ppvar_iy(joker,joker,ppath.np-1);
-          trans_field(joker,0,i)    = ppvar_trans_cumulat(0,joker,0,0);
-          trans_field(joker,nl-1,i) = ppvar_trans_cumulat(ppath.np-1,joker,0,0);
-        }
-      else
-        {
-          doit_i_field(joker,nl-1,0,0,i,0,joker) = ppvar_iy(joker,joker,0);
-          doit_i_field(joker,0,0,0,i,0,joker)    = ppvar_iy(joker,joker,ppath.np-1);
-          trans_field(joker,nl-1,i) = ppvar_trans_cumulat(0,joker,0,0);
-          trans_field(joker,0,i)    = ppvar_trans_cumulat(ppath.np-1,joker,0,0);
-        }
+          Index  iy_id = i;
+          Vector rte_los( 1, scat_za_grid[i] );
+          Vector rte_pos( 1, scat_za_grid[i] < 90 ? z_surface(0,0) : z_space );
 
-      // Remaining points
-      for( Index p=1; p<ppath.np-1; p++ )
-        {
-          // We just store values at pressure levels
-          if( ppath.gp_p[p].fd[0] < 1e-2 )
+          ppathPlaneParallel( ppath, atmosphere_dim, z_field, z_surface,cloudbox_on,
+                              cloudbox_limits, ppath_inside_cloudbox_do,
+                              rte_pos, rte_los, ppath_lmax, verbosity );
+
+          iyEmissionStandard( l_ws, iy, iy_aux, diy_dx, ppvar_p, ppvar_t,ppvar_nlte,
+                              ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f, ppvar_iy,
+                              ppvar_trans_cumulat,iy_id, stokes_dim, f_grid,
+                              atmosphere_dim,p_grid, z_field, t_field, nlte_field,
+                              vmr_field, abs_species,wind_u_field, wind_v_field,
+                              wind_w_field, mag_u_field, mag_v_field, mag_w_field,
+                              cloudbox_on, iy_unit, iy_aux_vars, jacobian_do,
+                              jacobian_quantities, ppath, rte_pos2,
+                              propmat_clearsky_agenda, iy_main_agenda, iy_space_agenda,
+                              iy_surface_agenda, iy_cloudbox_agenda,
+                              iy_agenda_call1, iy_transmission, rte_alonglos_v,
+                              verbosity );
+          assert( iy.nrows() == nf );
+          assert( iy.ncols() == stokes_dim );
+
+          // First and last points are most easily handled separately
+          if( scat_za_grid[i] < 90 )
             {
-              doit_i_field(joker,ppath.gp_p[p].idx,0,0,i,0,joker) =
-                ppvar_iy(joker,joker,p);
-              trans_field(joker,ppath.gp_p[p].idx,i) = ppvar_trans_cumulat(p,joker,0,0);
+              doit_i_field(joker,0,0,0,i,0,joker)    = ppvar_iy(joker,joker,0);
+              doit_i_field(joker,nl-1,0,0,i,0,joker) = ppvar_iy(joker,joker,ppath.np-1);
+              trans_field(joker,0,i)    = ppvar_trans_cumulat(0,joker,0,0);
+              trans_field(joker,nl-1,i) = ppvar_trans_cumulat(ppath.np-1,joker,0,0);
+            }
+          else
+            {
+              doit_i_field(joker,nl-1,0,0,i,0,joker) = ppvar_iy(joker,joker,0);
+              doit_i_field(joker,0,0,0,i,0,joker)    = ppvar_iy(joker,joker,ppath.np-1);
+              trans_field(joker,nl-1,i) = ppvar_trans_cumulat(0,joker,0,0);
+              trans_field(joker,0,i)    = ppvar_trans_cumulat(ppath.np-1,joker,0,0);
+            }
+
+          // Remaining points
+          for( Index p=1; p<ppath.np-1; p++ )
+            {
+              // We just store values at pressure levels
+              if( ppath.gp_p[p].fd[0] < 1e-2 )
+                {
+                  doit_i_field(joker,ppath.gp_p[p].idx,0,0,i,0,joker) =
+                    ppvar_iy(joker,joker,p);
+                  trans_field(joker,ppath.gp_p[p].idx,i) = ppvar_trans_cumulat(p,joker,0,0);
+                }
             }
         }
+      catch (runtime_error e)
+        {
+#pragma omp critical (planep_setabort)
+          failed = true;
+
+          ostringstream os;
+          os << "Run-time error at nza #" << i << ": \n" << e.what();
+#pragma omp critical (planep_push_fail_msg)
+          fail_msg.push_back(os.str());
+        }
     }
+
+  if (fail_msg.nelem())
+  {
+    ostringstream os;
+    for (auto& msg : fail_msg)
+      os << msg << '\n';
+    throw runtime_error(os.str());
+  }
 }
