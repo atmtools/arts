@@ -1,3 +1,34 @@
+2018-03-29  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-1003
+	
+	* 3rdparty/relmat/arts_interface.F90:  Fix bug in relative 
+	temperatures.  Made the outputs of population densities and
+	reduced dipole behave as expected for both methods.
+	
+	* src/CMakeLists.txt:  Added a species_info.{cc,h} because
+	I tend to need so many small things that are practically
+	constants for molecules, so it helps to put these in
+	clear files for overview
+	
+	* src/species_info.{cc,h}:  Contains some Zeeman constants
+	and some reduced dipole computations required to find the
+	sign of a dipole.  Only tested for CO2
+	
+	* src/zeeman.{cc,h}: moved some constants
+	
+	* src/m_linemixing.cc:  Changed so the full inversions
+	are performed when the order of line mixing is negative.
+	Also performs ordered line mixing when pressure is below
+	lm_p_lim to speed these up a bit.  Also added two control
+	parameters to the input of the function with reasonable 
+	limits.  These changes are mostly tested but I will only
+	know if they are good after running through a test over 
+	the weekend... the important part of the code is somewhat
+	slow now since it requires 140 inversions of matrices
+	sized 80x80 to 300x300 per atmospheric level per frequency
+	to compute the absorption coefficients...
+	
 2018-03-28 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-1002
@@ -108,7 +139,6 @@
 
 	* doc/uguide/clouds.tex: Minor fixes.
 
->>>>>>> .r10929
 2018-03-22  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-994

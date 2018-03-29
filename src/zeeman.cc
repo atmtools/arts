@@ -20,6 +20,7 @@
 #include "zeeman.h"
 #include "linefunctions.h"
 #include "linescaling.h"
+#include "species_info.h"
 
 /*!
  *  Defines the phase of the propagation matrix.
@@ -1784,30 +1785,4 @@ Index part_mag_theta(const ArrayOfRetrievalQuantity& flag_partials)
         if(flag_partials[ii].MainTag() == "Zeeman" &&  flag_partials[ii].Subtag() == "Magnetic Theta" && flag_partials[ii].SubSubtag() == "From Propagation")
             return ii;
     return -1;
-}
-
-
-/*! Returns the lande spin constant
-  
-  Data is from these
-  
-  H. Christensen, and L. Veseth, On the High-Precision Zeeman Effect in 02 and SO.
-  Journal of Molecular Spectroscopy 72, 438-444, 1978.
-  
-  L. Veseth, Relativistic Corrections to the Zeeman Effect in Diatomic Molecules.
-  Journal of Molecular Spectroscopy 66, 259-271, 1977.
-  
-  The final return is an averaged number that you get from 2*(1 + 0.5*alpha/PI + 
-  X*(alpha/PI)**2 + ...), where alpha approx 1/137 is the fine-structure constant.
-  
-  The default return of this function is from the NIST database
-  */
-Numeric get_lande_spin_constant(const LineRecord& line) noexcept
-{ 
-  if     (species_index_from_species_name("O2" ) == line.Species()) return 2.002064; 
-  else if(species_index_from_species_name("NO" ) == line.Species()) return 2.00071;  
-  else if(species_index_from_species_name("OH" ) == line.Species()) return 2.00089;
-  else if(species_index_from_species_name("ClO") == line.Species()) return 2.00072;
-  else if(species_index_from_species_name("SO" ) == line.Species()) return 2.002106;
-  else return 2.00231930436182;
 }

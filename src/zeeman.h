@@ -122,5 +122,3 @@ void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
 
 Index part_mag_strength(const ArrayOfRetrievalQuantity& flag_partials);
 Index part_mag_theta(const ArrayOfRetrievalQuantity& flag_partials);
-
-Numeric get_lande_spin_constant(const LineRecord& line) noexcept;

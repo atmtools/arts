@@ -1934,11 +1934,11 @@ void define_md_data_raw()
     ( NAME( "abs_xsec_per_speciesAddLineMixedBands" ),
       DESCRIPTION
       (
-        "Calculate absorption cross sections per band for RELMAT line mixing.\n"
+        "Calculate absorption cross sections per band for Relmat line mixing.\n"
         "\n"
         "This requires setting *abs_lines_per_band* and *abs_species_per_band*.\n"
         "\n"
-        "Will call the RELMAT fortran library for the bulk of the calculations.\n"
+        "Will call the Relmat fortran library for the bulk of the calculations.\n"
         "There are to date two libraries available to compute the relaxation\n"
         "matrix.  Please set your method using *relmat_type_per_band*.\n"
         "Helpful method: *SetRelaxationMatrixCalcType*.\n"
@@ -1946,12 +1946,50 @@ void define_md_data_raw()
         "Calculations of *dabs_xsec_per_species_dx* is done through perturbations\n"
         "for temperature and will therefore be twice as slow.\n"
         "\n"
-        "Note that for pressures below *lm_p_lim* there are no calls to RELMAT\n"
-        "but the same formalism to compute cross sections is applied using a\n"
-        "diagonal matrix.  (Basically, you are not allowed to select lineshape.)\n"
+        "Control mechanism for output happens through various GIN:"
+        "   pressure_rule_limit:   Will be compared to |PWij/(fj-fi)|. If any\n"
+        "                          value is larger than this value, Wij becomes\n"
+        "                          diagonal.  Useful for ordered approximations\n"
+        "                          of line mixing because these can easily produce\n"
+        "                          absurd results if this test fails.  Set to a\n"
+        "                          large value when using full inversions and a\n"
+        "                          small value when using perturbation inversion\n"
         "\n"
-        "If there is an error using RELMAT, please turn on the debug GIN for output\n"
-        "to screen and rerun the code to identify the problem.  RELMAT makes many\n"
+        "   write_relmat_per_band: Will use order_of_linemixing input to fill\n"
+        "                          *relmat_per_band* with relevant line mixing\n"
+        "                          information\n"
+        "\n"
+        "   debug:                 Writes Relmat debug information to screen and\n"
+        "                          throws errors if negative.  Otherwise, errors\n"
+        "                          are instead printed by out3-level of verbosity\n"
+        "\n"
+        "   order_of_linemixing:   Sets order of line mixing.  0 means no line\n"
+        "                          mixing at all and should reproduce similar\n"
+        "                          results as one of the pure LBL methods. 1 or 2\n"
+        "                          means that the first or second order line\n"
+        "                          mixing coefficients are derived and then calls\n"
+        "                          the Voigt line shape to compute cross-section.\n"
+        "                          Negative values means that the full inversion\n"
+        "                          is used for all frequencies.  This results in\n"
+        "                          slow computations that should, in theory, be\n"
+        "                          more accurate, though this remains to be\n"
+        "                          fully tested\n"
+        "\n"
+        "   use_adiabatic_factor:  If true, the adiabatic factor is used. This\n"
+        "                          means you have to have the intermolecular\n"
+        "                          distances defined in the code to use the line\n"
+        "                          mixing computations\n"
+        "\n"
+        "Note that for pressures below *lm_p_lim* there are no calls to Relmat\n"
+        "if order_of_linemixing is positive.  However, if *lm_p_lim* is negative,\n"
+        "Relmat is called with abs(order_of_linemixing).  This allows using\n"
+        "full inversions of the relaxation matrix at higher pressures but also use\n"
+        "reduced inversions at lower pressures to reproduce Doppler broadening\n"
+        "effects.  This means negative order_of_linemixing should never be absolutely\n"
+        "larger than the highest supported positive order_of_linemixing.\n"
+        "\n"
+        "If there is an error using Relmat, please turn on the debug GIN for output\n"
+        "to screen and rerun the code to identify the problem.  Relmat makes many\n"
         "assumptions on the user input.  It will sometimes return a diagonal matrix\n"
         "when the theoretical limits are breached by the user input. Please see\n"
         "published literature for examples of such theoretical breaches.\n"
@@ -1967,13 +2005,14 @@ void define_md_data_raw()
           "abs_lines_per_band", "abs_species_per_band", "band_identifiers", "abs_species",
           "isotopologue_ratios", "partition_functions", "jacobian_quantities", 
           "f_grid", "abs_p", "abs_t", "lm_p_lim", "relmat_type_per_band"),
-      GIN("write_relmat_per_band", "debug", "order_of_linemixing"),
-      GIN_TYPE("Index", "Index", "Index"),
-      GIN_DEFAULT("0", "0", "-1"),
-      GIN_DESC("Writes the relaxation operators instead of the cross-section if true",
+      GIN("pressure_rule_limit", "write_relmat_per_band", "debug", "order_of_linemixing", "use_adiabatic_factor"),
+      GIN_TYPE("Numeric", "Index", "Index", "Index", "Index"),
+      GIN_DEFAULT("1e100", "0", "0", "-1", "1"),
+      GIN_DESC("Limit when perturbation theory is assumed to work",
+               "Writes the relaxation operators instead of the cross-section if true",
                "Lets relmat know it is to print debug information if true.",
-               "Choice of order of linemixing"
-      )
+               "Choice of order of linemixing",
+               "Truth-value if we should use the precomputed adiabatic factors")
     ));
 
   md_data_raw.push_back

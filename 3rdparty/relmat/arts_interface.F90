@@ -393,7 +393,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
 ! ROUTINE:
 !----------
 ! Inital common temperature-dependent constants
-    rT = T/T0
+    rT = T0/T
 !
     if (runE_deb .ge. 1) then 
         write(*,*)  "RELMAT RUN-TYPE = Verbose."
@@ -450,20 +450,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
     call PopuCAL(pd1,dta_size1, molP, econtrol)
     !
     do j = 1, nLines
-        if (vLines_Indx(j) .eq. 0) then
-            if (T .eq. T0) then
-                rho(j) = artsg00(j)*dexp(-c2*artsE00(j)/T0)/QT0
-            else
-                rho(j) = artsg00(j)*dexp(-c2*artsE00(j)/T0)* &
-                         dexp(-c2*artsE00(k)*(1.d0/T-1.d0/T0))/QT
-            endif
-        else
-            if (T .eq. T0) then
-                rho(j) = dta1 % PopuT0(vLines_Indx(j))
-            else
-                rho(j) = dta1 % PopuT(vLines_Indx(j))
-            endif
-        endif 
+      rho(j) = artsg00(j)*dexp(-c2*artsE00(j)/T)/QT
     enddo
 ! NOTE: the code uses 'tra' mode as a default option (see 'PopuT0'). 
 !       One can change this mode in "module_common_var" (check options there)
@@ -473,13 +460,9 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
     CALL DipCAL(pd1,dta_size1,molP,econtrol)
 !
     do j = 1, nLines
-        if (vLines_Indx(j) .eq. 0) then
-            dipo(j) = dsqrt(artsS(k)/(artsWNO(k)* &
-                        rho(k)*(1.D0 - &
-                        dexp(-c2*artsWNO(k)/T0))))
-        else 
-            dipo(j) = dta1%DipoT(vLines_Indx(j)) 
-        endif 
+      dipo(j) = dsqrt(artsS(j)/(artsWNO(j)*artsg00(j)*&
+                      dexp(-c2*artsE00(j)/T0)/QT0*&
+                      (1.D0 - dexp(-c2*artsWNO(j)/T0))))
     enddo    
 !
 ! Uncomment the next two lines to print POPULATION & DIPOLE to the screen:
@@ -809,7 +792,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
 ! ROUTINE:
 !----------
 ! Inital common temperature-dependent constants
-    rT = T/T0
+    rT = T0/T
 !
     if (runE_deb .ge. 1) then 
         write(*,*)  "RELMAT RUN-TYPE = Verbose."
@@ -831,8 +814,8 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     molP % Temp = T !Kelvin
     molP % Ptot = Ptot!atm
     molP % QTy  = "TMC"
-    molP % LLSty= "Linear"
-    !molP % LLSty= "Model1"
+    !molP % LLSty= "Linear"
+    molP % LLSty= "Model1"
     !molP % LLSty= "Li--AF"
 !
 !----------
@@ -871,20 +854,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     call PopuCAL(pd1,dta_size1, molP, econtrol)
     !
     do j = 1, nLines
-        if (vLines_Indx(j) .eq. 0) then
-            if (T .eq. T0) then
-                rho(j) = artsg00(j)*dexp(-c2*artsE00(j)/T0)/QT0
-            else
-                rho(j) = artsg00(j)*dexp(-c2*artsE00(j)/T0)* &
-                         dexp(-c2*artsE00(k)*(1.d0/T-1.d0/T0))/QT
-            endif
-        else
-            if (T .eq. T0) then
-                rho(j) = dta1 % PopuT0(vLines_Indx(j))
-            else
-                rho(j) = dta1 % PopuT(vLines_Indx(j))
-            endif
-        endif 
+      rho(j) = artsg00(j)*dexp(-c2*artsE00(j)/T)/QT
     enddo
 ! NOTE: we use 'tra' mode (see 'PopuT0') because we are producing 
 ! Input files to Ha Tran Line-mixing code.
@@ -895,13 +865,9 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
     CALL DipCAL(pd1,dta_size1,molP,econtrol)
 !
     do j = 1, nLines
-        if (vLines_Indx(j) .eq. 0) then
-            dipo(j) = dsqrt(artsS(k)/(artsWNO(k)* &
-                        rho(k)*(1.D0 - &
-                        dexp(-c2*artsWNO(k)/T0))))
-        else 
-            dipo(j) = dta1%DipoT(vLines_Indx(j)) 
-        endif 
+      dipo(j) = dsqrt(artsS(j)/(artsWNO(j)*artsg00(j)*&
+                      dexp(-c2*artsE00(j)/T0)/QT0*&
+                      (1.D0 - dexp(-c2*artsWNO(j)/T0))))
     enddo
 !
 ! Uncomment the next two lines to print POPULATION & DIPOLE to the screen:

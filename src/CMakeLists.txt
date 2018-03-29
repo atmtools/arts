@@ -279,6 +279,7 @@ add_library (artscore STATIC
   sourcetext.cc
   special_interp.cc
   species_data.cc
+  species_info.cc
   surface.cc
   telsem.cc
   tessem.cc
