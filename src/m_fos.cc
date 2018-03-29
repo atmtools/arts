@@ -918,7 +918,8 @@ void iyHybrid(
   const Numeric&                            rte_alonglos_v,      
   const Tensor7&                            doit_i_field,
   const Vector&                             scat_za_grid,
-  const Index&                              Naa,   
+  const Index&                              Naa,
+  const Index&                              t_interp_order,
   const Verbosity&                          verbosity)
 {
   // If cloudbox off, switch to use clearsky method
@@ -1189,7 +1190,8 @@ void iyHybrid(
               Vector scat_aa_grid;
               nlinspace( scat_aa_grid, 0, 360, Naa );
               //
-              get_stepwise_scattersky_source( Sp,
+              /*
+              get_stepwise_scattersky_source_old( Sp,
                                               dSp_dx,
                                               jacobian_quantities,
                                               ppvar_pnd(joker,ip),
@@ -1205,6 +1207,22 @@ void iyHybrid(
                                               atmosphere_dim,
                                               jacobian_do,
                                               verbosity );
+                                              */
+              get_stepwise_scattersky_source( Sp,
+                                              dSp_dx,
+                                              jacobian_quantities,
+                                              ppvar_pnd(joker,ip),
+                                              ppvar_dpnd_dx,
+                                              ip,
+                                              scat_data,
+                                              doit_i_field,
+                                              scat_za_grid,
+                                              scat_aa_grid,
+                                              ppath.los(Range(ip,1),joker),
+                                              ppath.gp_p[ip],
+                                              ppvar_t[Range(ip,1)],
+                                              jacobian_do,
+                                              t_interp_order );
               S += Sp;
               
               if( j_analytical_do )

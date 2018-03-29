@@ -242,7 +242,9 @@ void iyActiveSingleScat(
   ArrayOfMatrix ppvar_dpnd_dx(0);
   ArrayOfIndex clear2cloudy;
   Matrix scalar_ext(np,nf,0);  // Only used for iy_aux
-  Tensor6 pha_mat_1se(nf,1,1,1,ns,ns);
+  Index nf_ssd = scat_data[0][0].pha_mat_data.nlibraries();
+  Index duplicate_freqs = ((nf==nf_ssd)?0:1);
+  Tensor6 pha_mat_1se(nf_ssd,1,1,1,ns,ns);
   Vector t_ok(1), t_array(1);
   Matrix pdir(1,2), idir(1,2);
   Index ptype;
@@ -410,8 +412,8 @@ void iyActiveSingleScat(
                 idir(0,joker) = los_inc;
 
                 Index i_se_flat = 0;
-                for (Index i_ss = 0; i_ss<scat_data.nelem(); i_ss++)
-                  for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
+                for( Index i_ss = 0; i_ss<scat_data.nelem(); i_ss++ )
+                  for( Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++ )
                   {
                     // determine whether we have some valid pnd for this
                     // scatelem (in pnd or dpnd)
@@ -433,8 +435,13 @@ void iyActiveSingleScat(
                                          ppvar_t[Range(ip,1)], pdir, idir,
                                          0, t_interp_order );
                       if( t_ok[0] )
-                        Pe(i_se_flat,ip,joker,joker,joker) =
-                          pha_mat_1se(joker,0,0,0,joker,joker);
+                        if( duplicate_freqs )
+                          for( Index iv=0; iv<nf; iv++ )
+                            Pe(i_se_flat,ip,iv,joker,joker) =
+                              pha_mat_1se(0,0,0,0,joker,joker);
+                        else
+                          Pe(i_se_flat,ip,joker,joker,joker) =
+                            pha_mat_1se(joker,0,0,0,joker,joker);
                       else
                       {
                         ostringstream os;

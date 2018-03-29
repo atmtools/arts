@@ -2700,7 +2700,7 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
 }
 
 
-//! get_stepwise_scattersky_source
+//! get_stepwise_scattersky_source_old
 /*!
  *  Calculates the stepwise scattering source terms.
  * 
@@ -2712,7 +2712,7 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
  *  \adapted from non-stepwise function
  *  \date   2017-09-21
  */
-void get_stepwise_scattersky_source(StokesVector& Sp,
+void get_stepwise_scattersky_source_old(StokesVector& Sp,
                                     ArrayOfStokesVector& dSp_dx,
                                     const ArrayOfRetrievalQuantity& jacobian_quantities,
                                     ConstVectorView ppath_1p_pnd,       // the ppath_pnd at this ppath point
@@ -2755,7 +2755,7 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
   // applies the correct mutually associated directions.
   // (I guess, the issues is that doit_i_field (and scat_field) are in "ARTS"
   // coordinate system. In contrast to scat_data, which is in "Mishchenko"
-  // system. Hence, we'd need to mirrow the scat_za/aa_grids for the pha_mat
+  // system. Hence, we'd need to mirror the scat_za/aa_grids for the pha_mat
   // extraction)
   //
   // Direction of outgoing scattered radiation (which is reversed to
@@ -2782,7 +2782,7 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
   gridpos_copy( gp_iza, gp_za );
   gp_iza.idx = 0;
   Vector itw_iza(2);
-  interpweights( itw_iza, gp_iza ); 
+  interpweights( itw_iza, gp_iza );
 
   // pndT4 is used inside pha_mat_sptFromScat_data as a flag whether we need
   // pha_mat data for this scattering element.
@@ -2835,7 +2835,6 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
   {
     Matrix inc_field(nza, stokes_dim, 0.);
     Tensor3 scat_field(2, ne, stokes_dim, 0.);
-    Matrix rad_field(2, stokes_dim, 0.);
     Vector scat_source(stokes_dim, 0.);
 
     for( Index za_in = 0; za_in < nza; za_in++ )
@@ -2922,6 +2921,173 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
       //}
       )
   } // freq loop
+}
+
+
+//! get_stepwise_scattersky_source
+/*!
+ *  Calculates the stepwise scattering source terms.
+ *  Uses new, unified phase matrix extraction scheme.
+ * 
+ *  \param   Sp                    Out: The scattering source term
+ *  \param   dSp_dx                Out: The derivative of the scattering source term
+ ...
+ * 
+ *  \author Jana Mendrok 
+ *  \adapted from non-stepwise function
+ *  \date   2018-03-29
+ */
+void get_stepwise_scattersky_source(StokesVector& Sp,
+                                    ArrayOfStokesVector& dSp_dx,
+                                    const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                    ConstVectorView ppath_1p_pnd,       // the ppath_pnd at this ppath point
+                                    const ArrayOfMatrix& ppath_dpnd_dx, // the full ppath_dpnd_dx, ie all ppath points
+                                    const Index ppath_1p_id,
+                                    const ArrayOfArrayOfSingleScatteringData& scat_data,
+                                    ConstTensor7View doit_i_field,
+                                    ConstVectorView scat_za_grid,
+                                    ConstVectorView scat_aa_grid,
+                                    ConstMatrixView ppath_line_of_sight,
+                                    const GridPos& ppath_pressure,
+                                    const Vector& temperature,
+                                    const bool& jacobian_do,
+                                    const Index& t_interp_order)
+{
+  const Index nf = Sp.NumberOfFrequencies(),
+              stokes_dim = Sp.StokesDimensions();
+  const Index ne = ppath_1p_pnd.nelem();
+  assert( TotalNumberOfElements(scat_data) == ne );
+  const Index nza = scat_za_grid.nelem();
+  const Index naa = scat_aa_grid.nelem();
+
+  const Index nq = jacobian_do?jacobian_quantities.nelem():0;
+
+  // interpolate incident field to this ppath point (no need to do this
+  // separately per scatelem)
+  GridPos gp_p;
+  gridpos_copy( gp_p, ppath_pressure );
+  Vector itw_p(2);
+  interpweights( itw_p, gp_p );
+  Tensor3 inc_field(nf, nza, stokes_dim, 0.);
+  for( Index iv = 0; iv < nf; iv++ )
+    for( Index iza = 0; iza < nza; iza++ )
+    {
+      for( Index i = 0; i < stokes_dim; i++ )
+        inc_field(iv, iza, i) =
+          interp( itw_p, doit_i_field(iv,joker,0,0,iza,0,i), gp_p );
+    }
+
+  // create matrix of incident directions (flat representation of the
+  // scat_za_grid * scat_aa_grid matrix)
+  Matrix idir(nza*naa,2);
+  Index ia=0;
+  for( Index iza=0; iza<nza; iza++ )
+    for( Index iaa=0; iaa<naa; iaa++ )
+    {
+      idir(ia,0) = scat_za_grid[iza];
+      idir(ia,1) = scat_aa_grid[iaa];
+      ia++;
+    }
+  // setting prop (aka scattered) direction
+  Matrix pdir(1,2);
+  //if( ppath_line_of_sight.ncols()==2 )
+  //  pdir(0,joker) = ppath_line_of_sight;
+  //else // 1D case only (currently the only handled case). azimuth not defined.
+  {
+    pdir(0,0) = ppath_line_of_sight(0,0);
+    pdir(0,1) = 0.;
+  }
+
+  // some further variables needed for pha_mat extraction
+  Index nf_ssd = scat_data[0][0].pha_mat_data.nlibraries();
+  Index duplicate_freqs = ((nf==nf_ssd)?0:1);
+  Tensor6 pha_mat_1se(nf_ssd,1,1,nza*naa,stokes_dim,stokes_dim);
+  Vector t_ok(1);
+  Index ptype;
+
+  Tensor3 scat_source_1se(ne, nf, stokes_dim, 0.);
+
+  Index ise_flat = 0;
+  for( Index i_ss = 0; i_ss<scat_data.nelem(); i_ss++ )
+    for( Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++ )
+    {
+      // determine whether we have some valid pnd for this
+      // scatelem (in pnd or dpnd)
+      Index val_pnd = 0;
+      if( ppath_1p_pnd[ise_flat] != 0 )
+        val_pnd = 1; 
+      else if( jacobian_do )
+        for( Index iq=0; (!val_pnd) && (iq<nq); iq++ ) 
+          if( jacobian_quantities[iq].Analytical() &&
+              !ppath_dpnd_dx[iq].empty() )
+            if( ppath_dpnd_dx[iq](ise_flat,ppath_1p_id) != 0 )
+              val_pnd = 1;
+
+      if( val_pnd )
+      {
+        pha_mat_1ScatElem( pha_mat_1se, ptype, t_ok,
+                           scat_data[i_ss][i_se],
+                           temperature, pdir, idir,
+                           0, t_interp_order );
+        if( !t_ok[0] )
+        {
+          ostringstream os;
+          os << "Interpolation error for (flat-array) scattering"
+             << " element #" << ise_flat << "\n"
+             << "at location/temperature point #" << ppath_1p_id << "\n";
+          throw runtime_error( os.str() );
+        }
+
+        Index this_iv = 0;
+        for( Index iv = 0; iv < nf; iv++ )
+        {
+          if( !duplicate_freqs ){ this_iv = iv; }
+          ia = 0;
+          Tensor3 product_fields(nza, naa, stokes_dim, 0.);
+
+          for( Index iza = 0; iza < nza; iza++ )
+            for( Index iaa = 0; iaa < naa; iaa++ )
+            {
+              for ( Index i = 0; i < stokes_dim; i++)
+                for ( Index j = 0; j < stokes_dim; j++ )
+                {
+                  product_fields(iza, iaa, i) +=
+                  pha_mat_1se(this_iv, 0, 0, ia, i, j) * inc_field(iv, iza, j);
+                }
+              ia++;
+            }
+
+          for ( Index i = 0; i < stokes_dim; i++ )
+            scat_source_1se( ise_flat, iv, i) = AngIntegrate_trapezoid( 
+              product_fields(joker, joker, i), scat_za_grid, scat_aa_grid);
+        }
+      }
+      ise_flat++;
+    }
+  
+    for( Index iv = 0; iv < nf; iv++ )
+    {
+      Vector scat_source(stokes_dim, 0.);
+      for( ise_flat = 0; ise_flat < ne; ise_flat++ )
+      {
+        scat_source +=
+          scat_source_1se(ise_flat, iv, joker) * ppath_1p_pnd[ise_flat];
+      }
+      Sp.SetAtPosition(scat_source, iv);
+
+      if( jacobian_do )
+        FOR_ANALYTICAL_JACOBIANS_DO
+        (
+          if( !ppath_dpnd_dx[iq].empty() )
+          {
+            scat_source = 0.;
+            for( ise_flat = 0; ise_flat < ne; ise_flat++ )
+              scat_source += scat_source_1se(ise_flat, iv, joker) *
+                             ppath_dpnd_dx[iq](ise_flat, ppath_1p_id);
+            dSp_dx[iq].SetAtPosition(scat_source, iv);
+          }
+        )
+    }
 }
 
 

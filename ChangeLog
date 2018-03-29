@@ -1,3 +1,28 @@
+2018-03-29 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-1004
+
+	* src/rte.[cc,h] (get_stepwise_scattersky_source):
+	New version applying unified phase matrix extraction scheme. Old version
+	for now moved into get_stepwise_scattersky_source_old.
+	New version calculates scattered field in prop direction directly,
+	instead of by linear interpolation of fields for two propagation polar
+	angles included in the input field as required by the old, DOIT-type
+	pha_mat extraction method.
+	This changes test results by up to 0.1K, but should be the more accurate
+	solution.
+
+	* src/m_fos.cc, methods.cc (iyHybrid):
+	Adapt interface to new get_stepwise_scattersky_source. Allow user to select
+	temperature interpolation order.
+
+	* src/m_cloudradar.cc (iyActiveSingleScat):
+	Bugfix. Consider case with multiple freq in f_grid, but only single freq
+	in scat_data.
+
+	* controlfiles/artscomponents/hybridscat/yREFERENCE.xml:
+	New reference results reflecting changes in get_stepwise_scattersky_source.
+
 2018-03-29  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-1003

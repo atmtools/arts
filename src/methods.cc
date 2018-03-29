@@ -7463,11 +7463,14 @@ void define_md_data_raw()
           "iy_surface_agenda", "iy_cloudbox_agenda",
           "iy_agenda_call1", "iy_transmission", "ppath", "rte_pos2",
           "rte_alonglos_v", "doit_i_field", "scat_za_grid" ),
-      GIN(         "Naa_grid" ),
-      GIN_TYPE(    "Index" ),
-      GIN_DEFAULT( "19" ),
+      GIN(         "Naa_grid", "t_interp_order" ),
+      GIN_TYPE(    "Index", "Index" ),
+      GIN_DEFAULT( "19", "1" ),
       GIN_DESC( "Number of azimuth angles to consider in scattering source term"
-                " integral." )
+                " integral.",
+                "Interpolation order of temperature for scattering data (so"
+                " far only applied in phase matrix, not in extinction and"
+                " absorption." )
     ));
     
   md_data_raw.push_back
