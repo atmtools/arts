@@ -7655,10 +7655,12 @@ void define_md_data_raw()
             "ppath_lraytrace", "pnd_field", "iy_unit",
             "mc_std_err", "mc_max_time", "mc_max_iter", "mc_min_iter",
             "mc_taustep_limit" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "t_interp_order" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC( "Interpolation order of temperature for scattering data (so"
+                  " far only applied in phase matrix, not in extinction and"
+                  " absorption." )
         ));
 
   /*
@@ -10054,12 +10056,15 @@ void define_md_data_raw()
             "mc_seed", "mc_std_err", "mc_max_time",
             "mc_max_iter", "mc_min_iter", "mc_taustep_limit"
             ),
-        GIN( "l_mc_scat_order" ),
-        GIN_TYPE( "Index" ),
-        GIN_DEFAULT( "11" ),
-        GIN_DESC( "The length to be given to *mc_scat_order*. Note that "
-                  "scattering orders equal and above this value will not "
-                  "be counted." )
+        GIN( "l_mc_scat_order", "t_interp_order" ),
+        GIN_TYPE( "Index", "Index" ),
+        GIN_DEFAULT( "11", "1" ),
+        GIN_DESC( "The length to be given to *mc_scat_order*. Note that"
+                  " scattering orders equal and above this value will not"
+                  " be counted.",
+                  "Interpolation order of temperature for scattering data (so"
+                  " far only applied in phase matrix, not in extinction and"
+                  " absorption." )
         ));
 
   md_data_raw.push_back     

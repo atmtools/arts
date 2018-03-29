@@ -145,6 +145,7 @@ void MCGeneral(Workspace&            ws,
                const Index&          min_iter,
                const Numeric&        taustep_limit,
                const Index&          l_mc_scat_order,
+               const Index&          t_interp_order,
                const Verbosity&      verbosity)
 {
   // Checks of input
@@ -236,11 +237,6 @@ void MCGeneral(Workspace&            ws,
                                                joker,joker,joker,joker,0));
     }
   }
-  // for pha_mat handling, at the moment we still need scat_data_mono. Hence,
-  // extract that here (but in its local container, not into the WSV
-  // scat_data_mono).
-  ArrayOfArrayOfSingleScatteringData this_scat_data_mono;
-  scat_data_monoExtract( this_scat_data_mono, scat_data, f_index, verbosity );
 
   rng.seed(mc_seed, verbosity);
   Numeric g,temperature,albedo,g_los_csc_theta;
@@ -463,10 +459,11 @@ void MCGeneral(Workspace&            ws,
                   {
                     //we have a scattering event
                     Sample_los( new_rte_los, g_los_csc_theta, Z, rng, 
-                                local_rte_los, this_scat_data_mono, stokes_dim,
+                                local_rte_los,
+                                scat_data, f_index, stokes_dim,
                                 pnd_vec, Z11maxvector, 
                                 ext_mat_mono(0,0)-abs_vec_mono[0], temperature,
-                                verbosity );
+                                t_interp_order );
                                              
                     Z /= g * g_los_csc_theta * albedo;
                     

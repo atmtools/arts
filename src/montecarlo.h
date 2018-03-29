@@ -234,13 +234,14 @@ void Sample_los (VectorView       new_rte_los,
                  MatrixView       Z,
                  Rng&             rng,
                  ConstVectorView  rte_los,
-                 const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                 const ArrayOfArrayOfSingleScatteringData& scat_data,
                  const Index      stokes_dim,
+                 const Index      f_index,
                  ConstVectorView  pnd_vec,
                  ConstVectorView  Z11maxvector,
                  const Numeric    Csca,
                  const Numeric    rtp_temperature,
-                 const Verbosity& verbosity);
+                 const Index      t_interp_order=1);
 
 void Sample_los_uniform (VectorView    new_rte_los,
                          Rng&          rng);

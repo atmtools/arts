@@ -2122,12 +2122,12 @@ void pha_mat_singleExtract(
    \param[out]    new_rte_los     incident line of sight for subsequent 
    \param[out]    g_los_csc_theta probability density for the chosen
                                   direction multiplied by sin(za)
-   \param[out]    Z
+   \param[out]    Z               Bulk phase matrix in Stokes notation.
    \param[in,out] rng             Rng random number generator instance
    \param[in]     rte_los         incident line of sight for subsequent 
                                   ray-tracing.                     
-   \param[in]     scat_data_mono
-   \param[in]     stokes_dim
+   \param[in]     scat_data       as the WSV.
+   \param[in]     stokes_dim      as the WSV.
    \param[in]     pnd_vec
    \param[in]     Z11maxvector
    \param[in]     Csca
@@ -2137,20 +2137,19 @@ void pha_mat_singleExtract(
    \date   2003-06-19
 */
 
-void Sample_los (
-                 VectorView       new_rte_los,
+void Sample_los (VectorView       new_rte_los,
                  Numeric&         g_los_csc_theta,
                  MatrixView       Z,
                  Rng&             rng,
                  ConstVectorView  rte_los,
-                 const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
+                 const ArrayOfArrayOfSingleScatteringData& scat_data,
+                 const Index      f_index,
                  const Index      stokes_dim,
                  ConstVectorView  pnd_vec,
                  ConstVectorView  Z11maxvector,
                  const Numeric    Csca,
                  const Numeric    rtp_temperature,
-                 const Verbosity& verbosity
-                 )
+                 const Index      t_interp_order)
 {
   Numeric Z11max=0;
   bool tryagain=true;
@@ -2160,13 +2159,29 @@ void Sample_los (
       
   // Rejection method http://en.wikipedia.org/wiki/Rejection_sampling
   Index np=pnd_vec.nelem();
-  assert(TotalNumberOfElements(scat_data_mono)==np);
+  assert(TotalNumberOfElements(scat_data)==np);
   for(Index i=0;i<np;i++)
     {
       Z11max+=Z11maxvector[i]*pnd_vec[i];
     }
 
   ///////////////////////////////////////////////////////////////////////  
+  // allocating variables needed for pha_mat extraction - this seems a little
+  // disadvantageous. If we move the whole function back into the calling one
+  // (it's used only at one place anyways), we can do the allocation there once
+  // and avoid that it is done everytime this function is called within a loop.
+  ArrayOfArrayOfTensor6 pha_mat_Nse;
+  ArrayOfArrayOfIndex ptypes_Nse;
+  Matrix t_ok;
+  ArrayOfTensor6 pha_mat_ssbulk;
+  ArrayOfIndex ptype_ssbulk;
+  Tensor6 pha_mat_bulk;
+  Index ptype_bulk;
+  Matrix pdir(1,2), idir(1,2);
+  Vector t(1,rtp_temperature);
+  Matrix pnds(np,1);
+  pnds(joker,0) = pnd_vec;
+
   while(tryagain)
     {
       new_rte_los[0] = acos(1-2*rng.draw())*RAD2DEG;
@@ -2176,9 +2191,20 @@ void Sample_los (
       Vector inc_dir;
       mirror_los( inc_dir, new_rte_los, 3 );
       
-      pha_mat_singleCalc( Z, sca_dir[0], sca_dir[1], inc_dir[0], inc_dir[1],
-                          scat_data_mono, stokes_dim, pnd_vec, rtp_temperature,
-                          verbosity );
+      //pha_mat_singleCalc( Z, sca_dir[0], sca_dir[1], inc_dir[0], inc_dir[1],
+      //                    scat_data_mono, stokes_dim, pnd_vec, rtp_temperature,
+      //                    verbosity );
+
+      pdir(0,joker) = sca_dir;
+      idir(0,joker) = inc_dir;
+      pha_mat_NScatElems( pha_mat_Nse, ptypes_Nse, t_ok,
+                          scat_data, stokes_dim, t,
+                          pdir, idir, f_index, t_interp_order );
+      pha_mat_ScatSpecBulk( pha_mat_ssbulk, ptype_ssbulk,
+                            pha_mat_Nse, ptypes_Nse, pnds, t_ok );
+      pha_mat_Bulk( pha_mat_bulk, ptype_bulk,
+                    pha_mat_ssbulk, ptype_ssbulk );
+      Z = pha_mat_bulk(0,0,0,0,joker,joker);
       
       if (rng.draw()<=Z(0,0)/Z11max)//then new los is accepted
         {

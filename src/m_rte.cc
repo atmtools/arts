@@ -1076,6 +1076,7 @@ void iyMC(
    const Index&                      mc_max_iter,
    const Index&                      mc_min_iter,
    const Numeric&                    mc_taustep_limit,
+   const Index&                      t_interp_order,
    const Verbosity&                  verbosity)
 {
   // Throw error if unsupported features are requested
@@ -1173,7 +1174,7 @@ void iyMC(
                    cloudbox_on, cloudbox_limits,
                    pnd_field, scat_data, 1, 1, 1, 1, iy_unit,
                    mc_seed, mc_std_err, mc_max_time, mc_max_iter,
-                   mc_min_iter, mc_taustep_limit, 1, verbosity);
+                   mc_min_iter, mc_taustep_limit, 1, t_interp_order, verbosity);
           //cout << "Error: "      << mc_error << endl;
           //cout << "N photons: " << mc_iteration_count << endl;
         assert( y.nelem() == stokes_dim );
