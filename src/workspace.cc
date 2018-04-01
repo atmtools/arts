@@ -968,6 +968,20 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "GriddedField4" )));
    
+ wsv_data.push_back
+     (WsvRecord
+      ( NAME( "avk" ),
+        DESCRIPTION
+        (
+            "Averaging kernel matrix.\n"
+            "\n"
+            "This matrix is the partial derivative of the retrieved state vector\n"
+            "with respect to the measurement vector (*y*).\n"
+            "\n"
+            "Usage: Used and set by inversion methods. \n"
+            ),
+        GROUP( "Matrix" )));
+ 
   wsv_data.push_back
    (WsvRecord
     ( NAME( "backend_channel_response" ),
@@ -1333,21 +1347,6 @@ void Workspace::define_wsv_data()
        "    [x,x]\n"
        ),
       GROUP("Matrix")));
-
-  wsv_data.push_back
-      (WsvRecord
-       (NAME("avk"),
-        DESCRIPTION
-        (
-            "Averaging kernel matrix"
-            "\n"
-            "Usage: The rows of the averaging kernel matrix describe the extent to which\n"
-            "the information about the true state of the system is smoothed by the retrieval."
-            "\n"
-            "Dimensions:\n"
-            "    [x,x]\n"
-            ),
-        GROUP("Matrix")));
 
   wsv_data.push_back
    (WsvRecord
@@ -1815,6 +1814,47 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
    (WsvRecord
+    ( NAME( "dsurface_emission_dx" ),
+      DESCRIPTION
+      (
+       "The derivative of *surface_emission* with respect to quantities\n"
+       "listed in *dsurface_names*.\n"
+       "\n"
+       "Usage: Used internally of radiative transfer methods\n"
+       "\n"
+       "Dimensions: [dsurface_names][f_grid, stokes_dim]\n"
+       ),
+      GROUP( "ArrayOfMatrix" )));
+ 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "dsurface_names" ),
+      DESCRIPTION
+      (
+       "Name of surface retrieval quantities.\n"
+       "\n"
+       "Usage: Used internally of radiative transfer methods\n"
+       "\n"
+       "Dimensions: [retrieval quantity]\n"
+       ),
+      GROUP( "ArrayOfString" )));
+ 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "dsurface_rmatrix_dx" ),
+      DESCRIPTION
+      (
+       "The derivative of *surface_rmatrix* with respect to quantities\n"
+       "listed in *dsurface_names*.\n"
+       "\n"
+       "Usage: Used internally of radiative transfer methods\n"
+       "\n"
+       "Dimensions: [dsurface_names][surface_los, f_grid, stokes_dim, stokes_dim]\n"
+       ),
+      GROUP( "ArrayOfTensor4" )));
+ 
+ wsv_data.push_back
+   (WsvRecord
     ( NAME( "dxdy" ),
       DESCRIPTION
       (
@@ -1826,33 +1866,7 @@ void Workspace::define_wsv_data()
        "Usage: Used and set by inversion methods. \n"
        ),
       GROUP( "Matrix" )));
- wsv_data.push_back
-     (WsvRecord
-      ( NAME( "avk" ),
-        DESCRIPTION
-        (
-            "Averaging kernel matrix.\n"
-            "\n"
-            "This matrix describes the smoothing error. Its columns represent the measurement responses\n"
-            "to a unit perturbation in the corresponding state vector."
-            "with respect to the measurement vector (*y*).\n"
-            "\n"
-            "Usage: Used and set by inversion methods. \n"
-            ),
-        GROUP( "Matrix" )));
- wsv_data.push_back
-     (WsvRecord
-      ( NAME( "avk" ),
-        DESCRIPTION
-        (
-            "Averaging kernel matrix.\n"
-            "\n"
-            "This matrix is the partial derivative of the retrieved state vector\n"
-            "with respect to the measurement vector (*y*).\n"
-            "\n"
-            "Usage: Used and set by inversion methods. \n"
-            ),
-        GROUP( "Matrix" )));
+
   wsv_data.push_back
     (WsvRecord
      ( NAME( "ext_mat" ),
@@ -5624,6 +5638,39 @@ void Workspace::define_wsv_data()
         "Size:  [ 1 or 2 ]\n"
         ), 
        GROUP( "Vector" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_props_data" ),
+       DESCRIPTION
+       (
+        "Various surface properties.\n"
+        "\n"
+        "A general container for passing data to surface methods. Each surface\n"
+        "property shall be specified on the grid set by *lat_grid* and *lon_grid*.\n"
+        "\n"
+        "The properties are identified by the accompanying variable\n"
+        "*surface_props_names*.\n"
+        "\n"
+        "Size:  [ number of props., lat_grid, lon_grid ]\n"
+        ), 
+       GROUP( "Tensor3" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_props_names" ),
+       DESCRIPTION
+       (
+        "Name on surface properties found *surface_props_data*.\n"
+        "\n"
+        "Each string names a property in *surface_props_data*. The user is free\n"
+        "to include data with any name, but the surface methods making use of\n"
+        "*surface_props_data* expect data to be named in a specific way. See\n"
+        "the documentation of each method for recognised choices.\n"
+        "\n"
+        "Size:  [ number of props. ]\n"
+        ), 
+       GROUP( "ArrayOfString" )));
 
   wsv_data.push_back
     (WsvRecord

@@ -723,12 +723,12 @@ void p2gridpos_poly( ArrayOfGridPosPoly& gp,
 
 
 
-//! rte_pos2gridpos
+//! rte_pos2gridpos   (field version)
 /*!
    Converts a geographical position (rte_pos) to grid positions for p, 
    lat and lon. 
 
-   The function calculates the altitude, latitude and longitude in *rte_pos* to
+   The function converts the altitude, latitude and longitude in *rte_pos* to
    matching grid positions. The conversion is straightforwatd for latitude and
    longitude. The altitude shall be converted pressure grid position which
    requires an interpolation of z_field.
@@ -809,6 +809,52 @@ void rte_pos2gridpos(
       // And use z_grid to get gp_p (gp_al and gp_lon determined above)
       chk_interpolation_grids( "Altitude interpolation", z_grid, rte_pos[0] );
       gridpos( gp_p, z_grid, rte_pos[0] );
+    }
+}
+
+
+
+//! rte_pos2gridpos (surface version)
+/*!
+   Converts a geographical position (rte_pos) to grid positions for lat and lon. 
+
+   The function converts latitude and longitude in *rte_pos* to matching grid
+   positions. Handles 1D, 2D and 3D (gp_lat and gp_lon untouched if not used).
+
+   Note that the function performs several checks of runtime error type.
+
+   \param   gp_lat      Output: Latitude grid position.
+   \param   gp_lon      Output: Longitude grid position.
+   \param   atmosphere_dim  As the WSV with the same name.
+   \param   lat_grid    As the WSV with the same name.
+   \param   lon_grid    As the WSV with the same name.
+   \param   rte_pos     As the WSV with the same name.
+
+   \author Patrick Eriksson
+   \date   2018-04-01
+*/
+void rte_pos2gridpos(
+         GridPos&     gp_lat,
+         GridPos&     gp_lon,
+   const Index&       atmosphere_dim,
+   ConstVectorView    lat_grid,
+   ConstVectorView    lon_grid,
+   ConstVectorView    rte_pos )
+{
+  chk_rte_pos( atmosphere_dim, rte_pos );
+
+  if( atmosphere_dim == 1 )
+    {}
+  else
+    {
+      chk_interpolation_grids( "Latitude interpolation", lat_grid, rte_pos[1] );
+      gridpos( gp_lat, lat_grid, rte_pos[1] );
+
+      if( atmosphere_dim == 3 )
+        {
+          chk_interpolation_grids( "Longitude interpolation", lon_grid, rte_pos[2] );
+          gridpos( gp_lon, lon_grid, rte_pos[2] );
+        }
     }
 }
 

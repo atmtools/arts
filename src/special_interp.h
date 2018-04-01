@@ -144,6 +144,14 @@ void rte_pos2gridpos(
    ConstTensor3View   z_field,
    ConstVectorView    rte_pos );
 
+void rte_pos2gridpos(
+         GridPos&     gp_lat,
+         GridPos&     gp_lon,
+   const Index&       atmosphere_dim,
+   ConstVectorView    lat_grid,
+   ConstVectorView    lon_grid,
+   ConstVectorView    rte_pos );
+
 void z_at_lat_2d(
              VectorView   z,
         ConstVectorView   p_grid,

@@ -16781,6 +16781,43 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "SurfaceTessem" ),
+        DESCRIPTION
+        (
+         "Tessem sea surface microwave emissivity parametrization.\n"
+         "\n"
+         "Describe usegae of *surface_props_data* ...\n"
+         "\n"
+         "This method computes surface emissivity and reflectivity matrices for\n"
+         "ocean surfaces using the TESSEM emissivity model: Prigent, C., et al.\n"
+         "Sea‐surface emissivity parametrization from microwaves to millimetre\n"
+         "waves, QJRMS, 2017, 143.702: 596-605.\n"
+         "\n"
+         "The validity range of the parametrization of is 10 to 700 GHz, but for\n"
+         "some extra flexibility frequencies between 5 and 900 GHz are accepted.\n"
+         "The accepted temperaute range for *surface_skin_t* is [260.0 K, 373.0 K]\n"
+         "\n"
+         "The model itself is represented by the neural networks in\n"
+         "*tessem_neth* and *tessem_netv*.\n"
+         ),
+        AUTHORS( "Simon Pfreundschuh", "Patrick Eriksson" ),
+        OUT( "surface_los", "surface_rmatrix", "dsurface_rmatrix_dx",
+             "surface_emission", "dsurface_emission_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "dsurface_rmatrix_dx", "dsurface_emission_dx",
+            "stokes_dim", "atmosphere_dim", "lat_grid", "lon_grid", "f_grid",
+            "rtp_pos", "rtp_los", "tessem_neth", "tessem_netv", "surface_props_data",
+            "surface_props_names", "dsurface_names", "jacobian_do" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "surfaceTelsem" ),
         DESCRIPTION
         (

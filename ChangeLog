@@ -1,7 +1,22 @@
+2018-04-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1006
+
+	* A small start towards surface Jacobians.
+
+	* src/m_surface.cc (SurfaceTessem): New version of surfaceTessem,
+	adopted to new variables.
+
+	* src/workspace.cc: Added surface_props_data, surface_props_names,
+	dsurface_names, dsurface_rmatrix_dx and dsurface_emission_dx.
+
+	* src/special_interp.cc (rte_pos2gridpos): Added a version of the
+	function for surfaces.
+
 2018-04-01  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-1005
-	
+
 	* src/m_linemixing.cc:  Bug fix for non-fortan compiling
 
 
@@ -61,6 +76,7 @@
 	sized 80x80 to 300x300 per atmospheric level per frequency
 	to compute the absorption coefficients...
 	
+>>>>>>> .r10938
 2018-03-28 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-1002
