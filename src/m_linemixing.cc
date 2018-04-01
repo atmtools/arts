@@ -1359,6 +1359,7 @@ extern "C"
     extern double* wigner3j_(double*, double*, double*, double*, double*, double*);
     extern double* wigner6j_(double*, double*, double*, double*, double*, double*);
 }
+#endif //ENABLE_RELMAT
 
 
 void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
@@ -1384,6 +1385,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                             const Index&                     order_of_linemixing,
                                             const Index&                     use_adiabatic_factor,
                                             const Verbosity& verbosity)
+#ifdef ENABLE_RELMAT
 {
 #if DO_FAST_WIGNER
   fastwigxj_load(FAST_WIGNER_PATH_3J, 3, NULL);
@@ -2008,33 +2010,10 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
   fastwigxj_unload(6);
 #endif
 }
-
 #else
-void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
-ArrayOfMatrix&,
-ArrayOfArrayOfMatrix&,
-ArrayOfArrayOfMatrix&,
-// WS Input:                     
-const ArrayOfArrayOfLineRecord&,
-const ArrayOfArrayOfSpeciesTag&,
-const ArrayOfQuantumIdentifier&,
-const ArrayOfArrayOfSpeciesTag&,
-const SpeciesAuxData&,
-const SpeciesAuxData&,
-const ArrayOfRetrievalQuantity&,
-const Vector&,
-const Vector&,
-const Vector&,
-const Numeric&,
-const ArrayOfIndex&,
-const Index&,
-const Index&,
-const Index&,
-const Verbosity&)
 {
    throw std::runtime_error("This version of ARTS was compiled without external line mixing support.");
 }
-
 #endif //ENABLE_RELMAT
 
 

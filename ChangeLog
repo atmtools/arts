@@ -1,3 +1,10 @@
+2018-04-01  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-1005
+	
+	* src/m_linemixing.cc:  Bug fix for non-fortan compiling
+
+
 2018-03-29 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-1004
