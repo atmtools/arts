@@ -8704,30 +8704,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianCalcAbsSpeciesAnalytical" ),
-        DESCRIPTION
-        (
-         "This function doesn't do anything. It just exists to satisfy\n"
-         "the input and output requirement of the *jacobian_agenda*.\n"
-         "\n"
-         "This function is added to *jacobian_agenda* by\n"
-         "jacobianAddAbsSpecies and should normally not be called\n"
-         "by the user.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian", "mblock_index", "iyb", "yb" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "jacobianCalcAbsSpeciesPerturbations" ),
         DESCRIPTION
         (
@@ -8753,6 +8729,30 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "Species of interest." ),
         SETMETHOD( true )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianCalcDoNothing" ),
+        DESCRIPTION
+        (
+         "This function doesn't do anything. It just exists to satisfy\n"
+         "the input and output requirement of the *jacobian_agenda*.\n"
+         "\n"
+         "This method is added to *jacobian_agenda* by *jacobianAddAbsSpecies*\n"
+         "and some similar methods, and it should normally not be called by\n"
+         "the user.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian", "mblock_index", "iyb", "yb" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -8807,30 +8807,6 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "jacobianCalcMagFieldAnalytical" ),
-        DESCRIPTION
-        (
-         "This function doesn't do anything. It just exists to satisfy\n"
-         "the input and output requirement of the *jacobian_agenda*.\n"
-         "\n"
-         "This function is added to *jacobian_agenda* by\n"
-         "jacobianAddMagField and should normally not be called\n"
-         "by the user.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian", "mblock_index", "iyb", "yb" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
- 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "jacobianCalcPointingZaInterp" ),
@@ -8916,30 +8892,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianCalcScatSpeciesAnalytical" ),
-        DESCRIPTION
-        (
-         "This function doesn't do anything. It just exists to satisfy\n"
-         "the input and output requirement of the *jacobian_agenda*.\n"
-         "\n"
-         "This function is added to *jacobian_agenda* by\n"
-         "jacobianAddAbsSpecies and should normally not be called\n"
-         "by the user.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian", "mblock_index", "iyb", "yb" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "jacobianCalcSinefit" ),
         DESCRIPTION
         (
@@ -8966,30 +8918,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianCalcTemperatureAnalytical" ),
-        DESCRIPTION
-        (
-         "This function doesn't do anything. It just exists to satisfy\n"
-         "the input and output requirement of the *jacobian_agenda*.\n"
-         "\n"
-         "This function is added to *jacobian_agenda* by\n"
-         "jacobianAddTemperature and should normally not be called\n"
-         "by the user.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian", "mblock_index", "iyb", "yb" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-      ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "jacobianCalcTemperaturePerturbations" ),
         DESCRIPTION
         (
@@ -9013,30 +8941,6 @@ void define_md_data_raw()
             "sensor_response", "iy_unit", "iy_main_agenda", "geo_pos_agenda",
             "g0_agenda", "molarmass_dry_air", "p_hse", "z_hse_accuracy", 
             "jacobian_quantities" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "jacobianCalcWindAnalytical" ),
-        DESCRIPTION
-        (
-         "This function doesn't do anything. It just exists to satisfy\n"
-         "the input and output requirement of the *jacobian_agenda*.\n"
-         "\n"
-         "This function is added to *jacobian_agenda* by\n"
-         "jacobianAddWind and should normally not be called\n"
-         "by the user.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian", "mblock_index", "iyb", "yb" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

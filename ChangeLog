@@ -1,3 +1,21 @@
+2018-04-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1007
+
+	* src/m_jacobian.cc (jacobianAddAbsSpecies)
+	(jacobianAddConstantVMRAbsSpecies, jacobianAddScatSpecies)
+	(jacobianAddTemperature, jacobianAddWind, jacobianAddMagField)
+	(jacobianAddCatalogParameter, jacobianAddSpecialSpecies): Now
+	adding jacobianCalcDoNothing.
+
+	(jacobianCalcDoNothing): Replaces the methods below.
+
+	(jacobianCalcWindAnalytical):
+	(jacobianCalcMagFieldAnalytical):
+	(jacobianCalcTemperatureAnalytical):
+	(jacobianCalcAbsSpeciesAnalytical)
+	(jacobianCalcScatSpeciesAnalytical): Removed
+
 2018-04-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1006

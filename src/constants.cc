@@ -392,6 +392,9 @@ extern const String WIND_MAINTAG        = "Wind";
 extern const String MAGFIELD_MAINTAG    = "Magnetic field";
 extern const String FLUX_MAINTAG        = "Beam flux";
 
+extern const String SURRAFE_MAINTAG       = "Surface";
+extern const String SURFACE_WINDSPEED_TAG = "Wind speed";
+
 // New tags for only propmat jacobians
 extern const String PROPMAT_SUBSUBTAG              = "From propagation matrix";
 extern const String CATALOGPARAMETER_MAINTAG       = "Catalog parameter";

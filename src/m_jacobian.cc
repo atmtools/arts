@@ -73,6 +73,9 @@ extern const String MAGFIELD_MAINTAG;
 extern const String FLUX_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
 
+extern const String SURRAFE_MAINTAG;
+extern const String SURFACE_WINDSPEED_TAG;
+
 
 // Generic modes
 extern const String PRESSUREBROADENINGGAMMA_MODE;
@@ -110,8 +113,22 @@ extern const String LINEMIXINGDFEXPONENT_MODE;
 
 
 //----------------------------------------------------------------------------
-// BAsic methods:
+// Basic methods:
 //----------------------------------------------------------------------------
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianCalcDoNothing(
+        Matrix&     jacobian _U_,
+  const Index&      mblock_index _U_,
+  const Vector&     iyb _U_,
+  const Vector&     yb _U_,
+  const Verbosity& )
+{
+  /* Nothing to do here for the analytical case, this function just exists
+   to satisfy the required inputs and outputs of the jacobian_agenda */
+}
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -302,7 +319,7 @@ void jacobianAddAbsSpecies(
   if( analytical )
     {
       out3 << "  Calculations done by semi-analytical expressions.\n"; 
-      jacobian_agenda.append( "jacobianCalcAbsSpeciesAnalytical", TokVal() );
+      jacobian_agenda.append( "jacobianCalcDoNothing", TokVal() );
     }
   else
     {
@@ -388,22 +405,9 @@ void jacobianAddConstantVMRAbsSpecies(
   jq.push_back( rq );
   
   // Add dummy
-  jacobian_agenda.append( "jacobianCalcAbsSpeciesAnalytical", TokVal() );
+  jacobian_agenda.append( "jacobianCalcDoNothing", TokVal() );
   
 }      
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcAbsSpeciesAnalytical(
-        Matrix&     jacobian _U_,
-  const Index&      mblock_index _U_,
-  const Vector&     iyb _U_,
-  const Vector&     yb _U_,
-  const Verbosity& )
-{
-  /* Nothing to do here for the analytical case, this function just exists
-   to satisfy the required inputs and outputs of the jacobian_agenda */
-}
 
 
 
@@ -1637,7 +1641,7 @@ void jacobianCalcPolyfit(
 
 
 //----------------------------------------------------------------------------
-// Absorption species:
+// Scattering species:
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1703,24 +1707,8 @@ void jacobianAddScatSpecies(
   jq.push_back( rq );
   
   // Add gas species method to the jacobian agenda
-  jacobian_agenda.append( "jacobianCalcScatSpeciesAnalytical", TokVal() );
+  jacobian_agenda.append( "jacobianCalcDoNothing", TokVal() );
 }                    
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcScatSpeciesAnalytical(
-        Matrix&     jacobian _U_,
-  const Index&      mblock_index _U_,
-  const Vector&     iyb _U_,
-  const Vector&     yb _U_,
-  const Verbosity& )
-{
-  /* Nothing to do here for the analytical case, this function just exists
-   to satisfy the required inputs and outputs of the jacobian_agenda */
-}
-
-
 
 
 
@@ -1913,6 +1901,66 @@ void jacobianCalcSinefit(
 
 
 
+//----------------------------------------------------------------------------
+// Surface quantities
+//----------------------------------------------------------------------------
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+/*
+void jacobianAddSurfaceWindSpeed(
+        Workspace&,
+        ArrayOfRetrievalQuantity&   jq,
+        Agenda&                     jacobian_agenda,
+  const Index&                      atmosphere_dim,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Vector&                     rq_lat_grid,
+  const Vector&                     rq_lon_grid,
+  const Verbosity&                  verbosity )
+{
+  CREATE_OUT2;
+  CREATE_OUT3;
+
+  
+  
+  // Check that this species is not already included in the jacobian.
+  for( Index it=0; it<jq.nelem(); it++ )
+    {
+      if( jq[it].MainTag() == SURFACE_MAINTAG  && 
+          jq[it].Subtag()  == SURFACE_WINDSPEED_TAG )
+        {
+          ostringstream os;
+          os << "Surface wind speed is already included in *jacobian_quantities*.";
+          throw runtime_error(os.str());
+        }
+    }
+    
+  // Check retrieval grids, here we just check the length of the grids
+  // vs. the atmosphere dimension
+  ArrayOfVector grids(atmosphere_dim);
+  {
+    ostringstream os;
+    if( !check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
+                                rq_p_grid, rq_lat_grid, rq_lon_grid,
+                                "retrieval pressure grid", 
+                                "retrieval latitude grid", 
+                                "retrievallongitude_grid", 
+                                atmosphere_dim ) )
+    throw runtime_error(os.str());
+  }
+  
+  // Create the new retrieval quantity
+  RetrievalQuantity rq;
+  rq.MainTag( WIND_MAINTAG );
+  rq.Subtag( component );
+  rq.Analytical( 1 );
+  rq.Grids( grids );
+
+  // Add it to the *jacobian_quantities*
+  jq.push_back( rq );
+}                    
+*/
+
 
 
 //----------------------------------------------------------------------------
@@ -2009,7 +2057,7 @@ void jacobianAddTemperature(
   if( analytical ) 
     {
       out3 << "  Calculations done by semi-analytical expression.\n"; 
-      jacobian_agenda.append( "jacobianCalcTemperatureAnalytical", TokVal() );
+      jacobian_agenda.append( "jacobianCalcDoNothing", TokVal() );
     }
   else
     { 
@@ -2017,20 +2065,6 @@ void jacobianAddTemperature(
 
       jacobian_agenda.append( "jacobianCalcTemperaturePerturbations", "" );
     }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcTemperatureAnalytical(
-        Matrix&     jacobian _U_,
-  const Index&      mblock_index _U_,
-  const Vector&     iyb _U_,
-  const Vector&     yb _U_,
-  const Verbosity& )
-{
-  /* Nothing to do here for the analytical case, this function just exists
-   to satisfy the required inputs and outputs of the jacobian_agenda */
 }
 
 
@@ -2321,23 +2355,10 @@ void jacobianAddWind(
   jq.push_back( rq );
   
   out3 << "  Calculations done by propagation matrix expression.\n"; 
-  jacobian_agenda.append( "jacobianCalcWindAnalytical", TokVal() );
+  jacobian_agenda.append( "jacobianCalcDoNothing", TokVal() );
   
 }                    
 
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcWindAnalytical(
-        Matrix&     jacobian _U_,
-  const Index&      mblock_index _U_,
-  const Vector&     iyb _U_,
-  const Vector&     yb _U_,
-  const Verbosity& )
-{
-  /* Nothing to do here for the analytical case, this function just exists
-   to satisfy the required inputs and outputs of the jacobian_agenda */
-}
 
 
 
@@ -2411,22 +2432,9 @@ void jacobianAddMagField(
   jq.push_back( rq );
   
   // Add gas species method to the jacobian agenda
-  jacobian_agenda.append( "jacobianCalcMagFieldAnalytical", TokVal() );
+  jacobian_agenda.append( "jacobianCalcDoNothing", TokVal() );
 }                    
 
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcMagFieldAnalytical(
-        Matrix&     jacobian _U_,
-  const Index&      mblock_index _U_,
-  const Vector&     iyb _U_,
-  const Vector&     yb _U_,
-  const Verbosity& )
-{
-  /* Nothing to do here for the analytical case, this function just exists
-   to satisfy the required inputs and outputs of the jacobian_agenda */
-}
 
 
 
@@ -3550,7 +3558,7 @@ void jacobianAddCatalogParameter(
     
     out3 << "  Calculations done by propagation matrix expressions.\n"; 
     
-    jacobian_agenda.append( "jacobianCalcAbsSpeciesAnalytical", TokVal() );
+    jacobian_agenda.append( "jacobianCalcDoNothing", TokVal() );
 }    
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -3724,7 +3732,7 @@ void jacobianAddSpecialSpecies(
   // Add it to the *jacobian_quantities*
   jq.push_back( rq );
   
-  jacobian_agenda.append( "jacobianCalcAbsSpeciesAnalytical", TokVal() );
+  jacobian_agenda.append( "jacobianCalcDoNothing", TokVal() );
   
 }                    
 
