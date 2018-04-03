@@ -31,9 +31,9 @@ Numeric wigner3j(const Rational j1, const Rational j2, const Rational j3,
 Numeric wigner6j(const Rational j1,const Rational j2,const Rational j3,
                  const Rational l1,const Rational l2,const Rational l3);
 
-Numeric wigner9j(const Rational j11,const Rational j12,const Rational j13,
-                 const Rational j21,const Rational j22,const Rational j23,
-                 const Rational j31,const Rational j32,const Rational j33);
+// Numeric wigner9j(const Rational j11,const Rational j12,const Rational j13,
+//                  const Rational j21,const Rational j22,const Rational j23,
+//                  const Rational j31,const Rational j32,const Rational j33);
 
 void ECS_wigner_CO2(Matrix& M, 
                     const ArrayOfRational& Jl, 

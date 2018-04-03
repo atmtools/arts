@@ -6146,6 +6146,22 @@ void Workspace::define_wsv_data()
        "       [N_p, N_lat, N_lon] \n"
        ),
       GROUP( "ArrayOfGriddedField3" )));
+   
+  wsv_data.push_back
+   (WsvRecord
+   ( NAME( "wigner_initialized" ),
+     DESCRIPTION
+     (
+       "Indicates if the wigner tables are initialized\n"
+       "If they are not, computations will be aborted\n"
+       "\n"
+       "Will hold the value of provided maximum factorial value\n"
+       "\n"
+       "The developer should always test this variable in functions\n"
+       "that might require computing wigner symbols because the error\n"
+       "handling is otherwise offloaded to third party software...\n"
+     ),
+     GROUP("Index")));
 
   wsv_data.push_back
    (WsvRecord

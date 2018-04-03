@@ -951,10 +951,10 @@ void define_md_data_raw()
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_species", "abs_species", "band_identifiers"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()
+      GIN("change_linemixing_to_bandwise"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("1"),
+      GIN_DESC("(Boolean) Set linemixing to need *abs_xsec_per_speciesAddLineMixedBands* for these lines?")
     ));
   
   md_data_raw.push_back
@@ -2004,7 +2004,8 @@ void define_md_data_raw()
       IN( "abs_xsec_per_species", "dabs_xsec_per_species_dx",
           "abs_lines_per_band", "abs_species_per_band", "band_identifiers", "abs_species",
           "isotopologue_ratios", "partition_functions", "jacobian_quantities", 
-          "f_grid", "abs_p", "abs_t", "lm_p_lim", "relmat_type_per_band"),
+          "f_grid", "abs_p", "abs_t", "lm_p_lim", "relmat_type_per_band",
+          "wigner_initialized"),
       GIN("pressure_rule_limit", "write_relmat_per_band", "debug", "order_of_linemixing", "use_adiabatic_factor"),
       GIN_TYPE("Numeric", "Index", "Index", "Index", "Index"),
       GIN_DEFAULT("1e100", "0", "0", "-1", "1"),
@@ -16326,12 +16327,14 @@ void define_md_data_raw()
       GOUT_DESC(),
       IN( "abs_lines_per_band", "abs_species_per_band", "band_identifiers", 
           "abs_species", "isotopologue_ratios", "partition_functions", 
-          "rtp_pressure", "abs_t", "relmat_type_per_band"),
-      GIN("debug", "order_of_linemixing"),
-      GIN_TYPE("Index", "Index"),
-      GIN_DEFAULT("0", "1"),
-      GIN_DESC("Lets relmat know it is to print debug information if true.",
-               "Choice of order of linemixing")
+          "rtp_pressure", "abs_t", "relmat_type_per_band", "wigner_initialized"),
+      GIN("pressure_rule_limit", "debug", "order_of_linemixing", "use_adiabatic_factor"),
+      GIN_TYPE("Numeric", "Index", "Index", "Index"),
+      GIN_DEFAULT("0.1", "0", "1", "1"),
+      GIN_DESC("Limit when perturbation theory is assumed to work",
+               "Lets relmat know it is to print debug information if true.",
+               "Choice of order of linemixing",
+               "Truth-value: if we should use the precomputed adiabatic factors")
     ));
 
 
@@ -18653,6 +18656,66 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF, NODEF),
         GIN_DESC(    "Species to set.", "VMR value to apply for the selected species.")
         ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "Wigner6Init" ),
+      DESCRIPTION
+      (
+        "Initialize the wigner tables\n"
+        "\n"
+        "The default values take about 1 Gb memory.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT("wigner_initialized"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("fast_wigner_stored_symbols", "largest_wigner_symbol_parameter"),
+      GIN_TYPE("Index", "Index"),
+      GIN_DEFAULT("20000000", "250"),
+      GIN_DESC("Number of stored symbols possible before replacements",
+               "Largest symbol used for initializing factorials")
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "Wigner6Unload" ),
+      DESCRIPTION
+      (
+        "Unloads the wigner tables\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT("wigner_initialized"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("wigner_initialized"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "WignerFastInfoPrint" ),
+      DESCRIPTION
+      (
+        "Prints the fast wigner table information if compiled with this option\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("wigner_initialized"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+    ));
 
     md_data_raw.push_back
     ( MdRecord

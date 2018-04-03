@@ -42,19 +42,16 @@ Numeric wigner3j(const Rational j1,const Rational j2,const Rational j3,
             c = int((2*j3).toIndex()), 
             d = int((2*m1).toIndex()), 
             e = int((2*m2).toIndex()), 
-            f = int((2*m3).toIndex()),
-            g = std::max(std::max(std::max(std::max(std::max(a, b), c), d), e), f);
-  double h;
-  
-  wig_table_init(g, 3);
-  wig_thread_temp_init(g);
+            f = int((2*m3).toIndex());
+  double g;
             
-  h = wig3jj(a, b, c, d, e, f);
+  #if DO_FAST_WIGNER
+  g = fw3jja6(a, b, c, d, e, f);
+  #else
+  g = wig3jj(a, b, c, d, e, f);
+  #endif
   
-  wig_temp_free();
-  wig_table_free();
-  
-  return Numeric(h);
+  return Numeric(g);
 }
 
 
@@ -77,19 +74,16 @@ Numeric wigner6j(const Rational j1,const Rational j2,const Rational j3,
             c = int((2*j3).toIndex()), 
             d = int((2*l1).toIndex()), 
             e = int((2*l2).toIndex()), 
-            f = int((2*l3).toIndex()),
-            g = std::max(std::max(std::max(std::max(std::max(a, b), c), d), e), f);
-  double h;
+            f = int((2*l3).toIndex());
+  double g;
   
-  wig_table_init(g, 6);
-  wig_thread_temp_init(g);
+  #if DO_FAST_WIGNER
+  g = fw6jja(a, b, c, d, e, f);
+  #else
+  g = wig6jj(a, b, c, d, e, f);
+  #endif
   
-  h = wig6jj(a, b, c, d, e, f);
-  
-  wig_temp_free();
-  wig_table_free();
-  
-  return Numeric(h);
+  return Numeric(g);
 }
 
 
@@ -106,32 +100,32 @@ Numeric wigner6j(const Rational j1,const Rational j2,const Rational j3,
  
  See for definition: http://dlmf.nist.gov/34.6
 */
-Numeric wigner9j(const Rational j11,const Rational j12,const Rational j13,
-                 const Rational j21,const Rational j22,const Rational j23,
-                 const Rational j31,const Rational j32,const Rational j33)
-{
-  const int a = int((2*j11).toIndex()),
-            b = int((2*j12).toIndex()), 
-            c = int((2*j13).toIndex()), 
-            d = int((2*j21).toIndex()), 
-            e = int((2*j22).toIndex()), 
-            f = int((2*j23).toIndex()), 
-            g = int((2*j31).toIndex()), 
-            h = int((2*j32).toIndex()), 
-            i = int((2*j33).toIndex()),
-            j = std::max(std::max(std::max(std::max(std::max(std::max(std::max(std::max(a, b), c), d), e), f), g), h), i);
-  double k;
-  
-  wig_table_init(j, 9);
-  wig_thread_temp_init(j);
-  
-  k = wig9jj(a, b, c, d, e, f, g, h, i);
-  
-  wig_temp_free();
-  wig_table_free();
-  
-  return Numeric(k);
-}
+// Numeric wigner9j(const Rational j11,const Rational j12,const Rational j13,
+//                  const Rational j21,const Rational j22,const Rational j23,
+//                  const Rational j31,const Rational j32,const Rational j33)
+// {
+//   const int a = int((2*j11).toIndex()),
+//             b = int((2*j12).toIndex()), 
+//             c = int((2*j13).toIndex()), 
+//             d = int((2*j21).toIndex()), 
+//             e = int((2*j22).toIndex()), 
+//             f = int((2*j23).toIndex()), 
+//             g = int((2*j31).toIndex()), 
+//             h = int((2*j32).toIndex()), 
+//             i = int((2*j33).toIndex()),
+//             j = std::max(std::max(std::max(std::max(std::max(std::max(std::max(std::max(a, b), c), d), e), f), g), h), i);
+//   double k;
+//   
+//   wig_table_init(j, 9);
+//   wig_thread_temp_init(j);
+//   
+//   k = wig9jj(a, b, c, d, e, f, g, h, i);
+//   
+//   wig_temp_free();
+//   wig_table_free();
+//   
+//   return Numeric(k);
+// }
 
 /*! Returns the wigner symbol used in Niro etal 2004
 
@@ -176,13 +170,6 @@ void ECS_wigner_CO2(Matrix& M,
                     ConstVectorView G0, 
                     ConstVectorView population)
 {
-#if DO_FAST_WIGNER
-  fastwigxj_load(FAST_WIGNER_PATH_3J, 3, NULL);
-  fastwigxj_load(FAST_WIGNER_PATH_6J, 6, NULL);
-  fastwigxj_dyn_init(3, 1000000);
-  fastwigxj_dyn_init(6, 1000000);
-#endif
-  
   // Size of the problem
   const Index nj = Jl.nelem();
   M.resize(nj, nj);
@@ -202,15 +189,9 @@ void ECS_wigner_CO2(Matrix& M,
     if(tmp > size) size = tmp;
   }
   
-  // Initialize the tables required (must maybe move this init to a higher level)
-  wig_table_init(int(size), 6);
-  
   // Main loop over all the lines
   for(Index j=0; j<nj; j++) // For all lines
   {
-    wig_thread_temp_init(int(size));
-    // Set thread memory
-    
     for(Index k=0; k<=j; k++) // For all lines up til now
     {
       if(j == k)
@@ -255,14 +236,5 @@ void ECS_wigner_CO2(Matrix& M,
         M(small, big) = rk * M(big, small);
       }
     }
-    wig_temp_free();
   }
-  
-  // Free memory
-  wig_table_free();
-#if DO_FAST_WIGNER
-  fastwigxj_print_stats();
-  fastwigxj_unload(3);
-  fastwigxj_unload(6);
-#endif
 }

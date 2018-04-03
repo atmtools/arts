@@ -885,6 +885,15 @@ void test44()
 
 void test45()
 {
+  #if DO_FAST_WIGNER
+  fastwigxj_load(FAST_WIGNER_PATH_3J, 3, NULL);
+  fastwigxj_load(FAST_WIGNER_PATH_6J, 6, NULL);
+  fastwigxj_dyn_init(3, 20000000);
+  fastwigxj_dyn_init(6, 2000000);
+  #endif
+  wig_table_init(int(112*2), 6);
+  wig_temp_init(int(112*2));
+  
   const Rational a(124, 1), b(2, 1), c(122, 1), d(0, 1), e(0, 1), f(0, 1);
   Numeric x = wigner3j(a,b,c,d,e,f);
   std::cout<<x<<std::endl<<std::endl;

@@ -248,6 +248,7 @@ add_library (artscore STATIC
   m_tessem.cc
   m_tmatrix.cc
   m_transmitter.cc
+  m_wigner.cc
   m_xml.cc
   m_zeeman.cc
   math_funcs.cc

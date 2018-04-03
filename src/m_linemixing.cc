@@ -974,6 +974,7 @@ void abs_lines_per_bandFromband_identifiers( ArrayOfArrayOfLineRecord&       abs
                                              ArrayOfArrayOfLineRecord&       abs_lines_per_species,
                                              const ArrayOfArrayOfSpeciesTag& abs_species,
                                              const ArrayOfQuantumIdentifier& band_identifiers,
+                                             const Index& change_linemixing_to_bandwise,
                                              const Verbosity&                verbosity)
 {
   CREATE_OUT3;
@@ -992,16 +993,14 @@ void abs_lines_per_bandFromband_identifiers( ArrayOfArrayOfLineRecord&       abs
   
   #pragma omp parallel for        \
   if (!arts_omp_in_parallel())    
-  for (Index qi = 0; qi < band_identifiers.nelem(); qi++)
-  {
+  for (Index qi = 0; qi < band_identifiers.nelem(); qi++) {
     const QuantumIdentifier& band_id = band_identifiers[qi];
     
     // Two variables that are used inside the loop
     ArrayOfIndex matches;
     ArrayOfQuantumMatchInfo match_info;
     
-    for (Index s = 0; s < abs_lines_per_species.nelem(); s++)
-    {
+    for (Index s = 0; s < abs_lines_per_species.nelem(); s++) {
       // Skip this species if qi is not part of the species represented by this abs_lines
       if(abs_species[s][0].Species() not_eq band_id.Species() or 
          abs_species[s][0].LineMixing() == SpeciesTag::LINE_MIXING_OFF)
@@ -1016,28 +1015,24 @@ void abs_lines_per_bandFromband_identifiers( ArrayOfArrayOfLineRecord&       abs
       match_lines_by_quantum_identifier(matches, match_info, band_id, species_lines);
       
       // Use info about mathced lines to tag the relevant parameter
-      for (Index i = 0; i < matches.nelem(); i++)
-      {
+      for (Index i = 0; i < matches.nelem(); i++) {
         QuantumMatchInfo& qm = match_info[i];
         
         LineRecord& lr = species_lines[matches[i]];
         
         // If any of the levels match partially or fully set the right quantum number
         if(qm.Upper()==QMI_NONE or qm.Lower()==QMI_NONE)
-        {
           continue;
-        }
-        else // we will accept this match if both levels are at least partially matched
-        {
+        else {
           abs_lines_per_band[qi].push_back(lr);
-          lr.SetLineMixingData(lmd_byband);
+          if(change_linemixing_to_bandwise)
+            lr.SetLineMixingData(lmd_byband);
         }
       }
     }
   }
   
-  for (Index qi = 0; qi < band_identifiers.nelem(); qi++)
-  {
+  for (Index qi = 0; qi < band_identifiers.nelem(); qi++) {
     Index nlines = abs_lines_per_band[qi].nelem();
     out3 << "Found " << nlines << " lines of the band: " << band_identifiers[qi] << "\n";
     if(nlines)
@@ -1379,6 +1374,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                             const Vector&                    abs_t,
                                             const Numeric&                   lm_p_lim,
                                             const ArrayOfIndex&              relmat_type_per_band,
+                                            const Index&                     wigner_initialized,
                                             const Numeric&                   pressure_rule_limit,
                                             const Index&                     write_relmat_per_band,
                                             const Index&                     error_handling,
@@ -1387,15 +1383,6 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                             const Verbosity& verbosity)
 #ifdef ENABLE_RELMAT
 {
-#if DO_FAST_WIGNER
-  fastwigxj_load(FAST_WIGNER_PATH_3J, 3, NULL);
-  fastwigxj_load(FAST_WIGNER_PATH_6J, 6, NULL);
-  fastwigxj_dyn_init(3, 10000000);
-  fastwigxj_dyn_init(6, 10000000);
-  wig_table_init(500, 6);
-  wig_thread_temp_init(500);
-#endif
-  
   CREATE_OUT3;
   using global_data::species_data;
   using global_data::SpeciesMap;
@@ -1421,6 +1408,10 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
   
   // Relmat constants
   const Numeric relmat_T0 = 296.0;
+  
+  // Test that wigner is wigner is initialized
+  if(not wigner_initialized)
+    throw std::runtime_error("Run InitWigner6() before this function...");
   
   // These should be identical
   if(nps not_eq nts)
@@ -2001,14 +1992,6 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
   delete[] iso_code_perturber;
   delete[] molecule_code_perturber;
   delete[] perturber_mass;
-  
-#if DO_FAST_WIGNER
-  wig_temp_free();
-  wig_table_free();
-//   fastwigxj_print_stats();
-  fastwigxj_unload(3);
-  fastwigxj_unload(6);
-#endif
 }
 #else
 {
@@ -2029,8 +2012,11 @@ void SetLineMixingCoefficinetsFromRelmat( // WS Input And Output:
                                           const Numeric&                   rtp_pressure,
                                           const Vector&                    abs_t,
                                           const ArrayOfIndex&              relmat_type_per_band,
+                                          const Index&                     wigner_initialized,
+                                          const Numeric&                   pressure_rule_limit,
                                           const Index&                     error_handling,
                                           const Index&                     order_of_linemixing,
+                                          const Index&                     use_adiabatic_factor,
                                           const Verbosity&                 verbosity)
 {
   const Index nband = abs_lines_per_band.nelem();
@@ -2063,8 +2049,9 @@ void SetLineMixingCoefficinetsFromRelmat( // WS Input And Output:
   abs_xsec_per_speciesAddLineMixedBands( _tmp1, _tmp3, relmat_per_band,
                                          abs_lines_per_band, abs_species_per_band, band_identifiers,
                                          abs_species, isotopologue_ratios, partition_functions,
-                                         jacobian_quantities, f_grid, abs_p, abs_t, 0.0, relmat_type_per_band,
-                                         0.01, 1, error_handling, order_of_linemixing, 1, verbosity);
+                                         jacobian_quantities, f_grid, abs_p, abs_t, 0.0, relmat_type_per_band, wigner_initialized,
+                                         pressure_rule_limit, 1, error_handling, order_of_linemixing, 
+                                         use_adiabatic_factor, verbosity);
   
   for(Index iband = 0; iband < nband; iband++)
   {
