@@ -45,7 +45,7 @@ public:
     Index Nom() const {return mnom;}
     Index Denom() const {return mdenom;}
 
-    bool isUndefined() const { return (mnom == 0 && mdenom == 0); }
+    bool isUndefined() const { return (mdenom == 0); }
 
     // Converting object
     Index toIndex() const;

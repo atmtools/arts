@@ -6767,17 +6767,6 @@ void Workspace::define_wsv_data()
    
    wsv_data.push_back
    (WsvRecord
-   ( NAME( "zeeman_frequencyshiftconstant_precalc" ),
-     DESCRIPTION
-     (
-         "Frequency shift holder for speedy Zeeman effect calculaions.\n"
-         "\n"
-         "Dimensions: none or three times the Zeeman species in *abs_species*\n"
-     ),
-     GROUP( "ArrayOfVector" )));
-   
-   wsv_data.push_back
-   (WsvRecord
    ( NAME( "zeeman_linerecord_precalc" ),
      DESCRIPTION
      (

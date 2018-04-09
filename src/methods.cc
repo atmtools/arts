@@ -12326,7 +12326,6 @@ void define_md_data_raw()
            "dnlte_dx_source",
            "nlte_dsource_dx",
            "zeeman_linerecord_precalc",
-           "zeeman_frequencyshiftconstant_precalc",
            "f_grid",
            "abs_species",
            "jacobian_quantities",
@@ -19705,7 +19704,7 @@ void define_md_data_raw()
          "Will reset the *zeeman_linerecord_precalc* at every call.\n"
          ),
         AUTHORS( "Richard Larsson" ),
-        OUT( "zeeman_linerecord_precalc", "zeeman_frequencyshiftconstant_precalc" ),
+        OUT( "zeeman_linerecord_precalc" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),

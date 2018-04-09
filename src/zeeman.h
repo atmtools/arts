@@ -30,14 +30,6 @@ extern const Numeric PLANCK_CONST;
 extern const Numeric BOHR_MAGNETON;
 extern const Numeric LANDE_GS;
 
-enum {
-    AuxIndex_GS = 0,
-    AuxIndex_Lambda,
-    AuxIndex_S,
-    AuxIndex_Hund,
-    AuxIndex_TotalCount // Must always be at the end
-};
-
 void phase_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, const Index& DM);
 
 void attenuation_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, const Index& DM);
@@ -50,8 +42,6 @@ void dattenuation_matrix_deta(  MatrixView dK, const Numeric& theta, const Numer
 
 Rational relative_strength(const Rational& m, const Rational& j, const Index& dj, const Index& dm);
 
-Numeric frequency_change(const LineRecord& lr, const Numeric& H_mag, const Numeric& GS);
-
 void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& propmat_clearsky, 
                                                     ArrayOfStokesVector& nlte_source,
                                                     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
@@ -62,8 +52,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                     const Index& abs_lineshape_ls, 
                                                     const Index& abs_lineshape_lsn, 
                                                     const Numeric& abs_lineshape_cutoff, 
-                                                    const ArrayOfLineRecord& lr, 
-                                                    const Vector&  Zeeman_DF,
+                                                    const ArrayOfLineRecord& lr,
                                                     const Vector&  planck_BT,
                                                     const Matrix&  dplanck_BT,
                                                     const SpeciesAuxData& isotopologue_ratios, 
@@ -115,7 +104,6 @@ void alter_linerecord( LineRecord& new_LR,
 
 
 void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
-                                    ArrayOfVector& z1_frequencyshift,
                                     const ArrayOfArrayOfSpeciesTag& abs_species,
                                     const ArrayOfArrayOfLineRecord& abs_lines_per_species,
                                     const Verbosity& verbosity);

@@ -35,14 +35,20 @@
  *  
  *  The default return of this function is from the NIST database
  */
-Numeric get_lande_spin_constant(const LineRecord& line) noexcept
+Numeric get_lande_spin_constant(const Index species) noexcept
 { 
-  if     (species_index_from_species_name("O2" ) == line.Species()) return 2.002064; 
-  else if(species_index_from_species_name("NO" ) == line.Species()) return 2.00071;  
-  else if(species_index_from_species_name("OH" ) == line.Species()) return 2.00089;
-  else if(species_index_from_species_name("ClO") == line.Species()) return 2.00072;
-  else if(species_index_from_species_name("SO" ) == line.Species()) return 2.002106;
+  if     (species_index_from_species_name("O2" ) == species) return 2.002064; 
+  else if(species_index_from_species_name("NO" ) == species) return 2.00071;  
+  else if(species_index_from_species_name("OH" ) == species) return 2.00089;
+  else if(species_index_from_species_name("ClO") == species) return 2.00072;
+  else if(species_index_from_species_name("SO" ) == species) return 2.002106;
   else return 2.00231930436182;
+}
+
+
+Numeric get_lande_lambda_constant() noexcept
+{ 
+  return 1.0;
 }
 
 

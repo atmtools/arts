@@ -1,3 +1,26 @@
+2018-04-09  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-1011
+	
+	* src/CMakeLists.txt:  Added on datarecord for linerecord and
+	removed another.
+	
+	* src/absorption.{cc,h}, src/linefunctions.{cc,h}, src/m_abs.cc:
+	* src/m_zeeman.cc, src/methods.cc, src/workspace.cc:
+	Removed Zeeman splitting vector
+	
+	* src/linerecord.{cc,h}:  Removed obsolete partition function
+	by linerecord and added a Zeeman effect record.  Writing and
+	reading still needs testing.  It should write and store the
+	splitting and polarization expected of the line.  This should
+	allow to input external g-factors directly via the linerecord
+	
+	* src/linerecord_partitionfunctiondata.{cc,h}: deleted
+	
+	* src/zeeman.{cc,h}, (added) src/zeemandata.{cc,h}: Changed
+	interface so that the splitting is known by the line.  Moved
+	many tests into the new ZeemanEffectData class.
+
 2018-04-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1010

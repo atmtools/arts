@@ -339,115 +339,6 @@ Rational relative_strength(const Rational& M, const Rational& J, const Index& dj
 }
 
 
-Numeric g_caseb(const Rational& N, const Rational& J, const Rational& Lambda, const Rational& S, const Numeric& GS, const Numeric& GL) 
-{
-  const Rational JJ = J*(J+1);
-  const Rational NN = N*(N+1);
-  const Rational SS = S*(S+1);
-  const Rational LL = Lambda*Lambda;
-  const Rational T1 = (JJ + SS - NN)           / JJ / 2;
-  const Rational T2 = (JJ - SS + NN) * LL / NN / JJ / 2;
-  
-  Numeric g;
-  if(JJ == 0)
-    g = 0.0;
-  else if(NN not_eq 0)
-    g = GS * T1.toNumeric() + GL * T2.toNumeric();
-  else
-    g = GS * T1.toNumeric();
-  return g;
-}
-
-
-Numeric g_casea(const Rational& Omega, const Rational& J, const Rational& Lambda, const Rational& Sigma, const Numeric& GS, const Numeric& GL)
-{  
-  const Rational JJ = J*(J+1);
-  const Rational DIV = Omega / JJ;
-  const Rational T1 = Sigma  * DIV;
-  const Rational T2 = Lambda * DIV;
-  
-  Numeric g;
-  if(JJ == 0)
-    g = 0.0;
-  else
-    g = GS * T1.toNumeric() + GL * T2.toNumeric();
-  return g; 
-}
-
-
-/*!
- * Return the frequency change of the split Zeeman lines following
- * Berdyugina and Solnaki (2002) and Lenoir (1967).
- * 
- * \param  lr      In:     The line record with quantum numbers.
- * \param  H_mag   In:     The magnitude of the magnetic field.
- * \param  GS      In:     The Lande factor.
- * 
- * \author Richard Larsson
- * \date   2016-05-19 (combination of two precious versions from 2012)
- */
-Numeric frequency_change(const LineRecord& lr,
-                         const Numeric& H_mag, 
-                         const Numeric& GS)
-{
-    Numeric gMl, gMu;
-    
-    const static Numeric GL = 1.0;  // Modify this when more data is available --- we need a lookup as for GS...
-    
-    // Lower:
-    assert(abs(lr.QuantumNumbers().Lower()[QuantumNumberType::M])<=lr.QuantumNumbers().Lower()[QuantumNumberType::J]);
-    switch(lr.QuantumNumbers().Lower()[QuantumNumberType::Hund].toIndex())
-    {
-      case Index(Hund::CaseA):
-            // This follows Berdyugina and Solnaki
-            gMl = lr.QuantumNumbers().Lower()[QuantumNumberType::M].toNumeric() * 
-            g_casea(lr.QuantumNumbers().Lower()[QuantumNumberType::Omega], 
-                    lr.QuantumNumbers().Lower()[QuantumNumberType::J],
-                    lr.QuantumNumbers().Lower()[QuantumNumberType::Lambda],
-                    lr.QuantumNumbers().Lower()[QuantumNumberType::S], GS, GL);
-            break;
-      case Index(Hund::CaseB):
-                gMl = lr.QuantumNumbers().Lower()[QuantumNumberType::M].toNumeric() * 
-                g_caseb(lr.QuantumNumbers().Lower()[QuantumNumberType::N], 
-                        lr.QuantumNumbers().Lower()[QuantumNumberType::J],
-                        lr.QuantumNumbers().Lower()[QuantumNumberType::Lambda],
-                        lr.QuantumNumbers().Lower()[QuantumNumberType::S], GS, GL);
-            break;
-        default:
-            throw std::runtime_error("Does not recognize Hund case.\n");
-    }
-    
-    // Upper:
-    assert(abs(lr.QuantumNumbers().Upper()[QuantumNumberType::M])<=lr.QuantumNumbers().Upper()[QuantumNumberType::J]);
-    switch(lr.QuantumNumbers().Upper()[QuantumNumberType::Hund].toIndex())
-    {
-        case Index(Hund::CaseA):
-            // This follows Berdyugina and Solnaki
-            gMu = lr.QuantumNumbers().Upper()[QuantumNumberType::M].toNumeric() * 
-            g_casea(lr.QuantumNumbers().Upper()[QuantumNumberType::Omega], 
-                    lr.QuantumNumbers().Upper()[QuantumNumberType::J],
-                    lr.QuantumNumbers().Upper()[QuantumNumberType::Lambda],
-                    lr.QuantumNumbers().Upper()[QuantumNumberType::S], GS, GL);
-            break;
-        case Index(Hund::CaseB):
-            // This follows Lenoir
-            gMu = lr.QuantumNumbers().Upper()[QuantumNumberType::M].toNumeric() * 
-            g_caseb(lr.QuantumNumbers().Upper()[QuantumNumberType::N], 
-                    lr.QuantumNumbers().Upper()[QuantumNumberType::J],
-                    lr.QuantumNumbers().Upper()[QuantumNumberType::Lambda],
-                    lr.QuantumNumbers().Upper()[QuantumNumberType::S], GS, GL);
-            break;
-        default:
-            throw std::runtime_error("Does not recognize Hund case.\n");
-            break;
-    }
-    
-    // convert from energy state to frequency and be done with it
-    return H_mag * (gMl - gMu) / PLANCK_CONST * BOHR_MAGNETON;
-    
-}
-
-
 void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& propmat_clearsky, 
                                                     ArrayOfStokesVector& nlte_source,
                                                     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
@@ -459,7 +350,6 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                     const Index& abs_lineshape_lsn, 
                                                     const Numeric& abs_lineshape_cutoff, 
                                                     const ArrayOfLineRecord& lr, 
-                                                    const Vector&  Zeeman_DF,
                                                     const Vector&  planck_BT,
                                                     const Matrix&  dplanck_BT,
                                                     const SpeciesAuxData& isotopologue_ratios, 
@@ -579,7 +469,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
   xsec_species_line_mixing_wrapper(   attenuation,         source,         phase, 
                                       partial_attenuation, partial_source, partial_phase, flag_partials,
                                       f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
-                                      this_species, lr, Zeeman_DF, H_mag,
+                                      this_species, lr, H_mag,
                                       abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
                                       isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
   if(flag_partials.do_zeeman_u())
@@ -589,7 +479,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
     xsec_species_line_mixing_wrapper(         attenuation_du,         source_du,         phase_du, 
                                               partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
                                               f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
-                                              this_species, lr, Zeeman_DF, sqrt(dmag*dmag),
+                                              this_species, lr, sqrt(dmag*dmag),
                                               abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
                                               isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
     dmag[0]-=dB;
@@ -601,7 +491,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
     xsec_species_line_mixing_wrapper(         attenuation_dv,         source_dv,         phase_dv, 
                                               partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
                                               f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
-                                              this_species, lr, Zeeman_DF, sqrt(dmag*dmag),
+                                              this_species, lr, sqrt(dmag*dmag),
                                               abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
                                               isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
     dmag[1]-=dB;
@@ -613,7 +503,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
     xsec_species_line_mixing_wrapper(         attenuation_dw,         source_dw,         phase_dw, 
                                               partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
                                               f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
-                                              this_species, lr, Zeeman_DF, sqrt(dmag*dmag),
+                                              this_species, lr, sqrt(dmag*dmag),
                                               abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
                                               isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
     dmag[2]-=dB;
@@ -1088,315 +978,6 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
   }
 }
 
-/*
-void xsec_species_line_mixing_wrapper_with_zeeman_replacement(PropagationMatrix& propmat_clearsky, 
-                                                              StokesVector& nlte_source,
-                                                              ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-                                                              ArrayOfStokesVector& dnlte_dx_source,
-                                                              ArrayOfStokesVector& nlte_dsource_dx,
-                                                              const ArrayOfArrayOfSpeciesTag& abs_species, 
-                                                              const PropmatPartialsData& flag_partials,
-                                                              const Index& abs_lineshape_ls, 
-                                                              const Index& abs_lineshape_lsn, 
-                                                              const Numeric& abs_lineshape_cutoff, 
-                                                              const ArrayOfLineRecord& lr, 
-                                                              const Vector&  Zeeman_DF,
-                                                              const Vector&  planck_BT,
-                                                              const Matrix&  dplanck_BT,
-                                                              const SpeciesAuxData& isotopologue_ratios, 
-                                                              const SpeciesAuxData& partition_functions,
-                                                              const Vector& T_nlte, 
-                                                              const Vector& abs_vmrs, 
-                                                              const Numeric& P,
-                                                              const Numeric& T, 
-                                                              const Vector& f_grid,
-                                                              const Vector& rtp_mag,
-                                                              const Vector& r_path_los,
-                                                              const Numeric& lm_p_lim,
-                                                              const Numeric& theta, 
-                                                              const Numeric& eta, 
-                                                              const Numeric& H_mag, 
-                                                              const Index& DM, 
-                                                              const Index& this_species,
-                                                              const Verbosity& verbosity )
-
-
-{
-  // Setup the size of the problem
-  const Index nf = f_grid.nelem();
-  const Index nq = flag_partials.nelem();
-  const Index nl = lr.nelem();
-  const Index nnlte = T_nlte.nelem();
-  
-  if(0 == nf or 0 == nl)
-    return;
-  
-  // Compute variables for pressure broadening
-  Numeric G0, G2, L0, L2, e, FVC;
-  
-  // Compute variables for pressure broadening derivatives
-  Numeric dG0_dT, dG2_dT, dL0_dT, dL2_dT, de_dT, dFVC_dT;
-  
-  // Compute variables for line mixing
-  Numeric Y, G, DV;
-  
-  // Compute variables for line mixing derivatives
-  Numeric dY_dT, dG_dT, dDV_dT;
-  
-  // Compute variables for Line strength
-  Numeric QT, QT0, K3, K4, Tu, Tl, r_low;
-  
-  // Compute variables for Line strength derivatives
-  Numeric dQT_dT, dK1_dT, dK2_dT, dK2_dF0, dK3_dT, dK4_dT, 
-    dK3_dF0, dK3_dTl, dK3_dTu, dK4_dTu;
-  
-  // Compute vectors attenuation/phase
-  ComplexVector F, F_single_line(nf), N, N_single_line;  // Only single line lineshape needs to be initialized
-  
-  // Compute vectors derivative of attenuation/phase
-  ArrayOfComplexVector dF, dF_single_line(nq);
-  for(auto& cv : dF_single_line) 
-    cv.resize(nf);
-  
-  ArrayOfComplexVector dN, dN_single_line(nq);
-  if(nnlte)
-  {
-    N_single_line.resize(nf);
-    
-    for(auto& cv : dN_single_line) 
-      cv.resize(nf);
-  }
-  
-  // All should be of same species here
-  const Index spec = lr[0].Species();
-  const Index isop = lr[0].Isotopologue();
-  const Numeric T0 = lr[0].Ti0();
-  const Numeric isotopic_ratio = isotopologue_ratios.getParam(spec, isop)[0].data[0];
-  
-  // Partial pressure of this species
-  const Numeric P_partial = abs_vmrs[this_species] * P;
-                          
-  // Number density of molecules of the level
-  const Numeric nd = abs_vmrs[this_species] * number_density(P, T); // NB: OF SPECIES NOT ISOTOPOLOGUE
-  
-  // Doppler broadening parameters
-  const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, lr[0].IsotopologueData().Mass());
-  const Numeric dGD_div_F0_dT = Linefunctions::dDopplerConstant_dT(T, lr[0].IsotopologueData().Mass());
-  
-  // Broadening species
-  ArrayOfIndex broad_spec_locations;
-  find_broad_spec_locations(broad_spec_locations, abs_species, this_species);
-  
-  // Water index
-  const Index h2o_index = find_first_species_tg(abs_species, species_index_from_species_name("H2O"));
-  
-  // Pressure broadening derivatives
-  ComplexVector dgamma;
-  
-  partition_function(QT0, QT, lr[0].Ti0(), T, 
-                     partition_functions.getParamType(spec, isop), 
-                     partition_functions.getParam(spec, isop));
-  
-  if(flag_partials.do_temperature())
-  {
-    dpartition_function_dT( dQT_dT,
-                            QT,
-                            T,
-                            flag_partials.Temperature_Perturbation(), 
-                            partition_functions.getParamType(spec, isop), 
-                            partition_functions.getParam(spec, isop));
-  }
-  
-  for(Index il = 0; il < nl; il++)
-  {
-    const LineRecord& l = lr[il];
-    
-    // Need to check that Ti0, Species, and Isotopologue of line has not changed...
-    assert(T0 == l.Ti0());
-    assert(spec == l.Species());
-    assert(isop == l.Isotopologue());
-    
-    const Numeric& F0 = l.F();
-    const Numeric& S0 = l.I0();
-    const Numeric& E0 = l.Elow();
-    
-    const Numeric gamma = stimulated_emission(T, F0);
-    const Numeric gamma_ref = stimulated_emission(T0, F0);
-    const Numeric K1 = boltzman_ratio(T, T0, E0);
-    const Numeric K2 = stimulated_relative_emission(gamma, gamma_ref);
-    
-    // QuantumIdentifier
-    const QuantumIdentifier QI = lr[il].QuantumIdentity(); 
-    
-    l.PressureBroadening().GetPressureBroadeningParams(G0, G2, e, L0, L2, FVC,
-                                                       l.Ti0()/T, P, P_partial, 
-                                                       this_species, h2o_index,
-                                                       broad_spec_locations,
-                                                       abs_vmrs, verbosity);
-    
-    // Get line mixing parameters of this line in this
-    l.LineMixing().GetLineMixingParams(Y,  G,  DV, T, P, lm_p_lim, 1);
-    
-    // Treat line mixing as a line center shift
-    L0 += DV;
-    
-    if(flag_partials.do_temperature())
-    {
-      l.PressureBroadening().GetPressureBroadeningParams_dT(dG0_dT, dL0_dT,
-                                                            T, l.Ti0(), P, P_partial, 
-                                                            this_species, h2o_index,
-                                                            broad_spec_locations,
-                                                            abs_vmrs, verbosity);
-      
-      if(flag_partials.get_first_pressure_term() > -1)
-        l.PressureBroadening().SetInternalDerivatives(dgamma, flag_partials, QI, l.Ti0()/T,
-                                                      P, P_partial, this_species, h2o_index,
-                                                      abs_vmrs, verbosity);
-      
-      l.LineMixing().GetLineMixingParams_dT(dY_dT,  dG_dT,  dDV_dT, T, 
-                                            flag_partials.Temperature_Perturbation(),
-                                            P, lm_p_lim, 1);
-      
-      dL0_dT += dDV_dT;
-      
-      dK1_dT = dboltzman_ratio_dT(K1, T, E0);
-      dK2_dT = dstimulated_relative_emission_dT(gamma, gamma_ref, F0);
-    }
-    
-    if(flag_partials.do_line_center())
-    {
-      dK2_dF0 = dstimulated_relative_emission_dF0(gamma, gamma_ref, T);
-    }
-      
-    switch(l.PressureBroadening().Type())
-    {
-      case PressureBroadeningData::PB_SD_AIR_VOLUME:
-        Linefunctions::set_htp(F_single_line, dF_single_line,
-                               f_grid, Zeeman_DF[il], H_mag, F0,
-                               GD_div_F0, G0, L0, L2, G2, e, FVC,
-                               flag_partials, QI, 
-                               dGD_div_F0_dT, dG0_dT, 
-                               dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT);
-        break;
-      case PressureBroadeningData::PB_AIR_AND_WATER_BROADENING:
-      case PressureBroadeningData::PB_PLANETARY_BROADENING:
-      case PressureBroadeningData::PB_AIR_BROADENING:
-        Linefunctions::set_faddeeva_algorithm916(F_single_line, dF_single_line, 
-                                                 f_grid, Zeeman_DF[il], H_mag, F0,
-                                                 GD_div_F0, G0, L0, 
-                                                 flag_partials, QI,
-                                                 dGD_div_F0_dT, dG0_dT, dL0_dT);
-        break;
-      default:
-        throw std::runtime_error("Developer messed up");
-    }
-    
-    
-    Linefunctions::apply_linemixing(F_single_line, dF_single_line,
-                                    Y, G, flag_partials, QI, dY_dT, dG_dT);
-    
-    Linefunctions::apply_VVH(F_single_line, dF_single_line, f_grid, F0, T, flag_partials);
-    
-    Linefunctions::apply_linestrength(F_single_line, dF_single_line, 
-                                      S0, isotopic_ratio,
-                                      QT, QT0, K1, K2,
-                                      flag_partials, QI,
-                                      dQT_dT, dK1_dT, dK2_dT, dK2_dF0);
-    
-    
-    if(flag_partials.get_first_pressure_term() > -1)
-    {
-      Linefunctions::apply_pressurebroadening_jacobian(dF_single_line, flag_partials, QI, dgamma);
-    }
-    
-    if(nnlte)
-    {
-      const Index evlow_index = l.EvlowIndex();
-      const Index evupp_index = l.EvuppIndex();
-      const Numeric El = l.Evlow();
-      const Numeric Eu = l.Evupp();
-      
-      if(evlow_index > -1)
-      {
-        Tu = T_nlte[evupp_index];
-        K4 = boltzman_ratio(Tu, T, Eu);
-      }
-      else
-      {
-        Tu = T;
-        K4 = 1.0;
-      }
-      
-      if(evlow_index > -1)
-      {
-        Tl = T_nlte[evlow_index];
-        r_low = boltzman_ratio(Tl, T, El);
-      }
-      else 
-      {
-        Tl = T;
-        r_low = 1.0;
-      }
-      
-      K3 = absorption_nlte_ratio(gamma, K4, r_low);
-      
-      if(flag_partials.do_frequency())
-      {
-        dK3_dF0 = dabsorption_nlte_rate_dF0(gamma, T, K4, r_low);
-      }
-      
-      if(flag_partials.do_temperature())
-      {
-        dK3_dT = dabsorption_nlte_rate_dT(gamma, T, F0, El, Eu, K4, r_low);
-      }
-      
-      if(El > 0)
-      {
-        dK3_dTl = dabsorption_nlte_rate_dTl(gamma, T, Tl, El, r_low);
-      }
-      
-      if(Eu > 0)
-      {
-        dK3_dTu = dabsorption_nlte_rate_dTu(gamma, T, Tu, Eu, K4);
-        dK4_dTu = dboltzman_ratio_dT(K4, Tu, Eu);
-      }
-      
-      Linefunctions::apply_nonlte(F_single_line, dF_single_line, N_single_line, dN_single_line, K3, K4, 
-                                  flag_partials, QI, dK3_dT, dK4_dT, dK3_dF0, dK3_dTl, dK3_dTu, dK4_dTu);
-    }
-    
-    if(il)
-    {
-      F += F_single_line;
-      
-      if(nnlte)
-        N += N_single_line;
-      
-      for(Index iq = 0; iq < nq; iq++)
-      {
-        dF[iq] += dF_single_line[iq];
-        
-        if(nnlte)
-          dN[iq] += dN_single_line[iq];
-      }
-    }
-    else
-    {
-      F = F_single_line;
-      
-      dF = dF_single_line;
-      
-      if(nnlte)
-        N = N_single_line;
-      
-      if(nnlte)
-        dN = dN_single_line;
-    }
-  }
-  
-  
-}
-*/
 
 void set_magnetic_parameters(Numeric& H_mag,
                              Numeric& eta,
@@ -1551,6 +1132,8 @@ void alter_linerecord(LineRecord& new_LR,
     // Set quantum numbers
     new_LR.SetQuantumNumberLower(QuantumNumberType::M, M_lo);
     new_LR.SetQuantumNumberUpper(QuantumNumberType::M, M_up);
+    if(new_LR.ZeemanEffect().SplittingType() == ZeemanSplittingType::None)
+      new_LR.ZeemanEffect().convertNoneToHund(new_LR.QuantumNumbers());
 }
 
 
@@ -1633,12 +1216,10 @@ bool the_line_is_zeeman_ready(const LineRecord& line, const Verbosity& verbosity
 }
 
 
-void create_Zeeman_linerecordarrays(
-        ArrayOfArrayOfLineRecord& aoaol,
-        ArrayOfVector& z1_frequencyshift,
-        const ArrayOfArrayOfSpeciesTag& abs_species,
-        const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-        const Verbosity& verbosity)
+void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
+                                    const ArrayOfArrayOfSpeciesTag& abs_species,
+                                    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                    const Verbosity& verbosity)
 {
   CREATE_OUT3;
   
@@ -1756,19 +1337,9 @@ void create_Zeeman_linerecordarrays(
     }
   }
   
-  const Index nzeeman = aoaol.nelem();
-  z1_frequencyshift.resize(nzeeman);
-  for(Index I=0;I<nzeeman;I++)
-  {
-    const Index nlines = aoaol[I].nelem();
-    z1_frequencyshift[I].resize(nlines);
-    for(Index J=0;J<nlines;J++)
-    {
-      const Numeric GS = get_lande_spin_constant(aoaol[I][J]);
-      z1_frequencyshift[I][J] = frequency_change(aoaol[I][J], 1, GS);
-    }
-    
-  }
+  for(auto& aol : aoaol)
+    for(auto& lr : aol)
+      lr.ZeemanEffect().setNumericalAndPolarization(lr.QuantumNumbers(), lr.Species());
 }
 
 Index part_mag_strength(const ArrayOfRetrievalQuantity& flag_partials)

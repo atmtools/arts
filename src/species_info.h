@@ -16,8 +16,10 @@
  */
  
 #include "linerecord.h"
+
+Numeric get_lande_spin_constant(const Index species) noexcept;
  
-Numeric get_lande_spin_constant(const LineRecord& line) noexcept;
+Numeric get_lande_lambda_constant() noexcept;
 
 Numeric reduced_dipole(const LineRecord& line);
 

@@ -1948,7 +1948,6 @@ void Linefunctions::set_nonlte_source_and_apply_absorption_scaling(ComplexVector
  * \param magnetic_magnitude Absolute strength of the magnetic field
  * \param ddoppler_constant_dT Temperature derivative of doppler_constant
  * \param pressure_limit_for_linemixing As WSV lm_p_lim
- * \param zeeman_frequency_shift_constant Zeeman shift parameter for the line
  * \param partition_function_at_temperature As name suggests
  * \param dpartition_function_at_temperature_dT Temeperature derivative of partition_function_at_temperature
  * \param partition_function_at_line_temperature As name suggests
@@ -1977,7 +1976,6 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
                                                       const Numeric& magnetic_magnitude,
                                                       const Numeric& ddoppler_constant_dT,
                                                       const Numeric& pressure_limit_for_linemixing,
-                                                      const Numeric& zeeman_frequency_shift_constant,
                                                       const Numeric& partition_function_at_temperature,
                                                       const Numeric& dpartition_function_at_temperature_dT,
                                                       const Numeric& partition_function_at_line_temperature,
@@ -2159,7 +2157,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
             case PressureBroadeningData::PB_PURELY_FOR_TESTING:
               lst = LineShapeType::HTP;
               set_htp(F[this_f_range(speedup_range)], dF, 
-                      f_grid[this_f_range(speedup_range)], zeeman_frequency_shift_constant, magnetic_magnitude, 
+                      f_grid[this_f_range(speedup_range)], line.ZeemanEffect().frequency_shift_per_tesla(line.QuantumNumbers(), line.Species()), magnetic_magnitude, 
                       line.F(), doppler_constant, 
                       G0, L0, G2, L2, e, FVC,
                       derivatives_data, QI,
@@ -2176,7 +2174,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
               // Above should be all methods of pressure broadening requiring Voigt in ARTS by default
               lst = LineShapeType::Voigt;
               set_faddeeva_algorithm916(F[this_f_range(speedup_range)], dF, f_grid[this_f_range(speedup_range)], 
-                                        zeeman_frequency_shift_constant, magnetic_magnitude, 
+                                        line.ZeemanEffect().frequency_shift_per_tesla(line.QuantumNumbers(), line.Species()), magnetic_magnitude, 
                                         line.F(), doppler_constant, 
                                         G0, L0, DV, derivatives_data, QI,
                                         ddoppler_constant_dT, dG0_dT, dL0_dT, dDV_dT,
@@ -2189,13 +2187,13 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
         // This line only needs the Doppler effect
         case LineShapeType::Doppler:
           lst = LineShapeType::Doppler;
-          set_doppler(F[this_f_range(speedup_range)], dF, f_grid[this_f_range(speedup_range)], zeeman_frequency_shift_constant, magnetic_magnitude, 
+          set_doppler(F[this_f_range(speedup_range)], dF, f_grid[this_f_range(speedup_range)], line.ZeemanEffect().frequency_shift_per_tesla(line.QuantumNumbers(), line.Species()), magnetic_magnitude, 
                       line.F(), doppler_constant, derivatives_data, QI, ddoppler_constant_dT, this_f_range(speedup_range));
           break;
         // This line only needs Hartmann-Tran
         case LineShapeType::HTP:
           set_htp(F[this_f_range(speedup_range)], dF, 
-                  f_grid[this_f_range(speedup_range)], zeeman_frequency_shift_constant, magnetic_magnitude, 
+                  f_grid[this_f_range(speedup_range)], line.ZeemanEffect().frequency_shift_per_tesla(line.QuantumNumbers(), line.Species()), magnetic_magnitude, 
                   line.F(), doppler_constant, 
                   G0, L0, G2, L2, e, FVC,
                   derivatives_data, QI,
@@ -2207,14 +2205,14 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
         // This line only needs Lorentz
         case LineShapeType::Lorentz:
           lst = LineShapeType::Lorentz;
-          set_lorentz(F[this_f_range(speedup_range)], dF, f_grid[this_f_range(speedup_range)], zeeman_frequency_shift_constant, magnetic_magnitude, 
+          set_lorentz(F[this_f_range(speedup_range)], dF, f_grid[this_f_range(speedup_range)], line.ZeemanEffect().frequency_shift_per_tesla(line.QuantumNumbers(), line.Species()), magnetic_magnitude, 
                       line.F(), G0, L0, DV, derivatives_data, QI, dG0_dT, dL0_dT, dDV_dT, this_f_range(speedup_range));
           break;
         // This line only needs Voigt
         case LineShapeType::Voigt:
           lst = LineShapeType::Voigt;
           set_faddeeva_algorithm916(F[this_f_range(speedup_range)], dF, f_grid[this_f_range(speedup_range)], 
-                                    zeeman_frequency_shift_constant, magnetic_magnitude, 
+                                    line.ZeemanEffect().frequency_shift_per_tesla(line.QuantumNumbers(), line.Species()), magnetic_magnitude, 
                                     line.F(), doppler_constant, 
                                     G0, L0, DV, derivatives_data, QI,
                                     ddoppler_constant_dT, dG0_dT, dL0_dT, dDV_dT,
@@ -2243,7 +2241,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
             ArrayOfComplexVector dFm(dF.nelem());
             for(auto& aocv : dFm) aocv.resize(F[this_f_range(speedup_range)].nelem());
             
-            set_lorentz(Fm, dFm, f_grid[this_f_range(speedup_range)], -zeeman_frequency_shift_constant, magnetic_magnitude, 
+            set_lorentz(Fm, dFm, f_grid[this_f_range(speedup_range)], -line.ZeemanEffect().frequency_shift_per_tesla(line.QuantumNumbers(), line.Species()), magnetic_magnitude, 
                         -line.F(), G0, -L0, -DV, derivatives_data, QI, dG0_dT, -dL0_dT, -dDV_dT, this_f_range(speedup_range));
             
             // Apply mirroring
@@ -2262,16 +2260,16 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
           switch(lst)
           {
             case LineShapeType::Doppler:
-              set_doppler(Fm, dFm, f_grid[this_f_range(speedup_range)], -zeeman_frequency_shift_constant, magnetic_magnitude, 
+              set_doppler(Fm, dFm, f_grid[this_f_range(speedup_range)], -line.ZeemanEffect().frequency_shift_per_tesla(line.QuantumNumbers(), line.Species()), magnetic_magnitude, 
                           -line.F(), -doppler_constant, derivatives_data, QI, -ddoppler_constant_dT, this_f_range(speedup_range));
               break;
             case LineShapeType::Lorentz:
-              set_lorentz(Fm, dFm, f_grid[this_f_range(speedup_range)], -zeeman_frequency_shift_constant, magnetic_magnitude, 
+              set_lorentz(Fm, dFm, f_grid[this_f_range(speedup_range)], -line.ZeemanEffect().frequency_shift_per_tesla(line.QuantumNumbers(), line.Species()), magnetic_magnitude, 
                           -line.F(), G0, -L0, -DV, derivatives_data, QI, dG0_dT, -dL0_dT, -dDV_dT, this_f_range(speedup_range));
               break;
             case LineShapeType::Voigt:
               set_faddeeva_algorithm916(Fm, dFm, f_grid[this_f_range(speedup_range)], 
-                                        -zeeman_frequency_shift_constant, magnetic_magnitude, 
+                                        -line.ZeemanEffect().frequency_shift_per_tesla(line.QuantumNumbers(), line.Species()), magnetic_magnitude, 
                                         -line.F(), -doppler_constant, 
                                         G0, -L0, -DV, derivatives_data, QI,
                                         -ddoppler_constant_dT, dG0_dT, -dL0_dT, -dDV_dT, this_f_range(speedup_range));
@@ -2279,7 +2277,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
             case LineShapeType::HTP:
               // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
               set_htp(Fm, dFm, f_grid[this_f_range(speedup_range)], 
-                      -zeeman_frequency_shift_constant, magnetic_magnitude, 
+                      -line.ZeemanEffect().frequency_shift_per_tesla(line.QuantumNumbers(), line.Species()), magnetic_magnitude, 
                       -line.F(), -doppler_constant, 
                       G0, -L0, G2, -L2, e, FVC,
                       derivatives_data, QI,
@@ -2526,7 +2524,6 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
                  doppler_constant, partial_pressure,
                  isotopologue_ratio, magnetic_magnitude,
                  ddoppler_constant_dT, pressure_limit_for_linemixing,
-                 zeeman_frequency_shift_constant,
                  partition_function_at_temperature,
                  dpartition_function_at_temperature_dT,
                  partition_function_at_line_temperature,
@@ -2558,7 +2555,6 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F,
  * \param magnetic_magnitude Absolute strength of the magnetic field
  * \param ddoppler_constant_dT Temperature derivative of doppler_constant
  * \param pressure_limit_for_linemixing As WSV lm_p_lim
- * \param zeeman_frequency_shift_constant Zeeman shift parameter for the line
  * \param partition_function_at_temperature As name suggests
  * \param dpartition_function_at_temperature_dT Temeperature derivative of partition_function_at_temperature
  * \param partition_function_at_line_temperature As name suggests
@@ -2585,7 +2581,6 @@ void Linefunctions::apply_cutoff(ComplexVectorView F,
                                  const Numeric& magnetic_magnitude,
                                  const Numeric& ddoppler_constant_dT,
                                  const Numeric& pressure_limit_for_linemixing,
-                                 const Numeric& zeeman_frequency_shift_constant,
                                  const Numeric& partition_function_at_temperature,
                                  const Numeric& dpartition_function_at_temperature_dT,
                                  const Numeric& partition_function_at_line_temperature,
@@ -2615,7 +2610,6 @@ void Linefunctions::apply_cutoff(ComplexVectorView F,
                                     doppler_constant, partial_pressure, isotopologue_ratio,
                                     magnetic_magnitude, ddoppler_constant_dT,
                                     pressure_limit_for_linemixing,
-                                    zeeman_frequency_shift_constant,
                                     partition_function_at_temperature,
                                     dpartition_function_at_temperature_dT,
                                     partition_function_at_line_temperature,

@@ -204,7 +204,6 @@ add_library (artscore STATIC
   linemixingrecord.cc
   linemixingdata.cc
   linerecord.cc
-  linerecord_partitionfunctiondata.cc
   linescaling.cc
   lineshapes.cc
   linefunctions.cc
@@ -295,6 +294,7 @@ add_library (artscore STATIC
   xml_io_basic_types.cc
   xml_io_compound_types.cc
   zeeman.cc
+  zeemandata.cc
   ${NETCDF_CC_FILES}
   )
 add_dependencies (artscore auto_version_h)

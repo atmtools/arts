@@ -48,12 +48,10 @@ void propmat_clearskyAddZeeman( ArrayOfPropagationMatrix& propmat_clearsky,
                                 const Verbosity& verbosity)
 {
     ArrayOfArrayOfLineRecord zeeman_linerecord_precalc;
-    ArrayOfVector zeeman_frequencyshiftconstant_precalc;
-    zeeman_linerecord_precalcCreateFromLines(zeeman_linerecord_precalc, zeeman_frequencyshiftconstant_precalc,
-                                             abs_species, abs_lines_per_species, verbosity);
+    zeeman_linerecord_precalcCreateFromLines(zeeman_linerecord_precalc, abs_species, abs_lines_per_species, verbosity);
     
     propmat_clearskyAddZeemanFromPreCalc(propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx,
-                                         zeeman_linerecord_precalc, zeeman_frequencyshiftconstant_precalc, f_grid,
+                                         zeeman_linerecord_precalc, f_grid,
                                          abs_species, jacobian_quantities, abs_lineshape, isotopologue_ratios,
                                          partition_functions, rtp_pressure, rtp_temperature, lm_p_lim,
                                          rtp_temperature_nlte, rtp_vmr, rtp_mag, ppath_los, atmosphere_dim,
@@ -64,26 +62,18 @@ void propmat_clearskyAddZeeman( ArrayOfPropagationMatrix& propmat_clearsky,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void zeeman_linerecord_precalcCreateFromLines( ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
-                                               ArrayOfVector& zeeman_frequencyshiftconstant_precalc,
                                                const ArrayOfArrayOfSpeciesTag& abs_species,
                                                const ArrayOfArrayOfLineRecord& abs_lines_per_species,
                                                const Verbosity& verbosity)
 {
-  CREATE_OUT3;
-  
   zeeman_linerecord_precalc.resize(0);
   zeeman_linerecord_precalc.reserve(24);//will always be multiple of three, default is high
-  zeeman_frequencyshiftconstant_precalc.resize(0);
-  zeeman_frequencyshiftconstant_precalc.reserve(24);//will always be multiple of three, default is high
-
-  {// Begin TEST(s)
+  
   if (abs_species.nelem() != abs_lines_per_species.nelem())
       throw std::runtime_error("Dimension of *abs_species* and *abs_lines_per_species* don't match.");
-  }// End   TEST(s)
   
   // creating the ArrayOfArrayOfLineRecord
-  create_Zeeman_linerecordarrays(zeeman_linerecord_precalc, zeeman_frequencyshiftconstant_precalc,
-                                 abs_species, abs_lines_per_species, verbosity);
+  create_Zeeman_linerecordarrays(zeeman_linerecord_precalc, abs_species, abs_lines_per_species, verbosity);
 }
 
 
@@ -94,7 +84,6 @@ void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clea
                                           ArrayOfStokesVector& dnlte_dx_source,
                                           ArrayOfStokesVector& nlte_dsource_dx,
                                           const ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
-                                          const ArrayOfVector& zeeman_frequencyshiftconstant_precalc,
                                           const Vector& f_grid,
                                           const ArrayOfArrayOfSpeciesTag& abs_species,
                                           const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -150,8 +139,6 @@ void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clea
         if(nlte_source[0].StokesDimensions() != 4)
         throw std::runtime_error("Zeeman Effect is only implemented for Stokes dimension 4.");
     }
-    if(nzeeman!=zeeman_frequencyshiftconstant_precalc.nelem())
-        throw std::runtime_error("The pre-calculated Zeeman frequency shift and line records are not from the same source\n.");
   }// End   TEST(s)
   
   if(nzeeman==0)
@@ -210,7 +197,7 @@ void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clea
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
                                                   abs_species, pps, 
                                                   abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
-                                                  zeeman_linerecord_precalc[zeeman_ind+1], zeeman_frequencyshiftconstant_precalc[zeeman_ind+1], planck_BT, dplanck_BT,
+                                                  zeeman_linerecord_precalc[zeeman_ind+1], planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
                                                   rtp_mag, R_path_los,lm_p_lim,theta, eta, H_mag, 0, II, verbosity );
 
@@ -218,7 +205,7 @@ void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clea
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
                                                   abs_species, pps, 
                                                   abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
-                                                  zeeman_linerecord_precalc[zeeman_ind], zeeman_frequencyshiftconstant_precalc[zeeman_ind], planck_BT, dplanck_BT,
+                                                  zeeman_linerecord_precalc[zeeman_ind], planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
                                                   rtp_mag, R_path_los,lm_p_lim,theta, eta, H_mag, -1, II, verbosity );
 
@@ -226,7 +213,7 @@ void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clea
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
                                                   abs_species, pps, 
                                                   abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
-                                                  zeeman_linerecord_precalc[zeeman_ind+2], zeeman_frequencyshiftconstant_precalc[zeeman_ind+2], planck_BT, dplanck_BT,
+                                                  zeeman_linerecord_precalc[zeeman_ind+2], planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
                                                   rtp_mag, R_path_los,lm_p_lim,theta, eta, H_mag, 1, II, verbosity );
     

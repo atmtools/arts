@@ -3033,6 +3033,32 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     mlinemixingdata.SetDataFromVectorWithKnownType(lmd);
                     icecream >> token;
                 }
+                else if (token == "ZE")
+                {
+                  // Zeeman effect
+                  
+                  icecream >> token;
+                  mzeemandata.setSplittingType(token);
+                  
+                  nelem = mzeemandata.nelem();
+                  
+                  Vector zed(nelem);
+                  for (Index l = 0; l < nelem; l++)
+                  {
+                    icecream >> double_imanip() >> zed[l];
+                    if (!icecream)
+                    {
+                      ostringstream os;
+                      os << "Error parsing Zeeman effect data element " << l+1;
+                      throw std::runtime_error(os.str());
+                    }
+                  }
+                  mzeemandata.setDataFromVectorWithKnownSplittingType(zed);
+                  icecream >> token;
+                  
+                  mzeemandata.setPolarizationType(token);
+                  icecream >> token;
+                }
                 else if (token == "LSM")
                 {
                   // Line shape modifications
@@ -3282,6 +3308,20 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
                   }
               }
 
+          }
+          
+          // Write Zeeman Effect Data
+          {
+            const ZeemanEffectData& ze = lr.ZeemanEffect();
+            if (ze.SplittingType() != ZeemanSplittingType::None)
+            {
+              Vector vze;
+              vze = ze.data();
+              ls << " ZE " << ze.splitting_tag();
+              ls << " " << vze;
+              ls << " " << ze.polarization_tag();
+            }
+            
           }
           
           // Line shape modifications

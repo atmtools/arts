@@ -1873,7 +1873,6 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
                                         const ArrayOfArrayOfSpeciesTag& abs_species,
                                         const Index              this_species,
                                         const ArrayOfLineRecord& abs_lines,
-                                        const Vector&            Z_DF,
                                         const Numeric            H_magntitude_Zeeman,
                                         const Index              ind_ls,
                                         const Index              ind_lsn,
@@ -1888,7 +1887,7 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     const bool cut = (cutoff != -1) ? true : false;
     const bool calc_partials = flag_partials.nelem();
     const bool calc_partials_phase = partial_xsec_phase.nelem()==partial_xsec_attenuation.nelem();
-    const bool do_zeeman = !Z_DF.empty();
+    const bool do_zeeman = (abs_lines.nelem()?(abs_lines[0].ZeemanEffect().PolarizationType()==ZeemanPolarizationType::None?false:true):false);
     const bool do_lm     = abs_species[this_species][0].LineMixing() != SpeciesTag::LINE_MIXING_OFF;
     const bool no_ls_partials = flag_partials.supportsLBLwithoutPhase();
     
@@ -1922,17 +1921,13 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     static const Numeric doppler_const = sqrt(2.0 * BOLTZMAN_CONST *
                                               AVOGADROS_NUMB) / SPEED_OF_LIGHT;
     
-    bool precalc_zeeman;
-    if(Z_DF.nelem()==0)
-        precalc_zeeman=false;
-    else if(Z_DF.nelem()==abs_lines.nelem())
-        precalc_zeeman=true;
-    else
-    {
-        std::ostringstream os;
-        os <<  "This is an error message. You have sent a strange Zeeman frequency shift vector to"<<
-        "the xsec_species_line_mixing_wrapper function.  This causes the failure.\n";
-        throw std::runtime_error(os.str());
+    Index test_polarization = -100;
+    for(auto& lr : abs_lines) {
+      if(test_polarization == -100)
+        test_polarization = Index(lr.ZeemanEffect().PolarizationType());
+      else if(test_polarization not_eq Index(lr.ZeemanEffect().PolarizationType())) { 
+        throw std::runtime_error("Cannot mix polarization types in this method...");
+      }
     }
     
     // Check that the frequency grid is sorted in the case of lineshape
@@ -2043,7 +2038,7 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     f_local[Range(0,f_grid.nelem())]=f_grid;
     
     // Set this to zero in the case of VoigtKuntz6 or other lines hapes that work in special circumstances
-    if (!we_need_phase&&we_need_partials)
+    if ((not we_need_phase) and we_need_partials)
         phase = 0.0;
     
     // Broadening species
@@ -2164,7 +2159,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     attenuation, phase, dFa_dx, dFb_dx, dFa_dy, dFb_dy, this_f_range, fac, aux, 
                                     // FREQUENCY
                                     f_local,  f_grid,  f_grid.nelem(),  cutoff,
-                                    abs_lines[ii].F()+(precalc_zeeman?(Z_DF[ii]*H_magntitude_Zeeman):0), // Since vector is 0-length if no Zeeman pre-calculations
+                                    abs_lines[ii].F()+abs_lines[ii].ZeemanEffect().frequency_shift_per_tesla(abs_lines[ii].QuantumNumbers(), abs_lines[ii].Species())*H_magntitude_Zeeman,
                                     // LINE STRENGTH
                                     abs_lines[ii].I0(), partition_ratio, K1*K2, abs_nlte_ratio, src_nlte_ratio,
                                     isotopologue_ratios.getParam(abs_lines[ii].Species(),
@@ -2194,7 +2189,8 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     dFa_dx, dFb_dx, dFa_dy, dFb_dy, 
                                     this_f_range, fac, aux, 
                                     // FREQUENCY
-                                    f_local, f_grid, f_grid.nelem(), cutoff, abs_lines[ii].F()+(precalc_zeeman?(Z_DF[ii]*H_magntitude_Zeeman):0), // Since vector is 0-length if no Zeeman pre-calculations
+                                    f_local, f_grid, f_grid.nelem(), cutoff, 
+                                    abs_lines[ii].F()+abs_lines[ii].ZeemanEffect().frequency_shift_per_tesla(abs_lines[ii].QuantumNumbers(), abs_lines[ii].Species())*H_magntitude_Zeeman,
                                     // LINE STRENGTH
                                     abs_lines[ii].I0(), partition_ratio, K1*K2, abs_nlte_ratio, src_nlte_ratio,
                                     isotopologue_ratios.getParam(abs_lines[ii].Species(),
@@ -2372,9 +2368,9 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                          // Partition data parameters
                                                          dQ_dT,
                                                          // Magnetic variables
-                                                         precalc_zeeman?Z_DF[ii]:0,
+                                                         abs_lines[ii].ZeemanEffect().frequency_shift_per_tesla(abs_lines[ii].QuantumNumbers(), abs_lines[ii].Species()),
                                                          H_magntitude_Zeeman,
-                                                         precalc_zeeman,
+                                                         abs_lines[ii].ZeemanEffect().PolarizationType() not_eq ZeemanPolarizationType::None,
                                                          // Programming
                                                          jj, 
                                                          calc_partials_phase,
@@ -2435,7 +2431,6 @@ void xsec_species2(MatrixView xsec,
                    const ArrayOfArrayOfSpeciesTag& abs_species,
                    const Index this_species,
                    const ArrayOfLineRecord& abs_lines,
-                   const Vector& Z_DF,
                    const Numeric H_magntitude_Zeeman,
                    const Numeric lm_p_lim,
                    const SpeciesAuxData& isotopologue_ratios,
@@ -2446,43 +2441,16 @@ void xsec_species2(MatrixView xsec,
   // Size of problem
   const Index np = abs_p.nelem();                      // number of pressure levels
   const Index nf = f_grid.nelem();                     // number of Dirac frequencies
-  DEBUG_ONLY(const Index ns = abs_species.nelem();)    // number of species vmrs
   const Index nl = abs_lines.nelem();                  // number of lines in the catalog
-  const Index nz = Z_DF.nelem();                       // number of lines affected by Zeeman effect
   const Index nj = flag_partials.nelem();              // number of partial derivatives
   const Index nt = abs_t_nlte.nrows();                 // number of energy levels in NLTE
   
   // Type of problem
-  const bool do_phase = nz;                  // phase return is requested only by Zeeman effect calculations
   const bool do_nonlte = nt;                 // source return is requested only if there are energy levels in NLTE
-  DEBUG_ONLY(const bool do_jacobians = nj;)  // Jacobian return is requested only if there are partial derivatives
   
   // Test if the size of the problem is 0
   if(not np or not nf or not nl)
     return;
-  
-  // Standard variables that must always have correct size upon calling this function
-  assert(this_species < ns);
-  assert(abs_t.nelem() == np);
-  assert(all_vmrs.ncols() == np and all_vmrs.nrows() == ns);
-  assert(xsec.nrows() == nf and xsec.ncols() == np);
-  assert(dxsec_dx.nelem() == nj);
-  
-  // Non-LTE stuff must follow these rules if applied
-  assert((source.nrows() == nf and source.ncols() == np) or not do_nonlte);
-  assert(dsource_dx.nelem() == nj or not do_nonlte);
-  assert(np == abs_t_nlte.ncols() or not do_nonlte);
-  
-  // Phase-related only works for single layer
-  assert((np == 1 and nz == nl) or not do_phase);
-  assert((phase.nrows() == nf and phase.ncols() == 1) or not do_phase);
-  assert(dphase_dx.nelem() == nj or not do_phase);
-  assert(H_magntitude_Zeeman >= 0); // When not using it it should be 0
-  
-  // Jacobian must be the correct size throughout
-  DEBUG_ONLY(for(auto& m : dxsec_dx) {assert((m.nrows() == nf and m.ncols() == np) or not do_jacobians);})
-  DEBUG_ONLY(for(auto& m : dphase_dx) {assert((m.nrows() == nf and m.ncols() == np) or not do_jacobians or not do_phase);})
-  DEBUG_ONLY(for(auto& m : dsource_dx) {assert((m.nrows() == nf and m.ncols() == np) or not do_jacobians or not do_nonlte);})
   
   // Algorithmic stuff to test that variables are as expected
   //assert(not std::any_of(abs_t.begin(), abs_t.end(), [](Numeric n){return n <= 0.;}));
@@ -2561,7 +2529,7 @@ void xsec_species2(MatrixView xsec,
         flag_partials, line, f_grid, all_vmrs(joker, ip), nt?abs_t_nlte(joker, ip):Vector(0),
         pressure, temperature, dc, partial_pressure, 
         isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
-        H_magntitude_Zeeman, ddc_dT, lm_p_lim, do_phase?Z_DF[il]:0.0, qt, dqt_dT, qt0,
+        H_magntitude_Zeeman, ddc_dT, lm_p_lim, qt, dqt_dT, qt0,
         broad_spec_locations, this_species, h2o_index, verbosity, 
         false, binary_speedup);
       
@@ -2575,7 +2543,7 @@ void xsec_species2(MatrixView xsec,
       {
         xsec(this_out_range, ip)[i] += F[this_xsec_range][i].real();
         
-        if(do_phase)
+        if(not phase.empty())
           phase(this_out_range, ip)[i] += F[this_xsec_range][i].imag();
         
         if(do_nonlte)
@@ -2585,7 +2553,7 @@ void xsec_species2(MatrixView xsec,
         {
           dxsec_dx[j](this_out_range, ip)[i] += dF[j][this_xsec_range][i].real();
           
-          if(do_phase)
+          if(not phase.empty())
             dphase_dx[j](this_out_range, ip)[i] += dF[j][this_xsec_range][i].imag();
           
           if(do_nonlte)

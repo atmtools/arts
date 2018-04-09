@@ -34,8 +34,8 @@
 #include "matpackI.h"
 #include "quantum.h"
 #include "linemixingdata.h"
-#include "linerecord_partitionfunctiondata.h"
 #include "pressurebroadeningdata.h"
+#include "zeemandata.h"
 
 /* Forward declaration of classes */
 class SpeciesRecord;
@@ -277,6 +277,7 @@ public:
       mquantum_numbers_str(""),
       mquantum_numbers(),
       mpressurebroadeningdata(),
+      mzeemandata(),
       mcutoff(-1.0),
       mspeedup(-1.0),
       mmirroring(MirroringType::None),
@@ -332,6 +333,7 @@ public:
       mlower_j (-1     ),
       mquantum_numbers_str(""),
       mquantum_numbers(),
+      mzeemandata(),
       mcutoff(-1.0),
       mspeedup(-1.0),
       mmirroring(MirroringType::None),
@@ -514,18 +516,6 @@ public:
   /** Lower state local quanta */
   const String& Lower_LQuanta() const { return mlower_lquanta; }
 
-  /** Upper state local quanta N */
-  Rational Upper_N() const { return mquantum_numbers.Upper(QuantumNumberType::N); }
-
-  /** Upper state local quanta J */
-  Rational Upper_J() const { return mquantum_numbers.Upper(QuantumNumberType::J); }
-
-  /** Lower state local quanta N */
-  Rational Lower_N() const { return mquantum_numbers.Lower(QuantumNumberType::N); }
-
-  /** Lower state local quanta J */
-  Rational Lower_J() const { return mquantum_numbers.Lower(QuantumNumberType::J); }
-
   /** String with quantum numbers */
   const String& QuantumNumbersString() const { return mquantum_numbers_str; }
 
@@ -549,6 +539,11 @@ public:
   /** Pressure Broadening Data */
   const PressureBroadeningData& PressureBroadening() const { return mpressurebroadeningdata; }
   void SetPressureBroadeningData(const PressureBroadeningData& input) { mpressurebroadeningdata=input; }
+  
+  /** Pressure Broadening Data */
+  ZeemanEffectData& ZeemanEffect() { return mzeemandata; }
+  const ZeemanEffectData& ZeemanEffect() const { return mzeemandata; }
+  void SetZeemanEffectData(const ZeemanEffectData& input) { mzeemandata=input; }
   
   /** Cutoff frequency */
   const Numeric& CutOff() const {return mcutoff;}
@@ -1099,6 +1094,9 @@ private:
   
   /** Pressure Broadening Data */
   PressureBroadeningData mpressurebroadeningdata;
+  
+  /** Pressure Broadening Data */
+  ZeemanEffectData mzeemandata;
   
   /** Cutoff frequency */
   Numeric mcutoff;
