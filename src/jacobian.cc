@@ -721,6 +721,8 @@ void calc_nd_field(       Tensor3View& nd,
 
 //! Check that the retrieval grids are defined for each atmosphere dim
 /*!
+   Use this version for atmospheric fields.
+
    This function checks for the given atmosphere dimension that 
      I)  the retrieval grids are defined 
      II) and that they are covered by the corresponding atmospheric grid. 
@@ -758,6 +760,8 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
                             const String&        lon_retr_name,
                             const Index&         dim)
 {
+  assert( grids.nelem() == dim );
+
   if ( p_retr.nelem()==0 )
     {
       os << "The grid vector *" << p_retr_name << "* is empty,"
@@ -880,6 +884,133 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
   }
   return true;
 }             
+
+
+
+//! Check that the retrieval grids are defined for each atmosphere dim
+/*!
+   Use this version for surface variables
+
+   This function checks for the given atmosphere dimension that 
+     I)  the retrieval grids are defined 
+     II) and that they are covered by the corresponding atmospheric grid. 
+   If not the return is false and an output string is created to print 
+   the error to the user. If the grids are ok they are stored in an array 
+   and true is  returned.
+   
+   \param grids         The array of retrieval grids.
+   \param os            The output string stream.
+   \param lat_grid      The atmospheric latitude grid
+   \param lon_grid      The atmospheric longitude grid
+   \param lat_retr      The latitude retrieval grid.
+   \param lon_retr      The longitude retrieval grid.
+   \param lat_retr_name The control file name for the latitude retrieval grid.
+   \param lon_retr_name The control file name for the longitude retrieval grid.
+   \param dim           The atmosphere dimension
+   \return              Boolean for check.
+   
+   \author Mattias Ekstrom
+   \date   2005-05-11
+*/ 
+bool check_retrieval_grids(       ArrayOfVector& grids,
+                                  ostringstream& os,
+                            const Vector&        lat_grid,
+                            const Vector&        lon_grid,
+                            const Vector&        lat_retr,
+                            const Vector&        lon_retr,
+                            const String&        lat_retr_name,
+                            const String&        lon_retr_name,
+                            const Index&         dim)
+{
+  assert( grids.nelem() == dim-1 );
+  
+  if (dim>=2)
+  {
+    // If 2D and 3D atmosphere, check latitude grid
+    if ( lat_retr.nelem()==0 )
+    {
+      os << "The grid vector *" << lat_retr_name << "* is empty,"
+         << " at least one latitude\n"
+         << "should be specified for a 2D/3D atmosphere.";
+      return false;
+    }
+    else if( !is_increasing( lat_retr ) )
+    {
+      os << "The latitude grid vector *" << lat_retr_name << "* is not a\n"
+         << "strictly increasing vector, which is required.";
+      return false;      
+    }
+    else if( lat_grid.nelem() == 1 and lat_grid.nelem() == lat_retr.nelem())
+    {
+      if(lat_grid[0] not_eq lat_retr[0])
+      {
+        os << "Mismatching 1-long grids for " << lat_retr_name;
+        return false;
+      }
+      
+      // Necessary repeat but grids are OK
+      grids[0] = lat_retr; 
+    }
+    else if ( lat_retr[0]<1.5*lat_grid[0]-0.5*lat_grid[1] || 
+              lat_retr[lat_retr.nelem()-1]>1.5*lat_grid[lat_grid.nelem()-1]-
+                                           0.5*lat_grid[lat_grid.nelem()-2] )
+    {
+      os << "The grid vector *" << lat_retr_name << "* is not covered by the\n"
+         << "corresponding atmospheric grid.";
+      return false;
+    }
+    else
+    {
+      // Latitude grid ok, add it to grids
+      grids[0]=lat_retr;
+    }
+    
+    if (dim==3)
+    {
+      // For 3D atmosphere check longitude grid
+      if ( lon_retr.nelem()==0 )
+      {
+        os << "The grid vector *" << lon_retr_name << "* is empty,"
+           << " at least one longitude\n"
+           << "should be specified for a 3D atmosphere.";
+        return false;
+      }
+      else if( !is_increasing( lon_retr ) )
+      {
+      os << "The longitude grid vector *" << lon_retr_name << "* is not a\n"
+         << "strictly increasing vector, which is required.";
+      return false;      
+      }
+      else if( lon_grid.nelem() == 1 and lon_grid.nelem() == lon_retr.nelem())
+      {
+        if(lon_grid[0] not_eq lon_retr[0])
+        {
+          os << "Mismatching 1-long grids for " << lon_retr_name;
+          return false;
+        }
+        
+        // Necessary repeat but grids are OK
+        grids[1] = lon_retr; 
+      }
+      else if ( lon_retr[0]<1.5*lon_grid[0]-0.5*lon_grid[1] || 
+                lon_retr[lon_retr.nelem()-1]>1.5*lon_grid[lon_grid.nelem()-1]-
+                                             0.5*lon_grid[lon_grid.nelem()-2] )
+      {
+        os << "The grid vector *" << lon_retr_name << "* is not covered by the\n"
+           << "corresponding atmospheric grid.";
+        return false;
+      }
+      else
+      {
+        // Longitude grid ok, add it to grids      
+        grids[1]=lon_retr;
+      }
+    }
+  }
+  return true;
+}             
+
+
 
 
 

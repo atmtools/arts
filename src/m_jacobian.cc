@@ -73,8 +73,7 @@ extern const String MAGFIELD_MAINTAG;
 extern const String FLUX_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
 
-extern const String SURRAFE_MAINTAG;
-extern const String SURFACE_WINDSPEED_TAG;
+extern const String SURFACE_MAINTAG;
 
 
 // Generic modes
@@ -405,8 +404,7 @@ void jacobianAddConstantVMRAbsSpecies(
   jq.push_back( rq );
   
   // Add dummy
-  jacobian_agenda.append( "jacobianCalcDoNothing", TokVal() );
-  
+  jacobian_agenda.append( "jacobianCalcDoNothing", TokVal() );  
 }      
 
 
@@ -1906,8 +1904,7 @@ void jacobianCalcSinefit(
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-/*
-void jacobianAddSurfaceWindSpeed(
+void jacobianAddSurfaceQuantity(
         Workspace&,
         ArrayOfRetrievalQuantity&   jq,
         Agenda&                     jacobian_agenda,
@@ -1916,33 +1913,32 @@ void jacobianAddSurfaceWindSpeed(
   const Vector&                     lon_grid,
   const Vector&                     rq_lat_grid,
   const Vector&                     rq_lon_grid,
+  const String&                     quantity,
   const Verbosity&                  verbosity )
 {
   CREATE_OUT2;
   CREATE_OUT3;
-
-  
   
   // Check that this species is not already included in the jacobian.
   for( Index it=0; it<jq.nelem(); it++ )
     {
       if( jq[it].MainTag() == SURFACE_MAINTAG  && 
-          jq[it].Subtag()  == SURFACE_WINDSPEED_TAG )
+          jq[it].Subtag()  == quantity )
         {
           ostringstream os;
-          os << "Surface wind speed is already included in *jacobian_quantities*.";
+          os << quantity << " is already included as a surface variable "
+             << "in *jacobian_quantities*.";
           throw runtime_error(os.str());
         }
     }
     
   // Check retrieval grids, here we just check the length of the grids
   // vs. the atmosphere dimension
-  ArrayOfVector grids(atmosphere_dim);
+  ArrayOfVector grids(atmosphere_dim-1);
   {
     ostringstream os;
-    if( !check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
-                                rq_p_grid, rq_lat_grid, rq_lon_grid,
-                                "retrieval pressure grid", 
+    if( !check_retrieval_grids( grids, os, lat_grid, lon_grid,
+                                rq_lat_grid, rq_lon_grid,
                                 "retrieval latitude grid", 
                                 "retrievallongitude_grid", 
                                 atmosphere_dim ) )
@@ -1951,15 +1947,18 @@ void jacobianAddSurfaceWindSpeed(
   
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag( WIND_MAINTAG );
-  rq.Subtag( component );
-  rq.Analytical( 1 );
+  rq.MainTag( SURFACE_MAINTAG );
+  rq.Subtag( quantity );
+  rq.Analytical( 0 );
   rq.Grids( grids );
 
   // Add it to the *jacobian_quantities*
   jq.push_back( rq );
+  
+  // Add dummy
+  jacobian_agenda.append( "jacobianCalcDoNothing", TokVal() );
 }                    
-*/
+
 
 
 

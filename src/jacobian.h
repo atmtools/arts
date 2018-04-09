@@ -214,6 +214,16 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
                             const String&        lon_retr_name,
                             const Index&         dim);
 
+bool check_retrieval_grids(       ArrayOfVector& grids,
+                                  ostringstream& os,
+                            const Vector&        lat_grid,
+                            const Vector&        lon_grid,
+                            const Vector&        lat_retr,
+                            const Vector&        lon_retr,
+                            const String&        lat_retr_name,
+                            const String&        lon_retr_name,
+                            const Index&         dim);
+
 void diy_from_path_to_rgrids(
          Tensor3View          diy_dx,
    const RetrievalQuantity&   jacobian_quantity,

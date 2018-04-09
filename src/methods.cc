@@ -8590,6 +8590,39 @@ void define_md_data_raw()
       PASSWORKSPACE(  true  )
     ));
 
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "jacobianAddSurfaceQuantity" ),
+      DESCRIPTION
+      (
+        "Includes a surface quantity in the Jacobian.\n"
+        "\n"   
+        "The quantity is specified by the GIN-variable *quantity*. The name\n"
+        "of the quantity must match the name used in *surface_prop_names*.\n"
+        "\n"
+        "For 1D or 2D calculations the latitude and/or longitude grid of\n"
+        "the retrieval field should set to have zero length.\n"
+      ),
+      AUTHORS( "Patrick Eriksson" ),
+      OUT( "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "jacobian_quantities", "jacobian_agenda",
+          "atmosphere_dim", "lat_grid", "lon_grid" ),
+      GIN( "g1", "g2", "quantity" ),
+      GIN_TYPE( "Vector", "Vector", "String" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF ),
+      GIN_DESC( "Latitude retrieval grid.",
+                "Longitude retreival grid.",
+                "Retrieval quantity, e.g. \"Wind speed\"."
+      ),
+      SETMETHOD(      false ),
+      AGENDAMETHOD(   false ),
+      USES_TEMPLATES( false ),
+      PASSWORKSPACE(  true  )
+    ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "jacobianAddTemperature" ),
