@@ -2285,6 +2285,9 @@ void surface_props_check(
   if( surface_props_data.npages() != surface_props_names.nelem() )
     throw runtime_error( "The number of pages in *surface_props_data* and "
                          "length of *surface_props_names* differ." );
+  // If no surface properties, then we are ready
+  if( surface_props_names.nelem() == 0 )
+    { return; }
   if( surface_props_data.nrows() != (atmosphere_dim == 1 ? 1 : lat_grid.nelem()) )
     throw runtime_error( "Row-size of *surface_props_data* not as expected." );
   if( surface_props_data.ncols() != (atmosphere_dim <= 2 ? 1 : lon_grid.nelem()) )  
@@ -2397,6 +2400,35 @@ void dsurface_locate(
 }
 
 
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void SurfaceDummy(
+          ArrayOfTensor4&  dsurface_rmatrix_dx,
+          ArrayOfMatrix&   dsurface_emission_dx, 
+    const Index&           atmosphere_dim,
+    const Vector&          lat_grid,
+    const Vector&          lon_grid,
+    const Tensor3&         surface_props_data,
+    const ArrayOfString&   surface_props_names,
+    const ArrayOfString&   dsurface_names,
+    const Index&           jacobian_do,
+    const Verbosity& )
+{
+  if( surface_props_names.nelem() )
+    throw runtime_error(
+      "When calling this method, *surface_props_names* should be empty." );
+  
+  surface_props_check( atmosphere_dim, lat_grid, lon_grid,
+                       surface_props_data, surface_props_names );
+
+  if( jacobian_do )
+    {
+      dsurface_check( surface_props_names, dsurface_names,
+                      dsurface_rmatrix_dx, dsurface_emission_dx );
+    }
+}
 
 
 

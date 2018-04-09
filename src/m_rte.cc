@@ -227,6 +227,7 @@ void iyEmissionStandard(
   const Index&                      iy_agenda_call1,
   const Tensor3&                    iy_transmission,
   const Numeric&                    rte_alonglos_v,
+  const Tensor3&                    surface_props_data,
   const Verbosity&                  verbosity )
 {
   // Some basic sizes
@@ -468,7 +469,7 @@ void iyEmissionStandard(
   get_iy_of_background( ws, iy, diy_dx, 
                         iy_trans_new, iy_id, jacobian_do, ppath, rte_pos2, 
                         atmosphere_dim, t_field, z_field, vmr_field, 
-                        cloudbox_on, stokes_dim, f_grid, iy_unit,
+                        cloudbox_on, stokes_dim, f_grid, iy_unit, surface_props_data,
                         iy_main_agenda, iy_space_agenda, iy_surface_agenda, 
                         iy_cloudbox_agenda, verbosity );
   //

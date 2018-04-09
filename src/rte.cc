@@ -1106,6 +1106,7 @@ void get_iy(
     \param   stokes_dim            As the WSV.
     \param   f_grid                As the WSV.
     \param   iy_unit               As the WSV.    
+    \param   surface_props_data    As the WSV.    
     \param   iy_main_agenda        As the WSV.
     \param   iy_space_agenda       As the WSV.
     \param   iy_surface_agenda     As the WSV.
@@ -1131,6 +1132,7 @@ void get_iy_of_background(
   const Index&            stokes_dim,
   ConstVectorView         f_grid,
   const String&           iy_unit,  
+  const Tensor3&          surface_props_data,
   const Agenda&           iy_main_agenda,
   const Agenda&           iy_space_agenda,
   const Agenda&           iy_surface_agenda,
@@ -1181,12 +1183,18 @@ void get_iy_of_background(
         //
         const Index los_id = iy_id % (Index)1000;
         Index iy_id_new = iy_id + (Index)9*los_id; 
+        // Temporary stuff
+        ArrayOfTensor4 dsurface_rmatrix_dx(0);
+        ArrayOfMatrix  dsurface_emission_dx(0);
+        ArrayOfString  dsurface_names(0);
         //
-        iy_surface_agendaExecute( ws, iy, diy_dx, 
+        iy_surface_agendaExecute( ws, iy, diy_dx, dsurface_rmatrix_dx,
+                                  dsurface_emission_dx,
                                   iy_unit, iy_transmission, iy_id_new, cloudbox_on,
                                   jacobian_do, t_field, z_field, vmr_field,
                                   f_grid, iy_main_agenda, rtp_pos, rtp_los, 
-                                  rte_pos2, iy_surface_agenda );
+                                  rte_pos2, surface_props_data, dsurface_names,
+                                  iy_surface_agenda );
       }
       break;
 

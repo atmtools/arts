@@ -916,6 +916,7 @@ void iyHybrid(
   const Ppath&                              ppath,
   const Vector&                             rte_pos2,
   const Numeric&                            rte_alonglos_v,      
+  const Tensor3&                            surface_props_data,
   const Tensor7&                            doit_i_field,
   const Vector&                             scat_za_grid,
   const Index&                              Naa,
@@ -937,7 +938,7 @@ void iyHybrid(
                           ppath, rte_pos2,  propmat_clearsky_agenda,
                           iy_main_agenda, iy_space_agenda, iy_surface_agenda,
                           iy_cloudbox_agenda, iy_agenda_call1, iy_transmission,
-                          rte_alonglos_v, verbosity );
+                          rte_alonglos_v, surface_props_data, verbosity );
       return;
     }
   
@@ -1297,7 +1298,7 @@ void iyHybrid(
   get_iy_of_background( ws, iy, diy_dx, 
                         iy_trans_new, iy_id, jacobian_do, ppath, rte_pos2, 
                         atmosphere_dim, t_field, z_field, vmr_field, 
-                        cloudbox_on, stokes_dim, f_grid, iy_unit,
+                        cloudbox_on, stokes_dim, f_grid, iy_unit, surface_props_data,
                         iy_main_agenda, iy_space_agenda, iy_surface_agenda, 
                         iy_cloudbox_agenda, verbosity );
   //

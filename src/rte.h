@@ -171,6 +171,7 @@ void get_iy_of_background(
   const Index&            stokes_dim,
   ConstVectorView         f_grid,
   const String&           iy_unit,  
+  const Tensor3&          surface_props_data,
   const Agenda&           iy_main_agenda,
   const Agenda&           iy_space_agenda,
   const Agenda&           iy_surface_agenda,

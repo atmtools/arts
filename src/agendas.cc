@@ -431,10 +431,12 @@ void define_agenda_data()
         "See also the include-file 'agendas.arts' for a predefined agenda\n"
         "suitable to be used in most applications.\n"
         ),
-       OUTPUT( "iy", "diy_dx" ),
-       INPUT( "diy_dx", "iy_unit", "iy_transmission", "iy_id", "cloudbox_on",
+       OUTPUT( "iy", "diy_dx", "dsurface_rmatrix_dx", "dsurface_emission_dx" ),
+       INPUT( "diy_dx", "dsurface_rmatrix_dx", "dsurface_emission_dx",
+              "iy_unit", "iy_transmission", "iy_id", "cloudbox_on",
               "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
-              "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2" )));
+              "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2",
+              "surface_props_data", "dsurface_names" )));
 
   agenda_data.push_back
     (AgRecord

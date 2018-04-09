@@ -177,6 +177,7 @@ AgendaSet( iy_transmitter_agenda__UnitPolIntensity ){
 #
 AgendaCreate( iy_surface_agenda__UseSurfaceRtprop )
 AgendaSet( iy_surface_agenda__UseSurfaceRtprop ){
+  SurfaceDummy
   iySurfaceRtpropAgenda
 } 
 

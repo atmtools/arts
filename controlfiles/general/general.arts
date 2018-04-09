@@ -41,6 +41,13 @@ Touch( dpnd_field_dx )
 
 
 #
+# Semi-mandatory variables associated with surface_props_data
+#
+Tensor3SetConstant( surface_props_data, 0, 0, 0, 0.0 )
+ArrayOfStringSet( surface_props_names, [] )
+
+
+#
 # Default is that no transmitter is involved
 #
 MatrixSet( transmitter_pos, [] )

@@ -5442,7 +5442,8 @@ void define_md_data_raw()
             "p_grid", "z_field", "t_field", "nlte_field", "vmr_field", "abs_species",
             "wind_u_field", "wind_v_field", "wind_w_field",
             "mag_u_field", "mag_v_field", "mag_w_field",
-            "z_surface", "ppath_lmax", "rte_alonglos_v", "scat_za_grid" 
+            "z_surface", "ppath_lmax", "rte_alonglos_v", "surface_props_data",
+            "scat_za_grid" 
             ),
         GIN(),
         GIN_TYPE(),
@@ -7350,9 +7351,9 @@ void define_md_data_raw()
             "mag_u_field", "mag_v_field", "mag_w_field", 
             "cloudbox_on", "iy_unit", "iy_aux_vars",
             "jacobian_do", "jacobian_quantities", "ppath", "rte_pos2",
-            "propmat_clearsky_agenda", "iy_main_agenda", 
-            "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda", 
-            "iy_agenda_call1", "iy_transmission", "rte_alonglos_v" ),
+            "propmat_clearsky_agenda", "iy_main_agenda", "iy_space_agenda",
+            "iy_surface_agenda", "iy_cloudbox_agenda", "iy_agenda_call1",
+            "iy_transmission", "rte_alonglos_v", "surface_props_data" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -7460,13 +7461,12 @@ void define_md_data_raw()
           "wind_u_field", "wind_v_field", "wind_w_field",
           "mag_u_field", "mag_v_field", "mag_w_field",
           "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
-          "scat_species", "scat_data",
-          "iy_unit", "iy_aux_vars",
+          "scat_species", "scat_data", "iy_unit", "iy_aux_vars",
           "jacobian_do", "jacobian_quantities",
           "propmat_clearsky_agenda", "iy_main_agenda", "iy_space_agenda",
           "iy_surface_agenda", "iy_cloudbox_agenda",
           "iy_agenda_call1", "iy_transmission", "ppath", "rte_pos2",
-          "rte_alonglos_v", "doit_i_field", "scat_za_grid" ),
+          "rte_alonglos_v", "surface_props_data", "doit_i_field", "scat_za_grid" ),
       GIN(         "Naa_grid", "t_interp_order" ),
       GIN_TYPE(    "Index", "Index" ),
       GIN_DEFAULT( "19", "1" ),
@@ -10108,7 +10108,8 @@ void define_md_data_raw()
       IN("nlte_field", "abs_species", "abs_lines_per_species", "nlte_quantum_identifiers", 
          "ppath_agenda", "iy_main_agenda", "iy_space_agenda", "iy_surface_agenda", 
          "iy_cloudbox_agenda", "propmat_clearsky_agenda", "vmr_field", "t_field", "z_field",
-         "wind_u_field", "wind_v_field", "wind_w_field", "p_grid", "atmosphere_dim", "nlte_do"),
+         "wind_u_field", "wind_v_field", "wind_w_field", "p_grid", "atmosphere_dim",
+         "surface_props_data", "nlte_do" ),
       GIN("df", "nz", "na", "nf", "dampened"),
       GIN_TYPE("Numeric", "Index", "Index", "Index", "Index"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF),
@@ -13353,7 +13354,7 @@ void define_md_data_raw()
             "stokes_dim", "ppath_lmax", "ppath_lraytrace", "f_grid", "p_grid",
             "rte_pos", "t_field", "z_field", "wind_u_field", "wind_v_field", "wind_w_field",
             "mag_u_field", "mag_v_field", "mag_w_field",
-            "vmr_field", "nlte_field", "abs_species", "iy_unit",
+            "vmr_field", "nlte_field", "abs_species", "iy_unit", "surface_props_data",
             "ppath_agenda", "iy_main_agenda", "iy_space_agenda", "iy_surface_agenda", 
             "iy_cloudbox_agenda", "propmat_clearsky_agenda"),
         GIN("za_coords", "aa_coords", "do_transmission_field"),
@@ -13378,7 +13379,8 @@ void define_md_data_raw()
       GOUT_DESC(),
       IN( "abs_species", "abs_lines_per_species", "nlte_field",  "vmr_field", 
           "t_field", "z_field", "wind_u_field", "wind_v_field", "wind_w_field", "p_grid",
-          "atmosphere_dim", "ppath_agenda", "iy_main_agenda", "iy_space_agenda", "iy_surface_agenda", 
+          "atmosphere_dim", "surface_props_data",
+          "ppath_agenda", "iy_main_agenda", "iy_space_agenda", "iy_surface_agenda", 
           "iy_cloudbox_agenda", "propmat_clearsky_agenda"
         ),
       GIN(     "df",      "nz",    "na",    "nf"),
@@ -16691,43 +16693,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "SurfaceTessem" ),
-        DESCRIPTION
-        (
-         "Tessem sea surface microwave emissivity parametrization.\n"
-         "\n"
-         "Describe usegae of *surface_props_data* ...\n"
-         "\n"
-         "This method computes surface emissivity and reflectivity matrices for\n"
-         "ocean surfaces using the TESSEM emissivity model: Prigent, C., et al.\n"
-         "Sea‐surface emissivity parametrization from microwaves to millimetre\n"
-         "waves, QJRMS, 2017, 143.702: 596-605.\n"
-         "\n"
-         "The validity range of the parametrization of is 10 to 700 GHz, but for\n"
-         "some extra flexibility frequencies between 5 and 900 GHz are accepted.\n"
-         "The accepted temperaute range for *surface_skin_t* is [260.0 K, 373.0 K]\n"
-         "\n"
-         "The model itself is represented by the neural networks in\n"
-         "*tessem_neth* and *tessem_netv*.\n"
-         ),
-        AUTHORS( "Simon Pfreundschuh", "Patrick Eriksson" ),
-        OUT( "surface_los", "surface_rmatrix", "dsurface_rmatrix_dx",
-             "surface_emission", "dsurface_emission_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "dsurface_rmatrix_dx", "dsurface_emission_dx",
-            "stokes_dim", "atmosphere_dim", "lat_grid", "lon_grid", "f_grid",
-            "rtp_pos", "rtp_los", "tessem_neth", "tessem_netv", "surface_props_data",
-            "surface_props_names", "dsurface_names", "jacobian_do" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "surfaceTelsem" ),
         DESCRIPTION
         (
@@ -17252,6 +17217,75 @@ void define_md_data_raw()
         GIN_DESC()
         ));
   
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "SurfaceDummy" ),
+        DESCRIPTION
+        (
+         "Dummy method for *iy_surface_agenda*.\n"
+         "\n"
+         "If you don't make use of *surface_props_data* and associated\n"
+         "variables, include this method *iy_surface_agenda*. The method\n"
+         "just checks that the variables of concern are set to be empty,\n"
+         "and you don't need to include calls of *Ignore* and *Touch* in\n"
+         "the agenda.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "dsurface_rmatrix_dx", "dsurface_emission_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "dsurface_rmatrix_dx", "dsurface_emission_dx", "atmosphere_dim",
+            "lat_grid", "lon_grid", "surface_props_data", "surface_props_names",
+            "dsurface_names", "jacobian_do" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "SurfaceTessem" ),
+        DESCRIPTION
+        (
+         "Tessem sea surface microwave emissivity parametrization.\n"
+         "\n"
+         "The variable *surface_props_data* must contain these data:\n"
+         "  \"Water skin temperature\"\n"
+         "  \"Wind speed\"\n"
+         "  \"Salinity\"\n"
+         "\n"
+         "This method computes surface emissivity and reflectivity matrices for\n"
+         "ocean surfaces using the TESSEM emissivity model: Prigent, C., et al.\n"
+         "Sea-surface emissivity parametrization from microwaves to millimetre\n"
+         "waves, QJRMS, 2017, 143.702: 596-605.\n"
+         "\n"
+         "The validity range of the parametrization of is 10 to 700 GHz, but for\n"
+         "some extra flexibility frequencies between 5 and 900 GHz are accepted.\n"
+         "The accepted temperaute range for water skin temperature is\n"
+         "[260.0 K, 373.0 K]. Salinity shall be in the range [0,1]. That is, a\n"
+         "salinity of 3% is given as 0.03.\n"
+         "\n"
+         "The model itself is represented by the neural networks in\n"
+         "*tessem_neth* and *tessem_netv*.\n"
+         ),
+        AUTHORS( "Simon Pfreundschuh", "Patrick Eriksson" ),
+        OUT( "surface_los", "surface_rmatrix", "dsurface_rmatrix_dx",
+             "surface_emission", "dsurface_emission_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "dsurface_rmatrix_dx", "dsurface_emission_dx",
+            "stokes_dim", "atmosphere_dim", "lat_grid", "lon_grid", "f_grid",
+            "rtp_pos", "rtp_los", "tessem_neth", "tessem_netv", "surface_props_data",
+            "surface_props_names", "dsurface_names", "jacobian_do" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
   md_data_raw.push_back     
     ( MdRecord
       ( NAME( "TangentPointExtract" ),

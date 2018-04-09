@@ -3561,6 +3561,8 @@ void jacobianAddCatalogParameter(
     jacobian_agenda.append( "jacobianCalcDoNothing", TokVal() );
 }    
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddCatalogParameters(
     Workspace&                  ws,
@@ -3586,6 +3588,7 @@ void jacobianAddCatalogParameters(
         }
     }
 }  
+
 
 
 //----------------------------------------------------------------------------
@@ -3654,6 +3657,7 @@ void jacobianAddNLTETemperature(
     
     jacobian_agenda.append( "jacobianCalcTemperatureFromPropmat", TokVal() );
 } 
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -3733,7 +3737,6 @@ void jacobianAddSpecialSpecies(
   jq.push_back( rq );
   
   jacobian_agenda.append( "jacobianCalcDoNothing", TokVal() );
-  
 }                    
 
 

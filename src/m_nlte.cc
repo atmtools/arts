@@ -44,6 +44,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
                                                    const Tensor3&                  wind_w_field,
                                                    const Vector&                   p_grid,
                                                    const Index&                    atmosphere_dim,
+                                                   const Tensor3&                  surface_props_data,
                                                    const Index&                    nlte_do,
                                                    const Numeric&                  df,
                                                    const Index&                    nz,
@@ -96,7 +97,8 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
     // NB.  This function should become an Agenda at some point so that iy_transmission and iy are output as required by the functions below.  
     radiation_fieldCalcForRotationalNLTE(ws, iy, iy_transmission, abs_species, abs_lines_per_species, 
                                          nlte_field, vmr_field, t_field, z_field, wind_u_field, wind_v_field, wind_w_field,
-                                         p_grid, atmosphere_dim, ppath_agenda, iy_main_agenda, 
+                                         p_grid, atmosphere_dim, surface_props_data,
+                                         ppath_agenda, iy_main_agenda, 
                                          iy_space_agenda, iy_surface_agenda,
                                          iy_cloudbox_agenda, propmat_clearsky_agenda,df, nz, na, nf, verbosity);
     

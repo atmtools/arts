@@ -1,3 +1,45 @@
+2018-04-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1010
+
+	Another small step towards surface Jacobians. Main change is that
+	iy_surface_agenda has some new in- and output. You fix this most
+	easily by adding a call of SurfaceDummy in this way:
+
+	AgendaSet( iy_surface_agenda ){
+	SurfaceDummy
+	iySurfaceRtpropAgenda
+	}
+
+	The defintion of iy_surface_agenda in agendas.arts is updated and
+	included this change, so most likely you don't need to do anything.
+
+	* src/m_nlte.cc (nlte_fieldForSingleSpeciesNonOverlappingLines):
+	* src/m_radiation_field.cc (radiation_fieldCalcForRotationalNLTE):
+	Adopted call of radiation_fieldCalcFromiyCalc.
+
+	* src/m_radiation_field.cc (doit_i_fieldClearskyPlaneParallel)
+	(radiation_fieldCalcFromiyCalc)
+	* src/m_fos.cc (iyHybrid): Adopted call of iyEmissionStandard.
+
+	* src/m_fos.cc (iyHybrid):
+	* src/m_rte.cc (iyEmissionStandard): Adopted call of get_iy_of_background.
+
+	* src/rte.cc (get_iy_of_background): Started to add handling of
+	surface_props_data and associated variables.
+
+	* controlfiles/general/general.arts: surface_props_data and
+	surface_props_names now set to be empty.
+
+	* controlfiles/general/agendas.arts: Added call of SurfaceDummy to
+	iy_surface_agenda__UseSurfaceRtprop.
+
+	* src/m_surface.cc (SurfaceDummy): New.
+
+	* src/agendas.cc: For iy_surface_agenda added dsurface_rmatrix_dx
+	and dsurface_emission_dx as in/output, and surface_props_data and
+	dsurface_names as input.
+
 2018-04-04 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-1009
@@ -23,22 +65,22 @@
 2018-04-03  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-1008
-	
+
 	* controlfiles/artscomponents/linemixing/TestRelmat.arts:
 	Added call to wigner6init.
-	
+
 	* src/m_wigner.cc:  Added a few wigner functions that has
 	to be used to initialize memory mapping.  These only work in
 	single core for now before there is a good way to write to
 	the table in sycn on multi-core (I do not know how to do this)
-	
+
 	* src/m_linemixing.cc:  Minor changes...
-	
+
 	* src/wigner_functions.cc, src/wigner_functions.h:  All calls
 	need external initialization.  No check is made so it is up to
-	devs to make sure this have happened in the calls to whatever 
+	devs to make sure this have happened in the calls to whatever
 	method is being used...
-	
+
 	* src/{workspace,methods}.cc:  Added a variable to keep track
 	that the wigner memory is initialized.
 	

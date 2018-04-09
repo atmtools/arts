@@ -147,6 +147,7 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
                                    const Tensor4&          nlte_field,
                                    const ArrayOfArrayOfSpeciesTag& abs_species,
                                    const String&           iy_unit,
+                                   const Tensor3&          surface_props_data,
                                    const Agenda&           ppath_agenda,
                                    const Agenda&           iy_main_agenda,
                                    const Agenda&           iy_space_agenda,
@@ -258,7 +259,8 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
                          wind_u_field, wind_v_field, wind_w_field, mag_u_field, mag_v_field, mag_w_field,
                          cloudbox_on, iy_unit, iy_aux_vars, 0, ArrayOfRetrievalQuantity(0),
                          ppath, Vector(0),  propmat_clearsky_agenda, iy_main_agenda, iy_space_agenda,
-                         iy_surface_agenda, iy_cloudbox_agenda, 0, _tmp_transmission, 0.0, verbosity);
+                         iy_surface_agenda, iy_cloudbox_agenda, 0, _tmp_transmission,
+                         0.0, surface_props_data, verbosity);
       
       // Add to radiation field
       radiation_field.data(iz, ia, joker, joker) = iy;
@@ -309,6 +311,7 @@ void radiation_fieldCalcForRotationalNLTE(Workspace&                      ws,
                                           const Tensor3&                  wind_w_field,
                                           const Vector&                   p_grid,
                                           const Index&                    atmosphere_dim,
+                                          const Tensor3&                  surface_props_data,
                                           const Agenda&                   ppath_agenda,
                                           const Agenda&                   iy_main_agenda,
                                           const Agenda&                   iy_space_agenda,
@@ -409,7 +412,8 @@ void radiation_fieldCalcForRotationalNLTE(Workspace&                      ws,
     radiation_fieldCalcFromiyCalc(ws, _tmp, rady, tran, atmosphere_dim, 0, 1, 1e10, 1e10, f_grid, p_grid,
                                   rte_pos, t_field, z_field, wind_u_field, wind_v_field, wind_w_field,
                                   Tensor3(0, 0, 0), Tensor3(0, 0, 0), Tensor3(0, 0, 0), vmr_field, nlte_field,
-                                  abs_species, "1", ppath_agenda, iy_main_agenda, iy_space_agenda,
+                                  abs_species, "1", surface_props_data,
+                                  ppath_agenda, iy_main_agenda, iy_space_agenda,
                                   iy_surface_agenda, iy_cloudbox_agenda, propmat_clearsky_agenda, za, aa, ip+1, verbosity);
     
     Vector J(nl, 0), G(nl, 0);
@@ -453,6 +457,7 @@ void doit_i_fieldClearskyPlaneParallel(
   const Matrix&                     z_surface,
   const Numeric&                    ppath_lmax,
   const Numeric&                    rte_alonglos_v,
+  const Tensor3&                    surface_props_data,
   const Vector&                     scat_za_grid, 
   const Verbosity&                  verbosity )
 {
@@ -542,7 +547,7 @@ void doit_i_fieldClearskyPlaneParallel(
                               propmat_clearsky_agenda, iy_main_agenda, iy_space_agenda,
                               iy_surface_agenda, iy_cloudbox_agenda,
                               iy_agenda_call1, iy_transmission, rte_alonglos_v,
-                              verbosity );
+                              surface_props_data, verbosity );
           assert( iy.nrows() == nf );
           assert( iy.ncols() == stokes_dim );
 
