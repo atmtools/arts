@@ -77,6 +77,7 @@ void DisortCalc(Workspace& ws,
                 const Index& nstreams,
                 const String& pfct_method,
                 const Index& new_optprop,
+                const Index& Npfct,
                 const Verbosity& verbosity )
 {
   // Don't do anything if there's no cloudbox defined.
@@ -118,7 +119,7 @@ void DisortCalc(Workspace& ws,
               cloudbox_limits,
               btemp, albedo,
               scat_za_grid, nstreams,
-              pfct_method,
+              pfct_method, Npfct,
               verbosity );
   else
     run_disort( ws, doit_i_field,
@@ -236,6 +237,7 @@ void DisortCalc(Workspace&,
                 const Vector&,
                 const Index&,
                 const String&,
+                const Index&,
                 const Index&,
                 const Verbosity&)
 {

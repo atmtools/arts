@@ -103,6 +103,7 @@ void run_disort2( Workspace& ws,
               ConstVectorView scat_za_grid,
               const Index& nstreams,
               const String& pfct_method,
+              const Index& Npfct,
               const Verbosity& verbosity );
 
 void dtauc_ssalbCalc( Workspace &ws,
@@ -119,6 +120,52 @@ void dtauc_ssalbCalc( Workspace &ws,
                       const ArrayOfIndex& cloudbox_limits,
                       ConstVectorView f_mono,
                       const Verbosity& verbosity );
+
+void get_gasoptprop( Workspace &ws,
+                     MatrixView ext_bulk_gas,
+                     const Agenda& propmat_clearsky_agenda,
+                     ConstVectorView t_field,
+                     ConstMatrixView vmr_field,
+                     ConstVectorView p_grid,
+                     ConstVectorView f_grid );
+
+void get_paroptprop( MatrixView ext_bulk_par,
+                     MatrixView abs_bulk_par,
+                     const ArrayOfArrayOfSingleScatteringData& scat_data,
+                     ConstMatrixView pnd_field,
+                     ConstVectorView t_field,
+                     ConstVectorView p_grid,
+                     const ArrayOfIndex& cloudbox_limits,
+                     ConstVectorView f_grid );
+
+void get_dtauc_ssalb( MatrixView dtauc,
+                      MatrixView ssalb,
+                      ConstMatrixView ext_bulk_gas,
+                      ConstMatrixView ext_bulk_par,
+                      ConstMatrixView abs_bulk_par,
+                      ConstVectorView z_field );
+
+void get_angs( Vector& pfct_angs,
+               const ArrayOfArrayOfSingleScatteringData& scat_data,
+               const Index& Npfct );
+
+void get_parZ( Tensor3& pha_bulk_par,
+               const ArrayOfArrayOfSingleScatteringData& scat_data,
+               ConstMatrixView pnd_field,
+               ConstVectorView t_field,
+               ConstVectorView pfct_angs,
+               const ArrayOfIndex& cloudbox_limits );
+
+void get_pfct( Tensor3& pfct_bulk_par,
+               ConstTensor3View& pha_bulk_par,
+               ConstMatrixView ext_bulk_par,
+               ConstMatrixView abs_bulk_par,
+               const ArrayOfIndex& cloudbox_limits );
+
+void get_pmom( Tensor3View pmom,
+               ConstTensor3View pfct_bulk_par,
+               ConstVectorView pfct_angs,
+               const Index& Nlegendre );
 
 void dtauc_ssalbCalc2( Workspace &ws,
                       MatrixView dtauc,

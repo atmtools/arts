@@ -1121,9 +1121,10 @@ void pha_mat_1ScatElem(//Output
           {
             // perform the scat angle interpolation
             for (Index nst=0; nst<npha; nst++)
-              pha_mat_int[nst] = interp(dir_itw,
-                                      ssd.pha_mat_data(find+f_start,0,joker,0,0,0,nst),
-                                      dir_gp);
+              pha_mat_int[nst] =
+                interp(dir_itw,
+                       ssd.pha_mat_data(find+f_start,0,joker,0,0,0,nst),
+                       dir_gp);
 
             // convert from scat to lab frame
             pha_mat_labCalc(pha_mat_tmp(joker,joker), pha_mat_int,
@@ -2166,11 +2167,6 @@ void pha_mat_labCalc(//Output:
                       const Numeric& aa_inc,
                       const Numeric& theta_rad)
 {
-  Numeric za_sca_rad = za_sca * DEG2RAD;
-  Numeric za_inc_rad = za_inc * DEG2RAD;
-  Numeric aa_sca_rad = aa_sca * DEG2RAD;
-  Numeric aa_inc_rad = aa_inc * DEG2RAD;
-
   const Index stokes_dim = pha_mat_lab.ncols();
 
   if( isnan(F11) )
@@ -2191,6 +2187,11 @@ void pha_mat_labCalc(//Output:
 
   
   if( stokes_dim > 1 ){
+
+    Numeric za_sca_rad = za_sca * DEG2RAD;
+    Numeric za_inc_rad = za_inc * DEG2RAD;
+    Numeric aa_sca_rad = aa_sca * DEG2RAD;
+    Numeric aa_inc_rad = aa_inc * DEG2RAD;
 
     const Numeric ANGTOL_RAD = 1e-6; //CPD: this constant is used to adjust
                                      //zenith angles close to 0 and PI.  This is
@@ -2230,66 +2231,66 @@ void pha_mat_labCalc(//Output:
         }
       }
    
-   else 
-     {
-       Numeric sigma1;
-       Numeric sigma2;
+    else 
+      {
+        Numeric sigma1;
+        Numeric sigma2;
 
-       Numeric s1, s2;
+        Numeric s1, s2;
 
-       // In these cases we have to take limiting values.
+        // In these cases we have to take limiting values.
  
-       if (za_inc_rad < ANGTOL_RAD)
-         {
-           sigma1 = PI + aa_sca_rad - aa_inc_rad;
-           sigma2 = 0;
-         }
-       else if (za_inc_rad > PI-ANGTOL_RAD)
-         {
-           sigma1 = aa_sca_rad - aa_inc_rad;
-           sigma2 = PI; 
-         }
-       else if (za_sca_rad < ANGTOL_RAD)
-         {
-           sigma1 = 0;
-           sigma2 = PI + aa_sca_rad - aa_inc_rad;
-         }
-       else if (za_sca_rad > PI - ANGTOL_RAD)
-         {
-           sigma1 = PI;
-           sigma2 = aa_sca_rad - aa_inc_rad; 
-         }
-       else
-         {
-           s1 = (cos(za_sca_rad) - cos(za_inc_rad) * cos(theta_rad))
-              /(sin(za_inc_rad)*sin(theta_rad));
-           s2 = (cos(za_inc_rad) - cos(za_sca_rad) * cos (theta_rad))/
-             (sin(za_sca_rad)*sin(theta_rad)); 
-       
-           sigma1 =  acos(s1);
-           sigma2 =  acos(s2);
+        if (za_inc_rad < ANGTOL_RAD)
+          {
+            sigma1 = PI + aa_sca_rad - aa_inc_rad;
+            sigma2 = 0;
+          }
+        else if (za_inc_rad > PI-ANGTOL_RAD)
+          {
+            sigma1 = aa_sca_rad - aa_inc_rad;
+            sigma2 = PI; 
+          }
+        else if (za_sca_rad < ANGTOL_RAD)
+          {
+            sigma1 = 0;
+            sigma2 = PI + aa_sca_rad - aa_inc_rad;
+          }
+        else if (za_sca_rad > PI - ANGTOL_RAD)
+          {
+            sigma1 = PI;
+            sigma2 = aa_sca_rad - aa_inc_rad; 
+          }
+        else
+          {
+            s1 = (cos(za_sca_rad) - cos(za_inc_rad) * cos(theta_rad))
+               /(sin(za_inc_rad)*sin(theta_rad));
+            s2 = (cos(za_inc_rad) - cos(za_sca_rad) * cos (theta_rad))/
+              (sin(za_sca_rad)*sin(theta_rad)); 
+
+            sigma1 =  acos(s1);
+            sigma2 =  acos(s2);
            
-           // Arccos is only defined in the range from -1 ... 1
-           // Numerical problems can appear for values close to 1 or -1
-           // this (also) catches the case when inc and sca are on one meridian
-           if ( isnan(sigma1) || isnan(sigma2) )
-             {
-               if ( abs(s1 - 1) < ANGTOL_RAD)
-                 sigma1 = 0;
-               if ( abs(s1 + 1) < ANGTOL_RAD)
-                 sigma1 = PI;
-               if ( abs(s2 - 1) < ANGTOL_RAD)
-                 sigma2 = 0;
-               if ( abs(s2 + 1) < ANGTOL_RAD)
-                 sigma2 = PI;
-             }
-         }
+            // Arccos is only defined in the range from -1 ... 1
+            // Numerical problems can appear for values close to 1 or -1
+            // this (also) catches the case when inc and sca are on one meridian
+            if ( isnan(sigma1) || isnan(sigma2) )
+              {
+                if ( abs(s1 - 1) < ANGTOL_RAD)
+                  sigma1 = 0;
+                if ( abs(s1 + 1) < ANGTOL_RAD)
+                  sigma1 = PI;
+                if ( abs(s2 - 1) < ANGTOL_RAD)
+                  sigma2 = 0;
+                if ( abs(s2 + 1) < ANGTOL_RAD)
+                  sigma2 = PI;
+              }
+          }
       
-       const Numeric C1 = cos(2*sigma1);
-       const Numeric C2 = cos(2*sigma2);
+        const Numeric C1 = cos(2*sigma1);
+        const Numeric C2 = cos(2*sigma2);
         
-       const Numeric S1 = sin(2*sigma1); 
-       const Numeric S2 = sin(2*sigma2);
+        const Numeric S1 = sin(2*sigma1); 
+        const Numeric S2 = sin(2*sigma2);
         
         pha_mat_lab(0,1) = C1 * F12;
         pha_mat_lab(1,0) = C2 * F12;
@@ -2357,9 +2358,9 @@ void pha_mat_labCalc(//Output:
             pha_mat_lab(3,2) = -C1 * F34;
             pha_mat_lab(3,3) = F44;
           }
-        }     
-     }
-   }
+        }
+      }
+  }
 }
      
 

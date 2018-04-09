@@ -1,3 +1,25 @@
+2018-04-04 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-1009
+
+	Major redo of optical property (incl phase mat) extraction and
+	preparation for Disort. Some further optimizations to come...
+
+	* src/disort.[cc,h] (get_gasoptprop, get_paroptprop, get_dtauc_ssalb):
+	Separated dtauc_ssalbCalc(2) into these in order to have ext/abs_par
+	directly accessible and avoid their recalc in phase function calculation.
+
+	* src/disort.[cc,h] (get_angs, get_parZ, get_pfct, get_pmom):
+	New methods applying unified phase matrix extraction scheme. To replace
+	phase_functionCalc(2) and pmomCalc(2).
+
+	* src/m_disort.cc, methods.cc (DisortCalc), disort.[cc,h] (run_disort2):
+	Adapted interface allowing user to control angular resolution of bulk
+	phase function (from which the legendre polynomials are calculated then).
+
+	* src/optproperties.cc (pha_mat_labCalc):
+	Layout fixes.
+
 2018-04-03  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-1008

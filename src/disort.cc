@@ -547,92 +547,36 @@ void dtauc_ssalbCalc( Workspace &ws,
     }  
 }
 
-//! dtauc_ssalbCalc2
-/*!
-  Calculates layer averaged cloud optical depth (dtauc) and 
-  single scattering albedo (ssalb). These variables are required as
-  input for the DISORT subroutine
 
-  \param dtauc                 optical depths for all layers
-  \param ssalb                 single scattering albedos for all layers
-  \param scat_data             as the WSV
-  \param propmat_clearsky_agenda as the WSA
-  \param pnd_field             as the WSV 
-  \param t_field               as the WSV 
-  \param z_field               as the WSV 
-  \param vmr_field             as the WSV 
-  \param p_grid                as the WSV 
-  \param cloudbox_limits       as the WSV 
-  \param f_grid                as the WSV
+//! get_gasoptprop
+/*!
+  Derives level-based gas bulk optical properties (extinction).
+
+  \param[out] ext_bulk_gas     gas bulk extinction (all levels & freqs).
+  \param propmat_clearsky_agenda as the WSA.
+  \param t_field               as the WSV.
+  \param vmr_field             as the WSV.
+  \param p_grid                as the WSV.
+  \param f_grid                as the WSV.
   
   \author Jana Mendrok
-  \date   2018-02-18
+  \date   2018-04-04
 */
-void dtauc_ssalbCalc2( Workspace &ws,
-                      MatrixView dtauc,
-                      MatrixView ssalb,
-                      const Agenda& propmat_clearsky_agenda,
-                      const ArrayOfArrayOfSingleScatteringData& scat_data,
-                      ConstMatrixView pnd_field,
-                      ConstVectorView t_field,
-                      ConstVectorView z_field, 
-                      ConstMatrixView vmr_field,
-                      ConstVectorView p_grid,
-                      const ArrayOfIndex& cloudbox_limits,
-                      ConstVectorView f_grid )
+void get_gasoptprop( Workspace &ws,
+                     MatrixView ext_bulk_gas,
+                     const Agenda& propmat_clearsky_agenda,
+                     ConstVectorView t_field,
+                     ConstMatrixView vmr_field,
+                     ConstVectorView p_grid,
+                     ConstVectorView f_grid )
 {
-  // Initialization
-  dtauc=0.;
-  ssalb=0.;
-  
-  const Index Np_cloud = pnd_field.ncols();
   const Index Np = p_grid.nelem();
-  const Index nf = f_grid.nelem();
 
-  assert( dtauc.nrows() == nf);
-  assert( ssalb.nrows() == nf);
-  assert( dtauc.ncols() == Np-1);
-  assert( ssalb.ncols() == Np-1);
+  assert( ext_bulk_gas.nrows() == f_grid.nelem() );
+  assert( ext_bulk_gas.ncols() == Np );
 
-  const Index stokes_dim = 1; 
-
-  // preparing input data
-  Vector T_array =  t_field[Range(cloudbox_limits[0],Np_cloud)];
-  Matrix dir_array(1, 2, 0.); // just a dummy. only tot_random allowed, ie.
-                              // optprop are independent of direction.
-
-  // making particle property output containers
-  ArrayOfArrayOfTensor5 ext_mat_Nse;
-  ArrayOfArrayOfTensor4 abs_vec_Nse;
-  ArrayOfArrayOfIndex ptypes_Nse;
-  Matrix t_ok;
-  ArrayOfTensor5 ext_mat_ssbulk;
-  ArrayOfTensor4 abs_vec_ssbulk;
-  ArrayOfIndex ptype_ssbulk;
-  Tensor5 ext_mat_bulk; //nf,nT,ndir,nst,nst
-  Tensor4 abs_vec_bulk;
-  Index ptype_bulk;
-
-  // calculate particle optical properties
-  opt_prop_NScatElems( ext_mat_Nse, abs_vec_Nse, ptypes_Nse, t_ok,
-                       scat_data, stokes_dim, T_array, dir_array, -1 );
-  opt_prop_ScatSpecBulk( ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk,
-                         ext_mat_Nse, abs_vec_Nse, ptypes_Nse,
-                         pnd_field, t_ok );
-  opt_prop_Bulk( ext_mat_bulk, abs_vec_bulk, ptype_bulk,
-                 ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk );
-
-  Index f_this = 0;
-  bool pf = (abs_vec_bulk.nbooks()!=1);
-  Matrix ext_bulk(nf,Np,0.), abs_bulk(nf,Np,0.);
-  for( Index ip=0; ip<Np_cloud; ip++ )
-    for( Index f_index = 0; f_index < nf; f_index++ )
-    {
-      if( pf )
-        f_this = f_index;
-      ext_bulk(f_index,ip+cloudbox_limits[0]) = ext_mat_bulk(f_this,ip,0,0,0);
-      abs_bulk(f_index,ip+cloudbox_limits[0]) = abs_vec_bulk(f_this,ip,0,0);
-    }
+  // Initialization
+  ext_bulk_gas = 0.;
 
   // making gas property output containers and input dummies
   const Vector rtp_temperature_nlte_dummy(0);
@@ -667,18 +611,471 @@ void dtauc_ssalbCalc2( Workspace &ws,
     PropagationMatrix propmat_bulk = propmat_clearsky_local[0];
     for(Index ias = 1; ias < propmat_clearsky_local.nelem(); ias++)
       propmat_bulk += propmat_clearsky_local[ias];
-    ext_bulk(joker,ip) += propmat_bulk.Kjj();
-    abs_bulk(joker,ip) += propmat_bulk.Kjj();
+    ext_bulk_gas(joker,ip) += propmat_bulk.Kjj();
   }
+}
+
+//! get_paroptprop
+/*!
+  Derives level-based particle bulk optical properties (extinction and
+  absorption).
+
+  \param[out] ext_bulk_par     particle bulk extinction (all levels & freqs).
+  \param[out] abs_bulk_par     particle bulk absorption (all levels & freqs).
+  \param scat_data             as the WSV.
+  \param pnd_field             as the WSV.
+  \param t_field               as the WSV.
+  \param p_grid                as the WSV.
+  \param cloudbox_limits       as the WSV.
+  \param f_grid                as the WSV.
+  
+  \author Jana Mendrok
+  \date   2018-04-04
+*/
+void get_paroptprop( MatrixView ext_bulk_par,
+                     MatrixView abs_bulk_par,
+                     const ArrayOfArrayOfSingleScatteringData& scat_data,
+                     ConstMatrixView pnd_field,
+                     ConstVectorView t_field,
+                     ConstVectorView p_grid,
+                     const ArrayOfIndex& cloudbox_limits,
+                     ConstVectorView f_grid )
+{
+  const Index Np_cloud = pnd_field.ncols();
+  const Index Np = p_grid.nelem();
+  const Index nf = f_grid.nelem();
+
+  assert( ext_bulk_par.nrows() == nf );
+  assert( abs_bulk_par.nrows() == nf );
+  assert( ext_bulk_par.ncols() == Np );
+  assert( abs_bulk_par.ncols() == Np );
+
+  // Initialization
+  ext_bulk_par = 0.;
+  abs_bulk_par = 0.;
+
+  // preparing input data
+  Vector T_array =  t_field[Range(cloudbox_limits[0],Np_cloud)];
+  Matrix dir_array(1, 2, 0.); // just a dummy. only tot_random allowed, ie.
+                              // optprop are independent of direction.
+
+  // making particle property output containers
+  ArrayOfArrayOfTensor5 ext_mat_Nse;
+  ArrayOfArrayOfTensor4 abs_vec_Nse;
+  ArrayOfArrayOfIndex ptypes_Nse;
+  Matrix t_ok;
+  ArrayOfTensor5 ext_mat_ssbulk;
+  ArrayOfTensor4 abs_vec_ssbulk;
+  ArrayOfIndex ptype_ssbulk;
+  Tensor5 ext_mat_bulk; //nf,nT,ndir,nst,nst
+  Tensor4 abs_vec_bulk;
+  Index ptype_bulk;
+
+  // calculate particle optical properties
+  opt_prop_NScatElems( ext_mat_Nse, abs_vec_Nse, ptypes_Nse, t_ok,
+                       scat_data, 1, T_array, dir_array, -1 );
+  opt_prop_ScatSpecBulk( ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk,
+                         ext_mat_Nse, abs_vec_Nse, ptypes_Nse,
+                         pnd_field, t_ok );
+  opt_prop_Bulk( ext_mat_bulk, abs_vec_bulk, ptype_bulk,
+                 ext_mat_ssbulk, abs_vec_ssbulk, ptype_ssbulk );
+
+  Index f_this = 0;
+  bool pf = (abs_vec_bulk.nbooks()!=1);
+  for( Index ip=0; ip<Np_cloud; ip++ )
+    for( Index f_index = 0; f_index < nf; f_index++ )
+    {
+      if( pf )
+        f_this = f_index;
+      ext_bulk_par(f_index,ip+cloudbox_limits[0]) = ext_mat_bulk(f_this,ip,0,0,0);
+      abs_bulk_par(f_index,ip+cloudbox_limits[0]) = abs_vec_bulk(f_this,ip,0,0);
+    }
+}
+  
+//! get_dtauc_ssalb
+/*!
+  Calculates layer averaged cloud optical depth (dtauc) and 
+  single scattering albedo (ssalb) as required as DISORT subroutine input from
+  level-based gas extinction and particle extinction and absorption.
+
+  \param[out] dtauc            optical depths for all layers.
+  \param[out] ssalb            single scattering albedos for all layers.
+  \param ext_bulk_gas          see get_gasoptprop.
+  \param ext_bulk_par          see get_paroptprop.
+  \param abs_bulk_par          see get_paroptprop.
+  \param z_field               as the WSV.
+  
+  \author Jana Mendrok
+  \date   2018-04-04
+*/
+void get_dtauc_ssalb( MatrixView dtauc,
+                      MatrixView ssalb,
+                      ConstMatrixView ext_bulk_gas,
+                      ConstMatrixView ext_bulk_par,
+                      ConstMatrixView abs_bulk_par,
+                      ConstVectorView z_field )
+{
+  const Index nf = ext_bulk_gas.nrows();
+  const Index Np = ext_bulk_gas.ncols();
+
+  assert( dtauc.nrows() == nf );
+  assert( ssalb.nrows() == nf );
+  assert( dtauc.ncols() == Np-1 );
+  assert( ssalb.ncols() == Np-1 );
+
+  // Initialization
+  dtauc=0.;
+  ssalb=0.;
 
   for( Index ip = 0; ip < Np-1; ip++ )
     // Do layer averaging and derive single scattering albedo & optical depth
     for( Index f_index = 0; f_index < nf; f_index++ )
     {
-      Numeric ext = 0.5 * (ext_bulk(f_index,ip)+ext_bulk(f_index,ip+1));
+      Numeric ext = 0.5 * ( ext_bulk_gas(f_index,ip)+ext_bulk_par(f_index,ip)
+                           +ext_bulk_gas(f_index,ip+1)+ext_bulk_par(f_index,ip+1) );
       if( ext!=0 )
       {
-        Numeric abs = 0.5 * (abs_bulk(f_index,ip)+abs_bulk(f_index,ip+1));
+        Numeric abs = 0.5 * ( ext_bulk_gas(f_index,ip)+abs_bulk_par(f_index,ip)
+                             +ext_bulk_gas(f_index,ip+1)+abs_bulk_par(f_index,ip+1) );
+        ssalb(f_index,Np-2-ip) = (ext-abs) / ext;
+      }
+     
+      dtauc(f_index,Np-2-ip) = ext * (z_field[ip+1] - z_field[ip] );
+    }
+}
+
+//! get_angs
+/*!
+  Derives angular grid to derive bulk phase matrix/function data on for further
+  Legendre decomposition.
+
+  \param[out] pfct_angs        angular grid of pfct_bulk_par.
+  \param scat_data             as the WSV.
+  \param nang                  number of angular grid points in pfct_angs. If<0,
+                               pfct_angs is taken from scat_data (the finest
+                               za_grid used over the scat elems), else an
+                               equidistant grid with nang grid points is used.
+  
+  \author Jana Mendrok
+  \date   2018-04-04
+*/
+void get_angs( Vector& pfct_angs,
+               const ArrayOfArrayOfSingleScatteringData& scat_data,
+               const Index& Npfct )
+{
+  const Index min_nang = 3;
+  Index nang = Npfct;
+
+  if( Npfct<0 )
+  {
+    Index this_ss=0, this_se=0;
+    // determine nang and pfct_angs from scat_data with finest za_grid
+    for( Index i_ss=0; i_ss<scat_data.nelem(); i_ss++ )
+      for( Index i_se=scat_data[i_ss].nelem()-1; i_se>=0; i_se-- )
+        // considering scat elems within one species mostly sorted from small to
+        // large sizes with large sizes corresponding to large za_grid. that is,
+        // starting searching from back should trigger if-clause (and variable
+        // update) less often.
+        if( nang < scat_data[i_ss][i_se].za_grid.nelem() )
+        {
+          nang = scat_data[i_ss][i_se].za_grid.nelem();
+          this_ss = i_ss;
+          this_se = i_se;
+        }
+    pfct_angs = scat_data[this_ss][this_se].za_grid;
+  }
+  else if( Npfct<min_nang )
+  {
+    ostringstream os;
+    os << "Number of requested angular grid points (Npfct=" << Npfct
+       << ") is insufficient.\n"
+       << "At least " << min_nang << " points required.\n";
+    throw runtime_error( os.str() );
+  }
+  else
+  {
+    nlinspace(pfct_angs, 0, 180, nang);
+  }
+}
+
+//! get_parZ
+/*!
+  Derives level-based particle bulk phase matrix Z (Csca scaled).
+  NOTE: Provided on ssd's freq grid (i.e. for nf=1 only of ssd.f_grid.nelem==1)
+  in order to avoid duplicate calculations in get_pmom (instead we duplicate the
+  results there to the RT calc's f_grid).
+
+  \param[out] pha_bulk_par     particle bulk phase function (all levels & ssd freqs).
+  \param[out] pfct_angs        angular grid of pfct_bulk_par.
+  \param scat_data             as the WSV.
+  \param pnd_field             as the WSV.
+  \param t_field               as the WSV.
+  \param p_grid                as the WSV.
+  \param cloudbox_limits       as the WSV.
+  \param ext_bulk_par          see get_paroptprop.
+  \param abs_bulk_par          see get_paroptprop.
+  \param nang                  number of angular grid points in pfct_angs. If<0,
+                               pfct_angs is taken from scat_data (the finest
+                               za_grid used over the scat elems), else an
+                               equidistant grid with nang grid points is used.
+  
+  \author Jana Mendrok
+  \date   2018-04-04
+*/
+void get_parZ( Tensor3& pha_bulk_par,
+               const ArrayOfArrayOfSingleScatteringData& scat_data,
+               ConstMatrixView pnd_field,
+               ConstVectorView t_field,
+               ConstVectorView pfct_angs,
+               const ArrayOfIndex& cloudbox_limits )
+{
+  const Index Np_cloud = pnd_field.ncols();
+  const Index nang = pfct_angs.nelem();
+
+  // Initialization
+   pha_bulk_par = 0.;
+
+  // preparing input data
+  Vector T_array =  t_field[Range(cloudbox_limits[0],Np_cloud)];
+  Matrix idir_array(1, 2, 0.); // we want pfct on sca ang grid, hence set
+                               // pdir(*,0) to sca ang, all other to 0.
+  Matrix pdir_array(nang, 2, 0.);
+  pdir_array(joker,0) = pfct_angs;
+
+  // making particle property output containers
+  ArrayOfArrayOfTensor6 pha_mat_Nse;
+  ArrayOfArrayOfIndex ptypes_Nse;
+  Matrix t_ok;
+  ArrayOfTensor6 pha_mat_ssbulk;
+  ArrayOfIndex ptype_ssbulk;
+  Tensor6 pha_mat_bulk; //nf,nT,npdir,nidir,nst,nst
+  Index ptype_bulk;
+
+  // calculate phase matrix
+  // FIXME: might be optimized by instead just executing pha_mat_1ScatElem where
+  // ext_bulk_par or pnd_field are non-zero.
+  pha_mat_NScatElems( pha_mat_Nse, ptypes_Nse, t_ok,
+                      scat_data, 1, T_array, pdir_array, idir_array, -1 );
+  pha_mat_ScatSpecBulk( pha_mat_ssbulk, ptype_ssbulk,
+                        pha_mat_Nse, ptypes_Nse, pnd_field, t_ok );
+  pha_mat_Bulk( pha_mat_bulk, ptype_bulk,
+                pha_mat_ssbulk, ptype_ssbulk );
+
+  pha_bulk_par(joker,Range(cloudbox_limits[0],Np_cloud),joker) =
+    pha_mat_bulk(joker,joker,joker,0,0,0);
+}
+  
+//! get_pfct
+/*!
+  Derives layer averaged particle bulk phase function P (4Pi scaled)
+  NOTE: Provided on ssd's freq grid (i.e. for nf=1 only of ssd.f_grid.nelem==1)
+  in order to avoid duplicate calculations in get_pmom (instead we duplicate the
+  results there to the RT calc's f_grid).
+
+  \param[out] pfct_bulk_par    particle bulk phase function (all levels & ssd freqs).
+  \param pha_bulk_par          see get_parZ.
+  \param ext_bulk_par          see get_paroptprop.
+  \param abs_bulk_par          see get_paroptprop.
+  
+  \author Jana Mendrok
+  \date   2018-04-04
+*/
+void get_pfct( Tensor3& pfct_bulk_par,
+               ConstTensor3View& pha_bulk_par,
+               ConstMatrixView ext_bulk_par,
+               ConstMatrixView abs_bulk_par,
+               const ArrayOfIndex& cloudbox_limits )
+{
+  const Index Np_cloud = cloudbox_limits[1]-cloudbox_limits[0]+1;
+  const Index Np = pha_bulk_par.nrows();
+  const Index nf = pha_bulk_par.npages();
+  Index nang = pha_bulk_par.ncols();
+
+  assert( pfct_bulk_par.npages() == nf );
+  assert( pfct_bulk_par.nrows() == Np-1 );
+  assert( pfct_bulk_par.ncols() == nang );
+
+  // Initialization
+  pfct_bulk_par = 0.;
+
+  for( Index ip=cloudbox_limits[0]; ip<Np_cloud-1; ip++ )
+    for( Index f_index=0; f_index<nf; f_index++ )
+    {
+      // Calculate layer averaged scattering (omitting factor 0.5 here as
+      // omitting it for layer averaged Z below, too).
+      Numeric sca = (ext_bulk_par(f_index,ip)+ext_bulk_par(f_index,ip+1)) -
+                    (abs_bulk_par(f_index,ip)+abs_bulk_par(f_index,ip+1));
+      if( sca != 0. )
+      {
+        // Calculate layer averaged Z (omitting factor 0.5) and rescale from
+        // Z (Csca) to P (4Pi)
+        for( Index ia=0; ia<nang; ia++ )
+          pfct_bulk_par(f_index,Np-2-ip,ia) += pha_bulk_par(f_index,ip,ia) +
+                                          pha_bulk_par(f_index,ip+1,ia);
+        pfct_bulk_par(f_index,Np-2-ip,joker) *= 4*PI / sca;
+      }
+  }
+}
+  
+//! get_pmom
+/*!
+  Calculates Legendre moments of the layer averaged phase functionss (pmom) as
+  required as DISORT subroutine input from level-based bulk particle phase
+  function (4-Pi normalized scalar phase matrix).
+
+  \param[out] pmom             Legendre moments for all layers.
+  \param pfct_bulk_par         see get_pfct.
+  \param pfct_angs             see get_parZ.
+  \param Nlegendre             number of Legendre moments to derive.
+  
+  \author Jana Mendrok
+  \date   2018-04-04
+*/
+void get_pmom( Tensor3View pmom,
+               ConstTensor3View pfct_bulk_par,
+               ConstVectorView pfct_angs,
+               const Index& Nlegendre )
+{
+  const Index nf = pfct_bulk_par.npages();
+  const Index nlyr = pfct_bulk_par.nrows();
+  const Index nang = pfct_bulk_par.ncols();
+
+  assert( nang == pfct_angs.nelem() );
+
+  assert( pmom.npages() == nf );
+  assert( pmom.nrows() == nlyr );
+  assert( pmom.ncols() == Nlegendre );
+
+  Numeric pfct_threshold = 0.1;
+
+  // Initialization
+  pmom=0.;
+
+  // we need the cosine of the pfct angles
+  Vector u(nang), adu(nang-1);
+  Tensor3 px(nang-1,Nlegendre,2,0.);
+  u[0] = cos(pfct_angs[0] * PI/180.);
+  px(joker,0,joker) = 1.;
+  for( Index ia=1; ia<nang; ia++)
+  {
+    u[ia] = cos(pfct_angs[ia] * PI/180.);
+    adu[ia-1] = abs( u[ia] - u[ia-1] );
+    px(ia-1,1,0) = u[ia-1];
+    px(ia-1,1,1) = u[ia];
+    for( Index l=2; l<Nlegendre; l++ )
+    {
+      Numeric dl = (double)l;
+      px(ia-1,l,0) = (2*dl-1) / dl*u[ia-1]*px(ia-1,l-1,0) -
+                     (dl-1) / dl*px(ia-1,l-2,0); 
+      px(ia-1,l,1) = (2*dl-1) / dl*u[ia]*px(ia-1,l-1,1) -
+                     (dl-1) / dl*px(ia-1,l-2,1);
+    }
+  }
+
+  for( Index il=0; il<nlyr; il++ )
+    if( pfct_bulk_par(joker,il,0).sum()!=0. )
+      for( Index f_index=0; f_index<nf; f_index++ )
+      {
+        if( pfct_bulk_par(f_index,il,0) != 0)
+        {
+          Vector pfct = pfct_bulk_par(f_index,il,joker);
+
+          // Check if phase function is properly normalized
+          Numeric pint=0.;
+          for( Index ia=0; ia<nang-1; ia++)            
+            pint += 0.5 * adu[ia] * (pfct[ia]+pfct[ia+1]);
+
+          if( abs(pint/2.-1.) > pfct_threshold )
+          {
+            ostringstream os;
+            os << "Phase function normalization deviates from expected value by\n"
+               << 1e2*pint/2.-1e2 << "(allowed: " << pfct_threshold*1e2
+               << "%).\n"
+               << "Occurs at layer #" << il
+               << " and frequency #" << f_index << ".\n"
+               << "Something is wrong with your scattering data. Check!\n";
+            throw runtime_error( os.str() );
+          }
+
+          // for the rest, rescale pfct to norm 2
+          pfct *= 2./pint;
+
+          pmom(f_index,il,0)=1.;
+          for( Index ia=0; ia<nang-1; ia++) 
+          {
+            //for (Index l=0; l<Nlegendre; l++)
+            for (Index l=1; l<Nlegendre; l++)
+              pmom(f_index,il,l) += 0.25 * adu[ia] *
+                                    ( px(ia,l,0)*pfct[ia] + px(ia,l,1)*pfct[ia+1] );
+          }
+        }
+   }
+}
+
+
+//! dtauc_ssalbCalc2
+/*!
+  Calculates layer averaged cloud optical depth (dtauc) and 
+  single scattering albedo (ssalb). These variables are required as
+  input for the DISORT subroutine
+
+  \param dtauc                 optical depths for all layers
+  \param ssalb                 single scattering albedos for all layers
+  \param scat_data             as the WSV
+  \param propmat_clearsky_agenda as the WSA
+  \param pnd_field             as the WSV 
+  \param t_field               as the WSV 
+  \param z_field               as the WSV 
+  \param vmr_field             as the WSV 
+  \param p_grid                as the WSV 
+  \param cloudbox_limits       as the WSV 
+  \param f_grid                as the WSV
+  
+  \author Jana Mendrok
+  \date   2018-02-18
+*/
+void dtauc_ssalbCalc2( Workspace &ws,
+                      MatrixView dtauc,
+                      MatrixView ssalb,
+                      const Agenda& propmat_clearsky_agenda,
+                      const ArrayOfArrayOfSingleScatteringData& scat_data,
+                      ConstMatrixView pnd_field,
+                      ConstVectorView t_field,
+                      ConstVectorView z_field,
+                      ConstMatrixView vmr_field,
+                      ConstVectorView p_grid,
+                      const ArrayOfIndex& cloudbox_limits,
+                      ConstVectorView f_grid )
+{
+  // Initialization
+  dtauc=0.;
+  ssalb=0.;
+  
+  const Index Np = p_grid.nelem();
+  const Index nf = f_grid.nelem();
+
+  assert( dtauc.nrows() == nf);
+  assert( ssalb.nrows() == nf);
+  assert( dtauc.ncols() == Np-1);
+  assert( ssalb.ncols() == Np-1);
+
+  Matrix ext_bulk_gas(nf,Np), ext_bulk_par(nf,Np), abs_bulk_par(nf,Np);
+  get_paroptprop( ext_bulk_par, abs_bulk_par,
+                  scat_data, pnd_field, t_field, p_grid, cloudbox_limits,
+                  f_grid );
+  get_gasoptprop( ws, ext_bulk_gas,
+                  propmat_clearsky_agenda, t_field, vmr_field, p_grid, f_grid );
+    
+  for( Index ip = 0; ip < Np-1; ip++ )
+    // Do layer averaging and derive single scattering albedo & optical depth
+    for( Index f_index = 0; f_index < nf; f_index++ )
+    {
+      Numeric ext = 0.5 * ( ext_bulk_gas(f_index,ip)+ext_bulk_par(f_index,ip)
+                           +ext_bulk_gas(f_index,ip+1)+ext_bulk_par(f_index,ip+1) );
+      if( ext!=0 )
+      {
+        Numeric abs = 0.5 * ( ext_bulk_gas(f_index,ip)+abs_bulk_par(f_index,ip)
+                             +ext_bulk_gas(f_index,ip+1)+abs_bulk_par(f_index,ip+1) );
         ssalb(f_index,Np-2-ip) = (ext-abs) / ext;
       }
      
@@ -1153,7 +1550,7 @@ void phase_functionCalc(//Output
   \param phase_function Normalized phase function
   \param scat_angle_grid Scattering angle grid corresponding to phase 
   functions
-  \param n_legendre Number of Legendre polynomials to be calculated
+  \param Nlegendre Number of Legendre polynomials to be calculated
   
   \author Claudia Emde, Jana Mendrok
   \date   2006-02-10
@@ -1163,7 +1560,7 @@ void pmomCalc2(//Output
               //Input
               ConstMatrixView phase_function, 
               ConstVectorView scat_angle_grid,
-              const Index n_legendre,
+              const Index Nlegendre,
               const Verbosity& verbosity)
 {
   assert( phase_function.ncols() == scat_angle_grid.nelem() );
@@ -1241,7 +1638,7 @@ void pmomCalc2(//Output
                p1_2*phase_int(i_l, i+1))
               *abs(u[i+1]-u[i]);
             
-            for (Index l=2; l<n_legendre; l++)
+            for (Index l=2; l<Nlegendre; l++)
               {
               p2_1=(2*(double)l-1)/(double)l*u[i]*p1_1-((double)l-1)/
                 (double)l*p0_1; 
@@ -1274,7 +1671,7 @@ void pmomCalc2(//Output
   \param phase_function Normalized phase function
   \param scat_angle_grid Scattering angle grid corresponding to phase 
   functions
-  \param n_legendre Number of Legendre polynomials to be calculated
+  \param Nlegendre Number of Legendre polynomials to be calculated
   
   \author Claudia Emde, Jana Mendrok
   \date   2006-02-10
@@ -1284,7 +1681,7 @@ void pmomCalc(//Output
               //Input
               ConstMatrixView phase_function, 
               ConstVectorView scat_angle_grid,
-              const Index n_legendre,
+              const Index Nlegendre,
               const Verbosity& verbosity)
 {
   assert( phase_function.ncols() == scat_angle_grid.nelem() );
@@ -1364,7 +1761,7 @@ void pmomCalc(//Output
                p1_2*phase_int(i_l, i+1))
               *abs(u[i+1]-u[i]);
             
-            for (Index l=2; l<n_legendre; l++)
+            for (Index l=2; l<Nlegendre; l++)
               {
               p2_1=(2*(double)l-1)/(double)l*u[i]*p1_1-((double)l-1)/
                 (double)l*p0_1; 
@@ -1663,10 +2060,10 @@ void run_disort( Workspace& ws,
   Matrix phase_function(nlyr,scat_angle_grid.nelem(), 0.);
   
   Index nstr=nstreams;
-  Index n_legendre=nstreams+1;
+  Index Nlegendre=nstreams+1;
   
   // Legendre polynomials of phase function
-  Matrix pmom(nlyr, n_legendre, 0.); 
+  Matrix pmom(nlyr, Nlegendre, 0.); 
 
   // Intensities to be computed for user defined polar (zenith angles)
   Index usrang = TRUE_;
@@ -1746,7 +2143,7 @@ void run_disort( Workspace& ws,
   Index maxcly = nlyr; // Maximum number of layers
   Index maxulv = nlyr+1; // Maximum number of user defined tau
   Index maxumu = scat_za_grid.nelem(); // maximum number of zenith angles
-  Index maxcmu = n_legendre-1; // maximum number of Legendre polynomials 
+  Index maxcmu = Nlegendre-1; // maximum number of Legendre polynomials 
   if( nstr<4 )
     maxcmu = 4; // reset for low nstr since DISORT selftest uses 4 streams,
                 // hence requires at least 4 Legendre polynomials
@@ -1800,7 +2197,7 @@ void run_disort( Workspace& ws,
 
         //cout << "entering pmomCalc for f_index=" << f_index << " (f="
         //     << f_grid[f_index]*1e-9 << "GHz).\n";
-        pmomCalc2(pmom, phase_function, scat_angle_grid, n_legendre, verbosity);
+        pmomCalc2(pmom, phase_function, scat_angle_grid, Nlegendre, verbosity);
       }
       else
       {
@@ -1812,7 +2209,7 @@ void run_disort( Workspace& ws,
 
         //cout << "entering pmomCalc for f_index=" << f_index << " (f="
         //     << f_grid[f_index]*1e-9 << "GHz).\n";
-        pmomCalc(pmom, phase_function, scat_angle_grid, n_legendre, verbosity);
+        pmomCalc(pmom, phase_function, scat_angle_grid, Nlegendre, verbosity);
       }
 
       // Wavenumber in [1/cm]
@@ -1921,36 +2318,15 @@ void run_disort2( Workspace& ws,
               ConstVectorView scat_za_grid,
               const Index& nstreams,
               const String& pfct_method,
+              const Index& Npfct,
               const Verbosity& verbosity )
 {
   const Index nf = f_grid.nelem();
   Index nlyr = p_grid.nelem()-1; // don't make this const, else disort_ complains
       
-  // Optical depth of layers
-  Matrix dtauc(nf, nlyr, 0.); 
-  // Single scattering albedo of layers
-  Matrix ssalb(nf, nlyr, 0.);
-  
-  // Phase function
-  Vector scat_angle_grid;
-  Index pfct_za_grid_size;
-  if( pfct_method=="interpolate" )
-  {
-    pfct_za_grid_size=181;
-    nlinspace(scat_angle_grid, 0, 180, pfct_za_grid_size);
-  }
-  else
-    // Scattering angle grid, assumed here that it is the same for
-    // all scattering elements
-    scat_angle_grid = scat_data[0][0].za_grid;
-  Matrix phase_function(nlyr,scat_angle_grid.nelem(), 0.);
-  
   Index nstr=nstreams;
-  Index n_legendre=nstreams+1;
+  Index Nlegendre=nstreams+1;
   
-  // Legendre polynomials of phase function
-  Matrix pmom(nlyr, n_legendre, 0.); 
-
   // Intensities to be computed for user defined polar (zenith angles)
   Index usrang = TRUE_;
   Index numu = scat_za_grid.nelem();
@@ -2029,7 +2405,7 @@ void run_disort2( Workspace& ws,
   Index maxcly = nlyr; // Maximum number of layers
   Index maxulv = nlyr+1; // Maximum number of user defined tau
   Index maxumu = scat_za_grid.nelem(); // maximum number of zenith angles
-  Index maxcmu = n_legendre-1; // maximum number of Legendre polynomials 
+  Index maxcmu = Nlegendre-1; // maximum number of Legendre polynomials 
   if( nstr<4 )
     maxcmu = 4; // reset for low nstr since DISORT selftest uses 4 streams,
                 // hence requires at least 4 Legendre polynomials
@@ -2055,19 +2431,54 @@ void run_disort2( Workspace& ws,
   Index ntau = 0; 
   Vector utau(maxulv,0.);
   
-  dtauc_ssalbCalc2(ws, dtauc, ssalb,
+  // FIXME: this can be optimized a little more by outputting *bulk_par in the
+  // original particle freq extent and only duplicating the freq data in
+  // get_dtauc_ssalb.
+  Index nf_ssd = scat_data[0][0].f_grid.nelem();
+
+  Matrix ext_bulk_gas(nf,nlyr+1);
+  get_gasoptprop( ws, ext_bulk_gas,
                   propmat_clearsky_agenda,
-                  scat_data,
-                  pnd_field(joker,joker,0,0),
-                  t_field(joker,0,0), z_field(joker,0,0),
-                  vmr_field(joker,joker,0,0), p_grid,
-                  cloudbox_limits, f_grid);
+                  t_field(joker,0,0), vmr_field(joker,joker,0,0), p_grid,
+                  f_grid );
+  Matrix ext_bulk_par(nf,nlyr+1), abs_bulk_par(nf,nlyr+1);
+  get_paroptprop( ext_bulk_par, abs_bulk_par,
+                  scat_data, pnd_field(joker,joker,0,0),
+                  t_field(joker,0,0), p_grid, cloudbox_limits, f_grid );
+
+  // Optical depth of layers
+  Matrix dtauc(nf, nlyr); 
+  // Single scattering albedo of layers
+  Matrix ssalb(nf, nlyr);
+  get_dtauc_ssalb( dtauc, ssalb,
+                   ext_bulk_gas, ext_bulk_par, abs_bulk_par, z_field(joker,0,0) );
+  Vector pfct_angs;
+  get_angs( pfct_angs, scat_data, Npfct );
+  Index nang = pfct_angs.nelem();
+
+  Tensor3 pha_bulk_par(nf_ssd,nlyr+1,nang);
+  get_parZ( pha_bulk_par, 
+            scat_data, pnd_field(joker,joker,0,0),
+            t_field(joker,0,0), pfct_angs, cloudbox_limits );
+  Tensor3 pfct_bulk_par(nf_ssd,nlyr,nang);
+  get_pfct( pfct_bulk_par, pha_bulk_par,
+            ext_bulk_par, abs_bulk_par, cloudbox_limits );
+
+  // Legendre polynomials of phase function
+  Tensor3 pmom(nf_ssd, nlyr, Nlegendre, 0.); 
+  get_pmom( pmom, pfct_bulk_par, pfct_angs, Nlegendre );
 
   // Loop over frequencies
+  bool pf = (nf_ssd!=1);
+  Index this_f_index = 0;
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index ++)
     {
+      if( pf )
+        this_f_index = f_index;
+
       ttemp = COSMIC_BG_TEMP;
 
+      /*
       if( pfct_method=="interpolate" )
       {
         phase_functionCalc2(phase_function,
@@ -2080,7 +2491,8 @@ void run_disort2( Workspace& ws,
 
         //cout << "entering pmomCalc for f_index=" << f_index << " (f="
         //     << f_grid[f_index]*1e-9 << "GHz).\n";
-        pmomCalc2(pmom, phase_function, scat_angle_grid, n_legendre, verbosity);
+        pmomCalc2(pmom(f_index,joker,joker),
+                  phase_function, scat_angle_grid, Nlegendre, verbosity);
       }
       else
       {
@@ -2092,8 +2504,10 @@ void run_disort2( Workspace& ws,
 
         //cout << "entering pmomCalc for f_index=" << f_index << " (f="
         //     << f_grid[f_index]*1e-9 << "GHz).\n";
-        pmomCalc(pmom, phase_function, scat_angle_grid, n_legendre, verbosity);
+        pmomCalc(pmom(f_index,joker,joker),
+                 phase_function, scat_angle_grid, Nlegendre, verbosity);
       }
+      */
 
       // Wavenumber in [1/cm]
       Numeric wvnmlo = f_grid[f_index]/(100*SPEED_OF_LIGHT);
@@ -2123,7 +2537,7 @@ void run_disort2( Workspace& ws,
           disort_(&nlyr,
                   dtauc(f_index,joker).get_c_array(),
                   ssalb(f_index,joker).get_c_array(),
-                  pmom.get_c_array(),
+                  pmom(this_f_index,joker,joker).get_c_array(),
                   t.get_c_array(), &wvnmlo, &wvnmhi,
                   &usrtau, &ntau, utau.get_c_array(),
                   &nstr, &usrang, &numu,
@@ -2265,6 +2679,7 @@ void run_disort2( Workspace&,
               ConstVectorView,
               const Index&,
               const String&,
+              const Index&,
               const Verbosity& )
 {
   throw runtime_error ("This version of ARTS was compiled without DISORT support.");
