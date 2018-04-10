@@ -6148,6 +6148,31 @@ void Workspace::define_wsv_data()
       GROUP( "ArrayOfGriddedField3" )));
    
   wsv_data.push_back
+    (WsvRecord
+     ( NAME( "water_psat_agenda" ),
+      DESCRIPTION
+      (
+       "Agenda to calculate the saturation pressure of water.\n"
+       ),
+      GROUP( "Agenda" )));
+    
+  wsv_data.push_back
+   (WsvRecord
+   ( NAME( "water_psat_field" ),
+     DESCRIPTION
+     (
+       "The field of water saturation pressure.\n"
+       "\n"
+       "This variable holds the saturation pressure of water at each crossing of\n"
+       "the pressure, latitude and longitude grids.\n"
+       "\n"
+       "Unit:       Pa\n"
+       "\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ]\n"
+     ),
+     GROUP("Tensor3")));
+
+  wsv_data.push_back
    (WsvRecord
    ( NAME( "wigner_initialized" ),
      DESCRIPTION

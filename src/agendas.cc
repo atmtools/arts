@@ -759,7 +759,17 @@ void define_agenda_data()
        OUTPUT(),
        INPUT( "agenda_array_index", "iy_unit" )));
 
- agenda_data.push_back
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "water_psat_agenda" ),
+       DESCRIPTION
+       (
+        "Calculation of the saturation pressure of water.\n"
+        ),
+       OUTPUT( "water_psat_field" ),
+       INPUT( "t_field" )));
+
+  agenda_data.push_back
     (AgRecord
      ( NAME( "ybatch_calc_agenda" ),
        DESCRIPTION

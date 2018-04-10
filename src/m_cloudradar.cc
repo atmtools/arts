@@ -98,6 +98,7 @@ void iyActiveSingleScat(
   const ArrayOfRetrievalQuantity&           jacobian_quantities,
   const Ppath&                              ppath,
   const Agenda&                             propmat_clearsky_agenda,
+  const Agenda&                             water_psat_agenda,   
   const Agenda&                             iy_transmitter_agenda,
   const Index&                              iy_agenda_call1,
   const Tensor3&                            iy_transmission,
@@ -654,10 +655,11 @@ void iyActiveSingleScat(
             )
         }
       
-      rtmethods_jacobian_finalisation( diy_dx, diy_dpath,
+      rtmethods_jacobian_finalisation( ws, diy_dx, diy_dpath,
                                        ns, nf, np, atmosphere_dim, ppath,
                                        ppvar_p, ppvar_t, ppvar_vmr,
                                        iy_agenda_call1, iy_transmission,
+                                       water_psat_agenda,   
                                        jacobian_quantities, jac_species_i,
                                        jac_is_t );
     }

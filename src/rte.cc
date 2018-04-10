@@ -3223,23 +3223,12 @@ void rtmethods_jacobian_init(
       jac_ranges_indices( jacobian_indices, any_affine,
                           jacobian_quantities, true );
       //
-      FOR_ANALYTICAL_JACOBIANS_DO2( 
+      FOR_ANALYTICAL_JACOBIANS_DO( 
         diy_dx[iq].resize( jacobian_indices[iq][1]-jacobian_indices[iq][0]+1,
                            nn, ns );
         diy_dx[iq] = 0.0;
       )
     }
-}
-
-
-
-// A small help funtion. Should be replaced with an agenda for RH!?
-Numeric psat_water(const Numeric t)
-{
-  if( t >= TEMP_0_C )
-    { return WVSatPressureLiquidWater( t ); }
-  else
-    { return WVSatPressureIce( t ); }
 }
 
 
@@ -3256,6 +3245,7 @@ Numeric psat_water(const Numeric t)
     \date   2017-11-19
 */
 void rtmethods_jacobian_finalisation(
+         Workspace&                  ws,
          ArrayOfTensor3&             diy_dx,
          ArrayOfTensor3&             diy_dpath,  
    const Index&                      ns,
@@ -3268,6 +3258,7 @@ void rtmethods_jacobian_finalisation(
    const Matrix&                     ppvar_vmr,
    const Index&                      iy_agenda_call1,         
    const Tensor3&                    iy_transmission,
+   const Agenda&                     water_psat_agenda,   
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfIndex                jac_species_i,
    const ArrayOfIndex                jac_is_t)
@@ -3291,6 +3282,8 @@ void rtmethods_jacobian_finalisation(
 
   
   // Handle abs species retrieval units, both internally and impact on T-jacobian
+  //
+  Tensor3 water_psat(0,0,0);
   //
   // Conversion for abs species itself
   for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ )
@@ -3325,12 +3318,13 @@ void rtmethods_jacobian_finalisation(
 
           else if( jacobian_quantities[iq].Mode() == "rh" )
             {
-              // Here x = (p_sat/p) * z              
+              // Here x = (p_sat/p) * z
+              Tensor3 t_data(ppvar_t.nelem(),1,1); t_data(joker,0,0) = ppvar_t;
+              water_psat_agendaExecute( ws, water_psat, t_data,
+                                        water_psat_agenda);
               for( Index ip=0; ip<np; ip++ )
-                {
-                  diy_dpath[iq](ip,joker,joker) *=
-                    psat_water(ppvar_t[ip]) / ppvar_p[ip];
-                }
+                { diy_dpath[iq](ip,joker,joker) *=
+                    water_psat(ip,0,0) / ppvar_p[ip]; }
             }
 
           else if( jacobian_quantities[iq].Mode() == "q" )
@@ -3373,13 +3367,25 @@ void rtmethods_jacobian_finalisation(
                     }
                   else if( jacobian_quantities[ia].Mode() == "rh" )
                     {
+                      Tensor3 t_data(ppvar_t.nelem(),1,1);
+                      t_data(joker,0,0) = ppvar_t;
+                      // Calculate water sat. pressure if not already done
+                      if( water_psat.npages() == 0 )
+                        { water_psat_agendaExecute( ws, water_psat, t_data,
+                                                    water_psat_agenda); }
+                      // Sat.pressure for +1K
+                      Tensor3 water_psat1K;
+                      t_data(joker,0,0) += 1;
+                      water_psat_agendaExecute( ws, water_psat1K, t_data,
+                                                water_psat_agenda);
+                      
                       for( Index ip=0; ip<np; ip++ )
                         {
-                          Numeric psat = psat_water(ppvar_t[ip]);
+                          const Numeric psat = water_psat(ip,0,0);
+                          const Numeric psat1K = water_psat1K(ip,0,0);
                           Matrix ddterm = diy_dpath[ia](ip,joker,joker);
                           ddterm *= ppvar_vmr(jac_species_i[ia],ip) *
-                            (ppvar_p[ip] / pow(psat,2.0) ) *
-                            ( psat_water(ppvar_t[ip]+1) - psat );
+                            (ppvar_p[ip] / pow(psat,2.0) ) * ( psat1K - psat );
                           diy_dpath[iq](ip,joker,joker) += ddterm;
                         }
                     }

@@ -428,6 +428,7 @@ void rtmethods_jacobian_init(
    const bool                        is_active = false );
 
 void rtmethods_jacobian_finalisation(
+         Workspace&                  ws,
          ArrayOfTensor3&             diy_dx,
          ArrayOfTensor3&             diy_dpath,  
    const Index&                      ns,
@@ -440,6 +441,7 @@ void rtmethods_jacobian_finalisation(
    const Matrix&                     ppvar_vmr,
    const Index&                      iy_agenda_call1,         
    const Tensor3&                    iy_transmission,
+   const Agenda&                     water_psat_agenda,   
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfIndex                jac_species_i,
    const ArrayOfIndex                jac_is_t);
@@ -455,7 +457,5 @@ void rtmethods_unit_conversion(
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const Index&                      j_analytical_do,
    const String&                     iy_unit );
-
-Numeric psat_water(const Numeric t);
 
 #endif  // rte_h

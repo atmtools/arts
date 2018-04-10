@@ -1,3 +1,36 @@
+2018-04-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1017
+
+	* Introduced water_psat_agenda.
+
+	* src/m_nlte.cc (nlte_fieldForSingleSpeciesNonOverlappingLines):
+	Adopted call of radiation_fieldCalcForRotationalNLTE.
+
+	* src/m_radiation_field.cc (radiation_fieldCalcForRotationalNLTE):
+	Adopted call of radiation_fieldCalcFromiyCalc.
+
+	* src/m_radiation_field.cc (doit_i_fieldClearskyPlaneParallel):
+	(radiation_fieldCalcFromiyCalc): Adopted call of iyEmissionStandard.
+
+	* src/m_transmitter.cc (iyTransmissionStandard):
+	* src/m_rte.cc (iyEmissionStandard):
+	* src/m_fos.cc (iyHybrid):
+	* src/m_cloudradar.cc (iyActiveSingleScat): Adopted call of
+	rtmethods_jacobian_finalisation.
+
+	* src/rte.cc (rtmethods_jacobian_finalisation):
+	* src/m_oem.cc (x2artsStandard, xaStandard): Now using
+	water_psat_agenda.
+
+	* src/rte.cc (psat_water): Removed this temporary solution.
+
+	* src/m_physics.cc (water_psat_fieldMK05): New WSM.
+
+	* src/workspace.cc: Introduced water_psat_field.
+
+	* src/agendas.cc: Introduced water_psat_agenda.
+
 2018-04-10  Stefan Buehler  <stefan.buehler(at)uni-hamburg.de>
 
 	* arts-2-3-1016

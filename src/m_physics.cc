@@ -53,6 +53,7 @@
 #include "messages.h"
 #include "physics_funcs.h"
 
+extern const Numeric TEMP_0_C;
 extern const Numeric COSMIC_BG_TEMP;
 
 
@@ -134,3 +135,45 @@ void MatrixUnitIntensity(// WS Output:
   for( Index i=0; i<n; i++ )
     { m(i,0) = 1.0; }
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void water_psat_fieldMK05(
+        Tensor3&    water_psat_field,
+  const Tensor3&    t_field,
+  const Verbosity& )
+{
+  const Index n1 = t_field.npages();
+  const Index n2 = t_field.nrows();
+  const Index n3 = t_field.ncols();
+
+  water_psat_field.resize(n1,n2,n3);
+
+  for( Index i=0; i<n1; i++ )
+    {
+      for( Index j=0; j<n2; j++ )
+        {
+          for( Index k=0; k<n3; k++ )
+            {
+              const Numeric t = t_field(i,j,k);
+              if( t > TEMP_0_C )
+                {
+                  water_psat_field(i,j,k) =
+                    exp( 54.842763 - 6763.22/t - 4.21*log(t) + 0.000367*t +
+                         tanh(0.0415*(t - 218.8)) * ( 53.878 - 1331.22/t -
+                                                      9.44523*log(t) +
+                                                      0.014025*t) );
+                }
+              else
+                {
+                  water_psat_field(i,j,k) =
+                    exp( 9.550426 - 5723.265/t + 3.53068*log(t) - 0.00728332*t );
+                }
+            }
+        }
+    }
+}
+
+
+

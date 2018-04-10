@@ -402,6 +402,7 @@ void xClip(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void xaStandard(
+         Workspace&                  ws,
          Vector&                     xa,
    const Index&                      atmfields_checked,
    const Index&                      atmgeom_checked,
@@ -420,7 +421,8 @@ void xaStandard(
    const Tensor3&                    wind_u_field,
    const Tensor3&                    wind_v_field,
    const Tensor3&                    wind_w_field,
-   const Verbosity&)
+   const Agenda&                     water_psat_agenda,   
+   const Verbosity& )
 {
   // Basics
   //
@@ -523,6 +525,9 @@ void xaStandard(
                   Tensor3 t_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
                   regrid_atmfield_by_gp( t_x, atmosphere_dim,  t_field,
                                          gp_p, gp_lat, gp_lon );
+                  Tensor3 water_psat;
+                  water_psat_agendaExecute( ws, water_psat, t_x,
+                                            water_psat_agenda);
                   // Calculate relative humidity (vmr*p/p_sat)
                   Index i = 0;
                   for( Index i3=0; i3<=vmr_x.ncols(); i3++ )
@@ -531,7 +536,7 @@ void xaStandard(
                             {
                               xa[ji[q][0]+i] = vmr_x(i1,i2,i3) *
                                 jacobian_quantities[q].Grids()[0][i1] /
-                                psat_water(t_x(i1,i2,i3));
+                                water_psat(i1,i2,i3);
                               i += 1;
                     }   }   }
                 }
@@ -648,6 +653,7 @@ void xaStandard(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void x2artsStandard(
+         Workspace&                  ws,
          Vector&                     y_baseline,
          Tensor4&                    vmr_field,
          Tensor3&                    t_field,
@@ -673,7 +679,8 @@ void x2artsStandard(
    const Matrix &                    sensor_response_dlos_grid,
    const Vector &                    sensor_response_f_grid,
    const ArrayOfIndex &              sensor_response_pol_grid,
-   const Verbosity&)
+   const Agenda&                     water_psat_agenda,   
+   const Verbosity&  )
 {
   // Basics
   //
@@ -789,12 +796,15 @@ void x2artsStandard(
           else if( jacobian_quantities[q].Mode() == "rh" )
             {
               // vmr = x * p_sat / p
+              Tensor3 water_psat;
+              water_psat_agendaExecute( ws, water_psat, t_field,
+                                            water_psat_agenda);
               for( Index i3=0; i3<vmr_field.ncols(); i3++ )
                 { for( Index i2=0; i2<vmr_field.nrows(); i2++ )
                     { for( Index i1=0; i1<vmr_field.npages(); i1++ )
                         {
                           vmr_field(isp,i1,i2,i3) = x_field(i1,i2,i3) *
-                            psat_water(t_field(i1,i2,i3)) / p_grid[i1];
+                            water_psat(i1,i2,i3) / p_grid[i1];
                 }   }   }
             }
           else if( jacobian_quantities[q].Mode() == "q" )

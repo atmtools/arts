@@ -197,5 +197,14 @@ nlteOff
 #
 partition_functionsInitFromBuiltin
 
+
+#
+# Only one option so far for water_psat_agenda 
+#
+AgendaSet( water_psat_agenda ){
+  water_psat_fieldMK05
+}
+
+
 IndexSet( scat_data_checked, 0 )
 }
