@@ -161,6 +161,7 @@ void get_iy_of_background(
   ConstTensor3View        iy_transmission,
   const Index&            iy_id,
   const Index&            jacobian_do,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const Ppath&            ppath,
   ConstVectorView         rte_pos2,
   const Index&            atmosphere_dim,
@@ -176,6 +177,7 @@ void get_iy_of_background(
   const Agenda&           iy_space_agenda,
   const Agenda&           iy_surface_agenda,
   const Agenda&           iy_cloudbox_agenda,
+  const Index&            iy_agenda_call1,
   const Verbosity&        verbosity);
 
 void get_ppath_atmvars( 
@@ -224,6 +226,11 @@ void iy_transmission_mult(
        Tensor3&      iy_trans_total,
   ConstTensor3View   iy_trans_old,
   ConstTensor3View   iy_trans_new );
+
+void iy_transmission_mult( 
+       Matrix&       iy_new,
+  ConstTensor3View   iy_trans,
+  ConstMatrixView    iy_old );
 
 void iyb_calc(
         Workspace&                  ws,

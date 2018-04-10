@@ -1296,11 +1296,11 @@ void iyHybrid(
 
   // Radiative background
   get_iy_of_background( ws, iy, diy_dx, 
-                        iy_trans_new, iy_id, jacobian_do, ppath, rte_pos2, 
-                        atmosphere_dim, t_field, z_field, vmr_field, 
+                        iy_trans_new, iy_id, jacobian_do, jacobian_quantities,
+                        ppath, rte_pos2, atmosphere_dim, t_field, z_field, vmr_field, 
                         cloudbox_on, stokes_dim, f_grid, iy_unit, surface_props_data,
                         iy_main_agenda, iy_space_agenda, iy_surface_agenda, 
-                        iy_cloudbox_agenda, verbosity );
+                        iy_cloudbox_agenda, iy_agenda_call1, verbosity );
   //
   ppvar_iy(joker,joker,np-1) = iy;
 

@@ -7978,9 +7978,11 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "diy_dx", "surface_los", "surface_rmatrix", "surface_emission",
-            "iy_transmission", "iy_id", "jacobian_do", "atmosphere_dim", "t_field", 
-            "z_field", "vmr_field", "nlte_field", "cloudbox_on", "stokes_dim", "f_grid", 
-            "rtp_pos", "rtp_los", "rte_pos2", "iy_unit", "iy_main_agenda"
+            "dsurface_names", "dsurface_rmatrix_dx", "dsurface_emission_dx",
+            "iy_transmission", "iy_id", "jacobian_do", "jacobian_quantities",
+            "atmosphere_dim", "t_field", "z_field", "vmr_field", "nlte_field",
+            "cloudbox_on", "stokes_dim", "f_grid", "rtp_pos", "rtp_los",
+            "rte_pos2", "iy_unit", "iy_main_agenda"
           ),
         GIN(),
         GIN_TYPE(),

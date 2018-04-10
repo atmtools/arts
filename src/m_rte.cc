@@ -60,6 +60,7 @@
 extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
 extern const String ABSSPECIES_MAINTAG;
+extern const String SURFACE_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 extern const String WIND_MAINTAG;
 extern const Index GFIELD4_FIELD_NAMES;
@@ -467,11 +468,11 @@ void iyEmissionStandard(
 
   // Radiative background
   get_iy_of_background( ws, iy, diy_dx, 
-                        iy_trans_new, iy_id, jacobian_do, ppath, rte_pos2, 
-                        atmosphere_dim, t_field, z_field, vmr_field, 
+                        iy_trans_new, iy_id, jacobian_do, jacobian_quantities,
+                        ppath, rte_pos2, atmosphere_dim, t_field, z_field, vmr_field, 
                         cloudbox_on, stokes_dim, f_grid, iy_unit, surface_props_data,
                         iy_main_agenda, iy_space_agenda, iy_surface_agenda, 
-                        iy_cloudbox_agenda, verbosity );
+                        iy_cloudbox_agenda, iy_agenda_call1, verbosity );
   //
   ppvar_iy(joker,joker,np-1) = iy;
 
@@ -1340,7 +1341,7 @@ void yCalc_mblock_loop_body(
         //
         if( j_analytical_do )
           {
-            FOR_ANALYTICAL_JACOBIANS_DO(
+            FOR_ANALYTICAL_JACOBIANS_DO2(
               mult(jacobian(rowind,
                             Range(jacobian_indices[iq][0],
                                 jacobian_indices[iq][1]-jacobian_indices[iq][0]+1)),

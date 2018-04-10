@@ -1,3 +1,28 @@
+2018-04-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1014
+
+	* src/rte.cc (iyb_calc_body, iyb_calc)
+	(rtmethods_unit_conversion):
+	* src/m_rte.cc (yCalc_mblock_loop_body): Changed from using
+	FOR_ANALYTICAL_JACOBIANS_DO to using FOR_ANALYTICAL_JACOBIANS_DO2.
+
+	* src/jacobian.h (FOR_ANALYTICAL_JACOBIANS_DO2): New macro.
+
+	* src/m_surface.cc (iySurfaceRtpropCalc): Added dsurface_names,
+	dsurface_rmatrix_dx and dsurface_emission_dx as input. Added code
+	for calculating surface Jacobian. So fra only 1D works.
+
+	* src/m_fos.cc (iyHybrid):
+	* src/m_rte.cc (iyEmissionStandard): Adopted call of get_iy_of_background.
+
+	* src/rte.cc (get_iy_of_background): Added jacobian_quantities
+	and iy_agenda_call1 as input variables. dsurface_names now set
+	based on jacobian_quantities.
+
+	(iy_transmission_mult): A new version of the function, operating
+	on iy.
+
 2018-04-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1013
@@ -19,22 +44,22 @@
 2018-04-09  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-1011
-	
+
 	* src/CMakeLists.txt:  Added on datarecord for linerecord and
 	removed another.
-	
+
 	* src/absorption.{cc,h}, src/linefunctions.{cc,h}, src/m_abs.cc:
 	* src/m_zeeman.cc, src/methods.cc, src/workspace.cc:
 	Removed Zeeman splitting vector
-	
+
 	* src/linerecord.{cc,h}:  Removed obsolete partition function
 	by linerecord and added a Zeeman effect record.  Writing and
 	reading still needs testing.  It should write and store the
 	splitting and polarization expected of the line.  This should
 	allow to input external g-factors directly via the linerecord
-	
+
 	* src/linerecord_partitionfunctiondata.{cc,h}: deleted
-	
+
 	* src/zeeman.{cc,h}, (added) src/zeemandata.{cc,h}: Changed
 	interface so that the splitting is known by the line.  Moved
 	many tests into the new ZeemanEffectData class.

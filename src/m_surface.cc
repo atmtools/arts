@@ -526,9 +526,13 @@ void iySurfaceRtpropCalc(
     const Matrix&           surface_los,
     const Tensor4&          surface_rmatrix,
     const Matrix&           surface_emission,
+    const ArrayOfString&    dsurface_names,
+    const ArrayOfTensor4&   dsurface_rmatrix_dx,
+    const ArrayOfMatrix&    dsurface_emission_dx, 
     const Tensor3&          iy_transmission,
     const Index&            iy_id,
     const Index&            jacobian_do,
+    const ArrayOfRetrievalQuantity&   jacobian_quantities,        
     const Index&            atmosphere_dim,
     const Tensor3&          t_field,
     const Tensor3&          z_field,
@@ -579,7 +583,7 @@ void iySurfaceRtpropCalc(
   // Variable to hold down-welling radiation
   Tensor3   I( nlos, nf, stokes_dim );
 
-  // Loop *surface_los*-es. If no such LOS, we are ready.
+  // Loop *surface_los*-es. 
   if( nlos > 0 )
     {
       for( Index ilos=0; ilos<nlos; ilos++ )
@@ -628,6 +632,47 @@ void iySurfaceRtpropCalc(
 
   // Add up
   surface_calc( iy, I, surface_los, surface_rmatrix, surface_emission );
+
+  // Surface Jacobians
+  if( jacobian_do  &&  dsurface_names.nelem() )
+    {
+      // Loop dsurface_names
+      for( Index i=0; i<dsurface_names.nelem(); i++ )
+        {
+          // Error if derivatives not calculated
+          // Or should we accept this?
+          if( dsurface_emission_dx[i].empty() || dsurface_rmatrix_dx[i].empty() )
+            {
+              ostringstream os;
+              os << "The derivatives for surface quantity: " << dsurface_names[i]
+                 << "\nwere not calculated by *iy_surface_agenda*.\n"
+                 << "That is, *dsurface_emission_dx* and/or *dsurface_rmatrix_dx*\n"
+                 << "are empty.";
+              throw runtime_error( os.str() );              
+            }
+          else
+            {
+              // Find index among jacobian quantities
+              Index ihit = -1;
+              for( Index j=0; j<jacobian_quantities.nelem() && ihit<0; j++ )
+                { if( dsurface_names[i] == jacobian_quantities[j].Subtag() )
+                    { ihit = j; }
+                }
+              assert( ihit >= 0 );
+              // Derivative, as observed at the surface
+              Matrix diydx0, diydx;
+              surface_calc( diydx0, I, surface_los, dsurface_rmatrix_dx[i],
+                            dsurface_emission_dx[i] );
+              // Weight with transmission to sensor
+              iy_transmission_mult( diydx, iy_transmission, diydx0 );
+              // Put into diy_dx
+              // So far limited to 1D
+              assert( atmosphere_dim == 1 );
+              diy_dx[ihit].resize(1,nf,stokes_dim);
+              diy_dx[ihit](0,joker,joker) = diydx;
+            }
+        }
+    }
 }
 
 
@@ -2379,7 +2424,9 @@ void dsurface_check(
           ostringstream os;
           os << "String " << i << " (0-based) of *dsurface_names* is \""
              << dsurface_names[i] << "\"\n"
-             << "but this string could not be found in *surface_props_names*.";
+             << "but this string could not be found in *surface_props_names*.\n"
+             << "This is likely due to incorrect choice of quantity when\n"
+             << " calling *jacobianAddSurfaceQuantity*.";
           throw runtime_error( os.str() );
         }
     }

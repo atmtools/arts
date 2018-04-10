@@ -53,6 +53,7 @@
 #include "rte.h"
 #include "special_interp.h"
 
+extern const String SURFACE_MAINTAG;
 extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric TEMP_0_C;
 
@@ -1122,6 +1123,7 @@ void get_iy_of_background(
   ConstTensor3View        iy_transmission,
   const Index&            iy_id, 
   const Index&            jacobian_do,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const Ppath&            ppath,
   ConstVectorView         rte_pos2,
   const Index&            atmosphere_dim,
@@ -1137,6 +1139,7 @@ void get_iy_of_background(
   const Agenda&           iy_space_agenda,
   const Agenda&           iy_surface_agenda,
   const Agenda&           iy_cloudbox_agenda,
+  const Index&            iy_agenda_call1,
   const Verbosity&        verbosity)
 {
   CREATE_OUT3;
@@ -1183,10 +1186,19 @@ void get_iy_of_background(
         //
         const Index los_id = iy_id % (Index)1000;
         Index iy_id_new = iy_id + (Index)9*los_id; 
-        // Temporary stuff
-        ArrayOfTensor4 dsurface_rmatrix_dx(0);
-        ArrayOfMatrix  dsurface_emission_dx(0);
+        //
+        // Surface jacobian stuff:
         ArrayOfString  dsurface_names(0);
+        if( jacobian_do && iy_agenda_call1 )
+          {
+            for( Index i=0; i<jacobian_quantities.nelem(); i++ )
+              {
+                if( jacobian_quantities[i].MainTag() == SURFACE_MAINTAG )
+                  { dsurface_names.push_back( jacobian_quantities[i].Subtag() ); }
+              }
+          }
+        ArrayOfTensor4 dsurface_rmatrix_dx( dsurface_names.nelem() );
+        ArrayOfMatrix  dsurface_emission_dx( dsurface_names.nelem() );
         //
         iy_surface_agendaExecute( ws, iy, diy_dx, dsurface_rmatrix_dx,
                                   dsurface_emission_dx,
@@ -1617,7 +1629,7 @@ void iyb_calc_body(
       //
       if( j_analytical_do )
         {
-          FOR_ANALYTICAL_JACOBIANS_DO
+          FOR_ANALYTICAL_JACOBIANS_DO2
             (
                 for( Index ip=0;
                            ip<jacobian_indices[iq][1] - jacobian_indices[iq][0]+1;
@@ -1696,7 +1708,7 @@ void iyb_calc(
   if( j_analytical_do )
     {
       diyb_dx.resize( jacobian_indices.nelem() );
-      FOR_ANALYTICAL_JACOBIANS_DO(
+      FOR_ANALYTICAL_JACOBIANS_DO2(
         diyb_dx[iq].resize( niyb, jacobian_indices[iq][1] -
                                   jacobian_indices[iq][0] + 1 );
       )
@@ -1866,8 +1878,8 @@ firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
     *iy_trans_new* is sized by the function.
 
     \param   iy_trans_total    Out: Updated version of *iy_transmission*
-    \param   iy_trans_old      A variable matching *iy_transmission.
-    \param   iy_trans_new      A variable matching *iy_transmission.
+    \param   iy_trans_old      A variable matching *iy_transmission*.
+    \param   iy_trans_new      A variable matching *iy_transmission*.
 
     \author Patrick Eriksson 
     \date   2009-10-06
@@ -1892,6 +1904,46 @@ void iy_transmission_mult(
       mult( iy_trans_total(iv,joker,joker), iy_trans_old(iv,joker,joker),
                                             iy_trans_new(iv,joker,joker) );
     } 
+}
+
+
+
+//! iy_transmission_mult
+/*!
+    Multiplicates iy_transmission with iy-variable.
+
+    the operation can be written as:
+    
+       iy_new = T * iy_old
+
+    where T is the transmission corresponding to *iy_transmission*
+    and iy_old is a variable matching iy.
+
+    *iy_new* is sized by the function.
+
+    \param   iy_new        Out: Updated version of iy 
+    \param   iy_trans      A variable matching *iy_transmission*.
+    \param   iy_old        A variable matching *iy*.
+
+    \author Patrick Eriksson 
+    \date   2018-04-10
+*/
+void iy_transmission_mult( 
+       Matrix&       iy_new,
+  ConstTensor3View   iy_trans,
+  ConstMatrixView    iy_old )
+{
+  const Index nf = iy_trans.npages();
+  const Index ns = iy_trans.ncols();
+
+  assert( ns == iy_trans.nrows() );
+  assert( nf == iy_old.nrows() );
+  assert( ns == iy_old.ncols() );
+
+  iy_new.resize( nf, ns );
+
+  for( Index iv=0; iv<nf; iv++ )
+    { mult( iy_new(iv,joker), iy_trans(iv,joker,joker), iy_old(iv,joker) ); } 
 }
 
 
@@ -3173,11 +3225,12 @@ void rtmethods_jacobian_init(
       //
       FOR_ANALYTICAL_JACOBIANS_DO( 
         diy_dx[iq].resize( jacobian_indices[iq][1]-jacobian_indices[iq][0]+1,
-                           nn, ns ); 
+                           nn, ns );
         diy_dx[iq] = 0.0;
       )
     }
 }
+
 
 
 // A small help funtion. Should be replaced with an agenda for RH!?
@@ -3188,6 +3241,8 @@ Numeric psat_water(const Numeric t)
   else
     { return WVSatPressureIce( t ); }
 }
+
+
 
 //! rtmethods_jacobian_finalisation
 /*!
@@ -3227,9 +3282,9 @@ void rtmethods_jacobian_finalisation(
           Y.resize(ns,diy_dpath[iq].npages());
           for( Index iv=0; iv<nf; iv++ )
             { 
-                  X = transpose( diy_dpath[iq](joker,iv,joker) );
-                  mult( Y, iy_transmission(iv,joker,joker), X );
-                  diy_dpath[iq](joker,iv,joker) = transpose( Y );
+              X = transpose( diy_dpath[iq](joker,iv,joker) );
+              mult( Y, iy_transmission(iv,joker,joker), X );
+              diy_dpath[iq](joker,iv,joker) = transpose( Y );
             }
         )
     }
@@ -3382,8 +3437,8 @@ void rtmethods_unit_conversion(
   // 
   if( j_analytical_do )
     {
-      FOR_ANALYTICAL_JACOBIANS_DO( apply_iy_unit2( diy_dx[iq], iy, iy_unit,
-                                                   f_grid, n, i_pol ); )
+      FOR_ANALYTICAL_JACOBIANS_DO2( apply_iy_unit2( diy_dx[iq], iy, iy_unit,
+                                                    f_grid, n, i_pol ); )
     } 
 
   // iy

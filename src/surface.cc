@@ -119,8 +119,8 @@ void surface_calc(
 
           for( Index iv=0; iv<nf; iv++ )
             {
-          mult( rtmp, surface_rmatrix(ilos,iv,joker,joker), I(ilos,iv,joker) );
-          iy(iv,joker) += rtmp;
+              mult( rtmp, surface_rmatrix(ilos,iv,joker,joker), I(ilos,iv,joker) );
+              iy(iv,joker) += rtmp;
             }
         }
     }
