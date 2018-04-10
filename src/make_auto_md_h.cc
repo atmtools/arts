@@ -181,8 +181,19 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
   // Write the Output workspace variables:
   for (Index j=0; j<vo.nelem(); ++j)
     {
-      ofs << indent << "\\param[out] "
-        << wsv_data[vo[j]].Name() << "    WS Output\n";
+      bool inout = (std::find(mdd.In().begin(), mdd.In().end(), vo[j])
+                    != mdd.In().end());
+
+      if (inout)
+        {
+          ofs << indent << "\\param[in,out] "
+              << wsv_data[vo[j]].Name() << " WS Input/Output\n";
+        }
+      else
+        {
+          ofs << indent << "\\param[out] "
+              << wsv_data[vo[j]].Name() << " WS Output\n";
+        }
     }
 
   // Write the Generic output workspace variables:
