@@ -345,21 +345,6 @@ void transform_x_back(
   === Help sub-functions to handle analytical jacobians (in alphabetical order)
   ===========================================================================*/
 
-//! diy_from_path_to_rgrids
-/*!
-    Maps jacobian data for points along the propagation path, to
-    jacobian retrieval grid data.
-
-    \param   diy_dx              Out: Jacobians for selected retrieval grids.
-    \param   jacobian_quantity   As the WSV.
-    \param   diy_dpath           Jacobians along the propagation path.
-    \param   atmosphere_dim      As the WSV.
-    \param   ppath               As the WSV.
-    \param   ppath_p             The pressure at each ppath point.
-
-    \author Patrick Eriksson 
-    \date   2009-10-08
-*/
 // Small help function, to make the code below cleaner
 void from_dpath_to_dx(
         MatrixView   diy_dx,
@@ -372,7 +357,22 @@ void from_dpath_to_dx(
         { diy_dx(irow,icol) += w * diy_dq(irow,icol); }
     }
 }
-//
+
+//! diy_from_path_to_rgrids
+/*!
+    Maps jacobian data for points along the propagation path, to
+    jacobian retrieval grid data.
+
+    \param   diy_dx              Out: One lement of the WSV *diy_dx*.
+    \param   jacobian_quantity   One element of of the WSV *jacobian_quantities*.
+    \param   diy_dpath           Jacobians along the propagation path.
+    \param   atmosphere_dim      As the WSV.
+    \param   ppath               As the WSV.
+    \param   ppath_p             The pressure at each ppath point.
+
+    \author Patrick Eriksson 
+    \date   2009-10-08
+*/
 void diy_from_path_to_rgrids(
          Tensor3View          diy_dx,
    const RetrievalQuantity&   jacobian_quantity,
@@ -382,14 +382,16 @@ void diy_from_path_to_rgrids(
    ConstVectorView            ppath_p )
 {
   // If this is an integration target then diy_dx is just the sum of all in diy_dpath
-   if( jacobian_quantity.Integration() )
-   {
-     diy_dx(0, joker, joker) = diy_dpath(0, joker, joker);
-     for(Index i = 1; i < diy_dpath.npages(); i++)
-       diy_dx(0, joker, joker) += diy_dpath(i, joker, joker);
-     return;
-   }
-    
+  if( jacobian_quantity.Integration() )
+    {
+      diy_dx(0, joker, joker) = diy_dpath(0, joker, joker);
+      for(Index i = 1; i < diy_dpath.npages(); i++)
+        diy_dx(0, joker, joker) += diy_dpath(i, joker, joker);
+      return;
+    }
+
+  assert( jacobian_quantity.Grids().nelem() == atmosphere_dim );
+   
   // We want here an extrapolation to infinity -> 
   //                                        extremly high extrapolation factor
   const Numeric   extpolfac = 1.0e99;
@@ -462,7 +464,7 @@ void diy_from_path_to_rgrids(
         {
           for( Index ip=0; ip<ppath.np; ip++ )
             {
-              Index   ix = nr1*gp_lat[ip].idx + gp_p[ip].idx;
+              Index ix = nr1*gp_lat[ip].idx + gp_p[ip].idx;
               // Low lat, low p
               if( gp_lat[ip].fd[1]>0 && gp_p[ip].fd[1]>0 )
                 from_dpath_to_dx( diy_dx(ix,joker,joker),
@@ -539,6 +541,114 @@ void diy_from_path_to_rgrids(
                              gp_lon[ip].fd[0]*gp_lat[ip].fd[0]*gp_p[ip].fd[0]);
             }
         }
+    }
+}
+
+
+
+//! diy_from_pos_to_rgrids
+/*!
+    Maps jacobian data for a surface position, to jacobian retrieval grid data.
+
+    \param   diy_dx              Out: One lement of the WSV *diy_dx*.
+    \param   jacobian_quantity   One element of of the WSV *jacobian_quantities*.
+    \param   diy_dpos            Jacobian for the position itself.
+    \param   atmosphere_dim      As the WSV.
+    \param   rtp_pos             As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2018-04-10
+*/
+void diy_from_pos_to_rgrids(
+         Tensor3View          diy_dx,
+   const RetrievalQuantity&   jacobian_quantity,
+   ConstMatrixView            diy_dpos,
+   const Index&               atmosphere_dim,
+   ConstVectorView            rtp_pos )
+{
+  assert( jacobian_quantity.Grids().nelem() == atmosphere_dim-1 );
+  assert( rtp_pos.nelem() == atmosphere_dim );
+  
+  // We want here an extrapolation to infinity -> 
+  //                                        extremly high extrapolation factor
+  const Numeric   extpolfac = 1.0e99;
+
+  // Handle 1D separately
+  if( atmosphere_dim == 1 )
+    {
+      diy_dx(0,joker,joker) = diy_dpos;
+      return;
+    }
+
+  // Latitude
+  Index            nr1 = 1;
+  ArrayOfGridPos   gp_lat;
+  {          
+    gp_lat.resize(1);
+    nr1 = jacobian_quantity.Grids()[0].nelem();
+    if( nr1 > 1 )
+      {
+        gridpos( gp_lat, jacobian_quantity.Grids()[0], 
+                 Vector(1,rtp_pos[1]), extpolfac );
+        jacobian_type_extrapol( gp_lat );
+      }
+    else
+      { gp4length1grid( gp_lat ); }
+  }
+
+  // Longitude
+  ArrayOfGridPos   gp_lon;
+  if( atmosphere_dim > 2 )
+    {
+      gp_lon.resize(1);
+      if( jacobian_quantity.Grids()[1].nelem() > 1 )
+        {          
+          gridpos( gp_lon, jacobian_quantity.Grids()[1], 
+                   Vector(1,rtp_pos[2]), extpolfac );
+          jacobian_type_extrapol( gp_lon );
+        }
+      else
+        { gp4length1grid( gp_lon ); }
+    }
+
+  //- 2D
+  if( atmosphere_dim == 2 )
+    {
+      if( gp_lat[0].fd[1] > 0 )
+        {
+          from_dpath_to_dx( diy_dx(gp_lat[0].idx,joker,joker),
+                            diy_dpos(joker,joker), gp_lat[0].fd[1] );
+        }
+      if( gp_lat[0].fd[0] > 0 )
+        {
+          from_dpath_to_dx( diy_dx(gp_lat[0].idx+1,joker,joker),
+                            diy_dpos(joker,joker), gp_lat[0].fd[0] );
+        }
+    }
+  //- 3D
+  else 
+    {
+      Index ix = nr1*gp_lon[0].idx + gp_lat[0].idx;
+      // Low lon, low lat
+      if( gp_lon[0].fd[1]>0 && gp_lat[0].fd[1]>0 )
+        from_dpath_to_dx( diy_dx(ix,joker,joker),
+                          diy_dpos(joker,joker), 
+                          gp_lon[0].fd[1]*gp_lat[0].fd[1] );
+      // Low lon, high lat
+      if( gp_lon[0].fd[1]>0 && gp_lat[0].fd[0]>0 )
+        from_dpath_to_dx( diy_dx(ix+1,joker,joker),
+                          diy_dpos(joker,joker), 
+                          gp_lon[0].fd[1]*gp_lat[0].fd[0] );
+      // High lon, low lat
+      if( gp_lon[0].fd[0]>0 && gp_lat[0].fd[1]>0 )
+        from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
+                          diy_dpos(joker,joker), 
+                          gp_lon[0].fd[0]*gp_lat[0].fd[1] );
+      // High lon, high lat
+      if( gp_lon[0].fd[0]>0 && gp_lat[0].fd[0]>0 )
+        from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
+                          diy_dpos(joker,joker), 
+                          gp_lon[0].fd[0]*gp_lat[0].fd[0] );
     }
 }
 

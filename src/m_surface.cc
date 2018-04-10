@@ -660,16 +660,14 @@ void iySurfaceRtpropCalc(
                 }
               assert( ihit >= 0 );
               // Derivative, as observed at the surface
-              Matrix diydx0, diydx;
-              surface_calc( diydx0, I, surface_los, dsurface_rmatrix_dx[i],
+              Matrix diy_dpos0, diy_dpos;
+              surface_calc( diy_dpos0, I, surface_los, dsurface_rmatrix_dx[i],
                             dsurface_emission_dx[i] );
               // Weight with transmission to sensor
-              iy_transmission_mult( diydx, iy_transmission, diydx0 );
+              iy_transmission_mult( diy_dpos, iy_transmission, diy_dpos0 );
               // Put into diy_dx
-              // So far limited to 1D
-              assert( atmosphere_dim == 1 );
-              diy_dx[ihit].resize(1,nf,stokes_dim);
-              diy_dx[ihit](0,joker,joker) = diydx;
+              diy_from_pos_to_rgrids( diy_dx[ihit], jacobian_quantities[ihit], 
+                                      diy_dpos, atmosphere_dim, rtp_pos );
             }
         }
     }

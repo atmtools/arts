@@ -239,6 +239,13 @@ void diy_from_path_to_rgrids(
    const Ppath&               ppath,
    ConstVectorView            ppath_p );
 
+void diy_from_pos_to_rgrids(
+         Tensor3View          diy_dx,
+   const RetrievalQuantity&   jacobian_quantity,
+   ConstMatrixView            diy_dpos,
+   const Index&               atmosphere_dim,
+   ConstVectorView            rtp_pos );
+
 void get_perturbation_gridpos(      ArrayOfGridPos& gp,
                               const Vector&         atm_grid,
                               const Vector&         jac_grid,
