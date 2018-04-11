@@ -163,6 +163,12 @@ void transform_jacobian(
         jacobian(joker,c) *= NAT_LOG_TEN * pow(10.0,x[c]);
       }
     }
+    else if (tfun == "atanh") {
+      const Numeric xmax = 1;      
+      for (Index c = jis[i][0]; c <= jis[i][1]; ++c) {
+        jacobian(joker,c) *= xmax * 2 / pow(exp(-x[c])+exp(x[c]),2.0);
+      }
+    }
     else{
       assert(0);
     }
@@ -233,6 +239,12 @@ void transform_x(
     else if (tfun == "log10") {
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
         x[r] = log10( x[r] );
+      }
+    }
+    else if (tfun == "atanh") {
+      const Numeric xmax = 1;
+      for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+        x[r] = atanh( 2*x[r]/xmax - 1 );
       }
     }
     else{
@@ -332,6 +344,12 @@ void transform_x_back(
     else if (tfun == "log10") {
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
         x_t[r] = pow( 10.0, x_t[r] );
+      }
+    }
+    else if (tfun == "atanh") {
+      const Numeric xmax = 1;
+      for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+        x_t[r] = xmax/2 * ( 1 + tanh( x_t[r] ) );
       }
     }
     else{

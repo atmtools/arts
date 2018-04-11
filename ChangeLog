@@ -1,5 +1,14 @@
 2018-04-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-1019
+
+	* src/jacobian.cc (transform_x_back, transform_jacobian)
+	(transform_x):
+	* src/m_jacobian.cc (jacobianSetFuncTransformation): Start on
+	adding atanh as retrieval transformation.
+
+2018-04-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-1018
 
 	* src/m_oem.cc (xaStandard): The tripple-loopes involving i1, i2

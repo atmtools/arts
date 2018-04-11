@@ -3828,7 +3828,7 @@ void jacobianSetFuncTransformation(
     )
 {
   if( jqs.empty() )
-    runtime_error( "Jacobian quantities is empty, so there is nothing to add the "
+    throw runtime_error( "Jacobian quantities is empty, so there is nothing to add the "
                    "transformation to." );
 
   if( transformation_func == "none" )
@@ -3837,9 +3837,10 @@ void jacobianSetFuncTransformation(
       return;
     }
 
-  if( transformation_func != "log"  &&  transformation_func != "log10" )
-    runtime_error( "Valid options for *transformation_func* are: "
-                   "\"none\", \"log\" and \"log10\".");
+  if( transformation_func != "log"  &&  transformation_func != "log10"  &&
+      transformation_func != "atanh" )
+    throw runtime_error( "Valid options for *transformation_func* are: "
+                         "\"none\", \"log\", \"log10\" and \"atanh\".");
   
   jqs.back().SetTransformationFunc( transformation_func );
 }
