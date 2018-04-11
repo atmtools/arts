@@ -508,9 +508,9 @@ void xaStandard(
                                          gp_p, gp_lat, gp_lon );
                   // Calculate number density for species (vmr*nd_tot)
                   Index i = 0;
-                  for( Index i3=0; i3<=vmr_x.ncols(); i3++ )
-                    { for( Index i2=0; i2<=vmr_x.nrows(); i2++ )
-                        { for( Index i1=0; i1<=vmr_x.npages(); i1++ )
+                  for( Index i3=0; i3<vmr_x.ncols(); i3++ )
+                    { for( Index i2=0; i2<vmr_x.nrows(); i2++ )
+                        { for( Index i1=0; i1<vmr_x.npages(); i1++ )
                             {
                               xa[ji[q][0]+i] = vmr_x(i1,i2,i3) *
                                 number_density(
@@ -530,9 +530,9 @@ void xaStandard(
                                             water_psat_agenda);
                   // Calculate relative humidity (vmr*p/p_sat)
                   Index i = 0;
-                  for( Index i3=0; i3<=vmr_x.ncols(); i3++ )
-                    { for( Index i2=0; i2<=vmr_x.nrows(); i2++ )
-                        { for( Index i1=0; i1<=vmr_x.npages(); i1++ )
+                  for( Index i3=0; i3<vmr_x.ncols(); i3++ )
+                    { for( Index i2=0; i2<vmr_x.nrows(); i2++ )
+                        { for( Index i1=0; i1<vmr_x.npages(); i1++ )
                             {
                               xa[ji[q][0]+i] = vmr_x(i1,i2,i3) *
                                 jacobian_quantities[q].Grids()[0][i1] /
@@ -546,9 +546,9 @@ void xaStandard(
                   // vapour pressure e, as
                   // q = r(1+r); r = 0.622e/(p-e); e = vmr*p;
                   Index i = 0;
-                  for( Index i3=0; i3<=vmr_x.ncols(); i3++ )
-                    { for( Index i2=0; i2<=vmr_x.nrows(); i2++ )
-                        { for( Index i1=0; i1<=vmr_x.npages(); i1++ )
+                  for( Index i3=0; i3<vmr_x.ncols(); i3++ )
+                    { for( Index i2=0; i2<vmr_x.nrows(); i2++ )
+                        { for( Index i1=0; i1<vmr_x.npages(); i1++ )
                             {
                               const Numeric e = vmr_x(i1,i2,i3) *
                                 jacobian_quantities[q].Grids()[0][i1];
