@@ -1,5 +1,22 @@
 2018-04-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-1021
+
+	* The lower limit for log, log10 and atanh transformations can now
+	be tuned.
+
+	* src/jacobian.cc (transform_x_back, transform_jacobian,transform_x):
+	Code adopted to z_min and z_max.
+
+	* src/m_jacobian.cc (jacobianSetFuncTransformation): Improved
+	error message if selected transformation function is invalid.
+	There is now two GIN, z_min and z_max.
+
+	* src/jacobian.h (RetrievalQuantity): Opened up for multiple
+	tfunc_parameters.
+
+2018-04-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-1020
 
 	* Core functionality for surface retrievals should now be in

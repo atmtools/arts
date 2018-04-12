@@ -121,12 +121,12 @@ public:
 
   /** Transformation **/
   void SetTransformationFunc(const String& s)   {transformation_func = s;}
-  void SetTFuncParameter(const Numeric& p)  {tfunc_parameter = p;}
+  void SetTFuncParameters(const Vector& p)  {tfunc_parameters = p;}
   void SetTransformationMatrix(const Matrix& A) {transformation_matrix = A;}
   void SetOffsetVector(const Vector& b)         {offset_vector = b;}
   bool HasAffine()                     const    {return !transformation_matrix.empty();}
   const String& TransformationFunc()   const    {return transformation_func;}
-  const Numeric& TFuncParameter()      const    {return tfunc_parameter;}
+  const Vector& TFuncParameters()      const    {return tfunc_parameters;}
   const Matrix& TransformationMatrix() const    {return transformation_matrix;}
   const Vector& OffsetVector()         const    {return offset_vector;}
 
@@ -144,7 +144,7 @@ private:
   bool mintegration_flag;
 
   String transformation_func;
-  Numeric tfunc_parameter;
+  Vector tfunc_parameters;
   
   Matrix transformation_matrix;
   Vector offset_vector;

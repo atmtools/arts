@@ -9297,6 +9297,16 @@ void define_md_data_raw()
            "is wanted. Default is to make no such tranformation at all (i.e.\n"
            "the option \"none\" exists only for reasons of flexibility).\n"
            "\n"
+           "The log-options are applied as log(z-z_min) and log10(z-z_min).\n"
+           "The default for *z_min* is zero, but by changing it the lower limit\n"
+           "for z can be changed. Note that *z_min* becomes the lower limit for\n" 
+           "allowed values of z. The GIN *z_max* is hee ignored.\n"
+           "\n"
+           "For the atanh-option, also *z_max* is considered. This transformation\n"
+           "is applied as atanh((2(z-z_min)/(z_max-z_min))-1). As above,*z_min*\n"
+           "is lower limit for allowed values of z. On the other hand, *z_max*\n"
+           "eines the upper limit for z.\n"
+           "\n"
            "The GIN *tfunc_parameter* is so far only used for atanh. The parameter\n"
            "specifies the maximum allowed value allowed for u. That is, the valid\n"
            "range for u becomes ]0,tfunc_parameter[. Note that log and log10\n"
@@ -9331,11 +9341,12 @@ void define_md_data_raw()
           GOUT_TYPE(),
           GOUT_DESC(),
           IN( "jacobian_quantities" ),
-          GIN( "transformation_func", "tfunc_parameter" ),
-          GIN_TYPE( "String", "Numeric" ),
-          GIN_DEFAULT( NODEF, "NaN" ),
+          GIN( "transformation_func", "z_min", "z_max" ),
+          GIN_TYPE( "String", "Numeric", "Numeric" ),
+          GIN_DEFAULT( NODEF, "0", "-99e99" ),
           GIN_DESC( "The transformation function.",
-                    "Parameter for the transformation function." )
+                    "Lower limit of u.",
+                    "Upper limit of u." )
             ));
   
   md_data_raw.push_back     

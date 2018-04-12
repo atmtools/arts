@@ -3824,7 +3824,8 @@ void jacobianSetAffineTransformation(
 void jacobianSetFuncTransformation(
     ArrayOfRetrievalQuantity& jqs,
     const String& transformation_func,
-    const Numeric& tfunc_parameter,
+    const Numeric& z_min,
+    const Numeric& z_max,
     const Verbosity& /*v*/
     )
 {
@@ -3838,21 +3839,33 @@ void jacobianSetFuncTransformation(
       return;
     }
 
+  Vector pars;
+
   if( transformation_func == "atanh" )
     {
-      if( isnan( tfunc_parameter ) )
+      if( z_max <= z_min )
         throw runtime_error(
-          "For option atanh, the GIN *tfunc_paramater* must be set." );
-      if( tfunc_parameter <= 0 )
-        throw runtime_error(
-          "For option atanh, the GIN *tfunc_paramater* must be > 0." );
+          "For option atanh, the GIN *z_max* must be set and be > z_min." );
+      pars.resize(2);
+      pars[0] = z_min;
+      pars[1] = z_max;
     }
-  else if( transformation_func != "log"  &&  transformation_func != "log10"  )
-    throw runtime_error( "Valid options for *transformation_func* are: "
-                         "\"none\", \"log\", \"log10\" and \"atanh\".");
-  
+  else if( transformation_func == "log"  ||  transformation_func == "log10"  )
+    {
+      pars.resize(1);
+      pars[0] = z_min;
+    }
+  else
+    {
+      ostringstream os;
+      os << "Valid options for *transformation_func* are:\n"
+         << "\"none\", \"log\", \"log10\" and \"atanh\"\n"
+         << "But found: \"" << transformation_func << "\""; 
+      throw runtime_error( os.str() );
+    }
+
   jqs.back().SetTransformationFunc( transformation_func );
-  jqs.back().SetTFuncParameter( tfunc_parameter );
+  jqs.back().SetTFuncParameters( pars );
 }
 
 
