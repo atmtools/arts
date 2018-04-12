@@ -57,4 +57,27 @@ void surface_specular_R_and_b(
         const Index&       stokes_dim,
         const Numeric&     surface_skin_t );
 
+void surface_props_check(
+    const Index&            atmosphere_dim,
+    const Vector&           lat_grid,
+    const Vector&           lon_grid,
+    const Tensor3&          surface_props_data,
+    const ArrayOfString&    surface_props_names );
+
+void surface_props_interp(
+          Vector&           v,
+    const String&           vname,
+    const Index&            atmosphere_dim,
+    const ArrayOfGridPos&   gp_lat,
+    const ArrayOfGridPos&   gp_lon,
+    const Matrix&           itw,
+    const Tensor3&          surface_props_data,
+    const ArrayOfString&    surface_props_names );
+
+void dsurface_check(
+    const ArrayOfString&    surface_props_names,
+    const ArrayOfString&    dsurface_names,
+    const ArrayOfTensor4    dsurface_rmatrix_dx,
+    const ArrayOfMatrix&    dsurface_emission_dx );
+
 #endif  // surface_h

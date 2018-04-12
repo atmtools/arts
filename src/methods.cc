@@ -9290,11 +9290,17 @@ void define_md_data_raw()
            "The following transformations can be selected (by *transformation_func*):\n"
            "   log   : The natural logarithm\n"
            "   log10 : The base-10 logarithm\n"
+           "   atanh : Area hyperbolic tangent \n"
            "   none  : No transformation at all\n"
            "\n"
            "This method needs only to be called if a functional transformation\n"
            "is wanted. Default is to make no such tranformation at all (i.e.\n"
            "the option \"none\" exists only for reasons of flexibility).\n"
+           "\n"
+           "The GIN *tfunc_parameter* is so far only used for atanh. The parameter\n"
+           "specifies the maximum allowed value allowed for u. That is, the valid\n"
+           "range for u becomes ]0,tfunc_parameter[. Note that log and log10\n"
+           "demands/ensures that u > 0, but implies no upper limit.\n"
            "\n"
            "General handling of retrieval units and transformations:\n"
            "---\n"
@@ -9325,10 +9331,11 @@ void define_md_data_raw()
           GOUT_TYPE(),
           GOUT_DESC(),
           IN( "jacobian_quantities" ),
-          GIN( "transformation_func" ),
-          GIN_TYPE( "String" ),
-          GIN_DEFAULT( NODEF ),
-          GIN_DESC( "The transformation function." )
+          GIN( "transformation_func", "tfunc_parameter" ),
+          GIN_TYPE( "String", "Numeric" ),
+          GIN_DEFAULT( NODEF, "NaN" ),
+          GIN_DESC( "The transformation function.",
+                    "Parameter for the transformation function." )
             ));
   
   md_data_raw.push_back     
@@ -14184,7 +14191,7 @@ void define_md_data_raw()
       DESCRIPTION
       (
           "Same as *jacobianAddCatalogParameters* but also adds a new block to *covmat_sx*\n"
-          " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
           "\n"
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
@@ -14209,7 +14216,7 @@ void define_md_data_raw()
     DESCRIPTION
       (
           "Same as *jacobianAddMagField* but also adds a new block to *covmat_sx*\n"
-          " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
           "\n"
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
@@ -14238,7 +14245,7 @@ void define_md_data_raw()
       DESCRIPTION
       (
           "Same as *jacobianAddPointingZa* but also adds a new block to *covmat_sx*\n"
-          " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
           "\n"
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
@@ -14266,7 +14273,7 @@ void define_md_data_raw()
       DESCRIPTION
       (
           "Same as *jacobianAddPolyfit* but also adds a new block to *covmat_sx*\n"
-          " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
           "\n"
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
@@ -14299,7 +14306,7 @@ void define_md_data_raw()
       DESCRIPTION
       (
           "Same as *jacobianAddPolyfit* but also adds a new block to *covmat_sx*\n"
-          " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
           "\n"
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
@@ -14333,7 +14340,7 @@ void define_md_data_raw()
       DESCRIPTION
       (
           "Same as *jacobianAddSinefit* but also adds a new block to *covmat_sx*\n"
-          " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
           "\n"
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
@@ -14366,7 +14373,7 @@ void define_md_data_raw()
       DESCRIPTION
       (
           "Same as *jacobianAddSpecialSpecies* but also adds a new block to *covmat_sx*\n"
-          " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
           "\n"
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
@@ -14399,7 +14406,7 @@ void define_md_data_raw()
       DESCRIPTION
       (
           "Same as *jacobianAddWind* but also adds a new block to *covmat_sx*\n"
-          " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
           "\n"
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
@@ -14425,11 +14432,39 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+    ( NAME( "retrievalAddSurfaceQuantity" ),
+      DESCRIPTION
+      (
+        "Same as *jacobianAddSurfaceQuantity* but also adds a new block to *covmat_sx*\n"
+        "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+        "\n"
+        "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
+        "which avoids its numerical computation.\n"
+      ),
+      AUTHORS( "Patrick Eriksson" ),
+      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "covmat_sx", "jacobian_quantities", "jacobian_agenda",
+          "covmat_block", "covmat_inv_block",
+          "atmosphere_dim", "lat_grid", "lon_grid" ),
+      GIN( "g1", "g2", "quantity" ),
+      GIN_TYPE( "Vector", "Vector", "String" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF ),
+      GIN_DESC( "Latitude retrieval grid.",
+                "Longitude retreival grid.",
+                "Retrieval quantity, e.g. \"Wind speed\"."
+      )
+    ));
+
+  md_data_raw.push_back
+    ( MdRecord
     ( NAME( "retrievalAddTemperature" ),
       DESCRIPTION
         (
         "Same as *jacobianAddTemperature* but also adds a new block to *covmat_sx*\n"
-        " using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+        "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
         "\n"
         "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
         "which avoids its numerical computation.\n"
@@ -19193,12 +19228,12 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmfields_checked", "atmgeom_checked",
-            "jacobian_quantities", "atmosphere_dim",
-            "p_grid", "lat_grid", "lon_grid", "t_field", "vmr_field",
-            "abs_species", "cloudbox_on", "cloudbox_checked",
-            "particle_bulkprop_field", "particle_bulkprop_names", "wind_u_field",
-            "wind_v_field", "wind_w_field", "water_psat_agenda" ),
+        IN( "jacobian_quantities", "atmfields_checked", "atmgeom_checked",
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "t_field",
+            "vmr_field", "abs_species", "cloudbox_on", "cloudbox_checked",
+            "particle_bulkprop_field", "particle_bulkprop_names",
+            "wind_u_field", "wind_v_field", "wind_w_field",
+            "surface_props_data", "surface_props_names", "water_psat_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -19258,19 +19293,19 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y_baseline", "vmr_field", "t_field", "particle_bulkprop_field",
-             "sensor_los", "wind_u_field", "wind_v_field", "wind_w_field" ),
+             "sensor_los", "wind_u_field", "wind_v_field", "wind_w_field",
+             "surface_props_data" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "vmr_field", "t_field", "particle_bulkprop_field", "sensor_los",
-            "wind_u_field", "wind_v_field", "wind_w_field",
-            "atmfields_checked", "atmgeom_checked",
-            "jacobian_quantities", "x",
+            "wind_u_field", "wind_v_field", "wind_w_field", "surface_props_data",
+            "jacobian_quantities", "x", "atmfields_checked", "atmgeom_checked",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species",
             "cloudbox_on", "cloudbox_checked", "particle_bulkprop_names",
-            "sensor_time", "sensor_response", "sensor_response_dlos_grid",
-            "sensor_response_f_grid", "sensor_response_pol_grid",
-            "water_psat_agenda" ),
+            "surface_props_names", "sensor_time", "sensor_response",
+            "sensor_response_dlos_grid", "sensor_response_f_grid",
+            "sensor_response_pol_grid", "water_psat_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

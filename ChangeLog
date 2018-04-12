@@ -1,3 +1,44 @@
+2018-04-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1020
+
+	* Core functionality for surface retrievals should now be in
+	place. In addition, retrievals with an upper bound is now
+	possible, with the atanh option. As for log and log10 the lower
+	bound is 0. Seems to work, but if it is of practical use is to be proven.
+
+	* src/m_oem.cc (x2artsStandard): x was still used for pointing
+	off-set and baseline fit. Now using x_t. Added handling of
+	surface_prop_data.
+	(xaStandard): Added handling of surface_prop_data.
+	(get_gp_atmsurf_to_rq,get_gp_rq_to_atmgrids): New functions.
+
+	* src/special_interp.cc (regrid_atmsurf_by_gp): New function.
+
+	* src/surface.cc
+	(surface_props_check,surface_props_interp,dsurface_check): Now
+	placed in this file.
+
+	* src/m_surface.cc (dsurface_locate): Removed
+ 	(SurfaceTessem): Using find_first instead of dsurface_locate.
+
+	* src/jacobian.cc (check_retrieval_grids): A dummy grid is now set
+	for atmosphere_dim==1.
+
+	* src/m_retrieval.cc (retrievalAddSurfaceQuantity): New.
+
+	* src/jacobian.cc (transform_x): Added checks for log, log10 and
+	atanh that x is inside OK range. For example, the log option
+	requires that x>0.
+	(transform_x_back, transform_jacobian,transform_x):
+	tfunc_parameter now applied for atanh.
+
+	* src/m_jacobian.cc (jacobianSetFuncTransformation): Added GIN to
+	set tfunc_parameter.
+
+	* src/jacobian.h (RetrievalQuantity): Added tfunc_parameter as
+	private variable.
+
 2018-04-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1019

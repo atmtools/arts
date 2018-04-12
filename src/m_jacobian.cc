@@ -1934,7 +1934,7 @@ void jacobianAddSurfaceQuantity(
     
   // Check retrieval grids, here we just check the length of the grids
   // vs. the atmosphere dimension
-  ArrayOfVector grids(atmosphere_dim-1);
+  ArrayOfVector grids( max(atmosphere_dim-1,Index(1)) );
   {
     ostringstream os;
     if( !check_retrieval_grids( grids, os, lat_grid, lon_grid,
@@ -3824,6 +3824,7 @@ void jacobianSetAffineTransformation(
 void jacobianSetFuncTransformation(
     ArrayOfRetrievalQuantity& jqs,
     const String& transformation_func,
+    const Numeric& tfunc_parameter,
     const Verbosity& /*v*/
     )
 {
@@ -3837,12 +3838,21 @@ void jacobianSetFuncTransformation(
       return;
     }
 
-  if( transformation_func != "log"  &&  transformation_func != "log10"  &&
-      transformation_func != "atanh" )
+  if( transformation_func == "atanh" )
+    {
+      if( isnan( tfunc_parameter ) )
+        throw runtime_error(
+          "For option atanh, the GIN *tfunc_paramater* must be set." );
+      if( tfunc_parameter <= 0 )
+        throw runtime_error(
+          "For option atanh, the GIN *tfunc_paramater* must be > 0." );
+    }
+  else if( transformation_func != "log"  &&  transformation_func != "log10"  )
     throw runtime_error( "Valid options for *transformation_func* are: "
                          "\"none\", \"log\", \"log10\" and \"atanh\".");
   
   jqs.back().SetTransformationFunc( transformation_func );
+  jqs.back().SetTFuncParameter( tfunc_parameter );
 }
 
 

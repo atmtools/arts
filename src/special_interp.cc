@@ -592,8 +592,49 @@ void regrid_atmfield_by_gp(
 }
 
 
+//! Regrids an atmospheric surface, for precalculated grid positions
+/*!
+  The function adopts automatically to *atmosphere_dim*. Grid positions not
+  used are ignored, i.e. gp_lat is ignored for atmosphere_dim=1 etc.
 
+  \param[out] field_new        Field after interpolation.
+  \param[in]  atmosphere_dim   As the WSV with same name.
+  \param[in]  field_old        Field to be interpolated.
+  \param[in]  gp_lat           Latitude grid positions.
+  \param[in]  gp_lon           Longitude grid positions.
 
+  \author Patrick Eriksson 
+  \date   2018-04-12
+*/
+void regrid_atmsurf_by_gp( 
+         Matrix&           field_new, 
+   const Index&            atmosphere_dim, 
+   ConstMatrixView         field_old, 
+   const ArrayOfGridPos&   gp_lat,
+   const ArrayOfGridPos&   gp_lon )
+{
+  if( atmosphere_dim == 1 )
+    {
+      field_new = field_old;
+    }
+  else if( atmosphere_dim == 2 )
+    {
+      const Index n1 = gp_lat.nelem();
+      field_new.resize( n1, 1 );
+      Matrix itw( n1, 2 );
+      interpweights( itw, gp_lat );
+      interp( field_new(joker,0), itw, field_old(joker,0), gp_lat ); 
+    }
+  else if( atmosphere_dim == 3 )
+    {
+      const Index n1 = gp_lat.nelem();
+      const Index n2 = gp_lon.nelem();
+      field_new.resize( n1, n2 );
+      Tensor3 itw( n1, n2, 4 );
+      interpweights( itw, gp_lat, gp_lon );
+      interp( field_new, itw, field_old, gp_lat, gp_lon ); 
+    }
+}
 
 
 

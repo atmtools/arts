@@ -3223,7 +3223,7 @@ void rtmethods_jacobian_init(
       jac_ranges_indices( jacobian_indices, any_affine,
                           jacobian_quantities, true );
       //
-      FOR_ANALYTICAL_JACOBIANS_DO( 
+      FOR_ANALYTICAL_JACOBIANS_DO2( 
         diy_dx[iq].resize( jacobian_indices[iq][1]-jacobian_indices[iq][0]+1,
                            nn, ns );
         diy_dx[iq] = 0.0;

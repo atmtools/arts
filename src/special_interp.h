@@ -114,6 +114,13 @@ void regrid_atmfield_by_gp(
    const ArrayOfGridPos&   gp_lat,
    const ArrayOfGridPos&   gp_lon );
 
+void regrid_atmsurf_by_gp( 
+         Matrix&           field_new, 
+   const Index&            atmosphere_dim, 
+   ConstMatrixView         field_old, 
+   const ArrayOfGridPos&   gp_lat,
+   const ArrayOfGridPos&   gp_lon );
+
 void itw2p(
               VectorView       p_values,
         ConstVectorView        p_grid,

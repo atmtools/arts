@@ -51,6 +51,7 @@
 #include "physics_funcs.h"
 #include "jacobian.h"
 #include "rte.h"
+#include "surface.h"
 
 extern const String ABSSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
@@ -59,6 +60,7 @@ extern const String POINTING_SUBTAG_A;
 extern const String POLYFIT_MAINTAG;
 extern const String SCATSPECIES_MAINTAG;
 extern const String SINEFIT_MAINTAG;
+extern const String SURFACE_MAINTAG;
 
 
 
@@ -100,6 +102,51 @@ void get_gp_atmgrids_to_rq(
   gp_p.resize( rq.Grids()[0].nelem() );
   p2gridpos( gp_p, p_grid, rq.Grids()[0], 0 );
   //
+  if( atmosphere_dim >= 2 )
+    {
+      gp_lat.resize( rq.Grids()[1].nelem() );
+      gridpos( gp_lat, lat_grid, rq.Grids()[1], 0 );
+    }
+  else
+    { gp_lat.resize(0); }
+  //
+  if( atmosphere_dim >= 3 )
+    {
+      gp_lon.resize( rq.Grids()[2].nelem() );
+      gridpos( gp_lon, lon_grid, rq.Grids()[2], 0 );
+    }
+  else
+    { gp_lon.resize(0); }
+}
+
+
+
+//! Determines grid positions for regridding of atmospheric surfaces to retrieval
+//  grids
+/*!
+  The grid positions arrays are sized inside the function. gp_lat is given
+  length 0 for atmosphere_dim=1 etc.
+
+  This regridding uses extpolfac=0.
+
+  \param[out] gp_lat               Latitude grid positions.
+  \param[out] gp_lon               Longitude grid positions.
+  \param[in]  rq                   Retrieval quantity structure.
+  \param[in]  atmosphere_dim       As the WSV with same name.
+  \param[in]  lat_grid             As the WSV with same name.
+  \param[in]  lon_grid             As the WSV with same name.
+
+  \author Patrick Eriksson
+  \date   2018-04-12
+*/
+void get_gp_atmsurf_to_rq(
+         ArrayOfGridPos&      gp_lat,
+         ArrayOfGridPos&      gp_lon,
+   const RetrievalQuantity&   rq,
+   const Index&               atmosphere_dim,
+   const Vector&              lat_grid,
+   const Vector&              lon_grid )
+{
   if( atmosphere_dim >= 2 )
     {
       gp_lat.resize( rq.Grids()[1].nelem() );
@@ -172,6 +219,83 @@ void get_gp_rq_to_atmgrids(
     }
   else
     { gp4length1grid( gp_p ); }
+
+  if( atmosphere_dim >= 2 )
+    {
+      gp_lat.resize( lat_grid.nelem() );
+      n_lat = rq.Grids()[1].nelem();
+      if( n_lat > 1 )
+        {
+          gridpos( gp_lat, rq.Grids()[1], lat_grid, inf_proxy );
+          jacobian_type_extrapol( gp_lat );
+        }
+      else
+        { gp4length1grid( gp_lat ); }
+    }
+  else
+    {
+      gp_lat.resize(0);
+      n_lat = 1;
+    }
+  //
+  if( atmosphere_dim >= 3 )
+    {
+      gp_lon.resize( lon_grid.nelem() );
+      n_lon = rq.Grids()[2].nelem();
+      if( n_lon > 1 )
+        {
+          gridpos( gp_lon, rq.Grids()[2], lon_grid, inf_proxy );
+          jacobian_type_extrapol( gp_lon );
+        }
+      else
+        { gp4length1grid( gp_lon ); }
+    }
+  else
+    {
+      gp_lon.resize(0);
+      n_lon = 1;
+    }
+}
+
+
+
+//! Determines grid positions for regridding of atmospheric surfaces to retrieval
+//  grids
+/*!
+  The grid positions arrays are sized inside the function. gp_lat is given
+  length 0 for atmosphere_dim=1 etc.
+
+  This regridding uses extpolfac=Inf (where Inf is a very large value).
+
+  Note that the length output arguments (n_p etc.) are for the retrieval grids
+  (not the length of grid positions arrays). n-Lat is set to 1 for
+  atmosphere_dim=1 etc.
+
+  \param[out] gp_lat               Latitude grid positions.
+  \param[out] gp_lon               Longitude grid positions.
+  \param[out] n_lat                Length of retrieval lataitude grid.
+  \param[out] n_lon                Length of retrieval longitude grid.
+  \param[in]  rq                   Retrieval quantity structure.
+  \param[in]  atmosphere_dim       As the WSV with same name.
+  \param[in]  lat_grid             As the WSV with same name.
+  \param[in]  lon_grid             As the WSV with same name.
+
+  \author Patrick Eriksson
+  \date   2018-04-12
+*/
+void get_gp_rq_to_atmgrids(
+         ArrayOfGridPos&      gp_lat,
+         ArrayOfGridPos&      gp_lon,
+         Index&               n_lat,
+         Index&               n_lon,
+   const RetrievalQuantity&   rq,
+   const Index&               atmosphere_dim,
+   const Vector&              lat_grid,
+   const Vector&              lon_grid )
+{
+  // We want here an extrapolation to infinity ->
+  //                                        extremly high extrapolation factor
+  const Numeric inf_proxy = 1.0e99;
 
   if( atmosphere_dim >= 2 )
     {
@@ -404,9 +528,9 @@ void xClip(
 void xaStandard(
          Workspace&                  ws,
          Vector&                     xa,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const Index&                      atmfields_checked,
    const Index&                      atmgeom_checked,
-   const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const Index&                      atmosphere_dim,
    const Vector&                     p_grid,
    const Vector&                     lat_grid,
@@ -421,6 +545,8 @@ void xaStandard(
    const Tensor3&                    wind_u_field,
    const Tensor3&                    wind_v_field,
    const Tensor3&                    wind_w_field,
+   const Tensor3&                    surface_props_data,
+   const ArrayOfString&              surface_props_names,
    const Agenda&                     water_psat_agenda,   
    const Verbosity& )
 {
@@ -627,6 +753,42 @@ void xaStandard(
                                 gp_p, gp_lat, gp_lon);
           flat(xa[ind], wind_x);
       }
+
+      
+      // Surface
+      else if( jacobian_quantities[q].MainTag() == SURFACE_MAINTAG )
+      {
+        surface_props_check( atmosphere_dim, lat_grid, lon_grid,
+                             surface_props_data, surface_props_names );
+        if( surface_props_data.empty() )
+          {
+            throw runtime_error( "One jacobian quantity belongs to the "
+                    "surface category, but *surface_props_data* is empty." );
+          }
+
+        const Index isu = find_first( surface_props_names,
+                                      jacobian_quantities[q].Subtag() );
+        if( isu < 0 )
+          {
+            ostringstream os;
+            os << "Jacobian quantity with index " << q << " covers a "
+               << "surface property, and the field Subtag is set to \""
+               << jacobian_quantities[q].Subtag() << "\", but this quantity "
+               << "could not found in *surface_props_names*.";
+            throw runtime_error(os.str());
+          }
+
+        ArrayOfGridPos gp_lat, gp_lon;
+        get_gp_atmsurf_to_rq( gp_lat, gp_lon, jacobian_quantities [q],
+                              atmosphere_dim, lat_grid, lon_grid );
+        Matrix surf_x(gp_lat.nelem(),gp_lon.nelem());
+        regrid_atmsurf_by_gp( surf_x, atmosphere_dim,
+                              surface_props_data(isu,joker,joker),
+                              gp_lat, gp_lon );
+        flat( xa[ind], surf_x );
+      }
+
+      
       // All variables having zero as a priori
       // ----------------------------------------------------------------------------
       else if( jacobian_quantities[q].MainTag() == POINTING_MAINTAG ||
@@ -662,10 +824,11 @@ void x2artsStandard(
          Tensor3&                    wind_u_field,
          Tensor3&                    wind_v_field,
          Tensor3&                    wind_w_field,
-   const Index&                      atmfields_checked,
-   const Index&                      atmgeom_checked,
+         Tensor3&                    surface_props_data,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const Vector&                     x,
+   const Index&                      atmfields_checked,
+   const Index&                      atmgeom_checked,
    const Index&                      atmosphere_dim,
    const Vector&                     p_grid,
    const Vector&                     lat_grid,
@@ -674,6 +837,7 @@ void x2artsStandard(
    const Index&                      cloudbox_on,
    const Index&                      cloudbox_checked,
    const ArrayOfString&              particle_bulkprop_names,
+   const ArrayOfString&              surface_props_names,
    const Vector&                     sensor_time,
    const Sparse &                    sensor_response,
    const Matrix &                    sensor_response_dlos_grid,
@@ -825,7 +989,6 @@ void x2artsStandard(
             }
           else
             { assert(0); }
-
         }
 
 
@@ -849,7 +1012,7 @@ void x2artsStandard(
                 }
 
               const Index isp = find_first( particle_bulkprop_names,
-                                        jacobian_quantities[q].SubSubtag() );
+                                            jacobian_quantities[q].SubSubtag() );
               if( isp < 0 )
                 {
                   ostringstream os;
@@ -870,9 +1033,7 @@ void x2artsStandard(
               // Map x to particle_bulkprop_field
               Tensor3 pbfield_x( n_p, n_lat, n_lon );
               reshape( pbfield_x, x_t[ind] );
-              Tensor3 pbfield( particle_bulkprop_field.npages(),
-                               particle_bulkprop_field.nrows(),
-                               particle_bulkprop_field.ncols() );
+              Tensor3 pbfield;
               regrid_atmfield_by_gp( pbfield, atmosphere_dim, pbfield_x,
                                      gp_p, gp_lat, gp_lon );
               particle_bulkprop_field(isp,joker,joker,joker) = pbfield;
@@ -899,7 +1060,7 @@ void x2artsStandard(
                      "Mismatch between pointing jacobian and *sensor_los* found." );
               // Simply add retrieved off-set(s) to za column of *sensor_los*
               for( Index i=0; i<np; i++ )
-                { sensor_los(i,0) += x[ji[q][0]+i]; }
+                { sensor_los(i,0) += x_t[ji[q][0]+i]; }
             }
           // Polynomial representation
           else
@@ -912,7 +1073,7 @@ void x2artsStandard(
                 {
                   polynomial_basis_func( w, sensor_time, c );
                   for( Index i=0; i<w.nelem(); i++ )
-                    {  sensor_los(i,0) += w[i] * x[ji[q][0]+c]; }
+                    {  sensor_los(i,0) += w[i] * x_t[ji[q][0]+c]; }
                 }
             }
         }
@@ -934,11 +1095,13 @@ void x2artsStandard(
           }
 
           for (Index mb = 0; mb < sensor_los.nrows(); ++mb) {
-              calcBaselineFit(y_baseline, x, mb, sensor_response,
+              calcBaselineFit(y_baseline, x_t, mb, sensor_response,
                               sensor_response_pol_grid, sensor_response_f_grid,
                               sensor_response_dlos_grid, jacobian_quantities[q], q, ji);
           }
       }
+
+
       // Wind
       // ----------------------------------------------------------------------------
       else if( jacobian_quantities[q].MainTag() == WIND_MAINTAG)
@@ -962,7 +1125,6 @@ void x2artsStandard(
           regrid_atmfield_by_gp(wind_field, atmosphere_dim, wind_x,
                                  gp_p, gp_lat, gp_lon);
 
-
           if (jacobian_quantities[q].Subtag() == "u") {
               wind_u_field = wind_field;
           } else if (jacobian_quantities[q].Subtag() == "v") {
@@ -971,6 +1133,47 @@ void x2artsStandard(
               wind_w_field = wind_field;
           }
       }
+
+      // Surface
+      // ----------------------------------------------------------------------------
+      else if( jacobian_quantities[q].MainTag() == SURFACE_MAINTAG )
+      {
+        surface_props_check( atmosphere_dim, lat_grid, lon_grid,
+                             surface_props_data, surface_props_names );
+        if( surface_props_data.empty() )
+          {
+            throw runtime_error( "One jacobian quantity belongs to the "
+                    "surface category, but *surface_props_data* is empty." );
+          }
+
+        const Index isu = find_first( surface_props_names,
+                                      jacobian_quantities[q].Subtag() );
+        if( isu < 0 )
+          {
+            ostringstream os;
+            os << "Jacobian quantity with index " << q << " covers a "
+               << "surface property, and the field Subtag is set to \""
+               << jacobian_quantities[q].Subtag() << "\", but this quantity "
+               << "could not found in *surface_props_names*.";
+            throw runtime_error(os.str());
+          }
+
+        // Determine grid positions for interpolation from retrieval grids back
+        // to atmospheric grids
+        ArrayOfGridPos gp_lat, gp_lon;
+        Index          n_lat, n_lon;
+        get_gp_rq_to_atmgrids( gp_lat, gp_lon, n_lat, n_lon,
+                               jacobian_quantities[q], atmosphere_dim,
+                               lat_grid, lon_grid );
+        // Map values in x back to surface_props_data
+        Matrix surf_x( n_lat, n_lon );
+        reshape( surf_x, x_t[ind] );
+        Matrix surf;
+        regrid_atmsurf_by_gp( surf, atmosphere_dim, surf_x, gp_lat, gp_lon );
+        surface_props_data(isu,joker,joker) = surf;
+      }
+
+      
       // Or we have to throw an error
       // ----------------------------------------------------------------------------
       else

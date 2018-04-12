@@ -164,7 +164,7 @@ void transform_jacobian(
       }
     }
     else if (tfun == "atanh") {
-      const Numeric xmax = 1;      
+      const Numeric xmax = jq.TFuncParameter();;
       for (Index c = jis[i][0]; c <= jis[i][1]; ++c) {
         jacobian(joker,c) *= xmax * 2 / pow(exp(-x[c])+exp(x[c]),2.0);
       }
@@ -233,17 +233,49 @@ void transform_x(
     }
     else if (tfun == "log") {
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+        if( x[r] <= 0 )
+          {
+            ostringstream os;
+            os << "log-transformation selected for retrieval quantity with\n"
+               << "index " << i << " (0-based), but at least one value <= 0\n"
+               << "found for this quantity. This is not allowed.";
+            throw std::runtime_error(os.str());
+          }
         x[r] = log( x[r] );
       }
     }
     else if (tfun == "log10") {
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+        if( x[r] <= 0 )
+          {
+            ostringstream os;
+            os << "log10-transformation selected for retrieval quantity with\n"
+               << "index " << i << " (0-based), but at least one value <= 0\n"
+               << "found for this quantity. This is not allowed.";
+            throw std::runtime_error(os.str());
+          }
         x[r] = log10( x[r] );
       }
     }
     else if (tfun == "atanh") {
-      const Numeric xmax = 1;
+      const Numeric xmax = jq.TFuncParameter();;
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+        if( x[r] <= 0 )
+          {
+            ostringstream os;
+            os << "atanh-transformation selected for retrieval quantity with\n"
+               << "index " << i << " (0-based), but at least one value <= 0\n"
+               << "found for this quantity. This is not allowed.";
+            throw std::runtime_error(os.str());
+          }
+        if( x[r] >= xmax )
+          {
+            ostringstream os;
+            os << "atanh-transformation selected for retrieval quantity with\n"
+               << "index " << i << " (0-based), but at least one value is\n"
+               << ">= tfunc_parameter. This is not allowed.";
+            throw std::runtime_error(os.str());
+          }
         x[r] = atanh( 2*x[r]/xmax - 1 );
       }
     }
@@ -347,7 +379,7 @@ void transform_x_back(
       }
     }
     else if (tfun == "atanh") {
-      const Numeric xmax = 1;
+      const Numeric xmax = jq.TFuncParameter();
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
         x_t[r] = xmax/2 * ( 1 + tanh( x_t[r] ) );
       }
@@ -584,7 +616,7 @@ void diy_from_pos_to_rgrids(
    const Index&               atmosphere_dim,
    ConstVectorView            rtp_pos )
 {
-  assert( jacobian_quantity.Grids().nelem() == atmosphere_dim-1 );
+  assert( jacobian_quantity.Grids().nelem() == max(atmosphere_dim-1,Index(1)) );
   assert( rtp_pos.nelem() == atmosphere_dim );
   
   // We want here an extrapolation to infinity -> 
@@ -1050,7 +1082,14 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
                             const String&        lon_retr_name,
                             const Index&         dim)
 {
-  assert( grids.nelem() == dim-1 );
+  assert( grids.nelem() == max(dim-1,Index(1)) );
+
+  if (dim==1)
+  {
+    // Here we only need to create a length 1 dummy grid
+    grids[0].resize(1);
+    grids[0][0] = 0;
+  }
   
   if (dim>=2)
   {

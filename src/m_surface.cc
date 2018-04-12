@@ -42,6 +42,7 @@
   ===========================================================================*/
 
 #include <cmath>
+#include "array.h"
 #include "arts.h"
 #include "auto_md.h"
 #include "check_input.h"
@@ -2317,136 +2318,6 @@ void surface_rtpropCallAgendaX(
 }
 
 
-void surface_props_check(
-    const Index&            atmosphere_dim,
-    const Vector&           lat_grid,
-    const Vector&           lon_grid,
-    const Tensor3&          surface_props_data,
-    const ArrayOfString&    surface_props_names )     
-{
-  // Check sizes
-  if( surface_props_data.npages() != surface_props_names.nelem() )
-    throw runtime_error( "The number of pages in *surface_props_data* and "
-                         "length of *surface_props_names* differ." );
-  // If no surface properties, then we are ready
-  if( surface_props_names.nelem() == 0 )
-    { return; }
-  if( surface_props_data.nrows() != (atmosphere_dim == 1 ? 1 : lat_grid.nelem()) )
-    throw runtime_error( "Row-size of *surface_props_data* not as expected." );
-  if( surface_props_data.ncols() != (atmosphere_dim <= 2 ? 1 : lon_grid.nelem()) )  
-    throw runtime_error( "Column-size of *surface_props_data* not as expected." );
-
-  for( Index i=0; i<surface_props_names.nelem(); i++ )
-    {
-      if( surface_props_names[i].nelem() == 0 )
-        {
-          ostringstream os;
-          os << "Element " << i << " (0-based) of *surface_props_names* is empty.";
-          throw runtime_error( os.str() );
-        }
-      for( Index j=i+1; j<surface_props_names.nelem(); j++ )
-        {
-          if( surface_props_names[j] == surface_props_names[i] )
-            {
-              ostringstream os;
-              os << "Two surface properties with same name found!\n"
-                 << "This found for these two properties\n"
-                 << "   index: " << i << endl
-                 << "   index: " << j << endl
-                 << "    name: " << surface_props_names[i];
-              throw runtime_error( os.str() );
-            }
-        }
-    }
-}
-
-
-void surface_props_interp(
-          Vector&           v,
-    const String&           vname,
-    const Index&            atmosphere_dim,
-    const ArrayOfGridPos&   gp_lat,
-    const ArrayOfGridPos&   gp_lon,
-    const Matrix&           itw,
-    const Tensor3&          surface_props_data,
-    const ArrayOfString&    surface_props_names )     
-{
-  assert( v.nelem() == 1 );
-  assert( surface_props_data.npages() == surface_props_names.nelem() );
-          
-  for( Index i=0; i<surface_props_names.nelem(); i++ )
-    {
-      if( surface_props_names[i] == vname )
-        {
-          interp_atmsurface_by_itw( v, atmosphere_dim,
-                                    surface_props_data(i,joker,joker),
-                                    gp_lat, gp_lon, itw );
-          return;
-        }
-    }
-
-  ostringstream os;
-  os << "The following property was requested\n"
-     << "   " << vname << endl
-     << "but it could not be found in *surface_props_names*.";
-  throw runtime_error( os.str() );
-}
-
-
-
-void dsurface_check(
-    const ArrayOfString&    surface_props_names,
-    const ArrayOfString&    dsurface_names,
-    const ArrayOfTensor4    dsurface_rmatrix_dx,
-    const ArrayOfMatrix&    dsurface_emission_dx )     
-{
-  const Index nq = dsurface_names.nelem();
-  
-  if( dsurface_rmatrix_dx.nelem() != nq )
-    { throw runtime_error(
-        "The lengths of *dsurface_names* and *dsurface_rmatrix_dx* differ." ); }
-  if( dsurface_emission_dx.nelem() != nq )
-    { throw runtime_error(
-        "The lengths of *dsurface_names* and *dsurface_emission_dx* differ." ); }
-  
-  for( Index i=0; i<nq; i++ )
-    {
-      bool found = false;
-      for( Index j=0; j<surface_props_names.nelem() && !found; j++ )
-        {
-          if( dsurface_names[i] == surface_props_names[j] )
-            { found = true; }
-        }
-      if( !found )
-        {
-          ostringstream os;
-          os << "String " << i << " (0-based) of *dsurface_names* is \""
-             << dsurface_names[i] << "\"\n"
-             << "but this string could not be found in *surface_props_names*.\n"
-             << "This is likely due to incorrect choice of quantity when\n"
-             << " calling *jacobianAddSurfaceQuantity*.";
-          throw runtime_error( os.str() );
-        }
-    }
-}
-
-
-void dsurface_locate(
-          Index&            irq,
-    const String&           name_rq,  
-    const ArrayOfString&    dsurface_names )     
-{
-  irq = -1;
-  for( Index i=0; i<dsurface_names.nelem()  && irq<0; i++ )
-    {
-      if( dsurface_names[i] == name_rq )
-        { irq = i; }
-    }
-}
-
-
-
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void SurfaceDummy(
@@ -2538,10 +2409,10 @@ void SurfaceTessem(
       dsurface_check( surface_props_names, dsurface_names,
                       dsurface_rmatrix_dx, dsurface_emission_dx );
 
-      Index irq;
+      Index irq; 
 
       // Skin temperature
-      dsurface_locate( irq, "Water skin temperature", dsurface_names );
+      irq = find_first( dsurface_names, String("Water skin temperature") );
       if( irq >= 0 )
         {
           const Numeric dd = 0.1;
@@ -2558,7 +2429,7 @@ void SurfaceTessem(
         }
       
       // Wind speed
-      dsurface_locate( irq, "Wind speed", dsurface_names );
+      irq = find_first( dsurface_names, String("Wind speed") );
       if( irq >= 0 )
         {
           const Numeric dd = 0.1;
@@ -2575,7 +2446,7 @@ void SurfaceTessem(
         }
 
       // Salinity
-      dsurface_locate( irq, "Salinity", dsurface_names );
+      irq = find_first( dsurface_names, String("Salinity") );
       if( irq >= 0 )
         {
           const Numeric dd = 0.1;

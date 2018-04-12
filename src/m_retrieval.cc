@@ -1049,6 +1049,31 @@ void retrievalAddTemperature(Workspace& ws,
 }
 
 
+void retrievalAddSurfaceQuantity(
+        Workspace&                  ws,
+        CovarianceMatrix&           covmat_sx,
+        ArrayOfRetrievalQuantity&   jacobian_quantities,
+        Agenda&                     jacobian_agenda,
+  const Sparse&                     covmat_block,
+  const Sparse&                     covmat_inv_block,
+  const Index&                      atmosphere_dim,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Vector&                     rq_lat_grid,
+  const Vector&                     rq_lon_grid,
+  const String&                     quantity,
+  const Verbosity&                  verbosity )
+{
+  jacobianAddSurfaceQuantity( ws, jacobian_quantities, jacobian_agenda,
+                              atmosphere_dim, lat_grid, lon_grid,
+                              rq_lat_grid, rq_lon_grid,
+                              quantity, verbosity );
+  
+  check_and_add_block( covmat_sx, jacobian_quantities.back(),
+                       jacobian_quantities.nelem() - 1,
+                       atmosphere_dim, covmat_block, covmat_inv_block );
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void retrievalDefClose(Workspace& ws,
