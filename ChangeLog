@@ -1,3 +1,19 @@
+2018-04-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1023
+
+	* src/m_fos.cc (iyHybrid): Added check that ppath is calculated
+	with cloudbox deactivated.
+
+	* controlfiles/artscomponents/wfuns/TestWfunsHybCloudy.arts:
+	* controlfiles/artscomponents/hybridscat/TestHybrid.arts:
+	* controlfiles/artscomponents/wfuns/TestWfunsHybClear.arts:
+	Adopted to change below.
+
+	* src/m_ppath.cc (ppathCalc): Removed GIN ignore_cloudbox. Not
+	needed. Same functionality is obtained by just calling the method
+	with cloudbox_on=0.
+
 2018-04-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1022

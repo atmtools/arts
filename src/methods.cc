@@ -11697,11 +11697,10 @@ void define_md_data_raw()
             "atmgeom_checked", "t_field", "z_field", "vmr_field", "f_grid",
             "cloudbox_on", "cloudbox_checked", "ppath_inside_cloudbox_do", 
             "rte_pos", "rte_los", "rte_pos2" ),
-        GIN( "ignore_cloudbox" ),
-        GIN_TYPE( "Index" ),
-        GIN_DEFAULT( "0" ),
-        GIN_DESC( "Flag to ignore cloudbox boundaries, even if *cloudbox_on* "
-                  "is true.")
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back

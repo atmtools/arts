@@ -35,7 +35,7 @@ AgendaCreate( iy_main_agenda__Hybrid )
 AgendaSet( iy_main_agenda__Hybrid ){
   Ignore( nlte_field )
   Ignore( iy_id )
-  ppathCalc( ignore_cloudbox = 1 ) 
+  ppathCalc( cloudbox_on = 0 ) 
   iyHybrid
   Touch(iy_aux)
 }

@@ -43,7 +43,7 @@ Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
 AgendaSet( iy_main_agenda ){
   Ignore( nlte_field )
   Ignore( iy_id )
-  ppathCalc( ignore_cloudbox = 1 ) 
+  ppathCalc( cloudbox_on = 0 ) 
   iyHybrid
   Touch(iy_aux)
 }

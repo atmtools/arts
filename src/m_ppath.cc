@@ -168,7 +168,6 @@ void ppathCalc(
     const Vector&         rte_pos,
     const Vector&         rte_los,
     const Vector&         rte_pos2,
-    const Index&          ignore_cloudbox,
     const Verbosity&  )
 {
   // Basics
@@ -180,11 +179,9 @@ void ppathCalc(
     throw runtime_error( "The cloudbox must be flagged to have "
                          "passed a consistency check (cloudbox_checked=1)." );
 
-  const Index cbox_on = ignore_cloudbox? 0 : cloudbox_on;
-  
   ppath_agendaExecute( ws, ppath, ppath_lmax, ppath_lraytrace,
-                       rte_pos, rte_los, rte_pos2,
-                       cbox_on, ppath_inside_cloudbox_do, t_field, z_field,
+                       rte_pos, rte_los, rte_pos2, cloudbox_on,
+                       ppath_inside_cloudbox_do, t_field, z_field,
                        vmr_field, f_grid, ppath_agenda );
 }
 

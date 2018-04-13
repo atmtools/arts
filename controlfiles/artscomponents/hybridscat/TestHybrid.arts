@@ -57,7 +57,7 @@ Copy( yref_RT4, y )
 AgendaSet( iy_main_agenda ){
   Ignore( nlte_field )
   Ignore( iy_id )
-  ppathCalc( ignore_cloudbox = 1 ) 
+  ppathCalc( cloudbox_on = 0 ) 
   iyHybrid
   # The line below is just temporary
   Touch( iy_aux)  

@@ -955,9 +955,6 @@ void iyHybrid(
   if( atmosphere_dim != 1 )
     throw runtime_error(
       "With cloudbox on, this method handles only 1D calculations." );
-  //if( cloudbox_limits[0] != 0  ||  cloudbox_limits[1] != p_grid.nelem()-1 )
-  //  throw runtime_error(
-  //    "The cloudbox must be set to cover the complete atmosphere." );
   if( Naa < 3 )
     throw runtime_error( "Naa must be > 2." );
   if( jacobian_do )
@@ -972,6 +969,10 @@ void iyHybrid(
   if( rbi < 1  ||  rbi > 9 )
     throw runtime_error( "ppath.background is invalid. Check your "
                          "calculation of *ppath*?" );
+  if( rbi == 3  ||  rbi == 4 )
+    throw runtime_error( "The propagation path ends inside or at boundary of "
+                         "the cloudbox.\nFor this method, *ppath* must be "
+                         "calculated in this way:\n   ppathCalc( cloudbox_on = 0 )." );
   // iy_aux_vars checked below
   // Checks of i_field  
   if( doit_i_field.ncols() != stokes_dim  )
