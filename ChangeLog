@@ -1,3 +1,19 @@
+2018-04-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1024
+
+	* Tested iyHybrid. Fixed a small problem for Jacobians.
+
+	* src/m_fos.cc (iyHybrid): Just removed code that was behind comments.
+
+	* src/rte.cc (get_stepwise_scattersky_source_old): Removed.
+
+	(get_stepwise_scattersky_source): dSp_dx[iq] was not filled with
+	zeros when needed.
+
+	* src/m_ppath.cc (ppathPlaneParallel): Upper cloudbox boundary at
+	top of the atmosphere and sensor in space was not handled correectly.
+
 2018-04-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1023

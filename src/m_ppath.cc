@@ -1156,16 +1156,17 @@ void ppathPlaneParallel(
       background = 1;  
       path_to_follow = false;
     }
-  if( z_sensor == z_surface(0,0)  &&  za_sensor > 90 ) 
+  else if( z_sensor == z_surface(0,0)  &&  za_sensor > 90 ) 
     {
       // On ground, looking down
       ppath_init_structure(  ppath, atmosphere_dim, 1 );
       background = 2;  
       path_to_follow = false;
     }
-  if( cloudbox_on  &&  !ppath_inside_cloudbox_do )
+  else if( cloudbox_on )
     {
-      if( z_sensor > z_field(cloudbox_limits[0],0,0)   &&
+      if( !ppath_inside_cloudbox_do  &&
+          z_sensor > z_field(cloudbox_limits[0],0,0)   &&
           z_sensor < z_field(cloudbox_limits[1],0,0) )
         {
           // Inside cloud box
@@ -1177,6 +1178,13 @@ void ppathPlaneParallel(
                ( z_sensor==z_field(cloudbox_limits[1],0,0) && za_sensor<90 ) )
         {
           // Cloud box boundary
+          ppath_init_structure(  ppath, atmosphere_dim, 1 );
+          background = 3;  
+          path_to_follow = false;
+        }
+      else if( above_toa  &&  cloudbox_limits[1] == nz-1 )
+        {
+          // Cloud box boundary is at TOA
           ppath_init_structure(  ppath, atmosphere_dim, 1 );
           background = 3;  
           path_to_follow = false;

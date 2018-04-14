@@ -360,23 +360,6 @@ void get_stepwise_scattersky_propmat(StokesVector& ap,
                                      const Index& atmosphere_dim,
                                      const bool& jacobian_do);
 
-void get_stepwise_scattersky_source_old(StokesVector& Sp,
-                                    ArrayOfStokesVector& dSp_dx,
-                                    const ArrayOfRetrievalQuantity& jacobian_quantities,
-                                    ConstVectorView ppath_1p_pnd,
-                                    const ArrayOfMatrix& ppath_dpnd_dx,
-                                    const Index ppath_1p_id,
-                                    const ArrayOfArrayOfSingleScatteringData& scat_data,
-                                    ConstTensor7View doit_i_field,
-                                    ConstVectorView scat_za_grid,
-                                    ConstVectorView scat_aa_grid,
-                                    ConstVectorView ppath_line_of_sight,
-                                    const GridPos& ppath_pressure,
-                                    const Numeric& ppath_temperature,
-                                    const Index& atmosphere_dim,
-                                    const bool& jacobian_do,
-                                    const Verbosity& verbosity);
-
 void get_stepwise_scattersky_source(StokesVector& Sp,
                                     ArrayOfStokesVector& dSp_dx,
                                     const ArrayOfRetrievalQuantity& jacobian_quantities,

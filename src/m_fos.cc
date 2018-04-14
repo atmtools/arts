@@ -1210,7 +1210,7 @@ void iyHybrid(
                                               atmosphere_dim,
                                               jacobian_do,
                                               verbosity );
-                                              */
+              */
               get_stepwise_scattersky_source( Sp,
                                               dSp_dx,
                                               jacobian_quantities,
