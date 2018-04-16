@@ -9300,7 +9300,7 @@ void define_md_data_raw()
            "The log-options are applied as log(z-z_min) and log10(z-z_min).\n"
            "The default for *z_min* is zero, but by changing it the lower limit\n"
            "for z can be changed. Note that *z_min* becomes the lower limit for\n" 
-           "allowed values of z. The GIN *z_max* is hee ignored.\n"
+           "allowed values of z. The GIN *z_max* is here ignored.\n"
            "\n"
            "For the atanh-option, also *z_max* is considered. This transformation\n"
            "is applied as atanh((2(z-z_min)/(z_max-z_min))-1). As above,*z_min*\n"
@@ -9345,8 +9345,8 @@ void define_md_data_raw()
           GIN_TYPE( "String", "Numeric", "Numeric" ),
           GIN_DEFAULT( NODEF, "0", "-99e99" ),
           GIN_DESC( "The transformation function.",
-                    "Lower limit of u.",
-                    "Upper limit of u." )
+                    "Lower limit of z.",
+                    "Upper limit of z." )
             ));
   
   md_data_raw.push_back     

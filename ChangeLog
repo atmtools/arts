@@ -1,3 +1,17 @@
+2018-04-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1025
+
+	* The ELL07 and MPM models for liquid absorption now accept that
+	the values outside the accepted temperature range is < 1e-10, and
+	not exactly zero. This needed to make retrievals practically possible.
+
+	* src/continua.cc (ELL07WaterDropletAbs, MPM93IceCrystalAbs)
+	(ELL07WaterDropletAbs, xsec_continuum_tag): See above. Also
+	improved error messages.
+
+	* src/methods.cc: Corrected text for jacobianSetFuncTransformation
+
 2018-04-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1024

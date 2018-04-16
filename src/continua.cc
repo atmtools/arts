@@ -400,6 +400,8 @@ extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric DENSITY_OF_WATER;
 
+const Numeric LIQUID_AND_ICE_TREAT_AS_ZERO = 1e-10;
+
 // numerical constants specific defined for the file continua.cc
 
 // conversion from neper to decibel:
@@ -15220,7 +15222,6 @@ void Ho66_CO2_foreign_continuum (MatrixView          pxsec,
    \author Thomas Kuhn
    \date 2001-11-05
  */
-
 void MPM93WaterDropletAbs (MatrixView         pxsec,
                            const Numeric      CCin,   // input parameter
                            const Numeric      CGin,   // input parameter
@@ -15230,11 +15231,9 @@ void MPM93WaterDropletAbs (MatrixView         pxsec,
                            ConstVectorView    abs_p,  // pressure vector
                            ConstVectorView    abs_t,  // temperature vector
                            ConstVectorView    vmr,    // suspended water droplet density vector
-                           const Verbosity& verbosity)
+                           const Verbosity& )
 {
-  CREATE_OUT3;
-
-  // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
+  // --------- STANDARD MODEL PARAMETERS ------------------------------------------------
   // standard values for the MPM93 model (J. Liebe and G. A. Hufford and M. G. Cotton,
   // "Propagation modeling of moist air and suspended water/ice
   // particles at frequencies below 1000 GHz",
@@ -15243,7 +15242,7 @@ void MPM93WaterDropletAbs (MatrixView         pxsec,
   const Numeric CC_MPM93 = 1.00000;
   const Numeric CG_MPM93 = 1.00000;
   const Numeric CE_MPM93 = 1.00000;
-  // ---------------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------------
 
 
   // select the parameter set (!!model dominates values!!):
@@ -15264,17 +15263,13 @@ void MPM93WaterDropletAbs (MatrixView         pxsec,
     {
       ostringstream os;
       os << "liquidcloud-MPM93: ERROR! Wrong model values given.\n"
-   << "Valid models are: 'MPM93' and 'user'" << '\n';
+         << "Valid models are: \"MPM93\" and \"user\"";
       throw runtime_error(os.str());
     }
-  out3  << "liquidcloud-MPM93: (model=" << model << ") parameter values in use:\n"
-  << " CC = " << CC << "\n"
-  << " CG = " << CG << "\n"
-  << " CE = " << CE << "\n";
 
 
   const Numeric m = 1.00e3; // specific weight of the droplet,  fixed value:  1.00e3 kg/m3
-  const Numeric low_lim_den  =  0.000;   // lower limit of suspended droplet particle density vector [kg/m3]
+  const Numeric low_lim_den  = -LIQUID_AND_ICE_TREAT_AS_ZERO;   // lower limit of suspended droplet particle density vector [kg/m3]
   const Numeric high_lim_den = 5.00e-3; // upper limit of suspended droplet particle density vector [kg/m3]
 
   const Index n_p = abs_p.nelem();  // Number of pressure levels
@@ -15292,77 +15287,73 @@ void MPM93WaterDropletAbs (MatrixView         pxsec,
   // Loop pressure/temperature:
   for ( Index i=0; i<n_p; ++i )
     {
-      // water vapor saturation pressure over liquid water [Pa]
-      // Numeric es       = WVSatPressureLiquidWater(abs_t[i]);
-      // water vapor partial pressure [Pa]
-      // Numeric e        = abs_p[i] * vmr[i];
-      // relative humidity [1]
-      // Numeric RH       = e / es;
-
       // Check limits of suspended water droplet density ("vmr") [kg/m³]
-      if ( (vmr[i] >= low_lim_den) && (vmr[i] <= high_lim_den) )
-  {
-    // relative inverse temperature [1]
-    Numeric theta    = 300.000 / abs_t[i];
-    // relaxation frequencies [GHz]
-    Numeric gamma1   = CG * 20.20 - 146.40*(theta-1.000) + 316.00*(theta-1.000)*(theta-1.000);
-    // Numeric gamma1  = 20.1 * exp( 7.88 * theta ); // see Liebe et al. IJIMW, 1992, p667, Eq. (2b)
-    Numeric gamma2   = 39.80 * gamma1;
-    // static and high-frequency permittivities
-    Numeric epsilon0 = CE * 103.30 * (theta-1.000) + 77.66;
-    Numeric epsilon1 = 0.0671 * epsilon0;
-    Numeric epsilon2 = 3.52;
+      if( (vmr[i] < low_lim_den) || (vmr[i] > high_lim_den) )
+        {
+          ostringstream os;
+          os << "ERROR in MPM93WaterDropletAbs:\n"
+             << "Valid range is " << low_lim_den << "-" << low_lim_den << "kg/m3,\n"
+             << "but found a value = " << vmr[i];
+          throw runtime_error(os.str());
+        }
 
-    // Loop frequency:
-    for ( Index s=0; s<n_f; ++s )
-      {
-        // real part of the complex permittivity of water (double-debye model)
-        Numeric Reepsilon  = epsilon0 -
-    pow((f_grid[s]*Hz_to_GHz),(Numeric)2.) *
-    ( ((epsilon0-epsilon1)/
-       (pow((f_grid[s]*Hz_to_GHz),(Numeric)2.)
+      else if( vmr[i] < LIQUID_AND_ICE_TREAT_AS_ZERO )
+        {
+          pxsec(joker,i) = 0;
+        }
+                 
+      else 
+        {
+          // relative inverse temperature [1]
+          Numeric theta    = 300.000 / abs_t[i];
+          // relaxation frequencies [GHz]
+          Numeric gamma1   = CG * 20.20 - 146.40*(theta-1.000) + 316.00*(theta-1.000)*(theta-1.000);
+          // Numeric gamma1  = 20.1 * exp( 7.88 * theta ); // see Liebe et al. IJIMW, 1992, p667, Eq. (2b)
+          Numeric gamma2   = 39.80 * gamma1;
+          // static and high-frequency permittivities
+          Numeric epsilon0 = CE * 103.30 * (theta-1.000) + 77.66;
+          Numeric epsilon1 = 0.0671 * epsilon0;
+          Numeric epsilon2 = 3.52;
+
+          // Loop frequency:
+          for ( Index s=0; s<n_f; ++s )
+            {
+              // real part of the complex permittivity of water (double-debye model)
+              Numeric Reepsilon  = epsilon0 -
+                pow((f_grid[s]*Hz_to_GHz),(Numeric)2.) *
+                ( ((epsilon0-epsilon1)/
+                   (pow((f_grid[s]*Hz_to_GHz),(Numeric)2.)
                     + pow(gamma1,(Numeric)2.))) +
-      ((epsilon1-epsilon2)/
-       (pow((f_grid[s]*Hz_to_GHz),(Numeric)2.)
+                  ((epsilon1-epsilon2)/
+                   (pow((f_grid[s]*Hz_to_GHz),(Numeric)2.)
                     + pow(gamma2,(Numeric)2.))) );
-        // imaginary part of the complex permittivity of water (double-debye model)
-        Numeric Imepsilon  = (f_grid[s]*Hz_to_GHz) *
-    ( (gamma1*(epsilon0-epsilon1)/
-       (pow((f_grid[s]*Hz_to_GHz),(Numeric)2.)
+              // imaginary part of the complex permittivity of water (double-debye model)
+              Numeric Imepsilon  = (f_grid[s]*Hz_to_GHz) *
+                ( (gamma1*(epsilon0-epsilon1)/
+                   (pow((f_grid[s]*Hz_to_GHz),(Numeric)2.)
                     + pow(gamma1,(Numeric)2.))) +
-      (gamma2*(epsilon1-epsilon2)/
-       (pow((f_grid[s]*Hz_to_GHz),(Numeric)2.)
+                  (gamma2*(epsilon1-epsilon2)/
+                   (pow((f_grid[s]*Hz_to_GHz),(Numeric)2.)
                     + pow(gamma2,(Numeric)2.))) );
-        // the imaginary part of the complex refractivity of suspended liquid water particle [ppm]
-        // In MPM93 w is in g/m³ and m is in g/cm³. Because of the units used in arts,
-        // a factor of 1.000e6 must be multiplied with the ratio (w/m):
-        // MPM93: (w/m)_MPM93  in   (g/m³)/(g/cm³)
-        // arts:  (w/m)_arts   in  (kg/m³)/(kg/m³)
-        // =====> (w/m)_MPM93   =   1.0e6 * (w/m)_arts
-        // the factor of 1.0e6 is included below in pxsec calculation.
-        Numeric ImNw = 1.500 / m *
-    ( 3.000 * Imepsilon
+              // the imaginary part of the complex refractivity of suspended liquid water particle [ppm]
+              // In MPM93 w is in g/m³ and m is in g/cm³. Because of the units used in arts,
+              // a factor of 1.000e6 must be multiplied with the ratio (w/m):
+              // MPM93: (w/m)_MPM93  in   (g/m³)/(g/cm³)
+              // arts:  (w/m)_arts   in  (kg/m³)/(kg/m³)
+              // =====> (w/m)_MPM93   =   1.0e6 * (w/m)_arts
+              // the factor of 1.0e6 is included below in pxsec calculation.
+              Numeric ImNw = 1.500 / m *
+                ( 3.000 * Imepsilon
                   / ( pow((Reepsilon+(Numeric)2.000),(Numeric)2.)
                       + pow(Imepsilon,(Numeric)2.) ) );
-        // liquid water particle absorption cross section [1/m]
-        // The vmr of H2O will be multiplied at the stage of absorption
-        // calculation: abs = vmr * pxsec.
-        // pxsec = abs/vmr [1/m] but MPM93 is in [dB/km] --> conversion necessary
-        pxsec(s,i) += CC * 1.000e6 * dB_km_to_1_m * 0.1820 * (f_grid[s]*Hz_to_GHz) * ImNw;
-      }
-  } else
-    {
-      if ( (vmr[i] < low_lim_den) || (vmr[i] > high_lim_den) )
-        {
-    ostringstream os;
-    os << "ERROR in MPM93WaterDropletAbs:\n"
-       << " suspended water droplet density (valid range 0.00-5.00e-3 kg/m3):" << vmr[i] << "\n"
-       << " ==> no calculation performed!\n";
-    throw runtime_error(os.str());
+              // liquid water particle absorption cross section [1/m]
+              // The vmr of H2O will be multiplied at the stage of absorption
+              // calculation: abs = vmr * pxsec.
+              // pxsec = abs/vmr [1/m] but MPM93 is in [dB/km] --> conversion necessary
+              pxsec(s,i) += CC * 1.000e6 * dB_km_to_1_m * 0.1820 * (f_grid[s]*Hz_to_GHz) * ImNw;
+            }
         }
     }
-    }
-
 }
 
 
@@ -15398,107 +15389,112 @@ void ELL07WaterDropletAbs (MatrixView         pxsec,
                            ConstVectorView    abs_p,  // pressure vector
                            ConstVectorView    abs_t,  // temperature vector
                            ConstVectorView    vmr,    // suspended water droplet density vector
-                           const Verbosity& verbosity)
+                           const Verbosity& )
 {
-    CREATE_OUT3;
-    if (model != "ELL07")
+  if (model != "ELL07")
     {
-        ostringstream os;
-        os << "liquidcloud-ELL07: ERROR! Wrong model values given.\n"
-        << "Valid models are: 'ELL07'" << '\n';
-        throw runtime_error(os.str());
+      ostringstream os;
+      os << "liquidcloud-ELL07: ERROR! Wrong model values given.\n"
+         << "Valid models are: \"ELL07\"";
+      throw runtime_error(os.str());
     }
-    out3  << "liquidcloud-ELL07: (model=" << model << ") parameter values in use";
 
 
-    const Numeric m = 1.00e3; // specific weight of the droplet,  fixed value:  1.00e3 kg/m3
-    const Numeric low_lim_den  =  0.000;   // lower limit of suspended droplet particle density vector [kg/m3]
-    const Numeric high_lim_den = 5.00e-3; // upper limit of suspended droplet particle density vector [kg/m3]
+  const Numeric m = 1.00e3; // specific weight of the droplet,  fixed value:  1.00e3 kg/m3
+  const Numeric low_lim_den  = -LIQUID_AND_ICE_TREAT_AS_ZERO;   // lower limit of suspended droplet particle density vector [kg/m3]
+  const Numeric high_lim_den = 5.00e-3; // upper limit of suspended droplet particle density vector [kg/m3]
 
-    const Index n_p = abs_p.nelem();  // Number of pressure levels
-    const Index n_f = f_grid.nelem();  // Number of frequencies
+  const Index n_p = abs_p.nelem();  // Number of pressure levels
+  const Index n_f = f_grid.nelem();  // Number of frequencies
 
-    // ELL07 model parameters - table 2 in Ellison (2007)
-    const Numeric a1=79.23882;
-    const Numeric a2=3.815866;
-    const Numeric a3=1.634967;
-    const Numeric tc=133.1383;
-    const Numeric b1=0.004300598;
-    const Numeric b2=0.01117295;
-    const Numeric b3=0.006841548;
-    const Numeric c1=1.382264e-13;
-    const Numeric c2=3.510354e-16;
-    const Numeric c3=6.30035e-15;
-    const Numeric d1=652.7648;
-    const Numeric d2=1249.533;
-    const Numeric d3=405.5169;
-    const Numeric p0=0.8379692;
-    const Numeric p1=-0.006118594;
-    const Numeric p2=-0.000012936798;
-    const Numeric p3=4235901000000.0;
-    const Numeric p4=-14260880000.0;
-    const Numeric p5=273815700.0;
-    const Numeric p6=-1246943.0;
-    const Numeric p7=9.618642e-14;
-    const Numeric p8=1.795786e-16;
-    const Numeric p9=-9.310017E-18;
-    const Numeric p10=1.655473e-19;
-    const Numeric p11=0.6165532;
-    const Numeric p12=0.007238532;
-    const Numeric p13=-0.00009523366;
-    const Numeric p14=15983170000000.0;
-    const Numeric p15=-74413570000.0;
-    const Numeric p16=497448000.0;
-    const Numeric p17=2.882476e-14;
-    const Numeric p18=-3.142118e-16;
-    const Numeric p19=3.528051e-18;
+  // ELL07 model parameters - table 2 in Ellison (2007)
+  const Numeric a1=79.23882;
+  const Numeric a2=3.815866;
+  const Numeric a3=1.634967;
+  const Numeric tc=133.1383;
+  const Numeric b1=0.004300598;
+  const Numeric b2=0.01117295;
+  const Numeric b3=0.006841548;
+  const Numeric c1=1.382264e-13;
+  const Numeric c2=3.510354e-16;
+  const Numeric c3=6.30035e-15;
+  const Numeric d1=652.7648;
+  const Numeric d2=1249.533;
+  const Numeric d3=405.5169;
+  const Numeric p0=0.8379692;
+  const Numeric p1=-0.006118594;
+  const Numeric p2=-0.000012936798;
+  const Numeric p3=4235901000000.0;
+  const Numeric p4=-14260880000.0;
+  const Numeric p5=273815700.0;
+  const Numeric p6=-1246943.0;
+  const Numeric p7=9.618642e-14;
+  const Numeric p8=1.795786e-16;
+  const Numeric p9=-9.310017E-18;
+  const Numeric p10=1.655473e-19;
+  const Numeric p11=0.6165532;
+  const Numeric p12=0.007238532;
+  const Numeric p13=-0.00009523366;
+  const Numeric p14=15983170000000.0;
+  const Numeric p15=-74413570000.0;
+  const Numeric p16=497448000.0;
+  const Numeric p17=2.882476e-14;
+  const Numeric p18=-3.142118e-16;
+  const Numeric p19=3.528051e-18;
 
-    // Check that dimensions of abs_p, abs_t, and vmr agree:
-    assert ( n_p==abs_t.nelem() );
-    assert ( n_p==vmr.nelem()   );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
+  assert ( n_p==vmr.nelem()   );
+  
+  // Check that dimensions of pxsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
-    // Check that dimensions of pxsec are consistent with n_f
-    // and n_p. It should be [n_f,n_p]:
-    assert ( n_f==pxsec.nrows() );
-    assert ( n_p==pxsec.ncols() );
-
-    // Loop pressure/temperature:
-    for ( Index i=0; i<n_p; ++i )
+  // Loop pressure/temperature:
+  for ( Index i=0; i<n_p; ++i )
     {
-        // water vapor saturation pressure over liquid water [Pa]
-        // Numeric es       = WVSatPressureLiquidWater(abs_t[i]);
-        // water vapor partial pressure [Pa]
-        // Numeric e        = abs_p[i] * vmr[i];
-        // relative humidity [1]
-        // Numeric RH       = e / es;
-
-        // Check limits of suspended water droplet density ("vmr") [kg/m³]
-        if ( (vmr[i] >= low_lim_den) && (vmr[i] <= high_lim_den) )
+      // Check limits of suspended water droplet density ("vmr") [kg/m³]
+      if( (vmr[i] < low_lim_den) || (vmr[i] > high_lim_den) )
         {
-            // Temperature in celsius
-            Numeric t_cels = abs_t[i]-273.15;
-            // static permittivity
-            Numeric epsilon_s = 87.9144-0.404399*t_cels-9.58726e-4*pow(t_cels,(Numeric)2.) -
+          ostringstream os;
+          os << "ERROR in ELL07WaterDropletAbs:\n"
+             << "Valid range is " << low_lim_den << "-" << low_lim_den << "kg/m3,\n"
+             << "but found a value = " << vmr[i];
+          throw runtime_error(os.str());
+        }
+      
+      else if( vmr[i] < LIQUID_AND_ICE_TREAT_AS_ZERO )
+        {
+          pxsec(joker,i) = 0;
+        }
+                 
+      else 
+        {
+          // Temperature in celsius
+          Numeric t_cels = abs_t[i]-273.15;
+          // static permittivity
+          Numeric epsilon_s = 87.9144-0.404399*t_cels-9.58726e-4*pow(t_cels,(Numeric)2.) -
             1.32802e-6*pow(t_cels,(Numeric)3.);
-            // Model parameters
-            Numeric delta1=a1*exp(-b1*t_cels);
-            Numeric delta2=a2*exp(-b2*t_cels);
-            Numeric delta3=a3*exp(-b3*t_cels);
-            Numeric tau1=c1*exp(d1/(t_cels+tc));
-            Numeric tau2=c2*exp(d2/(t_cels+tc));
-            Numeric tau3=c3*exp(d3/(t_cels+tc));
-            Numeric delta4=p0 + p1*t_cels + p2*pow(t_cels, (Numeric)2.);
-            Numeric f0=p3 + p4*t_cels + p5*pow(t_cels, (Numeric)2.) + p6*pow(t_cels, (Numeric)3.);
-            Numeric tau4=p7+p8*t_cels + p9*pow(t_cels, (Numeric)2.) + p10*pow(t_cels, (Numeric)3.);
-            Numeric delta5=p11 + p12*t_cels + p13*pow(t_cels, (Numeric)2.);
-            Numeric f1=p14 + p15*t_cels + p16*pow(t_cels, (Numeric)2.);
-            Numeric tau5=p17 + p18*t_cels + p19*pow(t_cels, (Numeric)2.);
+          // Model parameters
+          Numeric delta1=a1*exp(-b1*t_cels);
+          Numeric delta2=a2*exp(-b2*t_cels);
+          Numeric delta3=a3*exp(-b3*t_cels);
+          Numeric tau1=c1*exp(d1/(t_cels+tc));
+          Numeric tau2=c2*exp(d2/(t_cels+tc));
+          Numeric tau3=c3*exp(d3/(t_cels+tc));
+          Numeric delta4=p0 + p1*t_cels + p2*pow(t_cels, (Numeric)2.);
+          Numeric f0=p3 + p4*t_cels + p5*pow(t_cels, (Numeric)2.) + p6*pow(t_cels, (Numeric)3.);
+          Numeric tau4=p7+p8*t_cels + p9*pow(t_cels, (Numeric)2.) + p10*pow(t_cels, (Numeric)3.);
+          Numeric delta5=p11 + p12*t_cels + p13*pow(t_cels, (Numeric)2.);
+          Numeric f1=p14 + p15*t_cels + p16*pow(t_cels, (Numeric)2.);
+          Numeric tau5=p17 + p18*t_cels + p19*pow(t_cels, (Numeric)2.);
 
-            // Loop frequency:
-            for ( Index s=0; s<n_f; ++s )
+          // Loop frequency:
+          for ( Index s=0; s<n_f; ++s )
             {
-                // real part of the complex permittivity of water (triple-debye + 2 resonances)
-                Numeric Reepsilon  = epsilon_s - pow(((Numeric)2.*PI*f_grid[s]),(Numeric)2.)*
+              // real part of the complex permittivity of water (triple-debye + 2 resonances)
+              Numeric Reepsilon  = epsilon_s - pow(((Numeric)2.*PI*f_grid[s]),(Numeric)2.)*
                 (pow(tau1,(Numeric)2.)*delta1/((Numeric)1.+pow((Numeric)2.*PI*f_grid[s]*tau1, (Numeric)2.)) +
                  pow(tau2,(Numeric)2.)*delta2/((Numeric)1.+pow((Numeric)2.*PI*f_grid[s]*tau2, (Numeric)2.)) +
                  pow(tau3,(Numeric)2.)*delta3/((Numeric)1.+pow((Numeric)2.*PI*f_grid[s]*tau3, (Numeric)2.))) -
@@ -15511,7 +15507,7 @@ void ELL07WaterDropletAbs (MatrixView         pxsec,
                                                                          f_grid[s]*(f1-f_grid[s]) /
                                                                          ((Numeric)1.+pow((Numeric)2.*PI*tau5*(f1-f_grid[s]),(Numeric)2.)));
                 // imaginary part of the complex permittivity of water (triple-debye + 2 resonances)
-                Numeric Imepsilon  = 2*PI*f_grid[s]*(tau1*delta1/((Numeric)1.+pow((Numeric)2.*PI*f_grid[s]*tau1, (Numeric)2.)) +
+              Numeric Imepsilon  = 2*PI*f_grid[s]*(tau1*delta1/((Numeric)1.+pow((Numeric)2.*PI*f_grid[s]*tau1, (Numeric)2.)) +
                                                      tau2*delta2/((Numeric)1.+pow((Numeric)2.*PI*f_grid[s]*tau2, (Numeric)2.)) +
                                                      tau3*delta3/((Numeric)1.+pow((Numeric)2.*PI*f_grid[s]*tau3, (Numeric)2.))) +
                 PI*f_grid[s]*tau4*delta4*((Numeric)1./((Numeric)1.+pow((Numeric)2.*PI*tau4*(f0+f_grid[s]),(Numeric)2.)) +
@@ -15519,16 +15515,16 @@ void ELL07WaterDropletAbs (MatrixView         pxsec,
                 PI*f_grid[s]*tau5*delta5*((Numeric)1./((Numeric)1.+pow((Numeric)2.*PI*tau5*(f1+f_grid[s]),(Numeric)2.)) +
                                           (Numeric)1./((Numeric)1.+pow((Numeric)2.*PI*tau5*(f1-f_grid[s]),(Numeric)2.)));
 
-                // the imaginary part of the complex refractivity of suspended liquid water particle [ppm]
-                // In MPM93 w is in g/m³ and m is in g/cm³. Because of the units used in arts,
-                // a factor of 1.000e6 must be multiplied with the ratio (w/m):
-                // MPM93: (w/m)_MPM93  in   (g/m³)/(g/cm³)
-                // arts:  (w/m)_arts   in  (kg/m³)/(kg/m³)
-                // =====> (w/m)_MPM93   =   1.0e6 * (w/m)_arts
-                // the factor of 1.0e6 is included below in pxsec calculation.
-                Numeric ImNw = 1.500 / m *
+              // the imaginary part of the complex refractivity of suspended liquid water particle [ppm]
+              // In MPM93 w is in g/m³ and m is in g/cm³. Because of the units used in arts,
+              // a factor of 1.000e6 must be multiplied with the ratio (w/m):
+              // MPM93: (w/m)_MPM93  in   (g/m³)/(g/cm³)
+              // arts:  (w/m)_arts   in  (kg/m³)/(kg/m³)
+              // =====> (w/m)_MPM93   =   1.0e6 * (w/m)_arts
+              // the factor of 1.0e6 is included below in pxsec calculation.
+              Numeric ImNw = 1.500 / m *
                 ( 3.000 * Imepsilon
-                 / ( pow((Reepsilon+(Numeric)2.000),(Numeric)2.)
+                  / ( pow((Reepsilon+(Numeric)2.000),(Numeric)2.)
                     + pow(Imepsilon,(Numeric)2.) ) );
                 // liquid water particle absorption cross section [1/m]
                 // The vmr of H2O will be multiplied at the stage of absorption
@@ -15537,20 +15533,10 @@ void ELL07WaterDropletAbs (MatrixView         pxsec,
                 pxsec(s,i) += 1.000e6 * dB_km_to_1_m * 0.1820 * (f_grid[s]*Hz_to_GHz) * ImNw;
             }
         }
-        else
-        {
-            if ( (vmr[i] < low_lim_den) || (vmr[i] > high_lim_den) )
-            {
-                ostringstream os;
-                os << "ERROR in ELL07WaterDropletAbs:\n"
-                << " suspended water droplet density (valid range 0.00-5.00e-3 kg/m3):" << vmr[i] << "\n"
-                << " ==> no calculation performed!\n";
-                throw runtime_error(os.str());
-            }
-        }
     }
-    
 }
+
+
 
 //
 // #################################################################################
@@ -15597,11 +15583,9 @@ void MPM93IceCrystalAbs (MatrixView        pxsec,
                          ConstVectorView   abs_t,  // temperature vector
                          ConstVectorView   vmr,    // suspended ice particle density vector,
                                                    // valid range: 0-1.0e-3 kg/m³
-                         const Verbosity& verbosity)
+                         const Verbosity& )
 {
-  CREATE_OUT3;
-
-  // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
+  // --------- STANDARD MODEL PARAMETERS ------------------------------------------------
   // standard values for the MPM93 model (J. Liebe and G. A. Hufford and M. G. Cotton,
   // "Propagation modeling of moist air and suspended water/ice
   // particles at frequencies below 1000 GHz",
@@ -15610,8 +15594,7 @@ void MPM93IceCrystalAbs (MatrixView        pxsec,
   const Numeric CC_MPM93 = 1.00000;
   const Numeric CA_MPM93 = 1.00000;
   const Numeric CB_MPM93 = 1.00000;
-  // ---------------------------------------------------------------------------------------
-
+  // ------------------------------------------------------------------------------------
 
   // select the parameter set (!!model dominates values!!):
   Numeric CC, CA, CB;
@@ -15631,17 +15614,12 @@ void MPM93IceCrystalAbs (MatrixView        pxsec,
     {
       ostringstream os;
       os << "icecloud-MPM93: ERROR! Wrong model values given.\n"
-   << "Valid models are: 'MPM93' and 'user'" << '\n';
+         << "Valid models are: \"MPM93\" and \"user\"";
       throw runtime_error(os.str());
     }
-  out3  << "icecloud-MPM93: (model=" << model << ") parameter values in use:\n"
-  << " CC = " << CC << "\n"
-  << " CA = " << CA << "\n"
-  << " CB = " << CB << "\n";
-
 
   const Numeric m = 0.916e3;  // specific weight of ice particles,  fixed value:   0.916e3 kg/m³
-  const Numeric low_lim_den  =  0.000;   // lower limit of suspended ice particle density vector [kg/m³]
+  const Numeric low_lim_den  = -LIQUID_AND_ICE_TREAT_AS_ZERO;   // lower limit of suspended droplet particle density vector [kg/m3]
   const Numeric high_lim_den = 1.00e-3; // lower limit of suspended ice particle density vector [kg/m³]
 
   const Index n_p = abs_p.nelem();  // Number of pressure levels
@@ -15657,68 +15635,65 @@ void MPM93IceCrystalAbs (MatrixView        pxsec,
   assert ( n_p==pxsec.ncols() );
 
 
-
   // Loop pressure/temperature:
   for ( Index i=0; i<n_p; ++i )
     {
-      // water vapor saturation pressure over ice [Pa]
-      // Numeric es = WVSatPressureIce(abs_t[i]);
-      // water vapor partial pressure [Pa]
-      // Numeric e  = abs_p[i] * vmr[i];
-      // relative humidity [1]
-      // Numeric RH = e / es;
-
-      // Check limits of suspended water ice crystal density ("vmr") [kg/m³]
-      if ( (vmr[i] >= low_lim_den) && (vmr[i] <= high_lim_den) )
-  {
-    // relative inverse temperature [1]
-    Numeric theta = 300.000 / abs_t[i];
-    // inverse frequency T-dependency function [Hz]
-    Numeric ai = CA * (62.000 * theta - 11.600) * exp(-22.100 * (theta-1.000)) * 1.000e-4;
-    // linear frequency T-dependency function [1/Hz]
-    Numeric bi = CB * 0.542e-6 *
-           ( -24.17 + (116.79/theta)
-                         + pow((theta/(theta-(Numeric)0.9927)),(Numeric)2.) );
-
-    // Loop frequency:
-    for ( Index s=0; s<n_f; ++s )
-      {
-        // real part of the complex permittivity of ice
-        Numeric Reepsilon  = 3.15;
-        // imaginary part of the complex permittivity of water
-        Numeric Imepsilon  = ( ( ai/(f_grid[s]*Hz_to_GHz) ) +
-             ( bi*(f_grid[s]*Hz_to_GHz) ) );
-        // the imaginary part of the complex refractivity of suspended ice particles.
-        // In MPM93 w is in g/m³ and m is in g/cm³. Because of the units used in arts,
-        // a factor of 1.000e6 must be multiplied with the ratio (w/m):
-        // MPM93: (w/m)_MPM93  in   (g/m³)/(g/cm³)
-        // arts:  (w/m)_arts   in  (kg/m³)/(kg/m³)
-        // =====> (w/m)_MPM93   =   1.0e6 * (w/m)_arts
-        // the factor of 1.0e6 is included below in pxsec calculation.
-        Numeric ImNw = 1.500 / m *
-        ( 3.000 * Imepsilon
-                      / ( pow((Reepsilon+(Numeric)2.000),(Numeric)2.)
-                          + pow(Imepsilon,(Numeric)2.) ) );
-        // ice particle absorption cross section [1/m]
-        // The vmr of H2O will be multiplied at the stage of absorption
-        // calculation: abs = vmr * pxsec.
-        // pxsec = abs/vmr [1/m] but MPM93 is in [dB/km] --> conversion necessary
-        pxsec(s,i) += CC * 1.000e6 * dB_km_to_1_m * 0.1820 * (f_grid[s]*Hz_to_GHz) * ImNw;
-      }
-  } else
-    {
-      if ( (vmr[i] < low_lim_den) || (vmr[i] > high_lim_den) )
+      // Check limits of suspended water droplet density ("vmr") [kg/m³]
+      if( (vmr[i] < low_lim_den) || (vmr[i] > high_lim_den) )
         {
-    ostringstream os;
-    os << "ERROR in MPM93IceCrystalAbs:\n"
-       << " suspended ice particle density (valid range: 0-1.0e-3 kg/m3):" << vmr[i] << "\n"
-       << " ==> no calculation performed!\n";
-    throw runtime_error(os.str());
+          ostringstream os;
+          os << "ERROR in MPM93IceCrystalAbs:\n"
+             << "Valid range is " << low_lim_den << "-" << low_lim_den << "kg/m3,\n"
+             << "but found a value = " << vmr[i];
+          throw runtime_error(os.str());
+        }
+      
+      else if( vmr[i] < LIQUID_AND_ICE_TREAT_AS_ZERO )
+        {
+          pxsec(joker,i) = 0;
+        }
+                 
+      else 
+        {
+          // relative inverse temperature [1]
+          Numeric theta = 300.000 / abs_t[i];
+          // inverse frequency T-dependency function [Hz]
+          Numeric ai = CA * (62.000 * theta - 11.600) * exp(-22.100 * (theta-1.000)) * 1.000e-4;
+          // linear frequency T-dependency function [1/Hz]
+          Numeric bi = CB * 0.542e-6 *
+            ( -24.17 + (116.79/theta)
+              + pow((theta/(theta-(Numeric)0.9927)),(Numeric)2.) );
+
+          // Loop frequency:
+          for ( Index s=0; s<n_f; ++s )
+            {
+              // real part of the complex permittivity of ice
+              Numeric Reepsilon  = 3.15;
+              // imaginary part of the complex permittivity of water
+              Numeric Imepsilon  = ( ( ai/(f_grid[s]*Hz_to_GHz) ) +
+                                     ( bi*(f_grid[s]*Hz_to_GHz) ) );
+              // the imaginary part of the complex refractivity of suspended ice particles.
+              // In MPM93 w is in g/m³ and m is in g/cm³. Because of the units used in arts,
+              // a factor of 1.000e6 must be multiplied with the ratio (w/m):
+              // MPM93: (w/m)_MPM93  in   (g/m³)/(g/cm³)
+              // arts:  (w/m)_arts   in  (kg/m³)/(kg/m³)
+              // =====> (w/m)_MPM93   =   1.0e6 * (w/m)_arts
+              // the factor of 1.0e6 is included below in pxsec calculation.
+              Numeric ImNw = 1.500 / m *
+                ( 3.000 * Imepsilon
+                  / ( pow((Reepsilon+(Numeric)2.000),(Numeric)2.)
+                          + pow(Imepsilon,(Numeric)2.) ) );
+              // ice particle absorption cross section [1/m]
+              // The vmr of H2O will be multiplied at the stage of absorption
+              // calculation: abs = vmr * pxsec.
+              // pxsec = abs/vmr [1/m] but MPM93 is in [dB/km] --> conversion necessary
+              pxsec(s,i) += CC * 1.000e6 * dB_km_to_1_m * 0.1820 * (f_grid[s]*Hz_to_GHz) * ImNw;
+            }
         }
     }
-    }
-  return;
 }
+
+ 
 //
 // #################################################################################
 //! MPM93RainExt
@@ -15759,11 +15734,9 @@ void MPM93RainExt (MatrixView         pxsec,
                    ConstVectorView    abs_p,  // pressure vector
                    ConstVectorView    abs_t _U_,  // temperature vector
                    ConstVectorView    vmr,    // rain rate profile [kg/m2/s]
-                   const Verbosity& verbosity)
+                   const Verbosity& )
 {
-  CREATE_OUT3;
-
-  // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
+  // --------- STANDARD MODEL PARAMETERS ------------------------------------------------
   // standard values for the MPM93 model based on Olsen, R.L.,
   // D.V. Rogers, and D. B. Hodge, "The aR^b relation in the
   // calculation of rain attenuation", IEEE Trans. Antennas Propagat.,
@@ -15771,7 +15744,7 @@ void MPM93RainExt (MatrixView         pxsec,
   const Numeric CE_MPM93 = 1.00000;
   const Numeric CA_MPM93 = 1.00000;
   const Numeric CB_MPM93 = 1.00000;
-  // ---------------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------------
 
 
   // select the parameter set (!!model dominates values!!):
@@ -15792,13 +15765,9 @@ void MPM93RainExt (MatrixView         pxsec,
     {
       ostringstream os;
       os << "rain-MPM93: ERROR! Wrong model values given.\n"
-   << "Valid models are: 'MPM93' and 'user'" << '\n';
+         << "Valid models are: \"MPM93\" and \"user\"";
       throw runtime_error(os.str());
     }
-  out3  << "rain-MPM93: (model=" << model << ") parameter values in use:\n"
-  << " CE = " << CE << "\n"
-  << " CA = " << CA << "\n"
-  << " CB = " << CB << "\n";
   // ---------------------------------------------------------------------------------------
 
   // conversion factor to convert input SI-units [kg/m2/s] to [mm/h]
@@ -20178,33 +20147,29 @@ void xsec_continuum_tag (MatrixView             xsec,
           if( f_grid[s] > 1e12 )
             {
                ostringstream os;
-               os << "Liquid cloud absorption model MPM93 only valid at"
-                     "frequencies up to 1THz. Yours is above.\n";
+               os << "Liquid cloud absorption model MPM93 only valid at\n"
+                     "frequencies up to 1THz. Yours are above.";
                throw runtime_error(os.str());
             }
         }
       for ( Index s=0; s<abs_t.nelem(); ++s )
         {
-          if( vmr[s]!=0. && abs_t[s] < 233. )
+          if( ( abs_t[s] < 233. || abs_t[s] > 323.)  &&
+              abs(vmr[s])>LIQUID_AND_ICE_TREAT_AS_ZERO )
             {
                ostringstream os;
-               os << "Liquid cloud absorption model MPM93 only valid at"
-                     "temperatures above 233K. Yours is below.\n";
-               throw runtime_error(os.str());
-            }
-          else if ( vmr[s]!=0. && abs_t[s] > 323. )
-            {
-               ostringstream os;
-               os << "Liquid cloud absorption model MPM93 only valid at"
-                     "temperatures below 323K. Yours is above.\n";
+               os << "Liquid cloud absorption model MPM93 only valid at\n"
+                  << "temperatures between 233K and 323K.\n"
+                  << "LWC values outside this temperature range must be < "
+                  << LIQUID_AND_ICE_TREAT_AS_ZERO << " kg/m3.\n"
+                  << "Your value at " << abs_t[s] << "K is: " << vmr[s] << " kg/m3.";
                throw runtime_error(os.str());
             }
         }
+      
       const int Nparam = 3;
-      if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
+      if ( (model == "user") && (parameters.nelem() == Nparam) ) // --------------------
         {
-          out3 << "MPM93 liquid water cloud absorption model " << name << " is running with \n"
-          << "user defined parameters according to model " << model << ".\n";
           MPM93WaterDropletAbs(pxsec,
                                parameters[0],     // scaling factror
                                parameters[1],     // scaling factror
@@ -20250,8 +20215,8 @@ void xsec_continuum_tag (MatrixView             xsec,
           throw runtime_error(os.str());
         }
     }
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // ============= cloud and fog absorption from ELL07 ==================================
+
+  // ============= cloud and fog absorption from ELL07 ================================
   else if ( "liquidcloud-ELL07"==name )
     {
       // Suspended water droplet absorption parameterization from ELL07 model
@@ -20283,33 +20248,28 @@ void xsec_continuum_tag (MatrixView             xsec,
           if( f_grid[s] > 25e12 )
             {
                ostringstream os;
-               os << "Liquid cloud absorption model ELL07 only valid at"
-                     "frequencies up to 25THz. Yours is above.\n";
+               os << "Liquid cloud absorption model ELL07 only valid at\n"
+                     "frequencies up to 25THz. Yours are above.";
                throw runtime_error(os.str());
             }
         }
       for ( Index s=0; s<abs_t.nelem(); ++s )
         {
-          if( vmr[s]!=0. && abs_t[s] < 233. )
+          if( ( abs_t[s] < 233. || abs_t[s] > 373.)  &&
+              abs(vmr[s])>LIQUID_AND_ICE_TREAT_AS_ZERO )
             {
                ostringstream os;
-               os << "Liquid cloud absorption model ELL07 only valid at"
-                     "temperatures above 233K. Yours is below.\n";
-               throw runtime_error(os.str());
-            }
-          else if ( vmr[s]!=0. && abs_t[s] > 373. )
-            {
-               ostringstream os;
-               os << "Liquid cloud absorption model ELL07 only valid at"
-                     "temperatures below 373K. Yours is above.\n";
+               os << "Liquid cloud absorption model ELL07 only valid at\n"
+                  << "temperatures between 233K and 373K.\n"
+                  << "LWC values outside this temperature range must be < "
+                  << LIQUID_AND_ICE_TREAT_AS_ZERO << " kg/m3.\n"
+                  << "Your value at " << abs_t[s] << "K is: " << vmr[s] << " kg/m3.";
                throw runtime_error(os.str());
             }
         }
 
       if ( (model == "ELL07") && (parameters.nelem() == 0) ) // --------------------
         {
-          out3 << "ELL07 liquid water cloud absorption model " << name << " running with \n"
-          << "the parameters for model " << model << ".\n";
           ELL07WaterDropletAbs(pxsec,
                                model,  // model option
                                f_grid,
@@ -20325,17 +20285,18 @@ void xsec_continuum_tag (MatrixView             xsec,
              << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n"
              << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 4.\n";
+             << "Please see the arts user guide chapter 4.";
           throw runtime_error(os.str());
         }
       else
-	{
-	  ostringstream os;
-	  os << "ERROR: ELL07 liquid water cloud absorption model " << name 
-	     << " has no model " << model << "\n";
-	  throw runtime_error(os.str());
-	}
+        {
+          ostringstream os;
+          os << "ERROR: ELL07 liquid water cloud absorption model " << name 
+             << " has no model " << model;
+          throw runtime_error(os.str());
+        }
     }
+  
   // ============= ice particle absorption from MPM93 ===================================
   else if ( "icecloud-MPM93"==name )
     {
@@ -20372,16 +20333,15 @@ void xsec_continuum_tag (MatrixView             xsec,
           if( f_grid[s] > 1e12 )
             {
                ostringstream os;
-               os << "Ice cloud absorption model MPM93 only valid at"
-                     "frequencies up to 1THz. Yours is above.\n";
+               os << "Ice cloud absorption model MPM93 only valid at\n"
+                     "frequencies up to 1THz. Yours are above.";
                throw runtime_error(os.str());
             }
         }
+      
       const int Nparam = 3;
-      if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
+      if ( (model == "user") && (parameters.nelem() == Nparam) ) // ---------------------
         {
-          out3 << "MPM93 ice water cloud absorption model " << name << " is running with \n"
-               << "user defined parameters according to model " << model << ".\n";
           MPM93IceCrystalAbs(pxsec,
                              parameters[0],     // scaling factror
                              parameters[1],     // scaling factror
@@ -20393,7 +20353,7 @@ void xsec_continuum_tag (MatrixView             xsec,
                              vmr,
                              verbosity);
         }
-      else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
+      else if ( (model == "user") && (parameters.nelem() != Nparam) ) // ----------------
         {
           ostringstream os;
           os << "MPM93 ice water cloud absorption model " << name << " requires \n"
@@ -20403,8 +20363,6 @@ void xsec_continuum_tag (MatrixView             xsec,
         }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
         {
-          out3 << "MPM93 ice water cloud absorption model " << name << " running with \n"
-               << "the parameter for model " << model << ".\n";
           MPM93IceCrystalAbs(pxsec,
                              0.000,       // scaling factror
                              0.000,       // scaling factror
@@ -20427,6 +20385,7 @@ void xsec_continuum_tag (MatrixView             xsec,
           throw runtime_error(os.str());
         }
     }
+  
   // ============= rain extinction from MPM93 ===========================================
   else if ( "rain-MPM93"==name )
     {
@@ -20464,8 +20423,8 @@ void xsec_continuum_tag (MatrixView             xsec,
           if( f_grid[s] > 1e12 )
             {
                ostringstream os;
-               os << "Rain absorption model MPM93 only valid at"
-                     "frequencies up to 1THz. Yours is above.\n";
+               os << "Rain absorption model MPM93 only valid at\n"
+                     "frequencies up to 1THz. Yours is above.";
                throw runtime_error(os.str());
             }
         }
