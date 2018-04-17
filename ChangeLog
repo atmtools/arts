@@ -1,13 +1,24 @@
+2018-04-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1027
+
+	* src/m_fos.cc (iyHybrid): Just removed inactive code.
+
+	* src/rte.cc (get_stepwise_scattersky_source): Did not work for
+	stokes_dim > 1. Fixed, and some testing done.
+
+	* src/m_rte.cc (iyCalc,yCalc): Just added some \n in error message.
+
 2018-04-17  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-1026
-	
+
 	* 3rdparty/relmat/arts_interface.F90:  Now takes the dipoles
 	returned to ARTS main for computing Rosenkranz parameters
-	
-	*3rdparty/relmat/module_linemixing.F90: (LM_2ord) and (LM_Rosen) 
+
+	*3rdparty/relmat/module_linemixing.F90: (LM_2ord) and (LM_Rosen)
 	now removes the doubles pressure terms to fit with Smith 1981
-	
+
 	* src/linerecord.h: GetMirroringType → SetMirroringType
 	
 	* src/m_linemixing.cc: Added test functions for computing

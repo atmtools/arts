@@ -145,17 +145,17 @@ void iyCalc(
   // Basics
   //
   if( atmfields_checked != 1 )
-    throw runtime_error( "The atmospheric fields must be flagged to have "
+    throw runtime_error( "The atmospheric fields must be flagged to have\n"
                          "passed a consistency check (atmfields_checked=1)." );
   if( atmgeom_checked != 1 )
-    throw runtime_error( "The atmospheric geometry must be flagged to have "
+    throw runtime_error( "The atmospheric geometry must be flagged to have\n"
                          "passed a consistency check (atmgeom_checked=1)." );
   if( cloudbox_checked != 1 )
-    throw runtime_error( "The cloudbox must be flagged to have "
+    throw runtime_error( "The cloudbox must be flagged to have\n"
                          "passed a consistency check (cloudbox_checked=1)." );
   if( cloudbox_on )
     if( scat_data_checked != 1 )
-      throw runtime_error( "The scattering data must be flagged to have "
+      throw runtime_error( "The scattering data must be flagged to have\n"
                            "passed a consistency check (scat_data_checked=1)." );
 
 
@@ -1456,20 +1456,20 @@ void yCalc(
     { throw runtime_error( "All frequencies in *f_grid* must be > 0." ); }
   //
   if( atmfields_checked != 1 )
-    throw runtime_error( "The atmospheric fields must be flagged to have "
+    throw runtime_error( "The atmospheric fields must be flagged to have\n"
                          "passed a consistency check (atmfields_checked=1)." );
   if( atmgeom_checked != 1 )
-    throw runtime_error( "The atmospheric geometry must be flagged to have "
+    throw runtime_error( "The atmospheric geometry must be flagged to have\n"
                          "passed a consistency check (atmgeom_checked=1)." );
   if( cloudbox_checked != 1 )
-    throw runtime_error( "The cloudbox must be flagged to have "
+    throw runtime_error( "The cloudbox must be flagged to have\n"
                          "passed a consistency check (cloudbox_checked=1)." );
   if( cloudbox_on )
     if( scat_data_checked != 1 )
-      throw runtime_error( "The scattering data must be flagged to have "
+      throw runtime_error( "The scattering data must be flagged to have\n"
                            "passed a consistency check (scat_data_checked=1)." );
   if( sensor_checked != 1 )
-    throw runtime_error( "The sensor variables must be flagged to have "
+    throw runtime_error( "The sensor variables must be flagged to have\n"
                          "passed a consistency check (sensor_checked=1)." );
 
 

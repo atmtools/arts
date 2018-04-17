@@ -373,6 +373,7 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
                                     ConstMatrixView ppath_line_of_sight,
                                     const GridPos& ppath_pressure,
                                     const Vector& temperature,
+                                    const Index& atmosphere_dim,
                                     const bool& jacobian_do,
                                     const Index& t_interp_order=1);
 

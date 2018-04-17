@@ -1193,24 +1193,6 @@ void iyHybrid(
               Vector scat_aa_grid;
               nlinspace( scat_aa_grid, 0, 360, Naa );
               //
-              /*
-              get_stepwise_scattersky_source_old( Sp,
-                                              dSp_dx,
-                                              jacobian_quantities,
-                                              ppvar_pnd(joker,ip),
-                                              ppvar_dpnd_dx,
-                                              ip,
-                                              scat_data,
-                                              doit_i_field,
-                                              scat_za_grid,
-                                              scat_aa_grid,
-                                              ppath.los(ip,joker),
-                                              ppath.gp_p[ip],
-                                              ppvar_t[ip],
-                                              atmosphere_dim,
-                                              jacobian_do,
-                                              verbosity );
-              */
               get_stepwise_scattersky_source( Sp,
                                               dSp_dx,
                                               jacobian_quantities,
@@ -1224,6 +1206,7 @@ void iyHybrid(
                                               ppath.los(Range(ip,1),joker),
                                               ppath.gp_p[ip],
                                               ppvar_t[Range(ip,1)],
+                                              atmosphere_dim,
                                               jacobian_do,
                                               t_interp_order );
               S += Sp;
