@@ -1177,7 +1177,7 @@ void calculate_xsec_from_full_relmat(ArrayOfMatrix& xsec,
     const Numeric x = c1 * isotopologue_ratio * f_grid[iv] * (1 - exp(-PLANCK_CONST*f_grid[iv]/BOLTZMAN_CONST/T));
     xsec[this_species](iv, this_level) += x * sum;
     for(Index id = 0; id < nd; id++) {
-      if(ppd(id) == JQT_temperature) {
+      if(ppd(id) == JacPropMatType::Temperature) {
         dxsec_dx[this_species][id](iv, this_level) += x * (sum_perturbedT - sum) / ppd.Temperature_Perturbation();
       }
     }

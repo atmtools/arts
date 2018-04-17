@@ -253,20 +253,16 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
                         this_xsec(iv,ip) += n*xsec_temp[iv];
                         for(Index iq=0; iq<ppd.nelem(); iq++)
                         {
-                            if(ppd(iq)==JQT_frequency || ppd(iq)==JQT_wind_magnitude || ppd(iq)==JQT_wind_u || ppd(iq)==JQT_wind_v || ppd(iq)==JQT_wind_w)
+                            if(ppd.IsFrequencyParameter(ppd(iq)))
                                 this_dxsec[iq](iv,ip) += n*(dxsec_temp_dF[iv]-xsec_temp[iv])/df;
-                            else if(ppd(iq)==JQT_temperature)
+                            else if(ppd(iq)==JacPropMatType::Temperature)
                                 this_dxsec[iq](iv,ip) += n*(dxsec_temp_dT[iv]-xsec_temp[iv])/dt + xsec_temp[iv]*dn_dT; 
-                            else if(ppd(iq)==JQT_VMR)
+                            else if(ppd(iq) == JacPropMatType::VMR) // FIXME: Test that this works as expected using perturbations...
                             {
-                              if( abs_species[i_sec][0].Species() == ppd.species(iq) )
-                              {
+                              if(ppd.SpeciesMatch(iq, abs_species[i_sec]))
                                 this_dxsec[iq](iv,ip) += xsec_temp[iv];
-                              }
-                              if( abs_species[i][0].Species() == ppd.species(iq) )
-                              {
+                              if(ppd.SpeciesMatch(iq, abs_species[i]))
                                 this_dxsec[iq](iv,ip) += xsec_temp[iv];
-                              }
                             }
                             // Note for coef that d/dt(a*n*n) = da/dt * n1*n2 + a * dn1/dt * n2 + a * n1 * dn2/dt, 
                             // we now output da/dt*n2 + a*dn2/dt and coef conversion then have to do 

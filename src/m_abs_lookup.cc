@@ -2242,17 +2242,17 @@ void propmat_clearskyAddFromLookup( ArrayOfPropagationMatrix& propmat_clearsky,
         {  
           for(Index iq=0; iq<ppd.nelem();iq++)
           {
-            if(ppd(iq)==JQT_temperature)
+            if(ppd(iq)==JacPropMatType::Temperature)
             {
               dpropmat_clearsky_dx[iq].Kjj()[iv] += (dabs_scalar_gas_dt(isp,iv)-abs_scalar_gas(isp,iv))/dt;
             }
-            else if(ppd(iq)==JQT_frequency || ppd(iq)==JQT_wind_magnitude || ppd(iq)==JQT_wind_u || ppd(iq)==JQT_wind_v || ppd(iq)==JQT_wind_w)
+            else if(ppd.IsFrequencyParameter(ppd(iq)))
             {
               dpropmat_clearsky_dx[iq].Kjj()[iv] += (dabs_scalar_gas_df(isp,iv)-abs_scalar_gas(isp,iv))/df;
             }
-            else if(ppd(iq)==JQT_VMR)
+            else if(ppd(iq)==JacPropMatType::VMR)
             {
-              if(ppd.species(iq)!=abs_lookup.GetSpeciesIndex(isp)) continue;
+              if(ppd.species(iq)!=abs_lookup.GetSpeciesIndex(isp)) continue;  // FIXME?:  Ignoring isotopologue???
               
               // WARNING:  If CIA in list, this scales wrong by factor 2
               dpropmat_clearsky_dx[iq].Kjj()[iv] += abs_scalar_gas(isp,iv) / a_vmr_list[isp]; 

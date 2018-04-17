@@ -1534,7 +1534,7 @@ void abs_coefCalcFromXsec(// WS Output:
   PropmatPartialsData ppd(jacobian_quantities);
   dabs_coef_dx.resize(ppd.nelem());
   for(Index ii=0;ii<ppd.nelem();ii++)
-      if(ppd(ii)!=JQT_NOT_JQT)
+      if(ppd(ii) not_eq JacPropMatType::NotPropagationMatrixType)
       {
           dabs_coef_dx[ii].resize(abs_xsec_per_species[0].nrows(), abs_xsec_per_species[0].ncols());
           dabs_coef_dx[ii] = 0.0;
@@ -1585,7 +1585,7 @@ void abs_coefCalcFromXsec(// WS Output:
               
               for(Index iq=0;iq<ppd.nelem();iq++)
               {
-                  if(ppd(iq)==JQT_temperature)
+                  if(ppd(iq)==JacPropMatType::Temperature)
                   {
                       dabs_coef_dx[iq](k,j) += (dabs_xsec_per_species_dx[i][iq](k,j) * n + 
                       abs_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
@@ -1593,15 +1593,17 @@ void abs_coefCalcFromXsec(// WS Output:
                           dsrc_coef_dx[iq](k,j) += (dsrc_xsec_per_species_dx[i][iq](k,j) * n + 
                           src_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
                   }
-                  else if(ppd(iq)==JQT_VMR && ppd.species(iq) == abs_species[i][0].Species())
+                  else if(ppd(iq) == JacPropMatType::VMR)  // FIXME: Test that this works as expected using perturbations...
                   {
+                    if(ppd.SpeciesMatch(iq, abs_species[i])) {
                       dabs_coef_dx[iq](k,j) += ( dabs_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) +
                       abs_xsec_per_species[i](k,j) ) * n;
                       if(do_src)
                           dsrc_coef_dx[iq](k,j) += ( dsrc_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) +
                           src_xsec_per_species[i](k,j) ) * n;
+                    }
                   }
-                  else if(ppd(iq)!=JQT_NOT_JQT)
+                  else if(ppd(iq) not_eq JacPropMatType::NotPropagationMatrixType)
                   {
                       dabs_coef_dx[iq](k,j) += dabs_xsec_per_species_dx[i][iq](k,j) * n * abs_vmrs(i,j);
                       if(do_src)
@@ -1706,7 +1708,7 @@ void abs_xsec_per_speciesInit(// WS Output:
          
          for(Index jj=0;jj<ppd.nelem();jj++)
          {
-             if(ppd(jj)!=JQT_NOT_JQT)
+             if(ppd(jj) not_eq JacPropMatType::NotPropagationMatrixType)
              {
                  dabs_xsec_per_species_dx[ii][jj].resize( f_grid.nelem(), abs_p.nelem() );
                  dabs_xsec_per_species_dx[ii][jj] = 0.0;
@@ -2280,13 +2282,9 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                               abs_xsec_per_species[i](iv,ip) += normal(iv,ip);
                               for(Index iq=0; iq<ppd.nelem(); iq++)
                               {
-                                  if(ppd(iq)==JQT_frequency || 
-                                     ppd(iq)==JQT_wind_magnitude || 
-                                     ppd(iq)==JQT_wind_u || 
-                                     ppd(iq)==JQT_wind_v || 
-                                     ppd(iq)==JQT_wind_w)
+                                  if(ppd.IsFrequencyParameter(ppd(iq)))
                                       dabs_xsec_per_species_dx[i][iq](iv,ip) += (jacs_df(iv,ip)-normal(iv,ip))*(1./df);
-                                  else if(ppd(iq)==JQT_temperature)
+                                  else if(ppd(iq)==JacPropMatType::Temperature)
                                       dabs_xsec_per_species_dx[i][iq](iv,ip) += (jacs_dt(iv,ip)-normal(iv,ip))*(1./dt);
                               }
                           }
@@ -2422,7 +2420,7 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(// WS Output:
   // Jacobian
   for(Index ii = 0; ii<pps.nelem(); ii++)
   {
-    if(pps(ii)==JQT_temperature)
+    if(pps(ii)==JacPropMatType::Temperature)
     {
       Vector dB(n_f);
       for(Index iv=0; iv<n_f; iv++)
@@ -2439,7 +2437,7 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(// WS Output:
       sv *= B;
       dnlte_dx_source[ii].Kjj() += sv.Kjj();
     }
-    else if(pps(ii)==JQT_frequency)
+    else if(pps.IsFrequencyParameter(pps(ii)))
     {
       Vector dB(n_f);
       for(Index iv=0; iv<n_f; iv++)
@@ -2456,7 +2454,7 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(// WS Output:
       sv *= B;
       dnlte_dx_source[ii].Kjj() += sv.Kjj();
     }
-    else if(pps(ii)!=JQT_NOT_JQT)
+    else if(pps(ii) not_eq JacPropMatType::NotPropagationMatrixType)
     {
       sv.Kjj() = dsrc_coef_dx[ii](joker, 0);
       sv *= B;
@@ -2695,24 +2693,23 @@ void propmat_clearskyAddFaraday(
                 // The Jacobian loop
                 for(Index iq=0;iq<ppd.nelem();iq++)
                 {
-                    if(ppd(iq)==JQT_frequency || ppd(iq)==JQT_wind_magnitude || 
-                      ppd(iq)==JQT_wind_u || ppd(iq)==JQT_wind_v || ppd(iq)==JQT_wind_w)
+                    if(ppd.IsFrequencyParameter(ppd(iq)))
                     {
                         dpropmat_clearsky_dx[iq].AddFaraday(-2.0 * r / f_grid[iv], iv);
                     }
-                    else if(ppd(iq)==JQT_magnetic_u)
+                    else if(ppd(iq)==JacPropMatType::MagneticU)
                     { 
                       dpropmat_clearsky_dx[iq].AddFaraday(dc1_u / f2, iv);
                     }
-                    else if(ppd(iq)==JQT_magnetic_v)
+                    else if(ppd(iq)==JacPropMatType::MagneticV)
                     { 
                       dpropmat_clearsky_dx[iq].AddFaraday(dc1_v / f2, iv);
                     }
-                    else if(ppd(iq)==JQT_magnetic_w)
+                    else if(ppd(iq)==JacPropMatType::MagneticW)
                     { 
                       dpropmat_clearsky_dx[iq].AddFaraday(dc1_w / f2, iv);
                     }
-                    else if(ppd(iq)==JQT_electrons)
+                    else if(ppd(iq)==JacPropMatType::Electrons)
                     {
                       dpropmat_clearsky_dx[iq].AddFaraday(r/ne, iv);
                     }
@@ -2916,8 +2913,7 @@ void propmat_clearskyAddParticles(
             
             for(Index iq=0; iq<ppd.nelem(); iq++)
             {     
-              if(ppd(iq)==JQT_frequency || ppd(iq)==JQT_wind_magnitude || 
-                ppd(iq)==JQT_wind_u || ppd(iq)==JQT_wind_v || ppd(iq)==JQT_wind_w)
+              if(ppd.IsFrequencyParameter(ppd(iq)))
               {
                 if(use_abs_as_ext)
                 {
@@ -2931,7 +2927,7 @@ void propmat_clearskyAddParticles(
                 tmp /= ppd.Frequency_Perturbation();
                 dpropmat_clearsky_dx[iq].AddAtPosition(tmp, iv);
               }
-              else if(ppd(iq) == JQT_temperature)
+              else if(ppd(iq) == JacPropMatType::Temperature)
               {
                 if(use_abs_as_ext)
                 {
@@ -2944,7 +2940,7 @@ void propmat_clearskyAddParticles(
                 tmp /= ppd.Temperature_Perturbation();
                 dpropmat_clearsky_dx[iq].AddAtPosition(tmp, iv);
               }
-              else if(ppd(iq) == JQT_particulates)
+              else if(ppd(iq) == JacPropMatType::Particulates)
               {
                 dpropmat_clearsky_dx[iq].AddAtPosition(propmat_clearsky[sp], iv);
               }
@@ -2970,7 +2966,7 @@ void propmat_clearskyAddParticles(
     {
       for(Index iq=0; iq<ppd.nelem(); iq++)
       {
-        if(ppd(iq) == JQT_particulates)
+        if(ppd(iq) == JacPropMatType::Particulates)
         {
           dpropmat_clearsky_dx[iq] /= rtp_vmr_sum;
         }
@@ -3197,7 +3193,7 @@ void propmat_clearskyAddParticles2(
 
         else if( ppd(iq) == JQT_temperature )
         */
-        if( ppd(iq) == JQT_temperature )
+        if( ppd(iq) == JacPropMatType::Temperature )
         {
           if( use_abs_as_ext )
           {
@@ -3269,7 +3265,7 @@ void propmat_clearskyAddParticles2(
         }
         */
 
-        else if( ppd(iq) == JQT_particulates )
+        else if( ppd(iq) == JacPropMatType::Particulates )
         {
           for( Index iv=0; iv<f_grid.nelem(); iv++ )
             dpropmat_clearsky_dx[iq].AddAtPosition(propmat_clearsky[sp], iv);
@@ -3294,7 +3290,7 @@ void propmat_clearskyAddParticles2(
  {
     for(Index iq=0; iq<ppd.nelem(); iq++)
     {
-      if(ppd(iq) == JQT_particulates)
+      if(ppd(iq) == JacPropMatType::Particulates)
       {
         dpropmat_clearsky_dx[iq] /= rtp_vmr_sum;
       }

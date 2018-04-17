@@ -67,55 +67,8 @@ extern const String LINEMIXINGGEXPONENT_MODE;
 extern const String LINEMIXINGDFEXPONENT_MODE;
 
 
-typedef enum 
-{
-    JQT_VMR,
-    JQT_electrons,
-    JQT_particulates,
-    JQT_temperature,
-    JQT_magnetic_magntitude,
-    JQT_magnetic_eta,
-    JQT_magnetic_theta,
-    JQT_magnetic_u,
-    JQT_magnetic_v,
-    JQT_magnetic_w,
-    JQT_wind_magnitude, // towards sensor?
-    JQT_wind_u,
-    JQT_wind_v,
-    JQT_wind_w,
-    JQT_frequency,
-    JQT_line_strength,
-    JQT_line_center,
-    JQT_line_gamma,
-    JQT_line_gamma_self,
-    JQT_line_gamma_foreign,
-    JQT_line_gamma_water,
-    JQT_line_gamma_selfexponent,
-    JQT_line_gamma_foreignexponent,
-    JQT_line_gamma_waterexponent,
-    JQT_line_pressureshift_self,
-    JQT_line_pressureshift_foreign,
-    JQT_line_pressureshift_water,
-    JQT_line_mixing_Y,
-    JQT_line_mixing_G,
-    JQT_line_mixing_DF,
-    JQT_line_mixing_Y0,
-    JQT_line_mixing_G0,
-    JQT_line_mixing_DF0,
-    JQT_line_mixing_Y1,
-    JQT_line_mixing_G1,
-    JQT_line_mixing_DF1,
-    JQT_line_mixing_Yexp,
-    JQT_line_mixing_Gexp,
-    JQT_line_mixing_DFexp,
-    JQT_nlte_temperature,
-    JQT_population_level_ratio,
-    JQT_NOT_JQT
-} JacobianQuantityType;
 
-
-
-typedef Array<JacobianQuantityType> ArrayOfJacobianQuantityType;
+typedef Array<JacPropMatType> ArrayOfJacPropMatType;
 
 // Helper internal class that is only used to define and know what propagation matrix partials can be calculated by propmat_clearsky agenda
 class PropmatPartialsData
@@ -184,7 +137,7 @@ public:
             {
                 if(jacobian_quantities[iq].MainTag() == ABSSPECIES_MAINTAG )
                 {
-                    mqtype[ippdq] = JQT_VMR;
+                    mqtype[ippdq] = JacPropMatType::VMR;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq]  = SpeciesTag(jacobian_quantities[iq].Subtag()).Species();
                     ippdq++;
@@ -192,14 +145,14 @@ public:
                 }
                 else if(jacobian_quantities[iq].MainTag() == ELECTRONS_MAINTAG )
                 {
-                  mqtype[ippdq] = JQT_electrons;
+                  mqtype[ippdq] = JacPropMatType::Electrons;
                   mjacobian_pos[ippdq] = iq;
                   mspecies[ippdq]  = -9999;//Flag for not a species...
                   ippdq++;
                 }
                 else if(jacobian_quantities[iq].MainTag() == PARTICULATES_MAINTAG )
                 {
-                  mqtype[ippdq] = JQT_particulates;
+                  mqtype[ippdq] = JacPropMatType::Particulates;
                   mjacobian_pos[ippdq] = iq;
                   mspecies[ippdq]  = -9999;//Flag for not a species...
                   ippdq++;
@@ -208,7 +161,7 @@ public:
                 {
                   if(jacobian_quantities[iq].Subtag() == "strength")
                   {
-                      mqtype[ippdq] = JQT_magnetic_magntitude;
+                      mqtype[ippdq] = JacPropMatType::MagneticMagnitude;
                       mmagnetic_abs = true;
                       mjacobian_pos[ippdq] = iq;
                       mspecies[ippdq] = -9999;//Flag for not a species...
@@ -216,7 +169,7 @@ public:
                   }
                   else if(jacobian_quantities[iq].Subtag() == "eta")
                   {
-                      mqtype[ippdq] = JQT_magnetic_eta;
+                      mqtype[ippdq] = JacPropMatType::MagneticEta;
                       mmagnetic_eta = true;
                       mjacobian_pos[ippdq] = iq;
                       mspecies[ippdq] = -9999;//Flag for not a species...
@@ -224,7 +177,7 @@ public:
                   }
                   else if(jacobian_quantities[iq].Subtag() == "theta")
                   {
-                      mqtype[ippdq] = JQT_magnetic_theta;
+                      mqtype[ippdq] = JacPropMatType::MagneticTheta;
                       mmagnetic_theta = true;
                       mjacobian_pos[ippdq] = iq;
                       mspecies[ippdq] = -9999;//Flag for not a species...
@@ -232,7 +185,7 @@ public:
                   }
                   else if(jacobian_quantities[iq].Subtag() == "u")
                   {
-                      mqtype[ippdq] = JQT_magnetic_u;  
+                      mqtype[ippdq] = JacPropMatType::MagneticU;  
                       mmagnetic_u = true;
                       mjacobian_pos[ippdq] = iq; 
                       mspecies[ippdq] = -9999;//Flag for not a species...
@@ -241,7 +194,7 @@ public:
                   }
                   else if(jacobian_quantities[iq].Subtag() == "v")
                   {
-                      mqtype[ippdq] = JQT_magnetic_v;
+                      mqtype[ippdq] = JacPropMatType::MagneticV;
                       mmagnetic_v = true;
                       mjacobian_pos[ippdq] = iq;
                       mspecies[ippdq] = -9999;//Flag for not a species...
@@ -250,7 +203,7 @@ public:
                   }
                   else if(jacobian_quantities[iq].Subtag() == "w")
                   {
-                      mqtype[ippdq] = JQT_magnetic_w;
+                      mqtype[ippdq] = JacPropMatType::MagneticW;
                       mmagnetic_w = true;
                       mjacobian_pos[ippdq] = iq;
                       mspecies[ippdq] = -9999;//Flag for not a species...
@@ -262,7 +215,7 @@ public:
                 {
                   if(jacobian_quantities[iq].Subtag() == "strength")
                   {
-                      mqtype[ippdq] = JQT_wind_magnitude;
+                      mqtype[ippdq] = JacPropMatType::WindMagnitude;
                       mcontains_frequency_term = true;
                       mjacobian_pos[ippdq] = iq;
                       mspecies[ippdq] = -9999;//Flag for not a species...
@@ -271,7 +224,7 @@ public:
                   }
                   else if(jacobian_quantities[iq].Subtag() == "u")
                   {
-                      mqtype[ippdq] = JQT_wind_u;
+                      mqtype[ippdq] = JacPropMatType::WindU;
                       mcontains_frequency_term = true;
                       mjacobian_pos[ippdq] = iq;
                       mspecies[ippdq] = -9999;//Flag for not a species...
@@ -280,7 +233,7 @@ public:
                   }
                   else if(jacobian_quantities[iq].Subtag() == "v")
                   {
-                      mqtype[ippdq] = JQT_wind_v;
+                      mqtype[ippdq] = JacPropMatType::WindV;
                       mcontains_frequency_term = true;
                       mjacobian_pos[ippdq] = iq;
                       mspecies[ippdq] = -9999;//Flag for not a species...
@@ -289,7 +242,7 @@ public:
                   }
                   else if(jacobian_quantities[iq].Subtag() == "w")
                   {
-                      mqtype[ippdq] = JQT_wind_w;
+                      mqtype[ippdq] = JacPropMatType::WindW;
                       mcontains_frequency_term = true;
                       mjacobian_pos[ippdq] = iq;
                       mspecies[ippdq] = -9999;//Flag for not a species...
@@ -299,7 +252,7 @@ public:
                 }
                 else if(jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG)
                 {
-                    mqtype[ippdq] = JQT_temperature;
+                    mqtype[ippdq] = JacPropMatType::Temperature;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
                     ippdq++;
@@ -308,7 +261,7 @@ public:
                 }
                 else if(jacobian_quantities[iq].MainTag() == FREQUENCY_MAINTAG)
                 {
-                    mqtype[ippdq] = JQT_frequency;
+                    mqtype[ippdq] = JacPropMatType::Frequency;
                     mcontains_frequency_term = true;
                     mjacobian_pos[ippdq] = iq;
                     mspecies[ippdq] = -9999;//Flag for not a species...
@@ -319,28 +272,21 @@ public:
                 {
                     if(jacobian_quantities[iq].Mode() == LINESTRENGTH_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_strength;
+                        mqtype[ippdq] = JacPropMatType::LineStrength;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
                     }
                     else if(jacobian_quantities[iq].Mode() == LINECENTER_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_center;
+                        mqtype[ippdq] = JacPropMatType::LineCenter;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
                     }
-                    /* else if(jacobian_quantities[iq].Mode() == PRESSUREBROADENINGGAMMA_MODE)
-                    {
-                        mqtype[ippdq] = JQT_line_gamma;
-                        mjacobian_pos[ippdq] = iq;
-                        mspecies[ippdq] = -9999;//Flag for not a species...
-                        ippdq++;
-                    } */
                     else if(jacobian_quantities[iq].Mode() == SELFBROADENING_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_gamma_self;
+                        mqtype[ippdq] = JacPropMatType::LineGammaSelf;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         mcontains_pressure_term[0]=1;
@@ -348,7 +294,7 @@ public:
                     }
                     else if(jacobian_quantities[iq].Mode() == FOREIGNBROADENING_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_gamma_foreign;
+                        mqtype[ippdq] = JacPropMatType::LineGammaForeign;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         mcontains_pressure_term[1]=1;
@@ -356,7 +302,7 @@ public:
                     }
                     else if(jacobian_quantities[iq].Mode() == WATERBROADENING_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_gamma_water;
+                        mqtype[ippdq] = JacPropMatType::LineGammaWater;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         mcontains_pressure_term[2]=1;
@@ -364,7 +310,7 @@ public:
                     }
                     else if(jacobian_quantities[iq].Mode() == SELFBROADENINGEXPONENT_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_gamma_selfexponent;
+                        mqtype[ippdq] = JacPropMatType::LineGammaSelfExp;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         mcontains_pressure_term[3]=1;
@@ -372,7 +318,7 @@ public:
                     }
                     else if(jacobian_quantities[iq].Mode() == FOREIGNBROADENINGEXPONENT_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_gamma_foreignexponent;
+                        mqtype[ippdq] = JacPropMatType::LineGammaForeignExp;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         mcontains_pressure_term[4]=1;
@@ -380,7 +326,7 @@ public:
                     }
                     else if(jacobian_quantities[iq].Mode() == WATERBROADENINGEXPONENT_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_gamma_waterexponent;
+                        mqtype[ippdq] = JacPropMatType::LineGammaWaterExp;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         mcontains_pressure_term[5]=1;
@@ -388,7 +334,7 @@ public:
                     }
                     else if(jacobian_quantities[iq].Mode() == SELFPRESSURESHIFT_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_pressureshift_self;
+                        mqtype[ippdq] = JacPropMatType::LineShiftSelf;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         mcontains_pressure_term[6]=1;
@@ -396,7 +342,7 @@ public:
                     }
                     else if(jacobian_quantities[iq].Mode() == FOREIGNPRESSURESHIFT_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_pressureshift_foreign;
+                        mqtype[ippdq] = JacPropMatType::LineShiftForeign;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         mcontains_pressure_term[7]=1;
@@ -404,36 +350,15 @@ public:
                     }
                     else if(jacobian_quantities[iq].Mode() == WATERPRESSURESHIFT_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_pressureshift_water;
+                        mqtype[ippdq] = JacPropMatType::LineShiftWater;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         mcontains_pressure_term[8]=1;
                         ippdq++;
                     }
-                    /*else if(jacobian_quantities[iq].Mode() == LINEMIXINGY_MODE)
-                    {
-                        mqtype[ippdq] = JQT_line_mixing_Y;
-                        mjacobian_pos[ippdq] = iq;
-                        mspecies[ippdq] = -9999;//Flag for not a species...
-                        ippdq++;
-                    }
-                    else if(jacobian_quantities[iq].Mode() == LINEMIXINGG_MODE)
-                    {
-                        mqtype[ippdq] = JQT_line_mixing_G;
-                        mjacobian_pos[ippdq] = iq;
-                        mspecies[ippdq] = -9999;//Flag for not a species...
-                        ippdq++;
-                    }
-                    else if(jacobian_quantities[iq].Mode() == LINEMIXINGDF_MODE)
-                    {
-                        mqtype[ippdq] = JQT_line_mixing_DF;
-                        mjacobian_pos[ippdq] = iq;
-                        mspecies[ippdq] = -9999;//Flag for not a species...
-                        ippdq++;
-                    }*/
                     else if(jacobian_quantities[iq].Mode() == LINEMIXINGY0_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_mixing_Y0;
+                        mqtype[ippdq] = JacPropMatType::LineMixingY0;
                         mcontains_linemixing_0_term = true;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
@@ -441,7 +366,7 @@ public:
                     }
                     else if(jacobian_quantities[iq].Mode() == LINEMIXINGG0_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_mixing_G0;
+                        mqtype[ippdq] = JacPropMatType::LineMixingG0;
                         mcontains_linemixing_0_term = true;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
@@ -449,7 +374,7 @@ public:
                     }
                     else if(jacobian_quantities[iq].Mode() == LINEMIXINGDF0_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_mixing_DF0;
+                        mqtype[ippdq] = JacPropMatType::LineMixingDF0;
                         mcontains_linemixing_0_term = true;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
@@ -457,7 +382,7 @@ public:
                     }
                     else if(jacobian_quantities[iq].Mode() == LINEMIXINGY1_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_mixing_Y1;
+                        mqtype[ippdq] = JacPropMatType::LineMixingY1;
                         mcontains_linemixing_1_term = true;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
@@ -465,7 +390,7 @@ public:
                     }
                     else if(jacobian_quantities[iq].Mode() == LINEMIXINGG1_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_mixing_G1;
+                        mqtype[ippdq] = JacPropMatType::LineMixingG1;
                         mcontains_linemixing_1_term = true;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
@@ -473,7 +398,7 @@ public:
                     }
                     else if(jacobian_quantities[iq].Mode() == LINEMIXINGDF1_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_mixing_DF1;
+                        mqtype[ippdq] = JacPropMatType::LineMixingDF1;
                         mcontains_linemixing_1_term = true;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
@@ -481,7 +406,7 @@ public:
                     }
                     else if(jacobian_quantities[iq].Mode() == LINEMIXINGYEXPONENT_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_mixing_Yexp;
+                        mqtype[ippdq] = JacPropMatType::LineMixingYExp;
                         mcontains_linemixing_exponent_term  = true;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
@@ -489,7 +414,7 @@ public:
                     }
                     else if(jacobian_quantities[iq].Mode() == LINEMIXINGGEXPONENT_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_mixing_Gexp;
+                        mqtype[ippdq] = JacPropMatType::LineMixingGExp;
                         mcontains_linemixing_exponent_term  = true;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
@@ -497,7 +422,7 @@ public:
                     }
                     else if(jacobian_quantities[iq].Mode() == LINEMIXINGDFEXPONENT_MODE)
                     {
-                        mqtype[ippdq] = JQT_line_mixing_DFexp;
+                        mqtype[ippdq] = JacPropMatType::LineMixingDFExp;
                         mcontains_linemixing_exponent_term = true;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
@@ -505,7 +430,7 @@ public:
                     }
                     else if(jacobian_quantities[iq].Mode() == NLTE_MAINTAG)
                     {
-                        mqtype[ippdq] = JQT_nlte_temperature;
+                        mqtype[ippdq] = JacPropMatType::VibrationalTemperature;
                         mjacobian_pos[ippdq] = iq;
                         mspecies[ippdq] = -9999;//Flag for not a species...
                         ippdq++;
@@ -524,7 +449,7 @@ public:
       // Only meant for testing purposes
       mreal_nelem = 1;
       mqtype.resize(1);
-      mqtype[0] = JQT_temperature;
+      mqtype[0] = JacPropMatType::Temperature;
       mjacobian_pos.resize(1);
       mjacobian_pos[0] = 0;
       mspecies.resize(1);
@@ -537,7 +462,7 @@ public:
     Index nelem() const {return mreal_nelem;}
     
     // Returns the type of the jacobian at the index (index < nelem())
-    const JacobianQuantityType&  operator()(const Index& iq) const {return mqtype[iq];}
+    const JacPropMatType&  operator()(const Index& iq) const {return mqtype[iq];}
     
     // Returns the full jacobian ArrayOfRetrievalQuantity
     const ArrayOfRetrievalQuantity& jac() const {return mjacobian_quantities;}
@@ -548,6 +473,84 @@ public:
     // Returns the species at the index
     Index species(Index iq) const { return mspecies[iq]; }
     
+    bool IsFrequencyParameter(const JacPropMatType t) const
+    {
+      return IsWindParameter(t) or t == JacPropMatType::Frequency;
+    }
+    
+    bool IsWindParameter(const JacPropMatType t) const
+    {
+      return t == JacPropMatType::WindMagnitude or 
+             t == JacPropMatType::WindU         or 
+             t == JacPropMatType::WindV         or 
+             t == JacPropMatType::WindW;
+    }
+    
+    bool IsDerivedMagneticParameter(const JacPropMatType t) const
+    {
+      return t == JacPropMatType::MagneticEta       or
+             t == JacPropMatType::MagneticTheta     or 
+             t == JacPropMatType::MagneticMagnitude;
+    }
+    
+    bool IsMagneticParameter(const JacPropMatType t) const
+    {
+      return IsDerivedMagneticParameter(t)  or 
+             t == JacPropMatType::MagneticU or 
+             t == JacPropMatType::MagneticV or 
+             t == JacPropMatType::MagneticW;
+    }
+    
+    bool IsNlteParameter(const JacPropMatType t) const
+    {
+      return t == JacPropMatType::VibrationalTemperature or 
+             t == JacPropMatType::PopulationRatio;
+    }
+    
+    bool IsLineMixingDFParameter(const JacPropMatType t) const 
+    {
+      return t == JacPropMatType::LineMixingDF0   or
+             t == JacPropMatType::LineMixingDF1   or
+             t == JacPropMatType::LineMixingDFExp;
+    }
+    
+    bool IsLineMixingLineStrengthParameter(const JacPropMatType t) const
+    {
+      return t == JacPropMatType::LineMixingY0   or
+             t == JacPropMatType::LineMixingY1   or
+             t == JacPropMatType::LineMixingYExp or
+             t == JacPropMatType::LineMixingG0   or
+             t == JacPropMatType::LineMixingG1   or
+             t == JacPropMatType::LineMixingGExp;
+    }
+    
+    bool IsLineMixingParameter(const JacPropMatType t) const
+    {
+      return IsLineMixingDFParameter(t) or IsLineMixingLineStrengthParameter(t);
+    }
+    
+    bool IsPressureBroadeningParameter(const JacPropMatType t) const
+    {
+      return t == JacPropMatType::LineGammaForeign    or
+             t == JacPropMatType::LineShiftForeign    or
+             t == JacPropMatType::LineGammaForeignExp or
+             t == JacPropMatType::LineGammaSelf       or
+             t == JacPropMatType::LineShiftSelf       or
+             t == JacPropMatType::LineGammaSelfExp    or
+             t == JacPropMatType::LineGammaWater      or
+             t == JacPropMatType::LineShiftWater      or
+             t == JacPropMatType::LineGammaWaterExp;
+    }
+    
+    bool IsLineParameter(const JacPropMatType t) const
+    {
+      return t == JacPropMatType::LineCenter   or
+             t == JacPropMatType::LineStrength or
+             IsPressureBroadeningParameter(t)  or 
+             IsLineMixingParameter(t)          or
+             IsNlteParameter(t);
+    }
+    
     // Run this check in CIA calculations to find if there is anything wrong with it
     bool supportsCIA() const
     {
@@ -555,13 +558,9 @@ public:
 
         for(Index iq=0; iq<nelem(); iq++)
         {
-            if( mqtype[iq]==JQT_temperature             || //Supported types by CIA
-                mqtype[iq]==JQT_frequency               ||
-                mqtype[iq]==JQT_wind_magnitude          ||
-                mqtype[iq]==JQT_wind_u                  ||
-                mqtype[iq]==JQT_wind_v                  ||
-                mqtype[iq]==JQT_wind_w                  ||
-                mqtype[iq]==JQT_VMR)
+            if(mqtype[iq]==JacPropMatType::Temperature or  
+               mqtype[iq]==JacPropMatType::VMR         or
+               IsFrequencyParameter(mqtype[iq]))
                 testvar=true;
             //else if(false) //There are no unsupported CIA variables.  Thus no runtime_error to throw
         }
@@ -575,13 +574,9 @@ public:
         
         for(Index iq=0; iq<nelem(); iq++)
         {
-            if( mqtype[iq]==JQT_temperature             || //Supported types by HITRAN Xsec
-                mqtype[iq]==JQT_frequency               || 
-                mqtype[iq]==JQT_wind_magnitude          || 
-                mqtype[iq]==JQT_wind_u                  || 
-                mqtype[iq]==JQT_wind_v                  || 
-                mqtype[iq]==JQT_wind_w                  || 
-                mqtype[iq]==JQT_VMR)
+            if(mqtype[iq]==JacPropMatType::Temperature or 
+               mqtype[iq]==JacPropMatType::VMR         or
+               IsFrequencyParameter(mqtype[iq]))
                 testvar=true;
             //else if(false) //There are no unsupported HITRAN Xsec variables.  Thus no runtime_error to throw
         }
@@ -595,26 +590,11 @@ public:
         
         for(Index iq=0; iq<nelem(); iq++)
         {
-            if( mqtype[iq]==JQT_temperature             || //Supported types by Continuum
-                mqtype[iq]==JQT_frequency               || 
-                mqtype[iq]==JQT_wind_magnitude          || 
-                mqtype[iq]==JQT_wind_u                  || 
-                mqtype[iq]==JQT_wind_v                  || 
-                mqtype[iq]==JQT_wind_w                  || 
-                mqtype[iq]==JQT_VMR)
+            if(mqtype[iq]==JacPropMatType::Temperature or  //Supported types by CIA
+               mqtype[iq]==JacPropMatType::VMR         or
+               IsFrequencyParameter(mqtype[iq]))
                 testvar=true;
-            else if(mqtype[iq]==JQT_line_center    || // We cannot know if any particular
-                mqtype[iq]==JQT_line_gamma     || // line is in the Continuum?
-                mqtype[iq]==JQT_line_gamma_self     || // line is in the Continuum?
-                mqtype[iq]==JQT_line_gamma_foreign     || // line is in the Continuum?
-                mqtype[iq]==JQT_line_gamma_water     || // line is in the Continuum?
-                mqtype[iq]==JQT_line_gamma_selfexponent     || // line is in the Continuum?
-                mqtype[iq]==JQT_line_gamma_foreignexponent     || // line is in the Continuum?
-                mqtype[iq]==JQT_line_gamma_waterexponent     || // line is in the Continuum?
-                    mqtype[iq]==JQT_line_mixing_DF || // Did not add JQT_level_vibrational_temperature,
-                    mqtype[iq]==JQT_line_mixing_G  || // since no continuum model takes NLTE into account.
-                    mqtype[iq]==JQT_line_mixing_Y  || // (if they do, add this to list of unsupported Jacobians.)
-                    mqtype[iq]==JQT_line_strength)
+            else if(IsLineParameter(mqtype[iq]))
                 throw std::runtime_error("Line specific parameters are not supported while using continuum"
                 " tags.\nWe do not track what lines are in the continuum.\n");
         }
@@ -627,9 +607,9 @@ public:
         
         for(Index iq=0; iq<nelem(); iq++)
         {
-            if( mqtype[iq]!=JQT_VMR || 
-                mqtype[iq]!=JQT_line_strength ||
-                mqtype[iq]!=JQT_nlte_temperature)
+            if( mqtype[iq]!=JacPropMatType::VMR           or  
+                mqtype[iq]!=JacPropMatType::LineStrength  or 
+                mqtype[iq]!=JacPropMatType::VibrationalTemperature)
                 return false;
         }
         
@@ -643,25 +623,9 @@ public:
         
         for(Index iq=0; iq<nelem(); iq++)
         {
-            if( mqtype[iq]==JQT_temperature             || //Supported types by relmat
-                mqtype[iq]==JQT_frequency               || 
-                mqtype[iq]==JQT_wind_magnitude          || 
-                mqtype[iq]==JQT_wind_u                  || 
-                mqtype[iq]==JQT_wind_v                  || 
-                mqtype[iq]==JQT_wind_w)
+            if(mqtype[iq]==JacPropMatType::Temperature or IsFrequencyParameter(mqtype[iq]))
                 testvar=true;
-            else if(mqtype[iq]==JQT_line_center    || // Not yet supported
-                mqtype[iq]==JQT_line_gamma     ||
-                mqtype[iq]==JQT_line_gamma_self     ||
-                mqtype[iq]==JQT_line_gamma_foreign     || 
-                mqtype[iq]==JQT_line_gamma_water     || 
-                mqtype[iq]==JQT_line_gamma_selfexponent     || 
-                mqtype[iq]==JQT_line_gamma_foreignexponent     ||
-                mqtype[iq]==JQT_line_gamma_waterexponent     ||
-                mqtype[iq]==JQT_line_mixing_DF || 
-                mqtype[iq]==JQT_line_mixing_G  ||
-                mqtype[iq]==JQT_line_mixing_Y  || 
-                mqtype[iq]==JQT_line_strength)
+            else if(IsLineParameter(mqtype[iq]))
                 throw std::runtime_error("Line specific parameters are not supported while\n"
                 "using the relaxation matrix line mixing routine.\n"
                 "We do not yet track individual lines in the relaxation matrix calculations.\n");
@@ -676,49 +640,13 @@ public:
         
         for(Index iq=0; iq<nelem(); iq++)
         {
-            if( mqtype[iq]==JQT_temperature             || //Supported types by Lookup
-                mqtype[iq]==JQT_frequency               || 
-                mqtype[iq]==JQT_wind_magnitude          || 
-                mqtype[iq]==JQT_wind_u                  || 
-                mqtype[iq]==JQT_wind_v                  || 
-                mqtype[iq]==JQT_wind_w                  || 
-                mqtype[iq]==JQT_VMR)
+            if(mqtype[iq]==JacPropMatType::Temperature or 
+               mqtype[iq]==JacPropMatType::VMR         or
+               IsFrequencyParameter(mqtype[iq]))
                 testvar=true;
-            else if(mqtype[iq]==JQT_line_center    || // We cannot know if any particular
-                mqtype[iq]==JQT_line_gamma     || // line is in the Lookup?
-                mqtype[iq]==JQT_line_gamma_self     || // line is in the Lookup?
-                mqtype[iq]==JQT_line_gamma_foreign     || // line is in the Lookup?
-                mqtype[iq]==JQT_line_gamma_water     || // line is in the Lookup?
-                mqtype[iq]==JQT_line_gamma_selfexponent     || // line is in the Lookup?
-                mqtype[iq]==JQT_line_gamma_foreignexponent     || // line is in the Lookup?
-                mqtype[iq]==JQT_line_gamma_waterexponent     || // line is in the Lookup?
-                mqtype[iq]==JQT_line_mixing_DF || // Did not add JQT_level_vibrational_temperature,
-                mqtype[iq]==JQT_line_mixing_G  || // since no continuum model takes NLTE into account.
-                mqtype[iq]==JQT_line_mixing_Y  || // (if they do, add this to list of unsupported Jacobians.)
-                mqtype[iq]==JQT_line_strength)
+            else if(IsLineParameter(mqtype[iq]))
                 throw std::runtime_error("Line specific parameters are not supported while using Lookup "
                 "table.\nWe do not track lines in the Lookup.\n");
-        }
-        return testvar;
-    };
-    
-    // Run this check in Zeeman calculations to find if there is anything wrong with it
-    bool supportsZeeman() const 
-    {
-        bool testvar = false;
-        
-        for(Index iq=0; iq<nelem(); iq++)
-        {
-            if( mqtype[iq]==JQT_magnetic_eta        || // Not Supported types by this Zeeman function
-                mqtype[iq]==JQT_magnetic_magntitude || 
-                mqtype[iq]==JQT_magnetic_theta      || 
-                mqtype[iq]==JQT_magnetic_u          || 
-                mqtype[iq]==JQT_magnetic_v          || 
-                mqtype[iq]==JQT_magnetic_w)
-                throw std::runtime_error("This method does not support magnetic Jacobian calculations.\n"
-                    "Please use the Precalc method instead.\n");
-            else if(mqtype[iq]!=JQT_NOT_JQT)
-                testvar = true;
         }
         return testvar;
     };
@@ -727,8 +655,8 @@ public:
     bool supportsZeemanPrecalc() const 
     {
         for(Index iq=0; iq<nelem(); iq++) 
-            if(mqtype[iq]!=JQT_NOT_JQT)  // All is supported
-                return true; 
+          if(mqtype[iq] not_eq JacPropMatType::NotPropagationMatrixType)  // All is supported 
+            return true; 
         return false;
     }
     
@@ -738,22 +666,16 @@ public:
         bool testvar = false;
         for(Index iq=0; iq<nelem(); iq++)
         {
-            if( mqtype[iq]==JQT_magnetic_eta        || // Not Supported types by Faraday
-                mqtype[iq]==JQT_magnetic_magntitude || //←could be supported?
-                mqtype[iq]==JQT_magnetic_theta)
+            if(IsDerivedMagneticParameter(mqtype[iq]))
             {
                 throw std::runtime_error("This method does not yet support Zeeman-style magnetic Jacobian calculations.\n"
                                          "Please use u, v, and w Jacobians instead.\n");
             }
-            else if(mqtype[iq]==JQT_magnetic_u             || // Supported by Faraday
-                    mqtype[iq]==JQT_magnetic_v             || 
-                    mqtype[iq]==JQT_magnetic_w             ||
-                    mqtype[iq]==JQT_frequency              ||
-                    mqtype[iq]==JQT_wind_magnitude         ||
-                    mqtype[iq]==JQT_wind_u                 || 
-                    mqtype[iq]==JQT_wind_v                 || 
-                    mqtype[iq]==JQT_wind_w                 ||
-                    mqtype[iq]==JQT_electrons)
+            else if(mqtype[iq]==JacPropMatType::MagneticU or
+                    mqtype[iq]==JacPropMatType::MagneticV or  
+                    mqtype[iq]==JacPropMatType::MagneticW or 
+                    IsFrequencyParameter(mqtype[iq])      or 
+                    mqtype[iq]==JacPropMatType::Electrons)
             {
                 testvar=true;
             }
@@ -765,7 +687,7 @@ public:
     bool supportsParticles() const
     {
         for(Index iq=0; iq<nelem(); iq++)
-          if(mqtype[iq]!=JQT_NOT_JQT)
+          if(mqtype[iq] not_eq JacPropMatType::NotPropagationMatrixType)
             return true;
         return false;
     }
@@ -789,23 +711,29 @@ public:
         return counter;
     };
     
+    bool SpeciesMatch(const Index iq, const ArrayOfSpeciesTag& aost) const
+    {
+      const SpeciesTag st(jac(iq).Subtag());
+      for(const auto& s : aost)
+        if(st.Species() == s.Species() and st.Isotopologue() == s.Isotopologue())
+          return true;
+      return false;
+    }
+    
     // Returns if this type should be computed
     bool is_this_propmattype(Index& jqt_index) const
     {
         const Index this_index = this_jq_index(jqt_index);
         if(this_index==-1)
             return mjacobian_quantities[jqt_index].MainTag()==CATALOGPARAMETER_MAINTAG;
-        return mjacobian_quantities[jqt_index].MainTag()==CATALOGPARAMETER_MAINTAG ||
-        mqtype[this_index]==JQT_magnetic_magntitude||mqtype[this_index]==JQT_magnetic_theta||mqtype[this_index]==JQT_magnetic_eta;
+        return IsDerivedMagneticParameter(mqtype[this_index]) or (mjacobian_quantities[jqt_index].MainTag()==CATALOGPARAMETER_MAINTAG);
     }
     
     // Note that wind and frequency means the same inside propmat_clearsky agenda.
     bool do_frequency() const
     {
-        for(Index iq=0; iq<nelem(); iq++)
-        {
-          if( mqtype[iq]==JQT_frequency || mqtype[iq]==JQT_wind_magnitude || mqtype[iq]==JQT_wind_u || mqtype[iq]==JQT_wind_v || mqtype[iq]==JQT_wind_w)
-          {
+        for(Index iq=0; iq<nelem(); iq++) {
+          if(IsFrequencyParameter(mqtype[iq])) {
             return true;
           }
         }
@@ -817,10 +745,8 @@ public:
     // Returns if any line center jacobains are needed
     bool do_line_center() const
     {
-      for(Index iq=0; iq<nelem(); iq++)
-      {
-        if( mqtype[iq] == JQT_line_center)
-        {
+      for(Index iq=0; iq<nelem(); iq++) {
+        if( mqtype[iq] == JacPropMatType::LineCenter) {
           return true;
         }
       }
@@ -831,7 +757,7 @@ public:
     bool do_magnetic_field() const
     {
         for(Index iq=0; iq<nelem(); iq++)
-            if(mqtype[iq]==JQT_magnetic_eta || mqtype[iq]==JQT_magnetic_magntitude || mqtype[iq]==JQT_magnetic_theta || mqtype[iq]==JQT_magnetic_u || mqtype[iq]==JQT_magnetic_v || mqtype[iq]==JQT_magnetic_w)
+            if(IsMagneticParameter(mqtype[iq]))
                 return true;
         return false;
     }
@@ -858,14 +784,8 @@ public:
     void set_first_frequency()
     {
       mfirst_frequency = -1;
-      for(Index iq=0; iq<nelem(); iq++)
-      {
-        if(mqtype[iq] == JQT_frequency or
-          mqtype[iq] == JQT_wind_magnitude or
-          mqtype[iq] == JQT_wind_u or 
-          mqtype[iq] == JQT_wind_v or 
-          mqtype[iq]==JQT_wind_w)
-        {
+      for(Index iq=0; iq<nelem(); iq++) {
+        if(IsFrequencyParameter(mqtype[iq])) {
           mfirst_frequency = iq;
           return;
         }
@@ -877,15 +797,7 @@ public:
       mfirst_pressure = -1;
       for(Index iq=0; iq<nelem(); iq++)
       {
-        if(mqtype[iq] == JQT_line_gamma_self or 
-          mqtype[iq] == JQT_line_gamma_selfexponent or
-          mqtype[iq] == JQT_line_pressureshift_self or
-          mqtype[iq] == JQT_line_gamma_foreign or
-          mqtype[iq] == JQT_line_gamma_foreignexponent or
-          mqtype[iq] == JQT_line_pressureshift_foreign or
-          mqtype[iq] == JQT_line_gamma_water or
-          mqtype[iq] == JQT_line_gamma_waterexponent or 
-          mqtype[iq] == JQT_line_pressureshift_water)
+        if(IsPressureBroadeningParameter(mqtype[iq]))
         {
           mfirst_pressure = iq;
           return;
@@ -901,87 +813,79 @@ public:
     {
       switch(mqtype[ii])
       {
-        case JQT_VMR:
+        case JacPropMatType::VMR:
           return "VMR";
-        case JQT_electrons:
+        case JacPropMatType::Electrons:
           return "Electrons-VMR";
-        case JQT_particulates:
+        case JacPropMatType::Particulates:
           return "Particulate-VMR";
-        case JQT_temperature:
+        case JacPropMatType::Temperature:
           return "Temperature";
-        case JQT_magnetic_magntitude:
+        case JacPropMatType::MagneticMagnitude:
           return "Magnetic-Strength";
-        case JQT_magnetic_eta:
+        case JacPropMatType::MagneticEta:
           return "Magnetic-Eta";
-        case JQT_magnetic_theta:
+        case JacPropMatType::MagneticTheta:
           return "Magnetic-Theta";
-        case JQT_magnetic_u:
+        case JacPropMatType::MagneticU:
           return "Magnetic-u";
-        case JQT_magnetic_v:
+        case JacPropMatType::MagneticV:
           return "Magnetic-v";
-        case JQT_magnetic_w:
+        case JacPropMatType::MagneticW:
           return "Magnetic-w";
-        case JQT_wind_magnitude:
+        case JacPropMatType::WindMagnitude:
           return "Wind-Strength";
-        case JQT_wind_u:
+        case JacPropMatType::WindU:
           return "Wind-u";
-        case JQT_wind_v:
+        case JacPropMatType::WindV:
           return "Wind-v";
-        case JQT_wind_w:
+        case JacPropMatType::WindW:
           return "Wind-w";
-        case JQT_frequency:
+        case JacPropMatType::Frequency:
           return "Frequency";
-        case JQT_line_strength:
+        case JacPropMatType::LineStrength:
           return "Line-Strength";
-        case JQT_line_center:
+        case JacPropMatType::LineCenter:
           return "Line-Center";
-        case JQT_line_gamma:
-          return "Line-Gamma";
-        case JQT_line_gamma_self:
+        case JacPropMatType::LineGammaSelf:
           return "Line-Gamma-Self";
-        case JQT_line_gamma_foreign:
+        case JacPropMatType::LineGammaForeign:
           return "Line-Gamma-Foreign";
-        case JQT_line_gamma_water:
+        case JacPropMatType::LineGammaWater:
           return "Line-Gamma-Water";
-        case JQT_line_gamma_selfexponent:
+        case JacPropMatType::LineGammaSelfExp:
           return "Line-Gamma-SelfExponent";
-        case JQT_line_gamma_foreignexponent:
+        case JacPropMatType::LineGammaForeignExp:
           return "Line-Gamma-ForeignExponent";
-        case JQT_line_gamma_waterexponent:
+        case JacPropMatType::LineGammaWaterExp:
           return "Line-Gamma-WaterExponent";
-        case JQT_line_pressureshift_self:
+        case JacPropMatType::LineShiftSelf:
           return "Line-PressureShift-Self";
-        case JQT_line_pressureshift_foreign:
+        case JacPropMatType::LineShiftForeign:
           return "Line-PressureShift-Foreign";
-        case JQT_line_pressureshift_water:
+        case JacPropMatType::LineShiftWater:
           return "Line-PressureShift-Water";
-        case JQT_line_mixing_Y:
-          return "Line-Mixing-Y";
-        case JQT_line_mixing_G:
-          return "Line-Mixing-G";
-        case JQT_line_mixing_DF:
-          return "Line-Mixing-DF";
-        case JQT_line_mixing_Y0:
+        case JacPropMatType::LineMixingY0:
           return "Line-Mixing-Y0";
-        case JQT_line_mixing_G0:
+        case JacPropMatType::LineMixingG0:
           return "Line-Mixing-G0";
-        case JQT_line_mixing_DF0:
+        case JacPropMatType::LineMixingDF0:
           return "Line-Mixing-DF0";
-        case JQT_line_mixing_Y1:
+        case JacPropMatType::LineMixingY1:
           return "Line-Mixing-Y1";
-        case JQT_line_mixing_G1:
+        case JacPropMatType::LineMixingG1:
           return "Line-Mixing-G1";
-        case JQT_line_mixing_DF1:
+        case JacPropMatType::LineMixingDF1:
           return "Line-Mixing-DF1";
-        case JQT_line_mixing_Yexp:
+        case JacPropMatType::LineMixingYExp:
           return "Line-Mixing-YExp";
-        case JQT_line_mixing_Gexp:
+        case JacPropMatType::LineMixingGExp:
           return "Line-Mixing-GExp";
-        case JQT_line_mixing_DFexp:
+        case JacPropMatType::LineMixingDFExp:
           return "Line-Mixing-DFExp";
-        case JQT_nlte_temperature:
+        case JacPropMatType::VibrationalTemperature:
           return "NLTE-Temperatures";
-        case JQT_NOT_JQT:
+        case JacPropMatType::NotPropagationMatrixType:
           return "Not-A-PropMat-Variable";
         default:
           throw std::runtime_error("Dev forgot to add this...");
@@ -989,7 +893,7 @@ public:
     }
     
 private:
-    ArrayOfJacobianQuantityType mqtype;
+    ArrayOfJacPropMatType mqtype;
     ArrayOfIndex                mjacobian_pos;
     ArrayOfIndex                mspecies;
     ArrayOfRetrievalQuantity    mjacobian_quantities;

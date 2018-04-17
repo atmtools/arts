@@ -1,3 +1,35 @@
+2018-04-17  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-1028
+	
+	Reviewing RetrievalQuantity and PropmatPartialsData,
+	as they serve the same purpose. PropmatPartialsData
+	has grown out-of-control and is difficult to understand.
+	The main purpose of it has been to 1) check if the derivative
+	is possible inside the functions themselves 
+	(e.g., "supportsCIA()"), 2) to keep the size of the
+	internal derivatives (i.e., "mreal_nelem"), 3) keep
+	track of variables that have to be precomputed (e.g.,
+	temperature derivates for line broadening), and 4)
+	to simplify computations where repetition is not needed,
+	(e.g.,  "mfirst_pressure").  All these 4 can be achieved
+	with different external methods to the class however, so
+	its existence should not be necesseray.  (It would have 
+	required a lot more work to not have this class from the
+	beginning when I started making the change to more
+	analytical Jacobian computations, but now that these are
+	de facto default, it just adds complexity to the problem
+	to keep this calss around.
+	
+	This commit is moving and renaming some things to fit make
+	it easier to remove PropmatPartialsData.  Presently the 
+	functionality is identical as to how it were before but this
+	will change.  (I will send some questions to the dev-mailing
+	list so please leave comments there.)
+	
+	* files:  Renaming, naming, removing, and moving variable
+	definitions.  No change in functionality
+
 2018-04-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1027

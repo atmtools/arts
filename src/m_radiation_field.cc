@@ -328,6 +328,7 @@ void radiation_fieldCalcForSingleSpeciesNonOverlappingLines(Workspace&          
   if(nz % 2) throw std::runtime_error("Cannot hit the tangent point in this test version; nz must be even");
   if(nf % 2 not_eq 1) throw std::runtime_error("Must include central frequency to test validity; nf must be uneven.");
   
+  // Find Zenith angles and weigh them by their area
   Vector za_grid; nlinspace(za_grid, 0.0, 180.0, nz);
   Vector wzad(nz-1); 
   for(Index iz=0; iz<nz-1; iz++) 
@@ -352,6 +353,7 @@ void radiation_fieldCalcForSingleSpeciesNonOverlappingLines(Workspace&          
                                       z_field(0, joker, joker), 1e99, 0.0, surface_props_data,
                                       za_grid, verbosity);
     
+    // Integrate over the sphere
     for(Index ip=0; ip<np; ip++) {
       ComplexVector F(nf);
       Linefunctions::set_lineshape(F, abs_lines_per_species[0][il], f_grid, 

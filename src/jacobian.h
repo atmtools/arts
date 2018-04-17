@@ -40,6 +40,50 @@
 
 #include "quantum.h"
 
+
+enum class JacPropMatType : Index
+{
+  VMR,
+  Electrons,
+  Particulates,
+  Temperature,
+  MagneticMagnitude,
+  MagneticEta,
+  MagneticTheta,
+  MagneticU,
+  MagneticV,
+  MagneticW,
+  WindMagnitude,
+  WindU,
+  WindV,
+  WindW,
+  Frequency,
+  LineStrength,
+  LineCenter,
+  LineGammaSelf,
+  LineGammaForeign,
+  LineGammaWater,
+  LineGammaSelfExp,
+  LineGammaForeignExp,
+  LineGammaWaterExp,
+  LineShiftSelf,
+  LineShiftForeign,
+  LineShiftWater,
+  LineMixingY0,
+  LineMixingG0,
+  LineMixingDF0,
+  LineMixingY1,
+  LineMixingG1,
+  LineMixingDF1,
+  LineMixingYExp,
+  LineMixingGExp,
+  LineMixingDFExp,
+  VibrationalTemperature,
+  PopulationRatio,
+  NotPropagationMatrixType
+};
+
+
 /** Contains the data for one retrieval quantity.
     \author Mattias Ekstrom */
 class RetrievalQuantity {
@@ -141,6 +185,7 @@ private:
   Numeric mperturbation;
   ArrayOfVector mgrids;
   QuantumIdentifier mquantumidentifier;
+  JacPropMatType mproptype;
   bool mintegration_flag;
 
   String transformation_func;

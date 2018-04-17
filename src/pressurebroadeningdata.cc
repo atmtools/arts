@@ -164,9 +164,10 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
   Numeric results1, results2;
   Index ipd = 0;
   
+  // nb that continue is here to not count wrongly the number of parameters
   for(Index iq = 0; iq < nppd; iq++)
   {
-    if(ppd(iq) == JQT_line_gamma_self)
+    if(ppd(iq) == JacPropMatType::LineGammaSelf)
     {
       if(QI > ppd.jac(iq).QuantumIdentity())
       {
@@ -176,7 +177,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       else 
         continue;
     }
-    else if(ppd(iq) == JQT_line_gamma_foreign)
+    else if(ppd(iq) == JacPropMatType::LineGammaForeign)
     {
       if(QI > ppd.jac(iq).QuantumIdentity())
       {
@@ -187,7 +188,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JQT_line_gamma_water)
+    else if(ppd(iq) == JacPropMatType::LineGammaWater)
     {
       if(QI > ppd.jac(iq).QuantumIdentity())
       {
@@ -198,7 +199,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JQT_line_pressureshift_self)
+    else if(ppd(iq) == JacPropMatType::LineShiftSelf)
     {
       if(QI > ppd.jac(iq).QuantumIdentity())
       {
@@ -208,7 +209,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JQT_line_pressureshift_foreign)
+    else if(ppd(iq) == JacPropMatType::LineShiftForeign)
     {
       if(QI > ppd.jac(iq).QuantumIdentity())
       {
@@ -219,7 +220,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JQT_line_pressureshift_water)
+    else if(ppd(iq) == JacPropMatType::LineShiftWater)
     {
       if(QI > ppd.jac(iq).QuantumIdentity())
       {
@@ -230,7 +231,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JQT_line_gamma_selfexponent)
+    else if(ppd(iq) == JacPropMatType::LineGammaSelfExp)
     {
       if(QI > ppd.jac(iq).QuantumIdentity())
       {
@@ -240,7 +241,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JQT_line_gamma_foreignexponent)
+    else if(ppd(iq) == JacPropMatType::LineGammaForeignExp)
     {
       if(QI > ppd.jac(iq).QuantumIdentity())
       {
@@ -251,7 +252,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JQT_line_gamma_waterexponent)
+    else if(ppd(iq) == JacPropMatType::LineGammaWaterExp)
     {
       if(QI > ppd.jac(iq).QuantumIdentity())
       {
