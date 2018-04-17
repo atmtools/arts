@@ -1045,6 +1045,67 @@ void abs_lines_per_bandFromband_identifiers( ArrayOfArrayOfLineRecord&       abs
 }
 
 
+inline void calculate_Y_from_relmat(Vector& Y, const ArrayOfLineRecord& lines, const ConstMatrixView W)
+{
+  const Index nl = lines.nelem();
+  
+  Vector d0(nl);
+  for(Index il=0; il<nl; il++)
+    d0[il] = reduced_dipole(lines[il]);
+  
+  Y = Vector(nl, 0);
+  for(Index k=0; k<nl; k++)
+    for(Index j=0; j<nl; j++)
+      if(k not_eq j)
+        Y[k] += 2.0 * d0[j] * W(j, k) / 
+                     (d0[k] * (lines[k].F()-lines[j].F()));
+}
+
+
+inline void calculate_DF_from_relmat(Vector& DF, const ArrayOfLineRecord& lines, const ConstMatrixView W)
+{
+  const Index nl = lines.nelem();
+  
+  DF = Vector(nl, 0);
+  for(Index il1=0; il1<nl; il1++)
+    for(Index il2=0; il2<nl; il2++)
+      if(il1 not_eq il2)
+        DF[il1] += W(il1, il2) * W(il2, il1) / (lines[il1].F()-lines[il2].F());
+}
+
+
+inline void calculate_G_from_relmat(Vector& G, const ArrayOfLineRecord& lines, const ConstMatrixView W)
+{
+  const Index nl = lines.nelem();
+  
+  Vector d0(nl);
+  for(Index il=0; il<nl; il++)
+    d0[il] = reduced_dipole(lines[il]);
+  
+  G = Vector(nl, 0);
+  for(Index il1=0; il1<nl; il1++) {
+    Numeric a=0, b=0, c=0, d=0;
+    Numeric df, r;
+    for(Index il2=0; il2<nl; il2++) {
+      df = lines[il1].F() - lines[il2].F();
+      r = d0[il2] / d0[il1];
+      if(il1 not_eq il2) {
+        a += W(il1, il2) * W(il2, il1) / (df*df);
+        b += r * W(il2, il1) / df;
+        c += r * W(il1, il2) * W(il1, il1) / (df*df);
+        for(Index il3=0; il3<nl; il3++) {
+          if(il3 not_eq il2) {
+            d += r * W(il2, il3) * W(il3, il1) / (-df * (lines[il3].F() - lines[il1].F()));
+          }
+        }
+      } 
+    }
+    G[il1] = a - b*b + 2*c - 2*d;
+  }
+}
+
+
+inline
 void calculate_xsec_from_full_relmat(ArrayOfMatrix& xsec,
                                      ArrayOfArrayOfMatrix& dxsec_dx,
                                      const ArrayOfLineRecord& lines,
@@ -1058,7 +1119,7 @@ void calculate_xsec_from_full_relmat(ArrayOfMatrix& xsec,
                                      const ConstVectorView rhoT_perturbedT,
                                      const ConstVectorView psf,
                                      const ConstVectorView psf_perturbedT,
-                                     const Numeric T,
+                                     const Numeric& T,
                                      const Numeric& isotopologue_ratio,
                                      const Index& this_species,
                                      const Index& this_level,
@@ -1075,7 +1136,6 @@ void calculate_xsec_from_full_relmat(ArrayOfMatrix& xsec,
   
   Vector x0(f0.nelem()), d0_signs(f0.nelem());
   for(Index if0=0; if0<f0.nelem(); if0++) {
-    x0[if0] = c1 * isotopologue_ratio * f0[if0] * (1 - exp(-PLANCK_CONST*f0[if0]/BOLTZMAN_CONST/T));
     d0_signs[if0] = sign_reduced_dipole(lines[if0]);
   }
   
@@ -1083,7 +1143,7 @@ void calculate_xsec_from_full_relmat(ArrayOfMatrix& xsec,
   for(Index iv=0; iv<nf; iv++) {
     for(Index il1=0; il1<n; il1++) {
       for(Index il2=0; il2<n; il2++) {
-        if(il1==il2) {
+        if(il1 == il2) {
           F(il1, il2) = Complex(f_grid[iv]-f0[il1]-psf[il1], -Wmat(il1, il2));
           if(do_temperature) {
             F_perturbedT(il1, il2) = Complex(f_grid[iv]-f0[il1]-psf_perturbedT[il1], -Wmat_perturbedT(il1, il2));
@@ -1102,28 +1162,30 @@ void calculate_xsec_from_full_relmat(ArrayOfMatrix& xsec,
     if(do_temperature) {
       inv(invF_perturbedT, F_perturbedT);
     }
-    
+
     // To hold absorption (real part is refraction)
     Numeric sum=0.0, sum_perturbedT=0.0;
     for(Index il1=0; il1<n; il1++) {
       for(Index il2=0; il2<n; il2++) {
-        sum += d0_signs[il1] * d0[il1] * invF(il1, il2).imag() * d0_signs[il2] * d0[il2] * rhoT[il2] * x0[il2];
+        sum += d0_signs[il1] * d0[il1] * invF(il1, il2).imag() * d0_signs[il2] * d0[il2] * rhoT[il2];
         if(do_temperature) {
-          sum_perturbedT += d0_signs[il1] * d0[il1] * invF_perturbedT(il1, il2).imag() * d0_signs[il2] * d0[il2] * rhoT_perturbedT[il2] * x0[il2];
+          sum_perturbedT += d0_signs[il1] * d0[il1] * invF_perturbedT(il1, il2).imag() * d0_signs[il2] * d0[il2] * rhoT_perturbedT[il2];
         }
       }
     }
     
-    xsec[this_species](iv, this_level) += sum;
+    const Numeric x = c1 * isotopologue_ratio * f_grid[iv] * (1 - exp(-PLANCK_CONST*f_grid[iv]/BOLTZMAN_CONST/T));
+    xsec[this_species](iv, this_level) += x * sum;
     for(Index id = 0; id < nd; id++) {
       if(ppd(id) == JQT_temperature) {
-        dxsec_dx[this_species][id](iv, this_level) += (sum_perturbedT - sum) / ppd.Temperature_Perturbation();
+        dxsec_dx[this_species][id](iv, this_level) += x * (sum_perturbedT - sum) / ppd.Temperature_Perturbation();
       }
     }
   }
 }
 
 
+inline
 void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
                                              ArrayOfArrayOfMatrix& dxsec_dx,
                                              const PropmatPartialsData& ppd,
@@ -2053,16 +2115,14 @@ void SetLineMixingCoefficinetsFromRelmat( // WS Input And Output:
                                          pressure_rule_limit, 1, error_handling, order_of_linemixing, 
                                          use_adiabatic_factor, verbosity);
   
-  for(Index iband = 0; iband < nband; iband++)
-  {
+  for(Index iband = 0; iband < nband; iband++) {
     // Compute vectors (copying data to make life easier)
     ArrayOfVector data(ndata, Vector(nlevl, 0));
     Vector delta(nlevl);
     
     const Index nline = abs_lines_per_band[iband].nelem();
     
-    for(Index iline = 0; iline < nline; iline++)
-    {
+    for(Index iline = 0; iline < nline; iline++) {
       for(Index ilevl = 0; ilevl < nlevl; ilevl++) 
         for(Index idata = 0; idata < ndata; idata++)
           data[idata][ilevl] = relmat_per_band[ilevl][iband](idata, iline);
@@ -2115,18 +2175,15 @@ void SetLineMixingCoefficinetsFromRelmat( // WS Input And Output:
       bool squared = false;
       
       // Do similar fitting for all data vectors
-      for(auto& v : data)
-      {
+      for(auto& v : data) {
         // Take a value from the center of the data and use it as a starting point for the fitting
         C[0] = v[nlevl/2] / rtp_pressure / (squared ? rtp_pressure : 1.0);
         C[1] = v[nlevl/2] / rtp_pressure / (squared ? rtp_pressure : 1.0);
         
         Numeric res;
         Index loop_count=0;
-        do
-        {
-          for(Index ilevl = 0; ilevl < nlevl; ilevl++)
-          {
+        do {
+          for(Index ilevl = 0; ilevl < nlevl; ilevl++) {
             const Numeric theta = T0 / abs_t[ilevl];
             const Numeric theta_n = pow(theta, n);
             const Numeric TP = theta_n * rtp_pressure * (squared ? theta_n * rtp_pressure : 1.0);

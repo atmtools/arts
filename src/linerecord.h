@@ -555,7 +555,7 @@ public:
   
   /** Line shape mirroring factor */
   const MirroringType& GetMirroringType() const {return mmirroring;}
-  void GetMirroringType(const MirroringType in) {mmirroring = in;}
+  void SetMirroringType(const MirroringType in) {mmirroring = in;}
   void SetMirroringTypeFromIndex(const Index in);
   Index GetMirroringTypeIndex() const {return (Index) mmirroring;}
   

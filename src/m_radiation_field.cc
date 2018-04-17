@@ -216,7 +216,7 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
   
   if(for_nlte) {
     iy_aux_vars.resize(1);
-    iy_aux_vars[0] = "Transmission";
+    iy_aux_vars[0] = "Optical depth";
     transmission_field.set_grid(0, za_coords);
     transmission_field.set_grid_name(0, "Zenith Angle");
     transmission_field.set_grid(1, aa_coords);
@@ -299,136 +299,92 @@ void ppath_windSet(Matrix& ppath_wind, const Ppath& ppath,
 }
 
 
-void radiation_fieldCalcForRotationalNLTE(Workspace&                      ws,
-                                          Matrix&                         iy,
-                                          Tensor3&                        iy_transmission,
-                                          const ArrayOfArrayOfSpeciesTag& abs_species,
-                                          const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                                          const Tensor4&                  nlte_field,
-                                          const Tensor4&                  vmr_field,
-                                          const Tensor3&                  t_field,
-                                          const Tensor3&                  z_field,
-                                          const Tensor3&                  wind_u_field,
-                                          const Tensor3&                  wind_v_field,
-                                          const Tensor3&                  wind_w_field,
-                                          const Vector&                   p_grid,
-                                          const Index&                    atmosphere_dim,
-                                          const Tensor3&                  surface_props_data,
-                                          const Agenda&                   ppath_agenda,
-                                          const Agenda&                   iy_main_agenda,
-                                          const Agenda&                   iy_space_agenda,
-                                          const Agenda&                   iy_surface_agenda,
-                                          const Agenda&                   iy_cloudbox_agenda,
-                                          const Agenda&                   propmat_clearsky_agenda,
-                                          const Agenda&                   water_psat_agenda,   
-                                          const Numeric&                  df,
-                                          const Index&                    nz,
-                                          const Index&                    na,
-                                          const Index&                    nf,
-                                          const Verbosity&                verbosity)
+void radiation_fieldCalcForSingleSpeciesNonOverlappingLines(Workspace&                      ws,
+                                                            Matrix&                         iy,
+                                                            Tensor3&                        iy_transmission,
+                                                            const ArrayOfArrayOfSpeciesTag& abs_species,
+                                                            const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                                            const Tensor4&                  nlte_field,
+                                                            const Tensor4&                  vmr_field,
+                                                            const Tensor3&                  t_field,
+                                                            const Tensor3&                  z_field,
+                                                            const Vector&                   p_grid,
+                                                            const Index&                    atmosphere_dim,
+                                                            const Tensor3&                  surface_props_data,
+                                                            const Agenda&                   iy_space_agenda,
+                                                            const Agenda&                   iy_surface_agenda,
+                                                            const Agenda&                   iy_cloudbox_agenda,
+                                                            const Agenda&                   propmat_clearsky_agenda,
+                                                            const Agenda&                   water_psat_agenda,   
+                                                            const Numeric&                  df,
+                                                            const Index&                    nz,
+                                                            const Index&                    nf,
+                                                            const Verbosity&                verbosity)
 {
-  bool use_wind=false;
-  
-  // Number of zenith angles and a zheck that there is enough to make simple integrations
-  if(nz < 3)
-    throw std::runtime_error("Must have at least three zenith angles");
-  Vector za;
-  nlinspace(za, 0., 180., nz);
-  
-  Vector aa;
-  if(na < 1)
-    throw std::runtime_error("Need at least one azimuth angle");
-  else if(na == 1)
-    aa = Vector(1, 0.0);
-  else
-    nlinspace(aa, -180.0, 180., na);
-  
-  // Number of species and a check that there is only 1 in all input
-  const Index ns = abs_species.nelem();
-  if(ns not_eq 1) 
-    throw std::runtime_error("Only one species allowed in the present implementation");
-  if(abs_species[0].nelem() not_eq 1)
-    throw std::runtime_error("Only one species tag allowed in the present implementation");
-  if(abs_lines_per_species.nelem() not_eq ns or vmr_field.nbooks() not_eq ns) 
-    throw std::runtime_error("Bad number of species to absorption lines.");
-  
-  // Number of pressure grid-points and a check that the atmosphere is 1D
-  const Index np = p_grid.nelem();
-  if(t_field.npages() not_eq np or z_field.npages() not_eq np or vmr_field.npages() not_eq np)  
-    throw std::runtime_error("Pressure grid is bad");
-  
-  // Number of lines and a check that there are lines
+  extern const Numeric DEG2RAD;
+  const Index ns = abs_species.nelem(); if(ns not_eq 1) throw std::runtime_error("Only for a single species in this test version");
   const Index nl = abs_lines_per_species[0].nelem();
-  if(not nl)
-    throw std::runtime_error("Need atleast one line");
+  const Index np = p_grid.nelem();
+  if(nz % 2) throw std::runtime_error("Cannot hit the tangent point in this test version; nz must be even");
+  if(nf % 2 not_eq 1) throw std::runtime_error("Must include central frequency to test validity; nf must be uneven.");
   
-  if(nf < 2)
-    throw std::runtime_error("Must have atleast two frequency points...");
+  Vector za_grid; nlinspace(za_grid, 0.0, 180.0, nz);
+  Vector wzad(nz-1); 
+  for(Index iz=0; iz<nz-1; iz++) 
+    wzad[iz] = cos(DEG2RAD*za_grid[iz]) - cos(DEG2RAD*za_grid[iz+1]);
   
-  // Initialization of internal variables that reverts the order of the lines and species
-  ArrayOfMatrix pconst_xsec(nl, Matrix(nl*nf, np, 0.0)), pconst_xsrc(nl, Matrix(nl*nf, np, 0.0));
-  Vector f_grid(nf*nl), abs_t = t_field(joker, 0, 0);
-  ArrayOfArrayOfIndex pos_f_grid(nl, ArrayOfIndex(2));
-  Matrix abs_vmrs(nl, np), abs_nlte;
-  if(nlte_field.nbooks() and nlte_field.npages() and nlte_field.nrows() and nlte_field.ncols())
-    abs_nlte = nlte_field(joker, joker, 0, 0);
-  ArrayOfIndex aoi(nl);
-  const ArrayOfArrayOfSpeciesTag aoaost(nl, abs_species[0]);
-  ArrayOfArrayOfLineRecord aoaolr(nl, ArrayOfLineRecord(1));
-  Index itot = 0;
-  for(Index il = 0; il < nl; il++) {
-    aoaolr[il][0] = abs_lines_per_species[0][il];
-    aoi[il] = il;
-    Vector tmp_f(nf);
-    nlinspace(tmp_f, aoaolr[il][0].F() - df, aoaolr[il][0].F() + df, nf);
-    for(Index iv = 0; iv < nf; iv++) {
-      f_grid[itot] = tmp_f[iv];
-      itot++;
+  ArrayOfIndex bsl; find_broad_spec_locations(bsl, abs_species, abs_lines_per_species[0][0].Species());
+  
+  iy = Matrix(nl, np, 0.0);
+  iy_transmission = Tensor3(1, nl, np, 0.0);
+  
+  Tensor7 doit_i_field;
+  Tensor3 trans_field;
+  for(Index il=0; il<nl; il++) {
+    const Numeric d = abs_lines_per_species[0][il].F() * df;
+    Vector f_grid; nlinspace(f_grid, abs_lines_per_species[0][il].F()-d, abs_lines_per_species[0][il].F()+d, nf);
+    doit_i_fieldClearskyPlaneParallel(ws, doit_i_field, trans_field, propmat_clearsky_agenda,
+                                      water_psat_agenda, iy_space_agenda, iy_surface_agenda, 
+                                      iy_cloudbox_agenda, 1, f_grid, atmosphere_dim,
+                                      p_grid, z_field, t_field, nlte_field, vmr_field, abs_species,
+                                      Tensor3(0, 0, 0), Tensor3(0, 0, 0), Tensor3(0, 0, 0),
+                                      Tensor3(0, 0, 0), Tensor3(0, 0, 0), Tensor3(0, 0, 0),
+                                      z_field(0, joker, joker), 1e99, 0.0, surface_props_data,
+                                      za_grid, verbosity);
+    
+    for(Index ip=0; ip<np; ip++) {
+      ComplexVector F(nf);
+      Linefunctions::set_lineshape(F, abs_lines_per_species[0][il], f_grid, 
+                                   Vector(1, vmr_field(0, ip, 0, 0)),  t_field(ip, 0, 0), p_grid[ip], 0.0, 0.0, 0.0,
+                                   bsl, 0, 0, verbosity);
+      Numeric sx = 0;
+      for(Index iv=0; iv<nf-1; iv++) {
+        const Numeric intF = (F[iv].real() + F[iv+1].real()) * (f_grid[iv+1] - f_grid[iv]);
+        for(Index iz=0; iz<nz-1; iz++) {
+          const Numeric x = wzad[iz] * 0.25 * intF;
+          sx += x;
+          iy(il, ip) += (doit_i_field(iv,   ip, 0, 0, iz,   0, 0) + 
+                         doit_i_field(iv,   ip, 0, 0, iz+1, 0, 0) +
+                         doit_i_field(iv+1, ip, 0, 0, iz,   0, 0) + 
+                         doit_i_field(iv+1, ip, 0, 0, iz+1, 0, 0)) * x;
+          iy_transmission(0, il, ip) += (trans_field(iv,   ip, iz  ) + 
+                                         trans_field(iv,   ip, iz+1) +
+                                         trans_field(iv+1, ip, iz  ) + 
+                                         trans_field(iv+1, ip, iz+1)) * x;
+        }
+      }
+      
+      if(abs(sx-1) > 1e-3) {
+        ostringstream os;
+        os << "Integrated iy normalizes to " << sx << " instead of 1.0\n";
+        os << "This means your frequency grid spanning " << f_grid[0] << " to " << f_grid[nf-1] << " is not good enough\n";
+        if(sx < 1.0)
+          os << "Please consider increasing df by about the inverse of the missing normalizations (a factor about " << 1/sx<<" is approximately enough)\n";
+        else
+          os << "Please consider increasing nf so that the frequency grid better represents the lineshape\n";
+        throw std::runtime_error(os.str());
+      }
     }
-    pos_f_grid[il][0] = il*nf;
-    pos_f_grid[il][1] = nf;
-    abs_vmrs(il, joker) = vmr_field(0, joker, 0, 0);
-  }
-  
-  Matrix ppath_wind;
-  if(use_wind) {
-    ppath_wind.resize(3, np);
-    for(Index ip = 0; ip < np; ip++) {
-      ppath_wind(0, ip) = wind_u_field(ip, 0, 0);
-      ppath_wind(1, ip) = wind_v_field(ip, 0, 0);
-      ppath_wind(2, ip) = wind_w_field(ip, 0, 0);
-    }
-  }
-  
-  iy = Matrix(nl, np);
-  iy_transmission = Tensor3(1, nl, np);
-  
-  // Compute the field with the slow method
-//   #pragma omp parallel for
-  for(Index ip = 0; ip < np; ip++) {
-    GriddedField4 rady;
-    GriddedField4 tran;
-    Vector rte_pos(3, 0.); 
-    rte_pos[0] = z_field(ip, 0, 0) + 0.01;  // The value at 1 cm above because of bug in ppath calculation
-    Matrix _tmp;
-    
-    radiation_fieldCalcFromiyCalc(ws, _tmp, rady, tran, atmosphere_dim, 0, 1, 1e10, 1e10, f_grid, p_grid,
-                                  rte_pos, t_field, z_field, wind_u_field, wind_v_field, wind_w_field,
-                                  Tensor3(0, 0, 0), Tensor3(0, 0, 0), Tensor3(0, 0, 0), vmr_field, nlte_field,
-                                  abs_species, "1", surface_props_data,
-                                  ppath_agenda, iy_main_agenda, iy_space_agenda,
-                                  iy_surface_agenda, iy_cloudbox_agenda,
-                                  propmat_clearsky_agenda, water_psat_agenda,
-                                  za, aa, ip+1, verbosity);
-    
-    Vector J(nl, 0), G(nl, 0);
-    total_line_source_and_transmission(J, G, rady, tran, 
-                                       aoaolr, abs_species, f_grid, pos_f_grid, 
-                                       abs_vmrs(joker, ip), use_wind?ppath_wind(joker, ip):Vector(0), 
-                                       za, aa, p_grid[ip], abs_t[ip], verbosity);
-    
-    iy(joker, ip) = J;
-    iy_transmission(0, joker, ip) = G;
   }
 }
 

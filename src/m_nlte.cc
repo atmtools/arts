@@ -29,26 +29,20 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
                                                    const ArrayOfArrayOfSpeciesTag& abs_species,
                                                    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
                                                    const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
-                                                   const Agenda&                   ppath_agenda,
-                                                   const Agenda&                   iy_main_agenda,
                                                    const Agenda&                   iy_space_agenda,
                                                    const Agenda&                   iy_surface_agenda,
                                                    const Agenda&                   iy_cloudbox_agenda,
                                                    const Agenda&                   propmat_clearsky_agenda,
-                                                   const Agenda&                   water_psat_agenda,                                                   //const Agenda&                 nlte_agenda,
+                                                   const Agenda&                   water_psat_agenda,
                                                    const Tensor4&                  vmr_field,
                                                    const Tensor3&                  t_field,
                                                    const Tensor3&                  z_field,
-                                                   const Tensor3&                  wind_u_field,
-                                                   const Tensor3&                  wind_v_field,
-                                                   const Tensor3&                  wind_w_field,
                                                    const Vector&                   p_grid,
                                                    const Index&                    atmosphere_dim,
                                                    const Tensor3&                  surface_props_data,
                                                    const Index&                    nlte_do,
                                                    const Numeric&                  df,
                                                    const Index&                    nz,
-                                                   const Index&                    na,
                                                    const Index&                    nf,
                                                    const Index&                    dampened,
                                                    const Verbosity&                verbosity)
@@ -64,6 +58,9 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
   const Index nlevels = nlte_quantum_identifiers.nelem(), np = p_grid.nelem(), nq = nlte_quantum_identifiers.nelem();
   if(nlevels < 5)
     throw std::runtime_error("Must have more than a four levels");
+  
+  if(atmosphere_dim not_eq 1)
+    throw std::runtime_error("Only for 1D atmosphere");
   
   ArrayOfLineRecord lines; lines.reserve(nlevels * 2);
   for(const auto& aolr : abs_lines_per_species)
@@ -90,19 +87,18 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
   nlte_positions_in_statistical_equilibrium_matrix(upper, lower, lines, nlte_quantum_identifiers);
   const Index lower_unique = find_first_unique_in_lower(upper, lower);
   
-  Matrix SEE(nq, nq);
-  Vector r(nq), x(nq, 0.0);
+  // Compute arrays
+  Matrix SEE(nq, nq, 0.0);
+  Vector r(nq, 0.0), x(nq, 0.0);
+  
+  // Presently loop a fixed number of times.  FIXME:  Add relative error instead
   Index i = 0;
-  while(i < 2) {
+  while(i < 20) {
     // NB.  This function should become an Agenda at some point so that iy_transmission and iy are output as required by the functions below.  
-    radiation_fieldCalcForRotationalNLTE(ws, iy, iy_transmission, abs_species, abs_lines_per_species, 
-                                         nlte_field, vmr_field, t_field, z_field, wind_u_field, wind_v_field, wind_w_field,
-                                         p_grid, atmosphere_dim, surface_props_data,
-                                         ppath_agenda, iy_main_agenda, 
-                                         iy_space_agenda, iy_surface_agenda,
-                                         iy_cloudbox_agenda, propmat_clearsky_agenda,
-                                         water_psat_agenda,
-                                         df, nz, na, nf, verbosity);
+    radiation_fieldCalcForSingleSpeciesNonOverlappingLines(ws, iy, iy_transmission, abs_species, abs_lines_per_species, 
+                                                           nlte_field, vmr_field, t_field, z_field,
+                                                           p_grid, atmosphere_dim, surface_props_data, iy_space_agenda, iy_surface_agenda,
+                                                           iy_cloudbox_agenda, propmat_clearsky_agenda, water_psat_agenda, df, nz, nf, verbosity);
     
     if(dampened == 0) {
       for(Index ip = 0; ip < np; ip++) {
@@ -113,11 +109,10 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
         use_total_number_count_statistical_equilibrium_matrix(SEE, x, r, lower_unique);
         solve(r, SEE, x);
         
-        std::cout<<r<<"\n"<<SEE<<"\n"<<x<<"\n\n";
+        std::cout<<r<<"\n\nSEE "<<i+1<<" (p "<<ip+1<<"/"<<np<<"):\n"<<MapToEigen(SEE)<<"\n\nX "<<i+1<<" (p "<<ip+1<<"/"<<np<<"):\n"<<x<<"\n\n";
+        
         // Assume 1D
-        for(Index xx=0; xx < nlte_field.nrows(); xx++)
-          for(Index yy=0; yy < nlte_field.ncols(); yy++)
-            nlte_field(joker, ip, xx, yy) = r;
+        nlte_field(joker, ip, 0, 0) = r;
       }
     }
     else {
@@ -130,11 +125,10 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
         solve(nlte_field(joker, ip, 0, 0), SEE, x);
         solve(r, SEE, x);
         
-        std::cout<<r<<"\n"<<SEE<<"\n"<<x<<"\n\n";
+        std::cout<<r<<"\n\nSEE "<<i+1<<" (p "<<ip+1<<"/"<<np<<"):\n"<<MapToEigen(SEE)<<"\n\nX "<<i+1<<" (p "<<ip+1<<"/"<<np<<"):\n"<<x<<"\n\n";
+        
         // Assume 1D
-        for(Index xx=0; xx < nlte_field.nrows(); xx++)
-          for(Index yy=0; yy < nlte_field.ncols(); yy++)
-            nlte_field(joker, ip, xx, yy) = r;
+        nlte_field(joker, ip, 0, 0) = r;
       }
     }
     i++;

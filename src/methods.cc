@@ -10161,17 +10161,15 @@ void define_md_data_raw()
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("nlte_field", "abs_species", "abs_lines_per_species", "nlte_quantum_identifiers", 
-         "ppath_agenda", "iy_main_agenda", "iy_space_agenda", "iy_surface_agenda", 
+         "iy_space_agenda", "iy_surface_agenda", 
          "iy_cloudbox_agenda", "propmat_clearsky_agenda", "water_psat_agenda",
-         "vmr_field", "t_field", "z_field",
-         "wind_u_field", "wind_v_field", "wind_w_field", "p_grid", "atmosphere_dim",
+         "vmr_field", "t_field", "z_field", "p_grid", "atmosphere_dim",
          "surface_props_data", "nlte_do" ),
-      GIN("df", "nz", "na", "nf", "dampened"),
-      GIN_TYPE("Numeric", "Index", "Index", "Index", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF),
-      GIN_DESC("Max frequency diff from every line center",
+      GIN("df", "nz", "nf", "dampened"),
+      GIN_TYPE("Numeric", "Index", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF),
+      GIN_DESC("relative frequency to line center",
                "number of zenith angles", 
-               "number of azimuth angles", 
                "number of frequency grid-points per line", 
                "use transmission dampening or not" )
     ));
@@ -13421,7 +13419,7 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
-    ( NAME( "radiation_fieldCalcForRotationalNLTE" ),
+    ( NAME( "radiation_fieldCalcForSingleSpeciesNonOverlappingLines" ),
       DESCRIPTION
       (
         "Exists only as a temporary method... do not use\n"
@@ -13432,17 +13430,15 @@ void define_md_data_raw()
       GOUT_TYPE(),
       GOUT_DESC(),
       IN( "abs_species", "abs_lines_per_species", "nlte_field",  "vmr_field", 
-          "t_field", "z_field", "wind_u_field", "wind_v_field", "wind_w_field", "p_grid",
-          "atmosphere_dim", "surface_props_data",
-          "ppath_agenda", "iy_main_agenda", "iy_space_agenda", "iy_surface_agenda", 
+          "t_field", "z_field", "p_grid",
+          "atmosphere_dim", "surface_props_data", "iy_space_agenda", "iy_surface_agenda", 
           "iy_cloudbox_agenda", "propmat_clearsky_agenda", "water_psat_agenda"
         ),
-      GIN(     "df",      "nz",    "na",    "nf"),
-      GIN_TYPE("Numeric", "Index", "Index", "Index"),
-      GIN_DEFAULT(NODEF,  NODEF,   NODEF,   NODEF),
-      GIN_DESC("frequency half-width",
+      GIN(     "df",      "nz",    "nf"),
+      GIN_TYPE("Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF,  NODEF,   NODEF),
+      GIN_DESC("relative frequency to line center",
                "number of zeniths",
-               "number of azimuths",
                "number of frequencies per line")
     ));
 

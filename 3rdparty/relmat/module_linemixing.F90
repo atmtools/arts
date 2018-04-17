@@ -31,24 +31,26 @@ MODULE module_linemixing
             type (dta_ERR)         , intent(inout) :: econ
         end subroutine RN_Wmat
 
-        subroutine LM_Rosen(molP, nLines,dta1,Wmat,Y_RosT)
+        subroutine LM_Rosen(dipo, molP, nLines,dta1,Wmat,Y_RosT)
             use module_common_var
             use module_maths
             use module_phsub
             implicit none
             integer*8              , intent(in   ) :: nLines 
+            double precision       , intent(in   ) :: dipo(nLines)
             double precision       , intent(in   ) :: Wmat(nLines,nLines)
             type (dta_MOL)         , intent(in   ) :: molP
             type (dta_SDF), pointer, intent(inout) :: dta1
             double precision       , intent(  out) :: Y_RosT(nLines)
         end subroutine LM_Rosen
 
-        subroutine LM_2ord(molP, nLines,dta1,Wmat,Y2,Y3)
+        subroutine LM_2ord(dipo, molP, nLines,dta1,Wmat,Y2,Y3)
             use module_common_var
             use module_maths
             use module_phsub
             implicit none
             integer*8              , intent(in   ) :: nLines 
+            double precision       , intent(in   ) :: dipo(nLines)
             double precision       , intent(in   ) :: Wmat(nLines,nLines)
             type (dta_MOL)         , intent(in   ) :: molP
             type (dta_SDF), pointer, intent(inout) :: dta1
@@ -495,7 +497,7 @@ END module module_linemixing
       endif
   END SUBROUTINE RN_Wmat
 !--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE LM_Rosen(molP, nLines,dta1,Wmat,Y_RosT)
+  SUBROUTINE LM_Rosen(dipo, molP, nLines,dta1,Wmat,Y_RosT)
 !--------------------------------------------------------------------------------------------------------------------
 ! "LM_Rosen": Rosenkranz parameter
 ! 
@@ -529,6 +531,7 @@ END module module_linemixing
     use module_phsub
     implicit none
     integer*8             , intent(in   ) :: nLines 
+    double precision      , intent(in   ) :: dipo(nLines)
     Double Precision      , intent(in   ) :: Wmat(nLines,nLines)
     double precision      , intent(  out) :: Y_RosT(nLines)
     type (dta_SDF),pointer, intent(inout) :: dta1
@@ -547,12 +550,14 @@ END module module_linemixing
     DO i=1,nLines
          sumY=0.d0
          !DipoI= abs(dsqrt(dta1%Str(i)/(dta1%Sig(i)*dta1%PopuT0(i))))
-         DipoI  = abs(dsqrt(dta1%Str(i)/(dta1%Sig(i)*dta1%PopuT(i))))
+         !DipoI  = abs(dsqrt(dta1%Str(i)/(dta1%Sig(i)*dta1%PopuT(i))))
          !DipoI= dta1%DipoT(i)
+         DipoI = dipo(i)
          do k=1,nLines
             !DipoK= abs(dsqrt(dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT0(k))))
-            DipoK = abs(dsqrt(dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT(k))))
+            !DipoK = abs(dsqrt(dta1%Str(k)/(dta1%Sig(k)*dta1%PopuT(k))))
             !DipoK= dta1%DipoT(k)
+            DipoK = dipo(k)
             if(k.eq.i)cycle
             !
             !  Correction for asym hysothopes
@@ -569,10 +574,10 @@ END module module_linemixing
         enddo
         Y_RosT(i)=sumY
     ENDDO
-    Y_RosT=2.0*Ptot*Y_RosT
+    Y_RosT=Y_RosT
   END SUBROUTINE LM_Rosen
 !--------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE LM_2ord(molP, nLines,dta1,Wmat,Y2,Y3)
+  SUBROUTINE LM_2ord(dipo, molP, nLines,dta1,Wmat,Y2,Y3)
 !--------------------------------------------------------------------------------------------------------------------
 ! "LM_2ord": Second and third coeff of the second order linemixing formulation
 ! 
@@ -611,6 +616,7 @@ END module module_linemixing
     use module_phsub
     implicit none
     integer*8             , intent(in   ) :: nLines 
+    double precision      , intent(in   ) :: dipo(nLines)
     Double Precision      , intent(in   ) :: Wmat(nLines,nLines)
     double precision      , intent(  out) :: Y2(nLines),Y3(nLines)
     type (dta_SDF),pointer, intent(inout) :: dta1
@@ -674,8 +680,8 @@ END module module_linemixing
         Y2(i)=sumG1 - (sumG2)**2 + 2.0d0*sumG3 - 2.0d0*sumG4
         Y3(i)=sumDV
     ENDDO
-    Y2=Y2*Pto2
-    Y3=Y3*Pto2
+    Y2=Y2*0.25
+    Y3=Y3*0.25
   END SUBROUTINE LM_2ord  
 !
 !--------------------------------------------------------------------------------------------------------------------

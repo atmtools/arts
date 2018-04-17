@@ -605,7 +605,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
                 if (IERR4 .ne. 0) call memoError("Y_RosT",econtrol)
                 !
                 if (econtrol % e(1) .ge. 1) write(*,*) 'Linemixing first order coeff...'
-                call LM_Rosen(molP,dta_size1,pd1,Wrno,Y_RosT)
+                call LM_Rosen(dipo,molP,dta_size1,pd1,Wrno,Y_RosT)
                 call includeY(nLines,vLines_Indx,Y1,dta_size1,Y_RosT)
 
                 if (ordered .eq. 2) then
@@ -618,7 +618,7 @@ SUBROUTINE RM_LM_tmc_arts(nLines, sgmin, sgmax, &
                     if (IERR4 .ne. 0) call memoError("Y3   :",econtrol)
                     !
                     if (econtrol % e(1) .ge. 1) write(*,*) 'Linemixing second order coeffs...'
-                    call LM_2ord(molP,dta_size1,pd1,Wrno,Y_G,Y_DV)
+                    call LM_2ord(dipo,molP,dta_size1,pd1,Wrno,Y_G,Y_DV)
                     !call show_PD(nLines,dta1%sig,Y_G,Y_DV)
                     CALL includeY(nLines,vLines_Indx,Y2,dta_size1,Y_G)
                     CALL includeY(nLines,vLines_Indx,Y3,dta_size1,Y_DV)
@@ -1061,7 +1061,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
                 if (IERR4 .ne. 0) call memoError("Y_RosT",econtrol)
                 !
                 if (econtrol % e(1) .ge. 1) write(*,*) 'Linemixing first order coeff...'
-                call LM_Rosen(molP,dta_size1,pd1,Wrno,Y_RosT)
+                call LM_Rosen(dipo,molP,dta_size1,pd1,Wrno,Y_RosT)
                 CALL includeY(nLines,vLines_Indx,Y1,dta_size1,Y_RosT)
 
                 if (ordered .eq. 2) then
@@ -1074,7 +1074,7 @@ SUBROUTINE RM_LM_LLS_tmc_arts(nLines, sgmin, sgmax, &
                     if (IERR4 .ne. 0) call memoError("Y3   :",econtrol)
                     !
                     if (econtrol % e(1) .ge. 1) write(*,*) 'Linemixing second order coeffs...'
-                    call LM_2ord(molP,dta_size1,pd1,Wrno,Y_G,Y_DV)
+                    call LM_2ord(dipo,molP,dta_size1,pd1,Wrno,Y_G,Y_DV)
                     CALL includeY(nLines,vLines_Indx,Y2,dta_size1,Y_G)
                     CALL includeY(nLines,vLines_Indx,Y3,dta_size1,Y_DV)
                 endif

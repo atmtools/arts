@@ -1,3 +1,37 @@
+2018-04-17  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-1026
+	
+	* 3rdparty/relmat/arts_interface.F90:  Now takes the dipoles
+	returned to ARTS main for computing Rosenkranz parameters
+	
+	*3rdparty/relmat/module_linemixing.F90: (LM_2ord) and (LM_Rosen) 
+	now removes the doubles pressure terms to fit with Smith 1981
+	
+	* src/linerecord.h: GetMirroringType → SetMirroringType
+	
+	* src/m_linemixing.cc: Added test functions for computing
+	Rosenkranz parameters external from relmat.
+	
+	* m_nlte.cc: Changed to use Patrick's plane parallel geometry
+	so that testing can happen faster
+	
+	* src/m_radiation_field.cc: Changed to use Patrick's plane
+	parallel geometry for testing purposes.  To use different
+	geometry can happen later
+	
+	* src/methods.cc:  Changed interface to rotational nlte functions
+	to simplify them for testing
+	
+	* src/nlte.cc:  Updated LI SEE matrix definition following Taka's
+	advice.  Still needs more testing
+	
+	* controlfiles/CMakeLists.txt:  Turned off relmat test because
+	the old numbers are likely wrong.  (After some testing the 
+	produced line mixing coefficients scaled wrongly with pressure)
+	I will reactivate this test once I have more time to get into 
+	all the details.  (I think the present version is correct)
+
 2018-04-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1025

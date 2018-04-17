@@ -37,13 +37,16 @@ void statistical_equilibrium_equation(MatrixView A,
          upper.nelem() == nlines and lower.nelem() == nlines);
   assert(A.nrows() == nlevels);
   
+  A = 0.0;
   for(Index iline = 0; iline < nlines; iline++) {
     const Index i = upper[iline];
     const Index j = lower[iline];
     assert(i < nlevels and j < nlevels);
     
     A(i, i) -= Aij[iline] + Bij[iline] * Jij[iline] + Cij[iline];
-    A(i, j) += Aij[iline] + Bji[iline] * Jij[iline] + Cji[iline];
+    A(j, j) -=              Bji[iline] * Jij[iline] + Cji[iline];
+    A(i, j) +=              Bji[iline] * Jij[iline] + Cji[iline];
+    A(j, i) += Aij[iline] + Bij[iline] * Jij[iline] + Cij[iline];
   }
 }
 
@@ -69,6 +72,7 @@ void dampened_statistical_equilibrium_equation(MatrixView A,
          Lambda.nelem() == nlines);
   assert(A.nrows() == nlevels and A.ncols() == nlevels);
   
+  A = 0.0;
   for(Index iline = 0; iline < nlines; iline++) {
     const Index i = upper[iline];
     const Index j = lower[iline];
