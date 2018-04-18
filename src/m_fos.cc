@@ -1208,7 +1208,7 @@ void iyHybrid(
                                               ppvar_t[Range(ip,1)],
                                               atmosphere_dim,
                                               jacobian_do,
-                                              t_interp_order );
+                                              t_interp_order );              
               S += Sp;
               
               if( j_analytical_do )
@@ -1289,7 +1289,6 @@ void iyHybrid(
   //
   ppvar_iy(joker,joker,np-1) = iy;
 
-    
   // Radiative transfer calculations
   if( np > 1 )
     {
@@ -1313,6 +1312,7 @@ void iyHybrid(
                   one_minus_transmission -= T;
                 }
 
+              const Vector iy_old = iy(iv,joker);
               from_level = J(ip,iv,joker);
               from_level += J(ip+1,iv,joker);
               from_level *= 0.5;

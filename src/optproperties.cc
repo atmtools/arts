@@ -1093,7 +1093,7 @@ void pha_mat_1ScatElem(//Output
     if( stokes_dim==1 )
       npha = 1;
     else if( stokes_dim==2 )
-      npha = 3;
+      npha = 4;   // Changed from 3, PE 2018-04-18
     else if( stokes_dim==3 )
       npha = 4;
     else
@@ -1152,27 +1152,33 @@ void pha_mat_1ScatElem(//Output
           Vector dir_itw(2);
           interpweights(dir_itw, dir_gp);
 
-          Matrix pha_mat_int(nTin,6);
-          Matrix pha_mat_tmp(nTout,6);
+          Matrix pha_mat_int(nTin,npha);  // 6 changed to npha, PE 180418
+          Matrix pha_mat_tmp(nTout,npha); // same here
           for( Index find=0; find<nf; find++ )
           {
             for( Index Tind=0; Tind<nTin; Tind++ )
               // perform the scat angle interpolation
               for (Index nst=0; nst<npha; nst++)
-                pha_mat_int(Tind,nst) = interp(dir_itw,
-                                             ssd.pha_mat_data(find+f_start,Tind,joker,0,0,0,nst),
-                                             dir_gp);
+                {
+                  pha_mat_int(Tind,nst) =
+                    interp( dir_itw,
+                            ssd.pha_mat_data(find+f_start,Tind,joker,0,0,0,nst),
+                            dir_gp );
+                }
             // perform the T-interpolation
             for( Index nst=0; nst<npha; nst++ )
-              interp(pha_mat_tmp(joker,nst), T_itw, pha_mat_int(joker,nst), T_gp);
-
+              {
+                interp(pha_mat_tmp(joker,nst), T_itw, pha_mat_int(joker,nst), T_gp);
+              }
             for( Index Tind=0; Tind<nTout; Tind++ )
-              // convert from scat to lab frame
-              pha_mat_labCalc(pha_mat(find,Tind,pdir,idir,joker,joker),
-                              pha_mat_tmp(Tind,joker),
-                              pdir_array(pdir,0), pdir_array(pdir,1),
-                              idir_array(idir,0), idir_array(idir,1),
-                              theta);
+              {
+                // convert from scat to lab frame
+                pha_mat_labCalc(pha_mat(find,Tind,pdir,idir,joker,joker),
+                                pha_mat_tmp(Tind,joker),
+                                pdir_array(pdir,0), pdir_array(pdir,1),
+                                idir_array(idir,0), idir_array(idir,1),
+                                theta);
+              }
           }
         }
     }

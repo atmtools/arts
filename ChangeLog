@@ -1,7 +1,19 @@
+2018-04-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1029
+
+	* src/optproperties.cc (pha_mat_1ScatElem): I got some weird
+	results and managed to track down the problem to this function.
+	Made some small changes to get my case to work. Will check with
+	Jana before doing remaining changes.
+
+	Note: Scattering simulation with stokes_dim > 1 can be wrong to
+	unfixed issues in this function.
+
 2018-04-17  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-1028
-	
+
 	Reviewing RetrievalQuantity and PropmatPartialsData,
 	as they serve the same purpose. PropmatPartialsData
 	has grown out-of-control and is difficult to understand.

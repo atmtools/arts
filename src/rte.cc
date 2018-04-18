@@ -2909,6 +2909,17 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
                                     pha_mat_1se(this_iv, 0, 0, ia, i, j) *
                                     inc_field(iv, iza, j);
                                 }
+                              if( i==1 && abs(product_fields(iza,iaa,i)) > 1e-10 )
+                                {
+                                  cout << i_ss << "/" << i_se << endl;
+                                  cout << ia << endl;
+                                  cout << product_fields(iza,iaa,joker) << endl;
+                                  cout << endl << pha_mat_1se(this_iv,0,0,ia,joker,joker)
+                                       << endl;
+                                  cout << endl << inc_field(iv,iza,joker) << endl;
+                                  assert(0);
+                                }
+                              
                             }
                           ia++;
                         }
@@ -2917,7 +2928,8 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
                   for ( Index i = 0; i < stokes_dim; i++ )
                     {
                       scat_source_1se( ise_flat, iv, i) = AngIntegrate_trapezoid( 
-                        product_fields(joker, joker, i), scat_za_grid, scat_aa_grid);
+                        product_fields(joker, joker, i), scat_za_grid,
+                                                         scat_aa_grid );
                     }
                 }  // for iv
             } // if val_pnd
@@ -2937,6 +2949,7 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
               scat_source[i] += scat_source_1se(ise_flat,iv,i) * ppath_1p_pnd[ise_flat];
             }
         }
+
       Sp.SetAtPosition(scat_source, iv);
 
       if( jacobian_do )
