@@ -8399,6 +8399,63 @@ void define_md_data_raw()
                   "Magnetic field perturbation"
                   )
       ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "jacobianAddNLTE" ),
+      DESCRIPTION
+      (
+        "Experimental NLTE Jacobian.\n"
+        "\n"
+        "\"mode\" should be \"Tv\" for vibrational temperatures or \"R\"\n"
+        "for ratio\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT( "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "jacobian_quantities", "jacobian_agenda", 
+          "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+      GIN("g1", "g2", "g3", "energy_level_identity", "dx", "mode"),
+      GIN_TYPE( "Vector", "Vector", "Vector", "QuantumIdentifier", "Numeric", "String"),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "1.0e-3", NODEF ),
+      GIN_DESC( "Pressure retrieval grid.",
+                "Latitude retrieval grid.",
+                "Longitude retreival grid.",
+                "Identifier to the eneregy level",
+                "Perturbation of value if required by method",
+                "Type of NLTE quantity")
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "jacobianAddNLTEs" ),
+      DESCRIPTION
+      (
+        "Experimental NLTE Jacobian.  Same as *jacobianAddNLTE* but for\n"
+        "many levels\n"
+        "\n"
+        "\"mode\" should be \"Tv\" for vibrational temperatures or \"R\"\n"
+        "for ratio\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT( "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "jacobian_quantities", "jacobian_agenda", 
+          "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+      GIN("g1", "g2", "g3", "energy_level_identities", "dx", "mode"),
+      GIN_TYPE( "Vector", "Vector", "Vector", "ArrayOfQuantumIdentifier", "Numeric", "String"),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "1.0e-3", NODEF ),
+      GIN_DESC( "Pressure retrieval grid.",
+                "Latitude retrieval grid.",
+                "Longitude retreival grid.",
+                "Identifiers to the eneregy level",
+                "Perturbation of value if required by method",
+                "Type of NLTE quantity")
+    ));
   
   md_data_raw.push_back
     ( MdRecord
@@ -10146,7 +10203,24 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-        ));
+      ));
+    
+    md_data_raw.push_back     
+    ( MdRecord
+    ( NAME( "nlte_fieldRescalePopulationLevels" ),
+      DESCRIPTION
+      ("Rescale NLTE field to expected total distribution amongst levels\n"),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "nlte_field" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("nlte_field"),
+      GIN("s"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Scaling (e.g., 0.75 for only orth-water on Earth)" )
+    ));
 
     md_data_raw.push_back     
     ( MdRecord
@@ -10646,13 +10720,13 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "nlte_fieldSetLTE" ),
+      ( NAME( "nlte_fieldSetLteExternalPartitionFunction" ),
         DESCRIPTION
         (
          "Turns on NTLE calculations.\n"
          "\n"
          "Sets NLTE ratios to those expected for LTE calculations\n"
-         "Useful when computing the actual NLTE state later on\n"
+         "with a known partition function\n"
          ),
         AUTHORS( "Richard Larsson" ),
         OUT( "nlte_do", "nlte_field", "abs_lines_per_species" ),
@@ -10660,6 +10734,29 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_lines_per_species", "nlte_quantum_identifiers", "partition_functions", "t_field"),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "nlte_fieldSetLteInternalPartitionFunction" ),
+        DESCRIPTION
+        (
+         "Turns on NTLE calculations.\n"
+         "\n"
+         "Sets NLTE ratios to those expected for LTE calculations\n"
+         "with estimation of the partition function as the sum of all\n"
+         "states of a species\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "nlte_do", "nlte_field", "abs_lines_per_species" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_lines_per_species", "nlte_quantum_identifiers", "t_field"),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

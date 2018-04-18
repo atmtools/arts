@@ -1,3 +1,31 @@
+2018-04-18  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-1030
+	
+	* src/jacobian.{cc,h}:  Copy-pasted out functions
+	required to remove PropmatPartialsData class.
+	
+	* src/m_jacobian.cc:  Added quantum-id tag to
+	for_species_tag false statements.  This to keep
+	single tag for internal and external vmr derivatives
+	(the internals will only look for the species and
+	not at the tag at this point because that is how
+	it is implemented).  Also, I am now setting JacPropMatType
+	for relevant analytical expressions.
+	
+	* src/m_nlte.cc:  Added scaling function.  This because
+	it is needed to work with certain nonlte scenarios.
+	Could have placed this in abs_vmrs, however using
+	pressure for anything is nonsense in other nonlte scenarios 
+	so this variable will likely have to be adopted to provide true
+	nd values at some point in this evolving code...
+	
+	* src/m_atmosphere.cc:  Changed so self-consistent partition 
+	functions can be used instead of only external partition 
+	functions.  Required for some cases.  This makes the forward
+	calculations for LTE wrong, however, because it carries implicit
+	assumptions on the number densities not following strictly p/kT...
+
 2018-04-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1029

@@ -98,6 +98,7 @@ public:
                         mperturbation(0.),
                         mgrids(),
                         mquantumidentifier(),
+                        mproptype(JacPropMatType::NotPropagationMatrixType),
                         mintegration_flag(false)
   { /* Nothing to do here. */ }
 
@@ -118,6 +119,7 @@ public:
     mperturbation(perturbation),
     mgrids(grids),
     mquantumidentifier(),
+    mproptype(JacPropMatType::NotPropagationMatrixType),
     mintegration_flag(false)
   {
     // With Matpack, initialization of mgrids from grids should work correctly.
@@ -145,6 +147,10 @@ public:
   /** Grids. Definition grids for the jacobian, eg. p, lat and lon. */
   const ArrayOfVector& Grids() const { return mgrids; }
   void Grids( const ArrayOfVector& g ) { mgrids = g; }
+  void PropType(const JacPropMatType t) {mproptype = t;}
+  bool operator==(const JacPropMatType t) const {return t == mproptype;}
+  bool operator!=(const JacPropMatType t) const {return not operator==(t);}
+  JacPropMatType PropMatType() const {return mproptype;}
 
   Index nelem() const {
       Index i = 1;
@@ -220,7 +226,6 @@ typedef Array<RetrievalQuantity> ArrayOfRetrievalQuantity;
           jacobian_quantities[iq].MainTag() == SURFACE_MAINTAG ) \
         { what_to_do } \
     } 
-
 
 //======================================================================
 //             Index ranges and transformation functions
@@ -427,6 +432,68 @@ void get_diydx(VectorView diy1,
                ConstVectorView dJ2,
                const Index stokes_dim,
                const bool transmission_only=false);
+
+//======================================================================
+//             Propmat partials descriptions
+//======================================================================
+
+Index number_of_propmattypes(const ArrayOfRetrievalQuantity& j);
+
+Index equivlent_propmattype_index(const Index ij, const ArrayOfRetrievalQuantity& j);
+
+String propmattype_string(const RetrievalQuantity& rq);
+
+//======================================================================
+//             Propmat partials boolean functions
+//======================================================================
+
+bool is_wind_parameter(const RetrievalQuantity& t);
+
+bool is_frequency_parameter(const RetrievalQuantity& t);
+
+bool is_derived_magnetic_parameter(const RetrievalQuantity& t);
+
+bool is_magnetic_parameter(const RetrievalQuantity& t);
+
+bool is_nlte_parameter(const RetrievalQuantity& t);
+
+bool is_line_mixing_DF_parameter(const RetrievalQuantity& t);
+
+bool is_line_mixing_line_strength_parameter(const RetrievalQuantity& t);
+
+bool is_line_mixing_parameter(const RetrievalQuantity& t);
+
+bool is_pressure_broadening_parameter(const RetrievalQuantity& t);
+
+bool is_line_parameter(const RetrievalQuantity& t);
+
+bool supportsCIA(const ArrayOfRetrievalQuantity& js);
+
+bool supportsHitranXsec(const ArrayOfRetrievalQuantity& js);
+
+bool supportsContinuum(const ArrayOfRetrievalQuantity& js);
+
+bool supportsLBLwithoutPhase(const ArrayOfRetrievalQuantity& js);
+
+bool supportsRelaxationMatrix(const ArrayOfRetrievalQuantity& js);
+
+bool supportsLookup(const ArrayOfRetrievalQuantity& js);
+
+bool supportsZeemanPrecalc(const ArrayOfRetrievalQuantity& js);
+
+bool supportsFaraday(const ArrayOfRetrievalQuantity& js);
+
+bool supportsParticles(const ArrayOfRetrievalQuantity& js);
+
+bool supportsPropmatClearsky(const ArrayOfRetrievalQuantity& js);
+
+bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& st);
+
+bool do_temperature(const ArrayOfRetrievalQuantity& js);
+
+bool do_frequency(const ArrayOfRetrievalQuantity& js);
+
+bool do_pressure(const ArrayOfRetrievalQuantity& js);
 
 #endif // jacobian_h
 

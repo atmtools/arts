@@ -1811,3 +1811,315 @@ void get_diydx(VectorView diy1,
   diy2 += b; 
 }
 
+
+//======================================================================
+//             Propmat partials descriptions
+//======================================================================
+
+/*! Returns the number of elements for propagation matrix partial derivatives 
+ * 
+ * Sums every RetrievalQuantity that is not NotPropagationMatrixType
+ * 
+ * Returns this sum
+ */
+Index number_of_propmattypes(const ArrayOfRetrievalQuantity& js)
+{
+  Index n=0;
+  for(const auto& j : js)
+    if(j not_eq JacPropMatType::NotPropagationMatrixType)
+      n++;
+  return n;
+}
+
+Index equivlent_propmattype_index(const Index ij, const ArrayOfRetrievalQuantity& js)
+{
+  assert(ij >= 0);
+  
+  Index i=0, k=0;
+  for(const auto& j : js) {
+    if(j not_eq JacPropMatType::NotPropagationMatrixType) {
+      k++;
+      if(k > ij)
+        return i;
+    }
+    i++;
+  }
+  return i;
+}
+
+bool is_wind_parameter(const RetrievalQuantity& t)
+{
+  return t == JacPropMatType::WindMagnitude or 
+         t == JacPropMatType::WindU         or 
+         t == JacPropMatType::WindV         or 
+         t == JacPropMatType::WindW;
+}
+
+bool is_frequency_parameter(const RetrievalQuantity& t)
+{
+  return is_wind_parameter(t) or t == JacPropMatType::Frequency;
+}
+
+bool is_derived_magnetic_parameter(const RetrievalQuantity& t)
+{
+  return t == JacPropMatType::MagneticEta       or
+         t == JacPropMatType::MagneticTheta     or 
+         t == JacPropMatType::MagneticMagnitude;
+}
+
+bool is_magnetic_parameter(const RetrievalQuantity& t)
+{
+  return is_derived_magnetic_parameter(t) or 
+         t == JacPropMatType::MagneticU   or 
+         t == JacPropMatType::MagneticV   or 
+         t == JacPropMatType::MagneticW;
+}
+
+bool is_nlte_parameter(const RetrievalQuantity& t)
+{
+  return t == JacPropMatType::VibrationalTemperature or 
+         t == JacPropMatType::PopulationRatio;
+}
+
+bool is_line_mixing_DF_parameter(const RetrievalQuantity& t) 
+{
+  return t == JacPropMatType::LineMixingDF0   or
+         t == JacPropMatType::LineMixingDF1   or
+         t == JacPropMatType::LineMixingDFExp;
+}
+
+bool is_line_mixing_line_strength_parameter(const RetrievalQuantity& t)
+{
+  return t == JacPropMatType::LineMixingY0   or
+         t == JacPropMatType::LineMixingY1   or
+         t == JacPropMatType::LineMixingYExp or
+         t == JacPropMatType::LineMixingG0   or
+         t == JacPropMatType::LineMixingG1   or
+         t == JacPropMatType::LineMixingGExp;
+}
+
+bool is_line_mixing_parameter(const RetrievalQuantity& t)
+{
+  return is_line_mixing_DF_parameter(t) or is_line_mixing_line_strength_parameter(t);
+}
+
+bool is_pressure_broadening_parameter(const RetrievalQuantity& t)
+{
+  return t == JacPropMatType::LineGammaForeign    or
+         t == JacPropMatType::LineShiftForeign    or
+         t == JacPropMatType::LineGammaForeignExp or
+         t == JacPropMatType::LineGammaSelf       or
+         t == JacPropMatType::LineShiftSelf       or
+         t == JacPropMatType::LineGammaSelfExp    or
+         t == JacPropMatType::LineGammaWater      or
+         t == JacPropMatType::LineShiftWater      or
+         t == JacPropMatType::LineGammaWaterExp;
+}
+
+bool is_line_parameter(const RetrievalQuantity& t)
+{
+  return t == JacPropMatType::LineCenter     or
+         t == JacPropMatType::LineStrength   or
+         is_pressure_broadening_parameter(t) or 
+         is_line_mixing_parameter(t)         or
+         is_nlte_parameter(t);
+}
+
+bool supportsCIA(const ArrayOfRetrievalQuantity& js)
+{
+  bool testvar = false;
+  for(const auto& j : js)
+    if(j == JacPropMatType::Temperature or j == JacPropMatType::VMR or is_frequency_parameter(j))
+      testvar=true;
+  return testvar;
+}
+
+bool supportsHitranXsec(const ArrayOfRetrievalQuantity& js)
+{
+  bool testvar = false;
+  for(const auto& j : js)
+    if(j == JacPropMatType::Temperature or j == JacPropMatType::VMR or is_frequency_parameter(j))
+      testvar=true;
+  return testvar;
+}
+
+bool supportsContinuum(const ArrayOfRetrievalQuantity& js) 
+{
+  bool testvar = false;
+  for(const auto& j : js)
+    if(j == JacPropMatType::Temperature or j == JacPropMatType::VMR or is_frequency_parameter(j))
+      testvar=true;
+    else if(is_line_parameter(j))
+      throw std::runtime_error("Line specific parameters are not supported while using continuum tags.\nWe do not track what lines are in the continuum.\n");
+  return testvar;
+}
+
+bool supportsLBLwithoutPhase(const ArrayOfRetrievalQuantity& js) 
+{
+  for(const auto& j : js)
+    if(j not_eq JacPropMatType::VMR or j not_eq JacPropMatType::LineStrength or not is_nlte_parameter(j))
+      return false;
+  return true;
+}
+
+bool supportsRelaxationMatrix(const ArrayOfRetrievalQuantity& js) 
+{
+  bool testvar = false;
+  for(const auto& j : js)
+    if(j == JacPropMatType::Temperature or is_frequency_parameter(j))
+      testvar=true;
+    else if(is_line_parameter(j))
+      throw std::runtime_error("Line specific parameters are not supported while\n using the relaxation matrix line mixing routine.\n We do not yet track individual lines in the relaxation matrix calculations.\n");
+  return testvar;
+}
+
+bool supportsLookup(const ArrayOfRetrievalQuantity& js)
+{
+  bool testvar = false;
+  for(const auto& j : js)
+    if(j == JacPropMatType::Temperature or j == JacPropMatType::VMR or is_frequency_parameter(j))
+      testvar=true;
+    else if(is_line_parameter(j))
+      throw std::runtime_error("Line specific parameters are not supported while using Lookup table.\nWe do not track lines in the Lookup.\n");
+  return testvar;
+}
+
+bool supportsZeemanPrecalc(const ArrayOfRetrievalQuantity& js) 
+{
+  for(const auto& j : js) 
+    if(j not_eq JacPropMatType::NotPropagationMatrixType)
+      return true; 
+  return false;
+}
+
+bool supportsFaraday(const ArrayOfRetrievalQuantity& js)
+{
+  bool testvar = false;
+  for(const auto& j : js)
+    if(is_derived_magnetic_parameter(j))
+      throw std::runtime_error("This method does not yet support Zeeman-style magnetic Jacobian calculations.\n Please use u, v, and w Jacobians instead.\n");
+    else if(j == JacPropMatType::MagneticU or j == JacPropMatType::MagneticV or j == JacPropMatType::MagneticW or j == JacPropMatType::Electrons or is_frequency_parameter(j)) 
+      testvar = true;
+  return testvar;
+}
+
+bool supportsParticles(const ArrayOfRetrievalQuantity& js)
+{
+  for(const auto& j : js)
+    if(j not_eq JacPropMatType::NotPropagationMatrixType)
+      return true;
+  return false;
+}
+
+bool supportsPropmatClearsky(const ArrayOfRetrievalQuantity& js)
+{   
+  for(const auto& j : js) 
+    if(j not_eq JacPropMatType::NotPropagationMatrixType)
+      return true;
+  return false;
+}
+
+bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& ast)
+{
+  if(rq.QuantumIdentity().Type() == QuantumIdentifier::ALL) { // Single tag
+    for(const auto& s : ast) {
+      if(rq.QuantumIdentity().Species() not_eq s.Species()) 
+        return false;  // Species must match
+      if(rq.QuantumIdentity().Isotopologue() >= 0 and s.Isotopologue() >= 0 and rq.QuantumIdentity().Isotopologue() not_eq s.Isotopologue()) 
+        return false;  // Isotopologue must match or be undefined
+    }
+  }
+  else {
+    ArrayOfSpeciesTag test;
+    array_species_tag_from_string(test, rq.Subtag());
+    if(ast not_eq test)
+      return false;  // Match single tag perfectly or throw out
+  }
+  return true;
+}
+
+bool do_temperature(const ArrayOfRetrievalQuantity& js) 
+{
+  for(const auto& j : js)
+    if(j == JacPropMatType::Temperature)
+      return true;
+  return false;
+}
+
+bool do_frequency(const ArrayOfRetrievalQuantity& js) 
+{
+  for(const auto& j : js)
+    if(is_frequency_parameter(j))
+      return true;
+    return false;
+}
+
+bool do_pressure(const ArrayOfRetrievalQuantity& js) 
+{
+  for(const auto& j : js)
+    if(is_pressure_broadening_parameter(j))
+      return true;
+    return false;
+}
+
+Index get_first_frequency(const ArrayOfRetrievalQuantity& js) 
+{
+  for(Index i=0; i<js.nelem(); i++)
+    if(is_frequency_parameter(js[i]))
+      return i;
+  return js.nelem();
+}
+
+Index get_first_pressure_term(const ArrayOfRetrievalQuantity& js) 
+{
+  for(Index i=0; i<js.nelem(); i++)
+    if(is_pressure_broadening_parameter(js[i]))
+      return i;
+    return js.nelem();
+}
+
+String propmattype_string(const RetrievalQuantity& rq)
+{
+  switch(rq.PropMatType())
+  {
+    case JacPropMatType::VMR: return "VMR";
+    case JacPropMatType::Electrons: return "Electrons-VMR";
+    case JacPropMatType::Particulates: return "Particulate-VMR";
+    case JacPropMatType::Temperature: return "Temperature";
+    case JacPropMatType::MagneticMagnitude: return "Magnetic-Strength";
+    case JacPropMatType::MagneticEta: return "Magnetic-Eta";
+    case JacPropMatType::MagneticTheta: return "Magnetic-Theta";
+    case JacPropMatType::MagneticU: return "Magnetic-u";
+    case JacPropMatType::MagneticV: return "Magnetic-v";
+    case JacPropMatType::MagneticW: return "Magnetic-w";
+    case JacPropMatType::WindMagnitude: return "Wind-Strength";
+    case JacPropMatType::WindU: return "Wind-u";
+    case JacPropMatType::WindV: return "Wind-v";
+    case JacPropMatType::WindW: return "Wind-w";
+    case JacPropMatType::Frequency: return "Frequency";
+    case JacPropMatType::LineStrength: return "Line-Strength";
+    case JacPropMatType::LineCenter: return "Line-Center";
+    case JacPropMatType::LineGammaSelf: return "Line-Gamma-Self";
+    case JacPropMatType::LineGammaForeign: return "Line-Gamma-Foreign";
+    case JacPropMatType::LineGammaWater: return "Line-Gamma-Water";
+    case JacPropMatType::LineGammaSelfExp: return "Line-Gamma-SelfExponent";
+    case JacPropMatType::LineGammaForeignExp: return "Line-Gamma-ForeignExponent";
+    case JacPropMatType::LineGammaWaterExp: return "Line-Gamma-WaterExponent";
+    case JacPropMatType::LineShiftSelf: return "Line-PressureShift-Self";
+    case JacPropMatType::LineShiftForeign: return "Line-PressureShift-Foreign";
+    case JacPropMatType::LineShiftWater: return "Line-PressureShift-Water";
+    case JacPropMatType::LineMixingY0: return "Line-Mixing-Y0";
+    case JacPropMatType::LineMixingG0: return "Line-Mixing-G0";
+    case JacPropMatType::LineMixingDF0: return "Line-Mixing-DF0";
+    case JacPropMatType::LineMixingY1: return "Line-Mixing-Y1";
+    case JacPropMatType::LineMixingG1: return "Line-Mixing-G1";
+    case JacPropMatType::LineMixingDF1: return "Line-Mixing-DF1";
+    case JacPropMatType::LineMixingYExp: return "Line-Mixing-YExp";
+    case JacPropMatType::LineMixingGExp: return "Line-Mixing-GExp";
+    case JacPropMatType::LineMixingDFExp: return "Line-Mixing-DFExp";
+    case JacPropMatType::VibrationalTemperature: return "Vibrational-Temperature";
+    case JacPropMatType::PopulationRatio: return "Population-Ratio";
+    case JacPropMatType::NotPropagationMatrixType: return "Not-A-Prop-Mat-Variable";
+  }
+  return "UNDEFINED-CHECK-IF-CASE-LIST-IS-COMPLETE";
+}

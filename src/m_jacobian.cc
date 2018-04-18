@@ -225,14 +225,18 @@ void jacobianAddAbsSpecies(
   CREATE_OUT2;
   CREATE_OUT3;
   
-  if(!for_species_tag)
+  QuantumIdentifier qi;
+  if(not for_species_tag)
   {
       ArrayOfSpeciesTag test;
       array_species_tag_from_string(test,species);
-      if( test.nelem()!=1 )
+      if( test.nelem() not_eq 1 )
           throw std::runtime_error("Trying to add a species as a species tag of multiple species.\n"
           "This is not supported.  Please give just a single species instead.\n"
           "Otherwise consider if you intended for_species_tag to be evaluated true.\n");
+      qi.SetAll();
+      qi.SetIsotopologue(test[0].Isotopologue());
+      qi.SetSpecies(test[0].Species());
   }
   
   // Check that this species is not already included in the jacobian.
@@ -297,7 +301,7 @@ void jacobianAddAbsSpecies(
       throw runtime_error( "Retrieval modes \"rh\" and \"q\" can only be applied "
                            "on species starting with H2O." );
     }
-
+  
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.MainTag( ABSSPECIES_MAINTAG );
@@ -306,10 +310,13 @@ void jacobianAddAbsSpecies(
   rq.Analytical( analytical );
   rq.Perturbation( dx );
   rq.Grids( grids );
-  if(analytical&&(!for_species_tag)) 
-      rq.SubSubtag(PROPMAT_SUBSUBTAG);
-  else if((!analytical)&&(!for_species_tag))
-      throw std::runtime_error("perturbation only support for_species_tag true/\n ");
+  if(analytical and not for_species_tag) {
+    rq.SubSubtag(species);
+    rq.PropType(JacPropMatType::VMR);
+  }
+  else if((not analytical) and (not for_species_tag))
+    throw std::runtime_error("perturbation only support for_species_tag true/\n ");
+  rq.QuantumIdentity(qi);
   
   // Add it to the *jacobian_quantities*
   jq.push_back( rq );
@@ -398,6 +405,7 @@ void jacobianAddConstantVMRAbsSpecies(
   rq.Analytical( 1 );
   rq.Perturbation( dx );
   rq.SubSubtag(PROPMAT_SUBSUBTAG);
+  rq.PropType(JacPropMatType::VMR);
   rq.IntegrationOn();
   
   // Add it to the *jacobian_quantities*
@@ -2047,8 +2055,10 @@ void jacobianAddTemperature(
   rq.Analytical( analytical );
   rq.Perturbation( dx );
   rq.Grids( grids );
-  if(analytical) 
-      rq.SubSubtag(PROPMAT_SUBSUBTAG);
+  if(analytical) {
+    rq.SubSubtag(PROPMAT_SUBSUBTAG);
+    rq.PropType(JacPropMatType::Temperature);
+  }
 
   // Add it to the *jacobian_quantities*
   jq.push_back( rq );
@@ -2334,15 +2344,21 @@ void jacobianAddWind(
     throw runtime_error(os.str());
   }
   
-    // Check that component is either correct
-    if( (component != "u"  &&  component != "v"  &&  component != "w"  &&  component != "strength") )
-    {
-      throw std::runtime_error(   
-          "The selection for *component* can only be \"u\", \"v\", \"w\" or \"strength\"." );
-    }
-
+  
   // Create the new retrieval quantity
   RetrievalQuantity rq;
+  
+  if(component == "u")
+    rq.PropType(JacPropMatType::WindU);
+  else if(component == "v")
+    rq.PropType(JacPropMatType::WindV);
+  else if(component == "w")
+    rq.PropType(JacPropMatType::WindW);
+  else if(component == "strength")
+    rq.PropType(JacPropMatType::WindMagnitude);
+  else
+    throw std::runtime_error("The selection for *component* can only be \"u\", \"v\", \"w\" or \"strength\"." );
+  
   rq.MainTag( WIND_MAINTAG );
   rq.Subtag( component );
   rq.Analytical( 1 );
@@ -2411,14 +2427,23 @@ void jacobianAddMagField(
     throw runtime_error(os.str());
   }
   
-    // Check that component is either "u", "v" or "w"
-  if( component != "u"  &&  component != "v"  &&  component != "w" && component != "strength"  &&  component != "eta"  &&  component != "theta")
-    {
-        throw runtime_error(   
-        "The selection for *component* can only be \"u\", \"v\", \"w\", \"strength\", \"eta\", or \"theta\"." );
-    }
   // Create the new retrieval quantity
   RetrievalQuantity rq;
+  if(component == "u")
+    rq.PropType(JacPropMatType::MagneticU);
+  else if(component == "v")
+    rq.PropType(JacPropMatType::MagneticV);
+  else if(component == "w")
+    rq.PropType(JacPropMatType::MagneticW);
+  else if(component == "strength")
+    rq.PropType(JacPropMatType::MagneticMagnitude);
+  else if(component == "eta")
+    rq.PropType(JacPropMatType::MagneticEta);
+  else if(component == "theta")
+    rq.PropType(JacPropMatType::MagneticTheta);
+  else
+    throw runtime_error("The selection for *component* can only be \"u\", \"v\", \"w\", \"strength\", \"eta\", or \"theta\"." );
+  
   rq.MainTag( MAGFIELD_MAINTAG );
   rq.Subtag( component );
   rq.Analytical( 1 );
@@ -3512,39 +3537,38 @@ void jacobianAddCatalogParameter(
         }
     }
     
+    // Create the new retrieval quantity
+    RetrievalQuantity rq;
+    
     // Check catalog_parameter here
-    if(!(
-         LINESTRENGTH_MODE              == catalog_parameter or
-         LINECENTER_MODE                == catalog_parameter or
-         SELFBROADENING_MODE            == catalog_parameter or
-         FOREIGNBROADENING_MODE         == catalog_parameter or
-         WATERBROADENING_MODE           == catalog_parameter or
-         SELFPRESSURESHIFT_MODE         == catalog_parameter or
-         FOREIGNPRESSURESHIFT_MODE      == catalog_parameter or
-         WATERPRESSURESHIFT_MODE        == catalog_parameter or
-         SELFBROADENINGEXPONENT_MODE    == catalog_parameter or
-         FOREIGNBROADENINGEXPONENT_MODE == catalog_parameter or
-         WATERBROADENINGEXPONENT_MODE   == catalog_parameter or
-         LINEMIXINGY0_MODE              == catalog_parameter or
-         LINEMIXINGG0_MODE              == catalog_parameter or
-         LINEMIXINGDF0_MODE             == catalog_parameter or
-         LINEMIXINGY1_MODE              == catalog_parameter or
-         LINEMIXINGG1_MODE              == catalog_parameter or
-         LINEMIXINGDF1_MODE             == catalog_parameter or
-         LINEMIXINGYEXPONENT_MODE       == catalog_parameter or
-         LINEMIXINGGEXPONENT_MODE       == catalog_parameter or
-         LINEMIXINGDFEXPONENT_MODE      == catalog_parameter or
-         WATERBROADENINGEXPONENT_MODE   == catalog_parameter))
-    {
-        ostringstream os;
-        os << "You have selected:\n" << catalog_parameter << "\nas your catalog parameter. This is not supported.\n" 
-           << "Please see user guide for supported parameters.\n";
-           throw std::runtime_error(os.str());
+    if(LINESTRENGTH_MODE                   == catalog_parameter) rq.PropType(JacPropMatType::LineStrength);
+    else if(LINECENTER_MODE                == catalog_parameter) rq.PropType(JacPropMatType::LineCenter);
+    else if(SELFBROADENING_MODE            == catalog_parameter) rq.PropType(JacPropMatType::LineGammaSelf);
+    else if(SELFPRESSURESHIFT_MODE         == catalog_parameter) rq.PropType(JacPropMatType::LineShiftSelf);
+    else if(SELFBROADENINGEXPONENT_MODE    == catalog_parameter) rq.PropType(JacPropMatType::LineGammaSelfExp);
+    else if(FOREIGNBROADENING_MODE         == catalog_parameter) rq.PropType(JacPropMatType::LineGammaForeign);
+    else if(FOREIGNPRESSURESHIFT_MODE      == catalog_parameter) rq.PropType(JacPropMatType::LineShiftForeign);
+    else if(FOREIGNBROADENINGEXPONENT_MODE == catalog_parameter) rq.PropType(JacPropMatType::LineGammaForeignExp);
+    else if(WATERBROADENING_MODE           == catalog_parameter) rq.PropType(JacPropMatType::LineGammaWater);
+    else if(WATERPRESSURESHIFT_MODE        == catalog_parameter) rq.PropType(JacPropMatType::LineShiftWater);
+    else if(WATERBROADENINGEXPONENT_MODE   == catalog_parameter) rq.PropType(JacPropMatType::LineGammaWaterExp);
+    else if(LINEMIXINGY0_MODE              == catalog_parameter) rq.PropType(JacPropMatType::LineMixingY0);
+    else if(LINEMIXINGY1_MODE              == catalog_parameter) rq.PropType(JacPropMatType::LineMixingY1);
+    else if(LINEMIXINGYEXPONENT_MODE       == catalog_parameter) rq.PropType(JacPropMatType::LineMixingYExp);
+    else if(LINEMIXINGG0_MODE              == catalog_parameter) rq.PropType(JacPropMatType::LineMixingG0);
+    else if(LINEMIXINGG1_MODE              == catalog_parameter) rq.PropType(JacPropMatType::LineMixingG1);
+    else if(LINEMIXINGGEXPONENT_MODE       == catalog_parameter) rq.PropType(JacPropMatType::LineMixingGExp);
+    else if(LINEMIXINGDF0_MODE             == catalog_parameter) rq.PropType(JacPropMatType::LineMixingG0);
+    else if(LINEMIXINGDF1_MODE             == catalog_parameter) rq.PropType(JacPropMatType::LineMixingG1);
+    else if(LINEMIXINGDFEXPONENT_MODE      == catalog_parameter) rq.PropType(JacPropMatType::LineMixingDFExp);
+    else {
+      ostringstream os;
+      os << "You have selected:\n" << catalog_parameter << "\nas your catalog parameter. This is not supported.\n" 
+          << "Please see user guide for supported parameters.\n";
+          throw std::runtime_error(os.str());
     }
     
     
-    // Create the new retrieval quantity
-    RetrievalQuantity rq;
     rq.MainTag( CATALOGPARAMETER_MAINTAG );
     rq.Mode( catalog_parameter );
     rq.QuantumIdentity(catalog_identity);
@@ -3595,7 +3619,7 @@ void jacobianAddCatalogParameters(
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddNLTETemperature(
+void jacobianAddNLTE(
     Workspace&,
     ArrayOfRetrievalQuantity&   jq,
     Agenda&                     jacobian_agenda,
@@ -3607,7 +3631,8 @@ void jacobianAddNLTETemperature(
     const Vector&               rq_lat_grid,
     const Vector&               rq_lon_grid,
     const QuantumIdentifier&    energy_level_identity,
-    const Numeric&              dT,
+    const Numeric&              dx,
+    const String&               mode,
     const Verbosity&            verbosity )
 {
     CREATE_OUT3;
@@ -3615,8 +3640,7 @@ void jacobianAddNLTETemperature(
     // Check that this species is not already included in the jacobian.
     for( Index it=0; it<jq.nelem(); it++ )
     {
-        if( jq[it].MainTag() == NLTE_MAINTAG  && 
-            jq[it].QuantumIdentity()  == energy_level_identity )
+        if( jq[it].MainTag() == NLTE_MAINTAG and jq[it].QuantumIdentity()  == energy_level_identity )
         {
             ostringstream os;
             os << "The NLTE identifier:\n" << energy_level_identity<< "\nis already included in "
@@ -3630,21 +3654,23 @@ void jacobianAddNLTETemperature(
     ArrayOfVector grids(atmosphere_dim);
     {
         ostringstream os;
-        if( !check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
-            rq_p_grid, rq_lat_grid, rq_lon_grid,
-            "retrieval pressure grid", 
-            "retrieval latitude grid", 
-            "retrievallongitude_grid", 
-            atmosphere_dim ) )
+        if(not check_retrieval_grids(grids, os, p_grid, lat_grid, lon_grid, rq_p_grid, rq_lat_grid, rq_lon_grid,
+            "retrieval pressure grid",  "retrieval latitude grid",  "retrievallongitude_grid",  atmosphere_dim ) )
             throw runtime_error(os.str());
     }
     
     
     // Create the new retrieval quantity
     RetrievalQuantity rq;
+    
+    // Set the mode
+    if(mode == "Tv") rq.PropType(JacPropMatType::VibrationalTemperature);
+    else if(mode == "R") rq.PropType(JacPropMatType::PopulationRatio);
+    else throw std::runtime_error("Mode must be either \"Tv\" or \"R\".  See function description");
+    
     rq.MainTag( NLTE_MAINTAG );
     rq.QuantumIdentity(energy_level_identity);
-    rq.Perturbation(dT);
+    rq.Perturbation(dx);
     rq.Grids( grids );
     rq.Analytical(1);
     rq.SubSubtag(PROPMAT_SUBSUBTAG);
@@ -3654,9 +3680,29 @@ void jacobianAddNLTETemperature(
     
     out3 << "  Calculations done by propagation matrix expressions.\n"; 
     
-    jacobian_agenda.append( "jacobianCalcTemperatureFromPropmat", TokVal() );
+    jacobian_agenda.append( "jacobianCalcDoNothing", TokVal() );
 } 
 
+
+void jacobianAddNLTEs(
+  Workspace&                  ws,
+  ArrayOfRetrievalQuantity&   jq,
+  Agenda&                     jacobian_agenda,
+  const Index&                atmosphere_dim,
+  const Vector&               p_grid,
+  const Vector&               lat_grid,
+  const Vector&               lon_grid,
+  const Vector&               rq_p_grid,
+  const Vector&               rq_lat_grid,
+  const Vector&               rq_lon_grid,
+  const ArrayOfQuantumIdentifier&    energy_level_identities,
+  const Numeric&              dx,
+  const String&               mode,
+  const Verbosity&            verbosity )
+{
+  for(const auto& qi : energy_level_identities)
+    jacobianAddNLTE(ws, jq, jacobian_agenda, atmosphere_dim, p_grid,lat_grid, lon_grid, rq_p_grid, rq_lat_grid, rq_lon_grid, qi, dx, mode, verbosity);
+}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -3710,6 +3756,7 @@ void jacobianAddSpecialSpecies(
       }
     }
     rq.MainTag( ELECTRONS_MAINTAG );
+    rq.PropType(JacPropMatType::Electrons);
   }
   else if( species == "particulates" )
   {
@@ -3723,6 +3770,7 @@ void jacobianAddSpecialSpecies(
       }
     }
     rq.MainTag( PARTICULATES_MAINTAG );
+    rq.PropType(JacPropMatType::Particulates);
   }
   else
   {

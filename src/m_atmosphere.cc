@@ -4153,19 +4153,19 @@ void vmr_fieldSetAllConstant(
   }
 }
 
-
-void nlte_fieldSetLTE(Index& nlte_do,
-                      Tensor4& nlte_field,
-                      ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                      const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
-                      const SpeciesAuxData& partition_functions,
-                      const Tensor3& t_field,
-                      const Verbosity& verbosity)
+void nlte_fieldSetLteExternalPartitionFunction(Index& nlte_do,
+                                               Tensor4& nlte_field,
+                                               ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                               const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
+                                               const SpeciesAuxData& partition_functions,
+                                               const Tensor3& t_field,
+                                               const Verbosity& verbosity)
 {
   extern const Numeric PLANCK_CONST;
   
   CREATE_OUT2;
   const Index nn=nlte_quantum_identifiers.nelem(), np=t_field.npages(), nlat=t_field.nrows(), nlon=t_field.ncols();
+  if(nn == 0) return;
   
   nlte_field = Tensor4(nn, np, nlat, nlon, 0.0);
   nlte_do = 1;
@@ -4228,3 +4228,106 @@ void nlte_fieldSetLTE(Index& nlte_do,
       out2 << "Did not find match among lines for: " << nlte_quantum_identifiers[in] << "\n";
 }
 
+
+void nlte_fieldSetLteInternalPartitionFunction(Index& nlte_do,
+                                               Tensor4& nlte_field,
+                                               ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                               const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
+                                               const Tensor3& t_field,
+                                               const Verbosity& verbosity)
+{
+  extern const Numeric PLANCK_CONST;
+  
+  CREATE_OUT2;
+  const Index nn=nlte_quantum_identifiers.nelem(), np=t_field.npages(), nlat=t_field.nrows(), nlon=t_field.ncols();
+  if(nn == 0) return;
+  
+  // Find where they are positioned and how many different molecules there are for the NLTE fields
+  ArrayOfIndex part_fun_pos(nn, 0);
+  Index x = 1;
+  for(Index in=1; in<nn; in++) {
+    bool found=false;
+    for(Index ix=0; ix<in; ix++) {
+      if(nlte_quantum_identifiers[in].Species() == nlte_quantum_identifiers[ix].Species() and nlte_quantum_identifiers[in].Isotopologue() == nlte_quantum_identifiers[ix].Isotopologue()) {
+        part_fun_pos[in] = part_fun_pos[ix];
+        found = true;
+        break;
+      }
+    }
+    if(not found) {
+      part_fun_pos[in] = x;
+      x++;
+    }
+  }
+  
+  nlte_do = 1;
+  ArrayOfIndex checked(nn, 0);
+  
+  Tensor4 part_fun(x, np, nlat, nlon, 0.0);
+  nlte_field = Tensor4(nn, np, nlat, nlon, 0.0);
+  
+  #pragma omp parallel for
+  for(Index in = 0; in < nn; in++) {
+    const QuantumIdentifier& qi = nlte_quantum_identifiers[in];
+    Tensor3View lte = nlte_field(in, joker, joker, joker);
+    
+    for(auto& abs_lines : abs_lines_per_species) {
+      for(auto& line : abs_lines) {
+        const QuantumIdentifier line_id = line.QuantumIdentity();
+        
+        if(line_id.Lower() > qi) {
+          line.SetNLTELowerIndex(in);
+          line.SetLinePopulationType(LinePopulationType::ByPopulationDistribution);
+          
+          bool compute_level = false;
+          
+          #pragma omp critical
+          if(not checked[in]) {checked[in] = 1; compute_level=true;}
+          
+          if(compute_level) {
+            for(Index ip = 0; ip < np; ip++) {
+              for(Index ilat = 0; ilat < nlat; ilat++) {
+                for(Index ilon = 0; ilon < nlon; ilon++) {
+                  lte(ip, ilat, ilon) = boltzman_factor(t_field(ip, ilat, ilon), line.Elow()) * line.G_lower();
+                  part_fun(part_fun_pos[in], ip, ilat, ilon) += lte(ip, ilat, ilon);
+                }
+              }
+            }
+          }
+        }
+        if(line_id.Upper() > qi) {
+          line.SetNLTEUpperIndex(in);
+          line.SetLinePopulationType(LinePopulationType::ByPopulationDistribution);
+          
+          bool compute_level = false;
+          
+          #pragma omp critical
+          if(not checked[in]) {checked[in] = 1; compute_level=true;}
+          
+          if(compute_level) {
+            for(Index ip = 0; ip < np; ip++) {
+              for(Index ilat = 0; ilat < nlat; ilat++) {
+                for(Index ilon = 0; ilon < nlon; ilon++) {
+                  lte(ip, ilat, ilon) = boltzman_factor(t_field(ip, ilat, ilon), line.Elow() + PLANCK_CONST * line.F()) * line.G_upper();
+                  part_fun(part_fun_pos[in], ip, ilat, ilon) += lte(ip, ilat, ilon);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  for(Index in=0; in<nn; in++) {
+    if(checked[in])
+      nlte_field(in, joker, joker, joker) /= part_fun(part_fun_pos[in], joker, joker, joker);
+    else {
+      ostringstream os;
+      os << "Did not find match among lines for: " 
+         << nlte_quantum_identifiers[in] << "\n"
+         << "Unable to estimate internal partition function\n";
+      throw std::runtime_error(os.str());
+    }
+  }
+}

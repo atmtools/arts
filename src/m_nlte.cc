@@ -24,6 +24,12 @@
 #include "lin_alg.h"
 
 
+void nlte_fieldRescalePopulationLevels(Tensor4& nlte_field, const Numeric& scale, const Verbosity&)
+{ 
+  nlte_field *= scale;
+}
+
+
 void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                      ws,
                                                    Tensor4&                        nlte_field,
                                                    const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -85,7 +91,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
   
   ArrayOfIndex upper, lower;
   nlte_positions_in_statistical_equilibrium_matrix(upper, lower, lines, nlte_quantum_identifiers);
-  const Index lower_unique = find_first_unique_in_lower(upper, lower);
+  const Index unique = find_first_unique_in_lower(upper, lower);
   
   // Compute arrays
   Matrix SEE(nq, nq, 0.0);
@@ -93,7 +99,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
   
   // Presently loop a fixed number of times.  FIXME:  Add relative error instead
   Index i = 0;
-  while(i < 20) {
+  while(i < 100) {
     // NB.  This function should become an Agenda at some point so that iy_transmission and iy are output as required by the functions below.  
     radiation_fieldCalcForSingleSpeciesNonOverlappingLines(ws, iy, iy_transmission, abs_species, abs_lines_per_species, 
                                                            nlte_field, vmr_field, t_field, z_field,
@@ -106,10 +112,11 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
         setCijFromPressureBroadening(Cij, lines, vmr_field(joker, ip, 0, 0), broad_spec_locations, t_field(ip, 0, 0), this_species, water_species, nlines, verbosity);
         setCji(Cji, Cij, lines, t_field(ip, 0, 0), nlines);
         statistical_equilibrium_equation(SEE, Aij, Bij, Bji, Cij, Cji, iy(joker, ip), upper, lower);
-        use_total_number_count_statistical_equilibrium_matrix(SEE, x, r, lower_unique);
+        use_total_number_count_statistical_equilibrium_matrix(SEE, x, r, unique);
         solve(r, SEE, x);
         
-        std::cout<<r<<"\n\nSEE "<<i+1<<" (p "<<ip+1<<"/"<<np<<"):\n"<<MapToEigen(SEE)<<"\n\nX "<<i+1<<" (p "<<ip+1<<"/"<<np<<"):\n"<<x<<"\n\n";
+        if(ip == 50)
+          std::cout<<"\n\nSEE "<<i+1<<" (p "<<ip+1<<"/"<<np<<"):\n"<<MapToEigen(SEE)<<"\n\nX "<<i+1<<" (p "<<ip+1<<"/"<<np<<"):\n"<<x<<"\n\nR "<<i+1<<" (p "<<ip+1<<"/"<<np<<"):\n"<<r<<"\n\n";
         
         // Assume 1D
         nlte_field(joker, ip, 0, 0) = r;
@@ -121,7 +128,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
         setCijFromPressureBroadening(Cij, lines, vmr_field(joker, ip, 0, 0), broad_spec_locations, t_field(ip, 0, 0), this_species, water_species, nlines, verbosity);
         setCji(Cji, Cij, lines, t_field(ip, 0, 0), nlines);
         dampened_statistical_equilibrium_equation(SEE, r, Aij, Bij, Bji, Cij, Cji, iy(joker, ip), iy_transmission(0, joker, ip), upper, lower);
-        use_total_number_count_statistical_equilibrium_matrix(SEE, x, r, lower_unique);
+        use_total_number_count_statistical_equilibrium_matrix(SEE, x, r, unique);
         solve(nlte_field(joker, ip, 0, 0), SEE, x);
         solve(r, SEE, x);
         
