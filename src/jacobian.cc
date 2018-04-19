@@ -737,6 +737,7 @@ void get_pointers_for_analytical_jacobians(
          ArrayOfIndex&               magfield_i,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Index&                      cloudbox_on,
    const ArrayOfString&              scat_species )
 {
   FOR_ANALYTICAL_JACOBIANS_DO( 
@@ -785,7 +786,7 @@ void get_pointers_for_analytical_jacobians(
     else
       { abs_species_i[iq] = -1; }
     //
-    if( jacobian_quantities[iq].MainTag() == SCATSPECIES_MAINTAG )
+    if( cloudbox_on  &&  jacobian_quantities[iq].MainTag() == SCATSPECIES_MAINTAG )
       {
         scat_species_i[iq] = find_first( scat_species,
                                              jacobian_quantities[iq].Subtag() );

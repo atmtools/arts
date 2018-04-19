@@ -2909,17 +2909,6 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
                                     pha_mat_1se(this_iv, 0, 0, ia, i, j) *
                                     inc_field(iv, iza, j);
                                 }
-                              if( i==1 && abs(product_fields(iza,iaa,i)) > 1e-10 )
-                                {
-                                  cout << i_ss << "/" << i_se << endl;
-                                  cout << ia << endl;
-                                  cout << product_fields(iza,iaa,joker) << endl;
-                                  cout << endl << pha_mat_1se(this_iv,0,0,ia,joker,joker)
-                                       << endl;
-                                  cout << endl << inc_field(iv,iza,joker) << endl;
-                                  assert(0);
-                                }
-                              
                             }
                           ia++;
                         }
@@ -3001,6 +2990,7 @@ void rtmethods_jacobian_init(
    const Index&                      np,
    const Index&                      nq,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Index&                      cloudbox_on,
    const ArrayOfString&              scat_species,         
    const ArrayOfTensor4&             dpnd_field_dx,
    const PropmatPartialsData&        ppd,
@@ -3017,8 +3007,8 @@ void rtmethods_jacobian_init(
 
   get_pointers_for_analytical_jacobians( jac_species_i, jac_scat_i, jac_is_t, 
                                          jac_wind_i, jac_mag_i, 
-                                         jacobian_quantities,
-                                         abs_species, scat_species );
+                                         jacobian_quantities, abs_species,
+                                         cloudbox_on, scat_species );
   
   FOR_ANALYTICAL_JACOBIANS_DO( 
     jac_other[iq] = ppd.is_this_propmattype(iq) ? Index(JacobianType::Other) :

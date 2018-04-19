@@ -11563,9 +11563,11 @@ void define_md_data_raw()
          "*particle_bulkprop_field* and their associated variables to derive\n"
          "*pnd_field*.\n"
          "\n"
-         "Cloudbox limits must be set before calling the method, and\n"
-         "*particle_bulkprop_field* is checked to have non-zero elements just\n"
-         "inside the cloudbox.\n"
+         "The method does nothing if cloudbox is inactive.\n"
+         "\n"
+         "Otherwise, cloudbox limits must be set before calling the method,\n"
+         "and *particle_bulkprop_field* is checked to have non-zero elements\n"
+         "just inside the cloudbox.\n"
          ),
         AUTHORS( "Patrick Eriksson, Jana Mendrok" ),
         OUT( "pnd_field", "dpnd_field_dx" ),
@@ -19920,4 +19922,41 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+    md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "PrivateTesting1" ),
+          DESCRIPTION
+          (
+           "PE 180419: Testing ....\n"
+           ),
+          AUTHORS( "Patrick Eriksson" ),
+          OUT( "cloudbox_on", "x" ),
+          GOUT( "jacobian_zero_indices" ),
+          GOUT_TYPE( "ArrayOfIndex" ),
+          GOUT_DESC( "..." ),
+          IN( "x", "jacobian_quantities"),
+          GIN(),
+          GIN_TYPE(),
+          GIN_DEFAULT(),
+          GIN_DESC()
+          ));
+
+    md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "PrivateTesting2" ),
+          DESCRIPTION
+          (
+           "PE 180419: Testing ....\n"
+           ),
+          AUTHORS( "Patrick Eriksson" ),
+          OUT( "jacobian" ),
+          GOUT(),
+          GOUT_TYPE(),
+          GOUT_DESC(),
+          IN( "jacobian", "cloudbox_on" ),
+          GIN( "jacobian_zero_indices" ),
+          GIN_TYPE( "ArrayOfIndex" ),
+          GIN_DEFAULT( NODEF ),
+          GIN_DESC( "..." )
+          ));    
 }

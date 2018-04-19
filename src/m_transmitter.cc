@@ -773,7 +773,7 @@ void iyTransmissionStandard(
       rtmethods_jacobian_init( jac_species_i, jac_scat_i, jac_is_t, jac_wind_i,
                                jac_mag_i, jac_other, diy_dx, diy_dpath,
                                ns, nf, np, nq, abs_species,
-                               scat_species, dpnd_field_dx, ppd,
+                               cloudbox_on, scat_species, dpnd_field_dx, ppd,
                                jacobian_quantities, iy_agenda_call1 );
     }
   

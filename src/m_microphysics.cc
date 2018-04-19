@@ -635,6 +635,10 @@ void pnd_fieldCalcFromParticleBulkProps(
    const ArrayOfRetrievalQuantity&    jacobian_quantities,
    const Verbosity& )
 {
+  // Do nothing if cloudbix ix inactive
+  if( !cloudbox_on )
+    { return; }
+
   if( particle_bulkprop_field.empty() )
       throw runtime_error( "*particle_bulkprop_field* is empty." );
 
@@ -661,20 +665,6 @@ void pnd_fieldCalcFromParticleBulkProps(
   {
     throw runtime_error( "At least one field per scattering species required"
                          " in *particle_bulkprop_field*." );
-  }
-
-  // Further checks of *particle_bulkprop_field* below
-  if( !cloudbox_on )
-  {
-    if( jacobian_do )
-    {
-      // FIXME: we might be able to avoid error throwing, but need to fill
-      // dpnd_field_dx properly then, don't we?
-      throw runtime_error( "*cloudbox_on* must be true to derive jacobians"
-                           " using this method." );
-    }
-    else
-      return;
   }
 
   if( cloudbox_limits.nelem() != 2*atmosphere_dim )

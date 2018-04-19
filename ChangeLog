@@ -1,10 +1,32 @@
+2018-04-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1031
+
+	* src/m_transmitter.cc (iyTransmissionStandard):
+	* src/m_rte.cc (iyEmissionStandard):
+	* src/m_fos.cc (iyHybrid):
+	* src/m_cloudradar.cc (iyActiveSingleScat):
+	* src/rte.cc (rtmethods_jacobian_init): Adoption due to change in
+	get_pointers_for_analytical_jacobians.
+
+	* src/jacobian.cc (get_pointers_for_analytical_jacobians): Now
+	considering cloudbox_on when setting scat_species_i.
+
+	* src/m_rt4.cc (RT4Calc): Moved message for if( !cloudbox_on )
+	from OUT0 to OUT1.
+
+	* src/m_microphysics.cc (pnd_fieldCalcFromParticleBulkProps): Now
+	does absolutely nothing if cloudbox_on = 0.
+
+	* src/workspace.cc: Introduced inversion_iteratation_counter.
+
 2018-04-18  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-1030
-	
+
 	* src/jacobian.{cc,h}:  Copy-pasted out functions
 	required to remove PropmatPartialsData class.
-	
+
 	* src/m_jacobian.cc:  Added quantum-id tag to
 	for_species_tag false statements.  This to keep
 	single tag for internal and external vmr derivatives
@@ -12,7 +34,7 @@
 	not at the tag at this point because that is how
 	it is implemented).  Also, I am now setting JacPropMatType
 	for relevant analytical expressions.
-	
+
 	* src/m_nlte.cc:  Added scaling function.  This because
 	it is needed to work with certain nonlte scenarios.
 	Could have placed this in abs_vmrs, however using

@@ -2139,6 +2139,15 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
     (WsvRecord
+     ( NAME( "inversion_iteratation_counter" ),
+       DESCRIPTION
+       (
+        "Iteration counter variable for *inversion_iterate_agenda*.\n"
+        ),
+       GROUP( "Index" )));
+    
+ wsv_data.push_back
+    (WsvRecord
      ( NAME( "inversion_iterate_agenda" ),
        DESCRIPTION
        (

@@ -3918,3 +3918,126 @@ void jacobianSetFuncTransformation(
 
 
 
+
+
+//----------------------------------------------------------------------------
+// Patrick's sandbox
+//----------------------------------------------------------------------------
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void PrivateTesting1(
+        Index&                     cloudbox_on,
+        Vector&                    x,
+        ArrayOfIndex&              jacobian_zero_indices,
+  const ArrayOfRetrievalQuantity&  jacobian_quantities,
+  const Verbosity& )
+{
+  // Settings, so far hard-coded
+  const Numeric rh_limit = 0.8;
+  const Numeric lwc_zero = 1e-12;
+  const Numeric rwc_zero = 0;
+  const Numeric iwc_zero = 0;
+
+  // Fist guess for cloudbox_on
+  cloudbox_on = 0;
+  
+  // Do nothing for first iteration(s)
+  if( 0 )
+    {
+      jacobian_zero_indices.resize(0);
+      return;
+    }
+
+  // Some basic checks
+  assert( jacobian_quantities.nelem() == 5 );
+  assert( jacobian_quantities[0].MainTag() == ABSSPECIES_MAINTAG );
+  assert( jacobian_quantities[1].MainTag() == ABSSPECIES_MAINTAG );
+  assert( jacobian_quantities[2].MainTag() == SCATSPECIES_MAINTAG );
+  assert( jacobian_quantities[3].MainTag() == SCATSPECIES_MAINTAG );
+  assert( jacobian_quantities[4].MainTag() == SURFACE_MAINTAG );
+  
+  // Determine rh-limit in unit used in x
+  const String tfun = jacobian_quantities[0].TransformationFunc();
+  Numeric xrh_limit = -999;
+  if( tfun == "" )
+    { xrh_limit = rh_limit; }
+  else if( tfun == "atanh" )
+    { 
+      const Vector pars = jacobian_quantities[0].TFuncParameters();
+      xrh_limit = atanh( 2*(rh_limit-pars[0])/(pars[1]-pars[0]) - 1 );
+    }
+  else
+    { assert(0); }
+
+  // Jacobian indices and set some variables
+  ArrayOfArrayOfIndex jacobian_indices;
+  {
+    bool any_affine;
+    jac_ranges_indices( jacobian_indices, any_affine,
+                      jacobian_quantities, true );
+  }
+  ArrayOfIndex np(4);    // Number of retrieval altitudes of each quantity
+  Vector zero_value(3);  // Effective zero value for hydrometeors
+  for( Index i=0; i<4; i++ )
+    {
+      np[i] = jacobian_indices[i][1] - jacobian_indices[i][0] + 1;
+      if( i == 0 )
+        {}
+      else if( i == 1 )
+        { zero_value[i-1] = lwc_zero; }
+      else if( i == 2 )
+        { zero_value[i-1] = rwc_zero; }
+      else if( i == 3 )
+        { zero_value[i-1] = iwc_zero; }
+    }
+
+  // Init jacobian_zero_indices
+  jacobian_zero_indices.resize( jacobian_indices[4][1] + 1 );
+  for( Index i=0; i<jacobian_zero_indices.nelem(); i++ )
+    { jacobian_zero_indices[i] = 0; }
+  
+  // Loop rh-values and take actions
+  for( Index ip=0; ip<=np[0]; ip ++ )
+    {
+      // Low rh case
+      if( x[ip] <= xrh_limit )
+        {
+          for( Index iq=1; iq<=3; iq++ )
+            {
+              if( ip < np[iq] )
+                {
+                  const Index ix = jacobian_indices[iq][0] + ip;
+                  jacobian_zero_indices[ix] = 1;
+                  x[ix] = zero_value[iq-1];
+                }
+            }
+        }
+      // High rh case
+      else
+        {
+          cloudbox_on = 1;
+          jacobian_zero_indices[ip] = 1;
+        }
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void PrivateTesting2(
+        Matrix&                    jacobian,
+  const Index&                     cloudbox_on,
+  const ArrayOfIndex&              jacobian_zero_indices,
+  const Verbosity& )
+{  
+  if( cloudbox_on )
+    {
+      assert( jacobian.ncols() == jacobian_zero_indices.nelem() );
+      
+      for( Index ix=0; ix<jacobian.ncols(); ix++ )
+        {
+          if( jacobian_zero_indices[ix] )
+            { jacobian(joker,ix) = 0; }
+        }
+    }
+}

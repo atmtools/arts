@@ -404,6 +404,7 @@ void rtmethods_jacobian_init(
    const Index&                      np,
    const Index&                      nq,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Index&                      cloudbox_on,
    const ArrayOfString&              scat_species,         
    const ArrayOfTensor4&             dpnd_field_dx,
    const PropmatPartialsData&        ppd,

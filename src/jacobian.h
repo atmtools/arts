@@ -320,6 +320,7 @@ void get_pointers_for_analytical_jacobians(
          ArrayOfIndex&               magfield_i,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Index&                      cloudbox_on,
    const ArrayOfString&              scat_species );
 
 void jacobian_type_extrapol( ArrayOfGridPos&   gp );

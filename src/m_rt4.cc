@@ -82,12 +82,12 @@ void RT4Calc( Workspace& ws,
                 const Index& new_optprop,
                 const Verbosity& verbosity )
 {
-  if (!cloudbox_on)
-  {
-    CREATE_OUT0;
-    out0 << "  Cloudbox is off, RT4 calculation will be skipped.\n";
-    return;
-  }
+  if( !cloudbox_on )
+    {
+      CREATE_OUT1;
+      out1 << "  Cloudbox is off, RT4 calculation is skipped.\n";
+      return;
+    }
 
   // FIXME: so far surface is implictly assumed at lowest atmospheric level.
   // That should be fixed (using z_surface and allowing other altitudes) at some

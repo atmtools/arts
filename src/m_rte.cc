@@ -272,7 +272,7 @@ void iyEmissionStandard(
                                jac_mag_i, jac_other, diy_dx,
                                diy_dpath,
                                ns, nf, np, nq, abs_species,
-                               scat_species, dpnd_field_dx, ppd,
+                               cloudbox_on, scat_species, dpnd_field_dx, ppd,
                                jacobian_quantities, iy_agenda_call1 );
     }
   
@@ -1179,8 +1179,7 @@ void iyMC(
                    pnd_field, scat_data, 1, 1, 1, 1, iy_unit,
                    mc_seed, mc_std_err, mc_max_time, mc_max_iter,
                    mc_min_iter, mc_taustep_limit, 1, t_interp_order, verbosity);
-          //cout << "Error: "      << mc_error << endl;
-          //cout << "N photons: " << mc_iteration_count << endl;
+
         assert( y.nelem() == stokes_dim );
 
         iy(f_index,joker) = y;
