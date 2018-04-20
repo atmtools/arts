@@ -4171,7 +4171,6 @@ void nlte_fieldSetLteExternalPartitionFunction(Index& nlte_do,
   nlte_do = 1;
   ArrayOfIndex checked(nn, 0);
   
-  #pragma omp parallel for
   for(Index in = 0; in < nn; in++)
   {
     const QuantumIdentifier& qi = nlte_quantum_identifiers[in];
@@ -4183,14 +4182,13 @@ void nlte_fieldSetLteExternalPartitionFunction(Index& nlte_do,
       {
         const QuantumIdentifier line_id = line.QuantumIdentity();
         
-        if(line_id.Lower() > qi)
+        if(line_id.LowerQuantumId() > qi)
         {
           line.SetNLTELowerIndex(in);
           line.SetLinePopulationType(LinePopulationType::ByPopulationDistribution);
           
           bool compute_level = false;
           
-          #pragma omp critical
           if(not checked[in]) {checked[in] = 1; compute_level=true;}
           
           if(compute_level) 
@@ -4201,14 +4199,13 @@ void nlte_fieldSetLteExternalPartitionFunction(Index& nlte_do,
                   single_partition_function(t_field(ip, ilat, ilon), partition_functions.getParamType(line.Species(), line.Isotopologue()), 
                                                                      partition_functions.getParam(line.Species(), line.Isotopologue()));
         }
-        if(line_id.Upper() > qi)
+        if(line_id.UpperQuantumId() > qi)
         {
           line.SetNLTEUpperIndex(in);
           line.SetLinePopulationType(LinePopulationType::ByPopulationDistribution);
           
           bool compute_level = false;
           
-          #pragma omp critical
           if(not checked[in]) {checked[in] = 1; compute_level=true;}
           
           if(compute_level) 
@@ -4266,7 +4263,6 @@ void nlte_fieldSetLteInternalPartitionFunction(Index& nlte_do,
   Tensor4 part_fun(x, np, nlat, nlon, 0.0);
   nlte_field = Tensor4(nn, np, nlat, nlon, 0.0);
   
-  #pragma omp parallel for
   for(Index in = 0; in < nn; in++) {
     const QuantumIdentifier& qi = nlte_quantum_identifiers[in];
     Tensor3View lte = nlte_field(in, joker, joker, joker);
@@ -4275,13 +4271,12 @@ void nlte_fieldSetLteInternalPartitionFunction(Index& nlte_do,
       for(auto& line : abs_lines) {
         const QuantumIdentifier line_id = line.QuantumIdentity();
         
-        if(line_id.Lower() > qi) {
+        if(line_id.LowerQuantumId() > qi) {
           line.SetNLTELowerIndex(in);
           line.SetLinePopulationType(LinePopulationType::ByPopulationDistribution);
           
           bool compute_level = false;
           
-          #pragma omp critical
           if(not checked[in]) {checked[in] = 1; compute_level=true;}
           
           if(compute_level) {
@@ -4295,13 +4290,12 @@ void nlte_fieldSetLteInternalPartitionFunction(Index& nlte_do,
             }
           }
         }
-        if(line_id.Upper() > qi) {
+        if(line_id.UpperQuantumId() > qi) {
           line.SetNLTEUpperIndex(in);
           line.SetLinePopulationType(LinePopulationType::ByPopulationDistribution);
           
           bool compute_level = false;
           
-          #pragma omp critical
           if(not checked[in]) {checked[in] = 1; compute_level=true;}
           
           if(compute_level) {

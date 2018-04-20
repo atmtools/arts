@@ -38,7 +38,7 @@
 #include "linerecord.h"
 #include "linemixingrecord.h"
 #include "gridded_fields.h"
-#include "partial_derivatives.h"
+#include "jacobian.h"
 
 
 /** The type that is used to store pointers to lineshape
@@ -741,7 +741,8 @@ void xsec_species_line_mixing_wrapper(      MatrixView               xsec_attenu
                                             ArrayOfMatrix&           partial_xsec_attenuation,
                                             ArrayOfMatrix&           partial_xsec_source,
                                             ArrayOfMatrix&           partial_xsec_phase,
-                                            const PropmatPartialsData&  flag_partials,
+                                            const ArrayOfRetrievalQuantity& flag_partials,
+                                            const ArrayOfIndex& flag_partials_position,
                                             ConstVectorView          f_grid,
                                             ConstVectorView          abs_p,
                                             ConstVectorView          abs_t,
@@ -848,7 +849,8 @@ void xsec_species2(MatrixView xsec,
                    ArrayOfMatrix& dxsec_dx,
                    ArrayOfMatrix& dsource_dx,
                    ArrayOfMatrix& dphase_dx,
-                   const PropmatPartialsData& flag_partials,
+                   const ArrayOfRetrievalQuantity& jacobian_quantities,
+                   const ArrayOfIndex& jacobian_propmat_positions,
                    ConstVectorView f_grid,
                    ConstVectorView abs_p,
                    ConstVectorView abs_t,

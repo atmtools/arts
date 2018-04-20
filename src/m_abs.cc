@@ -50,7 +50,7 @@
 #include "parameters.h"
 #include "rte.h"
 #include "xml_io.h"
-#include "partial_derivatives.h"
+#include "jacobian.h"
 
 #ifdef ENABLE_NETCDF
 #include <netcdf.h>
@@ -1531,10 +1531,10 @@ void abs_coefCalcFromXsec(// WS Output:
     src_coef.resize( src_xsec_per_species[0].nrows(), src_xsec_per_species[0].ncols() );
   }                    // Matpack can set all elements like this.
   
-  PropmatPartialsData ppd(jacobian_quantities);
-  dabs_coef_dx.resize(ppd.nelem());
-  for(Index ii=0;ii<ppd.nelem();ii++)
-      if(ppd(ii) not_eq JacPropMatType::NotPropagationMatrixType)
+  const ArrayOfIndex jacobian_quantities_position = equivlent_propmattype_indexes(jacobian_quantities);
+  dabs_coef_dx.resize(jacobian_quantities_position.nelem());
+  for(Index ii=0;ii<jacobian_quantities_position.nelem();ii++)
+      if(jacobian_quantities[jacobian_quantities_position[ii]] not_eq JacPropMatType::NotPropagationMatrixType)
       {
           dabs_coef_dx[ii].resize(abs_xsec_per_species[0].nrows(), abs_xsec_per_species[0].ncols());
           dabs_coef_dx[ii] = 0.0;
@@ -1583,9 +1583,9 @@ void abs_coefCalcFromXsec(// WS Output:
               if(do_src)
                 src_coef_per_species[i](k,j) = src_xsec_per_species[i](k,j) * n * abs_vmrs(i,j);
               
-              for(Index iq=0;iq<ppd.nelem();iq++)
+              for(Index iq=0;iq<jacobian_quantities_position.nelem();iq++)
               {
-                  if(ppd(iq)==JacPropMatType::Temperature)
+                  if(jacobian_quantities[jacobian_quantities_position[iq]]==JacPropMatType::Temperature)
                   {
                       dabs_coef_dx[iq](k,j) += (dabs_xsec_per_species_dx[i][iq](k,j) * n + 
                       abs_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
@@ -1593,9 +1593,9 @@ void abs_coefCalcFromXsec(// WS Output:
                           dsrc_coef_dx[iq](k,j) += (dsrc_xsec_per_species_dx[i][iq](k,j) * n + 
                           src_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
                   }
-                  else if(ppd(iq) == JacPropMatType::VMR)  // FIXME: Test that this works as expected using perturbations...
+                  else if(jacobian_quantities[jacobian_quantities_position[iq]] == JacPropMatType::VMR)  // FIXME: Test that this works as expected using perturbations...
                   {
-                    if(ppd.SpeciesMatch(iq, abs_species[i])) {
+                    if(species_match(jacobian_quantities[jacobian_quantities_position[iq]], abs_species[i])) {
                       dabs_coef_dx[iq](k,j) += ( dabs_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) +
                       abs_xsec_per_species[i](k,j) ) * n;
                       if(do_src)
@@ -1603,7 +1603,7 @@ void abs_coefCalcFromXsec(// WS Output:
                           src_xsec_per_species[i](k,j) ) * n;
                     }
                   }
-                  else if(ppd(iq) not_eq JacPropMatType::NotPropagationMatrixType)
+                  else if(jacobian_quantities[jacobian_quantities_position[iq]] not_eq JacPropMatType::NotPropagationMatrixType)
                   {
                       dabs_coef_dx[iq](k,j) += dabs_xsec_per_species_dx[i][iq](k,j) * n * abs_vmrs(i,j);
                       if(do_src)
@@ -1665,9 +1665,8 @@ void abs_xsec_per_speciesInit(// WS Output:
   abs_xsec_per_species.resize( tgs.nelem() );
   src_xsec_per_species.resize( tgs.nelem() ); 
   
-  
-  const PropmatPartialsData ppd(jacobian_quantities);
-  const bool do_jac = ppd.supportsPropmatClearsky(-1);//minus one is a flag for a non-species...
+  const bool do_jac = supports_propmat_clearsky(jacobian_quantities);  //minus one is a flag for a non-species...
+  const ArrayOfIndex jacobian_quantities_position = equivlent_propmattype_indexes(jacobian_quantities);
   
   dabs_xsec_per_species_dx.resize(do_jac?tgs.nelem():0);
   dsrc_xsec_per_species_dx.resize(do_jac?tgs.nelem():0);
@@ -1702,13 +1701,13 @@ void abs_xsec_per_speciesInit(// WS Output:
      
      if(do_jac)
      {
-         dabs_xsec_per_species_dx[ii].resize(ppd.nelem());
+         dabs_xsec_per_species_dx[ii].resize(jacobian_quantities_position.nelem());
          if(nlte_do)
-             dsrc_xsec_per_species_dx[ii].resize(ppd.nelem());
+             dsrc_xsec_per_species_dx[ii].resize(jacobian_quantities_position.nelem());
          
-         for(Index jj=0;jj<ppd.nelem();jj++)
+         for(Index jj=0;jj<jacobian_quantities_position.nelem();jj++)
          {
-             if(ppd(jj) not_eq JacPropMatType::NotPropagationMatrixType)
+             if(jacobian_quantities[jacobian_quantities_position[jj]] not_eq JacPropMatType::NotPropagationMatrixType)
              {
                  dabs_xsec_per_species_dx[ii][jj].resize( f_grid.nelem(), abs_p.nelem() );
                  dabs_xsec_per_species_dx[ii][jj] = 0.0;
@@ -1795,8 +1794,6 @@ void abs_xsec_per_speciesAddLines(// WS Output:
         throw std::runtime_error(os.str());
       }
   }  
-
-  const PropmatPartialsData flag_partials(jacobian_quantities);
   
   // Print information:
   //
@@ -1880,7 +1877,8 @@ void abs_xsec_per_speciesAddLines(// WS Output:
           // use this to look up the species name in species_data.
           using global_data::species_data;
           String species_name = species_data[ll[0].Species()].Name();
-          const bool do_jac = flag_partials.supportsPropmatClearsky(ll[0].Species());
+          ArrayOfIndex jacobian_quantities_position = equivlent_propmattype_indexes(jacobian_quantities);
+          const bool do_jac = jacobian_quantities_position.nelem();
           
           // Get the name of the lineshape. For that we use the member
           // function Ind_ls() to the lineshape data ls, which returns
@@ -1989,7 +1987,8 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                                  do_jac?dabs_xsec_per_species_dx[i]:dummy,
                                                  abs_t_nlte.empty()?dummy:dsrc_xsec_per_species_dx[i],
                                                  dummy,
-                                                 flag_partials,
+                                                 jacobian_quantities,
+                                                 jacobian_quantities_position,
                                                  f_grid,
                                                  abs_p,
                                                  abs_t,
@@ -2071,13 +2070,13 @@ void abs_xsec_per_speciesAddConts(// WS Output:
            speed things up.  Also be aware that line specific
            parameters cannot be retrieved while using these 
            models. */
-  const PropmatPartialsData ppd(jacobian_quantities);
-  const bool do_jac = ppd.supportsContinuum();  // Throws runtime error if line parameters are wanted since we cannot know if the line is in the Continuum...
-  const bool do_freq_jac = ppd.do_frequency();
-  const bool do_temp_jac = ppd.do_temperature();
+  const bool do_jac = supports_continuum(jacobian_quantities);  // Throws runtime error if line parameters are wanted since we cannot know if the line is in the Continuum...
+  const bool do_freq_jac = do_frequency_jacobian(jacobian_quantities);
+  const bool do_temp_jac = do_temperature_jacobian(jacobian_quantities);
   Vector dfreq, dabs_t;
-  const Numeric df = ppd.Frequency_Perturbation();
-  const Numeric dt = ppd.Temperature_Perturbation();
+  const Numeric df = frequency_perturbation(jacobian_quantities);
+  const Numeric dt = temperature_perturbation(jacobian_quantities);
+  const ArrayOfIndex jacobian_quantities_position = equivlent_propmattype_indexes(jacobian_quantities);
   
   if(do_freq_jac)
   {
@@ -2280,11 +2279,11 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                           for(Index ip = 0; ip<abs_p.nelem(); ip++)
                           {
                               abs_xsec_per_species[i](iv,ip) += normal(iv,ip);
-                              for(Index iq=0; iq<ppd.nelem(); iq++)
+                              for(Index iq=0; iq<jacobian_quantities_position.nelem(); iq++)
                               {
-                                  if(ppd.IsFrequencyParameter(ppd(iq)))
+                                  if(is_frequency_parameter(jacobian_quantities[jacobian_quantities_position[iq]]))
                                       dabs_xsec_per_species_dx[i][iq](iv,ip) += (jacs_df(iv,ip)-normal(iv,ip))*(1./df);
-                                  else if(ppd(iq)==JacPropMatType::Temperature)
+                                  else if(jacobian_quantities[jacobian_quantities_position[iq]] == JacPropMatType::Temperature)
                                       dabs_xsec_per_species_dx[i][iq](iv,ip) += (jacs_dt(iv,ip)-normal(iv,ip))*(1./dt);
                               }
                           }
@@ -2403,7 +2402,7 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(// WS Output:
     throw runtime_error( os.str() );
   }
   
-  const PropmatPartialsData pps(jacobian_quantities);
+  const ArrayOfIndex jacobian_quantities_position = equivlent_propmattype_indexes(jacobian_quantities);
   Vector B(n_f);
   
   for(Index iv=0; iv<n_f; iv++)
@@ -2418,9 +2417,9 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(// WS Output:
   }
   
   // Jacobian
-  for(Index ii = 0; ii<pps.nelem(); ii++)
+  for(Index ii = 0; ii<jacobian_quantities_position.nelem(); ii++)
   {
-    if(pps(ii)==JacPropMatType::Temperature)
+    if(jacobian_quantities[jacobian_quantities_position[ii]]==JacPropMatType::Temperature)
     {
       Vector dB(n_f);
       for(Index iv=0; iv<n_f; iv++)
@@ -2437,7 +2436,7 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(// WS Output:
       sv *= B;
       dnlte_dx_source[ii].Kjj() += sv.Kjj();
     }
-    else if(pps.IsFrequencyParameter(pps(ii)))
+    else if(is_frequency_parameter(jacobian_quantities[jacobian_quantities_position[ii]]))
     {
       Vector dB(n_f);
       for(Index iv=0; iv<n_f; iv++)
@@ -2454,7 +2453,7 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(// WS Output:
       sv *= B;
       dnlte_dx_source[ii].Kjj() += sv.Kjj();
     }
-    else if(pps(ii) not_eq JacPropMatType::NotPropagationMatrixType)
+    else if(jacobian_quantities[jacobian_quantities_position[ii]] not_eq JacPropMatType::NotPropagationMatrixType)
     {
       sv.Kjj() = dsrc_coef_dx[ii](joker, 0);
       sv *= B;
@@ -2575,15 +2574,14 @@ void propmat_clearskyInit(   //WS Output
   }
   else throw runtime_error("abs_species.nelem() = 0");
   
-  PropmatPartialsData ppd(jacobian_quantities);
-  
-  if(ppd.supportsPropmatClearsky(-1))
+  if(supports_propmat_clearsky(jacobian_quantities))
   {
-    dpropmat_clearsky_dx = ArrayOfPropagationMatrix(ppd.nelem(), PropagationMatrix(nf, stokes_dim));
+    const Index nq = equivlent_propmattype_indexes(jacobian_quantities).nelem();
+    dpropmat_clearsky_dx = ArrayOfPropagationMatrix(nq, PropagationMatrix(nf, stokes_dim));
     if(nlte_do)
     {
-      dnlte_dx_source = ArrayOfStokesVector(ppd.nelem(), StokesVector(nf, stokes_dim));
-      nlte_dsource_dx = ArrayOfStokesVector(ppd.nelem(), StokesVector(nf, stokes_dim));
+      dnlte_dx_source = ArrayOfStokesVector(nq, StokesVector(nf, stokes_dim));
+      nlte_dsource_dx = ArrayOfStokesVector(nq, StokesVector(nf, stokes_dim));
     }
     else
     {
@@ -2636,10 +2634,10 @@ void propmat_clearskyAddFaraday(
        throw runtime_error( os.str() );
     }
     
-  const PropmatPartialsData ppd(jacobian_quantities);
-  const bool do_jac = ppd.supportsFaraday();
-  const bool do_magn_jac = ppd.do_magnetic_field();
-  const Numeric dmag = ppd.Magnetic_Field_Perturbation();
+  const bool do_jac = supports_faraday(jacobian_quantities);
+  const bool do_magn_jac = do_magnetic_jacobian(jacobian_quantities);
+  const Numeric dmag = magnetic_field_perturbation(jacobian_quantities);
+  const ArrayOfIndex jacobian_quantities_position = equivlent_propmattype_indexes(jacobian_quantities);
   
   Index ife = -1;  
   for( Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++ )
@@ -2691,25 +2689,25 @@ void propmat_clearskyAddFaraday(
                 propmat_clearsky[ife].SetFaraday(r, iv);
                 
                 // The Jacobian loop
-                for(Index iq=0;iq<ppd.nelem();iq++)
+                for(Index iq=0;iq<jacobian_quantities_position.nelem();iq++)
                 {
-                    if(ppd.IsFrequencyParameter(ppd(iq)))
+                    if(is_frequency_parameter(jacobian_quantities[jacobian_quantities_position[iq]]))
                     {
                         dpropmat_clearsky_dx[iq].AddFaraday(-2.0 * r / f_grid[iv], iv);
                     }
-                    else if(ppd(iq)==JacPropMatType::MagneticU)
+                    else if(jacobian_quantities[jacobian_quantities_position[iq]]==JacPropMatType::MagneticU)
                     { 
                       dpropmat_clearsky_dx[iq].AddFaraday(dc1_u / f2, iv);
                     }
-                    else if(ppd(iq)==JacPropMatType::MagneticV)
+                    else if(jacobian_quantities[jacobian_quantities_position[iq]]==JacPropMatType::MagneticV)
                     { 
                       dpropmat_clearsky_dx[iq].AddFaraday(dc1_v / f2, iv);
                     }
-                    else if(ppd(iq)==JacPropMatType::MagneticW)
+                    else if(jacobian_quantities[jacobian_quantities_position[iq]]==JacPropMatType::MagneticW)
                     { 
                       dpropmat_clearsky_dx[iq].AddFaraday(dc1_w / f2, iv);
                     }
-                    else if(ppd(iq)==JacPropMatType::Electrons)
+                    else if(jacobian_quantities[jacobian_quantities_position[iq]]==JacPropMatType::Electrons)
                     {
                       dpropmat_clearsky_dx[iq].AddFaraday(r/ne, iv);
                     }
@@ -2804,8 +2802,12 @@ void propmat_clearskyAddParticles(
   Numeric rtp_vmr_sum = 0.0;
   
   // Tests and setup partial derivatives
-  const PropmatPartialsData ppd(jacobian_quantities);
-  const bool do_jac = ppd.supportsParticles();
+  const bool do_jac = supports_particles(jacobian_quantities);
+  const bool do_jac_temperature = do_temperature_jacobian(jacobian_quantities);
+  const bool do_jac_frequencies = do_frequency_jacobian(jacobian_quantities);
+  const ArrayOfIndex jacobian_quantities_position = equivlent_propmattype_indexes(jacobian_quantities);
+  const Numeric dT = temperature_perturbation(jacobian_quantities);
+  const Numeric df = frequency_perturbation(jacobian_quantities);
   bool first_loop = true;
       
   const Index nf = f_grid.nelem();
@@ -2824,7 +2826,7 @@ void propmat_clearskyAddParticles(
   // properties. Hence, the effort to make scat_data_monoCalc safely usable with
   // new-type scat_data is too high, and therefore this feature is neglected
   // here.
-  if(ppd.do_frequency())
+  if(do_jac_frequencies)
   {
     out2 << "WARNING:\n"
          << "Frequency perturbation not available for absorbing particles.\n";
@@ -2886,12 +2888,12 @@ void propmat_clearskyAddParticles(
             */
             
             // For temperature derivatives
-            if(ppd.do_temperature())
+            if(do_jac_temperature)
             {
               opt_propExtract(pnd_ext_mat_dt, pnd_abs_vec_dt,
                               scat_data_mono[i_ss][i_se],
                               rtp_los_back[0], rtp_los_back[1],
-                              rtp_temperature+ppd.Temperature_Perturbation(), 
+                              rtp_temperature+dT, 
                               stokes_dim, verbosity);
               pnd_ext_mat_dt *= rtp_vmr[sp];
               pnd_abs_vec_dt *= rtp_vmr[sp];
@@ -2911,9 +2913,9 @@ void propmat_clearskyAddParticles(
               
             }
             
-            for(Index iq=0; iq<ppd.nelem(); iq++)
+            for(Index iq=0; iq<jacobian_quantities_position.nelem(); iq++)
             {     
-              if(ppd.IsFrequencyParameter(ppd(iq)))
+              if(is_frequency_parameter(jacobian_quantities[jacobian_quantities_position[iq]]))
               {
                 if(use_abs_as_ext)
                 {
@@ -2924,10 +2926,10 @@ void propmat_clearskyAddParticles(
                 
                 propmat_clearsky[sp].MatrixAtPosition(tmp2, iv);
                 tmp -= tmp2;
-                tmp /= ppd.Frequency_Perturbation();
+                tmp /= df;
                 dpropmat_clearsky_dx[iq].AddAtPosition(tmp, iv);
               }
-              else if(ppd(iq) == JacPropMatType::Temperature)
+              else if(jacobian_quantities[jacobian_quantities_position[iq]] == JacPropMatType::Temperature)
               {
                 if(use_abs_as_ext)
                 {
@@ -2937,10 +2939,10 @@ void propmat_clearskyAddParticles(
                   tmp = pnd_ext_mat_dt;
                 propmat_clearsky[sp].MatrixAtPosition(tmp2, iv);
                 tmp -= tmp2;
-                tmp /= ppd.Temperature_Perturbation();
+                tmp /= dT;
                 dpropmat_clearsky_dx[iq].AddAtPosition(tmp, iv);
               }
-              else if(ppd(iq) == JacPropMatType::Particulates)
+              else if(jacobian_quantities[jacobian_quantities_position[iq]] == JacPropMatType::Particulates)
               {
                 dpropmat_clearsky_dx[iq].AddAtPosition(propmat_clearsky[sp], iv);
               }
@@ -2964,9 +2966,9 @@ void propmat_clearskyAddParticles(
     
     if(rtp_vmr_sum != 0.0)
     {
-      for(Index iq=0; iq<ppd.nelem(); iq++)
+      for(Index iq=0; iq<jacobian_quantities_position.nelem(); iq++)
       {
-        if(ppd(iq) == JacPropMatType::Particulates)
+        if(jacobian_quantities[jacobian_quantities_position[iq]] == JacPropMatType::Particulates)
         {
           dpropmat_clearsky_dx[iq] /= rtp_vmr_sum;
         }
@@ -3058,8 +3060,11 @@ void propmat_clearskyAddParticles2(
   Numeric rtp_vmr_sum = 0.0;
   
   // Tests and setup partial derivatives
-  const PropmatPartialsData ppd(jacobian_quantities);
-  const bool do_jac = ppd.supportsParticles();
+  const bool do_jac = supports_particles(jacobian_quantities);
+  const bool do_jac_temperature = do_temperature_jacobian(jacobian_quantities);
+  const bool do_jac_frequencies = do_frequency_jacobian(jacobian_quantities);
+  const ArrayOfIndex jacobian_quantities_position = equivlent_propmattype_indexes(jacobian_quantities);
+  const Numeric dT = temperature_perturbation(jacobian_quantities);
       
   const Index na = abs_species.nelem();
   Vector rtp_los_back;
@@ -3069,7 +3074,7 @@ void propmat_clearskyAddParticles2(
   // pre-f_grid-interpolated) scat_data, freq perturbation switched off. Typical
   // clear-sky freq perturbations yield insignificant effects in particle
   // properties. Hence, this feature is neglected here.
-  if(ppd.do_frequency())
+  if(do_jac_frequencies)
   {
     out1 << "WARNING:\n"
          << "Frequency perturbation not available for absorbing particles.\n";
@@ -3083,11 +3088,11 @@ void propmat_clearskyAddParticles2(
 
   // preparing input in format needed
   Vector T_array;
-  if( ppd.do_temperature() )
+  if(do_jac_temperature)
   {
     T_array.resize(2);
     T_array = rtp_temperature;
-    T_array[1] += ppd.Temperature_Perturbation();
+    T_array[1] += dT;
   }
   else
   {
@@ -3166,7 +3171,7 @@ void propmat_clearskyAddParticles2(
       }
 
       // For temperature derivatives (so we don't need to check it in jac loop)
-      if( ppd.do_temperature() )
+      if( do_jac_temperature )
       {
         if( t_ok(i_se_flat,1) < 0. )
         {
@@ -3181,7 +3186,7 @@ void propmat_clearskyAddParticles2(
       if( do_jac )
         rtp_vmr_sum += rtp_vmr[sp];
             
-      for( Index iq=0; iq<ppd.nelem(); iq++ )
+      for( Index iq=0; iq<jacobian_quantities_position.nelem(); iq++ )
       {
         // we don't do freq perturbations here, i.e. nothing to do.
         /*
@@ -3193,7 +3198,7 @@ void propmat_clearskyAddParticles2(
 
         else if( ppd(iq) == JQT_temperature )
         */
-        if( ppd(iq) == JacPropMatType::Temperature )
+        if( jacobian_quantities[jacobian_quantities_position[iq]] == JacPropMatType::Temperature )
         {
           if( use_abs_as_ext )
           {
@@ -3207,7 +3212,7 @@ void propmat_clearskyAddParticles2(
           }
 
           tmp *= rtp_vmr[sp];
-          tmp /= ppd.Temperature_Perturbation();
+          tmp /= dT;
 
           if( nf > 1 )
             for( Index iv=0; iv<f_grid.nelem(); iv++ )
@@ -3265,7 +3270,7 @@ void propmat_clearskyAddParticles2(
         }
         */
 
-        else if( ppd(iq) == JacPropMatType::Particulates )
+        else if(jacobian_quantities[jacobian_quantities_position[iq]] == JacPropMatType::Particulates )
         {
           for( Index iv=0; iv<f_grid.nelem(); iv++ )
             dpropmat_clearsky_dx[iq].AddAtPosition(propmat_clearsky[sp], iv);
@@ -3288,9 +3293,9 @@ void propmat_clearskyAddParticles2(
 
  if(rtp_vmr_sum != 0.0)
  {
-    for(Index iq=0; iq<ppd.nelem(); iq++)
+   for(Index iq=0; iq<jacobian_quantities_position.nelem(); iq++)
     {
-      if(ppd(iq) == JacPropMatType::Particulates)
+      if(jacobian_quantities[jacobian_quantities_position[iq]] == JacPropMatType::Particulates)
       {
         dpropmat_clearsky_dx[iq] /= rtp_vmr_sum;
       }
@@ -3661,8 +3666,9 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
     } while(n not_eq 1);
   }
   
-  // Take all jacobians into account through this variable
-  const PropmatPartialsData flag_partials(jacobian_quantities);
+  const bool do_jac = supports_propmat_clearsky(jacobian_quantities);
+  const bool do_lte = abs_t_nlte.empty();
+  const ArrayOfIndex jac_pos = equivlent_propmattype_indexes(jacobian_quantities);
   
   // Skipping uninteresting data
   static ArrayOfMatrix dummy(0);
@@ -3700,16 +3706,14 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
         throw std::runtime_error(os.str());
       }
       
-      const bool do_jac = flag_partials.supportsPropmatClearsky(ll[0].Species());
-      const bool do_lte = abs_t_nlte.empty();
-      
       xsec_species2(abs_xsec_per_species[i],
                     src_xsec_per_species[i],
                     Matrix(0, 0),
                     do_jac?dabs_xsec_per_species_dx[i]:dummy,
                     (do_jac and not do_lte)?dsrc_xsec_per_species_dx[i]:dummy,
                     dummy,
-                    flag_partials,
+                    jacobian_quantities,
+                    jac_pos,
                     f_grid,
                     abs_p,
                     abs_t,

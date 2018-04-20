@@ -148,7 +148,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dT(Numeric& dgamma_0_dT
 
 
 void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives, 
-                                                    const PropmatPartialsData& ppd, 
+                                                    const ArrayOfRetrievalQuantity& ppd, 
                                                     const QuantumIdentifier& QI,
                                                     const Numeric& theta,
                                                     const Numeric& pressure,
@@ -167,9 +167,9 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
   // nb that continue is here to not count wrongly the number of parameters
   for(Index iq = 0; iq < nppd; iq++)
   {
-    if(ppd(iq) == JacPropMatType::LineGammaSelf)
+    if(ppd[iq] == JacPropMatType::LineGammaSelf)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         GetPressureBroadeningParams_dSelfGamma(results1, theta, self_pressure);
         res[ipd] = results1;
@@ -177,9 +177,9 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       else 
         continue;
     }
-    else if(ppd(iq) == JacPropMatType::LineGammaForeign)
+    else if(ppd[iq] == JacPropMatType::LineGammaForeign)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         GetPressureBroadeningParams_dForeignGamma(results1, theta, pressure, self_pressure, 
                                                   this_species, h2o_species, vmrs);
@@ -188,9 +188,9 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JacPropMatType::LineGammaWater)
+    else if(ppd[iq] == JacPropMatType::LineGammaWater)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         GetPressureBroadeningParams_dWaterGamma(results1, theta, pressure, 
                                                 this_species, h2o_species, vmrs, verbosity);
@@ -199,9 +199,9 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JacPropMatType::LineShiftSelf)
+    else if(ppd[iq] == JacPropMatType::LineShiftSelf)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         GetPressureBroadeningParams_dSelfPsf(results2, theta, self_pressure);
         res[ipd] = Complex(0, results2);
@@ -209,9 +209,9 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JacPropMatType::LineShiftForeign)
+    else if(ppd[iq] == JacPropMatType::LineShiftForeign)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         GetPressureBroadeningParams_dForeignPsf(results2, theta, pressure, self_pressure, 
                                                 this_species, h2o_species, vmrs);
@@ -220,9 +220,9 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JacPropMatType::LineShiftWater)
+    else if(ppd[iq] == JacPropMatType::LineShiftWater)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         GetPressureBroadeningParams_dWaterPsf(results2, theta, pressure, 
                                               this_species, h2o_species, vmrs, verbosity);
@@ -231,9 +231,9 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JacPropMatType::LineGammaSelfExp)
+    else if(ppd[iq] == JacPropMatType::LineGammaSelfExp)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         GetPressureBroadeningParams_dSelfExponent(results1, results2, theta, self_pressure);
         res[ipd] = Complex(results1, results2);
@@ -241,9 +241,9 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JacPropMatType::LineGammaForeignExp)
+    else if(ppd[iq] == JacPropMatType::LineGammaForeignExp)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         GetPressureBroadeningParams_dForeignExponent(results1, results2, theta, pressure, self_pressure, 
                                                      this_species, h2o_species, vmrs);
@@ -252,9 +252,9 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JacPropMatType::LineGammaWaterExp)
+    else if(ppd[iq] == JacPropMatType::LineGammaWaterExp)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         GetPressureBroadeningParams_dWaterExponent(results1, results2, theta, pressure, 
                                                    this_species, h2o_species, vmrs, verbosity);

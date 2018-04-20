@@ -45,22 +45,22 @@ String LineRecord::VersionString() const
 String LineRecord::Name() const {
   // The species lookup data:
   using global_data::species_data;
-  const SpeciesRecord& sr = species_data[mspecies];
-  return sr.Name() + "-" + sr.Isotopologue()[misotopologue].Name();
+  const SpeciesRecord& sr = species_data[mqid.Species()];
+  return sr.Name() + "-" + sr.Isotopologue()[mqid.Isotopologue()].Name();
 }
 
 
 const SpeciesRecord& LineRecord::SpeciesData() const {
   // The species lookup data:
   using global_data::species_data;
-  return species_data[mspecies];
+  return species_data[mqid.Species()];
 }
 
 
 const IsotopologueRecord& LineRecord::IsotopologueData() const {
   // The species lookup data:
   using global_data::species_data;
-  return species_data[mspecies].Isotopologue()[misotopologue];
+  return species_data[mqid.Species()].Isotopologue()[mqid.Isotopologue()];
 }
 
 
@@ -352,7 +352,7 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
   // Ok, we seem to have a valid species here.
 
   // Set mspecies from my cool index table:
-  mspecies = hspec[mo];
+  mqid.SetSpecies(hspec[mo]);
 
   // Extract isotopologue:
   Index iso;                              
@@ -364,21 +364,20 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
   // We have to be careful to issue an error for unknown iso tags. Iso
   // could be either larger than the size of hiso[mo], or set
   // explicitly to missing. Unfortunately we have to test both cases. 
-  misotopologue = missing;
+  mqid.SetIsotopologue(missing);
   if ( iso < hiso[mo].nelem() )
     if ( missing != hiso[mo][iso] )
-      misotopologue = hiso[mo][iso];
+      mqid.SetIsotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
-  if (missing == misotopologue)
+  if (missing == mqid.Isotopologue())
     {
       ostringstream os;
-      os << "Species: " << species_data[mspecies].Name()
+      os << "Species: " << species_data[mqid.Species()].Name()
          << ", isotopologue iso = " << iso
          << " is unknown.";
       throw runtime_error(os.str());
     }
-
   
   // Position.
   {
@@ -422,7 +421,7 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     mi0 = s * hi2arts;
     // Take out isotopologue ratio:
-    mi0 /= species_data[mspecies].Isotopologue()[misotopologue].Abundance();  
+    mi0 /= species_data[mqid.Species()].Isotopologue()[mqid.Isotopologue()].Abundance();  
   }  
   
   // Skip transition probability:
@@ -799,7 +798,7 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   // Ok, we seem to have a valid species here.
 
   // Set mspecies from my cool index table:
-  mspecies = hspec[mo];
+  mqid.SetSpecies(hspec[mo]);
 
   // Extract isotopologue:
   Index iso;                              
@@ -811,21 +810,20 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   // We have to be careful to issue an error for unknown iso tags. Iso
   // could be either larger than the size of hiso[mo], or set
   // explicitly to missing. Unfortunately we have to test both cases. 
-  misotopologue = missing;
+  mqid.SetIsotopologue(missing);
   if ( iso < hiso[mo].nelem() )
     if ( missing != hiso[mo][iso] )
-      misotopologue = hiso[mo][iso];
+      mqid.SetIsotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
-  if (missing == misotopologue)
+  if (missing == mqid.Isotopologue())
     {
       ostringstream os;
-      os << "Species: " << species_data[mspecies].Name()
+      os << "Species: " << species_data[mqid.Species()].Name()
          << ", isotopologue iso = " << iso
          << " is unknown.";
       throw std::runtime_error(os.str());
     }
-
   
   // Position.
   {
@@ -870,7 +868,7 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     mi0 = s * hi2arts;
     // Take out isotopologue ratio:
-    mi0 /= species_data[mspecies].Isotopologue()[misotopologue].Abundance();  
+    mi0 /= species_data[mqid.Species()].Isotopologue()[mqid.Isotopologue()].Abundance();  
   }  
   
   // Skip transition probability:
@@ -987,7 +985,7 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   //Skip lower state local quanta 
   {
     Index ell;
-    if(species_data[mspecies].Name() == "O2")
+    if(species_data[mqid.Species()].Name() == "O2")
     {
       String helper = line.substr(0,9);
       Index DJ =  -  helper.compare(3, 1, "Q");
@@ -995,10 +993,10 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
       Index N = atoi(helper.substr(1,2).c_str());
       Index J = atoi(helper.substr(4,2).c_str());
       
-      mquantum_numbers.SetLower(QuantumNumberType::N, N);
-      mquantum_numbers.SetLower(QuantumNumberType::J, J);
-      mquantum_numbers.SetUpper(QuantumNumberType::N, N - DN);
-      mquantum_numbers.SetUpper(QuantumNumberType::J, J - DJ);
+      mqid.LowerQuantumNumbers().Set(QuantumNumberType::N, N);
+      mqid.LowerQuantumNumbers().Set(QuantumNumberType::J, J);
+      mqid.UpperQuantumNumbers().Set(QuantumNumberType::N, N - DN);
+      mqid.UpperQuantumNumbers().Set(QuantumNumberType::J, J - DJ);
     }
       
     extract(ell,line,9);
@@ -1371,7 +1369,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   // Ok, we seem to have a valid species here.
 
   // Set mspecies from my cool index table:
-  mspecies = hspec[mo];
+  mqid.SetSpecies(hspec[mo]);
 
   // Extract isotopologue:
   Index iso;
@@ -1383,16 +1381,16 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   // We have to be careful to issue an error for unknown iso tags. Iso
   // could be either larger than the size of hiso[mo], or set
   // explicitly to missing. Unfortunately we have to test both cases.
-  misotopologue = missing;
+  mqid.SetIsotopologue(missing);
   if ( iso < hiso[mo].nelem() )
     if ( missing != hiso[mo][iso] )
-      misotopologue = hiso[mo][iso];
+      mqid.SetIsotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
-  if (missing == misotopologue)
+  if (missing == mqid.Isotopologue())
     {
       ostringstream os;
-      os << "Species: " << species_data[mspecies].Name()
+      os << "Species: " << species_data[mqid.Species()].Name()
          << ", isotopologue iso = " << iso
          << " is unknown.";
       throw std::runtime_error(os.str());
@@ -1446,7 +1444,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     mi0 = s * hi2arts;
     // Take out isotopologue ratio:
-    mi0 /= species_data[mspecies].Isotopologue()[misotopologue].Abundance();
+    mi0 /= species_data[mqid.Species()].Isotopologue()[mqid.Isotopologue()].Abundance();
   }
 
   // Einstein coefficient
@@ -1577,7 +1575,9 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   }
 
   // Parse quantum numbers.
-  quantum_parser.Parse(mquantum_numbers, qstr, mspecies);
+  QuantumNumberRecord qnr;
+  quantum_parser.Parse(qnr, qstr, mqid.Species());
+  mqid.SetTransition(qnr.Upper(), qnr.Lower());
 
   // Accuracy index for frequency
   {
@@ -1852,7 +1852,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
   // Ok, we seem to have a valid species here.
 
   // Set mspecies from my cool index table:
-  mspecies = hspec[mo];
+  mqid.SetSpecies(hspec[mo]);
 
   // Extract isotopologue:
   Index iso;                              
@@ -1864,16 +1864,16 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
   // We have to be careful to issue an error for unknown iso tags. Iso
   // could be either larger than the size of hiso[mo], or set
   // explicitly to missing. Unfortunately we have to test both cases. 
-  misotopologue = missing;
+  mqid.SetIsotopologue(missing);
   if ( iso < hiso[mo].nelem() )
     if ( missing != hiso[mo][iso] )
-      misotopologue = hiso[mo][iso];
+      mqid.SetIsotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
-  if (missing == misotopologue)
+  if (missing == mqid.Isotopologue())
     {
       ostringstream os;
-      os << "Species: " << species_data[mspecies].Name()
+      os << "Species: " << species_data[mqid.Species()].Name()
          << ", isotopologue iso = " << iso
          << " is unknown.";
       throw runtime_error(os.str());
@@ -2274,11 +2274,9 @@ bool LineRecord::ReadFromJplStream(istream& is, const Verbosity& verbosity)
   SpecIsoMap id = i->second;
 
 
-  // Set mspecies:
-  mspecies = id.Speciesindex();
-
-  // Set misotopologue:
-  misotopologue = id.Isotopologueindex();
+  // Set line ID
+  mqid.SetSpecies(id.Speciesindex());
+  mqid.SetIsotopologue(id.Isotopologueindex());
 
   // Air broadening parameters: unknown to jpl, use old iup forward
   // model default values, which is mostly set to 0.0025 GHz/hPa, even
@@ -2454,11 +2452,10 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
     
     
     // Set mspecies:
-    mspecies = id.Speciesindex();
+    mqid.SetSpecies(id.Speciesindex());
     
     // Set misotopologue:
-    misotopologue = id.Isotopologueindex();
-    
+    mqid.SetIsotopologue(id.Isotopologueindex());
     
     // Extract center frequency:
     icecream >> mf;
@@ -2662,17 +2659,12 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
 
       SpecIsoMap id = i->second;
 
-
-      // Set mspecies:
-      mspecies = id.Speciesindex();
-
-      // Set misotopologue:
-      misotopologue = id.Isotopologueindex();
-
+      // Set line ID
+      mqid.SetSpecies(id.Speciesindex());
+      mqid.SetIsotopologue(id.Isotopologueindex());
 
       // Extract center frequency:
       icecream >> mf;
-
 
       // Extract intensity:
       icecream >> mi0;
@@ -2743,18 +2735,18 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
       // only read the n and j for Zeeman species, but we don't have that
       // information here
 
-      if (species_data[mspecies].Name() == "SO")
+      if (species_data[mqid.Species()].Name() == "SO")
       {
           // Note that atoi converts *** to 0.
-          mquantum_numbers.SetUpper(QuantumNumberType::N, mupper_n = atoi(mquantum_numbers_str.substr(0,3).c_str()));
-          mquantum_numbers.SetLower(QuantumNumberType::N, mlower_n = atoi(mquantum_numbers_str.substr(6,3).c_str()));
-          mquantum_numbers.SetUpper(QuantumNumberType::J, mupper_j = atoi(mquantum_numbers_str.substr(3,3).c_str()));
-          mquantum_numbers.SetLower(QuantumNumberType::J, mlower_j = atoi(mquantum_numbers_str.substr(9,3).c_str()));
+          mqid.UpperQuantumNumbers().Set(QuantumNumberType::N, Rational(atoi(mquantum_numbers_str.substr(0,3).c_str())));
+          mqid.LowerQuantumNumbers().Set(QuantumNumberType::N, Rational(atoi(mquantum_numbers_str.substr(6,3).c_str())));
+          mqid.UpperQuantumNumbers().Set(QuantumNumberType::J, Rational(atoi(mquantum_numbers_str.substr(3,3).c_str())));
+          mqid.LowerQuantumNumbers().Set(QuantumNumberType::J, Rational(atoi(mquantum_numbers_str.substr(9,3).c_str())));
       }
       
       if (mquantum_numbers_str.nelem() >= 25)
       {
-          if (species_data[mspecies].Name() == "O2")
+          if (species_data[mqid.Species()].Name() == "O2")
           {
               String vstr = mquantum_numbers_str.substr(0, 3);
               ArrayOfIndex v(3);
@@ -2768,8 +2760,8 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
               
               if (v[2] > -1)
               {
-                  mquantum_numbers.SetUpper(QuantumNumberType::v1, v[2]);
-                  mquantum_numbers.SetLower(QuantumNumberType::v1, v[2]);
+                mqid.UpperQuantumNumbers().Set(QuantumNumberType::v1, Rational(v[2]));
+                mqid.LowerQuantumNumbers().Set(QuantumNumberType::v1, Rational(v[2]));
               }
 
               String qstr1 = mquantum_numbers_str.substr(4,      12);
@@ -2790,12 +2782,12 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
                       q[qi] = -1;
               }
 
-              if (q[0] > -1) mquantum_numbers.SetUpper(QuantumNumberType::N, mupper_n = q[0]);
-              if (q[1] > -1) mquantum_numbers.SetUpper(QuantumNumberType::J, mupper_j = q[1]);
-              if (q[2] > -1) mquantum_numbers.SetUpper(QuantumNumberType::F, q[2] - Rational(1, 2));
-              if (q[3] > -1) mquantum_numbers.SetLower(QuantumNumberType::N, mlower_n = q[3]);
-              if (q[4] > -1) mquantum_numbers.SetLower(QuantumNumberType::J, mlower_j = q[4]);
-              if (q[5] > -1) mquantum_numbers.SetLower(QuantumNumberType::F, q[5] - Rational(1, 2));
+              if (q[0] > -1) mqid.UpperQuantumNumbers().Set(QuantumNumberType::N, Rational(q[0]));
+              if (q[1] > -1) mqid.UpperQuantumNumbers().Set(QuantumNumberType::J, Rational(q[1]));
+              if (q[2] > -1) mqid.UpperQuantumNumbers().Set(QuantumNumberType::F, q[2] - Rational(1, 2));
+              if (q[3] > -1) mqid.LowerQuantumNumbers().Set(QuantumNumberType::N, Rational(q[3]));
+              if (q[4] > -1) mqid.LowerQuantumNumbers().Set(QuantumNumberType::J, Rational(q[4]));
+              if (q[5] > -1) mqid.LowerQuantumNumbers().Set(QuantumNumberType::F, q[5] - Rational(1, 2));
           }
       }
       LineRecord::ARTSCAT4UnusedToNaN();
@@ -2920,17 +2912,12 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
 
             SpecIsoMap id = i->second;
 
-
-            // Set mspecies:
-            mspecies = id.Speciesindex();
-
-            // Set misotopologue:
-            misotopologue = id.Isotopologueindex();
-
+            // Set line ID:
+            mqid.SetSpecies(id.Speciesindex());
+            mqid.SetIsotopologue(id.Isotopologueindex());
 
             // Extract center frequency:
             icecream >> double_imanip() >> mf;
-
 
             // Extract intensity:
             icecream >> double_imanip() >> mi0;
@@ -2990,7 +2977,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     {
                         ThrowIfQuantumNumberNameInvalid(token);
                         icecream >> r;
-                        mquantum_numbers.Upper().Set(token, r);
+                        mqid.UpperQuantumNumbers().Set(token, r);
                         icecream >> token;
                         if (token == "LO") break;
                     }
@@ -3006,7 +2993,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     while (icecream && IsValidQuantumNumberName(token))
                     {
                         icecream >> r;
-                        mquantum_numbers.Lower().Set(token, r);
+                        mqid.LowerQuantumNumbers().Set(token, r);
                         icecream >> token;
                     }
                 }
@@ -3038,7 +3025,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                   // Zeeman effect
                   
                   icecream >> token;
-                  mzeemandata.setSplittingType(token);
+                  mzeemandata.setSplittingTag(token);
                   
                   nelem = mzeemandata.nelem();
                   
@@ -3053,10 +3040,10 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                       throw std::runtime_error(os.str());
                     }
                   }
-                  mzeemandata.setDataFromVectorWithKnownSplittingType(zed);
+                  mzeemandata.setDataFromVectorWithKnownSplittingTag(zed);
                   icecream >> token;
                   
-                  mzeemandata.setPolarizationType(token);
+                  mzeemandata.setPolarizationTag(token);
                   icecream >> token;
                 }
                 else if (token == "LSM")
@@ -3279,18 +3266,18 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
 
           // Write Quantum Numbers
           {
-              Index nUpper = lr.QuantumNumbers().Upper().nNumbers();
-              Index nLower = lr.QuantumNumbers().Lower().nNumbers();
+              Index nUpper = lr.UpperQuantumNumbers().nNumbers();
+              Index nLower = lr.LowerQuantumNumbers().nNumbers();
 
               if (nUpper || nLower)
               {
                   ls << " QN";
 
                   if (nUpper)
-                      ls << " UP " << lr.QuantumNumbers().Upper();
+                      ls << " UP " << lr.UpperQuantumNumbers();
 
                   if (nLower)
-                      ls << " LO " << lr.QuantumNumbers().Lower();
+                      ls << " LO " << lr.LowerQuantumNumbers();
               }
           }
 
@@ -3316,10 +3303,10 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
             if (ze.SplittingType() != ZeemanSplittingType::None)
             {
               Vector vze;
-              vze = ze.data();
-              ls << " ZE " << ze.splitting_tag();
+              vze = ze.Data();
+              ls << " ZE " << ze.SplittingTag();
               ls << " " << vze;
-              ls << " " << ze.polarization_tag();
+              ls << " " << ze.PolarizationTag();
             }
             
           }
@@ -3392,8 +3379,8 @@ bool find_matching_lines(ArrayOfIndex& matches,
 
         if ((species == -1 || this_line.Species() == species)
             && (isotopologue == -1 || this_line.Isotopologue() == isotopologue)
-            && qr.Lower().Compare(this_line.QuantumNumbers().Lower())
-            && qr.Upper().Compare(this_line.QuantumNumbers().Upper()))
+            && qr.Lower().Compare(this_line.LowerQuantumNumbers())
+            && qr.Upper().Compare(this_line.UpperQuantumNumbers()))
         {
             matches.push_back(l);
 
@@ -3434,9 +3421,9 @@ void match_lines_by_quantum_identifier(ArrayOfIndex& matches,
             {
                 // Matching by energy level means that upper OR lower quantum numbers
                 // must match
-                this_line.QuantumNumbers().Upper().CompareDetailed
+                this_line.UpperQuantumNumbers().CompareDetailed
                 (qmi.Upper(), qi.QuantumMatch()[QuantumIdentifier::ENERGY_LEVEL_INDEX]);
-                this_line.QuantumNumbers().Lower().CompareDetailed
+                this_line.LowerQuantumNumbers().CompareDetailed
                 (qmi.Lower(), qi.QuantumMatch()[QuantumIdentifier::ENERGY_LEVEL_INDEX]);
 
                 if (qmi.Upper() || qmi.Lower())
@@ -3457,9 +3444,9 @@ void match_lines_by_quantum_identifier(ArrayOfIndex& matches,
             {
                 // Matching by transition means that upper AND lower quantum numbers
                 // must match
-                this_line.QuantumNumbers().Upper().CompareDetailed
+                this_line.UpperQuantumNumbers().CompareDetailed
                 (qmi.Upper(), qi.QuantumMatch()[QuantumIdentifier::TRANSITION_UPPER_INDEX]);
-                this_line.QuantumNumbers().Lower().CompareDetailed
+                this_line.LowerQuantumNumbers().CompareDetailed
                 (qmi.Lower(), qi.QuantumMatch()[QuantumIdentifier::TRANSITION_LOWER_INDEX]);
 
                 if (qmi.Upper() && qmi.Lower())
@@ -3517,154 +3504,4 @@ void LineRecord::SetLinePopulationTypeFromIndex(const Index in)
   if(not (in < (Index) LinePopulationType::End) and in > -1)
     throw std::runtime_error("Population type to index conversion failure.  Did you add new line population type?");
   mpopulation = (LinePopulationType) in;
-}
-
-
-void LineRecord::WriteBinaryArtscat5(std::ostream& stream) const
-{
-  Vector v;
-  Rational r;
-  Index d, qns, s;
-  
-  stream.write((char*)&mspecies, sizeof(Index));
-  stream.write((char*)&misotopologue, sizeof(Index));
-  stream.write((char*)&mf, sizeof(Numeric));
-  stream.write((char*)&mi0, sizeof(Numeric));
-  stream.write((char*)&mti0, sizeof(Numeric));
-  stream.write((char*)&melow, sizeof(Numeric));
-  stream.write((char*)&ma, sizeof(Numeric));
-  stream.write((char*)&mgupper, sizeof(Numeric));
-  stream.write((char*)&mglower, sizeof(Numeric));
-  stream.write((char*)&mcutoff, sizeof(Numeric));
-  stream.write((char*)&mspeedup, sizeof(Numeric));
-  
-  qns = Index(QuantumNumberType::FINAL_ENTRY);
-  stream.write((char*)&qns, sizeof(Index));
-  
-  d = Index(mpressurebroadeningdata.Type());
-  stream.write((char*)&d, sizeof(Index));
-  
-  d = Index(mlinemixingdata.Type());
-  stream.write((char*)&d, sizeof(Index));
-  
-  d = GetMirroringTypeIndex();
-  stream.write((char*)&d, sizeof(Index));
-  
-  d = GetLineNormalizationTypeIndex();
-  stream.write((char*)&d, sizeof(Index));
-  
-  d = GetLineShapeTypeIndex();
-  stream.write((char*)&d, sizeof(Index));
-  
-  d = GetLinePopulationTypeIndex();
-  stream.write((char*)&d, sizeof(Index));
-  
-  // Quantum numbers
-  for(Index i = 0; i < qns; i++)
-  {
-    r = mquantum_numbers.Upper()[i];
-    stream.write((char*)&r, sizeof(Rational));
-  }
-  
-  for(Index i = 0; i < qns; i++)
-  {
-    r = mquantum_numbers.Lower()[i];
-    stream.write((char*)&r, sizeof(Rational));
-  }
-  
-  // Pressure broadening
-  mpressurebroadeningdata.GetVectorFromData(v);
-  stream.write((char*)v.get_c_array(), mpressurebroadeningdata.ExpectedVectorLengthFromType() * sizeof(Numeric));
-  
-  s = 20 - v.nelem();
-  
-  // Line mixing
-  mlinemixingdata.GetVectorFromData(v);
-  stream.write((char*)v.get_c_array(), mlinemixingdata.ExpectedVectorLengthFromType() * sizeof(Numeric));
-  
-  s += 12 - v.nelem();
-  
-  // Append zeroes
-  s *= sizeof(Numeric);
-  while(s--)
-    stream.put(0x00);
-}
-
-// 9 * Index, 2*30 * Rational, (9+20+12) * Numeric
-void LineRecord::ReadBinaryArtscat5(char* buf)
-{
-  Vector v;
-  Rational r;
-  Index qns, d;
-  
-  // Constants
-  mversion = 5;
-  mevupp = -1.0;
-  mevlow = -1.0;
-  mnlte_lower_index = -1;
-  mnlte_upper_index = -1;
-  
-  memcpy(&mspecies, buf, sizeof(Index)); buf += sizeof(Index);
-  memcpy(&misotopologue, buf, sizeof(Index)); buf += sizeof(Index);
-  memcpy(&mf, buf, sizeof(Numeric)); buf += sizeof(Numeric);
-  memcpy(&mi0, buf, sizeof(Numeric)); buf += sizeof(Numeric);
-  memcpy(&mti0, buf, sizeof(Numeric)); buf += sizeof(Numeric);
-  memcpy(&melow, buf, sizeof(Numeric)); buf += sizeof(Numeric);
-  memcpy(&ma, buf, sizeof(Numeric)); buf += sizeof(Numeric);
-  memcpy(&mgupper, buf, sizeof(Numeric)); buf += sizeof(Numeric);
-  memcpy(&mglower, buf, sizeof(Numeric)); buf += sizeof(Numeric);
-  memcpy(&mcutoff, buf, sizeof(Numeric)); buf += sizeof(Numeric);
-  memcpy(&mspeedup, buf, sizeof(Numeric)); buf += sizeof(Numeric);
-
-  memcpy(&qns, buf, sizeof(Index)); buf += sizeof(Index);
-  
-  // Pressure broadening
-  memcpy(&d, buf, sizeof(Index)); buf += sizeof(Index);
-  mpressurebroadeningdata.SetTypeFromIndex(d);
-  
-  // Line mixing type
-  memcpy(&d, buf, sizeof(Index)); buf += sizeof(Index);
-  mlinemixingdata.SetTypeFromIndex(d);
-  
-  // Mirroring type
-  memcpy(&d, buf, sizeof(Index)); buf += sizeof(Index);
-  SetMirroringTypeFromIndex(d);
-  
-  // Normalization type
-  memcpy(&d, buf, sizeof(Index)); buf += sizeof(Index);
-  SetLineNormalizationTypeFromIndex(d);
-  
-  // Line shape type
-  memcpy(&d, buf, sizeof(Index)); buf += sizeof(Index);
-  SetLineShapeTypeFromIndex(d);
-  
-  // Line population type
-  memcpy(&d, buf, sizeof(Index)); buf += sizeof(Index);
-  SetLinePopulationTypeFromIndex(d);
-  
-  // Quantum numbers Upper
-  for(Index i = 0; i < qns; i++)
-  {
-    memcpy(&r, buf, sizeof(Rational)); buf += sizeof(Rational);
-    mquantum_numbers.SetUpper(i, r);
-  }
-  
-  // Quantum numbers Lower
-  for(Index i = 0; i < qns; i++)
-  {
-    memcpy(&r, buf, sizeof(Rational)); buf += sizeof(Rational);
-    mquantum_numbers.SetLower(i, r);
-  }
-  
-  // Pressure broadening
-  v.resize(mpressurebroadeningdata.ExpectedVectorLengthFromType());
-  memcpy(v.get_c_array(), buf, v.nelem() * sizeof(Numeric)); 
-  buf += v.nelem() * sizeof(Numeric);
-  mpressurebroadeningdata.SetDataFromVectorWithKnownType(v);
-  
-  // Line mixing
-  v.resize(mlinemixingdata.ExpectedVectorLengthFromType());
-  memcpy(v.get_c_array(), buf, v.nelem() * sizeof(Numeric)); 
-  buf += v.nelem() * sizeof(Numeric);
-  mlinemixingdata.SetDataFromVectorWithKnownType(v);
 }

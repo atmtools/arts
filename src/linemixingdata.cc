@@ -71,7 +71,7 @@ void LineMixingData::GetLineMixingParams_dT(Numeric& dY_dT, Numeric& dG_dT, Nume
 
 
 void LineMixingData::SetInternalDerivatives(ComplexVector& derivatives, 
-                                            const PropmatPartialsData& ppd, 
+                                            const ArrayOfRetrievalQuantity& ppd, 
                                             const QuantumIdentifier& QI, 
                                             const Numeric& temperature, 
                                             const Numeric& pressure, 
@@ -88,9 +88,9 @@ void LineMixingData::SetInternalDerivatives(ComplexVector& derivatives,
   
   for(Index iq = 0; iq < nppd; iq++)
   {
-    if(ppd(iq) == JacPropMatType::LineMixingY0)
+    if(ppd[iq] == JacPropMatType::LineMixingY0)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         if(not zeroth)
         {
@@ -102,9 +102,9 @@ void LineMixingData::SetInternalDerivatives(ComplexVector& derivatives,
       else 
         continue;
     }
-    else if(ppd(iq) == JacPropMatType::LineMixingG0)
+    else if(ppd[iq] == JacPropMatType::LineMixingG0)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         if(not zeroth)
         {
@@ -116,9 +116,9 @@ void LineMixingData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JacPropMatType::LineMixingDF0)
+    else if(ppd[iq] == JacPropMatType::LineMixingDF0)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         if(not zeroth)
         {
@@ -130,9 +130,9 @@ void LineMixingData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JacPropMatType::LineMixingY1)
+    else if(ppd[iq] == JacPropMatType::LineMixingY1)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         if(not first)
         {
@@ -144,9 +144,9 @@ void LineMixingData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JacPropMatType::LineMixingG1)
+    else if(ppd[iq] == JacPropMatType::LineMixingG1)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         if(not first)
         {
@@ -158,9 +158,9 @@ void LineMixingData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JacPropMatType::LineMixingDF1)
+    else if(ppd[iq] == JacPropMatType::LineMixingDF1)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         if(not first)
         {
@@ -172,9 +172,9 @@ void LineMixingData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JacPropMatType::LineMixingYExp)
+    else if(ppd[iq] == JacPropMatType::LineMixingYExp)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         if(not exponent)
         {
@@ -186,9 +186,9 @@ void LineMixingData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JacPropMatType::LineMixingGExp)
+    else if(ppd[iq] == JacPropMatType::LineMixingGExp)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         if(not exponent)
         {
@@ -200,9 +200,9 @@ void LineMixingData::SetInternalDerivatives(ComplexVector& derivatives,
       else
         continue;
     }
-    else if(ppd(iq) == JacPropMatType::LineMixingDFExp)
+    else if(ppd[iq] == JacPropMatType::LineMixingDFExp)
     {
-      if(QI > ppd.jac(iq).QuantumIdentity())
+      if(QI > ppd[iq].QuantumIdentity())
       {
         if(not exponent)
         {

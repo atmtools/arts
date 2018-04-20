@@ -345,7 +345,8 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                     ArrayOfStokesVector& dnlte_dx_source,
                                                     ArrayOfStokesVector& nlte_dsource_dx,
                                                     const ArrayOfArrayOfSpeciesTag& abs_species, 
-                                                    const PropmatPartialsData& flag_partials,
+                                                    const ArrayOfRetrievalQuantity& flag_partials,
+                                                    const ArrayOfIndex& flag_partials_positions,
                                                     const Index& abs_lineshape_ls, 
                                                     const Index& abs_lineshape_lsn, 
                                                     const Numeric& abs_lineshape_cutoff, 
@@ -372,7 +373,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                 
 {
   const bool do_src  =  !nlte_source.empty();
-  const Index nq = flag_partials.nelem();
+  const Index nq = flag_partials_positions.nelem();
   const Index nf = f_grid.nelem();
   const Numeric n = abs_vmrs(this_species, 0)*number_density( abs_p[0],abs_t[0]);
   const Numeric dn_dT = abs_vmrs(this_species, 0)*dnumber_density_dt( abs_p[0],abs_t[0]);
@@ -383,72 +384,67 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
   source_du(do_src?nf:0,do_src?1:0),source_dv(do_src?nf:0,do_src?1:0),source_dw(do_src?nf:0,do_src?1:0);
   
   
-  ArrayOfMatrix partial_attenuation(nq), partial_phase(nq), partial_source(do_src?nq:0);
-  for(Index iq = 0; iq<nq; iq++)
-  {
-    if(flag_partials(iq) not_eq JacPropMatType::NotPropagationMatrixType)
-    {
-      partial_attenuation[iq].resize(nf, 1);
-      partial_phase[iq].resize(nf, 1);
-      if(do_src)
-        partial_source[iq].resize(nf, 1);
-    }
-  }
+  ArrayOfMatrix partial_attenuation(nq, attenuation), partial_phase(nq, phase), partial_source(do_src?nq:0, source);
+  
   // FIXME: Have to perturb for magnetic u, v, and w since it is too complicated otherwise
   Numeric dB=0.0;
   if(nq)
-    dB = flag_partials.Magnetic_Field_Perturbation();
+    dB = magnetic_field_perturbation(flag_partials);
   
   Numeric H_dummy, deta_du, dtheta_du, deta_dv, dtheta_dv, deta_dw, dtheta_dw;
   Vector dmag = rtp_mag;
   
-  if(flag_partials.do_zeeman_u())
-  {
-    dmag[0]+=dB;
-    set_magnetic_parameters(H_dummy,deta_du,dtheta_du,0,0,0,0,dmag,r_path_los);
-    deta_du -= eta;
-    deta_du /= dB;
-    dtheta_du -= theta;
-    dtheta_du /= dB;
-    dmag[0]-=dB;
-  }
-  
-  if(flag_partials.do_zeeman_v())
-  {
-    dmag[1]+=dB;
-    set_magnetic_parameters(H_dummy,deta_dv,dtheta_dv,0,0,0,0,dmag,r_path_los);
-    deta_dv -= eta;
-    deta_dv /= dB;
-    dtheta_dv -= theta;
-    dtheta_dv /= dB;
-    dmag[1]-=dB;
-  }
-  
-  if(flag_partials.do_zeeman_w())
-  {
-    dmag[2]+=dB;
-    set_magnetic_parameters(H_dummy,deta_dw,dtheta_dw,0,0,0,0,dmag,r_path_los);
-    deta_dw -= eta;
-    deta_dw /= dB;
-    dtheta_dw -= theta;
-    dtheta_dw /= dB;
-    dmag[2]-=dB;
+  bool do_u=false, do_v=false, do_w=false;
+  for(const auto& rq : flag_partials) {
+    if(rq == JacPropMatType::MagneticU) {
+      dmag[0]+=dB;
+      set_magnetic_parameters(H_dummy,deta_du,dtheta_du,0,0,0,0,dmag,r_path_los);
+      deta_du -= eta;
+      deta_du /= dB;
+      dtheta_du -= theta;
+      dtheta_du /= dB;
+      dmag[0]-=dB;
+      
+      do_u = true;
+    }
+    else if(rq == JacPropMatType::MagneticV) {
+      dmag[1]+=dB;
+      set_magnetic_parameters(H_dummy,deta_dv,dtheta_dv,0,0,0,0,dmag,r_path_los);
+      deta_dv -= eta;
+      deta_dv /= dB;
+      dtheta_dv -= theta;
+      dtheta_dv /= dB;
+      dmag[1]-=dB;
+      
+      do_v = true;
+    }
+    else if(rq == JacPropMatType::MagneticW) {
+      dmag[2]+=dB;
+      set_magnetic_parameters(H_dummy,deta_dw,dtheta_dw,0,0,0,0,dmag,r_path_los);
+      deta_dw -= eta;
+      deta_dw /= dB;
+      dtheta_dw -= theta;
+      dtheta_dw /= dB;
+      dmag[2]-=dB;
+      
+      do_w = true;
+    }
   }
   // JACOBIAN SETUP END
   
   attenuation(joker, 0) = 0.;
   phase(joker, 0) = 0.;
-  if(flag_partials.do_zeeman_u())
+  if(do_u)
   {
     attenuation_du(joker,0)=0.;
     phase_du(joker,0)=0.;
   }
-  if(flag_partials.do_zeeman_v())
+  if(do_v)
   {
     attenuation_dv(joker,0)=0.;
     phase_dv(joker,0)=0.;
   }
-  if(flag_partials.do_zeeman_w())
+  if(do_w)
   {
     attenuation_dw(joker,0)=0.;
     phase_dw(joker,0)=0.;
@@ -457,51 +453,48 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
     source(joker, 0)=0.;
   for(Index iq = 0; iq < nq; iq++)
   {
-    if(flag_partials(iq) not_eq JacPropMatType::NotPropagationMatrixType)
-    {
-      partial_attenuation[iq](joker,0)=0.;
-      partial_phase[iq](joker,0)=0.;
-      if(do_src)
-        partial_source[iq](joker,0)=0.;
-    }
+    partial_attenuation[iq](joker,0)=0.;
+    partial_phase[iq](joker,0)=0.;
+    if(do_src)
+      partial_source[iq](joker,0)=0.;
   }
   
   xsec_species_line_mixing_wrapper(   attenuation,         source,         phase, 
-                                      partial_attenuation, partial_source, partial_phase, flag_partials,
+                                      partial_attenuation, partial_source, partial_phase, flag_partials, flag_partials_positions,
                                       f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
                                       this_species, lr, H_mag,
                                       abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
                                       isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
-  if(flag_partials.do_zeeman_u())
+  if(do_u)
   {
     dmag[0]+=dB;
     
     xsec_species_line_mixing_wrapper(         attenuation_du,         source_du,         phase_du, 
-                                              partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
+                                              partial_attenuation, partial_source, partial_phase, ArrayOfRetrievalQuantity(0), ArrayOfIndex(0),
                                               f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
                                               this_species, lr, sqrt(dmag*dmag),
                                               abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
                                               isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
     dmag[0]-=dB;
   }
-  if(flag_partials.do_zeeman_v())
+  if(do_v)
   {
     dmag[1]+=dB;
     
     xsec_species_line_mixing_wrapper(         attenuation_dv,         source_dv,         phase_dv, 
-                                              partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
+                                              partial_attenuation, partial_source, partial_phase, ArrayOfRetrievalQuantity(0), ArrayOfIndex(0),
                                               f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
                                               this_species, lr, sqrt(dmag*dmag),
                                               abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
                                               isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
     dmag[1]-=dB;
   }
-  if(flag_partials.do_zeeman_w())
+  if(do_w)
   {
     dmag[2]+=dB;
     
     xsec_species_line_mixing_wrapper(         attenuation_dw,         source_dw,         phase_dw, 
-                                              partial_attenuation, partial_source, partial_phase, PropmatPartialsData(ArrayOfRetrievalQuantity(0)),
+                                              partial_attenuation, partial_source, partial_phase, ArrayOfRetrievalQuantity(0), ArrayOfIndex(0),
                                               f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
                                               this_species, lr, sqrt(dmag*dmag),
                                               abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
@@ -520,7 +513,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
     
     for(Index iq = 0; iq < nq; iq++)
     {
-      if(flag_partials(iq) == JacPropMatType::MagneticU)
+      if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::MagneticU)
       {
         attenuation_du -= attenuation;
         attenuation_du /= dB;
@@ -540,7 +533,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                              eta*DEG2RAD, deta_du*DEG2RAD, planck_BT);
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::MagneticV)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::MagneticV)
       {
         attenuation_dv -= attenuation;
         attenuation_dv /= dB;
@@ -560,7 +553,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                              eta*DEG2RAD, deta_dv*DEG2RAD, planck_BT);
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::MagneticW)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::MagneticW)
       {
         attenuation_dw -= attenuation;
         attenuation_dw /= dB;
@@ -580,7 +573,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                              eta*DEG2RAD, deta_dw*DEG2RAD, planck_BT);
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::MagneticTheta)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::MagneticTheta)
       {
         dpropmat_clearsky_dx[iq].AddZeemanPiComponentThetaDerivative(attenuation(joker, 0), phase(joker, 0), n, 
                                                                      theta*DEG2RAD, eta*DEG2RAD);
@@ -591,7 +584,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                                   eta*DEG2RAD, planck_BT);
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::MagneticEta)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::MagneticEta)
       {
         dpropmat_clearsky_dx[iq].AddZeemanPiComponentEtaDerivative(attenuation(joker, 0), phase(joker, 0), n,
                                                                    theta*DEG2RAD, eta*DEG2RAD);
@@ -602,7 +595,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                                      theta*DEG2RAD, eta*DEG2RAD, planck_BT);
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::Temperature)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::Temperature)
       {
         dpropmat_clearsky_dx[iq].AddZeemanPiComponent(attenuation(joker, 0), phase(joker, 0), dn_dT, theta*DEG2RAD, 
                                                       eta*DEG2RAD);
@@ -620,7 +613,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                    dplanck_BT(0, joker));
         }
       }
-      else if(flag_partials.IsFrequencyParameter(flag_partials(iq)))
+      else if(is_frequency_parameter(flag_partials[flag_partials_positions[iq]]))
       {
         dpropmat_clearsky_dx[iq].AddZeemanPiComponent(partial_attenuation[iq](joker, 0), partial_phase[iq](joker, 0), n, 
                                                       theta*DEG2RAD, eta*DEG2RAD);
@@ -634,9 +627,9 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                    dplanck_BT(1, joker));
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::VMR)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::VMR)
       {  
-        if(flag_partials.SpeciesMatch(iq, abs_species[this_species])) {
+        if(species_match(flag_partials[flag_partials_positions[iq]], abs_species[this_species])) {
           dpropmat_clearsky_dx[iq].AddZeemanPiComponent(attenuation(joker, 0), phase(joker, 0), 
                                                         n/abs_vmrs(this_species, 0), theta*DEG2RAD, eta*DEG2RAD);
           
@@ -646,7 +639,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
           }
         }
       }
-      else if(flag_partials(iq) not_eq JacPropMatType::NotPropagationMatrixType)
+      else if(flag_partials[flag_partials_positions[iq]] not_eq JacPropMatType::NotPropagationMatrixType)
       {
         dpropmat_clearsky_dx[iq].AddZeemanPiComponent(partial_attenuation[iq](joker, 0), partial_phase[iq](joker, 0), n,
                                                       theta*DEG2RAD, eta*DEG2RAD);
@@ -670,7 +663,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
     
     for(Index iq = 0; iq < nq; iq++)
     {
-      if(flag_partials(iq) == JacPropMatType::MagneticU)
+      if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::MagneticU)
       {
         attenuation_du -= attenuation;
         attenuation_du /= dB;
@@ -692,7 +685,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                                      deta_du*DEG2RAD, planck_BT);
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::MagneticV)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::MagneticV)
       {
         attenuation_dv -= attenuation;
         attenuation_dv /= dB;
@@ -714,7 +707,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                                      deta_dv*DEG2RAD, planck_BT);
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::MagneticW)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::MagneticW)
       {
         attenuation_dw -= attenuation;
         attenuation_dw /= dB;
@@ -736,7 +729,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                                      deta_dw*DEG2RAD, planck_BT);
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::MagneticTheta)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::MagneticTheta)
       {
         dpropmat_clearsky_dx[iq].AddZeemanSigmaMinusComponentThetaDerivative(attenuation(joker, 0), phase(joker, 0), n,
                                                                              theta*DEG2RAD, eta*DEG2RAD);
@@ -747,7 +740,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                                           theta*DEG2RAD, eta*DEG2RAD, planck_BT);
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::MagneticEta)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::MagneticEta)
       {
         dpropmat_clearsky_dx[iq].AddZeemanSigmaMinusComponentEtaDerivative(attenuation(joker, 0), phase(joker, 0), n,
                                                                            theta*DEG2RAD, eta*DEG2RAD);
@@ -758,7 +751,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                                              theta*DEG2RAD, eta*DEG2RAD, planck_BT);
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::Temperature)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::Temperature)
       {
         dpropmat_clearsky_dx[iq].AddZeemanSigmaMinusComponent(attenuation(joker, 0), phase(joker, 0), dn_dT,
                                                               theta*DEG2RAD, eta*DEG2RAD);
@@ -777,7 +770,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                            eta*DEG2RAD, dplanck_BT(0, joker));
         }
       }
-      else if(flag_partials.IsFrequencyParameter(flag_partials(iq)))
+      else if(is_frequency_parameter(flag_partials[flag_partials_positions[iq]]))
       {
         dpropmat_clearsky_dx[iq].AddZeemanSigmaMinusComponent(partial_attenuation[iq](joker, 0), 
                                                               partial_phase[iq](joker, 0), n, theta*DEG2RAD,
@@ -792,9 +785,9 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                            eta*DEG2RAD, dplanck_BT(1, joker));
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::VMR)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::VMR)
       {  
-        if(flag_partials.SpeciesMatch(iq, abs_species[this_species])) {
+        if(species_match(flag_partials[flag_partials_positions[iq]], abs_species[this_species])) {
           dpropmat_clearsky_dx[iq].AddZeemanSigmaMinusComponent(attenuation(joker, 0), phase(joker, 0),
                                                                 n/abs_vmrs(this_species, 0), theta*DEG2RAD, eta*DEG2RAD);
           
@@ -805,7 +798,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
           }
         }
       }
-      else if(flag_partials(iq) not_eq JacPropMatType::NotPropagationMatrixType)
+      else if(flag_partials[flag_partials_positions[iq]] not_eq JacPropMatType::NotPropagationMatrixType)
       {
         dpropmat_clearsky_dx[iq].AddZeemanSigmaMinusComponent(partial_attenuation[iq](joker, 0),
                                                               partial_phase[iq](joker, 0), n, theta*DEG2RAD,
@@ -830,7 +823,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
     
     for(Index iq = 0; iq < nq; iq++)
     {
-      if(flag_partials(iq) == JacPropMatType::MagneticU)
+      if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::MagneticU)
       {
         attenuation_du -= attenuation;
         attenuation_du /= dB;
@@ -852,7 +845,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                                     deta_du*DEG2RAD, planck_BT);
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::MagneticV)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::MagneticV)
       {
         attenuation_dv -= attenuation;
         attenuation_dv /= dB;
@@ -874,7 +867,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                                     deta_dv*DEG2RAD, planck_BT);
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::MagneticW)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::MagneticW)
       {
         attenuation_dw -= attenuation;
         attenuation_dw /= dB;
@@ -896,7 +889,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                                     deta_dw*DEG2RAD, planck_BT);
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::MagneticTheta)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::MagneticTheta)
       {
         dpropmat_clearsky_dx[iq].AddZeemanSigmaPlusComponentThetaDerivative(attenuation(joker, 0), phase(joker, 0), n,
                                                                             theta*DEG2RAD, eta*DEG2RAD);
@@ -907,7 +900,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                                          theta*DEG2RAD, eta*DEG2RAD, planck_BT);
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::MagneticEta)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::MagneticEta)
       {
         dpropmat_clearsky_dx[iq].AddZeemanSigmaPlusComponentEtaDerivative(attenuation(joker, 0), phase(joker, 0), n,
                                                                           theta*DEG2RAD, eta*DEG2RAD);
@@ -918,7 +911,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                                             theta*DEG2RAD, eta*DEG2RAD, planck_BT);
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::Temperature)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::Temperature)
       {
         dpropmat_clearsky_dx[iq].AddZeemanSigmaPlusComponent(attenuation(joker, 0), phase(joker, 0), dn_dT,
                                                              theta*DEG2RAD, eta*DEG2RAD);
@@ -937,7 +930,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                           eta*DEG2RAD, dplanck_BT(0, joker));
         }
       }
-      else if(flag_partials.IsFrequencyParameter(flag_partials(iq)))
+      else if(is_frequency_parameter(flag_partials[flag_partials_positions[iq]]))
       {
         dpropmat_clearsky_dx[iq].AddZeemanSigmaPlusComponent(partial_attenuation[iq](joker, 0),
                                                              partial_phase[iq](joker, 0), n, theta*DEG2RAD,
@@ -952,9 +945,9 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                           eta*DEG2RAD, dplanck_BT(1, joker));
         }
       }
-      else if(flag_partials(iq) == JacPropMatType::VMR)
+      else if(flag_partials[flag_partials_positions[iq]] == JacPropMatType::VMR)
       {  
-        if(flag_partials.SpeciesMatch(iq, abs_species[this_species])) {
+        if(species_match(flag_partials[flag_partials_positions[iq]], abs_species[this_species])) {
           dpropmat_clearsky_dx[iq].AddZeemanSigmaPlusComponent(attenuation(joker, 0), phase(joker, 0),
                                                               n/abs_vmrs(this_species, 0), theta*DEG2RAD, eta*DEG2RAD);
           
@@ -965,7 +958,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
           }
         }
       }
-      else if(flag_partials(iq) not_eq JacPropMatType::NotPropagationMatrixType)
+      else if(flag_partials[flag_partials_positions[iq]] not_eq JacPropMatType::NotPropagationMatrixType)
       {
         dpropmat_clearsky_dx[iq].AddZeemanSigmaPlusComponent(partial_attenuation[iq](joker, 0),
                                                              partial_phase[iq](joker, 0), n, theta*DEG2RAD,
@@ -1136,86 +1129,7 @@ void alter_linerecord(LineRecord& new_LR,
     new_LR.SetQuantumNumberLower(QuantumNumberType::M, M_lo);
     new_LR.SetQuantumNumberUpper(QuantumNumberType::M, M_up);
     if(new_LR.ZeemanEffect().SplittingType() == ZeemanSplittingType::None)
-      new_LR.ZeemanEffect().convertNoneToHund(new_LR.QuantumNumbers());
-}
-
-
-bool the_line_is_zeeman_ready(const LineRecord& line, const Verbosity& verbosity) noexcept
-{
-  CREATE_OUT3;
-  bool test = true;
-  
-  // LOWER STATE
-  if(line.QuantumNumbers().Lower(QuantumNumberType::Hund) == Index(Hund::CaseA))
-  {
-    if(line.QuantumNumbers().Lower()[QuantumNumberType::Omega].isUndefined() or
-      line.QuantumNumbers().Lower()[QuantumNumberType::J].isUndefined() or
-      line.QuantumNumbers().Lower()[QuantumNumberType::Lambda].isUndefined() or
-      line.QuantumNumbers().Lower()[QuantumNumberType::S].isUndefined())
-    {
-      test = false;
-      out3 << "Warning!  The provided quantum numbers are not Hund Case A: " << line.QuantumNumbers().Lower() << "\n";
-      out3 << "These needs to be defined Omega, J, Lambda, S\n";
-    }
-  }
-  else if(line.QuantumNumbers().Lower(QuantumNumberType::Hund) == Index(Hund::CaseB))
-  {
-    if(line.QuantumNumbers().Lower()[QuantumNumberType::N].isUndefined() or
-      line.QuantumNumbers().Lower()[QuantumNumberType::J].isUndefined() or
-      line.QuantumNumbers().Lower()[QuantumNumberType::Lambda].isUndefined() or
-      line.QuantumNumbers().Lower()[QuantumNumberType::S].isUndefined())
-    {
-      test = false;
-      out3 << "Warning!  The provided quantum numbers are not Hund Case B: " << line.QuantumNumbers().Lower() << "\n";
-      out3 << "These needs to be defined N, J, Lambda, S\n";
-    }
-  }
-  else
-  {
-    test = false;
-    out3 << "Warning!  No Hund case provided.  Cannot compute Zeeman effect without defining Hund for: " 
-    << line.QuantumNumbers().Upper() << "\n Valid Hund cases are\n\tHund Case A: " << Index(Hund::CaseA) 
-    << "\n\tHund Case B: " << Index(Hund::CaseB);
-  }
-  
-  // UPPER STATE
-  if(line.QuantumNumbers().Upper(QuantumNumberType::Hund) == Index(Hund::CaseA))
-  {
-    if(line.QuantumNumbers().Upper()[QuantumNumberType::Omega].isUndefined() or
-      line.QuantumNumbers().Upper()[QuantumNumberType::J].isUndefined() or
-      line.QuantumNumbers().Upper()[QuantumNumberType::Lambda].isUndefined() or
-      line.QuantumNumbers().Upper()[QuantumNumberType::S].isUndefined())
-    {
-      test = false;
-      out3 << "Warning!  The provided quantum numbers are not Hund Case A: " << line.QuantumNumbers().Upper() << "\n";
-      out3 << "These needs to be defined Omega, J, Lambda, S\n";
-    }
-  }
-  else if(line.QuantumNumbers().Upper(QuantumNumberType::Hund) == Index(Hund::CaseB))
-  {
-    if(line.QuantumNumbers().Upper()[QuantumNumberType::N].isUndefined() or
-      line.QuantumNumbers().Upper()[QuantumNumberType::J].isUndefined() or
-      line.QuantumNumbers().Upper()[QuantumNumberType::Lambda].isUndefined() or
-      line.QuantumNumbers().Upper()[QuantumNumberType::S].isUndefined())
-    {
-      test = false;
-      out3 << "Warning!  The provided quantum numbers are not Hund Case B: " << line.QuantumNumbers().Upper() << "\n";
-      out3 << "These needs to be defined N, J, Lambda, S\n";
-    }
-  }
-  else
-  {
-    test = false;
-    out3 << "Warning!  No Hund case provided.  Cannot compute Zeeman effect without defining Hund for: " 
-    << line.QuantumNumbers().Upper() << "\n Valid Hund cases are\n\tHund Case A: " << Index(Hund::CaseA) 
-    << "\n\tHund Case B: " << Index(Hund::CaseB);
-  }
-  
-  if(not test)
-    out3 << "The following line failed the tests of being Zeeman compatible: " << line << "\n";
-  else
-    out3 << "The following line is Zeeman compatibleand will be computed as such: " << line << "\n";
-  return test;
+      new_LR.ZeemanEffect().convertNoneToHund(new_LR.UpperQuantumNumbers(), new_LR.LowerQuantumNumbers());
 }
 
 
@@ -1262,16 +1176,13 @@ void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
       const Numeric this_linestrength = temp_LR.I0();
       Numeric RS_sum = 0.0; //Sum relative strength (which ought be close to one by the end)
       
-      if(not the_line_is_zeeman_ready(temp_LR, verbosity))
-        throw std::runtime_error("At least one line is not Zeeman-ready.  Activate out3 for more details\n");
-      
       // Quantum numbers
-      const Rational J_up = temp_LR.QuantumNumbers().Upper()[QuantumNumberType::J], 
-      J_lo = temp_LR.QuantumNumbers().Lower()[QuantumNumberType::J];
+      const Rational& J_up = temp_LR.UpperQuantumNumbers()[QuantumNumberType::J]; 
+      const Rational& J_lo = temp_LR.LowerQuantumNumbers()[QuantumNumberType::J];
       
       const bool upwards = J_lo > J_up;
       const bool same = J_lo == J_up;
-      const Rational  J    = (upwards ? J_up : J_lo);
+      const Rational&  J    = (upwards ? J_up : J_lo);
       
       for ( Rational M = -J; M<=J; M++ )
       {
@@ -1342,7 +1253,7 @@ void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
   
   for(auto& aol : aoaol)
     for(auto& lr : aol)
-      lr.ZeemanEffect().setNumericalAndPolarization(lr.QuantumNumbers(), lr.Species());
+      lr.ZeemanEffect().setNumericalAndPolarization(lr.UpperQuantumNumbers(), lr.LowerQuantumNumbers(), lr.Species());
 }
 
 Index part_mag_strength(const ArrayOfRetrievalQuantity& flag_partials)

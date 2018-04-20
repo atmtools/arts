@@ -102,7 +102,8 @@ inline void calc_derivative(Numeric& dxsec_dtarget,
 void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuation,
                                               ArrayOfMatrix&  partials_phase, 
                                               ArrayOfMatrix&  partials_src, 
-                                              const PropmatPartialsData&  flag_partials, 
+                                              const ArrayOfRetrievalQuantity&  flag_partials, 
+                                              const ArrayOfIndex&  flag_partials_position,
                                               ConstVectorView CF_A,//no linemixing except DV!
                                               ConstVectorView CF_B,//no linemixing except DV!
                                               ConstVectorView C,
@@ -143,9 +144,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                                               const Numeric&  dDF_LM0,
                                               const Numeric&  dDF_LM1,
                                               const Numeric&  dDF_LMexp,
-                                              const QuantumNumberRecord&  qnr,
-                                              const Index& species,
-                                              const Index& isotopologue,
+                                              const QuantumIdentifier&  qi,
                                               // LINE SHAPE
                                               const Index& ind_ls,
                                               const Index& ind_lsn,
@@ -196,9 +195,9 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
     }
     
     // Loop over all jacobian_quantities, if a matching quantity is found, then apply the necessary steps to make the jacobian matrix
-    for(Index ii=0; ii<flag_partials.nelem(); ii++)
+    for(Index ii=0; ii<flag_partials_position.nelem(); ii++)
     {
-      if( (flag_partials(ii)==JacPropMatType::MagneticMagnitude) )
+      if( (flag_partials[flag_partials_position[ii]] == JacPropMatType::MagneticMagnitude) )
         {
             if(!do_zeeman)
                 continue;
@@ -226,17 +225,17 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                     this_partial_src[iv]     +=(dFa_dx[iv]*dx_dH + ls_A*dfn_dH_div_dF_dH[iv]*dF_dH/C[iv])*nlte;
             }
         }
-        else if(flag_partials(ii) == JacPropMatType::MagneticTheta)
+        else if(flag_partials[flag_partials_position[ii]] == JacPropMatType::MagneticTheta)
         {/* Pass on this.  Can be done easier in later parts of the code execution.  
             Will not require line shape partials. */}
-            else if(flag_partials(ii) == JacPropMatType::MagneticEta)
+        else if(flag_partials[flag_partials_position[ii]] == JacPropMatType::MagneticEta)
         {/* Pass on this.  Can be done easier in later parts of the code execution.  
             Will not require line shape partials. */}
-        else if(flag_partials(ii) == JacPropMatType::MagneticU or
-                flag_partials(ii) == JacPropMatType::MagneticV or 
-                flag_partials(ii) == JacPropMatType::MagneticW)
+        else if(flag_partials[flag_partials_position[ii]] == JacPropMatType::MagneticU or
+                flag_partials[flag_partials_position[ii]] == JacPropMatType::MagneticV or 
+                flag_partials[flag_partials_position[ii]] == JacPropMatType::MagneticW)
         {/* Pass on these.  These are done by perturbation in later parts of the code execution since I found it too complicated for now.  FIXME: Richard */}
-        else if(flag_partials.IsFrequencyParameter(flag_partials(ii)))
+        else if(is_frequency_parameter(flag_partials[flag_partials_position[ii]]))
         {
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
             VectorView this_partial_phase       = do_partials_phase?
@@ -266,7 +265,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                 //NOTE:  Another missing aspect is that the dW/d{u,v,w} term must also be added for those components
             }
         }
-        else if(flag_partials(ii) == JacPropMatType::Temperature)
+        else if(flag_partials[flag_partials_position[ii]] == JacPropMatType::Temperature)
         {
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
             VectorView this_partial_phase       = do_partials_phase?partials_phase[ii](this_f_grid, pressure_level_index):empty_vector;
@@ -327,14 +326,14 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             // Ready and done!  So complicated that I need plenty of testing!
             
         } 
-        else if(flag_partials(ii) == JacPropMatType::VMR)
+        else if(flag_partials[flag_partials_position[ii]] == JacPropMatType::VMR)
         {
             // Line shape cross section does not depend on VMR.  NOTE:  Ignoring self-pressure broadening.
         }
-        else if(flag_partials(ii) == JacPropMatType::LineCenter)
+        else if(flag_partials[flag_partials_position[ii]] == JacPropMatType::LineCenter)
         {
-          if(!line_match_line(flag_partials.jac(ii).QuantumIdentity(),
-            species, isotopologue, qnr.Lower(),qnr.Upper()))
+          if(!line_match_line(flag_partials[flag_partials_position[ii]].QuantumIdentity(),
+            qi.Species(), qi.Isotopologue(), qi.LowerQuantumNumbers(),qi.UpperQuantumNumbers()))
                 continue;
             
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
@@ -375,10 +374,10 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             // That's it!  Note that the output should be strongly correlated to Temperature and Pressure.
             // Also note that to do the fit for the catalog gamma is somewhat different than this
         }
-        else if(flag_partials(ii) == JacPropMatType::LineStrength)
+        else if(flag_partials[flag_partials_position[ii]] == JacPropMatType::LineStrength)
         {
-          if(!line_match_line(flag_partials.jac(ii).QuantumIdentity(),
-            species, isotopologue, qnr.Lower(),qnr.Upper()))
+          if(!line_match_line(flag_partials[flag_partials_position[ii]].QuantumIdentity(),
+            qi.Species(), qi.Isotopologue(), qi.LowerQuantumNumbers(),qi.UpperQuantumNumbers()))
                 continue;
             
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
@@ -403,16 +402,16 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             
             // That's it!  Now to wonder if this will grow extremely large, creating an unrealistic jacobian...
         }
-        else if(flag_partials(ii) == JacPropMatType::LineGammaSelf    or
-                flag_partials(ii) == JacPropMatType::LineGammaForeign or
-                flag_partials(ii) == JacPropMatType::LineGammaWater)
+        else if(flag_partials[flag_partials_position[ii]] == JacPropMatType::LineGammaSelf    or
+                flag_partials[flag_partials_position[ii]] == JacPropMatType::LineGammaForeign or
+                flag_partials[flag_partials_position[ii]] == JacPropMatType::LineGammaWater)
         {
-          if(!line_match_line(flag_partials.jac(ii).QuantumIdentity(),
-            species, isotopologue, qnr.Lower(),qnr.Upper()))
+          if(!line_match_line(flag_partials[flag_partials_position[ii]].QuantumIdentity(),
+            qi.Species(), qi.Isotopologue(), qi.LowerQuantumNumbers(),qi.UpperQuantumNumbers()))
                 continue;
             
             Numeric y_constant = 1.0;
-            switch(flag_partials(ii))
+            switch(flag_partials[flag_partials_position[ii]].PropMatType())
             {
               case JacPropMatType::LineGammaSelf: y_constant = dgamma_dSelf; break;
               case JacPropMatType::LineGammaForeign: y_constant = dgamma_dForeign; break;
@@ -445,15 +444,19 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             }   
             // That's it!
         }
-        else if(flag_partials(ii) == JacPropMatType::LineGammaSelfExp    or
-                flag_partials(ii) == JacPropMatType::LineGammaForeignExp or
-                flag_partials(ii) == JacPropMatType::LineGammaWaterExp   or
-                flag_partials(ii) == JacPropMatType::LineShiftSelf       or
-                flag_partials(ii) == JacPropMatType::LineShiftForeign    or
-                flag_partials(ii) == JacPropMatType::LineShiftWater)
+        else if(flag_partials[flag_partials_position[ii]] == JacPropMatType::LineGammaSelfExp    or
+                flag_partials[flag_partials_position[ii]] == JacPropMatType::LineGammaForeignExp or
+                flag_partials[flag_partials_position[ii]] == JacPropMatType::LineGammaWaterExp   or
+                flag_partials[flag_partials_position[ii]] == JacPropMatType::LineShiftSelf       or
+                flag_partials[flag_partials_position[ii]] == JacPropMatType::LineShiftForeign    or
+                flag_partials[flag_partials_position[ii]] == JacPropMatType::LineShiftWater)
         {
+            if(!line_match_line(flag_partials[flag_partials_position[ii]].QuantumIdentity(),
+              qi.Species(), qi.Isotopologue(), qi.LowerQuantumNumbers(),qi.UpperQuantumNumbers()))
+              continue;
+          
             Numeric x_constant = 0.0, y_constant = 0.0;
-            switch(flag_partials(ii))
+            switch(flag_partials[flag_partials_position[ii]].PropMatType())
             {
               case JacPropMatType::LineGammaSelfExp: 
                     x_constant = dpsf_dSelfExponent;
@@ -478,7 +481,6 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                     break;
               default: throw std::runtime_error("This cannot happen.  A developer has made a mistake.\n");
             }
-            
             
             
             VectorView this_partial_attenuation = partials_attenuation[ii](this_f_grid, pressure_level_index);
@@ -510,14 +512,14 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             }   
             // That's it!
         }
-        else if(flag_partials.IsLineMixingLineStrengthParameter(flag_partials(ii)))
+        else if(is_line_mixing_line_strength_parameter(flag_partials[flag_partials_position[ii]]))
         {
-          if(!line_match_line(flag_partials.jac(ii).QuantumIdentity(),
-            species, isotopologue, qnr.Lower(), qnr.Upper()))
+          if(!line_match_line(flag_partials[flag_partials_position[ii]].QuantumIdentity(),
+            qi.Species(), qi.Isotopologue(), qi.LowerQuantumNumbers(), qi.UpperQuantumNumbers()))
                 continue;
             
             Numeric lma_real = 0.0, lmb_real = 0.0, lma_imag = 0.0, lmb_imag = 0.0;
-            switch(flag_partials(ii))
+            switch(flag_partials[flag_partials_position[ii]].PropMatType())
             {
                 case JacPropMatType::LineMixingY0: 
                     lmb_real = dY_LM0;
@@ -567,14 +569,14 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             
             // That's it!
         }
-        else if(flag_partials.IsLineMixingDFParameter(flag_partials(ii)))
+        else if(is_line_mixing_DF_parameter(flag_partials[flag_partials_position[ii]]))
         {
-          if(!line_match_line(flag_partials.jac(ii).QuantumIdentity(),
-            species, isotopologue,qnr.Lower(),qnr.Upper()))
+          if(!line_match_line(flag_partials[flag_partials_position[ii]].QuantumIdentity(),
+            qi.Species(), qi.Isotopologue(),qi.LowerQuantumNumbers(),qi.UpperQuantumNumbers()))
                 continue;
             
             Numeric constant = 1.0;
-            switch(flag_partials(ii))
+            switch(flag_partials[flag_partials_position[ii]].PropMatType())
             {
               case JacPropMatType::LineMixingDF0: constant = dDF_LM0; break;
               case JacPropMatType::LineMixingDF1: constant = dDF_LM1; break;
@@ -604,7 +606,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             // That's it!  Note that the output should be strongly correlated to Temperature and Pressure.
             // Also note that to do the fit for the catalog gamma is somewhat different than this
         }
-        else if(flag_partials(ii) == JacPropMatType::VibrationalTemperature)
+        else if(flag_partials[flag_partials_position[ii]] == JacPropMatType::VibrationalTemperature)
         {
             
             /* 
@@ -618,9 +620,9 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             
             bool lower, upper;
             line_match_level(lower, upper, 
-                             flag_partials.jac(ii).QuantumIdentity(),
-                             species, isotopologue,
-                             qnr.Lower(), qnr.Upper());
+                             flag_partials[flag_partials_position[ii]].QuantumIdentity(),
+                             qi.Species(), qi.Isotopologue(),
+                             qi.LowerQuantumNumbers(), qi.UpperQuantumNumbers());
             if(!(lower||upper))
                 continue;
             

@@ -160,10 +160,10 @@ void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clea
                           manual_zeeman_theta,manual_zeeman_magnetic_field_strength,
                           rtp_mag,R_path_los);
   
-  const PropmatPartialsData pps(jacobian_quantities);
-  pps.supportsZeemanPrecalc();
-  const bool do_freq_jac = pps.do_frequency();
-  const bool do_temp_jac = pps.do_temperature();
+  supports_zeeman(jacobian_quantities);
+  const ArrayOfIndex jacobian_quantities_position = equivlent_propmattype_indexes(jacobian_quantities);
+  const bool do_freq_jac = do_frequency_jacobian(jacobian_quantities);
+  const bool do_temp_jac = do_temperature_jacobian(jacobian_quantities);
   
   Vector planck_BT(0);
   if(do_src)
@@ -195,7 +195,7 @@ void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clea
     
     // Add Pi contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
-                                                  abs_species, pps, 
+                                                  abs_species, jacobian_quantities, jacobian_quantities_position, 
                                                   abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
                                                   zeeman_linerecord_precalc[zeeman_ind+1], planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
@@ -203,7 +203,7 @@ void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clea
 
     // Add Sigma minus contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
-                                                  abs_species, pps, 
+                                                  abs_species, jacobian_quantities, jacobian_quantities_position, 
                                                   abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
                                                   zeeman_linerecord_precalc[zeeman_ind], planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
@@ -211,7 +211,7 @@ void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clea
 
     // Add Sigma plus contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
-                                                  abs_species, pps, 
+                                                  abs_species, jacobian_quantities, jacobian_quantities_position, 
                                                   abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
                                                   zeeman_linerecord_precalc[zeeman_ind+2], planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 

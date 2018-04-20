@@ -61,6 +61,7 @@ extern const String POLYFIT_MAINTAG;
 extern const String SCATSPECIES_MAINTAG;
 extern const String SINEFIT_MAINTAG;
 extern const String SURFACE_MAINTAG;
+extern const String WIND_MAINTAG;
 
 
 

@@ -72,9 +72,11 @@ extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
 extern const String FLUX_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
+extern const String ELECTRONS_MAINTAG;
+extern const String PARTICULATES_MAINTAG;
+extern const String CATALOGPARAMETER_MAINTAG;
 
 extern const String SURFACE_MAINTAG;
-
 
 // Generic modes
 extern const String PRESSUREBROADENINGGAMMA_MODE;
@@ -92,6 +94,10 @@ extern const String WATERBROADENING_MODE;
 extern const String SELFBROADENINGEXPONENT_MODE;
 extern const String FOREIGNBROADENINGEXPONENT_MODE;
 extern const String WATERBROADENINGEXPONENT_MODE;
+extern const String SELFPRESSURESHIFT_MODE;
+extern const String FOREIGNPRESSURESHIFT_MODE;
+extern const String WATERPRESSURESHIFT_MODE;
+
 //  Line Mixing
 extern const String LINEMIXINGY0_MODE;
 extern const String LINEMIXINGG0_MODE;
@@ -311,8 +317,7 @@ void jacobianAddAbsSpecies(
   rq.Perturbation( dx );
   rq.Grids( grids );
   if(analytical and not for_species_tag) {
-    rq.SubSubtag(species);
-    rq.PropType(JacPropMatType::VMR);
+    rq.PropType(JacPropMatType::VMR);  //  FIXME: add to all eq
   }
   else if((not analytical) and (not for_species_tag))
     throw std::runtime_error("perturbation only support for_species_tag true/\n ");

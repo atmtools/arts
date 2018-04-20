@@ -62,7 +62,7 @@ public:
     }
   };
   
-  String splitting_tag() const noexcept
+  String SplittingTag() const noexcept
   {
     switch(msplit) {
       case ZeemanSplittingType::ByHund: return "BH";
@@ -72,7 +72,7 @@ public:
     }
   };
   
-  String polarization_tag() const noexcept
+  String PolarizationTag() const noexcept
   {
     switch(mpolar) {
       case ZeemanPolarizationType::Pi:         return "Pi";
@@ -82,9 +82,9 @@ public:
     }
   };
   
-  ConstVectorView data() const { return mdata; };
+  ConstVectorView Data() const { return mdata; };
   
-  void setSplittingType(const String& tag) 
+  void setSplittingTag(const String& tag) 
   {
     if(tag == "BH") { msplit = ZeemanSplittingType::ByHund; mdata = Vector(Index(ByHundPos::LEN)); }
     else if(tag == "BG") { msplit = ZeemanSplittingType::ByGData; mdata = Vector(Index(ByGDataPos::LEN), 0.0); }
@@ -92,7 +92,7 @@ public:
     else throw std::runtime_error("Cannot recognize provided Zeeman data type");
   };
   
-  void setPolarizationType(const String& tag) 
+  void setPolarizationTag(const String& tag) 
   {
     if(tag == "NoPolarization") mpolar = ZeemanPolarizationType::None;
     else if(tag == "Pi") mpolar = ZeemanPolarizationType::Pi;
@@ -101,18 +101,18 @@ public:
     else throw std::runtime_error("Cannot recognize provided Zeeman data type");
   };
   
-  void setDataFromVectorWithKnownSplittingType(const ConstVectorView data)
+  void setDataFromVectorWithKnownSplittingTag(const ConstVectorView data)
   {
     mdata = data;
     if(not ok())
       throw std::runtime_error("Bad data for type");
   };
   
-  Numeric frequency_shift_per_tesla(const QuantumNumberRecord& qnr, const Index species) const;
+  Numeric frequency_shift_per_tesla(const QuantumNumbers& upper, const QuantumNumbers& lower, const Index species) const;
   
-  void convertNoneToHund(const QuantumNumberRecord& qnr);
+  void convertNoneToHund(const QuantumNumbers& upper, const QuantumNumbers& lower);
   
-  void setNumericalAndPolarization(const QuantumNumberRecord& qnr, const Index species);
+  void setNumericalAndPolarization(const QuantumNumbers& upper, const QuantumNumbers& lower, const Index species);
   
   Index dM();
   

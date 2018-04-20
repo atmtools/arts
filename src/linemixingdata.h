@@ -34,7 +34,7 @@ USA. */
 #include "array.h"
 #include "mystring.h"
 #include "complex.h"
-#include "partial_derivatives.h"
+#include "jacobian.h"
 
 class LineMixingData
 {
@@ -118,7 +118,7 @@ public:
     void SecondOrderData2Vector(Vector& output) const;
     void FirstOrderData2Vector(Vector& output) const;
     
-    void SetInternalDerivatives(ComplexVector& derivatives, const PropmatPartialsData& ppd, const QuantumIdentifier& QI, const Numeric& temperature, const Numeric& pressure, const Numeric& pressure_limit) const;
+    void SetInternalDerivatives(ComplexVector& derivatives, const ArrayOfRetrievalQuantity& ppd, const QuantumIdentifier& QI, const Numeric& temperature, const Numeric& pressure, const Numeric& pressure_limit) const;
     
 private:
     // mtype identifies the type of line mixing and mdata should contain the required data

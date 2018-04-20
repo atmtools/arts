@@ -31,7 +31,7 @@
 #define linefunctions_h
 
 #include "complex.h"
-#include "partial_derivatives.h"
+#include "jacobian.h"
 #include "linerecord.h"
 
 
@@ -73,7 +73,8 @@ namespace Linefunctions
                    const Numeric& G0, 
                    const Numeric& L0, 
                    const Numeric& dF0,
-                   const PropmatPartialsData& derivatives_data=PropmatPartialsData(), 
+                   const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                   const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                    const QuantumIdentifier& quantum_identity=QuantumIdentifier(), 
                    const Numeric& dG0_dT=0.0, 
                    const Numeric& dL0_dT=0.0,
@@ -93,7 +94,8 @@ namespace Linefunctions
                const Numeric& L2,
                const Numeric& eta,
                const Numeric& FVC,
-               const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+               const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+               const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                const Numeric& dGD_div_F0_dT=0.0,
                const Numeric& dG0_dT=0.0,
@@ -114,7 +116,8 @@ namespace Linefunctions
                                  const Numeric& G0,
                                  const Numeric& L0,
                                  const Numeric& dF0,
-                                 const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                                 const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                 const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                                  const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                                  const Numeric& dGD_div_F0_dT=0.0,
                                  const Numeric& dG0_dT=0.0,
@@ -129,7 +132,8 @@ namespace Linefunctions
                    const Numeric& magnetic_magnitude,
                    const Numeric& F0_noshift,
                    const Numeric& GD_div_F0,
-                   const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                   const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                   const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                    const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                    const Numeric& dGD_div_F0_dT=0.0,
                    const Range& df_range=Range(joker));
@@ -140,7 +144,8 @@ namespace Linefunctions
                                          const Complex& eigenvalue_no_shift,
                                          const Numeric& GD_div_F0,
                                          const Numeric& L0,
-                                         const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                                         const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                         const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                                          const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                                          const Numeric& dGD_div_F0_dT=0.0,
                                          const Complex& deigenvalue_dT=0.0,
@@ -150,7 +155,8 @@ namespace Linefunctions
                                 ArrayOfComplexVector& dF,
                                 const Numeric& Y,
                                 const Numeric& G,
-                                const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                                const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                                 const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                                 const Numeric& dY_dT=0.0,
                                 const Numeric& dG_dT=0.0,
@@ -161,7 +167,8 @@ namespace Linefunctions
                                           ConstVectorView f_grid,
                                           const Numeric& F0,
                                           const Numeric& T,
-                                          const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                                          const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                          const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                                           const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                                           const Range& df_range=Range(joker));
   
@@ -170,7 +177,8 @@ namespace Linefunctions
                          ConstVectorView f_grid,
                          const Numeric& F0,
                          const Numeric& T,
-                         const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                         const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                         const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                          const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                          const Range& df_range=Range(joker));
   
@@ -178,7 +186,8 @@ namespace Linefunctions
                          ArrayOfComplexVector& dF,
                          ConstVectorView f_grid,
                          const Numeric& F0,
-                         const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                         const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                         const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                          const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                          const Range& df_range=Range(joker));
   
@@ -190,7 +199,8 @@ namespace Linefunctions
                                   const Numeric& QT0,
                                   const Numeric& K1,
                                   const Numeric& K2,
-                                  const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                                  const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                  const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                                   const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                                   const Numeric& dQT_dT=0.0,
                                   const Numeric& dK1_dT=0.0,
@@ -204,7 +214,8 @@ namespace Linefunctions
                                                       ArrayOfComplexVector& dN,
                                                       const Numeric& K3=1.0,
                                                       const Numeric& K4=1.0,
-                                                      const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                                                      const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                                      const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                                                       const QuantumIdentifier& quantum_identity=QuantumIdentifier(), 
                                                       const Numeric& dK3_dT=0.0, 
                                                       const Numeric& dK4_dT=0.0,
@@ -220,7 +231,8 @@ namespace Linefunctions
                                                const Numeric& T,
                                                const Complex& S_LM,
                                                const Numeric& isotopic_ratio,
-                                               const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                                               const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                               const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                                                const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                                                const Complex& dS_LM_dT=0.0);
   
@@ -231,18 +243,21 @@ namespace Linefunctions
                     const Numeric& d0,
                     const Numeric& rho,
                     const Numeric& isotopic_ratio,
-                    const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                    const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                    const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                     const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                     const Numeric& drho_dT=0.0);
   
   void apply_pressurebroadening_jacobian_scaling(ArrayOfComplexVector& dF,
-                                                 const PropmatPartialsData& derivatives_data,
+                                                 const ArrayOfRetrievalQuantity& derivatives_data,
+                                                 const ArrayOfIndex& derivatives_data_pos,
                                                  const QuantumIdentifier& quantum_identity,
                                                  const ComplexVector& dgamma,
                                                  const Range& df_range=Range(joker));
   
   void apply_linemixing_jacobian_scaling(ArrayOfComplexVector& dF,
-                                         const PropmatPartialsData& derivatives_data,
+                                         const ArrayOfRetrievalQuantity& derivatives_data,
+                                         const ArrayOfIndex& derivatives_data_pos,
                                          const QuantumIdentifier& quantum_identity,
                                          const ComplexVector& dlm,
                                          const Range& df_range=Range(joker));
@@ -256,7 +271,8 @@ namespace Linefunctions
                                          ComplexVectorView N,
                                          ArrayOfComplexVector& dN,
                                          Range& this_xsec_range,
-                                         const PropmatPartialsData& derivatives_data,
+                                         const ArrayOfRetrievalQuantity& derivatives_data,
+                                         const ArrayOfIndex& derivatives_data_position,
                                          const LineRecord& line,
                                          ConstVectorView f_grid,
                                          ConstVectorView volume_mixing_ratio_of_all_species,
@@ -283,7 +299,8 @@ namespace Linefunctions
                     ArrayOfComplexVector& dF,
                     ComplexVectorView N,
                     ArrayOfComplexVector& dN,
-                    const PropmatPartialsData& derivatives_data,
+                    const ArrayOfRetrievalQuantity& derivatives_data,
+                    const ArrayOfIndex& derivatives_data_position,
                     const LineRecord& line,
                     ConstVectorView volume_mixing_ratio_of_all_species,
                     ConstVectorView nlte_distribution,
@@ -320,7 +337,8 @@ namespace Linefunctions
                                                         const Numeric& A21,
                                                         const Numeric& F0,
                                                         const Numeric& T,
-                                                        const PropmatPartialsData& derivatives_data=PropmatPartialsData(),
+                                                        const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                                        const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                                                         const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                                                         const Range& df_range=Range(joker));
   

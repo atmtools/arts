@@ -766,14 +766,14 @@ void iyTransmissionStandard(
   ArrayOfIndex    jac_mag_i(nq), jac_other(nq);
   //
   // Flags for partial derivatives of propmat
-  const PropmatPartialsData ppd(jacobian_quantities);
+  ArrayOfIndex propmat_jacobian_position;
   //
   if( j_analytical_do )
     {
-      rtmethods_jacobian_init( jac_species_i, jac_scat_i, jac_is_t, jac_wind_i,
+      rtmethods_jacobian_init( propmat_jacobian_position, jac_species_i, jac_scat_i, jac_is_t, jac_wind_i,
                                jac_mag_i, jac_other, diy_dx, diy_dpath,
                                ns, nf, np, nq, abs_species,
-                               cloudbox_on, scat_species, dpnd_field_dx, ppd,
+                               cloudbox_on, scat_species, dpnd_field_dx,
                                jacobian_quantities, iy_agenda_call1 );
     }
   
@@ -892,7 +892,7 @@ void iyTransmissionStandard(
                                          dS_dx,
                                          propmat_clearsky_agenda,
                                          jacobian_quantities,
-                                         ppd,
+                                         propmat_jacobian_position,
                                          ppvar_f(joker,ip),
                                          ppvar_mag(joker,ip),
                                          ppath.los(ip,joker),

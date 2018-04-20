@@ -230,45 +230,53 @@ private:
 };
 
 
+typedef Array<QuantumNumbers> ArrayOfQuantumNumbers;
+
+
 //! Record containing upper and lower quantum numbers
 class QuantumNumberRecord
 {
 public:
+    QuantumNumberRecord() : mqns(2) {}
+    QuantumNumberRecord(const ArrayOfQuantumNumbers& qns) : mqns(qns) {assert(mqns.nelem() == 2);}
+    
+    enum class Level : Index { Upper=0, Lower=1 };
+  
     //! Set lower quantum number
-    void SetLower(const Index i, const Rational r) { mqn_lower.Set(i, r); }
-    void SetLower(const QuantumNumberType i, const Rational r) { mqn_lower.Set(i, r); }
-    void SetLower(const String i, const Rational r) { mqn_lower.Set(i, r); }
+    void SetLower(const Index i, const Rational r) {  mqns[Index(Level::Lower)].Set(i, r); }
+    void SetLower(const QuantumNumberType i, const Rational r) { mqns[Index(Level::Lower)].Set(i, r); }
+    void SetLower(const String i, const Rational r) { mqns[Index(Level::Lower)].Set(i, r); }
 
     //! Set upper quantum number
-    void SetUpper(const Index i, const Rational r) { mqn_upper.Set(i, r); }
-    void SetUpper(const QuantumNumberType i, const Rational r) { mqn_upper.Set(i, r); }
-    void SetUpper(const String i, const Rational r) { mqn_upper.Set(i, r); }
+    void SetUpper(const Index i, const Rational r) { mqns[Index(Level::Upper)].Set(i, r); }
+    void SetUpper(const QuantumNumberType i, const Rational r) { mqns[Index(Level::Upper)].Set(i, r); }
+    void SetUpper(const String i, const Rational r) { mqns[Index(Level::Upper)].Set(i, r); }
 
     //! Get lower quantum number
-    Rational Lower(Index i) const { return mqn_lower[i]; }
-    Rational Lower(QuantumNumberType i) const { return mqn_lower[Index(i)]; }
+    Rational Lower(Index i) const { return mqns[Index(Level::Lower)][i]; }
+    Rational Lower(QuantumNumberType i) const { return mqns[Index(Level::Lower)][Index(i)]; }
 
     //! Get upper quantum number
-    Rational Upper(Index i) const { return mqn_upper[i]; }
-    Rational Upper(QuantumNumberType i) const { return mqn_upper[Index(i)]; }
+    Rational Upper(Index i) const { return mqns[Index(Level::Upper)][i]; }
+    Rational Upper(QuantumNumberType i) const { return mqns[Index(Level::Upper)][Index(i)]; }
 
     //! Get lower quantum numbers
-    QuantumNumbers& Lower() { return mqn_lower; }
+    QuantumNumbers& Lower() { return mqns[Index(Level::Lower)]; }
 
     //! Get lower quantum numbers
-    const QuantumNumbers& Lower() const { return mqn_lower; }
+    const QuantumNumbers& Lower() const { return mqns[Index(Level::Lower)]; }
 
     //! Get upper quantum numbers
-    QuantumNumbers& Upper() { return mqn_upper; }
+    QuantumNumbers& Upper() { return mqns[Index(Level::Upper)]; }
 
     //! Get upper quantum numbers
-    const QuantumNumbers& Upper() const { return mqn_upper; }
+    const QuantumNumbers& Upper() const { return mqns[Index(Level::Upper)]; }
+    
+    const ArrayOfQuantumNumbers& Data() const {return mqns;}
+    ArrayOfQuantumNumbers& Data() {return mqns;}
 
 private:
-    //! Upper state quantum numbers
-    QuantumNumbers mqn_upper;
-    //! Lower state quantum numbers
-    QuantumNumbers mqn_lower;
+    ArrayOfQuantumNumbers mqns;
 };
 
 
@@ -292,6 +300,7 @@ private:
  H2O-161 ALL
 
 */
+
 class QuantumIdentifier
 {
 public:
@@ -304,20 +313,17 @@ public:
     } QType;
     
     QuantumIdentifier() : mqtype(NONE), mspecies(-1), miso(-1), mqm(0) {}
+    
+    QuantumIdentifier(const QuantumIdentifier::QType qt, const Index species, const Index iso) : mspecies(species), miso(iso) { SetType(qt); }
 
-    QuantumIdentifier(const Index spec, const Index isot, const QuantumNumberRecord& qnr)
-    : mspecies(spec), miso(isot)
-    {
-      SetTransition(qnr.Upper(), qnr.Lower());
-    }
+    QuantumIdentifier(const Index spec, const Index isot, const QuantumNumbers& upper, const QuantumNumbers& lower)
+    : mqtype(QuantumIdentifier::TRANSITION), mspecies(spec), miso(isot), mqm(2) { mqm[TRANSITION_LOWER_INDEX] = lower; mqm[TRANSITION_UPPER_INDEX] = upper; }
     
     QuantumIdentifier(const Index spec, const Index isot, const QuantumNumbers& qnr)
     : mspecies(spec), miso(isot)
     {
       SetEnergyLevel(qnr);
     }
-    
-    typedef Array<QuantumNumbers> QuantumMatchCriteria;
 
     static const Index TRANSITION_UPPER_INDEX = 0;
     static const Index TRANSITION_LOWER_INDEX = 1;
@@ -344,21 +350,28 @@ public:
 
     void SetSpecies(const Index &sp) { mspecies = sp; }
     void SetIsotopologue(const Index &iso) { miso = iso; }
-    void SetTransition(const QuantumNumbers upper, const QuantumNumbers lower);
-    void SetEnergyLevel(const QuantumNumbers q);
+    void SetTransition(const QuantumNumbers& upper, const QuantumNumbers& lower);
+    void SetEnergyLevel(const QuantumNumbers& q);
     void SetAll();
     void SetFromString(String str);
     void SetFromStringForCO2Band(String upper, String lower, String iso);
 
     QType Type() const { return mqtype; }
     String TypeStr() const;
-    Index Species() const { return mspecies; }
-    Index Isotopologue() const { return miso; }
-    const QuantumMatchCriteria& QuantumMatch() const { return mqm; }
-    QuantumMatchCriteria& QuantumMatch() { return mqm; }
+    Index  Species() const { return mspecies; }
+    Index& Species() { return mspecies; }
+    Index  Isotopologue() const { return miso; }
+    Index& Isotopologue() { return miso; }
+    const ArrayOfQuantumNumbers& QuantumMatch() const { return mqm; }
+    ArrayOfQuantumNumbers& QuantumMatch() { return mqm; }
     
-    QuantumIdentifier Lower() const {QuantumIdentifier qi(mspecies, miso, mqm[TRANSITION_LOWER_INDEX]); return qi;};
-    QuantumIdentifier Upper() const {QuantumIdentifier qi(mspecies, miso, mqm[TRANSITION_UPPER_INDEX]); return qi;};
+    QuantumIdentifier UpperQuantumId() const {assert(mqtype==TRANSITION); QuantumIdentifier qi(mspecies, miso, mqm[TRANSITION_UPPER_INDEX]); return qi;};
+    QuantumIdentifier LowerQuantumId() const {assert(mqtype==TRANSITION); QuantumIdentifier qi(mspecies, miso, mqm[TRANSITION_LOWER_INDEX]); return qi;};
+    
+    const QuantumNumbers& UpperQuantumNumbers() const {assert(mqtype==TRANSITION); return mqm[TRANSITION_UPPER_INDEX];};
+    const QuantumNumbers& LowerQuantumNumbers() const {assert(mqtype==TRANSITION); return mqm[TRANSITION_LOWER_INDEX];};
+    QuantumNumbers& UpperQuantumNumbers() {assert(mqtype==TRANSITION); return mqm[TRANSITION_UPPER_INDEX];};
+    QuantumNumbers& LowerQuantumNumbers() {assert(mqtype==TRANSITION); return mqm[TRANSITION_LOWER_INDEX];};
     
     // Tests that all of other is in this
     bool operator>(const QuantumIdentifier& other) const;
@@ -370,7 +383,7 @@ private:
     QType mqtype;
     Index mspecies;
     Index miso;
-    QuantumMatchCriteria mqm;
+    ArrayOfQuantumNumbers mqm;
 };
 
 inline bool operator==(const QuantumIdentifier a,const QuantumIdentifier b){

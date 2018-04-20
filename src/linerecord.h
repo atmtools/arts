@@ -254,8 +254,7 @@ public:
       errors when we try to used un-initialized data. */
   LineRecord()
     : mversion (3),
-      mspecies (1000000),
-      misotopologue (1000000),
+      mqid(QuantumIdentifier::TRANSITION, 1000000, 1000000),
       mf       (0.     ),
       mi0      (0.     ),
       mti0     (0.     ),
@@ -270,12 +269,7 @@ public:
       ma( NAN ),
       mgupper( NAN ),
       mglower( NAN ),
-      mupper_n (-1     ),
-      mupper_j (-1     ),
-      mlower_n (-1     ),
-      mlower_j (-1     ),
       mquantum_numbers_str(""),
-      mquantum_numbers(),
       mpressurebroadeningdata(),
       mzeemandata(),
       mcutoff(-1.0),
@@ -311,8 +305,7 @@ public:
               Numeric               /* dnself */,
               Numeric               /* dpsf */)
     : mversion (3),
-      mspecies (species    ),
-      misotopologue (isotopologue    ),
+      mqid(QuantumIdentifier::TRANSITION, species, isotopologue),
       mf       (f          ),
       mi0      (i0         ),
       mti0     (ti0        ),
@@ -327,12 +320,7 @@ public:
       ma( NAN ),
       mgupper( NAN ),
       mglower( NAN ),
-      mupper_n (-1     ),
-      mupper_j (-1     ),
-      mlower_n (-1     ),
-      mlower_j (-1     ),
       mquantum_numbers_str(""),
-      mquantum_numbers(),
       mzeemandata(),
       mcutoff(-1.0),
       mspeedup(-1.0),
@@ -352,12 +340,12 @@ public:
   
   /** The index of the molecular species that this line belongs to.
    The species data can be accessed by species_data[Species()]. */
-  Index Species() const { return mspecies; }
+  Index Species() const { return mqid.Species(); }
 
   /** The index of the isotopologue species that this line belongs to.
    The isotopologue species data can be accessed by
    species_data[Species()].Isotopologue()[Isotopologue()].  */
-  Index Isotopologue() const { return misotopologue; }
+  Index Isotopologue() const { return mqid.Isotopologue(); }
 
   /** The full name of the species and isotopologue. E.g., `O3-666'.
    The name is found by looking up the information in species_data,
@@ -520,16 +508,17 @@ public:
   const String& QuantumNumbersString() const { return mquantum_numbers_str; }
 
   /** Quantum numbers */
-  const QuantumNumberRecord& QuantumNumbers() const { return mquantum_numbers; }
-  void SetQuantumNumberLower(const Index i, const Rational r) { mquantum_numbers.SetLower(i,r); }
-  void SetQuantumNumberLower(const String i, const Rational r) { mquantum_numbers.SetLower(i,r); }
-  void SetQuantumNumberLower(const QuantumNumberType i, const Rational r) { mquantum_numbers.SetLower(i,r); }
-  void SetQuantumNumberUpper(const QuantumNumberType i, const Rational r) { mquantum_numbers.SetUpper(i,r); }
-  void SetQuantumNumberUpper(const String i, const Rational r) { mquantum_numbers.SetUpper(i,r); }
-  void SetQuantumNumberUpper(const Index i, const Rational r) { mquantum_numbers.SetUpper(i,r); }
+  void SetQuantumNumberLower(const Index i, const Rational r) { mqid.LowerQuantumNumbers().Set(i,r); }
+  void SetQuantumNumberLower(const String i, const Rational r) {  mqid.LowerQuantumNumbers().Set(i,r); }
+  void SetQuantumNumberLower(const QuantumNumberType i, const Rational r) {  mqid.LowerQuantumNumbers().Set(i,r); }
+  void SetQuantumNumberUpper(const QuantumNumberType i, const Rational r) {  mqid.UpperQuantumNumbers().Set(i,r); }
+  void SetQuantumNumberUpper(const String i, const Rational r) { mqid.UpperQuantumNumbers().Set(i,r); }
+  void SetQuantumNumberUpper(const Index i, const Rational r) { mqid.UpperQuantumNumbers().Set(i,r); }
   
   /** Quantum identifier */
-  QuantumIdentifier QuantumIdentity() const {return QuantumIdentifier(mspecies, misotopologue, mquantum_numbers);}
+  const QuantumIdentifier& QuantumIdentity() const {return mqid;}
+  const QuantumNumbers& LowerQuantumNumbers() const {return mqid.LowerQuantumNumbers();}
+  const QuantumNumbers& UpperQuantumNumbers() const {return mqid.UpperQuantumNumbers();}
   
   /** Line Mixing data */
   LineMixingData& LineMixing() { return mlinemixingdata; }
@@ -994,28 +983,13 @@ public:
    \author Oliver Lemke
    */
   bool ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity);
-  
-  /*! Binary read-write
-   * 
-   * Read and write function for binary storing of ARTSCAT5 data.
-   * 
-   * Will never guarantee that it is backwards compatible, so be
-   * able to regenerate your catalog from other formats
-   * 
-   * \param s  Data stream to write/read from
-   */
-  void WriteBinaryArtscat5(std::ostream& s) const;
-  void ReadBinaryArtscat5(char* buf);
 
 private:
   // Version number:
   Index mversion;
   
-  // Molecular species index: 
-  Index mspecies;
-  
-  // Isotopologue species index:
-  Index misotopologue;
+  // Identity of line
+  QuantumIdentifier mqid;
   
   // The line center frequency in Hz:
   Numeric mf;
@@ -1070,24 +1044,9 @@ private:
   
   /** Lower state local quanta */
   String mlower_lquanta;  // NOTE: Not stored in binary data
-  
-  /** Upper state local N quanta */
-  Rational mupper_n;  // NOTE: Not stored in binary data
-  
-  /** Upper state local J quanta */
-  Rational mupper_j;  // NOTE: Not stored in binary data
-  
-  /** Lower state local N quanta */
-  Rational mlower_n;  // NOTE: Not stored in binary data
-  
-  /** Lower state local J quanta */
-  Rational mlower_j;  // NOTE: Not stored in binary data
 
   /** String with quantum numbers for ARTSCAT-4 */
   String mquantum_numbers_str;  // NOTE: Not stored in binary data
-
-  /** Quantum numbers */
-  QuantumNumberRecord mquantum_numbers;
   
   /** Line Mixing Data */
   LineMixingData mlinemixingdata;

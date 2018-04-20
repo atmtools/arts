@@ -31,7 +31,7 @@
 #include "messages.h"
 #include "matpackI.h"
 #include "complex.h"
-#include "partial_derivatives.h"
+#include "jacobian.h"
 
 
 
@@ -197,7 +197,7 @@ public:
       
      */
     void SetInternalDerivatives(ComplexVector& derivatives,
-                                const PropmatPartialsData& ppd,
+                                const ArrayOfRetrievalQuantity& ppd,
                                 const QuantumIdentifier& QI,
                                 const Numeric& theta,
                                 const Numeric& pressure,

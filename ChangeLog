@@ -1,3 +1,16 @@
+2018-04-20  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-1034
+	
+	Removed PropmatPartialsData class.  Also removed mspecies,
+	misotopologue, and mquantum_numbers from LineRecord to replace
+	them with a QuantumIdentifier so that each line can return 
+	references to their ID rather than having to recreate a new
+	ID every time
+	
+	* files:  Many small changes were required for the above changes.
+	At least the "make check" commands seems slightly faster
+
 2018-04-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1033

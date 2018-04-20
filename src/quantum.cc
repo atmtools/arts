@@ -454,7 +454,7 @@ String QuantumIdentifier::TypeStr() const {
 }
 
 
-void QuantumIdentifier::SetTransition(const QuantumNumbers upper, const QuantumNumbers lower)
+void QuantumIdentifier::SetTransition(const QuantumNumbers& upper, const QuantumNumbers& lower)
 {
     mqtype = QuantumIdentifier::TRANSITION;
     mqm.resize(2);
@@ -463,7 +463,7 @@ void QuantumIdentifier::SetTransition(const QuantumNumbers upper, const QuantumN
 }
 
 
-void QuantumIdentifier::SetEnergyLevel(const QuantumNumbers q)
+void QuantumIdentifier::SetEnergyLevel(const QuantumNumbers& q)
 {
     mqtype = QuantumIdentifier::ENERGY_LEVEL;
     mqm.resize(1);

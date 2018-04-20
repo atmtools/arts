@@ -85,13 +85,14 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
   /* NOTE:  The calculations below are inefficient and could 
             be made much better by using interp in Extract to
             return the derivatives as well. */
-  const PropmatPartialsData ppd(jacobian_quantities);
-  const bool do_jac = ppd.supportsCIA();
-  const bool do_freq_jac = ppd.do_frequency();
-  const bool do_temp_jac = ppd.do_temperature();
+  const bool do_jac = supports_CIA(jacobian_quantities);
+  const bool do_freq_jac = do_frequency_jacobian(jacobian_quantities);
+  const bool do_temp_jac = do_temperature_jacobian(jacobian_quantities);
   Vector dfreq, dabs_t;
-  const Numeric df = ppd.Frequency_Perturbation();
-  const Numeric dt = ppd.Temperature_Perturbation();
+  const Numeric df = frequency_perturbation(jacobian_quantities);
+  const Numeric dt = temperature_perturbation(jacobian_quantities);
+  const ArrayOfIndex jacobian_quantities_position = equivlent_propmattype_indexes(jacobian_quantities);
+  
   if(do_freq_jac)
   {
       dfreq.resize(f_grid.nelem());
@@ -251,17 +252,17 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
                     for(Index iv=0; iv<xsec_temp.nelem();iv++)
                     {
                         this_xsec(iv,ip) += n*xsec_temp[iv];
-                        for(Index iq=0; iq<ppd.nelem(); iq++)
+                        for(Index iq=0; iq<jacobian_quantities_position.nelem(); iq++)
                         {
-                            if(ppd.IsFrequencyParameter(ppd(iq)))
+                            if(is_frequency_parameter(jacobian_quantities[jacobian_quantities_position[iq]]))
                                 this_dxsec[iq](iv,ip) += n*(dxsec_temp_dF[iv]-xsec_temp[iv])/df;
-                            else if(ppd(iq)==JacPropMatType::Temperature)
+                            else if(jacobian_quantities[jacobian_quantities_position[iq]]==JacPropMatType::Temperature)
                                 this_dxsec[iq](iv,ip) += n*(dxsec_temp_dT[iv]-xsec_temp[iv])/dt + xsec_temp[iv]*dn_dT; 
-                            else if(ppd(iq) == JacPropMatType::VMR) // FIXME: Test that this works as expected using perturbations...
+                            else if(jacobian_quantities[jacobian_quantities_position[iq]] == JacPropMatType::VMR) // FIXME: Test that this works as expected using perturbations...
                             {
-                              if(ppd.SpeciesMatch(iq, abs_species[i_sec]))
+                              if(species_match(jacobian_quantities[jacobian_quantities_position[iq]], abs_species[i_sec]))
                                 this_dxsec[iq](iv,ip) += xsec_temp[iv];
-                              if(ppd.SpeciesMatch(iq, abs_species[i]))
+                              if(species_match(jacobian_quantities[jacobian_quantities_position[iq]], abs_species[i]))
                                 this_dxsec[iq](iv,ip) += xsec_temp[iv];
                             }
                             // Note for coef that d/dt(a*n*n) = da/dt * n1*n2 + a * dn1/dt * n2 + a * n1 * dn2/dt, 

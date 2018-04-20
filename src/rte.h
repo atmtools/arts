@@ -303,7 +303,7 @@ void get_stepwise_clearsky_propmat(Workspace& ws,
                                    ArrayOfStokesVector& dS_dx,
                                    const Agenda& propmat_clearsky_agenda,
                                    const ArrayOfRetrievalQuantity& jacobian_quantities,
-                                   const PropmatPartialsData& partial_derivatives,
+                                   const ArrayOfIndex& propmat_jacobian_position,
                                    ConstVectorView ppath_f_grid,
                                    ConstVectorView ppath_magnetic_field,
                                    ConstVectorView ppath_line_of_sight,
@@ -391,6 +391,7 @@ void get_stepwise_effective_source(MatrixView J,
                                    const bool& jacobian_do);
 
 void rtmethods_jacobian_init(
+         ArrayOfIndex&               propmat_jacobian_position,
          ArrayOfIndex&               jac_species_i,
          ArrayOfIndex&               jac_scat_i,
          ArrayOfIndex&               jac_is_t,
@@ -407,7 +408,6 @@ void rtmethods_jacobian_init(
    const Index&                      cloudbox_on,
    const ArrayOfString&              scat_species,         
    const ArrayOfTensor4&             dpnd_field_dx,
-   const PropmatPartialsData&        ppd,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const Index&                      iy_agenda_call1,
    const bool                        is_active = false );

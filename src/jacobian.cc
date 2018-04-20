@@ -41,6 +41,8 @@ extern const String  WIND_MAINTAG;
 extern const String  MAGFIELD_MAINTAG;
 extern const String  FLUX_MAINTAG;
 extern const String  PROPMAT_SUBSUBTAG;
+extern const String  ELECTRONS_MAINTAG;
+extern const String  PARTICULATES_MAINTAG;
 
 
 ostream& operator << (ostream& os, const RetrievalQuantity& ot)
@@ -1817,12 +1819,6 @@ void get_diydx(VectorView diy1,
 //             Propmat partials descriptions
 //======================================================================
 
-/*! Returns the number of elements for propagation matrix partial derivatives 
- * 
- * Sums every RetrievalQuantity that is not NotPropagationMatrixType
- * 
- * Returns this sum
- */
 Index number_of_propmattypes(const ArrayOfRetrievalQuantity& js)
 {
   Index n=0;
@@ -1832,20 +1828,18 @@ Index number_of_propmattypes(const ArrayOfRetrievalQuantity& js)
   return n;
 }
 
-Index equivlent_propmattype_index(const Index ij, const ArrayOfRetrievalQuantity& js)
+ArrayOfIndex equivlent_propmattype_indexes(const ArrayOfRetrievalQuantity& js)
 {
-  assert(ij >= 0);
-  
-  Index i=0, k=0;
-  for(const auto& j : js) {
-    if(j not_eq JacPropMatType::NotPropagationMatrixType) {
-      k++;
-      if(k > ij)
-        return i;
+  ArrayOfIndex pos;
+  pos.reserve(js.nelem());
+  Index j=0;
+  for(Index i=0; i<js.nelem(); i++){
+    if(js[i] not_eq JacPropMatType::NotPropagationMatrixType) {
+      pos.push_back(j);
+      j++;
     }
-    i++;
   }
-  return i;
+  return pos;
 }
 
 bool is_wind_parameter(const RetrievalQuantity& t)
@@ -1926,7 +1920,7 @@ bool is_line_parameter(const RetrievalQuantity& t)
          is_nlte_parameter(t);
 }
 
-bool supportsCIA(const ArrayOfRetrievalQuantity& js)
+bool supports_CIA(const ArrayOfRetrievalQuantity& js)
 {
   bool testvar = false;
   for(const auto& j : js)
@@ -1935,7 +1929,7 @@ bool supportsCIA(const ArrayOfRetrievalQuantity& js)
   return testvar;
 }
 
-bool supportsHitranXsec(const ArrayOfRetrievalQuantity& js)
+bool supports_hitran_xsec(const ArrayOfRetrievalQuantity& js)
 {
   bool testvar = false;
   for(const auto& j : js)
@@ -1944,7 +1938,7 @@ bool supportsHitranXsec(const ArrayOfRetrievalQuantity& js)
   return testvar;
 }
 
-bool supportsContinuum(const ArrayOfRetrievalQuantity& js) 
+bool supports_continuum(const ArrayOfRetrievalQuantity& js) 
 {
   bool testvar = false;
   for(const auto& j : js)
@@ -1955,7 +1949,7 @@ bool supportsContinuum(const ArrayOfRetrievalQuantity& js)
   return testvar;
 }
 
-bool supportsLBLwithoutPhase(const ArrayOfRetrievalQuantity& js) 
+bool supports_LBL_without_phase(const ArrayOfRetrievalQuantity& js) 
 {
   for(const auto& j : js)
     if(j not_eq JacPropMatType::VMR or j not_eq JacPropMatType::LineStrength or not is_nlte_parameter(j))
@@ -1963,7 +1957,7 @@ bool supportsLBLwithoutPhase(const ArrayOfRetrievalQuantity& js)
   return true;
 }
 
-bool supportsRelaxationMatrix(const ArrayOfRetrievalQuantity& js) 
+bool supports_relaxation_matrix(const ArrayOfRetrievalQuantity& js) 
 {
   bool testvar = false;
   for(const auto& j : js)
@@ -1974,7 +1968,7 @@ bool supportsRelaxationMatrix(const ArrayOfRetrievalQuantity& js)
   return testvar;
 }
 
-bool supportsLookup(const ArrayOfRetrievalQuantity& js)
+bool supports_lookup(const ArrayOfRetrievalQuantity& js)
 {
   bool testvar = false;
   for(const auto& j : js)
@@ -1985,7 +1979,7 @@ bool supportsLookup(const ArrayOfRetrievalQuantity& js)
   return testvar;
 }
 
-bool supportsZeemanPrecalc(const ArrayOfRetrievalQuantity& js) 
+bool supports_zeeman(const ArrayOfRetrievalQuantity& js) 
 {
   for(const auto& j : js) 
     if(j not_eq JacPropMatType::NotPropagationMatrixType)
@@ -1993,7 +1987,7 @@ bool supportsZeemanPrecalc(const ArrayOfRetrievalQuantity& js)
   return false;
 }
 
-bool supportsFaraday(const ArrayOfRetrievalQuantity& js)
+bool supports_faraday(const ArrayOfRetrievalQuantity& js)
 {
   bool testvar = false;
   for(const auto& j : js)
@@ -2004,7 +1998,7 @@ bool supportsFaraday(const ArrayOfRetrievalQuantity& js)
   return testvar;
 }
 
-bool supportsParticles(const ArrayOfRetrievalQuantity& js)
+bool supports_particles(const ArrayOfRetrievalQuantity& js)
 {
   for(const auto& j : js)
     if(j not_eq JacPropMatType::NotPropagationMatrixType)
@@ -2012,7 +2006,7 @@ bool supportsParticles(const ArrayOfRetrievalQuantity& js)
   return false;
 }
 
-bool supportsPropmatClearsky(const ArrayOfRetrievalQuantity& js)
+bool supports_propmat_clearsky(const ArrayOfRetrievalQuantity& js)
 {   
   for(const auto& j : js) 
     if(j not_eq JacPropMatType::NotPropagationMatrixType)
@@ -2039,7 +2033,7 @@ bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& ast)
   return true;
 }
 
-bool do_temperature(const ArrayOfRetrievalQuantity& js) 
+bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js) 
 {
   for(const auto& j : js)
     if(j == JacPropMatType::Temperature)
@@ -2047,23 +2041,39 @@ bool do_temperature(const ArrayOfRetrievalQuantity& js)
   return false;
 }
 
-bool do_frequency(const ArrayOfRetrievalQuantity& js) 
+bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js) 
+{
+  for(const auto& j : js)
+    if(j == JacPropMatType::LineCenter)
+      return true;
+  return false;
+}
+
+bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js) 
 {
   for(const auto& j : js)
     if(is_frequency_parameter(j))
       return true;
-    return false;
+  return false;
 }
 
-bool do_pressure(const ArrayOfRetrievalQuantity& js) 
+bool do_pressure_jacobian(const ArrayOfRetrievalQuantity& js) 
 {
   for(const auto& j : js)
     if(is_pressure_broadening_parameter(j))
       return true;
+  return false;
+}
+
+bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js) 
+{
+  for(const auto& j : js)
+    if(is_magnetic_parameter(j))
+      return true;
     return false;
 }
 
-Index get_first_frequency(const ArrayOfRetrievalQuantity& js) 
+Index get_first_frequency_index(const ArrayOfRetrievalQuantity& js) 
 {
   for(Index i=0; i<js.nelem(); i++)
     if(is_frequency_parameter(js[i]))
@@ -2071,12 +2081,36 @@ Index get_first_frequency(const ArrayOfRetrievalQuantity& js)
   return js.nelem();
 }
 
-Index get_first_pressure_term(const ArrayOfRetrievalQuantity& js) 
+Index get_first_pressure_term_index(const ArrayOfRetrievalQuantity& js) 
 {
   for(Index i=0; i<js.nelem(); i++)
     if(is_pressure_broadening_parameter(js[i]))
       return i;
-    return js.nelem();
+  return js.nelem();
+}
+
+Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js)
+{
+  for(const auto& j : js)
+    if(j == JacPropMatType::Temperature)
+      return j.Perturbation();
+  return 0;
+}
+
+Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js)
+{
+  for(const auto& j : js)
+    if(is_frequency_parameter(j))
+      return j.Perturbation();
+  return 0;
+}
+
+Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js)
+{
+  for(const auto& j : js)
+    if(is_magnetic_parameter(j))
+      return j.Perturbation();
+  return 0;
 }
 
 String propmattype_string(const RetrievalQuantity& rq)

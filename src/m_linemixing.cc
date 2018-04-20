@@ -119,7 +119,7 @@ ArrayOfArrayOfLineMixingRecord line_mixing_data(abs_species.nelem());//FIXME: Ad
             << "  Matching lines are: " << std::endl;
             for (Index m = 0; m < matches.nelem(); m++)
                 os << "  " << abs_lines_per_species[species_index][matches[m]] << std::endl
-                << "  " << abs_lines_per_species[species_index][matches[m]].QuantumNumbers()
+                << "  " << abs_lines_per_species[species_index][matches[m]].QuantumIdentity()
                 << std::endl;
             throw std::runtime_error(os.str());
         }
@@ -1109,7 +1109,8 @@ inline
 void calculate_xsec_from_full_relmat(ArrayOfMatrix& xsec,
                                      ArrayOfArrayOfMatrix& dxsec_dx,
                                      const ArrayOfLineRecord& lines,
-                                     const PropmatPartialsData& ppd,
+                                     const ArrayOfRetrievalQuantity& derivatives_data,
+                                     const ArrayOfIndex& derivatives_data_position,
                                      const ConstMatrixView Wmat,
                                      const ConstMatrixView Wmat_perturbedT,
                                      const ConstVectorView f0,
@@ -1131,8 +1132,9 @@ void calculate_xsec_from_full_relmat(ArrayOfMatrix& xsec,
   
   const static Numeric c1 = 1 / PI;
   
-  const Index nf=f_grid.nelem(), nd=ppd.nelem();
-  const bool do_temperature=ppd.do_temperature();
+  const Index nf = f_grid.nelem(), nd = derivatives_data_position.nelem();
+  const bool do_temperature = do_temperature_jacobian(derivatives_data);
+  const Numeric dT = temperature_perturbation(derivatives_data);
   
   Vector x0(f0.nelem()), d0_signs(f0.nelem());
   for(Index if0=0; if0<f0.nelem(); if0++) {
@@ -1177,8 +1179,8 @@ void calculate_xsec_from_full_relmat(ArrayOfMatrix& xsec,
     const Numeric x = c1 * isotopologue_ratio * f_grid[iv] * (1 - exp(-PLANCK_CONST*f_grid[iv]/BOLTZMAN_CONST/T));
     xsec[this_species](iv, this_level) += x * sum;
     for(Index id = 0; id < nd; id++) {
-      if(ppd(id) == JacPropMatType::Temperature) {
-        dxsec_dx[this_species][id](iv, this_level) += x * (sum_perturbedT - sum) / ppd.Temperature_Perturbation();
+      if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::Temperature) {
+        dxsec_dx[this_species][id](iv, this_level) += x * (sum_perturbedT - sum) / dT;
       }
     }
   }
@@ -1188,7 +1190,8 @@ void calculate_xsec_from_full_relmat(ArrayOfMatrix& xsec,
 inline
 void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
                                              ArrayOfArrayOfMatrix& dxsec_dx,
-                                             const PropmatPartialsData& ppd,
+                                             const ArrayOfRetrievalQuantity& derivatives_data,
+                                             const ArrayOfIndex& derivatives_data_position,
                                              const ConstVectorView pressure_broadening,
                                              const ConstVectorView dpressure_broadening_dT,
                                              const ConstVectorView f0,
@@ -1217,45 +1220,43 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
   extern const Numeric SPEED_OF_LIGHT;
   
   // internal constant
-  const Index nf  = f_grid.nelem(), nppd = ppd.nelem();
+  const Index nf  = f_grid.nelem(), nppd = derivatives_data_position.nelem();
   const Numeric kT = BOLTZMAN_CONST * T;
   const Numeric doppler_const = sqrt( 2.0 * kT * AVOGADROS_NUMB / isotopologue_mass ) / SPEED_OF_LIGHT,
     ddoppler_const_dT = doppler_const / T;
   const QuantumIdentifier QI;
   
   ComplexVector F(nf);
-  ArrayOfComplexVector dF(ppd.nelem());
-  for(auto& df : dF) 
-    df.resize(nf);
+  ArrayOfComplexVector dF(derivatives_data_position.nelem(), F);
   
   for(Index iline = 0; iline < n; iline++)
   {
     
-    if(ppd.do_temperature())
+    if(do_temperature_jacobian(derivatives_data))
     {
       Linefunctions::set_faddeeva_algorithm916(F, dF, f_grid,
                                                0.0, 0.0, f0[iline],
                                                doppler_const, pressure_broadening[iline], 
                                                psf[iline], DV[iline],
-                                               ppd, QI,
+                                               derivatives_data, derivatives_data_position, QI,
                                                ddoppler_const_dT, dpressure_broadening_dT[iline], 
                                                dpsf_dT[iline] + dDV_dT[iline]);
       
-      Linefunctions::apply_linemixing_scaling(F, dF, Y[iline], G[iline], ppd, QI, dY_dT[iline], dG_dT[iline]);
+      Linefunctions::apply_linemixing_scaling(F, dF, Y[iline], G[iline], derivatives_data, derivatives_data_position, QI, dY_dT[iline], dG_dT[iline]);
       
       Linefunctions::apply_dipole(F, dF, f0[iline], T, d0[iline], rhoT[iline], isotopologue_ratio, 
-                                  ppd, QI, drhoT_dT[iline]);
+                                  derivatives_data, derivatives_data_position, QI, drhoT_dT[iline]);
     }
     else
     {
       Linefunctions::set_faddeeva_algorithm916(F, dF, f_grid,
                                                0.0, 0.0, f0[iline],
                                                doppler_const, pressure_broadening[iline], 
-                                               psf[iline], DV[iline], ppd, QI);
+                                               psf[iline], DV[iline], derivatives_data, derivatives_data_position, QI);
       
-      Linefunctions::apply_linemixing_scaling(F, dF, Y[iline], G[iline], ppd, QI);
+      Linefunctions::apply_linemixing_scaling(F, dF, Y[iline], G[iline], derivatives_data, derivatives_data_position, QI);
       
-      Linefunctions::apply_dipole(F, dF, f0[iline], T, d0[iline], rhoT[iline], isotopologue_ratio, ppd, QI);
+      Linefunctions::apply_dipole(F, dF, f0[iline], T, d0[iline], rhoT[iline], isotopologue_ratio, derivatives_data, derivatives_data_position, QI);
     }
     
     for(Index ii = 0; ii < nf; ii++)
@@ -1471,6 +1472,9 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
   // Relmat constants
   const Numeric relmat_T0 = 296.0;
   
+  // Jacobian constants
+  const ArrayOfIndex jacobian_quantities_position = equivlent_propmattype_indexes(jacobian_quantities);
+  
   // Test that wigner is wigner is initialized
   if(not wigner_initialized)
     throw std::runtime_error("Run InitWigner6() before this function...");
@@ -1495,11 +1499,9 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
   if(abs_lines_per_band.nelem() not_eq band_identifiers.nelem())
     throw std::runtime_error("Mismatch between band_identifiers and bands\n");
   
-  PropmatPartialsData ppd(jacobian_quantities);
-  ppd.supportsRelaxationMatrix();
-  // It should support temperature and wind, and maybe even the line mixing parameters as an error vector
+  supports_relaxation_matrix(jacobian_quantities);  // It should support temperature and wind, and maybe even the line mixing parameters as an error vector
   
-  const Index nbands = abs_lines_per_band.nelem(), nppd = ppd.nelem();
+  const Index nbands = abs_lines_per_band.nelem();
   
   if(write_relmat_per_band) { 
     relmat_per_band.resize(nps);
@@ -1656,7 +1658,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       
       // l2 is for molecules like CO2
       {
-        a = this_line.QuantumNumbers().Lower()[QuantumNumberType::l2];
+        a = this_line.LowerQuantumNumbers()[QuantumNumberType::l2];
         a.Simplify();
         if(a.isUndefined())
           lower[0+4*iline] = -1;
@@ -1664,7 +1666,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           lower[0+4*iline] = (long) a.toIndex();
         else 
           throw std::runtime_error("Half quantum numbers not supported in l2.");
-        a = this_line.QuantumNumbers().Upper()[QuantumNumberType::l2];
+        a = this_line.UpperQuantumNumbers()[QuantumNumberType::l2];
         a.Simplify();
         if(a.isUndefined())
           upper[0+4*iline] = -1;
@@ -1676,7 +1678,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       
       // J is universally important for linear molecules
       {
-        a = this_line.QuantumNumbers().Lower()[QuantumNumberType::J];
+        a = this_line.LowerQuantumNumbers()[QuantumNumberType::J];
         a.Simplify();
         if(a.isUndefined())
           lower[1+4*iline] = -1;
@@ -1684,7 +1686,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           lower[1+4*iline] = (long) a.toIndex();
         else 
           throw std::runtime_error("Half quantum numbers not supported in J.");
-        a = this_line.QuantumNumbers().Upper()[QuantumNumberType::J];
+        a = this_line.UpperQuantumNumbers()[QuantumNumberType::J];
         a.Simplify();
         if(a.isUndefined())
           upper[1+4*iline] = -1;
@@ -1696,7 +1698,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       
       // N is important for molecules with magnetic dipoles
       {
-        a = this_line.QuantumNumbers().Lower()[QuantumNumberType::N];
+        a = this_line.LowerQuantumNumbers()[QuantumNumberType::N];
         a.Simplify();
         if(a.isUndefined())
           lower[2+4*iline] = -1;
@@ -1704,7 +1706,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           lower[2+4*iline] = (long) a.toIndex();
         else 
           throw std::runtime_error("Half quantum numbers not supported in N.");
-        a = this_line.QuantumNumbers().Upper()[QuantumNumberType::N];
+        a = this_line.UpperQuantumNumbers()[QuantumNumberType::N];
         a.Simplify();
         if(a.isUndefined())
           upper[2+4*iline] = -1;
@@ -1716,7 +1718,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       
       // S is important for molecules with magnetic dipoles
       {
-        a = this_line.QuantumNumbers().Lower()[QuantumNumberType::S];
+        a = this_line.LowerQuantumNumbers()[QuantumNumberType::S];
         a.Simplify();
         if(a.isUndefined())
           lower[3+4*iline] = -1;
@@ -1724,7 +1726,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           lower[3+4*iline] = (long) a.toIndex();
         else 
           throw std::runtime_error("Half quantum numbers not supported in S.");
-        a = this_line.QuantumNumbers().Upper()[QuantumNumberType::S];
+        a = this_line.UpperQuantumNumbers()[QuantumNumberType::S];
         a.Simplify();
         if(a.isUndefined())
           upper[3+4*iline] = -1;
@@ -1761,7 +1763,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       Vector Y_dt, G_dt, DV_dt;
       Vector dipole_dt;
       Vector rhoT_dt;
-      if(ppd.do_temperature()) {
+      if(do_temperature_jacobian(jacobian_quantities)) {
         W_dt.resize(nlines,nlines);
         dipole_dt.resize(nlines);
         rhoT_dt.resize(nlines);
@@ -1771,7 +1773,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       }
       
       Vector psf(nlines), psf_dt;
-      if(ppd.do_temperature())
+      if(do_temperature_jacobian(jacobian_quantities))
         psf_dt.resize(nlines);
       
       if(abs_p[ip] > lm_p_lim or order_of_linemixing < 0) {
@@ -1879,12 +1881,12 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
         DV *= w2Hz;
         
         // The temperature derivatives are for now only possible to do with perturbations
-        if(ppd.do_temperature()) {
+        if(do_temperature_jacobian(jacobian_quantities)) {
           // Do not write debug information in this section... do not crash
           Index e_tmp = -1;
           
           // Perturbed temperature
-          Numeric t_dt = t + ppd.Temperature_Perturbation();
+          Numeric t_dt = t + temperature_perturbation(jacobian_quantities);
           
           Numeric QT_dt;
           
@@ -1945,8 +1947,8 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
         }
         
         // Use the provided pressure shift  NOTE: this might be a bad idea
-        if(ppd.do_temperature()) {
-          const Numeric t_dt = abs_t[ip] + ppd.Temperature_Perturbation();
+        if(do_temperature_jacobian(jacobian_quantities)) {
+          const Numeric t_dt = abs_t[ip] + temperature_perturbation(jacobian_quantities);
           for(Index ii = 0; ii < nlines; ii++) {
             psf[ii] = delta_air[ii] * abs_p[ip] * pow ((relmat_T0/abs_t[ip]),(Numeric)0.25+(Numeric)1.5*n_air[ii]);
             psf_dt[ii] = delta_air[ii] * abs_p[ip] * pow ((relmat_T0/t_dt),(Numeric)0.25+(Numeric)1.5*n_air[ii]);
@@ -1966,7 +1968,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
         // Using Rodrigues etal method
         if(order_of_linemixing_type < 0) {
           calculate_xsec_from_full_relmat(abs_xsec_per_species, dabs_xsec_per_species_dx, this_band,
-                                          ppd, W, W_dt, f0, f_grid, dipole,
+                                          jacobian_quantities, jacobian_quantities_position, W, W_dt, f0, f_grid, dipole,
                                           rhoT, rhoT_dt, psf, psf_dt, abs_t[ip],
                                           iso_ratio, this_species, ip, nlines);
           
@@ -1975,10 +1977,10 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
         }
         else {
           ConstVectorView pressure_broadening = W.diagonal();
-          ConstVectorView pressure_broadening_dt = ppd.do_temperature()?W_dt.diagonal():Vector(0);
+          ConstVectorView pressure_broadening_dt = do_temperature_jacobian(jacobian_quantities) ? W_dt.diagonal() : Vector(0);
           
           calculate_xsec_from_relmat_coefficients(abs_xsec_per_species, dabs_xsec_per_species_dx,
-                                                  ppd, pressure_broadening, pressure_broadening_dt,
+                                                  jacobian_quantities, jacobian_quantities_position, pressure_broadening, pressure_broadening_dt,
                                                   f0, f_grid, dipole, rhoT, rhoT_dt, psf, psf_dt,
                                                   Y, Y_dt, G, G_dt, DV, DV_dt, abs_t[ip], mass,
                                                   iso_ratio, this_species, ip, nlines);
@@ -2003,7 +2005,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       else {
         Numeric QT = -1, QT0 = -1, part_ratio;
         ComplexVector F(nf);
-        ArrayOfComplexVector dF(ppd.nelem(), ComplexVector(nf));
+        ArrayOfComplexVector dF(jacobian_quantities_position.nelem(), ComplexVector(nf));
         const Numeric GD_div_F0 = doppler_const * sqrt(abs_t[ip] / mass);
         
         for( long iline=0; iline<nlines; iline++ ) {
@@ -2037,7 +2039,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             #pragma omp atomic
             abs_xsec_per_species[this_species](ii, ip) += y;
             
-            for(Index jj = 0; jj < nppd; jj++) {
+            for(Index jj = 0; jj < jacobian_quantities_position.nelem(); jj++) {
               const Numeric& dy_dx = dF[jj][ii].real();
               #pragma omp atomic
               dabs_xsec_per_species_dx[this_species][jj](ii, ip) += dy_dx;

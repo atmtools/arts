@@ -103,7 +103,7 @@ main (int /*argc*/, char * /*argv*/ [])
         for (Index i = 0; i < matches.nelem(); i++)
         {
             cout << abs_lines[matches[i]] << endl;
-            cout << abs_lines[matches[i]].QuantumNumbers() << endl;
+            cout << abs_lines[matches[i]].QuantumIdentity() << endl;
         }
 
         cout << "========================================" << endl << endl;

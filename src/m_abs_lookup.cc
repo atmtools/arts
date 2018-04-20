@@ -2173,12 +2173,12 @@ void propmat_clearskyAddFromLookup( ArrayOfPropagationMatrix& propmat_clearsky,
         throw runtime_error("Gas absorption lookup table must be adapted,\n"
                             "use method abs_lookupAdapt.");
 
-    const PropmatPartialsData ppd(jacobian_quantities);
-    const bool do_jac = ppd.supportsLookup();
-    const bool do_freq_jac = ppd.do_frequency();
-    const bool do_temp_jac = ppd.do_temperature();
-    const Numeric df = ppd.Frequency_Perturbation();
-    const Numeric dt = ppd.Temperature_Perturbation();
+    const bool do_jac = supports_lookup(jacobian_quantities);
+    const bool do_freq_jac = do_frequency_jacobian(jacobian_quantities);
+    const bool do_temp_jac = do_temperature_jacobian(jacobian_quantities);
+    const Numeric df = frequency_perturbation(jacobian_quantities);
+    const Numeric dt = temperature_perturbation(jacobian_quantities);
+    const ArrayOfIndex jacobian_quantities_position = equivlent_propmattype_indexes(jacobian_quantities);
         
     // The function we are going to call here is one of the few helper
     // functions that adjust the size of their output argument
@@ -2240,19 +2240,19 @@ void propmat_clearskyAddFromLookup( ArrayOfPropagationMatrix& propmat_clearsky,
         
         for(Index iv = 0; iv<propmat_clearsky[isp].NumberOfFrequencies();iv++)
         {  
-          for(Index iq=0; iq<ppd.nelem();iq++)
+          for(Index iq=0; iq<jacobian_quantities_position.nelem();iq++)
           {
-            if(ppd(iq)==JacPropMatType::Temperature)
+            if(jacobian_quantities[jacobian_quantities_position[iq]] == JacPropMatType::Temperature)
             {
               dpropmat_clearsky_dx[iq].Kjj()[iv] += (dabs_scalar_gas_dt(isp,iv)-abs_scalar_gas(isp,iv))/dt;
             }
-            else if(ppd.IsFrequencyParameter(ppd(iq)))
+            else if(is_frequency_parameter(jacobian_quantities[jacobian_quantities_position[iq]]))
             {
               dpropmat_clearsky_dx[iq].Kjj()[iv] += (dabs_scalar_gas_df(isp,iv)-abs_scalar_gas(isp,iv))/df;
             }
-            else if(ppd(iq)==JacPropMatType::VMR)
+            else if(jacobian_quantities[jacobian_quantities_position[iq]] == JacPropMatType::VMR)
             {
-              if(ppd.species(iq)!=abs_lookup.GetSpeciesIndex(isp)) continue;  // FIXME?:  Ignoring isotopologue???
+              if(jacobian_quantities[jacobian_quantities_position[iq]].QuantumIdentity().Species() not_eq abs_lookup.GetSpeciesIndex(isp)) continue;  // FIXME?:  Ignoring isotopologue???
               
               // WARNING:  If CIA in list, this scales wrong by factor 2
               dpropmat_clearsky_dx[iq].Kjj()[iv] += abs_scalar_gas(isp,iv) / a_vmr_list[isp]; 

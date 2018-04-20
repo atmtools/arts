@@ -19098,46 +19098,6 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
       ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "WriteARTSCAT5" ),
-      DESCRIPTION
-      (
-        "Binary method to write ARTSCAT5\n"
-        "Still in development...\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN("filename"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT( NODEF),
-      GIN_DESC("Name of file" )
-    ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "ReadARTSCAT5" ),
-      DESCRIPTION
-      (
-        "Read binary ARTSCAT5\n"
-        "Still in development...\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("filename"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT( NODEF),
-      GIN_DESC("Name of file" )
-    ));
 
   md_data_raw.push_back
     ( MdRecord

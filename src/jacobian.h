@@ -149,7 +149,7 @@ public:
   void Grids( const ArrayOfVector& g ) { mgrids = g; }
   void PropType(const JacPropMatType t) {mproptype = t;}
   bool operator==(const JacPropMatType t) const {return t == mproptype;}
-  bool operator!=(const JacPropMatType t) const {return not operator==(t);}
+  bool operator!=(const JacPropMatType t) const {return t != mproptype;}
   JacPropMatType PropMatType() const {return mproptype;}
 
   Index nelem() const {
@@ -438,9 +438,19 @@ void get_diydx(VectorView diy1,
 //             Propmat partials descriptions
 //======================================================================
 
-Index number_of_propmattypes(const ArrayOfRetrievalQuantity& j);
+Index get_first_frequency_index(const ArrayOfRetrievalQuantity& js);
 
-Index equivlent_propmattype_index(const Index ij, const ArrayOfRetrievalQuantity& j);
+Index get_first_pressure_term_index(const ArrayOfRetrievalQuantity& js);
+
+Index number_of_propmattypes(const ArrayOfRetrievalQuantity& js);
+
+ArrayOfIndex equivlent_propmattype_indexes(const ArrayOfRetrievalQuantity& js);
+
+Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js);
+
+Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js);
+
+Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js);
 
 String propmattype_string(const RetrievalQuantity& rq);
 
@@ -468,33 +478,38 @@ bool is_pressure_broadening_parameter(const RetrievalQuantity& t);
 
 bool is_line_parameter(const RetrievalQuantity& t);
 
-bool supportsCIA(const ArrayOfRetrievalQuantity& js);
+bool supports_CIA(const ArrayOfRetrievalQuantity& js);
 
-bool supportsHitranXsec(const ArrayOfRetrievalQuantity& js);
+bool supports_hitran_xsec(const ArrayOfRetrievalQuantity& js);
 
-bool supportsContinuum(const ArrayOfRetrievalQuantity& js);
+bool supports_continuum(const ArrayOfRetrievalQuantity& js);
 
-bool supportsLBLwithoutPhase(const ArrayOfRetrievalQuantity& js);
+bool supports_LBL_without_phase(const ArrayOfRetrievalQuantity& js);
 
-bool supportsRelaxationMatrix(const ArrayOfRetrievalQuantity& js);
+bool supports_relaxation_matrix(const ArrayOfRetrievalQuantity& js);
 
-bool supportsLookup(const ArrayOfRetrievalQuantity& js);
+bool supports_lookup(const ArrayOfRetrievalQuantity& js);
 
-bool supportsZeemanPrecalc(const ArrayOfRetrievalQuantity& js);
+bool supports_zeeman(const ArrayOfRetrievalQuantity& js);
 
-bool supportsFaraday(const ArrayOfRetrievalQuantity& js);
+bool supports_faraday(const ArrayOfRetrievalQuantity& js);
 
-bool supportsParticles(const ArrayOfRetrievalQuantity& js);
+bool supports_particles(const ArrayOfRetrievalQuantity& js);
 
-bool supportsPropmatClearsky(const ArrayOfRetrievalQuantity& js);
+bool supports_propmat_clearsky(const ArrayOfRetrievalQuantity& js);
 
 bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& st);
 
-bool do_temperature(const ArrayOfRetrievalQuantity& js);
+bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js);
 
-bool do_frequency(const ArrayOfRetrievalQuantity& js);
+bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js);
 
-bool do_pressure(const ArrayOfRetrievalQuantity& js);
+bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js);
+
+bool do_pressure_jacobian(const ArrayOfRetrievalQuantity& js);
+
+bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js);
 
 #endif // jacobian_h
+
 

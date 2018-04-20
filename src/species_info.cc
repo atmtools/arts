@@ -57,10 +57,10 @@ Numeric reduced_dipole(const LineRecord& line)
   const static Rational one = Rational(1, 1);
   
   if(species_index_from_species_name("CO2") == line.Species()) {
-    const Rational& Jf = line.QuantumNumbers().Lower(QuantumNumberType::J);
-    const Rational& Ji = line.QuantumNumbers().Upper(QuantumNumberType::J);
-    const Rational& l2f = line.QuantumNumbers().Lower(QuantumNumberType::l2);
-    const Rational& l2i = line.QuantumNumbers().Upper(QuantumNumberType::l2);
+    const Rational& Jf = line.LowerQuantumNumbers()[QuantumNumberType::J];
+    const Rational& Ji = line.UpperQuantumNumbers()[QuantumNumberType::J];
+    const Rational& l2f = line.LowerQuantumNumbers()[QuantumNumberType::l2];
+    const Rational& l2i = line.UpperQuantumNumbers()[QuantumNumberType::l2];
     const Index sign = (Jf+l2f+1).toIndex()?1:-1;
     const Numeric root = sqrt((2*Jf+1).toNumeric());
     const Numeric w3j_res = wigner3j(Ji,  one,      Jf,
@@ -68,12 +68,12 @@ Numeric reduced_dipole(const LineRecord& line)
     return Numeric(sign) * root * w3j_res;
   }
   else if(species_index_from_species_name("O2") == line.Species()) { // C++ version of pureHund in module_phsub.F90...
-    if(line.QuantumNumbers().Lower(QuantumNumberType::Hund).toIndex() == Index(Hund::CaseA))
+    if(line.LowerQuantumNumbers()[QuantumNumberType::Hund].toIndex() == Index(Hund::CaseA))
       throw std::runtime_error("Hund case a not implemented for O2 reduced dipole");
-    const Rational& Nf = line.QuantumNumbers().Lower(QuantumNumberType::N);
-    const Rational& Ni = line.QuantumNumbers().Upper(QuantumNumberType::N);
-    const Rational& Jf = line.QuantumNumbers().Lower(QuantumNumberType::J);
-    const Rational& Ji = line.QuantumNumbers().Upper(QuantumNumberType::J);
+    const Rational& Nf = line.LowerQuantumNumbers()[QuantumNumberType::N];
+    const Rational& Ni = line.UpperQuantumNumbers()[QuantumNumberType::N];
+    const Rational& Jf = line.LowerQuantumNumbers()[QuantumNumberType::J];
+    const Rational& Ji = line.UpperQuantumNumbers()[QuantumNumberType::J];
     Numeric c;
     if((Nf == Ni+1) and (Jf == Ji+1))
       c = sqrt(Ji.toNumeric());

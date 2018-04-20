@@ -48,6 +48,7 @@
 
 #include "global_data.h"
 #include "linefunctions.h"
+#include "partial_derivatives.h"
 
 
 /** Mapping of species auxiliary type names to SpeciesAuxData::AuxType enum */
@@ -1876,7 +1877,8 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
                                         ArrayOfMatrix&           partial_xsec_attenuation,
                                         ArrayOfMatrix&           partial_xsec_source,
                                         ArrayOfMatrix&           partial_xsec_phase,
-                                        const PropmatPartialsData& flag_partials,
+                                        const ArrayOfRetrievalQuantity& flag_partials,
+                                        const ArrayOfIndex& flag_partials_position,
                                         ConstVectorView          f_grid,
                                         ConstVectorView          abs_p,
                                         ConstVectorView          abs_t,
@@ -1897,11 +1899,11 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     
     // Optional paths through the code...
     const bool cut = (cutoff != -1) ? true : false;
-    const bool calc_partials = flag_partials.nelem();
+    const bool calc_partials = flag_partials_position.nelem();
     const bool calc_partials_phase = partial_xsec_phase.nelem()==partial_xsec_attenuation.nelem();
     const bool do_zeeman = (abs_lines.nelem()?(abs_lines[0].ZeemanEffect().PolarizationType()==ZeemanPolarizationType::None?false:true):false);
     const bool do_lm     = abs_species[this_species][0].LineMixing() != SpeciesTag::LINE_MIXING_OFF;
-    const bool no_ls_partials = flag_partials.supportsLBLwithoutPhase();
+    const bool no_ls_partials = supports_LBL_without_phase(flag_partials);
     
     const bool we_need_phase = do_zeeman || do_lm || calc_partials_phase;
     const bool we_need_partials =calc_partials&&!no_ls_partials;
@@ -2171,7 +2173,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     attenuation, phase, dFa_dx, dFb_dx, dFa_dy, dFb_dy, this_f_range, fac, aux, 
                                     // FREQUENCY
                                     f_local,  f_grid,  f_grid.nelem(),  cutoff,
-                                    abs_lines[ii].F()+abs_lines[ii].ZeemanEffect().frequency_shift_per_tesla(abs_lines[ii].QuantumNumbers(), abs_lines[ii].Species())*H_magntitude_Zeeman,
+                                    abs_lines[ii].F()+abs_lines[ii].ZeemanEffect().frequency_shift_per_tesla(abs_lines[ii].UpperQuantumNumbers(), abs_lines[ii].LowerQuantumNumbers(), abs_lines[ii].Species())*H_magntitude_Zeeman,
                                     // LINE STRENGTH
                                     abs_lines[ii].I0(), partition_ratio, K1*K2, abs_nlte_ratio, src_nlte_ratio,
                                     isotopologue_ratios.getParam(abs_lines[ii].Species(),
@@ -2202,7 +2204,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                     this_f_range, fac, aux, 
                                     // FREQUENCY
                                     f_local, f_grid, f_grid.nelem(), cutoff, 
-                                    abs_lines[ii].F()+abs_lines[ii].ZeemanEffect().frequency_shift_per_tesla(abs_lines[ii].QuantumNumbers(), abs_lines[ii].Species())*H_magntitude_Zeeman,
+                                    abs_lines[ii].F()+abs_lines[ii].ZeemanEffect().frequency_shift_per_tesla(abs_lines[ii].UpperQuantumNumbers(), abs_lines[ii].LowerQuantumNumbers(), abs_lines[ii].Species())*H_magntitude_Zeeman,
                                     // LINE STRENGTH
                                     abs_lines[ii].I0(), partition_ratio, K1*K2, abs_nlte_ratio, src_nlte_ratio,
                                     isotopologue_ratios.getParam(abs_lines[ii].Species(),
@@ -2228,9 +2230,9 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                 dY_dT=0.0,dG_dT=0.0,dDV_dT=0.0,
                 dQ_dT, dK2_dT, dabs_nlte_ratio_dT=0.0,
                 atm_tv_low, atm_tv_upp;
-                if(flag_partials.do_temperature())
+                if(do_temperature_jacobian(flag_partials))
                 {
-                    abs_lines[ii].LineMixing().GetLineMixingParams_dT(dY_dT, dG_dT, dDV_dT, t, flag_partials.Temperature_Perturbation(),
+                    abs_lines[ii].LineMixing().GetLineMixingParams_dT(dY_dT, dG_dT, dDV_dT, t, temperature_perturbation(flag_partials),
                                                                       p, lm_p_lim, 1);
                     abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dT(dgamma_0_dT,dgamma_2_dT,
                                                                                       deta_dT, ddf_0_dT, 
@@ -2251,7 +2253,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                           partition_functions.getParam(abs_lines[ii].Species(), abs_lines[ii].Isotopologue()),
                                           t,
                                           abs_lines[ii].Ti0(),
-                                          flag_partials.Temperature_Perturbation(),
+                                          temperature_perturbation(flag_partials),
                                           abs_lines[ii].F(),
                                           calc_src,
                                           abs_lines[ii].Evlow(),
@@ -2264,47 +2266,58 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                 // These needs to be calculated when pressure broadening partial derivatives are needed
                 // Note that this gives plenty of wasted calculations for all lines that are not specifically
                 // requesting their individual partial derivatives...
+                const QuantumIdentifier& quantum_identity = abs_lines[ii].QuantumIdentity();
                 Numeric gamma_dSelf=0.0, gamma_dForeign=0.0, gamma_dWater=0.0,
                         psf_dSelf=0.0, psf_dForeign=0.0, psf_dWater=0.0, 
                         gamma_dSelfExponent=0.0, gamma_dForeignExponent=0.0, gamma_dWaterExponent=0.0,
                         psf_dSelfExponent=0.0, psf_dForeignExponent=0.0, psf_dWaterExponent=0.0;
-                if(flag_partials.PressureBroadeningTerm(0)) // Self broadening gamma
-                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dSelfGamma(
-                        gamma_dSelf,abs_lines[ii].Ti0()/t,p_partial);
-                if(flag_partials.PressureBroadeningTerm(1)) // Foreign broadening gamma
-                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dForeignGamma(
-                        gamma_dForeign,abs_lines[ii].Ti0()/t,p,p_partial,this_species,h2o_index,vmrs);
-                if(flag_partials.PressureBroadeningTerm(2)) // Water broadening gamma
-                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterGamma(
-                        gamma_dWater,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
-                if(flag_partials.PressureBroadeningTerm(3)) // Self broadening exponent
-                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dSelfExponent(
-                        gamma_dSelfExponent, psf_dSelfExponent, abs_lines[ii].Ti0()/t,p_partial);
-                if(flag_partials.PressureBroadeningTerm(4)) // Foreign broadening exponent
-                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dForeignExponent(
-                        gamma_dForeignExponent,psf_dForeignExponent,abs_lines[ii].Ti0()/t,p,p_partial,this_species,h2o_index,vmrs);
-                if(flag_partials.PressureBroadeningTerm(5)) // Water broadening exponent
-                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterExponent(
-                        gamma_dWaterExponent,psf_dWaterExponent,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
-                if(flag_partials.PressureBroadeningTerm(6)) // Self broadening psf
-                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dSelfPsf(
-                        psf_dSelf,abs_lines[ii].Ti0()/t,p_partial);
-                if(flag_partials.PressureBroadeningTerm(7)) // Foreign broadening psf
-                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dForeignPsf(
-                        psf_dForeign,abs_lines[ii].Ti0()/t,p,p_partial,this_species,h2o_index,vmrs);
-                if(flag_partials.PressureBroadeningTerm(8)) // Water broadening psf
-                    abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterPsf(
-                        psf_dWater,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
-                
                 Numeric dY0=0., dY1=0., dYexp=0., dG0=0., dG1=0., dGexp=0., dDV0=0., dDV1=0., dDVexp=0.;
-                if(do_lm)
-                {
-                    if(flag_partials.ZerothTermLM())
-                        abs_lines[ii].LineMixing().GetLineMixingParams_dZerothOrder(dY0, dG0, dDV0, t, p, lm_p_lim);
-                    if(flag_partials.FirstTermLM())
-                        abs_lines[ii].LineMixing().GetLineMixingParams_dFirstOrder(dY1, dG1, dDV1, t, p, lm_p_lim);
-                    if(flag_partials.ExponentLM())
-                        abs_lines[ii].LineMixing().GetLineMixingParams_dExponent(dYexp, dGexp, dDVexp, t, p, lm_p_lim);
+                for(Index iq=0; iq<flag_partials_position.nelem(); iq++) {
+                  if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineGammaSelf) {
+                    if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
+                      abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dSelfGamma(gamma_dSelf,abs_lines[ii].Ti0()/t,p_partial);
+                  }
+                  else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineGammaForeign) {
+                    if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
+                      abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dForeignGamma(gamma_dForeign,abs_lines[ii].Ti0()/t,p,p_partial,this_species,h2o_index,vmrs);
+                  }
+                  else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineGammaWater) {
+                    if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
+                      abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterGamma(gamma_dWater,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
+                  }
+                  else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineGammaSelfExp) {
+                    if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
+                      abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dSelfExponent(gamma_dSelfExponent, psf_dSelfExponent, abs_lines[ii].Ti0()/t,p_partial);
+                  }
+                  else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineGammaForeignExp) {
+                    if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
+                      abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dForeignExponent(gamma_dForeignExponent,psf_dForeignExponent,abs_lines[ii].Ti0()/t,p,p_partial,this_species,h2o_index,vmrs);
+                  }
+                  else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineGammaWaterExp) {
+                    if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
+                      abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterExponent(gamma_dWaterExponent,psf_dWaterExponent,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
+                  }
+                  else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineShiftSelf) {
+                    if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
+                      abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dSelfPsf(psf_dSelf,abs_lines[ii].Ti0()/t,p_partial);
+                  }
+                  else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineShiftForeign) {
+                    if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
+                      abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dForeignPsf(psf_dForeign,abs_lines[ii].Ti0()/t,p,p_partial,this_species,h2o_index,vmrs);
+                  }
+                  else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineShiftWater) {
+                    if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
+                      abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterPsf(psf_dWater,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
+                  }
+                  else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingDF0 or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingG0 or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingY0) {
+                    abs_lines[ii].LineMixing().GetLineMixingParams_dZerothOrder(dY0, dG0, dDV0, t, p, lm_p_lim);
+                  }
+                  else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingDF1 or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingG1 or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingY1) {
+                    abs_lines[ii].LineMixing().GetLineMixingParams_dFirstOrder(dY1, dG1, dDV1, t, p, lm_p_lim);
+                  }
+                  else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingDFExp or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingGExp or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingYExp) {
+                    abs_lines[ii].LineMixing().GetLineMixingParams_dExponent(dYexp, dGexp, dDVexp, t, p, lm_p_lim);
+                  }
                 }
                     
                 // Gather all new partial derivative calculations in this function
@@ -2312,6 +2325,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                          partial_xsec_phase, 
                                                          partial_xsec_source,
                                                          flag_partials, 
+                                                         flag_partials_position, 
                                                          attenuation,
                                                          phase,
                                                          fac,
@@ -2355,9 +2369,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                          dDV0,
                                                          dDV1,
                                                          dDVexp,
-                                                         abs_lines[ii].QuantumNumbers(),
-                                                         abs_lines[ii].Species(),
-                                                         abs_lines[ii].Isotopologue(),
+                                                         abs_lines[ii].QuantumIdentity(),
                                                          // LINE SHAPE
                                                          ind_ls,
                                                          ind_lsn,
@@ -2380,7 +2392,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                          // Partition data parameters
                                                          dQ_dT,
                                                          // Magnetic variables
-                                                         abs_lines[ii].ZeemanEffect().frequency_shift_per_tesla(abs_lines[ii].QuantumNumbers(), abs_lines[ii].Species()),
+                                                         abs_lines[ii].ZeemanEffect().frequency_shift_per_tesla(abs_lines[ii].UpperQuantumNumbers(), abs_lines[ii].LowerQuantumNumbers(), abs_lines[ii].Species()),
                                                          H_magntitude_Zeeman,
                                                          abs_lines[ii].ZeemanEffect().PolarizationType() not_eq ZeemanPolarizationType::None,
                                                          // Programming
@@ -2434,7 +2446,8 @@ void xsec_species2(MatrixView xsec,
                    ArrayOfMatrix& dxsec_dx,
                    ArrayOfMatrix& dsource_dx,
                    ArrayOfMatrix& dphase_dx,
-                   const PropmatPartialsData& flag_partials,
+                   const ArrayOfRetrievalQuantity& jacobian_quantities,
+                   const ArrayOfIndex& jacobian_propmat_positions,
                    ConstVectorView f_grid,
                    ConstVectorView abs_p,
                    ConstVectorView abs_t,
@@ -2451,14 +2464,15 @@ void xsec_species2(MatrixView xsec,
                    const Verbosity& verbosity)
 {
   // Size of problem
-  const Index np = abs_p.nelem();                      // number of pressure levels
-  const Index nf = f_grid.nelem();                     // number of Dirac frequencies
-  const Index nl = abs_lines.nelem();                  // number of lines in the catalog
-  const Index nj = flag_partials.nelem();              // number of partial derivatives
-  const Index nt = abs_t_nlte.nrows();                 // number of energy levels in NLTE
+  const Index np = abs_p.nelem();                               // number of pressure levels
+  const Index nf = f_grid.nelem();                              // number of Dirac frequencies
+  const Index nl = abs_lines.nelem();                           // number of lines in the catalog
+  const Index nj = number_of_propmattypes(jacobian_quantities); // number of partial derivatives
+  const Index nt = abs_t_nlte.nrows();                          // number of energy levels in NLTE
   
   // Type of problem
   const bool do_nonlte = nt;                 // source return is requested only if there are energy levels in NLTE
+  const bool do_temperature = do_temperature_jacobian(jacobian_quantities);
   
   // Test if the size of the problem is 0
   if(not np or not nf or not nl)
@@ -2513,9 +2527,9 @@ void xsec_species2(MatrixView xsec,
           partition_functions.getParam(line.Species(), line.Isotopologue()));
         
         // if needed, set the partition function derivative
-        if(flag_partials.do_temperature())
+        if(do_temperature)
           dpartition_function_dT(dqt_dT, qt,
-            temperature, flag_partials.Temperature_Perturbation(),
+            temperature, temperature_perturbation(jacobian_quantities),
             partition_functions.getParamType(line.Species(), line.Isotopologue()),
             partition_functions.getParam(line.Species(), line.Isotopologue()));
       }
@@ -2532,14 +2546,14 @@ void xsec_species2(MatrixView xsec,
         dc = Linefunctions::DopplerConstant(temperature, line.IsotopologueData().Mass());
         
         // if needed, set the partial derivative of the frequency-independent part of the line shape
-        if(flag_partials.do_temperature())
+        if(do_temperature)
           ddc_dT = Linefunctions::dDopplerConstant_dT(temperature, line.IsotopologueData().Mass());
       }
       
       // we now compute the line shape
       Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, this_xsec_range,
-        flag_partials, line, f_grid, all_vmrs(joker, ip), nt?abs_t_nlte(joker, ip):Vector(0),
-        pressure, temperature, dc, partial_pressure, 
+        jacobian_quantities, jacobian_propmat_positions, line, f_grid, all_vmrs(joker, ip), 
+        nt?abs_t_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
         isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
         H_magntitude_Zeeman, ddc_dT, lm_p_lim, qt, dqt_dT, qt0,
         broad_spec_locations, this_species, h2o_index, verbosity, 

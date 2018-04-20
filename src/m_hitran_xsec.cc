@@ -79,13 +79,13 @@ void abs_xsec_per_speciesAddHitranXsec(// WS Output:
     /* NOTE:  The calculations below are inefficient and could
               be made much better by using interp in Extract to
               return the derivatives as well. */
-    const PropmatPartialsData ppd(jacobian_quantities);
-    const bool do_jac = ppd.supportsHitranXsec();
-    const bool do_freq_jac = ppd.do_frequency();
+    const bool do_jac = supports_hitran_xsec(jacobian_quantities);
+    const bool do_freq_jac = do_frequency_jacobian(jacobian_quantities);
 //    const bool do_temp_jac = ppd.do_temperature();
     Vector dfreq, dabs_t;
-    const Numeric df = ppd.Frequency_Perturbation();
+    const Numeric df = frequency_perturbation(jacobian_quantities);
 //    const Numeric dt = ppd.Temperature_Perturbation();
+    const ArrayOfIndex jac_pos = equivlent_propmattype_indexes(jacobian_quantities);
     if (do_freq_jac)
     {
         dfreq.resize(f_grid.nelem());
@@ -197,18 +197,18 @@ void abs_xsec_per_speciesAddHitranXsec(// WS Output:
                 {
                     for(Index iv=0; iv<xsec_temp.nelem();iv++)
                     {
-                        for(Index iq=0; iq<ppd.nelem(); iq++)
+                        this_xsec(iv, ip) += xsec_temp[iv];
+                        for (Index iq=0; iq<jac_pos.nelem(); iq++)
                         {
-                            if (ppd.IsFrequencyParameter(ppd(iq)))
-                                this_dxsec[iq](iv, ip) +=
-                                        (dxsec_temp_dF[iv] - xsec_temp[iv]) /
-                                        df;
-                            // else if(ppd(iq)==JacPropMatType::Temperature)
-                            //     this_dxsec[iq](iv,ip) += n*(dxsec_temp_dT[iv]-xsec_temp[iv])/dt + xsec_temp[iv]*dn_dT;
-                            else if (ppd(iq) ==
-                                     JacPropMatType::VMR) // FIXME: Test that this works as expected using perturbations...
+                            if (is_frequency_parameter(jacobian_quantities[jac_pos[iq]]))
+                                this_dxsec[iq](iv, ip) += (dxsec_temp_dF[iv] -
+                                                           xsec_temp[iv]) / df;
+//                            else if (ppd(iq) == JQT_temperature)
+//                                this_dxsec[iq](iv, ip) += (dxsec_temp_dT[iv] -
+//                                                           xsec_temp[iv]) / dt;
+                            else if (jacobian_quantities[jac_pos[iq]] == JacPropMatType::VMR)
                             {
-                                if (ppd.SpeciesMatch(iq, abs_species[i]))
+                                if(species_match(jacobian_quantities[jac_pos[iq]], abs_species[i]))
                                 {
                                     this_dxsec[iq](iv, ip) += xsec_temp[iv];
                                 }

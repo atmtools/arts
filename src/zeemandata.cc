@@ -70,115 +70,83 @@ inline Numeric caseA(const Rational& Omega,
 }
 
 
-inline Numeric lower_g(const QuantumNumberRecord& qnr, const Numeric& GS, const Numeric& GL)
+inline Numeric gHund(const QuantumNumbers& qns, const Numeric& GS, const Numeric& GL)
 {
-  switch(qnr.Lower()[QuantumNumberType::Hund].toIndex()) {
+  switch(qns[QuantumNumberType::Hund].toIndex()) {
     case Index(Hund::CaseA):
-      return caseA(qnr.Lower()[QuantumNumberType::Omega], 
-                   qnr.Lower()[QuantumNumberType::J],
-                   qnr.Lower()[QuantumNumberType::Lambda],
-                   qnr.Lower()[QuantumNumberType::S], GS, GL);
+      return caseA(qns[QuantumNumberType::Omega], 
+                   qns[QuantumNumberType::J],
+                   qns[QuantumNumberType::Lambda],
+                   qns[QuantumNumberType::S], GS, GL);
     case Index(Hund::CaseB):
-      return caseB(qnr.Lower()[QuantumNumberType::N], 
-                   qnr.Lower()[QuantumNumberType::J],
-                   qnr.Lower()[QuantumNumberType::Lambda],
-                   qnr.Lower()[QuantumNumberType::S], GS, GL);
-    default:
-      throw std::runtime_error("cannot understand lower hund case");
-  }
-}
-
-
-inline Numeric upper_g(const QuantumNumberRecord& qnr, const Numeric& GS, const Numeric& GL)
-{
-  switch(qnr.Upper()[QuantumNumberType::Hund].toIndex()) {
-    case Index(Hund::CaseA):
-      return caseA(qnr.Upper()[QuantumNumberType::Omega], 
-                   qnr.Upper()[QuantumNumberType::J],
-                   qnr.Upper()[QuantumNumberType::Lambda],
-                   qnr.Upper()[QuantumNumberType::S], GS, GL);
-    case Index(Hund::CaseB):
-      return caseB(qnr.Upper()[QuantumNumberType::N], 
-                   qnr.Upper()[QuantumNumberType::J],
-                   qnr.Upper()[QuantumNumberType::Lambda],
-                   qnr.Upper()[QuantumNumberType::S], GS, GL);
+      return caseB(qns[QuantumNumberType::N], 
+                   qns[QuantumNumberType::J],
+                   qns[QuantumNumberType::Lambda],
+                   qns[QuantumNumberType::S], GS, GL);
     default:
       throw std::runtime_error("cannot understand upper hund case");
   }
 }
 
 
-inline Numeric frequency_shift_per_teslaByHund(const QuantumNumberRecord& qnr, const Index species)
+inline Numeric frequency_shift_per_teslaByHund(const QuantumNumbers& upper, const QuantumNumbers& lower, const Index species)
 {
   // Find the constants
   const Numeric GS = get_lande_spin_constant(species);
   const Numeric GL = get_lande_lambda_constant();
   
   // Set the g*M factors
-  const Numeric gMl = qnr.Lower()[QuantumNumberType::M].toNumeric() * lower_g(qnr, GS, GL);
-  const Numeric gMu = qnr.Upper()[QuantumNumberType::M].toNumeric() * upper_g(qnr, GS, GL);
+  const Numeric gMl = lower[QuantumNumberType::M].toNumeric() * gHund(lower, GS, GL);
+  const Numeric gMu = upper[QuantumNumberType::M].toNumeric() * gHund(upper, GS, GL);
   
   // convert from energy state to frequency and be done with it
   return (gMl - gMu) * ZeemanSplittingConstant;
 }
 
 
-inline Numeric frequency_shift_per_teslaByGData(const QuantumNumberRecord& qnr, 
+inline Numeric frequency_shift_per_teslaByGData(const QuantumNumbers& upper, 
+                                                const QuantumNumbers& lower, 
                                                 const Numeric& gu, 
                                                 const Numeric& gl) noexcept
 {
   // Set the g*M factors
-  const Numeric gMu = gu * qnr.Upper(QuantumNumberType::M).toNumeric();
-  const Numeric gMl = gl * qnr.Lower(QuantumNumberType::M).toNumeric();
+  const Numeric gMu = gu * upper[QuantumNumberType::M].toNumeric();
+  const Numeric gMl = gl * lower[QuantumNumberType::M].toNumeric();
   
   // convert from energy state to frequency and be done with it
   return (gMl - gMu) * ZeemanSplittingConstant;
 }
 
 
-inline bool hund_compatible(const QuantumNumberRecord& qnr) noexcept
+inline bool hund_compatible(const QuantumNumbers& qns) noexcept
 {
-  switch(Index(qnr.Lower(QuantumNumberType::Hund).toIndex())) {
+  switch(qns[QuantumNumberType::Hund].toIndex()) {
     case Index(Hund::CaseA):
-      if(qnr.Lower()[QuantumNumberType::Omega].isUndefined() or
-         qnr.Lower()[QuantumNumberType::J].isUndefined() or
-         qnr.Lower()[QuantumNumberType::Lambda].isUndefined() or
-         qnr.Lower()[QuantumNumberType::S].isUndefined())
+      if(qns[QuantumNumberType::Omega].isUndefined() or
+         qns[QuantumNumberType::J].isUndefined() or
+         qns[QuantumNumberType::Lambda].isUndefined() or
+         qns[QuantumNumberType::S].isUndefined())
         return false;
       break;
     case Index(Hund::CaseB):
-      if(qnr.Lower()[QuantumNumberType::N].isUndefined() or
-         qnr.Lower()[QuantumNumberType::J].isUndefined() or
-         qnr.Lower()[QuantumNumberType::Lambda].isUndefined() or
-         qnr.Lower()[QuantumNumberType::S].isUndefined())
+      if(qns[QuantumNumberType::N].isUndefined() or
+         qns[QuantumNumberType::J].isUndefined() or
+         qns[QuantumNumberType::Lambda].isUndefined() or
+         qns[QuantumNumberType::S].isUndefined())
         return false;
       break;
     default:
       return false;
   }
   
-  switch(Index(qnr.Upper(QuantumNumberType::Hund).toIndex())) {
-    case Index(Hund::CaseA):
-      if(qnr.Upper()[QuantumNumberType::Omega].isUndefined() or
-         qnr.Upper()[QuantumNumberType::J].isUndefined() or
-         qnr.Upper()[QuantumNumberType::Lambda].isUndefined() or
-         qnr.Upper()[QuantumNumberType::S].isUndefined())
-        return false;
-      break;
-    case Index(Hund::CaseB):
-      if(qnr.Upper()[QuantumNumberType::N].isUndefined() or
-         qnr.Upper()[QuantumNumberType::J].isUndefined() or
-         qnr.Upper()[QuantumNumberType::Lambda].isUndefined() or
-         qnr.Upper()[QuantumNumberType::S].isUndefined())
-        return false;
-      break;
-    default:
-      return false;
-  }
-  
-  if(abs((qnr.Upper()[QuantumNumberType::J] - qnr.Lower()[QuantumNumberType::J]).toIndex()) > 1)
+  return true;
+}
+
+
+inline bool J_compatible(const Rational& J1, const Rational& J2)
+{
+  if(abs((J1 - J2).toNumeric()) > 1.0)
     return false;
-  
   return true;
 }
 
@@ -198,15 +166,15 @@ inline ZeemanPolarizationType get_polarization(const Rational& Mu, const Rationa
 }
 
 
-Numeric ZeemanEffectData::frequency_shift_per_tesla(const QuantumNumberRecord& qnr, const Index species) const
+Numeric ZeemanEffectData::frequency_shift_per_tesla(const QuantumNumbers& upper, const QuantumNumbers& lower, const Index species) const
 {
   switch(msplit) {
     case ZeemanSplittingType::None:
       return 0.0;
     case ZeemanSplittingType::ByHund:
-      return frequency_shift_per_teslaByHund(qnr, species);
+      return frequency_shift_per_teslaByHund(upper, lower, species);
     case ZeemanSplittingType::ByGData:
-      return frequency_shift_per_teslaByGData(qnr, mdata[Index(ByGDataPos::GU)], mdata[Index(ByGDataPos::GL)]);
+      return frequency_shift_per_teslaByGData(upper, lower, mdata[Index(ByGDataPos::GU)], mdata[Index(ByGDataPos::GL)]);
     case ZeemanSplittingType::ByPrecalc:
       return mdata[Index(ByPrecalcPos::DF)];
     default:
@@ -215,14 +183,16 @@ Numeric ZeemanEffectData::frequency_shift_per_tesla(const QuantumNumberRecord& q
 }
 
 
-void ZeemanEffectData::convertNoneToHund(const QuantumNumberRecord& qnr)
+void ZeemanEffectData::convertNoneToHund(const QuantumNumbers& upper, const QuantumNumbers& lower)
 {
   assert(msplit == ZeemanSplittingType::None);
   
-  if(qnr.Lower(QuantumNumberType::Hund).isUndefined() or qnr.Upper(QuantumNumberType::Hund).isUndefined())
+  if(lower[QuantumNumberType::Hund].isUndefined() or upper[QuantumNumberType::Hund].isUndefined())
     throw std::runtime_error("Undefined Hund-cases encountered...");
-  else if(not hund_compatible(qnr))
+  else if(not (hund_compatible(upper) and hund_compatible(lower)))
     throw std::runtime_error("line incompatible with Hund-style Zeeman calculations");
+  else if(not J_compatible(lower[QuantumNumberType::J], upper[QuantumNumberType::J]))
+    throw std::runtime_error("Too large difference in J-values of transition");
   
   msplit = ZeemanSplittingType::ByHund;
   mdata = Vector(Index(ByHundPos::LEN));
@@ -231,14 +201,14 @@ void ZeemanEffectData::convertNoneToHund(const QuantumNumberRecord& qnr)
 }
 
 
-void ZeemanEffectData::setNumericalAndPolarization(const QuantumNumberRecord& qnr, const Index species)
+void ZeemanEffectData::setNumericalAndPolarization(const QuantumNumbers& upper, const QuantumNumbers& lower, const Index species)
 {
   if(not (msplit == ZeemanSplittingType::ByPrecalc)) {
-    mdata = Vector(Index(ByPrecalcPos::LEN), frequency_shift_per_tesla(qnr, species));
+    mdata = Vector(Index(ByPrecalcPos::LEN), frequency_shift_per_tesla(upper, lower, species));
     msplit = ZeemanSplittingType::ByPrecalc;
   }
   
-  mpolar = get_polarization(qnr.Upper(QuantumNumberType::M), qnr.Lower(QuantumNumberType::M));
+  mpolar = get_polarization(upper[QuantumNumberType::M], lower[QuantumNumberType::M]);
   
   assert(ok());
 }

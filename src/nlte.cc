@@ -220,9 +220,9 @@ void nlte_positions_in_statistical_equilibrium_matrix(ArrayOfIndex& upper, Array
   
   for(Index il = 0; il < nl; il++) {
     for(Index iq = 0; iq < nq; iq++) {
-      if(nlte_quantum_identifiers[iq].QuantumMatch()[0] > abs_lines[il].QuantumNumbers().Lower())
+      if(nlte_quantum_identifiers[iq].QuantumMatch()[0] > abs_lines[il].LowerQuantumNumbers())
         lower[il] = iq;
-      else  if(nlte_quantum_identifiers[iq].QuantumMatch()[0] > abs_lines[il].QuantumNumbers().Upper())
+      else  if(nlte_quantum_identifiers[iq].QuantumMatch()[0] > abs_lines[il].UpperQuantumNumbers())
         upper[il] = iq;
     }
   }
