@@ -3933,12 +3933,14 @@ void PrivateTesting1(
   const Verbosity& )
 {
   // Settings, so far hard-coded
-  const Numeric rh_limit = 0.8;
-  const Numeric lwc_zero = 1e-12;
-  const Numeric rwc_zero = 0;
-  const Numeric iwc_zero = 0;
+  const Numeric rh_limit    = 1;
+  const Numeric rh_in_cloud = 1;
+  const Numeric lwc_zero    = 1e-12;
+  const Numeric rwc_zero    = 0;
+  const Numeric iwc_zero    = 0;
+  const Numeric twc_limit   = 0.1e-3;;
 
-  // Fist guess for cloudbox_on
+  // First guess for cloudbox_on
   cloudbox_on = 0;
   
   // Do nothing for first iteration(s)
@@ -3956,15 +3958,20 @@ void PrivateTesting1(
   assert( jacobian_quantities[3].MainTag() == SCATSPECIES_MAINTAG );
   assert( jacobian_quantities[4].MainTag() == SURFACE_MAINTAG );
   
-  // Determine rh-limit in unit used in x
+  // Determine rh-values in unit used in x
   const String tfun = jacobian_quantities[0].TransformationFunc();
   Numeric xrh_limit = -999;
+  Numeric xrh_in_cloud = -999;
   if( tfun == "" )
-    { xrh_limit = rh_limit; }
+    {
+      xrh_limit    = rh_limit; 
+      xrh_in_cloud = rh_in_cloud;
+   }
   else if( tfun == "atanh" )
     { 
       const Vector pars = jacobian_quantities[0].TFuncParameters();
       xrh_limit = atanh( 2*(rh_limit-pars[0])/(pars[1]-pars[0]) - 1 );
+      xrh_in_cloud = atanh( 2*(rh_in_cloud-pars[0])/(pars[1]-pars[0]) - 1 );
     }
   else
     { assert(0); }
@@ -3974,7 +3981,7 @@ void PrivateTesting1(
   {
     bool any_affine;
     jac_ranges_indices( jacobian_indices, any_affine,
-                      jacobian_quantities, true );
+                        jacobian_quantities, true );
   }
   ArrayOfIndex np(4);    // Number of retrieval altitudes of each quantity
   Vector zero_value(3);  // Effective zero value for hydrometeors
@@ -3992,7 +3999,7 @@ void PrivateTesting1(
     }
 
   // Init jacobian_zero_indices
-  jacobian_zero_indices.resize( jacobian_indices[4][1] + 1 );
+  jacobian_zero_indices.resize( x.nelem() );
   for( Index i=0; i<jacobian_zero_indices.nelem(); i++ )
     { jacobian_zero_indices[i] = 0; }
   
@@ -4000,7 +4007,7 @@ void PrivateTesting1(
   for( Index ip=0; ip<=np[0]; ip ++ )
     {
       // Low rh case
-      if( x[ip] <= xrh_limit )
+      if( x[ip] < xrh_limit )
         {
           for( Index iq=1; iq<=3; iq++ )
             {
@@ -4015,8 +4022,24 @@ void PrivateTesting1(
       // High rh case
       else
         {
+          // Activate cloudbox
           cloudbox_on = 1;
-          jacobian_zero_indices[ip] = 1;
+          // calculate total water content
+          Numeric twc = 0;
+          for( Index iq=1; iq<=3; iq++ )
+            {
+              if( ip < np[iq] )
+                {
+                  const Index ix = jacobian_indices[iq][0] + ip;
+                  twc += x[ix];
+                }
+            }
+          // Special actions if high TWC          
+          if( twc >= twc_limit )
+            {
+              x[ip]       = xrh_in_cloud; 
+              jacobian_zero_indices[ip] = 1;
+            }
         }
     }
 }
@@ -4026,11 +4049,11 @@ void PrivateTesting1(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void PrivateTesting2(
         Matrix&                    jacobian,
-  const Index&                     cloudbox_on,
+  const Index&                     jacobian_do,
   const ArrayOfIndex&              jacobian_zero_indices,
   const Verbosity& )
 {  
-  if( cloudbox_on )
+  if( jacobian_do )
     {
       assert( jacobian.ncols() == jacobian_zero_indices.nelem() );
       

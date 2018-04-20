@@ -19953,7 +19953,7 @@ void define_md_data_raw()
           GOUT(),
           GOUT_TYPE(),
           GOUT_DESC(),
-          IN( "jacobian", "cloudbox_on" ),
+          IN( "jacobian", "jacobian_do" ),
           GIN( "jacobian_zero_indices" ),
           GIN_TYPE( "ArrayOfIndex" ),
           GIN_DEFAULT( NODEF ),
