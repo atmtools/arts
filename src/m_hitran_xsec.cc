@@ -195,30 +195,26 @@ void abs_xsec_per_speciesAddHitranXsec(// WS Output:
                 }
                 else
                 {
-                    for (Index iv = 0; iv < xsec_temp.nelem(); iv++)
+                    for(Index iv=0; iv<xsec_temp.nelem();iv++)
                     {
-                        this_xsec(iv, ip) += xsec_temp[iv];
-                        for (Index iq = 0; iq < ppd.nelem(); iq++)
+                        for(Index iq=0; iq<ppd.nelem(); iq++)
                         {
-                            if (ppd(iq) == JQT_frequency ||
-                                ppd(iq) == JQT_wind_magnitude ||
-                                ppd(iq) == JQT_wind_u ||
-                                ppd(iq) == JQT_wind_v || ppd(iq) == JQT_wind_w)
-                                this_dxsec[iq](iv, ip) += (dxsec_temp_dF[iv] -
-                                                           xsec_temp[iv]) / df;
-//                            else if (ppd(iq) == JQT_temperature)
-//                                this_dxsec[iq](iv, ip) += (dxsec_temp_dT[iv] -
-//                                                           xsec_temp[iv]) / dt;
-                            else if (ppd(iq) == JQT_VMR)
+                            if (ppd.IsFrequencyParameter(ppd(iq)))
+                                this_dxsec[iq](iv, ip) +=
+                                        (dxsec_temp_dF[iv] - xsec_temp[iv]) /
+                                        df;
+                            // else if(ppd(iq)==JacPropMatType::Temperature)
+                            //     this_dxsec[iq](iv,ip) += n*(dxsec_temp_dT[iv]-xsec_temp[iv])/dt + xsec_temp[iv]*dn_dT;
+                            else if (ppd(iq) ==
+                                     JacPropMatType::VMR) // FIXME: Test that this works as expected using perturbations...
                             {
-                                if (abs_species[i][0].Species() ==
-                                    ppd.species(iq))
+                                if (ppd.SpeciesMatch(iq, abs_species[i]))
                                 {
                                     this_dxsec[iq](iv, ip) += xsec_temp[iv];
                                 }
                             }
-                            // Note for coef that d/dt(a*n*n) = da/dt * n1*n2 + a * dn1/dt * n2 + a * n1 * dn2/dt, 
-                            // we now output da/dt*n2 + a*dn2/dt and coef conversion then have to do 
+                            // Note for coef that d/dt(a*n*n) = da/dt * n1*n2 + a * dn1/dt * n2 + a * n1 * dn2/dt,
+                            // we now output da/dt*n2 + a*dn2/dt and coef conversion then have to do
                             // dxsec*n1 + xsec*dn1/dt, which is what it has to do anyways, so no problems!
                             // Also note that d/dvmr gives a factor for other species absorption.
                             // even if own absorption is zero...
