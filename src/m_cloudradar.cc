@@ -631,24 +631,41 @@ void iyActiveSingleScat(
             ( 
               for( Index iv=0; iv<nf; iv++ )
                 {
-                  for( Index ip=1; ip<np-1; ip++ )
-                    {
-                      for( Index j=ip; j<np; j++ )
+                  for( Index ip=0; ip<np; ip++ )    // Index of x-point
+                    {                                
+                      for( Index j=ip; j<np; j++ )   // Index of back-scattering
                         {
+                          // Nothing to do for j==0
+                          if( j == 0 )
+                            { continue; }
+                          
                           const Index iout = iv*np + j;
-                          if( j > ip )
+                          // Impact on transmission towards the sensor
+                          if( ip > 0 )
+                            {
+                              mult( jterm,
+                                    dtrans_partial_dx_above(ip,iq,iv,joker,joker),
+                                    iy(iout,joker) );
+                              Matrix tr_inv(ns,ns);
+                              inv( tr_inv, trans_partial(ip,iv,joker,joker) );
+                              Vector jnew(ns);
+                              mult( jnew, tr_inv, jterm );
+                              jnew *= 2;
+                              diy_dpath[iq](ip,iout,joker) += jnew;
+                            }
+                          // Impact on transmission away from the sensor
+                          if( j > ip  &&  j < np-1 )
                             {
                               mult( jterm,
                                     dtrans_partial_dx_below(ip,iq,iv,joker,joker),
                                     iy(iout,joker) );
-                              jterm *= 2;
-                              diy_dpath[iq](ip,iout,joker) += jterm;
+                              Matrix tr_inv(ns,ns);
+                              inv( tr_inv, trans_partial(ip+1,iv,joker,joker) );
+                              Vector jnew(ns);
+                              mult( jnew, tr_inv, jterm );
+                              jnew *= 2;
+                              diy_dpath[iq](ip,iout,joker) += jnew;
                             }
-                          mult( jterm,
-                                dtrans_partial_dx_above(ip,iq,iv,joker,joker),
-                                iy(iout,joker) );
-                          jterm *= 2;
-                          diy_dpath[iq](ip,iout,joker) += jterm;
                         }
                     }
                 }

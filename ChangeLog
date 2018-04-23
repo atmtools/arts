@@ -1,13 +1,22 @@
+2018-04-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1035
+
+	* src/m_cloudradar.cc (iyActiveSingleScat): Added weighting with
+	inverse of local trans_partial in calculation of Jacobian
+	transmission part. This part is approximate, for efficiency
+	reasons. Now hopefully a bit less approximate.
+
 2018-04-20  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-1034
-	
+
 	Removed PropmatPartialsData class.  Also removed mspecies,
 	misotopologue, and mquantum_numbers from LineRecord to replace
 	them with a QuantumIdentifier so that each line can return 
 	references to their ID rather than having to recreate a new
 	ID every time
-	
+
 	* files:  Many small changes were required for the above changes.
 	At least the "make check" commands seems slightly faster
 
