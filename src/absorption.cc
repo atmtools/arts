@@ -2310,13 +2310,16 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                       abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterPsf(psf_dWater,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
                   }
                   else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingDF0 or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingG0 or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingY0) {
-                    abs_lines[ii].LineMixing().GetLineMixingParams_dZerothOrder(dY0, dG0, dDV0, t, p, lm_p_lim);
+                    if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
+                      abs_lines[ii].LineMixing().GetLineMixingParams_dZerothOrder(dY0, dG0, dDV0, t, p, lm_p_lim);
                   }
                   else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingDF1 or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingG1 or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingY1) {
-                    abs_lines[ii].LineMixing().GetLineMixingParams_dFirstOrder(dY1, dG1, dDV1, t, p, lm_p_lim);
+                    if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
+                      abs_lines[ii].LineMixing().GetLineMixingParams_dFirstOrder(dY1, dG1, dDV1, t, p, lm_p_lim);
                   }
                   else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingDFExp or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingGExp or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingYExp) {
-                    abs_lines[ii].LineMixing().GetLineMixingParams_dExponent(dYexp, dGexp, dDVexp, t, p, lm_p_lim);
+                    if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
+                      abs_lines[ii].LineMixing().GetLineMixingParams_dExponent(dYexp, dGexp, dDVexp, t, p, lm_p_lim);
                   }
                 }
                     

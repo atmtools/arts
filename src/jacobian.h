@@ -446,6 +446,8 @@ Index number_of_propmattypes(const ArrayOfRetrievalQuantity& js);
 
 ArrayOfIndex equivlent_propmattype_indexes(const ArrayOfRetrievalQuantity& js);
 
+Index equivlent_propmattype_index(const ArrayOfRetrievalQuantity& js, const Index i);
+
 Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js);
 
 Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js);

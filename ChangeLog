@@ -1,3 +1,21 @@
+2018-04-23  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-3-1036
+	
+	Fix of error I unknowingly introduced with last commit
+	
+	* src/absorption.cc: Added line check for LM params.
+	
+	* src/jacobian.{cc,h}: Added single equivalent index function
+	
+	* src/rte.{cc,h}: This fixes two broken slow tests
+	but arts.ctlfile.slow.artscomponents.wfuns.TestWfunsHybCloudy
+	still fails with the error:
+	"This version of ARTS was compiled without RT4 support."
+	
+	* src/m_*.cc:  Removed the position variable which was the cause
+	of the errors
+
 2018-04-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1035

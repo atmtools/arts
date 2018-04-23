@@ -2080,7 +2080,6 @@ void get_stepwise_clearsky_propmat(Workspace& ws,
                                    ArrayOfStokesVector& dS_dx,
                                    const Agenda& propmat_clearsky_agenda,
                                    const ArrayOfRetrievalQuantity& jacobian_quantities,
-                                   const ArrayOfIndex& propmat_jacobian_position,
                                    ConstVectorView ppath_f_grid,
                                    ConstVectorView ppath_magnetic_field,
                                    ConstVectorView ppath_line_of_sight,
@@ -2092,7 +2091,7 @@ void get_stepwise_clearsky_propmat(Workspace& ws,
                                    const bool& jacobian_do)
 {
   // All relevant quantities are extracted first
-  const Index nq = propmat_jacobian_position.nelem();
+  const Index nq = jacobian_quantities.nelem();
   
   // Local variables inside Agenda
   ArrayOfPropagationMatrix propmat_clearsky, dpropmat_clearsky_dx;
@@ -2145,7 +2144,7 @@ void get_stepwise_clearsky_propmat(Workspace& ws,
       else if(jacobian_quantities[i].SubSubtag() == PROPMAT_SUBSUBTAG) 
       {
         // Find position of index in ppd
-        Index j = propmat_jacobian_position[i];
+        const Index j = equivlent_propmattype_index(jacobian_quantities, i);
         
         dK_dx[i] = dpropmat_clearsky_dx[j];
         if(lte)
@@ -2980,7 +2979,6 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
     \date   2017-11-20
 */
 void rtmethods_jacobian_init(
-         ArrayOfIndex&               propmat_jacobian_position,
          ArrayOfIndex&               jac_species_i,
          ArrayOfIndex&               jac_scat_i,
          ArrayOfIndex&               jac_is_t,
@@ -3002,8 +3000,6 @@ void rtmethods_jacobian_init(
    const bool                        is_active )
 {
   const Index nn = is_active ? nf*np : nf;
-  
-  propmat_jacobian_position = equivlent_propmattype_indexes(jacobian_quantities);
   
   FOR_ANALYTICAL_JACOBIANS_DO( 
     diy_dpath[iq].resize( np, nn, ns ); 

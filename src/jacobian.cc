@@ -1842,6 +1842,15 @@ ArrayOfIndex equivlent_propmattype_indexes(const ArrayOfRetrievalQuantity& js)
   return pos;
 }
 
+Index equivlent_propmattype_index(const ArrayOfRetrievalQuantity& js, const Index i)
+{
+  Index j = -1;
+  for(Index k=0; k<=i; k++)
+    if(js[k] not_eq JacPropMatType::NotPropagationMatrixType)
+      j++;
+  return j;
+}
+
 bool is_wind_parameter(const RetrievalQuantity& t)
 {
   return t == JacPropMatType::WindMagnitude or 

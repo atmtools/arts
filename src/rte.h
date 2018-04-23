@@ -303,7 +303,6 @@ void get_stepwise_clearsky_propmat(Workspace& ws,
                                    ArrayOfStokesVector& dS_dx,
                                    const Agenda& propmat_clearsky_agenda,
                                    const ArrayOfRetrievalQuantity& jacobian_quantities,
-                                   const ArrayOfIndex& propmat_jacobian_position,
                                    ConstVectorView ppath_f_grid,
                                    ConstVectorView ppath_magnetic_field,
                                    ConstVectorView ppath_line_of_sight,
@@ -391,7 +390,6 @@ void get_stepwise_effective_source(MatrixView J,
                                    const bool& jacobian_do);
 
 void rtmethods_jacobian_init(
-         ArrayOfIndex&               propmat_jacobian_position,
          ArrayOfIndex&               jac_species_i,
          ArrayOfIndex&               jac_scat_i,
          ArrayOfIndex&               jac_is_t,

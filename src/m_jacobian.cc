@@ -317,7 +317,8 @@ void jacobianAddAbsSpecies(
   rq.Perturbation( dx );
   rq.Grids( grids );
   if(analytical and not for_species_tag) {
-    rq.PropType(JacPropMatType::VMR);  //  FIXME: add to all eq
+    rq.SubSubtag( PROPMAT_SUBSUBTAG );
+    rq.PropType(JacPropMatType::VMR); 
   }
   else if((not analytical) and (not for_species_tag))
     throw std::runtime_error("perturbation only support for_species_tag true/\n ");
