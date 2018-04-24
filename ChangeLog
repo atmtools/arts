@@ -1,3 +1,24 @@
+2018-04-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1037
+
+	* controlfiles/CMakeLists.txt:
+
+	Only run TestWfunsHybCloudy if RT4 is available.
+
+	* controlfiles/artscomponents/wfuns/TestWfunsHybClear.arts:
+
+	Consistent naming for reference files.
+
+	* controlfiles/artscomponents/wfuns/JHyb_O2_analyticalREFERENCE.xml.gz,
+	controlfiles/artscomponents/wfuns/JHyb_O3_analyticalREFERENCE.xml.gz,
+	controlfiles/artscomponents/wfuns/JHyb_OtherREFERENCE.xml.gz,
+	controlfiles/artscomponents/wfuns/JHyb_T_analyticalREFERENCE.xml.gz,
+	controlfiles/artscomponents/wfuns/JHyb_WindsREFERENCE.xml.gz,
+	controlfiles/artscomponents/wfuns/yHyb_O3_analyticalREFERENCE.xml.gz:
+
+	Generated reference files.
+
 2018-04-23  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-3-1036

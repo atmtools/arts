@@ -34,6 +34,8 @@ jacobianOff
 
 INCLUDE "instruments/odinsmr/odinsmr_501.arts"
 
+output_file_formatSetZippedAscii
+
 # Agenda for scalar gas absorption calculation
 Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
 
@@ -185,12 +187,12 @@ cloudbox_checkedCalc
 scat_data_checkedCalc
 
 yCalc
-#WriteXML( in=y, filename="yHyb_O3_analytical.xml" )
+#WriteXML( in=y, filename="yHyb_O3_analyticalREFERENCE.xml" )
 
-ReadXML( yr, "y_O3_analytical.xml" )
+ReadXML( yr, "yHyb_O3_analyticalREFERENCE.xml" )
 Compare( y, yr, 1e-6 )
-#WriteXML( in=jacobian, filename="JHyb_O3_analytical.xml" )
-ReadXML( Jr, "J_O3_analytical.xml" )
+#WriteXML( in=jacobian, filename="JHyb_O3_analyticalREFERENCE.xml" )
+ReadXML( Jr, "JHyb_O3_analyticalREFERENCE.xml" )
 Compare( jacobian, Jr, 1e-6 )
 #Copy( Ja, jacobian )
 
@@ -245,8 +247,8 @@ yCalc
 
 #ReadXML( yr, "y_O2_analytical.xml" )
 #Compare( y, yr, 1e-6 )
-#WriteXML( in=jacobian, filename="JHyb_O2_analytical.xml" )
-ReadXML( Jr, "J_O2_analytical.xml" )
+#WriteXML( in=jacobian, filename="JHyb_O2_analyticalREFERENCE.xml" )
+ReadXML( Jr, "JHyb_O2_analyticalREFERENCE.xml" )
 Compare( jacobian, Jr, 1e-6 )
 #Copy( Ja, jacobian )
 
@@ -289,8 +291,8 @@ yCalc
 
 #ReadXML( yr, "y_T_analytical.xml" )
 #Compare( y, yr, 1e-6 )
-#WriteXML( in=jacobian, filename="JHyb_T_analytical.xml" )
-ReadXML( Jr, "J_T_analytical.xml" )
+#WriteXML( in=jacobian, filename="JHyb_T_analyticalREFERENCE.xml" )
+ReadXML( Jr, "JHyb_T_analyticalREFERENCE.xml" )
 Compare( jacobian, Jr, 1e-6 )
 #Copy( Ja, jacobian )
 
@@ -413,8 +415,8 @@ yCalc
 
 #ReadXML( yr, "y_Winds.xml" )
 #Compare( y, yr, 1e-6 )
-#WriteXML( in=jacobian, filename="JHyb_Winds.xml" )
-ReadXML( Jr, "J_Winds.xml" )
+#WriteXML( in=jacobian, filename="JHyb_WindsREFERENCE.xml" )
+ReadXML( Jr, "JHyb_WindsREFERENCE.xml" )
 Compare( jacobian, Jr, 1e-6 )
 
 
@@ -451,8 +453,8 @@ yCalc
 
 #ReadXML( yr, "y_Other.xml" )
 #Compare( y, yr, 1e-6 )
-#WriteXML( in=jacobian, filename="JHyb_Other.xml" )
-ReadXML( Jr, "J_Other.xml" )
+#WriteXML( in=jacobian, filename="JHyb_OtherREFERENCE.xml" )
+ReadXML( Jr, "JHyb_OtherREFERENCE.xml" )
 Compare( jacobian, Jr, 1e-6 )
 
 }
