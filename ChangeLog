@@ -1,3 +1,12 @@
+2018-04-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1038
+
+	* src/absorption.cc (xsec_species):
+
+	Removed debug output for Theresa Lang. Instead, provided her a patch
+	that writes the information directly to a file.
+
 2018-04-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1037

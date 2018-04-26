@@ -1126,17 +1126,6 @@ firstprivate(ls_attenuation, fac, f_local, aux, qt_cache, qref_cache, iso_cache,
                                            l_l.NLTEUpperIndex(),
                                            t_nlte_i);
 
-                        // Output line strength data for Theresa Lang to lowest priority output stream.
-                        // This can be commented out again, when Theresa no longer needs it.
-                        if (out3.sufficient_priority())
-                        {
-                            ostringstream os;
-                            os << "Line strength data (species, frequency, catalogue intensity, partition ratio, Boltzmann factor): "
-                               << l_l.Name() << ", " << l_l.F() << ", " << l_l.I0()
-                               << ", " << partition_ratio << ", " << K1 * K2 << "\n";
-                            out3 << os.str();
-                        }
-                       
                         // Dopple broadening
                         const Numeric sigma = l_l.F() * doppler_const *sqrt( t_i / l_l.IsotopologueData().Mass());
                         
