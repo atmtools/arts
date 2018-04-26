@@ -37,8 +37,6 @@
 #include "xml_io.h"
 
 
-#ifdef ENABLE_FFTW
-
 extern const Numeric SPEED_OF_LIGHT;
 
 
@@ -148,6 +146,11 @@ void abs_xsec_per_speciesAddHitranXsec(// WS Output:
             if (this_species.Type() != SpeciesTag::TYPE_HITRAN_XSEC)
                 continue;
 
+#ifndef ENABLE_FFTW
+            out0 << "HITRAN XSEC Warning: No FFTW library support enabled, "
+                 << "convolution will be extremely slow\n";
+#endif
+
             Index this_xdata_index = hitran_xsec_get_index(hitran_xsec_data,
                                                            this_species.Species());
             if (this_xdata_index < 0)
@@ -225,25 +228,4 @@ void abs_xsec_per_speciesAddHitranXsec(// WS Output:
         }
     }
 }
-
-#else
-
-void abs_xsec_per_speciesAddHitranXsec(// WS Output:
-        ArrayOfMatrix&,
-        ArrayOfArrayOfMatrix&,
-        // WS Input:
-        const ArrayOfArrayOfSpeciesTag&,
-        const ArrayOfRetrievalQuantity&,
-        const ArrayOfIndex&,
-        const Vector&,
-        const Vector&,
-        const Vector&,
-        const ArrayOfXsecRecord&,
-        // Verbosity object:
-        const Verbosity&)
-{
-    throw std::runtime_error("Cross section species can only be calculated "
-                             "if ARTS is compiled with FFTW support.");
-}
-#endif
 

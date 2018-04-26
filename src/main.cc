@@ -834,9 +834,9 @@ int main (int argc, char **argv)
 #endif
         << "   Hitran Xsec support:  "
 #ifdef ENABLE_FFTW
-        << "enabled" << endl
+        << "enabled (experimental)" << endl
 #else
-        << "disabled" << endl
+        << "enabled (experimental, no FFTW support, using slow convolution method)" << endl
 #endif
         << "";
 

@@ -59,7 +59,7 @@ VectorNLinSpace( f_grid, 1000, 2.42e13, 3.35e13 )
 WriteXML( "ascii", f_grid )
 
 
-VectorNLogSpace( p_grid, 100, 1000e2, 1 )
+VectorNLogSpace( p_grid, 20, 1000e2, 1 )
 
 
 # Definition of species

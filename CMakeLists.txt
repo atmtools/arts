@@ -449,13 +449,10 @@ if(FASTWIGNER)
 endif()
 
 if (FFTW_FOUND)
-  message (STATUS "HITRAN XSEC enabled")
+  message (STATUS "HITRAN XSEC enabled (experimental)")
 else()
-  if (NO_FFTW)
-    message (STATUS "HITRAN XSEC disabled")
-  else()
-    message (STATUS "HITRAN XSEC disabled (FFTW not found)")
-  endif()
+  message (STATUS "HITRAN XSEC enabled (experimental, "
+                  "FFTW library not available, using slow convolution method)")
 endif()
 
 if (OEM_SUPPORT)

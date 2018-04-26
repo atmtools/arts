@@ -1,5 +1,30 @@
 2018-04-26  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-1039
+
+	* CMakeLists.txt:
+
+	Always enable Hitran Xsec code even if the FFTW library is not
+	available.
+
+	* src/m_hitran_xsec.cc (abs_xsec_per_speciesAddHitranXsec):
+
+	Output a very clear warning to out0 that computation will extremely
+	slow without FFTW.
+
+	Remove implementation of abs_xsec_per_speciesAddHitranXsec that throws
+	a runtime-error if FFTW library is not available.
+
+	* src/main.cc (main):
+
+	Adapt output of information about Hitran Xsec support.
+
+	* controlfiles/artscomponents/hitran-xsec/TestHitranXsec.arts:
+
+	Reduce number of pressure levels.
+
+2018-04-26  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-1038
 
 	* src/absorption.cc (xsec_species):
