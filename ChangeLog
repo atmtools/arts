@@ -1,3 +1,14 @@
+2018-04-27 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-1041
+
+	* src/optproperties.cc (pha_mat_1ScatElem):
+	Some minor polishing on top of arts-2-3-1029 changes, which already
+	fixed the main issues.
+
+	* controlfiles/artscomponents/disort/TestDISORT.arts:
+	Use new optprop scheme in test case.
+
 2018-04-27  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1040
@@ -349,7 +360,7 @@
 	placed in this file.
 
 	* src/m_surface.cc (dsurface_locate): Removed
- 	(SurfaceTessem): Using find_first instead of dsurface_locate.
+	(SurfaceTessem): Using find_first instead of dsurface_locate.
 
 	* src/jacobian.cc (check_retrieval_grids): A dummy grid is now set
 	for atmosphere_dim==1.

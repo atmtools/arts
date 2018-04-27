@@ -1092,9 +1092,7 @@ void pha_mat_1ScatElem(//Output
     Index npha;
     if( stokes_dim==1 )
       npha = 1;
-    else if( stokes_dim==2 )
-      npha = 4;   // Changed from 3, PE 2018-04-18
-    else if( stokes_dim==3 )
+    else if( stokes_dim<4 ) // stokes_dim==2 || stokes_dim==3
       npha = 4;
     else
       npha = 6;
@@ -1115,7 +1113,7 @@ void pha_mat_1ScatElem(//Output
           Vector dir_itw(2);
           interpweights(dir_itw, dir_gp);
 
-          Vector pha_mat_int(6);
+          Vector pha_mat_int(npha,0.);
           Matrix pha_mat_tmp(stokes_dim,stokes_dim);
           for( Index find=0; find<nf; find++ )
           {
@@ -1152,8 +1150,8 @@ void pha_mat_1ScatElem(//Output
           Vector dir_itw(2);
           interpweights(dir_itw, dir_gp);
 
-          Matrix pha_mat_int(nTin,npha);  // 6 changed to npha, PE 180418
-          Matrix pha_mat_tmp(nTout,npha); // same here
+          Matrix pha_mat_int(nTin,npha,0.);
+          Matrix pha_mat_tmp(nTout,npha,0.);
           for( Index find=0; find<nf; find++ )
           {
             for( Index Tind=0; Tind<nTin; Tind++ )
@@ -1229,8 +1227,8 @@ void pha_mat_1ScatElem(//Output
 
     if( this_T_interp_order<0 ) // T only needs to be extracted.
     {
-      Matrix pha_mat_int(nDir,npha);
-      Tensor3 pha_mat_tmp_ssd(npDir,niDir,npha);
+      Matrix pha_mat_int(nDir,npha,0.);
+      Tensor3 pha_mat_tmp_ssd(npDir,niDir,npha,0.);
       Tensor4 pha_mat_tmp(npDir,niDir,stokes_dim,stokes_dim);
 
       for( Index find=0; find<nf; find++ )
@@ -1401,8 +1399,8 @@ void pha_mat_1ScatElem(//Output
     else // T- and dir-interpolation required. To be done on the compact ssd
          // format.
     {
-      Tensor3 pha_mat_int(nTin,nDir,npha);
-      Tensor4 pha_mat_tmp_ssd(nTout,npDir,niDir,npha);
+      Tensor3 pha_mat_int(nTin,nDir,npha,0.);
+      Tensor4 pha_mat_tmp_ssd(nTout,npDir,niDir,npha,0.);
 
       for( Index find=0; find<nf; find++ )
       {
