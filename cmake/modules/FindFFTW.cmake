@@ -1,8 +1,8 @@
-# - Find the NetCDF library
+# - Find the FFTW library
 #
-# NETCDF_FOUND       - system has netcdf
-# NETCDF_INCLUDE_DIR - the netcdf include directory
-# NETCDF_LIBRARIES   - Link these to use netcdf
+# FFTW_FOUND       - system has fftw
+# FFTW_INCLUDE_DIR - the fftw include directory
+# FFTW_LIBRARIES   - Link these to use fftw
 #
 # Copyright (c) 2018, Oliver Lemke, <olemke@core-dump.info>
 

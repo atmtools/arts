@@ -1,3 +1,9 @@
+2018-04-27  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1040
+
+	* cmake/modules/FindFFTW.cmake: Fix docs.
+
 2018-04-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1039
