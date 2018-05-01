@@ -868,7 +868,7 @@ void get_parZ( Tensor3& pha_bulk_par,
 //! get_pfct
 /*!
   Derives layer averaged particle bulk phase function P (4Pi scaled)
-  NOTE: Provided on ssd's freq grid (i.e. for nf=1 only of ssd.f_grid.nelem==1)
+  NOTE: Provided on ssd's freq grid (i.e. for nf=1 only if ssd.f_grid.nelem==1)
   in order to avoid duplicate calculations in get_pmom (instead we duplicate the
   results there to the RT calc's f_grid).
 

@@ -1,3 +1,29 @@
+2018-05-01 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-1042
+
+	* src/optproperties.[cc,h] (ssd_tinterp_parameters):
+	Outsourced identical code from *1ScatElem for temp interpolation
+	preparation.
+
+	(opt_prop_1ScatElem, pha_mat_1ScatElem):
+	Use ssd_tinterp_parameters function.
+
+	(pha_mat_1ScatElem):
+	Revised PTYPE_AZIMUTH_RND branch, simplifying stokes_dim optimized code.
+
+	(FouComp_1ScatElem):
+	Work in progress.
+	Separate method for extracting Fourier series components per scat element
+	from scat_data. No sense in first ectracting pha_mat, then deriving
+	fourier component(s) from that either degrading or blowing up data.
+	Instead derive it directly from scat_data's pha_mat_data. So far only up
+	to stokes_dim=2 and 0th Fourier component as required for RT4.
+
+	* src/rt4.cc (run_rt4_new):
+	Work in progress (so far moslty a working copy of run_rt4) for RT4 using
+	unified scattering data scheme throughout.
+
 2018-04-27 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-1041

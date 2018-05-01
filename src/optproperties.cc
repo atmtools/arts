@@ -404,78 +404,11 @@ void opt_prop_1ScatElem(//Output
   // are the same for all directions (and freqs), ie it is sufficient to
   // calculate them once).
   const Index nTin = ssd.T_grid.nelem();
-  Index this_T_interp_order = -1;
-  ArrayOfGridPosPoly T_gp(nTout);
+  Index this_T_interp_order;
   Matrix T_itw;
-
-  if( nTin>1 )
-  {
-    this_T_interp_order = min(t_interp_order, nTin-1);
-    T_itw.resize(nTout, this_T_interp_order+1);
-
-    // we need to check T-grid exceedance. and catch these cases (because T
-    // is assumed to correspond to a location and T-exceedance is ok when pnd=0
-    // there. however, here we do not know pnd.) and report them to have the
-    // calling method dealing with it.
-    
-    // we set the extrapolfax explicitly and use it here as well as in
-    // gridpos_poly below.
-    const Numeric extrapolfac=0.5;
-    const Numeric lowlim = ssd.T_grid[0] -
-                           extrapolfac * (ssd.T_grid[1]-ssd.T_grid[0]);
-    const Numeric uplim = ssd.T_grid[nTin-1] +
-                          extrapolfac * (ssd.T_grid[nTin-1]-ssd.T_grid[nTin-2]);
-
-    bool any_T_exceed = false;
-    for( Index Tind=0; Tind<nTout; Tind++ )
-    {
-      if( T_array[Tind]<lowlim || T_array[Tind]>uplim )
-      {
-        t_ok[Tind] = -1.;
-        any_T_exceed = true;
-      }
-      else
-        t_ok[Tind] = 1.;
-    }
-
-    if( any_T_exceed )
-    {
-      GridPosPoly dummy_gp;
-      dummy_gp.idx.resize(this_T_interp_order+1);
-      dummy_gp.w.resize(this_T_interp_order+1);
-      for (Index i=0; i<=this_T_interp_order; ++i)
-        dummy_gp.idx[i] = i;
-      dummy_gp.w = 0.;
-      dummy_gp.w[0] = 1.;
-      bool grid_unchecked = true;
-
-      for( Index iT=0; iT<nTout; iT++ )
-      {
-        if( t_ok[iT]<0 )
-          // setup T-exceed points with dummy grid positions
-          T_gp[iT] = dummy_gp;
-        else
-        {
-          if( grid_unchecked )
-          {
-            chk_interpolation_grids(
-              "Temperature interpolation in opt_prop_1ScatElem",
-              ssd.T_grid, T_array[Range(iT,1)], this_T_interp_order);
-            grid_unchecked = false;
-          }
-          gridpos_poly(T_gp[iT], ssd.T_grid, T_array[iT], this_T_interp_order,
-                       extrapolfac);
-        }
-      }
-    }
-    else
-      gridpos_poly(T_gp, ssd.T_grid, T_array, this_T_interp_order, extrapolfac);
-    interpweights(T_itw, T_gp);
-  }
-  else
-  {
-    t_ok = 1.;
-  }
+  ArrayOfGridPosPoly T_gp(nTout);
+  ssd_tinterp_parameters( t_ok, this_T_interp_order, T_gp, T_itw,
+                          ssd.T_grid, T_array, t_interp_order );
 
   // Now loop over requested directions (and apply simultaneously for all freqs):
   // 1) extract/interpolate direction (but not for tot.random)
@@ -1003,84 +936,12 @@ void pha_mat_1ScatElem(//Output
   // Determine T-interpol order as well as interpol positions and weights (they
   // are the same for all directions (and freqs), ie it is sufficient to
   // calculate them once).
-  //
-  // FIXME:
-  // This code is the same here as in opt_prop_1ScatElem. Move into a separate
-  // function and call it at each of the places (maybe add an option to skip if
-  // t_ok already known?).
   const Index nTin = ssd.T_grid.nelem();
-  Index this_T_interp_order = -1;
-  ArrayOfGridPosPoly T_gp(nTout);
+  Index this_T_interp_order;
   Matrix T_itw;
-
-  if( nTin>1 )
-  {
-    this_T_interp_order = min(t_interp_order, nTin-1);
-    T_itw.resize(nTout, this_T_interp_order+1);
-
-    // we need to check T-grid exceedance. and catch these cases (because T
-    // is assumed to correspond to a location and T-exceedance is ok when pnd=0
-    // there. however, here we do not know pnd.) and report them to have the
-    // calling method dealing with it.
-    
-    // we set the extrapolfax explicitly and use it here as well as in
-    // gridpos_poly below.
-    const Numeric extrapolfac=0.5;
-    const Numeric lowlim = ssd.T_grid[0] -
-                           extrapolfac * (ssd.T_grid[1]-ssd.T_grid[0]);
-    const Numeric uplim = ssd.T_grid[nTin-1] +
-                          extrapolfac * (ssd.T_grid[nTin-1]-ssd.T_grid[nTin-2]);
-
-    bool any_T_exceed = false;
-    for( Index Tind=0; Tind<nTout; Tind++ )
-    {
-      if( T_array[Tind]<lowlim || T_array[Tind]>uplim )
-      {
-        t_ok[Tind] = -1.;
-        any_T_exceed = true;
-      }
-      else
-        t_ok[Tind] = 1.;
-    }
-
-    if( any_T_exceed )
-    {
-      GridPosPoly dummy_gp;
-      dummy_gp.idx.resize(this_T_interp_order+1);
-      dummy_gp.w.resize(this_T_interp_order+1);
-      for (Index i=0; i<=this_T_interp_order; ++i)
-        dummy_gp.idx[i] = i;
-      dummy_gp.w = 0.;
-      dummy_gp.w[0] = 1.;
-      bool grid_unchecked = true;
-
-      for( Index iT=0; iT<nTout; iT++ )
-      {
-        if( t_ok[iT]<0 )
-          // setup T-exceed points with dummy grid positions
-          T_gp[iT] = dummy_gp;
-        else
-        {
-          if( grid_unchecked )
-          {
-            chk_interpolation_grids(
-              "Temperature interpolation in pha_mat_1ScatElem",
-              ssd.T_grid, T_array[Range(iT,1)], this_T_interp_order);
-            grid_unchecked = false;
-          }
-          gridpos_poly(T_gp[iT], ssd.T_grid, T_array[iT], this_T_interp_order,
-                       extrapolfac);
-        }
-      }
-    }
-    else
-      gridpos_poly(T_gp, ssd.T_grid, T_array, this_T_interp_order, extrapolfac);
-    interpweights(T_itw, T_gp);
-  }
-  else
-  {
-    t_ok = 1.;
-  }
+  ArrayOfGridPosPoly T_gp(nTout);
+  ssd_tinterp_parameters( t_ok, this_T_interp_order, T_gp, T_itw,
+                          ssd.T_grid, T_array, t_interp_order );
 
   // Now loop over requested directions (and apply simultaneously for all freqs):
   // 1) interpolate direction
@@ -1214,21 +1075,9 @@ void pha_mat_1ScatElem(//Output
     Matrix dir_itw(nDir, 8);
     interpweights(dir_itw,pza_gp,daa_gp,iza_gp);
 
-    // determine how many (and which) of the compact stokes elements we will need.
-    // restrict interpolations to those.
-    const Index npha = stokes_dim * stokes_dim;
-    /*
-    const ArrayOfIndex pha_ind = [0,      // needed for stokes_dim = 1
-                                  1,4,5,                        // = 2
-                                  2,6,8,9,10,                   // = 3
-                                  3,7,11,12,13,14,15];          // = 4
-    const Matrix pha_neg = [[0,2],[1,2],[]];
-    */
-
     if( this_T_interp_order<0 ) // T only needs to be extracted.
     {
-      Matrix pha_mat_int(nDir,npha,0.);
-      Tensor3 pha_mat_tmp_ssd(npDir,niDir,npha,0.);
+      Tensor3 pha_mat_int(nDir,stokes_dim,stokes_dim,0.);
       Tensor4 pha_mat_tmp(npDir,niDir,stokes_dim,stokes_dim);
 
       for( Index find=0; find<nf; find++ )
@@ -1236,70 +1085,12 @@ void pha_mat_1ScatElem(//Output
         // perform the (tri-linear) angle interpolation. but only for the
         // pha_mat elements that we actually need.
 
-        // this version looks much cleaner. but so far i don't manage to set
-        // pha_ind here, so we have to go with the less clean version for now.
-        /*
-        for (Index nst=0; nst<npha; nst++)
-          interp(pha_mat_int(joker,nst),
-                 dir_itw,
-                 ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,pha_ind[nst]),
-                 pza_gp,daa_gp,iza_gp);
-        */
-
-        interp(pha_mat_int(joker,0),
-               dir_itw,
-               ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,0),
-               pza_gp,daa_gp,iza_gp);
-
-        if( stokes_dim>1 )
-        {
-          interp(pha_mat_int(joker,1),
-                 dir_itw,
-                 ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,1),
-                 pza_gp,daa_gp,iza_gp);
-          interp(pha_mat_int(joker,2),
-                 dir_itw,
-                 ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,4),
-                 pza_gp,daa_gp,iza_gp);
-          interp(pha_mat_int(joker,3),
-                 dir_itw,
-                 ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,5),
-                 pza_gp,daa_gp,iza_gp);
-        }
-
-        if( stokes_dim>2 )
-        {
-          interp(pha_mat_int(joker,4),
-                 dir_itw,
-                 ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,2),
-                 pza_gp,daa_gp,iza_gp);
-          interp(pha_mat_int(joker,5),
-                 dir_itw,
-                 ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,6),
-                 pza_gp,daa_gp,iza_gp);
-          for (Index i=0; i<3; i++)
-            interp(pha_mat_int(joker,6+i),
+        for (Index ist1=0; ist1<stokes_dim; ist1++)
+          for (Index ist2=0; ist2<stokes_dim; ist2++)
+            interp(pha_mat_int(joker,ist1,ist2),
                    dir_itw,
-                   ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,8+i),
+                   ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,ist1*4+ist2),
                    pza_gp,daa_gp,iza_gp);
-        }
-
-        if( stokes_dim>3 )
-        {
-          interp(pha_mat_int(joker,9),
-                 dir_itw,
-                 ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,3),
-                 pza_gp,daa_gp,iza_gp);
-          interp(pha_mat_int(joker,10),
-                 dir_itw,
-                 ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,7),
-                 pza_gp,daa_gp,iza_gp);
-          for (Index i=0; i<5; i++)
-            interp(pha_mat_int(joker,11+i),
-                   dir_itw,
-                   ssd.pha_mat_data(find+f_start,0,joker,joker,joker,0,11+i),
-                   pza_gp,daa_gp,iza_gp);
-        }
 
         // sort direction-combined 1D-array back into prop and incident
         // direction matrix
@@ -1307,40 +1098,12 @@ void pha_mat_1ScatElem(//Output
         for( Index pdir=0; pdir<npDir; pdir++ )
           for( Index idir=0; idir<niDir; idir++ )
           {
-            pha_mat_tmp_ssd(pdir,idir,joker) = pha_mat_int(i,joker);
+            pha_mat_tmp(pdir,idir,joker,joker) = pha_mat_int(i,joker,joker);
             i++;
           }
 
-        // convert ssd matrix element format into stokes format
-
-        // this cleaner version unfortunately doesn't work so far as i fail
-        // to set pha_ind here.
-        /*
-        Index st1, st2;
-        for( Index nst=0; nst<npha; nst++)
-        {
-          st1 = pha_ind[nst]/4;
-          st2 = pha_ind[nst] - st1*4;
-          pha_mat_tmp(joker,joker,st1,st2) = pha_mat_tmp_ssd(joker,joker,nst);
-        }
-       */
-
-        pha_mat_tmp(joker,joker,0,0) = pha_mat_tmp_ssd(joker,joker,0);
-
-        if( stokes_dim>1 )
-        {
-          pha_mat_tmp(joker,joker,0,1) = pha_mat_tmp_ssd(joker,joker,1);
-          pha_mat_tmp(joker,joker,1,0) = pha_mat_tmp_ssd(joker,joker,2);
-          pha_mat_tmp(joker,joker,1,1) = pha_mat_tmp_ssd(joker,joker,3);
-        }
-
         if( stokes_dim>2 )
         {
-          pha_mat_tmp(joker,joker,0,2) = pha_mat_tmp_ssd(joker,joker,4);
-          pha_mat_tmp(joker,joker,1,2) = pha_mat_tmp_ssd(joker,joker,5);
-          pha_mat_tmp(joker,joker,2,0) = pha_mat_tmp_ssd(joker,joker,6);
-          pha_mat_tmp(joker,joker,2,1) = pha_mat_tmp_ssd(joker,joker,7);
-          pha_mat_tmp(joker,joker,2,2) = pha_mat_tmp_ssd(joker,joker,8);
           for( Index pdir=0; pdir<npDir; pdir++ )
             for( Index idir=0; idir<niDir; idir++ )
               if( delta_aa(pdir,idir)<0. )
@@ -1354,13 +1117,6 @@ void pha_mat_1ScatElem(//Output
 
         if( stokes_dim>3 )
         {
-          pha_mat_tmp(joker,joker,0,3) = pha_mat_tmp_ssd(joker,joker,9);
-          pha_mat_tmp(joker,joker,1,3) = pha_mat_tmp_ssd(joker,joker,10);
-          pha_mat_tmp(joker,joker,2,3) = pha_mat_tmp_ssd(joker,joker,11);
-          pha_mat_tmp(joker,joker,3,0) = pha_mat_tmp_ssd(joker,joker,12);
-          pha_mat_tmp(joker,joker,3,1) = pha_mat_tmp_ssd(joker,joker,13);
-          pha_mat_tmp(joker,joker,3,2) = pha_mat_tmp_ssd(joker,joker,14);
-          pha_mat_tmp(joker,joker,3,3) = pha_mat_tmp_ssd(joker,joker,15);
           for( Index pdir=0; pdir<npDir; pdir++ )
             for( Index idir=0; idir<niDir; idir++ )
               if( delta_aa(pdir,idir)<0. )
@@ -1372,25 +1128,6 @@ void pha_mat_1ScatElem(//Output
               }
         }
 
-        // this cleaner version unfortunately doesn't work so far as i fail
-        // to set pha_neg here.
-        // Instead, we handle this within the switch above.
-        /*
-        Index nnst;
-        if( stokes_dim>2 )
-          for( Index pdir=0; pdir<npDir; pdir++ )
-            for( Index idir=0; idir<niDir; idir++ )
-              if( delta_aa(pdir,idir)<0. )
-              { 
-                if( stokes_dim<4 )
-                  nnst=4;
-                else
-                  nnst=8;
-                for( Index nst=0; nst<nnst; nst++)
-                  pha_mat_tmp(pdir,idir,pha_neg(nst,0),pha_neg(nst,1)) *= -1;
-              }
-        */
-
         for( Index Tind=0; Tind<nTout; Tind++ )
           pha_mat(find,Tind,joker,joker,joker,joker) = pha_mat_tmp;
       }
@@ -1399,8 +1136,7 @@ void pha_mat_1ScatElem(//Output
     else // T- and dir-interpolation required. To be done on the compact ssd
          // format.
     {
-      Tensor3 pha_mat_int(nTin,nDir,npha,0.);
-      Tensor4 pha_mat_tmp_ssd(nTout,npDir,niDir,npha,0.);
+      Tensor4 pha_mat_int(nTin,nDir,stokes_dim,stokes_dim,0.);
 
       for( Index find=0; find<nf; find++ )
       {
@@ -1408,64 +1144,13 @@ void pha_mat_1ScatElem(//Output
         // pha_mat elements that we actually need.
         for( Index Tind=0; Tind<nTin; Tind++ )
         {
-          interp(pha_mat_int(Tind,joker,0),
-                 dir_itw,
-                 ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,0),
-                 pza_gp,daa_gp,iza_gp);
+          for (Index ist1=0; ist1<stokes_dim; ist1++)
+            for (Index ist2=0; ist2<stokes_dim; ist2++)
+              interp(pha_mat_int(Tind,joker,ist1,ist2),
+                     dir_itw,
+                     ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,ist1*4+ist2),
+                     pza_gp,daa_gp,iza_gp);
         }
-    
-        if( stokes_dim>1 )
-          for( Index Tind=0; Tind<nTin; Tind++ )
-          {
-            interp(pha_mat_int(Tind,joker,1),
-                   dir_itw,
-                   ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,1),
-                   pza_gp,daa_gp,iza_gp);
-            interp(pha_mat_int(Tind,joker,2),
-                   dir_itw,
-                   ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,4),
-                   pza_gp,daa_gp,iza_gp);
-            interp(pha_mat_int(Tind,joker,3),
-                   dir_itw,
-                   ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,5),
-                   pza_gp,daa_gp,iza_gp);
-          }
-
-        if( stokes_dim>2 )
-          for( Index Tind=0; Tind<nTin; Tind++ )
-          {
-            interp(pha_mat_int(Tind,joker,4),
-                   dir_itw,
-                   ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,2),
-                   pza_gp,daa_gp,iza_gp);
-            interp(pha_mat_int(Tind,joker,5),
-                   dir_itw,
-                   ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,6),
-                   pza_gp,daa_gp,iza_gp);
-            for (Index i=0; i<3; i++)
-              interp(pha_mat_int(Tind,joker,6+i),
-                     dir_itw,
-                     ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,8+i),
-                     pza_gp,daa_gp,iza_gp);
-          }
-
-        if( stokes_dim>3 )
-          for( Index Tind=0; Tind<nTin; Tind++ )
-          {
-            interp(pha_mat_int(Tind,joker,9),
-                   dir_itw,
-                   ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,3),
-                   pza_gp,daa_gp,iza_gp);
-            interp(pha_mat_int(Tind,joker,10),
-                   dir_itw,
-                   ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,7),
-                   pza_gp,daa_gp,iza_gp);
-            for (Index i=0; i<5; i++)
-              interp(pha_mat_int(Tind,joker,11+i),
-                     dir_itw,
-                     ssd.pha_mat_data(find+f_start,Tind,joker,joker,joker,0,11+i),
-                     pza_gp,daa_gp,iza_gp);
-          }
 
         // perform the T-interpolation and simultaneously sort
         // direction-combined 1D-array back into prop and incident direction
@@ -1474,34 +1159,15 @@ void pha_mat_1ScatElem(//Output
         for( Index pdir=0; pdir<npDir; pdir++ )
           for( Index idir=0; idir<niDir; idir++ )
           {
-            for( Index nst=0; nst<npha; nst++ )
-              interp(pha_mat_tmp_ssd(joker,pdir,idir,nst), T_itw,
-                     pha_mat_int(joker,i,nst), T_gp);
+            for (Index ist1=0; ist1<stokes_dim; ist1++)
+              for (Index ist2=0; ist2<stokes_dim; ist2++)
+                interp(pha_mat(find,joker,pdir,idir,ist1,ist2), T_itw,
+                       pha_mat_int(joker,i,ist1,ist2), T_gp);
             i++;
-          }
-
-        // convert ssd matrix element format into stokes format
-        for( Index Tind=0; Tind<nTout; Tind++ )
-          pha_mat(find,Tind,joker,joker,0,0) = pha_mat_tmp_ssd(Tind,joker,joker,0);
-
-        if( stokes_dim>1 )
-          for( Index Tind=0; Tind<nTout; Tind++ )
-          {
-            pha_mat(find,Tind,joker,joker,0,1) = pha_mat_tmp_ssd(Tind,joker,joker,1);
-            pha_mat(find,Tind,joker,joker,1,0) = pha_mat_tmp_ssd(Tind,joker,joker,2);
-            pha_mat(find,Tind,joker,joker,1,1) = pha_mat_tmp_ssd(Tind,joker,joker,3);
           }
 
         if( stokes_dim>2 )
         {
-          for( Index Tind=0; Tind<nTout; Tind++ )
-          {
-            pha_mat(find,Tind,joker,joker,0,2) = pha_mat_tmp_ssd(Tind,joker,joker,4);
-            pha_mat(find,Tind,joker,joker,1,2) = pha_mat_tmp_ssd(Tind,joker,joker,5);
-            pha_mat(find,Tind,joker,joker,2,0) = pha_mat_tmp_ssd(Tind,joker,joker,6);
-            pha_mat(find,Tind,joker,joker,2,1) = pha_mat_tmp_ssd(Tind,joker,joker,7);
-            pha_mat(find,Tind,joker,joker,2,2) = pha_mat_tmp_ssd(Tind,joker,joker,8);
-          }
           for( Index pdir=0; pdir<npDir; pdir++ )
             for( Index idir=0; idir<niDir; idir++ )
               if( delta_aa(pdir,idir)<0. )
@@ -1513,18 +1179,8 @@ void pha_mat_1ScatElem(//Output
               }
         }
 
-        if( stokes_dim>2 )
+        if( stokes_dim>3 )
         {
-          for( Index Tind=0; Tind<nTout; Tind++ )
-          {
-            pha_mat(find,Tind,joker,joker,0,3) = pha_mat_tmp_ssd(Tind,joker,joker,9);
-            pha_mat(find,Tind,joker,joker,1,3) = pha_mat_tmp_ssd(Tind,joker,joker,10);
-            pha_mat(find,Tind,joker,joker,2,3) = pha_mat_tmp_ssd(Tind,joker,joker,11);
-            pha_mat(find,Tind,joker,joker,3,0) = pha_mat_tmp_ssd(Tind,joker,joker,12);
-            pha_mat(find,Tind,joker,joker,3,1) = pha_mat_tmp_ssd(Tind,joker,joker,13);
-            pha_mat(find,Tind,joker,joker,3,2) = pha_mat_tmp_ssd(Tind,joker,joker,14);
-            pha_mat(find,Tind,joker,joker,3,3) = pha_mat_tmp_ssd(Tind,joker,joker,15);
-          }
           for( Index pdir=0; pdir<npDir; pdir++ )
             for( Index idir=0; idir<niDir; idir++ )
               if( delta_aa(pdir,idir)<0. )
@@ -1540,6 +1196,159 @@ void pha_mat_1ScatElem(//Output
   }
 }
 
+
+//! Preparing phase matrix fourier series components for one scattering element.
+/*! 
+  Calculates phase matrix fourier series components (currently only mode 0) for
+  one scattering element for one or all frequencies from the single scattering
+  data. Includes interpolation in temperature as well as in incident and
+  scattered stream directions. Handles multiple output temperatures, propagation
+  and incident directions at a time.
+  Temperature interpolation order can be chosen.
+
+  \param[out] pha_mat_fou  1-scattering element phase matrix (over freq, temp,
+                           propagation dir, incident dir).
+  \param[out] ptype      Type of scattering element.
+  \param[out] t_ok       Flag whether T-interpol valid (length of T_array).
+  \param[in]  ssd        Single scattering data of one scattering element.
+  \param[in]  T_array    Temperatures to extract pha for.
+  \param[in]  dir_array  Stream directions to extract pha for.
+  \param[in]  f_start    Start index of frequency/ies to extract.
+  \param[in]  t_interp_order  Temperature interpolation order.
+
+  \author Jana Mendrok
+  \date   2018-05-01
+*/
+/*
+void FouComp_1ScatElem(//Output
+                       Tensor6View pha_mat_fou, // nf, nT, npdir, nidir, nst, m
+                       Index& ptype,
+                       VectorView t_ok,
+                       //Input
+                       const SingleScatteringData& ssd,
+                       const Vector& T_array,
+                       const Matrix& dir_array,
+                       const Index& f_start,
+                       const Index& t_interp_order)
+{
+  assert( ssd.ptype == PTYPE_TOTAL_RND or ssd.ptype == PTYPE_AZIMUTH_RND );
+
+  const Index nf = pha_mat_fou.nvitrines();
+  if( nf>1 )
+    { assert( nf == ssd.f_grid.nelem() ); }
+
+  const Index nTout = T_array.nelem();
+  assert( pha_mat_fou.nshelves() == nTout );
+  assert( t_ok.nelem() == nTout );
+
+  const Index nDir = dir_array.nrows();
+  assert( pha_mat_fou.nbooks() == npDir );
+
+  const Index stokes_dim = pha_mat_fou.nrows();
+  // currently code is only prepared for stokes_dim up to 2 (nothing else needed in
+  // RT4 and generally in azimuth-symmetrical system)
+  assert( stokes_dim<3 );
+
+  const Index nmodes = pha_mat_fou.ncols();
+  // currently code is only prepared for fourier mode 0 (nothing else needed in
+  // RT4 and generally in azimuth-symmetrical system)
+  assert( nmodes == 0 );
+
+  ptype = ssd.ptype;
+
+  // Determine T-interpol order as well as interpol positions and weights (they
+  // are the same for all directions (and freqs), ie it is sufficient to
+  // calculate them once).
+  const Index nTin = ssd.T_grid.nelem();
+  Index this_T_interp_order;
+  Matrix T_itw;
+  ArrayOfGridPosPoly T_gp(nTout);
+  ssd_tinterp_parameters( t_ok, this_T_interp_order, T_gp, T_itw,
+                          ssd.T_grid, T_array, t_interp_order );
+
+  // Loop over streams (and apply simultaneously for all freqs):
+  // 1) derive Fourier component
+  // 2) apply T-interpol
+  if( ptype==PTYPE_TOTAL_RND )
+  {
+  }
+  else // derive Fourier component(s) on scattering elements own za_grid (using
+       // given aa_grid), then 2D-interpolate inc and sca polar directions.
+       // Do calcs only for required pha_mat components depending on stokes_dim.
+  {
+    Index nza = ssd.za_grid.nelem();
+    Index naa = ssd.aa_grid.nelem();
+    ConstVectorView za_datagrid = ssd.za_grid;
+    ConstVectorView aa_datagrid = ssd.aa_grid;
+    assert( aa_datagrid[0]==0. );
+    assert( aa_datagrid[naa_se-1]==180. );
+    Vector daa(naa_se);
+
+    // Precalculate azimuth integration weights for this azimuthally randomly
+    // oriented scat element (need to do this per scat element as ssd.aa_grid is
+    // scat element specific (might change between elements) and need to do this
+    // on actual grid instead of grid number since the grid can, at least
+    // theoretically be non-equidistant).
+    daa[0] = (aa_datagrid[1]-aa_datagrid[0])/360.;
+    for (Index saa=1; saa<naa_se-1; saa++)
+      daa[saa] = (aa_datagrid[saa+1]-aa_datagrid[saa-1])/360.;
+    daa[naa_se-1] = (aa_datagrid[naa_se-1]-aa_datagrid[naa_se-2])/360.;
+
+    Tensor6 pha_mat_int(nf, nTin, nza, nza, stokes_dim, stokes_dim, 0.);
+
+    // first, extracting the phase matrix at the scatt elements own polar angle
+    // grid, deriving their respective azimuthal (Fourier series) 0-mode
+    for (Index iza=0; iza<nza; iza++)
+      for (Index sza=0; sza<nza; sza++)
+      {
+        for (Index saa=0; saa<naa_se; saa++)
+        {
+          for (Index ist1=0; ist1<stokes_dim; ist1++)
+            for (Index ist2=0; ist2<stokes_dim; ist2++)
+              pha_mat_int(sza,iza,ist1,ist2) += daa[saa] *
+                ssd.pha_mat_data(this_f_index, i_pfct,
+                                 sza, saa, iza, 0, ist1*4+ist2);
+        }
+      }
+
+    // second, interpolating the extracted azimuthal mode to the stream
+    // directions
+    for (Index iza=0; iza<nza_rt; iza++)
+    {
+      for (Index sza=0; sza<nza_rt; sza++)
+      {
+        GridPos za_sca_gp;
+        GridPos za_inc_gp;
+                    Vector itw(4);
+                    Matrix pha_mat_lab(stokes_dim,stokes_dim, 0.);
+                    Numeric za_sca = scat_za_grid[sza]; 
+                    Numeric za_inc = scat_za_grid[iza]; 
+       
+                    gridpos(za_inc_gp,za_datagrid,za_inc);
+                    gridpos(za_sca_gp,za_datagrid,za_sca);
+                    interpweights(itw,za_sca_gp,za_inc_gp);
+      
+                    for (Index ist1=0; ist1<stokes_dim; ist1++)
+                      for (Index ist2=0; ist2<stokes_dim; ist2++)
+                      {
+                        pha_mat_lab(ist1,ist2) = interp(itw,
+                          pha_mat_int(Range(joker),Range(joker),ist1,ist2),
+                          za_sca_gp,za_inc_gp);
+                        //if (ist1+ist2==1)
+                        //  pha_mat_lab(ist1,ist2) *= -1.;
+                      }
+
+                    sca_mat(i_se_flat,iza,sza,joker,joker) = pha_mat_lab;
+                  }
+                ext_fixT_spt(i_se_flat,iza) =
+                  ssd.ext_mat_data(this_f_index, i_pfct, iza, 0, 0);
+                abs_fixT_spt(i_se_flat,iza) =
+                  ssd.abs_vec_data(this_f_index, i_pfct, iza, 0, 0);
+              }
+            }
+  }
+}
+*/
 
 
 //! Transformation of absorption vector.
@@ -2010,9 +1819,9 @@ void pha_matTransform(//Output
   \author Jana Mendrok
   \date   2013-04-30 
 */
-void ext_matFromabs_vec(//Output:
+void ext_matFromabs_vec(//Output
                         MatrixView ext_mat,
-                        //Input:
+                        //Input
                         ConstVectorView abs_vec,
                         const Index& stokes_dim)
 {
@@ -2032,6 +1841,110 @@ void ext_matFromabs_vec(//Output:
       ext_mat(0,is) += abs_vec[is];
       ext_mat(is,0) += abs_vec[is];
     }
+}
+
+
+//! Determine T-interpol parameters for a specific scattering element.
+/*! 
+  Determine T-interpol order as well as interpol positions and weights (they
+  are the same for all directions (and freqs), ie it is sufficient to
+  calculate them once).
+
+  \param[out] t_ok       Flag whether T-interpol valid (length of T_array).
+  \param[out] this_T_interp_order  Temperature interpolation order adjusted
+                           according to data availability.
+  \param[out] T_gp       GridPos data for temperature interpolation.
+  \param[out] T_itw      Interpolation weights for temperature interpolation.
+  \param[in]  T_grid     Single scattering data temperature grid.
+  \param[in]  T_array    Temperatures to extract single scattering data for.
+  \param[in]  t_interp_order  Requested temperature interpolation order.
+
+  \author Jana Mendrok
+  \date   2018-05-01
+*/
+void ssd_tinterp_parameters(//Output
+                            VectorView t_ok,
+                            Index& this_T_interp_order,
+                            ArrayOfGridPosPoly& T_gp,
+                            Matrix& T_itw,
+                            //Input
+                            ConstVectorView T_grid,
+                            const Vector& T_array,
+                            const Index& t_interp_order)
+{
+  const Index nTin = T_grid.nelem();
+  const Index nTout = T_array.nelem();
+
+  this_T_interp_order = -1;
+
+  if( nTin>1 )
+  {
+    this_T_interp_order = min(t_interp_order, nTin-1);
+    T_itw.resize(nTout, this_T_interp_order+1);
+
+    // we need to check T-grid exceedance. and catch these cases (because T
+    // is assumed to correspond to a location and T-exceedance is ok when pnd=0
+    // there. however, here we do not know pnd.) and report them to have the
+    // calling method dealing with it.
+    
+    // we set the extrapolfax explicitly and use it here as well as in
+    // gridpos_poly below.
+    const Numeric extrapolfac=0.5;
+    const Numeric lowlim = T_grid[0] -
+                           extrapolfac * (T_grid[1]-T_grid[0]);
+    const Numeric uplim = T_grid[nTin-1] +
+                          extrapolfac * (T_grid[nTin-1]-T_grid[nTin-2]);
+
+    bool any_T_exceed = false;
+    for( Index Tind=0; Tind<nTout; Tind++ )
+    {
+      if( T_array[Tind]<lowlim || T_array[Tind]>uplim )
+      {
+        t_ok[Tind] = -1.;
+        any_T_exceed = true;
+      }
+      else
+        t_ok[Tind] = 1.;
+    }
+
+    if( any_T_exceed )
+    {
+      GridPosPoly dummy_gp;
+      dummy_gp.idx.resize(this_T_interp_order+1);
+      dummy_gp.w.resize(this_T_interp_order+1);
+      for (Index i=0; i<=this_T_interp_order; ++i)
+        dummy_gp.idx[i] = i;
+      dummy_gp.w = 0.;
+      dummy_gp.w[0] = 1.;
+      bool grid_unchecked = true;
+
+      for( Index iT=0; iT<nTout; iT++ )
+      {
+        if( t_ok[iT]<0 )
+          // setup T-exceed points with dummy grid positions
+          T_gp[iT] = dummy_gp;
+        else
+        {
+          if( grid_unchecked )
+          {
+            chk_interpolation_grids(
+              "Temperature interpolation in pha_mat_1ScatElem",
+              T_grid, T_array[Range(iT,1)], this_T_interp_order);
+            grid_unchecked = false;
+          }
+          gridpos_poly(T_gp[iT], T_grid, T_array[iT], this_T_interp_order,
+                       extrapolfac);
+        }
+      }
+    }
+    else
+      gridpos_poly(T_gp, T_grid, T_array, this_T_interp_order, extrapolfac);
+    interpweights(T_itw, T_gp);
+  }
+  else
+  {
+    t_ok = 1.;
+  }
 }
 
 

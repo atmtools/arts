@@ -40,6 +40,7 @@
 #include "mystring.h"
 #include "messages.h"
 #include "gridded_fields.h"
+#include "interpolation_poly.h"
 #include "propagationmatrix.h"
 
 
@@ -274,11 +275,21 @@ void pha_matTransform(//Output
                       const Verbosity& verbosity);
 
 
-void ext_matFromabs_vec(//Output:
+void ext_matFromabs_vec(//Output
                         MatrixView ext_mat,
-                        //Input:
+                        //Input
                         ConstVectorView abs_vec,
                         const Index& stokes_dim);
+
+void ssd_tinterp_parameters(//Output
+                            VectorView t_ok,
+                            Index& this_T_interp_order,
+                            ArrayOfGridPosPoly& T_gp,
+                            Matrix& T_itw,
+                            //Input
+                            ConstVectorView T_grid,
+                            const Vector& T_array,
+                            const Index& t_interp_order);
 
 // Functions for the case: Randomly oriented particles: 
 // ========================================================
