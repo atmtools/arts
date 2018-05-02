@@ -1,26 +1,8 @@
-# Right now used more for notes, than TODO
+2018-05-02, Patrick:
+The handling of extinction and transmission inside the MC methods should be
+updated and use the new features by Richard. That is, to use propmat and e.g. the
+function ext2trans should be removed.
 
-2012-02-21, Patrick
-Add sinefit weighting functions.
-
-2012-02-21, Patrick
-Fix bug for mc_antenna (azimuth distance varies with za)
-
-2012-02-20, Patrick
-Regarding Doppler: Update AUG Information in methods.cc correct?
-Add Doppler shift also to emission/Planck?
-
-2012-02-08, Patrick
-Revise usage of sensor_response_agenda, and resolve yCalc/yCalc2.
-
-2011-07-13, Patrick
-Make a WSV out of the epsilon that is GIN for doit_conv_flagAbs. And use this
-in the iyInterpCloudboxField-methods to set a correct error. Note that epsilon
-can be defined both in radiance and Tb. Probably best to remove
-doit_conv_flagAbsTb and instead making a WSM to convert epsilon from Tb to
-radiance (using the newly added rayjean function). 
-As far as I understand, DOIT assumes that emission is always given
-as W/m3/Hz/sr. The question is then if DOIT shall use emission_agenda, as there
-is no flexibility in selecting the source term.
-
-
+2018-05-02, Patrick:
+Revise how MAINTAG, SUBTAG ... inside jacobian_quantities are used. The options
+for MAINTAG should be something like: atmosphere, spectroscopy, surface, sensor.

@@ -1,3 +1,18 @@
+2018-05-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1043
+
+	* TODO: Let's use this file to make notes about Todo-s until we
+	have decided what ticket system to use. And maybe we need this
+	file anyhow, to keep track of things that either of larger scope
+	or don't yet have a clear owner.
+
+	Added two points.
+
+	* src/rte.cc (ext2trans): The code from Landi Degl'Innocenti and
+	Landolfi (2004) is now used only for stokes_dim==2. Did not work
+	for stokes_dim==3, as reported by Jana.
+
 2018-05-01 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-1042

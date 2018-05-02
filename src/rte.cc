@@ -979,7 +979,7 @@ void ext2trans(
         { trans_mat(i,i) = trans_mat(0,0); }
     }
       
-  else if( icase == 2 )
+  else if( icase == 2  &&  stokes_dim < 3 )
     {
       // Expressions below are found in "Polarization in Spectral Lines" by
       // Landi Degl'Innocenti and Landolfi (2004).
@@ -989,6 +989,7 @@ void ext2trans(
       trans_mat(1,1) = trans_mat(0,0);
       trans_mat(1,0) = -tI * sinh( HQ );
       trans_mat(0,1) = trans_mat(1,0);
+      /* Does not work for stokes_dim==3, and commnted out 180502 by PE: 
       if( stokes_dim >= 3 )
         {
           trans_mat(2,0) = 0;
@@ -1008,6 +1009,7 @@ void ext2trans(
               trans_mat(2,3) = -trans_mat(3,2); 
             }
         }
+      */
     }
   else
     {
