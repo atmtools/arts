@@ -2470,10 +2470,6 @@ void xsec_species2(MatrixView xsec,
   if(not np or not nf or not nl)
     return;
   
-  // Algorithmic stuff to test that variables are as expected
-  //assert(not std::any_of(abs_t.begin(), abs_t.end(), [](Numeric n){return n <= 0.;}));
-  //assert(not std::any_of(abs_p.begin(), abs_p.end(), [](Numeric n){return n <= 0.;}));
-  
   // Water index in VMRS is constant for all levels and lines
   const Index h2o_index = find_first_species_tg(abs_species, species_index_from_species_name("H2O"));
   
@@ -2483,9 +2479,7 @@ void xsec_species2(MatrixView xsec,
   
   // Results vectors are initialized first and then copied to the threads later
   ComplexVector F(nf), N(do_nonlte?nf:0);
-  ArrayOfComplexVector dF(nj), dN(do_nonlte?nj:0);
-  for(auto& aocv : dF) aocv.resize(nf);
-  for(auto& aocv : dN) aocv.resize(nf);
+  ComplexMatrix dF(nj, nf), dN(do_nonlte?nj:0, nf);
   Range this_xsec_range(joker);
 
   for(Index ip = 0; ip < np; ip++)
@@ -2509,73 +2503,106 @@ void xsec_species2(MatrixView xsec,
       // allowed to change so we must check that they do not
       if(line.Isotopologue() not_eq this_iso or line.Ti0() not_eq t0)
       {
-        // set new line temperature
         t0 = line.Ti0();
         
-        // set new partition function
         partition_function(qt0, qt,
           t0, temperature,
           partition_functions.getParamType(line.Species(), line.Isotopologue()),
           partition_functions.getParam(line.Species(), line.Isotopologue()));
         
-        // if needed, set the partition function derivative
         if(do_temperature)
           dpartition_function_dT(dqt_dT, qt,
             temperature, temperature_perturbation(jacobian_quantities),
             partition_functions.getParamType(line.Species(), line.Isotopologue()),
             partition_functions.getParam(line.Species(), line.Isotopologue()));
-      }
-      
-      // Same rule as for partition function applies to the Doppler broadening.
-      // It is however more simple since it only depends on the mass of the species
-      // of the line, so only check for this
-      if(line.Isotopologue() not_eq this_iso)
-      {
-        // set new isotopologue number
-        this_iso = line.Isotopologue();
         
-        // set the frequency-independent part of the line shape
-        dc = Linefunctions::DopplerConstant(temperature, line.IsotopologueData().Mass());
-        
-        // if needed, set the partial derivative of the frequency-independent part of the line shape
-        if(do_temperature)
-          ddc_dT = Linefunctions::dDopplerConstant_dT(temperature, line.IsotopologueData().Mass());
-      }
-      
-      // we now compute the line shape
-      Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, this_xsec_range,
-        jacobian_quantities, jacobian_propmat_positions, line, f_grid, all_vmrs(joker, ip), 
-        nt?abs_t_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
-        isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
-        H_magntitude_Zeeman, ddc_dT, lm_p_lim, qt, dqt_dT, qt0,
-        broad_spec_locations, this_species, h2o_index, verbosity, 
-        false, binary_speedup);
-      
-      // range-based arguments that need be made to work for both complex and numeric
-      const Index extent = (this_xsec_range.get_extent()<0)     ?
-                (nf-this_xsec_range.get_start())                :
-                this_xsec_range.get_extent();
-      const Range this_out_range(this_xsec_range.get_start(), extent);
-        
-      for(Index i = 0; i < extent; i++)
-      {
-        xsec(this_out_range, ip)[i] += F[this_xsec_range][i].real();
-        
-        if(not phase.empty())
-          phase(this_out_range, ip)[i] += F[this_xsec_range][i].imag();
-        
-        if(do_nonlte)
-          source(this_out_range, ip)[i] += N[this_xsec_range][i].real();
-        
-        for(Index j = 0; j < nj; j++)
+        if(line.Isotopologue() not_eq this_iso)
         {
-          dxsec_dx[j](this_out_range, ip)[i] += dF[j][this_xsec_range][i].real();
+          this_iso = line.Isotopologue();
+          dc = Linefunctions::DopplerConstant(temperature, line.IsotopologueData().Mass());
+          if(do_temperature)
+            ddc_dT = Linefunctions::dDopplerConstant_dT(temperature, line.IsotopologueData().Mass());
+        }
+      }
+      
+      // we now compute the line shape 
+      if(binary_speedup) {  // FIXME: Cannot consider cutoff properly now?
+        Numeric G0, G2, e, L0, L2, FVC;
+        line.PressureBroadening().GetPressureBroadeningParams(
+          G0, G2, e, L0, L2, FVC, line.Ti0()/temperature, pressure, partial_pressure, 
+          this_species, h2o_index, broad_spec_locations, all_vmrs(joker, ip), verbosity);
+        
+        // set binary levels
+        const ArrayOfArrayOfIndex binary_bounds = Linefunctions::binary_boundaries(line.F(), f_grid, G0, dc, line.SpeedUpCoeff(), binary_speedup, line.SpeedUpIndex());
+        
+//         Index c=0;
+        for(Index i=0; i<binary_bounds.nelem(); i++) {
+          const Range rl = Linefunctions::binary_level_range(binary_bounds, nf, i, true);
+          if(rl.get_extent())
+            Linefunctions::set_cross_section_for_single_line(F[rl], nj?dF(joker, rl):dF, do_nonlte?N[rl]:N, (nj and do_nonlte)?dN(joker, rl):dN, this_xsec_range,
+                                                            jacobian_quantities, jacobian_propmat_positions, line, f_grid[rl], all_vmrs(joker, ip), 
+                                                            nt?abs_t_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
+                                                            isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
+                                                            H_magntitude_Zeeman, ddc_dT, lm_p_lim, qt, dqt_dT, qt0,
+                                                            broad_spec_locations, this_species, h2o_index, verbosity);
+          
+          const Range ru = Linefunctions::binary_level_range(binary_bounds, nf, i, false);
+          if(ru.get_extent())
+            Linefunctions::set_cross_section_for_single_line(F[ru], nj?dF(joker, ru):dF, do_nonlte?N[ru]:N, (nj and do_nonlte)?dN(joker, ru):dN, this_xsec_range,
+                                                            jacobian_quantities, jacobian_propmat_positions, line, f_grid[ru], all_vmrs(joker, ip), 
+                                                            nt?abs_t_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
+                                                            isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
+                                                            H_magntitude_Zeeman, ddc_dT, lm_p_lim, qt, dqt_dT, qt0,
+                                                            broad_spec_locations, this_species, h2o_index, verbosity);
+//           c+=ru.get_extent()+rl.get_extent();
+        }
+//         std::cout<<c<<" real computations\n";
+        Linefunctions::binary_interpolation(F, binary_bounds);
+        for(Index j=0; j<nj; j++)
+          Linefunctions::binary_interpolation(dF(j, joker), binary_bounds);
+        if(do_nonlte) {
+          Linefunctions::binary_interpolation(N, binary_bounds);
+          for(Index j=0; j<nj; j++)
+            Linefunctions::binary_interpolation(dN(j, joker), binary_bounds);
+        }
+        
+        for(Index i = 0; i < nf; i++) {
+          xsec(i, ip) += F[i].real();
+        }
+        
+      }
+      else {
+        Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, this_xsec_range,
+          jacobian_quantities, jacobian_propmat_positions, line, f_grid, all_vmrs(joker, ip), 
+          nt?abs_t_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
+          isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
+          H_magntitude_Zeeman, ddc_dT, lm_p_lim, qt, dqt_dT, qt0,
+          broad_spec_locations, this_species, h2o_index, verbosity);
+        
+        // range-based arguments that need be made to work for both complex and numeric
+        const Index extent = (this_xsec_range.get_extent()<0)     ?
+        (nf-this_xsec_range.get_start())                :
+        this_xsec_range.get_extent();
+        const Range this_out_range(this_xsec_range.get_start(), extent);
+        
+        for(Index i = 0; i < extent; i++) {
+          xsec(this_out_range, ip)[i] += F[this_xsec_range][i].real();
           
           if(not phase.empty())
-            dphase_dx[j](this_out_range, ip)[i] += dF[j][this_xsec_range][i].imag();
+            phase(this_out_range, ip)[i] += F[this_xsec_range][i].imag();
           
           if(do_nonlte)
-            dsource_dx[j](this_out_range, ip)[i] += dN[j][this_xsec_range][i].real();
+            source(this_out_range, ip)[i] += N[this_xsec_range][i].real();
+          
+          for(Index j = 0; j < nj; j++) {
+            dxsec_dx[j](this_out_range, ip)[i] += dF(j, this_xsec_range)[i].real();
+            
+            if(not phase.empty())
+              dphase_dx[j](this_out_range, ip)[i] += dF(j, this_xsec_range)[i].imag();
+            
+            if(do_nonlte)
+              dsource_dx[j](this_out_range, ip)[i] += dN(j, this_xsec_range)[i].real();
+          }
         }
       }
     }

@@ -1008,6 +1008,8 @@ std::ostream& operator<<(std::ostream& os, const ConstVectorView& v);
 
 std::ostream& operator<<(std::ostream& os, const ConstMatrixView& v);
 
+std::ostream& operator<<(std::ostream& os, const Range& r);
+
 // Converts constant matrix to constant eigen map
 ConstMatrixViewMap MapToEigen(const ConstMatrixView& A);
 // Converts constant vector to constant eigen row-view

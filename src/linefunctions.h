@@ -65,7 +65,7 @@ namespace Linefunctions
                      const Verbosity& verbosity);
   
   void set_lorentz(ComplexVectorView F, 
-                   ArrayOfComplexVector& dF, 
+                   ComplexMatrixView dF, 
                    ConstVectorView f_grid, 
                    const Numeric& zeeman_df, 
                    const Numeric& magnetic_magnitude, 
@@ -78,11 +78,10 @@ namespace Linefunctions
                    const QuantumIdentifier& quantum_identity=QuantumIdentifier(), 
                    const Numeric& dG0_dT=0.0, 
                    const Numeric& dL0_dT=0.0,
-                   const Numeric& ddF0_dT=0.0,
-                   const Range& df_range=Range(joker));
+                   const Numeric& ddF0_dT=0.0);
   
   void set_htp(ComplexVectorView F,
-               ArrayOfComplexVector& dF,
+               ComplexMatrixView dF,
                ConstVectorView f_grid,
                const Numeric& zeeman_df,
                const Numeric& magnetic_magnitude,
@@ -103,11 +102,10 @@ namespace Linefunctions
                const Numeric& dG2_dT=0.0,
                const Numeric& dL2_dT=0.0,
                const Numeric& deta_dT=0.0,
-               const Numeric& dFVC_dT=0.0,
-               const Range& df_range=Range(joker));
+               const Numeric& dFVC_dT=0.0);
   
   void set_faddeeva_algorithm916(ComplexVectorView F,
-                                 ArrayOfComplexVector& dF,
+                                 ComplexMatrixView dF,
                                  ConstVectorView f_grid,
                                  const Numeric& zeeman_df,
                                  const Numeric& magnetic_magnitude,
@@ -122,11 +120,10 @@ namespace Linefunctions
                                  const Numeric& dGD_div_F0_dT=0.0,
                                  const Numeric& dG0_dT=0.0,
                                  const Numeric& dL0_dT=0.0,
-                                 const Numeric& ddF0_dT=0.0,
-                                 const Range& df_range=Range(joker));
+                                 const Numeric& ddF0_dT=0.0);
   
   void set_doppler(ComplexVectorView F,
-                   ArrayOfComplexVector& dF,
+                   ComplexMatrixView dF,
                    ConstVectorView f_grid,
                    const Numeric& zeeman_df,
                    const Numeric& magnetic_magnitude,
@@ -135,11 +132,10 @@ namespace Linefunctions
                    const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                    const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                    const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                   const Numeric& dGD_div_F0_dT=0.0,
-                   const Range& df_range=Range(joker));
+                   const Numeric& dGD_div_F0_dT=0.0);
   
   void set_faddeeva_from_full_linemixing(ComplexVectorView F,
-                                         ArrayOfComplexVector& dF,
+                                         ComplexMatrixView dF,
                                          ConstVectorView f_grid,
                                          const Complex& eigenvalue_no_shift,
                                          const Numeric& GD_div_F0,
@@ -152,47 +148,43 @@ namespace Linefunctions
                                          const Numeric& dL0_dT=0.0);
   
   void apply_linemixing_scaling(ComplexVectorView F,
-                                ArrayOfComplexVector& dF,
+                                ComplexMatrixView dF,
                                 const Numeric& Y,
                                 const Numeric& G,
                                 const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                                 const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                                 const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                                 const Numeric& dY_dT=0.0,
-                                const Numeric& dG_dT=0.0,
-                                const Range& df_range=Range(joker));
+                                const Numeric& dG_dT=0.0);
   
   void apply_rosenkranz_quadratic_scaling(ComplexVectorView F,
-                                          ArrayOfComplexVector& dF,
+                                          ComplexMatrixView dF,
                                           ConstVectorView f_grid,
                                           const Numeric& F0,
                                           const Numeric& T,
                                           const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                                           const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
-                                          const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                                          const Range& df_range=Range(joker));
+                                          const QuantumIdentifier& quantum_identity=QuantumIdentifier());
   
   void apply_VVH_scaling(ComplexVectorView F,
-                         ArrayOfComplexVector& dF,
+                         ComplexMatrixView dF,
                          ConstVectorView f_grid,
                          const Numeric& F0,
                          const Numeric& T,
                          const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                          const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
-                         const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                         const Range& df_range=Range(joker));
+                         const QuantumIdentifier& quantum_identity=QuantumIdentifier());
   
   void apply_VVW_scaling(ComplexVectorView F,
-                         ArrayOfComplexVector& dF,
+                         ComplexMatrixView dF,
                          ConstVectorView f_grid,
                          const Numeric& F0,
                          const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                          const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
-                         const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                         const Range& df_range=Range(joker));
+                         const QuantumIdentifier& quantum_identity=QuantumIdentifier());
   
   void apply_linestrength_scaling(ComplexVectorView F,
-                                  ArrayOfComplexVector& dF,
+                                  ComplexMatrixView dF,
                                   const Numeric& S0,
                                   const Numeric& isotopic_ratio,
                                   const Numeric& QT,
@@ -205,13 +197,12 @@ namespace Linefunctions
                                   const Numeric& dQT_dT=0.0,
                                   const Numeric& dK1_dT=0.0,
                                   const Numeric& dK2_dT=0.0,
-                                  const Numeric& dK2_dF0=0.0,
-                                  const Range& df_range=Range(joker));
+                                  const Numeric& dK2_dF0=0.0);
   
   void set_nonlte_source_and_apply_absorption_scaling(ComplexVectorView F,
-                                                      ArrayOfComplexVector& dF,
+                                                      ComplexMatrixView dF,
                                                       ComplexVectorView N,
-                                                      ArrayOfComplexVector& dN,
+                                                      ComplexMatrixView dN,
                                                       const Numeric& K3=1.0,
                                                       const Numeric& K4=1.0,
                                                       const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
@@ -222,11 +213,10 @@ namespace Linefunctions
                                                       const Numeric& dK3_dF0=0.0, 
                                                       const Numeric& dK3_dTl=0.0, 
                                                       const Numeric& dK3_dTu=0.0, 
-                                                      const Numeric& dK4_dTu=0.0,
-                                                      const Range& df_range=Range(joker));
+                                                      const Numeric& dK4_dTu=0.0);
   
   void apply_linestrength_from_full_linemixing(ComplexVectorView F,
-                                               ArrayOfComplexVector& dF,
+                                               ComplexMatrixView dF,
                                                const Numeric& F0,
                                                const Numeric& T,
                                                const Complex& S_LM,
@@ -237,7 +227,7 @@ namespace Linefunctions
                                                const Complex& dS_LM_dT=0.0);
   
   void apply_dipole(ComplexVectorView F,
-                    ArrayOfComplexVector& dF,
+                    ComplexMatrixView dF,
                     const Numeric& F0,
                     const Numeric& T,
                     const Numeric& d0,
@@ -248,28 +238,26 @@ namespace Linefunctions
                     const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                     const Numeric& drho_dT=0.0);
   
-  void apply_pressurebroadening_jacobian_scaling(ArrayOfComplexVector& dF,
+  void apply_pressurebroadening_jacobian_scaling(ComplexMatrixView dF,
                                                  const ArrayOfRetrievalQuantity& derivatives_data,
                                                  const ArrayOfIndex& derivatives_data_pos,
                                                  const QuantumIdentifier& quantum_identity,
-                                                 const ComplexVector& dgamma,
-                                                 const Range& df_range=Range(joker));
+                                                 const ComplexVector& dgamma);
   
-  void apply_linemixing_jacobian_scaling(ArrayOfComplexVector& dF,
+  void apply_linemixing_jacobian_scaling(ComplexMatrixView dF,
                                          const ArrayOfRetrievalQuantity& derivatives_data,
                                          const ArrayOfIndex& derivatives_data_pos,
                                          const QuantumIdentifier& quantum_identity,
-                                         const ComplexVector& dlm,
-                                         const Range& df_range=Range(joker));
+                                         const ComplexVector& dlm);
   
   Numeric DopplerConstant(const Numeric T, const Numeric mass);
   
   Numeric dDopplerConstant_dT(const Numeric T, const Numeric mass);
   
   void set_cross_section_for_single_line(ComplexVectorView F,
-                                         ArrayOfComplexVector& dF,
+                                         ComplexMatrixView dF,
                                          ComplexVectorView N,
-                                         ArrayOfComplexVector& dN,
+                                         ComplexMatrixView dN,
                                          Range& this_xsec_range,
                                          const ArrayOfRetrievalQuantity& derivatives_data,
                                          const ArrayOfIndex& derivatives_data_position,
@@ -292,13 +280,12 @@ namespace Linefunctions
                                          const Index& this_species_location_in_tags,
                                          const Index& water_index_location_in_tags,
                                          const Verbosity& verbosity,
-                                         const bool cutoff_call=false,
-                                         const Index binary_speedup=false);
+                                         const bool cutoff_call=false);
   
   void apply_cutoff(ComplexVectorView F,
-                    ArrayOfComplexVector& dF,
+                    ComplexMatrixView dF,
                     ComplexVectorView N,
-                    ArrayOfComplexVector& dN,
+                    ComplexMatrixView dN,
                     const ArrayOfRetrievalQuantity& derivatives_data,
                     const ArrayOfIndex& derivatives_data_position,
                     const LineRecord& line,
@@ -318,18 +305,17 @@ namespace Linefunctions
                     const ArrayOfIndex& broad_spec_locations,
                     const Index& this_species_location_in_tags,
                     const Index& water_index_location_in_tags,
-                    const Range& df_range,
                     const Verbosity& verbosity);
   
   bool find_cutoff_ranges(Range& range,
-                          ConstVectorView f_grid,
+                          const ConstVectorView& f_grid,
                           const Numeric& F0,
                           const Numeric& cutoff);
   
   void apply_linestrength_from_nlte_level_distributions(ComplexVectorView F, 
-                                                        ArrayOfComplexVector& dF, 
+                                                        ComplexMatrixView dF, 
                                                         ComplexVectorView N, 
-                                                        ArrayOfComplexVector& dN, 
+                                                        ComplexMatrixView dN, 
                                                         const Numeric& r1,
                                                         const Numeric& r2,
                                                         const Numeric& g1,
@@ -339,22 +325,23 @@ namespace Linefunctions
                                                         const Numeric& T,
                                                         const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                                                         const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
-                                                        const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                                                        const Range& df_range=Range(joker));
+                                                        const QuantumIdentifier& quantum_identity=QuantumIdentifier());
   
-  Range binary_range(const ConstVectorView f, const Index& i, const bool full=false);
+  Index first_binary_level(const Numeric& dg, const Numeric& df, const Index N);
   
-  Range speedup_binary_range(const ConstVectorView f, const Numeric& u, const Numeric& l);
+  Numeric binary_central_step_size(const Numeric& ds, const Index i, const Index i0);
   
-  void interp_up_inside_binary_range(ComplexVectorView f, const Range& l);
+  Index binary_frequency_position(const Numeric& df, const Numeric& dg, const Numeric& f, const Numeric& F0, const Index n, const Index dn);
   
-  void interp_to_boundary_of_binary_range(ComplexVectorView f, const Index upper_boundary, const Index lower_boundary);
+  ArrayOfArrayOfIndex binary_boundaries(const Numeric& F0, const ConstVectorView& f_grid, const Numeric& G0,
+                                        const Numeric& GD_div_F0, const Numeric& binary_speedup_coef,
+                                        const Index binary_speedup, const Index binary_frequency_count,
+                                        const Index steps=3);
   
-  Numeric speedup_distance_binary_range(const Index, const Numeric, const Numeric, const Numeric, const Numeric);
+  void binary_interpolation(ComplexVectorView f, const ArrayOfArrayOfIndex& binary_bounds);
   
-  void find_boundary_of_binary_range(Index& u, Index& l, ConstVectorView f, const Numeric C, 
-                                     const Numeric G0, const Numeric F0, const Numeric GD_div_F0,
-                                     const Index binary_speedup);
-};
+  Range binary_level_range(const ArrayOfArrayOfIndex& binary_bounds, const Index nf, const Index i, const bool lower_range);
+  
+  };
 
 #endif //linefunctions_h

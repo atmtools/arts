@@ -1227,7 +1227,7 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
   const QuantumIdentifier QI;
   
   ComplexVector F(nf);
-  ArrayOfComplexVector dF(derivatives_data_position.nelem(), F);
+  ComplexMatrix dF(derivatives_data_position.nelem(), nf);
   
   for(Index iline = 0; iline < n; iline++)
   {
@@ -1267,7 +1267,7 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
       
       for(Index jj = 0; jj < nppd; jj++)
       {
-        const Numeric& dy_dx = dF[jj][ii].real();
+        const Numeric& dy_dx = dF(jj, ii).real();
         #pragma omp atomic
         dxsec_dx[this_species][jj](ii, this_level) += dy_dx;
       }
@@ -2005,7 +2005,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       else {
         Numeric QT = -1, QT0 = -1, part_ratio;
         ComplexVector F(nf);
-        ArrayOfComplexVector dF(jacobian_quantities_position.nelem(), ComplexVector(nf));
+        ComplexMatrix dF(jacobian_quantities_position.nelem(), nf);
         const Numeric GD_div_F0 = doppler_const * sqrt(abs_t[ip] / mass);
         
         for( long iline=0; iline<nlines; iline++ ) {
@@ -2040,7 +2040,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             abs_xsec_per_species[this_species](ii, ip) += y;
             
             for(Index jj = 0; jj < jacobian_quantities_position.nelem(); jj++) {
-              const Numeric& dy_dx = dF[jj][ii].real();
+              const Numeric& dy_dx = dF(jj, ii).real();
               #pragma omp atomic
               dabs_xsec_per_species_dx[this_species][jj](ii, ip) += dy_dx;
             }

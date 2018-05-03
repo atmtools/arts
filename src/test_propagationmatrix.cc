@@ -527,43 +527,6 @@ void test_erfc()
   }
 }
 
-
-void test_funs_compression()
-{
-  Index n = 1 << 5;
-  Vector v;
-  nlinspace(v, 0, Numeric(n), n+1);
-  Index i = 0;
-  Range r(joker);
-  
-  Vector f1(n+1, 0), f2(n+1, 0);
-  
-  std::cout << std::endl << "Partial" << std::endl;
-  while(1 << i <= n)
-  {
-    r = Linefunctions::binary_range(v, i, false);
-    std::cout << v[r] << std::endl;
-    i++;
-    
-    for(Index j = 0; j < r.get_extent(); j++)
-      f1[r(j)] = 5 * v[r(j)];
-  }
-  
-  i = 0;
-  std::cout << std::endl << "Full" << std::endl;
-  while(1 << i <= n)
-  {
-    r = Linefunctions::binary_range(v, i, true);
-    std::cout << v[r] << std::endl;
-    i++;
-    
-    for(Index j = 0; j < r.get_extent(); j++)
-      f2[r(j)] = 5 * v[r(j)];
-  }
-  
-  std::cout << std::endl << f1 << std::endl << f2 << std::endl;
-}
-
 /*
 void test_transmission(int i)
 {
@@ -612,6 +575,5 @@ int main()
 //     test_the_class();
 //    test_new_lineshapes();
 //    test_erfc();
-     test_funs_compression();
     return 0;
 }

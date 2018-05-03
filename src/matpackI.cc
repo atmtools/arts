@@ -167,6 +167,14 @@ Range::Range(const Range& p, const Range& n) :
 
 }
 
+
+std::ostream& operator<<(std::ostream& os, const Range& r)
+{
+  os << "Range(" << r.get_start() << ", " << r.get_extent() << ", " << r.get_stride() << ")";
+  return os;
+}
+
+
 // Functions for ConstVectorView:
 // ------------------------------
 

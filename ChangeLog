@@ -1,3 +1,20 @@
+2018-05-03  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-1044
+	
+	* src/absorption.cc:  Changed interface for binary-speedup 
+	calculations.  Still needs some more work to check errors
+	
+	* src/linefunctions.{cc,h}:  Moved away from the arrays 
+	for derivatives, allowing all functions to drop the range
+	input.  Also changed binary-speedup to act outside of the
+	main line functionality
+	
+	* src/linerecord.{cc,h}:  Changed binary speedup parameters
+	
+	* src/matpackI.{cc,h}:  Added ostream output for Range to
+	help debugging..
+	
 2018-05-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1043

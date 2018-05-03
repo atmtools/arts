@@ -273,7 +273,8 @@ public:
       mpressurebroadeningdata(),
       mzeemandata(),
       mcutoff(-1.0),
-      mspeedup(-1.0),
+      mspeedup_counter(-1),
+      mspeedup_multiplier(-1.0),
       mmirroring(MirroringType::None),
       mlinenorm(LineNormalizationType::None),
       mlineshape(LineShapeType::ByPressureBroadeningData),
@@ -323,7 +324,8 @@ public:
       mquantum_numbers_str(""),
       mzeemandata(),
       mcutoff(-1.0),
-      mspeedup(-1.0),
+      mspeedup_counter(-1),
+      mspeedup_multiplier(-1.0),
       mmirroring(MirroringType::None),
       mlinenorm(LineNormalizationType::None),
       mlineshape(LineShapeType::ByPressureBroadeningData),
@@ -539,8 +541,10 @@ public:
   void SetCutOff(const Numeric& cutoff) {mcutoff = cutoff;}
   
   /** Speedup coefficient*/
-  const Numeric& SpeedUpCoeff() const {return mspeedup;}
-  void SetSpeedUpCoeff(const Numeric& speedup) {mspeedup = speedup;}
+  Index SpeedUpIndex() const {return mspeedup_counter;}
+  void SetSpeedUpIndex(const Index speedup) {mspeedup_counter = speedup;}
+  const Numeric& SpeedUpCoeff() const {return mspeedup_multiplier;}
+  void SetSpeedUpCoeff(const Numeric& speedup) {mspeedup_multiplier = speedup;}
   
   /** Line shape mirroring factor */
   const MirroringType& GetMirroringType() const {return mmirroring;}
@@ -1061,7 +1065,8 @@ private:
   Numeric mcutoff;
   
   /** Speedup Coefficient */
-  Numeric mspeedup;
+  Index mspeedup_counter;
+  Numeric mspeedup_multiplier;
   
   /** Line shape mirroring effect type */
   MirroringType mmirroring;
