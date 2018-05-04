@@ -1,3 +1,12 @@
+2018-05-04  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1043
+
+	* src/absorption.cc (xsec_species2):
+
+	Cache non-changing views in loop for a 40% speedup in the non-binary
+	part.
+
 2018-05-03  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-1044

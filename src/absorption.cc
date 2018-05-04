@@ -2584,16 +2584,18 @@ void xsec_species2(MatrixView xsec,
         (nf-this_xsec_range.get_start())                :
         this_xsec_range.get_extent();
         const Range this_out_range(this_xsec_range.get_start(), extent);
-        
+
+        VectorView xsec_range_view = xsec(this_out_range, ip);
+        ComplexVectorView F_range_view = F[this_xsec_range];
         for(Index i = 0; i < extent; i++) {
-          xsec(this_out_range, ip)[i] += F[this_xsec_range][i].real();
+          xsec_range_view[i] += F_range_view[i].real();
           
           if(not phase.empty())
             phase(this_out_range, ip)[i] += F[this_xsec_range][i].imag();
           
           if(do_nonlte)
             source(this_out_range, ip)[i] += N[this_xsec_range][i].real();
-          
+
           for(Index j = 0; j < nj; j++) {
             dxsec_dx[j](this_out_range, ip)[i] += dF(j, this_xsec_range)[i].real();
             
