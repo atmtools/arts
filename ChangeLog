@@ -1,3 +1,10 @@
+2018-05-06 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-1046
+
+	* src/optproperties.[cc,h] (FouComp_1ScatElem):
+	Finished this one. Not tested or applied anywhere yet.
+
 2018-05-04  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1045
@@ -56,7 +63,7 @@
 	(FouComp_1ScatElem):
 	Work in progress.
 	Separate method for extracting Fourier series components per scat element
-	from scat_data. No sense in first ectracting pha_mat, then deriving
+	from scat_data. No sense in first extracting pha_mat, then deriving
 	fourier component(s) from that either degrading or blowing up data.
 	Instead derive it directly from scat_data's pha_mat_data. So far only up
 	to stokes_dim=2 and 0th Fourier component as required for RT4.

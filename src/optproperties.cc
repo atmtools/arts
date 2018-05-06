@@ -1029,6 +1029,11 @@ void pha_mat_1ScatElem(//Output
               {
                 interp(pha_mat_tmp(joker,nst), T_itw, pha_mat_int(joker,nst), T_gp);
               }
+            // FIXME: it's probably better to do the frame conversion first,
+            // then the T-interpolation (which is better depends on how many T-
+            // aka vertical grid points we have. for single point, T-interpol
+            // first is better, for a full vertical grid, frame conversion first
+            // should be faster.)
             for( Index Tind=0; Tind<nTout; Tind++ )
               {
                 // convert from scat to lab frame
@@ -1206,45 +1211,55 @@ void pha_mat_1ScatElem(//Output
   and incident directions at a time.
   Temperature interpolation order can be chosen.
 
-  \param[out] pha_mat_fou  1-scattering element phase matrix (over freq, temp,
-                           propagation dir, incident dir).
+  \param[out] pha_mat_fou  1-scattering element phase matrix Fourier components
+                           (over freq, temp, propagation dir, incident dir).
   \param[out] ptype      Type of scattering element.
   \param[out] t_ok       Flag whether T-interpol valid (length of T_array).
   \param[in]  ssd        Single scattering data of one scattering element.
   \param[in]  T_array    Temperatures to extract pha for.
-  \param[in]  dir_array  Stream directions to extract pha for.
+  \param[in]  pdir_array  Propagation directions (polar only) to extract Fourier
+                            components for.
+  \param[in]  idir_array  Incident directions (polar only) to extract Fourier
+                            components for.
   \param[in]  f_start    Start index of frequency/ies to extract.
   \param[in]  t_interp_order  Temperature interpolation order.
+  \param[in]  naa_totran Number of (equidistant) azimuth directions to consider
+                           in calculation of Fourier series for totally random
+                           orientation elements.
 
   \author Jana Mendrok
   \date   2018-05-01
 */
-/*
 void FouComp_1ScatElem(//Output
-                       Tensor6View pha_mat_fou, // nf, nT, npdir, nidir, nst, m
+                       Tensor7View pha_mat_fou, // nf, nT, npdir, nidir, nst, nst, m
                        Index& ptype,
                        VectorView t_ok,
                        //Input
                        const SingleScatteringData& ssd,
                        const Vector& T_array,
-                       const Matrix& dir_array,
+                       const Vector& pdir_array,
+                       const Vector& idir_array,
                        const Index& f_start,
-                       const Index& t_interp_order)
+                       const Index& t_interp_order,
+                       const Index& naa_totran)
 {
   assert( ssd.ptype == PTYPE_TOTAL_RND or ssd.ptype == PTYPE_AZIMUTH_RND );
 
-  const Index nf = pha_mat_fou.nvitrines();
+  const Index nf = pha_mat_fou.nlibraries();
   if( nf>1 )
     { assert( nf == ssd.f_grid.nelem() ); }
 
   const Index nTout = T_array.nelem();
-  assert( pha_mat_fou.nshelves() == nTout );
+  assert( pha_mat_fou.nvitrines() == nTout );
   assert( t_ok.nelem() == nTout );
 
-  const Index nDir = dir_array.nrows();
-  assert( pha_mat_fou.nbooks() == npDir );
+  const Index npDir = pdir_array.nelem();
+  assert( pha_mat_fou.nshelves() == npDir );
+  const Index niDir = idir_array.nelem();
+  assert( pha_mat_fou.nbooks() == niDir );
 
   const Index stokes_dim = pha_mat_fou.nrows();
+  assert( pha_mat_fou.npages() == stokes_dim );
   // currently code is only prepared for stokes_dim up to 2 (nothing else needed in
   // RT4 and generally in azimuth-symmetrical system)
   assert( stokes_dim<3 );
@@ -1266,11 +1281,95 @@ void FouComp_1ScatElem(//Output
   ssd_tinterp_parameters( t_ok, this_T_interp_order, T_gp, T_itw,
                           ssd.T_grid, T_array, t_interp_order );
 
-  // Loop over streams (and apply simultaneously for all freqs):
-  // 1) derive Fourier component
+  // 1) derive Fourier component(s)
   // 2) apply T-interpol
   if( ptype==PTYPE_TOTAL_RND )
   {
+    // DCalculate azimuth angles and their integration weights for Fourier
+    // component derivation (they are only determined by naa_totran).
+    if( naa_totran < 3 )
+    {
+      ostringstream os;
+      os << "Azimuth grid size for scatt matrix extraction"
+         << " (*naa_totran*) must be >3.\n"
+         << "Yours is " << naa_totran << ".\n";
+      throw runtime_error( os.str() );
+    }
+    Vector aa_grid;
+    nlinspace(aa_grid, 0, 180, naa_totran);
+    Numeric daa_totran = 1. / float(naa_totran-1); // 2*180./360./(naa_totran-1)
+    Vector theta(naa_totran);
+    ArrayOfGridPos theta_gp;
+    Matrix theta_itw(naa_totran,2);
+
+    Index npha;
+    if( stokes_dim==1 )
+      npha = 1;
+    else if( stokes_dim<4 ) // stokes_dim==2 || stokes_dim==3
+      npha = 4;
+    else
+      npha = 6;
+
+    Matrix pha_mat(stokes_dim,stokes_dim);
+    Matrix pha_mat_angint(naa_totran,npha);
+    Tensor3 Fou_int(nTin,stokes_dim,stokes_dim);
+
+    for (Index idir=0; idir<niDir; idir++)
+      for (Index pdir=0; pdir<npDir; pdir++)
+      {
+        for (Index iaa=0; iaa<naa_totran; iaa++)
+          // calc scat ang theta from incident and prop dirs
+          theta[iaa] = scat_angle(pdir_array[pdir], aa_grid[iaa],
+                                  idir_array[idir], 0.);
+
+        // get scat angle interpolation weights
+        gridpos(theta_gp, ssd.za_grid, theta*RAD2DEG);
+        interpweights(theta_itw, theta_gp);
+
+        for( Index find=0; find<nf; find++ )
+        {
+          Fou_int = 0.;
+          for( Index Tind=0; Tind<nTin; Tind++ )
+          {
+            // perform the scat angle interpolation
+            for (Index nst=0; nst<npha; nst++)
+              interp( pha_mat_angint(joker,nst), theta_itw,
+                      ssd.pha_mat_data(find+f_start,Tind,joker,0,0,0,nst),
+                      theta_gp );
+            for (Index iaa=0; iaa<naa_totran; iaa++)
+            {
+              // convert from scat to lab frame
+              pha_mat_labCalc(pha_mat,
+                              pha_mat_angint(iaa,joker),
+                              pdir_array[pdir], aa_grid[iaa],
+                              idir_array[idir], 0., theta[iaa]);
+              // and sum up/integrate
+              // FIXME: can the integration probably be done in lab frame?
+              // test!
+              if (iaa==0 || iaa==naa_totran-1)
+                pha_mat *= (daa_totran/2.);
+              else
+                pha_mat *= daa_totran;
+              Fou_int(Tind,joker,joker) += pha_mat;
+            }
+          }
+
+          if( this_T_interp_order<0 ) // T only needs to be sorted into pha_mat_fou.
+          {
+            for( Index Tind=0; Tind<nTout; Tind++ )
+              pha_mat_fou(find,Tind,pdir,idir,joker,joker,0) =
+                Fou_int(0,joker,joker);
+          }
+          else
+          {
+            for( Index ist1=0; ist1<stokes_dim; ist1++ )
+              for( Index ist2=0; ist2<stokes_dim; ist2++ )
+                for( Index im=0; im<nmodes; im++ )
+                  interp(pha_mat_fou(find,joker,pdir,idir,ist1,ist2,im), T_itw,
+                         Fou_int(joker,ist1,ist2), T_gp);
+          }
+        }
+      }
   }
   else // derive Fourier component(s) on scattering elements own za_grid (using
        // given aa_grid), then 2D-interpolate inc and sca polar directions.
@@ -1281,8 +1380,8 @@ void FouComp_1ScatElem(//Output
     ConstVectorView za_datagrid = ssd.za_grid;
     ConstVectorView aa_datagrid = ssd.aa_grid;
     assert( aa_datagrid[0]==0. );
-    assert( aa_datagrid[naa_se-1]==180. );
-    Vector daa(naa_se);
+    assert( aa_datagrid[naa-1]==180. );
+    Vector daa(naa);
 
     // Precalculate azimuth integration weights for this azimuthally randomly
     // oriented scat element (need to do this per scat element as ssd.aa_grid is
@@ -1290,65 +1389,70 @@ void FouComp_1ScatElem(//Output
     // on actual grid instead of grid number since the grid can, at least
     // theoretically be non-equidistant).
     daa[0] = (aa_datagrid[1]-aa_datagrid[0])/360.;
-    for (Index saa=1; saa<naa_se-1; saa++)
-      daa[saa] = (aa_datagrid[saa+1]-aa_datagrid[saa-1])/360.;
-    daa[naa_se-1] = (aa_datagrid[naa_se-1]-aa_datagrid[naa_se-2])/360.;
+    for (Index iaa=1; iaa<naa-1; iaa++)
+      daa[iaa] = (aa_datagrid[iaa+1]-aa_datagrid[iaa-1])/360.;
+    daa[naa-1] = (aa_datagrid[naa-1]-aa_datagrid[naa-2])/360.;
 
-    Tensor6 pha_mat_int(nf, nTin, nza, nza, stokes_dim, stokes_dim, 0.);
+    // Precalculate polar angle interpolation grid positions and weights
+    ArrayOfGridPos pdir_za_gp, idir_za_gp;
+    gridpos(pdir_za_gp, za_datagrid, pdir_array);
+    gridpos(idir_za_gp, za_datagrid, idir_array);
+    Tensor3 dir_itw(npDir, niDir, 4);
+    interpweights(dir_itw, pdir_za_gp, idir_za_gp);
 
-    // first, extracting the phase matrix at the scatt elements own polar angle
-    // grid, deriving their respective azimuthal (Fourier series) 0-mode
-    for (Index iza=0; iza<nza; iza++)
-      for (Index sza=0; sza<nza; sza++)
+    Tensor4 Fou_ssd(nza, nza, stokes_dim, stokes_dim);
+    Tensor5 Fou_angint(nTin, npDir, niDir, stokes_dim, stokes_dim);
+
+    for( Index find=0; find<nf; find++ )
+    {
+      for( Index Tind=0; Tind<nTin; Tind++ )
       {
-        for (Index saa=0; saa<naa_se; saa++)
-        {
-          for (Index ist1=0; ist1<stokes_dim; ist1++)
-            for (Index ist2=0; ist2<stokes_dim; ist2++)
-              pha_mat_int(sza,iza,ist1,ist2) += daa[saa] *
-                ssd.pha_mat_data(this_f_index, i_pfct,
-                                 sza, saa, iza, 0, ist1*4+ist2);
-        }
+        // first, extract the phase matrix at the scatt elements own polar angle
+        // grid and integrate over azimuth deriving their respective azimuthal
+        // (Fourier series) 0-mode
+        Fou_ssd = 0.;
+        for (Index iza=0; iza<nza; iza++)
+          for (Index sza=0; sza<nza; sza++)
+          {
+            for (Index iaa=0; iaa<naa; iaa++)
+            {
+              // FIXME: are there any possible shortcuts for specific stokes
+              // components (specifically, some where F0(ist1,ist2)==0?)
+              for (Index ist1=0; ist1<stokes_dim; ist1++)
+                for (Index ist2=0; ist2<stokes_dim; ist2++)
+                  Fou_ssd(sza,iza,ist1,ist2) +=
+                    daa[iaa] *  ssd.pha_mat_data(find+f_start,Tind,
+                                                 sza,iaa,iza,0,ist1*4+ist2);
+            }
+          }
+
+        // second, interpolate the extracted azimuthal mode to the stream directions
+        for (Index ist1=0; ist1<stokes_dim; ist1++)
+          for (Index ist2=0; ist2<stokes_dim; ist2++)
+            // FIXME: do we need to apply any sign changes?
+            interp(Fou_angint(Tind,joker,joker,ist1,ist2),
+                   dir_itw, Fou_ssd(joker,joker,ist1,ist2), pdir_za_gp, idir_za_gp);
       }
 
-    // second, interpolating the extracted azimuthal mode to the stream
-    // directions
-    for (Index iza=0; iza<nza_rt; iza++)
-    {
-      for (Index sza=0; sza<nza_rt; sza++)
+      if( this_T_interp_order<0 ) // T only needs to be sorted into pha_mat_fou.
       {
-        GridPos za_sca_gp;
-        GridPos za_inc_gp;
-                    Vector itw(4);
-                    Matrix pha_mat_lab(stokes_dim,stokes_dim, 0.);
-                    Numeric za_sca = scat_za_grid[sza]; 
-                    Numeric za_inc = scat_za_grid[iza]; 
-       
-                    gridpos(za_inc_gp,za_datagrid,za_inc);
-                    gridpos(za_sca_gp,za_datagrid,za_sca);
-                    interpweights(itw,za_sca_gp,za_inc_gp);
-      
-                    for (Index ist1=0; ist1<stokes_dim; ist1++)
-                      for (Index ist2=0; ist2<stokes_dim; ist2++)
-                      {
-                        pha_mat_lab(ist1,ist2) = interp(itw,
-                          pha_mat_int(Range(joker),Range(joker),ist1,ist2),
-                          za_sca_gp,za_inc_gp);
-                        //if (ist1+ist2==1)
-                        //  pha_mat_lab(ist1,ist2) *= -1.;
-                      }
-
-                    sca_mat(i_se_flat,iza,sza,joker,joker) = pha_mat_lab;
-                  }
-                ext_fixT_spt(i_se_flat,iza) =
-                  ssd.ext_mat_data(this_f_index, i_pfct, iza, 0, 0);
-                abs_fixT_spt(i_se_flat,iza) =
-                  ssd.abs_vec_data(this_f_index, i_pfct, iza, 0, 0);
-              }
-            }
+        for( Index Tind=0; Tind<nTout; Tind++ )
+          pha_mat_fou(find,Tind,joker,joker,joker,joker,0) =
+            Fou_angint(0,joker,joker,joker,joker);
+      }
+      else
+      {
+        for( Index pdir=0; pdir<npDir; pdir++ )
+          for( Index idir=0; idir<niDir; idir++ )
+            for( Index ist1=0; ist1<stokes_dim; ist1++ )
+              for( Index ist2=0; ist2<stokes_dim; ist2++ )
+                for( Index im=0; im<nmodes; im++ )
+                  interp(pha_mat_fou(find,joker,pdir,idir,ist1,ist2,im), T_itw,
+                         Fou_angint(joker,pdir,idir,ist1,ist2), T_gp);
+      }
+    }
   }
 }
-*/
 
 
 //! Transformation of absorption vector.
