@@ -4345,6 +4345,32 @@ void define_md_data_raw()
             ));
 
   md_data_raw.push_back
+      ( MdRecord
+        ( NAME( "covmat_sxExtractSqrtDiagonal" ),
+          DESCRIPTION
+          (
+              "Extract the square root of the diagonal of the state space covariance matrix."
+              "\n"
+              "This function extracts the diagonal of the state space covariance matrix\n"
+              "*covmatrix_sx* and computes its square root. The resulting vector can then\n"
+              "be used as *x_norm* argument for the OEM method to avoid scaling problems.\n"
+              ),
+          AUTHORS( "Simon Pfreundschuh" ),
+          OUT(),
+          GOUT("x_norm"),
+          GOUT_TYPE("Vector"),
+          GOUT_DESC("The vector containing the square root of the diagonal elements"
+                    " of *covmat_sx*"),
+          IN("covmat_sx"),
+          GIN(),
+          GIN_TYPE(),
+          GIN_DEFAULT(),
+          GIN_DESC(),
+          PASSWORKSPACE( false  ),
+          SETMETHOD(      false )
+            ));
+
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "Delete" ),
         DESCRIPTION

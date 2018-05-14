@@ -178,6 +178,19 @@ Sparse::Sparse(Index r, Index c) :
   // Nothing to do here.
 }
 
+Vector Sparse::diagonal() const
+{
+    Index m = std::min(nrows(), ncols());
+    Vector diag(m);
+
+    auto eigen_diag = matrix.diagonal();
+    for (int i=0; i < m; i++)
+    {
+        diag[i] = matrix.coeff(i, i);
+    }
+    return diag;
+}
+
 //! Convert to dense matrix.
 /*!
   Converts a given sparse matrix to a dense matrix. Intended mainly

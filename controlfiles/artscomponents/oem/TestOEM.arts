@@ -20,7 +20,7 @@ Copy( ppath_agenda,               ppath_agenda__FollowSensorLosPath   )
 Copy( ppath_step_agenda,          ppath_step_agenda__GeometricPath    )
 
 
-# Basic settings 
+# Basic settings
 #
 AtmosphereSet1D
 IndexSet( stokes_dim, 1 )
@@ -112,7 +112,7 @@ nelemGet( nelem, p_ret_grid )
 
 
 
-retrievalAddAbsSpecies( 
+retrievalAddAbsSpecies(
     species = "O3",
     unit = "vmr",
     g1 = p_ret_grid,
@@ -144,10 +144,11 @@ yCalc
 
 
 
-# Iteration agenda 
+# Iteration agenda
 #
 AgendaSet( inversion_iterate_agenda ){
 
+  Ignore(inversion_iteration_counter)
   # Map x to ARTS' variables
   x2artsStandard
 
@@ -167,7 +168,7 @@ AgendaSet( inversion_iterate_agenda ){
 }
 
 
-# Let a priori be off with 1 ppm 
+# Let a priori be off with 1 ppm
 #
 Tensor4AddScalar( vmr_field, vmr_field, 1e-6 )
 
@@ -190,9 +191,9 @@ MatrixSet( jacobian, [] )
 #AgendaExecute( inversion_iterate_agenda )
 
 # Run OEM
-OEM(method="gn", 
-    max_iter=5, 
-    display_progress=1, 
+OEM(method="gn",
+    max_iter=5,
+    display_progress=1,
     lm_ga_settings=[10,2,2,100,1,99])
 #
 Print( oem_errors, 0 )

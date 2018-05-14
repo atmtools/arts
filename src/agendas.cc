@@ -318,7 +318,7 @@ void define_agenda_data()
         "the input *jacobian* shall be set to have size zero, to flag that there\n" 
         "is not yet any calculated Jacobian.\n" ),
        OUTPUT( "yf", "jacobian" ),
-       INPUT( "x", "jacobian_do" )));
+       INPUT( "x", "jacobian_do", "inversion_iteration_counter" )));
 
   agenda_data.push_back
     (AgRecord

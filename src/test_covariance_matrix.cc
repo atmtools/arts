@@ -350,6 +350,30 @@ Numeric test_addition(Index n_tests)
 }
 
 /**
+ * Test extraction of diagonal.
+ *
+ *
+ * @param  n_tests The number of tests to perform
+ * @return The maximum error of the result with respect to the diagonal
+ * extracted from an identical matrix of type Matrix
+ */
+Numeric test_diagonal(Index n_tests)
+{
+    Numeric e = 0.0;
+    for (Index i = 0; i < n_tests; i++) {
+        ArrayOfArrayOfIndex jis;
+        ArrayOfRetrievalQuantity rqs;
+        std::tie(rqs, jis) = setup_retrieval_1D();
+        CovarianceMatrix covmat(random_covariance_matrix(rqs,jis));
+
+        Vector diag_1 = covmat.diagonal();
+        Vector diag_2 = Matrix(covmat).diagonal();
+        e = std::max(e, get_maximum_error(diag_1, diag_2, true));
+    }
+    return e;
+}
+
+/**
  * Test input and output of covariance matrices.
  *
  * @param  n_tests The number of tests to perform
@@ -615,6 +639,13 @@ int main() {
 
     e = test_invlib_wrapper(10);
     std::cout << "\tinvlib Wrapper:          " << e << std::endl;
+    e_max = std::max(e, e_max);
+    if (e_max > 1e-5) {
+        return -1;
+    }
+
+    e = test_diagonal(10);
+    std::cout << "\tdiagonal                 " << e << std::endl;
     e_max = std::max(e, e_max);
     if (e_max > 1e-5) {
         return -1;

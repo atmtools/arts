@@ -25,7 +25,7 @@ class AgendaWrapper
 {
 public:
 
-    const unsigned int m,n;
+    const unsigned int m, n;
     OEMMatrixReference jacobian;
     OEMVector          yi;
 
@@ -54,8 +54,15 @@ public:
         inversion_iterate_agenda( inversion_iterate_agenda_ ),
         reuse_jacobian((jacobian_.nrows() != 0) &&
                         (jacobian_.ncols() != 0) &&
-                        (yi_.nelem() != 0))
+                       (yi_.nelem() != 0)),
+        iteration_counter(0)
         {}
+
+    AgendaWrapper(const AgendaWrapper &) = delete;
+    AgendaWrapper(      AgendaWrapper &&) = delete;
+    AgendaWrapper& operator=(const AgendaWrapper &)  = delete;
+    AgendaWrapper& operator=(      AgendaWrapper &&) = delete;
+
 
 //! Evaluate forward model and compute Jacobian.
 /*!
@@ -75,9 +82,10 @@ public:
         if (!reuse_jacobian)
         {
             inversion_iterate_agendaExecute(
-                *ws, yi, jacobian, xi, 1,
+                *ws, yi, jacobian, xi, 1, 0,
                 *inversion_iterate_agenda);
             yi_ = yi;
+            iteration_counter += 1;
         } else {
             reuse_jacobian = false;
             yi_ = yi;
@@ -100,7 +108,7 @@ public:
         {
             Matrix dummy;
             inversion_iterate_agendaExecute(
-                *ws, yi, dummy, xi, 0,
+                *ws, yi, dummy, xi, 0, iteration_counter,
                 *inversion_iterate_agenda );
         } else {
             reuse_jacobian = false;
@@ -110,9 +118,10 @@ public:
 
 private:
 
-    Workspace          * ws;
-    const Agenda       * inversion_iterate_agenda;
-    bool                 reuse_jacobian;
+    Workspace    * ws;
+    const Agenda * inversion_iterate_agenda;
+    bool           reuse_jacobian;
+    unsigned int   iteration_counter;
 
 };
 

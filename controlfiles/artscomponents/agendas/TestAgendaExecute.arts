@@ -45,11 +45,13 @@ MatrixCreate(mref)
 MatrixSet( mref, [4,5,6] )
 VectorSet( x, [] )
 IndexSet( jacobian_do, 0 )
+IndexSet( inversion_iteration_counter, 0 )
 MatrixSet( jacobian, [1,2,3] )
 AgendaSet( inversion_iterate_agenda ){
     Ignore( x )
     Ignore( jacobian_do )
     Ignore( jacobian )
+    Ignore( inversion_iteration_counter )
     VectorSet( yf, [4, 5, 6] )
     MatrixSet( jacobian, [4,5,6] )
 }

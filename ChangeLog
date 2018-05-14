@@ -1,3 +1,44 @@
+2018-05-14 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1047
+
+	This is breaking OEM controlfiles. inversion_iterate_agenda now needs
+	to make use of *inversion_iteration_counter*.
+
+	Quickfix: Add Ingore(inversion_iteration_counter) to your defintion
+	of inversion_iteration_agenda.
+
+	* agendas.cc (inversion_iterate_agenda):
+	- Added inversion_iteration_counter to input arguments.
+
+	* workspace.cc (inversion_iteration_counter):
+	- Fixed spelling
+
+	* agenda_wrapper.h
+	- Added counter to hold iteration step.
+
+	* matpackII.[cc, h] (diagonal):
+	- Added function to extract diagonal from sparse matrices.
+
+	* covariance_matrix.[cc, h]:
+	- Added function to extract diagonal from covariance matrices.
+
+	* test_covariance_matrix.cc (test_diagonal):
+	- Added test to check extraction of diagonal
+
+	* m_retrieval.cc (covmat_sxExtractSqrtDiagonal):
+	- Added function to extract square root of diagonal of covmat_sx.
+
+	* methods.cc (covmat_sxExtractSqrtDiagonal):
+	- Added entry for covmat_sxExtractSqrtDiagonal
+
+	* controlfiles/artscomponents/oem/TestOEM.arts
+	- Adapted definition of inversion_iterate_agenda
+
+	* controlfiles/artscomponents/agendas/TestAgendaExecute.arts
+	- Adapted definition of inversion_iterate_agenda and added initialization
+	  of *inverstion_iteration_counter*
+
 2018-05-06 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-1046

@@ -2139,7 +2139,7 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
     (WsvRecord
-     ( NAME( "inversion_iteratation_counter" ),
+     ( NAME( "inversion_iteration_counter" ),
        DESCRIPTION
        (
         "Iteration counter variable for *inversion_iterate_agenda*.\n"
@@ -4896,7 +4896,7 @@ void Workspace::define_wsv_data()
        "where x is size (that could be Dveq, Dmax or mass) and a/b are parameters.\n"
        "\n"
        "This WSV is a in the expression above.\n"
-       "The WSV matching b is *scat_species_a*.\n"
+       "The WSV matching b is *scat_species_b*.\n"
        "The WSV matching x is *scat_species_x*.\n"
        ),
       GROUP( "Numeric" )));

@@ -739,6 +739,16 @@ template void covmat_sxAddInverseBlock(CovarianceMatrix&,
                                          const Index&,
                                          const Verbosity&);
 
+void covmat_sxExtractSqrtDiagonal(Vector &x_norm,
+                                  const CovarianceMatrix &covmat_sx,
+                                  const Verbosity&)
+{
+    x_norm = covmat_sx.diagonal();
+    for (Index i = 0; i < x_norm.nelem(); ++i) {
+        x_norm[i] = sqrt(x_norm[i]);
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // retrievalAdd Functions
 ////////////////////////////////////////////////////////////////////////////////

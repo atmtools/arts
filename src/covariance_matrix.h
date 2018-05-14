@@ -124,6 +124,16 @@ public:
     void set_matrix(std::shared_ptr<Sparse> sparse)     {sparse_ = sparse;}
     void set_matrix(std::shared_ptr<Matrix> dense)      {dense_  = dense;}
 
+    /*! Return the diagonal as a vector.*/
+    Vector diagonal() const
+    {
+        if (dense_) {
+            return dense_->diagonal();
+        } else {
+            return sparse_->diagonal();
+        }
+    }
+
     /*! Return the indices of the retrieval quantities correlated by this block as std::pair. */
     IndexPair  get_indices()         const {return indices_;}
     /*! Return the type of the matrix holding the correlation coefficients. */
@@ -300,6 +310,15 @@ public:
      * @param c The inverse of a block already in the matrix.
      */
     void add_correlation_inverse(Block c);
+
+    /** Diagonal elements as vector
+     *
+     * Extracts the diagonal elements from the covariance matrix.
+     * matrix.
+     *
+     * @return A vector containing the diagonal elements.
+     */
+    Vector diagonal() const;
 
     // Friend declarations.
     friend void mult(MatrixView, ConstMatrixView, const CovarianceMatrix &);

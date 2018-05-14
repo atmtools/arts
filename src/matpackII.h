@@ -81,6 +81,16 @@ public:
     Index ncols() const;
     Index nnz()   const;
 
+
+    /** Diagonal elements as vector
+     *
+     * Extracts the diagonal elements from the sparse matrix.
+     * matrix.
+     *
+     * @return A vector containing the diagonal elements.
+     */
+    Vector diagonal() const;
+
     // Index Operators:
     Numeric& rw(Index r, Index c);
     Numeric  ro(Index r, Index c) const;

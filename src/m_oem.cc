@@ -1329,11 +1329,11 @@ void OEM_checks(
   // If necessary compute yf and jacobian.
   if(x.nelem() == 0) {
     x = xa;
-    inversion_iterate_agendaExecute( ws, yf, jacobian, xa, 1,
+    inversion_iterate_agendaExecute( ws, yf, jacobian, xa, 1, 0,
                                      inversion_iterate_agenda );
   }
   if((yf.nelem() == 0) || (jacobian.empty())) {
-    inversion_iterate_agendaExecute( ws, yf, jacobian, x, 1,
+    inversion_iterate_agendaExecute( ws, yf, jacobian, x, 1, 0,
                                      inversion_iterate_agenda );
   }
 }
@@ -1404,7 +1404,7 @@ void OEM(
     // If no precomputed value given, we compute yf and jacobian to
     // compute initial cost (and use in the first OEM iteration).
     if (yf.nelem() == 0) {
-        inversion_iterate_agendaExecute( ws, yf, jacobian, xa, 1,
+        inversion_iterate_agendaExecute( ws, yf, jacobian, xa, 1, 0,
                                          inversion_iterate_agenda );
     }
 

@@ -526,6 +526,19 @@ void CovarianceMatrix::add_correlation_inverse(Block c)
     inverses_.push_back(c);
 }
 
+Vector CovarianceMatrix::diagonal() const
+{
+    Vector diag(nrows());
+    for (const Block &b : correlations_) {
+        Index i,j;
+        tie(i,j) = b.get_indices();
+
+        if (i == j) {
+            diag[b.get_row_range()] = b.diagonal();
+        }
+    }
+    return diag;
+}
 
 void mult(MatrixView C, ConstMatrixView A, const CovarianceMatrix &B)
 {
