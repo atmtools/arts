@@ -60,8 +60,14 @@ public:
     void set_vector_variable(Index id, size_t n, const Numeric *src);
     void set_matrix_variable(Index id, size_t m, size_t n, const Numeric *src);
     void set_tensor3_variable(Index id, size_t l, size_t m, size_t n, const Numeric *src);
-    void set_tensor4_variable(Index id, size_t k, size_t l, size_t m, size_t n, const Numeric *src);
-
+    void set_tensor4_variable(Index id, size_t k, size_t l, size_t m, size_t n,
+                              const Numeric *src);
+    void set_tensor5_variable(Index id, size_t k, size_t l, size_t m, size_t n,
+                              size_t o, const Numeric *src);
+    void set_tensor6_variable(Index id, size_t k, size_t l, size_t m, size_t n,
+                              size_t o, size_t p, const Numeric *src);
+    void set_tensor7_variable(Index id, size_t k, size_t l, size_t m, size_t n,
+                              size_t o, size_t p, size_t q, const Numeric *src);
     void resize();
 
     //! Push a stack for a new variable to the workspace.

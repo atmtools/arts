@@ -418,13 +418,33 @@ VariableValueStruct get_variable_value(InteractiveWorkspace *workspace, Index id
     else if (wsv_group_names[group_id] == "Tensor6") {
         if (value.initialized) {
             Tensor6 *t = reinterpret_cast<Tensor6*>(workspace->operator[](id));
-            value.ptr = t->get_c_array();
             value.dimensions[0] = t->nvitrines();
             value.dimensions[1] = t->nshelves();
             value.dimensions[2] = t->nbooks();
             value.dimensions[3] = t->npages();
             value.dimensions[4] = t->nrows();
             value.dimensions[5] = t->ncols();
+
+            if (!t->empty()) {
+                value.ptr = t->get_c_array();
+            }
+        }
+    }
+    // Tensor7
+    else if (wsv_group_names[group_id] == "Tensor7") {
+        if (value.initialized) {
+            Tensor7 *t = reinterpret_cast<Tensor7*>(workspace->operator[](id));
+            value.dimensions[0] = t->nlibraries();
+            value.dimensions[1] = t->nvitrines();
+            value.dimensions[2] = t->nshelves();
+            value.dimensions[3] = t->nbooks();
+            value.dimensions[4] = t->npages();
+            value.dimensions[5] = t->nrows();
+            value.dimensions[6] = t->ncols();
+
+            if (!t->empty()) {
+                value.ptr = t->get_c_array();
+            }
         }
     }
     // Sparse
@@ -509,6 +529,48 @@ const char * set_variable_value(InteractiveWorkspace *workspace,
                                       value.dimensions[2],
                                       value.dimensions[3],
                                       ptr);
+    }
+    // Tensor5
+    else if (wsv_group_names[group_id] == "Tensor5") {
+        const Numeric * ptr = reinterpret_cast<const Numeric *>(value.ptr);
+        workspace->set_tensor5_variable(id,
+                                        value.dimensions[0],
+                                        value.dimensions[1],
+                                        value.dimensions[2],
+                                        value.dimensions[3],
+                                        value.dimensions[4],
+                                        ptr);
+    }
+    // Tensor6
+    else if (wsv_group_names[group_id] == "Tensor6") {
+        const Numeric * ptr = reinterpret_cast<const Numeric *>(value.ptr);
+        std::cout << value.dimensions[0] << " / "
+                  << value.dimensions[1] << " / "
+                  << value.dimensions[2] << " / "
+                  << value.dimensions[3] << " / "
+                  << value.dimensions[4] << " / "
+                  << value.dimensions[5] << std::endl;
+        workspace->set_tensor6_variable(id,
+                                        value.dimensions[0],
+                                        value.dimensions[1],
+                                        value.dimensions[2],
+                                        value.dimensions[3],
+                                        value.dimensions[4],
+                                        value.dimensions[5],
+                                        ptr);
+    }
+    // Tensor7
+    else if (wsv_group_names[group_id] == "Tensor7") {
+        const Numeric * ptr = reinterpret_cast<const Numeric *>(value.ptr);
+        workspace->set_tensor7_variable(id,
+                                        value.dimensions[0],
+                                        value.dimensions[1],
+                                        value.dimensions[2],
+                                        value.dimensions[3],
+                                        value.dimensions[4],
+                                        value.dimensions[5],
+                                        value.dimensions[6],
+                                        ptr);
     } else {
         string_buffer = std::string("This variable can currently not be set through the C API."
                                     " Signal your need to ARTS dev mailing list.");

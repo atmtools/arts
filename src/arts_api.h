@@ -77,7 +77,7 @@ extern "C" {
          * the number of elements the variable contains in the this dimension with the
          * number of columns in the last position.
          */
-        long        dimensions[6];
+        long        dimensions[7];
         /** @var VariableValueStruct::inner_pointer
          * This field is only used to return sparse matrices. In this case inner pointer
          * will point to the array of column indices.

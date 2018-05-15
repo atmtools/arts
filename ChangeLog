@@ -1,3 +1,14 @@
+2018-05-15 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1048
+
+	* arts_api.[h, cc] (get_variable_value, set_variable_value)
+	- Expanded methods to also handle tensors of dimensions
+	  5, 6, 7
+
+	* interactive_workspace.[h, cc] (set_tensor[5,6,7]_variable)
+	- Added methods for settings tensors of dimensions 5, 6, 7
+
 2018-05-14 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1047

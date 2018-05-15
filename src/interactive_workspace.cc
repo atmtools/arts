@@ -175,9 +175,57 @@ void InteractiveWorkspace::set_tensor4_variable(Index id,
 {
   Tensor4 *dst = reinterpret_cast<Tensor4*>(this->operator[](id));
   dst->resize(k, l, m, n);
-  for (size_t i = 0; i < k * l * n * m; ++i) {
+  for (size_t i = 0; i < k * l * m * n; ++i) {
     dst->get_c_array()[i] = src[i];
   }
+}
+
+void InteractiveWorkspace::set_tensor5_variable(Index id,
+                                                size_t k,
+                                                size_t l,
+                                                size_t m,
+                                                size_t n,
+                                                size_t o,
+                                                const Numeric *src)
+{
+    Tensor5 *dst = reinterpret_cast<Tensor5*>(this->operator[](id));
+    dst->resize(k, l, m, n, o);
+    for (size_t i = 0; i < k * l * m * n * o; ++i) {
+        dst->get_c_array()[i] = src[i];
+    }
+}
+
+void InteractiveWorkspace::set_tensor6_variable(Index id,
+                                                size_t k,
+                                                size_t l,
+                                                size_t m,
+                                                size_t n,
+                                                size_t o,
+                                                size_t p,
+                                                const Numeric *src)
+{
+    Tensor6 *dst = reinterpret_cast<Tensor6*>(this->operator[](id));
+    dst->resize(k, l, m, n, o, p);
+    for (size_t i = 0; i < k * l * m * n * o * p; ++i) {
+        dst->get_c_array()[i] = src[i];
+    }
+}
+
+void InteractiveWorkspace::set_tensor7_variable(Index id,
+                                                size_t k,
+                                                size_t l,
+                                                size_t m,
+                                                size_t n,
+                                                size_t o,
+                                                size_t p,
+                                                size_t q,
+                                                const Numeric *src)
+{
+    Tensor7 *dst = reinterpret_cast<Tensor7*>(this->operator[](id));
+    dst->resize(k, l, m, n, o, p, q);
+    for (size_t i = 0; i < k * l * m * n * o * p * q; ++i) {
+        dst->get_c_array()[i] = src[i];
+    }
 }
 
 void InteractiveWorkspace::resize()
