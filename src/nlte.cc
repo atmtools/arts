@@ -43,10 +43,11 @@ void statistical_equilibrium_equation(MatrixView A,
     const Index j = lower[iline];
     assert(i < nlevels and j < nlevels);
     
-    A(i, i) -= Aij[iline] + Bij[iline] * Jij[iline] + Cij[iline];
     A(j, j) -=              Bji[iline] * Jij[iline] + Cji[iline];
-    A(i, j) +=              Bji[iline] * Jij[iline] + Cji[iline];
+    A(i, i) -= Aij[iline] + Bij[iline] * Jij[iline] + Cij[iline];
+    
     A(j, i) += Aij[iline] + Bij[iline] * Jij[iline] + Cij[iline];
+    A(i, j) +=              Bji[iline] * Jij[iline] + Cji[iline];
   }
 }
 
@@ -80,8 +81,11 @@ void dampened_statistical_equilibrium_equation(MatrixView A,
     
     const Numeric Source = total_number_count * (x[i] * Aij[iline] / (x[j] * Bji[iline] - x[i] * Bij[iline]));
     
+    A(j, j) -=                                      Bji[iline] * (Jij[iline] - Lambda[iline] * Source) + Cji[iline];
     A(i, i) -= Aij[iline] * (1.0 - Lambda[iline]) + Bij[iline] * (Jij[iline] - Lambda[iline] * Source) + Cij[iline];
-    A(i, j) += Aij[iline] * (1.0 - Lambda[iline]) + Bji[iline] * (Jij[iline] - Lambda[iline] * Source) + Cji[iline];
+    
+    A(j, i) += Aij[iline] * (1.0 - Lambda[iline]) + Bij[iline] * (Jij[iline] - Lambda[iline] * Source) + Cij[iline];
+    A(i, j) +=                                      Bji[iline] * (Jij[iline] - Lambda[iline] * Source) + Cji[iline];
   }
 }
 
@@ -146,13 +150,13 @@ Vector createCijFromPressureBroadening(const ArrayOfLineRecord& abs_lines,
                                        ConstVectorView vmrs,
                                        const ArrayOfIndex& broad_spec_locations,
                                        const Numeric& T,
+                                       const Numeric& P,
                                        const Index this_species,
-                                       const Index water_species,
-                                       const Verbosity& verbosity)
+                                       const Index water_species)
 {
   const Index n = abs_lines.nelem();
   Vector Cij(n);
-  setCijFromPressureBroadening(Cij, abs_lines, vmrs, broad_spec_locations, T, this_species, water_species, n, verbosity);
+  setCijFromPressureBroadening(Cij, abs_lines, vmrs, broad_spec_locations, T, P, this_species, water_species, n);
   return Cij;
 }
 
@@ -162,11 +166,12 @@ void setCijFromPressureBroadening(VectorView Cij,
                                   ConstVectorView vmrs,
                                   const ArrayOfIndex& broad_spec_locations,
                                   const Numeric& T,
+                                  const Numeric& P,
                                   const Index this_species,
                                   const Index water_species,
-                                  const Index n,
-                                  const Verbosity& verbosity)
+                                  const Index n)
 {
+//FIXME: Fix this function!
   assert(n == Cij.nelem() and n == abs_lines.nelem());
   
   extern const Numeric PI, SPEED_OF_LIGHT, BOLTZMAN_CONST;
@@ -178,8 +183,9 @@ void setCijFromPressureBroadening(VectorView Cij,
     const LineRecord& line = abs_lines[i];
     Numeric g0, g2, eta, df_0, df_2, f_VC;
     const Numeric theta = line.Ti0() / T;
-    line.PressureBroadening().GetPressureBroadeningParams(g0, g2, eta, df_0, df_2, f_VC, theta, 1.0, vmrs[this_species], this_species, water_species, broad_spec_locations, vmrs, verbosity);
-    Cij[i] = constant * g0;
+    line.PressureBroadening().GetPressureBroadeningParams(g0, g2, eta, df_0, df_2, f_VC, theta, P, P, this_species, water_species, broad_spec_locations, vmrs);
+    //Cij[i] = (g0 + 1.5*g2) / P * BOLTZMAN_CONST * T * 2 * PI * SPEED_OF_LIGHT * SPEED_OF_LIGHT / 100;
+    Cij[i] = 2e12/3 * constant * g0;  // FIXME: MANY ERRORS IN THIS CODE!
   }
 }
 
@@ -231,7 +237,6 @@ void nlte_positions_in_statistical_equilibrium_matrix(ArrayOfIndex& upper, Array
   for(Index il = 0; il < nl; il++)
     if(upper[il] < 0 or lower[il] < 0)
       i++;
-  std::cout<<upper<<"\n"<<lower<<"\n";
   if(i > 1)
     throw std::runtime_error("Must set upper and lower levels completely for all but one level");
 }

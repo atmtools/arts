@@ -43,8 +43,7 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma_0,
                                                          const Index    this_species,
                                                          const Index    h2o_species,
                                                          const ArrayOfIndex& broad_spec_locations,
-                                                         ConstVectorView vmrs,
-                                                         const Verbosity& verbosity) const
+                                                         ConstVectorView vmrs) const
 {
     switch(mtype)
     {
@@ -60,15 +59,14 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma_0,
             break;
         case PB_AIR_AND_WATER_BROADENING:
             GetAirAndWaterBroadening(gamma_0, df_0, theta, pressure, self_pressure, 
-                                     this_species, h2o_species, vmrs, verbosity);
+                                     this_species, h2o_species, vmrs);
             gamma_2 = 0.;
             eta     = 0.;
             df_2    = 0.;
             f_VC    = 0.;
             break;
         case PB_PLANETARY_BROADENING:
-            GetPlanetaryBroadening(gamma_0, df_0, theta, pressure, self_pressure,
-                                this_species, broad_spec_locations, vmrs, verbosity);
+            GetPlanetaryBroadening(gamma_0, df_0, theta, pressure, self_pressure, broad_spec_locations, vmrs);
             gamma_2 = 0.;
             eta     = 0.;
             df_2    = 0.;
@@ -104,8 +102,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dT(Numeric& dgamma_0_dT
                                                             const Index    this_species,
                                                             const Index    h2o_species,
                                                             const ArrayOfIndex& broad_spec_locations,
-                                                            ConstVectorView vmrs,
-                                                            const Verbosity& verbosity) const
+                                                            ConstVectorView vmrs) const
 {
   switch(mtype)
   {
@@ -124,14 +121,14 @@ void PressureBroadeningData::GetPressureBroadeningParams_dT(Numeric& dgamma_0_dT
       ddf_2_dT = 0;
       df_VC_dT = 0;
       deta_dT = 0;
-      GetAirAndWaterBroadening_dT(dgamma_0_dT, ddf_0_dT, T, T0, pressure, self_pressure, this_species, h2o_species, vmrs, verbosity);
+      GetAirAndWaterBroadening_dT(dgamma_0_dT, ddf_0_dT, T, T0, pressure, self_pressure, this_species, h2o_species, vmrs);
       break;
     case PB_PLANETARY_BROADENING:
       dgamma_2_dT = 0;
       ddf_2_dT = 0;
       df_VC_dT = 0;
       deta_dT = 0;
-      GetPlanetaryBroadening_dT(dgamma_0_dT, ddf_0_dT, T, T0, pressure, self_pressure, this_species, broad_spec_locations, vmrs, verbosity);
+      GetPlanetaryBroadening_dT(dgamma_0_dT, ddf_0_dT, T, T0, pressure, self_pressure, broad_spec_locations, vmrs);
       break;
     case PB_SD_AIR_VOLUME:
       df_VC_dT = 0;
@@ -155,8 +152,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
                                                     const Numeric& self_pressure,
                                                     const Index    this_species,
                                                     const Index    h2o_species,
-                                                    ConstVectorView vmrs,
-                                                    const Verbosity& verbosity) const
+                                                    ConstVectorView vmrs) const
 {
   const Index nppd = ppd.nelem();
   
@@ -193,7 +189,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       if(QI > ppd[iq].QuantumIdentity())
       {
         GetPressureBroadeningParams_dWaterGamma(results1, theta, pressure, 
-                                                this_species, h2o_species, vmrs, verbosity);
+                                                this_species, h2o_species, vmrs);
         res[ipd] = results1;
       }
       else
@@ -225,7 +221,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       if(QI > ppd[iq].QuantumIdentity())
       {
         GetPressureBroadeningParams_dWaterPsf(results2, theta, pressure, 
-                                              this_species, h2o_species, vmrs, verbosity);
+                                              this_species, h2o_species, vmrs);
         res[ipd] = Complex(0, results2);
       }
       else
@@ -257,7 +253,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       if(QI > ppd[iq].QuantumIdentity())
       {
         GetPressureBroadeningParams_dWaterExponent(results1, results2, theta, pressure, 
-                                                   this_species, h2o_species, vmrs, verbosity);
+                                                   this_species, h2o_species, vmrs);
         res[ipd] = Complex(results1, results2);
       }
       else
@@ -338,8 +334,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dWaterGamma(Numeric& ga
                                                                      const Numeric& pressure,
                                                                      const Index    this_species,
                                                                      const Index    h2o_species,
-                                                                     ConstVectorView vmrs,
-                                                                     const Verbosity& verbosity) const
+                                                                     ConstVectorView vmrs) const
 {
     switch(mtype)
     {
@@ -352,7 +347,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dWaterGamma(Numeric& ga
             break;
         case PB_AIR_AND_WATER_BROADENING:
             GetAirAndWaterBroadening_dWaterGamma(gamma_dWater, theta, pressure, 
-                                                 this_species, h2o_species, vmrs, verbosity);
+                                                 this_species, h2o_species, vmrs);
             break;
         case PB_PLANETARY_BROADENING:
             throw std::runtime_error("Planetary broadening calculation type do not support "
@@ -425,8 +420,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dWaterPsf(Numeric& psf_
                                                                    const Numeric& pressure,
                                                                    const Index    this_species,
                                                                    const Index    h2o_species,
-                                                                   ConstVectorView vmrs,
-                                                                   const Verbosity& verbosity) const
+                                                                   ConstVectorView vmrs) const
 {
     switch(mtype)
     {
@@ -439,7 +433,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dWaterPsf(Numeric& psf_
             break;
         case PB_AIR_AND_WATER_BROADENING:
             GetAirAndWaterBroadening_dWaterPsf(psf_dWater, theta, pressure, 
-                                               this_species, h2o_species, vmrs, verbosity);
+                                               this_species, h2o_species, vmrs);
             break;
         case PB_PLANETARY_BROADENING:
             throw std::runtime_error("Planetary broadening calculation type do not support "
@@ -517,8 +511,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dWaterExponent(Numeric&
                                                                         const Numeric& pressure,
                                                                         const Index    this_species,
                                                                         const Index    h2o_species,
-                                                                        ConstVectorView vmrs,
-                                                                        const Verbosity& verbosity) const
+                                                                        ConstVectorView vmrs) const
 {
     switch(mtype)
     {
@@ -532,7 +525,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dWaterExponent(Numeric&
         case PB_AIR_AND_WATER_BROADENING:
             GetAirAndWaterBroadening_dWaterExponent(gamma_dWaterExponent, psf_dWaterExponent,
                                                     theta, pressure, 
-                                                    this_species, h2o_species, vmrs, verbosity);
+                                                    this_species, h2o_species, vmrs);
             break;
         case PB_PLANETARY_BROADENING:
             throw std::runtime_error("Planetary broadening calculation type do not support "
@@ -643,11 +636,8 @@ void PressureBroadeningData::GetAirAndWaterBroadening(Numeric& gamma,
                                                       const Numeric& self_pressure,
                                                       const Index    this_species,
                                                       const Index    h2o_species,
-                                                      ConstVectorView vmrs,
-                                                      const Verbosity& verbosity) const
+                                                      ConstVectorView vmrs) const
 {
-    CREATE_OUT2;
-    
     if(this_species==h2o_species)    
     {
         gamma   =
@@ -668,7 +658,7 @@ void PressureBroadeningData::GetAirAndWaterBroadening(Numeric& gamma,
         mdata[1][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[1][1]) * (pressure-self_pressure)
         + mdata[0][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[0][1]) *         self_pressure;
         
-        out2 << "You have no H2O in species but you use water-broadened line shape.\n";
+//         out2 << "You have no H2O in species but you use water-broadened line shape.\n";
     }
     else
     {
@@ -693,11 +683,8 @@ void PressureBroadeningData::GetAirAndWaterBroadening_dT(Numeric& dgamma_dT,
                                                          const Numeric& self_pressure,
                                                          const Index    this_species,
                                                          const Index    h2o_species,
-                                                         ConstVectorView vmrs,
-                                                         const Verbosity& verbosity) const
+                                                         ConstVectorView vmrs) const
 {
-    CREATE_OUT2;
-    
     const Numeric theta = T0/T;
     
     if(this_species==h2o_species)    
@@ -720,7 +707,7 @@ void PressureBroadeningData::GetAirAndWaterBroadening_dT(Numeric& dgamma_dT,
         ((Numeric)0.25+(Numeric)1.5*mdata[1][1]) * mdata[1][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[1][1]) * (pressure-self_pressure)
         + ((Numeric)0.25+(Numeric)1.5*mdata[0][1]) * mdata[0][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[0][1]) *         self_pressure) / T;
         
-        out2 << "You have no H2O in species but you use water-broadened line shape.\n";
+//         out2 << "You have no H2O in species but you use water-broadened line shape.\n";
     }
     else
     {
@@ -765,18 +752,15 @@ void PressureBroadeningData::GetAirAndWaterBroadening_dWaterGamma(Numeric& gamma
                                                                   const Numeric& pressure,
                                                                   const Index    this_species,
                                                                   const Index    h2o_species,
-                                                                  ConstVectorView vmrs,
-                                                                  const Verbosity& verbosity) const
+                                                                  ConstVectorView vmrs) const
 {
-    CREATE_OUT2;
-    
     if(this_species==h2o_species)
         throw std::runtime_error("Use \"Self broadening\" types of derivatives rather than water broadening for water lines.\n");
     else if(h2o_species==-1)
     {
         gamma_dWater = 0.0;
         
-        out2 << "You have no H2O in species but you want the water broadening derivative.  It is thus set to zero.\n";
+//         out2 << "You have no H2O in species but you want the water broadening derivative.  It is thus set to zero.\n";
     }
     else
         gamma_dWater = pow(theta,mdata[2][1]) * vmrs[h2o_species]*pressure;
@@ -811,18 +795,15 @@ void PressureBroadeningData::GetAirAndWaterBroadening_dWaterPsf(Numeric& psf_dWa
                                                                 const Numeric& pressure,
                                                                 const Index    this_species,
                                                                 const Index    h2o_species,
-                                                                ConstVectorView vmrs,
-                                                                const Verbosity& verbosity) const
+                                                                ConstVectorView vmrs) const
 {
-    CREATE_OUT2;
-    
     if(this_species==h2o_species)
         throw std::runtime_error("Use \"Self broadening\" types of derivatives rather than water broadening for water lines.\n");
     else if(h2o_species==-1)
     {
         psf_dWater = 0.0;
         
-        out2 << "You have no H2O in species but you want the water broadening derivative.  It is thus set to zero.\n";
+//         out2 << "You have no H2O in species but you want the water broadening derivative.  It is thus set to zero.\n";
     }
     else
         psf_dWater = pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[2][1]) * vmrs[h2o_species]*pressure;
@@ -869,11 +850,8 @@ void PressureBroadeningData::GetAirAndWaterBroadening_dWaterExponent(Numeric& ga
                                                                      const Numeric& pressure,
                                                                      const Index    this_species,
                                                                      const Index    h2o_species,
-                                                                     ConstVectorView vmrs,
-                                                                     const Verbosity& verbosity) const
+                                                                     ConstVectorView vmrs) const
 {
-    CREATE_OUT2;
-    
     if(this_species==h2o_species)
         throw std::runtime_error("Use \"Self broadening\" types of derivatives rather than water broadening for water lines.\n");
     else if(h2o_species==-1)
@@ -881,7 +859,7 @@ void PressureBroadeningData::GetAirAndWaterBroadening_dWaterExponent(Numeric& ga
         gamma_dWaterExponent = 0.0;
         psf_dWaterExponent = 0.;
         
-        out2 << "You have no H2O in species but you want the water broadening derivative.  It is thus set to zero.\n";
+//         out2 << "You have no H2O in species but you want the water broadening derivative.  It is thus set to zero.\n";
     }
     else
     {
@@ -902,13 +880,9 @@ void PressureBroadeningData::GetPlanetaryBroadening(Numeric& gamma,
                                                     const Numeric& theta,
                                                     const Numeric& pressure,
                                                     const Numeric& self_pressure,
-                                                    const Index    this_species,
                                                     const ArrayOfIndex& broad_spec_locations,
-                                                    ConstVectorView vmrs,
-                                                    const Verbosity& verbosity) const
+                                                    ConstVectorView vmrs) const
 {
-    CREATE_OUT2;
-    
     // Number of broadening species:
     const Index nbs = LineRecord::NBroadSpec();
     assert(nbs==broad_spec_locations.nelem());
@@ -959,17 +933,17 @@ void PressureBroadeningData::GetPlanetaryBroadening(Numeric& gamma,
         }
     }
     
-    // Check that sum of self and all foreign VMRs is not too far from 1:
-    if ( abs(vmrs[this_species]+broad_spec_vmr_sum-1) > 0.1
-        && out2.sufficient_priority() )
-    {
-        std::ostringstream os;
-        os << "Warning: The total VMR of all your defined broadening\n"
-        << "species (including \"self\") is "
-        << vmrs[this_species]+broad_spec_vmr_sum
-        << ", more than 10% " << "different from 1.\n";
-        out2 << os.str();
-    }
+//     // Check that sum of self and all foreign VMRs is not too far from 1:
+//     if ( abs(vmrs[this_species]+broad_spec_vmr_sum-1) > 0.1
+//         && out2.sufficient_priority() )
+//     {
+//         std::ostringstream os;
+//         os << "Warning: The total VMR of all your defined broadening\n"
+//         << "species (including \"self\") is "
+//         << vmrs[this_species]+broad_spec_vmr_sum
+//         << ", more than 10% " << "different from 1.\n";
+//         out2 << os.str();
+//     }
     
     // Normalize foreign gamma and deltaf with the foreign VMR sum (but only if
     // we have any foreign broadening species):
@@ -1013,13 +987,9 @@ void PressureBroadeningData::GetPlanetaryBroadening_dT(Numeric& dgamma_dT,
                                                     const Numeric& T0,
                                                     const Numeric& pressure,
                                                     const Numeric& self_pressure,
-                                                    const Index    this_species,
                                                     const ArrayOfIndex& broad_spec_locations,
-                                                    ConstVectorView vmrs,
-                                                    const Verbosity& verbosity) const
+                                                    ConstVectorView vmrs) const
 {
-    CREATE_OUT2;
-    
     const Numeric theta = T0/T;
     
     // Number of broadening species:
@@ -1072,17 +1042,17 @@ void PressureBroadeningData::GetPlanetaryBroadening_dT(Numeric& dgamma_dT,
         }
     }
     
-    // Check that sum of self and all foreign VMRs is not too far from 1:
-    if ( abs(vmrs[this_species]+broad_spec_vmr_sum-1) > 0.1
-        && out2.sufficient_priority() )
-    {
-        std::ostringstream os;
-        os << "Warning: The total VMR of all your defined broadening\n"
-        << "species (including \"self\") is "
-        << vmrs[this_species]+broad_spec_vmr_sum
-        << ", more than 10% " << "different from 1.\n";
-        out2 << os.str();
-    }
+//     // Check that sum of self and all foreign VMRs is not too far from 1:
+//     if ( abs(vmrs[this_species]+broad_spec_vmr_sum-1) > 0.1
+//         && out2.sufficient_priority() )
+//     {
+//         std::ostringstream os;
+//         os << "Warning: The total VMR of all your defined broadening\n"
+//         << "species (including \"self\") is "
+//         << vmrs[this_species]+broad_spec_vmr_sum
+//         << ", more than 10% " << "different from 1.\n";
+//         out2 << os.str();
+//     }
     
     // Normalize foreign gamma and deltaf with the foreign VMR sum (but only if
     // we have any foreign broadening species):

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<arts version="1" format="ascii">
+<Array nelem="7" type="QuantumIdentifier">
+<QuantumIdentifier>H2O-161 EN J 1 Ka 0 Kc 1</QuantumIdentifier>
+<QuantumIdentifier>H2O-161 EN J 1 Ka 1 Kc 0</QuantumIdentifier>
+<QuantumIdentifier>H2O-161 EN J 2 Ka 1 Kc 2</QuantumIdentifier>
+<QuantumIdentifier>H2O-161 EN J 2 Ka 2 Kc 1</QuantumIdentifier>
+<QuantumIdentifier>H2O-161 EN J 3 Ka 0 Kc 3</QuantumIdentifier>
+<QuantumIdentifier>H2O-161 EN J 3 Ka 1 Kc 2</QuantumIdentifier>
+<QuantumIdentifier>H2O-161 EN J 3 Ka 2 Kc 1</QuantumIdentifier>
+</Array>
+</arts>

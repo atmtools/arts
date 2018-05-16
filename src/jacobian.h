@@ -78,8 +78,7 @@ enum class JacPropMatType : Index
   LineMixingYExp,
   LineMixingGExp,
   LineMixingDFExp,
-  VibrationalTemperature,
-  PopulationRatio,
+  NLTE,
   NotPropagationMatrixType
 };
 

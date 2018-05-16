@@ -197,6 +197,7 @@ void iyEmissionStandard(
         Matrix&                     ppvar_f,  
         Tensor3&                    ppvar_iy,  
         Tensor4&                    ppvar_trans_cumulat,
+        Tensor4&                    ppvar_trans_partial,
   const Index&                      iy_id,
   const Index&                      stokes_dim,
   const Vector&                     f_grid,
@@ -301,8 +302,8 @@ void iyEmissionStandard(
   // Get atmospheric and radiative variables along the propagation path
   //
   ppvar_trans_cumulat.resize(np,nf,ns,ns);
+  ppvar_trans_partial.resize(np,nf,ns,ns);
   Tensor3 J(np,nf,ns);
-  Tensor4 trans_partial(np,nf,ns,ns);
   Tensor5 dtrans_partial_dx_above(np,nq,nf,ns,ns);
   Tensor5 dtrans_partial_dx_below(np,nq,nf,ns,ns);
   Tensor4 dJ_dx(np,nq,nf,ns);
@@ -415,7 +416,7 @@ void iyEmissionStandard(
 
           get_stepwise_transmission_matrix(
                                  ppvar_trans_cumulat(ip,joker,joker,joker),
-                                 trans_partial(ip,joker,joker,joker),
+                                 ppvar_trans_partial(ip,joker,joker,joker),
                                  dtrans_partial_dx_above(ip,joker,joker,joker,joker),
                                  dtrans_partial_dx_below(ip,joker,joker,joker,joker),
                                  (ip>0)?
@@ -486,7 +487,7 @@ void iyEmissionStandard(
           for( Index ip=np-2; ip>=0; ip-- )
             {
         
-              ConstMatrixView T = trans_partial(ip+1,iv,joker,joker);
+              ConstMatrixView T = ppvar_trans_partial(ip+1,iv,joker,joker);
         
               if( j_analytical_do )
                 {

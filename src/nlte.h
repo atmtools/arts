@@ -62,9 +62,9 @@ Vector createCijFromPressureBroadening(const ArrayOfLineRecord& abs_lines,
                                        ConstVectorView vmrs,
                                        const ArrayOfIndex& broad_spec_locations,
                                        const Numeric& T,
+                                       const Numeric& P,
                                        const Index this_species,
-                                       const Index water_species,
-                                       const Verbosity& verbosity);
+                                       const Index water_species);
 
 
 void setCijFromPressureBroadening(VectorView Cij, 
@@ -72,10 +72,10 @@ void setCijFromPressureBroadening(VectorView Cij,
                                   ConstVectorView vmrs,
                                   const ArrayOfIndex& broad_spec_locations,
                                   const Numeric& T,
+                                  const Numeric& P,
                                   const Index this_species,
                                   const Index water_species,
-                                  const Index n,
-                                  const Verbosity& verbosity);
+                                  const Index n);
 
 
 Vector createCji(ConstVectorView Cij, const ArrayOfLineRecord& abs_lines, const Numeric& T);

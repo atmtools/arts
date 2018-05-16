@@ -1881,8 +1881,7 @@ bool is_magnetic_parameter(const RetrievalQuantity& t)
 
 bool is_nlte_parameter(const RetrievalQuantity& t)
 {
-  return t == JacPropMatType::VibrationalTemperature or 
-         t == JacPropMatType::PopulationRatio;
+  return t == JacPropMatType::NLTE;
 }
 
 bool is_line_mixing_DF_parameter(const RetrievalQuantity& t) 
@@ -2161,8 +2160,7 @@ String propmattype_string(const RetrievalQuantity& rq)
     case JacPropMatType::LineMixingYExp: return "Line-Mixing-YExp";
     case JacPropMatType::LineMixingGExp: return "Line-Mixing-GExp";
     case JacPropMatType::LineMixingDFExp: return "Line-Mixing-DFExp";
-    case JacPropMatType::VibrationalTemperature: return "Vibrational-Temperature";
-    case JacPropMatType::PopulationRatio: return "Population-Ratio";
+    case JacPropMatType::NLTE: return "NLTE-Level";
     case JacPropMatType::NotPropagationMatrixType: return "Not-A-Prop-Mat-Variable";
   }
   return "UNDEFINED-CHECK-IF-CASE-LIST-IS-COMPLETE";

@@ -1094,7 +1094,7 @@ firstprivate(ls_attenuation, fac, f_local, aux, qt_cache, qref_cache, iso_cache,
                                                                              l_l.Ti0()/t_i,p_i,
                                                                              p_partial,this_species,h2o_index,
                                                                              broad_spec_locations,
-                                                                             vmrs,verbosity);
+                                                                             vmrs);
                         
                         // Check the chache is the tempearture of the line and the isotope is the same to avoid recalculating the partition sum
                         if(iso_cache!=l_l.Isotopologue() || line_t_cache != l_l.Ti0())
@@ -2107,7 +2107,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                                 abs_lines[ii].Ti0()/t,p,
                                                                 p_partial,this_species,h2o_index,
                                                                 broad_spec_locations,
-                                                                vmrs,verbosity);
+                                                                vmrs);
             
             // Line mixing parameters
             Numeric Y=0,DV=0,G=0; // Set to zero since case with 0 exist
@@ -2229,7 +2229,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                                                       abs_lines[ii].Ti0(),p,
                                                                                       p_partial,this_species,h2o_index,
                                                                                       broad_spec_locations,
-                                                                                      vmrs,verbosity);
+                                                                                      vmrs);
                     GetLineScalingData_dT(dqt_dT_cache,
                                           dK2_dT,
                                           dQ_dT, 
@@ -2272,7 +2272,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                   }
                   else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineGammaWater) {
                     if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
-                      abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterGamma(gamma_dWater,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
+                      abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterGamma(gamma_dWater,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs);
                   }
                   else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineGammaSelfExp) {
                     if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
@@ -2284,7 +2284,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                   }
                   else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineGammaWaterExp) {
                     if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
-                      abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterExponent(gamma_dWaterExponent,psf_dWaterExponent,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
+                      abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterExponent(gamma_dWaterExponent,psf_dWaterExponent,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs);
                   }
                   else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineShiftSelf) {
                     if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
@@ -2296,7 +2296,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                   }
                   else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineShiftWater) {
                     if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
-                      abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterPsf(psf_dWater,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs,verbosity);
+                      abs_lines[ii].PressureBroadening().GetPressureBroadeningParams_dWaterPsf(psf_dWater,abs_lines[ii].Ti0()/t,p,this_species,h2o_index,vmrs);
                   }
                   else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingDF0 or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingG0 or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingY0) {
                     if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
@@ -2530,12 +2530,11 @@ void xsec_species2(MatrixView xsec,
         Numeric G0, G2, e, L0, L2, FVC;
         line.PressureBroadening().GetPressureBroadeningParams(
           G0, G2, e, L0, L2, FVC, line.Ti0()/temperature, pressure, partial_pressure, 
-          this_species, h2o_index, broad_spec_locations, all_vmrs(joker, ip), verbosity);
+          this_species, h2o_index, broad_spec_locations, all_vmrs(joker, ip));
         
         // set binary levels
         const ArrayOfArrayOfIndex binary_bounds = Linefunctions::binary_boundaries(line.F(), f_grid, G0, dc, line.SpeedUpCoeff(), binary_speedup, line.SpeedUpIndex());
         
-//         Index c=0;
         for(Index i=0; i<binary_bounds.nelem(); i++) {
           const Range rl = Linefunctions::binary_level_range(binary_bounds, nf, i, true);
           if(rl.get_extent())
@@ -2554,10 +2553,10 @@ void xsec_species2(MatrixView xsec,
                                                             isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
                                                             H_magntitude_Zeeman, ddc_dT, lm_p_lim, qt, dqt_dT, qt0,
                                                             broad_spec_locations, this_species, h2o_index, verbosity);
-//           c+=ru.get_extent()+rl.get_extent();
         }
-//         std::cout<<c<<" real computations\n";
+        
         Linefunctions::binary_interpolation(F, binary_bounds);
+        
         for(Index j=0; j<nj; j++)
           Linefunctions::binary_interpolation(dF(j, joker), binary_bounds);
         if(do_nonlte) {

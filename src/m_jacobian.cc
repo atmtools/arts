@@ -3670,8 +3670,7 @@ void jacobianAddNLTE(
     RetrievalQuantity rq;
     
     // Set the mode
-    if(mode == "Tv") rq.PropType(JacPropMatType::VibrationalTemperature);
-    else if(mode == "R") rq.PropType(JacPropMatType::PopulationRatio);
+    if(mode == "Tv" or mode == "R") rq.PropType(JacPropMatType::NLTE);
     else throw std::runtime_error("Mode must be either \"Tv\" or \"R\".  See function description");
     
     rq.MainTag( NLTE_MAINTAG );

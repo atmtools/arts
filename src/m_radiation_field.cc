@@ -63,8 +63,7 @@ void total_line_source_and_transmission(Vector& J,
                                         const ConstVectorView za,
                                         const ConstVectorView aa,
                                         const Numeric pressure, 
-                                        const Numeric temperature, 
-                                        const Verbosity& verbosity)
+                                        const Numeric temperature)
 {
   extern const Numeric SPEED_OF_LIGHT;
   
@@ -81,7 +80,7 @@ void total_line_source_and_transmission(Vector& J,
     const ConstVectorView f = frequency[Range(range_frequency[il][0], range_frequency[il][1])];
     const Index nf = f.nelem();
     ComplexVector F(nf);
-    Linefunctions::set_lineshape(F, lines[il][0], f, vmrs, temperature, pressure, 0.0, 0.0, 0.0, bsl, il, -1, verbosity);
+    Linefunctions::set_lineshape(F, lines[il][0], f, vmrs, temperature, pressure, 0.0, 0.0, 0.0, bsl, il, -1);
     Vector X = F.real();
     
     Numeric integral_of_X = 0;
@@ -250,11 +249,11 @@ void radiation_fieldCalcFromiyCalc(Workspace&              ws,
       Vector ppvar_t, ppvar_p;
       Matrix ppvar_nlte, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f;
       Tensor3 ppvar_iy;
-      Tensor4 ppvar_trans_cumulat;
+      Tensor4 ppvar_trans_cumulat, dummy;
       
       iyEmissionStandard(ws, iy, iy_aux, diy_dx, ppvar_p, ppvar_t,
                          ppvar_nlte, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f,
-                         ppvar_iy, ppvar_trans_cumulat,  
+                         ppvar_iy, ppvar_trans_cumulat,  dummy,
                          0, stokes_dim, f_grid, atmosphere_dim, p_grid,
                          z_field, t_field, nlte_field, vmr_field, abs_species,
                          wind_u_field, wind_v_field, wind_w_field, mag_u_field, mag_v_field, mag_w_field,
@@ -358,7 +357,7 @@ void radiation_fieldCalcForSingleSpeciesNonOverlappingLines(Workspace&          
       ComplexVector F(nf);
       Linefunctions::set_lineshape(F, abs_lines_per_species[0][il], f_grid, 
                                    Vector(1, vmr_field(0, ip, 0, 0)),  t_field(ip, 0, 0), p_grid[ip], 0.0, 0.0, 0.0,
-                                   bsl, 0, 0, verbosity);
+                                   bsl, 0, 0);
       Numeric sx = 0;
       for(Index iv=0; iv<nf-1; iv++) {
         const Numeric intF = (F[iv].real() + F[iv+1].real()) * (f_grid[iv+1] - f_grid[iv]);
@@ -368,19 +367,24 @@ void radiation_fieldCalcForSingleSpeciesNonOverlappingLines(Workspace&          
           iy(il, ip) += (doit_i_field(iv,   ip, 0, 0, iz,   0, 0) + 
                          doit_i_field(iv,   ip, 0, 0, iz+1, 0, 0) +
                          doit_i_field(iv+1, ip, 0, 0, iz,   0, 0) + 
-                         doit_i_field(iv+1, ip, 0, 0, iz+1, 0, 0)) * x;
-          iy_transmission(0, il, ip) += (trans_field(iv,   ip, iz  ) + 
-                                         trans_field(iv,   ip, iz+1) +
-                                         trans_field(iv+1, ip, iz  ) + 
-                                         trans_field(iv+1, ip, iz+1)) * x;
+                         doit_i_field(iv+1, ip, 0, 0, iz+1, 0, 0)) * 0.25 * x;
+                         
+          const Numeric exp_mtau = 0.25 * (trans_field(iv,   ip, iz  ) + 
+                                           trans_field(iv,   ip, iz+1) + 
+                                           trans_field(iv+1, ip, iz  ) + 
+                                           trans_field(iv+1, ip, iz+1));
+          if(abs(1-exp_mtau) < 1e-6)
+          { /* do nothing */ }
+          else 
+            iy_transmission(0, il, ip) += (1 + (1 - exp_mtau)/log(exp_mtau)) * x;
         }
       }
       
       if(abs(sx-1) > 1e-3) {
         ostringstream os;
-        os << "Integrated iy normalizes to " << sx << " instead of 1.0\n";
+        os << "Integrated iy normalizes to " << sx << " instead of 1\n";
         os << "This means your frequency grid spanning " << f_grid[0] << " to " << f_grid[nf-1] << " is not good enough\n";
-        if(sx < 1.0)
+        if(sx < 1)
           os << "Please consider increasing df by about the inverse of the missing normalizations (a factor about " << 1/sx<<" is approximately enough)\n";
         else
           os << "Please consider increasing nf so that the frequency grid better represents the lineshape\n";
@@ -488,7 +492,7 @@ void doit_i_fieldClearskyPlaneParallel(
           Vector         ppvar_p, ppvar_t;
           Matrix         iy, ppvar_nlte, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f;
           Tensor3        ppvar_iy;
-          Tensor4        ppvar_trans_cumulat;
+          Tensor4        ppvar_trans_cumulat, ppvar_trans_partial;
           ArrayOfMatrix  iy_aux;
           ArrayOfTensor3 diy_dx;
 
@@ -502,7 +506,7 @@ void doit_i_fieldClearskyPlaneParallel(
 
           iyEmissionStandard( l_ws, iy, iy_aux, diy_dx, ppvar_p, ppvar_t,ppvar_nlte,
                               ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f, ppvar_iy,
-                              ppvar_trans_cumulat,iy_id, stokes_dim, f_grid,
+                              ppvar_trans_cumulat,ppvar_trans_partial,iy_id, stokes_dim, f_grid,
                               atmosphere_dim,p_grid, z_field, t_field, nlte_field,
                               vmr_field, abs_species,wind_u_field, wind_v_field,
                               wind_w_field, mag_u_field, mag_v_field, mag_w_field,
@@ -521,15 +525,15 @@ void doit_i_fieldClearskyPlaneParallel(
             {
               doit_i_field(joker,0,0,0,i,0,joker)    = ppvar_iy(joker,joker,0);
               doit_i_field(joker,nl-1,0,0,i,0,joker) = ppvar_iy(joker,joker,ppath.np-1);
-              trans_field(joker,0,i)    = ppvar_trans_cumulat(0,joker,0,0);
-              trans_field(joker,nl-1,i) = ppvar_trans_cumulat(ppath.np-1,joker,0,0);
+              trans_field(joker,0,i)    = ppvar_trans_partial(0,joker,0,0);
+              trans_field(joker,nl-1,i) = ppvar_trans_partial(ppath.np-1,joker,0,0);
             }
           else
             {
               doit_i_field(joker,nl-1,0,0,i,0,joker) = ppvar_iy(joker,joker,0);
               doit_i_field(joker,0,0,0,i,0,joker)    = ppvar_iy(joker,joker,ppath.np-1);
-              trans_field(joker,nl-1,i) = ppvar_trans_cumulat(0,joker,0,0);
-              trans_field(joker,0,i)    = ppvar_trans_cumulat(ppath.np-1,joker,0,0);
+              trans_field(joker,nl-1,i) = ppvar_trans_partial(0,joker,0,0);
+              trans_field(joker,0,i)    = ppvar_trans_partial(ppath.np-1,joker,0,0);
             }
 
           // Remaining points
@@ -540,7 +544,7 @@ void doit_i_fieldClearskyPlaneParallel(
                 {
                   doit_i_field(joker,ppath.gp_p[p].idx,0,0,i,0,joker) =
                     ppvar_iy(joker,joker,p);
-                  trans_field(joker,ppath.gp_p[p].idx,i) = ppvar_trans_cumulat(p,joker,0,0);
+                  trans_field(joker,ppath.gp_p[p].idx,i) = ppvar_trans_partial(p,joker,0,0);
                 }
             }
         }

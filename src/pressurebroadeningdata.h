@@ -204,8 +204,7 @@ public:
                                 const Numeric& self_pressure,
                                 const Index    this_species,
                                 const Index    h2o_species,
-                                ConstVectorView vmrs,
-                                const Verbosity& verbosity) const;
+                                ConstVectorView vmrs) const;
     
     // Get the Planetary foreign broadening data vector
     ConstVectorView PlanetaryGammaForeign() const { assert(mtype == PB_PLANETARY_BROADENING); return mdata[2]; }
@@ -472,8 +471,7 @@ public:
                                   const Numeric& self_pressure,
                                   const Index    this_species,
                                   const Index    h2o_species,
-                                  ConstVectorView vmrs,
-                                  const Verbosity& verbosity) const;
+                                  ConstVectorView vmrs) const;
     void GetAirAndWaterBroadening_dT(Numeric& dgamma_dT,
                                      Numeric& ddeltaf_dT,
                                      const Numeric& T,
@@ -482,8 +480,7 @@ public:
                                      const Numeric& self_pressure,
                                      const Index    this_species,
                                      const Index    h2o_species,
-                                     ConstVectorView vmrs,
-                                     const Verbosity& verbosity) const;
+                                     ConstVectorView vmrs) const;
     void GetAirAndWaterBroadening_dSelfGamma(Numeric& dgamma_dSelf,
                                              const Numeric& theta,
                                              const Numeric& self_pressure) const;
@@ -499,8 +496,7 @@ public:
                                               const Numeric& pressure,
                                               const Index    this_species,
                                               const Index    h2o_species,
-                                              ConstVectorView vmrs,
-                                              const Verbosity& verbosity) const;
+                                              ConstVectorView vmrs) const;
     void GetAirAndWaterBroadening_dSelfPsf(Numeric& dpsf_dSelf,
                                            const Numeric& theta,
                                            const Numeric& self_pressure) const;
@@ -516,8 +512,7 @@ public:
                                             const Numeric& pressure,
                                             const Index    this_species,
                                             const Index    h2o_species,
-                                            ConstVectorView vmrs,
-                                            const Verbosity& verbosity) const;
+                                            ConstVectorView vmrs) const;
     void GetAirAndWaterBroadening_dSelfExponent(Numeric& dgamma_dSelfExponent,
                                                 Numeric& dpsf_dSelfExponent,
                                                 const Numeric& theta,
@@ -536,8 +531,7 @@ public:
                                                  const Numeric& pressure,
                                                  const Index    this_species,
                                                  const Index    h2o_species,
-                                                 ConstVectorView vmrs,
-                                                 const Verbosity& verbosity) const;
+                                                 ConstVectorView vmrs) const;
     
     /**
      Planetary broadening calculations
@@ -558,20 +552,16 @@ public:
                              const Numeric& theta,
                              const Numeric& pressure,
                              const Numeric& self_pressure,
-                             const Index    this_species,
                              const ArrayOfIndex& broad_spec_locations,
-                             ConstVectorView vmrs,
-                             const Verbosity& verbosity) const;
+                             ConstVectorView vmrs) const;
     void GetPlanetaryBroadening_dT(Numeric& dgamma_dT,
                                 Numeric& ddeltaf_dT,
                                 const Numeric& T,
                                 const Numeric& T0,
                                 const Numeric& pressure,
                                 const Numeric& self_pressure,
-                                const Index    this_species,
                                 const ArrayOfIndex& broad_spec_locations,
-                                ConstVectorView vmrs,
-                                const Verbosity& verbosity) const;
+                                ConstVectorView vmrs) const;
     
      /**
        All broadening calculations are easiset to perform via these calls.
@@ -600,8 +590,7 @@ public:
                                       const Index    this_species,
                                       const Index    h2o_species,
                                       const ArrayOfIndex& broad_spec_locations,
-                                      ConstVectorView vmrs,
-                                      const Verbosity& verbosity) const;
+                                      ConstVectorView vmrs) const;
     void GetPressureBroadeningParams_dT(Numeric& dgamma_0_dT,
                                         Numeric& dgamma_2_dT,
                                         Numeric& deta_dT,
@@ -615,8 +604,7 @@ public:
                                         const Index    this_species,
                                         const Index    h2o_species,
                                         const ArrayOfIndex& broad_spec_locations,
-                                        ConstVectorView vmrs,
-                                        const Verbosity& verbosity) const;
+                                        ConstVectorView vmrs) const;
     void GetPressureBroadeningParams_dSelfGamma(Numeric& gamma_dSelf,
                                                 const Numeric& theta,
                                                 const Numeric& self_pressure) const;
@@ -632,8 +620,7 @@ public:
                                                  const Numeric& pressure,
                                                  const Index    this_species,
                                                  const Index    h2o_species,
-                                                 ConstVectorView vmrs,
-                                                 const Verbosity& verbosity) const;
+                                                 ConstVectorView vmrs) const;
     void GetPressureBroadeningParams_dSelfPsf(Numeric& psf_dSelf,
                                               const Numeric& theta,
                                               const Numeric& self_pressure) const;
@@ -649,8 +636,7 @@ public:
                                                const Numeric& pressure,
                                                const Index    this_species,
                                                const Index    h2o_species,
-                                               ConstVectorView vmrs,
-                                               const Verbosity& verbosity) const;
+                                               ConstVectorView vmrs) const;
     void GetPressureBroadeningParams_dSelfExponent(Numeric& gamma_dSelfExponent,
                                                    Numeric& psf_dSelfExponent,
                                                    const Numeric& theta,
@@ -669,8 +655,7 @@ public:
                                                     const Numeric& pressure,
                                                     const Index    this_species,
                                                     const Index    h2o_species,
-                                                    ConstVectorView vmrs,
-                                                    const Verbosity& verbosity) const;
+                                                    ConstVectorView vmrs) const;
 
     /**
      Speed-dependent broadening calculations

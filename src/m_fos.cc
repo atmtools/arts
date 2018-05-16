@@ -927,9 +927,10 @@ void iyHybrid(
   // If cloudbox off, switch to use clearsky method
   if( !cloudbox_on )
     {
+      Tensor4 dummy;
       iyEmissionStandard( ws, iy, iy_aux, diy_dx, ppvar_p, ppvar_t, ppvar_t_nlte,
                           ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f, ppvar_iy,
-                          ppvar_trans_cumulat,
+                          ppvar_trans_cumulat, dummy,
                           iy_id, stokes_dim, f_grid, atmosphere_dim, p_grid,
                           z_field, t_field, t_nlte_field, vmr_field, abs_species,
                           wind_u_field, wind_v_field, wind_w_field,

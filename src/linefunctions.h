@@ -50,6 +50,222 @@
 
 namespace Linefunctions
 {
+  class SingleLevelLineData {
+  public:
+    SingleLevelLineData(const LineRecord& line,
+                        const ConstVectorView vmrs,
+                        const ConstVectorView nlte_distribution,
+                        const Numeric& T,
+                        const Numeric& P,
+                        const Numeric& H,
+                        const Numeric& lm_p_lim,
+                        const Numeric& QT,
+                        const Numeric& dQTdT,
+                        const Numeric& QT0,
+                        const Numeric& isotopic_ratio,
+                        const ArrayOfIndex& broadening_species,
+                        const Index this_species,
+                        const Index water_species,
+                        const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                        const ArrayOfIndex& derivatives_data_position=ArrayOfIndex());
+    
+    enum class SpectroscopyDerivivatives : Index {Upper, Lower, Both, FullTransition, None};
+    
+    inline Complex doppler_z(const Numeric& f0, const Numeric& f) const noexcept {return Complex(minvGD * (f - f0 - mZ), 0.0);}
+    
+    inline Complex lorentz_z(const Numeric& f0, const Numeric& f) const noexcept {return Complex(f - f0 - mC0.imag() - mZ - mDV, -mC0.real());}
+    inline Complex lorentz_dT() const noexcept {return Complex(mdC0dT.imag() + mdDVdT, -mdC0dT.imag());;}
+    
+    inline Complex voigt_z(const Numeric& f0, const Numeric& f) const noexcept {return Complex(f - f0 - mC0.imag() - mZ - mDV, mC0.real()) * minvGD;}
+    inline Complex voigt_dT(const Complex& z) const noexcept {return (Complex(-mdC0dT.imag() - mdDVdT, mdC0dT.real()) - z*mdGDdT) * minvGD;}
+    inline Complex voigt_dF0(const Complex& z) const noexcept {return -z * mGD_div_F0 - 1.0;}
+    
+    inline Complex htp_x(const Numeric& f0, const Numeric& f) const noexcept;
+    inline Complex htp_dxdT(const Complex& x) const noexcept;
+    inline Complex htp_dxdf() const noexcept;
+    inline Complex htp_dxdf0() const noexcept;
+    inline Complex htp_dxdmag(const Numeric& zeeman_df) const noexcept;
+    inline Complex htp_dxdC0() const noexcept;
+    inline Complex htp_dxdC2(const Complex& x) const noexcept;
+    inline Complex htp_dxdFVC() const noexcept;
+    inline Complex htp_dxdeta(const Complex& x) const noexcept;
+    
+    inline Numeric xy_ratio(const Complex& x) const noexcept {return abs(x) / abs(my);}
+    inline Complex htp_z1(const Complex& x, const Numeric& ratio_xy) const noexcept;
+    inline Complex htp_dz1dt(const Complex& z1, const Complex& dx, const Numeric& ratio_xy, const bool for_temperature=false) const noexcept;
+    inline Complex htp_z2(const Complex& x, const Complex& z1, const Numeric& ratio_xy) const noexcept;
+    inline Complex htp_dz2dt(const Complex& z2, const Complex& dz1, const Complex& dx, const Numeric& ratio_xy, const bool for_temperature=false) const noexcept;
+    
+    inline Complex htp_w1(const Complex& z1) const noexcept;
+    inline Complex htp_dw1_over_dz1(const Complex& z1, const Complex& w1) const noexcept;
+    inline Complex htp_w2(const Complex& z2) const noexcept;
+    inline Complex htp_dw2_over_dz2(const Complex& z2, const Complex& w2) const noexcept;
+    
+    inline Complex htp_A(const Complex& w1, const Complex& w2, const Complex& z1, const Numeric& ratio_xy) const noexcept;
+    inline Complex htp_dAdt(const Complex& A,  const Complex& w1, const Complex& dw1, const Complex& dw2, const Complex& z1, const Complex& dz1, const Numeric& ratio_xy, const bool for_temperature=false) const noexcept;
+    inline Complex htp_B(const Complex& w1, const Complex& w2, const Complex& z1, const Complex& z2, const Numeric& ratio_xy) const noexcept;
+    inline Complex htp_dBdt(const Complex& w1, const Complex& dw1, const Complex& w2, const Complex& dw2, const Complex& z1, const Complex& dz1, const Complex& z2, const Complex& dz2, const Numeric& ratio_xy, const bool for_temperature=false) const noexcept;
+    inline Complex htp_G(const Complex& A, const Complex& B) const noexcept;
+    inline Complex htp_dGdt(const Complex& A, const Complex& dA, const Complex& dB, const bool for_temperature=false) const noexcept;
+    
+    inline Complex dw_over_dz(const Complex& z, const Complex& w) const noexcept;
+    inline Complex scale_w(const Complex& w) const noexcept;
+    
+    inline bool no_more_pressure_jacs(const Index i) const noexcept {return i >= mpressure_derivatives.nelem();}
+    inline Complex dgamma(const Index i) const noexcept {return mpressure_derivatives[i];}
+    
+    inline bool no_more_linemixing_jacs(const Index i) const noexcept {return i >= mlinemixing_derivatives.nelem();}
+    inline Complex dlm(const Index i) const noexcept {return mlinemixing_derivatives[i];}
+    
+    const Numeric& invGD() const {return minvGD;}
+    const Numeric& dGDdT() const {return mdGDdT;}
+    const Numeric& GD_div_F0() const {return mGD_div_F0;}
+    const Numeric& norm() const {return mnorm;}
+    const Numeric& dnormdT() const {return mdnormdT;}
+    const Numeric& dnormdf0() const {return mdnormdf0;}
+    const Complex& LM() const {return mLM;}
+    const Complex& dLMdT() const {return mdLMdT;}
+    const Numeric& S() const {return mS;}
+    const Numeric& dSdT() const {return mdSdT;}
+    const Numeric& dSdf0() const {return mdSdf0;}
+    const Numeric& nlte_source_factor() const {return mnlte_src;}
+    const Numeric& dnlte_source_factordT() const {return mdnlte_srcdT;}
+    const Numeric& dnlte_source_factordf0() const {return mdnlte_srcdf0;}
+    const Numeric& dnlte_source_factordlow() const {return mdnlte_srcdlow;}
+    const Numeric& dnlte_source_factordupp() const {return mdnlte_srcdupp;}
+    const Numeric& nlte_absorption_factor() const {return mnlte_abs;}
+    const Numeric& dnlte_absorption_factordT() const {return mdnlte_absdT;}
+    const Numeric& dnlte_absorption_factordf0() const {return mdnlte_absdf0;}
+    const Numeric& dnlte_absorption_factordupp() const {return mdnlte_absdupp;}
+    const Numeric& dnlte_absorption_factordlow() const {return mdnlte_absdlow;}
+    const SpectroscopyDerivivatives& operator()(const Index& id) const {return mspectroscopy_derivatives[id];}
+  private:
+    Complex mC0, mdC0dT, mC2, mdC2dT, mLM, mdLMdT;  // Pressure broadening and line mixing in complex terms
+    Numeric mFVC, mdFVCdT, meta;  // Pressure broadening terms for HTP
+    Numeric mDV, mdDVdT;  // Line mixing shifts
+    ComplexVector mpressure_derivatives, mlinemixing_derivatives;  // values for the pressure derivatives
+    Array<SpectroscopyDerivivatives> mspectroscopy_derivatives;  // flag for spectroscopic parameters of given line
+    Numeric mGD_div_F0, minvGD, mdGDdT;  // Doppler factors (used a lot for scaling)
+    Numeric mZ;  // Zeeman shift
+    Complex mC0t, mdC0tdT, mC2t, mdC2tdT, my, msqrty, mdydT;
+    bool mC2t_is_zero;  // HTP test
+    Numeric mnorm, mdnormdT, mdnormdf0; // Normalization factors
+    Numeric mS, mdSdT, mdSdf0;
+    Numeric mnlte_abs, mdnlte_absdT, mdnlte_absdf0, mdnlte_absdlow, mdnlte_absdupp;
+    Numeric mnlte_src, mdnlte_srcdT, mdnlte_srcdf0, mdnlte_srcdlow, mdnlte_srcdupp;
+  };
+  
+  void set_lineshape_from_level_line_data(Complex& F,
+                                          Complex& N,
+                                          ComplexVectorView dF,
+                                          ComplexVectorView dN,
+                                          const Numeric& f,
+                                          const Numeric& T,
+                                          const SingleLevelLineData& level_line_data,
+                                          const LineRecord& line,
+                                          const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                          const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
+  
+  inline
+  void set_doppler_from_level_line_data(Complex& F,
+                                        ComplexVectorView dF,
+                                        const Numeric& f,
+                                        const Numeric& f0,
+                                        const Numeric& dZdH,
+                                        const SingleLevelLineData& level_line_data,
+                                        const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                        const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
+  
+  inline
+  void set_lorentz_from_level_line_data(Complex& F,
+                                        ComplexVectorView dF,
+                                        const Numeric& f,
+                                        const Numeric& f0,
+                                        const Numeric& dZdH,
+                                        const SingleLevelLineData& level_line_data,
+                                        const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                        const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
+  
+  inline
+  void set_voigt_from_level_line_data(Complex& F,
+                                      ComplexVectorView dF,
+                                      const Numeric& f,
+                                      const Numeric& f0,
+                                      const Numeric& dZdH,
+                                      const SingleLevelLineData& level_line_data,
+                                      const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                      const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
+  
+  inline
+  void set_htp_from_level_line_data(Complex& F,
+                                    ComplexVectorView dF,
+                                    const Numeric& f,
+                                    const Numeric& f0,
+                                    const Numeric& dZdH,
+                                    const SingleLevelLineData& level_line_data,
+                                    const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                    const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
+  
+  inline
+  void apply_rosenkranz_quadratic_scaling_from_level_data(Complex& F,
+                                                          ComplexVectorView dF,
+                                                          const Numeric& f,
+                                                          const SingleLevelLineData& level_line_data,
+                                                          const ArrayOfRetrievalQuantity& derivatives_data,
+                                                          const ArrayOfIndex& derivatives_data_position) noexcept;
+  
+  inline
+  void apply_VVH_scaling_from_level_data(Complex& F, ComplexVectorView dF,
+                                         const Numeric& f, const Numeric& T, const SingleLevelLineData& level_line_data,
+                                         const ArrayOfRetrievalQuantity& derivatives_data,
+                                         const ArrayOfIndex& derivatives_data_position) noexcept;
+  
+  inline
+  void apply_VVW_scaling_from_level_data(Complex& F, ComplexVectorView dF,
+                                         const Numeric& f, const SingleLevelLineData& level_line_data,
+                                         const ArrayOfRetrievalQuantity& derivatives_data,
+                                         const ArrayOfIndex& derivatives_data_position) noexcept;
+  
+  inline
+  void apply_linemixing_from_level_data(Complex& F, ComplexVectorView dF,
+                                        const SingleLevelLineData& level_line_data,
+                                        const ArrayOfRetrievalQuantity& derivatives_data,
+                                        const ArrayOfIndex& derivatives_data_position) noexcept;
+
+  inline
+  void apply_pressurebroadening_jacobian_scaling_from_level_data(ComplexVectorView dF,
+                                                                 const SingleLevelLineData& level_line_data,
+                                                                 const ArrayOfRetrievalQuantity& derivatives_data,
+                                                                 const ArrayOfIndex& derivatives_data_position) noexcept;
+
+  inline
+  void apply_linemixing_jacobian_scaling_from_level_data(ComplexVectorView dF,
+                                                         const SingleLevelLineData& level_line_data,
+                                                         const ArrayOfRetrievalQuantity& derivatives_data,
+                                                         const ArrayOfIndex& derivatives_data_position) noexcept;
+  
+  inline
+  void apply_LTE_linestrength_from_level_data(Complex& F, ComplexVectorView dF,
+                                              const SingleLevelLineData& level_line_data,
+                                              const LineRecord& line,
+                                              const ArrayOfRetrievalQuantity& derivatives_data,
+                                              const ArrayOfIndex& derivatives_data_position) noexcept;
+  
+  inline
+  void apply_NLTE_vibrational_temperature_linestrength_from_level_data(Complex& F, Complex& N,
+                                                                       ComplexVectorView dF, ComplexVectorView dN,
+                                                                       const SingleLevelLineData& level_line_data,
+                                                                       const LineRecord& line,
+                                                                       const ArrayOfRetrievalQuantity& derivatives_data,
+                                                                       const ArrayOfIndex& derivatives_data_position) noexcept;
+  
+  inline
+  void apply_NLTE_population_distribution_linestrength_from_level_data(Complex& F, Complex& N,
+                                                                       ComplexVectorView dF, ComplexVectorView dN,
+                                                                       const SingleLevelLineData& level_line_data,
+                                                                       const ArrayOfRetrievalQuantity& derivatives_data,
+                                                                       const ArrayOfIndex& derivatives_data_position) noexcept;
+  
   void set_lineshape(ComplexVectorView F, 
                      const LineRecord& line, 
                      ConstVectorView f_grid, 
@@ -61,8 +277,7 @@ namespace Linefunctions
                      const Numeric& magnetic_magnitude,
                      const ArrayOfIndex& broad_spec_locations,
                      const Index& this_species,
-                     const Index& water_species,
-                     const Verbosity& verbosity);
+                     const Index& water_species);
   
   void set_lorentz(ComplexVectorView F, 
                    ComplexMatrixView dF, 

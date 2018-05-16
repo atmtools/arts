@@ -1,3 +1,81 @@
+2018-05-16  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-1049
+	
+	With this commit we can compute proper nlte_field inside ARTS
+	with both LI and MALI methods.  This is thanks to Takayoshi
+	Yamada's contributions!  (We hope to have a paper out soonish
+	which will contain a full description of the implemented theory)
+	
+	* controlfiles/*:  Added test for NLTE-field computations.
+	Notice the old NLTE test fails so I will spend some time later
+	debugging (this failure is also there with the version before this).
+	Also added ppvar_trans_partial to hold trans_partial for output
+	
+	* src/workspace.cc:  Added nlte_collision_identifiers as
+	ArrayOfQuantumIdentity for finding which line is which
+	in nlte_collision_coefficients, which is also added to
+	contain temperature coefficients for collisional effects
+	such that the statistical equilibrium matrix can be computed.
+	
+	* src/absorption.cc:  Removed verbosity input to pressure 
+	broadening. This was way to verbose such that no information 
+	could be gained from screen output.  I believe the verbosity
+	levels need a proper review to remove or change new behavior
+	(e.g., the fact that Agenda-calls are so common at lower levels
+	now that them printing to out2 hides all important information)
+	
+	* src/jacobian.cc,h:  Consolidated NLTE jacobian types in name
+	
+	* src/linefunctions.cc,h:  See the two above.  Also added some 
+	copy-paste code for a class that should compute all line parameters
+	beforehand.  I think this way will allow proper parallelization
+	of line xsec code, but this might be at the cost of memory.
+	If used for single line at a time it is still fine, and then
+	the code will make the line functions clearer because, e.g., HTP
+	code has a lot of pathing for frequency parameters, making it 
+	a bit complicated in normal use
+	
+	* src/linerecord.h:  Added helper call to get the effective 
+	g-factor for Zeeman
+	
+	* src/m_basic_types.cc:  Added CompareRelative for Tensor4
+	
+	* src/m_fos.cc:  Added dummy variable to call to 
+	iyEmissionStandard
+	
+	* src/m_jacobian.cc:  See "src/jacobian.cc,h" above.
+	
+	* src/m_nlte.cc:  Added nlte_collision_factorsCalcFromCoeffs,
+	which should be a proper method in the future when an nlte
+	agenda has been defined.  Also use this in 
+	nlte_fieldForSingleSpeciesNonOverlappingLines instead of
+	older code because its units were way off.  Also set iteration
+	limits to tell the code to either stop or be happy it reached
+	sufficient convergence
+	
+	* src/m_radiation_field.cc:  non-LTE requires local transmission
+	ratios and not global once, which were implemented after previous
+	mistaken attempts/communication by myself.  This is required by 
+	multilevel approximations of lambda iteration method.
+	
+	* src/m_rte.cc:  Added ppvar_trans_partial as output to 
+	iyEmissionStandard
+	
+	* src/methods.cc:  Changed defaults and inputs to a few functions
+	
+	* src/nlte.cc,h:  Fix of the SEE matrix solvers.  Now LI and
+	MALI both works in ARTS (solong as collisional coefficients
+	are provided.  Future updates to make this more advanced will
+	have to implement ways to get more date into these SEE matrices
+	as demand for more advanced computations are needed)
+	
+	* src/partial_dertivatives.cc:  See "src/jacobian.cc,h" above.
+	
+	* src/pressurebroadeningdata.cc,h:  See "src/absorption.cc" above.
+	
+	* src/test_propagationmatrix.cc:  See "src/absorption.cc" above.
+
 2018-05-15 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1048

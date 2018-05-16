@@ -606,7 +606,7 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
             // That's it!  Note that the output should be strongly correlated to Temperature and Pressure.
             // Also note that to do the fit for the catalog gamma is somewhat different than this
         }
-        else if(flag_partials[flag_partials_position[ii]] == JacPropMatType::VibrationalTemperature)
+        else if(flag_partials[flag_partials_position[ii]] == JacPropMatType::NLTE)
         {
             
             /* 

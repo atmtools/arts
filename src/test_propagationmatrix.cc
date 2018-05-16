@@ -54,16 +54,16 @@ void test_pressurebroadening()
         for(Numeric T = 150; T<350; T+=20)
         {
             line.PressureBroadening().GetPressureBroadeningParams(g_0,tmp1,tmp2,df_0,tmp3,tmp4,
-                                                                  line.Ti0()/T, P, vmr*P,0,-1,empty1,vmrs,none);
+                                                                  line.Ti0()/T, P, vmr*P,0,-1,empty1,vmrs);
             
             line.PressureBroadening().GetPressureBroadeningParams(g_1,tmp1,tmp2,df_1,tmp3,tmp4,
-                                                                  line.Ti0()/(T+dT), P, vmr*P,0,-1,empty1,vmrs,none);
+                                                                  line.Ti0()/(T+dT), P, vmr*P,0,-1,empty1,vmrs);
             
             line.PressureBroadening().GetPressureBroadeningParams_dT(dg, dg2, de, ddf, ddf2, dfvc, T, 
                                                                      line.Ti0(),P,
                                                                      vmr*P,0,-1,
                                                                      empty1,
-                                                                     vmrs,none);
+                                                                     vmrs);
             //std::cout<<((g_1-g_0)/dT-dg)/dg<< "\n";
             /* This gives relative errors of (minus) 0.001 at 150 K and 0.0001 at 300 K.  Constant with pressure. */
         }
@@ -194,16 +194,16 @@ void test_lineshape()
         for(Numeric T = 150; T<350; T+=20)
         {
             line.PressureBroadening().GetPressureBroadeningParams(g,tmp1,tmp2,df,tmp3,tmp4,
-                                                                  line.Ti0()/T, P, vmr*P,0,-1,empty1,vmrs,none);
+                                                                  line.Ti0()/T, P, vmr*P,0,-1,empty1,vmrs);
             
             line.PressureBroadening().GetPressureBroadeningParams(g_d,tmp1,tmp2,df_d,tmp3,tmp4,
-                                                                  line.Ti0()/(T+dT), P, vmr*P,0,-1,empty1,vmrs,none);
+                                                                  line.Ti0()/(T+dT), P, vmr*P,0,-1,empty1,vmrs);
             
             line.PressureBroadening().GetPressureBroadeningParams_dT(dg, dg2, de, ddf, ddf2, dfvc, T, 
                                                                      line.Ti0(),P,
                                                                      vmr*P,0,-1,
                                                                      empty1,
-                                                                     vmrs,none);
+                                                                     vmrs);
             
             const Numeric sigma = line.F() * doppler_const 
             *sqrt( T / 31.989830);//mass is O2-66

@@ -3189,6 +3189,25 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "ArrayOfQuantumIdentifier" )));
    
+   wsv_data.push_back
+   (WsvRecord
+   ( NAME( "nlte_collision_identifiers" ),
+     DESCRIPTION
+     (
+       "An array of quantum identifiers for finding collisional rates\n"
+       "in *nlte_collision_coefficients*\n"
+     ),
+     GROUP( "ArrayOfQuantumIdentifier" )));
+   
+   wsv_data.push_back
+   (WsvRecord
+   ( NAME( "nlte_collision_coefficients" ),
+     DESCRIPTION
+     (
+       "An array of coefficients for effective collisions\n"
+     ),
+     GROUP( "ArrayOfGriddedField1" )));
+   
  wsv_data.push_back
    (WsvRecord
     ( NAME( "nelem" ),
@@ -3954,6 +3973,21 @@ void Workspace::define_wsv_data()
        "Usage: Output of radiative transfer methods.\n"
        ),
       GROUP( "Tensor4" )));
+   
+   wsv_data.push_back
+   (WsvRecord
+   ( NAME( "ppvar_trans_partial" ),
+     DESCRIPTION
+     (
+       "The transmission between each point along the propagation path.\n"
+       "\n"
+       "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
+       "\n"
+       "Dimension: [ ppath.np, f_grid, stokes_dim, stokes_dim ]\n"
+       "\n"
+       "Usage: Output of radiative transfer methods.\n"
+     ),
+     GROUP( "Tensor4" )));
 
   wsv_data.push_back
    (WsvRecord
