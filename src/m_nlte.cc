@@ -72,7 +72,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
                                                    Tensor4&                        nlte_field,
                                                    const ArrayOfArrayOfSpeciesTag& abs_species,
                                                    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                                                   const ArrayOfQuantumIdentifier& nlte_levels,
+                                                   const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
                                                    const ArrayOfGriddedField1& nlte_collision_coefficients,
                                                    const ArrayOfQuantumIdentifier& nlte_collision_identifiers,
                                                    const Agenda&                   iy_space_agenda,
@@ -105,22 +105,23 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
   Matrix iy;
   Tensor3 iy_transmission;
   
-  const Index nlevels = nlte_levels.nelem(), np = p_grid.nelem();
+  const Index nlevels = nlte_quantum_identifiers.nelem(), np = p_grid.nelem();
   if(nlevels < 5)
     throw std::runtime_error("Must have more than a four levels");
   
   if(atmosphere_dim not_eq 1)
     throw std::runtime_error("Only for 1D atmosphere");
   
-  ArrayOfLineRecord lines; lines.reserve(nlevels * 2);
+  ArrayOfLineRecord lines;
+  lines.reserve(nlevels * 2);
   for(const auto& aolr : abs_lines_per_species)
     for(const auto& lr : aolr)
       if(lr.NLTELowerIndex() >= 0)
         lines.push_back(lr);
   
-  Index nlines = lines.nelem();
+  const Index nlines = lines.nelem();
   if(nlevels >= nlines)
-    throw std::runtime_error("Bad number of lines... overlapping lines in nlte_levels?");
+    throw std::runtime_error("Bad number of lines... overlapping lines in nlte_quantum_identifiers?");
   
   // Create basic compute vectors
   const Vector Aij = createAij(lines);
@@ -129,13 +130,13 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
   Vector Cij(nlines), Cji(nlines);
   
   ArrayOfIndex upper, lower;
-  nlte_positions_in_statistical_equilibrium_matrix(upper, lower, lines, nlte_levels);
+  nlte_positions_in_statistical_equilibrium_matrix(upper, lower, lines, nlte_quantum_identifiers);
   const Index unique = find_first_unique_in_lower(upper, lower);
   
   // Compute arrays
   Matrix SEE(nlevels, nlevels, 0.0);
   Vector r(nlevels, 0.0), x(nlevels, 0.0);
-  Numeric max_change=100;
+  Numeric max_change=convergence_limit + 1;
   
   Index i = 0;
   while(i < iteration_limit and max_change > convergence_limit) {
@@ -153,10 +154,10 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
       r = nlte_field(joker, ip, 0, 0);
       nlte_collision_factorsCalcFromCoeffs(Cij, Cji, lines, nlte_collision_coefficients, nlte_collision_identifiers, t_field(ip, 0, 0), p_grid[ip]);
       
-      if(dampened == 0)
-        statistical_equilibrium_equation(SEE, Aij, Bij, Bji, Cij, Cji, iy(joker, ip), upper, lower);
-      else
+      if(dampened)
         dampened_statistical_equilibrium_equation(SEE, r, Aij, Bij, Bji, Cij, Cji, iy(joker, ip), iy_transmission(0, joker, ip), upper, lower);
+      else
+        statistical_equilibrium_equation(SEE, Aij, Bij, Bji, Cij, Cji, iy(joker, ip), upper, lower);
       
       use_total_number_count_statistical_equilibrium_matrix(SEE, x, r, unique);
       solve(nlte_field(joker, ip, 0, 0), SEE, x);

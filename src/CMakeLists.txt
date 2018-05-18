@@ -500,7 +500,7 @@ target_link_libraries (test_cia ${ALL_ARTS_LIBRARIES})
 
 ########### next testcase ###############
 
-add_executable (test_propagationmatrix test_propagationmatrix.cc absorption.h jacobian.h linescaling.h propagationmatrix.h)
+add_executable (test_propagationmatrix test_propagationmatrix.cc absorption.h jacobian.h linescaling.h propagationmatrix.h global_data.h)
 target_link_libraries (test_propagationmatrix ${ALL_ARTS_LIBRARIES})
 
 ########### next testcase ###############

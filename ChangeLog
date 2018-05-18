@@ -1,3 +1,28 @@
+2018-05-18  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-1050
+	
+	* src/CMakeLists.txt:  Added way for test_propagationmatrix
+	to see global data.
+	
+	* src/linegunctions.{cc,h}:  Fixed bug with id<id. 
+	Work ongoing.
+	
+	* src/linemixingdata.cc:  Set zero output and only change
+	if there is line mixing
+	
+	* src/linerecord.cc:  Added simple way to set version to 5
+	so that couts work
+	
+	* src/linescaling.cc:  Added simple way to get partition
+	function derivative with regards to temperature
+	
+	* src/m_nlte.cc:  Fix some logical steps and made names
+	compatible with workspace.cc
+	
+	* src/test_propagationmatrix.cc:  Removed some not needed
+	tests and added a test for lineshapes.  Work ongoing.
+
 2018-05-16  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-1049

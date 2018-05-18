@@ -433,11 +433,21 @@ Numeric SingleCalculatePartitionFctFromCoeff(const Numeric& T, ConstVectorView q
   Numeric result = 0.;
   Numeric TN = 1;
   
-  Vector::const_iterator it;
+  for(Index i=0; i<q_grid.nelem(); i++) {
+    result += TN * q_grid[i];
+    TN *= T;
+  }
   
-  for (it=q_grid.begin(); it != q_grid.end(); ++it)
-  {
-    result += *it * TN;
+  return result;
+}
+
+Numeric SingleCalculatePartitionFctFromCoeff_dT(const Numeric& T, ConstVectorView q_grid)
+{
+  Numeric result = 0;
+  Numeric TN = 1;
+  
+  for(Index i=1; i<q_grid.nelem(); i++) {
+    result += Numeric(i) * TN * q_grid[i];
     TN *= T;
   }
   
@@ -453,6 +463,15 @@ Numeric SingleCalculatePartitionFctFromData(const Numeric& T, ConstVectorView t_
   return interp(itw, q_grid, gp);
 }
 
+Numeric SingleCalculatePartitionFctFromData_dT(const Numeric& QT, const Numeric& T, const Numeric& dT, ConstVectorView t_grid, ConstVectorView q_grid, const Index& interp_order)
+{
+  GridPosPoly gp;
+  gridpos_poly(gp, t_grid, T+dT, interp_order);
+  Vector itw(gp.idx.nelem());
+  interpweights(itw, gp);
+  return (interp(itw, q_grid, gp) - QT) / dT;
+}
+
 Numeric single_partition_function(const Numeric& T, const SpeciesAuxData::AuxType& partition_type, const ArrayOfGriddedField1& partition_data)
 {
   switch(partition_type)
@@ -461,6 +480,21 @@ Numeric single_partition_function(const Numeric& T, const SpeciesAuxData::AuxTyp
       return SingleCalculatePartitionFctFromCoeff(T, partition_data[0].data);
     case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
       return SingleCalculatePartitionFctFromData(T,  partition_data[0].get_numeric_grid(0), partition_data[0].data, 1);
+    default:
+      throw std::runtime_error("Unknown or deprecated partition type requested.\n");
+  }
+}
+
+Numeric dsingle_partition_function_dT(const Numeric& QT, const Numeric& T, const Numeric& dT,
+                                      const SpeciesAuxData::AuxType& partition_type,
+                                      const ArrayOfGriddedField1& partition_data)
+{
+  switch(partition_type)
+  {
+    case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
+      return SingleCalculatePartitionFctFromCoeff_dT(T, partition_data[0].data);
+    case SpeciesAuxData::AT_PARTITIONFUNCTION_TFIELD:
+      return SingleCalculatePartitionFctFromData_dT(QT, T, dT, partition_data[0].get_numeric_grid(0), partition_data[0].data, 1);
     default:
       throw std::runtime_error("Unknown or deprecated partition type requested.\n");
   }

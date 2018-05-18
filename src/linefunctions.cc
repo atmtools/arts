@@ -3368,7 +3368,6 @@ void Linefunctions::set_lineshape_from_level_line_data(Complex& F,
 }
 
 
-inline
 void Linefunctions::set_doppler_from_level_line_data(Complex& F,
                                                      ComplexVectorView dF,
                                                      const Numeric& f,
@@ -3403,7 +3402,6 @@ void Linefunctions::set_doppler_from_level_line_data(Complex& F,
 }
 
 
-inline
 void Linefunctions::set_lorentz_from_level_line_data(Complex& F,
                                                      ComplexVectorView dF,
                                                      const Numeric& f,
@@ -3425,7 +3423,7 @@ void Linefunctions::set_lorentz_from_level_line_data(Complex& F,
   
   if(nd) {
     const Complex dL2_over_dz = - L * L * PI;
-    for(Index id=0; id<id; id++) {
+    for(Index id=0; id<nd; id++) {
       if(is_frequency_parameter(derivatives_data[derivatives_data_position[id]])) {
         dF[id].real(dL2_over_dz.imag());
         dF[id].imag(dL2_over_dz.real());
@@ -3462,7 +3460,6 @@ void Linefunctions::set_lorentz_from_level_line_data(Complex& F,
 }
 
 
-inline
 void Linefunctions::set_voigt_from_level_line_data(Complex& F,
                                                    ComplexVectorView dF,
                                                    const Numeric& f,
@@ -3480,7 +3477,7 @@ void Linefunctions::set_voigt_from_level_line_data(Complex& F,
   
   if(nd) {
     const Complex dw_over_dz = level_line_data.dw_over_dz(z, w);
-    for(Index id=0; id<id; id++) {
+    for(Index id=0; id<nd; id++) {
       if(is_frequency_parameter(derivatives_data[derivatives_data_position[id]]))
         dF[id] = dw_over_dz * level_line_data.invGD();
       else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::Temperature)
@@ -3505,7 +3502,6 @@ void Linefunctions::set_voigt_from_level_line_data(Complex& F,
 }
 
 
-inline
 void Linefunctions::set_htp_from_level_line_data(Complex& F,
                                                  ComplexVectorView dF,
                                                  const Numeric& f,
@@ -3572,7 +3568,6 @@ void Linefunctions::set_htp_from_level_line_data(Complex& F,
 }
 
 
-inline
 void Linefunctions::apply_rosenkranz_quadratic_scaling_from_level_data(Complex& F,
                                                                        ComplexVectorView dF,
                                                                        const Numeric& f,
@@ -3602,7 +3597,6 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling_from_level_data(Complex& 
 }
 
 
-inline
 void Linefunctions::apply_VVH_scaling_from_level_data(Complex& F,
                                                       ComplexVectorView dF,
                                                       const Numeric& f,
@@ -3637,7 +3631,6 @@ void Linefunctions::apply_VVH_scaling_from_level_data(Complex& F,
 }
 
 
-inline
 void Linefunctions::apply_VVW_scaling_from_level_data(Complex& F,
                                                       ComplexVectorView dF,
                                                       const Numeric& f,
@@ -3650,7 +3643,6 @@ void Linefunctions::apply_VVW_scaling_from_level_data(Complex& F,
 }
 
 
-inline
 void Linefunctions::apply_linemixing_from_level_data(Complex& F,
                                                      ComplexVectorView dF,
                                                      const SingleLevelLineData& level_line_data,
@@ -3672,7 +3664,6 @@ void Linefunctions::apply_linemixing_from_level_data(Complex& F,
 }
 
 
-inline
 void Linefunctions::apply_pressurebroadening_jacobian_scaling_from_level_data(ComplexVectorView dF,
                                                                               const SingleLevelLineData& level_line_data,
                                                                               const ArrayOfRetrievalQuantity& derivatives_data,
@@ -3693,7 +3684,6 @@ void Linefunctions::apply_pressurebroadening_jacobian_scaling_from_level_data(Co
 }
 
 
-inline
 void Linefunctions::apply_linemixing_jacobian_scaling_from_level_data(ComplexVectorView dF,
                                                                       const SingleLevelLineData& level_line_data,
                                                                       const ArrayOfRetrievalQuantity& derivatives_data,
@@ -3714,7 +3704,6 @@ void Linefunctions::apply_linemixing_jacobian_scaling_from_level_data(ComplexVec
 }
 
 
-inline
 void Linefunctions::apply_LTE_linestrength_from_level_data(Complex& F, 
                                                            ComplexVectorView dF, 
                                                            const SingleLevelLineData& level_line_data, 
@@ -3743,7 +3732,6 @@ void Linefunctions::apply_LTE_linestrength_from_level_data(Complex& F,
 }
 
 
-inline
 void Linefunctions::apply_NLTE_vibrational_temperature_linestrength_from_level_data(Complex& F, 
                                                                                     Complex& N,
                                                                                     ComplexVectorView dF, 
@@ -3761,7 +3749,6 @@ void Linefunctions::apply_NLTE_vibrational_temperature_linestrength_from_level_d
 }
 
 
-inline
 void Linefunctions::apply_NLTE_population_distribution_linestrength_from_level_data(Complex& F,
                                                                                     Complex& N,
                                                                                     ComplexVectorView dF,
@@ -4099,7 +4086,6 @@ Linefunctions::SingleLevelLineData::SingleLevelLineData(const LineRecord& line,
   mLM = Complex(1.0 + B, A);
   
   if(do_temperature_jacobian(derivatives_data)) {
-    
     // Pressure broadening partial derivatives
     line.PressureBroadening().GetPressureBroadeningParams_dT(
       A, B, E, C, D, mdFVCdT, T, line.Ti0(), P, P*vmrs[this_species],
@@ -4107,7 +4093,7 @@ Linefunctions::SingleLevelLineData::SingleLevelLineData(const LineRecord& line,
     mdC0dT.imag(C); mdC0dT.real(A); mdC2dT.imag(D); mdC2dT.real(B);
     
     line.LineMixing().GetLineMixingParams_dT(A, B, mdDVdT, T, temperature_perturbation(derivatives_data), P, lm_p_lim);
-    mdLMdT = Complex(1.0 + B, A);
+    mdLMdT = Complex(B, A);
   }
   
   const Index nd = derivatives_data_position.nelem();
@@ -4240,4 +4226,91 @@ Linefunctions::SingleLevelLineData::SingleLevelLineData(const LineRecord& line,
     case LinePopulationType::End:
       throw std::runtime_error("Error in line populations");
   }
+  
+  mGD_div_F0 = DopplerConstant(T, line.IsotopologueData().Mass());
+  minvGD = 1 / (mGD_div_F0 * line.F());
+  mdGDdT = dDopplerConstant_dT(T, line.IsotopologueData().Mass()) * line.F();
+}
+
+
+ostream& Linefunctions::operator<<(ostream& os, const Linefunctions::SingleLevelLineData& slld)
+{
+  // For internal review of values only
+  
+  os << "Pressure Data:\n\t";
+  os << "C0: " << slld.mC0<<", ";
+  os << "C2: " << slld.mC2<<", ";
+  os << "FVC: " << slld.mFVC<<", ";
+  os << "eta: " << slld.meta<<", ";
+  os << "\n\t";
+  os << "dC0/dT: " << slld.mdC0dT<<", ";
+  os << "dC2/dT: " << slld.mdC2dT<<", ";
+  os << "dFVC/dT: " << slld.mdFVCdT<<", ";
+  os << "\n";
+  
+  os << "Pressure Data Spectroscopic Derivivatives:\n\t";
+  for(const auto& c : slld.mpressure_derivatives)
+    os << "Value: " << c << ", ";
+  os << "\n";
+  
+  os << "Line Mixing:\n\t";
+  os << "LM: " << slld.mLM<<", ";
+  os << "DV: " << slld.mDV<<", ";
+  os << "dLM/dT: " << slld.mdLMdT<<", ";
+  os << "dDV/dT: " << slld.mdDVdT<<", ";
+  os << "\n";
+  
+  os << "Line Mixing Spectroscopic Derivivatives:\n\t";
+  for(const auto& c : slld.mlinemixing_derivatives)
+    os << "Value: " << c << ", ";
+  os << "\n";
+  
+  os << "Doppler Effects:\n\t";
+  os << "GD/F0: " << slld.mGD_div_F0 << ", ";
+  os << "1/GD: " << slld.minvGD<< ", ";
+  os << "dGD/dT: " << slld.mdGDdT<< ", ";
+  os << "\n";
+  
+  os << "Zeeman shift:\n\t";
+  os << slld.mZ << ", ";
+  os << "\n";
+  
+  os << "HTP Derived Parameters:\n\t";
+  os << "C0-t: " << slld.mC0t << ", ";
+  os << "C2-t: " << slld.mC2t << ", ";
+  os << "Y: " << slld.my << ", ";
+  os << "sqrt(Y): " << slld.msqrty << ", ";
+  os << "\n\t";
+  os << "dC0-t/dT: " << slld.mdC0tdT << ", ";
+  os << "dC2-t/dT: " << slld.mdC2tdT << ", ";
+  os << "dY/dT: " << slld.mdydT << ", ";
+  os << "\n";
+  
+  os << "Line Shape Normalization Factors:\n\t";
+  os << "Norm: " << slld.mnorm << ", ";
+  os << "dNorm/dT: " << slld.mdnormdT << ", ";
+  os << "dNorm/df0: " << slld.mdnormdf0 << ", ";
+  os << "\n";
+  
+  os << "Line Strength  LTE Factors:\n\t";
+  os << "S: " << slld.mS << ", ";
+  os << "dS/dT: " << slld.mdSdT<< ", ";
+  os << "dS/df0: " << slld.mdSdf0 << ", ";
+  os << "\n";
+  
+  os << "Line Strength NLTE Factors:\n\t";
+  os << "a: " << slld.mnlte_abs << ", ";
+  os << "da/dT: " << slld.mdnlte_absdT << ", ";
+  os << "da/df0: " << slld.mdnlte_absdf0 << ", ";
+  os << "da/dn2: " << slld.mdnlte_absdupp << ", ";
+  os << "da/dn1: " << slld.mdnlte_absdlow << ", ";
+  os << "\n\t";
+  os << "s: " << slld.mnlte_src << ", ";
+  os << "ds/dT: " << slld.mdnlte_srcdT << ", ";
+  os << "ds/df0: " << slld.mdnlte_srcdf0 << ", ";
+  os << "ds/dn2: " << slld.mdnlte_srcdupp << ", ";
+  os << "ds/dn1: " << slld.mdnlte_srcdlow << ", ";
+  os << "\n";
+  
+  return os;
 }

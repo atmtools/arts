@@ -138,7 +138,12 @@ namespace Linefunctions
     const Numeric& dnlte_absorption_factordf0() const {return mdnlte_absdf0;}
     const Numeric& dnlte_absorption_factordupp() const {return mdnlte_absdupp;}
     const Numeric& dnlte_absorption_factordlow() const {return mdnlte_absdlow;}
+    Numeric G0() const {return mC0.real();}
+    Numeric L0() const {return mC0.imag();}
+    const Numeric& LM_DF() const {return mDV;}
     const SpectroscopyDerivivatives& operator()(const Index& id) const {return mspectroscopy_derivatives[id];}
+    
+    friend std::ostream& Linefunctions::operator<<(std::ostream& os, const SingleLevelLineData& slld);
   private:
     Complex mC0, mdC0dT, mC2, mdC2dT, mLM, mdLMdT;  // Pressure broadening and line mixing in complex terms
     Numeric mFVC, mdFVCdT, meta;  // Pressure broadening terms for HTP
@@ -155,6 +160,8 @@ namespace Linefunctions
     Numeric mnlte_src, mdnlte_srcdT, mdnlte_srcdf0, mdnlte_srcdlow, mdnlte_srcdupp;
   };
   
+  std::ostream& operator<<(std::ostream& os, const SingleLevelLineData& slld);
+  
   void set_lineshape_from_level_line_data(Complex& F,
                                           Complex& N,
                                           ComplexVectorView dF,
@@ -166,7 +173,6 @@ namespace Linefunctions
                                           const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                                           const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
   
-  inline
   void set_doppler_from_level_line_data(Complex& F,
                                         ComplexVectorView dF,
                                         const Numeric& f,
@@ -176,7 +182,6 @@ namespace Linefunctions
                                         const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                                         const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
   
-  inline
   void set_lorentz_from_level_line_data(Complex& F,
                                         ComplexVectorView dF,
                                         const Numeric& f,
@@ -186,7 +191,6 @@ namespace Linefunctions
                                         const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                                         const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
   
-  inline
   void set_voigt_from_level_line_data(Complex& F,
                                       ComplexVectorView dF,
                                       const Numeric& f,
@@ -196,7 +200,6 @@ namespace Linefunctions
                                       const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                                       const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
   
-  inline
   void set_htp_from_level_line_data(Complex& F,
                                     ComplexVectorView dF,
                                     const Numeric& f,
@@ -206,65 +209,56 @@ namespace Linefunctions
                                     const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                                     const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
   
-  inline
   void apply_rosenkranz_quadratic_scaling_from_level_data(Complex& F,
                                                           ComplexVectorView dF,
                                                           const Numeric& f,
                                                           const SingleLevelLineData& level_line_data,
-                                                          const ArrayOfRetrievalQuantity& derivatives_data,
-                                                          const ArrayOfIndex& derivatives_data_position) noexcept;
+                                                          const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                                          const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
   
-  inline
   void apply_VVH_scaling_from_level_data(Complex& F, ComplexVectorView dF,
                                          const Numeric& f, const Numeric& T, const SingleLevelLineData& level_line_data,
-                                         const ArrayOfRetrievalQuantity& derivatives_data,
-                                         const ArrayOfIndex& derivatives_data_position) noexcept;
+                                         const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                         const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
   
-  inline
   void apply_VVW_scaling_from_level_data(Complex& F, ComplexVectorView dF,
                                          const Numeric& f, const SingleLevelLineData& level_line_data,
-                                         const ArrayOfRetrievalQuantity& derivatives_data,
-                                         const ArrayOfIndex& derivatives_data_position) noexcept;
+                                         const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                         const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
   
-  inline
   void apply_linemixing_from_level_data(Complex& F, ComplexVectorView dF,
                                         const SingleLevelLineData& level_line_data,
-                                        const ArrayOfRetrievalQuantity& derivatives_data,
-                                        const ArrayOfIndex& derivatives_data_position) noexcept;
+                                        const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                        const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
 
-  inline
   void apply_pressurebroadening_jacobian_scaling_from_level_data(ComplexVectorView dF,
                                                                  const SingleLevelLineData& level_line_data,
-                                                                 const ArrayOfRetrievalQuantity& derivatives_data,
-                                                                 const ArrayOfIndex& derivatives_data_position) noexcept;
+                                                                 const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                                                 const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
 
-  inline
   void apply_linemixing_jacobian_scaling_from_level_data(ComplexVectorView dF,
                                                          const SingleLevelLineData& level_line_data,
-                                                         const ArrayOfRetrievalQuantity& derivatives_data,
-                                                         const ArrayOfIndex& derivatives_data_position) noexcept;
+                                                         const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                                         const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
   
-  inline
   void apply_LTE_linestrength_from_level_data(Complex& F, ComplexVectorView dF,
                                               const SingleLevelLineData& level_line_data,
                                               const LineRecord& line,
-                                              const ArrayOfRetrievalQuantity& derivatives_data,
-                                              const ArrayOfIndex& derivatives_data_position) noexcept;
+                                              const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                              const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
   
-  inline
   void apply_NLTE_vibrational_temperature_linestrength_from_level_data(Complex& F, Complex& N,
                                                                        ComplexVectorView dF, ComplexVectorView dN,
                                                                        const SingleLevelLineData& level_line_data,
                                                                        const LineRecord& line,
-                                                                       const ArrayOfRetrievalQuantity& derivatives_data,
-                                                                       const ArrayOfIndex& derivatives_data_position) noexcept;
+                                                                       const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                                                       const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
   
-  inline
   void apply_NLTE_population_distribution_linestrength_from_level_data(Complex& F, Complex& N,
                                                                        ComplexVectorView dF, ComplexVectorView dN,
                                                                        const SingleLevelLineData& level_line_data,
-                                                                       const ArrayOfRetrievalQuantity& derivatives_data,
-                                                                       const ArrayOfIndex& derivatives_data_position) noexcept;
+                                                                       const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                                                       const ArrayOfIndex& derivatives_data_position=ArrayOfIndex()) noexcept;
   
   void set_lineshape(ComplexVectorView F, 
                      const LineRecord& line, 

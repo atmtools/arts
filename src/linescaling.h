@@ -119,6 +119,10 @@ void CalculatePartitionFctFromCoeff_dT(Numeric& dQ_dT,
 
 Numeric single_partition_function(const Numeric& T, const SpeciesAuxData::AuxType& partition_type, const ArrayOfGriddedField1& partition_data);
 
+Numeric dsingle_partition_function_dT(const Numeric& QT, const Numeric& T, const Numeric& dT,
+                                      const SpeciesAuxData::AuxType& partition_type,
+                                      const ArrayOfGriddedField1& partition_data);
+
 Numeric stimulated_emission(const Numeric& T,
                             const Numeric& F0);
 

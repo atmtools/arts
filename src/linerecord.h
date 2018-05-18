@@ -340,6 +340,9 @@ public:
   /** Return the version number. */
   Index Version() const { return mversion; }
   
+  /* Set to latest compatible version of the catalog to store all data */
+  void SetVersionToLatest() {mversion=5;}
+  
   /** The index of the molecular species that this line belongs to.
    The species data can be accessed by species_data[Species()]. */
   Index Species() const { return mqid.Species(); }
