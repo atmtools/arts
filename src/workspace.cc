@@ -2034,10 +2034,19 @@ void Workspace::define_wsv_data()
       (
        "Geo-position of a measurement.\n"
        "\n"
-       "This definition of the elements of this vector follows *sensor_pos*.\n"
+       "An empty vector is allowed, then flagging that no geo-positioning\n"
+       "has been performed.\n"
        "\n"
-       "However, an empty vectopr is allowed for *geo_pos*, then flagging that\n"
-       "no geo-positioning has been performed.\n"
+       "Otherwise, this should be a vector having length 5. The elements are:\n"
+       "   altitude\n"       
+       "   latitude\n"       
+       "   longitide\n"       
+       "   zenith angle\n"       
+       "   azimuth angle\n"       
+       "\n"
+       "Dimensions: 0 or 5\n"
+       "\n"
+       "Unit:  [ m, deg, deg, deg, deg ]\n"       
        ),
       GROUP( "Vector" )));
 
@@ -6527,13 +6536,12 @@ void Workspace::define_wsv_data()
       (
        "The geo-positioning associated with *y*.\n"
        "\n"
-       "Definition of positions matches *sensor_pos* (such as first column\n"
-       "holds the altitude). Data are provided for each element of *y*.\n"
+       "The columns of this matrix matches the elements of *geo_pos*.\n"
        "\n"
        "If no geo-position is obtained (i.e. *geo_pos_agenda* sets *geo_pos*\n"
        "to be empty), all elements of *y_geo* is set to NaN.\n"
        "\n"
-       "Unit:  [ m, deg, deg ]\n"
+       "Unit:  [ m, deg, deg, deg, deg ]\n"
         ),
       GROUP( "Matrix" )));
 

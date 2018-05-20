@@ -71,7 +71,11 @@ void geo_posEndOfPpath(
     const Ppath&          ppath,
     const Verbosity&      verbosity )
 {
-  geo_pos = ppath.pos(ppath.np-1,Range(0,ppath.dim));
+  geo_pos.resize(5);
+  geo_pos = NAN;
+
+  geo_pos[Range(0,ppath.pos.ncols())] = ppath.pos(ppath.np-1,Range(0,ppath.pos.ncols()));
+  geo_pos[Range(3,ppath.los.ncols())] = ppath.los(ppath.np-1,Range(0,ppath.los.ncols()));
 
   CREATE_OUT2;  
   out2 << "  Sets geo-position to:\n" << geo_pos;
@@ -80,18 +84,25 @@ void geo_posEndOfPpath(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void geo_posLowestAltitudeOfPpath(      
+void geo_posLowestAltitudeOfPpath(
           Vector&         geo_pos,
     const Ppath&          ppath,
     const Verbosity&      verbosity )
 {
+  geo_pos.resize(5);
+  geo_pos = NAN;
+
   // Take first point of ppath as first guess
-  geo_pos = ppath.pos(0,Range(0,ppath.dim));
+  geo_pos[Range(0,ppath.pos.ncols())] = ppath.pos(0,Range(0,ppath.pos.ncols()));
+  geo_pos[Range(3,ppath.los.ncols())] = ppath.los(0,Range(0,ppath.los.ncols()));
   
   for( Index i=1; i<ppath.np; i++ )
     {
       if( ppath.pos(i,0) < geo_pos[0] )
-         geo_pos = ppath.pos(i,Range(0,ppath.dim));
+        {
+          geo_pos[Range(0,ppath.pos.ncols())] = ppath.pos(i,Range(0,ppath.pos.ncols()));
+          geo_pos[Range(3,ppath.los.ncols())] = ppath.los(i,Range(0,ppath.los.ncols()));
+        }
     }
 
   CREATE_OUT2;  
@@ -107,7 +118,8 @@ void geo_posWherePpathPassesZref(
     const Numeric&        z_ref,
     const Verbosity&      verbosity )
 {
-  geo_pos.resize( ppath.dim );
+  geo_pos.resize(5);
+  geo_pos = NAN;
 
   bool  found = false;
   Index ihit  = 0;
@@ -129,20 +141,27 @@ void geo_posWherePpathPassesZref(
     {
       geo_pos[0] = z_ref;
 
-      if( geo_pos.nelem() > 1 )
+      // Make a simple linear interpolation to determine lat and lon
+      const Numeric w = ( z_ref - ppath.pos(ihit-1,0) ) /
+        ( ppath.pos(ihit,0) - ppath.pos(ihit-1,0) );
+
+      geo_pos[3] = w * ppath.los(ihit,0) + 
+            (1-w) * ppath.los(ihit-1,0);
+      
+      if( ppath.pos.ncols() > 1 )
         {
-          // Make a simple linear interpolation to determine lat and lon
-          const Numeric w = ( z_ref - ppath.pos(ihit-1,0) ) /
-            ( ppath.pos(ihit,0) - ppath.pos(ihit-1,0) );
           geo_pos[1] = w * ppath.pos(ihit,1) + 
             (1-w) * ppath.pos(ihit-1,1);
-          if( geo_pos.nelem() > 2 )
-            { geo_pos[2] = w * ppath.pos(ihit,2) + 
-                (1-w) * ppath.pos(ihit-1,2); }
+          
+          if( ppath.pos.ncols() > 2 )
+            {
+              geo_pos[2] = w * ppath.pos(ihit,2) + 
+                (1-w) * ppath.pos(ihit-1,2); 
+              geo_pos[4] = w * ppath.los(ihit,1) + 
+                (1-w) * ppath.los(ihit-1,1); 
+            }
         }
     }
-  else
-    { geo_pos = NAN; }
 
   CREATE_OUT2;  
   out2 << "  Sets geo-position to:\n" << geo_pos;

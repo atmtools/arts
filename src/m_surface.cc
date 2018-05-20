@@ -362,9 +362,8 @@ void iySurfaceFastem(
   //
   surfaceFastem( surface_los, surface_rmatrix, surface_emission,
                  atmosphere_dim, stokes_dim, f_grid, rtp_pos, rtp_los,
-                 specular_los, surface_skin_t,
-                 salinity, wind_speed, wind_direction, transmittance,
-                 fastem_version, verbosity );
+                 surface_skin_t, salinity, wind_speed, wind_direction,
+                 transmittance, fastem_version, verbosity );
 
   // Add up
   //
@@ -867,7 +866,6 @@ void surfaceFastem(
     const Vector&           f_grid,
     const Vector&           rtp_pos,
     const Vector&           rtp_los,
-    const Vector&           specular_los,
     const Numeric&          surface_skin_t,
     const Numeric&          salinity,
     const Numeric&          wind_speed,
@@ -884,6 +882,11 @@ void surfaceFastem(
 
   const Index nf = f_grid.nelem();
 
+  // Determine specular direction
+  Vector specular_los, surface_normal;
+  specular_losCalcNoTopography( specular_los, surface_normal,
+                                rtp_pos, rtp_los, atmosphere_dim, verbosity );
+  
   // Determine relative azimuth
   //
   // According to email from James Hocking, UkMet:
@@ -977,7 +980,6 @@ void surfaceTelsem(
   chk_rte_pos( atmosphere_dim, rtp_pos );
   chk_rte_los( atmosphere_dim, rtp_los );
   chk_if_in_range_exclude( "surface skin temperature", surface_skin_t, 190.0, 373.0 );
-
 
   // Determine specular direction
   Vector specular_los, surface_normal;

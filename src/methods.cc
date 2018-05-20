@@ -16851,7 +16851,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "stokes_dim", "f_grid", "rtp_pos", "rtp_los",
-            "specular_los", "surface_skin_t" ),
+            "surface_skin_t" ),
         GIN( "salinity", "wind_speed", "wind_direction", "transmittance",
              "fastem_version" ),
         GIN_TYPE( "Numeric", "Numeric", "Numeric", "Vector", "Index" ),

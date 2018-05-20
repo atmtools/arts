@@ -1488,7 +1488,7 @@ void yCalc(
   y_pol.resize( nmblock*n1y );
   y_pos.resize( nmblock*n1y, sensor_pos.ncols() );
   y_los.resize( nmblock*n1y, sensor_los.ncols() );
-  y_geo.resize( nmblock*n1y, atmosphere_dim );
+  y_geo.resize( nmblock*n1y, 5 );
   y_geo = NAN;   // Will be replaced if relavant data are provided (*geo_pos*)
 
   // For y_aux we don't know the number of quantities, and we need to 

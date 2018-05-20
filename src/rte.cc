@@ -1721,7 +1721,7 @@ void iyb_calc(
   else
     { diyb_dx.resize( 0 ); }
   // Assume that geo_pos_agenda returns empty geo_pos.
-  geo_pos_matrix.resize( nlos, atmosphere_dim );
+  geo_pos_matrix.resize( nlos, 5 );
   geo_pos_matrix = NAN;
 
   // For iy_aux we don't know the number of quantities, and we have to store
@@ -1771,10 +1771,10 @@ firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
               geo_pos_agendaExecute( l_ws, geo_pos, ppath, l_geo_pos_agenda );
               if( geo_pos.nelem() )
                 {
-                  if( geo_pos.nelem() != atmosphere_dim )
-                      throw runtime_error( "Wrong size of *geo_pos* obtained "
-                                          "from *geo_pos_agenda*.\nThe length of *geo_pos* must "
-                                          "be zero or equal to *atmosphere_dim*." );
+                  if( geo_pos.nelem() != 5 )
+                      throw runtime_error(
+                       "Wrong size of *geo_pos* obtained from *geo_pos_agenda*.\n"
+                       "The length of *geo_pos* must be zero or five." );
 
                   geo_pos_matrix(ilos,joker) = geo_pos;
                 }
@@ -1817,10 +1817,10 @@ firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
               geo_pos_agendaExecute( l_ws, geo_pos, ppath, l_geo_pos_agenda );
               if( geo_pos.nelem() )
                 {
-                  if( geo_pos.nelem() != atmosphere_dim )
-                      throw runtime_error( "Wrong size of *geo_pos* obtained "
-                                          "from *geo_pos_agenda*.\nThe length of *geo_pos* must "
-                                          "be zero or equal to *atmosphere_dim*." );
+                  if( geo_pos.nelem() != 5 )
+                      throw runtime_error(
+                       "Wrong size of *geo_pos* obtained from *geo_pos_agenda*.\n"
+                       "The length of *geo_pos* must be zero or five." );
 
                   geo_pos_matrix(ilos,joker) = geo_pos;
                 }

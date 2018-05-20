@@ -1,3 +1,18 @@
+2018-05-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1051
+
+	* src/m_surface.cc (surfaceFastem): Removed specular_los as input.
+	Now calculated internally.
+
+	* src/m_ppath.cc (geo_posEndOfPpath)
+	(geo_posLowestAltitudeOfPpath, geo_posWherePpathPassesZref):
+	* src/m_rte.cc (yCalc):
+	* src/rte.cc (iyb_calc): Adopte to new definition of geo_pos.
+
+	* src/workspace.cc: Changed definition of geo_pos. It is now a
+	vector of length 5. y_geo adopted.
+
 2018-05-18  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-1050
