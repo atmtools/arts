@@ -795,8 +795,8 @@ void run_rt4( Workspace& ws,
                              t_field(Range(0,num_layers+1),joker,joker),
                              cloudbox_limits, stokes_dim );
           else
-            par_optpropCalc( emis_vector(0,joker,joker,joker,joker),
-                             extinct_matrix(0,joker,joker,joker,joker,joker),
+            par_optpropCalc( emis_vector_new(0,joker,joker,joker,joker),
+                             extinct_matrix_new(0,joker,joker,joker,joker,joker),
                              //scatlayers,
                              scat_data, scat_za_grid, f_index,
                              pnd_field,

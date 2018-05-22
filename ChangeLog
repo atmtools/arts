@@ -1,8 +1,17 @@
 2018-05-22 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
-	* arts-2-3-1049
+	* arts-2-3-1053
 
-	* geodetic.[h, cc] (cycle_lat_lon)
+	* src/rt4.cc (run_rt4)
+	- Fixed arguments to par_optpropCalc call which caused
+	  Tensor out of bounds access when number of streams was
+	  increased.
+
+2018-05-22 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1052
+
+	* geodetic.[h, cc] (cycle_lat_lon):
 	- Added function the wraps lat/lon coordinates into ranges
 	  [-90.0, 90.0] and [0.0, 360.0]
 
