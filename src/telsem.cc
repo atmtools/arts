@@ -28,6 +28,7 @@
 #include <utility>
 #include "telsem.h"
 #include "check_input.h"
+#include "geodetic.h"
 
 extern Numeric EARTH_RADIUS;
 extern Numeric DEG2RAD;
@@ -180,7 +181,63 @@ Index TelsemAtlas::calc_cellnum(Numeric lat,
     return cellnum;
 }
 
-std::pair<Numeric, Numeric> TelsemAtlas::get_coordinates(Index cellnum)
+Index TelsemAtlas::calc_cellnum_nearest_neighbor(Numeric lat,
+                                                 Numeric lon) const
+{
+    Index cellnum = calc_cellnum(lat, lon);
+    if (contains(cellnum)) {
+            return cellnum;
+    }
+
+    Numeric di = 1.0;
+
+    while(true) {
+        Numeric lat_new, lon_new;
+
+        for (Numeric i = -di; i < di; i += 1.0) {
+            lat_new = lat + i * dlat;
+            lon_new = lon - di * dlat;
+            cycle_lat_lon(lat_new, lon_new);
+            cellnum = calc_cellnum(lat_new, lon_new);
+            if (contains(cellnum)) {
+                return cellnum;
+            }
+        }
+
+        for (Numeric i = -di; i < di; i += 1.0) {
+            lat_new = lat + i * dlat;
+            lon_new = lon + di * dlat;
+            cycle_lat_lon(lat_new, lon_new);
+            cellnum = calc_cellnum(lat_new, lon_new);
+            if (contains(cellnum)) {
+                return cellnum;
+            }
+        }
+
+        for (Numeric i = -di; i < di; i += 1.0) {
+            lat_new = lat - di * dlat;
+            lon_new = lon + i * dlat;
+            cycle_lat_lon(lat_new, lon_new);
+            cellnum = calc_cellnum(lat_new, lon_new);
+            if (contains(cellnum)) {
+                return cellnum;
+            }
+        }
+
+        for (Numeric i = -di; i < di; i += 1.0) {
+            lat_new = lat + di * dlat;
+            lon_new = lon + i * dlat;
+            cycle_lat_lon(lat_new, lon_new);
+            cellnum = calc_cellnum(lat_new, lon_new);
+            if (contains(cellnum)) {
+                return cellnum;
+            }
+        }
+        di += 1.0;
+    }
+}
+
+std::pair<Numeric, Numeric> TelsemAtlas::get_coordinates(Index cellnum) const
 {
 
     Index index_lat_max = static_cast<Index>(180.0 / dlat);

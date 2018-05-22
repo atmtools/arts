@@ -1399,3 +1399,44 @@ void lon_shiftgrid(
       longrid_out += 360.;
 }
 
+//! Cyclic latitude longitude coordinates.
+/* This function wraps around the given latitude and longitude coordinates
+ *  to the ranges
+ * - lat in [-90.0, 90.0]
+ * - lon in [0.0, 360.0]
+ * Only in the range [-180.0, 180.0] are accepted otherwise an error will
+ * be thrown
+ *
+ * \param[in, out] lat The latitude coordinate.
+ * \param[in, out] lon The longitude coordiante.
+ *
+ * \author Simon Pfreundschuh
+ * \date   2018-05-22
+*/
+void cycle_lat_lon(Numeric &lat,
+                   Numeric &lon)
+{
+    if (lat < -180.0) {
+        throw std::runtime_error("Latitude values < -180.0 are not supported.");
+    }
+    if (lat > 180.0) {
+        throw std::runtime_error("Latitude values > 180.0 are not supported.");
+    }
+
+    if (lat < -90.0) {
+        lat = -180.0 - lat;
+        lon += 180.0;
+    }
+    if (lat > 90.0) {
+        lat = 180.0 - lat;
+        lon += 180.0;
+    }
+
+    while (lon < 0.0) {
+        lon += 360.0;
+    }
+    while (lon > 360.0) {
+        lon -= 360.0;
+    }
+}
+

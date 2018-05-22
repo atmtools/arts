@@ -28,6 +28,7 @@
 #include "file.h"
 #include "telsem.h"
 #include "rte.h"
+#include "geodetic.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void telsemStandalone(Matrix &emis,
@@ -36,14 +37,36 @@ void telsemStandalone(Matrix &emis,
                       const Numeric &theta,
                       const Vector &f,
                       const TelsemAtlas &ta,
+                      const Numeric &dmax,
                       const Verbosity &)
 {
     chk_if_in_range("Latitude input to TELSEM2", lat, -90.0, 90.0);
     chk_if_in_range("Longitude input to TELSEM2", lon,  0.0, 360.0);
 
-    Index cellnumber = ta.calc_cellnum(lat, lon);
+    Index cellnumber = 0;
+    if (dmax <= 0.0) {
+        cellnumber = ta.calc_cellnum(lat, lon);
+        if (!ta.contains(cellnumber)) {
+            throw std::runtime_error("Given coordinates are not contained in "
+                                     " TELSEM atlas. To enable nearest neighbor"
+                                     "interpolation set *dmax* to a positive "
+                                     "value.");
+        }
+    } else {
+        cellnumber = ta.calc_cellnum_nearest_neighbor(lat, lon);
+        Numeric lat_nn, lon_nn;
+        std::tie(lat_nn, lon_nn) = ta.get_coordinates(cellnumber);
+        Numeric d = sphdist(lat, lon, lat_nn, lon_nn);
+        if (d > dmax) {
+            std::ostringstream out{};
+            out << "Distance of nearest neighbor exceeds provided limit (";
+            out << d << " > " << dmax << ").";
+            throw std::runtime_error(out.str());
+        }
+    }
+
     Index class1 = ta.get_class1(cellnumber);
-    Index class2 = ta.get_class1(cellnumber);
+    Index class2 = ta.get_class2(cellnumber);
     Vector emis_v  = ta.get_emis_v(cellnumber);
     Vector emis_h  = ta.get_emis_h(cellnumber);
 

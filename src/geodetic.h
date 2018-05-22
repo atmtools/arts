@@ -263,4 +263,7 @@ void lon_shiftgrid(
       ConstVectorView  longrid_in,
       const Numeric    lon );
 
+void cycle_lat_lon(Numeric &lat,
+                   Numeric &lon);
+
 #endif  // geodetic_h

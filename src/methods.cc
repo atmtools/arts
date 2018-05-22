@@ -17553,6 +17553,14 @@ void define_md_data_raw()
               "\n"
               "This evaluates the Telsem land surface emissivity\n"
               "model using the data from the provided atlas.\n"
+              "\n"
+              "Since TELSEM atlases do not contain data for all locations\n"
+              "this function allows for nearest neighbor interpolation, which\n"
+              "can be enabled by setting the *d_max* GIN to a positive value.\n"
+              "\n"
+              "This WSM throws a runtime error if the queried location is not\n"
+              "contained in the atlas or the distance of the neighboring cell\n"
+              "exceeds the given *d_max* value.\n"
               ),
           AUTHORS( "Simon Pfreundschuh" ),
           OUT(),
@@ -17560,14 +17568,17 @@ void define_md_data_raw()
           GOUT_TYPE("Matrix"),
           GOUT_DESC("The computed h and v emissivites"),
           IN(),
-          GIN("lat", "lon", "theta", "f", "ta"),
-          GIN_TYPE("Numeric", "Numeric", "Numeric", "Vector", "TelsemAtlas"),
-          GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF),
+          GIN("lat", "lon", "theta", "f", "ta", "d_max"),
+          GIN_TYPE("Numeric", "Numeric", "Numeric", "Vector", "TelsemAtlas",
+                   "Numeric"),
+          GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, "-1"),
           GIN_DESC("The latitude for which to compute the emissivities.",
                    "The latitude for which to compute the emissivities.",
                    "The incidence angle.",
                    "The frequencies for which to compute the emissivities.",
-                   "The Telsem atlas to use.")
+                   "The Telsem atlas to use.",
+                   "The maximum allowed distance for nearest neighbor"
+                   " interpolation in meters.")
             ));
 
   md_data_raw.push_back

@@ -1,3 +1,21 @@
+2018-05-22 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1049
+
+	* geodetic.[h, cc] (cycle_lat_lon)
+	- Added function the wraps lat/lon coordinates into ranges
+	  [-90.0, 90.0] and [0.0, 360.0]
+
+	* m_telsem.cc (telsemStandalone):
+	- Added functionality for nearest neighbor interpolation
+
+	* methods.cc (telsemStandalong):
+	- Updated documentation of telsemStandalone
+
+	* telsem.[h, cc] (calc_cellnumber_nearest_neighbor):
+	- Added function that calculates cellnumber of nearest cell in
+	  atlas w.r.t. to L1 norm.
+
 2018-05-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1051
@@ -116,6 +134,7 @@
 	
 	* src/test_propagationmatrix.cc:  See "src/absorption.cc" above.
 
+>>>>>>> .r10995
 2018-05-15 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1048
