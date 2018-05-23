@@ -4251,12 +4251,12 @@ void define_md_data_raw()
           (
               "Set covmat_sx to a given matrix.\n"
               "\n"
-              "This sets the measurement covariance matrix *covmat_se* to\n"
+              "This sets the measurement covariance matrix *covmat_sx* to\n"
               "the matrix given by the generic input *covmat*. The covariance\n"
               "matrix can be of type CovarianceMatrix, Matrix or Sparse.\n"
               ),
           AUTHORS( "Simon Pfreundschuh" ),
-          OUT("covmat_se"),
+          OUT("covmat_sx"),
           GOUT(),
           GOUT_TYPE(),
           GOUT_DESC(),

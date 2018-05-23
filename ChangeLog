@@ -1,3 +1,22 @@
+2018-05-23 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1055
+
+	* src/methods.cc (covmat_sxSet):
+	- Fixed bug in definition of *covmat_sxSet* reported by
+	Dave
+
+2018-05-23 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1054
+
+	* src/m_surface.cc (surfaceTelsem):
+	- Added functionality for nearest neighbor interpolation, which
+	can be enabled through the *d_max* GIN
+
+	* src/methods.cc (surfaceTelsem):
+	- Updated documentation of surfaceTelsem
+
 2018-05-22 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1053
