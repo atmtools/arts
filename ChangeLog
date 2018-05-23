@@ -1,3 +1,9 @@
+2018-05-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1056
+
+	* src/m_surface.cc (surfaceTelsem): Added GIN options r_min and r_max.
+
 2018-05-23 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1055

@@ -16927,8 +16927,10 @@ void define_md_data_raw()
          "an error is only thrown if the distance of the found neighbor is higher\n"
          "than the provided value of *d_max.\n"
          "\n"
+         "You can limit the final reflectivity applied by setting *r_min* and *r_max*.\n"
+         "\n"
          "To extract a land-sea mask from a given telsem atlas see the WSM\n"
-         " *telsemSurfaceTypeLandSea*.\n"
+         "*telsemSurfaceTypeLandSea*.\n"
          ),
         AUTHORS( "Simon Pfreundschuh" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
@@ -16937,10 +16939,12 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmosphere_dim", "stokes_dim", "f_grid", "lat_grid", "lat_true",
             "lon_true", "rtp_pos", "rtp_los", "surface_skin_t"),
-        GIN("atlas", "d_max"),
-        GIN_TYPE("TelsemAtlas", "Numeric"),
-        GIN_DEFAULT(NODEF, "-1.0"),
+        GIN( "atlas", "r_min", "r_max", "d_max" ),
+        GIN_TYPE( "TelsemAtlas", "Numeric", "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF, "0", "1", "-1.0" ),
         GIN_DESC("The Telsem atlas to use for the emissivity calculation.",
+                 "Minimum allowed value for reflectivity to apply.",
+                 "Maximum allowed value for reflectivity to apply.",
                  "Maximum allowed distance in meters for nearest neighbor"
                  " interpolation. Set to a negative value or zero to disable"
                  " interpolation.")

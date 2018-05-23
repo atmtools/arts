@@ -973,6 +973,8 @@ void surfaceTelsem(
     const Vector&           rtp_los,
     const Numeric&          surface_skin_t,
     const TelsemAtlas&      atlas,
+    const Numeric&          r_min,
+    const Numeric&          r_max,
     const Numeric&          d_max,
     const Verbosity&        verbosity )
 {
@@ -1043,9 +1045,9 @@ void surfaceTelsem(
       // outside of TELSEM specifications.
       Numeric f = std::min(f_grid[i], 700e9) * 1e-9;
       std::tie(e_v, e_h) = atlas.emis_interp(theta, f, class1, class2, emis_v, emis_h);
-
-      surface_rv_rh(i,0) = min(max(1.0 - e_v, 0.0), 1.0);
-      surface_rv_rh(i,1) = min(max(1.0 - e_h, 0.0), 1.0);
+      
+      surface_rv_rh(i,0) = min( max( 1.0 - e_v, r_min ), r_max );
+      surface_rv_rh(i,1) = min( max( 1.0 - e_h, r_min ), r_max );
     }
 
   surfaceFlatRvRh( surface_los, surface_rmatrix, surface_emission,
