@@ -70,6 +70,17 @@ public:
   mza(std::move(pm.mza)), maa(std::move(pm.maa)),
   mdata(), mvectortype(std::move(pm.mvectortype))
   { swap(mdata, pm.mdata); }
+  
+  explicit PropagationMatrix(ConstTensor4View x) : mfreqs(x.nrows()), mza(x.npages()), maa(x.nbooks()), mdata(x), mvectortype(false)
+  {
+    switch(x.ncols()) {
+      case 7: mstokes_dim=4; break;
+      case 4: mstokes_dim=3; break;
+      case 2: mstokes_dim=2; break;
+      case 1: mstokes_dim=1; break;
+      default: throw std::runtime_error("Tensor4 not representative of PropagationMatrix");
+    }
+  }
 
   //! Initialize from matrix
   explicit PropagationMatrix(ConstMatrixView x, const bool& assume_fit=false) : mfreqs(1), mstokes_dim(x.ncols()), mza(1), maa(1)
@@ -586,6 +597,18 @@ public:
     assert(mstokes_dim < 5 and mstokes_dim > 0);
     mdata.resize(maa, mza, mfreqs, mstokes_dim);
   };
+  
+  explicit StokesVector(ConstTensor4View x) 
+  {
+    mfreqs = x.nrows();
+    mstokes_dim = x.ncols();
+    mza = x.npages();
+    maa = x.nbooks();
+    mdata = x;
+    mvectortype = true;
+    if(mstokes_dim > 4 or mstokes_dim < 1)
+      throw std::runtime_error("Tensor4 is bad for StokesVector");
+  }
   
   explicit StokesVector(ConstVectorView x)
   {

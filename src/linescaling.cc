@@ -527,21 +527,21 @@ Numeric dstimulated_relative_emission_dT(const Numeric& gamma,
   extern const Numeric PLANCK_CONST;
   extern const Numeric BOLTZMAN_CONST;
   static const Numeric c = - PLANCK_CONST / BOLTZMAN_CONST;
-  const Numeric invT = 1 / T;
   
-  return (c * F0 * gamma * invT * invT) / (1.-gamma_ref);
+  return c * F0 * gamma / (T * T * (1.-gamma_ref));
 }
 
 
 Numeric dstimulated_relative_emission_dF0(const Numeric& gamma,
                                           const Numeric& gamma_ref,
-                                          const Numeric& T)
+                                          const Numeric& T,
+                                          const Numeric& T0)
 {
   extern const Numeric PLANCK_CONST;
   extern const Numeric BOLTZMAN_CONST;
   static const Numeric c = - PLANCK_CONST / BOLTZMAN_CONST;
   
-  return (- c / T * gamma) / (1.-gamma_ref);
+  return c*(1. - gamma) * gamma / (T0*(1 - gamma_ref)*(1 - gamma_ref)) - c*gamma/(T*(1. - gamma_ref));
 }
 
 
@@ -563,9 +563,8 @@ Numeric dboltzman_ratio_dT(const Numeric& boltzmann_ratio,
 {
   extern const Numeric BOLTZMAN_CONST;
   static const Numeric c = 1/BOLTZMAN_CONST;
-  const Numeric x = 1/T;
   
-  return E0 * c * boltzmann_ratio * x * x;
+  return E0 * c * boltzmann_ratio / (T * T);
 }
 
 

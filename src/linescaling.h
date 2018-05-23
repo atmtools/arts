@@ -136,7 +136,8 @@ Numeric dstimulated_relative_emission_dT(const Numeric& gamma,
 
 Numeric dstimulated_relative_emission_dF0(const Numeric& gamma,
                                           const Numeric& gamma_ref,
-                                          const Numeric& T);
+                                          const Numeric& T,
+                                          const Numeric& T0);
 
 Numeric boltzman_ratio(const Numeric& T,
                        const Numeric& T0,

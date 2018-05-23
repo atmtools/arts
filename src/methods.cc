@@ -3802,7 +3802,9 @@ void define_md_data_raw()
          "control files, and then used to check that a calculated value\n"
          "is consistent with an old, reference, value.\n"
          "\n"
-         "If either value is 0., the relative error is considered as 1\n"
+         "If either value is 0.0, the relative error is considered as 0\n"
+         "for easier use.  This really means infinite differences, though\n"
+         "allowing zero-crossings is useful for plenty of tests. So Be Aware!\n"
          ),
         AUTHORS( "Oliver Lemke", "Richard Larsson" ),
         OUT( ),
@@ -3811,8 +3813,18 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN(),
         GIN( "var1", "var2", "maxabsreldiff", "error_message" ),
-        GIN_TYPE( "Vector, Tensor7, Tensor4, ArrayOfMatrix, ArrayOfArrayOfMatrix",
-                  "Vector, Tensor7, Tensor4, ArrayOfMatrix, ArrayOfArrayOfMatrix",
+        GIN_TYPE( "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7,"
+                  "ArrayOfVector, ArrayOfMatrix, ArrayOfTensor3, ArrayOfTensor4,"
+                  "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
+                  "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
+                  "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
+                  "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,",
+                  "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7,"
+                  "ArrayOfVector, ArrayOfMatrix, ArrayOfTensor3, ArrayOfTensor4,"
+                  "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
+                  "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
+                  "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
+                  "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,",
                   "Numeric", "String" ),
         GIN_DEFAULT( NODEF, NODEF, NODEF, "" ),
         GIN_DESC( "A first variable", "A second variable", 
@@ -6007,7 +6019,8 @@ void define_md_data_raw()
                    "GriddedField3, ArrayOfGriddedField3,"
                    "GriddedField4, String,"
                    "SingleScatteringData, ArrayOfSingleScatteringData,"
-                   "TelsemAtlas"),
+                   "TelsemAtlas,"
+                   "QuantumIdentifier"),
         GOUT_DESC( "Extracted element." ),
         IN(),
         GIN( "haystack", "index" ),
@@ -6018,7 +6031,8 @@ void define_md_data_raw()
                   "ArrayOfGriddedField4, ArrayOfString,"
                   "ArrayOfSingleScatteringData,"
                   "ArrayOfArrayOfSingleScatteringData,"
-                  "ArrayOfTelsemAtlas",
+                  "ArrayOfTelsemAtlas,"
+                  "ArrayOfQuantumIdentifier",
                   "Index" ),
         GIN_DEFAULT( NODEF, NODEF ),
         GIN_DESC( "Variable to extract from.",

@@ -322,6 +322,9 @@ void jacobianAddAbsSpecies(
   }
   else if((not analytical) and (not for_species_tag))
     throw std::runtime_error("perturbation only support for_species_tag true/\n ");
+  else
+    rq.PropType(JacPropMatType::NotPropagationMatrixType); 
+  
   rq.QuantumIdentity(qi);
   
   // Add it to the *jacobian_quantities*
@@ -3564,8 +3567,8 @@ void jacobianAddCatalogParameter(
     else if(LINEMIXINGG0_MODE              == catalog_parameter) rq.PropType(JacPropMatType::LineMixingG0);
     else if(LINEMIXINGG1_MODE              == catalog_parameter) rq.PropType(JacPropMatType::LineMixingG1);
     else if(LINEMIXINGGEXPONENT_MODE       == catalog_parameter) rq.PropType(JacPropMatType::LineMixingGExp);
-    else if(LINEMIXINGDF0_MODE             == catalog_parameter) rq.PropType(JacPropMatType::LineMixingG0);
-    else if(LINEMIXINGDF1_MODE             == catalog_parameter) rq.PropType(JacPropMatType::LineMixingG1);
+    else if(LINEMIXINGDF0_MODE             == catalog_parameter) rq.PropType(JacPropMatType::LineMixingDF0);
+    else if(LINEMIXINGDF1_MODE             == catalog_parameter) rq.PropType(JacPropMatType::LineMixingDF1);
     else if(LINEMIXINGDFEXPONENT_MODE      == catalog_parameter) rq.PropType(JacPropMatType::LineMixingDFExp);
     else {
       ostringstream os;

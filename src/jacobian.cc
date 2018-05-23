@@ -1832,13 +1832,9 @@ ArrayOfIndex equivlent_propmattype_indexes(const ArrayOfRetrievalQuantity& js)
 {
   ArrayOfIndex pos;
   pos.reserve(js.nelem());
-  Index j=0;
-  for(Index i=0; i<js.nelem(); i++){
-    if(js[i] not_eq JacPropMatType::NotPropagationMatrixType) {
-      pos.push_back(j);
-      j++;
-    }
-  }
+  for(Index i=0; i<js.nelem(); i++)
+    if(js[i] not_eq JacPropMatType::NotPropagationMatrixType)
+      pos.push_back(i);
   return pos;
 }
 
@@ -2081,18 +2077,18 @@ bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js)
     return false;
 }
 
-Index get_first_frequency_index(const ArrayOfRetrievalQuantity& js) 
+Index get_first_frequency_index(const ArrayOfRetrievalQuantity& js, const ArrayOfIndex& pos)
 {
-  for(Index i=0; i<js.nelem(); i++)
-    if(is_frequency_parameter(js[i]))
+  for(Index i=0; i<pos.nelem(); i++)
+    if(is_frequency_parameter(js[pos[i]]))
       return i;
   return js.nelem();
 }
 
-Index get_first_pressure_term_index(const ArrayOfRetrievalQuantity& js) 
+Index get_first_pressure_term_index(const ArrayOfRetrievalQuantity& js, const ArrayOfIndex& pos) 
 {
-  for(Index i=0; i<js.nelem(); i++)
-    if(is_pressure_broadening_parameter(js[i]))
+  for(Index i=0; i<pos.nelem(); i++)
+    if(is_pressure_broadening_parameter(js[pos[i]]))
       return i;
   return js.nelem();
 }

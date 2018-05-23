@@ -1,3 +1,77 @@
+2018-05-23  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-1057
+	
+	Error rundown in the new lineshapes for Voigt ready.  Also
+	found inherent issue in current derivatives for VMR.  VMR
+	derivatives are today introducing an error of 1/(1-vmr) on
+	the line shape itself.  This was true for semi-analytic
+	test cases as well but not for perturbed.  The fix is to
+	implement VMR derivatives for pressure broadening for the 
+	self-broadening component of a line.  I will get on this
+        at some point, but we mostly retrieve trace gases these
+        days so the error is only important for more prevalent 
+        species...
+	
+	* controlfiles/*: Added test to fast for Voigt lineshape.
+	Note that you cannot run the python plotting-script before
+	you have the latest version of typhon (which I will
+	commit around the same time as this commit)
+	
+	* src/absorption.cc:  Fixed size of derivatives
+	
+	* src/jacobian.{cc,h}: Fixed *equivlent_propmattype_indexes*
+	and the first-index calls to not point at wrong things...
+	would not work if external derivatives were mixed in amongst
+	the normal derivatives with old update...
+	
+	* src/linefunctions.cc:  Moved line mixing derivatives around
+	and separated the frequency derivatives of line mixing from
+	the strength components because the old way was bad.  Also
+	scattered "#pragma omp simd" all over the place because 1)
+	I do not understand the intel documentation on this function,
+	and 2) there is a bunch of low level code that is doing exactly
+	the same thing for each frequency so it should be possible
+	to do these things in simd, though I see no differences in
+	speed with these in place and I do not know if this is because
+	the compiler cannot understand that it is supposed to do the 
+	same thing for each frequency...
+	
+	* src/linemixingdata.{cc,h}:  Added some functions to change
+	values
+	
+	* src/linescaling.{cc,h}:  Fix bug in *dstimulated_relative_emission_dF0*
+	
+	* src/m_abs.cc:  Fixed size error in derivative matrix in xsec init.
+	Also renamed nlte-variables to fit workspace update
+	
+	* src/m_basic_types.cc:  Added some more CompareRelative types
+	
+	* src/m_extract.h:  Added extract for QuantumIdentifier
+	
+	* src/m_jacobian.cc:  Fixed error in setting LM frequency shift 
+	derivatives...
+	
+	* src/m_linerecord.cc:  Added a few more changeable variables
+	to *abs_linesChangeParameterForMatchingLines*
+	
+	* src/methods.cc:  Changed description and scope of *CompareRelative*
+	to not throw an error for zero-values despite these being relatively
+	bad.  The function is only meant to compare input so if one vector
+	is all zeroes, the test will now succeed, so be carful!  I need this
+	because I have many zero-crossings in the derivatives and special input
+	(like having a f_grid point exactly on a non-shifted line center)
+	can cause zero-values to appear naturally.
+	
+	* src/pressurebroadeningdata.{cc,h}:  Updated to give proper derivatives
+	for pressure (I had real-and-imaginary-and-sign errors in the past version)
+	
+	* src/propagationmatrix.h:  Added initialization from Tensor4
+	
+	* src/xml_io_compound_types.cc:  Changed writing/reading of PropagationMatrix
+	and StokesVector to be cleaner and fit with the current implementation rather
+	than with the original commit...
+
 2018-05-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1056

@@ -410,6 +410,28 @@ public:
     void ChangeForeignExponentRelative(const Numeric& change, 
                                        const ArrayOfIndex& broad_spec_locations);
     
+    /**
+     Method for changing foreing-broadening shift(s) by relative amount if available
+     Error if not available and no change to water broadening
+     
+     The quantities are:
+     \param change self broadening gamma
+     \param broad_spec_locations Array of index of broadening species locations
+     */ 
+    void ChangeForeignShiftRelative(const Numeric& change, 
+                                    const ArrayOfIndex& broad_spec_locations);
+    
+    /**
+     Method for changing foreing-broadening shift(s) if available
+     Error if not available and no change to water broadening
+     
+     The quantities are:
+     \param change self broadening gamma
+     \param broad_spec_locations Array of index of broadening species locations
+     */ 
+    void ChangeForeignShift(const Numeric& change, 
+                            const ArrayOfIndex& broad_spec_locations);
+    
     // Use these to return data in the format required by the line shape calculator
     
     /**

@@ -2456,11 +2456,11 @@ void xsec_species2(MatrixView xsec,
                    const Verbosity& verbosity)
 {
   // Size of problem
-  const Index np = abs_p.nelem();                               // number of pressure levels
-  const Index nf = f_grid.nelem();                              // number of Dirac frequencies
-  const Index nl = abs_lines.nelem();                           // number of lines in the catalog
-  const Index nj = number_of_propmattypes(jacobian_quantities); // number of partial derivatives
-  const Index nt = abs_t_nlte.nrows();                          // number of energy levels in NLTE
+  const Index np = abs_p.nelem();                      // number of pressure levels
+  const Index nf = f_grid.nelem();                     // number of Dirac frequencies
+  const Index nl = abs_lines.nelem();                  // number of lines in the catalog
+  const Index nj = jacobian_propmat_positions.nelem(); // number of partial derivatives
+  const Index nt = source.nrows();                     // number of energy levels in NLTE
   
   // Type of problem
   const bool do_nonlte = nt;                 // source return is requested only if there are energy levels in NLTE
@@ -2564,7 +2564,8 @@ void xsec_species2(MatrixView xsec,
           for(Index j=0; j<nj; j++)
             Linefunctions::binary_interpolation(dN(j, joker), binary_bounds);
         }
-        
+
+        #pragma omp simd
         for(Index i = 0; i < nf; i++) {
           xsec(i, ip) += F[i].real();
         }
@@ -2585,17 +2586,22 @@ void xsec_species2(MatrixView xsec,
         const Range this_out_range(this_xsec_range.get_start(), extent);
 
         VectorView xsec_range_view = xsec(this_out_range, ip);
-        ComplexVectorView F_range_view = F[this_xsec_range];
+        VectorView source_range_view = do_nonlte?source(this_out_range, ip):Vector(0);
+        
+        const ComplexVectorView F_range_view = F[this_xsec_range];
+        const ComplexVectorView N_range_view = do_nonlte?N[this_xsec_range]:N;
+        
+        #pragma omp simd
         for(Index i = 0; i < extent; i++) {
           xsec_range_view[i] += F_range_view[i].real();
           
           if(not phase.empty())
-            phase(this_out_range, ip)[i] += F[this_xsec_range][i].imag();
+            phase(this_out_range, ip)[i] += F_range_view[i].imag();
           
           if(do_nonlte)
-            source(this_out_range, ip)[i] += N[this_xsec_range][i].real();
+            source_range_view[i] += N_range_view[i].real();
 
-          for(Index j = 0; j < nj; j++) {
+          for(Index j=0; j<nj; j++) {
             dxsec_dx[j](this_out_range, ip)[i] += dF(j, this_xsec_range)[i].real();
             
             if(not phase.empty())

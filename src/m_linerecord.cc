@@ -290,20 +290,40 @@ void abs_linesChangeParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
     
     if(parameter_name.nelem()==0)
         throw std::runtime_error("parameter_name is empty.\n");
-    else if(parameter_name == "Central Frequency")
+    else if(parameter_name == "Central Frequency" or parameter_name == "Line Center")
         parameter_switch = 0;
     else if(parameter_name == "Line Strength")
         parameter_switch = 1;
-    else if(parameter_name == "Pressure Broadening Self")
+    else if(parameter_name == "Pressure Broadening Self" or parameter_name == "PB Self Gamma")
         parameter_switch = 2;
-    else if(parameter_name == "Pressure Broadening Foreign")
+    else if(parameter_name == "Pressure Broadening Foreign" or parameter_name == "PB Foreign Gamma")
         parameter_switch = 3;
     else if(parameter_name == "Lower State Energy")
         parameter_switch = 4;
-    else if(parameter_name == "Pressure Broadening Self Exponent")
+    else if(parameter_name == "Pressure Broadening Self Exponent" or parameter_name == "PB Self Exponent")
         parameter_switch = 5;
-    else if(parameter_name == "Pressure Broadening Foreign Exponent")
-        parameter_switch = 6;
+    else if(parameter_name == "Pressure Broadening Foreign Exponent" or parameter_name == "PB Foreign Exponent")
+      parameter_switch = 6;
+    else if(parameter_name == "PB Foreign Pressure Shift")
+      parameter_switch = 7;
+    else if(parameter_name == "LM Y Zeroth")
+      parameter_switch = 8;
+    else if(parameter_name == "LM G Zeroth")
+      parameter_switch = 9;
+    else if(parameter_name == "LM DF Zeroth")
+      parameter_switch = 10;
+    else if(parameter_name == "LM Y First")
+      parameter_switch = 11;
+    else if(parameter_name == "LM G First")
+      parameter_switch = 12;
+    else if(parameter_name == "LM DF First")
+      parameter_switch = 13;
+    else if(parameter_name == "LM Y Exponent")
+      parameter_switch = 14;
+    else if(parameter_name == "LM G Exponent")
+      parameter_switch = 15;
+    else if(parameter_name == "LM DF Exponent")
+      parameter_switch = 16;
     
     ArrayOfIndex matches;
     ArrayOfQuantumMatchInfo match_info;
@@ -324,6 +344,7 @@ void abs_linesChangeParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
     
     bool any=false;
     PressureBroadeningData pb;
+    LineMixingData lm;
     
     for(Index mii =0; mii<matches.nelem(); mii++)
     {
@@ -377,7 +398,7 @@ void abs_linesChangeParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
                 else 
                     lr.SetElow(lr.Elow()*(1.0e0+change));
                 break;
-            case 5: //"Pressure Broadening Self":
+            case 5: //"Pressure Broadening Self Exponent":
                 pb = lr.PressureBroadening();
                 if(relative==0)
                     pb.ChangeSelfExponent(change,this_species,h2o_index,broad_spec_locations);
@@ -385,7 +406,7 @@ void abs_linesChangeParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
                     pb.ChangeSelfExponentRelative(change,this_species,h2o_index,broad_spec_locations);
                 lr.SetPressureBroadeningData(pb);
                 break;
-            case 6: //"Pressure Broadening Foreign":
+            case 6: //"Pressure Broadening Foreign Exponent":
                 pb = lr.PressureBroadening();
                 if(relative==0)
                     pb.ChangeForeignExponent(change,broad_spec_locations);
@@ -393,6 +414,59 @@ void abs_linesChangeParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
                     pb.ChangeForeignExponentRelative(change,broad_spec_locations);
                 lr.SetPressureBroadeningData(pb);
                 break;
+            case 7: //"Pressure Broadening Foreign Shift":
+              pb = lr.PressureBroadening();
+              if(relative==0)
+                pb.ChangeForeignShift(change,broad_spec_locations);
+              else
+                pb.ChangeForeignShiftRelative(change,broad_spec_locations);
+              lr.SetPressureBroadeningData(pb);
+              break;
+            case 8: // Line mixing zeroth Y
+              lm = lr.LineMixing();
+              lm.ChangeY0(change, relative);
+              lr.SetLineMixingData(lm);
+              break;
+            case 9: // Line mixing zeroth G
+              lm = lr.LineMixing();
+              lm.ChangeG0(change, relative);
+              lr.SetLineMixingData(lm);
+              break;
+            case 10: // Line mixing zeroth DF
+              lm = lr.LineMixing();
+              lm.ChangeDF0(change, relative);
+              lr.SetLineMixingData(lm);
+              break;
+            case 11: // Line mixing first Y
+              lm = lr.LineMixing();
+              lm.ChangeY1(change, relative);
+              lr.SetLineMixingData(lm);
+              break;
+            case 12: // Line mixing first G
+              lm = lr.LineMixing();
+              lm.ChangeG1(change, relative);
+              lr.SetLineMixingData(lm);
+              break;
+            case 13: // Line mixing first DF
+              lm = lr.LineMixing();
+              lm.ChangeDF1(change, relative);
+              lr.SetLineMixingData(lm);
+              break;
+            case 14: // Line mixing exponent Y
+              lm = lr.LineMixing();
+              lm.ChangeYexp(change, relative);
+              lr.SetLineMixingData(lm);
+              break;
+            case 15: // Line mixing exponent G
+              lm = lr.LineMixing();
+              lm.ChangeGexp(change, relative);
+              lr.SetLineMixingData(lm);
+              break;
+            case 16: // Line mixing exponent DF
+              lm = lr.LineMixing();
+              lm.ChangeDFexp(change, relative);
+              lr.SetLineMixingData(lm);
+              break;
             default:
             {
                 ostringstream os;

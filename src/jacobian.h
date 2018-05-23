@@ -437,9 +437,9 @@ void get_diydx(VectorView diy1,
 //             Propmat partials descriptions
 //======================================================================
 
-Index get_first_frequency_index(const ArrayOfRetrievalQuantity& js);
+Index get_first_frequency_index(const ArrayOfRetrievalQuantity& js, const ArrayOfIndex& pos);
 
-Index get_first_pressure_term_index(const ArrayOfRetrievalQuantity& js);
+Index get_first_pressure_term_index(const ArrayOfRetrievalQuantity& js, const ArrayOfIndex& pos);
 
 Index number_of_propmattypes(const ArrayOfRetrievalQuantity& js);
 

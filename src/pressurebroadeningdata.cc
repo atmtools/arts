@@ -45,6 +45,7 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma_0,
                                                          const ArrayOfIndex& broad_spec_locations,
                                                          ConstVectorView vmrs) const
 {
+  gamma_0=gamma_2=eta=df_0=df_2=f_VC=0;
     switch(mtype)
     {
         case PB_NONE:
@@ -52,36 +53,19 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma_0,
             break;
         case PB_AIR_BROADENING:
             GetAirBroadening(gamma_0, df_0, theta, pressure, self_pressure);
-            gamma_2 = 0.;
-            eta     = 0.;
-            df_2    = 0.;
-            f_VC    = 0.;
             break;
         case PB_AIR_AND_WATER_BROADENING:
             GetAirAndWaterBroadening(gamma_0, df_0, theta, pressure, self_pressure, 
                                      this_species, h2o_species, vmrs);
-            gamma_2 = 0.;
-            eta     = 0.;
-            df_2    = 0.;
-            f_VC    = 0.;
             break;
         case PB_PLANETARY_BROADENING:
             GetPlanetaryBroadening(gamma_0, df_0, theta, pressure, self_pressure, broad_spec_locations, vmrs);
-            gamma_2 = 0.;
-            eta     = 0.;
-            df_2    = 0.;
-            f_VC    = 0.;
             break;
         case PB_SD_AIR_VOLUME:
             GetSDAirBroadening(gamma_0,gamma_2,df_0,df_2,theta,pressure);
-            f_VC=0;
-            eta=0;
             break;
         case PB_PURELY_FOR_TESTING:
           GetTestBroadening(gamma_0, gamma_2, df_0, vmrs, theta, pressure, h2o_species);
-          f_VC = 0;
-          eta = 0;
-          df_2 = 0;
           break;
         default:
             throw std::runtime_error("You have defined an unknown broadening mechanism in normal calculations.\n");
@@ -104,35 +88,22 @@ void PressureBroadeningData::GetPressureBroadeningParams_dT(Numeric& dgamma_0_dT
                                                             const ArrayOfIndex& broad_spec_locations,
                                                             ConstVectorView vmrs) const
 {
+  dgamma_0_dT=dgamma_2_dT=deta_dT=ddf_0_dT=ddf_2_dT=df_VC_dT=0;
   switch(mtype)
   {
     case PB_NONE:
       // Note that this is oftentimes not wanted, but a valid case at low pressures
       break;
     case PB_AIR_BROADENING:
-      dgamma_2_dT = 0;
-      ddf_2_dT = 0;
-      df_VC_dT = 0;
-      deta_dT = 0;
       GetAirBroadening_dT(dgamma_0_dT, ddf_0_dT, T, T0, pressure, self_pressure);
       break;
     case PB_AIR_AND_WATER_BROADENING:
-      dgamma_2_dT = 0;
-      ddf_2_dT = 0;
-      df_VC_dT = 0;
-      deta_dT = 0;
       GetAirAndWaterBroadening_dT(dgamma_0_dT, ddf_0_dT, T, T0, pressure, self_pressure, this_species, h2o_species, vmrs);
       break;
     case PB_PLANETARY_BROADENING:
-      dgamma_2_dT = 0;
-      ddf_2_dT = 0;
-      df_VC_dT = 0;
-      deta_dT = 0;
       GetPlanetaryBroadening_dT(dgamma_0_dT, ddf_0_dT, T, T0, pressure, self_pressure, broad_spec_locations, vmrs);
       break;
     case PB_SD_AIR_VOLUME:
-      df_VC_dT = 0;
-      deta_dT = 0;
       GetSDAirBroadening_dT(dgamma_0_dT, dgamma_2_dT, ddf_0_dT, ddf_2_dT, T, T0, pressure);
       break;
     case PB_HTP_AIR_VOLUME:
@@ -168,7 +139,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       if(QI > ppd[iq].QuantumIdentity())
       {
         GetPressureBroadeningParams_dSelfGamma(results1, theta, self_pressure);
-        res[ipd] = results1;
+        res[ipd] = Complex(0.0, results1);
       }
       else 
         continue;
@@ -179,7 +150,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       {
         GetPressureBroadeningParams_dForeignGamma(results1, theta, pressure, self_pressure, 
                                                   this_species, h2o_species, vmrs);
-        res[ipd] = results1;
+        res[ipd] = Complex(0.0, results1);
       }
       else
         continue;
@@ -190,7 +161,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       {
         GetPressureBroadeningParams_dWaterGamma(results1, theta, pressure, 
                                                 this_species, h2o_species, vmrs);
-        res[ipd] = results1;
+        res[ipd] = Complex(0.0, results1);
       }
       else
         continue;
@@ -200,7 +171,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       if(QI > ppd[iq].QuantumIdentity())
       {
         GetPressureBroadeningParams_dSelfPsf(results2, theta, self_pressure);
-        res[ipd] = Complex(0, results2);
+        res[ipd] = Complex(-results2, 0.0);
       }
       else
         continue;
@@ -211,7 +182,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       {
         GetPressureBroadeningParams_dForeignPsf(results2, theta, pressure, self_pressure, 
                                                 this_species, h2o_species, vmrs);
-        res[ipd] = Complex(0, results2);
+        res[ipd] = Complex(-results2, 0);
       }
       else
         continue;
@@ -222,7 +193,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       {
         GetPressureBroadeningParams_dWaterPsf(results2, theta, pressure, 
                                               this_species, h2o_species, vmrs);
-        res[ipd] = Complex(0, results2);
+        res[ipd] = Complex(-results2, 0);
       }
       else
         continue;
@@ -232,7 +203,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       if(QI > ppd[iq].QuantumIdentity())
       {
         GetPressureBroadeningParams_dSelfExponent(results1, results2, theta, self_pressure);
-        res[ipd] = Complex(results1, results2);
+        res[ipd] = Complex(-results2, results1);
       }
       else
         continue;
@@ -243,7 +214,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       {
         GetPressureBroadeningParams_dForeignExponent(results1, results2, theta, pressure, self_pressure, 
                                                      this_species, h2o_species, vmrs);
-        res[ipd] = Complex(results1, results2);
+        res[ipd] = Complex(-results2, results1);
       }
       else
         continue;
@@ -254,7 +225,7 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
       {
         GetPressureBroadeningParams_dWaterExponent(results1, results2, theta, pressure, 
                                                    this_species, h2o_species, vmrs);
-        res[ipd] = Complex(results1, results2);
+        res[ipd] = Complex(-results2, results1);
       }
       else
         continue;
@@ -369,7 +340,7 @@ void PressureBroadeningData::GetPressureBroadeningParams_dSelfPsf(Numeric& psf_d
             // Note that this is oftentimes not wanted, but a valid case at low pressures
             break;
         case PB_AIR_BROADENING:
-            throw std::runtime_error("Air broadening calculations does not support self pressure shoft partial derivatives.\n"
+            throw std::runtime_error("Air broadening calculations does not support self pressure shift partial derivatives.\n"
             "Please check your catalog type and input lines to ensure that you are doing what you expect.\n");
             break;
         case PB_AIR_AND_WATER_BROADENING:
@@ -620,7 +591,7 @@ void PressureBroadeningData::GetAirBroadening_dForeignExponent(Numeric& gamma_dF
 {
     Numeric log_theta = log(theta);
     gamma_dForeignExponent = mdata[2][0] * pow(theta,mdata[3][0]) * (pressure-self_pressure) * log_theta;
-    psf_dForeignExponent  =
+    psf_dForeignExponent  = 
     mdata[4][0] * pressure * pow (theta,(Numeric)0.25+(Numeric)1.5*mdata[3][0]) * log_theta * 1.5;
 }
 
@@ -1729,6 +1700,52 @@ void PressureBroadeningData::ChangeForeignExponentRelative(const Numeric& change
         default:
           throw std::runtime_error("ChangeForeignExponentRelative: Cannot recognize type");
     }
+}
+void PressureBroadeningData::ChangeForeignShiftRelative(const Numeric& change, 
+                                                   const ArrayOfIndex& broad_spec_locations)
+{
+  switch(mtype)
+  {
+    case PB_NONE:
+      // Note that this is oftentimes not wanted, but a valid case at low pressures
+      break;
+    case PB_AIR_BROADENING:
+      mdata[4][0]*=1.0e0+change;
+      break;
+    case PB_AIR_AND_WATER_BROADENING:
+      mdata[1][2]*=1.0e0+change;
+      break;
+    case PB_PLANETARY_BROADENING:
+      for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
+        if(broad_spec_locations[ii]!=-2)
+          mdata[4][ii]*=1.0e0+change;
+        break;
+    default:
+      throw std::runtime_error("ChangeForeignRelative: Cannot recognize type");
+  }
+}
+void PressureBroadeningData::ChangeForeignShift(const Numeric& change, 
+                                                const ArrayOfIndex& broad_spec_locations)
+{
+  switch(mtype)
+  {
+    case PB_NONE:
+      // Note that this is oftentimes not wanted, but a valid case at low pressures
+      break;
+    case PB_AIR_BROADENING:
+      mdata[4][0]+=change;
+      break;
+    case PB_AIR_AND_WATER_BROADENING:
+      mdata[1][2]+=change;
+      break;
+    case PB_PLANETARY_BROADENING:
+      for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
+        if(broad_spec_locations[ii]!=-2)
+          mdata[4][ii]+=change;
+        break;
+    default:
+      throw std::runtime_error("ChangeForeignRelative: Cannot recognize type");
+  }
 }
 
 ///////////////////////////////////////////

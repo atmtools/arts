@@ -633,6 +633,134 @@ void LineMixingData::Get1stOrder_dExponent(Numeric& dYexp, const Numeric& Temper
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Change functions
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LineMixingData::ChangeY0(const Numeric& change, const bool relative)
+{
+  switch(mtype) {
+    case LM_1STORDER:
+    case LM_2NDORDER:
+      if(relative)
+        mdata[1][0] *= 1 + change;
+      else
+        mdata[1][0] += change;
+      break;
+    default:
+      throw std::runtime_error("Unsupported change");
+  }
+}
+void LineMixingData::ChangeY1(const Numeric& change, const bool relative)
+{
+  switch(mtype) {
+    case LM_2NDORDER:
+      if(relative)
+        mdata[1][1] *= 1 + change;
+      else
+        mdata[1][1] += change;
+      break;
+    default:
+      throw std::runtime_error("Unsupported change");
+  }
+}
+void LineMixingData::ChangeYexp(const Numeric& change, const bool relative)
+{
+  switch(mtype) {
+    case LM_1STORDER:
+      if(relative)
+        mdata[2][0] *= 1 + change;
+      else
+        mdata[2][0] += change;
+      break;
+    case LM_2NDORDER:
+      if(relative)
+        mdata[1][2] *= 1 + change;
+      else
+        mdata[1][2] += change;
+      break;
+    default:
+      throw std::runtime_error("Unsupported change");
+  }
+}
+void LineMixingData::ChangeG0(const Numeric& change, const bool relative)
+{
+  switch(mtype) {
+    case LM_2NDORDER:
+      if(relative)
+        mdata[2][0] *= 1 + change;
+      else
+        mdata[2][0] += change;
+      break;
+    default:
+      throw std::runtime_error("Unsupported change");
+  }
+}
+void LineMixingData::ChangeG1(const Numeric& change, const bool relative)
+{
+  switch(mtype) {
+    case LM_2NDORDER:
+      if(relative)
+        mdata[2][1] *= 1 + change;
+      else
+        mdata[2][1] += change;
+      break;
+    default:
+      throw std::runtime_error("Unsupported change");
+  }
+}
+void LineMixingData::ChangeGexp(const Numeric& change, const bool relative)
+{
+  switch(mtype) {
+    case LM_2NDORDER:
+      if(relative)
+        mdata[2][2] *= 1 + change;
+      else
+        mdata[2][2] += change;
+      break;
+    default:
+      throw std::runtime_error("Unsupported change");
+  }
+}
+void LineMixingData::ChangeDF0(const Numeric& change, const bool relative)
+{
+  switch(mtype) {
+    case LM_2NDORDER:
+      if(relative)
+        mdata[3][0] *= 1 + change;
+      else
+        mdata[3][0] += change;
+      break;
+    default:
+      throw std::runtime_error("Unsupported change");
+  }
+}
+void LineMixingData::ChangeDF1(const Numeric& change, const bool relative)
+{
+  switch(mtype) {
+    case LM_2NDORDER:
+      if(relative)
+        mdata[3][1] *= 1 + change;
+      else
+        mdata[3][1] += change;
+      break;
+    default:
+      throw std::runtime_error("Unsupported change");
+  }
+}
+void LineMixingData::ChangeDFexp(const Numeric& change, const bool relative)
+{
+  switch(mtype) {
+    case LM_2NDORDER:
+      if(relative)
+        mdata[3][2] *= 1 + change;
+      else
+        mdata[3][2] += change;
+      break;
+    default:
+      throw std::runtime_error("Unsupported change");
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Line mixing interactions to get cross section goes above here
 // Below is line mixing storage functions.
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

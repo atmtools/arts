@@ -75,6 +75,17 @@ public:
     void GetLBLRTM_dT(Numeric& dY_dT, Numeric& dG_dT, const Numeric& Temperature, const Numeric& dt, const Numeric& Pressure, const Numeric& Pressure_Limit, const Index& order) const;
     void GetLBLRTM_O2NonResonant(Numeric& G) const;
     
+    // Use these to change values
+    void ChangeY0(const Numeric& change, const bool relative=false);
+    void ChangeY1(const Numeric& change, const bool relative=false);
+    void ChangeYexp(const Numeric& change, const bool relative=false);
+    void ChangeG0(const Numeric& change, const bool relative=false);
+    void ChangeG1(const Numeric& change, const bool relative=false);
+    void ChangeGexp(const Numeric& change, const bool relative=false);
+    void ChangeDF0(const Numeric& change, const bool relative=false);
+    void ChangeDF1(const Numeric& change, const bool relative=false);
+    void ChangeDFexp(const Numeric& change, const bool relative=false);
+    
     // Use these to insert the data in the required format from catalog readings
     void SetLBLRTMFromTheirCatalog(const Vector& t, const Vector& y, const Vector& g) 
     {

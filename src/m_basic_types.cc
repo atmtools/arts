@@ -2396,8 +2396,216 @@ void Compare(const SingleScatteringData&    var1,
 }
 
 
+inline void __cr(const Numeric& var1,
+                 const Numeric& var2,
+                 const Numeric& maxabsreldiff,
+                 const String&  error_message,
+                 const String&  var1name,
+                 const String&  var2name,
+                 const String&,
+                 const String&,
+                 const Verbosity&)
+{
+  if(var1 not_eq 0. and var2 not_eq 0.) {
+    const Numeric absreldiff = abs(var1/var2 - 1);
+    if(absreldiff > maxabsreldiff) {
+      ostringstream os;
+      os << var1name << "-" << var2name << " FAILED!\n";
+      if (error_message.length()) os << error_message << "\n";
+      os << "Max allowed deviation set to: " << maxabsreldiff*100.0 << "%" << endl
+      << "but the input deviate with: " << absreldiff*100.0 << "%" << endl;
+      throw runtime_error(os.str());
+    }
+  }
+}
+
+
+inline void __cr(const ConstVectorView var1,
+                 const ConstVectorView var2,
+                 const Numeric& maxabsreldiff,
+                 const String&  error_message,
+                 const String&  var1name,
+                 const String&  var2name,
+                 const String&,
+                 const String&,
+                 const Verbosity& verbosity)
+{
+  const Index n = var1.nelem();
+  if(var2.nelem() not_eq n)
+    throw std::runtime_error("Cannot compare variables of different size");
+  for(Index i=0; i<n; i++)
+    __cr(var1[i], var2[i], maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+
+
+inline void __cr(const ConstMatrixView var1,
+                 const ConstMatrixView var2,
+                 const Numeric& maxabsreldiff,
+                 const String&  error_message,
+                 const String&  var1name,
+                 const String&  var2name,
+                 const String&,
+                 const String&,
+                 const Verbosity& verbosity)
+{
+  const Index n = var1.nrows();
+  if(var2.nrows() not_eq n)
+    throw std::runtime_error("Cannot compare variables of different size");
+  for(Index i=0; i<n; i++)
+    __cr(var1(i, joker), var2(i, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+
+
+inline void __cr(const ConstTensor3View var1,
+                 const ConstTensor3View var2,
+                 const Numeric& maxabsreldiff,
+                 const String&  error_message,
+                 const String&  var1name,
+                 const String&  var2name,
+                 const String&,
+                 const String&,
+                 const Verbosity& verbosity)
+{
+  const Index n = var1.npages();
+  if(var2.npages() not_eq n)
+    throw std::runtime_error("Cannot compare variables of different size");
+  for(Index i=0; i<n; i++)
+    __cr(var1(i, joker, joker), var2(i, joker, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+
+
+inline void __cr(const ConstTensor4View var1,
+                 const ConstTensor4View var2,
+                 const Numeric& maxabsreldiff,
+                 const String&  error_message,
+                 const String&  var1name,
+                 const String&  var2name,
+                 const String&,
+                 const String&,
+                 const Verbosity& verbosity)
+{
+  const Index n = var1.nbooks();
+  if(var2.nbooks() not_eq n)
+    throw std::runtime_error("Cannot compare variables of different size");
+  for(Index i=0; i<n; i++)
+    __cr(var1(i, joker, joker, joker), var2(i, joker, joker, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+
+
+inline void __cr(const ConstTensor5View var1,
+                 const ConstTensor5View var2,
+                 const Numeric& maxabsreldiff,
+                 const String&  error_message,
+                 const String&  var1name,
+                 const String&  var2name,
+                 const String&,
+                 const String&,
+                 const Verbosity& verbosity)
+{
+  const Index n = var1.nshelves();
+  if(var2.nshelves() not_eq n)
+    throw std::runtime_error("Cannot compare variables of different size");
+  for(Index i=0; i<n; i++)
+    __cr(var1(i, joker, joker, joker, joker), var2(i, joker, joker, joker, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+
+
+inline void __cr(const ConstTensor6View var1,
+                 const ConstTensor6View var2,
+                 const Numeric& maxabsreldiff,
+                 const String&  error_message,
+                 const String&  var1name,
+                 const String&  var2name,
+                 const String&,
+                 const String&,
+                 const Verbosity& verbosity)
+{
+  const Index n = var1.nvitrines();
+  if(var2.nvitrines() not_eq n)
+    throw std::runtime_error("Cannot compare variables of different size");
+  for(Index i=0; i<n; i++)
+    __cr(var1(i, joker, joker, joker, joker, joker), var2(i, joker, joker, joker, joker, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+
+
+inline void __cr(const ConstTensor7View var1,
+                 const ConstTensor7View var2,
+                 const Numeric& maxabsreldiff,
+                 const String&  error_message,
+                 const String&  var1name,
+                 const String&  var2name,
+                 const String&,
+                 const String&,
+                 const Verbosity& verbosity)
+{
+  const Index n = var1.nlibraries();
+  if(var2.nlibraries() not_eq n)
+    throw std::runtime_error("Cannot compare variables of different size");
+  for(Index i=0; i<n; i++)
+    __cr(var1(i, joker, joker, joker, joker, joker, joker), var2(i, joker, joker, joker, joker, joker, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+
+
+inline void __cr(const PropagationMatrix& var1,
+                 const PropagationMatrix& var2,
+                 const Numeric& maxabsreldiff,
+                 const String&  error_message,
+                 const String&  var1name,
+                 const String&  var2name,
+                 const String&,
+                 const String&,
+                 const Verbosity& verbosity)
+{
+  __cr(var1.GetData(), var2.GetData(), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+
+
+inline void __cr(const StokesVector& var1,
+                 const StokesVector& var2,
+                 const Numeric& maxabsreldiff,
+                 const String&  error_message,
+                 const String&  var1name,
+                 const String&  var2name,
+                 const String&,
+                 const String&,
+                 const Verbosity& verbosity)
+{
+  __cr(var1.GetData(), var2.GetData(), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+
+
+template<class T>
+inline void __cr(const Array<T>&  var1,
+                 const Array<T>&  var2,
+                 const Numeric&   maxabsreldiff,
+                 const String&    error_message,
+                 const String&    var1name,
+                 const String&    var2name,
+                 const String&,
+                 const String&,
+                 const Verbosity& verbosity)
+{
+  const Index n = var1.nelem();
+  if(var2.nelem() not_eq n)
+    throw std::runtime_error("Cannot compare arrays of different length");
+  for(Index i=0; i<n; i++)
+    __cr(var1[i], var2[i], maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void CompareRelative(const Numeric&   var1,
+                     const Numeric&   var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
 void CompareRelative(const Vector&    var1,
                      const Vector&    var2,
                      const Numeric&   maxabsreldiff,
@@ -2408,69 +2616,8 @@ void CompareRelative(const Vector&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  const Index n = var1.nelem();
-
-  if( var2.nelem() != n )
-  {
-    ostringstream os;
-    os << var1name << " (" << n << ") and "
-       << var2name << " (" << var2.nelem() << ") do not have the same size.";
-    throw runtime_error(os.str());
-  }
-
-  Numeric maxreldiff = 0.0;
-  for(Index i = 0; i <n; i++)
-  {
-    Numeric diff;
-    
-    if(isnan(var1[i])  ||  isnan(var2[i]))
-    {
-      if(isnan(var1[i])  &&  isnan(var2[i]))
-        diff = 0.0;
-      else if( isnan(var1[i]) )
-      {
-        ostringstream os;
-        os << "Nan found in " << var1name << ", but there is no "
-            << "NaN at same position in " << var2name << ".\nThis "
-            << "is not allowed.";
-        throw runtime_error(os.str());
-      }
-      else 
-      {
-        ostringstream os;
-        os << "Nan found in " << var2name << ", but there is no "
-            << "NaN at same position in " << var1name << ".\nThis "
-            << "is not allowed.";
-        throw runtime_error(os.str());
-      }
-    }
-    else if(var1[i] == 0.0)
-      if(var2[i] == 0.0)
-        diff = 0.0;
-      else
-        diff = 1.0;
-    else 
-      diff = (var1[i] - var2[i])/var1[i];
-
-    if( abs(diff) > abs(maxreldiff) )
-      maxreldiff = diff;
-  }
-    
-  if(isnan(maxreldiff)  ||  abs(maxreldiff) > maxabsreldiff)
-  {
-    ostringstream os;
-    os << var1name << "-" << var2name << " FAILED!\n";
-    if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to: " << maxabsreldiff*100.0 << "%" << endl
-       << "but the vectors deviate with: " << maxreldiff*100.0 << "%" << endl;
-    throw runtime_error(os.str());
-  }
-  
-  CREATE_OUT2;
-  out2 << "   " << var1name << "-" << var2name
-       << " OK (maximum difference = " << maxreldiff*100.0 << "%" << ").\n";
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
-
 void CompareRelative(const Matrix&    var1,
                      const Matrix&    var2,
                      const Numeric&   maxabsreldiff,
@@ -2481,74 +2628,80 @@ void CompareRelative(const Matrix&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-    const Index ncols = var1.ncols();
-    const Index nrows = var1.nrows();
-    
-    if(var2.ncols() != ncols   ||
-       var2.nrows() != nrows    )
-    {
-      ostringstream os;
-      os << var1name << " and " << var2name << " do not have the same size.";
-      throw runtime_error(os.str());
-    }
-    
-    Numeric maxreldiff = 0.0;
-    
-    for( Index c=0; c<ncols; c++ )
-        for( Index r=0; r<nrows; r++ )
-            {
-              Numeric diff = var1(r,c) - var2(r,c);
-
-              if( isnan(var1(r,c))  ||  isnan(var2(r,c)) )
-                {
-                  if( isnan(var1(r,c))  &&  isnan(var2(r,c)) )
-                    { diff = 0; }
-                  else if( isnan(var1(r,c)) )
-                    {
-                      ostringstream os;
-                      os << "Nan found in " << var1name << ", but there is no "
-                         << "NaN at same position in " << var2name << ".\nThis "
-                         << "is not allowed.";
-                      throw runtime_error(os.str());
-                    }
-                  else 
-                    {
-                      ostringstream os;
-                      os << "Nan found in " << var2name << ", but there is no "
-                         << "NaN at same position in " << var1name << ".\nThis "
-                         << "is not allowed.";
-                      throw runtime_error(os.str());
-                    }
-                }      
-
-              else if(diff!=0.0)
-              {
-                if(var1(r,c) == 0.0)
-                  diff = 1.0;
-                else 
-                  diff /= var1(r,c);
-              }
-
-              if( abs(diff) > abs(maxreldiff) )
-                { maxreldiff = diff; }
-            }
-
-    if(isnan(maxreldiff)  ||  abs(maxreldiff) > maxabsreldiff)
-      {
-        ostringstream os;
-        os << var1name << "-" << var2name << " FAILED!\n";
-        if (error_message.length()) os << error_message << "\n";
-        os << "Max allowed deviation set to: " << maxabsreldiff*100.0 << "%" << endl
-          << "but the matrices deviate with: " << maxreldiff*100.0 << "%" << endl;
-        throw runtime_error(os.str());
-      }
-
-    CREATE_OUT2;
-    out2 << "   " << var1name << "-" << var2name
-         << " OK (maximum difference = " << maxreldiff << ").\n";
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
-
-
+void CompareRelative(const Tensor3&    var1,
+                     const Tensor3&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+void CompareRelative(const Tensor4&    var1,
+                     const Tensor4&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+void CompareRelative(const Tensor5&    var1,
+                     const Tensor5&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+void CompareRelative(const Tensor6&    var1,
+                     const Tensor6&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+void CompareRelative(const Tensor7&    var1,
+                     const Tensor7&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+void CompareRelative(const ArrayOfVector&    var1,
+                     const ArrayOfVector&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
 void CompareRelative(const ArrayOfMatrix&    var1,
                      const ArrayOfMatrix&    var2,
                      const Numeric&   maxabsreldiff,
@@ -2559,19 +2712,80 @@ void CompareRelative(const ArrayOfMatrix&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  const Index n = var1.nelem();
-  if(n != var2.nelem())
-  {
-    ostringstream os;
-    os << var1name << " and " << var2name << " do not have the same size.";
-    throw runtime_error(os.str());
-  }
-  
-  for(Index i=0; i<n; i++)
-    CompareRelative(var1[i], var2[i], maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
-
-
+void CompareRelative(const ArrayOfTensor3&    var1,
+                     const ArrayOfTensor3&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+void CompareRelative(const ArrayOfTensor4&    var1,
+                     const ArrayOfTensor4&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+void CompareRelative(const ArrayOfTensor5&    var1,
+                     const ArrayOfTensor5&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+void CompareRelative(const ArrayOfTensor6&    var1,
+                     const ArrayOfTensor6&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+void CompareRelative(const ArrayOfTensor7&    var1,
+                     const ArrayOfTensor7&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+void CompareRelative(const ArrayOfArrayOfVector&    var1,
+                     const ArrayOfArrayOfVector&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
 void CompareRelative(const ArrayOfArrayOfMatrix&    var1,
                      const ArrayOfArrayOfMatrix&    var2,
                      const Numeric&   maxabsreldiff,
@@ -2582,21 +2796,10 @@ void CompareRelative(const ArrayOfArrayOfMatrix&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  const Index n = var1.nelem();
-  if(n != var2.nelem())
-  {
-    ostringstream os;
-    os << var1name << " and " << var2name << " do not have the same size.";
-    throw runtime_error(os.str());
-  }
-  
-  for(Index i=0; i<n; i++)
-    CompareRelative(var1[i], var2[i], maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
-
-
-void CompareRelative(const Tensor7&   var1,
-                     const Tensor7&   var2,
+void CompareRelative(const ArrayOfArrayOfTensor3&    var1,
+                     const ArrayOfArrayOfTensor3&    var2,
                      const Numeric&   maxabsreldiff,
                      const String&    error_message,
                      const String&    var1name,
@@ -2605,91 +2808,10 @@ void CompareRelative(const Tensor7&   var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-    const Index ncols = var1.ncols();
-    const Index nrows = var1.nrows();
-    const Index npages = var1.npages();
-    const Index nbooks = var1.nbooks();
-    const Index nshelves = var1.nshelves();
-    const Index nvitrines = var1.nvitrines();
-    const Index nlibraries = var1.nlibraries();
-    
-    if(var2.ncols() != ncols   ||
-       var2.nrows() != nrows  ||
-       var2.npages() != npages   ||
-       var2.nbooks() != nbooks   ||
-       var2.nshelves() != nshelves   ||
-       var2.nvitrines() != nvitrines   ||
-       var2.nlibraries() != nlibraries       )
-    {
-      ostringstream os;
-      os << var1name << " and " << var2name << " do not have the same size.";
-      throw runtime_error(os.str());
-    }
-    
-    Numeric maxreldiff = 0.0;
-    
-    for( Index c=0; c<ncols; c++ )
-        for( Index r=0; r<nrows; r++ )
-            for( Index p=0; p<npages; p++ )
-                for( Index b=0; b<nbooks; b++ )
-                    for( Index s=0; s<nshelves; s++ )
-                        for( Index v=0; v<nvitrines; v++ )
-                            for( Index l=0; l<nlibraries; l++ )
-            {
-              Numeric diff = var1(l,v,s,b,p,r,c) - var2(l,v,s,b,p,r,c);
-
-              if( isnan(var1(l,v,s,b,p,r,c))  ||  isnan(var2(l,v,s,b,p,r,c)) )
-                {
-                  if( isnan(var1(l,v,s,b,p,r,c))  &&  isnan(var2(l,v,s,b,p,r,c)) )
-                    { diff = 0; }
-                  else if( isnan(var1(l,v,s,b,p,r,c)) )
-                    {
-                      ostringstream os;
-                      os << "Nan found in " << var1name << ", but there is no "
-                         << "NaN at same position in " << var2name << ".\nThis "
-                         << "is not allowed.";
-                      throw runtime_error(os.str());
-                    }
-                  else 
-                    {
-                      ostringstream os;
-                      os << "Nan found in " << var2name << ", but there is no "
-                         << "NaN at same position in " << var1name << ".\nThis "
-                         << "is not allowed.";
-                      throw runtime_error(os.str());
-                    }
-                }      
-
-              else if(diff!=0.0)
-              {
-                if(var1(l,v,s,b,p,r,c) == 0.0)
-                  diff = 1.0;
-                else 
-                  diff /= var1(l,v,s,b,p,r,c);
-              }
-
-              if( abs(diff) > abs(maxreldiff) )
-                { maxreldiff = diff; }
-            }
-
-    if(isnan(maxreldiff)  ||  abs(maxreldiff) > maxabsreldiff)
-      {
-        ostringstream os;
-        os << var1name << "-" << var2name << " FAILED!\n";
-        if (error_message.length()) os << error_message << "\n";
-        os << "Max allowed deviation set to: " << maxabsreldiff*100.0 << "%" << endl
-          << "but the tensors deviate with: " << maxreldiff*100.0 << "%" << endl;
-        throw runtime_error(os.str());
-      }
-
-    CREATE_OUT2;
-    out2 << "   " << var1name << "-" << var2name
-         << " OK (maximum difference = " << maxreldiff << ").\n";
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
-
-
-void CompareRelative(const Tensor4&   var1,
-                     const Tensor4&   var2,
+void CompareRelative(const ArrayOfArrayOfTensor4&    var1,
+                     const ArrayOfArrayOfTensor4&    var2,
                      const Numeric&   maxabsreldiff,
                      const String&    error_message,
                      const String&    var1name,
@@ -2698,76 +2820,94 @@ void CompareRelative(const Tensor4&   var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  const Index ncols = var1.ncols();
-  const Index nrows = var1.nrows();
-  const Index npages = var1.npages();
-  const Index nbooks = var1.nbooks();
-  
-  if(var2.ncols() != ncols   ||
-    var2.nrows() != nrows  ||
-    var2.npages() != npages   ||
-    var2.nbooks() != nbooks          )
-  {
-    ostringstream os;
-    os << var1name << " and " << var2name << " do not have the same size.";
-    throw runtime_error(os.str());
-  }
-  
-  Numeric maxreldiff = 0.0;
-  
-  for( Index c=0; c<ncols; c++ )
-    for( Index r=0; r<nrows; r++ )
-      for( Index p=0; p<npages; p++ )
-        for( Index b=0; b<nbooks; b++ )
-        {
-          Numeric diff = var1(b,p,r,c) - var2(b,p,r,c);
-          
-          if( isnan(var1(b,p,r,c))  ||  isnan(var2(b,p,r,c)) )
-          {
-            if( isnan(var1(b,p,r,c))  &&  isnan(var2(b,p,r,c)) )
-            { diff = 0; }
-            else if( isnan(var1(b,p,r,c)) )
-            {
-              ostringstream os;
-              os << "Nan found in " << var1name << ", but there is no "
-              << "NaN at same position in " << var2name << ".\nThis "
-              << "is not allowed.";
-              throw runtime_error(os.str());
-            }
-            else 
-            {
-              ostringstream os;
-              os << "Nan found in " << var2name << ", but there is no "
-              << "NaN at same position in " << var1name << ".\nThis "
-              << "is not allowed.";
-              throw runtime_error(os.str());
-            }
-          }      
-          
-          else if(diff!=0.0)
-          {
-            if(var1(b,p,r,c) == 0.0)
-              diff = 1.0;
-            else 
-              diff /= var1(b,p,r,c);
-          }
-          
-          if( abs(diff) > abs(maxreldiff) )
-          { maxreldiff = diff; }
-        }
-        
-        if(isnan(maxreldiff)  ||  abs(maxreldiff) > maxabsreldiff)
-        {
-          ostringstream os;
-          os << var1name << "-" << var2name << " FAILED!\n";
-          if (error_message.length()) os << error_message << "\n";
-          os << "Max allowed deviation set to: " << maxabsreldiff*100.0 << "%" << endl
-          << "but the tensors deviate with: " << maxreldiff*100.0 << "%" << endl;
-          throw runtime_error(os.str());
-        }
-        
-        CREATE_OUT2;
-        out2 << "   " << var1name << "-" << var2name
-        << " OK (maximum difference = " << maxreldiff << ").\n";
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+void CompareRelative(const ArrayOfArrayOfTensor5&    var1,
+                     const ArrayOfArrayOfTensor5&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+void CompareRelative(const ArrayOfArrayOfTensor6&    var1,
+                     const ArrayOfArrayOfTensor6&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+void CompareRelative(const ArrayOfArrayOfTensor7&    var1,
+                     const ArrayOfArrayOfTensor7&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+
+void CompareRelative(const ArrayOfPropagationMatrix&    var1,
+                     const ArrayOfPropagationMatrix&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+
+void CompareRelative(const ArrayOfArrayOfPropagationMatrix&    var1,
+                     const ArrayOfArrayOfPropagationMatrix&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+
+void CompareRelative(const ArrayOfStokesVector&    var1,
+                     const ArrayOfStokesVector&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+}
+
+void CompareRelative(const ArrayOfArrayOfStokesVector&    var1,
+                     const ArrayOfArrayOfStokesVector&    var2,
+                     const Numeric&   maxabsreldiff,
+                     const String&    error_message,
+                     const String&    var1name,
+                     const String&    var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity)
+{
+  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 

@@ -72,12 +72,12 @@ extern const Numeric VACUUM_PERMITTIVITY;
 void AbsInputFromRteScalars(// WS Output:
                             Vector&        abs_p,
                             Vector&        abs_t,
-                            Matrix&        abs_t_nlte,
+                            Matrix&        abs_nlte,
                             Matrix&        abs_vmrs,
                             // WS Input:
                             const Numeric& rtp_pressure,
                             const Numeric& rtp_temperature,
-                            const Vector&  rtp_temperature_nlte,
+                            const Vector&  rtp_nlte,
                             const Vector&  rtp_vmr,
                             const Verbosity&)
 {
@@ -89,9 +89,9 @@ void AbsInputFromRteScalars(// WS Output:
   abs_t.resize(1);
   abs_t = rtp_temperature;
   
-  // Prepare abs_t_nlte:
-  abs_t_nlte.resize(rtp_temperature_nlte.nelem(),1);
-  abs_t_nlte = rtp_temperature_nlte;
+  // Prepare abs_nlte:
+  abs_nlte.resize(rtp_nlte.nelem(),1);
+  abs_nlte = rtp_nlte;
 
   // Prepare abs_vmrs:
   abs_vmrs.resize(rtp_vmr.nelem(),1);
@@ -1699,25 +1699,10 @@ void abs_xsec_per_speciesInit(// WS Output:
           src_xsec_per_species[i].resize(0, 0);
       }
      
-     if(do_jac)
-     {
-         dabs_xsec_per_species_dx[ii].resize(jacobian_quantities_position.nelem());
-         if(nlte_do)
-             dsrc_xsec_per_species_dx[ii].resize(jacobian_quantities_position.nelem());
-         
-         for(Index jj=0;jj<jacobian_quantities_position.nelem();jj++)
-         {
-             if(jacobian_quantities[jacobian_quantities_position[jj]] not_eq JacPropMatType::NotPropagationMatrixType)
-             {
-                 dabs_xsec_per_species_dx[ii][jj].resize( f_grid.nelem(), abs_p.nelem() );
-                 dabs_xsec_per_species_dx[ii][jj] = 0.0;
-                 if (nlte_do)
-                 {
-                     dsrc_xsec_per_species_dx[ii][jj].resize( f_grid.nelem(), abs_p.nelem() );
-                     dsrc_xsec_per_species_dx[ii][jj] = 0.0;
-                 }
-             }
-         }
+     if(do_jac) {
+       dabs_xsec_per_species_dx[ii] = ArrayOfMatrix(jacobian_quantities_position.nelem(), Matrix(f_grid.nelem(), abs_p.nelem(), 0.0));
+        if(nlte_do)
+          dsrc_xsec_per_species_dx[ii] = ArrayOfMatrix(jacobian_quantities_position.nelem(), Matrix(f_grid.nelem(), abs_p.nelem(), 0.0));
      }
      
     }
@@ -1743,7 +1728,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                   const Vector&                    f_grid,
                                   const Vector&                    abs_p,
                                   const Vector&                    abs_t,
-                                  const Matrix&                    abs_t_nlte,
+                                  const Matrix&                    abs_nlte,
                                   const Numeric&                   lm_p_lim,
                                   const Matrix&                    abs_vmrs,
                                   const ArrayOfArrayOfLineRecord&  abs_lines_per_species,
@@ -1961,7 +1946,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                              f_grid,
                              abs_p,
                              abs_t,
-                             abs_t_nlte,
+                             abs_nlte,
                              abs_vmrs,
                              tgs,
                              i,
@@ -1985,14 +1970,14 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                                  src_xsec_per_species[i],
                                                  dummy_phase,
                                                  do_jac?dabs_xsec_per_species_dx[i]:dummy,
-                                                 abs_t_nlte.empty()?dummy:dsrc_xsec_per_species_dx[i],
+                                                 abs_nlte.empty()?dummy:dsrc_xsec_per_species_dx[i],
                                                  dummy,
                                                  jacobian_quantities,
                                                  jacobian_quantities_position,
                                                  f_grid,
                                                  abs_p,
                                                  abs_t,
-                                                 abs_t_nlte,
+                                                 abs_nlte,
                                                  abs_vmrs,
                                                  tgs,
                                                  i,
@@ -3319,7 +3304,7 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
                                     const ArrayOfRetrievalQuantity& jacobian_quantities,
                                     const Numeric& rtp_pressure,
                                     const Numeric& rtp_temperature,
-                                    const Vector& rtp_temperature_nlte,
+                                    const Vector& rtp_nlte,
                                     const Vector& rtp_vmr,
                                     const Agenda& abs_xsec_agenda,
                                     // Verbosity object:
@@ -3332,7 +3317,7 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
   // Output of AbsInputFromRteScalars:
   Vector        abs_p;
   Vector        abs_t;
-  Matrix        abs_t_nlte;
+  Matrix        abs_nlte;
   Matrix        abs_vmrs;
   // Output of abs_h2oSet:
   Vector          abs_h2o;
@@ -3342,11 +3327,11 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
     
   AbsInputFromRteScalars(abs_p,
                          abs_t,
-                         abs_t_nlte,
+                         abs_nlte,
                          abs_vmrs,
                          rtp_pressure,
                          rtp_temperature,
-                         rtp_temperature_nlte,
+                         rtp_nlte,
                          rtp_vmr,
                          verbosity);
   
@@ -3372,7 +3357,7 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
                          f_grid,
                          abs_p,
                          abs_t,
-                         abs_t_nlte,
+                         abs_nlte,
                          abs_vmrs,
                          abs_xsec_agenda);
   
@@ -3386,7 +3371,7 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
   
   // Now add abs_coef_per_species to propmat_clearsky:
   propmat_clearskyAddFromAbsCoefPerSpecies(propmat_clearsky, dpropmat_clearsky_dx, abs_coef_per_species, dabs_coef_dx, verbosity);
-  
+
   // Now turn nlte_source from absorption into a proper source function
   if(not nlte_source.empty())
       nlte_sourceFromTemperatureAndSrcCoefPerSpecies(nlte_source, dnlte_dx_source, nlte_dsource_dx, 
@@ -3604,7 +3589,7 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
                                    const Vector& f_grid,
                                    const Vector& abs_p,
                                    const Vector& abs_t,
-                                   const Matrix& abs_t_nlte,
+                                   const Matrix& abs_nlte,
                                    const Numeric& lm_p_lim,
                                    const Index& xsec_speedup_switch,
                                    const Matrix& abs_vmrs,
@@ -3667,7 +3652,7 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
   }
   
   const bool do_jac = supports_propmat_clearsky(jacobian_quantities);
-  const bool do_lte = abs_t_nlte.empty();
+  const bool do_lte = abs_nlte.empty();
   const ArrayOfIndex jac_pos = equivlent_propmattype_indexes(jacobian_quantities);
   
   // Skipping uninteresting data
@@ -3717,7 +3702,7 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
                     f_grid,
                     abs_p,
                     abs_t,
-                    abs_t_nlte,
+                    abs_nlte,
                     abs_vmrs,
                     tgs,
                     i,

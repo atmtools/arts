@@ -1145,35 +1145,20 @@ void xml_read_from_stream(istream&              is_xml,
                           const Verbosity&      verbosity)
 {
   ArtsXMLTag tag(verbosity);
-  Index nelem;
-  Index stokes_dim;
-  Index nr_frequencies;
 
   tag.read_from_stream(is_xml);
   tag.check_name("PropagationMatrix");
-  tag.check_attribute("type", "ArrayOfVector");
 
-  pm.SetVectorType(false);
-  tag.get_attribute_value("nelem", nelem);
-  tag.get_attribute_value("nr_frequencies", nr_frequencies);
-  tag.get_attribute_value("stokes_dim", stokes_dim);
-  pm = PropagationMatrix(nr_frequencies, stokes_dim);
-
-  Index n;
   try
   {
-     for (n = 0; n < nelem; n++)
-     {
-       Tensor3 v;
-       xml_read_from_stream(is_xml, v, pbifs, verbosity);
-       pm.GetData()(joker, joker, joker, n) = v;
-     }
+    Tensor4 d;
+    xml_read_from_stream(is_xml, d, pbifs, verbosity);
+    pm = PropagationMatrix(d);
   }
   catch (runtime_error e)
   {
     ostringstream os;
     os << "Error reading PropagationMatrix: "
-    << "\n Element: " << n
     << "\n" << e.what();
     throw runtime_error(os.str());
   }
@@ -1202,17 +1187,11 @@ void xml_write_to_stream(ostream&                    os_xml,
   open_tag.set_name("PropagationMatrix");
   if (name.length())
     open_tag.add_attribute("name", name);
-
-  open_tag.add_attribute("type", "ArrayOfVector");
-  open_tag.add_attribute("nelem", pm.NumberOfNeededVectors());
-  open_tag.add_attribute("nr_frequencies", pm.NumberOfFrequencies());
-  open_tag.add_attribute("stokes_dim", pm.StokesDimensions());
-
+  
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (Index n = 0; n < pm.NumberOfNeededVectors(); n++)
-    xml_write_to_stream(os_xml, pm.GetData()(joker, joker, joker, n), pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, pm.GetData(), pbofs, "", verbosity);
 
   close_tag.set_name("/PropagationMatrix");
   close_tag.write_to_stream(os_xml);
@@ -2114,35 +2093,20 @@ void xml_read_from_stream(istream&              is_xml,
                           const Verbosity&      verbosity)
 {
   ArtsXMLTag tag(verbosity);
-  Index nelem;
-  Index nr_frequencies;
-  Index stokes_dim;
 
   tag.read_from_stream(is_xml);
   tag.check_name("StokesVector");
-  tag.check_attribute("type", "ArrayOfVector");
 
-  tag.get_attribute_value("nelem", nelem);
-  tag.get_attribute_value("nr_frequencies", nr_frequencies);
-  tag.get_attribute_value("stokes_dim", stokes_dim);
-  sv = StokesVector(nr_frequencies, stokes_dim);
-  sv.SetVectorType(true);
-
-  Index n;
   try
   {
-     for (n = 0; n < nelem; n++)
-     {
-       Tensor3 v;
-       xml_read_from_stream(is_xml, v, pbifs, verbosity);
-       sv.GetData()(joker, joker, joker, n) = v;
-     }
+    Tensor4 d;
+    xml_read_from_stream(is_xml, d, pbifs, verbosity);
+    sv = StokesVector(d);
   }
   catch (runtime_error e)
   {
     ostringstream os;
     os << "Error reading StokesVector: "
-    << "\n Element: " << n
     << "\n" << e.what();
     throw runtime_error(os.str());
   }
@@ -2172,18 +2136,10 @@ void xml_write_to_stream(ostream&                    os_xml,
   if (name.length())
     open_tag.add_attribute("name", name);
 
-  open_tag.add_attribute("type", "ArrayOfTensor3");
-  open_tag.add_attribute("nelem", sv.NumberOfNeededVectors());
-  open_tag.add_attribute("stokes_dim", sv.StokesDimensions());
-  open_tag.add_attribute("nr_frequencies", sv.NumberOfFrequencies());
-  open_tag.add_attribute("nr_zenith_angles", sv.NumberOfZenithAngles());
-  open_tag.add_attribute("nr_azimuth_angles", sv.NumberOfAzimuthAngles());
-
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-   for (Index n = 0; n < sv.NumberOfNeededVectors(); n++)
-     xml_write_to_stream(os_xml, sv.GetData()(joker, joker, joker, n), pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, sv.GetData(), pbofs, "", verbosity);
 
   close_tag.set_name("/StokesVector");
   close_tag.write_to_stream(os_xml);

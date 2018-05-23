@@ -31,6 +31,7 @@
 #define m_extract_h
 
 #include "array.h"
+#include "quantum.h"
 #include "exceptions.h"
 #include "matpackV.h"
 #include "gridded_fields.h"
@@ -235,6 +236,20 @@ void Extract(
   // through all members of the structure to resize them. That is not
   // necessary, since sizes are adjusted automatically.
   m = agf4[index];
+}
+
+void Extract(
+  // WS Generic Output:
+  QuantumIdentifier&         qi,
+  // WS Input:
+  // WS Generic Input:
+  const ArrayOfQuantumIdentifier&   aoqi,
+  const Index&     index,
+  const Verbosity&)
+{
+  if(index > aoqi.nelem() or index < 0)
+    throw std::runtime_error("Bad index");
+  qi = aoqi[index];
 }
 
 
