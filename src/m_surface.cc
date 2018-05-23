@@ -973,6 +973,7 @@ void surfaceTelsem(
     const Vector&           rtp_los,
     const Numeric&          surface_skin_t,
     const TelsemAtlas&      atlas,
+    const Numeric&          d_max,
     const Verbosity&        verbosity )
 {
   // Input checks
@@ -1001,13 +1002,27 @@ void surfaceTelsem(
   }
   chk_if_in_range("Longitude input to TELSEM2", lon,  0.0, 360.0);
 
-  Index cellnumber = atlas.calc_cellnum(lat, lon);
-
-  // Check if cell is in atlas.
-  if (!atlas.contains(cellnumber)) {
-      String error_message = "Position (" + std::to_string(lat) + ", " + std::to_string(lon) + ")"
-          + " is not a land surface in the TELSEM atlas.";
-      throw std::runtime_error(error_message);
+  Index cellnumber = 0;
+  if (d_max <= 0.0) {
+      cellnumber = atlas.calc_cellnum(lat, lon);
+      // Check if cell is in atlas.
+      if (!atlas.contains(cellnumber)) {
+          throw std::runtime_error("Given coordinates are not contained in "
+                                   " TELSEM atlas. To enable nearest neighbor"
+                                   "interpolation set *d_max* to a positive "
+                                   "value.");
+      }
+  } else {
+      cellnumber = atlas.calc_cellnum_nearest_neighbor(lat, lon);
+      Numeric lat_nn, lon_nn;
+      std::tie(lat_nn, lon_nn) = atlas.get_coordinates(cellnumber);
+      Numeric d = sphdist(lat, lon, lat_nn, lon_nn);
+      if (d > d_max) {
+          std::ostringstream out{};
+          out << "Distance of nearest neighbor exceeds provided limit (";
+          out << d << " > " << d_max << ").";
+          throw std::runtime_error(out.str());
+      }
   }
 
   Index class1 = atlas.get_class1(cellnumber);

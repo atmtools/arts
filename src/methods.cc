@@ -16915,9 +16915,20 @@ void define_md_data_raw()
          " - The input frequencies (*f_grid*) must be within the range [5 GHz, 900 GHz]\n"
          " - The skin temperature (*surface_skin_t*) must be within the range\n"
          "   [180 K, 360 K]\n"
-         "Moreover, the pencil beam must hit the surface at a location that is classified\n"
-         "as a land surface in the TELSEM atlas. To classify a location as ocean or land\n"
-         "surface according to the TELSEM atlas, see the *telsemSurfaceTypeLandSea* WSM.\n"
+         "\n"
+         "A TELSEM atlas contains only suface emissivities for locations that are\n"
+         "classified as land. By default this WSM will throw an error if the\n"
+         "pencil beam hits the surface at a position that is not contained in the\n"
+         "given atlas.\n"
+         "\n"
+         "The above behavior can be avoided by setting *d_max* to a positive value.\n"
+         "This enables nearest neighbor interpolation, which assigns the emissivities\n"
+         "of the nearest found cell in the atlas to the given position. In this case,\n"
+         "an error is only thrown if the distance of the found neighbor is higher\n"
+         "than the provided value of *d_max.\n"
+         "\n"
+         "To extract a land-sea mask from a given telsem atlas see the WSM\n"
+         " *telsemSurfaceTypeLandSea*.\n"
          ),
         AUTHORS( "Simon Pfreundschuh" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
@@ -16926,10 +16937,13 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmosphere_dim", "stokes_dim", "f_grid", "lat_grid", "lat_true",
             "lon_true", "rtp_pos", "rtp_los", "surface_skin_t"),
-        GIN("atlas"),
-        GIN_TYPE("TelsemAtlas"),
-        GIN_DEFAULT(NODEF),
-        GIN_DESC("The Telsem atlas to use for the emissivity calculation.")
+        GIN("atlas", "d_max"),
+        GIN_TYPE("TelsemAtlas", "Numeric"),
+        GIN_DEFAULT(NODEF, "-1.0"),
+        GIN_DESC("The Telsem atlas to use for the emissivity calculation.",
+                 "Maximum allowed distance in meters for nearest neighbor"
+                 " interpolation. Set to a negative value or zero to disable"
+                 " interpolation.")
         ));
 
   md_data_raw.push_back
