@@ -3870,7 +3870,7 @@ void jacobianSetAffineTransformation(
       runtime_error("Dimension of offset vector incompatible with retrieval grids.");
     }
 
-    jqs.back().SetTransformationMatrix(transformation_matrix);
+    jqs.back().SetTransformationMatrix(transpose(transformation_matrix));
     jqs.back().SetOffsetVector(offset_vector);
 }
 

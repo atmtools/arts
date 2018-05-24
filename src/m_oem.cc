@@ -567,7 +567,7 @@ void xaStandard(
   ArrayOfArrayOfIndex ji;
   {
     bool any_affine;
-    jac_ranges_indices( ji, any_affine,  jacobian_quantities );
+    jac_ranges_indices( ji, any_affine,  jacobian_quantities, true);
   }
   
   // Sizes
@@ -871,7 +871,7 @@ void x2artsStandard(
   ArrayOfArrayOfIndex ji;
   {
     bool any_affine;
-    jac_ranges_indices( ji, any_affine, jacobian_quantities );
+    jac_ranges_indices( ji, any_affine, jacobian_quantities, true);
   }
   
   // Check input

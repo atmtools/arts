@@ -96,6 +96,19 @@
 
 2018-05-23 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
+	* arts-2-3-1056
+
+	* src/m_oem.cc (xaStandard, x2artsStandards):
+	- Fixed problem with calculation of jacobian range for
+	  affine transformations.
+
+	* src/m_retrieval (covmat_sxAddBlock):
+	- Added error handling for case when there are already more
+	diagonal block in the covariance matrix than there are
+	retrieval quantities.
+
+2018-05-23 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
 	* arts-2-3-1055
 
 	* src/methods.cc (covmat_sxSet):

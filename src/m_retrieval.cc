@@ -598,6 +598,10 @@ void covmat_sxAddBlock(CovarianceMatrix&               covmat_sx,
     if ((ii < 0) && (jj < 0)) {
         ii = covmat_sx.ndiagblocks();
         jj = ii;
+        if ((ii >= jq.nelem()) || (jj >= jq.nelem())) {
+                throw runtime_error("*covmat_sx* already contains more or as many diagonal"
+                                    " blocks as there are retrieval quantities.");
+        }
     } else if ((ii >= jq.nelem()) || (jj >= jq.nelem())) {
         throw runtime_error("The block indices must either be both -1 (default) or\n"
                             "non-negative and smaller than the number of retrieval \n"
