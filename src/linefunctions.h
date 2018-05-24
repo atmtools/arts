@@ -143,7 +143,7 @@ namespace Linefunctions
     const Numeric& LM_DF() const {return mDV;}
     const SpectroscopyDerivivatives& operator()(const Index& id) const {return mspectroscopy_derivatives[id];}
     
-    friend std::ostream& Linefunctions::operator<<(std::ostream& os, const SingleLevelLineData& slld);
+    friend std::ostream& operator<<(std::ostream& os, const SingleLevelLineData& slld);
   private:
     Complex mC0, mdC0dT, mC2, mdC2dT, mLM, mdLMdT;  // Pressure broadening and line mixing in complex terms
     Numeric mFVC, mdFVCdT, meta;  // Pressure broadening terms for HTP

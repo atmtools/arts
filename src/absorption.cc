@@ -2586,7 +2586,8 @@ void xsec_species2(MatrixView xsec,
         const Range this_out_range(this_xsec_range.get_start(), extent);
 
         VectorView xsec_range_view = xsec(this_out_range, ip);
-        VectorView source_range_view = do_nonlte?source(this_out_range, ip):Vector(0);
+        Vector dummy_source;
+        VectorView source_range_view = do_nonlte?source(this_out_range, ip):dummy_source;
         
         const ComplexVectorView F_range_view = F[this_xsec_range];
         const ComplexVectorView N_range_view = do_nonlte?N[this_xsec_range]:N;

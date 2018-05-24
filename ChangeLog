@@ -1,3 +1,19 @@
+2018-05-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1058
+
+	* src/linefunctions.h (SingleLevelLineData):
+
+	Remove namespace from friend declaration. Compiler assumes same
+	namespace anyway. If the namespace is given explicitly the
+	function must be declared beforehand, not after. Fixes compilation
+	failure with Clang. Reported by Lukas.
+
+	* src/absorption.cc (xsec_species2):
+
+	Use a vector variable in ternary operator instead of a temporary
+	object. Fixes runtime error in TestVoigt when compiling with Clang.
+
 2018-05-23  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-1057
