@@ -812,7 +812,7 @@ void yActive(
   y_pol.resize( ntot );
   y_pos.resize( ntot, sensor_pos.ncols() );
   y_los.resize( ntot, sensor_los.ncols() );
-  y_geo.resize( ntot, atmosphere_dim );
+  y_geo.resize( ntot, 5 );
   y_geo = NAN;   // Will be replaced if relavant data are provided 
 
   // y_aux

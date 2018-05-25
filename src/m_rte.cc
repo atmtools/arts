@@ -61,6 +61,7 @@ extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
 extern const String ABSSPECIES_MAINTAG;
 extern const String SURFACE_MAINTAG;
+extern const String SCATSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 extern const String WIND_MAINTAG;
 extern const Index GFIELD4_FIELD_NAMES;
@@ -1812,6 +1813,7 @@ void yCalcAppend(
           // considered. Some special checks performed here, grids checked later
           if( jacobian_quantities2[q2].MainTag() == ABSSPECIES_MAINTAG   ||
               jacobian_quantities2[q2].MainTag() == TEMPERATURE_MAINTAG  ||
+              jacobian_quantities2[q2].MainTag() == SCATSPECIES_MAINTAG  ||
               jacobian_quantities2[q2].MainTag() == WIND_MAINTAG         ||
               append_instrument_wfs )
             {
