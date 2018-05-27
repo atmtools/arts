@@ -1030,7 +1030,7 @@ void iyHybrid(
     {
       iy_aux[i].resize(nf,ns); 
       
-      if( iy_aux_vars[i] == "Transmission" )
+      if( iy_aux_vars[i] == "Optical depth" )
         {} // Filled below
       else if( iy_aux_vars[i] == "Radiative background" )
         { iy_aux[i] = (Numeric)min( (Index)2, rbi-1 ); }
@@ -1270,11 +1270,10 @@ void iyHybrid(
 
   // Copy transmission to iy_aux 
   for( Index i=0; i<naux; i++ )
-    { if( iy_aux_vars[i] == "Transmission" )
+    { if( iy_aux_vars[i] == "Optical depth" )
         { for( Index iv=0; iv<nf; iv++ )
-            { for( Index is=0; is<ns; is++ )
-                { iy_aux[i](iv,is) = iy_trans_new(iv,is,is); }
-    }   }   }
+            { iy_aux[i](iv,joker) = -log( ppvar_trans_cumulat(np-1,iv,0,0) ); }
+    }   } 
 
   // Radiative background
   get_iy_of_background( ws, iy, diy_dx, 
