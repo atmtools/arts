@@ -1,3 +1,13 @@
+2018-05-28  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1061
+
+	* src/m_retrieval.cc (retrievalDefInit):
+	- Added flag to disable call to jacobianInit(...).
+
+	* src/methods.cc (retrievalDefInit):
+	- Updated method description.
+
 2018-05-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1060

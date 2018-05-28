@@ -1127,9 +1127,12 @@ void retrievalDefInit(CovarianceMatrix& covmat_se,
                       Sparse&           covmat_inv_block,
                       ArrayOfRetrievalQuantity& jacobian_quantities,
                       Agenda& jacobian_agenda,
+                      const Index& initialize_jacobian,
                       const Verbosity& verbosity)
 {
-    jacobianInit(jacobian_quantities, jacobian_agenda, verbosity);
+    if (initialize_jacobian == 1) {
+        jacobianInit(jacobian_quantities, jacobian_agenda, verbosity);
+    }
 
     covmat_block = Sparse();
     covmat_inv_block = Sparse();

@@ -1901,7 +1901,6 @@ void define_md_data_raw()
     md_data_raw.push_back
     ( MdRecord
     ( NAME( "abs_xsec_per_speciesAddLines2" ),
-
       DESCRIPTION
       (
         "Calculates the line spectrum for both attenuation and phase\n"
@@ -14261,11 +14260,14 @@ void define_md_data_raw()
     ( NAME( "retrievalDefInit" ),
       DESCRIPTION
       (
-          "Initialises the variables needed for retrievals.\n"
+          "Begin retrieval definition section.\n"
           "\n"
-          "This function initialises all variables required for the jacobian\n"
-          "as well as the covariance matrices *covmat_sx* and *covmat_se*.\n"
-          "Must be called before any other retrieval definition WSM.\n"
+          "This function initialises all variables required for defining\n"
+          "retrieval quantities and corresponding covariance matrices.\n"
+          "By default, Jacobian quantities should be added withing the.\n"
+          "retrieval definition section. If Jacobian quantities are\n"
+          "defined separately *initialize_jacobian* must be set to 0,\n"
+          "otherwise the quantities will be discarded.\n"
           ),
       AUTHORS( "Simon Pfreundschuh" ),
       OUT( "covmat_se", "covmat_sx", "covmat_block", "covmat_inv_block",
@@ -14274,10 +14276,11 @@ void define_md_data_raw()
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()
+      GIN("initialize_jacobian"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("1"),
+      GIN_DESC("Flag whether or not to (re)initialize Jacobian-related\n"
+          "quantities. Set to 0 if Jacobian is already defined.")
         ));
 
   md_data_raw.push_back
@@ -18096,7 +18099,7 @@ void define_md_data_raw()
          "   - Windspeed (0-25) at 10m (m/s)\n"
          "     Higher wind speed can be used, but without garantee.\n"
          "   - Surface skin temperature (270-310) in K.\n"
-         "   - Salinity (0-40) in psu (practical salinity units or g/kg)\n"
+         "   - Salinity (0-0.04) in kg/kg\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
