@@ -27,6 +27,16 @@
 #include "legendre.h"
 #include "exceptions.h"
 
+void test_gsl_int()
+{
+  Vector x, w;
+
+  std::cout << gsl_integration_glfixed_table_alloc(x, w, 20) << std::endl;
+  std::cout << x << std::endl;
+  std::cout << w << std::endl << std::endl;
+}
+
+
 int
 main (int argc, char *argv[])
 {

@@ -36,6 +36,15 @@
 #include "arts.h"
 #include "matpackI.h"
 
+typedef struct
+{
+    size_t n;         /* number of points */
+    double *x;        /* Gauss abscissae/points */
+    double *w;        /* Gauss weights for each abscissae */
+    int precomputed;  /* high precision abscissae/weights precomputed? */
+}
+        gsl_integration_glfixed_table;
+
 Numeric
 legendre_poly (Index l, Index m, Numeric x);
 
@@ -71,6 +80,9 @@ g_legendre_poly_norm_schmidt_deriv3 (Index l, Index m, Numeric x);
 
 Numeric
 g_legendre_poly_norm_schmidt_deriv4 (Index l, Index m, Numeric x);
+
+bool
+gsl_integration_glfixed_table_alloc(Vector& x, Vector& w, Index n);
 
 #endif  /* legendre_h */
 

@@ -1,3 +1,17 @@
+2018-05-29  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1062
+
+	* src/legendre.{h,cc} (gsl_integration_glfixed_table_alloc):
+
+	Add function from the GSL to compute Gauss-Legendre abscissae and
+	weights necessary for an n-point fixed order integration scheme.
+	The function has been adapted to use ARTS datatypes.
+
+	* src/test_legendre.cc (test_gsl_int): Test g_i_g_t_a.
+
+	* license/GPLv3: Put GPLv3 here.
+
 2018-05-28  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1061
