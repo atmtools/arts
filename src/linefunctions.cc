@@ -290,12 +290,12 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
           dF(iq, iv) = d * Complex(0.0, 1.0);
         }
       }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]))
+      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR)
       {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
         {
           // Pressure broadening will be dealt with in another function, though the partial derivative
-          dF(iq, iv) = d;
+          dF(iq, iv) = d * Complex(0.0, -1.0);
         }
       }
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::MagneticMagnitude)
@@ -303,13 +303,6 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
         // Magnetic magnitude changes like line center in part
         // FIXME: Add magnetic components here
         dF(iq, iv) = d * Complex(0.0, zeeman_df);
-      }
-      else if(is_line_mixing_parameter(derivatives_data[derivatives_data_position[iq]]))
-      {
-        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-        {
-          dF(iq, iv) = d * Complex(0.0, -1.0);
-        }
       }
     }
   }
@@ -400,7 +393,6 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
   const Numeric dGD_dT = dGD_div_F0_dT * F0;
   
   // Index of derivative for first occurrence of similarly natured partial derivatives
-  const Index first_pressure_broadening = get_first_pressure_term_index(derivatives_data, derivatives_data_position);
   const Index first_frequency = get_first_frequency_index(derivatives_data, derivatives_data_position); 
   
   // Pressure broadening terms
@@ -637,7 +629,7 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
           
         dF(iq, iv) = invG * (invPI * dA - F[iv] * dG); 
       }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]]))
+      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter)
       {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
         {
@@ -685,62 +677,55 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
           dF(iq, iv) = invG * (invPI * dA - F[iv] * dG); 
         }
       }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]])) 
+      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) 
       {
         // NOTE:  These are first order Voigt-like.  
         // The variables that are not Voigt-like must be dealt with separately
         
-        if(quantum_identity > derivatives_data[derivatives_data_position[iq]] .QuantumIdentity())
+        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
         {
-          if(first_pressure_broadening == iq)
-          {
-            // Compute dZm
-            if(C2t_zero_limit or ratioXY_low_limit)
-              dZm = one_minus_eta * invGD;
-            else if(ratioXY_high_limit)
-              dZm = 0.5 / Zm * one_minus_eta * invC2t;
-            else
-              dZm = 0.5 * sqrtXY * one_minus_eta * invC2t;
+          // Compute dZm
+          if(C2t_zero_limit or ratioXY_low_limit)
+            dZm = one_minus_eta * invGD;
+          else if(ratioXY_high_limit)
+            dZm = 0.5 / Zm * one_minus_eta * invC2t;
+          else
+            dZm = 0.5 * sqrtXY * one_minus_eta * invC2t;
+          
+          // Compute dZp
+          if(C2t_zero_limit)
+          {/* Do nothing since Zp will be infinity large */}
+          else if(ratioXY_high_limit or ratioXY_low_limit)
+            dZp = 0.5 * sqrtXY * one_minus_eta * invC2t;
+          else
+            dZp = dZm;
+          
+          // Compute dW-minus 
+          dwiZm = 2.0 * (Zm * wiZm - sqrtInvPI) * dZm; // FIXME: test this for different asymptotes
+          
+          // Compute dW-plus
+          if(C2t_zero_limit)
+            dwiZp = Complex(0.0, 0.0);  // sqrtInvPI / Zp
+          else
+            dwiZp = 2.0 * (Zp * wiZp - sqrtInvPI) * dZp; // FIXME: test this for different asymptotes
             
-            // Compute dZp
-            if(C2t_zero_limit)
-            {/* Do nothing since Zp will be infinity large */}
-            else if(ratioXY_high_limit or ratioXY_low_limit)
-              dZp = 0.5 * sqrtXY * one_minus_eta * invC2t;
-            else
-              dZp = dZm;
-            
-            // Compute dW-minus 
-            dwiZm = 2.0 * (Zm * wiZm - sqrtInvPI) * dZm; // FIXME: test this for different asymptotes
-            
-            // Compute dW-plus
-            if(C2t_zero_limit)
-              dwiZp = Complex(0.0, 0.0);  // sqrtInvPI / Zp
-            else
-              dwiZp = 2.0 * (Zp * wiZp - sqrtInvPI) * dZp; // FIXME: test this for different asymptotes
-              
-            // Compute dA
-            if(ratioXY_high_limit)
-              dA = fac * (- dZm * wiZm - Zm * dwiZm);
-            else
-              dA = fac * (dwiZm - dwiZp);
-            
-            // Compute dG
-            if(eta_zero_limit)
-              dG = - FVC * dA;
-            else if(C2t_zero_limit)
-              dG = - (FVC - eta * C0_m1p5_C2) * dA + eta * A + C2 * fac * ((1.0 - Zm2)*dwiZm + dZm * sqrtInvPI - 2.0*Zm*dZm*wiZm);
-            else if (ratioXY_high_limit)
-              dG = - (FVC - eta*C0_m1p5_C2) * dA + eta * A + eta / one_minus_eta * (2.0 * sqrtPI * (1.0-X-2.0*Y) * (- dZm * wiZm - Zm * dwiZm) + 2.0 * sqrtPI * (-one_minus_eta * invC2t) * (sqrtInvPI - Zm * wiZm) + 2.0*sqrtPI*(dZp*wiZp+Zp*dwiZp));
-            else
-              dG = - (FVC - eta*C0_m1p5_C2) * dA + eta * A + eta / one_minus_eta * (sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*dwiZm - (1.0-Zp2)*dwiZp - 2.0*Zm*dZm*wiZm + 2.0*Zp*dZp*wiZp));
-            
-            dF(iq, iv) = invG * (invPI * dA - F[iv] * dG); 
-          }
-          else  // copy for repeated occurrences
-          {
-            dF(iq, iv) = dF(first_pressure_broadening, iv);
-          }
+          // Compute dA
+          if(ratioXY_high_limit)
+            dA = fac * (- dZm * wiZm - Zm * dwiZm);
+          else
+            dA = fac * (dwiZm - dwiZp);
+          
+          // Compute dG
+          if(eta_zero_limit)
+            dG = - FVC * dA;
+          else if(C2t_zero_limit)
+            dG = - (FVC - eta * C0_m1p5_C2) * dA + eta * A + C2 * fac * ((1.0 - Zm2)*dwiZm + dZm * sqrtInvPI - 2.0*Zm*dZm*wiZm);
+          else if (ratioXY_high_limit)
+            dG = - (FVC - eta*C0_m1p5_C2) * dA + eta * A + eta / one_minus_eta * (2.0 * sqrtPI * (1.0-X-2.0*Y) * (- dZm * wiZm - Zm * dwiZm) + 2.0 * sqrtPI * (-one_minus_eta * invC2t) * (sqrtInvPI - Zm * wiZm) + 2.0*sqrtPI*(dZp*wiZp+Zp*dwiZp));
+          else
+            dG = - (FVC - eta*C0_m1p5_C2) * dA + eta * A + eta / one_minus_eta * (sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*dwiZm - (1.0-Zp2)*dwiZp - 2.0*Zm*dZm*wiZm + 2.0*Zp*dZp*wiZp));
+          
+          dF(iq, iv) = invG * (invPI * dA - F[iv] * dG) * Complex(0.0, -1.0); 
         }
       }
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::MagneticMagnitude)
@@ -840,7 +825,6 @@ void Linefunctions::set_faddeeva_algorithm916(ComplexVectorView F,
   const Index nppd = derivatives_data_position.nelem();
   
   // For calculations
-  Numeric dx;
   Complex w, z, dw_over_dz, dz;
   
   // Doppler broadening and line center
@@ -855,77 +839,32 @@ void Linefunctions::set_faddeeva_algorithm916(ComplexVectorView F,
   // Ratio of the Lorentz halfwidth to the Doppler halfwidth
   const Complex z0 = Complex(-F0, G0) * invGD;
   
-  const Index first_pressure_broadening = get_first_pressure_term_index(derivatives_data, derivatives_data_position);
-  const Index first_frequency = get_first_frequency_index(derivatives_data, derivatives_data_position);
-  
   // frequency in units of Doppler
   #pragma omp simd
-  for (Index iv=0; iv<nf; iv++)
-  {
-    dx = f_grid[iv] * invGD;
-    z = z0 + dx;
+  for (Index iv=0; iv<nf; iv++) {
+    z = z0 + f_grid[iv] * invGD;
     w = Faddeeva::w(z);
-    
     F[iv] = fac * w;
     
-    for(Index iq = 0; iq < nppd; iq++)
-    {
-      if(iq==0)
+    for(Index iq = 0; iq < nppd; iq++) {
+      if(iq==0)  // Standard basic form for all transitions
         dw_over_dz = 2.0 * fac *  (Complex(0, sqrtInvPI) - z * w);
       
+      // switch-like statement for all relevant partials in the xsec calculations
       if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
-      { 
-        // If this is the first time it is calculated this frequency bin, do the full calculation
-        if(first_frequency == iq)
-        {
-          //dz = Complex(invGD, 0.0);
-          
-          dF(iq, iv) = dw_over_dz * invGD; //dz; 
-        }
-        else  // copy for repeated occurrences
-        {
-          dF(iq, iv) = dF(first_frequency, iv);
-        }
-      }
+        dF(iq, iv) = dw_over_dz * invGD;
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-      {
-        dz = (Complex(-dL0_dT - dF0_dT, dG0_dT) - z * dGD_dT) * invGD;
-        
-        dF(iq, iv) = -F[iv] * dGD_dT * invGD;
-        dF(iq, iv) += dw_over_dz * dz;
-      }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]]))
-      {
+        dF(iq, iv) = -F[iv] * dGD_dT * invGD + dw_over_dz * ((Complex(-dL0_dT - dF0_dT, dG0_dT) - z * dGD_dT) * invGD);
+      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]])) {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-        {
-          dz = -invGD - z/F0;
-          
-          dF(iq, iv) = -F[iv]/F0;
-          dF(iq, iv) += dw_over_dz * dz;
-        }
+          dF(iq, iv) = -F[iv]/F0 + dw_over_dz * (-invGD - z/F0);
       }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]))
-      {
+      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-        {
-          // Note that if the species vmr partial derivative is necessary here is where it goes
-          if(first_pressure_broadening == iq)
-          {
-            dz = invGD;
-            dF(iq, iv) = dw_over_dz * dz; 
-          }
-          else
-          {
-            dF(iq, iv) = dF(first_pressure_broadening, iv);
-          }
-        }
+          dF(iq, iv) = dw_over_dz * invGD;
       }
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::MagneticMagnitude)// No external inputs --- errors because of frequency shift when Zeeman is used?
-      {
-        // dz = Complex(- zeeman_df * invGD, 0.0);
-        
-        dF(iq, iv) = dw_over_dz * (- zeeman_df * invGD); //* dz; 
-      }
+        dF(iq, iv) = dw_over_dz * (- zeeman_df * invGD); //* dz;
     }
   }
 }
@@ -1013,7 +952,7 @@ void Linefunctions::set_doppler(ComplexVectorView F, // Sets the full complex li
         dF(iq, iv) = F[iv] * dGD_dT + x * dGD_dT * dw_over_dx;
         dF(iq, iv) *= -invGD ;
       }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]]))
+      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter)
       {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
         {
@@ -1078,9 +1017,6 @@ void Linefunctions::set_faddeeva_from_full_linemixing(ComplexVectorView F,
   // Ratio of the Lorentz halfwidth to the Doppler halfwidth
   const Complex z0 = -eigenvalue * invGD;
   
-  const Index first_pressure_broadening = get_first_pressure_term_index(derivatives_data, derivatives_data_position);
-  const Index first_frequency = get_first_frequency_index(derivatives_data, derivatives_data_position);
-  
   // frequency in units of Doppler
   #pragma omp simd
   for (Index iv=0; iv<nf; iv++)
@@ -1097,19 +1033,7 @@ void Linefunctions::set_faddeeva_from_full_linemixing(ComplexVectorView F,
         dw_over_dz = 2.0 * (z * w - sqrtInvPI);
       
       if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]] ))
-      { 
-        // If this is the first time it is calculated this frequency bin, do the full calculation
-        if(first_frequency == iq)
-        {
-          //dz = Complex(invGD, 0.0);
-          
-          dF(iq, iv) = fac * dw_over_dz * invGD; //dz; 
-        }
-        else  // copy for repeated occurrences
-        {
-          dF(iq, iv) = dF(first_frequency, iv); 
-        }
-      }
+        dF(iq, iv) = fac * dw_over_dz * invGD;
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
       {
         dz = (deigenvalue_dT - dL0_dT) - z * dGD_dT;
@@ -1129,21 +1053,10 @@ void Linefunctions::set_faddeeva_from_full_linemixing(ComplexVectorView F,
           dF(iq, iv) *= fac * invGD;
         }
       }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]))
+      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR)
       {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-        {
-          // Note that if the species vmr partial derivative is necessary here is where it goes
-          if(first_pressure_broadening == iq)
-          {
-            dz = Complex(-1.0, 1.0) * invGD;
-            dF(iq, iv) = fac * dw_over_dz * dz; 
-          }
-          else
-          {
-            dF(iq, iv) = dF(first_frequency, iv); 
-          }
-        }
+          dF(iq, iv) = fac * dw_over_dz * ( Complex(-1.0, 1.0) * invGD);
       }
     }
     
@@ -1625,7 +1538,7 @@ void Linefunctions::apply_pressurebroadening_jacobian_scaling(ComplexMatrixView 
   {
     if(ipd == ng) break;
     
-    if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]))
+    if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR)
     {
       if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
       {
@@ -4025,10 +3938,10 @@ inline Complex Linefunctions::SingleLevelLineData::htp_B(const Complex& w1, cons
 
 
 inline Complex Linefunctions::SingleLevelLineData::htp_dBdt(const Complex& w1, const Complex& dw1,
-                                                     const Complex& w2, const Complex& dw2,
-                                                     const Complex& z1, const Complex& dz1,
-                                                     const Complex& z2, const Complex& dz2,
-                                                     const Numeric& ratio_xy, const bool for_temperature) const noexcept
+                                                            const Complex& w2, const Complex& dw2,
+                                                            const Complex& z1, const Complex& dz1,
+                                                            const Complex& z2, const Complex& dz2,
+                                                            const Numeric& ratio_xy, const bool for_temperature) const noexcept
 {
   if(mC2t_is_zero)  // In original equation, this term is unimportant because eta * C2 is 0
     return Complex(0.0, 0.0);

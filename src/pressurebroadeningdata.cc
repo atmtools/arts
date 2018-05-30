@@ -127,14 +127,24 @@ void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives,
 {
   const Index nppd = ppd.nelem();
   
-  ComplexVector res(10);
+  ComplexVector res(11);
   Numeric results1, results2;
   Index ipd = 0;
   
   // nb that continue is here to not count wrongly the number of parameters
   for(Index iq = 0; iq < nppd; iq++)
   {
-    if(ppd[iq] == JacPropMatType::LineGammaSelf)
+    if(ppd[iq] == JacPropMatType::VMR)
+    {
+      if(QI > ppd[iq].QuantumIdentity())
+      {
+        GetPressureBroadeningParams_dSelfVMR(results1, results2, theta, pressure);
+        res[ipd] = Complex(-results2, results1);
+      }
+      else 
+        continue;
+    }
+    else if(ppd[iq] == JacPropMatType::LineGammaSelf)
     {
       if(QI > ppd[iq].QuantumIdentity())
       {
@@ -507,6 +517,34 @@ void PressureBroadeningData::GetPressureBroadeningParams_dWaterExponent(Numeric&
     }
 }
 
+// Get VMR influence
+void PressureBroadeningData::GetPressureBroadeningParams_dSelfVMR(Numeric& gamma_dvmr,
+                                                                  Numeric& split_dvmr,
+                                                                  const Numeric& theta,
+                                                                  const Numeric& pressure) const
+{
+    switch(mtype)
+    {
+        case PB_NONE:
+            // Note that this is oftentimes not wanted, but a valid case at low pressures
+            break;
+        case PB_AIR_BROADENING:
+          gamma_dvmr = pressure * ( -mdata[2][0] * pow(theta,mdata[3][0]) + mdata[0][0] * pow(theta,mdata[1][0]));
+          split_dvmr = 0.0;
+          break;
+        case PB_AIR_AND_WATER_BROADENING:
+          gamma_dvmr = pressure * (- mdata[1][0] * pow(theta,mdata[1][1]) + mdata[0][0] * pow(theta,mdata[0][1]));
+          split_dvmr = pressure * (- mdata[1][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[1][1]) + mdata[0][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[0][1]));
+          break;
+        case PB_PLANETARY_BROADENING:
+          gamma_dvmr = mdata[0][0] * pow(theta, mdata[1][0]) * pressure;
+          split_dvmr = 0.0;
+          break;
+        default:
+          throw std::runtime_error("You have defined an unknown broadening mechanism.\n");
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////
 // Get air broadening
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -628,8 +666,6 @@ void PressureBroadeningData::GetAirAndWaterBroadening(Numeric& gamma,
         deltaf  =
         mdata[1][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[1][1]) * (pressure-self_pressure)
         + mdata[0][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[0][1]) *         self_pressure;
-        
-//         out2 << "You have no H2O in species but you use water-broadened line shape.\n";
     }
     else
     {
@@ -677,8 +713,6 @@ void PressureBroadeningData::GetAirAndWaterBroadening_dT(Numeric& dgamma_dT,
         ddeltaf_dT  = - (
         ((Numeric)0.25+(Numeric)1.5*mdata[1][1]) * mdata[1][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[1][1]) * (pressure-self_pressure)
         + ((Numeric)0.25+(Numeric)1.5*mdata[0][1]) * mdata[0][2] * pow(theta,(Numeric)0.25+(Numeric)1.5*mdata[0][1]) *         self_pressure) / T;
-        
-//         out2 << "You have no H2O in species but you use water-broadened line shape.\n";
     }
     else
     {

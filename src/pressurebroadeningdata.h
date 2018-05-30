@@ -474,6 +474,10 @@ public:
                                            const Numeric& theta,
                                            const Numeric& pressure,
                                            const Numeric& self_pressure) const;
+    void GetPressureBroadeningParams_dSelfVMR(Numeric& gamma_dvmr,
+                                              Numeric& split_dvmr,
+                                              const Numeric& theta,
+                                              const Numeric& pressure) const;
 
     /**
     Air and water broadening calculations                              *

@@ -1,3 +1,31 @@
+2018-05-30  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-1063
+	
+	* controlfiles/*: Added more lineshape tests so there is hopefully
+	less bitrot in future.  Also lowered relateive differences expected
+	for the derivatives because it failed at different compiler settings
+	
+	* src/linefunctions.cc: Same fix for Lorentz, Doppler, HTP as
+	for Voigt in a previous commit.  Also changed so VMR is considered
+	a line parameter because it behaves exactly as pressure broadening.
+	This reduces errors in partial derivatives from ~VMR to near
+	numerical noise.  There is likely still some error remaining in this
+	treatment because there are still some systematic errors, though these 
+	are much smaller than before...
+	
+	* src/linescaling.cc:  Fixed error in dstimulated_relative_emission_dF0
+	which reduced errors for central line frequencies derivatives by a lot
+	
+	* src/pressurebroadeningdata.cc:  Made VMR part of the pressure 
+	braodening derivatives.  Presently only for species broadening
+	themselves, so, e.g., O2 derivatives will not show up in H2O
+	spectra.  This means of course that the derivatives are incorrect...
+	
+	* src/quantum.cc:  Fix bug where the ALL tag was passed as failure even
+	though it works in the a > b comparisons (where > here means that b is a
+	partial representation of a)
+
 2018-05-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1062

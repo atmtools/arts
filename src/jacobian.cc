@@ -2064,7 +2064,7 @@ bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js)
 bool do_pressure_jacobian(const ArrayOfRetrievalQuantity& js) 
 {
   for(const auto& j : js)
-    if(is_pressure_broadening_parameter(j))
+    if(is_pressure_broadening_parameter(j) or j == JacPropMatType::VMR)
       return true;
   return false;
 }

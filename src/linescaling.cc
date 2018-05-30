@@ -541,7 +541,10 @@ Numeric dstimulated_relative_emission_dF0(const Numeric& gamma,
   extern const Numeric BOLTZMAN_CONST;
   static const Numeric c = - PLANCK_CONST / BOLTZMAN_CONST;
   
-  return c*(1. - gamma) * gamma / (T0*(1 - gamma_ref)*(1 - gamma_ref)) - c*gamma/(T*(1. - gamma_ref));
+  const Numeric g0 = 1-gamma_ref;
+  const Numeric g  = 1-gamma;
+  
+  return c * (g*gamma_ref/(T0*g0*g0) - gamma/(T*g0));
 }
 
 

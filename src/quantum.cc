@@ -97,8 +97,10 @@ bool QuantumIdentifier::operator>(const QuantumIdentifier& other) const
     return false;
   if(miso not_eq other.miso)
     return false;
+  if(mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL)
+    return true;
   if(mqtype not_eq other.mqtype)
-    return false;
+    throw std::runtime_error("Can never compare different types of identifiers");
   
   Index qnri = 0;
   
@@ -148,12 +150,10 @@ bool QuantumIdentifier::operator>(const QuantumIdentifier& other) const
       }
       return true;
       break;
-    case QuantumIdentifier::ALL:
-      return true;
-      break;
     case QuantumIdentifier::NONE:
       return false;
       break;
+    case  QuantumIdentifier::ALL: // Must be caught earlier
     default:
       throw std::runtime_error("This is a developer error");
   }
@@ -167,8 +167,10 @@ bool QuantumIdentifier::operator<(const QuantumIdentifier& other) const
     return false;
   if(miso not_eq other.miso)
     return false;
+  if(mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL)
+    return true;
   if(mqtype not_eq other.mqtype)
-    return false;
+    throw std::runtime_error("Can never compare different types of identifiers");
   
   Index qnri = 0;
   
@@ -218,12 +220,10 @@ bool QuantumIdentifier::operator<(const QuantumIdentifier& other) const
       }
       return true;
       break;
-    case QuantumIdentifier::ALL:
-      return true;
-      break;
     case QuantumIdentifier::NONE:
       return false;
       break;
+    case  QuantumIdentifier::ALL: // Must be caught earlier
     default:
       throw std::runtime_error("This is a developer error");
   }

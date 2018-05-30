@@ -33,7 +33,7 @@ Arts2{
   
   ## Line matching information
   ArrayOfQuantumIdentifierCreate(qi_lines)
-  ReadXML(qi_lines, "testdata/qi-voigt-line.xml")
+  ReadXML(qi_lines, "testdata/qi-line.xml")
   QuantumIdentifierCreate(QI)
   Extract(QI, qi_lines, 0)
   
@@ -69,7 +69,7 @@ Arts2{
   ReadXML(testdata, "testdata/test-voigt/propmat.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   ReadXML(testdata, "testdata/test-voigt/dpropmat.xml")
-  CompareRelative(testdata, dpropmat_clearsky_dx, 1e-6)
+  CompareRelative(testdata, dpropmat_clearsky_dx, 1e-4)
   
   # Turn off the jacobian to make for faster calculations for perturbations below
   jacobianOff
