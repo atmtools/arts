@@ -1,5 +1,14 @@
 2018-05-30  Richard Larsson  <ric.larsson@gmail.com>
 
+	* arts-2-3-1065
+	
+	Testing to update numbers using non-native setup
+	(If this does work, there is something wrong with
+	my computer for Native build settings since Native
+	build settings works for Oliver.)
+
+2018-05-30  Richard Larsson  <ric.larsson@gmail.com>
+
 	* arts-2-3-1064
 	
 	Forgot controlfiles
