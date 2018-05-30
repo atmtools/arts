@@ -1,5 +1,11 @@
 2018-05-30  Richard Larsson  <ric.larsson@gmail.com>
 
+	* arts-2-3-1064
+	
+	Forgot controlfiles
+
+2018-05-30  Richard Larsson  <ric.larsson@gmail.com>
+
 	* arts-2-3-1063
 	
 	* controlfiles/*: Added more lineshape tests so there is hopefully
