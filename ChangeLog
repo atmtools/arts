@@ -1,4 +1,10 @@
-2018-05-30  Richard Larsson  <ric.larsson@gmail.com>
+2018-05-31  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-1068
+	
+	* CMakeLists.txt: Forgot to remove some testcode...
+
+2018-05-31  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-1067
 	
