@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<ArrayOfLineRecord version="ARTSCAT-5" nelem="5">
+@ O2-66 99.995e9   1e-27 296 3e-20 0 3 1 PB N2 20000 0.8 10000 0.7 1000 0 0 0 0 0 QN UP J 9 N 9 S 1   Lambda 0 v1 0 Hund 1 LO J 8 N 7 S 1   Lambda 0 v1 0 Hund 1
+@ O2-66 99.9975e9  3e-27 296 3e-20 0 3 1 PB N2 20000 0.8 10000 0.7 1000 0 0 0 0 0 QN UP J 5 N 5 S 1   Lambda 0 v1 0 Hund 1 LO J 6 N 5 S 1   Lambda 0 v1 0 Hund 1
+@ O2-66 100e9      5e-28 296 3e-20 0 3 1 PB N2 20000 0.8 10000 0.7 1000 0 0 0 0 0 QN UP J 47 N 47 S 1 Lambda 0 v1 0 Hund 1 LO J 46 N 47 S 1 Lambda 0 v1 0 Hund 1
+@ O2-66 100.0025e9 9e-28 296 3e-20 0 3 1 PB N2 20000 0.8 10000 0.7 1000 0 0 0 0 0 QN UP J 8 N 9 S 1   Lambda 0 v1 0 Hund 1 LO J 8 N 7 S 1   Lambda 0 v1 0 Hund 1
+@ O2-66 100.005e9  2e-27 296 3e-20 0 3 1 PB N2 20000 0.8 10000 0.7 1000 0 0 0 0 0 QN UP J 1 N 1 S 1   Lambda 0 v1 0 Hund 1 LO J 0 N 1 S 1   Lambda 0 v1 0 Hund 1
+</ArrayOfLineRecord>
+</arts>
