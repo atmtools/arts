@@ -3821,7 +3821,7 @@ inline Complex Linefunctions::SingleLevelLineData::htp_dz1dt(const Complex& z1, 
   if(mC2t_is_zero)
     return dx;
   else if(ratio_xy > MAXIMUM_XY_RATIO)  //  Y less than X by a lot
-    return dx / (2 * z1);
+    return dx / (2. * z1);
   else if(ratio_xy < MINIMUM_XY_RATIO and for_temperature)  //  Y more than X by a lot
     return dx * mC2t * minvGD + z1 * (mdC2dT / mC2t - minvGD * mdGDdT);
   else if(ratio_xy < MINIMUM_XY_RATIO)  //  Y more than X by a lot
@@ -3933,7 +3933,7 @@ inline Complex Linefunctions::SingleLevelLineData::htp_B(const Complex& w1, cons
   else if(ratio_xy > MAXIMUM_XY_RATIO)  //  Y less than X by a lot;  z1 is sqrt(x), z2 is sqrt(x + y);  Note problem for large z1/z2!
     return meta / (1 - meta) * (-1. + 2 * sqrtPI * ((1. - z2*z2 - my) * (sqrtInvPI - z1 * w1) +  z2 * w2));
   else
-    return meta / (1 - meta) * (-1. + sqrtPI / (2 * msqrty) * ((1. - z1*z1) * w1 - (1. - z2*z2) * w2));
+    return meta / (1 - meta) * (-1. + sqrtPI / (2. * msqrty) * ((1. - z1*z1) * w1 - (1. - z2*z2) * w2));
 }
 
 
@@ -3950,9 +3950,9 @@ inline Complex Linefunctions::SingleLevelLineData::htp_dBdt(const Complex& w1, c
   else if(ratio_xy > MAXIMUM_XY_RATIO and for_temperature)  //  Y less than X by a lot;  z1 is sqrt(x), z2 is sqrt(x + y);  Note problem for large z1/z2!
     return meta / (1 - meta) * (2 * sqrtPI * ((- 2.0*dz2*z2) * (sqrtInvPI - z1 * w1) + (1. - z2*z2 - my) * (- dz1 * w1 - z1 * dw1) + dz2 * w2 + z2 * dw2));
   else if(for_temperature)
-    return meta / (1 - meta) * (sqrtPI / (2 * msqrty) * ((- 2.0*dz1*z1) * w1 + (1. - z1*z1) * dw1 - (- 2.0*dz2*z2) * w2 - (1. - z2*z2) * dw2) - mdydT * sqrtPI / (4 * my * msqrty) * ((1. - z1*z1) * w1 - (1. - z2*z2) * w2));
+    return meta / (1 - meta) * (sqrtPI / (2. * msqrty) * ((- 2.0*dz1*z1) * w1 + (1. - z1*z1) * dw1 - (- 2.0*dz2*z2) * w2 - (1. - z2*z2) * dw2) - mdydT * sqrtPI / (4. * my * msqrty) * ((1. - z1*z1) * w1 - (1. - z2*z2) * w2));
   else
-    return meta / (1 - meta) * (sqrtPI / (2 * msqrty) * ((- 2.0*dz1*z1) * w1 + (1. - z1*z1) * dw1 - (- 2.0*dz2*z2) * w2 - (1. - z2*z2) * dw2));
+    return meta / (1 - meta) * (sqrtPI / (2. * msqrty) * ((- 2.0*dz1*z1) * w1 + (1. - z1*z1) * dw1 - (- 2.0*dz2*z2) * w2 - (1. - z2*z2) * dw2));
     
 }
 
