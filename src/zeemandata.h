@@ -29,97 +29,57 @@
 #include "mystring.h"
 #include "quantum.h"
 
-enum class ZeemanSplittingType : Index { None, ByHund, ByGData, ByPrecalc };
-enum class ZeemanPolarizationType : Index { None, Pi, SigmaPlus, SigmaMinus };
+enum class ZeemanPolarizationType : Index { SigmaMinus=-1, Pi=0, SigmaPlus=1, None };
 
 class ZeemanEffectData 
 {
 public:
-  enum class ByPrecalcPos : Index { DF=0, LEN=1 };
-  enum class ByGDataPos : Index { GU=0, GL=1, LEN=2 };
-  enum class ByHundPos : Index { LEN=0 };
-  enum class NonePos : Index { LEN=0 };
   
-  ZeemanEffectData() : msplit(ZeemanSplittingType::None), mpolar(ZeemanPolarizationType::None), mdata(Index(NonePos::LEN)) {}
+  ZeemanEffectData() : mpolar(ZeemanPolarizationType::None), mgu(0), mgl(0), mnelem(1), mMu(1, 1), mMl(1, 1), mS0(1, 1) {};
+  ZeemanEffectData(const QuantumIdentifier& qi, const ZeemanPolarizationType polarization);
+  ZeemanEffectData(const Numeric& gu, const Numeric& gl, const QuantumIdentifier& qi, const ZeemanPolarizationType polarization);
   
-  ZeemanSplittingType SplittingType() const { return msplit; };
-  ZeemanPolarizationType PolarizationType() const { return mpolar; };
+  // Access to data for settings and iterations
+  ZeemanPolarizationType PolarizationType() const {return mpolar;}
+  const Numeric& UpperG() const { return mgu; }
+  const Numeric& LowerG() const { return mgl; }
+  Numeric& UpperG() { return mgu; }
+  Numeric& LowerG() { return mgl; }
+  Index nelem() const { return mnelem; }
   
-  bool ok() const
+  Numeric SplittingConstant(const Index i) const;
+  Numeric StrengthScaling(const Index i) const {return mS0[i];}
+  Numeric SumStrengthScale() const {return mS0.sum();}
+  
+  Rational Mu(const Index i) const {return mMu[i];}
+  Rational Ml(const Index i) const {return mMl[i];}
+  
+  void SetPolarizationTypeFromString(const String& t)
   {
-    if(not (nelem() == mdata.nelem())) return false;
-    return true;
-  };
+    if(t=="PI")      mpolar = ZeemanPolarizationType::Pi; 
+    else if(t=="SM") mpolar = ZeemanPolarizationType::SigmaMinus; 
+    else if(t=="SP") mpolar = ZeemanPolarizationType::SigmaPlus;
+    else             mpolar = ZeemanPolarizationType::None;
+  }
   
-  Index nelem() const
+  String StringFromPolarizationType() const
   {
-    switch(msplit) {
-      case ZeemanSplittingType::None:        return Index(NonePos::LEN);
-      case ZeemanSplittingType::ByHund:      return Index(ByHundPos::LEN);
-      case ZeemanSplittingType::ByGData:     return Index(ByGDataPos::LEN);
-      case ZeemanSplittingType::ByPrecalc:   return Index(ByPrecalcPos::LEN);
-      default: throw std::runtime_error("cannot determine size of type");
+    switch(mpolar) { 
+      case ZeemanPolarizationType::SigmaMinus: return "SM";
+      case ZeemanPolarizationType::Pi:         return "PI";
+      case ZeemanPolarizationType::SigmaPlus:  return "SP";
+      case ZeemanPolarizationType::None:       return "NONE";
     }
-  };
-  
-  String SplittingTag() const noexcept
-  {
-    switch(msplit) {
-      case ZeemanSplittingType::ByHund: return "BH";
-      case ZeemanSplittingType::ByGData: return "BG";
-      case ZeemanSplittingType::ByPrecalc: return "DF";
-      case ZeemanSplittingType::None: default: return "NoSplit";
-    }
-  };
-  
-  String PolarizationTag() const noexcept
-  {
-    switch(mpolar) {
-      case ZeemanPolarizationType::Pi:         return "Pi";
-      case ZeemanPolarizationType::SigmaPlus:  return "S+";
-      case ZeemanPolarizationType::SigmaMinus: return "S-";
-      case ZeemanPolarizationType::None: default: return "NoPolarization";
-    }
-  };
-  
-  ConstVectorView Data() const { return mdata; };
-  
-  void setSplittingTag(const String& tag) 
-  {
-    if(tag == "BH") { msplit = ZeemanSplittingType::ByHund; mdata = Vector(Index(ByHundPos::LEN)); }
-    else if(tag == "BG") { msplit = ZeemanSplittingType::ByGData; mdata = Vector(Index(ByGDataPos::LEN), 0.0); }
-    else if(tag == "DF") { msplit = ZeemanSplittingType::ByPrecalc; mdata = Vector(Index(ByPrecalcPos::LEN), 0.0); }
-    else throw std::runtime_error("Cannot recognize provided Zeeman data type");
-  };
-  
-  void setPolarizationTag(const String& tag) 
-  {
-    if(tag == "NoPolarization") mpolar = ZeemanPolarizationType::None;
-    else if(tag == "Pi") mpolar = ZeemanPolarizationType::Pi;
-    else if(tag == "S+") mpolar = ZeemanPolarizationType::SigmaPlus;
-    else if(tag == "S-") mpolar = ZeemanPolarizationType::SigmaMinus;
-    else throw std::runtime_error("Cannot recognize provided Zeeman data type");
-  };
-  
-  void setDataFromVectorWithKnownSplittingTag(const ConstVectorView data)
-  {
-    mdata = data;
-    if(not ok())
-      throw std::runtime_error("Bad data for type");
-  };
-  
-  Numeric frequency_shift_per_tesla(const QuantumNumbers& upper, const QuantumNumbers& lower, const Index species) const;
-  
-  void convertNoneToHund(const QuantumNumbers& upper, const QuantumNumbers& lower);
-  
-  void setNumericalAndPolarization(const QuantumNumbers& upper, const QuantumNumbers& lower, const Index species);
-  
-  Index dM();
+  }
   
 private:
-  ZeemanSplittingType    msplit;
   ZeemanPolarizationType mpolar;
-  Vector                 mdata;
+  Numeric                mgu;
+  Numeric                mgl;
+  Index                  mnelem;
+  std::vector<Rational>  mMu;
+  std::vector<Rational>  mMl;
+  Vector                 mS0;
 };
 
 #endif /* zeemandata_h */

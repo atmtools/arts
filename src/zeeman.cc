@@ -355,7 +355,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                     const Matrix&  dplanck_BT,
                                                     const SpeciesAuxData& isotopologue_ratios, 
                                                     const SpeciesAuxData& partition_functions,
-                                                    const Matrix& abs_t_nlte, 
+                                                    const Matrix& abs_nlte, 
                                                     const Matrix& abs_vmrs, 
                                                     const Vector& abs_p,
                                                     const Vector& abs_t, 
@@ -461,7 +461,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
   
   xsec_species_line_mixing_wrapper(   attenuation,         source,         phase, 
                                       partial_attenuation, partial_source, partial_phase, flag_partials, flag_partials_positions,
-                                      f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
+                                      f_grid, abs_p, abs_t, abs_nlte, abs_vmrs, abs_species, 
                                       this_species, lr, H_mag,
                                       abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
                                       isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
@@ -471,7 +471,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
     
     xsec_species_line_mixing_wrapper(         attenuation_du,         source_du,         phase_du, 
                                               partial_attenuation, partial_source, partial_phase, ArrayOfRetrievalQuantity(0), ArrayOfIndex(0),
-                                              f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
+                                              f_grid, abs_p, abs_t, abs_nlte, abs_vmrs, abs_species, 
                                               this_species, lr, sqrt(dmag*dmag),
                                               abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
                                               isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
@@ -483,7 +483,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
     
     xsec_species_line_mixing_wrapper(         attenuation_dv,         source_dv,         phase_dv, 
                                               partial_attenuation, partial_source, partial_phase, ArrayOfRetrievalQuantity(0), ArrayOfIndex(0),
-                                              f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
+                                              f_grid, abs_p, abs_t, abs_nlte, abs_vmrs, abs_species, 
                                               this_species, lr, sqrt(dmag*dmag),
                                               abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
                                               isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
@@ -495,7 +495,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
     
     xsec_species_line_mixing_wrapper(         attenuation_dw,         source_dw,         phase_dw, 
                                               partial_attenuation, partial_source, partial_phase, ArrayOfRetrievalQuantity(0), ArrayOfIndex(0),
-                                              f_grid, abs_p, abs_t, abs_t_nlte, abs_vmrs, abs_species, 
+                                              f_grid, abs_p, abs_t, abs_nlte, abs_vmrs, abs_species, 
                                               this_species, lr, sqrt(dmag*dmag),
                                               abs_lineshape_ls,abs_lineshape_lsn,lm_p_lim,abs_lineshape_cutoff,
                                               isotopologue_ratios, partition_functions, verbosity ); // Now in cross section
@@ -1105,34 +1105,6 @@ void set_magnetic_parameters_derivative(
 }
 
 
-void alter_linerecord(LineRecord& new_LR,
-                      Numeric& Test_RS,
-                      const Numeric& old_LS,
-                      const Rational& J_up,
-                      const Rational& J_lo,
-                      const Rational& M_up,
-                      const Rational& M_lo)
-{
-    
-    // Test that we did not mess up somewhere
-    assert(abs(M_lo)<=J_lo);
-    assert(abs(M_up)<=J_up);
-    
-    // Find the relative strength
-    const Rational RS = relative_strength(M_lo, J_lo, (J_up-J_lo).toIndex(), (M_up-M_lo).toIndex());
-    
-    // Setup a test that the relative strength is reasonable
-    Test_RS += RS.toNumeric();
-    new_LR.setI0( old_LS * RS.toNumeric() );
-    
-    // Set quantum numbers
-    new_LR.SetQuantumNumberLower(QuantumNumberType::M, M_lo);
-    new_LR.SetQuantumNumberUpper(QuantumNumberType::M, M_up);
-    if(new_LR.ZeemanEffect().SplittingType() == ZeemanSplittingType::None)
-      new_LR.ZeemanEffect().convertNoneToHund(new_LR.UpperQuantumNumbers(), new_LR.LowerQuantumNumbers());
-}
-
-
 void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
                                     const ArrayOfArrayOfSpeciesTag& abs_species,
                                     const ArrayOfArrayOfLineRecord& abs_lines_per_species,
@@ -1143,117 +1115,40 @@ void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
   const static Numeric margin = 1e-4;
   
   // For all species
-  for(Index II = 0; II<abs_species.nelem(); II++)
-  {
+  for(Index II = 0; II<abs_species.nelem(); II++) {
     // If the species isn't Zeeman, look at the next species
     if(!is_zeeman(abs_species[II])) continue;
     
     // If there are no lines give up on this species
-    if(!abs_lines_per_species[II].nelem()) continue;
+    const Index nlines = abs_lines_per_species[II].nelem();
+    if(not nlines) continue;
     
     // One line record array per type of polarizer is created
-    aoaol.push_back(ArrayOfLineRecord()); // First is negative
-    aoaol.push_back(ArrayOfLineRecord()); // Second is 0
-    aoaol.push_back(ArrayOfLineRecord()); // Third is positive
+    aoaol.push_back(abs_lines_per_species[II]); // First is negative
+    aoaol.push_back(abs_lines_per_species[II]); // Second is 0
+    aoaol.push_back(abs_lines_per_species[II]); // Third is positive
     
     ArrayOfLineRecord& temp_abs_lines_sm = aoaol[aoaol.nelem()-3]; // sigma minus
     ArrayOfLineRecord& temp_abs_lines_pi = aoaol[aoaol.nelem()-2]; // pi
     ArrayOfLineRecord& temp_abs_lines_sp = aoaol[aoaol.nelem()-1]; // sigma plus
     
-    temp_abs_lines_sm.resize(0);
-    temp_abs_lines_sp.resize(0);
-    temp_abs_lines_pi.resize(0);
-    
-    temp_abs_lines_sm.reserve(250);
-    temp_abs_lines_sp.reserve(250);
-    temp_abs_lines_pi.reserve(250);
-    
     // Else loop over all the lines in the species.
-    for (Index ii = 0; ii < abs_lines_per_species[II].nelem(); ii++)
+    for (Index ii = 0; ii < nlines; ii++)
     {
       // local LineRecord
-      LineRecord temp_LR = abs_lines_per_species[II][ii];
-      const Numeric this_linestrength = temp_LR.I0();
-      Numeric RS_sum = 0.0; //Sum relative strength (which ought be close to one by the end)
+      temp_abs_lines_sm[ii].SetZeemanEffectData(ZeemanEffectData(temp_abs_lines_sm[ii].QuantumIdentity(), ZeemanPolarizationType::SigmaMinus));
+      temp_abs_lines_pi[ii].SetZeemanEffectData(ZeemanEffectData(temp_abs_lines_pi[ii].QuantumIdentity(), ZeemanPolarizationType::Pi));
+      temp_abs_lines_sp[ii].SetZeemanEffectData(ZeemanEffectData(temp_abs_lines_sp[ii].QuantumIdentity(), ZeemanPolarizationType::SigmaPlus));
       
-      // Quantum numbers
-      const Rational& J_up = temp_LR.UpperQuantumNumbers()[QuantumNumberType::J]; 
-      const Rational& J_lo = temp_LR.LowerQuantumNumbers()[QuantumNumberType::J];
-      
-      const bool upwards = J_lo > J_up;
-      const bool same = J_lo == J_up;
-      const Rational&  J    = (upwards ? J_up : J_lo);
-      
-      for ( Rational M = -J; M<=J; M++ )
-      {
-        /*
-         *                              Note that:
-         *                              sp := sigma plus,  which means DM =  1
-         *                              sm := sigma minus, which means DM = -1
-         *                              pi := planar,      which means DM =  0
-         */
-        if(upwards)
-        {
-          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M-1  );
-          temp_abs_lines_sm.push_back(temp_LR);
-          
-          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M    );
-          temp_abs_lines_pi.push_back(temp_LR);
-          
-          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M+1  );
-          temp_abs_lines_sp.push_back(temp_LR);
-        }
-        else if(same)
-        {
-          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M    );
-          temp_abs_lines_pi.push_back(temp_LR);
-          
-          if(M==-J)
-          {
-            alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M+1  );
-            temp_abs_lines_sp.push_back(temp_LR);
-          }
-          else if(M==J)
-          {
-            alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M-1  );
-            temp_abs_lines_sm.push_back(temp_LR);
-          }
-          else
-          {
-            alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M-1  );
-            temp_abs_lines_sm.push_back(temp_LR);                          
-            
-            alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M, M+1  );
-            temp_abs_lines_sp.push_back(temp_LR);
-          }
-        }
-        else /*if(downwards)*/
-        {
-          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M+1, M  );
-          temp_abs_lines_sm.push_back(temp_LR);
-          
-          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M  , M  );
-          temp_abs_lines_pi.push_back(temp_LR);
-          
-          alter_linerecord( temp_LR, RS_sum, this_linestrength, J_up, J_lo, M-1, M  );
-          temp_abs_lines_sp.push_back(temp_LR);
-        }
-      }
-      
-      if (abs(RS_sum - 1.0) > margin)
-      {
-        std::ostringstream os;
-        os << "The sum of relative strengths is not unity. This is problematic and "
-        "you should look into why this happens.\nIt is currently " << RS_sum 
-        << " with J_lo: "<<J_lo<<", J_up: "<<J_up<<" for line: "<< temp_LR <<"\n";
+      const Numeric rel_str = temp_abs_lines_sp[ii].ZeemanEffect().SumStrengthScale() + temp_abs_lines_sm[ii].ZeemanEffect().SumStrengthScale() + temp_abs_lines_pi[ii].ZeemanEffect().SumStrengthScale();
+      if(abs(rel_str - 1) > margin) {
+        ostringstream os;
+        os << "The lines\n" << temp_abs_lines_sm[ii] << temp_abs_lines_pi[ii] << temp_abs_lines_sp[ii]
+           << "The relative strength should be 1.0 but is " << rel_str << "\n";
         throw std::runtime_error(os.str());
       }
     }
   }
-  
-  for(auto& aol : aoaol)
-    for(auto& lr : aol)
-      lr.ZeemanEffect().setNumericalAndPolarization(lr.UpperQuantumNumbers(), lr.LowerQuantumNumbers(), lr.Species());
 }
 
 Index part_mag_strength(const ArrayOfRetrievalQuantity& flag_partials)

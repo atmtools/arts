@@ -204,17 +204,16 @@ bool QuantumIdentifier::operator<(const QuantumIdentifier& other) const
       return true;
       break;
     case QuantumIdentifier::ENERGY_LEVEL:
-      while (qnri != Index(QuantumNumberType::FINAL_ENTRY))
-      {
-        if(other.mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
-        {
-          if(not mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
+      while (qnri != Index(QuantumNumberType::FINAL_ENTRY)) {
+        if(other.mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined()) {
+          if(not mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined()) {
             return false;
+          }
         }
-        else 
-        {
-          if(other.mqm[ENERGY_LEVEL_INDEX][qnri] not_eq mqm[ENERGY_LEVEL_INDEX][qnri])
+        else if(not mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined()) {
+          if(other.mqm[ENERGY_LEVEL_INDEX][qnri] not_eq mqm[ENERGY_LEVEL_INDEX][qnri]) {
             return false;
+          }
         }
         qnri++;
       }

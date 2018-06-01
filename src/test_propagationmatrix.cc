@@ -173,7 +173,7 @@ void test_new_lineshapes()
   const ArrayOfIndex i_jacs = equivlent_propmattype_indexes(jacs);
   std::cout<<i_jacs<<"\n";
   
-  const Linefunctions::SingleLevelLineData leveldata(line, Vector(1, 1.0), Vector(0), T, P, H,0.0,1.0, QT, dQTdT, QT0, broadening_species, this_species, water_species, jacs, i_jacs);
+  const Linefunctions::SingleLevelLineData leveldata(line, Vector(1, 1.0), Vector(0), T, P, H,0.0,1.0, QT, dQTdT, QT0, broadening_species, this_species, water_species, 0, jacs, i_jacs);
   std::cout<<leveldata<<"\n";
   
   /*for(Numeric f=99e9; f<101e9; f+=100e4)*/ {
@@ -191,7 +191,7 @@ void test_new_lineshapes()
                                                      line, fv, Vector(1,1), Vector(0), P, T, 
                                                      Linefunctions::DopplerConstant(T, line.IsotopologueData().Mass()), P,
                                                      1.0, H, Linefunctions::dDopplerConstant_dT(T, line.IsotopologueData().Mass()),
-                                                     0.0, QT, dQTdT, QT0, broadening_species, this_species, water_species, Verbosity());
+                                                     0.0, QT, dQTdT, QT0, broadening_species, this_species, water_species, 0, Verbosity());
     std::cout<<F<<" "<<Fv[0]<<" "<<1.0-Fv[0]/F << "\n";
     std::cout<<dF[0]<<" "<<dFm(0,0)<<" "<<1.0-dFm(0,0)/dF[0] << "\n";
   }

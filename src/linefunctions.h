@@ -66,6 +66,7 @@ namespace Linefunctions
                         const ArrayOfIndex& broadening_species,
                         const Index this_species,
                         const Index water_species,
+                        const Index zeeman_index,
                         const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                         const ArrayOfIndex& derivatives_data_position=ArrayOfIndex());
     
@@ -267,11 +268,11 @@ namespace Linefunctions
                      const Numeric& temperature, 
                      const Numeric& pressure, 
                      const Numeric& pressure_limit_for_linemixing, 
-                     const Numeric& zeeman_df, 
                      const Numeric& magnetic_magnitude,
                      const ArrayOfIndex& broad_spec_locations,
                      const Index& this_species,
-                     const Index& water_species);
+                     const Index& water_species,
+                     const Index& zeeman_index);
   
   void set_lorentz(ComplexVectorView F, 
                    ComplexMatrixView dF, 
@@ -313,23 +314,23 @@ namespace Linefunctions
                const Numeric& deta_dT=0.0,
                const Numeric& dFVC_dT=0.0);
   
-  void set_faddeeva_algorithm916(ComplexVectorView F,
-                                 ComplexMatrixView dF,
-                                 ConstVectorView f_grid,
-                                 const Numeric& zeeman_df,
-                                 const Numeric& magnetic_magnitude,
-                                 const Numeric& F0_noshift,
-                                 const Numeric& GD_div_F0,
-                                 const Numeric& G0,
-                                 const Numeric& L0,
-                                 const Numeric& dF0,
-                                 const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
-                                 const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
-                                 const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                                 const Numeric& dGD_div_F0_dT=0.0,
-                                 const Numeric& dG0_dT=0.0,
-                                 const Numeric& dL0_dT=0.0,
-                                 const Numeric& ddF0_dT=0.0);
+  void set_voigt(ComplexVectorView F,
+                 ComplexMatrixView dF,
+                 ConstVectorView f_grid,
+                 const Numeric& zeeman_df,
+                 const Numeric& magnetic_magnitude,
+                 const Numeric& F0_noshift,
+                 const Numeric& GD_div_F0,
+                 const Numeric& G0,
+                 const Numeric& L0,
+                 const Numeric& dF0,
+                 const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                 const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
+                 const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
+                 const Numeric& dGD_div_F0_dT=0.0,
+                 const Numeric& dG0_dT=0.0,
+                 const Numeric& dL0_dT=0.0,
+                 const Numeric& ddF0_dT=0.0);
   
   void set_doppler(ComplexVectorView F,
                    ComplexMatrixView dF,
@@ -343,18 +344,18 @@ namespace Linefunctions
                    const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                    const Numeric& dGD_div_F0_dT=0.0);
   
-  void set_faddeeva_from_full_linemixing(ComplexVectorView F,
-                                         ComplexMatrixView dF,
-                                         ConstVectorView f_grid,
-                                         const Complex& eigenvalue_no_shift,
-                                         const Numeric& GD_div_F0,
-                                         const Numeric& L0,
-                                         const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
-                                         const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
-                                         const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                                         const Numeric& dGD_div_F0_dT=0.0,
-                                         const Complex& deigenvalue_dT=0.0,
-                                         const Numeric& dL0_dT=0.0);
+  void set_voigt_from_full_linemixing(ComplexVectorView F,
+                                      ComplexMatrixView dF,
+                                      ConstVectorView f_grid,
+                                      const Complex& eigenvalue_no_shift,
+                                      const Numeric& GD_div_F0,
+                                      const Numeric& L0,
+                                      const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                      const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
+                                      const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
+                                      const Numeric& dGD_div_F0_dT=0.0,
+                                      const Complex& deigenvalue_dT=0.0,
+                                      const Numeric& dL0_dT=0.0);
   
   void apply_linemixing_scaling(ComplexVectorView F,
                                 ComplexMatrixView dF,
@@ -488,6 +489,7 @@ namespace Linefunctions
                                          const ArrayOfIndex& broad_spec_locations,
                                          const Index& this_species_location_in_tags,
                                          const Index& water_index_location_in_tags,
+                                         const Index& zeeman_index,
                                          const Verbosity& verbosity,
                                          const bool cutoff_call=false);
   
@@ -514,6 +516,7 @@ namespace Linefunctions
                     const ArrayOfIndex& broad_spec_locations,
                     const Index& this_species_location_in_tags,
                     const Index& water_index_location_in_tags,
+                    const Index& zeeman_index,
                     const Verbosity& verbosity);
   
   bool find_cutoff_ranges(Range& range,

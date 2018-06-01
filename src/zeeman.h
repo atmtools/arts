@@ -58,7 +58,7 @@ void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& pr
                                                     const Matrix&  dplanck_BT,
                                                     const SpeciesAuxData& isotopologue_ratios, 
                                                     const SpeciesAuxData& partition_functions,
-                                                    const Matrix& abs_t_nlte, 
+                                                    const Matrix& abs_nlte, 
                                                     const Matrix& abs_vmrs, 
                                                     const Vector& abs_p,
                                                     const Vector& abs_t, 

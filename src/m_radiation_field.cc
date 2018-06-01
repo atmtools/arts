@@ -80,7 +80,7 @@ void total_line_source_and_transmission(Vector& J,
     const ConstVectorView f = frequency[Range(range_frequency[il][0], range_frequency[il][1])];
     const Index nf = f.nelem();
     ComplexVector F(nf);
-    Linefunctions::set_lineshape(F, lines[il][0], f, vmrs, temperature, pressure, 0.0, 0.0, 0.0, bsl, il, -1);
+    Linefunctions::set_lineshape(F, lines[il][0], f, vmrs, temperature, pressure, 0.0, 0.0, bsl, il, -1, 0);
     Vector X = F.real();
     
     Numeric integral_of_X = 0;
@@ -356,8 +356,8 @@ void radiation_fieldCalcForSingleSpeciesNonOverlappingLines(Workspace&          
     for(Index ip=0; ip<np; ip++) {
       ComplexVector F(nf);
       Linefunctions::set_lineshape(F, abs_lines_per_species[0][il], f_grid, 
-                                   Vector(1, vmr_field(0, ip, 0, 0)),  t_field(ip, 0, 0), p_grid[ip], 0.0, 0.0, 0.0,
-                                   bsl, 0, 0);
+                                   Vector(1, vmr_field(0, ip, 0, 0)),  t_field(ip, 0, 0), p_grid[ip], 0.0, 0.0,
+                                   bsl, 0, 0, 0);
       Numeric sx = 0;
       for(Index iv=0; iv<nf-1; iv++) {
         const Numeric intF = (F[iv].real() + F[iv+1].real()) * (f_grid[iv+1] - f_grid[iv]);

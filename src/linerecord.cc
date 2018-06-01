@@ -3025,25 +3025,15 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                   // Zeeman effect
                   
                   icecream >> token;
-                  mzeemandata.setSplittingTag(token);
+                  mzeemandata.SetPolarizationTypeFromString(token);
+                  if(mzeemandata.PolarizationType() == ZeemanPolarizationType::None)
+                    throw std::runtime_error("Zeeman data is corrupt.  Must have PI, SP or SM as polarization type after ZE.");
                   
-                  nelem = mzeemandata.nelem();
+                  Numeric gu, gl;
+                  icecream >> double_imanip() >> gu;
                   
-                  Vector zed(nelem);
-                  for (Index l = 0; l < nelem; l++)
-                  {
-                    icecream >> double_imanip() >> zed[l];
-                    if (!icecream)
-                    {
-                      ostringstream os;
-                      os << "Error parsing Zeeman effect data element " << l+1;
-                      throw std::runtime_error(os.str());
-                    }
-                  }
-                  mzeemandata.setDataFromVectorWithKnownSplittingTag(zed);
-                  icecream >> token;
-                  
-                  mzeemandata.setPolarizationTag(token);
+                  icecream >> double_imanip() >> gl;
+                  mzeemandata = ZeemanEffectData(gu, gl, mqid, mzeemandata.PolarizationType());  // NOTE:  Must be after QNs are defined or this will not work
                   icecream >> token;
                 }
                 else if (token == "LSM")
@@ -3306,14 +3296,8 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
           // Write Zeeman Effect Data
           {
             const ZeemanEffectData& ze = lr.ZeemanEffect();
-            if (ze.SplittingType() != ZeemanSplittingType::None)
-            {
-              Vector vze;
-              vze = ze.Data();
-              ls << " ZE " << ze.SplittingTag();
-              ls << " " << vze;
-              ls << " " << ze.PolarizationTag();
-            }
+            if (ze.PolarizationType() not_eq ZeemanPolarizationType::None)
+              ls << " ZE " << ze.StringFromPolarizationType() << " " << ze.UpperG() << " " << ze.LowerG();
             
           }
           

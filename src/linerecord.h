@@ -537,7 +537,6 @@ public:
   /** Pressure Broadening Data */
   ZeemanEffectData& ZeemanEffect() { return mzeemandata; }
   const ZeemanEffectData& ZeemanEffect() const { return mzeemandata; }
-  Numeric ZeemanFrequencyShift() const { return mzeemandata.frequency_shift_per_tesla(mqid.UpperQuantumNumbers(), mqid.LowerQuantumNumbers(), mqid.Species());}
   void SetZeemanEffectData(const ZeemanEffectData& input) { mzeemandata=input; }
   
   /** Cutoff frequency */

@@ -1234,13 +1234,13 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
     
     if(do_temperature_jacobian(derivatives_data))
     {
-      Linefunctions::set_faddeeva_algorithm916(F, dF, f_grid,
-                                               0.0, 0.0, f0[iline],
-                                               doppler_const, pressure_broadening[iline], 
-                                               psf[iline], DV[iline],
-                                               derivatives_data, derivatives_data_position, QI,
-                                               ddoppler_const_dT, dpressure_broadening_dT[iline], 
-                                               dpsf_dT[iline] + dDV_dT[iline]);
+      Linefunctions::set_voigt(F, dF, f_grid,
+                               0.0, 0.0, f0[iline],
+                               doppler_const, pressure_broadening[iline], 
+                               psf[iline], DV[iline],
+                               derivatives_data, derivatives_data_position, QI,
+                               ddoppler_const_dT, dpressure_broadening_dT[iline], 
+                               dpsf_dT[iline] + dDV_dT[iline]);
       
       Linefunctions::apply_linemixing_scaling(F, dF, Y[iline], G[iline], derivatives_data, derivatives_data_position, QI, dY_dT[iline], dG_dT[iline]);
       
@@ -1249,10 +1249,10 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
     }
     else
     {
-      Linefunctions::set_faddeeva_algorithm916(F, dF, f_grid,
-                                               0.0, 0.0, f0[iline],
-                                               doppler_const, pressure_broadening[iline], 
-                                               psf[iline], DV[iline], derivatives_data, derivatives_data_position, QI);
+      Linefunctions::set_voigt(F, dF, f_grid,
+                               0.0, 0.0, f0[iline],
+                               doppler_const, pressure_broadening[iline], 
+                               psf[iline], DV[iline], derivatives_data, derivatives_data_position, QI);
       
       Linefunctions::apply_linemixing_scaling(F, dF, Y[iline], G[iline], derivatives_data, derivatives_data_position, QI);
       
@@ -2026,9 +2026,9 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           
           // TODO: Add derivatives here
           
-          Linefunctions::set_faddeeva_algorithm916(F, dF, f_grid,
-                                                   0.0, 0.0, abs_lines_per_band[iband][iline].F(),
-                                                   GD_div_F0, W(iline, iline), psf[iline], 0.0); // Derivatives need to be added...
+          Linefunctions::set_voigt(F, dF, f_grid,
+                                   0.0, 0.0, abs_lines_per_band[iband][iline].F(),
+                                   GD_div_F0, W(iline, iline), psf[iline], 0.0); // Derivatives need to be added...
           
           Linefunctions::apply_linestrength_scaling(F, dF, 
                                                     abs_lines_per_band[iband][iline].I0(), iso_ratio,

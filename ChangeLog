@@ -1,3 +1,52 @@
+2018-06-01  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-1069
+	
+	Change in Zeeman calculations to save some memory.
+	Will break controlfiles using Zeeman and old computational
+	method.
+	
+	* controlfiles/*:  The linemixing tests are now covered by
+	the lineshapes tests so I removed them.  The Zeeman tests
+	now need to initialize wigner functionality to work.  This
+	greatly simplifies the code
+	
+	* src/absorption.cc: 
+	Changed interface to reach the new Zeeman calculations
+	
+	* src/linefunctions.cc: as absorption.cc and changed name
+	of faddeeva functions to voigt so people more easily find
+	these
+	
+	* src/linerecord.cc:  Updated reading/writing of Zeeman
+	line information
+	
+	* src/m_linemixing.cc:  updated interface to linefunctions
+	
+	* src/m_radiation_field.cc: as above 
+	
+	* src/m_zeeman.cc:  Added zeeman_linerecord_precalcModifyFromData
+	to modify the Zeeman data by external data easily.  Removed the
+	standard Zeeman calculations routine because ther were anyways
+	useless (only adding some overhead to make slower calculations).
+	Also demands Wigner6Init to have been run.  FIXMEs remaining:
+	The linerecord generator should change to be able to have precalc 
+	data in the normal line data upon generation and 6j is
+	technically not required since only the 3j symobol is used.
+	
+	* src/methods.cc: as above
+	
+	* src/quantum.cc:  Fix bug in energy level matchings
+	
+	* src/test_propagationmatrix.cc:  fix interface to linefunctinos
+	
+	* src/zeeman.cc:  updated to use zeemandata files.  makes code
+	cleaner.  FIXME remaining:  move to use linefunctions
+	
+	* src/zeemandata.cc:  Updated to store all relevant data for 
+	Zeeman effect.  FIXME remaining:  move polarization and related
+	derivatives into this class to make program flow easier.
+	
 2018-05-31  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-1068

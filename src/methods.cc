@@ -12443,61 +12443,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "propmat_clearskyAddZeeman" ),
-        DESCRIPTION
-        (
-        "Calculates Zeeman-effected absorption coefficients.\n"
-        "\n"
-        "This method will, for each Zeeman species, make a local\n"
-        "ArrayOfLineRecord for the various transition types with Zeeman\n"
-        "altered LineRecord(s).  These are then composed into a single\n"
-        "ArrayOfArrayOfLineRecord which is processed as per the scalar case.\n"
-        "\n"
-        "The line broadened absorption coefficients are finally multiplied with\n"
-        "the transition type rotation matrix and the new variable is inserted into\n"
-        "the out variable. Only species containing a -Z- tag are treated.\n"
-        "\n"
-        "Note that between 55 GHz and 65 GHz there is usually ~700 O_2 lines,\n"
-        "however, when this Zeeman splitting method is used, the number of\n"
-        "lines is increased to about 45,000. Be aware that this is a time\n"
-        "consuming method.\n"
-        "\n"
-        "The 'manual_zeeman*' variables will let the user set their own simple\n"
-        "magnetic field.  This path can be accessed by setting\n"
-        "*manual_zeeman_tag* different from zero.  The user is also advided to\n"
-        "read the theory guide to understand what the different variables will\n"
-        "do in the Zeeman theory.  Note that angles are in degrees and strength\n"
-        "in Tesla.\n"
-         ),
-        AUTHORS( "Richard Larsson" ),
-        OUT("propmat_clearsky", "nlte_source","dpropmat_clearsky_dx","dnlte_dx_source","nlte_dsource_dx"),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN("propmat_clearsky",
-           "nlte_source",
-           "dpropmat_clearsky_dx",
-           "dnlte_dx_source",
-           "nlte_dsource_dx",
-           "f_grid",
-           "abs_species",
-           "jacobian_quantities",
-           "abs_lines_per_species",
-           "abs_lineshape",
-           "isotopologue_ratios",
-           "partition_functions",
-           "rtp_pressure", "rtp_temperature", "lm_p_lim", "rtp_nlte", "rtp_vmr",
-           "rtp_mag", "rtp_los", "atmosphere_dim"),
-        GIN("manual_zeeman_tag","manual_zeeman_magnetic_field_strength",
-            "manual_zeeman_theta","manual_zeeman_eta"),
-        GIN_TYPE("Index","Numeric","Numeric","Numeric"),
-        GIN_DEFAULT("0","1.0","0.0","0.0"),
-        GIN_DESC("Manual angles tag","Manual Magnetic Field Strength",
-                 "Manual theta given positive tag","Manual eta given positive tag")
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "propmat_clearskyAddZeemanFromPreCalc" ),
         DESCRIPTION
         (
@@ -19950,12 +19895,33 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_species", "abs_lines_per_species"  ),
+        IN( "abs_species", "abs_lines_per_species", "wigner_initialized" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-        ));
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "zeeman_linerecord_precalcModifyFromData" ),
+      DESCRIPTION
+      (
+        "Modifies *zeeman_linerecord_precalc* by setting its g value directly.\n"
+        "This will set all unmatched energy levels to g=0 for all lines that\n"
+        "have atleast a single level match\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "zeeman_linerecord_precalc" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "zeeman_linerecord_precalc" ),
+      GIN("keys", "data"),
+      GIN_TYPE("ArrayOfQuantumIdentifier", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Keys for energy levels in the line array", "Matching g-values to set for levels")
+    ));
 
     md_data_raw.push_back
       ( MdRecord

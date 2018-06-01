@@ -20,62 +20,63 @@
 #include "zeeman.h"
 #include "global_data.h"
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddZeeman( ArrayOfPropagationMatrix& propmat_clearsky,
-                                ArrayOfStokesVector& nlte_source,
-                                ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-                                ArrayOfStokesVector& dnlte_dx_source,
-                                ArrayOfStokesVector& nlte_dsource_dx,
-                                const Vector& f_grid,
-                                const ArrayOfArrayOfSpeciesTag& abs_species,
-                                const ArrayOfRetrievalQuantity& jacobian_quantities,
-                                const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                                const ArrayOfLineshapeSpec& abs_lineshape,
-                                const SpeciesAuxData& isotopologue_ratios,
-                                const SpeciesAuxData& partition_functions,
-                                const Numeric& rtp_pressure,
-                                const Numeric& rtp_temperature,
-                                const Numeric& lm_p_lim,
-                                const Vector& rtp_temperature_nlte,
-                                const Vector& rtp_vmr,
-                                const Vector& rtp_mag,
-                                const Vector& ppath_los,
-                                const Index& atmosphere_dim,
-                                const Index& manual_zeeman_tag,
-                                const Numeric& manual_zeeman_magnetic_field_strength,
-                                const Numeric& manual_zeeman_theta,
-                                const Numeric& manual_zeeman_eta,
-                                const Verbosity& verbosity)
-{
-    ArrayOfArrayOfLineRecord zeeman_linerecord_precalc;
-    zeeman_linerecord_precalcCreateFromLines(zeeman_linerecord_precalc, abs_species, abs_lines_per_species, verbosity);
-    
-    propmat_clearskyAddZeemanFromPreCalc(propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx,
-                                         zeeman_linerecord_precalc, f_grid,
-                                         abs_species, jacobian_quantities, abs_lineshape, isotopologue_ratios,
-                                         partition_functions, rtp_pressure, rtp_temperature, lm_p_lim,
-                                         rtp_temperature_nlte, rtp_vmr, rtp_mag, ppath_los, atmosphere_dim,
-                                         manual_zeeman_tag, manual_zeeman_magnetic_field_strength,
-                                         manual_zeeman_theta, manual_zeeman_eta, verbosity);
-}
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void zeeman_linerecord_precalcCreateFromLines( ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
-                                               const ArrayOfArrayOfSpeciesTag& abs_species,
-                                               const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                                               const Verbosity& verbosity)
+void zeeman_linerecord_precalcCreateFromLines(ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
+                                              const ArrayOfArrayOfSpeciesTag& abs_species,
+                                              const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                              const Index& wigner_initialized,
+                                              const Verbosity& verbosity)
 {
-  zeeman_linerecord_precalc.resize(0);
-  zeeman_linerecord_precalc.reserve(24);//will always be multiple of three, default is high
+  if(not wigner_initialized)
+    throw std::runtime_error("Must initialize wigner calculations to compute Zeeman effect");
   
   if (abs_species.nelem() != abs_lines_per_species.nelem())
-      throw std::runtime_error("Dimension of *abs_species* and *abs_lines_per_species* don't match.");
+    throw std::runtime_error("Dimension of *abs_species* and *abs_lines_per_species* don't match.");
+  
+  zeeman_linerecord_precalc.resize(0);
+  zeeman_linerecord_precalc.reserve(24);//will always be multiple of three, default is high
   
   // creating the ArrayOfArrayOfLineRecord
   create_Zeeman_linerecordarrays(zeeman_linerecord_precalc, abs_species, abs_lines_per_species, verbosity);
 }
 
+
+void zeeman_linerecord_precalcModifyFromData(ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
+                                             const ArrayOfQuantumIdentifier& keys,
+                                             const Vector& data,
+                                             const Verbosity&)
+{
+  if(keys.nelem() not_eq data.nelem()) throw std::runtime_error("Mismatching data and identifier vector");
+  
+  for(ArrayOfLineRecord& lines : zeeman_linerecord_precalc) {
+    for(LineRecord& line: lines) {
+      Index upper=-1, lower=-1;
+      for(Index k=0; k<keys.nelem(); k++) {
+        const QuantumIdentifier& qid = keys[k];
+        if(qid < line.QuantumIdentity().LowerQuantumId())
+          lower = k;
+        else if(qid < line.QuantumIdentity().UpperQuantumId())
+          upper = k;
+      }
+      
+      Numeric gl, gu;
+      if(lower not_eq -1) {
+        gl = data[lower];
+//         std::cout<< gl << " " << line.ZeemanEffect().LowerG()<< "\n";
+      }
+      else 
+        gl = line.ZeemanEffect().LowerG();
+      if(upper not_eq - 1)
+        gu = data[upper];
+      else 
+        gu = line.ZeemanEffect().UpperG();
+      
+      line.SetZeemanEffectData(ZeemanEffectData(gu, gl, line.QuantumIdentity(), line.ZeemanEffect().PolarizationType()));
+//       std::cout<< gl << " " << line.ZeemanEffect().LowerG()<< "\n";
+    }
+  }
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clearsky,
@@ -93,7 +94,7 @@ void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clea
                                           const Numeric& rtp_pressure,
                                           const Numeric& rtp_temperature,
                                           const Numeric& lm_p_lim,
-                                          const Vector& rtp_temperature_nlte,
+                                          const Vector& rtp_nlte,
                                           const Vector& rtp_vmr,
                                           const Vector& rtp_mag,
                                           const Vector& ppath_los,
@@ -150,7 +151,7 @@ void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clea
   // Using the standard scalar absorption functions to get physics parameters,
   Vector abs_p, abs_t; Matrix abs_vmrs, abs_t_nlte;
   AbsInputFromRteScalars( abs_p, abs_t, abs_t_nlte, abs_vmrs,           // Output
-          rtp_pressure, rtp_temperature, rtp_temperature_nlte, rtp_vmr, //Input
+          rtp_pressure, rtp_temperature, rtp_nlte, rtp_vmr, //Input
           verbosity);                                                   // Verbose!
 
   // FOR LOG:  Loss of speed when mag == 0

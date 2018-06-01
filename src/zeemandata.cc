@@ -17,11 +17,41 @@
 
 #include "zeemandata.h"
 #include "species_info.h"
+#include "wigner_functions.h"
+
+Numeric ZeemanEffectData::SplittingConstant(const Index i) const
+{
+  extern const Numeric PLANCK_CONST;
+  extern const Numeric BOHR_MAGNETON;
+  static const Numeric C = BOHR_MAGNETON / PLANCK_CONST;
+  
+  return C * (mMl[i].toNumeric() * mgl - mMu[i].toNumeric() * mgu);
+}
 
 
-extern const Numeric PLANCK_CONST;
-extern const Numeric BOHR_MAGNETON;
-static const Numeric ZeemanSplittingConstant = BOHR_MAGNETON / PLANCK_CONST;
+inline bool hund_compatible(const QuantumNumbers& qns) noexcept
+{
+  switch(Hund(qns[QuantumNumberType::Hund].toIndex())) {
+    case Hund::CaseA:
+      if(qns[QuantumNumberType::Omega].isUndefined() or
+         qns[QuantumNumberType::J].isUndefined() or
+         qns[QuantumNumberType::Lambda].isUndefined() or
+         qns[QuantumNumberType::S].isUndefined())
+        return false;
+      break;
+    case Hund::CaseB:
+      if(qns[QuantumNumberType::N].isUndefined() or
+         qns[QuantumNumberType::J].isUndefined() or
+         qns[QuantumNumberType::Lambda].isUndefined() or
+         qns[QuantumNumberType::S].isUndefined())
+        return false;
+      break;
+    default:
+      return false;
+  }
+  
+  return true;
+}
 
 
 inline Numeric caseB(const Rational& N,
@@ -39,12 +69,9 @@ inline Numeric caseB(const Rational& N,
   const Rational T2 = (JJ - SS + NN) * LL / NN / JJ / 2;
   
   Numeric g;
-  if(JJ == 0)
-    g = 0.0;
-  else if(NN not_eq 0)
-    g = GS * T1.toNumeric() + GL * T2.toNumeric();
-  else
-    g = GS * T1.toNumeric();
+  if(JJ == 0)          g = 0.0;
+  else if(NN not_eq 0) g = GS * T1.toNumeric() + GL * T2.toNumeric();
+  else                 g = GS * T1.toNumeric();
   return g;
 }
 
@@ -62,23 +89,24 @@ inline Numeric caseA(const Rational& Omega,
   const Rational T2 = Lambda * DIV;
   
   Numeric g;
-  if(JJ == 0)
-    g = 0.0;
-  else
-    g = GS * T1.toNumeric() + GL * T2.toNumeric();
+  if(JJ == 0) g = 0.0;
+  else        g = GS * T1.toNumeric() + GL * T2.toNumeric();
   return g; 
 }
 
 
 inline Numeric gHund(const QuantumNumbers& qns, const Numeric& GS, const Numeric& GL)
 {
-  switch(qns[QuantumNumberType::Hund].toIndex()) {
-    case Index(Hund::CaseA):
+  if(not hund_compatible(qns))
+    throw std::runtime_error("Bad quantum numbers for Zeeman via Hund approximation");
+  
+  switch(Hund(qns[QuantumNumberType::Hund].toIndex())) {
+    case Hund::CaseA:
       return caseA(qns[QuantumNumberType::Omega], 
                    qns[QuantumNumberType::J],
                    qns[QuantumNumberType::Lambda],
                    qns[QuantumNumberType::S], GS, GL);
-    case Index(Hund::CaseB):
+    case Hund::CaseB:
       return caseB(qns[QuantumNumberType::N], 
                    qns[QuantumNumberType::J],
                    qns[QuantumNumberType::Lambda],
@@ -88,138 +116,130 @@ inline Numeric gHund(const QuantumNumbers& qns, const Numeric& GS, const Numeric
   }
 }
 
-
-inline Numeric frequency_shift_per_teslaByHund(const QuantumNumbers& upper, const QuantumNumbers& lower, const Index species)
+inline void are_Ju_and_Jl_compatible(const Rational& Ju, const Rational& Jl)
 {
-  // Find the constants
-  const Numeric GS = get_lande_spin_constant(species);
-  const Numeric GL = get_lande_lambda_constant();
-  
-  // Set the g*M factors
-  const Numeric gMl = lower[QuantumNumberType::M].toNumeric() * gHund(lower, GS, GL);
-  const Numeric gMu = upper[QuantumNumberType::M].toNumeric() * gHund(upper, GS, GL);
-  
-  // convert from energy state to frequency and be done with it
-  return (gMl - gMu) * ZeemanSplittingConstant;
+  Rational dJ = Jl - Ju;
+  dJ.Simplify();
+  if(dJ.Denom() not_eq 1)
+    throw std::runtime_error("Delta J is not an index");
+  else if(abs(dJ.toIndex()) > 1)
+    throw std::runtime_error("Delta J is neither of -1, 0, nor 1");
+  else if(Ju < 1)
+    throw std::runtime_error("Upper J must be above 0");
 }
 
 
-inline Numeric frequency_shift_per_teslaByGData(const QuantumNumbers& upper, 
-                                                const QuantumNumbers& lower, 
-                                                const Numeric& gu, 
-                                                const Numeric& gl) noexcept
+ZeemanEffectData::ZeemanEffectData(const Numeric& gu, const Numeric& gl, const QuantumIdentifier& qi, const ZeemanPolarizationType polarization)
 {
-  // Set the g*M factors
-  const Numeric gMu = gu * upper[QuantumNumberType::M].toNumeric();
-  const Numeric gMl = gl * lower[QuantumNumberType::M].toNumeric();
+  mpolar = polarization;
+  mgl = gl;
+  mgu = gu;
   
-  // convert from energy state to frequency and be done with it
-  return (gMl - gMu) * ZeemanSplittingConstant;
-}
+  const Rational& Jl = qi.LowerQuantumNumbers()[QuantumNumberType::J];
+  const Rational& Ju = qi.UpperQuantumNumbers()[QuantumNumberType::J];
+  are_Ju_and_Jl_compatible(Ju, Jl);
 
-
-inline bool hund_compatible(const QuantumNumbers& qns) noexcept
-{
-  switch(qns[QuantumNumberType::Hund].toIndex()) {
-    case Index(Hund::CaseA):
-      if(qns[QuantumNumberType::Omega].isUndefined() or
-         qns[QuantumNumberType::J].isUndefined() or
-         qns[QuantumNumberType::Lambda].isUndefined() or
-         qns[QuantumNumberType::S].isUndefined())
-        return false;
-      break;
-    case Index(Hund::CaseB):
-      if(qns[QuantumNumberType::N].isUndefined() or
-         qns[QuantumNumberType::J].isUndefined() or
-         qns[QuantumNumberType::Lambda].isUndefined() or
-         qns[QuantumNumberType::S].isUndefined())
-        return false;
-      break;
-    default:
-      return false;
-  }
-  
-  return true;
-}
-
-
-inline bool J_compatible(const Rational& J1, const Rational& J2)
-{
-  if(abs((J1 - J2).toNumeric()) > 1.0)
-    return false;
-  return true;
-}
-
-
-inline ZeemanPolarizationType get_polarization(const Rational& Mu, const Rational& Ml)
-{
-  const Index dM = (Ml - Mu).toIndex();
-  if(abs(dM) > 1)
-    throw std::runtime_error("bad M-values. encountered too high change from upper to lower state");
-  
-  switch(dM) {
-    case -1: return ZeemanPolarizationType::SigmaMinus;
-    case  0: return ZeemanPolarizationType::Pi;
-    case +1: return ZeemanPolarizationType::SigmaPlus;
-    default: return ZeemanPolarizationType::None;
-  } 
-}
-
-
-Numeric ZeemanEffectData::frequency_shift_per_tesla(const QuantumNumbers& upper, const QuantumNumbers& lower, const Index species) const
-{
-  switch(msplit) {
-    case ZeemanSplittingType::None:
-      return 0.0;
-    case ZeemanSplittingType::ByHund:
-      return frequency_shift_per_teslaByHund(upper, lower, species);
-    case ZeemanSplittingType::ByGData:
-      return frequency_shift_per_teslaByGData(upper, lower, mdata[Index(ByGDataPos::GU)], mdata[Index(ByGDataPos::GL)]);
-    case ZeemanSplittingType::ByPrecalc:
-      return mdata[Index(ByPrecalcPos::DF)];
-    default:
-      throw std::runtime_error("Unknown type for frequency shift");
-  }
-}
-
-
-void ZeemanEffectData::convertNoneToHund(const QuantumNumbers& upper, const QuantumNumbers& lower)
-{
-  assert(msplit == ZeemanSplittingType::None);
-  
-  if(lower[QuantumNumberType::Hund].isUndefined() or upper[QuantumNumberType::Hund].isUndefined())
-    throw std::runtime_error("Undefined Hund-cases encountered...");
-  else if(not (hund_compatible(upper) and hund_compatible(lower)))
-    throw std::runtime_error("line incompatible with Hund-style Zeeman calculations");
-  else if(not J_compatible(lower[QuantumNumberType::J], upper[QuantumNumberType::J]))
-    throw std::runtime_error("Too large difference in J-values of transition");
-  
-  msplit = ZeemanSplittingType::ByHund;
-  mdata = Vector(Index(ByHundPos::LEN));
-  
-  assert(ok());
-}
-
-
-void ZeemanEffectData::setNumericalAndPolarization(const QuantumNumbers& upper, const QuantumNumbers& lower, const Index species)
-{
-  if(not (msplit == ZeemanSplittingType::ByPrecalc)) {
-    mdata = Vector(Index(ByPrecalcPos::LEN), frequency_shift_per_tesla(upper, lower, species));
-    msplit = ZeemanSplittingType::ByPrecalc;
-  }
-  
-  mpolar = get_polarization(upper[QuantumNumberType::M], lower[QuantumNumberType::M]);
-  
-  assert(ok());
-}
-
-Index ZeemanEffectData::dM()
-{
+  // Find M-vectors
+  Rational end, start, dM;
+  Numeric C=0;
   switch(mpolar) {
-    case ZeemanPolarizationType::SigmaMinus: return -1;
-    case ZeemanPolarizationType::Pi:         return  0;
-    case ZeemanPolarizationType::SigmaPlus:  return +1;
-    case ZeemanPolarizationType::None: default: throw std::runtime_error("Unkown change in M");
+    case ZeemanPolarizationType::Pi:
+      C = 1.5;
+      dM = Rational(0, 1);
+      end = min(Ju, Jl);
+      start = -end;
+      break;
+    case ZeemanPolarizationType::SigmaPlus:
+      C = .75;
+      dM = Rational(1, 1);
+      start = -Ju;
+      if(Ju < Jl)       end = Ju + 1;
+      else if(Ju == Jl) end = Ju;
+      else              end = Jl;
+      break;
+    case ZeemanPolarizationType::SigmaMinus:
+      C = .75;
+      dM = Rational(-1, 1);
+      end = Ju + 1;
+      if(Ju < Jl)       start = -Ju;
+      else if(Ju == Jl) start = -Ju + 1;
+      else              start = -Ju + 2;
+      break;
+    case ZeemanPolarizationType::None:
+      throw std::runtime_error("To developer: never initialize ZeemanEffectData without known polarization.");
+      break;
+  }
+  
+  // Set the computational data 
+  mnelem = (end - start).toIndex() + 1;
+  mS0.resize(mnelem);
+  mMu.resize(mnelem);
+  mMl.resize(mnelem);
+  for(Index i=0; i<mnelem; i++) {
+    mMu[i] = start + i;
+    mMl[i] = mMu[i] + dM;
+    mS0[i] = wigner3j(Jl, Rational(1), Ju, mMl[i], -dM, -mMu[i]);
+    mS0[i] *= mS0[i] * C;
   }
 }
 
+
+ZeemanEffectData::ZeemanEffectData(const QuantumIdentifier& qi, const ZeemanPolarizationType polarization)
+{
+  const Numeric GS = get_lande_spin_constant(qi.Species());
+  const Numeric GL = get_lande_lambda_constant();
+  const Numeric gl = gHund(qi.LowerQuantumNumbers(), GS, GL);;
+  const Numeric gu = gHund(qi.UpperQuantumNumbers(), GS, GL);;
+  
+//   ZeemanEffectData(gHund(qi.UpperQuantumNumbers(), GS, GL), gHund(qi.LowerQuantumNumbers(), GS, GL), qi, polarization);
+  // All below here should be a perfect copy of the above initialization
+  
+  
+  mpolar = polarization;
+  mgl = gl;
+  mgu = gu;
+  
+  const Rational& Jl = qi.LowerQuantumNumbers()[QuantumNumberType::J];
+  const Rational& Ju = qi.UpperQuantumNumbers()[QuantumNumberType::J];
+  are_Ju_and_Jl_compatible(Ju, Jl);
+  
+  // Find M-vectors
+  Rational end, start, dM;
+  Numeric C=0.75;
+  switch(mpolar) {
+    case ZeemanPolarizationType::Pi:
+      C *= 2;
+      dM = Rational(0, 1);
+      end = min(Ju, Jl);
+      start = -end;
+      break;
+    case ZeemanPolarizationType::SigmaPlus:
+      dM = Rational(1, 1);
+      start = -Ju;
+      if(Ju < Jl)       end = Ju;
+      else if(Ju == Jl) end = Ju-1;
+      else              end = Jl-1;
+      break;
+    case ZeemanPolarizationType::SigmaMinus:
+      dM = Rational(-1, 1);
+      end = Ju;
+      if(Ju < Jl)       start = -Ju;
+      else if(Ju == Jl) start = -Ju + 1;
+      else              start = -Ju + 2;
+      break;
+    case ZeemanPolarizationType::None:
+      throw std::runtime_error("To developer: never initialize ZeemanEffectData without known polarization.  Throw warnings earlier than here!");
+  }
+  
+  // Set the computational data 
+  mnelem = (end - start).toIndex() + 1;
+  mS0.resize(mnelem);
+  mMu.resize(mnelem);
+  mMl.resize(mnelem);
+  for(Index i=0; i<mnelem; i++) {
+    mMu[i] = start + i;
+    mMl[i] = mMu[i] + dM;
+    mS0[i] = wigner3j(Jl, Rational(1), Ju, mMl[i], -dM, -mMu[i]);
+    mS0[i] *= mS0[i] * C;
+  }
+}
