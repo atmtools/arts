@@ -5033,7 +5033,7 @@ void ppath_start_stepping(
       // Adjust longitude of rte_pos to range used in lon_grid
       Numeric lon2use = rte_pos[2];
       resolve_lon( lon2use, lon_grid[0], lon_grid[llon] );
-
+      
       // End position and LOS
       ppath.end_pos[0] = rte_pos[0];
       ppath.end_pos[1] = rte_pos[1];
@@ -5197,7 +5197,7 @@ void ppath_start_stepping(
             {
               ppath.pos(0,0) = rte_pos[0];
               ppath.pos(0,1) = rte_pos[1]; 
-              ppath.pos(0,1) = lon2use; 
+              ppath.pos(0,2) = rte_pos[2];
               ppath.r[0]     = r_e + rte_pos[0];
               ppath.los(0,0) = rte_los[0];
               ppath.los(0,1) = rte_los[1];

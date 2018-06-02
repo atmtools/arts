@@ -1093,7 +1093,7 @@ void poslos2cart(
 {
   assert( r > 0 );
   assert( abs( lat ) <= 90 );
-  assert( abs( lon ) <= 360 );
+  //assert( abs( lon ) <= 360 );
   assert( za >= 0 && za<=180 );
 
   // lat = +-90 

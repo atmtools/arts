@@ -1,3 +1,19 @@
+2018-06-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1070
+
+	* Bug fix! Contribution to Q was wrong for all surface set-ups
+	involving surfaceFlatRvRh. This includes e.g. TESSEM.
+
+	* src/m_surface.cc (surfaceFlatRvRh): surface_emission(iv,1) had
+	wrong sign. My mistake. Found by Simon.
+
+	* src/geodetic.cc (poslos2cart): Deactived assert( abs( lon ) <=
+	360 ); As lon is cyclic and code works even for higher lons. 
+
+	* src/ppath.cc (ppath_start_stepping): ppath.pos(0,2) was set
+	incoreectly for 3D empty path.
+
 2018-06-01  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-1069
@@ -139,6 +155,7 @@
 	* src/methods.cc (retrievalDefInit):
 	- Updated method description.
 
+>>>>>>> .r11018
 2018-05-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1060

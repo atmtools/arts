@@ -1366,7 +1366,8 @@ void surfaceFlatRvRh(
         surface_rmatrix(0,iv,0,0) = rmean;
 
         if( stokes_dim > 1 ) {
-            surface_emission(iv,1) = rdiff * b[iv];
+          
+            surface_emission(iv,1) = -rdiff * b[iv];
 
             surface_rmatrix(0,iv,0,1) = rdiff;
             surface_rmatrix(0,iv,1,0) = rdiff;
