@@ -1,5 +1,12 @@
 2018-06-05  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
+	* arts-2-3-1072
+
+	* src/arts_api[h, cc]:
+	- Fix bug accidentally introduced in last commit.
+
+2018-06-05  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
 	* arts-2-3-1071
 
 	* src/arts_api[h, cc]:
@@ -7,7 +14,7 @@
 	  agenda definition.
 	- Fixed handling of agendas in agenda_insert_set
 
-	* src/interactive_workspace[h, cc]:
+	* src/interactive_workspace.cc:
 	- Fixed setter function for WSVs of group agenda.
 
 2018-06-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
