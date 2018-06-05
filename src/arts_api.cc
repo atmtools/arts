@@ -173,7 +173,6 @@ void agenda_add_method(Agenda * a,
     ArrayOfIndex output, input;
     Agenda aa{};
     TokVal t{};
-    if (n_input_args > 0)
     copy_output_and_input(output, input, n_output_args, output_args, n_input_args, input_args);
     MRecord mr(id, output, input, t, Agenda{});
     a->push_back(mr);
