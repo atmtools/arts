@@ -89,8 +89,9 @@ const char * InteractiveWorkspace::execute_workspace_method(long id,
 
 void InteractiveWorkspace::set_agenda_variable(Index id, const Agenda &src)
 {
-    *reinterpret_cast<Agenda*>(this->operator[](id)) = src;
-    resize();
+    Agenda &dst = *reinterpret_cast<Agenda*>(this->operator[](id));
+    dst = src;
+    dst.check(*this, verbosity_at_launch);
 }
 
 void InteractiveWorkspace::set_index_variable(Index id, const Index &src)
@@ -232,7 +233,6 @@ void InteractiveWorkspace::resize()
 {
     Array<stack<WsvStruct *>> ws_new(wsv_data.nelem());
     std::copy(ws.begin(), ws.end(), ws_new.begin());
-    //std::copy(ws.end() - n_anonymous_variables_, ws.end(), ws_new.begin() + wsv_data.nelem());
     std::swap(ws, ws_new);
 }
 

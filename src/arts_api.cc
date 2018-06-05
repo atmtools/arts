@@ -113,47 +113,53 @@ void agenda_insert_set(InteractiveWorkspace *workspace,
                        long id,
                        long group_id)
 {
-    TokVal t;
-    // Index
-    if (wsv_group_names[group_id] == "Index") {
-        t = TokVal(*reinterpret_cast<Index*>(workspace->operator[](id)));
-    }
-    // Numeric
-    if (wsv_group_names[group_id] == "Numeric") {
-        t = TokVal(*reinterpret_cast<Numeric*>(workspace->operator[](id)));
-    }
-    // ArrayOfIndex
-    if (wsv_group_names[group_id] == "ArrayOfIndex") {
-        t = TokVal(*reinterpret_cast<ArrayOfIndex*>(workspace->operator[](id)));
-    }
-    // String
-    if (wsv_group_names[group_id] == "String") {
-        t = TokVal(*reinterpret_cast<String*>(workspace->operator[](id)));
-    }
-    // ArrayOfString
-    if (wsv_group_names[group_id] == "ArrayOfString") {
-        t = TokVal(*reinterpret_cast<ArrayOfString*>(workspace->operator[](id)));
-    }
-    // ArrayOfIndex
-    if (wsv_group_names[group_id] == "ArrayOfIndex") {
-        t = TokVal(*reinterpret_cast<ArrayOfString*>(workspace->operator[](id)));
-    }
-    // Vector
-    if (wsv_group_names[group_id] == "Vector") {
-        t = TokVal(*reinterpret_cast<Vector*>(workspace->operator[](id)));
-    }
-    // Matrix
-    if (wsv_group_names[group_id] == "Matrix") {
-        t = TokVal(*reinterpret_cast<Matrix*>(workspace->operator[](id)));
-    }
-
-    std::stringstream s;
-    s << wsv_group_names[group_id] << "Set";
-
-    Index m_id = MdMap.at(String(s.str()));
+    TokVal t{};
     ArrayOfIndex output(1), input(0);
     output[0] = id;
-    MRecord mr(m_id, output, input, t, Agenda{});
+    std::stringstream s;
+    s << wsv_group_names[group_id] << "Set";
+    Index m_id = MdMap.at(String(s.str()));
+    MRecord mr;
+
+    // Agenda
+    if (wsv_group_names[group_id] == "Agenda") {
+        const Agenda & agenda = *reinterpret_cast<Agenda*>(workspace->operator[](id));
+        mr = MRecord(m_id, output, input, t, agenda);
+    } else {
+        // Index
+        if (wsv_group_names[group_id] == "Index") {
+            t = TokVal(*reinterpret_cast<Index*>(workspace->operator[](id)));
+        }
+        // Numeric
+        if (wsv_group_names[group_id] == "Numeric") {
+            t = TokVal(*reinterpret_cast<Numeric*>(workspace->operator[](id)));
+        }
+        // ArrayOfIndex
+        if (wsv_group_names[group_id] == "ArrayOfIndex") {
+            t = TokVal(*reinterpret_cast<ArrayOfIndex*>(workspace->operator[](id)));
+        }
+        // String
+        if (wsv_group_names[group_id] == "String") {
+            t = TokVal(*reinterpret_cast<String*>(workspace->operator[](id)));
+        }
+        // ArrayOfString
+        if (wsv_group_names[group_id] == "ArrayOfString") {
+            t = TokVal(*reinterpret_cast<ArrayOfString*>(workspace->operator[](id)));
+        }
+        // ArrayOfIndex
+        if (wsv_group_names[group_id] == "ArrayOfIndex") {
+            t = TokVal(*reinterpret_cast<ArrayOfString*>(workspace->operator[](id)));
+        }
+        // Vector
+        if (wsv_group_names[group_id] == "Vector") {
+            t = TokVal(*reinterpret_cast<Vector*>(workspace->operator[](id)));
+        }
+        // Matrix
+        if (wsv_group_names[group_id] == "Matrix") {
+            t = TokVal(*reinterpret_cast<Matrix*>(workspace->operator[](id)));
+        }
+        mr = MRecord(m_id, output, input, t, Agenda{});
+    }
     a->push_back(mr);
 }
 
@@ -167,9 +173,19 @@ void agenda_add_method(Agenda * a,
     ArrayOfIndex output, input;
     Agenda aa{};
     TokVal t{};
+    if (n_input_args > 0)
     copy_output_and_input(output, input, n_output_args, output_args, n_input_args, input_args);
     MRecord mr(id, output, input, t, Agenda{});
     a->push_back(mr);
+}
+
+
+void agenda_append(Agenda *dst, const Agenda *src)
+{
+    auto methods = src->Methods();
+    for (auto m : methods) {
+        dst->push_back(m);
+    }
 }
 
 void agenda_clear(Agenda * a)
@@ -179,7 +195,9 @@ void agenda_clear(Agenda * a)
 
 const char * execute_agenda(InteractiveWorkspace *workspace, const Agenda *a)
 {
-    return workspace->execute_agenda(a);
+    Agenda b(*a);
+    b.set_main_agenda();
+    return workspace->execute_agenda(&b);
 }
 
 void destroy_agenda(Agenda *a)
@@ -544,12 +562,6 @@ const char * set_variable_value(InteractiveWorkspace *workspace,
     // Tensor6
     else if (wsv_group_names[group_id] == "Tensor6") {
         const Numeric * ptr = reinterpret_cast<const Numeric *>(value.ptr);
-        std::cout << value.dimensions[0] << " / "
-                  << value.dimensions[1] << " / "
-                  << value.dimensions[2] << " / "
-                  << value.dimensions[3] << " / "
-                  << value.dimensions[4] << " / "
-                  << value.dimensions[5] << std::endl;
         workspace->set_tensor6_variable(id,
                                         value.dimensions[0],
                                         value.dimensions[1],

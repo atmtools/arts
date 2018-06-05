@@ -274,7 +274,6 @@ extern "C" {
                            unsigned long n_args_in,
                            const long * args_in);
 
-    DLL_PUBLIC
     //! Insert a set method into an agenda.
     /**
      * This inserts a set method into the given agenda which sets the a workspace variable
@@ -286,10 +285,22 @@ extern "C" {
      *  the given workspace.
      *  \param The group_id of the workspace variable.
      */
+    DLL_PUBLIC
     void agenda_insert_set(InteractiveWorkspace *ws,
                            Agenda * a,
                            long id,
                            long group_id);
+
+    //! Append agendas.
+    /*!
+      Appends the methods in agenda src to agenda dst. This can be
+      used to emulate include statements in agenda definitions.
+
+      \param dst The agenda to append the methods to
+      \param src The agenda whose methods to append to src
+    */
+    DLL_PUBLIC
+    void agenda_append(Agenda *dst, const Agenda *src);
 
     //! Clear Agenda
     /**

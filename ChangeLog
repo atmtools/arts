@@ -1,3 +1,15 @@
+2018-06-05  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1071
+
+	* src/arts_api[h, cc]:
+	- Added agenda_append method to emulate include statements inside
+	  agenda definition.
+	- Fixed handling of agendas in agenda_insert_set
+
+	* src/interactive_workspace[h, cc]:
+	- Fixed setter function for WSVs of group agenda.
+
 2018-06-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1070
@@ -155,7 +167,6 @@
 	* src/methods.cc (retrievalDefInit):
 	- Updated method description.
 
->>>>>>> .r11018
 2018-05-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1060
@@ -448,7 +459,6 @@
 	
 	* src/test_propagationmatrix.cc:  See "src/absorption.cc" above.
 
->>>>>>> .r10995
 2018-05-15 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1048
