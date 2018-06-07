@@ -1155,6 +1155,7 @@ void psdD14(
     const Numeric&         beta,
     const Numeric&         t_min,
     const Numeric&         t_max,
+    const Numeric&         dm_min,
     const Index&           picky,
     const Verbosity& )
 {
@@ -1257,6 +1258,16 @@ void psdD14(
             } else {
                 continue;
             }
+        }
+
+        if ((dm_p <= 0.0) || (dm < dm_min)) {
+            ostringstream os;
+            os << "The provided or inferred value of *Dm* is "
+               << " less than zero or *Dm_min* and this is not allowed. "
+               << "This means that you have very small or zero values "
+               << "in *pnd_agenda_input* which is not supported "
+               << "by this PSD." << std::endl;
+            throw runtime_error(os.str());
         }
 
         // Calculate PSD and derivatives

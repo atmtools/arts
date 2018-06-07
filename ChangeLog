@@ -1,3 +1,13 @@
+2018-06-07  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1073
+
+	* src/m_psd.cc:
+	- Throw error when *Dm* PSD input is zero or very small.
+
+	* src/methods.cc:
+	- Updated description of psdD14.
+
 2018-06-05  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1072

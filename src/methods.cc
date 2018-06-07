@@ -13012,7 +13012,7 @@ void define_md_data_raw()
       ( NAME( "psdD14" ),
         DESCRIPTION
         (
-            "Normalized PSD as proposed in Delanoë et al. (2014),\n"
+            "Normalized PSD as proposed in Delanoë et al. ((2014)),\n"
             "'Normalized particle size distribution for remote sensing\n"
             "application', J. Geophys. Res. Atmos., 119, 4204–422.\n"
             "\n"
@@ -13024,6 +13024,12 @@ void define_md_data_raw()
             "It is also possible to provide only *iwc*, in which case an a\n"
             "priori assumption will be used to deduce *N0star* from *temperature*.\n"
             "In this case both *N0star* and *Dm* must be set to -999.0.\n"
+            "\n"
+            "This PSD is not defined for vanishing concentrations of\n"
+            "scatterers as it requires normalization by *Dm*. It is up\n"
+            "to the user to ensure that the value of *Dm* is sufficiently\n"
+            "large. An error is thrown if *Dm* is zero or below the value\n"
+            "provided by *Dm_min*.\n"
         ),
         AUTHORS( "Simon Pfreundschuh" ),
         OUT( "psd_data", "dpsd_data_dx" ),
@@ -13032,10 +13038,10 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "psd_size_grid", "pnd_agenda_input_t", "pnd_agenda_input",
             "pnd_agenda_input_names", "dpnd_data_dx_names" ),
-        GIN( "iwc", "n0Star", "Dm", "rho", "alpha", "beta", "t_min", "t_max", "picky" ),
+        GIN( "iwc", "n0Star", "Dm", "rho", "alpha", "beta", "t_min", "t_max", "dm_min", "picky" ),
         GIN_TYPE( "Numeric", "Numeric",  "Numeric", "Numeric", "Numeric", "Numeric",
-                  "Numeric", "Numeric", "Index" ),
-        GIN_DEFAULT( "NaN", "NaN", "NaN", "917.6", "-0.237", "1.839", NODEF, NODEF, "0" ),
+                  "Numeric", "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( "NaN", "NaN", "NaN", "917.6", "-0.237", "1.839", NODEF, NODEF, "-1.0", "0"),
         GIN_DESC( "Ice water content",
                   "Intercept parameter",
                   "Volume weighted diameter",
@@ -13044,6 +13050,7 @@ void define_md_data_raw()
                   "*beta* paramter of the shape function",
                   "Low temperature limit to calculate a psd.",
                   "High temperature limit to calculate a psd.",
+                  "Lower threshold for *Dm* below which an error is thrown.",
                   "Flag whether to be strict with parametrization value checks." )
         ));
 
