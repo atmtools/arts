@@ -20135,12 +20135,10 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     vmr           : [1]
       //
       // liquid water droplet parameters:
-      // suspended water droplet density   range: 0-10 g/m³
-      // specific droplet weight           value:    1 g/cm³
+      // suspended water droplet density   range: 0-5 g/m³
       //
       // valid atmospheric condition:
-      // temperature      : 233 to 323 K
-      // relative humidity:   1 to 100 %
+      // temperature      : 210 to 373 K
       //
       for ( Index s=0; s<f_grid.nelem(); ++s )
         {
@@ -20154,12 +20152,12 @@ void xsec_continuum_tag (MatrixView             xsec,
         }
       for ( Index s=0; s<abs_t.nelem(); ++s )
         {
-          if( ( abs_t[s] < 233. || abs_t[s] > 323.)  &&
-              abs(vmr[s])>LIQUID_AND_ICE_TREAT_AS_ZERO )
+          if( ( abs_t[s] < 210. || abs_t[s] > 373.)  &&
+              abs(vmr[s]) > LIQUID_AND_ICE_TREAT_AS_ZERO )
             {
                ostringstream os;
                os << "Liquid cloud absorption model MPM93 only valid at\n"
-                  << "temperatures between 233K and 323K.\n"
+                  << "temperatures between 210 and 373K.\n"
                   << "LWC values outside this temperature range must be < "
                   << LIQUID_AND_ICE_TREAT_AS_ZERO << " kg/m3.\n"
                   << "Your value at " << abs_t[s] << "K is: " << vmr[s] << " kg/m3.";
@@ -20236,12 +20234,10 @@ void xsec_continuum_tag (MatrixView             xsec,
       //     vmr           : [1]
       //
       // liquid water droplet parameters:
-      // suspended water droplet density   range: 0-10 g/m³
-      // specific droplet weight           value:    1 g/cm³
+      // suspended water droplet density   range: 0-5 g/m³
       //
       // valid atmospheric condition:
-      // temperature      : 233 to 323 K
-      // relative humidity:   1 to 100 %
+      // temperature      : 210 to 373 K
       //
       for ( Index s=0; s<f_grid.nelem(); ++s )
         {
@@ -20255,12 +20251,12 @@ void xsec_continuum_tag (MatrixView             xsec,
         }
       for ( Index s=0; s<abs_t.nelem(); ++s )
         {
-          if( ( abs_t[s] < 233. || abs_t[s] > 373.)  &&
-              abs(vmr[s])>LIQUID_AND_ICE_TREAT_AS_ZERO )
+          if( ( abs_t[s] < 210. || abs_t[s] > 373.)  &&
+              abs(vmr[s]) > LIQUID_AND_ICE_TREAT_AS_ZERO )
             {
                ostringstream os;
                os << "Liquid cloud absorption model ELL07 only valid at\n"
-                  << "temperatures between 233K and 373K.\n"
+                  << "temperatures between 210 and 373K.\n"
                   << "LWC values outside this temperature range must be < "
                   << LIQUID_AND_ICE_TREAT_AS_ZERO << " kg/m3.\n"
                   << "Your value at " << abs_t[s] << "K is: " << vmr[s] << " kg/m3.";

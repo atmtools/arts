@@ -1,3 +1,20 @@
+2018-06-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1074
+
+	* src/continua.cc (xsec_continuum_tag): Changes for
+	liquidcloud-MPM93 and liquidcloud-ELL07. For both models changed
+	the valid temperature range to 210 - 373 K.
+
+	Comment 1: We allow unphysical values elsewhere in ARTS, so a lower
+	limit of 233K seemed too strict in comparison. At least -42C is
+	possible. And a limit of 233K causes problems when working with
+	e.g. ERA5. In the upper end, I set the limit at 100C (this was
+	already the case for ELL07).
+
+	Comment 2: Would be good with a clear strategy for how to set
+	limits. Shall we have limits at all?
+
 2018-06-07  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1073
