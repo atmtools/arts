@@ -1,5 +1,26 @@
 2018-06-14  Richard Larsson  <ric.larsson@gmail.com>
 
+	* arts-2-3-1077
+	
+	Second part of updating Zeeman calculations.  Contains
+	the method of how the error became apparent...  Still no
+	update to the actual computations. (Sorry for multiple 
+	partial updates not leading anywhere; I found the 
+	bug while travelling but I had to sit down by my desk
+	for a few hours to find the cause)
+	
+	* src/jacobian.cc,h: introduced 
+	is_magnetic_magnitude_parameter to contain all variables
+	that needs the magnitude in jacobian.  This waste a few cycles 
+	presently but will be necessary by next committ
+	
+	* src/linefunctions.cc:  Use is_magnetic_magnitude_parameter
+	
+	* src/zeeman.cc,h: Added future replacement function for 
+	Zeeman internals and removed unused parameters
+
+2018-06-14  Richard Larsson  <ric.larsson@gmail.com>
+
 	* arts-2-3-1076
 	
 	Starting to fix a small bug in the Zeeman calculations.  It seems

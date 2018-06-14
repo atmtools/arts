@@ -467,6 +467,8 @@ bool is_derived_magnetic_parameter(const RetrievalQuantity& t);
 
 bool is_magnetic_parameter(const RetrievalQuantity& t);
 
+bool is_magnetic_magnitude_parameter(const RetrievalQuantity& t);
+
 bool is_nlte_parameter(const RetrievalQuantity& t);
 
 bool is_line_mixing_DF_parameter(const RetrievalQuantity& t);

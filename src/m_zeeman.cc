@@ -145,8 +145,8 @@ void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clea
   if(nzeeman==0)
       return;
   
-  Vector R_path_los;
-  mirror_los(R_path_los, ppath_los, atmosphere_dim);
+  Vector rtp_los;
+  mirror_los(rtp_los, ppath_los, atmosphere_dim);
 
   // Using the standard scalar absorption functions to get physics parameters,
   Vector abs_p, abs_t; Matrix abs_vmrs, abs_t_nlte;
@@ -159,7 +159,7 @@ void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clea
   Numeric H_mag,eta,theta;
   set_magnetic_parameters(H_mag,eta,theta,manual_zeeman_tag,manual_zeeman_eta,
                           manual_zeeman_theta,manual_zeeman_magnetic_field_strength,
-                          rtp_mag,R_path_los);
+                          rtp_mag,rtp_los);
   
   supports_zeeman(jacobian_quantities);
   const ArrayOfIndex jacobian_quantities_position = equivlent_propmattype_indexes(jacobian_quantities);
@@ -200,7 +200,7 @@ void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clea
                                                   abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
                                                   zeeman_linerecord_precalc[zeeman_ind+1], planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
-                                                  rtp_mag, R_path_los,lm_p_lim,theta, eta, H_mag, 0, II, verbosity );
+                                                  rtp_mag, rtp_los,lm_p_lim,theta, eta, H_mag, 0, II, verbosity );
 
     // Add Sigma minus contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
@@ -208,7 +208,7 @@ void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clea
                                                   abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
                                                   zeeman_linerecord_precalc[zeeman_ind], planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
-                                                  rtp_mag, R_path_los,lm_p_lim,theta, eta, H_mag, -1, II, verbosity );
+                                                  rtp_mag, rtp_los,lm_p_lim,theta, eta, H_mag, -1, II, verbosity );
 
     // Add Sigma plus contribution to final propmat_clearsky
     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
@@ -216,7 +216,7 @@ void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clea
                                                   abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
                                                   zeeman_linerecord_precalc[zeeman_ind+2], planck_BT, dplanck_BT,
                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
-                                                  rtp_mag, R_path_los,lm_p_lim,theta, eta, H_mag, 1, II, verbosity );
+                                                  rtp_mag, rtp_los,lm_p_lim,theta, eta, H_mag, 1, II, verbosity );
     
     // The flat structure reminder for 3-component ArrayOfArrayOfLineRecord
     zeeman_ind += 3;

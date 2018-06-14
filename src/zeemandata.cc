@@ -243,3 +243,53 @@ ZeemanEffectData::ZeemanEffectData(const QuantumIdentifier& qi, const ZeemanPola
     mS0[i] *= mS0[i] * C;
   }
 }
+
+
+Vector ZeemanEffectData::Polarization(const Numeric& theta, const Numeric& eta) const
+{
+  const Numeric ST=sin(theta), CT=cos(theta), ST2=ST*ST, CT2=CT*CT, C2E=cos(2*eta), S2E=sin(2*eta), ST2C2E=ST2*C2E, ST2S2E=ST2*S2E;
+  
+  switch(mpolar) {
+    case ZeemanPolarizationType::None:
+      return Vector({1, 0, 0, 0, 0, 0, 0});
+    case ZeemanPolarizationType::Pi:
+      return Vector({    ST2, -ST2C2E, -ST2S2E,     0,     0, -2*ST2S2E,  2*ST2C2E});
+    case ZeemanPolarizationType::SigmaMinus:
+      return Vector({1 + CT2,  ST2C2E,  ST2S2E,  2*CT,  4*CT,  2*ST2S2E, -2*ST2C2E});
+    case ZeemanPolarizationType::SigmaPlus:
+      return Vector({1 + CT2,  ST2C2E,  ST2S2E, -2*CT, -4*CT,  2*ST2S2E, -2*ST2C2E});
+  }
+}
+
+
+Vector ZeemanEffectData::dPolarization1(const Numeric& theta, const Numeric& eta) const
+{
+  const Numeric ST=sin(theta), CT=cos(theta), C2E=cos(2*eta), S2E=sin(2*eta);
+  const Numeric dST = CT, dST2 = 2*ST*dST, dCT = -ST, dST2C2E = dST2*C2E, dST2S2E = dST2*S2E, dCT2 = 2*CT*dCT;
+  
+  switch(mpolar) {
+    case ZeemanPolarizationType::None:
+      return Vector({0, 0, 0, 0, 0, 0, 0});
+    case ZeemanPolarizationType::Pi:
+      return Vector({dST2, -dST2C2E, -dST2S2E,      0,      0, -2*dST2S2E,  2*dST2C2E});
+    case ZeemanPolarizationType::SigmaMinus:
+      return Vector({dCT2,  dST2C2E,  dST2S2E,  2*dCT,  4*dCT,  2*dST2S2E, -2*dST2C2E});
+    case ZeemanPolarizationType::SigmaPlus:
+      return Vector({dCT2,  dST2C2E,  dST2S2E, -2*dCT, -4*dCT,  2*dST2S2E, -2*dST2C2E});
+  }
+}
+
+Vector ZeemanEffectData::dPolarization2(const Numeric& theta, const Numeric& eta) const
+{
+  const Numeric ST=sin(theta), ST2=ST*ST, C2E=cos(2*eta), S2E=sin(2*eta), dST2C2E=-2*ST2*S2E, dST2S2E=2*ST2*C2E;
+  
+  switch(mpolar) {
+    case ZeemanPolarizationType::None:
+      return Vector({0, 0, 0, 0, 0, 0, 0});
+    case ZeemanPolarizationType::Pi:
+      return Vector({0, -dST2C2E, -dST2S2E, 0, 0, -2*dST2S2E,  2*dST2C2E});
+    case ZeemanPolarizationType::SigmaMinus:
+    case ZeemanPolarizationType::SigmaPlus:
+      return Vector({0,  dST2C2E,  dST2S2E, 0, 0,  2*dST2S2E, -2*dST2C2E});
+  }
+}

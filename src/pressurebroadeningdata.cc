@@ -1753,7 +1753,7 @@ void PressureBroadeningData::ChangeForeignShiftRelative(const Numeric& change,
       for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
         if(broad_spec_locations[ii]!=-2)
           mdata[4][ii]*=1.0e0+change;
-        break;
+      break;
     default:
       throw std::runtime_error("ChangeForeignRelative: Cannot recognize type");
   }
@@ -1776,7 +1776,7 @@ void PressureBroadeningData::ChangeForeignShift(const Numeric& change,
       for(Index ii=0;ii<broad_spec_locations.nelem();ii++)
         if(broad_spec_locations[ii]!=-2)
           mdata[4][ii]+=change;
-        break;
+      break;
     default:
       throw std::runtime_error("ChangeForeignRelative: Cannot recognize type");
   }

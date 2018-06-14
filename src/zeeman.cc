@@ -22,319 +22,196 @@
 #include "linescaling.h"
 #include "species_info.h"
 
-/*!
- *  Defines the phase of the propagation matrix.
- *  Read Larsson et al. (2013) for an explanation.
- * 
- *  \param  K       Out:    The rotation extinction matrix.
- *  \param  theta   In:     Angle between the magnetic field and the
- *                          propagation path. In radians.
- *  \param  eta     In:     Angle to rotate planar polarization clockwise to
- *                          fit the general coordinate system. In radians.
- *  \param  DM      In:     Change in the secondary rotational quantum number.
- * 
- *  \author Richard Larsson
- *  \date   2012-08-03
- */
-void phase_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, const Index& DM)
+
+void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky, 
+                       ArrayOfStokesVector& nlte_source,
+                       ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+                       ArrayOfStokesVector& dnlte_dx_source,
+                       ArrayOfStokesVector& nlte_dsource_dx,
+                       const ArrayOfArrayOfSpeciesTag& abs_species, 
+                       const ArrayOfRetrievalQuantity& flag_partials,
+                       const ArrayOfIndex& flag_partials_positions,
+                       const ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
+                       const SpeciesAuxData& isotopologue_ratios, 
+                       const SpeciesAuxData& partition_functions,
+                       const ConstVectorView f_grid,
+                       const ConstVectorView rtp_vmrs, 
+                       const ConstVectorView rtp_nlte, 
+                       const ConstVectorView rtp_mag,
+                       const ConstVectorView rtp_los,
+                       const Numeric& rtp_pressure,
+                       const Numeric& rtp_temperature,
+                       const Numeric& lm_p_lim,
+                       const Index& manual_zeeman_tag,
+                       const Numeric& manual_zeeman_magnetic_field_strength,
+                       const Numeric& manual_zeeman_theta,
+                       const Numeric& manual_zeeman_eta,
+                       const Verbosity& verbosity)
 {
-    assert(K.nrows() == 4 );
-    assert(K.ncols() == 4 );
-    
-    const Numeric S2T = sin(theta)*sin(theta), CT = cos(theta), CE2 = cos(2*eta), SE2 = sin(2*eta);
-    
-    switch( DM )
-    {
-        case -1: // Transitions anti-parallel to the magnetic field
-            K(0,0) =   0;  K(0,1) =           0;  K(0,2) =           0;  K(0,3) =           0;
-            K(1,0) =   0;  K(1,1) =           0;  K(1,2) =      2 * CT;  K(1,3) =   S2T * SE2;
-            K(2,0) =   0;  K(2,1) =    - 2 * CT;  K(2,2) =           0;  K(2,3) = - S2T * CE2;
-            K(3,0) =   0;  K(3,1) = - S2T * SE2;  K(3,2) =   S2T * CE2;  K(3,3) =           0;
-            break;
-        case  1: // Transitions parallel to the magnetic field
-            K(0,0) =   0;  K(0,1) =           0;  K(0,2) =           0;  K(0,3) =           0;
-            K(1,0) =   0;  K(1,1) =           0;  K(1,2) =    - 2 * CT;  K(1,3) =   S2T * SE2;
-            K(2,0) =   0;  K(2,1) =      2 * CT;  K(2,2) =           0;  K(2,3) = - S2T * CE2;
-            K(3,0) =   0;  K(3,1) = - S2T * SE2;  K(3,2) =   S2T * CE2;  K(3,3) =           0;
-            break;
-        case  0:// Transitions perpendicular to the magnetic field
-            K(0,0) =   0;  K(0,1) =           0;  K(0,2) =           0;  K(0,3) =           0;
-            K(1,0) =   0;  K(1,1) =           0;  K(1,2) =           0;  K(1,3) = - S2T * SE2;
-            K(2,0) =   0;  K(2,1) =           0;  K(2,2) =           0;  K(2,3) =   S2T * CE2;
-            K(3,0) =   0;  K(3,1) =   S2T * SE2;  K(3,2) = - S2T * CE2;  K(3,3) =           0;
-            break;
-        default:
-            throw std::runtime_error("Impossible Delta M to phase matrix");
-    };
-};
-
-
-/*!
- *  Defines the attenuation of the propagation matrix.
- *  Read Larsson et al. (2013) for an explanation.
- * 
- *  \param  K       Out:    The rotation extinction matrix.
- *  \param  theta   In:     Angle between the magnetic field and the
- *                          propagation path. In radians.
- *  \param  eta     In:     Angle to rotate planar polarization clockwise to
- *                          fit the general coordinate system. In radians.
- *  \param  DM      In:     Change in the secondary rotational quantum number.
- * 
- *  \author Richard Larsson
- *  \date   2012-08-03
- */
-void attenuation_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, const Index& DM)
-{
-    assert(K.nrows() == 4 );
-    assert(K.ncols() == 4 );
-    
-    const Numeric S2T = sin(theta)*sin(theta), CT = cos(theta), C2T = CT*CT, CE2 = cos(2*eta), SE2 = sin(2*eta);
-    
-    switch( DM )
-    {
-        case -1: // Transitions anti-parallel to the magnetic field
-            K(0,0) =     1 + C2T;  K(0,1) =   S2T * CE2;  K(0,2) =   S2T * SE2;  K(0,3) =    2 * CT;
-            K(1,0) =   S2T * CE2;  K(1,1) =     1 + C2T;  K(1,2) =           0;  K(1,3) =         0;
-            K(2,0) =   S2T * SE2;  K(2,1) =           0;  K(2,2) =     1 + C2T;  K(2,3) =         0;
-            K(3,0) =      2 * CT;  K(3,1) =           0;  K(3,2) =           0;  K(3,3) =   1 + C2T;
-            break;
-        case  1: // Transitions parallel to the magnetic field
-            K(0,0) =     1 + C2T;  K(0,1) =   S2T * CE2;  K(0,2) =   S2T * SE2;  K(0,3) =  - 2 * CT;
-            K(1,0) =   S2T * CE2;  K(1,1) =     1 + C2T;  K(1,2) =           0;  K(1,3) =         0;
-            K(2,0) =   S2T * SE2;  K(2,1) =           0;  K(2,2) =     1 + C2T;  K(2,3) =         0;
-            K(3,0) =    - 2 * CT;  K(3,1) =           0;  K(3,2) =           0;  K(3,3) =   1 + C2T;
-            break;
-        case  0: // Transitions perpendicular to the magnetic field
-            K(0,0) =         S2T;  K(0,1) = - S2T * CE2;  K(0,2) = - S2T * SE2;  K(0,3) =         0;
-            K(1,0) = - S2T * CE2;  K(1,1) =         S2T;  K(1,2) =           0;  K(1,3) =         0;
-            K(2,0) = - S2T * SE2;  K(2,1) =           0;  K(2,2) =         S2T;  K(2,3) =         0;
-            K(3,0) =           0;  K(3,1) =           0;  K(3,2) =           0;  K(3,3) =       S2T;
-            break;
-        default:
-            throw std::runtime_error("Impossible Delta M to attenuation matrix");
-    };
-};
-
-
-/*!
- *  Defines the derivative of the phase of the propagation matrix with regards to theta
- * 
- *  \param  dK      Out:    The rotation extinction matrix derivative with regards to theta.
- *  \param  theta   In:     Angle between the magnetic field and the
- *                          propagation path. In radians.
- *  \param  eta     In:     Angle to rotate planar polarization clockwise to
- *                          fit the general coordinate system. In radians.
- *  \param  DM      In:     Change in the secondary rotational quantum number.
- * 
- *  \author Richard Larsson
- *  \date   2015-08-14
- */
-void dphase_matrix_dtheta(MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM)
-{
-    assert(dK.nrows() == 4 );
-    assert(dK.ncols() == 4 );
-    
-    const Numeric ST = sin(theta), CTST = sin(theta)*cos(theta), CE2 = cos(2*eta), SE2 = sin(2*eta);
-    
-    switch( DM )
-    {
-        case -1: // Transitions anti-parallel to the magnetic field
-            dK(0,0) =   0;  dK(0,1) =                0;  dK(0,2) =                0;  dK(0,3) =                0;
-            dK(1,0) =   0;  dK(1,1) =                0;  dK(1,2) =         - 2 * ST;  dK(1,3) =   2 * CTST * SE2;
-            dK(2,0) =   0;  dK(2,1) =           2 * ST;  dK(2,2) =                0;  dK(2,3) = - 2 * CTST * CE2;
-            dK(3,0) =   0;  dK(3,1) = - 2 * CTST * SE2;  dK(3,2) =   2 * CTST * CE2;  dK(3,3) =                0;
-            break;
-        case  1: // Transitions parallel to the magnetic field
-            dK(0,0) =   0;  dK(0,1) =                0;  dK(0,2) =                0;  dK(0,3) =                0;
-            dK(1,0) =   0;  dK(1,1) =                0;  dK(1,2) =           2 * ST;  dK(1,3) =   2 * CTST * SE2;
-            dK(2,0) =   0;  dK(2,1) =        -  2 * ST;  dK(2,2) =                0;  dK(2,3) = - 2 * CTST * CE2;
-            dK(3,0) =   0;  dK(3,1) = - 2 * CTST * SE2;  dK(3,2) =   2 * CTST * CE2;  dK(3,3) =                0;
-            break;
-        case  0:// Transitions perpendicular to the magnetic field
-            dK(0,0) =   0;  dK(0,1) =                0;  dK(0,2) =                0;  dK(0,3) =                0;
-            dK(1,0) =   0;  dK(1,1) =                0;  dK(1,2) =                0;  dK(1,3) = - 2 * CTST * SE2;
-            dK(2,0) =   0;  dK(2,1) =                0;  dK(2,2) =                0;  dK(2,3) =   2 * CTST * CE2;
-            dK(3,0) =   0;  dK(3,1) =   2 * CTST * SE2;  dK(3,2) = - 2 * CTST * CE2;  dK(3,3) =                0;
-            break;
-        default:
-            throw std::runtime_error("Impossible Delta M to phase matrix");
-    };
-};
-
-
-/*!
- *  Defines the derivative of the phase of the propagation matrix with regards to eta
- * 
- *  \param  dK      Out:    The rotation extinction matrix derivative with regards to eta.
- *  \param  theta   In:     Angle between the magnetic field and the
- *                          propagation path. In radians.
- *  \param  eta     In:     Angle to rotate planar polarization clockwise to
- *                          fit the general coordinate system. In radians.
- *  \param  DM      In:     Change in the secondary rotational quantum number.
- * 
- *  \author Richard Larsson
- *  \date   2015-08-14
- */
-void dphase_matrix_deta(MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM)
-{
-    assert(dK.nrows() == 4 );
-    assert(dK.ncols() == 4 );
-    
-    const Numeric S2T = sin(theta)*sin(theta), CE2 = cos(2*eta), SE2 = sin(2*eta);
-    
-    switch( DM )
-    {
-        case -1: // Transitions anti-parallel to the magnetic field
-            dK(0,0) =   0;  dK(0,1) =               0;  dK(0,2) =               0;  dK(0,3) =               0;
-            dK(1,0) =   0;  dK(1,1) =               0;  dK(1,2) =               0;  dK(1,3) =   2 * S2T * CE2;
-            dK(2,0) =   0;  dK(2,1) =               0;  dK(2,2) =               0;  dK(2,3) =   2 * S2T * SE2;
-            dK(3,0) =   0;  dK(3,1) = - 2 * S2T * CE2;  dK(3,2) = - 2 * S2T * SE2;  dK(3,3) =               0;
-            break;
-        case  1: // Transitions parallel to the magnetic field
-            dK(0,0) =   0;  dK(0,1) =               0;  dK(0,2) =               0;  dK(0,3) =               0;
-            dK(1,0) =   0;  dK(1,1) =               0;  dK(1,2) =               0;  dK(1,3) =   2 * S2T * CE2;
-            dK(2,0) =   0;  dK(2,1) =               0;  dK(2,2) =               0;  dK(2,3) =   2 * S2T * SE2;
-            dK(3,0) =   0;  dK(3,1) = - 2 * S2T * CE2;  dK(3,2) = - 2 * S2T * SE2;  dK(3,3) =               0;
-            break;
-        case  0:// Transitions perpendicular to the magnetic field
-            dK(0,0) =   0;  dK(0,1) =               0;  dK(0,2) =               0;  dK(0,3) =               0;
-            dK(1,0) =   0;  dK(1,1) =               0;  dK(1,2) =               0;  dK(1,3) = - 2 * S2T * CE2;
-            dK(2,0) =   0;  dK(2,1) =               0;  dK(2,2) =               0;  dK(2,3) = - 2 * S2T * SE2;
-            dK(3,0) =   0;  dK(3,1) =   2 * S2T * CE2;  dK(3,2) =   2 * S2T * SE2;  dK(3,3) =               0;
-            break;
-        default:
-            throw std::runtime_error("Impossible Delta M to phase matrix");
-    };
-};
-
-
-/*!
- *  Defines the derivative of the attenuation of the propagation matrix with regards to theta.
- * 
- *  \param  dK      Out:    The rotation extinction matrix derivative with regards to theta.
- *  \param  theta   In:     Angle between the magnetic field and the
- *                          propagation path. In radians.
- *  \param  eta     In:     Angle to rotate planar polarization clockwise to
- *                          fit the general coordinate system. In radians.
- *  \param  DM      In:     Change in the secondary rotational quantum number.
- * 
- *  \author Richard Larsson
- *  \date   2015-08-14
- */
-void dattenuation_matrix_dtheta(MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM)
-{
-    assert(dK.nrows() == 4 );
-    assert(dK.ncols() == 4 );
-    
-    const Numeric CTST = cos(theta)*sin(theta), ST = sin(theta), CE2 = cos(2*eta),  SE2 = sin(2*eta);
-    
-    switch( DM )
-    {
-        case -1: // Transitions anti-parallel to the magnetic field
-            dK(0,0) =       - 2 * CTST;  dK(0,1) =   2 * CTST * CE2;  dK(0,2) =   2 * CTST * SE2;  dK(0,3) =   - 2 * ST;
-            dK(1,0) =   2 * CTST * CE2;  dK(1,1) =       - 2 * CTST;  dK(1,2) =                0;  dK(1,3) =          0;
-            dK(2,0) =   2 * CTST * SE2;  dK(2,1) =                0;  dK(2,2) =       - 2 * CTST;  dK(2,3) =          0;
-            dK(3,0) =         - 2 * ST;  dK(3,1) =                0;  dK(3,2) =                0;  dK(3,3) = - 2 * CTST;
-            break;
-        case  1: // Transitions parallel to the magnetic field
-            dK(0,0) =       - 2 * CTST;  dK(0,1) =   2 * CTST * CE2;  dK(0,2) =   2 * CTST * SE2;  dK(0,3) =     2 * ST;
-            dK(1,0) =   2 * CTST * CE2;  dK(1,1) =       - 2 * CTST;  dK(1,2) =                0;  dK(1,3) =          0;
-            dK(2,0) =   2 * CTST * SE2;  dK(2,1) =                0;  dK(2,2) =       - 2 * CTST;  dK(2,3) =          0;
-            dK(3,0) =           2 * ST;  dK(3,1) =                0;  dK(3,2) =                0;  dK(3,3) = - 2 * CTST;
-            break;
-        case  0: // Transitions perpendicular to the magnetic field
-            dK(0,0) =         2 * CTST;  dK(0,1) = - 2 * CTST * CE2;  dK(0,2) = - 2 * CTST * SE2;  dK(0,3) =          0;
-            dK(1,0) = - 2 * CTST * CE2;  dK(1,1) =         2 * CTST;  dK(1,2) =                0;  dK(1,3) =          0;
-            dK(2,0) = - 2 * CTST * SE2;  dK(2,1) =                0;  dK(2,2) =         2 * CTST;  dK(2,3) =          0;
-            dK(3,0) =                0;  dK(3,1) =                0;  dK(3,2) =                0;  dK(3,3) =   2 * CTST;
-            break;
-        default:
-            throw std::runtime_error("Impossible Delta M to attenuation matrix");
-    };
-};
-
-
-/*!
- *  Defines the derivative of the attenuation of the propagation matrix with regards to eta.
- * 
- *  \param  dK      Out:    The rotation extinction matrix derivative with regards to eta.
- *  \param  theta   In:     Angle between the magnetic field and the
- *                          propagation path. In radians.
- *  \param  eta     In:     Angle to rotate planar polarization clockwise to
- *                          fit the general coordinate system. In radians.
- *  \param  DM      In:     Change in the secondary rotational quantum number.
- * 
- *  \author Richard Larsson
- *  \date   2015-08-14
- */
-void dattenuation_matrix_deta(MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM)
-{
-    assert(dK.nrows() == 4 );
-    assert(dK.ncols() == 4 );
-    
-    const Numeric SE2 = sin(2*eta), CE2 = cos(2*eta), ST2 = sin(theta)*sin(theta);
-    
-    switch( DM )
-    {
-        case -1: // Transitions anti-parallel to the magnetic field
-            dK(0,0) =               0;  dK(0,1) = - 2 * ST2 * SE2;  dK(0,2) =   2 * ST2 * CE2;  dK(0,3) =   0;
-            dK(1,0) = - 2 * ST2 * SE2;  dK(1,1) =               0;  dK(1,2) =               0;  dK(1,3) =   0;
-            dK(2,0) =   2 * ST2 * CE2;  dK(2,1) =               0;  dK(2,2) =               0;  dK(2,3) =   0;
-            dK(3,0) =               0;  dK(3,1) =               0;  dK(3,2) =               0;  dK(3,3) =   0;
-            break;
-        case  1: // Transitions parallel to the magnetic field
-            dK(0,0) =               0;  dK(0,1) = - 2 * ST2 * SE2;  dK(0,2) =   2 * ST2 * CE2;  dK(0,3) =   0;
-            dK(1,0) = - 2 * ST2 * SE2;  dK(1,1) =               0;  dK(1,2) =               0;  dK(1,3) =   0;
-            dK(2,0) =   2 * ST2 * CE2;  dK(2,1) =               0;  dK(2,2) =               0;  dK(2,3) =   0;
-            dK(3,0) =               0;  dK(3,1) =               0;  dK(3,2) =               0;  dK(3,3) =   0;
-            break;
-        case  0: // Transitions perpendicular to the magnetic field
-            dK(0,0) =               0;  dK(0,1) =   2 * ST2 * SE2;  dK(0,2) = - 2 * ST2 * CE2;  dK(0,3) =   0;
-            dK(1,0) =   2 * ST2 * SE2;  dK(1,1) =               0;  dK(1,2) =               0;  dK(1,3) =   0;
-            dK(2,0) = - 2 * ST2 * CE2;  dK(2,1) =               0;  dK(2,2) =               0;  dK(2,3) =   0;
-            dK(3,0) =               0;  dK(3,1) =               0;  dK(3,2) =               0;  dK(3,3) =   0;
-            break;
-        default:
-            throw std::runtime_error("Impossible Delta M to attenuation matrix");
-    };
-};
-
-
-/*!
- * Return the relative strength of the split Zeeman line parts as found in
- * Berdyugina and Solnaki (2002). Note that this is the same as the general case
- * of Schadee (1978).
- * 
- * \param  __U__   Void.
- * \param  m       In:     Secondary rotational quantum number.
- * \param  j       In:     Spin-Orbit Coupling number.
- * \param  DJ      In:     Change in the main rotational quantum number.
- * \param  DM      In:     Change in the secondary rotational quantum number.
- * 
- * \author Richard Larsson
- * \date   2012-10-26
- */
-Rational relative_strength(const Rational& M, const Rational& J, const Index& dj, const Index& dm) {
-  switch ( dj ) {
-    case -1:
-      switch ( dm ) {
-        case -1: return (Rational(3, 8)*(J+M)*(J-1+M) / (J*(2*J-1)*(2*J+1))); // Transitions anti-parallel to the magnetic field
-        case  0: return (Rational(3, 2)*(J*J-M*M)     / (J*(2*J-1)*(2*J+1))); // Transitions perpendicular to the magnetic field
-        case +1: return (Rational(3, 8)*(J-M)*(J-1-M) / (J*(2*J-1)*(2*J+1))); // Transitions parallel to the magnetic field
+  // Size of problem
+  const Index nf = f_grid.nelem();
+  const Index nq = flag_partials_positions.nelem();
+  const Index ns = abs_species.nelem();
+  const Index nn = rtp_nlte.nelem();
+  
+  // Pressure information
+  ArrayOfIndex broad_spec_locations;
+  const Index h2o_index = find_first_species_tg(abs_species, species_index_from_species_name("H2O"));
+  const Numeric dnumdens_dmvr = number_density(rtp_pressure, rtp_temperature);
+  const Numeric dnumdens_dt_dmvr = dnumber_density_dt(rtp_pressure, rtp_temperature);
+  
+  // Main compute vectors
+  ComplexVector F(nf), N(nn?nf:0);
+  ComplexMatrix dF(nq, nf), dN(nn?nq:0, nf);
+  Range frange(joker);
+  
+  // Magnetic field variables
+  Numeric H, theta, eta, dH_du, dH_dv, dH_dw, dtheta_du, dtheta_dv, dtheta_dw, deta_du, deta_dv, deta_dw;
+  set_magnetic_parameters(H, eta, theta, manual_zeeman_tag, manual_zeeman_eta, manual_zeeman_theta, manual_zeeman_magnetic_field_strength, rtp_mag, rtp_los);
+  if(manual_zeeman_tag)
+    dH_du=dH_dv=dH_dw=deta_du=deta_dv=deta_dw=dtheta_du=dtheta_dv=dtheta_dw=0;
+  else
+    set_magnetic_parameters_derivative(dH_du, dH_dv, dH_dw, deta_du, deta_dv, deta_dw, dtheta_du, dtheta_dv, dtheta_dw, rtp_mag, rtp_los);
+  
+  for(Index ispecies=0; ispecies<ns; ispecies++) {
+    for(const ArrayOfLineRecord& lines: zeeman_linerecord_precalc) {
+      if(not lines.nelem()) continue;
+      else if(lines[0].Species()      not_eq abs_species[ispecies][0].Species() or
+              lines[0].Isotopologue() not_eq abs_species[ispecies][0].Isotopologue()) continue;
+      
+      // Polarization
+      const Vector polarization_scale = lines[0].ZeemanEffect().Polarization(theta*DEG2RAD, eta*DEG2RAD);  // nb. need "smart" function to avoid being complex
+      const Vector dpol_deta = lines[0].ZeemanEffect().Polarization(theta*DEG2RAD, eta*DEG2RAD);  // nb. need "smart" function to avoid being complex
+      const Vector dpol_dtheta = lines[0].ZeemanEffect().Polarization(theta*DEG2RAD, eta*DEG2RAD);  // nb. need "smart" function to avoid being complex
+      
+      // Pressure broadening needs to know where self is to work
+      find_broad_spec_locations(broad_spec_locations, abs_species, ispecies);
+      
+      // Temperature constants
+      Numeric t0=-1.0, qt, qt0, dqt_dT;
+      const Numeric numdens = rtp_vmrs[ispecies]*dnumdens_dmvr;
+      const Numeric dnumdens_dT = rtp_vmrs[ispecies]*dnumdens_dt_dmvr;
+      const Numeric dc = Linefunctions::DopplerConstant(rtp_temperature, lines[0].IsotopologueData().Mass());
+      const Numeric ddc_dT = Linefunctions::dDopplerConstant_dT(rtp_temperature, lines[0].IsotopologueData().Mass());
+      const Numeric isotop_ratio = isotopologue_ratios.getParam(lines[0].Species(), lines[0].Isotopologue())[0].data[0];
+      const Numeric partial_pressure = rtp_pressure * rtp_vmrs[ispecies];
+      
+      for(const LineRecord& line: lines) {
+        
+        if(line.Ti0() not_eq t0) {
+          t0 = line.Ti0();
+          
+          partition_function(qt0, qt, t0, rtp_temperature,
+                              partition_functions.getParamType(line.Species(), line.Isotopologue()),
+                              partition_functions.getParam(line.Species(), line.Isotopologue()));
+          
+          if(do_temperature_jacobian(flag_partials))
+            dpartition_function_dT(dqt_dT, qt, rtp_temperature, temperature_perturbation(flag_partials),
+                                   partition_functions.getParamType(line.Species(), line.Isotopologue()),
+                                   partition_functions.getParam(line.Species(), line.Isotopologue()));
+        }
+        
+        for(Index iz=0; iz<line.ZeemanEffect().nelem(); iz++) {
+          
+          const Numeric B = nn ? planck(line.F(), rtp_temperature) : 0;
+          const Numeric dB_dT = nn ? dplanck_dt(line.F(), rtp_temperature) : 0;
+          
+          Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, frange,
+                                                           flag_partials, flag_partials_positions, line, f_grid, rtp_vmrs, 
+                                                           rtp_nlte, rtp_pressure, rtp_temperature, dc, partial_pressure, 
+                                                           isotop_ratio, H, ddc_dT, lm_p_lim, qt, dqt_dT, qt0,
+                                                           broad_spec_locations, ispecies, h2o_index, iz, verbosity);
+          
+          // range-based arguments that need be made to work for both complex and numeric
+          const Index extent = (frange.get_extent() < 0) ? (nf - frange.get_start()) : frange.get_extent();
+          const Range this_out_range(frange.get_start(), extent);
+          
+          const ComplexVectorView F_range_view = F[frange];
+          const ComplexVectorView N_range_view = nn?N[frange]:F;
+          const ComplexMatrixView dF_range_view = dF(joker, frange);
+          const ComplexMatrixView dN_range_view = nn?dN(joker, frange):dF;
+          
+          // FIXME: add up all to output here... and consider the jacobian...
+          for(Index i = 0; i < extent; i++) {
+            const Numeric ReF = F_range_view[i].real();
+            const Numeric ImF = F_range_view[i].imag();
+            const Numeric ReN = N_range_view[i].real();
+            const Numeric ImN = N_range_view[i].imag();
+            
+            propmat_clearsky[ispecies].AddPolarized(polarization_scale, i, ReF*numdens, ImF*numdens);
+            if(nn)
+              nlte_source[ispecies].AddPolarized(polarization_scale, i, ReN*numdens*B, ImN*numdens*B);
+            
+            for(Index j=0; j<nq; j++) {
+              const Numeric dReF = dF_range_view(j, i).real();
+              const Numeric dImF = dF_range_view(j, i).imag();
+              const Numeric dReN = dN_range_view(j, i).real();
+              const Numeric dImN = dN_range_view(j, i).imag();
+              
+              if(flag_partials[flag_partials_positions[j]] == JacPropMatType::Temperature) {
+                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dReF*numdens+ReF*dnumdens_dT, dImF*numdens+ImF*dnumdens_dT);
+                if(nn) {
+                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, (ReN*dnumdens_dT+dReN*numdens)*B, (ImN*dnumdens_dT+dImN*numdens)*B);
+                  nlte_dsource_dx[j].AddPolarized(polarization_scale, i, ReN*numdens*dB_dT, ImN*numdens*dB_dT);
+                }
+              }
+              else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::VMR) {
+                if(flag_partials[flag_partials_positions[j]].QuantumIdentity() < line.QuantumIdentity()) {
+                  dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dReF*numdens+ReF*dnumdens_dmvr, dImF*numdens+ImF*dnumdens_dmvr);
+                  if(nn)
+                    dnlte_dx_source[j].AddPolarized(polarization_scale, i, (dReN*numdens+ReN*dnumdens_dmvr)*B, (dImN*numdens+ImN*dnumdens_dmvr)*B);
+                }
+              }
+              else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticEta) {
+                propmat_clearsky[ispecies].AddPolarized(dpol_deta, i, ReF*numdens, ImF*numdens);
+                if(nn)
+                  nlte_source[ispecies].AddPolarized(dpol_deta, i, ReN*numdens*B, ImN*numdens*B);
+              }
+              else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticTheta) {
+                propmat_clearsky[ispecies].AddPolarized(dpol_dtheta, i, ReF*numdens, ImF*numdens);
+                if(nn)
+                  nlte_source[ispecies].AddPolarized(dpol_dtheta, i, ReN*numdens*B, ImN*numdens*B);
+              }
+              else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticU) {
+                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dReF*numdens*dH_du,     dImF*numdens*dH_du);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta,          i,  ReF*numdens*deta_du,    ImF*numdens*deta_du);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta,        i,  ReF*numdens*dtheta_du,  ImF*numdens*dtheta_du);
+                if(nn) {
+                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, dReN*numdens*B*dH_du,     dImN*numdens*B*dH_du);
+                  dnlte_dx_source[j].AddPolarized(dpol_deta,          i,  ReN*numdens*B*deta_du,    ImN*numdens*B*deta_du);
+                  dnlte_dx_source[j].AddPolarized(dpol_dtheta,        i,  ReN*numdens*B*dtheta_du,  ImN*numdens*B*dtheta_du);
+                }
+              }
+              else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticV) {
+                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dReF*numdens*dH_dv,     dImF*numdens*dH_dv);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta,          i,  ReF*numdens*deta_dv,    ImF*numdens*deta_dv);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta,        i,  ReF*numdens*dtheta_dv,  ImF*numdens*dtheta_dv);
+                if(nn) {
+                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, dReN*numdens*B*dH_dv,     dImN*numdens*B*dH_dv);
+                  dnlte_dx_source[j].AddPolarized(dpol_deta,          i,  ReN*numdens*B*deta_dv,    ImN*numdens*B*deta_dv);
+                  dnlte_dx_source[j].AddPolarized(dpol_dtheta,        i,  ReN*numdens*B*dtheta_dv,  ImN*numdens*B*dtheta_dv);
+                }
+              }
+              else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticW) {
+                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dReF*numdens*dH_dw,     dImF*numdens*dH_dw);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta,          i,  ReF*numdens*deta_dw,    ImF*numdens*deta_dw);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta,        i,  ReF*numdens*dtheta_dw,  ImF*numdens*dtheta_dw);
+                if(nn) {
+                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, dReN*numdens*B*dH_dw,     dImN*numdens*B*dH_dw);
+                  dnlte_dx_source[j].AddPolarized(dpol_deta,          i,  ReN*numdens*B*deta_dw,    ImN*numdens*B*deta_dw);
+                  dnlte_dx_source[j].AddPolarized(dpol_dtheta,        i,  ReN*numdens*B*dtheta_dw,  ImN*numdens*B*dtheta_dw);
+                }
+              }
+              else {
+                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dReF*numdens, dImF*numdens);
+                if(nn)
+                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, dReN*numdens*B, dImN*numdens*B);
+              }
+            }
+          }
+        }
       }
-    case  0:
-      switch ( dm ) {
-        case -1: return (Rational(3, 8)*(J+M)*(J+1-M) / (J*(J+1)*(2*J+1))); // Transitions anti-parallel to the magnetic field
-        case  0: return (Rational(3, 2)*M*M           / (J*(J+1)*(2*J+1))); // Transitions perpendicular to the magnetic field
-        case +1: return (Rational(3, 8)*(J-M)*(J+1+M) / (J*(J+1)*(2*J+1))); // Transitions parallel to the magnetic field
-      }
-    case +1:
-      switch ( dm ) {
-        case -1: return (Rational(3, 8)*(J+1-M)*(J+2-M)   / ((J+1)*(2*J+1)*(2*J+3))); // Transitions anti-parallel to the magnetic field
-        case  0: return (Rational(3, 2)*((J+1)*(J+1)-M*M) / ((J+1)*(2*J+1)*(2*J+3))); // Transitions perpendicular to the magnetic field
-        case +1: return (Rational(3, 8)*(J+1+M)*(J+2+M)   / ((J+1)*(2*J+1)*(2*J+3))); // Transitions parallel to the magnetic field
-      }
-    default: throw std::runtime_error("Something is extremely wrong.");
+    }
   }
 }
 
@@ -1094,13 +971,19 @@ void set_magnetic_parameters_derivative(
     c1 = fx2*x3, c2 = x1*0.5*x3/fx2,c3=x1*fx2,
     d_acos  = -1/sqrt(1-x*x) * (eta_test>90.0?-RAD2DEG:RAD2DEG); //RAD2DEG is here for convenience...
     
-    dH_du = Bu/H_mag;
-    dH_dv = Bv/H_mag;
-    dH_dw = Bw/H_mag;
+    const Numeric& u = rtp_mag[0], v = rtp_mag[1], w = rtp_mag[2];
+//     const Numeric& za = rtp_los[0], aa = rtp_los[1];
     
-    dtheta_du = b/sqrt(H_mag*H_mag-a*a)*H_mag*H_mag * RAD2DEG;
-    dtheta_dv = dtheta_du * (- sinaa*sinza*Bu2 + Bv*cosaa*sinza*Bu - sinaa*sinza*Bw2 + Bv*cosza*Bw)/b;
-    dtheta_dw = dtheta_du * (-(cosza*Bu2 - Bw*cosaa*sinza*Bu + cosza*Bv2 - Bw*sinaa*sinza*Bv)/b);
+    dH_du = u/sqrt(rtp_mag * rtp_mag);
+    dH_dv = v/sqrt(rtp_mag * rtp_mag);
+    dH_dw = w/sqrt(rtp_mag * rtp_mag);
+    
+    dtheta_du = -(-u*(u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))/pow(rtp_mag * rtp_mag, 1.5) + 
+    sin(za)*cos(aa)/sqrt((rtp_mag * rtp_mag)))/sqrt(1 - (u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))*(u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))/((rtp_mag * rtp_mag)))* RAD2DEG;
+    dtheta_dv = -(-v*(u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))/pow(rtp_mag * rtp_mag, 1.5) + sin(aa)*sin(za)/sqrt((rtp_mag * rtp_mag)))/sqrt(1 - 
+    (u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))*(u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))/((rtp_mag * rtp_mag)));
+    dtheta_dw = -(-w*(u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))/pow(rtp_mag * rtp_mag, 1.5) + 
+    cos(za)/sqrt((rtp_mag * rtp_mag)))/sqrt(1 - (u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))*(u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))/((rtp_mag * rtp_mag)));
     
     deta_du = d_acos * (dx1_dBu*c1 + dx2_dBu*c2 +  dx3_dBu*c3);
     deta_dv = d_acos * (dx1_dBv*c1 + dx2_dBv*c2 +  dx3_dBv*c3);

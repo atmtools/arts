@@ -30,17 +30,6 @@ extern const Numeric PLANCK_CONST;
 extern const Numeric BOHR_MAGNETON;
 extern const Numeric LANDE_GS;
 
-void phase_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, const Index& DM);
-
-void attenuation_matrix(MatrixView K, const Numeric& theta, const Numeric& eta, const Index& DM);
-
-void dphase_matrix_dtheta(MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM);
-void dphase_matrix_deta(  MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM);
-
-void dattenuation_matrix_dtheta(MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM);
-void dattenuation_matrix_deta(  MatrixView dK, const Numeric& theta, const Numeric& eta, const Index& DM);
-
-Rational relative_strength(const Rational& m, const Rational& j, const Index& dj, const Index& dm);
 
 void xsec_species_line_mixing_wrapper_with_zeeman(  ArrayOfPropagationMatrix& propmat_clearsky, 
                                                     ArrayOfStokesVector& nlte_source,
@@ -111,6 +100,31 @@ void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
 
 Index part_mag_strength(const ArrayOfRetrievalQuantity& flag_partials);
 Index part_mag_theta(const ArrayOfRetrievalQuantity& flag_partials);
+
+void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky, 
+                       ArrayOfStokesVector& nlte_source,
+                       ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+                       ArrayOfStokesVector& dnlte_dx_source,
+                       ArrayOfStokesVector& nlte_dsource_dx,
+                       const ArrayOfArrayOfSpeciesTag& abs_species, 
+                       const ArrayOfRetrievalQuantity& flag_partials,
+                       const ArrayOfIndex& flag_partials_positions,
+                       const ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
+                       const SpeciesAuxData& isotopologue_ratios, 
+                       const SpeciesAuxData& partition_functions,
+                       const ConstVectorView f_grid,
+                       const ConstVectorView rtp_vmrs, 
+                       const ConstVectorView rtp_nlte, 
+                       const ConstVectorView rtp_mag,
+                       const ConstVectorView rtp_los,
+                       const Numeric& rtp_pressure,
+                       const Numeric& rtp_temperature,
+                       const Numeric& lm_p_lim,
+                       const Index& manual_zeeman_tag,
+                       const Numeric& manual_zeeman_magnetic_field_strength,
+                       const Numeric& manual_zeeman_theta,
+                       const Numeric& manual_zeeman_eta,
+                       const Verbosity& verbosity);
 
 Numeric zeeman_magnetic_magnitude(const Numeric& u, const Numeric& v, const Numeric& w);
 Numeric zeeman_magnetic_dmagnitude_du(const Numeric& u, const Numeric& v, const Numeric& w);

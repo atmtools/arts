@@ -322,6 +322,8 @@ public:
                                               const Numeric& deta, 
                                               ConstVectorView extra=Vector(0));
   
+  void AddPolarized(const ConstVectorView polarization, const Index i, const Numeric& Re, const Numeric& Im);
+  
   /*! Sets the dense matrix.  Avoid using if possible. */
   void MatrixAtPosition(MatrixView ret,
                         const Index iv=0, const Index iz=0, const Index ia=0)

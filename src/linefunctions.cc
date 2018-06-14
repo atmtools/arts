@@ -295,7 +295,7 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
           dF(iq, iv) = d * Complex(0.0, -1.0);
         }
       }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::MagneticMagnitude)
+      else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[iq]]))
       {
         // Magnetic magnitude changes like line center in part
         // FIXME: Add magnetic components here
@@ -725,7 +725,7 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
           dF(iq, iv) = invG * (invPI * dA - F[iv] * dG) * Complex(0.0, -1.0); 
         }
       }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::MagneticMagnitude)
+      else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[iq]]))
       {
         // Compute dZm
         if(C2t_zero_limit or ratioXY_low_limit)
@@ -860,7 +860,7 @@ void Linefunctions::set_voigt(ComplexVectorView F,
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
           dF(iq, iv) = dw_over_dz * invGD;
       }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::MagneticMagnitude)// No external inputs --- errors because of frequency shift when Zeeman is used?
+      else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[iq]]))
         dF(iq, iv) = dw_over_dz * (- zeeman_df * invGD); //* dz;
     }
   }
@@ -3309,7 +3309,7 @@ void Linefunctions::set_doppler_from_level_line_data(Complex& F,
           dF[id] = (- F * level_line_data.GD_div_F0() 
                     + dw_over_dx * (x * level_line_data.GD_div_F0() - 1.0)) * level_line_data.invGD();
       }
-      else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::MagneticMagnitude)
+      else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[id]]))
         dF[id] = dw_over_dx * (-dZdH);
     }
   }
@@ -3359,7 +3359,7 @@ void Linefunctions::set_lorentz_from_level_line_data(Complex& F,
           dF[id].imag(dL2_over_dz.real());
         }
       }
-      else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::MagneticMagnitude) {
+      else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[id]])) {
         dF[id].real(dL2_over_dz.imag() * (-dZdH));
         dF[id].imag(dL2_over_dz.real() * (-dZdH));
       }
@@ -3405,7 +3405,7 @@ void Linefunctions::set_voigt_from_level_line_data(Complex& F,
         if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition)
           dF[id] = dw_over_dz * level_line_data.invGD();
       }
-      else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::MagneticMagnitude)
+      else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[id]]))
         dF[id] = - dw_over_dz * dZdH * level_line_data.invGD();
       else if(is_line_mixing_parameter(derivatives_data[derivatives_data_position[id]])) {
         if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition) {
@@ -3465,7 +3465,7 @@ void Linefunctions::set_htp_from_level_line_data(Complex& F,
         else
           continue;
       }
-      else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::MagneticMagnitude)
+      else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[id]]))
         dx = level_line_data.htp_dxdmag(dZdH);
       else
         continue; // to not repeat the code below!  FIXME:  must change this once pressure derivatives are possible

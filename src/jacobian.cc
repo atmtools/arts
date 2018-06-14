@@ -1875,6 +1875,15 @@ bool is_magnetic_parameter(const RetrievalQuantity& t)
          t == JacPropMatType::MagneticW;
 }
 
+bool is_magnetic_magnitude_parameter(const RetrievalQuantity& t)
+{
+  return is_derived_magnetic_parameter(t) or 
+  t == JacPropMatType::MagneticU   or 
+  t == JacPropMatType::MagneticV   or 
+  t == JacPropMatType::MagneticW   or
+  t == JacPropMatType::MagneticMagnitude;
+}
+
 bool is_nlte_parameter(const RetrievalQuantity& t)
 {
   return t == JacPropMatType::NLTE;
@@ -2074,7 +2083,7 @@ bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js)
   for(const auto& j : js)
     if(is_magnetic_parameter(j))
       return true;
-    return false;
+  return false;
 }
 
 Index get_first_frequency_index(const ArrayOfRetrievalQuantity& js, const ArrayOfIndex& pos)
