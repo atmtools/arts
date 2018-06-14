@@ -1,3 +1,37 @@
+2018-06-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1075
+
+	* Spring cleaning of water equilibrium variables and functions.
+
+	* controlfiles/general/general.arts:
+	* src/rte.h:
+	* src/m_cloudradar.cc (iyActiveSingleScat):
+	* src/m_fos.cc (iyHybrid):
+	* src/m_nlte.cc (nlte_fieldForSingleSpeciesNonOverlappingLines):
+	* src/m_oem.cc (x2artsStandard, xaStandard):
+	* src/m_radiation_field.cc (radiation_fieldCalcFromiyCalc)
+	(radiation_fieldCalcForSingleSpeciesNonOverlappingLines)
+	(doit_i_fieldClearskyPlaneParallel):
+	* src/m_rte.cc (iyEmissionStandard):
+	* src/m_transmitter.cc (iyTransmissionStandard):
+	* src/rte.cc (rtmethods_jacobian_finalisation):
+	* src/methods.cc:
+	* src/agendas.cc:
+	* src/workspace.cc:
+	* src/m_physics.cc (water_p_eq_fieldMK05): Renaming of variables,
+	methods and agenda. Changed from namimg using "psat" to "p_eq".
+	That is, water_psat is now water_p_eq etc. 
+
+	* src/continua.cc (WVSatPressureLiquidWater): Removed, for several
+	reasons: (1) Not used. (2) theta = 373.16 / t; that looks wrong
+	and is inconsistent with comment (saying 300/t). No time for
+	checking what is correct. (3) This is not a very well known
+	parameterisation.
+
+	(WVSatPressureIce): Also removed, as neither used. Here theta =
+	273.16 / t;!
+
 2018-06-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1074

@@ -640,8 +640,4 @@ Numeric MPMLineShapeO2Function( const Numeric gamma,   // line width
         const Numeric f,       // frequency
                                 const Numeric delta);  // line coupling
 
-Numeric WVSatPressureLiquidWater(const Numeric t);     // temperature
-
-Numeric WVSatPressureIce(const Numeric t);             // temperature
-
 #endif // continua_h

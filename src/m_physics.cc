@@ -139,8 +139,8 @@ void MatrixUnitIntensity(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void water_psat_fieldMK05(
-        Tensor3&    water_psat_field,
+void water_p_eq_fieldMK05(
+        Tensor3&    water_p_eq_field,
   const Tensor3&    t_field,
   const Verbosity& )
 {
@@ -148,7 +148,7 @@ void water_psat_fieldMK05(
   const Index n2 = t_field.nrows();
   const Index n3 = t_field.ncols();
 
-  water_psat_field.resize(n1,n2,n3);
+  water_p_eq_field.resize(n1,n2,n3);
 
   for( Index i=0; i<n1; i++ )
     {
@@ -159,7 +159,7 @@ void water_psat_fieldMK05(
               const Numeric t = t_field(i,j,k);
               if( t > TEMP_0_C )
                 {
-                  water_psat_field(i,j,k) =
+                  water_p_eq_field(i,j,k) =
                     exp( 54.842763 - 6763.22/t - 4.21*log(t) + 0.000367*t +
                          tanh(0.0415*(t - 218.8)) * ( 53.878 - 1331.22/t -
                                                       9.44523*log(t) +
@@ -167,7 +167,7 @@ void water_psat_fieldMK05(
                 }
               else
                 {
-                  water_psat_field(i,j,k) =
+                  water_p_eq_field(i,j,k) =
                     exp( 9.550426 - 5723.265/t + 3.53068*log(t) - 0.00728332*t );
                 }
             }

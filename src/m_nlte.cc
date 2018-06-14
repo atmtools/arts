@@ -79,7 +79,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
                                                    const Agenda&                   iy_surface_agenda,
                                                    const Agenda&                   iy_cloudbox_agenda,
                                                    const Agenda&                   propmat_clearsky_agenda,
-                                                   const Agenda&                   water_psat_agenda,
+                                                   const Agenda&                   water_p_eq_agenda,
                                                    const Tensor4&                  vmr_field,
                                                    const Tensor3&                  t_field,
                                                    const Tensor3&                  z_field,
@@ -148,7 +148,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
     radiation_fieldCalcForSingleSpeciesNonOverlappingLines(ws, iy, iy_transmission, abs_species, abs_lines_per_species, 
                                                            nlte_field, vmr_field, t_field, z_field,
                                                            p_grid, atmosphere_dim, surface_props_data, iy_space_agenda, iy_surface_agenda,
-                                                           iy_cloudbox_agenda, propmat_clearsky_agenda, water_psat_agenda, df, nz, nf, verbosity);
+                                                           iy_cloudbox_agenda, propmat_clearsky_agenda, water_p_eq_agenda, df, nz, nf, verbosity);
     
     for(Index ip = 0; ip < np; ip++) {
       r = nlte_field(joker, ip, 0, 0);

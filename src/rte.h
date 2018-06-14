@@ -424,7 +424,7 @@ void rtmethods_jacobian_finalisation(
    const Matrix&                     ppvar_vmr,
    const Index&                      iy_agenda_call1,         
    const Tensor3&                    iy_transmission,
-   const Agenda&                     water_psat_agenda,   
+   const Agenda&                     water_p_eq_agenda,   
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfIndex                jac_species_i,
    const ArrayOfIndex                jac_is_t);

@@ -5474,7 +5474,7 @@ void define_md_data_raw()
         GOUT( "trans_field" ),
         GOUT_TYPE( "Tensor3" ),
         GOUT_DESC( "Dimensions: [f_grid,p_grid,scat_za_grid]. See further above." ),
-        IN( "propmat_clearsky_agenda", "water_psat_agenda", "iy_space_agenda",
+        IN( "propmat_clearsky_agenda", "water_p_eq_agenda", "iy_space_agenda",
             "iy_surface_agenda", "iy_cloudbox_agenda",
             "stokes_dim", "f_grid", "atmosphere_dim",
             "p_grid", "z_field", "t_field", "nlte_field", "vmr_field", "abs_species",
@@ -7255,7 +7255,7 @@ void define_md_data_raw()
             "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
             "scat_species", "scat_data", "iy_aux_vars",
             "jacobian_do", "jacobian_quantities", "ppath",
-            "propmat_clearsky_agenda", "water_psat_agenda", "iy_transmitter_agenda",
+            "propmat_clearsky_agenda", "water_p_eq_agenda", "iy_transmitter_agenda",
             "iy_agenda_call1", "iy_transmission", "rte_alonglos_v" ),
         GIN( "trans_in_jacobian", "pext_scaling", "t_interp_order" ),
         GIN_TYPE( "Index", "Numeric", "Index" ),
@@ -7391,7 +7391,7 @@ void define_md_data_raw()
             "mag_u_field", "mag_v_field", "mag_w_field", 
             "cloudbox_on", "iy_unit", "iy_aux_vars",
             "jacobian_do", "jacobian_quantities", "ppath", "rte_pos2",
-            "propmat_clearsky_agenda", "water_psat_agenda", "iy_main_agenda",
+            "propmat_clearsky_agenda", "water_p_eq_agenda", "iy_main_agenda",
             "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda",
             "iy_agenda_call1", "iy_transmission", "rte_alonglos_v",
             "surface_props_data" ),
@@ -7504,7 +7504,7 @@ void define_md_data_raw()
           "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
           "scat_species", "scat_data", "iy_unit", "iy_aux_vars",
           "jacobian_do", "jacobian_quantities",
-          "propmat_clearsky_agenda", "water_psat_agenda", "iy_main_agenda",
+          "propmat_clearsky_agenda", "water_p_eq_agenda", "iy_main_agenda",
           "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda",
           "iy_agenda_call1", "iy_transmission", "ppath", "rte_pos2",
           "rte_alonglos_v", "surface_props_data", "doit_i_field", "scat_za_grid" ),
@@ -8083,7 +8083,7 @@ void define_md_data_raw()
           "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
           "scat_species", "scat_data", "iy_aux_vars", "jacobian_do",
           "jacobian_quantities", "ppath", "propmat_clearsky_agenda",
-          "water_psat_agenda", "iy_transmitter_agenda",
+          "water_p_eq_agenda", "iy_transmitter_agenda",
           "iy_agenda_call1", "iy_transmission", "rte_alonglos_v" ),
       GIN(),
       GIN_TYPE(),
@@ -10276,7 +10276,7 @@ void define_md_data_raw()
       IN("nlte_field", "abs_species", "abs_lines_per_species", "nlte_quantum_identifiers", 
          "nlte_collision_coefficients", "nlte_collision_identifiers",
          "iy_space_agenda", "iy_surface_agenda", 
-         "iy_cloudbox_agenda", "propmat_clearsky_agenda", "water_psat_agenda",
+         "iy_cloudbox_agenda", "propmat_clearsky_agenda", "water_p_eq_agenda",
          "vmr_field", "t_field", "z_field", "p_grid", "atmosphere_dim",
          "surface_props_data", "nlte_do" ),
       GIN("df", "convergence_limit", "nz", "nf", "dampened", "iteration_limit"),
@@ -13501,7 +13501,7 @@ void define_md_data_raw()
             "mag_u_field", "mag_v_field", "mag_w_field",
             "vmr_field", "nlte_field", "abs_species", "iy_unit", "surface_props_data",
             "ppath_agenda", "iy_main_agenda", "iy_space_agenda", "iy_surface_agenda", 
-            "iy_cloudbox_agenda", "propmat_clearsky_agenda", "water_psat_agenda" ),
+            "iy_cloudbox_agenda", "propmat_clearsky_agenda", "water_p_eq_agenda" ),
         GIN("za_coords", "aa_coords", "do_transmission_field"),
         GIN_TYPE("Vector", "Vector", "Index"),
         GIN_DEFAULT(NODEF, NODEF, NODEF),
@@ -13525,7 +13525,7 @@ void define_md_data_raw()
       IN( "abs_species", "abs_lines_per_species", "nlte_field",  "vmr_field", 
           "t_field", "z_field", "p_grid",
           "atmosphere_dim", "surface_props_data", "iy_space_agenda", "iy_surface_agenda", 
-          "iy_cloudbox_agenda", "propmat_clearsky_agenda", "water_psat_agenda"
+          "iy_cloudbox_agenda", "propmat_clearsky_agenda", "water_p_eq_agenda"
         ),
       GIN(     "df",      "nz",    "nf"),
       GIN_TYPE("Numeric", "Index", "Index"),
@@ -18879,10 +18879,10 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "water_psat_fieldMK05" ),
+      ( NAME( "water_p_eq_fieldMK05" ),
         DESCRIPTION
         (
-         "Calculates *water_psat_field* according to Murphy and Koop, 2005.\n"
+         "Calculates *water_p_eq_field* according to Murphy and Koop, 2005.\n"
          "\n"
          "The saturation pressure is set to the one with respect to water at\n"
          "temperatures >= 0C, and to the one with respect to ice for <0C.\n"
@@ -18894,7 +18894,7 @@ void define_md_data_raw()
          "Journal of the Royal Meteorological Society, 131(608), 1539-1565.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "water_psat_field" ),
+        OUT( "water_p_eq_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -19325,7 +19325,7 @@ void define_md_data_raw()
             "vmr_field", "abs_species", "cloudbox_on", "cloudbox_checked",
             "particle_bulkprop_field", "particle_bulkprop_names",
             "wind_u_field", "wind_v_field", "wind_w_field",
-            "surface_props_data", "surface_props_names", "water_psat_agenda" ),
+            "surface_props_data", "surface_props_names", "water_p_eq_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -19397,7 +19397,7 @@ void define_md_data_raw()
             "cloudbox_on", "cloudbox_checked", "particle_bulkprop_names",
             "surface_props_names", "sensor_time", "sensor_response",
             "sensor_response_dlos_grid", "sensor_response_f_grid",
-            "sensor_response_pol_grid", "water_psat_agenda" ),
+            "sensor_response_pol_grid", "water_p_eq_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

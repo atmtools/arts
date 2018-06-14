@@ -907,7 +907,7 @@ void iyHybrid(
   const Index&                              jacobian_do,
   const ArrayOfRetrievalQuantity&           jacobian_quantities,
   const Agenda&                             propmat_clearsky_agenda,
-  const Agenda&                             water_psat_agenda,   
+  const Agenda&                             water_p_eq_agenda,   
   const Agenda&                             iy_main_agenda,
   const Agenda&                             iy_space_agenda,
   const Agenda&                             iy_surface_agenda,
@@ -937,7 +937,7 @@ void iyHybrid(
                           mag_u_field, mag_v_field, mag_w_field,
                           cloudbox_on, iy_unit, iy_aux_vars,
                           jacobian_do, jacobian_quantities,
-                          ppath, rte_pos2,  propmat_clearsky_agenda, water_psat_agenda,
+                          ppath, rte_pos2,  propmat_clearsky_agenda, water_p_eq_agenda,
                           iy_main_agenda, iy_space_agenda, iy_surface_agenda,
                           iy_cloudbox_agenda, iy_agenda_call1, iy_transmission,
                           rte_alonglos_v, surface_props_data, verbosity );
@@ -1348,7 +1348,7 @@ void iyHybrid(
                                        ns, nf, np, atmosphere_dim, ppath,
                                        ppvar_p, ppvar_t, ppvar_vmr,
                                        iy_agenda_call1, iy_transmission,
-                                       water_psat_agenda,   
+                                       water_p_eq_agenda,   
                                        jacobian_quantities, jac_species_i,
                                        jac_is_t );
     }

@@ -223,7 +223,7 @@ void iyEmissionStandard(
   const Ppath&                      ppath,
   const Vector&                     rte_pos2, 
   const Agenda&                     propmat_clearsky_agenda,
-  const Agenda&                     water_psat_agenda,   
+  const Agenda&                     water_p_eq_agenda,   
   const Agenda&                     iy_main_agenda,
   const Agenda&                     iy_space_agenda,
   const Agenda&                     iy_surface_agenda,
@@ -539,7 +539,7 @@ void iyEmissionStandard(
                                        ns, nf, np, atmosphere_dim, ppath,
                                        ppvar_p, ppvar_t, ppvar_vmr,
                                        iy_agenda_call1, iy_transmission,
-                                       water_psat_agenda,   
+                                       water_p_eq_agenda,   
                                        jacobian_quantities, jac_species_i,
                                        jac_is_t );
     }

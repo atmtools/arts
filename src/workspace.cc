@@ -6201,7 +6201,7 @@ void Workspace::define_wsv_data()
    
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "water_psat_agenda" ),
+     ( NAME( "water_p_eq_agenda" ),
       DESCRIPTION
       (
        "Agenda to calculate the saturation pressure of water.\n"
@@ -6210,7 +6210,7 @@ void Workspace::define_wsv_data()
     
   wsv_data.push_back
    (WsvRecord
-   ( NAME( "water_psat_field" ),
+   ( NAME( "water_p_eq_field" ),
      DESCRIPTION
      (
        "The field of water saturation pressure.\n"

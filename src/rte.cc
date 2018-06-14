@@ -3075,7 +3075,7 @@ void rtmethods_jacobian_finalisation(
    const Matrix&                     ppvar_vmr,
    const Index&                      iy_agenda_call1,         
    const Tensor3&                    iy_transmission,
-   const Agenda&                     water_psat_agenda,   
+   const Agenda&                     water_p_eq_agenda,   
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfIndex                jac_species_i,
    const ArrayOfIndex                jac_is_t)
@@ -3100,7 +3100,7 @@ void rtmethods_jacobian_finalisation(
   
   // Handle abs species retrieval units, both internally and impact on T-jacobian
   //
-  Tensor3 water_psat(0,0,0);
+  Tensor3 water_p_eq(0,0,0);
   //
   // Conversion for abs species itself
   for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ )
@@ -3137,11 +3137,11 @@ void rtmethods_jacobian_finalisation(
             {
               // Here x = (p_sat/p) * z
               Tensor3 t_data(ppvar_t.nelem(),1,1); t_data(joker,0,0) = ppvar_t;
-              water_psat_agendaExecute( ws, water_psat, t_data,
-                                        water_psat_agenda);
+              water_p_eq_agendaExecute( ws, water_p_eq, t_data,
+                                        water_p_eq_agenda);
               for( Index ip=0; ip<np; ip++ )
                 { diy_dpath[iq](ip,joker,joker) *=
-                    water_psat(ip,0,0) / ppvar_p[ip]; }
+                    water_p_eq(ip,0,0) / ppvar_p[ip]; }
             }
 
           else if( jacobian_quantities[iq].Mode() == "q" )
@@ -3187,22 +3187,22 @@ void rtmethods_jacobian_finalisation(
                       Tensor3 t_data(ppvar_t.nelem(),1,1);
                       t_data(joker,0,0) = ppvar_t;
                       // Calculate water sat. pressure if not already done
-                      if( water_psat.npages() == 0 )
-                        { water_psat_agendaExecute( ws, water_psat, t_data,
-                                                    water_psat_agenda); }
+                      if( water_p_eq.npages() == 0 )
+                        { water_p_eq_agendaExecute( ws, water_p_eq, t_data,
+                                                    water_p_eq_agenda); }
                       // Sat.pressure for +1K
-                      Tensor3 water_psat1K;
+                      Tensor3 water_p_eq1K;
                       t_data(joker,0,0) += 1;
-                      water_psat_agendaExecute( ws, water_psat1K, t_data,
-                                                water_psat_agenda);
+                      water_p_eq_agendaExecute( ws, water_p_eq1K, t_data,
+                                                water_p_eq_agenda);
                       
                       for( Index ip=0; ip<np; ip++ )
                         {
-                          const Numeric psat = water_psat(ip,0,0);
-                          const Numeric psat1K = water_psat1K(ip,0,0);
+                          const Numeric p_eq = water_p_eq(ip,0,0);
+                          const Numeric p_eq1K = water_p_eq1K(ip,0,0);
                           Matrix ddterm = diy_dpath[ia](ip,joker,joker);
                           ddterm *= ppvar_vmr(jac_species_i[ia],ip) *
-                            (ppvar_p[ip] / pow(psat,2.0) ) * ( psat1K - psat );
+                            (ppvar_p[ip] / pow(p_eq,2.0) ) * ( p_eq1K - p_eq );
                           diy_dpath[iq](ip,joker,joker) += ddterm;
                         }
                     }
