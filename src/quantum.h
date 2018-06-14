@@ -57,6 +57,7 @@ enum class QuantumNumberType : Index {
     Lambda,      // This is Sigma or Pi or Lambda states (as seen in literature)
     alpha,       // Alpha from HITRAN // FIXME richard
     Sym,         // Symmetry expression
+    parity,      // parity value (+/-)
     v1,          // Vibrational mode 1
     v2,          // Vibrational mode 2
     l2,          // Vibrational angular momentum associated with v2

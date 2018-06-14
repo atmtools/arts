@@ -28,6 +28,7 @@
 #include "linefunctions.h"
 #include "global_data.h"
 #include "arts.h"
+#include "zeeman.h"
 
 // void define_species_data();
 // void define_species_map();
@@ -198,9 +199,25 @@ void test_new_lineshapes()
 }
 
 
+void test_zeeman()
+{
+  const Vector rtp_mag = {20e-6, 20e-6, 0};
+  
+  for(Numeric za = 0; za < 180; za += 5) {
+//     std::cout << "arts_eta.append([";
+    for(Numeric aa = 0; aa < 360; aa += 5) {
+      const Vector rtp_los = {za, aa};
+      std::cout << za << " " << aa<< " " << RAD2DEG * (zeeman_magnetic_theta(rtp_mag[0], rtp_mag[1], rtp_mag[2]+1e-10, DEG2RAD*za, DEG2RAD*aa) - zeeman_magnetic_theta(rtp_mag[0], rtp_mag[1], rtp_mag[2], DEG2RAD*za, DEG2RAD*aa)) / 1e-10 << " "  << RAD2DEG * zeeman_magnetic_dtheta_dw(rtp_mag[0], rtp_mag[1], rtp_mag[2], DEG2RAD*za, DEG2RAD*aa) << "\n";
+    }
+//     std::cout << "])\n";
+  }
+}
+
+
 int main()
 {
     std::cout<<"Testing Propmat Partials\n";
-    test_new_lineshapes();
+//     test_new_lineshapes();
+    test_zeeman();
     return 0;
 }

@@ -1,3 +1,21 @@
+2018-06-14  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-1076
+	
+	Starting to fix a small bug in the Zeeman calculations.  It seems
+	the eta angle was wrong for when theta angle was close to 90 degrees.
+	This affects very special linear polarization calculations Luckily,
+	none of the use-cases I have had for this has used the geometry in
+	question, and the effect only redistributed some strength from 45 
+	to main axis polarization.  Note that this code only adds the 
+	necessary code to fix the problem and does not finalize the switch
+	to the new angles.  Expect the other update shortly.
+	
+	* src/quantum.h:  Adding parity quantum number
+	
+	* src/zeeman.{cc,h}:  Added separate implementations returning
+	angles and derivatives
+
 2018-06-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1075

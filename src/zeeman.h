@@ -111,3 +111,16 @@ void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
 
 Index part_mag_strength(const ArrayOfRetrievalQuantity& flag_partials);
 Index part_mag_theta(const ArrayOfRetrievalQuantity& flag_partials);
+
+Numeric zeeman_magnetic_magnitude(const Numeric& u, const Numeric& v, const Numeric& w);
+Numeric zeeman_magnetic_dmagnitude_du(const Numeric& u, const Numeric& v, const Numeric& w);
+Numeric zeeman_magnetic_dmagnitude_dv(const Numeric& u, const Numeric& v, const Numeric& w);
+Numeric zeeman_magnetic_dmagnitude_dw(const Numeric& u, const Numeric& v, const Numeric& w);
+Numeric zeeman_magnetic_theta(const Numeric& u, const Numeric& v, const Numeric& w, const Numeric& z, const Numeric& a);
+Numeric zeeman_magnetic_dtheta_du(const Numeric& u, const Numeric& v, const Numeric& w, const Numeric& z, const Numeric& a);
+Numeric zeeman_magnetic_dtheta_dv(const Numeric& u, const Numeric& v, const Numeric& w, const Numeric& z, const Numeric& a);
+Numeric zeeman_magnetic_dtheta_dw(const Numeric& u, const Numeric& v, const Numeric& w, const Numeric& z, const Numeric& a);
+Numeric zeeman_magnetic_eta(const Numeric& u, const Numeric& v, const Numeric& w, const Numeric& z, const Numeric& a);
+Numeric zeeman_magnetic_deta_du(const Numeric& u, const Numeric& v, const Numeric& w, const Numeric& z, const Numeric& a);
+Numeric zeeman_magnetic_deta_dv(const Numeric& u, const Numeric& v, const Numeric& w, const Numeric& z, const Numeric& a);
+Numeric zeeman_magnetic_deta_dw(const Numeric& u, const Numeric& v, const Numeric& w, const Numeric& z, const Numeric& a);
