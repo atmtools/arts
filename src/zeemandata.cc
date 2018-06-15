@@ -262,7 +262,7 @@ Vector ZeemanEffectData::Polarization(const Numeric& theta, const Numeric& eta) 
 }
 
 
-Vector ZeemanEffectData::dPolarization1(const Numeric& theta, const Numeric& eta) const
+Vector ZeemanEffectData::dPolarization_dtheta(const Numeric& theta, const Numeric& eta) const
 {
   const Numeric ST=sin(theta), CT=cos(theta), C2E=cos(2*eta), S2E=sin(2*eta);
   const Numeric dST = CT, dST2 = 2*ST*dST, dCT = -ST, dST2C2E = dST2*C2E, dST2S2E = dST2*S2E, dCT2 = 2*CT*dCT;
@@ -279,7 +279,7 @@ Vector ZeemanEffectData::dPolarization1(const Numeric& theta, const Numeric& eta
   }
 }
 
-Vector ZeemanEffectData::dPolarization2(const Numeric& theta, const Numeric& eta) const
+Vector ZeemanEffectData::dPolarization_deta(const Numeric& theta, const Numeric& eta) const
 {
   const Numeric ST=sin(theta), ST2=ST*ST, C2E=cos(2*eta), S2E=sin(2*eta), dST2C2E=-2*ST2*S2E, dST2S2E=2*ST2*C2E;
   

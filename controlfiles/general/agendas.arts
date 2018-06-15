@@ -313,7 +313,7 @@ AgendaCreate( propmat_clearsky_agenda__OnTheFly_ZeemanPreCalc )
 AgendaSet( propmat_clearsky_agenda__OnTheFly_ZeemanPreCalc ){
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
-  propmat_clearskyAddZeemanFromPreCalc
+  propmat_clearskyAddZeeman
 }
 
 ###
@@ -347,7 +347,7 @@ AgendaCreate( propmat_clearsky_agenda__LookUpTable_Zeeman )
 AgendaSet( propmat_clearsky_agenda__LookUpTable_Zeeman ){
   propmat_clearskyInit
   propmat_clearskyAddFromLookup
-  propmat_clearskyAddZeemanFromPreCalc
+  propmat_clearskyAddZeeman
 }
 
 

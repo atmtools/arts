@@ -30,7 +30,6 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
                        ArrayOfStokesVector& nlte_dsource_dx,
                        const ArrayOfArrayOfSpeciesTag& abs_species, 
                        const ArrayOfRetrievalQuantity& flag_partials,
-                       const ArrayOfIndex& flag_partials_positions,
                        const ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
                        const SpeciesAuxData& isotopologue_ratios, 
                        const SpeciesAuxData& partition_functions,
@@ -48,6 +47,9 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
                        const Numeric& manual_zeeman_eta,
                        const Verbosity& verbosity)
 {
+  // Find relevant derivatives in retrieval quantities positions
+  const ArrayOfIndex flag_partials_positions = equivlent_propmattype_indexes(flag_partials);
+  
   // Size of problem
   const Index nf = f_grid.nelem();
   const Index nq = flag_partials_positions.nelem();
@@ -66,12 +68,26 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
   Range frange(joker);
   
   // Magnetic field variables
-  Numeric H, theta, eta, dH_du, dH_dv, dH_dw, dtheta_du, dtheta_dv, dtheta_dw, deta_du, deta_dv, deta_dw;
-  set_magnetic_parameters(H, eta, theta, manual_zeeman_tag, manual_zeeman_eta, manual_zeeman_theta, manual_zeeman_magnetic_field_strength, rtp_mag, rtp_los);
-  if(manual_zeeman_tag)
-    dH_du=dH_dv=dH_dw=deta_du=deta_dv=deta_dw=dtheta_du=dtheta_dv=dtheta_dw=0;
-  else
-    set_magnetic_parameters_derivative(dH_du, dH_dv, dH_dw, deta_du, deta_dv, deta_dw, dtheta_du, dtheta_dv, dtheta_dw, rtp_mag, rtp_los);
+  const Numeric u = rtp_mag[0];
+  const Numeric v = rtp_mag[1];
+  const Numeric w = rtp_mag[2];
+  const Numeric z = DEG2RAD * rtp_los[0];
+  const Numeric a = DEG2RAD * rtp_los[1];
+  const Numeric H =     manual_zeeman_tag ? manual_zeeman_magnetic_field_strength : zeeman_magnetic_magnitude(u, v, w      );
+  const Numeric eta =   manual_zeeman_tag ? manual_zeeman_eta                     : zeeman_magnetic_eta(      u, v, w, z, a);
+  const Numeric theta = manual_zeeman_tag ? manual_zeeman_theta                   : zeeman_magnetic_theta(    u, v, w, z, a);
+  
+  // Magnetic field derivatives... FIXME:  Deal with asymptotes! (e.g., for theta == 90)
+  const bool do_mag_jacs = do_magnetic_jacobian(flag_partials);
+  const Numeric dH_du     = do_mag_jacs ? zeeman_magnetic_dmagnitude_du(u, v, w      ) : 0;
+  const Numeric dH_dv     = do_mag_jacs ? zeeman_magnetic_dmagnitude_dv(u, v, w      ) : 0;
+  const Numeric dH_dw     = do_mag_jacs ? zeeman_magnetic_dmagnitude_dw(u, v, w      ) : 0;
+  const Numeric deta_du   = do_mag_jacs ? zeeman_magnetic_deta_du(      u, v, w, z, a) : 0;
+  const Numeric deta_dv   = do_mag_jacs ? zeeman_magnetic_deta_dv(      u, v, w, z, a) : 0;
+  const Numeric deta_dw   = do_mag_jacs ? zeeman_magnetic_deta_dw(      u, v, w, z, a) : 0;
+  const Numeric dtheta_du = do_mag_jacs ? zeeman_magnetic_dtheta_du(    u, v, w, z, a) : 0;
+  const Numeric dtheta_dv = do_mag_jacs ? zeeman_magnetic_dtheta_dv(    u, v, w, z, a) : 0;
+  const Numeric dtheta_dw = do_mag_jacs ? zeeman_magnetic_dtheta_dw(    u, v, w, z, a) : 0;
   
   for(Index ispecies=0; ispecies<ns; ispecies++) {
     for(const ArrayOfLineRecord& lines: zeeman_linerecord_precalc) {
@@ -80,17 +96,17 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
               lines[0].Isotopologue() not_eq abs_species[ispecies][0].Isotopologue()) continue;
       
       // Polarization
-      const Vector polarization_scale = lines[0].ZeemanEffect().Polarization(theta*DEG2RAD, eta*DEG2RAD);  // nb. need "smart" function to avoid being complex
-      const Vector dpol_deta = lines[0].ZeemanEffect().Polarization(theta*DEG2RAD, eta*DEG2RAD);  // nb. need "smart" function to avoid being complex
-      const Vector dpol_dtheta = lines[0].ZeemanEffect().Polarization(theta*DEG2RAD, eta*DEG2RAD);  // nb. need "smart" function to avoid being complex
+      const Vector polarization_scale = lines[0].ZeemanEffect().Polarization(theta, eta);
+      const Vector dpol_deta = do_mag_jacs ? lines[0].ZeemanEffect().dPolarization_deta(theta, eta) : Vector(0);
+      const Vector dpol_dtheta = do_mag_jacs ? lines[0].ZeemanEffect().dPolarization_dtheta(theta, eta) : Vector(0);
       
       // Pressure broadening needs to know where self is to work
       find_broad_spec_locations(broad_spec_locations, abs_species, ispecies);
       
       // Temperature constants
       Numeric t0=-1.0, qt, qt0, dqt_dT;
-      const Numeric numdens = rtp_vmrs[ispecies]*dnumdens_dmvr;
-      const Numeric dnumdens_dT = rtp_vmrs[ispecies]*dnumdens_dt_dmvr;
+      const Numeric numdens = rtp_vmrs[ispecies] * dnumdens_dmvr;
+      const Numeric dnumdens_dT = rtp_vmrs[ispecies] * dnumdens_dt_dmvr;
       const Numeric dc = Linefunctions::DopplerConstant(rtp_temperature, lines[0].IsotopologueData().Mass());
       const Numeric ddc_dT = Linefunctions::dDopplerConstant_dT(rtp_temperature, lines[0].IsotopologueData().Mass());
       const Numeric isotop_ratio = isotopologue_ratios.getParam(lines[0].Species(), lines[0].Isotopologue())[0].data[0];
@@ -102,8 +118,8 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
           t0 = line.Ti0();
           
           partition_function(qt0, qt, t0, rtp_temperature,
-                              partition_functions.getParamType(line.Species(), line.Isotopologue()),
-                              partition_functions.getParam(line.Species(), line.Isotopologue()));
+                             partition_functions.getParamType(line.Species(), line.Isotopologue()),
+                             partition_functions.getParam(line.Species(), line.Isotopologue()));
           
           if(do_temperature_jacobian(flag_partials))
             dpartition_function_dT(dqt_dT, qt, rtp_temperature, temperature_perturbation(flag_partials),
@@ -113,7 +129,7 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
         
         for(Index iz=0; iz<line.ZeemanEffect().nelem(); iz++) {
           
-          const Numeric B = nn ? planck(line.F(), rtp_temperature) : 0;
+          const Numeric B     = nn ? planck(    line.F(), rtp_temperature) : 0;
           const Numeric dB_dT = nn ? dplanck_dt(line.F(), rtp_temperature) : 0;
           
           Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, frange,
@@ -126,86 +142,81 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
           const Index extent = (frange.get_extent() < 0) ? (nf - frange.get_start()) : frange.get_extent();
           const Range this_out_range(frange.get_start(), extent);
           
-          const ComplexVectorView F_range_view = F[frange];
-          const ComplexVectorView N_range_view = nn?N[frange]:F;
+          const ComplexVectorView F_range_view  =  F[frange];
           const ComplexMatrixView dF_range_view = dF(joker, frange);
-          const ComplexMatrixView dN_range_view = nn?dN(joker, frange):dF;
+          const ComplexVectorView N_range_view  = nn ?  N[frange] : F; // false result should never be used
+          const ComplexMatrixView dN_range_view = nn ? dN(joker, frange) : dF; // false result should never be used
           
-          // FIXME: add up all to output here... and consider the jacobian...
           for(Index i = 0; i < extent; i++) {
-            const Numeric ReF = F_range_view[i].real();
-            const Numeric ImF = F_range_view[i].imag();
-            const Numeric ReN = N_range_view[i].real();
-            const Numeric ImN = N_range_view[i].imag();
+            const Complex& CF = F_range_view[i];
+            const Complex& CN = N_range_view[i];
             
-            propmat_clearsky[ispecies].AddPolarized(polarization_scale, i, ReF*numdens, ImF*numdens);
+            propmat_clearsky[ispecies].AddPolarized(polarization_scale, i, CF*numdens);
             if(nn)
-              nlte_source[ispecies].AddPolarized(polarization_scale, i, ReN*numdens*B, ImN*numdens*B);
+              nlte_source[ispecies].AddPolarized(polarization_scale, i, CN*numdens*B);
             
             for(Index j=0; j<nq; j++) {
-              const Numeric dReF = dF_range_view(j, i).real();
-              const Numeric dImF = dF_range_view(j, i).imag();
-              const Numeric dReN = dN_range_view(j, i).real();
-              const Numeric dImN = dN_range_view(j, i).imag();
+              const Complex& dCF = dF_range_view(j, i);
+              const Complex& dCN = dN_range_view(j, i);
               
               if(flag_partials[flag_partials_positions[j]] == JacPropMatType::Temperature) {
-                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dReF*numdens+ReF*dnumdens_dT, dImF*numdens+ImF*dnumdens_dT);
+                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dCF*numdens+CF*dnumdens_dT);
                 if(nn) {
-                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, (ReN*dnumdens_dT+dReN*numdens)*B, (ImN*dnumdens_dT+dImN*numdens)*B);
-                  nlte_dsource_dx[j].AddPolarized(polarization_scale, i, ReN*numdens*dB_dT, ImN*numdens*dB_dT);
+                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, (CN*dnumdens_dT+dCN*numdens)*B);
+                  nlte_dsource_dx[j].AddPolarized(polarization_scale, i, CN*numdens*dB_dT);
                 }
               }
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::VMR) {
                 if(flag_partials[flag_partials_positions[j]].QuantumIdentity() < line.QuantumIdentity()) {
-                  dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dReF*numdens+ReF*dnumdens_dmvr, dImF*numdens+ImF*dnumdens_dmvr);
+                  dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dCF*numdens+CF*dnumdens_dmvr);
                   if(nn)
-                    dnlte_dx_source[j].AddPolarized(polarization_scale, i, (dReN*numdens+ReN*dnumdens_dmvr)*B, (dImN*numdens+ImN*dnumdens_dmvr)*B);
+                    dnlte_dx_source[j].AddPolarized(polarization_scale, i, (dCN*numdens+CN*dnumdens_dmvr)*B);
                 }
               }
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticEta) {
-                propmat_clearsky[ispecies].AddPolarized(dpol_deta, i, ReF*numdens, ImF*numdens);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta, i, CF*numdens);
                 if(nn)
-                  nlte_source[ispecies].AddPolarized(dpol_deta, i, ReN*numdens*B, ImN*numdens*B);
+                  dnlte_dx_source[j].AddPolarized(dpol_deta, i, CN*numdens*B);
               }
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticTheta) {
-                propmat_clearsky[ispecies].AddPolarized(dpol_dtheta, i, ReF*numdens, ImF*numdens);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta, i, CF*numdens);
                 if(nn)
-                  nlte_source[ispecies].AddPolarized(dpol_dtheta, i, ReN*numdens*B, ImN*numdens*B);
+                  dnlte_dx_source[j].AddPolarized(dpol_dtheta, i, CN*numdens*B);
               }
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticU) {
-                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dReF*numdens*dH_du,     dImF*numdens*dH_du);
-                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta,          i,  ReF*numdens*deta_du,    ImF*numdens*deta_du);
-                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta,        i,  ReF*numdens*dtheta_du,  ImF*numdens*dtheta_du);
+                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dCF*numdens*dH_du);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta,          i,  CF*numdens*deta_du);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta,        i,  CF*numdens*dtheta_du);
                 if(nn) {
-                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, dReN*numdens*B*dH_du,     dImN*numdens*B*dH_du);
-                  dnlte_dx_source[j].AddPolarized(dpol_deta,          i,  ReN*numdens*B*deta_du,    ImN*numdens*B*deta_du);
-                  dnlte_dx_source[j].AddPolarized(dpol_dtheta,        i,  ReN*numdens*B*dtheta_du,  ImN*numdens*B*dtheta_du);
+                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, dCN*numdens*B*dH_du);
+                  dnlte_dx_source[j].AddPolarized(dpol_deta,          i,  CN*numdens*B*deta_du);
+                  dnlte_dx_source[j].AddPolarized(dpol_dtheta,        i,  CN*numdens*B*dtheta_du);
                 }
               }
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticV) {
-                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dReF*numdens*dH_dv,     dImF*numdens*dH_dv);
-                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta,          i,  ReF*numdens*deta_dv,    ImF*numdens*deta_dv);
-                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta,        i,  ReF*numdens*dtheta_dv,  ImF*numdens*dtheta_dv);
+                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dCF*numdens*dH_dv);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta,          i,  CF*numdens*deta_dv);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta,        i,  CF*numdens*dtheta_dv);
                 if(nn) {
-                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, dReN*numdens*B*dH_dv,     dImN*numdens*B*dH_dv);
-                  dnlte_dx_source[j].AddPolarized(dpol_deta,          i,  ReN*numdens*B*deta_dv,    ImN*numdens*B*deta_dv);
-                  dnlte_dx_source[j].AddPolarized(dpol_dtheta,        i,  ReN*numdens*B*dtheta_dv,  ImN*numdens*B*dtheta_dv);
+                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, dCN*numdens*B*dH_dv);
+                  dnlte_dx_source[j].AddPolarized(dpol_deta,          i,  CN*numdens*B*deta_dv);
+                  dnlte_dx_source[j].AddPolarized(dpol_dtheta,        i,  CN*numdens*B*dtheta_dv);
                 }
               }
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticW) {
-                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dReF*numdens*dH_dw,     dImF*numdens*dH_dw);
-                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta,          i,  ReF*numdens*deta_dw,    ImF*numdens*deta_dw);
-                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta,        i,  ReF*numdens*dtheta_dw,  ImF*numdens*dtheta_dw);
+                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dCF*numdens*dH_dw);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta,          i,  CF*numdens*deta_dw);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta,        i,  CF*numdens*dtheta_dw);
                 if(nn) {
-                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, dReN*numdens*B*dH_dw,     dImN*numdens*B*dH_dw);
-                  dnlte_dx_source[j].AddPolarized(dpol_deta,          i,  ReN*numdens*B*deta_dw,    ImN*numdens*B*deta_dw);
-                  dnlte_dx_source[j].AddPolarized(dpol_dtheta,        i,  ReN*numdens*B*dtheta_dw,  ImN*numdens*B*dtheta_dw);
+                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, dCN*numdens*B*dH_dw);
+                  dnlte_dx_source[j].AddPolarized(dpol_deta,          i,  CN*numdens*B*deta_dw);
+                  dnlte_dx_source[j].AddPolarized(dpol_dtheta,        i,  CN*numdens*B*dtheta_dw);
                 }
               }
               else {
-                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dReF*numdens, dImF*numdens);
+                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dCF*numdens);
                 if(nn)
-                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, dReN*numdens*B, dImN*numdens*B);
+                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, dCN*numdens*B);
               }
             }
           }
@@ -919,75 +930,6 @@ void set_magnetic_parameters(Numeric& H_mag,
 //      eta = RAD2DEG * zeeman_magnetic_eta(Bu, Bv, Bw, za, aa);
 //     theta = RAD2DEG * zeeman_magnetic_theta(Bu, Bv, Bw, za, aa);
   }
-}
-
-
-void set_magnetic_parameters_derivative(
-    Numeric& dH_du,
-    Numeric& dH_dv,
-    Numeric& dH_dw,
-    Numeric& deta_du,
-    Numeric& deta_dv,
-    Numeric& deta_dw,
-    Numeric& dtheta_du,
-    Numeric& dtheta_dv,
-    Numeric& dtheta_dw,
-    ConstVectorView rtp_mag,
-    ConstVectorView r_path_los)
-{
-    const Numeric& Bu = rtp_mag[0],Bv = rtp_mag[1],Bw = rtp_mag[2];
-    
-    const Numeric
-    Bu2=Bu*Bu, Bv2 = Bv*Bv, Bw2 = Bw*Bw, 
-    H_mag = sqrt(Bu2+Bv2+Bw2), H2 = H_mag*H_mag,
-    aa=DEG2RAD*r_path_los[1], za=DEG2RAD*r_path_los[0], 
-    cosaa=cos(aa), cosza=cos(za), sinaa=sin(aa), sinza=sin(za),
-    sinza2=sinza*sinza,cosza2=cosza*cosza,cosaa2=cosaa*cosaa,sinaa2=sinaa*sinaa,
-    a=(Bw*cos(za) + Bu*cos(aa)*sin(za) + Bv*sin(aa)*sin(za)),
-    b=-cosaa*sinza*Bv2 + Bu*sinaa*sinza*Bv - cosaa*sinza*Bw2 + Bu*cosza*Bw,
-    term1=(Bu*(cosaa2*sinza2 - 1.) + Bw*cosaa*cosza*sinza + Bv*cosaa*sinaa*sinza2),
-    term2=(Bv*(sinaa2*sinza2 - 1.) + Bw*sinaa*cosza*sinza + Bu*cosaa*sinaa*sinza2),
-    term3=(Bw*(cosza2 - 1.) + Bu*cosaa*cosza*sinza + Bv*sinaa*cosza*sinza),
-    eta_test=(PI - acos(((Bu*cosaa*cosza - Bw*sinza + 
-    Bv*sinaa*cosza)*sqrt(term1*term1/(H_mag*H_mag) + term2*term2/(H_mag*H_mag) +
-    term3*term3/(H_mag*H_mag)))/(H_mag)))*RAD2DEG; 
-    
-    const Numeric
-    x1 = (Bv*cosaa - Bu*sinaa),
-    x2 = -((Bu2*cosaa-Bv2*cosaa+2.0*Bu*Bv*sinaa)*cosaa*sinza2
-    - Bu2 - Bw2 + 2.0*Bu*Bw*cosaa*cosza*sinza +
-    (Bw2*cosza - Bv2*cosza+ 2.0*Bv*Bw*sinaa*sinza)*cosza),
-    fx2=sqrt(x2),
-    x3 = 1.0/H2,
-    x=x1*fx2*x3, // eta = acos(x) * RAD2DEG;
-    dx1_dBu = -sinaa,
-    dx1_dBv = cosaa,
-    dx2_dBu = 2.0*Bu - cosaa*sinza2*(2.0*Bu*cosaa + 2.0*Bv*sinaa) - 2.0*Bw*cosaa*cosza*sinza,
-    dx2_dBv = cosza*(2.0*Bv*cosza - 2.0*Bw*sinaa*sinza) + cosaa*sinza2*(2.0*Bv*cosaa - 2.0*Bu*sinaa),
-    dx2_dBw = 2.0*Bw - cosza*(2.0*Bw*cosza + 2.0*Bv*sinaa*sinza) - 2.0*Bu*cosaa*cosza*sinza,
-    dx3_dBu = -2.0*Bu*x3*x3,
-    dx3_dBv = -2.0*Bv*x3*x3,
-    dx3_dBw = -2.0*Bw*x3*x3,
-    c1 = fx2*x3, c2 = x1*0.5*x3/fx2,c3=x1*fx2,
-    d_acos  = -1/sqrt(1-x*x) * (eta_test>90.0?-RAD2DEG:RAD2DEG); //RAD2DEG is here for convenience...
-    
-    const Numeric& u = rtp_mag[0], v = rtp_mag[1], w = rtp_mag[2];
-//     const Numeric& za = rtp_los[0], aa = rtp_los[1];
-    
-    dH_du = u/sqrt(rtp_mag * rtp_mag);
-    dH_dv = v/sqrt(rtp_mag * rtp_mag);
-    dH_dw = w/sqrt(rtp_mag * rtp_mag);
-    
-    dtheta_du = -(-u*(u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))/pow(rtp_mag * rtp_mag, 1.5) + 
-    sin(za)*cos(aa)/sqrt((rtp_mag * rtp_mag)))/sqrt(1 - (u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))*(u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))/((rtp_mag * rtp_mag)))* RAD2DEG;
-    dtheta_dv = -(-v*(u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))/pow(rtp_mag * rtp_mag, 1.5) + sin(aa)*sin(za)/sqrt((rtp_mag * rtp_mag)))/sqrt(1 - 
-    (u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))*(u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))/((rtp_mag * rtp_mag)));
-    dtheta_dw = -(-w*(u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))/pow(rtp_mag * rtp_mag, 1.5) + 
-    cos(za)/sqrt((rtp_mag * rtp_mag)))/sqrt(1 - (u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))*(u*sin(za)*cos(aa) + v*sin(aa)*sin(za) + w*cos(za))/((rtp_mag * rtp_mag)));
-    
-    deta_du = d_acos * (dx1_dBu*c1 + dx2_dBu*c2 +  dx3_dBu*c3);
-    deta_dv = d_acos * (dx1_dBv*c1 + dx2_dBv*c2 +  dx3_dBv*c3);
-    deta_dw = d_acos * (/* empty */  dx2_dBw*c2 +  dx3_dBw*c3);
 }
 
 

@@ -1869,10 +1869,7 @@ bool is_derived_magnetic_parameter(const RetrievalQuantity& t)
 
 bool is_magnetic_parameter(const RetrievalQuantity& t)
 {
-  return is_derived_magnetic_parameter(t) or 
-         t == JacPropMatType::MagneticU   or 
-         t == JacPropMatType::MagneticV   or 
-         t == JacPropMatType::MagneticW;
+  return is_magnetic_magnitude_parameter(t) or is_derived_magnetic_parameter(t);
 }
 
 bool is_magnetic_magnitude_parameter(const RetrievalQuantity& t)
@@ -1990,14 +1987,6 @@ bool supports_lookup(const ArrayOfRetrievalQuantity& js)
     else if(is_line_parameter(j))
       throw std::runtime_error("Line specific parameters are not supported while using Lookup table.\nWe do not track lines in the Lookup.\n");
   return testvar;
-}
-
-bool supports_zeeman(const ArrayOfRetrievalQuantity& js) 
-{
-  for(const auto& j : js) 
-    if(j not_eq JacPropMatType::NotPropagationMatrixType)
-      return true; 
-  return false;
 }
 
 bool supports_faraday(const ArrayOfRetrievalQuantity& js)

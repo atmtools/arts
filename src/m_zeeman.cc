@@ -79,31 +79,30 @@ void zeeman_linerecord_precalcModifyFromData(ArrayOfArrayOfLineRecord& zeeman_li
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clearsky,
-                                          ArrayOfStokesVector& nlte_source,
-                                          ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-                                          ArrayOfStokesVector& dnlte_dx_source,
-                                          ArrayOfStokesVector& nlte_dsource_dx,
-                                          const ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
-                                          const Vector& f_grid,
-                                          const ArrayOfArrayOfSpeciesTag& abs_species,
-                                          const ArrayOfRetrievalQuantity& jacobian_quantities,
-                                          const ArrayOfLineshapeSpec& abs_lineshape,
-                                          const SpeciesAuxData& isotopologue_ratios,
-                                          const SpeciesAuxData& partition_functions,
-                                          const Numeric& rtp_pressure,
-                                          const Numeric& rtp_temperature,
-                                          const Numeric& lm_p_lim,
-                                          const Vector& rtp_nlte,
-                                          const Vector& rtp_vmr,
-                                          const Vector& rtp_mag,
-                                          const Vector& ppath_los,
-                                          const Index& atmosphere_dim,
-                                          const Index& manual_zeeman_tag,
-                                          const Numeric& manual_zeeman_magnetic_field_strength,
-                                          const Numeric& manual_zeeman_theta,
-                                          const Numeric& manual_zeeman_eta,
-                                          const Verbosity& verbosity)
+void propmat_clearskyAddZeeman(ArrayOfPropagationMatrix& propmat_clearsky,
+                               ArrayOfStokesVector& nlte_source,
+                               ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+                               ArrayOfStokesVector& dnlte_dx_source,
+                               ArrayOfStokesVector& nlte_dsource_dx,
+                               const ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
+                               const Vector& f_grid,
+                               const ArrayOfArrayOfSpeciesTag& abs_species,
+                               const ArrayOfRetrievalQuantity& jacobian_quantities,
+                               const SpeciesAuxData& isotopologue_ratios,
+                               const SpeciesAuxData& partition_functions,
+                               const Numeric& rtp_pressure,
+                               const Numeric& rtp_temperature,
+                               const Numeric& lm_p_lim,
+                               const Vector& rtp_nlte,
+                               const Vector& rtp_vmr,
+                               const Vector& rtp_mag,
+                               const Vector& ppath_los,
+                               const Index& atmosphere_dim,
+                               const Index& manual_zeeman_tag,
+                               const Numeric& manual_zeeman_magnetic_field_strength,
+                               const Numeric& manual_zeeman_theta,
+                               const Numeric& manual_zeeman_eta,
+                               const Verbosity& verbosity)
 {
   CREATE_OUT3;
 
@@ -147,78 +146,89 @@ void propmat_clearskyAddZeemanFromPreCalc(ArrayOfPropagationMatrix& propmat_clea
   
   Vector rtp_los;
   mirror_los(rtp_los, ppath_los, atmosphere_dim);
+  
+  // NEW method
+  zeeman_on_the_fly(propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx,
+                    abs_species, jacobian_quantities, zeeman_linerecord_precalc, isotopologue_ratios,
+                    partition_functions, f_grid, rtp_vmr, rtp_nlte, rtp_mag, rtp_los, rtp_pressure,
+                    rtp_temperature, lm_p_lim, manual_zeeman_tag, manual_zeeman_magnetic_field_strength,
+                    manual_zeeman_theta, manual_zeeman_eta, verbosity);
 
-  // Using the standard scalar absorption functions to get physics parameters,
+  // OLD method
+/*  // Using the standard scalar absorption functions to get physics parameters,
   Vector abs_p, abs_t; Matrix abs_vmrs, abs_t_nlte;
   AbsInputFromRteScalars( abs_p, abs_t, abs_t_nlte, abs_vmrs,           // Output
           rtp_pressure, rtp_temperature, rtp_nlte, rtp_vmr, //Input
-          verbosity);                                                   // Verbose!
+          verbosity);   */                                                // Verbose!
 
   // FOR LOG:  Loss of speed when mag == 0
   // Set the magnetic parameters...
-  Numeric H_mag,eta,theta;
-  set_magnetic_parameters(H_mag,eta,theta,manual_zeeman_tag,manual_zeeman_eta,
-                          manual_zeeman_theta,manual_zeeman_magnetic_field_strength,
-                          rtp_mag,rtp_los);
-  
-  supports_zeeman(jacobian_quantities);
-  const ArrayOfIndex jacobian_quantities_position = equivlent_propmattype_indexes(jacobian_quantities);
-  const bool do_freq_jac = do_frequency_jacobian(jacobian_quantities);
-  const bool do_temp_jac = do_temperature_jacobian(jacobian_quantities);
-  
-  Vector planck_BT(0);
-  if(do_src)
-      planck_BT.resize(f_grid.nelem());
-  
-  Matrix dplanck_BT(0,0);
-  
-  if(do_freq_jac||do_temp_jac)
-      dplanck_BT.resize(2,f_grid.nelem());
-  
-  for(Index iv=0;iv<planck_BT.nelem();iv++)
-  {
-      planck_BT[iv] = planck(f_grid[iv],abs_t[0]);
-      if(dplanck_BT.ncols()>0)
-      {
-          dplanck_BT(0,iv) = dplanck_dt(f_grid[iv],abs_t[0]);
-          dplanck_BT(1,iv) = dplanck_df(f_grid[iv],abs_t[0]);
-      }
-  }
-  
-  Index zeeman_ind = 0; // This is necessary for more than 1 Zeeman species
-  
-  for(Index II = 0; II<abs_species.nelem(); II++)
-  {
-    const Index ls_index = (1==abs_lineshape.nelem())?0:II;
-    
-    // If the species isn't Zeeman, look at the next species
-    if(!is_zeeman(abs_species[II])) continue;
-    
-    // Add Pi contribution to final propmat_clearsky
-    xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
-                                                  abs_species, jacobian_quantities, jacobian_quantities_position, 
-                                                  abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
-                                                  zeeman_linerecord_precalc[zeeman_ind+1], planck_BT, dplanck_BT,
-                                                  isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
-                                                  rtp_mag, rtp_los,lm_p_lim,theta, eta, H_mag, 0, II, verbosity );
-
-    // Add Sigma minus contribution to final propmat_clearsky
-    xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
-                                                  abs_species, jacobian_quantities, jacobian_quantities_position, 
-                                                  abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
-                                                  zeeman_linerecord_precalc[zeeman_ind], planck_BT, dplanck_BT,
-                                                  isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
-                                                  rtp_mag, rtp_los,lm_p_lim,theta, eta, H_mag, -1, II, verbosity );
-
-    // Add Sigma plus contribution to final propmat_clearsky
-    xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
-                                                  abs_species, jacobian_quantities, jacobian_quantities_position, 
-                                                  abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
-                                                  zeeman_linerecord_precalc[zeeman_ind+2], planck_BT, dplanck_BT,
-                                                  isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
-                                                  rtp_mag, rtp_los,lm_p_lim,theta, eta, H_mag, 1, II, verbosity );
-    
-    // The flat structure reminder for 3-component ArrayOfArrayOfLineRecord
-    zeeman_ind += 3;
-  }
+//   Numeric H_mag,eta,theta;
+//   set_magnetic_parameters(H_mag,eta,theta,manual_zeeman_tag,manual_zeeman_eta,
+//                           manual_zeeman_theta,manual_zeeman_magnetic_field_strength,
+//                           rtp_mag,rtp_los);
+//   
+//   supports_zeeman(jacobian_quantities);
+//   const ArrayOfIndex jacobian_quantities_position = equivlent_propmattype_indexes(jacobian_quantities);
+//   const bool do_freq_jac = do_frequency_jacobian(jacobian_quantities);
+//   const bool do_temp_jac = do_temperature_jacobian(jacobian_quantities);
+//   
+//   Vector planck_BT(0);
+//   if(do_src)
+//       planck_BT.resize(f_grid.nelem());
+//   
+//   Matrix dplanck_BT(0,0);
+//   
+//   if(do_freq_jac||do_temp_jac)
+//       dplanck_BT.resize(2,f_grid.nelem());
+//   
+//   for(Index iv=0;iv<planck_BT.nelem();iv++)
+//   {
+//       planck_BT[iv] = planck(f_grid[iv],abs_t[0]);
+//       if(dplanck_BT.ncols()>0)
+//       {
+//           dplanck_BT(0,iv) = dplanck_dt(f_grid[iv],abs_t[0]);
+//           dplanck_BT(1,iv) = dplanck_df(f_grid[iv],abs_t[0]);
+//       }
+//   }
+//   
+//   // NOT IN OLD CODE BUT AROUND TO HELP COMPARISONS
+//   ArrayOfLineshapeSpec abs_lineshape;
+//   abs_lineshapeDefine(abs_lineshape, "Faddeeva_Algorithm_916", "no_norm", -1, verbosity);
+//   Index zeeman_ind = 0; // This is necessary for more than 1 Zeeman species
+//   
+//   for(Index II = 0; II<abs_species.nelem(); II++)
+//   {
+//     const Index ls_index = (1==abs_lineshape.nelem())?0:II;
+//     
+//     // If the species isn't Zeeman, look at the next species
+//     if(!is_zeeman(abs_species[II])) continue;
+//     
+//     // Add Pi contribution to final propmat_clearsky
+//     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
+//                                                   abs_species, jacobian_quantities, jacobian_quantities_position, 
+//                                                   abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
+//                                                   zeeman_linerecord_precalc[zeeman_ind+1], planck_BT, dplanck_BT,
+//                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
+//                                                   rtp_mag, rtp_los,lm_p_lim,theta, eta, H_mag, 0, II, verbosity );
+// 
+//     // Add Sigma minus contribution to final propmat_clearsky
+//     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
+//                                                   abs_species, jacobian_quantities, jacobian_quantities_position, 
+//                                                   abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
+//                                                   zeeman_linerecord_precalc[zeeman_ind], planck_BT, dplanck_BT,
+//                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
+//                                                   rtp_mag, rtp_los,lm_p_lim,theta, eta, H_mag, -1, II, verbosity );
+// 
+//     // Add Sigma plus contribution to final propmat_clearsky
+//     xsec_species_line_mixing_wrapper_with_zeeman( propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx, 
+//                                                   abs_species, jacobian_quantities, jacobian_quantities_position, 
+//                                                   abs_lineshape[ls_index].Ind_ls(), abs_lineshape[ls_index].Ind_lsn(), abs_lineshape[ls_index].Cutoff(), 
+//                                                   zeeman_linerecord_precalc[zeeman_ind+2], planck_BT, dplanck_BT,
+//                                                   isotopologue_ratios, partition_functions, abs_t_nlte, abs_vmrs, abs_p, abs_t, f_grid, 
+//                                                   rtp_mag, rtp_los,lm_p_lim,theta, eta, H_mag, 1, II, verbosity );
+//     
+//     // The flat structure reminder for 3-component ArrayOfArrayOfLineRecord
+//     zeeman_ind += 3;
+//   }
 }

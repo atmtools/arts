@@ -35,6 +35,7 @@
 #define propagationmatrix_h
 
 #include "matpackIV.h"
+#include "complex.h"
 
 enum class CaseOfPropagationMatrix
 {
@@ -322,7 +323,7 @@ public:
                                               const Numeric& deta, 
                                               ConstVectorView extra=Vector(0));
   
-  void AddPolarized(const ConstVectorView polarization, const Index i, const Numeric& Re, const Numeric& Im);
+  void AddPolarized(const ConstVectorView polarization, const Index i, const Complex& C);
   
   /*! Sets the dense matrix.  Avoid using if possible. */
   void MatrixAtPosition(MatrixView ret,

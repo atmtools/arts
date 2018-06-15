@@ -27,7 +27,6 @@
  */
 
 #include "propagationmatrix.h"
-#include "complex.h"
 #include "arts_omp.h"
 #include "lin_alg.h"
 
@@ -2744,11 +2743,11 @@ void get_diydx_replacement(MatrixView diydx_this,
 }
 
 
-void PropagationMatrix::AddPolarized(const ConstVectorView polarization, const Index i, const Numeric& Re, const Numeric& Im)
+void PropagationMatrix::AddPolarized(const ConstVectorView polarization, const Index i, const Complex& C)
 {
   assert(polarization.nelem() == 7);
   assert(maa==1 and mza==1);
-  for(Index j=0; j<4; j++) mdata(0, 0, i, j) += polarization[j] * Re;
-  for(Index j=4; j<7; j++) mdata(0, 0, i, j) += polarization[j] * Im;
+  for(Index j=0; j<4; j++) mdata(0, 0, i, j) += polarization[j] * C.real();
+  for(Index j=4; j<7; j++) mdata(0, 0, i, j) += polarization[j] * C.imag();
 }
 

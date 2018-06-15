@@ -12443,15 +12443,13 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "propmat_clearskyAddZeemanFromPreCalc" ),
+      ( NAME( "propmat_clearskyAddZeeman" ),
         DESCRIPTION
         (
-        "Calculates Zeeman-effected absorption coefficients.\n"
+        "Calculates Zeeman-affected polarized propagation matrix.\n"
         "\n"
-        "This method will use a precalculated ArrayOfArrayOfLineRecord to get the\n"
-        "Zeeman effect into the propagation matrix.\n"
-        "\n"
-        "The other inputs are similar as for *propmat_clearskyAddZeeman*.\n"
+        "Otherwise as *propmat_clearskyAddFromLookup* except line cutoff,\n"
+        "shape, and, normalization factors have to be set in the LineRecord\n"
          ),
         AUTHORS( "Richard Larsson" ),
         OUT("propmat_clearsky", "nlte_source", 
@@ -12468,7 +12466,6 @@ void define_md_data_raw()
            "f_grid",
            "abs_species",
            "jacobian_quantities",
-           "abs_lineshape",
            "isotopologue_ratios",
            "partition_functions",
            "rtp_pressure", "rtp_temperature", "lm_p_lim", "rtp_nlte", "rtp_vmr",

@@ -1,3 +1,28 @@
+2018-06-154  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-1078
+	
+	Updated to fixed Zeeman calculations.  Note that this intentionally
+	breaks controlfiles.  Also note that Zeeman is now using the 
+	line functions namespace, so cutoff and such must be defined in
+	the line record
+	
+	* src/jacobian.cc:  Modified helper functions
+	
+	* src/methods.cc: Changed name of 
+	propmat_clearskyAddZeemanFromPreCalc
+	to propmat_clearskyAddZeeman
+	
+	* src/m_zeeman.cc:  Chnaged to use new method
+	
+	* src/propagationmatrix.cc,h: AddPolarized takes a
+	Complex instead of a Numeric now
+	
+	* src/zeeman.cc,h:  Updated zeeman_on_the_fly.  It
+	now works for all jacobians.  Compare with 
+	xsec_species_line_mixing_wrapper_with_zeeman for complexity
+
+	
 2018-06-14  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-1077

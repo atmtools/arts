@@ -82,8 +82,8 @@ public:
   Rational Ml(const Index i) const {return mMl[i];}
   
   Vector Polarization(const Numeric& theta, const Numeric& eta) const;
-  Vector dPolarization1(const Numeric& theta, const Numeric& eta) const;
-  Vector dPolarization2(const Numeric& theta, const Numeric& eta) const;
+  Vector dPolarization_dtheta(const Numeric& theta, const Numeric& eta) const;
+  Vector dPolarization_deta(const Numeric& theta, const Numeric& eta) const;
   
   void SetPolarizationTypeFromString(const String& t)
   {
