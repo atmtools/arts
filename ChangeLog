@@ -1,3 +1,13 @@
+2018-06-17  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1079
+
+	Added check for uninitialized variables for calls through the
+	C interface.
+
+	* src/interactive_workspace.cc (execute_workspace_method):
+	Added check.
+
 2018-06-154  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-1078

@@ -40,6 +40,7 @@ void InteractiveWorkspace::initialize() {
     define_lineshape_norm_data();
 }
 
+
 const char * InteractiveWorkspace::execute_agenda(const Agenda *a)
 {
     resize();
@@ -56,6 +57,17 @@ const char * InteractiveWorkspace::execute_workspace_method(long id,
                                                             const ArrayOfIndex &output,
                                                             const ArrayOfIndex &input)
 {
+    const MdRecord &m = md_data[id];
+
+    // Check if all input variables are initialized.
+    for (Index i : input) {
+        if (!is_initialized(i)) {
+            string_buffer = "Method " + m.Name() + " needs input " +
+                wsv_data[i].Name() + " but it is uninitialized.";
+            return string_buffer.c_str();
+        }
+    }
+
     // Make sure verbosity is set.
     Index wsv_id_verbosity = get_wsv_id("verbosity");
     Verbosity& verbosity = *((Verbosity*)this->operator[](wsv_id_verbosity));
@@ -63,7 +75,6 @@ const char * InteractiveWorkspace::execute_workspace_method(long id,
 
     CREATE_OUTS;
 
-    const MdRecord &m = md_data[id];
     if (m.SetMethod()) {
         swap(output[0], input[0]);
         return nullptr;
