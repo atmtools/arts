@@ -63,8 +63,8 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
   const Numeric dnumdens_dt_dmvr = dnumber_density_dt(rtp_pressure, rtp_temperature);
   
   // Main compute vectors
-  ComplexVector F(nf), N(nn?nf:0);
-  ComplexMatrix dF(nq, nf), dN(nn?nq:0, nf);
+  ComplexVector F(nf), N(nn ? nf : 0);
+  ComplexMatrix dF(nq, nf), dN(nn ? nq : 0, nf);
   Range frange(joker);
   
   // Magnetic field variables
@@ -78,7 +78,7 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
   const Numeric theta = manual_zeeman_tag ? manual_zeeman_theta                   : zeeman_magnetic_theta(    u, v, w, z, a);
   
   // Magnetic field derivatives... FIXME:  Deal with asymptotes! (e.g., for theta == 90)
-  const bool do_mag_jacs = do_magnetic_jacobian(flag_partials);
+  const bool do_mag_jacs = do_magnetic_jacobian(flag_partials) and not manual_zeeman_tag;
   const Numeric dH_du     = do_mag_jacs ? zeeman_magnetic_dmagnitude_du(u, v, w      ) : 0;
   const Numeric dH_dv     = do_mag_jacs ? zeeman_magnetic_dmagnitude_dv(u, v, w      ) : 0;
   const Numeric dH_dw     = do_mag_jacs ? zeeman_magnetic_dmagnitude_dw(u, v, w      ) : 0;
@@ -113,7 +113,6 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
       const Numeric partial_pressure = rtp_pressure * rtp_vmrs[ispecies];
       
       for(const LineRecord& line: lines) {
-        
         if(line.Ti0() not_eq t0) {
           t0 = line.Ti0();
           
@@ -128,7 +127,6 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
         }
         
         for(Index iz=0; iz<line.ZeemanEffect().nelem(); iz++) {
-          
           const Numeric B     = nn ? planck(    line.F(), rtp_temperature) : 0;
           const Numeric dB_dT = nn ? dplanck_dt(line.F(), rtp_temperature) : 0;
           
@@ -142,81 +140,82 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
           const Index extent = (frange.get_extent() < 0) ? (nf - frange.get_start()) : frange.get_extent();
           const Range this_out_range(frange.get_start(), extent);
           
-          const ComplexVectorView F_range_view  =  F[frange];
-          const ComplexMatrixView dF_range_view = dF(joker, frange);
-          const ComplexVectorView N_range_view  = nn ?  N[frange] : F; // false result should never be used
-          const ComplexMatrixView dN_range_view = nn ? dN(joker, frange) : dF; // false result should never be used
+          const ComplexVectorView F_range_view  =       F[frange];
+          const ComplexVectorView N_range_view  = nn ?  N[frange] : F;
+          const ComplexMatrixView dF_range_view =      dF(joker, frange);
+          const ComplexMatrixView dN_range_view = nn ? dN(joker, frange) : dF;
           
           for(Index i = 0; i < extent; i++) {
+            const Index iv = frange(i);
             const Complex& CF = F_range_view[i];
             const Complex& CN = N_range_view[i];
             
-            propmat_clearsky[ispecies].AddPolarized(polarization_scale, i, CF*numdens);
+            propmat_clearsky[ispecies].AddPolarized(polarization_scale, iv, CF*numdens);
             if(nn)
-              nlte_source[ispecies].AddPolarized(polarization_scale, i, CN*numdens*B);
+              nlte_source[ispecies].AddPolarized(polarization_scale, iv, CN*numdens*B);
             
             for(Index j=0; j<nq; j++) {
               const Complex& dCF = dF_range_view(j, i);
               const Complex& dCN = dN_range_view(j, i);
               
               if(flag_partials[flag_partials_positions[j]] == JacPropMatType::Temperature) {
-                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dCF*numdens+CF*dnumdens_dT);
+                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, iv, dCF*numdens + CF*dnumdens_dT);
                 if(nn) {
-                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, (CN*dnumdens_dT+dCN*numdens)*B);
-                  nlte_dsource_dx[j].AddPolarized(polarization_scale, i, CN*numdens*dB_dT);
+                  dnlte_dx_source[j].AddPolarized(polarization_scale, iv, (CN*dnumdens_dT + dCN*numdens)*B);
+                  nlte_dsource_dx[j].AddPolarized(polarization_scale, iv, CN*numdens*dB_dT);
                 }
               }
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::VMR) {
                 if(flag_partials[flag_partials_positions[j]].QuantumIdentity() < line.QuantumIdentity()) {
-                  dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dCF*numdens+CF*dnumdens_dmvr);
+                  dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, iv, dCF*numdens + CF*dnumdens_dmvr);
                   if(nn)
-                    dnlte_dx_source[j].AddPolarized(polarization_scale, i, (dCN*numdens+CN*dnumdens_dmvr)*B);
+                    dnlte_dx_source[j].AddPolarized(polarization_scale, iv, (dCN*numdens + CN*dnumdens_dmvr)*B);
                 }
               }
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticEta) {
-                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta, i, CF*numdens);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta, iv, CF*numdens);
                 if(nn)
-                  dnlte_dx_source[j].AddPolarized(dpol_deta, i, CN*numdens*B);
+                  dnlte_dx_source[j].AddPolarized(dpol_deta, iv, CN*numdens*B);
               }
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticTheta) {
-                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta, i, CF*numdens);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta, iv, CF*numdens);
                 if(nn)
-                  dnlte_dx_source[j].AddPolarized(dpol_dtheta, i, CN*numdens*B);
+                  dnlte_dx_source[j].AddPolarized(dpol_dtheta, iv, CN*numdens*B);
               }
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticU) {
-                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dCF*numdens*dH_du);
-                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta,          i,  CF*numdens*deta_du);
-                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta,        i,  CF*numdens*dtheta_du);
+                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, iv, dCF*numdens*dH_du);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta,          iv,  CF*numdens*deta_du);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta,        iv,  CF*numdens*dtheta_du);
                 if(nn) {
-                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, dCN*numdens*B*dH_du);
-                  dnlte_dx_source[j].AddPolarized(dpol_deta,          i,  CN*numdens*B*deta_du);
-                  dnlte_dx_source[j].AddPolarized(dpol_dtheta,        i,  CN*numdens*B*dtheta_du);
+                  dnlte_dx_source[j].AddPolarized(polarization_scale, iv, dCN*numdens*B*dH_du);
+                  dnlte_dx_source[j].AddPolarized(dpol_deta,          iv,  CN*numdens*B*deta_du);
+                  dnlte_dx_source[j].AddPolarized(dpol_dtheta,        iv,  CN*numdens*B*dtheta_du);
                 }
               }
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticV) {
-                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dCF*numdens*dH_dv);
-                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta,          i,  CF*numdens*deta_dv);
-                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta,        i,  CF*numdens*dtheta_dv);
+                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, iv, dCF*numdens*dH_dv);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta,          iv,  CF*numdens*deta_dv);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta,        iv,  CF*numdens*dtheta_dv);
                 if(nn) {
-                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, dCN*numdens*B*dH_dv);
-                  dnlte_dx_source[j].AddPolarized(dpol_deta,          i,  CN*numdens*B*deta_dv);
-                  dnlte_dx_source[j].AddPolarized(dpol_dtheta,        i,  CN*numdens*B*dtheta_dv);
+                  dnlte_dx_source[j].AddPolarized(polarization_scale, iv, dCN*numdens*B*dH_dv);
+                  dnlte_dx_source[j].AddPolarized(dpol_deta,          iv,  CN*numdens*B*deta_dv);
+                  dnlte_dx_source[j].AddPolarized(dpol_dtheta,        iv,  CN*numdens*B*dtheta_dv);
                 }
               }
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticW) {
-                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dCF*numdens*dH_dw);
-                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta,          i,  CF*numdens*deta_dw);
-                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta,        i,  CF*numdens*dtheta_dw);
+                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, iv, dCF*numdens*dH_dw);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_deta,          iv,  CF*numdens*deta_dw);
+                dpropmat_clearsky_dx[j].AddPolarized(dpol_dtheta,        iv,  CF*numdens*dtheta_dw);
                 if(nn) {
-                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, dCN*numdens*B*dH_dw);
-                  dnlte_dx_source[j].AddPolarized(dpol_deta,          i,  CN*numdens*B*deta_dw);
-                  dnlte_dx_source[j].AddPolarized(dpol_dtheta,        i,  CN*numdens*B*dtheta_dw);
+                  dnlte_dx_source[j].AddPolarized(polarization_scale, iv, dCN*numdens*B*dH_dw);
+                  dnlte_dx_source[j].AddPolarized(dpol_deta,          iv,  CN*numdens*B*deta_dw);
+                  dnlte_dx_source[j].AddPolarized(dpol_dtheta,        iv,  CN*numdens*B*dtheta_dw);
                 }
               }
               else {
-                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, i, dCF*numdens);
+                dpropmat_clearsky_dx[j].AddPolarized(polarization_scale, iv, dCF*numdens);
                 if(nn)
-                  dnlte_dx_source[j].AddPolarized(polarization_scale, i, dCN*numdens*B);
+                  dnlte_dx_source[j].AddPolarized(polarization_scale, iv, dCN*numdens*B);
               }
             }
           }

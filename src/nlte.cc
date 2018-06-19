@@ -92,8 +92,7 @@ void dampened_statistical_equilibrium_equation(MatrixView A,
 
 void use_total_number_count_statistical_equilibrium_matrix(MatrixView A, VectorView x, ConstVectorView r, const Index row)
 {
-  const Index n = A.ncols();
-  assert(n == A.nrows() and n == x.nelem() and row < n);
+  assert(A.ncols() == A.nrows() and A.ncols() == x.nelem() and row < A.ncols());
   A(row, joker) = 1;
   x[row] = r.sum();
 }

@@ -1548,8 +1548,10 @@ void xml_read_from_stream(istream&           is_xml,
   Index n;
   try
     {
-      for (n = 0; n < nelem; n++)
+      for (n = 0; n < nelem; n++) {
+        aqtag[n] = QuantumIdentifier();
         xml_read_from_stream(is_xml, aqtag[n], pbifs, verbosity);
+      }
     }
   catch (runtime_error e)
     {

@@ -45,11 +45,14 @@ void zeeman_linerecord_precalcCreateFromLines(ArrayOfArrayOfLineRecord& zeeman_l
 void zeeman_linerecord_precalcModifyFromData(ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
                                              const ArrayOfQuantumIdentifier& keys,
                                              const Vector& data,
-                                             const Verbosity&)
+                                             const Verbosity& verbosity)
 {
+  CREATE_OUT2;
+  
   if(keys.nelem() not_eq data.nelem()) throw std::runtime_error("Mismatching data and identifier vector");
   
   for(ArrayOfLineRecord& lines : zeeman_linerecord_precalc) {
+    Index i=0, j=0;
     for(LineRecord& line: lines) {
       Index upper=-1, lower=-1;
       for(Index k=0; k<keys.nelem(); k++) {
@@ -61,10 +64,8 @@ void zeeman_linerecord_precalcModifyFromData(ArrayOfArrayOfLineRecord& zeeman_li
       }
       
       Numeric gl, gu;
-      if(lower not_eq -1) {
+      if(lower not_eq -1)
         gl = data[lower];
-//         std::cout<< gl << " " << line.ZeemanEffect().LowerG()<< "\n";
-      }
       else 
         gl = line.ZeemanEffect().LowerG();
       if(upper not_eq - 1)
@@ -73,8 +74,12 @@ void zeeman_linerecord_precalcModifyFromData(ArrayOfArrayOfLineRecord& zeeman_li
         gu = line.ZeemanEffect().UpperG();
       
       line.SetZeemanEffectData(ZeemanEffectData(gu, gl, line.QuantumIdentity(), line.ZeemanEffect().PolarizationType()));
-//       std::cout<< gl << " " << line.ZeemanEffect().LowerG()<< "\n";
+      
+      if(lower not_eq -1 or  upper not_eq -1) ++i;
+      if(lower not_eq -1 and upper not_eq -1) ++j;
     }
+    out2 << "Modified " << i <<"/"<<lines.nelem() << " lines of which " 
+                        << j <<"/"<<lines.nelem() << " were fully modified.\n";
   }
 }
 

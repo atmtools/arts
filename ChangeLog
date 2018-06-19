@@ -1,3 +1,20 @@
+2018-06-19  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-1080
+	
+	* src/m_zeeman.cc:  Added output for 
+	zeeman_linerecord_precalcModifyFromData
+	
+	* src/zeeman.cc: Changed so cutoff 'should' work
+	
+	* src/nlte.cc: removed compiler warning 
+	
+	* src/quantum.cc,h:  added parity properly
+	
+	* src/xml_io_array_types.cc:  Fixed bug in quantum identifier
+	reading where the variable was not properly reset so old numbers
+	remained in a variable.
+
 2018-06-17  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1079

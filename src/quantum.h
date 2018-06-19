@@ -173,6 +173,7 @@ if (name == #ID) this->Set(QuantumNumberType::ID, r)
         else INPUT_QUANTUM(Lambda);
         else INPUT_QUANTUM(alpha);
         else INPUT_QUANTUM(Sym);
+        else INPUT_QUANTUM(parity);
         else INPUT_QUANTUM(v1);
         else INPUT_QUANTUM(v2);
         else INPUT_QUANTUM(l2);

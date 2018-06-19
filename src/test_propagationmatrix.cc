@@ -203,11 +203,15 @@ void test_zeeman()
 {
   const Vector rtp_mag = {20e-6, 20e-6, 0};
   
-  for(Numeric za = 0; za < 180; za += 5) {
+  for(Numeric za = 0; za <= 180; za += 15) {
 //     std::cout << "arts_eta.append([";
-    for(Numeric aa = 0; aa < 360; aa += 5) {
+    for(Numeric aa = 0; aa <= 360; aa += 15) {
       const Vector rtp_los = {za, aa};
-      std::cout << za << " " << aa<< " " << RAD2DEG * (zeeman_magnetic_theta(rtp_mag[0], rtp_mag[1], rtp_mag[2]+1e-10, DEG2RAD*za, DEG2RAD*aa) - zeeman_magnetic_theta(rtp_mag[0], rtp_mag[1], rtp_mag[2], DEG2RAD*za, DEG2RAD*aa)) / 1e-10 << " "  << RAD2DEG * zeeman_magnetic_dtheta_dw(rtp_mag[0], rtp_mag[1], rtp_mag[2], DEG2RAD*za, DEG2RAD*aa) << "\n";
+      std::cout << "ZA.append(" << za << "),"
+                << " AA.append(" << aa << ")," 
+                << " THETA.append(" << RAD2DEG * zeeman_magnetic_theta(rtp_mag[0], rtp_mag[1], rtp_mag[2], DEG2RAD*za, DEG2RAD*aa) << "),"
+                << " ETA.append(" << RAD2DEG * zeeman_magnetic_eta(rtp_mag[0], rtp_mag[1], rtp_mag[2], DEG2RAD*za, DEG2RAD*aa) << "),"
+                << " deriv.append(" << RAD2DEG * zeeman_magnetic_deta_du(rtp_mag[0], rtp_mag[1], rtp_mag[2], DEG2RAD*za, DEG2RAD*aa) << ")\n";
     }
 //     std::cout << "])\n";
   }
