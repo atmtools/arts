@@ -1,3 +1,10 @@
+2018-06-22  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-1082
+	
+	* src/pressurebroadeningdata.cc,h:  Forgot to add air to the test.
+	I also needed reading ability...
+	
 2018-06-21  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-1081

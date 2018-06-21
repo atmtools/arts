@@ -38,24 +38,29 @@ inline Numeric test_pressure_broadening(const Numeric& T, const Numeric& T0, con
 }
 
 inline void voigt_test_params(Numeric& G0, Numeric& D0, 
-                               const Numeric& P, const Numeric& T, const Numeric& T0, 
-                               const Numeric& A, const Numeric& g0, const Numeric& n, 
-                               const Numeric& d0, const Numeric& m)
+                              const Numeric& aP, const Numeric& sP,  const Numeric& T, const Numeric& T0, 
+                              const Numeric& sA, const Numeric& sg0, const Numeric& sn, 
+                              const Numeric& sd0, const Numeric& sm,
+                              const Numeric& aA, const Numeric& ag0, const Numeric& an, 
+                              const Numeric& ad0, const Numeric& am)
 {
-  G0 = P * test_pressure_broadening(T, T0, g0, n);
-  D0 = P * test_pressure_shift(T, T0, A, d0, m);
+  G0 = sP * test_pressure_broadening(T, T0, sg0, sn) + aP * test_pressure_broadening(T, T0, ag0, an);
+  D0 = sP * test_pressure_shift(T, T0, sA, sd0, sm) + aP *test_pressure_shift(T, T0, aA, ad0, am);
 }
 
 inline void speed_dependent_test_params(Numeric& G0, Numeric& D0, Numeric& G2, Numeric& D2, 
-                                         const Numeric& P, const Numeric& T, const Numeric& T0,
-                                         const Numeric& A, const Numeric& g0, const Numeric& n0,
-                                         const Numeric& g2, const Numeric& n2, const Numeric& d0,
-                                         const Numeric& m, const Numeric& d2)
+                                        const Numeric& aP, const Numeric& sP, const Numeric& T, const Numeric& T0,
+                                        const Numeric& sA, const Numeric& sg0, const Numeric& sn0,
+                                        const Numeric& sg2, const Numeric& sn2, const Numeric& sd0,
+                                        const Numeric& sm, const Numeric& sd2,
+                                        const Numeric& aA, const Numeric& ag0, const Numeric& an0,
+                                        const Numeric& ag2, const Numeric& an2, const Numeric& ad0,
+                                        const Numeric& am, const Numeric& ad2)
 {
-  G0 = P * test_pressure_broadening(T, T0, g0, n0);
-  G2 = P * test_pressure_broadening(T, T0, g2, n2);
-  D0 = P * test_pressure_shift(T, T0, A, d0, m);
-  D2 = P * d2;  // test_pressure_shift(T, T0, 0, d2, 0);
+  G0 = sP * test_pressure_broadening(T, T0, sg0, sn0) + aP * test_pressure_broadening(T, T0, ag0, an0);
+  G2 = sP * test_pressure_broadening(T, T0, sg2, sn2) + aP * test_pressure_broadening(T, T0, ag2, an2);
+  D0 = sP * test_pressure_shift(T, T0, sA, sd0, sm)   + aP * test_pressure_shift(T, T0, aA, ad0, am);
+  D2 = sP * sd2 + aP * ad2;  // test_pressure_shift(T, T0, 0, d2, 0);
 }
 
 ///////////////////////////////////////////
@@ -103,18 +108,26 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma_0,
       throw std::runtime_error("Not implemented");
       break;
     case PB_VOIGT_TEST_WATER:
-      voigt_test_params(gamma_0, df_0, pressure, temperature, ref_temperature, 
-                         mdata[0][Index(TestParams::A)], mdata[0][Index(TestParams::g0)], 
-                         mdata[0][Index(TestParams::n0)], mdata[0][Index(TestParams::d0)],
-                         mdata[0][Index(TestParams::m)]);
+      voigt_test_params(gamma_0, df_0, 
+                        pressure-self_pressure, self_pressure, temperature, ref_temperature, 
+                        mdata[0][Index(TestParams::sA)], mdata[0][Index(TestParams::sg0)], 
+                        mdata[0][Index(TestParams::sn0)], mdata[0][Index(TestParams::sd0)],
+                        mdata[0][Index(TestParams::sm)],
+                        mdata[0][Index(TestParams::aA)], mdata[0][Index(TestParams::ag0)], 
+                        mdata[0][Index(TestParams::an0)], mdata[0][Index(TestParams::ad0)],
+                        mdata[0][Index(TestParams::am)]);
       break;
     case PB_SD_TEST_WATER:
       speed_dependent_test_params(gamma_0, df_0, gamma_2, df_2, 
-                                   pressure, temperature, ref_temperature,
-                                   mdata[0][Index(TestParams::A)], mdata[0][Index(TestParams::g0)], 
-                                   mdata[0][Index(TestParams::n0)], mdata[0][Index(TestParams::g2)], 
-                                   mdata[0][Index(TestParams::n2)], mdata[0][Index(TestParams::d0)],
-                                   mdata[0][Index(TestParams::m)], mdata[0][Index(TestParams::d2)]);
+                                  pressure-self_pressure, self_pressure, temperature, ref_temperature,
+                                  mdata[0][Index(TestParams::sA)], mdata[0][Index(TestParams::sg0)], 
+                                  mdata[0][Index(TestParams::sn0)], mdata[0][Index(TestParams::sg2)], 
+                                  mdata[0][Index(TestParams::sn2)], mdata[0][Index(TestParams::sd0)],
+                                  mdata[0][Index(TestParams::sm)], mdata[0][Index(TestParams::sd2)],
+                                  mdata[0][Index(TestParams::aA)], mdata[0][Index(TestParams::ag0)], 
+                                  mdata[0][Index(TestParams::an0)], mdata[0][Index(TestParams::ag2)], 
+                                  mdata[0][Index(TestParams::an2)], mdata[0][Index(TestParams::ad0)],
+                                  mdata[0][Index(TestParams::am)], mdata[0][Index(TestParams::ad2)]);
       break;
   }
 }
@@ -1885,6 +1898,7 @@ void PressureBroadeningData::SetDataFromVectorWithKnownType(ConstVectorView inpu
       break;
     case PB_VOIGT_TEST_WATER:
     case PB_SD_TEST_WATER:
+      mdata.resize(1);
       mdata[0] = input;
       break;
   }
@@ -1906,9 +1920,9 @@ void PressureBroadeningData::StorageTag2SetType(const String & input)
       mtype=PB_HTP_AIR_VOLUME;
     else if(input == "TESTING") 
       mtype=PB_PURELY_FOR_TESTING;
-    else if(input == "PB_SD_MISHA_WATER") 
+    else if(input == "PB_SD_TEST_WATER") 
       mtype=PB_SD_TEST_WATER;
-    else if(input == "PB_VOIGT_MISHA_WATER") 
+    else if(input == "PB_VOIGT_TEST_WATER") 
       mtype=PB_VOIGT_TEST_WATER;
     else
       throw std::runtime_error("StorageTag2SetType: Cannot recognize tag.\n");
@@ -1919,8 +1933,7 @@ void PressureBroadeningData::GetVectorFromData(Vector& output) const
   const Index n = ExpectedVectorLengthFromType();
   output.resize(n);
   
-  switch(mtype)
-  {
+  switch(mtype) {
     case PB_NONE:
       break;
     case PB_AIR_BROADENING:
@@ -1955,8 +1968,7 @@ void PressureBroadeningData::GetVectorFromData(Vector& output) const
       break;
     case PB_SD_AIR_VOLUME:
     case PB_HTP_AIR_VOLUME:
-      for(Index i = 0; i < n; i++)
-      {
+      for(Index i = 0; i < n; i++) {
         if(i%2)
           output[i] = mdata[1][i/2];
         else
@@ -1979,8 +1991,7 @@ String PressureBroadeningData::Type2StorageTag() const
 {
     String output;
 
-    switch(mtype)
-    {
+    switch(mtype) {
       case PB_NONE:
         return "NA";
       case PB_AIR_BROADENING:
@@ -1993,7 +2004,11 @@ String PressureBroadeningData::Type2StorageTag() const
         return "HTP-AIR";
       case PB_PLANETARY_BROADENING:
         return "AP";
-      default:
-        throw std::runtime_error("Type2StorageTag: Cannot recognize type or is unable to save");
+      case PB_SD_TEST_WATER:
+        return "PB_SD_TEST_WATER";
+      case PB_VOIGT_TEST_WATER:
+        return "PB_VOIGT_TEST_WATER";
+      case PB_PURELY_FOR_TESTING:
+        throw std::runtime_error("Cannot save pure testing version");
     }
 }

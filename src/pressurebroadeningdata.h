@@ -59,7 +59,8 @@ public:
         PB_PURELY_FOR_TESTING             // Testing tag for new input structures --- can be changed by anyone...
     };
     
-    enum class TestParams : Index { g0=0, n0, d0, m, A, g2, n2, d2, COUNT };
+    enum class TestParams : Index { sg0=0, sn0, sd0, sm, sA, sg2, sn2, sd2, 
+                                    ag0,   an0, ad0, am, aA, ag2, an2, ad2, COUNT };
     
     // Defining an object with no data and no broadening
     PressureBroadeningData() : mtype(PB_NONE), mdata(), mdataerror() {}
