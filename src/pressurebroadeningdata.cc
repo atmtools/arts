@@ -26,6 +26,38 @@
 #include "linerecord.h"
 
 
+inline Numeric test_pressure_shift(const Numeric& T, const Numeric& T0, const Numeric& c, const Numeric& d0, const Numeric& m)
+{
+  return d0 * pow(T/T0, m) * (1+c*log(T));
+}
+
+
+inline Numeric test_pressure_broadening(const Numeric& T, const Numeric& T0, const Numeric& g0, const Numeric& n)
+{
+  return g0 * pow(T0/T, n);
+}
+
+inline void voigt_test_params(Numeric& G0, Numeric& D0, 
+                               const Numeric& P, const Numeric& T, const Numeric& T0, 
+                               const Numeric& A, const Numeric& g0, const Numeric& n, 
+                               const Numeric& d0, const Numeric& m)
+{
+  G0 = P * test_pressure_broadening(T, T0, g0, n);
+  D0 = P * test_pressure_shift(T, T0, A, d0, m);
+}
+
+inline void speed_dependent_test_params(Numeric& G0, Numeric& D0, Numeric& G2, Numeric& D2, 
+                                         const Numeric& P, const Numeric& T, const Numeric& T0,
+                                         const Numeric& A, const Numeric& g0, const Numeric& n0,
+                                         const Numeric& g2, const Numeric& n2, const Numeric& d0,
+                                         const Numeric& m, const Numeric& d2)
+{
+  G0 = P * test_pressure_broadening(T, T0, g0, n0);
+  G2 = P * test_pressure_broadening(T, T0, g2, n2);
+  D0 = P * test_pressure_shift(T, T0, A, d0, m);
+  D2 = P * d2;  // test_pressure_shift(T, T0, 0, d2, 0);
+}
+
 ///////////////////////////////////////////
 //  Broadening calculations below here
 //////////////////////////////////////////
@@ -37,7 +69,8 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma_0,
                                                          Numeric& df_0,
                                                          Numeric& df_2,
                                                          Numeric& f_VC,
-                                                         const Numeric& theta,
+                                                         const Numeric& temperature,
+                                                         const Numeric& ref_temperature,
                                                          const Numeric& pressure,
                                                          const Numeric& self_pressure,
                                                          const Index    this_species,
@@ -46,30 +79,44 @@ void PressureBroadeningData::GetPressureBroadeningParams(Numeric& gamma_0,
                                                          ConstVectorView vmrs) const
 {
   gamma_0=gamma_2=eta=df_0=df_2=f_VC=0;
-    switch(mtype)
-    {
-        case PB_NONE:
-            // Note that this is oftentimes not wanted, but a valid case at low pressures
-            break;
-        case PB_AIR_BROADENING:
-            GetAirBroadening(gamma_0, df_0, theta, pressure, self_pressure);
-            break;
-        case PB_AIR_AND_WATER_BROADENING:
-            GetAirAndWaterBroadening(gamma_0, df_0, theta, pressure, self_pressure, 
-                                     this_species, h2o_species, vmrs);
-            break;
-        case PB_PLANETARY_BROADENING:
-            GetPlanetaryBroadening(gamma_0, df_0, theta, pressure, self_pressure, broad_spec_locations, vmrs);
-            break;
-        case PB_SD_AIR_VOLUME:
-            GetSDAirBroadening(gamma_0,gamma_2,df_0,df_2,theta,pressure);
-            break;
-        case PB_PURELY_FOR_TESTING:
-          GetTestBroadening(gamma_0, gamma_2, df_0, vmrs, theta, pressure, h2o_species);
-          break;
-        default:
-            throw std::runtime_error("You have defined an unknown broadening mechanism in normal calculations.\n");
-    }
+  switch(mtype) {
+    case PB_NONE:
+      // Note that this is oftentimes not wanted, but a valid case at low pressures
+      break;
+    case PB_AIR_BROADENING:
+      GetAirBroadening(gamma_0, df_0, ref_temperature / temperature, pressure, self_pressure);
+      break;
+    case PB_AIR_AND_WATER_BROADENING:
+      GetAirAndWaterBroadening(gamma_0, df_0, ref_temperature / temperature, pressure, self_pressure, 
+                               this_species, h2o_species, vmrs);
+      break;
+    case PB_PLANETARY_BROADENING:
+      GetPlanetaryBroadening(gamma_0, df_0, ref_temperature / temperature, pressure, self_pressure, broad_spec_locations, vmrs);
+      break;
+    case PB_SD_AIR_VOLUME:
+      GetSDAirBroadening(gamma_0,gamma_2,df_0,df_2,ref_temperature / temperature,pressure);
+      break;
+    case PB_PURELY_FOR_TESTING:
+      GetTestBroadening(gamma_0, gamma_2, df_0, vmrs, ref_temperature / temperature, pressure, h2o_species);
+      break;
+    case PB_HTP_AIR_VOLUME:
+      throw std::runtime_error("Not implemented");
+      break;
+    case PB_VOIGT_TEST_WATER:
+      voigt_test_params(gamma_0, df_0, pressure, temperature, ref_temperature, 
+                         mdata[0][Index(TestParams::A)], mdata[0][Index(TestParams::g0)], 
+                         mdata[0][Index(TestParams::n0)], mdata[0][Index(TestParams::d0)],
+                         mdata[0][Index(TestParams::m)]);
+      break;
+    case PB_SD_TEST_WATER:
+      speed_dependent_test_params(gamma_0, df_0, gamma_2, df_2, 
+                                   pressure, temperature, ref_temperature,
+                                   mdata[0][Index(TestParams::A)], mdata[0][Index(TestParams::g0)], 
+                                   mdata[0][Index(TestParams::n0)], mdata[0][Index(TestParams::g2)], 
+                                   mdata[0][Index(TestParams::n2)], mdata[0][Index(TestParams::d0)],
+                                   mdata[0][Index(TestParams::m)], mdata[0][Index(TestParams::d2)]);
+      break;
+  }
 }
 
 // Get temperature derivative of the broadening
@@ -1788,8 +1835,7 @@ void PressureBroadeningData::ChangeForeignShift(const Numeric& change,
 
 Index PressureBroadeningData::ExpectedVectorLengthFromType() const
 {
-  switch(mtype)
-  {
+  switch(mtype) {
     case PB_NONE:
       return 0;
     case PB_AIR_BROADENING:
@@ -1803,8 +1849,9 @@ Index PressureBroadeningData::ExpectedVectorLengthFromType() const
       return 8;
     case PB_HTP_AIR_VOLUME:
       return 12;
-    default:
-      throw std::runtime_error("ExpectedVectorLengthFromType: Cannot recognize type");
+    case PB_VOIGT_TEST_WATER:
+    case PB_SD_TEST_WATER:
+      return Index(TestParams::COUNT);
   }
 }
 
@@ -1836,8 +1883,10 @@ void PressureBroadeningData::SetDataFromVectorWithKnownType(ConstVectorView inpu
     case PB_HTP_AIR_VOLUME:
       SetHTPAirFromCatalog(input[0], input[1], input[2], input[3], input[4], input[5], input[6], input[7], input[8], input[9], input[10], input[11]);
       break;
-    default:
-      throw std::runtime_error("SetDataFromVectorWithKnownType: Cannot recognize type");
+    case PB_VOIGT_TEST_WATER:
+    case PB_SD_TEST_WATER:
+      mdata[0] = input;
+      break;
   }
 }
 
@@ -1851,12 +1900,16 @@ void PressureBroadeningData::StorageTag2SetType(const String & input)
         mtype=PB_AIR_AND_WATER_BROADENING;
     else if(input == "AP") // Planetary broadening
         mtype=PB_PLANETARY_BROADENING;
-    else if(input == "SD-AIR") // Planetary broadening
+    else if(input == "SD-AIR") 
       mtype=PB_SD_AIR_VOLUME;
-    else if(input == "HTP-AIR") // Planetary broadening
+    else if(input == "HTP-AIR") 
       mtype=PB_HTP_AIR_VOLUME;
-    else if(input == "TESTING") // Planetary broadening
+    else if(input == "TESTING") 
       mtype=PB_PURELY_FOR_TESTING;
+    else if(input == "PB_SD_MISHA_WATER") 
+      mtype=PB_SD_TEST_WATER;
+    else if(input == "PB_VOIGT_MISHA_WATER") 
+      mtype=PB_VOIGT_TEST_WATER;
     else
       throw std::runtime_error("StorageTag2SetType: Cannot recognize tag.\n");
 }
@@ -1914,8 +1967,10 @@ void PressureBroadeningData::GetVectorFromData(Vector& output) const
       for(Index i = 0; i < n; i++)
         output[i] = mdata[i][0];
       break;
-    default:
-      throw std::runtime_error("GetVectorFromData: Cannot recognize type");
+    case PB_VOIGT_TEST_WATER:
+    case PB_SD_TEST_WATER:
+      output = mdata[0];
+      break;
   }
 }
 
@@ -1939,6 +1994,6 @@ String PressureBroadeningData::Type2StorageTag() const
       case PB_PLANETARY_BROADENING:
         return "AP";
       default:
-        throw std::runtime_error("Type2StorageTag: Cannot recognize type");
+        throw std::runtime_error("Type2StorageTag: Cannot recognize type or is unable to save");
     }
 }

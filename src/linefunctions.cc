@@ -67,7 +67,7 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
   const Numeric partial_pressure = pressure * vmrs[this_species];
   Numeric G0, G2, e, L0, L2, FVC;
   line.PressureBroadening().GetPressureBroadeningParams(
-    G0, G2, e, L0, L2, FVC, line.Ti0()/temperature, pressure, partial_pressure, 
+    G0, G2, e, L0, L2, FVC, temperature, line.Ti0(), pressure, partial_pressure, 
     this_species, water_species, broad_spec_locations, vmrs);
   
   // Line mixing terms
@@ -89,6 +89,7 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
         case PressureBroadeningData::PB_SD_AIR_VOLUME:
         case PressureBroadeningData::PB_PURELY_FOR_TESTING:
         case PressureBroadeningData::PB_HTP_AIR_VOLUME:
+        case PressureBroadeningData::PB_SD_TEST_WATER:
           lst = LineShapeType::HTP;
           set_htp(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, G0, L0, G2, L2, e, FVC);
           break;
@@ -98,6 +99,7 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
         case PressureBroadeningData::PB_PLANETARY_BROADENING:
           // Use for data that requires air Voigt broadening
         case PressureBroadeningData::PB_AIR_BROADENING:
+        case PressureBroadeningData::PB_VOIGT_TEST_WATER:
           // Above should be all methods of pressure broadening requiring Voigt in ARTS by default
           lst = LineShapeType::Voigt;
           set_voigt(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, G0, L0, DV);
@@ -1847,7 +1849,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   Numeric G0, G2, e, L0, L2, FVC;
   line.PressureBroadening().GetPressureBroadeningParams(
     G0, G2, e, L0, L2, FVC,
-    line.Ti0()/temperature, pressure, partial_pressure, 
+    temperature, line.Ti0(), pressure, partial_pressure, 
     this_species_location_in_tags, water_index_location_in_tags,
     broad_spec_locations, volume_mixing_ratio_of_all_species);
   
@@ -1925,6 +1927,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
         case PressureBroadeningData::PB_SD_AIR_VOLUME:
         case PressureBroadeningData::PB_HTP_AIR_VOLUME:
         case PressureBroadeningData::PB_PURELY_FOR_TESTING:
+        case PressureBroadeningData::PB_SD_TEST_WATER:
           lst = LineShapeType::HTP;
           set_htp(F, dF, 
                   f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
@@ -1940,6 +1943,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
         case PressureBroadeningData::PB_PLANETARY_BROADENING:
           // Use for data that requires air Voigt broadening
         case PressureBroadeningData::PB_AIR_BROADENING:
+        case PressureBroadeningData::PB_VOIGT_TEST_WATER:
           // Above should be all methods of pressure broadening requiring Voigt in ARTS by default
           lst = LineShapeType::Voigt;
           set_voigt(F, dF, f_grid, 
@@ -3171,11 +3175,13 @@ void Linefunctions::set_lineshape_from_level_line_data(Complex& F,
         case PressureBroadeningData::PB_SD_AIR_VOLUME:
         case PressureBroadeningData::PB_HTP_AIR_VOLUME:
         case PressureBroadeningData::PB_PURELY_FOR_TESTING:
+        case PressureBroadeningData::PB_SD_TEST_WATER:
           set_htp_from_level_line_data(F, dF, f, line.F(), 0.0, level_line_data, derivatives_data, derivatives_data_position);
           break;
         case PressureBroadeningData::PB_AIR_AND_WATER_BROADENING:
         case PressureBroadeningData::PB_PLANETARY_BROADENING:
         case PressureBroadeningData::PB_AIR_BROADENING:
+        case PressureBroadeningData::PB_VOIGT_TEST_WATER:
           set_voigt_from_level_line_data(F, dF, f, line.F(), 0.0, level_line_data, derivatives_data, derivatives_data_position);
           break;
         case PressureBroadeningData::PB_NONE:
@@ -3219,11 +3225,13 @@ void Linefunctions::set_lineshape_from_level_line_data(Complex& F,
               case PressureBroadeningData::PB_SD_AIR_VOLUME:
               case PressureBroadeningData::PB_HTP_AIR_VOLUME:
               case PressureBroadeningData::PB_PURELY_FOR_TESTING:
+              case PressureBroadeningData::PB_SD_TEST_WATER:
                 set_htp_from_level_line_data(Fm, dFm, f, -line.F(), -0.0, level_line_data, derivatives_data, derivatives_data_position);
                 break;
               case PressureBroadeningData::PB_AIR_AND_WATER_BROADENING:
               case PressureBroadeningData::PB_PLANETARY_BROADENING:
               case PressureBroadeningData::PB_AIR_BROADENING:
+              case PressureBroadeningData::PB_VOIGT_TEST_WATER:
                 set_voigt_from_level_line_data(Fm, dFm, f, -line.F(), -0.0, level_line_data, derivatives_data, derivatives_data_position);
                 break;
               case PressureBroadeningData::PB_NONE:
@@ -3994,7 +4002,7 @@ Linefunctions::SingleLevelLineData::SingleLevelLineData(const LineRecord& line,
   
   Numeric A, B, C, D, E;
   line.PressureBroadening().GetPressureBroadeningParams(
-     A, B, meta, C, D, mFVC, line.Ti0()/T, P, P*vmrs[this_species], 
+     A, B, meta, C, D, mFVC, T, line.Ti0(), P, P*vmrs[this_species], 
      this_species, water_species, broadening_species, vmrs);
   mC0 = Complex(A, C); mC2 = Complex(B, D);
   

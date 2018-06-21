@@ -873,3 +873,54 @@ void abs_linesSetQuantumNumberForAll(ArrayOfLineRecord& abs_lines,
        << ((for_lower and for_upper)?"both levels":for_lower?"the lower level":"the upper level")  << " of all " 
        << abs_lines.nelem() << " line(s)\n";
 }
+
+
+void abs_linesSetNormalizationForAll(ArrayOfLineRecord& abs_lines,
+                                     const String& option,
+                                     const Verbosity&)
+{
+  LineNormalizationType a;
+  if(option == "VVH")                      a = LineNormalizationType::VVH;
+  else if(option == "VVW")                 a = LineNormalizationType::VVW;
+  else if(option == "RosenkranzQuadratic") a = LineNormalizationType::RosenkranzQuadratic;
+  else if(option == "None")                a = LineNormalizationType::None;
+  else
+    throw std::runtime_error("Cannot understand normalization type option, see builtin documentation for details");
+  
+  for(LineRecord& line: abs_lines)
+    line.SetLineNormalizationType(a);
+}
+
+
+void abs_linesSetMirroringForAll(ArrayOfLineRecord& abs_lines,
+                                const String& option,
+                                const Verbosity&)
+{
+  MirroringType a;
+  if(option == "Lorentz")              a = MirroringType::Lorentz;
+  else if(option == "SameAsLineShape") a = MirroringType::SameAsLineShape;
+  else if(option == "None")            a = MirroringType::None;
+  else
+    throw std::runtime_error("Cannot understand mirroring type option, see builtin documentation for details");
+  
+  for(LineRecord& line: abs_lines)
+    line.SetMirroringType(a);
+}
+
+
+void abs_linesSetShapeForAll(ArrayOfLineRecord& abs_lines,
+                             const String& option,
+                             const Verbosity&)
+{
+  LineShapeType a;
+  if(option == "ByPressureBroadeningData") a = LineShapeType::ByPressureBroadeningData;
+  else if(option == "Doppler")             a = LineShapeType::Doppler;
+  else if(option == "Lorentz")             a = LineShapeType::Lorentz;
+  else if(option == "Voigt")               a = LineShapeType::Voigt;
+  else if(option == "HTP")                 a = LineShapeType::HTP;
+  else
+    throw std::runtime_error("Cannot understand mirroring type option, see builtin documentation for details");
+  
+  for(LineRecord& line: abs_lines)
+    line.SetLineShapeType(a);
+}

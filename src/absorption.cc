@@ -1091,7 +1091,7 @@ firstprivate(ls_attenuation, fac, f_local, aux, qt_cache, qref_cache, iso_cache,
                         // Prepare pressure broadening parameters
                         Numeric gamma_0,gamma_2,eta,df_0,df_2,f_VC;
                         l_l.PressureBroadening().GetPressureBroadeningParams(gamma_0,gamma_2,eta,df_0,df_2,f_VC,
-                                                                             l_l.Ti0()/t_i,p_i,
+                                                                             t_i, l_l.Ti0(), p_i,
                                                                              p_partial,this_species,h2o_index,
                                                                              broad_spec_locations,
                                                                              vmrs);
@@ -2104,7 +2104,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             // Prepare pressure broadening parameters
             Numeric gamma_0,gamma_2,eta,df_0,df_2,f_VC;
             abs_lines[ii].PressureBroadening().GetPressureBroadeningParams(gamma_0,gamma_2,eta,df_0,df_2,f_VC,
-                                                                abs_lines[ii].Ti0()/t,p,
+                                                                t, abs_lines[ii].Ti0(), p,
                                                                 p_partial,this_species,h2o_index,
                                                                 broad_spec_locations,
                                                                 vmrs);
@@ -2532,7 +2532,7 @@ void xsec_species2(MatrixView xsec,
       if(binary_speedup) {  // FIXME: Cannot consider cutoff properly now?
         Numeric G0, G2, e, L0, L2, FVC;
         line.PressureBroadening().GetPressureBroadeningParams(
-          G0, G2, e, L0, L2, FVC, line.Ti0()/temperature, pressure, partial_pressure, 
+          G0, G2, e, L0, L2, FVC, temperature, line.Ti0(), pressure, partial_pressure, 
           this_species, h2o_index, broad_spec_locations, all_vmrs(joker, ip));
         
         // set binary levels

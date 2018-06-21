@@ -1,3 +1,19 @@
+2018-06-21  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-3-1081
+	
+	* src/absorption.cc,nlte.cc:  Changed so pressure broadening takes
+	both T and T0
+	
+	* src/linefunctions.cc:  Changed so pressure broadening takes both 
+	T and T0.  Added two pressure broadening options for testing
+	
+	* src/m_linerecord.cc, method.cc:  Added three ways to set line 
+	shape paramters for the xsec_species2 method
+	
+	* src/pressurebroadeningdata.cc,h:  Addning now testing pressure
+	broadening form.
+
 2018-06-19  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-1080

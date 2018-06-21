@@ -861,6 +861,85 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
+    ( NAME( "abs_linesSetNormalizationForAll" ),
+      DESCRIPTION
+      (
+        "Sets normalization type for all lines.\n"
+        "\n"
+        "Available options:\n"
+        "   VVH\n"
+        "   VVW\n"
+        "   RosenkranzQuadratic\n"
+        "   None\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines" ),
+      GIN( "option"),
+      GIN_TYPE( "String" ),
+      GIN_DEFAULT( NODEF ),
+      GIN_DESC( "Method of line normalizations" )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_linesSetMirroringForAll" ),
+      DESCRIPTION
+      (
+        "Sets mirroring type for all lines.\n"
+        "\n"
+        "Available options:\n"
+        "   Lorentz\n"
+        "   SameAsLineShape\n"
+        "   None\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines" ),
+      GIN( "option"),
+      GIN_TYPE( "String" ),
+      GIN_DEFAULT( NODEF ),
+      GIN_DESC( "Method of line mirroring" )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_linesSetShapeForAll" ),
+      DESCRIPTION
+      (
+        "Sets shape type for all lines.\n"
+        "\n"
+        "Available options:\n"
+        "   ByPressureBroadeningData\n"
+        "   Doppler\n"
+        "   Lorentz\n"
+        "   Voigt\n"
+        "   HTP\n"
+        "\n"
+        "WARNING: this option exists only for testing and migth break ARTS,\n"
+        "use with care.  Change pressure broadening data to be sure what will\n"
+        "happen\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines" ),
+      GIN( "option"),
+      GIN_TYPE( "String" ),
+      GIN_DEFAULT( NODEF ),
+      GIN_DESC( "Method of line mirroring" )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
     ( NAME( "abs_linesSetParameterForMatchingLines" ),
       DESCRIPTION
       (

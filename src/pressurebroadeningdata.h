@@ -54,8 +54,12 @@ public:
         PB_PLANETARY_BROADENING,          // Gas broadening as done for solar system planets
         PB_SD_AIR_VOLUME,                 // HTP in air for SD limit
         PB_HTP_AIR_VOLUME,                // HTP in air
+        PB_VOIGT_TEST_WATER,              // Voigt parameters for testing
+        PB_SD_TEST_WATER,                 // SD parameters for testing
         PB_PURELY_FOR_TESTING             // Testing tag for new input structures --- can be changed by anyone...
     };
+    
+    enum class TestParams : Index { g0=0, n0, d0, m, A, g2, n2, d2, COUNT };
     
     // Defining an object with no data and no broadening
     PressureBroadeningData() : mtype(PB_NONE), mdata(), mdataerror() {}
@@ -610,7 +614,8 @@ public:
                                       Numeric& df_0,
                                       Numeric& df_2,
                                       Numeric& f_VC,
-                                      const Numeric& theta,
+                                      const Numeric& T,
+                                      const Numeric& T0,
                                       const Numeric& pressure,
                                       const Numeric& self_pressure,
                                       const Index    this_species,
