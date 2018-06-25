@@ -176,7 +176,7 @@ void cia_interpolation(VectorView result,
                                     temperature,
                                     T_order,
                                     T_extrapolfac);
-        } catch (runtime_error e) {
+        } catch (const std::runtime_error &e) {
             //            cout << "Gotcha!\n";
             if (robust) {
                 // Just return NANs, but continue.

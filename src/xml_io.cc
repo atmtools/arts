@@ -418,7 +418,7 @@ void xml_open_output_file(ofstream& file, const String& name)
     {
       file.open(name.c_str());
     }
-    catch (std::exception)
+    catch (const std::exception &)
     {
       ostringstream os;
       os << "Cannot open output file: " << name << '\n'
@@ -474,7 +474,7 @@ void xml_open_output_file(ogzstream& file, const String& name)
     {
       file.open(nname.c_str());
     }
-  catch (ios::failure)
+  catch (const ios::failure &)
     {
       ostringstream os;
       os << "Cannot open output file: " << nname << '\n'
@@ -523,7 +523,7 @@ void xml_open_input_file(ifstream& ifs, const String& name, const Verbosity& ver
     {
       ifs.open(name.c_str());
     }
-  catch (ios::failure)
+  catch (const ios::failure &)
     {
       ostringstream os;
       os << "Cannot open input file: " << name << '\n'
@@ -570,7 +570,7 @@ void xml_open_input_file(igzstream& ifs, const String& name, const Verbosity& ve
     {
       ifs.open(name.c_str());
     }
-  catch (ios::failure)
+  catch (const ios::failure &)
     {
       ostringstream os;
       os << "Cannot open input file: " << name << '\n'
@@ -908,7 +908,7 @@ void xml_read_from_file(const String&    filename,
         }
       xml_read_footer_from_stream(*ifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       delete ifs;
       ostringstream os;
@@ -979,7 +979,7 @@ void xml_read_arts_catalogue_from_file(const String&      filename,
         }
       xml_read_footer_from_stream(*ifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       delete ifs;
       ostringstream os;
@@ -1055,7 +1055,7 @@ void xml_write_to_file(const String&    filename,
 
       xml_write_footer_to_stream(*ofs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       delete ofs;
       ostringstream os;

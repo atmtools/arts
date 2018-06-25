@@ -2429,7 +2429,7 @@ void sensor_responseMultiMixerBackend(
                                   backend_channel_response_multi[ilo],
                                   sensor_norm, verbosity );
         } 
-      catch( runtime_error e ) 
+      catch (const runtime_error &e) 
         {
           ostringstream os2;
           os2 << "Error when dealing with receiver/mixer chain (1-based index) " 

@@ -104,7 +104,7 @@ void xml_read_from_stream(istream&              is_xml,
           xml_read_from_stream(is_xml, asrecord[n], pbifs, verbosity);
         }
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading SpeciesData: "
@@ -187,7 +187,7 @@ void xml_read_from_stream(istream&                  is_xml,
           xml_read_from_stream(is_xml, aastag[n], pbifs, verbosity);
         }
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfArrayOfSpeciesTag: "
@@ -270,7 +270,7 @@ void xml_read_from_stream(istream&              is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, aastring[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfArrayOfString: "
@@ -351,7 +351,7 @@ void xml_read_from_stream(istream&         is_xml,
           xml_read_from_stream(is_xml, appath[n], pbifs, verbosity);
         }
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfPpath: "
@@ -435,7 +435,7 @@ void xml_read_from_stream(istream&               is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, aatensor3[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfArrayOfTensor3: "
@@ -517,7 +517,7 @@ void xml_read_from_stream(istream&               is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, aatensor6[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfArrayOfTensor6: "
@@ -596,7 +596,7 @@ void xml_read_from_stream(istream&         is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, agpos[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfGridPos: "
@@ -675,7 +675,7 @@ void xml_read_from_stream(istream&               is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, aagpos[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfArrayOfGridPos: "
@@ -754,7 +754,7 @@ void xml_read_from_stream(istream&                      is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, aaagpos[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfArrayOfArrayOfGridPos: "
@@ -834,7 +834,7 @@ void xml_read_from_stream(istream&                             is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, aaaagpos[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfArrayOfArrayOfArrayOfGridPos: "
@@ -914,7 +914,7 @@ void xml_read_from_stream(istream&         is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, aindex[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfIndex: "
@@ -994,7 +994,7 @@ void xml_read_from_stream(istream&             is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, aaindex[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfArrayOfIndex: "
@@ -1074,7 +1074,7 @@ void xml_read_from_stream(istream& is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, acr[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfCIARecord: "
@@ -1155,7 +1155,7 @@ void xml_read_from_stream(istream&              is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, airecord[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfIsotopologueRecord: "
@@ -1235,7 +1235,7 @@ void xml_read_from_stream(istream&         is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, amatrix[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfMatrix: "
@@ -1314,7 +1314,7 @@ void xml_read_from_stream(istream&              is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, aamatrix[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfArrayOfMatrix: "
@@ -1393,7 +1393,7 @@ void xml_read_from_stream(istream&              is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, aavector[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfArrayOfVector: "
@@ -1472,7 +1472,7 @@ void xml_read_from_stream(istream&         is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, asparse[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfSparse: "
@@ -1553,7 +1553,7 @@ void xml_read_from_stream(istream&           is_xml,
         xml_read_from_stream(is_xml, aqtag[n], pbifs, verbosity);
       }
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfQuantumIdentifier: "
@@ -1632,7 +1632,7 @@ void xml_read_from_stream(istream&                  is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, arq[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfRetrievalQuantity: "
@@ -1711,7 +1711,7 @@ void xml_read_from_stream(istream&           is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, astag[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfSpeciesTag: "
@@ -1790,7 +1790,7 @@ void xml_read_from_stream(istream&                     is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, assdata[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfSingleScatteringData: "
@@ -1869,7 +1869,7 @@ void xml_read_from_stream(istream&                     is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, assdata[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfArrayOfSingleScatteringData: "
@@ -1948,7 +1948,7 @@ void xml_read_from_stream(istream&                   is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, asmdata[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfScatteringMetaData: "
@@ -2028,7 +2028,7 @@ void xml_read_from_stream(istream&                   is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, asmdata[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfArrayOfScatteringMetaData: "
@@ -2108,7 +2108,7 @@ void xml_read_from_stream(istream&              is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, agfield[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfGriddedField1: "
@@ -2187,7 +2187,7 @@ void xml_read_from_stream(istream&              is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, agfield[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfGriddedField2: "
@@ -2266,7 +2266,7 @@ void xml_read_from_stream(istream&              is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, agfield[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfGriddedField3: "
@@ -2345,7 +2345,7 @@ void xml_read_from_stream(istream&                     is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, aagfield[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfArrayOfGriddedField1: "
@@ -2424,7 +2424,7 @@ void xml_read_from_stream(istream&                     is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, aagfield[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfArrayOfGriddedField2: "
@@ -2503,7 +2503,7 @@ void xml_read_from_stream(istream&                     is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, aagfield[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfArrayOfGriddedField3: "
@@ -2582,7 +2582,7 @@ void xml_read_from_stream(istream&              is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, agfield[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfGriddedField4: "
@@ -2661,7 +2661,7 @@ void xml_read_from_stream(istream& is_xml,
         for (n = 0; n < nelem; n++)
             xml_read_from_stream(is_xml, almr[n], pbifs, verbosity);
     }
-    catch (runtime_error e)
+    catch (const std::runtime_error &e)
     {
         ostringstream os;
         os << "Error reading ArrayOfLineMixingRecord: "
@@ -2741,7 +2741,7 @@ void xml_read_from_stream(istream& is_xml,
         for (n = 0; n < nelem; n++)
             xml_read_from_stream(is_xml, aalmr[n], pbifs, verbosity);
     }
-    catch (runtime_error e)
+    catch (const std::runtime_error &e)
     {
         ostringstream os;
         os << "Error reading ArrayOfArrayOfLineMixingRecord: "
@@ -2897,7 +2897,7 @@ void xml_read_from_stream(istream&           is_xml,
             alrecord.push_back(std::move(lr));
         }
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfLineRecord: "
@@ -3005,7 +3005,7 @@ void xml_read_from_stream(istream&                  is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, aalrecord[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfArrayOfLineRecord: "
@@ -3122,7 +3122,7 @@ void xml_read_from_stream(istream& is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, arr_telsem[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfTelsemAtlas: "
@@ -3202,7 +3202,7 @@ void xml_read_from_stream(istream&         is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, atensor3[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfTensor3: "
@@ -3283,7 +3283,7 @@ void xml_read_from_stream(istream&         is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, atensor4[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfTensor4: "
@@ -3364,7 +3364,7 @@ void xml_read_from_stream(istream&         is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, atensor6[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfTensor6: "
@@ -3443,7 +3443,7 @@ void xml_read_from_stream(istream&         is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, atensor7[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfTensor7: "
@@ -3521,7 +3521,7 @@ void xml_parse_from_stream(istream&         is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, astring[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfString: "
@@ -3619,7 +3619,7 @@ void xml_read_from_stream(istream&         is_xml,
       for (n = 0; n < nelem; n++)
         xml_read_from_stream(is_xml, avector[n], pbifs, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading ArrayOfVector: "
@@ -3698,7 +3698,7 @@ void xml_read_from_stream(istream&         is_xml,
     for (n = 0; n < nelem; n++)
       xml_read_from_stream(is_xml, apm[n], pbifs, verbosity);
   }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
   {
     ostringstream os;
     os << "Error reading ArrayOfPropagationMatrix: "
@@ -3777,7 +3777,7 @@ void xml_read_from_stream(istream&         is_xml,
     for (n = 0; n < nelem; n++)
       xml_read_from_stream(is_xml, aapm[n], pbifs, verbosity);
   }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
   {
     ostringstream os;
     os << "Error reading ArrayOfArrayOfPropagationMatrix: "
@@ -3856,7 +3856,7 @@ void xml_read_from_stream(istream&         is_xml,
     for (n = 0; n < nelem; n++)
       xml_read_from_stream(is_xml, apm[n], pbifs, verbosity);
   }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
   {
     ostringstream os;
     os << "Error reading ArrayOfStokesVector: "
@@ -3935,7 +3935,7 @@ void xml_read_from_stream(istream&         is_xml,
     for (n = 0; n < nelem; n++)
       xml_read_from_stream(is_xml, aapm[n], pbifs, verbosity);
   }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
   {
     ostringstream os;
     os << "Error reading ArrayOfArrayOfStokesVector: "
@@ -4013,7 +4013,7 @@ void xml_read_from_stream(istream& is_xml,
     for (n = 0; n < nelem; n++)
       xml_read_from_stream(is_xml, axd[n], pbifs, verbosity);
   }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
   {
     ostringstream os;
     os << "Error reading ArrayOfXsecRecord: "

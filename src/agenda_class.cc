@@ -250,7 +250,7 @@ void Agenda::execute(Workspace& ws) const
           getaways[mrr.Id()](ws, mrr);
 
         }
-      catch (runtime_error x)
+      catch (const std::runtime_error &x)
         {
           aout1 << "}\n";
 
@@ -260,7 +260,7 @@ void Agenda::execute(Workspace& ws) const
 
           throw runtime_error(os.str());
         }
-        catch (std::bad_alloc x)
+        catch (const std::bad_alloc &x)
         {
           aout1 << "}\n";
 

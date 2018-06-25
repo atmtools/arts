@@ -92,7 +92,7 @@ int main(void)
       B_tot = sqrt(B_r * B_r + B_th * B_th + B_ph * B_ph);
 
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       cerr << e.what ();
       exit(1);

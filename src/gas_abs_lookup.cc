@@ -324,7 +324,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
           i_current_species[i] =
           chk_contains( "abs_species", species, current_species[i] );
 
-      } catch (runtime_error_not_found) {
+      } catch (const runtime_error_not_found &) {
           
           // Is this one of the trivial species?
           const Index spec_type = current_species[i][0].Type();

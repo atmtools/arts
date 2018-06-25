@@ -2192,7 +2192,7 @@ void Compare(const ArrayOfVector&    var1,
             Compare(var1[i], var2[i], maxabsdiff, error_message,
                     vn1.str(), vn2.str(), "", "", verbosity);
         }
-        catch (runtime_error e)
+        catch (const std::runtime_error &e)
         {
             failed = true;
             fail_msg << endl << e.what() << endl
@@ -2237,7 +2237,7 @@ void Compare(const ArrayOfMatrix&    var1,
       Compare(var1[i], var2[i], maxabsdiff, error_message,
               vn1.str(), vn2.str(), "", "", verbosity);
     }
-    catch (runtime_error e)
+    catch (const std::runtime_error &e)
     {
       failed = true;
       fail_msg << endl << e.what() << endl

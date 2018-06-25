@@ -205,7 +205,7 @@ legendre_poly_deriv (Index l, Index m, Numeric x)
                     (Numeric)l * x * legendre_poly (l, m, x)) /
             (1 - x * x);
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           ostringstream os;
           os << e.what () << "legendre_poly_deriv: "
@@ -222,7 +222,7 @@ legendre_poly_deriv (Index l, Index m, Numeric x)
             + (Numeric)((l + m) * (l - m + 1)) * legendre_poly (l, m - 1, x)
             / sqrt (1 - x * x);
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           ostringstream os;
           os << e.what () << "legendre_poly_norm_schmidt_deriv: "
@@ -291,7 +291,7 @@ legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
                     (Numeric)l * x * legendre_poly_norm_schmidt (l, m, x)) /
             (1 - x * x);
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           ostringstream os;
           os << e.what () << "legendre_poly_norm_schmidt_deriv: "
@@ -308,7 +308,7 @@ legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
             + (Numeric)((l + m) * (l - m + 1)) * legendre_poly_norm_schmidt (l, m - 1, x)
             / sqrt (1 - x * x);
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           ostringstream os;
           os << e.what () << "legendre_poly_norm_schmidt_deriv: "
@@ -490,7 +490,7 @@ g_legendre_poly_deriv (Index l, Index m, Numeric x)
                     (Numeric)l * x * g_legendre_poly (l, m, x)) /
             (1 - x * x);
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_deriv: "
@@ -507,7 +507,7 @@ g_legendre_poly_deriv (Index l, Index m, Numeric x)
             (Numeric)((l + m) * (l - m + 1)) * g_legendre_poly (l, m - 1, x) / 
             sqrt (1 - x * x);
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
@@ -577,7 +577,7 @@ g_legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
             ((Numeric)(l + m) * g_legendre_poly(l-1, m, x) - 
              (Numeric)l * x * g_legendre_poly (l, m, x)) / (1 - x * x);
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
@@ -595,7 +595,7 @@ g_legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
               (Numeric)((l + m) * (l - m + 1)) * g_legendre_poly (l, m - 1, x) / 
               sqrt (1 - x * x));
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
@@ -671,7 +671,7 @@ g_legendre_poly_norm_schmidt_deriv1 (Index l, Index m, Numeric x)
               g_legendre_poly (l, m + 1, x)
               / sqrt (1 - x * x));
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
@@ -687,7 +687,7 @@ g_legendre_poly_norm_schmidt_deriv1 (Index l, Index m, Numeric x)
           result = - sqrt (2.0 * fac (l - m) / fac (l + m)) * 
             (Numeric)m * x * g_legendre_poly (l, m, x) / (1 - x * x);
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
@@ -759,7 +759,7 @@ g_legendre_poly_norm_schmidt_deriv2 (Index l, Index m, Numeric x)
              (Numeric)l * x * g_legendre_poly (l, m, x)) /
             (1 - x * x);
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
@@ -775,7 +775,7 @@ g_legendre_poly_norm_schmidt_deriv2 (Index l, Index m, Numeric x)
           result = - (Numeric)m * x * g_legendre_poly_norm_schmidt (l, m, x) / (1 - x * x)
             ;
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
@@ -847,7 +847,7 @@ g_legendre_poly_norm_schmidt_deriv3 (Index l, Index m, Numeric x)
              (Numeric)(m - l) * x * g_legendre_poly (l, m, x)) /
             (1 - x * x);
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
@@ -863,7 +863,7 @@ g_legendre_poly_norm_schmidt_deriv3 (Index l, Index m, Numeric x)
           result = - sqrt(2.0 * fac (l - m) / fac (l + m)) * 
             (Numeric)m * x * g_legendre_poly (l, m, x) / (1 - x * x);
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
@@ -935,7 +935,7 @@ g_legendre_poly_norm_schmidt_deriv4 (Index l, Index m, Numeric x)
              (Numeric)((l + 2 * m) * (l - m + 1)) * g_legendre_poly (l + 1, m, x)
              / ((Numeric)(2 * l + 1 ) * (1 - x * x)));
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
@@ -951,7 +951,7 @@ g_legendre_poly_norm_schmidt_deriv4 (Index l, Index m, Numeric x)
           result = - sqrt (2.0 * fac (l - m) / fac (l + m)) * 
             (Numeric)m * x * g_legendre_poly (l, m, x) / (1 - x * x);
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "

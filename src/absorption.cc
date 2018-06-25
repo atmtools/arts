@@ -355,7 +355,7 @@ bool SpeciesAuxData::ReadFromStream(String& artsid, istream& is, Index nparams, 
             ratios[0].data = aux;
             mparams[mspecies][misotopologue] = ratios;
         }
-        catch (runtime_error)
+        catch (const runtime_error &)
         {
             throw runtime_error("Error reading SpeciesAuxData.");
         }
@@ -1186,7 +1186,7 @@ firstprivate(ls_attenuation, fac, f_local, aux, qt_cache, qref_cache, iso_cache,
                                          calc_src);
                         
                     } // end of try block
-                    catch (runtime_error e)
+                    catch (const std::runtime_error &e)
                     {
                         #pragma omp critical (xsec_species_fail)
                         { fail_msg = e.what(); failed = true; }

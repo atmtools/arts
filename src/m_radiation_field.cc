@@ -548,7 +548,7 @@ void doit_i_fieldClearskyPlaneParallel(
                 }
             }
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
 #pragma omp critical (planep_setabort)
           failed = true;

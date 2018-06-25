@@ -474,7 +474,7 @@ void abs_lookupCalc(// Workspace reference:
                       //                  abs_lookup.xsec( j, spec, Range(joker), p ) /= n;
                     }
                 } // end of try block
-              catch (runtime_error e)
+              catch (const std::runtime_error &e)
                 {
 #pragma omp critical (abs_lookupCalc_fail)
                     { fail_msg = e.what(); failed = true; }
@@ -2518,7 +2518,7 @@ private(abs, nlte, partial_abs, partial_nlte_source, nlte_partial_source, a_vmr_
                         }
                     }
             }
-            catch (runtime_error e)
+            catch (const std::runtime_error &e)
             {
 #pragma omp critical (propmat_clearsky_fieldCalc_fail)
                 { fail_msg = e.what(); failed = true; }
@@ -2614,7 +2614,7 @@ Numeric calc_lookup_error(// Parameters for lookup table:
                  al.f_grid,
                  0.0);           // Extpolfac
     }
-  catch (runtime_error x)
+  catch (const std::runtime_error &x)
     {
       // If ignore_errors is set to true, then we mark this case for
       // skipping, and ignore the exceptions.

@@ -109,7 +109,7 @@ std::istream& operator>>(std::istream& is, Rational& a)
         else
             throw std::runtime_error("Error parsing rational number");
     }
-    catch (std::runtime_error e)
+    catch (const std::runtime_error &e)
     {
         std::ostringstream os;
         os << "Error parsing rational number: " << s << std::endl;

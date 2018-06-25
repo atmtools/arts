@@ -123,7 +123,7 @@ void open_output_file(ofstream& file, const String& name)
     // get here if there really was a problem, because of the exception
     // thrown by open().)
   }
-  catch (exception e)
+  catch (const std::exception &e)
   {
     ostringstream os;
     os << "Cannot open output file: " << ename << '\n'
@@ -265,7 +265,7 @@ void read_text_from_file(ArrayOfString& text, const String& name)
     {
       read_text_from_stream(text,ifs);
     }
-  catch (runtime_error x)
+  catch (const std::runtime_error &x)
     {
       ostringstream os;
       os << "Error reading file: " << name << '\n'

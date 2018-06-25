@@ -126,7 +126,7 @@ void nca_read_from_file(const String&    filename,
     {
       nca_read_from_file(ncid, type, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error reading file: " << efilename << endl;
@@ -172,7 +172,7 @@ void nca_write_to_file(const String&    filename,
     {
       nca_write_to_file(ncid, type, verbosity);
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       ostringstream os;
       os << "Error writing file: " << efilename << endl;

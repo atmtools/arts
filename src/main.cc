@@ -1076,7 +1076,7 @@ int main (int argc, char **argv)
       report_file_ext << ".rep";
       open_output_file(report_file, out_basename + report_file_ext.str ());
     }
-  catch (runtime_error x)
+  catch (const std::runtime_error &x)
     {
       cerr << x.what() << "\n"
            << "I have to be able to write to my report file.\n";
@@ -1168,7 +1168,7 @@ int main (int argc, char **argv)
             // Execute main agenda:
             Arts2(workspace, tasklist, verbosity);
           }
-          catch (const runtime_error x)
+          catch (const std::runtime_error &x)
           {
             ostringstream os;
             os << "Run-time error in controlfile: " << parameters.controlfiles[i] << '\n'
@@ -1177,7 +1177,7 @@ int main (int argc, char **argv)
           }
         }
     }
-  catch (const runtime_error x)
+  catch (const std::runtime_error &x)
     {
 #ifdef TIME_SUPPORT
       struct tms arts_cputime_end;

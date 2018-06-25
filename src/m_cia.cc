@@ -224,7 +224,7 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
                         this_cia.Extract(dxsec_temp_dT, f_grid, dabs_t[ip],
                                          this_species.CIADataset(),
                                          T_extrapolfac, robust, verbosity);
-                } catch (runtime_error e) {
+                } catch (const std::runtime_error &e) {
                     ostringstream os;
                     os << "Problem with CIA species " << this_species.Name() << ":\n"
                        << e.what();
@@ -380,7 +380,7 @@ void abs_cia_dataReadFromCIA(// WS Output:
                     try {
                         list_directory(files, *(checked_dirs.end()-1));
                     }
-                    catch (runtime_error e) {
+                    catch (const std::runtime_error &e) {
                         continue;
                     }
 

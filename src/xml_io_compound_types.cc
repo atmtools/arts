@@ -1155,7 +1155,7 @@ void xml_read_from_stream(istream&              is_xml,
     xml_read_from_stream(is_xml, d, pbifs, verbosity);
     pm = PropagationMatrix(d);
   }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
   {
     ostringstream os;
     os << "Error reading PropagationMatrix: "
@@ -1224,7 +1224,7 @@ void xml_read_from_stream(istream& is_xml,
         parse_xml_tag_content_as_string(is_xml, qi_str);
         qi.SetFromString(qi_str);
     }
-    catch (runtime_error e)
+    catch (const std::runtime_error &e)
     {
         ostringstream os;
         os << "Error reading QuantumIdentifier: "
@@ -1291,7 +1291,7 @@ void xml_read_from_stream(istream& is_xml,
         tag.read_from_stream(is_xml);
         tag.check_name("/Upper");
     }
-    catch (runtime_error e)
+    catch (const std::runtime_error &e)
     {
         ostringstream os;
         os << "Error in upper quantum numbers while reading QuantumNumberRecord: "
@@ -1307,7 +1307,7 @@ void xml_read_from_stream(istream& is_xml,
         tag.read_from_stream(is_xml);
         tag.check_name("/Lower");
     }
-    catch (runtime_error e)
+    catch (const std::runtime_error &e)
     {
         ostringstream os;
         os << "Error in lower quantum numbers while reading QuantumNumberRecord: "
@@ -1388,7 +1388,7 @@ void xml_read_from_stream(istream& is_xml,
         for (n = 0; n < nelem; n++)
             is_xml >> qn;
     }
-    catch (runtime_error e)
+    catch (const std::runtime_error &e)
     {
         ostringstream os;
         os << "Error reading QuantumNumbers: "
@@ -1807,7 +1807,7 @@ void xml_read_from_stream(istream&           is_xml,
                 }
             }
         }
-        catch (runtime_error e)
+        catch (const std::runtime_error &e)
         {
             ostringstream os;
             os << "Error reading SpeciesAuxData: "
@@ -1847,7 +1847,7 @@ void xml_read_from_stream(istream&           is_xml,
                 }
             }
         }
-        catch (runtime_error e)
+        catch (const std::runtime_error &e)
         {
             ostringstream os;
             os << "Error reading SpeciesAuxData: "
@@ -2103,7 +2103,7 @@ void xml_read_from_stream(istream&              is_xml,
     xml_read_from_stream(is_xml, d, pbifs, verbosity);
     sv = StokesVector(d);
   }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
   {
     ostringstream os;
     os << "Error reading StokesVector: "

@@ -1184,7 +1184,7 @@ void iyMC(
           
         if( auxError >= 0 ) 
           { iy_aux[auxError](f_index,joker) = mc_error; }
-      } catch (runtime_error e) {
+      } catch (const std::runtime_error &e) {
         ostringstream os;
         os << "Error for f_index = " << f_index << " (" << f_grid[f_index] 
            << ")" << endl << e.what();
@@ -1388,7 +1388,7 @@ void yCalc_mblock_loop_body(
           }
     }
 
-    catch (runtime_error e)
+    catch (const std::runtime_error &e)
     {
 #pragma omp critical (yCalc_fail)
         { fail_msg = e.what(); failed = true; }

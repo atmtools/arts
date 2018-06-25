@@ -195,7 +195,7 @@ void ArrayOfLineMixingRecordReadAscii(// Generic Output:
 
             lmr.Data() = temp_mixing_data;
             line_mixing_records.push_back(lmr);
-        } catch (runtime_error e) {
+        } catch (const std::runtime_error &e) {
             ostringstream os;
 
             os << "Error parsing line mixing file in line " << linenr << std::endl;

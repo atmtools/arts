@@ -953,7 +953,7 @@ void ScatSpeciesScatAndMetaRead (//WS Output:
           {
             find_xml_file(scat_meta_file, verbosity);
           }
-          catch (runtime_error) { }
+          catch (const runtime_error &) { }
 
           if (file_exists(scat_meta_file))
             {
@@ -979,7 +979,7 @@ void ScatSpeciesScatAndMetaRead (//WS Output:
 
                   meta_naming_conv = 2;
                 }
-              catch (runtime_error e)
+              catch (const std::runtime_error &e)
                 {
                   ostringstream os;
                   os << "No meta data file following one of the allowed naming "
@@ -1033,7 +1033,7 @@ shared(out3, scat_data_files, arr_ssd, arr_smd)
             xml_read_from_file ( scat_meta_file, smd, verbosity );
           }
       }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
       {
         ostringstream os;
         os << "Run-time error reading scattering data : \n" << e.what();

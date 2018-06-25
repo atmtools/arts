@@ -43,7 +43,7 @@ main (int /*argc*/, char * /*argv*/ [])
       xml_write_to_file ("sdata2.xml", my_species_data, FILE_TYPE_ASCII, 0, Verbosity());
       cout << "Wrote species_data: " << endl;
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       cerr << e.what ();
     }

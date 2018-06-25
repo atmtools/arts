@@ -179,7 +179,7 @@ WriteXML (//WS Input:
         {
             xml_write_to_file (filename, v, ftype, no_clobber, verbosity);
         }
-        catch (std::runtime_error e)
+        catch (const std::runtime_error &e)
         {
             errmsg = e.what();
         }

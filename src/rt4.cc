@@ -2455,7 +2455,7 @@ void surf_optpropCalc( Workspace& ws,
                 surf_refl_mat(joker,imu,joker,rmu,joker) *=
                   (quad_weights[imu]*mu_values[imu]);
               }
-            catch( runtime_error e ) 
+            catch (const runtime_error &e) 
               { 
                 // nothing to do here. we just leave the reflection matrix
                 // entry at the 0.0 it was initialized with.

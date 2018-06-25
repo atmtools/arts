@@ -794,7 +794,7 @@ void test41()
 
   try {
     vv = 2;
-  } catch (runtime_error e) {
+  } catch (const std::runtime_error &e) {
     std::cerr << e.what() << endl;
     exit(EXIT_FAILURE);
   }

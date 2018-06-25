@@ -207,7 +207,7 @@ void ybatchCalc(Workspace&      ws,
                 }
             }
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           if (robust && !do_abort)
             {

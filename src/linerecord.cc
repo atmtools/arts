@@ -2516,7 +2516,7 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
       icecream >> dnself;
       icecream >> dpsf;
     }
-    catch (std::runtime_error)
+    catch (const std::runtime_error &)
     {
       // Nothing to do here, the accuracies are optional, so we
       // just set them to -1 and continue reading the next line of
@@ -3118,7 +3118,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
             LineRecord::ARTSCAT4UnusedToNaN();
         }
     }
-    catch (std::runtime_error e)
+    catch (const std::runtime_error &e)
     {
         ostringstream os;
         os << "Parse error in catalog line: " << endl;

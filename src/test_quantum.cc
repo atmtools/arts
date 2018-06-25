@@ -113,7 +113,7 @@ main (int /*argc*/, char * /*argv*/ [])
         cout << qnr << endl;
         
     }
-    catch (runtime_error e)
+    catch (const std::runtime_error &e)
     {
         cout << e.what() << endl;
     }

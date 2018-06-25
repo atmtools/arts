@@ -527,7 +527,7 @@ void MCGeneral(Workspace&            ws,
           }
       }  // Try
 
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
           mc_iteration_count += 1;
           nfails += 1;

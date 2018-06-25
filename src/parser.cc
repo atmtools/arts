@@ -660,7 +660,7 @@ void ArtsParser::parse_method(Index&         id,
         {
             assertain_character('}');
         }
-        catch (const Eot x)
+        catch (const Eot &x)
         {
             // Re-throw the error if the no_eot flag is not set:
             if (!no_eot) throw Eot(x);
@@ -735,7 +735,7 @@ String ArtsParser::set_gin_to_default(const MdRecord*       mdd,
                     failed = true;
                 }
             }
-            catch (const ParseError p)
+            catch (const ParseError &p)
             {
                 ostringstream os;
                 os << p.what() << os_default_error.str();
@@ -758,7 +758,7 @@ String ArtsParser::set_gin_to_default(const MdRecord*       mdd,
                     failed = true;
                 }
             }
-            catch (const ParseError p)
+            catch (const ParseError &p)
             {
                 ostringstream os;
                 os << p.what() << os_default_error.str();
@@ -781,7 +781,7 @@ String ArtsParser::set_gin_to_default(const MdRecord*       mdd,
                     failed = true;
                 }
             }
-            catch (const ParseError p)
+            catch (const ParseError &p)
             {
                 ostringstream os;
                 os << p.what() << os_default_error.str();
@@ -1596,7 +1596,7 @@ void ArtsParser::parse_specific_input(const MdRecord* mdd,
                 {
                     assertain_character(',');
                 }
-                catch (UnexpectedChar)
+                catch (const UnexpectedChar &)
                 {
                     ostringstream os;
                     os << "Expected input WSV *" << Workspace::wsv_data[*ins].Name() << "*";
@@ -1697,7 +1697,7 @@ void ArtsParser::parse_specific_output(const MdRecord* mdd,
                 {
                     assertain_character(',');
                 }
-                catch (UnexpectedChar)
+                catch (const UnexpectedChar &)
                 {
                     ostringstream os;
                     os << "Expected output WSV *" << Workspace::wsv_data[*outs].Name() << "*";

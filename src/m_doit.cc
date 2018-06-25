@@ -2871,7 +2871,7 @@ firstprivate(l_ws, l_doit_mono_agenda)
                                       f_grid, f_index, l_doit_mono_agenda);
               doit_i_field(f_index, joker, joker, joker, joker, joker, joker) =
               doit_i_field_mono_local;
-          } catch (runtime_error e) {
+          } catch (const std::runtime_error &e) {
               doit_i_field(f_index, joker, joker, joker, joker, joker, joker) = NAN;
               ostringstream os;
               os << "Error for f_index = " << f_index

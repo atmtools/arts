@@ -146,7 +146,7 @@ int main()
 
       ofs << "#endif  // auto_workspace_h\n";      
     }
-  catch (runtime_error x)
+  catch (const std::runtime_error &x)
     {
       cout << "Something went wrong. Message text:\n";
       cout << x.what() << '\n';

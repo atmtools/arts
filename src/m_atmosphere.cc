@@ -1752,7 +1752,7 @@ void batch_atm_fields_compactAddSpecies(// WS Output:
         try {
             atm_fields_compactAddSpecies(batch_atm_fields_compact[i], name, species, prepend, verbosity);
         }
-        catch (runtime_error e)
+        catch (const std::runtime_error &e)
         {
 #pragma omp critical (batch_atm_fields_compactAddSpecies_fail)
             { fail_msg = e.what(); failed = true; }
@@ -1832,7 +1832,7 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
                                        field_names,
                                        verbosity);
         }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
         {
 #pragma omp critical (batch_atm_fields_compactFromArrayOfMatrix_fail)
             { fail_msg = e.what(); failed = true; }
@@ -2278,7 +2278,7 @@ void AtmFieldsCalc(//WS Output:
       try {
         GriddedFieldPRegrid(temp_agfield3, p_grid, vmr_field_raw, interp_order,
                             vmr_zeropadding, verbosity);
-      } catch (runtime_error e) {
+      } catch (const std::runtime_error &e) {
           ostringstream os;
           os << e.what() << "\n"
              << "Note that you can explicitly set vmr_zeropadding "
@@ -2500,7 +2500,7 @@ void AtmFieldsCalc(//WS Output:
       try {
         GriddedFieldPRegrid(temp_agfield3, p_grid, temp_agfield3, interp_order,
                             vmr_zeropadding, verbosity);
-      } catch (runtime_error e) {
+      } catch (const std::runtime_error &e) {
           ostringstream os;
           os << e.what() << "\n"
              << "Note that you can explicitly set vmr_zeropadding "

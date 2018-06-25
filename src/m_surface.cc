@@ -1623,7 +1623,7 @@ void surfaceSemiSpecularBy3beams(
                                             surface_rtprop_sub_agenda );
           failed = false;
         }
-      catch( runtime_error e )
+      catch (const runtime_error &e)
         { dza_try -= 1.0; }
     }
   if( failed ) { nbeams = 2; }

@@ -134,7 +134,7 @@ void abs_linesArtscat4FromArtscat3(// WS Output:
         {
             abs_lines[i].ARTSCAT4FromARTSCAT3();
         }
-        catch (runtime_error e)
+        catch (const std::runtime_error &e)
         {
 #pragma omp critical (abs_linesArtscat4FromArtscat3_fail)
             { fail_msg = e.what(); failed = true; }
@@ -168,7 +168,7 @@ void abs_linesArtscat5FromArtscat34(// WS Output:
                 abs_lines[i].ARTSCAT5FromARTSCAT4();
             
         }
-        catch (runtime_error e)
+        catch (const std::runtime_error &e)
         {
 #pragma omp critical (abs_linesArtscat4FromArtscat3_fail)
             { fail_msg = e.what(); failed = true; }
@@ -350,7 +350,7 @@ void abs_linesReadFromHitran(// WS Output:
                 }
             }
         }
-        catch (runtime_error e)
+        catch (const std::runtime_error &e)
         {
             ostringstream os;
             os << e.what() << "\n";
@@ -1174,7 +1174,7 @@ void abs_speciesDefineAllInScenario(// WS Output:
           // Add this tag group to tgs:
           tgs.push_back(this_group);
       }
-      catch (runtime_error e)
+      catch (const std::runtime_error &e)
       {
           // The file for the species could not be found.
           excluded.push_back(specname);

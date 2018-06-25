@@ -1008,7 +1008,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                          ref_index_real(f_index, T_index),
                          ref_index_imag(f_index, T_index),
                          precision, nza, ndgs, quiet );
-                    } catch (std::runtime_error e) {
+                    } catch (const std::runtime_error &e) {
                         //ostringstream os;
                         //os << "Calculation of SingleScatteringData properties failed for\n"
                         os << "f_grid[" << f_index << "] = " << ssd.f_grid[f_index] << "\n"
@@ -1083,7 +1083,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                          ref_index_real(f_index, T_index),
                          ref_index_imag(f_index, T_index),
                          precision);
-                    } catch (std::runtime_error e) {
+                    } catch (const std::runtime_error &e) {
                         ostringstream os;
                         os << "Calculation of SingleScatteringData properties failed for\n"
                         << "f_grid[" << f_index << "] = " << ssd.f_grid[f_index] << "\n"

@@ -3164,7 +3164,7 @@ void jacobianDoit(//WS Output:
 
               jacobian(joker,it) = dydx;
             }
-            catch (runtime_error e)
+            catch (const std::runtime_error &e)
             {
               if( robust )
               {

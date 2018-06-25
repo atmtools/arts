@@ -61,7 +61,7 @@ main (int argc, char *argv[])
       cout << "Norm Pml = " << legendre_poly_norm_schmidt (l, m, x) << endl;
       cout << "Norm dPml = " << legendre_poly_norm_schmidt_deriv (l, m, x) << endl;
     }
-  catch (runtime_error e)
+  catch (const std::runtime_error &e)
     {
       cerr << e.what ();
     }
