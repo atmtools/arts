@@ -910,3 +910,44 @@ void reshape( MatrixView X, ConstVectorView x )
         }
     }
 }
+
+//! calculate_weights_linear
+
+void calculate_weights_linear(
+        Vector &x,
+        Vector &w,
+        const Index nph
+        )
+/*!
+Function to set the evaluation points and the corresponding weights
+for numerical integration on the domain from [-1,1]
+
+Parameters:
+
+\param[out] x evaluation points
+\paran[out] w integration weights
+\param[in] nph       number of evaluation points per hemisphere
+
+
+*/
+{
+
+  Index N=nph * 2;
+
+  //directions in total
+  nlinspace(x, -1, 1, N);
+
+  //allocate
+  w.resize(x.nelem());
+
+  // calculate weights
+  w[0] = (x[1] - x[0]) / 2.;
+
+  for (Index i = 1; i < nph * 2 - 1; i++)
+  {
+    w[i] = (x[i+1] - x[i-1]) / 2.;
+  }
+  w[x.nelem()-1] = (x[x.nelem()-1] - x[x.nelem() - 2]) / 2.;
+
+}
+

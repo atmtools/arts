@@ -107,6 +107,9 @@ arts_test_ctlfile_depends(slow.artscomponents.wfuns.TestWfunsHybClear
 
 arts_test_run_ctlfile(fast artscomponents/ycalcappend/TestYCalcAppend.arts)
 
+arts_test_run_ctlfile(fast artscomponents/heatingrates/TestHeatingRates.arts)
+
+
 if (ENABLE_FFTW)
   arts_test_run_ctlfile(fast artscomponents/hitran-xsec/TestHitranXsec.arts)
 endif ()

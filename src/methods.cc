@@ -2238,6 +2238,47 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "AngularGridsSetFluxCalc" ),
+        DESCRIPTION
+        (
+        "Sets the angular grids for the calculation of radiation fluxes\n"
+        "(irradiance) per hemispheres and heating rates\n"
+        "\n"
+        "This method sets the angular grids for the radiation fluxes type\n"
+        "calculations and calculates the integration weights *za_grid_weights*\n"
+        "for the zenith angle integration. For down- und up-looking\n"
+        "geometries it suffices to define *N_za_grid* and\n"
+        "*N_aa_grid*. From *N_aa_grid* an equally spaced grid is\n"
+        "created and stored in the WSV*scat_aa_grid*.\n"
+        "Depending on the desired *za_grid_type* *scat_za_grid* will be\n"
+        "equally spaced ('linear') or unequally ('linear_mu','double_gauss')\n"
+        "Important, *N_za_grid* must be an even number because for the \n"
+        "integration over each hemisphere *N_za_grid* / 2 zenith angles are needed.\n"
+        "\n"
+        "Possible zenith angle grid types are:\n"
+        "double_gauss:     The zenith grid and the integration weights are set according\n"
+        "                  to a gauss-legendre integration for each hemispheres.\n"
+        "linear:           Equally space grid between 0 deg and 180 deg including the poles\n"
+        "linear_mu:        Similar to 'linear' but equally spaced for cos(180 deg) to cos(0 deg),\n"
+        "                  which results a unequally spaced angular grid\n"
+
+         ),
+        AUTHORS( "Manfred Brath" ),
+        OUT( "scat_za_grid", "scat_aa_grid", "za_grid_weights" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( ),
+        GIN( "N_za_grid", "N_aa_grid", "za_grid_type"),
+        GIN_TYPE( "Index", "Index", "String" ),
+        GIN_DEFAULT( "2", "1", "linear_mu" ),
+        GIN_DESC( "Number of zenith angles",
+                "Number of azimuth angles",
+                "Zenith angle grid type")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ArrayOfAgendaAppend" ),
         DESCRIPTION
         ( 
@@ -6928,7 +6969,7 @@ void define_md_data_raw()
                   "Apply zero-padding." )
         ));
 
-    md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
     ( NAME( "GriddedFieldZToPRegrid" ),
       DESCRIPTION
@@ -6956,6 +6997,27 @@ void define_md_data_raw()
                 "Interpolation order.",
                 "Apply zero-padding." )
       ));
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "heating_ratesFromIrradiance" ),
+        DESCRIPTION
+        (
+         "Calculates heating rates. It assumes that the heating rates\n"
+         "depend only on the vertical derivation of the net flux.\n"
+         "The net flux is the sum of the irradiance field in upward \n"
+         " direction and the irradiance field in downward direction\n"
+        ),
+        AUTHORS( "Manfred Brath" ),
+        OUT( "heating_rates" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "p_grid","irradiance_field","specific_heat_capacity","g0"),
+        GIN( ),
+        GIN_TYPE(  ),
+        GIN_DEFAULT(  ),
+        GIN_DESC(  )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7235,6 +7297,29 @@ void define_md_data_raw()
         GIN_TYPE( "Matrix" ),
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "Field to interpolate." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "irradiance_fieldFromRadiance" ),
+        DESCRIPTION
+        (
+         "Calculate the irradiance also known as flux density from the *radiance_field* .\n"
+         "by integrating over the angular grids according to the grids set\n"
+         "by *AngularGridsSetForFluxCalc* \n"
+         "See *AngularGridsSetForFluxCalc to set \n"
+         "*scat_za_grid, scat_aa_grid, and za_grid_weights*\n"
+        ),
+        AUTHORS( "Manfred Brath" ),
+        OUT( "irradiance_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "radiance_field", "scat_za_grid", "scat_aa_grid", "za_grid_weights"),
+        GIN( ),
+        GIN_TYPE(  ),
+        GIN_DEFAULT(  ),
+        GIN_DESC(  )
         ));
 
   md_data_raw.push_back
@@ -13551,6 +13636,29 @@ void define_md_data_raw()
                   "coarser than this, additional points are added until each "
                   "log step is smaller than this." )
         ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "RadiationFieldSpectralIntegrate" ),
+        DESCRIPTION
+        (
+         "Integrates fields like *spectral_irradiance_field* or *doit_i_field*\n"
+         "over frequency.\n"
+         "Important, the first dimension must be the frequency dimension!\n"
+         "If a field  like *doit_i_field* is input, the stokes dimension\n"
+         "is also removed.\n"
+         ),
+        AUTHORS( "Manfred Brath" ),
+        OUT( ),
+        GOUT("radiation_field"),
+        GOUT_TYPE("Tensor4, Tensor5"),
+        GOUT_DESC("TBD"),
+        IN("f_grid"),
+        GIN("spectral_radiation_field"),
+        GIN_TYPE("Tensor5, Tensor7"),
+        GIN_DEFAULT(NODEF),
+        GIN_DESC("TBD")
+        ));
     
  md_data_raw.push_back
     ( MdRecord
@@ -16709,6 +16817,29 @@ void define_md_data_raw()
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         USES_TEMPLATES( true  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "spectral_irradiance_fieldFromiyField" ),
+        DESCRIPTION
+        (
+        "Calculates the spectral irradiance from *doit_i_field* .\n"
+        "by integrating over the angular grids according to the grids set\n"
+        "by *AngularGridsSetForFluxCalc* \n"
+        "See *AngularGridsSetForFluxCalc to set \n"
+        "*scat_za_grid, scat_aa_grid, and za_grid_weights*\n"
+        ),
+        AUTHORS( "Manfred Brath" ),
+        OUT( "spectral_irradiance_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "doit_i_field", "scat_za_grid", "scat_aa_grid", "za_grid_weights"),
+        GIN( ),
+        GIN_TYPE(  ),
+        GIN_DEFAULT(  ),
+        GIN_DESC(  )
         ));
 
   md_data_raw.push_back

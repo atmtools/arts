@@ -2684,8 +2684,7 @@ void psd_SB06 (Vector& psd,
     Numeric mMu;
     Numeric mGamma;
     Numeric brkMu1;
-    Numeric brkMu2;
-    
+
     
     // Get the coefficients for the right hydrometeor
     if ( hydrometeor_type == "cloud_ice" ) //Cloud ice water
@@ -2782,9 +2781,8 @@ void psd_SB06 (Vector& psd,
         c2=tgamma(arg2);
         
         
-        // variable to shorthen the formula
+        // variable to shorten the formula
         brk=M0/M1*c2/c1;
-        brkMu2=pow(brk, (mu+2));
         brkMu1=pow(brk, (mu+1));
         
         //Lambda (parameter for modified gamma distribution)
@@ -2811,7 +2809,7 @@ void psd_SB06 (Vector& psd,
             mGamma=pow(mass[iD],gamma);
             
             // dpsd/dM1
-            dpsd(iD,0)=gamma/c2*mMu*exp(-Lambda*mGamma)*brkMu2*(-1-mu+gamma*mGamma*Lambda);
+            dpsd(iD,0)=gamma/c1*M0/M1*mMu*exp(-Lambda*mGamma)*brkMu1*(-1-mu+gamma*mGamma*Lambda);
             
             // dpsd/dM0
             dpsd(iD,1)=-gamma/c1*mMu*exp(-Lambda*mGamma)*brkMu1*(-2-mu-gamma*mGamma*Lambda);

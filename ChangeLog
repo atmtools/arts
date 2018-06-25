@@ -1,3 +1,41 @@
+2018-06-25  Manfred Brath  <manfredbrath@uni-hamburg.de>
+
+	* arts-2-3-1083
+
+	* src/microphysics.cc (psd_SB06):
+
+	Corrected the derivative of the particle size distribution.
+
+	* src/m_fluxes.cc (AngularGridsSetFluxCalc, heating_ratesFromIrradiance,
+	irradiance_fieldFromRadiance, RadiationFieldSpectralIntegrate,
+	spectral_irradiance_fieldFromiyField), src/CMakeLists.txt:
+	                    
+    Implemented functions that are needed for the calculation of radiation
+    fluxes (irradiance) and heating rates.
+    
+    * src/math_funcs.{cc,h}(calculate_weights_linear): 
+    
+    Implemented function to calculate integration weights for the angular
+    integration that is needed for the fluxes and heating rates functionality.
+    
+    * src/methods.cc (AngularGridsSetFluxCalc, heating_ratesFromIrradiance,
+	irradiance_fieldFromRadiance, RadiationFieldSpectralIntegrate,
+	spectral_irradiance_fieldFromiyField):
+    
+    Added entries for newly implemented workspace methods.
+    
+    * src/workspace.cc: 
+    
+    Introduced heating_rates, irradiance_field, radiance_field, 
+    spectral_irradiance_field, specific_heat_capacity, specific_heat_capacity, 
+    and za_grid_weights.	                                    
+                        
+	*controlfiles/artscomponents/heatingrates (TestHeatingRates.arts,
+    TestHeatingRates.abs_lookup.xml*,
+    TestHeatingRates.heating_ratesREFERENCE.xml), controlfiles/CMakeLists.txt:
+	                    
+    Added testcase for heating rates and fluxes functionality.
+    
 2018-06-22  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-3-1082

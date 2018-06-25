@@ -142,4 +142,14 @@ void flat( VectorView x, ConstTensor3View X );
 void reshape( MatrixView X, ConstVectorView x );
 void reshape( Tensor3View X, ConstVectorView x );
 
+
+
+void calculate_weights_linear(
+        Vector &x,
+        Vector &w,
+        const Index nph
+);
+
+
+
 #endif  // math_funcs_h

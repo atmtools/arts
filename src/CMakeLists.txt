@@ -219,6 +219,7 @@ add_library (artscore STATIC
   m_cloudradar.cc
   m_disort.cc
   m_doit.cc
+  m_fluxes.cc
   m_fos.cc
   m_general.cc
   m_geodetic.cc
@@ -296,7 +297,7 @@ add_library (artscore STATIC
   zeeman.cc
   zeemandata.cc
   ${NETCDF_CC_FILES}
-  )
+        m_fluxes.cc)
 add_dependencies (artscore auto_version_h)
 
 target_link_libraries (artscore ${ZLIB_LIBRARIES})
