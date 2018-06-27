@@ -1,3 +1,11 @@
+2018-06-27  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1084
+
+	* src/m_microphysics.cc(pnd_fieldCalcFromParticleBulkProps):
+	- Function computed incorrect size of pnd_field for 3D
+	  atmospheres. This has been fixed.
+
 2018-06-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1084

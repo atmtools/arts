@@ -715,7 +715,7 @@ void pnd_fieldCalcFromParticleBulkProps(
   Index ilon_offset = 0;
   if( atmosphere_dim > 2 )
     {
-      nlat = cloudbox_limits[5] - cloudbox_limits[4] + 1;
+      nlon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
       ilon_offset = cloudbox_limits[4];
     }
 
