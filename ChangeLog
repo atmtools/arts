@@ -1,3 +1,24 @@
+2018-07-05  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1085
+	
+	Some small changes...
+	
+	* src/m_cloudbox.cc: cloudboxOff sets scat_species to
+	zero-size.  Generally, there are too many variables that
+	requires touching to make normal code work.
+	
+	* src/m_planets.cc: Added refellipsoidEuropa
+	
+	* src/pressurebroadening{h,cc}:  Update to water broadening
+	test case.  Also some playground code for a possible 
+	reimplementation (depending on time and necessity), to make
+	the code easier to follow/change.  It seems temperature 
+	dependency varies for the different variables, so
+	a reimplementation might be necessary to keep the code 
+	readable in the future (especially if new line parameters
+	become necessary for other planets than Earth)
+
 2018-06-27  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1084

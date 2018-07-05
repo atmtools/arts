@@ -3681,7 +3681,7 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "cloudbox_on", "ppath_inside_cloudbox_do", "cloudbox_limits", "iy_cloudbox_agenda", 
-             "pnd_field", "dpnd_field_dx",
+             "pnd_field", "dpnd_field_dx", "scat_species",
              "scat_data", "scat_data_raw", "scat_data_checked",
              "particle_masses"
            ),
@@ -13932,7 +13932,32 @@ void define_md_data_raw()
         GIN_TYPE( "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF ),
         GIN_DESC( "Latitude.", "Azimuth angle." )
-        ));
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "refellipsoidEuropa" ),
+      DESCRIPTION
+      (
+        "Io reference ellipsoids.\n"
+        "\n"
+        "The reference ellipsoid (*refellipsoid*) is set to model Io,\n"
+        "folowing different models. The options are:\n"
+        "\n"
+        "   \"Sphere\" : A spherical planetesimal. The radius is taken from\n"
+        "      report of the IAU/IAG Working Group.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "refellipsoid" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(  ),
+      GIN( "model" ),
+      GIN_TYPE(    "String" ),
+      GIN_DEFAULT( "Sphere" ),
+      GIN_DESC( "Model ellipsoid to use. Options listed above." )
+    ));
     
   md_data_raw.push_back
     ( MdRecord
@@ -13944,7 +13969,7 @@ void define_md_data_raw()
          "The reference ellipsoid (*refellipsoid*) is set to model Io,\n"
          "folowing different models. The options are:\n"
          "\n"
-         "   \"Sphere\" : A spherical planet. The radius is taken from\n"
+         "   \"Sphere\" : A spherical planetesimal. The radius is taken from\n"
          "      report of the IAU/IAG Working Group.\n"
          ),
         AUTHORS( "Richard Larsson" ),

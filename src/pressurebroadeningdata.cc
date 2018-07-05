@@ -26,15 +26,21 @@
 #include "linerecord.h"
 
 
-inline Numeric test_pressure_shift(const Numeric& T, const Numeric& T0, const Numeric& c, const Numeric& d0, const Numeric& m)
+inline Numeric test_pressure_shift(const Numeric& T, const Numeric& T0, const Numeric& A, const Numeric& d, const Numeric& m)
 {
-  return d0 * pow(T/T0, m) * (1+c*log(T));
+  return d * pow(T0/T, m) * (1 + A * log(T/T0));
 }
 
 
-inline Numeric test_pressure_broadening(const Numeric& T, const Numeric& T0, const Numeric& g0, const Numeric& n)
+inline Numeric test_pressure_broadening(const Numeric& T, const Numeric& T0, const Numeric& g, const Numeric& n)
 {
-  return g0 * pow(T0/T, n);
+  return g * pow(T0/T, n);
+}
+
+
+inline Numeric test_pressure_broadening_speed_term(const Numeric& T, const Numeric& T0, const Numeric& g, const Numeric& n)
+{
+  return g + n * (T - T0);
 }
 
 inline void voigt_test_params(Numeric& G0, Numeric& D0, 
@@ -58,7 +64,7 @@ inline void speed_dependent_test_params(Numeric& G0, Numeric& D0, Numeric& G2, N
                                         const Numeric& am, const Numeric& ad2)
 {
   G0 = sP * test_pressure_broadening(T, T0, sg0, sn0) + aP * test_pressure_broadening(T, T0, ag0, an0);
-  G2 = sP * test_pressure_broadening(T, T0, sg2, sn2) + aP * test_pressure_broadening(T, T0, ag2, an2);
+  G2 = sP * test_pressure_broadening_speed_term(T, T0, sg2, sn2) + aP * test_pressure_broadening_speed_term(T, T0, ag2, an2);
   D0 = sP * test_pressure_shift(T, T0, sA, sd0, sm)   + aP * test_pressure_shift(T, T0, aA, ad0, am);
   D2 = sP * sd2 + aP * ad2;  // test_pressure_shift(T, T0, 0, d2, 0);
 }
@@ -2012,3 +2018,39 @@ String PressureBroadeningData::Type2StorageTag() const
         throw std::runtime_error("Cannot save pure testing version");
     }
 }
+
+inline Numeric main_t0(const Numeric& C) noexcept { return C; }
+
+inline Numeric dmain_dC_t0() noexcept { return 1; }
+
+inline Numeric main_t1(const Numeric& TH, const Numeric& C, const Numeric& n) noexcept { return C * pow(TH, n); }
+
+inline Numeric dmain_dC_t1(const Numeric& main, const Numeric& C) noexcept { return main / C; }
+
+inline Numeric dmain_dT0_t1(const Numeric& main, const Numeric& T0, const Numeric& n) noexcept { return n * main / T0; }
+
+inline Numeric dmain_dT_t1(const Numeric& main, const Numeric& T, const Numeric& n) noexcept { return - dmain_dT0_t1(main, T, n); }
+
+inline Numeric dmain_dn_t1(const Numeric& main, const Numeric& TH) noexcept { return main * log(TH); }
+
+inline Numeric main_t2(const Numeric& TH, const Numeric& C, const Numeric& n, const Numeric& A) noexcept { return C * pow(TH, n) * (1 + A * log(1/TH)); }
+
+inline Numeric dmain_dC_t2(const Numeric& main, const Numeric& C) noexcept { return dmain_dC_t1(main, C); }
+
+inline Numeric dmain_dT_t2(const Numeric& main, const Numeric& TH, const Numeric& T, const Numeric& n, const Numeric& A) { return (n*(A*log(1/TH) + 1) + A)/(T*(A*log(1/TH) + 1)) * main; }
+
+inline Numeric dmain_dT0_t2(const Numeric& main, const Numeric& TH, const Numeric& T0, const Numeric& n, const Numeric& A) { return - dmain_dT_t2(main, TH, T0, n, A); }
+
+inline Numeric dmain_dn_t2(const Numeric& main, const Numeric& TH) noexcept { return dmain_dn_t1(main, TH); }
+
+inline Numeric dmain_dA_t2(const Numeric& main, const Numeric& TH, const Numeric& A) noexcept { return -log(1/TH)/(A*log(1/TH) + 1) * main; }
+
+inline Numeric main_t3(const Numeric& T, const Numeric& T0, const Numeric& C, const Numeric& n) noexcept { return C + n * (T - T0); }
+
+inline Numeric dmain_dC_t3() noexcept { return 1; }
+
+inline Numeric dmain_dn_t3(const Numeric& T, const Numeric& T0) noexcept { return (T - T0); }
+
+inline Numeric dmain_dT_t3(const Numeric& n) noexcept { return n; }
+
+inline Numeric dmain_dT0_t3(const Numeric& n) noexcept { return -n; }

@@ -89,6 +89,7 @@ void cloudboxOff (
          Agenda&                      iy_cloudbox_agenda,
          Tensor4&                     pnd_field,
          ArrayOfTensor4&              dpnd_field_dx,
+         ArrayOfString& scat_species,
          ArrayOfArrayOfSingleScatteringData& scat_data,
          ArrayOfArrayOfSingleScatteringData& scat_data_raw,
          Index&                       scat_data_checked,
@@ -105,6 +106,7 @@ void cloudboxOff (
   // we need to size dpnd_field to be consistent with jacobian_quantities.
   dpnd_field_dx.resize( jacobian_quantities.nelem() );
   scat_data.resize(0);
+  scat_species.resize(0);
   // remove scat_data_raw resizing once all scat solvers have been convert to
   // use of (new-type) scat_data
   scat_data_raw.resize(0);

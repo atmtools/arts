@@ -769,12 +769,23 @@ public:
    // Returns the String tag for this PB_type
    String Type2StorageTag() const;
    
+   enum class TemperatureDependency { 
+     TN,  //  0
+     T0,  //  C
+     T1,  //  C * (T0 / T) ^ n
+     T2,  //  C * (T0 / T) ^ n / (1 + A * log(T / T0))
+     T3,  //  C + n * (T - T0)
+  };
+   
 private:
     // mtype identifies the type of of pressure broadening and the other variables
     // are containers
     PB_Type       mtype;
     ArrayOfVector mdata;
     ArrayOfVector mdataerror;
+    
+    //std::vector<Index> mspecies;
+    //std::vector<TemperatureDependency> mtemperatures;
 };
 
 #endif //pressurebroadeningdata_h
