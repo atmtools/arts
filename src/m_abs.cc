@@ -3441,7 +3441,7 @@ void WriteMolTau(//WS Input
   int wvlmin_varid, wvlmax_varid, z_varid, wvl_varid, tau_varid;
   
   if (atmosphere_dim != 1)
-    throw runtime_error("WriteMolTau can only be used for atmsophere_dim=1");
+    throw runtime_error("WriteMolTau can only be used for atmosphere_dim=1");
 
 #pragma omp critical(netcdf__critical_region)
     {

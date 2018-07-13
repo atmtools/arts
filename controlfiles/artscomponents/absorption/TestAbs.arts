@@ -66,9 +66,6 @@ AbsInputFromAtmFields
 # Create the frequency grid `f_grid':
 VectorNLinSpace( f_grid, 100, 50e9, 150e9 )
 
-# Calculate absorption coefficients, separately for each tag group:
-#abs_coefCalcFromXsec
-
 # Select species for non-linear treatment in lookup table:
 abs_speciesSet( abs_species=abs_nls, species=[] )
 #abs_speciesSet( abs_species=abs_nls, species=["H2O-PWR98", "O2-PWR93"] )

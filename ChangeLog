@@ -1,3 +1,23 @@
+2018-07-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1086
+	
+	* controlfiles/artscomponents/moltau/TestMolTau.arts:
+
+	Add test for WriteMolTau. Provided by Claudia Emde.
+
+	* controlfiles/CMakeLists.txt:
+
+	Run TestMolTau if NetCDF support is enabled.
+
+	* controlfiles/artscomponents/absorption/TestAbs.arts:
+
+	Remove commented out call to abs_coefCalcFromXsec.
+
+	* src/m_abs.cc (WriteMolTau):
+
+	Fix typo.
+
 2018-07-05  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1085

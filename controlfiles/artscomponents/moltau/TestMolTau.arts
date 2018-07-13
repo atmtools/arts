@@ -1,0 +1,111 @@
+#DEFINITIONS:  -*-sh-*-
+
+Arts2 {
+
+INCLUDE "general/general"
+INCLUDE "general/continua"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+Copy(propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable)
+
+# Create some variables:
+NumericCreate(fmin)
+NumericCreate(fmax)
+NumericCreate(wvl_min)
+NumericCreate(wvl_max)
+VectorCreate( wvl_grid )
+
+# Set minimum and maximum wavelength
+NumericSet(wvl_min, 10.00e-6)  # 10.00 um
+NumericSet(wvl_max, 10.01e-6)  # 10.01 um
+
+# Convert to Hz, maximum wavelength = minimum frequency:
+FrequencyFromWavelength(fmax, wvl_min)
+FrequencyFromWavelength(fmin, wvl_max)
+Print(fmin, 1)
+Print(fmax, 1)
+
+# Define equidistant frequency grid (1000 grid points):
+VectorNLinSpace(f_grid, 1000, fmin, fmax)
+
+# Read HITRAN data (for this example we use a reduced test catalog)
+abs_linesReadFromArts(abs_lines, "testdata/abs_lines_IR.xml.gz", fmin, fmax)
+
+# Set species to be considered in line-by-line calculation
+abs_speciesSet(species=[
+        "H2O, H2O-SelfContCKDMT100, H2O-ForeignContCKDMT100",
+        "CO2, CO2-CKDMT100",
+	"O3",
+	"N2O",
+	#"CO",
+	#"CH4",
+	"O2, O2-CIAfunCKDMT100",
+	"HNO3",
+	"N2, N2-CIAfunCKDMT100, N2-CIArotCKDMT100"
+])
+
+# Alternatively select all species that we can find in the scenario:
+#abs_speciesDefineAllInScenario( basename="testdata/tropical" )
+
+
+# This separates the lines into the different tag groups and creates
+# the workspace variable `abs_lines_per_species':
+abs_lines_per_speciesCreateFromLines
+
+# Dimensionality of the atmosphere
+#
+AtmosphereSet1D
+
+# Atmospheric profiles (there is several data in the
+# arts-xml-data/atmosphere directory, fascod includes the standard
+# atmospheres which we also have in libRadtran (altitude only up to
+# 95 km !!). When you want to use the molecular_tau_file from arts,
+# the atmosphere_file for uvspec must correspond to the ARTS
+# atmosphere files which are defined here!!)
+AtmRawRead(basename="testdata/tropical")
+
+# Extract pressure grid from atmosphere files (this is the vertical
+# coordinate for all calculations, can be specified as you like)
+p_gridFromZRaw(p_grid, z_field_raw)
+VectorSet(lat_grid, [])
+VectorSet(lon_grid, [])
+
+
+# Now interpolate all the raw atmospheric input onto the pressure
+# grid and create the atmospheric variables `t_field', `z_field', `vmr_field'
+AtmFieldsCalc
+
+# Initialize the input variables of abs_coefCalc from the Atm fields:
+AbsInputFromAtmFields
+
+# Non-linear species
+abs_speciesSet(abs_species=abs_nls, species=[])
+
+# Perturbation if lookup-table should be created that can be used for a wide range of atmospheric conditions
+VectorSet(abs_t_pert, [])
+VectorSet(abs_nls_pert, [])
+
+abs_xsec_agenda_checkedCalc
+jacobianOff
+
+# If you want to do calculations for various atmopheric conditions, check out how the lookup table works.
+# This saves a lot of time!!!
+abs_lookupCalc
+
+# output_file_formatSetBinary
+#WriteXML (output_file_format, abs_lookup )
+
+# Calculate absorption field:
+IndexSet(f_index, -1) # calculate all frequencies
+IndexSet(stokes_dim, 1)
+atmfields_checkedCalc
+propmat_clearsky_agenda_checkedCalc
+propmat_clearsky_fieldCalc
+
+# Write molecular_tau_file for libRadtran
+WriteMolTau (f_grid, z_field, propmat_clearsky_field, atmosphere_dim, "TestMolTau.nc")
+
+}
+
