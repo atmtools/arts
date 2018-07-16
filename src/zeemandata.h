@@ -99,8 +99,9 @@ public:
       case ZeemanPolarizationType::SigmaMinus: return "SM";
       case ZeemanPolarizationType::Pi:         return "PI";
       case ZeemanPolarizationType::SigmaPlus:  return "SP";
-      case ZeemanPolarizationType::None:       return "NONE";
+      case ZeemanPolarizationType::None: {}
     }
+    return "-1";
   }
   
 private:

@@ -218,10 +218,56 @@ void test_zeeman()
 }
 
 
+
+
+void test_linefunctionsdata()
+{
+  define_species_data();
+  define_species_map();
+  
+  String s = "VP LM1 4 SELF T1 16000 0.7 T1 100 1.3 T4 0.7e-4 0.5e-6 0.7 CO2 T1 16001 0.71 T1 101 1.31 T1 0.9e-4 0.7 H2O T1 16001.1 0.711 T1 101.1 1.311 T1 0.4e-4 0.7 AIR T1 18002 0.72 T1 102 1.32 T1 0.1e-4 0.7 THIS-IS-NOT-READ-BY-CIN";
+  istringstream x1(s);
+  LineFunctionData test;
+  x1 >> test;
+  
+  std::cout<<s<<"\n";
+  std::cout<<test<<"\n";
+  
+  String n;
+  x1 >> n;
+  std::cout << n << "\n";
+  
+  Numeric G0, D0, G2, D2, FVC, ETA, Y, G, DV;
+  const ArrayOfSpeciesTag aspt = {SpeciesTag("CO2"), SpeciesTag("H2O"), SpeciesTag("O3")};
+  const Vector vmrs = {0.2, 0.3, 0.2};
+  test.GetParams (G0, D0, G2, D2, FVC, ETA, Y, G, DV,
+                  296., 246., 2., 0.2, vmrs, aspt);
+  std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
+  
+  s = "VP # 1 AIR T1 16000 0.7 T1 100 1.3";
+  istringstream x2(s);
+  x2 >> test;
+  std::cout << s << "\n";
+  std::cout << test << "\n";
+  test.GetParams (G0, D0, G2, D2, FVC, ETA, Y, G, DV,
+                  296., 246., 2., 0.2, vmrs, aspt);
+  std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
+  
+  s = "VP # 1 H2O2 T1 16000 0.7 T1 100 1.3";
+  istringstream x3(s);
+  x3 >> test;
+  std::cout << s << "\n";
+  std::cout << test << "\n";
+  test.GetParams (G0, D0, G2, D2, FVC, ETA, Y, G, DV,
+                  296., 246., 2., 0.2, vmrs, aspt);
+  std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
+}
+
 int main()
 {
     std::cout<<"Testing Propmat Partials\n";
 //     test_new_lineshapes();
-    test_zeeman();
+//     test_zeeman();
+    test_linefunctionsdata();
     return 0;
 }

@@ -524,6 +524,12 @@ String SpeciesTag::Name() const
     return os.str();
 }
 
+String SpeciesTag::SpeciesNameMain() const
+{
+  return species_name_from_species_index(mspecies);
+}
+
+
 ostream& operator << (ostream& os, const SpeciesTag& ot)
 {
   return os << ot.Name();

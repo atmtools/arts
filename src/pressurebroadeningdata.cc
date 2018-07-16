@@ -1872,6 +1872,7 @@ Index PressureBroadeningData::ExpectedVectorLengthFromType() const
     case PB_SD_TEST_WATER:
       return Index(TestParams::COUNT);
   }
+  return -1;
 }
 
 void PressureBroadeningData::SetDataFromVectorWithKnownType(ConstVectorView input)
@@ -1995,62 +1996,482 @@ void PressureBroadeningData::GetVectorFromData(Vector& output) const
 
 String PressureBroadeningData::Type2StorageTag() const
 {
-    String output;
+  String output;
 
-    switch(mtype) {
-      case PB_NONE:
-        return "NA";
-      case PB_AIR_BROADENING:
-        return "N2";
-      case PB_AIR_AND_WATER_BROADENING:
-        return "WA";
-      case  PB_SD_AIR_VOLUME:
-        return "SD-AIR";
-      case  PB_HTP_AIR_VOLUME:
-        return "HTP-AIR";
-      case PB_PLANETARY_BROADENING:
-        return "AP";
-      case PB_SD_TEST_WATER:
-        return "PB_SD_TEST_WATER";
-      case PB_VOIGT_TEST_WATER:
-        return "PB_VOIGT_TEST_WATER";
-      case PB_PURELY_FOR_TESTING:
-        throw std::runtime_error("Cannot save pure testing version");
-    }
+  switch(mtype) {
+    case PB_NONE:
+      return "NA";
+    case PB_AIR_BROADENING:
+      return "N2";
+    case PB_AIR_AND_WATER_BROADENING:
+      return "WA";
+    case  PB_SD_AIR_VOLUME:
+      return "SD-AIR";
+    case  PB_HTP_AIR_VOLUME:
+      return "HTP-AIR";
+    case PB_PLANETARY_BROADENING:
+      return "AP";
+    case PB_SD_TEST_WATER:
+      return "PB_SD_TEST_WATER";
+    case PB_VOIGT_TEST_WATER:
+      return "PB_VOIGT_TEST_WATER";
+    case PB_PURELY_FOR_TESTING:
+      throw std::runtime_error("Cannot save pure testing version");
+  }
+  return "-1";
 }
 
-inline Numeric main_t0(const Numeric& C) noexcept { return C; }
+// T0 temperature type is just a constant
+inline Numeric main_t0(const Numeric& x0) noexcept { return x0; }
+inline Numeric dmain_dx0_t0() noexcept { return 1; }
+inline Numeric dmain_dx1_t0() noexcept { return 0; }
+inline Numeric dmain_dx2_t0() noexcept { return 0; }
+inline Numeric dmain_dT0_t0() noexcept { return 0; }
+inline Numeric dmain_dT__t0() noexcept { return 0; }
 
-inline Numeric dmain_dC_t0() noexcept { return 1; }
+// T1 temperature type is standard HITRAN x0 (T0 / T) ^ x1
+inline Numeric main_t1(const Numeric& TH, const Numeric& x0, const Numeric& x1) noexcept { return x0 * pow(TH, x1); }
+inline Numeric dmain_dx0_t1(const Numeric& main, const Numeric& x0) noexcept { return main / x0; }
+inline Numeric dmain_dx1_t1(const Numeric& main, const Numeric& TH) noexcept { return main * log(TH); }
+inline Numeric dmain_dx2_t1() noexcept { return 0; }
+inline Numeric dmain_dT0_t1(const Numeric& main, const Numeric& T0, const Numeric& x1) noexcept { return x1 * main / T0; }
+inline Numeric dmain_dT__t1(const Numeric& main, const Numeric& T, const Numeric& x1) noexcept { return - dmain_dT0_t1(main, T, x1); }
 
-inline Numeric main_t1(const Numeric& TH, const Numeric& C, const Numeric& n) noexcept { return C * pow(TH, n); }
+// T2 temperature type is proposed for line shifts x0 (T0 / T) ^ x1 / (1 + x2 ln(T / T0))
+inline Numeric main_t2(const Numeric& TH, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return x0 * pow(TH, x1) * (1 + x2 * log(1/TH)); }
+inline Numeric dmain_dx0_t2(const Numeric& main, const Numeric& x0) noexcept { return dmain_dx0_t1(main, x0); }
+inline Numeric dmain_dx1_t2(const Numeric& main, const Numeric& TH) noexcept { return dmain_dx1_t1(main, TH); }
+inline Numeric dmain_dx2_t2(const Numeric& main, const Numeric& TH, const Numeric& x2) noexcept { return -log(1/TH)/(x2*log(1/TH) + 1) * main; }
+inline Numeric dmain_dT0_t2(const Numeric& main, const Numeric& TH, const Numeric& T0, const Numeric& x1, const Numeric& x2) noexcept { return - (x1*(x2*log(1/TH) + 1) + x2)/(T0*(x1*log(1/TH) + 1)) * main; }
+inline Numeric dmain_dT__t2(const Numeric& main, const Numeric& TH, const Numeric& T, const Numeric& x1, const Numeric& x2) noexcept { return (x1*(x2*log(1/TH) + 1) + x2)/(T*(x1*log(1/TH) + 1)) * main; }
 
-inline Numeric dmain_dC_t1(const Numeric& main, const Numeric& C) noexcept { return main / C; }
+// T3 temperature type is proposed for speed-dependent parameters x0 + x1 (T - T0)
+inline Numeric main_t3(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return x0 + x1 * (T - T0); }
+inline Numeric dmain_dx0_t3() noexcept { return 1; }
+inline Numeric dmain_dx1_t3(const Numeric& T, const Numeric& T0) noexcept { return (T - T0); }
+inline Numeric dmain_dx2_t3() noexcept { return 0; }
+inline Numeric dmain_dT0_t3(const Numeric& x1) noexcept { return -x1; }
+inline Numeric dmain_dT__t3(const Numeric& x1) noexcept { return x1; }
 
-inline Numeric dmain_dT0_t1(const Numeric& main, const Numeric& T0, const Numeric& n) noexcept { return n * main / T0; }
+// T4 temperature type is proposed for line mixing of second order (x0 + x1 (T0 / T - 1)) (T0 / T) ^ x2
+inline Numeric main_t4(const Numeric& TH, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return (x0 + x1 * (TH - 1)) * pow(TH, x2); }
+inline Numeric dmain_dx0_t4(const Numeric& TH, const Numeric& x2) noexcept { return pow(TH, x2); }
+inline Numeric dmain_dx1_t4(const Numeric& TH, const Numeric& x2) noexcept { return (TH - 1) * pow(TH, x2); }
+inline Numeric dmain_dx2_t4(const Numeric& main, const Numeric& TH) noexcept { return main * log(TH); }
+inline Numeric dmain_dT0_t4(const Numeric& main, const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return main * (x1*T0 + x2*(x0*T + x1*(T0 - T)))/(T*(x0*T + x1*(T0 - T))); }
+inline Numeric dmain_dT__t4(const Numeric& main, const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return main * (x1*T0 + x2*(x0*T + x1*(T0 - T)))/(T0*(x0*T + x1*(T0 - T))); }
 
-inline Numeric dmain_dT_t1(const Numeric& main, const Numeric& T, const Numeric& n) noexcept { return - dmain_dT0_t1(main, T, n); }
+//! Select line parameter based on parameter order
+/*! 
+ * This helper code simply selects which of the input the
+ * param-index is pointing at as a function of the type of
+ * line shape under consideration
+ * 
+ * \param G0    The speed-independent pressure broadening term
+ * \param D0    The speed-independent pressure shift term
+ * \param G2    The speed-dependent pressure broadening term
+ * \param D2    The speed-dependent pressure shift term
+ * \param FVC   The velocity-changing collisional parameter
+ * \param ETA   The correlation between velocity and rotational changes due to collisions
+ * \param param Index enumerating the parameter
+ * \param type  Enum class for knowing which parameter we are interested in
+ * 
+ * \return A reference pointing at G0, D0, G2, D2, FVC, or ETA.
+ * 
+ * \author Richard Larsson
+ * \date   2018-07-16
+ */
+inline Numeric& select_line_shape_param(Numeric& G0, Numeric& D0, Numeric& G2, Numeric& D2,  Numeric& FVC, Numeric& ETA, const Index param, const LineFunctionData::LineShapeType type) {
+  switch(type) {
+    case LineFunctionData::LineShapeType::DP:
+      return G0;
+    case LineFunctionData::LineShapeType::LP:
+      switch(param) {
+        case Index(LineFunctionData::LorentzParam::G0): return G0;
+        case Index(LineFunctionData::LorentzParam::D0): return D0;
+      }
+      break;
+    case LineFunctionData::LineShapeType::VP:
+      switch(param) {
+        case Index(LineFunctionData::VoigtParam::G0): return G0;
+        case Index(LineFunctionData::VoigtParam::D0): return D0;
+      }
+      break;
+    case LineFunctionData::LineShapeType::SDVP:
+      switch(param) {
+        case Index(LineFunctionData::SpeedVoigtParam::G0): return G0;
+        case Index(LineFunctionData::SpeedVoigtParam::D0): return D0;
+        case Index(LineFunctionData::SpeedVoigtParam::G2): return G2;
+        case Index(LineFunctionData::SpeedVoigtParam::D2): return D2;
+      }
+      break;
+    case LineFunctionData::LineShapeType::HTP:
+      switch(param) {
+        case Index(LineFunctionData::HTPParam::G0):  return G0;
+        case Index(LineFunctionData::HTPParam::D0):  return D0;
+        case Index(LineFunctionData::HTPParam::G2):  return G2;
+        case Index(LineFunctionData::HTPParam::D2):  return D2;
+        case Index(LineFunctionData::HTPParam::FVC): return FVC;
+        case Index(LineFunctionData::HTPParam::ETA): return ETA;
+      }
+      break;
+  }
+  throw std::runtime_error("Something very bad has happened, your type is either not defined or you are trying to access this function in a way that is not permitted");
+}
 
-inline Numeric dmain_dn_t1(const Numeric& main, const Numeric& TH) noexcept { return main * log(TH); }
+//! Select line parameter based on parameter order
+/*! 
+ * This helper code simply selects which of the input the
+ * param-index is pointing at as a function of the type of
+ * line shape under consideration
+ * 
+ * \param Y     The imaginary part of the line shape due to line mixing
+ * \param G     The strength-altering due to line mixing
+ * \param DV    The frequency shift due to line mixing
+ * \param param Index enumerating the parameter
+ * \param type  Enum class for knowing which parameter we are interested in
+ * 
+ * \return A reference pointing at Y, G, or DV.
+ * 
+ * \author Richard Larsson
+ * \date   2018-07-16
+ */
+inline Numeric& select_line_mixing_param(Numeric& Y, Numeric& G, Numeric& DV, const Index param, const LineFunctionData::LineMixingType type) {
+  switch(type) {
+    case LineFunctionData::LineMixingType::None:
+      return Y;
+    case LineFunctionData::LineMixingType::Interp:
+      return Y;
+    case LineFunctionData::LineMixingType::LM1:
+      switch(param) {
+        case Index(LineFunctionData::FirstOrderParam::Y): return Y;
+      }
+      break;
+    case LineFunctionData::LineMixingType::LM2:
+      switch(param) {
+        case Index(LineFunctionData::SecondOrderParam::Y): return Y;
+        case Index(LineFunctionData::SecondOrderParam::G): return G;
+        case Index(LineFunctionData::SecondOrderParam::DV): return DV;
+      }
+      break;
+  }
+  throw std::runtime_error("Something very bad has happened, your type is either not defined or you are trying to access this function in a way that is not permitted");
+}
 
-inline Numeric main_t2(const Numeric& TH, const Numeric& C, const Numeric& n, const Numeric& A) noexcept { return C * pow(TH, n) * (1 + A * log(1/TH)); }
 
-inline Numeric dmain_dC_t2(const Numeric& main, const Numeric& C) noexcept { return dmain_dC_t1(main, C); }
+//! Special function for line mixing of LBLRTM type
+/*! 
+ * LBLRTM interpolates a list of parameters in their data to a given
+ * range.  This method keeps track of the positions of the data to
+ * complete the interpolation.
+ * 
+ * \param Y           The imaginary part of the line shape due to line mixing
+ * \param G           The strength-altering due to line mixing
+ * \param partial_vmr The VMR of the species in question
+ * \param T           The atmospheric temperature
+ * \param data        The associated data struction [T1, T2, T3, T4, Y1, Y2, Y3, Y4, G1, G2, G3, G4]
+ * 
+ * \author Richard Larsson
+ * \date   2018-07-16
+ */
+inline void special_line_mixing_aer(Numeric&Y, Numeric&G, const Numeric& partial_vmr, const Numeric& T, ConstVectorView data) {
+  const Index n=data.nelem();
+  if(n not_eq 12)
+    throw std::runtime_error("Data for line mixing not matching AER LM style despite marked as such...\n must have this structure: [T1, T2, T3, T4, Y1, Y2, Y3, Y4, G1, G2, G3, G4]");
+  
+  // Perform standard lagrangian interpolation... FIXME: Test that this works
+  Numeric Yx=0, Gx=0;
+  for(Index i=0; i<4; i++) {
+    Numeric xi=partial_vmr;
+    #pragma omp simd
+    for(Index j=0; j<4; j++)
+      if(j not_eq i)
+        xi *= (T - data[j]) / (data[i] - data[j]);
+    Yx += xi * data[4 + i];
+    Gx += xi * data[8 + i];
+  }
+  
+  Y += Yx;
+  G += Gx;
+}
 
-inline Numeric dmain_dT_t2(const Numeric& main, const Numeric& TH, const Numeric& T, const Numeric& n, const Numeric& A) { return (n*(A*log(1/TH) + 1) + A)/(T*(A*log(1/TH) + 1)) * main; }
 
-inline Numeric dmain_dT0_t2(const Numeric& main, const Numeric& TH, const Numeric& T0, const Numeric& n, const Numeric& A) { return - dmain_dT_t2(main, TH, T0, n, A); }
+//! Compute the pressure broadening and line mixing parameters
+/*! 
+ * This helper code simply selects which of the input the
+ * param-index is pointing at as a function of the type of
+ * line shape under consideration
+ * 
+ * \param G0          The speed-independent pressure broadening term
+ * \param D0          The speed-independent pressure shift term
+ * \param G2          The speed-dependent pressure broadening term
+ * \param D2          The speed-dependent pressure shift term
+ * \param FVC         The velocity-changing collisional parameter
+ * \param ETA         The correlation between velocity and rotational changes due to collisions
+ * \param Y           The imaginary part of the line shape due to line mixing
+ * \param G           The strength-altering due to line mixing
+ * \param DV          The frequency shift due to line mixing
+ * \param T0          The line reference temperature
+ * \param T           The atmospheric temperature
+ * \param P           The atmospheric pressure
+ * \param self_vmr    The VMR of the species pressure
+ * \param rtp_vmr     The VMR of all species in the atmosphere at a specific radiative transfer point
+ * \param abs_species The list of all species in the atmosphere
+ * 
+ * \return A reference pointing at Y, G, or DV.
+ * 
+ * \author Richard Larsson
+ * \date   2018-07-16
+ */
+void LineFunctionData::GetParams(Numeric& G0, Numeric& D0, 
+                                 Numeric& G2, Numeric& D2, 
+                                 Numeric& FVC, Numeric& ETA,
+                                 Numeric& Y, Numeric& G, Numeric& DV,
+                                 const Numeric& T0, const Numeric& T,
+                                 const Numeric& P, const Numeric& self_vmr,
+                                 const ConstVectorView rtp_vmr, const ArrayOfSpeciesTag& abs_species,
+                                 const bool normalization) const
+{
+  // Set to zero
+  G0 = D0 = G2 = D2 = FVC = ETA = Y = G = DV = 0;
+  
+  // Doppler broadening has no types...
+  if(mp == LineShapeType::DP) return;
+  
+  // Theta is useful in many models so it gets precomputed
+  const Numeric theta = T0/T;
+  
+  // Set up holders for partial and total VMR
+  Numeric total_vmr=0, partial_vmr;
+  
+  // Add all species up
+  for(Index i=0; i<mspecies.nelem(); i++) {
+    if(i == 0 and mself)  // The first value might be self-broadening (use self_vmr)
+      partial_vmr = self_vmr;
+    else if(i == mspecies.nelem()-1 and mbath)  // The last value might be air-broadening (set total_vmr to 1)
+      partial_vmr = 1 - total_vmr;
+    else {  // Otherwise we have to find the species in the list of species tags
+      Index this_species=-1;
+      for(Index j=0; j<abs_species.nelem(); j++)
+        if(abs_species[j].Species() == mspecies[i].Species())
+          this_species = j;
+        
+      // If we cannot find the species, it does not exist and we are in a different atmosphere than covered by the line data
+      if(this_species == -1) continue;  // Species does not exist
+      partial_vmr = rtp_vmr[this_species];
+    }
+    // Sum up VMR
+    total_vmr += partial_vmr;
+    
+    // Set up a current counter to keep track of the data
+    Index current = 0;
+    
+    // Do the line shape parameters
+    for(Index j=0; j<LineShapeTypeNelem(); j++) {
+      // Selects one of G0, D0, G2, D2, FVC, ETA based on the order of the data for this line shape type
+      Numeric& param = select_line_shape_param(G0, D0, G2, D2, FVC, ETA, j, mp);
+      
+      switch(mtypes[i][j]) {
+        case TemperatureType::None:
+          break;
+        case TemperatureType::T0:
+          param += partial_vmr * main_t0(mdata[i][current]);
+          break;
+        case TemperatureType::T1:
+          param += partial_vmr * main_t1(theta, mdata[i][current], mdata[i][current+1]);
+          break;
+        case TemperatureType::T2:
+          param += partial_vmr * main_t2(theta, mdata[i][current], mdata[i][current+1], mdata[i][current+2]);
+          break;
+        case TemperatureType::T3:
+          param += partial_vmr * main_t3(T, T0, mdata[i][current], mdata[i][current+1]);
+          break;
+        case TemperatureType::T4:
+          param += partial_vmr * main_t4(theta, mdata[i][current], mdata[i][current+1], mdata[i][current+2]);
+          break;
+        case TemperatureType::LM_AER:
+          throw std::runtime_error("Not allowed for line shape parameters");
+      }
+      current += TemperatureTypeNelem(mtypes[i][j]);
+    }
+    
+    // Do the line mixing parameters
+    for(Index j=0; j<LineMixingTypeNelem(); j++) {
+      Numeric& param = select_line_mixing_param(Y, G, DV, j, mlm);
+      switch(mtypes[i][j]) {
+        case TemperatureType::None:
+          break;
+        case TemperatureType::T0:
+          param += partial_vmr * main_t0(mdata[i][current]);
+          break;
+        case TemperatureType::T1:
+          param += partial_vmr * main_t1(theta, mdata[i][current], mdata[i][current+1]);
+          break;
+        case TemperatureType::T2:
+          param += partial_vmr * main_t2(theta, mdata[i][current], mdata[i][current+1], mdata[i][current+2]);
+          break;
+        case TemperatureType::T3:
+          param += partial_vmr * main_t3(T, T0, mdata[i][current], mdata[i][current+1]);
+          break;
+        case TemperatureType::T4:
+          param += partial_vmr * main_t4(theta, mdata[i][current], mdata[i][current+1], mdata[i][current+2]);
+          break;
+        case TemperatureType::LM_AER:
+          // Special case adding to both G and Y and nothing else!
+          special_line_mixing_aer(Y, G, partial_vmr, T, mdata[i][Range(current, joker)]);
+          break;
+      }
+      current += TemperatureTypeNelem(mtypes[i][j]);
+    }
+  }
+  
+  // If there was no species at all, then we cannot compute the pressure broadening
+  if(total_vmr == 0) return;
+  
+  // Rescale to pressure with or without normalization
+  const Numeric scale = normalization ? P / total_vmr : P;
+  G0  *= scale;
+  D0  *= scale;
+  G2  *= scale;
+  D2  *= scale;
+  FVC *= scale;
+  if(normalization) ETA /= total_vmr;
+  Y   *= scale;
+  G   *= scale * P;
+  DV  *= scale * P;
+}
 
-inline Numeric dmain_dn_t2(const Numeric& main, const Numeric& TH) noexcept { return dmain_dn_t1(main, TH); }
 
-inline Numeric dmain_dA_t2(const Numeric& main, const Numeric& TH, const Numeric& A) noexcept { return -log(1/TH)/(A*log(1/TH) + 1) * main; }
+//! Prints data so as operator>> can read it
+std::ostream& operator<<(std::ostream& os, const LineFunctionData& lfd) {
+  // Keep track of the size of the problem
+  const Index nshapes=lfd.LineShapeTypeNelem(), nmixing=lfd.LineMixingTypeNelem();
+  
+  // Init the problem
+  os << lfd.LineShapeType2String() << " " << lfd.LineMixingType2String() << " " << lfd.mspecies.nelem() << " ";
+  
+  // For all species we should now do mostly the same
+  for(Index i=0; i<lfd.mspecies.nelem(); i++) {
+    if(i==0 and lfd.mself)
+      os << SELF << " ";  // SELF can be the first species
+    else if(i==lfd.mspecies.nelem()-1 and lfd.mbath)
+      os << BATH << " ";  // BATH can be the last species
+    else
+      os << lfd.mspecies[i].SpeciesNameMain() << " ";  // Otherwise we have a species defined in the assoc. SpeciesTag
+    
+    // Now we must count the data
+    Index counter=0;
+    
+    // For everything that relates to shapes, do the same thing
+    for(Index j=0; j<nshapes; j++) {
+      os << lfd.TemperatureType2String(lfd.mtypes[i][j]) << " ";  // Name the temperature type
+      for(Index k=0; k<lfd.TemperatureTypeNelem(lfd.mtypes[i][j]); k++)
+        os << lfd.mdata[i][counter+k] << " ";  // Print the assoc. data
+      counter += lfd.TemperatureTypeNelem(lfd.mtypes[i][j]);  // Count how much data has been printed
+    }
+    
+    // For mixing we must take care with the interp. values but otherwise we act the same as prev. loop
+    for(Index j=nshapes; j<nmixing+nshapes; j++) {
+      os << lfd.TemperatureType2String(lfd.mtypes[i][j]) << " ";
+      if(lfd.mlm == lfd.LineMixingType::Interp) {
+        counter++;
+        os << lfd.mdata[i].nelem() - counter << " ";
+        for(; counter < lfd.mdata[i].nelem(); counter++)
+          os << lfd.mdata[i][counter] << " ";
+      }
+      else {
+        for(Index k=0; k<lfd.TemperatureTypeNelem(lfd.mtypes[i][j]); k++)
+          os << lfd.mdata[i][counter+k] << " ";
+        counter += lfd.TemperatureTypeNelem(lfd.mtypes[i][j]);
+      }
+    }
+  }
+  
+  return os;
+}
 
-inline Numeric main_t3(const Numeric& T, const Numeric& T0, const Numeric& C, const Numeric& n) noexcept { return C + n * (T - T0); }
-
-inline Numeric dmain_dC_t3() noexcept { return 1; }
-
-inline Numeric dmain_dn_t3(const Numeric& T, const Numeric& T0) noexcept { return (T - T0); }
-
-inline Numeric dmain_dT_t3(const Numeric& n) noexcept { return n; }
-
-inline Numeric dmain_dT0_t3(const Numeric& n) noexcept { return -n; }
+//! Reads data as created by operator<< can read it
+std::istream& operator>>(std::istream& data, LineFunctionData& lfd) {
+  lfd.mself = lfd.mbath = false;
+  Index specs, c;
+  Numeric n;
+  String s;
+  
+  // The first tag should give the line shape scheme
+  data >> s;
+  lfd.StringSetLineShapeType(s);
+  
+  // The second tag should give the line mixing scheme
+  data >> s;
+  lfd.StringSetLineMixingType(s);
+  
+  // From the line shape and line mixing types, we know how many parameters are needed
+  const Index count = lfd.LineShapeTypeNelem() + lfd.LineMixingTypeNelem();
+  
+  // The third tag should contain the number of species
+  data >> specs;
+  lfd.mspecies.resize(specs);
+  lfd.mtypes = Array<Array<LineFunctionData::TemperatureType>>(specs, Array<LineFunctionData::TemperatureType>(count));
+  lfd.mdata.resize(specs);
+  
+  if(lfd.mp not_eq LineFunctionData::LineShapeType::DP and not specs)
+    throw std::runtime_error("Need at least one species for non-Doppler line shapes");
+  
+  // For all species, we need to set the methods to compute them
+  for(Index i=0; i<specs; i++) {
+    
+    // This should be a species tag or one of the specials, SELF or BATH
+    data >> s;
+    if(s == SELF) {
+      // If the species is self, then  we need to flag this
+      lfd.mself = true;
+      if(i not_eq 0)  // but self has to be first for consistent behavior
+        throw std::runtime_error("Self broadening must be first, it is not\n");
+    }
+    else if(s == BATH) {
+      // If the species is air, then we need to flag this
+      lfd.mbath = true;
+      if(i not_eq specs - 1)  // but air has to be last because it needs the rest's VMR
+        throw std::runtime_error("Air/bath broadening must be last, it is not\n");
+    }
+    else {
+      // Otherwise, we hope we find a species
+      try {
+        lfd.mspecies[i] = SpeciesTag(s);
+      }
+      catch(const std::runtime_error& e) {
+        ostringstream os;
+        os << "Encountered " << s << " in a position where a species should have been ";
+        os << "defined.\nPlease check your pressure broadening data structure and ensure ";
+        os << "that it follows the correct conventions.\n";
+        os << "SpeciesTag error reads:  " << e.what();
+        throw std::runtime_error(os.str());
+      }
+    }
+    
+    ArrayOfNumeric nums; nums.reserve(20); // buffers
+    
+    // For all parameters
+    for(Index j=0; j<count; j++) {
+      data >> s;  // Should contain a temperature tag
+      lfd.StringSetTemperatureType(i, j, s);
+      
+      // Find the count of species, negative numbers means the next data value has this number
+      c = lfd.TemperatureTypeNelem(lfd.mtypes[i][j]);
+      if(c < 0)
+        data >> c;
+      
+      // Add all new numbers for this line to the numbers
+      for(Index k=0; k<c; k++) {
+        data >> double_imanip() >> n;
+        nums.push_back(n);
+      }
+    }
+    
+    // Set the data now that we know how many counts are required
+    lfd.mdata[i].resize(nums.nelem());
+    for(Index j=0; j<nums.nelem(); j++)
+      lfd.mdata[i][j] = nums[j];
+  }
+  return data;
+}

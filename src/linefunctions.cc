@@ -413,17 +413,16 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
   bool ratioXY_low_limit, ratioXY_high_limit;
   
   // Practical term
-  const Complex invC2t = C2t_zero_limit ? Complex(0.0, 0.0) : (1.0 / C2t);
+  const Complex invC2t = C2t_zero_limit ? -1.0 : (1.0 / C2t);
   
   // Relative pressure broadening terms to be used in the shape function
-  const Complex sqrtY =  C2t_zero_limit ? -1 : (0.5 * invC2t * GD);
-  const Complex Y =      C2t_zero_limit ? -1 : (sqrtY * sqrtY);
-  const Numeric invAbsY =   C2t_zero_limit ? -1.0 : 1.0 / abs(Y);
+  const Complex sqrtY = 0.5 * invC2t * GD;
+  const Complex Y = sqrtY * sqrtY;
+  const Numeric invAbsY = 1.0 / abs(Y);
   
   // Temperature derivatives precomputed
   Complex dC0_dT, dC2_dT, dC0t_dT, dC2t_dT, dC0_m1p5_C2_dT, dY_dT;
-  if(do_temperature_jacobian(derivatives_data))
-  {
+  if(do_temperature_jacobian(derivatives_data)) {
     dC0_dT = dG0_dT + i*dL0_dT;
     dC2_dT = dG2_dT + i*dL2_dT;
     dC0t_dT = one_minus_eta * (dC0_dT - 1.5 * dC2_dT) - deta_dT * C0_m1p5_C2 + dFVC_dT;
@@ -436,8 +435,7 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
   const Numeric fac = sqrtPI * invGD;
   
   #pragma omp simd
-  for(Index iv = 0; iv < nf; iv++)
-  {
+  for(Index iv = 0; iv < nf; iv++) {
     // Relative frequency
     X = (C0t + i*(F0 - f_grid[iv])) * invC2t;
     absX = abs(X);
@@ -467,15 +465,9 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
       Zp = sqrtXY + sqrtY;
       
     //Helpers
-    if(C2t_zero_limit)
-    {
-      Zm2 = Zm * Zm;
-    }
-    else if(not ratioXY_high_limit)
-    {
-      Zm2 = Zm * Zm;
+    Zm2 = Zm * Zm;
+    if(not C2t_zero_limit)
       Zp2 = Zp * Zp;
-    }
     
     // Compute W-minus
     wiZm = Faddeeva::w(i*Zm);
@@ -498,9 +490,9 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
     else if(C2t_zero_limit)
       G = 1.0 - (FVC - eta * C0_m1p5_C2) * A + C2 * fac * ((1.0 - Zm2)*wiZm + Zm * sqrtInvPI);
     else if (ratioXY_high_limit)
-      G = 1.0 - (FVC - eta*C0_m1p5_C2) * A + eta / one_minus_eta * (-1.0 + 2.0 * sqrtPI * (1.0-X-2.0*Y) * (sqrtInvPI - Zm * wiZm) + 2.0*sqrtPI*Zp*wiZp);
+      G = 1.0 - (FVC - eta * C0_m1p5_C2) * A + eta / one_minus_eta * (-1.0 + 2.0 * sqrtPI * (1.0-X-2.0*Y) * (sqrtInvPI - Zm * wiZm) + 2.0*sqrtPI*Zp*wiZp);
     else
-      G = 1.0 - (FVC - eta*C0_m1p5_C2) * A + eta / one_minus_eta * (-1.0 + sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*wiZm - (1.0-Zp2)*wiZp));
+      G = 1.0 - (FVC - eta * C0_m1p5_C2) * A + eta / one_minus_eta * (-1.0 + sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*wiZm - (1.0-Zp2)*wiZp));
    
     // Compute denominator
     invG = 1.0 / G;
@@ -508,13 +500,10 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
     // Compute line shape
     F[iv] = A * invG * invPI;
     
-    for(Index iq = 0; iq < nppd; iq++)
-    {
-      if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
-      {
+    for(Index iq = 0; iq < nppd; iq++) {
+      if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]])) {
         // If this is the first time it is calculated this frequency bin, do the full calculation
-        if(first_frequency == iq)
-        {
+        if(first_frequency == iq) {
           // Compute dZm
           if(C2t_zero_limit or ratioXY_low_limit)
             dZm = -invGD * i;
@@ -555,12 +544,9 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
           dF(iq, iv) = invG * (invPI * dA - F[iv] * dG); 
         }
         else  // copy for repeated occurrences
-        {
           dF(iq, iv) = dF(first_frequency, iv); 
-        }
       }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-      {
+      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
         // Compute dZm
         if(C2t_zero_limit or ratioXY_low_limit)
           dZm = (dC0t_dT - Zm * dGD_dT) * invGD;
@@ -628,10 +614,8 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
           
         dF(iq, iv) = invG * (invPI * dA - F[iv] * dG); 
       }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter)
-      {
-        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-        {
+      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
+        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
           // Compute dZm
           if(C2t_zero_limit or ratioXY_low_limit)
             dZm = (i - Zm) * invGD;
@@ -676,13 +660,10 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
           dF(iq, iv) = invG * (invPI * dA - F[iv] * dG); 
         }
       }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) 
-      {
+      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR)  {
         // NOTE:  These are first order Voigt-like.  
         // The variables that are not Voigt-like must be dealt with separately
-        
-        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-        {
+        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
           // Compute dZm
           if(C2t_zero_limit or ratioXY_low_limit)
             dZm = one_minus_eta * invGD;
@@ -727,8 +708,7 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
           dF(iq, iv) = invG * (invPI * dA - F[iv] * dG) * Complex(0.0, -1.0); 
         }
       }
-      else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[iq]]))
-      {
+      else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[iq]])) {
         // Compute dZm
         if(C2t_zero_limit or ratioXY_low_limit)
           dZm = i * invGD;

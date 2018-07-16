@@ -63,6 +63,9 @@ public:
     
   /** Molecular species index. */
   Index Species() const { return mspecies; }
+  
+  /** Name of main species */
+  String SpeciesNameMain() const;
 
   /** Isotopologue species index.
       If this is equal to the number of isotopologues (one more than

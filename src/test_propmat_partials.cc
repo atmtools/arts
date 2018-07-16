@@ -67,6 +67,15 @@ void test_pressurebroadening()
     }
 }
 
+void test_linefunctionsdata()
+{
+  const ArrayOfNumeric empty_aon;
+  
+  const LineFunctionData test(istringstream("VP none 3 SELF T1 16000 0.7 T1 100 1.3 CO2 T1 16001 0.71 T1 101 1.31 AIR T1 16002 0.72 T1 102 1.32"));
+  String x = test.HumanReadable();
+  std::cout<<x<<"\n";
+}
+
 Numeric test2(Numeric x)
 {
     return x*x;
@@ -355,10 +364,11 @@ void test_matrixexp()
 int main()
 {
     std::cout<<"Testing Propmat Partials\n";
-    test_pressurebroadening();
-    test_partitionfunction();
-    test_K1_and_K2();
-    test_lineshape();
-    test_matrixexp();
+//     test_pressurebroadening();
+//     test_partitionfunction();
+//     test_K1_and_K2();
+//     test_lineshape();
+//     test_matrixexp();
+    test_linefunctionsdata();
     return 0;
 }

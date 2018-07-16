@@ -1139,12 +1139,4 @@ void match_lines_by_quantum_identifier(ArrayOfIndex& matches,
                                        const QuantumIdentifier& qi,
                                        const ArrayOfLineRecord& abs_lines);
 
-
-struct linerecord_binary_data_size
-{
-  Index I[9];
-  Numeric N[9+20+12]; // 9 normal, 20 pressurebroadening max, 12 linemixing mx
-  Rational R[2*30]; // 30 quantum numbers max, 2 per level
-};
-
 #endif // linerecord_h

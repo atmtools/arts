@@ -259,6 +259,7 @@ Vector ZeemanEffectData::Polarization(const Numeric& theta, const Numeric& eta) 
     case ZeemanPolarizationType::SigmaPlus:
       return Vector({1 + CT2,  ST2C2E,  ST2S2E, -2*CT, -4*CT,  2*ST2S2E, -2*ST2C2E});
   }
+  return Vector(0);
 }
 
 
@@ -277,6 +278,7 @@ Vector ZeemanEffectData::dPolarization_dtheta(const Numeric& theta, const Numeri
     case ZeemanPolarizationType::SigmaPlus:
       return Vector({dCT2,  dST2C2E,  dST2S2E, -2*dCT, -4*dCT,  2*dST2S2E, -2*dST2C2E});
   }
+  return Vector(0);
 }
 
 Vector ZeemanEffectData::dPolarization_deta(const Numeric& theta, const Numeric& eta) const
@@ -292,4 +294,5 @@ Vector ZeemanEffectData::dPolarization_deta(const Numeric& theta, const Numeric&
     case ZeemanPolarizationType::SigmaPlus:
       return Vector({0,  dST2C2E,  dST2S2E, 0, 0,  2*dST2S2E, -2*dST2C2E});
   }
+  return Vector(0);
 }
