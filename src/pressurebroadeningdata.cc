@@ -2373,7 +2373,7 @@ std::ostream& operator<<(std::ostream& os, const LineFunctionData& lfd) {
     // For mixing we must take care with the interp. values but otherwise we act the same as prev. loop
     for(Index j=nshapes; j<nmixing+nshapes; j++) {
       os << lfd.TemperatureType2String(lfd.mtypes[i][j]) << " ";
-      if(lfd.mlm == lfd.LineMixingType::Interp) {
+      if(lfd.mlm == LineFunctionData::LineMixingType::Interp) {
         counter++;
         os << lfd.mdata[i].nelem() - counter << " ";
         for(; counter < lfd.mdata[i].nelem(); counter++)
