@@ -66,7 +66,7 @@ void loop_four(stats &st,
       uint64_t key =
 	wigner3j_regge_canonicalise(jv);
       
-      key &= ~1; // ignore the sign bit
+      key &= ~((uint64_t) 1); // ignore the sign bit
       
       insert_buf(key);
     }

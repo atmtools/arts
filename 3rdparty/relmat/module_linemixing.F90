@@ -483,7 +483,7 @@ END module module_linemixing
         ! if the test fails, return a diagonal matrix.
         !
         econ % e(2) = econ % e(2) - 1
-        CALL just_fill_DiagWRn(nLines,dta1 % BHW, dta1 % HWT0, T/T0, P,W_rnO)
+        CALL just_fill_DiagWRn(nLines,dta1 % BHW, dta1 % HWT0, T0/T, P,W_rnO)
       else 
         ! if the matrix passes the sumRule test, the matrix will be returned
         ! in its original order.

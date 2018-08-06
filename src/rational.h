@@ -50,6 +50,7 @@ public:
     // Converting object
     Index toIndex() const;
     Numeric toNumeric() const { return (Numeric)mnom/(Numeric)mdenom; }
+    int toInt() const;
 
     // Useful. Keep this around and/or improve.
     void Simplify();

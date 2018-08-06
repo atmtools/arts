@@ -643,7 +643,7 @@ int main(int argc, char *argv[])
     {
       if (strncmp(argv[i],"--max-index-3j=",15) == 0)
 	{
-	  _max_index = atoll(argv[i]+15);
+	  _max_index = (uint64_t) atoll(argv[i]+15);
 
 	  uint64_t L = 0;
 
@@ -664,7 +664,7 @@ int main(int argc, char *argv[])
 	}
       else if (strncmp(argv[i],"--max-E-3j=",11) == 0)
 	{
-	  uint64_t L = atoll(argv[i]+11);
+	  uint64_t L = (uint64_t) atoll(argv[i]+11);
 
 	  _max_index = 
 	    (L * (274 + L * (225 + L * (85 + L * (15 + L))))
@@ -681,7 +681,7 @@ int main(int argc, char *argv[])
 	}
       else if (strncmp(argv[i],"--max-index-6j=",15) == 0)
 	{
-	  _max_index = atoll(argv[i]+15);
+	  _max_index = (uint64_t) atoll(argv[i]+15);
 
 	  uint64_t E = 0;
 
@@ -702,7 +702,7 @@ int main(int argc, char *argv[])
 	}
       else if (strncmp(argv[i],"--max-E-6j=",11) == 0)
 	{
-	  uint64_t E = atoll(argv[i]+11);
+	  uint64_t E = (uint64_t) atoll(argv[i]+11);
 
 	  _max_index = 
 	    (E * (1764 + E * (1624 + E * (735 + E * (175 + E * (21 + E)))))
@@ -790,7 +790,8 @@ int main(int argc, char *argv[])
       endpos = ftell(fin);
       fseek(fin, startpos, SEEK_SET);
 
-      entries = (endpos - startpos) / sizeof (uint64_t);
+      entries =
+	((uint64_t) (endpos - startpos)) / (uint64_t) sizeof (uint64_t);
 
       fprintf (stderr, "Entries: %" PRIu64 ".\n", entries);
 

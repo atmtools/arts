@@ -134,7 +134,7 @@ private:
     Index mstride;
 };
 
-// Declare the vector class:
+// Declare the complex vector class:
 class ComplexVector;
 
 // Declare the ComplexMatrixView class
@@ -336,7 +336,7 @@ public:
      friend class ComplexIterator2D;
      friend class ComplexMatrixView;
      
-     // A special constructor, that allows to make a VectorView of a scalar.
+     // A special constructor, that allows to make a ComplexVectorView of a scalar.
      ComplexVectorView(Complex& a);
      
      
@@ -524,7 +524,7 @@ public:
     ConstComplexIterator2D begin() const;
     ConstComplexIterator2D end() const;
     
-    // View on diagonal vector
+    // View on diagonal complex vector
     ConstComplexVectorView diagonal() const;
     
     //! Destructor

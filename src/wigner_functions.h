@@ -35,6 +35,8 @@ Numeric wigner6j(const Rational j1,const Rational j2,const Rational j3,
 //                  const Rational j21,const Rational j22,const Rational j23,
 //                  const Rational j31,const Rational j32,const Rational j33);
 
+Numeric co2_ecs_wigner_symbol(int Ji, int Jf, int Ji_p, int Jf_p, int L, int li, int lf);
+
 void ECS_wigner_CO2(Matrix& M, 
                     const ArrayOfRational& Jl, 
                     const ArrayOfRational& Ju, 

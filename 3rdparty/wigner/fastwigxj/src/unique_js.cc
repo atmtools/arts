@@ -136,20 +136,20 @@ void merge_with_file()
 
       if (pout >= pout_end)
 	{
-	  eject(fout, out, pout - out);
+	  eject(fout, out, (size_t) (pout - out));
 	  pout = out;
 	}
     }
 
   // Write out whatever is left in the output buffer.
-  eject(fout, out, pout - out);
+  eject(fout, out, (size_t) (pout - out));
 
   // Stuff left over either from file or from buffer.
   // Just write the two of them, only one will have entries.
 
-  eject(fout, p, p_end - p);
+  eject(fout, p, (size_t) (p_end - p));
 
-  eject(fout, pin, pin_end - pin);
+  eject(fout, pin, (size_t) (pin_end - pin));
 
   // We consumed all buffered data
   _nbuf = 0;

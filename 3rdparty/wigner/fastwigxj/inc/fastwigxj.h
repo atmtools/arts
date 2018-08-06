@@ -36,6 +36,12 @@ void fastwigxj_unload(int type);
 
 size_t fastwigxj_dyn_init(int type, size_t entries);
 
+/* Use this function instead of fastwigxj_dyn_init to ensure that thread
+ * support is compiled into the library.
+ * (Thread use not supported yet, though...)
+ */
+size_t fastwigxj_thread_dyn_init(int type, size_t entries);
+
 void fastwigxj_dyn_free(int type);
 
 void fastwigxj_print_stats();

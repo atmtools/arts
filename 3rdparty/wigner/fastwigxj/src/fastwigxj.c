@@ -36,8 +36,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <math.h>
-#include <pthread.h>
 #include <string.h>
+#if FASTWIGXJ_HAVE_THREAD_MUTEX
+#include <pthread.h>
+#endif
 
 #include "triple_mul.h"
 
@@ -61,6 +63,23 @@ struct wigner369j_stats fastwigxj_stats[FASTWIGXJPF_NUM_TABLES] = {
   WIGNER369J_STATS_INIT,
   WIGNER369J_STATS_INIT,
 };
+
+struct wigner369j_dyn_table_mutex
+{
+#if FASTWIGXJ_HAVE_THREAD_MUTEX
+  pthread_mutex_t _mutex;
+#else
+  int dummy;
+#endif
+};
+
+#if FASTWIGXJ_HAVE_LSFENCE
+# define LFENCE asm __volatile__ ("    lfence  \n\t" : : : "memory")
+# define SFENCE asm __volatile__ ("    sfence  \n\t" : : : "memory")
+#else
+# define LFENCE do { } while (0)
+# define SFENCE do { } while (0)
+#endif
 
 /* uint64_t _last_x; // TODO: remove me! */
 
@@ -121,6 +140,20 @@ size_t fastwigxj_dyn_init(int type, size_t entries)
 
   return sz;
 }
+
+/*                              ** Threaded dynamic tables need:          */
+#if FASTWIGXJ_HAVE_THREAD       /* Threads.                               */
+#if FASTWIGXJ_HAVE_THREAD_MUTEX /* Mutex, or cannot lock during reduce.   */
+#if FASTWIGXJ_HAVE_LSFENCE      /* Fences, or cannot order memory access. */
+size_t fastwigxj_thread_dyn_init(int type, size_t entries)
+{
+  fprintf (stderr, "Dynamic tables not yet supported with threads.");
+  exit(1);
+  return fastwigxj_dyn_init(type, entries);
+}
+#endif
+#endif
+#endif
 
 void fastwigxj_dyn_free(int type)
 {
@@ -200,7 +233,7 @@ size_t wig369j_ht_init(struct wigner369j_table *table,
     {
       fprintf (stderr, "369j hash file '%s' smaller than expected header "
 	       "(%zd < %zd).\n",
-	       filename, filelen, sizeof (*header));
+	       filename, (size_t) filelen, sizeof (*header));
       exit(1);
     }
 
@@ -275,10 +308,12 @@ size_t wig369j_ht_init(struct wigner369j_table *table,
   if (table->_map_size != (size_t) header_offset)
     {
       fprintf (stderr, "Hash file '%s' # hash entries "
-	       "mismatch header offset (%zd * %zd != %zd).\n",
+	       "mismatch header offset "
+	       "(%" PRIu64 "d * %zd != %" PRIu64 "d).\n",
 	       filename, 
-	       header->_hashentries, sizeof (struct fastwigxj_entry),
-	       header_offset);
+	       (uint64_t) header->_hashentries,
+	       sizeof (struct fastwigxj_entry),
+	       (uint64_t) header_offset);
       exit(1);
     }
 
@@ -418,7 +453,26 @@ size_t wig369j_ht_dyn_init(struct wigner369j_dyn_table *dyn_table,
 	  dyn_table->_table,
 	  dyn_table->_last_use_table);
   */
-  /* pthread_mutex_init(&dyn_table->_table_mutex, NULL); */
+
+#if FASTWIGXJ_HAVE_THREAD_MUTEX
+  /* The mutex is in a separate structure, such that fastwigxj_inc.h
+   * does not need to include pthread.h.  The mutex is only used when
+   * the table is reduced, so the double pointer indirection is no
+   * problem.
+   */
+  dyn_table->_table_mutex =
+    (struct wigner369j_dyn_table_mutex *)
+    malloc (sizeof (struct wigner369j_dyn_table_mutex));
+
+  if (!dyn_table->_table_mutex)
+    {
+      fprintf (stderr, "Memory allocation error, dynamic wigner hash table "
+	       "cound not allocate mutex.");
+      exit(1);
+    }
+
+  pthread_mutex_init(&dyn_table->_table_mutex->_mutex, NULL);
+#endif
 
   return mem_size;
 }
@@ -452,9 +506,20 @@ int wig369j_ht_dyn_earlier(struct wigner369j_dyn_table *dyn_table,
 
       /* So location y is better than i.  Use it. */
 
+      /* Before we can change the key, we must make the value invalid. */
+      {
+	union fastwigxj_double_uint64_t_type_pun value_nan;
+	value_nan._i = (uint64_t) -1;
+	table[y]._value = value_nan._f;
+      }
+      SFENCE;
+      /* Then update the key. */
       last_use_table[y] = last_use_table[i];
       table[y]._key   = table[i]._key;
+      SFENCE;
+      /* Now we can set a valid value. */
       table[y]._value = table[i]._value;
+      /* And remove the original item. */
       table[i]._key = (uint64_t) -1;
       return 1;
     }
@@ -636,7 +701,9 @@ void wig369j_ht_dyn_insert(struct wigner369j_dyn_table *dyn_table,
 
   y &= dyn_table->_table_mask;
 
-  pthread_mutex_lock(&dyn_table->_table_mutex);
+#if FASTWIGXJ_HAVE_THREAD_MUTEX
+  pthread_mutex_lock(&dyn_table->_table_mutex->_mutex);
+#endif
 
   if (dyn_table->_table_used > dyn_table->_table_used_next_check)
     {
@@ -669,32 +736,30 @@ void wig369j_ht_dyn_insert(struct wigner369j_dyn_table *dyn_table,
 	  continue;
 	}
 
-      /* We must set the value before the key. */
-      table[y]._key = key | sign;
-      table[y]._value = value;
-
-#if 0
       /* Mark the value invalid before inserting.  Necessary such that
        * readers can avoid using the wrong value in case they are
        * blocked for a long time between verifying the key.  (In case
-       * the key is at a location, egts moved/replaced and then
+       * the key is at a location, gets moved/replaced and then
        * returns again.)
        */
-      value_nan._i = (uint64_t) -1; /* NaN */
-
-      table[y]._value = value_nan._f;
+      {
+	union fastwigxj_double_uint64_t_type_pun value_nan;
+	value_nan._i = (uint64_t) -1;
+	table[y]._value = value_nan._f;
+      }
       SFENCE;
       table[y]._key = key | sign;
       SFENCE;
       table[y]._value = value;
-#endif
 
       last_use_table[y] = dyn_table->_table_recent;
       dyn_table->_table_used++;
 
       break;
     }
-  pthread_mutex_unlock(&dyn_table->_table_mutex);
+#if FASTWIGXJ_HAVE_THREAD_MUTEX
+  pthread_mutex_unlock(&dyn_table->_table_mutex->_mutex);
+#endif
 }
 
 int wig369j_ht_dyn_lookup(struct wigner369j_dyn_table *dyn_table,
@@ -724,8 +789,11 @@ int wig369j_ht_dyn_lookup(struct wigner369j_dyn_table *dyn_table,
 	  int ccnt1, ccnt2;
 
 	  ccnt1 = dyn_table->_table_clear_count;
+	  LFENCE;
 	  value._f = table[y]._value;
+	  LFENCE;
 	  table_key2 = table[y]._key;
+	  LFENCE;
 	  ccnt2 = dyn_table->_table_clear_count;
 
 	  if (ccnt2 != ccnt1 ||
@@ -733,6 +801,15 @@ int wig369j_ht_dyn_lookup(struct wigner369j_dyn_table *dyn_table,
 	    {
 	      /* The key/value has been changed while we were reading. */
 	      stats->_dyn_trip++;
+	      goto lookup_again;
+	    }
+	  if (value._i == (uint64_t) -1) /* nan */
+	    {
+	      stats->_dyn_trip++;
+	      /* The updating thread should be updating the value
+	       * soon.  Burn CPU until it gets there.  (Or changes the
+	       * key such that we actually not are found again.)
+	       */
 	      goto lookup_again;
 	    }
 
@@ -778,8 +855,11 @@ int wig369j_ht_dyn_lookup_mask1(struct wigner369j_dyn_table *dyn_table,
 	  int ccnt1, ccnt2;
 
 	  ccnt1 = dyn_table->_table_clear_count;
+	  LFENCE;
 	  value._f = table[y]._value;
+	  LFENCE;
 	  table_key2 = table[y]._key;
+	  LFENCE;
 	  ccnt2 = dyn_table->_table_clear_count;
 
 	  if (ccnt2 != ccnt1 ||
@@ -787,6 +867,12 @@ int wig369j_ht_dyn_lookup_mask1(struct wigner369j_dyn_table *dyn_table,
 	    {
 	      /* The key/value has been changed while we were reading. */
 	      stats->_dyn_trip++;
+	      goto lookup_again;
+	    }
+	  if (value._i == (uint64_t) -1) /* nan */
+	    {
+	      stats->_dyn_trip++;
+	      /* See routine above. */
 	      goto lookup_again;
 	    }
 
@@ -870,7 +956,9 @@ double fastwig9jj_calc_by_6j(const int *two_jv)
   if (!table_6j_float128->_table_entries)
 #endif
     {
+#if FASTWIGXJ_USE_FLOAT128
     fallback_direct_9j:
+#endif
       return wig9jj(two_jv[0], two_jv[1], two_jv[2],
 		    two_jv[3], two_jv[4], two_jv[5],
 		    two_jv[6], two_jv[7], two_jv[8]);
@@ -1079,6 +1167,7 @@ double fastwig9jj_calc_by_6j(const int *two_jv)
   
   double result = ldexp((double) accum,(accum_exp-3*16383-(48+64+2)));
 
+  STATS_9J->_9j_by_6j++;
   return sign ? -result : result;
 #else
   if (1/*fabs(sum) > 1e-15*/)
@@ -1094,6 +1183,7 @@ double fastwig9jj_calc_by_6j(const int *two_jv)
       log10(fabs(sum) / sum_abs), sum, sum_abs);
       */
     }
+  STATS_9J->_9j_by_6j++;
   return sign ? -(double) sum : (double) sum;
 #endif
 #endif/*FASTWIGXJ_USE_FLOAT128*/
@@ -1184,6 +1274,8 @@ void fastwigxj_print_stats()
 			       offsetof(struct wigner369j_stats, _dyn_hits));
   wig369j_print_stats_val_frac(fid, "Dynamic trip....: ",
 			       offsetof(struct wigner369j_stats, _dyn_trip));
+  wig369j_print_stats_val_frac(fid, "9j-by-6j........: ",
+			       offsetof(struct wigner369j_stats, _9j_by_6j));
   wig369j_print_stats_val_frac(fid, "Full calc.......: ",
 			       offsetof(struct wigner369j_stats, _calc));
   wig369j_print_stats_val(fid, "Total lookups...: ", lookups);

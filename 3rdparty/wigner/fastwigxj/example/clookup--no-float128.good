@@ -1,4 +1,5 @@
 FASTWIGXJ C test program
+Not doing 9j-by-6j fallback.
 3J( 5   7   5; -3   5  -2):              0.097479548847124
 3J(10  15  10; -3  12  -9):              0.040013817682833
 3J( 5   7   5; -3   5  -2):              0.097479548847124
@@ -20,14 +21,14 @@ FASTWIGXJ C test program
 FASTWIGXJ statistics:          3j             6j             9j        6j-f128
 
 Trivial 0.......:               0              0              0              0
-Hits............:               4              2              1             12
-Hits non-triv-0.:               4              2              1             12
+Hits............:               4              2              1              0
+Hits non-triv-0.:               4              2              1              0
 Dynamic hits....:               0              0              0              0
 Dynamic trip....:               0              0              0              0
-9j-by-6j........:               0              0              2              0
+9j-by-6j........:               0              0              0              0
 Full calc.......:               6              2              2              0
-Total lookups...:              10              4              3             12
+Total lookups...:              10              4              3              0
 
 Dyn table reduce:               0              0              0              0
-Table entries...:           33650           3004           2048           3004
+Table entries...:           33650           3004           2048              0
 Dyn. table entr.:               0              0              0              0

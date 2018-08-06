@@ -214,7 +214,7 @@ void loop_four(stats &st,
 		  else
 		    key = simple_key;
 
-		  key &= ~1; // ignore the sign bit
+		  key &= ~((uint64_t) 1); // ignore the sign bit
 	      
 		  insert_buf(key);
 		}

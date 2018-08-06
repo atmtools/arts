@@ -146,7 +146,7 @@ Numeric wigner6j(const Rational j1,const Rational j2,const Rational j3,
  
  Note: Ignore typos, the above is tested in relmat
 */
-inline Numeric co2_ecs_wigner_symbol(int Ji, int Jf, int Ji_p, int Jf_p, int L, int li, int lf)
+Numeric co2_ecs_wigner_symbol(int Ji, int Jf, int Ji_p, int Jf_p, int L, int li, int lf)
 {
 #if DO_FAST_WIGNER
   return fw3jja6(Ji_p, L,  Ji,

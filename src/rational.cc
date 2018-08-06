@@ -32,13 +32,21 @@ USA. */
 
 Index Rational::toIndex() const
 {
-    if (mnom%mdenom)
-    {
-        std::ostringstream os;
-        os << "Cannot convert Rational " << *this << " to Index.";
-        throw std::runtime_error(os.str());
-    }
-    return mnom/mdenom;
+  if(mdenom == 1)
+    return mnom;
+  else if (mnom%mdenom)
+  {
+      std::ostringstream os;
+      os << "Cannot convert Rational " << *this << " to Index.";
+      throw std::runtime_error(os.str());
+  }
+  return mnom/mdenom;
+}
+
+
+int Rational::toInt() const
+{
+  return int(toIndex());
 }
 
 

@@ -18295,7 +18295,26 @@ void define_md_data_raw()
         GIN_TYPE("TessemNN", "Vector"),
         GIN_DEFAULT(NODEF, NODEF),
         GIN_DESC("Tessem NeuralNet parameters.", "Input data.")
-        ));
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "TestLineMixing" ),
+      DESCRIPTION
+      (
+        "A dummy method to test line mixing.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT("relmat_per_band"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines", "partition_functions"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+    ));
 
   md_data_raw.push_back
     ( MdRecord

@@ -529,6 +529,45 @@ String SpeciesTag::SpeciesNameMain() const
   return species_name_from_species_index(mspecies);
 }
 
+Numeric SpeciesTag::SpeciesMass() const
+{
+  // Species lookup data:
+  using global_data::species_data;
+  
+  // A reference to the relevant record of the species data:
+  const Array<IsotopologueRecord> iso =  species_data[mspecies].Isotopologue();
+  
+  // Return either the mass of the first element or the mass of the isotopologue
+  return iso[(misotopologue > -1 and misotopologue < iso.nelem()) ? misotopologue : 0].Mass();
+}
+
+
+bool SpeciesTag::IsSpecies(const String& s) const
+{
+  return mspecies == species_index_from_species_name( s );
+}
+
+bool SpeciesTag::IsIsotopologue(const String& i) const
+{
+  // Species lookup data:
+  using global_data::species_data;
+  // A reference to the relevant record of the species data:
+  const  SpeciesRecord& spr = species_data[mspecies];
+  
+  
+  
+  // Now the isotopologue. Can be a single isotopologue or ALL.
+  if ( misotopologue == spr.Isotopologue().nelem() )
+    return true;
+  else if ( misotopologue < 0 )
+    return false;
+  else
+    return i == spr.Isotopologue()[misotopologue].Name();
+  
+  return mspecies == species_index_from_species_name( i );
+}
+
+
 
 ostream& operator << (ostream& os, const SpeciesTag& ot)
 {

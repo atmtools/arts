@@ -460,9 +460,9 @@ namespace Linefunctions
                                          const QuantumIdentifier& quantum_identity,
                                          const ComplexVector& dlm);
   
-  Numeric DopplerConstant(const Numeric T, const Numeric mass);
+  Numeric DopplerConstant(const Numeric& T, const Numeric& mass);
   
-  Numeric dDopplerConstant_dT(const Numeric T, const Numeric mass);
+  Numeric dDopplerConstant_dT(const Numeric& T, const Numeric& mass);
   
   void set_cross_section_for_single_line(ComplexVectorView F,
                                          ComplexMatrixView dF,

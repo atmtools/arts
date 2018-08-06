@@ -203,6 +203,7 @@ add_library (artscore STATIC
   lin_alg.cc
   linemixingrecord.cc
   linemixingdata.cc
+  linemixing.cc
   linerecord.cc
   linescaling.cc
   lineshapes.cc

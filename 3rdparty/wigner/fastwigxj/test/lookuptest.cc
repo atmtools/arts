@@ -29,9 +29,13 @@ uint64_t ntotest = 0;
 volatile int _dummy_zero = 0;
 
 int lookup_9j(int lim, const char *hashfile,
-	      const char *tablefile_6j)
+	      const char *tablefile_6j,
+	      const char *tablefile_6j_float128)
 {
   wigner6j_table table_6j;
+#if FASTWIGXJ_USE_FLOAT128
+  wigner6j_table_float128 table_6j_float128;
+#endif
   wigner9j_hash hash_9j;
   fastwigxj_header header;
 
@@ -41,6 +45,15 @@ int lookup_9j(int lim, const char *hashfile,
     {
       table_6j.init(tablefile_6j, &header);
     }
+
+#if FASTWIGXJ_USE_FLOAT128
+  if (tablefile_6j_float128)
+    {
+      table_6j_float128.init(tablefile_6j_float128, &header);
+    }
+#else
+  (void) tablefile_6j_float128;
+#endif
 
   /* Try some set of js... */
 
@@ -341,15 +354,15 @@ int main(int argc, char *argv[])
 	}
       else if (strncmp(argv[i],"--dyn-3j=",9) == 0)
 	{
-	  dyn_3j = atoi(argv[i]+9);
+	  dyn_3j = (size_t) atoi(argv[i]+9);
 	}
       else if (strncmp(argv[i],"--dyn-6j=",9) == 0)
 	{
-	  dyn_6j = atoi(argv[i]+9);
+	  dyn_6j = (size_t) atoi(argv[i]+9);
 	}
       else if (strncmp(argv[i],"--dyn-9j=",9) == 0)
 	{
-	  dyn_9j = atoi(argv[i]+9);
+	  dyn_9j = (size_t) atoi(argv[i]+9);
 	}
       else
 	{
@@ -448,7 +461,7 @@ int main(int argc, char *argv[])
   if (hashfile_9j)
     {
       ret = lookup_9j(lim, hashfile_9j,
-		      tablefile_6j);
+		      tablefile_6j, tablefile_6j_float128);
     }
   else if (tablefile_6j)
     {

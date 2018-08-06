@@ -1573,7 +1573,7 @@ void Linefunctions::apply_linemixing_jacobian_scaling(ComplexMatrixView dF,
  * \param mass Mass of molecule under consideration
  * 
  */
-Numeric Linefunctions::DopplerConstant(const Numeric T, const Numeric mass)
+Numeric Linefunctions::DopplerConstant(const Numeric& T, const Numeric& mass)
 {
   return doppler_const * sqrt(T / mass);
 }
@@ -1585,7 +1585,7 @@ Numeric Linefunctions::DopplerConstant(const Numeric T, const Numeric mass)
  * \param mass Mass of molecule under consideration
  * 
  */
-Numeric Linefunctions::dDopplerConstant_dT(const Numeric T, const Numeric mass)
+Numeric Linefunctions::dDopplerConstant_dT(const Numeric& T, const Numeric& mass)
 {
   return doppler_const * 0.5 * sqrt(1.0 / mass / T);
 }

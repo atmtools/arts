@@ -66,6 +66,15 @@ public:
   
   /** Name of main species */
   String SpeciesNameMain() const;
+  
+  /** Mass of main species */
+  Numeric SpeciesMass() const;
+  
+  /** Check if the species is same as SpeciesTag(s).Species() */
+  bool IsSpecies(const String& s) const;
+  
+  /** Check if the isotopologue is same as SpeciesTag(s).Isotopologue() */
+  bool IsIsotopologue(const String& s) const;
 
   /** Isotopologue species index.
       If this is equal to the number of isotopologues (one more than

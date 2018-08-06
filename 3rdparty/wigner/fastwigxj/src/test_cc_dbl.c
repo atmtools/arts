@@ -33,6 +33,9 @@
 #if TEST_THREAD
 __thread int global = 0;
 #endif
+#if TEST_THREAD_MUTEX
+#include <pthread.h>
+#endif
 #if TEST_AVX2
 #include <x86intrin.h>
 typedef long long v4di __attribute__ ((vector_size (32)));
@@ -71,6 +74,11 @@ int main()
   global = 2;
   printf ("#define FASTWIGXJ_HAVE_THREAD 1\n");
 #endif
+#if TEST_THREAD_MUTEX
+  pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+  pthread_mutex_lock(&mutex);
+  printf ("#define FASTWIGXJ_HAVE_THREAD_MUTEX 1\n");
+#endif
 #if TEST_AVX2
   // It makes no sense to try to compile if the compiler
   // does not support.  And there was a machine crash on seeing
@@ -91,6 +99,11 @@ int main()
   printf ("%f\n",z[0]);
   printf ("#define FASTWIGXJ_HAVE_SSE4_1 1\n");
 #endif
+#endif
+#if TEST_LSFENCE
+  asm __volatile__ ("    lfence  \n\t" : : : "memory");
+  asm __volatile__ ("    sfence  \n\t" : : : "memory");
+  printf ("#define FASTWIGXJ_HAVE_LSFENCE 1\n");
 #endif
 
   return 0;

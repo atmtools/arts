@@ -1,3 +1,8 @@
+1.3    2018-06-15
+
+	Support for multi-threaded use of dynamic hash tables.
+	Fix some MacOS warnings and general compile issues. (M. Gottschalk)
+
 1.2    2018-02-14
 
 	Dynamic hash tables, when only a subset of large symbols are used.

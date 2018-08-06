@@ -24,6 +24,7 @@
 #include "wigner_functions.h"
 #include "species_info.h"
 #include "auto_md.h"
+#include "linemixing.h"
 #include <Eigen/Eigenvalues>
 
 
@@ -2211,4 +2212,30 @@ void SetLineMixingCoefficinetsFromRelmat( // WS Input And Output:
       abs_lines_per_band[iband][iline].LineMixing().Vector2SecondOrderData(dvec);
     }
   }
+}
+
+
+void TestLineMixing(ArrayOfArrayOfMatrix& relmat_per_band,
+                    const ArrayOfLineRecord& abs_lines,
+                    const SpeciesAuxData& partition_functions,
+                    const Verbosity&)
+{
+  const ArrayOfSpeciesTag collider_species = {SpeciesTag("O2-66"), SpeciesTag("N2-44")};
+  const Vector collider_species_vmr = {0.21, 0.79};
+  const SpeciesAuxData::AuxType& partition_type = partition_functions.getParamType(abs_lines[0].Species(), abs_lines[0].Isotopologue());
+  const ArrayOfGriddedField1& partition_data = partition_functions.getParam(abs_lines[0].Species(), abs_lines[0].Isotopologue());
+  
+  const Index size = 75;
+  relmat_per_band.resize(1);
+  relmat_per_band[0].resize(size);
+  Numeric T=150;
+  
+  for(Index i=0; i< size; i++) {
+    relmat_per_band[0][i] = hartmann_ecs_interface(abs_lines, SpeciesTag("CO2"), collider_species, collider_species_vmr, partition_type, partition_data, T,  2);
+    T += 2;
+    std::cout<<"doing temp "<<T<<'\n';
+  }
+  
+  T = 296;
+//   hartmann_ecs_interface(abs_lines, SpeciesTag("CO2"), collider_species, collider_species_vmr, partition_type, partition_data, T,  2);
 }

@@ -45,6 +45,8 @@ struct fastwigxj_entry
   double   _value;
 };
 
+struct wigner369j_dyn_table_mutex;
+
 struct wigner369j_dyn_table
 {
   struct fastwigxj_entry *_table;
@@ -57,7 +59,7 @@ struct wigner369j_dyn_table
   volatile uint8_t _table_recent;
   uint8_t          _table_thin_index;
 
-  pthread_mutex_t _table_mutex;
+  struct wigner369j_dyn_table_mutex *_table_mutex;
 
   size_t  _table_used;
   size_t  _table_used_next_check;
@@ -66,7 +68,7 @@ struct wigner369j_dyn_table
 };
 
 #define WIGNER369J_DYN_TABLE_INIT \
-  { NULL, NULL,  0, 0,  0, 0, 0,  PTHREAD_MUTEX_INITIALIZER,  0, 0, 0 }
+  { NULL, NULL,  0, 0,  0, 0, 0,  NULL,  0, 0, 0 }
 
 struct wigner369j_table
 {
@@ -91,11 +93,12 @@ struct wigner369j_stats
   uint64_t  _dyn_trip; /* Do not include in sum of lookups. */
   uint64_t  _calc;
   uint64_t  _trivial0; /* Do not include in sum of lookups. */
+  uint64_t  _9j_by_6j; /* Do not include in sum of lookups. */
   uint64_t  _dyn_table_reduce;
 };
 
 #define WIGNER369J_STATS_INIT \
-  { 0, 0, 0, 0, 0, 0 }
+  { 0, 0, 0, 0, 0, 0, 0 }
 
 union fastwigxj_double_uint64_t_type_pun
 {
@@ -146,6 +149,9 @@ int wig369j_ht_dyn_lookup(struct wigner369j_dyn_table *table,
 int wig369j_ht_dyn_lookup_mask1(struct wigner369j_dyn_table *table,
 				struct wigner369j_stats *stats,
 				uint64_t sign, uint64_t key, double *rvalue);
+void wig369j_ht_dyn_insert(struct wigner369j_dyn_table *dyn_table,
+			   struct wigner369j_stats *stats,
+			   uint64_t sign, uint64_t key, double value); 
 
 double fastwig3jj_fallback(uint64_t x, const int *two_jv);
 double fastwig6jj_fallback(uint64_t x, const int *two_jv);

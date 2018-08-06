@@ -1,3 +1,44 @@
+2018-08-06  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1089
+	
+        Updates of fast-wigner calculations by H. Johansson,
+	should now support multithreading, though this has not been
+	adapted in ARTS-code yet.
+	
+	The rest are just small code dumps for some ongoing work on
+	line mixing calculations.
+	
+	*  3rdparty/relmat/module_linemixing.F90:  Fix to hard-coded
+	temperature dependency
+	
+	* src/CMakeLists.txt:  Added a linemixing.cc file
+	
+	* src/abs_species_tags.cc,h:  Added SpeciesMass,
+	IsSpecies, and IsIsotopologue to SpeciesTag-class for
+	easier use without having to access the species-mapping
+	itself (use these on own risk, because the ARTS species-
+	mapping is riskful to use for these purposes unless you
+	are absolutely certain what you can have available)
+	
+	* src/complex.h: comments update from the copy-paste.
+	
+	* src/linefunctions.cc,h:  Update so function takes reference
+	instead of copies
+	
+	* src/linemixing.cc,h:  Added.  Contains an experimental 
+	re-implementation of the simplest case of relmat.  Not
+	for real use yet...
+	
+	* src/m_linemixing.cc: TestLineMixing to test the above
+	
+	* src/methods.cc: as above
+	
+	* src/rational.cc,h:  Added toInt() because Wigner-code
+	needs integers
+	
+	* src/wigner_functions.cc,h: made co2_ecs_wigner_symbol public
+
 2018-07-17  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1088

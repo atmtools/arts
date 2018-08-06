@@ -26,6 +26,8 @@ int main(int argc, char *argv[])
 
   if (!(argc > 1 && strcmp (argv[1],"--no-float128") == 0))
     fastwigxj_load("test_table_8_float128.6j", 7, NULL);
+  else
+    printf ("Not doing 9j-by-6j fallback.\n");
 
   /* For fallback to WIGXJPF when symbols too large for table. */
 
