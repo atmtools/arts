@@ -1,3 +1,11 @@
+2018-08-08  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1090
+	
+	* 3rdparty/wigner/fastwigxj/Makefile:
+
+	Merge updated Makefile with pthread support.
+
 2018-08-06  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1089

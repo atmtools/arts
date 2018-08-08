@@ -95,7 +95,7 @@ endif
 ####################################################################
 
 AUTO_CONFIG_TESTS = TEST_LONG_DOUBLE TEST_FLOAT128 \
-	TEST_THREAD \
+	TEST_THREAD TEST_THREAD_MUTEX TEST_LSFENCE \
 	TEST_SSE4_1 TEST_AVX2
 
 gen/fastwigxj_auto_config.h.%: src/test_cc_dbl.c Makefile
@@ -181,14 +181,14 @@ bin/$(1): obj/$(1).o $(addprefix obj/,$(2)) lib/libfastwigxj.a
 	@echo "  LINK   $$@"
 	@mkdir -p $$(dir $$@)
 	$(QUIET)$(CXX) $(CXXFLAGS) -o $$@ \
-	  obj/$(1).o $(addprefix obj/,$(2)) $(LDFLAGS) $(LDLIBS)
+	  obj/$(1).o $(addprefix obj/,$(2)) $(LDFLAGS) $(LDLIBS) $(3)
 endef
 
 $(foreach prog,$(ALL_PROGS),\
-	$(eval $(call LINK_PROG_template,$(prog),gen_buf.o gen_header.o)))
+	$(eval $(call LINK_PROG_template,$(prog),gen_buf.o gen_header.o,)))
 
 $(foreach prog,$(ALL_PROGS_HASH),\
-	$(eval $(call LINK_PROG_template,$(prog),$(OBJS_LIB))))
+	$(eval $(call LINK_PROG_template,$(prog),$(OBJS_LIB),)))
 
 ####################################################################
 
@@ -208,7 +208,9 @@ bin/flookup: obj/flookup.o lib/libfastwigxj.a
 
 # Simple test to make sure we have compiled and are not obviously wrong
 
-test.9j.mark: $(addprefix bin/,$(ALL_PROGS) $(ALL_PROGS_HASH))
+ALL_TEST_PROGS_DEP = $(addprefix bin/,$(ALL_PROGS) $(ALL_PROGS_HASH))
+
+test.9j.mark: $(ALL_TEST_PROGS_DEP)
 	@echo "  TEST   $@"
 	$(QUIET)(bin/gen_9j --lim=3 | bin/combine_js | \
 	  bin/unique_js ./test_comb_3_6_12.9j) \
@@ -230,7 +232,28 @@ test.9j.mark: $(addprefix bin/,$(ALL_PROGS) $(ALL_PROGS_HASH))
 	$(QUIET)diff -u test/test.9j.good gen/test.9j.out
 	$(QUIET)touch $@
 
-test.6j.mark: $(addprefix bin/,$(ALL_PROGS) $(ALL_PROGS_HASH))
+test_by6j.9j.mark: $(ALL_TEST_PROGS_DEP) test.9j.mark test_float128.6j.mark
+	@echo "  TEST   $@"
+	$(QUIET)bin/info_js ./test_hashed_3_6_12.9j \
+	  > gen/test_by6j.9j.out 2> gen/test_by6j.9j.err
+	$(QUIET)bin/info_js ./test_table_8_float128.6j \
+	  >> gen/test_by6j.9j.out 2>> gen/test_by6j.9j.err
+	$(QUIET)bin/lookuptest --lim=2 \
+	  ./test_hashed_3_6_12.9j ./test_table_8_float128.6j \
+	  >> gen/test_by6j.9j.out 2>> gen/test_by6j.9j.err
+	$(QUIET)bin/lookuptest --lim=3 \
+	  ./test_hashed_3_6_12.9j ./test_table_8_float128.6j \
+	  >> gen/test_by6j.9j.out 2>> gen/test_by6j.9j.err
+	$(QUIET)bin/lookuptest --lim=4 \
+	  ./test_hashed_3_6_12.9j ./test_table_8_float128.6j \
+	  >> gen/test_by6j.9j.out 2>> gen/test_by6j.9j.err
+	$(QUIET)bin/lookuptest --lim=5 \
+	  ./test_hashed_3_6_12.9j ./test_table_8_float128.6j \
+	  >> gen/test_by6j.9j.out 2>> gen/test_by6j.9j.err
+	$(QUIET)diff -u test/test_by6j.9j.good gen/test_by6j.9j.out
+	$(QUIET)touch $@
+
+test.6j.mark: $(ALL_TEST_PROGS_DEP)
 	@echo "  TEST   $@"
 	$(QUIET)bin/hash_js --max-E-6j=8 /dev/null ./test_table_8.6j \
 	  > gen/test.6j.out 2> gen/test.6j.err
@@ -249,7 +272,7 @@ test.6j.mark: $(addprefix bin/,$(ALL_PROGS) $(ALL_PROGS_HASH))
 	$(QUIET)diff -u test/test.6j.good gen/test.6j.out
 	$(QUIET)touch $@
 
-test_float128.6j.mark: $(addprefix bin/,$(ALL_PROGS) $(ALL_PROGS_HASH))
+test_float128.6j.mark: $(ALL_TEST_PROGS_DEP)
 	@echo "  TEST   $@"
 	$(QUIET)bin/hash_js --max-E-6j=8 --float128 \
 	  /dev/null ./test_table_8_float128.6j \
@@ -260,7 +283,7 @@ test_float128.6j.mark: $(addprefix bin/,$(ALL_PROGS) $(ALL_PROGS_HASH))
 	  >> gen/test_float128.6j.out 2>> gen/test_float128.6j.err
 	$(QUIET)touch $@
 
-test.3j.mark: $(addprefix bin/,$(ALL_PROGS) $(ALL_PROGS_HASH))
+test.3j.mark: $(ALL_TEST_PROGS_DEP)
 	@echo "  TEST   $@"
 	$(QUIET)bin/hash_js --max-E-3j=18 /dev/null ./test_table_18.3j \
 	  > gen/test.3j.out 2> gen/test.3j.err
@@ -288,7 +311,10 @@ lookuptest.prereq: test.3j.mark test.6j.mark test.9j.mark
 	@echo "  CHECK  $@"
 	$(QUIET)mkdir -p gen/
 	$(QUIET)./$< $(NO_FLOAT128_FLAG) > gen/$*lookup.out
-	$(QUIET)diff -u example/$*lookup.good gen/$*lookup.out
+	$(QUIET)diff -u \
+	  $(or $(wildcard example/$*lookup$(NO_FLOAT128_FLAG).good), \
+	       example/$*lookup.good)\
+	  gen/$*lookup.out
 	$(QUIET)#touch $@ # Do not stamp, so test is re-run.
 
 ####################################################################
@@ -296,7 +322,7 @@ lookuptest.prereq: test.3j.mark test.6j.mark test.9j.mark
 test: test.9j.mark test.6j.mark test.3j.mark clookup.test
 ifeq ($(HAVE_QUADMATH),1)
 lookuptest.prereq: test_float128.6j.mark
-test: test_float128.6j.mark
+test: test_float128.6j.mark test_by6j.9j.mark
 endif
 
 ####################################################################
