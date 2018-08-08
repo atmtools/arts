@@ -23,6 +23,15 @@
 #include <sstream>
 #include <algorithm>
 
+
+#if DO_FAST_WIGNER
+  #define WIGNER3 fw3jja6
+  #define WIGNER6 fw6jja
+#else
+  #define WIGNER3 wig3jj
+  #define WIGNER6 wig6jj
+#endif
+
 /*!
   Run wigxjpf wig3jj for Rational symbol
   
@@ -45,11 +54,7 @@ Numeric wigner3j(const Rational j1,const Rational j2,const Rational j3,
             f = int((2*m3).toIndex());
   double g;
             
-  #if DO_FAST_WIGNER
-  g = fw3jja6(a, b, c, d, e, f);
-  #else
-  g = wig3jj(a, b, c, d, e, f);
-  #endif
+  g = WIGNER3(a, b, c, d, e, f);
   
   return Numeric(g);
 }
@@ -77,55 +82,10 @@ Numeric wigner6j(const Rational j1,const Rational j2,const Rational j3,
             f = int((2*l3).toIndex());
   double g;
   
-  #if DO_FAST_WIGNER
-  g = fw6jja(a, b, c, d, e, f);
-  #else
-  g = wig6jj(a, b, c, d, e, f);
-  #endif
+  g = WIGNER6(a, b, c, d, e, f);
   
   return Numeric(g);
 }
-
-
-
-
-/*!
- Run wigxjpf wig9jj for Rational symbol
- 
- /                 \
- |  j11  j12  j13  |
- <  j21  j22  j23  >
- |  j31  j32  j33  |
- \                 /
- 
- See for definition: http://dlmf.nist.gov/34.6
-*/
-// Numeric wigner9j(const Rational j11,const Rational j12,const Rational j13,
-//                  const Rational j21,const Rational j22,const Rational j23,
-//                  const Rational j31,const Rational j32,const Rational j33)
-// {
-//   const int a = int((2*j11).toIndex()),
-//             b = int((2*j12).toIndex()), 
-//             c = int((2*j13).toIndex()), 
-//             d = int((2*j21).toIndex()), 
-//             e = int((2*j22).toIndex()), 
-//             f = int((2*j23).toIndex()), 
-//             g = int((2*j31).toIndex()), 
-//             h = int((2*j32).toIndex()), 
-//             i = int((2*j33).toIndex()),
-//             j = std::max(std::max(std::max(std::max(std::max(std::max(std::max(std::max(a, b), c), d), e), f), g), h), i);
-//   double k;
-//   
-//   wig_table_init(j, 9);
-//   wig_thread_temp_init(j);
-//   
-//   k = wig9jj(a, b, c, d, e, f, g, h, i);
-//   
-//   wig_temp_free();
-//   wig_table_free();
-//   
-//   return Numeric(k);
-// }
 
 /*! Returns the wigner symbol used in Niro etal 2004
 
@@ -148,17 +108,21 @@ Numeric wigner6j(const Rational j1,const Rational j2,const Rational j3,
 */
 Numeric co2_ecs_wigner_symbol(int Ji, int Jf, int Ji_p, int Jf_p, int L, int li, int lf)
 {
-#if DO_FAST_WIGNER
-  return fw3jja6(Ji_p, L,  Ji,
-                 li,   0, -li) * fw3jja6( Jf_p, L, Jf,
-                                         -lf,   0, lf) * fw6jja(Ji,   Jf,   2,
-                                                                Jf_p, Ji_p, L) * Numeric(L + 1);
-#else
-  return wig3jj(Ji_p, L,  Ji,
-                li,   0, -li) * wig3jj( Jf_p, L, Jf,
-                                       -lf,   0, lf) * wig6jj(Ji,   Jf,   2,
-                                                              Jf_p, Ji_p, L) * Numeric(L + 1);
-#endif
+  return WIGNER3(Ji_p, L,  Ji,
+                 li,   0, -li) * WIGNER3( Jf_p, L, Jf,
+                                         -lf,   0, lf) * WIGNER6(Ji,   Jf,   2,
+                                                                 Jf_p, Ji_p, L) * Numeric(L + 1);
+}
+
+
+
+Numeric o2_ecs_wigner_Qsymbol(int Nl, int Nk, int Jl, int Jk, int Jl_p, int Jk_p, int L)
+{
+  return WIGNER3(Nl, Nk, L,
+                 0,  0,  0) * WIGNER6(L, Jk, Jl,
+                                      2, Nl, Nk) * WIGNER6(L, Jk_p, Jl_p,
+                                                           2, Nl,   Nk  ) * WIGNER6(L, Jk,   Jl,
+                                                                                    2, Jl_p, Jk_p);
 }
 
 

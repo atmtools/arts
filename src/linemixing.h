@@ -133,6 +133,7 @@ Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
                               const SpeciesAuxData::AuxType& partition_type,
                               const ArrayOfGriddedField1& partition_data,
                               const Numeric& T,
+                              const Index& size,
                               const Index type);
 
 #endif // linemixing_h

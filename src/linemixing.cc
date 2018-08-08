@@ -36,7 +36,7 @@ inline Numeric getB0(const SpeciesTag& main)
   const Numeric hi2arts = 1e-2 * SPEED_OF_LIGHT;
   
   if(main.IsSpecies("CO2"))
-    return 0.39021 * hi2arts;
+    return 0.39021 * hi2arts;  // Herzberg 1966
   else if(main.IsSpecies("O2")) {
     if(main.IsIsotopologue("66"))
       return 43100.44276e6;  // B.J. Drouin et al. Journal of Quantitative Spectroscopy & Radiative Transfer 111 (2010) 1167–1173
@@ -112,7 +112,9 @@ Matrix relaxation_matrix_calculations(const ArrayOfLineRecord& lines,
                                       const SpeciesTag& main,
                                       const SpeciesTag& collider,
                                       const Numeric& collider_vmr,
-                                      const Numeric& T)
+                                      const Numeric& T,
+                                      const Index& size
+                                     )
 {
   const Index n = lines.nelem();
   
@@ -129,13 +131,17 @@ Matrix relaxation_matrix_calculations(const ArrayOfLineRecord& lines,
     spec = Species::CO2;
   else throw std::runtime_error("Unsupported species");
   
+  #pragma omp parallel for if(DO_FAST_WIGNER && !arts_omp_in_parallel())
   for(Index i=0; i<n; i++) {
+    // Create a temporary table to allow openmp
+    wig_temp_init(2*int(size));
+    
     const Numeric& popi = population[i];
     for(Index j=0; j<n; j++) {
       const Numeric& popj = population[j];
       
       if(i == j) {
-        W(i, j) = lines[i].Agam() * pow(lines[i].Ti0()/T, lines[i].Nair());  // FIXME: ADOPT THIS TO BE FOR COLLIDER SPECIES AND NOT JUST AIR
+        W(i, j) = 2* lines[i].Agam() * pow(lines[i].Ti0()/T, lines[i].Nair());  // FIXME: ADOPT THIS TO BE FOR COLLIDER SPECIES AND NOT JUST AIR
       }
       else {
       tuple<Numeric, Numeric> X;
@@ -150,6 +156,9 @@ Matrix relaxation_matrix_calculations(const ArrayOfLineRecord& lines,
         W(j, i) = std::move(std::get<1>(X));
       }
     }
+    
+    // Remove the temporary table
+    wig_temp_free();
   }
   
   // rescale by the VMR
@@ -216,7 +225,6 @@ void normalize_relaxation_matrix(Matrix& W,
     #pragma omp simd
     for(Index j=0; j<n; j++)
       sum += Wr(i, j) * d0[sorted[j]] / d0[sorted[i]];
-//     std::cout << "row " << i << " has sum-rule test " << sum << '\n';
   }
   
   // Resort matrix before returning
@@ -242,7 +250,8 @@ inline Matrix hartmann_relaxation_matrix(const ArrayOfLineRecord& abs_lines,
                                          const Vector& d0,
                                          const ArrayOfSpeciesTag& colliders,
                                          const Vector& colliders_vmr,
-                                         const Numeric& T)
+                                         const Numeric& T,
+                                         const Index& size)
 {
   // Size of problem
   const Index n=abs_lines.nelem();
@@ -251,7 +260,7 @@ inline Matrix hartmann_relaxation_matrix(const ArrayOfLineRecord& abs_lines,
   // Create and normalize the matrix
   Matrix W(n, n, 0);
   for(Index ic=0; ic<c; ic++)
-    W += relaxation_matrix_calculations(abs_lines, population, main_species, colliders[ic], colliders_vmr[ic], T);
+    W += relaxation_matrix_calculations(abs_lines, population, main_species, colliders[ic], colliders_vmr[ic], T, size);
   normalize_relaxation_matrix(W, population, d0);
   
   return W;
@@ -314,9 +323,12 @@ inline Vector dipole_vector(const ArrayOfLineRecord& abs_lines,
  \return reduced dipole moment of the absorption lines
  */
 inline Vector reduced_dipole_vector(const ArrayOfLineRecord& abs_lines,
-                                    const SpeciesTag& main /*,  next line for O2...
-                                    const Vector& dipole */)
+                                    const SpeciesTag& main,
+                                    const Index& size)
 {
+  // Create a temporary table
+  wig_temp_init(2*int(size));
+  
   const Index n=abs_lines.nelem();
   Vector a(n);
   
@@ -338,6 +350,8 @@ inline Vector reduced_dipole_vector(const ArrayOfLineRecord& abs_lines,
     throw std::runtime_error("Cannot support species at this point");
   }
   
+  // Remove the temporary table
+  wig_temp_free();
   return a;
 }
 
@@ -441,6 +455,7 @@ Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
                               const SpeciesAuxData::AuxType& partition_type,
                               const ArrayOfGriddedField1& partition_data,
                               const Numeric& T,
+                              const Index& size,
                               const Index type)
 {
   const Vector population = population_density_vector(abs_lines, partition_type, partition_data, T);
@@ -449,12 +464,12 @@ Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
   const Vector dipole = dipole_vector(abs_lines, partition_type, partition_data);
   if(type == - 2) return Matrix(dipole);
   
-  const Vector d0 = reduced_dipole_vector(abs_lines, main_species);
+  const Vector d0 = reduced_dipole_vector(abs_lines, main_species, size);
   if(type == - 3) return Matrix(d0);
   
   if(type < 0) throw std::runtime_error("Developer error: Invalid type-statement.\n");
   
-  const Matrix W = hartmann_relaxation_matrix(abs_lines, main_species, population, d0, collider_species, collider_species_vmr, T);
+  const Matrix W = hartmann_relaxation_matrix(abs_lines, main_species, population, d0, collider_species, collider_species_vmr, T, size);
   if(not type) return W;
   
   Matrix X(type*2, abs_lines.nelem());

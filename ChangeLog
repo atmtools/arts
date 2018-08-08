@@ -1,3 +1,42 @@
+2018-08-08  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1091
+	
+	* 3rdparty/wigner/fastwigxj/src/fastwigxj.c: removed exiting
+	from a function that did not need it
+	
+	* doc/uguide/absorption.tex: updated name of method
+	
+	* src/linemixing.cc,h: Added OpenMP support and switched around
+	how Wigner-calculations are done.  Speedup is 3X on four threads.
+	
+	* src/linerecord.cc:  just added a warning comment.  Presently,
+	ARTS will crash completely if you do not run Wigner6Init before
+	reading a catalog with Zeeman-effect data...  Problem:  the Wigner
+	code calls exit(1) and I do not know how to catch this
+	
+	* src/m_linemixing.cc:  Also creates the temporary arrays for Wigner
+	and keeps track of sizes
+	
+	* src/m_wigner.cc:  Added OpenMP symbols.  Also changed so that the
+	temporary tables are not initiated.  The latter is done because there
+	is a need to initiate these temporary objects for every thread.  If
+	it was possible to do all that once, I would have it done here and
+	then just remove them in the remove file.  I am not sure how these
+	temporary objects work, though, so that is not possible.
+	
+	* src/m_zeeman.cc:  Fix of strange previous design of the overwriting
+	program...
+	
+	* src/methods.cc: TestLineMixing needs the wigner symbol sizes
+	
+	* src/wigner_functions.cc,h:  Changed so that the same function call is
+	used regardless of whether or not the DO_FAST_WIGNER variable is set or
+	not inside all functions.  Also beginning to add O2 ECS symbol.
+	
+	* src/zeemandata.cc,h:  Created an init function to keep the code simpler,
+	and the init function now creates a temporary array of the correct size
+
 2018-08-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1090

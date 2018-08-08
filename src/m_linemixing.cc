@@ -1754,6 +1754,9 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
     f0 *= w2Hz;
     
     for(Index ip = 0; ip < nps; ip++) {
+      // Temporary table
+      wig_temp_init(2*int(wigner_initialized));
+
       // Information on the lines will be here after relmat is done
       Matrix W(nlines,nlines);
       Vector dipole(nlines);
@@ -2048,6 +2051,9 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           }
         }
       }
+
+      // Remove the temporary table
+      wig_temp_free();
     }
     delete[] g_prime;
     delete[] g_double_prime;
@@ -2218,6 +2224,7 @@ void SetLineMixingCoefficinetsFromRelmat( // WS Input And Output:
 void TestLineMixing(ArrayOfArrayOfMatrix& relmat_per_band,
                     const ArrayOfLineRecord& abs_lines,
                     const SpeciesAuxData& partition_functions,
+                    const Index& wigner_initialized,
                     const Verbosity&)
 {
   const ArrayOfSpeciesTag collider_species = {SpeciesTag("O2-66"), SpeciesTag("N2-44")};
@@ -2231,11 +2238,13 @@ void TestLineMixing(ArrayOfArrayOfMatrix& relmat_per_band,
   Numeric T=150;
   
   for(Index i=0; i< size; i++) {
-    relmat_per_band[0][i] = hartmann_ecs_interface(abs_lines, SpeciesTag("CO2"), collider_species, collider_species_vmr, partition_type, partition_data, T,  2);
+      relmat_per_band[0][i] = hartmann_ecs_interface(abs_lines, SpeciesTag("CO2"), collider_species, collider_species_vmr, partition_type, partition_data, T, wigner_initialized,  2);
     T += 2;
     std::cout<<"doing temp "<<T<<'\n';
   }
   
-  T = 296;
-//   hartmann_ecs_interface(abs_lines, SpeciesTag("CO2"), collider_species, collider_species_vmr, partition_type, partition_data, T,  2);
+//   T = 296;
+//   relmat_per_band[0][0] = hartmann_ecs_interface(abs_lines, SpeciesTag("CO2"), collider_species, collider_species_vmr, partition_type, partition_data, T, wigner_initialized,  0);
+//   relmat_per_band[0][1] = hartmann_ecs_interface(abs_lines, SpeciesTag("CO2"), collider_species, collider_species_vmr, partition_type, partition_data, T, wigner_initialized,  -3);
+//   relmat_per_band[0][2] = hartmann_ecs_interface(abs_lines, SpeciesTag("CO2"), collider_species, collider_species_vmr, partition_type, partition_data, T, wigner_initialized,  -1);
 }

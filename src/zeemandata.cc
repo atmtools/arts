@@ -129,7 +129,7 @@ inline void are_Ju_and_Jl_compatible(const Rational& Ju, const Rational& Jl)
 }
 
 
-ZeemanEffectData::ZeemanEffectData(const Numeric& gu, const Numeric& gl, const QuantumIdentifier& qi, const ZeemanPolarizationType polarization)
+void ZeemanEffectData::init(const Numeric& gu, const Numeric& gl, const QuantumIdentifier& qi, const ZeemanPolarizationType polarization)
 {
   mpolar = polarization;
   mgl = gl;
@@ -138,6 +138,9 @@ ZeemanEffectData::ZeemanEffectData(const Numeric& gu, const Numeric& gl, const Q
   const Rational& Jl = qi.LowerQuantumNumbers()[QuantumNumberType::J];
   const Rational& Ju = qi.UpperQuantumNumbers()[QuantumNumberType::J];
   are_Ju_and_Jl_compatible(Ju, Jl);
+  
+  // temporary compute vector
+  wig_temp_init((2*max(Jl, Ju)).toInt());
 
   // Find M-vectors
   Rational end, start, dM;
@@ -181,6 +184,14 @@ ZeemanEffectData::ZeemanEffectData(const Numeric& gu, const Numeric& gl, const Q
     mS0[i] = wigner3j(Jl, Rational(1), Ju, mMl[i], -dM, -mMu[i]);
     mS0[i] *= mS0[i] * C;
   }
+  
+  wig_temp_free();
+}
+
+
+ZeemanEffectData::ZeemanEffectData(const Numeric& gu, const Numeric& gl, const QuantumIdentifier& qi, const ZeemanPolarizationType polarization)
+{
+  init(gu, gl, qi, polarization);
 }
 
 
@@ -188,60 +199,10 @@ ZeemanEffectData::ZeemanEffectData(const QuantumIdentifier& qi, const ZeemanPola
 {
   const Numeric GS = get_lande_spin_constant(qi.Species());
   const Numeric GL = get_lande_lambda_constant();
-  const Numeric gl = gHund(qi.LowerQuantumNumbers(), GS, GL);;
-  const Numeric gu = gHund(qi.UpperQuantumNumbers(), GS, GL);;
+  const Numeric gl = gHund(qi.LowerQuantumNumbers(), GS, GL);
+  const Numeric gu = gHund(qi.UpperQuantumNumbers(), GS, GL);
   
-//   ZeemanEffectData(gHund(qi.UpperQuantumNumbers(), GS, GL), gHund(qi.LowerQuantumNumbers(), GS, GL), qi, polarization);
-  // All below here should be a perfect copy of the above initialization
-  
-  
-  mpolar = polarization;
-  mgl = gl;
-  mgu = gu;
-  
-  const Rational& Jl = qi.LowerQuantumNumbers()[QuantumNumberType::J];
-  const Rational& Ju = qi.UpperQuantumNumbers()[QuantumNumberType::J];
-  are_Ju_and_Jl_compatible(Ju, Jl);
-  
-  // Find M-vectors
-  Rational end, start, dM;
-  Numeric C=0.75;
-  switch(mpolar) {
-    case ZeemanPolarizationType::Pi:
-      C *= 2;
-      dM = Rational(0, 1);
-      end = min(Ju, Jl);
-      start = -end;
-      break;
-    case ZeemanPolarizationType::SigmaPlus:
-      dM = Rational(1, 1);
-      start = -Ju;
-      if(Ju < Jl)       end = Ju;
-      else if(Ju == Jl) end = Ju-1;
-      else              end = Jl-1;
-      break;
-    case ZeemanPolarizationType::SigmaMinus:
-      dM = Rational(-1, 1);
-      end = Ju;
-      if(Ju < Jl)       start = -Ju;
-      else if(Ju == Jl) start = -Ju + 1;
-      else              start = -Ju + 2;
-      break;
-    case ZeemanPolarizationType::None:
-      throw std::runtime_error("To developer: never initialize ZeemanEffectData without known polarization.  Throw warnings earlier than here!");
-  }
-  
-  // Set the computational data 
-  mnelem = (end - start).toIndex() + 1;
-  mS0.resize(mnelem);
-  mMu.resize(mnelem);
-  mMl.resize(mnelem);
-  for(Index i=0; i<mnelem; i++) {
-    mMu[i] = start + i;
-    mMl[i] = mMu[i] + dM;
-    mS0[i] = wigner3j(Jl, Rational(1), Ju, mMl[i], -dM, -mMu[i]);
-    mS0[i] *= mS0[i] * C;
-  }
+  init(gu, gl, qi, polarization);
 }
 
 

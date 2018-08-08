@@ -63,17 +63,10 @@ void zeeman_linerecord_precalcModifyFromData(ArrayOfArrayOfLineRecord& zeeman_li
           upper = k;
       }
       
-      Numeric gl, gu;
       if(lower not_eq -1)
-        gl = data[lower];
-      else 
-        gl = line.ZeemanEffect().LowerG();
-      if(upper not_eq - 1)
-        gu = data[upper];
-      else 
-        gu = line.ZeemanEffect().UpperG();
-      
-      line.SetZeemanEffectData(ZeemanEffectData(gu, gl, line.QuantumIdentity(), line.ZeemanEffect().PolarizationType()));
+        line.ZeemanEffect().LowerG() = data[lower];
+      if(upper not_eq -1)
+        line.ZeemanEffect().UpperG() = data[upper];
       
       if(lower not_eq -1 or  upper not_eq -1) ++i;
       if(lower not_eq -1 and upper not_eq -1) ++j;

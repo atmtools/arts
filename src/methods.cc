@@ -18309,7 +18309,7 @@ void define_md_data_raw()
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines", "partition_functions"),
+      IN("abs_lines", "partition_functions", "wigner_initialized"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),

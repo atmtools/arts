@@ -147,8 +147,8 @@ size_t fastwigxj_dyn_init(int type, size_t entries)
 #if FASTWIGXJ_HAVE_LSFENCE      /* Fences, or cannot order memory access. */
 size_t fastwigxj_thread_dyn_init(int type, size_t entries)
 {
-  fprintf (stderr, "Dynamic tables not yet supported with threads.");
-  exit(1);
+  //fprintf (stderr, "Dynamic tables not yet supported with threads.");
+  //exit(1);
   return fastwigxj_dyn_init(type, entries);
 }
 #endif

@@ -363,7 +363,7 @@ Agenda: \wsaindex{propmat\_clearsky\_agenda}. \newline
 Variable: \wsvindex{propmat\_clearsky}, which is nitialized in \wsmindex{propmat\_clearskyInit}.\newline
 Methods: \wsmindex{propmat\_clearskyAddOnTheFly} (the core method for on-the-fly
 absoprtion calculation inlcuding line-by-line and continuum absorption), \newline
-\wsmindex{propmat\_clearskyAddZeemanFromPreCalc} (see Sec.~\ref{sec:absorption:zeeman}), \newline
+\wsmindex{propmat\_clearskyAddZeeman} (see Sec.~\ref{sec:absorption:zeeman}), \newline
 \wsmindex{propmat\_clearskyAddFaraday} (see Sec.~\ref{sec:absorption:faraday}), \newline
 \wsmindex{propmat\_clearskyAddParticles} (see Sec.~\ref{sec:absorption:particles}). \newline
 Alternative:
@@ -665,7 +665,7 @@ specifically:
 \subsection{Zeeman calculations}
 \label{sec:absorption:zeeman}
 
-The Zeeman effect is calculated in the method \wsmindex{propmat\_clearskyAddZeemanFromPreCalc}.
+The Zeeman effect is calculated in the method \wsmindex{propmat\_clearskyAddZeeman}.
 If this method is included in the \builtindoc{propmat\_clearsky\_agenda}, then species with the
 tag "\verb|-Z|" will be calculated as Zeeman species.
 This requires preparing a \wsvindex{zeeman\_linerecord\_precalc} first to speed up the calculations.
