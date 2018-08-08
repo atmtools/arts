@@ -20,7 +20,7 @@
 #include "messages.h"
 
 void Wigner6Init(Index& wigner_initialized,
-                 const Index&
+                 const Index&,
 #if DO_FAST_WIGNER
                   fast_wigner_stored_symbols,
 #endif
