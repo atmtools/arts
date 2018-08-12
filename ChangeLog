@@ -1,3 +1,27 @@
+2018-08-12  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1093
+
+	* src/m_rte.cc(yCalcAppend):
+	- Fixed handling of the jacobian of  scattering species in
+	  yCalcAppend
+
+	* src/m_retrieval.cc(covmat1D):
+	- Added error message if function name is unknown
+	- Fixed matrix type to match that of the type parameter.
+
+	* src/interactive_workspace.[h, cc]:
+	- Added function to set values of sparse matrices directly through
+	  API.
+
+	* src/covariance_matrix.[h, cc]:
+	- Exposed function to access block vector of covariance matrix.
+
+	* src/arts_api.[h, cc]:
+	- Added support for setting of sparse matrices through the API
+	- Added support for retrieving covariance matrices through the
+	  API
+
 2018-08-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1092

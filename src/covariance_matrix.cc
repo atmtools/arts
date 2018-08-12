@@ -68,7 +68,7 @@ void mult(MatrixView C, ConstMatrixView A, const Block &B)
 
 void mult(MatrixView C, const Block &A, ConstMatrixView B)
 {
-    assert((A.sparse_ != nullptr) || (A.dense_ != nullptr)) ;
+    assert((A.sparse_ != nullptr) || (A.dense_ != nullptr));
 
     MatrixView CView(C(A.get_row_range(), joker));
     MatrixView CTView(C(A.get_column_range(),joker));
@@ -300,8 +300,8 @@ bool CovarianceMatrix::is_consistent(const ArrayOfArrayOfIndex &jis) const {
             return false;
         }
 
-        Index column_start  = jis[i][0];
-        Index column_extent = jis[i][1] - jis[i][0] + 1;
+        Index column_start  = jis[j][0];
+        Index column_extent = jis[j][1] - jis[j][0] + 1;
         Range column_range  = b.get_column_range();
         if ((column_range.get_start() != column_start)
             || (column_range.get_extent() != column_extent)) {

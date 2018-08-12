@@ -68,6 +68,10 @@ public:
                               size_t o, size_t p, const Numeric *src);
     void set_tensor7_variable(Index id, size_t k, size_t l, size_t m, size_t n,
                               size_t o, size_t p, size_t q, const Numeric *src);
+    void set_sparse_variable(Index id, Index m, Index n, Index nnz,
+                             const Numeric *src,
+                             const int *inner_ptr,
+                             const int *outer_ptr);
     void resize();
 
     //! Push a stack for a new variable to the workspace.

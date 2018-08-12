@@ -1866,6 +1866,16 @@ void yCalcAppend(
                               throw runtime_error(os.str());
                             }
                         }
+                      else if (jacobian_quantities[q2].MainTag() == SCATSPECIES_MAINTAG) {
+                          if((jacobian_quantities2[q2].MainTag() ==
+                              jacobian_quantities_copy[q1].MainTag()) &&
+                             (jacobian_quantities2[q2].Subtag() ==
+                              jacobian_quantities_copy[q1].Subtag()) &&
+                             (jacobian_quantities2[q2].SubSubtag() ==
+                              jacobian_quantities_copy[q1].SubSubtag())) {
+                              pos = q1;
+                          }
+                      }
                       // Other
                       else if( jacobian_quantities2[q2].Subtag() ==
                                jacobian_quantities_copy[q1].Subtag() )

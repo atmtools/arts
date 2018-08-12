@@ -144,7 +144,20 @@ public:
         assert(dense_);
         return *dense_;
     }
+
+    Matrix & get_dense()
+    {
+        assert(dense_);
+        return *dense_;
+    }
+
     const Sparse & get_sparse() const
+    {
+        assert(sparse_);
+        return *sparse_;
+    }
+
+    Sparse & get_sparse()
     {
         assert(sparse_);
         return *sparse_;
@@ -244,6 +257,24 @@ public:
      *         this block doesn't exist.
      */
     const Block* get_block(Index i = -1, Index j = -1);
+
+    /** Block in the covariance matrix.
+     *
+     * @return Reference to the std::vector holding the block
+     * objects of this covariance matrix.
+     */
+    std::vector<Block>& get_blocks() {
+        return correlations_;
+    };
+
+    /** Blocks of the inverse covariance matrix.
+     *
+     * @return Reference to the std::vector holding the blocks
+     * objects of the inverse of the covariance matrix.
+     */
+    std::vector<Block>& get_inverse_blocks() {
+        return inverses_;
+    };
 
     /**
      * Checks that the covariance matrix contains one diagonal block per retrieval

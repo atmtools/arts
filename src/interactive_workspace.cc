@@ -240,6 +240,29 @@ void InteractiveWorkspace::set_tensor7_variable(Index id,
     }
 }
 
+void InteractiveWorkspace::set_sparse_variable(Index id,
+                                               Index m,
+                                               Index n,
+                                               Index nnz,
+                                               const Numeric *src,
+                                               const int *inner_ptr,
+                                               const int *outer_ptr)
+{
+    Sparse *dst = reinterpret_cast<Sparse*>(this->operator[](id));
+    *dst = Sparse(m, n);
+
+    Vector elements(nnz);
+    ArrayOfIndex row_indices(nnz), column_indices(nnz);
+
+    for (size_t i = 0; i < (size_t) nnz; ++i) {
+        elements[i]   = src[i];
+        row_indices[i]    = inner_ptr[i];
+        column_indices[i] = outer_ptr[i];
+    }
+
+    dst->insert_elements(nnz, row_indices, column_indices, elements);
+}
+
 void InteractiveWorkspace::resize()
 {
     Array<stack<WsvStruct *>> ws_new(wsv_data.nelem());

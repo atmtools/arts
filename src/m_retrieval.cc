@@ -317,7 +317,13 @@ void covmat1D(MatrixType& block,
         f = f_lin;
     } else if (fname == "gau") {
         f = f_gau;
+    } else {
+        ostringstream os;
+        os << fname << " is not a known function name. Supported names"
+           << "are: exp, lin, gau.";
+        std::runtime_error(os.str());
     }
+
 
     for (Index i = 0; i < m; ++i) {
         for (Index j = 0; j < n; ++j) {
@@ -336,7 +342,7 @@ void covmat1D(MatrixType& block,
         elements[i] = sigma_view_1[ii] * sigma_view_2[jj] * f(ii,jj);
     }
 
-    block = Sparse(m,n);
+    block = MatrixType(m,n);
     insert_elements(block, m, n,
                     row_indices,
                     column_indices,

@@ -475,12 +475,74 @@ VariableValueStruct get_variable_value(InteractiveWorkspace *workspace, Index id
             value.inner_ptr = s->get_column_index_pointer();
             value.outer_ptr = s->get_row_start_pointer();
         }
+    }
+    // Covariance Matrix
+    else if (wsv_group_names[group_id] == "CovarianceMatrix") {
+        if (value.initialized) {
+            CovarianceMatrix * c = reinterpret_cast<CovarianceMatrix*>(
+                workspace->operator[](id)
+                );
+
+            auto &blocks     = c->get_blocks();
+            auto &inv_blocks = c->get_inverse_blocks();
+
+            value.ptr = c;
+            value.dimensions[0] = blocks.size();
+            value.dimensions[1] = inv_blocks.size();
+            value.inner_ptr = reinterpret_cast<int*>(blocks.data());
+        }
     } else {
         if (value.initialized) {
             value.ptr = workspace->operator[](id);
         }
     }
     return value;
+}
+
+CovarianceMatrixBlockStruct get_covariance_matrix_block(CovarianceMatrix *m,
+                                                        long block_index,
+                                                        bool inverse)
+{
+    std::vector<Block> &blocks =
+        inverse ? m->get_inverse_blocks() : m->get_blocks();
+
+    if ((block_index < 0) || ((size_t) block_index >= blocks.size())) {
+        throw std::runtime_error("The block index is invalid.");
+    }
+    Block &block = blocks[0];
+
+    Index i,j;
+    std::tie(i,j) = block.get_indices();
+    Range rr      = block.get_row_range();
+    Range cr      = block.get_column_range();
+
+    void *ptr = nullptr;
+    int *inner_ptr = nullptr;
+    int *outer_ptr = nullptr;
+    long nnz = 0;
+
+    if (block.get_matrix_type() == Block::MatrixType::dense) {
+        ptr = block.get_dense().get_c_array();
+    } else {
+        Sparse &s = block.get_sparse();
+        ptr = s.get_element_pointer();
+        inner_ptr = s.get_column_index_pointer();
+        outer_ptr = s.get_row_start_pointer();
+        nnz = s.nnz();
+    }
+
+    CovarianceMatrixBlockStruct b{};
+    b.indices[0] = i;
+    b.indices[1] = j;
+    b.dimensions[0] = rr.get_extent();
+    b.dimensions[1] = cr.get_extent();
+    b.position[0] = rr.get_start();
+    b.position[1] = cr.get_start();
+    b.ptr = ptr;
+    b.nnz = nnz;
+    b.inner_ptr = inner_ptr;
+    b.outer_ptr = outer_ptr;
+    return b;
 }
 
 const char * set_variable_value(InteractiveWorkspace *workspace,
@@ -582,6 +644,17 @@ const char * set_variable_value(InteractiveWorkspace *workspace,
                                         value.dimensions[5],
                                         value.dimensions[6],
                                         ptr);
+    }
+    // Sparse
+    else if (wsv_group_names[group_id] == "Sparse") {
+        const Numeric * ptr = reinterpret_cast<const Numeric *>(value.ptr);
+        workspace->set_sparse_variable(id,
+                                       value.dimensions[0],
+                                       value.dimensions[1],
+                                       value.dimensions[2],
+                                       ptr,
+                                       value.inner_ptr,
+                                       value.outer_ptr);
     } else {
         string_buffer = std::string("This variable can currently not be set through the C API."
                                     " Signal your need to ARTS dev mailing list.");

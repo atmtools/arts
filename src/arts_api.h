@@ -32,6 +32,7 @@
 #define DLL_PUBLIC __attribute__ ((visibility ("default")))
 
 #include "interactive_workspace.h"
+#include "covariance_matrix.h"
 
 extern "C" {
 
@@ -165,6 +166,58 @@ extern "C" {
         /** @var MethodStruct::description
          * long The revision number of this ARTS major version.
          */
+    };
+
+    /** @struct CovarianceMatrixBlockStruct
+     * This struct is used to return the value of a block of a covariance
+     * matrix through the API
+     */
+    struct CovarianceMatrixBlockStruct {
+
+        /** @var CovarianceMatrixBlockStruct::indices
+         * The indices of the retrieval quantities that this block corresponds
+         * to.
+         */
+        long        indices[2];
+
+        /** @var CovarianceMatrixBlockStruct::indices
+         * Row and column indices of the upper- and left-most elements
+         * of this block w.r.t. to the full covariance matrix.
+         */
+        long        position[2];
+
+        /** @var CovarianceMatrixBlockStruct::indices
+         * Number of rows and columns of this block.
+         */
+        long        dimensions[2];
+
+        /** @var CovarianceMatrixBlockStruct::ptr
+         * Pointer to the data of the matrix the block consists of. If the
+         * block holds a sparse matrix, this pointer will point to the
+         * element vector. If the block holds a dense matrix, this pointer
+         * will point to the 2D data array in row-major order.
+         */
+        const void* ptr;
+
+        /** @var CovarianceMatrixBlockStruct::nnz
+         * Contains the number of non-zero elements in the block if
+         * it is represented by a sparse matrix. 0 otherwise.
+         */
+        long nnz;
+
+        /** @var CovarianceMatrixBlockStruct::inner_pointer
+         * If the block contains a sparse matrix, this pointer
+         * will point to the array of row indices. Otherwise
+         * it will be 0.
+         */
+        const int *inner_ptr;
+        /** @var CovarianceMatrixBlockStruct::outer_pointer
+         * If the block contains a sparse matrix, this pointer
+         * will point to the array of row indices. Otherwise
+         * it will be 0.
+         */
+        const int *outer_ptr;
+
     };
 
     ////////////////////////////////////////////////////////////////////////////
@@ -459,6 +512,25 @@ extern "C" {
     VariableValueStruct get_variable_value(InteractiveWorkspace *workspace,
                                            Index id,
                                            Index group_id);
+
+    //! Return block of covariance matrix.
+    /**
+     *
+     * \param m Pointer to covariance matrix from which to return the
+     *        block.
+     * \param block_index Index of the block to return.
+     * \param inverse Whether the block should be returned from the list
+     *        of inverse blocks or not.
+     *
+     * \return Returns the block identified by the given pointer
+     *         represented by CovarianceMatrixBlockStruct.
+     */
+    DLL_PUBLIC
+    CovarianceMatrixBlockStruct get_covariance_matrix_block(
+        CovarianceMatrix *m,
+        long block_index,
+        bool inverse);
+
     //! Sets the value of a WSV in a given workspace.
     /**
      * This method can be used to set the value of an ARTS WSV from external data. Currently
