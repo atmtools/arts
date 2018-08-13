@@ -1,3 +1,17 @@
+2018-08-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1094
+
+	* src/continua.cc (XINT_FUN):
+
+	Introduce a range check inside the interpolation function to finally
+	fix out-of-bounds access to the values table. Bug reported by Hanna and
+	Freddy.
+
+	While the XINT_FUN for ConstVectorView input generated an assertion in
+	those cases, the implementation for Numeric[] input could have returned
+	invalid values. Now both functions return 0 for those cases.
+
 2018-08-12  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1093

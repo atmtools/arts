@@ -6568,10 +6568,14 @@ Numeric XINT_FUN( const Numeric V1A,
   Numeric B1 = B * (1.00e0-P);
   Numeric B2 = B * P;
 
-  Numeric xint = -A[J-1] * B1             +
-                  A[J]   * (1.00e0-C+B2)  +
-                  A[J+1] * (C+B1)         -
-                  A[J+2] * B2;
+  Numeric xint = 0.;
+  if (J-1 > 0 && J+2 < A.nelem())
+  {
+      xint = -A[J-1] * B1             +
+             A[J]   * (1.00e0-C+B2)  +
+             A[J+1] * (C+B1)         -
+             A[J+2] * B2;
+  }
 
   /*
   cout << (J-1) << " <-> " << (J+2)
@@ -6586,6 +6590,7 @@ Numeric XINT_FUN( const Numeric V1A,
                   const Numeric /* V2A */,
                   const Numeric DVA,
                   const Numeric A[],
+                  const Index nA,
                   const Numeric VI)
 {
 
@@ -6609,10 +6614,14 @@ Numeric XINT_FUN( const Numeric V1A,
   Numeric B1 = B * (1.00e0-P);
   Numeric B2 = B * P;
 
-  Numeric xint = -A[J-1] * B1             +
-                  A[J]   * (1.00e0-C+B2)  +
-                  A[J+1] * (C+B1)         -
-                  A[J+2] * B2;
+  Numeric xint = 0.;
+  if (J-1 > 0 && J+2 < nA)
+  {
+    xint = -A[J-1] * B1             +
+           A[J]   * (1.00e0-C+B2)  +
+           A[J+1] * (C+B1)         -
+           A[J+2] * B2;
+  }
 
   /*
   cout << (J-1) << " <-> " << (J+2)
@@ -6960,7 +6969,8 @@ void CKD_222_self_h2o (MatrixView          pxsec,
         // interpolate the k vector on the f_grid grid
         // The factor 100 comes from the conversion from 1/cm to 1/m for
         // the absorption coefficient
-        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,
+                                                       NPTC+addF77fields,V);
       }
   }
     }
@@ -7184,7 +7194,8 @@ void CKD_222_foreign_h2o (MatrixView          pxsec,
         // interpolate the k vector on the f_grid grid
         // The factor 100 comes from the conversion from (1/cm) to (1/m)
         // of the abs. coeff.
-        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,
+                                                       NPTC+addF77fields,V);
       }
   }
     }
@@ -7482,7 +7493,8 @@ void CKD_242_self_h2o (MatrixView          pxsec,
         // interpolate the k vector on the f_grid grid
         // The factor 100 comes from the conversion from 1/cm to 1/m for
         // the absorption coefficient
-        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,
+                                                       NPTC+addF77fields,V);
       }
   }
     }
@@ -7725,7 +7737,8 @@ void CKD_242_foreign_h2o (MatrixView          pxsec,
       {
         // arts CKD2.4.2 foreign H2O continuum cross section [1/m]
         // interpolate the k vector on the f_grid grid
-        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,
+                                                       NPTC+addF77fields,V);
       }
   }
     }
@@ -8866,7 +8879,8 @@ void CKD_241_co2 (MatrixView         pxsec,
       {
         // arts cross section [1/m]
         // interpolate the k vector on the f_grid grid
-        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,
+                                                       NPTC+addF77fields,V);
       }
   }
     }
@@ -10729,7 +10743,8 @@ void CKD_mt_v0v0_o2 (MatrixView          pxsec,
       {
         // arts cross section [1/m]
         // interpolate the k vector on the f_grid grid
-        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,
+                                                       NPTC+addF77fields,V);
       }
   }
     }
@@ -10961,7 +10976,8 @@ void CKD_mt_v1v0_o2 (MatrixView          pxsec,
       {
         // arts cross section [1/m]
         // interpolate the k vector on the f_grid grid
-        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,
+                                                       NPTC+addF77fields,V);
       }
   }
     }
@@ -11172,7 +11188,8 @@ void CKD_mt_250_o2_vis (MatrixView          pxsec,
       {
         // arts cross section [1/m]
         // interpolate the k vector on the f_grid grid
-        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,
+                                                       NPTC+addF77fields,V);
       }
   }
     }
