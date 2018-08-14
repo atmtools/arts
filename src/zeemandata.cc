@@ -140,7 +140,11 @@ void ZeemanEffectData::init(const Numeric& gu, const Numeric& gl, const QuantumI
   are_Ju_and_Jl_compatible(Ju, Jl);
   
   // temporary compute vector
-  wig_temp_init((2*max(Jl, Ju)).toInt());
+  const Rational& J_max = max(Jl, Ju);
+  if(is_Wigner3_ready(J_max))
+    wig_temp_init((2*J_max).toInt());
+  else
+    throw std::runtime_error("You have not prepared the wigner library properly, see Wigner3Init for details\nLikely error: your declared largest_wigner_symbol_parameter is not large enough");
 
   // Find M-vectors
   Rational end, start, dM;

@@ -202,3 +202,25 @@ void ECS_wigner_CO2(Matrix& M,
     }
   }
 }
+
+bool is_Wigner3_ready(const Rational& J)
+{
+  extern int wigxjpf_max_prime_decomp;
+  
+  const int test = (J*6).toInt()/2 + 1;  // nb. J can be half-valued
+  if(test > wigxjpf_max_prime_decomp)
+    return false;
+  else
+    return true;
+}
+
+bool is_Wigner6_ready(const Rational& J)
+{
+  extern int wigxjpf_max_prime_decomp;
+  
+  const int test = (J*4).toInt() + 1;  // nb. J can be half-valued
+  if(test > wigxjpf_max_prime_decomp)
+    return false;
+  else
+    return true;
+}

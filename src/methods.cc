@@ -19182,7 +19182,7 @@ void define_md_data_raw()
     ( NAME( "Wigner6Init" ),
       DESCRIPTION
       (
-        "Initialize the wigner tables\n"
+        "Initialize the wigner 3 and 6 tables\n"
         "\n"
         "The default values take about 1 Gb memory.\n"
       ),
@@ -19196,7 +19196,29 @@ void define_md_data_raw()
       GIN_TYPE("Index", "Index"),
       GIN_DEFAULT("20000000", "250"),
       GIN_DESC("Number of stored symbols possible before replacements",
-               "Largest symbol used for initializing factorials")
+               "Largest symbol used for initializing factorials (e.g., largest J or L)")
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "Wigner3Init" ),
+      DESCRIPTION
+      (
+        "Initialize the wigner 3 tables\n"
+        "\n"
+        "The default values take about 400 Mb memory.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT("wigner_initialized"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("fast_wigner_stored_symbols", "largest_wigner_symbol_parameter"),
+      GIN_TYPE("Index", "Index"),
+      GIN_DEFAULT("20000000", "250"),
+      GIN_DESC("Number of stored symbols possible before replacements",
+               "Largest symbol used for initializing factorials (e.g., largest J or L)")
     ));
     
     md_data_raw.push_back
@@ -19204,7 +19226,26 @@ void define_md_data_raw()
     ( NAME( "Wigner6Unload" ),
       DESCRIPTION
       (
-        "Unloads the wigner tables\n"
+        "Unloads the wigner 3 and 6 tables\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT("wigner_initialized"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("wigner_initialized"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "Wigner3Unload" ),
+      DESCRIPTION
+      (
+        "Unloads the wigner 3 tables\n"
       ),
       AUTHORS( "Richard Larsson" ),
       OUT("wigner_initialized"),

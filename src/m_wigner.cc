@@ -20,10 +20,11 @@
 #include "messages.h"
 
 void Wigner6Init(Index& wigner_initialized,
+                 #if DO_FAST_WIGNER
+                 const Index& fast_wigner_stored_symbols,
+                 #else
                  const Index&,
-#if DO_FAST_WIGNER
-                  fast_wigner_stored_symbols,
-#endif
+                 #endif
                  const Index& largest_wigner_symbol_parameter,
                  const Verbosity&)
 {
@@ -41,6 +42,28 @@ void Wigner6Init(Index& wigner_initialized,
     #endif
   #endif
   wig_table_init(int(largest_wigner_symbol_parameter*2), 6);
+}
+
+void Wigner3Init(Index& wigner_initialized,
+                 #if DO_FAST_WIGNER
+                 const Index& fast_wigner_stored_symbols,
+                 #else
+                 const Index&,
+                 #endif
+                 const Index& largest_wigner_symbol_parameter,
+                 const Verbosity&)
+{
+  wigner_initialized = largest_wigner_symbol_parameter;
+  
+  #if DO_FAST_WIGNER
+  fastwigxj_load(FAST_WIGNER_PATH_3J, 3, NULL);
+  #ifdef _OPENMP
+  fastwigxj_thread_dyn_init(3, fast_wigner_stored_symbols);
+  #else
+  fastwigxj_dyn_init(3, fast_wigner_stored_symbols);
+  #endif
+  #endif
+  wig_table_init(int(largest_wigner_symbol_parameter*2), 3);
 }
 
 void WignerFastInfoPrint(const Index& wigner_initialized,
@@ -66,6 +89,19 @@ void Wigner6Unload(Index& wigner_initialized,
   #if DO_FAST_WIGNER
     fastwigxj_unload(3);
     fastwigxj_unload(6);
+  #endif
+  wig_table_free();
+}
+
+void Wigner3Unload(Index& wigner_initialized,
+                   const Verbosity&)
+{
+  if(not wigner_initialized)
+    throw std::runtime_error("Must first initialize wigner...");
+  wigner_initialized = 0;
+  
+  #if DO_FAST_WIGNER
+  fastwigxj_unload(3);
   #endif
   wig_table_free();
 }

@@ -3034,7 +3034,6 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                   
                   icecream >> double_imanip() >> gl;
                   
-                  // WARNING:  If wigner_initialized is not set by here, the program will just exit(1)...
                   mzeemandata = ZeemanEffectData(gu, gl, mqid, mzeemandata.PolarizationType());  // NOTE:  Must be after QNs are defined or this will not work
                   icecream >> token;
                 }

@@ -45,3 +45,6 @@ void ECS_wigner_CO2(Matrix& M,
                     const Rational& lu, 
                     ConstVectorView G0, 
                     ConstVectorView population);
+
+bool is_Wigner3_ready(const Rational& J);
+bool is_Wigner6_ready(const Rational& J);
