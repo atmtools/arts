@@ -1,3 +1,17 @@
+2018-08-21  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1097
+
+	* controlfiles/instruments/mviri/{TestMVIRI.arts,
+	TestMVIRI.ybatch_MET2_6e8_fastREFERENCE.xml.gz},
+	controlfiles/instruments/seviri/{TestSEVIRI.arts,
+	TestSEVIRI.ybatch_MET9_6e9_fastREFERENCE.xml.gz},
+
+	Remove sensorOff from controlfiles. Update reference files.
+
+	Added a clear note at the top of the file that these calculations
+	are untested.
+
 2018-08-14  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1096

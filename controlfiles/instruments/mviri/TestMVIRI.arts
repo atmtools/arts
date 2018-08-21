@@ -1,8 +1,10 @@
 #DEFINITIONS:  -*-sh-*-
 
 # --------------------------------------------------------------------
+# !!! WARNING !!! Untested !!! USE WITH CARE !!!
 # Test batch calculations for MVIRI.
-# Viju Oommen John and Stefan Buehler, August to October 2008.
+# Based on HIRS test by Viju Oommen John and Stefan Buehler, August to
+# October 2008.
 # --------------------------------------------------------------------
 
 
@@ -204,8 +206,6 @@ AgendaSet( ybatch_calc_agenda ){
   # get some surface properties from corresponding atmospheric fields
   Extract( z_surface, z_field, 0 )
   Extract( t_surface, t_field, 0 )
-
-  sensorOff
 
   # Perform RT calculations
   # ---
