@@ -31,6 +31,9 @@ Numeric ZeemanEffectData::SplittingConstant(const Index i) const
 
 inline bool hund_compatible(const QuantumNumbers& qns) noexcept
 {
+  if(qns[QuantumNumberType::Hund].isUndefined())
+    return false;
+  
   switch(Hund(qns[QuantumNumberType::Hund].toIndex())) {
     case Hund::CaseA:
       if(qns[QuantumNumberType::Omega].isUndefined() or

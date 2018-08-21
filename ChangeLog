@@ -1,5 +1,21 @@
 2018-08-14  Richard Larsson  <larsson@mps.mpg.de>
 
+	* arts-2-3-1096
+
+	Fixing some annoying bugs
+
+	* src/m_checked.cc:  removed a removed method from missing
+	methods warning
+
+	* src/rational.cc: isUndefined is no caught inside toIndex()
+	Should instead this be considered a developer bug and the
+	error be thrown elsewhere?
+
+	* src/zeemandata.cc:  Now actively checks for Hund-case
+	being set for standard initialization...
+
+2018-08-14  Richard Larsson  <larsson@mps.mpg.de>
+
 	* arts-2-3-1095
 	
 	* src/linerecord.cc:  Removed warning as it is fixed now

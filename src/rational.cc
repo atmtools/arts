@@ -32,10 +32,11 @@ USA. */
 
 Index Rational::toIndex() const
 {
-  if(mdenom == 1)
+  if(isUndefined())
+    throw std::runtime_error("Cannot convert undefined Rational to Index."); 
+  else if(mdenom == 1)
     return mnom;
-  else if (mnom%mdenom)
-  {
+  else if (mnom%mdenom) {
       std::ostringstream os;
       os << "Cannot convert Rational " << *this << " to Index.";
       throw std::runtime_error(os.str());

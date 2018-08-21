@@ -933,13 +933,9 @@ void propmat_clearsky_agenda_checkedCalc(
                             "*propmat_clearskyAddFromLookup*.");
     }
 
-    if (needs_zeeman
-        && !(propmat_clearsky_agenda.has_method("propmat_clearskyAddZeeman")
-        ||   propmat_clearsky_agenda.has_method("propmat_clearskyAddZeemanFromPreCalc")))
-    {
+    if (needs_zeeman and not propmat_clearsky_agenda.has_method("propmat_clearskyAddZeeman")) {
         throw runtime_error("*abs_species* contains Zeeman species but *propmat_clearsky_agenda*\n"
-                            "neither contains *propmat_clearskyAddZeeman* nor\n"
-                            "*propmat_clearskyAddZeemanFromPreCalc*.");
+                            "does not contain *propmat_clearskyAddZeeman*.");
     }
 /*
     if (needs_free_electrons
