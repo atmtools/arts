@@ -1815,6 +1815,7 @@ void yCalcAppend(
               jacobian_quantities2[q2].MainTag() == TEMPERATURE_MAINTAG  ||
               jacobian_quantities2[q2].MainTag() == SCATSPECIES_MAINTAG  ||
               jacobian_quantities2[q2].MainTag() == WIND_MAINTAG         ||
+              jacobian_quantities2[q2].MainTag() == SURFACE_MAINTAG      ||
               append_instrument_wfs )
             {
               for( Index q1=0; q1<nrq1; q1++ && pos < 0 )
