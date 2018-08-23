@@ -1,3 +1,15 @@
+2018-08-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1099
+
+	* src/m_rte.cc (iyEmissionStandard, yCalc): Switched from using
+	FOR_ANALYTICAL_JACOBIANS_DO to using FOR_ANALYTICAL_JACOBIANS_DO2
+	when setting j_analytical_do.
+
+	Before this change surface jacobians came out as all zeros if
+	there was no atmospheric quantity retrieved. Now it seems
+	surface-only retrievals should work.
+
 2018-08-23  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1098

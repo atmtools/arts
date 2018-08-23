@@ -255,7 +255,7 @@ void iyEmissionStandard(
   //  Init Jacobian quantities
   Index   j_analytical_do = 0;
   if( jacobian_do ) 
-    { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
+    { FOR_ANALYTICAL_JACOBIANS_DO2( j_analytical_do = 1; ) }
   //
   const Index     nq = j_analytical_do ? jacobian_quantities.nelem() : 0;
   ArrayOfTensor3  diy_dpath(nq); 
@@ -274,7 +274,7 @@ void iyEmissionStandard(
                                cloudbox_on, scat_species, dpnd_field_dx,
                                jacobian_quantities, iy_agenda_call1 );
     }
-  
+
   // Init iy_aux and fill where possible
   const Index naux = iy_aux_vars.nelem();
   iy_aux.resize( naux );
@@ -1510,8 +1510,8 @@ void yCalc(
                        jacobian_indices[jacobian_indices.nelem()-1][1]+1 );
       jacobian = 0;
       //
-      FOR_ANALYTICAL_JACOBIANS_DO(
-        j_analytical_do  = 1; 
+      FOR_ANALYTICAL_JACOBIANS_DO2(
+        j_analytical_do = 1; 
       )
     }
   else
