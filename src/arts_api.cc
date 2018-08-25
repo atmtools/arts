@@ -550,8 +550,12 @@ const char * set_variable_value(InteractiveWorkspace *workspace,
                                 long group_id,
                                 VariableValueStruct value)
 {
+    // If ptr is null empty variable
+    if (value.ptr == nullptr) {
+        workspace->initialize_variable(id);
+    }
     // Agenda
-    if (wsv_group_names[group_id] == "Agenda") {
+    else if (wsv_group_names[group_id] == "Agenda") {
         const Agenda *ptr = reinterpret_cast<const Agenda *>(value.ptr);
         workspace->set_agenda_variable(id, *ptr);
     }

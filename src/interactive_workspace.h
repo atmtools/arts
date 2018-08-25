@@ -74,12 +74,21 @@ public:
                              const int *outer_ptr);
     void resize();
 
+    //! Initialize workspace variable.
+    /*!
+      If unitialized, initializes the workspace variable. If variable
+      exists it is reinitialized to be empty.
+
+      \param id Workspace variable index of the variable to (re)initialize.
+    */
+    void initialize_variable(Index id);
+
     //! Push a stack for a new variable to the workspace.
     /*!
     Registers a new variable with and adds a new stack to the given workspace.
     If name is nullptr, a unique name is created.
 
-    \param grou_id Index of the group of the variable to add to the workspace.
+    \param group_id Index of the group of the variable to add to the workspace.
     \param name Char pointer to the name of the variable.
     \return Index of the newly pushed stack
     */

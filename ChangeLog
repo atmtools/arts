@@ -1,3 +1,13 @@
+2018-08-25  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1100
+
+	* arts_cpi.cc(set_variable_value):
+	- Set variable to be empty when variable pointer is 0.
+
+	* interactive_workspace.[h, cc](initialize_variable):
+	- Added function to (re)initialize variables
+
 2018-08-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1099

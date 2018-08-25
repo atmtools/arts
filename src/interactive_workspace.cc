@@ -270,6 +270,12 @@ void InteractiveWorkspace::resize()
     std::swap(ws, ws_new);
 }
 
+void InteractiveWorkspace::initialize_variable(Index i) {
+    this->operator[](i);
+    this->pop_free(i);
+    this->operator[](i);
+}
+
 Index InteractiveWorkspace::add_variable(Index group_id, const char *name)
 {
     if (wsv_data.size() != ws.size()) {
