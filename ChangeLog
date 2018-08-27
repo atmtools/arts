@@ -1,3 +1,17 @@
+2018-08-26  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1101
+
+	* m_jacobian.cc(jacobianClose):
+	- Removed check requiring sensor_pos and sensor_response to
+	  be set even though they are not used by the function.
+
+	* m_retrieval.cc(retrievalDefClose):
+	- Updated call to jacobianClose
+
+	* methods.cc(jacobianClose):
+	- Updated entry for jacobianClose
+
 2018-08-25  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1100

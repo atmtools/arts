@@ -356,7 +356,7 @@ VariableValueStruct get_variable_value(InteractiveWorkspace *workspace, Index id
         if (value.initialized) {
             ArrayOfIndex *a = reinterpret_cast<ArrayOfIndex*>(workspace->operator[](id));
             value.dimensions[0] = a->size();
-            value.ptr = &a->operator[](0);
+            value.ptr = a->data();
         }
     }
     // String

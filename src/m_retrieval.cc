@@ -1102,12 +1102,9 @@ void retrievalDefClose(Workspace& ws,
                        Index& retrieval_checked,
                        const CovarianceMatrix& covmat_sx,
                        const ArrayOfRetrievalQuantity& jacobian_quantities,
-                       const Matrix& sensor_pos,
-                       const Sparse& sensor_response,
                        const Verbosity& verbosity)
 {
-    jacobianClose(ws, jacobian_do, jacobian_agenda, jacobian_quantities,
-                  sensor_pos, sensor_response, verbosity);
+    jacobianClose(ws, jacobian_do, jacobian_agenda, jacobian_quantities, verbosity);
 
     ArrayOfArrayOfIndex ji_t;
     bool any_affine;

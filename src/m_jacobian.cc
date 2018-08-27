@@ -142,8 +142,6 @@ void jacobianClose(
         Index&                     jacobian_do,
         Agenda&                    jacobian_agenda,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
-  const Matrix&                    sensor_pos,
-  const Sparse&                    sensor_response,
   const Verbosity&                 verbosity )
 {
   // Make sure that the array is not empty
@@ -151,24 +149,7 @@ void jacobianClose(
     throw runtime_error(
           "No retrieval quantities has been added to *jacobian_quantities*." );
 
-  // Check that sensor_pos and sensor_response has been initialised
-  if( sensor_pos.empty() )
-    {
-      ostringstream os;
-      os << "*sensor_pos* is empty, i.e. no measurement blocks has been "
-         << "defined.\nThis has to be done before calling jacobianClose.";
-      throw runtime_error(os.str());
-    }
-  if( sensor_response.empty() )
-    {
-      ostringstream os;
-      os << "The sensor has either to be defined or turned off before calling\n"
-         << "jacobianClose.";
-      throw runtime_error(os.str());
-    }
-
   jacobian_agenda.check( ws, verbosity );
-  
   jacobian_do = 1;
 }
 
