@@ -1,0 +1,48 @@
+language: cpp
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-6.0
+          packages:
+            - clang-6.0
+      env:
+        - MATRIX_EVAL="CC=clang-6.0 && CXX=clang++-6.0 && WITH_FORTRAN=0"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-8
+      env:
+        - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8 && WITH_FORTRAN=1"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+      env:
+         - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9 &&  WITH_FORTRAN=1"
+
+before_install:
+  - eval "${MATRIX_EVAL}"
+  - sudo apt-get update
+  - sudo apt-get install -y
+    zlib1g-dev libblas-dev liblapack-dev libfftw3-dev gfortran
+
+script:
+  - mkdir -p build
+  - cd build
+  - cmake $([[ ${ENABLE_FORTRAN} -eq 1 ]] &&
+            echo -n '-DCMAKE_Fortran_COMPILER=gfortran')
+    -DENABLE_FORTRAN=${WITH_FORTRAN} -DENABLE_C_API=1 -DTEST_JOBS=2 ..
+  - make -j2 arts arts_api
+  - make check
+
