@@ -63,7 +63,8 @@ String XsecRecord::SpeciesName() const
 }
 
 
-void convolve(Vector& result, ConstVectorView& xsec, ConstVectorView& lorentz)
+void convolve(Vector& result, const ConstVectorView& xsec,
+              const ConstVectorView& lorentz)
 {
     Index n_xsec = xsec.nelem();
     Index n_lorentz = lorentz.nelem();

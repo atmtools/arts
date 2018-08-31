@@ -1,5 +1,11 @@
 2018-08-31  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-1104
+
+	* src/hitran_xsec.cc (convolve): Fix non-FFTW build.
+
+2018-08-31  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-1103
 
 	* src/hitran_xsec.{cc,h}, src/m_hitran_xsec.cc, src/methods.cc,
