@@ -1912,6 +1912,9 @@ void define_md_data_raw()
        "This broadens the cross section data from *hitran_xsec_data* and\n"
        "interpolates it onto the current f_grid.\n"
        "\n"
+       "apply_tfit turns of the temperature fit. It is only meant for testing\n"
+       "and should alwasy be kept on for real calculations.\n"
+       "\n"
        "This method depends on the FFTW-3 library.\n"
        ),
       AUTHORS( "Oliver Lemke" ),
@@ -1922,10 +1925,10 @@ void define_md_data_raw()
       IN( "abs_xsec_per_species", "dabs_xsec_per_species_dx",
           "abs_species", "jacobian_quantities", "abs_species_active",
           "f_grid", "abs_p", "abs_t", "hitran_xsec_data" ),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()
+      GIN("apply_tfit"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("1"),
+      GIN_DESC("Apply temperature fit.")
       ));
     
   md_data_raw.push_back

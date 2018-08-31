@@ -63,7 +63,7 @@ String XsecRecord::SpeciesName() const
 }
 
 
-void convolve(Vector& result, ConstVectorView xsec, ConstVectorView lorentz)
+void convolve(Vector& result, ConstVectorView& xsec, ConstVectorView& lorentz)
 {
     Index n_xsec = xsec.nelem();
     Index n_lorentz = lorentz.nelem();
@@ -90,8 +90,8 @@ void fftconvolve(VectorView& result, const Vector& xsec, const Vector& lorentz)
     int n_p = (int) (xsec.nelem() + lorentz.nelem() - 1);
     int n_p_2 = n_p / 2 + 1;
 
-    double *xsec_in = fftw_alloc_real(n_p);
-    fftw_complex *xsec_out = fftw_alloc_complex(n_p_2);
+    double *xsec_in = fftw_alloc_real((size_t)n_p);
+    fftw_complex *xsec_out = fftw_alloc_complex((size_t)n_p_2);
     memcpy(xsec_in, xsec.get_c_array(), sizeof(double) * xsec.nelem());
     memset(&xsec_in[xsec.nelem()], 0, sizeof(double) * (n_p - xsec.nelem()));
 
@@ -106,8 +106,8 @@ void fftconvolve(VectorView& result, const Vector& xsec, const Vector& lorentz)
 
     fftw_free(xsec_in);
 
-    double *lorentz_in = fftw_alloc_real(n_p);
-    fftw_complex *lorentz_out = fftw_alloc_complex(n_p_2);
+    double *lorentz_in = fftw_alloc_real((size_t)n_p);
+    fftw_complex *lorentz_out = fftw_alloc_complex((size_t)n_p_2);
     memcpy(lorentz_in, lorentz.get_c_array(), sizeof(double) * lorentz.nelem());
     memset(&lorentz_in[lorentz.nelem()], 0,
            sizeof(double) * (n_p - lorentz.nelem()));
@@ -122,8 +122,8 @@ void fftconvolve(VectorView& result, const Vector& xsec, const Vector& lorentz)
 
     fftw_free(lorentz_in);
 
-    fftw_complex *fft_in = fftw_alloc_complex(n_p_2);
-    double *fft_out = fftw_alloc_real(n_p);
+    fftw_complex *fft_in = fftw_alloc_complex((size_t)n_p_2);
+    double *fft_out = fftw_alloc_real((size_t)n_p);
     memcpy(fft_in, xsec_out, sizeof(fftw_complex) * n_p_2);
 
     for (Index i = 0; i < n_p_2; i++)
@@ -160,6 +160,8 @@ void fftconvolve(VectorView& result, const Vector& xsec, const Vector& lorentz)
 void XsecRecord::Extract(VectorView result,
                          ConstVectorView f_grid,
                          const Numeric& pressure,
+                         const Numeric& temperature,
+                         const Index& apply_tfit,
                          const Verbosity& verbosity) const
 {
     CREATE_OUTS;
@@ -249,11 +251,21 @@ void XsecRecord::Extract(VectorView result,
 
         // This is the part of the xsec dataset for which we have to do the
         // interpolation.
-        ConstVectorView xsec_active = mxsecs[this_dataset_i][Range(
-                i_data_fstart,
-                data_f_extent)];
+        Range active_range(i_data_fstart, data_f_extent);
+        ConstVectorView xsec_active = mxsecs[this_dataset_i][active_range];
 
+        Vector xsec_active_tfit;
 
+        if (apply_tfit != 0)
+        {
+            xsec_active_tfit = mtslope[this_dataset_i][active_range];
+            xsec_active_tfit *= temperature - mreftemperature[this_dataset_i];
+            xsec_active_tfit += mtintersect[this_dataset_i][active_range];
+            xsec_active_tfit /= 10000;
+            xsec_active_tfit += mxsecs[this_dataset_i][active_range];
+
+            xsec_active = xsec_active_tfit;
+        }
         // We have to create a matching view on the result vector:
         VectorView result_active = result[Range(i_fstart, f_extent)];
         Vector xsec_interp(f_extent);

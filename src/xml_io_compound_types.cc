@@ -2260,6 +2260,8 @@ void xml_read_from_stream(istream& is_xml,
     xml_read_from_stream(is_xml, xd.mrefpressure, pbifs, verbosity);
     xml_read_from_stream(is_xml, xd.mreftemperature, pbifs, verbosity);
     xml_read_from_stream(is_xml, xd.mxsecs, pbifs, verbosity);
+    xml_read_from_stream(is_xml, xd.mtslope, pbifs, verbosity);
+    xml_read_from_stream(is_xml, xd.mtintersect, pbifs, verbosity);
     tag.read_from_stream(is_xml);
 
     const Index ndatasets = xd.mxsecs.nelem();
@@ -2309,6 +2311,8 @@ void xml_write_to_stream(ostream& os_xml,
     xml_write_to_stream(os_xml, xd.RefPressure(), pbofs, "refpressure", verbosity);
     xml_write_to_stream(os_xml, xd.RefTemperature(), pbofs, "reftemperature", verbosity);
     xml_write_to_stream(os_xml, xd.Xsecs(), pbofs, "xsec", verbosity);
+    xml_write_to_stream(os_xml, xd.TemperatureSlope(), pbofs, "xsec", verbosity);
+    xml_write_to_stream(os_xml, xd.TemperatureIntersect(), pbofs, "xsec", verbosity);
     close_tag.set_name("/XsecRecord");
     close_tag.write_to_stream(os_xml);
 

@@ -61,6 +61,12 @@ public:
     /** Get cross sections */
     const ArrayOfVector& Xsecs() const { return mxsecs; };
 
+    /** Get slope of temperature fit */
+    const ArrayOfVector& TemperatureSlope() const { return mtslope; };
+
+    /** Get intersect of temperature fit */
+    const ArrayOfVector& TemperatureIntersect() const { return mtintersect; };
+
 
     /** Interpolate cross section data.
 
@@ -71,12 +77,15 @@ public:
      \param[out] result     Xsec value for given frequency grid and temperature.
      \param[in] f_grid      Frequency grid.
      \param[in] pressure    Scalar pressure.
-     \param[in] robust      Set to 1 to suppress runtime errors (and return NAN values instead).
+     \param[in] temperature Scalar temperature.
+     \param[in] apply_tfit  Set to 0 to not apply the temperature fit
      \param[in] verbosity   Standard verbosity object.
      */
     void Extract(VectorView result,
                  ConstVectorView f_grid,
                  const Numeric& pressure,
+                 const Numeric& temperature,
+                 const Index& apply_tfit,
                  const Verbosity& verbosity) const;
 
     friend void xml_read_from_stream(std::istream& is_xml,
@@ -91,6 +100,8 @@ private:
     Vector mreftemperature;
     ArrayOfVector mfgrids;
     ArrayOfVector mxsecs;
+    ArrayOfVector mtslope;
+    ArrayOfVector mtintersect;
 };
 
 typedef Array<XsecRecord> ArrayOfXsecRecord;

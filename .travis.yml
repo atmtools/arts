@@ -1,7 +1,8 @@
 language: cpp
 matrix:
   include:
-    - os: linux
+    - name: LLVM 6 w/o Fortran
+      os: linux
       dist: trusty
       addons:
         apt:
@@ -12,7 +13,8 @@ matrix:
             - clang-6.0
       env:
         - MATRIX_EVAL="CC=clang-6.0 && CXX=clang++-6.0 && WITH_FORTRAN=0"
-    - os: linux
+    - name: GCC 8 w/ Fortran
+      os: linux
       addons:
         apt:
           sources:
@@ -21,7 +23,8 @@ matrix:
             - g++-8
       env:
         - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8 && WITH_FORTRAN=1"
-    - os: linux
+    - name: GCC 4.9 w/ Fortran
+      os: linux
       addons:
         apt:
           sources:
