@@ -1,3 +1,35 @@
+2018-09-03  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1106
+
+	* 3rdparty/disort/LINPAK.f:
+
+	Renamed functions with the same name as other BLAS function to
+	avoid clashes suspected to lead to weird bugs when using ARTS
+	through python.
+
+	* src/disort.cc(check_disort_input):
+
+	Updated error message on inhomogeneous scat data grids to mention
+	interpolation option for pfct_method which supports them.
+
+	* src/m_disort.cc(DisortCalcWithARTSSurface):
+
+	Updated DisortCalcWithARTSSurface to also support the new
+	extraction scheme for scattering properties.
+
+	* src/methods(DisortCalcWithARTSSurface):
+
+	Updated entry for DisortCalcWithARTSSurface.
+
+2018-09-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1105
+
+	* src/partition_function_data.cc, src/species_data.cc:
+
+	Add cross section species CCl4, C2F6, CHF3, HFC32, HFC143a.
+
 2018-09-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1105

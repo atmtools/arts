@@ -219,7 +219,8 @@ void check_disort_input( // Input
          << "=" << PTypeToString(PTYPE_GENERAL) << ") is present.\n";
       throw runtime_error( os.str() );
     }
-    
+
+
   if( pfct_method!="interpolate" )
   {
     // The old interface can only handle particles with single scattering data
@@ -240,8 +241,9 @@ void check_disort_input( // Input
      if( !ident_anggrid )
       {
         ostringstream os;
-        os << "ARTS-DISORT currently requires identical angular grids of\n"
-           << "scattering data for all scattering elements, but yours differ.\n";
+        os << "ARTS-DISORT currently supports varying angular grids of\n"
+           << "scattering data for different scattering elements only for\n"
+           << "pfct_method = \"interpolate.\"";
         throw runtime_error( os.str() );
       }
   }

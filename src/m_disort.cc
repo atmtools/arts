@@ -107,6 +107,7 @@ void DisortCalc(Workspace& ws,
   Vector albedo(f_grid.nelem(), 0.);
   Numeric btemp;
 
+
   get_disortsurf_props( albedo, btemp,
                         f_grid, surface_skin_t, surface_scalar_reflectivity );
 
@@ -159,6 +160,8 @@ void DisortCalcWithARTSSurface(Workspace& ws,
                 const Index& stokes_dim,
                 const Index& nstreams,
                 const String& pfct_method,
+                const Index& new_optprop,
+                const Index& Npfct,
                 const Verbosity& verbosity )
 {
   if (!cloudbox_on)
@@ -198,16 +201,28 @@ void DisortCalcWithARTSSurface(Workspace& ws,
                    f_grid, scat_za_grid, surf_altitude,
                    verbosity );
 
-  run_disort( ws, doit_i_field,
-              f_grid,
-              p_grid, z_field, t_field, vmr_field, pnd_field,
-              scat_data,
-              propmat_clearsky_agenda,
-              cloudbox_limits,
-              btemp, albedo,
-              scat_za_grid, nstreams,
-              pfct_method,
-              verbosity );
+  if( new_optprop )
+      run_disort2( ws, doit_i_field,
+                   f_grid,
+                   p_grid, z_field, t_field, vmr_field, pnd_field,
+                   scat_data,
+                   propmat_clearsky_agenda,
+                   cloudbox_limits,
+                   btemp, albedo,
+                   scat_za_grid, nstreams,
+                   pfct_method, Npfct,
+                   verbosity );
+  else
+      run_disort( ws, doit_i_field,
+                  f_grid,
+                  p_grid, z_field, t_field, vmr_field, pnd_field,
+                  scat_data,
+                  propmat_clearsky_agenda,
+                  cloudbox_limits,
+                  btemp, albedo,
+                  scat_za_grid, nstreams,
+                  pfct_method,
+                  verbosity );
 }
 
 #else /* ENABLE_DISORT */
