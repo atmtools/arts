@@ -1,5 +1,13 @@
 2018-09-03  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
+	* arts-2-3-1107
+
+	* src/m_disort.cc(DisortCalcWithARTSSurface):
+
+	Adapted function placeholder to new signature of DisortCalcWithARTSSurface.
+
+2018-09-03  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
 	* arts-2-3-1106
 
 	* 3rdparty/disort/LINPAK.f:

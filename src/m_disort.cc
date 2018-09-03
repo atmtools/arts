@@ -283,6 +283,8 @@ void DisortCalcWithARTSSurface(Workspace&,
                 const Index&,
                 const Index&,
                 const String&,
+                const Index&,
+                const Index&,
                 const Verbosity&)
 {
   throw runtime_error ("This version of ARTS was compiled without DISORT support.");
