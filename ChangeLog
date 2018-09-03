@@ -1,3 +1,11 @@
+2018-09-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1105
+
+	* src/partition_function_data.cc, src/species_data.cc:
+
+	Add cross section species CCl4, C2F6, CHF3, HFC32, HFC143a.
+
 2018-08-31  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1104

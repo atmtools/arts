@@ -1229,33 +1229,26 @@ void define_basic_species_data()
         ISOTOPOLOGUES
         () ) );
 
-  species_data.push_back
-    ( SpeciesRecord
-      ( NAME("CFC11"),
-        DEGFR(0),
-        ISOTOPOLOGUES
-        () ) );
-
-  species_data.push_back
-    ( SpeciesRecord
-      ( NAME("CFC12"),
-        DEGFR(0),
-        ISOTOPOLOGUES
-        () ) );
-
-  species_data.push_back
-    ( SpeciesRecord
-      ( NAME("HCFC22"),
-        DEGFR(0),
-        ISOTOPOLOGUES
-        () ) );
-
-  species_data.push_back
-    ( SpeciesRecord
-      ( NAME("HFC134a"),
-        DEGFR(0),
-        ISOTOPOLOGUES
-        () ) );
+  // hitran cross section species
+  for (const auto& s : {
+      "CCl4",
+      "CFC11",
+      "CFC12",
+      "C2F6",
+      "HCFC22",
+      "HFC134a",
+      "HFC143a",
+      "CHF3",
+      "HFC32",
+  })
+  {
+      species_data.push_back
+          (SpeciesRecord
+               (NAME(s),
+                DEGFR(0),
+                ISOTOPOLOGUES
+                ()));
+  }
 
   // You also have to change the entry in the file
   // partition_function_data.cc consistently!

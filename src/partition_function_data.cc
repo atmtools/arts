@@ -922,16 +922,20 @@ iso(it_isotopologue,  "26" ,  Qcoeff(   -76.2339,  6.95356,  1.30510e-07,  -1.17
   next_species(it_species, it_isotopologue, "particles");
 
   // hitran cross section species: skip iso setting
-  next_species(it_species, it_isotopologue, "CFC11");
-
-  // hitran cross section species: skip iso setting
-  next_species(it_species, it_isotopologue, "CFC12");
-
-  // hitran cross section species: skip iso setting
-  next_species(it_species, it_isotopologue, "HCFC22");
-
-  // hitran cross section species: skip iso setting
-  next_species(it_species, it_isotopologue, "HFC134a");
+  for (const auto& s : {
+      "CCl4",
+      "CFC11",
+      "CFC12",
+      "C2F6",
+      "HCFC22",
+      "HFC134a",
+      "HFC143a",
+      "CHF3",
+      "HFC32",
+  })
+  {
+    next_species(it_species, it_isotopologue, s);
+  }
 
   // Ensure that we took care of all species
   assert(it_species == species_data.end());
