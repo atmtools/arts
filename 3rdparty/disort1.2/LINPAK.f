@@ -2,34 +2,46 @@ c ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 c RCS version control information:
 c $Header: /srv/svn/cvs/cvsroot/arts/3rdparty/disort1.2/LINPAK.f,v 1.1 2006/02/21 16:23:28 olemke Exp $
 c ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+c
+c     The following subroutines in this file have been renamed to avoid
+c     interference with BLAS/LAPACK libraries:
 
+c          SASUM -> HSASUM
+c          SDOT  -> HSDT
+c          SAXPY -> HSXPY
+c          ISAMAX -> HISMX
+c          SSCAL -> HSSCL
+c          SSWAP -> HSWP
+
+c
+c
 c Call tree:
 c
 c    SGBCO
-c       SASUM
-c       SDOT
-c       SAXPY
+c       HSASUM
+c       HSDT
+c       HSXPY
 c       SGBFA
-c           ISAMAX
-c           SAXPY
-c           SSCAL
-c       SSCAL
+c           HISMX
+c           HSXPY
+c           HSSCL
+c       HSSCL
 c   SGBSL
-c       SDOT
-c       SAXPY
+c       HSDT
+c       HSXPY
 c   SGECO
-c       SASUM
-c       SDOT
-c       SAXPY
+c       HSASUM
+c       HSDT
+c       HSXPY
 c       SGEFA
-c           ISAMAX
-c           SAXPY
-c           SSCAL
-c       SSCAL
+c           HISMX
+c           HSXPY
+c           HSSCL
+c       HSSCL
 c   SGESL
-c       SDOT
-c       SAXPY
-c   SSWAP
+c       HSDT
+c       HSXPY
+c   HSSWP
 c ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -159,12 +171,12 @@ c     .. Local Scalars ..
 c     ..
 c     .. External Functions ..
 
-      REAL      SASUM, SDOT
-      EXTERNAL  SASUM, SDOT
+      REAL      HSASUM, HSDT
+      EXTERNAL  HSASUM, HSDT
 c     ..
 c     .. External Subroutines ..
 
-      EXTERNAL  SAXPY, SGBFA, SSCAL
+      EXTERNAL  HSXPY, SGBFA, HSSCL
 c     ..
 c     .. Intrinsic Functions ..
 
@@ -179,7 +191,7 @@ c                       ** compute 1-norm of A
 
       DO 10 J = 1, N
 
-         ANORM  = MAX( ANORM, SASUM( L,ABD( IS,J ),1 ) )
+         ANORM  = MAX( ANORM, HSASUM( L,ABD( IS,J ),1 ) )
 
          IF( IS.GT.ML + 1 ) IS = IS - 1
 
@@ -218,7 +230,7 @@ c                     ** solve trans(U)*W = E
 
             S  = ABS( ABD( M,K ) ) / ABS( EK - Z( K ) )
 
-            CALL SSCAL( N, S, Z, 1 )
+            CALL HSSCL( N, S, Z, 1 )
 
             EK = S*EK
 
@@ -274,9 +286,9 @@ c                     ** solve trans(U)*W = E
    50 CONTINUE
 
 
-      S  = 1.0E0 / SASUM( N, Z, 1 )
+      S  = 1.0E0 / HSASUM( N, Z, 1 )
 
-      CALL SSCAL( N, S, Z, 1 )
+      CALL HSSCL( N, S, Z, 1 )
 
 c                         ** solve trans(L)*Y = W
       DO 60 KB = 1, N
@@ -284,13 +296,13 @@ c                         ** solve trans(L)*Y = W
          LM = MIN( ML, N - K )
 
          IF( K.LT.N )
-     &       Z( K ) = Z( K ) + SDOT( LM, ABD( M+1, K ), 1, Z( K+1 ), 1 )
+     &       Z( K ) = Z( K ) + HSDT( LM, ABD( M+1, K ), 1, Z( K+1 ), 1 )
 
          IF( ABS( Z( K ) ).GT.1.0E0 ) THEN
 
             S  = 1.0E0 / ABS( Z( K ) )
 
-            CALL SSCAL( N, S, Z, 1 )
+            CALL HSSCL( N, S, Z, 1 )
 
          END IF
 
@@ -302,9 +314,9 @@ c                         ** solve trans(L)*Y = W
    60 CONTINUE
 
 
-      S  = 1.0E0 / SASUM( N, Z, 1 )
+      S  = 1.0E0 / HSASUM( N, Z, 1 )
 
-      CALL SSCAL( N, S, Z, 1 )
+      CALL HSSCL( N, S, Z, 1 )
 
       YNORM  = 1.0E0
 c                         ** solve L*V = Y
@@ -317,13 +329,13 @@ c                         ** solve L*V = Y
          LM     = MIN( ML, N - K )
 
          IF( K.LT.N )
-     &       CALL SAXPY( LM, T, ABD( M+1, K ), 1, Z( K+1 ), 1 )
+     &       CALL HSXPY( LM, T, ABD( M+1, K ), 1, Z( K+1 ), 1 )
 
          IF( ABS( Z(K) ).GT.1.0E0 ) THEN
 
             S  = 1.0E0 / ABS( Z(K) )
 
-            CALL SSCAL( N, S, Z, 1 )
+            CALL HSSCL( N, S, Z, 1 )
 
             YNORM  = S*YNORM
 
@@ -332,9 +344,9 @@ c                         ** solve L*V = Y
    70 CONTINUE
 
 
-      S  = 1.0E0 / SASUM( N, Z, 1 )
+      S  = 1.0E0 / HSASUM( N, Z, 1 )
 
-      CALL SSCAL( N, S, Z, 1 )
+      CALL HSSCL( N, S, Z, 1 )
 
       YNORM  = S*YNORM
 
@@ -347,7 +359,7 @@ c                           ** solve  U*Z = W
 
             S  = ABS( ABD( M,K ) ) / ABS( Z( K ) )
 
-            CALL SSCAL( N, S, Z, 1 )
+            CALL HSSCL( N, S, Z, 1 )
 
             YNORM  = S*YNORM
 
@@ -361,14 +373,14 @@ c                           ** solve  U*Z = W
          LZ = K - LM
          T  = -Z( K )
 
-         CALL SAXPY( LM, T, ABD( LA,K ), 1, Z( LZ ), 1 )
+         CALL HSXPY( LM, T, ABD( LA,K ), 1, Z( LZ ), 1 )
 
    80 CONTINUE
 c                              ** make znorm = 1.0
 
-      S  = 1.0E0 / SASUM( N, Z, 1 )
+      S  = 1.0E0 / HSASUM( N, Z, 1 )
 
-      CALL SSCAL( N, S, Z, 1 )
+      CALL HSSCL( N, S, Z, 1 )
 
       YNORM  = S*YNORM
       IF( ANORM.NE.0.0E0 ) RCOND  = YNORM / ANORM
@@ -421,12 +433,12 @@ c     .. Local Scalars ..
 c     ..
 c     .. External Functions ..
 
-      INTEGER   ISAMAX
-      EXTERNAL  ISAMAX
+      INTEGER   HISMX
+      EXTERNAL  HISMX
 c     ..
 c     .. External Subroutines ..
 
-      EXTERNAL  SAXPY, SSCAL
+      EXTERNAL  HSXPY, HSSCL
 c     ..
 c     .. Intrinsic Functions ..
 
@@ -470,7 +482,7 @@ c                                  ** zero next fill-in column
          END IF
 c                                  ** find L = pivot index
          LM  = MIN( ML, N - K )
-         L   = ISAMAX( LM + 1, ABD( M, K ), 1 ) + M - 1
+         L   = HISMX( LM + 1, ABD( M, K ), 1 ) + M - 1
          IPVT( K ) = L + K - M
 
          IF( ABD( L,K ).EQ.0.0E0 ) THEN
@@ -489,7 +501,7 @@ c                                ** interchange if necessary
 c                                      ** compute multipliers
             T  = - 1.0E0 / ABD( M, K )
 
-            CALL SSCAL( LM, T, ABD( M + 1,K ), 1 )
+            CALL HSSCL( LM, T, ABD( M + 1,K ), 1 )
 
 c                               ** row elimination with column indexing
 
@@ -509,7 +521,7 @@ c                               ** row elimination with column indexing
 
                END IF
 
-               CALL SAXPY( LM, T, ABD( M+1, K ), 1, ABD( MM+1, J ), 1)
+               CALL HSXPY( LM, T, ABD( M+1, K ), 1, ABD( MM+1, J ), 1)
 
    40       CONTINUE
 
@@ -598,12 +610,12 @@ c     .. Local Scalars ..
 c     ..
 c     .. External Functions ..
 
-      REAL      SDOT
-      EXTERNAL  SDOT
+      REAL      HSDT
+      EXTERNAL  HSDT
 c     ..
 c     .. External Subroutines ..
 
-      EXTERNAL  SAXPY
+      EXTERNAL  HSXPY
 c     ..
 c     .. Intrinsic Functions ..
 
@@ -633,7 +645,7 @@ c                               ** first solve L*Y = B
 
                END IF
 
-               CALL SAXPY( LM, T, ABD( M + 1,K ), 1, B( K + 1 ), 1 )
+               CALL HSXPY( LM, T, ABD( M + 1,K ), 1, B( K + 1 ), 1 )
 
    10       CONTINUE
 
@@ -649,7 +661,7 @@ c                           ** now solve  U*X = Y
             LB     = K - LM
             T      = -B( K )
 
-            CALL SAXPY( LM, T, ABD( LA,K ), 1, B( LB ), 1 )
+            CALL HSXPY( LM, T, ABD( LA,K ), 1, B( LB ), 1 )
 
    20    CONTINUE
 
@@ -663,7 +675,7 @@ c                                  ** first solve  trans(U)*Y = B
             LM     = MIN( K, M ) - 1
             LA     = M - LM
             LB     = K - LM
-            T      = SDOT( LM, ABD( LA,K ), 1, B( LB ), 1 )
+            T      = HSDT( LM, ABD( LA,K ), 1, B( LB ), 1 )
             B( K ) = ( B( K ) - T ) / ABD( M, K )
 
    30    CONTINUE
@@ -675,7 +687,7 @@ c                                  ** now solve trans(L)*X = Y
 
                K      = N - KB
                LM     = MIN( ML, N - K )
-               B( K ) = B( K ) + SDOT( LM, ABD( M+1, K ), 1,
+               B( K ) = B( K ) + HSDT( LM, ABD( M+1, K ), 1,
      &                                 B( K+1 ), 1 )
                L      = IPVT( K )
 
@@ -765,12 +777,12 @@ c     .. Local Scalars ..
 c     ..
 c     .. External Functions ..
 
-      REAL      SASUM, SDOT
-      EXTERNAL  SASUM, SDOT
+      REAL      HSASUM, HSDT
+      EXTERNAL  HSASUM, HSDT
 c     ..
 c     .. External Subroutines ..
 
-      EXTERNAL  SAXPY, SGEFA, SSCAL
+      EXTERNAL  HSXPY, SGEFA, HSSCL
 c     ..
 c     .. Intrinsic Functions ..
 
@@ -781,7 +793,7 @@ c     ..
 c                        ** compute 1-norm of A
       ANORM  = 0.0E0
       DO 10 J = 1, N
-         ANORM  = MAX( ANORM, SASUM( N,A( 1,J ),1 ) )
+         ANORM  = MAX( ANORM, HSASUM( N,A( 1,J ),1 ) )
    10 CONTINUE
 c                                      ** factor
 
@@ -810,7 +822,7 @@ c                        ** solve trans(U)*W = E
 
             S  = ABS( A( K,K ) ) / ABS( EK - Z( K ) )
 
-            CALL SSCAL( N, S, Z, 1 )
+            CALL HSSCL( N, S, Z, 1 )
 
             EK = S*EK
 
@@ -861,21 +873,21 @@ c                        ** solve trans(U)*W = E
    50 CONTINUE
 
 
-      S  = 1.0E0 / SASUM( N, Z, 1 )
+      S  = 1.0E0 / HSASUM( N, Z, 1 )
 
-      CALL SSCAL( N, S, Z, 1 )
+      CALL HSSCL( N, S, Z, 1 )
 c                                ** solve trans(L)*Y = W
       DO 60 KB = 1, N
          K  = N + 1 - KB
 
          IF( K.LT.N )
-     &       Z( K ) = Z( K ) + SDOT( N - K, A( K+1, K ), 1, Z( K+1 ), 1)
+     &       Z( K ) = Z( K ) + HSDT( N - K, A( K+1, K ), 1, Z( K+1 ), 1)
 
          IF( ABS( Z( K ) ).GT.1.0E0 ) THEN
 
             S  = 1.0E0 / ABS( Z( K ) )
 
-            CALL SSCAL( N, S, Z, 1 )
+            CALL HSSCL( N, S, Z, 1 )
 
          END IF
 
@@ -886,9 +898,9 @@ c                                ** solve trans(L)*Y = W
    60 CONTINUE
 
 
-      S  = 1.0E0 / SASUM( N, Z, 1 )
+      S  = 1.0E0 / HSASUM( N, Z, 1 )
 
-      CALL SSCAL( N, S, Z, 1 )
+      CALL HSSCL( N, S, Z, 1 )
 c                                 ** solve L*V = Y
       YNORM  = 1.0E0
 
@@ -898,14 +910,14 @@ c                                 ** solve L*V = Y
          Z( L ) = Z( K )
          Z( K ) = T
 
-         IF( K.LT.N ) CALL SAXPY( N - K, T, A( K + 1,K ), 1, Z( K + 1 ),
+         IF( K.LT.N ) CALL HSXPY( N - K, T, A( K + 1,K ), 1, Z( K + 1 ),
      &                            1 )
 
          IF( ABS( Z( K ) ).GT.1.0E0 ) THEN
 
             S  = 1.0E0 / ABS( Z( K ) )
 
-            CALL SSCAL( N, S, Z, 1 )
+            CALL HSSCL( N, S, Z, 1 )
 
             YNORM  = S*YNORM
          END IF
@@ -913,9 +925,9 @@ c                                 ** solve L*V = Y
    70 CONTINUE
 
 
-      S  = 1.0E0 / SASUM( N, Z, 1 )
+      S  = 1.0E0 / HSASUM( N, Z, 1 )
 
-      CALL SSCAL( N, S, Z, 1 )
+      CALL HSSCL( N, S, Z, 1 )
 c                                  ** solve  U*Z = V
       YNORM  = S*YNORM
 
@@ -927,7 +939,7 @@ c                                  ** solve  U*Z = V
 
             S  = ABS( A( K,K ) ) / ABS( Z( K ) )
 
-            CALL SSCAL( N, S, Z, 1 )
+            CALL HSSCL( N, S, Z, 1 )
 
             YNORM  = S*YNORM
 
@@ -939,13 +951,13 @@ c                                  ** solve  U*Z = V
 
          T  = -Z( K )
 
-         CALL SAXPY( K - 1, T, A( 1,K ), 1, Z( 1 ), 1 )
+         CALL HSXPY( K - 1, T, A( 1,K ), 1, Z( 1 ), 1 )
 
    80 CONTINUE
 c                                   ** make znorm = 1.0
-      S  = 1.0E0 / SASUM( N, Z, 1 )
+      S  = 1.0E0 / HSASUM( N, Z, 1 )
 
-      CALL SSCAL( N, S, Z, 1 )
+      CALL HSSCL( N, S, Z, 1 )
 
       YNORM  = S*YNORM
 
@@ -997,12 +1009,12 @@ c     .. Local Scalars ..
 c     ..
 c     .. External Functions ..
 
-      INTEGER   ISAMAX
-      EXTERNAL  ISAMAX
+      INTEGER   HISMX
+      EXTERNAL  HISMX
 c     ..
 c     .. External Subroutines ..
 
-      EXTERNAL  SAXPY, SSCAL
+      EXTERNAL  HSXPY, HSSCL
 c     ..
 
 
@@ -1015,7 +1027,7 @@ c                      ** Gaussian elimination with partial pivoting
          KP1  = K + 1
 c                                            ** find L = pivot index
 
-         L  = ISAMAX( N - K + 1, A( K,K ), 1 ) + K - 1
+         L  = HISMX( N - K + 1, A( K,K ), 1 ) + K - 1
          IPVT( K ) = L
 
          IF( A( L,K ).EQ.0.0E0 ) THEN
@@ -1035,7 +1047,7 @@ c                                     ** interchange if necessary
 c                                     ** compute multipliers
             T  = -1.0E0 / A( K, K )
 
-            CALL SSCAL( N - K, T, A( K + 1,K ), 1 )
+            CALL HSSCL( N - K, T, A( K + 1,K ), 1 )
 
 c                              ** row elimination with column indexing
             DO 10 J = KP1, N
@@ -1049,7 +1061,7 @@ c                              ** row elimination with column indexing
 
                END IF
 
-               CALL SAXPY( N-K, T, A( K+1, K ), 1, A( K+1, J ), 1 )
+               CALL HSXPY( N-K, T, A( K+1, K ), 1, A( K+1, J ), 1 )
 
    10       CONTINUE
 
@@ -1132,12 +1144,12 @@ c     .. Local Scalars ..
 c     ..
 c     .. External Functions ..
 
-      REAL      SDOT
-      EXTERNAL  SDOT
+      REAL      HSDT
+      EXTERNAL  HSDT
 c     ..
 c     .. External Subroutines ..
 
-      EXTERNAL  SAXPY
+      EXTERNAL  HSXPY
 c     ..
 
 
@@ -1159,7 +1171,7 @@ c                                     ** first solve  L*Y = B
 
             END IF
 
-            CALL SAXPY( N - K, T, A( K+1, K ), 1, B( K+1 ), 1 )
+            CALL HSXPY( N - K, T, A( K+1, K ), 1, B( K+1 ), 1 )
 
    10    CONTINUE
 c                                    ** now solve  U*X = Y
@@ -1169,7 +1181,7 @@ c                                    ** now solve  U*X = Y
             B( K ) = B( K ) / A( K, K )
             T      = - B( K )
 
-            CALL SAXPY( K-1, T, A( 1, K ), 1, B(1), 1 )
+            CALL HSXPY( K-1, T, A( 1, K ), 1, B(1), 1 )
 
    20    CONTINUE
 
@@ -1180,7 +1192,7 @@ c                         ** solve  trans(A) * X = B
 c                                    ** first solve  trans(U)*Y = B
          DO 30 K = 1, N
 
-            T      = SDOT( K - 1, A( 1,K ), 1, B( 1 ), 1 )
+            T      = HSDT( K - 1, A( 1,K ), 1, B( 1 ), 1 )
             B( K ) = ( B( K ) - T ) / A( K, K )
 
    30    CONTINUE
@@ -1189,7 +1201,7 @@ c                                    ** now solve  trans(l)*x = y
          DO 40 KB = 1, NM1
 
             K      = N - KB
-            B( K ) = B( K ) + SDOT( N - K, A( K+1, K ), 1, B( K+1 ), 1)
+            B( K ) = B( K ) + HSDT( N - K, A( K+1, K ), 1, B( K+1 ), 1)
             L      = IPVT( K )
 
             IF( L.NE.K ) THEN
@@ -1206,13 +1218,13 @@ c                                    ** now solve  trans(l)*x = y
 
       END
 
-      REAL FUNCTION SASUM( N, SX, INCX )
+      REAL FUNCTION HSASUM( N, SX, INCX )
 
 c  INPUT--    N  Number of elements in vector to be summed
 c            SX  Sing-prec array, length 1+(N-1)*INCX, containing vector
 c          INCX  Spacing of vector elements in SX
 
-c  OUTPUT-- SASUM   Sum from 0 to N-1 of  ABS(SX(1+I*INCX))
+c  OUTPUT-- HSASUM   Sum from 0 to N-1 of  ABS(SX(1+I*INCX))
 c ----------------------------------------------------------
 
 c     .. Scalar Arguments ..
@@ -1232,14 +1244,14 @@ c     .. Intrinsic Functions ..
       INTRINSIC ABS, MOD
 c     ..
 
-      SASUM  = 0.0
+      HSASUM  = 0.0
 
       IF( N.LE.0 ) RETURN
 
       IF( INCX.NE.1 ) THEN
 c                                          ** non-unit increments
          DO 10 I = 1, 1 + ( N - 1 )*INCX, INCX
-            SASUM  = SASUM + ABS( SX( I ) )
+            HSASUM  = HSASUM + ABS( SX( I ) )
    10    CONTINUE
 
       ELSE
@@ -1250,13 +1262,13 @@ c                                          ** unit increments
 c                             ** clean-up loop so remaining vector
 c                             ** length is a multiple of 6.
             DO 20 I = 1, M
-               SASUM  = SASUM + ABS( SX( I ) )
+               HSASUM  = HSASUM + ABS( SX( I ) )
    20       CONTINUE
 
          END IF
 c                              ** unroll loop for speed
          DO 30 I = M + 1, N, 6
-            SASUM  = SASUM + ABS( SX( I ) ) + ABS( SX( I + 1 ) ) +
+            HSASUM  = HSASUM + ABS( SX( I ) ) + ABS( SX( I + 1 ) ) +
      &               ABS( SX( I + 2 ) ) + ABS( SX( I + 3 ) ) +
      &               ABS( SX( I + 4 ) ) + ABS( SX( I + 5 ) )
    30    CONTINUE
@@ -1265,7 +1277,7 @@ c                              ** unroll loop for speed
 
       END
 
-      SUBROUTINE SAXPY( N, SA, SX, INCX, SY, INCY )
+      SUBROUTINE HSXPY( N, SA, SX, INCX, SY, INCY )
 
 c          Y = A*X + Y  (X, Y = vectors, A = scalar)
 
@@ -1351,7 +1363,7 @@ c               ** nonequal or nonpositive increments.
 
       END
 
-      REAL FUNCTION SDOT( N, SX, INCX, SY, INCY )
+      REAL FUNCTION HSDT( N, SX, INCX, SY, INCY )
 
 c        Single-prec dot product of vectors  X  and  Y
 
@@ -1363,7 +1375,7 @@ c       SY  Sing-prec array containing vector Y
 c     INCY  Spacing of elements of vector Y in SY
 
 c OUTPUT--
-c     SDOT   Sum for I = 0 to N-1 of  SX(LX+I*INCX) * SY(LY+I*INCY),
+c     HSDT   Sum for I = 0 to N-1 of  SX(LX+I*INCX) * SY(LY+I*INCY),
 c            where  LX = 1          if INCX .GE. 0,
 c                      = (-INCX)*N  if INCX .LT. 0,
 c            and LY is defined analogously using INCY.
@@ -1387,14 +1399,14 @@ c     .. Intrinsic Functions ..
 c     ..
 
 
-      SDOT = 0.0
+      HSDT = 0.0
 
       IF( N.LE.0 ) RETURN
 
       IF( INCX.EQ.INCY .AND. INCX.GT.1 ) THEN
 
          DO 10 I = 1, 1 + ( N - 1 )*INCX, INCX
-            SDOT = SDOT + SX( I )*SY( I )
+            HSDT = HSDT + SX( I )*SY( I )
    10    CONTINUE
 
 
@@ -1407,13 +1419,13 @@ c                                        ** equal, unit increments
 c                            ** clean-up loop so remaining vector length
 c                            ** is a multiple of 4.
             DO 20 I = 1, M
-               SDOT = SDOT + SX( I )*SY( I )
+               HSDT = HSDT + SX( I )*SY( I )
    20       CONTINUE
 
          END IF
 c                              ** unroll loop for speed
          DO 30 I = M + 1, N, 5
-            SDOT = SDOT + SX( I )*SY( I ) + SX( I + 1 )*SY( I + 1 ) +
+            HSDT = HSDT + SX( I )*SY( I ) + SX( I + 1 )*SY( I + 1 ) +
      &               SX( I + 2 )*SY( I + 2 ) + SX( I + 3 )*SY( I + 3 ) +
      &               SX( I + 4 )*SY( I + 4 )
    30    CONTINUE
@@ -1427,7 +1439,7 @@ c               ** nonequal or nonpositive increments.
          IF( INCY.LT.0 ) IY = 1 + ( N - 1 )*( -INCY )
 
          DO 40 I = 1, N
-            SDOT = SDOT + SX( IX )*SY( IY )
+            HSDT = HSDT + SX( IX )*SY( IY )
             IX   = IX + INCX
             IY   = IY + INCY
    40    CONTINUE
@@ -1436,7 +1448,7 @@ c               ** nonequal or nonpositive increments.
 
       END
 
-      SUBROUTINE SSCAL( N, SA, SX, INCX )
+      SUBROUTINE HSSCL( N, SA, SX, INCX )
 
 c         Multiply vector SX by scalar SA
 
@@ -1502,7 +1514,7 @@ c                             ** unroll loop for speed
 
       END
 
-      SUBROUTINE SSWAP( N, SX, INCX, SY, INCY )
+      SUBROUTINE HSSWP( N, SX, INCX, SY, INCY )
 
 c          Interchange s.p vectors  X  and  Y, as follows:
 
@@ -1603,13 +1615,13 @@ c               ** nonequal or nonpositive increments.
 
       END
 
-      INTEGER FUNCTION ISAMAX( N, SX, INCX )
+      INTEGER FUNCTION HISMX( N, SX, INCX )
 
 c INPUT--  N     Number of elements in vector of interest
 c          SX    Sing-prec array, length 1+(N-1)*INCX, containing vector
 c          INCX  Spacing of vector elements in SX
 
-c OUTPUT-- ISAMAX   First I, I = 1 to N, to maximize
+c OUTPUT-- HISMX   First I, I = 1 to N, to maximize
 c                         ABS(SX(1+(I-1)*INCX))
 c ---------------------------------------------------------------------
 
@@ -1634,11 +1646,11 @@ c     ..
 
       IF( N.LE.0 ) THEN
 
-         ISAMAX = 0
+         HISMX = 0
 
       ELSE IF( N.EQ.1 ) THEN
 
-         ISAMAX = 1
+         HISMX = 1
 
       ELSE
 
@@ -1652,7 +1664,7 @@ c     ..
             IF( SMAX.LT.XMAG ) THEN
 
                SMAX   = XMAG
-               ISAMAX = II
+               HISMX = II
 
             END IF
 
