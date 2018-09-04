@@ -522,12 +522,10 @@ void cart2poslos(
       const Numeric   sinlat = sin( latrad );
       const Numeric   coslon = cos( lonrad );
       const Numeric   sinlon = sin( lonrad );
-      // dr only used to validate za
-      const Numeric   dr     = coslat*coslon*dx + coslat*sinlon*dy + sinlat*dz;
 
       // Set za by ppc for max accuracy, but this does not resolve
       // za and 180-za. This was first resolved by dr, but using l and lmax was
-      // foudn to be more stable.
+      // found to be more stable.
       za = RAD2DEG * asin( ppc / r );
 
       // Correct and check za
@@ -543,25 +541,6 @@ void cart2poslos(
           if( l < ltan )
             { za = 180.0 - za; }
         }
-      // The difference below can at least be 1e-5 for tangent points
-      if( abs( za - RAD2DEG*acos(dr) ) >= 1e-4 )
-        {
-          throw runtime_error(
-            "Internal consistency check in *cart2poslos failed. If this "
-            "happens to you and you critically need the ongoing calculations, "
-            "try to change the observation LOS slightly. If you can reproduce "
-            "this error, please contact Patrick in order to help tracking down "
-            "the reason to this problem. If you see this message occasionally "
-            "when doing MC calculations, it should not be critical. This path "
-            "sampling will be rejected and replaced with a new one." );
-        }
-
-      // As last check of za, make sure that it has decreased
-      //if( za >= za0 )
-      //  {
-      //    za = za0 - 1e-4;
-      //    cout << "Increasing za! Reset to = " << za << " / ";          
-      //  }
 
       // For lat = +- 90 the azimuth angle gives the longitude along which 
       // the LOS goes
