@@ -1,3 +1,17 @@
+2018-09-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1108
+
+	* controlfiles/general/general.arts: lat_true and lon_true are now
+	set to be empty.
+
+	* src/ppath.cc (ppath_start_stepping): Commented out first checks
+	for 3D. They were meant to provide a more clear error message, but
+	they can result in fails for actually OK set-ups at high latitudes.
+
+	* src/m_checked.cc (atmgeom_checkedCalc): The method now also
+	checks lat_true and lon_true.
+
 2018-09-03  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1107

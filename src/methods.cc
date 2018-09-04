@@ -3094,9 +3094,9 @@ void define_md_data_raw()
         (
          "Checks consistency of geometric considerations of the atmosphere.\n"
          "\n"
-         "The following WSVs are checked: *z_field*, *refellipsoid* and\n"
-         "*z_surface*. If any of the variables above is changed, then this\n"
-         "method shall be called again (no automatic check that this is\n"
+         "The following WSVs are checked: *z_field*, *refellipsoid*, *z_surface*,\n"
+         "*lat_true* and *lon_true*. If any of the variables above is changed,\n"
+         "then this method shall be called again (no automatic check that this is\n"
          "fulfilled!).\n"
          "\n"
          "The tests include that:\n"
@@ -3105,6 +3105,8 @@ void define_md_data_raw()
          " 2. *z_field* and *z_surface* have sizes consistent with the\n"
          "    atmospheric grids.\n"
          " 3. There is no gap between *z_surface* and *z_field*.\n"
+         "\n"
+         "*lat_true* and *lon_true* are allowed to be empty.\n"
          "\n"
          "If any test fails, there is an error. Otherwise, *atmgeom_checked*\n"
          "is set to 1.\n"
@@ -3117,7 +3119,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
-            "z_field", "refellipsoid", "z_surface" ),
+            "z_field", "refellipsoid", "z_surface", "lat_true", "lon_true" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

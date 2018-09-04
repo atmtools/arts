@@ -158,9 +158,11 @@ NumericSet( ppath_lraytrace, 1e3 )
 
 
 #
-# Geo-positioning
+# Various geo-positioning
 #
 # Default is to leave the geo-pos undefined
+VectorSet( lat_true, [] )
+VectorSet( lon_true, [] )
 AgendaSet( geo_pos_agenda ){
   Ignore( ppath )
   VectorSet( geo_pos, [] )

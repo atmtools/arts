@@ -5136,6 +5136,7 @@ void ppath_start_stepping(
       // Sensor is outside the model atmosphere:
       else
         {
+          /* These checks can fail for simulations close to the poles:
           // Handle cases when the sensor appears to look the wrong way in
           // the north-south direction
           if( ( rte_pos[1] <= lat_grid[0]     &&  abs( rte_los[1] ) >= 90 )  || 
@@ -5158,7 +5159,8 @@ void ppath_start_stepping(
                  << "model atmosphere\nbut looks in the wrong direction.";
               throw runtime_error( os.str() );
             }
-
+          */
+          
           // We can here set ppc and n as we are outside the atmosphere
           ppath.nreal    = 1.0;
           ppath.ngroup   = 1.0;

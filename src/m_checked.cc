@@ -363,6 +363,8 @@ void atmgeom_checkedCalc(
    const Tensor3&   z_field,
    const Vector&    refellipsoid,
    const Matrix&    z_surface,
+   const Vector&    lat_true,
+   const Vector&    lon_true,
    const Verbosity&)
 {
   // A repetition from atmfields_checked, but we do this to make the two parts
@@ -429,6 +431,34 @@ void atmgeom_checkedCalc(
         }
     }
 
+  // lat/lon true
+  if( atmosphere_dim < 3  &&  ( lat_true.nelem()  ||  lon_true.nelem() ) )
+    {
+      if( atmosphere_dim == 1 )
+        {
+          if( lat_true.nelem() != 1 )
+            throw runtime_error( "For 1D, *lat_true* must have length 1." );
+          if( lon_true.nelem() != 1 )
+            throw runtime_error( "For 1D, *lon_true* must have length 1." );
+        }
+      else if( atmosphere_dim == 2 )
+        {
+          if( lat_true.nelem() != lat_grid.nelem() )
+            throw runtime_error(
+               "For 2D, *lat_true* must have same length as *lat_grid*." );
+          if( lon_true.nelem() != lat_grid.nelem() )
+            throw runtime_error(
+               "For 2D, *lon_true* must have same length as *lat_grid*." );
+        }
+      if( lon_true.nelem() != lat_true.nelem() )
+        throw runtime_error( "If *lat_true* is set, also *lon_true* must be "
+                             "set (and have the same length)." );
+      if( min(lat_true) < -90  || max(lat_true) > 90 )
+        throw runtime_error( "Values in *lat_true* must be inside [-90,90]." );       
+      if( min(lon_true) < -180  ||  max(lon_true) > 360 )
+        throw runtime_error( "Values in *lon_true* must be inside [-180,360]." ); 
+    }
+  
   // If here, all OK
   atmgeom_checked = 1;
 }
