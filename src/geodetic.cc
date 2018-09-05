@@ -504,9 +504,7 @@ void cart2poslos(
         {
           ns_case = true;
           // Check that not lon changed with 180 deg
-          if( abs(lon-lon0) < 1 )
-            { lon = lon0; }
-          else
+          if( abs(abs(lon-lon0)-180) < 5 )
             {
               lon_flip = true;
               if( lon0 > 0 )
@@ -514,6 +512,8 @@ void cart2poslos(
               else
                 { lon = lon0 + 180; }
             }
+          else
+            { lon = lon0; }
         }
 
       const Numeric   latrad = DEG2RAD * lat;

@@ -1,3 +1,11 @@
+2018-09-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1110
+
+	* src/geodetic.cc (cart2poslos): More tweaks to handle numerical
+	problems. Changed "Check that not lon changed with 180 deg". The
+	old version did not resolve changes of 180 and 360.
+
 2018-09-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1109
@@ -8,7 +16,6 @@
 	alternative way clearly gave wrong result, and it seems that the
 	code change I did works better than the old (now alternative) way.
 	So removed the check.
-
 2018-09-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1108
