@@ -509,7 +509,7 @@ CovarianceMatrixBlockStruct get_covariance_matrix_block(CovarianceMatrix *m,
     if ((block_index < 0) || ((size_t) block_index >= blocks.size())) {
         throw std::runtime_error("The block index is invalid.");
     }
-    Block &block = blocks[0];
+    Block &block = blocks[block_index];
 
     Index i,j;
     std::tie(i,j) = block.get_indices();

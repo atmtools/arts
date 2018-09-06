@@ -1,3 +1,11 @@
+2018-09-06  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1111
+
+	* src/arts_api.cc (get_covariance_matrix_block):
+	Fixed bug leading to always returning the first block
+	in the matrix.
+
 2018-09-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1110
