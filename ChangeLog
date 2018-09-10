@@ -1,5 +1,14 @@
 2018-09-10  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
+	* arts-2-3-1113
+
+	* src/m_rte.cc(iyEmissionStandard):
+	Call to get_stepwise_blackbody_radiation ignored jacobian_do
+	flag leading to an out of bounds access in dB_dT. This has
+	been fixed.
+
+2018-09-10  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
 	* arts-2-3-1112
 
 	* src/m_retrieval.cc(covmat1D):

@@ -364,11 +364,14 @@ void iyEmissionStandard(
       // Loop ppath points and determine radiative properties
       for( Index ip=0; ip<np; ip++ )
         {
+          bool temperature_jacobian = j_analytical_do
+               && do_temperature_jacobian(jacobian_quantities);
+
           get_stepwise_blackbody_radiation( B,
                                             dB_dT,
                                             ppvar_f(joker,ip),
                                             ppvar_t[ip],
-                                            do_temperature_jacobian(jacobian_quantities));
+                                            temperature_jacobian);
           
           get_stepwise_clearsky_propmat( ws,
                                          K_this,
