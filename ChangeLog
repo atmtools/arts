@@ -1,3 +1,14 @@
+2018-09-10  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1112
+
+	* src/m_retrieval.cc(covmat1D):
+	Fixed bugs in covmat1D report by Jonas Hagen as well as some others
+	found in the process.
+
+	* controlfiles/artscomponents/retrieval/*
+	Added controlfile and reference files to test covmat1D.
+
 2018-09-06  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1111

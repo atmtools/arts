@@ -1,0 +1,30 @@
+Arts2 {
+  VectorCreate(grid_1)
+  VectorCreate(sigma_1)
+  VectorCreate(cls_1)
+  VectorLinSpace(grid_1, 0.0, 30000.0, 1500.0)
+  VectorSetConstant(out = sigma_1, nelem = 1, value = 1.0)
+  VectorLinSpace(cls_1, 1000.0, 2000.0, 50.0)
+
+  VectorCreate(grid_2)
+  VectorCreate(sigma_2)
+  VectorCreate(cls_2)
+  VectorLinSpace(grid_2, 0.0, 30000.0, 3000.0)
+  VectorSetConstant(out = sigma_2, nelem = 1, value = 2.0)
+  VectorLinSpace(cls_2, 1000.0, 2000.0, 100.0)
+
+  SparseCreate(covmat_reference)
+  SparseCreate(covmat)
+
+  ReadXML(covmat_reference, "artscomponents/retrieval/covmat1D_lin.xml")
+  covmat1D(covmat, grid_1, grid_2, sigma_1, sigma_2, cls_1, cls_2, 0.001, "lin")
+  Compare(covmat_reference, covmat, 1e-6, "Result of covmat1D deviates from reference.")
+
+  ReadXML(covmat_reference, "artscomponents/retrieval/covmat1D_exp.xml")
+  covmat1D(covmat, grid_1, grid_2, sigma_1, sigma_2, cls_1, cls_2, 0.001, "exp")
+  Compare(covmat_reference, covmat, 1e-6, "Result of covmat1D deviates from reference.")
+
+  ReadXML(covmat_reference, "artscomponents/retrieval/covmat1D_gau.xml")
+  covmat1D(covmat, grid_1, grid_2, sigma_1, sigma_2, cls_1, cls_2, 0.001, "gau")
+  Compare(covmat_reference, covmat, 1e-6, "Result of covmat1D deviates from reference.")
+}

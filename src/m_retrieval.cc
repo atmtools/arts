@@ -265,23 +265,47 @@ void covmat1D(MatrixType& block,
               const Verbosity &)
 {
     Index m = grid1.nelem();
-    assert(sigma1.nelem() == m);
-    assert(lc1.nelem() == m);
+    Vector sigma1_copy(sigma1), lc1_copy(lc1);
+
+    assert((sigma1.nelem() == m) || (sigma1.nelem() == 1));
+    if (sigma1.nelem() == 1) {
+        Numeric v = sigma1[0];
+        sigma1_copy = Vector(m);
+        sigma1_copy = v;
+    }
+
+    assert((lc1.nelem() == m) || (lc1.nelem() == 1));
+    if (lc1.nelem() == 1){
+        Numeric v = lc1[0];
+        lc1_copy = Vector(m);
+        lc1_copy = v;
+    };
 
     Index n = grid2.nelem();
-    assert(sigma2.nelem() == n);
-    assert(lc2.nelem() == n);
+    Vector sigma2_copy(sigma2), lc2_copy(lc2);
 
-    assert((n == m) || (n==0));
+    assert((sigma2.nelem() == n) || (sigma2.nelem() == 1));
+    if (sigma2.nelem() == 1) {
+        Numeric v = sigma2[0];
+        sigma2_copy = Vector(n);
+        sigma2_copy = v;
+    }
 
-    ConstVectorView grid_view_1(grid1), sigma_view_1(sigma1), cls_view_1(lc1);
-    ConstVectorView grid_view_2(grid2), sigma_view_2(sigma2), cls_view_2(lc2);
+    assert((lc2.nelem() == n) || (lc2.nelem() == 1));
+    if (lc2.nelem() == 1) {
+        Numeric v = lc2[0];
+        lc2_copy = Vector(n);
+        lc2_copy = v;
+    };
+
+    ConstVectorView grid_view_1(grid1), sigma_view_1(sigma1_copy), cls_view_1(lc1_copy);
+    ConstVectorView grid_view_2(grid2), sigma_view_2(sigma2_copy), cls_view_2(lc2_copy);
 
     if (n==0) {
         n = m;
         grid_view_2  = grid_view_1;
         sigma_view_2 = sigma_view_1;
-        cls_view_2   = sigma_view_1;
+        cls_view_2   = cls_view_1;
     }
 
     // Correlation Functions
@@ -300,7 +324,9 @@ void covmat1D(MatrixType& block,
     auto f_gau = [&](Index i, Index j) {
         Numeric d  = abs(grid_view_1[i] - grid_view_2[j]);
         Numeric cl = 0.5 * (cls_view_1[i] + cls_view_2[j]);
-        return exp(-d/cl);
+        Numeric x = d / cl;
+        x *= x;
+        return exp(-x);
     };
 
     ArrayOfIndex row_indices;
@@ -327,8 +353,8 @@ void covmat1D(MatrixType& block,
 
     for (Index i = 0; i < m; ++i) {
         for (Index j = 0; j < n; ++j) {
-            Numeric e = sigma_view_1[i] * sigma_view_2[j] * f(i,j);
-            if (e > co) {
+            Numeric e = f(i,j);
+            if (e >= co) {
                 row_indices.push_back(i);
                 column_indices.push_back(j);
             }
