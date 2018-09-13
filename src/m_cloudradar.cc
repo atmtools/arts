@@ -93,6 +93,7 @@ void iyActiveSingleScat(
   const ArrayOfTensor4&                     dpnd_field_dx,
   const ArrayOfString&                      scat_species,
   const ArrayOfArrayOfSingleScatteringData& scat_data,
+  const Index&                              scat_data_checked,
   const ArrayOfString&                      iy_aux_vars,
   const Index&                              jacobian_do,
   const ArrayOfRetrievalQuantity&           jacobian_quantities,
@@ -132,10 +133,15 @@ void iyActiveSingleScat(
                          "the cloudbox.\nFor this method, *ppath* must be "
                          "calculated in this way:\n   ppathCalc( cloudbox_on = 0 )." );
   if( cloudbox_on )
-    if( ne!=TotalNumberOfElements(scat_data) )
+    {
+    if( scat_data_checked != 1 )
+      throw runtime_error( "The scattering data must be flagged to have\n"
+                           "passed a consistency check (scat_data_checked=1)." );
+      if( ne!=TotalNumberOfElements(scat_data) )
         throw runtime_error(
           "*pnd_field* and *scat_data* inconsistent regarding total number of"
           " scattering elements." );
+    }
   if( jacobian_do )
     {
       if( dpnd_field_dx.nelem() != jacobian_quantities.nelem() )

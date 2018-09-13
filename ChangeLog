@@ -1,3 +1,10 @@
+2018-09-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1114
+
+	* src/m_cloudradar.cc (iyActiveSingleScat): The method now considers
+	scat_data_checked.
+
 2018-09-10  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1113
