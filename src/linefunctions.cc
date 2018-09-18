@@ -64,15 +64,14 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
                                   const Index& zeeman_index)
 {
   // Pressure broadening terms
-  const Numeric partial_pressure = pressure * vmrs[this_species];
   Numeric G0, G2, e, L0, L2, FVC;
-  line.PressureBroadening().GetPressureBroadeningParams(
-    G0, G2, e, L0, L2, FVC, temperature, line.Ti0(), pressure, partial_pressure, 
+  line.SetPressureBroadeningParameters(
+    G0, G2, e, L0, L2, FVC, temperature, pressure, 
     this_species, water_species, broad_spec_locations, vmrs);
   
   // Line mixing terms
   Numeric Y=0, G=0, DV=0;
-  line.LineMixing().GetLineMixingParams(Y, G, DV, temperature, pressure,  pressure_limit_for_linemixing);
+  line.SetLineMixingParameters(Y, G, DV, temperature, pressure,  pressure_limit_for_linemixing);
   
   // Line shape usage remembering variable
   LineShapeType lst = LineShapeType::End;
@@ -83,7 +82,7 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
   switch(line.GetLineShapeType())
   {
     case LineShapeType::ByPressureBroadeningData:
-      switch(line.PressureBroadening().Type())
+      switch(line.PressureBroadeningType())
       {
         // Use data as per speed dependent air
         case PressureBroadeningData::PB_SD_AIR_VOLUME:
@@ -372,7 +371,7 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
   const Index nf = f_grid.nelem();
   const Index nppd = derivatives_data_position.nelem();
   
-  static const Complex i(0.0, 1.0), one_plus_one_i(1.0, 1.0);
+  static const Complex i(0.0, 1.0);
   
   // Main lineshape parameters
   Complex A, Zp, Zm, Zp2, Zm2, wiZp, wiZm, X, sqrtXY, G, invG;
@@ -804,7 +803,7 @@ void Linefunctions::set_voigt(ComplexVectorView F,
   const Index nppd = derivatives_data_position.nelem();
   
   // For calculations
-  Complex w, z, dw_over_dz, dz;
+  Complex w, z, dw_over_dz;
   
   // Doppler broadening and line center
   const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude + L0 + dF0;
@@ -1827,30 +1826,29 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
    * These are set by the line catalog.  There are no defaults.
    */
   Numeric G0, G2, e, L0, L2, FVC;
-  line.PressureBroadening().GetPressureBroadeningParams(
-    G0, G2, e, L0, L2, FVC,
-    temperature, line.Ti0(), pressure, partial_pressure, 
+  line.SetPressureBroadeningParameters(
+    G0, G2, e, L0, L2, FVC, temperature, pressure, 
     this_species_location_in_tags, water_index_location_in_tags,
     broad_spec_locations, volume_mixing_ratio_of_all_species);
   
   // Line mixing terms
   Numeric Y, G, DV;
-  line.LineMixing().GetLineMixingParams(Y, G, DV, temperature, pressure, 
-                                        pressure_limit_for_linemixing);
+  line.SetLineMixingParameters(Y, G, DV, temperature, pressure, 
+                               pressure_limit_for_linemixing);
   
   // Partial derivatives for temperature
   Numeric dG0_dT, dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT, dY_dT, dG_dT, dDV_dT, dK1_dT, dK2_dT;
   if(do_temperature)
   {
     // Pressure broadening partial derivatives
-    line.PressureBroadening().GetPressureBroadeningParams_dT(
+    line.SetPressureBroadeningParametersTemperatureDerivative(
       dG0_dT, dG2_dT, de_dT, dL0_dT, dL2_dT, dFVC_dT,
-      temperature, line.Ti0(), pressure, partial_pressure,
+      temperature, pressure,
       this_species_location_in_tags, water_index_location_in_tags,
       broad_spec_locations, volume_mixing_ratio_of_all_species);
     
     // Line mixing partial derivatives
-    line.LineMixing().GetLineMixingParams_dT(
+    line.SetLineMixingParametersTemperatureDerivative(
       dY_dT, dG_dT, dDV_dT, temperature,
       temperature_perturbation(derivatives_data),
       pressure, pressure_limit_for_linemixing);
@@ -1862,18 +1860,18 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
    */
   ComplexVector pressure_derivatives;
   if(do_pressure_jacobian(derivatives_data))
-    line.PressureBroadening().SetInternalDerivatives(pressure_derivatives, derivatives_data, QI, 
-                                                     line.Ti0()/temperature, pressure, partial_pressure, 
-                                                     this_species_location_in_tags, water_index_location_in_tags,
-                                                     volume_mixing_ratio_of_all_species);
+    line.SetInternalPressureBroadeningDerivatives(pressure_derivatives, derivatives_data, 
+                                                  temperature, pressure, 
+                                                  this_species_location_in_tags, water_index_location_in_tags,
+                                                  volume_mixing_ratio_of_all_species);
     
   /* Partial derivatives due to line mixing
     * The vector below will be rescaled by the set internal derivatives function such that
     * the order of their occurrences are the same as in the partial derivative output
     */
   ComplexVector linemixing_derivatives;
-  line.LineMixing().SetInternalDerivatives(linemixing_derivatives, derivatives_data, QI, 
-                                            temperature, pressure, pressure_limit_for_linemixing);
+  line.SetInternalLineMixingDerivatives(linemixing_derivatives, derivatives_data,
+                                        temperature, pressure, pressure_limit_for_linemixing);
   
   // Line shape usage remembering variable. 
   // Is only used if the user has set to use mirroring 
@@ -1901,7 +1899,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   {
     // Use data as provided by the pressure broadening scheme
     case LineShapeType::ByPressureBroadeningData:
-      switch(line.PressureBroadening().Type())
+      switch(line.PressureBroadeningType())
       {
         // Use data as per speed dependent air
         case PressureBroadeningData::PB_SD_AIR_VOLUME:
@@ -2506,7 +2504,7 @@ Index Linefunctions::first_binary_level(const Numeric& dg, const Numeric& df, co
 {
   const Numeric p = dg / df;
   Index i = 0;
-  while(p > ((1 << i) * N)) i++;  // nb, N is the minimum number of points within range of p
+  while(p > Numeric((1 << i) * N)) i++;  // nb, N is the minimum number of points within range of p
   return i;
 }
 
@@ -3151,7 +3149,7 @@ void Linefunctions::set_lineshape_from_level_line_data(Complex& F,
       set_htp_from_level_line_data(F, dF, f, line.F(), 0.0, level_line_data, derivatives_data, derivatives_data_position);
       break;
     case LineShapeType::ByPressureBroadeningData:
-      switch(line.PressureBroadening().Type()) {
+      switch(line.PressureBroadeningType()) {
         case PressureBroadeningData::PB_SD_AIR_VOLUME:
         case PressureBroadeningData::PB_HTP_AIR_VOLUME:
         case PressureBroadeningData::PB_PURELY_FOR_TESTING:
@@ -3201,7 +3199,7 @@ void Linefunctions::set_lineshape_from_level_line_data(Complex& F,
             set_htp_from_level_line_data(Fm, dFm, f, -line.F(), -0.0, level_line_data, derivatives_data, derivatives_data_position);
             break;
           case LineShapeType::ByPressureBroadeningData:
-            switch(line.PressureBroadening().Type()) {
+            switch(line.PressureBroadeningType()) {
               case PressureBroadeningData::PB_SD_AIR_VOLUME:
               case PressureBroadeningData::PB_HTP_AIR_VOLUME:
               case PressureBroadeningData::PB_PURELY_FOR_TESTING:
@@ -3981,22 +3979,21 @@ Linefunctions::SingleLevelLineData::SingleLevelLineData(const LineRecord& line,
   const QuantumIdentifier& QI = line.QuantumIdentity();
   
   Numeric A, B, C, D, E;
-  line.PressureBroadening().GetPressureBroadeningParams(
-     A, B, meta, C, D, mFVC, T, line.Ti0(), P, P*vmrs[this_species], 
+  line.SetPressureBroadeningParameters( A, B, meta, C, D, mFVC, T, P, 
      this_species, water_species, broadening_species, vmrs);
   mC0 = Complex(A, C); mC2 = Complex(B, D);
   
-  line.LineMixing().GetLineMixingParams(A, B, mDV, T, P, lm_p_lim);
+  line.SetLineMixingParameters(A, B, mDV, T, P, lm_p_lim);
   mLM = Complex(1.0 + B, A);
   
   if(do_temperature_jacobian(derivatives_data)) {
     // Pressure broadening partial derivatives
-    line.PressureBroadening().GetPressureBroadeningParams_dT(
-      A, B, E, C, D, mdFVCdT, T, line.Ti0(), P, P*vmrs[this_species],
+    line.SetPressureBroadeningParametersTemperatureDerivative(
+      A, B, E, C, D, mdFVCdT, T, P, 
       this_species, water_species, broadening_species, vmrs);
     mdC0dT.imag(C); mdC0dT.real(A); mdC2dT.imag(D); mdC2dT.real(B);
     
-    line.LineMixing().GetLineMixingParams_dT(A, B, mdDVdT, T, temperature_perturbation(derivatives_data), P, lm_p_lim);
+    line.SetLineMixingParametersTemperatureDerivative(A, B, mdDVdT, T, temperature_perturbation(derivatives_data), P, lm_p_lim);
     mdLMdT = Complex(B, A);
   }
   
@@ -4024,11 +4021,9 @@ Linefunctions::SingleLevelLineData::SingleLevelLineData(const LineRecord& line,
     }
   }
   
-  line.PressureBroadening().SetInternalDerivatives(
-    mpressure_derivatives, derivatives_data, QI, line.Ti0()/T, P, P*vmrs[this_species], 
-    this_species, water_species, vmrs);
+  line.SetInternalPressureBroadeningDerivatives(mpressure_derivatives, derivatives_data, T, P, this_species, water_species, vmrs);
   
-  line.LineMixing().SetInternalDerivatives(mlinemixing_derivatives, derivatives_data, QI, T, P, lm_p_lim);
+  line.SetInternalLineMixingDerivatives(mlinemixing_derivatives, derivatives_data, T, P, lm_p_lim);
   
   mZ = 0.0;
   

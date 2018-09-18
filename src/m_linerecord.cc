@@ -198,10 +198,8 @@ void abs_linesReplaceParameterWithLinesParameter(ArrayOfLineRecord& abs_lines,
     QI.SetSpecies(lr.Species());
     QI.SetIsotopologue(lr.Isotopologue());
     QI.SetTransition(lr.UpperQuantumNumbers(),lr.LowerQuantumNumbers());
-    
-    
 
-    // Run internal mathcing routine
+    // Run internal matching routine
     match_lines_by_quantum_identifier(matches, match_info, QI, abs_lines);
     
     // We demand that things are formatted the right way and that there are not multiple matches.
@@ -228,7 +226,7 @@ void abs_linesReplaceParameterWithLinesParameter(ArrayOfLineRecord& abs_lines,
       case QMI_NONE:
         {
         ostringstream os;
-        os << "There are no quantum numbers in your replacement ines so they match to abs_lines.\n"
+        os << "There are no quantum numbers in your replacement lines so they match to abs_lines.\n"
            << "replacement_line:\n"<<lr<<"\nabs_line:\n"<<lr_old<<std::endl;
         throw std::runtime_error(os.str());
         break;
@@ -251,10 +249,10 @@ void abs_linesReplaceParameterWithLinesParameter(ArrayOfLineRecord& abs_lines,
             lr_old.setI0(lr.I0());
             break;
           case 2: //"Pressure Broadening":
-            lr_old.SetPressureBroadeningData(lr.PressureBroadening());
+            lr_old.SetPressureBroadeningData(lr.GetPressureBroadeningDataCopy());
             break;
           case 3: //"Line Mixing":
-            lr_old.SetLineMixingData(lr.LineMixing());
+            lr_old.SetLineMixingData(lr.GetLineMixingDataCopy());
             break;
           case 4: //"Lower State Energy":
             lr_old.SetElow(lr.Elow());
@@ -262,7 +260,7 @@ void abs_linesReplaceParameterWithLinesParameter(ArrayOfLineRecord& abs_lines,
           default:
           {
             ostringstream os;
-            os << "Usupported paramter_name\n" << parameter_name
+            os << "Unsupported paramter_name\n" << parameter_name
                << "\nSee method description for supported parameter names.\n";
             throw std::runtime_error(os.str());
             break;
@@ -377,7 +375,7 @@ void abs_linesChangeParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
                     lr.setI0(lr.I0()*(1.0e0+change));
                 break;
             case 2: //"Pressure Broadening Self":
-                pb = lr.PressureBroadening();
+                pb = lr.GetPressureBroadeningDataCopy();
                 if(relative==0)
                     pb.ChangeSelf(change,this_species,h2o_index,broad_spec_locations);
                 else
@@ -385,7 +383,7 @@ void abs_linesChangeParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
                 lr.SetPressureBroadeningData(pb);
                 break;
             case 3: //"Pressure Broadening Foreign":
-                pb = lr.PressureBroadening();
+                pb = lr.GetPressureBroadeningDataCopy();
                 if(relative==0)
                     pb.ChangeForeign(change,broad_spec_locations);
                 else
@@ -399,7 +397,7 @@ void abs_linesChangeParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
                     lr.SetElow(lr.Elow()*(1.0e0+change));
                 break;
             case 5: //"Pressure Broadening Self Exponent":
-                pb = lr.PressureBroadening();
+                pb = lr.GetPressureBroadeningDataCopy();
                 if(relative==0)
                     pb.ChangeSelfExponent(change,this_species,h2o_index,broad_spec_locations);
                 else
@@ -407,7 +405,7 @@ void abs_linesChangeParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
                 lr.SetPressureBroadeningData(pb);
                 break;
             case 6: //"Pressure Broadening Foreign Exponent":
-                pb = lr.PressureBroadening();
+                pb = lr.GetPressureBroadeningDataCopy();
                 if(relative==0)
                     pb.ChangeForeignExponent(change,broad_spec_locations);
                 else
@@ -415,7 +413,7 @@ void abs_linesChangeParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
                 lr.SetPressureBroadeningData(pb);
                 break;
             case 7: //"Pressure Broadening Foreign Shift":
-              pb = lr.PressureBroadening();
+              pb = lr.GetPressureBroadeningDataCopy();
               if(relative==0)
                 pb.ChangeForeignShift(change,broad_spec_locations);
               else
@@ -423,47 +421,47 @@ void abs_linesChangeParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
               lr.SetPressureBroadeningData(pb);
               break;
             case 8: // Line mixing zeroth Y
-              lm = lr.LineMixing();
+              lm = lr.GetLineMixingDataCopy();
               lm.ChangeY0(change, relative);
               lr.SetLineMixingData(lm);
               break;
             case 9: // Line mixing zeroth G
-              lm = lr.LineMixing();
+              lm = lr.GetLineMixingDataCopy();
               lm.ChangeG0(change, relative);
               lr.SetLineMixingData(lm);
               break;
             case 10: // Line mixing zeroth DF
-              lm = lr.LineMixing();
+              lm = lr.GetLineMixingDataCopy();
               lm.ChangeDF0(change, relative);
               lr.SetLineMixingData(lm);
               break;
             case 11: // Line mixing first Y
-              lm = lr.LineMixing();
+              lm = lr.GetLineMixingDataCopy();
               lm.ChangeY1(change, relative);
               lr.SetLineMixingData(lm);
               break;
             case 12: // Line mixing first G
-              lm = lr.LineMixing();
+              lm = lr.GetLineMixingDataCopy();
               lm.ChangeG1(change, relative);
               lr.SetLineMixingData(lm);
               break;
             case 13: // Line mixing first DF
-              lm = lr.LineMixing();
+              lm = lr.GetLineMixingDataCopy();
               lm.ChangeDF1(change, relative);
               lr.SetLineMixingData(lm);
               break;
             case 14: // Line mixing exponent Y
-              lm = lr.LineMixing();
+              lm = lr.GetLineMixingDataCopy();
               lm.ChangeYexp(change, relative);
               lr.SetLineMixingData(lm);
               break;
             case 15: // Line mixing exponent G
-              lm = lr.LineMixing();
+              lm = lr.GetLineMixingDataCopy();
               lm.ChangeGexp(change, relative);
               lr.SetLineMixingData(lm);
               break;
             case 16: // Line mixing exponent DF
-              lm = lr.LineMixing();
+              lm = lr.GetLineMixingDataCopy();
               lm.ChangeDFexp(change, relative);
               lr.SetLineMixingData(lm);
               break;
@@ -557,12 +555,12 @@ void abs_linesSetParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
                 lr.setI0(new_value);
                 break;
             case 2: //"Pressure Broadening Self":
-                pb = lr.PressureBroadening();
+                pb = lr.GetPressureBroadeningDataCopy();
                 pb.SetSelf(new_value,this_species,h2o_index,broad_spec_locations);
                 lr.SetPressureBroadeningData(pb);
                 break;
             case 3: //"Pressure Broadening Foreign":
-                pb = lr.PressureBroadening();
+                pb = lr.GetPressureBroadeningDataCopy();
                 pb.SetForeign(new_value,broad_spec_locations);
                 lr.SetPressureBroadeningData(pb);
                 break;
@@ -570,12 +568,12 @@ void abs_linesSetParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
                 lr.SetElow(new_value);
                 break;
             case 5: //"Pressure Broadening Self Exponent":
-                pb = lr.PressureBroadening();
+                pb = lr.GetPressureBroadeningDataCopy();
                 pb.SetSelfExponent(new_value,this_species,h2o_index,broad_spec_locations);
                 lr.SetPressureBroadeningData(pb);
                 break;
             case 6: //"Pressure Broadening Foreign Exponent":
-                pb = lr.PressureBroadening();
+                pb = lr.GetPressureBroadeningDataCopy();
                 pb.SetForeignExponent(new_value,broad_spec_locations);
                 lr.SetPressureBroadeningData(pb);
                 break;

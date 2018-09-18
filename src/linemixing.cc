@@ -476,7 +476,7 @@ Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
   switch(type) {
     case 2:
       X(2, joker) = rosenkranz_scaling_second_order(abs_lines, W, d0); 
-      X(3, joker) = rosenkranz_shifting_second_order(abs_lines, W);
+      X(3, joker) = rosenkranz_shifting_second_order(abs_lines, W); /* fallthrough */
     case 1:
       X(0, joker) = pressure_broadening_from_diagonal(W);
       X(1, joker) = rosenkranz_first_order(abs_lines, W, d0);

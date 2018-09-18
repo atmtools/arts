@@ -47,19 +47,23 @@ enum class JacPropMatType : Index
   Electrons,
   Particulates,
   Temperature,
+  
   MagneticMagnitude,
   MagneticEta,
   MagneticTheta,
   MagneticU,
   MagneticV,
   MagneticW,
+  
   WindMagnitude,
   WindU,
   WindV,
   WindW,
   Frequency,
+  
   LineStrength,
   LineCenter,
+  
   LineGammaSelf,
   LineGammaForeign,
   LineGammaWater,
@@ -78,6 +82,35 @@ enum class JacPropMatType : Index
   LineMixingYExp,
   LineMixingGExp,
   LineMixingDFExp,
+  
+  LineFunctionDataG0X0,
+  LineFunctionDataG0X1,
+  LineFunctionDataG0X2,
+  LineFunctionDataD0X0,
+  LineFunctionDataD0X1,
+  LineFunctionDataD0X2,
+  LineFunctionDataG2X0,
+  LineFunctionDataG2X1,
+  LineFunctionDataG2X2,
+  LineFunctionDataD2X0,
+  LineFunctionDataD2X1,
+  LineFunctionDataD2X2,
+  LineFunctionDataFVCX0,
+  LineFunctionDataFVCX1,
+  LineFunctionDataFVCX2,
+  LineFunctionDataETAX0,
+  LineFunctionDataETAX1,
+  LineFunctionDataETAX2,
+  LineFunctionDataYX0,
+  LineFunctionDataYX1,
+  LineFunctionDataYX2,
+  LineFunctionDataGX0,
+  LineFunctionDataGX1,
+  LineFunctionDataGX2,
+  LineFunctionDataDVX0,
+  LineFunctionDataDVX1,
+  LineFunctionDataDVX2,
+  
   NLTE,
   NotPropagationMatrixType
 };
@@ -478,6 +511,8 @@ bool is_line_mixing_line_strength_parameter(const RetrievalQuantity& t);
 bool is_line_mixing_parameter(const RetrievalQuantity& t);
 
 bool is_pressure_broadening_parameter(const RetrievalQuantity& t);
+
+bool is_lineshape_lineparam(const RetrievalQuantity& t);
 
 bool is_line_parameter(const RetrievalQuantity& t);
 

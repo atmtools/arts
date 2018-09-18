@@ -793,7 +793,7 @@ public:
   enum class LineMixingType {None, LM1, LM2, Interp, };
   
   // Temperature dependencies
-  enum class TemperatureType {None, T0, T1, T2, T3, T4, LM_AER, };
+  enum class TemperatureType {None, T0, T1, T2, T3, T4, T5, LM_AER, };
   
   // Line shape models are defined by these variables (do leave Size at end)
   enum class DopplerParam    : Index {                          Size};
@@ -810,41 +810,29 @@ public:
   
   Index LineMixingTypeNelem() const {
     switch(mlm) {
-      case LineMixingType::None:
-        return Index(NoLineMixingParam::Size);
-      case LineMixingType::LM1:
-        return Index(FirstOrderParam::Size);
-      case LineMixingType::LM2:
-        return Index(SecondOrderParam::Size);
-      case LineMixingType::Interp:
-        return Index(InterpParam::Size);
+      case LineMixingType::None:   return Index(NoLineMixingParam::Size);
+      case LineMixingType::LM1:    return Index(FirstOrderParam::Size);
+      case LineMixingType::LM2:    return Index(SecondOrderParam::Size);
+      case LineMixingType::Interp: return Index(InterpParam::Size);
     }
     return -1;
   }
   
   String LineMixingType2String() const {
     switch(mlm) {
-      case LineMixingType::None:
-        return NO_LM;
-      case LineMixingType::LM1:
-        return "LM1";
-      case LineMixingType::LM2:
-        return "LM2";
-      case LineMixingType::Interp:
-        return "INT";
+      case LineMixingType::None:   return NO_LM;
+      case LineMixingType::LM1:    return "LM1";
+      case LineMixingType::LM2:    return "LM2";
+      case LineMixingType::Interp: return "INT";
     }
     return "-1";
   }
   
   void StringSetLineMixingType(const String& type) {
-    if(type == NO_LM)
-      mlm = LineMixingType::None;
-    else if(type == "LM1")
-      mlm = LineMixingType::LM1;
-    else if(type == "LM2")
-      mlm = LineMixingType::LM2;
-    else if(type == "INT")
-      mlm = LineMixingType::Interp;
+    if(type == NO_LM)      mlm = LineMixingType::None; 
+    else if(type == "LM1") mlm = LineMixingType::LM1;
+    else if(type == "LM2") mlm = LineMixingType::LM2;
+    else if(type == "INT") mlm = LineMixingType::Interp;
     else {
       ostringstream os;
       os << "Cannot recognize type " << type << " as a line mixing functionality\n" ;
@@ -854,47 +842,32 @@ public:
   
   Index LineShapeTypeNelem() const {
     switch(mp) {
-      case LineShapeType::DP:
-        return Index(DopplerParam::Size);
-      case LineShapeType::LP:
-        return Index(LorentzParam::Size);
-      case LineShapeType::VP:
-        return Index(VoigtParam::Size);
-      case LineShapeType::SDVP:
-        return Index(SpeedVoigtParam::Size);
-      case LineShapeType::HTP:
-        return Index(HTPParam::Size);
+      case LineShapeType::DP:   return Index(DopplerParam::Size);
+      case LineShapeType::LP:   return Index(LorentzParam::Size);
+      case LineShapeType::VP:   return Index(VoigtParam::Size);
+      case LineShapeType::SDVP: return Index(SpeedVoigtParam::Size);
+      case LineShapeType::HTP:  return Index(HTPParam::Size);
     }
     return -1;
   }
   
   String LineShapeType2String() const {
     switch(mp) {
-      case LineShapeType::DP:
-        return "DP";
-      case LineShapeType::LP:
-        return "LP";
-      case LineShapeType::VP:
-        return "VP";
-      case LineShapeType::SDVP:
-        return "SDVP";
-      case LineShapeType::HTP:
-        return "HTP";
+      case LineShapeType::DP:   return "DP";
+      case LineShapeType::LP:   return "LP";
+      case LineShapeType::VP:   return "VP";
+      case LineShapeType::SDVP: return "SDVP";
+      case LineShapeType::HTP:  return "HTP";
     }
     return "-1";
   }
   
   void StringSetLineShapeType(const String& type) {
-    if(type == "DP")
-      mp = LineShapeType::DP;
-    else if(type == "LP")
-      mp = LineShapeType::LP;
-    else if(type == "VP")
-      mp = LineShapeType::VP;
-    else if(type == "SDVP")
-      mp = LineShapeType::SDVP;
-    else if(type == "HTP")
-      mp = LineShapeType::HTP;
+    if(type == "DP")        mp = LineShapeType::DP;
+    else if(type == "LP")   mp = LineShapeType::LP;
+    else if(type == "VP")   mp = LineShapeType::VP;
+    else if(type == "SDVP") mp = LineShapeType::SDVP;
+    else if(type == "HTP")  mp = LineShapeType::HTP;
     else {
       ostringstream os;
       os << "Cannot recognize type " << type << " as a line shape functionality\n" ;
@@ -904,59 +877,41 @@ public:
   
   Index TemperatureTypeNelem(const TemperatureType type) const {
     switch(type) {
-      case TemperatureType::LM_AER:
-        return -1;
-      case TemperatureType::None:
-        return 0;
-      case TemperatureType::T0:
-        return 1;
-      case TemperatureType::T1:
-        return 2;
-      case TemperatureType::T2:
-        return 3;
-      case TemperatureType::T3:
-        return 2;
-      case TemperatureType::T4:
-        return 3;
+      case TemperatureType::LM_AER: return -1;
+      case TemperatureType::None:   return 0;
+      case TemperatureType::T0:     return 1;
+      case TemperatureType::T1:     return 2;
+      case TemperatureType::T2:     return 3;
+      case TemperatureType::T3:     return 2;
+      case TemperatureType::T4:     return 3;
+      case TemperatureType::T5:     return 2;
     }
     return -1;
   }
   
   String TemperatureType2String(const TemperatureType type) const {
     switch(type) {
-      case TemperatureType::LM_AER:
-        return "LM_AER";
-      case TemperatureType::None:
-        return NO_LM;
-      case TemperatureType::T0:
-        return "T0";
-      case TemperatureType::T1:
-        return "T1";
-      case TemperatureType::T2:
-        return "T2";
-      case TemperatureType::T3:
-        return "T3";
-      case TemperatureType::T4:
-        return "T4";
+      case TemperatureType::LM_AER: return "LM_AER";
+      case TemperatureType::None:   return NO_LM;
+      case TemperatureType::T0:     return "T0";
+      case TemperatureType::T1:     return "T1";
+      case TemperatureType::T2:     return "T2";
+      case TemperatureType::T3:     return "T3";
+      case TemperatureType::T4:     return "T4";
+      case TemperatureType::T5:     return "T5";
     }
     return "-1";
   }
   
   void StringSetTemperatureType(const Index ispecies, const Index iparam, const String& type) {
-    if(type == "LM_AER")
-      mtypes[ispecies][iparam] = TemperatureType::LM_AER;
-    else if(type == NO_LM)
-      mtypes[ispecies][iparam] = TemperatureType::None;
-    else if(type == "T0")
-      mtypes[ispecies][iparam] = TemperatureType::T0;
-    else if(type == "T1")
-      mtypes[ispecies][iparam] = TemperatureType::T1;
-    else if(type == "T2")
-      mtypes[ispecies][iparam] = TemperatureType::T2;
-    else if(type == "T3")
-      mtypes[ispecies][iparam] = TemperatureType::T3;
-    else if(type == "T4")
-      mtypes[ispecies][iparam] = TemperatureType::T4;
+    if(type == "LM_AER")   mtypes[ispecies][iparam] = TemperatureType::LM_AER;
+    else if(type == NO_LM) mtypes[ispecies][iparam] = TemperatureType::None;
+    else if(type == "T0")  mtypes[ispecies][iparam] = TemperatureType::T0;
+    else if(type == "T1")  mtypes[ispecies][iparam] = TemperatureType::T1;
+    else if(type == "T2")  mtypes[ispecies][iparam] = TemperatureType::T2;
+    else if(type == "T3")  mtypes[ispecies][iparam] = TemperatureType::T3;
+    else if(type == "T4")  mtypes[ispecies][iparam] = TemperatureType::T4;
+    else if(type == "T5")  mtypes[ispecies][iparam] = TemperatureType::T5;
     else {
       ostringstream os;
       os << "Cannot recognize type " << type << " as a type of temperature type\n" ;
@@ -973,6 +928,39 @@ public:
                  const ConstVectorView rtp_vmr, const ArrayOfSpeciesTag& abs_species,
                  const bool normalization=true) const;
   
+  void GetTemperatureDerivs(Numeric& dG0, Numeric& dD0, 
+                            Numeric& dG2, Numeric& dD2, 
+                            Numeric& dFVC, Numeric& dETA,
+                            Numeric& dY, Numeric& dG, Numeric& dDV,
+                            const Numeric& T0, const Numeric& T, const Numeric& dT,
+                            const Numeric& P, const Numeric& self_vmr,
+                            const ConstVectorView rtp_vmr, 
+                            const ArrayOfSpeciesTag& abs_species,
+                            const bool normalization=true) const;
+  
+  void GetReferenceT0Derivs(Numeric& dG0, Numeric& dD0, 
+                            Numeric& dG2, Numeric& dD2, 
+                            Numeric& dFVC, Numeric& dETA,
+                            Numeric& dY, Numeric& dG, Numeric& dDV,
+                            const Numeric& T0, const Numeric& T,
+                            const Numeric& P, const Numeric& self_vmr,
+                            const ConstVectorView rtp_vmr, 
+                            const ArrayOfSpeciesTag& abs_species,
+                            const RetrievalQuantity& rt, 
+                            const QuantumIdentifier& line_qi,
+                            const bool normalization=true) const;
+  
+  Numeric GetLineParamDeriv(const Numeric& T0, const Numeric& T,
+                            const Numeric& P, const Numeric& self_vmr,
+                            const ConstVectorView rtp_vmr, 
+                            const ArrayOfSpeciesTag& abs_species,
+                            const RetrievalQuantity& rt, 
+                            const QuantumIdentifier& line_qi,
+                            const bool normalization) const;
+
+  // Model has data
+  bool ComputesParam(const String& type) const;
+                            
   // Read data
   const ArrayOfVector& Data() const { return mdata; }
   const ArrayOfSpeciesTag& Species() const { return mspecies; }

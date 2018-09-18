@@ -375,11 +375,17 @@ public:
     QuantumNumbers& UpperQuantumNumbers() {assert(mqtype==TRANSITION); return mqm[TRANSITION_UPPER_INDEX];};
     QuantumNumbers& LowerQuantumNumbers() {assert(mqtype==TRANSITION); return mqm[TRANSITION_LOWER_INDEX];};
     
-    // Tests that all of other is in this
+    //! Tests if RHS contains LHS
+    bool In(const QuantumIdentifier& that) const {return operator<(that);}
+    
+    //! Tests that all of other is in this
     bool operator>(const QuantumIdentifier& other) const;
     
-    // Tests that all of this is in other 
+    //! Tests that all of this is in other 
     bool operator<(const QuantumIdentifier& other) const;
+    
+    //! Tests if there are any defined quantum numbers
+    bool any_quantumnumbers() const;
 
 private:
     QType mqtype;
@@ -388,7 +394,7 @@ private:
     ArrayOfQuantumNumbers mqm;
 };
 
-inline bool operator==(const QuantumIdentifier a,const QuantumIdentifier b){
+inline bool operator==(const QuantumIdentifier& a,const QuantumIdentifier& b){
     if(!(a.Isotopologue()==b.Isotopologue() && 
         a.Species()==b.Species() &&
         a.Type()==b.Type()))

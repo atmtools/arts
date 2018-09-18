@@ -238,10 +238,13 @@ void test_linefunctionsdata()
   std::cout << n << "\n";
   
   Numeric G0, D0, G2, D2, FVC, ETA, Y, G, DV;
-  const ArrayOfSpeciesTag aspt = {SpeciesTag("CO2"), SpeciesTag("H2O"), SpeciesTag("O3")};
+  const ArrayOfSpeciesTag aspt = {SpeciesTag("CO2"), SpeciesTag("H2O"), SpeciesTag("H2O2")};
   const Vector vmrs = {0.2, 0.3, 0.2};
   test.GetParams (G0, D0, G2, D2, FVC, ETA, Y, G, DV,
                   296., 246., 2., 0.2, vmrs, aspt);
+  std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
+  test.GetParams (G0, D0, G2, D2, FVC, ETA, Y, G, DV,
+                  296., 247., 2., 0.2, vmrs, aspt);
   std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
   
   s = "VP # 1 AIR T1 16000 0.7 T1 100 1.3";
@@ -252,6 +255,9 @@ void test_linefunctionsdata()
   test.GetParams (G0, D0, G2, D2, FVC, ETA, Y, G, DV,
                   296., 246., 2., 0.2, vmrs, aspt);
   std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
+  test.GetParams (G0, D0, G2, D2, FVC, ETA, Y, G, DV,
+                  296., 247., 2., 0.2, vmrs, aspt);
+  std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
   
   s = "VP # 1 H2O2 T1 16000 0.7 T1 100 1.3";
   istringstream x3(s);
@@ -260,6 +266,9 @@ void test_linefunctionsdata()
   std::cout << test << "\n";
   test.GetParams (G0, D0, G2, D2, FVC, ETA, Y, G, DV,
                   296., 246., 2., 0.2, vmrs, aspt);
+  std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
+  test.GetParams (G0, D0, G2, D2, FVC, ETA, Y, G, DV,
+                  296., 247., 2., 0.2, vmrs, aspt);
   std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
 }
 

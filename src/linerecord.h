@@ -526,13 +526,143 @@ public:
   const QuantumNumbers& UpperQuantumNumbers() const {return mqid.UpperQuantumNumbers();}
   
   /** Line Mixing data */
-  LineMixingData& LineMixing() { return mlinemixingdata; }
-  const LineMixingData& LineMixing() const { return mlinemixingdata; }
+  LineMixingData GetLineMixingDataCopy() const { return mlinemixingdata; }  // Never make reference to this
   void SetLineMixingData(const LineMixingData& input) { mlinemixingdata=input; }
-  
+   
   /** Pressure Broadening Data */
-  const PressureBroadeningData& PressureBroadening() const { return mpressurebroadeningdata; }
+  PressureBroadeningData GetPressureBroadeningDataCopy() const { return mpressurebroadeningdata; }  // Never make reference to this
   void SetPressureBroadeningData(const PressureBroadeningData& input) { mpressurebroadeningdata=input; }
+
+  void SetPressureBroadeningParameters(Numeric& G0, Numeric& G2, Numeric& e, Numeric& L0, Numeric& L2, Numeric& FVC,
+                                       const Numeric& T, const Numeric& P, const Index this_species, const Index h2o_index,
+                                       const ArrayOfIndex& broad_spec_locations, ConstVectorView vmrs) const {
+    mpressurebroadeningdata.GetPressureBroadeningParams(G0, G2, e, L0, L2, FVC, T, mti0, P, P*vmrs[this_species], 
+                                                        this_species, h2o_index, broad_spec_locations, vmrs);
+  }
+
+  void SetPressureBroadeningParametersTemperatureDerivative(Numeric& dG0, Numeric& dG2, Numeric& de, Numeric& dL0, Numeric& dL2, Numeric& dFVC,
+                                                            const Numeric& T, const Numeric& P, const Index this_species, const Index h2o_index,
+                                                            const ArrayOfIndex& broad_spec_locations, ConstVectorView vmrs) const {
+    mpressurebroadeningdata.GetPressureBroadeningParams_dT(dG0, dG2, de, dL0, dL2, dFVC, T, mti0, P, P*vmrs[this_species], 
+                                                           this_species, h2o_index, broad_spec_locations, vmrs);
+  }
+  
+  void SetLineMixing2SecondOrderData(ConstVectorView d) {
+    mlinemixingdata.Set2ndOrderType();
+    mlinemixingdata.Vector2SecondOrderData(d);
+  }
+  
+  PressureBroadeningData::PB_Type PressureBroadeningType() const { return mpressurebroadeningdata.Type(); }
+  
+  String PressureBroadeningTypeString() const { return mpressurebroadeningdata.Type2StorageTag(); }
+  
+  LineMixingData::LM_Type LineMixingType() const { return mlinemixingdata.Type(); }
+  
+  String LineMixingTypeString() const { return mlinemixingdata.Type2StorageTag(); }
+  
+  Vector PressureBroadeningDataVector() const { Vector data; mpressurebroadeningdata.GetVectorFromData(data); return data; }
+  
+  Vector LineMixingDataVector() const { Vector data; mlinemixingdata.GetVectorFromData(data); return data; }
+  
+  bool PressureBroadeningNoneType() const {return mpressurebroadeningdata.Type() == PressureBroadeningData::PB_NONE;}
+  
+  bool PressureBroadeningAirType() const {return mpressurebroadeningdata.Type() == PressureBroadeningData::PB_AIR_BROADENING;}
+  
+  bool LineMixingNoneType() const {return mlinemixingdata.Type() == LineMixingData::LM_NONE;}
+  
+  bool LineMixingByBand() const {return mlinemixingdata.Type() == LineMixingData::LM_BYBAND;}
+  
+  bool LineMixingNonResonant() const {return mlinemixingdata.Type() == LineMixingData::LM_LBLRTM_O2NonResonant;}
+  
+  void SetLineMixingParameters(Numeric& Y, Numeric& G, Numeric& DV, const Numeric&  T, const Numeric& P, const Numeric& P_limit) const {
+    mlinemixingdata.GetLineMixingParams(Y, G, DV, T, P, P_limit, 1);
+  }
+  
+  void SetAirPressureBroadening(Numeric& G0, Numeric& L0, const Numeric& T, const Numeric& P, const Numeric& self_vmr) const {
+    mpressurebroadeningdata.GetAirBroadening(G0, L0, mti0/T, P, self_vmr);
+  }
+  
+  Numeric PressureBroadeningAirBroadeningNair() const { return mpressurebroadeningdata.AirBroadeningNair(); }
+  Numeric PressureBroadeningAirBroadeningPsf( ) const { return mpressurebroadeningdata.AirBroadeningPsf( ); }
+  Numeric PressureBroadeningAirBroadeningAgam() const { return mpressurebroadeningdata.AirBroadeningAgam(); }
+  Numeric PressureBroadeningSelfGammaDerivative(const Numeric& T, const Numeric& P_partial) const {
+    Numeric g;
+    mpressurebroadeningdata.GetPressureBroadeningParams_dSelfGamma(g, mti0/T, P_partial);
+    return g;
+  }
+  Numeric PressureBroadeningForeignGammaDerivative(const Numeric& T, const Numeric& P, const Index this_species, const Index h2o_index, ConstVectorView vmrs) const {
+    Numeric g;
+    mpressurebroadeningdata.GetPressureBroadeningParams_dForeignGamma(g, mti0/T, P, P*vmrs[this_species], this_species, h2o_index, vmrs);
+    return g;
+  }
+  Numeric PressureBroadeningWaterGammaDerivative(const Numeric& T, const Numeric& P, const Index this_species, const Index h2o_index, ConstVectorView vmrs) const {
+    Numeric g;
+    mpressurebroadeningdata.GetPressureBroadeningParams_dWaterGamma(g, mti0/T, P, this_species, h2o_index, vmrs);
+    return g;
+  }
+  std::tuple<Numeric, Numeric> PressureBroadeningSelfExponentDerivatives(const Numeric& T, const Numeric& P_partial) const {
+    Numeric a, b;
+    mpressurebroadeningdata.GetPressureBroadeningParams_dSelfExponent(a, b, mti0/T, P_partial);
+    return std::make_tuple(a, b);
+  }
+  std::tuple<Numeric, Numeric> PressureBroadeningForeignExponentDerivatives(const Numeric& T, const Numeric& P, const Index this_species, const Index h2o_index, ConstVectorView vmrs) const {
+    Numeric a, b;
+    mpressurebroadeningdata.GetPressureBroadeningParams_dForeignExponent(a, b, mti0/T, P, P*vmrs[this_species], this_species, h2o_index, vmrs);
+    return std::make_tuple(a, b);
+  }
+  std::tuple<Numeric, Numeric> PressureBroadeningWaterExponentDerivatives(const Numeric& T, const Numeric& P, const Index this_species, const Index h2o_index, ConstVectorView vmrs) const {
+    Numeric a, b;
+    mpressurebroadeningdata.GetPressureBroadeningParams_dWaterExponent(a, b, mti0/T, P, this_species, h2o_index, vmrs);
+    return std::make_tuple(a, b);
+  }
+  Numeric PressureBroadeningSelfPsfDerivative(const Numeric& T, const Numeric& P_partial) const {
+    Numeric g;
+    mpressurebroadeningdata.GetPressureBroadeningParams_dSelfPsf(g, mti0/T, P_partial);
+    return g;
+  }
+  Numeric PressureBroadeningForeignPsfDerivative(const Numeric& T, const Numeric& P, const Index this_species, const Index h2o_index, ConstVectorView vmrs) const {
+    Numeric g;
+    mpressurebroadeningdata.GetPressureBroadeningParams_dForeignPsf(g, mti0/T, P, P*vmrs[this_species], this_species, h2o_index, vmrs);
+    return g;
+  }
+  Numeric PressureBroadeningWaterPsfDerivative(const Numeric& T, const Numeric& P, const Index this_species, const Index h2o_index, ConstVectorView vmrs) const {
+    Numeric g;
+    mpressurebroadeningdata.GetPressureBroadeningParams_dWaterPsf(g, mti0/T, P, this_species, h2o_index, vmrs);
+    return g;
+  }
+  
+  std::tuple<Numeric, Numeric, Numeric> LineMixingZerothOrderDerivative(const Numeric& T, const Numeric& P, const Numeric& P_limit) const {
+    Numeric a, b, c;
+    mlinemixingdata.GetLineMixingParams_dZerothOrder(a,b,c, T, P, P_limit);
+    return std::make_tuple(a, b, c);
+  }
+  std::tuple<Numeric, Numeric, Numeric> LineMixingFirstOrderDerivative(const Numeric& T, const Numeric& P, const Numeric& P_limit) const {
+    Numeric a, b, c;
+    mlinemixingdata.GetLineMixingParams_dFirstOrder(a,b,c, T, P, P_limit);
+    return std::make_tuple(a, b, c);
+  }
+  std::tuple<Numeric, Numeric, Numeric> LineMixingExponentDerivative(const Numeric& T, const Numeric& P, const Numeric& P_limit) const {
+    Numeric a, b, c;
+    mlinemixingdata.GetLineMixingParams_dExponent(a,b,c, T, P, P_limit);
+    return std::make_tuple(a, b, c);
+  }
+  
+  void SetLineMixingParametersTemperatureDerivative(Numeric& dY, Numeric& dG, Numeric& dDV, const Numeric& T,
+                                                    const Numeric& dT, const Numeric& P, const Numeric& P_limit) const {
+    mlinemixingdata.GetLineMixingParams_dT(dY, dG, dDV, T, dT, P, P_limit, 1);
+  }
+  
+  void SetInternalLineMixingDerivatives(ComplexVector& d, const ArrayOfRetrievalQuantity& derivatives_data,
+                                        const Numeric& T, const Numeric& P, const Numeric& P_limit) const {
+    mlinemixingdata.SetInternalDerivatives(d, derivatives_data, mqid, T, P, P_limit);
+  }
+  
+  void SetInternalPressureBroadeningDerivatives(ComplexVector& d, const ArrayOfRetrievalQuantity& derivatives_data,
+                                                const Numeric& T, const Numeric& P, const Index this_species,
+                                                const Index water_species, ConstVectorView vmrs) const {
+    mpressurebroadeningdata.SetInternalDerivatives(d, derivatives_data, mqid, mti0/T, P, P*vmrs[this_species], 
+                                                   this_species, water_species, vmrs);
+  }
   
   /** Pressure Broadening Data */
   ZeemanEffectData& ZeemanEffect() { return mzeemandata; }
@@ -1061,7 +1191,7 @@ private:
   /** Pressure Broadening Data */
   PressureBroadeningData mpressurebroadeningdata;
   
-  /** Pressure Broadening Data */
+  /** Zeeman effect data class */
   ZeemanEffectData mzeemandata;
   
   /** Cutoff frequency */

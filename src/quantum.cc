@@ -659,3 +659,22 @@ std::ostream& operator<<(std::ostream& os, const QuantumIdentifier& qi)
     return os;
 }
 
+bool QuantumIdentifier::any_quantumnumbers() const
+{
+  Index qni=0;
+  switch(mqtype) {
+    case QuantumIdentifier::ENERGY_LEVEL:
+    case QuantumIdentifier::TRANSITION: 
+      for(const auto& qns: mqm)
+        do {
+          if(not qns[qni].isUndefined())
+            return true;
+          qni++;
+        } while(qni not_eq Index(QuantumNumberType::FINAL_ENTRY));
+      break;
+    case QuantumIdentifier::ALL:
+    case QuantumIdentifier::NONE:
+      break;
+  }
+  return false;
+}

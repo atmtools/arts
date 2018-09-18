@@ -181,7 +181,7 @@ void setCijFromPressureBroadening(VectorView Cij,
   for(Index i = 0; i < n; i++) {
     const LineRecord& line = abs_lines[i];
     Numeric g0, g2, eta, df_0, df_2, f_VC;
-    line.PressureBroadening().GetPressureBroadeningParams(g0, g2, eta, df_0, df_2, f_VC, T, line.Ti0(), P, P, this_species, water_species, broad_spec_locations, vmrs);
+    line.SetPressureBroadeningParameters(g0, g2, eta, df_0, df_2, f_VC, T, P, this_species, water_species, broad_spec_locations, vmrs);
     //Cij[i] = (g0 + 1.5*g2) / P * BOLTZMAN_CONST * T * 2 * PI * SPEED_OF_LIGHT * SPEED_OF_LIGHT / 100;
     Cij[i] = 2e12/3 * constant * g0;  // FIXME: MANY ERRORS IN THIS CODE!
   }

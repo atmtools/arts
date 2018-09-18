@@ -10958,6 +10958,28 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+    ( NAME( "ArrayOfQuantumIdentifierFromLines" ),
+      DESCRIPTION
+      (
+        "Sets an ArrayOfQuantumIdentifier to all levels in *abs_lines_per_species*\n"
+        "with defined quantum numbers\n"
+        "\n"
+        "Lines without defined quantum numbers are ignored\n"
+        ),
+      AUTHORS( "Richard Larsson" ),
+      OUT(),
+      GOUT( "out" ),
+      GOUT_TYPE("ArrayOfQuantumIdentifier"),
+      GOUT_DESC("Identifiers to all levels in *abs_lines_per_species*"),
+      IN( "abs_lines_per_species" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "nlte_fieldSetLteInternalPartitionFunction" ),
         DESCRIPTION
         (

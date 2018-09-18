@@ -1628,10 +1628,10 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       }
       
       // Pressure broadening at relmat temperatures
-      if(this_line.PressureBroadening().Type() != PressureBroadeningData::PB_AIR_BROADENING) {
+      if(not this_line.PressureBroadeningAirType()) {
         std::ostringstream os;
         os << "Line is not air broadening type but only air broadening types are suported.\n";
-        os << "Its type is " << this_line.PressureBroadening().Type2StorageTag();
+        os << "Its type is " << this_line.PressureBroadeningTypeString();
         throw std::runtime_error(os.str());
       }
       
@@ -1643,8 +1643,8 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
         throw std::runtime_error(os.str());
       }
       
-      gamma_air[iline] = this_line.PressureBroadening().AirBroadeningAgam() / gamma_hi2arts;
-      delta_air[iline] = this_line.PressureBroadening().AirBroadeningPsf();
+      gamma_air[iline] = this_line.PressureBroadeningAirBroadeningAgam() / gamma_hi2arts;
+      delta_air[iline] = this_line.PressureBroadeningAirBroadeningPsf();
       n_air[iline] = this_line.Nair();
       
       // Line information converted to relmat format --- i.e. to HITRAN format
@@ -2024,9 +2024,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                               abs_t[ip], abs_lines_per_band[iband][iline].Ti0(),  abs_lines_per_band[iband][iline].F(),
                               abs_lines_per_band[iband][iline].Elow(), false, -1.0, -1.0, -1, -1, v_tmp);
           
-          abs_lines_per_band[iband][iline].PressureBroadening().GetAirBroadening(W(iline, iline),  psf[iline],
-                                                                                  abs_lines_per_band[iband][iline].Ti0()/abs_t[ip],
-                                                                                  abs_p[ip], 0.0);
+          abs_lines_per_band[iband][iline].SetAirPressureBroadening(W(iline, iline), psf[iline], abs_t[ip], abs_p[ip], 0.0);
           
           // TODO: Add derivatives here
           
@@ -2167,7 +2165,7 @@ void SetLineMixingCoefficinetsFromRelmat( // WS Input And Output:
        */
       
       const Numeric T0 = abs_lines_per_band[iband][iline].Ti0();
-      const Numeric n = abs_lines_per_band[iband][iline].PressureBroadening().AirBroadeningNair();
+      const Numeric n = abs_lines_per_band[iband][iline].PressureBroadeningAirBroadeningNair();
       
       dvec[6] = T0;
       dvec[7] = n;
@@ -2214,8 +2212,7 @@ void SetLineMixingCoefficinetsFromRelmat( // WS Input And Output:
       }
       
       // Overwrite the linemixing data
-      abs_lines_per_band[iband][iline].LineMixing().Set2ndOrderType();
-      abs_lines_per_band[iband][iline].LineMixing().Vector2SecondOrderData(dvec);
+      abs_lines_per_band[iband][iline].SetLineMixing2SecondOrderData(dvec);
     }
   }
 }

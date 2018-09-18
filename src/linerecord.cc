@@ -3251,13 +3251,11 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
 
           // Write Pressure Broadening
           {
-              const PressureBroadeningData& pbd = lr.PressureBroadening();
-              if (pbd.Type() != PressureBroadeningData::PB_NONE)
+              if (not lr.PressureBroadeningNoneType())
               {
-                  ls << " PB " << pbd.Type2StorageTag();
-                  Vector broadening;
-                  pbd.GetVectorFromData(broadening);
-                  ls << " " << broadening;
+                ls << " PB " << lr.PressureBroadeningTypeString();
+                const Vector broadening = lr.PressureBroadeningDataVector();
+                ls << " " << broadening;
               }
           }
 
@@ -3280,16 +3278,11 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
 
           // Write Line Mixing Data
           {
-              const LineMixingData& lm = lr.LineMixing();
-              if (lm.Type() != LineMixingData::LM_NONE)
+            if (not lr.LineMixingNoneType())
               {
-                  Vector mixingdata;
-                  lm.GetVectorFromData(mixingdata);
+                  const Vector mixingdata = lr.LineMixingDataVector();
                   if (mixingdata.nelem() > 0)
-                  {
-                      ls << " LM " << lm.Type2StorageTag();
-                      ls << " " << mixingdata;
-                  }
+                    ls << " LM " << lr.LineMixingTypeString() << " " << mixingdata;
               }
 
           }

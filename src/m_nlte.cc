@@ -24,6 +24,43 @@
 #include "lin_alg.h"
 
 
+void ArrayOfQuantumIdentifierFromLines(ArrayOfQuantumIdentifier& qid,
+                                       const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                       const Verbosity&)
+{
+  // Defined only as output not input so resizing
+  qid.resize(0);  
+  
+  // For all lines' upper and lower energy levels
+  for(const auto& lines: abs_lines_per_species) {
+    for(const auto& line: lines) {
+      QuantumIdentifier lower = line.QuantumIdentity().LowerQuantumId();
+      QuantumIdentifier upper = line.QuantumIdentity().UpperQuantumId();
+      const bool canbeinlower=lower.any_quantumnumbers(), canbeinupper=upper.any_quantumnumbers();
+      
+      // Test if the level has already been treated
+      const Index n = qid.nelem();
+      bool inlower=false, inupper=false;
+      for(Index i=0; i<n; i++) {
+        if(not inlower and canbeinlower)
+          if(qid[i] == lower)
+            inlower = true;
+        if(not inupper and canbeinupper)
+          if(qid[i] == upper)
+            inupper = true;
+      }
+      
+      // If the level has not been treated and has any quantum numbers, then store it
+      if(not inlower and canbeinlower)
+        qid.push_back(lower);
+      if(not inupper and canbeinupper)
+        if(not (lower == upper))
+          qid.push_back(upper);
+    }
+  }
+}
+
+
 void nlte_collision_factorsCalcFromCoeffs(Vector& Cij,
                                           Vector& Cji,
                                           const ArrayOfLineRecord& abs_lines,

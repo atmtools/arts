@@ -1921,6 +1921,45 @@ bool is_pressure_broadening_parameter(const RetrievalQuantity& t)
          t == JacPropMatType::LineGammaWaterExp;
 }
 
+bool is_lineshape_lineparam(const RetrievalQuantity& t)
+{
+  return t == JacPropMatType::LineFunctionDataG0X0 or
+         t == JacPropMatType::LineFunctionDataG0X1 or
+         t == JacPropMatType::LineFunctionDataG0X2 or
+         
+         t == JacPropMatType::LineFunctionDataD0X0 or
+         t == JacPropMatType::LineFunctionDataD0X1 or
+         t == JacPropMatType::LineFunctionDataD0X2 or
+         
+         t == JacPropMatType::LineFunctionDataG2X0 or
+         t == JacPropMatType::LineFunctionDataG2X1 or
+         t == JacPropMatType::LineFunctionDataG2X2 or
+         
+         t == JacPropMatType::LineFunctionDataD2X0 or
+         t == JacPropMatType::LineFunctionDataD2X1 or
+         t == JacPropMatType::LineFunctionDataD2X2 or
+         
+         t == JacPropMatType::LineFunctionDataFVCX0 or
+         t == JacPropMatType::LineFunctionDataFVCX1 or
+         t == JacPropMatType::LineFunctionDataFVCX2 or
+         
+         t == JacPropMatType::LineFunctionDataETAX0 or
+         t == JacPropMatType::LineFunctionDataETAX1 or
+         t == JacPropMatType::LineFunctionDataETAX2 or
+         
+         t == JacPropMatType::LineFunctionDataYX0 or
+         t == JacPropMatType::LineFunctionDataYX1 or
+         t == JacPropMatType::LineFunctionDataYX2 or
+         
+         t == JacPropMatType::LineFunctionDataGX0 or
+         t == JacPropMatType::LineFunctionDataGX1 or
+         t == JacPropMatType::LineFunctionDataGX2 or
+         
+         t == JacPropMatType::LineFunctionDataDVX0 or
+         t == JacPropMatType::LineFunctionDataDVX1 or
+         t == JacPropMatType::LineFunctionDataDVX2;
+}
+
 bool is_line_parameter(const RetrievalQuantity& t)
 {
   return t == JacPropMatType::LineCenter     or
@@ -2156,6 +2195,33 @@ String propmattype_string(const RetrievalQuantity& rq)
     case JacPropMatType::LineMixingDFExp: return "Line-Mixing-DFExp";
     case JacPropMatType::NLTE: return "NLTE-Level";
     case JacPropMatType::NotPropagationMatrixType: return "Not-A-Prop-Mat-Variable";
+    case JacPropMatType::LineFunctionDataD0X0: return "D0 X0";
+    case JacPropMatType::LineFunctionDataD0X1: return "D0 X1";
+    case JacPropMatType::LineFunctionDataD0X2: return "D0 X2";
+    case JacPropMatType::LineFunctionDataG0X0: return "G0 X0";
+    case JacPropMatType::LineFunctionDataG0X1: return "G0 X1";
+    case JacPropMatType::LineFunctionDataG0X2: return "G0 X2";
+    case JacPropMatType::LineFunctionDataD2X0: return "D2 X0";
+    case JacPropMatType::LineFunctionDataD2X1: return "D2 X1";
+    case JacPropMatType::LineFunctionDataD2X2: return "D2 X2";
+    case JacPropMatType::LineFunctionDataG2X0: return "G2 X0";
+    case JacPropMatType::LineFunctionDataG2X1: return "G2 X1";
+    case JacPropMatType::LineFunctionDataG2X2: return "G2 X2";
+    case JacPropMatType::LineFunctionDataETAX0: return "ETA X0";
+    case JacPropMatType::LineFunctionDataETAX1: return "ETA X1";
+    case JacPropMatType::LineFunctionDataETAX2: return "ETA X2";
+    case JacPropMatType::LineFunctionDataFVCX0: return "FVC X0";
+    case JacPropMatType::LineFunctionDataFVCX1: return "FVC X1";
+    case JacPropMatType::LineFunctionDataFVCX2: return "FVC X2";
+    case JacPropMatType::LineFunctionDataYX0: return "Y X0";
+    case JacPropMatType::LineFunctionDataYX1: return "Y X1";
+    case JacPropMatType::LineFunctionDataYX2: return "Y X2";
+    case JacPropMatType::LineFunctionDataGX0: return "G X0";
+    case JacPropMatType::LineFunctionDataGX1: return "G X1";
+    case JacPropMatType::LineFunctionDataGX2: return "G X2";
+    case JacPropMatType::LineFunctionDataDVX0: return "DV X0";
+    case JacPropMatType::LineFunctionDataDVX1: return "DV X1";
+    case JacPropMatType::LineFunctionDataDVX2: return "DV X2";
   }
   return "UNDEFINED-CHECK-IF-CASE-LIST-IS-COMPLETE";
 }
