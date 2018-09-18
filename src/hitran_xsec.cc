@@ -257,7 +257,7 @@ void XsecRecord::Extract(VectorView result,
 
         Vector xsec_active_tfit;
 
-        if (apply_tfit != 0)
+        if (apply_tfit != 0 && mtslope[this_dataset_i].nelem() > 1)
         {
             xsec_active_tfit = mtslope[this_dataset_i][active_range];
             xsec_active_tfit *= temperature - mreftemperature[this_dataset_i];

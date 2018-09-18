@@ -2236,6 +2236,7 @@ void xml_read_from_stream(istream& is_xml,
                           bifstream *pbifs,
                           const Verbosity& verbosity)
 {
+    CREATE_OUT2;
     ArtsXMLTag tag(verbosity);
 
     tag.read_from_stream(is_xml);
@@ -2248,7 +2249,7 @@ void xml_read_from_stream(istream& is_xml,
     if (species == -1)
     {
         ostringstream os;
-        os << "Unknown species in XsecRecord: " << species_name;
+        os << "  Unknown species in XsecRecord: " << species_name;
         throw std::runtime_error(os.str());
     }
     xd.mspecies = species;
@@ -2260,8 +2261,33 @@ void xml_read_from_stream(istream& is_xml,
     xml_read_from_stream(is_xml, xd.mrefpressure, pbifs, verbosity);
     xml_read_from_stream(is_xml, xd.mreftemperature, pbifs, verbosity);
     xml_read_from_stream(is_xml, xd.mxsecs, pbifs, verbosity);
+
     xml_read_from_stream(is_xml, xd.mtslope, pbifs, verbosity);
+    if (xd.mtslope.nelem() <= 1)
+    {
+        out2 << "  Warning: No temperature fit available for "
+             << species_name<< "\n";
+    }
+    else if (xd.mtslope.nelem() != xd.mxsecs.nelem())
+    {
+        std::ostringstream os;
+        os << "  Bugged input data for " << species_name << ". "
+           << "Length of cross sections (" << xd.mxsecs.nelem()
+           << ") does not match length of temperature fit data ("
+           << xd.mtslope.nelem() << ").";
+        throw std::runtime_error(os.str());
+    }
+
     xml_read_from_stream(is_xml, xd.mtintersect, pbifs, verbosity);
+    if (xd.mtslope.nelem() != xd.mtintersect.nelem())
+    {
+        std::ostringstream os;
+        os << "  Bugged input data for " << species_name << ". "
+           << "Length of temperature fit slope data (" << xd.mtslope.nelem()
+           << ") does not match length of temperature fit intersect data ("
+           << xd.mtintersect.nelem() << ").";
+        throw std::runtime_error(os.str());
+    }
     tag.read_from_stream(is_xml);
 
     const Index ndatasets = xd.mxsecs.nelem();
