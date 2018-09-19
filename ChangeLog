@@ -1,5 +1,13 @@
 2018-09-19  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-1118
+
+	* src/m_microphysics.cc (pndFromPsd):
+
+	Add same runtime error as for pndFromPsdBasic.
+
+2018-09-19  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-1117
 
 	* src/m_microphysics.cc (pndFromPsdBasic):
