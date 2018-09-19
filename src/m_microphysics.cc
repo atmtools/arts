@@ -223,8 +223,11 @@ void pndFromPsdBasic(
   get_sorted_indexes(intarr, psd_size_grid);
   for( Index i=0; i<ng; i++ )
     psd_size_grid_sorted[i] = psd_size_grid[intarr[i]];
-    
-      
+
+  if( !is_increasing(psd_size_grid_sorted) )
+    throw std::runtime_error( "*psd_size_grid* is not allowed to contain "
+                              "duplicate values." );
+
   // Calculate pnd by intrgation of psd for given nodes/bins
   Vector quadweights( ng );
   bin_quadweights( quadweights, psd_size_grid_sorted, quad_order );
