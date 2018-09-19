@@ -29,6 +29,7 @@
 #include "global_data.h"
 #include "arts.h"
 #include "zeeman.h"
+#include "linefunctiondata.h"
 
 // void define_species_data();
 // void define_species_map();

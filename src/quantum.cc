@@ -455,6 +455,8 @@ String QuantumIdentifier::TypeStr() const {
     return t;
 }
 
+String QuantumIdentifier::SpeciesName() const { return species_name_from_species_index(mspecies); }
+
 
 void QuantumIdentifier::SetTransition(const QuantumNumbers& upper, const QuantumNumbers& lower)
 {

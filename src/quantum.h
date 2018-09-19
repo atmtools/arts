@@ -360,6 +360,7 @@ public:
 
     QType Type() const { return mqtype; }
     String TypeStr() const;
+    String  SpeciesName() const;
     Index  Species() const { return mspecies; }
     Index& Species() { return mspecies; }
     Index  Isotopologue() const { return miso; }

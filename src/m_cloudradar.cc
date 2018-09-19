@@ -137,10 +137,10 @@ void iyActiveSingleScat(
     if( scat_data_checked != 1 )
       throw runtime_error( "The scattering data must be flagged to have\n"
                            "passed a consistency check (scat_data_checked=1)." );
-      if( ne!=TotalNumberOfElements(scat_data) )
-        throw runtime_error(
-          "*pnd_field* and *scat_data* inconsistent regarding total number of"
-          " scattering elements." );
+    if( ne!=TotalNumberOfElements(scat_data) )
+      throw runtime_error(
+        "*pnd_field* and *scat_data* inconsistent regarding total number of"
+        " scattering elements." );
     }
   if( jacobian_do )
     {
