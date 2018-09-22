@@ -57,6 +57,7 @@ extern const String ABSSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 extern const String POINTING_MAINTAG;
 extern const String POINTING_SUBTAG_A;
+extern const String FREQUENCY_MAINTAG;
 extern const String POLYFIT_MAINTAG;
 extern const String SCATSPECIES_MAINTAG;
 extern const String SINEFIT_MAINTAG;
@@ -793,6 +794,7 @@ void xaStandard(
       // All variables having zero as a priori
       // ----------------------------------------------------------------------------
       else if( jacobian_quantities[q].MainTag() == POINTING_MAINTAG ||
+               jacobian_quantities[q].MainTag() == FREQUENCY_MAINTAG ||
                jacobian_quantities[q].MainTag() == POLYFIT_MAINTAG  ||
                jacobian_quantities[q].MainTag() == SINEFIT_MAINTAG )
         {
@@ -1194,6 +1196,443 @@ void x2artsStandard(
       y_baseline[0] = 0;
     }
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void x2artsAtmAndSurf(
+         Workspace&                  ws,
+         Tensor4&                    vmr_field,
+         Tensor3&                    t_field,
+         Tensor4&                    particle_bulkprop_field,
+         Tensor3&                    wind_u_field,
+         Tensor3&                    wind_v_field,
+         Tensor3&                    wind_w_field,
+         Tensor3&                    surface_props_data,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const Vector&                     x,
+   const Index&                      atmfields_checked,
+   const Index&                      atmgeom_checked,
+   const Index&                      atmosphere_dim,
+   const Vector&                     p_grid,
+   const Vector&                     lat_grid,
+   const Vector&                     lon_grid,
+   const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Index&                      cloudbox_on,
+   const Index&                      cloudbox_checked,
+   const ArrayOfString&              particle_bulkprop_names,
+   const ArrayOfString&              surface_props_names,
+   const Agenda&                     water_p_eq_agenda,   
+   const Verbosity&  )
+{
+  // Basics
+  //
+  if( atmfields_checked != 1 )
+    throw runtime_error( "The atmospheric fields must be flagged to have "
+                         "passed a consistency check (atmfields_checked=1)." );
+  if( atmgeom_checked != 1 )
+    throw runtime_error( "The atmospheric geometry must be flagged to have "
+                         "passed a consistency check (atmgeom_checked=1)." );
+  if( cloudbox_checked != 1 )
+    throw runtime_error( "The cloudbox must be flagged to have "
+                         "passed a consistency check (cloudbox_checked=1)." );
+
+  
+  // Revert transformation
+  Vector x_t(x);
+  transform_x_back( x_t, jacobian_quantities );
+
+  // Main sizes
+  const Index nq = jacobian_quantities.nelem();
+
+  // Jacobian indices
+  ArrayOfArrayOfIndex ji;
+  {
+    bool any_affine;
+    jac_ranges_indices( ji, any_affine, jacobian_quantities, true);
+  }
+  
+  // Check input
+  if( x_t.nelem() != ji[nq-1][1]+1 )
+    throw runtime_error( "Length of *x* does not match length implied by "
+                         "*jacobian_quantities*.");
+
+  // Note that when this method is called, vmr_field and other output variables
+  // have original values, i.e. matching the a priori state.
+
+  // Loop retrieval quantities
+  for( Index q=0; q<nq; q++ )
+    {
+      // Index range of this retrieval quantity
+      const Index np = ji[q][1] - ji[q][0] + 1;
+      Range ind( ji[q][0], np );
+
+      // Atmospheric temperatures
+      // ----------------------------------------------------------------------------
+      if( jacobian_quantities[q].MainTag() == TEMPERATURE_MAINTAG )
+        {
+          // Determine grid positions for interpolation from retrieval grids back
+          // to atmospheric grids
+          ArrayOfGridPos gp_p, gp_lat, gp_lon;
+          Index          n_p, n_lat, n_lon;
+          get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
+                                 jacobian_quantities[q], atmosphere_dim,
+                                 p_grid, lat_grid, lon_grid );
+
+          // Map values in x back to t_field
+          Tensor3 t_x( n_p, n_lat, n_lon );
+          reshape( t_x, x_t[ind] );
+          regrid_atmfield_by_gp( t_field, atmosphere_dim, t_x,
+                                 gp_p, gp_lat, gp_lon );
+        }
+
+
+      // Abs species
+      // ----------------------------------------------------------------------------
+      else if( jacobian_quantities[q].MainTag() == ABSSPECIES_MAINTAG )
+        {
+          // Index position of species
+          ArrayOfSpeciesTag  atag;
+          array_species_tag_from_string( atag, jacobian_quantities[q].Subtag() );
+          const Index isp = chk_contains( "abs_species", abs_species, atag );
+
+          // Map part of x to a full atmospheric field
+          Tensor3 x_field( vmr_field.npages(), vmr_field.nrows(),
+                                               vmr_field.ncols() );
+          {
+            ArrayOfGridPos gp_p, gp_lat, gp_lon;
+            Index          n_p, n_lat, n_lon;
+            get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
+                                   jacobian_quantities[q], atmosphere_dim,
+                                   p_grid, lat_grid, lon_grid );
+            //
+            Tensor3 t3_x( n_p, n_lat, n_lon );
+            reshape( t3_x, x_t[ind] );
+            regrid_atmfield_by_gp( x_field, atmosphere_dim, t3_x,
+                                   gp_p, gp_lat, gp_lon );
+          }
+          //
+          if( jacobian_quantities[q].Mode() == "rel" )
+            {
+              // vmr = vmr0 * x
+              vmr_field(isp,joker,joker,joker) *= x_field;
+            }
+          else if( jacobian_quantities[q].Mode() == "vmr" )
+            {
+              // vmr = x
+              vmr_field(isp,joker,joker,joker) = x_field;
+            }
+          else if( jacobian_quantities[q].Mode() == "nd" )
+            {
+              // vmr = nd / nd_tot
+              for( Index i3=0; i3<vmr_field.ncols(); i3++ )
+                { for( Index i2=0; i2<vmr_field.nrows(); i2++ )
+                    { for( Index i1=0; i1<vmr_field.npages(); i1++ )
+                        {
+                          vmr_field(isp,i1,i2,i3) = x_field(i1,i2,i3) /
+                            number_density( p_grid[i1], t_field(i1,i2,i3) );
+                }   }   }
+            }
+          else if( jacobian_quantities[q].Mode() == "rh" )
+            {
+              // vmr = x * p_sat / p
+              Tensor3 water_p_eq;
+              water_p_eq_agendaExecute( ws, water_p_eq, t_field,
+                                            water_p_eq_agenda);
+              for( Index i3=0; i3<vmr_field.ncols(); i3++ )
+                { for( Index i2=0; i2<vmr_field.nrows(); i2++ )
+                    { for( Index i1=0; i1<vmr_field.npages(); i1++ )
+                        {
+                          vmr_field(isp,i1,i2,i3) = x_field(i1,i2,i3) *
+                            water_p_eq(i1,i2,i3) / p_grid[i1];
+                }   }   }
+            }
+          else if( jacobian_quantities[q].Mode() == "q" )
+            {
+              // We have that specific humidity q, mixing ratio r and
+              // vapour pressure e, are related as
+              // q = r(1+r); r = 0.622e/(p-e); e = vmr*p;
+              // That is: vmr=e/p; e = rp/(0.622+r); r = q/(1-q)
+              for( Index i3=0; i3<vmr_field.ncols(); i3++ )
+                { for( Index i2=0; i2<vmr_field.nrows(); i2++ )
+                    { for( Index i1=0; i1<vmr_field.npages(); i1++ )
+                        {
+                          const Numeric r = x_field(i1,i2,i3) /
+                                                 ( 1 - x_field(i1,i2,i3) );
+                          const Numeric e = r * p_grid[i1] / ( 0.622 + r );
+                          vmr_field(isp,i1,i2,i3) = e / p_grid[i1];
+                }   }   }
+            }
+          else
+            { assert(0); }
+        }
+
+
+      // Scattering species
+      // ----------------------------------------------------------------------------
+      else if( jacobian_quantities[q].MainTag() == SCATSPECIES_MAINTAG )
+        {
+          // If no cloudbox, we assume that there is nothing to do
+          if( cloudbox_on )
+            {
+              if( particle_bulkprop_field.empty() )
+                {
+                  throw runtime_error( "One jacobian quantity belongs to the "
+                    "scattering species category, but *particle_bulkprop_field* "
+                    "is empty." );
+                }
+              if( particle_bulkprop_field.nbooks() != particle_bulkprop_names.nelem() )
+                {
+                  throw runtime_error( "Mismatch in size between "
+                    "*particle_bulkprop_field* and *particle_bulkprop_field*." );
+                }
+
+              const Index isp = find_first( particle_bulkprop_names,
+                                            jacobian_quantities[q].SubSubtag() );
+              if( isp < 0 )
+                {
+                  ostringstream os;
+                  os << "Jacobian quantity with index " << q << " covers a "
+                     << "scattering species, and the field quantity is set to \""
+                     << jacobian_quantities[q].SubSubtag() << "\", but this quantity "
+                     << "could not found in *particle_bulkprop_names*.";
+                  throw runtime_error(os.str());
+                }
+
+              // Determine grid positions for interpolation from retrieval grids back
+              // to atmospheric grids
+              ArrayOfGridPos gp_p, gp_lat, gp_lon;
+              Index          n_p, n_lat, n_lon;
+              get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
+                                     jacobian_quantities[q], atmosphere_dim,
+                                     p_grid, lat_grid, lon_grid );
+              // Map x to particle_bulkprop_field
+              Tensor3 pbfield_x( n_p, n_lat, n_lon );
+              reshape( pbfield_x, x_t[ind] );
+              Tensor3 pbfield;
+              regrid_atmfield_by_gp( pbfield, atmosphere_dim, pbfield_x,
+                                     gp_p, gp_lat, gp_lon );
+              particle_bulkprop_field(isp,joker,joker,joker) = pbfield;
+            }
+        }
+
+
+      // Wind
+      // ----------------------------------------------------------------------------
+      else if( jacobian_quantities[q].MainTag() == WIND_MAINTAG)
+        {
+          // Determine grid positions for interpolation from retrieval grids back
+          // to atmospheric grids
+          ArrayOfGridPos gp_p, gp_lat, gp_lon;
+          Index          n_p, n_lat, n_lon;
+          get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
+                                 jacobian_quantities[q], atmosphere_dim,
+                                 p_grid, lat_grid, lon_grid );
+
+          // TODO Could be done without copying.
+          Tensor3 wind_x(n_p, n_lat, n_lon);
+          reshape(wind_x, x_t[ind]);
+
+          Tensor3View target_field(wind_u_field);
+
+          Tensor3 wind_field(target_field.npages(), target_field.nrows(),
+                             target_field.ncols());
+          regrid_atmfield_by_gp(wind_field, atmosphere_dim, wind_x,
+                                 gp_p, gp_lat, gp_lon);
+
+          if (jacobian_quantities[q].Subtag() == "u") {
+              wind_u_field = wind_field;
+          } else if (jacobian_quantities[q].Subtag() == "v") {
+              wind_v_field = wind_field;
+          } else if (jacobian_quantities[q].Subtag() == "w") {
+              wind_w_field = wind_field;
+          }
+        }
+
+      
+      // Surface
+      // ----------------------------------------------------------------------------
+      else if( jacobian_quantities[q].MainTag() == SURFACE_MAINTAG )
+        {
+          surface_props_check( atmosphere_dim, lat_grid, lon_grid,
+                               surface_props_data, surface_props_names );
+          if( surface_props_data.empty() )
+            {
+              throw runtime_error( "One jacobian quantity belongs to the "
+                    "surface category, but *surface_props_data* is empty." );
+            }
+
+          const Index isu = find_first( surface_props_names,
+                                        jacobian_quantities[q].Subtag() );
+          if( isu < 0 )
+            {
+              ostringstream os;
+              os << "Jacobian quantity with index " << q << " covers a "
+                 << "surface property, and the field Subtag is set to \""
+                 << jacobian_quantities[q].Subtag() << "\", but this quantity "
+                 << "could not found in *surface_props_names*.";
+              throw runtime_error(os.str());
+            }
+
+          // Determine grid positions for interpolation from retrieval grids back
+          // to atmospheric grids
+          ArrayOfGridPos gp_lat, gp_lon;
+          Index          n_lat, n_lon;
+          get_gp_rq_to_atmgrids( gp_lat, gp_lon, n_lat, n_lon,
+                                 jacobian_quantities[q], atmosphere_dim,
+                                 lat_grid, lon_grid );
+          // Map values in x back to surface_props_data
+          Matrix surf_x( n_lat, n_lon );
+          reshape( surf_x, x_t[ind] );
+          Matrix surf;
+          regrid_atmsurf_by_gp( surf, atmosphere_dim, surf_x, gp_lat, gp_lon );
+          surface_props_data(isu,joker,joker) = surf;
+        }
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void x2artsSensor(
+         Matrix&                     sensor_los,
+         Vector&                     y_baseline,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const Vector&                     x,
+   const Index&                      sensor_checked,
+   const Vector&                     sensor_time,
+   const Sparse &                    sensor_response,
+   const Matrix &                    sensor_response_dlos_grid,
+   const Vector &                    sensor_response_f_grid,
+   const ArrayOfIndex &              sensor_response_pol_grid,
+   const Verbosity&  )
+{
+  // Basics
+  //
+  if( sensor_checked != 1 )
+    throw runtime_error( "The sensor response must be flagged to have "
+                         "passed a consistency check (sensor_checked=1)." );
+
+  
+  // Revert transformation
+  Vector x_t(x);
+  transform_x_back( x_t, jacobian_quantities );
+
+  // Main sizes
+  const Index nq = jacobian_quantities.nelem();
+
+  // Jacobian indices
+  ArrayOfArrayOfIndex ji;
+  {
+    bool any_affine;
+    jac_ranges_indices( ji, any_affine, jacobian_quantities, true);
+  }
+  
+  // Check input
+  if( x_t.nelem() != ji[nq-1][1]+1 )
+    throw runtime_error( "Length of *x* does not match length implied by "
+                         "*jacobian_quantities*.");
+
+  // Flag indicating that y_baseline is not set
+  bool yb_set = false;
+
+  // Loop retrieval quantities
+  for( Index q=0; q<nq; q++ )
+    {
+      // Index range of this retrieval quantity
+      const Index np = ji[q][1] - ji[q][0] + 1;
+      Range ind( ji[q][0], np );
+
+      // Pointing off-set
+      // ----------------------------------------------------------------------------
+      if( jacobian_quantities[q].MainTag() == POINTING_MAINTAG )
+        {
+          if( jacobian_quantities[q].Subtag() != POINTING_SUBTAG_A )
+            {
+              ostringstream os;
+              os << "Only pointing off-sets treated by *jacobianAddPointingZa* "
+                 << "are so far handled.";
+              throw runtime_error(os.str());
+            }
+          // Handle pointing "jitter" seperately
+          if( jacobian_quantities[q].Grids()[0][0] == -1 )
+            {
+              if( sensor_los.nrows() != np )
+                throw runtime_error(
+                     "Mismatch between pointing jacobian and *sensor_los* found." );
+              // Simply add retrieved off-set(s) to za column of *sensor_los*
+              for( Index i=0; i<np; i++ )
+                { sensor_los(i,0) += x_t[ji[q][0]+i]; }
+            }
+          // Polynomial representation
+          else
+            {
+              if( sensor_los.nrows() != sensor_time.nelem() )
+                throw runtime_error(
+                     "Sizes of *sensor_los* and *sensor_time* do not match." );
+              Vector w;
+              for( Index c=0; c<np; c++ )
+                {
+                  polynomial_basis_func( w, sensor_time, c );
+                  for( Index i=0; i<w.nelem(); i++ )
+                    {  sensor_los(i,0) += w[i] * x_t[ji[q][0]+c]; }
+                }
+            }
+        }
+    }
+
+
+  // Call sensor_response_agenda here
+
+
+  // Loop retrieval quantities again, to determine baseline term
+  for( Index q=0; q<nq; q++ )
+    {
+      // Index range of this retrieval quantity
+      const Index np = ji[q][1] - ji[q][0] + 1;
+      Range ind( ji[q][0], np );
+      
+      // Baseline fit: polynomial or sinusoidal
+      // ----------------------------------------------------------------------------
+      if( jacobian_quantities[q].MainTag() == POLYFIT_MAINTAG  ||
+          jacobian_quantities[q].MainTag() == SINEFIT_MAINTAG )
+        {
+          if(! yb_set )
+            {
+              yb_set = true;
+              Index y_size =   sensor_los.nrows()
+                             * sensor_response_f_grid.nelem()
+                             * sensor_response_pol_grid.nelem()
+                             * sensor_response_dlos_grid.nrows();
+              y_baseline.resize(y_size);
+              y_baseline = 0;
+            }
+
+          for (Index mb = 0; mb < sensor_los.nrows(); ++mb)
+            {
+              calcBaselineFit(y_baseline, x_t, mb, sensor_response,
+                              sensor_response_pol_grid, sensor_response_f_grid,
+                              sensor_response_dlos_grid, jacobian_quantities[q], q, ji);
+            }
+        }
+    }
+
+  // *y_baseline* not yet set?
+  if( !yb_set )
+    {
+      y_baseline.resize(1);
+      y_baseline[0] = 0;
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void x2artsSpectroscopy( const Verbosity& )
+{
+  throw runtime_error( "Retrievals of spectroscopic variables not yet handled." );
+}
+
 
 
 

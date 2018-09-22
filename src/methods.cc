@@ -19729,6 +19729,103 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "x2artsAtmAndSurf" ),
+        DESCRIPTION
+        (
+         "Maps *x* to atmospheric and surface variables.\n"
+         "\n"
+         "Maps OEM's state vector, *x*, to the matching ARTS variables. This\n"
+         "method handles atmospheric and surface variables. If you retrieve\n"
+         "other variables, make sure that you also call *x2artsSensor* and/or\n"
+         "*x2artsSpectroscopy*.\n"
+         "\n"
+         "The following retrieval quantities are handled by this method:\n"
+         "   Temperature\n"
+         "   Absorption species\n"
+         "   Scattering species\n"
+         "   Winds\n"
+         "   Surface variables\n"
+         "\n"
+         "Should only be used inside *inversion_iterate_agenda*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "vmr_field", "t_field", "particle_bulkprop_field",
+             "wind_u_field", "wind_v_field", "wind_w_field",
+             "surface_props_data" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "vmr_field", "t_field", "particle_bulkprop_field",
+            "wind_u_field", "wind_v_field", "wind_w_field", "surface_props_data",
+            "jacobian_quantities", "x", "atmfields_checked", "atmgeom_checked",
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species",
+            "cloudbox_on", "cloudbox_checked", "particle_bulkprop_names",
+            "surface_props_names", "water_p_eq_agenda" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "x2artsSensor" ),
+        DESCRIPTION
+        (
+         "Maps *x* to sensor variables.\n"
+         "\n"
+         "Maps OEM's state vector, *x*, to the matching ARTS variables. This\n"
+         "method handles variables associated with the sensor. If you retrieve\n"
+         "other variables, make sure that you also call *x2artsAtmAndSurf*\n"
+         " and/or *x2artsSpectroscopy*.\n"
+         "\n"
+         "The following retrieval quantities are handled by this method:\n"
+         "   Pointing\n"
+         "   Baseline fits\n"
+         "\n"
+         "Should only be used inside *inversion_iterate_agenda*.\n"
+         "\n"
+         "(Comment on y_baseline and calculation of sensor_response).\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "sensor_los", "y_baseline" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "sensor_los",
+            "jacobian_quantities", "x", "sensor_checked",
+            "sensor_time", "sensor_response", "sensor_response_dlos_grid",
+            "sensor_response_f_grid", "sensor_response_pol_grid"            
+            ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+  
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "x2artsSpectroscopy" ),
+        DESCRIPTION
+        (
+         "Just defined to indicate a future extensiom.\n"
+         "\n"
+         "Don't call the method, it will just generate an error.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+  
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "yApplySensorPol" ),
         DESCRIPTION
         (

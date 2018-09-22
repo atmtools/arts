@@ -1,3 +1,13 @@
+2018-09-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1120
+
+	* Some work towards handling retrieval of sensor variables. 
+
+	* src/m_oem.cc (xaStandard): Added setting of xa for frequency fit
+	variables.
+	(x2artsAtmAndSurf, x2artsSensor,x2artsSpectroscopy): New methods.
+
 2018-09-19  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1119
