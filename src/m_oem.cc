@@ -58,6 +58,8 @@ extern const String TEMPERATURE_MAINTAG;
 extern const String POINTING_MAINTAG;
 extern const String POINTING_SUBTAG_A;
 extern const String FREQUENCY_MAINTAG;
+extern const String FREQUENCY_SUBTAG_0;
+extern const String FREQUENCY_SUBTAG_1;
 extern const String POLYFIT_MAINTAG;
 extern const String SCATSPECIES_MAINTAG;
 extern const String SINEFIT_MAINTAG;
@@ -1496,6 +1498,7 @@ void x2artsAtmAndSurf(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void x2artsSensor(
          Matrix&                     sensor_los,
+         Vector&                     f_backend,
          Vector&                     y_baseline,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const Vector&                     x,
@@ -1541,7 +1544,6 @@ void x2artsSensor(
     {
       // Index range of this retrieval quantity
       const Index np = ji[q][1] - ji[q][0] + 1;
-      Range ind( ji[q][0], np );
 
       // Pointing off-set
       // ----------------------------------------------------------------------------
@@ -1579,6 +1581,23 @@ void x2artsSensor(
                 }
             }
         }
+
+      // Frequncy shift or stretch
+      // ----------------------------------------------------------------------------
+      else if( jacobian_quantities[q].MainTag() == FREQUENCY_MAINTAG )
+        {
+          if( jacobian_quantities[q].Subtag() != FREQUENCY_SUBTAG_0 )
+            {
+              assert( np == 1 );
+              f_backend += x_t[ji[q][0]];
+            }
+          else if( jacobian_quantities[q].Subtag() != FREQUENCY_SUBTAG_1 )
+            {
+              
+            }
+          else
+            { assert(0); }
+        }
     }
 
 
@@ -1588,10 +1607,6 @@ void x2artsSensor(
   // Loop retrieval quantities again, to determine baseline term
   for( Index q=0; q<nq; q++ )
     {
-      // Index range of this retrieval quantity
-      const Index np = ji[q][1] - ji[q][0] + 1;
-      Range ind( ji[q][0], np );
-      
       // Baseline fit: polynomial or sinusoidal
       // ----------------------------------------------------------------------------
       if( jacobian_quantities[q].MainTag() == POLYFIT_MAINTAG  ||
@@ -1668,6 +1683,7 @@ void OEM_checks(
     const Agenda&                     inversion_iterate_agenda,
     const Vector&                     xa,
     const CovarianceMatrix&           covmat_sx,
+    const Vector&                     y,
     const CovarianceMatrix&           covmat_se,
     const Index&                      jacobian_do,
     const ArrayOfRetrievalQuantity&   jacobian_quantities,
@@ -1681,7 +1697,7 @@ void OEM_checks(
 {
   const Index nq = jacobian_quantities.nelem();
   const Index n  = xa.nelem();
-  const Index m  = covmat_se.nrows();
+  const Index m  = y.nelem();
 
   if((x.nelem() != n) && (x.nelem() !=0))
     throw runtime_error( "The length of *x* must be either the same as *xa* or 0." );
@@ -1813,7 +1829,7 @@ void OEM(
     covmat_se.compute_inverse();
 
     OEM_checks(ws, x, yf, jacobian, inversion_iterate_agenda, xa, covmat_sx,
-               covmat_se, jacobian_do, jacobian_quantities,
+               y, covmat_se, jacobian_do, jacobian_quantities,
                method, x_norm, max_iter, stop_dx, lm_ga_settings,
                clear_matrices, display_progress);
 

@@ -8516,32 +8516,23 @@ void define_md_data_raw()
       ( NAME( "jacobianAddFreqShift" ),
         DESCRIPTION
         (
-         "Includes a frequency for of shift type in the Jacobian.\n"
+         "Includes a frequency fit of shift type in the Jacobian.\n"
          "\n"
          "Retrieval of deviations between nominal and actual backend\n"
          "frequencies can be included by this method. The assumption here is\n"
          "that the deviation is a constant off-set, a shift, common for all\n"
-         "frequencies.\n"
-         "\n"
-         "The frequency shift can be modelled to be time varying. The time\n"
-         "variation is then described by a polynomial (with standard base\n"
-         "functions). For example, a polynomial order of 0 means that the\n"
-         "shift is constant in time. If the shift is totally uncorrelated\n"
-         "between the spectra, set the order to -1.\n"
+         "frequencies (and not varying between measurement blocks).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_quantities", "jacobian_agenda", "f_grid", "sensor_pos",
-            "sensor_time" ),
-        GIN( "poly_order", "df" ),
-        GIN_TYPE( "Index", "Numeric" ),
-        GIN_DEFAULT( "0", "100e3" ),
-        GIN_DESC( "Order of polynomial to describe the time variation of "
-                  "frequency shift.",
-                  "Size of perturbation to apply."
+        IN( "jacobian_quantities", "jacobian_agenda", "f_grid" ),
+        GIN( "df" ),
+        GIN_TYPE( "Numeric" ),
+        GIN_DEFAULT( "100e3" ),
+        GIN_DESC( "Size of perturbation to apply."
                   )
         ));
 
@@ -8550,32 +8541,23 @@ void define_md_data_raw()
       ( NAME( "jacobianAddFreqStretch" ),
         DESCRIPTION
         (
-         "Includes a frequency for of stretch type in the Jacobian.\n"
+         "Includes a frequency fit of stretch type in the Jacobian.\n"
          "\n"
          "Retrieval of deviations between nominal and actual backend\n"
          "frequencies can be included by this method. The assumption here is\n"
          "that the deviation varies linearly over the frequency range\n"
          "(following ARTS basis function for polynomial order 1).\n"
-         "\n"
-         "The frequency shift can be modelled to be time varying. The time\n"
-         "variation is then described by a polynomial (with standard base\n"
-         "functions). For example, a polynomial order of 0 means that the\n"
-         "shift is constant in time. If the shift is totally uncorrelated\n"
-         "between the spectra, set the order to -1.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_quantities", "jacobian_agenda", "f_grid", "sensor_pos",
-            "sensor_time" ),
-        GIN( "poly_order", "df" ),
-        GIN_TYPE( "Index", "Numeric" ),
-        GIN_DEFAULT( "0", "100e3" ),
-        GIN_DESC( "Order of polynomial to describe the time variation of "
-                  "frequency stretch.",
-                  "Size of perturbation to apply."
+        IN( "jacobian_quantities", "jacobian_agenda", "f_grid" ),
+        GIN( "df" ),
+        GIN_TYPE( "Numeric" ),
+        GIN_DEFAULT( "100e3" ),
+        GIN_DESC( "Size of perturbation to apply."
                   )
         ));
 
@@ -9083,8 +9065,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "jacobian", "mblock_index", "iyb", "yb", "stokes_dim", "f_grid",
-            "sensor_los", "mblock_dlos_grid", "sensor_response", "sensor_time", 
-            "jacobian_quantities" ),
+            "mblock_dlos_grid", "sensor_response", "jacobian_quantities" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9108,10 +9089,9 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "jacobian", "mblock_index", "iyb", "yb", "stokes_dim", "f_grid",
-            "sensor_los", "mblock_dlos_grid", 
-            "sensor_response", "sensor_response_pol_grid",
+            "mblock_dlos_grid", "sensor_response", "sensor_response_pol_grid",
             "sensor_response_f_grid", "sensor_response_dlos_grid",
-            "sensor_time", "jacobian_quantities" ),
+            "jacobian_quantities" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -14404,8 +14384,8 @@ void define_md_data_raw()
     ( NAME( "retrievalAddFreqShift" ),
       DESCRIPTION
       (
-          "Same as jacobianAddFreqShift but also add the correlation block contained\n"
-          "in *covmat_block* and *covmat_inv_block* to the *covmat_sx*\n"
+          "Same as *jacobianAddFreqShift* but also add the correlation block\n"
+          "contained in *covmat_block* and *covmat_inv_block* to *covmat_sx*.\n"
           ),
       AUTHORS( "Simon Pfreundschuh" ),
       OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
@@ -14413,13 +14393,11 @@ void define_md_data_raw()
       GOUT_TYPE(),
       GOUT_DESC(),
       IN( "covmat_sx", "covmat_block", "covmat_inv_block", "jacobian_quantities",
-          "jacobian_agenda", "f_grid", "sensor_pos", "sensor_time" ),
-      GIN( "poly_order", "df" ),
-      GIN_TYPE( "Index", "Numeric" ),
-      GIN_DEFAULT( "0", "100e3" ),
-      GIN_DESC( "Order of polynomial to describe the time variation of "
-                "frequency shift.",
-                "Size of perturbation to apply."
+          "jacobian_agenda", "f_grid" ),
+      GIN( "df" ),
+      GIN_TYPE( "Numeric" ),
+      GIN_DEFAULT( "100e3" ),
+      GIN_DESC( "Size of perturbation to apply."
           )
         ));
 
@@ -14428,22 +14406,20 @@ void define_md_data_raw()
     ( NAME( "retrievalAddFreqStretch" ),
       DESCRIPTION
       (
-          "Same as jacobianAddFreqShift but also adds the correlation block contained\n"
-          "in *covmat_block* and *covmat_inv_block* to the *covmat_sx*\n"
+          "Same as *jacobianAddFreqShift* but also adds the correlation block\n"
+          " contained in *covmat_block* and *covmat_inv_block* to *covmat_sx*.\n"
           ),
       AUTHORS( "Simon Pfreundschuh" ),
       OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN( "jacobian_quantities", "jacobian_agenda", "f_grid", "sensor_pos",
-          "sensor_time", "covmat_block", "covmat_inv_block" ),
-      GIN( "poly_order", "df" ),
-      GIN_TYPE( "Index", "Numeric" ),
-      GIN_DEFAULT( "0", "100e3" ),
-      GIN_DESC( "Order of polynomial to describe the time variation of "
-                "frequency stretch.",
-                "Size of perturbation to apply."
+      IN( "jacobian_quantities", "jacobian_agenda", "f_grid",
+          "covmat_block", "covmat_inv_block" ),
+      GIN( "df" ),
+      GIN_TYPE( "Numeric" ),
+      GIN_DEFAULT( "100e3" ),
+      GIN_DESC( "Size of perturbation to apply."
           )
         ));
 
@@ -19788,11 +19764,11 @@ void define_md_data_raw()
          "(Comment on y_baseline and calculation of sensor_response).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "sensor_los", "y_baseline" ),
+        OUT( "sensor_los", "f_backend", "y_baseline" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "sensor_los",
+        IN( "sensor_los", "f_backend", 
             "jacobian_quantities", "x", "sensor_checked",
             "sensor_time", "sensor_response", "sensor_response_dlos_grid",
             "sensor_response_f_grid", "sensor_response_pol_grid"            

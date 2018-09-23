@@ -2297,7 +2297,6 @@ void run_disort( Workspace& ws,
   \param scat_za_grid          as the WSV
   \param nstreams              Number of quadrature angles (both hemispheres).
   \param non_iso_inc           see DisortCalc doc.
-  \param pfct_method           see DisortCalc doc.
 
   \author Jana Mendrok
   \date   2017-02-23
@@ -2319,9 +2318,8 @@ void run_disort2( Workspace& ws,
               Vector& surface_scalar_reflectivity,
               ConstVectorView scat_za_grid,
               const Index& nstreams,
-              const String& pfct_method,
               const Index& Npfct,
-              const Verbosity& verbosity )
+              const Verbosity&  )
 {
   const Index nf = f_grid.nelem();
   Index nlyr = p_grid.nelem()-1; // don't make this const, else disort_ complains

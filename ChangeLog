@@ -1,12 +1,37 @@
+2018-09-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1121
+
+	* Some cleaning ...
+
+	* src/m_disort.cc (DisortCalc, DisortCalcWithARTSSurface): Adopted
+	call of run_disort2.
+
+	* src/disort.cc (run_disort2): Removed *pfct_method* as input. Was
+	not used. Fixed compiler warning.
+
+	* src/m_retrieval.cc (retrievalAddFreqShift,retrievalAddFreqStretch):
+	* src/m_jacobian.cc (jacobianAddFreqShift, jacobianAddFreqStretch)
+	(jacobianCalcFreqShift,jacobianCalcFreqStretch): Changed to NOT
+	allow frequency shifts and stretchs that varies with sensor_time.
+	Possible to calculate the Jacoboan for time varying shifts, but
+	not possible to apply it in non-linear inversions inside ARTS, as
+	*sensor_response* is assumed valid for all measuement blocks. Old
+	code left in file.
+
+	* src/m_oem.cc (OEM_checks): Size consistency between y and Se
+	was wrong. Se was compared to itself! Added y as input, and size
+	check now works.
+
 2018-09-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1120
 
-	* Some work towards handling retrieval of sensor variables. 
+	* Some work towards handling retrieval of sensor variables.
 
 	* src/m_oem.cc (xaStandard): Added setting of xa for frequency fit
 	variables.
-	(x2artsAtmAndSurf, x2artsSensor,x2artsSpectroscopy): New methods.
+	(x2artsAtmAndSurf,x2artsSensor,x2artsSpectroscopy): New methods.
 
 2018-09-19  Richard Larsson  <larsson@mps.mpg.de>
 

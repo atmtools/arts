@@ -841,16 +841,14 @@ void retrievalAddFreqShift(Workspace& ws,
                            const Sparse& covmat_block,
                            const Sparse& covmat_inv_block,
                            const Vector& f_grid,
-                           const Matrix& sensor_pos,
-                           const Vector& sensor_time,
-                           const Index& poly_order,
                            const Numeric& df,
                            const Verbosity& verbosity)
 {
-    jacobianAddFreqShift(ws, jacobian_quantities, jacobian_agenda, f_grid, sensor_pos,
-                         sensor_time, poly_order, df, verbosity);
-    check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() + 1,
-                        1, covmat_block, covmat_inv_block);
+    jacobianAddFreqShift( ws, jacobian_quantities, jacobian_agenda, f_grid,
+                          df, verbosity );
+    check_and_add_block( covmat_sx, jacobian_quantities.back(),
+                         jacobian_quantities.nelem() + 1,
+                         1, covmat_block, covmat_inv_block );
 }
 
 void retrievalAddFreqStretch(Workspace& ws,
@@ -858,18 +856,16 @@ void retrievalAddFreqStretch(Workspace& ws,
                              ArrayOfRetrievalQuantity& jacobian_quantities,
                              Agenda& jacobian_agenda,
                              const Vector& f_grid,
-                             const Matrix& sensor_pos,
-                             const Vector& sensor_time,
                              const Sparse& covmat_block,
                              const Sparse& covmat_inv_block,
-                             const Index& poly_order,
                              const Numeric& df,
                              const Verbosity& verbosity)
 {
-    jacobianAddFreqStretch(ws, jacobian_quantities, jacobian_agenda, f_grid, sensor_pos,
-                         sensor_time, poly_order, df, verbosity);
-    check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
-                        1, covmat_block, covmat_inv_block);
+    jacobianAddFreqStretch( ws, jacobian_quantities, jacobian_agenda,
+                            f_grid, df, verbosity );
+    check_and_add_block( covmat_sx, jacobian_quantities.back(),
+                         jacobian_quantities.nelem()-1, 1,
+                         covmat_block, covmat_inv_block );
 }
 
 void retrievalAddCatalogParameter(

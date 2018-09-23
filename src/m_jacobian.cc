@@ -647,6 +647,169 @@ void jacobianAddFreqShift(
         ArrayOfRetrievalQuantity&  jacobian_quantities,
         Agenda&                    jacobian_agenda,
   const Vector&                    f_grid,
+  const Numeric&                   df,
+  const Verbosity& )
+{
+  // Check that this jacobian type is not already included.
+  for( Index it=0; it<jacobian_quantities.nelem(); it++ )
+    {
+      if (jacobian_quantities[it].MainTag()== FREQUENCY_MAINTAG  &&  
+          jacobian_quantities[it].Subtag() == FREQUENCY_SUBTAG_0 )
+        {
+          ostringstream os;
+          os << "Fit of frequency shift is already included in\n"
+             << "*jacobian_quantities*.";
+          throw runtime_error(os.str());
+        }
+    }
+
+  // Checks of frequencies
+  if( df <= 0 )
+    throw runtime_error( "The argument *df* must be > 0." );
+  if( df > 1e6 )
+    throw runtime_error( "The argument *df* is not allowed to exceed 1 MHz." );
+  const Index nf    = f_grid.nelem();
+  if( nf < 2 )
+    throw runtime_error( "Frequency shifts and *f_grid* of length 1 can "
+                         "not be combined."  );
+  const Numeric maxdf = f_grid[nf-1] - f_grid[nf-2]; 
+  if( df > maxdf )
+    {
+      ostringstream os;
+      os << "The value of *df* is too big with respect to spacing of "
+         << "*f_grid*. The maximum\nallowed value of *df* is the spacing "
+         << "between the two last elements of *f_grid*.\n"
+         << "This spacing is   : " <<maxdf/1e3 << " kHz\n"
+         << "The value of df is: " << df/1e3   << " kHz";
+      throw runtime_error(os.str());
+    }
+
+  // Create the new retrieval quantity
+  RetrievalQuantity rq;
+  rq.MainTag( FREQUENCY_MAINTAG );
+  rq.Subtag( FREQUENCY_SUBTAG_0 );
+  rq.Mode( "" );
+  rq.Analytical( 0 );
+  rq.Perturbation( df );
+
+  // Dummy vector of length 1
+  Vector grid(1,0);
+  ArrayOfVector grids(1,grid);
+  rq.Grids(grids);
+
+  // Add it to the *jacobian_quantities*
+  jacobian_quantities.push_back( rq );
+
+  // Add corresponding calculation method to the jacobian agenda
+  jacobian_agenda.append( "jacobianCalcFreqShift", "" );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianCalcFreqShift(
+        Matrix&                    jacobian,
+  const Index&                     mblock_index,
+  const Vector&                    iyb,
+  const Vector&                    yb,
+  const Index&                     stokes_dim,
+  const Vector&                    f_grid,
+  const Matrix&                    mblock_dlos_grid,
+  const Sparse&                    sensor_response,
+  const ArrayOfRetrievalQuantity&  jacobian_quantities,
+  const Verbosity& )
+{
+  // Set some useful (and needed) variables.  
+  RetrievalQuantity rq;
+  ArrayOfIndex ji;
+
+  // Find the retrieval quantity related to this method.
+  // This works since the combined MainTag and Subtag is individual.
+  bool found = false;
+  for( Index n=0; n<jacobian_quantities.nelem() && !found; n++ )
+    {
+      if( jacobian_quantities[n].MainTag() == FREQUENCY_MAINTAG   && 
+          jacobian_quantities[n].Subtag()  == FREQUENCY_SUBTAG_0 )
+        {
+          bool any_affine;
+          ArrayOfArrayOfIndex jacobian_indices;
+          jac_ranges_indices( jacobian_indices, any_affine,
+                              jacobian_quantities, true );
+          //
+          found = true;
+          rq = jacobian_quantities[n];
+          ji = jacobian_indices[n];
+        }
+    }
+  if( !found )
+    {
+      throw runtime_error(
+                   "There is no such frequency retrieval quantity defined.\n" );
+    }
+
+  // Check that sensor_response is consistent with yb and iyb
+  //
+  if( sensor_response.nrows() != yb.nelem() )
+    throw runtime_error( 
+                       "Mismatch in size between *sensor_response* and *yb*." );
+  if( sensor_response.ncols() != iyb.nelem() )
+    throw runtime_error( 
+                      "Mismatch in size between *sensor_response* and *iyb*." );
+
+  // Get disturbed (part of) y
+  //
+  const Index    n1y = sensor_response.nrows(); 
+        Vector   dy( n1y );
+  {
+    const Index   nf2   = f_grid.nelem();
+    const Index   nlos2 = mblock_dlos_grid.nrows();
+    const Index   niyb  = nf2 * nlos2 * stokes_dim;
+
+    // Interpolation weights
+    //
+    const Index   porder = 3;
+    //
+    ArrayOfGridPosPoly   gp( nf2 );
+                Matrix   itw( nf2, porder+1) ;
+                Vector   fg_new = f_grid, iyb2(niyb);
+    //
+    fg_new += rq.Perturbation();
+    gridpos_poly( gp, f_grid, fg_new, porder, 1.0 );
+    interpweights( itw, gp );
+
+    // Do interpolation
+    for( Index ilos=0; ilos<nlos2; ilos++ )
+      {
+        const Index row0 = ilos * nf2 * stokes_dim;
+            
+        for( Index is=0; is<stokes_dim; is++ )
+          { 
+            interp( iyb2[Range(row0+is,nf2,stokes_dim)], itw, 
+                    iyb[Range(row0+is,nf2,stokes_dim)], gp );
+          }
+      }
+
+    // Determine difference
+    //
+    mult( dy, sensor_response, iyb2 );
+    //
+    for( Index i=0; i<n1y; i++ )
+      { dy[i] = ( dy[i]- yb[i] ) / rq.Perturbation(); }
+  }
+
+  //--- Set jacobian ---
+  assert( rq.Grids()[0].nelem() == 1 );
+  const Range rowind = get_rowindex_for_mblock( sensor_response, mblock_index );
+  jacobian( rowind, ji[0] ) = dy;
+}
+
+
+/* Old version that handles variation with sensor_time:
+void jacobianAddFreqShift(
+        Workspace&                 ws _U_,
+        ArrayOfRetrievalQuantity&  jacobian_quantities,
+        Agenda&                    jacobian_agenda,
+  const Vector&                    f_grid,
   const Matrix&                    sensor_pos,
   const Vector&                    sensor_time,
   const Index&                     poly_order,
@@ -733,9 +896,6 @@ void jacobianAddFreqShift(
   jacobian_agenda.append( "jacobianCalcFreqShift", "" );
 }
 
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcFreqShift(
         Matrix&                    jacobian,
   const Index&                     mblock_index,
@@ -858,7 +1018,7 @@ void jacobianCalcFreqShift(
         }
     }
 }
-
+*/
 
 
 
@@ -867,6 +1027,191 @@ void jacobianCalcFreqShift(
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianAddFreqStretch(
+        Workspace&                 ws _U_,
+        ArrayOfRetrievalQuantity&  jacobian_quantities,
+        Agenda&                    jacobian_agenda,
+  const Vector&                    f_grid,
+  const Numeric&                   df,
+  const Verbosity& )
+{
+  // Check that this jacobian type is not already included.
+  for( Index it=0; it<jacobian_quantities.nelem(); it++ )
+    {
+      if (jacobian_quantities[it].MainTag()== FREQUENCY_MAINTAG  &&  
+          jacobian_quantities[it].Subtag() == FREQUENCY_SUBTAG_1 )
+        {
+          ostringstream os;
+          os << "Fit of frequency stretch is already included in\n"
+             << "*jacobian_quantities*.";
+          throw runtime_error(os.str());
+        }
+    }
+
+  // Checks of df
+  if( df <= 0 )
+    throw runtime_error( "The argument *df* must be > 0." );
+  if( df > 1e6 )
+    throw runtime_error( "The argument *df* is not allowed to exceed 1 MHz." );
+  const Index   nf    = f_grid.nelem();
+  const Numeric maxdf = f_grid[nf-1] - f_grid[nf-2]; 
+  if( df > maxdf )
+    {
+      ostringstream os;
+      os << "The value of *df* is too big with respect to spacing of "
+         << "*f_grid*. The maximum\nallowed value of *df* is the spacing "
+         << "between the two last elements of *f_grid*.\n"
+         << "This spacing is   : " <<maxdf/1e3 << " kHz\n"
+         << "The value of df is: " << df/1e3   << " kHz";
+      throw runtime_error(os.str());
+    }
+
+  // Create the new retrieval quantity
+  RetrievalQuantity rq;
+  rq.MainTag( FREQUENCY_MAINTAG );
+  rq.Subtag( FREQUENCY_SUBTAG_1 );
+  rq.Mode( "" );
+  rq.Analytical( 0 );
+  rq.Perturbation( df );
+
+  // Dummy vector of length 1
+  Vector grid(1,0);
+  ArrayOfVector grids(1,grid);
+  rq.Grids(grids);
+
+  // Add it to the *jacobian_quantities*
+  jacobian_quantities.push_back( rq );
+
+  // Add corresponding calculation method to the jacobian agenda
+  jacobian_agenda.append( "jacobianCalcFreqStretch", "" );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianCalcFreqStretch(
+        Matrix&                    jacobian,
+  const Index&                     mblock_index,
+  const Vector&                    iyb,
+  const Vector&                    yb,
+  const Index&                     stokes_dim,
+  const Vector&                    f_grid,
+  const Matrix&                    mblock_dlos_grid,
+  const Sparse&                    sensor_response,
+  const ArrayOfIndex&              sensor_response_pol_grid,
+  const Vector&                    sensor_response_f_grid,
+  const Matrix&                    sensor_response_dlos_grid,
+  const ArrayOfRetrievalQuantity&  jacobian_quantities,
+  const Verbosity& )
+{
+  // The code here is close to identical to the one for Shift. The main
+  // difference is that dy is weighted with poly_order 1 basis function.
+
+  // Set some useful (and needed) variables.  
+  RetrievalQuantity rq;
+  ArrayOfIndex ji;
+
+  // Find the retrieval quantity related to this method.
+  // This works since the combined MainTag and Subtag is individual.
+  bool found = false;
+  for( Index n=0; n<jacobian_quantities.nelem() && !found; n++ )
+    {
+      if( jacobian_quantities[n].MainTag() == FREQUENCY_MAINTAG   && 
+          jacobian_quantities[n].Subtag()  == FREQUENCY_SUBTAG_1 )
+        {
+          bool any_affine;
+          ArrayOfArrayOfIndex jacobian_indices;
+          jac_ranges_indices( jacobian_indices, any_affine,
+                              jacobian_quantities, true );
+          //
+          found = true;
+          rq = jacobian_quantities[n];
+          ji = jacobian_indices[n];
+        }
+    }
+  if( !found )
+    {
+      throw runtime_error(
+                   "There is no such frequency retrieval quantity defined.\n" );
+    }
+
+  // Check that sensor_response is consistent with yb and iyb
+  //
+  if( sensor_response.nrows() != yb.nelem() )
+    throw runtime_error( 
+                       "Mismatch in size between *sensor_response* and *yb*." );
+  if( sensor_response.ncols() != iyb.nelem() )
+    throw runtime_error( 
+                      "Mismatch in size between *sensor_response* and *iyb*." );
+
+  // Get disturbed (part of) y
+  //
+  const Index    n1y = sensor_response.nrows(); 
+        Vector   dy( n1y );
+  {
+    const Index   nf2   = f_grid.nelem();
+    const Index   nlos2 = mblock_dlos_grid.nrows();
+    const Index   niyb  = nf2 * nlos2 * stokes_dim;
+
+    // Interpolation weights
+    //
+    const Index   porder = 3;
+    //
+    ArrayOfGridPosPoly   gp( nf2 );
+                Matrix   itw( nf2, porder+1) ;
+                Vector   fg_new = f_grid, iyb2(niyb);
+    //
+    fg_new += rq.Perturbation();
+    gridpos_poly( gp, f_grid, fg_new, porder, 1.0 );
+    interpweights( itw, gp );
+
+    // Do interpolation
+    for( Index ilos=0; ilos<nlos2; ilos++ )
+      {
+        const Index row0 = ilos * nf2 * stokes_dim;
+            
+        for( Index is=0; is<stokes_dim; is++ )
+          { 
+            interp( iyb2[Range(row0+is,nf2,stokes_dim)], itw, 
+                    iyb[Range(row0+is,nf2,stokes_dim)], gp );
+          }
+      }
+
+    // Determine difference
+    //
+    mult( dy, sensor_response, iyb2 );
+    //
+    for( Index i=0; i<n1y; i++ )
+      { dy[i] = ( dy[i]- yb[i] ) / rq.Perturbation(); }
+
+    // dy above corresponds now to shift. Convert to stretch:
+    //
+    Vector w;
+    polynomial_basis_func( w, sensor_response_f_grid, 1 );
+    //
+    const Index nf     = sensor_response_f_grid.nelem();
+    const Index npol   = sensor_response_pol_grid.nelem();
+    const Index nlos   = sensor_response_dlos_grid.nrows();
+    //
+    for( Index l=0; l<nlos; l++ )
+      {    
+        for( Index f=0; f<nf; f++ )
+          {
+            const Index row1 = (l*nf + f)*npol;
+            for( Index p=0; p<npol; p++ )
+              { dy[row1+p] *= w[f]; }
+          }
+      }
+  }
+
+  //--- Set jacobians ---
+  assert( rq.Grids()[0].nelem() == 1 );
+  const Range rowind = get_rowindex_for_mblock( sensor_response, mblock_index );
+  jacobian( rowind, ji[0] ) = dy;
+}
+
+
+/* Old version that handles variation with sensor_time:
 void jacobianAddFreqStretch(
         Workspace&                 ws _U_,
         ArrayOfRetrievalQuantity&  jacobian_quantities,
@@ -955,9 +1300,6 @@ void jacobianAddFreqStretch(
   jacobian_agenda.append( "jacobianCalcFreqStretch", "" );
 }
 
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcFreqStretch(
         Matrix&                    jacobian,
   const Index&                     mblock_index,
@@ -1105,7 +1447,7 @@ void jacobianCalcFreqStretch(
         }
     }
 }
-
+*/
 
 
 

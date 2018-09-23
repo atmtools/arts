@@ -102,7 +102,6 @@ void run_disort2( Workspace& ws,
               Vector& surface_scalar_reflectivity,
               ConstVectorView scat_za_grid,
               const Index& nstreams,
-              const String& pfct_method,
               const Index& Npfct,
               const Verbosity& verbosity );
 

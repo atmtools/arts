@@ -120,7 +120,7 @@ void DisortCalc(Workspace& ws,
               cloudbox_limits,
               btemp, albedo,
               scat_za_grid, nstreams,
-              pfct_method, Npfct,
+              Npfct,
               verbosity );
   else
     run_disort( ws, doit_i_field,
@@ -210,7 +210,7 @@ void DisortCalcWithARTSSurface(Workspace& ws,
                    cloudbox_limits,
                    btemp, albedo,
                    scat_za_grid, nstreams,
-                   pfct_method, Npfct,
+                   Npfct,
                    verbosity );
   else
       run_disort( ws, doit_i_field,
