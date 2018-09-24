@@ -1,3 +1,32 @@
+2018-09-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1122
+
+	* If you do retrievals inside ARTS, you need to update your
+	control files. x2artsStandard is replaced with x2artsAtmAndSurf.
+	If you retrieve any varaible associated with the sensor, you now
+	also need to call x2artsSensor and to define
+	sensor_response_agenda. You migth also need to adjust call of
+	jacobianAddFreqShift (now uses less input arguments). For further
+	details, see TestOEM.arts.
+
+	* controlfiles/artscomponents/wfuns/TestWfunsHybClear.arts:
+	* controlfiles/artscomponents/wfuns/TestWfuns.arts: Updated call
+	of jacobianAddFreqShift and jacobianAddFreqStretch.
+
+	* controlfiles/artscomponents/oem/TestOEM.arts: Updated to
+	changes made, and now also shows how baseline and frequency switch
+	retrievals are made.
+
+	* src/m_oem.cc (x2artsSensor): Now also handles frequency shift
+	and stretch. To handle this, sensor_response_agenda is now a
+	required input.
+	(x2artsStandard): Removed.
+
+	* src/agendas.cc (define_agenda_data): Changed description and
+	in/out for sensor_response_agenda. It was once intended to be used in
+	another way, now defined to fit retrievals.
+
 2018-09-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1121

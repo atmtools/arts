@@ -19666,45 +19666,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "x2artsStandard" ),
-        DESCRIPTION
-        (
-         "Standard mapping from retrieval state vector to ARTS variables\n"
-         "\n"
-         "Maps OEM's state vector, *x*, to the matching ARTS variables. The\n"
-         "following retrieval quantities are handled:\n"
-         "   Temperature\n"
-         "   Absorption species\n"
-         "   Scattering species\n"
-         "   Pointing\n"
-         "   Polynomial baseline fit\n"
-         "   Sinusoidal baseline fit\n"
-         "\n"
-         "Should only be used inside *inversion_iterate_agenda*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "y_baseline", "vmr_field", "t_field", "particle_bulkprop_field",
-             "sensor_los", "wind_u_field", "wind_v_field", "wind_w_field",
-             "surface_props_data" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "vmr_field", "t_field", "particle_bulkprop_field", "sensor_los",
-            "wind_u_field", "wind_v_field", "wind_w_field", "surface_props_data",
-            "jacobian_quantities", "x", "atmfields_checked", "atmgeom_checked",
-            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species",
-            "cloudbox_on", "cloudbox_checked", "particle_bulkprop_names",
-            "surface_props_names", "sensor_time", "sensor_response",
-            "sensor_response_dlos_grid", "sensor_response_f_grid",
-            "sensor_response_pol_grid", "water_p_eq_agenda" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "x2artsAtmAndSurf" ),
         DESCRIPTION
         (
@@ -19757,23 +19718,37 @@ void define_md_data_raw()
          "\n"
          "The following retrieval quantities are handled by this method:\n"
          "   Pointing\n"
+         "   Frequency shift and stretch\n"
          "   Baseline fits\n"
          "\n"
          "Should only be used inside *inversion_iterate_agenda*.\n"
          "\n"
-         "(Comment on y_baseline and calculation of sensor_response).\n"
+         "Elements in *x* representing pointing corrections are mapped to\n"         
+         "*sensor_los*. Elements representing frequency corrections are mapped\n"
+         "to *f_backend*. Baseline variables are mapped to *y_baseline*.\n"
+         "\n"
+         "The sensor response is recalculated if there is any non-zero frequency\n"
+         "correction.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "sensor_los", "f_backend", "y_baseline" ),
+        OUT( "sensor_los", "f_backend", "y_baseline",
+             "sensor_response", "sensor_response_f", "sensor_response_pol",
+             "sensor_response_dlos", "sensor_response_f_grid",             
+             "sensor_response_pol_grid", "sensor_response_dlos_grid",
+             "mblock_dlos_grid"
+             ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_los", "f_backend", 
-            "jacobian_quantities", "x", "sensor_checked",
-            "sensor_time", "sensor_response", "sensor_response_dlos_grid",
-            "sensor_response_f_grid", "sensor_response_pol_grid"            
+            "sensor_response", "sensor_response_f", "sensor_response_pol",
+            "sensor_response_dlos", "sensor_response_f_grid",             
+            "sensor_response_pol_grid", "sensor_response_dlos_grid",
+            "mblock_dlos_grid",
+            "jacobian_quantities", "x", "sensor_response_agenda",
+            "sensor_checked", "sensor_time"
             ),
-        GIN(),
+        GIN( ),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()

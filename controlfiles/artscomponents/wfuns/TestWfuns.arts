@@ -309,10 +309,8 @@ StringSet( info, "Others: Freqs, Baseline" )
 Print( info, 0 )
 jacobianInit
 
-jacobianAddFreqShift( jacobian_quantities, jacobian_agenda, f_grid, 
-    sensor_pos, sensor_time, 0, 50e3 )
-jacobianAddFreqStretch( jacobian_quantities, jacobian_agenda, f_grid, 
-    sensor_pos, sensor_time, 0, 50e3 )
+jacobianAddFreqShift( df = 50e3 )
+jacobianAddFreqStretch( df = 50e3 )
 
 jacobianAddPolyfit( jacobian_quantities, jacobian_agenda, 
     sensor_response_pol_grid, sensor_response_dlos_grid, sensor_pos, 

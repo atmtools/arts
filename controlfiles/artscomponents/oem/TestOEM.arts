@@ -26,20 +26,55 @@ AtmosphereSet1D
 IndexSet( stokes_dim, 1 )
 
 
-# Frequency and pressure grids
+# Variables to define frequency grid and 
 #
+NumericCreate( f0 )
+NumericCreate( df_start )
+NumericCreate( df_end )
+VectorCreate( fgrid1 )
+VectorCreate( fgrid2 )
+IndexCreate( nf )
+#
+NumericSet( f0, 110.836e9 )
+#
+# Create broad, coarse frequency grid
+NumericSet( df_start, -0.3e9 )
+NumericSet( df_end, 0.3e9 )
+IndexSet( nf, 601 )
+VectorNLinSpace( fgrid1, nf, df_start, df_end )
+#
+# Create a narrow, fine frequency grid
+NumericSet( df_start, -10e6 )
+NumericSet( df_end, 10e6 )
+IndexSet( nf, 401 )
+VectorNLinSpace( fgrid2, nf, df_start, df_end )
+#
+# Create final f_grid
+VectorInsertGridPoints( f_grid, fgrid1, fgrid2 )
+VectorAddScalar( f_grid, f_grid, f0 )
+
+
+# Define spectrometer
+#
+NumericCreate( f_resolution )
 NumericCreate( f_start )
 NumericCreate( f_end )
-IndexCreate( nf )
-VectorCreate( p_ret_grid )
-IndexCreate( np )
 #
-NumericSet( f_start, 110.436e9 )
-NumericSet( f_end, 111.236e9 )
-IndexSet( nf, 801 )
+NumericSet( f_start, -0.28e9 )
+NumericSet( f_end, 0.28e9 )
+NumericSet( f_resolution, 200e3 )
+#
+NumericAdd( f_start, f_start, f0 )
+NumericAdd( f_end, f_end, f0 )
+
+
+# Pressure grid
+#
+IndexCreate( np )
+VectorCreate( p_ret_grid )
+#
 IndexSet( np, 81 )
 #
-VectorNLinSpace( f_grid, nf, f_start, f_end )
 VectorNLogSpace( p_grid,    361, 500e2, 0.1 )
 VectorNLogSpace( p_ret_grid, np, 500e2, 0.1 )
 
@@ -65,8 +100,6 @@ MatrixSetConstant( z_surface, 1, 1, 10e3 )
 #
 VectorSet( lat_true, [10] )
 VectorSet( lon_true, [123] )
-#
-atmfields_checkedCalc
 
 
 # Apply HSE
@@ -74,13 +107,12 @@ atmfields_checkedCalc
 NumericSet( p_hse, 100e2 )
 NumericSet( z_hse_accuracy, 0.5 )
 #
+atmfields_checkedCalc
+#
 z_fieldFromHSE
 
 
-# RT
-#
-NumericSet( ppath_lmax, -1 )
-StringSet( iy_unit, "RJBT" )
+# Sensor pos/los/time
 #
 MatrixSetConstant( sensor_pos, 1, 1, 15e3 )
 MatrixSetConstant( sensor_los, 1, 1, 60 )
@@ -88,30 +120,81 @@ MatrixSetConstant( sensor_los, 1, 1, 60 )
 VectorSetConstant( sensor_time, 1, 0 )
 
 
-# Deactive parts not used and perform all remaining tests
+# True f_backend
+#
+VectorLinSpace( f_backend, f_start, f_end, f_resolution )
+
+
+# Assume a Gaussian channel response
+#
+VectorCreate( fwhm )
+VectorSetConstant( fwhm, 1, f_resolution )
+backend_channel_responseGaussian( fwhm = fwhm )
+
+
+# With a frequency shift retrieval, we must use sensor_response_agenda
+#
+FlagOn( sensor_norm )
+#
+AgendaSet( sensor_response_agenda ){
+  AntennaOff 
+  sensor_responseInit
+  # Among responses we only include a backend
+  sensor_responseBackend
+}
+#
+AgendaExecute( sensor_response_agenda )
+
+
+# RT
+#
+NumericSet( ppath_lmax, -1 )
+StringSet( iy_unit, "RJBT" )
+
+
+# Deactive parts not used (jacobian activated later)
 #
 jacobianOff
 cloudboxOff
-sensorOff
+
+
+# Perform tests
 #
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
+atmfields_checkedCalc
 atmgeom_checkedCalc
+cloudbox_checkedCalc
 sensor_checkedCalc
 
 
-# Covariance matrices covmat_sx, covmat_se and their inverse.
+# Simulate "measurement vector"
 #
-# Define Jacobian
-#
+yCalc
 
 
-retrievalDefInit
+
+#
+# Start on retrieval specific part
+#
+
+# Some vaiables
+#
 VectorCreate(vars)
+SparseCreate(sparse_block)
+MatrixCreate(dense_block)
+
+
+# Start definition of retrieval quantities
+#
+retrievalDefInit
+#
 nelemGet( nelem, p_ret_grid )
+nelemGet( nf, sensor_response_f )
 
 
-
+# Add ozone as retrieval quantity
+#
 retrievalAddAbsSpecies(
     species = "O3",
     unit = "vmr",
@@ -119,63 +202,49 @@ retrievalAddAbsSpecies(
     g2 = lat_grid,
     g3 = lon_grid
 )
+#
+VectorSetConstant( vars, nelem, 1e-12 )
+DiagonalMatrix( sparse_block, vars )
+covmat_sxAddBlock( block = sparse_block )
 
-SparseCreate(sparse_block)
 
-VectorSetConstant(vars, nelem, 1e-12)
-DiagonalMatrix(sparse_block, vars)
-covmat_sxAddBlock(block = sparse_block)
+# Add a frquency shift retrieval
+#
+retrievalAddFreqShift(
+  df = 50e3
+)
+#
+VectorSetConstant( vars, 1, 1e10 )
+DiagonalMatrix( sparse_block, vars )
+covmat_sxAddBlock( block = sparse_block )
 
-VectorSetConstant(vars, nf, 1e-2)
-DiagonalMatrix(sparse_block, vars)
-covmat_seAddBlock(block = sparse_block)
 
-MatrixCreate(dense_block)
-VectorSetConstant(vars, nf, 1e+2)
-DiagonalMatrix(dense_block, vars)
-covmat_seAddInverseBlock(block = dense_block)
+# Add a baseline fit
+#
+retrievalAddPolyfit(
+  poly_order = 0
+)
+#
+VectorSetConstant( vars, 1, 0.5 )
+DiagonalMatrix( sparse_block, vars )
+covmat_sxAddBlock( block = sparse_block )
 
+
+# Define Se and its invers
+#
+VectorSetConstant( vars, nf, 1e-2 )
+DiagonalMatrix( sparse_block, vars )
+covmat_seAddBlock( block = sparse_block )
+#
+VectorSetConstant( vars, nf, 1e+2 )
+DiagonalMatrix( dense_block, vars )
+covmat_seAddInverseBlock( block = dense_block )
+
+
+# End definition of retrieval quantities
+#
 retrievalDefClose
 
-# Simulate "measurement vector"
-#
-cloudbox_checkedCalc
-yCalc
-
-
-
-# Iteration agenda
-#
-AgendaSet( inversion_iterate_agenda ){
-
-  Ignore(inversion_iteration_counter)
-  # Map x to ARTS' variables
-  x2artsStandard
-
-  # To be safe, rerun checks dealing with the atmosphere
-  atmfields_checkedCalc
-  atmgeom_checkedCalc
-
-  # Calculate yf and Jacobian matching x.
-  yCalc( y=yf )
-
-  # Add baseline term
-  VectorAddVector( yf, yf, y_baseline )
-
-  # This method takes cares of some "fixes" that are needed to get the Jacobian
-  # right for iterative solutions. No need to call this WSM for linear inversions.
-  jacobianAdjustAndTransform
-}
-
-
-# Let a priori be off with 1 ppm
-#
-Tensor4AddScalar( vmr_field, vmr_field, 1e-6 )
-
-
-# Create xa
-#
-xaStandard
 
 # x, jacobian and yf must be initialised (or pre-calculated as shown below)
 #
@@ -190,13 +259,67 @@ MatrixSet( jacobian, [] )
 #MatrixSet( jacobian, [] )
 #AgendaExecute( inversion_iterate_agenda )
 
+
+# Iteration agenda
+#
+AgendaSet( inversion_iterate_agenda ){
+
+  Ignore(inversion_iteration_counter)
+    
+  # Map x to ARTS' variables
+  x2artsAtmAndSurf
+  x2artsSensor   # No need to call this WSM if no sensor variables retrieved
+
+  # To be safe, rerun some checks 
+  atmfields_checkedCalc
+  atmgeom_checkedCalc
+
+  # Calculate yf and Jacobian matching x.
+  yCalc( y=yf )
+
+  # Add baseline term (no need to call this WSM if no sensor variables retrieved)
+  VectorAddVector( yf, yf, y_baseline )
+
+  # This method takes cares of some "fixes" that are needed to get the Jacobian
+  # right for iterative solutions. No need to call this WSM for linear inversions.
+  jacobianAdjustAndTransform
+}
+
+
+# Let a priori be off with 0.5 ppm
+#
+Tensor4AddScalar( vmr_field, vmr_field, 0.5e-6 )
+
+
+# Add a baseline
+#
+VectorAddScalar( y, y, 1 )
+
+
+# Introduce a frequency error
+#
+VectorAddScalar( f_backend, f_backend, -150e3 )
+
+
+# Calculate sensor_reponse (this time with assumed f_backend)
+#
+AgendaExecute( sensor_response_agenda )
+
+
+# Create xa
+#
+xaStandard
+
+
 # Run OEM
-OEM(method="gn",
-    max_iter=5,
-    display_progress=1,
-    lm_ga_settings=[10,2,2,100,1,99])
+OEM(          method = "gn",
+            max_iter = 5,
+    display_progress = 1,
+             stop_dx = 0.1,
+      lm_ga_settings = [10,2,2,100,1,99])
 #
 Print( oem_errors, 0 )
+Print( x, 0 )
 
 # Compute averaging kernel matrix
 #
@@ -215,4 +338,6 @@ covmat_soCalc
 retrievalErrorsExtract
 
 
+#WriteXML( "ascii", f_backend, "f.xml" )
+#WriteXML( "ascii", y, "y.xml" )
 }

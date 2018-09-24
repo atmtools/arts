@@ -657,14 +657,15 @@ void define_agenda_data()
      ( NAME( "sensor_response_agenda" ),
        DESCRIPTION
        (
-        "The sensor response data for present measurement block.\n"
+        "This agenda shall provide *sensor_response* and associated variables.\n"
         "\n"
-        "This agenda shall provide *sensor_response* and associated variables\n"
-        "for the present measurement block (*mblock_index*).\n"
+        "So far only required when doing inversions involving some sensor variables.\n"
         ),
-       OUTPUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
-               "sensor_response_dlos" ),
-       INPUT(  "mblock_index" )));
+       OUTPUT( "sensor_response", "sensor_response_f", "sensor_response_f_grid",
+               "sensor_response_pol", "sensor_response_pol_grid", 
+               "sensor_response_dlos", "sensor_response_dlos_grid",
+               "mblock_dlos_grid" ),
+       INPUT(  "f_backend" )));
 
  agenda_data.push_back
     (AgRecord
