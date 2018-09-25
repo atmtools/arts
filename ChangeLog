@@ -1,3 +1,12 @@
+2018-09-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1123
+
+	* controlfiles/artscomponents/nlte/testRotationalConvergence.arts:
+
+	Fix names water_psat* -> water_p_eq*. Fixes failing test reported by
+	Patrick and Karina McCusker.
+
 2018-09-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1122

@@ -4,7 +4,7 @@ Arts2{
 
     AgendaSet(iy_main_agenda) { ppathCalc iyEmissionStandard }
 
-    AgendaSet(water_psat_agenda) { water_psat_fieldMK05 }
+    AgendaSet(water_p_eq_agenda) { water_p_eq_fieldMK05 }
 
     AgendaSet(iy_surface_agenda) { SurfaceDummy iySurfaceRtpropAgenda }
 
