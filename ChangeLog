@@ -1,3 +1,16 @@
+2018-09-27  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1124
+
+	* src/xml_io_compound_types.cc:
+
+	Fix checks for temperature fit input data of XsecRecord. Bug reported
+	by Hanna Dunke.
+
+	* src/species_data.cc, src/partition_function_data.cc:
+
+	Add CFC113.
+
 2018-09-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1123

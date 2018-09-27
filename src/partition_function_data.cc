@@ -932,6 +932,7 @@ iso(it_isotopologue,  "26" ,  Qcoeff(   -76.2339,  6.95356,  1.30510e-07,  -1.17
       "HFC143a",
       "CHF3",
       "HFC32",
+      "CFC113",
   })
   {
     next_species(it_species, it_isotopologue, s);

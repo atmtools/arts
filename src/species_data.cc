@@ -1240,6 +1240,7 @@ void define_basic_species_data()
       "HFC143a",
       "CHF3",
       "HFC32",
+      "CFC113",
   })
   {
       species_data.push_back

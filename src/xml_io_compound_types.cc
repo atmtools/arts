@@ -2263,30 +2263,44 @@ void xml_read_from_stream(istream& is_xml,
     xml_read_from_stream(is_xml, xd.mxsecs, pbifs, verbosity);
 
     xml_read_from_stream(is_xml, xd.mtslope, pbifs, verbosity);
-    if (xd.mtslope.nelem() <= 1)
-    {
-        out2 << "  Warning: No temperature fit available for "
-             << species_name<< "\n";
-    }
-    else if (xd.mtslope.nelem() != xd.mxsecs.nelem())
-    {
-        std::ostringstream os;
-        os << "  Bugged input data for " << species_name << ". "
-           << "Length of cross sections (" << xd.mxsecs.nelem()
-           << ") does not match length of temperature fit data ("
-           << xd.mtslope.nelem() << ").";
-        throw std::runtime_error(os.str());
-    }
-
     xml_read_from_stream(is_xml, xd.mtintersect, pbifs, verbosity);
-    if (xd.mtslope.nelem() != xd.mtintersect.nelem())
+    if (xd.mtslope.nelem() != xd.mxsecs.nelem()
+        || xd.mtintersect.nelem() != xd.mxsecs.nelem())
     {
         std::ostringstream os;
         os << "  Bugged input data for " << species_name << ". "
-           << "Length of temperature fit slope data (" << xd.mtslope.nelem()
-           << ") does not match length of temperature fit intersect data ("
-           << xd.mtintersect.nelem() << ").";
+           << "Number of bands mismatch.\n"
+           << "Cross sections:      " << xd.mxsecs.nelem() << "\n"
+           << "Tfit slope data:     " << xd.mtslope.nelem() << "\n"
+           << "Tfit intersect data: " << xd.mtintersect.nelem() << "\n";
         throw std::runtime_error(os.str());
+    }
+    for (Index i=0; i < xd.mxsecs.nelem(); i++)
+    {
+        if (xd.mtslope[i].nelem() <= 1)
+        {
+            out2 << "  Warning: No temperature fit available for "
+                 << species_name << " band " << i << "\n";
+        }
+        else if (xd.mtslope[i].nelem() != xd.mxsecs[i].nelem())
+        {
+            std::ostringstream os;
+            os << "  Bugged input data for " << species_name << ". "
+               << "Length of cross sections (" << xd.mxsecs[i].nelem()
+               << ") does not match length of temperature fit data ("
+               << xd.mtslope[i].nelem() << ").";
+            throw std::runtime_error(os.str());
+        }
+
+        if (xd.mtslope[i].nelem() != xd.mtintersect[i].nelem())
+        {
+            std::ostringstream os;
+            os << "  Bugged input data for " << species_name << ". "
+               << "Length of temperature fit slope data (" << xd.mtslope[i].nelem()
+               << ") does not match length of temperature fit intersect data ("
+               << xd.mtintersect[i].nelem() << ") for band " << i << ".";
+            throw std::runtime_error(os.str());
+        }
     }
     tag.read_from_stream(is_xml);
 
