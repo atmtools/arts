@@ -33,8 +33,7 @@
 #include "array.h"
 #include "matpackI.h"
 #include "quantum.h"
-#include "linemixingdata.h"
-#include "pressurebroadeningdata.h"
+#include "linefunctiondata.h"
 #include "zeemandata.h"
 
 /* Forward declaration of classes */
@@ -253,7 +252,7 @@ public:
       are initialized to large numbers, so that we at least get range
       errors when we try to used un-initialized data. */
   LineRecord()
-    : mversion (3),
+    : mversion (5),
       mqid(QuantumIdentifier::TRANSITION, 1000000, 1000000),
       mf       (0.     ),
       mi0      (0.     ),
@@ -270,7 +269,6 @@ public:
       mgupper( NAN ),
       mglower( NAN ),
       mquantum_numbers_str(""),
-      mpressurebroadeningdata(),
       mzeemandata(),
       mcutoff(-1.0),
       mspeedup_counter(-1),
@@ -305,7 +303,7 @@ public:
               Numeric               /* dnair */,
               Numeric               /* dnself */,
               Numeric               /* dpsf */)
-    : mversion (3),
+    : mversion (5),
       mqid(QuantumIdentifier::TRANSITION, species, isotopologue),
       mf       (f          ),
       mi0      (i0         ),
@@ -331,7 +329,7 @@ public:
       mlineshape(LineShapeType::ByPressureBroadeningData),
       mpopulation(LinePopulationType::ByLTE)
   {
-    mpressurebroadeningdata.SetAirBroadeningFromCatalog( sgam,nself,agam,nair,psf,NAN,NAN,NAN,NAN,NAN);
+    mlinefunctiondata = LineFunctionData(sgam, nself, agam, nair, psf);
   }
 
   /** Return the version String. */
@@ -339,6 +337,7 @@ public:
   
   /** Return the version number. */
   Index Version() const { return mversion; }
+  void SetVersion5() {mversion=5;}
   
   /* Set to latest compatible version of the catalog to store all data */
   void SetVersionToLatest() {mversion=5;}
@@ -388,7 +387,7 @@ public:
   void setF( Numeric new_mf ) { mf = new_mf; }
 
   /** The pressure shift parameter in <b> Hz/Pa</b>. */
-  Numeric Psf() const   { return mpressurebroadeningdata.AirBroadeningPsf(); }
+  Numeric Psf() const   { return mlinefunctiondata.AirD0(); }
 
   /** The line intensity in <b> m^2*Hz</b> at the reference temperature \c Ti0. 
 
@@ -427,16 +426,16 @@ public:
   void SetNLTEUpperIndex(Index nlte_upper_index) {mnlte_upper_index = nlte_upper_index;}
   
   /** Air broadened width in <b> Hz/Pa</b>: */
-  Numeric Agam() const  { return mpressurebroadeningdata.AirBroadeningAgam(); }
+  Numeric Agam() const  { return mlinefunctiondata.AirG0(); }
 
   /** Self broadened width in <b> Hz/Pa</b>: */
-  Numeric Sgam() const  { return mpressurebroadeningdata.Sgam(); }
+  Numeric Sgam() const  { return mlinefunctiondata.SelfG0(); }
 
   /** AGAM temperature exponent (dimensionless): */
-  Numeric Nair() const  { return mpressurebroadeningdata.AirBroadeningNair(); }
+  Numeric Nair() const  { return mlinefunctiondata.AirN(); }
 
   /** SGAM temperature exponent (dimensionless): */
-  Numeric Nself() const { return mpressurebroadeningdata.Nself(); }
+  Numeric Nself() const { return mlinefunctiondata.SelfN(); }
 
   /** Number of auxiliary parameters. This function is actually
       redundant, since the number of auxiliary parameters can also be
@@ -447,7 +446,6 @@ public:
 
   /** Auxiliary parameters. */
   const ArrayOfNumeric& Aux() const { return maux; }
-  //
 
   /** Accuracy for line position in <b> Hz </b>: */
   Numeric dF() const  { return mdf; }
@@ -456,19 +454,19 @@ public:
   Numeric dI0() const  { return mdi0; }
 
  /** Accuracy for air broadened width in <b> relative value </b>: */
-  Numeric dAgam() const  { return mpressurebroadeningdata.AirBroadeningDAgam(); }
+  Numeric dAgam() const  { return mlinefunctiondata.dAirG0(); }
 
   /** Accuracy for self broadened width in <b> relative value </b>: */
-  Numeric dSgam() const  { return mpressurebroadeningdata.dSgam(); }
+  Numeric dSgam() const  { return mlinefunctiondata.dSelfG0(); }
 
   /** Accuracy for AGAM temperature exponent in <b> relative value </b>: */
-  Numeric dNair() const  { return mpressurebroadeningdata.AirBroadeningDNair(); }
+  Numeric dNair() const  { return mlinefunctiondata.dAirN(); }
 
   /** Accuracy for SGAM temperature exponent in <b> relative value</b>: */
-  Numeric dNself() const { return mpressurebroadeningdata.dNself(); }
+  Numeric dNself() const { return mlinefunctiondata.dSelfN(); }
 
   /** Accuracy for pressure shift in <b> relative value </b>: */
-  Numeric dPsf() const { return mpressurebroadeningdata.AirBroadeningDPsf(); }
+  Numeric dPsf() const { return mlinefunctiondata.dAirD0(); }
 
   /** ARTSCAT-4/5 Einstein A-coefficient in <b> 1/s </b>: */
   Numeric A() const { return ma; }
@@ -480,23 +478,15 @@ public:
   Numeric G_lower() const { return mglower; }
   
   /** ARTSCAT-4/5 foreign broadening parameters in <b> Hz/Pa </b>: */
-  Numeric Gamma_foreign(const Index i) const { return mpressurebroadeningdata.PlanetaryGammaForeign(i); }
-
-    /** ARTSCAT-4/5 foreign broadening parameters in <b> Hz/Pa </b>: */
-    const Vector Gamma_foreign() const { return mpressurebroadeningdata.PlanetaryGammaForeign(); }
-    
-   /** ARTSCAT-4/5 foreign temperature exponents (dimensionless): */
-   Numeric N_foreign(const Index i) const { return mpressurebroadeningdata.PlanetaryNForeign(i); }
-    
-    /** ARTSCAT-4/5 foreign temperature exponents (dimensionless): */
-    const Vector N_foreign() const { return mpressurebroadeningdata.PlanetaryNForeign(); }
-    
-   /** ARTSCAT-4/5 pressure shift parameters in <b> Hz/Pa </b>: */
-   Numeric Delta_foreign(const Index i) const { return mpressurebroadeningdata.PlanetaryDeltaForeign(i); }
-    
-    /** ARTSCAT-4/5 pressure shift parameters in <b> Hz/Pa </b>: */
-    const Vector Delta_foreign() const { return mpressurebroadeningdata.PlanetaryDeltaForeign(); }
-
+  const Vector Gamma_foreign() const { return mlinefunctiondata.PlanetaryForeignG0(); }
+  const Vector N_foreign() const { return mlinefunctiondata.PlanetaryForeignN(); }
+  const Vector Delta_foreign() const { return mlinefunctiondata.PlanetaryForeignD0(); }
+  
+  /** ARTSCAT-4/5 foreign broadening parameters */
+  Numeric Gamma_foreign(const Index i) const { return Gamma_foreign()[i]; }
+  Numeric N_foreign(const Index i) const { return N_foreign()[i]; }
+  Numeric Delta_foreign(const Index i) const { return Delta_foreign()[i]; }
+  
   /** Upper state global quanta */
   const String& Upper_GQuanta() const { return mupper_gquanta; }
 
@@ -525,143 +515,88 @@ public:
   const QuantumNumbers& LowerQuantumNumbers() const {return mqid.LowerQuantumNumbers();}
   const QuantumNumbers& UpperQuantumNumbers() const {return mqid.UpperQuantumNumbers();}
   
-  /** Line Mixing data */
-  LineMixingData GetLineMixingDataCopy() const { return mlinemixingdata; }  // Never make reference to this
-  void SetLineMixingData(const LineMixingData& input) { mlinemixingdata=input; }
-   
-  /** Pressure Broadening Data */
-  PressureBroadeningData GetPressureBroadeningDataCopy() const { return mpressurebroadeningdata; }  // Never make reference to this
-  void SetPressureBroadeningData(const PressureBroadeningData& input) { mpressurebroadeningdata=input; }
-
-  void SetPressureBroadeningParameters(Numeric& G0, Numeric& G2, Numeric& e, Numeric& L0, Numeric& L2, Numeric& FVC,
-                                       const Numeric& T, const Numeric& P, const Index this_species, const Index h2o_index,
-                                       const ArrayOfIndex& broad_spec_locations, ConstVectorView vmrs) const {
-    mpressurebroadeningdata.GetPressureBroadeningParams(G0, G2, e, L0, L2, FVC, T, mti0, P, P*vmrs[this_species], 
-                                                        this_species, h2o_index, broad_spec_locations, vmrs);
+  void SetLineMixingParameters(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& T, const Numeric& P, const Index this_species,
+                               const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const {
+    std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
+    X = mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species);
+    Y = std::get<Index(LineFunctionData::TuplePos::Y)>(X);
+    G = std::get<Index(LineFunctionData::TuplePos::G)>(X);
+    DV = std::get<Index(LineFunctionData::TuplePos::DV)>(X);
   }
 
-  void SetPressureBroadeningParametersTemperatureDerivative(Numeric& dG0, Numeric& dG2, Numeric& de, Numeric& dL0, Numeric& dL2, Numeric& dFVC,
-                                                            const Numeric& T, const Numeric& P, const Index this_species, const Index h2o_index,
-                                                            const ArrayOfIndex& broad_spec_locations, ConstVectorView vmrs) const {
-    mpressurebroadeningdata.GetPressureBroadeningParams_dT(dG0, dG2, de, dL0, dL2, dFVC, T, mti0, P, P*vmrs[this_species], 
-                                                           this_species, h2o_index, broad_spec_locations, vmrs);
+  void SetPressureBroadeningParameters(Numeric& G0, Numeric& G2, Numeric& e, Numeric& D0, Numeric& D2, Numeric& FVC,
+                                       const Numeric& T, const Numeric& P, const Index this_species,
+                                       const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const {
+    std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
+    X = mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species);
+    G0 = std::get<Index(LineFunctionData::TuplePos::G0)>(X);
+    D0 = std::get<Index(LineFunctionData::TuplePos::D0)>(X);
+    G2 = std::get<Index(LineFunctionData::TuplePos::G2)>(X);
+    D2 = std::get<Index(LineFunctionData::TuplePos::D2)>(X);
+    FVC = std::get<Index(LineFunctionData::TuplePos::FVC)>(X);
+    e = std::get<Index(LineFunctionData::TuplePos::ETA)>(X);
+  }
+
+  void SetPressureBroadeningParametersTemperatureDerivative(Numeric& dG0, Numeric& dG2, Numeric& de, Numeric& dD0, Numeric& dD2, Numeric& dFVC,
+                                                            const Numeric& T, const Numeric& dT, const Numeric& P, 
+                                                            const Index this_species, const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const {
+    std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
+    X = mlinefunctiondata.GetTemperatureDerivs(mti0, T, dT, P, vmrs[this_species], vmrs, abs_species);
+    dG0 = std::get<Index(LineFunctionData::TuplePos::G0)>(X);
+    dD0 = std::get<Index(LineFunctionData::TuplePos::D0)>(X);
+    dG2 = std::get<Index(LineFunctionData::TuplePos::G2)>(X);
+    dD2 = std::get<Index(LineFunctionData::TuplePos::D2)>(X);
+    dFVC = std::get<Index(LineFunctionData::TuplePos::FVC)>(X);
+    de = std::get<Index(LineFunctionData::TuplePos::ETA)>(X);
   }
   
-  void SetLineMixing2SecondOrderData(ConstVectorView d) {
-    mlinemixingdata.Set2ndOrderType();
-    mlinemixingdata.Vector2SecondOrderData(d);
+  void SetLineMixing2SecondOrderData(ConstVectorView d) { mlinefunctiondata.ChangeLineMixingfromSimpleLM2(d); }
+  
+  LineFunctionData GetLineFunctionData() const {return mlinefunctiondata;}
+  void SetLineFunctionData(const LineFunctionData& lfd) {mlinefunctiondata=lfd;}
+  void SetLineFunctionDataVariable(const Numeric& X, const String& spec, const String& var, const String& coeff) { mlinefunctiondata.Set(X, spec, coeff, var); }
+  Numeric GetLineFunctionDataVariable(const String& spec, const String& var, const String& coeff) const { return mlinefunctiondata.Get(spec, coeff, var); }  
+  void SetSpecial() {mlinefunctiondata.SetStandard(false);}
+  void SetStandard() {mlinefunctiondata.SetStandard(true);}
+  LineFunctionData::LineShapeType LineFunctionDataLineShapeType() const { return mlinefunctiondata.LineShape(); }
+  LineFunctionData::LineMixingOrderType LineFunctionDataLineMixingType() const { return mlinefunctiondata.LineMixing(); }
+  bool LineMixingNoneType() const {return LineFunctionDataLineMixingType() == LineFunctionData::LineMixingOrderType::None;}
+  bool LineMixingByBand() const {return not mlinefunctiondata.DoStandardCalcs();}
+  bool LineFunctionDataHasAir() const { if(mlinefunctiondata.AirBroadening()) return true; else return false; }
+  
+  void SetAirPressureBroadening(Numeric& G0, Numeric& D0, const Numeric& T, const Numeric& P, const Numeric& self_vmr) const {
+    std::tuple<Numeric, Numeric> X = mlinefunctiondata.AirBroadening(mti0/T, P, self_vmr);
+    G0 = std::get<Index(LineFunctionData::TuplePos::G0)>(X);
+    D0 = std::get<Index(LineFunctionData::TuplePos::D0)>(X);
+  }
+  Numeric PressureBroadeningAirBroadeningNair() const { return mlinefunctiondata.AirN(); }
+  Numeric PressureBroadeningAirBroadeningPsf( ) const { return mlinefunctiondata.AirD0(); }
+  Numeric PressureBroadeningAirBroadeningAgam() const { return mlinefunctiondata.AirG0(); }
+
+  Vector GetInternalDerivatives(const Numeric& T, const Numeric& P, const Index this_species,
+                                const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species, 
+                                const ArrayOfRetrievalQuantity& derivatives_data, const ArrayOfIndex& derivatives_data_pos) const
+  {
+    return mlinefunctiondata.GetInternalDerivatives(mti0, T, P, vmrs[this_species], vmrs, abs_species, derivatives_data, derivatives_data_pos, mqid);
   }
   
-  PressureBroadeningData::PB_Type PressureBroadeningType() const { return mpressurebroadeningdata.Type(); }
   
-  String PressureBroadeningTypeString() const { return mpressurebroadeningdata.Type2StorageTag(); }
-  
-  LineMixingData::LM_Type LineMixingType() const { return mlinemixingdata.Type(); }
-  
-  String LineMixingTypeString() const { return mlinemixingdata.Type2StorageTag(); }
-  
-  Vector PressureBroadeningDataVector() const { Vector data; mpressurebroadeningdata.GetVectorFromData(data); return data; }
-  
-  Vector LineMixingDataVector() const { Vector data; mlinemixingdata.GetVectorFromData(data); return data; }
-  
-  bool PressureBroadeningNoneType() const {return mpressurebroadeningdata.Type() == PressureBroadeningData::PB_NONE;}
-  
-  bool PressureBroadeningAirType() const {return mpressurebroadeningdata.Type() == PressureBroadeningData::PB_AIR_BROADENING;}
-  
-  bool LineMixingNoneType() const {return mlinemixingdata.Type() == LineMixingData::LM_NONE;}
-  
-  bool LineMixingByBand() const {return mlinemixingdata.Type() == LineMixingData::LM_BYBAND;}
-  
-  bool LineMixingNonResonant() const {return mlinemixingdata.Type() == LineMixingData::LM_LBLRTM_O2NonResonant;}
-  
-  void SetLineMixingParameters(Numeric& Y, Numeric& G, Numeric& DV, const Numeric&  T, const Numeric& P, const Numeric& P_limit) const {
-    mlinemixingdata.GetLineMixingParams(Y, G, DV, T, P, P_limit, 1);
+  /*! Method to compute the line mixing and pressure broadening parameters */
+  std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
+  GetShapeParams(const Numeric& T, const Numeric& P, const Index this_species,
+                 const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const
+  {
+    return mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species);
   }
   
-  void SetAirPressureBroadening(Numeric& G0, Numeric& L0, const Numeric& T, const Numeric& P, const Numeric& self_vmr) const {
-    mpressurebroadeningdata.GetAirBroadening(G0, L0, mti0/T, P, self_vmr);
-  }
   
-  Numeric PressureBroadeningAirBroadeningNair() const { return mpressurebroadeningdata.AirBroadeningNair(); }
-  Numeric PressureBroadeningAirBroadeningPsf( ) const { return mpressurebroadeningdata.AirBroadeningPsf( ); }
-  Numeric PressureBroadeningAirBroadeningAgam() const { return mpressurebroadeningdata.AirBroadeningAgam(); }
-  Numeric PressureBroadeningSelfGammaDerivative(const Numeric& T, const Numeric& P_partial) const {
-    Numeric g;
-    mpressurebroadeningdata.GetPressureBroadeningParams_dSelfGamma(g, mti0/T, P_partial);
-    return g;
-  }
-  Numeric PressureBroadeningForeignGammaDerivative(const Numeric& T, const Numeric& P, const Index this_species, const Index h2o_index, ConstVectorView vmrs) const {
-    Numeric g;
-    mpressurebroadeningdata.GetPressureBroadeningParams_dForeignGamma(g, mti0/T, P, P*vmrs[this_species], this_species, h2o_index, vmrs);
-    return g;
-  }
-  Numeric PressureBroadeningWaterGammaDerivative(const Numeric& T, const Numeric& P, const Index this_species, const Index h2o_index, ConstVectorView vmrs) const {
-    Numeric g;
-    mpressurebroadeningdata.GetPressureBroadeningParams_dWaterGamma(g, mti0/T, P, this_species, h2o_index, vmrs);
-    return g;
-  }
-  std::tuple<Numeric, Numeric> PressureBroadeningSelfExponentDerivatives(const Numeric& T, const Numeric& P_partial) const {
-    Numeric a, b;
-    mpressurebroadeningdata.GetPressureBroadeningParams_dSelfExponent(a, b, mti0/T, P_partial);
-    return std::make_tuple(a, b);
-  }
-  std::tuple<Numeric, Numeric> PressureBroadeningForeignExponentDerivatives(const Numeric& T, const Numeric& P, const Index this_species, const Index h2o_index, ConstVectorView vmrs) const {
-    Numeric a, b;
-    mpressurebroadeningdata.GetPressureBroadeningParams_dForeignExponent(a, b, mti0/T, P, P*vmrs[this_species], this_species, h2o_index, vmrs);
-    return std::make_tuple(a, b);
-  }
-  std::tuple<Numeric, Numeric> PressureBroadeningWaterExponentDerivatives(const Numeric& T, const Numeric& P, const Index this_species, const Index h2o_index, ConstVectorView vmrs) const {
-    Numeric a, b;
-    mpressurebroadeningdata.GetPressureBroadeningParams_dWaterExponent(a, b, mti0/T, P, this_species, h2o_index, vmrs);
-    return std::make_tuple(a, b);
-  }
-  Numeric PressureBroadeningSelfPsfDerivative(const Numeric& T, const Numeric& P_partial) const {
-    Numeric g;
-    mpressurebroadeningdata.GetPressureBroadeningParams_dSelfPsf(g, mti0/T, P_partial);
-    return g;
-  }
-  Numeric PressureBroadeningForeignPsfDerivative(const Numeric& T, const Numeric& P, const Index this_species, const Index h2o_index, ConstVectorView vmrs) const {
-    Numeric g;
-    mpressurebroadeningdata.GetPressureBroadeningParams_dForeignPsf(g, mti0/T, P, P*vmrs[this_species], this_species, h2o_index, vmrs);
-    return g;
-  }
-  Numeric PressureBroadeningWaterPsfDerivative(const Numeric& T, const Numeric& P, const Index this_species, const Index h2o_index, ConstVectorView vmrs) const {
-    Numeric g;
-    mpressurebroadeningdata.GetPressureBroadeningParams_dWaterPsf(g, mti0/T, P, this_species, h2o_index, vmrs);
-    return g;
-  }
-  
-  std::tuple<Numeric, Numeric, Numeric> LineMixingZerothOrderDerivative(const Numeric& T, const Numeric& P, const Numeric& P_limit) const {
-    Numeric a, b, c;
-    mlinemixingdata.GetLineMixingParams_dZerothOrder(a,b,c, T, P, P_limit);
-    return std::make_tuple(a, b, c);
-  }
-  std::tuple<Numeric, Numeric, Numeric> LineMixingFirstOrderDerivative(const Numeric& T, const Numeric& P, const Numeric& P_limit) const {
-    Numeric a, b, c;
-    mlinemixingdata.GetLineMixingParams_dFirstOrder(a,b,c, T, P, P_limit);
-    return std::make_tuple(a, b, c);
-  }
-  std::tuple<Numeric, Numeric, Numeric> LineMixingExponentDerivative(const Numeric& T, const Numeric& P, const Numeric& P_limit) const {
-    Numeric a, b, c;
-    mlinemixingdata.GetLineMixingParams_dExponent(a,b,c, T, P, P_limit);
-    return std::make_tuple(a, b, c);
-  }
-  
-  void SetLineMixingParametersTemperatureDerivative(Numeric& dY, Numeric& dG, Numeric& dDV, const Numeric& T,
-                                                    const Numeric& dT, const Numeric& P, const Numeric& P_limit) const {
-    mlinemixingdata.GetLineMixingParams_dT(dY, dG, dDV, T, dT, P, P_limit, 1);
-  }
-  
-  void SetInternalLineMixingDerivatives(ComplexVector& d, const ArrayOfRetrievalQuantity& derivatives_data,
-                                        const Numeric& T, const Numeric& P, const Numeric& P_limit) const {
-    mlinemixingdata.SetInternalDerivatives(d, derivatives_data, mqid, T, P, P_limit);
-  }
-  
-  void SetInternalPressureBroadeningDerivatives(ComplexVector& d, const ArrayOfRetrievalQuantity& derivatives_data,
-                                                const Numeric& T, const Numeric& P, const Index this_species,
-                                                const Index water_species, ConstVectorView vmrs) const {
-    mpressurebroadeningdata.SetInternalDerivatives(d, derivatives_data, mqid, mti0/T, P, P*vmrs[this_species], 
-                                                   this_species, water_species, vmrs);
+  /*! Method to compute the temperature derivatives of line mixing and pressure broadening parameters */
+  std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
+  GetShapeParams_dT(const Numeric& T, const Numeric& dT, const Numeric& P,
+                    const Index this_species, const ConstVectorView vmrs,
+                    const ArrayOfArrayOfSpeciesTag& abs_species) const
+  {
+    return mlinefunctiondata.GetTemperatureDerivs(mti0, T, dT, P, vmrs[this_species], vmrs, abs_species);
   }
   
   /** Pressure Broadening Data */
@@ -692,102 +627,18 @@ public:
   Index GetLineNormalizationTypeIndex() const {return (Index) mlinenorm;}
   
   /** Line shape type*/
-  const LineShapeType& GetLineShapeType() const {return mlineshape;}
-  void SetLineShapeType(const LineShapeType in) {mlineshape = in;}
-  void SetLineShapeTypeFromIndex(const Index in);
-  Index GetLineShapeTypeIndex() const {return (Index) mlineshape;}
+  const LineShapeType& GetExternalLineShapeType() const {return mlineshape;}
+  void SetExternalLineShapeType(const LineShapeType in) {mlineshape = in;}
+  void SetExternalLineShapeTypeFromIndex(const Index in);
+  Index GetExternalLineShapeTypeIndex() const {return (Index) mlineshape;}
+  
+  LineFunctionData::LineShapeType GetInternalLineShapeType() const {return mlinefunctiondata.LineShape(); }
   
   /** Line population type*/
   const LinePopulationType& GetLinePopulationType() const {return mpopulation;}
   void SetLinePopulationType(const LinePopulationType in) {mpopulation = in;}
   void SetLinePopulationTypeFromIndex(const Index in);
   Index GetLinePopulationTypeIndex() const {return (Index) mpopulation;}
-        
-
-  /** Indices of different broadening species in Gamma_foreign, 
-   N_foreign, and Delta_foreign. */
-  enum {
-    BROAD_SPEC_POS_N2,
-    BROAD_SPEC_POS_O2,
-    BROAD_SPEC_POS_H2O,
-    BROAD_SPEC_POS_CO2,
-    BROAD_SPEC_POS_H2,
-    BROAD_SPEC_POS_He
-  };
-
-  /** Return the number of artscat-4 foreign broadening species (6). This just
-      so that we do not have to hardwire the number elsewhere. */
-  static Index NBroadSpec()  {return 6;}
-    
-  /** Return the name of an artscat-4 broadening species, as function of its
-   broadening species index. Meant to be called with the enum constants 
-   defined in this class. */
-  static String BroadSpecName(const Index i)  {
-    switch (i) {
-      case BROAD_SPEC_POS_N2:
-        return "N2";
-        break;
-      case BROAD_SPEC_POS_O2:
-        return "O2";
-        break;
-      case BROAD_SPEC_POS_H2O:
-        return "H2O";
-        break;
-      case BROAD_SPEC_POS_CO2:
-        return "CO2";
-        break;
-      case BROAD_SPEC_POS_H2:
-        return "H2";
-        break;
-      case BROAD_SPEC_POS_He:
-        return "He";
-        break;
-      default:
-        assert(false);   // We should never end up here.
-        return "";
-        break;
-    }
-  }
-  
-  /** Return the internal species index (index in species_data) of an 
-   artscat-4 broadening species,
-   as function of its broadening spcecies index. Meant to be called with the 
-   enum constants defined in this class. */
-  static Index BroadSpecSpecIndex(const Index i);
-
-  /** Converts line parameters from ARTSCAT-3 to ARTSCAT-4 format.
-     
-     ARTSCAT-4 lines contain more information than ARTSCAT-3 lines,
-     particularly they contain separate broadening parameters for six
-     different broadening species. So a real conversion is not
-     possible. What this method does is copy the air broadening (and shift)
-     parameters from ARTSCAT-3 to all ARTSCAT-4 broadening species. The
-     case that one of the broadening species is identical to the Self
-     species is also handled correctly.
-     
-     The idea is that the ARTSCAT-4 line list generated in this way should
-     give identical RT simulation results as the original ARTSCAT-3
-     list. This is verified in one of the test controlfiles.
-     
-     Currently only broadening and shift parameters are handled here. There
-     are some other additional fields in ARTSCAT-4, which we so far ignore.
-   */
-  void ARTSCAT4FromARTSCAT3();
-
-  // Convert to ARTSCAT 5.  This is presently (2018-01-11) the standard internal format
-  void ARTSCAT5FromARTSCAT3();
-  void ARTSCAT5FromARTSCAT4();
-
- /** Set to NaN all parameters that are not in ARTSCAT-4. */
-  void ARTSCAT4UnusedToNaN() {
-      
-      // Resize aux array to 0, not used in ARTSCAT-4:
-      maux.resize(0);
-      
-      // Set other parameters to NAN:
-      mdf      = NAN;
-      mdi0     = NAN;
-    }
   
   /** Read one line from a stream associated with a HITRAN 1986-2001 file. The
     HITRAN format is as follows (directly from the HITRAN documentation):
@@ -1185,11 +1036,8 @@ private:
   /** String with quantum numbers for ARTSCAT-4 */
   String mquantum_numbers_str;  // NOTE: Not stored in binary data
   
-  /** Line Mixing Data */
-  LineMixingData mlinemixingdata;
-  
-  /** Pressure Broadening Data */
-  PressureBroadeningData mpressurebroadeningdata;
+  /** Line function data (pressure broadening and line mixing) */
+  LineFunctionData mlinefunctiondata;
   
   /** Zeeman effect data class */
   ZeemanEffectData mzeemandata;

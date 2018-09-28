@@ -64,91 +64,6 @@ const IsotopologueRecord& LineRecord::IsotopologueData() const {
 }
 
 
-Index LineRecord::BroadSpecSpecIndex(const Index i)  {
-    // No need for asserts of i here, since the default clause in
-    // BroadSpecName catches everything.
-    return species_index_from_species_name(BroadSpecName(i));
-}
-
-
-void LineRecord::ARTSCAT4FromARTSCAT3() {
-
-    // Skip this line if it is already ARTSCAT-4
-    if ( this->Version() == 4 ) return;
-
-    // Check that this line really is ARTSCAT-3
-    if ( this->Version() != 3 )
-    {
-        ostringstream os;
-        os << "This line is not ARTSCAT-3, it is ARTSCAT-" << this->Version();
-        throw std::runtime_error(os.str());
-    }
-
-    // Set version to 4:
-    mversion = 4;
-
-    const Index nbs = NBroadSpec();
-
-    Vector gamma_foreign(nbs),n_foreign(nbs),delta_foreign(nbs);
-    
-    // Resize foreign parameter arrays:
-    //mgamma_foreign.resize(nbs);
-    //mn_foreign.resize(nbs);
-    //mdelta_foreign.resize(nbs);
-
-    // Loop over broadening species:
-    for (Index i=0; i<nbs; ++i) {
-
-        // Find out if this broadening species is identical to the line species:
-        if (this->Species() == BroadSpecSpecIndex(i)) {
-            // We have to copy the self parameters here.
-            gamma_foreign[i] = mpressurebroadeningdata.Sgam();
-            n_foreign[i] =     mpressurebroadeningdata.AirBroadeningNair();
-            delta_foreign[i] = 0;
-        } else {
-            // We have to copy the foreign parameters here.
-            gamma_foreign[i] = mpressurebroadeningdata.AirBroadeningAgam();
-            n_foreign[i] =     mpressurebroadeningdata.AirBroadeningNair();
-            delta_foreign[i] = mpressurebroadeningdata.AirBroadeningPsf();
-        }
-    }
-    
-    mpressurebroadeningdata.SetPlanetaryBroadeningFromCatalog(mpressurebroadeningdata.Sgam(),
-                                                           mpressurebroadeningdata.Nself(),
-                                                           gamma_foreign,n_foreign,delta_foreign);
-    
-    // Erase the ARTSCAT-3 foreign parameteres:
-    ARTSCAT4UnusedToNaN();
-}
-
-
-void LineRecord::ARTSCAT5FromARTSCAT4() {
-    // Check that this line really is ARTSCAT-4
-    if ( this->Version() != 4)
-    {
-        ostringstream os;
-        os << "This line is not ARTSCAT-4, it is ARTSCAT-" << this->Version();
-        throw std::runtime_error(os.str());
-    }
-
-    // Set version to 5:
-    mversion = 5;
-}
-
-void LineRecord::ARTSCAT5FromARTSCAT3() {
-    // Check that this line really is ARTSCAT-4
-    if ( this->Version() != 3)
-    {
-        ostringstream os;
-        os << "This line is not ARTSCAT-3, it is ARTSCAT-" << this->Version();
-        throw std::runtime_error(os.str());
-    }
-    
-    // Set version to 5:
-    mversion = 5;
-}
-
-
 bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -591,7 +506,9 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
   //mtgam = 296.0; NOTE: Deprecated
   
   // Assume that error index on dnair and dnself is unknown
-  mpressurebroadeningdata.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,-1,dagam,-1,dpsf);
+  PressureBroadeningData pb;
+  pb.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,-1,dagam,-1,dpsf);
+  mlinefunctiondata = LineFunctionData(pb, LineMixingData(), mqid.SpeciesName(), mti0);
 
   // That's it!
   return false;
@@ -1051,7 +968,8 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   //mtgam = 296.0; NOTE: Deprecated
   
   // Assume that error index on dnair and dnself is unknown
-  mpressurebroadeningdata.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,-1,dagam,-1,dpsf);
+  PressureBroadeningData pb;
+  pb.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,-1,dagam,-1,dpsf);
   
   // Skip four
   {
@@ -1151,12 +1069,16 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
     extract(test,line,2);
     if( test == -1 )
     {
-      mlinemixingdata.SetLBLRTMFromTheirCatalog(T,Y,G);
+      LineMixingData lm;
+      lm.SetLBLRTMFromTheirCatalog(T,Y,G);
+      mlinefunctiondata = LineFunctionData(pb, lm, mqid.SpeciesName(), mti0);
       return false;
     }
     else if( test == -3 )
     {
-      mlinemixingdata.SetLBLRTM_O2NonResonantFromTheirCatalog(T,Y,G); 
+      LineMixingData lm;
+      lm.SetLBLRTM_O2NonResonantFromTheirCatalog(T,Y,G); 
+      mlinefunctiondata = LineFunctionData(pb, lm, mqid.SpeciesName(), mti0);
       return false;
     }
     else
@@ -1654,9 +1576,9 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   // Reference temperature for AGAM and SGAM in K.
   // (This is also fix for HITRAN 2004)
   //mtgam = 296.0; NOTE: Deprecated
-  
-  mpressurebroadeningdata.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,dnself,dagam,dnair,dpsf);
-  
+  PressureBroadeningData pb;
+  pb.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,dnself,dagam,dnair,dpsf);
+  mlinefunctiondata = LineFunctionData(pb, LineMixingData(), mqid.SpeciesName(), mti0);
   {
       Index garbage;
       extract(garbage,line,13);
@@ -2080,7 +2002,9 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
       psf  *= pow(tgam/mti0, (Numeric).25 + (Numeric)1.5*nair );
   }
   // Unknown pressure shift error
-  mpressurebroadeningdata.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,dnself,dagam,dnair,-1);
+  PressureBroadeningData pb;
+  pb.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,dnself,dagam,dnair,-1);
+  mlinefunctiondata = LineFunctionData(pb, LineMixingData(), mqid.SpeciesName(), mti0);
   
   // That's it!
   return false;
@@ -2330,7 +2254,9 @@ bool LineRecord::ReadFromJplStream(istream& is, const Verbosity& verbosity)
   mti0 = 300.0;
   
   // Assume that errors are unknown
-  mpressurebroadeningdata.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,-1,-1,-1,-1,-1);
+  PressureBroadeningData pb;
+  pb.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,-1,-1,-1,-1,-1);
+  mlinefunctiondata = LineFunctionData(pb, LineMixingData(), mqid.SpeciesName(), mti0);
   
   // That's it!
   return false;
@@ -2341,6 +2267,8 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
 {
   CREATE_OUT3;
  
+  PressureBroadeningData pb;
+  
   // Global species lookup data:
   using global_data::species_data;
   
@@ -2539,8 +2467,10 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
     }
     
     // Set pressure broadening
-    mpressurebroadeningdata.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,dnself,dagam,dnair,dpsf);
+    pb.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,dnself,dagam,dnair,dpsf);
   }
+  
+  mlinefunctiondata = LineFunctionData(pb, LineMixingData(), mqid.SpeciesName(), mti0);
   
   // That's it!
   return false;
@@ -2560,6 +2490,8 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
 
   // Remember if this stuff has already been initialized:
   static bool hinit = false;
+  
+  PressureBroadeningData pb;
 
   mversion = 4;
   
@@ -2724,7 +2656,7 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
 //      icecream >> mdelta_he;
       
       // Set pressure broadening
-      mpressurebroadeningdata.SetPlanetaryBroadeningFromCatalog(sgam,nself,gamma_foreign,n_foreign,delta_foreign);
+      pb.SetPlanetaryBroadeningFromCatalog(sgam,nself,gamma_foreign,n_foreign,delta_foreign);
       
       // Remaining entries are the quantum numbers
       getline(icecream, mquantum_numbers_str);
@@ -2790,9 +2722,10 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
               if (q[5] > -1) mqid.LowerQuantumNumbers().Set(QuantumNumberType::F, q[5] - Rational(1, 2));
           }
       }
-      LineRecord::ARTSCAT4UnusedToNaN();
     }
-
+    
+  mlinefunctiondata = LineFunctionData(pb, LineMixingData(), mqid.SpeciesName(), mti0);
+    
   // That's it!
   return false;
 }
@@ -2814,6 +2747,10 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
     static bool hinit = false;
 
     mversion = 5;
+    
+    PressureBroadeningData pb;
+    LineMixingData lm;
+    bool lfd=false;
 
     if ( !hinit )
     {
@@ -2947,16 +2884,16 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                 if (token == "PB")
                 {
                     icecream >> token;
-                    mpressurebroadeningdata.StorageTag2SetType(token);
+                    pb.StorageTag2SetType(token);
 
-                    nelem = mpressurebroadeningdata.ExpectedVectorLengthFromType();
+                    nelem = pb.ExpectedVectorLengthFromType();
 
                     Vector broadening(nelem);
                     for (Index ib = 0; ib < nelem; ib++)
                     {
                         icecream >> double_imanip() >> broadening[ib];
                     }
-                    mpressurebroadeningdata.SetDataFromVectorWithKnownType(broadening);
+                    pb.SetDataFromVectorWithKnownType(broadening);
                     icecream >> token;
                 }
                 else if (token == "QN")
@@ -3002,9 +2939,9 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     // Line mixing
                   
                     icecream >> token;
-                    mlinemixingdata.StorageTag2SetType(token);
+                    lm.StorageTag2SetType(token);
 
-                    nelem = mlinemixingdata.ExpectedVectorLengthFromType();
+                    nelem = lm.ExpectedVectorLengthFromType();
 
                     Vector lmd(nelem);
                     for (Index l = 0; l < nelem; l++)
@@ -3017,8 +2954,13 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                             throw std::runtime_error(os.str());
                         }
                     }
-                    mlinemixingdata.SetDataFromVectorWithKnownType(lmd);
+                    lm.SetDataFromVectorWithKnownType(lmd);
                     icecream >> token;
+                }
+                else if(token == "LF")
+                {
+                  lfd = true;
+                  icecream >> mlinefunctiondata;
                 }
                 else if (token == "ZE")
                 {
@@ -3097,7 +3039,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                       Index value;
                       icecream >> value;
                       
-                      SetLineShapeTypeFromIndex(value);
+                      SetExternalLineShapeTypeFromIndex(value);
                     }
                     else
                     {
@@ -3115,8 +3057,6 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     throw std::runtime_error(os.str());
                 }
             }
-            
-            LineRecord::ARTSCAT4UnusedToNaN();
         }
     }
     catch (const std::runtime_error &e)
@@ -3127,6 +3067,9 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
         os << e.what();
         throw std::runtime_error(os.str());
     }
+    
+    if(not lfd) mlinefunctiondata = LineFunctionData(pb, lm, mqid.SpeciesName(), mti0);
+    
     // That's it!
     return false;
 }
@@ -3249,14 +3192,9 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
           << " " << lr.G_upper()
           << " " << lr.G_lower();
 
-          // Write Pressure Broadening
+          // Write Pressure Broadening and Line Mixing
           {
-              if (not lr.PressureBroadeningNoneType())
-              {
-                ls << " PB " << lr.PressureBroadeningTypeString();
-                const Vector broadening = lr.PressureBroadeningDataVector();
-                ls << " " << broadening;
-              }
+            ls << " LF " << lr.GetLineFunctionData();
           }
 
           // Write Quantum Numbers
@@ -3275,17 +3213,6 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
                       ls << " LO " << lr.LowerQuantumNumbers();
               }
           }
-
-          // Write Line Mixing Data
-          {
-            if (not lr.LineMixingNoneType())
-              {
-                  const Vector mixingdata = lr.LineMixingDataVector();
-                  if (mixingdata.nelem() > 0)
-                    ls << " LM " << lr.LineMixingTypeString() << " " << mixingdata;
-              }
-
-          }
           
           // Write Zeeman Effect Data
           {
@@ -3302,7 +3229,7 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
             const Numeric SPDC = lr.SpeedUpCoeff();
             const Index   MTM  = (Index) lr.GetMirroringType();
             const Index   LNT  = (Index) lr.GetLineNormalizationType();
-            const Index   LST  = (Index) lr.GetLineShapeType();
+            const Index   LST  = (Index) lr.GetExternalLineShapeType();
             
             const bool need_cut = CUT > 0, need_spd = (SPDC > 0 and SPDI > 0), need_mtm = MTM, need_lnt = LNT, need_lst = LST;
             
@@ -3473,7 +3400,7 @@ void LineRecord::SetLineNormalizationTypeFromIndex(const Index in)
   mlinenorm = (LineNormalizationType) in;
 }
 
-void LineRecord::SetLineShapeTypeFromIndex(const Index in)
+void LineRecord::SetExternalLineShapeTypeFromIndex(const Index in)
 {
   if(not (in < (Index) LineShapeType::End) and in > -1)
     throw std::runtime_error("Shape type to index conversion failure.  Did you add new line shape type?");

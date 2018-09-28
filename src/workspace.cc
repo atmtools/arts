@@ -2575,35 +2575,6 @@ void Workspace::define_wsv_data()
        "Unit:  degrees\n"
        ),
       GROUP( "Vector" )));
-/* 
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "line_mixing_data" ),
-       DESCRIPTION
-       (
-        "Line mixing data.\n"
-        "Dimensions: First dimension has same size as *abs_species*.\n"
-        "            Second dimension corresponds to entries of line mixing data.\n"
-        "            The LineMixingRecords contain the species index,\n"
-        "            the isotopologue index, the QuantumNumberRecord and the line mixing data.\n"
-       ),
-       GROUP( "ArrayOfArrayOfLineMixingRecord" )));
-*//*
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "line_mixing_data_lut" ),
-       DESCRIPTION
-       (
-        "Lookup table to match the LineRecords in abs_lines_per_species to entries\n"
-        "in the line mixing data stored in *line_mixing_data*.\n"
-        "The Index points to the matching entry in *line_mixing_data* or\n"
-        "-1 if there is no line mixing data available for this line.\n"
-        "\n"
-        "Dimensions: First dimension has same size as *abs_species*.\n"
-        "            Second dimension is zero for line mixing species without line mixing data.\n"
-        "            and the same size as *abs_lines_per_species* for line mixing species.\n"
-       ),
-       GROUP( "ArrayOfArrayOfIndex" )));*/
 
        
     wsv_data.push_back

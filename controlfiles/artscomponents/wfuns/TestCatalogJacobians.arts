@@ -26,7 +26,7 @@ MatrixSet(sensor_los, [180, 0])
 # Agenda for scalar gas absorption calculation
 AgendaSet( abs_xsec_agenda){
   abs_xsec_per_speciesInit
-  abs_xsec_per_speciesAddLines
+  abs_xsec_per_speciesAddLines2
 }
 
 # (standard) emission calculation
@@ -57,11 +57,11 @@ Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_surface
 # Stokes dimension.  Change to 1 if Zeeman is not interesting
 IndexSet( stokes_dim, 1 )
 
+# Experimental speedup switch is off because it is experimental
+IndexSet( xsec_speedup_switch, 0 )
+
 # Planck brighness temperatures
 StringSet( iy_unit, "PlanckBT" )
-
-# No cutoff, full line shape
-abs_lineshapeDefine( abs_lineshape, "Faddeeva_Algorithm_916", "VVH", -1 )
 
 #################################################################################
 # Definition of planetary grid
@@ -110,12 +110,8 @@ ReadXML(aqi, "linematch.xml")
 
 # Dummy vector
 jacobianInit
-jacobianAddCatalogParameters(catalog_identities = aqi, 
-                             catalog_parameters = ["Line Strength", "Line Center", 
-                             "PB Self Gamma", "PB Self Exponent", 
-                             "PB Foreign Gamma", 
-                             "PB Foreign Exponent", "PB Foreign Pressure Shift",
-                             "LM Y Zeroth", "LM Y Exponent"])
+jacobianAddCatalogParameters(catalog_identities = aqi, catalog_parameters = ["Line Strength", "Line Center"])
+jacobianAddLineFunctionDataParameters(line_identities=aqi, variables=["ALL"], coefficients=["ALL"], species=["SELF", "AIR"])
 jacobianClose
 
 #################################################################################
@@ -142,9 +138,9 @@ sensor_checkedCalc
 #################################################################################
 
 yCalc
-#WriteXML( "ascii", jacobian, "ReferenceJacobianInTestErrorJacobian.xml")
+# WriteXML( "ascii", jacobian, "ReferenceJacobianInTestErrorJacobian.xml")
 
-# Loac testing jacobian
+# Load testing jacobian
 MatrixCreate(test_jacobian)
 ReadXML(test_jacobian, "ReferenceJacobianInTestErrorJacobian.xml")
 
@@ -155,40 +151,6 @@ VectorCreate(reference)
 StringCreate(column)
 StringSet(column, "column")
 
-VectorExtractFromMatrix( calculated, jacobian, 0, column )
-VectorExtractFromMatrix( reference, test_jacobian, 0, column)
-CompareRelative(calculated, reference, 1e-5, "Line Strength Comparison Fails")
-
-VectorExtractFromMatrix( calculated, jacobian, 1, column )
-VectorExtractFromMatrix( reference, test_jacobian, 1, column)
-CompareRelative(calculated, reference, 1e-5, "Line Center Comparison Fails")
-
-VectorExtractFromMatrix( calculated, jacobian, 2, column )
-VectorExtractFromMatrix( reference, test_jacobian, 2, column)
-CompareRelative(calculated, reference, 1e-5, "PB Self Gamma Comparison Fails")
-
-VectorExtractFromMatrix( calculated, jacobian, 3, column )
-VectorExtractFromMatrix( reference, test_jacobian, 3, column)
-CompareRelative(calculated, reference, 1e-5, "PB Self Exponent Comparison Fails")
-
-VectorExtractFromMatrix( calculated, jacobian, 4, column )
-VectorExtractFromMatrix( reference, test_jacobian, 4, column)
-CompareRelative(calculated, reference, 1e-5, "PB Foreign Gamma Comparison Fails")
-
-VectorExtractFromMatrix( calculated, jacobian, 5, column )
-VectorExtractFromMatrix( reference, test_jacobian, 5, column)
-CompareRelative(calculated, reference, 1e-5, "PB Foreign Exponent Comparison Fails")
-
-VectorExtractFromMatrix( calculated, jacobian, 6, column )
-VectorExtractFromMatrix( reference, test_jacobian, 6, column)
-CompareRelative(calculated, reference, 1e-5, "PB Foreign Pressure Shift Comparison Fails")
-
-VectorExtractFromMatrix( calculated, jacobian, 7, column )
-VectorExtractFromMatrix( reference, test_jacobian, 7, column)
-CompareRelative(calculated, reference, 1e-5, "LM Y Zeroth Comparison Fails")
-
-VectorExtractFromMatrix( calculated, jacobian, 8, column )
-VectorExtractFromMatrix( reference, test_jacobian, 8, column)
-CompareRelative(calculated, reference, 1e-5, "LM Y Exponent Comparison Fails")
+CompareRelative(test_jacobian, jacobian, 1e-5)
 
 }

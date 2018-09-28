@@ -535,223 +535,6 @@ ostream& operator<< (ostream& os, const SpeciesAuxData& sad)
 }
 
 
-
-/** Find the location of all broadening species in abs_species. 
- 
- Set to -1 if
- not found. The length of array broad_spec_locations is the number of allowed
- broadening species (in ARTSCAT-4 N2, O2, H2O, CO2, H2, H2). The value
- means:
- <p> -1 = not in abs_species
- <p> -2 = in abs_species, but should be ignored because it is identical to Self
- <p> N  = species is number N in abs_species
- 
- The catalogue contains also broadening parameters for "Self", but we ignore this 
- here, since we know the position of species "Self" anyway.
- 
- \retval broad_spec_locations See above.
- \param abs_species List of absorption species
- \param this_species Index of the current species in abs_species
-
- \author Stefan Buehler
- \date   2012-09-04
- 
-**/
-void find_broad_spec_locations(ArrayOfIndex& broad_spec_locations,
-                                const ArrayOfArrayOfSpeciesTag& abs_species,
-                                const Index this_species)
-{
-  // Make sure this_species points to somewhere inside abs_species:
-  assert(this_species>=0);
-  assert(this_species<abs_species.nelem());
-  
-  // Number of broadening species:
-  const Index nbs = LineRecord::NBroadSpec();
-  
-  // Resize output array:
-  broad_spec_locations.resize(nbs);
-  
-//  // Set broadening species names, using the enums defined in absorption.h.
-//  // This is hardwired here and quite primitive, but should do the job.
-//  ArrayOfString broad_spec_names(nbs);
-//  broad_spec_names[LineRecord::SPEC_POS_N2]  = "N2";
-//  broad_spec_names[LineRecord::SPEC_POS_O2]  = "O2";
-//  broad_spec_names[LineRecord::SPEC_POS_H2O] = "H2O";
-//  broad_spec_names[LineRecord::SPEC_POS_CO2] = "CO2";
-//  broad_spec_names[LineRecord::SPEC_POS_H2]  = "H2";
-//  broad_spec_names[LineRecord::SPEC_POS_He]  = "He";
-  
-  // Loop over all broadening species and see if we can find them in abs_species.
-  for (Index i=0; i<nbs; ++i) {
-    // Find associated internal species index (we do the lookup by index, not by name).
-    const Index isi = LineRecord::BroadSpecSpecIndex(i);
-    
-    // First check if this broadening species is the same as this_species
-    if ( isi == abs_species[this_species][0].Species() )
-      broad_spec_locations[i] = -2;
-    else
-    {
-      // Find position of broadening species isi in abs_species. The called
-      // function returns -1 if not found, which is already the correct
-      // treatment for this case that we also want here.
-      broad_spec_locations[i] = find_first_species_tg(abs_species,isi);
-    }
-  }
-}
-
-
-
-/** Calculate line width and pressure shift for artscat4.
- 
- \retval gamma Line width [Hz].
- \retval deltaf Pressure shift [Hz].
- \param p Pressure [Pa].
- \param  t Temperature [K].
- \param  vmrs Vector of VMRs for different species [dimensionless].
- \param  this_species Index of current species in vmrs.
- \param  broad_spec_locations Has length of number of allowed broadening species
- (6 in artscat-4). Gives for each species the position
- in vmrs, or negative if it should be ignored. See
- function find_broad_spec_locations for details.
- \param  T0  The temperature at which broadening parameters are determined.
- \param  Sgam  The self pressure broadening.
- \param  Nself  The self broadening temperature exponent.
- \param  Gamma_foreign  The foregin pressure broadenings.
- \param  N_foreign  The foregin temperature exponents.
- \param  Delta_foreign  The pressure dependent frequency shift.
- \param  verbosity Verbosity flag.
- 
- \author Stefan Buehler
- \date   2012-09-05
- 
- Removed LineRecord dependency.
- 
- \author Richard Larsson
- \date   2014-10-29
- */
-void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
-                                    Numeric& deltaf,
-                                    const Numeric p,
-                                    const Numeric t,
-                                    ConstVectorView vmrs,
-                                    const Index this_species,
-                                    const ArrayOfIndex& broad_spec_locations,
-                                    const Numeric& T0,
-                                    const Numeric& Sgam,
-                                    const Numeric& Nself,
-                                    const Vector&  Gamma_foreign,
-                                    const Vector&  N_foreign,
-                                    const Vector&  Delta_foreign,
-                                    const Verbosity& verbosity)
-{
-    CREATE_OUT2;
-    
-    // Number of broadening species:
-    static const Index nbs = LineRecord::NBroadSpec();
-    assert(nbs==broad_spec_locations.nelem());
-    
-    // Theta is reference temperature divided by local temperature. Used in
-    // several place by the broadening and shift formula.
-    const Numeric theta = T0 / t;
-    
-    // Split total pressure in self and foreign part:
-    const Numeric p_self    = vmrs[this_species] * p;
-    const Numeric p_foreign = p-p_self;
-    
-    // Calculate sum of VMRs of all available foreign broadening species (we need this
-    // for normalization). The species "Self" will not be included in the sum!
-    Numeric broad_spec_vmr_sum = 0;
-    
-    // Gamma is the line width. We first initialize gamma with the self width
-    gamma =  Sgam * pow(theta, Nself) * p_self;
-    
-    // and treat foreign width separately:
-    Numeric gamma_foreign = 0;
-    
-    // There is no self shift parameter (or rather, we do not have it), so
-    // we do not need separate treatment of self and foreign for the shift:
-    deltaf = 0;
-    
-    // Add up foreign broadening species, where available:
-    for (Index i=0; i<nbs; ++i) {
-        if ( broad_spec_locations[i] < -1 ) {
-            // -2 means that this broadening species is identical to Self.
-            // Throw runtime errors if the parameters are not identical.
-            if (Gamma_foreign[i]!=Sgam ||
-                N_foreign[i]!=Nself)
-            {
-                std::ostringstream os;
-                os << "Inconsistency in LineRecord, self broadening and line "
-                << "broadening for " << LineRecord::BroadSpecName(i) << "\n"
-                << "should be identical.\n";
-                throw std::runtime_error(os.str());
-            }
-        } else if ( broad_spec_locations[i] >= 0 ) {
-            
-            // Add to VMR sum:
-            broad_spec_vmr_sum += vmrs[broad_spec_locations[i]];
-            
-            // foreign broadening:
-            gamma_foreign +=  Gamma_foreign[i] * pow(theta, N_foreign[i])
-            * vmrs[broad_spec_locations[i]];
-            
-            // Pressure shift:
-            // The T dependence is connected to that of the corresponding
-            // broadening parameter by:
-            // n_shift = .25 + 1.5 * n_gamma
-            deltaf += Delta_foreign[i]
-                      * pow( theta , (Numeric).25 + (Numeric)1.5*N_foreign[i] )
-                      * vmrs[broad_spec_locations[i]];
-        }
-    }
-
-    // Check that sum of self and all foreign VMRs is not too far from 1:
-    if ( abs(vmrs[this_species]+broad_spec_vmr_sum-1) > 0.1
-         && out2.sufficient_priority() )
-      {
-        std::ostringstream os;
-        os << "Warning: The total VMR of all your defined broadening\n"
-             << "species (including \"self\") is "
-             << vmrs[this_species]+broad_spec_vmr_sum
-             << ", more than 10% " << "different from 1.\n";
-        out2 << os.str();
-      }
-    
-    // Normalize foreign gamma and deltaf with the foreign VMR sum (but only if
-    // we have any foreign broadening species):
-    if (broad_spec_vmr_sum != 0.)
-      {
-        gamma_foreign /= broad_spec_vmr_sum;
-        deltaf        /= broad_spec_vmr_sum;
-      }
-    else if (p_self > 0.)
-    // If there are no foreign broadening species present, the best assumption
-    // we can make is to use gamma_self in place of gamma_foreign. for deltaf
-    // there is no equivalent solution, as we don't have a Delta_self and don't
-    // know which other Delta we should apply (in this case delta_f gets 0,
-    // which should be okayish):
-      {
-        gamma_foreign = gamma/p_self;
-      }
-    // It can happen that broad_spec_vmr_sum==0 AND p_self==0 (e.g., when p_grid
-    // exceeds the given atmosphere and zero-padding is applied). In this case,
-    // both gamma_foreign and deltaf are 0 and we leave it like that.
-
-    // Multiply by pressure. For the width we take only the foreign pressure.
-    // This is consistent with that we have scaled with the sum of all foreign
-    // broadening VMRs. In this way we make sure that the total foreign broadening
-    // scales with the total foreign pressure.
-    gamma_foreign  *= p_foreign;
-    // For the shift we simply take the total pressure, since there is no self part.
-    deltaf *= p;
-
-    // For the width, add foreign parts:
-    gamma += gamma_foreign;
-    
-    // That's it, we're done.
-}
-
-
 /** Calculate line absorption cross sections for one tag group. All
     lines in the line list must belong to the same species. This must
     be ensured by abs_lines_per_speciesCreateFromLines, so it is only verified
@@ -979,20 +762,6 @@ void xsec_species( MatrixView               xsec_attenuation,
         throw std::runtime_error(os.str());
     }
     
-    // Find the location of all broadening species in abs_species. Set to -1 if
-    // not found. The length of array broad_spec_locations is the number of allowed
-    // broadening species (in ARTSCAT-4 Self, N2, O2, H2O, CO2, H2, He). The value
-    // means:
-    // -1 = not in abs_species
-    // -2 = in abs_species, but should be ignored because it is identical to Self
-    // N  = species is number N in abs_species
-    ArrayOfIndex broad_spec_locations;
-    find_broad_spec_locations(broad_spec_locations,
-                              abs_species,
-                              this_species);
-    const Index h2o_index = find_first_species_tg( abs_species,
-                                                   species_index_from_species_name("H2O") );
-    
     String fail_msg;
     bool failed = false;
     
@@ -1087,8 +856,7 @@ firstprivate(ls_attenuation, fac, f_local, aux, qt_cache, qref_cache, iso_cache,
                         // Prepare pressure broadening parameters
                         Numeric gamma_0,gamma_2,eta,df_0,df_2,f_VC;
                         l_l.SetPressureBroadeningParameters(gamma_0,gamma_2,eta,df_0,df_2,f_VC,
-                                                            t_i, p_i, this_species,
-                                                            h2o_index, broad_spec_locations, vmrs);
+                                                            t_i, p_i, this_species, vmrs, abs_species);
                         
                         // Check the chache is the tempearture of the line and the isotope is the same to avoid recalculating the partition sum
                         if(iso_cache!=l_l.Isotopologue() || line_t_cache != l_l.Ti0())
@@ -1873,11 +1641,9 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
                                         const Numeric            H_magntitude_Zeeman,
                                         const Index              ind_ls,
                                         const Index              ind_lsn,
-                                        const Numeric            lm_p_lim,
                                         const Numeric            cutoff,
                                         const SpeciesAuxData&    isotopologue_ratios,
-                                        const SpeciesAuxData&    partition_functions,
-                                        const Verbosity&         verbosity )
+                                        const SpeciesAuxData&    partition_functions)
 {
     
     // Optional paths through the code...
@@ -2038,15 +1804,6 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     if ((not we_need_phase) and we_need_partials)
         phase = 0.0;
     
-    // Broadening species
-    ArrayOfIndex broad_spec_locations;
-    find_broad_spec_locations(broad_spec_locations,
-                              abs_species,
-                              this_species);
-    // Water index
-    const Index h2o_index = find_first_species_tg( abs_species,
-                           species_index_from_species_name("H2O") );
-    
 #pragma omp parallel for        \
 if (!arts_omp_in_parallel())    \
 firstprivate(attenuation, phase, fac, f_local, aux)
@@ -2092,14 +1849,16 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             
             // Pressure broadening parameters
             // Prepare pressure broadening parameters
-            Numeric gamma_0,gamma_2,eta,df_0,df_2,f_VC;
-            abs_lines[ii].SetPressureBroadeningParameters(gamma_0, gamma_2, eta, df_0, df_2, f_VC,
-                                                          t, p, this_species,h2o_index,
-                                                          broad_spec_locations, vmrs);
-            
-            // Line mixing parameters
-            Numeric Y=0,DV=0,G=0; // Set to zero since case with 0 exist
-            abs_lines[ii].SetLineMixingParameters(Y,  G,  DV,  t, p, lm_p_lim);
+            const std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric> X = abs_lines[ii].GetShapeParams(t, p, this_species, vmrs, abs_species);
+            const Numeric& G0 = std::get<Index(LineFunctionData::TuplePos::G0)>(X);
+            const Numeric& D0 = std::get<Index(LineFunctionData::TuplePos::D0)>(X);
+            const Numeric& G2 = std::get<Index(LineFunctionData::TuplePos::G2)>(X);
+            const Numeric& D2 = std::get<Index(LineFunctionData::TuplePos::D2)>(X);
+            const Numeric& FVC = std::get<Index(LineFunctionData::TuplePos::FVC)>(X);
+            const Numeric& ETA = std::get<Index(LineFunctionData::TuplePos::ETA)>(X);
+            const Numeric& Y = std::get<Index(LineFunctionData::TuplePos::Y)>(X);
+            const Numeric& G = std::get<Index(LineFunctionData::TuplePos::G)>(X);
+            const Numeric& DV = std::get<Index(LineFunctionData::TuplePos::DV)>(X);
             
             // Check the cache is the temperature of the line and the isotope is the same to avoid recalculating the partition sum
             if(iso_cache!=abs_lines[ii].Isotopologue() || line_t_cache != abs_lines[ii].Ti0())
@@ -2141,85 +1900,47 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             
             for(Index iz=0; iz<abs_lines[ii].ZeemanEffect().nelem(); iz++) 
             {
-              // Time to calculate the line cross section
-              // Still an ugly case with non-resonant line near 0 frequency, since this is actually a band...
-              if( not abs_lines[ii].LineMixingNonResonant() )
-              {
-                  xsec_single_line(   // OUTPUT   
-                                      xsec_attenuation(joker,jj), calc_src?xsec_source(joker,jj):
-                                      empty_vector,xsec_phase(joker,jj), 
-                                      // HELPER
-                                      attenuation, phase, dFa_dx, dFb_dx, dFa_dy, dFb_dy, this_f_range, fac, aux, 
-                                      // FREQUENCY
-                                      f_local,  f_grid,  f_grid.nelem(),  cutoff,
-                                      abs_lines[ii].F()+abs_lines[ii].ZeemanEffect().SplittingConstant(iz)*H_magntitude_Zeeman,
-                                      // LINE STRENGTH
-                                      abs_lines[ii].I0()*abs_lines[ii].ZeemanEffect().StrengthScaling(iz), partition_ratio, K1*K2, abs_nlte_ratio, src_nlte_ratio,
-                                      isotopologue_ratios.getParam(abs_lines[ii].Species(),
-                                                                  abs_lines[ii].Isotopologue())[0].data[0],
-                                      // ATMOSPHERIC TEMPERATURE
-                                      t,
-                                      // LINE SHAPE
-                                      ind_ls, ind_lsn,
-                                      // LINE BROADENING
-                                      gamma_0, gamma_2, eta, df_0, df_2, sigma, f_VC,
-                                      // LINE MIXING
-                                      DV, Y,  G, 
-                                      // FEATURE FLAGS
-                                      cutoff>0, we_need_phase, calc_partials&&!no_ls_partials, calc_src);
-              }
-              else
-              {//FIXME:  Is all of this really working?  Should I not have a VVH_that is half of VVH?
-                  //The below follows from Debye lineshape approximating half of VVH lineshape
-                  ArrayOfLineshapeSpec tmp;
-                  abs_lineshapeDefine( tmp, "Faddeeva_Algorithm_916", "VVH", 
-                                      -1, verbosity );
-                  
-                  xsec_single_line(   // OUTPUT   
-                                      xsec_attenuation(joker,jj), calc_src?xsec_source(joker,jj):empty_vector, xsec_phase(joker,jj), 
-                                      // HELPER
-                                      attenuation, phase, 
-                                      dFa_dx, dFb_dx, dFa_dy, dFb_dy, 
-                                      this_f_range, fac, aux, 
-                                      // FREQUENCY
-                                      f_local, f_grid, f_grid.nelem(), cutoff, 
-                                      abs_lines[ii].F()+abs_lines[ii].ZeemanEffect().SplittingConstant(iz)*H_magntitude_Zeeman,
-                                      // LINE STRENGTH
-                                      abs_lines[ii].I0()*abs_lines[ii].ZeemanEffect().StrengthScaling(iz), partition_ratio, K1*K2, abs_nlte_ratio, src_nlte_ratio,
-                                      isotopologue_ratios.getParam(abs_lines[ii].Species(),
-                                                                  abs_lines[ii].Isotopologue())[0].data[0],
-                                      // ATMOSPHERIC TEMPERATURE
-                                      t,
-                                      // LINE SHAPE
-                                      tmp[0].Ind_ls(), tmp[0].Ind_lsn(),
-                                      // LINE BROADENING
-                                      gamma_0, gamma_2, eta, df_0, df_2, sigma, f_VC,
-                                      // LINE MIXING
-                                      DV, Y, G, 
-                                      // FEATURE FLAGS
-                                      cutoff>0, we_need_phase, calc_partials&&!no_ls_partials, calc_src);
-              }
+                xsec_single_line(   // OUTPUT   
+                                    xsec_attenuation(joker,jj), calc_src?xsec_source(joker,jj):
+                                    empty_vector,xsec_phase(joker,jj), 
+                                    // HELPER
+                                    attenuation, phase, dFa_dx, dFb_dx, dFa_dy, dFb_dy, this_f_range, fac, aux, 
+                                    // FREQUENCY
+                                    f_local,  f_grid,  f_grid.nelem(),  cutoff,
+                                    abs_lines[ii].F()+abs_lines[ii].ZeemanEffect().SplittingConstant(iz)*H_magntitude_Zeeman,
+                                    // LINE STRENGTH
+                                    abs_lines[ii].I0()*abs_lines[ii].ZeemanEffect().StrengthScaling(iz), partition_ratio, K1*K2, abs_nlte_ratio, src_nlte_ratio,
+                                    isotopologue_ratios.getParam(abs_lines[ii].Species(),
+                                                                abs_lines[ii].Isotopologue())[0].data[0],
+                                    // ATMOSPHERIC TEMPERATURE
+                                    t,
+                                    // LINE SHAPE
+                                    ind_ls, ind_lsn,
+                                    // LINE BROADENING
+                                    G0, G2, ETA, D0, D2, sigma, FVC,
+                                    // LINE MIXING
+                                    DV, Y,  G, 
+                                    // FEATURE FLAGS
+                                    cutoff>0, we_need_phase, calc_partials&&!no_ls_partials, calc_src);
               
               
               if(calc_partials)
               {
                   // These needs to be calculated and returned when Temperature is in list
-                  Numeric dgamma_0_dT, ddf_0_dT,
-                  dgamma_2_dT, ddf_2_dT, deta_dT, df_VC_dT,
-                  dY_dT=0.0,dG_dT=0.0,dDV_dT=0.0,
+                Numeric dG0dT, dD0dT,
+                dYdT,dGdT,dDVdT,
                   dQ_dT, dK2_dT, dabs_nlte_ratio_dT=0.0,
                   atm_tv_low, atm_tv_upp;
                   if(do_temperature_jacobian(flag_partials))
                   {
-                      abs_lines[ii].SetLineMixingParametersTemperatureDerivative(dY_dT, dG_dT, dDV_dT, t,
-                                                                                 temperature_perturbation(flag_partials),
-                                                                                 p, lm_p_lim);
-                      abs_lines[ii].SetPressureBroadeningParametersTemperatureDerivative(dgamma_0_dT,dgamma_2_dT,
-                                                                                         deta_dT, ddf_0_dT, 
-                                                                                         ddf_2_dT, df_VC_dT, t, p,
-                                                                                         this_species,h2o_index,
-                                                                                         broad_spec_locations,
-                                                                                         vmrs);
+                    const std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric> dX = abs_lines[ii].GetShapeParams_dT(
+                      t, temperature_perturbation(flag_partials), p, this_species, vmrs, abs_species);
+                    dG0dT = std::get<Index(LineFunctionData::TuplePos::G0)>(dX);
+                    dD0dT = std::get<Index(LineFunctionData::TuplePos::D0)>(dX);
+                    dYdT = std::get<Index(LineFunctionData::TuplePos::Y)>(dX);
+                    dGdT = std::get<Index(LineFunctionData::TuplePos::G)>(dX);
+                    dDVdT = std::get<Index(LineFunctionData::TuplePos::DV)>(dX);
+                    
                       GetLineScalingData_dT(dqt_dT_cache,
                                             dK2_dT,
                                             dQ_dT, 
@@ -2245,82 +1966,14 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                   // These needs to be calculated when pressure broadening partial derivatives are needed
                   // Note that this gives plenty of wasted calculations for all lines that are not specifically
                   // requesting their individual partial derivatives...
-                  const QuantumIdentifier& quantum_identity = abs_lines[ii].QuantumIdentity();
-                  Numeric gamma_dSelf=0.0, gamma_dForeign=0.0, gamma_dWater=0.0,
+                  const Numeric gamma_dSelf=0.0, gamma_dForeign=0.0, gamma_dWater=0.0,
                           psf_dSelf=0.0, psf_dForeign=0.0, psf_dWater=0.0, 
                           gamma_dSelfExponent=0.0, gamma_dForeignExponent=0.0, gamma_dWaterExponent=0.0,
                           psf_dSelfExponent=0.0, psf_dForeignExponent=0.0, psf_dWaterExponent=0.0;
-                  Numeric dY0=0., dY1=0., dYexp=0., dG0=0., dG1=0., dGexp=0., dDV0=0., dDV1=0., dDVexp=0.;
+                          const Numeric dY0=0., dY1=0., dYexp=0., dG0=0., dG1=0., dGexp=0., dDV0=0., dDV1=0., dDVexp=0.;
                   for(Index iq=0; iq<flag_partials_position.nelem(); iq++) {
-                    if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineGammaSelf) {
-                      if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
-                        gamma_dSelf = abs_lines[ii].PressureBroadeningSelfGammaDerivative(t, p*vmrs[this_species]);
-                    }
-                    else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineGammaForeign) {
-                      if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
-                        gamma_dForeign = abs_lines[ii].PressureBroadeningForeignGammaDerivative(t,p,this_species,h2o_index,vmrs);
-                    }
-                    else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineGammaWater) {
-                      if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
-                        gamma_dWater = abs_lines[ii].PressureBroadeningWaterGammaDerivative(t,p,this_species,h2o_index,vmrs);
-                    }
-                    else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineGammaSelfExp) {
-                      if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity()) {
-                        const std::tuple<Numeric, Numeric> X = abs_lines[ii].PressureBroadeningSelfExponentDerivatives(t, p*vmrs[this_species]);
-                        gamma_dSelfExponent = std::get<0>(X);
-                        psf_dSelfExponent = std::get<1>(X);
-                      }
-                    }
-                    else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineGammaForeignExp) {
-                      if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity()) {
-                        const std::tuple<Numeric, Numeric> X = abs_lines[ii].PressureBroadeningForeignExponentDerivatives(t,p,this_species,h2o_index,vmrs);
-                        gamma_dForeignExponent = std::get<0>(X);
-                        psf_dForeignExponent = std::get<1>(X);
-                      }
-                    }
-                    else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineGammaWaterExp) {
-                      if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity()) {
-                        const std::tuple<Numeric, Numeric> X = abs_lines[ii].PressureBroadeningWaterExponentDerivatives(t,p,this_species,h2o_index,vmrs);
-                        gamma_dWaterExponent = std::get<0>(X);
-                        psf_dWaterExponent = std::get<1>(X);
-                      }
-                    }
-                    else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineShiftSelf) {
-                      if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
-                        psf_dSelf = abs_lines[ii].PressureBroadeningSelfPsfDerivative(t, p*vmrs[this_species]);
-                    }
-                    else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineShiftForeign) {
-                      if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
-                        psf_dForeign = abs_lines[ii].PressureBroadeningForeignPsfDerivative(t,p,this_species,h2o_index,vmrs);
-                    }
-                    else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineShiftWater) {
-                      if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity())
-                        psf_dWater = abs_lines[ii].PressureBroadeningWaterPsfDerivative(t,p,this_species,h2o_index,vmrs);
-                    }
-                    else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingDF0 or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingG0 or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingY0) {
-                      if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity()) {
-                        std::tuple<Numeric, Numeric, Numeric> X = abs_lines[ii].LineMixingZerothOrderDerivative(t, p, lm_p_lim);
-                        dY0 = std::get<0>(X);
-                        dG0 = std::get<1>(X);
-                        dDV0 = std::get<2>(X);
-                      }
-                    }
-                    else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingDF1 or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingG1 or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingY1) {
-                      if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity()) {
-                        std::tuple<Numeric, Numeric, Numeric> X = abs_lines[ii].LineMixingFirstOrderDerivative(t, p, lm_p_lim);
-                        dY1 = std::get<0>(X);
-                        dG1 = std::get<1>(X);
-                        dDV1 = std::get<2>(X);
-                      }
-                    }
-                    else if(flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingDFExp or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingGExp or flag_partials[flag_partials_position[iq]] == JacPropMatType::LineMixingYExp) {
-                      if(quantum_identity > flag_partials[flag_partials_position[iq]].QuantumIdentity()) {
-                        std::tuple<Numeric, Numeric, Numeric> X = abs_lines[ii].LineMixingExponentDerivative(t, p, lm_p_lim);
-                        dYexp = std::get<0>(X);
-                        dGexp = std::get<1>(X);
-                        dDVexp = std::get<2>(X);
-                      }
-                    }
+                    if(is_line_parameter(flag_partials[flag_partials_position[iq]]))
+                      throw std::runtime_error("Sorry, there has been a hard deprecation of old xsec line param derivatives\nPlease use a modern xsec method");
                   }
                       
                   // Gather all new partial derivative calculations in this function
@@ -2358,17 +2011,17 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                           abs_lines[ii].NLTEUpperIndex() > -1?
                                                           t_nlte[abs_lines[ii].NLTEUpperIndex()]:-1.0,
                                                           Y,
-                                                          dY_dT,
+                                                          dYdT,
                                                           dY0,
                                                           dY1,
                                                           dYexp,
                                                           G,
-                                                          dG_dT,
+                                                          dGdT,
                                                           dG0,
                                                           dG1,
                                                           dGexp,
                                                           DV,
-                                                          dDV_dT,
+                                                          dDVdT,
                                                           dDV0,
                                                           dDV1,
                                                           dDVexp,
@@ -2376,10 +2029,10 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                           // LINE SHAPE
                                                           ind_ls,
                                                           ind_lsn,
-                                                          df_0,//FIXME: For H-T, this part is difficult
-                                                          ddf_0_dT,
-                                                          gamma_0,
-                                                          dgamma_0_dT,
+                                                          D0,//FIXME: For H-T, this part is difficult
+                                                          dD0dT,
+                                                          G0,
+                                                          dG0dT,
                                                           gamma_dSelf,
                                                           gamma_dForeign,
                                                           gamma_dWater,
@@ -2461,7 +2114,6 @@ void xsec_species2(MatrixView xsec,
                    const Index this_species,
                    const ArrayOfLineRecord& abs_lines,
                    const Numeric H_magntitude_Zeeman,
-                   const Numeric lm_p_lim,
                    const SpeciesAuxData& isotopologue_ratios,
                    const SpeciesAuxData& partition_functions,
                    const Index& binary_speedup,
@@ -2481,13 +2133,6 @@ void xsec_species2(MatrixView xsec,
   // Test if the size of the problem is 0
   if(not np or not nf or not nl)
     return;
-  
-  // Water index in VMRS is constant for all levels and lines
-  const Index h2o_index = find_first_species_tg(abs_species, species_index_from_species_name("H2O"));
-  
-  // Broadening species locations in VMRS are constant for all levels and lines
-  ArrayOfIndex broad_spec_locations;
-  find_broad_spec_locations(broad_spec_locations, abs_species, this_species);
   
   // Results vectors are initialized first and then copied to the threads later
   ComplexVector F(nf), N(do_nonlte?nf:0);
@@ -2541,7 +2186,7 @@ void xsec_species2(MatrixView xsec,
       if(binary_speedup) {  // FIXME: Cannot consider cutoff properly now?
         Numeric G0, G2, e, L0, L2, FVC;
         line.SetPressureBroadeningParameters(G0, G2, e, L0, L2, FVC, temperature, pressure,
-                                             this_species, h2o_index, broad_spec_locations, all_vmrs(joker, ip));
+                                             this_species, all_vmrs(joker, ip), abs_species);
         
         // set binary levels
         const ArrayOfArrayOfIndex binary_bounds = Linefunctions::binary_boundaries(line.F(), f_grid, G0, dc, line.SpeedUpCoeff(), binary_speedup, line.SpeedUpIndex());
@@ -2554,8 +2199,8 @@ void xsec_species2(MatrixView xsec,
                                                                jacobian_quantities, jacobian_propmat_positions, line, f_grid[rl], all_vmrs(joker, ip), 
                                                                nt?abs_t_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
                                                                isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
-                                                               H_magntitude_Zeeman, ddc_dT, lm_p_lim, qt, dqt_dT, qt0,
-                                                               broad_spec_locations, this_species, h2o_index, iz, verbosity);
+                                                               H_magntitude_Zeeman, ddc_dT, qt, dqt_dT, qt0,
+                                                               abs_species, this_species, iz, verbosity);
             
             const Range ru = Linefunctions::binary_level_range(binary_bounds, nf, i, false);
             if(ru.get_extent())
@@ -2563,8 +2208,8 @@ void xsec_species2(MatrixView xsec,
                                                                jacobian_quantities, jacobian_propmat_positions, line, f_grid[ru], all_vmrs(joker, ip), 
                                                                nt?abs_t_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
                                                                isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
-                                                               H_magntitude_Zeeman, ddc_dT, lm_p_lim, qt, dqt_dT, qt0,
-                                                               broad_spec_locations, this_species, h2o_index, iz, verbosity);
+                                                               H_magntitude_Zeeman, ddc_dT, qt, dqt_dT, qt0,
+                                                               abs_species, this_species, iz, verbosity);
           }
           
           Linefunctions::binary_interpolation(F, binary_bounds);
@@ -2589,8 +2234,8 @@ void xsec_species2(MatrixView xsec,
             jacobian_quantities, jacobian_propmat_positions, line, f_grid, all_vmrs(joker, ip), 
             nt?abs_t_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
             isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
-            H_magntitude_Zeeman, ddc_dT, lm_p_lim, qt, dqt_dT, qt0,
-            broad_spec_locations, this_species, h2o_index, iz, verbosity);
+            H_magntitude_Zeeman, ddc_dT, qt, dqt_dT, qt0,
+            abs_species, this_species, iz, verbosity);
           
           // range-based arguments that need be made to work for both complex and numeric
           const Index extent = (this_xsec_range.get_extent()<0)     ?

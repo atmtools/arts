@@ -56,22 +56,22 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
                                   ConstVectorView vmrs, 
                                   const Numeric& temperature, 
                                   const Numeric& pressure, 
-                                  const Numeric& pressure_limit_for_linemixing,
                                   const Numeric& magnetic_magnitude,
-                                  const ArrayOfIndex& broad_spec_locations,
+                                  const ArrayOfArrayOfSpeciesTag& abs_species,
                                   const Index& this_species,
-                                  const Index& water_species,
                                   const Index& zeeman_index)
 {
-  // Pressure broadening terms
-  Numeric G0, G2, e, L0, L2, FVC;
-  line.SetPressureBroadeningParameters(
-    G0, G2, e, L0, L2, FVC, temperature, pressure, 
-    this_species, water_species, broad_spec_locations, vmrs);
-  
-  // Line mixing terms
-  Numeric Y=0, G=0, DV=0;
-  line.SetLineMixingParameters(Y, G, DV, temperature, pressure,  pressure_limit_for_linemixing);
+  // Pressure broadening and line mixing terms
+  const auto X = line.GetShapeParams(temperature, pressure, this_species, vmrs, abs_species);
+  const auto& G0  = std::get<Index(LineFunctionData::TuplePos::G0 )>(X);
+  const auto& D0  = std::get<Index(LineFunctionData::TuplePos::D0 )>(X);
+  const auto& G2  = std::get<Index(LineFunctionData::TuplePos::G2 )>(X);
+  const auto& D2  = std::get<Index(LineFunctionData::TuplePos::D2 )>(X);
+  const auto& FVC = std::get<Index(LineFunctionData::TuplePos::FVC)>(X);
+  const auto& ETA = std::get<Index(LineFunctionData::TuplePos::ETA)>(X);
+//   const auto& Y   = std::get<Index(LineFunctionData::TuplePos::Y  )>(X);
+//   const auto& G   = std::get<Index(LineFunctionData::TuplePos::G  )>(X);
+  const auto& DV  = std::get<Index(LineFunctionData::TuplePos::DV )>(X);
   
   // Line shape usage remembering variable
   LineShapeType lst = LineShapeType::End;
@@ -79,32 +79,28 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
   ComplexMatrix dF(0, 0);
   const Numeric doppler_constant = DopplerConstant(temperature, line.IsotopologueData().Mass());
   
-  switch(line.GetLineShapeType())
+  switch(line.GetExternalLineShapeType())
   {
     case LineShapeType::ByPressureBroadeningData:
-      switch(line.PressureBroadeningType())
+      switch(line.GetInternalLineShapeType())
       {
-        // Use data as per speed dependent air
-        case PressureBroadeningData::PB_SD_AIR_VOLUME:
-        case PressureBroadeningData::PB_PURELY_FOR_TESTING:
-        case PressureBroadeningData::PB_HTP_AIR_VOLUME:
-        case PressureBroadeningData::PB_SD_TEST_WATER:
+        case LineFunctionData::LineShapeType::HTP:
+        case LineFunctionData::LineShapeType::SDVP:
           lst = LineShapeType::HTP;
-          set_htp(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, G0, L0, G2, L2, e, FVC);
+          set_htp(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, G0, D0, G2, D2, ETA, FVC);
           break;
-          // Use for data that requires air and water Voigt broadening
-        case PressureBroadeningData::PB_AIR_AND_WATER_BROADENING:
-          // Use for data that requires planetary Voigt broadening
-        case PressureBroadeningData::PB_PLANETARY_BROADENING:
-          // Use for data that requires air Voigt broadening
-        case PressureBroadeningData::PB_AIR_BROADENING:
-        case PressureBroadeningData::PB_VOIGT_TEST_WATER:
-          // Above should be all methods of pressure broadening requiring Voigt in ARTS by default
+        case LineFunctionData::LineShapeType::VP:
           lst = LineShapeType::Voigt;
-          set_voigt(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, G0, L0, DV);
+          set_voigt(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, G0, D0, DV);
           break;
-        case PressureBroadeningData::PB_NONE:
-          throw std::runtime_error("Cannot understand the pressure broadening scheme.");
+        case LineFunctionData::LineShapeType::DP:
+          lst = LineShapeType::Doppler;
+          set_doppler(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant);
+          break;
+        case LineFunctionData::LineShapeType::LP:
+          lst = LineShapeType::Lorentz;
+          set_lorentz(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), G0, D0, DV);
+          break;
       }
       break;
         case LineShapeType::Doppler:
@@ -113,18 +109,18 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
           break;
           // This line only needs Hartmann-Tran
         case LineShapeType::HTP:
-          set_htp(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, G0, L0, G2, L2, e, FVC);
+          set_htp(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, G0, D0, G2, D2, ETA, FVC);
           lst = LineShapeType::HTP;
           break;
           // This line only needs Lorentz
         case LineShapeType::Lorentz:
           lst = LineShapeType::Lorentz;
-          set_lorentz(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), G0, L0, DV);
+          set_lorentz(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), G0, D0, DV);
           break;
           // This line only needs Voigt
         case LineShapeType::Voigt:
           lst = LineShapeType::Voigt;
-          set_voigt(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, G0, L0, DV);
+          set_voigt(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, G0, D0, DV);
           break;
         case LineShapeType::End:
           throw std::runtime_error("Cannot understand the requested line shape type.");
@@ -142,7 +138,7 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
       ComplexVector Fm(F.nelem());
       ComplexMatrix dFm(0, 0);
       
-      set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), G0, -L0, -DV);
+      set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), G0, -D0, -DV);
       
       // Apply mirroring
       F -= Fm;
@@ -161,14 +157,14 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
           set_doppler(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant);
           break;
         case LineShapeType::Lorentz:
-          set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), G0, -L0, -DV);
+          set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), G0, -D0, -DV);
           break;
         case LineShapeType::Voigt:
-          set_voigt(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant, G0, -L0, -DV);
+          set_voigt(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant, G0, -D0, -DV);
           break;
         case LineShapeType::HTP:
           // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
-          set_htp(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant, G0, -L0, G2, -L2, e, FVC);
+          set_htp(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant, G0, -D0, G2, -D2, ETA, FVC);
           break;
         case LineShapeType::ByPressureBroadeningData:
         case LineShapeType::End:
@@ -258,7 +254,6 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
   
   Complex d, denom;
   
-  #pragma omp simd
   for(Index iv = 0; iv < nf; iv++)
   {
     denom = 1.0 / ((denom0 - Complex(0.0, f_grid[iv])));
@@ -271,37 +266,20 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
         d = - F[iv] * denom;
       
       if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-      {
-        // Temperature derivative only depends on how pressure shift and broadening change
-        dF(iq, iv) = d * Complex(dG0_dT, dL0_dT + ddF0_dT);
-      }
+        dF(iq, iv) = d * Complex(dG0_dT, dL0_dT + ddF0_dT);  // Temperature derivative only depends on how pressure shift and broadening change
       else if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
-      {
-        // Frequency scale 1 to -1 linearly
-        dF(iq, iv) = d * Complex(0.0, -1.0);
+        dF(iq, iv) = d * Complex(0.0, -1.0);  // Frequency scale 1 to -1 linearly
+      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or 
+              is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]])) {
+        if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
+          dF(iq, iv) = d * Complex(0.0, 1.0);  // Line center scales 1 to 1 linearly
       }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]]))
-      {
-        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-        {
-          // Line center scales 1 to 1 linearly
-          dF(iq, iv) = d * Complex(0.0, 1.0);
-        }
-      }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR)
-      {
-        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-        {
-          // Pressure broadening will be dealt with in another function, though the partial derivative
-          dF(iq, iv) = d * Complex(0.0, -1.0);
-        }
+      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) /*or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR*/) {
+        if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
+          dF(iq, iv) = d * Complex(0.0, -1.0);  // Pressure broadening will be dealt with in another function, though the partial derivative
       }
       else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[iq]]))
-      {
-        // Magnetic magnitude changes like line center in part
-        // FIXME: Add magnetic components here
-        dF(iq, iv) = d * Complex(0.0, zeeman_df);
-      }
+        dF(iq, iv) = d * Complex(0.0, zeeman_df);  // Magnetic magnitude changes like line center in part
     }
   }
 }
@@ -433,7 +411,6 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
   // Scale factor (normalizes to PI)
   const Numeric fac = sqrtPI * invGD;
   
-  #pragma omp simd
   for(Index iv = 0; iv < nf; iv++) {
     // Relative frequency
     X = (C0t + i*(F0 - f_grid[iv])) * invC2t;
@@ -659,7 +636,7 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
           dF(iq, iv) = invG * (invPI * dA - F[iv] * dG); 
         }
       }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR)  {
+      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) /*or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR*/)  {
         // NOTE:  These are first order Voigt-like.  
         // The variables that are not Voigt-like must be dealt with separately
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
@@ -818,7 +795,6 @@ void Linefunctions::set_voigt(ComplexVectorView F,
   const Complex z0 = Complex(-F0, G0) * invGD;
   
   // frequency in units of Doppler
-  #pragma omp simd
   for (Index iv=0; iv<nf; iv++) {
     z = z0 + f_grid[iv] * invGD;
     w = Faddeeva::w(z);
@@ -837,7 +813,7 @@ void Linefunctions::set_voigt(ComplexVectorView F,
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
           dF(iq, iv) = -F[iv]/F0 + dw_over_dz * (-invGD - z/F0);
       }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
+      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) /*or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR*/) {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
           dF(iq, iv) = dw_over_dz * invGD;
       }
@@ -889,55 +865,28 @@ void Linefunctions::set_doppler(ComplexVectorView F, // Sets the full complex li
   const Numeric GD = GD_div_F0 * F0;
   const Numeric invGD = 1.0 / GD;
   const Numeric dGD_dT = dGD_div_F0_dT * F0;
-  
-  // Computational variables
-  //Numeric x, w_im, w_re;
-  Complex w, dw_over_dx;
-  Complex x;
-  
   const Numeric fac = invGD * sqrtInvPI;
   
   // Computational speed-up
   const Index first_frequency = get_first_frequency_index(derivatives_data, derivatives_data_position);
   
-  #pragma omp simd
-  for(Index iv = 0; iv < nf; iv++)
-  {
-    x = (f_grid[iv] - F0) * invGD;
-    w = Faddeeva::w(x);
+  for(Index iv = 0; iv < nf; iv++) {
+    const Numeric x = (f_grid[iv] - F0) * invGD;
+    F[iv] = fac * exp(- x*x);
     
-    F[iv] = fac * w;
-    
-    for(Index iq = 0; iq < nppd; iq++)
-    {
-      if(iq == 0)
-        dw_over_dx = 2.0 * fac * (Complex(0.0, sqrtInvPI) - x * w);
-      
-      if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]] ))
-      {
-        // If this is the first time it is calculated this frequency bin, do the full calculation
+    for(Index iq = 0; iq < nppd; iq++) { 
+      if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]] )) {
         if(first_frequency == iq)
-        {
-          dF(iq, iv) = dw_over_dx * invGD;
-        }
-        else  // copy for repeated occurrences
-        {
+          dF(iq, iv) = -2 * F[iv] * x * invGD;  // If this is the first time it is calculated this frequency bin, do the full calculation
+        else // copy for repeated occurrences
           dF(iq, iv) = dF(first_frequency, iv);
-        }
       }
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-      {
-        dF(iq, iv) = F[iv] * dGD_dT + x * dGD_dT * dw_over_dx;
-        dF(iq, iv) *= -invGD ;
-      }
+        dF(iq, iv) = F[iv] * (2*x*x - 1) * dGD_dT * invGD;
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter)
       {
-        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-        {
-          dF(iq, iv) = -F[iv] * GD_div_F0;
-          dF(iq, iv) += dw_over_dx * (-x * GD_div_F0 - 1.0);
-          dF(iq, iv) *= invGD;
-        }
+        if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity)) 
+          dF(iq, iv) = F[iv] * 2*x*((x-1)/F0 + invGD);
       }
     }
   }
@@ -996,7 +945,6 @@ void Linefunctions::set_voigt_from_full_linemixing(ComplexVectorView F,
   const Complex z0 = -eigenvalue * invGD;
   
   // frequency in units of Doppler
-  #pragma omp simd
   for (Index iv=0; iv<nf; iv++)
   {
     dx = f_grid[iv] * invGD;
@@ -1031,7 +979,7 @@ void Linefunctions::set_voigt_from_full_linemixing(ComplexVectorView F,
           dF(iq, iv) *= fac * invGD;
         }
       }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR)
+      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) /*or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR*/)
       {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
           dF(iq, iv) = fac * dw_over_dz * ( Complex(-1.0, 1.0) * invGD);
@@ -1133,7 +1081,6 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling(ComplexVectorView F,
   
   Numeric fun;
   
-  #pragma omp simd
   for (Index iv=0; iv < nf; iv++)
   {
     fun = mafac * (f_grid[iv] * f_grid[iv]);
@@ -1195,7 +1142,6 @@ void Linefunctions::apply_VVH_scaling(ComplexVectorView F,
   const Numeric tanh_f0part = tanh(PLANCK_CONST * F0 / kT);
   const Numeric denom = F0 * tanh_f0part;
   
-  #pragma omp simd
   for(Index iv=0; iv < nf; iv++)
   {
     const Numeric tanh_fpart = tanh( PLANCK_CONST * f_grid[iv] / kT );
@@ -1254,7 +1200,6 @@ void Linefunctions::apply_VVW_scaling(ComplexVectorView F,
   const Numeric invF0 = 1.0 / F0;
   const Numeric invF02 = invF0 * invF0;
   
-  #pragma omp simd
   for(Index iv = 0; iv < nf; iv++)
   {
     // Set the factor
@@ -1497,69 +1442,62 @@ void Linefunctions::apply_dipole(ComplexVectorView F,
  * \param derivatives_data Information about the derivatives in dF
  * \param derivatives_data_position Information about the derivatives positions in dF
  * \param quantum_identity ID of the absorption line
- * \param dgamma Derivatives in order as they appear that are related to pressure broadening coefficients
+ * \param dlfd Derivatives in order as they appear that are related to internal line parameters
  * \param df_range Frequency range to use inside dF
  * 
  */
-void Linefunctions::apply_pressurebroadening_jacobian_scaling(ComplexMatrixView dF,
-                                                              const ArrayOfRetrievalQuantity& derivatives_data,
-                                                              const ArrayOfIndex& derivatives_data_position,
-                                                              const QuantumIdentifier& quantum_identity,
-                                                              const ComplexVector& dgamma)
+void Linefunctions::apply_linefunctiondata_jacobian_scaling(ComplexMatrixView dF,
+                                                            const ArrayOfRetrievalQuantity& derivatives_data,
+                                                            const ArrayOfIndex& derivatives_data_position,
+                                                            const QuantumIdentifier& quantum_identity,
+                                                            const Vector& dlfd)
 {
-  const Index nppd = derivatives_data_position.nelem(), ng = dgamma.nelem();
+  const Index nppd = derivatives_data_position.nelem();
   
-  Index ipd = 0;
-  
-  // Length of dgamma must be the same as total number of instances of pressure broadening jacobians
   for(Index iq = 0; iq < nppd; iq++)
   {
-    if(ipd == ng) break;
+    const Index& pos = derivatives_data_position[iq];
+    const RetrievalQuantity& rt = derivatives_data[pos];
     
-    if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR)
-    {
-      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-      {
-        dF(iq, joker) *= dgamma[ipd];
-        ++ipd;
-      }
-    }
-  }
-}
-
-
-/*! Applies the line-by-line pressure broadening jacobian for the matching lines
- * 
- * \retval dF Lineshape derivative
- * 
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param quantum_identity ID of the absorption line
- * \param dlm Derivatives in order as they appear that are related to line mixing
- * \param df_range Frequency range to use inside dF
- * 
- */
-void Linefunctions::apply_linemixing_jacobian_scaling(ComplexMatrixView dF,
-                                                      const ArrayOfRetrievalQuantity& derivatives_data,
-                                                      const ArrayOfIndex& derivatives_data_position,
-                                                      const QuantumIdentifier& quantum_identity,
-                                                      const ComplexVector& dlm)
-{
-  const Index nppd = derivatives_data_position.nelem(), ng = dlm.nelem();
-  
-  Index ipd = 0;
-  
-  // Length of dlm must be the same as total number of instances of line mixing jacobians
-  for(Index iq = 0; iq < nppd; iq++)
-  {
-    if(ipd == ng) break;
-    
-    if(is_line_mixing_parameter(derivatives_data[derivatives_data_position[iq]]))
-    {
-      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-      {
-        dF(iq, joker) *= dlm[ipd];
-        ++ipd;
+    if(rt.QuantumIdentity().In(quantum_identity)) {
+      switch(rt.PropMatType()) {
+        case JacPropMatType::LineFunctionDataG0X0:
+        case JacPropMatType::LineFunctionDataG0X1:
+        case JacPropMatType::LineFunctionDataG0X2:
+        case JacPropMatType::LineFunctionDataG2X0:
+        case JacPropMatType::LineFunctionDataG2X1:
+        case JacPropMatType::LineFunctionDataG2X2:
+          dF(iq, joker) *= Complex(0, dlfd[iq]);
+          break;
+        case JacPropMatType::LineFunctionDataD0X0:
+        case JacPropMatType::LineFunctionDataD0X1:
+        case JacPropMatType::LineFunctionDataD0X2:
+        case JacPropMatType::LineFunctionDataD2X0:
+        case JacPropMatType::LineFunctionDataD2X1:
+        case JacPropMatType::LineFunctionDataD2X2:
+          dF(iq, joker) *= -dlfd[iq];
+          break;
+        case JacPropMatType::LineFunctionDataFVCX0:
+        case JacPropMatType::LineFunctionDataFVCX1:
+        case JacPropMatType::LineFunctionDataFVCX2:
+        case JacPropMatType::LineFunctionDataETAX0:
+        case JacPropMatType::LineFunctionDataETAX1:
+        case JacPropMatType::LineFunctionDataETAX2:
+        case JacPropMatType::LineFunctionDataGX0:
+        case JacPropMatType::LineFunctionDataGX1:
+        case JacPropMatType::LineFunctionDataGX2:
+        case JacPropMatType::LineFunctionDataDVX0:
+        case JacPropMatType::LineFunctionDataDVX1:
+        case JacPropMatType::LineFunctionDataDVX2:
+          dF(iq, joker) *= dlfd[iq];
+          break;
+        case JacPropMatType::LineFunctionDataYX0:
+        case JacPropMatType::LineFunctionDataYX1:
+        case JacPropMatType::LineFunctionDataYX2:
+          dF(iq, joker) *= Complex(0, -dlfd[iq]);
+          break;
+        default:
+        {/*pass*/}
       }
     }
   }
@@ -1762,13 +1700,11 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
                                                       const Numeric& isotopologue_ratio,
                                                       const Numeric& magnetic_magnitude,
                                                       const Numeric& ddoppler_constant_dT,
-                                                      const Numeric& pressure_limit_for_linemixing,
                                                       const Numeric& partition_function_at_temperature,
                                                       const Numeric& dpartition_function_at_temperature_dT,
                                                       const Numeric& partition_function_at_line_temperature,
-                                                      const ArrayOfIndex& broad_spec_locations,
+                                                      const ArrayOfArrayOfSpeciesTag& abs_species,
                                                       const Index& this_species_location_in_tags,
-                                                      const Index& water_index_location_in_tags,
                                                       const Index& zeeman_index,
                                                       const Verbosity& verbosity,
                                                       const bool cutoff_call)
@@ -1822,56 +1758,33 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   // Extract the quantum identify of the line to be used in-case there are derivatives
   const QuantumIdentifier& QI = line.QuantumIdentity();
   
-  /* Pressure broadening terms
-   * These are set by the line catalog.  There are no defaults.
-   */
-  Numeric G0, G2, e, L0, L2, FVC;
-  line.SetPressureBroadeningParameters(
-    G0, G2, e, L0, L2, FVC, temperature, pressure, 
-    this_species_location_in_tags, water_index_location_in_tags,
-    broad_spec_locations, volume_mixing_ratio_of_all_species);
-  
-  // Line mixing terms
-  Numeric Y, G, DV;
-  line.SetLineMixingParameters(Y, G, DV, temperature, pressure, 
-                               pressure_limit_for_linemixing);
+  // Pressure broadening and line mixing terms
+  const auto X = line.GetShapeParams(temperature, pressure, this_species_location_in_tags, volume_mixing_ratio_of_all_species, abs_species);
+  const auto& G0  = std::get<Index(LineFunctionData::TuplePos::G0 )>(X);
+  const auto& D0  = std::get<Index(LineFunctionData::TuplePos::D0 )>(X);
+  const auto& G2  = std::get<Index(LineFunctionData::TuplePos::G2 )>(X);
+  const auto& D2  = std::get<Index(LineFunctionData::TuplePos::D2 )>(X);
+  const auto& FVC = std::get<Index(LineFunctionData::TuplePos::FVC)>(X);
+  const auto& ETA = std::get<Index(LineFunctionData::TuplePos::ETA)>(X);
+  const auto& Y   = std::get<Index(LineFunctionData::TuplePos::Y  )>(X);
+  const auto& G   = std::get<Index(LineFunctionData::TuplePos::G  )>(X);
+  const auto& DV  = std::get<Index(LineFunctionData::TuplePos::DV )>(X);
   
   // Partial derivatives for temperature
-  Numeric dG0_dT, dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT, dY_dT, dG_dT, dDV_dT, dK1_dT, dK2_dT;
+  Numeric dG0_dT, dD0_dT, dG2_dT, dD2_dT, de_dT, dFVC_dT, dY_dT, dG_dT, dDV_dT, dK1_dT, dK2_dT;
   if(do_temperature)
   {
-    // Pressure broadening partial derivatives
-    line.SetPressureBroadeningParametersTemperatureDerivative(
-      dG0_dT, dG2_dT, de_dT, dL0_dT, dL2_dT, dFVC_dT,
-      temperature, pressure,
-      this_species_location_in_tags, water_index_location_in_tags,
-      broad_spec_locations, volume_mixing_ratio_of_all_species);
-    
-    // Line mixing partial derivatives
-    line.SetLineMixingParametersTemperatureDerivative(
-      dY_dT, dG_dT, dDV_dT, temperature,
-      temperature_perturbation(derivatives_data),
-      pressure, pressure_limit_for_linemixing);
+    const auto dX = line.GetShapeParams_dT(temperature, temperature_perturbation(derivatives_data), pressure, this_species_location_in_tags, volume_mixing_ratio_of_all_species, abs_species);
+    dG0_dT  = std::get<Index(LineFunctionData::TuplePos::G0 )>(dX);
+    dD0_dT  = std::get<Index(LineFunctionData::TuplePos::D0 )>(dX);
+    dG2_dT  = std::get<Index(LineFunctionData::TuplePos::G2 )>(dX);
+    dD2_dT  = std::get<Index(LineFunctionData::TuplePos::D2 )>(dX);
+    dFVC_dT = std::get<Index(LineFunctionData::TuplePos::FVC)>(dX);
+//     dETA_dT = std::get<Index(LineFunctionData::TuplePos::ETA)>(dX);
+    dY_dT   = std::get<Index(LineFunctionData::TuplePos::Y  )>(dX);
+    dG_dT   = std::get<Index(LineFunctionData::TuplePos::G  )>(dX);
+    dDV_dT  = std::get<Index(LineFunctionData::TuplePos::DV )>(dX);
   }
-  
-  /* Partial derivatives due to pressure
-   * The vector below will be rescaled by the set internal derivatives function such that
-   * the order of their occurrences are the same as in the partial derivative output
-   */
-  ComplexVector pressure_derivatives;
-  if(do_pressure_jacobian(derivatives_data))
-    line.SetInternalPressureBroadeningDerivatives(pressure_derivatives, derivatives_data, 
-                                                  temperature, pressure, 
-                                                  this_species_location_in_tags, water_index_location_in_tags,
-                                                  volume_mixing_ratio_of_all_species);
-    
-  /* Partial derivatives due to line mixing
-    * The vector below will be rescaled by the set internal derivatives function such that
-    * the order of their occurrences are the same as in the partial derivative output
-    */
-  ComplexVector linemixing_derivatives;
-  line.SetInternalLineMixingDerivatives(linemixing_derivatives, derivatives_data,
-                                        temperature, pressure, pressure_limit_for_linemixing);
   
   // Line shape usage remembering variable. 
   // Is only used if the user has set to use mirroring 
@@ -1895,43 +1808,43 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   ComplexVectorView N = N_full[N_full.nelem() ? this_f_range : joker];
   ComplexMatrixView dN = dN_full(joker, N_full.nelem() ? this_f_range : joker);
   
-  switch(line.GetLineShapeType())
+  switch(line.GetExternalLineShapeType())
   {
     // Use data as provided by the pressure broadening scheme
     case LineShapeType::ByPressureBroadeningData:
-      switch(line.PressureBroadeningType())
+      switch(line.GetInternalLineShapeType())
       {
         // Use data as per speed dependent air
-        case PressureBroadeningData::PB_SD_AIR_VOLUME:
-        case PressureBroadeningData::PB_HTP_AIR_VOLUME:
-        case PressureBroadeningData::PB_PURELY_FOR_TESTING:
-        case PressureBroadeningData::PB_SD_TEST_WATER:
+        case LineFunctionData::LineShapeType::HTP:
+        case LineFunctionData::LineShapeType::SDVP:
           lst = LineShapeType::HTP;
           set_htp(F, dF, 
                   f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                   line.F(), doppler_constant, 
-                  G0, L0, G2, L2, e, FVC,
+                  G0, D0, G2, D2, ETA, FVC,
                   derivatives_data, derivatives_data_position, QI,
                   ddoppler_constant_dT, 
-                  dG0_dT, dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT);
+                  dG0_dT, dD0_dT, dG2_dT, dD2_dT, de_dT, dFVC_dT);
           break;
-        // Use for data that requires air and water Voigt broadening
-        case PressureBroadeningData::PB_AIR_AND_WATER_BROADENING:
-        // Use for data that requires planetary Voigt broadening
-        case PressureBroadeningData::PB_PLANETARY_BROADENING:
-          // Use for data that requires air Voigt broadening
-        case PressureBroadeningData::PB_AIR_BROADENING:
-        case PressureBroadeningData::PB_VOIGT_TEST_WATER:
-          // Above should be all methods of pressure broadening requiring Voigt in ARTS by default
+        case LineFunctionData::LineShapeType::VP:
           lst = LineShapeType::Voigt;
           set_voigt(F, dF, f_grid, 
                     line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                     line.F(), doppler_constant, 
-                    G0, L0, DV, derivatives_data, derivatives_data_position, QI,
-                    ddoppler_constant_dT, dG0_dT, dL0_dT, dDV_dT);
+                    G0, D0, DV, derivatives_data, derivatives_data_position, QI,
+                    ddoppler_constant_dT, dG0_dT, dD0_dT, dDV_dT);
           break;
-        case PressureBroadeningData::PB_NONE:
-          throw std::runtime_error("Cannot understand the pressure broadening scheme");
+        case LineFunctionData::LineShapeType::LP:
+          lst = LineShapeType::Lorentz;
+          set_lorentz(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+                      line.F(), G0, D0, DV, derivatives_data, derivatives_data_position, QI, dG0_dT, dD0_dT, dDV_dT);
+          break;
+        case LineFunctionData::LineShapeType::DP:
+          lst = LineShapeType::Doppler;
+          set_doppler(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+                      line.F(), doppler_constant, derivatives_data, derivatives_data_position, QI, ddoppler_constant_dT);
+          break;
+          
       }
       break;
     // This line only needs the Doppler effect
@@ -1945,17 +1858,17 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
       set_htp(F, dF, 
               f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
               line.F(), doppler_constant, 
-              G0, L0, G2, L2, e, FVC,
+              G0, D0, G2, D2, ETA, FVC,
               derivatives_data, derivatives_data_position, QI,
               ddoppler_constant_dT, 
-              dG0_dT, dL0_dT, dG2_dT, dL2_dT, de_dT, dFVC_dT);
+              dG0_dT, dD0_dT, dG2_dT, dD2_dT, de_dT, dFVC_dT);
       lst = LineShapeType::HTP;
       break;
     // This line only needs Lorentz
     case LineShapeType::Lorentz:
       lst = LineShapeType::Lorentz;
       set_lorentz(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                  line.F(), G0, L0, DV, derivatives_data, derivatives_data_position, QI, dG0_dT, dL0_dT, dDV_dT);
+                  line.F(), G0, D0, DV, derivatives_data, derivatives_data_position, QI, dG0_dT, dD0_dT, dDV_dT);
       break;
     // This line only needs Voigt
     case LineShapeType::Voigt:
@@ -1963,8 +1876,8 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
       set_voigt(F, dF, f_grid, 
                 line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                 line.F(), doppler_constant, 
-                G0, L0, DV, derivatives_data, derivatives_data_position, QI,
-                ddoppler_constant_dT, dG0_dT, dL0_dT, dDV_dT);
+                G0, D0, DV, derivatives_data, derivatives_data_position, QI,
+                ddoppler_constant_dT, dG0_dT, dD0_dT, dDV_dT);
       break;
     case LineShapeType::End:
       throw std::runtime_error("Cannot understand the requested line shape type.");
@@ -1983,12 +1896,13 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
     // Lorentz mirroring
     case MirroringType::Lorentz:
       {
+        if(lst == LineShapeType::Doppler) throw std::runtime_error("Cannot apply Lorentz mirroring for Doppler line shape");
         // Set the mirroring computational vectors and size them as needed
         ComplexVector Fm(F.nelem());
         ComplexMatrix dFm(dF.nrows(), dF.ncols());
         
         set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                    -line.F(), G0, -L0, -DV, derivatives_data, derivatives_data_position, QI, dG0_dT, -dL0_dT, -dDV_dT);
+                    -line.F(), G0, -D0, -DV, derivatives_data, derivatives_data_position, QI, dG0_dT, -dD0_dT, -dDV_dT);
         
         // Apply mirroring
         F -= Fm;
@@ -2010,24 +1924,24 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
           break;
         case LineShapeType::Lorentz:
           set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                      -line.F(), G0, -L0, -DV, derivatives_data, derivatives_data_position, QI, dG0_dT, -dL0_dT, -dDV_dT);
+                      -line.F(), G0, -D0, -DV, derivatives_data, derivatives_data_position, QI, dG0_dT, -dD0_dT, -dDV_dT);
           break;
         case LineShapeType::Voigt:
           set_voigt(Fm, dFm, f_grid, 
                     -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                     -line.F(), -doppler_constant, 
-                    G0, -L0, -DV, derivatives_data, derivatives_data_position, QI,
-                    -ddoppler_constant_dT, dG0_dT, -dL0_dT, -dDV_dT);
+                    G0, -D0, -DV, derivatives_data, derivatives_data_position, QI,
+                    -ddoppler_constant_dT, dG0_dT, -dD0_dT, -dDV_dT);
           break;
         case LineShapeType::HTP:
           // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
           set_htp(Fm, dFm, f_grid, 
                   -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                   -line.F(), -doppler_constant, 
-                  G0, -L0, G2, -L2, e, FVC,
+                  G0, -D0, G2, -D2, ETA, FVC,
                   derivatives_data, derivatives_data_position, QI,
                   -ddoppler_constant_dT, 
-                  dG0_dT, -dL0_dT, dG2_dT, -dL2_dT, de_dT, dFVC_dT);
+                  dG0_dT, -dD0_dT, dG2_dT, -dD2_dT, de_dT, dFVC_dT);
           break;
         case LineShapeType::ByPressureBroadeningData:
         case LineShapeType::End:
@@ -2065,17 +1979,16 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
       throw std::runtime_error("Cannot understand the requested line normalization type.");
   }
   
-  // Apply line mixing if relevant
-  if(Y not_eq 0 or G not_eq 0)
+  // Only for non-Doppler shapes
+  if(lst not_eq LineShapeType::Doppler) {
     apply_linemixing_scaling(F, dF, Y, G, derivatives_data, derivatives_data_position, QI, dY_dT, dG_dT);
   
-  // Apply pressure broadening partial derivative vector if necessary
-  if(pressure_derivatives.nelem()>0)
-    apply_pressurebroadening_jacobian_scaling(dF, derivatives_data, derivatives_data_position, QI, pressure_derivatives);
-  
-  // Apply line mixing partial derivative vector if necessary
-  if(linemixing_derivatives.nelem()>0)
-    apply_linemixing_jacobian_scaling(dF, derivatives_data, derivatives_data_position, QI, linemixing_derivatives);
+    // Apply line mixing and pressure broadening partial derivatives
+    const Vector internal_derivatives = line.GetInternalDerivatives(temperature, pressure,  this_species_location_in_tags,
+                                                                    volume_mixing_ratio_of_all_species, abs_species,
+                                                                    derivatives_data, derivatives_data_position);
+    apply_linefunctiondata_jacobian_scaling(dF, derivatives_data, derivatives_data_position, QI, internal_derivatives);
+  }
   
   // Apply line strength by whatever method is necessary
   switch(line.GetLinePopulationType())
@@ -2228,12 +2141,12 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
                  nlte_distribution, pressure, temperature,
                  doppler_constant, partial_pressure,
                  isotopologue_ratio, magnetic_magnitude,
-                 ddoppler_constant_dT, pressure_limit_for_linemixing,
+                 ddoppler_constant_dT,
                  partition_function_at_temperature,
                  dpartition_function_at_temperature_dT,
                  partition_function_at_line_temperature,
-                 broad_spec_locations, this_species_location_in_tags,
-                 water_index_location_in_tags, zeeman_index, verbosity);
+                 abs_species, this_species_location_in_tags,
+                 zeeman_index, verbosity);
   }
 }
 
@@ -2287,13 +2200,11 @@ void Linefunctions::apply_cutoff(ComplexVectorView F,
                                  const Numeric& isotopologue_ratio,
                                  const Numeric& magnetic_magnitude,
                                  const Numeric& ddoppler_constant_dT,
-                                 const Numeric& pressure_limit_for_linemixing,
                                  const Numeric& partition_function_at_temperature,
                                  const Numeric& dpartition_function_at_temperature_dT,
                                  const Numeric& partition_function_at_line_temperature,
-                                 const ArrayOfIndex& broad_spec_locations,
+                                 const ArrayOfArrayOfSpeciesTag& abs_species,
                                  const Index& this_species_location_in_tags,
-                                 const Index& water_index_location_in_tags,
                                  const Index& zeeman_index,
                                  const Verbosity& verbosity)
 { 
@@ -2314,12 +2225,11 @@ void Linefunctions::apply_cutoff(ComplexVectorView F,
                                     nlte_distribution, pressure, temperature,
                                     doppler_constant, partial_pressure, isotopologue_ratio,
                                     magnetic_magnitude, ddoppler_constant_dT,
-                                    pressure_limit_for_linemixing,
                                     partition_function_at_temperature,
                                     dpartition_function_at_temperature_dT,
                                     partition_function_at_line_temperature,
-                                    broad_spec_locations, this_species_location_in_tags,
-                                    water_index_location_in_tags, zeeman_index, verbosity, true);
+                                    abs_species, this_species_location_in_tags,
+                                    zeeman_index, verbosity, true);
   
   // Apply cutoff values
   F -= Fc[0];
@@ -2453,7 +2363,7 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(ComplexVect
     }
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]]))
     {
-      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
+      if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
       {
         Numeric done_over_b_df0 = PLANCK_CONST*exp_T/(c2*BOLTZMAN_CONST*T) - 3.0*b/F0;
         Numeric de_df0 = c1 * r2 * A21;
@@ -3119,1097 +3029,4 @@ Range Linefunctions::binary_level_range(const ArrayOfArrayOfIndex& binary_bounds
     return Range(0, 0);
   else
     return Range(l, 1 + (u-l)/s, s);
-}
-
-
-void Linefunctions::set_lineshape_from_level_line_data(Complex& F,
-                                                       Complex& N,
-                                                       ComplexVectorView dF,
-                                                       ComplexVectorView dN,
-                                                       const Numeric& f,
-                                                       const Numeric& T,
-                                                       const SingleLevelLineData& level_line_data,
-                                                       const LineRecord& line,
-                                                       const ArrayOfRetrievalQuantity& derivatives_data,
-                                                       const ArrayOfIndex& derivatives_data_position) noexcept
-{
-  // FIXME:  Not compatible with Zeeman effect yet (perhaps as easy as moving a loop to a lower level?)
-  
-  switch(line.GetLineShapeType()) {
-    case LineShapeType::Doppler:
-      set_doppler_from_level_line_data(F, dF, f, line.F(), 0.0, level_line_data, derivatives_data, derivatives_data_position);
-      break;
-    case LineShapeType::Lorentz:
-      set_lorentz_from_level_line_data(F, dF, f, line.F(), 0.0, level_line_data, derivatives_data, derivatives_data_position);
-      break;
-    case LineShapeType::Voigt:
-      set_voigt_from_level_line_data(F, dF, f, line.F(), 0.0, level_line_data, derivatives_data, derivatives_data_position);
-      break;
-    case LineShapeType::HTP:
-      set_htp_from_level_line_data(F, dF, f, line.F(), 0.0, level_line_data, derivatives_data, derivatives_data_position);
-      break;
-    case LineShapeType::ByPressureBroadeningData:
-      switch(line.PressureBroadeningType()) {
-        case PressureBroadeningData::PB_SD_AIR_VOLUME:
-        case PressureBroadeningData::PB_HTP_AIR_VOLUME:
-        case PressureBroadeningData::PB_PURELY_FOR_TESTING:
-        case PressureBroadeningData::PB_SD_TEST_WATER:
-          set_htp_from_level_line_data(F, dF, f, line.F(), 0.0, level_line_data, derivatives_data, derivatives_data_position);
-          break;
-        case PressureBroadeningData::PB_AIR_AND_WATER_BROADENING:
-        case PressureBroadeningData::PB_PLANETARY_BROADENING:
-        case PressureBroadeningData::PB_AIR_BROADENING:
-        case PressureBroadeningData::PB_VOIGT_TEST_WATER:
-          set_voigt_from_level_line_data(F, dF, f, line.F(), 0.0, level_line_data, derivatives_data, derivatives_data_position);
-          break;
-        case PressureBroadeningData::PB_NONE:
-          F = Complex(1.0, 0.0);
-          dF = Complex(0.0, 0.0);
-      }
-      break;
-    case LineShapeType::End:
-      break;
-  }
-  
-  switch(line.GetMirroringType()) {
-    case MirroringType::Lorentz:
-      {
-        Complex Fm;
-        ComplexVector dFm(dF.nelem());
-        set_lorentz_from_level_line_data(Fm, dFm, f, -line.F(), -0.0, level_line_data, derivatives_data, derivatives_data_position);
-        F -= Fm;
-        dF -= dFm;
-      }
-      break;
-    case MirroringType::SameAsLineShape:
-      {
-        Complex Fm;
-        ComplexVector dFm(dF.nelem());
-        switch(line.GetLineShapeType()) {
-          case LineShapeType::Doppler:
-            set_doppler_from_level_line_data(Fm, dFm, f, -line.F(), -0.0, level_line_data, derivatives_data, derivatives_data_position);
-            break;
-          case LineShapeType::Lorentz:
-            set_lorentz_from_level_line_data(Fm, dFm, f, -line.F(), -0.0, level_line_data, derivatives_data, derivatives_data_position);
-            break;
-          case LineShapeType::Voigt:
-            set_voigt_from_level_line_data(Fm, dFm, f, -line.F(), -0.0, level_line_data, derivatives_data, derivatives_data_position);
-            break;
-          case LineShapeType::HTP:
-            set_htp_from_level_line_data(Fm, dFm, f, -line.F(), -0.0, level_line_data, derivatives_data, derivatives_data_position);
-            break;
-          case LineShapeType::ByPressureBroadeningData:
-            switch(line.PressureBroadeningType()) {
-              case PressureBroadeningData::PB_SD_AIR_VOLUME:
-              case PressureBroadeningData::PB_HTP_AIR_VOLUME:
-              case PressureBroadeningData::PB_PURELY_FOR_TESTING:
-              case PressureBroadeningData::PB_SD_TEST_WATER:
-                set_htp_from_level_line_data(Fm, dFm, f, -line.F(), -0.0, level_line_data, derivatives_data, derivatives_data_position);
-                break;
-              case PressureBroadeningData::PB_AIR_AND_WATER_BROADENING:
-              case PressureBroadeningData::PB_PLANETARY_BROADENING:
-              case PressureBroadeningData::PB_AIR_BROADENING:
-              case PressureBroadeningData::PB_VOIGT_TEST_WATER:
-                set_voigt_from_level_line_data(Fm, dFm, f, -line.F(), -0.0, level_line_data, derivatives_data, derivatives_data_position);
-                break;
-              case PressureBroadeningData::PB_NONE:
-                Fm = Complex(0.0, 0.0);
-                dFm = Complex(0.0, 0.0);
-            }
-            break;
-          case LineShapeType::End: 
-            break;
-        }
-        F -= Fm;
-        dF -= dFm;
-      }
-      break;
-    case MirroringType::None:
-    case MirroringType::End:
-      break;
-  }
-  
-  switch(line.GetLineNormalizationType()) {
-    case LineNormalizationType::None:
-      break;
-    case LineNormalizationType::RosenkranzQuadratic:
-      apply_rosenkranz_quadratic_scaling_from_level_data(F, dF, f, level_line_data, derivatives_data, derivatives_data_position);
-      break;
-    case LineNormalizationType::VVH:
-      apply_VVH_scaling_from_level_data(F, dF, f, T, level_line_data, derivatives_data, derivatives_data_position);
-      break;
-    case LineNormalizationType::VVW:
-      apply_VVW_scaling_from_level_data(F, dF, f, level_line_data, derivatives_data, derivatives_data_position);
-      break;
-    case LineNormalizationType::End:
-      break;
-  }
-  
-  apply_linemixing_from_level_data(F, dF, level_line_data, derivatives_data, derivatives_data_position);
-  
-  apply_pressurebroadening_jacobian_scaling_from_level_data(dF, level_line_data, derivatives_data, derivatives_data_position);
-  
-  apply_linemixing_jacobian_scaling_from_level_data(dF, level_line_data, derivatives_data, derivatives_data_position);
-  
-  // Line population is last since it generates source variables with NLTE on
-  switch(line.GetLinePopulationType()) {
-    case LinePopulationType::ByLTE:
-      apply_LTE_linestrength_from_level_data(F, dF, level_line_data, line, derivatives_data, derivatives_data_position);
-      break;
-    case LinePopulationType::ByVibrationalTemperatures:
-      apply_NLTE_vibrational_temperature_linestrength_from_level_data(F, N, dF, dN, level_line_data, line, derivatives_data, derivatives_data_position);
-      break;
-    case LinePopulationType::ByPopulationDistribution:
-      apply_NLTE_population_distribution_linestrength_from_level_data(F, N, dF, dN, level_line_data, derivatives_data, derivatives_data_position);
-      break;
-    case LinePopulationType::End:
-      break;
-  }
-}
-
-
-void Linefunctions::set_doppler_from_level_line_data(Complex& F,
-                                                     ComplexVectorView dF,
-                                                     const Numeric& f,
-                                                     const Numeric& f0,
-                                                     const Numeric& dZdH,
-                                                     const SingleLevelLineData& level_line_data,
-                                                     const ArrayOfRetrievalQuantity& derivatives_data,
-                                                     const ArrayOfIndex& derivatives_data_position) noexcept
-{
-  const Index nd = dF.nelem();
-  
-  const Complex x = level_line_data.doppler_z(f0, f);
-  const Complex w = Faddeeva::w(x);
-  F = level_line_data.scale_w(w);
-  
-  if(nd) {
-    const Complex dw_over_dx = level_line_data.dw_over_dz(x, w);
-    for(Index id=0; id<nd; id++) {
-      if(is_frequency_parameter(derivatives_data[derivatives_data_position[id]]))
-        dF[id] = level_line_data.invGD() * dw_over_dx;
-      else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::Temperature)
-        dF[id] = level_line_data.dGDdT() * (F + x * dw_over_dx) * (-level_line_data.invGD());
-      else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[id]])) {
-        if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition)
-          dF[id] = (- F * level_line_data.GD_div_F0() 
-                    + dw_over_dx * (x * level_line_data.GD_div_F0() - 1.0)) * level_line_data.invGD();
-      }
-      else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[id]]))
-        dF[id] = dw_over_dx * (-dZdH);
-    }
-  }
-}
-
-
-void Linefunctions::set_lorentz_from_level_line_data(Complex& F,
-                                                     ComplexVectorView dF,
-                                                     const Numeric& f,
-                                                     const Numeric& f0,
-                                                     const Numeric& dZdH,
-                                                     const SingleLevelLineData& level_line_data,
-                                                     const ArrayOfRetrievalQuantity& derivatives_data,
-                                                     const ArrayOfIndex& derivatives_data_position) noexcept
-{
-  const Index nd = dF.nelem();
-  
-  const Complex z = level_line_data.lorentz_z(f0, f);
-  const Complex L = invPI / z;
-  
-  // nb.  ARTS believes imag == refraction and real == absorption.
-  // We must therefore always change order of arguments because that's not how Lorentz thinks
-  F.real(L.imag());
-  F.imag(L.real());
-  
-  if(nd) {
-    const Complex dL2_over_dz = - L * L * PI;
-    for(Index id=0; id<nd; id++) {
-      if(is_frequency_parameter(derivatives_data[derivatives_data_position[id]])) {
-        dF[id].real(dL2_over_dz.imag());
-        dF[id].imag(dL2_over_dz.real());
-      }
-      else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::Temperature) {
-        const Complex d = dL2_over_dz * level_line_data.lorentz_dT();
-        dF[id].real(d.imag());
-        dF[id].imag(d.real());
-      }
-      else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[id]])) {
-        if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition) {
-          dF[id].real(-dL2_over_dz.imag());
-          dF[id].imag(-dL2_over_dz.real());
-        }
-      }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[id]])) {
-        if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition) {
-          dF[id].real(dL2_over_dz.imag());
-          dF[id].imag(dL2_over_dz.real());
-        }
-      }
-      else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[id]])) {
-        dF[id].real(dL2_over_dz.imag() * (-dZdH));
-        dF[id].imag(dL2_over_dz.real() * (-dZdH));
-      }
-      else if(is_line_mixing_parameter(derivatives_data[derivatives_data_position[id]])) {
-        if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition) {
-          dF[id].real(dL2_over_dz.imag());
-          dF[id].imag(dL2_over_dz.real());
-        }
-      }
-    }
-  }
-}
-
-
-void Linefunctions::set_voigt_from_level_line_data(Complex& F,
-                                                   ComplexVectorView dF,
-                                                   const Numeric& f,
-                                                   const Numeric& f0,
-                                                   const Numeric& dZdH,
-                                                   const SingleLevelLineData& level_line_data,
-                                                   const ArrayOfRetrievalQuantity& derivatives_data,
-                                                   const ArrayOfIndex& derivatives_data_position) noexcept
-{
-  const Index nd = dF.nelem();
- 
-  const Complex z = level_line_data.voigt_z(f0, f);
-  const Complex w = Faddeeva::w(z);
-  F = level_line_data.scale_w(w);
-  
-  if(nd) {
-    const Complex dw_over_dz = level_line_data.dw_over_dz(z, w);
-    for(Index id=0; id<nd; id++) {
-      if(is_frequency_parameter(derivatives_data[derivatives_data_position[id]]))
-        dF[id] = dw_over_dz * level_line_data.invGD();
-      else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::Temperature)
-        dF[id] = - F * level_line_data.dGDdT() * level_line_data.invGD() + dw_over_dz * level_line_data.voigt_dT(z);
-      else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[id]])) {
-        if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition)
-          dF[id] = (- F * level_line_data.dGDdT() * level_line_data.invGD()
-                    + dw_over_dz * level_line_data.voigt_dF0(z)) * level_line_data.invGD();
-      }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[id]])) {
-        if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition)
-          dF[id] = dw_over_dz * level_line_data.invGD();
-      }
-      else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[id]]))
-        dF[id] = - dw_over_dz * dZdH * level_line_data.invGD();
-      else if(is_line_mixing_parameter(derivatives_data[derivatives_data_position[id]])) {
-        if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition) {
-          dF[id] = dw_over_dz * level_line_data.invGD();
-        }
-      }
-    }
-  }
-}
-
-
-void Linefunctions::set_htp_from_level_line_data(Complex& F,
-                                                 ComplexVectorView dF,
-                                                 const Numeric& f,
-                                                 const Numeric& f0,
-                                                 const Numeric& dZdH,
-                                                 const SingleLevelLineData& level_line_data,
-                                                 const ArrayOfRetrievalQuantity& derivatives_data,
-                                                 const ArrayOfIndex& derivatives_data_position) noexcept
-{
-  const Index nd = dF.nelem();
-  
-  const Complex x = level_line_data.htp_x(f0, f);
-  const Numeric ratio_xy = level_line_data.xy_ratio(x);
-  const Complex z1 = level_line_data.htp_z1(x, ratio_xy);
-  const Complex z2 = level_line_data.htp_z2(x, z1, ratio_xy);
-  const Complex w1 = level_line_data.htp_w1(z1);
-  const Complex w2 = level_line_data.htp_w1(z2);
-  const Complex A = level_line_data.htp_A(w1, w2, z1, ratio_xy);
-  const Complex B = level_line_data.htp_B(w1, w2, z1, z2, ratio_xy);
-  const Complex G = level_line_data.htp_G(A, B);
-  F = A/G * invPI;
-  
-  if(nd) {
-    const Complex dw1_over_dz1 = level_line_data.htp_dw1_over_dz1(z1, w1);
-    const Complex dw2_over_dz2 = level_line_data.htp_dw2_over_dz2(z2, w2);
-    
-    for(Index id=0; id<nd; id++) {
-      Complex dx;
-      bool for_temperature = false;
-      
-      if(is_frequency_parameter(derivatives_data[derivatives_data_position[id]]))
-        dx = level_line_data.htp_dxdf();
-      else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::Temperature) {
-        dx = level_line_data.htp_dxdT(x);
-        for_temperature = true;
-      }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[id]])) {
-        if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition)
-          dx = level_line_data.htp_dxdC0();
-        else 
-          continue;
-      }
-      else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[id]])) {
-        if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition)
-          dx = level_line_data.htp_dxdf0();
-        else
-          continue;
-      }
-      else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[id]]))
-        dx = level_line_data.htp_dxdmag(dZdH);
-      else
-        continue; // to not repeat the code below!  FIXME:  must change this once pressure derivatives are possible
-      
-      const Complex dz1 = level_line_data.htp_dz1dt(z1, dx, ratio_xy, for_temperature);
-      const Complex dz2 = level_line_data.htp_dz2dt(z2, dz1, dx, ratio_xy, for_temperature);
-      const Complex dw1 = dz1 * dw1_over_dz1;
-      const Complex dw2 = dz2 * dw2_over_dz2;
-      const Complex dA = level_line_data.htp_dAdt(A, w1, dw1, dw2, z1, dz1, ratio_xy, for_temperature);
-      const Complex dB = level_line_data.htp_dBdt(w1, dw1, w2, dw2, z1, dz1, z2, dz2, ratio_xy, for_temperature);
-      const Complex dG = level_line_data.htp_dGdt(A, dA, dB, for_temperature);
-      dF[id] = (invPI * dA - F * dG) / G;
-    }
-  }
-}
-
-
-void Linefunctions::apply_rosenkranz_quadratic_scaling_from_level_data(Complex& F,
-                                                                       ComplexVectorView dF,
-                                                                       const Numeric& f,
-                                                                       const SingleLevelLineData& level_line_data,
-                                                                       const ArrayOfRetrievalQuantity& derivatives_data,
-                                                                       const ArrayOfIndex& derivatives_data_position) noexcept
-{
-  const Index nd = dF.nelem();
-  
-  const Numeric f2 = f * f;
-  const Numeric scaling = f2 * level_line_data.norm();
-  
-  for(Index id=0; id<nd; id++) {
-    if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::Temperature) 
-      dF[id] = f2 * level_line_data.dnormdT() * F + dF[id] * scaling;
-    else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[id]])) {
-      if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition)
-        dF[id] = f2 * level_line_data.dnormdf0() * F + dF[id] * scaling;
-    }
-    else if(is_frequency_parameter(derivatives_data[derivatives_data_position[id]]))
-      dF[id] = 2.0 * f * level_line_data.norm() * F + dF[id] * scaling;
-    else
-      dF[id] *= scaling;
-  }
-  
-  F *= scaling;
-}
-
-
-void Linefunctions::apply_VVH_scaling_from_level_data(Complex& F,
-                                                      ComplexVectorView dF,
-                                                      const Numeric& f,
-                                                      const Numeric& T,
-                                                      const SingleLevelLineData& level_line_data,
-                                                      const ArrayOfRetrievalQuantity& derivatives_data,
-                                                      const ArrayOfIndex& derivatives_data_position) noexcept
-{
-  const Index nd = dF.nelem();
-  
-  const static Numeric c1 = 0.5 * PLANCK_CONST / BOLTZMAN_CONST;
-  const Numeric tanh_part = tanh(c1 * f / T);
-  const Numeric scaling = f * tanh_part * level_line_data.norm();
-  
-  if(nd) {
-    const Numeric cosh_part = cosh(c1 * f / T);
-    for(Index id=0; id<nd; id++) {
-      if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::Temperature)
-        dF[id] = (f * tanh_part * level_line_data.dnormdT() - c1 * f * f / (T * T * cosh_part * cosh_part) * level_line_data.norm()) * F + scaling * dF[id];
-      else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[id]])) {
-        if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition)
-          dF[id] = f * tanh_part * level_line_data.dnormdf0() * F + scaling * dF[id];
-      }
-      else if(is_frequency_parameter(derivatives_data[derivatives_data_position[id]]))
-        dF[id] = (f * c1 / T / (cosh_part * cosh_part) + tanh_part) * level_line_data.norm() * F + scaling * dF[id];
-      else
-        dF[id] *= scaling;
-    }
-  }
-  
-  F *= scaling;
-}
-
-
-void Linefunctions::apply_VVW_scaling_from_level_data(Complex& F,
-                                                      ComplexVectorView dF,
-                                                      const Numeric& f,
-                                                      const SingleLevelLineData& level_line_data,
-                                                      const ArrayOfRetrievalQuantity& derivatives_data,
-                                                      const ArrayOfIndex& derivatives_data_position) noexcept
-{
-  // Same code executed but the constant factor is different!  This is set elsewhere so call the same function
-  apply_rosenkranz_quadratic_scaling_from_level_data(F, dF, f, level_line_data, derivatives_data, derivatives_data_position);
-}
-
-
-void Linefunctions::apply_linemixing_from_level_data(Complex& F,
-                                                     ComplexVectorView dF,
-                                                     const SingleLevelLineData& level_line_data,
-                                                     const ArrayOfRetrievalQuantity& derivatives_data,
-                                                     const ArrayOfIndex& derivatives_data_position) noexcept
-{
-  const Index nd = dF.nelem();
-  
-  for(Index id=0; id<nd; id++) {
-    if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::Temperature)
-      dF[id] = level_line_data.LM() * dF[id] + level_line_data.dLMdT() * F;
-    else if(is_line_mixing_parameter(derivatives_data[derivatives_data_position[id]]))
-      dF[id] = F;
-    else
-      dF[id] *= level_line_data.LM();
-  }
-  
-  F *= level_line_data.LM();
-}
-
-
-void Linefunctions::apply_pressurebroadening_jacobian_scaling_from_level_data(ComplexVectorView dF,
-                                                                              const SingleLevelLineData& level_line_data,
-                                                                              const ArrayOfRetrievalQuantity& derivatives_data,
-                                                                              const ArrayOfIndex& derivatives_data_position) noexcept
-{
-  const Index nd = dF.nelem();
-  Index ig = 0;
-  
-  for(Index id=0; id<nd; id++) {
-    if(level_line_data.no_more_pressure_jacs(ig)) break;
-    if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[id]])) {
-      if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition) {
-        dF[id] *= level_line_data.dgamma(ig);
-        ++ig;
-      }
-    }
-  }
-}
-
-
-void Linefunctions::apply_linemixing_jacobian_scaling_from_level_data(ComplexVectorView dF,
-                                                                      const SingleLevelLineData& level_line_data,
-                                                                      const ArrayOfRetrievalQuantity& derivatives_data,
-                                                                      const ArrayOfIndex& derivatives_data_position) noexcept
-{
-  const Index nd = dF.nelem();
-  Index ilm = 0;
-  
-  for(Index id=0; id<nd; id++) {
-    if(level_line_data.no_more_linemixing_jacs(ilm)) break;
-    if(is_line_mixing_parameter(derivatives_data[derivatives_data_position[id]])) {
-      if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition) {
-        dF[id] *= level_line_data.dlm(ilm);
-        ++ilm;
-      }
-    }
-  }
-}
-
-
-void Linefunctions::apply_LTE_linestrength_from_level_data(Complex& F, 
-                                                           ComplexVectorView dF, 
-                                                           const SingleLevelLineData& level_line_data, 
-                                                           const LineRecord& line,
-                                                           const ArrayOfRetrievalQuantity& derivatives_data, 
-                                                           const ArrayOfIndex& derivatives_data_position) noexcept
-{
-  const Index nd = dF.nelem();
-  
-  for(Index id=0; id<nd; id++) {
-    if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::Temperature)
-      dF[id] = F * level_line_data.dSdT() + level_line_data.S() * dF[id];
-    else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::LineStrength) {
-      if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition)
-        dF[id] = F * level_line_data.S() / line.I0();
-    }
-    else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[id]])) {
-      if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition)
-        dF[id] = F * level_line_data.dSdf0() + level_line_data.S() * dF[id];
-    }
-    else
-      dF[id] *= level_line_data.S();
-  }
-  
-  F *= level_line_data.S();
-}
-
-
-void Linefunctions::apply_NLTE_vibrational_temperature_linestrength_from_level_data(Complex& F, 
-                                                                                    Complex& N,
-                                                                                    ComplexVectorView dF, 
-                                                                                    ComplexVectorView dN, 
-                                                                                    const SingleLevelLineData& level_line_data,
-                                                                                    const LineRecord& line,
-                                                                                    const ArrayOfRetrievalQuantity& derivatives_data,
-                                                                                    const ArrayOfIndex& derivatives_data_position) noexcept
-{
-  // First apply LTE variables for vib-temps
-  apply_LTE_linestrength_from_level_data(F, dF, level_line_data, line, derivatives_data, derivatives_data_position);
-  
-  // Same code path but the constants are derived differently
-  apply_NLTE_population_distribution_linestrength_from_level_data(F, N, dF, dN, level_line_data, derivatives_data, derivatives_data_position);
-}
-
-
-void Linefunctions::apply_NLTE_population_distribution_linestrength_from_level_data(Complex& F,
-                                                                                    Complex& N,
-                                                                                    ComplexVectorView dF,
-                                                                                    ComplexVectorView dN,
-                                                                                    const SingleLevelLineData& level_line_data,
-                                                                                    const ArrayOfRetrievalQuantity& derivatives_data,
-                                                                                    const ArrayOfIndex& derivatives_data_position) noexcept
-{
-  const Index nd = dF.nelem();
-  
-  for(Index id=0; id<nd; id++) {
-    if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::Temperature) {
-      dN[id] = F * level_line_data.dnlte_source_factordT() + dF[id] * level_line_data.nlte_source_factor();
-      dF[id] = F * level_line_data.dnlte_absorption_factordT() + dF[id] * level_line_data.nlte_absorption_factor();
-    }
-    else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[id]])) {
-      if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::FullTransition) {
-        dN[id] = F * level_line_data.dnlte_source_factordf0() + dF[id] * level_line_data.nlte_source_factor();
-        dF[id] = F * level_line_data.dnlte_absorption_factordf0() + dF[id] * level_line_data.nlte_absorption_factor();
-      }
-    }
-    else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::NLTE) {
-      if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::Lower or level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::Both) {
-        dN[id] = F * level_line_data.dnlte_source_factordlow() + dF[id] * level_line_data.nlte_source_factor();
-        dF[id] = F * level_line_data.dnlte_absorption_factordlow() + dF[id] * level_line_data.nlte_absorption_factor();
-      }
-      else if(level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::Upper or level_line_data(id) == SingleLevelLineData::SpectroscopyDerivivatives::Both) {
-        dN[id] = F * level_line_data.dnlte_source_factordupp() + dF[id] * level_line_data.nlte_source_factor();
-        dF[id] = F * level_line_data.dnlte_absorption_factordupp() + dF[id] * level_line_data.nlte_absorption_factor();
-      }
-    }
-    else {
-      dN[id] = dF[id] * level_line_data.nlte_source_factor();
-      dF[id] *= level_line_data.nlte_absorption_factor();
-    }
-  }
-  
-  N = F * level_line_data.nlte_source_factor();
-  F *= level_line_data.nlte_absorption_factor();
-}
-
-
-
-inline Complex Linefunctions::SingleLevelLineData::scale_w(const Complex& w) const noexcept
-{
-  return w * minvGD * sqrtInvPI;
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::dw_over_dz(const Complex& z, const Complex& w) const noexcept
-{
-  const static Complex s = Complex(0.0, sqrtInvPI);
-  return 2.0 * minvGD * sqrtInvPI * (s - z * w);
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_x(const Numeric& f0, const Numeric& f) const noexcept
-{
-  if(mC2t_is_zero)
-    return (Complex(0.0, 0.0 + f0 + mZ - f) + mC0t) * minvGD;
-  else 
-    return (Complex(0.0, 0.0 + f0 + mZ - f) + mC0t) / mC2t;
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_dxdT(const Complex& x) const noexcept
-{
-  if(mC2t_is_zero)
-    return (mdC0tdT - x * mdGDdT) * minvGD;
-  else 
-    return (mdC0tdT - x * mdC2tdT) / mC2t;
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_dxdf() const noexcept
-{
-  if(mC2t_is_zero)
-    return Complex(0.0, -1.0) * minvGD;
-  else 
-    return Complex(0.0, - 1.0) / mC2t;
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_dxdf0() const noexcept
-{
-  return -htp_dxdf();
-}
-
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_dxdmag(const Numeric& zeeman_df) const noexcept
-{
-  return htp_dxdf0() * zeeman_df;
-}
-
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_dxdC0() const noexcept
-{ 
-  if(mC2t_is_zero)
-    return (1 - meta) * minvGD;
-  else 
-    return (1 - meta) / mC2t;
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_dxdC2(const Complex& x) const noexcept
-{
-  if(mC2t_is_zero)
-    return Complex(0.0, 0.0);// FIXME:  Find analytical solution for this...  maybe "- x * minvGD * (1 - meta)"?
-  else 
-    return - x / mC2t * (1 - meta);
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_dxdFVC() const noexcept
-{
-  if(mC2t_is_zero)
-    return 1.0 * minvGD;
-  else 
-    return 1.0 / mC2t;
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_dxdeta(const Complex& x) const noexcept
-{
-  if(mC2t_is_zero)
-    return - 1.0 * minvGD;
-  else 
-    return (x - mC0 + 1.5*mC2) / mC2t;
-}
-
-
-static const Numeric MAXIMUM_XY_RATIO = 10e15;
-static const Numeric MINIMUM_XY_RATIO = 3e-8;
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_z1(const Complex& x, const Numeric& ratio_xy) const noexcept
-{
-  if(mC2t_is_zero)
-    return x;
-  else if(ratio_xy > MAXIMUM_XY_RATIO)  //  Y less than X by a lot
-    return sqrt(x);
-  else if(ratio_xy < MINIMUM_XY_RATIO)  //  Y more than X by a lot
-    return x * mC2t * minvGD;
-  else
-    return sqrt(x + my) - msqrty;
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_dz1dt(const Complex& z1, const Complex& dx, const Numeric& ratio_xy, const bool for_temperature) const noexcept
-{
-  if(mC2t_is_zero)
-    return dx;
-  else if(ratio_xy > MAXIMUM_XY_RATIO)  //  Y less than X by a lot
-    return dx / (2. * z1);
-  else if(ratio_xy < MINIMUM_XY_RATIO and for_temperature)  //  Y more than X by a lot
-    return dx * mC2t * minvGD + z1 * (mdC2dT / mC2t - minvGD * mdGDdT);
-  else if(ratio_xy < MINIMUM_XY_RATIO)  //  Y more than X by a lot
-    return dx * mC2t * minvGD;
-  else if(for_temperature)
-    return  (dx + mdydT) / (2.0 * (z1 + msqrty)) - mdydT / (2.0 * msqrty);
-  else
-    return  dx / (2.0 * (z1 + msqrty));
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_z2(const Complex& x, const Complex& z1, const Numeric& ratio_xy) const noexcept
-{
-  if(mC2t_is_zero)  // z2 infinite, nb sqrt(z → inf) * w(z → inf) → 1 / sqrt(pi) & w(z → inf) → 0.
-    return Complex(1e99, 1e99);
-  else if(ratio_xy > MAXIMUM_XY_RATIO)  //  Y less than X by a lot
-    return sqrt(x + my);
-  else if(ratio_xy < MINIMUM_XY_RATIO)  //  Y more than X by a lot
-    return sqrt(x + my) + msqrty;
-  else
-    return z1 + 2.0 * msqrty;
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_dz2dt(const Complex& z2, const Complex& dz1, const Complex& dx, const Numeric& ratio_xy, const bool for_temperature) const noexcept
-{
-  if(mC2t_is_zero)  // z2 infinite, nb sqrt(z → inf) * w(z → inf) → 1 / sqrt(pi) & w(z → inf) → 0.
-    return Complex(0.0, 0.0);
-  else if(ratio_xy > MAXIMUM_XY_RATIO and for_temperature)  //  Y less than X by a lot
-    return (dx + mdydT) / (2.0 * z2);
-  else if(ratio_xy > MAXIMUM_XY_RATIO)  //  Y less than X by a lot
-    return dx / (2.0 * z2);
-  else if(ratio_xy < MINIMUM_XY_RATIO and for_temperature)  //  Y more than X by a lot
-    return  (dx + mdydT) / (2.0 * (z2 - msqrty)) + mdydT / (2.0 * msqrty);
-  else if(ratio_xy < MINIMUM_XY_RATIO)  //  Y more than X by a lot
-    return dx / (2.0 * (z2 - msqrty));
-  else if(for_temperature)
-    return dz1 + mdydT / msqrty;
-  else
-    return dz1;
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_w1(const Complex& z1) const noexcept
-{
-  return Faddeeva::w(Complex(0.0, 1.0) * z1);  // z1 is set to always give results
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_dw1_over_dz1(const Complex& z1, const Complex& w1) const noexcept
-{
-  return 2.0 * (z1 * w1 - sqrtInvPI);
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_w2(const Complex& z2) const noexcept
-{
-  if(mC2t_is_zero)  // w(z → inf) → 0
-    return Complex(0.0, 0.0);
-  else
-    return Faddeeva::w(Complex(0.0, 1.0) * z2);
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_dw2_over_dz2(const Complex& z2, const Complex& w2) const noexcept
-{
-  if(mC2t_is_zero)  // w(z → inf) → 0?
-    return Complex(0.0, 0.0);
-  else
-    return 2.0 * (z2 * w2 - sqrtInvPI);
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_A(const Complex& w1, const Complex& w2, const Complex& z1, const Numeric& ratio_xy) const noexcept
-{
-  if(mC2t_is_zero)  // Standard Voigt function!
-    return sqrtPI * minvGD * w1;
-  else if(ratio_xy > MAXIMUM_XY_RATIO)  //  Y less than X by a lot;  z1 is already sqrt(x);  Note problem for large x!
-    return 2 * sqrtPI / mC2t * (sqrtInvPI - z1 * w1);
-  else  // Diff of two Voigt functions
-    return sqrtPI * minvGD * (w1 - w2);
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_dAdt(const Complex& A,  const Complex& w1, const Complex& dw1, const Complex& dw2,
-                                                            const Complex& z1, const Complex& dz1, const Numeric& ratio_xy, const bool for_temperature) const noexcept
-{
-  // FIXME:  Add derivatives for C2 and for eta here in future!
-  
-  if(mC2t_is_zero and for_temperature)  // Standard Voigt function!
-    return minvGD * (sqrtPI * dw1 - A * mdGDdT);
-  if(mC2t_is_zero)  // Standard Voigt function!
-    return sqrtPI * minvGD * dw1;
-  else if(ratio_xy > MAXIMUM_XY_RATIO and for_temperature)  //  Y less than X by a lot;  z1 is already sqrt(x);  Note problem for large x!
-    return (- A * mdC2tdT + 2 * sqrtPI * (- dz1 * w1 - z1 * dw1)) / mC2t;
-  else if(ratio_xy > MAXIMUM_XY_RATIO)  //  Y less than X by a lot;  z1 is already sqrt(x);  Note problem for large x!
-    return 2 * sqrtPI / mC2t * (- dz1 * w1 - z1 * dw1);
-  else if(for_temperature)
-    return (- A * mdGDdT + sqrtPI * (dw1 - dw2)) * minvGD;
-  else  
-    return sqrtPI * minvGD * (dw1 - dw2);
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_B(const Complex& w1, const Complex& w2, const Complex& z1, const Complex& z2, const Numeric& ratio_xy) const noexcept
-{
-  if(mC2t_is_zero)  // In original equation, this term is unimportant because eta * C2 is 0.
-    return Complex(0.0, 0.0);
-  else if(ratio_xy > MAXIMUM_XY_RATIO)  //  Y less than X by a lot;  z1 is sqrt(x), z2 is sqrt(x + y);  Note problem for large z1/z2!
-    return meta / (1 - meta) * (-1. + 2 * sqrtPI * ((1. - z2*z2 - my) * (sqrtInvPI - z1 * w1) +  z2 * w2));
-  else
-    return meta / (1 - meta) * (-1. + sqrtPI / (2. * msqrty) * ((1. - z1*z1) * w1 - (1. - z2*z2) * w2));
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_dBdt(const Complex& w1, const Complex& dw1,
-                                                            const Complex& w2, const Complex& dw2,
-                                                            const Complex& z1, const Complex& dz1,
-                                                            const Complex& z2, const Complex& dz2,
-                                                            const Numeric& ratio_xy, const bool for_temperature) const noexcept
-{
-  if(mC2t_is_zero)  // In original equation, this term is unimportant because eta * C2 is 0
-    return Complex(0.0, 0.0);
-  else if(ratio_xy > MAXIMUM_XY_RATIO and for_temperature)  //  Y less than X by a lot;  z1 is sqrt(x), z2 is sqrt(x + y);  Note problem for large z1/z2!
-    return meta / (1 - meta) * (2 * sqrtPI * ((- 2.0*dz2*z2 - mdydT) * (sqrtInvPI - z1 * w1) + (1. - z2*z2 - my) * (- dz1 * w1 - z1 * dw1) + dz2 * w2 + z2 * dw2));
-  else if(ratio_xy > MAXIMUM_XY_RATIO and for_temperature)  //  Y less than X by a lot;  z1 is sqrt(x), z2 is sqrt(x + y);  Note problem for large z1/z2!
-    return meta / (1 - meta) * (2 * sqrtPI * ((- 2.0*dz2*z2) * (sqrtInvPI - z1 * w1) + (1. - z2*z2 - my) * (- dz1 * w1 - z1 * dw1) + dz2 * w2 + z2 * dw2));
-  else if(for_temperature)
-    return meta / (1 - meta) * (sqrtPI / (2. * msqrty) * ((- 2.0*dz1*z1) * w1 + (1. - z1*z1) * dw1 - (- 2.0*dz2*z2) * w2 - (1. - z2*z2) * dw2) - mdydT * sqrtPI / (4. * my * msqrty) * ((1. - z1*z1) * w1 - (1. - z2*z2) * w2));
-  else
-    return meta / (1 - meta) * (sqrtPI / (2. * msqrty) * ((- 2.0*dz1*z1) * w1 + (1. - z1*z1) * dw1 - (- 2.0*dz2*z2) * w2 - (1. - z2*z2) * dw2));
-    
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_G(const Complex& A, const Complex& B) const noexcept
-{
-  return 1.0 - (mFVC - meta * (mC0 - 1.5 * mC2)) * A + B;
-}
-
-
-inline Complex Linefunctions::SingleLevelLineData::htp_dGdt(const Complex& A, const Complex& dA, const Complex& dB, const bool for_temperature) const noexcept
-{
-  // FIXME:  Add derivatives for C2 and for eta here in future!
-  if(for_temperature)
-    return - (mdFVCdT - meta * (mdC0dT - 1.5 * mdC2dT)) * A - (mFVC - meta * (mC0 - 1.5 * mC2)) * dA + dB;
-  else
-    return - (mFVC - meta * (mC0 - 1.5 * mC2)) * dA + dB;
-}
-
-
-Linefunctions::SingleLevelLineData::SingleLevelLineData(const LineRecord& line,
-                                                        const ConstVectorView vmrs,
-                                                        const ConstVectorView nlte_distribution,
-                                                        const Numeric& T,
-                                                        const Numeric& P,
-                                                        const Numeric&,
-                                                        const Numeric& lm_p_lim,
-                                                        const Numeric& isotopic_ratio,
-                                                        const Numeric& QT,
-                                                        const Numeric& dQTdT,
-                                                        const Numeric& QT0,
-                                                        const ArrayOfIndex& broadening_species,
-                                                        const Index this_species,
-                                                        const Index water_species,
-                                                        const Index,
-                                                        const ArrayOfRetrievalQuantity& derivatives_data,
-                                                        const ArrayOfIndex& derivatives_data_position)
-{
-  // Extract the quantum identify of the line to be used in-case there are derivatives
-  const QuantumIdentifier& QI = line.QuantumIdentity();
-  
-  Numeric A, B, C, D, E;
-  line.SetPressureBroadeningParameters( A, B, meta, C, D, mFVC, T, P, 
-     this_species, water_species, broadening_species, vmrs);
-  mC0 = Complex(A, C); mC2 = Complex(B, D);
-  
-  line.SetLineMixingParameters(A, B, mDV, T, P, lm_p_lim);
-  mLM = Complex(1.0 + B, A);
-  
-  if(do_temperature_jacobian(derivatives_data)) {
-    // Pressure broadening partial derivatives
-    line.SetPressureBroadeningParametersTemperatureDerivative(
-      A, B, E, C, D, mdFVCdT, T, P, 
-      this_species, water_species, broadening_species, vmrs);
-    mdC0dT.imag(C); mdC0dT.real(A); mdC2dT.imag(D); mdC2dT.real(B);
-    
-    line.SetLineMixingParametersTemperatureDerivative(A, B, mdDVdT, T, temperature_perturbation(derivatives_data), P, lm_p_lim);
-    mdLMdT = Complex(B, A);
-  }
-  
-  const Index nd = derivatives_data_position.nelem();
-  mspectroscopy_derivatives = Array<SpectroscopyDerivivatives>(nd, SpectroscopyDerivivatives::None);
-  for(Index id=0; id<nd; id++) {
-    if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[id]]) or
-       is_line_mixing_parameter(derivatives_data[derivatives_data_position[id]])         or
-       derivatives_data[derivatives_data_position[id]] == JacPropMatType::LineCenter     or
-       derivatives_data[derivatives_data_position[id]] == JacPropMatType::LineStrength) {
-      if(QI > derivatives_data[derivatives_data_position[id]].QuantumIdentity()) {
-        mspectroscopy_derivatives[id] = SpectroscopyDerivivatives::FullTransition;
-      }
-    }
-    else if(derivatives_data[derivatives_data_position[id]] == JacPropMatType::NLTE) {
-      if(QI.LowerQuantumId() > derivatives_data[derivatives_data_position[id]].QuantumIdentity()) {
-        mspectroscopy_derivatives[id] = SpectroscopyDerivivatives::Lower;
-      }
-      if(QI.UpperQuantumId() > derivatives_data[derivatives_data_position[id]].QuantumIdentity()) {
-        if(mspectroscopy_derivatives[id] == SpectroscopyDerivivatives::Lower)
-          mspectroscopy_derivatives[id] = SpectroscopyDerivivatives::Both;
-        else
-          mspectroscopy_derivatives[id] = SpectroscopyDerivivatives::Upper;
-      }
-    }
-  }
-  
-  line.SetInternalPressureBroadeningDerivatives(mpressure_derivatives, derivatives_data, T, P, this_species, water_species, vmrs);
-  
-  line.SetInternalLineMixingDerivatives(mlinemixing_derivatives, derivatives_data, T, P, lm_p_lim);
-  
-  mZ = 0.0;
-  
-  switch(line.GetLineNormalizationType()) {
-    case LineNormalizationType::None:
-      break;
-    case LineNormalizationType::VVH:
-      A = 2*BOLTZMAN_CONST*T;
-      B = tanh(PLANCK_CONST*line.F()/A);
-      mnorm = 1 / (line.F()*B);
-      mdnormdT = PLANCK_CONST*(1-B*B)/(A*A*B*B);
-      mdnormdf0 = - (mnorm/line.F() + PLANCK_CONST*(1-B*B)/(A*line.F()*B*B));
-      break;
-    case LineNormalizationType::RosenkranzQuadratic:
-      A = 2*BOLTZMAN_CONST*T;
-      B = sinh(PLANCK_CONST*line.F()/A);
-      C = cosh(PLANCK_CONST*line.F()/A);
-      mnorm = PLANCK_CONST/(A*line.F()*B);
-      mdnormdT = -mnorm/T + PLANCK_CONST*PLANCK_CONST*C/(A*A*T*B*B);
-      mdnormdf0 = -mnorm/line.F() - PLANCK_CONST*PLANCK_CONST*C/(A*A*line.F()*B*B);
-      break;
-    case LineNormalizationType::VVW:
-      A = line.F() * line.F();
-      mnorm = 1 / A;
-      mdnormdT = 0.0;
-      mdnormdf0 = - 2 * mnorm / line.F();
-      break;
-    case LineNormalizationType::End:
-      throw std::runtime_error("Bad line normalization");
-  }
-  
-  switch(line.GetLinePopulationType()) {
-    case LinePopulationType::ByLTE:
-    case LinePopulationType::ByVibrationalTemperatures:
-    {
-      // Line strength scaling that are line-dependent ---
-      const Numeric gamma = stimulated_emission(T, line.F());
-      const Numeric gamma_ref = stimulated_emission(line.Ti0(), line.F());
-      const Numeric K1 = boltzman_ratio(T, line.Ti0(), line.Elow());
-      const Numeric K2 = stimulated_relative_emission(gamma, gamma_ref);
-      mS = K1 * K2 * QT0/QT * isotopic_ratio * line.I0();
-      if(do_temperature_jacobian(derivatives_data)) {
-        const Numeric dK1_dT = dboltzman_ratio_dT(K1, T, line.Elow());
-        const Numeric dK2_dT = dstimulated_relative_emission_dT(gamma, gamma_ref, line.F(), T);
-        mdSdT = line.I0() * isotopic_ratio * QT0/QT  * (K1 * dK2_dT + dK1_dT * K2) - mS / QT * dQTdT;
-      }
-      mdSdf0 = line.I0() * isotopic_ratio * QT0/QT * K1 * dstimulated_relative_emission_dF0(gamma, gamma_ref, T, line.Ti0());
-      if(line.GetLinePopulationType() != LinePopulationType::ByLTE) {
-        const Numeric K4 = boltzman_ratio(nlte_distribution[line.NLTEUpperIndex()], T, line.Evupp());
-        const Numeric rlow = boltzman_ratio(nlte_distribution[line.NLTELowerIndex()], T, line.Evlow());
-        const Numeric K3 = absorption_nlte_ratio(gamma, K4, rlow);
-        const Numeric dK3_dF0 = dabsorption_nlte_rate_dF0(gamma, T, K4, rlow);
-        const Numeric dK3_dT = dabsorption_nlte_rate_dT(gamma, T, line.F(), line.Evlow(), line.Evupp(), K4, rlow);
-        const Numeric dK3_dTl = dabsorption_nlte_rate_dTl(gamma, T, nlte_distribution[line.NLTELowerIndex()], line.Evlow(), rlow);
-        const Numeric dK3_dTu = dabsorption_nlte_rate_dTu(gamma, T, nlte_distribution[line.NLTEUpperIndex()], line.Evupp(), K4);
-        const Numeric dK4_dTu = dboltzman_ratio_dT(K4, nlte_distribution[line.NLTEUpperIndex()], line.Evupp());
-        
-        // NOTE:  This code might have bit-rot in it...  This is the third copy...
-        mnlte_abs = K3;
-        mdnlte_absdT = dK3_dT;
-        mdnlte_absdf0 = dK3_dF0;
-        mdnlte_absdlow = dK3_dTl;
-        mdnlte_absdupp = dK3_dTu;
-        mnlte_src = K4/K3 - 1.0;
-        mdnlte_absdf0 = - dK3_dF0 / K3 / K3;
-        mdnlte_absdT = - dK3_dT / K3 / K3;
-        mdnlte_srcdlow = - dK3_dTl / K3 / K3;
-        mdnlte_srcdupp = (dK4_dTu - dK3_dTu / K3) / K3;
-      }
-      break;
-    }
-    case LinePopulationType::ByPopulationDistribution:
-    {
-      // Physical constants
-      const static Numeric c0 = 2.0 * PLANCK_CONST / SPEED_OF_LIGHT / SPEED_OF_LIGHT;
-      const static Numeric c1 = PLANCK_CONST / 4 / PI;
-      const static Numeric fac = c1 / c0;
-      const Numeric x = line.G_upper() / line.G_lower();
-      const Numeric f = fac * line.A() / (line.F() * line.F());
-      const Numeric exp_T = exp(PLANCK_CONST * line.F() / BOLTZMAN_CONST / T);
-      
-      const Numeric& r1 = nlte_distribution[line.NLTELowerIndex()];
-      const Numeric& r2 = nlte_distribution[line.NLTEUpperIndex()];
-      
-      mdnlte_absdlow = -f;
-      mdnlte_absdupp = x * f;
-      mnlte_abs = r1 * mdnlte_absdlow + r2 * mdnlte_absdupp;
-      mdnlte_absdT = 0.0;
-      mdnlte_absdf0 = -2.0*mnlte_abs/line.F();
-      
-      
-      mdnlte_srcdupp = (exp_T - 1) * f - mdnlte_absdupp;
-      mdnlte_srcdlow = -mdnlte_absdlow;
-      mnlte_src = r1 * mdnlte_srcdlow + r2 * mdnlte_srcdupp;
-      mdnlte_absdf0 = -2.0*mnlte_src/line.F() + PLANCK_CONST / BOLTZMAN_CONST / T * f;
-      mdnlte_srcdT = - r2 * PLANCK_CONST * line.F() / BOLTZMAN_CONST * exp_T * f / T / T;
-      break;
-    }
-    case LinePopulationType::End:
-      throw std::runtime_error("Error in line populations");
-  }
-  
-  mGD_div_F0 = DopplerConstant(T, line.IsotopologueData().Mass());
-  minvGD = 1 / (mGD_div_F0 * line.F());
-  mdGDdT = dDopplerConstant_dT(T, line.IsotopologueData().Mass()) * line.F();
-}
-
-
-ostream& Linefunctions::operator<<(ostream& os, const Linefunctions::SingleLevelLineData& slld)
-{
-  // For internal review of values only
-  
-  os << "Pressure Data:\n\t";
-  os << "C0: " << slld.mC0<<", ";
-  os << "C2: " << slld.mC2<<", ";
-  os << "FVC: " << slld.mFVC<<", ";
-  os << "eta: " << slld.meta<<", ";
-  os << "\n\t";
-  os << "dC0/dT: " << slld.mdC0dT<<", ";
-  os << "dC2/dT: " << slld.mdC2dT<<", ";
-  os << "dFVC/dT: " << slld.mdFVCdT<<", ";
-  os << "\n";
-  
-  os << "Pressure Data Spectroscopic Derivivatives:\n\t";
-  for(const auto& c : slld.mpressure_derivatives)
-    os << "Value: " << c << ", ";
-  os << "\n";
-  
-  os << "Line Mixing:\n\t";
-  os << "LM: " << slld.mLM<<", ";
-  os << "DV: " << slld.mDV<<", ";
-  os << "dLM/dT: " << slld.mdLMdT<<", ";
-  os << "dDV/dT: " << slld.mdDVdT<<", ";
-  os << "\n";
-  
-  os << "Line Mixing Spectroscopic Derivivatives:\n\t";
-  for(const auto& c : slld.mlinemixing_derivatives)
-    os << "Value: " << c << ", ";
-  os << "\n";
-  
-  os << "Doppler Effects:\n\t";
-  os << "GD/F0: " << slld.mGD_div_F0 << ", ";
-  os << "1/GD: " << slld.minvGD<< ", ";
-  os << "dGD/dT: " << slld.mdGDdT<< ", ";
-  os << "\n";
-  
-  os << "Zeeman shift:\n\t";
-  os << slld.mZ << ", ";
-  os << "\n";
-  
-  os << "HTP Derived Parameters:\n\t";
-  os << "C0-t: " << slld.mC0t << ", ";
-  os << "C2-t: " << slld.mC2t << ", ";
-  os << "Y: " << slld.my << ", ";
-  os << "sqrt(Y): " << slld.msqrty << ", ";
-  os << "\n\t";
-  os << "dC0-t/dT: " << slld.mdC0tdT << ", ";
-  os << "dC2-t/dT: " << slld.mdC2tdT << ", ";
-  os << "dY/dT: " << slld.mdydT << ", ";
-  os << "\n";
-  
-  os << "Line Shape Normalization Factors:\n\t";
-  os << "Norm: " << slld.mnorm << ", ";
-  os << "dNorm/dT: " << slld.mdnormdT << ", ";
-  os << "dNorm/df0: " << slld.mdnormdf0 << ", ";
-  os << "\n";
-  
-  os << "Line Strength  LTE Factors:\n\t";
-  os << "S: " << slld.mS << ", ";
-  os << "dS/dT: " << slld.mdSdT<< ", ";
-  os << "dS/df0: " << slld.mdSdf0 << ", ";
-  os << "\n";
-  
-  os << "Line Strength NLTE Factors:\n\t";
-  os << "a: " << slld.mnlte_abs << ", ";
-  os << "da/dT: " << slld.mdnlte_absdT << ", ";
-  os << "da/df0: " << slld.mdnlte_absdf0 << ", ";
-  os << "da/dn2: " << slld.mdnlte_absdupp << ", ";
-  os << "da/dn1: " << slld.mdnlte_absdlow << ", ";
-  os << "\n\t";
-  os << "s: " << slld.mnlte_src << ", ";
-  os << "ds/dT: " << slld.mdnlte_srcdT << ", ";
-  os << "ds/df0: " << slld.mdnlte_srcdf0 << ", ";
-  os << "ds/dn2: " << slld.mdnlte_srcdupp << ", ";
-  os << "ds/dn1: " << slld.mdnlte_srcdlow << ", ";
-  os << "\n";
-  
-  return os;
 }

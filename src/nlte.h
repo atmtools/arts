@@ -58,24 +58,24 @@ Vector createBij(const ArrayOfLineRecord& abs_lines);
 Vector createBji(ConstVectorView Bij, const ArrayOfLineRecord& abs_lines);
 
 
-Vector createCijFromPressureBroadening(const ArrayOfLineRecord& abs_lines, 
-                                       ConstVectorView vmrs,
-                                       const ArrayOfIndex& broad_spec_locations,
-                                       const Numeric& T,
-                                       const Numeric& P,
-                                       const Index this_species,
-                                       const Index water_species);
-
-
-void setCijFromPressureBroadening(VectorView Cij, 
-                                  const ArrayOfLineRecord& abs_lines, 
-                                  ConstVectorView vmrs,
-                                  const ArrayOfIndex& broad_spec_locations,
-                                  const Numeric& T,
-                                  const Numeric& P,
-                                  const Index this_species,
-                                  const Index water_species,
-                                  const Index n);
+// Vector createCijFromPressureBroadening(const ArrayOfLineRecord& abs_lines, 
+//                                        ConstVectorView vmrs,
+//                                        const ArrayOfIndex& broad_spec_locations,
+//                                        const Numeric& T,
+//                                        const Numeric& P,
+//                                        const Index this_species,
+//                                        const Index water_species);
+// 
+// 
+// void setCijFromPressureBroadening(VectorView Cij, 
+//                                   const ArrayOfLineRecord& abs_lines, 
+//                                   ConstVectorView vmrs,
+//                                   const ArrayOfIndex& broad_spec_locations,
+//                                   const Numeric& T,
+//                                   const Numeric& P,
+//                                   const Index this_species,
+//                                   const Index water_species,
+//                                   const Index n);
 
 
 Vector createCji(ConstVectorView Cij, const ArrayOfLineRecord& abs_lines, const Numeric& T);

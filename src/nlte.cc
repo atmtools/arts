@@ -144,48 +144,48 @@ Vector createBji(ConstVectorView Bij, const ArrayOfLineRecord& abs_lines)
 }
 
 
-// See Pack 1979...
-Vector createCijFromPressureBroadening(const ArrayOfLineRecord& abs_lines, 
-                                       ConstVectorView vmrs,
-                                       const ArrayOfIndex& broad_spec_locations,
-                                       const Numeric& T,
-                                       const Numeric& P,
-                                       const Index this_species,
-                                       const Index water_species)
-{
-  const Index n = abs_lines.nelem();
-  Vector Cij(n);
-  setCijFromPressureBroadening(Cij, abs_lines, vmrs, broad_spec_locations, T, P, this_species, water_species, n);
-  return Cij;
-}
+// // See Pack 1979...
+// Vector createCijFromPressureBroadening(const ArrayOfLineRecord& abs_lines, 
+//                                        ConstVectorView vmrs,
+//                                        const ArrayOfIndex& broad_spec_locations,
+//                                        const Numeric& T,
+//                                        const Numeric& P,
+//                                        const Index this_species,
+//                                        const Index water_species)
+// {
+//   const Index n = abs_lines.nelem();
+//   Vector Cij(n);
+//   setCijFromPressureBroadening(Cij, abs_lines, vmrs, broad_spec_locations, T, P, this_species, water_species, n);
+//   return Cij;
+// }
 
 
-void setCijFromPressureBroadening(VectorView Cij, 
-                                  const ArrayOfLineRecord& abs_lines, 
-                                  ConstVectorView vmrs,
-                                  const ArrayOfIndex& broad_spec_locations,
-                                  const Numeric& T,
-                                  const Numeric& P,
-                                  const Index this_species,
-                                  const Index water_species,
-                                  const Index n)
-{
-//FIXME: Fix this function!
-  assert(n == Cij.nelem() and n == abs_lines.nelem());
-  
-  extern const Numeric PI, SPEED_OF_LIGHT, BOLTZMAN_CONST;
-  const static Numeric c0 = 2.0 * PI * BOLTZMAN_CONST * SPEED_OF_LIGHT;
-  const Numeric constant = T * c0;
-  
-  // Base equation for single state:  C21 = kT 2PI c G21 (where G21 is the pressure broadening at 1 Pascal)
-  for(Index i = 0; i < n; i++) {
-    const LineRecord& line = abs_lines[i];
-    Numeric g0, g2, eta, df_0, df_2, f_VC;
-    line.SetPressureBroadeningParameters(g0, g2, eta, df_0, df_2, f_VC, T, P, this_species, water_species, broad_spec_locations, vmrs);
-    //Cij[i] = (g0 + 1.5*g2) / P * BOLTZMAN_CONST * T * 2 * PI * SPEED_OF_LIGHT * SPEED_OF_LIGHT / 100;
-    Cij[i] = 2e12/3 * constant * g0;  // FIXME: MANY ERRORS IN THIS CODE!
-  }
-}
+// void setCijFromPressureBroadening(VectorView Cij, 
+//                                   const ArrayOfLineRecord& abs_lines, 
+//                                   ConstVectorView vmrs,
+//                                   const ArrayOfIndex& broad_spec_locations,
+//                                   const Numeric& T,
+//                                   const Numeric& P,
+//                                   const Index this_species,
+//                                   const Index water_species,
+//                                   const Index n)
+// {
+// //FIXME: Fix this function!
+//   assert(n == Cij.nelem() and n == abs_lines.nelem());
+//   
+//   extern const Numeric PI, SPEED_OF_LIGHT, BOLTZMAN_CONST;
+//   const static Numeric c0 = 2.0 * PI * BOLTZMAN_CONST * SPEED_OF_LIGHT;
+//   const Numeric constant = T * c0;
+//   
+//   // Base equation for single state:  C21 = kT 2PI c G21 (where G21 is the pressure broadening at 1 Pascal)
+//   for(Index i = 0; i < n; i++) {
+//     const LineRecord& line = abs_lines[i];
+//     Numeric g0, g2, eta, df_0, df_2, f_VC;
+//     line.SetPressureBroadeningParameters(g0, g2, eta, df_0, df_2, f_VC, T, P, this_species, water_species, broad_spec_locations, vmrs);
+//     //Cij[i] = (g0 + 1.5*g2) / P * BOLTZMAN_CONST * T * 2 * PI * SPEED_OF_LIGHT * SPEED_OF_LIGHT / 100;
+//     Cij[i] = 2e12/3 * constant * g0;  // FIXME: MANY ERRORS IN THIS CODE!
+//   }
+// }
 
 
 Vector createCji(ConstVectorView Cij, const ArrayOfLineRecord& abs_lines, const Numeric& T)

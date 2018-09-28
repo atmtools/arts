@@ -181,141 +181,141 @@ void PressureBroadeningData::GetPressureBroadeningParams_dT(Numeric& dgamma_0_dT
 }
 
 
-void PressureBroadeningData::SetInternalDerivatives(ComplexVector& derivatives, 
-                                                    const ArrayOfRetrievalQuantity& ppd, 
-                                                    const QuantumIdentifier& QI,
-                                                    const Numeric& theta,
-                                                    const Numeric& pressure,
-                                                    const Numeric& self_pressure,
-                                                    const Index    this_species,
-                                                    const Index    h2o_species,
-                                                    ConstVectorView vmrs) const
+void PressureBroadeningData::SetInternalDerivatives(ComplexVector& /*derivatives*/, 
+                                                    const ArrayOfRetrievalQuantity& /*ppd*/, 
+                                                    const QuantumIdentifier& /*QI*/,
+                                                    const Numeric& /*theta*/,
+                                                    const Numeric& /*pressure*/,
+                                                    const Numeric& /*self_pressure*/,
+                                                    const Index    /*this_species*/,
+                                                    const Index    /*h2o_species*/,
+                                                    ConstVectorView /*vmrs*/) const
 {
-  const Index nppd = ppd.nelem();
-  
-  ComplexVector res(11);
-  Numeric results1, results2;
-  Index ipd = 0;
-  
-  // nb that continue is here to not count wrongly the number of parameters
-  for(Index iq = 0; iq < nppd; iq++)
-  {
-    if(ppd[iq] == JacPropMatType::VMR)
-    {
-      if(QI > ppd[iq].QuantumIdentity())
-      {
-        GetPressureBroadeningParams_dSelfVMR(results1, results2, theta, pressure);
-        res[ipd] = Complex(-results2, results1);
-      }
-      else 
-        continue;
-    }
-    else if(ppd[iq] == JacPropMatType::LineGammaSelf)
-    {
-      if(QI > ppd[iq].QuantumIdentity())
-      {
-        GetPressureBroadeningParams_dSelfGamma(results1, theta, self_pressure);
-        res[ipd] = Complex(0.0, results1);
-      }
-      else 
-        continue;
-    }
-    else if(ppd[iq] == JacPropMatType::LineGammaForeign)
-    {
-      if(QI > ppd[iq].QuantumIdentity())
-      {
-        GetPressureBroadeningParams_dForeignGamma(results1, theta, pressure, self_pressure, 
-                                                  this_species, h2o_species, vmrs);
-        res[ipd] = Complex(0.0, results1);
-      }
-      else
-        continue;
-    }
-    else if(ppd[iq] == JacPropMatType::LineGammaWater)
-    {
-      if(QI > ppd[iq].QuantumIdentity())
-      {
-        GetPressureBroadeningParams_dWaterGamma(results1, theta, pressure, 
-                                                this_species, h2o_species, vmrs);
-        res[ipd] = Complex(0.0, results1);
-      }
-      else
-        continue;
-    }
-    else if(ppd[iq] == JacPropMatType::LineShiftSelf)
-    {
-      if(QI > ppd[iq].QuantumIdentity())
-      {
-        GetPressureBroadeningParams_dSelfPsf(results2, theta, self_pressure);
-        res[ipd] = Complex(-results2, 0.0);
-      }
-      else
-        continue;
-    }
-    else if(ppd[iq] == JacPropMatType::LineShiftForeign)
-    {
-      if(QI > ppd[iq].QuantumIdentity())
-      {
-        GetPressureBroadeningParams_dForeignPsf(results2, theta, pressure, self_pressure, 
-                                                this_species, h2o_species, vmrs);
-        res[ipd] = Complex(-results2, 0);
-      }
-      else
-        continue;
-    }
-    else if(ppd[iq] == JacPropMatType::LineShiftWater)
-    {
-      if(QI > ppd[iq].QuantumIdentity())
-      {
-        GetPressureBroadeningParams_dWaterPsf(results2, theta, pressure, 
-                                              this_species, h2o_species, vmrs);
-        res[ipd] = Complex(-results2, 0);
-      }
-      else
-        continue;
-    }
-    else if(ppd[iq] == JacPropMatType::LineGammaSelfExp)
-    {
-      if(QI > ppd[iq].QuantumIdentity())
-      {
-        GetPressureBroadeningParams_dSelfExponent(results1, results2, theta, self_pressure);
-        res[ipd] = Complex(-results2, results1);
-      }
-      else
-        continue;
-    }
-    else if(ppd[iq] == JacPropMatType::LineGammaForeignExp)
-    {
-      if(QI > ppd[iq].QuantumIdentity())
-      {
-        GetPressureBroadeningParams_dForeignExponent(results1, results2, theta, pressure, self_pressure, 
-                                                     this_species, h2o_species, vmrs);
-        res[ipd] = Complex(-results2, results1);
-      }
-      else
-        continue;
-    }
-    else if(ppd[iq] == JacPropMatType::LineGammaWaterExp)
-    {
-      if(QI > ppd[iq].QuantumIdentity())
-      {
-        GetPressureBroadeningParams_dWaterExponent(results1, results2, theta, pressure, 
-                                                   this_species, h2o_species, vmrs);
-        res[ipd] = Complex(-results2, results1);
-      }
-      else
-        continue;
-    }
-    else
-      continue;
-    
-    // Only activate this when something hit the target
-    ++ipd;
-  }
-  
-  derivatives.resize(ipd);
-  for(Index iq = 0; iq < ipd; iq++)
-    derivatives[iq] = res[iq];
+//   const Index nppd = ppd.nelem();
+//   
+//   ComplexVector res(11);
+//   Numeric results1, results2;
+//   Index ipd = 0;
+//   
+//   // nb that continue is here to not count wrongly the number of parameters
+//   for(Index iq = 0; iq < nppd; iq++)
+//   {
+//     if(ppd[iq] == JacPropMatType::VMR)
+//     {
+//       if(QI > ppd[iq].QuantumIdentity())
+//       {
+//         GetPressureBroadeningParams_dSelfVMR(results1, results2, theta, pressure);
+//         res[ipd] = Complex(-results2, results1);
+//       }
+//       else 
+//         continue;
+//     }
+//     else if(ppd[iq] == JacPropMatType::LineGammaSelf)
+//     {
+//       if(QI > ppd[iq].QuantumIdentity())
+//       {
+//         GetPressureBroadeningParams_dSelfGamma(results1, theta, self_pressure);
+//         res[ipd] = Complex(0.0, results1);
+//       }
+//       else 
+//         continue;
+//     }
+//     else if(ppd[iq] == JacPropMatType::LineGammaForeign)
+//     {
+//       if(QI > ppd[iq].QuantumIdentity())
+//       {
+//         GetPressureBroadeningParams_dForeignGamma(results1, theta, pressure, self_pressure, 
+//                                                   this_species, h2o_species, vmrs);
+//         res[ipd] = Complex(0.0, results1);
+//       }
+//       else
+//         continue;
+//     }
+//     else if(ppd[iq] == JacPropMatType::LineGammaWater)
+//     {
+//       if(QI > ppd[iq].QuantumIdentity())
+//       {
+//         GetPressureBroadeningParams_dWaterGamma(results1, theta, pressure, 
+//                                                 this_species, h2o_species, vmrs);
+//         res[ipd] = Complex(0.0, results1);
+//       }
+//       else
+//         continue;
+//     }
+//     else if(ppd[iq] == JacPropMatType::LineShiftSelf)
+//     {
+//       if(QI > ppd[iq].QuantumIdentity())
+//       {
+//         GetPressureBroadeningParams_dSelfPsf(results2, theta, self_pressure);
+//         res[ipd] = Complex(-results2, 0.0);
+//       }
+//       else
+//         continue;
+//     }
+//     else if(ppd[iq] == JacPropMatType::LineShiftForeign)
+//     {
+//       if(QI > ppd[iq].QuantumIdentity())
+//       {
+//         GetPressureBroadeningParams_dForeignPsf(results2, theta, pressure, self_pressure, 
+//                                                 this_species, h2o_species, vmrs);
+//         res[ipd] = Complex(-results2, 0);
+//       }
+//       else
+//         continue;
+//     }
+//     else if(ppd[iq] == JacPropMatType::LineShiftWater)
+//     {
+//       if(QI > ppd[iq].QuantumIdentity())
+//       {
+//         GetPressureBroadeningParams_dWaterPsf(results2, theta, pressure, 
+//                                               this_species, h2o_species, vmrs);
+//         res[ipd] = Complex(-results2, 0);
+//       }
+//       else
+//         continue;
+//     }
+//     else if(ppd[iq] == JacPropMatType::LineGammaSelfExp)
+//     {
+//       if(QI > ppd[iq].QuantumIdentity())
+//       {
+//         GetPressureBroadeningParams_dSelfExponent(results1, results2, theta, self_pressure);
+//         res[ipd] = Complex(-results2, results1);
+//       }
+//       else
+//         continue;
+//     }
+//     else if(ppd[iq] == JacPropMatType::LineGammaForeignExp)
+//     {
+//       if(QI > ppd[iq].QuantumIdentity())
+//       {
+//         GetPressureBroadeningParams_dForeignExponent(results1, results2, theta, pressure, self_pressure, 
+//                                                      this_species, h2o_species, vmrs);
+//         res[ipd] = Complex(-results2, results1);
+//       }
+//       else
+//         continue;
+//     }
+//     else if(ppd[iq] == JacPropMatType::LineGammaWaterExp)
+//     {
+//       if(QI > ppd[iq].QuantumIdentity())
+//       {
+//         GetPressureBroadeningParams_dWaterExponent(results1, results2, theta, pressure, 
+//                                                    this_species, h2o_species, vmrs);
+//         res[ipd] = Complex(-results2, results1);
+//       }
+//       else
+//         continue;
+//     }
+//     else
+//       continue;
+//     
+//     // Only activate this when something hit the target
+//     ++ipd;
+//   }
+//   
+//   derivatives.resize(ipd);
+//   for(Index iq = 0; iq < ipd; iq++)
+//     derivatives[iq] = res[iq];
 }
 
 
@@ -946,218 +946,218 @@ void PressureBroadeningData::GetAirAndWaterBroadening_dWaterExponent(Numeric& ga
 ///////////////////////////////////////////////////////////////////////////////////////
 
 // This is the broadening used by ARTSCAT-4; the "AP"-tag in ARTSCAT-5
-void PressureBroadeningData::GetPlanetaryBroadening(Numeric& gamma,
-                                                    Numeric& deltaf,
-                                                    const Numeric& theta,
-                                                    const Numeric& pressure,
-                                                    const Numeric& self_pressure,
-                                                    const ArrayOfIndex& broad_spec_locations,
-                                                    ConstVectorView vmrs) const
+void PressureBroadeningData::GetPlanetaryBroadening(Numeric& /*gamma*/,
+                                                    Numeric& /*deltaf*/,
+                                                    const Numeric& /*theta*/,
+                                                    const Numeric& /*pressure*/,
+                                                    const Numeric& /*self_pressure*/,
+                                                    const ArrayOfIndex& /*broad_spec_locations*/,
+                                                    ConstVectorView /*vmrs*/) const
 {
-    // Number of broadening species:
-    const Index nbs = LineRecord::NBroadSpec();
-    assert(nbs==broad_spec_locations.nelem());
-    
-    // Split total pressure in self and foreign part:
-    const Numeric foreign_pressure = pressure - self_pressure;
-    
-    // Calculate sum of VMRs of all available foreign broadening species (we need this
-    // for normalization). The species "Self" will not be included in the sum!
-    Numeric broad_spec_vmr_sum = 0;
-    
-    // Gamma is the line width. We first initialize gamma with the self width
-    gamma = mdata[0][0] * pow(theta, mdata[1][0]) * self_pressure;
-    
-    // Set deltaf to 0
-    deltaf = 0;
-    
-    // and treat foreign width separately:
-    Numeric foreign_gamma = 0;
-    
-    // Add up foreign broadening species, where available:
-    for (Index i=0; i<nbs; ++i) {
-        if ( broad_spec_locations[i] < -1 ) {
-            // -2 means that this broadening species is identical to Self.
-            // Throw runtime errors if the parameters are not identical.
-            if (mdata[2][i]!=mdata[0][0] ||
-                mdata[3][i]!=mdata[1][0])
-            {
-                std::ostringstream os;
-                os << "Inconsistency in LineRecord, self broadening and line "
-                << "broadening for " << LineRecord::BroadSpecName(i) << "\n"
-                << "should be identical.\n";
-                throw std::runtime_error(os.str());
-            }
-        } else if ( broad_spec_locations[i] >= 0 ) {
-            
-            // Add to VMR sum:
-            broad_spec_vmr_sum += vmrs[broad_spec_locations[i]];
-            
-            // foreign broadening:
-            foreign_gamma +=  mdata[2][i] * pow(theta, mdata[3][i])
-                * vmrs[broad_spec_locations[i]];
-            
-            // Delta f (not .25+1.5*foreign_broadening)
-            deltaf += mdata[4][i]
-            * pow( theta , (Numeric).25 + (Numeric)1.5*mdata[3][i] )
-            * vmrs[broad_spec_locations[i]];
-        }
-    }
-    
-//     // Check that sum of self and all foreign VMRs is not too far from 1:
-//     if ( abs(vmrs[this_species]+broad_spec_vmr_sum-1) > 0.1
-//         && out2.sufficient_priority() )
-//     {
-//         std::ostringstream os;
-//         os << "Warning: The total VMR of all your defined broadening\n"
-//         << "species (including \"self\") is "
-//         << vmrs[this_species]+broad_spec_vmr_sum
-//         << ", more than 10% " << "different from 1.\n";
-//         out2 << os.str();
+//     // Number of broadening species:
+//     const Index nbs = LineRecord::NBroadSpec();
+//     assert(nbs==broad_spec_locations.nelem());
+//     
+//     // Split total pressure in self and foreign part:
+//     const Numeric foreign_pressure = pressure - self_pressure;
+//     
+//     // Calculate sum of VMRs of all available foreign broadening species (we need this
+//     // for normalization). The species "Self" will not be included in the sum!
+//     Numeric broad_spec_vmr_sum = 0;
+//     
+//     // Gamma is the line width. We first initialize gamma with the self width
+//     gamma = mdata[0][0] * pow(theta, mdata[1][0]) * self_pressure;
+//     
+//     // Set deltaf to 0
+//     deltaf = 0;
+//     
+//     // and treat foreign width separately:
+//     Numeric foreign_gamma = 0;
+//     
+//     // Add up foreign broadening species, where available:
+//     for (Index i=0; i<nbs; ++i) {
+//         if ( broad_spec_locations[i] < -1 ) {
+//             // -2 means that this broadening species is identical to Self.
+//             // Throw runtime errors if the parameters are not identical.
+//             if (mdata[2][i]!=mdata[0][0] ||
+//                 mdata[3][i]!=mdata[1][0])
+//             {
+//                 std::ostringstream os;
+//                 os << "Inconsistency in LineRecord, self broadening and line "
+//                 << "broadening for " << LineRecord::BroadSpecName(i) << "\n"
+//                 << "should be identical.\n";
+//                 throw std::runtime_error(os.str());
+//             }
+//         } else if ( broad_spec_locations[i] >= 0 ) {
+//             
+//             // Add to VMR sum:
+//             broad_spec_vmr_sum += vmrs[broad_spec_locations[i]];
+//             
+//             // foreign broadening:
+//             foreign_gamma +=  mdata[2][i] * pow(theta, mdata[3][i])
+//                 * vmrs[broad_spec_locations[i]];
+//             
+//             // Delta f (not .25+1.5*foreign_broadening)
+//             deltaf += mdata[4][i]
+//             * pow( theta , (Numeric).25 + (Numeric)1.5*mdata[3][i] )
+//             * vmrs[broad_spec_locations[i]];
+//         }
 //     }
-    
-    // Normalize foreign gamma and deltaf with the foreign VMR sum (but only if
-    // we have any foreign broadening species):
-    if (broad_spec_vmr_sum != 0.)
-    {
-        foreign_gamma /= broad_spec_vmr_sum;
-        deltaf        /= broad_spec_vmr_sum;
-    }
-    else if (self_pressure > 0.)
-        // If there are no foreign broadening species present, the best assumption
-        // we can make is to use gamma_self in place of foreign_gamma. for deltaf
-        // there is no equivalent solution, as we don't have a Delta_self and don't
-        // know which other Delta we should apply (in this case delta_f gets 0,
-        // which should be okayish):
-    {
-        foreign_gamma = gamma/self_pressure;
-    }
-    // It can happen that broad_spec_vmr_sum==0 AND p_self==0 (e.g., when p_grid
-    // exceeds the given atmosphere and zero-padding is applied). In this case,
-    // both gamma_foreign and deltaf are 0 and we leave it like that.
-    
-    // Multiply by pressure. For the width we take only the foreign pressure.
-    // This is consistent with that we have scaled with the sum of all foreign
-    // broadening VMRs. In this way we make sure that the total foreign broadening
-    // scales with the total foreign pressure.
-    foreign_gamma  *= foreign_pressure;
-    
-    // For the width, add foreign parts:
-    gamma += foreign_gamma;
-    
-    // For the shift we simply take the total pressure, since there is no self part.
-    deltaf *= pressure;
-    
-    // That's it, we're done.
+//     
+// //     // Check that sum of self and all foreign VMRs is not too far from 1:
+// //     if ( abs(vmrs[this_species]+broad_spec_vmr_sum-1) > 0.1
+// //         && out2.sufficient_priority() )
+// //     {
+// //         std::ostringstream os;
+// //         os << "Warning: The total VMR of all your defined broadening\n"
+// //         << "species (including \"self\") is "
+// //         << vmrs[this_species]+broad_spec_vmr_sum
+// //         << ", more than 10% " << "different from 1.\n";
+// //         out2 << os.str();
+// //     }
+//     
+//     // Normalize foreign gamma and deltaf with the foreign VMR sum (but only if
+//     // we have any foreign broadening species):
+//     if (broad_spec_vmr_sum != 0.)
+//     {
+//         foreign_gamma /= broad_spec_vmr_sum;
+//         deltaf        /= broad_spec_vmr_sum;
+//     }
+//     else if (self_pressure > 0.)
+//         // If there are no foreign broadening species present, the best assumption
+//         // we can make is to use gamma_self in place of foreign_gamma. for deltaf
+//         // there is no equivalent solution, as we don't have a Delta_self and don't
+//         // know which other Delta we should apply (in this case delta_f gets 0,
+//         // which should be okayish):
+//     {
+//         foreign_gamma = gamma/self_pressure;
+//     }
+//     // It can happen that broad_spec_vmr_sum==0 AND p_self==0 (e.g., when p_grid
+//     // exceeds the given atmosphere and zero-padding is applied). In this case,
+//     // both gamma_foreign and deltaf are 0 and we leave it like that.
+//     
+//     // Multiply by pressure. For the width we take only the foreign pressure.
+//     // This is consistent with that we have scaled with the sum of all foreign
+//     // broadening VMRs. In this way we make sure that the total foreign broadening
+//     // scales with the total foreign pressure.
+//     foreign_gamma  *= foreign_pressure;
+//     
+//     // For the width, add foreign parts:
+//     gamma += foreign_gamma;
+//     
+//     // For the shift we simply take the total pressure, since there is no self part.
+//     deltaf *= pressure;
+//     
+//     // That's it, we're done.
 }
 
 // This is the temperature derivative of the broadening used by ARTSCAT-4; the "AP"-tag in ARTSCAT-5
-void PressureBroadeningData::GetPlanetaryBroadening_dT(Numeric& dgamma_dT,
-                                                    Numeric& ddeltaf_dT,
-                                                    const Numeric& T,
-                                                    const Numeric& T0,
-                                                    const Numeric& pressure,
-                                                    const Numeric& self_pressure,
-                                                    const ArrayOfIndex& broad_spec_locations,
-                                                    ConstVectorView vmrs) const
+void PressureBroadeningData::GetPlanetaryBroadening_dT(Numeric& /*dgamma_dT*/,
+                                                    Numeric& /*ddeltaf_dT*/,
+                                                    const Numeric& /*T*/,
+                                                    const Numeric& /*T0*/,
+                                                    const Numeric& /*pressure*/,
+                                                    const Numeric& /*self_pressure*/,
+                                                    const ArrayOfIndex& /*broad_spec_locations*/,
+                                                    ConstVectorView /*vmrs*/) const
 {
-    const Numeric theta = T0/T;
-    
-    // Number of broadening species:
-    const Index nbs = LineRecord::NBroadSpec();
-    assert(nbs==broad_spec_locations.nelem());
-    
-    // Split total pressure in self and foreign part:
-    const Numeric foreign_pressure = pressure - self_pressure;
-    
-    // Calculate sum of VMRs of all available foreign broadening species (we need this
-    // for normalization). The species "Self" will not be included in the sum!
-    Numeric broad_spec_vmr_sum = 0;
-    
-    // Gamma is the line width. We first initialize gamma with the self width
-    dgamma_dT = - mdata[1][0] * mdata[0][0] * pow(theta, mdata[1][0]) * self_pressure / T;
-    
-    // Set deltaf to 0
-    ddeltaf_dT = 0;
-    
-    // and treat foreign width separately:
-    Numeric foreign_dgamma_dT = 0;
-    
-    // Add up foreign broadening species, where available:
-    for (Index i=0; i<nbs; ++i) {
-        if ( broad_spec_locations[i] < -1 ) {
-            // -2 means that this broadening species is identical to Self.
-            // Throw runtime errors if the parameters are not identical.
-            if (mdata[2][i]!=mdata[0][0] ||
-                mdata[3][i]!=mdata[1][0])
-            {
-                std::ostringstream os;
-                os << "Inconsistency in LineRecord, self broadening and line "
-                << "broadening for " << LineRecord::BroadSpecName(i) << "\n"
-                << "should be identical.\n";
-                throw std::runtime_error(os.str());
-            }
-        } else if ( broad_spec_locations[i] >= 0 ) {
-            
-            // Add to VMR sum:
-            broad_spec_vmr_sum += vmrs[broad_spec_locations[i]];
-            
-            // foreign broadening:
-            foreign_dgamma_dT += - mdata[3][i] * mdata[2][i] * pow(theta, mdata[3][i])
-                * vmrs[broad_spec_locations[i]] / T;
-            
-            // Delta f (not .25+1.5*foreign_broadening)
-            ddeltaf_dT += - ((Numeric).25 + (Numeric)1.5*mdata[3][i]) * mdata[4][i]
-            * pow( theta , (Numeric).25 + (Numeric)1.5*mdata[3][i] )
-            * vmrs[broad_spec_locations[i]] / T;
-        }
-    }
-    
-//     // Check that sum of self and all foreign VMRs is not too far from 1:
-//     if ( abs(vmrs[this_species]+broad_spec_vmr_sum-1) > 0.1
-//         && out2.sufficient_priority() )
-//     {
-//         std::ostringstream os;
-//         os << "Warning: The total VMR of all your defined broadening\n"
-//         << "species (including \"self\") is "
-//         << vmrs[this_species]+broad_spec_vmr_sum
-//         << ", more than 10% " << "different from 1.\n";
-//         out2 << os.str();
+//     const Numeric theta = T0/T;
+//     
+//     // Number of broadening species:
+//     const Index nbs = LineRecord::NBroadSpec();
+//     assert(nbs==broad_spec_locations.nelem());
+//     
+//     // Split total pressure in self and foreign part:
+//     const Numeric foreign_pressure = pressure - self_pressure;
+//     
+//     // Calculate sum of VMRs of all available foreign broadening species (we need this
+//     // for normalization). The species "Self" will not be included in the sum!
+//     Numeric broad_spec_vmr_sum = 0;
+//     
+//     // Gamma is the line width. We first initialize gamma with the self width
+//     dgamma_dT = - mdata[1][0] * mdata[0][0] * pow(theta, mdata[1][0]) * self_pressure / T;
+//     
+//     // Set deltaf to 0
+//     ddeltaf_dT = 0;
+//     
+//     // and treat foreign width separately:
+//     Numeric foreign_dgamma_dT = 0;
+//     
+//     // Add up foreign broadening species, where available:
+//     for (Index i=0; i<nbs; ++i) {
+//         if ( broad_spec_locations[i] < -1 ) {
+//             // -2 means that this broadening species is identical to Self.
+//             // Throw runtime errors if the parameters are not identical.
+//             if (mdata[2][i]!=mdata[0][0] ||
+//                 mdata[3][i]!=mdata[1][0])
+//             {
+//                 std::ostringstream os;
+//                 os << "Inconsistency in LineRecord, self broadening and line "
+//                 << "broadening for " << LineRecord::BroadSpecName(i) << "\n"
+//                 << "should be identical.\n";
+//                 throw std::runtime_error(os.str());
+//             }
+//         } else if ( broad_spec_locations[i] >= 0 ) {
+//             
+//             // Add to VMR sum:
+//             broad_spec_vmr_sum += vmrs[broad_spec_locations[i]];
+//             
+//             // foreign broadening:
+//             foreign_dgamma_dT += - mdata[3][i] * mdata[2][i] * pow(theta, mdata[3][i])
+//                 * vmrs[broad_spec_locations[i]] / T;
+//             
+//             // Delta f (not .25+1.5*foreign_broadening)
+//             ddeltaf_dT += - ((Numeric).25 + (Numeric)1.5*mdata[3][i]) * mdata[4][i]
+//             * pow( theta , (Numeric).25 + (Numeric)1.5*mdata[3][i] )
+//             * vmrs[broad_spec_locations[i]] / T;
+//         }
 //     }
-    
-    // Normalize foreign gamma and deltaf with the foreign VMR sum (but only if
-    // we have any foreign broadening species):
-    if (broad_spec_vmr_sum != 0.)
-    {
-        foreign_dgamma_dT /= broad_spec_vmr_sum;
-        ddeltaf_dT        /= broad_spec_vmr_sum;
-    }
-    else if (self_pressure > 0.)
-        // If there are no foreign broadening species present, the best assumption
-        // we can make is to use gamma_self in place of foreign_gamma. for deltaf
-        // there is no equivalent solution, as we don't have a Delta_self and don't
-        // know which other Delta we should apply (in this case delta_f gets 0,
-        // which should be okayish):
-    {
-        foreign_dgamma_dT = dgamma_dT/self_pressure;
-    }
-    // It can happen that broad_spec_vmr_sum==0 AND p_self==0 (e.g., when p_grid
-    // exceeds the given atmosphere and zero-padding is applied). In this case,
-    // both gamma_foreign and deltaf are 0 and we leave it like that.
-    
-    // Multiply by pressure. For the width we take only the foreign pressure.
-    // This is consistent with that we have scaled with the sum of all foreign
-    // broadening VMRs. In this way we make sure that the total foreign broadening
-    // scales with the total foreign pressure.
-    foreign_dgamma_dT  *= foreign_pressure;
-    
-    // For the width, add foreign parts:
-    dgamma_dT += foreign_dgamma_dT;
-    
-    // For the shift we simply take the total pressure, since there is no self part.
-    ddeltaf_dT *= pressure;
-    
-    // That's it, we're done.
+//     
+// //     // Check that sum of self and all foreign VMRs is not too far from 1:
+// //     if ( abs(vmrs[this_species]+broad_spec_vmr_sum-1) > 0.1
+// //         && out2.sufficient_priority() )
+// //     {
+// //         std::ostringstream os;
+// //         os << "Warning: The total VMR of all your defined broadening\n"
+// //         << "species (including \"self\") is "
+// //         << vmrs[this_species]+broad_spec_vmr_sum
+// //         << ", more than 10% " << "different from 1.\n";
+// //         out2 << os.str();
+// //     }
+//     
+//     // Normalize foreign gamma and deltaf with the foreign VMR sum (but only if
+//     // we have any foreign broadening species):
+//     if (broad_spec_vmr_sum != 0.)
+//     {
+//         foreign_dgamma_dT /= broad_spec_vmr_sum;
+//         ddeltaf_dT        /= broad_spec_vmr_sum;
+//     }
+//     else if (self_pressure > 0.)
+//         // If there are no foreign broadening species present, the best assumption
+//         // we can make is to use gamma_self in place of foreign_gamma. for deltaf
+//         // there is no equivalent solution, as we don't have a Delta_self and don't
+//         // know which other Delta we should apply (in this case delta_f gets 0,
+//         // which should be okayish):
+//     {
+//         foreign_dgamma_dT = dgamma_dT/self_pressure;
+//     }
+//     // It can happen that broad_spec_vmr_sum==0 AND p_self==0 (e.g., when p_grid
+//     // exceeds the given atmosphere and zero-padding is applied). In this case,
+//     // both gamma_foreign and deltaf are 0 and we leave it like that.
+//     
+//     // Multiply by pressure. For the width we take only the foreign pressure.
+//     // This is consistent with that we have scaled with the sum of all foreign
+//     // broadening VMRs. In this way we make sure that the total foreign broadening
+//     // scales with the total foreign pressure.
+//     foreign_dgamma_dT  *= foreign_pressure;
+//     
+//     // For the width, add foreign parts:
+//     dgamma_dT += foreign_dgamma_dT;
+//     
+//     // For the shift we simply take the total pressure, since there is no self part.
+//     ddeltaf_dT *= pressure;
+//     
+//     // That's it, we're done.
 }
 
 

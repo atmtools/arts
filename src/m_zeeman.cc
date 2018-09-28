@@ -90,7 +90,6 @@ void propmat_clearskyAddZeeman(ArrayOfPropagationMatrix& propmat_clearsky,
                                const SpeciesAuxData& partition_functions,
                                const Numeric& rtp_pressure,
                                const Numeric& rtp_temperature,
-                               const Numeric& lm_p_lim,
                                const Vector& rtp_nlte,
                                const Vector& rtp_vmr,
                                const Vector& rtp_mag,
@@ -149,7 +148,7 @@ void propmat_clearskyAddZeeman(ArrayOfPropagationMatrix& propmat_clearsky,
   zeeman_on_the_fly(propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx,
                     abs_species, jacobian_quantities, zeeman_linerecord_precalc, isotopologue_ratios,
                     partition_functions, f_grid, rtp_vmr, rtp_nlte, rtp_mag, rtp_los, rtp_pressure,
-                    rtp_temperature, lm_p_lim, manual_zeeman_tag, manual_zeeman_magnetic_field_strength,
+                    rtp_temperature, manual_zeeman_tag, manual_zeeman_magnetic_field_strength,
                     manual_zeeman_theta, manual_zeeman_eta, verbosity);
 
   // OLD method

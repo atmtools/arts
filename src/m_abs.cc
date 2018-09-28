@@ -115,67 +115,14 @@ void abs_lines_per_speciesSetEmpty(// WS Output:
     }
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesArtscat4FromArtscat3(// WS Output:
-                                   ArrayOfLineRecord& abs_lines,
-                                   // Verbosity object:
-                                   const Verbosity&)
-{
-    String fail_msg;
-    bool failed = false;
-
-    // Loop over all lines, use member function to do conversion.
-#pragma omp parallel for      \
-  if (!arts_omp_in_parallel()  \
-      && abs_lines.nelem() >= arts_omp_get_max_threads())
-    for ( Index i=0; i<abs_lines.nelem(); ++i )
-    {
-        try
-        {
-            abs_lines[i].ARTSCAT4FromARTSCAT3();
-        }
-        catch (const std::runtime_error &e)
-        {
-#pragma omp critical (abs_linesArtscat4FromArtscat3_fail)
-            { fail_msg = e.what(); failed = true; }
-        }
-    }
-
-    if (failed) throw runtime_error(fail_msg);
-}
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesArtscat5FromArtscat34(// WS Output:
-                                    ArrayOfLineRecord& abs_lines,
-                                    // Verbosity object:
-                                    const Verbosity&)
+void abs_linesNewestArtscatFromLegacyCatalog(// WS Output:
+                                             ArrayOfLineRecord& abs_lines,
+                                             // Verbosity object:
+                                             const Verbosity&)
 {
-    String fail_msg;
-    bool failed = false;
-
-    // Loop over all lines, use member function to do conversion.
-#pragma omp parallel for      \
-  if (!arts_omp_in_parallel()  \
-      && abs_lines.nelem() >= arts_omp_get_max_threads())
-    for ( Index i=0; i<abs_lines.nelem(); ++i )
-    {
-        try
-        {
-            if (abs_lines[i].Version() == 3)
-                abs_lines[i].ARTSCAT5FromARTSCAT3();
-            else if (abs_lines[i].Version() == 4)
-                abs_lines[i].ARTSCAT5FromARTSCAT4();
-            
-        }
-        catch (const std::runtime_error &e)
-        {
-#pragma omp critical (abs_linesArtscat4FromArtscat3_fail)
-            { fail_msg = e.what(); failed = true; }
-        }
-    }
-
-    if (failed) throw runtime_error(fail_msg);
+  for(auto&l:abs_lines) l.SetVersion5();
 }
 
 
@@ -1729,7 +1676,6 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                   const Vector&                    abs_p,
                                   const Vector&                    abs_t,
                                   const Matrix&                    abs_nlte,
-                                  const Numeric&                   lm_p_lim,
                                   const Matrix&                    abs_vmrs,
                                   const ArrayOfArrayOfLineRecord&  abs_lines_per_species,
                                   const ArrayOfLineshapeSpec&      abs_lineshape,
@@ -1937,7 +1883,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                     }
                 }
             }
-            if (tgs[i][0].LineMixing() == SpeciesTag::LINE_MIXING_OFF && !do_jac )
+            if (tgs[i][0].LineMixing() == SpeciesTag::LINE_MIXING_OFF and not do_jac )
             {
                 Matrix dummy_phase;
                 xsec_species(abs_xsec_per_species[i],
@@ -1985,11 +1931,9 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                                  0.0,
                                                  ls.Ind_ls(),
                                                  ls.Ind_lsn(),
-                                                 lm_p_lim,
                                                  ls.Cutoff(),
                                                  isotopologue_ratios,
-                                                 partition_functions,
-                                                 verbosity);
+                                                 partition_functions);
             }
           // Note that we call xsec_species with a row of abs_vmrs,
           // selected by the above Matpack expression. This is
@@ -3590,7 +3534,6 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
                                    const Vector& abs_p,
                                    const Vector& abs_t,
                                    const Matrix& abs_nlte,
-                                   const Numeric& lm_p_lim,
                                    const Index& xsec_speedup_switch,
                                    const Matrix& abs_vmrs,
                                    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
@@ -3708,7 +3651,6 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
                     i,
                     ll,
                     0.0,
-                    lm_p_lim,
                     isotopologue_ratios,
                     partition_functions,
                     binary_speedup, 

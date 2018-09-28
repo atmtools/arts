@@ -490,27 +490,14 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_linesArtscat4FromArtscat3" ),
+    ( NAME( "abs_linesNewestArtscatFromLegacyCatalog" ),
         DESCRIPTION
         (
-	 "Convert a line list from ARTSCAT-3 to ARTSCAT-4 format.\n"
-	 "\n"
-	 "ARTSCAT-4 lines contain more information than ARTSCAT-3 lines,\n"
-	 "particularly they contain separate broadening parameters for six\n"
-	 "different broadening species. So a real conversion is not\n"
-	 "possible. What this method does is copy the air broadening (and shift)\n"
-	 "parameters from ARTSCAT-3 to all ARTSCAT-4 broadening species. The\n"
-	 "case that one of the broadening species is identical to the Self\n"
-	 "species is also handled correctly.\n"
-	 "\n"
-	 "The idea is that the ARTSCAT-4 line list generated in this way should\n"
-	 "give identical RT simulation results as the original ARTSCAT-3\n"
-	 "list. This is verified in one of the test controlfiles.\n"
-	 "\n"
-	 "Currently only broadening and shift parameters are handled here. There\n"
-	 "are some other additional fields in ARTSCAT-4, which we so far ignore.\n"
+	 "Sets the version of the catalog to the latest version\n"
+         "Internally, nothing should change.  Writing of catalog\n"
+         "will change\n"
          ),
-        AUTHORS( "Stefan Buehler" ),
+        AUTHORS( "Richard Larsson" ),
         OUT( "abs_lines" ),
         GOUT(),
         GOUT_TYPE(),
@@ -521,59 +508,6 @@ void define_md_data_raw()
         GIN_DEFAULT(  ),
         GIN_DESC(  )
         ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "abs_linesArtscat5FromArtscat34" ),
-        DESCRIPTION
-        (
-	 "Convert a line list from ARTSCAT-3 and ARTSCAT-4 to ARTSCAT-5 format.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "abs_lines" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_lines" ),
-        GIN(  ),
-        GIN_TYPE(     ),
-        GIN_DEFAULT(  ),
-        GIN_DESC(  )
-        ));
-
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "abs_linesChangeParameterForMatchingLines" ),
-      DESCRIPTION
-      (
-          "Change parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n"
-          "Only works for these parameters:\n"
-          "parameter_name = \"Central Frequency\"\n"
-          "parameter_name = \"Line Strength\"\n"
-          "parameter_name = \"Pressure Broadening Self\"\n"
-          "parameter_name = \"Pressure Broadening Foreign\"\n"
-          "parameter_name = \"Pressure Broadening Self Exponent\"\n"
-          "parameter_name = \"Pressure Broadening Foreign Exponent\"\n"
-          "parameter_name = \"Lower State Energy\"\n"
-          "\n"
-          "Note that loose_matching:=0 means only full matches are allowed\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT( "abs_lines" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "abs_lines", "abs_species" ),
-      GIN( "QI", "parameter_name", "change", "relative", "loose_matching"),
-      GIN_TYPE( "QuantumIdentifier", "String", "Numeric", "Index", "Index" ),
-      GIN_DEFAULT( NODEF, NODEF, NODEF, "0", "0" ),
-      GIN_DESC( "Information to match the line.",
-                "Name of parameter to be replaced",
-                "Value with which to change matching line{'s,s'}",
-                "Flag for relative change (0 is absolute change)",
-                "Flag for loose match (0 means only complete matches)"
-      )
-    ));
     
   md_data_raw.push_back
     ( MdRecord
@@ -940,19 +874,48 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
-    ( NAME( "abs_linesSetParameterForMatchingLines" ),
+    ( NAME( "abs_linesChangeBaseParameterForMatchingLines" ),
       DESCRIPTION
       (
-          "Same as *abs_linesChangeParameterForMatchingLines* but sets the parameter\n"
-          "instead of changing it.  See the other function for inputs but note that.\n"
-          "there are small differences in naming.\n"
+        "Change parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n"
+        "Only works for these parameters:\n"
+        "parameter_name = \"Central Frequency\"\n"
+        "parameter_name = \"Line Strength\"\n"
+        "parameter_name = \"Lower State Energy\"\n"
+        "\n"
+        "Note that loose_matching:=0 means only full matches are allowed\n"
       ),
       AUTHORS( "Richard Larsson" ),
       OUT( "abs_lines" ),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN( "abs_lines", "abs_species" ),
+      IN( "abs_lines" ),
+      GIN( "QI", "parameter_name", "change", "relative", "loose_matching"),
+      GIN_TYPE( "QuantumIdentifier", "String", "Numeric", "Index", "Index" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, "0", "0" ),
+      GIN_DESC( "Information to match the line.",
+                "Name of parameter to be replaced",
+                "Value with which to change matching line{'s,s'}",
+                "Flag for relative change (0 is absolute change)",
+                "Flag for loose match (0 means only complete matches)"
+      )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_linesSetBaseParameterForMatchingLines" ),
+      DESCRIPTION
+      (
+        "Same as *abs_linesChangeBaseParameterForMatchingLines* but sets the parameter\n"
+          "instead of changing it.  See the other function for inputs.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines" ),
       GIN( "QI", "parameter_name", "new_value", "loose_matching"),
       GIN_TYPE( "QuantumIdentifier", "String", "Numeric",  "Index" ),
       GIN_DEFAULT( NODEF, NODEF, NODEF, "0" ),
@@ -960,6 +923,56 @@ void define_md_data_raw()
                 "Name of parameter to be replaced",
                 "New value of parameter for matching line(s)",
                 "Flag for loose match (0 means only complete matches)"
+      )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_linesSetLineFunctionDataParameterForMatchingLines" ),
+      DESCRIPTION
+      (
+        "Same as *abs_linesChangeLineFunctionDataParameterForMatchingLines* but sets the parameter\n"
+        "instead of changing it.  See the other function for inputs.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines" ),
+      GIN( "QI", "parameter", "coefficient", "species",  "new_value"),
+      GIN_TYPE( "QuantumIdentifier", "String", "String", "String", "Numeric" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "0" ),
+      GIN_DESC( "Information to match the line.",
+                "Name of parameter to be replaced",
+                "Coefficient of the parameter to be changed",
+                "Species of parameter to be changed",
+                "New value of parameter for matching line(s)"
+      )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_linesChangeLineFunctionDataParameterForMatchingLines" ),
+      DESCRIPTION
+      (
+        "TEMP-data.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines" ),
+      GIN( "QI", "parameter", "coefficient", "species",  "change", "relative"),
+      GIN_TYPE( "QuantumIdentifier", "String", "String", "String", "Numeric", "Index" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, NODEF, "0" ),
+      GIN_DESC( "Information to match the line.",
+                "Name of parameter to be replaced",
+                "Coefficient of the parameter to be changed",
+                "Species of parameter to be changed",
+                "New value of parameter for matching line(s)",
+                "Flag for relative change (0 is absolute change)"
       )
     ));
     
@@ -1971,7 +1984,7 @@ void define_md_data_raw()
         IN( "abs_xsec_per_species", "src_xsec_per_species", 
             "dabs_xsec_per_species_dx", "dsrc_xsec_per_species_dx",
             "abs_species", "jacobian_quantities", "abs_species_active",
-            "f_grid", "abs_p", "abs_t", "abs_nlte", "lm_p_lim",
+            "f_grid", "abs_p", "abs_t", "abs_nlte",
             "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
             "isotopologue_ratios", "partition_functions"),
         GIN(),
@@ -2001,7 +2014,7 @@ void define_md_data_raw()
       IN( "abs_xsec_per_species", "src_xsec_per_species", 
           "dabs_xsec_per_species_dx", "dsrc_xsec_per_species_dx",
           "abs_species", "jacobian_quantities", "abs_species_active",
-          "f_grid", "abs_p", "abs_t", "abs_nlte", "lm_p_lim",
+          "f_grid", "abs_p", "abs_t", "abs_nlte",
           "xsec_speedup_switch", "abs_vmrs", "abs_lines_per_species",
           "isotopologue_ratios", "partition_functions"),
       GIN(),
@@ -2661,47 +2674,6 @@ void define_md_data_raw()
         GIN_DESC( "Array value.." ),
         SETMETHOD( true )
         ));
-/*
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ArrayOfLineMixingRecordReadAscii" ),
-        DESCRIPTION
-        (
-         "Read line mixing data from an ASCII file.\n"
-         "\n"
-         "This is merely a convenience function to convert data from Richard's\n"
-         "ASCII format into XML. For example:\n"
-         "  ArrayOfLineMixingRecordCreate(lm_convert)\n"
-         "  ArrayOfLineMixingRecordReadAscii(lm_convert, \"o2_v1_0_band_40-120_GHz\")\n"
-         "  WriteXML(\"zascii\", lm_convert, \"o2_v1_0_band_40-120_GHz.xml\")\n"
-         "\n"
-         "After reading the data it must be matched to *abs_lines_per_species*.\n"
-         "See *line_mixing_dataMatch*.\n"
-         "\n"
-         "Format Documentation:\n"
-         "Quantum numbers: v1, Upper N, Lower N, Upper J, Lower J,\n"
-         "First Order Zeroth Phase Correction,\n"
-         "First Order First Phase Correction,\n"
-         "Second Order Zeroth Absorption Correction,\n"
-         "Second Order First Absorption Correction,\n"
-         "Second Order Zeroth Line-Center Correction,\n"
-         "Second Order First Line-Center Correction,\n"
-         "Standard Temperature For Corrections,\n"
-         "First Order Phase Temperature Correction Exponential Term,\n"
-         "Second Order Absorption Temperature Correction Exponential Term, and \n"
-         "Second Order Line-Center Temperature Correction Exponential Term.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT( "line_mixing_records" ),
-        GOUT_TYPE( "ArrayOfLineMixingRecord"),
-        GOUT_DESC( "Unmatched line mixing data." ),
-        IN(),
-        GIN(         "filename" ),
-        GIN_TYPE(    "String" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC(    "Line mixing data file.")
-        ));*/
 
   md_data_raw.push_back
     ( MdRecord
@@ -8560,6 +8532,96 @@ void define_md_data_raw()
         GIN_DESC( "Size of perturbation to apply."
                   )
         ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "jacobianAddLineFunctionDataParameter" ),
+      DESCRIPTION
+      (
+        "Line function paramter assuming the derivatives\n"
+        "of internal pressure broadening and line mixing\n"
+        "functionality follows a simply f(T, T0, X0, X1, X2)\n"
+        "format.\n"
+        "\n"
+        "*species* has to be allowed in *abs_speciesSet*-scenarios as\n"
+        "as a singel species (e.g., \"O3\", or \"O3-666\") and not a\n"
+        "combination species (e.g., not \"O3-666,O3-686\").  Note that\n"
+        "presently we ignore the isotopologue.  Two special *species*\n"
+        "allowed are \"SELF\", and \"AIR\" for self and air parameters,\n"
+        "respectively\n"
+        "\n"
+        "*variable* allowed are \"G0\", \"D0\", \"G2\", \"D2\", \"FVC\"\n"
+        "\"ETA\", \"Y\", \"G\", and \"DV\"\n"
+        "\n"
+        "*coefficient* allowed are \"X0\", \"X1\", and \"X2\"\n"
+        "\n"
+        "For information on *variable* and *coefficient*, see ARTS User Guide\n"
+        "on line mixing and pressure broadening.  As a short summary, the idea is\n"
+        "that, e.g., G2(T) = f(T, T0, X0, X1, X2), where the method of the line\n"
+        "defines what the coefficients and function do.  If the function \"f\"\n"
+        "does not require all \"XN\", the calculations will return 0s\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT( "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "jacobian_quantities", "jacobian_agenda" ),
+      GIN("line_identity", "species", "variable", "coefficient"),
+      GIN_TYPE("QuantumIdentifier", "String", "String", "String"),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF ),
+      GIN_DESC( "Line identifier",
+                "Species of interest",
+                "Variable of interest",
+                "Coefficient of interest")
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "jacobianAddLineFunctionDataParameters" ),
+      DESCRIPTION
+      (
+        "See *jacobianAddLineFunctionDataParameter* for information on\n"
+        "the GIN parameters\n"
+        "\n"
+        "This function accepts the same input but for lists of data.\n"
+        "The function loops over each input list\n"
+        "individually and appends the information to *jacobian_quantities*.\n"
+        "\n"
+        "Special \"ALL\" for 1 length *variables* and *coefficients* are\n"
+        "allowed to compute all variables/coefficients in the order described\n"
+        "in the description of *jacobianAddLineFunctionDataParameter*\n"
+        "\n"
+        "For example, if *line_identities* have length 5, *species* length 4,\n"
+        "*variables* length 3, and *coefficients* length 2, there will be\n"
+        "5*4x3x2 = 120 new additions to *jacobian_quantities* in the order:\n"
+        "\t[{line_identities[0], species[0], variables[0] coefficients[0]}]\n"
+        "\t[{line_identities[0], species[0], variables[0] coefficients[1]}]\n"
+        "\t[{line_identities[0], species[0], variables[1] coefficients[0]}]\n"
+        "\t[{line_identities[0], species[0], variables[1] coefficients[1]}]\n"
+        "\t[{line_identities[0], species[0], variables[2] coefficients[0]}]\n"
+        "\t[{line_identities[0], species[0], variables[2] coefficients[1]}]\n"
+        "\t[{line_identities[0], species[1], variables[0] coefficients[0]}]\n"
+        "\t...\n"
+        "\t[{line_identities[4], species[3], variables[1] coefficients[1]}]\n"
+        "\t[{line_identities[4], species[3], variables[2] coefficients[0]}]\n"
+        "\t[{line_identities[4], species[3], variables[2] coefficients[1]}]\n"
+        "or in words: lines first, then species, then variables, then coefficients\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT( "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "jacobian_quantities", "jacobian_agenda" ),
+      GIN("line_identities", "species", "variables", "coefficients"),
+      GIN_TYPE("ArrayOfQuantumIdentifier", "ArrayOfString", "ArrayOfString", "ArrayOfString"),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF ),
+      GIN_DESC( "List of line identifiers",
+                "List of species of interest",
+                "List of variables of interest",
+                "List of coefficients of interest")
+    ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -9639,53 +9701,6 @@ void define_md_data_raw()
         GIN_TYPE(    "GriddedField3" ),
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "A raw atmospheric field." )
-        ));
-/* 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "line_mixing_dataInit" ),
-        DESCRIPTION
-        (
-         "Initialize *line_mixing_data* and *line_mixing_data_lut*.\n"
-         "Resizes first dimension of both to the same size as *abs_species*.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "line_mixing_data", "line_mixing_data_lut" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_species" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));*/
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "line_mixing_dataMatch" ),
-        DESCRIPTION
-        (
-         "Matches line mixing records to a species in *abs_lines_per_species*.\n"
-         "*line_mixing_dataInit* must be called before this method.\n"
-         "\n"
-         "  ArrayOfLineMixingRecordCreate(lm_o2)\n"
-         "  ReadXML(lm_o2, \"o2_v1_0_band_40-120_GHz.xml\")\n"
-         "  line_mixing_dataInit\n"
-         "  line_mixing_dataMatch(species_tag=\"O2-LM-66\",\n"
-         "                        line_mixing_records=lm_o2)\n"
-
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "abs_lines_per_species" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(  "abs_lines_per_species" ,  "abs_species" ),
-        GIN(         "species_tag", "line_mixing_tag", "line_mixing_records" ),
-        GIN_TYPE(    "String",      "String",          "ArrayOfLineMixingRecord" ),
-        GIN_DEFAULT( NODEF,         NODEF,             NODEF ),
-        GIN_DESC( "Species tag", "Line mixing tag" , "Unmatched line mixing data")
         ));
 
     md_data_raw.push_back
@@ -12644,7 +12659,7 @@ void define_md_data_raw()
            "jacobian_quantities",
            "isotopologue_ratios",
            "partition_functions",
-           "rtp_pressure", "rtp_temperature", "lm_p_lim", "rtp_nlte", "rtp_vmr",
+           "rtp_pressure", "rtp_temperature", "rtp_nlte", "rtp_vmr",
            "rtp_mag", "rtp_los", "atmosphere_dim"),
         GIN("manual_zeeman_tag","manual_zeeman_magnetic_field_strength",
             "manual_zeeman_theta","manual_zeeman_eta"),

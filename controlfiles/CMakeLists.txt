@@ -35,8 +35,6 @@ arts_test_run_ctlfile(fast artscomponents/agendas/TestArrayOfAgenda.arts)
 arts_test_run_ctlfile(fast artscomponents/absorption/TestAbs.arts)
 arts_test_run_ctlfile(fast
                       artscomponents/absorption/TestAbsDoppler.arts)
-arts_test_run_ctlfile(fast 
-                      artscomponents/absorption/TestCompareArtscat3And4.arts)
 arts_test_run_ctlfile(slow
                       artscomponents/absorption/TestAbsParticle.arts)
 arts_test_run_ctlfile(slow artscomponents/absorption/TestIsoRatios.arts)

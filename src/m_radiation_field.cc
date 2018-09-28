@@ -72,15 +72,13 @@ void total_line_source_and_transmission(Vector& J,
   T = Vector(nl, 0.0);
   
   for(Index il = 0; il < nl; il++) {
-    ArrayOfIndex bsl;
     Matrix iy(1, 1, 0.0);
     Matrix it(1, 1, 0.0);
     Tensor4 rad_data(nz, na, 1, 1, 0.0), tra_data(nz, na, 1, 1, 0.0);
-    find_broad_spec_locations(bsl, abs_species, lines[il][0].Species());
     const ConstVectorView f = frequency[Range(range_frequency[il][0], range_frequency[il][1])];
     const Index nf = f.nelem();
     ComplexVector F(nf);
-    Linefunctions::set_lineshape(F, lines[il][0], f, vmrs, temperature, pressure, 0.0, 0.0, bsl, il, -1, 0);
+    Linefunctions::set_lineshape(F, lines[il][0], f, vmrs, temperature, pressure, 0.0, abs_species, il, 0);
     Vector X = F.real();
     
     Numeric integral_of_X = 0;
@@ -333,8 +331,6 @@ void radiation_fieldCalcForSingleSpeciesNonOverlappingLines(Workspace&          
   for(Index iz=0; iz<nz-1; iz++) 
     wzad[iz] = cos(DEG2RAD*za_grid[iz]) - cos(DEG2RAD*za_grid[iz+1]);
   
-  ArrayOfIndex bsl; find_broad_spec_locations(bsl, abs_species, abs_lines_per_species[0][0].Species());
-  
   iy = Matrix(nl, np, 0.0);
   iy_transmission = Tensor3(1, nl, np, 0.0);
   
@@ -356,8 +352,8 @@ void radiation_fieldCalcForSingleSpeciesNonOverlappingLines(Workspace&          
     for(Index ip=0; ip<np; ip++) {
       ComplexVector F(nf);
       Linefunctions::set_lineshape(F, abs_lines_per_species[0][il], f_grid, 
-                                   Vector(1, vmr_field(0, ip, 0, 0)),  t_field(ip, 0, 0), p_grid[ip], 0.0, 0.0,
-                                   bsl, 0, 0, 0);
+                                   Vector(1, vmr_field(0, ip, 0, 0)),  t_field(ip, 0, 0), p_grid[ip], 0.0,
+                                   abs_species, 0, 0);
       Numeric sx = 0;
       for(Index iv=0; iv<nf-1; iv++) {
         const Numeric intF = (F[iv].real() + F[iv+1].real()) * (f_grid[iv+1] - f_grid[iv]);

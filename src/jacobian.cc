@@ -1888,40 +1888,29 @@ bool is_nlte_parameter(const RetrievalQuantity& t)
 
 bool is_line_mixing_DF_parameter(const RetrievalQuantity& t) 
 {
-  return t == JacPropMatType::LineMixingDF0   or
-         t == JacPropMatType::LineMixingDF1   or
-         t == JacPropMatType::LineMixingDFExp;
+  return t == JacPropMatType::LineFunctionDataDVX0 or
+         t == JacPropMatType::LineFunctionDataDVX1 or
+         t == JacPropMatType::LineFunctionDataDVX2;
 }
 
 bool is_line_mixing_line_strength_parameter(const RetrievalQuantity& t)
 {
-  return t == JacPropMatType::LineMixingY0   or
-         t == JacPropMatType::LineMixingY1   or
-         t == JacPropMatType::LineMixingYExp or
-         t == JacPropMatType::LineMixingG0   or
-         t == JacPropMatType::LineMixingG1   or
-         t == JacPropMatType::LineMixingGExp;
+  return t == JacPropMatType::LineFunctionDataYX0 or
+         t == JacPropMatType::LineFunctionDataYX1 or
+         t == JacPropMatType::LineFunctionDataYX2 or
+         
+         t == JacPropMatType::LineFunctionDataGX0 or
+         t == JacPropMatType::LineFunctionDataGX1 or
+         t == JacPropMatType::LineFunctionDataGX2;
 }
 
 bool is_line_mixing_parameter(const RetrievalQuantity& t)
 {
-  return is_line_mixing_DF_parameter(t) or is_line_mixing_line_strength_parameter(t);
+  return is_line_mixing_DF_parameter(t) or 
+         is_line_mixing_line_strength_parameter(t);
 }
 
 bool is_pressure_broadening_parameter(const RetrievalQuantity& t)
-{
-  return t == JacPropMatType::LineGammaForeign    or
-         t == JacPropMatType::LineShiftForeign    or
-         t == JacPropMatType::LineGammaForeignExp or
-         t == JacPropMatType::LineGammaSelf       or
-         t == JacPropMatType::LineShiftSelf       or
-         t == JacPropMatType::LineGammaSelfExp    or
-         t == JacPropMatType::LineGammaWater      or
-         t == JacPropMatType::LineShiftWater      or
-         t == JacPropMatType::LineGammaWaterExp;
-}
-
-bool is_lineshape_lineparam(const RetrievalQuantity& t)
 {
   return t == JacPropMatType::LineFunctionDataG0X0 or
          t == JacPropMatType::LineFunctionDataG0X1 or
@@ -1945,27 +1934,22 @@ bool is_lineshape_lineparam(const RetrievalQuantity& t)
          
          t == JacPropMatType::LineFunctionDataETAX0 or
          t == JacPropMatType::LineFunctionDataETAX1 or
-         t == JacPropMatType::LineFunctionDataETAX2 or
-         
-         t == JacPropMatType::LineFunctionDataYX0 or
-         t == JacPropMatType::LineFunctionDataYX1 or
-         t == JacPropMatType::LineFunctionDataYX2 or
-         
-         t == JacPropMatType::LineFunctionDataGX0 or
-         t == JacPropMatType::LineFunctionDataGX1 or
-         t == JacPropMatType::LineFunctionDataGX2 or
-         
-         t == JacPropMatType::LineFunctionDataDVX0 or
-         t == JacPropMatType::LineFunctionDataDVX1 or
-         t == JacPropMatType::LineFunctionDataDVX2;
+         t == JacPropMatType::LineFunctionDataETAX2;
 }
+
+
+bool is_linefunctiondata_parameter(const RetrievalQuantity& t)
+{
+  return is_pressure_broadening_parameter(t) or 
+         is_line_mixing_parameter(t);
+}
+
 
 bool is_line_parameter(const RetrievalQuantity& t)
 {
-  return t == JacPropMatType::LineCenter     or
-         t == JacPropMatType::LineStrength   or
-         is_pressure_broadening_parameter(t) or 
-         is_line_mixing_parameter(t)         or
+  return t == JacPropMatType::LineCenter   or
+         t == JacPropMatType::LineStrength or
+         is_linefunctiondata_parameter(t)  or
          is_nlte_parameter(t);
 }
 
@@ -2156,6 +2140,7 @@ Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js)
 
 String propmattype_string(const RetrievalQuantity& rq)
 {
+  #define linefunctiondatavariable(X1, X2) JacPropMatType::LineFunctionData ## X1 ## X2: return "Line-Function-Data: " #X1  " " #X2
   switch(rq.PropMatType())
   {
     case JacPropMatType::VMR: return "VMR";
@@ -2175,53 +2160,37 @@ String propmattype_string(const RetrievalQuantity& rq)
     case JacPropMatType::Frequency: return "Frequency";
     case JacPropMatType::LineStrength: return "Line-Strength";
     case JacPropMatType::LineCenter: return "Line-Center";
-    case JacPropMatType::LineGammaSelf: return "Line-Gamma-Self";
-    case JacPropMatType::LineGammaForeign: return "Line-Gamma-Foreign";
-    case JacPropMatType::LineGammaWater: return "Line-Gamma-Water";
-    case JacPropMatType::LineGammaSelfExp: return "Line-Gamma-SelfExponent";
-    case JacPropMatType::LineGammaForeignExp: return "Line-Gamma-ForeignExponent";
-    case JacPropMatType::LineGammaWaterExp: return "Line-Gamma-WaterExponent";
-    case JacPropMatType::LineShiftSelf: return "Line-PressureShift-Self";
-    case JacPropMatType::LineShiftForeign: return "Line-PressureShift-Foreign";
-    case JacPropMatType::LineShiftWater: return "Line-PressureShift-Water";
-    case JacPropMatType::LineMixingY0: return "Line-Mixing-Y0";
-    case JacPropMatType::LineMixingG0: return "Line-Mixing-G0";
-    case JacPropMatType::LineMixingDF0: return "Line-Mixing-DF0";
-    case JacPropMatType::LineMixingY1: return "Line-Mixing-Y1";
-    case JacPropMatType::LineMixingG1: return "Line-Mixing-G1";
-    case JacPropMatType::LineMixingDF1: return "Line-Mixing-DF1";
-    case JacPropMatType::LineMixingYExp: return "Line-Mixing-YExp";
-    case JacPropMatType::LineMixingGExp: return "Line-Mixing-GExp";
-    case JacPropMatType::LineMixingDFExp: return "Line-Mixing-DFExp";
     case JacPropMatType::NLTE: return "NLTE-Level";
+    case linefunctiondatavariable(G0, X0);
+    case linefunctiondatavariable(G0, X1);
+    case linefunctiondatavariable(G0, X2);
+    case linefunctiondatavariable(D0, X0);
+    case linefunctiondatavariable(D0, X1);
+    case linefunctiondatavariable(D0, X2);
+    case linefunctiondatavariable(G2, X0);
+    case linefunctiondatavariable(G2, X1);
+    case linefunctiondatavariable(G2, X2);
+    case linefunctiondatavariable(D2, X0);
+    case linefunctiondatavariable(D2, X1);
+    case linefunctiondatavariable(D2, X2);
+    case linefunctiondatavariable(ETA, X0);
+    case linefunctiondatavariable(ETA, X1);
+    case linefunctiondatavariable(ETA, X2);
+    case linefunctiondatavariable(FVC, X0);
+    case linefunctiondatavariable(FVC, X1);
+    case linefunctiondatavariable(FVC, X2);
+    case linefunctiondatavariable(Y, X0);
+    case linefunctiondatavariable(Y, X1);
+    case linefunctiondatavariable(Y, X2);
+    case linefunctiondatavariable(G, X0);
+    case linefunctiondatavariable(G, X1);
+    case linefunctiondatavariable(G, X2);
+    case linefunctiondatavariable(DV, X0);
+    case linefunctiondatavariable(DV, X1);
+    case linefunctiondatavariable(DV, X2);
     case JacPropMatType::NotPropagationMatrixType: return "Not-A-Prop-Mat-Variable";
-    case JacPropMatType::LineFunctionDataD0X0: return "D0 X0";
-    case JacPropMatType::LineFunctionDataD0X1: return "D0 X1";
-    case JacPropMatType::LineFunctionDataD0X2: return "D0 X2";
-    case JacPropMatType::LineFunctionDataG0X0: return "G0 X0";
-    case JacPropMatType::LineFunctionDataG0X1: return "G0 X1";
-    case JacPropMatType::LineFunctionDataG0X2: return "G0 X2";
-    case JacPropMatType::LineFunctionDataD2X0: return "D2 X0";
-    case JacPropMatType::LineFunctionDataD2X1: return "D2 X1";
-    case JacPropMatType::LineFunctionDataD2X2: return "D2 X2";
-    case JacPropMatType::LineFunctionDataG2X0: return "G2 X0";
-    case JacPropMatType::LineFunctionDataG2X1: return "G2 X1";
-    case JacPropMatType::LineFunctionDataG2X2: return "G2 X2";
-    case JacPropMatType::LineFunctionDataETAX0: return "ETA X0";
-    case JacPropMatType::LineFunctionDataETAX1: return "ETA X1";
-    case JacPropMatType::LineFunctionDataETAX2: return "ETA X2";
-    case JacPropMatType::LineFunctionDataFVCX0: return "FVC X0";
-    case JacPropMatType::LineFunctionDataFVCX1: return "FVC X1";
-    case JacPropMatType::LineFunctionDataFVCX2: return "FVC X2";
-    case JacPropMatType::LineFunctionDataYX0: return "Y X0";
-    case JacPropMatType::LineFunctionDataYX1: return "Y X1";
-    case JacPropMatType::LineFunctionDataYX2: return "Y X2";
-    case JacPropMatType::LineFunctionDataGX0: return "G X0";
-    case JacPropMatType::LineFunctionDataGX1: return "G X1";
-    case JacPropMatType::LineFunctionDataGX2: return "G X2";
-    case JacPropMatType::LineFunctionDataDVX0: return "DV X0";
-    case JacPropMatType::LineFunctionDataDVX1: return "DV X1";
-    case JacPropMatType::LineFunctionDataDVX2: return "DV X2";
   }
+  #undef linefunctiondatavariable
+  
   return "UNDEFINED-CHECK-IF-CASE-LIST-IS-COMPLETE";
 }

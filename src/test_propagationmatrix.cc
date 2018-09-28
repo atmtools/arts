@@ -140,66 +140,6 @@ void test_matrix_buildup()
   std::cout<<F<<"\n";
 }
 
-
-void test_new_lineshapes()
-{
-  define_species_data();
-  define_species_map();
-  
-  const Index this_species=0;
-  const Index water_species=-1;
-  const ArrayOfIndex broadening_species={-1,-2,-1,-1,-1,-1};
-  const Numeric T=250;
-  const Numeric P=10;
-  const Numeric H=50e-6;
-  GriddedField1 gf1; gf1.data={4.016432e-01, 7.315888e-01, -3.313678e-05, 6.642877e-08};  // O2-66 partition function
-  const ArrayOfGriddedField1 part_data(1, gf1);
-  
-  const ArrayOfNumeric empty_aon;
-  const SpeciesTag st("O2-66");
-  std::cout<< st<<"\n";
-  LineRecord line(st.Species(),st.Isotopologue(),100e9,0.0,4.03935532732085e-19,296.0,2.5505950629926e-21,13255.072408981,13047.9619025907,0.8,0.8,0.0,empty_aon,0.0,0.0,0.0,0.0,0.0,0.0,0.0);
-  line.SetVersionToLatest();
-  
-  std::cout<<line<<"\n\n";
-  
-  const Numeric QT=single_partition_function(T, SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF, part_data);
-  const Numeric dQTdT=dsingle_partition_function_dT(QT, T, 0.1, SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF, part_data);
-  const Numeric QT0=single_partition_function(line.Ti0(), SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF, part_data);
-  
-  RetrievalQuantity rq;
-  rq.PropType(JacPropMatType::Frequency);
-  std::cout<<"PROPTYPE: " << (Index(rq.PropMatType()) == Index(JacPropMatType::Frequency)) << "\n";
-  rq.Perturbation(0.1);
-  const ArrayOfRetrievalQuantity jacs(1, rq);
-  const ArrayOfIndex i_jacs = equivlent_propmattype_indexes(jacs);
-  std::cout<<i_jacs<<"\n";
-  
-  const Linefunctions::SingleLevelLineData leveldata(line, Vector(1, 1.0), Vector(0), T, P, H,0.0,1.0, QT, dQTdT, QT0, broadening_species, this_species, water_species, 0, jacs, i_jacs);
-  std::cout<<leveldata<<"\n";
-  
-  /*for(Numeric f=99e9; f<101e9; f+=100e4)*/ {
-    Numeric f = 101e9;
-    
-    Complex F, N;
-    ComplexVector dF(1,Complex(0,0)), dN(1);
-    Linefunctions::set_lineshape_from_level_line_data(F, N, dF, dN, f, T, leveldata, line, jacs, i_jacs);
-    std::cout<<"NEW: " << F << " " << dF << "\n";
-    ComplexVector Fv(1), Nv(0);
-    ComplexMatrix dFm(1, 1), dNm(0, 1);
-    Vector fv(1, f);
-    Range r(0, 1);
-    Linefunctions::set_cross_section_for_single_line(Fv, dFm, Nv, dNm, r, jacs, i_jacs,
-                                                     line, fv, Vector(1,1), Vector(0), P, T, 
-                                                     Linefunctions::DopplerConstant(T, line.IsotopologueData().Mass()), P,
-                                                     1.0, H, Linefunctions::dDopplerConstant_dT(T, line.IsotopologueData().Mass()),
-                                                     0.0, QT, dQTdT, QT0, broadening_species, this_species, water_species, 0, Verbosity());
-    std::cout<<F<<" "<<Fv[0]<<" "<<1.0-Fv[0]/F << "\n";
-    std::cout<<dF[0]<<" "<<dFm(0,0)<<" "<<1.0-dFm(0,0)/dF[0] << "\n";
-  }
-}
-
-
 void test_zeeman()
 {
   const Vector rtp_mag = {20e-6, 20e-6, 0};
@@ -226,6 +166,7 @@ void test_linefunctionsdata()
   define_species_data();
   define_species_map();
   
+  std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric> X;
   String s = "VP LM1 4 SELF T1 16000 0.7 T1 100 1.3 T4 0.7e-4 0.5e-6 0.7 CO2 T1 16001 0.71 T1 101 1.31 T1 0.9e-4 0.7 H2O T1 16001.1 0.711 T1 101.1 1.311 T1 0.4e-4 0.7 AIR T1 18002 0.72 T1 102 1.32 T1 0.1e-4 0.7 THIS-IS-NOT-READ-BY-CIN";
   istringstream x1(s);
   LineFunctionData test;
@@ -239,13 +180,30 @@ void test_linefunctionsdata()
   std::cout << n << "\n";
   
   Numeric G0, D0, G2, D2, FVC, ETA, Y, G, DV;
-  const ArrayOfSpeciesTag aspt = {SpeciesTag("CO2"), SpeciesTag("H2O"), SpeciesTag("H2O2")};
+  const ArrayOfArrayOfSpeciesTag aspt = {{SpeciesTag("CO2")}, {SpeciesTag("H2O")}, {SpeciesTag("H2O2")}};
   const Vector vmrs = {0.2, 0.3, 0.2};
-  test.GetParams (G0, D0, G2, D2, FVC, ETA, Y, G, DV,
-                  296., 246., 2., 0.2, vmrs, aspt);
+  X = test.GetParams (296., 246., 2., 0.2, vmrs, aspt);
+  G0=std::get<0>(X);
+  D0=std::get<1>(X);
+  G2=std::get<2>(X);
+  D2=std::get<3>(X);
+  FVC=std::get<4>(X);
+  ETA=std::get<5>(X);
+  Y=std::get<6>(X);
+  G=std::get<7>(X);
+  DV=std::get<8>(X);
   std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
-  test.GetParams (G0, D0, G2, D2, FVC, ETA, Y, G, DV,
-                  296., 247., 2., 0.2, vmrs, aspt);
+  
+  X = test.GetParams (296., 247., 2., 0.2, vmrs, aspt);
+  G0=std::get<0>(X);
+  D0=std::get<1>(X);
+  G2=std::get<2>(X);
+  D2=std::get<3>(X);
+  FVC=std::get<4>(X);
+  ETA=std::get<5>(X);
+  Y=std::get<6>(X);
+  G=std::get<7>(X);
+  DV=std::get<8>(X);
   std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
   
   s = "VP # 1 AIR T1 16000 0.7 T1 100 1.3";
@@ -253,11 +211,28 @@ void test_linefunctionsdata()
   x2 >> test;
   std::cout << s << "\n";
   std::cout << test << "\n";
-  test.GetParams (G0, D0, G2, D2, FVC, ETA, Y, G, DV,
-                  296., 246., 2., 0.2, vmrs, aspt);
+  X = test.GetParams (296., 246., 2., 0.2, vmrs, aspt);
+  G0=std::get<0>(X);
+  D0=std::get<1>(X);
+  G2=std::get<2>(X);
+  D2=std::get<3>(X);
+  FVC=std::get<4>(X);
+  ETA=std::get<5>(X);
+  Y=std::get<6>(X);
+  G=std::get<7>(X);
+  DV=std::get<8>(X);
   std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
-  test.GetParams (G0, D0, G2, D2, FVC, ETA, Y, G, DV,
-                  296., 247., 2., 0.2, vmrs, aspt);
+  
+  X = test.GetParams (296., 247., 2., 0.2, vmrs, aspt);
+  G0=std::get<0>(X);
+  D0=std::get<1>(X);
+  G2=std::get<2>(X);
+  D2=std::get<3>(X);
+  FVC=std::get<4>(X);
+  ETA=std::get<5>(X);
+  Y=std::get<6>(X);
+  G=std::get<7>(X);
+  DV=std::get<8>(X);
   std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
   
   s = "VP # 1 H2O2 T1 16000 0.7 T1 100 1.3";
@@ -265,12 +240,101 @@ void test_linefunctionsdata()
   x3 >> test;
   std::cout << s << "\n";
   std::cout << test << "\n";
-  test.GetParams (G0, D0, G2, D2, FVC, ETA, Y, G, DV,
-                  296., 246., 2., 0.2, vmrs, aspt);
+  X = test.GetParams(296., 246., 2., 0.2, vmrs, aspt);
+  G0=std::get<0>(X);
+  D0=std::get<1>(X);
+  G2=std::get<2>(X);
+  D2=std::get<3>(X);
+  FVC=std::get<4>(X);
+  ETA=std::get<5>(X);
+  Y=std::get<6>(X);
+  G=std::get<7>(X);
+  DV=std::get<8>(X);
   std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
-  test.GetParams (G0, D0, G2, D2, FVC, ETA, Y, G, DV,
-                  296., 247., 2., 0.2, vmrs, aspt);
+  
+  X = test.GetParams(296., 247., 2., 0.2, vmrs, aspt);
+  G0=std::get<0>(X);
+  D0=std::get<1>(X);
+  G2=std::get<2>(X);
+  D2=std::get<3>(X);
+  FVC=std::get<4>(X);
+  ETA=std::get<5>(X);
+  Y=std::get<6>(X);
+  G=std::get<7>(X);
+  DV=std::get<8>(X);
   std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
+}
+
+
+void test_speed_of_pressurebroadening()
+{
+  constexpr bool test_new=true;
+  
+  define_species_data();
+  define_species_map();
+  
+  const Index N=5000000;
+  const Numeric T0=100, T1=300, dT=(T1-T0)/N;
+  const Numeric P = 133.33;
+  const ArrayOfArrayOfSpeciesTag aspt = {{SpeciesTag("CO2")}, {SpeciesTag("H2O")}, {SpeciesTag("H2O2")}, {SpeciesTag("H2")}, {SpeciesTag("He")}};
+  const Vector vmrs = {0.05, 0.3, 0.2, 0.1, 0.2};
+  
+  Numeric T = T0;
+  Vector G0(N), D0(N), G2(N), D2(N), FVC(N), ETA(N), Y(N), G(N), DV(N);
+  std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric> X;
+  
+  // New line shape
+  LineFunctionData lf;
+  String new_lf = "VP LM1 2" 
+  "SELF T1 16000 0.70 T5 102 0.72 T1 0.1e-4 0.7" 
+  "AIR  T1 18002 0.72 T5 102 0.72 T1 0.1e-4 0.7";
+  istringstream stream_new_lf(new_lf);
+  stream_new_lf >> lf;
+  
+  // Old line shape
+  PressureBroadeningData pb;
+  pb.SetAirBroadeningFromCatalog(16000, 0.70, 18002, 0.72, 102, 0, 0, 0, 0, 0);
+  LineMixingData lm;
+  lm.StorageTag2SetType("L1");
+  lm.SetDataFromVectorWithKnownType(Vector({296, 0.1e-4 ,0.7}));
+  
+  std::cout << lf << "\n";
+  std::cout << LineFunctionData(pb, lm, "CO2", 296) << "\n";
+  
+  Index i=0;
+  if(test_new) {
+    for(i=0; i<N; i++) {
+      X = lf.GetParams (296., T, P, vmrs[0], vmrs, aspt);
+      G0[i]=std::get<0>(X);
+      D0[i]=std::get<1>(X);
+      G2[i]=std::get<2>(X);
+      D2[i]=std::get<3>(X);
+      FVC[i]=std::get<4>(X);
+      ETA[i]=std::get<5>(X);
+      Y[i]=std::get<6>(X);
+      G[i]=std::get<7>(X);
+      DV[i]=std::get<8>(X);
+      T += dT;
+    }
+  }
+  else {
+    for(i=0; i<N; i++) {
+      pb.GetPressureBroadeningParams(G0[i], G2[i], ETA[i], D0[i], D2[i], FVC[i],
+                                     T, 296, P, P*vmrs[0],  0, 1, {}, vmrs);
+      lm.GetLineMixingParams(Y[i], G[i], DV[i], T, P, 0.0, 1);
+      T += dT;
+    }
+  }
+  
+  if(test_new)
+    printf("V0 = np.array([\n");
+  else
+    printf("V1 = np.array([\n");
+  
+  for(i=N-2; i<N; i++)
+    printf("[%f, %f, %f, %f, %f, %f, %f, %f, %f], \n", 
+             G0[i], D0[i], G2[i], D2[i], FVC[i], ETA[i], Y[i], G[i], DV[i]);
+  printf("]).T\n");
 }
 
 int main()
@@ -278,6 +342,7 @@ int main()
     std::cout<<"Testing Propmat Partials\n";
 //     test_new_lineshapes();
 //     test_zeeman();
-    test_linefunctionsdata();
+//     test_linefunctionsdata();
+    test_speed_of_pressurebroadening();
     return 0;
 }

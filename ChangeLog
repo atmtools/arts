@@ -1,3 +1,144 @@
+2018-09-28  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1126
+	
+	Change in internal pressure broadening routines.  Previous versions
+	had strict formats on relationships between temperature, coefficient
+	of broadening, exponent of broadening, and pressure shift.  This version
+	has not.  Instead, it takes the approach that we now have to define
+	the relationship more loosly by temperature relationships.  To be 
+	internally consistent, this incurs a penalty for old computations 
+	that is up to 50% in new use case.  However, what spurred this implementation
+	was that the old computations make an inherent assumption that turns out
+	to not fit with lab-folks model that the exponent for pressure shift has
+	to be 1.5*N+0.25 for N being the exponent of the pressure broadening.
+	This assumption works, a cursory read tells me, for water in air but
+	it is not clear it works for other combinations of species.
+	
+	As a consequence of this re-haul, all catalog parameters relating to
+	line mixing and pressure broadening has been revamped.
+	
+	The new pressure broadening routine can handle any species that can be
+	put in abs_species, but it only operates, in essence, on the Index
+	that identifies the main species of the tag.  So it is best to
+	simply write just the species instead of a fancy full tag or 
+	some isotopologue.
+	
+	* controlfiles/CMakeLists.txt:  Removed linemixingrecord.cc,h and
+	its variable from use in controlfiles.  This was a temporary solution
+	that got superseded by ARTSCAT5.  No one should be using it.  If
+	you did, downgrade ARTS, save the line catalog you had before
+	as ARTSCAT5, and use the ARTSCAT5 you just saved in the future.
+	
+	* controlfiles/artscomponents/absorption/TestCompareArtscat3And4.arts:
+	Deleted.  Also deleted possibility of changing between ARTSCATs other
+	than to ARTSCAT5.  The new pressurebroadening routine makes this too
+	messy, and ARTSCAT5 is the best representation of how we use these
+	variables internally.  Therefore, the others are not useful but as
+	legacy catalogs.
+	
+	* controlfiles/artscomponents/lineshapes/*.{arts,py}: Updated to use
+	new derivatives routine.  As the plots show, the internal derivatives
+	still work except for VMR, since there are no internal derivatives
+	for VMR.
+	
+	* controlfiles/artscomponents/lineshapes/testdata/*: All updated/deleted
+	because the internal derivatives have changed.
+	
+	* controlfiles/artscomponents/wfuns/*:  Updated for the same reasons
+	
+	* controlfiles/artscomponents/zeeman/*:  Updated because the internal
+	VMR derivatives were not good in the last version (only worked on
+	pressure broadening+shift, not line mixing and other parameters)
+	Therefore, it was better to not do any line shape VMR derivatives
+	at this point.  This means we still are limited to an error in
+	VMR jacobian proportional to the VMR of the species itself.
+	
+	* src/absorption.cc,h: (find_broad_spec_locations) removed.
+	(xsec_species*) updated because there is no use of 
+	(find_broad_spec_locations) anymore.
+	(xsec_species_line_mixing_wrapper) lm_p_lim is temporarily removed
+	(possible to readd in case it becomes necessary, but bad spectra
+	is not a good reason, because the variable should not be used 
+	then anyways...)
+	(xsec_species_line_mixing_wrapper) also updated to not allow line
+	parameter derivatives anymore.  The main reason LineFunctions exist
+	as a namespace is because the old method was complicated, and this
+	made it worse.  Use LineFunctions-approach instead if you are interested
+	in those derivatives.
+	
+	* src/groups.cc;
+	  src/linemixingrecord.cc,h;
+	  src/m_basic_types.h;
+	  src/make_auto_md_h.cc;
+	  src/make_auto_workspace_h.cc;
+	  src/xml_io_array_types.cc;
+	  src/xml_io_compound_types.cc;
+	  src/xml_io_instantiation.h;
+	  src/xml_io_types.h;
+	  src/workspace.cc:  Removed *LineMixingRecord
+	
+	* src/jacobian.cc,h: Moved around and changed logic around line
+	shape derivatives.  HasSameInternalsAs added as RetrievalQuantity
+	internal logic.  Ignores external logic, such as grids.
+	
+	* src/linefunctiondata.cc,h:  Updated to cover all legacy applications
+	and to have easy interfaces to things like the jacobian computations
+	
+	* src/linefunctions.cc,h: updated because (broad_spec_locations) is no
+	longer a thing.  Also removes line mixing if you select a Doppler line
+	shape and other things that were possible but not very good.  Also
+	updated (set_doppler) because the old version seemed buggy.  Also updated
+	all line shapes to be aware of new line shape param derivatives.
+	Also replaced (apply_pressurebroadening_jacobian_scaling) and 
+	(apply_linemixing_jacobian_scaling) by just
+	(apply_linefunctiondata_jacobian_scaling).  Also removed my
+	experimental (SingleLevelLineData) class because it was not used
+	anywhere and it should not be necessary anymore.
+	
+	* src/linemixingdata.cc;src/pressurebroadeningdata.cc:  
+	Commented out failing, now unused code
+	
+	* src/linerecord.cc:  Removed functions exclusive to old ARTSCATs and
+	all ways to convert between the catalogs.  Also using mlinefunctiondata.
+	
+	* src/linerecord.h:  Sets version to 5 in case initiated normally.
+	removed old pressure broadening and line mixing data.  Replaced
+	by line function data class in all still relevant interfaces.
+	
+	* src/m_abs.cc: (abs_linesArtscat4FromArtscat3) removed.  Changed name
+	of (abs_linesArtscat5FromArtscat34) to
+	(abs_linesNewestArtscatFromLegacyCatalog)
+	
+	* src/m_jacobian.cc:  Added(jacobianAddLineFunctionDataParameter*)
+	changed old catalog parameter to only have line center and line strength.
+	
+	* src/m_linemixing.cc: Removed LineMixingRecord.  Also changed interface
+	commands to pressure broadening.
+	
+	* src/m_linerecord.cc: (abs_linesReplaceParameterWithLinesParameter)
+	deals in line function data class now.
+	(abs_lines*ParameterForMatchingLines) split to 
+	(abs_lines*BaseParameterForMatchingLines) and 
+	(abs_lines*LineFunctionDataParameterForMatchingLines)
+	
+	*  src/m_radiation_field.cc: Changed because find_broad_spec_locations
+	is not a thing anymore
+	
+	* src/m_zeeman.cc: Removes line mixing pressure limit
+	
+	* src/methods.cc:  Changed as described above and below
+	
+	* src/nlte.cc,h:  Removed buggy unused method because of interface 
+	change.  This tried to compute collision relaxation from pressure
+	broadening but it does not work in old or present form...
+	
+	* src/partial_derivatives.cc:  Removed old line parameters.
+	
+	* src/zeeman.cc,h: Changed because find_broad_spec_locations
+	is not a thing anymore.  Also removed unused 
+	(xsec_species_line_mixing_wrapper_with_zeeman)
+
 2018-09-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1125

@@ -201,7 +201,6 @@ add_library (artscore STATIC
   jacobian.cc
   legendre.cc
   lin_alg.cc
-  linemixingrecord.cc
   linemixingdata.cc
   linemixing.cc
   linerecord.cc

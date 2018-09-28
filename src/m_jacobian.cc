@@ -3845,6 +3845,82 @@ void jacobianDoitAddSpecies(//WS Output:
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianAddLineFunctionDataParameter(
+  Workspace&,
+  ArrayOfRetrievalQuantity&   jq,
+  Agenda&                     jacobian_agenda,
+  const QuantumIdentifier&    line_identity,
+  const String&               species,
+  const String&               variable,
+  const String&               coefficient,
+  const Verbosity&            verbosity )
+{
+  CREATE_OUT3;
+  
+  if(line_identity.Type() not_eq QuantumIdentifier::TRANSITION) throw std::runtime_error("Identity has to identify a line");
+  
+  const JacPropMatType jpt = select_derivativeLineFunctionData(variable, coefficient);
+  
+  out3 << "Attempting to create RT tag for " << line_identity << 
+          " " << variable << " " << coefficient << " for ";
+  if(species not_eq LineFunctionData_SelfBroadening and species not_eq LineFunctionData_BathBroadening) out3 << SpeciesTag(species).SpeciesNameMain() << "\n";
+  else out3 << species << "\n";
+  
+  // Create the quantity
+  RetrievalQuantity rq;
+  rq.MainTag( CATALOGPARAMETER_MAINTAG );
+  rq.SubSubtag(PROPMAT_SUBSUBTAG);
+  rq.Mode(species);
+  rq.Analytical(1);
+  rq.Grids(ArrayOfVector(0, Vector(0)));
+  rq.QuantumIdentity(line_identity);
+  rq.PropType(jpt);
+  rq.IntegrationOn();
+  
+  // Test this is not a copy
+  for(auto& q: jq) if(q.HasSameInternalsAs(rq)) throw std::runtime_error("Error with copies of the quantities");
+  
+  // Append and do housekeeping
+  jq.push_back(rq);
+  out3 << "Creation was successful!\n"; 
+  jacobian_agenda.append( "jacobianCalcDoNothing", TokVal() ); // old code activation
+  
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianAddLineFunctionDataParameters(
+  Workspace& ws,
+  ArrayOfRetrievalQuantity&       jq,
+  Agenda&                         jacobian_agenda,
+  const ArrayOfQuantumIdentifier& line_identities,
+  const ArrayOfString&            species,
+  const ArrayOfString&            variables,
+  const ArrayOfString&            coefficients,
+  const Verbosity&                verbosity )
+{
+  if(not (line_identities.nelem() or species.nelem() or variables.nelem() or coefficients.nelem()))
+    throw std::runtime_error("Must have at least 1-long lists for all GINs");
+  
+  ArrayOfString vars;
+  if(variables[0] == "ALL")
+    vars = all_variablesLineFunctionData();
+  else 
+    vars = variables;
+  
+  ArrayOfString coeffs;
+  if(coefficients[0] == "ALL")
+    coeffs = all_coefficientsLineFunctionData();
+  else
+    coeffs = coefficients;
+                                    
+  for(auto& l: line_identities)
+    for(auto& s: species)
+      for(auto& v: vars)
+        for(auto& c: coeffs)
+          jacobianAddLineFunctionDataParameter(ws, jq, jacobian_agenda, l, s, v, c, verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddCatalogParameter(
     Workspace&,
     ArrayOfRetrievalQuantity&   jq,
@@ -3873,26 +3949,8 @@ void jacobianAddCatalogParameter(
     RetrievalQuantity rq;
     
     // Check catalog_parameter here
-    if(LINESTRENGTH_MODE                   == catalog_parameter) rq.PropType(JacPropMatType::LineStrength);
-    else if(LINECENTER_MODE                == catalog_parameter) rq.PropType(JacPropMatType::LineCenter);
-    else if(SELFBROADENING_MODE            == catalog_parameter) rq.PropType(JacPropMatType::LineGammaSelf);
-    else if(SELFPRESSURESHIFT_MODE         == catalog_parameter) rq.PropType(JacPropMatType::LineShiftSelf);
-    else if(SELFBROADENINGEXPONENT_MODE    == catalog_parameter) rq.PropType(JacPropMatType::LineGammaSelfExp);
-    else if(FOREIGNBROADENING_MODE         == catalog_parameter) rq.PropType(JacPropMatType::LineGammaForeign);
-    else if(FOREIGNPRESSURESHIFT_MODE      == catalog_parameter) rq.PropType(JacPropMatType::LineShiftForeign);
-    else if(FOREIGNBROADENINGEXPONENT_MODE == catalog_parameter) rq.PropType(JacPropMatType::LineGammaForeignExp);
-    else if(WATERBROADENING_MODE           == catalog_parameter) rq.PropType(JacPropMatType::LineGammaWater);
-    else if(WATERPRESSURESHIFT_MODE        == catalog_parameter) rq.PropType(JacPropMatType::LineShiftWater);
-    else if(WATERBROADENINGEXPONENT_MODE   == catalog_parameter) rq.PropType(JacPropMatType::LineGammaWaterExp);
-    else if(LINEMIXINGY0_MODE              == catalog_parameter) rq.PropType(JacPropMatType::LineMixingY0);
-    else if(LINEMIXINGY1_MODE              == catalog_parameter) rq.PropType(JacPropMatType::LineMixingY1);
-    else if(LINEMIXINGYEXPONENT_MODE       == catalog_parameter) rq.PropType(JacPropMatType::LineMixingYExp);
-    else if(LINEMIXINGG0_MODE              == catalog_parameter) rq.PropType(JacPropMatType::LineMixingG0);
-    else if(LINEMIXINGG1_MODE              == catalog_parameter) rq.PropType(JacPropMatType::LineMixingG1);
-    else if(LINEMIXINGGEXPONENT_MODE       == catalog_parameter) rq.PropType(JacPropMatType::LineMixingGExp);
-    else if(LINEMIXINGDF0_MODE             == catalog_parameter) rq.PropType(JacPropMatType::LineMixingDF0);
-    else if(LINEMIXINGDF1_MODE             == catalog_parameter) rq.PropType(JacPropMatType::LineMixingDF1);
-    else if(LINEMIXINGDFEXPONENT_MODE      == catalog_parameter) rq.PropType(JacPropMatType::LineMixingDFExp);
+    if(LINESTRENGTH_MODE    == catalog_parameter) rq.PropType(JacPropMatType::LineStrength);
+    else if(LINECENTER_MODE == catalog_parameter) rq.PropType(JacPropMatType::LineCenter);
     else {
       ostringstream os;
       os << "You have selected:\n" << catalog_parameter << "\nas your catalog parameter. This is not supported.\n" 
@@ -3914,7 +3972,7 @@ void jacobianAddCatalogParameter(
     out3 << "  Calculations done by propagation matrix expressions.\n"; 
     
     jacobian_agenda.append( "jacobianCalcDoNothing", TokVal() );
-}    
+}
 
 
 

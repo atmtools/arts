@@ -36,7 +36,6 @@
 #include "messages.h"
 #include "abs_species_tags.h"
 #include "linerecord.h"
-#include "linemixingrecord.h"
 #include "gridded_fields.h"
 #include "jacobian.h"
 
@@ -755,10 +754,8 @@ void xsec_species_line_mixing_wrapper(      MatrixView               xsec_attenu
                                             const Index              ind_ls,
                                             const Index              ind_lsn,
                                             const Numeric            cutoff,
-                                            const Numeric            lm_p_lim,
                                             const SpeciesAuxData&    isotopologue_ratios,
-                                            const SpeciesAuxData&    partition_functions,
-                                            const Verbosity&         verbosity );
+                                            const SpeciesAuxData&    partition_functions);
 
 
 void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
@@ -837,12 +834,6 @@ void abs_h2oSet(Vector&          abs_h2o,
                 const Matrix&    abs_vmrs,
                 const Verbosity&);
 
-// Declaration that was before only in absorption.cc
-
-void find_broad_spec_locations(ArrayOfIndex& broad_spec_locations,
-                               const ArrayOfArrayOfSpeciesTag& abs_species,
-                               const Index this_species);
-
 void xsec_species2(MatrixView xsec, 
                    MatrixView source, 
                    MatrixView phase,
@@ -860,7 +851,6 @@ void xsec_species2(MatrixView xsec,
                    const Index this_species,
                    const ArrayOfLineRecord& abs_lines,
                    const Numeric H_magntitude_Zeeman,
-                   const Numeric lm_p_lim,
                    const SpeciesAuxData& isotopologue_ratios,
                    const SpeciesAuxData& partition_functions,
                    const Index& binary_speedup,

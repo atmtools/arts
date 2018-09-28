@@ -28,188 +28,6 @@
 #include <Eigen/Eigenvalues>
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void line_mixing_dataInit(// WS Output:
-                          ArrayOfArrayOfLineMixingRecord& line_mixing_data,
-                          ArrayOfArrayOfIndex& line_mixing_data_lut,
-                          // WS Input:
-                          const ArrayOfArrayOfSpeciesTag& abs_species,
-                          // Verbosity object:
-                          const Verbosity&)
-{
-    line_mixing_data.resize(abs_species.nelem());
-    line_mixing_data_lut.resize(abs_species.nelem());
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void line_mixing_dataMatch(// WS Output:
-                           //ArrayOfArrayOfLineMixingRecord& line_mixing_data,
-                           //ArrayOfArrayOfIndex& line_mixing_data_lut,
-                           // WS Output/Input:
-                           ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                           // WS Input:
-                           const ArrayOfArrayOfSpeciesTag& abs_species,
-                           const String& species_tag,
-                           const String& line_mixing_tag,
-                           const ArrayOfLineMixingRecord& line_mixing_records,
-                           const Verbosity& verbosity)
-{
-    CREATE_OUT2;
-    CREATE_OUT3;
-/*
-    if (abs_species.nelem() != line_mixing_data.nelem())
-        throw std::runtime_error( "*line_mixing_data* doesn't match *abs_species*.\n"
-                             "Make sure to call line_mixing_dataInit first." );
-    if (abs_species.nelem() != line_mixing_data_lut.nelem())
-        throw std::runtime_error( "*line_mixing_data_lut* doesn't match *abs_species*.\n"
-                            "Make sure to call line_mixing_dataInit first." );*/
-    
-    LineMixingData line_mixing_data_holder;
-    line_mixing_data_holder.StorageTag2SetType(line_mixing_tag);
-
-    // Find index of species_tag in abs_species
-    SpeciesTag this_species( species_tag );
-    Index species_index = -1;
-    for (Index i = 0; species_index == -1 && i < abs_species.nelem(); i++)
-        // We only look at the first SpeciesTag in each group because
-        // line mixing tags can not be combined with other tags
-        if (this_species == abs_species[i][0])
-            species_index = i;
-
-    if (species_index == -1)
-    {
-        ostringstream os;
-        os << "Can't find tag \"" << species_tag << "\" in *abs_species*.";
-        throw std::runtime_error(os.str());
-    }
-ArrayOfArrayOfLineMixingRecord line_mixing_data(abs_species.nelem());//FIXME: Added for convenience to match old use case
-    line_mixing_data[species_index] = line_mixing_records;
-
-    ArrayOfIndex matches;
-
-    // Now we use the quantum numbers to match the line mixing
-    // data to lines in abs_lines_per_species
-    Index nmatches = 0;
-    for (Index i = 0; i < line_mixing_data[species_index].nelem(); i++)
-    {
-        const LineMixingRecord& this_lmr = line_mixing_data[species_index][i];
-        
-        find_matching_lines(matches,
-                            abs_lines_per_species[species_index],
-                            this_lmr.Species(),
-                            this_lmr.Isotopologue(),
-                            this_lmr.Quantum());
-        
-        line_mixing_data_holder.SetDataFromVectorWithKnownType(line_mixing_data[species_index][i].Data());
-        
-        if (!matches.nelem())
-        {
-            out3 << "  Found no matching lines for\n" << this_lmr.Quantum() << "\n";
-        }
-        else if (matches.nelem() == 1)
-        {
-            out3 << "  Found matching line for\n" << this_lmr.Quantum() << "\n";
-            abs_lines_per_species[species_index][matches[0]].SetLineMixingData(line_mixing_data_holder);
-            nmatches++;
-        }
-        else
-        {
-            ostringstream os;
-            os << "  Found multiple lines for\n" << this_lmr.Quantum() << std::endl
-            << "  Matching lines are: " << std::endl;
-            for (Index m = 0; m < matches.nelem(); m++)
-                os << "  " << abs_lines_per_species[species_index][matches[m]] << std::endl
-                << "  " << abs_lines_per_species[species_index][matches[m]].QuantumIdentity()
-                << std::endl;
-            throw std::runtime_error(os.str());
-        }
-    }
-
-    out2 << "  Matched " << nmatches << " lines out of " << line_mixing_data[species_index].nelem()
-         << "\n";
-    out2 << "  abs_lines_per_species contains " << abs_lines_per_species[species_index].nelem()
-         << " lines for " << species_tag << ".\n";
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfLineMixingRecordReadAscii(// Generic Output:
-                                      ArrayOfLineMixingRecord& line_mixing_records,
-                                      // Generic Input:
-                                      const String& filename,
-                                      const Verbosity& verbosity)
-{
-    ifstream ifs;
-    open_input_file(ifs, filename);
-
-    line_mixing_records.resize(0);
-
-    // Read the line mixing file
-    Index linenr = 0;
-    String line;
-    istringstream is;
-    while (!ifs.eof())
-    {
-        getline(ifs, line);
-        linenr++;
-
-        line.trim();
-        // Skip empty lines and comments
-        if (!line.nelem()
-            || (line.nelem() && line[0] == '#'))
-            continue;
-
-        is.clear();
-        is.str(line);
-        try {
-            String species_string;
-            SpeciesTag line_species;
-
-            is >> species_string;
-            line_species = SpeciesTag(species_string);
-
-            LineMixingRecord lmr(line_species.Species(), line_species.Isotopologue());
-
-            Rational r;
-            is >> r; lmr.Quantum().SetLower(QuantumNumberType::v1, r);
-            lmr.Quantum().SetUpper(QuantumNumberType::v1, r);
-            is >> r; lmr.Quantum().SetUpper(QuantumNumberType::N,  r);
-            is >> r; lmr.Quantum().SetLower(QuantumNumberType::N,  r);
-            is >> r; lmr.Quantum().SetUpper(QuantumNumberType::J,  r);
-            is >> r; lmr.Quantum().SetLower(QuantumNumberType::J,  r);
-
-            vector<Numeric> temp_mixing_data;
-            String s;
-            char *c;
-            while (is.good() && is)
-            {
-                is >> s;
-                s.trim();
-                if (s.nelem())
-                {
-                    temp_mixing_data.push_back(strtod(s.c_str(), &c));
-                    if (c != s.c_str() + s.nelem())
-                        throw std::runtime_error(line);
-                }
-            }
-
-            lmr.Data() = temp_mixing_data;
-            line_mixing_records.push_back(lmr);
-        } catch (const std::runtime_error &e) {
-            ostringstream os;
-
-            os << "Error parsing line mixing file in line " << linenr << std::endl;
-            os << e.what();
-            throw std::runtime_error(os.str());
-        }
-    }
-
-    CREATE_OUT2;
-    out2 << "  Read " << line_mixing_records.nelem() << " lines from " << filename << ".\n";
-}
-
-
 void SetBandIdentifiersAuto(ArrayOfQuantumIdentifier& band_identifiers,
                             const ArrayOfArrayOfSpeciesTag& abs_species,
                             const Verbosity& verbosity)
@@ -1027,7 +845,7 @@ void abs_lines_per_bandFromband_identifiers( ArrayOfArrayOfLineRecord&       abs
         else {
           abs_lines_per_band[qi].push_back(lr);
           if(change_linemixing_to_bandwise)
-            lr.SetLineMixingData(lmd_byband);
+            lr.SetSpecial();
         }
       }
     }
@@ -1628,10 +1446,10 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       }
       
       // Pressure broadening at relmat temperatures
-      if(not this_line.PressureBroadeningAirType()) {
+      if(not this_line.LineFunctionDataHasAir()) {
         std::ostringstream os;
-        os << "Line is not air broadening type but only air broadening types are suported.\n";
-        os << "Its type is " << this_line.PressureBroadeningTypeString();
+        os << "Line does not not have air broadening but this function only uses air broadening.\n";
+        os << "Its values are " << this_line.GetLineFunctionData();
         throw std::runtime_error(os.str());
       }
       
@@ -2024,7 +1842,12 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                               abs_t[ip], abs_lines_per_band[iband][iline].Ti0(),  abs_lines_per_band[iband][iline].F(),
                               abs_lines_per_band[iband][iline].Elow(), false, -1.0, -1.0, -1, -1, v_tmp);
           
-          abs_lines_per_band[iband][iline].SetAirPressureBroadening(W(iline, iline), psf[iline], abs_t[ip], abs_p[ip], 0.0);
+          //abs_lines_per_band[iband][iline].SetAirPressureBroadening(W(iline, iline), psf[iline], abs_t[ip], abs_p[ip], 0.0);
+          // FIXME:  Update this entire section... the below is a temporary workaround
+          const std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric> X =
+          abs_lines_per_band[iband][iline].GetShapeParams(abs_t[ip], abs_p[ip], 0, {0}, {{SpeciesTag("CO2")}});
+          W(iline, iline) = std::get<0>(X);
+          psf[iline] = std::get<1>(X);
           
           // TODO: Add derivatives here
           
