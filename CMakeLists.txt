@@ -19,7 +19,12 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 )
 endif ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 
-cmake_minimum_required (VERSION 3.1.0)
+if (ENABLE_CXX17)
+  cmake_minimum_required (VERSION 3.9.6)
+else ()
+  cmake_minimum_required (VERSION 3.1.0)
+endif ()
+
 set (CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 if (NOT ENABLE_ALLPATHS)
@@ -115,9 +120,14 @@ if (ENABLE_CCACHE)
   endif (CCACHE_FOUND)
 endif ()
 
-########### C++11 Support ##########
+########### C++11/17 Support ##########
 
-set(CMAKE_CXX_STANDARD 11)
+if (ENABLE_CXX17)
+  set(CMAKE_CXX_STANDARD 17)
+else ()
+  set(CMAKE_CXX_STANDARD 11)
+endif ()
+
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 

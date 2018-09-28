@@ -1,3 +1,17 @@
+2018-09-28  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1125
+
+	* CMakeLists.txt:
+
+	Add option ENABLE_CXX17 for testing code and compiler compatibility
+	with the C++17 standard. Note that this for _testing_ only! The version
+	of the Eigen library included in ARTS is currently not C++17 compatible
+	due to its use of deprecated functionality std::binder1st and
+	std::binder2nd.
+
+	* README: Add note about NO_FFTW and ENABLE_CXX17.
+
 2018-09-27  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1124

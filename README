@@ -193,6 +193,15 @@ cmake -DNO_DOCSERVER=1 ..
 Treat warnings as errors:
 cmake -DWERROR=1 ..
 
+Disable FFTW autodetection:
+
+ARTS automatically detects the availability of the FFTW3 library needed to
+speed up the calculation of HITRAN cross section species . If you need
+to disable FFTW support for any reason, you can do so with the following cmake
+option:
+
+cmake -DNO_FFTW=1 ..
+
 
 TMATRIX PRECISION
 =================
@@ -262,6 +271,11 @@ EXPERIMENTAL FEATURES (ONLY USE IF YOU KNOW WHAT YOU'RE DOING)
 Use C++11 and the new libc++ (currently only supported in Xcode builds):
 
 cmake -G Xcode -DWITH_XCODE_LIBCPP=1 ..
+
+Enable C++17 (only for compatibility testing, do not use C++17 features in your
+code):
+
+cmake -DENABLE_CXX17=1 ..
 
 
 VALGRIND PROFILING
