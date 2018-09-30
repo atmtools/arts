@@ -1,7 +1,20 @@
+2018-09-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1127
+
+	* src/m_oem.cc (avkCalc): Fixed and improved error message.
+
+	* src/m_checked.cc (sensor_checkedCalc): Also *f_grid* is now
+	examined, that's strictly increasing.
+
+	(nlteOff): Moved to m_nlte.cc.
+
+	* src/m_nlte.cc (nlteOff): Moved to m_checked.cc.
+
 2018-09-28  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1126
-	
+
 	Change in internal pressure broadening routines.  Previous versions
 	had strict formats on relationships between temperature, coefficient
 	of broadening, exponent of broadening, and pressure shift.  This version

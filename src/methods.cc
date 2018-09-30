@@ -16000,7 +16000,7 @@ void define_md_data_raw()
         (
          "Checks consistency of the sensor variables.\n"
          "\n"
-         "The following WSVs are treated: *sensor_pos*, *sensor_los*,\n"
+         "The following WSVs are examined: *f_grid*, *sensor_pos*, *sensor_los*,\n"
          "*transmitter_pos*, *mblock_dlos_grid*, *antenna_dim*,\n"
          "*sensor_response*, *sensor_response_f*, *sensor_response_pol*,\n"
          "and *sensor_response_dlos*.\n"

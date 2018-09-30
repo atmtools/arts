@@ -736,6 +736,8 @@ void cloudbox_checkedCalc(
   cloudbox_checked = 1;
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void scat_data_checkedCalc(      
          Index&          scat_data_checked,
@@ -1006,13 +1008,17 @@ void sensor_checkedCalc(
    const Matrix&                     sensor_response_dlos,
    const Verbosity& )
 {
-
   // Some sizes
   const Index   nf      = f_grid.nelem();
   const Index   nlos    = mblock_dlos_grid.nrows();
   const Index   n1y     = sensor_response.nrows();
   const Index   nmblock = sensor_pos.nrows();
   const Index   niyb    = nf * nlos * stokes_dim;
+
+  // Sensor position and LOS.
+  //
+  if ( !is_increasing( f_grid ) )
+    throw runtime_error( "*f_grid* must be a strictly increasing vector." );
 
   // Sensor position and LOS.
   //
@@ -1111,16 +1117,4 @@ void sensor_checkedCalc(
 
   // If here, all OK
   sensor_checked = 1;
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void nlteOff(Index&   nlte_do,
-             Tensor4& t_nlte_field,
-             ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
-             const    Verbosity& )
-{
-    nlte_do = 0;
-    t_nlte_field.resize(0, 0, 0, 0);
-    nlte_quantum_identifiers.resize(0);
 }

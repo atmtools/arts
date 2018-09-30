@@ -211,3 +211,16 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
   else
     out2 << "No convergence of NLTE ratios (within convergence_limit) returned even after " << iteration_limit << " iterations\n";
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void nlteOff(Index&   nlte_do,
+             Tensor4& t_nlte_field,
+             ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
+             const    Verbosity& )
+{
+  nlte_do = 0;
+  t_nlte_field.resize(0, 0, 0, 0);
+  nlte_quantum_identifiers.resize(0);
+}

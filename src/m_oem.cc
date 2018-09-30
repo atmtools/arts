@@ -1780,14 +1780,17 @@ void avkCalc(
     const Verbosity& /*v*/)
 {
     Index m(jacobian.nrows()), n(jacobian.ncols());
-    if ((m == 0) || (n == 0)) {
-        throw runtime_error("A Jacobian is required to compute the averaging kernel matrix.");
-    }
-    if ((dxdy.nrows() != n) || (dxdy.ncols() != m)) {
-        std::cout << jacobian.nrows() << " | " << jacobian.ncols() << std::endl;
-        std::cout << dxdy.nrows() << " | " << dxdy.ncols() << std::endl;
-        throw runtime_error("The gain matrix has invalid dimensions.");
-    }
+    if( (m == 0) || (n == 0) ) 
+      throw runtime_error( "The Jacobian matrix is empty." );
+    if( (dxdy.nrows() != n) || (dxdy.ncols() != m) )
+      {
+        ostringstream os;
+        os << "Matrices have inconsistent sizes.\n" 
+           << "  Size of gain matrix: " << dxdy.nrows() << " x " << dxdy.ncols() << "\n"
+           << "     Size of Jacobian: " << jacobian.nrows() << " x " << jacobian.ncols()
+           << "\n"; 
+        throw runtime_error( os.str() );      
+      }
 
     avk.resize(n,n);
     mult(avk, dxdy, jacobian);
