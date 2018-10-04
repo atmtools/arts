@@ -130,6 +130,7 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
   {
     // No mirroring
     case MirroringType::None:
+    case MirroringType::Manual:
       break;
       // Lorentz mirroring
     case MirroringType::Lorentz:
@@ -1892,6 +1893,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   {
     // No mirroring
     case MirroringType::None:
+    case MirroringType::Manual:
       break;
     // Lorentz mirroring
     case MirroringType::Lorentz:

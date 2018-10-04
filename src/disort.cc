@@ -639,12 +639,12 @@ void get_paroptprop( MatrixView ext_bulk_par,
                      const ArrayOfArrayOfSingleScatteringData& scat_data,
                      ConstMatrixView pnd_field,
                      ConstVectorView t_field,
-                     ConstVectorView p_grid,
+                     ConstVectorView DEBUG_ONLY(p_grid),
                      const ArrayOfIndex& cloudbox_limits,
                      ConstVectorView f_grid )
 {
   const Index Np_cloud = pnd_field.ncols();
-  const Index Np = p_grid.nelem();
+  DEBUG_ONLY(const Index Np = p_grid.nelem());
   const Index nf = f_grid.nelem();
 
   assert( ext_bulk_par.nrows() == nf );

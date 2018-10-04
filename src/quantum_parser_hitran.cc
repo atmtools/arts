@@ -670,7 +670,7 @@ void postprocess_group2_hitran(QuantumNumberRecord& qnr, const Index /* species 
 }
 
 
-void postprocess_group5_hitran(QuantumNumberRecord& qnr, const Index species)
+void postprocess_group5_hitran(QuantumNumberRecord& qnr, const Index DEBUG_ONLY(species))
 {
     qnr.SetUpper(QuantumNumberType::N, qnr.Lower(QuantumNumberType::N) - qnr.Lower(QuantumNumberType::dN));
     qnr.SetUpper(QuantumNumberType::J, qnr.Lower(QuantumNumberType::J) - qnr.Lower(QuantumNumberType::dJ));
@@ -765,7 +765,7 @@ void postprocess_group6_hitran(QuantumNumberRecord& qnr, const Index species)
 }
 
 
-void postprocess_group6oh_hitran(QuantumNumberRecord& qnr, const Index species)
+void postprocess_group6oh_hitran(QuantumNumberRecord& qnr, const Index DEBUG_ONLY(species))
 {
   assert(species == species_index_from_species_name("OH"));
   

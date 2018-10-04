@@ -960,6 +960,12 @@ void abs_lines_per_speciesAddMirrorLines(
             {
               if( ll[j].F() <= max_f )
                 { nnew += 1; }
+              
+              // Check that the line is not mirrored 
+              if(ll[j].GetMirroringType() == MirroringType::None)
+                ll[j].SetMirroringType(MirroringType::Manual);
+              else 
+                throw std::runtime_error("Cannot mirror line manually since it is already mirrored by LineRecord");
             }
         }
       //

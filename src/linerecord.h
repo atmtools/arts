@@ -205,6 +205,7 @@ enum class MirroringType : Index
   None=0,
   Lorentz=1,
   SameAsLineShape=2,
+  Manual=3,
   End
 };
 

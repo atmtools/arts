@@ -386,8 +386,10 @@ Variable: \wsvindex{propmat\_clearsky\_field}, \wsvindex{abs\_coef}. \newline
 Methods, high level: \wsmindex{propmat\_clearsky\_fieldCalc}. \newline
 Methods, low level: \newline
 \wsmindex{abs\_xsec\_per\_speciesInit}, \newline
-\wsmindex{abs\_xsec\_per\_speciesAddLines} (the core method for the
-actual line-by-line calculation, used internally by all higher level methods),\newline
+\wsmindex{abs\_xsec\_per\_speciesAddLines} (one core method for the
+actual line-by-line calculation that requires \wsvindex{abs\_lineshape} and \wsmindex{abs\_lines\_per\_speciesAddMirrorLines}),\newline
+\wsmindex{abs\_xsec\_per\_speciesAddLines2} (another core method for the
+actual line-by-line calculation that assumes line shape data from the catalogue itself),\newline
 \wsmindex{abs\_xsec\_per\_speciesAddConts} (add continua or complete absorption
 models, see Section \ref{sec:absorption:continua}),\newline
 \wsmindex{abs\_xsec\_per\_speciesAddCIA} (add collision induced absorption, see

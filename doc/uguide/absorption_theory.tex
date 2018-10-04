@@ -839,7 +839,11 @@ numbers respectively refers to total angular momentum, projection of J along the
 total angular momentum without the spin, total spin, J and nuclear spin, absolute projection of J and S,
 K or Ka in HITRAN, Kb in HITRAN, first vibrational mode, second vibrational mode, and third vibrational mode.  
 
-\subsection{Pressure broadening and shift calculation}
+\subsection{Pressure broadening and shift calculation (legacy) \label{legacy_lineshapes}}
+Note that the following section holds true for all
+calculations in ARTS following \verb|abs_xsec_per_speciesAddLines|.
+For calculations following \verb|abs_xsec_per_speciesAddLines2|,
+see subsection~\ref{modern_lineshapes}.
 
 The pressure broadened line width $\gamma_L$ (see Equations
 \ref{eq:abs_theory:pressure_lorentz} and \ref{eq:abs_theory:vvw}) is
@@ -1060,6 +1064,286 @@ term:
   \delta\nu_{\mathrm{lm}}&=& \left[\delta\nu'_{\mathrm{lm}}(T_{\mathrm{lm}})+\delta\nu''_{\mathrm{lm}}(T_{\mathrm{lm}})\left(\frac{T_{\mathrm{lm}}}{T}-
   1\right)\right]\left(\frac{T_{\mathrm{lm}}}{T}\right)^{n_{\delta\nu_{\mathrm{lm}}}}.
 \end{eqnarray}
+
+\subsection{Pressure broadening and shift calculation (modern) \label{moder_lineshapes}}
+There are two line shape calculators in ARTS, a legacy and a more modern calculator.
+You are using the legacy calculator if you are using (directly or indirectly)
+\verb|abs_xsec_per_speciesAddLines|,
+and the modern calculator if you are calling \verb|abs_xsec_per_speciesAddLines2|.
+The legacy calculator has the user choose the line shape algorithm, cut-off
+frequency, and line renormalization routine directly in the controlfile for a
+given species tag. This is described above in this documentation and will
+not be iterated upon here.
+The modern calculator sets the line shape on a line-by-line basis directly in
+the line catalog.  This still allows for cut-off frequencies and line renormalization
+to be part of the computation, and for a different line shape algorithm to be called,
+but generally, the available pressure broadening and line mixing data describes these
+things and so the calculator will work regardless.  And once set up, the line shape
+will be the same for all others using the line catalog, offering easier traceability
+of utilized spectroscopic data.
+
+\subsubsection{Line shapes}
+
+The available line shapes are shown in Table~\ref{tab:lsalg-ls-and-input}.
+The generic function in use for  each individual line's cross-section is
+\begin{equation}
+ \sigma = S \left(1 - iY + G\right) F\left( \Gamma_D, \Gamma_0, 
+            \Delta_0, \Gamma_2, \Delta_2, \eta, \nu_{VC}, \delta\nu \right),
+ \label{eq:lsalg-standard-equation}
+\end{equation}
+where
+$S$ is the line strength,
+$Y$ is the first order line mixing coefficient,
+$G$ is the second order line mixing strength-adjusting coefficient,
+$\Gamma_D$ is the Doppler broadening half-width,
+$\Gamma_0$ is the speed-independent pressure broadening half-width,
+$\Delta_0$ is the speed-independent pressure broadening frequency shift,
+$\Gamma_2$ is the speed-dependent pressure broadening half-width,
+$\Delta_2$ is the speed-dependent pressure broadening frequency shift,
+$\eta$ is a correlation parameter,
+$\nu_{VC}$ is the frequency of velocity-changing collisions, and
+$\delta\nu$ is the second order line mixing frequency shifting.
+For the individual profiles, not all input are needed or used.
+Note that the line strength is a function temperature, 
+line central frequency, and the energy of the lower state level in local
+thermodynamic equilibrium, and the number densities at upper and 
+lower state levels outside local thermodynamic equilibrium.
+I will not go into more details about line strength scaling here.
+
+The individual line profiles take the forms
+\begin{itemize}
+ \item[DP:] $F_{DP} = \frac{1}{\sqrt{\pi}\Gamma_D} 
+ \exp\left(-\left[\frac{\nu - \nu_0}{\Gamma_D}\right]^2\right)$
+ 
+ \item[LP:] $F_{LP} = \frac{1}{\pi} \frac{1}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0-i\nu}$
+ 
+ \item[VP:] $F_{VP} = \frac{1}{\sqrt{\pi}\Gamma_D} w\left(z\right);\;z=\frac{\nu-\nu_0-\delta\nu-\Delta_0 + i\Gamma_0}{\Gamma_D}$
+ 
+ \item[HTP:] Formulation not fully tested yet.
+\end{itemize}
+Note that
+$w(z)$ is the Faddeeva function,
+$T$ is the temperature,
+$\nu$ is the frequency, and 
+$\nu_0$ is the line frequency.
+
+\begin{table}[ht!]
+ \centering
+ \begin{tabular}{lcll}
+  Profiles &  & Parameters & Mixing \\
+  Doppler profile & DP & $\Gamma_D$ & None \\
+  Lorentz profile & LP & $\Gamma_0$, $\Delta_0$ & $Y$, $G$, $\delta\nu$ \\
+  Voigt profile & VP & $\Gamma_D$, $\Gamma_0$, $\Delta_0$ & $Y$, $G$, $\delta\nu$ \\
+  Speed-dependent VP & SDVP & $\Gamma_D$, $\Gamma_0$, $\Delta_0$, $\Gamma_2$, $\Delta_2$ & $Y$, $G$ \\
+  Hartmann-Tran profile & HTP & $\Gamma_D$, $\Gamma_0$, $\Delta_0$, $\Gamma_2$, $\Delta_2$, $\nu_{VC}$, $\eta$ & $Y$, $G$
+ \end{tabular}
+ \caption{Line shapes and parameters they depend on. Note that for both SDVP and HTP,
+ $G$ is not defined in theory but it is computed in these algorithm if provided --- 
+ do not provide $G$ unless you wish to use it. Also note that SDVP relies on HTP code to
+ execute internally.}
+ \label{tab:lsalg-ls-and-input}
+\end{table}
+
+\subsubsection{Spectroscopic data}
+Spectroscopic data is provided per species.  Thus for all parameters of 
+Table~\ref{tab:lsalg-ls-and-input} the sum is computed and the results 
+are re-normalized to 100\% volume mixing ratio.  For example,
+$$\Gamma_0 = \left.\left(\Gamma_{0,\rm{H}_2\rm{O}} + \Gamma_{0,\rm{O}_2} + \Gamma_{0,\rm{O}_3} +  + \Gamma_{0,\rm{N}_2} + \cdots\right)\middle/\left(r_{\rm{H}_2\rm{O}}+r_{\rm{O}_2}+r_{\rm{O}_3}+r_{\rm{N}_2}\cdots\right) \right. , $$
+where $r_i$ is the fraction of 
+species $i$ in the atmosphere (at the level $\Gamma_0$ is computed).
+
+Each parameter of Table~\ref{tab:lsalg-ls-and-input}
+depends on temperature.  All but $\Gamma_D$, $G$, and $\delta\nu$ linearly scale with pressure; the former does not scale with pressure at all and the latter two scales with pressure squared.
+
+\paragraph*{Doppler half-width}
+
+For $\Gamma_D$ the temperature dependency is fixed and the parameter can simply be found as
+\begin{equation}
+ \Gamma_D = \sqrt{\frac{2k_BT}{mc^2}} \nu_0,
+\end{equation}
+where $k_B$ is the Boltzman constant, $c$ is the speed of light, and $m$ is the mass of the species.
+This $\Gamma_D$ comes from random motion of the species in its 'bath'.  
+
+\paragraph*{Pressure broadening and line mixing terms}
+
+The other parameters are more cumbersome and often lacks clear physical derivations.
+Instead, lab measurements are used to fit them to some parametric form.  In ARTS, we
+have the parametric forms of Table~\ref{tab:lsalg-parametric-form} available to 
+choose from.  It is straightforward to add new terms to this table, so please
+be aware of such terms being added during updates (if you update seldom, check
+back on this documentation).
+
+\begin{table}[ht!]
+ \centering
+ \begin{tabular}{lll}
+  Notation & Parameters & Equation  \\[5pt]
+  T0 & $x_0$ & $X = x_0$ \\[5pt]
+  T1 & $x_0$, $x_1$, $T_0$, $T$ & $X = x_0 \left(\frac{T_0}{T}\right)^{x_1}$ \\[5pt]
+  T2 & $x_0$, $x_1$, $x_2$, $T_0$, $T$ & $X = x_0\left(\frac{T_0}{T}\right)^{x_1} \left(1 + x_2\log\left(\frac{T}{T_0}\right) \right) $ \\[5pt]
+  T3 & $x_0$, $x_1$, $T_0$, $T$ & $X = x_0 + x_1\left(T - T_0\right) $ \\[5pt]
+  T4 & $x_0$, $x_1$, $x_2$, $T_0$, $T$ & $X = \left(x_0 + x_1\left[\frac{T_0}{T} - 1\right]\right) \left(\frac{T_0}{T}\right)^{x_2} $ \\[5pt]
+  T5 & $x_0$, $x_1$, $T_0$, $T$ & $X = x_0 \left(\frac{T_0}{T}\right)^{1.5x_1+0.25}$ \\[5pt]
+  Interpolation & As required & As required
+ \end{tabular}
+ \caption{Parametric forms of ARTS pressure broadening and line mixing.  $T_0$ is
+ a line reference temperature, the $x_0-x_2$ are best-fit parameters.}
+ \label{tab:lsalg-parametric-form}
+\end{table}
+
+\paragraph*{Input format}
+
+To input the data above into simply have it follow the ARTSCAT5 input format during reading.
+The ARTSCAT5 input format for this kind of spectroscopic data must follow an \verb|LF|-tag.
+The immediate tag afterwards must be one of the tags in Table~\ref{tab:lsalg-ls-and-input}.
+The second next tag defines how many line mixing parameters are defined.  The available
+line mixing parameters are found in Table~\ref{tab:lsalg-mixing-forms}. The third value tells how many species there are.  The next tag gives the first species, and then as many variables
+that are required by the combination of line shape and line mixing tags will follow, first by the parametric form used to compute the variable (i.e., from Table~\ref{tab:lsalg-parametric-form}), and then by as many as required of the coefficients ($x_0$-$x_2$).  This form is repeated for all species of interest.  As a special rule, the first species can be SELF for self broadening, and the last species can be AIR, to account for all remaining volume mixing ratio.
+
+\begin{table}[ht!]
+ \centering
+ \begin{tabular}{ll|l}
+  Method & Variables & Notes\\
+  \verb|#| & None & No mixing\\
+  \verb|LM1| & $Y$ & First order\\
+  \verb|LM2| & $Y$, $G$, $\delta\nu$ & Second order \\
+  \verb|ConstG| & $G$ & For scaling purposes\\
+  \verb|LM_AER| & $Y$, $G$ & Fixed form 12 values: [$T_{0-3}$, $Y_{0-3}$, $G_{0-3}$]\\
+ \end{tabular}
+\caption{Line mixing models in ARTS}
+\label{tab:lsalg-mixing-forms}
+\end{table}
+
+\paragraph*{Examples of ARTSCAT5 line function data formats}
+
+Note that none of these examples are illustrative about actual values but just around to demonstrate the idea of the ARTS input format.
+
+A line that will be computed by pure air broadening using the Voigt profile ignoring line mixing using T1 parametric form for the speed-independent pressure broadening parameter and T5 parametric form for the speed-independent pressure frequency shift term:
+\begin{verbatim}
+LF VP # 1 AIR T1 20000 0.8 T5 100 0.8
+\end{verbatim}
+At 1~Pa and $T_0/T = 0.5$, this line will have $\Gamma_0\approx11487$~Hz and $\Delta_0\approx37$~Hz.
+
+A line with the same air-effects but with self-affected $x_0$ values that are twice as large:
+\begin{verbatim}
+LF VP # 2 SELF T1 40000 0.8 T5 200 0.8 AIR T1 20000 0.8 T5 100
+0.8 
+\end{verbatim}
+At 2~Pa and $T_0/T = 1.2$ with self volume mixing ratio of 10\%, this line 
+will have $\Gamma_0\approx25455$~Hz and $\Delta_0\approx143$~Hz.
+
+Same Voigt profile again but with water parameters that are half as 
+large as the air parameters
+\begin{verbatim}
+LF VP # 3 SELF T1 40000 0.8 T5 200 0.8 H2O T1 10000 0.8 T5 50
+0.8 AIR T1 20000 0.2 T5 100 0.7 
+\end{verbatim}
+
+
+A Hartmann-Tran line with only air as species but also first order line mixing:
+\begin{verbatim}
+LF HTP LM1 1 AIR T1 20000 0.8 T5 100 0.8 T3 200 300 T0 10 T0 1 T0
+0.01 T1 1e-7 0.8
+\end{verbatim}
+At 10~Pa and $T_0/T = 1$ will have $\Gamma_0=200,000$~Hz, $\Delta_0=1000$~Hz, 
+$\Gamma_2=2000$~Hz, $\Delta_2=100$~Hz, $\nu_{VC}=10$~Hz, $\eta=0.01$, and $Y=10^{-6}$.
+
+A Lorentz profile with second order line mixing and only air parameters
+\begin{verbatim}
+LF LP LM2 1 AIR T1 20000 0.8 T5 60 0.8 T4 1e-7 1e-9 0.8 T4 1e-9 
+1e-11 1.6 T4 1 1e-2 1.6
+\end{verbatim}
+At 100~Pa and $T_0/T = 1$, this will have $\Gamma_0=2$~MHz, $\Delta_0=6$~kHz,
+$Y=10^{-5}$, $G=10^{-5}$, and $\delta\nu=10$~kHz.
+
+\subsubsection{Partial derivatives of $F\left( \Gamma_D, \Gamma_0, 
+            \Delta_0, \Gamma_2, \Delta_2, \eta, \nu_{VC}, \delta\nu \right)$}
+
+The partial derivatives are listed below in order of the different profiles. 
+
+\paragraph*{Partial derivative w.r.t.\ temperature}
+
+\begin{itemize}
+ \item[DP:] $\frac{\partial F_{DP}}{\partial T} = F_{DP}\left(2\left[\frac{\nu - \nu_0}{\Gamma_D}\right]^2-1\right) \frac{\partial \Gamma_D}{\partial T} \frac{1}{\Gamma_D}$
+ 
+ \item[LP:] $\frac{\partial F_{LP}}{\partial T} = -\frac{F_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0-i\nu} \left( \frac{\partial \Gamma_0}{\partial T} + i\frac{\partial \Delta_0}{\partial T} + i \frac{\partial \delta\nu}{\partial T}\right)$ 
+ 
+ \item[VP:] $\frac{\partial F_{VP}}{\partial T} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right)
+ \left(i\frac{\partial \Gamma_0}{\partial T} - \frac{\partial\Delta_0}{\partial T} - \frac{\partial\delta\nu}{\partial T} -z\frac{\partial\Gamma_D}{\partial T}\right) - F_{VP}\frac{\partial\Gamma_D}{\partial T}\frac{1}{\Gamma_D}$
+ 
+ \item[HTP:] Formulation not fully tested yet.
+\end{itemize}
+Also note that the partial derivatives for the parameters of 
+Table~\ref{tab:lsalg-parametric-form} are trivial from said table's equations.
+
+\paragraph*{Partial derivative w.r.t.\ frequency}
+
+\begin{itemize}
+ \item[DP:] $\frac{\partial F_{DP}}{\partial \nu} = -2 F_{DP} \left[\frac{\nu - \nu_0}{\Gamma_D^2}\right]$
+ 
+ \item[LP:] $\frac{\partial F_{LP}}{\partial\nu} = \frac{iF_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0-i\nu}$
+ 
+ \item[VP:] $\frac{\partial F_{VP}}{\partial \nu} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right) \frac{1}{\Gamma_D}$
+ 
+ \item[HTP:] Formulation not fully tested yet.
+\end{itemize}
+Also note that the frequency derivative is used to derive wind derivatives
+in a later stage.
+
+\paragraph*{Partial derivative w.r.t.\ line frequency}
+
+\begin{itemize}
+ \item[DP:] $\frac{\partial F_{DP}}{\partial \nu_0} = 2F_{DP} \left[\frac{\nu-\nu_0}{\Gamma_D}\right] \left(\frac{\left[\frac{\nu - \nu_0}{\Gamma_D}\right]-1}{\nu_0}+ \frac{1}{\Gamma_D}\right)$
+ 
+ \item[LP:] $\frac{\partial F_{LP}}{\partial\nu_0} = -\frac{iF_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0-i\nu}$
+ 
+ \item[VP:] $\frac{\partial F_{VP}}{\partial \nu_0} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right) \left(-\frac{1}{\Gamma_D}-\frac{z}{\nu_0}\right) - \frac{F_{VP}}{\nu_0}$
+ 
+ \item[HTP:] Formulation not fully tested yet.
+\end{itemize}
+Also note that Equation~\ref{eq:lsalg-standard-equation} has the line strength that depends on the line central frequency. 
+
+\paragraph*{Partial derivative w.r.t.\ second order line mixing frequency shift}
+
+See ``Partial derivative w.r.t.\ line frequency''.  Also note that chaining for
+any coefficient in Table~\ref{tab:lsalg-parametric-form} is possible.
+
+\paragraph*{Partial derivative w.r.t.\ pressure broadening frequency shift}
+
+See ``Partial derivative w.r.t.\ line frequency''.  Also note that chaining for
+any coefficient in Table~\ref{tab:lsalg-parametric-form} is possible.
+
+\paragraph*{Partial derivative w.r.t.\ pressure broadening half-width}
+
+\begin{itemize}
+ \item[DP:] N/A
+ 
+ \item[LP:] $\frac{\partial F_{LP}}{\partial\Gamma_0} = -\frac{F_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0-i\nu}$
+ 
+ \item[VP:] $\frac{\partial F_{VP}}{\partial \Gamma_0} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right) \frac{i}{\Gamma_D}$
+ 
+ \item[HTP:] Formulation not fully tested yet.
+\end{itemize}
+
+Note that chaining for any coefficient in Table~\ref{tab:lsalg-parametric-form} is possible.
+
+\paragraph*{Partial derivative w.r.t.\ magnetic field strength}
+
+See ``Partial derivative w.r.t.\ line frequency''.  Scale expressions by $\left. \mu_B \left(g''M''_J-g'M'_J\right) \middle/h\right.$, where $\mu_B$
+is the Bohr magneton, $h$ is the Planck constant, $g$ is the Zeeman effect splitting coefficient, double prime means for the lower state, single prime for the upper state, and $M$ is the quantum number of the projection of the total angular momentum quantum number along the magnetic field.
+
+\paragraph*{Partial derivative w.r.t.\ first order line mixing}
+
+See Equation~\ref{eq:lsalg-standard-equation}.  It is trivial from there.  Also note that chaining for
+any coefficient in Table~\ref{tab:lsalg-parametric-form} is possible.
+
+\paragraph*{Partial derivative w.r.t.\ second order line mixing strength-adjusting coefficient}
+
+See Equation~\ref{eq:lsalg-standard-equation}.  It is trivial from there.  Also note that chaining for
+any coefficient in Table~\ref{tab:lsalg-parametric-form} is possible.
+
+\paragraph*{Partial derivative w.r.t.\ line strength}
+
+See Equation~\ref{eq:lsalg-standard-equation}.  It is trivial from there.
 
 \subsection{Species-specific data in ARTS}
 \label{sec:abs_theory:species_data}

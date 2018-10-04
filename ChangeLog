@@ -1,3 +1,23 @@
+2018-10-04  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1128
+	
+	* src/m_abs.cc:  Fixing error in how mirroring works so that
+	mirrored lines are marked as manually mirrored in
+	(abs_lines_per_speciesAddMirrorLines).
+	
+	* src/linefunctions.cc,linerecord.h:  Added Manual tag to
+	MirroringTypes.
+	
+	* src/disort.cc,src/quantum_parser_hitran.cc: Added DEBUG_ONLY 
+	to suppress errors in a couple of places
+	
+	* doc/uguide/absorption_theory.tex:  Added description of
+	new line shape calculator.  The old way has the legacy tag added 
+	
+	* doc/uguide/absorption.tex: Added abs_xsec_per_speciesAddLines2
+	to the list.  Need to still update figures...
+
 2018-09-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1127
