@@ -612,7 +612,7 @@ LineFunctionData::Output LineFunctionData::GetVMRDerivs(const Numeric& T0,
     do_this = false;
     if(i == 0 and mself) { // The first value might be self-broadening (use self_vmr)
       partial_vmr = self_vmr;
-      if(vmr_qi.In(line_qi))  // Limitation: vmr_qi must be distinct species isotopologue!
+      if(vmr_qi.In(line_qi))  // Limitation: vmr_qi must be distinct species and isotopologue!
         do_this=true;
     }
     else if(i == mspecies.nelem()-1 and mbath) { // The last value might be air-broadening (set total_vmr to 1)
