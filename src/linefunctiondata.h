@@ -69,6 +69,7 @@ public:
   enum class InterpParam       : Index {INTERPOLATED_VARIABLES, Size};
   
   // List of all variables that can be returned
+  typedef std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric> Output;
   enum class TuplePos : Index {G0, D0, G2, D2, FVC, ETA, Y, G, DV};
   
   LineFunctionData() = default;
@@ -198,46 +199,42 @@ public:
     }
   }
 
-  std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
-  GetParams(const Numeric& T0,
-            const Numeric& T,
-            const Numeric& P,
-            const Numeric& self_vmr,
-            const ConstVectorView& rtp_vmr,
-            const ArrayOfArrayOfSpeciesTag& abs_species,
-            const bool normalization=true) const;
+  Output GetParams(const Numeric& T0,
+                   const Numeric& T,
+                   const Numeric& P,
+                   const Numeric& self_vmr,
+                   const ConstVectorView& rtp_vmr,
+                   const ArrayOfArrayOfSpeciesTag& abs_species,
+                   const bool normalization=true) const;
 
-  std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
-  GetTemperatureDerivs(const Numeric& T0,
-                       const Numeric& T,
-                       const Numeric& dT,
-                       const Numeric& P,
-                       const Numeric& self_vmr,
-                       const ConstVectorView& rtp_vmr,
-                       const ArrayOfArrayOfSpeciesTag& abs_species,
-                       const bool normalization=true) const;
+  Output GetTemperatureDerivs(const Numeric& T0,
+                              const Numeric& T,
+                              const Numeric& dT,
+                              const Numeric& P,
+                              const Numeric& self_vmr,
+                              const ConstVectorView& rtp_vmr,
+                              const ArrayOfArrayOfSpeciesTag& abs_species,
+                              const bool normalization=true) const;
 
-  std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
-  GetReferenceT0Derivs(const Numeric& T0,
-                       const Numeric& T,
-                       const Numeric& P,
-                       const Numeric& self_vmr,
-                       const ConstVectorView& rtp_vmr, 
-                       const ArrayOfArrayOfSpeciesTag& abs_species,
-                       const RetrievalQuantity& rt, 
-                       const QuantumIdentifier& line_qi,
-                       const bool normalization=true) const;
+  Output GetReferenceT0Derivs(const Numeric& T0,
+                              const Numeric& T,
+                              const Numeric& P,
+                              const Numeric& self_vmr,
+                              const ConstVectorView& rtp_vmr, 
+                              const ArrayOfArrayOfSpeciesTag& abs_species,
+                              const RetrievalQuantity& rt, 
+                              const QuantumIdentifier& line_qi,
+                              const bool normalization=true) const;
 
-  std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
-  GetVMRDerivs(const Numeric& T0,
-               const Numeric& T,
-               const Numeric& P,
-               const Numeric& self_vmr,
-               const ConstVectorView& rtp_vmr,
-               const ArrayOfArrayOfSpeciesTag& abs_species,
-               const RetrievalQuantity& rt, 
-               const QuantumIdentifier& line_qi,
-               const bool normalization=true) const;
+  Output GetVMRDerivs(const Numeric& T0,
+                      const Numeric& T,
+                      const Numeric& P,
+                      const Numeric& self_vmr,
+                      const ConstVectorView& rtp_vmr,
+                      const ArrayOfArrayOfSpeciesTag& abs_species,
+                      const QuantumIdentifier& vmr_qi, 
+                      const QuantumIdentifier& line_qi,
+                      const bool normalization=true) const;
               
   Numeric GetLineParamDeriv(const Numeric& T0,
                             const Numeric& T,
@@ -320,5 +317,7 @@ ArrayOfString all_coefficientsLineFunctionData();
 
 //! {"G0", "D0", "G2", "D2", "ETA", "FVC", "Y", "G", "DV"}
 ArrayOfString all_variablesLineFunctionData();
+
+LineFunctionData::Output NoLineFunctionDataOutput() noexcept;
 
 #endif // linefunctiondata_h

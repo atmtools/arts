@@ -518,37 +518,34 @@ public:
   
   void SetLineMixingParameters(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& T, const Numeric& P, const Index this_species,
                                const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const {
-    std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
-    X = mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species);
+    const LineFunctionData::Output X = mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species);
     Y = std::get<Index(LineFunctionData::TuplePos::Y)>(X);
     G = std::get<Index(LineFunctionData::TuplePos::G)>(X);
     DV = std::get<Index(LineFunctionData::TuplePos::DV)>(X);
   }
 
-  void SetPressureBroadeningParameters(Numeric& G0, Numeric& G2, Numeric& e, Numeric& D0, Numeric& D2, Numeric& FVC,
+  void SetPressureBroadeningParameters(Numeric& G0, Numeric& G2, Numeric& ETA, Numeric& D0, Numeric& D2, Numeric& FVC,
                                        const Numeric& T, const Numeric& P, const Index this_species,
                                        const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const {
-    std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
-    X = mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species);
+    const LineFunctionData::Output X = mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species);
     G0 = std::get<Index(LineFunctionData::TuplePos::G0)>(X);
     D0 = std::get<Index(LineFunctionData::TuplePos::D0)>(X);
     G2 = std::get<Index(LineFunctionData::TuplePos::G2)>(X);
     D2 = std::get<Index(LineFunctionData::TuplePos::D2)>(X);
     FVC = std::get<Index(LineFunctionData::TuplePos::FVC)>(X);
-    e = std::get<Index(LineFunctionData::TuplePos::ETA)>(X);
+    ETA = std::get<Index(LineFunctionData::TuplePos::ETA)>(X);
   }
 
-  void SetPressureBroadeningParametersTemperatureDerivative(Numeric& dG0, Numeric& dG2, Numeric& de, Numeric& dD0, Numeric& dD2, Numeric& dFVC,
+  void SetPressureBroadeningParametersTemperatureDerivative(Numeric& dG0, Numeric& dG2, Numeric& dETA, Numeric& dD0, Numeric& dD2, Numeric& dFVC,
                                                             const Numeric& T, const Numeric& dT, const Numeric& P, 
                                                             const Index this_species, const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const {
-    std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
-    X = mlinefunctiondata.GetTemperatureDerivs(mti0, T, dT, P, vmrs[this_species], vmrs, abs_species);
+    const LineFunctionData::Output X = mlinefunctiondata.GetTemperatureDerivs(mti0, T, dT, P, vmrs[this_species], vmrs, abs_species);
     dG0 = std::get<Index(LineFunctionData::TuplePos::G0)>(X);
     dD0 = std::get<Index(LineFunctionData::TuplePos::D0)>(X);
     dG2 = std::get<Index(LineFunctionData::TuplePos::G2)>(X);
     dD2 = std::get<Index(LineFunctionData::TuplePos::D2)>(X);
     dFVC = std::get<Index(LineFunctionData::TuplePos::FVC)>(X);
-    de = std::get<Index(LineFunctionData::TuplePos::ETA)>(X);
+    dETA = std::get<Index(LineFunctionData::TuplePos::ETA)>(X);
   }
   
   void SetLineMixing2SecondOrderData(ConstVectorView d) { mlinefunctiondata.ChangeLineMixingfromSimpleLM2(d); }
@@ -583,21 +580,27 @@ public:
   
   
   /*! Method to compute the line mixing and pressure broadening parameters */
-  std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
-  GetShapeParams(const Numeric& T, const Numeric& P, const Index this_species,
-                 const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const
+  LineFunctionData::Output GetShapeParams(const Numeric& T, const Numeric& P, const Index this_species,
+                                                          const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const
   {
     return mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species);
   }
   
-  
   /*! Method to compute the temperature derivatives of line mixing and pressure broadening parameters */
-  std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
-  GetShapeParams_dT(const Numeric& T, const Numeric& dT, const Numeric& P,
-                    const Index this_species, const ConstVectorView vmrs,
-                    const ArrayOfArrayOfSpeciesTag& abs_species) const
+  LineFunctionData::Output GetShapeParams_dT(const Numeric& T, const Numeric& dT, const Numeric& P,
+                                                             const Index this_species, const ConstVectorView vmrs,
+                                                             const ArrayOfArrayOfSpeciesTag& abs_species) const
   {
     return mlinefunctiondata.GetTemperatureDerivs(mti0, T, dT, P, vmrs[this_species], vmrs, abs_species);
+  }
+  
+  /*! Method to compute the temperature derivatives of line mixing and pressure broadening parameters */
+  LineFunctionData::Output GetShapeParams_dVMR(const Numeric& T, const Numeric& P,
+                                               const Index this_species, const ConstVectorView vmrs,
+                                               const ArrayOfArrayOfSpeciesTag& abs_species,
+                                               const QuantumIdentifier& vmr_qi) const
+  {
+    return mlinefunctiondata.GetVMRDerivs(mti0, T, P, vmrs[this_species], vmrs, abs_species, vmr_qi, mqid);
   }
   
   /** Pressure Broadening Data */

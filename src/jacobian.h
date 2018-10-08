@@ -535,6 +535,8 @@ bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& st);
 
 bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js);
 
+std::tuple<bool, const QuantumIdentifier&> do_vmr_jacobian(const ArrayOfRetrievalQuantity& js, const QuantumIdentifier& line_qid);
+
 bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js);
 
 bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js);

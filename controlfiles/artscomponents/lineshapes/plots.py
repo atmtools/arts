@@ -12,6 +12,8 @@ import typhon
 import matplotlib.pyplot as plt
 import numpy as np
 
+""" NOTE:  fake-htp gives bad VMR comparison before internal code is fixed """
+
 ls = "lorentz"
 pm = typhon.arts.xml.load("testdata/test-"+ls+"/propmat.xml")
 adpm = typhon.arts.xml.load("testdata/test-"+ls+"/dpropmat.xml")

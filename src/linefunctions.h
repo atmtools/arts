@@ -75,7 +75,8 @@ namespace Linefunctions
                    const QuantumIdentifier& quantum_identity=QuantumIdentifier(), 
                    const Numeric& dG0_dT=0.0, 
                    const Numeric& dL0_dT=0.0,
-                   const Numeric& ddF0_dT=0.0);
+                   const Numeric& ddF0_dT=0.0,
+                   const LineFunctionData::Output& dVMR=NoLineFunctionDataOutput());
   
   void set_htp(ComplexVectorView F,
                ComplexMatrixView dF,
@@ -117,7 +118,8 @@ namespace Linefunctions
                  const Numeric& dGD_div_F0_dT=0.0,
                  const Numeric& dG0_dT=0.0,
                  const Numeric& dL0_dT=0.0,
-                 const Numeric& ddF0_dT=0.0);
+                 const Numeric& ddF0_dT=0.0,
+                 const LineFunctionData::Output& dVMR=NoLineFunctionDataOutput());
   
   void set_doppler(ComplexVectorView F,
                    ComplexMatrixView dF,
@@ -152,7 +154,8 @@ namespace Linefunctions
                                 const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                                 const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                                 const Numeric& dY_dT=0.0,
-                                const Numeric& dG_dT=0.0);
+                                const Numeric& dG_dT=0.0,
+                                const LineFunctionData::Output& dVMR=NoLineFunctionDataOutput());
   
   void apply_rosenkranz_quadratic_scaling(ComplexVectorView F,
                                           ComplexMatrixView dF,

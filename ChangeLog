@@ -1,3 +1,43 @@
+2018-10-08  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1129
+	
+	* controlfiles/artscomponents/*.xml:  Updated because of addition
+	of internal VMR derivatives for Voigt and Lorentz (Doppler should
+	be fine already; because HTP is not working it throws an error now).
+	
+	* controlfiles/artscomponents/lineshapes/TestFakeHTP.arts:  Removed 
+	internal derivatives calculations option for VMR since it does not work.
+	
+	* controlfiles/artscomponents/zeeman/plots.py: convenient 
+	plt.show()
+	
+	* controlfiles/artscomponents/lineshapes/plots.py:  Added warning
+	that HTP code is still not in working condition
+	
+	* src/jacobian.cc,h:  Added convenience function for VMR
+	
+	* src/linefunctiondata.cc,h: Output typedef as part of class
+	instead of obnoxious tuple.  (GetVMRDerivs) fixed because of
+	missing AIR compensation.  Might be lingering errors in other
+	derivatives (the unused T0 derivatives), because of code not
+	taking this into account there.  Might also have errors in
+	parameter-space parameters because of the same reason since
+	normalization means we are pushing air out of a level due to
+	there being more of "self" or any species.  
+	
+	* src/linefunctions.cc:  (set_lorentz,set_voigt,apply_linemixing_scaling)
+	updated to do proper internal computations. (set_htp) updated to
+	throw an error if proper calculations are requested.
+	(set_cross_section_for_single_line) updated to pass VMR derivatives
+	on request
+	
+	* src/linerecord.h: Added GetShapeParams_dVMR.  Also updated so 
+	LineFunctionData::Output is used instead of the tuple.
+	
+	*  src/m_linerecord.cc:  Removed lingering cout-statement left
+	by mistake in previous commit...
+
 2018-10-04  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1128

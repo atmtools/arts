@@ -469,8 +469,6 @@ void abs_linesChangeLineFunctionDataParameterForMatchingLines(ArrayOfLineRecord&
       else
         lr.SetLineFunctionDataVariable(old + change, species, parameter, coefficient);
       if(not any) any = true;
-      std::cout<<parameter<<"-"<<coefficient<<" "<<old<< " "
-               <<lr.GetLineFunctionDataVariable(species, parameter, coefficient)<<"\n";
     }
   }
   

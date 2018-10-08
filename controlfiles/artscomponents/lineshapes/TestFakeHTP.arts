@@ -50,7 +50,8 @@ Arts2{
   jacobianInit
   jacobianAddTemperature(g1=p_grid, g2=[0], g3=[0], dt=0.1)
   jacobianAddWind(g1=p_grid, g2=[0], g3=[0], dfrequency=0.1)
-  jacobianAddAbsSpecies(g1=p_grid, g2=[0], g3=[0], species="O2-66", for_species_tag=0)
+  jacobianAddWind(g1=p_grid, g2=[0], g3=[0], dfrequency=0.1, component="u")  # Placeholder for the comparison
+#   jacobianAddAbsSpecies(g1=p_grid, g2=[0], g3=[0], species="O2-66", for_species_tag=0)
   jacobianAddCatalogParameters(catalog_identities=qi_lines, catalog_parameters=["Line Strength", "Line Center"])
   jacobianAddLineFunctionDataParameters(line_identities=qi_lines, variables=["G0", "D0", "Y", "G", "DV"], coefficients=["X0", "X1", "X2"], species=["SELF", "AIR"])
   jacobianClose
@@ -60,7 +61,7 @@ Arts2{
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
 #   #WriteXML("ascii", propmat_clearsky, "testdata/test-fake-htp/propmat.xml")
-   #WriteXML("ascii", dpropmat_clearsky_dx, "testdata/test-fake-htp/dpropmat.xml")
+   WriteXML("ascii", dpropmat_clearsky_dx, "testdata/test-fake-htp/dpropmat.xml")
   ReadXML(testdata, "testdata/test-fake-htp/propmat.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   ReadXML(testdata, "testdata/test-fake-htp/dpropmat.xml")

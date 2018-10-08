@@ -466,14 +466,13 @@ Index LineFunctionData::IndexOfParam(const String& type) const noexcept
  * \author Richard Larsson
  * \date   2018-07-16
  */
-std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
-LineFunctionData::GetParams(const Numeric& T0,
-                            const Numeric& T,
-                            const Numeric& P,
-                            const Numeric& self_vmr,
-                            const ConstVectorView& rtp_vmr, 
-                            const ArrayOfArrayOfSpeciesTag& abs_species,
-                            const bool normalization) const
+LineFunctionData::Output LineFunctionData::GetParams(const Numeric& T0,
+                                                     const Numeric& T,
+                                                     const Numeric& P,
+                                                     const Numeric& self_vmr,
+                                                     const ConstVectorView& rtp_vmr, 
+                                                     const ArrayOfArrayOfSpeciesTag& abs_species,
+                                                     const bool normalization) const
 {
   Numeric G0=0, D0=0, G2=0, D2=0, FVC=0, ETA=0, Y=0, G=0, DV=0;
   
@@ -592,36 +591,33 @@ LineFunctionData::GetParams(const Numeric& T0,
  * \author Richard Larsson
  * \date   2018-09-24
  */
-std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
-LineFunctionData::GetVMRDerivs(const Numeric& T0,
-                               const Numeric& T,
-                               const Numeric& P,
-                               const Numeric& self_vmr,
-                               const ConstVectorView& rtp_vmr,
-                               const ArrayOfArrayOfSpeciesTag& abs_species,
-                               const RetrievalQuantity& rt, 
-                               const QuantumIdentifier& line_qi,
-                               const bool normalization) const
+LineFunctionData::Output LineFunctionData::GetVMRDerivs(const Numeric& T0,
+                                                        const Numeric& T,
+                                                        const Numeric& P,
+                                                        const Numeric& self_vmr,
+                                                        const ConstVectorView& rtp_vmr,
+                                                        const ArrayOfArrayOfSpeciesTag& abs_species,
+                                                        const QuantumIdentifier& vmr_qi, 
+                                                        const QuantumIdentifier& line_qi,
+                                                        const bool normalization) const
 {
   Numeric dG0=0, dD0=0, dG2=0, dD2=0, dFVC=0, dETA=0, dY=0, dG=0, dDV=0;
   
-  // Doppler broadening has no types...
-  if(rt not_eq JacPropMatType::VMR) return std::make_tuple(dG0, dD0, dG2, dD2, dFVC, dETA, dY, dG, dDV);
-  
   // Set up holders for partial and total VMR
   Numeric total_vmr=0, partial_vmr;
-  bool do_this, done_once=false;
+  bool do_this, done_once=false, air=false;
   
   // Add all species up
   for(Index i=0; i<mspecies.nelem(); i++) {
     do_this = false;
     if(i == 0 and mself) { // The first value might be self-broadening (use self_vmr)
       partial_vmr = self_vmr;
-      if(rt.QuantumIdentity().In(line_qi))
+      if(vmr_qi.In(line_qi))  // Limitation: vmr_qi must be distinct species isotopologue!
         do_this=true;
     }
     else if(i == mspecies.nelem()-1 and mbath) { // The last value might be air-broadening (set total_vmr to 1)
       partial_vmr = 1 - total_vmr;  // Ignore air-broadening for derivatives here because spectroscopy is unclear...
+      air=true;
     }
     else {  // Otherwise we have to find the species in the list of species tags
       Index this_species=-1;
@@ -632,7 +628,7 @@ LineFunctionData::GetVMRDerivs(const Numeric& T0,
       // If we cannot find the species, it does not exist and we are in a different atmosphere than covered by the line data
       if(this_species == -1) continue;  // Species does not exist
       
-      if(rt.QuantumIdentity().Species() == mspecies[this_species].Species())
+      if(vmr_qi.Species() == mspecies[this_species].Species())
         do_this = true;
       
       partial_vmr = rtp_vmr[this_species];
@@ -640,8 +636,7 @@ LineFunctionData::GetVMRDerivs(const Numeric& T0,
     // Sum up VMR
     total_vmr += partial_vmr;
     
-    if(not do_this and not done_once)
-      continue;
+    if((not do_this or done_once) and not air) continue;
     done_once = true;
     
     // Set up a current counter to keep track of the data
@@ -654,43 +649,48 @@ LineFunctionData::GetVMRDerivs(const Numeric& T0,
     
     // Do the line shape parameters
     for(Index j=0; j<LineShapeTypeNelem(); j++) {
-      // Selects one of G0, D0, G2, D2, FVC, ETA based on the order of the data for this line shape type
-      Numeric& param = select_line_shape_param(dG0, dD0, dG2, dD2, dFVC, dETA, j, mp);
-      
+      Numeric val=0;
       switch(mtypes[i][j]) {
         case TemperatureType::None: break;
-        case TemperatureType::T0: param = main_t0(x0); break;
-        case TemperatureType::T1: param = main_t1(T, T0, x0, x1); break;
-        case TemperatureType::T2: param = main_t2(T, T0, x0, x1, x2); break;
-        case TemperatureType::T3: param = main_t3(T, T0, x0, x1); break;
-        case TemperatureType::T4: param = main_t4(T, T0, x0, x1, x2); break;
-        case TemperatureType::T5: param = main_t5(T, T0, x0, x1); break;
+        case TemperatureType::T0: val = main_t0(x0); break;
+        case TemperatureType::T1: val = main_t1(T, T0, x0, x1); break;
+        case TemperatureType::T2: val = main_t2(T, T0, x0, x1, x2); break;
+        case TemperatureType::T3: val = main_t3(T, T0, x0, x1); break;
+        case TemperatureType::T4: val = main_t4(T, T0, x0, x1, x2); break;
+        case TemperatureType::T5: val = main_t5(T, T0, x0, x1); break;
         case TemperatureType::LM_AER: /* throw std::runtime_error("Not allowed for line shape parameters"); */ break;
       }
       current += TemperatureTypeNelem(mtypes[i][j]);
+      if(air) select_line_shape_param(dG0, dD0, dG2, dD2, dFVC, dETA, j, mp) -= val;
+      else    select_line_shape_param(dG0, dD0, dG2, dD2, dFVC, dETA, j, mp) += val;
     }
     
     // Do the line mixing parameters
     for(Index j=0; j<LineMixingTypeNelem(); j++) {
-      Numeric& param = select_line_mixing_param(dY, dG, dDV, j, mlm);
+      Numeric val=0;
       switch(mtypes[i][j+LineShapeTypeNelem()]) {
         case TemperatureType::None: break;
-        case TemperatureType::T0: param = main_t0(x0); break;
-        case TemperatureType::T1: param = main_t1(T, T0, x0, x1); break;
-        case TemperatureType::T2: param = main_t2(T, T0, x0, x1, x2); break;
-        case TemperatureType::T3: param = main_t3(T, T0, x0, x1); break;
-        case TemperatureType::T4: param = main_t4(T, T0, x0, x1, x2); break;
-        case TemperatureType::T5: param = main_t5(T, T0, x0, x1); break;
+        case TemperatureType::T0: val = main_t0(x0); break;
+        case TemperatureType::T1: val = main_t1(T, T0, x0, x1); break;
+        case TemperatureType::T2: val = main_t2(T, T0, x0, x1, x2); break;
+        case TemperatureType::T3: val = main_t3(T, T0, x0, x1); break;
+        case TemperatureType::T4: val = main_t4(T, T0, x0, x1, x2); break;
+        case TemperatureType::T5: val = main_t5(T, T0, x0, x1); break;
         case TemperatureType::LM_AER:
         {
           // Special case adding to both G and Y and nothing else!
           const std::tuple<Numeric, Numeric> X = special_line_mixing_aer(T, mdata[i][Range(current, joker)]);
-          dY = std::get<0>(X);
-          dG = std::get<1>(X);
+          if(air) { dY -= std::get<0>(X); dG -= std::get<1>(X); }
+          else    { dY += std::get<0>(X); dG += std::get<1>(X); }
         }
-        break;
+        current += TemperatureTypeNelem(mtypes[i][j+LineShapeTypeNelem()]);
+        continue;
       }
       current += TemperatureTypeNelem(mtypes[i][j+LineShapeTypeNelem()]);
+      if(air)
+        select_line_mixing_param(dY, dG, dDV, j, mlm) -= val;
+      else
+        select_line_mixing_param(dY, dG, dDV, j, mlm) += val;
     }
     
     // Stop destroying names
@@ -735,15 +735,14 @@ LineFunctionData::GetVMRDerivs(const Numeric& T0,
  * \author Richard Larsson
  * \date   2018-07-16
  */
-std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
-LineFunctionData::GetTemperatureDerivs(const Numeric& T0,
-                                       const Numeric& T,
-                                       const Numeric& dT,
-                                       const Numeric& P,
-                                       const Numeric& self_vmr,
-                                       const ConstVectorView& rtp_vmr, 
-                                       const ArrayOfArrayOfSpeciesTag& abs_species,
-                                       const bool normalization) const
+LineFunctionData::Output LineFunctionData::GetTemperatureDerivs(const Numeric& T0,
+                                                                const Numeric& T,
+                                                                const Numeric& dT,
+                                                                const Numeric& P,
+                                                                const Numeric& self_vmr,
+                                                                const ConstVectorView& rtp_vmr, 
+                                                                const ArrayOfArrayOfSpeciesTag& abs_species,
+                                                                const bool normalization) const
 {
   Numeric dG0=0, dD0=0, dG2=0, dD2=0, dFVC=0, dETA=0, dY=0, dG=0, dDV=0;
   
@@ -862,16 +861,15 @@ LineFunctionData::GetTemperatureDerivs(const Numeric& T0,
  * \author Richard Larsson
  * \date   2018-07-16
  */
-std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>
-LineFunctionData::GetReferenceT0Derivs(const Numeric& T0,
-                                       const Numeric& T,
-                                       const Numeric& P,
-                                       const Numeric& self_vmr,
-                                       const ConstVectorView& rtp_vmr, 
-                                       const ArrayOfArrayOfSpeciesTag& abs_species,
-                                       const RetrievalQuantity& rt, 
-                                       const QuantumIdentifier& line_qi,
-                                       const bool normalization) const
+LineFunctionData::Output LineFunctionData::GetReferenceT0Derivs(const Numeric& T0,
+                                                                const Numeric& T,
+                                                                const Numeric& P,
+                                                                const Numeric& self_vmr,
+                                                                const ConstVectorView& rtp_vmr,
+                                                                const ArrayOfArrayOfSpeciesTag& abs_species,
+                                                                const RetrievalQuantity& rt,
+                                                                const QuantumIdentifier& line_qi,
+                                                                const bool normalization) const
 {
   Numeric dG0=0, dD0=0, dG2=0, dD2=0, dFVC=0, dETA=0, dY=0, dG=0, dDV=0;
   
@@ -1190,6 +1188,7 @@ Numeric LineFunctionData::GetLineParamDeriv(const Numeric& T0,
       break;
     default: {/*pass*/}
   }
+  
   if(normalization)
     val *= this_vmr / total_vmr * P;
   else
@@ -1945,4 +1944,10 @@ Vector LineFunctionData::GetInternalDerivatives(const Numeric& T0,
   for(Index i=0; i<rts_pos.nelem(); i++)
     derivs[i] = GetLineParamDeriv(T0, T, P, self_vmr, rtp_vmr,  abs_species, rts[rts_pos[i]], line_qi, normalization);
   return derivs;
+}
+
+
+LineFunctionData::Output NoLineFunctionDataOutput() noexcept
+{
+  return std::make_tuple(0, 0, 0, 0, 0, 0, 0, 0, 0);
 }

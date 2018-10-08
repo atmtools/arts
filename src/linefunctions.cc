@@ -241,7 +241,8 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
                                 const QuantumIdentifier& quantum_identity,
                                 const Numeric& dG0_dT,
                                 const Numeric& dL0_dT,
-                                const Numeric& ddF0_dT)
+                                const Numeric& ddF0_dT,
+                                const LineFunctionData::Output& dVMR)
 { 
   // Size of the problem
   const Index nf = f_grid.nelem();
@@ -275,9 +276,15 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
         if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
           dF(iq, iv) = d * Complex(0.0, 1.0);  // Line center scales 1 to 1 linearly
       }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) /*or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR*/) {
+      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]])) {
         if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
           dF(iq, iv) = d * Complex(0.0, -1.0);  // Pressure broadening will be dealt with in another function, though the partial derivative
+      }
+      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
+        if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
+          dF(iq, iv) = d * Complex(std::get<Index(LineFunctionData::TuplePos::G0)>(dVMR), 
+                                   std::get<Index(LineFunctionData::TuplePos::D0)>(dVMR) +
+                                   std::get<Index(LineFunctionData::TuplePos::DV)>(dVMR));
       }
       else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[iq]]))
         dF(iq, iv) = d * Complex(0.0, zeeman_df);  // Magnetic magnitude changes like line center in part
@@ -637,7 +644,7 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
           dF(iq, iv) = invG * (invPI * dA - F[iv] * dG); 
         }
       }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) /*or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR*/)  {
+      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]))  {
         // NOTE:  These are first order Voigt-like.  
         // The variables that are not Voigt-like must be dealt with separately
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
@@ -684,6 +691,10 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
           
           dF(iq, iv) = invG * (invPI * dA - F[iv] * dG) * Complex(0.0, -1.0); 
         }
+      }
+      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
+        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
+          throw std::runtime_error("No support for internal VMR partial derivatives for this line, use derivatives at a higher level");
       }
       else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[iq]])) {
         // Compute dZm
@@ -774,7 +785,8 @@ void Linefunctions::set_voigt(ComplexVectorView F,
                               const Numeric& dGD_div_F0_dT,
                               const Numeric& dG0_dT,
                               const Numeric& dL0_dT,
-                              const Numeric& dF0_dT)
+                              const Numeric& dF0_dT,
+                              const LineFunctionData::Output& dVMR)
 {
   // Size of problem
   const Index nf = f_grid.nelem();
@@ -820,6 +832,12 @@ void Linefunctions::set_voigt(ComplexVectorView F,
       }
       else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[iq]]))
         dF(iq, iv) = dw_over_dz * (- zeeman_df * invGD); //* dz;
+      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
+        if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
+          dF(iq, iv) = dw_over_dz * Complex(- std::get<Index(LineFunctionData::TuplePos::D0)>(dVMR)
+                                            - std::get<Index(LineFunctionData::TuplePos::DV)>(dVMR),
+                                              std::get<Index(LineFunctionData::TuplePos::G0)>(dVMR)) * invGD;
+      }
     }
   }
 }
@@ -884,8 +902,7 @@ void Linefunctions::set_doppler(ComplexVectorView F, // Sets the full complex li
       }
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
         dF(iq, iv) = F[iv] * (2*x*x - 1) * dGD_dT * invGD;
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter)
-      {
+      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
         if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity)) 
           dF(iq, iv) = F[iv] * 2*x*((x-1)/F0 + invGD);
       }
@@ -1015,26 +1032,29 @@ void Linefunctions::apply_linemixing_scaling(ComplexVectorView F,
                                              const ArrayOfIndex& derivatives_data_position,
                                              const QuantumIdentifier& quantum_identity,
                                              const Numeric& dY_dT,
-                                             const Numeric& dG_dT)
+                                             const Numeric& dG_dT,
+                                             const LineFunctionData::Output& dVMR)
 {
   const Index nf = F.nelem(), nppd = derivatives_data_position.nelem();
   
   const Complex LM = Complex(1.0 + G, -Y);
   const Complex dLM_dT = Complex(dG_dT, -dY_dT);
   
-  for(Index iq = 0; iq < nppd; iq++)
-  {
-    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-    {
+  for(Index iq = 0; iq < nppd; iq++) {
+    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
       dF(iq, joker) *= LM;
-      #pragma omp simd
       for(Index iv = 0; iv < nf; iv++)
         dF(iq, iv) += F[iv] * dLM_dT;
     }
-    else if(is_line_mixing_line_strength_parameter(derivatives_data[derivatives_data_position[iq]]))
-    {
+    else if(is_line_mixing_line_strength_parameter(derivatives_data[derivatives_data_position[iq]])) {
        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
          dF(iq, joker) = F;
+    }
+    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
+      if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
+        for(Index iv = 0; iv < nf; iv++)
+          dF(iq, iv) = dF(iq, iv) * LM +  F[iv] * Complex(  std::get<Index(LineFunctionData::TuplePos::G)>(dVMR),
+                                                          - std::get<Index(LineFunctionData::TuplePos::Y)>(dVMR));
     }
     else
       dF(iq, joker) *= LM;
@@ -1772,20 +1792,26 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   const auto& DV  = std::get<Index(LineFunctionData::TuplePos::DV )>(X);
   
   // Partial derivatives for temperature
-  Numeric dG0_dT, dD0_dT, dG2_dT, dD2_dT, de_dT, dFVC_dT, dY_dT, dG_dT, dDV_dT, dK1_dT, dK2_dT;
-  if(do_temperature)
-  {
-    const auto dX = line.GetShapeParams_dT(temperature, temperature_perturbation(derivatives_data), pressure, this_species_location_in_tags, volume_mixing_ratio_of_all_species, abs_species);
-    dG0_dT  = std::get<Index(LineFunctionData::TuplePos::G0 )>(dX);
-    dD0_dT  = std::get<Index(LineFunctionData::TuplePos::D0 )>(dX);
-    dG2_dT  = std::get<Index(LineFunctionData::TuplePos::G2 )>(dX);
-    dD2_dT  = std::get<Index(LineFunctionData::TuplePos::D2 )>(dX);
-    dFVC_dT = std::get<Index(LineFunctionData::TuplePos::FVC)>(dX);
-//     dETA_dT = std::get<Index(LineFunctionData::TuplePos::ETA)>(dX);
-    dY_dT   = std::get<Index(LineFunctionData::TuplePos::Y  )>(dX);
-    dG_dT   = std::get<Index(LineFunctionData::TuplePos::G  )>(dX);
-    dDV_dT  = std::get<Index(LineFunctionData::TuplePos::DV )>(dX);
-  }
+  const LineFunctionData::Output dXdT = do_temperature ?  line.GetShapeParams_dT(temperature, temperature_perturbation(derivatives_data), 
+                                                             pressure, this_species_location_in_tags, volume_mixing_ratio_of_all_species, 
+                                                             abs_species) : NoLineFunctionDataOutput();
+  const auto& dG0_dT  = std::get<Index(LineFunctionData::TuplePos::G0 )>(dXdT);
+  const auto& dD0_dT  = std::get<Index(LineFunctionData::TuplePos::D0 )>(dXdT);
+  const auto& dG2_dT  = std::get<Index(LineFunctionData::TuplePos::G2 )>(dXdT);
+  const auto& dD2_dT  = std::get<Index(LineFunctionData::TuplePos::D2 )>(dXdT);
+  const auto& dFVC_dT = std::get<Index(LineFunctionData::TuplePos::FVC)>(dXdT);
+  const auto& dETA_dT = std::get<Index(LineFunctionData::TuplePos::ETA)>(dXdT);
+  const auto& dY_dT   = std::get<Index(LineFunctionData::TuplePos::Y  )>(dXdT);
+  const auto& dG_dT   = std::get<Index(LineFunctionData::TuplePos::G  )>(dXdT);
+  const auto& dDV_dT  = std::get<Index(LineFunctionData::TuplePos::DV )>(dXdT);
+  
+  // Partial derivatives for VMR
+  const std::tuple<bool, const QuantumIdentifier&> do_vmr = do_vmr_jacobian(derivatives_data, line.QuantumIdentity());
+  const LineFunctionData::Output dXdVMR = std::get<0>(do_vmr) ?  line.GetShapeParams_dVMR(temperature, pressure, this_species_location_in_tags,
+                                                                      volume_mixing_ratio_of_all_species, abs_species, std::get<1>(do_vmr)) : NoLineFunctionDataOutput();
+                                                                      
+  // Partial derivatives for temperature
+  Numeric dK1_dT, dK2_dT;
   
   // Line shape usage remembering variable. 
   // Is only used if the user has set to use mirroring 
@@ -1825,7 +1851,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
                   G0, D0, G2, D2, ETA, FVC,
                   derivatives_data, derivatives_data_position, QI,
                   ddoppler_constant_dT, 
-                  dG0_dT, dD0_dT, dG2_dT, dD2_dT, de_dT, dFVC_dT);
+                  dG0_dT, dD0_dT, dG2_dT, dD2_dT, dETA_dT, dFVC_dT);
           break;
         case LineFunctionData::LineShapeType::VP:
           lst = LineShapeType::Voigt;
@@ -1833,12 +1859,12 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
                     line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                     line.F(), doppler_constant, 
                     G0, D0, DV, derivatives_data, derivatives_data_position, QI,
-                    ddoppler_constant_dT, dG0_dT, dD0_dT, dDV_dT);
+                    ddoppler_constant_dT, dG0_dT, dD0_dT, dDV_dT, dXdVMR);
           break;
         case LineFunctionData::LineShapeType::LP:
           lst = LineShapeType::Lorentz;
           set_lorentz(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                      line.F(), G0, D0, DV, derivatives_data, derivatives_data_position, QI, dG0_dT, dD0_dT, dDV_dT);
+                      line.F(), G0, D0, DV, derivatives_data, derivatives_data_position, QI, dG0_dT, dD0_dT, dDV_dT, dXdVMR);
           break;
         case LineFunctionData::LineShapeType::DP:
           lst = LineShapeType::Doppler;
@@ -1862,14 +1888,14 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
               G0, D0, G2, D2, ETA, FVC,
               derivatives_data, derivatives_data_position, QI,
               ddoppler_constant_dT, 
-              dG0_dT, dD0_dT, dG2_dT, dD2_dT, de_dT, dFVC_dT);
+              dG0_dT, dD0_dT, dG2_dT, dD2_dT, dETA_dT, dFVC_dT);
       lst = LineShapeType::HTP;
       break;
     // This line only needs Lorentz
     case LineShapeType::Lorentz:
       lst = LineShapeType::Lorentz;
       set_lorentz(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                  line.F(), G0, D0, DV, derivatives_data, derivatives_data_position, QI, dG0_dT, dD0_dT, dDV_dT);
+                  line.F(), G0, D0, DV, derivatives_data, derivatives_data_position, QI, dG0_dT, dD0_dT, dDV_dT, dXdVMR);
       break;
     // This line only needs Voigt
     case LineShapeType::Voigt:
@@ -1878,7 +1904,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
                 line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                 line.F(), doppler_constant, 
                 G0, D0, DV, derivatives_data, derivatives_data_position, QI,
-                ddoppler_constant_dT, dG0_dT, dD0_dT, dDV_dT);
+                ddoppler_constant_dT, dG0_dT, dD0_dT, dDV_dT, dXdVMR);
       break;
     case LineShapeType::End:
       throw std::runtime_error("Cannot understand the requested line shape type.");
@@ -1904,7 +1930,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
         ComplexMatrix dFm(dF.nrows(), dF.ncols());
         
         set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                    -line.F(), G0, -D0, -DV, derivatives_data, derivatives_data_position, QI, dG0_dT, -dD0_dT, -dDV_dT);
+                    -line.F(), G0, -D0, -DV, derivatives_data, derivatives_data_position, QI, dG0_dT, -dD0_dT, -dDV_dT, dXdVMR);
         
         // Apply mirroring
         F -= Fm;
@@ -1926,14 +1952,14 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
           break;
         case LineShapeType::Lorentz:
           set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                      -line.F(), G0, -D0, -DV, derivatives_data, derivatives_data_position, QI, dG0_dT, -dD0_dT, -dDV_dT);
+                      -line.F(), G0, -D0, -DV, derivatives_data, derivatives_data_position, QI, dG0_dT, -dD0_dT, -dDV_dT, dXdVMR);
           break;
         case LineShapeType::Voigt:
           set_voigt(Fm, dFm, f_grid, 
                     -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                     -line.F(), -doppler_constant, 
                     G0, -D0, -DV, derivatives_data, derivatives_data_position, QI,
-                    -ddoppler_constant_dT, dG0_dT, -dD0_dT, -dDV_dT);
+                    -ddoppler_constant_dT, dG0_dT, -dD0_dT, -dDV_dT, dXdVMR);
           break;
         case LineShapeType::HTP:
           // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
@@ -1943,7 +1969,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
                   G0, -D0, G2, -D2, ETA, FVC,
                   derivatives_data, derivatives_data_position, QI,
                   -ddoppler_constant_dT, 
-                  dG0_dT, -dD0_dT, dG2_dT, -dD2_dT, de_dT, dFVC_dT);
+                  dG0_dT, -dD0_dT, dG2_dT, -dD2_dT, dETA_dT, dFVC_dT);
           break;
         case LineShapeType::ByPressureBroadeningData:
         case LineShapeType::End:
@@ -1983,7 +2009,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   
   // Only for non-Doppler shapes
   if(lst not_eq LineShapeType::Doppler) {
-    apply_linemixing_scaling(F, dF, Y, G, derivatives_data, derivatives_data_position, QI, dY_dT, dG_dT);
+    apply_linemixing_scaling(F, dF, Y, G, derivatives_data, derivatives_data_position, QI, dY_dT, dG_dT, dXdVMR);
   
     // Apply line mixing and pressure broadening partial derivatives
     const Vector internal_derivatives = line.GetInternalDerivatives(temperature, pressure,  this_species_location_in_tags,

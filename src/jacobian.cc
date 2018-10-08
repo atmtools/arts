@@ -2066,6 +2066,15 @@ bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js)
   return false;
 }
 
+std::tuple<bool, const QuantumIdentifier&> do_vmr_jacobian(const ArrayOfRetrievalQuantity& js, const QuantumIdentifier& line_qid) 
+{
+  for(const auto& j : js)
+    if(j == JacPropMatType::VMR)
+      if(j.QuantumIdentity().In(line_qid))
+        return std::make_tuple(true, j.QuantumIdentity());
+  return std::make_tuple(false, line_qid);
+}
+
 bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js) 
 {
   for(const auto& j : js)
