@@ -160,7 +160,11 @@ how propmat\_clearsky\_agenda can be set for different purposes.
   \caption{An inside view of propmat\_clearsky\_agenda. At the same
     time, this gives an outside view of abs\_xsec\_agenda, as input to
     \wsmindex{propmat\_clearskyAddOnTheFly} in the context of
-    on-the-fly absorption generation.}
+    on-the-fly absorption generation.
+    %FIXME:  propmat_clearskyAddZeeman does not use
+    % abs_lineshape line_mixing_data line_mixing_data_lut
+    % these 3 are in the figure due to legacy
+    }
   \label{fig:absorption:pmat_inside}
  \end{center}
 \end{figure}
@@ -208,7 +212,14 @@ abs\_xsec\_agenda.
 \begin{figure}
  \begin{center}
   \includegraphics[scale=0.7]{abs_xsec_agenda}
-  \caption{An inside view of abs\_xsec\_agenda.}
+  \caption{An inside view of abs\_xsec\_agenda.
+  % FIXME: abs_xsec_per_speciesAddLines has friend abs_xsec_per_speciesAddLines2.
+  % abs_xsec_per_speciesAddLines does not depend on:
+  % line_mixing_data line_mixing_data_lut.
+  % these 2 are there from legacy.
+  % in ADDITION abs_xsec_per_speciesAddLines2 does not depend on:
+  % abs_lineshape
+  }
   \label{fig:absorption:xsec_inside}
  \end{center}
 \end{figure}
@@ -742,8 +753,6 @@ how to calculate line mixing, thus not ignoring it, are
  \item Read an ARTS catalogue file with line mixing parameters.
  \item Read LBLRTM line catalogue containing line mixing parameters using 
  \verb|abs_linesReadFromLBLRTM(*)|.
- \item Read a line database that does not have line mixing, but use the 
- \verb|line_mixing_dataMatch(*)| method to inject line mixing data into the line record.
 \end{itemize}
 There is no preferred method in ARTS --- each work the same when they reach the absorption
 calculations --- but we urge the user to be sure that line mixing data and the line database
@@ -764,160 +773,6 @@ directly from the catalogue.
 It should be noted that LBLRTM also gives the non-resonant term of the molecular oxygen
 spectra as a low frequency line.  If it is desired to calculate this term, the lower
 frequency range must contain the line as per the definition of our reading routines.
-
-Example control file meta flow for code calculating line mixing using \verb|line_mixing_dataMatch|:
-\begin{code}
-# Define your atmospheric species,
-abs_speciesSet(species=["O2-Z-LM","CO2-LM"])
-
-# Read from a line database,
-abs_linesReadFromHITRAN(filename="HITRAN2012.par", 
-    fmin=1e1,fmax=1e20)
-
-# Sort the line records into the format ARTS wants
-abs_lines_per_speciesCreateFromLines
-
-# Create a way to temporally store O2 line mixing data.
-ArrayOfLineMixingRecordCreate(lm_o2)
-ReadXML(lm_o2,"o2.xml")
-
-# Create a way to temporally store CO2 line mixing data.
-ArrayOfLineMixingRecordCreate(lm_co2)
-ReadXML(lm_co2,"co2.xml")
-
-# Match the line mixing data with O2 and Zeeman effect
-line_mixing_dataMatch(
-    species_tag="O2-Z-LM",
-    line_mixing_records=lm_o2
-    line_mixing_tag=LM*)
-
-# Match the line mixing data with O2 and Zeeman effect
-line_mixing_dataMatch(
-    species_tag="CO2-LM",
-    line_mixing_records=lm_co2,
-    line_mixing_tag=LM*)
-\end{code}
-The latter method is much more complicated than reading directly from the catalogue.
-This is because the user has to ensure what type of line mixing is going on
-and then parse that data properly to ARTS.  In order for ARTS to know what line the user 
-wants to line mix, a series of line database matching 
-based on the quantum numbers of the line is necessary.
-This means that it only works for those species and catalogue formats
-for which we have implemented quantum number reading.
-This list is small but growing, and if you need help adding another species, 
-let us know via the mailing list.
-
-There are three \verb|line_mixing_tag| supported at this point:
-\verb|"LL"|, \verb|"NR"| and \verb|"L2"|.  These refer to LBLRTM, and second order line mixing.
-Setting these tags will tell ARTS how to calculate the line mixing of any particular line.
-The data is matched from \verb|ArrayOfLineMixingRecord|,
-which must contain a \verb|SpeciesTag|, a
-\verb|QuantumNumberRecord|, and a vector that is the correct length for the method selected
-
-Example of correct input data for using the second order approach ("L2"):
-\begin{code}
-<?xml version="1.0"?>
-<arts format="ascii" version="1">
-<Array type="LineMixingRecord" nelem="38">
-<LineMixingRecord>
-<SpeciesTag>"O2-66-*-*"</SpeciesTag>
-<QuantumNumberRecord>
-<Upper><QuantumNumbers nelem="3"> 
-  J 1/1 N 1/1 v1 0/1 
-</QuantumNumbers></Upper>
-<Lower><QuantumNumbers nelem="3"> 
-  J 2/1 N 1/1 v1 0/1 
-</QuantumNumbers></Lower>
-</QuantumNumberRecord>
-<Vector nelem="10">
-2.65e-06
--1.32e-07
--8.35e-12
-8.43e-13
-0.000545
-0.00017
-300
-0.8
-1.6
-1.6
-</Vector>
-</LineMixingRecord>
-</Array>
-</arts>
-\end{code}
-The format of the above data is thusly: \shortcode{SpeciesTag},
-\shortcode{QuantumNumberRecord}, \shortcode{Vector}, 
-The above input will cause the \verb|O2-66-*-*| line with
-upper quantum numbers $J=1$, $N=1$ and $\nu_1=0$ and with
-lower quantum numbers $J=2$, $N=1$ and $\nu_1=0$ to match.
-If this is the only input file, the described line is the only
-line experiencing line mixing in your calculations. If there
-were more lines in the file, these would also experience line mixing.
-In order of appearance in the vector, its format is 
-first order zeroth phase correction [Pa$^{-1}$], 
-first order first phase correction [Pa$^{-1}$],
-second order zeroth absorption correction [Pa$^{-2}$],
-second order first absorption correction [Pa$^{-2}$],
-second order zeroth line-center correction [Hz Pa$^{-2}$],
-second order first line-center correction [Hz Pa$^{-2}$],
-standard temperature for corrections [K],
-first order phase temperature correction exponential term [-],
-second order absorption temperature correction exponential term [-], and
-second order line-center temperature correction exponential term [-].
-The format of the vector is fixed according to necessary information found 
-in \citet{makarov11:_60-ghz_jqsrt},
-the naming scheme of the variables above can also be understood from the same work.
-Note that first order line mixing, as per the MPM/PWR complete oxygen models, 
-can be achieved with the correct input by letting the second order terms be nil.
-
-
-
-Example of correct input data for using the LBLRTM approach ("LL" and "NR"):
-\begin{code}
-<?xml version="1.0"?>
-<arts format="ascii" version="1">
-<Array type="LineMixingRecord" nelem="38">
-<LineMixingRecord>
-<SpeciesTag>"O2-66-*-*"</SpeciesTag>
-<QuantumNumberRecord>
-<Upper><QuantumNumbers nelem="3"> 
-  J 1/1 N 1/1 v1 0/1 
-</QuantumNumbers></Upper>
-<Lower><QuantumNumbers nelem="3"> 
-  J 2/1 N 1/1 v1 0/1 
-</QuantumNumbers></Lower>
-</QuantumNumberRecord>
-<Vector nelem="12">
-200
-250
-296
-340
--0.004433034295584e-4
--0.003982500863558e-4
--0.003628075993092e-4
--0.003341074759437e-4
-0
-0
-0
-0
-</Vector>
-</LineMixingRecord>
-</Array>
-</arts>
-\end{code}
-In this format, the first four values are a temperature grid in Kelvin.
-For "LL" the following four values are the first order
-line mixing coefficients at these temperature grid points [in units 1/Pa], 
-and the last four are the second order line mixing coefficients at these temperature grid points [in units 1/Pa$^2$].
-For "NR" the following four values are the first order
-non-resonant term at these temperature grid points [in units 1/Pa], 
-and the last four are the second order non-resonant terms
-at these temperature grid points [in units 1/Pa$^2$].
-ARTS will use linear interpolation to get proper coefficients between and slightly outside grid points.
-
-\textit{Warning:} There appears to be some errors in the quantum number encoding
-in HITRAN04 and HITRAN08 that makes the line mixing module wrong.  The newer
-HITRAN2012 has fixed these issues.
 
 \subsection{Faraday rotation}
 \label{sec:absorption:faraday}

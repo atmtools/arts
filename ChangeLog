@@ -1,5 +1,12 @@
 2018-10-08  Richard Larsson  <larsson@mps.mpg.de>
 
+	* arts-2-3-1130
+	
+	* doc/uguide/absorption.tex:  Updated with fixmes for figures in
+	error.  Also removed legacy line mixing example.
+
+2018-10-08  Richard Larsson  <larsson@mps.mpg.de>
+
 	* arts-2-3-1129
 	
 	* controlfiles/artscomponents/*.xml:  Updated because of addition
