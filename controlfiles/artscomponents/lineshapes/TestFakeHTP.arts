@@ -60,8 +60,8 @@ Arts2{
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
-#   #WriteXML("ascii", propmat_clearsky, "testdata/test-fake-htp/propmat.xml")
-   WriteXML("ascii", dpropmat_clearsky_dx, "testdata/test-fake-htp/dpropmat.xml")
+#    WriteXML("ascii", propmat_clearsky, "testdata/test-fake-htp/propmat.xml")
+#    WriteXML("ascii", dpropmat_clearsky_dx, "testdata/test-fake-htp/dpropmat.xml")
   ReadXML(testdata, "testdata/test-fake-htp/propmat.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   ReadXML(testdata, "testdata/test-fake-htp/dpropmat.xml")
