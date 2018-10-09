@@ -630,35 +630,30 @@ std::ostream& operator<<(std::ostream& os, const QuantumNumberRecord& qr)
 
 std::ostream& operator<<(std::ostream& os, const QuantumIdentifier& qi)
 {
-    using global_data::species_data;
+  using global_data::species_data;
 
-    os << species_data[qi.Species()].Name() << "-"
-    << species_data[qi.Species()].Isotopologue()[qi.Isotopologue()].Name()
-    << " ";
+  const  SpeciesRecord& spr = species_data[qi.Species()];
+  
+  os << spr.Name() << "-";
+  if ( qi.Isotopologue() == spr.Isotopologue().nelem() )
+    os << "*";
+  else
+    os << spr.Isotopologue()[qi.Isotopologue()].Name();
+  os << " ";
 
-    if (qi.Type() == QuantumIdentifier::TRANSITION)
-    {
-        os << "TR UP " << qi.QuantumMatch()[QuantumIdentifier::TRANSITION_UPPER_INDEX];
-        os << " LO " << qi.QuantumMatch()[QuantumIdentifier::TRANSITION_LOWER_INDEX];
-    }
-    else if (qi.Type() == QuantumIdentifier::ENERGY_LEVEL)
-    {
-        os << "EN " << qi.QuantumMatch()[QuantumIdentifier::ENERGY_LEVEL_INDEX];
-    }
-    else if (qi.Type() == QuantumIdentifier::ALL)
-    {
-      os << "ALL";
-    }
-    else if (qi.Type() == QuantumIdentifier::NONE)
-    {
-      os << "NONE";
-    }
-    else
-    {
-        assert(0);
-    }
+  if (qi.Type() == QuantumIdentifier::TRANSITION)
+      os << "TR UP " << qi.QuantumMatch()[QuantumIdentifier::TRANSITION_UPPER_INDEX]
+         <<   " LO " << qi.QuantumMatch()[QuantumIdentifier::TRANSITION_LOWER_INDEX];
+  else if (qi.Type() == QuantumIdentifier::ENERGY_LEVEL)
+      os << "EN " << qi.QuantumMatch()[QuantumIdentifier::ENERGY_LEVEL_INDEX];
+  else if (qi.Type() == QuantumIdentifier::ALL)
+    os << "ALL";
+  else if (qi.Type() == QuantumIdentifier::NONE)
+    os << "NONE";
+  else
+      assert(0);
 
-    return os;
+  return os;
 }
 
 bool QuantumIdentifier::any_quantumnumbers() const

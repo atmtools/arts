@@ -1,3 +1,38 @@
+2018-10-09  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1134
+	
+	Fixed, for the added test-case, the CIA derivatives
+	for species VMR (works when combined with line VMR)
+	
+	Warning, might still not work for isotopologues and
+	there was some other functions touching species_match
+	that I am uncertain of if they as intended (the HITRAN-Xsec
+	functions) because the function itself did not work as
+	intended in CIA
+	
+	* controlfiles/CMakeLists.txt: Added simple CIA
+	derivatives test.
+	
+	* controlfiles/artscomponents/cia/*: Test files
+	added
+	
+	* src/abs_species_tags.h: Added (SpeciesTag::BathSpecies)
+	for accessing the bathing species
+	
+	* src/jacobian.cc,h:  Added new (species_match) and
+	(species_iso_match) for easier identifications of species
+	
+	* src/linerecord.cc:  Reading was broken as the token was 
+	never updated for LF-tag
+	
+	* src/m_abs.cc,src/m_cia.cc: (abs_coefCalcFromXsec),
+	(abs_xsec_per_speciesAddCIA) updated VMR interface
+	
+	* src/quantum.cc:  Updated (operator<<) to work for 
+	no isotopologue
+
+
 2018-10-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1133
@@ -8,6 +43,7 @@
 	compiler error with Apple Clang related to [1].
 
 	[1] https://bugs.llvm.org/show_bug.cgi?id=20855
+
 
 2018-10-08  Richard Larsson  <larsson@mps.mpg.de>
 

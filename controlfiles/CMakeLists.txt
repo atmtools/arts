@@ -230,6 +230,7 @@ if (ARTS_XML_DATA_DIR)
   arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoVenus_fullRT_1D_clearsky.arts)
   #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoVenus_fullRT_1D_cloudy.arts)
 
+  arts_test_run_ctlfile(fast artscomponents/cia/TestCIADerivs.arts)
 endif (ARTS_XML_DATA_DIR)
 
 

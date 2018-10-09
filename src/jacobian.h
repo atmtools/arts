@@ -532,6 +532,8 @@ bool supports_particles(const ArrayOfRetrievalQuantity& js);
 bool supports_propmat_clearsky(const ArrayOfRetrievalQuantity& js);
 
 bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& st);
+bool species_match(const RetrievalQuantity& rq, const Index species);
+bool species_iso_match(const RetrievalQuantity& rq, const Index species, const Index iso);
 
 bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js);
 
@@ -540,8 +542,6 @@ std::tuple<bool, const QuantumIdentifier&> do_vmr_jacobian(const ArrayOfRetrieva
 bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js);
 
 bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js);
-
-bool do_pressure_jacobian(const ArrayOfRetrievalQuantity& js);
 
 bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js);
 

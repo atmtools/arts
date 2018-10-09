@@ -64,6 +64,9 @@ public:
   /** Molecular species index. */
   Index Species() const { return mspecies; }
   
+  /** Molecular species index. */
+  Index BathSpecies() const { return mcia_second; }
+  
   /** Name of main species */
   String SpeciesNameMain() const;
   

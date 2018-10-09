@@ -31,6 +31,7 @@
 #include "physics_funcs.h"
 #include "lin_alg.h"
 #include "rte.h"
+#include "global_data.h"
 
 extern const Numeric NAT_LOG_TEN;
 
@@ -2058,6 +2059,23 @@ bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& ast)
   return true;
 }
 
+bool species_match(const RetrievalQuantity& rq, const Index species)
+{
+  if(rq == JacPropMatType::VMR)
+    if(rq.QuantumIdentity().Species() == species)
+      return true;
+  return false;
+}
+
+bool species_iso_match(const RetrievalQuantity& rq, const Index species, const Index iso)
+{
+  const SpeciesRecord& spr = global_data::species_data[species];
+  if(species_match(rq, species))
+    if(rq.QuantumIdentity().Isotopologue() == iso or spr.Isotopologue().nelem() == iso or iso < 0)
+      return true;
+  return false;
+}
+
 bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js) 
 {
   for(const auto& j : js)
@@ -2087,14 +2105,6 @@ bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js)
 {
   for(const auto& j : js)
     if(is_frequency_parameter(j))
-      return true;
-  return false;
-}
-
-bool do_pressure_jacobian(const ArrayOfRetrievalQuantity& js) 
-{
-  for(const auto& j : js)
-    if(is_pressure_broadening_parameter(j) or j == JacPropMatType::VMR)
       return true;
   return false;
 }

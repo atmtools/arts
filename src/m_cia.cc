@@ -93,9 +93,7 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
   const Numeric dt = temperature_perturbation(jacobian_quantities);
   const ArrayOfIndex jacobian_quantities_position = equivlent_propmattype_indexes(jacobian_quantities);
   
-  if(do_freq_jac)
-  {
-      dfreq.resize(f_grid.nelem());
+  if(do_freq_jac) {
       dfreq = f_grid;
       dfreq += df;
   }
@@ -168,7 +166,6 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
 
             const CIARecord& this_cia = abs_cia_data[this_cia_index];
             Matrix&          this_xsec = abs_xsec_per_species[i];
-            ArrayOfMatrix&   this_dxsec = do_jac?dabs_xsec_per_species_dx[i]:empty;
 
             if (out2.sufficient_priority())
               {
@@ -239,37 +236,23 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
                 // Calculate number density from pressure and temperature.
                 const Numeric n = abs_vmrs(i_sec,ip) * number_density(abs_p[ip],abs_t[ip]);
                 
-                if(!do_jac)
-                {
+                if(!do_jac) {
                     xsec_temp *= n;
                     // Add to result variable:
                     this_xsec(joker,ip) += xsec_temp;
                 }
-                else
-                {
+                else {
                     const Numeric dn_dT = abs_vmrs(i_sec,ip) * dnumber_density_dt(abs_p[ip],abs_t[ip]); 
                     
-                    for(Index iv=0; iv<xsec_temp.nelem();iv++)
-                    {
+                    for(Index iv=0; iv<xsec_temp.nelem();iv++) {
                         this_xsec(iv,ip) += n*xsec_temp[iv];
-                        for(Index iq=0; iq<jacobian_quantities_position.nelem(); iq++)
-                        {
+                        for(Index iq=0; iq<jacobian_quantities_position.nelem(); iq++) {
                             if(is_frequency_parameter(jacobian_quantities[jacobian_quantities_position[iq]]))
-                                this_dxsec[iq](iv,ip) += n*(dxsec_temp_dF[iv]-xsec_temp[iv])/df;
+                              dabs_xsec_per_species_dx[i][iq](iv,ip) += n*(dxsec_temp_dF[iv]-xsec_temp[iv])/df;
                             else if(jacobian_quantities[jacobian_quantities_position[iq]]==JacPropMatType::Temperature)
-                                this_dxsec[iq](iv,ip) += n*(dxsec_temp_dT[iv]-xsec_temp[iv])/dt + xsec_temp[iv]*dn_dT; 
-                            else if(jacobian_quantities[jacobian_quantities_position[iq]] == JacPropMatType::VMR) // FIXME: Test that this works as expected using perturbations...
-                            {
-                              if(species_match(jacobian_quantities[jacobian_quantities_position[iq]], abs_species[i_sec]))
-                                this_dxsec[iq](iv,ip) += xsec_temp[iv];
-                              if(species_match(jacobian_quantities[jacobian_quantities_position[iq]], abs_species[i]))
-                                this_dxsec[iq](iv,ip) += xsec_temp[iv];
-                            }
-                            // Note for coef that d/dt(a*n*n) = da/dt * n1*n2 + a * dn1/dt * n2 + a * n1 * dn2/dt, 
-                            // we now output da/dt*n2 + a*dn2/dt and coef conversion then have to do 
-                            // dxsec*n1 + xsec*dn1/dt, which is what it has to do anyways, so no problems!
-                            // Also note that d/dvmr gives a factor for other species absorption.
-                            // even if own absorption is zero...
+                              dabs_xsec_per_species_dx[i][iq](iv,ip) += n*(dxsec_temp_dT[iv]-xsec_temp[iv])/dt + xsec_temp[iv]*dn_dT; 
+                            else if(species_match(jacobian_quantities[jacobian_quantities_position[iq]], this_species.BathSpecies()))
+                              dabs_xsec_per_species_dx[i][iq](iv,ip) += number_density(abs_p[ip],abs_t[ip]) * xsec_temp[iv];
                         }
                     }
                 }

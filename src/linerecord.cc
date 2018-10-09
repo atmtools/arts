@@ -2880,7 +2880,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
 
             while (icecream)
             {
-                // Read pressure broadening
+                // Read pressure broadening (LEGACY)
                 if (token == "PB")
                 {
                     icecream >> token;
@@ -2934,7 +2934,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                         icecream >> token;
                     }
                 }
-                else if (token == "LM")
+                else if (token == "LM") // LEGACY
                 {
                     // Line mixing
                   
@@ -2961,6 +2961,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                 {
                   lfd = true;
                   icecream >> mlinefunctiondata;
+                  icecream >> token;
                 }
                 else if (token == "ZE")
                 {

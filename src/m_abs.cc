@@ -1530,38 +1530,48 @@ void abs_coefCalcFromXsec(// WS Output:
           // Though this is called seldom enough that it this fine?  value is -1/t*n
 
           // Loop through all frequencies
-          for ( Index k=0; k<abs_xsec_per_species[i].nrows(); k++)
-            {
-              abs_coef_per_species[i](k,j) = abs_xsec_per_species[i](k,j) * n * abs_vmrs(i,j);
-              if(do_src)
-                src_coef_per_species[i](k,j) = src_xsec_per_species[i](k,j) * n * abs_vmrs(i,j);
+          for(Index k=0; k<abs_xsec_per_species[i].nrows(); k++) {
+            abs_coef_per_species[i](k,j) = abs_xsec_per_species[i](k,j) * n * abs_vmrs(i,j);
+            if(do_src)
+              src_coef_per_species[i](k,j) = src_xsec_per_species[i](k,j) * n * abs_vmrs(i,j);
               
-              for(Index iq=0;iq<jacobian_quantities_position.nelem();iq++)
-              {
-                  if(jacobian_quantities[jacobian_quantities_position[iq]]==JacPropMatType::Temperature)
-                  {
-                      dabs_coef_dx[iq](k,j) += (dabs_xsec_per_species_dx[i][iq](k,j) * n + 
-                      abs_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
-                      if(do_src)
-                          dsrc_coef_dx[iq](k,j) += (dsrc_xsec_per_species_dx[i][iq](k,j) * n + 
-                          src_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
+            for(Index iq=0;iq<jacobian_quantities_position.nelem();iq++) {
+                if(jacobian_quantities[jacobian_quantities_position[iq]]==JacPropMatType::Temperature) {
+                    dabs_coef_dx[iq](k,j) += (dabs_xsec_per_species_dx[i][iq](k,j) * n + 
+                    abs_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
+                    if(do_src)
+                        dsrc_coef_dx[iq](k,j) += (dsrc_xsec_per_species_dx[i][iq](k,j) * n + 
+                        src_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
+                }
+                else if(jacobian_quantities[jacobian_quantities_position[iq]] == JacPropMatType::VMR) {
+                  bool seco=false, main=false;
+                  for(const auto& s: abs_species[i]) {
+                    if(species_match(jacobian_quantities[jacobian_quantities_position[iq]], s.BathSpecies()) or s.Type() not_eq SpeciesTag::TYPE_CIA)
+                      seco = true;
+                    if(species_iso_match(jacobian_quantities[jacobian_quantities_position[iq]], s.Species(), s.Isotopologue()))
+                      main = true;
                   }
-                  else if(jacobian_quantities[jacobian_quantities_position[iq]] == JacPropMatType::VMR)  // FIXME: Test that this works as expected using perturbations...
-                  {
-                    if(species_match(jacobian_quantities[jacobian_quantities_position[iq]], abs_species[i])) {
-                      dabs_coef_dx[iq](k,j) += ( dabs_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) +
-                      abs_xsec_per_species[i](k,j) ) * n;
-                      if(do_src)
-                          dsrc_coef_dx[iq](k,j) += ( dsrc_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) +
-                          src_xsec_per_species[i](k,j) ) * n;
-                    }
+                  if(main and seco) {
+                    dabs_coef_dx[iq](k,j) += (dabs_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) + abs_xsec_per_species[i](k,j)) * n;
+                    if(do_src)
+                      dsrc_coef_dx[iq](k,j) += (dsrc_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) + src_xsec_per_species[i](k,j)) * n;
                   }
-                  else if(jacobian_quantities[jacobian_quantities_position[iq]] not_eq JacPropMatType::NotPropagationMatrixType)
-                  {
-                      dabs_coef_dx[iq](k,j) += dabs_xsec_per_species_dx[i][iq](k,j) * n * abs_vmrs(i,j);
-                      if(do_src)
-                          dsrc_coef_dx[iq](k,j) += dsrc_xsec_per_species_dx[i][iq](k,j) * n * abs_vmrs(i,j);
+                  else if(main) {
+                    dabs_coef_dx[iq](k,j) += abs_xsec_per_species[i](k,j) * n;
+                    if(do_src)
+                      dsrc_coef_dx[iq](k,j) += src_xsec_per_species[i](k,j) * n;
                   }
+                  else if(seco) {
+                    dabs_coef_dx[iq](k,j) += dabs_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) * n;
+                    if(do_src)
+                      dsrc_coef_dx[iq](k,j) += dsrc_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) * n;
+                  }
+                }
+                else if(jacobian_quantities[jacobian_quantities_position[iq]] not_eq JacPropMatType::NotPropagationMatrixType) {
+                    dabs_coef_dx[iq](k,j) += dabs_xsec_per_species_dx[i][iq](k,j) * n * abs_vmrs(i,j);
+                    if(do_src)
+                        dsrc_coef_dx[iq](k,j) += dsrc_xsec_per_species_dx[i][iq](k,j) * n * abs_vmrs(i,j);
+                }
               }
               
             }
@@ -3570,6 +3580,8 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
     const Index n_xsec   = abs_xsec_per_species.nelem();
     const Index n_vmrs   = abs_vmrs.nrows();
     const Index n_lines  = abs_lines_per_species.nelem();
+    
+    if(n_lines == 0) return;  // FIXME: Forced workaround for CIA bug
     
     if ( n_tgs not_eq n_xsec or n_tgs not_eq n_vmrs or n_tgs not_eq n_lines)
     {
