@@ -3005,6 +3005,60 @@ void define_md_data_raw()
                   "A flag with value 1 or 0. If set to one, the gridnames of \n"
                   " the *atm_fields_compact* are checked.")
         ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "AtmFieldsAndParticleBulkPropFieldFromCompact" ),
+        DESCRIPTION
+        (
+                "Extract pressure grid and atmospheric fields from\n"
+                "*atm_fields_compact*.\n"
+                "\n"
+                "An atmospheric scenario includes the following data for each\n"
+                "position (pressure, latitude, longitude) in the atmosphere:\n"
+                "           1. temperature field\n"
+                "           2. the corresponding altitude field\n"
+                "           3. vmr fields for the gaseous species\n"
+                "           4. scattering species fields\n"
+                "\n"
+                "This method splits up the data found in *atm_fields_compact* to\n"
+                "p_grid, lat_grid, lon_grid, vmr_field, particle_bulkprop_field,\n"
+                "and particle_bulkprop_names.\n"
+                "See documentation of *atm_fields_compact* for a definition of the\n"
+                "data.\n"
+                "\n"
+                "Compact states are characterized by having all atmospheric fields\n"
+                "already given on identical grids. That is, no interpolation needs\n"
+                "to be and is performed. Keyword *p_min* allows to remove atmospheric\n"
+                "levels with pressures lower than the given value (default: no\n"
+                "removal). This reduces computational burden and is useful when\n"
+                "upper atmospheric contributions are negligible.\n"
+                "\n"
+                "Possible future extensions: Add a keyword parameter to refine the\n"
+                "pressure grid if it is too coarse. Or a version that interpolates\n"
+                "onto given grids, instead of using and returning the original grids.\n"
+        ),
+        AUTHORS( "Jana Mendrok, Manfred Brath" ),
+        OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field",
+             "particle_bulkprop_field", "particle_bulkprop_names" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species", "atm_fields_compact",
+            "atmosphere_dim" ),
+        GIN(         "delim",  "p_min",   "check_gridnames" ),
+        GIN_TYPE(    "String", "Numeric", "Index" ),
+        GIN_DEFAULT( "-",      "0",       "0" ),
+        GIN_DESC( /* delim */
+                "Delimiter string of *scat_species* elements.",
+        /* p_min */
+                "Minimum-pressure level to consider (for TOA).",
+        /* check_gridnames */
+                "A flag with value 1 or 0. If set to one, the gridnames of \n"
+                " the *atm_fields_compact* are checked.")
+      ));
+
+
     
   md_data_raw.push_back
     ( MdRecord

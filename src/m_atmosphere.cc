@@ -2140,6 +2140,249 @@ void AtmFieldsFromCompact(// WS Output:
     }
 }
 
+// ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void AtmFieldsAndParticleBulkPropFieldFromCompact(// WS Output:
+        Vector& p_grid,
+        Vector& lat_grid,
+        Vector& lon_grid,
+        Tensor3& t_field,
+        Tensor3& z_field,
+        Tensor4& vmr_field,
+        Tensor4& particle_bulkprop_field,
+        ArrayOfString& particle_bulkprop_names,
+
+        // WS Input:
+        const ArrayOfArrayOfSpeciesTag& abs_species,
+        const GriddedField4& atm_fields_compact,
+        const Index&  atmosphere_dim,
+        const String& delim,
+        const Numeric& p_min,
+        // Control parameters:
+        const Index& check_gridnames,
+        const Verbosity&)
+{
+    // Make a handle on atm_fields_compact to save typing:
+    const GriddedField4 &c = atm_fields_compact;
+
+    // Check if the grids in our data match atmosphere_dim
+    // (throws an error if the dimensionality is not correct):
+    chk_atm_grids(atmosphere_dim,
+                  c.get_numeric_grid(GFIELD4_P_GRID),
+                  c.get_numeric_grid(GFIELD4_LAT_GRID),
+                  c.get_numeric_grid(GFIELD4_LON_GRID));
+
+    // Optional check for gridnames.
+    if (check_gridnames == 1)
+    {
+        chk_griddedfield_gridname(c, 1, "Pressure");
+        chk_griddedfield_gridname(c, 2, "Latitude");
+        chk_griddedfield_gridname(c, 3, "Longitude");
+    }
+
+    const Index nf = c.get_grid_size(GFIELD4_FIELD_NAMES);
+    const Index np = c.get_grid_size(GFIELD4_P_GRID);
+//  const Index nlat = c.get_grid_size(GFIELD4_LAT_GRID);
+//  const Index nlon = c.get_grid_size(GFIELD4_LON_GRID);
+    Index nlat = c.get_grid_size(GFIELD4_LAT_GRID);
+    Index nlon = c.get_grid_size(GFIELD4_LON_GRID);
+    if (nlat == 0) nlat++;
+    if (nlon == 0) nlon++;
+
+    // Grids:
+    p_grid = c.get_numeric_grid(GFIELD4_P_GRID);
+    lat_grid = c.get_numeric_grid(GFIELD4_LAT_GRID);
+    lon_grid = c.get_numeric_grid(GFIELD4_LON_GRID);
+
+    // Reduce p_grid to region below p_min
+    Index l = np - 1;
+    bool search_toa = true;
+    while (search_toa && l > 0)
+    {
+        if (p_grid[l - 1] < p_min)
+            l--;
+        else
+            search_toa = false;
+    }
+    if (search_toa)
+    {
+        ostringstream os;
+        os << "At least one atmospheric level with pressure larger p_min (="
+           << p_min << ")\n" << "is needed, but none is found.";
+        throw runtime_error(os.str());
+    }
+    const Index npn = l + 1;
+    p_grid = p_grid[Range(0, npn)];
+
+    const Index nsa = abs_species.nelem();
+
+    // Check that there is at least one VMR species:
+    if (nsa < 1)
+    {
+        ostringstream os;
+        os << "There must be at least one absorption species.";
+        throw runtime_error(os.str());
+    }
+
+    // In contrast to older versions, we allow the data entries to be in arbitrary
+    // order. that is, we have to look for all fields individually. we require the
+    // abs_species related fields as well as the scat_species related fields to
+    // have leading identifiers, namely 'abs_species' and 'scat_species'. it is
+    // not mandatory that all fields available in atm_field_compact are applied
+    // through abs_species and scat_species; left over fields are silently
+    // ignored.
+    // For temperature and altitude, occurence of exactly one field entry is
+    // ensured. For other fields, the first match is used.
+    // FIXME: or should a match be removed such that a second species occurence
+    // would match a later-in-line field?
+
+    bool found;
+    const String as_type = "abs_species";
+    const String ss_type = "scat_species";
+
+    // Find temperature field:
+    found = false;
+    t_field.resize(npn, nlat, nlon);
+    for (Index i = 0; i < nf; ++i)
+    {
+        if (c.get_string_grid(GFIELD4_FIELD_NAMES)[i] == "T")
+        {
+            if (found)
+            {
+                ostringstream os;
+                os << "Only one temperature ('T') field allowed,\n"
+                   << "but found at least 2.";
+                throw runtime_error(os.str());
+            } else
+            {
+                found = true;
+                t_field = c.data(i, Range(0, npn), Range(joker), Range(joker));
+            }
+        }
+    }
+    if (!found)
+    {
+        ostringstream os;
+        os << "One temperature ('T') field required, but none found";
+        throw runtime_error(os.str());
+    }
+
+    // Find Altitude field:
+    found = false;
+    z_field.resize(npn, nlat, nlon);
+    for (Index i = 0; i < nf; ++i)
+    {
+        if (c.get_string_grid(GFIELD4_FIELD_NAMES)[i] == "z")
+        {
+            if (found)
+            {
+                ostringstream os;
+                os << "Only one altitude ('z') field allowed,\n"
+                   << "but found at least 2.";
+                throw runtime_error(os.str());
+            } else
+            {
+                found = true;
+                z_field = c.data(i, Range(0, npn), Range(joker), Range(joker));
+            }
+        }
+    }
+    if (!found)
+    {
+        ostringstream os;
+        os << "One altitude ('z') field required, but none found";
+        throw runtime_error(os.str());
+    }
+
+    // Extracting the required abs_species fields:
+
+    vmr_field.resize(nsa, npn, nlat, nlon);
+    for (Index j = 0; j < nsa; ++j)
+    {
+        using global_data::species_data;  // The species lookup data:
+        const String as_name = species_data[abs_species[j][0].Species()].Name();
+        found = false;
+        Index i = 0;
+        String species_type;
+        String species_name;
+        while (!found && i < nf)
+        {
+            parse_atmcompact_speciestype(
+                    species_type, c.get_string_grid(GFIELD4_FIELD_NAMES)[i], delim);
+            // do we have an abs_species type field?
+            if (species_type == as_type)
+            {
+                parse_atmcompact_speciesname(
+                        species_name, c.get_string_grid(GFIELD4_FIELD_NAMES)[i], delim);
+                if (species_name == as_name)
+                {
+                    found = true;
+                    vmr_field(j, Range(joker), Range(joker), Range(joker)) =
+                            c.data(i, Range(0, npn), Range(joker), Range(joker));
+                }
+            }
+            i++;
+        }
+        if (!found)
+        {
+            ostringstream os;
+            os << "No field for absorption species '" << as_name << "' found.";
+            throw runtime_error(os.str());
+        }
+    }
+
+
+    //get the number of scat_species entries
+    std::vector<Index> Idx;
+
+    String species_type;
+    String species_name;
+    for (Index i = 0; i < nf; ++i)
+    {
+        parse_atmcompact_speciestype(
+                species_type, c.get_string_grid(GFIELD4_FIELD_NAMES)[i], delim);
+
+        if (species_type == ss_type)
+        {
+            Idx.push_back(i);
+        }
+    }
+
+    const Index nsp = Idx.size();
+
+    // Extracting the required scattering species fields:
+    particle_bulkprop_field.resize(nsp, npn, nlat, nlon);
+    particle_bulkprop_field = NAN;
+    particle_bulkprop_names.resize(nsp);
+
+
+
+    // put scat_species entries in particle_bulkprop_field
+
+    for (Index j = 0; j < nsp; ++j)
+    {
+
+        String species_name;
+        String scat_type;
+
+        parse_atmcompact_scattype(
+                scat_type, c.get_string_grid(GFIELD4_FIELD_NAMES)[Idx[j]], delim);
+
+        parse_atmcompact_speciesname(
+                species_name, c.get_string_grid(GFIELD4_FIELD_NAMES)[Idx[j]], delim);
+
+        particle_bulkprop_field(j, Range(joker), Range(joker), Range(joker))
+                = c.data(Idx[j], Range(0, npn), Range(joker), Range(joker));
+
+
+        particle_bulkprop_names[j] = species_name + delim + scat_type;
+    }
+}
+
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AtmosphereSet1D(// WS Output:

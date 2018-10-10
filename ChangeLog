@@ -1,3 +1,11 @@
+2018-10-10  Manfred Brath  <manfred.brath@uni-hamburg.de>
+
+    * arts-2-3-1135
+    
+    * src/m_atmosphere.cc, src/methods.cc:
+    
+    Implemented AtmFieldsAndParticleBulkPropFieldFromCompact.
+
 2018-10-09  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1134
