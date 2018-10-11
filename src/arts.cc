@@ -26,6 +26,7 @@
 
 #include <cstdlib>
 #include <stdexcept>
+#include <unistd.h>
 #include "arts.h"
 #include "file.h"
 #include "messages.h"
@@ -64,8 +65,19 @@ void arts_exit(int status)
 void arts_exit_with_error_message(const String& m, ArtsOut &out)
 {
   ostringstream os;
-  os << m << "\n"
-     << "Stopping ARTS execution.\n"
+
+  os << m << "\n";
+
+  if (out.get_verbosity().get_screen_verbosity() < out.get_verbosity().get_file_verbosity())
+  {
+    extern String out_basename;
+    char *buf = getcwd(nullptr, 0);
+    os << "Detailed report file: " << buf << "/"
+       << add_basedir(out_basename + ".rep") << "\n";
+    free(buf);
+  }
+
+  os << "Stopping ARTS execution.\n"
      << "Goodbye.\n";
   out << os.str();
   

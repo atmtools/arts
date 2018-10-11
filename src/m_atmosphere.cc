@@ -2338,7 +2338,6 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(// WS Output:
     std::vector<Index> Idx;
 
     String species_type;
-    String species_name;
     for (Index i = 0; i < nf; ++i)
     {
         parse_atmcompact_speciestype(

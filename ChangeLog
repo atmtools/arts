@@ -1,10 +1,31 @@
+2018-10-11  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1136
+
+	* src/arts.cc (arts_exit_with_error_message):
+
+	If the verbosity level for the report file is set higher than the
+	screen output verbosity, display a link to the report file in the error
+	message.
+
+	* cmake/modules/ArtsTestcases.cmake:
+
+	Change screen output level from 2 to 0. Reduces output clutter for
+	failed test cases. Outputs only the relevant error message, not the
+	whole ARTS log. The detailed log can be found in the report file if
+	needed.
+
+	* src/m_atmosphere.cc (AtmFieldsAndParticleBulkPropFieldFromCompact):
+
+	Remove unused species_name variable.
+
 2018-10-10  Manfred Brath  <manfred.brath@uni-hamburg.de>
 
-    * arts-2-3-1135
-    
-    * src/m_atmosphere.cc, src/methods.cc:
-    
-    Implemented AtmFieldsAndParticleBulkPropFieldFromCompact.
+	* arts-2-3-1135
+
+	* src/m_atmosphere.cc, src/methods.cc:
+
+	Implemented AtmFieldsAndParticleBulkPropFieldFromCompact.
 
 2018-10-09  Richard Larsson  <larsson@mps.mpg.de>
 
