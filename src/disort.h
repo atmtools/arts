@@ -118,7 +118,57 @@ void get_disortsurf_props(  // Output
     const Numeric& surface_skin_t,
     ConstVectorView surface_scalar_reflectivity);
 
-/** run_disort
+/** Calculate doit_i_feild with Disort.
+ *
+ * Prepares actual input variables for Disort, runs it, and sorts the output
+ * into doit_i_field.
+ *
+ * This version uses the C implementation of Disort based on ::run_disort.
+ *
+ * @param[in,out] ws Current workspace
+ * @param[out]    doit_i_field Radiation field
+ * @param[in]     f_grid Frequency grid
+ * @param[in]     p_grid Pressure grid
+ * @param[in]     z_field field of geometrical altitudes
+ * @param[in]     t_field field of atmospheric temperatures
+ * @param[in]     vmr_field VMR field
+ * @param[in]     pnd_field PND field
+ * @param[in]     scat_data Array of single scattering data
+ * @param[in]     propmat_clearsky_agenda calculates the absorption coefficient
+                  matrix
+ * @param[in]     cloudbox_limits Cloudbox limits
+ * @param[in]     surface_skin_t Surface skin temperature
+ * @param[in]     surface_scalar_reflectivity Surface scalar reflectivity
+ * @param[in]     scat_za_grid Zenith angle grid
+ * @param[in]     nstreams Number of quadrature angles (both hemispheres).
+ * @param[in]     Npfct Number of angular grid points to calculate bulk phase
+ *                function
+ * @param[in]     verbosity Verbosity setting
+ *
+ * @author        Oliver Lemke
+ * @date          2019-09-19
+ */
+void run_cdisort(Workspace& ws,
+                 // Output
+                 Tensor7& doit_i_field,
+                 // Input
+                 ConstVectorView f_grid,
+                 ConstVectorView p_grid,
+                 ConstTensor3View z_field,
+                 ConstTensor3View t_field,
+                 ConstTensor4View vmr_field,
+                 ConstTensor4View pnd_field,
+                 const ArrayOfArrayOfSingleScatteringData& scat_data,
+                 const Agenda& propmat_clearsky_agenda,
+                 const ArrayOfIndex& cloudbox_limits,
+                 const Numeric& surface_skin_t,
+                 const Vector& surface_scalar_reflectivity,
+                 ConstVectorView scat_za_grid,
+                 const Index& nstreams,
+                 const Index& Npfct,
+                 const Verbosity& verbosity);
+
+/** Calculate doit_i_feild with Disort.
  *
  * Prepares actual input variables for Disort, runs it, and sorts the output into
  * doit_i_field.
@@ -150,25 +200,25 @@ void get_disortsurf_props(  // Output
  * @date          2017-02-23
  */
 void run_disort(Workspace& ws,
-                 // Output
-                 Tensor7& doit_i_field,
-                 // Input
-                 ConstVectorView f_grid,
-                 ConstVectorView p_grid,
-                 ConstTensor3View z_field,
-                 ConstTensor3View t_field,
-                 ConstTensor4View vmr_field,
-                 ConstTensor4View pnd_field,
-                 const ArrayOfArrayOfSingleScatteringData& scat_data,
-                 const Agenda& propmat_clearsky_agenda,
-                 const ArrayOfIndex& cloudbox_limits,
-                 Numeric& surface_skin_t,
-                 Vector& surface_scalar_reflectivity,
-                 ConstVectorView scat_za_grid,
-                 const Index& nstreams,
-                 const Index& do_deltam,
-                 const Index& Npfct,
-                 const Verbosity& verbosity);
+                // Output
+                Tensor7& doit_i_field,
+                // Input
+                ConstVectorView f_grid,
+                ConstVectorView p_grid,
+                ConstTensor3View z_field,
+                ConstTensor3View t_field,
+                ConstTensor4View vmr_field,
+                ConstTensor4View pnd_field,
+                const ArrayOfArrayOfSingleScatteringData& scat_data,
+                const Agenda& propmat_clearsky_agenda,
+                const ArrayOfIndex& cloudbox_limits,
+                Numeric& surface_skin_t,
+                Vector& surface_scalar_reflectivity,
+                ConstVectorView scat_za_grid,
+                const Index& nstreams,
+                const Index& do_deltam,
+                const Index& Npfct,
+                const Verbosity& verbosity);
 
 /** get_gasoptprop.
  *

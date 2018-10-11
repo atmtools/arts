@@ -1,3 +1,4 @@
+add_subdirectory(cdisort)
 add_subdirectory(disort1.2)
 add_subdirectory(polradtran)
 #add_subdirectory(rt4)

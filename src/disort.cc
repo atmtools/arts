@@ -33,6 +33,10 @@
 #include "array.h"
 #include "auto_md.h"
 #include "check_input.h"
+extern "C" {
+#include "cdisort.h"
+}
+#include "disort.h"
 #include "disort_DISORT.h"
 #include "interpolation.h"
 #include "logic.h"
@@ -285,7 +289,6 @@ void get_disortsurf_props(  // Output
     for (Index f_index = 0; f_index < f_grid.nelem(); f_index++)
       albedo[f_index] = surface_scalar_reflectivity[0];
 }
-
 
 void get_gasoptprop(Workspace& ws,
                     MatrixView ext_bulk_gas,
@@ -1490,25 +1493,25 @@ void surf_albedoCalc(Workspace& ws,
 #ifdef ENABLE_DISORT
 
 void run_disort(Workspace& ws,
-                 // Output
-                 Tensor7& doit_i_field,
-                 // Input
-                 ConstVectorView f_grid,
-                 ConstVectorView p_grid,
-                 ConstTensor3View z_field,
-                 ConstTensor3View t_field,
-                 ConstTensor4View vmr_field,
-                 ConstTensor4View pnd_field,
-                 const ArrayOfArrayOfSingleScatteringData& scat_data,
-                 const Agenda& propmat_clearsky_agenda,
-                 const ArrayOfIndex& cloudbox_limits,
-                 Numeric& surface_skin_t,
-                 Vector& surface_scalar_reflectivity,
-                 ConstVectorView scat_za_grid,
-                 const Index& nstreams,
-                 const Index& do_deltam,
-                 const Index& Npfct,
-                 const Verbosity&) {
+                // Output
+                Tensor7& doit_i_field,
+                // Input
+                ConstVectorView f_grid,
+                ConstVectorView p_grid,
+                ConstTensor3View z_field,
+                ConstTensor3View t_field,
+                ConstTensor4View vmr_field,
+                ConstTensor4View pnd_field,
+                const ArrayOfArrayOfSingleScatteringData& scat_data,
+                const Agenda& propmat_clearsky_agenda,
+                const ArrayOfIndex& cloudbox_limits,
+                Numeric& surface_skin_t,
+                Vector& surface_scalar_reflectivity,
+                ConstVectorView scat_za_grid,
+                const Index& nstreams,
+                const Index& do_deltam,
+                const Index& Npfct,
+                const Verbosity&) {
   const Index nf = f_grid.nelem();
   Index nlyr =
       p_grid.nelem() - 1;  // don't make this const, else disort_ complains
@@ -1815,26 +1818,208 @@ void run_disort(Workspace&,
       "This version of ARTS was compiled without DISORT support.");
 }
 
-void run_disort2(Workspace&,
-                 Tensor7&,
-                 ConstVectorView,
-                 ConstVectorView,
-                 ConstTensor3View,
-                 ConstTensor3View,
-                 ConstTensor4View,
-                 ConstTensor4View,
-                 const ArrayOfArrayOfSingleScatteringData&,
-                 const Agenda&,
-                 const ArrayOfIndex&,
-                 Numeric&,
-                 Vector&,
-                 ConstVectorView,
-                 const Index&,
-                 const Index&,
-                 const Index&,
-                 const Verbosity&) {
+void get_cb_inc_field(Workspace&,
+                      Matrix&,
+                      const Agenda&,
+                      const Tensor3&,
+                      const Tensor3&,
+                      const Tensor4&,
+                      const Index&,
+                      const ArrayOfIndex&,
+                      const Vector&,
+                      const Vector&,
+                      const Index&) {
   throw runtime_error(
       "This version of ARTS was compiled without DISORT support.");
 }
 
 #endif /* ENABLE_DISORT */
+
+void run_cdisort(Workspace& ws,
+                 Tensor7& doit_i_field,
+                 ConstVectorView f_grid,
+                 ConstVectorView p_grid,
+                 ConstTensor3View z_field,
+                 ConstTensor3View t_field,
+                 ConstTensor4View vmr_field,
+                 ConstTensor4View pnd_field,
+                 const ArrayOfArrayOfSingleScatteringData& scat_data,
+                 const Agenda& propmat_clearsky_agenda,
+                 const ArrayOfIndex& cloudbox_limits,
+                 const Numeric& surface_skin_t,
+                 const Vector& surface_scalar_reflectivity,
+                 ConstVectorView scat_za_grid,
+                 const Index& nstreams,
+                 const Index& Npfct,
+                 const Verbosity&) {
+  disort_state ds;
+  disort_output out;
+
+  const Index nf = f_grid.nelem();
+
+  ds.accur = 0.005;  // ok
+  ds.flag.prnt[0] = FALSE;
+  ds.flag.prnt[1] = FALSE;
+  ds.flag.prnt[2] = FALSE;
+  ds.flag.prnt[3] = FALSE;
+  ds.flag.prnt[4] = TRUE;
+
+  ds.flag.usrtau = FALSE;
+  ds.flag.usrang = TRUE;
+  ds.flag.spher = FALSE;
+  ds.flag.general_source = FALSE;  //ok
+  ds.flag.output_uum = FALSE;
+
+  ds.nlyr = static_cast<int>(p_grid.nelem() - 1);  //ok
+
+  ds.flag.brdf_type = BRDF_NONE;
+
+  ds.flag.ibcnd = GENERAL_BC;  //ok
+  ds.flag.usrang = TRUE;       //ok
+  ds.flag.planck = TRUE;
+  ds.flag.onlyfl = FALSE;
+  ds.flag.lamber = TRUE;
+  ds.flag.quiet = FALSE;
+  ds.flag.intensity_correction = TRUE;
+  ds.flag.old_intensity_correction = TRUE;
+
+  ds.nstr = static_cast<int>(nstreams);  //ok
+  ds.nphase = ds.nstr;
+  ds.nmom = ds.nstr;
+  ds.ntau = ds.nlyr + 1;                //ok
+  ds.numu = static_cast<int>(scat_za_grid.nelem());  //ok
+  ds.nphi = 1;
+  Index Nlegendre = nstreams + 1;
+
+  /* Allocate memory */
+  c_disort_state_alloc(&ds);
+  c_disort_out_alloc(&ds, &out);
+
+  // Properties of solar beam, set to zero as they are not needed
+  ds.bc.fbeam = 0.;  //ok
+  ds.bc.umu0 = 0.;   //ok
+  ds.bc.phi0 = 0.;   //ok
+  ds.bc.fluor = 0.;  //ok
+
+  // Since we have no solar source there is no angular dependance
+  ds.phi[0] = 0.;
+
+  for (Index i = 0; i <= ds.nlyr; i++)
+    ds.temper[i] = t_field(ds.nlyr - i, 0, 0);  //ok
+
+  Matrix ext_bulk_gas(nf, ds.nlyr + 1);
+  get_gasoptprop(ws,
+                 ext_bulk_gas,
+                 propmat_clearsky_agenda,
+                 t_field(joker, 0, 0),
+                 vmr_field(joker, joker, 0, 0),
+                 p_grid,
+                 f_grid);
+  Matrix ext_bulk_par(nf, ds.nlyr + 1), abs_bulk_par(nf, ds.nlyr + 1);
+  get_paroptprop(ext_bulk_par,
+                 abs_bulk_par,
+                 scat_data,
+                 pnd_field(joker, joker, 0, 0),
+                 t_field(joker, 0, 0),
+                 p_grid,
+                 cloudbox_limits,
+                 f_grid);
+
+  // Optical depth of layers
+  Matrix dtauc(nf, ds.nlyr);
+  // Single scattering albedo of layers
+  Matrix ssalb(nf, ds.nlyr);
+  get_dtauc_ssalb(dtauc,
+                  ssalb,
+                  ext_bulk_gas,
+                  ext_bulk_par,
+                  abs_bulk_par,
+                  z_field(joker, 0, 0));
+
+  // Transform to mu, starting with negative values
+  for (Index i = 0; i < ds.numu; i++)
+    ds.umu[i] = -cos(scat_za_grid[i] * PI / 180);  //ok
+
+  //upper boundary conditions:
+  // DISORT offers isotropic incoming radiance or emissivity-scaled planck
+  // emission. Both are applied additively.
+  // We want to have cosmic background radiation, for which ttemp=COSMIC_BG_TEMP
+  // and temis=1 should give identical results to fisot(COSMIC_BG_TEMP). As they
+  // are additive we should use either the one or the other.
+  // Note: previous setup (using fisot) setting temis=0 should be avoided.
+  // Generally, temis!=1 should be avoided since that technically implies a
+  // reflective upper boundary (though it seems that this is not exploited in
+  // DISORT1.2, which we so far use).
+
+  // Cosmic background
+  // we use temis*ttemp as upper boundary specification, hence CBR set to 0.
+  ds.bc.fisot = 0;
+
+  // Top of the atmosphere temperature and emissivity
+  //Numeric ttemp = t_field(cloudbox_limits[1], 0, 0);
+  //Numeric temis = 0.;
+  ds.bc.ttemp = COSMIC_BG_TEMP;  // ok
+  ds.bc.btemp = surface_skin_t;  // ok
+  ds.bc.temis = 1.;
+
+  Vector pfct_angs;
+  get_angs(pfct_angs, scat_data, Npfct);
+  Index nang = pfct_angs.nelem();
+
+  Index nf_ssd = scat_data[0][0].f_grid.nelem();
+  Tensor3 pha_bulk_par(nf_ssd, ds.nlyr + 1, nang);
+  get_parZ(pha_bulk_par,
+           scat_data,
+           pnd_field(joker, joker, 0, 0),
+           t_field(joker, 0, 0),
+           pfct_angs,
+           cloudbox_limits);
+  Tensor3 pfct_bulk_par(nf_ssd, ds.nlyr, nang);
+  get_pfct(
+      pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cloudbox_limits);
+
+  // Legendre polynomials of phase function
+  Tensor3 pmom(nf_ssd, ds.nlyr, Nlegendre, 0.);
+  get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
+
+  for (Index f_index = 0; f_index < f_grid.nelem(); f_index++)
+  //  for (Index f_index = 0; f_index < 1; f_index++)
+  {
+    sprintf(ds.header, "ARTS Calc f_index = %ld", f_index);
+
+    std::memcpy(ds.dtauc,
+                dtauc(f_index, joker).get_c_array(),
+                sizeof(Numeric) * ds.nlyr);  //ok
+    std::memcpy(ds.ssalb,
+                ssalb(f_index, joker).get_c_array(),
+                sizeof(Numeric) * ds.nlyr);  //ok
+
+    // Wavenumber in [1/cm]
+    Numeric df;
+    if (f_index == f_grid.nelem() - 1) {
+      df = f_grid[f_index] - f_grid[f_index - 1];
+    } else {
+      df = f_grid[f_index + 1] - f_grid[f_index];
+    }
+    ds.wvnmlo = (f_grid[f_index] - df / 2.) / (100 * SPEED_OF_LIGHT);
+    ds.wvnmhi = (f_grid[f_index] + df / 2.) / (100 * SPEED_OF_LIGHT);
+
+    ds.bc.albedo = surface_scalar_reflectivity[f_index];  //ok
+
+    std::memcpy(ds.pmom,
+                pmom(f_index, joker, joker).get_c_array(),
+                sizeof(Numeric) * pmom.nrows() * pmom.ncols());
+
+    c_disort(&ds, &out);
+
+    for (Index j = 0; j < ds.numu; j++)
+      for (Index k = 0; k < (cloudbox_limits[1] - cloudbox_limits[0] + 1); k++)
+        doit_i_field(f_index, k, 0, 0, j, 0, 0) =
+            out.uu[ds.numu * (ds.nlyr - k - cloudbox_limits[0]) + j] /
+            (ds.wvnmhi - ds.wvnmlo) / (100 * SPEED_OF_LIGHT);
+  }
+
+  /* Free allocated memory */
+  c_disort_out_free(&ds, &out);
+  c_disort_state_free(&ds);
+}

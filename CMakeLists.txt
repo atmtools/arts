@@ -429,6 +429,10 @@ get_directory_property(ENABLE_DISORT DIRECTORY
                        3rdparty/disort1.2
                        DEFINITION ENABLE_DISORT)
 
+get_directory_property(ENABLE_CDISORT DIRECTORY
+                       3rdparty/cdisort
+                       DEFINITION ENABLE_CDISORT)
+
 get_directory_property(ENABLE_RT4 DIRECTORY
                        3rdparty/polradtran/rt4
 #                       3rdparty/rt4

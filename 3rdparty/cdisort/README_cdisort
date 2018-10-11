@@ -1,0 +1,88 @@
+The files in this directory contain a C version, cdisort, of the
+popular DISORT program for solving the radiative transfer equation.
+Also included is a translation of the twostr (two-stream) version of
+DISORT, and the disotest test program.
+
+In publications, please cite Buras et al (2011,
+J. Quant. Spectr. Ra. Tran. 112, 2028-2034,
+doi:10.1016/j.jqsrt.2011.03.019).
+
+The translation is based on version 2 of DISORT as provided from:
+ftp://climate1.gsfc.nasa.gov/wiscombe/Multiple_Scatt
+For documentation of the equations and algorithms used in cdisort,
+please see the appropriate documentation located at the above site.
+
+The main differences between the C and Fortran versions are:
+
+1) The C version uses dynamical memory allocation. 
+   This may significantly decrease computational time compared to using
+   the Fortran version with non-optimal array sizes.
+
+2) The C version uses data structures, which may reduce cache misses.
+
+3) The C version is entirely in double precision, whereas only parts of
+   the Fortran version are. This leads to improved numerical stability.
+
+4) The cdisort solver has been extended to allow for a more accurate
+   treatment of sharply peaked phase functions.
+
+There is currently no specific user documentation for cdisort apart
+from the brief HOWTO file. For a description of the input parameters
+the user is referred to the DISORT2 documentation (included in the
+distribution).  Please also see the disotest.c source file for a wide
+range of sample applications.
+
+The following files are included:
+
+COPYING:           The Gnu Public License (GPL)
+DISORT2.doc:       The original DISORT 2.0 documentation file
+HOWTO:             How to use the cdisort function in your program
+Makefile_cdisort:  Sample makefile to compile disotest and cdisort
+README_cdisort:    This file
+cdisort.c:         The C version of DISORT and twostr
+cdisort.h:         Header file for cdisort
+disotest.c:        C version of the DISORT test program
+locate.c:          Num. Recipes. routine; kept separate to facilitate libradtran inclusion
+locate.h:          Header file for locate.c.
+
+
+To compile cdisort and test it, please customize Makefile_cdisort for your
+computer platform.
+
+This is the initial release of cdisort. While the code has been tested
+for numerous cases it has obviously not been tested for all possible
+values of input parameters. Thus, use it with care and report
+problems, bugs, and preferably bug fixes to developers@libradtran.org.
+
+THERE ARE NO GUARANTEES OR WARRANTIES FOR THIS SOFTWARE OR ITS DOCUMENTATION
+EITHER EXPRESSED OR IMPLIED.
+
+Having said so: If you find cdisort useful in your research and
+publish papers based on it, please drop us a line at
+developers@libradtran.org. By doing so you motivate us to continue
+this type of work, and we learn more.
+
+The current version of cdisort is able to do the same calculations as
+the Fortran version of DISORT 2.1, plus the following extensions:
+ * new method for calculating intensity corrections, described in
+   Buras, Dowling, Emde 201X (in preparation) 
+ * pseudo-spherical geometry approximation for the direct beam
+   as described by Dahlback and Stamnes, 1991.
+
+Some possible future extensions are:
+
+ * User documentation. Volunteers needed
+ * General source term for Raman scattering etc.
+ * Polarization
+ * Refractive index changes (atmosphere-water, atmosphere-skin, etc)
+
+In addition to being distributed as a separate package, cdisort is also
+included in the freely available libRadtran package, which is a
+collection of C and Fortran functions and programs for calculation of
+solar and thermal radiation in the Earth's atmosphere (www.libradtran.org).
+
+This C rewrite of DISORT is first and foremost the work of Timothy E. Dowling
+(dowling@louisville.edu). The phase function extensions have been
+added by Robert Buras (robert.buras@physik.uni-muenchen.de). The pseudo-spherical
+approximation and general testing and debugging has been done by Arve
+Kylling (arve.kylling@gmail.com). 

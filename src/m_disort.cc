@@ -76,6 +76,7 @@ void DisortCalc(Workspace& ws,
                 const Index& do_deltam,
                 const String& pfct_method,
                 const Index& Npfct,
+                const Index& cdisort,
                 const Verbosity& verbosity) {
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) {
@@ -114,26 +115,44 @@ void DisortCalc(Workspace& ws,
   get_disortsurf_props(
       albedo, btemp, f_grid, surface_skin_t, surface_scalar_reflectivity);
 
-
-  run_disort(ws,
-              doit_i_field,
-              f_grid,
-              p_grid,
-              z_field,
-              t_field,
-              vmr_field,
-              pnd_field,
-              scat_data,
-              propmat_clearsky_agenda,
-              cloudbox_limits,
-              btemp,
-              albedo,
-              scat_za_grid,
-              nstreams,
-              do_deltam,
-              Npfct,
-              verbosity);
-
+  if (cdisort) {
+    run_cdisort(ws,
+                doit_i_field,
+                f_grid,
+                p_grid,
+                z_field,
+                t_field,
+                vmr_field,
+                pnd_field,
+                scat_data,
+                propmat_clearsky_agenda,
+                cloudbox_limits,
+                btemp,
+                albedo,
+                scat_za_grid,
+                nstreams,
+                Npfct,
+                verbosity);
+  } else {
+    run_disort(ws,
+               doit_i_field,
+               f_grid,
+               p_grid,
+               z_field,
+               t_field,
+               vmr_field,
+               pnd_field,
+               scat_data,
+               propmat_clearsky_agenda,
+               cloudbox_limits,
+               btemp,
+               albedo,
+               scat_za_grid,
+               nstreams,
+               do_deltam,
+               Npfct,
+               verbosity);
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -213,26 +232,24 @@ void DisortCalcWithARTSSurface(
                   surf_altitude,
                   verbosity);
 
-
   run_disort(ws,
-              doit_i_field,
-              f_grid,
-              p_grid,
-              z_field,
-              t_field,
-              vmr_field,
-              pnd_field,
-              scat_data,
-              propmat_clearsky_agenda,
-              cloudbox_limits,
-              btemp,
-              albedo,
-              scat_za_grid,
-              nstreams,
-              do_deltam,
-              Npfct,
-              verbosity);
-
+             doit_i_field,
+             f_grid,
+             p_grid,
+             z_field,
+             t_field,
+             vmr_field,
+             pnd_field,
+             scat_data,
+             propmat_clearsky_agenda,
+             cloudbox_limits,
+             btemp,
+             albedo,
+             scat_za_grid,
+             nstreams,
+             do_deltam,
+             Npfct,
+             verbosity);
 }
 
 #else /* ENABLE_DISORT */
