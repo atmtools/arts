@@ -1,5 +1,14 @@
 2018-10-11  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-1137
+
+	* controlfiles/artscomponents/nlte/TestNLTE.arts:
+
+	Change reference variable names from test to y_nlte_ref and y_lte_ref
+	to be able to see from the error message which Compare fails.
+
+2018-10-11  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-1136
 
 	* src/arts.cc (arts_exit_with_error_message):

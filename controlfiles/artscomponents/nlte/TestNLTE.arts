@@ -73,9 +73,9 @@ cloudbox_checkedCalc
 sensor_checkedCalc
 yCalc
 
-VectorCreate(test)
-ReadXML(test,"TestNLTE_NLTE_ref.xml")
-Compare(y,test,1e-12)
+VectorCreate(y_nlte_ref)
+ReadXML(y_nlte_ref,"TestNLTE_NLTE_ref.xml")
+Compare(y,y_nlte_ref,1e-12)
 
 nlteOff
 
@@ -87,7 +87,8 @@ cloudbox_checkedCalc
 sensor_checkedCalc
 yCalc
 
-ReadXML(test,"TestNLTE_LTE_ref.xml")
-Compare(y,test,1e-12)
+VectorCreate(y_lte_ref)
+ReadXML(y_lte_ref,"TestNLTE_LTE_ref.xml")
+Compare(y,y_lte_ref,1e-12)
 
 }
