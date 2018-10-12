@@ -2733,7 +2733,7 @@ void xml_read_from_stream(istream&           is_xml,
               break;
             }
 
-          if ((isnan(fmin) || fmin <= lr.F()) && (isnan(fmax) || lr.F() <= fmax))
+          if ((std::isnan(fmin) || fmin <= lr.F()) && (std::isnan(fmax) || lr.F() <= fmax))
             alrecord.push_back(std::move(lr));
         }
     }

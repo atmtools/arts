@@ -174,7 +174,7 @@ void iyCalc(
   // Don't allow NaNs (should suffice to check first stokes element)
   for( Index i=0; i<iy.nrows(); i++ )
     { 
-      if( isnan(iy(i,0) ) )
+      if( std::isnan(iy(i,0) ) )
         throw runtime_error( "One or several NaNs found in *iy*." );
     }
 }
@@ -1327,7 +1327,7 @@ void yCalc_mblock_loop_body(
         for( Index i=0; i<n1y; i++ )
           {
             const Index ii = row0 + i; 
-            if( isnan(y[ii] ) )
+            if( std::isnan(y[ii] ) )
               throw runtime_error( "One or several NaNs found in *y*." );
             y_f[ii]          = sensor_response_f[i];
             y_pol[ii]        = sensor_response_pol[i];
@@ -1361,7 +1361,7 @@ void yCalc_mblock_loop_body(
 
 
         // Handle geo-positioning
-        if( !isnan(geo_pos_matrix(0,0)) )  // No data are flagged as NaN
+        if( !std::isnan(geo_pos_matrix(0,0)) )  // No data are flagged as NaN
           {
             // Find bore sigtht direction be probing sensor_response
             const Index   nf   = f_grid.nelem();

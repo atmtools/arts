@@ -507,7 +507,7 @@ public:
         /* Check that the isotopologues are correctly sorted. */
         for ( Index i=0; i<misotopologue.nelem()-1; ++i )
           {
-              assert(isnan(misotopologue[i].Abundance()) || isnan(misotopologue[i+1].Abundance())
+              assert(std::isnan(misotopologue[i].Abundance()) || std::isnan(misotopologue[i+1].Abundance())
                      || misotopologue[i].Abundance() >= misotopologue[i+1].Abundance());
           }
 

@@ -369,7 +369,7 @@ void Tensor4Clip(
       ilast  = iq;      
     }
 
-  if( !isinf( limit_low ) )
+  if( !std::isinf( limit_low ) )
     {
       for( Index i=ifirst; i<=ilast; i++ )
         { for( Index p=0; p<x.npages(); p++ )
@@ -379,7 +379,7 @@ void Tensor4Clip(
                         x(i,p,r,c) = limit_low;
     }   }   }   }   }
 
-  if( !isinf( limit_high ) )
+  if( !std::isinf( limit_high ) )
     {
       for( Index i=ifirst; i<=ilast; i++ )
         { for( Index p=0; p<x.npages(); p++ )
@@ -503,7 +503,7 @@ void xClip(
       ilast  = ji[ijq][1];      
     }
   
-  if( !isinf( limit_low ) )
+  if( !std::isinf( limit_low ) )
     {
       for( Index i=ifirst; i<=ilast; i++ )
         {
@@ -511,7 +511,7 @@ void xClip(
             x[i] = limit_low;
         }
     }
-  if( !isinf( limit_high ) )
+  if( !std::isinf( limit_high ) )
     {
       for( Index i=ifirst; i<=ilast; i++ )
         {
@@ -1298,18 +1298,7 @@ void x2artsSpectroscopy( const Verbosity& )
 // Include only if compiling with C++11.
 #ifdef OEM_SUPPORT
 
-// isnan macro breaks invlib.
-#ifdef isnan
-#undef isnan
-#define ISNAN_SET
-#endif
-
 #include "oem.h"
-
-#ifdef ISNAN_SET
-#define isnan std::isnan
-#endif
-
 #include "agenda_wrapper.h"
 
 //

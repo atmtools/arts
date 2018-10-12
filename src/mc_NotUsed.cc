@@ -713,7 +713,7 @@ void MCIPA(Workspace&            ws,
       Isum += I_i;
       for(Index j=0; j<stokes_dim; j++)
         {
-          assert(!isnan(I_i[j]));
+          assert(!std::isnan(I_i[j]));
           Isquaredsum[j] += I_i[j]*I_i[j];
         }
       y=Isum;

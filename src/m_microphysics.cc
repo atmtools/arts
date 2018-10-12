@@ -88,7 +88,7 @@ void particle_massesFromMetaDataSingleCategory(
   {
       for( Index i_se=0; i_se<scat_meta[i_ss].nelem(); i_se++ )
       {
-          if( isnan(scat_meta[i_ss][i_se].mass) ||
+          if( std::isnan(scat_meta[i_ss][i_se].mass) ||
               scat_meta[i_ss][i_se].mass <= 0 ||
               scat_meta[i_ss][i_se].mass > 1. )
           {
@@ -594,7 +594,7 @@ void pndAdjustFromScatMeta(
   // and scat_meta[scat_index]. (any way to ensure that?)
   for ( Index i=0; i<nse; i++ )
     {
-      if ( isnan(scat_meta[scat_index][i].mass) )
+      if ( std::isnan(scat_meta[scat_index][i].mass) )
         {
           ostringstream os;
           os << "No mass data available for scattering element #"

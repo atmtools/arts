@@ -1663,11 +1663,11 @@ void Compare(const Numeric&   var1,
 {
   Numeric maxdiff = var1-var2;
 
-  if( isnan(var1)  ||  isnan(var2) )
+  if( std::isnan(var1)  ||  std::isnan(var2) )
     {
-      if( isnan(var1)  &&  isnan(var2) )
+      if( std::isnan(var1)  &&  std::isnan(var2) )
         { maxdiff = 0; }
-      else if( isnan(var1) )
+      else if( std::isnan(var1) )
         {
           ostringstream os;
           os << "Nan found in " << var1name << ", but there is no "
@@ -1727,11 +1727,11 @@ void Compare(const Vector&    var1,
     {
       Numeric diff = var1[i] - var2[i];
 
-      if( isnan(var1[i])  ||  isnan(var2[i]) )
+      if( std::isnan(var1[i])  ||  std::isnan(var2[i]) )
         {
-          if( isnan(var1[i])  &&  isnan(var2[i]) )
+          if( std::isnan(var1[i])  &&  std::isnan(var2[i]) )
             { diff = 0; }
-          else if( isnan(var1[i]) )
+          else if( std::isnan(var1[i]) )
             {
               ostringstream os;
               os << "Nan found in " << var1name << ", but there is no "
@@ -1753,7 +1753,7 @@ void Compare(const Vector&    var1,
       { maxdiff = diff; }
     }
     
-  if( isnan(maxdiff)  ||  abs(maxdiff) > maxabsdiff )
+  if( std::isnan(maxdiff)  ||  abs(maxdiff) > maxabsdiff )
   {
     ostringstream os;
     os << var1name << "-" << var2name << " FAILED!\n";
@@ -1800,11 +1800,11 @@ void Compare(const Matrix&    var1,
         {
           Numeric diff = var1(r,c) - var2(r,c);
 
-          if( isnan(var1(r,c))  ||  isnan(var2(r,c)) )
+          if( std::isnan(var1(r,c))  ||  std::isnan(var2(r,c)) )
             {
-              if( isnan(var1(r,c))  &&  isnan(var2(r,c)) )
+              if( std::isnan(var1(r,c))  &&  std::isnan(var2(r,c)) )
                 { diff = 0; }
-              else if( isnan(var1(r,c)) )
+              else if( std::isnan(var1(r,c)) )
                 {
                   ostringstream os;
                   os << "Nan found in " << var1name << ", but there is no "
@@ -1875,11 +1875,11 @@ void Compare(const Tensor3&   var1,
               {
                 Numeric diff = var1(p,r,c) - var2(p,r,c);
 
-                if( isnan(var1(p,r,c))  ||  isnan(var2(p,r,c)) )
+                if( std::isnan(var1(p,r,c))  ||  std::isnan(var2(p,r,c)) )
                   {
-                    if( isnan(var1(p,r,c))  &&  isnan(var2(p,r,c)) )
+                    if( std::isnan(var1(p,r,c))  &&  std::isnan(var2(p,r,c)) )
                       { diff = 0; }
-                    else if( isnan(var1(p,r,c)) )
+                    else if( std::isnan(var1(p,r,c)) )
                       {
                         ostringstream os;
                         os << "Nan found in " << var1name << ", but there is no "
@@ -1952,11 +1952,11 @@ void Compare(const Tensor4&   var1,
               {
                 Numeric diff = var1(b,p,r,c) - var2(b,p,r,c);
 
-                if( isnan(var1(b,p,r,c))  ||  isnan(var2(b,p,r,c)) )
+                if( std::isnan(var1(b,p,r,c))  ||  std::isnan(var2(b,p,r,c)) )
                   {
-                    if( isnan(var1(b,p,r,c))  &&  isnan(var2(b,p,r,c)) )
+                    if( std::isnan(var1(b,p,r,c))  &&  std::isnan(var2(b,p,r,c)) )
                       { diff = 0; }
-                    else if( isnan(var1(b,p,r,c)) )
+                    else if( std::isnan(var1(b,p,r,c)) )
                       {
                         ostringstream os;
                         os << "Nan found in " << var1name << ", but there is no "
@@ -2032,11 +2032,11 @@ void Compare(const Tensor5&   var1,
                     {
                         Numeric diff = var1(s,b,p,r,c) - var2(s,b,p,r,c);
 
-                        if( isnan(var1(s,b,p,r,c))  ||  isnan(var2(s,b,p,r,c)) )
+                        if( std::isnan(var1(s,b,p,r,c))  ||  std::isnan(var2(s,b,p,r,c)) )
                         {
-                            if( isnan(var1(s,b,p,r,c))  &&  isnan(var2(s,b,p,r,c)) )
+                            if( std::isnan(var1(s,b,p,r,c))  &&  std::isnan(var2(s,b,p,r,c)) )
                             { diff = 0; }
-                            else if( isnan(var1(s,b,p,r,c)) )
+                            else if( std::isnan(var1(s,b,p,r,c)) )
                             {
                                 ostringstream os;
                                 os << "Nan found in " << var1name << ", but there is no "
@@ -2118,11 +2118,11 @@ void Compare(const Tensor7&   var1,
             {
               Numeric diff = var1(l,v,s,b,p,r,c) - var2(l,v,s,b,p,r,c);
 
-              if( isnan(var1(l,v,s,b,p,r,c))  ||  isnan(var2(l,v,s,b,p,r,c)) )
+              if( std::isnan(var1(l,v,s,b,p,r,c))  ||  std::isnan(var2(l,v,s,b,p,r,c)) )
                 {
-                  if( isnan(var1(l,v,s,b,p,r,c))  &&  isnan(var2(l,v,s,b,p,r,c)) )
+                  if( std::isnan(var1(l,v,s,b,p,r,c))  &&  std::isnan(var2(l,v,s,b,p,r,c)) )
                     { diff = 0; }
-                  else if( isnan(var1(l,v,s,b,p,r,c)) )
+                  else if( std::isnan(var1(l,v,s,b,p,r,c)) )
                     {
                       ostringstream os;
                       os << "Nan found in " << var1name << ", but there is no "
@@ -2317,11 +2317,11 @@ void Compare(const Sparse&    var1,
         {
           Numeric diff = var1(r,c) - var2(r,c);
 
-          if( isnan(var1(r,c))  ||  isnan(var2(r,c)) )
+          if( std::isnan(var1(r,c))  ||  std::isnan(var2(r,c)) )
             {
-              if( isnan(var1(r,c))  &&  isnan(var2(r,c)) )
+              if( std::isnan(var1(r,c))  &&  std::isnan(var2(r,c)) )
                 { diff = 0; }
-              else if( isnan(var1(r,c)) )
+              else if( std::isnan(var1(r,c)) )
                 {
                   ostringstream os;
                   os << "Nan found in " << var1name << ", but there is no "

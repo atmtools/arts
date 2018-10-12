@@ -95,9 +95,9 @@ void derive_scat_species_a_and_b(
 
   for ( Index i=0; i<nse; i++ )
     {
-      if ( isnan(x[i]) )
+      if ( std::isnan(x[i]) )
         throw runtime_error( "NaN found in selected size grid data." );
-      if ( isnan(mass[i]) )
+      if ( std::isnan(mass[i]) )
         throw runtime_error( "NaN found among particle mass data." );
 
       if( x[i] >= x_fit_start  &&  x[i] <= x_fit_end )
@@ -188,7 +188,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
 
   for ( Index i=0; i < N_se; i++ )
     {
-      if ( isnan(scat_meta[scat_species][i].mass) )
+      if ( std::isnan(scat_meta[scat_species][i].mass) )
         {
           ostringstream os;
           os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -206,7 +206,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
   for ( Index i=0; i< N_se; i++ )
   {
     mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
-    if ( isnan(scat_meta[scat_species][i].diameter_volume_equ) )
+    if ( std::isnan(scat_meta[scat_species][i].diameter_volume_equ) )
         {
           ostringstream os;
           os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -298,7 +298,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
               }
 
             // MH97 requires mass density. If not set, abort calculation.
-            else if ( isnan(IWC_field ( p, lat, lon )) )
+            else if ( std::isnan(IWC_field ( p, lat, lon )) )
               {
                 ostringstream os;
                 os << "Size distribution " << psdname
@@ -381,7 +381,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
 
   for ( Index i=0; i < N_se; i++ )
     {
-      if ( isnan(scat_meta[scat_species][i].diameter_max) )
+      if ( std::isnan(scat_meta[scat_species][i].diameter_max) )
         {
           ostringstream os;
           os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -400,7 +400,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
   {
       diameter_max[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
 
-      if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
+      if ( std::isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
           ostringstream os;
           os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -427,7 +427,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
           for ( Index lon=limits[4]; lon<limits[5]; lon++ )
           {
             // H11 requires mass density. If not set, abort calculation.
-            if ( isnan(IWC_field ( p, lat, lon )) )
+            if ( std::isnan(IWC_field ( p, lat, lon )) )
               {
                 ostringstream os;
                 os << "Size distribution " << psdname << " requires knowledge of mass "
@@ -545,7 +545,7 @@ void pnd_fieldH13 (Tensor4View pnd_field,
 
   for ( Index i=0; i < N_se; i++ )
     {
-      if ( isnan(scat_meta[scat_species][i].diameter_max) )
+      if ( std::isnan(scat_meta[scat_species][i].diameter_max) )
         {
           ostringstream os;
           os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -564,7 +564,7 @@ void pnd_fieldH13 (Tensor4View pnd_field,
   {
       diameter_max[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
 
-      if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
+      if ( std::isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
           ostringstream os;
           os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -591,7 +591,7 @@ void pnd_fieldH13 (Tensor4View pnd_field,
           for ( Index lon=limits[4]; lon<limits[5]; lon++ )
           {
             // H13 requires mass density. If not set, abort calculation.
-            if ( isnan(IWC_field ( p, lat, lon )) )
+            if ( std::isnan(IWC_field ( p, lat, lon )) )
               {
                 ostringstream os;
                 os << "Size distribution " << psdname << " requires knowledge of mass "
@@ -711,7 +711,7 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
 
   for ( Index i=0; i < N_se; i++ )
     {
-      if ( isnan(scat_meta[scat_species][i].diameter_max) )
+      if ( std::isnan(scat_meta[scat_species][i].diameter_max) )
         {
           ostringstream os;
           os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -730,7 +730,7 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
   {
       diameter_max[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
 
-      if ( isnan(scat_meta[scat_species][intarr[i]].diameter_area_equ_aerodynamical) )
+      if ( std::isnan(scat_meta[scat_species][intarr[i]].diameter_area_equ_aerodynamical) )
         {
           ostringstream os;
           os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -742,7 +742,7 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
         }
       diameter_area_equivalent[i] = scat_meta[scat_species][intarr[i]].diameter_area_equ_aerodynamical; // [m]
 
-      if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
+      if ( std::isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
           ostringstream os;
           os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -815,7 +815,7 @@ void pnd_fieldH13Shape (Tensor4View pnd_field,
           for ( Index lon=limits[4]; lon<limits[5]; lon++ )
           {
             // H13 requires mass density. If not set, abort calculation.
-            if ( isnan(IWC_field ( p, lat, lon )) )
+            if ( std::isnan(IWC_field ( p, lat, lon )) )
               {
                 ostringstream os;
                 os << "Size distribution " << psdname << " requires knowledge of mass "
@@ -1001,7 +1001,7 @@ void pnd_fieldF07 (Tensor4View pnd_field,
 
   for ( Index i=0; i < N_se; i++ )
     {
-      if ( isnan(scat_meta[scat_species][i].diameter_max) )
+      if ( std::isnan(scat_meta[scat_species][i].diameter_max) )
         {
             ostringstream os;
             os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -1020,7 +1020,7 @@ void pnd_fieldF07 (Tensor4View pnd_field,
     {
       diameter_max[i] = scat_meta[scat_species][intarr[i]].diameter_max; // [m]
         
-      if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
+      if ( std::isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
             ostringstream os;
             os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -1127,7 +1127,7 @@ void pnd_fieldF07 (Tensor4View pnd_field,
             }
 
             // F07 requires mass density. If not set, abort calculation.
-            else if ( isnan(SWC_field ( p, lat, lon )) )
+            else if ( std::isnan(SWC_field ( p, lat, lon )) )
             {
               ostringstream os;
               os << "Size distribution " << psdname << " requires knowledge"
@@ -1279,7 +1279,7 @@ void pnd_fieldSB06 (Tensor4View pnd_field,
 
     for ( Index i=0; i < N_se; i++ )
     {
-        if ( isnan(scat_meta[scat_species][i].mass) )
+        if ( std::isnan(scat_meta[scat_species][i].mass) )
         {
             ostringstream os;
             os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -1313,7 +1313,7 @@ void pnd_fieldSB06 (Tensor4View pnd_field,
                 for ( Index lon=limits[4]; lon<limits[5]; lon++ )
                 {
                     // SB06 requires mass density. If not set, abort calculation.
-                    if ( isnan(WC_field ( p, lat, lon )) || isnan(N_field ( p, lat, lon )))
+                    if ( std::isnan(WC_field ( p, lat, lon )) || std::isnan(N_field ( p, lat, lon )))
                     {
                         if (logic_M)
                         {
@@ -1540,7 +1540,7 @@ void pnd_fieldMY05 (Tensor4View pnd_field,
     
     for ( Index i=0; i < N_se; i++ )
     {
-        if ( isnan(scat_meta[scat_species][i].mass) )
+        if ( std::isnan(scat_meta[scat_species][i].mass) )
         {
             ostringstream os;
             os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -1557,7 +1557,7 @@ void pnd_fieldMY05 (Tensor4View pnd_field,
     // extract scattering meta data
     for ( Index i=0; i< N_se; i++ )
     {
-        if ( isnan(scat_meta[scat_species][intarr[i]].diameter_max) )
+        if ( std::isnan(scat_meta[scat_species][intarr[i]].diameter_max) )
         {
             ostringstream os;
             os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -1589,7 +1589,7 @@ void pnd_fieldMY05 (Tensor4View pnd_field,
                 for ( Index lon=limits[4]; lon<limits[5]; lon++ )
                 {
                     // MY05 requires mass density. If not set, abort calculation.
-                    if ( isnan(WC_field ( p, lat, lon )) || isnan(N_field ( p, lat, lon )))
+                    if ( std::isnan(WC_field ( p, lat, lon )) || std::isnan(N_field ( p, lat, lon )))
                     {
                         if (logic_M)
                         {
@@ -1744,7 +1744,7 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
     
     for ( Index i=0; i < N_se; i++ )
     {
-        if ( isnan(scat_meta[scat_species][i].diameter_volume_equ) )
+        if ( std::isnan(scat_meta[scat_species][i].diameter_volume_equ) )
         {
             ostringstream os;
             os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -1763,7 +1763,7 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
     {
         diameter_volume_equ[i] = scat_meta[scat_species][intarr[i]].diameter_volume_equ; // [m]
         
-        if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
+        if ( std::isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
             ostringstream os;
             os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -1807,7 +1807,7 @@ void pnd_fieldMGD_LWC (Tensor4View pnd_field,
                 for ( Index lon=limits[4]; lon<limits[5]; lon++ )
                 {
                     // MGD_LWC requires mass density. If not set, abort calculation.
-                    if ( isnan(LWC_field ( p, lat, lon )) )
+                    if ( std::isnan(LWC_field ( p, lat, lon )) )
                     {
                         ostringstream os;
                         os << "Size distribution " << psdname << " requires knowledge of mass "
@@ -1932,7 +1932,7 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
     
     for ( Index i=0; i < N_se; i++ )
     {
-        if ( isnan(scat_meta[scat_species][i].diameter_max) )
+        if ( std::isnan(scat_meta[scat_species][i].diameter_max) )
         {
             ostringstream os;
             os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -1951,7 +1951,7 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
     {
         diameter_volume_equ[i] = scat_meta[scat_species][intarr[i]].diameter_volume_equ; // [m]
         
-        if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
+        if ( std::isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
             ostringstream os;
             os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -1996,7 +1996,7 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
                 for ( Index lon=limits[4]; lon<limits[5]; lon++ )
                 {
                     // MGD requires mass density. If not set, abort calculation.
-                    if ( isnan(IWC_field ( p, lat, lon )) )
+                    if ( std::isnan(IWC_field ( p, lat, lon )) )
                     {
                         ostringstream os;
                         os << "Size distribution " << psdname << " requires knowledge of mass "
@@ -2115,7 +2115,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
 
   for ( Index i=0; i < N_se; i++ )
     {
-      if ( isnan(scat_meta[scat_species][i].mass) )
+      if ( std::isnan(scat_meta[scat_species][i].mass) )
         {
           ostringstream os;
           os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -2135,7 +2135,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
       mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
       diameter_melted_equivalent[i] = pow(6.*mass[i]/PI/DENSITY_OF_WATER,1./3.); // [m]
 
-      if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
+      if ( std::isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
           ostringstream os;
           os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -2261,7 +2261,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
               }
 
               // Make sure lambda was initialized in the while loop
-              assert(!isnan(lambda));
+              assert(!std::isnan(lambda));
 
               // calculate error of pnd sum and real XWC
               PWC = rho_mean*PI*N0 / pow(lambda,4.);
@@ -2278,7 +2278,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
 
             // MP48 requires mass flux (actually, it's precip rate. but we can
             // convert these). If not set, abort calculation.
-            else if ( isnan(PR_field ( p, lat, lon )) )
+            else if ( std::isnan(PR_field ( p, lat, lon )) )
               {
                 ostringstream os;
                 os << "Size distribution " << psdname << " requires knowledge of mass "
@@ -2366,8 +2366,8 @@ void pnd_fieldW16 (Tensor4View pnd_field,
 
   for ( Index i=0; i < N_se; i++ )
     {
-      if ( isnan(scat_meta[scat_species][i].mass) ||
-           isnan(scat_meta[scat_species][i].diameter_volume_equ) )
+      if ( std::isnan(scat_meta[scat_species][i].mass) ||
+           std::isnan(scat_meta[scat_species][i].diameter_volume_equ) )
         {
           ostringstream os;
           os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -2385,7 +2385,7 @@ void pnd_fieldW16 (Tensor4View pnd_field,
   for ( Index i=0; i< N_se; i++ )
   {
       mass[i] = scat_meta[scat_species][intarr[i]].mass; // [kg]
-      if ( isnan(scat_meta[scat_species][intarr[i]].diameter_volume_equ) )
+      if ( std::isnan(scat_meta[scat_species][intarr[i]].diameter_volume_equ) )
         {
           ostringstream os;
           os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -2454,7 +2454,7 @@ void pnd_fieldW16 (Tensor4View pnd_field,
               }
 
             // W16 requires mass density. If not set, abort calculation.
-            else if ( isnan(RWC_field ( p, lat, lon )) )
+            else if ( std::isnan(RWC_field ( p, lat, lon )) )
               {
                 ostringstream os;
                 os << "Size distribution " << psdname << " requires knowledge of mass "
@@ -2536,7 +2536,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
 
   for ( Index i=0; i < N_se; i++ )
     {
-      if ( isnan(scat_meta[scat_species][i].diameter_volume_equ) )
+      if ( std::isnan(scat_meta[scat_species][i].diameter_volume_equ) )
         {
           ostringstream os;
           os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -2556,7 +2556,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
       diameter_volume_equivalent[i]= scat_meta[scat_species][intarr[i]].diameter_volume_equ; // [m]
       radius[i] = 0.5 * diameter_volume_equivalent[i]; // [m]
 
-      if ( isnan(scat_meta[scat_species][intarr[i]].mass) )
+      if ( std::isnan(scat_meta[scat_species][intarr[i]].mass) )
         {
           ostringstream os;
           os << "Use of size distribution " << psdname << " (as requested for\n"
@@ -2583,7 +2583,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
           for ( Index lon=limits[4]; lon<limits[5]; lon++ )
           {
             // H98 requires mass density. If not set, abort calculation.
-            if ( isnan(LWC_field ( p, lat, lon )) )
+            if ( std::isnan(LWC_field ( p, lat, lon )) )
               {
                 ostringstream os;
                 os << "Size distribution " << psdname << " requires knowledge of mass "
@@ -2801,8 +2801,8 @@ void psd_SB06 (Vector& psd,
             //Distribution function
             psd[iD]=mod_gamma_dist(mass[iD], N0,Lambda, mu, gamma);
             
-            if (isnan(psd[iD])) psd[iD] = 0.0;
-            if (isinf(psd[iD])) psd[iD] = 0.0;
+            if (std::isnan(psd[iD])) psd[iD] = 0.0;
+            if (std::isinf(psd[iD])) psd[iD] = 0.0;
             
             //Calculate derivatives analytically
             mMu=pow(mass[iD],mu);
@@ -2965,8 +2965,8 @@ void psd_MY05 (Vector& psd,
             
             psd[iD]=mod_gamma_dist(diameter_max[iD], N0,Lambda, mu, gamma);
             
-            if (isnan(psd[iD])) psd[iD] = 0.0;
-            if (isinf(psd[iD])) psd[iD] = 0.0;
+            if (std::isnan(psd[iD])) psd[iD] = 0.0;
+            if (std::isinf(psd[iD])) psd[iD] = 0.0;
             
             //Calculate derivatives analytically
             DMu=pow(diameter_max[iD],mu);
@@ -3038,7 +3038,7 @@ Numeric IWCtopnd_H11 ( const Numeric diameter_max,
 
   dNdD = pow( dmax, mu ) * exp ( -la * dmax );
 
-  if (isnan(dNdD)) dNdD = 0.0;
+  if (std::isnan(dNdD)) dNdD = 0.0;
   return dNdD;
 }
 
@@ -3091,7 +3091,7 @@ Numeric IWCtopnd_H13 ( const Numeric diameter_max,
 
   dNdD = pow( dmax, mu ) * exp ( -la * dmax );
 
-  if (isnan(dNdD)) dNdD = 0.0;
+  if (std::isnan(dNdD)) dNdD = 0.0;
   return dNdD;
 }
 
@@ -3145,7 +3145,7 @@ Numeric IWCtopnd_H13Shape ( const Numeric diameter_max,
 
   dNdD = pow( dmax, mu ) * exp ( -la * dmax );
 
-  if (isnan(dNdD)) dNdD = 0.0;
+  if (std::isnan(dNdD)) dNdD = 0.0;
   return dNdD;
 }
 
@@ -3185,7 +3185,7 @@ Numeric area_ratioH13 ( const Numeric diameter_max,
 
   Ar = alpha*pow(dmax,beta);
 
-  if (isnan(Ar)) Ar = 0.0;
+  if (std::isnan(Ar)) Ar = 0.0;
   return Ar;
 }
 
@@ -3235,7 +3235,7 @@ Numeric LWCtopnd (const Numeric lwc, //[kg/m^3]
 	Numeric dNdr=A*(pow(radius*1e6,alpha)*exp(-B*pow(radius*1e6,gam)))*1e6; // [#/m3/m]
 */
 
-  if (isnan(dNdr)) dNdr = 0.0;
+  if (std::isnan(dNdr)) dNdr = 0.0;
 	return dNdr;
 }
 
@@ -3275,7 +3275,7 @@ Numeric LWCtopnd_MGD_LWC ( const Numeric d, const Numeric rho, const Numeric lwc
     //Distribution function
     dN=N0*pow(d ,mu)*exp(-lambda*pow(d,gamma));
     
-    if (isnan(dN)) dN = 0.0;
+    if (std::isnan(dN)) dN = 0.0;
     return dN;
 }
 
@@ -3313,7 +3313,7 @@ Numeric IWCtopnd_MGD_IWC ( const Numeric d, const Numeric rho, const Numeric iwc
     //Distribution function
     dN=N0*pow(d ,mu)*exp(-lambda*pow(d,gamma));
     
-    if (isnan(dN)) dN = 0.0;
+    if (std::isnan(dN)) dN = 0.0;
     return dN;
 }
 

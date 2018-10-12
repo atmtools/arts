@@ -805,7 +805,7 @@ void choose_abs_nls_pert(Vector&         abs_nls_pert,
           if ( delta_min < mindev ) mindev = delta_min;
           // do not update maxdev, when delta_max is infinity (this results from
           // refprof being 0)
-          if ( !isinf(delta_max) && (delta_max > maxdev) ) maxdev = delta_max;
+          if ( !std::isinf(delta_max) && (delta_max > maxdev) ) maxdev = delta_max;
         }
     }
 
@@ -826,7 +826,7 @@ void choose_abs_nls_pert(Vector&         abs_nls_pert,
       out3 << "  Adjusted mindev : " << mindev << "\n";
     }
 
-  if ( isinf(maxdev) ) 
+  if ( std::isinf(maxdev) ) 
     {
       ostringstream os;
       os << "Perturbation upper limit is infinity (likely due to the reference\n"

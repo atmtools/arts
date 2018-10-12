@@ -1453,7 +1453,7 @@ void doit_i_field_ngAcceleration(Tensor6& doit_i_field_mono,
         NGA = (C1*B2 - C2*A2B1) / (A1*B2 - A2B1*A2B1);
         NGB = (C2*A1 - C1*A2B1) / (A1*B2 - A2B1*A2B1);
         
-        if(!isnan(NGB) && !isnan(NGA))
+        if(!std::isnan(NGB) && !std::isnan(NGA))
         {
             // Calculating the accelerated field
             for ( Index p_index = 0; p_index < N_p; ++p_index)
@@ -2853,7 +2853,7 @@ doit_scat_fieldNormalize(Workspace& ws,
 
         // If no scattering is present, the correction factor can become
         // inf or nan. We just don't apply it for those cases.
-        if (!isnan(corr_factor) && !isinf(corr_factor))
+        if (!std::isnan(corr_factor) && !std::isinf(corr_factor))
         {
             if (abs(corr_factor) > abs(corr_max))
             {

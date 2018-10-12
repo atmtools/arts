@@ -61,7 +61,7 @@ void cart2poslos(
     {
       aa = RAD2DEG * acos( r * dlat / sin( DEG2RAD * za ) );
 
-      if( isnan( aa ) )
+      if( std::isnan( aa ) )
         {
           if( dlat >= 0 )
             { aa = 0; }

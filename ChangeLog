@@ -1,5 +1,35 @@
 2018-10-12  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-1139
+
+	* NOTE:
+
+	Please only use 'std::isnan()' and 'std::isinf()' instead of
+	'isnan()' and 'isinf()' in your code!!!
+
+	* 3rdparty/Eigen:
+
+	Update to Eigen from 3.2.7 to 3.3.5. This version is C++17 compatible.
+
+	* src/matpack.h:
+
+	Remove defines for isnan and isinf. Only clean solution is to use
+	std::isnan and std::isinf explicitly. Otherwise there always remains a
+	possibility for conflicts between the legacy functions and the "new"
+	ones from the std namespace.
+
+	* src/absorption.cc, src/absorption.h, src/check_input.cc, src/cia.cc,
+	src/cloudbox.cc, src/doit.cc, src/geodetic.cc, src/m_abs_lookup.cc,
+	src/m_basic_types.cc, src/m_doit.cc, src/m_microphysics.cc,
+	src/m_montecarlo.cc, src/m_oem.cc, src/m_optproperties.cc,
+	src/m_ppath.cc, src/m_psd.cc, src/m_rte.cc, src/matpack.h,
+	src/mc_NotUsed.cc, src/microphysics.cc, src/optproperties.cc,
+	src/ppath_NotUsed.cc, src/psd.cc, src/xml_io_array_types.cc:
+	
+	Replace isnan and isinf by std::isnan and std::isinf.
+
+2018-10-12  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-1138
 
 	* src/CMakeLists.txt:

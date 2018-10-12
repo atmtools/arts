@@ -410,7 +410,7 @@ void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
             // For "real" species (not representing continau) the isotopologue
             // ratio must not be NAN or below zero.
             if (!this_sd.Isotopologue()[iso].isContinuum()) {
-                if (isnan(isoratios.getParam(sp, iso)[0].data[0]) ||
+                if (std::isnan(isoratios.getParam(sp, iso)[0].data[0]) ||
                     isoratios.getParam(sp, iso)[0].data[0] < 0.) {
                     
                     ostringstream os;

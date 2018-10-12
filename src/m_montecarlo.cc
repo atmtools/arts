@@ -506,7 +506,7 @@ void MCGeneral(Workspace&            ws,
 
             for( Index j=0; j<stokes_dim; j++ )
               {
-                assert( !isnan(I_i[j]) );
+                assert( !std::isnan(I_i[j]) );
                 Isquaredsum[j] += I_i[j]*I_i[j];
               }
             y  = Isum;
@@ -972,9 +972,9 @@ void MCRadar(// Workspace reference:
                   mult( Ihold, P, Ipath );
                   mult( I_i, trans_mat, Ihold );
                   Ihold = Ipath;
-                  if( Ihold[0] < 1e-40 || isnan(Ihold[0]) || isnan(Ihold[1]) || 
-                      ( stokes_dim > 2  &&  isnan(Ihold[2]) )  ||
-                      ( stokes_dim > 3  &&  isnan(Ihold[3]) ) )
+                  if( Ihold[0] < 1e-40 || std::isnan(Ihold[0]) || std::isnan(Ihold[1]) || 
+                      ( stokes_dim > 2  &&  std::isnan(Ihold[2]) )  ||
+                      ( stokes_dim > 3  &&  std::isnan(Ihold[3]) ) )
                      {
                         integrity = false;
                      }
@@ -1002,7 +1002,7 @@ void MCRadar(// Workspace reference:
                       for( Index istokes=0; istokes<stokes_dim; istokes++ )
                         {
                           Index ibiny = ibin * stokes_dim + istokes;
-                          assert( !isnan(I_i_rot[istokes]) );
+                          assert( !std::isnan(I_i_rot[istokes]) );
                           Isum[ibiny] += antenna_wgt * I_i_rot[istokes];
                           Isquaredsum[ibiny] += antenna_wgt * antenna_wgt * 
                                                 I_i_rot[istokes] * 

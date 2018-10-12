@@ -2190,7 +2190,7 @@ void pha_mat_labCalc(//Output:
 {
   const Index stokes_dim = pha_mat_lab.ncols();
 
-  if( isnan(F11) )
+  if( std::isnan(F11) )
     {
       throw runtime_error(
         "NaN value(s) detected in *pha_mat_labCalc* (0,0). Could the "
@@ -2294,7 +2294,7 @@ void pha_mat_labCalc(//Output:
             // Arccos is only defined in the range from -1 ... 1
             // Numerical problems can appear for values close to 1 or -1
             // this (also) catches the case when inc and sca are on one meridian
-            if ( isnan(sigma1) || isnan(sigma2) )
+            if ( std::isnan(sigma1) || std::isnan(sigma2) )
               {
                 if ( abs(s1 - 1) < ANGTOL_RAD)
                   sigma1 = 0;
@@ -2317,11 +2317,11 @@ void pha_mat_labCalc(//Output:
         pha_mat_lab(1,0) = C2 * F12;
         pha_mat_lab(1,1) = C1 * C2 * F22 - S1 * S2 * F33;
 
-        //assert(!isnan(pha_mat_lab(0,1)));        
-        //assert(!isnan(pha_mat_lab(1,0)));
-        //assert(!isnan(pha_mat_lab(1,1)));
-        if( isnan(pha_mat_lab(0,1))  ||  isnan(pha_mat_lab(1,0)) ||
-            isnan(pha_mat_lab(1,1)) )
+        //assert(!std::isnan(pha_mat_lab(0,1)));        
+        //assert(!std::isnan(pha_mat_lab(1,0)));
+        //assert(!std::isnan(pha_mat_lab(1,1)));
+        if( std::isnan(pha_mat_lab(0,1))  ||  std::isnan(pha_mat_lab(1,0)) ||
+            std::isnan(pha_mat_lab(1,1)) )
           {
             throw runtime_error(
             "NaN value(s) detected in *pha_mat_labCalc* (0/1,1). Could the "

@@ -416,7 +416,7 @@ void CIARecord::ReadFromCIA(const String& filename, const Verbosity& verbosity)
         istr.clear();
         istr >> set_wave_min >> set_wave_max >> set_npoints >> set_temp;
 
-        if (!istr || isnan(set_temp) || isnan(set_wave_min) || isnan(set_wave_max))
+        if (!istr || std::isnan(set_temp) || std::isnan(set_wave_min) || std::isnan(set_wave_max))
         {
             ostringstream os;
             os << "Error in line " << nline
@@ -469,7 +469,7 @@ void CIARecord::ReadFromCIA(const String& filename, const Verbosity& verbosity)
             istr.clear();
             istr >> w >> c;
 
-            if (isnan(w) || isnan(c) || is.bad() || istr.bad())
+            if (std::isnan(w) || std::isnan(c) || is.bad() || istr.bad())
             {
                 ostringstream os;
                 os << "Error in line " << nline

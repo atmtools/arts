@@ -164,14 +164,14 @@ void cart2poslos(
       za = RAD2DEG * asin( ppc / r );
       if( za0 > 0 )
         {
-          if( isnan( za ) )
+          if( std::isnan( za ) )
             { za = 90; }
           else if( dr < 0 )
             { za = 180.0 - za; }
         }
       else
         {
-          if( isnan( za ) )
+          if( std::isnan( za ) )
             { za = -90; }
           else if( dr < 0 )
             { za = -180.0 + za; }
@@ -529,7 +529,7 @@ void cart2poslos(
       za = RAD2DEG * asin( ppc / r );
 
       // Correct and check za
-      if( isnan( za ) )
+      if( std::isnan( za ) )
         { za = 90; }
       // If za0 > 90, then correct za could be 180-za. Resolved by checking if
       // the tangent point is passed or not
@@ -569,7 +569,7 @@ void cart2poslos(
 
           aa = RAD2DEG * acos( r * dlat / sin( DEG2RAD * za ) );
 
-          if( isnan( aa ) )
+          if( std::isnan( aa ) )
             {
               if( dlat >= 0 )
                 { aa = 0; }
@@ -1019,7 +1019,7 @@ void los2xyz(
 
   za = RAD2DEG * acos( dr );
   aa = RAD2DEG * acos( r1 * dlat / sin( DEG2RAD * za ) );
-  if( isnan( aa ) )
+  if( std::isnan( aa ) )
     {
       if( dlat >= 0 )
         { aa = 0; }

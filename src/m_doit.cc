@@ -579,7 +579,7 @@ void doit_i_field_monoIterate(Workspace& ws,
                 for (Index p = 0; p < doit_i_field_mono.npages(); p++)
                     for (Index r = 0; r < doit_i_field_mono.nrows(); r++)
                         for (Index c = 0; c < doit_i_field_mono.ncols(); c++)
-                            if (isnan(doit_i_field_mono(v, s, b, p, r, c)))
+                            if (std::isnan(doit_i_field_mono(v, s, b, p, r, c)))
                                 throw std::runtime_error(
                                                          "*doit_i_field_mono* contains at least one NaN value.\n"
                                                          "This indicates an improper initialization of *doit_i_field*.");

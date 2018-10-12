@@ -1222,7 +1222,7 @@ void scat_dataCheck( //Input:
               for (Index t = 0; t < T_DATAGRID.nelem(); t++)
               {
                 for (Index st=0; st<ABS_VEC_DATA.ncols(); st++)
-                  if( isnan(ABS_VEC_DATA(f,t,zai,aai,st)) )
+                  if( std::isnan(ABS_VEC_DATA(f,t,zai,aai,st)) )
                   {
                     ostringstream os;
                     os << "Scatt. species #" << i_ss << " element #" << i_se
@@ -1232,7 +1232,7 @@ void scat_dataCheck( //Input:
                     throw runtime_error( os.str() );
                   }
                 for (Index st=0; st<EXT_MAT_DATA.ncols(); st++)
-                  if( isnan(EXT_MAT_DATA(f,t,zai,aai,st)) )
+                  if( std::isnan(EXT_MAT_DATA(f,t,zai,aai,st)) )
                   {
                     ostringstream os;
                     os << "Scatt. species #" << i_ss << " element #" << i_se
@@ -1248,7 +1248,7 @@ void scat_dataCheck( //Input:
                 for (Index zas=0; zas<PHA_MAT_DATA.nshelves(); zas++)
                   for (Index aas=0; aas<PHA_MAT_DATA.nbooks(); aas++)
                     for (Index st=0; st<PHA_MAT_DATA.ncols(); st++)
-                      if( isnan(PHA_MAT_DATA(f,t,zas,aas,zai,aai,st)) )
+                      if( std::isnan(PHA_MAT_DATA(f,t,zas,aas,zai,aai,st)) )
                       {
                         ostringstream os;
                         os << "Scatt. species #" << i_ss << " element #" << i_se

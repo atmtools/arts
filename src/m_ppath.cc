@@ -438,8 +438,8 @@ void ppathFromRtePos2(
       // Update rte_los. Use bisection of za_new is basically
       // identical to old angle, or is outside lower or upper
       // limit. Otherwise use reult of linear reg.
-      if( isinf(za_new)                                 ||  
-          isnan(za_new)                                 ||  
+      if( std::isinf(za_new)                                 ||  
+          std::isnan(za_new)                                 ||  
           abs(za_new-rte_los[0]) < 0.99*za_accuracy ||
           za_new <= za_low_limit                        || 
           za_new >= za_upp_limit                         )

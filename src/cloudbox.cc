@@ -991,7 +991,7 @@ void chk_scat_species_field(bool& empty_flag,
     for (Index k=0; k<scat_species_field.nrows(); k++) {
 	    for (Index l=0; l<scat_species_field.ncols(); l++) {
 	      if ( scat_species_field(j,k,l) != 0.0 &&
-            !isnan(scat_species_field(j,k,l)) ) empty_flag = true;
+            !std::isnan(scat_species_field(j,k,l)) ) empty_flag = true;
 //	      if ( scat_species_field(j,k,l) != 0.0 ) empty_flag = true;
 	}
       }
@@ -1040,7 +1040,7 @@ void find_cloudlimits(Index&          lower,
 
         // if any of the scat species fields contains a non-zero, non-NaN
         // value at this atm level we found a potential lower limit value
-        if ( ss_prof[i] != 0.0 && !isnan(ss_prof[i]) )
+        if ( ss_prof[i] != 0.0 && !std::isnan(ss_prof[i]) )
         {
           //cout << "found particles\n";
 
@@ -1065,7 +1065,7 @@ void find_cloudlimits(Index&          lower,
 
       // if any of the scat species fields contains a non-zero, non-NaN
       // value at this atm level we found a potential lower limit value
-      if ( ss_prof[j] != 0.0 && !isnan(ss_prof[j]) )
+      if ( ss_prof[j] != 0.0 && !std::isnan(ss_prof[j]) )
       {
         //cout << "found particles\n";
 

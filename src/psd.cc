@@ -219,7 +219,7 @@ void psd_cloudice_MH97( Vector& psd,
       // FIXME: Do we still need this check here? Non-NaN of each mode should
       // now be ensure by the checks/if-loops for each of the modes separately.
       // I, JM, think (and hope).
-      //if ( !isnan(dNdD1[iD]) && !isnan(dNdD2[iD]) )
+      //if ( !std::isnan(dNdD1[iD]) && !std::isnan(dNdD2[iD]) )
         psd[iD] = ( dNdD1[iD]+dNdD2[iD] ) *1e6; // m^-3 m^-1
     }
 }
@@ -436,7 +436,7 @@ void psd_snow_F07( Vector& psd,
       // distribution function
       //dN = phi23*M2Mn;
 
-      //if ( !isnan(psd[dN]) )
+      //if ( !std::isnan(psd[dN]) )
       //  psd[iD] = dN;
 
       // set psd directly. Non-NaN should be (and is, hopefully) ensured by

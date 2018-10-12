@@ -1529,7 +1529,7 @@ void chk_atm_field(
     { for( Index ir=0; ir<nrows; ir++ )
         { for( Index ic=0; ic<ncols; ic++ )
             {
-              if( isnan( x(ip,ir,ic) ) )
+              if( std::isnan( x(ip,ir,ic) ) )
                 {
                   ostringstream os;
                   os << "The variable *" << x_name <<  "* contains one or "
@@ -1694,7 +1694,7 @@ void chk_atm_field(
             { for( Index ir=0; ir<nrows; ir++ )
                 { for( Index ic=0; ic<ncols; ic++ )
                     {
-                      if( isnan( x(ib,ip,ir,ic) ) )
+                      if( std::isnan( x(ib,ip,ir,ic) ) )
                         {
                           ostringstream os;
                           os << "The variable *" << x_name <<  "* contains one or "

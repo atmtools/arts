@@ -293,10 +293,10 @@ void psdMgd(
                          "be 0, 1, 2, 3 or 4." );
   
   // Check fixed parameters
-  const Index n0_fixed = (Index) !( isnan(n0) );
-  const Index mu_fixed = (Index) !( isnan(mu) );
-  const Index la_fixed = (Index) !( isnan(la) );
-  const Index ga_fixed = (Index) !( isnan(ga) );
+  const Index n0_fixed = (Index) !( std::isnan(n0) );
+  const Index mu_fixed = (Index) !( std::isnan(mu) );
+  const Index la_fixed = (Index) !( std::isnan(la) );
+  const Index ga_fixed = (Index) !( std::isnan(ga) );
   //
   if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
     throw runtime_error( "This PSD has four free parameters. This means that "
@@ -432,10 +432,10 @@ void psdMgdMass(
     throw runtime_error( "Sorry, mu and la are not yet allowed to be the "
                          "dependent parameter." );    
   //
-  const Index n0_fixed = (Index) !( n0_depend  ||  isnan(n0) );
-  const Index mu_fixed = (Index) !( mu_depend  ||  isnan(mu) );
-  const Index la_fixed = (Index) !( la_depend  ||  isnan(la) );
-  const Index ga_fixed = (Index) !( ga_depend  ||  isnan(ga) );
+  const Index n0_fixed = (Index) !( n0_depend  ||  std::isnan(n0) );
+  const Index mu_fixed = (Index) !( mu_depend  ||  std::isnan(mu) );
+  const Index la_fixed = (Index) !( la_depend  ||  std::isnan(la) );
+  const Index ga_fixed = (Index) !( ga_depend  ||  std::isnan(ga) );
   //
   if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
     throw runtime_error( "This PSD has four free parameters. This means that "
@@ -636,10 +636,10 @@ void psd_mgd_mass_and_something(
     throw runtime_error( "Sorry, mu and la are not yet allowed to be a "
                          "dependent parameter." );    
   //
-  const Index n0_fixed = (Index) !( n0_depend  ||  isnan(n0) );
-  const Index mu_fixed = (Index) !( mu_depend  ||  isnan(mu) );
-  const Index la_fixed = (Index) !( la_depend  ||  isnan(la) );
-  const Index ga_fixed = (Index) !( ga_depend  ||  isnan(ga) );
+  const Index n0_fixed = (Index) !( n0_depend  ||  std::isnan(n0) );
+  const Index mu_fixed = (Index) !( mu_depend  ||  std::isnan(mu) );
+  const Index la_fixed = (Index) !( la_depend  ||  std::isnan(la) );
+  const Index ga_fixed = (Index) !( ga_depend  ||  std::isnan(ga) );
   //
   if( nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4 )
     throw runtime_error( "This PSD has four free parameters. This means that "
@@ -1173,9 +1173,9 @@ void psdD14(
     const bool dm_depend = (Index) dm == -999;
 
     // Check fixed parameters
-    const bool iwc_fixed = !(isnan(iwc));
-    const bool n0_fixed  = !(isnan(n0)) && !n0_depend;
-    const bool dm_fixed  = !(isnan(dm)) && !dm_depend;
+    const bool iwc_fixed = !(std::isnan(iwc));
+    const bool n0_fixed  = !(std::isnan(n0)) && !n0_depend;
+    const bool dm_fixed  = !(std::isnan(dm)) && !dm_depend;
 
     if (!((nin + iwc_fixed + n0_fixed + dm_fixed == 2)
           || (nin + iwc_fixed + n0_fixed + dm_fixed == 1))) {
