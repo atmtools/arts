@@ -76,10 +76,16 @@ set_source_files_properties (continua.cc PROPERTIES
                              COMPILE_FLAGS "-fno-strict-aliasing")
 set_source_files_properties (binio.cc PROPERTIES
                              COMPILE_FLAGS "-fno-strict-aliasing")
+
+# Reduce compile time for very large initialization functions
 set_source_files_properties (methods.cc PROPERTIES COMPILE_FLAGS "-O0")
 set_source_files_properties (partition_function_data.cc PROPERTIES
                              COMPILE_FLAGS "-O0")
 set_source_files_properties (species_data.cc PROPERTIES COMPILE_FLAGS "-O0")
+
+# Silence invlib warning spam
+set_source_files_properties (m_oem.cc PROPERTIES
+                             COMPILE_FLAGS "-Wno-conversion")
 
 ########### next target ###############
 

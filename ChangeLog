@@ -1,3 +1,25 @@
+2018-10-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1138
+
+	* src/CMakeLists.txt:
+
+	Silence invlib warning spam by using -Wno-conversion for m_oem.cc
+	compilation.
+
+	* src/complex.cc:
+
+	Remove unused variables RAD2DEG and joker.
+
+	* src/matpackII.cc (Sparse::diagonal):
+
+	Remove unused variable eigen_diag.
+
+	* src/m_rt4.cc:
+
+	Move definition of pfct_threshold inside ifdef ENABLE_RT4 to avoid
+	warning when compiling without Fortran modules.
+
 2018-10-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1137

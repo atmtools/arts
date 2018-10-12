@@ -76,11 +76,6 @@ std::complex<double> operator* (const std::complex<double>& c, const float& f)
 }
 
 
-// Define the global joker object:
-extern const Joker joker;
-
-static const Numeric RAD2DEG = 57.295779513082323;
-
 // Functions for ConstComplexVectorView:
 // ------------------------------
 

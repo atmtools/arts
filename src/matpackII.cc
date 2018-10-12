@@ -183,7 +183,6 @@ Vector Sparse::diagonal() const
     Index m = std::min(nrows(), ncols());
     Vector diag(m);
 
-    auto eigen_diag = matrix.diagonal();
     for (int i=0; i < m; i++)
     {
         diag[i] = matrix.coeff(i, i);

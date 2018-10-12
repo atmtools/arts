@@ -40,10 +40,11 @@
 #include "m_xml.h"
 #include "rt4.h"
 
+#ifdef ENABLE_RT4
+
 //const Numeric pfct_threshold=100.;
 const Numeric pfct_threshold=0.05;
 
-#ifdef ENABLE_RT4
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RT4Calc( Workspace& ws,
                 // WS Output:
