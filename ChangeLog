@@ -1,5 +1,37 @@
 2018-10-17  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-1141
+
+	* controlfiles/artscomponents/nlte/TestNLTE_NLTE_ref.xml:
+
+	Updated. The test failed since arts-2-3-983.
+
+	Quote from email discussion with Richard:
+	---
+	The differences for TestNLTE should be unimportant.  The test result
+	should be updated.  The differences come from how the averaging of the
+	results are computed.
+
+	In the old way, the source function of a level was essentially computed
+	by three parameters so that
+
+	0.5*(B[1] + B[0]) + (0.5*NLTE[1] + 0.5*NLTE[0]) / (0.5*K[1] + 0.5*K[0])
+
+	The new way is instead to compute the addition slightly different by
+	converting everything to physical units before so that
+
+	0.5*(K[0] B[0] + NLTE[0]) / K[0] + 0.5*(K[1] B[1] + NLTE[1]) / K[1],
+
+	(where you should note that K is just the same in this case, with
+	scattering, the term inside the paranthesis is different from the
+	division term.)
+
+	The drifts are about 1% at most between the output, so I think the new
+	results are fine.
+	---
+
+2018-10-17  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-1140
 
 	* CMakeLists.txt:
