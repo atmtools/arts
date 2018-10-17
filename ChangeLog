@@ -1,3 +1,12 @@
+2018-10-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1140
+
+	* CMakeLists.txt:
+
+	Disable assertions for 'Native' build type to bring it on par with
+	'Release' mode.
+
 2018-10-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1139
