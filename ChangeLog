@@ -1,3 +1,16 @@
+2018-10-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1142
+
+	* controlfiles/artscomponents/arts-xml-data/TestPlanetIsoRatios.
+	{Jupiter,Mars,Venus}.y_reference.xml,
+	controlfiles/artscomponents/cia/TestRTwithCIA.iy_reference.xml:
+
+	Updated reference files after discussion with Richard. The slight
+	numerical differences are caused by recent changes in ARTS and are ok.
+
+	All tests in 'make check-all' work again now.
+
 2018-10-17  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1141
