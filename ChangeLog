@@ -1,3 +1,10 @@
+2018-10-19  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1143
+
+	* src/m_basic_types.cc(DiagonalMatrix):
+	Added missing initialization for off-diagonal elements.
+
 2018-10-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1142

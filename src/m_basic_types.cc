@@ -647,6 +647,7 @@ void DiagonalMatrix(Matrix&           X,
 {
     Index n = diag.nelem();
     X.resize(n,n);
+    X = 0.0;
 
     for (Index i = 0; i < n; ++i) {
         X(i, i) = diag[i];
