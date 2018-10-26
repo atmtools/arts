@@ -820,6 +820,63 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
+    ( NAME( "abs_lines_per_speciesSetNormalizationForAll" ),
+      DESCRIPTION
+      (
+        "See *abs_linesSetNormalizationForAll*\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines_per_species" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines_per_species" ),
+      GIN( "option"),
+      GIN_TYPE( "String" ),
+      GIN_DEFAULT( NODEF ),
+      GIN_DESC( "Method of line normalizations" )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_linesSetNlteOffForAll" ),
+      DESCRIPTION
+      (
+        "Sets no NLTE for all lines\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines" ),
+      GIN(),
+      GIN_TYPE(  ),
+      GIN_DEFAULT(),
+      GIN_DESC(  )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_lines_per_speciesSetNlteOffForAll" ),
+      DESCRIPTION
+      (
+        "See *abs_linesSetNlteOffForAll*\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines_per_species" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines_per_species" ),
+      GIN(),
+      GIN_TYPE(  ),
+      GIN_DEFAULT(),
+      GIN_DESC( )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
     ( NAME( "abs_linesSetMirroringForAll" ),
       DESCRIPTION
       (
@@ -836,6 +893,25 @@ void define_md_data_raw()
       GOUT_TYPE(),
       GOUT_DESC(),
       IN( "abs_lines" ),
+      GIN( "option"),
+      GIN_TYPE( "String" ),
+      GIN_DEFAULT( NODEF ),
+      GIN_DESC( "Method of line mirroring" )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_lines_per_speciesSetMirroringForAll" ),
+      DESCRIPTION
+      (
+        "See *abs_linesSetMirroringForAll*\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines_per_species" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines_per_species" ),
       GIN( "option"),
       GIN_TYPE( "String" ),
       GIN_DEFAULT( NODEF ),
@@ -868,6 +944,67 @@ void define_md_data_raw()
       IN( "abs_lines" ),
       GIN( "option"),
       GIN_TYPE( "String" ),
+      GIN_DEFAULT( NODEF ),
+      GIN_DESC( "Method of line mirroring" )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_lines_per_speciesSetShapeForAll" ),
+      DESCRIPTION
+      (
+        "See *abs_linesSetShapeForAll*\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines_per_species" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines_per_species" ),
+      GIN( "option"),
+      GIN_TYPE( "String" ),
+      GIN_DEFAULT( NODEF ),
+      GIN_DESC( "Method of line mirroring" )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_linesCutOffForAll" ),
+      DESCRIPTION
+      (
+        "Sets cutoff frequency for all lines.\n"
+        "\n"
+        "Available options:\n"
+        "   above 0: cutoff frequency\n"
+        "   -1: no cutoff frequency\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines" ),
+      GIN( "option"),
+      GIN_TYPE( "Numeric" ),
+      GIN_DEFAULT( NODEF ),
+      GIN_DESC( "Method of line mirroring" )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_lines_per_speciesCutOffForAll" ),
+      DESCRIPTION
+      (
+        "See *abs_linesCutOffForAll*\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines_per_species" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines_per_species" ),
+      GIN( "option"),
+      GIN_TYPE( "Numeric" ),
       GIN_DEFAULT( NODEF ),
       GIN_DESC( "Method of line mirroring" )
     ));
@@ -8717,9 +8854,6 @@ void define_md_data_raw()
       DESCRIPTION
       (
         "Experimental NLTE Jacobian.\n"
-        "\n"
-        "\"mode\" should be \"Tv\" for vibrational temperatures or \"R\"\n"
-        "for ratio\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -8728,15 +8862,14 @@ void define_md_data_raw()
       GOUT_DESC(),
       IN( "jacobian_quantities", "jacobian_agenda", 
           "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-      GIN("g1", "g2", "g3", "energy_level_identity", "dx", "mode"),
-      GIN_TYPE( "Vector", "Vector", "Vector", "QuantumIdentifier", "Numeric", "String"),
-      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "1.0e-3", NODEF ),
+      GIN("g1", "g2", "g3", "energy_level_identity", "dx"),
+      GIN_TYPE( "Vector", "Vector", "Vector", "QuantumIdentifier", "Numeric"),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "1.0e-3" ),
       GIN_DESC( "Pressure retrieval grid.",
                 "Latitude retrieval grid.",
                 "Longitude retreival grid.",
                 "Identifier to the eneregy level",
-                "Perturbation of value if required by method",
-                "Type of NLTE quantity")
+                "Perturbation of value if required by method")
     ));
     
     md_data_raw.push_back
@@ -8746,9 +8879,6 @@ void define_md_data_raw()
       (
         "Experimental NLTE Jacobian.  Same as *jacobianAddNLTE* but for\n"
         "many levels\n"
-        "\n"
-        "\"mode\" should be \"Tv\" for vibrational temperatures or \"R\"\n"
-        "for ratio\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -8757,15 +8887,14 @@ void define_md_data_raw()
       GOUT_DESC(),
       IN( "jacobian_quantities", "jacobian_agenda", 
           "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-      GIN("g1", "g2", "g3", "energy_level_identities", "dx", "mode"),
-      GIN_TYPE( "Vector", "Vector", "Vector", "ArrayOfQuantumIdentifier", "Numeric", "String"),
-      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "1.0e-3", NODEF ),
+      GIN("g1", "g2", "g3", "energy_level_identities", "dx"),
+      GIN_TYPE( "Vector", "Vector", "Vector", "ArrayOfQuantumIdentifier", "Numeric"),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "1.0e-3" ),
       GIN_DESC( "Pressure retrieval grid.",
                 "Latitude retrieval grid.",
                 "Longitude retreival grid.",
                 "Identifiers to the eneregy level",
-                "Perturbation of value if required by method",
-                "Type of NLTE quantity")
+                "Perturbation of value if required by method")
     ));
   
   md_data_raw.push_back
@@ -10974,12 +11103,11 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_lines_per_species", "nlte_quantum_identifiers", "abs_species", "nlte_field", "p_grid",
-            "lat_grid", "lon_grid", "atmosphere_dim"),
+        IN( "abs_lines_per_species", "nlte_quantum_identifiers", "abs_species"),
         GIN("vibrational_energies", "population_type"),
         GIN_TYPE("Vector", "Index"),
-        GIN_DEFAULT(NODEF, "1"),
-        GIN_DESC("Vector of vibrational energies.  If empty, assume known vibrational energies.",
+        GIN_DEFAULT("[]", "1"),
+        GIN_DESC("Vector of vibrational energies.  If empty, assume known or unimportant vibrational energies.",
                  "Index for setting the type of population.")
         ));
 

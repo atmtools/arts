@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <arts format="ascii" version="1">
 <ArrayOfLineRecord version="ARTSCAT-5" nelem="1">
-@ O2-66 100e9 1e-27 296 3e-20 0 3 1 PB N2 20000 0.8 10000 0.7 1000 0 0 0 0 0 QN UP J 1 LO J 0 LM L2 1e-7 1e-9 1e-11 1e-13 10 0.1 296 0.8 1.6 1.6 LSM 1 LST 1
+@ O2-66 100e9 1e-27 296 3e-20 1e-27 3 1 PB N2 20000 0.8 10000 0.7 1000 0 0 0 0 0 QN UP J 1 LO J 0 LM L2 1e-7 1e-9 1e-11 1e-13 10 0.1 296 0.8 1.6 1.6 LSM 1 LST 1
 </ArrayOfLineRecord>
 </arts>

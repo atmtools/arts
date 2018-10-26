@@ -66,7 +66,8 @@ arts_test_run_ctlfile(fast artscomponents/tessem/TestTessem.arts)
 
 arts_test_run_ctlfile(fast artscomponents/faraday/TestFaradayRotation.arts)
 
-arts_test_run_ctlfile(slow artscomponents/nlte/TestNLTE.arts)
+arts_test_run_ctlfile(fast artscomponents/nlte/TestNLTE.arts)
+arts_test_run_ctlfile(fast artscomponents/nlte/TestPopulationDensityNLTE_lineshape.arts)
 arts_test_run_ctlfile(slow artscomponents/nlte/testRotationalConvergence.arts)
 
 arts_test_run_ctlfile(fast artscomponents/lineshapes/TestVoigt.arts)

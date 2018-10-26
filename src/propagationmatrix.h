@@ -203,126 +203,6 @@ public:
   void AddFaraday(const Numeric& rot, const Index iv=0, const Index iz=0, const Index ia=0) {mdata(ia, iz, iv, mstokes_dim) += rot;}
   void SetFaraday(const Numeric& rot, const Index iv=0, const Index iz=0, const Index ia=0) {mdata(ia, iz, iv, mstokes_dim)  = rot;}
   
-  /*! Adds the Zeeman effect to the PropagationMatrix
-   * 
-   * \param attenuation: attenuation component
-   * \param phase: phase component
-   * \param nd: number density
-   * \param theta: magnetic angle of los to magnetic field
-   * \param eta: magnetic angle of main-axis linear polarization rotation as seen by satellite
-   */
-  void AddZeemanPiComponent(ConstVectorView attenuation,
-                            ConstVectorView phase,
-                            const Numeric& nd,
-                            const Numeric& theta,
-                            const Numeric& eta, 
-                            ConstVectorView extra=Vector(0));
-  
-  void AddZeemanPiComponentThetaDerivative(ConstVectorView attenuation,
-                                           ConstVectorView phase,
-                                           const Numeric& nd, 
-                                           const Numeric& theta,
-                                           const Numeric& eta, 
-                                           ConstVectorView extra=Vector(0));
-  
-  void AddZeemanPiComponentEtaDerivative(ConstVectorView attenuation,
-                                         ConstVectorView phase,
-                                         const Numeric& nd,
-                                         const Numeric& theta,
-                                         const Numeric& eta, 
-                                         ConstVectorView extra=Vector(0));
-  
-  void AddZeemanPiComponentDerivative(ConstVectorView attenuation,
-                                      ConstVectorView dattenuation,
-                                      ConstVectorView phase,
-                                      ConstVectorView dphase,
-                                      const Numeric& nd,
-                                      const Numeric& theta,
-                                      const Numeric& dtheta,
-                                      const Numeric& eta,
-                                      const Numeric& deta, 
-                                      ConstVectorView extra=Vector(0));
-  
-  /*! Adds the Zeeman effect to the PropagationMatrix
-   * 
-   * \param attenuation: attenuation component
-   * \param phase: phase component
-   * \param nd: number density
-   * \param theta: magnetic angle of los to magnetic field
-   * \param eta: magnetic angle of main-axis linear polarization rotation as seen by satellite
-   */
-  void AddZeemanSigmaPlusComponent(ConstVectorView attenuation, 
-                                   ConstVectorView phase, 
-                                   const Numeric& nd, 
-                                   const Numeric& theta, 
-                                   const Numeric& eta, 
-                                   ConstVectorView extra=Vector(0));
-  
-  void AddZeemanSigmaPlusComponentThetaDerivative(ConstVectorView attenuation, 
-                                                  ConstVectorView phase, 
-                                                  const Numeric& nd, 
-                                                  const Numeric& theta, 
-                                                  const Numeric& eta, 
-                                                  ConstVectorView extra=Vector(0));
-  
-  void AddZeemanSigmaPlusComponentEtaDerivative(ConstVectorView attenuation, 
-                                                ConstVectorView phase, 
-                                                const Numeric& nd, 
-                                                const Numeric& theta, 
-                                                const Numeric& eta, 
-                                                ConstVectorView extra=Vector(0));
-  
-  void AddZeemanSigmaPlusComponentDerivative(ConstVectorView attenuation, 
-                                             ConstVectorView dattenuation, 
-                                             ConstVectorView phase, 
-                                             ConstVectorView dphase, 
-                                             const Numeric& nd, 
-                                             const Numeric& theta, 
-                                             const Numeric& dtheta, 
-                                             const Numeric& eta,
-                                             const Numeric& deta, 
-                                             ConstVectorView extra=Vector(0));
-  
-  /*! Adds the Zeeman effect to the PropagationMatrix
-   * 
-   * \param attenuation: attenuation component
-   * \param phase: phase component
-   * \param nd: number density
-   * \param theta: magnetic angle of los to magnetic field
-   * \param eta: magnetic angle of main-axis linear polarization rotation as seen by satellite
-   */
-  void AddZeemanSigmaMinusComponent(ConstVectorView attenuation, 
-                                    ConstVectorView phase, 
-                                    const Numeric& nd, 
-                                    const Numeric& theta, 
-                                    const Numeric& eta, 
-                                    ConstVectorView extra=Vector(0));
-  
-  void AddZeemanSigmaMinusComponentThetaDerivative(ConstVectorView attenuation, 
-                                                   ConstVectorView phase, 
-                                                   const Numeric& nd, 
-                                                   const Numeric& theta, 
-                                                   const Numeric& eta, 
-                                                   ConstVectorView extra=Vector(0));
-  
-  void AddZeemanSigmaMinusComponentEtaDerivative(ConstVectorView attenuation, 
-                                                 ConstVectorView phase, 
-                                                 const Numeric& nd, 
-                                                 const Numeric& theta, 
-                                                 const Numeric& eta, 
-                                                 ConstVectorView extra=Vector(0));
-  
-  void AddZeemanSigmaMinusComponentDerivative(ConstVectorView attenuation,
-                                              ConstVectorView dattenuation,
-                                              ConstVectorView phase,
-                                              ConstVectorView dphase,
-                                              const Numeric& nd, 
-                                              const Numeric& theta, 
-                                              const Numeric& dtheta, 
-                                              const Numeric& eta,
-                                              const Numeric& deta, 
-                                              ConstVectorView extra=Vector(0));
-  
   void AddPolarized(const ConstVectorView polarization, const Index i, const Complex& C);
   
   /*! Sets the dense matrix.  Avoid using if possible. */
@@ -399,11 +279,11 @@ public:
     { mdata *= other.mdata; return *this; }
   PropagationMatrix& operator*=(ConstVectorView x) 
   { 
-    for(Index i = 0; i < NumberOfNeededVectors(); i++){
-      for(Index j = 0; j < mza; j++){
-        for(Index k = 0; k < maa; k++){
-          mdata(k, j, joker, i) *= x;}}}
-          return *this; 
+    for(Index i = 0; i < NumberOfNeededVectors(); i++)
+      for(Index j = 0; j < mza; j++)
+        for(Index k = 0; k < maa; k++)
+          mdata(k, j, joker, i) *= x;
+    return *this; 
   }
   PropagationMatrix& operator*=(const Numeric& x)
     { mdata *= x; return *this; }
@@ -421,11 +301,11 @@ public:
     { mdata += other.mdata; return *this; }
   PropagationMatrix& operator+=(ConstVectorView x) 
   { 
-    for(Index i = 0; i < NumberOfNeededVectors(); i++){
-      for(Index j = 0; j < mza; j++){
-        for(Index k = 0; k < maa; k++){
-          mdata(k, j, joker, i) += x;}}}
-          return *this; 
+    for(Index i = 0; i < NumberOfNeededVectors(); i++)
+      for(Index j = 0; j < mza; j++)
+        for(Index k = 0; k < maa; k++)
+          mdata(k, j, joker, i) += x;
+    return *this; 
   }
   PropagationMatrix& operator+=(const Numeric& x)
     { mdata += x; return *this; }
@@ -590,7 +470,7 @@ class StokesVector: public PropagationMatrix
 public:
   
   // Initialize variable size depending on requirements...
-  StokesVector(const Index nr_frequencies=0, const Index stokes_dim=1, const Index nr_za=1, const Index nr_aa=1)
+  StokesVector(const Index nr_frequencies=0, const Index stokes_dim=1, const Index nr_za=1, const Index nr_aa=1, const Numeric& v=0.0)
   {
     mvectortype = true;
     mfreqs = nr_frequencies;
@@ -598,7 +478,7 @@ public:
     mza = nr_za;
     maa = nr_aa;
     assert(mstokes_dim < 5 and mstokes_dim > 0);
-    mdata.resize(maa, mza, mfreqs, mstokes_dim);
+    mdata = Tensor4(maa, mza, mfreqs, mstokes_dim, v);
   };
   
   explicit StokesVector(ConstTensor4View x) 
@@ -648,6 +528,9 @@ public:
       }
     }
   };
+  
+  /* The number of required vectors to fill this StokesVector */
+  Index NumberOfNeededVectors() const { return mstokes_dim; }
   
   StokesVector& operator+=(const PropagationMatrix& x)
   {
@@ -732,31 +615,5 @@ std::ostream& operator<<(std::ostream& os, const StokesVector& pm);
 std::ostream& operator<<(std::ostream& os, const ArrayOfStokesVector& apm);
 std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfStokesVector& aapm);
 
-void get_diydx_replacement(MatrixView diydx_this,
-                           MatrixView diydx_next,
-                           ConstMatrixView iy,
-                           ConstMatrixView sibi,
-                           const StokesVector& nlte_this,
-                           const StokesVector& nlte_next,
-                           const StokesVector& dnltedx_this,
-                           const StokesVector& dnltedx_next,
-                           const PropagationMatrix& K_this,
-                           const PropagationMatrix& K_next,
-                           const PropagationMatrix& dKdx_this,
-                           const PropagationMatrix& dKdx_next,
-                           ConstTensor3View T_this,
-                           ConstTensor3View dTdx_this,
-                           ConstTensor3View dTdx_next,
-                           ConstTensor3View PiT_this,
-                           ConstTensor3View PiT_next,
-                           const Numeric& temperature_this,
-                           const Numeric& temperature_next,
-                           const Numeric& dt,
-                           ConstVectorView dBdx_this,
-                           ConstVectorView dBdx_next,
-                           const Numeric& r,
-                           const bool& do_Bsource,
-                           const bool& do_HSE,
-                           const bool& do_nonlte );
 
 #endif //propagationmatrix_h

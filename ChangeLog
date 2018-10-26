@@ -1,3 +1,84 @@
+2018-10-26  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1144
+	
+	Since there is a publication on the matter 
+	(https://doi.org/10.1051/0004-6361/201833566) by Takayoshi
+	Yamada etal, I should take some time to write proper fast
+	tests for the NLTE stuff so that the debacle where some 
+	tests are allowed to fail for months because they are in
+	the slow repository doesn't repeat.
+	
+	I also discovered some issues with the older NLTE computations
+	that should be fixed.  Note that these older NLTE computations
+	have never been validated properly (i.e., numerically) against
+	other code.  (There was a graphical comparison with many lines
+	at one point, but we never got into the details of single line
+	comparisons.)  As the saying goes, squash one bug and two new 
+	will be found.  Presently, the older NLTE computations using 
+	the new and the old lineshape calculators do not agree.  
+	They're are off by quite large amounts in their source function
+	computations (up to 150% in the test).  Also, there is another
+	error with xsec_species2 that affects mutlicore simulations when
+	the source is calculated (not xsec so far).  The former bug I 
+	cannot figure out because the codes are doing the same things 
+	and the xsec computations are off by less than a percent.  The
+	latter I do not even know how to begin to debug alone.  So
+	multicore is shutoff for now and at least one of the two tests
+	should be updated/removed in the future so xsec_species and
+	xsec_species2 agrees...
+	
+	* controlfiles/CMakeLists.txt: Added
+	TestPopulationDensityNLTE_lineshape.arts as a fast test of 
+	Taka's NLTE method.  I also made the unvalidated NLTE
+	fast by reducing the number of frequencies.
+	
+	* controlfiles/artscomponents/lineshapes/testdata/doppler-line.xml:
+	Set Einstein coefficient to low value to let the NLTE equations 
+	work.
+	
+	* controlfiles/artscomponents/nlte/TestNLTE_*_method.xml:  New
+	test targets.  These are using AddLines2 and AddLines.
+	Note that AddLines2 is validated against external
+	code in  for
+	population density NLTE, but that neither method is validated 
+	for Vibrational Temperature NLTE.  It is important to identify
+	this issue to adjust the code, but I cannot find the differences
+	after looking it over for a day...
+	
+	* controlfiles/artscomponents/nlte/TestPopulationDensityNLTE_lineshape.arts:
+	New test for lineshape of NLTE line using same setup as Doppler-test
+	in lineshapes but activating NLTE.  plots.py draws the results.
+	These calculations are somewhat validated in
+	https://doi.org/10.1051/0004-6361/201833566.  This uses
+	
+	* controlfiles/artscomponents/nlte/testdata/*:  Added new test
+	data for TestPopulationDensityNLTE_lineshape.arts
+	
+	* src/absorption.cc:  Lots of small changes trying to debug why
+	xsec_species2 cannot be run in parallel.
+	
+	* src/complex.h:  Added way to get the real and imag numbers directly
+	by reference.
+	
+	* src.linefunctions.cc,h: is_line_mixing_DF_parameter was used too
+	often.  apply_linestrength_scaling_vibrational_nlte is added and 
+	set_nonlte_source_and_apply_absorption_scaling removed.  Changed
+	switch-statement to match this.
+	
+	* src/m_abs.cc:  Some minor changes trying to identify the 
+	initialization but
+	
+	* src/m_jacobian.cc: removed mode from jacobianAddNLTE and friend
+	
+	* m_linerecord.cc:  nlteSetByQuantumIdentifiers did not need several
+	of its inputs as they were just tests that are not required to run 
+	later code unless in (i)yCalc mode. These are removed.  Also added
+	some helpers to manipulate all lines.
+	
+	* src/propagationmatrix.cc: removed unused code and all #pragmas.
+	Also initialize StokesVector so its internal tensor is all 0s.
+	
 2018-10-19  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1143

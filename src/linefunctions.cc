@@ -1114,7 +1114,7 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling(ComplexVectorView F,
       {
         dF(iq, iv) += dmafac_dT_div_fun * F[iv];
       }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]]))
+      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter)
       {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
           const Numeric dmafac_dF0_div_fun = -invF0 - PLANCK_CONST/(2.0*BOLTZMAN_CONST*T*tanh(F0*PLANCK_CONST/(2.0*BOLTZMAN_CONST*T)));
@@ -1177,7 +1177,7 @@ void Linefunctions::apply_VVH_scaling(ComplexVectorView F,
         dF(iq, iv) += (-PLANCK_CONST*(denom - F0/tanh_f0part - 
         f_grid[iv]*tanh_fpart + f_grid[iv]/tanh_fpart)/(kT*T)) * F[iv];
       }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]]))
+      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter)
       {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
           const Numeric fac_df0 = (-1.0/F0 + PLANCK_CONST*tanh_f0part/(kT) - PLANCK_CONST/(kT*tanh_f0part)) * F0/F0;
@@ -1235,7 +1235,7 @@ void Linefunctions::apply_VVW_scaling(ComplexVectorView F,
       dF(iq, iv) *= fac;
       
       // These partial derivatives are special
-      if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]]))
+      if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter)
       {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
           dF(iq, iv) -= 2.0 * invF0 * F[iv] ;
@@ -1296,48 +1296,161 @@ void Linefunctions::apply_linestrength_scaling(ComplexVectorView F,
   const Numeric dS_dS0 = isotopic_ratio * QT_ratio * K1 * K2;
   const Numeric S = S0 * dS_dS0;
   
-  for(Index iq = 0; iq < nppd; iq++)
-  {
-    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-    {
+  for(Index iq = 0; iq < nppd; iq++) {
+    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
       const Numeric dS_dT = S * (dK2_dT / K2 + dK1_dT / K1 - invQT * dQT_dT);
       
       dF(iq, joker) *= S;
-      
-      #pragma omp simd
       for(Index iv = 0; iv < nf; iv++)
         dF(iq, iv) += F[iv] * dS_dT;
     }
-    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineStrength)
-    {
-      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-      {
+    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineStrength) {
+      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
         dF(iq, joker) = F;
         dF(iq, joker) *= dS_dS0;
       }
     }
-    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter)
-    {
-      
-      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-      {
+    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
+      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
         const Numeric dS_dF0 = S * dK2_dF0 / K2;
         
         dF(iq, joker) *= S;
-        
-        #pragma omp simd
         for(Index iv = 0; iv < nf; iv++)
           dF(iq, iv) += F[iv] * dS_dF0;
       }
     }
     else
-    {
       dF(iq, joker) *= S;
-    }
   }
   
   // Set lineshape at the end
   F *= S;
+}
+
+
+/*!
+ * Applies linestrength to already set line shape
+ * 
+ * \retval F Lineshape
+ * \retval dF Lineshape derivative
+ * 
+ * \param S0 Strength of line at reference temperature
+ * \param isotopic_ratio The ratio of the isotopologue in the atmosphere at this level
+ * \param QT Partition function at atmospheric temperature of level
+ * \param QT0 Partition function at reference temperature
+ * \param K1 Boltzmann ratio between reference and atmospheric temperatures
+ * \param K2 Stimulated emission ratio between reference and atmospheric temperatures
+ * \param derivatives_data Information about the derivatives in dF
+ * \param derivatives_data_position Information about the derivatives positions in dF
+ * \param quantum_identity ID of the absorption line
+ * \param dQT_dT Temperature derivative of QT
+ * \param dK1_dT Temperature derivative of K1
+ * \param dK2_dT Temperature derivative of K2
+ * \param dK2_dF0 Central frequency derivative of K2
+ * \param df_range Frequency range to use inside dF
+ * 
+ */
+void Linefunctions::apply_linestrength_scaling_vibrational_nlte(ComplexVectorView F,
+                                                                ComplexMatrixView dF,
+                                                                ComplexVectorView N,
+                                                                ComplexMatrixView dN,
+                                                                const Numeric& S0,
+                                                                const Numeric& isotopic_ratio,
+                                                                const Numeric& QT,
+                                                                const Numeric& QT0,
+                                                                const Numeric& K1,
+                                                                const Numeric& K2,
+                                                                const Numeric& K3,
+                                                                const Numeric& K4,
+                                                                const ArrayOfRetrievalQuantity& derivatives_data,
+                                                                const ArrayOfIndex& derivatives_data_position,
+                                                                const QuantumIdentifier& quantum_identity,
+                                                                const Numeric& dQT_dT,
+                                                                const Numeric& dK1_dT,
+                                                                const Numeric& dK2_dT,
+                                                                const Numeric& dK2_dF0,
+                                                                const Numeric& dK3_dT,
+                                                                const Numeric& dK3_dF0,
+                                                                const Numeric& dK3_dTl,
+                                                                const Numeric& dK3_dTu,
+                                                                const Numeric& dK4_dT,
+                                                                const Numeric& dK4_dTu)
+{
+  const Index nf = F.nelem();
+  const Index nppd = derivatives_data_position.nelem();
+  
+  const Numeric invQT = 1.0 / QT;
+  const Numeric QT_ratio = QT0 * invQT;
+  
+  const Numeric dS_dS0_abs = isotopic_ratio * QT_ratio * K1 * K2 * K3;
+  const Numeric S_abs = S0 * dS_dS0_abs;
+  const Numeric dS_dS0_src = isotopic_ratio * QT_ratio * K1 * K2 * K4;
+  const Numeric S_src = S0 * dS_dS0_src;
+  
+  for(Index iq = 0; iq < nppd; iq++) {
+    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
+      const Numeric dS_dT_abs = S_abs * (dK2_dT / K2 + dK1_dT / K1 + dK3_dT / K3 - invQT * dQT_dT);
+      const Numeric dS_dT_src = S_src * (dK2_dT / K2 + dK1_dT / K1 + dK4_dT / K4 - invQT * dQT_dT);
+      
+      dN(iq, joker)  = dF(iq, joker);
+      dN(iq, joker) *= S_src - S_abs;
+      dF(iq, joker) *=         S_abs;
+      for(Index iv = 0; iv < nf; iv++) {
+        dN.get(iq, iv) += F.get(iv) * (dS_dT_src - dS_dT_abs);
+        dF.get(iq, iv) += F.get(iv) *              dS_dT_abs;
+      }
+    }
+    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineStrength) {
+      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
+        dF(iq, joker) = F;
+        dN(iq, joker) = dF(iq, joker);
+        dN(iq, joker) *= dS_dS0_src - dS_dS0_abs;
+        dF(iq, joker) *=              dS_dS0_abs;
+      }
+    }
+    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
+      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
+        const Numeric dS_dF0_abs = S_abs * (dK2_dF0 / K2 + dK3_dF0 / K3);
+        const Numeric dS_dF0_src = S_src * (dK2_dF0 / K2);
+        
+        dN(iq, joker) = dF(iq, joker);
+        dN(iq, joker) *= S_src - S_abs;
+        dF(iq, joker) *=         S_abs;
+        for(Index iv = 0; iv < nf; iv++) {
+          dN.get(iq, iv) += F.get(iv) * (dS_dF0_src - dS_dF0_abs);
+          dF.get(iq, iv) += F.get(iv) *               dS_dF0_abs;
+        }
+      }
+    }
+    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::NLTE) {
+      if(quantum_identity.LowerQuantumId() > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
+        const Numeric dS_dTl_abs = S_abs * dK3_dTl / K3;
+        const Numeric dS_dTl_src = 0;
+        for(Index iv = 0; iv < nf; iv++) {
+          dN.get(iq, iv) = F.get(iv) * (dS_dTl_src - dS_dTl_abs);
+          dF.get(iq, iv) = F.get(iv) *               dS_dTl_abs;
+        }
+      }
+      else if(quantum_identity.UpperQuantumId() > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
+        const Numeric dS_dTu_abs = S_abs * dK3_dTu / K3;
+        const Numeric dS_dTu_src = S_src * dK4_dTu / K4;
+        for(Index iv = 0; iv < nf; iv++) {
+          dN.get(iq, iv) = F.get(iv) * (dS_dTu_src - dS_dTu_abs);
+          dF.get(iq, iv) = F.get(iv) *               dS_dTu_abs;
+        }
+      }
+    }
+    else {
+      dN(iq, joker)  = dF(iq, joker);
+      dN(iq, joker) *= S_src - S_abs;
+      dF(iq, joker) *=         S_abs;
+    }
+  }
+  
+  // Set lineshape at the end
+  N = F;
+  N *= S_src - S_abs;
+  F *=         S_abs;
 }
 
 
@@ -1550,126 +1663,6 @@ Numeric Linefunctions::dDopplerConstant_dT(const Numeric& T, const Numeric& mass
 
 
 /*!
- * Applies non-lte linestrength to already set line shape
- * 
- * Only works for scaling-problems (i.e., when total number density distribution is already known)
- * 
- * \retval F Lineshape (absorption)
- * \retval dF Lineshape derivative (absorption)
- * \retval N Non-lte lineshape (source)
- * \retval dN Non-lte lineshape derivative (source)
- * 
- * \param K3 Ratio of absorption due to non-lte effects
- * \param K4 Ratio of emission due to non-lte effects
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param quantum_identity ID of the absorption line
- * \param dK3_dT Temperature derivative of K3
- * \param dK4_dT Temperature derivative of K4
- * \param dK3_dF0 Central frequency derivative of K3
- * \param dK3_dTl Lower energy state equivalent non-lte temperature derivative of K3
- * \param dK3_dTu Upper energy state equivalent non-lte temperature derivative of K3
- * \param dK4_dTu Upper energy state equivalent non-lte temperature derivative of K4
- * \param df_range Frequency range to use inside dF and dN
- * 
- */
-void Linefunctions::set_nonlte_source_and_apply_absorption_scaling(ComplexVectorView F, 
-                                                                   ComplexMatrixView dF,
-                                                                   ComplexVectorView N,
-                                                                   ComplexMatrixView dN,
-                                                                   const Numeric& K3, 
-                                                                   const Numeric& K4,
-                                                                   const ArrayOfRetrievalQuantity& derivatives_data,
-                                                                   const ArrayOfIndex& derivatives_data_position,
-                                                                   const QuantumIdentifier& quantum_identity,
-                                                                   const Numeric& dK3_dT, 
-                                                                   const Numeric& dK4_dT,
-                                                                   const Numeric& dK3_dF0, 
-                                                                   const Numeric& dK3_dTl, 
-                                                                   const Numeric& dK3_dTu, 
-                                                                   const Numeric& dK4_dTu)
-{
-  const Index nppd = derivatives_data_position.nelem(), nf = F.nelem();
-  
-  const Numeric scaled_ratio = K4/K3 - 1.0;
-  
-  // Set the non-lte source factors
-  N = F;
-  N *= scaled_ratio;
-  
-  for(Index iq = 0; iq < nppd; iq++)
-  {
-    dN(iq, joker) = dF(iq, joker);
-    dN(iq, joker) *= scaled_ratio;
-    dF(iq, joker) *= K3;
-    
-    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-    {
-      const Numeric dscaled_ratio_dT = (dK4_dT - dK3_dT / K3) / K3;
-      
-      #pragma omp simd
-      for(Index iv = 0; iv < nf; iv++)
-      {
-        dF(iq, iv) += F[iv] * dK3_dT;
-        dN(iq, iv) += F[iv] * dscaled_ratio_dT;
-      }
-    }
-    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]]))
-    {
-      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-      {
-        const Numeric dscaled_ratio_dF0 = - dK3_dF0 / K3 / K3;
-        
-        #pragma omp simd
-        for(Index iv = 0; iv < nf; iv++)
-        {
-          dF(iq, iv) += F[iv] * dK3_dF0;
-          dN(iq, iv) += F[iv] * dscaled_ratio_dF0;
-        }
-      }
-    }
-    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::NLTE)
-    {
-      if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().Species() not_eq quantum_identity.Species() or
-        derivatives_data[derivatives_data_position[iq]].QuantumIdentity().Isotopologue() not_eq quantum_identity.Isotopologue())
-        continue;  // Wrong species or wrong isotopologue
-      
-      if(quantum_identity.QuantumMatch()[QuantumIdentifier::TRANSITION_LOWER_INDEX] >
-        derivatives_data[derivatives_data_position[iq]].QuantumIdentity().QuantumMatch()[QuantumIdentifier::ENERGY_LEVEL] or
-        derivatives_data[derivatives_data_position[iq]].QuantumIdentity().Type() == QuantumIdentifier::ALL)
-      {
-        const Numeric dscaled_ratio_dTl = - dK3_dTl / K3 / K3;
-        
-        #pragma omp simd
-        for(Index iv = 0; iv < nf; iv++)
-        {
-          dF(iq, iv) += F[iv] * dK3_dTl;
-          dN(iq, iv) += F[iv] * dscaled_ratio_dTl;
-        }
-      }
-      
-      if(quantum_identity.QuantumMatch()[QuantumIdentifier::TRANSITION_UPPER_INDEX] >
-        derivatives_data[derivatives_data_position[iq]].QuantumIdentity().QuantumMatch()[QuantumIdentifier::ENERGY_LEVEL] or
-        derivatives_data[derivatives_data_position[iq]].QuantumIdentity().Type() == QuantumIdentifier::ALL)
-      {
-        const Numeric dscaled_ratio_dTu = (dK4_dTu - dK3_dTu / K3) / K3;
-        
-        #pragma omp simd
-        for(Index iv = 0; iv < nf; iv++)
-        {
-          dF(iq, iv) += F[iv] * dK3_dTu;
-          dN(iq, iv) += F[iv] * dscaled_ratio_dTu;
-        }
-      }
-    }
-  }
-  
-  // Finish by scaling F to the true value
-  F *= K3;
-}
-
-
-/*!
  * Combination function using standard setup to compute line strength and lineshape of a single line.
  * Computes in order the lineshape, the linemirroring, the linenormalization, the linemixing, the 
  * linestrength, the non-lte, and the cutoff frequency.
@@ -1835,12 +1828,10 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   ComplexVectorView N = N_full[N_full.nelem() ? this_f_range : joker];
   ComplexMatrixView dN = dN_full(joker, N_full.nelem() ? this_f_range : joker);
   
-  switch(line.GetExternalLineShapeType())
-  {
+  switch(line.GetExternalLineShapeType()) {
     // Use data as provided by the pressure broadening scheme
     case LineShapeType::ByPressureBroadeningData:
-      switch(line.GetInternalLineShapeType())
-      {
+      switch(line.GetInternalLineShapeType()) {
         // Use data as per speed dependent air
         case LineFunctionData::LineShapeType::HTP:
         case LineFunctionData::LineShapeType::SDVP:
@@ -1872,8 +1863,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
                       line.F(), doppler_constant, derivatives_data, derivatives_data_position, QI, ddoppler_constant_dT);
           break;
           
-      }
-      break;
+      } break;
     // This line only needs the Doppler effect
     case LineShapeType::Doppler:
       lst = LineShapeType::Doppler;
@@ -1915,15 +1905,13 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   // The user sets if they want mirroring by LSM MTM followed by an index
   // that is interpreted as either mirroring by the same line shape or as 
   // mirroring by Lorentz lineshape
-  switch(line.GetMirroringType())
-  {
+  switch(line.GetMirroringType()) {
     // No mirroring
     case MirroringType::None:
     case MirroringType::Manual:
       break;
     // Lorentz mirroring
-    case MirroringType::Lorentz:
-      {
+    case MirroringType::Lorentz: {
         if(lst == LineShapeType::Doppler) throw std::runtime_error("Cannot apply Lorentz mirroring for Doppler line shape");
         // Set the mirroring computational vectors and size them as needed
         ComplexVector Fm(F.nelem());
@@ -1935,17 +1923,14 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
         // Apply mirroring
         F -= Fm;
         dF -= dFm;
-      }
-      break;
+    } break;
     // Same type of mirroring as before
-    case MirroringType::SameAsLineShape:
-    {
+    case MirroringType::SameAsLineShape: {
       // Set the mirroring computational vectors and size them as needed
       ComplexVector Fm(F.nelem());
       ComplexMatrix dFm(dF.nrows(), dF.ncols());
       
-      switch(lst)
-      {
+      switch(lst) {
         case LineShapeType::Doppler:
           set_doppler(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                       -line.F(), -doppler_constant, derivatives_data, derivatives_data_position, QI, -ddoppler_constant_dT);
@@ -1978,7 +1963,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
       F -= Fm;
       dF -= dFm;
       break;
-    }
+    } break;
     case MirroringType::End:
       throw std::runtime_error("Cannot understand the requested mirroring type for mirroring.");
   }
@@ -1986,8 +1971,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   // Line normalization if necessary
   // The user sets this by setting LSM LNT followed by and index
   // that is internally interpreted to mean some kind of lineshape normalization
-  switch(line.GetLineNormalizationType())
-  {
+  switch(line.GetLineNormalizationType()) {
     // No normalization
     case LineNormalizationType::None:
       break;
@@ -2019,141 +2003,126 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   }
   
   // Apply line strength by whatever method is necessary
-  switch(line.GetLinePopulationType())
-  {
+  switch(line.GetLinePopulationType()) {
     case LinePopulationType::ByLTE:
-    case LinePopulationType::ByVibrationalTemperatures:
-      {
-        // Line strength scaling that are line-dependent ---
-        // partition functions are species dependent and computed at a higher level
-        const Numeric gamma = stimulated_emission(temperature, line.F());
-        const Numeric gamma_ref = stimulated_emission(line.Ti0(), line.F());
-        const Numeric K1 = boltzman_ratio(temperature, line.Ti0(), line.Elow());
-        const Numeric K2 = stimulated_relative_emission(gamma, gamma_ref);
-        
-        // Line strength partial derivatives
-        
-        if(do_temperature)
-        {
-          dK1_dT = dboltzman_ratio_dT(K1, temperature, line.Elow());
-          dK2_dT = dstimulated_relative_emission_dT(gamma, gamma_ref, line.F(), temperature);
-        }
-        
-        // Partial derivatives due to central frequency of the stimulated emission
-        Numeric dK2_dF0;
-        if(do_line_center)
-          dK2_dF0 = dstimulated_relative_emission_dF0(gamma, gamma_ref, temperature, line.Ti0());
-        
-        // Multiply the line strength by the line shape
+    case LinePopulationType::ByVibrationalTemperatures: {
+      // Line strength scaling that are line-dependent ---
+      // partition functions are species dependent and computed at a higher level
+      const Numeric gamma = stimulated_emission(temperature, line.F());
+      const Numeric gamma_ref = stimulated_emission(line.Ti0(), line.F());
+      const Numeric K1 = boltzman_ratio(temperature, line.Ti0(), line.Elow());
+      const Numeric K2 = stimulated_relative_emission(gamma, gamma_ref);
+      
+      // Line strength partial derivatives
+      
+      if(do_temperature) {
+        dK1_dT = dboltzman_ratio_dT(K1, temperature, line.Elow());
+        dK2_dT = dstimulated_relative_emission_dT(gamma, gamma_ref, line.F(), temperature);
+      }
+      
+      // Partial derivatives due to central frequency of the stimulated emission
+      Numeric dK2_dF0;
+      if(do_line_center)
+        dK2_dF0 = dstimulated_relative_emission_dF0(gamma, gamma_ref, temperature, line.Ti0());
+      
+      // Multiply the line strength by the line shape
+      if(line.GetLinePopulationType() == LinePopulationType::ByLTE)
         apply_linestrength_scaling(F, dF,  line.I0() * line.ZeemanEffect().StrengthScaling(zeeman_index), isotopologue_ratio,
                                    partition_function_at_temperature, partition_function_at_line_temperature, K1, K2,
-                                   derivatives_data, derivatives_data_position, QI, dpartition_function_at_temperature_dT, dK1_dT, dK2_dT, dK2_dF0);
+                                   derivatives_data, derivatives_data_position, QI,
+                                   dpartition_function_at_temperature_dT, dK1_dT, dK2_dT, dK2_dF0);
+      else if (line.GetLinePopulationType() == LinePopulationType::ByVibrationalTemperatures) {
+        // NLTE parameters
+        Numeric Tu, Tl, K4, r_low, dK3_dF0, dK3_dT, dK3_dTl, dK4_dT, dK3_dTu, dK4_dTu;
         
-        if(line.GetLinePopulationType() == LinePopulationType::ByLTE)
-          break;
-        else if(nlte_distribution.nelem())
+        // These four are set by user on controlfile level
+        // They are indexes to find the energy level in the nlte-temperature 
+        // vector and the energy level of the states
+        const Index evlow_index = line.NLTELowerIndex();
+        const Index evupp_index = line.NLTEUpperIndex();
+        const Numeric El = line.Evlow();
+        const Numeric Eu = line.Evupp();
+        
+        // If the user set this parameters, another set of calculations are needed
+        if(evupp_index > -1 and nlte_distribution.nelem() > evupp_index)
         {
-          // Internal parameters
-          Numeric Tu, Tl, K4, r_low, dK3_dF0, dK3_dT, dK3_dTl, dK4_dT, dK3_dTu, dK4_dTu;
+          Tu = nlte_distribution[evupp_index];
           
-          // These four are set by user on controlfile level
-          // They are indexes to find the energy level in the nlte-temperature 
-          // vector and the energy level of the states
-          const Index evlow_index = line.NLTELowerIndex();
-          const Index evupp_index = line.NLTEUpperIndex();
-          const Numeric El = line.Evlow();
-          const Numeric Eu = line.Evupp();
-          
-          // If the user set this parameters, another set of calculations are needed
-          if(evupp_index > -1)
-          {
-            Tu = nlte_distribution[evupp_index];
-            
-            // Additional emission is from upper state
-            K4 = boltzman_ratio(Tu, temperature, Eu);
-          }
-          // Otherwise the ratios are unity and nothing needs be done
-          else
-          {
-            Tu = temperature;
-            K4 = 1.0;
-          }
-          
-          // The same as above but for the lower state level
-          if(evlow_index > -1)
-          {
-            Tl = nlte_distribution[evlow_index];
-            r_low = boltzman_ratio(Tl, temperature, El);
-          }
-          else
-          {
-            Tl = temperature;
-            r_low = 1.0;
-          }
-          
-          // Any additional absorption requires the ratio between upper and lower state number distributions
-          const Numeric K3 = absorption_nlte_ratio(gamma, K4, r_low);
-          
-          // Are we computing the line center derivatives?
-          if(do_line_center)
-            dK3_dF0 = dabsorption_nlte_rate_dF0(gamma, temperature, K4, r_low);
-          
-          // Are we computing the temperature derivatives?
-          // NOTE:  Having NLTE active AT ALL will change the jacobian because of this part of the code,
-          // though this requires setting El and Eu for all lines, though this is not yet default...
-          // So if you see this part of the code after having a runtime_error, 
-          // you will need to write those functions yourself...
-          if(do_temperature)
-            dK3_dT = dabsorption_nlte_rate_dT(gamma, temperature, line.F(), El, Eu, K4, r_low);
-          
-          // Does the lower state level energy exist?
-          if(El > 0)
-            dK3_dTl = dabsorption_nlte_rate_dTl(gamma, temperature, Tl, El, r_low);
-          
-          // Does the upper state level energy exist?
-          if(Eu > 0)
-          {
-            dK3_dTu = dabsorption_nlte_rate_dTu(gamma, temperature, Tu, Eu, K4);
-            dK4_dTu = dboltzman_ratio_dT(K4, Tu, Eu);
-          }
-          
-          // Apply this knowledge to set N and dN
-          set_nonlte_source_and_apply_absorption_scaling(F, dF, N, dN, K3, K4, 
-                                                         derivatives_data, derivatives_data_position,
-                                                         QI,  dK3_dT, dK4_dT, dK3_dF0, dK3_dTl, 
-                                                         dK3_dTu, dK4_dTu);
+          // Additional emission is from upper state
+          K4 = boltzman_ratio(Tu, temperature, Eu);
         }
-      }
-      break;
-    case LinePopulationType::ByPopulationDistribution:
-    {
-        if(derivatives_data.nelem())
-        {
-          ostringstream os;
-          os << "There will be no support for partial derivatives in population distribution\n" <<
-                "mode before we can compute our own distributions.\n" << 
-                "Use LTE if you know you have LTE distribution or ByVibrationalTemperatures if\n" <<
-                "you can define vibrational temperatures for your problem.\n";
-          throw std::runtime_error(os.str());
+        else if(evupp_index > -1)
+          throw std::runtime_error("Bad size nlte_distribution for declared NLTE calculations");
+        // Otherwise the ratios are unity and nothing needs be done
+        else {
+          Tu = temperature;
+          K4 = 1.0;
         }
         
-        const Index nlte_low_index = line.NLTELowerIndex();
-        const Index nlte_upp_index = line.NLTEUpperIndex();
+        // The same as above but for the lower state level
+        if(evlow_index > -1 and nlte_distribution.nelem() > evlow_index) {
+          Tl = nlte_distribution[evlow_index];
+          r_low = boltzman_ratio(Tl, temperature, El);
+        }
+        else if(evlow_index > -1)
+          throw std::runtime_error("Bad size nlte_distribution for declared NLTE calculations");
+        else {
+          Tl = temperature;
+          r_low = 1.0;
+        }
         
-        if(nlte_low_index < 0)
-          throw std::runtime_error("No lower level distribution number in population distribution mode");
-        if(nlte_upp_index < 0)
-          throw std::runtime_error("No upper level distribution number in population distribution mode");
+        // Any additional absorption requires the ratio between upper and lower state number distributions
+        const Numeric K3 = absorption_nlte_ratio(gamma, K4, r_low);
         
-        apply_linestrength_from_nlte_level_distributions(F, dF, N, dN,
-                                                         nlte_distribution[nlte_low_index],
-                                                         nlte_distribution[nlte_upp_index],
-                                                         line.G_lower(), line.G_upper(),
-                                                         line.A(), line.F(),
-                                                         temperature, derivatives_data, 
-                                                         derivatives_data_position, QI);
+        // Are we computing the line center derivatives?
+        if(do_line_center)
+          dK3_dF0 = dabsorption_nlte_rate_dF0(gamma, temperature, K4, r_low);
+        
+        // Are we computing the temperature derivatives?
+        // NOTE:  Having vibrational NLTE active AT ALL will change the jacobian because of this part of the code,
+        // though this requires setting El and Eu for all lines, though this is not yet default...
+        // So if you see this part of the code after having a runtime_error, 
+        // you will need to write those functions yourself...
+        if(do_temperature)
+          dK3_dT = dabsorption_nlte_rate_dT(gamma, temperature, line.F(), El, Eu, K4, r_low);
+        
+        // Does the lower state level energy exist?
+        if(El > 0)
+          dK3_dTl = dabsorption_nlte_rate_dTl(gamma, temperature, Tl, El, r_low);
+        
+        // Does the upper state level energy exist?
+        if(Eu > 0) {
+          dK3_dTu = dabsorption_nlte_rate_dTu(gamma, temperature, Tu, Eu, K4);
+          dK4_dTu = dboltzman_ratio_dT(K4, Tu, Eu);
+        }
+        
+        // Apply this knowledge to set N and dN
+        apply_linestrength_scaling_vibrational_nlte(F, dF, N, dN, line.I0() * line.ZeemanEffect().StrengthScaling(zeeman_index),
+                                                    isotopologue_ratio, partition_function_at_temperature, 
+                                                    partition_function_at_line_temperature, K1, K2, K3, K4,
+                                                    derivatives_data, derivatives_data_position, QI,
+                                                    dpartition_function_at_temperature_dT, dK1_dT, dK2_dT, dK2_dF0, dK3_dT, dK3_dF0, dK3_dTl,
+                                                    dK3_dTu, dK4_dT, dK4_dTu);
       }
-      break;
+    } break;
+    case LinePopulationType::ByPopulationDistribution: {
+      const Index nlte_low_index = line.NLTELowerIndex();
+      const Index nlte_upp_index = line.NLTEUpperIndex();
+      
+      if(nlte_low_index < 0 or nlte_distribution.nelem() <= nlte_low_index)
+        throw std::runtime_error("No lower level distribution number in population distribution mode");
+      if(nlte_upp_index < 0 or nlte_distribution.nelem() <= nlte_upp_index)
+        throw std::runtime_error("No upper level distribution number in population distribution mode");
+      
+      apply_linestrength_from_nlte_level_distributions(F, dF, N, dN,
+                                                       nlte_distribution[nlte_low_index],
+                                                       nlte_distribution[nlte_upp_index],
+                                                       line.G_lower(), line.G_upper(),
+                                                       line.A(), line.F(),
+                                                       temperature, derivatives_data, 
+                                                       derivatives_data_position, QI);
+      
+    } break;
     case LinePopulationType::End: 
       throw std::runtime_error("Cannot understand the line strength computations");
   }
@@ -2161,8 +2130,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   // Cutoff frequency is applied at the end because 
   // the entire process above is complicated and applying
   // cutoff last means that the code is kept cleaner
-  if(need_cutoff)
-  {
+  if(need_cutoff) {
     apply_cutoff(F, dF, N, dN,
                  derivatives_data, derivatives_data_position, line,
                  volume_mixing_ratio_of_all_species,
@@ -2241,7 +2209,10 @@ void Linefunctions::apply_cutoff(ComplexVectorView F,
   const Index nn = dN.nrows(); 
   
   // Setup compute variables
-  Vector f_grid_cutoff(1, line.F() + line.CutOff());
+  
+  Vector f_grid_cutoff(1);
+  if(line.F() > 0) f_grid_cutoff[0] = line.F() + line.CutOff();
+  else             f_grid_cutoff[0] = line.F() - line.CutOff();
   ComplexVector Fc(1), Nc(1);
   ComplexMatrix dFc(nj, 1), dNc(nn, 1);
   Range tmp(joker);
@@ -2260,15 +2231,14 @@ void Linefunctions::apply_cutoff(ComplexVectorView F,
                                     zeeman_index, verbosity, true);
   
   // Apply cutoff values
-  F -= Fc[0];
+  F -= Fc.get(0);
+  
   if(N.nelem())
-    N -= Nc[0];
-  #pragma omp simd
+    N -= Nc.get(0);
   for(Index i = 0; i < nj; i++)
-    dF(i, joker) -= dFc(i, 0);
-  #pragma omp simd
+    dF(i, joker) -= dFc.get(i, 0);
   for(Index i = 0; i < nn; i++)
-    dN(i, joker) -= dNc(i, 0);
+    dN(i, joker) -= dNc.get(i, 0);
 }
 
 
@@ -2372,60 +2342,51 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(ComplexVect
   // Emission strength
   const Numeric e = c3 * r2 * A21;
   
-  const Numeric ratio = (e/b-k);
+  const Numeric ratio = e/b - k;
   
   // Partial derivatives
-  for(Index iq=0; iq<nppd; iq++)
-  {
-    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)  // nb.  Only here tou counter-act the latter on in 
-    { 
+  for(Index iq=0; iq<nppd; iq++) {
+    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) { // nb.  Only here tou counter-act the latter on in
       Numeric done_over_b_dT = PLANCK_CONST*F0*exp_T/(c2*BOLTZMAN_CONST*T*T);
       
       // dN is unset so far.  It should return to just be lineshape later...
-      #pragma omp simd
       for(Index iv=0; iv<nf; iv++)
         dN(iq, iv) = F[iv]*e*done_over_b_dT + dF(iq, iv)*ratio;
       
       // dk_dT = 0...
       dF(iq, joker) *= k;
     }
-    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]]))
-    {
-      if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
-      {
+    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
+      if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity)) {
         Numeric done_over_b_df0 = PLANCK_CONST*exp_T/(c2*BOLTZMAN_CONST*T) - 3.0*b/F0;
         Numeric de_df0 = c1 * r2 * A21;
         Numeric dk_df0 = c1 * (r1*x - r2) * (A21 / c2) - 3.0*k/F0;
         
-        #pragma omp simd
-        for(Index iv=0; iv<nf; iv++)
-        {
+        for(Index iv=0; iv<nf; iv++) {
           dN(iq, iv) = F[iv]*(e*done_over_b_df0 + de_df0/b - dk_df0) + dF(iq, iv)*ratio;
           dF(iq, iv) = dF(iq, iv)*k + F[iv]*dk_df0;
         }
       }
     }
-    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::NLTE)
-    {
-      if(quantum_identity.LowerQuantumId() > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-      {
+    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::NLTE) {
+      if(quantum_identity.LowerQuantumId() > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
         const Numeric dk_dr2 = - c3 * A21 / c2, de_dr2 = c3 * A21, dratio_dr2 = de_dr2/b - dk_dr2;
         
-        #pragma omp simd
-        for(Index iv=0; iv<nf; iv++)
-        {
+        for(Index iv=0; iv<nf; iv++) {
           dN(iq, iv) = F[iv]*dratio_dr2;
           dF(iq, iv) = F[iv]*dk_dr2 + dF(iq, iv)*k;
         } 
       }
-      else if(quantum_identity.UpperQuantumId() > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-      {
+      else if(quantum_identity.UpperQuantumId() > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
         const Numeric dk_dr1 = c3 * x * A21 / c2;
-        
-        #pragma omp simd
         for(Index iv=0; iv<nf; iv++)
           dF(iq, iv) = F[iv]*dk_dr1 + dF(iq, iv)*k;
       }
+    }
+    else {
+      dN(iq, joker)  = dF(iq, joker);
+      dN(iq, joker) *= ratio;
+      dF(iq, joker) *= k;
     }
   }
   

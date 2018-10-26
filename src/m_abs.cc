@@ -1444,66 +1444,60 @@ void abs_coefCalcFromXsec(// WS Output:
   
   // Check that abs_vmrs and abs_xsec_per_species really have compatible
   // dimensions. In abs_vmrs there should be one row for each tg:
-  if ( abs_vmrs.nrows() != abs_xsec_per_species.nelem() )
-    {
-      ostringstream os;
-      os << "Variable abs_vmrs must have compatible dimension to abs_xsec_per_species.\n"
-         << "abs_vmrs.nrows() = " << abs_vmrs.nrows() << "\n"
-         << "abs_xsec_per_species.nelem() = " << abs_xsec_per_species.nelem();
-      throw runtime_error(os.str());
-    }
+  if ( abs_vmrs.nrows() != abs_xsec_per_species.nelem() ) {
+    ostringstream os;
+    os << "Variable abs_vmrs must have compatible dimension to abs_xsec_per_species.\n"
+        << "abs_vmrs.nrows() = " << abs_vmrs.nrows() << "\n"
+        << "abs_xsec_per_species.nelem() = " << abs_xsec_per_species.nelem();
+    throw runtime_error(os.str());
+  }
 
   // Check that number of altitudes are compatible. We only check the
   // first element, this is possilble because within arts all elements
   // are on the same altitude grid.
-  if ( abs_vmrs.ncols() != abs_xsec_per_species[0].ncols() )
-    {
-      ostringstream os;
-      os << "Variable abs_vmrs must have same numbers of altitudes as abs_xsec_per_species.\n"
-         << "abs_vmrs.ncols() = " << abs_vmrs.ncols() << "\n"
-         << "abs_xsec_per_species[0].ncols() = " << abs_xsec_per_species[0].ncols();
-      throw runtime_error(os.str());
-    }  
+  if ( abs_vmrs.ncols() != abs_xsec_per_species[0].ncols() ) {
+    ostringstream os;
+    os << "Variable abs_vmrs must have same numbers of altitudes as abs_xsec_per_species.\n"
+        << "abs_vmrs.ncols() = " << abs_vmrs.ncols() << "\n"
+        << "abs_xsec_per_species[0].ncols() = " << abs_xsec_per_species[0].ncols();
+    throw runtime_error(os.str());
+  }  
 
   // Check dimensions of abs_p and abs_t:
   chk_size("abs_p", abs_p, abs_vmrs.ncols());
   chk_size("abs_t", abs_t, abs_vmrs.ncols());
-
+  
+  // Will these calculations deal with nlte?
+  const bool do_src = (src_xsec_per_species.nelem() == abs_xsec_per_species.nelem()) ? not src_xsec_per_species[0].empty() ? true : false : false;
+  const Index src_rows = do_src ? src_xsec_per_species[0].nrows() : 0;
   
   // Initialize abs_coef and abs_coef_per_species. The array dimension of abs_coef_per_species
   // is the same as that of abs_xsec_per_species. The dimension of abs_coef should
   // be equal to one of the abs_xsec_per_species enries.
+  
   abs_coef.resize( abs_xsec_per_species[0].nrows(), abs_xsec_per_species[0].ncols() );
-  abs_coef = 0;  
-  
-  
-  bool do_src = false;
-  if( src_xsec_per_species.nelem() == abs_xsec_per_species.nelem() )
-  {
-    do_src = src_xsec_per_species[0].nrows() && src_xsec_per_species[0].ncols();
-    src_coef.resize( src_xsec_per_species[0].nrows(), src_xsec_per_species[0].ncols() );
-  }                    // Matpack can set all elements like this.
+  abs_coef = 0;
+  src_coef.resize( src_rows, src_xsec_per_species[0].ncols() );
+  src_coef = 0;
   
   const ArrayOfIndex jacobian_quantities_position = equivlent_propmattype_indexes(jacobian_quantities);
   dabs_coef_dx.resize(jacobian_quantities_position.nelem());
-  for(Index ii=0;ii<jacobian_quantities_position.nelem();ii++)
+  dsrc_coef_dx.resize(do_src ? jacobian_quantities_position.nelem() : 0);
+  
+  for(Index ii=0;ii<jacobian_quantities_position.nelem();ii++) {
       if(jacobian_quantities[jacobian_quantities_position[ii]] not_eq JacPropMatType::NotPropagationMatrixType)
       {
           dabs_coef_dx[ii].resize(abs_xsec_per_species[0].nrows(), abs_xsec_per_species[0].ncols());
           dabs_coef_dx[ii] = 0.0;
-          if(do_src)
-          {
-              dsrc_coef_dx[ii].resize(src_xsec_per_species[0].nrows(), src_xsec_per_species[0].ncols());
-              dsrc_coef_dx[ii] = 0.0;
+          if(do_src) {
+            dsrc_coef_dx[ii].resize(src_rows, src_xsec_per_species[0].ncols());
+            dsrc_coef_dx[ii] = 0.0;
           }
       }
-  
-  if(do_src)
-    src_coef = 0;
+  }
   
   abs_coef_per_species.resize( abs_xsec_per_species.nelem() );
-  if(do_src)
-    src_coef_per_species.resize( src_xsec_per_species.nelem() );
+  src_coef_per_species.resize( src_xsec_per_species.nelem() );
 
   out3 << "  Computing abs_coef and abs_coef_per_species from abs_xsec_per_species.\n";
   // Loop through all tag groups
@@ -1514,15 +1508,14 @@ void abs_coefCalcFromXsec(// WS Output:
       // Make this element of abs_xsec_per_species the right size:
       abs_coef_per_species[i].resize( abs_xsec_per_species[i].nrows(), abs_xsec_per_species[i].ncols() );
       abs_coef_per_species[i] = 0;        // Initialize all elements to 0.
-      if(do_src)
-      {
-        src_coef_per_species[i].resize( src_xsec_per_species[i].nrows(), src_xsec_per_species[i].ncols() );
+      
+      if(do_src) {
+        src_coef_per_species[i].resize( src_rows, src_xsec_per_species[i].ncols() );
         src_coef_per_species[i] = 0;        // Initialize all elements to 0.
       }
 
       // Loop through all altitudes
-      for ( Index j=0; j<abs_xsec_per_species[i].ncols(); j++)
-        {
+      for ( Index j=0; j<abs_xsec_per_species[i].ncols(); j++) {
           // Calculate total number density from pressure and temperature.
           const Numeric n = number_density(abs_p[j],abs_t[j]);
           const Numeric dn_dT = dnumber_density_dt(abs_p[j],abs_t[j]); 
@@ -1536,45 +1529,44 @@ void abs_coefCalcFromXsec(// WS Output:
               src_coef_per_species[i](k,j) = src_xsec_per_species[i](k,j) * n * abs_vmrs(i,j);
               
             for(Index iq=0;iq<jacobian_quantities_position.nelem();iq++) {
-                if(jacobian_quantities[jacobian_quantities_position[iq]]==JacPropMatType::Temperature) {
-                    dabs_coef_dx[iq](k,j) += (dabs_xsec_per_species_dx[i][iq](k,j) * n + 
-                    abs_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
-                    if(do_src)
-                        dsrc_coef_dx[iq](k,j) += (dsrc_xsec_per_species_dx[i][iq](k,j) * n + 
-                        src_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
+              if(jacobian_quantities[jacobian_quantities_position[iq]]==JacPropMatType::Temperature) {
+                  dabs_coef_dx[iq](k,j) += (dabs_xsec_per_species_dx[i][iq](k,j) * n + 
+                  abs_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
+                  if(do_src)
+                      dsrc_coef_dx[iq](k,j) += (dsrc_xsec_per_species_dx[i][iq](k,j) * n + 
+                      src_xsec_per_species[i](k,j) * dn_dT) * abs_vmrs(i,j);
+              }
+              else if(jacobian_quantities[jacobian_quantities_position[iq]] == JacPropMatType::VMR) {
+                bool seco=false, main=false;
+                for(const auto& s: abs_species[i]) {
+                  if(species_match(jacobian_quantities[jacobian_quantities_position[iq]], s.BathSpecies()) or s.Type() not_eq SpeciesTag::TYPE_CIA)
+                    seco = true;
+                  if(species_iso_match(jacobian_quantities[jacobian_quantities_position[iq]], s.Species(), s.Isotopologue()))
+                    main = true;
                 }
-                else if(jacobian_quantities[jacobian_quantities_position[iq]] == JacPropMatType::VMR) {
-                  bool seco=false, main=false;
-                  for(const auto& s: abs_species[i]) {
-                    if(species_match(jacobian_quantities[jacobian_quantities_position[iq]], s.BathSpecies()) or s.Type() not_eq SpeciesTag::TYPE_CIA)
-                      seco = true;
-                    if(species_iso_match(jacobian_quantities[jacobian_quantities_position[iq]], s.Species(), s.Isotopologue()))
-                      main = true;
-                  }
-                  if(main and seco) {
-                    dabs_coef_dx[iq](k,j) += (dabs_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) + abs_xsec_per_species[i](k,j)) * n;
-                    if(do_src)
-                      dsrc_coef_dx[iq](k,j) += (dsrc_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) + src_xsec_per_species[i](k,j)) * n;
-                  }
-                  else if(main) {
-                    dabs_coef_dx[iq](k,j) += abs_xsec_per_species[i](k,j) * n;
-                    if(do_src)
-                      dsrc_coef_dx[iq](k,j) += src_xsec_per_species[i](k,j) * n;
-                  }
-                  else if(seco) {
-                    dabs_coef_dx[iq](k,j) += dabs_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) * n;
-                    if(do_src)
-                      dsrc_coef_dx[iq](k,j) += dsrc_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) * n;
-                  }
+                if(main and seco) {
+                  dabs_coef_dx[iq](k,j) += (dabs_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) + abs_xsec_per_species[i](k,j)) * n;
+                  if(do_src)
+                    dsrc_coef_dx[iq](k,j) += (dsrc_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) + src_xsec_per_species[i](k,j)) * n;
                 }
-                else if(jacobian_quantities[jacobian_quantities_position[iq]] not_eq JacPropMatType::NotPropagationMatrixType) {
-                    dabs_coef_dx[iq](k,j) += dabs_xsec_per_species_dx[i][iq](k,j) * n * abs_vmrs(i,j);
-                    if(do_src)
-                        dsrc_coef_dx[iq](k,j) += dsrc_xsec_per_species_dx[i][iq](k,j) * n * abs_vmrs(i,j);
+                else if(main) {
+                  dabs_coef_dx[iq](k,j) += abs_xsec_per_species[i](k,j) * n;
+                  if(do_src)
+                    dsrc_coef_dx[iq](k,j) += src_xsec_per_species[i](k,j) * n;
+                }
+                else if(seco) {
+                  dabs_coef_dx[iq](k,j) += dabs_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) * n;
+                  if(do_src)
+                    dsrc_coef_dx[iq](k,j) += dsrc_xsec_per_species_dx[i][iq](k,j) * abs_vmrs(i,j) * n;
                 }
               }
-              
+              else if(jacobian_quantities[jacobian_quantities_position[iq]] not_eq JacPropMatType::NotPropagationMatrixType) {
+                  dabs_coef_dx[iq](k,j) += dabs_xsec_per_species_dx[i][iq](k,j) * n * abs_vmrs(i,j);
+                  if(do_src)
+                      dsrc_coef_dx[iq](k,j) += dsrc_xsec_per_species_dx[i][iq](k,j) * n * abs_vmrs(i,j);
+              }
             }
+          }
         }
 
       // Add up to the total absorption:
@@ -2312,26 +2304,23 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(// WS Output:
   
   Index n_species = src_coef_per_species.nelem(); // # species
 
-  if (0==n_species)
-    {
-      ostringstream os;
-      os << "Must have at least one species.";
-      throw runtime_error(os.str());
-    }
+  if (not n_species) {
+    ostringstream os;
+    os << "Must have at least one species.";
+    throw runtime_error(os.str());
+  }
 
   Index n_f       = src_coef_per_species[0].nrows(); // # frequencies
 
   // # pressures must be 1:
-  if (1!=src_coef_per_species[0].ncols())
-    {
-      ostringstream os;
-      os << "Must have exactly one pressure.";
-      throw runtime_error(os.str());
-    }
+  if (1 not_eq src_coef_per_species[0].ncols()) {
+    ostringstream os;
+    os << "Must have exactly one pressure.";
+    throw runtime_error(os.str());
+  }
   
   // Check species dimension of propmat_clearsky
-  if ( nlte_source.nelem()!=n_species )
-  {
+  if ( nlte_source.nelem() not_eq n_species ) {
     ostringstream os;
     os << "Species dimension of propmat_clearsky does not\n"
        << "match src_coef_per_species.";
@@ -2339,8 +2328,7 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(// WS Output:
   }
   
   // Check frequency dimension of propmat_clearsky
-  if ( nlte_source[0].NumberOfFrequencies()!=n_f )
-  {
+  if ( nlte_source[0].NumberOfFrequencies() not_eq n_f ) {
     ostringstream os;
     os << "Frequency dimension of propmat_clearsky does not\n"
        << "match abs_coef_per_species.";
@@ -2354,24 +2342,20 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(// WS Output:
     B[iv] = planck(f_grid[iv], rtp_temperature);
   
   StokesVector sv(n_f, nlte_source[0].StokesDimensions());
-  for ( Index si=0; si<n_species; ++si )
-  {
+  for ( Index si=0; si<n_species; ++si ) {
     sv.Kjj() = src_coef_per_species[si](joker, 0);
     sv *= B;
     nlte_source[si].Kjj() += sv.Kjj();
   }
   
   // Jacobian
-  for(Index ii = 0; ii<jacobian_quantities_position.nelem(); ii++)
-  {
-    if(jacobian_quantities[jacobian_quantities_position[ii]]==JacPropMatType::Temperature)
-    {
+  for(Index ii = 0; ii<jacobian_quantities_position.nelem(); ii++) {
+    if(jacobian_quantities[jacobian_quantities_position[ii]]==JacPropMatType::Temperature) {
       Vector dB(n_f);
       for(Index iv=0; iv<n_f; iv++)
         dB[iv] = dplanck_dt(f_grid[iv], rtp_temperature);
       
-      for( Index si=0; si<n_species; ++si )
-      {
+      for( Index si=0; si<n_species; ++si ) {
         sv.Kjj() = src_coef_per_species[si](joker, 0);
         sv *= dB;
         nlte_dsource_dx[ii].Kjj() += sv.Kjj();
@@ -2381,14 +2365,12 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(// WS Output:
       sv *= B;
       dnlte_dx_source[ii].Kjj() += sv.Kjj();
     }
-    else if(is_frequency_parameter(jacobian_quantities[jacobian_quantities_position[ii]]))
-    {
+    else if(is_frequency_parameter(jacobian_quantities[jacobian_quantities_position[ii]])) {
       Vector dB(n_f);
       for(Index iv=0; iv<n_f; iv++)
         dB[iv] = dplanck_df(f_grid[iv],rtp_temperature);
       
-      for( Index si=0; si<n_species; ++si )
-      {
+      for( Index si=0; si<n_species; ++si ) {
         sv.Kjj() = src_coef_per_species[si](joker, 0);
         sv *= dB;
         nlte_dsource_dx[ii].Kjj() += sv.Kjj();
@@ -2398,13 +2380,12 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(// WS Output:
       sv *= B;
       dnlte_dx_source[ii].Kjj() += sv.Kjj();
     }
-    else if(jacobian_quantities[jacobian_quantities_position[ii]] not_eq JacPropMatType::NotPropagationMatrixType)
-    {
+    else if(jacobian_quantities[jacobian_quantities_position[ii]] not_eq JacPropMatType::NotPropagationMatrixType) {
       sv.Kjj() = dsrc_coef_dx[ii](joker, 0);
       sv *= B;
       dnlte_dx_source[ii].Kjj() += sv.Kjj();
     }
-    else{/* All is fine! */}
+    else {/* All is fine! */}
   }
 }
 
@@ -2500,40 +2481,23 @@ void propmat_clearskyInit(   //WS Output
   
   Index nf = f_grid.nelem();
   
-  if(abs_species.nelem() > 0 )
-  {
-    if(nf > 0)
-    {
-      if(stokes_dim > 0)
-      {
-        propmat_clearsky = ArrayOfPropagationMatrix(abs_species.nelem(), PropagationMatrix(nf, stokes_dim)); 
-        
-        if (nlte_do)
-          nlte_source = ArrayOfStokesVector(abs_species.nelem(), StokesVector(nf, stokes_dim));
-        else
-          nlte_source.resize(0);
-      }
-      else throw  runtime_error("stokes_dim = 0");
-    }
-    else throw runtime_error("nf = 0");
-  }
-  else throw runtime_error("abs_species.nelem() = 0");
+  if(not abs_species.nelem())
+    throw std::runtime_error("abs_species.nelem() = 0");
+    
+  if(not nf)
+    throw runtime_error("nf = 0");
+    
+  if(not stokes_dim)
+    throw  runtime_error("stokes_dim = 0");
   
-  if(supports_propmat_clearsky(jacobian_quantities))
-  {
-    const Index nq = equivlent_propmattype_indexes(jacobian_quantities).nelem();
-    dpropmat_clearsky_dx = ArrayOfPropagationMatrix(nq, PropagationMatrix(nf, stokes_dim));
-    if(nlte_do)
-    {
-      dnlte_dx_source = ArrayOfStokesVector(nq, StokesVector(nf, stokes_dim));
-      nlte_dsource_dx = ArrayOfStokesVector(nq, StokesVector(nf, stokes_dim));
-    }
-    else
-    {
-      dnlte_dx_source.resize(0);
-      nlte_dsource_dx.resize(0);
-    }
-  }
+  const Index nq = equivlent_propmattype_indexes(jacobian_quantities).nelem();
+  
+  propmat_clearsky = ArrayOfPropagationMatrix(abs_species.nelem(), PropagationMatrix(nf, stokes_dim));
+  dpropmat_clearsky_dx = ArrayOfPropagationMatrix(nq, PropagationMatrix(nf, stokes_dim));
+  
+  nlte_source = nlte_do ? ArrayOfStokesVector(abs_species.nelem(), StokesVector(nf, stokes_dim)) : ArrayOfStokesVector(0);
+  dnlte_dx_source = nlte_do ? ArrayOfStokesVector(nq, StokesVector(nf, stokes_dim)) : ArrayOfStokesVector(0);
+  nlte_dsource_dx = nlte_do ? ArrayOfStokesVector(nq, StokesVector(nf, stokes_dim)) : ArrayOfStokesVector(0);
 }
 
 
@@ -2634,28 +2598,17 @@ void propmat_clearskyAddFaraday(
                 propmat_clearsky[ife].SetFaraday(r, iv);
                 
                 // The Jacobian loop
-                for(Index iq=0;iq<jacobian_quantities_position.nelem();iq++)
-                {
+                for(Index iq=0; iq<jacobian_quantities_position.nelem(); iq++) {
                     if(is_frequency_parameter(jacobian_quantities[jacobian_quantities_position[iq]]))
-                    {
-                        dpropmat_clearsky_dx[iq].AddFaraday(-2.0 * r / f_grid[iv], iv);
-                    }
+                      dpropmat_clearsky_dx[iq].AddFaraday(-2.0 * r / f_grid[iv], iv);
                     else if(jacobian_quantities[jacobian_quantities_position[iq]]==JacPropMatType::MagneticU)
-                    { 
                       dpropmat_clearsky_dx[iq].AddFaraday(dc1_u / f2, iv);
-                    }
                     else if(jacobian_quantities[jacobian_quantities_position[iq]]==JacPropMatType::MagneticV)
-                    { 
                       dpropmat_clearsky_dx[iq].AddFaraday(dc1_v / f2, iv);
-                    }
                     else if(jacobian_quantities[jacobian_quantities_position[iq]]==JacPropMatType::MagneticW)
-                    { 
                       dpropmat_clearsky_dx[iq].AddFaraday(dc1_w / f2, iv);
-                    }
                     else if(jacobian_quantities[jacobian_quantities_position[iq]]==JacPropMatType::Electrons)
-                    {
                       dpropmat_clearsky_dx[iq].AddFaraday(r/ne, iv);
-                    }
                 }
             }
           }

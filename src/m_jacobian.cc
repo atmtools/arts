@@ -4022,7 +4022,6 @@ void jacobianAddNLTE(
     const Vector&               rq_lon_grid,
     const QuantumIdentifier&    energy_level_identity,
     const Numeric&              dx,
-    const String&               mode,
     const Verbosity&            verbosity )
 {
     CREATE_OUT3;
@@ -4053,10 +4052,6 @@ void jacobianAddNLTE(
     // Create the new retrieval quantity
     RetrievalQuantity rq;
     
-    // Set the mode
-    if(mode == "Tv" or mode == "R") rq.PropType(JacPropMatType::NLTE);
-    else throw std::runtime_error("Mode must be either \"Tv\" or \"R\".  See function description");
-    
     rq.MainTag( NLTE_MAINTAG );
     rq.QuantumIdentity(energy_level_identity);
     rq.Perturbation(dx);
@@ -4086,11 +4081,10 @@ void jacobianAddNLTEs(
   const Vector&               rq_lon_grid,
   const ArrayOfQuantumIdentifier&    energy_level_identities,
   const Numeric&              dx,
-  const String&               mode,
   const Verbosity&            verbosity )
 {
   for(const auto& qi : energy_level_identities)
-    jacobianAddNLTE(ws, jq, jacobian_agenda, atmosphere_dim, p_grid,lat_grid, lon_grid, rq_p_grid, rq_lat_grid, rq_lon_grid, qi, dx, mode, verbosity);
+    jacobianAddNLTE(ws, jq, jacobian_agenda, atmosphere_dim, p_grid,lat_grid, lon_grid, rq_p_grid, rq_lat_grid, rq_lon_grid, qi, dx, verbosity);
 }
 
 

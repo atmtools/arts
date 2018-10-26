@@ -486,11 +486,6 @@ void nlteSetByQuantumIdentifiers(Index&                           nlte_do,
                                  ArrayOfArrayOfLineRecord&        abs_lines_per_species,
                                  const ArrayOfQuantumIdentifier&  nlte_quantum_identifiers,
                                  const ArrayOfArrayOfSpeciesTag&  abs_species,
-                                 const Tensor4&                   t_nlte_field,
-                                 const Vector&                    p_grid,
-                                 const Vector&                    lat_grid,
-                                 const Vector&                    lon_grid,
-                                 const Index&                     atmosphere_dim,
                                  const Vector&                    vibrational_energies,
                                  const Index&                     population_type,
                                  const Verbosity&)
@@ -636,9 +631,6 @@ void nlteSetByQuantumIdentifiers(Index&                           nlte_do,
             }
         }
     }
-    
-    chk_nlte(t_nlte_field, nlte_quantum_identifiers, abs_lines_per_species,
-             p_grid, lat_grid, lon_grid, atmosphere_dim);
 }
 
 
@@ -778,8 +770,8 @@ void abs_linesSetNormalizationForAll(ArrayOfLineRecord& abs_lines,
 
 
 void abs_linesSetMirroringForAll(ArrayOfLineRecord& abs_lines,
-                                const String& option,
-                                const Verbosity&)
+                                 const String& option,
+                                 const Verbosity&)
 {
   MirroringType a;
   if(option == "Lorentz")              a = MirroringType::Lorentz;
@@ -808,4 +800,68 @@ void abs_linesSetShapeForAll(ArrayOfLineRecord& abs_lines,
   
   for(LineRecord& line: abs_lines)
     line.SetExternalLineShapeType(a);
+}
+
+
+void abs_linesCutOffForAll(ArrayOfLineRecord& abs_lines,
+                           const Numeric& option,
+                           const Verbosity&)
+{
+  if(option < 0 and option not_eq -1)
+    throw std::runtime_error("Cannot cutoff frequency");
+  
+  for(LineRecord& line: abs_lines)
+    line.SetCutOff(option);
+}
+
+
+void abs_linesSetNlteOffForAll(ArrayOfLineRecord& abs_lines,
+                              const Verbosity&)
+{
+  for(LineRecord& line: abs_lines)
+    line.SetLinePopulationType(LinePopulationType::ByLTE);
+}
+
+
+void abs_lines_per_speciesSetNlteOffForAll(ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                          const Verbosity& verbosity)
+{
+  for(auto& abs_lines: abs_lines_per_species)
+    abs_linesSetNlteOffForAll(abs_lines, verbosity);
+}
+
+
+void abs_lines_per_speciesSetNormalizationForAll(ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                                 const String& option,
+                                                 const Verbosity& verbosity)
+{
+  for(auto& abs_lines: abs_lines_per_species)
+    abs_linesSetNormalizationForAll(abs_lines, option, verbosity);
+}
+
+
+void abs_lines_per_speciesSetMirroringForAll(ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                             const String& option,
+                                             const Verbosity& verbosity)
+{
+  for(auto& abs_lines: abs_lines_per_species)
+    abs_linesSetMirroringForAll(abs_lines, option, verbosity);
+}
+
+
+void abs_lines_per_speciesSetShapeForAll(ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                         const String& option,
+                                         const Verbosity& verbosity)
+{
+  for(auto& abs_lines: abs_lines_per_species)
+    abs_linesSetShapeForAll(abs_lines, option, verbosity);
+}
+
+
+void abs_lines_per_speciesCutOffForAll(ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                       const Numeric& option,
+                                       const Verbosity& verbosity)
+{
+  for(auto& abs_lines: abs_lines_per_species)
+    abs_linesCutOffForAll(abs_lines, option, verbosity);
 }

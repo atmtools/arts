@@ -164,13 +164,35 @@ public:
         return get(n);
     }
     
+//     /** Get element implementation without assertions. */
+//     Complex get(Index n) const
+//     {
+//         return *( mdata +
+//         mrange.mstart +
+//         n*mrange.mstride );
+//     }
+//     
+//     /** Get element implementation without assertions. */
+//     Numeric get_real(Index n) const { return get(n).real(); }
+//     
+//     /** Get element implementation without assertions. */
+//     Numeric get_imag(Index n) const { return get(n).imag(); }
+    
     /** Get element implementation without assertions. */
-    Complex get(Index n) const
+    const Complex& get(Index n) const
     {
-        return *( mdata +
-        mrange.mstart +
-        n*mrange.mstride );
+      return *( mdata +
+      mrange.mstart +
+      n*mrange.mstride );
     }
+    
+    /** Get element implementation without assertions. */
+    const Numeric& get_real(Index n) const
+    { return reinterpret_cast<const Numeric (&)[2]>(get(n))[0]; }
+    
+    /** Get element implementation without assertions. */
+    const Numeric& get_imag(Index n) const
+    { return reinterpret_cast<const Numeric (&)[2]>(get(n))[1]; }
     
     ConstComplexVectorView operator[](const Range& r) const;
     friend Complex operator*(const ConstComplexVectorView& a, const ConstComplexVectorView& b);
@@ -245,8 +267,12 @@ public:
      { return ConstComplexVectorView::operator[](n); }
      
      /** Get element implementation without assertions. */
-     Complex get(Index n) const
+     const Complex& get(Index n) const
      { return ConstComplexVectorView::get(n); }
+     const Numeric& get_real(Index n) const
+     { return ConstComplexVectorView::get_real(n); }
+     const Numeric& get_imag(Index n) const
+     { return ConstComplexVectorView::get_imag(n); }
      
      ConstComplexVectorView operator[](const Range& r) const;
      
@@ -265,6 +291,14 @@ public:
          mrange.mstart +
          n*mrange.mstride );
      }
+     
+     /** Get element implementation without assertions. */
+     Numeric& get_real(Index n) 
+     { return reinterpret_cast<Numeric (&)[2]>(get(n))[0]; }
+     
+     /** Get element implementation without assertions. */
+     Numeric& get_imag(Index n)
+     { return reinterpret_cast<Numeric (&)[2]>(get(n))[1]; }
      
      ComplexVectorView operator[](const Range& r);
      
@@ -317,15 +351,15 @@ public:
      {
          Vector A(nelem());
          for(Index i=0;i<nelem();i++)
-             A[i]=get(i).real();
+           A[i]=get_real(i);
          return A;
      };
      Vector imag()
      {
          Vector A(nelem());
          for(Index i=0;i<nelem();i++)
-                 A[i]=get(i).imag();
-             return A;
+           A[i]=get_imag(i);
+         return A;
      };
      
      //! Destructor
@@ -516,6 +550,12 @@ public:
         c*mcr.mstride );
     }
     
+    /** Get element implementation without assertions. */
+    Numeric get_real(Index r, Index c) const { return get(r, c).real(); }
+    
+    /** Get element implementation without assertions. */
+    Numeric get_imag(Index r, Index c) const { return get(r, c).imag(); }
+    
     ConstComplexMatrixView operator()(const Range& r, const Range& c) const;
     ConstComplexVectorView operator()(const Range& r, Index c) const;
     ConstComplexVectorView operator()(Index r, const Range& c) const;
@@ -597,6 +637,10 @@ public:
      /** Get element implementation without assertions. */
      Complex get(Index r, Index c) const
      { return ConstComplexMatrixView::get(r,c); }
+     Numeric get_real(Index r, Index c) const
+     { return ConstComplexMatrixView::get_real(r,c); }
+     Numeric get_imag(Index r, Index c) const
+     { return ConstComplexMatrixView::get_imag(r,c); }
      
      ConstComplexMatrixView operator()(const Range& r, const Range& c) const;
      ConstComplexVectorView operator()(const Range& r, Index c) const;
@@ -622,6 +666,14 @@ public:
          mcr.mstart +
          c*mcr.mstride );
      }
+     
+     /** Get element implementation without assertions. */
+     Numeric& get_real(Index r, Index c)
+     { return reinterpret_cast<Numeric (&)[2]>(get(r, c))[0]; }
+     
+     /** Get element implementation without assertions. */
+     Numeric& get_imag(Index r, Index c)
+     { return reinterpret_cast<Numeric (&)[2]>(get(r, c))[1]; }
      
      ComplexMatrixView operator()(const Range& r, const Range& c);
      ComplexVectorView operator()(const Range& r, Index c);
@@ -676,7 +728,7 @@ public:
          Matrix A(nrows(),ncols());
          for(Index i=0;i<nrows();i++)
              for(Index j=0;j<ncols();j++)
-                 A(i,j)=get(i,j).real();
+                 A(i,j)=get_real(i,j);
          return A;
      };
      Matrix imag()
@@ -684,7 +736,7 @@ public:
          Matrix A(nrows(),ncols());
          for(Index i=0;i<nrows();i++)
              for(Index j=0;j<ncols();j++)
-                 A(i,j)=get(i,j).imag();
+                 A(i,j)=get_imag(i,j);
          return A;
      };
      

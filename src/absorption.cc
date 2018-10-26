@@ -776,7 +776,7 @@ firstprivate(ls_attenuation, fac, f_local, aux)
             if (failed) continue;
             
             // holder when things can be empty
-            Vector empty_vector;
+            Vector empty_vector(0);
             
             // Store input profile variables, this is perhaps slightly faster.
             const Numeric p_i       = abs_p[i];
@@ -818,7 +818,7 @@ firstprivate(ls_attenuation, fac, f_local, aux)
                 n_lbl_threads = arts_omp_get_max_threads();
             }
             Matrix xsec_accum_attenuation(n_lbl_threads, xsec_i_attenuation.nelem(), 0);
-            Matrix xsec_accum_source(n_lbl_threads, xsec_i_attenuation.nelem());
+            Matrix xsec_accum_source(n_lbl_threads, xsec_i_source.nelem());
             if(calc_src)
               xsec_accum_source=0.0;
             
@@ -2137,10 +2137,8 @@ void xsec_species2(MatrixView xsec,
   // Results vectors are initialized first and then copied to the threads later
   ComplexVector F(nf), N(do_nonlte?nf:0);
   ComplexMatrix dF(nj, nf), dN(do_nonlte?nj:0, nf);
-  Range this_xsec_range(joker);
-
-  for(Index ip = 0; ip < np; ip++)
-  {
+  
+  for(Index ip = 0; ip < np; ip++) {
     // Constants for this level
     const Numeric& temperature = abs_t[ip];
     const Numeric& pressure = abs_p[ip];
@@ -2149,17 +2147,16 @@ void xsec_species2(MatrixView xsec,
     // Quasi-constants for this level, defined here to speed up later computations
     Index this_iso = -1; // line isotopologue number
     Numeric t0 = -1; // line temperature
-    Numeric dc, ddc_dT, qt, qt0, dqt_dT; // Doppler and partition functions
+    Numeric dc=0, ddc_dT=0, qt=0, qt0=1, dqt_dT=0; // Doppler and partition functions
     
-    for(Index il = 0; il < nl; il++)
-    {
+    for(Index il=0; il<nl; il++) {
       const LineRecord& line = abs_lines[il];
+      Range this_xsec_range(joker);
       
       // Partition function depends on isotopologue and line temperatures.
       // Both are commonly constant in a single catalog.  They are, however,
       // allowed to change so we must check that they do not
-      if(line.Isotopologue() not_eq this_iso or line.Ti0() not_eq t0)
-      {
+      if(line.Isotopologue() not_eq this_iso or line.Ti0() not_eq t0) {
         t0 = line.Ti0();
         
         partition_function(qt0, qt,
@@ -2224,7 +2221,7 @@ void xsec_species2(MatrixView xsec,
 
           #pragma omp simd
           for(Index i = 0; i < nf; i++) {
-            xsec(i, ip) += F[i].real();
+            xsec.get(i, ip) += F.get_real(i);
           }
         }
       }
@@ -2244,30 +2241,45 @@ void xsec_species2(MatrixView xsec,
           const Range this_out_range(this_xsec_range.get_start(), extent);
 
           VectorView xsec_range_view = xsec(this_out_range, ip);
-          Vector dummy_source;
-          VectorView source_range_view = do_nonlte?source(this_out_range, ip):dummy_source;
+          Vector dummy_;
+          VectorView source_range_view = do_nonlte?source(this_out_range, ip):dummy_;
+          VectorView phase_range_view = (not phase.empty())?phase(this_out_range, ip):dummy_;
           
           const ComplexVectorView F_range_view = F[this_xsec_range];
           const ComplexVectorView N_range_view = do_nonlte?N[this_xsec_range]:N;
           
-          #pragma omp simd
           for(Index i = 0; i < extent; i++) {
-            xsec_range_view[i] += F_range_view[i].real();
+            #pragma omp atomic
+            xsec_range_view.get(i) += F_range_view.get_real(i);
             
             if(not phase.empty())
-              phase(this_out_range, ip)[i] += F_range_view[i].imag();
+              #pragma omp atomic
+              phase_range_view.get(i) += F_range_view.get_imag(i);
             
             if(do_nonlte)
-              source_range_view[i] += N_range_view[i].real();
-
-            for(Index j=0; j<nj; j++) {
-              dxsec_dx[j](this_out_range, ip)[i] += dF(j, this_xsec_range)[i].real();
+              #pragma omp atomic
+              source_range_view.get(i) += N_range_view.get_real(i);
+          }
+          
+          for(Index j=0; j<nj; j++) {
+            VectorView dxsec_range_view = dxsec_dx[j](this_out_range, ip);
+            VectorView dsource_range_view = do_nonlte?dsource_dx[j](this_out_range, ip):dummy_;
+            VectorView dphase_range_view = (not phase.empty())?dphase_dx[j](this_out_range, ip):dummy_;
+            
+            const ComplexVectorView dF_range_view = dF(j, this_xsec_range);
+            const ComplexVectorView dN_range_view = do_nonlte ? dN(j, this_xsec_range) : N;
+            
+            for(Index i = 0; i < extent; i++) {
+              #pragma omp atomic
+              dxsec_range_view.get(i) += dF_range_view.get_real(i);
               
               if(not phase.empty())
-                dphase_dx[j](this_out_range, ip)[i] += dF(j, this_xsec_range)[i].imag();
+                #pragma omp atomic
+                dphase_range_view.get(i) += dF_range_view.get_imag(i);
               
               if(do_nonlte)
-                dsource_dx[j](this_out_range, ip)[i] += dN(j, this_xsec_range)[i].real();
+                #pragma omp atomic
+                dsource_range_view.get(i) += dN_range_view.get_real(i);
             }
           }
         }

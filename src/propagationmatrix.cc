@@ -47,21 +47,12 @@ void compute_transmission_matrix(Tensor3View T,
   assert(lower_level.StokesDimensions() == mstokes_dim);
   assert(lower_level.NumberOfFrequencies() == mfreqs);
   
-  if(mstokes_dim == 1)
-  {
-    #pragma omp parallel for \
-    if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
+  if(mstokes_dim == 1) {
     for(Index i = 0; i < mfreqs; i++)
-    {
       T(i, 0, 0) = exp(-0.5 * r * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]));
-    }
   }
-  else if(mstokes_dim == 2)
-  {
-    #pragma omp parallel for \
-    if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
-    for(Index i = 0; i < mfreqs; i++)
-    {
+  else if(mstokes_dim == 2) {
+    for(Index i = 0; i < mfreqs; i++) {
       MatrixView F = T(i, joker, joker);
       
       const Numeric a = -0.5 * r * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]), 
@@ -69,8 +60,7 @@ void compute_transmission_matrix(Tensor3View T,
                     
       const Numeric exp_a = exp(a);
       
-      if(b == 0.)
-      {
+      if(b == 0.) {
         F(0, 1) = F(1, 0) = 0.;
         F(0, 0) = F(1, 1) = exp_a;
         continue;
@@ -85,12 +75,8 @@ void compute_transmission_matrix(Tensor3View T,
       F *= exp_a;
     }
   }
-  else if(mstokes_dim == 3)
-  {
-    #pragma omp parallel for \
-    if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
-    for(Index i = 0; i < mfreqs; i++)
-    {
+  else if(mstokes_dim == 3) {
+    for(Index i = 0; i < mfreqs; i++) {
       MatrixView F = T(i, joker, joker);
       
       const Numeric a = -0.5 * r * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]), 
@@ -100,8 +86,7 @@ void compute_transmission_matrix(Tensor3View T,
                     
       const Numeric exp_a = exp(a);
       
-      if(b == 0. and c == 0. and u == 0.)
-      {
+      if(b == 0. and c == 0. and u == 0.) {
         F = 0.;
         F(0, 0) = F(1, 1) = F(2, 2) = exp_a;
         continue;
@@ -135,13 +120,9 @@ void compute_transmission_matrix(Tensor3View T,
       F *= exp_a;
     }
   }
-  else if(mstokes_dim == 4)
-  {
+  else if(mstokes_dim == 4) {
     static const Numeric sqrt_05 = sqrt(0.5);
-    #pragma omp parallel for \
-    if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
-    for(Index i = 0; i < mfreqs; i++)
-    {
+    for(Index i = 0; i < mfreqs; i++) {
       MatrixView F = T(i, joker, joker);
       
       const Numeric a = -0.5 * r * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]), 
@@ -534,35 +515,24 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
     }
   );
   
-  if(mstokes_dim == 1)
-  {
-    #pragma omp parallel for \
-    if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
-    for(Index i = 0; i < mfreqs; i++)
-    {
+  if(mstokes_dim == 1) {
+    for(Index i = 0; i < mfreqs; i++) {
       T(i, 0, 0) = exp(-0.5 * r * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]));
-      for(Index j = 0; j < nppd; j++)
-      {
-        if(dupper_level_dx[j].NumberOfFrequencies())
-        {
+      for(Index j = 0; j < nppd; j++) {
+        if(dupper_level_dx[j].NumberOfFrequencies()) {
           const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTu * upper_level.Kjj(iz, ia)[i]:0.0));
           dT_dx_upper_level(j, i, 0, 0) = T(i, 0, 0) * da;
         }
         
-        if(dlower_level_dx[j].NumberOfFrequencies())
-        {
+        if(dlower_level_dx[j].NumberOfFrequencies()) {
           const Numeric da = -0.5 * (r * dlower_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTl * lower_level.Kjj(iz, ia)[i]:0.0));
           dT_dx_lower_level(j, i, 0, 0) = T(i, 0, 0) * da;
         }
       }
     }
   }
-  else if(mstokes_dim == 2)
-  {
-    #pragma omp parallel for \
-    if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
-    for(Index i = 0; i < mfreqs; i++)
-    {
+  else if(mstokes_dim == 2) {
+    for(Index i = 0; i < mfreqs; i++) {
       MatrixView F = T(i, joker, joker);
       
       const Numeric a = -0.5 * r * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]), 
@@ -570,14 +540,11 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
                     
       const Numeric exp_a = exp(a);
       
-      if(b == 0.)
-      {
+      if(b == 0.) {
         F(0, 1) = F(1, 0) = 0.;
         F(0, 0) = F(1, 1) = exp_a;
-        for(Index j = 0; j < nppd; j++)
-        {
-          if(dupper_level_dx[j].NumberOfFrequencies())
-          {
+        for(Index j = 0; j < nppd; j++) {
+          if(dupper_level_dx[j].NumberOfFrequencies()) {
             const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTu * upper_level.Kjj(iz, ia)[i]:0.0));
             dT_dx_upper_level(j, i, joker, joker) = F;
             dT_dx_upper_level(j, i, 0, 0) = dT_dx_upper_level(j, i, 1, 1) *= da;
@@ -601,8 +568,7 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
       
       F *= exp_a;
       
-      for(Index j = 0; j < nppd; j++)
-      {
+      for(Index j = 0; j < nppd; j++) {
         if(not dlower_level_dx[j].NumberOfFrequencies())
           continue;
         MatrixView dF = dT_dx_lower_level(j, i, joker, joker);
@@ -617,8 +583,7 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
         dF(0, 1) = dF(1, 0) = C1 * db + dC1 * b + F(0, 1) * da;
       }
       
-      for(Index j = 0; j < nppd; j++)
-      {
+      for(Index j = 0; j < nppd; j++) {
         if(not dupper_level_dx[j].NumberOfFrequencies())
           continue;
         
@@ -635,12 +600,8 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
       }
     }
   }
-  else if(mstokes_dim == 3)
-  {
-    #pragma omp parallel for \
-    if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
-    for(Index i = 0; i < mfreqs; i++)
-    {
+  else if(mstokes_dim == 3) {
+    for(Index i = 0; i < mfreqs; i++) {
       MatrixView F = T(i, joker, joker);
       
       const Numeric a = -0.5 * r * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]), 
@@ -650,21 +611,17 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
                     
       const Numeric exp_a = exp(a);
       
-      if(b == 0. and c == 0. and u == 0.)
-      {
+      if(b == 0. and c == 0. and u == 0.) {
         F(0, 1) = F(1, 0) = F(2, 0) = F(0, 2) = F(2, 1) = F(1, 2) = 0.;
         F(0, 0) = F(1, 1) = F(2, 2) = exp_a;
-        for(Index j = 0; j < nppd; j++)
-        {
-          if(dupper_level_dx[j].NumberOfFrequencies())
-          {
+        for(Index j = 0; j < nppd; j++) {
+          if(dupper_level_dx[j].NumberOfFrequencies()) {
             const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTu * upper_level.Kjj(iz, ia)[i]:0.0));
             dT_dx_upper_level(j, i, joker, joker) = F;
             dT_dx_upper_level(j, i, 0, 0) = dT_dx_upper_level(j, i, 1, 1) = dT_dx_upper_level(j, i, 2, 2) *= da;
           }
           
-          if(dlower_level_dx[j].NumberOfFrequencies())
-          {
+          if(dlower_level_dx[j].NumberOfFrequencies()) {
             const Numeric da = -0.5 * (r * dlower_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTl * lower_level.Kjj(iz, ia)[i]:0.0));
             dT_dx_lower_level(j, i, joker, joker) = F;
             dT_dx_lower_level(j, i, 0, 0) = dT_dx_lower_level(j, i, 1, 1) = dT_dx_lower_level(j, i, 2, 2) *= da;
@@ -700,8 +657,7 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
       
       F *= exp_a;
       
-      for(Index j = 0; j < nppd; j++)
-      {
+      for(Index j = 0; j < nppd; j++) {
         if(not dlower_level_dx[j].NumberOfFrequencies())
           continue;
         
@@ -737,8 +693,7 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
         dF(2, 1) = -dC1 * u - C1 * du - dC2 * (2*a*u - b*c) - C2 * (2*da*u + 2*a*du - db*c - b*dc) + F(2, 1) * da;
       }
       
-      for(Index j = 0; j < nppd; j++)
-      {
+      for(Index j = 0; j < nppd; j++) {
         if(not dupper_level_dx[j].NumberOfFrequencies())
           continue;
         
@@ -775,14 +730,9 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
       }
     }
   }
-  else if(mstokes_dim == 4)
-  {
+  else if(mstokes_dim == 4) {
     static const Numeric sqrt_05 = sqrt(0.5);
-    
-    #pragma omp parallel for \
-    if (!arts_omp_in_parallel() and mfreqs >= arts_omp_get_max_threads())
-    for(Index i = 0; i < mfreqs; i++)
-    {
+    for(Index i = 0; i < mfreqs; i++) {
       MatrixView F = T(i, joker, joker);
       
       
@@ -796,21 +746,17 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
       
       const Numeric exp_a = exp(a);
 
-      if(b == 0. and c == 0. and d == 0. and u == 0. and v == 0. and w == 0.)
-      {
+      if(b == 0. and c == 0. and d == 0. and u == 0. and v == 0. and w == 0.) {
         F(0, 1) = F(0, 2) = F(0, 3) = F(1, 0) = F(1, 2) = F(1, 3) = F(2, 0) = F(2, 1) = F(2, 3) = F(3, 0) = F(3, 1) = F(3, 2) = 0.;
         F(0, 0) = F(1, 1) = F(2, 2) = F(3, 3) = exp_a;
-        for(Index j = 0; j < nppd; j++)
-        {
-          if(dupper_level_dx[j].NumberOfFrequencies())
-          {
+        for(Index j = 0; j < nppd; j++) {
+          if(dupper_level_dx[j].NumberOfFrequencies()) {
             const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTu * upper_level.Kjj(iz, ia)[i]:0.0));
             dT_dx_upper_level(j, i, joker, joker) = F;
             dT_dx_upper_level(j, i, 0, 0) = dT_dx_upper_level(j, i, 1, 1) = dT_dx_upper_level(j, i, 2, 2) = dT_dx_upper_level(j, i, 3, 3) *= da;
           }
           
-          if(dlower_level_dx[j].NumberOfFrequencies())
-          {
+          if(dlower_level_dx[j].NumberOfFrequencies()) {
             const Numeric da = -0.5 * (r * dlower_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTl * lower_level.Kjj(iz, ia)[i]:0.0));
             dT_dx_lower_level(j, i, joker, joker) = F;
             dT_dx_lower_level(j, i, 0, 0) = dT_dx_lower_level(j, i, 1, 1) = dT_dx_lower_level(j, i, 2, 2) = dT_dx_lower_level(j, i, 3, 3) *= da;
@@ -858,24 +804,21 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
       Numeric inv_y=0.0, inv_x=0.0;  // Init'd to remove warnings
       
       // X and Y cannot both be zero
-      if(x == 0.0)
-      {
+      if(x == 0.0) {
         inv_y = 1.0 / y;
         C0 = 1.0;
         C1 = 1.0;
         C2 = (1.0 - cos_y) * inv_x2y2;
         C3 = (1.0 - sin_y*inv_y) * inv_x2y2;
       }
-      else if(y == 0.0)
-      {
+      else if(y == 0.0) {
         inv_x = 1.0 / x;
         C0 = 1.0;
         C1 = 1.0;
         C2 = (cosh_x - 1.0) * inv_x2y2;
         C3 = (sinh_x*inv_x -1.0) * inv_x2y2;
       }
-      else
-      {
+      else {
         inv_x = 1.0 / x;
         inv_y = 1.0 / y;
         
@@ -922,13 +865,11 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
       
       F *= exp_a;
       
-      if(nppd)
-      {
+      if(nppd) {
         const Numeric inv_x2 = inv_x * inv_x;
         const Numeric inv_y2 = inv_y * inv_y;
         
-        for(Index j = 0; j < nppd; j++)
-        {
+        for(Index j = 0; j < nppd; j++) {
           if(not dupper_level_dx[j].NumberOfFrequencies())
             continue;
           
@@ -949,8 +890,7 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
           const Numeric dConst2 = db2 + dc2 + dd2 - du2 - dv2 - dw2;
           
           Numeric dConst1;
-          if(Const1 > 0.)
-          {
+          if(Const1 > 0.) {
             dConst1 = db2 * ( b2 * 0.5 +  c2 +  d2 -  u2 -  v2 +  w2);
             dConst1 += b2 * (db2 * 0.5 + dc2 + dd2 - du2 - dv2 + dw2);
             
@@ -977,8 +917,7 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
             dConst1 = 0.0;
           
           Numeric dC0, dC1, dC2, dC3;
-          if(x == 0.0)
-          {
+          if(x == 0.0) {
             const Numeric dy = (0.5 * (dConst2 - dConst1)/sqrt_BmA).imag() * sqrt_05;
             
             dC0 = 0.0;
@@ -986,8 +925,7 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
             dC2 = -2*y*dy * C2 * inv_x2y2 + dy*sin_y * inv_x2y2;
             dC3 = -2*y*dy * C3 * inv_x2y2 + (dy*sin_y*inv_y2 - cos_y*dy*inv_y) * inv_x2y2;;
           }
-          else if(y == 0.0)
-          {
+          else if(y == 0.0) {
             const Numeric dx = (0.5 * (dConst2 + dConst1)/sqrt_BpA).real() * sqrt_05;
             
             dC0 = 0.0;
@@ -995,8 +933,7 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
             dC2 = -2*x*dx * C2 * inv_x2y2 + dx*sinh_x * inv_x2y2;
             dC3 = -2*x*dx * C3 * inv_x2y2 + (cosh_x*dx*inv_x - dx*sinh_x*inv_x2) * inv_x2y2;
           }
-          else
-          { 
+          else { 
             const Numeric dx = (0.5 * (dConst2 + dConst1)/sqrt_BpA).real() * sqrt_05;
             const Numeric dy = (0.5 * (dConst2 - dConst1)/sqrt_BmA).imag() * sqrt_05;
             const Numeric dy2 = 2 * y * dy;
@@ -1145,8 +1082,7 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
           dF(3, 3) += F(3, 3) * da; 
         }
         
-        for(Index j = 0; j < nppd; j++)
-        {
+        for(Index j = 0; j < nppd; j++) {
           if(not dlower_level_dx[j].NumberOfFrequencies())
             continue;
           
@@ -1167,8 +1103,7 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
           const Numeric dConst2 = db2 + dc2 + dd2 - du2 - dv2 - dw2;
           
           Numeric dConst1;
-          if(Const1 > 0.)
-          {
+          if(Const1 > 0.) {
             dConst1 = db2 * ( b2 * 0.5 +  c2 +  d2 -  u2 -  v2 +  w2);
             dConst1 += b2 * (db2 * 0.5 + dc2 + dd2 - du2 - dv2 + dw2);
             
@@ -1195,8 +1130,7 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
             dConst1 = 0.0;
           
           Numeric dC0, dC1, dC2, dC3;
-          if(x == 0.0)
-          {
+          if(x == 0.0) {
             const Numeric dy = (0.5 * (dConst2 - dConst1)/sqrt_BmA).imag() * sqrt_05;
             
             dC0 = 0.0;
@@ -1204,8 +1138,7 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
             dC2 = -2*y*dy * C2 * inv_x2y2 + dy*sin_y * inv_x2y2;
             dC3 = -2*y*dy * C3 * inv_x2y2 + (dy*sin_y*inv_y2 - cos_y*dy*inv_y) * inv_x2y2;;
           }
-          else if(y == 0.0)
-          {
+          else if(y == 0.0) {
             const Numeric dx = (0.5 * (dConst2 + dConst1)/sqrt_BpA).real() * sqrt_05;
             
             dC0 = 0.0;
@@ -1213,8 +1146,7 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
             dC2 = -2*x*dx * C2 * inv_x2y2 + dx*sinh_x * inv_x2y2;
             dC3 = -2*x*dx * C3 * inv_x2y2 + (cosh_x*dx*inv_x - dx*sinh_x*inv_x2) * inv_x2y2;
           }
-          else
-          { 
+          else { 
             const Numeric dx = (0.5 * (dConst2 + dConst1)/sqrt_BpA).real() * sqrt_05;
             const Numeric dy = (0.5 * (dConst2 - dConst1)/sqrt_BmA).imag() * sqrt_05;
             const Numeric dy2 = 2 * y * dy;
@@ -1362,594 +1294,6 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
           dF(3, 2) += F(3, 2) * da;
           dF(3, 3) += F(3, 3) * da; 
         }
-      }
-    }
-  }
-}
-
-
-void PropagationMatrix::AddZeemanPiComponent(ConstVectorView attenuation, 
-                                             ConstVectorView phase, 
-                                             const Numeric& nd, 
-                                             const Numeric& theta, 
-                                             const Numeric& eta,
-                                             ConstVectorView extra)
-{
-  assert(mstokes_dim == 4);
-  assert(mza == 1);
-  assert(maa == 1);
-  assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
-  assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
-  
-  const Numeric ST=sin(theta), ST2=ST*ST, C2E=cos(2*eta), S2E=sin(2*eta), ST2C2E=ST2*C2E, ST2S2E=ST2*S2E;
-  
-  if(extra.nelem())
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * ST2    * attenuation[iv] * extra[iv];
-      K12()[iv] -= nd * ST2C2E * attenuation[iv] * extra[iv];
-      K13()[iv] -= nd * ST2S2E * attenuation[iv] * extra[iv];
-      if(not mvectortype)
-      {
-        K24()[iv] -= 2 * nd * ST2S2E * phase[iv] * extra[iv];
-        K34()[iv] += 2 * nd * ST2C2E * phase[iv] * extra[iv];
-      }
-    }
-  }
-  else
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * ST2    * attenuation[iv];
-      K12()[iv] -= nd * ST2C2E * attenuation[iv];
-      K13()[iv] -= nd * ST2S2E * attenuation[iv];
-      if(not mvectortype)
-      {
-        K24()[iv] -= 2 * nd * ST2S2E * phase[iv];
-        K34()[iv] += 2 * nd * ST2C2E * phase[iv];
-      }
-    }
-  }
-}
-
-
-void PropagationMatrix::AddZeemanPiComponentThetaDerivative(ConstVectorView attenuation, 
-                                                            ConstVectorView phase, 
-                                                            const Numeric& nd, 
-                                                            const Numeric& theta, 
-                                                            const Numeric& eta,
-                                                            ConstVectorView extra)
-{
-  assert(mstokes_dim == 4);
-  assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
-  assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
-  
-  const Numeric ST=sin(theta), dST=cos(theta), dST2=2*ST*dST, dST2C2E = dST2*cos(2*eta), dST2S2E = dST2*sin(2*eta);
-  
-  
-  if(extra.nelem())
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * dST2    * attenuation[iv] * extra[iv];
-      K12()[iv] -= nd * dST2C2E * attenuation[iv] * extra[iv];
-      K13()[iv] -= nd * dST2S2E * attenuation[iv] * extra[iv];
-      if(not mvectortype)
-      {
-        K24()[iv] -= 2 * nd * dST2S2E * phase[iv] * extra[iv];
-        K34()[iv] += 2 * nd * dST2C2E * phase[iv] * extra[iv];
-      }
-    }
-  }
-  else
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * dST2    * attenuation[iv];
-      K12()[iv] -= nd * dST2C2E * attenuation[iv];
-      K13()[iv] -= nd * dST2S2E * attenuation[iv];
-      if(not mvectortype)
-      {
-        K24()[iv] -= 2 * nd * dST2S2E * phase[iv];
-        K34()[iv] += 2 * nd * dST2C2E * phase[iv];
-      }
-    }
-  }
-}
-
-
-void PropagationMatrix::AddZeemanPiComponentEtaDerivative(ConstVectorView attenuation, 
-                                                          ConstVectorView phase, 
-                                                          const Numeric& nd, 
-                                                          const Numeric& theta, 
-                                                          const Numeric& eta,
-                                                          ConstVectorView extra)
-{
-  assert(mstokes_dim == 4);
-  assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
-  assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
-  
-  const Numeric ST=sin(theta), ST2=ST*ST, C2E=cos(2*eta), S2E=sin(2*eta), dST2C2E=-2*ST2*S2E, dST2S2E=2*ST2*C2E;
-  
-  
-  if(extra.nelem())
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      K12()[iv] -= nd * dST2C2E * attenuation[iv] * extra[iv];
-      K13()[iv] -= nd * dST2S2E * attenuation[iv] * extra[iv];
-      if(not mvectortype)
-      {
-        K24()[iv] -= 2 * nd * dST2S2E * phase[iv] * extra[iv];
-        K34()[iv] += 2 * nd * dST2C2E * phase[iv] * extra[iv];
-      }
-    }
-  }
-  else
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      K12()[iv] -= nd * dST2C2E * attenuation[iv];
-      K13()[iv] -= nd * dST2S2E * attenuation[iv];
-      if(not mvectortype)
-      {
-        K24()[iv] -= 2 * nd * dST2S2E * phase[iv];
-        K34()[iv] += 2 * nd * dST2C2E * phase[iv];
-      }
-    }
-  }
-}
-
-
-void PropagationMatrix::AddZeemanPiComponentDerivative(ConstVectorView attenuation,
-                                                       ConstVectorView dattenuation, 
-                                                       ConstVectorView phase, 
-                                                       ConstVectorView dphase, 
-                                                       const Numeric& nd, 
-                                                       const Numeric& theta, 
-                                                       const Numeric& dtheta, 
-                                                       const Numeric& eta,
-                                                       const Numeric& deta,
-                                                       ConstVectorView extra)
-{
-  assert(mstokes_dim == 4);
-  assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
-  assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
-  
-  const Numeric ST=sin(theta), ST2=ST*ST, C2E=cos(2*eta), S2E=sin(2*eta), ST2C2E=ST2*C2E, ST2S2E=ST2*S2E;
-  const Numeric dST = cos(theta)*dtheta, dST2 = 2*ST*dST, dC2E = -2*S2E*deta, dS2E = 2*C2E*deta,
-  dST2C2E = dST2*C2E + ST2*dC2E, dST2S2E = dST2*S2E + ST2*dS2E;
-  
-  
-  if(extra.nelem())
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * ((ST2    + dST2)    * attenuation[iv] + ST2    * dattenuation[iv]) * extra[iv];
-      K12()[iv] -= nd * ((ST2C2E + dST2C2E) * attenuation[iv] + ST2C2E * dattenuation[iv]) * extra[iv];
-      K13()[iv] -= nd * ((ST2S2E + dST2S2E) * attenuation[iv] + ST2S2E * dattenuation[iv]) * extra[iv];
-      if(not mvectortype)
-      {
-        K24()[iv] -= 2 * nd * ((ST2S2E + dST2S2E) * phase[iv] + ST2S2E * dphase[iv]) * extra[iv];
-        K34()[iv] += 2 * nd * ((ST2C2E + dST2C2E) * phase[iv] + ST2C2E * dphase[iv]) * extra[iv];
-      }
-    }
-  }
-  else
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * ((ST2    + dST2)    * attenuation[iv] + ST2    * dattenuation[iv]);
-      K12()[iv] -= nd * ((ST2C2E + dST2C2E) * attenuation[iv] + ST2C2E * dattenuation[iv]);
-      K13()[iv] -= nd * ((ST2S2E + dST2S2E) * attenuation[iv] + ST2S2E * dattenuation[iv]);
-      if(not mvectortype)
-      {
-        K24()[iv] -= 2 * nd * ((ST2S2E + dST2S2E) * phase[iv] + ST2S2E * dphase[iv]);
-        K34()[iv] += 2 * nd * ((ST2C2E + dST2C2E) * phase[iv] + ST2C2E * dphase[iv]);
-      }
-    }
-  }
-}
-
-
-void PropagationMatrix::AddZeemanSigmaMinusComponent(ConstVectorView attenuation, 
-                                                     ConstVectorView phase, 
-                                                     const Numeric& nd, 
-                                                     const Numeric& theta, 
-                                                     const Numeric& eta,
-                                                     ConstVectorView extra)
-{
-  assert(mstokes_dim == 4);
-  assert(mza == 1);
-  assert(maa == 1);
-  assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
-  assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
-  
-  const Numeric ST=sin(theta), ST2=ST*ST, CT=cos(theta), ONEplusCT2=1+CT*CT, C2E=cos(2*eta), S2E=sin(2*eta), ST2C2E=ST2*C2E, ST2S2E=ST2*S2E;
-  
-  if(extra.nelem())
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * ONEplusCT2 * attenuation[iv] * extra[iv];
-      K12()[iv] += nd * ST2C2E     * attenuation[iv] * extra[iv];
-      K13()[iv] += nd * ST2S2E     * attenuation[iv] * extra[iv];
-      K14()[iv] += 2 * nd * CT     * attenuation[iv] * extra[iv];
-      if(not mvectortype)
-      {
-        K23()[iv] += 4 * nd * CT     * phase[iv] * extra[iv];
-        K24()[iv] += 2 * nd * ST2S2E * phase[iv] * extra[iv];
-        K34()[iv] -= 2 * nd * ST2C2E * phase[iv] * extra[iv];
-      }
-    }
-  }
-  else
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * ONEplusCT2 * attenuation[iv];
-      K12()[iv] += nd * ST2C2E     * attenuation[iv];
-      K13()[iv] += nd * ST2S2E     * attenuation[iv];
-      K14()[iv] += 2 * nd * CT     * attenuation[iv];
-      if(not mvectortype)
-      {
-        K23()[iv] += 4 * nd * CT     * phase[iv];
-        K24()[iv] += 2 * nd * ST2S2E * phase[iv];
-        K34()[iv] -= 2 * nd * ST2C2E * phase[iv];
-      }
-    }
-  }
-}
-
-
-void PropagationMatrix::AddZeemanSigmaMinusComponentEtaDerivative(ConstVectorView attenuation, 
-                                                                  ConstVectorView phase, 
-                                                                  const Numeric& nd,
-                                                                  const Numeric& theta,
-                                                                  const Numeric& eta,
-                                                                  ConstVectorView extra)
-{
-  assert(mstokes_dim == 4);
-  assert(mza == 1);
-  assert(maa == 1);
-  assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
-  assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
-  
-  const Numeric ST=sin(theta), ST2=ST*ST, C2E=cos(2*eta), S2E=sin(2*eta), dST2C2E=-2*ST2*S2E, dST2S2E=2*ST2*C2E;
-  
-  if(extra.nelem())
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      K12()[iv] += nd * dST2C2E     * attenuation[iv] * extra[iv];
-      K13()[iv] += nd * dST2S2E     * attenuation[iv] * extra[iv];
-      if(not mvectortype)
-      {
-        K24()[iv] += 2 * nd * dST2S2E * phase[iv] * extra[iv];
-        K34()[iv] -= 2 * nd * dST2C2E * phase[iv] * extra[iv];
-      }
-    }
-  }
-  else
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      K12()[iv] += nd * dST2C2E     * attenuation[iv];
-      K13()[iv] += nd * dST2S2E     * attenuation[iv];
-      if(not mvectortype)
-      {
-        K24()[iv] += 2 * nd * dST2S2E * phase[iv];
-        K34()[iv] -= 2 * nd * dST2C2E * phase[iv];
-      }
-    }
-  }
-}
-
-
-void PropagationMatrix::AddZeemanSigmaMinusComponentThetaDerivative(ConstVectorView attenuation,
-                                                                    ConstVectorView phase,
-                                                                    const Numeric& nd,
-                                                                    const Numeric& theta,
-                                                                    const Numeric& eta,
-                                                                    ConstVectorView extra)
-{
-  assert(mstokes_dim == 4);
-  assert(mza == 1);
-  assert(maa == 1);
-  assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
-  assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
-  
-  const Numeric ST=sin(theta), CT=cos(theta), C2E=cos(2*eta), S2E=sin(2*eta);
-  const Numeric dST = CT, dST2 = 2*ST*dST, dCT = -ST, dST2C2E = dST2*C2E, dST2S2E = dST2*S2E, dONEplusCT2 = 2*CT*dCT;
-  
-  if(extra.nelem())
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * dONEplusCT2 * attenuation[iv] * extra[iv];
-      K12()[iv] += nd * dST2C2E     * attenuation[iv] * extra[iv];
-      K13()[iv] += nd * dST2S2E     * attenuation[iv] * extra[iv];
-      K14()[iv] += 2 * nd * dCT     * attenuation[iv] * extra[iv];
-      if(not mvectortype)
-      {
-        K23()[iv] += 4 * nd * dCT     * phase[iv] * extra[iv];
-        K24()[iv] += 2 * nd * dST2S2E * phase[iv] * extra[iv];
-        K34()[iv] -= 2 * nd * dST2C2E * phase[iv] * extra[iv];
-      }
-    }
-  }
-  else
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * dONEplusCT2 * attenuation[iv];
-      K12()[iv] += nd * dST2C2E     * attenuation[iv];
-      K13()[iv] += nd * dST2S2E     * attenuation[iv];
-      K14()[iv] += 2 * nd * dCT     * attenuation[iv];
-      if(not mvectortype)
-      {
-        K23()[iv] += 4 * nd * dCT     * phase[iv];
-        K24()[iv] += 2 * nd * dST2S2E * phase[iv];
-        K34()[iv] -= 2 * nd * dST2C2E * phase[iv];
-      }
-    }
-  }
-}
-
-
-void PropagationMatrix::AddZeemanSigmaMinusComponentDerivative(ConstVectorView attenuation,
-                                                               ConstVectorView dattenuation, 
-                                                               ConstVectorView phase, 
-                                                               ConstVectorView dphase, 
-                                                               const Numeric& nd, 
-                                                               const Numeric& theta, 
-                                                               const Numeric& dtheta, 
-                                                               const Numeric& eta,
-                                                               const Numeric& deta,
-                                                               ConstVectorView extra)
-{
-  assert(mstokes_dim == 4);
-  assert(mza == 1);
-  assert(maa == 1);
-  assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
-  assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
-  
-  const Numeric ST=sin(theta), ST2=ST*ST, CT=cos(theta), ONEplusCT2=1+CT*CT, C2E=cos(2*eta), S2E=sin(2*eta), ST2C2E=ST2*C2E, ST2S2E=ST2*S2E;
-  const Numeric dST = CT*dtheta, dST2 = 2*ST*dST, dCT = -ST*dtheta, dONEplusCT2 = 2*CT*dCT, dC2E = -2*S2E*deta, dS2E = 2*C2E*deta,
-  dST2C2E = dST2*C2E + ST2*dC2E, dST2S2E = dST2*S2E + ST2*dS2E;
-  
-  if(extra.nelem())
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * ((ONEplusCT2 + dONEplusCT2) * attenuation[iv] + ONEplusCT2 * dattenuation[iv]) * extra[iv];
-      K12()[iv] += nd * ((ST2C2E     + dST2C2E)     * attenuation[iv] + ST2C2E     * dattenuation[iv]) * extra[iv];
-      K13()[iv] += nd * ((ST2S2E     + dST2S2E)     * attenuation[iv] + ST2S2E     * dattenuation[iv]) * extra[iv];
-      K14()[iv] += 2 * nd * ((CT     + dCT)         * attenuation[iv] + CT         * dattenuation[iv]) * extra[iv];
-      if(not mvectortype)
-      {
-        K23()[iv] += 4 * nd * ((CT     + dCT)     * phase[iv] + CT     * dphase[iv]) * extra[iv];
-        K24()[iv] += 2 * nd * ((ST2S2E + dST2S2E) * phase[iv] + ST2S2E * dphase[iv]) * extra[iv];
-        K34()[iv] -= 2 * nd * ((ST2C2E + dST2C2E) * phase[iv] + ST2C2E * dphase[iv]) * extra[iv];
-      }
-    }
-  }
-  else
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * ((ONEplusCT2 + dONEplusCT2) * attenuation[iv] + ONEplusCT2 * dattenuation[iv]);
-      K12()[iv] += nd * ((ST2C2E     + dST2C2E)     * attenuation[iv] + ST2C2E     * dattenuation[iv]);
-      K13()[iv] += nd * ((ST2S2E     + dST2S2E)     * attenuation[iv] + ST2S2E     * dattenuation[iv]);
-      K14()[iv] += 2 * nd * ((CT     + dCT)         * attenuation[iv] + CT         * dattenuation[iv]);
-      if(not mvectortype)
-      {
-        K23()[iv] += 4 * nd * ((CT     + dCT)     * phase[iv] + CT     * dphase[iv]);
-        K24()[iv] += 2 * nd * ((ST2S2E + dST2S2E) * phase[iv] + ST2S2E * dphase[iv]);
-        K34()[iv] -= 2 * nd * ((ST2C2E + dST2C2E) * phase[iv] + ST2C2E * dphase[iv]);
-      }
-    }
-  }
-}
-
-
-void PropagationMatrix::AddZeemanSigmaPlusComponent(ConstVectorView attenuation,
-                                                    ConstVectorView phase,
-                                                    const Numeric& nd,
-                                                    const Numeric& theta, 
-                                                    const Numeric& eta,
-                                                    ConstVectorView extra)
-{
-  assert(mstokes_dim == 4);
-  assert(mza == 1);
-  assert(maa == 1);
-  assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
-  assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
-  
-  const Numeric ST=sin(theta), ST2=ST*ST, CT=cos(theta), ONEplusCT2=1+CT*CT, C2E=cos(2*eta), S2E=sin(2*eta), ST2C2E=ST2*C2E, ST2S2E=ST2*S2E;
-  
-  if(extra.nelem())
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * ONEplusCT2 * attenuation[iv] * extra[iv];
-      K12()[iv] += nd * ST2C2E     * attenuation[iv] * extra[iv];
-      K13()[iv] += nd * ST2S2E     * attenuation[iv] * extra[iv];
-      K14()[iv] -= 2 * nd * CT     * attenuation[iv] * extra[iv];
-      if(not mvectortype)
-      {
-        K23()[iv] -= 4 * nd * CT     * phase[iv] * extra[iv];
-        K24()[iv] += 2 * nd * ST2S2E * phase[iv] * extra[iv];
-        K34()[iv] -= 2 * nd * ST2C2E * phase[iv] * extra[iv];
-      }
-    }
-  }
-  else
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * ONEplusCT2 * attenuation[iv];
-      K12()[iv] += nd * ST2C2E     * attenuation[iv];
-      K13()[iv] += nd * ST2S2E     * attenuation[iv];
-      K14()[iv] -= 2 * nd * CT     * attenuation[iv];
-      if(not mvectortype)
-      {
-        K23()[iv] -= 4 * nd * CT     * phase[iv];
-        K24()[iv] += 2 * nd * ST2S2E * phase[iv];
-        K34()[iv] -= 2 * nd * ST2C2E * phase[iv];
-      }
-    }
-  }
-}
-
-
-void PropagationMatrix::AddZeemanSigmaPlusComponentThetaDerivative(ConstVectorView attenuation,
-                                                                   ConstVectorView phase,
-                                                                   const Numeric& nd,
-                                                                   const Numeric& theta,
-                                                                   const Numeric& eta,
-                                                                   ConstVectorView extra)
-{
-  assert(mstokes_dim == 4);
-  assert(mza == 1);
-  assert(maa == 1);
-  assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
-  assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
-  
-  const Numeric ST=sin(theta), CT=cos(theta), C2E=cos(2*eta), S2E=sin(2*eta);
-  const Numeric dST=CT, dST2 = 2*ST*dST, dCT=-ST, dONEplusCT2=2*CT*dCT, dST2C2E=dST2*C2E, dST2S2E=dST2*S2E;
-  
-  if(extra.nelem())
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * dONEplusCT2 * attenuation[iv] * extra[iv];
-      K12()[iv] += nd * dST2C2E     * attenuation[iv] * extra[iv];
-      K13()[iv] += nd * dST2S2E     * attenuation[iv] * extra[iv];
-      K14()[iv] -= 2 * nd * dCT     * attenuation[iv] * extra[iv];
-      if(not mvectortype)
-      {
-        K23()[iv] -= 4 * nd * dCT     * phase[iv] * extra[iv];
-        K24()[iv] += 2 * nd * dST2S2E * phase[iv] * extra[iv];
-        K34()[iv] -= 2 * nd * dST2C2E * phase[iv] * extra[iv];
-      }
-    }
-  }
-  else
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * dONEplusCT2 * attenuation[iv];
-      K12()[iv] += nd * dST2C2E     * attenuation[iv];
-      K13()[iv] += nd * dST2S2E     * attenuation[iv];
-      K14()[iv] -= 2 * nd * dCT     * attenuation[iv];
-      if(not mvectortype)
-      {
-        K23()[iv] -= 4 * nd * dCT     * phase[iv];
-        K24()[iv] += 2 * nd * dST2S2E * phase[iv];
-        K34()[iv] -= 2 * nd * dST2C2E * phase[iv];
-      }
-    }
-  }
-}
-
-
-void PropagationMatrix::AddZeemanSigmaPlusComponentEtaDerivative(ConstVectorView attenuation,
-                                                                 ConstVectorView phase,
-                                                                 const Numeric& nd,
-                                                                 const Numeric& theta,
-                                                                 const Numeric& eta,
-                                                                 ConstVectorView extra)
-{
-  assert(mstokes_dim == 4);
-  assert(mza == 1);
-  assert(maa == 1);
-  assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
-  assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
-  
-  const Numeric ST=sin(theta), ST2=ST*ST, C2E=cos(2*eta), S2E=sin(2*eta), dST2C2E=-2*ST2*S2E, dST2S2E=2*ST2*C2E;
-  
-  if(extra.nelem())
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      K12()[iv] += nd * dST2C2E     * attenuation[iv] * extra[iv];
-      K13()[iv] += nd * dST2S2E     * attenuation[iv] * extra[iv];
-      if(not mvectortype)
-      {
-        K24()[iv] += 2 * nd * dST2S2E * phase[iv] * extra[iv];
-        K34()[iv] -= 2 * nd * dST2C2E * phase[iv] * extra[iv];
-      }
-    }
-  }
-  else
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      K12()[iv] += nd * dST2C2E     * attenuation[iv];
-      K13()[iv] += nd * dST2S2E     * attenuation[iv];
-      if(not mvectortype)
-      {
-        K24()[iv] += 2 * nd * dST2S2E * phase[iv];
-        K34()[iv] -= 2 * nd * dST2C2E * phase[iv];
-      }
-    }
-  }
-}
-
-
-void PropagationMatrix::AddZeemanSigmaPlusComponentDerivative(ConstVectorView attenuation,
-                                                              ConstVectorView dattenuation, 
-                                                              ConstVectorView phase, 
-                                                              ConstVectorView dphase, 
-                                                              const Numeric& nd, 
-                                                              const Numeric& theta, 
-                                                              const Numeric& dtheta, 
-                                                              const Numeric& eta,
-                                                              const Numeric& deta,
-                                                              ConstVectorView extra)
-{
-  assert(mstokes_dim == 4);
-  assert(mza == 1);
-  assert(maa == 1);
-  assert(mfreqs == attenuation.nelem() and mfreqs == phase.nelem());
-  assert(extra.nelem() == 0 or extra.nelem() == mfreqs);
-  
-  const Numeric ST=sin(theta), ST2=ST*ST, CT=cos(theta), ONEplusCT2=1+CT*CT, C2E=cos(2*eta), S2E=sin(2*eta), ST2C2E=ST2*C2E, ST2S2E=ST2*S2E;
-  const Numeric dST = CT*dtheta, dST2 = 2*ST*dST, dCT = -ST*dtheta, dONEplusCT2 = 2*CT*dCT, dC2E = -2*S2E*deta, dS2E = 2*C2E*deta,
-  dST2C2E = dST2*C2E + ST2*dC2E, dST2S2E = dST2*S2E + ST2*dS2E;
-  
-  
-  if(extra.nelem())
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * ((ONEplusCT2 + dONEplusCT2) * attenuation[iv] + ONEplusCT2 * dattenuation[iv]) * extra[iv];
-      K12()[iv] += nd * ((ST2C2E     + dST2C2E)     * attenuation[iv] + ST2C2E     * dattenuation[iv]) * extra[iv];
-      K13()[iv] += nd * ((ST2S2E     + dST2S2E)     * attenuation[iv] + ST2S2E     * dattenuation[iv]) * extra[iv];
-      K14()[iv] -= 2 * nd * ((CT     + dCT)         * attenuation[iv] + CT         * dattenuation[iv]) * extra[iv];
-      if(not mvectortype)
-      {
-        K23()[iv] -= 4 * nd * ((CT     + dCT)     * phase[iv] + CT     * dphase[iv]) * extra[iv];
-        K24()[iv] += 2 * nd * ((ST2S2E + dST2S2E) * phase[iv] + ST2S2E * dphase[iv]) * extra[iv];
-        K34()[iv] -= 2 * nd * ((ST2C2E + dST2C2E) * phase[iv] + ST2C2E * dphase[iv]) * extra[iv];
-      }
-    }
-  }
-  else
-  {
-    for(Index iv = 0; iv < mfreqs; iv++)
-    {
-      Kjj()[iv] += nd * ((ONEplusCT2 + dONEplusCT2) * attenuation[iv] + ONEplusCT2 * dattenuation[iv]);
-      K12()[iv] += nd * ((ST2C2E     + dST2C2E)     * attenuation[iv] + ST2C2E     * dattenuation[iv]);
-      K13()[iv] += nd * ((ST2S2E     + dST2S2E)     * attenuation[iv] + ST2S2E     * dattenuation[iv]);
-      K14()[iv] -= 2 * nd * ((CT     + dCT)         * attenuation[iv] + CT         * dattenuation[iv]);
-      if(not mvectortype)
-      {
-        K23()[iv] -= 4 * nd * ((CT     + dCT)     * phase[iv] + CT     * dphase[iv]);
-        K24()[iv] += 2 * nd * ((ST2S2E + dST2S2E) * phase[iv] + ST2S2E * dphase[iv]);
-        K34()[iv] -= 2 * nd * ((ST2C2E + dST2C2E) * phase[iv] + ST2C2E * dphase[iv]);
       }
     }
   }
@@ -2463,283 +1807,6 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfStokesVector& aas
   for(auto& asv : aasv)
     os << asv;
   return os;
-}
-
-
-void get_diydx_replacement(MatrixView diydx_this,
-                           MatrixView diydx_next,
-                           ConstMatrixView iy,
-                           ConstMatrixView sibi,
-                           const StokesVector& nlte_this,
-                           const StokesVector& nlte_next,
-                           const StokesVector& dnltedx_this,
-                           const StokesVector& dnltedx_next,
-                           const PropagationMatrix& K_this,
-                           const PropagationMatrix& K_next,
-                           const PropagationMatrix& dKdx_this,
-                           const PropagationMatrix& dKdx_next,
-                           ConstTensor3View T_this,
-                           ConstTensor3View dTdx_this,
-                           ConstTensor3View dTdx_next,
-                           ConstTensor3View PiT_this,
-                           ConstTensor3View PiT_next,
-                           const Numeric& temperature_this,
-                           const Numeric& temperature_next,
-                           const Numeric& dt,
-                           ConstVectorView dBdx_this,
-                           ConstVectorView dBdx_next,
-                           const Numeric& r,
-                           const bool& do_Bsource,
-                           const bool& do_HSE,
-                           const bool& do_nonlte )
-{
-  const Index stokes_dim = K_this.StokesDimensions();
-  const Index frequency_dim = K_next.NumberOfFrequencies();
-  ArrayOfCaseOfPropagationMatrix cases(frequency_dim);
-  K_this.CalculationCase(cases);
-  K_next.CalculationCaseMaximize(cases);
-  
-  #pragma omp parallel for \
-  if (!arts_omp_in_parallel() and frequency_dim >= arts_omp_get_max_threads())
-  for(Index i = 0; i < frequency_dim; i++)
-  {
-    if(cases[i] == CaseOfPropagationMatrix::Diagonal)
-    {
-      /*
-        * Solves ds/dx = T [ dTi/dx * (si-bi-Ki^(-1)ji) + 
-        *        (1 - Ti) * ( dbi/dx + K^(-2)dKi/dxji + K^(-1)dji/dx ) ]
-        * 
-        * In extmat_case 1, dTi/dx = T*dKi/dx.
-        * 
-        * (si-bi-Ki^(-1)ji) is sibi
-        * T                 is PiT_this                   (NB PiT_next is PiT_this*T_this)
-        * dTi/dx            is PiT_next*dKi/dx*r/2        (from T being scalar/diagonal exponent function)
-        * dbi/dx            is dBdx_this/2, dBdx_next/2   (note how outer loop takes care of this)
-        * Ki                is K_this/2, K_next/2         (note how outer loop takes care of this)
-        * dKi/dx            is dKdx_this, dKdx_next       (note how outer loop takes care of this)
-        * ji                is nlte_this/2, nlte_next/2   (note how outer loop takes care of this)
-        * dji/dx            is dnltedx_this, dnltedx_next (note how outer loop takes care of this)
-        * 
-        * Begin solution
-        */
-      
-      /*
-        * T * dTi/dx * (si-bi-Ki^(-1)ji)
-        */
-      const Numeric x = -0.5 * r * PiT_next(i, 0, 0);
-      const Numeric y = x * sibi(i, 0);
-      // Stokes 1:
-      diydx_this(i, 0) += y * dKdx_this.Kjj()[i];
-      diydx_next(i, 0) += y * dKdx_next.Kjj()[i];
-      // Higher Stokes
-      for( Index is = 1; is < stokes_dim; is++ )
-      { 
-          const Numeric z = x * sibi(i, is); //NB: sibi not iy since ji can be polarized as well?
-          diydx_this(i, is) += z * dKdx_this.Kjj()[i];
-          diydx_next(i, is) += z * dKdx_next.Kjj()[i];
-      }
-      
-      /*
-        * T * (1 - Ti) * dbi/dx
-        */
-      if(do_Bsource)
-      {
-          // The terms associated with B-bar:  For extmat_case==1 only works on first term
-          const Numeric v = PiT_this(i, 0, 0) * (1.0 - T_this(i, 0, 0));
-          diydx_this(i, 0) += 0.5 * v * dBdx_this[i];
-          diydx_next(i, 0) += 0.5 * v * dBdx_next[i];
-      }
-      
-      /*
-        * T * (1 - Ti) *(K^(-2)dKi/dxji + K^(-1)dji/dx)
-        */
-      if(do_nonlte)
-      {
-          const Numeric v = 0.5 * PiT_this(i, 0, 0) * (1.0 - T_this(i, 0, 0));
-          
-          Numeric invK = 1.0/K_this.Kjj()[i];
-          
-          diydx_this(i, 0) += -v * invK * (dKdx_this.Kjj()[i] * invK * nlte_this.Kjj()[i] + invK * dnltedx_this.Kjj()[i]);
-          
-          invK = 1.0/K_next.Kjj()[i];
-          diydx_next(i ,0) += -v * invK * (dKdx_next.Kjj()[i] * invK * nlte_next.Kjj()[i] + invK * dnltedx_next.Kjj()[i]);
-      }
-      
-      /*
-        * End of solution
-        */
-      
-      // Zero for higher Stokes
-      //
-      // The terms associated with Delta-s:
-      if( do_HSE )
-      {
-          if(do_nonlte)
-              throw std::runtime_error("HSE and non-LTE not yet compatible\n");
-              
-          // Stokes 1:
-          const Numeric kbar = 0.5 * ( K_this.Kjj()[i] + K_next.Kjj()[i] );
-          
-          diydx_this(i, 0) += y * kbar / temperature_this;
-          diydx_next(i, 0) += y * kbar / temperature_next;
-          // Higher Stokes
-          for( Index is=1; is<stokes_dim; is++ )
-          { 
-              const Numeric z = x * iy(i, is);
-              diydx_this(i, is) += z * kbar / temperature_this;
-              diydx_next(i, is) += z * kbar / temperature_next;
-          }
-      } //hse
-    }
-    else
-    {
-      /*
-      * Solves ds/dx = T [ dTi/dx * (si-bi-Ki^(-1)ji) + 
-      *        (1 - Ti) * ( dbi/dx + K^(-1)dKi/dxK^(-1)ji + K^(-1)dji/dx ) ]
-      * 
-      * (si-bi-Ki^(-1)ji) is sibi
-      * T                 is PiT_this
-      * dTi/dx            is dTdx_this, dTdx_next       (note how outer loop takes care of this)
-      * Ti                is T_this
-      * dbi/dx            is dBdx_this/2, dBdx_next/2   (note how outer loop takes care of this)
-      * Ki                is K_this/2, K_next/2         (note how outer loop takes care of this)
-      * dKi/dx            is dKdx_this, dKdx_next       (note how outer loop takes care of this)
-      * ji                is nlte_this/2, nlte_next/2   (note how outer loop takes care of this)
-      * dji/dx            is dnltedx_this, dnltedx_next (note how outer loop takes care of this)
-      * 
-      * Begin solution
-      */
-      
-      //Helpers
-      Vector x(stokes_dim), y(stokes_dim);
-      /*
-      * This is the T * dTi/dx * (si-bi-Ki^(-1)ji) part
-      */
-      // Disturb for this
-      mult( x, dTdx_this(i, joker, joker), sibi(i, joker) ); // local derivative
-      mult( y, PiT_this(i, joker, joker), x ); // propagate derivative to sensor
-      diydx_this(i, joker) += y;
-      
-      // Disturb for next
-      mult( x, dTdx_next(i, joker, joker), sibi(i, joker) ); // local derivative
-      mult( y, PiT_this(i, joker, joker), x ); // propagate derivative to sensor
-      diydx_next(i, joker) += y; 
-      
-      
-      // The terms associated with B-bar:
-      /*
-      * This is the T * (1-Ti)*dbi/dx part
-      */
-      if(do_Bsource)
-      {
-        // Disturb this
-        const Numeric v = (1.0 - T_this(i, 0, 0));
-        x[0] = 0.5 *v * dBdx_this[i];
-        for(Index is = 1; is < stokes_dim; is++) 
-        {
-          x[is] = -0.5 * T_this(i, is, 0) * dBdx_this[i]; 
-        }
-        mult(y, PiT_this(i, joker, joker), x);
-        diydx_this(i, joker) += y; 
-        
-        // Disturb next
-        x[0] = 0.5 * v * dBdx_next[i];
-        for(Index is = 1; is < stokes_dim; is++) 
-        { 
-          x[is] = -0.5 * T_this(i, is, 0) * dBdx_next[i]; 
-        }
-        mult(y, PiT_this(i, joker, joker), x);
-        diydx_next(i, joker) += y;
-      }
-      
-      /*
-      * This is the  T * (1-Ti)* ( K^(-1)dKi/dxK^(-1)ji + K^(-1)dji/dx ) part
-      */
-      if(do_nonlte)
-      {
-        Matrix invK(stokes_dim,stokes_dim), mat1(stokes_dim,stokes_dim), OneMinusTransmission(stokes_dim,stokes_dim);
-        Vector vec1(stokes_dim), vec2(stokes_dim);
-        
-        OneMinusTransmission = T_this(i, joker, joker);
-        OneMinusTransmission *= -1;
-        for(Index is = 0; is < stokes_dim; is++)
-          OneMinusTransmission(is, is) += 1;
-        
-        // For this
-        K_this.MatrixInverseAtPosition(invK, i);
-        dKdx_this.LeftMultiplyAtPosition(mat1, invK, i);
-        
-        mult(vec1, mat1, nlte_this.VectorAtPosition(i));
-        vec1 -= dnltedx_this.VectorAtPosition(i);
-        vec1*=-0.5;
-        
-        mult(vec2, OneMinusTransmission, vec1);
-        mult(vec1, PiT_this(i, joker, joker), vec2);
-        
-        diydx_this(i, joker) += vec1;
-        
-        // For next
-        K_next.MatrixInverseAtPosition(invK, i);
-        dKdx_next.LeftMultiplyAtPosition(mat1, invK, i);
-        
-        mult(vec1, mat1, nlte_next.VectorAtPosition(i));
-        vec1 -= dnltedx_next.VectorAtPosition(i);
-        vec1 *= -0.5;
-        
-        mult(vec2, OneMinusTransmission, vec1);
-        mult(vec1, PiT_this(i, joker, joker), vec2);
-        
-        diydx_next(i, joker) += vec1;
-      }
-      
-      
-      /*
-      *  End of solution
-      * 
-      * Below follows hydrostatic equilibrium calculations
-      * FIXME:  Add theoretical description
-      */
-      
-      //
-      // The terms associated with Delta-s:
-      if( do_HSE )
-      {
-        if(do_nonlte)
-          throw std::runtime_error("HSE and non-LTE not yet compatible\n");
-        
-        Matrix ext_mat(stokes_dim,stokes_dim), dtdx(stokes_dim,stokes_dim);
-        for( Index is1=0; is1<stokes_dim; is1++ ){
-          for( Index is2=0; is2<stokes_dim; is2++ ){
-            ext_mat(is1,is2) = 0.5 * ( K_this(i, is1,is2) + K_next(i, is1,is2) );}}
-          // dl for disturbed tbar
-          const Numeric tbar = 0.5 * ( temperature_this + temperature_next );
-        const Numeric dl = r * ( 1.0 + dt/tbar );
-        
-        ext_mat *= -dl;
-        cayley_hamilton_fitted_method_4x4_propmat_to_transmat__explicit(dtdx, ext_mat);
-        
-        for( Index is1=0; is1<stokes_dim; is1++ ) 
-        {
-          for( Index is2=0; is2<stokes_dim; is2++ ) 
-          {
-            dtdx(is1,is2) = (1/dt) * (dtdx(is1,is2) - T_this(i, is1,is2)); 
-          }
-        }
-            
-        mult( x, dtdx, sibi(i, joker) );
-        mult( y, PiT_this(i, joker, joker), x );
-        
-        // Contribution shared between the two
-        // points  and is proportional to 1/t
-        // See also AUG.
-        for( Index is=0; is<stokes_dim; is++ ) 
-        {
-          diydx_this(i, is) += y[is] * 0.5 * tbar / temperature_this;
-          diydx_next(i, is) += y[is] * 0.5 * tbar / temperature_next;
-        }
-      } // HSE
-    }
-  }
 }
 
 

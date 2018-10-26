@@ -26,13 +26,12 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field)
 
 IndexSet( stokes_dim, 1 )
+IndexSet( xsec_speedup_switch, 0 )
 
 VectorNLogSpace( p_grid, 41, 1000e2, 1 )
 VectorNLinSpace( lat_grid, 2, -60, 60)
 VectorNLinSpace( lon_grid, 2, -30, 30)
-MatrixSet(sensor_los, [
-1.126885514276187e2,0;
-1.122589281936843e2,0;   1.118213323268050e2,0])
+MatrixSet(sensor_los, [1.126885514276187e2,0;   1.122589281936843e2,0;   1.118213323268050e2,0])
 MatrixSet(sensor_pos, [600e3, 0, 0;600e3,0,0;600e3,0,0])
 
 refellipsoidEarth( refellipsoid, "Sphere" )
@@ -41,13 +40,15 @@ AtmosphereSet3D
 abs_speciesSet( species=["CO2-626"] )
  
 VectorCreate(tmp_kayser)
-VectorLinSpace( tmp_kayser, 600, 650, 0.1 )
+VectorLinSpace( tmp_kayser, 600, 650, 1 )
 FrequencyFromCGSKayserWavenumber( f_grid, tmp_kayser )
 
 #WriteXML("ascii",tmp_kayser,"cm.xml")
 #WriteXML("ascii",f_grid,"f.xml")
 
 ReadXML(abs_lines_per_species,"testdata/NLTE_CO2_testlines.xml")
+abs_lines_per_speciesSetNormalizationForAll(option="VVH")
+abs_lines_per_speciesCutOffForAll(option=750e9)
 isotopologue_ratiosInitFromBuiltin
 sensorOff
 jacobianOff
@@ -74,9 +75,14 @@ sensor_checkedCalc
 yCalc
 
 VectorCreate(y_nlte_ref)
-ReadXML(y_nlte_ref,"TestNLTE_NLTE_ref.xml")
-Compare(y,y_nlte_ref,1e-12)
+# WriteXML("ascii",y,"TestNLTE_NLTE_old_method.xml")
+ReadXML(y_nlte_ref,"TestNLTE_NLTE_old_method.xml")
+CompareRelative(y,y_nlte_ref,1e-5)
 
+Tensor4Create(tmp_t4)
+ArrayOfQuantumIdentifierCreate(tmp_aoqi)
+Copy(tmp_t4, nlte_field)
+Copy(tmp_aoqi, nlte_quantum_identifiers)
 nlteOff
 
 abs_xsec_agenda_checkedCalc
@@ -88,7 +94,46 @@ sensor_checkedCalc
 yCalc
 
 VectorCreate(y_lte_ref)
-ReadXML(y_lte_ref,"TestNLTE_LTE_ref.xml")
-Compare(y,y_lte_ref,1e-12)
+# WriteXML("ascii",y,"TestNLTE_LTE_old_method.xml")
+ReadXML(y_lte_ref, "TestNLTE_LTE_old_method.xml")
+CompareRelative(y,y_lte_ref,1e-5)
+
+# NOTE:  There is potentially a bug in AddLines2 for vib-NLTE.
+#        For some reason, the source function is almost exactly
+#        twice as large.  It is not known whether AddLines2 or
+#        AddLines have the correct results... neither is as well
+#        validated as the pure population distribution computations,
+#        which only works in AddLines2.
+AgendaSet(abs_xsec_agenda) { abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines2 }
+Copy(nlte_field, tmp_t4)
+Copy(nlte_quantum_identifiers, tmp_aoqi)
+IndexSet(nlte_do, 1)
+
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+sensor_checkedCalc
+yCalc
+
+# WriteXML("ascii",y,"TestNLTE_NLTE_new_method.xml")
+ReadXML(y_nlte_ref,"TestNLTE_NLTE_new_method.xml")
+CompareRelative(y,y_nlte_ref,1e-5)
+
+nlteOff
+abs_lines_per_speciesSetNlteOffForAll
+
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
+atmfields_checkedCalc
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+sensor_checkedCalc
+yCalc
+
+# WriteXML("ascii",y,"TestNLTE_LTE_new_method.xml")
+ReadXML(y_lte_ref, "TestNLTE_LTE_new_method.xml")
+CompareRelative(y,y_lte_ref,1e-5)
 
 }
