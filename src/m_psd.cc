@@ -1127,7 +1127,11 @@ void psdMgdMassXmedian(
 extern const Numeric PI;
 
 Numeric dm_from_iwc_n0(Numeric iwc, Numeric n0, Numeric rho) {
-    return pow(256.0 * iwc / PI / rho / n0, 0.25);
+    if (iwc == 0.0) {
+        return 1e-9;
+    } else {
+        return pow(256.0 * iwc / PI / rho / n0, 0.25);
+    }
 }
 
 Numeric n0_from_iwc_dm(Numeric iwc, Numeric dm, Numeric rho) {
@@ -1260,9 +1264,10 @@ void psdD14(
             }
         }
 
-        if ((dm_p <= 0.0) || (dm < dm_min)) {
+        if ((dm_p <= 0.0) || (dm_p < dm_min)) {
             ostringstream os;
-            os << "The provided or inferred value of *Dm* is "
+            os << "The provided or inferred value of *Dm* ("
+               << dm_p << ") is "
                << " less than zero or *Dm_min* and this is not allowed. "
                << "This means that you have very small or zero values "
                << "in *pnd_agenda_input* which is not supported "

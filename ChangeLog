@@ -1,3 +1,15 @@
+2018-11-01  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1145
+
+	* src/m_psd.cc(psdD14):
+
+	- Added lower threshold on D_m when inferred
+	from mass density or N_0^* to avoid numerical
+	problems.
+
+	- Fixed bounds checking on D_m
+
 2018-10-26  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1144
