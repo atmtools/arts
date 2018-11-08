@@ -207,6 +207,8 @@ public:
            a.mmode == mmode and a.manalytical == manalytical and 
            a.mquantumidentifier == mquantumidentifier and a.mproptype == mproptype;
   }
+  
+  bool IsTemperature() const {return operator==(JacPropMatType::Temperature);}
 
 private:
 

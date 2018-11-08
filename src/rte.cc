@@ -2455,7 +2455,7 @@ void get_stepwise_effective_source(MatrixView J,
     // Compute J = K^-1 (a B + S)
     mult(J(i1, joker), invK, j);
     
-    // Compute dJ = K^-1((da B + a dB + S) - dK K^-1(a B + S))
+    // Compute dJ = K^-1((da B + a dB + dS) - dK K^-1(a B + S))
     if( jacobian_do )
       //FOR_ANALYTICAL_JACOBIANS_DO
       //(

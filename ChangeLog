@@ -1,3 +1,58 @@
+2018-11-08  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1146
+	
+	Fixed up an old prototype for using Eigen for RTE.
+	The implementation is very ugly, but it speeds up 
+	some things.  For instance, TestOEM.arts is a factor
+	2 faster on my computer using the new iyEmissionNonStandard
+	method over the standard method.  I haven't done proper
+	tests to speed up the minutia inside the new classes,
+	so there might still be gains to have...
+	
+	Other test functions are not as much speedier, and
+	some are even slower than before, and I have not 
+	checked during which conditions the OEM stuff is
+	actually faster.
+	
+	The new iyEmissionNonStandard is only tested by changing
+	agenda.arts from iyEmissionStandard to 
+	iyEmissionNonStandard.  All fast tests works at present.
+	
+	* src/transmissionmatrix.cc,h, src/CMakeLists.txt:
+	Implements both the TransmissionMatrix and the 
+	RadiationVector internal classes.
+	These classes are responsible for all RTE calculations.
+	I think it would be good to have them as the external
+	classes as well, since it would entail less copying
+	of data, but they are still only internal.
+	
+	* src/absorption.cc:  Fix bug when doing derivatives
+	with NLTE first activated then deactivated again.
+	
+	* src/jacobian.h:  Added helper function to RetrievalQuantity:
+	IsTemperature()
+	
+	* src/linescaling.cc:  Also fix of bug when NLTE is first
+	active then deactivated.
+	
+	* src/m_rte.cc,src/methods.cc:  Implements 
+	iyEmissionNonStandard.  This is a copy of 
+	iyEmissionStandard but with the RTE internals
+	changed to use the TransmissionMatrix and RadiationVector
+	classes.  Even though it is called NonStandard, it still
+	copies all the relevant data back to ARTS outputs.  The 
+	latter operation might be the cause of some delay, and 
+	might be improved by either not doing the copying, or
+	using something fancy to map the data properly back
+	to the ARTS outputs.
+	
+	My main reason to call it NonStandard is that it is not 
+	as well tested as Standard, so while it should be doing the 
+	same things as Standard, it has yet to carry that guarantee
+	
+	* src/rte.cc: Fixed error in comment.
+
 2018-11-01  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1145

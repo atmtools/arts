@@ -146,14 +146,8 @@ void GetLineScalingData_dT(Numeric& dq_t_dT,
     extern const Numeric PLANCK_CONST;
     extern const Numeric BOLTZMAN_CONST;
     
-    // Test the NLTE of the line and find if we should use atmospheric temperatures or not
-    atm_tv_low = line_evlow_index<0?-1.0:atm_t_nlte[line_evlow_index];
-    atm_tv_upp = line_evupp_index<0?-1.0:atm_t_nlte[line_evupp_index];
-    
-    if(dq_t_dT<0)
-    {
-        switch(partition_type)
-        {
+    if(dq_t_dT<0) {
+        switch(partition_type) {
             case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
                 CalculatePartitionFctFromCoeff_dT(dq_t_dT, atm_t,
                                                partition_data[0].data);
@@ -179,8 +173,10 @@ void GetLineScalingData_dT(Numeric& dq_t_dT,
     const Numeric gamma_ref = exp( - PLANCK_CONST * line_f / ( BOLTZMAN_CONST * line_t ) );
     dK2_dT = -line_f*PLANCK_CONST/BOLTZMAN_CONST/atm_t/atm_t * (gamma/(1.0-gamma_ref));
     
-    if(do_nlte)
-    {   
+    if(do_nlte)  {
+        
+        atm_tv_low = line_evlow_index<0?-1.0:atm_t_nlte[line_evlow_index];
+        atm_tv_upp = line_evupp_index<0?-1.0:atm_t_nlte[line_evupp_index];
         const Numeric gamma_p = 1/gamma;
         
         //r_low and r_upp are ratios for the population level compared to LTE conditions

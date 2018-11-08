@@ -294,6 +294,7 @@ add_library (artscore STATIC
   timings.cc
   tmatrix.cc
   token.cc
+  transmissionmatrix.cc
   wigner_functions.cc
   workspace.cc
   workspace_ng.cc

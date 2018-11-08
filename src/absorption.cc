@@ -1941,7 +1941,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                     dGdT = std::get<Index(LineFunctionData::TuplePos::G)>(dX);
                     dDVdT = std::get<Index(LineFunctionData::TuplePos::DV)>(dX);
                     
-                      GetLineScalingData_dT(dqt_dT_cache,
+                    GetLineScalingData_dT(dqt_dT_cache,
                                             dK2_dT,
                                             dQ_dT, 
                                             dabs_nlte_ratio_dT,
@@ -2006,9 +2006,9 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                                                           abs_lines[ii].Elow(),
                                                           abs_lines[ii].Evlow(),
                                                           abs_lines[ii].Evupp(),
-                                                          abs_lines[ii].NLTELowerIndex() > -1?
+                                                          (abs_lines[ii].NLTELowerIndex() > -1 and calc_src)?
                                                           t_nlte[abs_lines[ii].NLTELowerIndex()]:-1.0,
-                                                          abs_lines[ii].NLTEUpperIndex() > -1?
+                                                          (abs_lines[ii].NLTEUpperIndex() > -1 and calc_src)?
                                                           t_nlte[abs_lines[ii].NLTEUpperIndex()]:-1.0,
                                                           Y,
                                                           dYdT,
