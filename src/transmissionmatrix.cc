@@ -1280,3 +1280,63 @@ void update_radiation_vector(RadiationVector& I,
   I.leftMul(T);
   I.add_avg(J1, J2);
 }
+
+
+std::ostream& operator<<(std::ostream& os, const TransmissionMatrix& tm) {
+  for(const auto& T: tm.T4) os << T << "\n";
+  for(const auto& T: tm.T3) os << T << "\n";
+  for(const auto& T: tm.T2) os << T << "\n";
+  for(const auto& T: tm.T1) os << T << "\n";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfTransmissionMatrix& atm) {
+  for(const auto& T: atm) os << T << "\n";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfTransmissionMatrix& aatm) {
+  for(const auto& T: aatm) os << T << "\n";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const RadiationVector& rv) {
+  // Write the transpose because it looks better...
+  for(const auto& R: rv.R4) os << R.transpose() << "\n";
+  for(const auto& R: rv.R3) os << R.transpose() << "\n";
+  for(const auto& R: rv.R2) os << R.transpose() << "\n";
+  for(const auto& R: rv.R1) os << R.transpose() << "\n";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfRadiationVector& arv) {
+  for(const auto& R: arv) os << R << "\n";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfRadiationVector& aarv) {
+  for(const auto& R: aarv) os << R << "\n";
+  return os;
+}
+
+std::istream& operator>>(std::istream& data, TransmissionMatrix& tm) {
+  for(auto& T: tm.T4) data >> T(0, 0) >> T(0, 1) >> T(0, 2) >> T(0, 3) 
+                           >> T(1, 0) >> T(1, 1) >> T(1, 2) >> T(1, 3)
+                           >> T(2, 0) >> T(2, 1) >> T(2, 2) >> T(2, 3)
+                           >> T(3, 0) >> T(3, 1) >> T(3, 2) >> T(3, 3);
+  for(auto& T: tm.T3) data >> T(0, 0) >> T(0, 1) >> T(0, 2)
+                           >> T(1, 0) >> T(1, 1) >> T(1, 2)
+                           >> T(2, 0) >> T(2, 1) >> T(2, 2);
+  for(auto& T: tm.T2) data >> T(0, 0) >> T(0, 1)
+                           >> T(1, 0) >> T(1, 1);
+  for(auto& T: tm.T1) data >> T(0, 0);
+  return data;
+}
+
+std::istream& operator>>(std::istream& data, RadiationVector& rv) {
+  for(auto& R: rv.R4) data >> R[0] >> R[1] >> R[2] >> R[3];
+  for(auto& R: rv.R3) data >> R[0] >> R[1] >> R[2];
+  for(auto& R: rv.R2) data >> R[0] >> R[1] >> R[2];
+  for(auto& R: rv.R1) data >> R[0];
+  return data;
+}

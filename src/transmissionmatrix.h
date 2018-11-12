@@ -34,10 +34,6 @@
 #include <Eigen/Dense>
 #include <Eigen/StdVector>
 
-Eigen::Matrix<double, 1, 1> inv1(const Numeric& x);
-Eigen::Matrix2d inv2(const Numeric& a, const Numeric& b);
-Eigen::Matrix3d inv3(const Numeric& a, const Numeric& b, const Numeric& c, const Numeric& u);
-Eigen::Matrix4d inv4(const Numeric& a, const Numeric& b, const Numeric& c, const Numeric& d, const Numeric& u, const Numeric& v, const Numeric& w);
 
 class TransmissionMatrix {
 private:
@@ -98,10 +94,10 @@ public:
   Eigen::Matrix<double, 1, 1>& Mat1(size_t i) {return T1[i];}
   
   void setIdentity() {
-    for(size_t i=0; i<T4.size(); i++) T4[i]=Eigen::Matrix4d::Identity();
-    for(size_t i=0; i<T3.size(); i++) T3[i]=Eigen::Matrix3d::Identity();
-    for(size_t i=0; i<T2.size(); i++) T2[i]=Eigen::Matrix2d::Identity();
-    for(size_t i=0; i<T1.size(); i++) T1[i](0, 0)=1;
+    for(auto& T: T4) T=Eigen::Matrix4d::Identity();
+    for(auto& T: T3) T=Eigen::Matrix3d::Identity();
+    for(auto& T: T2) T=Eigen::Matrix2d::Identity();
+    for(auto& T: T1) T(0, 0)=1;
   }
   
   void mul(const TransmissionMatrix& A, const TransmissionMatrix& B) {
@@ -127,7 +123,8 @@ public:
   
   void set1(Eigen::Matrix<double, 1, 1>&& O, Index i) {T1[i]=std::move(O);}
   void set1(const Eigen::Matrix<double, 1, 1>& O, Index i) {T1[i]=O;}
-  void set1(const Numeric& O, Index i) {T1[i][0]=O;}
+  void set1(const Numeric& O, Index i) {T1[i](0, 0)=O;}
+  void set1(Numeric&& O, Index i) {T1[i](0, 0)=std::move(O);}
   
   const Numeric& operator()(const Index i, const Index j, const Index k) const {
     switch(stokes_dim) {
@@ -137,6 +134,9 @@ public:
       default: return T1[i](j, k);
     }
   }
+  
+  friend std::ostream& operator<<(std::ostream& os, const TransmissionMatrix& tm);
+  friend std::istream& operator>>(std::istream& data, TransmissionMatrix& tm);
 };
 
 
@@ -211,9 +211,9 @@ public:
   RadiationVector& operator=(const StokesVector& s) {
     assert(s.NumberOfAzimuthAngles() == 1);
     assert(s.NumberOfZenithAngles() == 1);
-    for(size_t i=0; i<R4.size(); i++) R4[i] = {s.Kjj()[i], s.K12()[i], s.K13()[i], s.K14()[i]};
-    for(size_t i=0; i<R3.size(); i++) R3[i] = {s.Kjj()[i], s.K12()[i], s.K13()[i]};
-    for(size_t i=0; i<R2.size(); i++) R2[i] = {s.Kjj()[i], s.K12()[i]};
+    for(size_t i=0; i<R4.size(); i++) R4[i] << s.Kjj()[i], s.K12()[i], s.K13()[i], s.K14()[i];
+    for(size_t i=0; i<R3.size(); i++) R3[i] << s.Kjj()[i], s.K12()[i], s.K13()[i];
+    for(size_t i=0; i<R2.size(); i++) R2[i] << s.Kjj()[i], s.K12()[i];
     for(size_t i=0; i<R1.size(); i++) R1[i][0] = s.Kjj()[i];
     return *this;
   }
@@ -263,10 +263,10 @@ public:
     }
   }
   
-  void add4(const Eigen::Vector4d& O, Index i) {R4[i] += O;}
-  void add3(const Eigen::Vector3d& O, Index i) {R3[i] += O;}
-  void add2(const Eigen::Vector2d& O, Index i) {R2[i] += O;}
-  void add1(const Eigen::Matrix<double, 1, 1>& O, Index i) {R1[i] += O;}
+  void add4(const Eigen::Vector4d& O, Index i) {R4[i].noalias() += O;}
+  void add3(const Eigen::Vector3d& O, Index i) {R3[i].noalias() += O;}
+  void add2(const Eigen::Vector2d& O, Index i) {R2[i].noalias() += O;}
+  void add1(const Eigen::Matrix<double, 1, 1>& O, Index i) {R1[i].noalias() += O;}
   
   void rem_avg(const RadiationVector& O1, const RadiationVector& O2) {
     for(size_t i=0; i<R4.size(); i++) R4[i].noalias() -= 0.5 * (O1.R4[i] + O2.R4[i]);
@@ -323,8 +323,6 @@ public:
     }
   }
   
-  RadiationVector& operator+=(Numeric x) {for(size_t i=0; i< R1.size(); i++) R1[i][0]+=x; return *this;}
-  
   operator Matrix() const {
     Matrix M;
     switch(stokes_dim) {
@@ -357,6 +355,10 @@ public:
   
   void setSource(const StokesVector& a, const ConstVectorView& B, const StokesVector& S, Index i)
   {
+    assert(a.NumberOfAzimuthAngles() == 1);
+    assert(a.NumberOfZenithAngles() == 1);
+    assert(S.NumberOfAzimuthAngles() == 1);
+    assert(S.NumberOfZenithAngles() == 1);
     switch(stokes_dim) {
       case 4:
         R4[i].noalias() = Eigen::Vector4d(a.Kjj()[i], a.K12()[i], a.K13()[i], a.K14()[i]) * B[i];
@@ -379,6 +381,9 @@ public:
           R1[i][0] += S.Kjj()[i];
     }
   }
+  
+  friend std::ostream& operator<<(std::ostream& os, const RadiationVector& rv);
+  friend std::istream& operator>>(std::istream& data, RadiationVector& rv);
 };
 
 
@@ -388,11 +393,15 @@ typedef Array<RadiationVector> ArrayOfRadiationVector;
 typedef Array<ArrayOfRadiationVector> ArrayOfArrayOfRadiationVector;
 
 
-inline void update_radiation_vector(RadiationVector& I, const TransmissionMatrix& T, const RadiationVector& J) {
-  I -= J;
-  I.leftMul(T);
-  I += J;
-}
+std::ostream& operator<<(std::ostream& os, const TransmissionMatrix& tm);
+std::ostream& operator<<(std::ostream& os, const ArrayOfTransmissionMatrix& atm);
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfTransmissionMatrix& aatm);
+std::ostream& operator<<(std::ostream& os, const RadiationVector& rv);
+std::ostream& operator<<(std::ostream& os, const ArrayOfRadiationVector& arv);
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfRadiationVector& aarv);
+
+std::istream& operator>>(std::istream& is, TransmissionMatrix& tm);
+std::istream& operator>>(std::istream& is, RadiationVector& rv);
 
 void update_radiation_vector(RadiationVector& I,
                              ArrayOfRadiationVector& dI1,

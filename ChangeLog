@@ -1,3 +1,15 @@
+2018-11-12  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1147
+	
+	* src/m_rte.cc:  Minor formatting change
+	
+	* src/transmissionmatrix.cc,h:  Added reading/writing
+	to stream for the new classes.  Should help with the
+	interface to XML reading/writing if this becomes a thing.
+	Also removed some code left behind while testing this,
+	and updated some function calls to be more explicit.
+
 2018-11-08  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1146

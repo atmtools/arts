@@ -682,8 +682,6 @@ void iyEmissionNonStandard(
   ArrayOfTransmissionMatrix lyr_tra(np, TransmissionMatrix(nf, ns));
   ArrayOfRadiationVector lvl_rad(np, RadiationVector(nf, ns));
   ArrayOfArrayOfRadiationVector dlvl_rad(np, ArrayOfRadiationVector(nq, RadiationVector(nf, ns)));
-  
-  
   ArrayOfRadiationVector src_rad(np, RadiationVector(nf, ns));
   ArrayOfArrayOfRadiationVector dsrc_rad(np, ArrayOfRadiationVector(nq, RadiationVector(nf, ns)));
   
@@ -826,7 +824,7 @@ void iyEmissionNonStandard(
     update_radiation_vector(lvl_rad[ip], dlvl_rad[ip], dlvl_rad[ip+1],
                             src_rad[ip], src_rad[ip+1], dsrc_rad[ip], dsrc_rad[ip+1],
                             lyr_tra[ip+1], tot_tra[ip], dlyr_tra_above[ip+1], dlyr_tra_below[ip+1]);
-    }
+  }
   
   // Copy back to ARTS external style
   iy = lvl_rad[0];

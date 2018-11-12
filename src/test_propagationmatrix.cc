@@ -30,6 +30,7 @@
 #include "arts.h"
 #include "zeeman.h"
 #include "linefunctiondata.h"
+#include "transmissionmatrix.h"
 
 // void define_species_data();
 // void define_species_map();
@@ -337,12 +338,54 @@ void test_speed_of_pressurebroadening()
   printf("]).T\n");
 }
 
+
+void test_transmissionmatrix()
+{
+  // Initializes as unity matrices
+  TransmissionMatrix a(2, 4);
+  std::cout << "Initialized TransmissionMatrix(2, 4):\n" << a << "\n";
+  
+  // Set a single input
+  Eigen::Matrix4d A;
+  A << 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16;
+  std::cout << "New Matrix:\n" << A << "\n\n";
+  a.set4(A, 1);
+  std::cout << "Updated TransmissionMatrix Position 1 wit New Matrix:\n" << a << "\n";
+  
+  // The stream can also set the values
+  String S = "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 125 26 27 28 29 30 31 32";
+  std::cout << "Stream:\n" << S << "\n\n";
+  std::istringstream astream(S);
+  astream >> a;
+  std::cout << "Streamed into TransmissionMatrix:\n" << a << "\n";
+  
+  // Initialize empty
+  RadiationVector b(3, 3);
+  std::cout << "Initialized RadiationVector(3, 3)\n" << b << "\n";
+  
+  // Set is not defined but add is
+  Eigen::Vector3d B;
+  B << 1,2,3;
+  std::cout << "New Vector:\n" << B << "\n\n";  // nb. not transposed
+  b.add3(B, 1);
+  std::cout << "Updated RadiationVector Position 1 with New Vector:\n" << b << "\n";
+  
+  // The stream can also set the values
+  String T = "1 2 3 4 5 6 7 8 90";
+  std::cout << "Stream:\n" << T << "\n\n";
+  std::istringstream bstream(T);
+  bstream >> b;
+  std::cout << "Streamed into RadiationVector:\n" << b << "\n";
+}
+
+
 int main()
 {
     std::cout<<"Testing Propmat Partials\n";
 //     test_new_lineshapes();
 //     test_zeeman();
 //     test_linefunctionsdata();
-    test_speed_of_pressurebroadening();
+//     test_speed_of_pressurebroadening();
+    test_transmissionmatrix();
     return 0;
 }
