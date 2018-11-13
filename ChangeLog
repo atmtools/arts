@@ -1,9 +1,21 @@
+2018-11-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1148
+
+	* It shall now be possible to activate DISORT's delta-m scalling.
+
+	* src/m_disort.cc (DisortCalc, DisortCalcWithARTSSurface): Added
+	GIN do_deltam.
+
+	* src/disort.cc (run_disort,run_disort2): Added input argument do_deltam. This
+	now controls if deltam is set to true or false.
+
 2018-11-12  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1147
-	
+
 	* src/m_rte.cc:  Minor formatting change
-	
+
 	* src/transmissionmatrix.cc,h:  Added reading/writing
 	to stream for the new classes.  Should help with the
 	interface to XML reading/writing if this becomes a thing.

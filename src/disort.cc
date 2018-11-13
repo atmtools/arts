@@ -2012,6 +2012,7 @@ void surf_albedoCalc( Workspace& ws,
   \param surface_scalar_reflectivity  as the WSM
   \param scat_za_grid          as the WSV
   \param nstreams              Number of quadrature angles (both hemispheres).
+  \param do_deltam             see DisortCalc doc.
   \param non_iso_inc           see DisortCalc doc.
   \param pfct_method           see DisortCalc doc.
 
@@ -2035,6 +2036,7 @@ void run_disort( Workspace& ws,
               Vector& surface_scalar_reflectivity,
               ConstVectorView scat_za_grid,
               const Index& nstreams,
+              const Index& do_deltam,
               const String& pfct_method,
               const Verbosity& verbosity )
 {
@@ -2115,8 +2117,8 @@ void run_disort( Workspace& ws,
 
   Vector intang(scat_za_grid.nelem()+nstr/2, 0.);
 
-  // we don't need delta-scaling in microwave region
-  Index deltam = FALSE_; 
+  // delta-scaling?
+  Index deltam = do_deltam ? TRUE_ : FALSE_; 
       
   // include thermal emission (very important)
   Index plank = TRUE_; 
@@ -2296,6 +2298,7 @@ void run_disort( Workspace& ws,
   \param surface_scalar_reflectivity  as the WSM
   \param scat_za_grid          as the WSV
   \param nstreams              Number of quadrature angles (both hemispheres).
+  \param do_deltam             see DisortCalc doc.
   \param non_iso_inc           see DisortCalc doc.
 
   \author Jana Mendrok
@@ -2318,6 +2321,7 @@ void run_disort2( Workspace& ws,
               Vector& surface_scalar_reflectivity,
               ConstVectorView scat_za_grid,
               const Index& nstreams,
+              const Index& do_deltam,
               const Index& Npfct,
               const Verbosity&  )
 {
@@ -2376,7 +2380,7 @@ void run_disort2( Workspace& ws,
   Vector intang(scat_za_grid.nelem()+nstr/2, 0.);
 
   // we don't need delta-scaling in microwave region
-  Index deltam = FALSE_; 
+  Index deltam = do_deltam ? TRUE_ : FALSE_; 
       
   // include thermal emission (very important)
   Index plank = TRUE_; 
@@ -2657,6 +2661,7 @@ void run_disort( Workspace&,
               Vector&,
               ConstVectorView,
               const Index&,
+              const Index&,
               const String&,
               const Verbosity& )
 {
@@ -2678,7 +2683,7 @@ void run_disort2( Workspace&,
               Vector&,
               ConstVectorView,
               const Index&,
-              const String&,
+              const Index&,
               const Index&,
               const Verbosity& )
 {

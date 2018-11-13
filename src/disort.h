@@ -82,6 +82,7 @@ void run_disort( Workspace& ws,
               Vector& surface_scalar_reflectivity,
               ConstVectorView scat_za_grid,
               const Index& nstreams,
+              const Index& do_deltam,
               const String& pfct_method,
               const Verbosity& verbosity );
 
@@ -102,6 +103,7 @@ void run_disort2( Workspace& ws,
               Vector& surface_scalar_reflectivity,
               ConstVectorView scat_za_grid,
               const Index& nstreams,
+              const Index& do_deltam,                  
               const Index& Npfct,
               const Verbosity& verbosity );
 
