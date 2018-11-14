@@ -197,15 +197,6 @@ public:
     for(size_t i=0; i<R1.size(); i++) R1[i] = T.Mat1(i) * R1[i];
   }
   
-  void leftMul(const Eigen::MatrixXd& X, Index i) {
-    switch(stokes_dim) {
-      case 4: leftMul4(X, i); break;
-      case 3: leftMul3(X, i); break;
-      case 2: leftMul2(X, i); break;
-      default: leftMul1(X, i); break;
-    }
-  }
-  
   void leftMul4(const Eigen::Matrix4d& X, Index i) {R4[i] = X * R4[i];}
   void leftMul3(const Eigen::Matrix3d& X, Index i) {R3[i] = X * R3[i];}
   void leftMul2(const Eigen::Matrix2d& X, Index i) {R2[i] = X * R2[i];}
@@ -286,15 +277,6 @@ public:
       case 3: R3[i] = Eigen::Vector3d::Constant(O); break;
       case 2: R2[i] = Eigen::Vector2d::Constant(O); break;
       default: R1[i][0] = O; break;
-    }
-  }
-  
-  void add(const Eigen::MatrixXd& O, Index i) {
-    switch(stokes_dim) {
-      case 4: add4(O, i); break;
-      case 3: add3(O, i); break;
-      case 2: add2(O, i); break;
-      default: add1(O, i); break;
     }
   }
   
@@ -395,24 +377,32 @@ public:
     assert(S.NumberOfZenithAngles() == 1);
     switch(stokes_dim) {
       case 4:
-        R4[i].noalias() = Eigen::Vector4d(a.Kjj()[i], a.K12()[i], a.K13()[i], a.K14()[i]) * B[i];
         if(not S.IsEmpty())
-          R4[i].noalias() += Eigen::Vector4d(S.Kjj()[i], S.K12()[i], S.K13()[i], S.K14()[i]);
+          R4[i].noalias() = Eigen::Vector4d(a.Kjj()[i], a.K12()[i], a.K13()[i], a.K14()[i]) * B[i]
+                          + Eigen::Vector4d(S.Kjj()[i], S.K12()[i], S.K13()[i], S.K14()[i]);
+        else
+          R4[i].noalias() = Eigen::Vector4d(a.Kjj()[i], a.K12()[i], a.K13()[i], a.K14()[i]) * B[i];
         break;
       case 3:
-        R3[i].noalias() = Eigen::Vector3d(a.Kjj()[i], a.K12()[i], a.K13()[i]) * B[i];
         if(not S.IsEmpty())
-          R3[i].noalias() += Eigen::Vector3d(S.Kjj()[i], S.K12()[i], S.K13()[i]);
+          R3[i].noalias() = Eigen::Vector3d(a.Kjj()[i], a.K12()[i], a.K13()[i]) * B[i]
+                          + Eigen::Vector3d(S.Kjj()[i], S.K12()[i], S.K13()[i]);
+        else
+          R3[i].noalias() = Eigen::Vector3d(a.Kjj()[i], a.K12()[i], a.K13()[i]) * B[i];
         break;
       case 2:
-        R2[i].noalias() = Eigen::Vector2d(a.Kjj()[i], a.K12()[i]) * B[i];
         if(not S.IsEmpty())
-          R2[i].noalias() += Eigen::Vector2d(S.Kjj()[i], S.K12()[i]);
+          R2[i].noalias() = Eigen::Vector2d(a.Kjj()[i], a.K12()[i]) * B[i]
+                          + Eigen::Vector2d(S.Kjj()[i], S.K12()[i]);
+        else
+          R2[i].noalias() = Eigen::Vector2d(a.Kjj()[i], a.K12()[i]) * B[i];
         break;
       default:
-        R1[i][0] = a.Kjj()[i] * B[i];
         if(not S.IsEmpty())
-          R1[i][0] += S.Kjj()[i];
+          R1[i][0] = a.Kjj()[i] * B[i]
+                   + S.Kjj()[i];
+        else
+          R1[i][0] = a.Kjj()[i] * B[i];
     }
   }
   

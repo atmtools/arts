@@ -1,5 +1,44 @@
 2018-11-14  Richard Larsson  <larsson@mps.mpg.de>
 
+	* arts-2-3-1151
+	
+	Found a neat linux-tool, heaptrack, and tested it on
+	TestOEM.arts.  Turns out my code made a few million
+	calls to the heap allocator because I was using MatrixXd.
+	These are now removed, so that the RTE is stack only
+	(at least as far as I can see in heaptrack) except
+	for the initial allocation of the TransmissionMatrix-es
+	and RadiationVector-s.  The total number of temporary
+	allocations for TestOEM.arts is thus down from 
+	iyEmissionStandard's 4 million mostly single words 
+	(reported as 0 to 8 byte in heaptrack)
+	to previous iyEmissionNonStandard 3.5 million with
+	half as many words as before, to the now updated 
+	iyEmissionNonStandard 80 thousand allocations of almost
+	no single word (most in the 17 to 32 byte range).
+	
+	General:
+	I strongly recommend trying heaptrack on some controlfiles
+	that are slow for unknown reasons to try and see if there
+	are parts of the code that can be improved.  The tool is
+	very simple, just call:
+	heaptrack arts controlfile.arts
+	and it will even give the command for graphically displaying
+	the memory allocations at the end of the run.
+	
+	* src/transmissionmatrix.cc,h: removed generic MatrixXd
+	calls because they allocate on the go.  Replaced these by
+	direct MatrixNd and VectorNd variables because these don't
+	go outside local scope (no allocate to heap call)
+	
+	The time save is ~10% compared to previous TestOEM.arts
+	with iyEmissionNonStandard.  Again, I repeat that the
+	rest of this code is not well-optimized, it is just that
+	the Eigen-vectors are significantly faster than ARTS-vectors
+	for these small-sized matrices.
+
+2018-11-14  Richard Larsson  <larsson@mps.mpg.de>
+
 	* arts-2-3-1150
 	
 	Adding XML IO for TransmissionMatrix and RadiationVector.

@@ -1238,23 +1238,68 @@ void stepwise_source(RadiationVector& J,
     }
     else {
       J.setSource(a, B, S, i);
-      const Eigen::MatrixXd invK = inverse_of_K(K, i);
-      J.leftMul(invK, i);
-      
-      if(jacobian_do) {
-        for(Index j=0; j<jacobian_quantities.nelem(); j++) {
-          if(jacobian_quantities[j].Analytical()) {
-            dJ[j].set(J, i);
-            dJ[j].leftMul(-matrix_of_K(dK[j], i), i);
-            dJ[j].add(vector_of_dJ(a, B, 
-                                  da[j], dB_dT, dS[j], 
-                                  jacobian_quantities[j].IsTemperature(), i), i);
-            dJ[j].leftMul(0.5*invK, i);
+      switch(J.StokesDim()) {
+        case 4: {
+          const auto invK = inv4(K.Kjj()[i], K.K12()[i], K.K13()[i], K.K14()[i],
+                                 K.K23()[i], K.K24()[i], K.K34()[i]);
+          J.leftMul4(invK, i);
+          if(jacobian_do) {
+            for(Index j=0; j<jacobian_quantities.nelem(); j++) {
+              if(jacobian_quantities[j].Analytical()) {
+                dJ[j].set(J, i);
+                dJ[j].leftMul4(-matrix4(dK[j].Kjj()[i], dK[j].K12()[i], dK[j].K13()[i], dK[j].K14()[i],
+                                        dK[j].K23()[i], dK[j].K24()[i], dK[j].K34()[i]), i);
+                dJ[j].add4(vector4(a, B, da[j], dB_dT, dS[j], jacobian_quantities[j].IsTemperature(), i), i);
+                dJ[j].leftMul4(0.5*invK, i);
+              }
+            }
           }
-        }
+        } break;
+        case 3: {
+          const auto invK = inv3(K.Kjj()[i], K.K12()[i], K.K13()[i], K.K23()[i]);
+          J.leftMul3(invK, i);
+          if(jacobian_do) {
+            for(Index j=0; j<jacobian_quantities.nelem(); j++) {
+              if(jacobian_quantities[j].Analytical()) {
+                dJ[j].set(J, i);
+                dJ[j].leftMul3(-matrix3(dK[j].Kjj()[i], dK[j].K12()[i], dK[j].K13()[i],dK[j].K23()[i]), i);
+                dJ[j].add3(vector3(a, B, da[j], dB_dT, dS[j], jacobian_quantities[j].IsTemperature(), i), i);
+                dJ[j].leftMul3(0.5*invK, i);
+              }
+            }
+          }
+        } break;
+        case 2: {
+          const auto invK = inv2(K.Kjj()[i], K.K12()[i]);
+          J.leftMul2(invK, i);
+          if(jacobian_do) {
+            for(Index j=0; j<jacobian_quantities.nelem(); j++) {
+              if(jacobian_quantities[j].Analytical()) {
+                dJ[j].set(J, i);
+                dJ[j].leftMul2(-matrix2(dK[j].Kjj()[i], dK[j].K12()[i]), i);
+                dJ[j].add2(vector2(a, B, da[j], dB_dT, dS[j], jacobian_quantities[j].IsTemperature(), i), i);
+                dJ[j].leftMul2(0.5*invK, i);
+              }
+            }
+          }
+        } break;
+        default: {
+          const auto invK = inv1(K.Kjj()[i]);
+          J.leftMul1(invK, i);
+          if(jacobian_do) {
+            for(Index j=0; j<jacobian_quantities.nelem(); j++) {
+              if(jacobian_quantities[j].Analytical()) {
+                dJ[j].set(J, i);
+                dJ[j].leftMul1(-matrix1(dK[j].Kjj()[i]), i);
+                dJ[j].add1(vector1(a, B, da[j], dB_dT, dS[j], jacobian_quantities[j].IsTemperature(), i), i);
+                dJ[j].leftMul1(0.5*invK, i);
+              }
+            }
+          }
+        } break;
       }
     }
-  } 
+  }
 }
 
 
