@@ -3509,6 +3509,322 @@ void xml_write_to_stream(ostream&             os_xml,
 }
 
 
+//=== ArrayOfTransmissionMatrix ======================================================
+
+//! Reads ArrayOfTransmissionMatrix from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param apm        ArrayOfTransmissionMatrix return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream&         is_xml,
+                          ArrayOfTransmissionMatrix&    atm,
+                          bifstream*       pbifs,
+                          const Verbosity& verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "TransmissionMatrix");
+  
+  tag.get_attribute_value("nelem", nelem);
+  atm.resize(nelem);
+  
+  Index n;
+  try
+  {
+    for (n = 0; n < nelem; n++)
+      xml_read_from_stream(is_xml, atm[n], pbifs, verbosity);
+  }
+  catch (const std::runtime_error &e)
+  {
+    ostringstream os;
+    os << "Error reading ArrayOfTransmissionMatrix: "
+    << "\n Element: " << n
+    << "\n" << e.what();
+    throw runtime_error(os.str());
+  }
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+
+//! Writes ArrayOfTransmissionMatrix to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param apm     ArrayOfTransmissionMatrix
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute
+ */
+void xml_write_to_stream(ostream&            os_xml,
+                         const ArrayOfTransmissionMatrix& atm,
+                         bofstream*          pbofs,
+                         const String&       name,
+                         const Verbosity&    verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+  
+  open_tag.set_name("Array");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  
+  open_tag.add_attribute("type", "TransmissionMatrix");
+  open_tag.add_attribute("nelem", atm.nelem());
+  
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+  
+  for (Index n = 0; n < atm.nelem(); n++)
+    xml_write_to_stream(os_xml, atm[n], pbofs, "", verbosity);
+  
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+  
+  os_xml << '\n';
+}
+
+
+//=== ArrayOfArrayOfTransmissionMatrix ======================================================
+
+//! Reads ArrayOfArrayOfTransmissionMatrix from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param aatm       ArrayOfArrayOfTransmissionMatrix return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream&         is_xml,
+                          ArrayOfArrayOfTransmissionMatrix&   aatm,
+                          bifstream*       pbifs,
+                          const Verbosity& verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "ArrayOfTransmissionMatrix");
+  
+  tag.get_attribute_value("nelem", nelem);
+  aatm.resize(nelem);
+  
+  Index n;
+  try
+  {
+    for (n = 0; n < nelem; n++)
+      xml_read_from_stream(is_xml, aatm[n], pbifs, verbosity);
+  }
+  catch (const std::runtime_error &e)
+  {
+    ostringstream os;
+    os << "Error reading ArrayOfArrayOfTransmissionMatrix: "
+    << "\n Element: " << n
+    << "\n" << e.what();
+    throw runtime_error(os.str());
+  }
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+
+//! Writes ArrayOfArrayOfTransmissionMatrix to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param aatm    ArrayOfArrayOfTransmissionMatrix
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute
+ */
+void xml_write_to_stream(ostream&            os_xml,
+                         const ArrayOfArrayOfTransmissionMatrix& aatm,
+                         bofstream*          pbofs,
+                         const String&       name,
+                         const Verbosity&    verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+  
+  open_tag.set_name("Array");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  
+  open_tag.add_attribute("type", "ArrayOfTransmissionMatrix");
+  open_tag.add_attribute("nelem", aatm.nelem());
+  
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+  
+  for (Index n = 0; n < aatm.nelem(); n++)
+    xml_write_to_stream(os_xml, aatm[n], pbofs, "", verbosity);
+  
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+  
+  os_xml << '\n';
+}
+
+
+//=== ArrayOfRadiationVector ======================================================
+
+//! Reads ArrayOfRadiationVector from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param apm        ArrayOfRadiationVector return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream&         is_xml,
+                          ArrayOfRadiationVector&    arv,
+                          bifstream*       pbifs,
+                          const Verbosity& verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "RadiationVector");
+  
+  tag.get_attribute_value("nelem", nelem);
+  arv.resize(nelem);
+  
+  Index n;
+  try
+  {
+    for (n = 0; n < nelem; n++)
+      xml_read_from_stream(is_xml, arv[n], pbifs, verbosity);
+  }
+  catch (const std::runtime_error &e)
+  {
+    ostringstream os;
+    os << "Error reading ArrayOfRadiationVector: "
+    << "\n Element: " << n
+    << "\n" << e.what();
+    throw runtime_error(os.str());
+  }
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+
+//! Writes ArrayOfRadiationVector to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param arv     ArrayOfRadiationVector
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute
+ */
+void xml_write_to_stream(ostream&            os_xml,
+                         const ArrayOfRadiationVector& arv,
+                         bofstream*          pbofs,
+                         const String&       name,
+                         const Verbosity&    verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+  
+  open_tag.set_name("Array");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  
+  open_tag.add_attribute("type", "RadiationVector");
+  open_tag.add_attribute("nelem", arv.nelem());
+  
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+  
+  for (Index n = 0; n < arv.nelem(); n++)
+    xml_write_to_stream(os_xml, arv[n], pbofs, "", verbosity);
+  
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+  
+  os_xml << '\n';
+}
+
+
+//=== ArrayOfArrayOfRadiationVector ======================================================
+
+//! Reads ArrayOfArrayOfRadiationVector from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param aaev       ArrayOfArrayOfRadiationVector return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream&         is_xml,
+                          ArrayOfArrayOfRadiationVector&   aarv,
+                          bifstream*       pbifs,
+                          const Verbosity& verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "ArrayOfRadiationVector");
+  
+  tag.get_attribute_value("nelem", nelem);
+  aarv.resize(nelem);
+  
+  Index n;
+  try
+  {
+    for (n = 0; n < nelem; n++)
+      xml_read_from_stream(is_xml, aarv[n], pbifs, verbosity);
+  }
+  catch (const std::runtime_error &e)
+  {
+    ostringstream os;
+    os << "Error reading ArrayOfArrayOfRadiationVector: "
+    << "\n Element: " << n
+    << "\n" << e.what();
+    throw runtime_error(os.str());
+  }
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+
+//! Writes ArrayOfArrayOfRadiationVector to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param aarv    ArrayOfArrayOfRadiationVector
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute
+ */
+void xml_write_to_stream(ostream&            os_xml,
+                         const ArrayOfArrayOfRadiationVector& aarv,
+                         bofstream*          pbofs,
+                         const String&       name,
+                         const Verbosity&    verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+  
+  open_tag.set_name("Array");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  
+  open_tag.add_attribute("type", "ArrayOfRadiationVector");
+  open_tag.add_attribute("nelem", aarv.nelem());
+  
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+  
+  for (Index n = 0; n < aarv.nelem(); n++)
+    xml_write_to_stream(os_xml, aarv[n], pbofs, "", verbosity);
+  
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+  
+  os_xml << '\n';
+}
+
+
 //=== ArrayOfPropagationMatrix ======================================================
 
 //! Reads ArrayOfPropagationMatrix from XML input stream

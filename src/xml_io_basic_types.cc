@@ -1507,6 +1507,171 @@ void xml_write_to_stream(ostream&         os_xml,
   os_xml << '\n';
 }
 
+
+//=== TransmissionMatrix ================================================================
+
+//! Reads TransmissionMatrix from XML input stream
+/*!
+ *  \param is_xml  XML Input stream
+ *  \param tm      TransmissionMatrix return value
+ *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream&         is_xml,
+                          TransmissionMatrix&         tm,
+                          bifstream*       pbifs,
+                          const Verbosity& verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+  Index stokes_dim, nf;
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("TransmissionMatrix");
+  
+  tag.get_attribute_value("Stokes", stokes_dim);
+  tag.get_attribute_value("Freqs", nf);
+  tm = TransmissionMatrix(nf, stokes_dim);
+  if (pbifs) {
+    *pbifs >> tm;
+    if (pbifs->fail()) {
+      ostringstream os;
+      os << "TransmissionMatrix has wrong dimensions";
+      xml_data_parse_error(tag, os.str());
+    }
+  }
+  else {
+    is_xml >> tm;
+    if (is_xml.fail()) {
+      ostringstream os;
+      os << "TransmissionMatrix has wrong dimensions";
+      xml_data_parse_error(tag, os.str());
+    }
+  }
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("/TransmissionMatrix");
+}
+
+
+//! Writes RadiationVector to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param tm      TransmissionMatrix
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute
+ */
+void xml_write_to_stream(ostream&         os_xml,
+                         const TransmissionMatrix& tm,
+                         bofstream*       pbofs,
+                         const String&    name,
+                         const Verbosity& verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+  
+  open_tag.set_name("TransmissionMatrix");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  open_tag.add_attribute("Stokes", tm.StokesDim());
+  open_tag.add_attribute("Freqs", tm.Frequencies());
+  
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+  
+  xml_set_stream_precision(os_xml);
+  if(pbofs)
+    *pbofs << tm;
+  else
+    os_xml << tm;
+  
+  close_tag.set_name("/TransmissionMatrix");
+  close_tag.write_to_stream(os_xml);
+  
+  os_xml << '\n';
+}
+
+
+//=== RadiationVector ================================================================
+
+//! Reads RadiationVector from XML input stream
+/*!
+ *  \param is_xml  XML Input stream
+ *  \param rv      RadiationVector return value
+ *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream&         is_xml,
+                          RadiationVector& rv,
+                          bifstream*       pbifs,
+                          const Verbosity& verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+  Index stokes_dim, nf;
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("RadiationVector");
+  
+  tag.get_attribute_value("Stokes", stokes_dim);
+  tag.get_attribute_value("Freqs", nf);
+  rv = RadiationVector(nf, stokes_dim);
+  if (pbifs) {
+    *pbifs >> rv;
+    if (pbifs->fail()) {
+      ostringstream os;
+      os << "RadiationVector has wrong dimensions";
+      xml_data_parse_error(tag, os.str());
+    }
+  }
+  else {
+    is_xml >> rv;
+    if (is_xml.fail()) {
+      ostringstream os;
+      os << "RadiationVector has wrong dimensions";
+      xml_data_parse_error(tag, os.str());
+    }
+  }
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("/RadiationVector");
+}
+
+
+//! Writes RadiationVector to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param rv      RadiationVector
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute
+ */
+void xml_write_to_stream(ostream&         os_xml,
+                         const RadiationVector& rv,
+                         bofstream*       pbofs,
+                         const String&    name,
+                         const Verbosity& verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+  
+  open_tag.set_name("RadiationVector");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  open_tag.add_attribute("Stokes", rv.StokesDim());
+  open_tag.add_attribute("Freqs", rv.Frequencies());
+  
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+  
+  xml_set_stream_precision(os_xml);
+  if(pbofs)
+    *pbofs << rv;
+    else
+      os_xml << rv;
+    
+    close_tag.set_name("/RadiationVector");
+    close_tag.write_to_stream(os_xml);
+    
+    os_xml << '\n';
+}
+
+
 ////////////////////////////////////////////////////////////////////////////
 //   Dummy funtion for groups for which
 //   IO function have not yet been implemented

@@ -49,6 +49,13 @@ public:
   T2(stokes_dim==2?nf:0, Eigen::Matrix2d::Identity()), 
   T1(stokes_dim==1?nf:0, Eigen::Matrix<double, 1, 1>::Identity())
   { assert(stokes_dim < 5 and stokes_dim > 0); }
+  TransmissionMatrix(TransmissionMatrix&&tm) : 
+  stokes_dim(std::move(tm.stokes_dim)), T4(std::move(tm.T4)),
+  T3(std::move(tm.T3)), T2(std::move(tm.T2)), T1(std::move(tm.T1))
+  { }
+  TransmissionMatrix(const TransmissionMatrix& tm) : 
+  stokes_dim(tm.stokes_dim), T4(tm.T4), T3(tm.T3), T2(tm.T2), T1(tm.T1)
+  { }
   
   operator Tensor3() const {
     Tensor3 T;
@@ -133,6 +140,34 @@ public:
       case 2: return T2[i](j, k);
       default: return T1[i](j, k);
     }
+  }
+  
+  Index StokesDim() const {return stokes_dim;}
+  Index Frequencies() const {
+    switch(stokes_dim) {
+      case 4: return Index(T4.size());
+      case 3: return Index(T3.size());
+      case 2: return Index(T2.size());
+      default: return Index(T1.size());
+    }
+  }
+  
+  TransmissionMatrix& operator=(const TransmissionMatrix& tm) {
+    stokes_dim = tm.stokes_dim;
+    T4 = tm.T4;
+    T3 = tm.T3;
+    T2 = tm.T2;
+    T1 = tm.T1;
+    return *this;
+  }
+  
+  TransmissionMatrix& operator=(TransmissionMatrix&& tm) {
+    stokes_dim = std::move(tm.stokes_dim);
+    T4 = std::move(tm.T4);
+    T3 = std::move(tm.T3);
+    T2 = std::move(tm.T2);
+    T1 = std::move(tm.T1);
+    return *this;
   }
   
   friend std::ostream& operator<<(std::ostream& os, const TransmissionMatrix& tm);
@@ -353,8 +388,7 @@ public:
     return M;
   }
   
-  void setSource(const StokesVector& a, const ConstVectorView& B, const StokesVector& S, Index i)
-  {
+  void setSource(const StokesVector& a, const ConstVectorView& B, const StokesVector& S, Index i) {
     assert(a.NumberOfAzimuthAngles() == 1);
     assert(a.NumberOfZenithAngles() == 1);
     assert(S.NumberOfAzimuthAngles() == 1);
@@ -379,6 +413,16 @@ public:
         R1[i][0] = a.Kjj()[i] * B[i];
         if(not S.IsEmpty())
           R1[i][0] += S.Kjj()[i];
+    }
+  }
+  
+  Index StokesDim() const {return stokes_dim;}
+  Index Frequencies() const {
+    switch(stokes_dim) {
+      case 4: return Index(R4.size());
+      case 3: return Index(R3.size());
+      case 2: return Index(R2.size());
+      default: return Index(R1.size());
     }
   }
   

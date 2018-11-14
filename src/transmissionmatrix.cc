@@ -1283,39 +1283,39 @@ void update_radiation_vector(RadiationVector& I,
 
 
 std::ostream& operator<<(std::ostream& os, const TransmissionMatrix& tm) {
-  for(const auto& T: tm.T4) os << T << "\n";
-  for(const auto& T: tm.T3) os << T << "\n";
-  for(const auto& T: tm.T2) os << T << "\n";
-  for(const auto& T: tm.T1) os << T << "\n";
+  for(const auto& T: tm.T4) os << T << '\n';
+  for(const auto& T: tm.T3) os << T << '\n';
+  for(const auto& T: tm.T2) os << T << '\n';
+  for(const auto& T: tm.T1) os << T << '\n';
   return os;
 }
 
 std::ostream& operator<<(std::ostream& os, const ArrayOfTransmissionMatrix& atm) {
-  for(const auto& T: atm) os << T << "\n";
+  for(const auto& T: atm) os << T << '\n';
   return os;
 }
 
 std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfTransmissionMatrix& aatm) {
-  for(const auto& T: aatm) os << T << "\n";
+  for(const auto& T: aatm) os << T << '\n';
   return os;
 }
 
 std::ostream& operator<<(std::ostream& os, const RadiationVector& rv) {
   // Write the transpose because it looks better...
-  for(const auto& R: rv.R4) os << R.transpose() << "\n";
-  for(const auto& R: rv.R3) os << R.transpose() << "\n";
-  for(const auto& R: rv.R2) os << R.transpose() << "\n";
-  for(const auto& R: rv.R1) os << R.transpose() << "\n";
+  for(const auto& R: rv.R4) os << R.transpose() << '\n';
+  for(const auto& R: rv.R3) os << R.transpose() << '\n';
+  for(const auto& R: rv.R2) os << R.transpose() << '\n';
+  for(const auto& R: rv.R1) os << R.transpose() << '\n';
   return os;
 }
 
 std::ostream& operator<<(std::ostream& os, const ArrayOfRadiationVector& arv) {
-  for(const auto& R: arv) os << R << "\n";
+  for(const auto& R: arv) os << R << '\n';
   return os;
 }
 
 std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfRadiationVector& aarv) {
-  for(const auto& R: aarv) os << R << "\n";
+  for(const auto& R: aarv) os << R << '\n';
   return os;
 }
 

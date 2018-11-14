@@ -666,6 +666,7 @@ int main()
           << "#include \"cia.h\"\n"
           << "#include \"covariance_matrix.h\"\n"
           << "#include \"propagationmatrix.h\"\n"
+          << "#include \"transmissionmatrix.h\"\n"
           << "#include \"telsem.h\"\n"
           << "#include \"tessem.h\"\n"
           << "#include \"hitran_xsec.h\"\n"

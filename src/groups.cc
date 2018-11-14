@@ -99,6 +99,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfArrayOfLineRecord");
   wsv_group_names.push_back("ArrayOfArrayOfMatrix");
   wsv_group_names.push_back("ArrayOfArrayOfPropagationMatrix");
+  wsv_group_names.push_back("ArrayOfArrayOfRadiationVector");
   wsv_group_names.push_back("ArrayOfArrayOfScatteringMetaData");
   wsv_group_names.push_back("ArrayOfArrayOfSingleScatteringData");
   wsv_group_names.push_back("ArrayOfArrayOfSpeciesTag");
@@ -106,6 +107,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfArrayOfString");
   wsv_group_names.push_back("ArrayOfArrayOfTensor3");
   wsv_group_names.push_back("ArrayOfArrayOfTensor6");
+  wsv_group_names.push_back("ArrayOfArrayOfTransmissionMatrix");
   wsv_group_names.push_back("ArrayOfArrayOfVector");
   wsv_group_names.push_back("ArrayOfCIARecord");
   wsv_group_names.push_back("ArrayOfGriddedField1");
@@ -118,6 +120,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfMatrix");
   wsv_group_names.push_back("ArrayOfPropagationMatrix");
   wsv_group_names.push_back("ArrayOfQuantumIdentifier");
+  wsv_group_names.push_back("ArrayOfRadiationVector");
   wsv_group_names.push_back("ArrayOfRetrievalQuantity");
   wsv_group_names.push_back("ArrayOfScatteringMetaData");
   wsv_group_names.push_back("ArrayOfSingleScatteringData");
@@ -129,6 +132,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfTensor4");
   wsv_group_names.push_back("ArrayOfTensor6");
   wsv_group_names.push_back("ArrayOfTensor7");
+  wsv_group_names.push_back("ArrayOfTransmissionMatrix");
   wsv_group_names.push_back("ArrayOfVector");
   wsv_group_names.push_back("ArrayOfXsecRecord");
   wsv_group_names.push_back("CIARecord");
@@ -148,6 +152,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("Ppath");
   wsv_group_names.push_back("PropagationMatrix");
   wsv_group_names.push_back("QuantumIdentifier");
+  wsv_group_names.push_back("RadiationVector");
   wsv_group_names.push_back("Rational");
   wsv_group_names.push_back("ScatteringMetaData");
   wsv_group_names.push_back("SingleScatteringData");
@@ -163,6 +168,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("Tensor7");
   wsv_group_names.push_back("Timer");
   wsv_group_names.push_back("TessemNN");
+  wsv_group_names.push_back("TransmissionMatrix");
   wsv_group_names.push_back("Vector");
   wsv_group_names.push_back("Verbosity");
 

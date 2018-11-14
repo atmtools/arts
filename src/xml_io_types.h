@@ -54,6 +54,7 @@
 #include "optproperties.h"
 #include "ppath.h"
 #include "propagationmatrix.h"
+#include "transmissionmatrix.h"
 #include "telsem.h"
 #include "tessem.h"
 #include "xml_io_private.h"
@@ -163,9 +164,15 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfVector)
 TMPL_XML_READ_WRITE_STREAM(PropagationMatrix)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfPropagationMatrix)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfPropagationMatrix)
+TMPL_XML_READ_WRITE_STREAM(TransmissionMatrix)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfTransmissionMatrix)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfTransmissionMatrix)
 TMPL_XML_READ_WRITE_STREAM(StokesVector)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfStokesVector)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfStokesVector)
+TMPL_XML_READ_WRITE_STREAM(RadiationVector)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfRadiationVector)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfRadiationVector)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfXsecRecord)
 
 //==========================================================================

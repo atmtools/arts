@@ -1,3 +1,46 @@
+2018-11-14  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1150
+	
+	Adding XML IO for TransmissionMatrix and RadiationVector.
+	No external variables of these types exist, but this should
+	help make that easier.  Note that while the Arrays are implemented
+	I have not tested them yet.  The base-classes works as they should 
+	for binary and z-/ascii formats ReadXML/WriteXML.  Print does as well.
+	The warning for when there is an error in reading is however wrong;
+	a missing value gives the warning: "Check syntax of XML file. 
+	A possible cause is that the file contains NaN or Inf values."
+	I have opted to not fix this because it might break the warnings
+	for other classes reading when their data input is bad...
+	
+	* src/groups.cc:  Added TransmissionMatrix and
+	RadiationVector and their arrays.
+	
+	* src/make_auto_md_cc.cc: Added 
+	"<< "#include \"transmissionmatrix.h\"\n""
+	
+	* src/make_auto_md_h.cc: Added 
+	"<< "#include \"transmissionmatrix.h\"\n""
+	
+	* src/make_auto_workspace_h.cc: Added 
+	"<< "#include \"transmissionmatrix.h\"\n""
+	
+	* src/transmissionmatrix.h,cc: Added some initializing calls and 
+	operator=(self) and ways to output the size of the data
+	
+	* src/xml_io_array_types.cc:  Added new reading/writing of Arrays
+	of base classes.  These are currently not tested.
+	
+	* src/xml_io_basic_types.cc:  Added base classes reading/writing.
+	These are tested and works except for the strange error above when
+	the data is poor.
+	
+	* src/xml_io_instantiation.h:  Added TransmissionMatrix and
+	RadiationVector and their arrays.
+	
+	* src/xml_io_types.h:  Added TransmissionMatrix and
+	RadiationVector and their arrays.
+
 2018-11-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1149
