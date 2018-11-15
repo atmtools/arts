@@ -228,6 +228,8 @@ void define_basic_species_data()
          REC( "ForeignContCKDMT100"     ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
          REC( "SelfContCKDMT252"        ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
          REC( "ForeignContCKDMT252"     ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "SelfContCKDMT320"        ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "ForeignContCKDMT320"     ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
          REC( "SelfContCKD222"          ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
          REC( "ForeignContCKD222"       ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
          REC( "SelfContCKD242"          ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),

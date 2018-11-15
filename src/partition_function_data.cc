@@ -220,6 +220,8 @@ iso(it_isotopologue,	"262" ,	Qcoeff(-3.572493e+01,  1.652500e+00,  7.633309e-03,
   iso(it_isotopologue,       "ForeignContCKDMT100",     Qcoeff( 0    ,0              ,0              ,0          ), Qcoeff(150.0, 300.0), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "SelfContCKDMT252",        Qcoeff( 0    ,0              ,0              ,0          ), Qcoeff(150.0, 300.0), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "ForeignContCKDMT252",     Qcoeff( 0    ,0              ,0              ,0          ), Qcoeff(150.0, 300.0), IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,       "SelfContCKDMT320",        Qcoeff( 0    ,0              ,0              ,0          ), Qcoeff(150.0, 300.0), IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,       "ForeignContCKDMT320",     Qcoeff( 0    ,0              ,0              ,0          ), Qcoeff(150.0, 300.0), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "SelfContCKD222",          Qcoeff( 0    ,0              ,0              ,0          ), Qcoeff(150.0, 300.0), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "ForeignContCKD222",       Qcoeff( 0    ,0              ,0              ,0          ), Qcoeff(150.0, 300.0), IsotopologueRecord::PF_FROMCOEFF);
   iso(it_isotopologue,       "SelfContCKD242",          Qcoeff( 0    ,0              ,0              ,0          ), Qcoeff(150.0, 300.0), IsotopologueRecord::PF_FROMCOEFF);

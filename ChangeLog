@@ -1,3 +1,11 @@
+2018-11-15  stuart.fox  <stuart.fox@metoffice.gov.uk>
+
+	* arts-2-3-1152
+
+	* src/continua.cc,h;src/partition_function_data.cc;src/species_data.cc;controlfiles/continua.arts:
+	Added MT-CKD v3.2.0 H2O self and foreign continua based on 
+	AER Fortran code. Implementation by Emma Turner.
+
 2018-11-14  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1151
@@ -125,7 +133,7 @@
 	so there might still be gains to have...
 	
 	Other test functions are not as much speedier, and
-	some are even slower than before, and I have not 
+; 	some are even slower than before, and I have not 
 	checked during which conditions the OEM stuff is
 	actually faster.
 	
