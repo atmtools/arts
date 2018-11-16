@@ -1584,7 +1584,12 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(ComplexMatrixView dF
                                                             const ArrayOfRetrievalQuantity& derivatives_data,
                                                             const ArrayOfIndex& derivatives_data_position,
                                                             const QuantumIdentifier& quantum_identity,
-                                                            const Vector& dlfd)
+                                                            const LineRecord& line,
+                                                            const Numeric& T,
+                                                            const Numeric& P,
+                                                            const Index& this_species,
+                                                            const ConstVectorView& vmrs,
+                                                            const ArrayOfArrayOfSpeciesTag& species)
 {
   const Index nppd = derivatives_data_position.nelem();
   
@@ -1601,7 +1606,7 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(ComplexMatrixView dF
         case JacPropMatType::LineFunctionDataG2X0:
         case JacPropMatType::LineFunctionDataG2X1:
         case JacPropMatType::LineFunctionDataG2X2:
-          dF(iq, joker) *= Complex(0, dlfd[iq]);
+          dF(iq, joker) *= Complex(0, line.GetInternalDerivative(T,P,this_species,vmrs,species, rt));
           break;
         case JacPropMatType::LineFunctionDataD0X0:
         case JacPropMatType::LineFunctionDataD0X1:
@@ -1609,7 +1614,7 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(ComplexMatrixView dF
         case JacPropMatType::LineFunctionDataD2X0:
         case JacPropMatType::LineFunctionDataD2X1:
         case JacPropMatType::LineFunctionDataD2X2:
-          dF(iq, joker) *= -dlfd[iq];
+          dF(iq, joker) *= -line.GetInternalDerivative(T,P,this_species,vmrs,species, rt);
           break;
         case JacPropMatType::LineFunctionDataFVCX0:
         case JacPropMatType::LineFunctionDataFVCX1:
@@ -1623,12 +1628,12 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(ComplexMatrixView dF
         case JacPropMatType::LineFunctionDataDVX0:
         case JacPropMatType::LineFunctionDataDVX1:
         case JacPropMatType::LineFunctionDataDVX2:
-          dF(iq, joker) *= dlfd[iq];
+          dF(iq, joker) *= line.GetInternalDerivative(T,P,this_species,vmrs,species, rt);
           break;
         case JacPropMatType::LineFunctionDataYX0:
         case JacPropMatType::LineFunctionDataYX1:
         case JacPropMatType::LineFunctionDataYX2:
-          dF(iq, joker) *= Complex(0, -dlfd[iq]);
+          dF(iq, joker) *= Complex(0, -line.GetInternalDerivative(T,P,this_species,vmrs,species, rt));
           break;
         default:
         {/*pass*/}
@@ -1995,11 +2000,10 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   if(lst not_eq LineShapeType::Doppler) {
     apply_linemixing_scaling(F, dF, Y, G, derivatives_data, derivatives_data_position, QI, dY_dT, dG_dT, dXdVMR);
   
-    // Apply line mixing and pressure broadening partial derivatives
-    const Vector internal_derivatives = line.GetInternalDerivatives(temperature, pressure,  this_species_location_in_tags,
-                                                                    volume_mixing_ratio_of_all_species, abs_species,
-                                                                    derivatives_data, derivatives_data_position);
-    apply_linefunctiondata_jacobian_scaling(dF, derivatives_data, derivatives_data_position, QI, internal_derivatives);
+    // Apply line mixing and pressure broadening partial derivatives        
+    apply_linefunctiondata_jacobian_scaling(dF, derivatives_data, derivatives_data_position, QI, line,
+                                            temperature, pressure,  this_species_location_in_tags,
+                                            volume_mixing_ratio_of_all_species, abs_species);
   }
   
   // Apply line strength by whatever method is necessary

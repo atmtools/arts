@@ -249,10 +249,15 @@ namespace Linefunctions
                     const Numeric& drho_dT=0.0);
   
   void apply_linefunctiondata_jacobian_scaling(ComplexMatrixView dF,
-                                               const ArrayOfRetrievalQuantity& derivatives_data,
-                                               const ArrayOfIndex& derivatives_data_pos,
-                                               const QuantumIdentifier& quantum_identity,
-                                               const Vector& dlfd);
+                                              const ArrayOfRetrievalQuantity& derivatives_data,
+                                              const ArrayOfIndex& derivatives_data_position,
+                                              const QuantumIdentifier& quantum_identity,
+                                              const LineRecord& line,
+                                              const Numeric& T,
+                                              const Numeric& P,
+                                              const Index& this_species,
+                                              const ConstVectorView& vmrs,
+                                              const ArrayOfArrayOfSpeciesTag& species);
   
   Numeric DopplerConstant(const Numeric& T, const Numeric& mass);
   

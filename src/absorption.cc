@@ -1057,7 +1057,7 @@ void xsec_single_line(// Output:
                       Vector& aux, 
                       // Frequency grid:
                       Vector& f_local, 
-                      const Vector& f_grid, 
+                      const ConstVectorView f_grid, 
                       const Index nf, 
                       const Numeric cutoff,
                       Numeric F0, 

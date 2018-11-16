@@ -2351,7 +2351,7 @@ void get_stepwise_transmission_matrix(Tensor3View cumulative_transmission,
                                                dT_close_dx, dT_far_dx, 
                                                ppath_distance, 
                                                K_close, K_far, 
-                                               dK_close_dx, dK_far_dx);
+                                               dK_close_dx, dK_far_dx);  // FIXME:  Add path-derivatives here [Internally, only for temperature for now; expressions valid for other things]
   
   // Cumulate transmission
   if(stokes_dim>1)

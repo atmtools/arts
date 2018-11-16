@@ -408,11 +408,11 @@ void dtransmat1(TransmissionMatrix& T,
                 const ArrayOfPropagationMatrix& dK1,
                 const ArrayOfPropagationMatrix& dK2,
                 const Numeric& r,
-                const Numeric& dr_dT1=0,
-                const Numeric& dr_dT2=0,
-                const Index it=-1,
-                const Index iz=0,
-                const Index ia=0)
+                const Numeric& dr_dT1,
+                const Numeric& dr_dT2,
+                const Index it,
+                const Index iz,
+                const Index ia)
 {
   for(Index i=0; i<K1.NumberOfFrequencies(); i++) {
     T.set1(std::exp(-0.5 * r * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i])), i);
@@ -434,11 +434,11 @@ void dtransmat2(TransmissionMatrix& T,
                 const ArrayOfPropagationMatrix& dK1,
                 const ArrayOfPropagationMatrix& dK2,
                 const Numeric& r,
-                const Numeric& dr_dT1=0,
-                const Numeric& dr_dT2=0,
-                const Index it=-1,
-                const Index iz=0,
-                const Index ia=0)
+                const Numeric& dr_dT1,
+                const Numeric& dr_dT2,
+                const Index it,
+                const Index iz,
+                const Index ia)
 {
   for(Index i=0; i<K1.NumberOfFrequencies(); i++) {
     const Numeric a = -0.5 * r * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]), 
@@ -501,11 +501,11 @@ void dtransmat3(TransmissionMatrix& T,
                 const ArrayOfPropagationMatrix& dK1,
                 const ArrayOfPropagationMatrix& dK2,
                 const Numeric& r,
-                const Numeric& dr_dT1=0,
-                const Numeric& dr_dT2=0,
-                const Index it=-1,
-                const Index iz=0,
-                const Index ia=0)
+                const Numeric& dr_dT1,
+                const Numeric& dr_dT2,
+                const Index it,
+                const Index iz,
+                const Index ia)
 {
   for(Index i=0; i<K1.NumberOfFrequencies(); i++) {
     const Numeric a = -0.5 * r * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]), 
@@ -636,11 +636,11 @@ void dtransmat4(TransmissionMatrix& T,
                 const ArrayOfPropagationMatrix& dK1,
                 const ArrayOfPropagationMatrix& dK2,
                 const Numeric& r,
-                const Numeric& dr_dT1=0,
-                const Numeric& dr_dT2=0,
-                const Index it=-1,
-                const Index iz=0,
-                const Index ia=0)
+                const Numeric& dr_dT1,
+                const Numeric& dr_dT2,
+                const Index it,
+                const Index iz,
+                const Index ia)
 {
   static const Numeric sqrt_05 = sqrt(0.5);
   for(Index i=0; i<K1.NumberOfFrequencies(); i++) {
@@ -1180,13 +1180,18 @@ void dtransmat(TransmissionMatrix& T,
                const PropagationMatrix& K2,
                const ArrayOfPropagationMatrix& dK1,
                const ArrayOfPropagationMatrix& dK2,
-               const Numeric& r)
+               const Numeric& r,
+               const Numeric& dr_dT1=0,
+               const Numeric& dr_dT2=0,
+               const Index it=-1,
+               const Index iz=0,
+               const Index ia=0)
 {
   switch(K1.StokesDimensions()) {
-    case 4: dtransmat4(T, dT1, dT2, K1, K2, dK1, dK2, r); break;
-    case 3: dtransmat3(T, dT1, dT2, K1, K2, dK1, dK2, r); break;
-    case 2: dtransmat2(T, dT1, dT2, K1, K2, dK1, dK2, r); break;
-    case 1: dtransmat1(T, dT1, dT2, K1, K2, dK1, dK2, r); break;
+    case 4: dtransmat4(T, dT1, dT2, K1, K2, dK1, dK2, r, dr_dT1, dr_dT2, it, iz, ia); break;
+    case 3: dtransmat3(T, dT1, dT2, K1, K2, dK1, dK2, r, dr_dT1, dr_dT2, it, iz, ia); break;
+    case 2: dtransmat2(T, dT1, dT2, K1, K2, dK1, dK2, r, dr_dT1, dr_dT2, it, iz, ia); break;
+    case 1: dtransmat1(T, dT1, dT2, K1, K2, dK1, dK2, r, dr_dT1, dr_dT2, it, iz, ia); break;
   }
 }
 
@@ -1210,7 +1215,7 @@ void stepwise_transmission(TransmissionMatrix& PiT,
     if(not dT1.nelem())
       transmat(T, K1, K2, r);
     else
-      dtransmat(T, dT1, dT2, K1, K2, dK1, dK2, r);
+      dtransmat(T, dT1, dT2, K1, K2, dK1, dK2, r);  // FIXME:  Add path-derivatives here [Internally, only for temperature for now; expressions valid for other things]
     PiT.mul(PiT_last, T);
   }
 }

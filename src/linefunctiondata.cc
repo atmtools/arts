@@ -1929,24 +1929,6 @@ Numeric LineFunctionData::Get(const String& species, const String& coefficient, 
 }
 
 
-Vector LineFunctionData::GetInternalDerivatives(const Numeric& T0,
-                                                const Numeric& T,
-                                                const Numeric& P,
-                                                const Numeric& self_vmr,
-                                                const ConstVectorView& rtp_vmr,
-                                                const ArrayOfArrayOfSpeciesTag& abs_species,
-                                                const ArrayOfRetrievalQuantity& rts,
-                                                const ArrayOfIndex& rts_pos,
-                                                const QuantumIdentifier& line_qi,
-                                                const bool normalization) const
-{
-  Vector derivs(rts_pos.nelem(), 0);
-  for(Index i=0; i<rts_pos.nelem(); i++)
-    derivs[i] = GetLineParamDeriv(T0, T, P, self_vmr, rtp_vmr,  abs_species, rts[rts_pos[i]], line_qi, normalization);
-  return derivs;
-}
-
-
 LineFunctionData::Output NoLineFunctionDataOutput() noexcept
 {
   return std::make_tuple(0, 0, 0, 0, 0, 0, 0, 0, 0);

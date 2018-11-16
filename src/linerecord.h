@@ -571,11 +571,11 @@ public:
   Numeric PressureBroadeningAirBroadeningPsf( ) const { return mlinefunctiondata.AirD0(); }
   Numeric PressureBroadeningAirBroadeningAgam() const { return mlinefunctiondata.AirG0(); }
 
-  Vector GetInternalDerivatives(const Numeric& T, const Numeric& P, const Index this_species,
+  Numeric GetInternalDerivative(const Numeric& T, const Numeric& P, const Index this_species,
                                 const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species, 
-                                const ArrayOfRetrievalQuantity& derivatives_data, const ArrayOfIndex& derivatives_data_pos) const
+                                const RetrievalQuantity& derivative) const
   {
-    return mlinefunctiondata.GetInternalDerivatives(mti0, T, P, vmrs[this_species], vmrs, abs_species, derivatives_data, derivatives_data_pos, mqid);
+    return mlinefunctiondata.GetLineParamDeriv(mti0, T, P, vmrs[this_species], vmrs, abs_species, derivative, mqid);
   }
   
   

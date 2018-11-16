@@ -1,3 +1,44 @@
+2018-11-16  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1153
+	
+	Another small speedup for LBL internals.  The heaptrack
+	test now indicates there is just one large issue remaining
+	in the codepaths I am mostly using:  the cutoff-calls
+	in Linefunctionsdata is using temporary variables.  I
+	tried fixing it but it takes more effort than an hour
+	of coding allowed, so the problem remains even with
+	this commit.  For some tests this results in a few
+	million calls to temporary allocations.
+	
+	* src/absorption.cc,h:  Changed "const Vector&"
+	that was actually a "ConstVectorView" to the latter.
+	Allocates a lot less memory for LBL calculations
+	since the reallocation happened for every single
+	line at every single level
+	
+	* src/linefunctiondata.cc:  Removed vector allocation
+	of line parameter derivatives because it is slower than
+	just calling the functions directly.
+	
+	* src/linefunctions.cc:  Implements the above change.
+	
+	* src/linerecord.h:  Interface to the above.
+	
+	* src/rte.cc, src/transmissionmatrix.cc:  Added a comment
+	where the changes needs to go to have dppath_dx in the
+	transmission matrix derivatives.  The goal was to add
+	HSE here but I have no good HSE tests because the method is
+	pre-processed on the input data.  So perturbations won't work.
+	Putting the perturbations on an even higher level and
+	just restarting all calculations will not work either,
+	because that changes more than just local values.
+	The only way to make the test work is to have dzfield_dT/
+	dppath_dx as a variable, but that requires changes
+	I don't have time for.
+	
+	I cannot test it, so I cannot implement it.
+
 2018-11-15  stuart.fox  <stuart.fox@metoffice.gov.uk>
 
 	* arts-2-3-1152
