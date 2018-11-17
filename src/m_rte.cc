@@ -419,7 +419,30 @@ void iyEmissionStandard(
                 )                                  // jacobian quantities
             }
 
-          get_stepwise_transmission_matrix(
+            const bool use_guesswork_derivatives_for_hse=false;
+          if(not use_guesswork_derivatives_for_hse or ip==0)
+            get_stepwise_transmission_matrix(
+                                    ppvar_trans_cumulat(ip,joker,joker,joker),
+                                    ppvar_trans_partial(ip,joker,joker,joker),
+                                    dtrans_partial_dx_above(ip,joker,joker,joker,joker),
+                                    dtrans_partial_dx_below(ip,joker,joker,joker,joker),
+                                    (ip>0)?
+                                    ppvar_trans_cumulat(ip-1,joker,joker,joker):
+                                    Tensor3(0,0,0),
+                                    K_past,
+                                    K_this,
+                                    dK_past_dx,
+                                    dK_this_dx,
+                                    (ip>0)?
+                                    ppath.lstep[ip-1]:
+                                    Numeric(1.0),
+                                    ip==0 );
+          else {
+              const Numeric dr_dT_HSE_guesswork_past = + guesswork_HSE_derivative(ppath.pos(ip-1, 0)-ppath.pos(ip, 0), ppath.lstep[ip-1], ppvar_t[ip-1]);
+              const Numeric dr_dT_HSE_guesswork_this = - guesswork_HSE_derivative(ppath.pos(ip-1, 0)-ppath.pos(ip, 0), ppath.lstep[ip-1], ppvar_t[ip  ]);
+              Index temperature_derivative_position;
+              for(Index i=0; i<jacobian_quantities.nelem(); i++) if(jacobian_quantities[i].IsTemperature()) temperature_derivative_position = i;
+              get_stepwise_transmission_matrix(
                                  ppvar_trans_cumulat(ip,joker,joker,joker),
                                  ppvar_trans_partial(ip,joker,joker,joker),
                                  dtrans_partial_dx_above(ip,joker,joker,joker,joker),
@@ -434,7 +457,11 @@ void iyEmissionStandard(
                                  (ip>0)?
                                    ppath.lstep[ip-1]:
                                    Numeric(1.0),
-                                 ip==0 );
+                                 false ,
+                                 dr_dT_HSE_guesswork_past,
+                                 dr_dT_HSE_guesswork_this,
+                                 temperature_derivative_position);
+          }
 
           get_stepwise_effective_source( J(ip,joker,joker),
                                          dJ_dx(ip,joker,joker,joker),

@@ -1,3 +1,44 @@
+2018-11-17  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1154
+
+	Added deactivated HSE guesswork derivatives calculations.
+	I don't trust these at all because I cannot test them properly
+	without implementing derivatives in ppath.  They are currently
+	only active by a very obvious flag in m_rte.cc that needs to
+	manually be set to another value.  There is no way to run
+	without HSE derivatives if this flag is true so it is
+	just around because Patrick wanted something to test.  For
+	this flag to be removed, a runtime_error in the iy-checking
+	method that asserts we have HSE in said agenda, and a method
+	to set the Index that indicates the temperature derivative
+	to something negative when HSE is not active while running
+	with temperature derivatives.
+
+	* src/m_rte.cc:  Made a branch of transmission calculations
+	that should be removed once people are happy with the HSE
+	state.  Note that I did not bother at all to check whether
+	the signs are OK.  If the temperature is increased for the
+	level in front of you when you look down, the sign should be
+	negative on lstep, but if you are looking up and the level
+	above you gets warmer, the change in lstep is positive.  So
+	the two levels carry different signs.
+
+	* rte.cc,h: Activate inactive code inside the
+	transmission matrix calculations.  Note that this is 
+	different from before the switch of 983 because previous
+	versions made a much rougher estimtion, and didn't take
+	the effects of the two different levels into account.
+	The code carries the "guesswork"-label because for whatever
+	reason we want to do this without simply outputting
+	the true local derivatives from the ppath-calculations,
+	so that we wouldn't need to make these guesses.
+
+	The implemented method reduces to AUG for nadir-looking
+	only.  I don't believe in AUG definition because it just
+	ignores the limb.  It should get increasingly worse
+	the closer to limb local zenith angles.
+
 2018-11-16  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1153

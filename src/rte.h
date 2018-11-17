@@ -327,6 +327,8 @@ void adapt_stepwise_partial_derivatives(ArrayOfPropagationMatrix& dK_dx,
                                         const Index& atmosphere_dim,
                                         const bool& jacobian_do);
 
+Numeric guesswork_HSE_derivative(Numeric h, Numeric r, Numeric T);
+
 void get_stepwise_transmission_matrix(Tensor3View cumulative_transmission,
                                       Tensor3View T,
                                       Tensor4View dT_dx_close,
@@ -337,7 +339,10 @@ void get_stepwise_transmission_matrix(Tensor3View cumulative_transmission,
                                       const ArrayOfPropagationMatrix& dK_close_dx,
                                       const ArrayOfPropagationMatrix& dK_far_dx,
                                       const Numeric& ppath_distance,
-                                      const bool& first_level);
+                                      const bool& first_level,
+                                      const Numeric& dr_dT_close=0,
+                                      const Numeric& dr_dT_far=0,
+                                      const Index& it =-1);
 
 void sum_stepwise_scalar_tau_and_extmat_case(VectorView scalar_tau,
                                              ArrayOfIndex& extmat_case,

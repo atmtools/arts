@@ -2303,6 +2303,9 @@ void adapt_stepwise_partial_derivatives(ArrayOfPropagationMatrix& dK_dx,
 }
 
 
+Numeric guesswork_HSE_derivative(Numeric h, Numeric r, Numeric T) { return 2 * h * std::abs(h/r) / T; /*std::abs to keep sign since one level should be negative and the other positive*/ }
+
+
 //! get_stepwise_transmission_matrix
 /*!
  *  Computes layer transmission matrix and cumulative transmission
@@ -2327,7 +2330,10 @@ void get_stepwise_transmission_matrix(Tensor3View cumulative_transmission,
                                       const ArrayOfPropagationMatrix& dK_close_dx,
                                       const ArrayOfPropagationMatrix& dK_far_dx,
                                       const Numeric& ppath_distance,
-                                      const bool& first_level)
+                                      const bool& first_level,
+                                      const Numeric& dppath_distance_dT_HSE_guesswork_close,
+                                      const Numeric& dppath_distance_dT_HSE_guesswork_far,
+                                      const Index& temperature_derivative_position_if_hse_is_active)
 {
   // Frequency counter
   const Index nf = K_close.NumberOfFrequencies();
@@ -2351,7 +2357,10 @@ void get_stepwise_transmission_matrix(Tensor3View cumulative_transmission,
                                                dT_close_dx, dT_far_dx, 
                                                ppath_distance, 
                                                K_close, K_far, 
-                                               dK_close_dx, dK_far_dx);  // FIXME:  Add path-derivatives here [Internally, only for temperature for now; expressions valid for other things]
+                                               dK_close_dx, dK_far_dx,
+                                               dppath_distance_dT_HSE_guesswork_close,
+                                               dppath_distance_dT_HSE_guesswork_far,
+                                               temperature_derivative_position_if_hse_is_active);
   
   // Cumulate transmission
   if(stokes_dim>1)
