@@ -1,3 +1,22 @@
+2018-11-19  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1155
+
+	* src/transmissionmatrix.cc,src/propagationmatrix.cc:
+	fixed small bug found while testing the distance-derivatives.
+	Previous code had not done the chain rule right for the distance
+	derivatives, only keeping one of the two levels. 
+	
+	I have also found a bug for stokes_dim 2 and 3 derivatives.
+	I will go over these bugs more later since these two cases
+	are not common enough to be part of the fast tests...
+	
+	Also, I have changed the order of the input to the derivatives
+	transmission matrix because it was not the same as for other 
+	variables
+
+	* src/test_propagationmatrix.cc:  Testing the above.  
+
 2018-11-17  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1154

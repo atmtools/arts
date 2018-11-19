@@ -470,8 +470,8 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
                                                 const PropagationMatrix& lower_level,
                                                 const ArrayOfPropagationMatrix& dupper_level_dx, 
                                                 const ArrayOfPropagationMatrix& dlower_level_dx,
-                                                const Numeric& dr_dTl,
                                                 const Numeric& dr_dTu,
+                                                const Numeric& dr_dTl,
                                                 const Index it,
                                                 const Index iz,
                                                 const Index ia)
@@ -520,12 +520,12 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
       T(i, 0, 0) = exp(-0.5 * r * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]));
       for(Index j = 0; j < nppd; j++) {
         if(dupper_level_dx[j].NumberOfFrequencies()) {
-          const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTu * upper_level.Kjj(iz, ia)[i]:0.0));
+          const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?(dr_dTu * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i])):0.0));
           dT_dx_upper_level(j, i, 0, 0) = T(i, 0, 0) * da;
         }
         
         if(dlower_level_dx[j].NumberOfFrequencies()) {
-          const Numeric da = -0.5 * (r * dlower_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTl * lower_level.Kjj(iz, ia)[i]:0.0));
+          const Numeric da = -0.5 * (r * dlower_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?(dr_dTl * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i])):0.0));
           dT_dx_lower_level(j, i, 0, 0) = T(i, 0, 0) * da;
         }
       }
@@ -545,14 +545,14 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
         F(0, 0) = F(1, 1) = exp_a;
         for(Index j = 0; j < nppd; j++) {
           if(dupper_level_dx[j].NumberOfFrequencies()) {
-            const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTu * upper_level.Kjj(iz, ia)[i]:0.0));
+            const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTu * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]):0.0));
             dT_dx_upper_level(j, i, joker, joker) = F;
             dT_dx_upper_level(j, i, 0, 0) = dT_dx_upper_level(j, i, 1, 1) *= da;
           }
           
           if(dlower_level_dx[j].NumberOfFrequencies())
           {
-            const Numeric da = -0.5 * (r * dlower_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTl * lower_level.Kjj(iz, ia)[i]:0.0));
+            const Numeric da = -0.5 * (r * dlower_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTl * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]):0.0));
             dT_dx_lower_level(j, i, joker, joker) = F;
             dT_dx_lower_level(j, i, 0, 0) = dT_dx_lower_level(j, i, 1, 1) *= da;
           }
@@ -573,14 +573,14 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
           continue;
         MatrixView dF = dT_dx_lower_level(j, i, joker, joker);
         
-        const Numeric da = -0.5 * (r * dlower_level_dx[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dTl * lower_level.Kjj(iz, ia)[i] : 0.0)),
-                      db = -0.5 * (r * dlower_level_dx[j].K12(iz, ia)[i] + ((j==it) ? dr_dTl * lower_level.K12(iz, ia)[i] : 0.0));
+        const Numeric da = -0.5 * (r * dlower_level_dx[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dTl * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]) : 0.0)),
+                      db = -0.5 * (r * dlower_level_dx[j].K12(iz, ia)[i] + ((j==it) ? dr_dTl * (upper_level.K12(iz, ia)[i] + lower_level.K12(iz, ia)[i]) : 0.0));
         
         const Numeric dC0 = -a*cosh(b)*db/b + a*sinh(b)*db/b/b + sinh(b)*db - sinh(b)*da/b;
         const Numeric dC1 = (cosh(b) - C1)*db/b;
         
-        dF(0, 0) = dF(1, 1) = dC0 + C1 * da + dC1 * a + F(0, 0) * da;
-        dF(0, 1) = dF(1, 0) = C1 * db + dC1 * b + F(0, 1) * da;
+        dF(0, 0) = dF(1, 1) = (dC0 + C1 * da + dC1 * a)*exp_a + F(0, 0) * da;
+        dF(0, 1) = dF(1, 0) = (C1 * db + dC1 * b)*exp_a + F(0, 1) * da;
       }
       
       for(Index j = 0; j < nppd; j++) {
@@ -589,14 +589,14 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
         
         MatrixView dF = dT_dx_upper_level(j, i, joker, joker);
         
-        const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dTu * upper_level.Kjj(iz, ia)[i] : 0.0)),
-                      db = -0.5 * (r * dupper_level_dx[j].K12(iz, ia)[i] + ((j==it) ? dr_dTu * upper_level.K12(iz, ia)[i] : 0.0));
+        const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dTu * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]) : 0.0)),
+                      db = -0.5 * (r * dupper_level_dx[j].K12(iz, ia)[i] + ((j==it) ? dr_dTu * (upper_level.K12(iz, ia)[i] + lower_level.K12(iz, ia)[i]) : 0.0));
         
         const Numeric dC0 = -a*cosh(b)*db/b + a*sinh(b)*db/b/b + sinh(b)*db - sinh(b)*da/b;
         const Numeric dC1 = (cosh(b) - C1)*db/b;
         
-        dF(0, 0) = dF(1, 1) = dC0 + C1 * da + dC1 * a + F(0, 0) * da;
-        dF(0, 1) = dF(1, 0) = C1 * db + dC1 * b + F(0, 1) * da;
+        dF(0, 0) = dF(1, 1) = (dC0 + C1 * da + dC1 * a)*exp_a + F(0, 0) * da;
+        dF(0, 1) = dF(1, 0) = (C1 * db + dC1 * b)*exp_a + F(0, 1) * da;
       }
     }
   }
@@ -616,13 +616,13 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
         F(0, 0) = F(1, 1) = F(2, 2) = exp_a;
         for(Index j = 0; j < nppd; j++) {
           if(dupper_level_dx[j].NumberOfFrequencies()) {
-            const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTu * upper_level.Kjj(iz, ia)[i]:0.0));
+            const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTu * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]):0.0));
             dT_dx_upper_level(j, i, joker, joker) = F;
             dT_dx_upper_level(j, i, 0, 0) = dT_dx_upper_level(j, i, 1, 1) = dT_dx_upper_level(j, i, 2, 2) *= da;
           }
           
           if(dlower_level_dx[j].NumberOfFrequencies()) {
-            const Numeric da = -0.5 * (r * dlower_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTl * lower_level.Kjj(iz, ia)[i]:0.0));
+            const Numeric da = -0.5 * (r * dlower_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTl * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]):0.0));
             dT_dx_lower_level(j, i, joker, joker) = F;
             dT_dx_lower_level(j, i, 0, 0) = dT_dx_lower_level(j, i, 1, 1) = dT_dx_lower_level(j, i, 2, 2) *= da;
           }
@@ -663,10 +663,10 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
         
         MatrixView dF = dT_dx_lower_level(j, i, joker, joker);
         
-        const Numeric da = -0.5 * (r * dlower_level_dx[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dTl * lower_level.Kjj(iz, ia)[i] : 0.0)),
-                      db = -0.5 * (r * dlower_level_dx[j].K12(iz, ia)[i] + ((j==it) ? dr_dTl * lower_level.K12(iz, ia)[i] : 0.0)),
-                      dc = -0.5 * (r * dlower_level_dx[j].K13(iz, ia)[i] + ((j==it) ? dr_dTl * lower_level.K13(iz, ia)[i] : 0.0)),
-                      du = -0.5 * (r * dlower_level_dx[j].K23(iz, ia)[i] + ((j==it) ? dr_dTl * lower_level.K23(iz, ia)[i] : 0.0));
+        const Numeric da = -0.5 * (r * dlower_level_dx[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dTl * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]) : 0.0)),
+                      db = -0.5 * (r * dlower_level_dx[j].K12(iz, ia)[i] + ((j==it) ? dr_dTl * (upper_level.K12(iz, ia)[i] + lower_level.K12(iz, ia)[i]) : 0.0)),
+                      dc = -0.5 * (r * dlower_level_dx[j].K13(iz, ia)[i] + ((j==it) ? dr_dTl * (upper_level.K13(iz, ia)[i] + lower_level.K13(iz, ia)[i]) : 0.0)),
+                      du = -0.5 * (r * dlower_level_dx[j].K23(iz, ia)[i] + ((j==it) ? dr_dTl * (upper_level.K23(iz, ia)[i] + lower_level.K23(iz, ia)[i]) : 0.0));
         
         const Numeric da2 = 2 * a * da, db2 = 2 * b * db, dc2 = 2 * c * dc, du2 = 2 * u * du;
         
@@ -677,20 +677,23 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
         const Numeric dC2 = (sinh_x/x - 2*C2)*dx/x;
         
         dF(0, 0) = dF(1, 1) = dF(2, 2) = dC0 + dC1 * a + C1 * da;
-        dF(0, 0) += dC2 * (a2 + b2 + c2) + C2 * (da2 + db2 + dc2) + F(0, 0) * da;
-        dF(1, 1) += dC2 * (a2 + b2 - u2) + C2 * (da2 + db2 - du2) + F(1, 1) * da;
-        dF(2, 2) += dC2 * (a2 + c2 - u2) + C2 * (da2 + dc2 - du2) + F(2, 2) * da;
+        dF(0, 0) += dC2 * (a2 + b2 + c2) + C2 * (da2 + db2 + dc2);
+        dF(1, 1) += dC2 * (a2 + b2 - u2) + C2 * (da2 + db2 - du2);
+        dF(2, 2) += dC2 * (a2 + c2 - u2) + C2 * (da2 + dc2 - du2);
         
         dF(0, 1) = dF(1, 0) = dC1 * b + C1 * db;
-        dF(0, 1) += dC2 * (2*a*b - c*u) + C2 * (2*da*b + 2*a*db - dc*u - c*du) + F(0, 1) * da;
-        dF(1, 0) += dC2 * (2*a*b + c*u) + C2 * (2*da*b + 2*a*db + dc*u + c*du) + F(1, 0) * da;
+        dF(0, 1) += dC2 * (2*a*b - c*u) + C2 * (2*da*b + 2*a*db - dc*u - c*du);
+        dF(1, 0) += dC2 * (2*a*b + c*u) + C2 * (2*da*b + 2*a*db + dc*u + c*du);
         
         dF(0, 2) = dF(2, 0) = dC1 * c + C1 * dc;
-        dF(0, 2) += dC2 * (2*a*c + b*u) + C2 * (2*da*c + 2*a*dc + db*u + b*du) + F(0, 2) * da;
-        dF(2, 0) += dC2 * (2*a*c - b*u) + C2 * (2*da*c + 2*a*dc - db*u - b*du) + F(2, 0) * da;
+        dF(0, 2) += dC2 * (2*a*c + b*u) + C2 * (2*da*c + 2*a*dc + db*u + b*du);
+        dF(2, 0) += dC2 * (2*a*c - b*u) + C2 * (2*da*c + 2*a*dc - db*u - b*du);
         
-        dF(1, 2) =  dC1 * u + C1 * du + dC2 * (2*a*u + b*c) + C2 * (2*da*u + 2*a*du + db*c + b*dc) + F(1, 2) * da;
-        dF(2, 1) = -dC1 * u - C1 * du - dC2 * (2*a*u - b*c) - C2 * (2*da*u + 2*a*du - db*c - b*dc) + F(2, 1) * da;
+        dF(1, 2) =  dC1 * u + C1 * du + dC2 * (2*a*u + b*c) + C2 * (2*da*u + 2*a*du + db*c + b*dc);
+        dF(2, 1) = -dC1 * u - C1 * du - dC2 * (2*a*u - b*c) - C2 * (2*da*u + 2*a*du - db*c - b*dc);
+        
+        dF *= exp_a;
+        for(int s1=0; s1<3; s1++) for(int s2=0; s2<3; s2++) dF(s1, s2) += F(s1, s2) * da;
       }
       
       for(Index j = 0; j < nppd; j++) {
@@ -699,10 +702,10 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
         
         MatrixView dF = dT_dx_upper_level(j, i, joker, joker);
         
-        const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dTu * upper_level.Kjj(iz, ia)[i] : 0.0)),
-                      db = -0.5 * (r * dupper_level_dx[j].K12(iz, ia)[i] + ((j==it) ? dr_dTu * upper_level.K12(iz, ia)[i] : 0.0)),
-                      dc = -0.5 * (r * dupper_level_dx[j].K13(iz, ia)[i] + ((j==it) ? dr_dTu * upper_level.K13(iz, ia)[i] : 0.0)),
-                      du = -0.5 * (r * dupper_level_dx[j].K23(iz, ia)[i] + ((j==it) ? dr_dTu * upper_level.K23(iz, ia)[i] : 0.0));
+        const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dTu * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]) : 0.0)),
+                      db = -0.5 * (r * dupper_level_dx[j].K12(iz, ia)[i] + ((j==it) ? dr_dTu * (upper_level.K12(iz, ia)[i] + lower_level.K12(iz, ia)[i]) : 0.0)),
+                      dc = -0.5 * (r * dupper_level_dx[j].K13(iz, ia)[i] + ((j==it) ? dr_dTu * (upper_level.K13(iz, ia)[i] + lower_level.K13(iz, ia)[i]) : 0.0)),
+                      du = -0.5 * (r * dupper_level_dx[j].K23(iz, ia)[i] + ((j==it) ? dr_dTu * (upper_level.K23(iz, ia)[i] + lower_level.K23(iz, ia)[i]) : 0.0));
         
         const Numeric da2 = 2 * a * da, db2 = 2 * b * db, dc2 = 2 * c * dc, du2 = 2 * u * du;
         
@@ -713,20 +716,23 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
         const Numeric dC2 = (sinh_x/x - 2*C2)*dx/x;
         
         dF(0, 0) = dF(1, 1) = dF(2, 2) = dC0 + dC1 * a + C1 * da;
-        dF(0, 0) += dC2 * (a2 + b2 + c2) + C2 * (da2 + db2 + dc2) + F(0, 0) * da;
-        dF(1, 1) += dC2 * (a2 + b2 - u2) + C2 * (da2 + db2 - du2) + F(1, 1) * da;
-        dF(2, 2) += dC2 * (a2 + c2 - u2) + C2 * (da2 + dc2 - du2) + F(2, 2) * da;
+        dF(0, 0) += dC2 * (a2 + b2 + c2) + C2 * (da2 + db2 + dc2);
+        dF(1, 1) += dC2 * (a2 + b2 - u2) + C2 * (da2 + db2 - du2);
+        dF(2, 2) += dC2 * (a2 + c2 - u2) + C2 * (da2 + dc2 - du2);
         
         dF(0, 1) = dF(1, 0) = dC1 * b + C1 * db;
-        dF(0, 1) += dC2 * (2*a*b - c*u) + C2 * (2*da*b + 2*a*db - dc*u - c*du) + F(0, 1) * da;
-        dF(1, 0) += dC2 * (2*a*b + c*u) + C2 * (2*da*b + 2*a*db + dc*u + c*du) + F(1, 0) * da;
+        dF(0, 1) += dC2 * (2*a*b - c*u) + C2 * (2*da*b + 2*a*db - dc*u - c*du);
+        dF(1, 0) += dC2 * (2*a*b + c*u) + C2 * (2*da*b + 2*a*db + dc*u + c*du);
         
         dF(0, 2) = dF(2, 0) = dC1 * c + C1 * dc;
-        dF(0, 2) += dC2 * (2*a*c + b*u) + C2 * (2*da*c + 2*a*dc + db*u + b*du) + F(0, 2) * da;
-        dF(2, 0) += dC2 * (2*a*c - b*u) + C2 * (2*da*c + 2*a*dc - db*u - b*du) + F(2, 0) * da;
+        dF(0, 2) += dC2 * (2*a*c + b*u) + C2 * (2*da*c + 2*a*dc + db*u + b*du);
+        dF(2, 0) += dC2 * (2*a*c - b*u) + C2 * (2*da*c + 2*a*dc - db*u - b*du);
         
-        dF(1, 2) =  dC1 * u + C1 * du + dC2 * (2*a*u + b*c) + C2 * (2*da*u + 2*a*du + db*c + b*dc) + F(1, 2) * da;
-        dF(2, 1) = -dC1 * u - C1 * du - dC2 * (2*a*u - b*c) - C2 * (2*da*u + 2*a*du - db*c - b*dc) + F(2, 1) * da;
+        dF(1, 2) =  dC1 * u + C1 * du + dC2 * (2*a*u + b*c) + C2 * (2*da*u + 2*a*du + db*c + b*dc);
+        dF(2, 1) = -dC1 * u - C1 * du - dC2 * (2*a*u - b*c) - C2 * (2*da*u + 2*a*du - db*c - b*dc);
+        
+        dF *= exp_a;
+        for(int s1=0; s1<3; s1++) for(int s2=0; s2<3; s2++) dF(s1, s2) += F(s1, s2) * da;
       }
     }
   }
@@ -751,13 +757,13 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
         F(0, 0) = F(1, 1) = F(2, 2) = F(3, 3) = exp_a;
         for(Index j = 0; j < nppd; j++) {
           if(dupper_level_dx[j].NumberOfFrequencies()) {
-            const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTu * upper_level.Kjj(iz, ia)[i]:0.0));
+            const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTu * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]):0.0));
             dT_dx_upper_level(j, i, joker, joker) = F;
             dT_dx_upper_level(j, i, 0, 0) = dT_dx_upper_level(j, i, 1, 1) = dT_dx_upper_level(j, i, 2, 2) = dT_dx_upper_level(j, i, 3, 3) *= da;
           }
           
           if(dlower_level_dx[j].NumberOfFrequencies()) {
-            const Numeric da = -0.5 * (r * dlower_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTl * lower_level.Kjj(iz, ia)[i]:0.0));
+            const Numeric da = -0.5 * (r * dlower_level_dx[j].Kjj(iz, ia)[i] + ((j==it)?dr_dTl * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]):0.0));
             dT_dx_lower_level(j, i, joker, joker) = F;
             dT_dx_lower_level(j, i, 0, 0) = dT_dx_lower_level(j, i, 1, 1) = dT_dx_lower_level(j, i, 2, 2) = dT_dx_lower_level(j, i, 3, 3) *= da;
           }
@@ -875,13 +881,13 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
           
           MatrixView dF = dT_dx_upper_level(j, i, joker, joker);
           
-          const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dTu * upper_level.Kjj(iz, ia)[i] : 0.0)),
-                        db = -0.5 * (r * dupper_level_dx[j].K12(iz, ia)[i] + ((j==it) ? dr_dTu * upper_level.K12(iz, ia)[i] : 0.0)),
-                        dc = -0.5 * (r * dupper_level_dx[j].K13(iz, ia)[i] + ((j==it) ? dr_dTu * upper_level.K13(iz, ia)[i] : 0.0)),
-                        dd = -0.5 * (r * dupper_level_dx[j].K14(iz, ia)[i] + ((j==it) ? dr_dTu * upper_level.K14(iz, ia)[i] : 0.0)),
-                        du = -0.5 * (r * dupper_level_dx[j].K23(iz, ia)[i] + ((j==it) ? dr_dTu * upper_level.K23(iz, ia)[i] : 0.0)),
-                        dv = -0.5 * (r * dupper_level_dx[j].K24(iz, ia)[i] + ((j==it) ? dr_dTu * upper_level.K24(iz, ia)[i] : 0.0)),
-                        dw = -0.5 * (r * dupper_level_dx[j].K34(iz, ia)[i] + ((j==it) ? dr_dTu * upper_level.K34(iz, ia)[i] : 0.0));
+          const Numeric da = -0.5 * (r * dupper_level_dx[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dTu * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]) : 0.0)),
+                        db = -0.5 * (r * dupper_level_dx[j].K12(iz, ia)[i] + ((j==it) ? dr_dTu * (upper_level.K12(iz, ia)[i] + lower_level.K12(iz, ia)[i]) : 0.0)),
+                        dc = -0.5 * (r * dupper_level_dx[j].K13(iz, ia)[i] + ((j==it) ? dr_dTu * (upper_level.K13(iz, ia)[i] + lower_level.K13(iz, ia)[i]) : 0.0)),
+                        dd = -0.5 * (r * dupper_level_dx[j].K14(iz, ia)[i] + ((j==it) ? dr_dTu * (upper_level.K14(iz, ia)[i] + lower_level.K14(iz, ia)[i]) : 0.0)),
+                        du = -0.5 * (r * dupper_level_dx[j].K23(iz, ia)[i] + ((j==it) ? dr_dTu * (upper_level.K23(iz, ia)[i] + lower_level.K23(iz, ia)[i]) : 0.0)),
+                        dv = -0.5 * (r * dupper_level_dx[j].K24(iz, ia)[i] + ((j==it) ? dr_dTu * (upper_level.K24(iz, ia)[i] + lower_level.K24(iz, ia)[i]) : 0.0)),
+                        dw = -0.5 * (r * dupper_level_dx[j].K34(iz, ia)[i] + ((j==it) ? dr_dTu * (upper_level.K34(iz, ia)[i] + lower_level.K34(iz, ia)[i]) : 0.0));
           
           const Numeric db2 = 2 * db * b, dc2 = 2 * dc * c,
                         dd2 = 2 * dd * d, du2 = 2 * du * u,
@@ -1088,13 +1094,13 @@ void compute_transmission_matrix_and_derivative(Tensor3View T,
           
           MatrixView dF = dT_dx_lower_level(j, i, joker, joker);
           
-          const Numeric da = -0.5 * (r * dlower_level_dx[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dTl * lower_level.Kjj(iz, ia)[i] : 0.0)),
-                        db = -0.5 * (r * dlower_level_dx[j].K12(iz, ia)[i] + ((j==it) ? dr_dTl * lower_level.K12(iz, ia)[i] : 0.0)),
-                        dc = -0.5 * (r * dlower_level_dx[j].K13(iz, ia)[i] + ((j==it) ? dr_dTl * lower_level.K13(iz, ia)[i] : 0.0)),
-                        dd = -0.5 * (r * dlower_level_dx[j].K14(iz, ia)[i] + ((j==it) ? dr_dTl * lower_level.K14(iz, ia)[i] : 0.0)),
-                        du = -0.5 * (r * dlower_level_dx[j].K23(iz, ia)[i] + ((j==it) ? dr_dTl * lower_level.K23(iz, ia)[i] : 0.0)),
-                        dv = -0.5 * (r * dlower_level_dx[j].K24(iz, ia)[i] + ((j==it) ? dr_dTl * lower_level.K24(iz, ia)[i] : 0.0)),
-                        dw = -0.5 * (r * dlower_level_dx[j].K34(iz, ia)[i] + ((j==it) ? dr_dTl * lower_level.K34(iz, ia)[i] : 0.0));
+          const Numeric da = -0.5 * (r * dlower_level_dx[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dTl * (upper_level.Kjj(iz, ia)[i] + lower_level.Kjj(iz, ia)[i]) : 0.0)),
+                        db = -0.5 * (r * dlower_level_dx[j].K12(iz, ia)[i] + ((j==it) ? dr_dTl * (upper_level.K12(iz, ia)[i] + lower_level.K12(iz, ia)[i]) : 0.0)),
+                        dc = -0.5 * (r * dlower_level_dx[j].K13(iz, ia)[i] + ((j==it) ? dr_dTl * (upper_level.K13(iz, ia)[i] + lower_level.K13(iz, ia)[i]) : 0.0)),
+                        dd = -0.5 * (r * dlower_level_dx[j].K14(iz, ia)[i] + ((j==it) ? dr_dTl * (upper_level.K14(iz, ia)[i] + lower_level.K14(iz, ia)[i]) : 0.0)),
+                        du = -0.5 * (r * dlower_level_dx[j].K23(iz, ia)[i] + ((j==it) ? dr_dTl * (upper_level.K23(iz, ia)[i] + lower_level.K23(iz, ia)[i]) : 0.0)),
+                        dv = -0.5 * (r * dlower_level_dx[j].K24(iz, ia)[i] + ((j==it) ? dr_dTl * (upper_level.K24(iz, ia)[i] + lower_level.K24(iz, ia)[i]) : 0.0)),
+                        dw = -0.5 * (r * dlower_level_dx[j].K34(iz, ia)[i] + ((j==it) ? dr_dTl * (upper_level.K34(iz, ia)[i] + lower_level.K34(iz, ia)[i]) : 0.0));
           
           const Numeric db2 = 2 * db * b, dc2 = 2 * dc * c,
                         dd2 = 2 * dd * d, du2 = 2 * du * u,

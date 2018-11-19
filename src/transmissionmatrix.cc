@@ -418,9 +418,9 @@ void dtransmat1(TransmissionMatrix& T,
     T.set1(std::exp(-0.5 * r * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i])), i);
     for(Index j=0; j<dT1.nelem(); j++) {
       if(dK1[j].NumberOfFrequencies())
-        dT1[j].set1(T.Mat1(i) * (-0.5 * (r * dK1[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT1 * K1.Kjj(iz, ia)[i]:0.0))), i);
+        dT1[j].set1(T.Mat1(i) * (-0.5 * (r * dK1[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT1 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]):0.0))), i);
       if(dK2[j].NumberOfFrequencies())
-        dT2[j].set1(T.Mat1(i) * (-0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT2 * K2.Kjj(iz, ia)[i]:0.0))), i);
+        dT2[j].set1(T.Mat1(i) * (-0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT2 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]):0.0))), i);
     }
   }
 }
@@ -451,9 +451,9 @@ void dtransmat2(TransmissionMatrix& T,
       T.set2(F * exp_a, i);
       for(Index j=0; j<dT1.nelem(); j++) {
         if(dK1[j].NumberOfFrequencies())
-          dT1[j].set2(T.Mat2(i) * (-0.5 * (r * dK1[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT1 * K1.Kjj(iz, ia)[i]:0.0))), i);
+          dT1[j].set2(T.Mat2(i) * (-0.5 * (r * dK1[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT1 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]):0.0))), i);
         if(dK2[j].NumberOfFrequencies())
-          dT2[j].set2(T.Mat2(i) * (-0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT2 * K2.Kjj(iz, ia)[i]:0.0))), i);
+          dT2[j].set2(T.Mat2(i) * (-0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT2 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]):0.0))), i);
       }
     }
     else {
@@ -467,8 +467,8 @@ void dtransmat2(TransmissionMatrix& T,
       for(Index j=0; j<dT2.nelem(); j++) {
         if(not dK2[j].NumberOfFrequencies())
           continue;
-        const Numeric da = -0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dT2 * K2.Kjj(iz, ia)[i] : 0.0)),
-                      db = -0.5 * (r * dK2[j].K12(iz, ia)[i] + ((j==it) ? dr_dT2 * K2.K12(iz, ia)[i] : 0.0));
+        const Numeric da = -0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]) : 0.0)),
+                      db = -0.5 * (r * dK2[j].K12(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K12(iz, ia)[i] + K2.K12(iz, ia)[i]) : 0.0));
         const Numeric dC0 = -a*std::cosh(b)*db/b + a*std::sinh(b)*db/b/b + std::sinh(b)*db - std::sinh(b)*da/b;
         const Numeric dC1 = (std::cosh(b) - C1)*db/b;
         Eigen::Matrix2d dF;
@@ -479,8 +479,8 @@ void dtransmat2(TransmissionMatrix& T,
       for(Index j=0; j<dT1.nelem(); j++) {
         if(not dK1[j].NumberOfFrequencies())
           continue;
-        const Numeric da = -0.5 * (r * dK1[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dT1 * K1.Kjj(iz, ia)[i] : 0.0)),
-                      db = -0.5 * (r * dK1[j].K12(iz, ia)[i] + ((j==it) ? dr_dT1 * K1.K12(iz, ia)[i] : 0.0));
+        const Numeric da = -0.5 * (r * dK1[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]) : 0.0)),
+                      db = -0.5 * (r * dK1[j].K12(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K12(iz, ia)[i] + K2.K12(iz, ia)[i]) : 0.0));
         const Numeric dC0 = -a*std::cosh(b)*db/b + a*std::sinh(b)*db/b/b + std::sinh(b)*db - std::sinh(b)*da/b;
         const Numeric dC1 = (std::cosh(b) - C1)*db/b;
         Eigen::Matrix2d dF;
@@ -520,9 +520,9 @@ void dtransmat3(TransmissionMatrix& T,
       T.set3(F*exp_a, i);
       for(Index j=0; j<dT1.nelem(); j++) {
         if(dK1[j].NumberOfFrequencies())
-          dT1[j].set3(T.Mat3(i) * (-0.5 * (r * dK1[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT1 * K1.Kjj(iz, ia)[i]:0.0))), i);
+          dT1[j].set3(T.Mat3(i) * (-0.5 * (r * dK1[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT1 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]):0.0))), i);
         if(dK2[j].NumberOfFrequencies())
-          dT2[j].set3(T.Mat3(i) * (-0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT2 * K2.Kjj(iz, ia)[i]:0.0))), i);
+          dT2[j].set3(T.Mat3(i) * (-0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT2 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]):0.0))), i);
       }
     }
     else {
@@ -555,10 +555,10 @@ void dtransmat3(TransmissionMatrix& T,
       for(Index j=0; j<dK2.nelem(); j++) {
         if(not dK2[j].NumberOfFrequencies())
           continue;
-        const Numeric da = -0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dT2 * K2.Kjj(iz, ia)[i] : 0.0)),
-                      db = -0.5 * (r * dK2[j].K12(iz, ia)[i] + ((j==it) ? dr_dT2 * K2.K12(iz, ia)[i] : 0.0)),
-                      dc = -0.5 * (r * dK2[j].K13(iz, ia)[i] + ((j==it) ? dr_dT2 * K2.K13(iz, ia)[i] : 0.0)),
-                      du = -0.5 * (r * dK2[j].K23(iz, ia)[i] + ((j==it) ? dr_dT2 * K2.K23(iz, ia)[i] : 0.0));
+        const Numeric da = -0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]) : 0.0)),
+                      db = -0.5 * (r * dK2[j].K12(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K12(iz, ia)[i] + K2.K12(iz, ia)[i]) : 0.0)),
+                      dc = -0.5 * (r * dK2[j].K13(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K13(iz, ia)[i] + K2.K13(iz, ia)[i]) : 0.0)),
+                      du = -0.5 * (r * dK2[j].K23(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K23(iz, ia)[i] + K2.K23(iz, ia)[i]) : 0.0));
         
         const Numeric da2 = 2 * a * da, db2 = 2 * b * db, dc2 = 2 * c * dc, du2 = 2 * u * du;
         
@@ -591,10 +591,10 @@ void dtransmat3(TransmissionMatrix& T,
       for(Index j=0; j<dK1.nelem(); j++) {
         if(not dK1[j].NumberOfFrequencies())
           continue;
-        const Numeric da = -0.5 * (r * dK1[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dT1 * K1.Kjj(iz, ia)[i] : 0.0)),
-                      db = -0.5 * (r * dK1[j].K12(iz, ia)[i] + ((j==it) ? dr_dT1 * K1.K12(iz, ia)[i] : 0.0)),
-                      dc = -0.5 * (r * dK1[j].K13(iz, ia)[i] + ((j==it) ? dr_dT1 * K1.K13(iz, ia)[i] : 0.0)),
-                      du = -0.5 * (r * dK1[j].K23(iz, ia)[i] + ((j==it) ? dr_dT1 * K1.K23(iz, ia)[i] : 0.0));
+        const Numeric da = -0.5 * (r * dK1[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]) : 0.0)),
+                      db = -0.5 * (r * dK1[j].K12(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K12(iz, ia)[i] + K2.K12(iz, ia)[i]) : 0.0)),
+                      dc = -0.5 * (r * dK1[j].K13(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K13(iz, ia)[i] + K2.K13(iz, ia)[i]) : 0.0)),
+                      du = -0.5 * (r * dK1[j].K23(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K23(iz, ia)[i] + K2.K23(iz, ia)[i]) : 0.0));
         
         const Numeric da2 = 2 * a * da, db2 = 2 * b * db, dc2 = 2 * c * dc, du2 = 2 * u * du;
         
@@ -659,9 +659,9 @@ void dtransmat4(TransmissionMatrix& T,
       T.set4(F * exp_a, i);
       for(Index j=0; j<dK1.nelem(); j++) {
         if(dK1[j].NumberOfFrequencies())
-          dT1[j].set4(T.Mat4(i) * (-0.5 * (r * dK1[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT1 * K1.Kjj(iz, ia)[i]:0.0))), i);
+          dT1[j].set4(T.Mat4(i) * (-0.5 * (r * dK1[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT1 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]):0.0))), i);
         if(dK2[j].NumberOfFrequencies())
-          dT1[j].set4(T.Mat4(i) * (-0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT2 * K2.Kjj(iz, ia)[i]:0.0))), i);
+          dT1[j].set4(T.Mat4(i) * (-0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT2 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]):0.0))), i);
       }
     }
     else {
@@ -770,13 +770,13 @@ void dtransmat4(TransmissionMatrix& T,
         for(Index j=0; j<dK1.nelem(); j++) {
           if(not dK1[j].NumberOfFrequencies())
             continue;
-          const Numeric da = -0.5 * (r * dK1[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dT1 * K1.Kjj(iz, ia)[i] : 0.0)),
-                        db = -0.5 * (r * dK1[j].K12(iz, ia)[i] + ((j==it) ? dr_dT1 * K1.K12(iz, ia)[i] : 0.0)),
-                        dc = -0.5 * (r * dK1[j].K13(iz, ia)[i] + ((j==it) ? dr_dT1 * K1.K13(iz, ia)[i] : 0.0)),
-                        dd = -0.5 * (r * dK1[j].K14(iz, ia)[i] + ((j==it) ? dr_dT1 * K1.K14(iz, ia)[i] : 0.0)),
-                        du = -0.5 * (r * dK1[j].K23(iz, ia)[i] + ((j==it) ? dr_dT1 * K1.K23(iz, ia)[i] : 0.0)),
-                        dv = -0.5 * (r * dK1[j].K24(iz, ia)[i] + ((j==it) ? dr_dT1 * K1.K24(iz, ia)[i] : 0.0)),
-                        dw = -0.5 * (r * dK1[j].K34(iz, ia)[i] + ((j==it) ? dr_dT1 * K1.K34(iz, ia)[i] : 0.0));
+          const Numeric da = -0.5 * (r * dK1[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]) : 0.0)),
+                        db = -0.5 * (r * dK1[j].K12(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K12(iz, ia)[i] + K2.K12(iz, ia)[i]) : 0.0)),
+                        dc = -0.5 * (r * dK1[j].K13(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K13(iz, ia)[i] + K2.K13(iz, ia)[i]) : 0.0)),
+                        dd = -0.5 * (r * dK1[j].K14(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K14(iz, ia)[i] + K2.K14(iz, ia)[i]) : 0.0)),
+                        du = -0.5 * (r * dK1[j].K23(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K23(iz, ia)[i] + K2.K23(iz, ia)[i]) : 0.0)),
+                        dv = -0.5 * (r * dK1[j].K24(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K24(iz, ia)[i] + K2.K24(iz, ia)[i]) : 0.0)),
+                        dw = -0.5 * (r * dK1[j].K34(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K34(iz, ia)[i] + K2.K34(iz, ia)[i]) : 0.0));
           const Numeric db2 = 2 * db * b, dc2 = 2 * dc * c,
                         dd2 = 2 * dd * d, du2 = 2 * du * u,
                         dv2 = 2 * dv * v, dw2 = 2 * dw * w;
@@ -963,13 +963,13 @@ void dtransmat4(TransmissionMatrix& T,
         for(Index j=0; j<dK2.nelem(); j++) {
           if(not dK2[j].NumberOfFrequencies())
             continue;
-          const Numeric da = -0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dT2 * K2.Kjj(iz, ia)[i] : 0.0)),
-                        db = -0.5 * (r * dK2[j].K12(iz, ia)[i] + ((j==it) ? dr_dT2 * K2.K12(iz, ia)[i] : 0.0)),
-                        dc = -0.5 * (r * dK2[j].K13(iz, ia)[i] + ((j==it) ? dr_dT2 * K2.K13(iz, ia)[i] : 0.0)),
-                        dd = -0.5 * (r * dK2[j].K14(iz, ia)[i] + ((j==it) ? dr_dT2 * K2.K14(iz, ia)[i] : 0.0)),
-                        du = -0.5 * (r * dK2[j].K23(iz, ia)[i] + ((j==it) ? dr_dT2 * K2.K23(iz, ia)[i] : 0.0)),
-                        dv = -0.5 * (r * dK2[j].K24(iz, ia)[i] + ((j==it) ? dr_dT2 * K2.K24(iz, ia)[i] : 0.0)),
-                        dw = -0.5 * (r * dK2[j].K34(iz, ia)[i] + ((j==it) ? dr_dT2 * K2.K34(iz, ia)[i] : 0.0));
+          const Numeric da = -0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]) : 0.0)),
+                        db = -0.5 * (r * dK2[j].K12(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K12(iz, ia)[i] + K2.K12(iz, ia)[i]) : 0.0)),
+                        dc = -0.5 * (r * dK2[j].K13(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K13(iz, ia)[i] + K2.K13(iz, ia)[i]) : 0.0)),
+                        dd = -0.5 * (r * dK2[j].K14(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K14(iz, ia)[i] + K2.K14(iz, ia)[i]) : 0.0)),
+                        du = -0.5 * (r * dK2[j].K23(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K23(iz, ia)[i] + K2.K23(iz, ia)[i]) : 0.0)),
+                        dv = -0.5 * (r * dK2[j].K24(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K24(iz, ia)[i] + K2.K24(iz, ia)[i]) : 0.0)),
+                        dw = -0.5 * (r * dK2[j].K34(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K34(iz, ia)[i] + K2.K34(iz, ia)[i]) : 0.0));
           
           const Numeric db2 = 2 * db * b, dc2 = 2 * dc * c,
                         dd2 = 2 * dd * d, du2 = 2 * du * u,

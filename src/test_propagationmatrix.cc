@@ -31,6 +31,7 @@
 #include "zeeman.h"
 #include "linefunctiondata.h"
 #include "transmissionmatrix.h"
+#include <random>
 
 // void define_species_data();
 // void define_species_map();
@@ -379,6 +380,83 @@ void test_transmissionmatrix()
 }
 
 
+void test_r_deriv_propagationmatrix()
+{
+  auto f = [](Numeric x) { return 0.1*x; };
+  auto df = [](Numeric x) { return 0.1+0*x; };
+  
+  Index nstokes=4;
+  const Numeric x1=30;
+  const Numeric x2=-0.1;
+  const Numeric r_normal = 1000;
+  const Numeric r_extra1 = r_normal + f(x1);
+  const Numeric r_extra2 = r_normal + f(x2);
+  
+  PropagationMatrix a(1, nstokes);
+  a.Kjj() = 10 + Numeric(rand() % 1000)/100;
+  if(nstokes > 1) {
+    a.K12() = 2 + Numeric(rand() % 1000)/100;
+    if(nstokes > 2) {
+      a.K13() = 3 + Numeric(rand() % 1000)/100;
+      a.K23() = -1 + Numeric(rand() % 1000)/100;
+      if(nstokes > 3) {
+        a.K14() = 5 + Numeric(rand() % 1000)/100;
+        a.K24() = -3 + Numeric(rand() % 1000)/100;
+        a.K34() = -2 + Numeric(rand() % 1000)/100;
+      }
+    }
+  }
+  a.GetData() *= 1e-5;
+  
+  PropagationMatrix b(1, nstokes);
+  b.Kjj() = 5 + Numeric(rand() % 1000)/100;
+  if(nstokes > 1) {
+    b.K12() = -1 + Numeric(rand() % 1000)/100;
+    if(nstokes > 2) {
+      b.K13() = -3 + Numeric(rand() % 1000)/100;
+      b.K23() = 4 + Numeric(rand() % 1000)/100;
+      if(nstokes > 3) {
+        b.K14() = 2 + Numeric(rand() % 1000)/100;
+        b.K24() = -1 + Numeric(rand() % 1000)/100;
+        b.K34() = 3 + Numeric(rand() % 1000)/100;
+      }
+    }
+  }
+  b.GetData() *= 5e-6;
+  
+  ArrayOfPropagationMatrix da(1, PropagationMatrix(1, nstokes));
+  da[0].GetData() = 0;
+  Tensor3 T_normal(1, nstokes, nstokes), T_extra(1, nstokes, nstokes);
+  Tensor4 dT1(1, 1, nstokes, nstokes), dT2(1, 1, nstokes, nstokes);
+  
+  compute_transmission_matrix_and_derivative(T_normal, dT1, dT2, 
+                                              r_normal,  a, b, da, da,
+                                              df(x1), df(x2), 0);
+  
+  std::cout<<"Transmission at r="<<r_normal<<":\n"<<MapToEigen(T_normal(0, joker, joker))<<"\n"<<"\n";
+  std::cout<<"First derivative:\n"<<MapToEigen(dT1(0, 0, joker, joker))<<"\n"<<"\n";
+  std::cout<<"Second derivative:\n"<<MapToEigen(dT2(0, 0, joker, joker))<<"\n"<<"\n";
+  
+  compute_transmission_matrix(T_extra, r_extra1, a, b);
+  
+  std::cout<<"Transmission at perturbed r1="<<r_extra1<<":\n"<<MapToEigen(T_extra(0, joker, joker))<<"\n"<<"\n";
+  T_extra -= T_normal;
+    T_extra /= x1;
+  std::cout<<"First derivative perturbed:\n"<<MapToEigen(T_extra(0, joker, joker))<<"\n"<<"\n";
+  T_extra /= dT1(0, joker, joker, joker);
+  std::cout<<"First derivative perturbed relative:\n"<<MapToEigen(T_extra(0, joker, joker))<<"\n"<<"\n";
+  
+  compute_transmission_matrix(T_extra, r_extra2, a, b);
+  
+  std::cout<<"Transmission at perturbed r2="<<r_extra2<<":\n"<<MapToEigen(T_extra(0, joker, joker))<<"\n"<<"\n";
+  T_extra -= T_normal;
+    T_extra /= x2;
+  std::cout<<"Second derivative perturbed:\n"<<MapToEigen(T_extra(0, joker, joker))<<"\n"<<"\n";
+  T_extra /= dT2(0, joker, joker, joker);
+  std::cout<<"Second derivative perturbed relative:\n"<<MapToEigen(T_extra(0, joker, joker))<<"\n"<<"\n";
+}
+
+
 int main()
 {
     std::cout<<"Testing Propmat Partials\n";
@@ -386,6 +464,8 @@ int main()
 //     test_zeeman();
 //     test_linefunctionsdata();
 //     test_speed_of_pressurebroadening();
-    test_transmissionmatrix();
+//     test_transmissionmatrix();
+    test_r_deriv_propagationmatrix();
     return 0;
 }
+
