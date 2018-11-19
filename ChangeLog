@@ -1,3 +1,13 @@
+2018-11-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1156
+
+	* src/m_rte.cc (iyEmissionStandard): Worked on the bookkeeping
+	around temperature jacobian. Now HSE on/off is extracted and used.
+	Changed to other expression for dr/dT. All this passed an off-line
+	comparison to perturbation calculations (will be elaborated and
+	added as a ARTS test), as well as TestWfuns.
+
 2018-11-19  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1155

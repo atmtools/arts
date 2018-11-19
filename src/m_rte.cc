@@ -348,6 +348,9 @@ void iyEmissionStandard(
       ArrayOfPropagationMatrix dK_this_dx(nq), dK_past_dx(nq), dKp_dx(nq);
       ArrayOfStokesVector da_dx(nq), dS_dx(nq), dSp_dx(nq);
       //
+      Index temperature_derivative_position = -1;
+      bool do_hse = false;
+      //
       if( j_analytical_do )
         {
           dB_dT.resize(nf);
@@ -359,15 +362,21 @@ void iyEmissionStandard(
               da_dx[iq]      = StokesVector(nf,ns);
               dS_dx[iq]      = StokesVector(nf,ns);
               dSp_dx[iq]     = StokesVector(nf,ns);
+              if( jacobian_quantities[iq].IsTemperature() )
+                {
+                  temperature_derivative_position = iq;
+                  do_hse = jacobian_quantities[iq].Subtag() == "HSE on";
+                }
             )
         }
 
       // Loop ppath points and determine radiative properties
       for( Index ip=0; ip<np; ip++ )
         {
-          bool temperature_jacobian = j_analytical_do
-               && do_temperature_jacobian(jacobian_quantities);
-
+          //bool temperature_jacobian = j_analytical_do
+          //     && do_temperature_jacobian(jacobian_quantities);
+          const bool temperature_jacobian = temperature_derivative_position >= 0;
+          
           get_stepwise_blackbody_radiation( B,
                                             dB_dT,
                                             ppvar_f(joker,ip),
@@ -419,9 +428,10 @@ void iyEmissionStandard(
                 )                                  // jacobian quantities
             }
 
-            const bool use_guesswork_derivatives_for_hse=false;
-          if(not use_guesswork_derivatives_for_hse or ip==0)
-            get_stepwise_transmission_matrix(
+          // Transmission
+          if( ip == 0 )
+            {
+              get_stepwise_transmission_matrix(
                                     ppvar_trans_cumulat(ip,joker,joker,joker),
                                     ppvar_trans_partial(ip,joker,joker,joker),
                                     dtrans_partial_dx_above(ip,joker,joker,joker,joker),
@@ -437,11 +447,22 @@ void iyEmissionStandard(
                                     ppath.lstep[ip-1]:
                                     Numeric(1.0),
                                     ip==0 );
-          else {
-              const Numeric dr_dT_HSE_guesswork_past = + guesswork_HSE_derivative(ppath.pos(ip-1, 0)-ppath.pos(ip, 0), ppath.lstep[ip-1], ppvar_t[ip-1]);
-              const Numeric dr_dT_HSE_guesswork_this = - guesswork_HSE_derivative(ppath.pos(ip-1, 0)-ppath.pos(ip, 0), ppath.lstep[ip-1], ppvar_t[ip  ]);
-              Index temperature_derivative_position;
-              for(Index i=0; i<jacobian_quantities.nelem(); i++) if(jacobian_quantities[i].IsTemperature()) temperature_derivative_position = i;
+            }
+          else
+            {
+              /*
+              const Numeric dr_dT_past = do_hse ?
+                +guesswork_HSE_derivative(ppath.pos(ip-1, 0)-ppath.pos(ip, 0),
+                                          ppath.lstep[ip-1], ppvar_t[ip-1]) : 0;
+              const Numeric dr_dT_this = do_hse ?
+                -guesswork_HSE_derivative(ppath.pos(ip-1, 0)-ppath.pos(ip, 0),
+                                          ppath.lstep[ip-1], ppvar_t[ip]) : 0 ;
+              */
+              const Numeric dr_dT_past = do_hse ?
+                ppath.lstep[ip-1] / ( 2.0 * ppvar_t[ip-1] ) : 0;
+              const Numeric dr_dT_this = do_hse ?
+                ppath.lstep[ip-1] / ( 2.0 * ppvar_t[ip] ) : 0;
+              
               get_stepwise_transmission_matrix(
                                  ppvar_trans_cumulat(ip,joker,joker,joker),
                                  ppvar_trans_partial(ip,joker,joker,joker),
@@ -458,11 +479,12 @@ void iyEmissionStandard(
                                    ppath.lstep[ip-1]:
                                    Numeric(1.0),
                                  false ,
-                                 dr_dT_HSE_guesswork_past,
-                                 dr_dT_HSE_guesswork_this,
-                                 temperature_derivative_position);
-          }
+                                 dr_dT_past,
+                                 dr_dT_this,
+                                 temperature_derivative_position );
+            }
 
+          // Source term
           get_stepwise_effective_source( J(ip,joker,joker),
                                          dJ_dx(ip,joker,joker,joker),
                                          K_this,
