@@ -1,0 +1,177 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# 2018-11-18, Patrick Eriksson
+
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+
+# on-the-fly absorption
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+
+# cosmic background radiation
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+
+# Geometrical path calculation (i.e., refraction neglected)
+#
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+# Standard RT agendas
+#
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+
+
+# Definition of species
+# 
+abs_speciesSet( species= [ "N2-SelfContStandardType",
+                           "O2-PWR98",
+                           "H2O-PWR98" ] )
+
+
+# No line data needed here
+# 
+abs_lines_per_speciesSetEmpty
+
+
+# Atmosphere
+#
+AtmosphereSet1D
+VectorNLogSpace( p_grid, 161, 1013e2, 1 )
+AtmRawRead( basename = "testdata/tropical" )
+#
+AtmFieldsCalc
+
+
+# Surface
+#
+# Don't use interpolation of t_field to set surface temperature. That will
+# cause a difference between analytical and perturbation Jacobian
+#
+Extract( z_surface, z_field, 0 )
+Extract( t_surface, t_field, 0 )
+VectorSet( surface_scalar_reflectivity, [0.4] )
+Copy( surface_rtprop_agenda,
+      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
+
+
+# Frequencies and Stokes dim.
+#
+# 35 GHz has hgh sensitivity to surface
+# The Jacobian of the other two freqiencies peak at 70 and 30 km
+#
+IndexSet( stokes_dim, 1 )
+VectorSet( f_grid, [35e9,118.75e9,118.8e9] )
+
+# Sensor pos and los
+#
+MatrixSet( sensor_pos, [820e3] )
+MatrixSet( sensor_los, [140] )
+
+
+# Define analytical Jacobian
+#
+jacobianInit
+jacobianAddTemperature( g1=p_grid, g2=lat_grid, g3=lon_grid, hse="off" )
+jacobianClose
+
+
+# Deactive parts not used
+#
+cloudboxOff
+sensorOff
+
+
+# Checks
+#
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
+atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+sensor_checkedCalc
+
+
+# HSE
+#
+VectorSet( lat_true, [0] )
+VectorSet( lon_true, [0] )
+#
+Extract( p_hse, p_grid, 0 )
+NumericSet( z_hse_accuracy, 0.5 )
+z_fieldFromHSE
+
+
+# Run RT calcs
+#
+StringSet( iy_unit, "RJBT" )
+#
+yCalc
+
+
+# Copy Jacobian
+#
+MatrixCreate( jcopy )
+Copy( jcopy, jacobian )
+
+# Save
+#
+#output_file_formatSetAscii
+#WriteXML( output_file_format, f_grid, "f.xml" )
+#WriteXML( output_file_format, z_field, "z.xml" )
+#WriteXML( output_file_format, jacobian, "Ja_off.xml" )
+
+
+# Re-do, HSE off, perturbation
+#
+jacobianInit
+jacobianAddTemperature( g1=p_grid, g2=lat_grid, g3=lon_grid, hse="off",
+                        method="perturbation", dt=0.1 )
+jacobianClose
+#
+yCalc
+#
+#WriteXML( output_file_format, jacobian, "Jp_off.xml" )
+#
+Compare( jacobian, jcopy, 1e-4,
+                 "Analytical and perturbation Jacobian disagree with HSE=off" )
+
+
+# Re-do, HSE on, analytical
+#
+jacobianInit
+jacobianAddTemperature( g1=p_grid, g2=lat_grid, g3=lon_grid, hse="on" )
+jacobianClose
+#
+yCalc
+#
+#WriteXML( output_file_format, jacobian, "Ja_on.xml" )
+#
+Copy( jcopy, jacobian )
+
+
+# Re-do, HSE on, perturbation
+#
+jacobianInit
+jacobianAddTemperature( g1=p_grid, g2=lat_grid, g3=lon_grid, hse="on",
+                        method="perturbation", dt=0.1 )
+jacobianClose
+#
+yCalc
+#
+#WriteXML( output_file_format, jacobian, "Jp_on.xml" )
+#
+Compare( jacobian, jcopy, 1e-4,
+                 "Analytical and perturbation Jacobian disagree with HSE=on" )
+
+}
+ 

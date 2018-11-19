@@ -373,8 +373,6 @@ void iyEmissionStandard(
       // Loop ppath points and determine radiative properties
       for( Index ip=0; ip<np; ip++ )
         {
-          //bool temperature_jacobian = j_analytical_do
-          //     && do_temperature_jacobian(jacobian_quantities);
           const bool temperature_jacobian = temperature_derivative_position >= 0;
           
           get_stepwise_blackbody_radiation( B,

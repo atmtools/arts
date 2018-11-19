@@ -1,9 +1,20 @@
+2018-11-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1158
+
+	* src/m_rte.cc (iyEmissionStandard): Removed some obselete,
+	inactive code.
+
+	* controlfiles/artscomponents/wfuns/TestTjacStokes1.arts: New test cfile.
+
+	* controlfiles/CMakeLists.txt: Added test above as fast.
+
 2018-11-19  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1157
-	
-	* src/m_rte.cc:  Activated Patrick's HSE code for 
-	iyEmissionNonStandard.  Also found bug pointed out by Patrick 
+
+	* src/m_rte.cc:  Activated Patrick's HSE code for
+	iyEmissionNonStandard.  Also found bug pointed out by Patrick
 	where the final layer transmission matrix was used instead
 	of the final total transmission matrix for reflections
 	causing huge discrepancies between this and iyEmissionStandard

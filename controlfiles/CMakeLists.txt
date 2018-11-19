@@ -99,6 +99,7 @@ arts_test_run_ctlfile(fast artscomponents/montecarlo/TestRteCalcMC.arts)
 arts_test_ctlfile_depends(fast.artscomponents.montecarlo.TestRteCalcMC
                           fast.artscomponents.montecarlo.TestMonteCarloDataPrepare)
 
+arts_test_run_ctlfile(fast artscomponents/wfuns/TestTjacStokes1.arts)
 arts_test_run_ctlfile(slow artscomponents/wfuns/TestWfuns.arts)
 arts_test_run_ctlfile(slow artscomponents/wfuns/TestWfunsHybClear.arts)
 arts_test_ctlfile_depends(slow.artscomponents.wfuns.TestWfunsHybClear
