@@ -1,3 +1,18 @@
+2018-11-19  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1157
+	
+	* src/m_rte.cc:  Activated Patrick's HSE code for 
+	iyEmissionNonStandard.  Also found bug pointed out by Patrick 
+	where the final layer transmission matrix was used instead
+	of the final total transmission matrix for reflections
+	causing huge discrepancies between this and iyEmissionStandard
+	for reflected radiation
+	
+	* src/rte.cc: get_stepwise_transmission_matrix made cleaner
+	
+	* src/transmissionmatrix.cc,h: Activated HSE codepath
+
 2018-11-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1156

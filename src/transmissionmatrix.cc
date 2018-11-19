@@ -1207,7 +1207,10 @@ void stepwise_transmission(TransmissionMatrix& PiT,
                            const ArrayOfPropagationMatrix& dK1,
                            const ArrayOfPropagationMatrix& dK2,
                            const Numeric& r,
-                           const bool& first)
+                           const bool& first,
+                           const Numeric& dr_dtemp1,
+                           const Numeric& dr_dtemp2,
+                           const Index temp_deriv_pos)
 {
   if(first)
     PiT.setIdentity();
@@ -1215,7 +1218,7 @@ void stepwise_transmission(TransmissionMatrix& PiT,
     if(not dT1.nelem())
       transmat(T, K1, K2, r);
     else
-      dtransmat(T, dT1, dT2, K1, K2, dK1, dK2, r);  // FIXME:  Add path-derivatives here [Internally, only for temperature for now; expressions valid for other things]
+      dtransmat(T, dT1, dT2, K1, K2, dK1, dK2, r, dr_dtemp1, dr_dtemp2, temp_deriv_pos);  // FIXME:  Add path-derivatives here [Internally, only for temperature for now; expressions valid for other things]
     PiT.mul(PiT_last, T);
   }
 }

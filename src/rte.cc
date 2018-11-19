@@ -2339,41 +2339,39 @@ void get_stepwise_transmission_matrix(Tensor3View cumulative_transmission,
   const Index nf = K_close.NumberOfFrequencies();
   const Index stokes_dim = T.ncols();
   
-  if(first_level)
-  {
+  if(first_level) {
     if(stokes_dim>1)
       for(Index iv = 0; iv < nf; iv++)
         id_mat(cumulative_transmission(iv, joker, joker));
     else 
       cumulative_transmission = 1;
-    return;
   }
-  
-  // Compute the transmission of the layer between close and far
-  if(not dK_close_dx.nelem())
-    compute_transmission_matrix(T, ppath_distance, K_close, K_far);
-  else
-    compute_transmission_matrix_and_derivative(T, 
-                                               dT_close_dx, dT_far_dx, 
-                                               ppath_distance, 
-                                               K_close, K_far, 
-                                               dK_close_dx, dK_far_dx,
-                                               dppath_distance_dT_HSE_guesswork_close,
-                                               dppath_distance_dT_HSE_guesswork_far,
-                                               temperature_derivative_position_if_hse_is_active);
-  
-  // Cumulate transmission
-  if(stokes_dim>1)
-    for(Index iv = 0; iv < nf; iv++)
-      mult(cumulative_transmission(iv, joker, joker), 
-          cumulative_transmission_close(iv, joker, joker),
-          T(iv, joker, joker));
-  else
-  {
-    cumulative_transmission = cumulative_transmission_close;
-    cumulative_transmission  *= T;
+  else {
+    // Compute the transmission of the layer between close and far
+    if(not dK_close_dx.nelem())
+      compute_transmission_matrix(T, ppath_distance, K_close, K_far);
+    else
+      compute_transmission_matrix_and_derivative(T, 
+                                                dT_close_dx, dT_far_dx, 
+                                                ppath_distance, 
+                                                K_close, K_far, 
+                                                dK_close_dx, dK_far_dx,
+                                                dppath_distance_dT_HSE_guesswork_close,
+                                                dppath_distance_dT_HSE_guesswork_far,
+                                                temperature_derivative_position_if_hse_is_active);
+    
+    // Cumulate transmission
+    if(stokes_dim>1)
+      for(Index iv = 0; iv < nf; iv++)
+        mult(cumulative_transmission(iv, joker, joker), 
+            cumulative_transmission_close(iv, joker, joker),
+            T(iv, joker, joker));
+    else
+    {
+      cumulative_transmission = cumulative_transmission_close;
+      cumulative_transmission  *= T;
+    }
   }
-  
 }
 
 

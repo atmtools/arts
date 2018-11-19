@@ -429,60 +429,30 @@ void iyEmissionStandard(
             }
 
           // Transmission
-          if( ip == 0 )
-            {
-              get_stepwise_transmission_matrix(
-                                    ppvar_trans_cumulat(ip,joker,joker,joker),
-                                    ppvar_trans_partial(ip,joker,joker,joker),
-                                    dtrans_partial_dx_above(ip,joker,joker,joker,joker),
-                                    dtrans_partial_dx_below(ip,joker,joker,joker,joker),
-                                    (ip>0)?
-                                    ppvar_trans_cumulat(ip-1,joker,joker,joker):
-                                    Tensor3(0,0,0),
-                                    K_past,
-                                    K_this,
-                                    dK_past_dx,
-                                    dK_this_dx,
-                                    (ip>0)?
-                                    ppath.lstep[ip-1]:
-                                    Numeric(1.0),
-                                    ip==0 );
-            }
-          else
-            {
-              /*
-              const Numeric dr_dT_past = do_hse ?
-                +guesswork_HSE_derivative(ppath.pos(ip-1, 0)-ppath.pos(ip, 0),
-                                          ppath.lstep[ip-1], ppvar_t[ip-1]) : 0;
-              const Numeric dr_dT_this = do_hse ?
-                -guesswork_HSE_derivative(ppath.pos(ip-1, 0)-ppath.pos(ip, 0),
-                                          ppath.lstep[ip-1], ppvar_t[ip]) : 0 ;
-              */
-              const Numeric dr_dT_past = do_hse ?
-                ppath.lstep[ip-1] / ( 2.0 * ppvar_t[ip-1] ) : 0;
-              const Numeric dr_dT_this = do_hse ?
-                ppath.lstep[ip-1] / ( 2.0 * ppvar_t[ip] ) : 0;
-              
-              get_stepwise_transmission_matrix(
-                                 ppvar_trans_cumulat(ip,joker,joker,joker),
-                                 ppvar_trans_partial(ip,joker,joker,joker),
-                                 dtrans_partial_dx_above(ip,joker,joker,joker,joker),
-                                 dtrans_partial_dx_below(ip,joker,joker,joker,joker),
-                                 (ip>0)?
-                                   ppvar_trans_cumulat(ip-1,joker,joker,joker):
-                                   Tensor3(0,0,0),
-                                 K_past,
-                                 K_this,
-                                 dK_past_dx,
-                                 dK_this_dx,
-                                 (ip>0)?
-                                   ppath.lstep[ip-1]:
-                                   Numeric(1.0),
-                                 false ,
-                                 dr_dT_past,
-                                 dr_dT_this,
-                                 temperature_derivative_position );
-            }
+          const Numeric dr_dT_past = do_hse and ip not_eq 0 ?
+            ppath.lstep[ip-1] / ( 2.0 * ppvar_t[ip-1] ) : 0;
+          const Numeric dr_dT_this = do_hse and ip not_eq 0 ?
+            ppath.lstep[ip-1] / ( 2.0 * ppvar_t[ip] ) : 0;
+          
+          get_stepwise_transmission_matrix(
+                              ppvar_trans_cumulat(ip,joker,joker,joker),
+                              ppvar_trans_partial(ip,joker,joker,joker),
+                              dtrans_partial_dx_above(ip,joker,joker,joker,joker),
+                              dtrans_partial_dx_below(ip,joker,joker,joker,joker),
+                              (ip>0)?
+                                ppvar_trans_cumulat(ip-1,joker,joker,joker):
+                                Tensor3(0,0,0),
+                              K_past,
+                              K_this,
+                              dK_past_dx,
+                              dK_this_dx,
+                              (ip>0)?
+                                ppath.lstep[ip-1]:
+                                Numeric(1.0),
+                              ip==0,
+                              dr_dT_past,
+                              dr_dT_this,
+                              temperature_derivative_position );
 
           // Source term
           get_stepwise_effective_source( J(ip,joker,joker),
@@ -770,6 +740,10 @@ void iyEmissionNonStandard(
     ArrayOfPropagationMatrix dK_this_dx(nq), dK_past_dx(nq), dKp_dx(nq);
     ArrayOfStokesVector da_dx(nq), dS_dx(nq), dSp_dx(nq);
     
+    // HSE variables
+    Index temperature_derivative_position=-1;
+    bool do_hse=false;
+    
     if( j_analytical_do ) {
       dB_dT.resize(nf);
       FOR_ANALYTICAL_JACOBIANS_DO (
@@ -779,6 +753,10 @@ void iyEmissionNonStandard(
         da_dx[iq]      = StokesVector(nf,ns);
         dS_dx[iq]      = StokesVector(nf,ns);
         dSp_dx[iq]     = StokesVector(nf,ns);
+        if( jacobian_quantities[iq].IsTemperature() ) {
+          temperature_derivative_position = iq;
+          do_hse = jacobian_quantities[iq].Subtag() == "HSE on";
+        }
       )
     }
     
@@ -830,10 +808,14 @@ void iyEmissionNonStandard(
       if( j_analytical_do )
         FOR_ANALYTICAL_JACOBIANS_DO (da_dx[iq] = dK_this_dx[iq];);
       
+      const bool first = ip == 0;
+      const Numeric dr_dT_past = do_hse and not first ? ppath.lstep[ip-1] / ( 2.0 * ppvar_t[ip-1] ) : 0;
+      const Numeric dr_dT_this = do_hse and not first ? ppath.lstep[ip-1] / ( 2.0 * ppvar_t[ip] ) : 0;
       stepwise_transmission(tot_tra[ip], lyr_tra[ip], dlyr_tra_above[ip], dlyr_tra_below[ip],
-                            (ip > 0) ? tot_tra[ip-1] : TransmissionMatrix(0, 1),
+                            not first ? tot_tra[ip-1] : tot_tra[0],
                             K_past, K_this, dK_past_dx, dK_this_dx,
-                            (ip > 0) ? ppath.lstep[ip-1] : Numeric(1.0), ip==0);
+                            not first ? ppath.lstep[ip-1] : Numeric(0.0), first,
+                            dr_dT_past, dr_dT_this, temperature_derivative_position);
       
       stepwise_source(src_rad[ip], dsrc_rad[ip],
                       K_this, a, S,
@@ -848,7 +830,7 @@ void iyEmissionNonStandard(
   // iy_transmission
   Tensor3 iy_trans_new;
   if( iy_agenda_call1 )
-    iy_trans_new = lyr_tra[np-1];
+    iy_trans_new = tot_tra[np-1];
   else
     iy_transmission_mult( iy_trans_new, iy_transmission, tot_tra[np-1]);
     

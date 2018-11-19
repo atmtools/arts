@@ -472,6 +472,9 @@ void stepwise_transmission(TransmissionMatrix& PiT,
                            const ArrayOfPropagationMatrix& dK1_dx,
                            const ArrayOfPropagationMatrix& dK2_dx,
                            const Numeric& r,
-                           const bool& first);
+                           const bool& first,
+                           const Numeric& dr_dtemp1,
+                           const Numeric& dr_dtemp2,
+                           const Index temp_deriv_pos);
 
 #endif  // transmissionmatrix_h
