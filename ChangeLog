@@ -1,3 +1,21 @@
+2018-11-20  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1159
+	
+	* src/m_rte.cc: Added enum-control
+	
+	* src/m_transmitter.cc: Added iyTransmissionNonStandard
+	analogous to iyEmissionNonStandard.  Fast tests are
+	passed with some numerical drifts by changing agenda.arts
+	
+	* src/methods.cc: As above.
+	
+	* src/transmissionmatrix.cc,h:  Changed update_radiation_vector
+	to require a 'solver' enum value.  This to stop input that 
+	is not important to play a roll but still maintain mostly the
+	same interface to not scatter (pun not intended) RTE solvers
+	across the src-tree.  Also added special derivative solvers.
+	
 2018-11-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1158

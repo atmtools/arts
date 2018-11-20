@@ -1321,17 +1321,29 @@ void update_radiation_vector(RadiationVector& I,
                              const TransmissionMatrix& T,
                              const TransmissionMatrix& PiT,
                              const ArrayOfTransmissionMatrix& dT1,
-                             const ArrayOfTransmissionMatrix& dT2)
+                             const ArrayOfTransmissionMatrix& dT2,
+                             const RadiativeTransferSolver solver
+                            )
 {
-  I.rem_avg(J1, J2);
-  
-  for(size_t i=0; i<dI1.size(); i++) {
-    dI1[i].setDeriv(PiT, dT1[i], T, I, dJ1[i]);
-    dI2[i].addDeriv(PiT, dT2[i], T, I, dJ2[i]);
+  switch(solver) {
+    case RadiativeTransferSolver::Emission:
+      I.rem_avg(J1, J2);
+      for(size_t i=0; i<dI1.size(); i++) {
+        dI1[i].setDerivEmission(PiT, dT1[i], T, I, dJ1[i]);
+        dI2[i].addDerivEmission(PiT, dT2[i], T, I, dJ2[i]);
+      }
+      I.leftMul(T);
+      I.add_avg(J1, J2);
+      break;
+      
+    case RadiativeTransferSolver::Transmission:
+      for(size_t i=0; i<dI1.size(); i++) {
+        dI1[i].setDerivTransmission(PiT, dT1[i], I);
+        dI2[i].addDerivTransmission(PiT, dT2[i], I);
+      }
+      I.leftMul(T);
+      break;
   }
-  
-  I.leftMul(T);
-  I.add_avg(J1, J2);
 }
 
 

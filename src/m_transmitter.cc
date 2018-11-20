@@ -1028,6 +1028,339 @@ void iyTransmissionStandard(
 
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iyTransmissionNonStandard(
+  Workspace&                          ws,
+  Matrix&                             iy,
+  ArrayOfMatrix&                      iy_aux,
+  ArrayOfTensor3&                     diy_dx,
+  Vector&                             ppvar_p,
+  Vector&                             ppvar_t,
+  Matrix&                             ppvar_t_nlte,
+  Matrix&                             ppvar_vmr,
+  Matrix&                             ppvar_wind,
+  Matrix&                             ppvar_mag,         
+  Matrix&                             ppvar_pnd,
+  Matrix&                             ppvar_f,  
+  Tensor3&                            ppvar_iy,  
+  Tensor4&                            ppvar_trans_cumulat,
+  const Index&                              stokes_dim,
+  const Vector&                             f_grid,
+  const Index&                              atmosphere_dim,
+  const Vector&                             p_grid,
+  const Tensor3&                            t_field,
+  const Tensor4&                            t_nlte_field,
+  const Tensor4&                            vmr_field,
+  const ArrayOfArrayOfSpeciesTag&           abs_species,
+  const Tensor3&                            wind_u_field,
+  const Tensor3&                            wind_v_field,
+  const Tensor3&                            wind_w_field,
+  const Tensor3&                            mag_u_field,
+  const Tensor3&                            mag_v_field,
+  const Tensor3&                            mag_w_field,
+  const Index&                              cloudbox_on,
+  const ArrayOfIndex&                       cloudbox_limits,
+  const Tensor4&                            pnd_field,
+  const ArrayOfTensor4&                     dpnd_field_dx,
+  const ArrayOfString&                      scat_species,
+  const ArrayOfArrayOfSingleScatteringData& scat_data,
+  const ArrayOfString&                      iy_aux_vars,
+  const Index&                              jacobian_do,
+  const ArrayOfRetrievalQuantity&           jacobian_quantities,
+  const Ppath&                              ppath,
+  const Agenda&                             propmat_clearsky_agenda,
+  const Agenda&                             water_p_eq_agenda,   
+  const Agenda&                             iy_transmitter_agenda,
+  const Index&                              iy_agenda_call1,
+  const Tensor3&                            iy_transmission,
+  const Numeric&                            rte_alonglos_v,
+  const Verbosity& )
+{
+  // Some basic sizes
+  const Index nf = f_grid.nelem();
+  const Index ns = stokes_dim;
+  const Index np = ppath.np;
+  
+  // Radiative background index
+  const Index rbi = ppath_what_background( ppath );
+  
+  // Checks of input
+  // Throw error if unsupported features are requested
+  if( !iy_agenda_call1 )
+    throw runtime_error( 
+    "Recursive usage not possible (iy_agenda_call1 must be 1)" );
+  if( !iy_transmission.empty() )
+    throw runtime_error( "*iy_transmission* must be empty" );
+  if( rbi < 1  ||  rbi > 9 )
+    throw runtime_error( "ppath.background is invalid. Check your "
+    "calculation of *ppath*?" );
+  if( jacobian_do ) {
+    if( dpnd_field_dx.nelem() != jacobian_quantities.nelem() )
+      throw runtime_error(
+        "*dpnd_field_dx* not properly initialized:\n"
+        "Number of elements in dpnd_field_dx must be equal number of jacobian"
+        " quantities.\n(Note: jacobians have to be defined BEFORE *pnd_field*"
+        " is calculated/set." );
+  }
+  // iy_aux_vars checked below
+  
+  // Transmitted signal
+  iy_transmitter_agendaExecute( ws, iy, f_grid, 
+                                ppath.pos(np-1,Range(0,atmosphere_dim)),
+                                ppath.los(np-1,joker), iy_transmitter_agenda );
+  if( iy.ncols() != ns  ||  iy.nrows() != nf ) {
+    ostringstream os;
+    os << "The size of *iy* returned from *iy_transmitter_agenda* is\n"
+    << "not correct:\n"
+    << "  expected size = [" << nf << "," << stokes_dim << "]\n"
+    << "  size of iy    = [" << iy.nrows() << "," << iy.ncols()<< "]\n";
+    throw runtime_error( os.str() );      
+  }
+  
+  //  Init Jacobian quantities
+  Index   j_analytical_do = 0;
+  if( jacobian_do ) 
+    FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; )
+  //
+  const Index     nq = j_analytical_do ? jacobian_quantities.nelem() : 0;
+  ArrayOfTensor3  diy_dpath(nq); 
+  ArrayOfIndex    jac_species_i(nq), jac_scat_i(nq), jac_is_t(nq), jac_wind_i(nq);
+  ArrayOfIndex    jac_mag_i(nq), jac_other(nq);
+  
+  if( j_analytical_do ) {
+    rtmethods_jacobian_init( jac_species_i, jac_scat_i, jac_is_t, jac_wind_i,
+                             jac_mag_i, jac_other, diy_dx, diy_dpath,
+                             ns, nf, np, nq, abs_species,
+                             cloudbox_on, scat_species, dpnd_field_dx,
+                             jacobian_quantities, iy_agenda_call1 );
+  }
+  
+  // Init iy_aux and fill where possible
+  const Index naux = iy_aux_vars.nelem();
+  iy_aux.resize( naux );
+  //
+  Index auxOptDepth = -1;
+  //
+  for( Index i=0; i<naux; i++ ) {
+    iy_aux[i].resize(nf,ns); 
+    
+    if( iy_aux_vars[i] == "Radiative background" )
+      iy_aux[i] = (Numeric)min( (Index)2, rbi-1 );
+    else if( iy_aux_vars[i] == "Optical depth" )
+      auxOptDepth = i;
+    else {
+      ostringstream os;
+      os << "The only allowed strings in *iy_aux_vars* are:\n"
+      << "  \"Radiative background\"\n"
+      << "  \"Optical depth\"\n"
+      << "but you have selected: \"" << iy_aux_vars[i] << "\"";
+      throw runtime_error( os.str() );      
+    }
+  }
+  
+  // Get atmospheric and radiative variables along the propagation path
+  //
+  ppvar_trans_cumulat.resize(np,nf,ns,ns);
+  ArrayOfTransmissionMatrix tot_tra(np, TransmissionMatrix(nf, ns));
+  ArrayOfTransmissionMatrix lyr_tra(np, TransmissionMatrix(nf, ns));
+  ArrayOfRadiationVector lvl_rad(np, RadiationVector(nf, ns));
+  ArrayOfArrayOfRadiationVector dlvl_rad(np, ArrayOfRadiationVector(nq, RadiationVector(nf, ns)));
+  
+  ArrayOfArrayOfTransmissionMatrix dlyr_tra_above(np, ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nf, ns)));
+  ArrayOfArrayOfTransmissionMatrix dlyr_tra_below(np, ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nf, ns)));
+  
+  ArrayOfIndex clear2cloudy;
+  //
+  if( np == 1  &&  rbi == 1 ) { // i.e. ppath is totally outside the atmosphere:
+    ppvar_p.resize(0);
+    ppvar_t.resize(0);
+    ppvar_vmr.resize(0,0);
+    ppvar_t_nlte.resize(0,0);
+    ppvar_wind.resize(0,0);
+    ppvar_mag.resize(0,0);
+    ppvar_pnd.resize(0,0);
+    ppvar_f.resize(0,0);
+    ppvar_iy.resize(0,0,0);
+    //
+    iy_aux[auxOptDepth] = 0.0;
+  }
+  else {
+    // ppvar_iy
+    ppvar_iy.resize(nf,ns,np);
+    ppvar_iy(joker,joker,np-1) = iy;
+    
+    // Basic atmospheric variables
+    get_ppath_atmvars( ppvar_p, ppvar_t, ppvar_t_nlte, ppvar_vmr,
+                       ppvar_wind, ppvar_mag, 
+                       ppath, atmosphere_dim, p_grid, t_field, t_nlte_field, 
+                       vmr_field, wind_u_field, wind_v_field, wind_w_field,
+                       mag_u_field, mag_v_field, mag_w_field );
+    
+    get_ppath_f( ppvar_f, ppath, f_grid,  atmosphere_dim, 
+                 rte_alonglos_v, ppvar_wind );
+    
+    // pnd_field
+    ArrayOfMatrix ppvar_dpnd_dx(0);
+    //
+    if( cloudbox_on )
+      get_ppath_cloudvars( clear2cloudy, ppvar_pnd, ppvar_dpnd_dx,
+                           ppath, atmosphere_dim, cloudbox_limits,
+                           pnd_field, dpnd_field_dx );
+    else {
+      clear2cloudy.resize(np);
+      for( Index ip=0; ip<np; ip++ )
+        clear2cloudy[ip] = -1;
+    }
+    
+    // Size radiative variables always used
+    PropagationMatrix K_this(nf,ns), K_past(nf,ns), Kp(nf,ns);
+    StokesVector a(nf,ns), S(nf,ns), Sp(nf,ns);
+    ArrayOfIndex lte(np);
+    
+    // Init variables only used if analytical jacobians done
+    Vector dB_dT(0);
+    ArrayOfPropagationMatrix dK_this_dx(nq), dK_past_dx(nq), dKp_dx(nq);
+    ArrayOfStokesVector da_dx(nq), dS_dx(nq), dSp_dx(nq);
+    //
+    Index temperature_derivative_position = -1;
+    bool do_hse = false;
+    
+    if( j_analytical_do ) {
+      dB_dT.resize(nf);
+      FOR_ANALYTICAL_JACOBIANS_DO (
+        dK_this_dx[iq] = PropagationMatrix(nf,ns);
+        dK_past_dx[iq] = PropagationMatrix(nf,ns);
+        dKp_dx[iq]     = PropagationMatrix(nf,ns);
+        da_dx[iq]      = StokesVector(nf,ns);
+        dS_dx[iq]      = StokesVector(nf,ns);
+        dSp_dx[iq]     = StokesVector(nf,ns);
+        if( jacobian_quantities[iq].IsTemperature() ) {
+          temperature_derivative_position = iq;
+          do_hse = jacobian_quantities[iq].Subtag() == "HSE on";
+        }
+      )
+    }
+    
+    // Loop ppath points and determine radiative properties
+    for( Index ip=0; ip<np; ip++ ) { 
+      get_stepwise_clearsky_propmat( ws,
+                                     K_this,
+                                     S,
+                                     lte[ip],
+                                     dK_this_dx,
+                                     dS_dx,
+                                     propmat_clearsky_agenda,
+                                     jacobian_quantities,
+                                     ppvar_f(joker,ip),
+                                     ppvar_mag(joker,ip),
+                                     ppath.los(ip,joker),
+                                     ppvar_t_nlte(joker,ip),
+                                     ppvar_vmr(joker,ip),
+                                     ppvar_t[ip],
+                                     ppvar_p[ip],
+                                     jac_species_i,
+                                     j_analytical_do );
+      
+      if( j_analytical_do ) {
+        adapt_stepwise_partial_derivatives( dK_this_dx,
+                                            dS_dx,
+                                            jacobian_quantities,
+                                            ppvar_f(joker,ip),
+                                            ppath.los(ip,joker),
+                                            ppvar_vmr(joker,ip),
+                                            ppvar_t[ip],
+                                            ppvar_p[ip],
+                                            jac_species_i,
+                                            jac_wind_i,
+                                            lte[ip],
+                                            atmosphere_dim,
+                                            j_analytical_do );
+      }
+      
+      if( clear2cloudy[ip]+1 )
+      {
+        get_stepwise_scattersky_propmat( a,
+                                         Kp,
+                                         da_dx,
+                                         dKp_dx,
+                                         jacobian_quantities,
+                                         ppvar_pnd(joker,Range(ip,1)),
+                                         ppvar_dpnd_dx,
+                                         ip,
+                                         scat_data,
+                                         ppath.los(ip,joker),
+                                         ppvar_t[Range(ip,1)],
+                                         atmosphere_dim,
+                                         jacobian_do );
+        K_this += Kp;
+        
+        if( j_analytical_do )
+        {
+          FOR_ANALYTICAL_JACOBIANS_DO
+          (
+            dK_this_dx[iq] += dKp_dx[iq];
+          )
+        }
+      }
+      
+      
+      // Transmission
+      const bool first = ip == 0;
+      const Numeric dr_dT_past = do_hse and ip not_eq 0 ?
+      ppath.lstep[ip-1] / ( 2.0 * ppvar_t[ip-1] ) : 0;
+      const Numeric dr_dT_this = do_hse and ip not_eq 0 ?
+      ppath.lstep[ip-1] / ( 2.0 * ppvar_t[ip] ) : 0;
+      
+      stepwise_transmission(tot_tra[ip], lyr_tra[ip],
+                            dlyr_tra_above[ip], dlyr_tra_below[ip],
+                            not first ? tot_tra[ip-1] : tot_tra[0],
+                            K_past, K_this, dK_past_dx, dK_this_dx,
+                            not first ? ppath.lstep[ip-1] : Numeric(0.0), first,
+                            dr_dT_past, dr_dT_this, temperature_derivative_position);
+      
+      swap( K_past, K_this );
+      swap( dK_past_dx, dK_this_dx );
+    }
+  }
+  
+  // iy_aux: Optical depth
+  if( auxOptDepth >= 0 ) {
+    for( Index iv=0; iv<nf; iv++ )
+      iy_aux[auxOptDepth](iv,joker) = -std::log( tot_tra[np-1](iv, 0, 0) );
+  }
+  
+  lvl_rad[np-1] = iy;
+  
+  // Radiative transfer calculations
+  for( Index ip=np-2; ip>=0; ip-- ) {
+    lvl_rad[ip] = lvl_rad[ip+1];
+    update_radiation_vector(lvl_rad[ip], dlvl_rad[ip], dlvl_rad[ip+1],
+                            RadiationVector(), RadiationVector(), ArrayOfRadiationVector(), ArrayOfRadiationVector(),
+                            lyr_tra[ip+1], tot_tra[ip], dlyr_tra_above[ip+1], dlyr_tra_below[ip+1],
+                            RadiativeTransferSolver::Transmission);
+  }
+  
+  // Copy back to ARTS external style
+  iy = lvl_rad[0];
+  for(Index ip=0; ip<lvl_rad.nelem(); ip++) {
+    ppvar_trans_cumulat(ip, joker, joker, joker) = tot_tra[ip];
+    ppvar_iy(joker, joker, ip) = lvl_rad[ip];
+    if( j_analytical_do )
+      FOR_ANALYTICAL_JACOBIANS_DO (diy_dpath[iq](ip, joker, joker) = dlvl_rad[ip][iq];);
+  }
+  
+  // Finalize analytical Jacobians
+  if( j_analytical_do ) {
+    rtmethods_jacobian_finalisation( ws, diy_dx, diy_dpath,
+                                     ns, nf, np, atmosphere_dim, ppath,
+                                     ppvar_p, ppvar_t, ppvar_vmr,
+                                     iy_agenda_call1, iy_transmission,
+                                     water_p_eq_agenda,   
+                                     jacobian_quantities, jac_species_i,
+                                     jac_is_t );
+  }
+}
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */

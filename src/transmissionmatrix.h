@@ -299,11 +299,11 @@ public:
     for(size_t i=0; i<R1.size(); i++) R1[i].noalias() += 0.5 * (O1.R1[i] + O2.R1[i]);
   }
   
-  void setDeriv(const TransmissionMatrix& PiT,
-                const TransmissionMatrix& dT,
-                const TransmissionMatrix& T,
-                const RadiationVector& ImJ,
-                const RadiationVector& dJ)
+  void setDerivEmission(const TransmissionMatrix& PiT,
+                        const TransmissionMatrix& dT,
+                        const TransmissionMatrix& T,
+                        const RadiationVector& ImJ,
+                        const RadiationVector& dJ)
   {
     for(size_t i=0; i<R4.size(); i++) R4[i].noalias() = PiT.Mat4(i) * (dT.Mat4(i) * ImJ.R4[i] + dJ.R4[i] - T.Mat4(i) * dJ.R4[i]);
     for(size_t i=0; i<R3.size(); i++) R3[i].noalias() = PiT.Mat3(i) * (dT.Mat3(i) * ImJ.R3[i] + dJ.R3[i] - T.Mat3(i) * dJ.R3[i]);
@@ -311,16 +311,36 @@ public:
     for(size_t i=0; i<R1.size(); i++) R1[i].noalias() = PiT.Mat1(i) * (dT.Mat1(i) * ImJ.R1[i] + dJ.R1[i] - T.Mat1(i) * dJ.R1[i]);
   }
   
-  void addDeriv(const TransmissionMatrix& PiT,
-                const TransmissionMatrix& dT,
-                const TransmissionMatrix& T,
-                const RadiationVector& ImJ,
-                const RadiationVector& dJ)
+  void addDerivEmission(const TransmissionMatrix& PiT,
+                        const TransmissionMatrix& dT,
+                        const TransmissionMatrix& T,
+                        const RadiationVector& ImJ,
+                        const RadiationVector& dJ)
   {
     for(size_t i=0; i<R4.size(); i++) R4[i].noalias() += PiT.Mat4(i) * (dT.Mat4(i) * ImJ.R4[i] + dJ.R4[i] - T.Mat4(i) * dJ.R4[i]);
     for(size_t i=0; i<R3.size(); i++) R3[i].noalias() += PiT.Mat3(i) * (dT.Mat3(i) * ImJ.R3[i] + dJ.R3[i] - T.Mat3(i) * dJ.R3[i]);
     for(size_t i=0; i<R2.size(); i++) R2[i].noalias() += PiT.Mat2(i) * (dT.Mat2(i) * ImJ.R2[i] + dJ.R2[i] - T.Mat2(i) * dJ.R2[i]);
     for(size_t i=0; i<R1.size(); i++) R1[i].noalias() += PiT.Mat1(i) * (dT.Mat1(i) * ImJ.R1[i] + dJ.R1[i] - T.Mat1(i) * dJ.R1[i]);
+  }
+  
+  void setDerivTransmission(const TransmissionMatrix& PiT,
+                            const TransmissionMatrix& dT,
+                            const RadiationVector& I)
+  {
+    for(size_t i=0; i<R4.size(); i++) R4[i].noalias() = PiT.Mat4(i) * dT.Mat4(i) * I.R4[i];
+    for(size_t i=0; i<R3.size(); i++) R3[i].noalias() = PiT.Mat3(i) * dT.Mat3(i) * I.R3[i];
+    for(size_t i=0; i<R2.size(); i++) R2[i].noalias() = PiT.Mat2(i) * dT.Mat2(i) * I.R2[i];
+    for(size_t i=0; i<R1.size(); i++) R1[i].noalias() = PiT.Mat1(i) * dT.Mat1(i) * I.R1[i];
+  }
+  
+  void addDerivTransmission(const TransmissionMatrix& PiT,
+                            const TransmissionMatrix& dT,
+                            const RadiationVector& I)
+  {
+    for(size_t i=0; i<R4.size(); i++) R4[i].noalias() += PiT.Mat4(i) * dT.Mat4(i) * I.R4[i];
+    for(size_t i=0; i<R3.size(); i++) R3[i].noalias() += PiT.Mat3(i) * dT.Mat3(i) * I.R3[i];
+    for(size_t i=0; i<R2.size(); i++) R2[i].noalias() += PiT.Mat2(i) * dT.Mat2(i) * I.R2[i];
+    for(size_t i=0; i<R1.size(); i++) R1[i].noalias() += PiT.Mat1(i) * dT.Mat1(i) * I.R1[i];
   }
   
   RadiationVector& operator=(const ConstMatrixView& M) {
@@ -437,6 +457,11 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfRadiationVector& 
 std::istream& operator>>(std::istream& is, TransmissionMatrix& tm);
 std::istream& operator>>(std::istream& is, RadiationVector& rv);
 
+enum class RadiativeTransferSolver {
+  Emission,
+  Transmission
+};
+
 void update_radiation_vector(RadiationVector& I,
                              ArrayOfRadiationVector& dI1,
                              ArrayOfRadiationVector& dI2,
@@ -447,7 +472,8 @@ void update_radiation_vector(RadiationVector& I,
                              const TransmissionMatrix& T,
                              const TransmissionMatrix& PiT,
                              const ArrayOfTransmissionMatrix& dT1,
-                             const ArrayOfTransmissionMatrix& dT2);
+                             const ArrayOfTransmissionMatrix& dT2,
+                             const RadiativeTransferSolver solver);
 
 void stepwise_source(RadiationVector& J,
                      ArrayOfRadiationVector& dJ,

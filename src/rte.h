@@ -342,7 +342,7 @@ void get_stepwise_transmission_matrix(Tensor3View cumulative_transmission,
                                       const bool& first_level,
                                       const Numeric& dr_dT_close=0,
                                       const Numeric& dr_dT_far=0,
-                                      const Index& it =-1);
+                                      const Index& it=-1);
 
 void sum_stepwise_scalar_tau_and_extmat_case(VectorView scalar_tau,
                                              ArrayOfIndex& extmat_case,

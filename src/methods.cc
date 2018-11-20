@@ -7745,7 +7745,7 @@ void define_md_data_raw()
     ( NAME( "iyEmissionNonStandard" ),
       DESCRIPTION
       (
-        "Non standard method for radiative transfer calculations with emission.\n"
+        "Non-standard method for radiative transfer calculations with emission.\n"
         "\n"
         "Designed to be part of *iy_main_agenda*. That is, only valid\n"
         "outside the cloudbox (no scattering). For details se the user guide.\n"
@@ -8470,6 +8470,66 @@ void define_md_data_raw()
          "    column.\n"
       ),
       AUTHORS( "Patrick Eriksson" ),
+      OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
+           "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_pnd", "ppvar_f",
+           "ppvar_iy", "ppvar_trans_cumulat" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "diy_dx", "stokes_dim", "f_grid", "atmosphere_dim", "p_grid",
+          "t_field", "nlte_field", "vmr_field", "abs_species",
+          "wind_u_field", "wind_v_field", "wind_w_field",
+          "mag_u_field", "mag_v_field", "mag_w_field",
+          "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
+          "scat_species", "scat_data", "iy_aux_vars", "jacobian_do",
+          "jacobian_quantities", "ppath", "propmat_clearsky_agenda",
+          "water_p_eq_agenda", "iy_transmitter_agenda",
+          "iy_agenda_call1", "iy_transmission", "rte_alonglos_v" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+    ));
+
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "iyTransmissionNonStandard" ),
+      DESCRIPTION
+      (
+         "Non-standard method for handling transmission measurements.\n"
+         "\n"
+         "Designed to be part of *iy_main_agenda*. Treatment of the cloudbox\n"
+         "is incorporated (that is, no need to define *iy_cloudbox_agenda*).\n"
+         "\n"
+         "The transmitter is assumed to be placed at the end of provided *ppath*.\n"
+         "The transmitted signal is taken from *iy_transmitter_agenda*. This\n"
+         "signal is propagated along the path, considering attenuation alone.\n"
+         "That is, the result of the method (*iy*) is the output of\n"
+         "*iy_transmitter_agenda* multiplied with the transmission along the\n"
+         "propagation path.\n"
+         "\n"
+         "As mentioned, the given *ppath* determines the position of the\n"
+         "transmitter. For clear-sky and no modification of *ppath*, this\n"
+         "means that the transitter will either be found at the surface or\n"
+         "at the top-of-the-atmosphere. If you want to maintain this even with\n"
+         "an active cloudbox, calculate *ppath* as\n"
+         "     ppathCalc( cloudbox_on=0 )\n"
+         "Without setting cloudbox_on=0, the transmitter will end up inside or\n"
+         "at the boundary of the cloudbox.\n"
+         "\n"
+         "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
+         "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
+         "Valid choices for auxiliary data are:\n"
+         " \"Radiative background\": Index value flagging the radiative\n"
+         "    background. The following coding is used: 0=space, 1=surface\n"
+         "    and 2=cloudbox. The value is added to each column.\n"
+         " \"Optical depth\": Scalar optical depth between the observation point\n"
+         "    and the end of the present propagation path. Calculated based on\n"
+         "    the (1,1)-element of the transmission matrix (1-based indexing),\n"
+         "    i.e. only fully valid for scalar RT. The value is added to each\n"
+         "    column.\n"
+      ),
+      AUTHORS( "Patrick Eriksson", "Richard Larsson" ),
       OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
            "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_pnd", "ppvar_f",
            "ppvar_iy", "ppvar_trans_cumulat" ),

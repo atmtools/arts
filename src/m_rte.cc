@@ -809,7 +809,8 @@ void iyEmissionNonStandard(
       const bool first = ip == 0;
       const Numeric dr_dT_past = do_hse and not first ? ppath.lstep[ip-1] / ( 2.0 * ppvar_t[ip-1] ) : 0;
       const Numeric dr_dT_this = do_hse and not first ? ppath.lstep[ip-1] / ( 2.0 * ppvar_t[ip] ) : 0;
-      stepwise_transmission(tot_tra[ip], lyr_tra[ip], dlyr_tra_above[ip], dlyr_tra_below[ip],
+      stepwise_transmission(tot_tra[ip], lyr_tra[ip],
+                            dlyr_tra_above[ip], dlyr_tra_below[ip],
                             not first ? tot_tra[ip-1] : tot_tra[0],
                             K_past, K_this, dK_past_dx, dK_this_dx,
                             not first ? ppath.lstep[ip-1] : Numeric(0.0), first,
@@ -852,7 +853,8 @@ void iyEmissionNonStandard(
     lvl_rad[ip] = lvl_rad[ip+1];
     update_radiation_vector(lvl_rad[ip], dlvl_rad[ip], dlvl_rad[ip+1],
                             src_rad[ip], src_rad[ip+1], dsrc_rad[ip], dsrc_rad[ip+1],
-                            lyr_tra[ip+1], tot_tra[ip], dlyr_tra_above[ip+1], dlyr_tra_below[ip+1]);
+                            lyr_tra[ip+1], tot_tra[ip], dlyr_tra_above[ip+1], dlyr_tra_below[ip+1],
+                            RadiativeTransferSolver::Emission);
   }
   
   // Copy back to ARTS external style
