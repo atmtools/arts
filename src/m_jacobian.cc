@@ -497,14 +497,23 @@ void jacobianCalcAbsSpeciesPerturbations(
   Index j_lat = 1;
   Index j_lon = 1;
   //
+  if( jg[0].nelem() == 1 )
+    throw runtime_error(
+      "Perturbation calculations do not handle length 1 retrieval grids" );
   get_perturbation_gridpos( p_gp, p_grid, jg[0], true );
   //
   if( atmosphere_dim >= 2 ) 
     {
+      if( jg[1].nelem() == 1 )
+        throw runtime_error(
+          "Perturbation calculations do not handle length 1 retrieval grids" );      
       j_lat = jg[1].nelem();
       get_perturbation_gridpos( lat_gp, lat_grid, jg[1], false );
       if( atmosphere_dim == 3 ) 
         {
+          if( jg[2].nelem() == 1 )
+            throw runtime_error(
+              "Perturbation calculations do not handle length 1 retrieval grids" );
           j_lon = jg[2].nelem();
           get_perturbation_gridpos( lon_gp, lon_grid, jg[2], false );
         }
@@ -2501,14 +2510,23 @@ void jacobianCalcTemperaturePerturbations(
   Index j_lat = 1;
   Index j_lon = 1;
   //
+  if( jg[0].nelem() == 1 )
+    throw runtime_error(
+      "Perturbation calculations do not handle length 1 retrieval grids" );
   get_perturbation_gridpos( p_gp, p_grid, jg[0], true );
   //
   if( atmosphere_dim >= 2 ) 
     {
+      if( jg[1].nelem() == 1 )
+        throw runtime_error(
+          "Perturbation calculations do not handle length 1 retrieval grids" );
       j_lat = jg[1].nelem();
       get_perturbation_gridpos( lat_gp, lat_grid, jg[1], false );
       if( atmosphere_dim == 3 ) 
         {
+          if( jg[2].nelem() == 1 )
+            throw runtime_error(
+              "Perturbation calculations do not handle length 1 retrieval grids" );
           j_lon = jg[2].nelem();
           get_perturbation_gridpos( lon_gp, lon_grid, jg[2], false );
         }

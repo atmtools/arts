@@ -1,3 +1,16 @@
+2018-11-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1160
+
+	* controlfiles/artscomponents/wfuns/TestTjacStokes1.arts: Extended
+	witn comparison to 3D with length 1 lat and lon retrieval grids.
+	Added also a reference for y.
+
+	* src/m_jacobian.cc (jacobianCalcTemperaturePerturbations)
+	(jacobianCalcAbsSpeciesPerturbations): Noticed that these methods
+	do not handle retrieval grids of length 1. Not fixed, but now
+	there is at least an error warning the user.
+
 2018-11-20  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1159

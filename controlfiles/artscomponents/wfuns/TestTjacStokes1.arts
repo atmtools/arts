@@ -1,5 +1,13 @@
 #DEFINITIONS:  -*-sh-*-
 #
+# This file tests temperature Jacobian calculations. With some focus on
+# inclusion of HSE, and ainly for 1D atmosphere and Stokes dim 1. At the end it
+# is also tested that a 3D case with latitude and longitude retrieval grids of
+# length 1 gives the same Jacobian as 1D.
+#
+# Three frequencies are done, one with high suface sensitivity and two around
+# 118 GHz (with Jacobian peaking around 30 and 70 km.
+#
 # 2018-11-18, Patrick Eriksson
 
 Arts2 {
@@ -66,9 +74,6 @@ Copy( surface_rtprop_agenda,
 
 # Frequencies and Stokes dim.
 #
-# 35 GHz has hgh sensitivity to surface
-# The Jacobian of the other two freqiencies peak at 70 and 30 km
-#
 IndexSet( stokes_dim, 1 )
 VectorSet( f_grid, [35e9,118.75e9,118.8e9] )
 
@@ -114,8 +119,17 @@ z_fieldFromHSE
 # Run RT calcs
 #
 StringSet( iy_unit, "RJBT" )
+#NumericSet( ppath_lmax, 250 )
 #
 yCalc
+
+
+# Check y against reference
+#
+VectorCreate( yref )
+ReadXML( yref, "yREF1.xml" )
+Compare( y, yref, 1e-5,
+         "Calculated *y* does not agree with saved reference values." )
 
 
 # Copy Jacobian
@@ -123,9 +137,11 @@ yCalc
 MatrixCreate( jcopy )
 Copy( jcopy, jacobian )
 
+
 # Save
 #
 #output_file_formatSetAscii
+#WriteXML( output_file_format, y, "y.xml" )
 #WriteXML( output_file_format, f_grid, "f.xml" )
 #WriteXML( output_file_format, z_field, "z.xml" )
 #WriteXML( output_file_format, jacobian, "Ja_off.xml" )
@@ -172,6 +188,42 @@ yCalc
 #
 Compare( jacobian, jcopy, 1e-4,
                  "Analytical and perturbation Jacobian disagree with HSE=on" )
+
+
+# Move to a 3D view and redo analytical with HSE=on
+#
+AtmosphereSet3D
+VectorSet( lat_grid, [-10,10] )
+Copy( lon_grid, lat_grid)
+AtmFieldsCalcExpand1D
+#
+Extract( z_surface, z_field, 0 )
+Extract( t_surface, t_field, 0 )
+#
+MatrixSet( sensor_pos, [820e3,0,0] )
+MatrixSet( sensor_los, [140,20] )
+#
+VectorCreate( lat0 )
+VectorCreate( lon0 )
+VectorSet( lat0, [0] )
+VectorSet( lon0, [0] )
+jacobianInit
+jacobianAddTemperature( g1=p_grid, g2=lat0, g3=lon0, hse="on" )
+jacobianClose
+#
+atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+sensor_checkedCalc
+#
+yCalc
+#
+#WriteXML( output_file_format, jacobian, "J3d.xml" )
+#
+# There is a bit of "noise" in 118.75 GHz Jacobian (for unknown reason)
+# and we must allow a bit higher deviation
+Compare( jacobian, jcopy, 2e-3,
+         "Jacobians for 1D and matching 3D view do not agree." )
 
 }
  
