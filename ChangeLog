@@ -1,3 +1,25 @@
+2018-11-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1161
+
+	* More work on adding some test involving temperature jacobians.
+
+	* controlfiles/artscomponents/wfuns/TestTjacStokes1.arts: Slight
+	polishing. Main thing is comparing analytical and perturbation
+	calculations, with and without HSE.
+
+	* controlfiles/artscomponents/wfuns/TestTjacStokes4.arts: New.
+	Added as slow. This test looks at the temperature Jacobian with
+	Zeeman, thus 3D and Stokes=4.Comapres analytical and perturbation
+	calculations with HSE=on. Jacobian of each Stokes element compared
+	seperately.
+
+	* controlfiles/artscomponents/wfuns/TestTjacStokes1to4.arts: New.
+	Added as fast. This test aims at checking consistency between
+	Stokes 1, 2, 3 and 4. All polarisation comes from surface.
+
+	* controlfiles/CMakeLists.txt: Two new tests added.
+
 2018-11-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1160

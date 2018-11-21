@@ -1,7 +1,7 @@
 #DEFINITIONS:  -*-sh-*-
 #
 # This file tests temperature Jacobian calculations. With some focus on
-# inclusion of HSE, and ainly for 1D atmosphere and Stokes dim 1. At the end it
+# inclusion of HSE, and mainly for 1D atmosphere and Stokes dim 1. At the end it
 # is also tested that a 3D case with latitude and longitude retrieval grids of
 # length 1 gives the same Jacobian as 1D.
 #
@@ -16,6 +16,7 @@ INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
+
 
 # Agenda for scalar gas absorption calculation
 Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
@@ -128,7 +129,7 @@ yCalc
 #
 VectorCreate( yref )
 ReadXML( yref, "yREF1.xml" )
-Compare( y, yref, 1e-5,
+Compare( y, yref, 1e-6,
          "Calculated *y* does not agree with saved reference values." )
 
 
