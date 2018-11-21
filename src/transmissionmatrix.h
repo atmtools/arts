@@ -58,35 +58,11 @@ public:
   { }
   
   operator Tensor3() const {
-    Tensor3 T;
-    switch(stokes_dim) {
-      case 4:
-        T.resize(T4.size(), 4, 4);
-        for(size_t i=0; i<T4.size(); i++)
-          for(size_t j=0; j<4; j++)
-            for(size_t k=0; k<4; k++)
-              T(i, j, k) = T4[i](j, k);
-        break;
-      case 3:
-        T.resize(T3.size(), 3, 3);
-        for(size_t i=0; i<T3.size(); i++)
-          for(size_t j=0; j<3; j++)
-            for(size_t k=0; k<3; k++)
-              T(i, j, k) = T3[i](j, k);
-        break;
-      case 2:
-        T.resize(T2.size(), 2, 2);
-        for(size_t i=0; i<T2.size(); i++)
-          for(size_t j=0; j<2; j++)
-            for(size_t k=0; k<2; k++)
-              T(i, j, k) = T2[i](j, k);
-        break;
-      case 1:
-        T.resize(T1.size(), 1, 1);
-        for(size_t i=0; i<T1.size(); i++)
-          T(i, 0, 0) = T1[i](0, 0);
-        break;
-    }
+    Tensor3 T(Frequencies(), stokes_dim, stokes_dim);
+    for(size_t i=0; i<T4.size(); i++) for(size_t j=0; j<4; j++) for(size_t k=0; k<4; k++) T(i, j, k) = T4[i](j, k);
+    for(size_t i=0; i<T3.size(); i++) for(size_t j=0; j<3; j++) for(size_t k=0; k<3; k++) T(i, j, k) = T3[i](j, k);
+    for(size_t i=0; i<T2.size(); i++) for(size_t j=0; j<2; j++) for(size_t k=0; k<2; k++) T(i, j, k) = T2[i](j, k);
+    for(size_t i=0; i<T1.size(); i++) T(i, 0, 0) = T1[i](0, 0);
     return T;
   }
   
@@ -219,18 +195,18 @@ public:
   }
   
   RadiationVector& operator/=(const Numeric& O) {
-    for(size_t i=0; i<R4.size(); i++) R4[i] /= O;
-    for(size_t i=0; i<R3.size(); i++) R3[i] /= O;
-    for(size_t i=0; i<R2.size(); i++) R2[i] /= O;
-    for(size_t i=0; i<R1.size(); i++) R1[i] /= O;
+    for(auto& R: R4) R /= O;
+    for(auto& R: R3) R /= O;
+    for(auto& R: R2) R /= O;
+    for(auto& R: R1) R /= O;
     return *this;
   }
   
   RadiationVector& operator*=(const Numeric& O) {
-    for(size_t i=0; i<R4.size(); i++) R4[i] *= O;
-    for(size_t i=0; i<R3.size(); i++) R3[i] *= O;
-    for(size_t i=0; i<R2.size(); i++) R2[i] *= O;
-    for(size_t i=0; i<R1.size(); i++) R1[i] *= O;
+    for(auto& R: R4) R *= O;
+    for(auto& R: R3) R *= O;
+    for(auto& R: R2) R *= O;
+    for(auto& R: R1) R *= O;
     return *this;
   }
   
@@ -255,9 +231,9 @@ public:
   RadiationVector& operator+=(const StokesVector& s) {
     assert(s.NumberOfAzimuthAngles() == 1);
     assert(s.NumberOfZenithAngles() == 1);
-    for(size_t i=0; i<R4.size(); i++) R4[i] += Eigen::Vector4d(s.Kjj()[i], s.K12()[i], s.K13()[i], s.K14()[i]);
-    for(size_t i=0; i<R3.size(); i++) R3[i] += Eigen::Vector3d(s.Kjj()[i], s.K12()[i], s.K13()[i]);
-    for(size_t i=0; i<R2.size(); i++) R2[i] += Eigen::Vector2d(s.Kjj()[i], s.K12()[i]);
+    for(size_t i=0; i<R4.size(); i++) R4[i].noalias() += Eigen::Vector4d(s.Kjj()[i], s.K12()[i], s.K13()[i], s.K14()[i]);
+    for(size_t i=0; i<R3.size(); i++) R3[i].noalias() += Eigen::Vector3d(s.Kjj()[i], s.K12()[i], s.K13()[i]);
+    for(size_t i=0; i<R2.size(); i++) R2[i].noalias() += Eigen::Vector2d(s.Kjj()[i], s.K12()[i]);
     for(size_t i=0; i<R1.size(); i++) R1[i][0] += s.Kjj()[i];
     return *this;
   }
@@ -344,6 +320,7 @@ public:
   }
   
   RadiationVector& operator=(const ConstMatrixView& M) {
+    assert(M.ncols() == stokes_dim and M.nrows() == Frequencies());
     for(size_t i=0; i<R4.size(); i++) {R4[i][0] = M(i, 0); R4[i][1] = M(i, 1); R4[i][2] = M(i, 2); R4[i][3] = M(i, 3);}
     for(size_t i=0; i<R3.size(); i++) {R3[i][0] = M(i, 0); R3[i][1] = M(i, 1); R3[i][2] = M(i, 2);}
     for(size_t i=0; i<R2.size(); i++) {R2[i][0] = M(i, 0); R2[i][1] = M(i, 1);}
@@ -361,32 +338,11 @@ public:
   }
   
   operator Matrix() const {
-    Matrix M;
-    switch(stokes_dim) {
-      case 4:
-        M.resize(R4.size(), 4);
-        for(size_t i=0; i<R4.size(); i++)
-          for(size_t j=0; j<4; j++)
-              M(i, j) = R4[i](j);
-        break;
-      case 3:
-        M.resize(R3.size(), 3);
-        for(size_t i=0; i<R3.size(); i++)
-          for(size_t j=0; j<3; j++)
-              M(i, j) = R3[i](j);
-        break;
-      case 2:
-        M.resize(R2.size(), 2);
-        for(size_t i=0; i<R2.size(); i++)
-          for(size_t j=0; j<2; j++)
-              M(i, j) = R2[i](j);
-        break;
-      default:
-        M.resize(R1.size(), 1);
-        for(size_t i=0; i<R1.size(); i++)
-          M(i, 0) = R1[i](0);
-        break;
-    }
+    Matrix M(Frequencies(), stokes_dim);
+    for(size_t i=0; i<R4.size(); i++) for(size_t j=0; j<4; j++) M(i, j) = R4[i](j);
+    for(size_t i=0; i<R3.size(); i++) for(size_t j=0; j<3; j++) M(i, j) = R3[i](j);
+    for(size_t i=0; i<R2.size(); i++) for(size_t j=0; j<2; j++) M(i, j) = R2[i](j);
+    for(size_t i=0; i<R1.size(); i++) M(i, 0) = R1[i](0);
     return M;
   }
   
@@ -419,8 +375,7 @@ public:
         break;
       default:
         if(not S.IsEmpty())
-          R1[i][0] = a.Kjj()[i] * B[i]
-                   + S.Kjj()[i];
+          R1[i][0] = a.Kjj()[i] * B[i] + S.Kjj()[i];
         else
           R1[i][0] = a.Kjj()[i] * B[i];
     }

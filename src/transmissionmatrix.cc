@@ -83,17 +83,6 @@ Eigen::Vector4d vector4(const StokesVector& a, const ConstVectorView& B, const S
     (Eigen::Vector4d() << 0, 0, 0, 0).finished());
 }
 
-
-Eigen::MatrixXd vector_of_dJ(const StokesVector& a, const ConstVectorView& B, const StokesVector& da, const ConstVectorView& dB_dT, const StokesVector& dS, bool dT, Index i) {
-  switch(a.StokesDimensions()) {
-    case 4: return vector4(a, B, da, dB_dT, dS, dT, i);
-    case 3: return vector3(a, B, da, dB_dT, dS, dT, i);
-    case 2: return vector2(a, B, da, dB_dT, dS, dT, i);
-    case 1: return vector1(a, B, da, dB_dT, dS, dT, i);
-  }
-  return Eigen::Matrix<double, 0, 0>();
-}
-
 Eigen::Matrix<double, 1, 1> matrix1(const Numeric& a)
 {
   return (Eigen::Matrix<double, 1, 1>() << a).finished();
@@ -120,17 +109,6 @@ Eigen::Matrix4d matrix4(const Numeric& a, const Numeric& b, const Numeric& c, co
                                d,-v,-w, a).finished();
 }
 
-Eigen::MatrixXd matrix_of_K(const PropagationMatrix& K, const Index i){
-  switch(K.StokesDimensions()) {
-    case 4: return matrix4(K.Kjj()[i], K.K12()[i], K.K13()[i], K.K14()[i],
-      K.K23()[i], K.K24()[i], K.K34()[i]);
-    case 3: return matrix3(K.Kjj()[i], K.K12()[i], K.K13()[i], K.K23()[i]);
-    case 2: return matrix2(K.Kjj()[i], K.K12()[i]);
-    case 1: return matrix1(K.Kjj()[i]);
-  }
-  return Eigen::Matrix<double, 0, 0>();
-}
-
 
 Eigen::Matrix<double, 1, 1> inv1(const Numeric& x) 
 {
@@ -140,7 +118,7 @@ Eigen::Matrix<double, 1, 1> inv1(const Numeric& x)
 Eigen::Matrix2d inv2(const Numeric& a, const Numeric& b) 
 {
   const Numeric f = a*a - b*b;
-  return (Eigen::Matrix2d() << a, -b, a, -b).finished() / f;
+  return (Eigen::Matrix2d() << a, -b, -b, a).finished() / f;
 }
 
 Eigen::Matrix3d inv3(const Numeric& a, const Numeric& b, const Numeric& c, const Numeric& u)
@@ -174,17 +152,6 @@ Eigen::Matrix4d inv4(const Numeric& a, const Numeric& b, const Numeric& c, const
           a2*v + a*b*d + a*u*w + b*c*w - c2*v + c*d*u,
           a2*w + a*c*d - a*u*v - b2*w + b*c*v - b*d*u,
           a*(a2 - b2 - c2 + u2)).finished() / f;
-}
-
-Eigen::MatrixXd inverse_of_K(const PropagationMatrix& K, const Index i){
-  switch(K.StokesDimensions()) {
-    case 4: return inv4(K.Kjj()[i], K.K12()[i], K.K13()[i], K.K14()[i],
-      K.K23()[i], K.K24()[i], K.K34()[i]);
-    case 3: return inv3(K.Kjj()[i], K.K12()[i], K.K13()[i], K.K23()[i]);
-    case 2: return inv2(K.Kjj()[i], K.K12()[i]);
-    case 1: return inv1(K.Kjj()[i]);
-  }
-  return Eigen::Matrix<double, 0, 0>();
 }
 
 
@@ -472,9 +439,9 @@ void dtransmat2(TransmissionMatrix& T,
         const Numeric dC0 = -a*std::cosh(b)*db/b + a*std::sinh(b)*db/b/b + std::sinh(b)*db - std::sinh(b)*da/b;
         const Numeric dC1 = (std::cosh(b) - C1)*db/b;
         Eigen::Matrix2d dF;
-        dF(0, 0) = dF(1, 1) = dC0 + C1 * da + dC1 * a + F(0, 0) * da;
-        dF(0, 1) = dF(1, 0) = C1 * db + dC1 * b + F(0, 1) * da;
-        dT2[j].set2(std::move(dF), i);
+        dF(0, 0) = dF(1, 1) = dC0 + C1 * da + dC1 * a;
+        dF(0, 1) = dF(1, 0) = C1 * db + dC1 * b;
+        dT2[j].set2(exp_a * dF + da * T.Mat2(i), i);
       }
       for(Index j=0; j<dT1.nelem(); j++) {
         if(not dK1[j].NumberOfFrequencies())
@@ -484,9 +451,9 @@ void dtransmat2(TransmissionMatrix& T,
         const Numeric dC0 = -a*std::cosh(b)*db/b + a*std::sinh(b)*db/b/b + std::sinh(b)*db - std::sinh(b)*da/b;
         const Numeric dC1 = (std::cosh(b) - C1)*db/b;
         Eigen::Matrix2d dF;
-        dF(0, 0) = dF(1, 1) = dC0 + C1 * da + dC1 * a + F(0, 0) * da;
-        dF(0, 1) = dF(1, 0) = C1 * db + dC1 * b + F(0, 1) * da;
-        dT1[j].set2(std::move(dF), i);
+        dF(0, 0) = dF(1, 1) = dC0 + C1 * da + dC1 * a;
+        dF(0, 1) = dF(1, 0) = C1 * db + dC1 * b;
+        dT1[j].set2(exp_a * dF + da * T.Mat2(i), i);
       }
     }
   }
@@ -512,10 +479,12 @@ void dtransmat3(TransmissionMatrix& T,
                   b = -0.5 * r * (K1.K12(iz, ia)[i] + K2.K12(iz, ia)[i]), 
                   c = -0.5 * r * (K1.K13(iz, ia)[i] + K2.K13(iz, ia)[i]), 
                   u = -0.5 * r * (K1.K23(iz, ia)[i] + K2.K23(iz, ia)[i]);
+    const Numeric a2 = a * a, b2 = b * b, c2 = c * c, u2 = u * u;
     const Numeric exp_a = std::exp(a);
+    const Numeric tmp = b2 + c2 - u2;
     Eigen::Matrix3d F;
     
-    if(b == 0. and c == 0. and u == 0.) {
+    if(tmp  == 0.) {
       F.setIdentity();
       T.set3(F*exp_a, i);
       for(Index j=0; j<dT1.nelem(); j++) {
@@ -526,10 +495,9 @@ void dtransmat3(TransmissionMatrix& T,
       }
     }
     else {
-      const Numeric a2 = a * a, b2 = b * b, c2 = c * c, u2 = u * u;
       
-      const Numeric x = std::sqrt(b2 + c2 - u2), x2 = x * x, inv_x2 = 1.0/x2;
-      const Numeric sinh_x = std::sinh(x), cosh_x = std::cosh(x);
+      const Numeric x = std::sqrt(tmp);
+      const Numeric x2 = (x * x), inv_x2 = 1.0/x2, sinh_x = std::sinh(x), cosh_x = std::cosh(x);
       
       const Numeric C0 = (a2 * (cosh_x - 1) - a * x * sinh_x) * inv_x2 + 1; // approaches (1-a)*exp_a for low x
       const Numeric C1 = (2 * a * (1 - cosh_x) + x * sinh_x) * inv_x2;  // approaches (exp_a) for low_x
@@ -571,21 +539,22 @@ void dtransmat3(TransmissionMatrix& T,
         Eigen::Matrix3d dF;
         
         dF(0, 0) = dF(1, 1) = dF(2, 2) = dC0 + dC1 * a + C1 * da;
-        dF(0, 0) += dC2 * (a2 + b2 + c2) + C2 * (da2 + db2 + dc2) + F(0, 0) * da;
-        dF(1, 1) += dC2 * (a2 + b2 - u2) + C2 * (da2 + db2 - du2) + F(1, 1) * da;
-        dF(2, 2) += dC2 * (a2 + c2 - u2) + C2 * (da2 + dc2 - du2) + F(2, 2) * da;
+        dF(0, 0) += dC2 * (a2 + b2 + c2) + C2 * (da2 + db2 + dc2);
+        dF(1, 1) += dC2 * (a2 + b2 - u2) + C2 * (da2 + db2 - du2);
+        dF(2, 2) += dC2 * (a2 + c2 - u2) + C2 * (da2 + dc2 - du2);
         
         dF(0, 1) = dF(1, 0) = dC1 * b + C1 * db;
-        dF(0, 1) += dC2 * (2*a*b - c*u) + C2 * (2*da*b + 2*a*db - dc*u - c*du) + F(0, 1) * da;
-        dF(1, 0) += dC2 * (2*a*b + c*u) + C2 * (2*da*b + 2*a*db + dc*u + c*du) + F(1, 0) * da;
+        dF(0, 1) += dC2 * (2*a*b - c*u) + C2 * (2*da*b + 2*a*db - dc*u - c*du);
+        dF(1, 0) += dC2 * (2*a*b + c*u) + C2 * (2*da*b + 2*a*db + dc*u + c*du);
         
         dF(0, 2) = dF(2, 0) = dC1 * c + C1 * dc;
-        dF(0, 2) += dC2 * (2*a*c + b*u) + C2 * (2*da*c + 2*a*dc + db*u + b*du) + F(0, 2) * da;
-        dF(2, 0) += dC2 * (2*a*c - b*u) + C2 * (2*da*c + 2*a*dc - db*u - b*du) + F(2, 0) * da;
+        dF(0, 2) += dC2 * (2*a*c + b*u) + C2 * (2*da*c + 2*a*dc + db*u + b*du);
+        dF(2, 0) += dC2 * (2*a*c - b*u) + C2 * (2*da*c + 2*a*dc - db*u - b*du);
         
-        dF(1, 2) =  dC1 * u + C1 * du + dC2 * (2*a*u + b*c) + C2 * (2*da*u + 2*a*du + db*c + b*dc) + F(1, 2) * da;
-        dF(2, 1) = -dC1 * u - C1 * du - dC2 * (2*a*u - b*c) - C2 * (2*da*u + 2*a*du - db*c - b*dc) + F(2, 1) * da;
-        dT2[j].set3(std::move(dF), i);
+        dF(1, 2) =  dC1 * u + C1 * du + dC2 * (2*a*u + b*c) + C2 * (2*da*u + 2*a*du + db*c + b*dc);
+        dF(2, 1) = -dC1 * u - C1 * du - dC2 * (2*a*u - b*c) - C2 * (2*da*u + 2*a*du - db*c - b*dc);
+
+        dT2[j].set3(exp_a * dF + da * T.Mat3(i), i);
       }
       
       for(Index j=0; j<dK1.nelem(); j++) {
@@ -598,30 +567,31 @@ void dtransmat3(TransmissionMatrix& T,
         
         const Numeric da2 = 2 * a * da, db2 = 2 * b * db, dc2 = 2 * c * dc, du2 = 2 * u * du;
         
-        const Numeric dx  = (db2 + dc2 -du2)/x/2;
+        const Numeric dx  = (db2 + dc2 - du2)/x * 0.5;
         
         const Numeric dC0 = -2 * (C0 - 1) * dx/x + (da2 * (cosh_x - 1) + a2 * sinh_x*dx - a * b * cosh_x * dx - a * sinh_x * dx - b * sinh_x * da) * inv_x2;
-        const Numeric dC1 = -2 * C1 * dx / x + (2 * da * (1 - cosh_x) - 2 * a * sinh_x * dx + x*cosh_x*dx + sinh_x*dx) * inv_x2;
+        const Numeric dC1 = -2 * C1 * dx/x + (2 * da * (1 - cosh_x) - 2 * a * sinh_x * dx + dx*x*cosh_x + sinh_x*dx) * inv_x2;
         const Numeric dC2 = (sinh_x/x - 2*C2)*dx/x;
         
         Eigen::Matrix3d dF;
         
         dF(0, 0) = dF(1, 1) = dF(2, 2) = dC0 + dC1 * a + C1 * da;
-        dF(0, 0) += dC2 * (a2 + b2 + c2) + C2 * (da2 + db2 + dc2) + F(0, 0) * da;
-        dF(1, 1) += dC2 * (a2 + b2 - u2) + C2 * (da2 + db2 - du2) + F(1, 1) * da;
-        dF(2, 2) += dC2 * (a2 + c2 - u2) + C2 * (da2 + dc2 - du2) + F(2, 2) * da;
+        dF(0, 0) += dC2 * (a2 + b2 + c2) + C2 * (da2 + db2 + dc2);
+        dF(1, 1) += dC2 * (a2 + b2 - u2) + C2 * (da2 + db2 - du2);
+        dF(2, 2) += dC2 * (a2 + c2 - u2) + C2 * (da2 + dc2 - du2);
         
         dF(0, 1) = dF(1, 0) = dC1 * b + C1 * db;
-        dF(0, 1) += dC2 * (2*a*b - c*u) + C2 * (2*da*b + 2*a*db - dc*u - c*du) + F(0, 1) * da;
-        dF(1, 0) += dC2 * (2*a*b + c*u) + C2 * (2*da*b + 2*a*db + dc*u + c*du) + F(1, 0) * da;
+        dF(0, 1) += dC2 * (2*a*b - c*u) + C2 * (2*da*b + 2*a*db - dc*u - c*du);
+        dF(1, 0) += dC2 * (2*a*b + c*u) + C2 * (2*da*b + 2*a*db + dc*u + c*du);
         
         dF(0, 2) = dF(2, 0) = dC1 * c + C1 * dc;
-        dF(0, 2) += dC2 * (2*a*c + b*u) + C2 * (2*da*c + 2*a*dc + db*u + b*du) + F(0, 2) * da;
-        dF(2, 0) += dC2 * (2*a*c - b*u) + C2 * (2*da*c + 2*a*dc - db*u - b*du) + F(2, 0) * da;
+        dF(0, 2) += dC2 * (2*a*c + b*u) + C2 * (2*da*c + 2*a*dc + db*u + b*du);
+        dF(2, 0) += dC2 * (2*a*c - b*u) + C2 * (2*da*c + 2*a*dc - db*u - b*du);
         
-        dF(1, 2) =  dC1 * u + C1 * du + dC2 * (2*a*u + b*c) + C2 * (2*da*u + 2*a*du + db*c + b*dc) + F(1, 2) * da;
-        dF(2, 1) = -dC1 * u - C1 * du - dC2 * (2*a*u - b*c) - C2 * (2*da*u + 2*a*du - db*c - b*dc) + F(2, 1) * da;
-        dT1[j].set3(std::move(dF), i);
+        dF(1, 2) =  dC1 * u + C1 * du + dC2 * (2*a*u + b*c) + C2 * (2*da*u + 2*a*du + db*c + b*dc);
+        dF(2, 1) = -dC1 * u - C1 * du - dC2 * (2*a*u - b*c) - C2 * (2*da*u + 2*a*du - db*c - b*dc);
+
+        dT1[j].set3(exp_a * dF + da * T.Mat3(i), i);
       }
     }
   }
@@ -661,7 +631,7 @@ void dtransmat4(TransmissionMatrix& T,
         if(dK1[j].NumberOfFrequencies())
           dT1[j].set4(T.Mat4(i) * (-0.5 * (r * dK1[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT1 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]):0.0))), i);
         if(dK2[j].NumberOfFrequencies())
-          dT1[j].set4(T.Mat4(i) * (-0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT2 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]):0.0))), i);
+          dT2[j].set4(T.Mat4(i) * (-0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it)?dr_dT2 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]):0.0))), i);
       }
     }
     else {

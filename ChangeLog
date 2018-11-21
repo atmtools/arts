@@ -1,3 +1,26 @@
+2018-11-21  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1163
+	
+	Makes NonStandard comply with Patrick's new test by stomping 
+	out some bugs.
+	
+	* controlfiles/artscomponents/wfuns/TestTjacStokes1to4.arts:
+	Corrected and extraction
+	
+	* src/transmissionmatrix.cc,h:  Removed some unwanted functions.
+	Corrected a matrix that was [[a, -b], [a, -b]] but should have
+	been [[a, -b], [-b, a]].  Applied my corrections for 
+	iyEmissionStandard's transmission matrix derivatives from Monday's
+	commit to iyEmissionNonStandard's transmission matrix derivatives.
+	I still think that both the stokes_dim 2 and 3 code will fail at 
+	some point, e.g., when the rotation is larger than the absorption.
+	Corrected a copy-paste typo for stokes_dim 4 where dT1 was assigned
+	to also when dT2 was clearly the variable being computed; this left
+	dT2 as the default identity matrix causing huge discrepancies between
+	standard and non-standard outputs.  Changed some class-functions 
+	to be more readable...
+
 2018-11-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1162
