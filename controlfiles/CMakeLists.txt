@@ -100,8 +100,6 @@ arts_test_ctlfile_depends(fast.artscomponents.montecarlo.TestRteCalcMC
                           fast.artscomponents.montecarlo.TestMonteCarloDataPrepare)
 
 arts_test_run_ctlfile(fast artscomponents/wfuns/TestTjacStokes1.arts)
-arts_test_run_ctlfile(fast artscomponents/wfuns/TestTjacStokes1to4.arts)
-arts_test_run_ctlfile(slow artscomponents/wfuns/TestTjacStokes4.arts)
 arts_test_run_ctlfile(slow artscomponents/wfuns/TestWfuns.arts)
 arts_test_run_ctlfile(slow artscomponents/wfuns/TestWfunsHybClear.arts)
 arts_test_ctlfile_depends(slow.artscomponents.wfuns.TestWfunsHybClear
@@ -131,6 +129,8 @@ if (ENABLE_TMATRIX)
 endif ()
 
 if (ENABLE_FASTEM)
+  arts_test_run_ctlfile(fast artscomponents/wfuns/TestTjacStokes1to4.arts)
+  arts_test_run_ctlfile(slow artscomponents/wfuns/TestTjacStokes4.arts)
   arts_test_run_ctlfile(fast artscomponents/fastem/TestFastem.arts)
 endif ()
 
