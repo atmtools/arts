@@ -13512,7 +13512,7 @@ void define_md_data_raw()
             "The PSD has two independent parameters *N0star*, the intercept\n"
             " parameter, and *Dm*, the volume-weighted diameter.\n"
             "This implementation expects as input two out of the following\n"
-            "three quantities: *iwc*, *N0star*, *Dm*. In this case one of\n"
+            "three quantities: *iwc*, *n0Star*, *Dm*. In this case one of\n"
             "the input parameters *iwc*, *N0start*, *Dm* must be set to -999.\n*"
             "It is also possible to provide only *iwc*, in which case an a\n"
             "priori assumption will be used to deduce *N0star* from *temperature*.\n"

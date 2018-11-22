@@ -1264,15 +1264,17 @@ void psdD14(
             }
         }
 
-        if ((dm_p <= 0.0) || (dm_p < dm_min)) {
-            ostringstream os;
-            os << "The provided or inferred value of *Dm* ("
-               << dm_p << ") is "
-               << " less than zero or *Dm_min* and this is not allowed. "
-               << "This means that you have very small or zero values "
-               << "in *pnd_agenda_input* which is not supported "
-               << "by this PSD." << std::endl;
-            throw runtime_error(os.str());
+        if (iwc > 0.0) {
+            if ((iwc > 0.0) && ((dm_p <= 0.0) || (dm_p < dm_min))) {
+                ostringstream os;
+                os << "The provided or inferred value of *Dm* ("
+                   << dm_p << ") is "
+                   << " less than zero or *Dm_min* and this is not allowed. "
+                   << "This means that you have very small or zero values "
+                   << "in *pnd_agenda_input* which is not supported "
+                   << "by this PSD." << std::endl;
+                throw runtime_error(os.str());
+            }
         }
 
         // Calculate PSD and derivatives
@@ -1334,6 +1336,16 @@ void psdD14(
                 Numeric dn0ddm = - 4.0 * n0_p / dm_p;
                 dndn02 *= dn0ddm;
                 dpsd_data_dx(i_jac[2], ip, joker) += dndn02;
+            }
+        }
+
+        // Ensure that results are zero when IWC is zero.
+        if (iwc_p == 0.0) {
+            psd_data(0, joker) = 0.0;
+            for (size_t i = 0; i < 2; ++i) {
+                if (do_jac[i]) {
+                    dpsd_data_dx(i_jac[i], ip, joker) = 0.0;
+                }
             }
         }
     }

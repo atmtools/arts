@@ -1,3 +1,13 @@
+2018-11-22  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1164
+
+	* src/m_psd.cc(psdD14):
+	- Ensure that psd data is 0 when iwc is zero.
+
+	* src/methods.cc(psdD14):
+	- Fixed typos in definition of psdD14 WSV.
+
 2018-11-21  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1163
@@ -395,18 +405,6 @@
 	same things as Standard, it has yet to carry that guarantee
 	
 	* src/rte.cc: Fixed error in comment.
-
-2018-11-01  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
-
-	* arts-2-3-1145
-
-	* src/m_psd.cc(psdD14):
-
-	- Added lower threshold on D_m when inferred
-	from mass density or N_0^* to avoid numerical
-	problems.
-
-	- Fixed bounds checking on D_m
 
 2018-10-26  Richard Larsson  <larsson@mps.mpg.de>
 
