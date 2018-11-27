@@ -1,3 +1,24 @@
+2018-11-27  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1166
+	
+	* src/transmissionmatrix.cc,h:  Changes to mainly stokes_dim 2
+	and 3 and the beginning of updating stokes_dim 4 after a weird
+	bug.  I will try to have this fixed shortly, but I don't think
+	it is very important for real calculations since the bug exists
+	in the old code as well...  (The problem is that the input
+	can and will give imaginary values for which the expression is
+	valid but not all of these input can produce good output.  So
+	it is mostly important to have this fixed if at anytime the 
+	refractive index will be computed as part of the line shape.
+	Presently, we just throw away the refractive index and keeps
+	only the attenuation and the phase velocity.)
+	
+	* src/linefunctions.cc:  Bug where mirrored lines where removed
+	not added discovered while trying to remove the extra allocations
+	for cutoff.  Not successful to remove the latter the code is
+	otherwise in the same shape.
+
 2018-11-27  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1165

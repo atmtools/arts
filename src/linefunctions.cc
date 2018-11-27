@@ -224,7 +224,7 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
  * \param dG0_dT Temperature derivative of G0
  * \param dL0_dT Temperature derivative of L0
  * \param ddF0_dT Temperature derivative of dF0
- * \param df_range Frequency range to use inside dF
+ * \param dVMR VMR derivatives of line shape parameters
  * 
  */
 void Linefunctions::set_lorentz(ComplexVectorView F,
@@ -326,7 +326,7 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
  * \param dL2_dT Temperature derivative of L2
  * \param deta_dT Temperature derivative of eta
  * \param dFVC_dT Temperature derivative of FVC
- * \param df_range Frequency range to use inside dF
+ * \param dVMR VMR derivatives of line shape parameters
  * 
  */
 void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line shape without line mixing
@@ -405,7 +405,7 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
   const Complex Y = sqrtY * sqrtY;
   const Numeric invAbsY = 1.0 / abs(Y);
   
-  // Temperature derivatives precomputed
+  // Temperature derivatives pre-computed
   Complex dC0_dT, dC2_dT, dC0t_dT, dC2t_dT, dC0_m1p5_C2_dT, dY_dT;
   if(do_temperature_jacobian(derivatives_data)) {
     dC0_dT = dG0_dT + i*dL0_dT;
@@ -766,7 +766,7 @@ void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line s
  * \param dG0_dT Temperature derivative of G0
  * \param dL0_dT Temperature derivative of L0
  * \param dF0_dT Temperature derivative of dF0_dT
- * \param df_range Frequency range to use inside dF
+ * \param dVMR VMR derivatives of line shape parameters
  * 
  */
 void Linefunctions::set_voigt(ComplexVectorView F, 
@@ -861,7 +861,7 @@ void Linefunctions::set_voigt(ComplexVectorView F,
  * \param derivatives_data_position Information about the derivatives positions in dF
  * \param quantum_identity ID of the absorption line
  * \param dGD_div_F0_dT Temperature derivative of GD_div_F0
- * \param df_range Frequency range to use inside dF
+ * \param dVMR VMR derivatives of line shape parameters
  * 
  */
 void Linefunctions::set_doppler(ComplexVectorView F, // Sets the full complex line shape without line mixing
@@ -1790,7 +1790,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   const auto& DV  = std::get<Index(LineFunctionData::TuplePos::DV )>(X);
   
   // Partial derivatives for temperature
-  const LineFunctionData::Output dXdT = do_temperature ?  line.GetShapeParams_dT(temperature, temperature_perturbation(derivatives_data), 
+  const auto dXdT = do_temperature ?  line.GetShapeParams_dT(temperature, temperature_perturbation(derivatives_data), 
                                                              pressure, this_species_location_in_tags, volume_mixing_ratio_of_all_species, 
                                                              abs_species) : NoLineFunctionDataOutput();
   const auto& dG0_dT  = std::get<Index(LineFunctionData::TuplePos::G0 )>(dXdT);
@@ -1804,10 +1804,10 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   const auto& dDV_dT  = std::get<Index(LineFunctionData::TuplePos::DV )>(dXdT);
   
   // Partial derivatives for VMR
-  const std::tuple<bool, const QuantumIdentifier&> do_vmr = do_vmr_jacobian(derivatives_data, line.QuantumIdentity());
-  const LineFunctionData::Output dXdVMR = std::get<0>(do_vmr) ?  line.GetShapeParams_dVMR(temperature, pressure, this_species_location_in_tags,
+  const std::tuple<bool, const QuantumIdentifier&> do_vmr = do_vmr_jacobian(derivatives_data, line.QuantumIdentity());  // At all, Species
+  const auto dXdVMR = std::get<0>(do_vmr) ?  line.GetShapeParams_dVMR(temperature, pressure, this_species_location_in_tags,
                                                                       volume_mixing_ratio_of_all_species, abs_species, std::get<1>(do_vmr)) : NoLineFunctionDataOutput();
-                                                                      
+  
   // Partial derivatives for temperature
   Numeric dK1_dT, dK2_dT;
   
@@ -1926,8 +1926,8 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
                     -line.F(), G0, -D0, -DV, derivatives_data, derivatives_data_position, QI, dG0_dT, -dD0_dT, -dDV_dT, dXdVMR);
         
         // Apply mirroring
-        F -= Fm;
-        dF -= dFm;
+        F += Fm;
+        dF += dFm;
     } break;
     // Same type of mirroring as before
     case MirroringType::SameAsLineShape: {
@@ -1965,12 +1965,22 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
         case LineShapeType::End:
           throw std::runtime_error("Cannot understand the requested line shape type for mirroring.");
       }
-      F -= Fm;
-      dF -= dFm;
+      F += Fm;
+      dF += dFm;
       break;
     } break;
     case MirroringType::End:
       throw std::runtime_error("Cannot understand the requested mirroring type for mirroring.");
+  }
+  
+  // Only for non-Doppler shapes
+  if(lst not_eq LineShapeType::Doppler) {
+    apply_linemixing_scaling(F, dF, Y, G, derivatives_data, derivatives_data_position, QI, dY_dT, dG_dT, dXdVMR);
+    
+    // Apply line mixing and pressure broadening partial derivatives        
+    apply_linefunctiondata_jacobian_scaling(dF, derivatives_data, derivatives_data_position, QI, line,
+                                            temperature, pressure,  this_species_location_in_tags,
+                                            volume_mixing_ratio_of_all_species, abs_species);
   }
   
   // Line normalization if necessary
@@ -1994,16 +2004,6 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
       break;
     case LineNormalizationType::End:
       throw std::runtime_error("Cannot understand the requested line normalization type.");
-  }
-  
-  // Only for non-Doppler shapes
-  if(lst not_eq LineShapeType::Doppler) {
-    apply_linemixing_scaling(F, dF, Y, G, derivatives_data, derivatives_data_position, QI, dY_dT, dG_dT, dXdVMR);
-  
-    // Apply line mixing and pressure broadening partial derivatives        
-    apply_linefunctiondata_jacobian_scaling(dF, derivatives_data, derivatives_data_position, QI, line,
-                                            temperature, pressure,  this_species_location_in_tags,
-                                            volume_mixing_ratio_of_all_species, abs_species);
   }
   
   // Apply line strength by whatever method is necessary

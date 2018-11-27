@@ -173,6 +173,16 @@ public:
     for(size_t i=0; i<R1.size(); i++) R1[i] = T.Mat1(i) * R1[i];
   }
   
+  const Eigen::Vector4d& Vec4(size_t i) const {return R4[i];}
+  const Eigen::Vector3d& Vec3(size_t i) const {return R3[i];}
+  const Eigen::Vector2d& Vec2(size_t i) const {return R2[i];}
+  const Eigen::Matrix<double, 1, 1>& Vec1(size_t i) const {return R1[i];}
+  
+  Eigen::Vector4d& Vec4(size_t i) {return R4[i];}
+  Eigen::Vector3d& Vec3(size_t i) {return R3[i];}
+  Eigen::Vector2d& Vec2(size_t i) {return R2[i];}
+  Eigen::Matrix<double, 1, 1>& Vec1(size_t i) {return R1[i];}
+  
   void leftMul4(const Eigen::Matrix4d& X, Index i) {R4[i] = X * R4[i];}
   void leftMul3(const Eigen::Matrix3d& X, Index i) {R3[i] = X * R3[i];}
   void leftMul2(const Eigen::Matrix2d& X, Index i) {R2[i] = X * R2[i];}

@@ -457,6 +457,69 @@ void test_r_deriv_propagationmatrix()
 }
 
 
+void test_transmat_from_propmat()
+{
+  const Numeric a=2;
+  const Numeric b=3;
+  const Numeric c=4;
+  const Numeric d=1;
+  const Numeric u=5;
+  const Numeric v=1;
+  const Numeric w=5;
+  
+  PropagationMatrix test1(1, 1);
+  PropagationMatrix test2(1, 2);
+  PropagationMatrix test3(1, 3);
+  PropagationMatrix test4(1, 4);
+  test1.Kjj() = a; test2.Kjj() = a; test3.Kjj() = a; test4.Kjj() = a;
+  test2.K12() = b; test3.K12() = b; test4.K12() = b;
+  test3.K13() = c; test4.K13() = c;
+  test3.K23() = u; test4.K23() = u;
+  test4.K14() = d;
+  test4.K24() = v;
+  test4.K34() = w;
+  
+  std::cout << test1 << "\n\n" << test2 << "\n\n" << test3 << "\n\n" << test4 << "\n\n";
+  
+  TransmissionMatrix ans1(1, 1);
+  TransmissionMatrix ans2(1, 2);
+  TransmissionMatrix ans3(1, 3);
+  TransmissionMatrix ans4(1, 4);
+  
+  TransmissionMatrix tmp1(1, 1);
+  TransmissionMatrix tmp2(1, 2);
+  TransmissionMatrix tmp3(1, 3);
+  TransmissionMatrix tmp4(1, 4);
+  ArrayOfTransmissionMatrix empty(0);
+  
+  stepwise_transmission(tmp1, ans1, empty, empty,
+                        tmp1, test1, test1,
+                        ArrayOfPropagationMatrix(0),
+                        ArrayOfPropagationMatrix(0),
+                        1, false, 0, 0, -1);
+  
+  stepwise_transmission(tmp2, ans2, empty, empty,
+                        tmp2, test2, test2,
+                        ArrayOfPropagationMatrix(0),
+                        ArrayOfPropagationMatrix(0),
+                        1, false, 0, 0, -1);
+  
+  stepwise_transmission(tmp3, ans3, empty, empty,
+                        tmp3, test3, test3,
+                        ArrayOfPropagationMatrix(0),
+                        ArrayOfPropagationMatrix(0),
+                        1, false, 0, 0, -1);
+  
+  stepwise_transmission(tmp4, ans4, empty, empty,
+                        tmp4, test4, test4,
+                        ArrayOfPropagationMatrix(0),
+                        ArrayOfPropagationMatrix(0),
+                        1, false, 0, 0, -1);
+  
+  std::cout << ans1 << "\n\n" << ans2 << "\n\n" << ans3 << "\n\n" << ans4 << "\n\n";
+}
+
+
 int main()
 {
     std::cout<<"Testing Propmat Partials\n";
@@ -465,7 +528,8 @@ int main()
 //     test_linefunctionsdata();
 //     test_speed_of_pressurebroadening();
 //     test_transmissionmatrix();
-    test_r_deriv_propagationmatrix();
+//     test_r_deriv_propagationmatrix();
+    test_transmat_from_propmat();
     return 0;
 }
 
