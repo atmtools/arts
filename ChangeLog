@@ -1,3 +1,12 @@
+2018-11-27  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1165
+
+	* src/species_data.cc (define_basic_species_data):
+
+	Set HITRAN tag for H2O-262 which has been recently added to
+	HITRANonline. Also updated abundance with value from HITRAN.
+
 2018-11-22  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1164

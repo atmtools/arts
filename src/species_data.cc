@@ -219,7 +219,7 @@ void define_basic_species_data()
          REC( "162"             ,3.10693E-04    ,19.016740    ,14     ,14     ,TAGS(19002) ),
          REC( "182"             ,6.23003E-07    ,21.020985    ,-1     ,15     ,TAGS(21001) ),
          REC( "172"             ,1.15853E-07    ,20.020956    ,-1     ,16     ,TAGS()      ),
-         REC( "262"             ,2.2430204E-08  ,20.000000    ,-1     ,-1     ,TAGS(20001) ),
+         REC( "262"             ,2.41970E-08    ,20.000000    ,-1     ,17     ,TAGS(20001) ),
          REC( "SelfContStandardType"    ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
          REC( "ForeignContStandardType" ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
          REC( "ForeignContMaTippingType",NAN    ,NAN    ,-1     ,-1     ,TAGS()      ), 
