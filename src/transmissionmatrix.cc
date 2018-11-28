@@ -237,84 +237,70 @@ inline void transmat4(TransmissionMatrix& T,
                       d2 = d * d, u2 = u * u,
                       v2 = v * v, w2 = w * w;
         
-        const Numeric tmp = (2 * (
-                  b2 * (c2 + d2 - u2 - v2 + w2)
-                + c2 * (     d2 - u2 + v2 - w2)
-                + d2 * (          u2 - v2 - w2)
-                + u2 * (               v2 + w2)
-                + v2 * (                    w2))
-                + 8 * (b * d * u * w - b * c * v * w - c * d * u * v)
-                + b2 * b2 + c2 * c2 + d2 * d2 + u2 * u2 + v2 * v2 + w2 * w2);
-        const Numeric Const1 = (tmp > 0.0) ? std::sqrt(tmp) : 0;
+        const Numeric tmp = w2 * w2 + 2 * (
+                            b2 * (b2 * 0.5 + c2 + d2 - u2 - v2 + w2)
+                          + c2 * (c2 * 0.5 +      d2 - u2 + v2 - w2)
+                          + d2 * (d2 * 0.5 +           u2 - v2 - w2)
+                          + u2 * (u2 * 0.5 +                v2 + w2)
+                          + v2 * (v2 * 0.5 +                     w2)
+                          + 4 * (b * d * u * w - b * c * v * w - c * d * u * v) );
+        const Complex Const1 = std::sqrt(Complex(tmp, 0));
         const Numeric Const2 = b2 + c2 + d2 - u2 - v2 - w2;
-        const Numeric x_c = Const2 + Const1;
-        const Numeric y_c = Const2 - Const1;
         
-        const bool real_x_c = x_c > 0;
-//         const bool real_y_c = y_c > 0;
-//         const bool imag_x_c = x_c < 0;
-        const bool imag_y_c = y_c < 0;
+        const Complex x = std::sqrt(Const2 + Const1) * sqrt_05;
+        const Complex y = std::sqrt(Const2 - Const1) * sqrt_05 * Complex(0, 1);
+        const Complex x2 = x * x;
+        const Complex y2 = y * y;
+        const Complex cy = std::cos(y);
+        const Complex sy = std::sin(y);
+        const Complex cx = std::cosh(x);
+        const Complex sx = std::sinh(x);
         
-        const Numeric x = real_x_c ? std::sqrt( x_c) * sqrt_05 : 0;
-        const Numeric y = imag_y_c ? std::sqrt(-y_c) * sqrt_05 : 0;
-        const Numeric x2 = x * x;
-        const Numeric y2 = y * y;
-        const Numeric cos_y = std::cos(y);
-        const Numeric sin_y = std::sin(y);
-        const Numeric cosh_x = std::cosh(x);
-        const Numeric sinh_x = std::sinh(x);
-        const Numeric inv_x2y2 = 1.0 / (x2 + y2);
+        const bool x_zero = x == 0.0;
+        const bool y_zero = y == 0.0;
+        const bool both_zero = y_zero and x_zero;
+        const bool either_zero = y_zero or x_zero;
+            
+        /* Using:
+         *    lim x→0 [({cosh(x),cos(x)} - 1) / x^2] → 1/2
+         *    lim x→0 [{sinh(x),sin(x)} / x]  → 1
+         *    inv_x2 := 1 for x == 0,
+         *    -i sin(ix) → sinh(x)
+         *    cos(ix) → cosh(x)
+         *    C0, C1, C2 ∝ [1/x^2]
+         */
+        const Complex ix = x_zero ? 0.0 : 1.0 / x;
+        const Complex iy = y_zero ? 0.0 : 1.0 / y;
+        const Complex inv_x2y2 = both_zero ? 1.0 : 1.0 / (x2 + y2);  // The first "1.0" is the trick for above limits
         
-        Numeric C0, C1, C2, C3, inv_y=0, inv_x=0;
-        
-        // X and Y cannot both be zero
-        if(x == 0.0) {
-          inv_y = 1.0 / y;
-          C0 = 1.0;
-          C1 = 1.0;
-          C2 = (1.0 - cos_y) * inv_x2y2;
-          C3 = (1.0 - sin_y*inv_y) * inv_x2y2;
-        }
-        else if(y == 0.0) {
-          inv_x = 1.0 / x;
-          C0 = 1.0;
-          C1 = 1.0;
-          C2 = (cosh_x - 1.0) * inv_x2y2;
-          C3 = (sinh_x*inv_x - 1.0) * inv_x2y2;
-        }
-        else {
-          inv_x = 1.0 / x;
-          inv_y = 1.0 / y;
-          
-          C0 = (cos_y*x2 + cosh_x*y2) * inv_x2y2;
-          C1 = (sin_y*x2*inv_y + sinh_x*y2*inv_x) * inv_x2y2;
-          C2 = (cosh_x - cos_y) * inv_x2y2;
-          C3 = (sinh_x*inv_x - sin_y*inv_y) * inv_x2y2;
-        }
-        
-        T.Mat4(i).noalias() = (Eigen::Matrix4d() << 
-        C0 + C2 * (b2 + c2 + d2),
-        C1 * b + C2 * (-c * u - d * v) + C3 * ( b * ( b2 + c2 + d2) - u * (b * u - d * w) - v * (b * v + c * w)),
-        C1 * c + C2 * ( b * u - d * w) + C3 * ( c * ( b2 + c2 + d2) - u * (c * u + d * v) - w * (b * v + c * w)),
-        C1 * d + C2 * ( b * v + c * w) + C3 * ( d * ( b2 + c2 + d2) - v * (c * u + d * v) + w * (b * u - d * w)),
-        
-        C1 * b + C2 * ( c * u + d * v) + C3 * (-b * (-b2 + u2 + v2) + c * (b * c - v * w) + d * (b * d + u * w)),
-        C0 + C2 * (b2 - u2 - v2),
-        C2 * (b * c - v * w) + C1 * u  + C3 * ( c * (c * u + d * v) - u * (-b2 + u2 + v2) - w * (b * d + u * w)),
-        C2 * (b * d + u * w) + C1 * v  + C3 * ( d * (c * u + d * v) - v * (-b2 + u2 + v2) + w * (b * c - v * w)),
-        
-        C1 * c + C2 * (-b * u + d * w) + C3 * ( b * (b * c - v * w) - c * (-c2 + u2 + w2) + d * (c * d - u * v)),
-        C2 * (b * c - v * w) - C1 * u  + C3 * (-b * (b * u - d * w) + u * (-c2 + u2 + w2) - v * (c * d - u * v)),
-        C0 + C2 * (c2 - u2 - w2),
-        C2 * (c * d - u * v) + C1 * w  + C3 * (-d * (b * u - d * w) + v * (b * c - v * w) - w * (-c2 + u2 + w2)),
-        
-        C1 * d + C2 * (-b * v - c * w) + C3 * ( b * (b * d + u * w) + c * (c * d - u * v) - d * (-d2 + v2 + w2)),
-        C2 * (b * d + u * w) - C1 * v  + C3 * (-b * (b * v + c * w) - u * (c * d - u * v) + v * (-d2 + v2 + w2)),
-        C2 * (c * d - u * v) - C1 * w  + C3 * (-c * (b * v + c * w) + u * (b * d + u * w) + w * (-d2 + v2 + w2)),
-        C0 + C2 * (d2 - v2 - w2)).finished() * exp_a;
+        const Numeric C0 = either_zero ? 1.0 : ((cy*x2 + cx*y2)*inv_x2y2).real();
+        const Numeric C1 = either_zero ? 1.0 : ((sy*x2*iy + sx*y2*ix)*inv_x2y2).real();
+        const Numeric C2 = both_zero ? 0.5 : ((cx - cy)*inv_x2y2).real();
+        const Numeric C3 = both_zero ? 1.0/6.0 : ((x_zero ? 1.0 - sy*iy : y_zero ? sx*ix - 1.0 : sx*ix - sy*iy)*inv_x2y2).real();
+        T.Mat4(i).noalias() = exp_a * (Eigen::Matrix4d() << 
+         C0 + C2 * (b2 + c2 + d2),
+         C1 * b + C2 * (-c * u - d * v) + C3 * ( b * ( b2 + c2 + d2) - u * (b * u - d * w) - v * (b * v + c * w)),
+         C1 * c + C2 * ( b * u - d * w) + C3 * ( c * ( b2 + c2 + d2) - u * (c * u + d * v) - w * (b * v + c * w)),
+         C1 * d + C2 * ( b * v + c * w) + C3 * ( d * ( b2 + c2 + d2) - v * (c * u + d * v) + w * (b * u - d * w)),
+         
+         C1 * b + C2 * ( c * u + d * v) + C3 * (-b * (-b2 + u2 + v2) + c * (b * c - v * w) + d * (b * d + u * w)),
+         C0 + C2 * (b2 - u2 - v2),
+         C2 * (b * c - v * w) + C1 * u  + C3 * ( c * (c * u + d * v) - u * (-b2 + u2 + v2) - w * (b * d + u * w)),
+         C2 * (b * d + u * w) + C1 * v  + C3 * ( d * (c * u + d * v) - v * (-b2 + u2 + v2) + w * (b * c - v * w)),
+         
+         C1 * c + C2 * (-b * u + d * w) + C3 * ( b * (b * c - v * w) - c * (-c2 + u2 + w2) + d * (c * d - u * v)),
+         C2 * (b * c - v * w) - C1 * u  + C3 * (-b * (b * u - d * w) + u * (-c2 + u2 + w2) - v * (c * d - u * v)),
+         C0 + C2 * (c2 - u2 - w2),
+         C2 * (c * d - u * v) + C1 * w  + C3 * (-d * (b * u - d * w) + v * (b * c - v * w) - w * (-c2 + u2 + w2)),
+         
+         C1 * d + C2 * (-b * v - c * w) + C3 * ( b * (b * d + u * w) + c * (c * d - u * v) - d * (-d2 + v2 + w2)),
+         C2 * (b * d + u * w) - C1 * v  + C3 * (-b * (b * v + c * w) - u * (c * d - u * v) + v * (-d2 + v2 + w2)),
+         C2 * (c * d - u * v) - C1 * w  + C3 * (-c * (b * v + c * w) + u * (b * d + u * w) + w * (-d2 + v2 + w2)),
+         C0 + C2 * (d2 - v2 - w2)).finished();
     }
   }
 }
+
 
 inline void dtransmat1(TransmissionMatrix& T,
                        ArrayOfTransmissionMatrix& dT1,
@@ -538,168 +524,123 @@ inline void dtransmat4(TransmissionMatrix& T,
       const Numeric b2 = b * b, c2 = c * c,
                     d2 = d * d, u2 = u * u,
                     v2 = v * v, w2 = w * w;
-      
+      const Numeric tmp = w2 * w2 + 2 * (
+                            b2 * (b2 * 0.5 + c2 + d2 - u2 - v2 + w2)
+                          + c2 * (c2 * 0.5 +      d2 - u2 + v2 - w2)
+                          + d2 * (d2 * 0.5 +           u2 - v2 - w2)
+                          + u2 * (u2 * 0.5 +                v2 + w2)
+                          + v2 * (v2 * 0.5 +                     w2)
+                          + 4 * (b * d * u * w - b * c * v * w - c * d * u * v) );
+      const Complex Const1 = std::sqrt(Complex(tmp, 0));
       const Numeric Const2 = b2 + c2 + d2 - u2 - v2 - w2;
+      const Complex tmp_x_sqrt = std::sqrt(Const2 + Const1);
+      const Complex tmp_y_sqrt = std::sqrt(Const2 - Const1);
+      const Complex x = tmp_x_sqrt * sqrt_05;
+      const Complex y = tmp_y_sqrt * sqrt_05 * Complex(0, 1);
+      const Complex x2 = x * x;
+      const Complex y2 = y * y;
+      const Complex cy = std::cos(y);
+      const Complex sy = std::sin(y);
+      const Complex cx = std::cosh(x);
+      const Complex sx = std::sinh(x);
       
-      Numeric Const1;
-      Const1  = b2 * (b2 * 0.5 + c2 + d2 - u2 - v2 + w2)
-              + c2 * (c2 * 0.5 +      d2 - u2 + v2 - w2)
-              + d2 * (d2 * 0.5 +           u2 - v2 - w2)
-              + u2 * (u2 * 0.5 +                v2 + w2)
-              + v2 * (v2 * 0.5 +                     w2)
-              + 4 * (b * d * u * w - b * c * v * w - c * d * u * v);
-      Const1 *= 2;
-      Const1 += w2 * w2;
+      const bool x_zero = x == 0.0;
+      const bool y_zero = y == 0.0;
+      const bool both_zero = y_zero and x_zero;
+      const bool either_zero = y_zero or x_zero;
       
-      if(Const1 > 0.0)
-        Const1 = std::sqrt(Const1);
-      else
-        Const1 = 0.0;
+      /* Using:
+       *    lim x→0 [({cosh(x),cos(x)} - 1) / x^2] → 1/2
+       *    lim x→0 [{sinh(x),sin(x)} / x]  → 1
+       *    inv_x2 := 1 for x == 0,
+       *    -i sin(ix) → sinh(x)
+       *    cos(ix) → cosh(x)
+       *    C0, C1, C2 ∝ [1/x^2]
+       */
+      const Complex ix = x_zero ? 0.0 : 1.0 / x;
+      const Complex iy = y_zero ? 0.0 : 1.0 / y;
+      const Complex inv_x2y2 = both_zero ? 1.0 : 1.0 / (x2 + y2);  // The first "1.0" is the trick for above limits
+      const Complex C0c = either_zero ? 1.0 : (cy*x2 + cx*y2)*inv_x2y2;
+      const Complex C1c = either_zero ? 1.0 : (sy*x2*iy + sx*y2*ix)*inv_x2y2;
+      const Complex C2c = both_zero ? 0.5 : (cx - cy)*inv_x2y2;
+      const Complex C3c = both_zero ? 1.0/6.0 : (x_zero ? 1.0 - sy*iy : y_zero ? sx*ix - 1.0 : sx*ix - sy*iy)*inv_x2y2;
       
-      const Complex sqrt_BpA = std::sqrt(Complex(Const2 + Const1, 0.0));
-      const Complex sqrt_BmA = std::sqrt(Complex(Const2 - Const1, 0.0));
-      const Numeric x = sqrt_BpA.real() * sqrt_05;
-      const Numeric y = sqrt_BmA.imag() * sqrt_05;
-      const Numeric x2 = x * x;
-      const Numeric y2 = y * y;
-      const Numeric cos_y = std::cos(y);
-      const Numeric sin_y = std::sin(y);
-      const Numeric cosh_x = std::cosh(x);
-      const Numeric sinh_x = std::sinh(x);
-      const Numeric inv_x2y2 = 1.0 / (x2 + y2);
-      
-      Numeric C0, C1, C2, C3, inv_y=0, inv_x=0;
-      
-      // X and Y cannot both be zero
-      if(x == 0.0) {
-        inv_y = 1.0 / y;
-        C0 = 1.0;
-        C1 = 1.0;
-        C2 = (1.0 - cos_y) * inv_x2y2;
-        C3 = (1.0 - sin_y*inv_y) * inv_x2y2;
-      }
-      else if(y == 0.0) {
-        inv_x = 1.0 / x;
-        C0 = 1.0;
-        C1 = 1.0;
-        C2 = (cosh_x - 1.0) * inv_x2y2;
-        C3 = (sinh_x*inv_x - 1.0) * inv_x2y2;
-      }
-      else {
-        inv_x = 1.0 / x;
-        inv_y = 1.0 / y;
+      const Numeric& C0 = reinterpret_cast<const Numeric (&)[2]>(C0c)[0];
+      const Numeric& C1 = reinterpret_cast<const Numeric (&)[2]>(C1c)[0];
+      const Numeric& C2 = reinterpret_cast<const Numeric (&)[2]>(C2c)[0];
+      const Numeric& C3 = reinterpret_cast<const Numeric (&)[2]>(C3c)[0];
+      T.Mat4(i).noalias() = exp_a * (Eigen::Matrix4cd() << 
+        C0 + C2 * (b2 + c2 + d2),
+        C1 * b + C2 * (-c * u - d * v) + C3 * ( b * ( b2 + c2 + d2) - u * (b * u - d * w) - v * (b * v + c * w)),
+        C1 * c + C2 * ( b * u - d * w) + C3 * ( c * ( b2 + c2 + d2) - u * (c * u + d * v) - w * (b * v + c * w)),
+        C1 * d + C2 * ( b * v + c * w) + C3 * ( d * ( b2 + c2 + d2) - v * (c * u + d * v) + w * (b * u - d * w)),
         
-        C0 = (cos_y*x2 + cosh_x*y2) * inv_x2y2;
-        C1 = (sin_y*x2*inv_y + sinh_x*y2*inv_x) * inv_x2y2;
-        C2 = (cosh_x - cos_y) * inv_x2y2;
-        C3 = (sinh_x*inv_x - sin_y*inv_y) * inv_x2y2;
-      }
-      
-      T.Mat4(i).noalias() = (Eigen::Matrix4d() << 
-      C0 + C2 * (b2 + c2 + d2),
-      C1 * b + C2 * (-c * u - d * v) + C3 * ( b * ( b2 + c2 + d2) - u * (b * u - d * w) - v * (b * v + c * w)),
-      C1 * c + C2 * ( b * u - d * w) + C3 * ( c * ( b2 + c2 + d2) - u * (c * u + d * v) - w * (b * v + c * w)),
-      C1 * d + C2 * ( b * v + c * w) + C3 * ( d * ( b2 + c2 + d2) - v * (c * u + d * v) + w * (b * u - d * w)),
-      
-      C1 * b + C2 * ( c * u + d * v) + C3 * (-b * (-b2 + u2 + v2) + c * (b * c - v * w) + d * (b * d + u * w)),
-      C0 + C2 * (b2 - u2 - v2),
-      C2 * (b * c - v * w) + C1 * u  + C3 * ( c * (c * u + d * v) - u * (-b2 + u2 + v2) - w * (b * d + u * w)),
-      C2 * (b * d + u * w) + C1 * v  + C3 * ( d * (c * u + d * v) - v * (-b2 + u2 + v2) + w * (b * c - v * w)),
-      
-      C1 * c + C2 * (-b * u + d * w) + C3 * ( b * (b * c - v * w) - c * (-c2 + u2 + w2) + d * (c * d - u * v)),
-      C2 * (b * c - v * w) - C1 * u  + C3 * (-b * (b * u - d * w) + u * (-c2 + u2 + w2) - v * (c * d - u * v)),
-      C0 + C2 * (c2 - u2 - w2),
-      C2 * (c * d - u * v) + C1 * w  + C3 * (-d * (b * u - d * w) + v * (b * c - v * w) - w * (-c2 + u2 + w2)),
-      
-      C1 * d + C2 * (-b * v - c * w) + C3 * ( b * (b * d + u * w) + c * (c * d - u * v) - d * (-d2 + v2 + w2)),
-      C2 * (b * d + u * w) - C1 * v  + C3 * (-b * (b * v + c * w) - u * (c * d - u * v) + v * (-d2 + v2 + w2)),
-      C2 * (c * d - u * v) - C1 * w  + C3 * (-c * (b * v + c * w) + u * (b * d + u * w) + w * (-d2 + v2 + w2)),
-      C0 + C2 * (d2 - v2 - w2)).finished() * exp_a;
-      
-      if(dK1.nelem()) {
-        const Numeric inv_x2 = inv_x * inv_x;
-        const Numeric inv_y2 = inv_y * inv_y;
+        C1 * b + C2 * ( c * u + d * v) + C3 * (-b * (-b2 + u2 + v2) + c * (b * c - v * w) + d * (b * d + u * w)),
+        C0 + C2 * (b2 - u2 - v2),
+        C2 * (b * c - v * w) + C1 * u  + C3 * ( c * (c * u + d * v) - u * (-b2 + u2 + v2) - w * (b * d + u * w)),
+        C2 * (b * d + u * w) + C1 * v  + C3 * ( d * (c * u + d * v) - v * (-b2 + u2 + v2) + w * (b * c - v * w)),
         
-        for(Index j=0; j<dK1.nelem(); j++) {
-          if(dK1[j].NumberOfFrequencies()) {
-            const Numeric da = -0.5 * (r * dK1[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]) : 0.0)),
-                          db = -0.5 * (r * dK1[j].K12(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K12(iz, ia)[i] + K2.K12(iz, ia)[i]) : 0.0)),
-                          dc = -0.5 * (r * dK1[j].K13(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K13(iz, ia)[i] + K2.K13(iz, ia)[i]) : 0.0)),
-                          dd = -0.5 * (r * dK1[j].K14(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K14(iz, ia)[i] + K2.K14(iz, ia)[i]) : 0.0)),
-                          du = -0.5 * (r * dK1[j].K23(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K23(iz, ia)[i] + K2.K23(iz, ia)[i]) : 0.0)),
-                          dv = -0.5 * (r * dK1[j].K24(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K24(iz, ia)[i] + K2.K24(iz, ia)[i]) : 0.0)),
-                          dw = -0.5 * (r * dK1[j].K34(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K34(iz, ia)[i] + K2.K34(iz, ia)[i]) : 0.0));
-            const Numeric db2 = 2 * db * b, dc2 = 2 * dc * c,
-                          dd2 = 2 * dd * d, du2 = 2 * du * u,
-                          dv2 = 2 * dv * v, dw2 = 2 * dw * w;
-            
-            const Numeric dConst2 = db2 + dc2 + dd2 - du2 - dv2 - dw2;
-            
-            Numeric dConst1;
-            if(Const1 > 0.) {
-              dConst1 = db2 * ( b2 * 0.5 +  c2 +  d2 -  u2 -  v2 +  w2);
-              dConst1 += b2 * (db2 * 0.5 + dc2 + dd2 - du2 - dv2 + dw2);
-              
-              dConst1 += dc2 * (c2 * 0.5 +  d2 -  u2 +  v2 -  w2);
-              dConst1 += c2 * (dc2 * 0.5 + dd2 - du2 + dv2 - dw2);
-              
-              dConst1 += dd2 * (d2 * 0.5 +  u2 -  v2 -  w2);
-              dConst1 += d2 * (dd2 * 0.5 + du2 - dv2 - dw2);
-              
-              dConst1 += du2 * (u2 * 0.5 +  v2 +  w2);
-              dConst1 += u2 * (du2 * 0.5 + dv2 + dw2);
-              
-              dConst1 += dv2 * (v2 * 0.5 +  w2);
-              dConst1 += v2 * (dv2 * 0.5 + dw2);
-              
-              dConst1 += 4 * ((db *  d *  u *  w - db *  c *  v *  w - dc *  d *  u *  v +
-              b * dd *  u *  w -  b * dc *  v *  w -  c * dd *  u *  v +
-              b *  d * du *  w -  b *  c * dv *  w -  c *  d * du *  v +
-              b *  d *  u * dw -  b *  c *  v * dw -  c *  d *  u * dv));
-              dConst1 += dw2 * w2;
-              dConst1 /= Const1;
-            }
-            else
-              dConst1 = 0.0;
-            
-            Numeric dC0, dC1, dC2, dC3;
-            if(x == 0.0) {
-              const Numeric dy = (0.5 * (dConst2 - dConst1)/sqrt_BmA).imag() * sqrt_05;
-              
-              dC0 = 0.0;
-              dC1 = 0.0;
-              dC2 = -2*y*dy * C2 * inv_x2y2 + dy*sin_y * inv_x2y2;
-              dC3 = -2*y*dy * C3 * inv_x2y2 + (dy*sin_y*inv_y2 - cos_y*dy*inv_y) * inv_x2y2;;
-            }
-            else if(y == 0.0) {
-              const Numeric dx = (0.5 * (dConst2 + dConst1)/sqrt_BpA).real() * sqrt_05;
-              
-              dC0 = 0.0;
-              dC1 = 0.0;
-              dC2 = -2*x*dx * C2 * inv_x2y2 + dx*sinh_x * inv_x2y2;
-              dC3 = -2*x*dx * C3 * inv_x2y2 + (cosh_x*dx*inv_x - dx*sinh_x*inv_x2) * inv_x2y2;
-            }
-            else { 
-              const Numeric dx = (0.5 * (dConst2 + dConst1)/sqrt_BpA).real() * sqrt_05;
-              const Numeric dy = (0.5 * (dConst2 - dConst1)/sqrt_BmA).imag() * sqrt_05;
-              const Numeric dy2 = 2 * y * dy;
-              const Numeric dx2 = 2 * x * dx;
-              const Numeric dx2dy2 = dx2 + dy2;
-              
-              dC0 = -dx2dy2 * C0 * inv_x2y2 + 
-              (2*cos_y*dx*x + 2*cosh_x*dy*y + dx*sinh_x*y2 - dy*sin_y*x2) * inv_x2y2;
-              
-              dC1 = -dx2dy2 * C1 * inv_x2y2 + 
-              (cos_y*dy*x2*inv_y + dx2*sin_y*inv_y - dy*sin_y*x2*inv_y2 - 
-              dx*sinh_x*y2*inv_x2 + cosh_x*dx*y2*inv_x + dy2*sinh_x*inv_x) * inv_x2y2;
-              
-              dC2 =  -dx2dy2 * C2 * inv_x2y2 + (dx*sinh_x + dy*sin_y) * inv_x2y2;
-              
-              dC3 =  -dx2dy2 * C3 * inv_x2y2 + 
-              (dy*sin_y*inv_y2 - cos_y*dy*inv_y + cosh_x*dx*inv_x - dx*sinh_x*inv_x2) * inv_x2y2;
-            }
-            
-            dT1[j].Mat4(i).noalias() = T.Mat4(i) * da + (Eigen::Matrix4d() << 
+        C1 * c + C2 * (-b * u + d * w) + C3 * ( b * (b * c - v * w) - c * (-c2 + u2 + w2) + d * (c * d - u * v)),
+        C2 * (b * c - v * w) - C1 * u  + C3 * (-b * (b * u - d * w) + u * (-c2 + u2 + w2) - v * (c * d - u * v)),
+        C0 + C2 * (c2 - u2 - w2),
+        C2 * (c * d - u * v) + C1 * w  + C3 * (-d * (b * u - d * w) + v * (b * c - v * w) - w * (-c2 + u2 + w2)),
+        
+        C1 * d + C2 * (-b * v - c * w) + C3 * ( b * (b * d + u * w) + c * (c * d - u * v) - d * (-d2 + v2 + w2)),
+        C2 * (b * d + u * w) - C1 * v  + C3 * (-b * (b * v + c * w) - u * (c * d - u * v) + v * (-d2 + v2 + w2)),
+        C2 * (c * d - u * v) - C1 * w  + C3 * (-c * (b * v + c * w) + u * (b * d + u * w) + w * (-d2 + v2 + w2)),
+        C0 + C2 * (d2 - v2 - w2)).finished().real();
+    
+      for(Index j=0; j<dK1.nelem(); j++) {
+        if(dK1[j].NumberOfFrequencies()) {
+          const Numeric da = -0.5 * (r * dK1[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]) : 0.0)),
+                        db = -0.5 * (r * dK1[j].K12(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K12(iz, ia)[i] + K2.K12(iz, ia)[i]) : 0.0)),
+                        dc = -0.5 * (r * dK1[j].K13(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K13(iz, ia)[i] + K2.K13(iz, ia)[i]) : 0.0)),
+                        dd = -0.5 * (r * dK1[j].K14(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K14(iz, ia)[i] + K2.K14(iz, ia)[i]) : 0.0)),
+                        du = -0.5 * (r * dK1[j].K23(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K23(iz, ia)[i] + K2.K23(iz, ia)[i]) : 0.0)),
+                        dv = -0.5 * (r * dK1[j].K24(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K24(iz, ia)[i] + K2.K24(iz, ia)[i]) : 0.0)),
+                        dw = -0.5 * (r * dK1[j].K34(iz, ia)[i] + ((j==it) ? dr_dT1 * (K1.K34(iz, ia)[i] + K2.K34(iz, ia)[i]) : 0.0));
+          const Numeric db2 = 2 * db * b, dc2 = 2 * dc * c,
+                        dd2 = 2 * dd * d, du2 = 2 * du * u,
+                        dv2 = 2 * dv * v, dw2 = 2 * dw * w;
+          const Numeric dtmp = 2 * w2 * dw2 + 2 * (
+                            db2 * ( b2 * 0.5 +  c2 +  d2 -  u2 -  v2 +  w2)
+                          +  b2 * (db2 * 0.5 + dc2 + dd2 - du2 - dv2 + dw2)
+                          + dc2 * ( c2 * 0.5 +        d2 -  u2 +  v2 -  w2)
+                          +  c2 * (dc2 * 0.5 +       dd2 - du2 + dv2 - dw2)
+                          + dd2 * ( d2 * 0.5 +              u2 -  v2 -  w2)
+                          +  d2 * (dd2 * 0.5 +             du2 - dv2 - dw2)
+                          + du2 * ( u2 * 0.5 +                    v2 +  w2)
+                          +  u2 * (du2 * 0.5 +                   dv2 + dw2)
+                          + dv2 * ( v2 * 0.5 +                          w2)
+                          +  v2 * (dv2 * 0.5 +                         dw2)
+                          + 4 * (db *  d *  u *  w - db *  c *  v *  w - dc *  d *  u *  v
+                              +   b * dd *  u *  w -  b * dc *  v *  w -  c * dd *  u *  v
+                              +   b *  d * du *  w -  b *  c * dv *  w -  c *  d * du *  v
+                              +   b *  d *  u * dw -  b *  c *  v * dw -  c *  d *  u * dv) );
+          const Complex dConst1 = 0.5 * dtmp / Const1;
+          const Numeric dConst2 = db2 + dc2 + dd2 - du2 - dv2 - dw2;
+          const Complex dx = x_zero ? 0 : (0.5 * (dConst2 + dConst1)/tmp_x_sqrt) * sqrt_05;
+          const Complex dy = y_zero ? 0 : (0.5 * (dConst2 - dConst1)/tmp_y_sqrt) * sqrt_05 * Complex(0, 1);
+          const Complex dx2 = 2 * x * dx;
+          const Complex dy2 = 2 * y * dy;
+          const Complex dcy = -sy*dy;
+          const Complex dsy =  cy*dy;
+          const Complex dcx = sx*dx;
+          const Complex dsx = cx*dx;
+          const Complex dix = - dx * ix * ix;
+          const Complex diy = - dy * iy * iy;
+          const Complex dx2dy2 = dx2 + dy2;
+          const Complex dC0c = ((either_zero ? 0.0 : dcy*x2 + cy*dx2 + dcx*y2 + cx*dy2) - C0c*dx2dy2) * inv_x2y2;
+          const Complex dC1c = ((either_zero ? 0.0 : dsy*x2*iy + sy*dx2*iy + sy*x2*diy + dsx*y2*ix + sx*dy2*ix + sx*y2*dix) - C1c*dx2dy2)*inv_x2y2;
+          const Complex dC2c = ((dcx - dcy) - C2c*dx2dy2)*inv_x2y2;
+          const Complex dC3c = ((dsx*ix + sx*dix - dsy*iy - sy*diy) - C3c*dx2dy2)*inv_x2y2;
+          
+          const Numeric& dC0 = reinterpret_cast<const Numeric (&)[2]>(dC0c)[0];
+          const Numeric& dC1 = reinterpret_cast<const Numeric (&)[2]>(dC1c)[0];
+          const Numeric& dC2 = reinterpret_cast<const Numeric (&)[2]>(dC2c)[0];
+          const Numeric& dC3 = reinterpret_cast<const Numeric (&)[2]>(dC3c)[0];
+          dT1[j].Mat4(i).noalias() = T.Mat4(i) * da + exp_a *
+          (Eigen::Matrix4d() << 
             dC0 + dC2 * ( b2 +  c2 +  d2) + C2 * (db2 + dc2 + dd2),
             db * C1 + b * dC1 + dC2 * (- c *  u -  d *  v) 
             +   C2 * (-dc *  u - dd *  v 
@@ -784,87 +725,58 @@ inline void dtransmat4(TransmissionMatrix& T,
             +    C3 * (-dc * ( b *  v +  c *  w) + du * ( b *  d +  u *  w) + dw * (- d2 +  v2 +  w2)
             -            c * (db *  v + dc *  w) +  u * (db *  d + du *  w) +  w * (-dd2 + dv2 + dw2)
             -            c * ( b * dv +  c * dw) +  u * ( b * dd +  u * dw)                          ),
-            dC0 + dC2 * ( d2 -  v2 -  w2) + C2 * (dd2 - dv2 - dw2)).finished() * exp_a;
-          }
-          if(dK2[j].NumberOfFrequencies()) {
-            const Numeric da = -0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]) : 0.0)),
-                          db = -0.5 * (r * dK2[j].K12(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K12(iz, ia)[i] + K2.K12(iz, ia)[i]) : 0.0)),
-                          dc = -0.5 * (r * dK2[j].K13(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K13(iz, ia)[i] + K2.K13(iz, ia)[i]) : 0.0)),
-                          dd = -0.5 * (r * dK2[j].K14(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K14(iz, ia)[i] + K2.K14(iz, ia)[i]) : 0.0)),
-                          du = -0.5 * (r * dK2[j].K23(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K23(iz, ia)[i] + K2.K23(iz, ia)[i]) : 0.0)),
-                          dv = -0.5 * (r * dK2[j].K24(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K24(iz, ia)[i] + K2.K24(iz, ia)[i]) : 0.0)),
-                          dw = -0.5 * (r * dK2[j].K34(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K34(iz, ia)[i] + K2.K34(iz, ia)[i]) : 0.0));
-            const Numeric db2 = 2 * db * b, dc2 = 2 * dc * c,
-                          dd2 = 2 * dd * d, du2 = 2 * du * u,
-                          dv2 = 2 * dv * v, dw2 = 2 * dw * w;
-            
-            const Numeric dConst2 = db2 + dc2 + dd2 - du2 - dv2 - dw2;
-            
-            Numeric dConst1;
-            if(Const1 > 0.) {
-              dConst1 = db2 * ( b2 * 0.5 +  c2 +  d2 -  u2 -  v2 +  w2);
-              dConst1 += b2 * (db2 * 0.5 + dc2 + dd2 - du2 - dv2 + dw2);
-              
-              dConst1 += dc2 * (c2 * 0.5 +  d2 -  u2 +  v2 -  w2);
-              dConst1 += c2 * (dc2 * 0.5 + dd2 - du2 + dv2 - dw2);
-              
-              dConst1 += dd2 * (d2 * 0.5 +  u2 -  v2 -  w2);
-              dConst1 += d2 * (dd2 * 0.5 + du2 - dv2 - dw2);
-              
-              dConst1 += du2 * (u2 * 0.5 +  v2 +  w2);
-              dConst1 += u2 * (du2 * 0.5 + dv2 + dw2);
-              
-              dConst1 += dv2 * (v2 * 0.5 +  w2);
-              dConst1 += v2 * (dv2 * 0.5 + dw2);
-              
-              dConst1 += 4 * ((db *  d *  u *  w - db *  c *  v *  w - dc *  d *  u *  v +
-              b * dd *  u *  w -  b * dc *  v *  w -  c * dd *  u *  v +
-              b *  d * du *  w -  b *  c * dv *  w -  c *  d * du *  v +
-              b *  d *  u * dw -  b *  c *  v * dw -  c *  d *  u * dv));
-              dConst1 += dw2 * w2;
-              dConst1 /= Const1;
-            }
-            else
-              dConst1 = 0.0;
-            
-            Numeric dC0, dC1, dC2, dC3;
-            if(x == 0.0) {
-              const Numeric dy = (0.5 * (dConst2 - dConst1)/sqrt_BmA).imag() * sqrt_05;
-              
-              dC0 = 0.0;
-              dC1 = 0.0;
-              dC2 = -2*y*dy * C2 * inv_x2y2 + dy*sin_y * inv_x2y2;
-              dC3 = -2*y*dy * C3 * inv_x2y2 + (dy*sin_y*inv_y2 - cos_y*dy*inv_y) * inv_x2y2;;
-            }
-            else if(y == 0.0) {
-              const Numeric dx = (0.5 * (dConst2 + dConst1)/sqrt_BpA).real() * sqrt_05;
-              
-              dC0 = 0.0;
-              dC1 = 0.0;
-              dC2 = -2*x*dx * C2 * inv_x2y2 + dx*sinh_x * inv_x2y2;
-              dC3 = -2*x*dx * C3 * inv_x2y2 + (cosh_x*dx*inv_x - dx*sinh_x*inv_x2) * inv_x2y2;
-            }
-            else { 
-              const Numeric dx = (0.5 * (dConst2 + dConst1)/sqrt_BpA).real() * sqrt_05;
-              const Numeric dy = (0.5 * (dConst2 - dConst1)/sqrt_BmA).imag() * sqrt_05;
-              const Numeric dy2 = 2 * y * dy;
-              const Numeric dx2 = 2 * x * dx;
-              const Numeric dx2dy2 = dx2 + dy2;
-              
-              dC0 = -dx2dy2 * C0 * inv_x2y2 + 
-              (2*cos_y*dx*x + 2*cosh_x*dy*y + dx*sinh_x*y2 - dy*sin_y*x2) * inv_x2y2;
-              
-              dC1 = -dx2dy2 * C1 * inv_x2y2 + 
-              (cos_y*dy*x2*inv_y + dx2*sin_y*inv_y - dy*sin_y*x2*inv_y2 - 
-              dx*sinh_x*y2*inv_x2 + cosh_x*dx*y2*inv_x + dy2*sinh_x*inv_x) * inv_x2y2;
-              
-              dC2 =  -dx2dy2 * C2 * inv_x2y2 + (dx*sinh_x + dy*sin_y) * inv_x2y2;
-              
-              dC3 =  -dx2dy2 * C3 * inv_x2y2 + 
-              (dy*sin_y*inv_y2 - cos_y*dy*inv_y + cosh_x*dx*inv_x - dx*sinh_x*inv_x2) * inv_x2y2;
-            }
-            
-            dT2[j].Mat4(i).noalias() = T.Mat4(i) * da + (Eigen::Matrix4d() << 
+            dC0 + dC2 * ( d2 -  v2 -  w2) + C2 * (dd2 - dv2 - dw2)).finished();
+        }
+        if(dK2[j].NumberOfFrequencies()) {
+          const Numeric da = -0.5 * (r * dK2[j].Kjj(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]) : 0.0)),
+                        db = -0.5 * (r * dK2[j].K12(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K12(iz, ia)[i] + K2.K12(iz, ia)[i]) : 0.0)),
+                        dc = -0.5 * (r * dK2[j].K13(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K13(iz, ia)[i] + K2.K13(iz, ia)[i]) : 0.0)),
+                        dd = -0.5 * (r * dK2[j].K14(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K14(iz, ia)[i] + K2.K14(iz, ia)[i]) : 0.0)),
+                        du = -0.5 * (r * dK2[j].K23(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K23(iz, ia)[i] + K2.K23(iz, ia)[i]) : 0.0)),
+                        dv = -0.5 * (r * dK2[j].K24(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K24(iz, ia)[i] + K2.K24(iz, ia)[i]) : 0.0)),
+                        dw = -0.5 * (r * dK2[j].K34(iz, ia)[i] + ((j==it) ? dr_dT2 * (K1.K34(iz, ia)[i] + K2.K34(iz, ia)[i]) : 0.0));
+          const Numeric db2 = 2 * db * b, dc2 = 2 * dc * c,
+                        dd2 = 2 * dd * d, du2 = 2 * du * u,
+                        dv2 = 2 * dv * v, dw2 = 2 * dw * w;
+          const Numeric dtmp = 2 * w2 * dw2 + 2 * (
+                            db2 * ( b2 * 0.5 +  c2 +  d2 -  u2 -  v2 +  w2)
+                          +  b2 * (db2 * 0.5 + dc2 + dd2 - du2 - dv2 + dw2)
+                          + dc2 * ( c2 * 0.5 +        d2 -  u2 +  v2 -  w2)
+                          +  c2 * (dc2 * 0.5 +       dd2 - du2 + dv2 - dw2)
+                          + dd2 * ( d2 * 0.5 +              u2 -  v2 -  w2)
+                          +  d2 * (dd2 * 0.5 +             du2 - dv2 - dw2)
+                          + du2 * ( u2 * 0.5 +                    v2 +  w2)
+                          +  u2 * (du2 * 0.5 +                   dv2 + dw2)
+                          + dv2 * ( v2 * 0.5 +                          w2)
+                          +  v2 * (dv2 * 0.5 +                         dw2)
+                          + 4 * (db *  d *  u *  w - db *  c *  v *  w - dc *  d *  u *  v
+                              +   b * dd *  u *  w -  b * dc *  v *  w -  c * dd *  u *  v
+                              +   b *  d * du *  w -  b *  c * dv *  w -  c *  d * du *  v
+                              +   b *  d *  u * dw -  b *  c *  v * dw -  c *  d *  u * dv) );
+          const Complex dConst1 = 0.5 * dtmp / Const1;
+          const Numeric dConst2 = db2 + dc2 + dd2 - du2 - dv2 - dw2;
+          const Complex dx = x_zero ? 0 : (0.5 * (dConst2 + dConst1)/tmp_x_sqrt) * sqrt_05;
+          const Complex dy = y_zero ? 0 : (0.5 * (dConst2 - dConst1)/tmp_y_sqrt) * sqrt_05 * Complex(0, 1);
+          const Complex dx2 = 2 * x * dx;
+          const Complex dy2 = 2 * y * dy;
+          const Complex dcy = -sy*dy;
+          const Complex dsy =  cy*dy;
+          const Complex dcx = sx*dx;
+          const Complex dsx = cx*dx;
+          const Complex dix = - dx * ix * ix;
+          const Complex diy = - dy * iy * iy;
+          const Complex dx2dy2 = dx2 + dy2;
+          const Complex dC0c = ((either_zero ? 0.0 : dcy*x2 + cy*dx2 + dcx*y2 + cx*dy2) - C0c*dx2dy2) * inv_x2y2;
+          const Complex dC1c = ((either_zero ? 0.0 : dsy*x2*iy + sy*dx2*iy + sy*x2*diy + dsx*y2*ix + sx*dy2*ix + sx*y2*dix) - C1c*dx2dy2)*inv_x2y2;
+          const Complex dC2c = ((dcx - dcy) - C2c*dx2dy2)*inv_x2y2;
+          const Complex dC3c = ((dsx*ix + sx*dix - dsy*iy - sy*diy) - C3c*dx2dy2)*inv_x2y2;
+          
+          const Numeric& dC0 = reinterpret_cast<const Numeric (&)[2]>(dC0c)[0];
+          const Numeric& dC1 = reinterpret_cast<const Numeric (&)[2]>(dC1c)[0];
+          const Numeric& dC2 = reinterpret_cast<const Numeric (&)[2]>(dC2c)[0];
+          const Numeric& dC3 = reinterpret_cast<const Numeric (&)[2]>(dC3c)[0];
+          dT2[j].Mat4(i).noalias() = T.Mat4(i) * da + exp_a *
+          (Eigen::Matrix4d() << 
             dC0 + dC2 * ( b2 +  c2 +  d2) + C2 * (db2 + dc2 + dd2),
             db * C1 + b * dC1 + dC2 * (- c *  u -  d *  v) 
             +   C2 * (-dc *  u - dd *  v 
@@ -949,8 +861,7 @@ inline void dtransmat4(TransmissionMatrix& T,
             +    C3 * (-dc * ( b *  v +  c *  w) + du * ( b *  d +  u *  w) + dw * (- d2 +  v2 +  w2)
             -            c * (db *  v + dc *  w) +  u * (db *  d + du *  w) +  w * (-dd2 + dv2 + dw2)
             -            c * ( b * dv +  c * dw) +  u * ( b * dd +  u * dw)                          ),
-            dC0 + dC2 * ( d2 -  v2 -  w2) + C2 * (dd2 - dv2 - dw2)).finished() * exp_a;
-          }
+            dC0 + dC2 * ( d2 -  v2 -  w2) + C2 * (dd2 - dv2 - dw2)).finished();
         }
       }
     }

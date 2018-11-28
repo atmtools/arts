@@ -1,3 +1,12 @@
+2018-11-28  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1167
+	
+	* src/transmissionmatrix.cc:  Giving the same strange case
+	treatment for stokes_dim 4 as for stokes_dim 3.  Should make
+	this code better.  Still possible that some special cases exists
+	where the code does not work...
+
 2018-11-27  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1166
