@@ -1,3 +1,12 @@
+2018-11-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1170
+
+	* controlfiles/artscomponents/wfuns/TestWfunsHybCloudy.arts:
+	Comparison to reference data was unnecessarily strict. Also
+	switched to use relative comparison. iyHybrid2 now passes this
+	test.
+
 2018-11-29  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1169

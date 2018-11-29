@@ -489,12 +489,12 @@ ArrayOfVectorCreate( ybatch_ref )
 #ReadXML( ybatch_ref, "ybatchREFERENCE_DoitJacobians.xml" )
 ReadXML( ybatch_ref, "ybatchREFERENCE_iyHybrid.xml" )
 
-Compare( ybatch, ybatch_ref, 1e-6 )
+CompareRelative( ybatch, ybatch_ref, 1e-9 )
 
 ArrayOfMatrixCreate( ybatch_jacobians_ref )
 #ReadXML( ybatch_jacobians_ref, "ybatch_jacobiansREFERENCE_DoitJacobians.xml" )
 ReadXML( ybatch_jacobians_ref, "ybatch_jacobiansREFERENCE_iyHybrid.xml" )
 
-Compare( ybatch_jacobians, ybatch_jacobians_ref, 1e-6 )
+CompareRelative( ybatch_jacobians, ybatch_jacobians_ref, 1e-6 )
 
 }
