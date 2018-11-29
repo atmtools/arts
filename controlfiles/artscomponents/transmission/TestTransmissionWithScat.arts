@@ -30,7 +30,8 @@ Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 
 # Number of Stokes components to be computed
 #
-IndexSet( stokes_dim, 1 )
+IndexSet( stokes_dim, 4 )
+
 
 # Reference ellipsoid
 #
@@ -134,17 +135,6 @@ abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 
 
-# Calculate
-#
-iyCalc
-#output_file_formatSetAscii
-#WriteXML( output_file_format, iy, "clearREFERENCE.xml" )
-
-MatrixCreate( iyREFERENCE )
-ReadXML( iyREFERENCE, "clearREFERENCE.xml" )
-Compare( iy, iyREFERENCE, 1e-6 )
-
-
 # Set cloud
 cloudboxSetManually( p1=71617.7922264, p2=17111.6808705,
                      lat1=-1.9, lat2=1.9, lon1=-1.9, lon2=1.9 )
@@ -160,11 +150,13 @@ scat_data_checkedCalc
 ReadXML( pnd_field_raw, "artscomponents/montecarlo/pnd_field_raw.xml" )
 pnd_fieldCalcFrompnd_field_raw
 
-# Repeat the calculation
+
+# Calculate
 #
 iyCalc
 #WriteXML( output_file_format, iy, "cloudyREFERENCE.xml" )
 
+MatrixCreate( iyREFERENCE )
 ReadXML( iyREFERENCE, "cloudyREFERENCE.xml" )
 Compare( iy, iyREFERENCE, 1e-6 )
 

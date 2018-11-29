@@ -127,7 +127,6 @@ StringSet( iy_unit, "RJBT" )
 #
 yCalc
 
-Print(y,0)
 
 # Copy results
 #

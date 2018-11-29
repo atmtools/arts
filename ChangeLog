@@ -1,7 +1,25 @@
+2018-11-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1168
+
+	* controlfiles/artscomponents/wfuns/TestTjacStokes4_transmission.arts:
+	New test. So far uses iyTransmissionNonStandard. Fails for
+	iyTransmissionStandard, likely due ignored HSE.
+
+	* controlfiles/CMakeLists.txt: Added
+	TestTjacStokes4_transmission.arts as slow.
+
+	* controlfiles/artscomponents/transmission/TestTransmission.arts:
+	Now done with stokes_dim=4.
+
+	* controlfiles/artscomponents/transmission/TestTransmissionWithScat.arts:
+	The test from TestTransmission.arts was repeated. That part removed.
+	Also switched to stokes_dim=4.
+
 2018-11-28  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1167
-	
+
 	* src/transmissionmatrix.cc:  Giving the same strange case
 	treatment for stokes_dim 4 as for stokes_dim 3.  Should make
 	this code better.  Still possible that some special cases exists

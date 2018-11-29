@@ -28,7 +28,7 @@ Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 
 # Number of Stokes components to be computed
 #
-IndexSet( stokes_dim, 1 )
+IndexSet( stokes_dim, 4 )
 
 # Reference ellipsoid
 #

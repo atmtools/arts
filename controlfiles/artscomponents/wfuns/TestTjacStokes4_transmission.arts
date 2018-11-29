@@ -1,0 +1,190 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# This file tests temperature Jacobian calculations for transmission and fully
+# polarised simulations. 3D calculations applied, to allow Zeeman.
+#
+# One frequency is done, one around 118.75 GHz with a significant Zeeman
+# signature for all Stokes elements. Surface is set to be inside the
+# mesosphere, to get a "lagom" transmission for testing.
+#
+# 2018-11-29, Patrick Eriksson
+
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+
+# on-the-fly absorption, with Zeeman
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly_ZeemanPreCalc  )
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+
+# Geometrical path calculation (i.e., refraction neglected)
+#
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+# Standard transmission agenda
+#
+#Copy( iy_main_agenda, iy_main_agenda__Transmission )
+AgendaSet( iy_main_agenda ){
+  Ignore( iy_unit )
+  Ignore( iy_id )
+  ppathCalc( cloudbox_on=0 )
+  iyTransmissionNonStandard
+}
+
+
+
+# Frequencies and Stokes dim.
+#
+IndexSet( stokes_dim, 4 )
+VectorSet( f_grid, [118.751e9] )
+
+
+# Definition of species
+# 
+abs_speciesSet( species= [ "N2-SelfContStandardType",
+                           "O2-Z-66",
+                           "H2O-PWR98" ] )
+
+
+# Line data
+#
+ReadXML(abs_lines, "line_118ghz.xml")
+abs_lines_per_speciesCreateFromLines
+Wigner6Init(wigner_initialized, 40000, 100)
+zeeman_linerecord_precalcCreateFromLines
+
+
+# Atmosphere
+#
+AtmosphereSet3D
+VectorNLogSpace( p_grid, 101, 1, 0.05 )
+VectorSet( lat_grid, [-10,10] )
+Copy( lon_grid, lat_grid)
+AtmRawRead( basename = "testdata/tropical" )
+#
+AtmFieldsCalcExpand1D
+
+
+# Magnetic field
+#
+# Craete a synthetic field, where all componenets have the same value
+#
+Copy( mag_u_field, t_field )
+Tensor3Scale( mag_u_field, mag_u_field, 0 )
+Tensor3AddScalar( mag_u_field, mag_u_field, 25e-6 )
+Copy( mag_v_field, mag_u_field )
+Copy( mag_w_field, mag_u_field )
+
+
+# Transmitter
+#
+Extract( z_surface, z_field, 0 )
+
+
+# Transmitter
+#
+AgendaSet( iy_transmitter_agenda ){
+  Ignore( rtp_pos )
+  Ignore( rtp_los )
+  Ignore( f_grid )
+  MatrixSet( iy, [1.0,0.25,0.05,0.1] )
+}
+
+
+# Sensor pos and los
+#
+MatrixSet( sensor_pos, [820e3,0,0] )
+MatrixSet( sensor_los, [140,45] )
+
+
+# Define analytical Jacobian
+#
+jacobianInit
+jacobianAddTemperature( g1=p_grid, g2=lat_grid, g3=lon_grid, hse="on" )
+jacobianClose
+
+
+# Deactive parts not used
+#
+cloudboxOff
+sensorOff
+
+
+# Checks
+#
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
+atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+sensor_checkedCalc
+
+
+# HSE
+#
+VectorSet( lat_true, [0] )
+VectorSet( lon_true, [0] )
+#
+Extract( p_hse, p_grid, 0 )
+NumericSet( z_hse_accuracy, 0.5 )
+z_fieldFromHSE
+
+
+# Run RT calcs
+#
+StringSet( iy_unit, "RJBT" )
+#
+yCalc
+#
+#WriteXML( "ascii", y, "yREF4_trans.xml" )
+
+
+# Check y against reference
+#
+VectorCreate( yref )
+ReadXML( yref, "yREF4_trans.xml" )
+Compare( y, yref, 1e-5,
+         "Calculated *y* does not agree with saved reference values." )
+
+
+# Copy Jacobian
+#
+MatrixCreate( jcopy )
+Copy( jcopy, jacobian )
+
+
+# Save
+#
+#output_file_formatSetAscii
+#WriteXML( output_file_format, z_field, "z.xml" )
+#WriteXML( output_file_format, y, "y.xml" )
+#WriteXML( output_file_format, jacobian, "Ja.xml" )
+
+
+# Re-do by perturbations
+#
+jacobianInit
+jacobianAddTemperature( g1=p_grid, g2=lat_grid, g3=lon_grid, hse="on",
+                        method="perturbation", dt=0.1 )
+jacobianClose
+#
+yCalc
+#
+#WriteXML( output_file_format, jacobian, "Jp.xml" )
+
+
+# Compare Jacobians
+#
+Compare( jcopy, jacobian, 1e-7,
+         "Disagreement between analytic and perturbation Jacobian." )
+}
+ 
