@@ -1276,7 +1276,7 @@ void get_iy_of_background(
 void get_ppath_atmvars( 
         Vector&      ppath_p, 
         Vector&      ppath_t, 
-        Matrix&      ppath_t_nlte,
+        Matrix&      ppath_nlte,
         Matrix&      ppath_vmr, 
         Matrix&      ppath_wind, 
         Matrix&      ppath_mag,
@@ -1321,10 +1321,10 @@ void get_ppath_atmvars(
     
   // NLTE temperatures
   const Index nnlte = t_nlte_field.nbooks();
-  ppath_t_nlte.resize(nnlte,np);
+  ppath_nlte.resize(nnlte,np);
   for( Index itnlte=0; itnlte<nnlte;itnlte++ )
   {
-    interp_atmfield_by_itw( ppath_t_nlte(itnlte, joker),  atmosphere_dim, 
+    interp_atmfield_by_itw( ppath_nlte(itnlte, joker),  atmosphere_dim, 
                             t_nlte_field( itnlte, joker, joker, joker ), 
                             ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
   }

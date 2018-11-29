@@ -1,3 +1,26 @@
+2018-11-29  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1169
+	
+	* controlfiles/artscomponents/wfuns/TestTjacStokes4_transmission.arts:
+	Switch to Standard from NonStandard
+	
+	* src/m_fos.cc:  Made a iyHybrid2 solver as old NonStandard.
+	This clears one test but fails at another.
+	
+	* src/m_rte.cc: Made NonStandard→Standard and Standard→StandardOld
+	
+	* src/m_transmitter.cc: Made NonStandard→Standard and 
+	Standard→StandardOld
+	
+	* src/methods.cc:  Removed NonStandard's and added iyHybrid2
+	
+	* src/rte.cc:  Removed one of the t_nlte-things remaining.  Need
+	to go over everything and remove these names sometime
+	
+	* src/transmissionmatrix.cc,h: Removed unused interfaces that was
+	used when testing this out.
+
 2018-11-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1168

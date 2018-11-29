@@ -49,13 +49,10 @@ public:
   T2(stokes_dim==2?nf:0, Eigen::Matrix2d::Identity()), 
   T1(stokes_dim==1?nf:0, Eigen::Matrix<double, 1, 1>::Identity())
   { assert(stokes_dim < 5 and stokes_dim > 0); }
-  TransmissionMatrix(TransmissionMatrix&&tm) : 
-  stokes_dim(std::move(tm.stokes_dim)), T4(std::move(tm.T4)),
-  T3(std::move(tm.T3)), T2(std::move(tm.T2)), T1(std::move(tm.T1))
-  { }
-  TransmissionMatrix(const TransmissionMatrix& tm) : 
-  stokes_dim(tm.stokes_dim), T4(tm.T4), T3(tm.T3), T2(tm.T2), T1(tm.T1)
-  { }
+  TransmissionMatrix(TransmissionMatrix&& tm)                 = default;
+  TransmissionMatrix(const TransmissionMatrix& tm)            = default;
+  TransmissionMatrix& operator=(const TransmissionMatrix& tm) = default;
+  TransmissionMatrix& operator=(TransmissionMatrix&& tm)      = default;
   
   operator Tensor3() const {
     Tensor3 T(Frequencies(), stokes_dim, stokes_dim);
@@ -90,25 +87,6 @@ public:
     for(size_t i=0; i<T1.size(); i++) T1[i].noalias() = A.T1[i] * B.T1[i];
   }
   
-  void setZero4(Index i) {T4[i].setZero();}
-  void setZero3(Index i) {T3[i].setZero();}
-  void setZero2(Index i) {T2[i].setZero();}
-  void setZero1(Index i) {T1[i].setZero();}
-  
-  void set4(Eigen::Matrix4d&& O, Index i) {T4[i]=std::move(O);}
-  void set4(const Eigen::Matrix4d& O, Index i) {T4[i]=O;}
-  
-  void set3(Eigen::Matrix3d&& O, Index i) {T3[i]=std::move(O);}
-  void set3(const Eigen::Matrix3d& O, Index i) {T3[i]=O;}
-  
-  void set2(Eigen::Matrix2d&& O, Index i) {T2[i]=std::move(O);}
-  void set2(const Eigen::Matrix2d& O, Index i) {T2[i]=O;}
-  
-  void set1(Eigen::Matrix<double, 1, 1>&& O, Index i) {T1[i]=std::move(O);}
-  void set1(const Eigen::Matrix<double, 1, 1>& O, Index i) {T1[i]=O;}
-  void set1(const Numeric& O, Index i) {T1[i](0, 0)=O;}
-  void set1(Numeric&& O, Index i) {T1[i](0, 0)=std::move(O);}
-  
   const Numeric& operator()(const Index i, const Index j, const Index k) const {
     switch(stokes_dim) {
       case 4: return T4[i](j, k);
@@ -126,24 +104,6 @@ public:
       case 2: return Index(T2.size());
       default: return Index(T1.size());
     }
-  }
-  
-  TransmissionMatrix& operator=(const TransmissionMatrix& tm) {
-    stokes_dim = tm.stokes_dim;
-    T4 = tm.T4;
-    T3 = tm.T3;
-    T2 = tm.T2;
-    T1 = tm.T1;
-    return *this;
-  }
-  
-  TransmissionMatrix& operator=(TransmissionMatrix&& tm) {
-    stokes_dim = std::move(tm.stokes_dim);
-    T4 = std::move(tm.T4);
-    T3 = std::move(tm.T3);
-    T2 = std::move(tm.T2);
-    T1 = std::move(tm.T1);
-    return *this;
   }
   
   friend std::ostream& operator<<(std::ostream& os, const TransmissionMatrix& tm);
@@ -165,12 +125,25 @@ public:
   R2(stokes_dim==2?nf:0, Eigen::Vector2d::Zero()), 
   R1(stokes_dim==1?nf:0, Eigen::Matrix<double, 1, 1>::Zero())
   { assert(stokes_dim < 5 and stokes_dim > 0); }
+  RadiationVector(RadiationVector&& rv)                 = default;
+  RadiationVector(const RadiationVector& rv)            = default;
+  RadiationVector& operator=(const RadiationVector& rv) = default;
+  RadiationVector& operator=(RadiationVector&& rv)      = default;
   
   void leftMul(const TransmissionMatrix& T) {
     for(size_t i=0; i<R4.size(); i++) R4[i] = T.Mat4(i) * R4[i];
     for(size_t i=0; i<R3.size(); i++) R3[i] = T.Mat3(i) * R3[i];
     for(size_t i=0; i<R2.size(); i++) R2[i] = T.Mat2(i) * R2[i];
     for(size_t i=0; i<R1.size(); i++) R1[i] = T.Mat1(i) * R1[i];
+  }
+  
+  void SetZero(size_t i) {
+    switch(stokes_dim) {
+      case 4: R4[i].noalias()=Eigen::Vector4d::Zero(); break;
+      case 3: R3[i].noalias()=Eigen::Vector3d::Zero(); break;
+      case 2: R2[i].noalias()=Eigen::Vector2d::Zero(); break;
+      case 1: R1[i][0]=0; break;
+    }
   }
   
   const Eigen::Vector4d& Vec4(size_t i) const {return R4[i];}
@@ -182,94 +155,6 @@ public:
   Eigen::Vector3d& Vec3(size_t i) {return R3[i];}
   Eigen::Vector2d& Vec2(size_t i) {return R2[i];}
   Eigen::Matrix<double, 1, 1>& Vec1(size_t i) {return R1[i];}
-  
-  void leftMul4(const Eigen::Matrix4d& X, Index i) {R4[i] = X * R4[i];}
-  void leftMul3(const Eigen::Matrix3d& X, Index i) {R3[i] = X * R3[i];}
-  void leftMul2(const Eigen::Matrix2d& X, Index i) {R2[i] = X * R2[i];}
-  void leftMul1(const Eigen::Matrix<double, 1, 1>& X, Index i) {R1[i] = X * R1[i];}
-  
-  RadiationVector& operator-=(const RadiationVector& O) {
-    for(size_t i=0; i<R4.size(); i++) R4[i].noalias() -= O.R4[i];
-    for(size_t i=0; i<R3.size(); i++) R3[i].noalias() -= O.R3[i];
-    for(size_t i=0; i<R2.size(); i++) R2[i].noalias() -= O.R2[i];
-    for(size_t i=0; i<R1.size(); i++) R1[i].noalias() -= O.R1[i];
-    return *this;
-  }
-  
-  RadiationVector& operator+=(const RadiationVector& O) {
-    for(size_t i=0; i<R4.size(); i++) R4[i].noalias() += O.R4[i];
-    for(size_t i=0; i<R3.size(); i++) R3[i].noalias() += O.R3[i];
-    for(size_t i=0; i<R2.size(); i++) R2[i].noalias() += O.R2[i];
-    for(size_t i=0; i<R1.size(); i++) R1[i].noalias() += O.R1[i];
-    return *this;
-  }
-  
-  RadiationVector& operator/=(const Numeric& O) {
-    for(auto& R: R4) R /= O;
-    for(auto& R: R3) R /= O;
-    for(auto& R: R2) R /= O;
-    for(auto& R: R1) R /= O;
-    return *this;
-  }
-  
-  RadiationVector& operator*=(const Numeric& O) {
-    for(auto& R: R4) R *= O;
-    for(auto& R: R3) R *= O;
-    for(auto& R: R2) R *= O;
-    for(auto& R: R1) R *= O;
-    return *this;
-  }
-  
-  RadiationVector& operator=(const StokesVector& s) {
-    assert(s.NumberOfAzimuthAngles() == 1);
-    assert(s.NumberOfZenithAngles() == 1);
-    for(size_t i=0; i<R4.size(); i++) R4[i] << s.Kjj()[i], s.K12()[i], s.K13()[i], s.K14()[i];
-    for(size_t i=0; i<R3.size(); i++) R3[i] << s.Kjj()[i], s.K12()[i], s.K13()[i];
-    for(size_t i=0; i<R2.size(); i++) R2[i] << s.Kjj()[i], s.K12()[i];
-    for(size_t i=0; i<R1.size(); i++) R1[i][0] = s.Kjj()[i];
-    return *this;
-  }
-  
-  RadiationVector& operator*=(const ConstVectorView& v) {
-    for(size_t i=0; i<R4.size(); i++) R4[i] *= v[i];
-    for(size_t i=0; i<R3.size(); i++) R3[i] *= v[i];
-    for(size_t i=0; i<R2.size(); i++) R2[i] *= v[i];
-    for(size_t i=0; i<R1.size(); i++) R1[i][0] *= v[i];
-    return *this;
-  }
-  
-  RadiationVector& operator+=(const StokesVector& s) {
-    assert(s.NumberOfAzimuthAngles() == 1);
-    assert(s.NumberOfZenithAngles() == 1);
-    for(size_t i=0; i<R4.size(); i++) R4[i].noalias() += Eigen::Vector4d(s.Kjj()[i], s.K12()[i], s.K13()[i], s.K14()[i]);
-    for(size_t i=0; i<R3.size(); i++) R3[i].noalias() += Eigen::Vector3d(s.Kjj()[i], s.K12()[i], s.K13()[i]);
-    for(size_t i=0; i<R2.size(); i++) R2[i].noalias() += Eigen::Vector2d(s.Kjj()[i], s.K12()[i]);
-    for(size_t i=0; i<R1.size(); i++) R1[i][0] += s.Kjj()[i];
-    return *this;
-  }
-  
-  void set(const RadiationVector& O, Index i) {
-    switch(stokes_dim) {
-      case 4: R4[i] = O.R4[i]; break;
-      case 3: R3[i] = O.R3[i]; break;
-      case 2: R2[i] = O.R2[i]; break;
-      default: R1[i] = O.R1[i]; break;
-    }
-  }
-  
-  void set(const Numeric& O, Index i) {
-    switch(stokes_dim) {
-      case 4: R4[i] = Eigen::Vector4d::Constant(O); break;
-      case 3: R3[i] = Eigen::Vector3d::Constant(O); break;
-      case 2: R2[i] = Eigen::Vector2d::Constant(O); break;
-      default: R1[i][0] = O; break;
-    }
-  }
-  
-  void add4(const Eigen::Vector4d& O, Index i) {R4[i].noalias() += O;}
-  void add3(const Eigen::Vector3d& O, Index i) {R3[i].noalias() += O;}
-  void add2(const Eigen::Vector2d& O, Index i) {R2[i].noalias() += O;}
-  void add1(const Eigen::Matrix<double, 1, 1>& O, Index i) {R1[i].noalias() += O;}
   
   void rem_avg(const RadiationVector& O1, const RadiationVector& O2) {
     for(size_t i=0; i<R4.size(); i++) R4[i].noalias() -= 0.5 * (O1.R4[i] + O2.R4[i]);

@@ -32,13 +32,7 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
 # Standard transmission agenda
 #
-#Copy( iy_main_agenda, iy_main_agenda__Transmission )
-AgendaSet( iy_main_agenda ){
-  Ignore( iy_unit )
-  Ignore( iy_id )
-  ppathCalc( cloudbox_on=0 )
-  iyTransmissionNonStandard
-}
+Copy( iy_main_agenda, iy_main_agenda__Transmission )
 
 
 

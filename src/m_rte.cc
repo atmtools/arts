@@ -185,7 +185,7 @@ void iyCalc(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyEmissionStandard(
+void iyEmissionStandardOld(
         Workspace&                  ws,
         Matrix&                     iy,
         ArrayOfMatrix&              iy_aux,
@@ -577,7 +577,7 @@ void iyEmissionStandard(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyEmissionNonStandard(
+void iyEmissionStandard(
   Workspace&                  ws,
   Matrix&                     iy,
   ArrayOfMatrix&              iy_aux,
@@ -757,10 +757,10 @@ void iyEmissionNonStandard(
         }
       )
     }
+    const bool temperature_jacobian = j_analytical_do and do_temperature_jacobian(jacobian_quantities);
     
     // Loop ppath points and determine radiative properties
     for( Index ip=0; ip<np; ip++ ) {
-      bool temperature_jacobian = j_analytical_do and do_temperature_jacobian(jacobian_quantities);
       
       get_stepwise_blackbody_radiation( B,
                                         dB_dT,

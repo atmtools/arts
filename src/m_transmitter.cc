@@ -665,7 +665,7 @@ void iyRadioLink(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyTransmissionStandard(
+void iyTransmissionStandardOld(
         Workspace&                          ws,
         Matrix&                             iy,
         ArrayOfMatrix&                      iy_aux,
@@ -1029,7 +1029,7 @@ void iyTransmissionStandard(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyTransmissionNonStandard(
+void iyTransmissionStandard(
   Workspace&                          ws,
   Matrix&                             iy,
   ArrayOfMatrix&                      iy_aux,

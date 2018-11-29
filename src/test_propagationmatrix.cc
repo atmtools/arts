@@ -350,7 +350,7 @@ void test_transmissionmatrix()
   Eigen::Matrix4d A;
   A << 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16;
   std::cout << "New Matrix:\n" << A << "\n\n";
-  a.set4(A, 1);
+  a.Mat4(0) = A;
   std::cout << "Updated TransmissionMatrix Position 1 wit New Matrix:\n" << a << "\n";
   
   // The stream can also set the values
@@ -368,7 +368,7 @@ void test_transmissionmatrix()
   Eigen::Vector3d B;
   B << 1,2,3;
   std::cout << "New Vector:\n" << B << "\n\n";  // nb. not transposed
-  b.add3(B, 1);
+  b.Vec3(1).noalias()+=B;
   std::cout << "Updated RadiationVector Position 1 with New Vector:\n" << b << "\n";
   
   // The stream can also set the values

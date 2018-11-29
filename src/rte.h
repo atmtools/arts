@@ -183,7 +183,7 @@ void get_iy_of_background(
 void get_ppath_atmvars( 
         Vector&      ppath_p, 
         Vector&      ppath_t, 
-        Matrix&      ppath_t_nlte,
+        Matrix&      ppath_nlte,
         Matrix&      ppath_vmr, 
         Matrix&      ppath_wind, 
         Matrix&      ppath_mag,

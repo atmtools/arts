@@ -30,12 +30,12 @@
 #include "complex.h"
 
 
-inline Eigen::Matrix<double, 1, 1> vector1(const StokesVector& a, const ConstVectorView& B, const StokesVector& da, const ConstVectorView& dB_dT, const StokesVector& dS, bool dT, Index i) noexcept
+inline Numeric vector1(const StokesVector& a, const ConstVectorView& B, const StokesVector& da, const ConstVectorView& dB_dT, const StokesVector& dS, bool dT, Index i) noexcept
 {
   if(dT)
-    return Eigen::Matrix<double, 1, 1>(dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i]);
+    return dS.Kjj()[i] + da.Kjj()[i] * B[i] + a.Kjj()[i] * dB_dT[i];
   else
-    return Eigen::Matrix<double, 1, 1>(dS.Kjj()[i] + da.Kjj()[i] * B[i]);
+    return dS.Kjj()[i] + da.Kjj()[i] * B[i];
 }
 
 
@@ -949,10 +949,10 @@ void stepwise_source(RadiationVector& J,
 {
   for(Index i=0; i<K.NumberOfFrequencies(); i++) {
     if(K.IsRotational(i)) {
-      J.set(0, i);
+      J.SetZero(i);
       for(Index j=0; j<jacobian_quantities.nelem(); j++)
         if(jacobian_quantities[j].Analytical())
-          dJ[j].set(0, i);
+          dJ[j].SetZero(i);
     }
     else {
       J.setSource(a, B, S, i);
@@ -961,55 +961,40 @@ void stepwise_source(RadiationVector& J,
           const auto invK = inv4(K.Kjj()[i], K.K12()[i], K.K13()[i], K.K14()[i],
                                  K.K23()[i], K.K24()[i], K.K34()[i]);
           J.Vec4(i) = invK * J.Vec4(i);
-          if(jacobian_do) {
-            for(Index j=0; j<jacobian_quantities.nelem(); j++) {
-              if(jacobian_quantities[j].Analytical()) {
-                const auto t1 = vector4(a, B, da[j], dB_dT, dS[j], jacobian_quantities[j].IsTemperature(), i);
-                const auto t2 = matrix4(dK[j].Kjj()[i], dK[j].K12()[i], dK[j].K13()[i], dK[j].K14()[i],
-                                       dK[j].K23()[i], dK[j].K24()[i], dK[j].K34()[i]);
-                dJ[j].Vec4(i).noalias() = 0.5 * invK * (t1 - t2 * J.Vec4(i));
-              }
-            }
-          }
+          if(jacobian_do)
+            for(Index j=0; j<jacobian_quantities.nelem(); j++)
+              if(jacobian_quantities[j].Analytical())
+                dJ[j].Vec4(i).noalias() = 0.5 * invK * (
+                  vector4(a, B, da[j], dB_dT, dS[j], jacobian_quantities[j].IsTemperature(), i) - 
+                  matrix4(dK[j].Kjj()[i], dK[j].K12()[i], dK[j].K13()[i], dK[j].K14()[i], dK[j].K23()[i], dK[j].K24()[i], dK[j].K34()[i]) * J.Vec4(i));
         } break;
         case 3: {
           const auto invK = inv3(K.Kjj()[i], K.K12()[i], K.K13()[i], K.K23()[i]);
           J.Vec3(i) = invK * J.Vec3(i);
-          if(jacobian_do) {
-            for(Index j=0; j<jacobian_quantities.nelem(); j++) {
-              if(jacobian_quantities[j].Analytical()) {
-                const auto t1 = vector3(a, B, da[j], dB_dT, dS[j], jacobian_quantities[j].IsTemperature(), i);
-                const auto t2 = matrix3(dK[j].Kjj()[i], dK[j].K12()[i], dK[j].K13()[i], dK[j].K23()[i]);
-                dJ[j].Vec3(i).noalias() = 0.5 * invK * (t1 - t2 * J.Vec3(i));
-              }
-            }
-          }
+          if(jacobian_do)
+            for(Index j=0; j<jacobian_quantities.nelem(); j++)
+              if(jacobian_quantities[j].Analytical())
+                dJ[j].Vec3(i).noalias() = 0.5 * invK * (
+                  vector3(a, B, da[j], dB_dT, dS[j], jacobian_quantities[j].IsTemperature(), i) -
+                  matrix3(dK[j].Kjj()[i], dK[j].K12()[i], dK[j].K13()[i], dK[j].K23()[i])* J.Vec3(i));
         } break;
         case 2: {
           const auto invK = inv2(K.Kjj()[i], K.K12()[i]);
           J.Vec2(i) = invK * J.Vec2(i);
-          if(jacobian_do) {
-            for(Index j=0; j<jacobian_quantities.nelem(); j++) {
-              if(jacobian_quantities[j].Analytical()) {
-                const auto t1 = vector2(a, B, da[j], dB_dT, dS[j], jacobian_quantities[j].IsTemperature(), i);
-                const auto t2 = matrix2(dK[j].Kjj()[i], dK[j].K12()[i]);
-                dJ[j].Vec2(i).noalias() = 0.5 * invK * (t1 - t2 * J.Vec2(i));
-              }
-            }
-          }
+          if(jacobian_do)
+            for(Index j=0; j<jacobian_quantities.nelem(); j++)
+              if(jacobian_quantities[j].Analytical())
+                dJ[j].Vec2(i).noalias() = 0.5 * invK * (
+                  vector2(a, B, da[j], dB_dT, dS[j], jacobian_quantities[j].IsTemperature(), i) -
+                  matrix2(dK[j].Kjj()[i], dK[j].K12()[i]) * J.Vec2(i));
         } break;
         default: {
-          const auto invK = inv1(K.Kjj()[i]);
-          J.Vec1(i) = invK * J.Vec1(i);
-          if(jacobian_do) {
-            for(Index j=0; j<jacobian_quantities.nelem(); j++) {
-              if(jacobian_quantities[j].Analytical()) {
-                const auto t1 = vector1(a, B, da[j], dB_dT, dS[j], jacobian_quantities[j].IsTemperature(), i);
-                const auto t2 = matrix1(dK[j].Kjj()[i]);
-                dJ[j].Vec1(i).noalias() = 0.5 * invK * (t1 - t2 * J.Vec1(i));
-              }
-            }
-          }
+          const auto invK = 1/K.Kjj()[i];
+          J.Vec1(i)[0] *= invK;
+          if(jacobian_do)
+            for(Index j=0; j<jacobian_quantities.nelem(); j++)
+              if(jacobian_quantities[j].Analytical())
+                dJ[j].Vec1(i)[0] = 0.5 * invK * (vector1(a, B, da[j], dB_dT, dS[j], jacobian_quantities[j].IsTemperature(), i) - dK[j].Kjj()[i] * J.Vec1(i)[0]);
         } break;
       }
     }
